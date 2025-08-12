@@ -6,11 +6,11 @@ LATEXMK ?= latexmk
 BASH ?= /bin/bash
 #-quiet
 
-# Location of Python Pickle file containg doctest tests and test results formatted for LaTeX
-DOCTEST_LATEX_DATA_PCL ?= $(HOME)/.local/var/mathics/doctest_latex_data.pcl
+# Location of Python Pickle file containing doctest tests and test results formatted for LaTeX
+DOCTEST_LATEX_DATA_PCL ?= $(HOME)/.local/var/Mathics3/doctest_latex_data.pcl
 
 # Variable indicating Mathics3 Modules you have available on your system, in latex2doc option format
-MATHICS3_MODULE_OPTION ?=--load-module pymathics.graph,pymathics.natlang
+MATHICS3_MODULE_OPTION ?=--load-module pymathics.trepan,pymathics.graph,pymathics.natlang
 
 #: Default target: Make everything
 all doc texdoc: mathics.pdf
@@ -22,7 +22,10 @@ doc-data $(DOCTEST_LATEX_DATA_PCL):
 mathics-title.pdf:
 	cp mathics-title.pdf-src mathics-title.pdf
 
-#: Build mathics PDF
+#: Build somewhat incomplete mathics DVI
+mathics.dvi: mathics.tex documentation.tex
+	$(LATEXMK) -dvi -f --verbose mathics
+
 mathics.pdf: mathics.tex documentation.tex mathics-title.pdf logo-text-nodrop.pdf logo-heptatom.pdf version-info.tex $(DOCTEST_LATEX_DATA_PCL)
 	$(LATEXMK) --verbose -f -pdf -pdflatex="$(XETEX) -halt-on-error" mathics
 
@@ -40,7 +43,7 @@ logo-heptatom.pdf logo-text-nodrop.pdf:
 	(cd .. && $(BASH) ./images.sh)
 
 #: The build of the documentation which is derived from docstrings in the Python code and doctest data
-documentation.tex: $(DOCTEST_LATEX_DATA_PCL) 1-Manual.mdoc
+documentation.tex: $(DOCTEST_LATEX_DATA_PCL) ../documentation/1-Manual.mdoc
 	$(PYTHON) ./doc2latex.py $(MATHICS3_MODULE_OPTION) && $(BASH) ./sed-hack.sh
 
 #: Same as mathics.pdf

@@ -16,14 +16,13 @@ Procedural functions are integrated into \\Mathics symbolic programming \
 environment.
 """
 
-
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_REST,
     A_PROTECTED,
     A_READ_PROTECTED,
 )
-from mathics.core.builtin import BinaryOperator, Builtin, IterationFunction
+from mathics.core.builtin import Builtin, InfixOperator, IterationFunction
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.interrupt import (
@@ -34,20 +33,21 @@ from mathics.core.interrupt import (
     WLThrowInterrupt,
 )
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolNull, SymbolTrue
-from mathics.core.systemsymbols import SymbolMatchQ
+from mathics.core.systemsymbols import SymbolMatchQ, SymbolPause
+from mathics.eval.datetime import eval_pause, valid_time_from_expression
 from mathics.eval.patterns import match
 
 SymbolWhich = Symbol("Which")
 
 
 class Abort(Builtin):
-    """
+    r"""
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/Abort.html</url>
 
     <dl>
       <dt>'Abort[]'
-      <dd>aborts an evaluation completely and returns '$Aborted'.
+      <dd>aborts an evaluation completely and returns '\$Aborted'.
     </dl>
 
     >> Print["a"]; Abort[]; Print["b"]
@@ -95,15 +95,15 @@ class Catch(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Catch.html</url>
 
     <dl>
-      <dt>'Catch[$expr$]'
+      <dt>'Catch'[$expr$]
       <dd> returns the argument of the first 'Throw' generated in the evaluation of
            $expr$.
 
-      <dt>'Catch[$expr$, $form$]'
+      <dt>'Catch'[$expr$, $form$]
       <dd> returns value from the first 'Throw[$value$, $tag$]' for which $form$ matches
            $tag$.
 
-      <dt>'Catch[$expr$, $form$, $f$]'
+      <dt>'Catch'[$expr$, $form$, $f$]
       <dd> returns $f$[$value$, $tag$].
     </dl>
 
@@ -158,7 +158,7 @@ class CheckAbort(Builtin):
     https://reference.wolfram.com/language/ref/CheckAbort.html</url>
 
     <dl>
-      <dt>'CheckAbort[$expr$, $failexpr$]'
+      <dt>'CheckAbort'[$expr$, $failexpr$]
         <dd>evaluates $expr$, returning $failexpr$ if an abort occurs.
     </dl>
 
@@ -182,14 +182,14 @@ class CheckAbort(Builtin):
             return failexpr
 
 
-class CompoundExpression(BinaryOperator):
+class CompoundExpression(InfixOperator):
     """
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/CompoundExpression.html</url>
 
     <dl>
-      <dt>'CompoundExpression[$e1$, $e2$, ...]'
-      <dt>'$e1$; $e2$; ...'
+      <dt>'CompoundExpression'[$e_1$, $e_2$, ...]
+      <dt>$e_1$';' $e_2$';' ...
         <dd>evaluates its arguments in turn, returning the last result.
     </dl>
 
@@ -200,7 +200,6 @@ class CompoundExpression(BinaryOperator):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED | A_READ_PROTECTED
-    operator = ";"
 
     summary_text = "execute expressions in sequence"
 
@@ -217,7 +216,7 @@ class CompoundExpression(BinaryOperator):
             # `expr1; expr2;` returns `Null` but assigns `expr2` to
             # `Out[n]`.  even stranger `CompoundExpression[expr1,
             # Null, Null]` assigns `expr1` to `Out[n]`.
-            if result is SymbolNull and prev_result != SymbolNull:
+            if result is SymbolNull and prev_result is not SymbolNull:
                 evaluation.predetermined_out = prev_result
 
         return result
@@ -256,25 +255,25 @@ class Do(IterationFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Do.html</url>
 
     <dl>
-      <dt>'Do[$expr$, {$max$}]'
+      <dt>'Do'[$expr$, {$max$}]
       <dd>evaluates $expr$ $max$ times.
 
-      <dt>'Do[$expr$, {$i$, $max$}]'
+      <dt>'Do'[$expr$, {$i$, $max$}]
       <dd>evaluates $expr$ $max$ times, substituting $i$ in $expr$ with values from 1 to
           $max$.
 
-      <dt>'Do[$expr$, {$i$, $min$, $max$}]'
+      <dt>'Do'[$expr$, {$i$, $min$, $max$}]
       <dd>starts with '$i$ = $max$'.
 
-      <dt>'Do[$expr$, {$i$, $min$, $max$, $step$}]'
+      <dt>'Do'[$expr$, {$i$, $min$, $max$, $step$}]
       <dd>uses a step size of $step$.
 
-      <dt>'Do[$expr$, {$i$, {$i1$, $i2$, ...}}]'
-      <dd>uses values $i1$, $i2$, ... for $i$.
+      <dt>'Do'[$expr$, {$i$, {$i_1$, $i_2$, ...}}]
+      <dd>uses values $i_1$, $i_2$, ... for $i$.
 
-      <dt>'Do[$expr$, {$i$, $imin$, $imax$}, {$j$, $jmin$, $jmax$}, ...]'
-      <dd>evaluates $expr$ for each $j$ from $jmin$ to $jmax$, for each $i$ from $imin$
-          to $imax$, etc.
+      <dt>'Do'[$expr$, {$i$, $i_{min}$, $i_{max}$}, {$j$, $j_{min}$, $j_{max}$}, ...]
+      <dd>evaluates $expr$ for each $j$ from $j_{min}$ to $j_{max}$, for each $i$ from $i_{min}$
+          to $i_{max}$, etc.
     </dl>
 
     >> Do[Print[i], {i, 2, 4}]
@@ -307,14 +306,14 @@ class For(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/For.html</url>
 
     <dl>
-      <dt>'For[$start$, $test$, $incr$, $body$]'
+      <dt>'For'[$start$, $test$, $incr$, $body$]
       <dd>evaluates $start$, and then iteratively $body$ and $incr$ as long as $test$
           evaluates to 'True'.
 
-      <dt>'For[$start$, $test$, $incr$]'
+      <dt>'For'[$start$, $test$, $incr$]
       <dd>evaluates only $incr$ and no $body$.
 
-      <dt>'For[$start$, $test$]'
+      <dt>'For'[$start$, $test$]
       <dd>runs the loop without any body.
     </dl>
 
@@ -359,14 +358,14 @@ class If(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/If.html</url>
 
     <dl>
-      <dt>'If[$cond$, $pos$, $neg$]'
+      <dt>'If'[$cond$, $pos$, $neg$]
       <dd>returns $pos$ if $cond$ evaluates to 'True', and $neg$ if it evaluates to
           'False'.
 
-      <dt>'If[$cond$, $pos$, $neg$, $other$]'
+      <dt>'If'[$cond$, $pos$, $neg$, $other$]
       <dd>returns $other$ if $cond$ evaluates to neither 'True' nor 'False'.
 
-      <dt>'If[$cond$, $pos$]'
+      <dt>'If'[$cond$, $pos$]
       <dd>returns 'Null' if $cond$ evaluates to 'False'.
     </dl>
 
@@ -417,12 +416,12 @@ class If(Builtin):
 
 
 class Interrupt(Builtin):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/Interrupt.html</url>
 
     <dl>
       <dt>'Interrupt[]'
-      <dd>Interrupt an evaluation and returns '$Aborted'.
+      <dd>Interrupt an evaluation and returns '\$Aborted'.
     </dl>
 
     >> Print["a"]; Interrupt[]; Print["b"]
@@ -438,13 +437,47 @@ class Interrupt(Builtin):
         raise AbortInterrupt
 
 
+class Pause(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Pause.html</url>
+
+    <dl>
+    <dt>'Pause[n]'
+      <dd>pauses for at least $n$ seconds.
+    </dl>
+
+    >> Pause[0.5]
+    """
+
+    messages = {
+        "numnm": (
+            "Non-negative machine-sized number expected at " "position 1 in `1`."
+        ),
+    }
+
+    summary_text = "pause for a number of seconds"
+
+    # Number of timeout polls per second that we perform in looking
+    # for a timeout.
+
+    def eval(self, n, evaluation: Evaluation):
+        "Pause[n_]"
+        try:
+            sleep_time = valid_time_from_expression(n, evaluation)
+        except ValueError:
+            evaluation.message("Pause", "numnm", Expression(SymbolPause, n))
+            return
+        eval_pause(sleep_time, evaluation)
+        return SymbolNull
+
+
 class Return(Builtin):
     """
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/Return.html</url>
 
     <dl>
-      <dt>'Return[$expr$]'
+      <dt>'Return'[$expr$]
       <dd>aborts a function call and returns $expr$.
     </dl>
 
@@ -473,7 +506,6 @@ class Return(Builtin):
 
     def eval(self, expr, evaluation: Evaluation):
         "Return[expr_]"
-
         raise ReturnInterrupt(expr)
 
 
@@ -483,7 +515,7 @@ class Switch(Builtin):
     https://reference.wolfram.com/language/ref/Switch.html</url>
 
     <dl>
-      <dt>'Switch[$expr$, $pattern1$, $value1$, $pattern2$, $value2$, ...]'
+      <dt>'Switch'[$expr$, $pattern_1$, $value_1$, $pattern_2$, $value_2$, ...]
       <dd>yields the first $value$ for which $expr$ matches the corresponding \
           $pattern$.
     </dl>
@@ -584,8 +616,8 @@ class Which(Builtin):
     https://reference.wolfram.com/language/ref/Which.html</url>
 
     <dl>
-      <dt>'Which[$cond1$, $expr1$, $cond2$, $expr2$, ...]'
-      <dd>yields $expr1$ if $cond1$ evaluates to 'True', $expr2$ if $cond2$ \
+      <dt>'Which'[$cond_1$, $expr_1$, $cond_2$, $expr_2$, ...]
+      <dd>yields $expr_1$ if $cond_1$ evaluates to 'True', $expr_2$ if $cond_2$ \
           evaluates to 'True', etc.
     </dl>
 
@@ -646,10 +678,10 @@ class While(Builtin):
     https://reference.wolfram.com/language/ref/While.html</url>
 
     <dl>
-      <dt>'While[$test$, $body$]'
+      <dt>'While'[$test$, $body$]
       <dd>evaluates $body$ as long as $test$ evaluates to 'True'.
 
-      <dt>'While[$test$]'
+      <dt>'While'[$test$]
       <dd>runs the loop without any body.
     </dl>
 

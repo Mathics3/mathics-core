@@ -13,7 +13,7 @@ from itertools import permutations
 from typing import Optional, Tuple
 
 from mathics.builtin.box.layout import RowBox
-from mathics.core.atoms import Integer, is_integer_rational_or_real
+from mathics.core.atoms import Integer, Integer1, is_integer_rational_or_real
 from mathics.core.attributes import A_HOLD_FIRST, A_LISTABLE, A_LOCKED, A_PROTECTED
 from mathics.core.builtin import BasePattern, Builtin, IterationFunction
 from mathics.core.convert.expression import to_expression
@@ -23,7 +23,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, structure
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol
-from mathics.core.systemsymbols import SymbolNormal
+from mathics.core.systemsymbols import SymbolNormal, SymbolTuples
 from mathics.eval.lists import get_tuples, list_boxes
 
 
@@ -34,17 +34,17 @@ class Array(Builtin):
     https://reference.wolfram.com/language/ref/Array.html</url>
 
     <dl>
-      <dt>'Array[$f$, $n$]'
+      <dt>'Array'[$f$, $n$]
       <dd>returns the $n$-element list '{$f$[1], ..., $f$[$n$]}'.
 
-      <dt>'Array[$f$, $n$, $a$]'
+      <dt>'Array'[$f$, $n$, $a$]
       <dd>returns the $n$-element list '{$f$[$a$], ..., $f$[$a$ + $n$]}'.
 
-      <dt>'Array[$f$, {$n$, $m$}, {$a$, $b$}]'
+      <dt>'Array'[$f$, {$n$, $m$}, {$a$, $b$}]
       <dd>returns an $n$-by-$m$ matrix created by applying $f$ to indices \
           ranging from '($a$, $b$)' to '($a$ + $n$, $b$ + $m$)'.
 
-      <dt>'Array[$f$, $dims$, $origins$, $h$]'
+      <dt>'Array'[$f$, $dims$, $origins$, $h$]
       <dd>returns an expression with the specified dimensions and index origins, \
           with head $h$ (instead of 'List').
     </dl>
@@ -117,7 +117,7 @@ class ConstantArray(Builtin):
     https://reference.wolfram.com/language/ref/ConstantArray.html</url>
 
     <dl>
-      <dt>'ConstantArray[$expr$, $n$]'
+      <dt>'ConstantArray'[$expr$, $n$]
       <dd>returns a list of $n$ copies of $expr$.
     </dl>
 
@@ -139,9 +139,9 @@ class List(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/List.html</url>
 
     <dl>
-      <dt>'List[$e1$, $e2$, ..., $ei$]'
-      <dt>'{$e1$, $e2$, ..., $ei$}'
-      <dd>represents a list containing the elements $e1$...$ei$.
+      <dt>'List'[$e_1$, $e_2$, ..., $ei$]
+      <dt>'{$e_1$, $e_2$, ..., $ei$}'
+      <dd>represents a list containing the elements $e_1$...$ei$.
     </dl>
 
     'List' is the head of lists:
@@ -156,7 +156,7 @@ class List(Builtin):
     attributes = A_LOCKED | A_PROTECTED
     summary_text = "form a list"
 
-    def eval(self, elements, evaluation):
+    def eval(self, elements, evaluation: Evaluation):
         """List[elements___]"""
         # Pick out the elements part of the parameter elements;
         # we we will call that `elements_part_of_elements__`.
@@ -219,13 +219,13 @@ class Range(Builtin):
     https://reference.wolfram.com/language/ref/Range.html</url>
 
     <dl>
-      <dt>'Range[$n$]'
+      <dt>'Range'[$n$]
       <dd>returns a list of integers from 1 to $n$.
 
-      <dt>'Range[$a$, $b$]'
+      <dt>'Range'[$a$, $b$]
       <dd>returns a list of (Integer, Rational, Real) numbers from $a$ to $b$.
 
-      <dt>'Range[$a$, $b$, $di$]'
+      <dt>'Range'[$a$, $b$, $di$]
       <dd>returns a list of numbers from $a$ to $b$ using step $di$.
         More specifically, 'Range' starts from $a$ and successively adds \
         increments of $di$ until the result is greater (if $di$ > 0) or \
@@ -309,13 +309,13 @@ class Permutations(Builtin):
     https://reference.wolfram.com/language/ref/Permutations.html</url>
 
     <dl>
-      <dt>'Permutations[$list$]'
+      <dt>'Permutations'[$list$]
       <dd>gives all possible orderings of the items in $list$.
 
-      <dt>'Permutations[$list$, $n$]'
+      <dt>'Permutations'[$list$, $n$]
       <dd>gives permutations up to length $n$.
 
-      <dt>'Permutations[$list$, {$n$}]'
+      <dt>'Permutations'[$list$, {$n$}]
       <dd>gives permutations of length $n$.
     </dl>
 
@@ -390,21 +390,21 @@ class Reap(Builtin):
     https://reference.wolfram.com/language/ref/Reap.html</url>
 
     <dl>
-      <dt>'Reap[$expr$]'
+      <dt>'Reap'[$expr$]
       <dd>gives the result of evaluating $expr$, together with all values \
           sown during this evaluation. Values sown with different tags \
           are given in different lists.
 
-      <dt>'Reap[$expr$, $pattern$]'
+      <dt>'Reap'[$expr$, $pattern$]
       <dd>only yields values sown with a tag matching $pattern$.
         'Reap[$expr$]' is equivalent to 'Reap[$expr$, _]'.
 
-      <dt>'Reap[$expr$, {$pattern1$, $pattern2$, ...}]'
+      <dt>'Reap'[$expr$, {$pattern_1$, $pattern_2$, ...}]
       <dd>uses multiple patterns.
 
-      <dt>'Reap[$expr$, $pattern$, $f$]'
+      <dt>'Reap'[$expr$, $pattern$, $f$]
       <dd>applies $f$ on each tag and the corresponding values sown \
-          in the form '$f$[tag, {e1, e2, ...}]'.
+          in the form '$f$[$tag$, {$e_1$, $e_2$, ...}]'.
     </dl>
 
     >> Reap[Sow[3]; Sow[1]]
@@ -464,7 +464,7 @@ class Reap(Builtin):
         try:
             result = expr.evaluate(evaluation)
             items = []
-            for pattern, tags in sown:
+            for _, tags in sown:
                 list_of_elements = []
                 for tag, elements in tags:
                     list_of_elements.append(
@@ -481,13 +481,13 @@ class Sow(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Sow.html</url>
 
     <dl>
-      <dt>'Sow[$e$]'
+      <dt>'Sow'[$e$]
       <dd>sends the value $e$ to the innermost 'Reap'.
 
-      <dt>'Sow[$e$, $tag$]'
+      <dt>'Sow'[$e$, $tag$]
       <dd>sows $e$ using $tag$. 'Sow[$e$]' is equivalent to 'Sow[$e$, Null]'.
 
-      <dt>'Sow[$e$, {$tag1$, $tag2$, ...}]'
+      <dt>'Sow'[$e$, {$tag_1$, $tag_2$, ...}]
       <dd>uses multiple tags.
     </dl>
     """
@@ -508,24 +508,24 @@ class Sow(Builtin):
 
 
 class Table(IterationFunction):
-    """
+    r"""
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/Table.html</url>
 
     <dl>
-      <dt>'Table[$expr$, $n$]'
+      <dt>'Table'[$expr$, $n$]
       <dd>generates a list of $n$ copies of $expr$.
 
-      <dt>'Table[$expr$, {$i$, $n$}]'
+      <dt>'Table'[$expr$, {$i$, $n$}]
       <dd>generates a list of the values of expr when $i$ runs from 1 to $n$.
 
-      <dt>'Table[$expr$, {$i$, $start$, $stop$, $step$}]'
-      <dd>evaluates $expr$ with $i$ ranging from $start$ to $stop$,
+      <dt>'Table'[$expr$, {$i$, $start$, $stop$, $step$}]
+      <dd>evaluates $expr$ with $i$ ranging from $start$ to $stop$, \
         incrementing by $step$.
 
-      <dt>'Table[$expr$, {$i$, {$e1$, $e2$, ..., $ei$}}]'
-      <dd>evaluates $expr$ with $i$ taking on the values $e1$, $e2$,
+      <dt>'Table'[$expr$, {$i$, {$e_1$, $e_2$, ..., $ei$}}]
+      <dd>evaluates $expr$ with $i$ taking on the values $e_1$, $e_2$, \
         ..., $ei$.
     </dl>
 
@@ -576,10 +576,10 @@ class Tuples(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Tuples.html</url>
 
     <dl>
-      <dt>'Tuples[$list$, $n$]'
+      <dt>'Tuples'[$list$, $n$]
       <dd>returns a list of all $n$-tuples of elements in $list$.
 
-      <dt>'Tuples[{$list1$, $list2$, ...}]'
+      <dt>'Tuples'[{$list_1$, $list_2$, ...}]
       <dd>returns a list of tuples with elements from the given lists.
     </dl>
 
@@ -607,7 +607,7 @@ class Tuples(Builtin):
         "Tuples[expr_, n_Integer]"
 
         if isinstance(expr, Atom):
-            evaluation.message("Tuples", "normal")
+            evaluation.message("Tuples", "normal", Integer1, Expression(expr, n))
             return
         py_n = n.value
         if py_n is None or py_n < 0:
@@ -633,10 +633,12 @@ class Tuples(Builtin):
 
         exprs = exprs.get_sequence()
         items = []
-        for expr in exprs:
+        for i, expr in enumerate(exprs):
             evaluation.check_stopped()
             if isinstance(expr, Atom):
-                evaluation.message("Tuples", "normal")
+                evaluation.message(
+                    "Tuples", "normal", Integer(i + 1), Expression(SymbolTuples)
+                )
                 return
             items.append(expr.elements)
 

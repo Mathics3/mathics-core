@@ -2,7 +2,7 @@
 # cython: profile=False
 # -*- coding: utf-8 -*-
 """Core to Mathics3 is are patterns which match symbolic expressions. Patterns
-are built up in a custon pattern notation.
+are built up in a custom pattern notation.
 The parts of a pattern are called "Pattern Objects".
 
 While there is a built-in function which allows users to match parts of
@@ -16,13 +16,29 @@ https://reference.wolfram.com/language/tutorial/PatternsAndTransformationRules.h
 
 from abc import ABC
 from itertools import chain
-from typing import TYPE_CHECKING, Callable, Dict, Optional, Sequence, Tuple, Type, Union
+from typing import (
+    TYPE_CHECKING,
+    Callable,
+    Dict,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    Union,
+    overload,
+)
 
 from mathics.core.atoms import Integer
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_ORDERLESS
 from mathics.core.element import BaseElement, ensure_context
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression, SymbolDefault
+from mathics.core.expression import Expression
+from mathics.core.interrupt import TimeoutInterrupt
+from mathics.core.keycomparable import (
+    BASIC_ATOM_PATTERN_SORT_KEY,
+    BASIC_EXPRESSION_PATTERN_SORT_KEY,
+    END_OF_LIST_PATTERN_SORT_KEY,
+)
 from mathics.core.symbols import Atom, Symbol, symbol_set
 from mathics.core.systemsymbols import (
     SymbolAlternatives,
@@ -30,6 +46,7 @@ from mathics.core.systemsymbols import (
     SymbolBlankNullSequence,
     SymbolBlankSequence,
     SymbolCondition,
+    SymbolDefault,
     SymbolOptional,
     SymbolOptionsPattern,
     SymbolPattern,
@@ -226,19 +243,31 @@ class BasePattern(ABC):
         name = self.expr.get_name()
         return name.split("`")[-1] if short else name
 
-    def get_sequence(self):
-        """The sequence of elements in the expression"""
-        return self.expr.get_sequence()
-
-    def get_sort_key(self, pattern_sort: bool = False) -> tuple:
-        """The sort key of the expression"""
-        return self.expr.get_sort_key(pattern_sort=pattern_sort)
-
     def get_option_values(
         self, evaluation: Evaluation, allow_symbols=False, stop_on_error=True
     ) -> Optional[dict]:
         """Option values of the expression"""
         return self.expr.get_option_values(evaluation, allow_symbols, stop_on_error)
+
+    def get_sequence(self):
+        """The sequence of elements in the expression"""
+        return self.expr.get_sequence()
+
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_order
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return build_pattern_sort_key(self)
 
     def has_form(
         self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
@@ -314,11 +343,19 @@ class BasePattern(ABC):
         """Return the number of candidates that match with the pattern."""
         return len(self.get_match_candidates(elements, pattern_context))
 
+    @overload
+    def sameQ(self, other: "BasePattern") -> bool:
+        ...
+
+    @overload
     def sameQ(self, other: BaseElement) -> bool:
+        ...
+
+    def sameQ(self, other) -> bool:
         """Mathics SameQ"""
-        if not isinstance(other, BasePattern):
-            return False
-        return self.expr.sameQ(other.expr)
+        if isinstance(other, BasePattern):
+            return self.expr.sameQ(other.expr)
+        return self.expr.sameQ(other)
 
 
 class AtomPattern(BasePattern):
@@ -380,6 +417,28 @@ class AtomPattern(BasePattern):
         """The number of matches"""
         return (1, 1)
 
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_order
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return BASIC_ATOM_PATTERN_SORT_KEY
+
+    @property
+    def short_name(self) -> str:
+        return (
+            self.atom.short_name if hasattr(self.atom, "short_name") else str(self.atom)
+        )
+
 
 # class StopGenerator_ExpressionPattern_match(StopGenerator):
 #    pass
@@ -402,6 +461,7 @@ class ExpressionPattern(BasePattern):
         evaluation: Optional[Evaluation] = None,
     ):
         self.expr = expr
+        self.location = expr.location if hasattr(expr, "location") else None
         head = expr.head
         if attributes is None and evaluation:
             attributes = head.get_attributes(evaluation.definitions)
@@ -462,7 +522,7 @@ class ExpressionPattern(BasePattern):
         if isinstance(expression, Expression):
             try:
                 basic_match_expression(self, expression, parms)
-            except StopGenerator_ExpressionPattern_match:
+            except (StopGenerator_ExpressionPattern_match, TimeoutInterrupt):
                 return
 
         if A_ONE_IDENTITY & attributes:
@@ -662,7 +722,7 @@ class ExpressionPattern(BasePattern):
 
     def sort(self):
         """Sort the elements according to their sort key"""
-        self.elements.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
+        self.elements.sort(key=lambda e: e.pattern_precedence)
 
 
 def match_expression_with_one_identity(
@@ -701,7 +761,12 @@ def match_expression_with_one_identity(
             isinstance(pat_elem, PatternObject)
             and pat_elem.get_head() == SymbolOptional
         ):
-            if len(pat_elem.elements) == 2:
+            if optionals:
+                # A default pattern already exists
+                # Do not use the second one
+                if new_pattern is None:
+                    new_pattern = pat_elem
+            elif len(pat_elem.elements) == 2:
                 pat, value = pat_elem.elements
                 if isinstance(pat, Pattern):
                     key = pat.elements[0].atom.name  # type: ignore[attr-defined]
@@ -724,8 +789,12 @@ def match_expression_with_one_identity(
                 result = defaultvalue_expr.evaluate(evaluation)
                 assert result is not None
                 if result.sameQ(defaultvalue_expr):
-                    return
-                optionals[key] = result
+                    if new_pattern is None:
+                        # The optional pattern has no default value
+                        # for the given position
+                        new_pattern = pat_elem
+                else:
+                    optionals[key] = result
             else:
                 return
         elif new_pattern is not None:
@@ -757,6 +826,8 @@ def match_expression_with_one_identity(
     del parms["attributes"]
     assert new_pattern is not None
     new_pattern.match(expression=expression, pattern_context=parms)
+    for optional in optionals:
+        vars_dict.pop(optional)
 
 
 def basic_match_expression(
@@ -1162,3 +1233,31 @@ def get_pre_choices_orderless(
     # def yield_name(setting):
     #    yield_func(setting)
     per_name(yield_choice, tuple(groups.items()), vars_dict)
+
+
+def build_pattern_sort_key(patt):
+    """
+    Pattern sort key structure:
+    0: 0/2:        Atom / Expression
+    1: pattern:    0 / 11-31 for blanks / 1 for empty Alternatives /
+                       40 for OptionsPattern
+    2: 0/1:        0 for PatternTest
+    3: 0/1:        0 for Pattern
+    4: 0/1:        1 for Optional
+    5: head / 0 for atoms
+    6: elements / 0 for atoms
+    7: 0/1:        0 for Condition
+    """
+    return (
+        BASIC_EXPRESSION_PATTERN_SORT_KEY,
+        patt.head.pattern_precedence,
+        tuple(
+            chain(
+                (element.pattern_precedence for element in patt.elements),
+                # This last element ensures that longest patterns come first.
+                # TODO: Check if this should be always, or just in the case of
+                # conditions
+                (END_OF_LIST_PATTERN_SORT_KEY,),
+            )
+        ),
+    )

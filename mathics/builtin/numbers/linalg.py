@@ -27,7 +27,7 @@ class DesignMatrix(Builtin):
     https://reference.wolfram.com/language/ref/DesignMatrix.html</url>
 
     <dl>
-      <dt>'DesignMatrix[$m$, $f$, $x$]'
+      <dt>'DesignMatrix'[$m$, $f$, $x$]
       <dd>returns the design matrix for a linear model $f$ in the variables $x$.
     </dl>
 
@@ -52,7 +52,7 @@ class Det(Builtin):
     (<url>:WMA link:https://reference.wolfram.com/language/ref/Det.html</url>)
 
     <dl>
-      <dt>'Det[$m$]'
+      <dt>'Det'[$m$]
       <dd>computes the determinant of the matrix $m$.
     </dl>
 
@@ -85,7 +85,7 @@ class Eigensystem(Builtin):
     https://reference.wolfram.com/language/ref/Eigensystem.html</url>)
 
     <dl>
-      <dt>'Eigensystem[$m$]'
+      <dt>'Eigensystem'[$m$]
       <dd>returns the list '{Eigenvalues[$m$], Eigenvectors[$m$]}'.
     </dl>
 
@@ -104,7 +104,7 @@ class Eigenvalues(Builtin):
 
 
     <dl>
-      <dt>'Eigenvalues[$m$]'
+      <dt>'Eigenvalues'[$m$]
       <dd>computes the eigenvalues of the matrix $m$.
 
       By default, Sympy's routine is used. Sometimes this is slow and \
@@ -124,8 +124,6 @@ class Eigenvalues(Builtin):
     >> Eigenvalues[{{7, 1}, {-4, 3}}]
      = {5, 5}
 
-    >> Eigenvalues[{{7, 1}, {-4, 3}}]
-     = {5, 5}
     """
 
     messages = {
@@ -171,27 +169,25 @@ class Eigenvalues(Builtin):
             return
 
         eigenvalues = list(sympy_matrix.eigenvals().items())
-        if all(v.is_complex for (v, _) in eigenvalues):
+        if all(v.is_complex for v, _ in eigenvalues):
             # Try to sort the eigenvalues in the Mathematica convention: largest first.
             try:
                 eigenvalues.sort(
                     key=lambda v: (abs(v[0]), -re(v[0]), -im(v[0])), reverse=True
                 )
 
-                eigenvalues = [
-                    from_sympy(v) for (v, c) in eigenvalues for _ in range(c)
-                ]
+                eigenvalues = [from_sympy(v) for v, c in eigenvalues for _ in range(c)]
 
                 return ListExpression(*eigenvalues)
             except TypeError:
                 pass
 
-        eigenvalues = [(from_sympy(v), c) for (v, c) in eigenvalues]
+        eigenvalues = [(from_sympy(v), c) for v, c in eigenvalues]
 
         # Sort the eigenvalues by their sort key
-        eigenvalues.sort(key=lambda v: v[0].get_sort_key())
+        eigenvalues.sort(key=lambda v: v[0].element_order)
 
-        eigenvalues = [v for (v, c) in eigenvalues for _ in range(c)]
+        eigenvalues = [v for v, c in eigenvalues for _ in range(c)]
 
         return ListExpression(*eigenvalues)
 
@@ -202,7 +198,7 @@ class Eigenvectors(Builtin):
     (<url>:WMA link:https://reference.wolfram.com/language/ref/Eigenvectors.html</url>)
 
     <dl>
-    <dt>'Eigenvectors[$m$]'
+    <dt>'Eigenvectors'[$m$]
         <dd>computes the eigenvectors of the matrix $m$.
     </dl>
 
@@ -244,15 +240,15 @@ class Eigenvectors(Builtin):
             return
 
         # Try to sort the eigenvectors by their corresponding eigenvalues
-        if all(v.is_complex for (v, _, _) in eigenvects):
+        if all(v.is_complex for v, _, _ in eigenvects):
             try:
                 eigenvects.sort(
                     key=lambda v: (abs(v[0]), -re(v[0]), -im(v[0])), reverse=True
                 )
             except TypeError:
-                eigenvects.sort(key=lambda v: from_sympy(v[0]).get_sort_key())
+                eigenvects.sort(key=lambda v: from_sympy(v[0]).element_order)
         else:
-            eigenvects.sort(key=lambda v: from_sympy(v[0]).get_sort_key())
+            eigenvects.sort(key=lambda v: from_sympy(v[0]).element_order)
 
         result = []
         for val, count, basis in eigenvects:
@@ -299,7 +295,7 @@ class Inverse(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Inverse.html</url>
 
     <dl>
-    <dt>'Inverse[$m$]'
+    <dt>'Inverse'[$m$]
         <dd>computes the inverse of the matrix $m$.
     </dl>
 
@@ -346,7 +342,7 @@ class LeastSquares(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/LeastSquares.html</url>
 
     <dl>
-    <dt>'LeastSquares[$m$, $b$]'
+    <dt>'LeastSquares'[$m$, $b$]
         <dd>computes the least squares solution to $m$ $x$ = $b$, finding
         an $x$ that solves for $b$ optimally.
     </dl>
@@ -366,7 +362,7 @@ class LeastSquares(Builtin):
         "underdetermined": "Solving for underdetermined system not implemented.",
         "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix.",
     }
-    summary_text = "least square solver for linear problems"
+    summary_text = "compute least squares of linear problems"
 
     def eval(self, m, b, evaluation: Evaluation):
         "LeastSquares[m_, b_]"
@@ -395,7 +391,7 @@ class LinearModelFit(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/LinearModelFit.html</url>
 
     <dl>
-    <dt>'LinearModelFit[$m$, $f$, $x$]'
+    <dt>'LinearModelFit'[$m$, $f$, $x$]
         <dd>fits a linear model $f$ in the variables $x$ to the dataset $m$.
     </dl>
 
@@ -476,7 +472,7 @@ class LinearSolve(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/LinearSolve.html</url>
 
     <dl>
-    <dt>'LinearSolve[$matrix$, $right$]'
+    <dt>'LinearSolve'[$matrix$, $right$]
         <dd>solves the linear equation system '$matrix$ . $x$ = $right$'
         and returns one corresponding solution $x$.
     </dl>
@@ -549,7 +545,7 @@ class MatrixExp(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/MatrixExp.html</url>
 
     <dl>
-    <dt>'MatrixExp[$m$]'
+    <dt>'MatrixExp'[$m$]
         <dd>computes the exponential of the matrix $m$.
     </dl>
 
@@ -588,7 +584,7 @@ class MatrixPower(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/MatrixPower.html</url>
 
     <dl>
-    <dt>'MatrixPower[$m$, $n$]'
+    <dt>'MatrixPower'[$m$, $n$]
         <dd>computes the $n$th power of a matrix $m$.
     </dl>
 
@@ -633,7 +629,7 @@ class MatrixRank(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/MatrixRank.html</url>
 
     <dl>
-    <dt>'MatrixRank[$matrix$]'
+    <dt>'MatrixRank'[$matrix$]
         <dd>returns the rank of $matrix$.
     </dl>
 
@@ -667,7 +663,7 @@ class NullSpace(Builtin):
     (<url>:WMA link:https://reference.wolfram.com/language/ref/NullSpace.html</url>)
 
     <dl>
-    <dt>'NullSpace[$matrix$]'
+    <dt>'NullSpace'[$matrix$]
         <dd>returns a list of vectors that span the nullspace of $matrix$.
     </dl>
 
@@ -705,7 +701,7 @@ class PseudoInverse(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/PseudoInverse.html</url>
 
     <dl>
-    <dt>'PseudoInverse[$m$]'
+    <dt>'PseudoInverse'[$m$]
         <dd>computes the Moore-Penrose pseudoinverse of the matrix $m$.
         If $m$ is invertible, the pseudoinverse equals the inverse.
     </dl>
@@ -742,7 +738,7 @@ class QRDecomposition(Builtin):
     (<url>:WMA link:https://reference.wolfram.com/language/ref/QRDecomposition.html</url>)
 
     <dl>
-    <dt>'QRDecomposition[$m$]'
+    <dt>'QRDecomposition'[$m$]
         <dd>computes the QR decomposition of the matrix $m$.
     </dl>
 
@@ -777,7 +773,7 @@ class RowReduce(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/RowReduce.html</url>
 
     <dl>
-    <dt>'RowReduce[$matrix$]'
+    <dt>'RowReduce'[$matrix$]
         <dd>returns the reduced row-echelon form of $matrix$.
     </dl>
 
@@ -814,7 +810,7 @@ class SingularValueDecomposition(Builtin):
     (<url>:WMA link:https://reference.wolfram.com/language/ref/SingularValueDecomposition.html</url>)
 
     <dl>
-      <dt>'SingularValueDecomposition[$m$]'
+      <dt>'SingularValueDecomposition'[$m$]
       <dd>calculates the singular value decomposition for the matrix $m$.
     </dl>
 
@@ -868,7 +864,7 @@ class Tr(Builtin):
     (<url>:WMA link:https://reference.wolfram.com/language/ref/Tr.html</url>)
 
     <dl>
-      <dt>'Tr[$m$]'
+      <dt>'Tr'[$m$]
       <dd>computes the trace of the matrix $m$.
     </dl>
 

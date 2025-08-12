@@ -108,9 +108,12 @@ def eval_NValues(
     name = expr.get_lookup_name()
     if name != "":
         nexpr = Expression(SymbolN, expr, prec)
-        result = evaluation.definitions.get_value(
-            name, "System`NValues", nexpr, evaluation
-        )
+        try:
+            result: Optional[BaseElement] = evaluation.definitions.get_value(
+                name, "System`NValues", nexpr, evaluation
+            )
+        except ValueError:
+            result = None
         if result is not None:
             if not result.sameQ(nexpr):
                 result = result.evaluate(evaluation)

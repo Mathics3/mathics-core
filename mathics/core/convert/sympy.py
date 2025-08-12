@@ -129,14 +129,14 @@ def to_sympy_matrix(data, **kwargs) -> Optional[sympy.MutableDenseMatrix]:
         return None
 
 
-class SympyExpression(BasicSympy):
+class SympyExpression(sympy.Expr):
     """A Sympy expression with an associated Mathics expression"""
 
     is_Function = True
     nargs = None
     expr: Expression
 
-    def __new__(cls, *exprs):
+    def __new__(cls, *exprs, **kwargs):
         # sympy simplify may also recreate the object if simplification occurred
         # in the elements
 
@@ -148,7 +148,10 @@ class SympyExpression(BasicSympy):
             # called with Mathics argument
             expr = exprs[0]
             sympy_head = expr.head.to_sympy()
-            sympy_elements = [element.to_sympy() for element in expr.elements]
+            if kwargs.get("convert_functions_for_polynomialq", False):
+                sympy_elements = []
+            else:
+                sympy_elements = [element.to_sympy() for element in expr.elements]
             if sympy_head is None or None in sympy_elements:
                 return None
             obj = super().__new__(cls, sympy_head, *sympy_elements)
@@ -226,14 +229,15 @@ def expression_to_sympy(expr: Expression, **kwargs):
     Convert `expr` to its sympy form.
     """
 
-    if "convert_all_global_functions" in kwargs:
-        if len(expr.elements) > 0 and kwargs["convert_all_global_functions"]:
-            if expr.get_head_name().startswith("Global`"):
-                return expr._as_sympy_function(**kwargs)
+    if len(expr.elements) > 0:
+        head_name = expr.get_head_name()
+        if head_name.startswith("Global`"):
+            if kwargs.get("convert_all_global_functions", False):
+                if expr.get_head_name().startswith("Global`"):
+                    return expr._as_sympy_function(**kwargs)
 
-    if "converted_functions" in kwargs:
-        functions = kwargs["converted_functions"]
-        if len(expr._elements) > 0 and expr.get_head_name() in functions:
+        functions = kwargs.get("converted_functions", [])
+        if head_name in functions:
             sym_args = [element.to_sympy() for element in expr._elements]
             if None in sym_args:
                 return None
@@ -248,7 +252,7 @@ def expression_to_sympy(expr: Expression, **kwargs):
         sympy_expr = builtin.to_sympy(expr, **kwargs)
         if sympy_expr is not None:
             return sympy_expr
-    return SympyExpression(expr)
+    return SympyExpression(expr, **kwargs)
 
 
 def symbol_to_sympy(symbol: Symbol, **kwargs) -> Sympy_Symbol:
@@ -290,7 +294,7 @@ def to_numeric_sympy_args(mathics_args: BaseElement, evaluation) -> list:
 
 
 def from_sympy_matrix(
-    expr: Union[sympy.Matrix, sympy.ImmutableMatrix]
+    expr: Union[sympy.Matrix, sympy.ImmutableMatrix, sympy.Array]
 ) -> ListExpression:
     """
     Convert `expr` of the type sympy.Matrix or sympy.ImmutableMatrix to
@@ -416,7 +420,7 @@ def old_from_sympy(expr) -> BaseElement:
         if expr is sympy.false:
             return SymbolFalse
 
-    if expr.is_number and all([x.is_Number for x in expr.as_real_imag()]):
+    if expr.is_number and all(x.is_Number for x in expr.as_real_imag()):
         # Hack to convert <Integer> * I to Complex[0, <Integer>]
         try:
             return Complex(*[from_sympy(arg) for arg in expr.as_real_imag()])
@@ -472,7 +476,10 @@ def old_from_sympy(expr) -> BaseElement:
                     else:
                         factors.append(Expression(SymbolPower, slot, from_sympy(exp)))
             if factors:
-                result.append(Expression(SymbolTimes, *factors))
+                if len(factors) == 1:
+                    result.append(factors[0])
+                else:
+                    result.append(Expression(SymbolTimes, *factors))
             else:
                 result.append(Integer1)
         return Expression(SymbolFunction, Expression(SymbolPlus, *sorted(result)))

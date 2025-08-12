@@ -69,16 +69,21 @@ the rules are applied.
 
 from typing import Optional as OptionalType
 
-from mathics.core.atoms import Integer, Integer0, Integer2, Number
+from mathics.core.atoms import Integer, Integer0, Integer2, Integer3, Number
 from mathics.core.attributes import A_HOLD_REST, A_PROTECTED, A_SEQUENCE_HOLD
-from mathics.core.builtin import AtomBuiltin, BinaryOperator, Builtin, PatternError
+from mathics.core.builtin import AtomBuiltin, Builtin, InfixOperator, PatternError
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import InvalidLevelspecError
-from mathics.core.expression import Expression
+from mathics.core.expression import Expression, ExpressionInfinity
 from mathics.core.list import ListExpression
 from mathics.core.symbols import SymbolTrue
-from mathics.core.systemsymbols import SymbolInfinity, SymbolRule, SymbolRuleDelayed
+from mathics.core.systemsymbols import (
+    SymbolInfinity,
+    SymbolReplaceList,
+    SymbolRule,
+    SymbolRuleDelayed,
+)
 from mathics.eval.rules import (
     Dispatch,
     create_rules,
@@ -94,10 +99,10 @@ class DispatchAtom(AtomBuiltin):
     """
     <url>
     :WMA link:
-    https://reference.wolfram.com/language/ref/DispatchAtom.html</url>
+    https://reference.wolfram.com/language/ref/Dispatch.html</url>
 
     <dl>
-      <dt>'Dispatch[$rulelist$]'
+      <dt>'Dispatch'[$rulelist$]
       <dd>Introduced for compatibility. Currently, it just return $rulelist$. \
           In the future, it should return an optimized DispatchRules atom, \
           containing an optimized set of rules.
@@ -130,7 +135,7 @@ class DispatchAtom(AtomBuiltin):
         self, rules: ListExpression, evaluation: Evaluation
     ) -> OptionalType[BaseElement]:
         """Dispatch[rules_List]"""
-        result = eval_dispatch_atom(rules, evaluation)
+        result = eval_dispatch_atom(rules.elements, evaluation)
         return result
 
     def eval(
@@ -169,16 +174,16 @@ class Replace(Builtin):
     https://reference.wolfram.com/language/ref/Replace.html</url>
 
     <dl>
-      <dt>'Replace[$expr$, $x$ -> $y$]'
+      <dt>'Replace'[$expr$, $x$ -> $y$]
       <dd>yields the result of replacing $expr$ with $y$ if it \
         matches the pattern $x$.
-      <dt>'Replace[$expr$, $x$ -> $y$, $levelspec$]'
+      <dt>'Replace'[$expr$, $x$ -> $y$, $levelspec$]
       <dd>replaces only subexpressions at levels specified through \
         $levelspec$.
-      <dt>'Replace[$expr$, {$x$ -> $y$, ...}]'
+      <dt>'Replace'[$expr$, {$x$ -> $y$, ...}]
       <dd>performs replacement with multiple rules, yielding a \
         single result expression.
-      <dt>'Replace[$expr$, {{$a$ -> $b$, ...}, {$c$ -> $d$, ...}, ...}]'
+      <dt>'Replace'[$expr$, {{$a$ -> $b$, ...}, {$c$ -> $d$, ...}, ...}]
       <dd>returns a list containing the result of performing each \
         set of replacements.
     </dl>
@@ -242,14 +247,14 @@ class Replace(Builtin):
         return None
 
 
-class ReplaceAll(BinaryOperator):
+class ReplaceAll(InfixOperator):
     """
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/ReplaceAll.html</url>
 
     <dl>
-      <dt>'ReplaceAll[$expr$, $x$ -> $y$]'
+      <dt>'ReplaceAll'[$expr$, $x$ -> $y$]
       <dt>'$expr$ /. $x$ -> $y$'
       <dd>yields the result of replacing all subexpressions of \
         $expr$ matching the pattern $x$ with $y$.
@@ -288,7 +293,6 @@ class ReplaceAll(BinaryOperator):
 
     grouping = "Left"
     needs_verbatim = True
-    operator = "/."
 
     messages = {
         "reps": "`1` is not a valid replacement rule.",
@@ -318,10 +322,10 @@ class ReplaceList(Builtin):
     https://reference.wolfram.com/language/ref/ReplaceList.html</url>
 
     <dl>
-      <dt>'ReplaceList[$expr$, $rules$]'
+      <dt>'ReplaceList'[$expr$, $rules$]
       <dd>returns a list of all possible results when applying $rules$ \
         to $expr$.
-      <dt>'ReplaceList[$expr$, $rules$, $n$]'
+      <dt>'ReplaceList'[$expr$, $rules$, $n$]
       <dd>returns a list of at most $n$ results when applying $rules$ \
         to $expr$.
     </dl>
@@ -341,9 +345,6 @@ class ReplaceList(Builtin):
     Like in 'ReplaceAll', $rules$ can be a nested list:
     >> ReplaceList[{a, b, c}, {{{___, x__, ___} -> {x}}, {{a, b, c} -> t}}, 2]
      = {{{a}, {a, b}}, {t}}
-    >> ReplaceList[expr, {}, -1]
-     : Non-negative integer or Infinity expected at position 3.
-     = ReplaceList[expr, {}, -1]
 
     Possible matches for a sum:
     >> ReplaceList[a + b + c, x_ + y_ -> {x, y}]
@@ -366,15 +367,20 @@ class ReplaceList(Builtin):
         "ReplaceList[expr_, rules_, maxidx_:Infinity]"
 
         # TODO: the below handles Infinity getting added as a
-        # default argument, when it is passed explictly, e.g.
+        # default argument, when it is passed explicitly, e.g.
         # ReplaceList[expr, {}, Infinity], then Infinity
         # comes in as DirectedInfinity[1].
-        if maxidx == SymbolInfinity:
+        if maxidx == SymbolInfinity or ExpressionInfinity == maxidx:
             max_count = None
         else:
             max_count = maxidx.get_int_value()
             if max_count is None or max_count < 0:
-                evaluation.message("ReplaceList", "innf", 3)
+                evaluation.message(
+                    "ReplaceList",
+                    "innf",
+                    Integer3,
+                    Expression(SymbolReplaceList, expr, rules, maxidx),
+                )
                 return None
         try:
             rules, ret = create_rules(
@@ -395,7 +401,7 @@ class ReplaceList(Builtin):
         return ListExpression(*list_result)
 
 
-class ReplaceRepeated(BinaryOperator):
+class ReplaceRepeated(InfixOperator):
     """
 
     <url>
@@ -403,7 +409,7 @@ class ReplaceRepeated(BinaryOperator):
     https://reference.wolfram.com/language/ref/ReplaceRepeated.html</url>
 
     <dl>
-      <dt>'ReplaceRepeated[$expr$, $x$ -> $y$]'
+      <dt>'ReplaceRepeated'[$expr$, $x$ -> $y$]
       <dt>'$expr$ //. $x$ -> $y$'
       <dd>repeatedly applies the rule '$x$ -> $y$' to $expr$ until
         the result no longer changes.
@@ -428,7 +434,6 @@ class ReplaceRepeated(BinaryOperator):
 
     grouping = "Left"
     needs_verbatim = True
-    operator = "//."
 
     messages = {
         "reps": "`1` is not a valid replacement rule.",
@@ -483,13 +488,13 @@ class ReplaceRepeated(BinaryOperator):
         return result
 
 
-class Rule_(BinaryOperator):
+class Rule_(InfixOperator):
     """
 
     <url>:WMA link:https://reference.wolfram.com/language/ref/Rule_.html</url>
 
     <dl>
-      <dt>'Rule[$x$, $y$]'
+      <dt>'Rule'[$x$, $y$]
       <dt>'$x$ -> $y$'
       <dd>represents a rule replacing $x$ with $y$.
     </dl>
@@ -507,6 +512,9 @@ class Rule_(BinaryOperator):
     grouping = "Right"
     name = "Rule"
     needs_verbatim = True
+
+    # FIXME: if we remove this we have problems.
+    # We should be able to get this from JSON.
     operator = "->"
     summary_text = "a replacement rule"
 
@@ -518,12 +526,12 @@ class Rule_(BinaryOperator):
         return None
 
 
-class RuleDelayed(BinaryOperator):
+class RuleDelayed(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/RuleDelayed.html</url>
 
     <dl>
-      <dt>'RuleDelayed[$x$, $y$]'
+      <dt>'RuleDelayed'[$x$, $y$]
       <dt>'$x$ :> $y$'
       <dd>represents a rule replacing $x$ with $y$, with $y$ held \
         unevaluated.
@@ -535,7 +543,6 @@ class RuleDelayed(BinaryOperator):
 
     attributes = A_SEQUENCE_HOLD | A_HOLD_REST | A_PROTECTED
     needs_verbatim = True
-    operator = ":>"
     summary_text = "a rule that keeps the replacement unevaluated"
 
     def eval_rule_delayed(self, elems, evaluation):

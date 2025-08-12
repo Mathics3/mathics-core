@@ -125,17 +125,17 @@ class D(SympyFunction):
     (<url>:WMA:https://reference.wolfram.com/language/ref/D.html</url>)
 
     <dl>
-      <dt>'D[$f$, $x$]'
+      <dt>'D'[$f$, $x$]
       <dd>gives the partial derivative of $f$ with respect to $x$.
 
-      <dt>'D[$f$, $x$, $y$, ...]'
+      <dt>'D'[$f$, $x$, $y$, ...]
       <dd>differentiates successively with respect to $x$, $y$, etc.
 
-      <dt>'D[$f$, {$x$, $n$}]'
+      <dt>'D'[$f$, {$x$, $n$}]
       <dd>gives the multiple derivative of order $n$.
 
-      <dt>'D[$f$, {{$x1$, $x2$, ...}}]'
-      <dd>gives the vector derivative of $f$ with respect to $x1$, $x2$, etc.
+      <dt>'D'[$f$, {{$x_1$, $x_2$, ...}}]
+      <dd>gives the vector derivative of $f$ with respect to $x_1$, $x_2$, etc.
     </dl>
 
     First-order derivative of a polynomial:
@@ -359,15 +359,22 @@ class D(SympyFunction):
 
 
 class Derivative(PostfixOperator, SympyFunction):
-    """
+    r"""
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/Derivative.html</url>
 
     <dl>
-      <dt>'Derivative[$n$][$f$]'
+      <dt>$f$'\''[$x$,...]
+      <dd>represents the derivative of $f$ with respect to the first \
+          argument $x$.
+
+      <dt>$f$'\'\''[$x$,...]
+      <dd>represents the 2nd derivative of $f$ with respect to $x$.
+
+      <dt>'Derivative'[$n$][$f$]
       <dd>represents the $n$th derivative of the function $f$.
 
-      <dt>'Derivative[$n1$, $n2$, ...][$f$]'
+      <dt>'Derivative'[$n_1$, $n_2$, ...][$f$]
       <dd>represents a multivariate derivative.
     </dl>
 
@@ -411,7 +418,6 @@ class Derivative(PostfixOperator, SympyFunction):
 
     attributes = A_N_HOLD_ALL
     default_formats = False
-    operator = "'"
     rules = {
         "MakeBoxes[Derivative[n__Integer][f_], "
         "  form:StandardForm|TraditionalForm]": (
@@ -494,7 +500,8 @@ class Derivative(PostfixOperator, SympyFunction):
         super(Derivative, self).__init__(*args, **kwargs)
 
     def eval_locked_symbols(self, n, **kwargs):
-        """Derivative[n__Integer][Alternatives[True|False|Symbol|TooBig|$Aborted|Removed|Locked|$PrintLiteral|$Off]]"""
+        """Derivative[n__Integer][Alternatives[True|False|Symbol|TooBig|$Aborted|Removed|Locked|$PrintLiteral|$Off]]/; True"""
+        # Conditionals always come first...
         # Prevents the evaluation for True, False, and other Locked symbols
         # as function names. This produces a recursion error in the evaluation rule for Derivative.
         # See
@@ -549,7 +556,7 @@ class DiscreteLimit(Builtin):
     https://reference.wolfram.com/language/ref/DiscreteLimit.html</url>
 
     <dl>
-      <dt>'DiscreteLimit[$f$, $k$->Infinity]'
+      <dt>'DiscreteLimit'[$f$, $k$->Infinity]
       <dd>gives the limit of the sequence $f$ as $k$ tends to infinity.
     </dl>
 
@@ -746,8 +753,8 @@ class FindMaximum(_BaseFinder):
     <url>:WMA link:https://reference.wolfram.com/language/ref/FindMaximum.html</url>
 
     <dl>
-    <dt>'FindMaximum[$f$, {$x$, $x0$}]'
-        <dd>searches for a numerical maximum of $f$, starting from '$x$=$x0$'.
+    <dt>'FindMaximum'[$f$, {$x$, $x_0$}]
+        <dd>searches for a numerical maximum of $f$, starting from '$x$=$x_0$'.
     </dl>
 
     'FindMaximum' by default uses Newton\'s method, so the function of \
@@ -796,8 +803,8 @@ class FindMinimum(_BaseFinder):
     https://reference.wolfram.com/language/ref/FindMinimum.html</url>
 
     <dl>
-    <dt>'FindMinimum[$f$, {$x$, $x0$}]'
-        <dd>searches for a numerical minimum of $f$, starting from '$x$=$x0$'.
+    <dt>'FindMinimum'[$f$, {$x$, $x_0$}]
+        <dd>searches for a numerical minimum of $f$, starting from '$x$=$x_0$'.
     </dl>
 
     'FindMinimum' by default uses Newton\'s method, so the function of \
@@ -848,10 +855,10 @@ class FindRoot(_BaseFinder):
     <url>:WMA link:https://reference.wolfram.com/language/ref/FindRoot.html</url>
 
     <dl>
-      <dt>'FindRoot[$f$, {$x$, $x0$}]'
-      <dd>searches for a numerical root of $f$, starting from '$x$=$x0$'.
+      <dt>'FindRoot'[$f$, {$x$, $x_0$}]
+      <dd>searches for a numerical root of $f$, starting from '$x$=$x_0$'.
 
-      <dt>'FindRoot[$lhs$ == $rhs$, {$x$, $x0$}]'
+      <dt>'FindRoot'[$lhs$ == $rhs$, {$x$, $x_0$}]
       <dd>tries to solve the equation '$lhs$ == $rhs$'.
     </dl>
 
@@ -903,9 +910,7 @@ class FindRoot(_BaseFinder):
     }
     messages = _BaseFinder.messages.copy()
     methods = {}
-    summary_text = (
-        "Looks for a root of an equation or a zero of a numerical expression."
-    )
+    summary_text = "look for a root of an equation or a zero of a numerical expression."
 
     try:
         from mathics.eval.numbers.calculus.optimizers import (
@@ -955,15 +960,17 @@ class Integers(Builtin):
 
 class Integrate(SympyFunction):
     r"""
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/Integrate.html</url>
+    <url>:Integral:https://en.wikipedia.org/wiki/Integral</url> (<url>:SymPy:
+    https://docs.sympy.org/latest/modules/integrals/integrals.html</url>, \
+    <url>:WMA:
+    https://reference.wolfram.com/language/ref/Integrate.html</url>)
 
     <dl>
-      <dt>'Integrate[$f$, $x$]'
+      <dt>'Integrate'[$f$, $x$]
       <dd>integrates $f$ with respect to $x$. The result does not contain the \
       additive integration constant.
 
-      <dt>'Integrate[$f$, {$x$, $a$, $b$}]'
+      <dt>'Integrate'[$f$, {$x$, $a$, $b$}]
       <dd>computes the definite integral of $f$ with respect to $x$ from $a$ to $b$.
     </dl>
 
@@ -987,18 +994,20 @@ class Integrate(SympyFunction):
     >> Integrate[4 Sin[x] Cos[x], x]
      = 2 Sin[x] ^ 2
 
-    > Integrate[-Infinity, {x, 0, Infinity}]
+    >> Integrate[-Infinity, {x, 0, Infinity}]
      = -Infinity
 
-    > Integrate[-Infinity, {x, Infinity, 0}]
-     = Infinity
+    Integrating something ill-defined returns the expression untouched:
 
-    Integration in TeX:
+    >> Integrate[1, {x, Infinity, 0}]
+     = Integrate[1, {x, Infinity, 0}]
+
+    Here how is an example of converting integral equation to TeX:
     >> Integrate[f[x], {x, a, b}] // TeXForm
      = \int_a^b f\left[x\right] \, dx
 
     Sometimes there is a loss of precision during integration.
-    You can check the precision of your result with the following sequence
+    You can check the precision of your result with the following sequence \
     of commands.
     >> Integrate[Abs[Sin[phi]], {phi, 0, 2Pi}] // N
      = 4.
@@ -1117,6 +1126,10 @@ class Integrate(SympyFunction):
             # e.g. NotImplementedError: Result depends on the sign of
             # -sign(_u`j)*sign(_u`w)
             return
+        except TypeError:
+            # SymPy can give this. For example:
+            # Integrate[-Infinity, {x, 0, Infinity}]
+            return
         if prec is not None and isinstance(sympy_result, sympy.Integral):
             # TODO MaxExtraPrecision -> maxn
             sympy_result = sympy_result.evalf(dps(prec))
@@ -1225,14 +1238,14 @@ class Limit(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Limit.html</url>
 
     <dl>
-      <dt>'Limit[$expr$, $x$->$x0$]'
-      <dd>gives the limit of $expr$ as $x$ approaches $x0$.
+      <dt>'Limit'[$expr$, $x$->$x_0$]
+      <dd>gives the limit of $expr$ as $x$ approaches $x_0$.
 
-      <dt>'Limit[$expr$, $x$->$x0$, Direction->1]'
-      <dd>approaches $x0$ from smaller values.
+      <dt>'Limit'[$expr$, $x$->$x_0$, Direction->1]
+      <dd>approaches $x_0$ from smaller values.
 
-      <dt>'Limit[$expr$, $x$->$x0$, Direction->-1]'
-      <dd>approaches $x0$ from larger values.
+      <dt>'Limit'[$expr$, $x$->$x_0$, Direction->-1]
+      <dd>approaches $x_0$ from larger values.
     </dl>
 
     >> Limit[x, x->2]
@@ -1298,13 +1311,13 @@ class NIntegrate(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/NIntegrate.html</url>
 
     <dl>
-       <dt>'NIntegrate[$expr$, $interval$]'
+       <dt>'NIntegrate'[$expr$, $interval$]
        <dd>returns a numeric approximation to the definite integral of $expr$ with \
            limits $interval$ and with a precision of $prec$ digits.
 
-        <dt>'NIntegrate[$expr$, $interval1$, $interval2$, ...]'
+        <dt>'NIntegrate'[$expr$, $interval_1$, $interval_2$, ...]
         <dd>returns a numeric approximation to the multiple integral of $expr$ with \
-            limits $interval1$, $interval2$ and with a precision of $prec$ digits.
+            limits $interval_1$, $interval_2$ and with a precision of $prec$ digits.
     </dl>
 
     >> NIntegrate[Exp[-x],{x,0,Infinity},Tolerance->1*^-6, Method->"Internal"]
@@ -1438,7 +1451,7 @@ class NIntegrate(Builtin):
         coords = [axis[0] for axis in domain]
         # If any of the points in the integration domain is complex,
         # stop the evaluation...
-        if any([c.get_head_name() == "System`List" for c in coords]):
+        if any(c.get_head_name() == "System`List" for c in coords):
             evaluation.message("NIntegrate", "cmpint")
             return
 
@@ -1623,7 +1636,7 @@ class Root(SympyFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Root.html</url>
 
     <dl>
-      <dt>'Root[$f$, $i$]'
+      <dt>'Root'[$f$, $i$]
       <dd>represents the i-th complex root of the polynomial $f$.
     </dl>
 
@@ -1643,7 +1656,7 @@ class Root(SympyFunction):
         "iidx": "Argument `1` at position 2 is out of bounds",
     }
 
-    summary_text = "the i-th root of a polynomial."
+    summary_text = "compute the i-th root of a polynomial."
     sympy_name = "CRootOf"
 
     def eval(self, f, i, evaluation: Evaluation):
@@ -1700,29 +1713,31 @@ class Root(SympyFunction):
 
 class RootSum(SympyFunction):
     """
-    <url>:WMA link: https://reference.wolfram.com/language/ref/RootSum.html</url>
+     <url>:WMA link: https://reference.wolfram.com/language/ref/RootSum.html</url>
 
-    <dl>
-      <dt>'RootSum[$f$, $form$]'
-      <dd>sums $form$[$x$] for all roots of the polynomial $f$[$x$].
-    </dl>
+     <dl>
+       <dt>'RootSum'[$f$, $form$]
+       <dd>sums $form$[$x$] for all roots of the polynomial $f$[$x$].
+     </dl>
 
-    >> Integrate[1/(x^5 + 11 x + 1), {x, 1, 3}]
-     = RootSum[-1 - 212960 #1 ^ 3 - 9680 #1 ^ 2 - 165 #1 + 41232181 #1 ^ 5&, (Log[3749971 - 3512322106304 #1 ^ 4 + 453522741 #1 + 16326568676 #1 ^ 2 + 79825502416 #1 ^ 3] - 4 Log[5]) #1&] - RootSum[-1 - 212960 #1 ^ 3 - 9680 #1 ^ 2 - 165 #1 + 41232181 #1 ^ 5&, (Log[3748721 - 3512322106304 #1 ^ 4 + 453522741 #1 + 16326568676 #1 ^ 2 + 79825502416 #1 ^ 3] - 4 Log[5]) #1&]
-    >> N[%, 50]
-     = 0.051278805184286949884270940103072421286139857550894
+    Integrating a rational function of any order:
+     >> Integrate[1/(x^5 + 11 x + 1), {x, 1, 3}]
+      = RootSum[-1 - 212960 #1 ^ 3 - 9680 #1 ^ 2 - 165 #1 + 41232181 #1 ^ 5&, (Log[3749971 - 3512322106304 #1 ^ 4 + 453522741 #1 + 16326568676 #1 ^ 2 + 79825502416 #1 ^ 3] - 4 Log[5]) #1&] - RootSum[-1 - 212960 #1 ^ 3 - 9680 #1 ^ 2 - 165 #1 + 41232181 #1 ^ 5&, (Log[3748721 - 3512322106304 #1 ^ 4 + 453522741 #1 + 16326568676 #1 ^ 2 + 79825502416 #1 ^ 3] - 4 Log[5]) #1&]
+     >> N[%, 50]
+      = 0.051278805184286949884270940103072421286139857550894
 
-    >> RootSum[#^5 - 11 # + 1 &, (#^2 - 1)/(#^3 - 2 # + c) &]
-     = (538 - 88 c + 396 c ^ 2 + 5 c ^ 3 - 5 c ^ 4) / (97 - 529 c - 53 c ^ 2 + 88 c ^ 3 + c ^ 5)
+     Simplification of 'RootSum' expression
+     >> RootSum[#^5 - 11 # + 1 &, (#^2 - 1)/(#^3 - 2 # + c) &]
+      = (538 - 88 c + 396 c ^ 2 + 5 c ^ 3 - 5 c ^ 4) / (97 - 529 c - 53 c ^ 2 + 88 c ^ 3 + c ^ 5)
 
-    >> RootSum[#^5 - 3 # - 7 &, Sin] //N//Chop
-     = 0.292188
+     >> RootSum[#^5 - 3 # - 7 &, Sin] //N//Chop
+      = 0.292188
 
-    Use 'Normal' to expand 'RootSum':
-    >> RootSum[1+#+#^2+#^3+#^4 &, Log[x + #] &]
-     = RootSum[1 + #1 ^ 2 + #1 ^ 3 + #1 ^ 4 + #1&, Log[x + #1]&]
-    >> %//Normal
-     = Log[-1 / 4 - Sqrt[5] / 4 - I Sqrt[5 / 8 - Sqrt[5] / 8] + x] + Log[-1 / 4 - Sqrt[5] / 4 + I Sqrt[5 / 8 - Sqrt[5] / 8] + x] + Log[-1 / 4 - I Sqrt[5 / 8 + Sqrt[5] / 8] + Sqrt[5] / 4 + x] + Log[-1 / 4 + I Sqrt[5 / 8 + Sqrt[5] / 8] + Sqrt[5] / 4 + x]
+     Use 'Normal' to expand 'RootSum':
+     >> RootSum[1+#+#^2+#^3+#^4 &, Log[x + #] &]
+      = RootSum[1 + #1 ^ 2 + #1 ^ 3 + #1 ^ 4 + #1&, Log[x + #1]&]
+     >> %//Normal
+      = Log[-1 / 4 - Sqrt[5] / 4 - I Sqrt[5 / 8 - Sqrt[5] / 8] + x] + Log[-1 / 4 - Sqrt[5] / 4 + I Sqrt[5 / 8 - Sqrt[5] / 8] + x] + Log[-1 / 4 - I Sqrt[5 / 8 + Sqrt[5] / 8] + Sqrt[5] / 4 + x] + Log[-1 / 4 + I Sqrt[5 / 8 + Sqrt[5] / 8] + Sqrt[5] / 4 + x]
     """
 
     summary_text = "sum polynomial roots"
@@ -1746,34 +1761,41 @@ class RootSum(SympyFunction):
 
 class Series(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Series.html</url>
+     <url>:WMA link:https://reference.wolfram.com/language/ref/Series.html</url>
 
-    <dl>
-      <dt>'Series[$f$, {$x$, $x0$, $n$}]'
-      <dd>Represents the series expansion around '$x$=$x0$' up to order $n$.
-    </dl>
+     <dl>
+       <dt>'Series'[$f$, {$x$, $x_0$, $n$}]
+       <dd>Represents the series expansion around '$x$=$x_0$' up to order $n$.
+     </dl>
 
-    For elementary expressions, 'Series' returns the explicit power series as a 'SeriesData' expression:
-    >> Series[Exp[x], {x,0,2}]
-     = 1 + x + 1 / 2 x ^ 2 + O[x] ^ 3
-    >> % // FullForm
-     = SeriesData[x, 0, {1,1,Rational[1, 2]}, 0, 3, 1]
-    Replacing the variable by a value, the series will not be evaluated as
-    an expression, but as a 'SeriesData' object:
-    >> s = Series[Exp[x^2],{x,0,2}]
-     = 1 + x ^ 2 + O[x] ^ 3
-    >> s /. x->4
-     = 1 + 4 ^ 2 + O[4] ^ 3
+     For elementary expressions, 'Series' returns the explicit power series as a 'SeriesData' expression:
+     >> series = Series[Exp[x^2], {x,0,2}]
+      = 1 + x ^ 2 + O[x] ^ 3
 
-    'Normal' transforms a 'SeriesData' expression into a polynomial:
-    >> s // Normal
-     = 1 + x ^ 2
-    >> (s // Normal) /. x-> 4
-     = 17
-    >> Clear[s];
-    We can also expand over multiple variables
-    >> Series[Exp[x-y], {x, 0, 2}, {y, 0, 2}]
-     = (1 - y + 1 / 2 y ^ 2 + O[y] ^ 3) + (1 - y + 1 / 2 y ^ 2 + O[y] ^ 3) x + (1 / 2 + (-1 / 2) y + 1 / 4 y ^ 2 + O[y] ^ 3) x ^ 2 + O[x] ^ 3
+     The expression created is a 'SeriesData' object:
+     >> series // FullForm
+      = SeriesData[x, 0, {1,0,1}, 0, 3, 1]
+
+     Replacing $x$ with does a value produces another 'SeriesData' object:
+     >> series /. x->4
+      = 1 + 4 ^ 2 + O[4] ^ 3
+
+     'Normal' transforms a 'SeriesData' expression into a polynomial:
+     >> series // Normal
+      = 1 + x ^ 2
+     >> (series // Normal) /. x-> 4
+      = 17
+     >> Clear[series];
+
+     We can also expand over multiple variables:
+     >> Series[Exp[x-y], {x, 0, 2}, {y, 0, 2}]
+      = (1 - y + 1 / 2 y ^ 2 + O[y] ^ 3) + (1 - y + 1 / 2 y ^ 2 + O[y] ^ 3) x + (1 / 2 + (-1 / 2) y + 1 / 4 y ^ 2 + O[y] ^ 3) x ^ 2 + O[x] ^ 3
+
+    See also <url>
+     :'SeriesCoefficient':
+     /doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/calculus/seriescoefficient/</url> and <url>
+     :'SeriesData':
+     /doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/calculus/seriesdata/</url>.
 
     """
 
@@ -1783,7 +1805,7 @@ class Series(Builtin):
         "sspec": "Series specification `1` is not a list with three elements.",
     }
 
-    summary_text = "power series and asymptotic expansions"
+    summary_text = "compute power series and asymptotic expansions"
 
     def eval_series(self, f, x, x0, n, evaluation: Evaluation):
         """Series[f_, {x_Symbol, x0_, n_Integer}]"""
@@ -1810,14 +1832,25 @@ class SeriesCoefficient(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/SeriesCoefficient.html</url>
 
     <dl>
-      <dt>'SeriesCoefficient[$series$, $n$]'
-      <dd>Find the $n$th coefficient in the given $series$
+      <dt>'SeriesCoefficient'[$series$, $n$]
+      <dd>Find the $n$th coefficient in the given $series$.
+
+      <dt>'SeriesCoefficient'[$f$, {$x$, $x_0$, $n$}]
+      <dd>Find the ($x$-$x_0$)^n in the expansion of $f$ about the point $x$=$x_0$.
     </dl>
 
-    >> SeriesCoefficient[Series[Exp[Sin[x]], {x, 0, 10}], 8]
-     = 31 / 5760
-    >> SeriesCoefficient[Exp[-x], {x, 0, 5}]
-     = -1 / 120
+    First we list 5 terms of a series:
+    >> Series[Exp[Sin[x]], {x, 0, 5}]
+     = 1 + x + 1 / 2 x ^ 2 + (-1 / 8) x ^ 4 + (-1 / 15) x ^ 5 + O[x] ^ 6
+
+    Now get the $x$^4 coefficient:
+    >> SeriesCoefficient[%, 4]
+     = -1 / 8
+
+    Do the same thing, but without calling 'Series' first:
+    >> SeriesCoefficient[Exp[Sin[x]], {x, 0, 4}]
+     = -1 / 8
+
     >> SeriesCoefficient[2x, {x, 0, 2}]
      = 0
 
@@ -1827,14 +1860,19 @@ class SeriesCoefficient(Builtin):
      = 0
     >> SeriesCoefficient[SeriesData[x, c, Table[i^2, {i, 10}], 7, 17, 3], 17/3]
      = Indeterminate
+
+    See also <url>
+    :'Series':
+    /doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/calculus/series/</url> and <url>
+    :'SeriesData':
+    /doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/calculus/seriesdata/</url>.
     """
 
     attributes = A_PROTECTED
-    summary_text = "power series coefficient"
-
     rules = {
         "SeriesCoefficient[f_, {x_Symbol, x0_, n_Integer}]": "SeriesCoefficient[Series[f, {x, x0, n}], n]"
     }
+    summary_text = "compute power series coefficient"
 
     def eval(self, series: Expression, n: Rational, evaluation: Evaluation):
         """SeriesCoefficient[series_SeriesData, n_]"""
@@ -1857,25 +1895,48 @@ class SeriesData(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/SeriesData.html</url>
 
     <dl>
-      <dt>'SeriesData[...]'
-      <dd>Represents a series expansion.
+      <dt>'SeriesData'[$x$, $x_0$, {$a_0$, $a_1$, ...}, $n_{min}$, $n_{max}$, $den$]
+      <dd>produces a power series in the variable $x$ about point $x_0$. The \
+      $ai$ are the coefficients of the power series. The powers of ($x$-$x_0$) that appear \
+      are $n_{min}$/$den$, ($n_{min}$+1)/$den$, ..., $n_{max}$/$den$.
     </dl>
 
-    Sum of two series:
-    >> Series[Cosh[x],{x,0,2}] + Series[Sinh[x],{x,0,3}]
+    'SeriesData' is the 'Head' of expressions generated by 'Series':
+
+    >> series = Series[Cosh[x],{x,0,2}]
+     = 1 + 1 / 2 x ^ 2 + O[x] ^ 3
+
+    >> Head[series]
+     = SeriesData
+
+    >> series // FullForm
+     = SeriesData[x, 0, {1,0,Rational[1, 2]}, 0, 3, 1]
+
+    You can apply certain mathematical operations to 'SeriesData' objects to get \
+    new 'SeriesData' objects truncated to the appropriate order.
+
+    >> series + Series[Sinh[x],{x,0,3}]
      = 1 + x + 1 / 2 x ^ 2 + O[x] ^ 3
+
     >> Series[f[x],{x,0,2}] * g[w]
      = f[0] g[w] + g[w] f'[0] x + g[w] f''[0] / 2 x ^ 2 + O[x] ^ 3
-    The product of two series on the same neighbourhood of the same variable are multiplied
+
+    The product of two series on the same neighborhood of the same variable are multiplied:
     >> Series[Exp[-a x],{x,0,2}] * Series[Exp[-b x],{x,0,2}]
      = 1 + (-a - b) x + (a ^ 2 / 2 + a b + b ^ 2 / 2) x ^ 2 + O[x] ^ 3
     >> D[Series[Exp[-a x],{x,0,2}],a]
      = -x + a x ^ 2 + O[x] ^ 3
+
+    See also <url>
+    :'Series':
+    /doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/calculus/series/</url> and <url>
+    :'SeriesCoefficient':
+    /doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/calculus/seriescoefficient/</url>.
     """
 
     # TODO: Implement sum, product and composition of series
 
-    summary_text = "power series of a variable about a point"
+    summary_text = "compute power series of a variable about a point"
 
     def eval_reduce(
         self, x, x0, data, nummin: Integer, nummax: Integer, den, evaluation: Evaluation
@@ -2240,10 +2301,10 @@ class Solve(Builtin):
     https://reference.wolfram.com/language/ref/Solve.html</url>)
 
     <dl>
-      <dt>'Solve[$equation$, $vars$]'
+      <dt>'Solve'[$equation$, $vars$]
       <dd>attempts to solve $equation$ for the variables $vars$.
 
-      <dt>'Solve[$equation$, $vars$, $domain$]'
+      <dt>'Solve'[$equation$, $vars$, $domain$]
       <dd>restricts variables to $domain$, which can be 'Complexes' \
          or 'Reals' or 'Integers'.
     </dl>

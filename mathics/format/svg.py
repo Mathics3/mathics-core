@@ -106,25 +106,25 @@ def arcbox(self, **options) -> str:
 
     def path(closed):
         if closed:
-            yield "M %f,%f" % (x, y)
-            yield "L %f,%f" % (sx, sy)
+            yield f"M {x:f},{y:f}"
+            yield f"L {sx:f},{sy:f}"
         else:
-            yield "M %f,%f" % (sx, sy)
+            yield f"M {sx:f},{sy:f}"
 
         yield "A %f,%f,0,%d,0,%f,%f" % (rx, ry, large_arc, ex, ey)
 
         if closed:
             yield "Z"
 
-    l = self.style.get_line_width(face_element=self.face_element)
+    line_width = self.style.get_line_width(face_element=self.face_element)
     style = create_css(
         self.edge_color,
         self.face_color,
-        stroke_width=l,
+        stroke_width=line_width,
         edge_opacity=self.edge_opacity,
         face_opacity=self.face_opacity,
     )
-    svg = '<path d="%s" style="%s" />' % (" ".join(path(self.face_element)), style)
+    svg = f"<path d=\"{' '.join(path(self.face_element))}\" style=\"{style}\" />"
     # print("_Arcbox: ", svg)
     return svg
 
@@ -211,7 +211,7 @@ def density_plot_box(self, **options):
         b = (colors[0][2] + colors[1][2] + colors[2][1]) / 3
         mid_color = r"rgb(%f, %f, %f)" % (r * 255, g * 255, b * 255)
 
-        points = " ".join("%f,%f" % (point[0], point[1]) for point in triangle)
+        points = " ".join(f"{point[0]:f},{point[1]:f}" for point in triangle)
         svg_data.append(f'<polygon points="{points}" fill="{mid_color}" />')
 
     svg = "\n".join(svg_data)
@@ -349,7 +349,7 @@ def graphics_elements(self, **options) -> str:
     for element in self.elements:
         try:
             format_fn = lookup_method(element, "svg")
-        except:
+        except Exception:
             # Note error and continue
             result.append(f"""unhandled {element}""")
             continue
@@ -387,11 +387,22 @@ def inset_box(self, **options) -> str:
             font_color=self.color,
             edge_color=self.color,
             face_color=self.color,
+            stroke_width=0.2,
             opacity=self.opacity.opacity,
         )
         text_pos_opts = f'x="{x}" y="{y}" ox="{self.opos[0]}" oy="{self.opos[1]}"'
+
+        alignment = " dominant-baseline:hanging;"
+        if hasattr(self, "alignment"):
+            if self.alignment == "bottom":
+                # This is typically done for labels under the x axis.
+                alignment = " dominant-baseline:hanging; text-anchor:middle;"
+            elif self.alignment == "left":
+                # This is typically done for labels to the left of the y axis.
+                alignment = " dominant-baseline:middle; text-anchor:end;"
+
         # FIXME: don't hard code text_style_opts, but allow these to be adjustable.
-        text_style_opts = "text-anchor:end; dominant-baseline:hanging;"
+        text_style_opts = alignment
         content = self.content.boxes_to_text(evaluation=self.graphics.evaluation)
         font_size = f'''font-size="{options.get("point_size", "10px")}"'''
         svg = f'<text {text_pos_opts} {font_size} style="{text_style_opts} {css_style}">{content}</text>'
@@ -416,6 +427,12 @@ def line_box(self, **options) -> str:
         stroke_width=line_width,
         edge_opacity=self.edge_opacity,
     )
+
+    # The following line options come from looking at SVG produced from WMA.
+    # In the future we may incorporate these into create_css or
+    # narrow this based on context.
+    style += "; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25"
+
     svg = "<!--LineBox-->\n"
     for line in self.lines:
         svg += '<polyline points="%s" style="%s" />' % (
@@ -442,6 +459,11 @@ def pointbox(self, **options) -> str:
         edge_opacity=self.edge_opacity,
         face_opacity=self.face_opacity,
     )
+
+    # The following line options come from looking at SVG produced from WMA.
+    # In the future we may incorporate these into create_css or
+    style += "; fill-rule:even-odd"
+
     svg = "<!--PointBox-->"
     for line in self.lines:
         for coords in line:
@@ -541,13 +563,7 @@ def _roundbox(self):
         edge_opacity=self.edge_opacity,
         face_opacity=self.face_opacity,
     )
-    svg = '<ellipse cx="%f" cy="%f" rx="%f" ry="%f" style="%s" />' % (
-        x,
-        y,
-        rx,
-        ry,
-        style,
-    )
+    svg = f'<ellipse cx="{x:f}" cy="{y:f}" rx="{rx:f}" ry="{ry:f}" style="{style}" />'
     # print("_RoundBox: ", svg)
     return svg
 
@@ -568,9 +584,9 @@ def wrap_svg_body(
     svg_str = f"""
 <svg width="{box_width}px" height="{box_height}px" xmlns:svg="http://www.w3.org/2000/svg"
             xmlns="http://www.w3.org/2000/svg"
-            version="1.1"
             viewBox="{x_min:f} {y_min:f} {box_width:f}, {box_height:f}">
     {svg_body}
 </svg>
 """
+    # print(svg_str)
     return svg_str

@@ -1,10 +1,13 @@
-from typing import Union
+from typing import Optional, Union
 
 from sympy.combinatorics import Permutation
+from sympy.tensor.array.expressions import PermuteDims
 from sympy.utilities.iterables import permutations
 
 from mathics.core.atoms import Integer, Integer0, Integer1, String
+from mathics.core.convert.matrix import to_sympy_array, to_sympy_matrix
 from mathics.core.convert.python import from_python
+from mathics.core.convert.sympy import from_sympy_matrix
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BaseElement, Expression
 from mathics.core.list import ListExpression
@@ -18,7 +21,9 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
+    SymbolInner,
     SymbolNormal,
+    SymbolOuter,
     SymbolRule,
     SymbolSparseArray,
 )
@@ -171,7 +176,9 @@ def eval_Inner(f, list1, list2, g, evaluation: Evaluation):
     n = get_dimensions(list2)
 
     if not m or not n:
-        evaluation.message("Inner", "normal")
+        evaluation.message(
+            "Inner", "normal", Integer1, Expression(SymbolInner, list1, list2)
+        )
         return
     if list1.get_head() != list2.get_head():
         evaluation.message("Inner", "heads", list1.get_head(), list2.get_head())
@@ -213,7 +220,7 @@ def eval_Outer(f, lists, evaluation: Evaluation):
     "Evaluates recursively the outer product of lists"
 
     if isinstance(lists, Atom):
-        evaluation.message("Outer", "normal")
+        evaluation.message("Outer", "normal", Integer1, Expression(SymbolOuter, lists))
         return
 
     # If f=!=Times, or lists contain both SparseArray and List, then convert all SparseArrays to Lists
@@ -222,6 +229,7 @@ def eval_Outer(f, lists, evaluation: Evaluation):
     sparse_to_list = f != SymbolTimes
     contain_sparse = False
     contain_list = False
+    new_lists = []
     for _list in lists:
         if _list.head.sameQ(SymbolSparseArray):
             contain_sparse = True
@@ -230,11 +238,11 @@ def eval_Outer(f, lists, evaluation: Evaluation):
         sparse_to_list = sparse_to_list or (contain_sparse and contain_list)
         if sparse_to_list:
             break
-    if sparse_to_list:
-        new_lists = []
-    for _list in lists:
+    for i, _list in enumerate(lists):
         if isinstance(_list, Atom):
-            evaluation.message("Outer", "normal")
+            evaluation.message(
+                "Outer", "normal", Integer(i + 1), Expression(SymbolOuter, lists)
+            )
             return
         if sparse_to_list:
             if _list.head.sameQ(SymbolSparseArray):
@@ -245,6 +253,7 @@ def eval_Outer(f, lists, evaluation: Evaluation):
         elif not _list.head.sameQ(head):
             evaluation.message("Outer", "heads", head, _list.head)
             return
+
     if sparse_to_list:
         lists = new_lists
 
@@ -277,7 +286,7 @@ def eval_Outer(f, lists, evaluation: Evaluation):
     def sparse_cond_next_list(item, level) -> bool:
         return isinstance(item, Atom) or not item.head.sameQ(head)
 
-    def sparse_apply_Rule(current) -> tuple:
+    def sparse_apply_Rule(current) -> Expression:
         return Expression(SymbolRule, ListExpression(*current[0]), current[1])
 
     def sparse_join_elem(current, item) -> tuple:
@@ -316,3 +325,18 @@ def eval_LeviCivitaTensor(d, type):
             for p in perms
         ]
         return Expression(SymbolSparseArray, from_python(rules), from_python([d] * d))
+
+
+def eval_Transpose(m, dimensions: int) -> Optional[Expression]:
+    """Transpose a two- or three-dimensional matrix"""
+
+    if dimensions == 3:
+        sympy_m = to_sympy_array(m)
+        # The below seems to be the default permuatation WMA uses
+        # for 3D matrices.
+        p = PermuteDims(sympy_m, (1, 0, 2))
+        return from_sympy_matrix(p.as_explicit())
+
+    assert dimensions == 2
+    sympy_m = to_sympy_matrix(m)
+    return None if sympy_m is None else from_sympy_matrix(sympy_m.T)

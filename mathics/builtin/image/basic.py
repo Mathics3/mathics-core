@@ -32,10 +32,10 @@ class Blur(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Blur.html</url>
 
     <dl>
-      <dt>'Blur[$image$]'
+      <dt>'Blur'[$image$]
       <dd>gives a blurred version of $image$.
 
-      <dt>'Blur[$image$, $r$]'
+      <dt>'Blur'[$image$, $r$]
       <dd>blurs $image$ with a kernel of size $r$.
     </dl>
 
@@ -63,16 +63,16 @@ class ImageAdjust(Builtin):
     https://reference.wolfram.com/language/ref/ImageAdjust.html</url>
 
     <dl>
-      <dt>'ImageAdjust[$image$]'
+      <dt>'ImageAdjust'[$image$]
       <dd>adjusts the levels in $image$.
 
-      <dt>'ImageAdjust[$image$, $c$]'
+      <dt>'ImageAdjust'[$image$, $c$]
       <dd>adjusts the contrast in $image$ by $c$.
 
-      <dt>'ImageAdjust[$image$, {$c$, $b$}]'
+      <dt>'ImageAdjust'[$image$, {$c$, $b$}]
       <dd>adjusts the contrast $c$, and brightness $b$ in $image$.
 
-      <dt>'ImageAdjust[$image$, {$c$, $b$, $g$}]'
+      <dt>'ImageAdjust'[$image$, {$c$, $b$, $g$}]
       <dd>adjusts the contrast $c$, brightness $b$, and gamma $g$ in $image$.
     </dl>
 
@@ -178,10 +178,10 @@ class ImagePartition(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ImagePartition.html</url>
 
     <dl>
-      <dt>'ImagePartition[$image$, $s$]'
+      <dt>'ImagePartition'[$image$, $s$]
       <dd>Partitions an image into an array of $s$ x $s$ pixel subimages.
 
-      <dt>'ImagePartition[$image$, {$w$, $h$}]'
+      <dt>'ImagePartition'[$image$, {$w$, $h$}]
       <dd>Partitions an image into an array of $w$ x $h$ pixel subimages.
     </dl>
 
@@ -227,10 +227,10 @@ class Sharpen(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Sharpen.html</url>
 
     <dl>
-      <dt>'Sharpen[$image$]'
+      <dt>'Sharpen'[$image$]
       <dd>gives a sharpened version of $image$.
 
-      <dt>'Sharpen[$image$, $r$]'
+      <dt>'Sharpen'[$image$, $r$]
       <dd>sharpens $image$ with a kernel of size $r$.
     </dl>
 
@@ -272,7 +272,7 @@ class Threshold(Builtin):
     https://reference.wolfram.com/language/ref/Threshold.html</url>
 
     <dl>
-      <dt>'Threshold[$image$]'
+      <dt>'Threshold'[$image$]
       <dd>gives a value suitable for binarizing $image$.
     </dl>
 

@@ -7,13 +7,21 @@ Composite Patterns
 from typing import Optional as OptionalType, Tuple, Union
 
 from mathics.core.attributes import A_HOLD_ALL, A_HOLD_FIRST, A_PROTECTED
-from mathics.core.builtin import BinaryOperator, Builtin, PatternObject, PostfixOperator
+from mathics.core.builtin import Builtin, InfixOperator, PatternObject, PostfixOperator
 from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression, SymbolVerbatim
+from mathics.core.expression import Expression
+from mathics.core.keycomparable import (
+    BASIC_ATOM_PATTERN_SORT_KEY,
+    BASIC_EXPRESSION_PATTERN_SORT_KEY,
+    EMPTY_ALTERNATIVE_PATTERN_SORT_KEY,
+    END_OF_LIST_PATTERN_SORT_KEY,
+    OPTIONSPATTERN_SORT_KEY,
+    VERBATIM_PATTERN_SORT_KEY,
+)
 from mathics.core.list import ListExpression
 from mathics.core.pattern import BasePattern, StopGenerator
-from mathics.core.systemsymbols import SymbolBlank
+from mathics.core.systemsymbols import SymbolBlank, SymbolVerbatim
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.rules-and-patterns.composite"
@@ -23,16 +31,16 @@ class _StopGeneratorExcept(StopGenerator):
     pass
 
 
-class Alternatives(BinaryOperator, PatternObject):
+class Alternatives(InfixOperator, PatternObject):
     """
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/Alternatives.html</url>
 
     <dl>
-      <dt>'Alternatives[$p1$, $p2$, ..., $p_i$]'
-      <dt>'$p1$ | $p2$ | ... | $p_i$'
-      <dd>is a pattern that matches any of the patterns $p1$, $p2$, \
+      <dt>'Alternatives'[$p_1$, $p_2$, ..., $p_i$]
+      <dt>$p_1$ '|' $p_2$ '|' ... '|' $p_i$
+      <dd>is a pattern that matches any of the patterns $p_1$, $p_2$, \
         ...., $p_i$.
     </dl>
 
@@ -46,7 +54,6 @@ class Alternatives(BinaryOperator, PatternObject):
 
     arg_counts = None
     needs_verbatim = True
-    operator = "|"
     summary_text = "match to any of several patterns"
 
     def init(
@@ -57,6 +64,14 @@ class Alternatives(BinaryOperator, PatternObject):
             BasePattern.create(element, evaluation=evaluation)
             for element in expr.elements
         ]
+
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_precedence
 
     def match(self, expression: Expression, pattern_context: dict):
         """Match with Alternatives"""
@@ -73,13 +88,30 @@ class Alternatives(BinaryOperator, PatternObject):
         for alternative in self.alternatives:
             sub = alternative.get_match_count(vars_dict)
             if range_lst is None:
-                range_lst = tuple(sub)
+                range_lst = list(sub)
             else:
-                if sub[0] < range_lst[0]:
-                    range_lst[0] = sub[0]
+                range_lst[0] = min(sub[0], range_lst[0])
                 if range_lst[1] is None or sub[1] > range_lst[1]:
                     range_lst[1] = sub[1]
         return tuple(range_lst)
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        min_key = END_OF_LIST_PATTERN_SORT_KEY
+        min = None
+        for element in self.elements:
+            key = element.pattern_precedence
+            if key < min_key:
+                min = element
+                min_key = key
+        if min is None:
+            # empty alternatives -> very restrictive pattern
+            return EMPTY_ALTERNATIVE_PATTERN_SORT_KEY
+        return min_key
 
 
 class Except(PatternObject):
@@ -89,11 +121,11 @@ class Except(PatternObject):
     https://reference.wolfram.com/language/ref/Except.html</url>
 
     <dl>
-      <dt>'Except[$c$]'
+      <dt>'Except'[$c$]
       <dd>represents a pattern object that matches any expression except \
           those matching $c$.
 
-      <dt>'Except[$c$, $p$]'
+      <dt>'Except'[$c$, $p$]
       <dd>represents a pattern object that matches $p$ but not $c$.
     </dl>
 
@@ -137,6 +169,8 @@ class Except(PatternObject):
         else:
             self.p.match(expression, pattern_context)
 
+    # TODO: add get_sort_key, when we figure out how does it should look...
+
 
 class HoldPattern(PatternObject):
     """
@@ -144,7 +178,7 @@ class HoldPattern(PatternObject):
     <url>:WMA link:https://reference.wolfram.com/language/ref/HoldPattern.html</url>
 
     <dl>
-      <dt>'HoldPattern[$expr$]'
+      <dt>'HoldPattern'[$expr$]
       <dd>is equivalent to $expr$ for pattern matching, but \
         maintains it in an unevaluated form.
     </dl>
@@ -175,6 +209,22 @@ class HoldPattern(PatternObject):
         #     yield new_vars_dict, rest
         self.pattern.match(expression, pattern_context)
 
+    @property
+    def element_precedence(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_precedence
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return self.pattern.pattern_precedence
+
 
 class Longest(Builtin):
     """
@@ -183,7 +233,7 @@ class Longest(Builtin):
     https://reference.wolfram.com/language/ref/Longest.html</url>
 
     <dl>
-      <dt>'Longest[$pat$]'
+      <dt>'Longest'[$pat$]
       <dd>is a pattern object that matches the longest sequence consistent \
       with the pattern $pat$.
     </dl>
@@ -205,13 +255,13 @@ class OptionsPattern(PatternObject):
     https://reference.wolfram.com/language/ref/OptionsPattern.html</url>
 
     <dl>
-      <dt>'OptionsPattern[$f$]'
+      <dt>'OptionsPattern'[$f$]
       <dd>is a pattern that stands for a sequence of options given \
         to a function, with default values taken from 'Options[$f$]'. \
         The options can be of the form '$opt$->$value$' or \
         '$opt$:>$value$', and might be in arbitrarily nested lists.
 
-      <dt>'OptionsPattern[{$opt1$->$value1$, ...}]'
+      <dt>'OptionsPattern'[{$opt_1$->$value_1$, ...}]
       <dd>takes explicit default values from the given list. The \
         list may also contain symbols $f$, for which 'Options[$f$]' is \
         taken into account; it may be arbitrarily nested. \
@@ -236,6 +286,12 @@ class OptionsPattern(PatternObject):
     Options might be given in nested lists:
     >> f[x, {{{n->4}}}]
      = x ^ 4
+
+    See also <url>
+    :'Options':
+    /doc/reference-of-built-in-symbols/options-management/options/</url> and <url>
+    :'OptionValue':
+    /doc/reference-of-built-in-symbols/options-management/optionvalue/</url>.
     """
 
     arg_counts = [0, 1]
@@ -304,21 +360,42 @@ class OptionsPattern(PatternObject):
 
         return tuple((element for element in elements if _match(element)))
 
+    @property
+    def element_precedence(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_precedence
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return (
+            OPTIONSPATTERN_SORT_KEY,
+            # Check if this is necesary...
+            self.head.pattern_precedence,
+            tuple(element.pattern_precedence for element in self.elements),
+        )
+
 
 class Pattern(PatternObject):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Pattern.html</url>
 
     <dl>
-      <dt>'Pattern[$symb$, $pat$]'
-      <dt>'$symb$ : $pat$'
+      <dt>'Pattern'[$symb$, $pat$]
+      <dt>$symb$ ':' $pat$
       <dd>assigns the name $symb$ to the pattern $pat$.
-      <dt>'$symb$_$head$'
-      <dd>is equivalent to '$symb$ : _$head$' (accordingly with '__' \
+      <dt>$symb$'_'$head$
+      <dd>is equivalent to $symb$' : _'$head$ (accordingly with '__' \
         and '___').
-      <dt>'$symb$ : $pat$ : $default$'
+      <dt>$symb$' : '$pat$' : '$default$
       <dd>is a pattern with name $symb$ and default value $default$, \
-        equivalent to 'Optional[$pat$ : $symb$, $default$]'.
+        equivalent to 'Optional'[$pat$ : $symb$, $default$].
     </dl>
 
     >> FullForm[a_b]
@@ -444,13 +521,29 @@ class Pattern(PatternObject):
         verbatim = Verbatim(verbatim_expr)
         return verbatim.get_match_candidates(elements, pattern_context)
 
+    @property
+    def element_precedence(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_precedence
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return self.pattern.pattern_precedence
+
 
 class Repeated(PostfixOperator, PatternObject):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Repeated.html</url>
 
     <dl>
-      <dt>'Repeated[$pat$]'
+      <dt>'Repeated'[$pat$]
       <dd>matches one or more occurrences of $pat$.
     </dl>
 
@@ -472,7 +565,6 @@ class Repeated(PostfixOperator, PatternObject):
         )
     }
 
-    operator = ".."
     summary_text = "match to one or more occurrences of a pattern"
 
     def init(
@@ -481,6 +573,9 @@ class Repeated(PostfixOperator, PatternObject):
         min_idx: int = 1,
         evaluation: OptionalType[Evaluation] = None,
     ):
+        self.expr = expr
+        # self.head = BasePattern.create(expr.head)
+        # self.elements = (BasePattern.create(elem) for elem in expr.elements)
         self.pattern = BasePattern.create(expr.elements[0], evaluation=evaluation)
         self.max = None
         self.min = min_idx
@@ -536,13 +631,34 @@ class Repeated(PostfixOperator, PatternObject):
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (self.min, self.max)
 
+    @property
+    def element_precedence(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_precedence
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return (
+            BASIC_EXPRESSION_PATTERN_SORT_KEY,
+            BASIC_ATOM_PATTERN_SORT_KEY,
+            (self.pattern.pattern_precedence, (4,)),
+            1,
+        )
+
 
 class RepeatedNull(Repeated):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/RepeatedNull.html</url>
 
     <dl>
-      <dt>'RepeatedNull[$pat$]'
+      <dt>'RepeatedNull'[$pat$]
       <dd>matches zero or more occurrences of $pat$.
     </dl>
 
@@ -552,7 +668,6 @@ class RepeatedNull(Repeated):
      = t
     """
 
-    operator = "..."
     summary_text = "match to zero or more occurrences of a pattern"
 
     def init(
@@ -566,7 +681,7 @@ class Shortest(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Shortest.html</url>
 
     <dl>
-      <dt>'Shortest[$pat$]'
+      <dt>'Shortest'[$pat$]
       <dd>is a pattern object that matches the shortest sequence consistent with the pattern $pat$.
     </dl>
 
@@ -587,7 +702,7 @@ class Verbatim(PatternObject):
     https://reference.wolfram.com/language/ref/Verbatim.html</url>
 
     <dl>
-      <dt>'Verbatim[$expr$]'
+      <dt>'Verbatim'[$expr$]
       <dd>prevents pattern constructs in $expr$ from taking effect, \
         allowing them to match themselves.
     </dl>
@@ -619,6 +734,27 @@ class Verbatim(PatternObject):
 
         if self.content.sameQ(expression):
             yield_func(vars_dict, None)
+
+    @property
+    def element_precedence(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_precedence
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return (
+            VERBATIM_PATTERN_SORT_KEY,
+            # TODO: Check if this is necesary...
+            self.head.pattern_precedence,
+            tuple(element.pattern_precedence for element in self.elements),
+        )
 
 
 # TODO: Implement `KeyValuePattern`, `PatternSequence`, and `OrderlessPatternSequence`

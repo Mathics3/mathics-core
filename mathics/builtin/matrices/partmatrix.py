@@ -18,10 +18,10 @@ class Diagonal(Builtin):
     https://reference.wolfram.com/language/ref/Diagonal.html</url>
 
     <dl>
-        <dt>'Diagonal[$m$]'
+        <dt>'Diagonal'[$m$]
         <dd>gives a list with the values in the diagonal of the matrix $m$.
 
-        <dt>'Diagonal[$m$, $k$]'
+        <dt>'Diagonal'[$m$, $k$]
         <dd>gives a list with the values in the $k$ diagonal of the \
             matrix $m$.
     </dl>

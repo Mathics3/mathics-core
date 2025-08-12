@@ -8,6 +8,7 @@ mathics/autoload/rules/trig.m
 from test.helper import check_evaluation
 
 import pytest
+from sympy.core.numbers import ComplexInfinity
 
 
 def test_ArcCos():
@@ -29,6 +30,12 @@ def test_ArcCos():
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
+        (
+            "ArcTan[ComplexInfinity]",
+            None,
+            "Indeterminate",
+            "Rule added for Arctan[ComplexInfinity]",
+        ),
         ("ArcTan[-1, 1]", None, "3 Pi / 4", None),
         ("ArcTan[1, -1]", None, "-Pi / 4", None),
         ("ArcTan[-1, -1]", None, "-3 Pi / 4", None),

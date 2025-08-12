@@ -109,6 +109,16 @@ def test_exponential(str_expr, str_expected):
             "ComplexInfinity",
             "Goes to the previous case because of the rule in Power",
         ),
+        (
+            "HoldForm[Times[]]",
+            "Times[]",
+            "Times without arguments is not formatted",
+        ),
+        (
+            "HoldForm[Times[x]]",
+            "Times[x]",
+            "Times with a single argument is not formatted",
+        ),
     ],
 )
 def test_multiply(str_expr, str_expected, msg):

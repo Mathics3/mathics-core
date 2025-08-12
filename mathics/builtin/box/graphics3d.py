@@ -226,8 +226,7 @@ class Graphics3DBox(GraphicsBox):
         boxratios = self.graphics_options["System`BoxRatios"].to_python()
         if boxratios == "System`Automatic":
             boxratios = ["System`Automatic"] * 3
-        else:
-            boxratios = boxratios
+
         if not isinstance(boxratios, list) or len(boxratios) != 3:
             raise BoxExpressionError
 

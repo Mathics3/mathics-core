@@ -3,27 +3,13 @@
 String Patterns
 """
 
-import re
-
-from mathics.builtin.atomic.strings import (
-    _evaluate_match,
-    _parallel_match,
-    _pattern_search,
-    _StringFind,
-    anchor_pattern,
-    to_regex,
-)
-from mathics.core.atoms import Integer1, String
-from mathics.core.attributes import A_FLAT, A_LISTABLE, A_ONE_IDENTITY, A_PROTECTED
-from mathics.core.builtin import BinaryOperator, Builtin
+from mathics.builtin.atomic.strings import _evaluate_match, _parallel_match, _StringFind
+from mathics.core.atoms import String
+from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
+from mathics.core.builtin import Builtin, InfixOperator
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
 from mathics.eval.strings import eval_StringFind
-
-SymbolStringMatchQ = Symbol("StringMatchQ")
-SymbolStringExpression = Symbol("StringExpression")
 
 
 class DigitCharacter(Builtin):
@@ -114,7 +100,7 @@ class LetterCharacter(Builtin):
      = True
     """
 
-    summary_text = "letter"
+    summary_text = "letter-match symbol"
 
 
 class StartOfLine(Builtin):
@@ -169,20 +155,20 @@ class StringCases(_StringFind):
     https://reference.wolfram.com/language/ref/StringCases.html</url>
 
     <dl>
-      <dt>'StringCases["$string$", $pattern$]'
+      <dt>'StringCases'["$string$", $pattern$]
       <dd>gives all occurrences of $pattern$ in $string$.
 
-      <dt>'StringReplace["$string$", $pattern$ -> $form$]'
+      <dt>'StringReplace'["$string$", $pattern$ -> $form$]
       <dd>gives all instances of $form$ that stem from occurrences of $pattern$ in $string$.
 
-      <dt>'StringCases["$string$", {$pattern1$, $pattern2$, ...}]'
-      <dd>gives all occurrences of $pattern1$, $pattern2$, ....
+      <dt>'StringCases'["$string$", {$pattern_1$, $pattern_2$, ...}]
+      <dd>gives all occurrences of $pattern_1$, $pattern_2$, ....
 
-      <dt>'StringReplace["$string$", $pattern$, $n$]'
+      <dt>'StringReplace'["$string$", $pattern$, $n$]
       <dd>gives only the first $n$ occurrences.
 
-      <dt>'StringReplace[{"$string1$", "$string2$", ...}, $pattern$]'
-      <dd>gives occurrences in $string1$, $string2$, ...
+      <dt>'StringReplace'[{"$string_1$", "$string_2$", ...}, $pattern$]
+      <dd>gives occurrences in $string_1$, $string_2$, ...
     </dl>
 
     >> StringCases["axbaxxb", "a" ~~ x_ ~~ "b"]
@@ -234,7 +220,7 @@ class StringCases(_StringFind):
         return eval_StringFind(self, string, rule, n, evaluation, options, True)
 
 
-class StringExpression(BinaryOperator):
+class StringExpression(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/StringExpression.html</url>
 
@@ -248,7 +234,6 @@ class StringExpression(BinaryOperator):
     """
 
     attributes = A_FLAT | A_ONE_IDENTITY | A_PROTECTED
-    operator = "~~"
 
     messages = {
         "invld": "Element `1` is not a valid string or pattern element in `2`.",
@@ -263,137 +248,6 @@ class StringExpression(BinaryOperator):
         if None in args:
             return
         return String("".join(args))
-
-
-class StringFreeQ(Builtin):
-    """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/StringFreeQ.html</url>
-
-    <dl>
-      <dt>'StringFreeQ["$string$", $patt$]'
-      <dd>returns True if no substring in $string$ matches the string \
-      expression $patt$, and returns False otherwise.
-
-      <dt>'StringFreeQ[{"s1", "s2", ...}, patt]'
-      <dd>returns the list of results for each element of string list.
-
-      <dt>'StringFreeQ["string", {p1, p2, ...}]'
-      <dd>returns True if no substring matches any of the $pi$.
-
-      <dt>'StringFreeQ[patt]'
-      <dd>represents an operator form of StringFreeQ that can be applied \
-        to an expression.
-    </dl>
-
-    >> StringFreeQ["mathics", "m" ~~ __ ~~ "s"]
-     = False
-
-    >> StringFreeQ["mathics", "a" ~~ __ ~~ "m"]
-     = True
-
-    >> StringFreeQ["Mathics", "MA" , IgnoreCase -> True]
-     = False
-
-    >> StringFreeQ[{"g", "a", "laxy", "universe", "sun"}, "u"]
-     = {True, True, True, False, False}
-
-
-    >> StringFreeQ["e" ~~ ___ ~~ "u"] /@ {"The Sun", "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"}
-     = {False, False, False, True, True, True, True, True, False}
-
-    >> StringFreeQ[{"A", "Galaxy", "Far", "Far", "Away"}, {"F" ~~ __ ~~ "r", "aw" ~~ ___}, IgnoreCase -> True]
-     = {True, True, False, False, False}
-
-    """
-
-    options = {
-        "IgnoreCase": "False",
-    }
-
-    rules = {
-        "StringFreeQ[patt_][expr_]": "StringFreeQ[expr, patt]",
-    }
-
-    summary_text = "test whether a string is free of substrings matching a pattern"
-
-    def eval(self, string, patt, evaluation: Evaluation, options: dict):
-        "StringFreeQ[string_, patt_, OptionsPattern[%(name)s]]"
-        return _pattern_search(
-            self.__class__.__name__, string, patt, evaluation, options, False
-        )
-
-
-class StringMatchQ(Builtin):
-    r"""
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/StringMatchQ.html</url>
-
-    <dl>
-      <dt>'StringMatchQ["string", $pattern$]'
-      <dd> checks  is "string" matches $pattern$
-    </dl>
-
-    >> StringMatchQ["abc", "abc"]
-     = True
-
-    >> StringMatchQ["abc", "abd"]
-     = False
-
-    >> StringMatchQ["15a94xcZ6", (DigitCharacter | LetterCharacter)..]
-     = True
-
-    Use StringMatchQ as an operator
-    >> StringMatchQ[LetterCharacter]["a"]
-     = True
-    """
-
-    attributes = A_LISTABLE | A_PROTECTED
-
-    options = {
-        "IgnoreCase": "False",
-        "SpellingCorrections": "None",
-    }
-
-    rules = {
-        "StringMatchQ[patt_][expr_]": "StringMatchQ[expr, patt]",
-    }
-    summary_text = "test whether a string matches a pattern"
-
-    def eval(self, string, patt, evaluation: Evaluation, options: dict):
-        "StringMatchQ[string_, patt_, OptionsPattern[%(name)s]]"
-        py_string = string.get_string_value()
-        if py_string is None:
-            evaluation.message(
-                "StringMatchQ",
-                "strse",
-                Integer1,
-                Expression(SymbolStringMatchQ, string, patt),
-            )
-            return
-
-        re_patt = to_regex(
-            patt, show_message=evaluation.message, abbreviated_patterns=True
-        )
-        if re_patt is None:
-            evaluation.message(
-                "StringExpression",
-                "invld",
-                patt,
-                Expression(SymbolStringExpression, patt),
-            )
-            return
-
-        re_patt = anchor_pattern(re_patt)
-
-        flags = re.MULTILINE
-        if options["System`IgnoreCase"] is SymbolTrue:
-            flags = flags | re.IGNORECASE
-
-        if re.match(re_patt, py_string, flags=flags) is None:
-            return SymbolFalse
-        else:
-            return SymbolTrue
 
 
 class WhitespaceCharacter(Builtin):
@@ -422,7 +276,6 @@ class WhitespaceCharacter(Builtin):
     summary_text = "space, newline, tab, or other whitespace character"
 
 
-# strings.to_regex() seems to have the implementation here.
 class WordBoundary(Builtin):
     """
     <url>:WMA link:

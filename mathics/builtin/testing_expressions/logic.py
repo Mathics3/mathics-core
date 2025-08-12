@@ -10,7 +10,7 @@ from mathics.core.attributes import (
     A_ORDERLESS,
     A_PROTECTED,
 )
-from mathics.core.builtin import BinaryOperator, Builtin, Predefined, PrefixOperator
+from mathics.core.builtin import Builtin, InfixOperator, Predefined, PrefixOperator
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.expression import Expression
@@ -66,14 +66,14 @@ class _ManyTrue(Builtin):
         return self._no_short_circuit()
 
 
-class And(BinaryOperator):
+class And(InfixOperator):
     """
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/And.html</url>
 
     <dl>
-      <dt>'And[$expr1$, $expr2$, ...]'
-      <dt>'$expr1$ && $expr2$ && ...'
+      <dt>'And'[$expr_1$, $expr_2$, ...]
+      <dt>'$expr_1$ && $expr_2$ && ...'
       <dd>evaluates each expression in turn, returning 'False' \
           as soon as an expression evaluates to 'False'. If all \
           expressions evaluate to 'True', 'And' returns 'True'.
@@ -89,7 +89,6 @@ class And(BinaryOperator):
     """
 
     attributes = A_FLAT | A_HOLD_ALL | A_ONE_IDENTITY | A_PROTECTED
-    operator = "&&"
     summary_text = "logic conjunction"
     #    rules = {
     #        "And[a_]": "a",
@@ -124,15 +123,15 @@ class AnyTrue(_ManyTrue):
     https://reference.wolfram.com/language/ref/AnyTrue.html</url>
 
     <dl>
-      <dt>'AnyTrue[{$expr1$, $expr2$, ...}, $test$]'
+      <dt>'AnyTrue'[{$expr_1$, $expr_2$, ...}, $test$]
       <dd>returns True if any application of $test$ to \
-          $expr1$, $expr2$, ... evaluates to True.
+          $expr_1$, $expr_2$, ... evaluates to True.
 
-      <dt>'AnyTrue[$list$, $test$, $level$]'
+      <dt>'AnyTrue'[$list$, $test$, $level$]
       <dd>returns True if any application of $test$ to items of \
           $list$ at $level$ evaluates to True.
 
-      <dt>'AnyTrue[$test$]'
+      <dt>'AnyTrue'[$test$]
       <dd>gives an operator that may be applied to expressions.
     </dl>
 
@@ -158,11 +157,11 @@ class AllTrue(_ManyTrue):
     <url>:WMA link:https://reference.wolfram.com/language/ref/AllTrue.html</url>
 
     <dl>
-    <dt>'AllTrue[{$expr1$, $expr2$, ...}, $test$]'
-        <dd>returns True if all applications of $test$ to $expr1$, $expr2$, ... evaluate to True.
-    <dt>'AllTrue[$list$, $test$, $level$]'
+    <dt>'AllTrue'[{$expr_1$, $expr_2$, ...}, $test$]
+        <dd>returns True if all applications of $test$ to $expr_1$, $expr_2$, ... evaluate to True.
+    <dt>'AllTrue'[$list$, $test$, $level$]
         <dd>returns True if all applications of $test$ to items of $list$ at $level$ evaluate to True.
-    <dt>'AllTrue[$test$]'
+    <dt>'AllTrue'[$test$]
         <dd>gives an operator that may be applied to expressions.
     </dl>
 
@@ -183,18 +182,18 @@ class AllTrue(_ManyTrue):
         return SymbolTrue
 
 
-class Equivalent(BinaryOperator):
+class Equivalent(InfixOperator):
     """
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/Equivalent.html</url>
 
     <dl>
-      <dt>'Equivalent[$expr1$, $expr2$, ...]'
-      <dt>$expr1$ \u29E6 $expr2$ \u29E6 ...
+      <dt>'Equivalent'[$expr_1$, $expr_2$, ...]
+      <dt>$expr_1$ \u29E6 $expr_2$ \u29E6 ...
 
       <dd>is equivalent to
-        ($expr1$ && $expr2$ && ...) || (!$expr1$ && !$expr2$ && ...)
+        ($expr_1$ && $expr_2$ && ...) || (!$expr_1$ && !$expr_2$ && ...)
     </dl>
 
     >> Equivalent[True, True, False]
@@ -210,7 +209,6 @@ class Equivalent(BinaryOperator):
     """
 
     attributes = A_ORDERLESS | A_PROTECTED
-    operator = "\u29E6"
     summary_text = "logic equivalence"
 
     def eval(self, args, evaluation: Evaluation):
@@ -253,13 +251,13 @@ class False_(Predefined):
     summary_text = "boolean constant for False"
 
 
-class Implies(BinaryOperator):
+class Implies(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Implies.html</url>
 
     <dl>
-      <dt>'Implies[$expr1$, $expr2$]'
-      <dt>$expr1$ \u21D2 $expr2$
+      <dt>'Implies'[$expr_1$, $expr_2$]
+      <dt>$expr_1$ \u21D2 $expr_2$
         <dd>evaluates each expression in turn, returning 'True' \
         as soon as the first expression evaluates to 'False'. If the \
         first expression evaluates to 'True', 'Implies' returns the \
@@ -277,7 +275,6 @@ class Implies(BinaryOperator):
      = a Implies b Implies c
     """
 
-    operator = "\u21D2"
     grouping = "Right"
     summary_text = "logic implication"
 
@@ -300,15 +297,15 @@ class NoneTrue(_ManyTrue):
     https://reference.wolfram.com/language/ref/NoneTrue.html</url>
 
     <dl>
-      <dt>'NoneTrue[{$expr1$, $expr2$, ...}, $test$]'
-      <dd>returns True if no application of $test$ to $expr1$, $expr2$, ... \
+      <dt>'NoneTrue'[{$expr_1$, $expr_2$, ...}, $test$]
+      <dd>returns True if no application of $test$ to $expr_1$, $expr_2$, ... \
           evaluates to True.
 
-      <dt>'NoneTrue[$list$, $test$, $level$]'
+      <dt>'NoneTrue'[$list$, $test$, $level$]
       <dd>returns True if no application of $test$ to items of $list$ at \
           $level$ evaluates to True.
 
-      <dt>'NoneTrue[$test$]'
+      <dt>'NoneTrue'[$test$]
       <dd>gives an operator that may be applied to expressions.
     </dl>
 
@@ -329,13 +326,13 @@ class NoneTrue(_ManyTrue):
         return SymbolTrue
 
 
-class Or(BinaryOperator):
+class Or(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Or.html</url>
 
     <dl>
-    <dt>'Or[$expr1$, $expr2$, ...]'
-    <dt>'$expr1$ || $expr2$ || ...'
+    <dt>'Or'[$expr_1$, $expr_2$, ...]
+    <dt>'$expr_1$ || $expr_2$ || ...'
         <dd>evaluates each expression in turn, returning 'True'
         as soon as an expression evaluates to 'True'. If all
         expressions evaluate to 'False', 'Or' returns 'False'.
@@ -351,7 +348,6 @@ class Or(BinaryOperator):
     """
 
     attributes = A_FLAT | A_HOLD_ALL | A_ONE_IDENTITY | A_PROTECTED
-    operator = "||"
     summary_text = "logic (inclusive) disjunction"
 
     #    rules = {
@@ -379,45 +375,43 @@ class Or(BinaryOperator):
             return SymbolFalse
 
 
-class Nand(Builtin):
+class Nand(InfixOperator):
     """
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/Nand.html</url>
 
     <dl>
-      <dt>'Nand[$expr1$, $expr2$, ...]'
+      <dt>'Nand'[$expr_1$, $expr_2$, ...]
 
-      <dt>$expr1$ \u22BC $expr2$ \u22BC ...
-      <dd> Implements the logical NAND function.  The same as 'Not[And['$expr1$, $expr2$, ...']]'
+      <dt>$expr_1$ \u22BC $expr_2$ \u22BC ...
+      <dd> Implements the logical NAND function.  The same as 'Not[And['$expr_1$, $expr_2$, ...']]'
     </dl>
 
     >> Nand[True, False]
      = True
     """
 
-    operator = "\u22BC"
     rules = {
         "Nand[expr___]": "Not[And[expr]]",
     }
     summary_text = "negation of logic conjunction"
 
 
-class Nor(Builtin):
+class Nor(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Nor.html</url>
 
     <dl>
-      <dt>'Nor[$expr1$, $expr2$, ...]'
+      <dt>'Nor'[$expr_1$, $expr_2$, ...]
 
-      <dt>$expr1$ \u22BD $expr2$ \u22BD ...
-      <dd>Implements the logical NOR function.  The same as 'Not[Or['$expr1$, $expr2$, ...']]'
+      <dt>$expr_1$ \u22BD $expr_2$ \u22BD ...
+      <dd>Implements the logical NOR function.  The same as 'Not[Or['$expr_1$, $expr_2$, ...']]'
     </dl>
 
     >> Nor[True, False]
      = False
     """
 
-    operator = "\u22BD"
     rules = {
         "Nor[expr___]": "Not[Or[expr]]",
     }
@@ -429,7 +423,7 @@ class Not(PrefixOperator):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Not.html</url>
 
     <dl>
-      <dt>'Not[$expr$]'
+      <dt>'Not'[$expr$]
       <dt>'!$expr$'
       <dd>negates the logical expression $expr$.
     </dl>
@@ -442,6 +436,8 @@ class Not(PrefixOperator):
      = !b
     """
 
+    # FIXME: If we remove this we pick up unicode unconditionally
+    # which we don't want to do.
     operator = "!"
 
     rules = {
@@ -467,13 +463,13 @@ class True_(Predefined):
     summary_text = "boolean constant for True"
 
 
-class Xor(BinaryOperator):
+class Xor(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Xor.html</url>
 
     <dl>
-      <dt>'Xor[$expr1$, $expr2$, ...]'
-      <dt>$expr1$ \u22BB $expr2$ \u22BB ...
+      <dt>'Xor'[$expr_1$, $expr_2$, ...]
+      <dt>$expr_1$ \u22BB $expr_2$ \u22BB ...
 
       <dd>evaluates each expression in turn, returning 'True'
         as soon as not all expressions evaluate to the same value. If all
@@ -492,7 +488,6 @@ class Xor(BinaryOperator):
     """
 
     attributes = A_FLAT | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
-    operator = "\u22BB"
     summary_text = "logic (exclusive) disjunction"
 
     def eval(self, args, evaluation: Evaluation):

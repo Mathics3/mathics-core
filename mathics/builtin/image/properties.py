@@ -25,7 +25,7 @@ class ImageAspectRatio(Builtin):
     https://reference.wolfram.com/language/ref/ImageAspectRatio.html</url>
 
     <dl>
-      <dt>'ImageAspectRatio[$image$]'
+      <dt>'ImageAspectRatio'[$image$]
       <dd>gives the aspect ratio of $image$.
     </dl>
 
@@ -51,7 +51,7 @@ class ImageChannels(Builtin):
     https://reference.wolfram.com/language/ref/ImageChannels.html</url>
 
     <dl>
-      <dt>'ImageChannels[$image$]'
+      <dt>'ImageChannels'[$image$]
       <dd>gives the number of channels in $image$.
     </dl>
 
@@ -77,10 +77,10 @@ class ImageData(Builtin):
     https://reference.wolfram.com/language/ref/ImageData.html</url>
 
     <dl>
-      <dt>'ImageData[$image$]'
+      <dt>'ImageData'[$image$]
       <dd>gives a list of all color values of $image$ as a matrix.
 
-      <dt>'ImageData[$image$, $stype$]'
+      <dt>'ImageData'[$image$, $stype$]
       <dd>gives a list of color values in type $stype$.
     </dl>
 
@@ -125,7 +125,7 @@ class ImageDimensions(Builtin):
     https://reference.wolfram.com/language/ref/ImageDimensions.html</url>
 
     <dl>
-      <dt>'ImageDimensions[$image$]'
+      <dt>'ImageDimensions'[$image$]
       <dd>Returns the dimensions {$width$, $height$} of $image$ in pixels.
     </dl>
 
@@ -150,7 +150,7 @@ class ImageType(Builtin):
     :WMA link:https://reference.wolfram.com/language/ref/ImageType.html</url>
 
     <dl>
-      <dt>'ImageType[$image$]'
+      <dt>'ImageType'[$image$]
       <dd>gives the interval storage type of $image$, e.g. "Real", "Bit32", or "Bit".
     </dl>
 

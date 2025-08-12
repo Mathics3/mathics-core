@@ -46,7 +46,7 @@ class Format(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Format.html</url>
 
     <dl>
-      <dt>'Format[$expr$]'
+      <dt>'Format'[$expr$]
       <dd>holds values specifying how $expr$ should be printed.
     </dl>
 
@@ -82,7 +82,7 @@ class Grid(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Grid.html</url>
 
     <dl>
-      <dt>'Grid[{{$a1$, $a2$, ...}, {$b1$, $b2$, ...}, ...}]'
+      <dt>'Grid'[{{$a_1$, $a_2$, ...}, {$b_1$, $b_2$, ...}, ...}]
       <dd>formats several expressions inside a 'GridBox'.
     </dl>
 
@@ -155,7 +155,7 @@ class Infix(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Infix.html</url>
 
     <dl>
-      <dt>'Infix[$expr$, $oper$, $prec$, $assoc$]'
+      <dt>'Infix'[$expr$, $oper$, $prec$, $assoc$]
       <dd>displays $expr$ with the infix operator $oper$, with precedence $prec$ and associativity $assoc$.
     </dl>
 
@@ -179,9 +179,6 @@ class Infix(Builtin):
      = a + b - c
     """
 
-    messages = {
-        "normal": "Nonatomic expression expected at position `1`",
-    }
     summary_text = "infix form"
 
 
@@ -234,7 +231,6 @@ class Postfix(PostfixOperator):
     """
 
     grouping = "Left"
-    operator = "//"
     operator_display = None
     summary_text = "postfix form"
 
@@ -246,7 +242,7 @@ class Precedence(Builtin):
     on, logic, comparison, datentime, attributes and binary)
 
         <dl>
-          <dt>'Precedence[$op$]'
+          <dt>'Precedence'[$op$]
           <dd>returns the precedence of the built-in operator $op$.
         </dl>
 
@@ -271,9 +267,12 @@ class Precedence(Builtin):
         name = expr.get_name()
         precedence = 1000
         if name:
-            builtin = evaluation.definitions.get_definition(name, only_if_exists=True)
-            if builtin:
-                builtin = builtin.builtin
+            try:
+                builtin = evaluation.definitions.get_definition(
+                    name, only_if_exists=True
+                ).builtin
+            except KeyError:
+                builtin = None
             if builtin is not None and isinstance(builtin, Operator):
                 precedence = builtin.precedence
             else:
@@ -324,7 +323,6 @@ class Prefix(PrefixOperator):
     """
 
     grouping = "Right"
-    operator = "@"
     operator_display = None
     summary_text = "prefix form"
 
@@ -347,7 +345,7 @@ class Row(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Row.html</url>
 
     <dl>
-      <dt>'Row[{$expr$, ...}]'
+      <dt>'Row'[{$expr$, ...}]
       <dd>formats several expressions inside a 'RowBox'.
     </dl>
     """
@@ -379,35 +377,35 @@ class Style(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Style.html</url>
 
     <dl>
-      <dt>'Style[$expr$, options]'
+      <dt>'Style'[$expr$, options]
       <dd>displays $expr$ formatted using the specified option settings.
 
-      <dt>'Style[$expr$, "style"]'
+      <dt>'Style'[$expr$, "style"]
       <dd> uses the option settings for the specified style in the current notebook.
 
-      <dt>'Style[$expr$, $color$]'
+      <dt>'Style'[$expr$, $color$]
       <dd>displays using the specified color.
 
-      <dt>'Style[$expr$, $Bold$]'
+      <dt>'Style'[$expr$, $Bold$]
       <dd>displays with fonts made bold.
 
-      <dt>'Style[$expr$, $Italic$]'
+      <dt>'Style'[$expr$, $Italic$]
       <dd>displays with fonts made italic.
 
-      <dt>'Style[$expr$, $Underlined$]'
+      <dt>'Style'[$expr$, $Underlined$]
       <dd>displays with fonts underlined.
 
       <dt>'Style[$expr$, $Larger$]
       <dd>displays with fonts made larger.
 
-      <dt>'Style[$expr$, $Smaller$]'
+      <dt>'Style'[$expr$, $Smaller$]
       <dd>displays with fonts made smaller.
 
-      <dt>'Style[$expr$, $n$]'
+      <dt>'Style'[$expr$, $n$]
       <dd>displays with font size n.
 
-      <dt>'Style[$expr$, $Tiny$]'
-      <dt>'Style[$expr$, $Small$]', etc.
+      <dt>'Style'[$expr$, $Tiny$]
+      <dt>'Style'[$expr$, $Small$], etc.
       <dd>display with fonts that are tiny, small, etc.
     </dl>
     """
@@ -430,7 +428,7 @@ class Subscript(Builtin):
     https://reference.wolfram.com/language/ref/Subscript.html</url>
 
     <dl>
-      <dt>'Subscript[$a$, $i$]'
+      <dt>'Subscript'[$a$, $i$]
       <dd>displays as $a_i$.
     </dl>
 
@@ -458,7 +456,7 @@ class Subsuperscript(Builtin):
     https://reference.wolfram.com/language/ref/Subsuperscript.html</url>
 
     <dl>
-      <dt>'Subsuperscript[$a$, $b$, $c$]'
+      <dt>'Subsuperscript'[$a$, $b$, $c$]
       <dd>displays as $a_b^c$.
     </dl>
 
@@ -482,7 +480,7 @@ class Superscript(Builtin):
     https://reference.wolfram.com/language/ref/Superscript.html</url>
 
     <dl>
-      <dt>'Superscript[$x$, $y$]'
+      <dt>'Superscript'[$x$, $y$]
       <dd>displays as $x$^$y$.
     </dl>
 

@@ -19,7 +19,7 @@ class UpValues(Builtin):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/UpValues.html</url>
     <dl>
-      <dt>'UpValues[$symbol$]'
+      <dt>'UpValues'[$symbol$]
       <dd>gives the list of transformation rules corresponding to upvalues \
           define with $symbol$.
     </dl>
@@ -43,4 +43,4 @@ class UpValues(Builtin):
     def eval(self, symbol, evaluation):
         "UpValues[symbol_]"
 
-        return get_symbol_values(symbol, "UpValues", "up", evaluation)
+        return get_symbol_values(symbol, "UpValues", "upvalues", evaluation)

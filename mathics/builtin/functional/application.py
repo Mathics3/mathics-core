@@ -4,35 +4,37 @@
 Function Application
 """
 
-# This tells documentation how to sort this module
-sort_order = "mathics.builtin.function-application"
-
-
 from itertools import chain
 
 import sympy
 
 from mathics.core.atoms import Integer, Integer1
 from mathics.core.attributes import A_HOLD_ALL, A_N_HOLD_ALL, A_PROTECTED
-from mathics.core.builtin import Builtin, PostfixOperator, SympyFunction
+from mathics.core.builtin import Builtin, PostfixOperator, PrefixOperator, SympyFunction
 from mathics.core.convert.sympy import SymbolFunction
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, sympy_slot_prefix
 from mathics.core.systemsymbols import SymbolSlot
 
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.function-application"
+
 
 class Function(PostfixOperator, SympyFunction):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/Function.html</url>
+
     <dl>
-      <dt>'Function[$body$]'
+      <dt>'Function'[$body$]
       <dt>'$body$ &'
       <dd>represents a pure function with parameters '#1', '#2', etc.
 
-      <dt>'Function[{$x1$, $x2$, ...}, $body$]'
-      <dd>represents a pure function with parameters $x1$, $x2$, etc.
+      <dt>'Function'[{$x_1$, $x_2$, ...}, $body$]
+      <dd>represents a pure function with parameters $x_1$, $x_2$, etc.
 
-      <dt>'Function[{$x1$, $x2$, ...}, $body$, $attr$]'
+      <dt>'Function'[{$x_1$, $x_2$, ...}, $body$, $attr$]
       <dd>assume that the function has the attributes $attr$.
     </dl>
 
@@ -89,7 +91,6 @@ class Function(PostfixOperator, SympyFunction):
     to the function body.
     """
 
-    operator = "&"
     attributes = A_HOLD_ALL | A_PROTECTED
 
     messages = {
@@ -164,11 +165,14 @@ class Function(PostfixOperator, SympyFunction):
             raise NotImplementedError
 
 
-class Slot(SympyFunction):
+class Slot(SympyFunction, PrefixOperator):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/Slot.html</url>
+
     <dl>
       <dt>'#$n$'
-      <dd>represents the $n$th argument to a pure function.
+      <dd>represents the $n$-th argument to a pure function.
 
       <dt>'#'
       <dd>is short-hand for '#1'.
@@ -190,6 +194,7 @@ class Slot(SympyFunction):
     """
 
     attributes = A_N_HOLD_ALL | A_PROTECTED
+
     rules = {
         "Slot[]": "Slot[1]",
         "MakeBoxes[Slot[n_Integer?NonNegative],"
@@ -204,14 +209,18 @@ class Slot(SympyFunction):
         return sympy.Symbol(f"{sympy_slot_prefix}{index.get_int_value()}")
 
 
-class SlotSequence(Builtin):
+class SlotSequence(PrefixOperator, Builtin):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/SlotSequence.html</url>
+
+
     <dl>
       <dt>'##'
       <dd>is the sequence of arguments supplied to a pure function.
 
       <dt>'##$n$'
-      <dd>starts with the $n$th argument.
+      <dd>starts with the $n$-th argument.
     </dl>
 
     >> Plus[##]& [1, 2, 3]

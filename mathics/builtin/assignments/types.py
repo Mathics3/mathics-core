@@ -22,7 +22,7 @@ class DefaultValues(Builtin):
     https://reference.wolfram.com/language/ref/DefaultValues.html</url>
 
     <dl>
-      <dt>'DefaultValues[$symbol$]'
+      <dt>'DefaultValues'[$symbol$]
       <dd>gives the list of default values associated with $symbol$.
 
       <i>Note: this function is in Mathematica 5 but has been removed from \
@@ -53,7 +53,9 @@ class DefaultValues(Builtin):
     def eval(self, symbol, evaluation):
         "DefaultValues[symbol_]"
 
-        return get_symbol_values(symbol, "System`DefaultValues", "default", evaluation)
+        return get_symbol_values(
+            symbol, "System`DefaultValues", "defaultvalues", evaluation
+        )
 
 
 class Messages(Builtin):
@@ -62,7 +64,7 @@ class Messages(Builtin):
     https://reference.wolfram.com/language/ref/Messages.html</url>
 
     <dl>
-      <dt>'Messages[$symbol$]'
+      <dt>'Messages'[$symbol$]
       <dd>gives the list of messages associated with $symbol$.
     </dl>
 
@@ -92,7 +94,7 @@ class NValues(Builtin):
     ## <url>:WMA link:https://reference.wolfram.com/language/ref/NValues.html</url>
 
     <dl>
-       <dt>'NValues[$symbol$]'
+       <dt>'NValues'[$symbol$]
        <dd>gives the list of numerical values associated with $symbol$.
 
        <i>Note: this function is in Mathematica 5 but has been removed from \
@@ -133,7 +135,7 @@ class NValues(Builtin):
     def eval(self, symbol, evaluation):
         "NValues[symbol_]"
 
-        return get_symbol_values(symbol, "NValues", "n", evaluation)
+        return get_symbol_values(symbol, "NValues", "nvalues", evaluation)
 
 
 class SubValues(Builtin):
@@ -142,7 +144,7 @@ class SubValues(Builtin):
     https://reference.wolfram.com/language/ref/SubValues.html</url>
 
     <dl>
-      <dt>'SubValues[$symbol$]'
+      <dt>'SubValues'[$symbol$]
       <dd>gives the list of subvalues associated with $symbol$.
 
       <i>Note: this function is not in current Mathematica.</i>
@@ -164,4 +166,4 @@ class SubValues(Builtin):
     def eval(self, symbol, evaluation):
         "SubValues[symbol_]"
 
-        return get_symbol_values(symbol, "SubValues", "sub", evaluation)
+        return get_symbol_values(symbol, "SubValues", "subvalues", evaluation)

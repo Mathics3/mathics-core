@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Conversion from AST node to Mathic BaseElement objects
+Conversion from AST node to Mathics3 BaseElement objects
 """
 
 from math import log10
@@ -10,6 +10,7 @@ import sympy
 
 from mathics.core.atoms import Integer, MachineReal, PrecisionReal, Rational, String
 from mathics.core.convert.expression import to_expression, to_mathics_list
+from mathics.core.element import BaseElement
 from mathics.core.number import RECONSTRUCT_MACHINE_PRECISION_DIGITS
 from mathics.core.parser.ast import (
     Filename as AST_Filename,
@@ -19,6 +20,14 @@ from mathics.core.parser.ast import (
 )
 from mathics.core.symbols import Symbol, SymbolList
 from mathics.core.util import canonic_filename
+
+# A StringValueToken is a tuple pair contaiing a token
+# name, either: "String, "Lookup", or "Symbol"
+# a token's string value. Examples:
+#   ["String" "/etc/hosts"]
+#   ["Symbol" "System`Infinity"]
+#   ["Lookup" "Infinity"]
+StringValueToken = Tuple[str, str]
 
 
 class GenericConverter:
@@ -36,21 +45,21 @@ class GenericConverter:
             children = [self.do_convert(child) for child in node.children]
             return "Expression", head, children
 
+    # FIXME REMOVE this.
     @staticmethod
     def string_escape(s: str) -> str:
         return s.encode("raw_unicode_escape").decode("unicode_escape")
 
-    def convert_Symbol(self, node: AST_Symbol) -> Tuple[str, str]:
+    def convert_Symbol(self, node: AST_Symbol) -> StringValueToken:
         if node.context is not None:
             return "Symbol", node.context + "`" + node.value
         else:
             return "Lookup", node.value
 
-    def convert_String(self, node: AST_String) -> Tuple[str, str]:
-        value = self.string_escape(node.value)
-        return "String", value
+    def convert_String(self, node: AST_String) -> StringValueToken:
+        return "String", node.value
 
-    def convert_Filename(self, node: AST_Filename):
+    def convert_Filename(self, node: AST_Filename) -> StringValueToken:
         s = node.value
         if s.startswith('"'):
             assert s.endswith('"')
@@ -58,10 +67,6 @@ class GenericConverter:
 
         s = self.string_escape(canonic_filename(s))
         s = self.string_escape(s)
-
-        # Do we need this? If we do this before non-escaped characters,
-        # like \-, then Python gives a warning.
-        # s = s.replace("\\", "\\\\")
 
         return "String", s
 
@@ -185,7 +190,7 @@ class Converter(GenericConverter):
     def __init__(self):
         self.definitions = None
 
-    def convert(self, node, definitions):
+    def convert(self, node, definitions) -> BaseElement:
         self.definitions = definitions
         result = self.do_convert(node)
         self.definitions = None
@@ -226,7 +231,7 @@ class Converter(GenericConverter):
         return PrecisionReal(sympy.Float(x, prec))
 
     def _make_Expression(self, head: Symbol, children: list):
-        if head == SymbolList:
+        if head is SymbolList:
             return to_mathics_list(*children)
 
         return to_expression(head, *children)

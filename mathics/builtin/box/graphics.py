@@ -2,10 +2,6 @@
 """
 Boxing Symbols for 2D Graphics
 """
-# Docs are not yet ready for prime time. Maybe after release 6.0.0.
-no_doc = True
-
-
 from math import atan2, ceil, cos, degrees, floor, log10, pi, sin
 from typing import Optional
 
@@ -42,6 +38,9 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolTraditionalForm
 from mathics.eval.makeboxes import format_element
+
+# Docs are not yet ready for prime time. Maybe after release 6.0.0.
+no_doc = True
 
 SymbolRegularPolygonBox = Symbol("RegularPolygonBox")
 SymbolStandardForm = Symbol("StandardForm")
@@ -604,7 +603,6 @@ class GraphicsBox(BoxExpression):
             if width > base_width:
                 width = base_width
                 height = width * aspect
-            height = height
 
             width *= size_multiplier
             height *= size_multiplier
@@ -803,6 +801,16 @@ class GraphicsBox(BoxExpression):
                 ),
             ]
         ):
+            # Where should the placement of tick mark labels go?
+            if index == 0:
+                # x labels go under tick marks
+                alignment = "bottom"
+            elif index == 1:
+                # y labels go to the left of tick marks
+                alignment = "left"
+            else:
+                alignment = None
+
             if axes[index]:
                 add_element(
                     LineBox(
@@ -859,6 +867,7 @@ class GraphicsBox(BoxExpression):
                             ),
                             opos=p_self0(1),
                             opacity=1.0,
+                            alignment=alignment,
                         )
                     )
                 for x in ticks_small:
@@ -993,6 +1002,7 @@ class InsetBox(_GraphicsElementBox):
         pos=None,
         opos=(0, 0),
         opacity=None,
+        alignment=None,
     ):
         super(InsetBox, self).init(graphics, item, style)
 
@@ -1009,6 +1019,7 @@ class InsetBox(_GraphicsElementBox):
             opacity = Opacity(1.0)
 
         self.opacity = opacity
+        self.alignment = alignment
 
         if item is not None:
             if len(item.elements) not in (1, 2, 3):

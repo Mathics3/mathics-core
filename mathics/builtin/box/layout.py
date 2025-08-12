@@ -10,7 +10,7 @@ collection of Expressions usually contained in boxes.
 
 from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.options import options_to_rules
-from mathics.core.atoms import Atom, String
+from mathics.core.atoms import String
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.element import BoxElementMixin
@@ -18,43 +18,19 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolFullForm
+from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
     SymbolFractionBox,
     SymbolRowBox,
     SymbolSqrtBox,
-    SymbolStandardForm,
     SymbolSubscriptBox,
     SymbolSubsuperscriptBox,
     SymbolSuperscriptBox,
 )
-from mathics.eval.makeboxes import eval_makeboxes
+from mathics.eval.makeboxes import to_boxes
 
 # Docs are not yet ready for prime time. Maybe after release 6.0.0.
 no_doc = True
-
-
-def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElementMixin:
-    """
-    This function takes the expression ``x``
-    and tries to reduce it to a ``BoxElementMixin``
-    expression using an evaluation object.
-    """
-    if isinstance(x, BoxElementMixin):
-        return x
-    if isinstance(x, Atom):
-        x = x.atom_to_boxes(SymbolStandardForm, evaluation)
-        return to_boxes(x, evaluation, options)
-    if isinstance(x, Expression):
-        if x.has_form("MakeBoxes", None):
-            x_boxed = x.evaluate(evaluation)
-        else:
-            x_boxed = eval_makeboxes(x, evaluation)
-        if isinstance(x_boxed, BoxElementMixin):
-            return x_boxed
-        if isinstance(x_boxed, Atom):
-            return to_boxes(x_boxed, evaluation, options)
-    raise eval_makeboxes(Expression(SymbolFullForm, x), evaluation)
 
 
 class BoxData(Builtin):
@@ -74,7 +50,7 @@ class BoxData(Builtin):
 class ButtonBox(BoxExpression):
     """
     <dl>
-      <dt>'ButtonBox[$boxes$]'
+      <dt>'ButtonBox'[$boxes$]
       <dd> is a low-level box construct that represents a button \
            in a notebook expression.
     </dl>
@@ -98,7 +74,7 @@ class FractionBox(BoxExpression):
     https://reference.wolfram.com/language/ref/FractionBox.html</url>
 
     <dl>
-      <dt>'FractionBox[$x$, $y$]'
+      <dt>'FractionBox'[$x$, $y$]
       <dd> FractionBox[x, y] is a low-level formatting construct that represents $\frac{x}{y}$.
     </dl>
     """
@@ -340,9 +316,9 @@ class SqrtBox(BoxExpression):
     :WMA link:
     https://reference.wolfram.com/language/ref/SqrtData.html</url>
     <dl>
-      <dt>'SqrtBox[$x$]'
+      <dt>'SqrtBox'[$x$]
       <dd> is a low-level formatting construct that represents $\\sqrt{x}$.
-      <dt>'SqrtBox[$x$, $y$]'
+      <dt>'SqrtBox'[$x$, $y$]
       <dd> represents $\\sqrt[y]{x}$.
     </dl>
     """
@@ -432,7 +408,7 @@ class StyleBox(BoxExpression):
 class SubscriptBox(BoxExpression):
     """
     <dl>
-      <dt>'SubscriptBox[$a$, $b$]'
+      <dt>'SubscriptBox'[$a$, $b$]
       <dd>is a box construct that represents $a_b$.
     </dl>
 
@@ -477,7 +453,7 @@ class SubsuperscriptBox(BoxExpression):
     https://reference.wolfram.com/language/ref/SubsuperscriptBox.html</url>
 
     <dl>
-      <dt>'SubsuperscriptBox[$a$, $b$, $c$]'
+      <dt>'SubsuperscriptBox'[$a$, $b$, $c$]
       <dd>is a box construct that represents $a_b^c$.
     </dl>
     """
@@ -518,7 +494,7 @@ class SuperscriptBox(BoxExpression):
     :WMA link:
     https://reference.wolfram.com/language/ref/SuperscriptBox.html</url>
     <dl>
-      <dt>'SuperscriptBox[$a$, $b$]'
+      <dt>'SuperscriptBox'[$a$, $b$]
       <dd>is a box construct that represents $a^b$.
     </dl>
 
@@ -573,7 +549,7 @@ class TemplateBox(BoxExpression):
     :WMA link:
     https://reference.wolfram.com/language/ref/TemplateBox.html</url>
     <dl>
-      <dt>'TemplateBox[{$box_1$, $box_2$,...}, tag]'
+      <dt>'TemplateBox'[{$box_1$, $box_2$,...}, tag]
       <dd>is a low-level box structure that parameterizes the display and evaluation of the boxes $box_i$ .
     </dl>
     """

@@ -30,7 +30,7 @@ class RSolve(Builtin):
     https://reference.wolfram.com/language/ref/RSolve.html</url>
 
     <dl>
-    <dt>'RSolve[$eqn$, $a$[$n$], $n$]'
+    <dt>'RSolve[$eqn$, $a$'[$n$], $n$]
         <dd>solves a recurrence equation for the function '$a$[$n$]'.
     </dl>
 

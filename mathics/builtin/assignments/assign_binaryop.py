@@ -16,18 +16,40 @@ Infix operators combined with assignment end in 'By', 'From', or 'To'.
 """
 
 
+from mathics.core.atoms import Integer1, IntegerM1
 from mathics.core.attributes import A_HOLD_FIRST, A_PROTECTED, A_READ_PROTECTED
-from mathics.core.builtin import BinaryOperator, PostfixOperator, PrefixOperator
+from mathics.core.builtin import InfixOperator, PostfixOperator, PrefixOperator
+from mathics.core.evaluation import Evaluation
+from mathics.core.systemsymbols import SymbolPlus
+from mathics.eval.assignments.assign_binaryop import eval_inplace_op
 
 
-class AddTo(BinaryOperator):
+class InplaceInfixOperator:
+    grouping = "Right"
+    operator_symbol = SymbolPlus
+    increment_symbol = Integer1
+    returns_updated_value: bool = True
+
+    def eval(self, expr, evaluation: Evaluation):
+        """%(name)s[expr_]"""
+        return eval_inplace_op(
+            self,
+            expr,
+            self.operator_symbol,
+            self.increment_symbol,
+            self.returns_updated_value,
+            evaluation,
+        )
+
+
+class AddTo(InfixOperator, InplaceInfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/AddTo.html</url>
 
     <dl>
-      <dt>'AddTo[$x$, $dx$]'
-      <dt>'$x$ += $dx$'
-      <dd>is equivalent to '$x$ = $x$ + $dx$'.
+      <dt>'AddTo'[$x$, $dx$]
+      <dt>$x$ '+=' $dx$
+      <dd>is equivalent to $x$ '=' $x$ '+' $dx$.
     </dl>
 
     >> a = 10;
@@ -39,53 +61,80 @@ class AddTo(BinaryOperator):
 
     attributes = A_HOLD_FIRST | A_PROTECTED
     grouping = "Right"
-    operator = "+="
 
-    rules = {
-        "x_ += dx_": "x = x + dx",
-    }
-    summary_text = "add a value and assigns that returning the new value"
+    operator_symbol = SymbolPlus
+    return_before_value: bool = True
+    summary_text = "add a value and update; return the updated value"
+
+    def eval(self, expr, increment, evaluation: Evaluation):
+        """%(name)s[expr_, increment_]"""
+        return eval_inplace_op(
+            self,
+            expr,
+            self.operator_symbol,
+            increment,
+            self.return_before_value,
+            evaluation,
+        )
 
 
-class Decrement(PostfixOperator):
+# Decrement has Infix properties for evaluation purposes, but Postfix
+# properties for operator association.
+class Decrement(InplaceInfixOperator, InfixOperator, PostfixOperator):
     """
     <url>:WMA link
     :https://reference.wolfram.com/language/ref/Decrement.html</url>
 
     <dl>
-      <dt>'Decrement[$x$]'
+      <dt>'Decrement'[$x$]
 
-      <dt>'$x$--'
+      <dt>$x$'--'
       <dd>decrements $x$ by 1, returning the original value of $x$.
     </dl>
 
-    >> a = 5;
-    X> a--
+    >> a = 5; a--
      = 5
-    X> a
+    >> a
      = 4
+
+    Decrement a numerical value:
+
+    >> a = 1.6; a--; a
+     = 0.6
+
+    Decrement all values in a list:
+
+    >> a = {1, 3, 5}
+     = {1, 3, 5}
+
+    >> a--; a
+     = {0, 2, 4}
+
+    Compare with <url>:PreDecrement:
+    /doc/reference-of-built-in-symbols/assignments/in-place-binary-assignment-operator/predecrement
+    </url> which returns the value before updating, and <url>:Increment:
+    /doc/reference-of-built-in-symbols/assignments/in-place-binary-assignment-operator/increment
+    </url> which goes the other way.
     """
 
-    operator = "--"
     attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
+    increment_symbol = IntegerM1
+    operator_symbol = SymbolPlus
 
-    rules = {
-        "x_--": "Module[{t=x}, x = x - 1; t]",
-    }
-
+    returns_updated_value = False
     summary_text = (
-        "decreases the value by one and assigns that returning the original value"
+        "decreases a value by one and assign the value; return the original value"
     )
 
 
-class DivideBy(BinaryOperator):
+class DivideBy(InplaceInfixOperator, InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/DivideBy.html</url>
 
     <dl>
-      <dt>'DivideBy[$x$, $dx$]'
-      <dt>'$x$ /= $dx$'
-      <dd>is equivalent to '$x$ = $x$ / $dx$'.
+      <dt>'DivideBy'[$x$, $dx$]
+      <dt>$x$ '/=' $dx$
+      <dd>is equivalent to $x$ = $x$ '/' $dx$.
     </dl>
 
     >> a = 10;
@@ -97,120 +146,166 @@ class DivideBy(BinaryOperator):
 
     attributes = A_HOLD_FIRST | A_PROTECTED
     grouping = "Right"
-    operator = "/="
 
     rules = {
         "x_ /= dx_": "x = x / dx",
     }
-    summary_text = "divide a value and assigns that returning the new value"
+    summary_text = "divide by a value and update; return the new value"
 
 
-class Increment(PostfixOperator):
+class Increment(InplaceInfixOperator, InfixOperator, PostfixOperator):
     """
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/Increment.html</url>
 
     <dl>
-      <dt>'Increment[$x$]'
+      <dt>'Increment'[$x$]
 
-      <dt>'$x$++'
+      <dt>$x$'++'
       <dd>increments $x$ by 1, returning the original value of $x$.
     </dl>
 
-    >> a = 2;
-    >> a++
-     = 2
+    >> a = 1; a++
+     = 1
     >> a
-     = 3
+     = 2
+
+    Increment a numeric value:
+
+    >> a = 1.5; a++
+     = 1.5
+
+    >> a
+     = 2.5
+
+    Increment a symbolic value:
+
+    >> y = 2 x; y++; y
+     = 1 + 2 x
+
+    Increment all values in a list:
+
+    >> x = {1, 3, 5}
+     = {1, 3, 5}
+
+    x++; x
+     = {2, 4, 6}
+
     Grouping of 'Increment', 'PreIncrement' and 'Plus':
     >> ++++a+++++2//Hold//FullForm
      = Hold[Plus[PreIncrement[PreIncrement[Increment[Increment[a]]]], 2]]
-    """
 
-    operator = "++"
-    attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
+    Compare with <url>:PreIncrement:
+    /doc/reference-of-built-in-symbols/assignments/in-place-binary-assignment-operator/preincrement
+    </url> which returns the value before update.
 
-    rules = {
-        "x_++": (
-            "Module[{Internal`IncrementTemporary = x},"
-            "       x = x + 1;"
-            "       Internal`IncrementTemporary"
-            "]"
-        ),
-    }
-
-    summary_text = (
-        "increases the value by one and assigns that returning the original value"
-    )
-
-
-class PreIncrement(PrefixOperator):
-    """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/PreIncrement.html</url>
-
-    <dl>
-      <dt>'PreIncrement[$x$]'
-      <dt>'++$x$'
-      <dd>increments $x$ by 1, returning the new value of $x$.
-    </dl>
-
-    '++$a$' is equivalent to '$a$ = $a$ + 1':
-    >> a = 2;
-    >> ++a
-     = 3
-    >> a
-     = 3
+    #> Clear[a, x, y]
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
-    operator = "++"
-
-    rules = {
-        "++x_": "x = x + 1",
-    }
-
-    summary_text = "increase the value by one and assigns that returning the new value"
+    increment_symbol = Integer1
+    operator_symbol = SymbolPlus
+    returns_updated_value: bool = False
+    summary_text = "increases the value by one and update; return the original value"
 
 
-class PreDecrement(PrefixOperator):
+class PreDecrement(InplaceInfixOperator, PrefixOperator):
     """
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/PreDecrement.html</url>
 
     <dl>
-      <dt>'PreDecrement[$x$]'
+      <dt>'PreDecrement'[$x$]
 
-      <dt>'--$x$'
+      <dt>'--'$x$
       <dd>decrements $x$ by 1, returning the new value of $x$.
     </dl>
 
-    '--$a$' is equivalent to '$a$ = $a$ - 1':
+    '--'$a$ is equivalent to $a$ '=' $a$ '- 1':
     >> a = 2;
     >> --a
      = 1
     >> a
      = 1
+
+    Compare with <url>:Decrement:
+    /doc/reference-of-built-in-symbols/assignments/in-place-binary-assignment-operator/decrement
+    </url> which returns the updated value, and <url>:Increment:
+    /doc/reference-of-built-in-symbols/assignments/in-place-binary-assignment-operator/increment
+    </url> which goes the other way.
+
+    #> Clear[a]
     """
 
-    operator = "--"
     attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
+    increment_symbol = IntegerM1
+    operator_symbol = SymbolPlus
+    returns_updated_value: bool = True
+    summary_text = "decrease the value by one and update; return the new value"
 
-    rules = {
-        "--x_": "x = x - 1",
-    }
-    summary_text = "decrease the value by one and assigns that returning the new value"
+
+class PreIncrement(InplaceInfixOperator, PrefixOperator):
+    """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/PreIncrement.html</url>
+
+    <dl>
+      <dt>'PreIncrement'[$x$]
+      <dt>'++'$x$
+      <dd>increments $x$ by 1, returning the new value of $x$.
+    </dl>
+
+    '++'$a$ is equivalent to $a$ '=' $a$ '+ 1':
+    >> a = 2
+     = 2
+
+    >> ++a
+     = 3
+
+    >> a
+     = 3
+
+    PreIncrement a numeric value:
+
+    >> a + 1.6
+     = 4.6
 
 
-class SubtractFrom(BinaryOperator):
+    PreIncrement a symbolic value:
+
+    #> Clear[x, y]
+
+    >> y = x; ++y
+     = 1 + x
+
+    >> y
+     = 1 + x
+
+    Compare with <url>:Increment:
+    /doc/reference-of-built-in-symbols/assignments/in-place-binary-assignment-operator/increment
+    </url> which returns the updated value, and <url>:PreDecrement:
+    /doc/reference-of-built-in-symbols/assignments/in-place-binary-assignment-operator/predecrement
+    </url> which goes the other way.
+
+    #> Clear[a, x, y]
+    """
+
+    attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
+    operator_symbol = SymbolPlus
+    return_before_value: bool = False
+
+    summary_text = "increase the value by one and updage; return the new value"
+
+
+class SubtractFrom(InfixOperator):
     """
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/SubtractFrom.html</url>
 
     <dl>
-      <dt>'SubtractFrom[$x$, $dx$]'
-      <dt>'$x$ -= $dx$'
-      <dd>is equivalent to '$x$ = $x$ - $dx$'.
+      <dt>'SubtractFrom'[$x$, $dx$]
+      <dt>$x$ '-=' $dx$
+      <dd>is equivalent to $x$ '=' $x$ '-' $dx$.
     </dl>
 
     >> a = 10;
@@ -218,26 +313,27 @@ class SubtractFrom(BinaryOperator):
      = 8
     >> a
      = 8
+
+    #> Clear[a]
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED
     grouping = "Right"
-    operator = "-="
 
     rules = {
         "x_ -= dx_": "x = x - dx",
     }
-    summary_text = "subtract a value and assins that returning the new value"
+    summary_text = "subtract a value and update; return the new value"
 
 
-class TimesBy(BinaryOperator):
+class TimesBy(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/TimesBy.html</url>
 
     <dl>
-      <dt>'TimesBy[$x$, $dx$]'
-      <dt>'$x$ *= $dx$'
-      <dd>is equivalent to '$x$ = $x$ * $dx$'.
+      <dt>'TimesBy'[$x$, $dx$]
+      <dt>$x$ '*=' $dx$
+      <dd>is equivalent to $x$ '=' $x$ '*' $dx$.
     </dl>
 
     >> a = 10;
@@ -245,13 +341,14 @@ class TimesBy(BinaryOperator):
      = 20
     >> a
      = 20
+
+    #> Clear[a]
     """
 
-    operator = "*="
     attributes = A_HOLD_FIRST | A_PROTECTED
     grouping = "Right"
 
     rules = {
         "x_ *= dx_": "x = x * dx",
     }
-    summary_text = "multiply a value and assigns that returning the new value"
+    summary_text = "multiply a value and update; return the new value"

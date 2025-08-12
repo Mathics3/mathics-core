@@ -257,6 +257,14 @@ class Mesh(Builtin):
           specifies the mesh to be drawn. The default is 'Mesh->None'.
      </dl>
 
+    Options include:
+
+    <ul>
+      <li>None: No mesh is drawn
+      <li>All: mesh divisions between elements
+      <li>Full: mesh divisions between regular datapoints
+    </ul>
+
     >> Plot[Sin[Cos[x^2]],{x,-4,4},Mesh->All]
      = -Graphics-
 
@@ -310,7 +318,7 @@ class PlotRange(Builtin):
       <li>$max$ - explicit limit for each function.
       <li>{$min$, $max$} - explicit limits for $y$ (2D), $z$ (3D), \
           or array values.
-      <li>{{$x$_$min$, $x$_$max$}, {{$y_min}, {$y_max}} - explicit limits for \
+      <li>{{$x_{min}$, $x_{max}$}, {{$y_{min}$}, {$y_{max}$}} - explicit limits for \
           $x$ and $y$.
     </ul>
 

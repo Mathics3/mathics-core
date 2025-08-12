@@ -10,6 +10,16 @@ from typing import Optional as OptionalType
 from mathics.core.builtin import PatternObject
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.keycomparable import (
+    BASIC_ATOM_PATTERN_SORT_KEY,
+    BLANK_GENERAL_PATTERN_SORT_KEY,
+    BLANK_WITH_PATTERN_PATTERN_SORT_KEY,
+    BLANKNULLSEQUENCE_GENERAL_PATTERN_SORT_KEY,
+    BLANKNULLSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY,
+    BLANKSEQUENCE_GENERAL_PATTERN_SORT_KEY,
+    BLANKSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY,
+)
+from mathics.core.symbols import BaseElement
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.rules-and-patterns.basic"
@@ -55,7 +65,7 @@ class Blank(_Blank):
       <dt>'Blank[]'
       <dt>'_'
       <dd>represents any single expression in a pattern.
-      <dt>'Blank[$h$]'
+      <dt>'Blank'[$h$]
       <dt>'_$h$'
       <dd>represents any expression with head $h$.
     </dl>
@@ -89,7 +99,7 @@ class Blank(_Blank):
     }
     summary_text = "match to any single expression"
 
-    def match(self, expression: Expression, pattern_context: dict):
+    def match(self, expression: BaseElement, pattern_context: dict):
         vars_dict = pattern_context["vars_dict"]
         yield_func = pattern_context["yield_func"]
 
@@ -99,6 +109,27 @@ class Blank(_Blank):
                     yield_func(vars_dict, None)
             else:
                 yield_func(vars_dict, None)
+
+    @property
+    def element_order(self):
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_order
+
+    @property
+    def pattern_precedence(self):
+        pattern_key = (
+            BLANK_WITH_PATTERN_PATTERN_SORT_KEY
+            if self.elements
+            else BLANK_GENERAL_PATTERN_SORT_KEY
+        )
+        return (
+            pattern_key,
+            BASIC_ATOM_PATTERN_SORT_KEY,
+            tuple(element.pattern_precedence for element in self.elements),
+        )
 
 
 class BlankNullSequence(_Blank):
@@ -140,8 +171,33 @@ class BlankNullSequence(_Blank):
         else:
             yield_func(vars_dict, None)
 
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_order
+
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (0, None)
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        pattern_key = (
+            BLANKNULLSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY
+            if self.elements
+            else BLANKNULLSEQUENCE_GENERAL_PATTERN_SORT_KEY
+        )
+        return (
+            pattern_key,
+            BASIC_ATOM_PATTERN_SORT_KEY,
+            tuple(element.pattern_precedence for element in self.elements),
+        )
 
 
 class BlankSequence(_Blank):
@@ -153,7 +209,7 @@ class BlankSequence(_Blank):
       <dt>'__'
       <dd>represents any non-empty sequence of expression elements in \
         a pattern.
-      <dt>'BlankSequence[$h$]'
+      <dt>'BlankSequence'[$h$]
       <dt>'__$h$'
       <dd>represents any sequence of elements, all of which have head $h$.
     </dl>
@@ -202,3 +258,28 @@ class BlankSequence(_Blank):
 
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (1, None)
+
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_order
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        pattern_key = (
+            BLANKSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY
+            if self.elements
+            else BLANKSEQUENCE_GENERAL_PATTERN_SORT_KEY
+        )
+        return (
+            pattern_key,
+            BASIC_ATOM_PATTERN_SORT_KEY,
+            tuple(element.pattern_precedence for element in self.elements),
+        )

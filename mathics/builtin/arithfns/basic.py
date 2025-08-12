@@ -32,14 +32,15 @@ from mathics.core.attributes import (
     A_READ_PROTECTED,
 )
 from mathics.core.builtin import (
-    BinaryOperator,
     Builtin,
+    InfixOperator,
     MPMathFunction,
     PrefixOperator,
     SympyFunction,
 )
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.sympy import from_sympy
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
@@ -61,7 +62,7 @@ from mathics.core.systemsymbols import (
     SymbolPattern,
     SymbolSequence,
 )
-from mathics.eval.arithmetic import eval_Plus, eval_Times
+from mathics.eval.arithfns.basic import eval_Plus, eval_Times
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
 
@@ -74,7 +75,7 @@ class CubeRoot(Builtin):
     https://reference.wolfram.com/language/ref/CubeRoot.html</url>)
 
     <dl>
-      <dt>'CubeRoot[$n$]'
+      <dt>'CubeRoot'[$n$]
       <dd>finds the real-valued cube root of the given $n$.
     </dl>
 
@@ -96,7 +97,7 @@ class CubeRoot(Builtin):
         ),
     }
 
-    summary_text = "cube root"
+    summary_text = "compute cube root of a number"
 
     def eval(self, n, evaluation):
         "CubeRoot[n_Complex]"
@@ -109,7 +110,7 @@ class CubeRoot(Builtin):
         )
 
 
-class Divide(BinaryOperator):
+class Divide(InfixOperator):
     """
     <url>
     :Division:
@@ -118,8 +119,8 @@ class Divide(BinaryOperator):
     https://reference.wolfram.com/language/ref/Divide.html</url>)
 
     <dl>
-      <dt>'Divide[$a$, $b$]'
-      <dt>'$a$ / $b$'
+      <dt>'Divide'[$a$, $b$]
+      <dt> $a$ '/' $b$
       <dd>represents the division of $a$ by $b$.
     </dl>
 
@@ -160,7 +161,6 @@ class Divide(BinaryOperator):
     }
 
     grouping = "Left"
-    operator = "/"
 
     rules = {
         "Divide[x_, y_]": "Times[x, Power[y, -1]]",
@@ -168,10 +168,11 @@ class Divide(BinaryOperator):
             "FractionBox[MakeBoxes[x, f], MakeBoxes[y, f]]"
         ),
     }
-    summary_text = "divide"
+
+    summary_text = "divide a number"
 
     def format_outputform(self, x, y, evaluation):
-        "OutputForm: Divide[x_, y_]"
+        "(OutputForm,): Divide[x_, y_]"
         use_2d = (
             evaluation.definitions.get_ownvalues("System`$Use2DOutputForm")[0].replace
             is SymbolTrue
@@ -198,7 +199,7 @@ class Minus(PrefixOperator):
     https://reference.wolfram.com/language/ref/Minus.html</url>)
 
     <dl>
-      <dt>'Minus[$expr$]'
+      <dt>'Minus'[$expr$]
       <dd> is the negation of $expr$.
     </dl>
 
@@ -225,20 +226,18 @@ class Minus(PrefixOperator):
         ),
     }
 
-    operator = "-"
-
     rules = {
         "Minus[x_]": "Times[-1, x]",
     }
 
-    summary_text = "arithmetic negate"
+    summary_text = "perform an arithmetic negation on a number"
 
     def eval_int(self, x: Integer, evaluation):
         "Minus[x_Integer]"
         return Integer(-x.value)
 
 
-class Plus(BinaryOperator, SympyFunction):
+class Plus(InfixOperator, SympyFunction):
     """
     <url>
     :Addition:
@@ -249,7 +248,7 @@ class Plus(BinaryOperator, SympyFunction):
     https://reference.wolfram.com/language/ref/Plus.html</url>)
 
     <dl>
-      <dt>'Plus[$a$, $b$, ...]'
+      <dt>'Plus'[$a$, $b$, ...]
       <dt>$a$ + $b$ + ...
       <dd>represents the sum of the terms $a$, $b$, ...
     </dl>
@@ -299,28 +298,26 @@ class Plus(BinaryOperator, SympyFunction):
         None: "0",
     }
 
-    operator = "+"
-
-    summary_text = "add"
+    summary_text = "add a number"
 
     # FIXME Note this is deprecated in 1.11
     # Remember to up sympy doc link when this is corrected
     sympy_name = "Add"
 
-    def format_plus(self, items, evaluation):
+    def format_plus(self, items, evaluation: Evaluation):
         "Plus[items__]"
 
         def negate(item):  # -> Expression (see FIXME below)
-            if item.has_form("Times", 1, None):
+            if item.has_form("Times", 2, None):
                 if isinstance(item.elements[0], Number):
-                    neg = -item.elements[0]
-                    if neg.sameQ(Integer1):
-                        if len(item.elements) == 1:
-                            return neg
-                        else:
-                            return Expression(SymbolTimes, *item.elements[1:])
-                    else:
-                        return Expression(SymbolTimes, neg, *item.elements[1:])
+                    first, *rest = item.elements
+                    first = -first
+                    if first.sameQ(Integer1):
+                        if len(rest) == 1:
+                            return rest[0]
+                        return Expression(SymbolTimes, *rest)
+
+                    return Expression(SymbolTimes, first, *rest)
                 else:
                     return Expression(SymbolTimes, IntegerM1, *item.elements)
             elif isinstance(item, Number):
@@ -358,13 +355,13 @@ class Plus(BinaryOperator, SympyFunction):
             SymbolLeft,
         )
 
-    def eval(self, items, evaluation):
+    def eval(self, items, evaluation: Evaluation):
         "Plus[items___]"
         items_tuple = numerify(items, evaluation).get_sequence()
         return eval_Plus(*items_tuple)
 
 
-class Power(BinaryOperator, MPMathFunction):
+class Power(InfixOperator, MPMathFunction):
     """
     <url>
     :Exponentiation:
@@ -375,8 +372,8 @@ class Power(BinaryOperator, MPMathFunction):
     https://reference.wolfram.com/language/ref/Power.html</url>)
 
     <dl>
-      <dt>'Power[$a$, $b$]'
-      <dt>'$a$ ^ $b$'
+      <dt>'Power'[$a$, $b$]
+      <dt>$a$ '^' $b$
       <dd>represents $a$ raised to the power of $b$.
     </dl>
 
@@ -461,20 +458,18 @@ class Power(BinaryOperator, MPMathFunction):
     }
 
     nargs = {2}
-    operator = "^"
-
     rules = {
         "Power[]": "1",
         "Power[x_]": "x",
     }
 
-    summary_text = "exponentiate"
+    summary_text = "exponentiate a number"
 
     # FIXME Note this is deprecated in 1.11
     # Remember to up sympy doc link when this is corrected
     sympy_name = "Pow"
 
-    def eval_check(self, x, y, evaluation):
+    def eval_check(self, x, y, evaluation: Evaluation):
         "Power[x_, y_]"
 
         # Power uses MPMathFunction but does some error checking first
@@ -505,7 +500,7 @@ class Power(BinaryOperator, MPMathFunction):
             )
 
         result = self.eval(Expression(SymbolSequence, x, y), evaluation)
-        if result is None or result != SymbolNull:
+        if result is None or result is not SymbolNull:
             return result
 
 
@@ -520,7 +515,7 @@ class Sqrt(SympyFunction):
     https://reference.wolfram.com/language/ref/Sqrt.html</url>)
 
     <dl>
-      <dt>'Sqrt[$expr$]'
+      <dt>'Sqrt'[$expr$]
       <dd>returns the square root of $expr$.
     </dl>
 
@@ -552,10 +547,10 @@ class Sqrt(SympyFunction):
         ),
     }
 
-    summary_text = "square root"
+    summary_text = "take the square root of a number"
 
 
-class Subtract(BinaryOperator):
+class Subtract(InfixOperator):
     """
     <url>
     :Subtraction:
@@ -563,8 +558,8 @@ class Subtract(BinaryOperator):
     https://reference.wolfram.com/language/ref/Subtract.html</url>)
 
     <dl>
-      <dt>'Subtract[$a$, $b$]'
-      <dt>$a$ - $b$
+      <dt>'Subtract'[$a$, $b$]
+      <dt>$a$ '-' $b$
       <dd>represents the subtraction of $b$ from $a$.
     </dl>
 
@@ -581,15 +576,14 @@ class Subtract(BinaryOperator):
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     grouping = "Left"
 
-    operator = "-"
     rules = {
         "Subtract[x_, y_]": "Plus[x, Times[-1, y]]",
     }
 
-    summary_text = "subtract"
+    summary_text = "subtract from a number"
 
 
-class Times(BinaryOperator, SympyFunction):
+class Times(InfixOperator, SympyFunction):
     """
     <url>
     :Multiplication:
@@ -599,9 +593,9 @@ class Times(BinaryOperator, SympyFunction):
     :WMA:https://reference.wolfram.com/language/ref/Times.html</url>)
 
     <dl>
-      <dt>'Times[$a$, $b$, ...]'
-      <dt>'$a$ * $b$ * ...'
-      <dt>'$a$ $b$ ...'
+      <dt>'Times'[$a$, $b$, ...]
+      <dt>$a$ '*' $b$ '*' ...
+      <dt>$a$ $b$ ...
       <dd>represents the product of the terms $a$, $b$, ...
     </dl>
 
@@ -644,7 +638,6 @@ class Times(BinaryOperator, SympyFunction):
 
     formats = {}
 
-    operator = "*"
     operator_display = " "
 
     rules = {}
@@ -653,7 +646,7 @@ class Times(BinaryOperator, SympyFunction):
     # Remember to up sympy doc link when this is corrected
     sympy_name = "Mul"
 
-    summary_text = "multiply"
+    summary_text = "multiply a number"
 
     def format_times(self, items, evaluation, op="\u2062"):
         "Times[items__]"
@@ -671,6 +664,8 @@ class Times(BinaryOperator, SympyFunction):
                 return item
 
         items = items.get_sequence()
+        if len(items) < 2:
+            return
         positive = []
         negative = []
         for item in items:
@@ -715,15 +710,15 @@ class Times(BinaryOperator, SympyFunction):
         return result
 
     def format_inputform(self, items, evaluation):
-        "InputForm: Times[items__]"
+        "(InputForm,): Times[items__]"
         return self.format_times(items, evaluation, op="*")
 
     def format_standardform(self, items, evaluation):
-        "StandardForm: Times[items__]"
+        "(StandardForm,): Times[items__]"
         return self.format_times(items, evaluation, op=" ")
 
     def format_outputform(self, items, evaluation):
-        "OutputForm: Times[items__]"
+        "(OutputForm,): Times[items__]"
         return self.format_times(items, evaluation, op=" ")
 
     def eval(self, items, evaluation):

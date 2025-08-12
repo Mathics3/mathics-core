@@ -63,7 +63,7 @@ def load_pymathics_module(definitions: Definitions, module_name: str):
     )
 
     newsymbols: Dict[str, Builtin] = {}
-    if not ("pymathics_version_data" in vars):
+    if "pymathics_version_data" not in vars:
         raise PyMathicsLoadException(module_name)
     for name in vars - set(("pymathics_version_data", "__version__")):
         var = name_is_builtin_symbol(loaded_module, name)

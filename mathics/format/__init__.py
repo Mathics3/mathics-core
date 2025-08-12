@@ -27,6 +27,7 @@ TeXForm if the front-end supports this and the user so desires that.
 import glob
 import importlib
 import os.path as osp
+import sys
 
 __py_files__ = [
     osp.basename(f[0:-3])
@@ -40,4 +41,4 @@ for module_name in __py_files__:
         print(e)
         print(f"    Not able to load {module_name}. Check your installation.")
         print(f"    mathics.format loads from {osp.dirname(__file__)}")
-        exit(-1)
+        sys.exit(-1)

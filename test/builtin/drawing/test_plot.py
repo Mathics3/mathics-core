@@ -3,9 +3,7 @@
 Unit tests from mathics.builtin.drawing.plot
 """
 
-import sys
-import time
-from test.helper import check_evaluation, evaluate
+from test.helper import check_evaluation
 
 import pytest
 
@@ -92,9 +90,9 @@ import pytest
             None,
         ),
         (
-            "StringTake[Plot3D[x + 2y, {x, -2, 2}, {y, -2, 2}] // TeXForm//ToString,67]",
+            "StringTake[Plot3D[x + 2y, {x, -2, 2}, {y, -2, 2}] // TeXForm//ToString,80]",
             None,
-            "\n\\begin{asy}\nimport three;\nimport solids;\nsize(6.6667cm, 6.6667cm);",
+            "\n\\begin{asy}\nimport three;\nimport solids;\nimport tube;\nsize(6.6667cm, 6.6667cm);",
             None,
         ),
         (
@@ -104,9 +102,10 @@ import pytest
                 "\n\\begin{asy}\n"
                 "import three;\n"
                 "import solids;\n"
+                "import tube;\n"
                 "size(6.6667cm, 6.6667cm);\n"
                 "currentprojection=perspective(2.6,-4.8,4.0);\n"
-                "currentlight=light(rgb(0.5,0.5,1), background=rgb(1, 0.1, 0.1), specular=red, (2,0,2), (2,2,2), (0,2,2));\n"
+                "currentlight=light(rgb(0.5,0.5,0.5), background=rgb(1, 0.1, 0.1), specular=red, (2,0,2), (2,2,2), (0,2,2));\n"
                 "// Sphere3DBox\n"
                 "draw(surface(sphere((0, 0, 0), 1)), rgb(1,1,1)+opacity(1));\n"
                 "draw(((-1,-1,-1)--(1,-1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));\n"
@@ -129,9 +128,12 @@ import pytest
             "Graphics3D[Point[Table[{Sin[t], Cos[t], 0}, {t, 0, 2. Pi, Pi / 15.}]]] //Chop//TeXForm//ToString",
             None,
             (
-                "\n\\begin{asy}\nimport three;\nimport solids;\nsize(6.6667cm, 6.6667cm);\n"
+                "\n\\begin{asy}\nimport three;\n"
+                "import solids;\n"
+                "import tube;\n"
+                "size(6.6667cm, 6.6667cm);\n"
                 "currentprojection=perspective(2.6,-4.8,4.0);\n"
-                "currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));\n"
+                "currentlight=light(rgb(0.5,0.5,0.5), specular=red, (2,0,2), (2,2,2), (0,2,2));\n"
                 "// Point3DBox\npath3 g=(0,1,0)--(0.20791,0.97815,0)--(0.40674,0.91355,0)--"
                 "(0.58779,0.80902,0)--(0.74314,0.66913,0)--(0.86603,0.5,0)--(0.95106,0.30902,0)--"
                 "(0.99452,0.10453,0)--(0.99452,-0.10453,0)--(0.95106,-0.30902,0)--(0.86603,-0.5,0)"

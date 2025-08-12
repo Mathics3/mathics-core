@@ -25,9 +25,10 @@ from mathics.core.systemsymbols import (
     SymbolClusteringComponents,
     SymbolFailed,
     SymbolFindClusters,
+    SymbolMethod,
     SymbolRule,
 )
-from mathics.eval.distance import (
+from mathics.eval.distance.clusters import (
     IllegalDataPoint,
     IllegalDistance,
     dist_repr,
@@ -35,6 +36,7 @@ from mathics.eval.distance import (
 )
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.parts import walk_levels
+from mathics.eval.stackframe import get_eval_Expression
 from mathics.eval.tensors import get_default_distance
 
 
@@ -74,7 +76,6 @@ class _Cluster(Builtin):
         "amtd": "`1` failed to pick a suitable distance function for `2`.",
         "bdmtd": 'Method in `` must be either "Optimize", "Agglomerate" or "KMeans".',
         "intpm": "Positive integer expected at position 2 in ``.",
-        "list": "Expected a list or a rule with equally sized lists at position 1 in ``.",
         "nclst": "Cannot find more clusters than there are elements: `1` is larger than `2`.",
         "xnum": "The distance function returned ``, which is not a non-negative real value.",
         "rseed": "The random seed specified through `` must be an integer or Automatic.",
@@ -91,7 +92,7 @@ class _Cluster(Builtin):
         method_string, method = self.get_option_string(options, "Method", evaluation)
         if method_string not in ("Optimize", "Agglomerate", "KMeans"):
             evaluation.message(
-                self.get_name(), "bdmtd", Expression(SymbolRule, "Method", method)
+                self.get_name(), "bdmtd", Expression(SymbolRule, SymbolMethod, method)
             )
             return
 
@@ -244,11 +245,11 @@ class ClusteringComponents(_Cluster):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ClusteringComponents.html</url>
 
     <dl>
-      <dt>'ClusteringComponents[$list$]'
+      <dt>'ClusteringComponents'[$list$]
       <dd>forms clusters from $list$ and returns a list of cluster indices, in which each
         element shows the index of the cluster in which the corresponding element in $list$
         ended up.
-      <dt>'ClusteringComponents[$list$, $k$]'
+      <dt>'ClusteringComponents'[$list$, $k$]
       <dd>forms $k$ clusters from $list$ and returns a list of cluster indices, in which
         each element shows the index of the cluster in which the corresponding element in
         $list$ ended up.
@@ -293,10 +294,10 @@ class FindClusters(_Cluster):
     <url>:WMA link:https://reference.wolfram.com/language/ref/FindClusters.html</url>
 
     <dl>
-      <dt>'FindClusters[$list$]'
+      <dt>'FindClusters'[$list$]
       <dd>returns a list of clusters formed from the elements of $list$. The number of cluster is determined
         automatically.
-      <dt>'FindClusters[$list$, $k$]'
+      <dt>'FindClusters'[$list$, $k$]
       <dd>returns a list of $k$ clusters formed from the elements of $list$.
     </dl>
 
@@ -374,20 +375,20 @@ class Nearest(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Nearest.html</url>
 
     <dl>
-      <dt>'Nearest[$list$, $x$]'
+      <dt>'Nearest'[$list$, $x$]
       <dd>returns the one item in $list$ that is nearest to $x$.
 
-      <dt>'Nearest[$list$, $x$, $n$]'
+      <dt>'Nearest'[$list$, $x$, $n$]
       <dd>returns the $n$ nearest items.
 
-      <dt>'Nearest[$list$, $x$, {$n$, $r$}]'
+      <dt>'Nearest'[$list$, $x$, {$n$, $r$}]
       <dd>returns up to $n$ nearest items that are not farther from $x$ than $r$.
 
-      <dt>'Nearest[{$p1$ -> $q1$, $p2$ -> $q2$, ...}, $x$]'
-      <dd>returns $q1$, $q2$, ... but measures the distances using $p1$, $p2$, ...
+      <dt>'Nearest'[{$p_1$ -> $q_1$, $p_2$ -> $q_2$, ...}, $x$]
+      <dd>returns $q_1$, $q_2$, ... but measures the distances using $p_1$, $p_2$, ...
 
-      <dt>'Nearest[{$p1$, $p2$, ...} -> {$q1$, $q2$, ...}, $x$]'
-      <dd>returns $q1$, $q2$, ... but measures the distances using $p1$, $p2$, ...
+      <dt>'Nearest'[{$p_1$, $p_2$, ...} -> {$q_1$, $q_2$, ...}, $x$]
+      <dd>returns $q_1$, $q_2$, ... but measures the distances using $p_1$, $p_2$, ...
     </dl>
 
     >> Nearest[{5, 2.5, 10, 11, 15, 8.5, 14}, 12]
@@ -407,7 +408,6 @@ class Nearest(Builtin):
 
     messages = {
         "amtd": "`1` failed to pick a suitable distance function for `2`.",
-        "list": "Expected a list or a rule with equally sized lists at position 1 in ``.",
         "nimp": "Method `1` is not implemented yet.",
     }
 
@@ -423,9 +423,9 @@ class Nearest(Builtin):
     summary_text = "the nearest element from a list"
 
     def eval(
-        self, items, pivot, limit, expression, evaluation: Evaluation, options: dict
+        self, expression, items, pivot, limit, evaluation: Evaluation, options: dict
     ):
-        "Nearest[items_, pivot_, limit_, OptionsPattern[%(name)s]]"
+        "expression: Nearest[items_, pivot_, limit_, OptionsPattern[%(name)s]]"
 
         method = self.get_option(options, "Method", evaluation)
         if not isinstance(method, String) or method.get_string_value() != "Scan":
@@ -463,9 +463,7 @@ class Nearest(Builtin):
         if distance_function_string == "Automatic":
             distance_function = get_default_distance(dist_p)
             if distance_function is None:
-                evaluation.message(
-                    self.get_name(), "amtd", "Nearest", ListExpression(*dist_p)
-                )
+                evaluation.message(self.get_name(), "amtd", get_eval_Expression())
                 return
 
             if pivot.get_head_name() == "System`List":
@@ -495,7 +493,7 @@ class Nearest(Builtin):
                 else:
                     candidates = heapq.nsmallest(py_n, py_distances)
 
-                for d, i in candidates:
+                for _, i in candidates:
                     yield repr_p[i]
 
             return ListExpression(*list(pick()))

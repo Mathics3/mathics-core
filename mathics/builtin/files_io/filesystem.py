@@ -30,14 +30,13 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (
     SymbolFailed,
-    SymbolGet,
     SymbolMemberQ,
     SymbolNeeds,
     SymbolPackages,
 )
 from mathics.eval.directories import DIRECTORY_STACK
-
-SymbolAbsoluteTime = Symbol("AbsoluteTime")
+from mathics.eval.files_io.files import eval_Get
+from mathics.eval.stackframe import get_eval_Expression
 
 
 class AbsoluteFileName(Builtin):
@@ -46,7 +45,7 @@ class AbsoluteFileName(Builtin):
     https://reference.wolfram.com/language/ref/AbsoluteFileName.html</url>
 
     <dl>
-      <dt>'AbsoluteFileName["$name$"]'
+      <dt>'AbsoluteFileName'["$name$"]
       <dd>returns the absolute version of the given filename.
     </dl>
 
@@ -57,19 +56,20 @@ class AbsoluteFileName(Builtin):
 
     messages = {
         "fstr": ("File specification x is not a string of one or more characters."),
-        "nffil": "File not found during `1`.",
     }
-    summary_text = "absolute path"
+    summary_text = "get absolute file path"
 
     def eval(self, name, evaluation):
         "AbsoluteFileName[name_]"
 
         py_name = name.to_python()
 
-        if not (isinstance(py_name, str) and py_name[0] == py_name[-1] == '"'):
+        if not isinstance(py_name, str):
             evaluation.message("AbsoluteFileName", "fstr", name)
             return
-        py_name = py_name[1:-1]
+
+        if py_name[0] == py_name[-1] == '"':
+            py_name = py_name[1:-1]
 
         result, _ = path_search(py_name)
 
@@ -88,8 +88,8 @@ class CopyDirectory(Builtin):
     https://reference.wolfram.com/language/ref/CopyDirectory.html</url>
 
     <dl>
-      <dt>'CopyDirectory["$dir1$", "$dir2$"]'
-      <dd>copies directory $dir1$ to $dir2$.
+      <dt>'CopyDirectory'["$dir_1$", "$dir_2$"]
+      <dd>copies directory $dir_1$ to $dir_2$.
     </dl>
     """
 
@@ -109,7 +109,7 @@ class CopyDirectory(Builtin):
         if len(seq) != 2:
             evaluation.message("CopyDirectory", "argr", "CopyDirectory", 2)
             return
-        (dir1, dir2) = (s.to_python() for s in seq)
+        dir1, dir2 = (s.to_python() for s in seq)
 
         if not (isinstance(dir1, str) and dir1[0] == dir1[-1] == '"'):
             evaluation.message("CopyDirectory", "fstr", seq[0])
@@ -139,8 +139,8 @@ class CopyFile(Builtin):
     https://reference.wolfram.com/language/ref/CopyFile.html</url>
 
     <dl>
-      <dt>'CopyFile["$file1$", "$file2$"]'
-      <dd>copies $file1$ to $file2$.
+      <dt>'CopyFile'["$file_1$", "$file_2$"]
+      <dd>copies $file_1$ to $file_2$.
     </dl>
 
     X> CopyFile["ExampleData/sunflowers.jpg", "MathicsSunflowers.jpg"]
@@ -153,7 +153,6 @@ class CopyFile(Builtin):
         "fstr": (
             "File specification `1` is not a string of " "one or more characters."
         ),
-        "nffil": "File not found during `1`.",
     }
     summary_text = "copy a file into a new path"
 
@@ -164,15 +163,18 @@ class CopyFile(Builtin):
         py_dest = dest.to_python()
 
         # Check filenames
-        if not (isinstance(py_source, str) and py_source[0] == py_source[-1] == '"'):
+        if not (isinstance(py_source, str)):
             evaluation.message("CopyFile", "fstr", source)
             return
-        if not (isinstance(py_dest, str) and py_dest[0] == py_dest[-1] == '"'):
+        if not (isinstance(py_dest, str)):
             evaluation.message("CopyFile", "fstr", dest)
             return
 
-        py_source = py_source[1:-1]
-        py_dest = py_dest[1:-1]
+        if py_source[0] == py_source[-1] == '"':
+            py_source = py_source[1:-1]
+
+        if py_dest[0] == py_dest[-1] == '"':
+            py_dest = py_dest[1:-1]
 
         py_source, _ = path_search(py_source)
 
@@ -187,9 +189,7 @@ class CopyFile(Builtin):
         try:
             shutil.copy(py_source, py_dest)
         except IOError:
-            evaluation.message(
-                "CopyFile", "nffil", to_expression("CopyFile", source, dest)
-            )
+            evaluation.message("CopyFile", "nffil", get_eval_Expression())
             return SymbolFailed
 
         return dest
@@ -262,10 +262,10 @@ class DeleteFile(Builtin):
     https://reference.wolfram.com/language/ref/DeleteFile.html</url>
 
     <dl>
-      <dt>'Delete["$file$"]'
+      <dt>'Delete'["$file$"]
       <dd>deletes $file$.
 
-      <dt>'Delete[{"$file1$", "$file2$", ...}]'
+      <dt>'Delete'[{"$file_1$", "$file_2$", ...}]
       <dd>deletes a list of files.
     </dl>
 
@@ -282,7 +282,6 @@ class DeleteFile(Builtin):
         "strs": (
             "String or non-empty list of strings expected at " "position `1` in `2`."
         ),
-        "nffil": "File not found during `1`.",
     }
     summary_text = "delete a file"
 
@@ -290,28 +289,24 @@ class DeleteFile(Builtin):
         "DeleteFile[filename_]"
 
         py_path = filename.to_python()
-        if not isinstance(py_path, list):
+        if not isinstance(py_path, (list, tuple)):
             py_path = [py_path]
 
         py_paths = []
         for path in py_path:
             # Check filenames
-            if not (isinstance(path, str) and path[0] == path[-1] == '"'):
+            if not isinstance(path, str):
                 evaluation.message(
-                    "DeleteFile",
-                    "strs",
-                    filename,
-                    to_expression("DeleteFile", filename),
+                    "DeleteFile", "strs", filename, get_eval_Expression()
                 )
                 return
 
-            path = path[1:-1]
+            if path[0] == path[-1] == '"':
+                path = path[1:-1]
             path, _ = path_search(path)
 
             if path is None:
-                evaluation.message(
-                    "DeleteFile", "nffil", to_expression("DeleteFile", filename)
-                )
+                evaluation.message("DeleteFile", "nffil", get_eval_Expression())
                 return SymbolFailed
             py_paths.append(path)
 
@@ -372,7 +367,7 @@ class ExpandFileName(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ExpandFileName.html</url>
 
     <dl>
-      <dt>'ExpandFileName["$name$"]'
+      <dt>'ExpandFileName'["$name$"]
       <dd>expands $name$ to an absolute filename for your system.
     </dl>
 
@@ -391,9 +386,7 @@ class ExpandFileName(Builtin):
         py_name = name.to_python()
 
         if not (isinstance(py_name, str) and py_name[0] == py_name[-1] == '"'):
-            evaluation.message(
-                "ExpandFileName", "string", to_expression("ExpandFileName", name)
-            )
+            evaluation.message("ExpandFileName", "string", get_eval_Expression())
             return
         py_name = py_name[1:-1]
 
@@ -407,7 +400,7 @@ class File(Builtin):
     https://reference.wolfram.com/language/ref/File.html</url>
 
     <dl>
-      <dt>'File["$file$"]'
+      <dt>'File'["$file$"]
       <dd>is a symbolic representation of an element in the local file system.
     </dl>
     """
@@ -422,7 +415,7 @@ class FileBaseName(Builtin):
     https://reference.wolfram.com/language/ref/FileBaseName.html</url>
 
     <dl>
-      <dt>'FileBaseName["$file$"]'
+      <dt>'FileBaseName'["$file$"]
       <dd>gives the base name for the specified file name.
     </dl>
 
@@ -451,7 +444,7 @@ class FileByteCount(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/FileByteCount.html</url>
 
     <dl>
-      <dt>'FileByteCount[$file$]'
+      <dt>'FileByteCount'[$file$]
       <dd>returns the number of bytes in $file$.
     </dl>
 
@@ -497,7 +490,7 @@ class FileExistsQ(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/FileExistsQ.html</url>
 
     <dl>
-      <dt>'FileExistsQ["$file$"]'
+      <dt>'FileExistsQ'["$file$"]
       <dd>returns 'True' if $file$ exists and 'False' otherwise.
     </dl>
 
@@ -535,7 +528,7 @@ class FileExtension(Builtin):
     https://reference.wolfram.com/language/ref/FileExtension.html</url>
 
     <dl>
-      <dt>'FileExtension["$file$"]'
+      <dt>'FileExtension'["$file$"]
       <dd>gives the extension for the specified file name.
     </dl>
 
@@ -564,7 +557,7 @@ class FileInformation(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/FileInformation.html</url>
 
     <dl>
-      <dt>'FileInformation["$file$"]'
+      <dt>'FileInformation'["$file$"]
       <dd>returns information about $file$.
     </dl>
 
@@ -581,12 +574,12 @@ class FileInformation(Builtin):
 
 
 class FindFile(Builtin):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/FileFind.html</url>
 
     <dl>
-      <dt>'FindFile[$name$]'
-      <dd>searches '$Path' for the given filename.
+      <dt>'FindFile'[$name$]
+      <dd>searches '\$Path' for the given filename.
     </dl>
 
     >> FindFile["ExampleData/sunflowers.jpg"]
@@ -612,7 +605,7 @@ class FindFile(Builtin):
         py_name = name.to_python()
 
         if not (isinstance(py_name, str) and py_name[0] == py_name[-1] == '"'):
-            evaluation.message("FindFile", "string", to_expression("FindFile", name))
+            evaluation.message("FindFile", "string", get_eval_Expression())
             return
         py_name = py_name[1:-1]
 
@@ -632,21 +625,21 @@ class FileNames(Builtin):
       <dt>'FileNames[]'
       <dd>Returns a list with the filenames in the current working folder.
 
-      <dt>'FileNames[$form$]'
+      <dt>'FileNames'[$form$]
       <dd>Returns a list with the filenames in the current working folder that \
           matches with $form$.
 
-      <dt>'FileNames[{$form_1$, $form_2$, ...}]'
+      <dt>'FileNames'[{$form_1$, $form_2$, ...}]
       <dd>Returns a list with the filenames in the current working folder that \
           matches with one of $form_1$, $form_2$, ....
 
-      <dt>'FileNames[{$form_1$, $form_2$, ...},{$dir_1$, $dir_2$, ...}]'
+      <dt>'FileNames'[{$form_1$, $form_2$, ...},{$dir_1$, $dir_2$, ...}]
       <dd>Looks into the directories $dir_1$, $dir_2$, ....
 
-      <dt>'FileNames[{$form_1$, $form_2$, ...},{$dir_1$, $dir_2$, ...}]'
+      <dt>'FileNames'[{$form_1$, $form_2$, ...},{$dir_1$, $dir_2$, ...}]
       <dd>Looks into the directories $dir_1$, $dir_2$, ....
 
-      <dt>'FileNames[{$forms$, $dirs$, $n$]'
+      <dt>'FileNames'[{$forms$, $dirs$, $n$]
       <dd>Look for files up to the level $n$.
     </dl>
 
@@ -793,13 +786,13 @@ class FileNameTake(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/FileNameTake.html</url>
 
     <dl>
-      <dt>'FileNameTake["$file$"]'
+      <dt>'FileNameTake'["$file$"]
       <dd>returns the last path element in the file name $name$.
 
-      <dt>'FileNameTake["$file$", $n$]'
+      <dt>'FileNameTake'["$file$", $n$]
       <dd>returns the first $n$ path elements in the file name $name$.
 
-      <dt>'FileNameTake["$file$", $-n$]'
+      <dt>'FileNameTake'["$file$", $-n$]
       <dd>returns the last $n$ path elements in the file name $name$.
     </dl>
 
@@ -835,12 +828,12 @@ class FileNameTake(Builtin):
 
 
 class Needs(Builtin):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/Needs.html</url>
 
     <dl>
     <dt>'Needs["context`"]'
-        <dd>loads the specified context if not already in '$Packages'.
+        <dd>loads the specified context if not already in '\$Packages'.
     </dl>
 
     >> Needs["VectorAnalysis`"]
@@ -858,14 +851,14 @@ class Needs(Builtin):
 
     def eval(self, context, evaluation):
         "Needs[context_String]"
-        contextstr = context.get_string_value()
-        if contextstr == "":
+        context_str = context.value
+        if context_str == "":
             return SymbolNull
-        if contextstr[0] == "`":
+        if context_str[0] == "`":
             curr_ctxt = evaluation.definitions.get_current_context()
-            contextstr = curr_ctxt + contextstr[1:]
-            context = String(contextstr)
-        if not valid_context_name(contextstr):
+            context_str = curr_ctxt + context_str[1:]
+            context = String(context_str)
+        if not valid_context_name(context_str):
             evaluation.message("Needs", "ctx", Expression(SymbolNeeds, context), 1, "`")
             return
         test_loaded = Expression(SymbolMemberQ, SymbolPackages, context)
@@ -873,7 +866,7 @@ class Needs(Builtin):
         if test_loaded is SymbolTrue:
             # Already loaded
             return SymbolNull
-        result = Expression(SymbolGet, context).evaluate(evaluation)
+        result = eval_Get(context_str, evaluation)
 
         if result is SymbolFailed:
             evaluation.message("Needs", "nocont", context)
@@ -883,12 +876,12 @@ class Needs(Builtin):
 
 
 class OperatingSystem(Predefined):
-    """
+    r"""
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/OperatingSystem.html</url>
 
     <dl>
-      <dt>'$OperatingSystem'
+      <dt>'\$OperatingSystem'
       <dd>gives the type of operating system running Mathics.
     </dl>
 
@@ -912,13 +905,13 @@ class OperatingSystem(Predefined):
 
 
 class PathnameSeparator(Predefined):
-    """
+    r"""
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/$PathnameSeparator.html</url>
 
     <dl>
-      <dt>'$PathnameSeparator'
+      <dt>'\$PathnameSeparator'
       <dd>returns a string for the separator in paths.
     </dl>
 
@@ -939,8 +932,8 @@ class RenameFile(Builtin):
     https://reference.wolfram.com/language/ref/RenameFile.html</url>
 
     <dl>
-    <dt>'RenameFile["$file1$", "$file2$"]'
-      <dd>renames $file1$ to $file2$.
+    <dt>'RenameFile'["$file_1$", "$file_2$"]
+      <dd>renames $file_1$ to $file_2$.
     </dl>
 
     >> CopyFile["ExampleData/sunflowers.jpg", "MathicsSunflowers.jpg"]
@@ -955,7 +948,6 @@ class RenameFile(Builtin):
         "fstr": (
             "File specification `1` is not a string of " "one or more characters."
         ),
-        "nffil": "File not found during `1`.",
     }
     summary_text = "change the name of a file"
 
@@ -976,7 +968,7 @@ class RenameFile(Builtin):
         py_source = py_source[1:-1]
         py_dest = py_dest[1:-1]
 
-        py_source, is_temporary_file = path_search(py_source)
+        py_source, _ = path_search(py_source)
 
         if py_source is None:
             evaluation.message("RenameFile", "filex", source)
@@ -1032,7 +1024,7 @@ class SetDirectory(Builtin):
     https://reference.wolfram.com/language/ref/SetDirectory.html</url>
 
     <dl>
-    <dt>'SetDirectory[$dir$]'
+    <dt>'SetDirectory'[$dir$]
       <dd>sets the current working directory to $dir$.
     </dl>
 
@@ -1079,7 +1071,7 @@ class ToFileName(Builtin):
     https://reference.wolfram.com/language/ref/ToFileName.html</url>
 
     <dl>
-    <dt>'ToFileName[{"$dir_1$", "$dir_2$", ...}]'
+    <dt>'ToFileName'[{"$dir_1$", "$dir_2$", ...}]
       <dd>joins the $dir_i$ together into one path.
     </dl>
 
@@ -1112,7 +1104,7 @@ class URLSave(Builtin):
       <dt>'URLSave["url"]'
       <dd>Save "url" in a temporary file.
 
-      <dt>'URLSave["url", $filename$]'
+      <dt>'URLSave'["url", $filename$]
       <dd>Save "url" in $filename$.
     </dl>
     """
@@ -1123,11 +1115,13 @@ class URLSave(Builtin):
     }
     summary_text = "save the content of an URL"
 
-    def eval_1(self, url, evaluation, **options):
+    def eval_with_url(self, url, evaluation: Evaluation, **options):
         "URLSave[url_String, OptionsPattern[URLSave]]"
-        return self.eval_2(url, None, evaluation, **options)
+        return self.eval_with_url_and_filename(url, None, evaluation, **options)
 
-    def eval_2(self, url, filename, evaluation, **options):
+    def eval_with_url_and_filename(
+        self, url, filename, evaluation: Evaluation, **options
+    ):
         "URLSave[url_String, filename_, OptionsPattern[URLSave]]"
         url = url.value
         if filename is None:

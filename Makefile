@@ -36,6 +36,7 @@ MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang
    gstest \
    latexdoc \
    pytest \
+   pytest-x \
    rmChangeLog \
    test \
    texdoc
@@ -122,6 +123,9 @@ clean: clean-cython clean-cache
 pytest:
 	MATHICS_CHARACTER_ENCODING="ASCII" $(PYTHON) -m pytest $(PYTEST_OPTIONS) $(PYTEST_WORKERS) test
 
+#: Run pytest tests stopping at first failure.
+pytest-x :
+	PYTEST_OPTIONS="-x" $(MAKE) pytest
 
 #: Run a more extensive pattern-matching test
 gstest:
@@ -142,9 +146,8 @@ latexdoc texdoc doc:
 	(cd mathics/doc/latex && $(MAKE) doc)
 
 #: Build JSON ASCII to unicode opcode table and operator table
-mathics/data/op-tables.json mathics/data/operators.json:
-	$(BASH) ./admin-tools/make-op-tables.sh
-
+mathics/data/operator-tables.json mathics/data/op-tables.json mathics/data/operators.json:
+	$(BASH) ./admin-tools/make-JSON-tables.sh
 
 #: Remove ChangeLog
 rmChangeLog:
@@ -153,4 +156,4 @@ rmChangeLog:
 #: Create a ChangeLog from git via git log and git2cl
 ChangeLog: rmChangeLog
 	git log --pretty --numstat --summary | $(GIT2CL) >$@
-	patch -R ChangeLog < ChangeLog-spell-corrected.diff
+	patch ChangeLog < ChangeLog-spell-corrected.diff

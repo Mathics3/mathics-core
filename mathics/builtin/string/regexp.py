@@ -15,7 +15,7 @@ class RegularExpression(Builtin):
 
     <dl>
     <dt>'RegularExpression["regex"]'
-      <dd>represents the regex specified by the string $"regex"$.
+      <dd>represents the regex specified by the string "$regex$".
     </dl>
 
     >> StringSplit["1.23, 4.56  7.89", RegularExpression["(\\s|,)+"]]

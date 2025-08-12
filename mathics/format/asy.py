@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Lower-level format of Mathics objects as Asymptote strings.
+Lower-level format of Mathics objects as Asymptote Vector graphics strings.
 """
 
 import re
@@ -36,10 +36,6 @@ from mathics.builtin.graphics import (
     PointSize,
     RGBColor,
 )
-
-INVERSE_POINT_FACTOR = 1 / DEFAULT_POINT_FACTOR
-
-
 from mathics.core.formatter import add_conversion_fn, lookup_method
 from mathics.format.asy_fns import (
     asy_add_bezier_fn,
@@ -49,6 +45,9 @@ from mathics.format.asy_fns import (
     asy_create_pens,
     asy_number,
 )
+from mathics.format.asy_polyhedra import HEDRON_NAME_MAP, unimplimented_polygon
+
+INVERSE_POINT_FACTOR = 1 / DEFAULT_POINT_FACTOR
 
 
 class _ASYTransform:
@@ -97,7 +96,7 @@ def arcbox(self: _ArcBox, **options) -> str:
         # It is an empty circle
         return _roundbox(self)
 
-    x, y, rx, ry, sx, sy, ex, ey, large_arc = self._arc_params()
+    x, y, rx, ry, sx, sy, ex, ey, _ = self._arc_params()
 
     ry = max(ry, 0.1)  # Avoid division by 0
     yscale = ry / rx
@@ -137,7 +136,7 @@ def arcbox(self: _ArcBox, **options) -> str:
         edge_opacity=edge_opacity_value,
         face_opacity=face_opacity_value,
         stroke_width=stroke_width,
-        is_face_element=self.face_element,
+        is_face_element=bool(self.face_element),
     )
     command = "filldraw" if self.face_element else "draw"
     arc_path = create_arc_path(self.face_element or False, yscale)
@@ -254,27 +253,34 @@ def cone3dbox(self: Cone3DBox, **options) -> str:
     opacity = self.face_opacity
     color_str = build_3d_pen_color(face_color, opacity)
 
-    # FIXME: currently always drawing around the axis X+Y
-    axes_point = (1, 1, 0)
-
     asy = "// Cone3DBox\n"
     i = 0
     while i < len(self.points) / 2:
         try:
-            point1 = self.points[i * 2].pos()[0]
-            point2 = self.points[i * 2 + 1].pos()[0]
+            # See https://tex.stackexchange.com/questions/736116/how-to-draw-the-base-geometrical-face-of-a-cone-surface-by-asymptote/736120#736120
+            cone_center = self.points[i * 2].pos()[0]
+            cone_tip = self.points[i * 2 + 1].pos()[0]
+            if cone_center is None or cone_tip is None:
+                continue
 
-            # Compute distance between start point and end point.
-            distance = (
-                (point1[0] - point2[0]) ** 2
-                + (point1[1] - point2[1]) ** 2
-                + (point1[2] - point2[2]) ** 2
+            # Compute the cone's height : the distance between the center of the cone's base and the
+            # cone's tip.
+            cone_height = (
+                (cone_center[0] - cone_tip[0]) ** 2
+                + (cone_center[1] - cone_tip[1]) ** 2
+                + (cone_center[2] - cone_tip[2]) ** 2
             ) ** 0.5
 
-            asy += (
-                f"draw(surface(cone({tuple(point1)}, {self.radius}, {distance}, {axes_point})), {color_str});"
-                + "\n"
-            )
+            asy += f"""
+                   triple cone_center = {tuple(cone_center)};
+                   triple cone_tip = {tuple(cone_tip)};
+                   real cone_radius = {self.radius};
+                   real cone_height = {cone_height};
+
+                   path3 cone_circle = circle(cone_center, cone_radius, cone_tip);
+                   draw(surface(cone_circle), {color_str});
+                   draw(surface(cone(cone_center, cone_radius, cone_height, cone_tip)), {color_str});
+                   """
         except:  # noqa
             pass
 
@@ -298,6 +304,9 @@ def cuboid3dbox(self: Cuboid3DBox, **options) -> str:
         try:
             point1 = self.points[i * 2].pos()[0]
             point2 = self.points[i * 2 + 1].pos()[0]
+
+            if point1 is None or point2 is None:
+                continue
 
             asy += f"""
                 draw(shift({point1[0]}, {point1[1]}, {point1[2]}) * scale(
@@ -334,6 +343,10 @@ def cylinder3dbox(self: Cylinder3DBox, **options) -> str:
         try:
             point1 = self.points[i * 2].pos()[0]
             point2 = self.points[i * 2 + 1].pos()[0]
+
+            if point1 is None or point2 is None:
+                continue
+
             asy += f"real r={self.radius};\n"
             asy += f"triple A={tuple(point1)}, B={tuple(point2)};\n"
             asy += "real h=abs(A-B);\n"
@@ -409,6 +422,16 @@ add_conversion_fn(Graphics3DElements)
 def inset_box(self, **options) -> str:
     """Asymptote formatting for boxing an Inset in a graphic."""
     x, y = self.pos.pos()
+
+    alignment = "SW"
+    if hasattr(self, "alignment"):
+        if self.alignment == "bottom":
+            # This is typically done for labels under the x axis.
+            alignment = "S"
+        elif self.alignment == "left":
+            # This is typically done for labels to the left of the y axis.
+            alignment = "W"
+
     opacity_value = self.opacity.opacity if self.opacity else None
     content = self.content.boxes_to_tex(evaluation=self.graphics.evaluation)
     # FIXME: don't hard code text_style_opts, but allow these to be adjustable.
@@ -416,15 +439,8 @@ def inset_box(self, **options) -> str:
     pen = asy_create_pens(
         edge_color=self.color, edge_opacity=opacity_value, fontsize=font_size
     )
-    asy = """// InsetBox
-label("$%s$", (%s,%s), (%s,%s), %s);\n""" % (
-        content,
-        x,
-        y,
-        -self.opos[0],
-        -self.opos[1],
-        pen,
-    )
+    asy = f"""// InsetBox
+label("${content}$", ({x},{y}), align={alignment}, {pen});\n"""
     return asy
 
 
@@ -736,15 +752,10 @@ def uniform_polyhedron_3d_box(self: UniformPolyhedron3DBox, **options) -> str:
     face_color = self.face_color.to_js() if self.face_color else (1, 1, 1)
     opacity = self.face_opacity
     color_str = build_3d_pen_color(face_color, opacity)
-
-    return (
-        "// UniformPolyhedron3DBox\n // Still not really implemented. Draw a sphere instead\n"
-        + "\n".join(
-            "draw(surface(sphere({0}, {1})), {2});".format(
-                tuple(coord.pos()[0]), self.edge_length, color_str
-            )
-            for coord in self.points
-        )
+    render_fn = HEDRON_NAME_MAP.get(self.sub_type, unimplimented_polygon)
+    return f"// {self.sub_type}\n" + "\n".join(
+        render_fn(tuple(coord.pos()[0]), self.edge_length, color_str)
+        for coord in self.points
     )
 
 
