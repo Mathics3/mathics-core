@@ -706,3 +706,27 @@ def test_assignment(expr, expect, fail_msg, expected_msgs):
     check_evaluation(
         expr, expect, failure_message=fail_msg, expected_messages=expected_msgs
     )
+
+
+# Regression check of some assignment issues encountered.
+@pytest.mark.parametrize(
+    ["expr", "expect", "fail_msg", "hold_expected"],
+    [
+        (
+            None,
+            "Issue #1425 - Erroneous Protected message seen in SetDelayed loading Rubi.",
+            None,
+            False,
+        ),
+        (
+            "ClearAll[A,x]; f[A_, x_] := x /; x == 2; DownValues[f] // FullForm",
+            "{RuleDelayed[HoldPattern[f[Pattern[A, Blank[]], Pattern[x, Blank[]]]], Condition[x, Equal[x, 2]]]}",
+            "Issue #1209 - Another problem seen in loading Rubi.",
+            True,
+        ),
+    ],
+)
+def test_regression_of_assignment_issues(expr, expect, fail_msg, hold_expected):
+    check_evaluation(
+        expr, expect, failure_message=fail_msg, hold_expected=hold_expected
+    )
