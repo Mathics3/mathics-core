@@ -14,7 +14,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Atom, Symbol, SymbolFullForm, SymbolMakeBoxes
 from mathics.core.systemsymbols import SymbolStandardForm
-from mathics.eval.makeboxes.formatvalues import do_format
+from mathics.eval.makeboxes.formatvalues import do_format, make_output_form
 from mathics.eval.makeboxes.precedence import parenthesize
 
 
@@ -140,7 +140,7 @@ def eval_fullform_makeboxes(
     return Expression(SymbolMakeBoxes, expr, form).evaluate(evaluation)
 
 
-def eval_generic_makeboxes(self, expr, f, evaluation):
+def eval_generic_makeboxes(expr, f, evaluation):
     """MakeBoxes[expr_,
     f:TraditionalForm|StandardForm|OutputForm|InputForm|FullForm]"""
     from mathics.builtin.box.layout import RowBox
@@ -215,11 +215,17 @@ def eval_makeboxes(
 
 def format_element(
     element: BaseElement, evaluation: Evaluation, form: Symbol, **kwargs
-) -> Optional[Union[BoxElementMixin, BaseElement]]:
+) -> Optional[BaseElement]:
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
     evaluation.is_boxing = True
+    if element.has_form("FullForm", 1):
+        return eval_generic_makeboxes(element.elements[0], element.head, evaluation)
+
+    if element.has_form("OutputForm", 1):
+        return make_output_form(element.elements[0], evaluation, form)
+
     expr = do_format(element, evaluation, form)
     if expr is None:
         return None

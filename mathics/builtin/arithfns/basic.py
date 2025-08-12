@@ -461,6 +461,7 @@ class Power(InfixOperator, MPMathFunction):
     rules = {
         "Power[]": "1",
         "Power[x_]": "x",
+        "MakeBoxes[x_^y_, fmt_]": "SuperscriptBox[MakeBoxes[x, fmt],MakeBoxes[y, fmt]]",
     }
 
     summary_text = "exponentiate a number"

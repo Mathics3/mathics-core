@@ -225,28 +225,6 @@ def make_output_form(expr, evaluation, form):
     return InterpretationBox(elem1, elem2)
 
 
-def format_element(
-    element: BaseElement, evaluation: Evaluation, form: Symbol, **kwargs
-) -> Optional[BaseElement]:
-    """
-    Applies formats associated to the expression, and then calls Makeboxes
-    """
-    if element.has_form("OutputForm", 1):
-        return make_output_form(element.elements[0], evaluation, form)
-
-    expr = do_format(element, evaluation, form)
-    if expr is None:
-        return None
-    result = Expression(SymbolMakeBoxes, expr, form)
-    result_box = result.evaluate(evaluation)
-    if isinstance(result_box, String):
-        return result_box
-    if isinstance(result_box, BoxElementMixin):
-        return result_box
-    else:
-        return format_element(element, evaluation, SymbolFullForm, **kwargs)
-
-
 # do_format_*
 
 

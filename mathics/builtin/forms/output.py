@@ -34,6 +34,7 @@ from mathics.core.systemsymbols import (
     SymbolInfinity,
     SymbolMakeBoxes,
     SymbolNumberForm,
+    SymbolOutputForm,
     SymbolRowBox,
     SymbolRuleDelayed,
     SymbolStandardForm,
