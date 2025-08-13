@@ -1415,7 +1415,7 @@ def process_tags_and_upset_allow_custom(
     lhs_reference_expr = get_reference_expression(lhs)
 
     if upset:
-        tags = []
+        tags_set = set()
         if isinstance(lhs_reference_expr, Atom):
             symbol_name = self.get_name()
             evaluation.message(
@@ -1434,8 +1434,8 @@ def process_tags_and_upset_allow_custom(
             # skip it.
             name = get_lookup_reference_name(element)
             if name is not None:
-                tags.append(name)
-        return tags, lhs_reference_expr
+                tags_set.add(name)
+        return list(tags_set), lhs_reference_expr
 
     if tags is None:
         name = get_lookup_reference_name(lhs_reference_expr)
@@ -1444,12 +1444,15 @@ def process_tags_and_upset_allow_custom(
             raise AssignmentException(lhs, None)
         tags = [name]
     else:
+        allowed_names = set()
         name = get_lookup_reference_name(lhs_reference_expr)
-        allowed_names = [name] if name else []
+        if name:
+            allowed_names.add(name)
+
         for element in lhs_reference_expr.get_elements():
             name = get_lookup_reference_name(element)
             if name:
-                allowed_names.append(name)
+                allowed_names.add(name)
         for name in tags:
             if name not in allowed_names:
                 evaluation.message(self.get_name(), "tagnfd", Symbol(name))
