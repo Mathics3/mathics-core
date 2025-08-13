@@ -14,6 +14,7 @@ from mathics.core.atoms import (
     Integer1,
     Integer3,
     Integer310,
+    Integer400,
     IntegerM1,
     Number,
     Rational,
@@ -49,6 +50,7 @@ from mathics.core.symbols import (
     SymbolNull,
     SymbolPower,
     SymbolTimes,
+    SymbolTrue,
 )
 from mathics.core.systemsymbols import (
     SymbolBlank,
@@ -153,7 +155,7 @@ class Divide(InfixOperator):
     default_formats = False
 
     formats = {
-        (("InputForm", "OutputForm"), "Divide[x_, y_]"): (
+        ("InputForm", "Divide[x_, y_]"): (
             'Infix[{HoldForm[x], HoldForm[y]}, "/", 400, Left]'
         ),
     }
@@ -168,6 +170,24 @@ class Divide(InfixOperator):
     }
 
     summary_text = "divide a number"
+
+    def format_outputform(self, x, y, evaluation):
+        "(OutputForm,): Divide[x_, y_]"
+        use_2d = (
+            evaluation.definitions.get_ownvalues("System`$Use2DOutputForm")[0].replace
+            is SymbolTrue
+        )
+        if not use_2d:
+            return Expression(
+                SymbolInfix,
+                ListExpression(
+                    Expression(SymbolHoldForm, x), Expression(SymbolHoldForm, y)
+                ),
+                String("/"),
+                Integer400,
+                SymbolLeft,
+            )
+        return None
 
 
 class Minus(PrefixOperator):
@@ -402,10 +422,21 @@ class Power(InfixOperator, MPMathFunction):
             Expression(SymbolPattern, Symbol("x"), Expression(SymbolBlank)),
             RationalOneHalf,
         ): "HoldForm[Sqrt[x]]",
-        (("InputForm", "OutputForm"), "x_ ^ y_"): (
+        (("InputForm",), "x_ ^ y_"): (
             'Infix[{HoldForm[x], HoldForm[y]}, "^", 590, Right]'
         ),
-        ("", "x_ ^ y_"): (
+        (("OutputForm",), "x_ ^ y_"): (
+            "If[$Use2DOutputForm, "
+            "Superscript[HoldForm[x], HoldForm[y]], "
+            'Infix[{HoldForm[x], HoldForm[y]}, "^", 590, Right]]'
+        ),
+        (
+            (
+                "StandardForm",
+                "TraditionalForm",
+            ),
+            "x_ ^ y_",
+        ): (
             "PrecedenceForm[Superscript[PrecedenceForm[HoldForm[x], 590],"
             "  HoldForm[y]], 590]"
         ),
@@ -430,6 +461,7 @@ class Power(InfixOperator, MPMathFunction):
     rules = {
         "Power[]": "1",
         "Power[x_]": "x",
+        "MakeBoxes[x_^y_, fmt_]": "SuperscriptBox[MakeBoxes[x, fmt],MakeBoxes[y, fmt]]",
     }
 
     summary_text = "exponentiate a number"

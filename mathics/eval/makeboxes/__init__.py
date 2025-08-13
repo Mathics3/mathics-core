@@ -18,7 +18,11 @@ from mathics.eval.makeboxes.outputforms import (
     eval_tableform,
     eval_texform,
 )
-from mathics.eval.makeboxes.precedence import builtins_precedence, parenthesize
+from mathics.eval.makeboxes.precedence import (
+    builtins_precedence,
+    compare_precedence,
+    parenthesize,
+)
 
 __all__ = [
     "NumberForm_to_String",
