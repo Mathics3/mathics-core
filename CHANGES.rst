@@ -15,11 +15,10 @@ which happens a lot in plotting graphics. Also, Python 3.13 is a bit
 faster than previous versions. Previously, rendering via ``asymptote`` was
 slow. This is no longer the situation.
 
-Preliminary work to track locations has been started. This is useful in debugging and error reporting, and is controlled via a Boolean
+Preliminary work to track locations has started. This is useful in debugging and error reporting, and is controlled via a Boolean.
 System variable ``$TrackLocations``.
 
-Boxing operators have been added. The full range of escape sequences is supported.  A limited form of boxing escape ``\*`` that handles a
-single Boxing function has been added.
+Boxing operators have been added. The full range of escape sequences is supported.  A limited form of boxing escape ``\*`` that handles a single Boxing function has been added.
 
 A basic interrupt handler was added that loosely follows wolframscript's interrupt handler. Interrupt commands "abort", "exit", "continue", "debugger", "show", and "inspect" are available; "trace" will be added later.
 
@@ -55,12 +54,10 @@ Enhancements
 
 #. Set-related code reworked for better WMA conformance. Rule matching order when selecting what function to run conforms better to WMA.
 #. ``mathics`` CLI options are more like wolframscript
-#. The debugging interface has been improved. ``TraceEvaluation[]`` and ``TraceDebug[]`` filter and colorize output for Mathics3
-   constructs much better. . Single-dash long options like
-   ``-help``, ``-file`` are now accepted. Short option ``-f`` is associated
-   with ``-file`` rather than ``--fullform``; ``-F`` is is now used for
+#. The debugging interface has been improved. ``TraceEvaluation[]`` and ``TraceDebug[]`` filter and colorize output for Mathics3 constructs much better. Single-dash long options like
+   ``-help``, ``-file`` are now accepted. Short option ``-f`` is associated with ``-file`` rather than ``--fullform``; ``-F`` is is now used for
    ``FullForm``. Option ``--read`` with alias ``-r`` is now ``-code`` and short option ``-c``.
-#. Boolen Options ``ShowRewrites`` and ``ShowEvaluation`` were added to ``TraceEvalation[]`` These filtering for either rewrites rules or evaluation expressions. Presumably, you don't want to filter both.
+#.Booleann Options ``ShowRewrites`` and ``ShowEvaluation`` were added to ``TraceEvalation[]`.` These filtering for either rewrite rules or evaluation expressions. Presumably, you don't want to filter both.
 
 Bugs Fixed
 ++++++++++
@@ -87,14 +84,14 @@ Incompatible changes
 +++++++++++++++++++++
 
 Scanner API has changed. Options on ``mathics`` CLI have changed. See above for the changes.
-Location of ``mathics`` in ``mathics.__main__``, the more usual locaiton, rather than ``mathics.main``.
+Location of ``mathics`` in ``mathics.__main__``, the more usual location, rather than ``mathics.main``.
 
 * Mathics scanner exceptions of class TranslateError are incompatible
 with previous versions, and now store error parameters, "name", "tag", and
 "args".
 * The method ``get_sort_key()`` was replaced by two different properties:
   ``element_order``, for canonical ordering of expressions, and
-  ``pattern_precedence``, used for ordering rules according their precedence
+  ``pattern_precedence``, used for ordering rules according to their precedence
   in the evaluation loop.
 * In both cases, the part of the sort key related to properties of the
   expressions and patterns are now stored as a magic number instead of
@@ -112,8 +109,8 @@ The maximum version of numpy was increased to < 2.3 so as to allow marimo to wor
 Bugs Fixed
 ++++++++++
 
-Correct for mismatch between ListExpression and tuple in ``DispatchAtom``.
-This is needed for PacletManager code to work better.
+Correct for a mismatch between ListExpression and a tuple in ``DispatchAtom``.
+This is needed for the PacletManager code to work better.
 
 Compatibility
 +++++++++++++
@@ -127,13 +124,13 @@ Compatibility
 Internals
 +++++++++
 
-* Document tagging code handles TeX math mode more completely. Image tags in PDF properly.
+* Document tagging code handles TeX math mode more completely. Image tags in PDF are tagged properly.
 * Numerous spelling fixes and typos by Frédéric Chapoton (@fchapoton)
 
 Documentation
 +++++++++++++
 
-#. Documentation has been gone over so that expressions are tagged in TeX. As a result the user guide and reference manual render much nicer in the PDF as well as in Django.
+#. Documentation has been gone over so that expressions are tagged in TeX. As a result, the user guide and reference manual render much nicer in the PDF as well as in Django.
 #. More links have been added. References to The Digital Library of Mathematical Functions https://dlmf.nist.gov/ have been added where appropriate.
 #. Add mention of MathicsLive
 #. Platonic solids render properly in PDF
@@ -165,19 +162,19 @@ And in the ``Mathics3-Trepan`` repository:
 * ``Debugger[]``, and
 * ``TraceActivate[]``
 
-Option ``--post-mortem`` was added which goes into the `trepan3k debugger <https https://pypi.org/project/trepan3k/>`_ on an unrecoverable error. This option is available on other front ends.
+Option ``--post-mortem`` was added, which goes into the `trepan3k debugger <https https://pypi.org/project/trepan3k/>`_ on an unrecoverable error. This option is available on other front ends.
 
 This debugging code is very much alpha quality, but it greatly
 improves the ability to debug problems in loading existing packages
 written in Mathematica. So packages ``BoolEval`` and ``CleanSlate``
 were added to the repository.
 
-Also as a result of the improved ability to debug Mathics3, we now
+Also, as a result of the improved ability to debug Mathics3, we now
 provide a version of Rubi 4.17 using git submodules. To use this, you will need a patched version of ``stopit``.  Aravindh Krishnamoorthy
 led the initial port of `Rubi <https://github.com/Mathics3/Mathics3-Rubi>`_.
 
 David A. Roberts worked on ensuring Mathics3 runs on pyodide and
-contributed a number of new Built-in Functions that are found in `The On-Line Encyclopedia of Integer Sequences (OEIS) <https://oeis.org/>`_.
+contributed several new Built-in Functions that are found in `The On-Line Encyclopedia of Integer Sequences (OEIS) <https://oeis.org/>`_.
 
 
 New Builtins
