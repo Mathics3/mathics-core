@@ -4,7 +4,7 @@ CHANGES
 9.0.0
 -----
 
-Support for Python 3.13. Python 3.8 and 3.9 support dropped.
+Added support for Python 3.13. Dropped support for Python 3.8 and 3.9.
 
 Note: There are incompatible changes. Use with Mathics-scanner 2.0.0 or greater.
 
@@ -21,7 +21,7 @@ System variable ``$TrackLocations``.
 Boxing operators have been added. The full range of escape sequences is supported.  A limited form of boxing escape ``\*`` that handles a
 single Boxing function has been added.
 
-A basic interrupt handler was added that loosely follows wolframscript's interrupt handle. Interrupt commands "abort", "exit", "continue", "show", and "inspect" are available, but "trace" will be added later.
+A basic interrupt handler was added that loosely follows wolframscript's interrupt handler. Interrupt commands "abort", "exit", "continue", "debugger", "show", and "inspect" are available; "trace" will be added later.
 
 ``main.py`` has been moved to ``__main__.py`` following Python conventions for main routines. This makes ``python -m mathics`` work.
 GNU Readline history is enabled for "mathics" when it is available. It shares history files with ``mathicsscript``.
@@ -53,6 +53,7 @@ Expand ``Transpose[]`` documentation.
 Enhancements
 ++++++++++++
 
+#. Set-related code reworked for better WMA conformance. Rule matching order when selecting what function to run conforms better to WMA.
 #. ``mathics`` CLI options are more like wolframscript
 #. The debugging interface has been improved. ``TraceEvaluation[]`` and ``TraceDebug[]`` filter and colorize output for Mathics3
    constructs much better. . Single-dash long options like
@@ -61,26 +62,19 @@ Enhancements
    ``FullForm``. Option ``--read`` with alias ``-r`` is now ``-code`` and short option ``-c``.
 #. Boolen Options ``ShowRewrites`` and ``ShowEvaluation`` were added to ``TraceEvalation[]`` These filtering for either rewrites rules or evaluation expressions. Presumably, you don't want to filter both.
 
-Bugs
-++++
+Bugs Fixed
+++++++++++
 
+#. #1213 ``Condition[]`` expressions as second element in ``RuleDelayed`` behaviour not compatible with WMA
+#. #1187 Add ``Hypergeometric2F1`` Builtin Function
+#. #1198 Blanks in ``Set`` operations are not properly handled in tag positions.
 #. #1383 Support for hypergeometric functions
 #. #1384 Option management tweaks
 #. #1388 In WMA, ``Pochhammer[0,-2]`` returns 1/2
 #. #1395 Match WMA for ``Gamma[1+x]`` and ``Product[...]``
 #. #1405 structure_cache in ``mathics.core.expression.structure`` is ``None`` but we try to set it in ``_is_neutral_symbol()``
 #. #1412 ``Transpose[]`` does not work on three-dimensional array
-
-* Mathics scanner exceptions of class TranslateError are incompatible
-with previous versions, and now store error parameters, "name", "tag", and
-"args".
-* The method `get_sort_key` was replaced by two different properties:
-  `element_order`, for canonical ordering of expressions, and
-  `pattern_precedence`, used for ordering rules according their precedence
-  in the evaluation loop.
-* In both cases, the part of the sort key related to properties of the
-  expressions and patterns are now stored as a magic number instead of
-  a tuple.
+#. #1425 `Erroneous Protected message in SetDelayed
 
 WMA Compatibility
 -----------------
@@ -88,18 +82,23 @@ WMA Compatibility
 Hypergeometric functions have been revised to conform better to WMA behavior by
 expanding hypergeometric results.
 
-Bugs
-----
 
-* Fixed #1187
-
-
-=======
 Incompatible changes
 +++++++++++++++++++++
 
 Scanner API has changed. Options on ``mathics`` CLI have changed. See above for the changes.
 Location of ``mathics`` in ``mathics.__main__``, the more usual locaiton, rather than ``mathics.main``.
+
+* Mathics scanner exceptions of class TranslateError are incompatible
+with previous versions, and now store error parameters, "name", "tag", and
+"args".
+* The method ``get_sort_key()`` was replaced by two different properties:
+  ``element_order``, for canonical ordering of expressions, and
+  ``pattern_precedence``, used for ordering rules according their precedence
+  in the evaluation loop.
+* In both cases, the part of the sort key related to properties of the
+  expressions and patterns are now stored as a magic number instead of
+  a tuple.
 
 8.0.1
 -----
@@ -110,8 +109,8 @@ Some work was made to the Mathics3 Kernel to work in Python 3.13.
 The maximum version of numpy was increased to < 2.3 so as to allow marimo to work.
 
 
-Bugs
-++++
+Bugs Fixed
+++++++++++
 
 Correct for mismatch between ListExpression and tuple in ``DispatchAtom``.
 This is needed for PacletManager code to work better.
@@ -279,8 +278,8 @@ API incompatibility
 * Character and Operator information that has been gone over in the Mathics Scanner project. The information in JSON tables, the keys, and values have thus changed. Here, we read this information in and use that instead of previously hard-coded values.
 
 
-Bugs
-++++
+Bugs Fixed
+++++++++++
 
 * Fix infinite recursion when formatting ``Sequence[...]``
 * Parsing ``\(`` ... ``\)`` improved
@@ -367,8 +366,8 @@ Internals
 * Some work was done to make it possible so that in the future we can speed up initial loading and reduce the initial memory footprint
 
 
-Bugs
-++++
+Bugs Fixed
+++++++++++
 
 * ``Definitions`` is compatible with ``pickle``.
 * Improved support for ``Quantity`` expressions, including conversions, formatting and arithmetic operations.
@@ -516,8 +515,8 @@ Internals
 # More type annotations added to functions, especially builtin functions
 #. Numerical constants used throughout the code were renamed using caps, according to Python's convention.
 
-Bugs
-++++
+Bugs Fixed
+++++++++++
 
 # ``0`` with a given precision (like in ```0`3```) is now parsed as ``0``, an integer number.
 # Reading certain GIFs now works again
@@ -591,8 +590,8 @@ Documentation
 
 Hyperbolic functions were split off form trigonometry and exponential functions. More URL links were added.
 
-Bugs
-++++
+Bugs Fixed
+++++++++++
 
 #. Creating a complex number from Infinity no longer crashes and returns 'I * Infinity'
 
@@ -714,8 +713,8 @@ Compatibility
 #. ``Expression.numerify`` improved in a way to obtain a behavior closer to WMA.
 #. ``NumericQ`` lhs expressions are now handled as a special case in assignment. For example, ``NumericQ[a]=True`` tells the interpreter that ``a`` must be considered a numeric quantity, so ``NumericQ[Sin[a]]`` evaluates to ``True``.
 
-Bugs
-++++
+Bugs Fixed
+++++++++++
 
 #. ``First``, ``Rest`` and  ``Last`` now handle invalid arguments.
 #.  ``Set*``: fixed issue #128.
@@ -802,8 +801,8 @@ setting ``$TraceBuiltins`` to True will accumulate results of evaluations
 ``$TraceBuiltins = True`` on entry and runs ``PrintTrace[]`` on exit.
 
 
-Bugs
-++++
+Bugs Fixed
+++++++++++
 
 #. Fix and document better behavior of ``Quantile``
 #. Improve Asymptote ``BezierCurve`` implementation
@@ -846,8 +845,8 @@ Documentation
 #. Documentation improved
 #. The flakiness around showing sine graphs with filling on the axes or below has been addressed. We now warn when a version of Asymptote or Ghostscript is used that is likely to give a problem.
 
-Bugs
-++++
+Bugs Fixed
+++++++++++
 
 #. A small SVGTransform bug was fixed. Thanks to axelclk for spotting.
 #. Elliptic arcs are now supported in Asymptote. There still is a bug however in calculating the bounding box when this happens.
@@ -889,8 +888,8 @@ PolarPlot documentation was improved. #1475.
 A getter/setter method for Mathics settings was added #1472.
 
 
-Bugs
-++++
+Bugs Fixed
+++++++++++
 
 #. Add ``requirements-*.txt``to distribution files. ``pip install Mathics3[dev]`` should work now. PR #1461
 #. Some ``PointBox`` bugs were fixed
@@ -924,8 +923,8 @@ not currently available on Pyston so there is a slight loss of
 functionality. The code runs about 30% faster under Pyston 2.2. Note
 that the code also works under PyPy 3.7.
 
-Bugs
-++++
+Bugs Fixed
+++++++++++
 
 #. Tick marks and the placement of numbers on charts have been corrected. PR #1437
 #. Asymptote now respects the ``PointSize`` setting.
@@ -1658,7 +1657,7 @@ New features
 #. Context support
 
 
-Bugs fixed
+Bugs Fixed
 ++++++++++
 
 #. Fix unevaluated index handling (issue #217)
@@ -1702,7 +1701,7 @@ New features
 #. Use interrupting COW to limit evaluation time
 #. Character Code functions
 
-Bugs fixed
+Bugs Fixed
 ++++++++++
 
 #. Fix divide-by-zero with zero-length plot range
