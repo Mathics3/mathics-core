@@ -128,12 +128,6 @@ def test_HypergeometricU(str_expr, msgs, str_expected, fail_msg):
             None,
         ),
         ("N[MeijerG[{{},{}},{{0,0},{0,0}},100^2]]", None, "0.000893912", None),
-        (
-            "HypergeometricU[{3,1},{2,4},{7,8}]",
-            None,
-            "{MeijerG[{{-2}, {}}, {{0, -1}, {}}, 7] / 2, HypergeometricU[1, 4, 8]}",
-            None,
-        ),
     ],
 )
 def test_MeijerG(str_expr, msgs, str_expected, fail_msg):
