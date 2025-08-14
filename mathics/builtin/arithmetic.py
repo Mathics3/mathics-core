@@ -527,7 +527,7 @@ class DirectedInfinity(SympyFunction):
 
     def to_sympy(self, expr, **kwargs):
         if len(expr.elements) == 1:
-            dir = expr.elements[0].get_int_value()
+            dir = expr.elements[0].value
             if dir == 1:
                 return sympy.oo
             elif dir == -1:

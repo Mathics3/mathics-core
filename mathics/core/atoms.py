@@ -1036,12 +1036,10 @@ class Rational(Number[sympy.Rational]):
         )
 
     def __getnewargs__(self):
-        return (self.numerator().get_int_value(), self.denominator().get_int_value())
+        return (self.numerator().value, self.denominator().value)
 
     def __neg__(self) -> "Rational":
-        return Rational(
-            -self.numerator().get_int_value(), self.denominator().get_int_value()
-        )
+        return Rational(-self.numerator().value, self.denominator().value)
 
     @property
     def is_zero(self) -> bool:

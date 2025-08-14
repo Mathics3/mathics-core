@@ -61,13 +61,13 @@ def chop(expr, delta=10.0 ** (-10.0)):
     if isinstance(expr, Real):
         if expr.is_nan(expr):
             return expr
-        if -delta < expr.get_float_value() < delta:
+        if -delta < expr.value < delta:
             return Integer0
     elif isinstance(expr, Complex) and expr.is_inexact():
         real, imag = expr.real, expr.imag
         if -delta < real.get_float_value() < delta:
             real = Integer0
-        if -delta < imag.get_float_value() < delta:
+        if -delta < imag.value < delta:
             imag = Integer0
         return Complex(real, imag)
     elif isinstance(expr, Expression):
