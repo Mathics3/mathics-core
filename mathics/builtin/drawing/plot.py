@@ -40,6 +40,7 @@ from mathics.core.systemsymbols import (
 from mathics.eval.drawing.charts import draw_bar_chart, eval_chart
 from mathics.eval.drawing.colors import COLOR_PALETTES, get_color_palette
 from mathics.eval.drawing.plot import (
+    ListPlotPairOfNumbersError,
     ListPlotType,
     check_plot_range,
     compile_quiet_function,
@@ -167,17 +168,21 @@ class _ListPlot(Builtin, ABC):
             evaluation.message(class_name, "joind", joined_option, expr)
             is_joined_plot = False
 
-        return eval_ListPlot(
-            all_points,
-            x_range,
-            y_range,
-            is_discrete_plot=False,
-            is_joined_plot=is_joined_plot,
-            filling=filling,
-            use_log_scale=self.use_log_scale,
-            list_plot_type=plot_type,
-            options=options,
-        )
+        try:
+            return eval_ListPlot(
+                all_points,
+                x_range,
+                y_range,
+                is_discrete_plot=False,
+                is_joined_plot=is_joined_plot,
+                filling=filling,
+                use_log_scale=self.use_log_scale,
+                list_plot_type=plot_type,
+                options=options,
+            )
+        except ListPlotPairOfNumbersError:
+            evaluation.message(class_name, "lpn", points)
+            return
 
 
 class _Plot(Builtin, ABC):
