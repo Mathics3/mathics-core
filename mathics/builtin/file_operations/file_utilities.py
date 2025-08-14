@@ -99,7 +99,7 @@ class FindList(Builtin):
                     lines = f.readlines()
             except IOError:
                 evaluation.message("General", "noopen", path)
-                return
+                return SymbolFailed
             except MessageException as e:
                 e.message(evaluation)
                 return
