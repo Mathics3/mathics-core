@@ -73,7 +73,6 @@ from mathics.core.systemsymbols import (
     SymbolSlot,
     SymbolSqrt,
     SymbolSubtract,
-    SymbolUndefined,
     SymbolUnevaluated,
 )
 from mathics.eval.tracing import trace_evaluate
@@ -1111,7 +1110,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             assert self.elements_properties is not None
 
         recompute_properties = False
-        unevaluated_pairs: Dict[int, BaseElement] = {}
+        unevaluated_pairs: Dict[int, EvalMixin] = {}
 
         # @timeit
         def eval_elements():
@@ -1188,9 +1187,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # * evaluate elements,
         # * run to_python() on them in Expression construction, or
         # * convert Expression elements from a tuple to a list and back
-        elements: Sequence[BaseElement]
+        elements: list = []
         if self.elements_properties.elements_fully_evaluated:
-            elements = self._elements
+            elements = list(self._elements)
         else:
             elements = self.get_mutable_elements()
             # FIXME: see if we can preserve elements properties in eval_elements()
@@ -1221,7 +1220,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             new = new.flatten_sequence(evaluation)
             if new.elements_properties is None:
                 new._build_elements_properties()
-            elements = new._elements
+            elements = list(new._elements)
 
         def flatten_callback_for_Unevaluated(new_elements: tuple, i: int) -> list:
             """If the Attribute ``Flat`` (flag ``A_FLAT``) is set, this
