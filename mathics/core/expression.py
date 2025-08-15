@@ -63,27 +63,18 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (
     SymbolAborted,
-    SymbolAlternatives,
-    SymbolBlank,
-    SymbolBlankNullSequence,
-    SymbolBlankSequence,
-    SymbolCondition,
     SymbolDirectedInfinity,
     SymbolFunction,
     SymbolMinus,
-    SymbolOptional,
-    SymbolOptionsPattern,
     SymbolOverflow,
-    SymbolPattern,
-    SymbolPatternTest,
     SymbolPower,
     SymbolSequence,
     SymbolSin,
     SymbolSlot,
     SymbolSqrt,
     SymbolSubtract,
+    SymbolUndefined,
     SymbolUnevaluated,
-    SymbolVerbatim,
 )
 from mathics.eval.tracing import trace_evaluate
 
@@ -743,7 +734,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 break
         if do_flatten:
             new_elements: List[BaseElement] = []
-            for element in self._elements:
+            for i, element in enumerate(self._elements):
                 if (
                     isinstance(element, Expression)
                     and element.get_head().sameQ(head)
@@ -753,8 +744,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                         head, pattern_only, callback, level=sub_level
                     )
                     if callback is not None:
-                        callback(new_element._elements, element)
-                    new_elements.extend(new_element._elements)
+                        new_elements += callback(new_element._elements, i)
+                    else:
+                        new_elements.extend(new_element._elements)
                 else:
                     new_elements.append(element)
             return to_expression_with_specialization(self._head, *new_elements)
@@ -1119,25 +1111,51 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             assert self.elements_properties is not None
 
         recompute_properties = False
+        unevaluated_pairs: Dict[int, BaseElement] = {}
 
         # @timeit
         def eval_elements():
             # @timeit
-            def eval_range(indices):
+            def eval_range(indices: range):
+                """
+                This is called to evaluate arguments of a function when the function
+                doesn't have some sort of Hold property for parameters named by "indices".
+                """
                 nonlocal recompute_properties
                 recompute_properties = False
                 for index in indices:
                     element = elements[index]
-                    if not (element.is_literal or element.has_form("Unevaluated", 1)):
+                    if not element.is_literal:
                         if isinstance(element, EvalMixin):
                             new_value = element.evaluate(evaluation)
                             # We need id() because != by itself is too permissive
                             if id(element) != id(new_value):
-                                recompute_properties = True
+                                if (
+                                    isinstance(new_value, Expression)
+                                    and new_value.head is SymbolUnevaluated
+                                ):
+                                    # Strip off Unevaluated[], but keep property of the expression inside
+                                    # Unevaluated[] to be "fully evaluated". (Or, rather, not
+                                    # needing further evaluation.)
+                                    # We also have to save the old value in case there is no function
+                                    # that gets applied.
+                                    new_value_first = new_value.elements[0]
+
+                                    # I don't understand why, but if we have Unevaluated[Sequnce[...]], that should
+                                    # not be changed.
+                                    if not (
+                                        hasattr(new_value_first, "head")
+                                        and new_value_first.head is SymbolSequence
+                                    ):
+                                        new_value = new_value_first
+                                        unevaluated_pairs[index] = element
+                                else:
+                                    recompute_properties = True
+
                                 elements[index] = new_value
 
             # @timeit
-            def rest_range(indices):
+            def rest_range(indices: range):
                 nonlocal recompute_properties
                 if not A_HOLD_ALL_COMPLETE & attributes:
                     if self._does_not_contain_symbol("System`Evaluate"):
@@ -1205,54 +1223,26 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 new._build_elements_properties()
             elements = new._elements
 
-        # comment @mmatera: I think this is wrong now, because alters
-        # singletons... (see PR #58) The idea is to mark which elements was
-        # marked as "Unevaluated" Also, this consumes time for long lists, and
-        # is useful just for a very unfrequent expressions, involving
-        # `Unevaluated` elements.  Notice also that this behaviour is broken
-        # when the argument of "Unevaluated" is a symbol (see comment and tests
-        # in test/test_unevaluate.py)
-
-        for element in elements:
-            element.unevaluated = False
-
-        # If HoldAllComplete Attribute (flag ``A_HOLD_ALL_COMPLETE``) is not set,
-        # and the expression has elements of the form  `Unevaluated[element]`
-        # change them to `element` and set a flag `unevaluated=True`
-        # If the evaluation fails, use this flag to restore back the initial form
-        # Unevaluated[element]
-
-        # comment @mmatera:
-        # what we need here is some way to track which elements are marked as
-        # Unevaluated, that propagates by flatten, and at the end,
-        # to recover a list of positions that (eventually)
-        # must be marked again as Unevaluated.
-
-        if not A_HOLD_ALL_COMPLETE & attributes:
-            dirty_elements = None
-
-            for index, element in enumerate(elements):
-                if element.has_form("Unevaluated", 1):
-                    if dirty_elements is None:
-                        dirty_elements = list(elements)
-                    dirty_elements[index] = element.get_element(0)
-                    dirty_elements[index].unevaluated = True
-
-            if dirty_elements:
-                new = Expression(head, *dirty_elements)
-                elements = dirty_elements
-                new._build_elements_properties()
-
-        # If the Attribute ``Flat`` (flag ``A_FLAT``) is set, calls
-        # flatten with a callback that set elements as unevaluated
-        # too.
-        def flatten_callback(new_elements, old):
-            for element in new_elements:
-                element.unevaluated = old.unevaluated
+        def flatten_callback_for_Unevaluated(new_elements: tuple, i: int) -> list:
+            """If the Attribute ``Flat`` (flag ``A_FLAT``) is set, this
+            function is called to reinstate any Unevaluated[] stripping that
+            was performed earlier in parameter evalaution."""
+            if i in unevaluated_pairs.keys():
+                new_unevaluated_elements = []
+                for element in new_elements:
+                    new_unevaluated_elements.append(
+                        Expression(SymbolUnevaluated, element)
+                    )
+                del unevaluated_pairs[i]
+                return new_unevaluated_elements
+            else:
+                return list(new_elements)
 
         if A_FLAT & attributes:
             assert isinstance(new._head, Symbol)
-            new = new.flatten_with_respect_to_head(new._head, callback=flatten_callback)
+            new = new.flatten_with_respect_to_head(
+                new._head, callback=flatten_callback_for_Unevaluated
+            )
             if new.elements_properties is None:
                 new._build_elements_properties()
 
@@ -1378,18 +1368,14 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # Step 7: If we are here, is because we didn't find any rule that
         # matches the expression.
 
-        dirty_elements = None
-
-        # Expression did not change, re-apply Unevaluated
-        for index, element in enumerate(new._elements):
-            if element.unevaluated:
-                if dirty_elements is None:
-                    dirty_elements = list(new._elements)
-                dirty_elements[index] = Expression(SymbolUnevaluated, element)
-
-        if dirty_elements:
-            new = Expression(head)
-            new.elements = dirty_elements
+        # If any arguments were "Unevaluated[]" that we stripped off,
+        # put them back here. WMA specifieds that Unevaluated[] function should remain
+        # in the result when no function is applied, but they do get stripped of when there
+        if unevaluated_pairs:
+            new_elements = list(elements)
+            for index, unevaluated_element in unevaluated_pairs.items():
+                new_elements[index] = unevaluated_element
+            new.elements = tuple(new_elements)
 
         # Step 8: Update the cache. Return the new compound Expression and
         #        indicate that no further evaluation is needed.
@@ -1491,17 +1477,17 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
     def to_python(self, *args, **kwargs) -> Any:
         """
-        Convert the Expression to a Python object:
-        List[...]  -> Python list
-        DirectedInfinity[1] -> inf
-        DirectedInfinity[-1] -> -inf
-        True/False -> True/False
-        Null       -> None
-        Symbol     -> '...'
-        String     -> '"..."'
-        Function   -> python function
-        numbers    -> Python number
-        If kwarg n_evaluation is given, apply N first to the expression.
+                Convert the Expression to a Python object:
+        v        List[...]  -> Python list
+                DirectedInfinity[1] -> inf
+                DirectedInfinity[-1] -> -inf
+                True/False -> True/False
+                Null       -> None
+                Symbol     -> '...'
+                String     -> '"..."'
+                Function   -> python function
+                numbers    -> Python number
+                If kwarg n_evaluation is given, apply N first to the expression.
         """
         from mathics.core.builtin import mathics_to_python
 
