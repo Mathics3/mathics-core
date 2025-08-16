@@ -57,14 +57,17 @@ Enhancements
 #. The debugging interface has been improved. ``TraceEvaluation[]`` and ``TraceDebug[]`` filter and colorize output for Mathics3 constructs much better. Single-dash long options like
    ``-help``, ``-file`` are now accepted. Short option ``-f`` is associated with ``-file`` rather than ``--fullform``; ``-F`` is is now used for
    ``FullForm``. Option ``--read`` with alias ``-r`` is now ``-code`` and short option ``-c``.
-#.Booleann Options ``ShowRewrites`` and ``ShowEvaluation`` were added to ``TraceEvalation[]`.` These filtering for either rewrite rules or evaluation expressions. Presumably, you don't want to filter both.
+#. Boolean Options ``ShowRewrites`` and ``ShowEvaluation`` were added to ``TraceEvalation[]``. These filtering for either rewrite rules or evaluation expressions. Presumably, you don't want to filter both.
+#. We check argument counts on more Builtin Functions and give error messages (tags ``argx``, ``argr``, ``argrx``) for invalid parameter combinations.
 
 Bugs Fixed
 ++++++++++
 
+#. #1057 ``ListPlot[]`` error handling (and ``NestList[]``) needs going over
 #. #1213 ``Condition[]`` expressions as second element in ``RuleDelayed`` behaviour not compatible with WMA
 #. #1187 Add ``Hypergeometric2F1`` Builtin Function
 #. #1198 Blanks in ``Set`` operations are not properly handled in tag positions.
+#. #1245 Add "lpn" error message checking in _ListPlot
 #. #1383 Support for hypergeometric functions
 #. #1384 Option management tweaks
 #. #1388 In WMA, ``Pochhammer[0,-2]`` returns 1/2
@@ -72,6 +75,7 @@ Bugs Fixed
 #. #1405 structure_cache in ``mathics.core.expression.structure`` is ``None`` but we try to set it in ``_is_neutral_symbol()``
 #. #1412 ``Transpose[]`` does not work on three-dimensional array
 #. #1425 `Erroneous Protected message in SetDelayed
+#. #1461 "noopen" errors sometimes return ``$Failed``
 
 WMA Compatibility
 -----------------
