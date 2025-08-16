@@ -59,6 +59,12 @@ def save_evaluate(expr, evaluation, status: str, fn: Callable, orig_expr=None):
     if isinstance(expr, Symbol) and not isinstance(expr, SymbolConstant):
         return
 
+    # We can get called with the result of a Expression.rewrite_apply_eval_step.
+    # Here, what we want is just the first element, the expression. We discard
+    # the second element, whether to reevaluate the expression.
+    if isinstance(expr, tuple):
+        expr = expr[0]
+
     if (
         status == "Returning"
         and hasattr(expr, "is_literal")
