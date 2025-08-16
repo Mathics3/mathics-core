@@ -40,6 +40,7 @@ import mathics.core.parser.operators
 # run time.
 import mathics.eval.tracing as tracing
 from mathics.core.atoms import (
+    Atom,
     Integer,
     Integer0,
     Integer1,
@@ -197,15 +198,19 @@ class Builtin:
 
     """
 
-    name: Optional[str] = None
-    context: str = ""
-    attributes: int = A_PROTECTED
     _is_numeric: bool = False
-    rules: Dict[str, Any] = {}
+    attributes: int = A_PROTECTED
+    context: str = ""
+    defaults: Dict[Optional[int], str] = {}
+
+    # Number of arguments expected. -1 is used for arbitrary number.
+    expected_args: int = -1
+
     formats: Dict[str, Any] = {}
     messages: Dict[str, Any] = {}
+    name: Optional[str] = None
     options: Dict[str, Any] = {}
-    defaults: Dict[Optional[int], str] = {}
+    rules: Dict[str, Any] = {}
 
     def __getnewargs_ex__(self):
         return tuple(), {
@@ -432,6 +437,33 @@ class Builtin:
         makeboxes_def = definitions.builtin["System`MakeBoxes"]
         for rule in box_rules:
             makeboxes_def.add_rule(rule)
+
+    # This method is used to produce generic argument mismatch errors
+    # (tags: argx, argr, or argrx) for builtin functions that define this
+    # as an eval method. e.g.  For example for Sqrt[a, b] (one
+    # argument expected) or Subtract[a] (two arguments expected) It
+    # assumes each builtin defines "expected_args" for the correct
+    # number of arguments to give.  See class
+    # mathics.builtins.basic.Sqrt for how to set up.
+    def generic_argument_error(self, invalid, evaluation: Evaluation):
+        "%(name)s[invalid___]"
+        name = self.get_name(short=True)
+        if isinstance(invalid, Atom):
+            got_arg_count = 1
+        else:
+            got_arg_count = len(invalid.elements)
+        if self.expected_args == 1:
+            evaluation.message(name, "argx", Symbol(name), Integer(got_arg_count))
+        elif got_arg_count == 1:
+            evaluation.message(name, "argr", Symbol(name), Integer(self.expected_args))
+        else:
+            evaluation.message(
+                name,
+                "argrx",
+                Symbol(name),
+                Integer(got_arg_count),
+                Integer(self.expected_args),
+            )
 
     @classmethod
     def get_name(cls, short=False) -> str:
