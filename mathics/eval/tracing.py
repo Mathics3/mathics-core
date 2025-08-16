@@ -170,8 +170,9 @@ def trace_evaluate(func: Callable) -> Callable:
         if trace_evaluate_action is None:
             result = func(expr, evaluation)
             if trace_evaluate_on_return is not None and not was_boxing:
+                traced_result = result[0] if isinstance(result, tuple) else result
                 trace_evaluate_action = trace_evaluate_on_return(
-                    expr=result,
+                    expr=traced_result,
                     evaluation=evaluation,
                     status="Returning",
                     fn=expr,
