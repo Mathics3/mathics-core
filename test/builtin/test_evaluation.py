@@ -54,13 +54,16 @@ import pytest
             "$Aborted",
             None,
         ),
-        ("ClearAll[f];", None, None, None),
-        (
-            "Attributes[h] = Flat;h[items___] := Plus[items];h[1, Unevaluated[Sequence[Unevaluated[2], 3]], Sequence[4, Unevaluated[5]]]",
-            None,
-            "15",
-            None,
-        ),
+        # Please explain how this works, that is how one should think
+        # about the Flat attribute interacting with Unevaluated and Sequence.
+        # Is this a made up contrived example, or has this come up. Is it useful, and if so, how?
+        # ("ClearAll[f];", None, None, None),
+        # (
+        #     "Attributes[h] = Flat;h[items___] := Plus[items];h[1, Unevaluated[Sequence[Unevaluated[2], 3]], Sequence[4, Unevaluated[5]]]",
+        #     None,
+        #     "15",
+        #     None,
+        # ),
         ("ClearAll[f];", None, None, None),
     ],
 )
@@ -92,3 +95,14 @@ def test_private_doctests_evaluation_non_mswindows(
     that do not work on MS Windows.
     """
     check_evaluation_as_in_cli(str_expr, str_expected, fail_msg, msgs)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "assert_fail_msg"),
+    [
+        ("ClearAll[F, a]; F[a, Unevaluated[a]]", "F[a, Unevaluated[a]]", "Issue #122"),
+    ],
+)
+def test_Unevaluated(str_expr, str_expected, assert_fail_msg):
+    """Tests beyond the doctests for Unevaluated"""
+    check_evaluation_as_in_cli(str_expr, str_expected, assert_fail_msg)

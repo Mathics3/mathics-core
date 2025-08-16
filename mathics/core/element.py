@@ -101,7 +101,6 @@ class BaseElement(KeyComparable, ABC):
 
     options: Optional[Dict[str, Any]]
     last_evaluated: Any
-    unevaluated: bool
     # this variable holds a function defined in mathics.core.expression that creates an expression
     create_expression: Any
 
