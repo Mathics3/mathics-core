@@ -30,6 +30,8 @@ dependencies = [
     "setuptools",
     # stopit is needed in TimeRemaining[]
     "stopit; platform_system != 'Emscripten'",
+    # Sympy >= 1.14 is probably okay, but test computations
+    # change a little
     "sympy>=1.13,<1.14",
 ]
 license = {text = "GPL3"}

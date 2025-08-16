@@ -186,7 +186,7 @@ def eval_Open(
     if tmp is None:
         if mode in ["r", "rb"]:
             evaluation.message("General", "noopen", name)
-            return
+            return SymbolFailed
     else:
         path = tmp
 
@@ -202,7 +202,7 @@ def eval_Open(
         n = opener.n
     except IOError:
         evaluation.message("General", "noopen", name)
-        return
+        return SymbolFailed
     except MessageException as e:
         e.message(evaluation)
         return

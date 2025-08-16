@@ -54,9 +54,6 @@ class AbsoluteFileName(Builtin):
 
     """
 
-    messages = {
-        "fstr": ("File specification x is not a string of one or more characters."),
-    }
     summary_text = "get absolute file path"
 
     def eval(self, name, evaluation):
@@ -477,7 +474,7 @@ class FileByteCount(Builtin):
 
         except IOError:
             evaluation.message("General", "noopen", filename)
-            return
+            return SymbolFailed
         except MessageException as e:
             e.message(evaluation)
             return

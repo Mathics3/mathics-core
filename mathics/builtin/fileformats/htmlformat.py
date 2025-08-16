@@ -18,7 +18,7 @@ from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolRule
+from mathics.core.systemsymbols import SymbolFailed, SymbolRule
 
 try:
     import lxml.html as lhtml
@@ -110,10 +110,10 @@ def parse_html(parse, text, evaluation):
         return parse(text.get_string_value())
     except IOError:
         evaluation.message("General", "noopen", text.get_string_value())
-        return Symbol("$Failed")
+        return SymbolFailed
     except MessageException as e:
         e.message(evaluation)
-        return Symbol("$Failed")
+        return SymbolFailed
 
 
 class _HTMLBuiltin(Builtin):
