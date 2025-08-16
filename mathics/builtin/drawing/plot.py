@@ -40,6 +40,7 @@ from mathics.core.systemsymbols import (
 from mathics.eval.drawing.charts import draw_bar_chart, eval_chart
 from mathics.eval.drawing.colors import COLOR_PALETTES, get_color_palette
 from mathics.eval.drawing.plot import (
+    ListPlotPairOfNumbersError,
     ListPlotType,
     check_plot_range,
     compile_quiet_function,
@@ -96,11 +97,12 @@ class _ListPlot(Builtin, ABC):
     attributes = A_PROTECTED | A_READ_PROTECTED
 
     messages = {
+        "joind": "Value of option Joined -> `1` is not True or False.",
+        "lpn": "`1` is not a list of numbers or pairs of numbers.",
         "prng": (
             "Value of option PlotRange -> `1` is not All, Automatic or "
             "an appropriate list of range specifications."
         ),
-        "joind": "Value of option Joined -> `1` is not True or False.",
     }
 
     use_log_scale = False
@@ -110,8 +112,7 @@ class _ListPlot(Builtin, ABC):
 
         class_name = self.__class__.__name__
 
-        # Scale point values down by Log 10. Tick mark values will be adjusted
-        # to be 10^n in GraphicsBox.
+        # Scale point values down by Log 10. Tick mark values will be adjusted to be 10^n in GraphicsBox.
         if self.use_log_scale:
             points = ListExpression(
                 *(
@@ -119,6 +120,21 @@ class _ListPlot(Builtin, ABC):
                     for point in points
                 )
             )
+
+        points = points.evaluate(evaluation)
+        if not isinstance(points, ListExpression):
+            evaluation.message(class_name, "lpn", points)
+            return
+
+        if not all(
+            element.is_numeric(evaluation)
+            or isinstance(element, ListExpression)
+            or (1 <= len(element.elements) <= 2)
+            or (len(element.elements) == 1 and isinstance(element[0], ListExpression))
+            for element in points.elements
+        ):
+            evaluation.message(class_name, "lpn", points)
+            return
 
         # If "points" is a literal value with a Python representation,
         # it has a ".value" attribute with a non-None value. So here,
@@ -152,17 +168,21 @@ class _ListPlot(Builtin, ABC):
             evaluation.message(class_name, "joind", joined_option, expr)
             is_joined_plot = False
 
-        return eval_ListPlot(
-            all_points,
-            x_range,
-            y_range,
-            is_discrete_plot=False,
-            is_joined_plot=is_joined_plot,
-            filling=filling,
-            use_log_scale=self.use_log_scale,
-            list_plot_type=plot_type,
-            options=options,
-        )
+        try:
+            return eval_ListPlot(
+                all_points,
+                x_range,
+                y_range,
+                is_discrete_plot=False,
+                is_joined_plot=is_joined_plot,
+                filling=filling,
+                use_log_scale=self.use_log_scale,
+                list_plot_type=plot_type,
+                options=options,
+            )
+        except ListPlotPairOfNumbersError:
+            evaluation.message(class_name, "lpn", points)
+            return
 
 
 class _Plot(Builtin, ABC):
