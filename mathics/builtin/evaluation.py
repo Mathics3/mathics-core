@@ -180,9 +180,8 @@ class Evaluate(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Evaluate.html</url>
 
     <dl>
-    <dt>'Evaluate'[$expr$]
-        <dd>forces evaluation of $expr$, even if it occurs inside a
-        held argument or a 'Hold' form.
+      <dt>'Evaluate'[$expr$]
+      <dd>forces evaluation of $expr$, even if it occurs inside a held argument or a 'Hold' form.
     </dl>
 
     Create a function $f$ with a held argument:
