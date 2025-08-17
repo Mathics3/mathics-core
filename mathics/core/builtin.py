@@ -439,12 +439,12 @@ class Builtin:
             makeboxes_def.add_rule(rule)
 
     # This method is used to produce generic argument mismatch errors
-    # (tags: argx, argr, argrx, argt, argtu) for builtin functions that define this
-    # as an eval method. e.g.  For example for Sqrt[a, b] (one
-    # argument expected) or Subtract[a] (two arguments expected) It
-    # assumes each builtin defines "expected_args" for the correct
-    # number of arguments to give.  See class
-    # mathics.builtins.basic.Sqrt for how to set up.
+    # (tags: "argx", "argr", "argrx", "argt", or "argtu") for builtin
+    # functions that define this as an eval method. e.g.  For example
+    # for Sqrt[a, b] (one argument expected) or Subtract[a] (two
+    # arguments expected) It assumes each builtin defines
+    # "expected_args" for the correct number of arguments to give.
+    # See class mathics.builtins.basic.Sqrt for how to set up.
     def generic_argument_error(self, invalid, evaluation: Evaluation):
         "%(name)s[invalid___]"
 
