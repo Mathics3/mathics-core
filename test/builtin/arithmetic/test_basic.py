@@ -494,63 +494,55 @@ def test_private_doctests_arithmetic(str_expr, msgs, str_expected, fail_msg):
 
 
 @pytest.mark.parametrize(
-    ("str_expr", "msgs", "str_expected", "assert_fail_msg"),
+    ("str_expr", "msgs", "assert_fail_msg"),
     [
         (
             "CubeRoot[a, b]",
             ["CubeRoot called with 2 arguments; 1 argument is expected."],
-            "CubeRoot[a, b]",
             "CubeRoot error call",
         ),
         (
             "CubeRoot[a, b, c]",
             ["CubeRoot called with 3 arguments; 1 argument is expected."],
-            "CubeRoot[a, b, c]",
             "CubeRoot error call with 3 arguments",
         ),
         (
             "Divide[a]",
             ["Divide called with 1 argument; 2 arguments are expected."],
-            "Divide[a]",
             "Divide error call with 1 argument",
         ),
         (
             "Minus[]",
             ["Minus called with 0 arguments; 1 argument is expected."],
-            "Minus[]",
             "Minus error call with 0 arguments",
         ),
         (
             "Sqrt[a, b, c, d]",
             ["Sqrt called with 4 arguments; 1 argument is expected."],
-            "Sqrt[a, b, c, d]",
             "Sqrt error call with 4 arguments",
         ),
         (
             "Sqrt[]",
             ["Sqrt called with 0 arguments; 1 argument is expected."],
-            "Sqrt[]",
             "Sqrt error call with 0 arguments",
         ),
         (
             "Subtract[]",
             ["Subtract called with 0 arguments; 2 arguments are expected."],
-            "Subtract[]",
             "argrx error call with 0 arguments",
         ),
         (
             "Subtract[a]",
             ["Subtract called with 1 argument; 2 arguments are expected."],
-            "Subtract[a]",
             "Subtract argrx error call with 1 argument",
         ),
     ],
 )
-def test_wrong_number_of_arguments(str_expr, msgs, str_expected, assert_fail_msg):
+def test_wrong_number_of_arguments(str_expr, msgs, assert_fail_msg):
     """ """
     check_evaluation(
         str_expr,
-        str_expected,
+        str_expr,
         to_string_expr=True,
         to_string_expected=True,
         hold_expected=True,

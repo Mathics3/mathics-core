@@ -204,7 +204,7 @@ class Builtin:
     defaults: Dict[Optional[int], str] = {}
 
     # Number of arguments expected. -1 is used for arbitrary number.
-    expected_args: int = -1
+    expected_args: Union[int, Tuple[int, int]] = -1
 
     formats: Dict[str, Any] = {}
     messages: Dict[str, Any] = {}
@@ -439,7 +439,7 @@ class Builtin:
             makeboxes_def.add_rule(rule)
 
     # This method is used to produce generic argument mismatch errors
-    # (tags: argx, argr, or argrx) for builtin functions that define this
+    # (tags: argx, argr, argrx, argt, argtu) for builtin functions that define this
     # as an eval method. e.g.  For example for Sqrt[a, b] (one
     # argument expected) or Subtract[a] (two arguments expected) It
     # assumes each builtin defines "expected_args" for the correct
@@ -447,23 +447,47 @@ class Builtin:
     # mathics.builtins.basic.Sqrt for how to set up.
     def generic_argument_error(self, invalid, evaluation: Evaluation):
         "%(name)s[invalid___]"
+
         name = self.get_name(short=True)
         if isinstance(invalid, Atom):
             got_arg_count = 1
         else:
             got_arg_count = len(invalid.elements)
-        if self.expected_args == 1:
-            evaluation.message(name, "argx", Symbol(name), Integer(got_arg_count))
-        elif got_arg_count == 1:
-            evaluation.message(name, "argr", Symbol(name), Integer(self.expected_args))
+
+        if isinstance(self.expected_args, tuple):
+            expected_args1, expected_args2 = self.expected_args
+            if got_arg_count == 1:
+                evaluation.message(
+                    name,
+                    "argtu",
+                    Symbol(name),
+                    Integer(expected_args1),
+                    Integer(expected_args2),
+                )
+            else:
+                evaluation.message(
+                    name,
+                    "argt",
+                    Symbol(name),
+                    Integer(got_arg_count),
+                    Integer(expected_args1),
+                    Integer(expected_args2),
+                )
         else:
-            evaluation.message(
-                name,
-                "argrx",
-                Symbol(name),
-                Integer(got_arg_count),
-                Integer(self.expected_args),
-            )
+            if self.expected_args == 1:
+                evaluation.message(name, "argx", Symbol(name), Integer(got_arg_count))
+            elif got_arg_count == 1:
+                evaluation.message(
+                    name, "argr", Symbol(name), Integer(self.expected_args)
+                )
+            else:
+                evaluation.message(
+                    name,
+                    "argrx",
+                    Symbol(name),
+                    Integer(got_arg_count),
+                    Integer(self.expected_args),
+                )
 
     @classmethod
     def get_name(cls, short=False) -> str:

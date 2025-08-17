@@ -16,9 +16,8 @@ https://dlmf.nist.gov/19</url>.
 
 import sympy
 
-from mathics.core.atoms import Integer
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
-from mathics.core.builtin import SympyFunction
+from mathics.core.builtin import Builtin, SympyFunction
 from mathics.core.convert.sympy import from_sympy, to_numeric_sympy_args
 from mathics.eval.numerify import numerify
 
@@ -53,15 +52,13 @@ class EllipticE(SympyFunction):
     """
 
     attributes = A_NUMERIC_FUNCTION | A_PROTECTED
-    messages = {
-        "argt": "EllipticE called with `` arguments; 1 or 2 arguments are expected.",
-    }
+
+    # Set checking that the number of arguments required is two or three.
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
+
     summary_text = "elliptic integral of the second kind E(ϕ|m)"
     sympy_name = "elliptic_e"
-
-    def eval_default(self, args, evaluation):
-        "%(name)s[args___]"
-        evaluation.message("EllipticE", "argt", Integer(len(args.elements)))
 
     def eval_m(self, m, evaluation):
         "%(name)s[m_]"
@@ -107,15 +104,13 @@ special.html#sympy.functions.special.elliptic_integrals.elliptic_f</url>, <url>
     """
 
     attributes = A_NUMERIC_FUNCTION | A_PROTECTED
-    messages = {
-        "argx": "EllipticF called with `` arguments; 1 argument is expected.",
-    }
+
+    # Set checking that the number of arguments required is two.
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
+
     summary_text = "elliptic integral F(ϕ|m)"
     sympy_name = "elliptic_f"
-
-    def eval_default(self, args, evaluation):
-        "%(name)s[args___]"
-        evaluation.message("EllipticE", "argx", Integer(len(args.elements)))
 
     def eval(self, phi, m, evaluation):
         "%(name)s[phi_, m_]"
@@ -153,15 +148,13 @@ class EllipticK(SympyFunction):
     """
 
     attributes = A_NUMERIC_FUNCTION | A_LISTABLE | A_PROTECTED
-    messages = {
-        "argx": "EllipticK called with `` arguments; 1 argument is expected.",
-    }
+
+    # Set checking that the number of arguments required is one.
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
+
     summary_text = "elliptic integral of the first kind K(m)"
     sympy_name = "elliptic_k"
-
-    def eval_default(self, args, evaluation):
-        "%(name)s[args___]"
-        evaluation.message("EllipticK", "argx", Integer(len(args.elements)))
 
     def eval(self, m, evaluation):
         "%(name)s[m_]"
@@ -197,15 +190,13 @@ class EllipticPi(SympyFunction):
     """
 
     attributes = A_NUMERIC_FUNCTION | A_PROTECTED
-    messages = {
-        "argt": "EllipticPi called with `` arguments; 2 or 3 arguments are expected.",
-    }
+
+    # Set checking that the number of arguments required is two or three.
+    eval_error = Builtin.generic_argument_error
+    expected_args = (2, 3)
+
     summary_text = "elliptic integral of the third kind P(n|m)"
     sympy_name = "elliptic_pi"
-
-    def eval_default(self, args, evaluation):
-        "%(name)s[args___]"
-        evaluation.message("EllipticPi", "argt", Integer(len(args.elements)))
 
     def eval_n_m(self, n, m, evaluation):
         "%(name)s[n_, m_]"
