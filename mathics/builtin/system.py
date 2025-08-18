@@ -417,7 +417,7 @@ class Packages(Predefined):
 
 class ParentProcessID(Predefined):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$ParentProcessID.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$ParentProcessID.html</url>
 
     <dl>
       <dt>'\$ParentProcesID'

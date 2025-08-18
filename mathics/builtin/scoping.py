@@ -210,7 +210,7 @@ class Block(Builtin):
 
 class Context_(Predefined):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$Context.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$Context.html</url>
     <dl>
       <dt>'\$Context'
       <dd>is the current context.

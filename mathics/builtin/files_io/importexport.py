@@ -1013,7 +1013,7 @@ class ExportFormats(Predefined):
 
 class ImportFormats(Predefined):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$ImportFormats.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$ImportFormats.html</url>
 
     <dl>
       <dt>'\$ImportFormats'
