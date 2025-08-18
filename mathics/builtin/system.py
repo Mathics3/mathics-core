@@ -238,7 +238,7 @@ class Machine(Predefined):
 
 class MachineName(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/MachineName.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\\$MachineName.html</url>
 
     <dl>
       <dt>'\\$MachineName'

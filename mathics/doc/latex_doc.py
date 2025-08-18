@@ -186,13 +186,15 @@ def escape_latex(text):
     )
 
     # Process hyperrefs
-    def ensure_sharp_escape_in_url(content) -> str:
+    def ensure_sharp_escape_and_remove_escape_dollar_in_url(content) -> str:
+        content = content.replace(r"\$", "$")
         content = content.replace(" ", "").replace("\n", "")
         return content.replace("#", r"\#").replace(r"\\#", r"\#")
 
     def repl_hypertext(match) -> str:
         tag = match.group("tag")
-        content = ensure_sharp_escape_in_url(match.group("content"))
+        content = match.group("content")
+        content = ensure_sharp_escape_and_remove_escape_dollar_in_url(content)
         #
         # Sometimes it happens that the URL does not
         # fit in 80 characters. Then, to avoid that
@@ -225,11 +227,15 @@ def escape_latex(text):
         return "\\href{%s}{%s}" % (content, text)
 
     def repl_href(match) -> str:
-        content = ensure_sharp_escape_in_url(match.group("content"))
+        content = ensure_sharp_escape_and_remove_escape_dollar_in_url(
+            match.group("content")
+        )
         return r"\href{%s}{%s}" % (content, match.group("text"))
 
     def repl_url(match) -> str:
-        content = ensure_sharp_escape_in_url(match.group("content"))
+        content = ensure_sharp_escape_and_remove_escape_dollar_in_url(
+            match.group("content")
+        )
         return r"\url{%s}" % (content,)
 
     text, post_substitutions = pre_sub(
