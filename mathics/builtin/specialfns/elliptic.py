@@ -53,7 +53,7 @@ class EllipticE(SympyFunction):
 
     attributes = A_NUMERIC_FUNCTION | A_PROTECTED
 
-    # Set checking that the number of arguments required is two or three.
+    # Set checking that the number of arguments required is one or two.
     eval_error = Builtin.generic_argument_error
     expected_args = (1, 2)
 
