@@ -268,7 +268,7 @@ class CharacterEncoding(Predefined):
     """
     <url>
     :WMA link:
-    https://reference.wolfram.com/language/ref/$CharacterEncoding.html</url>
+    https://reference.wolfram.com/language/ref/\$CharacterEncoding.html</url>
 
     <dl>
       <dt>'\\$CharacterEncoding'
@@ -328,7 +328,7 @@ class CharacterEncodings(Predefined):
     """
     <url>
     :WMA link:
-    https://reference.wolfram.com/language/ref/$CharacterEncodings.html</url>
+    https://reference.wolfram.com/language/ref/\$CharacterEncodings.html</url>
 
     <dl>
       <dt>'\\$CharacterEncodings'

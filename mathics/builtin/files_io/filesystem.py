@@ -905,7 +905,7 @@ class PathnameSeparator(Predefined):
     r"""
     <url>
     :WMA link:
-    https://reference.wolfram.com/language/ref/$PathnameSeparator.html</url>
+    https://reference.wolfram.com/language/ref/\$PathnameSeparator.html</url>
 
     <dl>
       <dt>'\$PathnameSeparator'
