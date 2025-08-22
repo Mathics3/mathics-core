@@ -332,7 +332,7 @@ class Options(Builtin):
 
     See also <url>
     :'OptionValue':
-    /doc/reference-of-built-in-symbols/options-management/optionsvalue/</url> and <url>
+    /doc/reference-of-built-in-symbols/options-management/optionvalue/</url> and <url>
     :'OptionsPattern':
     /doc/reference-of-built-in-symbols/rules-and-patterns/composite-patterns/optionspattern/</url>.
 
