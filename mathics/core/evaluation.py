@@ -144,6 +144,10 @@ class Evaluation:
         self.quiet_all = False
         self.recursion_depth = 0
 
+        # iteration is used to keep track of evaluation chains and is
+        # compared against $IterationLimit.
+        self.iteration_count = 0
+
         # Interrupt handlers may need access to the shell
         # that invoked the evaluation.
         self.shell = None

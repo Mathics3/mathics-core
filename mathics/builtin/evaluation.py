@@ -85,6 +85,13 @@ class IterationLimit(Predefined):
 
     >> $IterationLimit
      = 1000
+
+    The iteration limit protects against runaway definitions:
+
+    >> Block[{$IterationLimit = 20}, yin := yang; yang := yin; yin]
+     : Iteration limit of 20 exceeded.
+     = $Aborted
+
     """
 
     name = "$IterationLimit"
@@ -186,7 +193,7 @@ class Evaluate(Builtin):
     >> f[1 + 2]
      = f[1 + 2]
 
-    'Evaluate' forces evaluation of the argument, even though $f$ has
+    'Evaluate' forces evaluation of the argument, even though $f$ has \
     the 'HoldAll' attribute:
     >> f[Evaluate[1 + 2]]
      = f[3]
@@ -211,9 +218,9 @@ class Unevaluated(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Unevaluated.html</url>
 
     <dl>
-    <dt>'Unevaluated'[$expr$]
-        <dd>temporarily leaves $expr$ in an unevaluated form when it
-        appears as a function argument.
+      <dt>'Unevaluated'[$expr$]
+      <dd>temporarily leaves $expr$ in an unevaluated form when it \
+          appears as a function argument.
     </dl>
 
     'Unevaluated' is automatically removed when function arguments are
