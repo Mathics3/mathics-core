@@ -84,7 +84,7 @@ class IterationLimit(Predefined):
     Calculations terminated by '\$IterationLimit' return '\$Aborted':
 
     >> $IterationLimit
-     = 1000
+     = 4096
 
     The iteration limit protects against runaway definitions:
 
@@ -95,7 +95,7 @@ class IterationLimit(Predefined):
     """
 
     name = "$IterationLimit"
-    value = 1000
+    value = 4096
 
     rules = {
         "$IterationLimit": str(value),
