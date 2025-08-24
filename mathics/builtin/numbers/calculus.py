@@ -772,15 +772,11 @@ class FindMaximum(_BaseFinder):
     >> Quiet[FindMaximum[-phi[x] + x, {x, 1.2}, Method->"Newton"]]
      = {0.5, {x -> 1.00001}}
     >> Clear[phi];
-
+    For a not so well behaving function, the result can be less accurate:
+    >> FindMaximum[-Exp[-1/x^2]+1., {x,1.2}, MaxIterations->10]
+     : The maximum number of iterations was exceeded. The result might be inaccurate.
+     = FindMaximum[-Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 10]
     """
-    #  WMA does not have a problem here. So this is something in our implementation
-    # Also, we can get either a MaxIterations failure, *or* a $IterationLimit error.
-    #
-    # For a not so well behaving function, the result can be less accurate:
-    # >> FindMaximum[-Exp[-1/x^2]+1., {x,1.2}, MaxIterations->10]
-    # : The maximum number of iterations was exceeded. The result might be inaccurate.
-    # = FindMaximum[-Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 10]
 
     methods = {}
     messages = _BaseFinder.messages.copy()
@@ -827,15 +823,11 @@ class FindMinimum(_BaseFinder):
     >> Quiet[FindMinimum[phi[x]-x,{x, 1.2}, Method->"Newton"]]
      = {-0.5, {x -> 1.00001}}
     >> Clear[phi];
+    For a not so well behaving function, the result can be less accurate:
+    >> FindMinimum[Exp[-1/x^2]+1., {x,1.2}, MaxIterations->10]
+     : The maximum number of iterations was exceeded. The result might be inaccurate.
+     =  FindMinimum[Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 10]
     """
-    #  WMA does not have a problem here. So this is something in our implementation
-    # Also, we can get either a MaxIterations failure, *or* a $IterationLimit error.
-    #
-    # For a not so well behaving function, the result can be less accurate:
-    # For a not so well behaving function, the result can be less accurate:
-    # >> FindMinimum[Exp[-1/x^2]+1., {x,1.2}, MaxIterations->10]
-    #  : The maximum number of iterations was exceeded. The result might be inaccurate.
-    #  =  FindMinimum[Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 10]
 
     methods = {}
     messages = _BaseFinder.messages.copy()
