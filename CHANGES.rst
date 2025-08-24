@@ -96,8 +96,11 @@ Bugs Fixed
 WMA Compatibility
 -----------------
 
-Hypergeometric functions have been revised to conform better to WMA behavior by
-expanding hypergeometric results.
+#. Hypergeometric functions have been revised to conform better to WMA behavior by expanding hypergeometric results.
+#. ``$IterationLimit`` now defaults 4096.
+#. ``mathics`` command-line conform better to ``wolframscript`` options.
+#. Rule selection of functions when multiple rules apply confirms closer to WMA.
+#. LHS reference selection conforms closer to WMA.
 
 
 Incompatible changes
