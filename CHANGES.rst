@@ -25,6 +25,17 @@ A basic interrupt handler was added that loosely follows wolframscript's interru
 ``main.py`` has been moved to ``__main__.py`` following Python conventions for main routines. This makes ``python -m mathics`` work.
 GNU Readline history is enabled for "mathics" when it is available. It shares history files with ``mathicsscript``.
 
+The priority for rule selection when there several matching a function call has been revised and more closely follows WMA behavior.
+
+Assignment statements, e.g. ``SetDelayed``, ``UpsSet``, or ``DownSet``
+have been revised to isolate left-hand-side references from conditions
+and element attributes. As a result, more of the code in WMA and Mathics3
+packages work.
+
+``$IterationLimit`` detects runaway rule expansion better.
+
+
+
 
 New Builtins
 ++++++++++++
@@ -75,7 +86,12 @@ Bugs Fixed
 #. #1405 structure_cache in ``mathics.core.expression.structure`` is ``None`` but we try to set it in ``_is_neutral_symbol()``
 #. #1412 ``Transpose[]`` does not work on three-dimensional array
 #. #1425 `Erroneous Protected message in SetDelayed
+#. #1432 URL links with $ in them are getting messed up
 #. #1461 "noopen" errors sometimes return ``$Failed``
+#. #1465 Crash in running ``Trace[Sin[Log[2.5, 7]]]``
+#. #1473 Doctest for ``Quantity``, ``KnownUnitQ``, and others fail when the documentation is generated
+#. #1474 Document typo: "is a valid Association object" should be "is a valid Quantity object"
+#. #1476 ``$IterationLimit`` is not limiting evalation expansion
 
 WMA Compatibility
 -----------------
