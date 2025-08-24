@@ -20,7 +20,7 @@ import sys
 from collections import defaultdict
 from io import StringIO
 from time import time
-from typing import Callable
+from typing import Callable, Optional
 
 import mathics_scanner.location
 
@@ -199,8 +199,11 @@ class TraceBuiltins(_TraceBase):
      = x ^ 2
     """
 
-    definitions_copy: Definitions
-    apply_function_copy: Callable
+    # None if normal evaluation, the main definition object
+    # if TraceBuiltin is activated.
+    definitions_copy: Optional[Definitions] = None
+    # Saves the default apply_function method.
+    _default_apply_function: Callable = FunctionApplyRule.apply_function
 
     function_stats: "defaultdict" = defaultdict(
         lambda: {"count": 0, "elapsed_milliseconds": 0.0}
@@ -245,6 +248,7 @@ class TraceBuiltins(_TraceBase):
             key=sort_fn,
             reverse=inverse,
         ):
+            # TODO: show a table through a message...
             print(
                 "%5d %6g %s"
                 % (statistic["count"], int(statistic["elapsed_milliseconds"]), name)
@@ -252,21 +256,22 @@ class TraceBuiltins(_TraceBase):
 
     @staticmethod
     def enable_trace(evaluation) -> None:
-        if TraceBuiltins.traced_definitions is None:
-            TraceBuiltins.apply_function_copy = FunctionApplyRule.apply_function
-            TraceBuiltins.definitions_copy = evaluation.definitions
-
-            # Replaces apply_function by the custom one
-            FunctionApplyRule.apply_function = traced_apply_function
-            # Create new definitions uses the new apply_function
-            evaluation.definitions = Definitions(add_builtin=True)
-        else:
-            evaluation.definitions = TraceBuiltins.definitions_copy
+        if TraceBuiltins.definitions_copy:
+            # Trace already enabled. Do nothing.
+            return
+        TraceBuiltins.definitions_copy = evaluation.definitions
+        # Replaces apply_function by the custom one
+        FunctionApplyRule.apply_function = traced_apply_function
+        # Create new definitions uses the new apply_function
+        evaluation.definitions = Definitions(add_builtin=True)
 
     @staticmethod
     def disable_trace(evaluation) -> None:
-        FunctionApplyRule.apply_function = TraceBuiltins.apply_function_copy
-        evaluation.definitions = TraceBuiltins.definitions_copy
+        # Disable tracebuiltin mode just if it was previously enabled:
+        if TraceBuiltins.definitions_copy:
+            FunctionApplyRule.apply_function = TraceBuiltins._default_apply_function
+            evaluation.definitions = TraceBuiltins.definitions_copy
+            TraceBuiltins.definitions_copy = None
 
     def eval(self, expr, evaluation, options={}):
         "%(name)s[expr_, OptionsPattern[%(name)s]]"
@@ -334,23 +339,19 @@ class TraceBuiltinsVariable(Builtin):
 
     messages = {"bool": "`1` should be True or False."}
 
-    value = SymbolFalse
-
     summary_text = "enable or disable Built-in function evaluation statistics"
 
     def eval_get(self, evaluation: Evaluation):
         "%(name)s"
 
-        return self.value
+        return SymbolTrue if TraceBuiltins.definitions_copy else SymbolFalse
 
     def eval_set(self, value, evaluation: Evaluation):
         "%(name)s = value_"
 
         if value is SymbolTrue:
-            self.value = SymbolTrue
             TraceBuiltins.enable_trace(evaluation)
         elif value is SymbolFalse:
-            self.value = SymbolFalse
             TraceBuiltins.disable_trace(evaluation)
         else:
             evaluation.message("$TraceBuiltins", "bool", value)
