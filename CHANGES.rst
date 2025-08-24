@@ -27,13 +27,14 @@ GNU Readline history is enabled for "mathics" when it is available. It shares hi
 
 The priority for rule selection when there several matching a function call has been revised and more closely follows WMA behavior.
 
-Assignment statements, e.g. ``SetDelayed``, ``UpsSet``, or ``DownSet``
+Assignment statements, e.g. ``SetDelayed``, ``UpSetDelayed``, or ``DownSetDelayed``
 have been revised to isolate left-hand-side references from conditions
 and element attributes. As a result, more of the code in WMA and Mathics3
 packages work.
 
 ``$IterationLimit`` detects runaway rule expansion better.
 
+Parameter count checking expanded to more builtin functions.
 
 
 
