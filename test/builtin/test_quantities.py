@@ -178,3 +178,31 @@ def test_quantity_operations(str_expr, str_expected):
         to_string_expected=True,
         hold_expected=True,
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "assert_fail_msg"),
+    [
+        (
+            "QuantityQ[a, b]",
+            ["QuantityQ called with 2 arguments; 1 argument is expected."],
+            "QuantityQ with wrong number of arguments",
+        ),
+        (
+            "Quantity[]",
+            ["Quantity called with 0 arguments; 1 argument is expected."],
+            "Quantity called with wrong number of arguments",
+        ),
+    ],
+)
+def test_wrong_number_of_arguments(str_expr, msgs, assert_fail_msg):
+    """ """
+    check_evaluation(
+        str_expr,
+        str_expr,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=assert_fail_msg,
+        expected_messages=msgs,
+    )
