@@ -51,16 +51,22 @@ def traced_apply_function(
     vars_noctx = dict(((strip_context(s), vars[s]) for s in vars))
     builtin_name = self.function.__qualname__.split(".")[0]
     stat = TraceBuiltins.function_stats[builtin_name]
+    prev_expression = evaluation.current_expression
+    evaluation.current_expression = expression
     t_start = time()
 
     stat["count"] += 1
     if options:
-        result = self.function(evaluation=evaluation, options=options, **vars_noctx)
+        result = (
+            self.function(evaluation=evaluation, options=options, **vars_noctx)
+            or expression
+        )
     else:
-        result = self.function(evaluation=evaluation, **vars_noctx)
+        result = self.function(evaluation=evaluation, **vars_noctx) or expression
     t_end = time()
     elapsed = (t_end - t_start) * 1000
     stat["elapsed_milliseconds"] += elapsed
+    evaluation.current_expression = prev_expression
     return result
 
 
