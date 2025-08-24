@@ -439,7 +439,10 @@ class Symbol(Atom, NumericOperators, EvalMixin):
                 # We will be using $IterationLimit, not $RecursionLimit below
                 # to catch symbolic looping rewrite expansions.
                 # We do this to model Mathematica behavior more closely.
-                limit = evaluation.definitions.get_config_value("$IterationLimit")
+                limit = (
+                    evaluation.definitions.get_config_value("$IterationLimit")
+                    or sys.maxsize
+                )
                 if limit is None:
                     limit = sys.maxsize
                 if limit != sys.maxsize and evaluation.iteration_count > limit:
