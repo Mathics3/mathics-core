@@ -10,7 +10,11 @@ process of evaluation in cases where it is needed.
 from mathics.core.atoms import Integer
 from mathics.core.attributes import A_HOLD_ALL, A_HOLD_ALL_COMPLETE, A_PROTECTED
 from mathics.core.builtin import Builtin, Predefined
-from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
+from mathics.core.evaluation import (
+    MAX_RECURSION_DEPTH,
+    Evaluation,
+    set_python_recursion_limit,
+)
 
 
 class RecursionLimit(Predefined):
@@ -176,9 +180,8 @@ class Evaluate(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Evaluate.html</url>
 
     <dl>
-    <dt>'Evaluate'[$expr$]
-        <dd>forces evaluation of $expr$, even if it occurs inside a
-        held argument or a 'Hold' form.
+      <dt>'Evaluate'[$expr$]
+      <dd>forces evaluation of $expr$, even if it occurs inside a held argument or a 'Hold' form.
     </dl>
 
     Create a function $f$ with a held argument:
@@ -211,32 +214,36 @@ class Unevaluated(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Unevaluated.html</url>
 
     <dl>
-    <dt>'Unevaluated'[$expr$]
-        <dd>temporarily leaves $expr$ in an unevaluated form when it
-        appears as a function argument.
+      <dt>'Unevaluated'[$expr$]
+      <dd>temporarily leaves $expr$ in an unevaluated form when it appears as a function argument.
     </dl>
 
-    'Unevaluated' is automatically removed when function arguments are
-    evaluated:
+    'Unevaluated' is automatically removed when function arguments are evaluated:
     >> Sqrt[Unevaluated[x]]
      = Sqrt[x]
 
+    In the following, the 'Length' value 4 because we do not evaluate the 'Plus':
     >> Length[Unevaluated[1+2+3+4]]
      = 4
+
     'Unevaluated' has attribute 'HoldAllComplete':
     >> Attributes[Unevaluated]
      = {HoldAllComplete, Protected}
 
-    'Unevaluated' is maintained for arguments to non-executed functions:
+    The 'Unevaluated[]' function call is kept in arguments of non-executed functions:
     >> f[Unevaluated[x]]
      = f[Unevaluated[x]]
-    Likewise, its kept in flattened arguments and sequences:
+
+    In functions that have the 'Flat' property, 'Unevaluated[]' propagates into function's arguments:
     >> Attributes[f] = {Flat};
     >> f[a, Unevaluated[f[b, c]]]
      = f[a, Unevaluated[b], Unevaluated[c]]
+
+    In 'Sequences' containing 'Unevaluated' functions:
     >> g[a, Sequence[Unevaluated[b], Unevaluated[c]]]
      = g[a, Unevaluated[b], Unevaluated[c]]
-    However, unevaluated sequences are kept:
+
+    However, when surrounding a 'Sequence' by 'Unevaluated', no proliferation of 'Unevaluated[]' function calls occurs:
     >> g[Unevaluated[Sequence[a, b, c]]]
      = g[Unevaluated[Sequence[a, b, c]]]
 
@@ -244,6 +251,27 @@ class Unevaluated(Builtin):
 
     attributes = A_HOLD_ALL_COMPLETE | A_PROTECTED
     summary_text = "keep the element unevaluated, disregarding Hold attributes"
+
+    def eval(self, expr, evaluation: Evaluation):
+        "Unevaluated[expr_]"
+        # Note that because Unevaluated[] has the HoldAllComplete attribute, nothing
+        # in expr should have been evaluated leading up to this call, leaving
+        # methods like this to decide whether to evaluate or not. Of course, here
+        # we don't want evaluation.
+
+        # Setting the "elements" property for Unevaluated[expr] (note,
+        # not in the subexpression "expr") to be "fully evaluated"
+        # will further keep anything under "expr" form getting evaluated.
+        #
+        # It may seem odd that in this case we are saying something as "fully evaluated" to mean
+        # "don't evaluate". But you have a similar weirdness Unevaluated[5] means don't evaluate
+        # 5 but, 5 is already fully evaluated.
+
+        # Note that this isn't complete. In any functions which call Unevaluated that do not
+        # expect
+        evaluation.current_expression.elements_properties.elements_fully_evaluated = (
+            True
+        )
 
 
 class ReleaseHold(Builtin):
