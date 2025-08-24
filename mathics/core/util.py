@@ -45,6 +45,14 @@ def permutations(items):
             # already_taken.add(item)
 
 
+def strip_string_quotes(s: str) -> str:
+    """
+    Remove leading and trailing string quotes if they exist.
+    Note: we need this too often probably a bad design decision in String.
+    """
+    return s[1:-1] if len(s) >= 2 and s[0] == s[-1] == '"' else s
+
+
 def subsets(items, min: int, max: Optional[int], included=None, less_first=False):
     if max is None:
         max = len(items)
