@@ -41,6 +41,8 @@ from mathics.core.symbols import (
     strip_context,
 )
 
+SymbolTableForm = Symbol("System`TableForm")
+
 
 def traced_apply_function(
     self, expression, vars, options: dict, evaluation: Evaluation
@@ -95,7 +97,7 @@ class ClearTrace(Builtin):
 
     Dump Builtin-Function statistics gathered in running that assignment:
     >> PrintTrace[]
-
+     | ...
     >> ClearTrace[]
 
     #> $TraceBuiltins = False
@@ -136,12 +138,13 @@ class PrintTrace(_TraceBase):
 
     Note: before '\$TraceBuiltins' is set to 'True', 'PrintTrace[]' will print an empty
     list.
-    >> PrintTrace[] (* See console log *)
-
+    >> PrintTrace[]
+     | ...
     >> $TraceBuiltins = True
      = True
 
     >> PrintTrace[SortBy -> "time"]
+     | ...
 
     #> $TraceBuiltins = False
      = False
@@ -180,22 +183,26 @@ class TraceBuiltins(_TraceBase):
     </ul>
 
 
-    >> TraceBuiltins[Graphics3D[Tetrahedron[]]] (* See console log *)
+    >> TraceBuiltins[Graphics3D[Tetrahedron[]]]
+     | ...
      = -Graphics3D-
 
     By default, the output is sorted by the name:
-    >> TraceBuiltins[Times[x, x]] (* See console log *)
+    >> TraceBuiltins[Times[x, x]]
+     | ...
      = x ^ 2
 
     By default, the output is sorted by the number of calls of the builtin from \
     highest to lowest:
-    >> TraceBuiltins[Times[x, x], SortBy->"count"] (* See console log *)
+    >> TraceBuiltins[Times[x, x], SortBy->"count"]
+     | ...
      = x ^ 2
 
     You can have results ordered by name, or time.
 
     Trace an expression and list the result by time from highest to lowest.
-    >> TraceBuiltins[Times[x, x], SortBy->"time"] (* See console log *)
+    >> TraceBuiltins[Times[x, x], SortBy->"time"]
+     | ...
      = x ^ 2
     """
 
@@ -231,7 +238,13 @@ class TraceBuiltins(_TraceBase):
         def sort_by_name(tup: tuple):
             return tup[0]
 
-        print("count     ms Builtin name")
+        header = [
+            (
+                " count",
+                "ms",
+                "Builtin name",
+            )
+        ]
 
         if sort_by == "count":
             inverse = True
@@ -243,16 +256,20 @@ class TraceBuiltins(_TraceBase):
             inverse = False
             sort_fn = sort_by_name
 
-        for name, statistic in sorted(
-            TraceBuiltins.function_stats.items(),
-            key=sort_fn,
-            reverse=inverse,
-        ):
             # TODO: show a table through a message...
-            print(
-                "%5d %6g %s"
-                % (statistic["count"], int(statistic["elapsed_milliseconds"]), name)
+        table = header + [
+            (
+                statistic["count"],
+                int(statistic["elapsed_milliseconds"]),
+                name,
             )
+            for name, statistic in sorted(
+                TraceBuiltins.function_stats.items(),
+                key=sort_fn,
+                reverse=inverse,
+            )
+        ]
+        evaluation.print_out(Expression(SymbolTableForm, from_python(table)))
 
     @staticmethod
     def enable_trace(evaluation) -> None:
