@@ -1,6 +1,7 @@
 # cython: language_level=3
 # -*- coding: utf-8 -*-
 
+import sys
 from typing import TYPE_CHECKING, Any, Dict, FrozenSet, List, Optional, Sequence, Union
 
 from mathics.core.element import (
@@ -434,6 +435,23 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             if result is not None and not result.sameQ(self):
                 if result.is_literal:
                     return result
+
+                # We will be using $IterationLimit, not $RecursionLimit below
+                # to catch symbolic looping rewrite expansions.
+                # We do this to model Mathematica behavior more closely.
+                limit = (
+                    evaluation.definitions.get_config_value("$IterationLimit")
+                    or sys.maxsize
+                )
+                if limit is None:
+                    limit = sys.maxsize
+                if limit != sys.maxsize and evaluation.iteration_count > limit:
+                    evaluation.error("$IterationLimit", "itlim", limit)
+                    from mathics.core.systemsymbols import SymbolAborted
+
+                    return SymbolAborted
+                evaluation.iteration_count += 1
+
                 return result.evaluate(evaluation)
         return self
 

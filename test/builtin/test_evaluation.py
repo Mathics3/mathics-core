@@ -36,7 +36,7 @@ import pytest
         ),
         (
             "ClearAll[f]; f[x_] := f[x + 1];f[x]",
-            ("Iteration limit of 1000 exceeded.",),
+            ("Iteration limit of 4096 exceeded.",),
             "$Aborted",
             None,
         ),
