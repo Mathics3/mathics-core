@@ -155,26 +155,26 @@ def test_history_compound_expression():
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "assert_fail_msg"),
     [
-        (
-            "Abort[a, b]",
-            ["Abort called with 2 arguments; 0 arguments are expected."],
-            "Abort argument error call",
-        ),
-        (
-            "Break[a, b, c]",
-            ["Break called with 3 arguments; 0 arguments are expected."],
-            "Break argument error call",
-        ),
+        # (
+        #     "Abort[a, b]",
+        #     ["Abort called with 2 arguments; 0 arguments are expected."],
+        #     "Abort argument error call",
+        # ),
+        # (
+        #     "Break[a, b, c]",
+        #     ["Break called with 3 arguments; 0 arguments are expected."],
+        #     "Break argument error call",
+        # ),
         (
             "Catch[a, b, c, d, e]",
             ["Catch called with 5 arguments; between 1 and 3 arguments are expected."],
             "Catch argument error call",
         ),
-        (
-            "Interrupt[a]",
-            ["Interrupt called with 1 argument; 0 arguments are expected."],
-            "Interrupt argument error call",
-        ),
+        # (
+        #     "Interrupt[a]",
+        #     ["Interrupt called with 1 argument; 0 arguments are expected."],
+        #     "Interrupt argument error call",
+        # ),
         (
             "Throw[]",
             # Should be be between 1 and 3, but we don't have this implemented in Throw.

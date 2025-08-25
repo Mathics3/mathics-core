@@ -56,8 +56,8 @@ class Abort(Builtin):
     """
 
     # Set checking that the no arguments are allowed.
-    eval_error = Builtin.generic_argument_error
-    expected_args = 0
+    # eval_error = Builtin.generic_argument_error
+    # expected_args = 0
 
     summary_text = "generate an abort"
 
@@ -83,8 +83,8 @@ class Break(Builtin):
     """
 
     # Set checking that the no arguments are allowed.
-    eval_error = Builtin.generic_argument_error
-    expected_args = 0
+    # eval_error = Builtin.generic_argument_error
+    # expected_args = 0
 
     messages = {
         "nofwd": "No enclosing For, While, or Do found for Break[].",
@@ -459,8 +459,8 @@ class Interrupt(Builtin):
     """
 
     # Set checking that the no arguments are allowed.
-    eval_error = Builtin.generic_argument_error
-    expected_args = 0
+    # eval_error = Builtin.generic_argument_error
+    # expected_args = 0
 
     summary_text = "interrupt evaluation and return '$Aborted'"
 
