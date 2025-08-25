@@ -1,9 +1,65 @@
 *One can always dream...*
 
-2024-2025 Roadmap
+2025-2026 Roadmap
 =================
 
-Released 7.0.0: small bug fixes to assist downstream packager of OS distributions.
+2025 Achievements
+-----------------
+
+Support Python 3.13.
+
+Major foundational work was done in scanning boxing operators and getting rule selection for functions closer to WMA. Also, work was done to correct assigment functions, e.g. ``Upset``, ``Downset``, ``SetDelayed``, and others so that thes conform closer to WMA behavior.
+
+With these changes, it should be more straightforward to adjust ``MakeBox`` rules so that these conform. This is the top priority.
+
+A preliminary version of the Rule Based Integration Package ``Rubi``, was started. We will continue to improve the kernel to make this work faster and better.
+
+Some preliminary debugging support was added, Position information is starting to be captured, but much more work is needed in capturing more of it and proliferating this information throughout evaluation.
+
+Upcoming work
+-------------
+
+MakeBoxes
+++++++++++
+
+We hope to improve conformance of ``MakeBoxes`` and this will:
+
+* Improve conformance to WMA for expressions such as polynomial expressions
+* Make 2-D Character-oriented printing easy
+* Improve data returned by ``Information[]``
+* Allow better integration into Jupyter cells.
+
+Improving MakeBoxes is also curiso for improving formatting and rendering.
+
+Debugging
++++++++++
+
+Some prelimary work to improve expresssion location would be helpful
+for giving better debugging. Information that is now available from the scanner will be profilerated into compund expressions.  More work is also need to track positions in stream-oriented input (which happens a lot).
+
+We will continue to improve the debugger and improve conformance to WMA for ``Trace'' functions. In the debugger, mananged in a repository ``Mathics3-Trepan``, breakpoints on functions may be added.
+
+Other Stuff
++++++++++++
+
+Major components that still are in need of revision/rewrite
+
+* Efficient pattern matching
+* Documentation
+* Start a real instruction-driven interpreter
+* Compile system
+
+Smaller things:
+
+* Redo/rethink Complex representation
+* Better and more back-end formatting and rendering
+* Basic Object system. Some of our BaseElement objects don't feel right.
+* Remove home-grown Expression Cache.
+
+
+2024-2025 Roadmap
+
+=================
 
 From [2023 Roadmap]
 --------------------
@@ -12,7 +68,7 @@ For more details on the items, see the links in this section header. Here, I am 
 
 ## `Forms, Boxing, and Formatting <https://github.com/Mathics3/mathics-core/blob/master/FUTURE.rst#2023-roadmap>`_
 
-It feels like this should be doable, or at least we start on this path. I believe we should be able to prototype in Mathics3, but I am open to making small changes in the code. I think something like a change to the implementation of `MakeBoxes` was requested where we need to be looking at "upvalues" instead of "ourvalues" or maybe it is the other way around. I do however believe there is a way where we can prototype this before committing to a full implementation.
+It feels like this should be doable, or at least we start on this path. I believe we should be able to prototype in Mathics3, but I am open to making small changes in the code. I think something like a change to the implementation of ``MakeBoxes`` was requested where we need to be looking at "upvalues" instead of "ourvalues" or maybe it is the other way around. I do however believe there is a way where we can prototype this before committing to a full implementation.
 
 ## `Performance <https://github.com/Mathics3/mathics-core/blob/master/FUTURE.rst#2023-roadmap>`_
 
