@@ -156,20 +156,35 @@ def test_history_compound_expression():
     ("str_expr", "msgs", "assert_fail_msg"),
     [
         (
-            "If[a, b, c, d, e]",
-            ["If called with 5 arguments; between 2 and 4 arguments are expected."],
-            "If error call",
+            "Abort[a, b]",
+            ["Abort called with 2 arguments; 0 arguments are expected."],
+            "Abort argument error call",
+        ),
+        (
+            "Break[a, b, c]",
+            ["Break called with 3 arguments; 0 arguments are expected."],
+            "Break argument error call",
+        ),
+        (
+            "Catch[a, b, c, d, e]",
+            ["Catch called with 5 arguments; between 1 and 3 arguments are expected."],
+            "Catch argument error call",
+        ),
+        (
+            "Interrupt[a]",
+            ["Interrupt called with 1 argument; 0 arguments are expected."],
+            "Interrupt argument error call",
         ),
         (
             "Throw[]",
             # Should be be between 1 and 3, but we don't have this implemented in Throw.
             ["Throw called with 0 arguments; 1 or 2 arguments are expected."],
-            "Throw error call",
+            "Throw argument error call",
         ),
         (
             "While[a, b, c]",
             ["While called with 3 arguments; 1 or 2 arguments are expected."],
-            "While error call",
+            "While argument error call",
         ),
     ],
 )

@@ -55,9 +55,13 @@ class Abort(Builtin):
      = $Aborted
     """
 
+    # Set checking that the no arguments are allowed.
+    eval_error = Builtin.generic_argument_error
+    expected_args = 0
+
     summary_text = "generate an abort"
 
-    def eval(self, evaluation: Evaluation):
+    def eval(self, evaluation: Evaluation):  # pylint: disable=unused-argument
         "Abort[]"
 
         raise AbortInterrupt
@@ -78,13 +82,17 @@ class Break(Builtin):
      = 11
     """
 
+    # Set checking that the no arguments are allowed.
+    eval_error = Builtin.generic_argument_error
+    expected_args = 0
+
     messages = {
         "nofwd": "No enclosing For, While, or Do found for Break[].",
     }
 
     summary_text = "exit a 'For', 'While', or 'Do' loop"
 
-    def eval(self, evaluation: Evaluation):
+    def eval(self, evaluation: Evaluation):  # pylint: disable=unused-argument
         "Break[]"
 
         raise BreakInterrupt
@@ -124,6 +132,10 @@ class Catch(Builtin):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
+
+    # Set checking that the between one and three arguments are allowed.
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 4)
 
     summary_text = "handle an exception raised by a 'Throw'"
 
@@ -297,7 +309,7 @@ class Do(IterationFunction):
     allow_loopcontrol = True
     summary_text = "evaluate an expression looping over a variable"
 
-    def get_result(self, items):
+    def get_result(self, _items):
         return SymbolNull
 
 
@@ -446,9 +458,13 @@ class Interrupt(Builtin):
      = $Aborted
     """
 
+    # Set checking that the no arguments are allowed.
+    eval_error = Builtin.generic_argument_error
+    expected_args = 0
+
     summary_text = "interrupt evaluation and return '$Aborted'"
 
-    def eval(self, evaluation: Evaluation):
+    def eval(self, evaluation: Evaluation):  # pylint: disable=unused-argument
         "Interrupt[]"
 
         raise AbortInterrupt
@@ -477,7 +493,7 @@ class Pause(Builtin):
     # Number of timeout polls per second that we perform in looking
     # for a timeout.
 
-    def eval(self, n, evaluation: Evaluation):
+    def eval(self, n, evaluation: Evaluation):  # pylint: disable=unused-argument
         "Pause[n_]"
         try:
             sleep_time = valid_time_from_expression(n, evaluation)
@@ -521,7 +537,7 @@ class Return(Builtin):
 
     summary_text = "return from a function"
 
-    def eval(self, expr, evaluation: Evaluation):
+    def eval(self, expr, evaluation: Evaluation):  # pylint: disable=unused-argument
         "Return[expr_]"
         raise ReturnInterrupt(expr)
 
@@ -621,11 +637,13 @@ class Throw(Builtin):
 
     summary_text = "throw an expression to be caught by a surrounding 'Catch'"
 
-    def eval(self, value, evaluation: Evaluation):
+    def eval(self, value, evaluation: Evaluation):  # pylint: disable=unused-argument
         "Throw[value_]"
         raise WLThrowInterrupt(value)
 
-    def eval_with_tag(self, value, tag, evaluation: Evaluation):
+    def eval_with_tag(
+        self, value, tag, evaluation: Evaluation
+    ):  # pylint: disable=unused-argument
         "Throw[value_, tag_]"
         raise WLThrowInterrupt(value, tag)
 
