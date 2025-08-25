@@ -204,7 +204,7 @@ class Builtin:
     defaults: Dict[Optional[int], str] = {}
 
     # Number of arguments expected. -1 is used for arbitrary number.
-    expected_args: Union[int, Tuple[int, int]] = -1
+    expected_args: Union[int, Tuple[int, int], range] = -1
 
     formats: Dict[str, Any] = {}
     messages: Dict[str, Any] = {}
@@ -473,6 +473,15 @@ class Builtin:
                     Integer(expected_args1),
                     Integer(expected_args2),
                 )
+        elif isinstance(self.expected_args, range):
+            evaluation.message(
+                name,
+                "argb",
+                Symbol(name),
+                Integer(got_arg_count),
+                Integer(self.expected_args.start),
+                Integer(self.expected_args.stop - 1),
+            )
         else:
             if self.expected_args == 1:
                 evaluation.message(name, "argx", Symbol(name), Integer(got_arg_count))

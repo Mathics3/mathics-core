@@ -55,9 +55,13 @@ class Abort(Builtin):
      = $Aborted
     """
 
+    # Set checking that the no arguments are allowed.
+    # eval_error = Builtin.generic_argument_error
+    # expected_args = 0
+
     summary_text = "generate an abort"
 
-    def eval(self, evaluation: Evaluation):
+    def eval(self, evaluation: Evaluation):  # pylint: disable=unused-argument
         "Abort[]"
 
         raise AbortInterrupt
@@ -78,13 +82,17 @@ class Break(Builtin):
      = 11
     """
 
+    # Set checking that the no arguments are allowed.
+    # eval_error = Builtin.generic_argument_error
+    # expected_args = 0
+
     messages = {
         "nofwd": "No enclosing For, While, or Do found for Break[].",
     }
 
     summary_text = "exit a 'For', 'While', or 'Do' loop"
 
-    def eval(self, evaluation: Evaluation):
+    def eval(self, evaluation: Evaluation):  # pylint: disable=unused-argument
         "Break[]"
 
         raise BreakInterrupt
@@ -124,6 +132,10 @@ class Catch(Builtin):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
+
+    # Set checking that the between one and three arguments are allowed.
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 4)
 
     summary_text = "handle an exception raised by a 'Throw'"
 
@@ -297,7 +309,7 @@ class Do(IterationFunction):
     allow_loopcontrol = True
     summary_text = "evaluate an expression looping over a variable"
 
-    def get_result(self, items):
+    def get_result(self, _items):
         return SymbolNull
 
 
@@ -377,15 +389,32 @@ class If(Builtin):
     >> If[False, a] //FullForm
      = Null
 
-    You might use comments (inside '(*' and '*)') to make the branches of 'If'
+    You might use comments inside '(*' and '*)' to make the branches of 'If'
     more readable:
     >> If[a, (*then*) b, (*else*) c];
+
+
+    Since one or more arguments to a boolean operation could be symbolic, it is\
+    possible that an 'If' cannot be evaluated. For example:
+
+    >> Clear[a, b]; If [a < b, a, b]
+     = If[a < b, a, b]
+
+    To handle this, 'If' takes an optional fourth parameter:
+
+    >> If [a < b, a, b, "I give up"]
+     = I give up
+
     """
 
-    summary_text = "if-then-else conditional expression"
     # This is the WR summary: "test if a condition is true, false, or
     # of unknown truth value"
     attributes = A_HOLD_REST | A_PROTECTED
+
+    # Set checking that the number of arguments required between 2 and 4.
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(2, 5)
+
     summary_text = "test if a condition is true, false, or of unknown truth value"
 
     def eval(self, condition, t, evaluation):
@@ -429,9 +458,13 @@ class Interrupt(Builtin):
      = $Aborted
     """
 
+    # Set checking that the no arguments are allowed.
+    # eval_error = Builtin.generic_argument_error
+    # expected_args = 0
+
     summary_text = "interrupt evaluation and return '$Aborted'"
 
-    def eval(self, evaluation: Evaluation):
+    def eval(self, evaluation: Evaluation):  # pylint: disable=unused-argument
         "Interrupt[]"
 
         raise AbortInterrupt
@@ -460,7 +493,7 @@ class Pause(Builtin):
     # Number of timeout polls per second that we perform in looking
     # for a timeout.
 
-    def eval(self, n, evaluation: Evaluation):
+    def eval(self, n, evaluation: Evaluation):  # pylint: disable=unused-argument
         "Pause[n_]"
         try:
             sleep_time = valid_time_from_expression(n, evaluation)
@@ -504,7 +537,7 @@ class Return(Builtin):
 
     summary_text = "return from a function"
 
-    def eval(self, expr, evaluation: Evaluation):
+    def eval(self, expr, evaluation: Evaluation):  # pylint: disable=unused-argument
         "Return[expr_]"
         raise ReturnInterrupt(expr)
 
@@ -594,17 +627,23 @@ class Throw(Builtin):
      = Hold[Throw[1]]
     """
 
+    # Set checking that the number of arguments required is one or two. WMA uses 1..3.
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
+
     messages = {
         "nocatch": "Uncaught `1` returned to top level.",
     }
 
     summary_text = "throw an expression to be caught by a surrounding 'Catch'"
 
-    def eval(self, value, evaluation: Evaluation):
+    def eval(self, value, evaluation: Evaluation):  # pylint: disable=unused-argument
         "Throw[value_]"
         raise WLThrowInterrupt(value)
 
-    def eval_with_tag(self, value, tag, evaluation: Evaluation):
+    def eval_with_tag(
+        self, value, tag, evaluation: Evaluation
+    ):  # pylint: disable=unused-argument
         "Throw[value_, tag_]"
         raise WLThrowInterrupt(value, tag)
 
@@ -692,11 +731,15 @@ class While(Builtin):
      = 3
     """
 
-    summary_text = "evaluate an expression while a criterion is true"
     attributes = A_HOLD_ALL | A_PROTECTED
+    # Set checking that the number of arguments required is one.
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
+
     rules = {
         "While[test_]": "While[test, Null]",
     }
+    summary_text = "evaluate an expression while a criterion is true"
 
     def eval(self, test, body, evaluation):
         "While[test_, body_]"

@@ -5,7 +5,7 @@ Code tables
 """
 
 # an (incomplete) list of ISO 639-3 language codes. these codes are used in Extended Open Multilingual Wordnet
-# (see e.g. http://compling.hss.ntu.edu.sg/omw/summx.html) and in Tesseract (see e.g.
+# (see e.g. http://compiling.hss.ntu.edu.sg/omw/summx.html) and in Tesseract (see e.g.
 # https://github.com/tesseract-ocr/tessdata). For the complete list, see http://www-01.sil.org/iso639-3/codes.asp
 
 iso639_3 = {
