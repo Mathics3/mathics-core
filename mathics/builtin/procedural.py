@@ -380,12 +380,29 @@ class If(Builtin):
     You might use comments (inside '(*' and '*)') to make the branches of 'If'
     more readable:
     >> If[a, (*then*) b, (*else*) c];
+
+
+    Since one or more arugments to a boolean operation could be symbolic, it is\
+    possible that an 'If' cannot be evaluated. For example:
+
+    >> Clear[a, b]; If [a < b, a, b]
+     = If[a < b, a, b]
+
+    To handle this, 'If' takes an optional fourth parameter:
+
+    >> If [a < b, a, b, "I give up"]
+     = I give up
+
     """
 
-    summary_text = "if-then-else conditional expression"
     # This is the WR summary: "test if a condition is true, false, or
     # of unknown truth value"
     attributes = A_HOLD_REST | A_PROTECTED
+
+    # Set checking that the number of arguments required between 2 and 4.
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(2, 5)
+
     summary_text = "test if a condition is true, false, or of unknown truth value"
 
     def eval(self, condition, t, evaluation):
