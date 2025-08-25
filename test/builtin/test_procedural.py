@@ -150,3 +150,32 @@ def test_history_compound_expression():
     # a timeout exception if we evaluate an expression from
     # its `evaluate` method...
     session.evaluation.stopped = False
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "assert_fail_msg"),
+    [
+        (
+            "While[a, b, c]",
+            ["While called with 3 arguments; 1 or 2 arguments are expected."],
+            "While error call",
+        ),
+        (
+            "Throw[]",
+            # Should be be between 1 and 3, but we don't have this implemented in Throw.
+            ["Throw called with 0 arguments; 1 or 2 arguments are expected."],
+            "Throw error call",
+        ),
+    ],
+)
+def test_wrong_number_of_arguments(str_expr, msgs, assert_fail_msg):
+    """ """
+    check_evaluation(
+        str_expr,
+        str_expr,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=assert_fail_msg,
+        expected_messages=msgs,
+    )
