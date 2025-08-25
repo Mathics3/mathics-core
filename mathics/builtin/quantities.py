@@ -314,7 +314,7 @@ class QuantityQ(Test):
         https://reference.wolfram.com/language/ref/QuantityQ.html</url>
         <dl>
           <dt>'QuantityQ'[$expr$]
-          <dd>return 'True' if $expr$ is a valid <url>:'Quantity':/doc/reference-of-built-in-symbols/units-and-quantities
+          <dd>return 'True' if $expr$ is a valid <url>:Quantity:/doc/reference-of-built-in-symbols/units-and-quantities
     /quantity/</url> with valid arguments, and 'False' otherwise.
         </dl>
 

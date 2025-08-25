@@ -594,6 +594,10 @@ class Throw(Builtin):
      = Hold[Throw[1]]
     """
 
+    # Set checking that the number of arguments required is one or two. WMA uses 1..3.
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
+
     messages = {
         "nocatch": "Uncaught `1` returned to top level.",
     }
@@ -692,11 +696,15 @@ class While(Builtin):
      = 3
     """
 
-    summary_text = "evaluate an expression while a criterion is true"
     attributes = A_HOLD_ALL | A_PROTECTED
+    # Set checking that the number of arguments required is one.
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
+
     rules = {
         "While[test_]": "While[test, Null]",
     }
+    summary_text = "evaluate an expression while a criterion is true"
 
     def eval(self, test, body, evaluation):
         "While[test_, body_]"

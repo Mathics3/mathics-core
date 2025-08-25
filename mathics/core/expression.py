@@ -1373,7 +1373,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                         result._timestamp_cache(evaluation)
                     return result, False
                 else:
-                    return result, True
+                    return result, result is not SymbolAborted
 
         # Step 7: If we are here, is because we didn't find any rule that
         # matches the expression.
