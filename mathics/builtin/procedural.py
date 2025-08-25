@@ -377,12 +377,12 @@ class If(Builtin):
     >> If[False, a] //FullForm
      = Null
 
-    You might use comments (inside '(*' and '*)') to make the branches of 'If'
+    You might use comments inside '(*' and '*)' to make the branches of 'If'
     more readable:
     >> If[a, (*then*) b, (*else*) c];
 
 
-    Since one or more arugments to a boolean operation could be symbolic, it is\
+    Since one or more arguments to a boolean operation could be symbolic, it is\
     possible that an 'If' cannot be evaluated. For example:
 
     >> Clear[a, b]; If [a < b, a, b]

@@ -713,7 +713,7 @@ class Round(Builtin):
     eval_error = Builtin.generic_argument_error
     expected_args = (1, 2)
 
-    # For now, we handle Rounding Complex numnbers as rules.
+    # For now, we handle Rounding Complex numbers as rules.
     # In the future consider folding this into the code.
     rules = {
         "Round[expr_Complex]": "Round[Re[expr], 1] + I * Round[Im[expr], 1]",

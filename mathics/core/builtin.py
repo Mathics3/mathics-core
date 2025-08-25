@@ -204,7 +204,7 @@ class Builtin:
     defaults: Dict[Optional[int], str] = {}
 
     # Number of arguments expected. -1 is used for arbitrary number.
-    expected_args: Union[int, Tuple[int, int]] = -1
+    expected_args: Union[int, Tuple[int, int], range] = -1
 
     formats: Dict[str, Any] = {}
     messages: Dict[str, Any] = {}
