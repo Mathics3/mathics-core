@@ -13,7 +13,7 @@ from typing import Any, List
 
 from mathics_scanner.errors import SyntaxError
 
-from mathics.core.atoms import Integer, Integer0, Integer1, String
+from mathics.core.atoms import Integer, Integer1, String
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
 from mathics.core.builtin import Builtin, Predefined, PrefixOperator
 from mathics.core.convert.expression import to_mathics_list
@@ -331,7 +331,7 @@ class CharacterEncodings(Predefined):
     https://reference.wolfram.com/language/ref/\$CharacterEncodings.html</url>
 
     <dl>
-      <dt>'\\$CharacterEncodings'
+      <dt>'\$CharacterEncodings'
       <dd>stores the list of available character encodings.
     </dl>
 
@@ -739,7 +739,7 @@ class ToExpression(Builtin):
     https://reference.wolfram.com/language/ref/ToExpression.html</url>
     <dl>
       <dt>'ToExpression'[$input$]
-      <dd>interprets a given string as Mathics input.
+      <dd>interprets a given string as Mathics3 input.
 
       <dt>'ToExpression'[$input$, $form$]
       <dd>reads the given input in the specified $form$.
@@ -773,11 +773,11 @@ class ToExpression(Builtin):
     """
     attributes = A_LISTABLE | A_PROTECTED
 
+    # Set checking that the between one and three arguments are allowed.
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 4)
+
     messages = {
-        "argb": (
-            "`1` called with `2` arguments; "
-            "between `3` and `4` arguments are expected."
-        ),
         "interpfmt": (
             "`1` is not a valid interpretation format. "
             "Valid interpretation formats include InputForm "
@@ -843,13 +843,6 @@ class ToExpression(Builtin):
             return Expression(head, result).evaluate(evaluation)
 
         return result
-
-    def eval_empty(self, evaluation: Evaluation):
-        "ToExpression[]"
-        evaluation.message(
-            "ToExpression", "argb", "ToExpression", Integer0, Integer1, Integer(3)
-        )
-        return
 
 
 class ToString(Builtin):
