@@ -5,7 +5,7 @@ Unit tests for mathics.builtin.vectors.math_ops
 In particular, Curl[] and Norm[].
 """
 
-from test.helper import check_evaluation
+from test.helper import check_evaluation, check_wrong_number_of_arguments
 
 import pytest
 
@@ -52,9 +52,8 @@ def test_norm():
         check_evaluation(str_expr=str_expr, str_expected=str_expected)
 
 
-@pytest.mark.parametrize(
-    ("str_expr", "msgs", "assert_fail_msg"),
-    [
+def test_wrong_number_of_arguments():
+    tests = [
         (
             "Curl[a]",
             ["Curl called with 1 argument; 2 or 3 arguments are expected."],
@@ -65,16 +64,5 @@ def test_norm():
             ["Curl called with 4 arguments; 2 or 3 arguments are expected."],
             "Curl with more than three arguments",
         ),
-    ],
-)
-def test_wrong_number_of_arguments(str_expr, msgs, assert_fail_msg):
-    """ """
-    check_evaluation(
-        str_expr,
-        str_expr,
-        to_string_expr=True,
-        to_string_expected=True,
-        hold_expected=True,
-        failure_message=assert_fail_msg,
-        expected_messages=msgs,
-    )
+    ]
+    check_wrong_number_of_arguments(tests)

@@ -2,7 +2,7 @@
 """
 Unit tests for mathics.builtins.arithmetic.basic
 """
-from test.helper import check_evaluation
+from test.helper import check_evaluation, check_wrong_number_of_arguments
 
 import pytest
 
@@ -493,9 +493,8 @@ def test_private_doctests_arithmetic(str_expr, msgs, str_expected, fail_msg):
     )
 
 
-@pytest.mark.parametrize(
-    ("str_expr", "msgs", "assert_fail_msg"),
-    [
+def test_wrong_number_of_arguments():
+    tests = [
         (
             "CubeRoot[a, b]",
             ["CubeRoot called with 2 arguments; 1 argument is expected."],
@@ -536,16 +535,5 @@ def test_private_doctests_arithmetic(str_expr, msgs, str_expected, fail_msg):
             ["Subtract called with 1 argument; 2 arguments are expected."],
             "Subtract argrx error call with 1 argument",
         ),
-    ],
-)
-def test_wrong_number_of_arguments(str_expr, msgs, assert_fail_msg):
-    """ """
-    check_evaluation(
-        str_expr,
-        str_expr,
-        to_string_expr=True,
-        to_string_expected=True,
-        hold_expected=True,
-        failure_message=assert_fail_msg,
-        expected_messages=msgs,
-    )
+    ]
+    check_wrong_number_of_arguments(tests)

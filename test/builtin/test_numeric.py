@@ -4,7 +4,7 @@ Unit tests for mathics.builtins.numeric
 
 In particular, Rationalize and RealValuNumberQ
 """
-from test.helper import check_evaluation
+from test.helper import check_evaluation, check_wrong_number_of_arguments
 
 import pytest
 
@@ -121,7 +121,7 @@ def test_realvalued():
         ('Sign["20"]', None, "Sign[20]", None),
     ],
 )
-def test_private_doctests_numeric(str_expr, msgs, str_expected, fail_msg):
+def test_numeric(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,
@@ -135,36 +135,23 @@ def test_private_doctests_numeric(str_expr, msgs, str_expected, fail_msg):
 
 
 @pytest.mark.parametrize(
-    ("str_expr", "msgs", "assert_fail_msg"),
+    ("str_expr", "assert_fail_msg"),
     [
         (
             "Round[a, b]",
-            None,
             "Round with one symbolic argument should not give an error message",
         ),
         (
             "Round[a, b]",
-            None,
             "Round with two symbolic arguments should not give an error message",
         ),
         (
-            "Round[a, b, c]",
-            ("Round called with 3 arguments; 1 or 2 arguments are expected.",),
-            "Round wrong number of arguments",
-        ),
-        (
             "Sign[x]",
-            None,
             "Sign with one symbolic argument should not give an error message",
-        ),
-        (
-            "Sign[4, 5, 6]",
-            ("Sign called with 3 arguments; 1 argument is expected.",),
-            "Sign wrong number of arguments",
         ),
     ],
 )
-def test_wrong_number_of_arguments(str_expr, msgs, assert_fail_msg):
+def test_right_number_of_arguments(str_expr, assert_fail_msg):
     """ """
     check_evaluation(
         str_expr,
@@ -173,5 +160,21 @@ def test_wrong_number_of_arguments(str_expr, msgs, assert_fail_msg):
         to_string_expected=True,
         hold_expected=True,
         failure_message=assert_fail_msg,
-        expected_messages=msgs,
+        expected_messages=None,
     )
+
+
+def test_wrong_number_of_arguments():
+    tests = [
+        (
+            "Round[a, b, c]",
+            ["Round called with 3 arguments; 1 or 2 arguments are expected."],
+            "Round wrong number of arguments",
+        ),
+        (
+            "Sign[4, 5, 6]",
+            ["Sign called with 3 arguments; 1 argument is expected."],
+            "Sign wrong number of arguments",
+        ),
+    ]
+    check_wrong_number_of_arguments(tests)

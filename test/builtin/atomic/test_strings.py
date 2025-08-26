@@ -4,7 +4,7 @@ Unit tests from mathics.builtin.atomic.strings.
 
 In particular, Alphabet
 """
-from test.helper import check_evaluation
+from test.helper import check_evaluation, check_wrong_number_of_arguments
 
 import pytest
 
@@ -120,26 +120,14 @@ def test_string(str_expr, warnings, str_expected):
     )
 
 
-@pytest.mark.parametrize(
-    ("str_expr", "msgs", "assert_fail_msg"),
-    [
+def test_wrong_number_of_arguments():
+    tests = [
         (
             "ToExpression[]",
-            (
-                "ToExpression called with 0 arguments; between 1 and 3 arguments are expected.",
-            ),
+            [
+                "ToExpression called with 0 arguments; between 1 and 3 arguments are expected."
+            ],
             "ToExpression argument error call",
-        ),
-    ],
-)
-def test_wrong_number_of_arguments(str_expr, msgs, assert_fail_msg):
-    """ """
-    check_evaluation(
-        str_expr,
-        str_expr,
-        to_string_expr=True,
-        to_string_expected=True,
-        hold_expected=True,
-        failure_message=assert_fail_msg,
-        expected_messages=msgs,
-    )
+        )
+    ]
+    check_wrong_number_of_arguments(tests)

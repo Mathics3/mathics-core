@@ -3,7 +3,12 @@
 Unit tests from mathics.builtin.procedural.
 """
 
-from test.helper import check_evaluation, check_evaluation_as_in_cli, session
+from test.helper import (
+    check_evaluation,
+    check_evaluation_as_in_cli,
+    check_wrong_number_of_arguments,
+    session,
+)
 
 import pytest
 
@@ -152,9 +157,8 @@ def test_history_compound_expression():
     session.evaluation.stopped = False
 
 
-@pytest.mark.parametrize(
-    ("str_expr", "msgs", "assert_fail_msg"),
-    [
+def test_wrong_number_of_arguments():
+    tests = [
         # (
         #     "Abort[a, b]",
         #     ["Abort called with 2 arguments; 0 arguments are expected."],
@@ -186,16 +190,5 @@ def test_history_compound_expression():
             ["While called with 3 arguments; 1 or 2 arguments are expected."],
             "While argument error call",
         ),
-    ],
-)
-def test_wrong_number_of_arguments(str_expr, msgs, assert_fail_msg):
-    """ """
-    check_evaluation(
-        str_expr,
-        str_expr,
-        to_string_expr=True,
-        to_string_expected=True,
-        hold_expected=True,
-        failure_message=assert_fail_msg,
-        expected_messages=msgs,
-    )
+    ]
+    check_wrong_number_of_arguments(tests)
