@@ -81,6 +81,12 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
             instance._elements = tuple(elements)
         return instance
 
+    def __repr__(self):
+        result = str(type(self))
+        for elem in self._elements:
+            result += "  * " + repr(elem)
+        return result
+
     def do_format(self, evaluation, format):
         return self
 
