@@ -70,7 +70,8 @@ Enhancements
    ``-help``, ``-file`` are now accepted. Short option ``-f`` is associated with ``-file`` rather than ``--fullform``; ``-F`` is is now used for
    ``FullForm``. Option ``--read`` with alias ``-r`` is now ``-code`` and short option ``-c``.
 #. Boolean Options ``ShowRewrites`` and ``ShowEvaluation`` were added to ``TraceEvalation[]``. These filtering for either rewrite rules or evaluation expressions. Presumably, you don't want to filter both.
-#. We check argument counts on more Builtin Functions and give error messages (tags ``argx``, ``argr``, ``argrx``) for invalid parameter combinations.
+#. We check argument counts on more Builtin Functions and give error messages (tags ``argb``, ``argx``, ``argr``, ``argrx``) for invalid parameter combinations.
+#. ``$TraceBuiltins`` output uses standard Mathics3 I/O mechanisms rather than Python's builtin ``print``. Therefore it will be seen in more front-ends like Django or pyoxide.
 
 Bugs Fixed
 ++++++++++
