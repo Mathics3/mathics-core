@@ -31,6 +31,11 @@ We hope to improve conformance of ``MakeBoxes`` and this will:
 
 Improving MakeBoxes is also needed for improving formatting and rendering.
 
+Evaluation
+++++++++++
+
+Some fundamental flaws have been detected around our main evaluation loop. This is appareent in the handling of ``Unevaluated[]``, ``Evaluate[]``, and ``With[]`` and ``Condition``. These need to get addressed. See for example: `Issue #1206 <https://github.com/Mathics3/mathics-core/issues/1206>`_.
+
 Debugging
 +++++++++
 
@@ -47,6 +52,7 @@ Major components that still need revision/rewrite
 * Documentation
 * Start a real instruction-driven interpreter
 * Compile system
+* Rewrite how Graphics Routines and implement a robust API for extending
 
 Smaller things:
 
