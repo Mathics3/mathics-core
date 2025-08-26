@@ -25,7 +25,7 @@ A basic interrupt handler was added that loosely follows wolframscript's interru
 ``main.py`` has been moved to ``__main__.py`` following Python conventions for main routines. This makes ``python -m mathics`` work.
 GNU Readline history is enabled for "mathics" when it is available. It shares history files with ``mathicsscript``.
 
-The priority for rule selection when there several matching a function call has been revised and more closely follows WMA behavior.
+The priority for rule selection when there are several matching a function call has been revised and more closely follows WMA behavior.
 
 Assignment statements, e.g. ``SetDelayed``, ``UpSetDelayed``, or ``DownSetDelayed``
 have been revised to isolate left-hand-side references from conditions
@@ -34,7 +34,7 @@ packages work.
 
 ``$IterationLimit`` detects runaway rule expansion better.
 
-Parameter count checking expanded to more builtin functions.
+Parameter count checking expanded to more Builtin functions.
 
 
 
@@ -64,7 +64,7 @@ Expand ``Transpose[]`` documentation.
 Enhancements
 ++++++++++++
 
-#. Set-related code reworked for better WMA conformance. Rule matching order when selecting what function to run conforms better to WMA.
+#. Set-related code reworked for better WMA conformance. There is better WMA conformance in rule selection when several rules match.
 #. ``mathics`` CLI options are more like wolframscript
 #. The debugging interface has been improved. ``TraceEvaluation[]`` and ``TraceDebug[]`` filter and colorize output for Mathics3 constructs much better. Single-dash long options like
    ``-help``, ``-file`` are now accepted. Short option ``-f`` is associated with ``-file`` rather than ``--fullform``; ``-F`` is is now used for
@@ -98,10 +98,10 @@ WMA Compatibility
 -----------------
 
 #. Hypergeometric functions have been revised to conform better to WMA behavior by expanding hypergeometric results.
-#. ``$IterationLimit`` now defaults 4096.
+#. ``$IterationLimit`` now defaults to 4096.
 #. ``mathics`` command-line conform better to ``wolframscript`` options.
-#. Rule selection of functions when multiple rules apply confirms closer to WMA.
-#. LHS reference selection conforms closer to WMA.
+#. Rule selection of functions when multiple rules apply conforms to WMA more closely.
+#. LHS reference selection conforms to WMA more closely.
 
 
 Incompatible changes
