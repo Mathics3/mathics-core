@@ -55,7 +55,7 @@ jobs:
           pip install "setuptools>=70.0.0" PyYAML click packaging pytest
 
           # We can comment out after next Mathics-Scanner release
-          python -m pip install --no-build-isolation -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner
+          # python -m pip install --no-build-isolation -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner
           # pip install --no-build-isolation -e .
           # cd ..
 
