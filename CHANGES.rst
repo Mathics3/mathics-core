@@ -15,15 +15,14 @@ which happens a lot in plotting graphics. Also, Python 3.13 is a bit
 faster than previous versions. Previously, rendering via ``asymptote`` was
 slow. This is no longer the situation.
 
-Preliminary work to track locations has started. This is useful in debugging and error reporting, and is controlled via a Boolean.
-System variable ``$TrackLocations``.
+Preliminary work to track locations has started. This is useful in debugging and error reporting, and is controlled via Boolean System variable ``$TrackLocations``.
 
 Boxing operators have been added. The full range of escape sequences is supported.  A limited form of boxing escape ``\*`` that handles a single Boxing function has been added.
 
 A basic interrupt handler was added that loosely follows wolframscript's interrupt handler. Interrupt commands "abort", "exit", "continue", "debugger", "show", and "inspect" are available; "trace" will be added later.
 
 ``main.py`` has been moved to ``__main__.py`` following Python conventions for main routines. This makes ``python -m mathics`` work.
-GNU Readline history is enabled for "mathics" when it is available. It shares history files with ``mathicsscript``.
+GNU Readline history is enabled for ``mathics`` when it is available. It shares history files with ``mathicsscript``.
 
 The priority for rule selection when there are several matching a function call has been revised and more closely follows WMA behavior.
 
