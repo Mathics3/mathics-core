@@ -1,9 +1,70 @@
 *One can always dream...*
 
-2024-2025 Roadmap
+2025-2026 Roadmap
 =================
 
-Released 7.0.0: small bug fixes to assist downstream packager of OS distributions.
+2025 Achievements
+-----------------
+
+Support Python 3.13.
+
+Major foundational work was done in scanning boxing operators and getting rule selection for functions closer to WMA. Also, work was done to correct assignment functions, e.g. ``Upset``, ``Downset``, ``SetDelayed``, and others, so that they conform closer to WMA behavior.
+
+With these changes, it should be more straightforward to adjust ``MakeBox`` rules so that these conform. This is the top priority.
+
+A preliminary version of the Rule-Based Integration Package ``Rubi``, was started. We will continue to improve the kernel to make this work faster and better.
+
+Some preliminary debugging support was added. Position information is starting to be captured, but much more work is needed to capture more of it and proliferate this information throughout evaluation.
+
+Upcoming work
+-------------
+
+MakeBoxes
+++++++++++
+
+We hope to improve conformance of ``MakeBoxes`` and this will:
+
+* Improve conformance to WMA for expressions such as polynomial expressions
+* Make 2-D Character-oriented printing easy
+* Improve data returned by ``Information[]``
+* Allow better integration into Jupyter cells.
+
+Improving MakeBoxes is also needed for improving formatting and rendering.
+
+Evaluation
+++++++++++
+
+Some fundamental flaws have been detected around our main evaluation loop. This is appareent in the handling of ``Unevaluated[]``, ``Evaluate[]``, and ``With[]`` and ``Condition``. These need to get addressed. See for example: `Issue #1206 <https://github.com/Mathics3/mathics-core/issues/1206>`_.
+
+Debugging
++++++++++
+
+Some preliminary work to improve expression location would help give better debugging. Information that is now available from the scanner will be profilerated into compound expressions.  More work is also needed to track positions in stream-oriented input (which happens a lot).
+
+We will continue to improve the debugger and improve conformance to WMA for ``Trace'' functions. In the debugger, managed in a repository ``Mathics3-Trepan``, breakpoints on functions may be added.
+
+Other Stuff
++++++++++++
+
+Major components that still need revision/rewrite
+
+* Efficient pattern matching
+* Documentation
+* Start a real instruction-driven interpreter
+* Compile system
+* Rewrite how Graphics Routines and implement a robust API for extending
+
+Smaller things:
+
+* Redo/rethink Complex representation
+* Better and more back-end formatting and rendering
+* Basic Object system. Some of our BaseElement objects don't feel right.
+* Remove home-grown Expression Cache.
+
+
+2024-2025 Roadmap
+
+=================
 
 From [2023 Roadmap]
 --------------------
@@ -12,15 +73,15 @@ For more details on the items, see the links in this section header. Here, I am 
 
 ## `Forms, Boxing, and Formatting <https://github.com/Mathics3/mathics-core/blob/master/FUTURE.rst#2023-roadmap>`_
 
-It feels like this should be doable, or at least we start on this path. I believe we should be able to prototype in Mathics3, but I am open to making small changes in the code. I think something like a change to the implementation of `MakeBoxes` was requested where we need to be looking at "upvalues" instead of "ourvalues" or maybe it is the other way around. I do however believe there is a way where we can prototype this before committing to a full implementation.
+It feels like this should be doable, or at least we should start on this path. I believe we should be able to prototype in Mathics3, but I am open to making small changes in the code. I think something like a change to the implementation of ``MakeBoxes`` was requested, where we need to be looking at "upvalues" instead of "ourvalues", or maybe it is the other way around. I do, however, believe there is a way we can prototype this before committing to a full implementation.
 
 ## `Performance <https://github.com/Mathics3/mathics-core/blob/master/FUTURE.rst#2023-roadmap>`_
 
-This is a more nebulous overall and needs to be broken down more. There are some shorter-term and more measurable steps you will below and elsewhere.
+This is a more nebulous overall and needs to be broken down more. There are some shorter-term and more measurable steps to take below and elsewhere.
 
 ### Initial Startup Time
 
-With the work done in 2023 to allow ``mathics.builtin`` modules to be loaded deterministically through a "load" function, we can probably reduce startup time by as much as 2 seconds or so. And at the same time, addresses problems that would be caused by scaling the number of built-in functions up many times.
+With the work done in 2023 to allow ``mathics.builtin`` modules to be loaded deterministically through a "load" function, we can probably reduce startup time by as much as 2 seconds or so. And at the same time, it addresses problems that would be caused by scaling the number of built-in functions up many times.
 
 More Custom kinds of (compound) Expressions and Fewer Conversions
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -30,12 +91,12 @@ Python/Numpy literal expressions fall into this category and this is especially 
 Compilation
 ++++++++++++
 
-With the work done in 2023 towards providing access to instruction-like procedure calls, we probably are in a better position to handle smarter compilation, i.e. something other than turning it into Cython, and hope that Cython and figure out how to speed up what we don't have a handle on.
+With the work done in 2023 towards providing access to instruction-like procedure calls, we are probably in a better position to handle smarter compilation, i.e., something other than turning it into Cython, and hope that Cython and figure out how to speed up what we don't have a handle on.
 
 Further Code Reorganization in Core and Eval
 --------------------------------------------
 
-Core object like `BaseElement` and possibly `Symbol`, (and
+Core objects like `BaseElement` and possibly `Symbol`, (and
 probably others) are _still_ too "fat": they have too many custom methods that
 are not applicable for most of the subclasses support.  It is likely
 another pass will be made over this.
@@ -64,9 +125,9 @@ Li-Xiang-Ideal mentioned this. Perhaps he can elaborate.
 Debugger
 --------
 
-Rocky is writeing a debugger for Mathics3.
+Rocky is writing a debugger for Mathics3.
 
-This is be done largely outside of Mathics-core although it heavily relies on Mathics-Core internals.
+This is done largely outside of Mathics-core, although it heavily relies on Mathics-Core internals.
 
 Operator Precedence Tables
 --------------------------
@@ -77,7 +138,7 @@ This would be based on Robert Jacobson's work.
 Miscellaneous Small Things
 ---------------------------
 
-* Revised to support Python 3.12 along with dropping Python 3.7 support
+* Revised to support Python 3.12, along with dropping Python 3.7 support
 * Possible miscellaneous updates in packages and git commit hooks
 * Be on the lookout for Open-Source WMA Packages like KnotTheory or Rubi that can be run in Mathics3
 
@@ -96,7 +157,7 @@ Rocky
 mmatera
 -------
 
-- Forms, Boxing and Formatting
+- Forms, Boxing, and Formatting
 
 Li-Xiang-Ideal
 --------------
@@ -108,8 +169,8 @@ Li-Xiang-Ideal
 ============
 
 
-When the release settles, "Forms, Boxing, And "Formatting" is the next
-large refactor slated.  Having this will allow us to supporting Jupyter or other front
+When the release settles, "Forms, Boxing, and "Formatting" is the next
+large refactor slated.  Having this will allow us to support Jupyter or other front
 ends. And it is something that is most visibly wrong in Mathics3 output.
 
 See ``PAST.rst`` for how the 2023 Roadmap compares to the 2022 Roadmap.
@@ -120,8 +181,8 @@ Forms, Boxing and Formatting
 This remains the biggest holdover item from 2022, and seems easily doable.
 It hinders interaction with Jupyter or other front ends.
 
-Right now "Form" (a high-level specification of how to format) and
-"format" (a low level specification of how output is encoded) are sometimes muddied.
+Right now, "Form" (a high-level specification of how to format) and
+"format" (a low-level specification of how output is encoded) are sometimes muddied.
 
 For example, TeXForm may be a "Form", but output encoded for AMS-LaTeX is done by a *formatter*.
 So AMS-LaTeX rendering and other kinds of rendering should be split into its own rendering for formatter module.
@@ -135,10 +196,10 @@ into the Wolfram Language philosophy.
 Performance
 -----------
 
-While this is probably more of an overall concern, for now, big refactoring needed here, such as
+While this is probably more of an overall concern, for now, big refactoring is needed here, such as
 going over pattern matching, will get done after Forms, Boxing and Formatting .
 
-Forms, Boxing and Formatting will however contain one improvement that
+Forms, Boxing, and Formatting will, however, contain one improvement that
 should speed up our performance: separating M-Expression evaluation from
 Box "evaluations).
 
@@ -173,7 +234,7 @@ Refactoring code to generate Graphs in ``pymathics.graph`` might happen. Porting
 Python upgrades
 ---------------
 
-After Mathics3 Version 6.0.0, Python 3.6 will be dropped and possibly 3.7. Changes are needed to support 3.11 so we will be focusing on 3.8 to 3.11.
+After Mathics3 Version 6.0.0, Python 3.6 will be dropped, and possibly 3.7. Changes are needed to support 3.11, so we will be focusing on 3.8 to 3.11.
 
 We have gradually been using a more modern Python programming style
 and idioms: more type annotation, use of ``isort`` (order Python
@@ -190,7 +251,7 @@ discussion
 placeholder for this discussion.
 
 Overhauling the documentation to use something better supported and
-more mainstream like sphinx is deferred. This would really be nice to
+more mainstream, like Sphinx, is deferred. This would really be nice to
 have, but it will require a bit of effort and detracts from all of the other work that is needed.
 
 We will probably try this out in a limited basis in one of the Mathics3 modules.
@@ -341,17 +402,17 @@ Sometime around release 4.0.0, all of the code related to producing
 documentation in LaTeX and in Mathics Django, and running doctests
 will be split off and put into its own git repository.
 
-I've spent a lot of time banging on this to try to get to to be be
+I've spent a lot of time banging on this to try to get to be
 less fragile, more modular, more intelligible, but it still needs a
-*lot* more work and still is very fragile.
+*lot* more work and still it is very fragile.
 
-Also there is much to do on the editor side of things in terms of
+Also, there is much to do on the editor side of things in terms of
 reorganizing sections (which also implies reorganizing the builtin
 module structure, since those are tightly bound together).
 
 We still need to convert this into Sphinx-based, with its doctest.  We
 also need to be able to extract information in sphinx/RsT format
-rather than its home-brew markup language which is sort of XML like.
+rather than its home-brew markup language, which is sort of XML like.
 
 Performance
 -----------
@@ -361,8 +422,7 @@ to be done, but have barely scratched the surface here.
 
 The current implementation is pretty bare bones.
 
-We have problems with recursion, memory consumption, loading time, and
-overall speed in computation.
+We have problems with recursion, memory consumption, loading time, and overall speed in computation.
 
 Support for External Packages
 -----------------------------
@@ -376,5 +436,5 @@ Support for Mathematica Language Levels
 
 This is something that I think would be extremely useful and is
 straightforward to do someone has used Mathematica over the years
-knows it well. I think most of this could be supported in Mathics code
+knows it well. I think most of this could be supported in Mathics3 ode
 itself and loaded as packages. Any takers?
