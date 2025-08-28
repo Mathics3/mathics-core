@@ -30,6 +30,7 @@ jobs:
       run: |
         git submodule init
         git submodule update
+        pip install -e .[dev]
         remake -x develop
         cd mathics/Packages/Combinatorica-repo
         # If Combinatorica repo changes, we may need the below altered
