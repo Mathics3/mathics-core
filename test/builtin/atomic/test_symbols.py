@@ -40,14 +40,14 @@ def test_downvalues():
         ## awkward parser cases
         ("FullForm[a`b_]", None, "Pattern[a`b, Blank[]]", None),
         ("a = 2;", None, "Null", None),
-        ("Information[a]", ("a = 2\n",), "Null", None),
+        ("Information[a]", tuple(), "Global`a\n\na = 2\n", None),
         ("f[x_] := x ^ 2;", None, "Null", None),
         ("g[f] ^:= 2;", None, "Null", None),
         ('f::usage = "f[x] returns the square of x";', None, "Null", None),
         (
             "Information[f]",
-            (("f[x] returns the square of x\n\n" "f[x_] = x ^ 2\n\n" "g[f] ^= 2\n"),),
-            "Null",
+            tuple(),
+            "f[x] returns the square of x\n\nf[x_] = x ^ 2\n\ng[f] ^= 2\n",
             None,
         ),
         ('Length[Names["System`*"]] > 350', None, "True", None),

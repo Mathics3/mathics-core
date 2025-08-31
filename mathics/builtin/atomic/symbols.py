@@ -24,6 +24,7 @@ from mathics.core.attributes import (
 from mathics.core.builtin import Builtin, PrefixOperator, Test
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.regex import to_regex
+from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -50,6 +51,9 @@ from mathics.core.systemsymbols import (
 )
 from mathics.doc.online import online_doc_string
 from mathics.eval.stackframe import get_eval_Expression
+
+SymbolMissing = Symbol("System`Missing")
+SymbolUnknownSymbol = Symbol("System`UnknownSymbol")
 
 
 def gather_and_format_definition_rules(
@@ -442,47 +446,93 @@ class Information(PrefixOperator):
     }
     summary_text = "get information about all assignments for a symbol"
 
-    def format_information(
+    def build_missing(self, expression: BaseElement) -> Expression:
+        """Evaluate ?? F[x][y].. as -> Missing[UnknownSymbol, F][x][y]"""
+        if isinstance(expression, Expression):
+            return Expression(self.build_missing(expression.head), *expression.elements)
+        return Expression(SymbolMissing, SymbolUnknownSymbol, expression)
+
+    def build_list_of_matching_symbols(
+        self, symbol_pat: str, evaluation: Evaluation, options: dict, grid: bool = True
+    ):
+        """Return a list of symbols compatible with symbol_pat"""
+        definitions = evaluation.definitions
+        names = definitions.get_matching_names(symbol_pat)
+        rows = []
+        curr_row = []
+        for name in names:
+            curr_row.append(String(definitions.shorten_name(name)))
+            if len(curr_row) == 3:
+                rows.append(ListExpression(*curr_row))
+                curr_row = []
+        if curr_row:
+            curr_row = curr_row + (3 - len(curr_row)) * [String("")]
+            rows.append(ListExpression(*curr_row))
+
+        # TODO: Format using Grid?
+        result = Expression(Symbol("System`TableForm"), ListExpression(*rows))
+        return result
+
+    # This implementation mixes the current behavior of WMA >=12.0 with the old behavior
+    # (WMA 4.0).
+    # TODO: the formatting part of this must be moved to `InformationData`
+    # and `Information` should build this kind of expressions.
+
+    def format_information_generic(
+        self,
+        expr: BaseElement,
+        evaluation: Evaluation,
+        options: dict,
+        grid: bool = True,
+    ) -> Symbol:
+        "(StandardForm,TraditionalForm,InputForm,OutputForm,): Information[expr_, OptionsPattern[Information]]"
+        evaluation.message("Information", "notfound", expr)
+        return self.build_missing(expr)
+
+    def format_information_string(
+        self, strpat: String, evaluation: Evaluation, options: dict, grid: bool = True
+    ) -> Symbol:
+        "(StandardForm,TraditionalForm,InputForm,OutputForm,): Information[strpat_String, OptionsPattern[Information]]"
+        definitions = evaluation.definitions
+        string_str = strpat.value
+
+        if "*" in string_str:
+            return self.build_list_of_matching_symbols(
+                string_str, evaluation, options, grid
+            )
+        return self.eval_information_symbol(
+            Symbol(definitions.lookup_name(string_str)), evaluation, options
+        )
+
+    def format_information_symbol(
         self, symbol: Symbol, evaluation: Evaluation, options: dict, grid: bool = True
     ) -> Symbol:
-        "(StandardForm,TraditionalForm,OutputForm,): Information[symbol_, OptionsPattern[Information]]"
-        ret = SymbolNull
+        "(StandardForm,TraditionalForm,InputForm,OutputForm,): Information[symbol_Symbol, OptionsPattern[Information]]"
+        definitions = evaluation.definitions
+        try:
+            definitions.get_definition(symbol.name, True)
+        except KeyError:
+            return self.build_missing(symbol)
+
         lines = []
-        if isinstance(symbol, String):
-            evaluation.print_out(symbol)
-            return ret
-        if not isinstance(symbol, Symbol):
-            evaluation.message("Information", "notfound", symbol)
-            return ret
         # Print the "usage" message if available.
-        is_long_form = self.get_option(options, "LongForm", evaluation).to_python()
+        # is_long_form = self.get_option(options, "LongForm", evaluation).to_python()
+        is_long_form = True  # In WMA >=12.0 this option does not make much difference--
         usagetext = online_doc_string(symbol, evaluation, is_long_form)
         if usagetext:
             lines.append(usagetext)
+        else:
+            lines.append(symbol.get_name())
 
         if is_long_form:
             lines.extend(gather_and_format_definition_rules(symbol, evaluation))
 
-        if lines:
-            if grid:
-                infoshow = Expression(
-                    SymbolGrid,
-                    ListExpression(*(to_mathics_list(line) for line in lines)),
-                    Expression(SymbolRule, Symbol("ColumnAlignments"), SymbolLeft),
-                )
-                evaluation.print_out(infoshow)
-            else:
-                for line in lines:
-                    evaluation.print_out(Expression(SymbolInputForm, line))
-        return ret
-
-    def format_information_input(
-        self, symbol: Symbol, evaluation: Evaluation, options: dict
-    ) -> Symbol:
-        "(InputForm,): Information[symbol_, OptionsPattern[Information]]"
-        self.format_information(symbol, evaluation, options, grid=False)
-        ret = SymbolNull
-        return ret
+        infoshow = Expression(
+            SymbolGrid,
+            ListExpression(*(to_mathics_list(line) for line in lines)),
+            Expression(SymbolRule, Symbol("ColumnAlignments"), SymbolLeft),
+        )
+        return infoshow
 
 
 class Names(Builtin):
