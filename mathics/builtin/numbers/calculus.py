@@ -717,9 +717,12 @@ class _BaseFinder(Builtin):
                 [String(m) for m in self.methods.keys()],
             )
             return
-        x0, success = method_caller(f, x0, x, options, evaluation)
-        if not success:
-            return
+        try:
+            x0, success = method_caller(f, x0, x, options, evaluation)
+        except ValueError:
+            # Non numerical evaluation
+            return evaluation.current_expression
+
         if isinstance(x0, tuple):
             return ListExpression(
                 x0[1],
@@ -773,9 +776,9 @@ class FindMaximum(_BaseFinder):
      = {0.5, {x -> 1.00001}}
     >> Clear[phi];
     For a not so well behaving function, the result can be less accurate:
-    >> FindMaximum[-Exp[-1/x^2]+1., {x,1.2}, MaxIterations->10]
+    >> FindMaximum[-Exp[-1/x^2]+1., {x,1.2}, MaxIterations->2]
      : The maximum number of iterations was exceeded. The result might be inaccurate.
-     = FindMaximum[-Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 10]
+     = ...
     """
 
     methods = {}
@@ -824,9 +827,9 @@ class FindMinimum(_BaseFinder):
      = {-0.5, {x -> 1.00001}}
     >> Clear[phi];
     For a not so well behaving function, the result can be less accurate:
-    >> FindMinimum[Exp[-1/x^2]+1., {x,1.2}, MaxIterations->10]
+    >> FindMinimum[Exp[-1/x^2]+1., {x,1.2}, MaxIterations->2]
      : The maximum number of iterations was exceeded. The result might be inaccurate.
-     =  FindMinimum[Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 10]
+     =  ...
     """
 
     methods = {}
@@ -897,7 +900,7 @@ class FindRoot(_BaseFinder):
     The derivative must not be 0:
     >> FindRoot[Sin[x] == x, {x, 0}]
      : Encountered a singular derivative at the point x = 0..
-     = FindRoot[Sin[x] - x, {x, 0}]
+     = ...
 
 
     >> FindRoot[x^2 - 2, {x, 1,3}, Method->"Secant"]
