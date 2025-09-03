@@ -643,6 +643,8 @@ class DocumentationEntry(BaseDocElement):
         # used for introspection
         # TODO parse XML and pretty print
         # HACK
+        if len(self.items) == 0:
+            return "No documentation"
         item = str(self.items[0])
         item = "\n".join(line.strip() for line in item.split("\n"))
         item = item.replace("<dl>", "")
