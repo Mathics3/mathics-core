@@ -643,7 +643,11 @@ class DocumentationEntry(BaseDocElement):
         # used for introspection
         # TODO parse XML and pretty print
         # HACK
+
+        # The following is probably an indication of improper docstring
+        # tagging. But don't crash here.
         if len(self.items) == 0:
+            print(f"Bad doc formatting for {self.title}")
             return "No documentation"
         item = str(self.items[0])
         item = "\n".join(line.strip() for line in item.split("\n"))
@@ -653,7 +657,7 @@ class DocumentationEntry(BaseDocElement):
         item = item.replace("</dt>", "")
         item = item.replace("<dd>", "    ")
         item = item.replace("</dd>", "")
-        item = item.replace("\\$", "_DOLARSIGN_")
+        item = item.replace("\\$", "_DOLLARSIGN_")
         item = (
             item.replace("\\'", "_SINGLEQUOTE_")
             .replace("'", "")
@@ -664,7 +668,7 @@ class DocumentationEntry(BaseDocElement):
 
         item = re.sub(r"\$([0-9a-zA-Z]*)\_\{([0-9a-zA-Z]*)\}\$", r"\1\2", item)
         item = re.sub(r"\$([0-9a-zA-Z]*)\_([0-9a-zA-Z]*)\$", r"\1\2", item)
-        item = item.replace("_DOLARSIGN_", "$")
+        item = item.replace("_DOLLARSIGN_", "$")
         return item
 
 

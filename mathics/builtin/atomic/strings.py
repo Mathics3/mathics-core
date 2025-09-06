@@ -238,6 +238,12 @@ class Alphabet(Builtin):
     Some languages are aliases. "Russian" is the same letter set as "Cyrillic"
     >> Alphabet["Russian"] == Alphabet["Cyrillic"]
      = True
+
+    See also <url>
+    :$Language:
+      /doc/reference-of-built-in-symbols/global-system-information/\\$language/
+      </url>.
+
     """
 
     messages = {
@@ -245,7 +251,7 @@ class Alphabet(Builtin):
     }
 
     rules = {
-        "Alphabet[]": """Alphabet["English"]""",
+        "Alphabet[]": """Alphabet[$Language]""",
     }
 
     summary_text = "lowercase letters in an alphabet"
