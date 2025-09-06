@@ -585,14 +585,18 @@ class DiscreteLimit(Builtin):
     def eval(self, f, n, n0, evaluation: Evaluation, options: dict = {}):
         "DiscreteLimit[f_, n_->n0_, OptionsPattern[DiscreteLimit]]"
 
-        f = f.to_sympy(convert_all_global_functions=True)
-        n = n.to_sympy()
-        n0 = n0.to_sympy()
+        sympy_f = f.to_sympy(convert_all_global_functions=True)
+        if sympy_f is None:
+            return None
 
-        if n0 != sympy.oo:
-            return
+        sympy_n = n.to_sympy()
 
-        if f is None or n is None:
+        if sympy_f is None:
+            return None
+
+        sympy_n0 = n0.to_sympy()
+
+        if sympy_n0 != sympy.oo:
             return
 
         trials = options["System`Trials"].get_int_value()
@@ -602,9 +606,15 @@ class DiscreteLimit(Builtin):
             trials = 5
 
         try:
-            return from_sympy(sympy.limit_seq(f, n, trials))
+            result = sympy.limit_seq(sympy_f, sympy_n, trials)
         except Exception:
-            pass
+            return None
+
+        # Think about: should we put more tests on result above
+        # sympy.Limit? The code before this (implicitly) did not.
+        if isinstance(result, sympy.Limit):
+            return f.replace_vars({str(n): n0})
+        return from_sympy(result)
 
 
 class _BaseFinder(Builtin):
