@@ -37,6 +37,10 @@ def test_cli():
     assert result.returncode == 0
 
 
+@pytest.mark.skipif(
+    sys.platform in ("emscripten",),
+    reason="Pyodide does not support processes",
+)
 def test_version_option():
     """
     Check that --version works and returns
