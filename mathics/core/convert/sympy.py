@@ -343,7 +343,7 @@ sympy_conversion_by_type = {
 
 def old_from_sympy(expr) -> BaseElement:
     """
-    converts a SymPy object to a Mathics element.
+    converts a SymPy object to a Mathics3 element.
     """
 
     if isinstance(expr, (tuple, list)):
@@ -503,7 +503,13 @@ def old_from_sympy(expr) -> BaseElement:
         return Expression(SymbolFunction, from_sympy(expr(*variables)))
 
     if expr.is_Function or isinstance(
-        expr, (sympy.Integral, sympy.Derivative, sympy.Sum, sympy.Product)
+        expr,
+        (
+            sympy.Derivative,
+            sympy.Integral,
+            sympy.Product,
+            sympy.Sum,
+        ),
     ):
         if isinstance(expr, sympy.Integral):
             name = "Integral"
