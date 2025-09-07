@@ -17,7 +17,10 @@ import os.path as osp
 import re
 import subprocess
 import sys
-from typing import List
+from typing import List, Optional
+
+import mathics_scanner.location
+from mathics_scanner.location import ContainerKind
 
 import mathics.core as mathics_core
 from mathics import __version__, license_string, settings, version_string
@@ -33,6 +36,7 @@ from mathics.core.streams import stream_manager
 from mathics.core.symbols import SymbolNull, strip_context
 from mathics.eval.files_io.files import set_input_var
 from mathics.eval.files_io.read import channel_to_stream
+from mathics.interrupt import setup_signal_handler
 from mathics.session import autoload_files
 from mathics.settings import DATA_DIR, USER_PACKAGE_DIR, ensure_directory
 from mathics.timing import show_lru_cache_statistics
@@ -42,6 +46,28 @@ from mathics.timing import show_lru_cache_statistics
 #     import_and_load_builtins()
 
 import_and_load_builtins()
+
+try:
+    import readline
+except ImportError:
+
+    def user_write_history_file():
+        return
+
+    pass
+else:
+    # Set up mathics3 configuration directory
+    CONFIGHOME = os.environ.get("XDG_CONFIG_HOME", osp.expanduser("~/.config"))
+    CONFIGDIR = osp.join(CONFIGHOME, "Mathics3")
+    os.makedirs(CONFIGDIR, exist_ok=True)
+    HISTFILE = os.environ.get("MATHICS3_HISTFILE", osp.join(CONFIGDIR, "history"))
+
+    def user_write_history_file():
+        try:
+            # print(f"Writing {HISTFILE}")
+            readline.write_history_file(HISTFILE)
+        except:  # noqa
+            pass
 
 
 def get_srcdir():
@@ -79,8 +105,13 @@ class TerminalShell(MathicsLineFeeder):
         in_prefix: str = "In",
         out_prefix: str = "Out",
     ):
-        super(TerminalShell, self).__init__("<stdin>")
+        super(TerminalShell, self).__init__([], ContainerKind.STREAM)
         self.input_encoding = locale.getpreferredencoding()
+
+        # is_inside_interrupt is set True when shell has been
+        # interrupted via an interrupt handler.
+        self.is_inside_interrupt = False
+
         self.lineno = 0
         self.in_prefix = in_prefix
         self.out_prefix = out_prefix
@@ -89,8 +120,20 @@ class TerminalShell(MathicsLineFeeder):
         self.using_readline = False
         try:
             if want_readline:
-                import readline
-
+                try:
+                    # Load history from file
+                    readline.read_history_file(HISTFILE)
+                    atexit.register(user_write_history_file)
+                except FileNotFoundError:
+                    # Create an empty history file.
+                    with open(HISTFILE, "w"):
+                        pass
+                    atexit.register(user_write_history_file)
+                except IOError:
+                    pass
+                except:  # noqa
+                    # PyPy read_history_file fails
+                    pass
                 self.using_readline = sys.stdin.isatty() and sys.stdout.isatty()
                 self.ansi_color_re = re.compile("\033\\[[0-9;]+m")
                 if want_completion:
@@ -105,6 +148,7 @@ class TerminalShell(MathicsLineFeeder):
 
                     readline.parse_and_bind("tab: complete")
                     self.completion_candidates: List[str] = []
+
         except ImportError:
             pass
 
@@ -250,6 +294,8 @@ class TerminalShell(MathicsLineFeeder):
 
     def feed(self):
         result = self.read_line(self.get_in_prompt()) + "\n"
+        if mathics_scanner.location.TRACK_LOCATIONS:
+            self.container.append(self.source_text)
         if result == "\n":
             return ""  # end of input
         self.lineno += 1
@@ -282,6 +328,7 @@ def eval_loop(feeder: MathicsFileLineFeeder, shell: TerminalShell):
                 output=TerminalOutput(shell),
                 catch_interrupt=False,
             )
+
             query = evaluation.parse_feeder(feeder)
             if query is None:
                 continue
@@ -290,16 +337,20 @@ def eval_loop(feeder: MathicsFileLineFeeder, shell: TerminalShell):
         print("\nKeyboardInterrupt")
 
 
-def interactive_eval_loop(
-    shell: TerminalShell, full_form: bool, strict_wl_output: bool
-):
+def interactive_eval_loop(shell, full_form: bool, strict_wl_output: bool):
     """
     A read eval/loop for an interactive session.
     `shell` is a shell session
     """
+    setup_signal_handler()
     while True:
         try:
             evaluation = Evaluation(shell.definitions, output=TerminalOutput(shell))
+
+            # Store shell into the evaluation so that an interrupt handler
+            # has access to this
+            evaluation.shell = shell
+
             query, source_code = evaluation.parse_feeder_returning_code(shell)
             if mathics_core.PRE_EVALUATION_HOOK is not None:
                 mathics_core.PRE_EVALUATION_HOOK(query, evaluation)
@@ -322,11 +373,20 @@ def interactive_eval_loop(
             print("\n\nGoodbye!\n")
             break
         except SystemExit:
-            print("\n\nGoodbye!\n")
             # raise to pass the error code on, e.g. Quit[1]
             raise
         finally:
             shell.reset_lineno()
+
+
+class VersionAction(argparse.Action):
+    def __init__(self, option_strings, version=Optional[str], **kwargs):
+        super().__init__(option_strings=option_strings, nargs=0, **kwargs)
+        self.version = version
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        print(version_string)
+        parser.exit()
 
 
 def main() -> int:
@@ -346,14 +406,17 @@ Please contribute to Mathics!""",
     )
 
     argparser.add_argument(
-        "FILE",
+        "-f",
+        "-file",
+        "--file",
         nargs="?",
+        metavar="PATH",
         type=argparse.FileType("r"),
-        help="execute commands from FILE",
+        help="execute commands from PATH",
     )
 
     argparser.add_argument(
-        "--help", "-h", help="show this help message and exit", action="help"
+        "--help", "-help", "-h", help="show this help message and exit", action="help"
     )
 
     argparser.add_argument(
@@ -400,21 +463,20 @@ Please contribute to Mathics!""",
     )
 
     argparser.add_argument(
-        "--execute",
-        "-e",
+        "--code",
+        "-code",
+        "-c",
         action="append",
-        metavar="EXPR",
-        help="evaluate EXPR before processing any input files (may be given "
+        metavar="TEXT",
+        help="evaluate TEXT before processing any input files (may be given "
         "multiple times)",
     )
 
-    # Python 3.7 does not support cProfile as a context manager
-    if sys.version_info >= (3, 8):
-        argparser.add_argument(
-            "--cprofile",
-            help="run cProfile on --execute argument",
-            action="store_true",
-        )
+    argparser.add_argument(
+        "--cprofile",
+        help="run cProfile on --execute argument",
+        action="store_true",
+    )
 
     argparser.add_argument(
         "--colors",
@@ -436,7 +498,11 @@ Please contribute to Mathics!""",
     )
 
     argparser.add_argument(
-        "--version", "-v", action="version", version="%(prog)s " + __version__
+        "--version",
+        "-v",
+        action=VersionAction,
+        version="%(prog)s " + __version__,
+        help="show program's version number and version of important software used, and exit",
     )
 
     argparser.add_argument(
@@ -511,25 +577,25 @@ Please contribute to Mathics!""",
         else:
             sys.excepthook = post_mortem_excepthook
 
-    if args.FILE is not None:
-        set_input_var(args.FILE.name)
-        definitions.set_inputfile(args.FILE.name)
-        feeder = MathicsFileLineFeeder(args.FILE)
+    if args.file is not None:
+        set_input_var(args.file.name)
+        definitions.set_inputfile(args.file.name)
+        feeder = MathicsFileLineFeeder(args.file)
         eval_loop(feeder, shell)
 
         if args.persist:
             definitions.set_line_no(0)
-        elif not args.execute:
+        elif not args.code:
             return exit_rc
 
-    if args.execute:
+    if args.code:
 
         def run_it():
             evaluation = Evaluation(shell.definitions, output=TerminalOutput(shell))
             return evaluation.parse_evaluate(expr, timeout=settings.TIMEOUT), evaluation
 
-        for expr in args.execute:
-            if sys.version_info >= (3, 8) and args.cprofile:
+        for expr in args.code:
+            if args.cprofile:
                 with cProfile.Profile() as pr:
                     result, evaluation = run_it()
                     pr.print_stats()
@@ -548,7 +614,6 @@ Please contribute to Mathics!""",
             else:
                 exit_rc = -3
 
-        if not args.persist:
             return exit_rc
 
     if not args.quiet:

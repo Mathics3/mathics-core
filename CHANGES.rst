@@ -1,6 +1,125 @@
 CHANGES
 =======
 
+9.0.0
+-----
+
+Added support for Python 3.13. Dropped support for Python 3.8 and 3.9.
+
+Note: There are incompatible changes. Use with Mathics-scanner 2.0.0 or greater.
+
+You may notice a speedup in performance, especially graphics
+performance, in this version. There is a speedup due to removing
+conversions from Mathics3 to Python and vice versa for literal data,
+which happens a lot in plotting graphics. Also, Python 3.13 is a bit
+faster than previous versions. Previously, rendering via ``asymptote`` was
+slow. This is no longer the situation.
+
+Preliminary work to track locations has started. This is useful in debugging and error reporting, and is controlled via Boolean System variable ``$TrackLocations``.
+
+Boxing operators have been added. The full range of escape sequences is supported.  A limited form of boxing escape ``\*`` that handles a single Boxing function has been added.
+
+A basic interrupt handler was added that loosely follows wolframscript's interrupt handler. Interrupt commands "abort", "exit", "continue", "debugger", "show", and "inspect" are available; "trace" will be added later.
+
+``main.py`` has been moved to ``__main__.py`` following Python conventions for main routines. This makes ``python -m mathics`` work.
+GNU Readline history is enabled for ``mathics`` when it is available. It shares history files with ``mathicsscript``.
+
+The priority for rule selection when there are several matching a function call has been revised and more closely follows WMA behavior.
+
+Assignment statements, e.g. ``SetDelayed``, ``UpSetDelayed``, or ``DownSetDelayed``
+have been revised to isolate left-hand-side references from conditions
+and element attributes. As a result, more of the code in WMA and Mathics3
+packages work.
+
+``$IterationLimit`` detects runaway rule expansion better.
+
+Parameter count checking expanded to more Builtin functions.
+
+
+
+New Builtins
+++++++++++++
+
+#. ``$SessionID``
+#. ``$TrackLocations`` (not WMA)
+#. ``BinaryReadList[]`` (needed to support importing gzip files)
+* ``Hypergeometric2F1``
+
+By Aravindh Krishnamoorthy (needed for better Rubi support):
+
+#. ``Hypergeometric1F1[]``
+#. ``HypergeometricPFQ[]``
+#. ``MeijerG[]``
+#. ``HypergeometricU[]``
+
+
+Documentation
++++++++++++++
+
+Go over docs for ``Beta[]``, ``Gamma[]``, ``Product[]``, and infix operators with no meaning.
+Expand ``Transpose[]`` documentation.
+
+
+Enhancements
+++++++++++++
+
+#. Set-related code reworked for better WMA conformance. There is better WMA conformance in rule selection when several rules match.
+#. ``mathics`` CLI options are more like wolframscript
+#. The debugging interface has been improved. ``TraceEvaluation[]`` and ``TraceDebug[]`` filter and colorize output for Mathics3 constructs much better. Single-dash long options like
+   ``-help``, ``-file`` are now accepted. Short option ``-f`` is associated with ``-file`` rather than ``--fullform``; ``-F`` is is now used for
+   ``FullForm``. Option ``--read`` with alias ``-r`` is now ``-code`` and short option ``-c``.
+#. Boolean Options ``ShowRewrites`` and ``ShowEvaluation`` were added to ``TraceEvalation[]``. These filtering for either rewrite rules or evaluation expressions. Presumably, you don't want to filter both.
+#. We check argument counts on more Builtin Functions and give error messages (tags ``argb``, ``argx``, ``argr``, ``argrx``) for invalid parameter combinations.
+#. ``$TraceBuiltins`` output uses standard Mathics3 I/O mechanisms rather than Python's builtin ``print``. Therefore it will be seen in more front-ends like Django or pyoxide.
+
+Bugs Fixed
+++++++++++
+
+#. #1057 ``ListPlot[]`` error handling (and ``NestList[]``) needs going over
+#. #1213 ``Condition[]`` expressions as second element in ``RuleDelayed`` behaviour not compatible with WMA
+#. #1187 Add ``Hypergeometric2F1`` Builtin Function
+#. #1198 Blanks in ``Set`` operations are not properly handled in tag positions.
+#. #1245 Add "lpn" error message checking in _ListPlot
+#. #1383 Support for hypergeometric functions
+#. #1384 Option management tweaks
+#. #1388 In WMA, ``Pochhammer[0,-2]`` returns 1/2
+#. #1395 Match WMA for ``Gamma[1+x]`` and ``Product[...]``
+#. #1405 structure_cache in ``mathics.core.expression.structure`` is ``None`` but we try to set it in ``_is_neutral_symbol()``
+#. #1412 ``Transpose[]`` does not work on three-dimensional array
+#. #1425 `Erroneous Protected message in SetDelayed
+#. #1432 URL links with $ in them are getting messed up
+#. #1461 "noopen" errors sometimes return ``$Failed``
+#. #1465 Crash in running ``Trace[Sin[Log[2.5, 7]]]``
+#. #1473 Doctest for ``Quantity``, ``KnownUnitQ``, and others fail when the documentation is generated
+#. #1474 Document typo: "is a valid Association object" should be "is a valid Quantity object"
+#. #1476 ``$IterationLimit`` is not limiting evalation expansion
+
+WMA Compatibility
+-----------------
+
+#. Hypergeometric functions have been revised to conform better to WMA behavior by expanding hypergeometric results.
+#. ``$IterationLimit`` now defaults to 4096.
+#. ``mathics`` command-line conform better to ``wolframscript`` options.
+#. Rule selection of functions when multiple rules apply conforms to WMA more closely.
+#. LHS reference selection conforms to WMA more closely.
+
+
+Incompatible changes
++++++++++++++++++++++
+
+Scanner API has changed. Options on ``mathics`` CLI have changed. See above for the changes.
+Location of ``mathics`` in ``mathics.__main__``, the more usual location, rather than ``mathics.main``.
+
+* Mathics scanner exceptions of class TranslateError are incompatible
+with previous versions, and now store error parameters, "name", "tag", and
+"args".
+* The method ``get_sort_key()`` was replaced by two different properties:
+  ``element_order``, for canonical ordering of expressions, and
+  ``pattern_precedence``, used for ordering rules according to their precedence
+  in the evaluation loop.
+* In both cases, the part of the sort key related to properties of the
+  expressions and patterns are now stored as a magic number instead of
+  a tuple.
 
 8.0.1
 -----
@@ -11,45 +130,44 @@ Some work was made to the Mathics3 Kernel to work in Python 3.13.
 The maximum version of numpy was increased to < 2.3 so as to allow marimo to work.
 
 
-Bugs
-----
+Bugs Fixed
+++++++++++
 
-Correct for mismatch between ListExpression and tuple in ``DispatchAtom``.
-This is needed for PacletManager code to work better.
-
+Correct for a mismatch between ListExpression and a tuple in ``DispatchAtom``.
+This is needed for the PacletManager code to work better.
 
 Compatibility
--------------
++++++++++++++
 
-* When the result of an evaluation is ``Symbol`Null``, Mathics CLI
+#. When the result of an evaluation is ``Symbol`Null``, Mathics CLI
   now does not show an ``Out[...]=`` line, following the behavior of
   the WMA CLI.
-* Aymptote rendering of platonic solids added.
+#. Asymptote rendering of Platonic solids added.
 
 
 Internals
----------
++++++++++
 
-Document tagging code handles TeX math mode more completely. Image tags in PDF properly.
+* Document tagging code handles TeX math mode more completely. Image tags in PDF are tagged properly.
+* Numerous spelling fixes and typos by Frédéric Chapoton (@fchapoton)
 
 Documentation
--------------
++++++++++++++
 
-* Documentation has been gone over so that expressions are tagged in TeX. As a result the user guide and reference manual render much nicer in the PDF as well as in Django.
-* More links have been added. References to The Digital Library of Mathematical Functions https://dlmf.nist.gov/ have been added where appropriate.
-* Add mention of MathicsLive
-* Platonic solid render properly in PDF
+#. Documentation has been gone over so that expressions are tagged in TeX. As a result, the user guide and reference manual render much nicer in the PDF as well as in Django.
+#. More links have been added. References to The Digital Library of Mathematical Functions https://dlmf.nist.gov/ have been added where appropriate.
+#. Add mention of MathicsLive
+#. Platonic solids render properly in PDF
 
 
-  8.0.0
+8.0.0
 -----
 
 Jan 26, 2025
 
-This release is to get out some of the major changes that have gone on
-already in advance of redoing Boxing and Formatting.
+This release is to make public some of the major changes that have occurred, in advance of redoing Boxing and Formatting.
 
-Code now supports the emscripten platform, so this code can be installed
+Code now supports the Emscripten platform, so this code can be installed
 in pyodide using ``micropip.install``.
 
 Operators are now controlled from a new operators YAML table from the
@@ -68,83 +186,81 @@ And in the ``Mathics3-Trepan`` repository:
 * ``Debugger[]``, and
 * ``TraceActivate[]``
 
-Option ``--post-mortem`` was added which goes into the `trepan3k debugger <https https://pypi.org/project/trepan3k/>`_ on an unrecoverable error. This option is available on other front ends.
+Option ``--post-mortem`` was added, which goes into the `trepan3k debugger <https https://pypi.org/project/trepan3k/>`_ on an unrecoverable error. This option is available on other front ends.
 
 This debugging code is very much alpha quality, but it greatly
 improves the ability to debug problems in loading existing packages
-written from Mathematica. So packages ``BoolEval`` and ``CleanSlate``
+written in Mathematica. So packages ``BoolEval`` and ``CleanSlate``
 were added to the repository.
 
-Also as a result of the improved ability to debug Mathics3, we now
-provide a version of Rubi 4.17 using git submodules . To use this you
-will need a patched version of ``stopit``.  Aravindh Krishnamoorthy
+Also, as a result of the improved ability to debug Mathics3, we now
+provide a version of Rubi 4.17 using git submodules. To use this, you will need a patched version of ``stopit``.  Aravindh Krishnamoorthy
 led the initial port of `Rubi <https://github.com/Mathics3/Mathics3-Rubi>`_.
 
 David A. Roberts worked on ensuring Mathics3 runs on pyodide and
-contributed a number of new Built-in Functions that are found in `The
-On-Line Encyclopedia of Integer Sequences (OEIS) <https://oeis.org/>`_.
+contributed several new Built-in Functions that are found in `The On-Line Encyclopedia of Integer Sequences (OEIS) <https://oeis.org/>`_.
 
 
 New Builtins
 ++++++++++++
 
-* ``Between``
-* ``Breakpoint`` - (not WMA; forces a Python ``breakpoint()``
-* ``CheckAbort``
-* ``FileNameDrop``
-* ``FormatValues``
-* ``ListStepPlot``
-* ``MapApply``
+* ``Between[]``
+* ``Breakpoint[]`` - (not WMA; forces a Python ``breakpoint()``
+* ``CheckAbort[]``
+* ``FileNameDrop[]``
+* ``FormatValues[]``
+* ``ListStepPlot[]``
+* ``MapApply[]``
 * ``PythonCProfileEvaluation`` (not WMA; interface to Python cProfile)
-* ``RealValuedNumberQ``
-* ``SequenceForm``
-* ``SetEnvironment``
-* ``Stack``
-* ``SyntaxQ``
-* ``Trace``
-* ``UnitStep``
+* ``RealValuedNumberQ[]``
+* ``SequenceForm[]``
+* ``SetEnvironment[]``
+* ``Stack[]``
+* ``SyntaxQ[]``
+* ``Trace[]``
+* ``UnitStep[]``
 
 By `@davidar <https://github.com/davidar>`_:
 
-* ``BellB``
-* ``DivisorSigma``
-* ``DivisorSum``
-* ``EulerE``
-* ``HypergeometricU``
-* ``IntegerPart``
-* ``IntegerPartitions``
-* ``JacobiSymbol``
-* ``KroneckerSymbol``
-* ``LambertW``
-* ``LinearRecurrence``
-* ``LucasL``
-* ``MersennePrimeExponent``
-* ``MoebiusMu``
-* ``NumberDigit``
-* ``PolygonalNumber``
-* ``PolyLog``
-* ``PowersRepresentations``
-* ``ReverseSort``
-* ``RootSum``
-* ``SeriesCoefficient``
-* ``SquaresR``
-* ``Subfactorial``
+* ``BellB[]``
+* ``DivisorSigma[]``
+* ``DivisorSum[]``
+* ``EulerE[]``
+* ``HypergeometricU[]``
+* ``IntegerPart[]``
+* ``IntegerPartitions[]``
+* ``JacobiSymbol[]``
+* ``KroneckerSymbol[]``
+* ``LambertW[]``
+* ``LinearRecurrence[]``
+* ``LucasL[]``
+* ``MersennePrimeExponent[]``
+* ``MoebiusMu[]``
+* ``NumberDigit[]``
+* ``PolygonalNumber[]``
+* ``PolyLog[]``
+* ``PowersRepresentations[]``
+* ``ReverseSort[]``
+* ``RootSum[]``
+* ``SeriesCoefficient[]``
+* ``SquaresR[]``
+* ``Subfactorial[]``
 
 Documentation
 +++++++++++++
 
 * Unicode operators appear in Django documentation. In the PDF, AMSLaTeX is used.
-* Summaries of builtin functions have been improved and regularized
+* Summaries of built-in functions have been improved and regularized
 
 ``mathics`` command line
 ++++++++++++++++++++++++
 
-Option ``--post-mortem`` was added which goes into the `trepan3k
+Option ``--post-mortem`` was added. This goes into the `trepan3k
 debugger <https https://pypi.org/project/trepan3k/>`_ on an
 unrecoverable error. This option is available on other front-ends..
 
 WMA Compatibility
------------------
++++++++++++++++++
 
 * ``GetEnvironment`` expanded to handle ``[]`` and ``{var1, var2,...}`` forms
 * The system ``packages`` directory has been renamed ``Packages`` to conformance with WMA.
@@ -152,24 +268,23 @@ WMA Compatibility
 * All of the 100 or so Unicode operators without a pre-defined meaning are now supported
 
 Internals
----------
+++++++++++
 
 * More of the on-OO evaluation code that forms what might be an
   instruction evaluator has been moved out of the module
-  ``mathics.builtins`` put in ``mathics.eval``. This includes code for
-  plotting, and making boxes.
+  ``mathics.builtins`` put in ``mathics.eval``. This includes code for plotting and making boxes.
 * nested ``TimeConstraint[]`` works via external Python module ``stopit``.
 * ``Pause[]`` is more interruptible
 * More code has been linted, more type errors removed, and docstrings added/improved
 
 
 Performance
------------
++++++++++++
 
 * ``Blank*`` patterns without arguments are now singletons.
 
 API incompatibility
--------------------
++++++++++++++++++++
 
 * ``Matcher`` now requires an additional ``evaluation`` parameter
 * ``Romberg`` removed as an ``NIntegrate[]`` method. It is deprecated in SciPy and is to be removed by SciPy 1.15.
@@ -179,14 +294,13 @@ API incompatibility
 * Patterns in ``eval_`` and ``format_`` methods of builtin classes
   parses patterns in docstrings of the form
   ``Symbol: Expr`` as ``Pattern[Symbol, Expr]``.
-  To specify the associated format in ``format_`` methods the
-  docstring, the list of format must be wrapped in parenthesis, like
+  To specify the associated format in ``format_`` methods, the docstring, and the list of formats must be wrapped in parentheses, like
   ``(InputForm,): Definitions[...]`` instead of just ``InputForm: Definitions[...]``.
-* Character and Operator information that has been gone over in the Mathics Scanner project. The information in JSON tables, the keys, and values have thus change. Here, we read this information in and use that instead of previously hard-coded values.
+* Character and Operator information that has been gone over in the Mathics Scanner project. The information in JSON tables, the keys, and values have thus changed. Here, we read this information in and use that instead of previously hard-coded values.
 
 
-Bugs
-----
+Bugs Fixed
+++++++++++
 
 * Fix infinite recursion when formatting ``Sequence[...]``
 * Parsing ``\(`` ... ``\)`` improved
@@ -197,8 +311,8 @@ Mathics3 Packages
 
 * Added ``BoolEval``
 * Added ``CleanSlate``
-* ``Combinatorica`` moved to a separate repository and v.9 was renamed to 0.9.1.
-    More code v0.9.1 works. v2.0 was renamed v2.0.1 and some code now works.
+* ``Combinatorica`` moved to a separate repository, and v.9 was renamed to 0.9.1.
+    More code v0.9.1 works. v2.0 was renamed v2.0.1, and some code now works.
 * ``Rubi`` version 4.17 (work in progress; algebraic integrations work)
 
 
@@ -219,11 +333,7 @@ Python Package Updates
 
 Aug 9, 2024
 
-Some work was done here in support of planned future improvements like
-lazy loading of builtin functions.  A bit of effort was also spent to
-modernize Python code and style, add more type annotations, remove
-spelling errors, and use newer versions of important software like
-SymPy and Python itself.
+Some work was done here in support of planned future improvements, like lazy loading of built-in functions.  A bit of effort was also spent to modernize Python code and style, add more type annotations, remove spelling errors, and use newer versions of important software like SymPy and Python itself.
 
 
 New Builtins
@@ -242,31 +352,27 @@ Documentation
 +++++++++++++
 
 Many formatting issues with the PDF file have been addressed. In particular, the spacing of section numbers
-in chapter and section table of contents has been increased. The margin space around builtin definitions has a
-also been increased. Numerous spelling corrections to the document have been applied.
+in the chapter and section table of contents has been increased. The margin space around built-in definitions has also been increased. Numerous spelling corrections to the document have been applied.
 
 The code to run doctests and produce LaTeX documentation has been
-revised and refactored to allow incremental builtin update, and to DRY the code.
+revised and refactored to allow incremental built-in update, and to DRY the code.
 
 Section Head-Related Operations is a new section off of "Expression
-Structure". The title of the PDF has changed from Mathics to Mathics3
-and the introduction has been updated and revised.
+Structure". The title of the PDF has changed from Mathics to Mathics3, and the introduction has been updated and revised.
 
 Compatibility
--------------
++++++++++++++
 
 * ``*Plot`` does not show messages during the evaluation.
 * ``Range[]`` now handles a negative ``di`` PR #951
 * Improved support for ``DirectedInfinity`` and ``Indeterminate``.
-* ``Graphics`` and ``Graphics3D`` including wrong primitives and directives
-  are shown with a pink background. In the Mathics-Django interface, a tooltip
-  error message is also shown.
+* ``Graphics`` and ``Graphics3D``, including wrong primitives and directives, are shown with a pink background. In the Mathics-Django interface, a tooltip error message is also shown.
 * Improving support for ``$CharacterEncoding``. Now it is possible to change it
   from inside the session.
 
 
 Internals
----------
++++++++++
 
 * ``eval_abs`` and ``eval_sign`` extracted from ``Abs`` and ``Sign`` and added to ``mathics.eval.arithmetic``.
 * Maximum number of digits allowed in a string set to 7000 and can be adjusted using environment variable
@@ -277,12 +383,12 @@ Internals
 * Older style non-appearing and non-pedagogical doctests have been converted to pytest
 * Built-in code is directed explicitly rather than implicitly. This facilitates the ability to lazy load
   builtins or "autoload" them a la GNU Emacs autoload.
-* add mpmath lru cache
-* Some works was done to make it possible so that in the future we can speed up initial loading and reduce the initial memory footprint
+* Add mpmath LRU cache
+* Some work was done to make it possible so that in the future we can speed up initial loading and reduce the initial memory footprint
 
 
-Bugs
-----
+Bugs Fixed
+++++++++++
 
 * ``Definitions`` is compatible with ``pickle``.
 * Improved support for ``Quantity`` expressions, including conversions, formatting and arithmetic operations.
@@ -291,7 +397,7 @@ Bugs
 * ``Switch[]`` involving ``Infinity``. Issue #956
 * ``Outer[]`` on ``SparseArray``. Issue #939
 * ``ArrayQ[]`` detects ``SparseArray`` PR #947
-* ``BoxExpressionError`` exceptions handled Issue. PR #970
+* ``BoxExpressionError`` exceptions handled. Issue. PR #970
 * ``Derivative`` evaluation of ``True``, ``False`` and ``List[]`` corrected. PR #971, #973
 * ``Combinatorica`` package fixes. PR #974
 * ``Exit[]`` not working. PR #998
@@ -301,10 +407,9 @@ API
 +++
 
 We now require an explicit call to a new function
-``import_and_load_builtins()``. Previously loading was implicit and
-indeterminate as to when this occurred as it was based on import
-order. We need this so that we can support in the future lazy loading
-of builtin modules.
+``import_and_load_builtins()``. Previously, loading was implicit and
+indeterminate as to when this occurred, as it was based on import
+order. We need this so that we can add support in the future for lazy loading built-in modules.
 
 Package updates
 +++++++++++++++
@@ -315,23 +420,22 @@ Package updates
 6.0.2 to 6.0.4
 --------------
 
-Small fixes noticed by users and packagers, such as OpenSUSE Tumpleweed
+Small fixes noticed by users and packagers, such as OpenSUSE Tumbleweed
 
 6.0.1
 -----
 
 Release to get Pillow 9.2 dependency added for Python 3.7+
 
-Some Pattern-matching code gone over to add type annotations and to start
+Some Pattern-matching code has been gone over to add type annotations and to start
 documenting its behavior and characteristics. Function
 attributes are now examined and stored at the time of Pattern-object creation
-rather than at evaluation time. This better matches WMA behavior which pulls
-out attribute this even earlier than this.  These changes speed up
+rather than at evaluation time. This better matches WMA behavior, which pulls out the attribute even earlier than this.  These changes speed up
 doctest running time by about 7% under Pyston.
 
 Combinatorica version upgraded from 0.9 (circa 1992) to 0.91 (circa 1995) which closer matches the published book.
 
-Random builtin documentation gone over to conform to current documentation style.
+Random built-in documentation has been gone over to conform to the current documentation style.
 
 6.0.0
 -----
@@ -340,11 +444,11 @@ A fair bit of code refactoring has gone on so that we might be able to
 scale the code, get it to be more performant, and more in line with
 other interpreters. There is Greater use of Symbols as opposed to strings.
 
-The builtin Functions have been organized into grouping akin to what is found in WMA.
-This is not just for documentation purposes, but it better modularizes the code and keep
-the modules smaller while suggesting where functions below as we scale.
+The built-in Functions have been organized into groups akin to what is found in WMA.
+This is not just for documentation purposes, but it better modularizes the code and keeps
+the modules smaller, while suggesting where to add new built-in functions below as we scale.
 
-Image Routines have been gone over and fixed. Basically we use Pillow
+Image Routines have been gone over and fixed. Basically, we use Pillow
 imaging routines and as opposed to home-grown image code.
 
 A number of Built-in functions that were implemented were not accessible for various reasons.
@@ -362,7 +466,7 @@ Evaluation methods of built-in functions start ``eval_`` not ``apply_``.
 API
 +++
 
-#. New function ``mathics.system_info.python_implementation()`` shows the Python Implementation, e.g. CPython, PyPy, Pyston that is running Python. This is included in the information ``mathics.system_info.mathics_system__system_info()`` returns and is used in ``$PythonImplementation``
+#. New function ``mathics.system_info.python_implementation()`` shows the Python Implementation, e.g., CPython, PyPy, Pyston, that is running Python. This is included in the information ``mathics.system_info.mathics_system__system_info()`` returns and is used in ``$PythonImplementation``
 #. A list of optional software can be found in ``mathics.optional_software``. Versions of that software are included in ``mathics.version_info``.
 
 
@@ -379,40 +483,40 @@ New Builtins
 #. ``$BoxForms``
 #. ``$OutputForms``
 #. ``$PrintForms``
-#. ``$PythonImplementation``
-#. ``Accuracy``
-#. ``ClebschGordan``
-#. ``ComplexExpand`` (@yzrun)
-#. ``Curl`` (2-D and 3-D vector forms only)
-#. ``DiscretePlot``
-#. ``Kurtosis``
-#. ``ListLogPlot``
-#. ``LogPlot``
+#. ``$PythonImplementation`` (not WMA)
+#. ``Accuracy[]``
+#. ``ClebschGordan[]``
+#. ``ComplexExpand[]`` (@yzrun)
+#. ``Curl[]`` (2-D and 3-D vector forms only)
+#. ``DiscretePlot[]``
+#. ``Kurtosis[]``
+#. ``ListLogPlot[]``
+#. ``LogPlot[]``
 #. ``$MaxMachineNumber``
 #. ``$MinMachineNumber``
-#. ``NumberLinePlot``
-#. ``PauliMatrix``
-#. ``Remove``
-#. ``SetOptions``
-#. ``SixJSymbol``
-#. ``Skewness``
-#. ``ThreeJSymbol``
+#. ``NumberLinePlot[]``
+#. ``PauliMatrix[]``
+#. ``Remove[]``
+#. ``SetOptions[]``
+#. ``SixJSymbol[]``
+#. ``Skewness[]``
+#. ``ThreeJSymbol[]``
 
 
 Documentation
 +++++++++++++
 
-#. All Builtins have links to WMA pages.
+#. All Built-ins have links to WMA pages.
 #. "Accuracy and Precision" section added to the Tutorial portion.
 #. "Attribute Definitions" section reinstated.
 #. "Expression Structure" split out as a guide section (was "Structure of Expressions").
-#. "Exponential Functional" split out from "Trigonometry Functions"
+#. "Exponential Functions" split out from "Trigonometry Functions"
 #. "Functional Programming" section split out.
 #. "Image Manipulation" has been split off from Graphics and Drawing and turned into a guide section.
 #. Image examples now appear in the LaTeX and therefore the PDF doc
 #. "Logic and Boolean Algebra" section reinstated.
 #. "Forms of Input and Output" is its own guide section.
-#. More URL links to Wiki pages added; more internal cross links added.
+#. More URL links to Wiki pages added; more internal cross-links added.
 #. "Units and Quantities" section reinstated.
 #. The Mathics3 Modules are now included in LaTeX and therefore the PDF doc.
 
@@ -422,23 +526,23 @@ Internals
 #. ``boxes_to_`` methods are now optional for ``BoxElement`` subclasses. Most of the code is now moved to the ``mathics.format`` submodule, and implemented in a more scalable way.
 #. ``from_mpmath`` conversion supports a new parameter ``acc`` to set the accuracy of the number.
 #. ``mathics.builtin.inout`` was split in several modules (``inout``, ``messages``, ``layout``, ``makeboxes``) in order to improve the documentation.
-#. ``mathics.eval`` was create to have code that might be put in an instruction interpreter. The opcodes-like functions start ``eval_``, other functions are helper functions for those.
-#. Operator name to Unicode or ASCII comes from Mathics scanner character tables.
-#. Builtin instance methods that start ``eval`` are considered rule matching and function application; the use of the name ``apply``is deprecated, when ``eval`` is intended.
+#. ``mathics.eval`` was created to have code that might be put in an instruction interpreter. The opcodes-like functions start ``eval_``, other functions are helper functions for those.
+#. A map from operator name to Unicode or ASCII comes from Mathics scanner character tables.
+#. Built-in instance methods that start ``eval`` are considered rule matching and function application; the use of the name ``apply``is deprecated, when ``eval`` is intended.
 #. Modularize and improve the way in which ``Builtin`` classes are selected to have an associated ``Definition``.
 #. ``_SetOperator.assign_elementary`` was renamed as ``_SetOperator.assign``. All the special cases are not handled by the ``_SetOperator.special_cases`` dict.
 #. ``isort`` run over all Python files. More type annotations and docstrings on functions added.
 #. caching on immutable atoms like, ``String``, ``Integer``, ``Real``, etc. was improved; the ``__hash__()`` function was sped up. There is a small speedup overall from this at the expense of increased memory.
-#. more type annotations added to functions, especially builtin functions
-#. Numerical constants used along the code was renamed using caps, according to the Python's convention.
+# More type annotations added to functions, especially builtin functions
+#. Numerical constants used throughout the code were renamed using caps, according to Python's convention.
 
-Bugs
-++++
+Bugs Fixed
+++++++++++
 
 # ``0`` with a given precision (like in ```0`3```) is now parsed as ``0``, an integer number.
-# Reading certain GIFs now work again
+# Reading certain GIFs now works again
 #. ``Random[]`` works now.
-#. ``RandomSample`` with one list argument now returns a random ordering of the list items. Previously it would return just one item.
+#. ``RandomSample`` with one list argument now returns a random ordering of the list items. Previously, it would return just one item.
 #. Origin placement corrected on ``ListPlot`` and ``LinePlot``.
 #. Fix long-standing bugs in Image handling
 #. Some scikit image routines line ``EdgeDetect`` were getting omitted due to overly stringent PyPI requirements
@@ -446,18 +550,18 @@ Bugs
 #. Better handling of ``Infinite`` quantities.
 #. Improved ``Precision`` and ``Accuracy``compatibility with WMA. In particular, ``Precision[0.]`` and ``Accuracy[0.]``
 #. Accuracy in numbers using the notation ``` n.nnn``acc ```  now is properly handled.
-#. numeric precision in mpmath was not reset after operations that changed these. This cause huges slowdowns after an operation that set the mpmath precision high. This was the source of several-minute slowdowns in testing.
+#. The numeric precision in mpmath was not reset after operations that changed these. This causes huge slowdowns after an operation that sets the mpmath precision high. This was the source of several-minute slowdowns in testing.
 #. GIF87a (```MadTeaParty.gif`` or ExampleData) image loading fixed
-#. Replace non-free Leena image with a a freely distributable image. Issue #728
+#. Replace the non-free Leena image with a freely distributable image. Issue #728
 
 
 PyPI Package requirements
 +++++++++++++++++++++++++
 
-Mathics3 aims at a more richer set of functionality.
+Mathics3 aims at a richer set of functionality.
 
-Therefore NumPy and Pillow (9.10 or later) are required Python
-packages where they had been optional before.  In truth, probably
+Therefore, NumPy and Pillow (9.10 or later) are required Python
+package,s where they had been optional before.  In truth, probably
 running Mathics without one or both probably did not work well if it
 worked at all; we had not been testing setups that did not have NumPy.
 
@@ -507,8 +611,8 @@ Documentation
 
 Hyperbolic functions were split off form trigonometry and exponential functions. More URL links were added.
 
-Bugs
-++++
+Bugs Fixed
+++++++++++
 
 #. Creating a complex number from Infinity no longer crashes and returns 'I * Infinity'
 
@@ -526,47 +630,47 @@ More work will continue in subsequent releases.
 New Builtins
 ++++++++++++
 #. Euler's ``Beta`` function.
-#. ``Bernoulli``.
-#. ``CatalanNumber`` (Integer arguments only).
-#. ``CompositeQ``.
-#. ``Diagonal``. Issue #115.
-#. ``Divisible``.
-#. ``EllipticE``
-#. ``EllipticF``
-#. ``EllipticK``
-#. ``EllipticPi``
-#. ``EulerPhi``
+#. ``Bernoulli[]``.
+#. ``CatalanNumber[]`` (Integer arguments only).
+#. ``CompositeQ[]``.
+#. ``Diagonal[]``. Issue #115.
+#. ``Divisible[]``.
+#. ``EllipticE[]``
+#. ``EllipticF[]``
+#. ``EllipticK[]``
+#. ``EllipticPi[]``
+#. ``EulerPhi[]``
 #. ``$Echo``. Issue #42.
-#. ``FindRoot`` was improved for supporting numerical derivatives Issue #67, as well as the use of scipy libraries when are available.
-#. ``FindRoot`` (for the ``newton`` method) partially supports ``EvaluationMonitor`` and ``StepMonitor`` options.
-#. ``FindMinimum`` and ``FindMaximum`` now have a minimal implementation for 1D problems and the use of scipy libraries when are available.
-#. ``LogGamma``.
-#. ``ModularInverse``.
-#. ``NumericFunction``.
-#. ``Projection``.
+#. ``FindRoot[]`` was improved for supporting numerical derivatives Issue #67, as well as the use of scipy libraries when are available.
+#. ``FindRoot[]`` (for the ``newton`` method) partially supports ``EvaluationMonitor`` and ``StepMonitor`` options.
+#. ``FindMinimum[]`` and ``FindMaximum[]`` now have a minimal implementation for 1D problems and the use of scipy libraries when are available.
+#. ``LogGamma[]``.
+#. ``ModularInverse[]``.
+#. ``NumericFunction[]``.
+#. ``Projection[]``.
 #. Partial support for Graphics option ``Opacity``.
-#. ``SeriesData`` operations was improved.
+#. ``SeriesData[]`` operations was improved.
 #. ``TraceEvaluation[]`` shows expression name calls and return values of it argument.
    -  Pass option ``ShowTimeBySteps``, to show accumulated time before each step
    - The variable ``$TraceEvalution`` when set True will show all expression evaluations.
-#. ``TraditionalForm``
+#. ``TraditionalForm[]``
 
 
 Enhancements
 ++++++++++++
 
-#. ``D`` acts over ``Integrate`` and  ``NIntegrate``. Issue #130.
-#. ``SameQ`` (``===``) handles chaining, e.g. ``a == b == c`` or ``SameQ[a, b, c]``.
-#. ``Simplify`` handles expressions of the form ``Simplify[0^a]`` Issue #167.
-#. ``Simplify`` and ``FullSimplify`` support optional parameters ``Assumptions`` and ``ComplexityFunction``.
-#. ``UnsameQ`` (``=!=``) handles chaining, e.g. ``a =!= b =!= c`` or ``UnsameQ[a, b, c]``.
+#. ``D[]`` acts over ``Integrate`` and  ``NIntegrate``. Issue #130.
+#. ``SameQ[]`` (``===``) handles chaining, e.g. ``a == b == c`` or ``SameQ[a, b, c]``.
+#. ``Simplify[]`` handles expressions of the form ``Simplify[0^a]`` Issue #167.
+#. ``Simplify[]`` and ``FullSimplify`` support optional parameters ``Assumptions`` and ``ComplexityFunction``.
+#. ``UnsameQ[]`` (``=!=``) handles chaining, e.g. ``a =!= b =!= c`` or ``UnsameQ[a, b, c]``.
 #. Assignments to usage messages associated with ``Symbols`` is allowed as it is in WMA. With this and other changes, Combinatorica 2.0 works as written.
 #. ``Share[]`` performs an explicit call to the Python garbage collection and returns the amount of memory free.
 #. Improve the compatibility of ``TeXForm`` and ``MathMLForm`` outputs with WMA. MathML tags around numbers appear as "<mn>" tags instead of "<mtext>", except in the case of ``InputForm`` expressions. In TeXForm some quotes around strings have been removed to conform to WMA. It is not clear whether this is the correct behavior.
 #. Allow ``scipy`` and ``skimage`` to be optional. In particular: revise ``Nintegrate[]`` to use ``Method="Internal"`` when scipy isn't available.
 #. Pyston up to versions from 2.2 to 2.3.4 are supported as are PyPy versions from 3.7-7.3.9.0 up 3.9-7.3.9. However those Python interpreters may have limitations and limitations on packages that they support.
 #. Improved support for ``Series`` Issue #46.
-#. ``Cylinder`` rendering is implemented in Asymptote.
+#. ``Cylinder[]`` rendering is implemented in Asymptote.
 
 
 Documentation
@@ -577,13 +681,13 @@ Documentation
 #. "Descriptive Statistics" section added and "Moments" folded into that.
 #. Many More URL references. ``<url>`` now supports link text.
 #. Reference Chapter and Sections are now in alphabetical order
-#. Two-column mode was removed in most sections so the printed PDF looks nicer.
+#. Two-column formatting was removed in most sections, so the printed PDF looks nicer.
 #. Printed Error message output in test examples is in typewriter font and doesn't drop inter-word spaces.
 
 Internals
 +++++++++
 
-#. Inexplicably, what the rest of the world calls a "nodes" in a tree or or in WMA "elements" in a tree had been called a "leaves". We now use the proper term "element".
+#. Inexplicably, what the rest of the world calls a "nodes" in a tree or or in WMA "elements" in a tree had been called "leaves". We now use the proper term "element".
 #. Lots of predefined ``Symbol``s have been added. Many appear in the module ``mathics.core.systemsymbols``.
 #. Attributes are now stored in a bitset instead of a tuple of string. This speeds up attributes read, and RAM usage, .
 #. ``Symbol.is_numeric`` and  ``Expression.is_numeric`` now uses the attribute ``Definition.is_numeric`` to determine the returned value.
@@ -630,8 +734,8 @@ Compatibility
 #. ``Expression.numerify`` improved in a way to obtain a behavior closer to WMA.
 #. ``NumericQ`` lhs expressions are now handled as a special case in assignment. For example, ``NumericQ[a]=True`` tells the interpreter that ``a`` must be considered a numeric quantity, so ``NumericQ[Sin[a]]`` evaluates to ``True``.
 
-Bugs
-++++
+Bugs Fixed
+++++++++++
 
 #. ``First``, ``Rest`` and  ``Last`` now handle invalid arguments.
 #.  ``Set*``: fixed issue #128.
@@ -651,8 +755,8 @@ Bugs
 #. Fix an issue that prevented that `Collect` handles properly polynomials on expressions (issue #285).
 #. Fix a bug in formatting expressions of the form ``(-1)^a`` without the parenthesis (issue #332).
 #. Fix a but in failure in the order in which ``mathics.core.definitions`` stores the rules.
-#. Numeric overflows now do not affect the full evaluation, but instead just the element which produce it.
-#. Compatibility with the way expressions are ordered more closely follows WMA: Now expressions with fewer elements come first (issue #458).
+#. Numeric overflows now do not affect the full evaluation, but instead just the element that produces it.
+#. Compatibility with the way expressions are ordered more closely follows WMA: Now, expressions with fewer elements come first (issue #458).
 #. The order of the context name resolution (and ``$ContextPath``) was switched; ``"System`` comes before ``"Global``.
 
 Incompatible changes
@@ -718,8 +822,8 @@ setting ``$TraceBuiltins`` to True will accumulate results of evaluations
 ``$TraceBuiltins = True`` on entry and runs ``PrintTrace[]`` on exit.
 
 
-Bugs
-++++
+Bugs Fixed
+++++++++++
 
 #. Fix and document better behavior of ``Quantile``
 #. Improve Asymptote ``BezierCurve`` implementation
@@ -729,8 +833,7 @@ Bugs
 4.0.0
 #.----
 
-The main thrust behind this API-breaking release is to be able to
-support a protocol for Graphics3D.
+The main thrust behind this API-breaking release is to be able to support a protocol for Graphics3D.
 
 It new Graphics3D protocol is currently expressed in JSON. There is an
 independent `threejs-based module
@@ -763,8 +866,8 @@ Documentation
 #. Documentation improved
 #. The flakiness around showing sine graphs with filling on the axes or below has been addressed. We now warn when a version of Asymptote or Ghostscript is used that is likely to give a problem.
 
-Bugs
-++++
+Bugs Fixed
+++++++++++
 
 #. A small SVGTransform bug was fixed. Thanks to axelclk for spotting.
 #. Elliptic arcs are now supported in Asymptote. There still is a bug however in calculating the bounding box when this happens.
@@ -806,8 +909,8 @@ PolarPlot documentation was improved. #1475.
 A getter/setter method for Mathics settings was added #1472.
 
 
-Bugs
-++++
+Bugs Fixed
+++++++++++
 
 #. Add ``requirements-*.txt``to distribution files. ``pip install Mathics3[dev]`` should work now. PR #1461
 #. Some ``PointBox`` bugs were fixed
@@ -841,8 +944,8 @@ not currently available on Pyston so there is a slight loss of
 functionality. The code runs about 30% faster under Pyston 2.2. Note
 that the code also works under PyPy 3.7.
 
-Bugs
-++++
+Bugs Fixed
+++++++++++
 
 #. Tick marks and the placement of numbers on charts have been corrected. PR #1437
 #. Asymptote now respects the ``PointSize`` setting.
@@ -890,11 +993,11 @@ Internal changes
 ++++++++++++++++
 
 #. ``docpipline.py``  accepts the option ``--chapters`` or ``-c`` to narrow tests to a particular chapter
-#. Format routines have been isolated into its own module. Currently we have format routines for SVG, JSON and Asymptote. Expect more reorganization in the future.
+#. Format routines have been isolated into its own module. Currently, we have format routines for SVG, JSON and Asymptote. Expect more reorganization in the future.
 #. Boxing routines have been isolated to its own module.
 #. The entire code base has been run through the Python formatter `black <https://black.readthedocs.io/en/stable/>`_.
 #. More Python3 types to function signatures have been added.
-#. More document tests that were not user-visible have been moved to unit tests which run faster. More work is needed here.
+#. More document tests that were not user-visible have been moved to unit tests, which run faster. More work is needed here.
 
 2.2.0
 -----
@@ -942,7 +1045,7 @@ Enhancements
 #. ``ReplaceRepeated`` and ``FixedPoint`` now supports the ``MaxIteration`` option. See Issue #1260.
 #. ``Simplify`` performs a more sophisticated set of simplifications.
 #. ``Simplify`` accepts a second parameter that temporarily overwrites ``$Assumptions``.
-#. ``StringTake`` now accepts form containing a list of strings and specification. See Issue #1297.
+#. ``StringTake`` now accepts a form containing a list of strings and a specification. See Issue #1297.
 #. ``Table`` [*expr*, *n*] is supported.
 #. ``ToExpression`` handles multi-line string input.
 #. ``ToString`` accepts an optional *form* parameter.
@@ -966,7 +1069,7 @@ Bug fixes
 Incompatible changes
 #.-------------------
 
-#. ``System`$UseSansSerif`` moved from core and is sent front-ends using ``Settings`$UseSansSerif``.
+#. ``System`$UseSansSerif`` moved from core and is sent to front-ends using ``Settings`$UseSansSerif``.
 
 
 Internal changes
@@ -1153,7 +1256,7 @@ Future
 1.1.1
 -----
 
-This may be the last update before some major refactoring and interface changing occurs.
+This may be the last update before some major refactoring and interface changes occur.
 
 In a future 2.0.0 release, Django will no longer be bundled here. See `mathics-django <https://github.com/Mathics3/mathics-django>` for the unbundled replacement.
 
@@ -1179,7 +1282,7 @@ New builtins
 
 #. ``StirlingS1``, ``StirlingS2`` (not all WL variations handled)
 #. ``MapAt`` (not all WL variations handled)
-#. ``PythonForm``, ``SympyForm``: not in WL. Expect more and better translation later as Mathics3 modules.
+#. ``PythonForm``, ``SympyForm``: not in WL. Expect more and better translations later as Mathics3 modules.
 #. ``Throw`` and ``Catch``
 #. ``With``
 #. ``FileNameTake``
@@ -1314,7 +1417,7 @@ Performance improvements
 ++++++++++++++++++++++++
 
 #. Speed up pattern matching for large lists
-#. Quadradtic speed improvement in pattern matching. #619 and see the graph comparisons there
+#. Quadratic speed improvement in pattern matching. #619 and see the graph comparisons there
 #. In-memory sessions #623
 
 Other changes
@@ -1332,7 +1435,7 @@ Backward incompatibilities
 
 #. Support for Python 3.5 and earlier, and in particular Python 2.7, was dropped.
 #. The ``graphs`` module (for Graphs) has been pulled until Mathics   supports  pymathics and graphics using ``networkx`` better. It will reappear as a pymathics module.
-#. The ``natlang`` (for Natural Language processing) has also been pulled.  The problem here too is that the pymathics mechanism needs a small amount of work to make it scalable, and in 1.0 these were hard coded. Also, both this module and ``graphs`` pulled in some   potentially hard-to-satisfy non-Python dependencies such as matplotlib, or NLP libraries, and word lists. All of this made installation of Mathics harder, and the import of these libraries,   ``natlang`` in particular, took some time. All of this points to having these live in their own repositories and get imported on lazily on demand.
+#. The ``natlang`` (for Natural Language processing) has also been pulled.  The problem here, too, is that the pymathics mechanism needs a small amount of work to make it scalable, and in 1.0 these were hard-coded. Also, both this module and ``graphs`` pulled in some potentially hard-to-satisfy non-Python dependencies such as matplotlib, or NLP libraries, and word lists. All of this made installation of Mathics harder, and the import of these libraries,   ``natlang`` in particular, took some time. All of these point to having these live in their repositories and get imported lazily on demand.
 
 
 -----
@@ -1575,7 +1678,7 @@ New features
 #. Context support
 
 
-Bugs fixed
+Bugs Fixed
 ++++++++++
 
 #. Fix unevaluated index handling (issue #217)
@@ -1614,12 +1717,12 @@ New features
 #. Add benchmarks (``mathics/benchmark.py``)
 #. ``BaseForm``
 #. ``DeleteDuplicates``
-#. Depth, Operate Through and other Structure related functions
+#. Depth, Operate Through, and other Structure-related functions
 #. Changes to ``MatrixForm`` and ``TableForm`` printing
 #. Use interrupting COW to limit evaluation time
 #. Character Code functions
 
-Bugs fixed
+Bugs Fixed
 ++++++++++
 
 #. Fix divide-by-zero with zero-length plot range

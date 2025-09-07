@@ -12,7 +12,7 @@ from mathics.builtin.atomic.strings import (
     _StringFind,
     mathics_split,
 )
-from mathics.core.atoms import Integer, Integer1, Integer3, String
+from mathics.core.atoms import Integer, Integer1, Integer2, Integer3, String
 from mathics.core.attributes import (
     A_FLAT,
     A_LISTABLE,
@@ -657,16 +657,15 @@ class StringRiffle(Builtin):
                 if len(separators[0].elements) != 3 or any(
                     not isinstance(s, String) for s in separators[0].elements
                 ):
-                    evaluation.message("StringRiffle", "string", Integer(2), exp)
+                    evaluation.message("StringRiffle", "string", Integer2, exp)
                     return
             elif not isinstance(separators[0], String):
-                evaluation.message("StringRiffle", "string", Integer(2), exp)
+                evaluation.message("StringRiffle", "string", Integer2, exp)
                 return
 
         # Validate list of string
         if not liststr.has_form("List", None):
             evaluation.message("StringRiffle", "list", Integer1, exp)
-            evaluation.message("StringRiffle", "argmu", exp)
             return
         elif any(element.has_form("List", None) for element in liststr.elements):
             evaluation.message("StringRiffle", "sublist")
@@ -740,7 +739,7 @@ class StringSplit(Builtin):
     >> StringSplit["x", "x"]
      = {}
 
-    Split using a delmiter that has nonzero list of 12's
+    Split using a delimiter that has nonzero list of 12's
     >> StringSplit["12312123", "12"..]
      = {3, 3}
 

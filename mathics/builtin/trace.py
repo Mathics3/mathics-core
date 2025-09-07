@@ -20,18 +20,28 @@ import sys
 from collections import defaultdict
 from io import StringIO
 from time import time
-from typing import Callable
+from typing import Callable, Optional
+
+import mathics_scanner.location
 
 import mathics.eval.tracing
 from mathics.core.attributes import A_HOLD_ALL, A_HOLD_ALL_COMPLETE, A_PROTECTED
-from mathics.core.builtin import Builtin
+from mathics.core.builtin import Builtin, Predefined
 from mathics.core.convert.python import from_bool, from_python
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import FunctionApplyRule
-from mathics.core.symbols import SymbolFalse, SymbolNull, SymbolTrue, strip_context
+from mathics.core.symbols import (
+    Symbol,
+    SymbolFalse,
+    SymbolNull,
+    SymbolTrue,
+    strip_context,
+)
+
+SymbolTableForm = Symbol("System`TableForm")
 
 
 def traced_apply_function(
@@ -43,16 +53,22 @@ def traced_apply_function(
     vars_noctx = dict(((strip_context(s), vars[s]) for s in vars))
     builtin_name = self.function.__qualname__.split(".")[0]
     stat = TraceBuiltins.function_stats[builtin_name]
+    prev_expression = evaluation.current_expression
+    evaluation.current_expression = expression
     t_start = time()
 
     stat["count"] += 1
     if options:
-        result = self.function(evaluation=evaluation, options=options, **vars_noctx)
+        result = (
+            self.function(evaluation=evaluation, options=options, **vars_noctx)
+            or expression
+        )
     else:
-        result = self.function(evaluation=evaluation, **vars_noctx)
+        result = self.function(evaluation=evaluation, **vars_noctx) or expression
     t_end = time()
     elapsed = (t_end - t_start) * 1000
     stat["elapsed_milliseconds"] += elapsed
+    evaluation.current_expression = prev_expression
     return result
 
 
@@ -81,7 +97,7 @@ class ClearTrace(Builtin):
 
     Dump Builtin-Function statistics gathered in running that assignment:
     >> PrintTrace[]
-
+     | ...
     >> ClearTrace[]
 
     #> $TraceBuiltins = False
@@ -122,12 +138,13 @@ class PrintTrace(_TraceBase):
 
     Note: before '\$TraceBuiltins' is set to 'True', 'PrintTrace[]' will print an empty
     list.
-    >> PrintTrace[] (* See console log *)
-
+    >> PrintTrace[]
+     | ...
     >> $TraceBuiltins = True
      = True
 
     >> PrintTrace[SortBy -> "time"]
+     | ...
 
     #> $TraceBuiltins = False
      = False
@@ -166,27 +183,34 @@ class TraceBuiltins(_TraceBase):
     </ul>
 
 
-    >> TraceBuiltins[Graphics3D[Tetrahedron[]]] (* See console log *)
+    >> TraceBuiltins[Graphics3D[Tetrahedron[]]]
+     | ...
      = -Graphics3D-
 
     By default, the output is sorted by the name:
-    >> TraceBuiltins[Times[x, x]] (* See console log *)
+    >> TraceBuiltins[Times[x, x]]
+     | ...
      = x ^ 2
 
     By default, the output is sorted by the number of calls of the builtin from \
     highest to lowest:
-    >> TraceBuiltins[Times[x, x], SortBy->"count"] (* See console log *)
+    >> TraceBuiltins[Times[x, x], SortBy->"count"]
+     | ...
      = x ^ 2
 
     You can have results ordered by name, or time.
 
     Trace an expression and list the result by time from highest to lowest.
-    >> TraceBuiltins[Times[x, x], SortBy->"time"] (* See console log *)
+    >> TraceBuiltins[Times[x, x], SortBy->"time"]
+     | ...
      = x ^ 2
     """
 
-    definitions_copy: Definitions
-    apply_function_copy: Callable
+    # None if normal evaluation, the main definition object
+    # if TraceBuiltin is activated.
+    definitions_copy: Optional[Definitions] = None
+    # Saves the default apply_function method.
+    _default_apply_function: Callable = FunctionApplyRule.apply_function
 
     function_stats: "defaultdict" = defaultdict(
         lambda: {"count": 0, "elapsed_milliseconds": 0.0}
@@ -214,7 +238,13 @@ class TraceBuiltins(_TraceBase):
         def sort_by_name(tup: tuple):
             return tup[0]
 
-        print("count     ms Builtin name")
+        header = [
+            (
+                " count",
+                "ms",
+                "Builtin name",
+            )
+        ]
 
         if sort_by == "count":
             inverse = True
@@ -226,33 +256,39 @@ class TraceBuiltins(_TraceBase):
             inverse = False
             sort_fn = sort_by_name
 
-        for name, statistic in sorted(
-            TraceBuiltins.function_stats.items(),
-            key=sort_fn,
-            reverse=inverse,
-        ):
-            print(
-                "%5d %6g %s"
-                % (statistic["count"], int(statistic["elapsed_milliseconds"]), name)
+            # TODO: show a table through a message...
+        table = header + [
+            (
+                statistic["count"],
+                int(statistic["elapsed_milliseconds"]),
+                name,
             )
+            for name, statistic in sorted(
+                TraceBuiltins.function_stats.items(),
+                key=sort_fn,
+                reverse=inverse,
+            )
+        ]
+        evaluation.print_out(Expression(SymbolTableForm, from_python(table)))
 
     @staticmethod
     def enable_trace(evaluation) -> None:
-        if TraceBuiltins.traced_definitions is None:
-            TraceBuiltins.apply_function_copy = FunctionApplyRule.apply_function
-            TraceBuiltins.definitions_copy = evaluation.definitions
-
-            # Replaces apply_function by the custom one
-            FunctionApplyRule.apply_function = traced_apply_function
-            # Create new definitions uses the new apply_function
-            evaluation.definitions = Definitions(add_builtin=True)
-        else:
-            evaluation.definitions = TraceBuiltins.definitions_copy
+        if TraceBuiltins.definitions_copy:
+            # Trace already enabled. Do nothing.
+            return
+        TraceBuiltins.definitions_copy = evaluation.definitions
+        # Replaces apply_function by the custom one
+        FunctionApplyRule.apply_function = traced_apply_function
+        # Create new definitions uses the new apply_function
+        evaluation.definitions = Definitions(add_builtin=True)
 
     @staticmethod
     def disable_trace(evaluation) -> None:
-        FunctionApplyRule.apply_function = TraceBuiltins.apply_function_copy
-        evaluation.definitions = TraceBuiltins.definitions_copy
+        # Disable tracebuiltin mode just if it was previously enabled:
+        if TraceBuiltins.definitions_copy:
+            FunctionApplyRule.apply_function = TraceBuiltins._default_apply_function
+            evaluation.definitions = TraceBuiltins.definitions_copy
+            TraceBuiltins.definitions_copy = None
 
     def eval(self, expr, evaluation, options={}):
         "%(name)s[expr_, OptionsPattern[%(name)s]]"
@@ -320,23 +356,19 @@ class TraceBuiltinsVariable(Builtin):
 
     messages = {"bool": "`1` should be True or False."}
 
-    value = SymbolFalse
-
     summary_text = "enable or disable Built-in function evaluation statistics"
 
     def eval_get(self, evaluation: Evaluation):
         "%(name)s"
 
-        return self.value
+        return SymbolTrue if TraceBuiltins.definitions_copy else SymbolFalse
 
     def eval_set(self, value, evaluation: Evaluation):
         "%(name)s = value_"
 
         if value is SymbolTrue:
-            self.value = SymbolTrue
             TraceBuiltins.enable_trace(evaluation)
         elif value is SymbolFalse:
-            self.value = SymbolFalse
             TraceBuiltins.disable_trace(evaluation)
         else:
             evaluation.message("$TraceBuiltins", "bool", value)
@@ -349,11 +381,22 @@ class TraceEvaluation(Builtin):
     ## <url>:trace native symbol:</url>
 
     <dl>
-      <dt>'TraceEvaluation'[$expr$]
+      <dt>'TraceEvaluation'[$expr$, $options$]
       <dd>Evaluate $expr$ and print each step of the evaluation.
     </dl>
 
-    The 'ShowTimeBySteps' option prints the elapsed time before an evaluation occurs.
+    Options adjust output and filtering behavior
+    <dl>
+      <dt>'ShowTimeBySteps'
+      <dd>Print the elapsed time before an evaluation occurs. \
+      default is 'False'.
+      <dt>'ShowEvaluation'
+      <dd>Show evaluation calls and returns. The default is 'True'.
+      <dt>'ShowRewrite'
+      <dd>Show the effect of rewrite rules. The default is 'True'.
+    </dl>
+
+    <i>Note:</i> It does not make sense to set <i>both</i> 'ShowRewrite' and 'ShowEvaluation' to 'False'.
 
     >> TraceEvaluation[(x + x)^2]
      | ...
@@ -362,43 +405,72 @@ class TraceEvaluation(Builtin):
     >> TraceEvaluation[(x + x)^2, ShowTimeBySteps->True]
      | ...
      = ...
+
+    Now consider this function which consists of a function call that involves a rewrite rule:
+    >> TraceEvaluation[BesselK[0, 0]]
+     | ...
+     = ...
+
+    Sometimes, 'TraceEvaluation' traces can get quite large. To reduce the size, it may be helpful \
+    to filter on either the evaluations or the replacement rules.
+
+    To see just the evaluations and return values, but not rewrite that occurs:
+    >> TraceEvaluation[BesselK[0, 0], ShowRewrite-> False]
+     | ...
+     = ...
+
+    To see just the rewrite that occurs, which tends to summarizes even more:
+    >> TraceEvaluation[BesselK[0, 0], ShowEvaluation-> False]
+     | ...
+     = ...
+
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
     options = {
         "System`ShowTimeBySteps": "False",
+        "System`ShowRewrite": "True",  # Do we want to see rewrite rules?
+        "System`ShowEvaluation": "True",  # Do we want to see Evaluate and Returns?
     }
     summary_text = "trace expression evaluation"
 
     def eval(self, expr, evaluation: Evaluation, options: dict):
         "TraceEvaluation[expr_, OptionsPattern[]]"
 
-        curr_trace_evaluation = evaluation.definitions.trace_evaluation
-        curr_time_by_steps = evaluation.definitions.timing_trace_evaluation
-
+        # Save various trace settings before changing them.
         old_evaluation_call_hook = mathics.eval.tracing.trace_evaluate_on_call
         old_evaluation_return_hook = mathics.eval.tracing.trace_evaluate_on_return
+        old_time_by_steps = evaluation.definitions.timing_trace_evaluation
+        old_trace_evaluation = evaluation.definitions.trace_evaluation
+        old_trace_show_rewrite = evaluation.definitions.trace_show_rewrite
 
+        # Adjust trace settings based on the options given.
+        evaluation.definitions.timing_trace_evaluation = (
+            options["System`ShowTimeBySteps"] is SymbolTrue
+        )
+        evaluation.definitions.trace_evaluation = (
+            options["System`ShowEvaluation"] is SymbolTrue
+        )
+        evaluation.definitions.trace_show_rewrite = (
+            options["System`ShowRewrite"] is SymbolTrue
+        )
         mathics.eval.tracing.trace_evaluate_on_call = (
             mathics.eval.tracing.print_evaluate
         )
-
         mathics.eval.tracing.trace_evaluate_on_return = (
             mathics.eval.tracing.print_evaluate
         )
 
-        evaluation.definitions.trace_evaluation = True
-        evaluation.definitions.timing_trace_evaluation = (
-            options["System`ShowTimeBySteps"] is SymbolTrue
-        )
+        # Now perform the evaluation...
         try:
             return expr.evaluate(evaluation)
         except Exception:
             raise
         finally:
-            evaluation.definitions.trace_evaluation = curr_trace_evaluation
-            evaluation.definitions.timing_trace_evaluation = curr_time_by_steps
-
+            # Restore settings to the way the were before the TraceEvaluation.
+            evaluation.definitions.trace_evaluation = old_trace_evaluation
+            evaluation.definitions.timing_trace_evaluation = old_time_by_steps
+            evaluation.definitions.trace_show_rewrite = old_trace_show_rewrite
             mathics.eval.tracing.trace_evaluate_on_call = old_evaluation_call_hook
             mathics.eval.tracing.trace_evaluate_on_return = old_evaluation_return_hook
 
@@ -493,3 +565,33 @@ class PythonCProfileEvaluation(Builtin):
         else:
             result = expr.evaluate(evaluation)
         return ListExpression(result, profile_result)
+
+
+class TrackLocations(Predefined):
+    r"""## <url>:TrackLocations native symbol:</url>
+
+    <dl>
+      <dt>'$TrackLocations'
+      <dd>specifies whether we should track \
+      source-text location information during evaluation. This \
+      can be helpful in debugging when there is a failure.
+    </dl>
+    """
+
+    name = "$TrackLocations"
+    messages = {"bool": "`1` should be True or False."}
+
+    summary_text = "track source-text locations in evaluation"
+
+    def evaluate(self, evaluation: Evaluation) -> Symbol:
+        print(mathics_scanner.location.MATHICS3_PATHS)
+        return from_bool(mathics_scanner.location.TRACK_LOCATIONS)
+
+    def eval_set(self, value, evaluation):
+        """Set[$TrackLocations, value_]"""
+        if value is SymbolTrue or value is SymbolFalse:
+            evaluation.definitions.set_ownvalue("System`$TrackLocations", value)
+            mathics.core.parser.parser.TRACK_LOCATIONS = value.to_python()
+        else:
+            evaluation.message("$TrackLocations", "bool", value)
+        return value

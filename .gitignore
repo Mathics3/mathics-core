@@ -15,8 +15,9 @@
 .vscode
 /.cache
 /.gdbinit
-/.python-version
 /.pyodide-xbuildenv-*
+/.python-version
+/ChangeLog.spell-corrected
 /Mathics.egg-info
 /Mathics3.egg-info
 ChangeLog

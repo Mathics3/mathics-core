@@ -42,7 +42,7 @@ from mathics.core.systemsymbols import (
     SymbolRule,
     SymbolToString,
 )
-from mathics.eval.files_io.files import eval_Close
+from mathics.eval.files_io.files import eval_Close, eval_Open
 
 # This tells documentation how to sort this module
 # Here we are also hiding "file_io" since this can erroneously appear at the top level.
@@ -54,7 +54,6 @@ SymbolDeleteFile = Symbol("DeleteFile")
 SymbolFileExtension = Symbol("FileExtension")
 SymbolFileFormat = Symbol("FileFormat")
 SymbolFindFile = Symbol("FindFile")
-SymbolOpenRead = Symbol("OpenRead")
 SymbolOpenWrite = Symbol("OpenWrite")
 SymbolOutputStream = Symbol("OutputStream")
 SymbolStringToStream = Symbol("StringToStream")
@@ -920,9 +919,9 @@ def _importer_exporter_options(
                 py_name = None
 
             if py_name:
-                value = get_option(remaining_options, py_name, evaluation, pop=True)
-                if value is not None:
-                    expr = Expression(SymbolRule, String(py_name), value)
+                option = get_option(remaining_options, py_name, evaluation, pop=True)
+                if option is not None:
+                    expr = Expression(SymbolRule, String(py_name), option)
                     if py_name == "CharacterEncoding":
                         stream_options.append(expr)
                     else:
@@ -1014,7 +1013,7 @@ class ExportFormats(Predefined):
 
 class ImportFormats(Predefined):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$ImportFormats.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$ImportFormats.html</url>
 
     <dl>
       <dt>'\$ImportFormats'
@@ -1157,7 +1156,7 @@ class RegisterImport(Builtin):
 
         conditionals = {
             elem.get_string_value(): expr
-            for (elem, expr) in (x.get_elements() for x in elements[:-1])
+            for elem, expr in (x.get_elements() for x in elements[:-1])
         }
         default = elements[-1]
         posts = {}
@@ -1264,11 +1263,7 @@ class URLFetch(Builtin):
             f = request.build_opener(request.HTTPCookieProcessor).open(py_url)
 
             try:
-                if sys.version_info >= (3, 0):
-                    content_type = f.info().get_content_type()
-                else:
-                    content_type = f.headers["content-type"]
-
+                content_type = f.info().get_content_type()
                 os.write(temp_handle, f.read())
             finally:
                 f.close()
@@ -1433,7 +1428,7 @@ class Import(Builtin):
             return SymbolFailed
 
         # Load the importer
-        (conditionals, default_function, posts, importer_options) = IMPORTERS[filetype]
+        conditionals, default_function, posts, importer_options = IMPORTERS[filetype]
 
         stream_options, custom_options = _importer_exporter_options(
             importer_options.get("System`Options"), options, "System`Import", evaluation
@@ -1480,9 +1475,27 @@ class Import(Builtin):
                 if findfile is None:
                     stream = Expression(SymbolStringToStream, data).evaluate(evaluation)
                 else:
-                    stream = Expression(
-                        SymbolOpenRead, findfile, *stream_options
-                    ).evaluate(evaluation)
+                    mode = "r"
+                    if options.get("System`BinaryFormat") is SymbolTrue:
+                        if not mode.endswith("b"):
+                            mode += "b"
+
+                    encoding_option = options.get("System`CharacterEncoding")
+                    encoding = (
+                        encoding_option.value
+                        if isinstance(encoding_option, String)
+                        else None
+                    )
+
+                    stream = eval_Open(
+                        name=findfile,
+                        mode=mode,
+                        stream_type="InputStream",
+                        encoding=encoding,
+                        evaluation=evaluation,
+                    )
+                if stream is None:
+                    return
                 if stream.get_head_name() != "System`InputStream":
                     evaluation.message("Import", "nffil")
                     evaluation.predetermined_out = current_predetermined_out
@@ -1500,12 +1513,10 @@ class Import(Builtin):
                 evaluation.predetermined_out = current_predetermined_out
                 return None
 
-            # return {a.get_string_value() : b for (a,b) in map(lambda x:
+            # return {a.get_string_value() : b for a,b in map(lambda x:
             # x.get_elements(), tmp)}
             evaluation.predetermined_out = current_predetermined_out
-            return dict(
-                (a.get_string_value(), b) for (a, b) in [x.get_elements() for x in tmp]
-            )
+            return {a.get_string_value(): b for a, b in (x.get_elements() for x in tmp)}
 
         # Perform the import
         defaults = None
@@ -1536,7 +1547,7 @@ class Import(Builtin):
                 evaluation.predetermined_out = current_predetermined_out
                 return result
         else:
-            assert len(elements) == 1
+            assert len(elements) >= 1
             el = elements[0]
             if el == "Elements":
                 defaults = get_results(default_function, findfile)
@@ -2057,9 +2068,6 @@ class FileFormat(Builtin):
     """
 
     summary_text = "determine the file format of a file"
-    messages = {
-        "nffil": "File not found during `1`.",
-    }
 
     detector = None
 

@@ -10,6 +10,7 @@ from typing import Optional as OptionalType
 from mathics.core.builtin import InfixOperator, PatternObject
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.keycomparable import PATTERN_SORT_KEY_OPTIONAL
 from mathics.core.pattern import BasePattern
 from mathics.eval.patterns import get_default_value
 
@@ -118,3 +119,21 @@ class Optional(InfixOperator, PatternObject):
 
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (0, 1)
+
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_order
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        sub = list(self.pattern.pattern_precedence)
+        sub[0] &= PATTERN_SORT_KEY_OPTIONAL
+        return tuple(sub)

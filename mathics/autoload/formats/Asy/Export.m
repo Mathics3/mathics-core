@@ -1,4 +1,4 @@
-(* Text Exporter *)
+(* Asymptote Exporter *)
 
 Begin["System`Convert`Asy`"]
 

@@ -40,7 +40,7 @@ from mathics.core.systemsymbols import (
     SymbolOutputStream,
 )
 from mathics.eval.directories import TMP_DIR
-from mathics.eval.files_io.files import eval_Close, eval_Get, eval_Read
+from mathics.eval.files_io.files import eval_Close, eval_Get, eval_Open, eval_Read
 from mathics.eval.files_io.read import (
     MathicsOpen,
     channel_to_stream,
@@ -49,6 +49,7 @@ from mathics.eval.files_io.read import (
     read_name_and_stream,
 )
 from mathics.eval.makeboxes import do_format, format_element
+from mathics.eval.stackframe import get_eval_Expression
 
 
 class Input_(Predefined):
@@ -89,12 +90,10 @@ class _OpenAction(Builtin):
 
     messages = {
         "argx": "OpenRead called with 0 arguments; 1 argument is expected.",
-        "fstr": (
-            "File specification `1` is not a string of " "one or more characters."
-        ),
     }
 
     mode = "r"  # A default; this is changed in subclassing.
+    stream_type = "unknown"
 
     def eval_empty(self, evaluation: Evaluation, options: dict):
         "%(name)s[OptionsPattern[]]"
@@ -119,48 +118,23 @@ class _OpenAction(Builtin):
 
         # Options
         # BinaryFormat
-        mode = self.mode
-        if options["System`BinaryFormat"] is SymbolTrue:
-            if not self.mode.endswith("b"):
-                mode += "b"
-
         if not (isinstance(name, String) and len(name.to_python()) > 2):
             evaluation.message(self.__class__.__name__, "fstr", name)
             return
 
-        name_string = name.get_string_value()
+        mode = self.mode
 
-        tmp, is_temporary_file = path_search(name_string)
-        if tmp is None:
-            if mode in ["r", "rb"]:
-                evaluation.message("General", "noopen", name)
-                return
-            path_string = name_string
-        else:
-            path_string = tmp
+        if options.get("System`BinaryFormat") is SymbolTrue:
+            if not mode.endswith("b"):
+                mode += "b"
 
-        try:
-            encoding = self.get_option(options, "CharacterEncoding", evaluation)
-            if not isinstance(encoding, String):
-                return
+        stream_type = self.stream_type
 
-            opener = MathicsOpen(
-                path_string,
-                mode=mode,
-                name=name_string,
-                encoding=encoding.value,
-                is_temporary_file=is_temporary_file,
-            )
-            opener.__enter__(is_temporary_file=is_temporary_file)
-            n = opener.n
-        except IOError:
-            evaluation.message("General", "noopen", name)
-            return
-        except MessageException as e:
-            e.message(evaluation)
+        encoding = self.get_option(options, "CharacterEncoding", evaluation)
+        if not isinstance(encoding, String):
             return
 
-        return Expression(Symbol(self.stream_type), name, Integer(n))
+        return eval_Open(name, mode, stream_type, encoding.value, evaluation)
 
 
 class Character(Builtin):
@@ -291,9 +265,8 @@ class FilePrint(Builtin):
     """
 
     messages = {
-        "fstr": (
-            "File specification `1` is not a string of " "one or more characters."
-        ),
+        "zstr": ("The file name cannot be an empty string."),
+        "badfile": ("The specified argument, `1`, should be a valid string."),
     }
 
     options = {
@@ -305,37 +278,43 @@ class FilePrint(Builtin):
 
     def eval(self, path, evaluation: Evaluation, options: dict):
         "FilePrint[path_, OptionsPattern[FilePrint]]"
+
+        if not isinstance(path, String):
+            evaluation.message("FilePrint", "badfile", path)
+            return
+
         pypath = path.to_python()
+
         if not (
             isinstance(pypath, str)
             and pypath[0] == pypath[-1] == '"'
             and len(pypath) > 2
         ):
-            evaluation.message("FilePrint", "fstr", path)
+            evaluation.message("FilePrint", "zstr", path)
             return
-        pypath, _ = path_search(pypath[1:-1])
+        resolved_pypath, _ = path_search(pypath[1:-1])
 
         # Options
         record_separators = options["System`RecordSeparators"].to_python()
-        assert isinstance(record_separators, list)
-        assert all(
-            isinstance(s, str) and s[0] == s[-1] == '"' for s in record_separators
-        )
-        record_separators = [s[1:-1] for s in record_separators]
+        assert isinstance(record_separators, tuple)
 
-        if pypath is None:
+        # Note: If we get a "noopen" message why we do not return SymbolFailed, I don't understand.
+        # But this is what WMA does.
+        # Also, this is error is tagged "General" instead of FilePrint, I also don't understand.
+        if resolved_pypath is None:
             evaluation.message("General", "noopen", path)
             return
 
-        if not osp.isfile(pypath):
+        if not osp.isfile(resolved_pypath):
             return SymbolFailed
 
         try:
-            with MathicsOpen(pypath, "r") as f:
+            with MathicsOpen(resolved_pypath, "r") as f:
                 result = f.read()
         except IOError:
             evaluation.message("General", "noopen", path)
-            return
+            return SymbolFailed
+
         except MessageException as e:
             e.message(evaluation)
             return
@@ -590,7 +569,7 @@ class Put(InfixOperator):
 
     summary_text = "write an expression to a file"
 
-    def eval(self, exprs, filename, evaluation):
+    def eval(self, exprs, filename, evaluation: Evaluation):
         "Put[exprs___, filename_String]"
         instream = to_expression("OpenWrite", filename).evaluate(evaluation)
         if len(instream.elements) == 2:
@@ -604,12 +583,12 @@ class Put(InfixOperator):
         close_stream(py_instream, instream_number)
         return result
 
-    def eval_input(self, exprs, name, n, evaluation):
+    def eval_input(self, exprs, name, n, evaluation: Evaluation):
         "Put[exprs___, OutputStream[name_, n_]]"
         stream = stream_manager.lookup_stream(n.get_int_value())
 
         if stream is None or stream.io.closed:
-            evaluation.message("Put", "openx", to_expression("OutputSteam", name, n))
+            evaluation.message("Put", "openx", get_eval_Expression())
             return
 
         # In Mathics-server, evaluation.format_output is modified.
@@ -631,11 +610,10 @@ class Put(InfixOperator):
 
         return SymbolNull
 
-    def eval_default(self, exprs, filename, evaluation):
+    def eval_default(self, exprs, filename, evaluation: Evaluation):
         "Put[exprs___, filename_]"
-        expr = to_expression("Put", exprs, filename)
         evaluation.message("Put", "stream", filename)
-        return expr
+        return to_expression("Put", exprs, filename)
 
 
 class PutAppend(InfixOperator):
@@ -685,8 +663,15 @@ class PutAppend(InfixOperator):
     summary_text = "append an expression to a file"
 
     def eval(self, exprs, filename, evaluation):
-        "PutAppend[exprs___, filename_String]"
+        "PutAppend[exprs___, filename_]"
+
+        if not isinstance(filename, String):
+            evaluation.message("PutAppend", "stream", filename)
+            return
+
         instream = to_expression("OpenAppend", filename).evaluate(evaluation)
+        if instream is SymbolFailed:
+            return SymbolFailed
         if len(instream.elements) == 2:
             name, n = instream.elements
         else:
@@ -695,12 +680,12 @@ class PutAppend(InfixOperator):
         to_expression("Close", instream).evaluate(evaluation)
         return result
 
-    def eval_input(self, exprs, name, n, evaluation):
+    def eval_input(self, exprs, name, n, evaluation: Evaluation):
         "PutAppend[exprs___, OutputStream[name_, n_]]"
         stream = stream_manager.lookup_stream(n.get_int_value())
 
         if stream is None or stream.io.closed:
-            evaluation.message("Put", "openx", to_expression("OutputSteam", name, n))
+            evaluation.message("Put", "openx", get_eval_Expression())
             return
 
         text = [
@@ -713,12 +698,6 @@ class PutAppend(InfixOperator):
         stream.io.write(text)
 
         return SymbolNull
-
-    def eval_default(self, exprs, filename, evaluation):
-        "PutAppend[exprs___, filename_]"
-        expr = to_expression("PutAppend", exprs, filename)
-        evaluation.message("PutAppend", "stream", filename)
-        return expr
 
 
 def validate_read_type(name: str, typ, evaluation: Evaluation):
@@ -858,9 +837,6 @@ class Read(Builtin):
     """
 
     messages = {
-        "openx": "`1` is not open.",
-        "noopen": "Cannot open `1`.",
-        "readf": "`1` is not a valid format specification.",
         "readn": "Invalid real number found when reading from `1`.",
         "readt": "Invalid input found when reading `1` from `2`.",
     }
@@ -1002,7 +978,7 @@ class ReadList(Read):
     See <url>
     :RecordSeparators:
     https://reference.wolfram.com/language/ref/RecordSeprators.html</url> \
-    works analgously for records as 'WordSeparators' does for words.
+    works analogously for records as 'WordSeparators' does for words.
 
     To allow both periods and newlines as record separators:
 
@@ -1036,7 +1012,6 @@ class ReadList(Read):
     """
     messages = {
         "opstl": "Value of option `1` should be a string or a list of strings.",
-        "readf": "`1` is not a valid format specification.",
     }
     options = {
         "NullRecords": "False",
@@ -1123,11 +1098,9 @@ class ReadList(Read):
         # token_words = py_options['TokenWords']
         # word_separators = py_options['WordSeparators']
 
-        py_n = n.get_int_value()
+        py_n = n.value
         if py_n < 0:
-            evaluation.message(
-                "ReadList", "intnm", to_expression("ReadList", file, types, n)
-            )
+            evaluation.message("ReadList", "intnm", get_eval_Expression())
             return
 
         result = []
@@ -1238,9 +1211,7 @@ class SetStreamPosition(Builtin):
 
         seekpos = m.to_python()
         if not (isinstance(seekpos, int) or seekpos == float("inf")):
-            evaluation.message(
-                "SetStreamPosition", "stmrng", to_expression("InputStream", name, n), m
-            )
+            evaluation.message("SetStreamPosition", "stmrng", get_eval_Expression(), m)
             return
 
         try:
@@ -1332,11 +1303,7 @@ class Skip(Read):
 
         py_m = m.to_python()
         if not (isinstance(py_m, int) and py_m > 0):
-            evaluation.message(
-                "Skip",
-                "intm",
-                to_expression("Skip", to_expression("InputStream", name, n), typ, m),
-            )
+            evaluation.message("Skip", "intm", get_eval_Expression())
             return
         for i in range(py_m):
             result = super(Skip, self).eval(stream, typ, evaluation, options)
@@ -1398,18 +1365,26 @@ class Find(Read):
 
         stream = to_expression("InputStream", name, n)
 
-        if not isinstance(py_text, list):
+        if not isinstance(py_text, (list, tuple)):
             py_text = [py_text]
 
-        if not all(isinstance(t, str) and t[0] == t[-1] == '"' for t in py_text):
+        if not all(isinstance(t, str) for t in py_text):
             evaluation.message("Find", "unknown", to_expression("Find", stream, text))
             return
 
-        py_text = [t[1:-1] for t in py_text]
+        # If py_text comes from a (literal) value, then there are no
+        # leading/trailing quotes around strings.  If it is still
+        # possible that py_text can be a list, then there could be
+        # leading/traling quotes.
+        if isinstance(py_text, list):
+            py_text = [t[1:-1] if t[0] == t[-1] == '"' else t for t in py_text]
 
         while True:
             tmp = super(Find, self).eval(stream, Symbol("Record"), evaluation, options)
-            py_tmp = tmp.to_python()[1:-1]
+            if not isinstance(tmp, String):
+                return SymbolFailed
+
+            py_tmp = tmp.value
 
             if py_tmp == "System`EndOfFile":
                 evaluation.message(
@@ -1493,7 +1468,7 @@ class Streams(Builtin):
         "Streams[]"
         return self.eval_name(None, evaluation)
 
-    def eval_name(self, name, evaluation):
+    def eval_name(self, name: String, evaluation):
         "Streams[name_String]"
         result = []
         for stream in stream_manager.STREAMS.values():

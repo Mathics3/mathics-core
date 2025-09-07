@@ -233,7 +233,7 @@ def parse_docstring_to_DocumentationEntry_items(
         logging.warning("``key_part`` is deprecated. Its value is discarded.")
 
     # Remove commented lines.
-    doc = filter_comments(doc)
+    doc = filter_comments(doc)  # .strip("\s")
 
     # pre-substitute Python code because it might contain tests
     doc, post_substitutions = pre_sub(
@@ -643,6 +643,12 @@ class DocumentationEntry(BaseDocElement):
         # used for introspection
         # TODO parse XML and pretty print
         # HACK
+
+        # The following is probably an indication of improper docstring
+        # tagging. But don't crash here.
+        if len(self.items) == 0:
+            print(f"Bad doc formatting for {self.title}")
+            return "No documentation"
         item = str(self.items[0])
         item = "\n".join(line.strip() for line in item.split("\n"))
         item = item.replace("<dl>", "")
@@ -651,7 +657,7 @@ class DocumentationEntry(BaseDocElement):
         item = item.replace("</dt>", "")
         item = item.replace("<dd>", "    ")
         item = item.replace("</dd>", "")
-        item = item.replace("\\$", "_DOLARSIGN_")
+        item = item.replace("\\$", "_DOLLARSIGN_")
         item = (
             item.replace("\\'", "_SINGLEQUOTE_")
             .replace("'", "")
@@ -662,7 +668,7 @@ class DocumentationEntry(BaseDocElement):
 
         item = re.sub(r"\$([0-9a-zA-Z]*)\_\{([0-9a-zA-Z]*)\}\$", r"\1\2", item)
         item = re.sub(r"\$([0-9a-zA-Z]*)\_([0-9a-zA-Z]*)\$", r"\1\2", item)
-        item = item.replace("_DOLARSIGN_", "$")
+        item = item.replace("_DOLLARSIGN_", "$")
         return item
 
 

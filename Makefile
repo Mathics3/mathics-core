@@ -36,6 +36,7 @@ MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang
    gstest \
    latexdoc \
    pytest \
+   pytest-x \
    rmChangeLog \
    test \
    texdoc
@@ -86,6 +87,9 @@ install:
 #: Run the most extensive set of tests
 check: pytest gstest doctest
 
+#: Run the most extensive set of tests, stopping on first error
+check-x: pytest-x gstest doctest-x
+
 #: Run the most extensive set of tests
 check-for-Windows: pytest-for-windows gstest doctest
 
@@ -122,6 +126,9 @@ clean: clean-cython clean-cache
 pytest:
 	MATHICS_CHARACTER_ENCODING="ASCII" $(PYTHON) -m pytest $(PYTEST_OPTIONS) $(PYTEST_WORKERS) test
 
+#: Run pytest tests stopping at first failure.
+pytest-x :
+	PYTEST_OPTIONS="-x" $(MAKE) pytest
 
 #: Run a more extensive pattern-matching test
 gstest:
@@ -136,6 +143,10 @@ doctest-data: mathics/builtin/*.py mathics/doc/documentation/*.mdoc mathics/doc/
 #: Run tests that appear in docstring in the code. Use environment variable "DOCTEST_OPTIONS" for doctest options
 doctest:
 	MATHICS_CHARACTER_ENCODING="ASCII" SANDBOX=$(SANDBOX) $(PYTHON) mathics/docpipeline.py $(DOCTEST_OPTIONS)
+
+#: Run tests that appear in docstring in the code, stopping on the first error.
+doctest-x:
+	PYTEST_OPTIONS="-x" $(MAKE) doctest
 
 #: Make Mathics PDF manual via Asymptote and LaTeX
 latexdoc texdoc doc:

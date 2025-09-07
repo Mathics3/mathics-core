@@ -1,17 +1,22 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import Any, FrozenSet, Tuple
+from typing import FrozenSet, Optional, Tuple
 
+import mathics_scanner.location
+from mathics_scanner.feed import LineFeeder
+from mathics_scanner.location import ContainerKind
+
+from mathics.core.definitions import Definitions
+from mathics.core.element import BaseElement
 from mathics.core.parser.convert import convert
 from mathics.core.parser.feed import MathicsSingleLineFeeder
 from mathics.core.parser.parser import Parser
-from mathics.core.symbols import ensure_context
+from mathics.core.symbols import Symbol, ensure_context
 
 parser = Parser()
 
 
-def parse(definitions, feeder) -> Any:
+def parse(definitions, feeder: LineFeeder) -> Optional[BaseElement]:
     """
     Parse input (from the frontend, -e, input files, ToExpression etc).
     Look up symbols according to the Definitions instance supplied.
@@ -21,19 +26,63 @@ def parse(definitions, feeder) -> Any:
     return parse_returning_code(definitions, feeder)[0]
 
 
-def parse_returning_code(definitions, feeder) -> Tuple[Any, str]:
+def parse_incrementally_by_line(
+    definitions: Definitions, feeder: LineFeeder
+) -> Optional[BaseElement]:
+    """Parse input incrementally by line. This is in contrast to parse() or
+    parser_returning_code(), which parse the *entire*
+    input which could be many line.
+
+    This routine is called via Read[] which parses by line, possibly
+    leaving of the input unparsed, depending on whether Read[]
+    requires more expressions.
+
+    By working incrementally, we may avoid reading lots of input that
+    is not going to be needed.
+
+    As a result, we do *not* handle exceptions raised. Instead, we leave that for the
+    eval_Read() routine to handle, so it can ask for another line.
+
+    Feeder must implement the feed and empty methods.
+
+    The result is the AST parsed or syhmbols like $Failed or NullType. Or there can be
+    an exception raised in parse which filters through this routine.
+
     """
-    Parse input (from the frontend, -e, input files, ToExpression etc).
+
+    ast = parser.parse(feeder)
+    if ast is None or isinstance(ast, Symbol):
+        return ast
+    return convert(ast, definitions)
+
+
+def parse_returning_code(
+    definitions: Definitions, feeder: LineFeeder
+) -> Tuple[Optional[BaseElement], str]:
+    """Parse input (from the frontend, -e, input files, ToExpression etc).
     Look up symbols according to the Definitions instance supplied.
 
-    Feeder must implement the feed and empty methods, see core/parser/feed.py.
+    ``feeder`` must implement the ``feed()`` and ``empty()``
+    methods. See the mathics_scanner.feed module.
+
     """
     ast = parser.parse(feeder)
-    source_code = parser.tokeniser.code if hasattr(parser.tokeniser, "code") else ""
-    if ast is not None:
-        return convert(ast, definitions), source_code
-    else:
-        return None, source_code
+
+    source_text = parser.tokeniser.source_text
+    if (
+        mathics_scanner.location.TRACK_LOCATIONS
+        and feeder.container_kind == ContainerKind.STREAM
+    ):
+        feeder.container.append(source_text)
+
+    if ast is None:
+        return None, source_text
+
+    converted = convert(ast, definitions)
+
+    if hasattr(converted, "location") and ast.location:
+        converted.location = ast.location
+    return converted, source_text
 
 
 class SystemDefinitions:
@@ -82,9 +131,12 @@ class PyMathicsDefinitions:
         return ensure_context(name, context)
 
 
-def parse_builtin_rule(string, definitions=SystemDefinitions()):
+def parse_builtin_rule(string, definitions=SystemDefinitions(), location=None):
     """
     Parse rules specified in builtin docstrings/attributes. Every symbol
     in the input is created in the System` context.
     """
-    return parse(definitions, MathicsSingleLineFeeder(string, "<builtin_rules>"))
+    return parse(
+        definitions,
+        MathicsSingleLineFeeder(string, location, ContainerKind.PYTHON),
+    )

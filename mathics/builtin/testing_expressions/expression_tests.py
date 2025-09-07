@@ -4,6 +4,7 @@ Expression Tests
 from mathics.core.atoms import Integer0, Integer1, IntegerM1
 from mathics.core.builtin import Builtin, PatternError, Test
 from mathics.core.evaluation import Evaluation
+from mathics.core.pattern import BasePattern
 from mathics.core.symbols import SymbolFalse, SymbolTrue
 from mathics.eval.patterns import match
 
@@ -53,6 +54,10 @@ class MatchQ(Builtin):
     >> MatchQ[3, Pattern[3]]
      : First element in pattern Pattern[3] is not a valid pattern name.
      = False
+
+    See also <url>
+    :'Cases':
+    /doc/reference-of-built-in-symbols/list-functions/elements-of-lists/cases/</url>.
     """
 
     rules = {"MatchQ[form_][expr_]": "MatchQ[expr, form]"}
@@ -159,8 +164,10 @@ class PatternsOrderedQ(Builtin):
 
     def eval(self, p1, p2, evaluation: Evaluation):
         "PatternsOrderedQ[p1_, p2_]"
+        p1_pat = BasePattern.create(p1)
+        p2_pat = BasePattern.create(p2)
 
-        if p1.get_sort_key(True) <= p2.get_sort_key(True):
+        if p1_pat.pattern_precedence <= p2_pat.pattern_precedence:
             return SymbolTrue
         else:
             return SymbolFalse

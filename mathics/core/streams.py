@@ -85,7 +85,7 @@ def path_search(filename: str) -> Tuple[Optional[str], bool]:
             result = urlsave_tmp(filename)
             is_temporary_file = True
         else:
-            for p in PATH_VAR + [""]:
+            for p in list(PATH_VAR) + [""]:
                 path = canonic_filename(osp.join(p, filename))
                 if osp.exists(path):
                     result = path

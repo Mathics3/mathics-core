@@ -7,18 +7,18 @@
 
 The programming language and built-in functions of \Mathics try to match the \Wolfram Language, which is continually evolving.
 
-\Mathics is in no way affiliated or supported by \Wolfram. \Mathics will probably never have the power to compete with \Mathematica in industrial applications; it is a free alternative though. It also invites community development at all levels.
+\Mathics is in no way affiliated or supported by \Wolfram. \Mathics will probably never have the power to compete with \Mathematica in industrial applications; it is a free alternative, though. It also invites community development at all levels.
 
 See the <url>:installation instructions:https://mathics-development-guide.readthedocs.io/en/latest/installing.html</url> for the most recent instructions for installing from PyPI, or the source.
 
 For implementation details, please refer to the <url>:Developers Guide:https://mathics-development-guide.readthedocs.io/en/latest</url>.
 
 <section title="Why recreate Wolfram Language?">
-\Mathematica is great, but it might have some disadvantages, depending on on your point of view.
+\Mathematica is great, but it might have some disadvantages, depending on your point of view.
 
 <ul>
   <li>It is not open source.
-  <li>Its development is tightly controlled and centralized and as such
+  <li>Its development is tightly controlled and centralized, and as such
   <li>It can't hook into different kinds of open-source packages that have independently developed algorithms and methods
 </ul>
 
@@ -33,7 +33,7 @@ However, even if you are willing to pay hundreds of dollars for the software, yo
   <li><url>:SciPy: https://www.scipy.org/</url> for Scientific calculations.
 </ul>
 
-Performance of \Mathics is not, right now, practical in large-scale projects and calculations. However, it can be used as a tool for exploration and education. There is promise that it can provide better debugging, since we can be completely transparent about every aspect of its operation.
+Performance of \Mathics is not, right now, fast in large-scale projects and calculations. However, it can be used as a tool for exploration and education and non-computationally intensive use. And \Mathics provides better debugging and tracing, since we can be completely transparent about every aspect of its operation.
 
 </section>
 
@@ -43,7 +43,7 @@ Because \Mathics is compatible with the Wolfram-Language kernel within the
 confines of the Python ecosystem, it is a powerful functional
 programming language, driven by pattern matching and rule application.
 
-Primitive types include rationals, complex numbers, and arbitrary-precision numbers. Other primitive types such as images or graphs, or NLP come from the various Python libraries that \Mathics uses.
+Primitive types include rationals, complex numbers, and arbitrary-precision numbers. Other primitive types, such as images or graphs, or NLP, come from the various Python libraries that \Mathics uses.
 
 Outside of the "core" \Mathics kernel (which has only a primitive command-line interface), in separate GitHub projects, as add-ons, there are:
 
@@ -57,33 +57,48 @@ Outside of the "core" \Mathics kernel (which has only a primitive command-line i
   <li>a <url>:A docker container:https://hub.docker.com/r/mathicsorg/mathics</url> which bundles all of the above
 </ul>
 
+In the future, we might provide better interaction with other Open-source projects and tools. For example, we might be able someday to read and write Jupyter notebooks, or translate into pure SymPy and \Mathics.
+
+
+A couple of the notable Mathematica packages that work on \Mathics3 are  <url>:Combinatorica :https://github.com/Mathics3/Mathics3-Combinatorica</url>,and <url>:Rubi:https://github.com/Mathics3/Mathics3-Package-Rubi/</url>.
+
+
 </section>
 
 <section title="History">
-The first alpha versions of \Mathics were done in 2011 by Jan Pöschko. He worked on it for a couple of years to about the v0.5 release in 2012. By then, it had 386 built-in symbols. Currently there are over a 1,000, and even more when \Mathics modules are included.
+The first alpha versions of \Mathics were done in 2011 by Jan Pöschko. He worked on it for a couple of years until the v0.5 release in 2012. By then, it had 386 built-in symbols. Currently, there are over 1,000, and even more when \Mathics modules are included.
 
-After that, Angus Griffith took over primary leadership and rewrote the parser to pretty much the stage it is in now. He and later Ben Jones worked on it from 2013 to about 2017 to the v1.0 release. Towards the end of this period, Bernhard Liebl worked on this, mostly focused on graphics.
+After that, Angus Griffith took over primary leadership and rewrote the parser to pretty much the stage it is in now. He and, later, Ben Jones worked on it from 2013 to about 2017 for the v1.0 release. Towards the end of this period, Bernhard Liebl worked on this, mostly focusing on graphics.
 
 A <url>:docker image of the v.9 release: https://hub.docker.com/r/arkadi/mathics</url> can be found on dockerhub.
 
 Around 2017, the project was largely abandoned in its largely Python 2.7 state, with some support for Python 3.2-3.5 via six.
 
-Subsequently, around mid 2020, it was picked up by the current developers. A list of authors and contributors can be found in the <url>
-:<console>AUTHORS.txt</console>:
-https://github.com/Mathics3/mathics-core/blob/master/AUTHORS.txt</url> file.
+Subsequently, around mid-2020, it was picked up by the current developers. A list of authors and contributors can be found in the <url>:AUTHORS.txt:https://github.com/Mathics3/mathics-core/blob/master/AUTHORS.txt</url> file.
 </section>
 
 <section title="What is missing?">
-There are lots of ways in which \Mathics could still be improved. <url>:<console>FUTURE.rst</console>: https://github.com/Mathics3/mathics-core/blob/master/FUTURE.rst</url> has the current roadmap.
+There are lots of ways in which \Mathics could still be improved. <url>:FUTURE.rst: https://github.com/Mathics3/mathics-core/blob/master/FUTURE.rst</url> has the current roadmap.
 
-We always could use help in Python programming and improving the documentation. But there are other ways to help. For example:
+However, many WMA Built-in functions have not been implemented. To get a list run:
+
+<console>   git grep -n "# TODO: " mathics/builtin</console>
+
+from the Mathics3 core <url>:github repository: https://github.com/Mathics3/mathics-core/blob/master/AUTHORS.txt</url>.
+
+We have a tutorial for <url>:adding new Mathics3 functions: https://mathics-development-guide.readthedocs.io/en/latest/extending/developing-code/extending/tutorial.html</url>.
+
+Many of the existing Mathics3 Built-in functions are incomplete or work differently, such as checking for different error conditions.
+
+Although we can always use help in Python programming, there are other ways to help. For example:
 
 <ul>
-<li>Ensure this document is complete and accurate. We could use help to ensure all of the Builtin functions are described properly and fully, and that they have a link to corresponding Wiki, SymPy, WMA and/or mpath links.
-Make sure the builtin summaries and examples are clear and useful.</li>
-<li>We could use help in LaTeX styling, and going over this document to remove overfull boxes and things of that nature. We could also use help and our use of Asymptote. The are some graphics primitives such as for polyhedra that haven't been implemented. Similar graphics options are sometimes missing in Asymptote that we have available in other graphics backends.</li>
+<li>Ensure this document is complete and accurate. We could use help to ensure all of the Built-in functions are described properly and fully, and that they have a link to the corresponding Wiki, SymPy, WMA, and/or mpath links.</li>
+<li>Work on making a comprehensive list of missing or incomplete built-in functions.</li>
+Make sure the built-in summaries and examples are clear and useful.</li>
+<li>We could use help in LaTeX styling, and going over this document to remove overfull boxes and things of that nature. We could also use help and our use of Asymptote. The are some graphics primitives, such as for polyhedra, that haven't been implemented. Similar graphics options are sometimes missing in Asymptote that we have available in other graphics backends.</li>
 
-<li>add another graphics backend: it could be a javascript library like jsfiddle</li>
+<li>Add another graphics backend: it could be a JavaScript library like <url>:jsfiddle: https://jsfiddle.net/.</li>
 
 <li>Consider donating via <url>:Github Sponsors: https://github.com/sponsors</url> or some other mechanism.</li>
 </ul>
@@ -98,9 +113,14 @@ See <url>:The Mathics3 Developer Guide:https://mathics-development-guide.readthe
 
 The following sections are introductions to the basic principles of the language of \Mathics. A few examples and functions are presented. Only their most common usages are listed; for a full description of a Symbol's possible arguments, options, etc., see its entry in the Reference of Built-in Symbols.
 
-However, if you google for "Mathematica Tutorials" you will find easily dozens of other tutorials that are applicable. For example, see <url>:An Elementary Introduction to the Wolfram Language:https://www.wolfram.com/language/elementary-introduction/</url>. In the <url>:docker image that we supply:https://hub.docker.com/r/mathicsorg/mathics</url>, you can load "workspaces" containing the examples described in the chapters of this introduction.
+If you google for "Mathematica Tutorials", you will find dozens of other tutorials.
 
-Be warned though that \Mathics does not yet offer the full range and features and capabilities of \Mathematica.
+I (Rocky Bernstein) like <i>"Power Programming with the \Mathematica: the Kernel"</i> by David Wagner. Even though this is old, and the book covers \Mathematica 3, it has a lot of useful information that is still relevant. A PDF of this is available <url>:here:https://www.dropbox.com/s/j2dsyvptnxjd369/Wagner%20All%20Parts-RC.pdf</url>. Wolfram's "The \Mathematica Book, Fifth Edition" is useful. If you google for this book, you can probably find a PDF of it for free.
+
+
+Online, there is <url>:An Elementary Introduction to the Wolfram Language:https://www.wolfram.com/language/elementary-introduction/</url>. In the <url>:docker image:https://hub.docker.com/r/mathicsorg/mathics</url> that we supply, you can load "workspaces" containing the examples described in the chapters of this introduction.
+
+Be warned, though, that \Mathics does not yet offer the full range and features and capabilities of \Mathematica.
 
 <section title="Basic calculations">
 \Mathics can be used to calculate basic stuff:
@@ -138,7 +158,7 @@ Integer divisions yield rational numbers:
   >> 6 / 4
   = 3 / 2
 
-To convert the result to a floating point number, apply the function 'N':
+To convert the result to a floating-point number, apply the function 'N':
   >> N[6 / 4]
   = 1.5
 
@@ -200,7 +220,7 @@ But zero division returns value <url>:'ComplexInfinity':/doc/reference-of-built-
   >> Cos[ComplexInfinity]
    = Indeterminate
 
-'ComplexInfinity' is a shorthand though for 'DirectedInfinty[]'.
+'ComplexInfinity' is a shorthand though for 'DirectedInfinity[]'.
 
 Similarly, expressions using <url>:'Infinity':/doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/mathematical-constants/complexinfinity</url>  as a value are allowed and are evaluated:
   >> Infinity + 2 Infinity
@@ -216,7 +236,7 @@ There is also the value, <url>:'Indeterminate':/doc/reference-of-built-in-symbol
 
 <section title="Precision and Accuracy">
 
-\Mathics handles relative and absolute uncertainty in numerical quantities. The <em>precision</em> or relative accuracy, is set by adding a RawBackquote character ('`') and the number of digits of precision in the mantissa. For example:
+\Mathics handles relative and absolute uncertainty in numerical quantities. The <em>precision</em> or relative accuracy is set by adding a RawBackquote character ('`') and the number of digits of precision in the mantissa. For example:
 
   >> 3.1416`3
    = 3.14
@@ -469,7 +489,7 @@ It is an error to combine lists with unequal lengths:
 </section>
 
 <section title="The Structure of \Mathics Objects">
-Every expression in \Mathics is built upon the same principle: it consists of a <em>head</em> and an arbitrary number of <em>children</em>, unless it is an <em>atom</em>, i.e. it can not be subdivided any further. To put it another way: everything is a function call. This can be best seen when displaying expressions in their "full form":
+Every expression in \Mathics is built upon the same principle: it consists of a <em>head</em> and an arbitrary number of <em>children</em>, unless it is an <em>atom</em>, i.e., it can not be subdivided any further. To put it another way: everything is a function call. This can be best seen when displaying expressions in their "full form":
 
   >> FullForm[a + b + c]
   = Plus[a, b, c]
@@ -645,12 +665,12 @@ This is useful when the right side of a rule should not be evaluated immediately
   >> {1, 2} /. x_Integer -> N[x]
   = {1, 2}
 
-Here, 'N' is applied to 'x' before the actual matching, simply yielding 'x'. With a delayed rule this can be avoided:
+Here, 'N' is applied to 'x' before the actual matching, simply yielding 'x'. With a delayed rule, this can be avoided:
   >> {1, 2} /. x_Integer :> N[x]
   = {1., 2.}
 
 'ReplaceAll' and 'ReplaceRepeated' take the first possible match.
-However 'ReplaceList' returns a list of all possible matches.
+However, 'ReplaceList' returns a list of all possible matches.
 This can be used to get all subsequences of a list, for instance:
 
   >> ReplaceList[{a, b, c}, {___, x__, ___} -> {x}]
@@ -659,7 +679,7 @@ This can be used to get all subsequences of a list, for instance:
   >> ReplaceAll[{a, b, c}, {___, x__, ___} -> {x}]
    = {a}
 
-In addition to defining functions as rules for certain patterns, there are <em>pure</em> functions that can be defined using the '&' postfix operator, where everything before it is treated as the function body, and '#' can be used as argument placeholder:
+In addition to defining functions as rules for certain patterns, there are <em>pure</em> functions that can be defined using the '&' postfix operator, where everything before it is treated as the function body, and '#' can be used as an argument placeholder:
 
   >> h = # ^ 2 &;
   >> h[3]
@@ -737,7 +757,7 @@ Inside 'For', 'While', and 'Do' loops, 'Break[]' exits the loop, and 'Continue[]
 </section>
 
 <section title="Scoping">
-By default, all symbols are "global" in \Mathics, i.e. they can be read and written in any part of your program.
+By default, all symbols are "global" in \Mathics, i.e., they can be read and written in any part of your program.
 However, sometimes "local" variables are needed in order not to disturb the global namespace. \Mathics provides two ways to support this:
 <ul>
 <li><em>lexical scoping</em> by 'Module', and
@@ -751,7 +771,7 @@ However, sometimes "local" variables are needed in order not to disturb the glob
 
   <dt>'Block'[{$vars$}, $expr$]
   <dd>temporarily stores the definitions of certain variables, evaluates
-      $expr$ with reset values and restores the original definitions afterward.
+      $expr$ with reset values, and restores the original definitions afterward.
 </dl>
 
 Both scoping constructs shield inner variables from affecting outer ones:
@@ -805,7 +825,7 @@ It is common to use scoping constructs for function definitions with local varia
 </section>
 
 <section title="Formatting Output">
-The way results are formatted for output in \Mathics is rather sophisticated, compatibility with \Mathematica is one of the design goals. It can be summed up in the following procedure:
+The way results are formatted for output in \Mathics is rather sophisticated; compatibility with \Mathematica is one of the design goals. It can be summed up in the following procedure:
 <ol>
 <li>The result of the query is calculated.
 <li>The result is stored in 'Out' (which '%' is a shortcut for).
@@ -919,7 +939,7 @@ For instance, you can override 'MakeBoxes' to format lists in a different way:
 
 However, this will not be accepted as input to \Mathics anymore:
   >> [1 2 3]
-  : Expression cannot begin with "[1 2 3]" (line 1 of "<test>").
+  : Expression cannot begin with "[1 2 3]" (line 1 of "<test-Formatting Output-28>").
 
   >> Clear[MakeBoxes]
 
@@ -1085,6 +1105,8 @@ Three-dimensional plots are supported as well:
 
 <chapter title="Further Tutorial Examples">
 
+Here are some examples written by Jan Pöschko that come from the very first version.
+
 <section title="Curve Sketching">
 Let\'s sketch the function
   >> f[x_] := 4 x / (x ^ 2 + 3 x + 5)
@@ -1115,7 +1137,7 @@ Being different from 0, all three points are actual inflection points.
   >> Solve[Denominator[f[x]] == 0, x]
    = {{x -> -3 / 2 - I / 2 Sqrt[11]}, {x -> -3 / 2 + I / 2 Sqrt[11]}}
 
-These are non-real numbers, consequently 'f' is defined on all real numbers.
+These are non-real numbers; consequently, 'f' is defined on all real numbers.
 The behaviour of 'f' at the boundaries of its definition:
   >> Limit[f[x], x -> Infinity]
    = 0
@@ -1273,9 +1295,9 @@ It is not very sophisticated from a mathematical point of view, but it\'s beauti
 
 In the future, we plan on providing an interface to Jupyter as a separate package.
 
-However currently as part \Mathics, we distribute a browser-based interface using long-term-release (LTS) Django 4.
+However, as part \Mathics, we currently distribute a browser-based interface using long-term-release (LTS) Django 4.
 
-Since a Jupyter-based interface seems preferable to the home-grown interface described here, it is doubtful whether there will be future improvements to the this interface.
+Since a Jupyter-based interface seems preferable to the home-grown interface described here, it is doubtful whether there will be future improvements to this interface.
 
 When you enter Mathics in the top after the Mathics logo and the word "Mathics" you'll see a <i>menubar</i>.
 
@@ -1290,7 +1312,7 @@ These are explained in the sections below.
 <section title="URIs">
 
 For the most part, the application is a single-page application.
-Assuming your are running locally or on a host called 'localhost' using the default port, 8000, here are some URLs and what they do:
+Assuming you are running locally or on a host called 'localhost' using the default port, 8000, here are some URLs and what they do:
 
 <dl>
   <dt><url>http://localhost:8000</url>
@@ -1298,35 +1320,35 @@ Assuming your are running locally or on a host called 'localhost' using the defa
   <dt><url>http://localhost:8000/about</url>
   <dd>A page giving:
   <ul>
-    <li>the software versions of this package and version information of important software this uses.
+    <li>the software versions of this package and the version information of important software this uses.
     <li>directory path information for the current setup
     <li>machine information
     <li>system information
     <li>customizable system settings
   </ul>
   <dt><url>http://localhost:8000/doc</url>
-  <dd>An on-line formatted version of the documentation, which include this text. You can see this as a right side frame of the main page, when clicking "?" on the right-hand upper corner.
+  <dd>An online formatted version of the documentation, which includes this text. You can see this as a right-side frame of the main page, when clicking "?" on the right-hand upper corner.
 </dl>
 </section>
 <section title="Saving, Loading, and Deleting Worksheets">
 
 <subsection title="Saving Worksheets">
 
-Worksheets exist in the browser window only and are not stored on the server, by default. To save all your queries and results, use the <em>Save</em> button which is the middle graphic of the menu bar. It looks like this:
+Worksheets exist in the browser window only and are not stored on the server by default. To save all your queries and results, use the <em>Save</em> button, which is the middle graphic of the menu bar. It looks like this:
 
 <img src="save-button.png" title="Mathics Save Button" label="save-button">
 
-Depending on browser, desktop, and OS-settings, the "Ctrl+S" key combination may do the same thing.
+Depending on browser, desktop, and OS settings, the "Ctrl+S" key combination may do the same thing.
 
 <subsection title="Loading and Deleting Worksheets">
 
-Saved worksheets can be loaded or deleted using the <em>File Open</em> button which is the left-most button in the menu bar. It looks like this:
+Saved worksheets can be loaded or deleted using the <em>File Open</em> button, which is the left-most button in the menu bar. It looks like this:
 
 <img src="file-open-button.png" title="Mathics File Open Button" label="file-open-button">
 
-Depending on browser, desktop, and OS-settings, the "Ctrl+O" key combination may do the same thing.
+Depending on browser, desktop, and OS settings, the "Ctrl+O" key combination may do the same thing.
 
-A pop-up menu should appear with the list of saved worksheets with an option to either load or delete the worksheet.
+A pop-up menu should appear with the list of saved worksheets, with an option to either load or delete the worksheet.
 
 </section>
 
@@ -1342,7 +1364,7 @@ It is also shown in the pop-up text that appears when Mathics3 is first run.
 
 <section title="Persistence of Mathics Definitions in a Session">
 
-When you use the Django-based Web interface of \Mathics, a browser session is created. Cookies have to be enabled to allow this. Your session holds a key that is used to access your definitions that are stored in a database on the server. As long as you don\'t clear the cookies in your browser, your definitions will remain even when you close and re-open the browser.
+When you use the Django-based Web interface of \Mathics, a browser session is created. Cookies have to be enabled to allow this. Your session holds a key that is used to access your definitions that are stored in a database on the server. As long as you do not clear the cookies in your browser, your definitions will remain even when you close and re-open the browser.
 
 This implies that you should not store sensitive, private information in \Mathics variables when using the online Web interface. In addition to their values being stored in a database on the server, your queries might be saved for debugging purposes. However, the fact that they are transmitted over plain HTTP should make you aware that you should not transmit any sensitive information. When you want to do calculations with that kind of stuff, simply install \Mathics locally!
 
@@ -1368,10 +1390,10 @@ There are some keyboard commands you can use in the Django-based Web interface o
 
 <dl>
   <dt>'Shift+Return'</dt>
-  <dd>This evaluates the current cell (the most important one, for sure). On the right-hand side, you may also see an "=" button which can be clicked to do the same thing.</dd>
+  <dd>This evaluates the current cell (the most important one, for sure). On the right-hand side, you may also see an "=" button, which can be clicked to do the same thing.</dd>
 
   <dt>'Ctrl+D'</dt>
-  <dd>This moves the cursor over to the documentation pane on the right-hand side. From here you can perform a search for a pre-defined \Mathics function, or symbol. Clicking on the "?" symbol on the right-hand side does the same thing.</dd>
+  <dd>This moves the cursor over to the documentation pane on the right-hand side. From here you can perform a search for a pre-defined \Mathics function or symbol. Clicking on the "?" symbol on the right-hand side does the same thing.</dd>
 
   <dt>'Ctrl+C'</dt>
   <dd>This moves the cursor back to the document code pane area where you type \Mathics expressions    </dd>
@@ -1390,7 +1412,7 @@ Of special note is the last item on the list: right-click to open the MathJax me
 
 Keyboard command behavior depends on the browser used, the operating system, desktop settings, and customization. We hook into the desktop "Open the current document" and "Save the current document" functions that many desktops provide. For example see: <url>:Finding keyboard shortcuts: https://help.ubuntu.com/community/KeyboardShortcuts#Finding_keyboard_shortcuts</url>
 
-Often, these shortcut keyboard commands are only recognized when a text field has focus; otherwise, the browser might do some browser-specific actions, like setting a bookmark etc.
+Often, these shortcut keyboard commands are only recognized when a text field has focus; otherwise, the browser might do some browser-specific actions, like setting a bookmark, etc.
 
 </section>
 

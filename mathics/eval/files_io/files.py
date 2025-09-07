@@ -6,20 +6,25 @@ File related evaluation functions.
 import os
 from typing import Callable, Literal, Optional
 
-from mathics_scanner import TranslateError
-from mathics_scanner.errors import IncompleteSyntaxError, InvalidSyntaxError
+from mathics_scanner.errors import (
+    IncompleteSyntaxError,
+    InvalidSyntaxError,
+    SyntaxError,
+)
+from mathics_scanner.location import ContainerKind
 
 import mathics
 import mathics.core.parser
 import mathics.core.streams
-from mathics.core.atoms import String
+from mathics.core.atoms import Integer, String
 from mathics.core.builtin import MessageException
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BaseElement, Expression
-from mathics.core.parser import MathicsFileLineFeeder, MathicsMultiLineFeeder, parse
-from mathics.core.streams import stream_manager
+from mathics.core.parser import MathicsFileLineFeeder, MathicsMultiLineFeeder
+from mathics.core.parser.util import parse_incrementally_by_line
+from mathics.core.streams import path_search, stream_manager
 from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.systemsymbols import (
     SymbolEndOfFile,
@@ -148,7 +153,7 @@ def eval_Get(
                     # Note: we use mathics.core.parser.parse
                     # so that tracing/debugging can intercept parse()
                     query = mathics.core.parser.parse(definitions, feeder)
-                except TranslateError:
+                except SyntaxError:
                     return SymbolNull
                 finally:
                     feeder.send_messages(evaluation)
@@ -167,6 +172,42 @@ def eval_Get(
         INPUT_VAR = outer_input_var
         definitions.set_inputfile(outer_inputfile)
     return result
+
+
+def eval_Open(
+    name: String,
+    mode: str,
+    stream_type,
+    encoding: Optional[str],
+    evaluation: Evaluation,
+):
+    path = name.value
+    tmp, is_temporary_file = path_search(path)
+    if tmp is None:
+        if mode in ["r", "rb"]:
+            evaluation.message("General", "noopen", name)
+            return SymbolFailed
+    else:
+        path = tmp
+
+    try:
+        opener = MathicsOpen(
+            path,
+            mode=mode,
+            name=name.value,
+            encoding=encoding,
+            is_temporary_file=is_temporary_file,
+        )
+        opener.__enter__(is_temporary_file=is_temporary_file)
+        n = opener.n
+    except IOError:
+        evaluation.message("General", "noopen", name)
+        return SymbolFailed
+    except MessageException as e:
+        e.message(evaluation)
+        return
+
+    return Expression(Symbol(stream_type), name, Integer(n))
 
 
 def eval_Read(
@@ -228,14 +269,18 @@ def eval_Read(
                 result.append(tmp)
             elif typ in (SymbolExpression, SymbolHoldExpression):
                 tmp = next(read_record)
+                assert isinstance(tmp, str)
                 while True:
                     try:
-                        feeder = MathicsMultiLineFeeder(tmp)
-                        expr = parse(evaluation.definitions, feeder)
+                        feeder = MathicsMultiLineFeeder(tmp, [], ContainerKind.STREAM)
+                        expr = parse_incrementally_by_line(
+                            evaluation.definitions, feeder
+                        )
                         break
                     except (IncompleteSyntaxError, InvalidSyntaxError):
                         try:
                             nextline = next(read_record)
+                            assert isinstance(nextline, str)
                             tmp = tmp + "\n" + nextline
                         except EOFError:
                             expr = SymbolEndOfFile

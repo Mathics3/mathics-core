@@ -18,7 +18,6 @@ Mathics3 represents tensors of vectors and matrices as lists; tensors \
 of any rank can be handled.
 """
 
-
 from mathics.core.atoms import Integer
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
 from mathics.core.builtin import Builtin, InfixOperator
@@ -28,6 +27,7 @@ from mathics.eval.tensors import (
     eval_Inner,
     eval_LeviCivitaTensor,
     eval_Outer,
+    eval_Transpose,
     get_dimensions,
 )
 
@@ -344,11 +344,12 @@ class Transpose(Builtin):
     """
     <url>
     :Transpose: https://en.wikipedia.org/wiki/Transpose</url> (<url>
+    :SymPy:
+      https://docs.sympy.org/latest/modules/matrices/expressions.html#sympy.matrices.expressions.Transpose</url>, <url>
     :WMA: https://reference.wolfram.com/language/ref/Transpose.html</url>)
-
     <dl>
-      <dt>'Transpose'[$m$]
-      <dd>transposes rows and columns in the matrix $m$.
+      <dt>'Transpose'[$list$]
+      <dd>transposes the first two levels in $list$. The rank of $list$ should be less than 4.
     </dl>
 
     >> square = {{1, 2, 3}, {4, 5, 6}}; Transpose[square]
@@ -366,27 +367,48 @@ class Transpose(Builtin):
      .
      . 2   4   6
 
-    Transpose is its own inverse. Transposing a matrix twice will give you back the same thing you started out with:
+    >> matrix3D = {{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}}; Transpose[matrix3D]
+     = {{{1, 2}, {5, 6}}, {{3, 4}, {7, 8}}}
+
+    Transpose is its own inverse. Transposing a matrix twice will give you back the same \
+    thing you started out with:
 
     >> Transpose[Transpose[matrix]] == matrix
      = True
 
-    #> Clear[matrix, square]
+    >> Transpose[Transpose[matrix3D]] == matrix3D
+     = True
+
+    If the rank of the list is 0 or 1, you get the list back
+
+    >> Transpose[{}]
+     = {}
+
+    >> Transpose[{a, b, c}]
+     = {a, b, c}
+
+    #> Clear[matrix, matrix3D, square]
     """
 
     summary_text = "transpose to rearrange indices in any way"
 
     def eval(self, m, evaluation: Evaluation):
-        "Transpose[m_?MatrixQ]"
-
-        result = []
-        for row_index, row in enumerate(m.elements):
-            for col_index, item in enumerate(row.elements):
-                if row_index == 0:
-                    result.append([item])
-                else:
-                    result[col_index].append(item)
-        return ListExpression(*[ListExpression(*row) for row in result])
+        """Transpose[m_List]"""
+        dimensions = get_dimensions(m)
+        if dimensions is None:
+            return
+        n = len(dimensions)
+        if not (0 <= n <= 3):
+            return
+        if n < 2:
+            # Transpose of a 0 or 1-dimensional tensor is itself.
+            return m
+        if n == 3:
+            n_0 = dimensions[0]
+            if not all(sublist == n_0 for sublist in dimensions[1:]):
+                return
+        # FIXME: check 3D dimensions
+        return eval_Transpose(m, n)
 
 
 class ConjugateTranspose(Builtin):

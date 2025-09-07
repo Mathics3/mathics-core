@@ -2,7 +2,7 @@
 """
 Unit tests for mathics.builtins.arithmetic.basic
 """
-from test.helper import check_evaluation
+from test.helper import check_evaluation, check_wrong_number_of_arguments
 
 import pytest
 
@@ -491,3 +491,49 @@ def test_private_doctests_arithmetic(str_expr, msgs, str_expected, fail_msg):
         failure_message=fail_msg,
         expected_messages=msgs,
     )
+
+
+def test_wrong_number_of_arguments():
+    tests = [
+        (
+            "CubeRoot[a, b]",
+            ["CubeRoot called with 2 arguments; 1 argument is expected."],
+            "CubeRoot error call",
+        ),
+        (
+            "CubeRoot[a, b, c]",
+            ["CubeRoot called with 3 arguments; 1 argument is expected."],
+            "CubeRoot error call with 3 arguments",
+        ),
+        (
+            "Divide[a]",
+            ["Divide called with 1 argument; 2 arguments are expected."],
+            "Divide error call with 1 argument",
+        ),
+        (
+            "Minus[]",
+            ["Minus called with 0 arguments; 1 argument is expected."],
+            "Minus error call with 0 arguments",
+        ),
+        (
+            "Sqrt[a, b, c, d]",
+            ["Sqrt called with 4 arguments; 1 argument is expected."],
+            "Sqrt error call with 4 arguments",
+        ),
+        (
+            "Sqrt[]",
+            ["Sqrt called with 0 arguments; 1 argument is expected."],
+            "Sqrt error call with 0 arguments",
+        ),
+        (
+            "Subtract[]",
+            ["Subtract called with 0 arguments; 2 arguments are expected."],
+            "argrx error call with 0 arguments",
+        ),
+        (
+            "Subtract[a]",
+            ["Subtract called with 1 argument; 2 arguments are expected."],
+            "Subtract argrx error call with 1 argument",
+        ),
+    ]
+    check_wrong_number_of_arguments(tests)

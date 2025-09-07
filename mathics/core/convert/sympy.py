@@ -129,7 +129,7 @@ def to_sympy_matrix(data, **kwargs) -> Optional[sympy.MutableDenseMatrix]:
         return None
 
 
-class SympyExpression(BasicSympy):
+class SympyExpression(sympy.Expr):
     """A Sympy expression with an associated Mathics expression"""
 
     is_Function = True
@@ -294,7 +294,7 @@ def to_numeric_sympy_args(mathics_args: BaseElement, evaluation) -> list:
 
 
 def from_sympy_matrix(
-    expr: Union[sympy.Matrix, sympy.ImmutableMatrix]
+    expr: Union[sympy.Matrix, sympy.ImmutableMatrix, sympy.Array]
 ) -> ListExpression:
     """
     Convert `expr` of the type sympy.Matrix or sympy.ImmutableMatrix to
@@ -343,7 +343,7 @@ sympy_conversion_by_type = {
 
 def old_from_sympy(expr) -> BaseElement:
     """
-    converts a SymPy object to a Mathics element.
+    converts a SymPy object to a Mathics3 element.
     """
 
     if isinstance(expr, (tuple, list)):
@@ -503,7 +503,13 @@ def old_from_sympy(expr) -> BaseElement:
         return Expression(SymbolFunction, from_sympy(expr(*variables)))
 
     if expr.is_Function or isinstance(
-        expr, (sympy.Integral, sympy.Derivative, sympy.Sum, sympy.Product)
+        expr,
+        (
+            sympy.Derivative,
+            sympy.Integral,
+            sympy.Product,
+            sympy.Sum,
+        ),
     ):
         if isinstance(expr, sympy.Integral):
             name = "Integral"

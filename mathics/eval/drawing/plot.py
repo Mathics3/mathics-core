@@ -54,6 +54,14 @@ except ImportError:
     has_compile = False
 
 
+class ListPlotPairOfNumbersError(Exception):
+    """
+    Called eval_ListPlot with a plot group that is not a list of pairs.
+    """
+
+    pass
+
+
 def automatic_plot_range(values):
     """Calculates mean and standard deviation, throwing away all points
     which are more than 'thresh' number of standard deviations away from
@@ -131,7 +139,7 @@ def get_plot_range_option(
             "System`Automatic",
             "System`All",
         )
-        or isinstance(pr, list)
+        or isinstance(pr, (list, tuple))
         for pr in plotrange
     )
     return plotrange
@@ -279,6 +287,7 @@ def eval_ListPlot(
         # He have a list of plot groups
         if all(
             isinstance(point, (list, tuple)) and len(point) == 2
+            for _ in plot_groups
             for point in plot_groups
         ):
             pass
@@ -308,9 +317,9 @@ def eval_ListPlot(
         i = 0
         while i < len(plot_groups[lidx]):
             seg = plot_group[i]
-            # skip empty segments How do they get in though?
+            # If there is an empty segment, that is an error.
             if not seg:
-                continue
+                raise ListPlotPairOfNumbersError
             for j, point in enumerate(seg):
                 x_min = min(x_min, point[0])
                 x_max = max(x_min, point[0])

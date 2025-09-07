@@ -8,6 +8,35 @@ from test.helper import check_evaluation
 import pytest
 
 
+def test__listplot():
+    """tests for module builtin.drawing.plot._ListPlot"""
+    for str_expr, msgs, str_expected, fail_msg in (
+        (
+            "ListPlot[5]",
+            ("5 is not a list of numbers or pairs of numbers.",),
+            "ListPlot[5]",
+            "ListPlot with invalid list of point",
+        ),
+        (
+            "ListLinePlot[{{}, {{1., 1.}}, {{1., 2.}}, {}}]",
+            (
+                "{{}, {{1., 1.}}, {{1., 2.}}, {}} is not a list of numbers or pairs of numbers.",
+            ),
+            "ListLinePlot[{{}, {{1., 1.}}, {{1., 2.}}, {}}]",
+            "ListLinePlot with invalid list of point",
+        ),
+    ):
+        check_evaluation(
+            str_expr,
+            str_expected,
+            to_string_expr=True,
+            to_string_expected=True,
+            hold_expected=True,
+            failure_message=fail_msg,
+            expected_messages=msgs,
+        )
+
+
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
@@ -161,8 +190,8 @@ import pytest
         ),
     ],
 )
-def test_private_doctests_plot(str_expr, msgs, str_expected, fail_msg):
-    """builtin.drawing.plot"""
+def test_plot(str_expr, msgs, str_expected, fail_msg):
+    """tests for module builtin.drawing.plot"""
     check_evaluation(
         str_expr,
         str_expected,

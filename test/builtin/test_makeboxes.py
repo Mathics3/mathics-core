@@ -252,7 +252,7 @@ def test_makeboxes_others_fail(str_expr, str_expected, msg):
         (
             r"MakeBoxes[G[F[2.]], StandardForm]",
             r'RowBox[{"G","[",RowBox[{"F","[","2.","]"}],"]"}]',
-            "Standard bahaviour",
+            "Standard behaviour",
         ),
         (
             r'MakeBoxes[F[x_], fmt_] := "F[" <> ToString[x] <> "]";MakeBoxes[G[F[3.002]], StandardForm]',

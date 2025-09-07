@@ -6,7 +6,7 @@ makeboxes rules.
 """
 
 
-from typing import Optional
+from typing import Optional, Union
 
 from mathics.core.atoms import String
 from mathics.core.element import BaseElement, BoxElementMixin
@@ -228,7 +228,7 @@ def eval_makeboxes(
 
 def format_element(
     element: BaseElement, evaluation: Evaluation, form: Symbol, **kwargs
-) -> Optional[BaseElement]:
+) -> Optional[Union[BoxElementMixin, BaseElement]]:
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """

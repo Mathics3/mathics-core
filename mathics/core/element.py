@@ -6,9 +6,11 @@ Here we have the base class and related function for element inside an Expressio
 """
 
 from abc import ABC
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Dict, Optional, Sequence, Tuple, Union
 
 from mathics.core.attributes import A_NO_ATTRIBUTES
+from mathics.core.keycomparable import KeyComparable
 
 if TYPE_CHECKING:
     from mathics.core.evaluation import Evaluation
@@ -40,84 +42,40 @@ def fully_qualified_symbol_name(name) -> bool:
     )
 
 
-try:
-    from recordclass import RecordClass  # type: ignore[import-not-found]
+@dataclass
+class ElementsProperties:
+    """Properties of Expression elements that are useful in evaluation.
 
-    # Note: Something in cythonization barfs if we put this in
-    # Expression and you try to call this like
-    # ExpressionProperties(True, True, True). Cython reports:
-    # number of the arguments greater than the number of the items
-    class ElementsProperties(RecordClass):
-        """Properties of Expression elements that are useful in evaluation.
+    In general, if you have some set of properties that you know should
+    be set a particular way, but don't know about the others, it is safe
+    to set the unknown properties to False. Omitting that property is the
+    same as setting a property to False.
 
-        In general, if you have some set of properties that you know should
-        be set a particular way, but don't know about the others, it is safe
-        to set the unknown properties to False. Omitting that property is the
-        same as setting a property to False.
+    However, when *all* of the properties are unknown, use a `None` value in
+    the Expression.properties field instead of creating an
+    ElementsProperties object with everything set False.
+    By setting the field to None, the code will look over the elements before
+    evaluation and set the property values correctly.
+    """
 
-        However, when *all* of the properties are unknown, use a `None` value in
-        the Expression.properties field instead of creating an
-        ElementsProperties object with everything set False.
-        By setting the field to None, the code will look over the elements before
-        evaluation and set the property values correctly.
-        """
+    # True if none of the elements needs to be evaluated.
+    elements_fully_evaluated: bool = False
 
-        # True if none of the elements needs to be evaluated.
-        elements_fully_evaluated: bool = False
+    # is_flat: True if none of the elements is an Expression
+    # Some Mathics functions allow flattening of elements. Therefore
+    # it can be useful to know if the elements are already flat
+    is_flat: bool = False
 
-        # is_flat: True if none of the elements is an Expression
-        # Some Mathics functions allow flattening of elements. Therefore
-        # it can be useful to know if the elements are already flat
-        is_flat: bool = False
-
-        # is_ordered: True if all of the elements are ordered. Of course this is true,
-        # if there are less than 2 elements. Ordered is an Attribute of a
-        # Mathics function.
-        #
-        # In rewrite_eval_apply() if a function is not marked as Ordered this attribute
-        # has no effect which means it doesn't matter how it is set. So
-        # when it doubt, it is always safe to set is_ordered to False since at worst
-        # it will cause an ordering operation on elements sometimes. On the other hand, setting
-        # this True elements are not sorted can cause evaluation differences.
-        is_ordered: bool = False
-
-except ImportError:
-    from dataclasses import dataclass
-
-    @dataclass
-    class ElementsProperties:  # type: ignore[no-redef]
-        """Properties of Expression elements that are useful in evaluation.
-
-        In general, if you have some set of properties that you know should
-        be set a particular way, but don't know about the others, it is safe
-        to set the unknown properties to False. Omitting that property is the
-        same as setting a property to False.
-
-        However, when *all* of the properties are unknown, use a `None` value in
-        the Expression.properties field instead of creating an
-        ElementsProperties object with everything set False.
-        By setting the field to None, the code will look over the elements before
-        evaluation and set the property values correctly.
-        """
-
-        # True if none of the elements needs to be evaluated.
-        elements_fully_evaluated: bool = False
-
-        # is_flat: True if none of the elements is an Expression
-        # Some Mathics functions allow flattening of elements. Therefore
-        # it can be useful to know if the elements are already flat
-        is_flat: bool = False
-
-        # is_ordered: True if all of the elements are ordered. Of course this is true,
-        # if there are less than 2 elements. Ordered is an Attribute of a
-        # Mathics function.
-        #
-        # In rewrite_eval_apply() if a function is not marked as Ordered this attribute
-        # has no effect which means it doesn't matter how it is set. So
-        # when it doubt, it is always safe to set is_ordered to False since at worst
-        # it will cause an ordering operation on elements sometimes. On the other hand, setting
-        # this True elements are not sorted can cause evaluation differences.
-        is_ordered: bool = False
+    # is_ordered: True if all of the elements are ordered. Of course this is true,
+    # if there are less than 2 elements. Ordered is an Attribute of a
+    # Mathics function.
+    #
+    # In rewrite_eval_apply() if a function is not marked as Ordered this attribute
+    # has no effect which means it doesn't matter how it is set. So
+    # when it doubt, it is always safe to set is_ordered to False since at worst
+    # it will cause an ordering operation on elements sometimes. On the other hand, setting
+    # this True elements are not sorted can cause evaluation differences.
+    is_ordered: bool = False
 
 
 class ImmutableValueMixin:
@@ -127,73 +85,6 @@ class ImmutableValueMixin:
         The value value can't change once it is set.
         """
         return True
-
-
-class KeyComparable:
-    """
-
-    Some Mathics3/WL Symbols have an "OrderLess" attribute
-    which is used in the evaluation process to arrange items in a list.
-
-    To do that, we need a way to compare Symbols, and that is what
-    this class is for.
-
-    This class adds the boilerplate Python comparison operators that
-    you expect in Python programs for comparing Python objects.
-
-    This class is not complete in of itself, it is intended to be
-    mixed into other classes.
-
-    Each class should provide a `get_sort_key()` method which
-    is the primitive from which all other comparisons are based on.
-    """
-
-    # FIXME: return type should be a specific kind of Tuple, not a list.
-    # FIXME: Describe sensible, and easy to follow rules by which one
-    #        can create the kind of tuple for some new kind of element.
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        """
-        This returns a tuple in a way that
-        it can be used to compare in expressions.
-
-        Returns a particular encoded list (better though would be a tuple) that is used
-        in ``Sort[]`` comparisons and in the ordering that occurs
-        in an M-Expression which has the ``Orderless`` property.
-
-        The encoded tuple/list is selected to have the property: when
-        compared against element ``expr`` in a compound expression, if
-
-           `self.get_sort_key() <= expr.get_sort_key()`
-
-        then self comes before expr.
-
-        The values in the positions of the list/tuple are used to indicate how
-        comparison should be treated for specific element classes.
-        """
-        raise NotImplementedError
-
-    def __eq__(self, other) -> bool:
-        return (
-            hasattr(other, "get_sort_key")
-            and self.get_sort_key() == other.get_sort_key()
-        )
-
-    def __gt__(self, other) -> bool:
-        return self.get_sort_key() > other.get_sort_key()
-
-    def __ge__(self, other) -> bool:
-        return self.get_sort_key() >= other.get_sort_key()
-
-    def __le__(self, other) -> bool:
-        return self.get_sort_key() <= other.get_sort_key()
-
-    def __lt__(self, other) -> bool:
-        return self.get_sort_key() < other.get_sort_key()
-
-    def __ne__(self, other) -> bool:
-        return (
-            not hasattr(other, "get_sort_key")
-        ) or self.get_sort_key() != other.get_sort_key()
 
 
 class BaseElement(KeyComparable, ABC):
@@ -252,7 +143,9 @@ class BaseElement(KeyComparable, ABC):
             return self == rhs
         return None
 
-    def format(self, evaluation, form, **kwargs) -> Optional["BaseElement"]:
+    def format(
+        self, evaluation, form, **kwargs
+    ) -> Optional[Union["BaseElement", "BoxElementMixin"]]:
         from mathics.core.symbols import Symbol
         from mathics.eval.makeboxes import format_element
 
@@ -359,7 +252,7 @@ class BaseElement(KeyComparable, ABC):
         else:
             return tuple([self])
 
-    def get_string_value(self):
+    def get_string_value(self) -> Optional[str]:
         return None
 
     @property
@@ -431,13 +324,13 @@ class BaseElement(KeyComparable, ABC):
         raise NotImplementedError
 
     def to_python(self, *args, **kwargs):
-        # Returns a native builtin Python object
-        # something in (int, float, complex, str, tuple, list or dict.).
-        # (See discussions in
-        #  https://github.com/Mathics3/mathics-core/discussions/550
-        # and
-        # https://github.com/Mathics3/mathics-core/pull/551
-        #
+        """Returns a native builtin Python object
+        something in (int, float, complex, str, tuple, list or dict.).
+        (See discussions in
+        https://github.com/Mathics3/mathics-core/discussions/550
+        and
+        https://github.com/Mathics3/mathics-core/pull/551
+        """
         raise NotImplementedError
 
     def to_mpmath(self):

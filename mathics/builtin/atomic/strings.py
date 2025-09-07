@@ -11,16 +11,18 @@ from binascii import unhexlify
 from heapq import heappop, heappush
 from typing import Any, List
 
-from mathics_scanner import TranslateError
+from mathics_scanner.errors import SyntaxError
 
-from mathics.core.atoms import Integer, Integer0, Integer1, String
+from mathics.core.atoms import Integer, Integer1, String
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
 from mathics.core.builtin import Builtin, Predefined, PrefixOperator
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.parser import MathicsFileLineFeeder, parse
+from mathics.core.parser import MathicsFileLineFeeder
+from mathics.core.parser.convert import convert
+from mathics.core.parser.util import parser
 from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolInputForm,
@@ -236,6 +238,12 @@ class Alphabet(Builtin):
     Some languages are aliases. "Russian" is the same letter set as "Cyrillic"
     >> Alphabet["Russian"] == Alphabet["Cyrillic"]
      = True
+
+    See also <url>
+    :$Language:
+      /doc/reference-of-built-in-symbols/global-system-information/\\$language/
+      </url>.
+
     """
 
     messages = {
@@ -243,7 +251,7 @@ class Alphabet(Builtin):
     }
 
     rules = {
-        "Alphabet[]": """Alphabet["English"]""",
+        "Alphabet[]": """Alphabet[$Language]""",
     }
 
     summary_text = "lowercase letters in an alphabet"
@@ -266,7 +274,7 @@ class CharacterEncoding(Predefined):
     """
     <url>
     :WMA link:
-    https://reference.wolfram.com/language/ref/$CharacterEncoding.html</url>
+    https://reference.wolfram.com/language/ref/\\$CharacterEncoding.html</url>
 
     <dl>
       <dt>'\\$CharacterEncoding'
@@ -323,13 +331,13 @@ class CharacterEncoding(Predefined):
 
 
 class CharacterEncodings(Predefined):
-    """
+    r"""
     <url>
     :WMA link:
-    https://reference.wolfram.com/language/ref/$CharacterEncodings.html</url>
+    https://reference.wolfram.com/language/ref/\$CharacterEncodings.html</url>
 
     <dl>
-      <dt>'\\$CharacterEncodings'
+      <dt>'\$CharacterEncodings'
       <dd>stores the list of available character encodings.
     </dl>
 
@@ -365,7 +373,7 @@ class HexadecimalCharacter(Builtin):
 
 # This isn't your normal Box class. We'll keep this here rather than
 # in mathics.builtin.box for now.
-# mmatera commenct: This does not even exist in WMA. \! should be associated
+# mmatera comment: This does not even exist in WMA. \! should be associated
 # to `ToExpression`, but it was not  properly implemented by now...
 class InterpretedBox(PrefixOperator):
     r"""
@@ -737,7 +745,7 @@ class ToExpression(Builtin):
     https://reference.wolfram.com/language/ref/ToExpression.html</url>
     <dl>
       <dt>'ToExpression'[$input$]
-      <dd>interprets a given string as Mathics input.
+      <dd>interprets a given string as Mathics3 input.
 
       <dt>'ToExpression'[$input$, $form$]
       <dd>reads the given input in the specified $form$.
@@ -771,11 +779,11 @@ class ToExpression(Builtin):
     """
     attributes = A_LISTABLE | A_PROTECTED
 
+    # Set checking that the between one and three arguments are allowed.
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 4)
+
     messages = {
-        "argb": (
-            "`1` called with `2` arguments; "
-            "between `3` and `4` arguments are expected."
-        ),
         "interpfmt": (
             "`1` is not a valid interpretation format. "
             "Valid interpretation formats include InputForm "
@@ -788,14 +796,14 @@ class ToExpression(Builtin):
     def eval(self, seq, evaluation: Evaluation):
         "ToExpression[seq__]"
 
-        # Organise Arguments
+        # From `seq`, extract `inp`, `form`, and `head`.
         py_seq = seq.get_sequence()
         if len(py_seq) == 1:
-            (inp, form, head) = (py_seq[0], SymbolInputForm, None)
+            inp, form, head = (py_seq[0], SymbolInputForm, None)
         elif len(py_seq) == 2:
-            (inp, form, head) = (py_seq[0], py_seq[1], None)
+            inp, form, head = (py_seq[0], py_seq[1], None)
         elif len(py_seq) == 3:
-            (inp, form, head) = (py_seq[0], py_seq[1], py_seq[2])
+            inp, form, head = (py_seq[0], py_seq[1], py_seq[2])
         else:
             assert len(py_seq) > 3  # 0 case handled by apply_empty
             evaluation.message(
@@ -808,6 +816,7 @@ class ToExpression(Builtin):
             )
             return
 
+        result = None
         # Apply the different forms
         if form is SymbolInputForm:
             if isinstance(inp, String):
@@ -819,13 +828,14 @@ class ToExpression(Builtin):
                     feeder = MathicsFileLineFeeder(f)
                     while not feeder.empty():
                         try:
-                            query = parse(evaluation.definitions, feeder)
-                        except TranslateError:
+                            ast = parser.parse(feeder)
+                        except SyntaxError:
                             return SymbolFailed
                         finally:
                             feeder.send_messages(evaluation)
-                        if query is None:  # blank line / comment
+                        if ast is None:  # blank line / comment
                             continue
+                        query = convert(ast, evaluation.definitions)
                         result = query.evaluate(evaluation)
 
             else:
@@ -835,17 +845,10 @@ class ToExpression(Builtin):
             return
 
         # Apply head if present
-        if head is not None:
-            result = Expression(head, result).evaluate(evaluation)
+        if head is not None and result is not None:
+            return Expression(head, result).evaluate(evaluation)
 
         return result
-
-    def eval_empty(self, evaluation: Evaluation):
-        "ToExpression[]"
-        evaluation.message(
-            "ToExpression", "argb", "ToExpression", Integer0, Integer1, Integer(3)
-        )
-        return
 
 
 class ToString(Builtin):

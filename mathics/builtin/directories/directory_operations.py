@@ -47,7 +47,6 @@ class CreateDirectory(Builtin):
         "fstr": (
             "File specification `1` is not a string of " "one or more characters."
         ),
-        "nffil": "File not found during `1`.",
         "filex": "`1` already exists.",
     }
     summary_text = "create a directory"
@@ -173,7 +172,7 @@ class RenameDirectory(Builtin):
         if len(seq) != 2:
             evaluation.message("RenameDirectory", "argr", "RenameDirectory", 2)
             return
-        (dir1, dir2) = (s.to_python() for s in seq)
+        dir1, dir2 = (s.to_python() for s in seq)
 
         if not (isinstance(dir1, str) and dir1[0] == dir1[-1] == '"'):
             evaluation.message("RenameDirectory", "fstr", seq[0])

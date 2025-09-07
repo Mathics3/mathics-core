@@ -1,6 +1,7 @@
 # cython: language_level=3
 # -*- coding: utf-8 -*-
 
+import sys
 from typing import TYPE_CHECKING, Any, Dict, FrozenSet, List, Optional, Sequence, Union
 
 from mathics.core.element import (
@@ -13,6 +14,12 @@ from mathics.core.element import (
 if TYPE_CHECKING:
     from mathics.core.atoms import String
 
+from mathics.core.keycomparable import (
+    BASIC_ATOM_PATTERN_SORT_KEY,
+    BASIC_EXPRESSION_SORT_KEY,
+    BASIC_NUMERIC_EXPRESSION_SORT_KEY,
+    Monomial,
+)
 from mathics.eval.tracing import trace_evaluate
 
 # I put this constants here instead of inside `mathics.core.convert.sympy`
@@ -29,17 +36,18 @@ sympy_slot_prefix = "_#"
 class NumericOperators:
     """
     This is a mixin class for Element-like objects that might have numeric values.
-    It adds or "mixes in" numeric functions for these objects like round_to_float().
+    It adds or "mixes in" numeric functions for these objects like ``round_to_float()``.
 
     It also adds methods to the class to facilite building
-    ``Expression``s in the Mathics Python code using Python syntax.
+    ``Expression`` s in the Mathics Python code using Python syntax.
 
-    So for example, instead of writing in Python:
+    So for example, instead of writing in Python::
 
         to_expression("Abs", -8)
         Expression(SymbolPlus, Integer1, Integer2)
 
-    you can instead have:
+    you can instead have::
+
         abs(Integer(-8))
         Integer(1) + Integer(2)
     """
@@ -119,85 +127,6 @@ def strip_context(name) -> str:
     if "`" in name:
         return name[name.rindex("`") + 1 :]
     return name
-
-
-class Monomial:
-    """
-    An object to sort monomials, used in Expression.get_sort_key and
-    Symbol.get_sort_key.
-    """
-
-    def __init__(self, exps_dict):
-        self.exps = exps_dict
-
-    def __cmp(self, other) -> int:
-        self_exps = self.exps.copy()
-        other_exps = other.exps.copy()
-        for var in self.exps:
-            if var in other.exps:
-                dec = min(self_exps[var], other_exps[var])
-                self_exps[var] -= dec
-                if not self_exps[var]:
-                    del self_exps[var]
-                other_exps[var] -= dec
-                if not other_exps[var]:
-                    del other_exps[var]
-        self_exps = sorted((var, exp) for var, exp in self_exps.items())
-        other_exps = sorted((var, exp) for var, exp in other_exps.items())
-
-        index = 0
-        self_len = len(self_exps)
-        other_len = len(other_exps)
-        while True:
-            if index >= self_len and index >= other_len:
-                return 0
-            if index >= self_len:
-                return -1  # self < other
-            if index >= other_len:
-                return 1  # self > other
-            self_var, self_exp = self_exps[index]
-            other_var, other_exp = other_exps[index]
-            if self_var < other_var:
-                return -1
-            if self_var > other_var:
-                return 1
-            if self_exp != other_exp:
-                if index + 1 == self_len or index + 1 == other_len:
-                    # smaller exponents first
-                    if self_exp < other_exp:
-                        return -1
-                    elif self_exp == other_exp:
-                        return 0
-                    else:
-                        return 1
-                else:
-                    # bigger exponents first
-                    if self_exp < other_exp:
-                        return 1
-                    elif self_exp == other_exp:
-                        return 0
-                    else:
-                        return -1
-            index += 1
-        return 0
-
-    def __eq__(self, other) -> bool:
-        return self.__cmp(other) == 0
-
-    def __le__(self, other) -> bool:
-        return self.__cmp(other) <= 0
-
-    def __lt__(self, other) -> bool:
-        return self.__cmp(other) < 0
-
-    def __ge__(self, other) -> bool:
-        return self.__cmp(other) >= 0
-
-    def __gt__(self, other) -> bool:
-        return self.__cmp(other) > 0
-
-    def __ne__(self, other) -> bool:
-        return self.__cmp(other) != 0
 
 
 class Atom(BaseElement):
@@ -287,11 +216,21 @@ class Atom(BaseElement):
     #        1/0
     #        return None if stop_on_error else {}
 
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        if pattern_sort:
-            return (0, 0, 1, 1, 0, 0, 0, 1)
-        else:
-            raise NotImplementedError
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        raise NotImplementedError
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return BASIC_ATOM_PATTERN_SORT_KEY
 
     def has_form(
         self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
@@ -494,6 +433,25 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         for rule in rules:
             result = rule.apply(self, evaluation, fully=True)
             if result is not None and not result.sameQ(self):
+                if result.is_literal:
+                    return result
+
+                # We will be using $IterationLimit, not $RecursionLimit below
+                # to catch symbolic looping rewrite expansions.
+                # We do this to model Mathematica behavior more closely.
+                limit = (
+                    evaluation.definitions.get_config_value("$IterationLimit")
+                    or sys.maxsize
+                )
+                if limit is None:
+                    limit = sys.maxsize
+                if limit != sys.maxsize and evaluation.iteration_count > limit:
+                    evaluation.error("$IterationLimit", "itlim", limit)
+                    from mathics.core.systemsymbols import SymbolAborted
+
+                    return SymbolAborted
+                evaluation.iteration_count += 1
+
                 return result.evaluate(evaluation)
         return self
 
@@ -579,18 +537,31 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         """
         return self.name.split("`")[-1] if short else self.name
 
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        if pattern_sort:
-            return super(Symbol, self).get_sort_key(True)
-        else:
-            return (
-                1 if self.is_numeric() else 2,
-                2,
-                Monomial({self.name: 1}),
-                0,
-                self.name,
-                1,
-            )
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return (
+            (
+                BASIC_NUMERIC_EXPRESSION_SORT_KEY
+                if self.is_numeric()
+                else BASIC_EXPRESSION_SORT_KEY
+            ),
+            Monomial({self.name: 1}),
+            0,
+            self.name,
+            1,
+        )
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return super(Symbol, self).pattern_precedence
 
     def replace_vars(self, vars, options={}, in_scoping=True):
         assert all(fully_qualified_symbol_name(v) for v in vars)
@@ -742,7 +713,12 @@ class BooleanType(SymbolConstant):
     the constant is either SymbolTrue or SymbolFalse.
     """
 
-    pass
+    @property
+    def is_literal(self) -> bool:
+        """
+        We don't allow changing Boolean values True and False.
+        """
+        return True
 
 
 def symbol_set(*symbols: Symbol) -> FrozenSet[Symbol]:

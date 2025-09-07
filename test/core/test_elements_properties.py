@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from mathics_scanner.location import ContainerKind
+
 from mathics.core.parser import MathicsSingleLineFeeder
 from mathics.core.parser.convert import convert
 from mathics.core.parser.parser import Parser
@@ -40,7 +42,9 @@ def test_elements_properties():
     ]:
         # fmt: on
         session.evaluation.out.clear()
-        feeder = MathicsSingleLineFeeder(str_expression)
+        feeder = MathicsSingleLineFeeder(
+            str_expression, "<test_elements_properties>", ContainerKind.STRING
+        )
         ast = parser.parse(feeder)
 
         # convert() creates the initial Expression. In that various properties should
