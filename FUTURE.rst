@@ -41,7 +41,7 @@ Debugging
 
 Some preliminary work to improve expression location would help give better debugging. Information that is now available from the scanner will be profilerated into compound expressions.  More work is also needed to track positions in stream-oriented input (which happens a lot).
 
-We will continue to improve the debugger and improve conformance to WMA for ``Trace'' functions. In the debugger, managed in a repository ``Mathics3-Trepan``, breakpoints on functions may be added.
+We will continue to improve the debugger and enhance conformance to WMA for ``Trace`` functions. In the debugger, managed in a repository ``Mathics3-Trepan``, breakpoints on functions may be added.
 
 Other Stuff
 +++++++++++
