@@ -8,7 +8,7 @@
 
 Support Python 3.13.
 
-Major foundational work was done in scanning boxing operators and getting rule selection for functions closer to WMA. Also, work was done to correct assignment functions, e.g. ``Upset``, ``Downset``, ``SetDelayed``, and others, so that they conform closer to WMA behavior.
+Major foundational work was done in scanning boxing operators and getting rule selection for functions closer to WMA. Additionally, work was done to correct assignment functions, such as ``Upset``, ``Downset``, and ``SetDelayed``, so that they conform more closely to WMA behavior.
 
 With these changes, it should be more straightforward to adjust ``MakeBox`` rules so that these conform. This is the top priority.
 
@@ -34,7 +34,7 @@ Improving MakeBoxes is also needed for improving formatting and rendering.
 Evaluation
 ++++++++++
 
-Some fundamental flaws have been detected around our main evaluation loop. This is appareent in the handling of ``Unevaluated[]``, ``Evaluate[]``, and ``With[]`` and ``Condition``. These need to get addressed. See for example: `Issue #1206 <https://github.com/Mathics3/mathics-core/issues/1206>`_.
+Some fundamental flaws have been detected around our main evaluation loop. This is appareent in the handling of ``Unevaluated[]``, ``Evaluate[]``, and ``With[]`` and ``Condition``. These need to be addressed. See for example: `Issue #1206 <https://github.com/Mathics3/mathics-core/issues/1206>`_.
 
 Debugging
 +++++++++
@@ -52,7 +52,7 @@ Major components that still need revision/rewrite
 * Documentation
 * Start a real instruction-driven interpreter
 * Compile system
-* Rewrite how Graphics Routines and implement a robust API for extending
+* Rewrite how Graphics Routines are implemented and implement a robust API for extending
 
 Smaller things:
 
@@ -86,7 +86,7 @@ With the work done in 2023 to allow ``mathics.builtin`` modules to be loaded det
 More Custom kinds of (compound) Expressions and Fewer Conversions
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-Python/Numpy literal expressions fall into this category and this is especially useful in data crunching and rendering graphics.
+Python/Numpy literal expressions fall into this category, and this is especially useful in data crunching and rendering graphics.
 
 Compilation
 ++++++++++++
@@ -112,7 +112,7 @@ Jupyter integration depends on getting Boxing under control.
 
 ## Migration of the documentation system to  `Sphinx <https://www.sphinx-doc.org>`_
 
-This is important but probably less important than performance, boxing & formatting, and pattern matching.
+This is important, but probably less important than performance, boxing & formatting, and pattern matching.
 
 And in the interim, we will probably be making more smaller fixes. Sigh. I am optimistic that the smaller fixes can work in the direction of making moving out easier. Modularity here.
 
@@ -149,7 +149,7 @@ Rocky
 
 - Debugger
 - Compilation
-- Literal Expressions for performance (e.g. data processing and graphics rendering)
+- Literal Expressions for performance (e.g., data processing and graphics rendering)
 - Mathics Autoloading (with mmatera)
 - Operator Precedence (with mmatera)
 - Releases (with mmatera)
@@ -178,18 +178,17 @@ See ``PAST.rst`` for how the 2023 Roadmap compares to the 2022 Roadmap.
 Forms, Boxing and Formatting
 ----------------------------
 
-This remains the biggest holdover item from 2022, and seems easily doable.
+This remains the biggest holdover item from 2022 and seems easily doable.
 It hinders interaction with Jupyter or other front ends.
 
 Right now, "Form" (a high-level specification of how to format) and
-"format" (a low-level specification of how output is encoded) are sometimes muddied.
+"format" (a low-level specification of how output is encoded) is sometimes muddied.
 
 For example, TeXForm may be a "Form", but output encoded for AMS-LaTeX is done by a *formatter*.
-So AMS-LaTeX rendering and other kinds of rendering should be split into its own rendering for formatter module.
-Currently we have asymptote, and svg "format" modules.
+So, AMS-LaTeX rendering and other kinds of rendering should be split into its own rendering for a formatter module.
+Currently, we have Asymptote, and SVG "format" modules.
 
-Back to high-level again, Boxing is something that can be written in Mathics3, and doing this at
-least initially ensures that we have design that fits more naturally
+Back to high-level again, Boxing is something that can be written in Mathics3, and doing this at least initially ensures that we have a design that fits more naturally
 into the Wolfram Language philosophy.
 
 
@@ -391,7 +390,7 @@ work to do in defining the interfaces mentioned above.
 That said, this is still on the horizon.
 
 Interest has also been expressed in WebGL, and Flask front ends. But
-these too will require use to have better protocols defined and in
+these too will require us to have better protocols defined and in
 place.
 
 
