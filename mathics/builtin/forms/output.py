@@ -14,7 +14,13 @@ Form Functions
 """
 from typing import Optional
 
-from mathics.builtin.box.layout import RowBox
+from mathics.builtin.box.layout import (
+    GridBox,
+    InterpretationBox,
+    PaneBox,
+    RowBox,
+    to_boxes,
+)
 from mathics.builtin.forms.base import FormBaseClass
 from mathics.core.atoms import Integer, Real, String, StringFromPython
 from mathics.core.builtin import Builtin
@@ -28,8 +34,11 @@ from mathics.core.systemsymbols import (
     SymbolInfinity,
     SymbolMakeBoxes,
     SymbolNumberForm,
+    SymbolOutputForm,
     SymbolRowBox,
     SymbolRuleDelayed,
+    SymbolStandardForm,
+    SymbolSubscriptBox,
     SymbolSuperscriptBox,
 )
 from mathics.eval.makeboxes import (
@@ -40,7 +49,10 @@ from mathics.eval.makeboxes import (
     eval_mathmlform,
     eval_tableform,
     eval_texform,
+    format_element,
 )
+from mathics.eval.testing_expressions import expr_min
+from mathics.format.prettyprint import expression_to_2d_text
 
 
 class BaseForm(FormBaseClass):
@@ -490,7 +502,17 @@ class OutputForm(FormBaseClass):
      = -Graphics-
     """
 
+    formats = {"OutputForm[s_String]": "s"}
     summary_text = "plain-text output format"
+
+    def eval_makeboxes(self, expr, form, evaluation):
+        """MakeBoxes[OutputForm[expr_], form_]"""
+        print(" eval Makeboxes outputform")
+        text2d = expression_to_2d_text(expr, evaluation, form).text
+        elem1 = PaneBox(String(text2d))
+        elem2 = Expression(SymbolOutputForm, expr)
+        result = InterpretationBox(elem1, elem2)
+        return result
 
 
 class PythonForm(FormBaseClass):
