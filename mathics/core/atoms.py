@@ -4,6 +4,7 @@
 import base64
 import math
 import re
+from functools import cache
 from typing import Any, Dict, Generic, Optional, Tuple, TypeVar, Union
 
 import mpmath
@@ -831,30 +832,33 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
                 default=None,
             )
 
-        value = (real, imag, prec)
-        self = cls._complex_numbers.get(value)
+        exact_value = (real, imag, prec)
+
+        self = cls._complex_numbers.get(exact_value)
         if self is None:
             self = super().__new__(cls)
             self.real = real
             self.imag = imag
 
-            self._value = value
+            self._exact_value = exact_value
+            self._value = complex(real.value, imag.value)
 
             # Cache object so we don't allocate again.
-            self._complex_numbers[value] = self
+            self._complex_numbers[exact_value] = self
 
             # Set a value for self.__hash__() once so that every time
             # it is used this is fast. Note that in contrast to the
             # cached object key, the hash key needs to be unique across all
             # Python objects, so we include the class in the
             # event that different objects have the same Python value
-            self.hash = hash((cls, value))
+            self.hash = hash((cls, exact_value))
 
         return self
 
     def __hash__(self):
         return self.hash
 
+    @cache
     def __str__(self) -> str:
         return str(self.to_sympy())
 
@@ -866,16 +870,25 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
     def to_sympy(self, **kwargs):
         return self.real.to_sympy() + sympy.I * self.imag.to_sympy()
 
-    def to_python(self, *args, **kwargs):
+    @cache
+    def to_python(self, *args, **kwargs) -> Union[int, float, complex]:
+        """
+        Returns a Python equivalent value for this complex number.
+        """
+        if self.imag.sameQ(Integer0):
+            return self.real
+
         return complex(
             self.real.to_python(*args, **kwargs), self.imag.to_python(*args, **kwargs)
         )
 
+    @cache
     def to_mpmath(self, precision: Optional[int] = None):
         return mpmath.mpc(
             self.real.to_mpmath(precision), self.imag.to_mpmath(precision)
         )
 
+    @cache
     def default_format(self, evaluation, form) -> str:
         return "Complex[%s, %s]" % (
             self.real.default_format(evaluation, form),
@@ -914,6 +927,23 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         imag = self.imag.round(d)
         return Complex(real, imag)
 
+    @property
+    def is_exact(self) -> bool:
+        if self.real.is_machine_precision() or self.imag.is_machine_precision():
+            return True
+        return False
+
+    @property
+    def is_exact_value(self) -> bool:
+        if self.real.is_machine_precision() or self.imag.is_machine_precision():
+            convert_fn = Integer if isinstance(self.real, int) else Real
+            real_value = convert_fn(self.real)
+            convert_fn = Integer if isinstance(self.imag, int) else Real
+            imag_value = convert_fn(self.imag)
+            return Complex(real_value, imag_value) is self
+        return False
+
+    @cache
     def is_machine_precision(self) -> bool:
         if self.real.is_machine_precision() or self.imag.is_machine_precision():
             return True
@@ -928,6 +958,7 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
                 return complex(real, imag)
         return None
 
+    @cache
     def get_precision(self) -> Optional[int]:
         """Returns the default specification for precision in N and other numerical functions.
         When `None` is be returned no precision is has been defined and this object's value is
@@ -1034,9 +1065,11 @@ class Rational(Number[sympy.Rational]):
         """Mathics SameQ"""
         return isinstance(rhs, Rational) and self.value == rhs.value
 
+    @cache
     def numerator(self) -> "Integer":
         return Integer(self.value.as_numer_denom()[0])
 
+    @cache
     def denominator(self) -> "Integer":
         return Integer(self.value.as_numer_denom()[1])
 
