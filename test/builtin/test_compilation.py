@@ -3,9 +3,7 @@
 Unit tests from mathics.builtin.compilation.
 """
 
-import sys
-import time
-from test.helper import check_evaluation, evaluate
+from test.helper import check_evaluation
 
 import pytest
 

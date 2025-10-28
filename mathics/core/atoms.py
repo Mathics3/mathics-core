@@ -4,6 +4,7 @@
 import base64
 import math
 import re
+from functools import cache
 from typing import Any, Dict, Generic, Optional, Tuple, TypeVar, Union
 
 import mpmath
@@ -53,7 +54,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
     being: Integer, Rational, Real, Complex.
     """
 
-    _value: T
+    _value: Any  # Union[int, float, complex]
     hash: int
 
     def __getnewargs__(self):
@@ -131,7 +132,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
                 return mpmath.mpf(self.value)
         return mpmath.mpf(self.value)
 
-    def to_python(self, *_, **kwargs):
+    def to_python(self, *_, **kwargs) -> Union[int, float, complex]:
         """Returns a native builtin Python object
         something in (int, float, complex, str, tuple, list or dict.).
         (See discussions in
@@ -148,10 +149,16 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         return self
 
     @property
-    def value(self) -> T:
-        """Equivalent value in either SymPy's or Python's native
-        datatype if that exist. Note the SymPy value
-        and the Python value might be the same thing.
+    def value(self) -> Union[complex, float, int]:
+        """Equivalent value in Python's native datatype. In
+        some cases, like PrecisionReal and Complex, Mathics3's
+        representation is more precise and is only approximately the
+        same value. In those cases, use method use is_exact_value() to
+        determine whether ".value" is exact or approximate.
+
+        .value and .to_python are simililar, but .to_python is not a
+        property, and allows for fancy options which might influence
+        conversion. Also, .value is a property for other atoms.
         """
         return self._value
 
@@ -208,13 +215,15 @@ class Integer(Number[int]):
 
     _sympy: sympy_numbers.Integer
 
+    _value: int
+
     # We use __new__ here to ensure that two Integer's that have the same value
     # return the same object, and to set an object hash value.
     # Consider also @lru_cache, and mechanisms for limiting and
     # clearing the cache and the object store which might be useful in implementing
     # Builtin Share[].
     def __new__(cls, value) -> "Integer":
-        n = int(value)
+        n: int = int(value)
         self = cls._integers.get(value)
         if self is None:
             self = super().__new__(cls)
@@ -241,15 +250,35 @@ class Integer(Number[int]):
         )
 
     def __ge__(self, other) -> bool:
+        if isinstance(self.value, complex) or isinstance(other, complex):
+            raise TypeError(
+                f"'>=' not supported between instances of '{type(self.value).__name__}' and '{type(other).__name__}'"
+            )
+
+        # mypy needs this spelled out.
+        assert not isinstance(self.value, complex) and not isinstance(
+            other.value, complex
+        )
+
         return (
-            self._value >= other.value
+            self.value >= other.value
             if isinstance(other, Integer)
             else super().__ge__(other)
         )
 
     def __gt__(self, other) -> bool:
+        if isinstance(self.value, complex) or isinstance(other, complex):
+            raise TypeError(
+                f"'>=' not supported between instances of '{type(self.value).__name__}' and '{type(other).__name__}'"
+            )
+
+        # mypy needs this spelled out.
+        assert not isinstance(self.value, complex) and not isinstance(
+            other.value, complex
+        )
+
         return (
-            self._value > other.value
+            self.value > other.value
             if isinstance(other, Integer)
             else super().__gt__(other)
         )
@@ -260,22 +289,39 @@ class Integer(Number[int]):
         return self.hash
 
     def __le__(self, other) -> bool:
+        if isinstance(other, Symbol):
+            return True
+
+        if isinstance(self.value, complex) or isinstance(other.value, complex):
+            raise TypeError(
+                f"'<=' not supported between instances of '{type(self.value).__name__}' and '{type(other).__name__}'"
+            )
+
         return (
-            self._value <= other.value
+            self.value <= other.value
             if isinstance(other, Integer)
             else super().__le__(other)
         )
 
     def __lt__(self, other) -> bool:
+        # sorting of elements can include Symbol's and Complex values.
+        if isinstance(other, Symbol):
+            return True
+
+        if isinstance(self.value, complex) or isinstance(other.value, complex):
+            raise TypeError(
+                f"'<' not supported between instances of '{type(self.value).__name__}' and '{type(other).__name__}'"
+            )
+
         return (
-            self._value < other.value
+            self.value < other.value
             if isinstance(other, Integer)
             else super().__lt__(other)
         )
 
     def __ne__(self, other) -> bool:
         return (
-            self._value != other.value
+            self.value != other.value
             if isinstance(other, Integer)
             else super().__ne__(other)
         )
@@ -290,7 +336,7 @@ class Integer(Number[int]):
         return self.make_boxes(f.get_name())
 
     def get_int_value(self) -> int:
-        return self._value
+        return self.value
 
     @property
     def is_zero(self) -> bool:
@@ -348,6 +394,10 @@ class Integer(Number[int]):
 
     def user_hash(self, update):
         update(b"System`Integer>" + str(self._value).encode("utf8"))
+
+    @property
+    def value(self) -> int:
+        return self._value
 
 
 Integer0 = Integer(0)
@@ -445,6 +495,7 @@ class MachineReal(Real[float]):
     # The key is the MachineReal's Python `float` value, and the
     # dictionary's value is the corresponding Mathics MachineReal object.
     _machine_reals: Dict[Any, "MachineReal"] = {}
+    _value: float
 
     def __new__(cls, value) -> "MachineReal":
         n = float(value)
@@ -534,10 +585,14 @@ class MachineReal(Real[float]):
             return False
 
     def to_python(self, *args, **kwargs) -> float:
-        return self.value
+        return self._value
 
-    def to_sympy(self, *args, **kwargs):
+    def to_sympy(self, *args, **kwargs) -> sympy.Float:
         return sympy.Float(self.value)
+
+    @property
+    def value(self) -> float:
+        return self._value
 
 
 MachineReal0 = MachineReal(0)
@@ -751,6 +806,9 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
     real: Number[T]
     imag: Number[T]
 
+    _value: complex
+    _exact_value: tuple  # Tuple[Number[T], Number[T], int]
+
     # Dictionary of Complex constant values defined so far.
     # We use this for object uniqueness.
     # The key is the Complex value's real and imaginary parts as a tuple,
@@ -793,30 +851,41 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
                 default=None,
             )
 
-        value = (real, imag, prec)
-        self = cls._complex_numbers.get(value)
+        exact_value = (real, imag, prec)
+
+        self = cls._complex_numbers.get(exact_value)
         if self is None:
             self = super().__new__(cls)
             self.real = real
             self.imag = imag
 
-            self._value = value
+            self._exact_value = exact_value
+            self._value = complex(real.value, imag.value)
 
             # Cache object so we don't allocate again.
-            self._complex_numbers[value] = self
+            self._complex_numbers[exact_value] = self
 
             # Set a value for self.__hash__() once so that every time
             # it is used this is fast. Note that in contrast to the
             # cached object key, the hash key needs to be unique across all
             # Python objects, so we include the class in the
             # event that different objects have the same Python value
-            self.hash = hash((cls, value))
+            self.hash = hash((cls, exact_value))
 
         return self
+
+    @cache
+    def __getnewargs__(self):
+        return (self.real, self.imag)
+
+    @cache
+    def __neg__(self):
+        return Complex(-self.real, -self.imag)
 
     def __hash__(self):
         return self.hash
 
+    @cache
     def __str__(self) -> str:
         return str(self.to_sympy())
 
@@ -825,19 +894,7 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
 
         return format_element(self, evaluation, f)
 
-    def to_sympy(self, **kwargs):
-        return self.real.to_sympy() + sympy.I * self.imag.to_sympy()
-
-    def to_python(self, *args, **kwargs):
-        return complex(
-            self.real.to_python(*args, **kwargs), self.imag.to_python(*args, **kwargs)
-        )
-
-    def to_mpmath(self, precision: Optional[int] = None):
-        return mpmath.mpc(
-            self.real.to_mpmath(precision), self.imag.to_mpmath(precision)
-        )
-
+    @cache
     def default_format(self, evaluation, form) -> str:
         return "Complex[%s, %s]" % (
             self.real.default_format(evaluation, form),
@@ -858,6 +915,86 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         )
 
     @property
+    def is_exact(self) -> bool:
+        if self.real.is_machine_precision() or self.imag.is_machine_precision():
+            return True
+        return False
+
+    @property
+    def is_exact_value(self) -> bool:
+        if self.real.is_machine_precision() or self.imag.is_machine_precision():
+            convert_fn = Integer if isinstance(self.real, int) else Real
+            real_value = convert_fn(self.real)
+            convert_fn = Integer if isinstance(self.imag, int) else Real
+            imag_value = convert_fn(self.imag)
+            return Complex(real_value, imag_value) is self
+        return False
+
+    @cache
+    def is_machine_precision(self) -> bool:
+        if self.real.is_machine_precision() or self.imag.is_machine_precision():
+            return True
+        return False
+
+    # FIXME: funny name get_float_value returns complex?
+    def get_float_value(self, permit_complex=False) -> Optional[complex]:
+        if permit_complex:
+            real = self.real.get_float_value()
+            imag = self.imag.get_float_value()
+            if real is not None and imag is not None:
+                return complex(real, imag)
+        return None
+
+    def do_copy(self) -> "Complex":
+        return Complex(self.real.do_copy(), self.imag.do_copy())
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, Complex):
+            return self.real == other.real and self.imag == other.imag
+        else:
+            return super().__eq__(other)
+
+    @cache
+    def __getnewargs__(self):
+        return (self.real, self.imag)
+
+    @cache
+    def __neg__(self):
+        return Complex(-self.real, -self.imag)
+
+    @cache
+    def get_precision(self) -> Optional[int]:
+        """Returns the default specification for precision in N and other numerical functions.
+        When `None` is be returned no precision is has been defined and this object's value is
+        exact.
+
+        This function is called by method `is_inexact()`.
+        """
+        real_prec = self.real.get_precision()
+        imag_prec = self.imag.get_precision()
+        if imag_prec is None or real_prec is None:
+            return None
+        return min(real_prec, imag_prec)
+
+    @property
+    def is_approx_zero(self) -> bool:
+        real_zero = (
+            self.real.is_approx_zero
+            if hasattr(self.real, "is_approx_zero")
+            else self.real.is_zero
+        )
+        imag_zero = (
+            self.imag.is_approx_zero
+            if hasattr(self.imag, "is_approx_zero")
+            else self.imag.is_zero
+        )
+        return real_zero and imag_zero
+
+    @property
+    def is_zero(self) -> bool:
+        return self.real.is_zero and self.imag.is_zero
+
+    @property
     def pattern_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in selecting
@@ -876,70 +1013,32 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         imag = self.imag.round(d)
         return Complex(real, imag)
 
-    def is_machine_precision(self) -> bool:
-        if self.real.is_machine_precision() or self.imag.is_machine_precision():
-            return True
-        return False
+    @cache
+    def to_mpmath(self, precision: Optional[int] = None):
+        return mpmath.mpc(
+            self.real.to_mpmath(precision), self.imag.to_mpmath(precision)
+        )
 
-    # FIXME: funny name get_float_value returns complex?
-    def get_float_value(self, permit_complex=False) -> Optional[complex]:
-        if permit_complex:
-            real = self.real.get_float_value()
-            imag = self.imag.get_float_value()
-            if real is not None and imag is not None:
-                return complex(real, imag)
-        return None
-
-    def get_precision(self) -> Optional[int]:
-        """Returns the default specification for precision in N and other numerical functions.
-        When `None` is be returned no precision is has been defined and this object's value is
-        exact.
-
-        This function is called by method `is_inexact()`.
+    @cache
+    def to_python(self, *args, **kwargs) -> Union[int, float, complex]:
         """
-        real_prec = self.real.get_precision()
-        imag_prec = self.imag.get_precision()
-        if imag_prec is None or real_prec is None:
-            return None
-        return min(real_prec, imag_prec)
+        Returns a Python equivalent value for this complex number.
+        """
+        if self.imag.sameQ(Integer0):
+            return self.real.to_python(*args, **kwargs)
 
-    def do_copy(self) -> "Complex":
-        return Complex(self.real.do_copy(), self.imag.do_copy())
+        return complex(
+            self.real.to_python(*args, **kwargs), self.imag.to_python(*args, **kwargs)
+        )
+
+    @cache
+    def to_sympy(self, **kwargs):
+        return self.real.to_sympy() + sympy.I * self.imag.to_sympy()
 
     def user_hash(self, update) -> None:
         update(b"System`Complex>")
         update(self.real)
         update(self.imag)
-
-    def __eq__(self, other) -> bool:
-        if isinstance(other, Complex):
-            return self.real == other.real and self.imag == other.imag
-        else:
-            return super().__eq__(other)
-
-    def __getnewargs__(self):
-        return (self.real, self.imag)
-
-    def __neg__(self):
-        return Complex(-self.real, -self.imag)
-
-    @property
-    def is_zero(self) -> bool:
-        return self.real.is_zero and self.imag.is_zero
-
-    @property
-    def is_approx_zero(self) -> bool:
-        real_zero = (
-            self.real.is_approx_zero
-            if hasattr(self.real, "is_approx_zero")
-            else self.real.is_zero
-        )
-        imag_zero = (
-            self.imag.is_approx_zero
-            if hasattr(self.imag, "is_approx_zero")
-            else self.imag.is_zero
-        )
-        return real_zero and imag_zero
 
 
 class Rational(Number[sympy.Rational]):
@@ -947,6 +1046,8 @@ class Rational(Number[sympy.Rational]):
 
     # Collection of integers defined so far.
     _rationals: Dict[Any, "Rational"] = {}
+
+    _value: float
 
     # We use __new__ here to ensure that two Rationals's that have the same value
     # return the same object, and to set an object hash value.
@@ -996,9 +1097,11 @@ class Rational(Number[sympy.Rational]):
         """Mathics SameQ"""
         return isinstance(rhs, Rational) and self.value == rhs.value
 
+    @cache
     def numerator(self) -> "Integer":
         return Integer(self.value.as_numer_denom()[0])
 
+    @cache
     def denominator(self) -> "Integer":
         return Integer(self.value.as_numer_denom()[1])
 

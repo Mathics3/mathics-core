@@ -1265,7 +1265,11 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             and not new.elements_properties.is_ordered
             and (A_ORDERLESS & attributes)
         ):
-            new.sort()
+            try:
+                new.sort()
+            except Exception:
+                # Elements are not sortable, so leave as is.
+                pass
 
         # Step 4:  Rebuild the ExpressionCache, which tracks which symbols
         # where involved, the Sequence`s present, and the last time they have changed.
