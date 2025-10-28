@@ -135,7 +135,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
                 return mpmath.mpf(self.value)
         return mpmath.mpf(self.value)
 
-    def to_python(self, *_, **kwargs):
+    def to_python(self, *_, **kwargs) -> Union[int, float, complex]:
         """Returns a native builtin Python object
         something in (int, float, complex, str, tuple, list or dict.).
         (See discussions in
@@ -876,7 +876,7 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         Returns a Python equivalent value for this complex number.
         """
         if self.imag.sameQ(Integer0):
-            return self.real
+            return self.real.to_python(*args, **kwargs)
 
         return complex(
             self.real.to_python(*args, **kwargs), self.imag.to_python(*args, **kwargs)
