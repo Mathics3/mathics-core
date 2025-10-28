@@ -57,7 +57,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
     being: Integer, Rational, Real, Complex.
     """
 
-    _value: T
+    _value: Union[int, float, complex]
     hash: int
 
     def __getnewargs__(self):
@@ -152,10 +152,16 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         return self
 
     @property
-    def value(self) -> T:
-        """Equivalent value in either SymPy's or Python's native
-        datatype if that exist. Note the SymPy value
-        and the Python value might be the same thing.
+    def value(self) -> Union[complex, float, int]:
+        """Equivalent value in Python's native datatype. In
+        some cases, like PrecisionReal and Complex, Mathics3's
+        representation is more precise and is only approximately the
+        same value. In those cases, use method use is_exact_value() to
+        determine whether ".value" is exact or approximate.
+
+        .value and .to_python are simililar, but .to_python is not a
+        property, and allows for fancy options which might influence
+        conversion. Also, .value is a property for other atoms.
         """
         return self._value
 
@@ -855,6 +861,14 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
 
         return self
 
+    @cache
+    def __getnewargs__(self):
+        return (self.real, self.imag)
+
+    @cache
+    def __neg__(self):
+        return Complex(-self.real, -self.imag)
+
     def __hash__(self):
         return self.hash
 
@@ -866,27 +880,6 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         from mathics.eval.makeboxes import format_element
 
         return format_element(self, evaluation, f)
-
-    def to_sympy(self, **kwargs):
-        return self.real.to_sympy() + sympy.I * self.imag.to_sympy()
-
-    @cache
-    def to_python(self, *args, **kwargs) -> Union[int, float, complex]:
-        """
-        Returns a Python equivalent value for this complex number.
-        """
-        if self.imag.sameQ(Integer0):
-            return self.real.to_python(*args, **kwargs)
-
-        return complex(
-            self.real.to_python(*args, **kwargs), self.imag.to_python(*args, **kwargs)
-        )
-
-    @cache
-    def to_mpmath(self, precision: Optional[int] = None):
-        return mpmath.mpc(
-            self.real.to_mpmath(precision), self.imag.to_mpmath(precision)
-        )
 
     @cache
     def default_format(self, evaluation, form) -> str:
@@ -907,25 +900,6 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
             self.imag.element_order[1],
             1,
         )
-
-    @property
-    def pattern_precedence(self) -> tuple:
-        """
-        Return a precedence value, a tuple, which is used in selecting
-        which pattern to select when several match.
-        """
-        return super().pattern_precedence
-
-    def sameQ(self, rhs) -> bool:
-        """Mathics SameQ"""
-        return (
-            isinstance(rhs, Complex) and self.real == rhs.real and self.imag == rhs.imag
-        )
-
-    def round(self, d=None) -> "Complex":
-        real = self.real.round(d)
-        imag = self.imag.round(d)
-        return Complex(real, imag)
 
     @property
     def is_exact(self) -> bool:
@@ -958,6 +932,23 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
                 return complex(real, imag)
         return None
 
+    def do_copy(self) -> "Complex":
+        return Complex(self.real.do_copy(), self.imag.do_copy())
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, Complex):
+            return self.real == other.real and self.imag == other.imag
+        else:
+            return super().__eq__(other)
+
+    @cache
+    def __getnewargs__(self):
+        return (self.real, self.imag)
+
+    @cache
+    def __neg__(self):
+        return Complex(-self.real, -self.imag)
+
     @cache
     def get_precision(self) -> Optional[int]:
         """Returns the default specification for precision in N and other numerical functions.
@@ -972,30 +963,6 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
             return None
         return min(real_prec, imag_prec)
 
-    def do_copy(self) -> "Complex":
-        return Complex(self.real.do_copy(), self.imag.do_copy())
-
-    def user_hash(self, update) -> None:
-        update(b"System`Complex>")
-        update(self.real)
-        update(self.imag)
-
-    def __eq__(self, other) -> bool:
-        if isinstance(other, Complex):
-            return self.real == other.real and self.imag == other.imag
-        else:
-            return super().__eq__(other)
-
-    def __getnewargs__(self):
-        return (self.real, self.imag)
-
-    def __neg__(self):
-        return Complex(-self.real, -self.imag)
-
-    @property
-    def is_zero(self) -> bool:
-        return self.real.is_zero and self.imag.is_zero
-
     @property
     def is_approx_zero(self) -> bool:
         real_zero = (
@@ -1009,6 +976,56 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
             else self.imag.is_zero
         )
         return real_zero and imag_zero
+
+    @property
+    def is_zero(self) -> bool:
+        return self.real.is_zero and self.imag.is_zero
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return super().pattern_precedence
+
+    def sameQ(self, rhs) -> bool:
+        """Mathics SameQ"""
+        return (
+            isinstance(rhs, Complex) and self.real == rhs.real and self.imag == rhs.imag
+        )
+
+    def round(self, d=None) -> "Complex":
+        real = self.real.round(d)
+        imag = self.imag.round(d)
+        return Complex(real, imag)
+
+    @cache
+    def to_mpmath(self, precision: Optional[int] = None):
+        return mpmath.mpc(
+            self.real.to_mpmath(precision), self.imag.to_mpmath(precision)
+        )
+
+    @cache
+    def to_python(self, *args, **kwargs) -> Union[int, float, complex]:
+        """
+        Returns a Python equivalent value for this complex number.
+        """
+        if self.imag.sameQ(Integer0):
+            return self.real.to_python(*args, **kwargs)
+
+        return complex(
+            self.real.to_python(*args, **kwargs), self.imag.to_python(*args, **kwargs)
+        )
+
+    @cache
+    def to_sympy(self, **kwargs):
+        return self.real.to_sympy() + sympy.I * self.imag.to_sympy()
+
+    def user_hash(self, update) -> None:
+        update(b"System`Complex>")
+        update(self.real)
+        update(self.imag)
 
 
 class Rational(Number[sympy.Rational]):
