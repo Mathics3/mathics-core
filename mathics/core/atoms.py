@@ -54,7 +54,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
     being: Integer, Rational, Real, Complex.
     """
 
-    _value: Union[int, float, complex]
+    _value: Any  # Union[int, float, complex]
     hash: int
 
     def __getnewargs__(self):
@@ -215,13 +215,15 @@ class Integer(Number[int]):
 
     _sympy: sympy_numbers.Integer
 
+    _value: int
+
     # We use __new__ here to ensure that two Integer's that have the same value
     # return the same object, and to set an object hash value.
     # Consider also @lru_cache, and mechanisms for limiting and
     # clearing the cache and the object store which might be useful in implementing
     # Builtin Share[].
     def __new__(cls, value) -> "Integer":
-        n = int(value)
+        n: int = int(value)
         self = cls._integers.get(value)
         if self is None:
             self = super().__new__(cls)
@@ -248,15 +250,35 @@ class Integer(Number[int]):
         )
 
     def __ge__(self, other) -> bool:
+        if isinstance(self.value, complex) or isinstance(other, complex):
+            raise TypeError(
+                f"'>=' not supported between instances of '{type(self.value).__name__}' and '{type(other).__name__}'"
+            )
+
+        # mypy needs this spelled out.
+        assert not isinstance(self.value, complex) and not isinstance(
+            other.value, complex
+        )
+
         return (
-            self._value >= other.value
+            self.value >= other.value
             if isinstance(other, Integer)
             else super().__ge__(other)
         )
 
     def __gt__(self, other) -> bool:
+        if isinstance(self.value, complex) or isinstance(other, complex):
+            raise TypeError(
+                f"'>=' not supported between instances of '{type(self.value).__name__}' and '{type(other).__name__}'"
+            )
+
+        # mypy needs this spelled out.
+        assert not isinstance(self.value, complex) and not isinstance(
+            other.value, complex
+        )
+
         return (
-            self._value > other.value
+            self.value > other.value
             if isinstance(other, Integer)
             else super().__gt__(other)
         )
@@ -267,22 +289,39 @@ class Integer(Number[int]):
         return self.hash
 
     def __le__(self, other) -> bool:
+        if isinstance(other, Symbol):
+            return True
+
+        if isinstance(self.value, complex) or isinstance(other.value, complex):
+            raise TypeError(
+                f"'<=' not supported between instances of '{type(self.value).__name__}' and '{type(other).__name__}'"
+            )
+
         return (
-            self._value <= other.value
+            self.value <= other.value
             if isinstance(other, Integer)
             else super().__le__(other)
         )
 
     def __lt__(self, other) -> bool:
+        # sorting of elements can include Symbol's and Complex values.
+        if isinstance(other, Symbol):
+            return True
+
+        if isinstance(self.value, complex) or isinstance(other.value, complex):
+            raise TypeError(
+                f"'<' not supported between instances of '{type(self.value).__name__}' and '{type(other).__name__}'"
+            )
+
         return (
-            self._value < other.value
+            self.value < other.value
             if isinstance(other, Integer)
             else super().__lt__(other)
         )
 
     def __ne__(self, other) -> bool:
         return (
-            self._value != other.value
+            self.value != other.value
             if isinstance(other, Integer)
             else super().__ne__(other)
         )
@@ -297,7 +336,7 @@ class Integer(Number[int]):
         return self.make_boxes(f.get_name())
 
     def get_int_value(self) -> int:
-        return self._value
+        return self.value
 
     @property
     def is_zero(self) -> bool:
@@ -355,6 +394,10 @@ class Integer(Number[int]):
 
     def user_hash(self, update):
         update(b"System`Integer>" + str(self._value).encode("utf8"))
+
+    @property
+    def value(self) -> int:
+        return self._value
 
 
 Integer0 = Integer(0)
@@ -452,6 +495,7 @@ class MachineReal(Real[float]):
     # The key is the MachineReal's Python `float` value, and the
     # dictionary's value is the corresponding Mathics MachineReal object.
     _machine_reals: Dict[Any, "MachineReal"] = {}
+    _value: float
 
     def __new__(cls, value) -> "MachineReal":
         n = float(value)
@@ -541,10 +585,14 @@ class MachineReal(Real[float]):
             return False
 
     def to_python(self, *args, **kwargs) -> float:
-        return self.value
+        return self._value
 
-    def to_sympy(self, *args, **kwargs):
+    def to_sympy(self, *args, **kwargs) -> sympy.Float:
         return sympy.Float(self.value)
+
+    @property
+    def value(self) -> float:
+        return self._value
 
 
 MachineReal0 = MachineReal(0)
@@ -757,6 +805,9 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
     class_head_name = "System`Complex"
     real: Number[T]
     imag: Number[T]
+
+    _value: complex
+    _exact_value: tuple  # Tuple[Number[T], Number[T], int]
 
     # Dictionary of Complex constant values defined so far.
     # We use this for object uniqueness.
@@ -995,6 +1046,8 @@ class Rational(Number[sympy.Rational]):
 
     # Collection of integers defined so far.
     _rationals: Dict[Any, "Rational"] = {}
+
+    _value: float
 
     # We use __new__ here to ensure that two Rationals's that have the same value
     # return the same object, and to set an object hash value.
