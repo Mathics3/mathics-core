@@ -5,7 +5,7 @@ ByteArrays
 
 from typing import Optional
 
-from mathics.core.atoms import ByteArrayAtom, Integer, String
+from mathics.core.atoms import ByteArray, Integer, String
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
@@ -60,24 +60,24 @@ class ByteArray_(Builtin):
     def eval_str(self, string, evaluation):
         "ByteArray[string_String]"
         try:
-            atom = ByteArrayAtom(string.value)
+            atom = ByteArray(string.value)
         except TypeError:
             evaluation.message("ByteArray", "lend", string)
             return SymbolFailed
         return atom
 
     def eval_to_str(self, baa, evaluation: Evaluation):
-        "ToString[ByteArray[baa_ByteArrayAtom]]"
+        "ToString[ByteArray[baa_ByteArray]]"
         return String(f"ByteArray[<{len(baa.value)}>]")
 
     def eval_normal(self, baa, evaluation: Evaluation):
-        "System`Normal[ByteArray[baa_ByteArrayAtom]]"
+        "System`Normal[ByteArray[baa_ByteArray]]"
         return to_mathics_list(*baa.value, elements_conversion_fn=Integer)
 
-    def eval_list(self, values, evaluation) -> Optional[ByteArrayAtom]:
+    def eval_list(self, values, evaluation) -> Optional[ByteArray]:
         "ByteArray[values_List]"
         try:
-            ba = ByteArrayAtom(bytearray([b.get_int_value() for b in values.elements]))
+            ba = ByteArray(bytearray([b.value for b in values.elements]))
         except Exception:
             evaluation.message("ByteArray", "batd", values)
             return None

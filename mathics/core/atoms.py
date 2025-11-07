@@ -14,7 +14,7 @@ from mathics.core.element import BoxElementMixin, ImmutableValueMixin
 from mathics.core.keycomparable import (
     BASIC_ATOM_BYTEARRAY_SORT_KEY,
     BASIC_ATOM_NUMBER_SORT_KEY,
-    BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY,
+    BASIC_ATOM_STRING_SORT_KEY,
 )
 from mathics.core.number import (
     FP_MANTISA_BINARY_DIGITS,
@@ -640,24 +640,24 @@ class PrecisionReal(Real[sympy.Float]):
         return self.value
 
 
-class ByteArrayAtom(Atom, ImmutableValueMixin):
+class ByteArray(Atom, ImmutableValueMixin):
     _value: Union[bytes, bytearray]
     _elements: Optional[tuple] = None
     class_head_name = "System`ByteArrayAtom"
     hash: int
 
-    # We use __new__ here to ensure that two ByteArrayAtom's that have the same value
+    # We use __new__ here to ensure that two ByteArray's that have the same value
     # return the same object, and to set an object hash value.
     # Consider also @lru_cache, and mechanisms for limiting and
     # clearing the cache and the object store which might be useful in implementing
     # Builtin Share[].
     def __new__(cls, value):
         self = super().__new__(cls)
-        if type(value) in (bytes, bytearray):
+        if isinstance(value, (bytes, bytearray)):
             self._value = value
-        elif type(value) is list:
+        elif isinstance(value, list):
             self._value = bytearray(value)
-        elif type(value) is str:
+        elif isinstance(value, str):
             try:
                 self._value = base64.b64decode(value)
             except Exception as e:
@@ -665,7 +665,7 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
         else:
             raise TypeError("value does not belongs to a valid type")
 
-        self.hash = hash(("ByteArrayAtom", str(self.value)))
+        self.hash = hash(("ByteArray", str(self.value)))
         return self
 
     def __getnewargs__(self):
@@ -686,8 +686,8 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
     def atom_to_boxes(self, f, evaluation) -> "String":
         return String(f"ByteArray[<{len(self.value)}>]")
 
-    def do_copy(self) -> "ByteArrayAtom":
-        return ByteArrayAtom(self.value)
+    def do_copy(self) -> "ByteArray":
+        return ByteArray(self.value)
 
     def default_format(self, evaluation, form) -> str:
         value = self.value
@@ -725,16 +725,16 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
 
     @property
     def is_literal(self) -> bool:
-        """For an ByteArrayAtom, the value can't change and has a Python representation,
+        """For an ByteArray, the value can't change and has a Python representation,
         i.e. a value is set and it does not depend on definition
         bindings. So we say it is a literal.
         """
         return True
 
     def sameQ(self, rhs) -> bool:
-        """Mathics SameQ"""
+        """Mathics3 SameQ"""
         # FIX: check
-        if isinstance(rhs, ByteArrayAtom):
+        if isinstance(rhs, ByteArray):
             return self.value == rhs.value
         return False
 
@@ -1087,6 +1087,7 @@ NUMERICAL_CONSTANTS = {
 class String(Atom, BoxElementMixin):
     value: str
     class_head_name = "System`String"
+    hash: int
 
     def __new__(cls, value):
         self = super().__new__(cls)
@@ -1096,7 +1097,7 @@ class String(Atom, BoxElementMixin):
         self.hash = hash(("String", self.value))
         return self
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return self.hash
 
     def __str__(self) -> str:
@@ -1125,7 +1126,7 @@ class String(Atom, BoxElementMixin):
         of an expression. The tuple is ultimately compared lexicographically.
         """
         return (
-            BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY,
+            BASIC_ATOM_STRING_SORT_KEY,
             self.value,
             0,
             1,
