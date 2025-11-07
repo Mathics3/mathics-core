@@ -198,6 +198,8 @@ class Normal(Builtin):
     def eval_general(self, expr: Expression, evaluation: Evaluation):
         "Normal[expr_]"
         if isinstance(expr, Atom):
+            if hasattr(expr, "elements"):
+                return ListExpression(*expr.elements)
             return expr
         if expr.has_form("RootSum", 2):
             return from_sympy(expr.to_sympy().doit(roots=True))

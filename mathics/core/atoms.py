@@ -12,6 +12,7 @@ from sympy.core import numbers as sympy_numbers
 
 from mathics.core.element import BoxElementMixin, ImmutableValueMixin
 from mathics.core.keycomparable import (
+    BASIC_ATOM_BYTEARRAY_SORT_KEY,
     BASIC_ATOM_NUMBER_SORT_KEY,
     BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY,
 )
@@ -640,8 +641,10 @@ class PrecisionReal(Real[sympy.Float]):
 
 
 class ByteArrayAtom(Atom, ImmutableValueMixin):
-    value: Union[bytes, bytearray]
+    _value: Union[bytes, bytearray]
+    _elements: Optional[tuple] = None
     class_head_name = "System`ByteArrayAtom"
+    hash: int
 
     # We use __new__ here to ensure that two ByteArrayAtom's that have the same value
     # return the same object, and to set an object hash value.
@@ -651,18 +654,24 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
     def __new__(cls, value):
         self = super().__new__(cls)
         if type(value) in (bytes, bytearray):
-            self.value = value
+            self._value = value
         elif type(value) is list:
-            self.value = bytearray(list)
+            self._value = bytearray(value)
         elif type(value) is str:
-            self.value = base64.b64decode(value)
+            try:
+                self._value = base64.b64decode(value)
+            except Exception as e:
+                raise TypeError(f"base64 string decode failed: {e}")
         else:
-            raise Exception("value does not belongs to a valid type")
+            raise TypeError("value does not belongs to a valid type")
 
         self.hash = hash(("ByteArrayAtom", str(self.value)))
         return self
 
-    def __hash__(self):
+    def __getnewargs__(self):
+        return (self.value,)
+
+    def __hash__(self) -> int:
         return self.hash
 
     def __str__(self) -> str:
@@ -675,8 +684,7 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
     # is removed and the form makes decisions, rather than
     # have this routine know everything about all forms.
     def atom_to_boxes(self, f, evaluation) -> "String":
-        res = String(f"<{len(self.value)}>")
-        return res
+        return String(f"ByteArray[<{len(self.value)}>]")
 
     def do_copy(self) -> "ByteArrayAtom":
         return ByteArrayAtom(self.value)
@@ -686,14 +694,23 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
         return '"' + value.__str__() + '"'
 
     @property
+    def elements(self) -> Tuple[int, ...]:
+        """
+        Return a tuple value of Mathics3 Inteters for each element of the ByteArray.
+        """
+        if self._elements is None:
+            self._elements = tuple([Integer(i) for i in self.value])
+        return self._elements
+
+    @property
     def element_order(self) -> tuple:
         """
         Return a tuple value that is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
         return (
-            BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY,
-            self.value,
+            BASIC_ATOM_BYTEARRAY_SORT_KEY,
+            str(self.value, "utf-8"),
             0,
             1,
         )
@@ -734,12 +751,17 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
         return self.value
 
     def user_hash(self, update):
-        # hashing a String is the one case where the user gets the untampered
+        """
+        returned untampered hash value.
+
+        hashing a String is the one case where the user gets the untampered
         # hash value of the string's text. this corresponds to MMA behavior.
+        """
         update(self.value)
 
-    def __getnewargs__(self):
-        return (self.value,)
+    @property
+    def value(self) -> Union[bytes, bytearray]:
+        return self._value
 
 
 class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
