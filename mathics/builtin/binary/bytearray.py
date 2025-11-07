@@ -10,7 +10,6 @@ from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
-from mathics.core.systemsymbols import SymbolFailed
 
 
 class ByteArray_(Builtin):

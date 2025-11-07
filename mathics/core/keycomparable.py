@@ -6,18 +6,17 @@ Base classes for canonical order.
 
 class KeyComparable:
     """Mathics3/WL defines a "canonical ordering" between elements,
-    even when they that would not otherwise be comparable,
-    e.g. numerically or lexicographically, etc.
+    even where they would not otherwise be comparable either
+     numerically, lexicographically, etc.
 
     For example, there is an ordering defined between a Function
     call with some number of arguments, and a ByteArray Atom.
 
-    Symbols that have an "Orderless" attribute may use the canonic
+    Symbols that have an "Orderless" attribute use this canonic
     ordering in arranging elements.
 
-    Finally, there are builtin-functions that use this canonic
-    ordering like "Order[]", "OrderQ[]", and "Ordering[]", among
-    others, in order to compute the function's return values.
+    Also, there are builtin-functions like "Order[]", "OrderQ[]", and
+    "Ordering[]", that use this canonic ordering in their computation.
 
     To support the WL-predefined canonic order elements types, we need
     a way to compare arbitrary elements.  That is what this class is for.
@@ -28,7 +27,7 @@ class KeyComparable:
 
     This class is not complete in of itself; it is intended to be
     mixed into other classes, and is used as a fallback when Python
-    object's comparison is not does not apply due to type mismatch.
+    object's comparison does not apply due to type mismatch.
 
     Each class should provide a `element_order` property which
     is the primitive from which all other comparisons are based on.
@@ -185,7 +184,7 @@ class Monomial:
 # finished with ``END_OF_LIST_PATTERN_SORT_KEY`` to ensure that the longest
 # list of patterns always come first.
 
-# Let' s start by defining the basic magic numbers:
+# Let's start by defining the basic magic numbers:
 
 # EXPRESSION BIT
 PATTERN_SORT_KEY_IS_EXPRESSION = 0x00020000
