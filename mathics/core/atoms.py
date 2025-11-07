@@ -710,7 +710,8 @@ class ByteArray(Atom, ImmutableValueMixin):
         """
         return (
             BASIC_ATOM_BYTEARRAY_SORT_KEY,
-            str(self.value, "utf-8"),
+            self.value,
+            "utf-8",
             0,
             1,
         )
