@@ -3,7 +3,7 @@
 ByteArrays
 """
 
-from typing import Optional, Union
+from typing import Optional
 
 from mathics.core.atoms import ByteArrayAtom, Integer, String
 from mathics.core.builtin import Builtin
@@ -57,7 +57,7 @@ class ByteArray_(Builtin):
     name = "ByteArray"
     summary_text = "array of bytes"
 
-    def eval_str(self, string, evaluation) -> Union[ByteArrayAtom, SymbolFailed]:
+    def eval_str(self, string, evaluation):
         "ByteArray[string_String]"
         try:
             atom = ByteArrayAtom(string.value)
