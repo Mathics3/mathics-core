@@ -9,6 +9,7 @@ from mathics.core.atoms import ByteArray, Integer, String
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
+from mathics.core.list import ListExpression
 from mathics.core.systemsymbols import SymbolFailed
 
 
@@ -37,8 +38,8 @@ class ByteArray_(Builtin):
     >> ByteArray["ARkD"]
      = ByteArray[<3>]
     >> B=ByteArray["asy"]
-     : The argument in ByteArray[asy] should be a vector of unsigned byte values or a Base64-encoded string.
-     = $Failed
+     : The argument at position 1 in ByteArray[asy] should be a vector of unsigned byte values or a Base64-encoded string.
+     = ByteArray[asy]
 
     A 'ByteArray" is a kind of Atom:
 
@@ -49,7 +50,7 @@ class ByteArray_(Builtin):
     messages = {
         "batd": "Elements in `1` are not unsigned byte values.",
         "lend": (
-            "The argument in ByteArray[`1`] should "
+            "The argument at position 1 in ByteArray[`1`] should "
             "be a vector of unsigned byte values or a Base64-encoded string."
         ),
     }
@@ -57,13 +58,13 @@ class ByteArray_(Builtin):
     name = "ByteArray"
     summary_text = "array of bytes"
 
-    def eval_str(self, string, evaluation):
+    def eval_str(self, string, evaluation: Evaluation) -> Optional[ByteArray]:
         "ByteArray[string_String]"
         try:
             atom = ByteArray(string.value)
         except TypeError:
             evaluation.message("ByteArray", "lend", string)
-            return SymbolFailed
+            return None
         return atom
 
     def eval_to_str(self, baa, evaluation: Evaluation):
@@ -75,7 +76,11 @@ class ByteArray_(Builtin):
         return to_mathics_list(*baa.value, elements_conversion_fn=Integer)
 
     def eval_list(self, values, evaluation) -> Optional[ByteArray]:
-        "ByteArray[values_List]"
+        "ByteArray[values_]"
+        if not isinstance(values, ListExpression):
+            evaluation.message("ByteArray", "lend", values)
+            return None
+
         try:
             ba = ByteArray(bytearray([b.value for b in values.elements]))
         except Exception:

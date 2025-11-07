@@ -10,7 +10,15 @@ patterns of criteria.
 from itertools import chain
 
 from mathics.builtin.box.layout import RowBox
-from mathics.core.atoms import Integer, Integer0, Integer1, Integer3, Integer4, String
+from mathics.core.atoms import (
+    Integer,
+    Integer0,
+    Integer1,
+    Integer2,
+    Integer3,
+    Integer4,
+    String,
+)
 from mathics.core.attributes import (
     A_HOLD_FIRST,
     A_HOLD_REST,
@@ -40,8 +48,10 @@ from mathics.core.systemsymbols import (
     SymbolByteArray,
     SymbolDrop,
     SymbolFailed,
+    SymbolFirst,
     SymbolInfinity,
     SymbolKey,
+    SymbolLast,
     SymbolMakeBoxes,
     SymbolMissing,
     SymbolSelect,
@@ -675,7 +685,6 @@ class First(Builtin):
 
     attributes = A_HOLD_REST | A_PROTECTED
     messages = {
-        "argt": "First called with `1` arguments; 1 or 2 arguments are expected.",
         "nofirst": "`1` has zero length and no first element.",
     }
     summary_text = "first element of a list or expression"
@@ -685,14 +694,22 @@ class First(Builtin):
         "expression: First[expr__]"
 
         if isinstance(expr, Atom):
-            evaluation.message("First", "normal", Integer1, expression)
-            return
+            if not hasattr(expr, "elements"):
+                evaluation.message("First", "normal", Integer1, expression)
+                return
         expr_len = len(expr.elements)
         if expr_len == 0:
             evaluation.message("First", "nofirst", expr)
             return
+
+        if isinstance(expr, Atom):
+            # ByteArray or NumericArray, ...
+            return expr.elements[0]
+
         if expr_len > 2 and expr.head is SymbolSequence:
-            evaluation.message("First", "argt", expr_len)
+            evaluation.message(
+                "First", "argt", SymbolFirst, Integer(expr_len), Integer1, Integer2
+            )
             return
 
         first_elem = expr.elements[0]
@@ -949,7 +966,6 @@ class Last(Builtin):
 
     attributes = A_HOLD_REST | A_PROTECTED
     messages = {
-        "argt": "Last called with `1` arguments; 1 or 2 arguments are expected.",
         "nolast": "`1` has zero length and no last element.",
     }
     summary_text = "last element of a list or expression"
@@ -959,14 +975,22 @@ class Last(Builtin):
         "expression: Last[expr__]"
 
         if isinstance(expr, Atom):
-            evaluation.message("Last", "normal", Integer1, expression)
-            return
+            if not hasattr(expr, "elements"):
+                evaluation.message("First", "normal", Integer1, expression)
+                return
         expr_len = len(expr.elements)
         if expr_len == 0:
             evaluation.message("Last", "nolast", expr)
             return
+
+        if isinstance(expr, Atom):
+            # ByteArray or NumericArray, ...
+            return expr.elements[-1]
+
         if expr_len > 2 and expr.head is SymbolSequence:
-            evaluation.message("Last", "argt", expr_len)
+            evaluation.message(
+                "Last", "argt", SymbolLast, Integer(expr_len), Integer1, Integer2
+            )
             return
 
         return expr.elements[-1]
