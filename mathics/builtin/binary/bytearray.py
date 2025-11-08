@@ -71,7 +71,7 @@ class ByteArray_(Builtin):
         return String(f"ByteArray[<{len(baa.value)}>]")
 
     def eval_normal(self, baa, evaluation: Evaluation):
-        "System`Normal[ByteArray[baa_ByteArray]]"
+        "System`Normal[baa_ByteArray]"
         return to_mathics_list(*baa.value, elements_conversion_fn=Integer)
 
     def eval_list(self, values, evaluation) -> Optional[ByteArray]:
