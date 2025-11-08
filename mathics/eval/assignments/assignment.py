@@ -508,7 +508,7 @@ def eval_assign_format(
     lhs_reference = get_reference_expression(lhs)
     lhs_reference = (
         lhs_reference.get_head()
-        if isinstance(lhs_reference, Expression)
+        if not isinstance(lhs_reference, Symbol)
         else lhs_reference
     )
     tags = process_tags_and_upset_dont_allow_custom(
