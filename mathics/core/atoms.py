@@ -647,7 +647,7 @@ class ByteArray(Atom, ImmutableValueMixin):
     # However the name is different because there is a concern
     # having these be distinct names may catch mistakes in coding
     # where an expanded or Normal[]'d value is used when it should
-    # not be used
+    # not be used.
     _items: Optional[tuple] = None
 
     class_head_name = "System`ByteArray"
@@ -733,7 +733,7 @@ class ByteArray(Atom, ImmutableValueMixin):
 
     @property
     def is_literal(self) -> bool:
-        """For an ByteArray, the value can't change and has a Python representation,
+        """For a ByteArray, the value can't change and has a Python representation,
         i.e. a value is set and it does not depend on definition
         bindings. So we say it is a literal.
         """
