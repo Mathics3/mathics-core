@@ -643,7 +643,7 @@ class PrecisionReal(Real[sympy.Float]):
 class ByteArray(Atom, ImmutableValueMixin):
     _value: Union[bytes, bytearray]
     _elements: Optional[tuple] = None
-    class_head_name = "System`ByteArrayAtom"
+    class_head_name = "System`ByteArray"
     hash: int
 
     # We use __new__ here to ensure that two ByteArray's that have the same value

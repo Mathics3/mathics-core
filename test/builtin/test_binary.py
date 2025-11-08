@@ -379,6 +379,24 @@ def test_private_doctests_io(str_expr, str_expected, fail_msg):
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "fail_msg"),
     [
+        ("Head[ByteArray[{1}]]", "ByteArray", None),
+    ],
+)
+def test_ByteArray(str_expr, str_expected, fail_msg):
+    """ """
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=fail_msg,
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "fail_msg"),
+    [
         ("ByteOrdering", "1" if sys.byteorder == "big" else "-1", None),
         ("ByteOrdering == -1 || ByteOrdering == 1", "True", None),
         (
@@ -393,7 +411,7 @@ def test_private_doctests_io(str_expr, str_expected, fail_msg):
         ),
     ],
 )
-def test_private_doctests_system(str_expr, str_expected, fail_msg):
+def test_ByteOrdering(str_expr, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,
