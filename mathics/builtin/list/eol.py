@@ -983,7 +983,7 @@ class Last(Builtin):
             evaluation.message("Last", "nolast", expr)
             return
 
-        if isinstance(expr, Atom):
+        if isinstance(expr, ByteArray):
             # ByteArray or NumericArray, ...
             return expr.elements[-1]
 
