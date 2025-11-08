@@ -21,7 +21,7 @@ dependencies = [
     # ExampleData image hedy.tif is in this format.
     # Pillow 9.2 handles sunflowers.jpg
     "pillow >= 9.2",
-    "pint",
+    "pint >=0.24", # Earlier pint has problems with numpy 2.2.6
     "python-dateutil",
     # Pympler is used in ByteCount[] and MemoryInUse[].
     "Pympler",

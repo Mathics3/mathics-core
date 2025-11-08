@@ -12,8 +12,9 @@ from sympy.core import numbers as sympy_numbers
 
 from mathics.core.element import BoxElementMixin, ImmutableValueMixin
 from mathics.core.keycomparable import (
+    BASIC_ATOM_BYTEARRAY_SORT_KEY,
     BASIC_ATOM_NUMBER_SORT_KEY,
-    BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY,
+    BASIC_ATOM_STRING_SORT_KEY,
 )
 from mathics.core.number import (
     FP_MANTISA_BINARY_DIGITS,
@@ -639,30 +640,45 @@ class PrecisionReal(Real[sympy.Float]):
         return self.value
 
 
-class ByteArrayAtom(Atom, ImmutableValueMixin):
-    value: Union[bytes, bytearray]
-    class_head_name = "System`ByteArrayAtom"
+class ByteArray(Atom, ImmutableValueMixin):
+    _value: Union[bytes, bytearray]
 
-    # We use __new__ here to ensure that two ByteArrayAtom's that have the same value
+    # Items is analogous to "elements" in Lists.
+    # However the name is different because there is a concern
+    # having these be distinct names may catch mistakes in coding
+    # where an expanded or Normal[]'d value is used when it should
+    # not be used.
+    _items: Optional[tuple] = None
+
+    class_head_name = "System`ByteArray"
+    hash: int
+
+    # We use __new__ here to ensure that two ByteArray's that have the same value
     # return the same object, and to set an object hash value.
     # Consider also @lru_cache, and mechanisms for limiting and
     # clearing the cache and the object store which might be useful in implementing
     # Builtin Share[].
     def __new__(cls, value):
         self = super().__new__(cls)
-        if type(value) in (bytes, bytearray):
-            self.value = value
-        elif type(value) is list:
-            self.value = bytearray(list)
-        elif type(value) is str:
-            self.value = base64.b64decode(value)
+        if isinstance(value, (bytes, bytearray)):
+            self._value = value
+        elif isinstance(value, list):
+            self._value = bytearray(value)
+        elif isinstance(value, str):
+            try:
+                self._value = base64.b64decode(value)
+            except Exception as e:
+                raise TypeError(f"base64 string decode failed: {e}")
         else:
-            raise Exception("value does not belongs to a valid type")
+            raise TypeError("value does not belongs to a valid type")
 
-        self.hash = hash(("ByteArrayAtom", str(self.value)))
+        self.hash = hash(("ByteArray", str(self.value)))
         return self
 
-    def __hash__(self):
+    def __getnewargs__(self):
+        return (self.value,)
+
+    def __hash__(self) -> int:
         return self.hash
 
     def __str__(self) -> str:
@@ -675,15 +691,23 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
     # is removed and the form makes decisions, rather than
     # have this routine know everything about all forms.
     def atom_to_boxes(self, f, evaluation) -> "String":
-        res = String(f"<{len(self.value)}>")
-        return res
+        return String(f"ByteArray[<{len(self.value)}>]")
 
-    def do_copy(self) -> "ByteArrayAtom":
-        return ByteArrayAtom(self.value)
+    def do_copy(self) -> "ByteArray":
+        return ByteArray(self.value)
 
     def default_format(self, evaluation, form) -> str:
         value = self.value
         return '"' + value.__str__() + '"'
+
+    @property
+    def items(self) -> Tuple[int, ...]:
+        """
+        Return a tuple value of Mathics3 Inteters for each element of the ByteArray.
+        """
+        if self._items is None:
+            self._items = tuple([Integer(i) for i in self.value])
+        return self._items
 
     @property
     def element_order(self) -> tuple:
@@ -692,8 +716,9 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
         of an expression. The tuple is ultimately compared lexicographically.
         """
         return (
-            BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY,
+            BASIC_ATOM_BYTEARRAY_SORT_KEY,
             self.value,
+            "utf-8",
             0,
             1,
         )
@@ -708,16 +733,16 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
 
     @property
     def is_literal(self) -> bool:
-        """For an ByteArrayAtom, the value can't change and has a Python representation,
+        """For a ByteArray, the value can't change and has a Python representation,
         i.e. a value is set and it does not depend on definition
         bindings. So we say it is a literal.
         """
         return True
 
     def sameQ(self, rhs) -> bool:
-        """Mathics SameQ"""
+        """Mathics3 SameQ"""
         # FIX: check
-        if isinstance(rhs, ByteArrayAtom):
+        if isinstance(rhs, ByteArray):
             return self.value == rhs.value
         return False
 
@@ -734,12 +759,17 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
         return self.value
 
     def user_hash(self, update):
-        # hashing a String is the one case where the user gets the untampered
+        """
+        returned untampered hash value.
+
+        hashing a String is the one case where the user gets the untampered
         # hash value of the string's text. this corresponds to MMA behavior.
+        """
         update(self.value)
 
-    def __getnewargs__(self):
-        return (self.value,)
+    @property
+    def value(self) -> Union[bytes, bytearray]:
+        return self._value
 
 
 class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
@@ -1065,6 +1095,7 @@ NUMERICAL_CONSTANTS = {
 class String(Atom, BoxElementMixin):
     value: str
     class_head_name = "System`String"
+    hash: int
 
     def __new__(cls, value):
         self = super().__new__(cls)
@@ -1074,7 +1105,7 @@ class String(Atom, BoxElementMixin):
         self.hash = hash(("String", self.value))
         return self
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return self.hash
 
     def __str__(self) -> str:
@@ -1103,7 +1134,7 @@ class String(Atom, BoxElementMixin):
         of an expression. The tuple is ultimately compared lexicographically.
         """
         return (
-            BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY,
+            BASIC_ATOM_STRING_SORT_KEY,
             self.value,
             0,
             1,

@@ -5,26 +5,39 @@ Base classes for canonical order.
 
 
 class KeyComparable:
-    """
+    """Mathics3/WL defines a "canonical ordering" between elements,
+    even where they would not otherwise be comparable either
+     numerically, lexicographically, etc.
 
-    Some Mathics3/WL Symbols have an "OrderLess" attribute
-    which is used in the evaluation process to arrange items in a list.
+    For example, there is an ordering defined between a Function
+    call with some number of arguments, and a ByteArray Atom.
 
-    To do that, we need a way to compare Symbols, and that is what
-    this class is for.
+    Symbols that have an "Orderless" attribute use this canonic
+    ordering in arranging elements.
 
-    This class adds the boilerplate Python comparison operators that
-    you expect in Python programs for comparing Python objects.
+    Also, there are builtin-functions like "Order[]", "OrderQ[]", and
+    "Ordering[]", that use this canonic ordering in their computation.
 
-    This class is not complete in of itself, it is intended to be
-    mixed into other classes.
+    To support the WL-predefined canonic order elements types, we need
+    a way to compare arbitrary elements.  That is what this class is for.
+
+    This class adds the boilerplate Python comparison operators, like
+    __lt__, __eq__, etc. that Python provides for comparing Python
+    objects.
+
+    This class is not complete in of itself; it is intended to be
+    mixed into other classes, and is used as a fallback when Python
+    object's comparison does not apply due to type mismatch.
 
     Each class should provide a `element_order` property which
     is the primitive from which all other comparisons are based on.
 
-    The class also contains a `pattern_precedence` property that provides
-    the sort key used to order a list of rules according to the
-    precedence they have in the evaluation loop.
+    The class also contains a `pattern_precedence` property that
+    provides the sort key used to order a list of rules according to
+    the precedence they have in the evaluation loop. Note that pattern
+    precedence and element ordering are separate concepts, although
+    they both have a similar feel.
+
     """
 
     @property
@@ -171,7 +184,7 @@ class Monomial:
 # finished with ``END_OF_LIST_PATTERN_SORT_KEY`` to ensure that the longest
 # list of patterns always come first.
 
-# Let' s start by defining the basic magic numbers:
+# Let's start by defining the basic magic numbers:
 
 # EXPRESSION BIT
 PATTERN_SORT_KEY_IS_EXPRESSION = 0x00020000
@@ -262,7 +275,8 @@ END_OF_LIST_PATTERN_SORT_KEY = (
 ###  SORT_KEYS prefix for expression_order
 
 BASIC_ATOM_NUMBER_SORT_KEY = 0x00
-BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY = 0x01
+BASIC_ATOM_STRING_SORT_KEY = 0x01
+BASIC_ATOM_BYTEARRAY_SORT_KEY = 0x02
 LITERAL_EXPRESSION_SORT_KEY = 0x03
 
 BASIC_NUMERIC_EXPRESSION_SORT_KEY = 0x12
