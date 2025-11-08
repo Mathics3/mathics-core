@@ -695,7 +695,7 @@ class First(Builtin):
         "expression: First[expr__]"
 
         if isinstance(expr, Atom):
-            if not hasattr(expr, "elements"):
+            if not hasattr(expr, "items"):
                 evaluation.message("First", "normal", Integer1, expression)
                 return
         expr_len = len(expr.elements)
@@ -975,7 +975,7 @@ class Last(Builtin):
         "expression: Last[expr__]"
 
         if isinstance(expr, Atom):
-            if not hasattr(expr, "elements"):
+            if not hasattr(expr, "items"):
                 evaluation.message("First", "normal", Integer1, expression)
                 return
         expr_len = len(expr.elements)
@@ -1196,19 +1196,18 @@ class Part(Builtin):
                 idx = idx.value
                 if idx == 0:
                     return SymbolByteArray
-                data = list.elements[0].value
-                lendata = len(data)
+                n = len(list.items)
                 if idx < 0:
-                    idx = data - idx
+                    idx = n - idx
                     if idx < 0:
                         evaluation.message("Part", "partw", i, list)
                         return
                 else:
                     idx = idx - 1
-                    if idx > lendata:
+                    if idx > n:
                         evaluation.message("Part", "partw", i, list)
                         return
-                return Integer(data[idx])
+                return list.items[idx]
             if idx is Symbol("System`All"):
                 return list
             # TODO: handling ranges and lists...

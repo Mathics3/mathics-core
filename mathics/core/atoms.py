@@ -642,7 +642,14 @@ class PrecisionReal(Real[sympy.Float]):
 
 class ByteArray(Atom, ImmutableValueMixin):
     _value: Union[bytes, bytearray]
-    _elements: Optional[tuple] = None
+
+    # Items is analogous to "elements" in Lists.
+    # However the name is different because there is a concern
+    # having these be distinct names may catch mistakes in coding
+    # where an expanded or Normal[]'d value is used when it should
+    # not be used
+    _items: Optional[tuple] = None
+
     class_head_name = "System`ByteArray"
     hash: int
 
@@ -694,13 +701,13 @@ class ByteArray(Atom, ImmutableValueMixin):
         return '"' + value.__str__() + '"'
 
     @property
-    def elements(self) -> Tuple[int, ...]:
+    def items(self) -> Tuple[int, ...]:
         """
         Return a tuple value of Mathics3 Inteters for each element of the ByteArray.
         """
-        if self._elements is None:
-            self._elements = tuple([Integer(i) for i in self.value])
-        return self._elements
+        if self._items is None:
+            self._items = tuple([Integer(i) for i in self.value])
+        return self._items
 
     @property
     def element_order(self) -> tuple:

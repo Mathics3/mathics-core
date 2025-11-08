@@ -199,7 +199,7 @@ class Normal(Builtin):
         "Normal[expr_]"
         if isinstance(expr, Atom):
             if isinstance(expr, ByteArray):
-                return ListExpression(*expr.elements)
+                return ListExpression(*expr.items)
             return expr
         if expr.has_form("RootSum", 2):
             return from_sympy(expr.to_sympy().doit(roots=True))
