@@ -11,6 +11,7 @@ from itertools import chain
 
 from mathics.builtin.box.layout import RowBox
 from mathics.core.atoms import (
+    ByteArray,
     Integer,
     Integer0,
     Integer1,
@@ -702,8 +703,7 @@ class First(Builtin):
             evaluation.message("First", "nofirst", expr)
             return
 
-        if isinstance(expr, Atom):
-            # ByteArray or NumericArray, ...
+        if isinstance(expr, ByteArray):
             return expr.elements[0]
 
         if expr_len > 2 and expr.head is SymbolSequence:
