@@ -698,13 +698,15 @@ class First(Builtin):
             if not hasattr(expr, "items"):
                 evaluation.message("First", "normal", Integer1, expression)
                 return
-        expr_len = len(expr.elements)
+            expr_len = len(expr.items)
+        else:
+            expr_len = len(expr.elements)
         if expr_len == 0:
             evaluation.message("First", "nofirst", expr)
             return
 
         if isinstance(expr, ByteArray):
-            return expr.elements[0]
+            return expr.items[0]
 
         if expr_len > 2 and expr.head is SymbolSequence:
             evaluation.message(
@@ -978,14 +980,16 @@ class Last(Builtin):
             if not hasattr(expr, "items"):
                 evaluation.message("First", "normal", Integer1, expression)
                 return
-        expr_len = len(expr.elements)
+            expr_len = len(expr.items)
+        else:
+            expr_len = len(expr.elements)
         if expr_len == 0:
             evaluation.message("Last", "nolast", expr)
             return
 
         if isinstance(expr, ByteArray):
             # ByteArray or NumericArray, ...
-            return expr.elements[-1]
+            return expr.items[-1]
 
         if expr_len > 2 and expr.head is SymbolSequence:
             evaluation.message(
