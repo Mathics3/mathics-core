@@ -180,10 +180,10 @@ def test_matchq(str_expr, msgs, str_expected, fail_msg):
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "assert_fail_msg"),
     [
-            # Clean the definitions, because
-            # a previous definition of `A` or `F` could make
-            # the test to fail.
-            (None, None, None),
+        # Clean the definitions, because
+        # a previous definition of `A` or `F` could make
+        # the test to fail.
+        (None, None, None),
         ('Order["c", "d"]', "1", "Alphabetic order: 'c' comes before 'd'"),
         ('Order["d", "c"]', "-1", "Alphabetic order: 'd' comes after 'c'"),
         ('Order["c", ByteArray[{99}]]', "1", "String comes before ByteArray"),
@@ -201,8 +201,7 @@ def test_matchq(str_expr, msgs, str_expected, fail_msg):
             "-1",
             "Numeric greater than comparison between Real and Integer",
         ),
-        # FIXME: Intermittently fails - investigate why
-        # ("Order[F[2], A[2]]", "-1", "Function ordering in function name"),
+        ("Order[F[2], A[2]]", "-1", "Function ordering in function name"),
         (
             "Order[F[2], F[3]]",
             "1",
