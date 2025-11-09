@@ -12,9 +12,9 @@ from sympy.core import numbers as sympy_numbers
 
 from mathics.core.element import BoxElementMixin, ImmutableValueMixin
 from mathics.core.keycomparable import (
-    BASIC_ATOM_BYTEARRAY_SORT_KEY,
-    BASIC_ATOM_NUMBER_SORT_KEY,
-    BASIC_ATOM_STRING_SORT_KEY,
+    BASIC_ATOM_BYTEARRAY_ELT_ORDER,
+    BASIC_ATOM_NUMBER_ELT_ORDER,
+    BASIC_ATOM_STRING_ELT_ORDER,
 )
 from mathics.core.number import (
     FP_MANTISA_BINARY_DIGITS,
@@ -91,7 +91,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         of an expression. The tuple is ultimately compared lexicographically.
         """
         return (
-            BASIC_ATOM_NUMBER_SORT_KEY,
+            BASIC_ATOM_NUMBER_ELT_ORDER,
             self.value,
             0,
             1,
@@ -716,7 +716,7 @@ class ByteArray(Atom, ImmutableValueMixin):
         of an expression. The tuple is ultimately compared lexicographically.
         """
         return (
-            BASIC_ATOM_BYTEARRAY_SORT_KEY,
+            BASIC_ATOM_BYTEARRAY_ELT_ORDER,
             self.value,
             "utf-8",
             0,
@@ -881,7 +881,7 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         of an expression. The tuple is ultimately compared lexicographically.
         """
         return (
-            BASIC_ATOM_NUMBER_SORT_KEY,
+            BASIC_ATOM_NUMBER_ELT_ORDER,
             self.real.element_order[1],
             self.imag.element_order[1],
             1,
@@ -1043,7 +1043,7 @@ class Rational(Number[sympy.Rational]):
         """
         # HACK: otherwise "Bus error" when comparing 1==1.
         return (
-            BASIC_ATOM_NUMBER_SORT_KEY,
+            BASIC_ATOM_NUMBER_ELT_ORDER,
             sympy.Float(self.value),
             0,
             1,
@@ -1134,7 +1134,7 @@ class String(Atom, BoxElementMixin):
         of an expression. The tuple is ultimately compared lexicographically.
         """
         return (
-            BASIC_ATOM_STRING_SORT_KEY,
+            BASIC_ATOM_STRING_ELT_ORDER,
             self.value,
             0,
             1,
