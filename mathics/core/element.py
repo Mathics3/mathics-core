@@ -77,6 +77,9 @@ class ElementsProperties:
     # this True elements are not sorted can cause evaluation differences.
     is_ordered: bool = False
 
+    # Uniform expressions have all their elements with the same Head.
+    is_uniform: bool = False
+
 
 class ImmutableValueMixin:
     @property

@@ -216,6 +216,13 @@ class Atom(BaseElement):
     #        1/0
     #        return None if stop_on_error else {}
 
+    def get_lookup_name(self) -> str:
+        """
+        By default, atoms that are not symbols
+        have their class head_names as their lookup names.
+        """
+        return self.class_head_name
+
     @property
     def element_order(self) -> tuple:
         """
@@ -460,6 +467,12 @@ class Symbol(Atom, NumericOperators, EvalMixin):
 
     def get_head_name(self) -> str:
         return "System`Symbol"
+
+    def get_lookup_name(self) -> str:
+        """
+        The lookup name of a Symbol is its name.
+        """
+        return self.get_name()
 
     def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
         """
