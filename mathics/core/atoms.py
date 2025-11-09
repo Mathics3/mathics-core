@@ -675,6 +675,12 @@ class ByteArray(Atom, ImmutableValueMixin):
         self.hash = hash(("ByteArray", str(self.value)))
         return self
 
+    def __getitem__(self, index: int) -> int:
+        """
+        Support List index lookup without having to expand the entire bytearray into a Mathics3 list.
+        """
+        return self.value[index]
+
     def __getnewargs__(self):
         return (self.value,)
 
@@ -701,9 +707,9 @@ class ByteArray(Atom, ImmutableValueMixin):
         return '"' + value.__str__() + '"'
 
     @property
-    def items(self) -> Tuple[int, ...]:
+    def items(self) -> Tuple[Integer, ...]:
         """
-        Return a tuple value of Mathics3 Inteters for each element of the ByteArray.
+        Return a tuple value of Mathics3 Integers for each element of the ByteArray.
         """
         if self._items is None:
             self._items = tuple([Integer(i) for i in self.value])
