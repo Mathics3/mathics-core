@@ -219,7 +219,7 @@ class Atom(BaseElement):
     def get_lookup_name(self) -> str:
         """
         By default, atoms that are not symbols
-        have its class head_name as their lookup names.
+        have their class head_names as their lookup names.
         """
         return self.class_head_name
 
