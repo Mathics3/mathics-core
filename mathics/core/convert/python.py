@@ -110,8 +110,8 @@ def from_python(arg: Any) -> BaseElement:
     elif isinstance(arg, list) or isinstance(arg, tuple):
         return to_mathics_list(*arg, elements_conversion_fn=from_python)
     elif isinstance(arg, bytearray) or isinstance(arg, bytes):
-        from mathics.builtin.binary.bytearray import ByteArrayAtom
+        from mathics.builtin.binary.bytearray import ByteArray
 
-        return Expression(SymbolByteArray, ByteArrayAtom(arg))
+        return Expression(SymbolByteArray, ByteArray(arg))
     else:
         raise NotImplementedError
