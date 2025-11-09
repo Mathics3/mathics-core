@@ -1188,7 +1188,6 @@ class Part(Builtin):
         indices = i.get_sequence()
         # How to deal with ByteArrays
         if list.get_head() is SymbolByteArray:
-            list = list.evaluate(evaluation)
             if len(indices) > 1:
                 print(
                     "Part::partd1: Depth of object ByteArray[<3>] "
@@ -1200,7 +1199,7 @@ class Part(Builtin):
                 idx = idx.value
                 if idx == 0:
                     return SymbolByteArray
-                n = len(list.items)
+                n = len(list.value)
                 if idx < 0:
                     idx = n - idx
                     if idx < 0:
@@ -1211,7 +1210,7 @@ class Part(Builtin):
                     if idx > n:
                         evaluation.message("Part", "partw", i, list)
                         return
-                return list.items[idx]
+                return Integer(list[idx])
             if idx is Symbol("System`All"):
                 return list
             # TODO: handling ranges and lists...
