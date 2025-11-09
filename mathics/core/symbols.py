@@ -16,8 +16,8 @@ if TYPE_CHECKING:
 
 from mathics.core.keycomparable import (
     BASIC_ATOM_PATTERN_SORT_KEY,
-    BASIC_EXPRESSION_SORT_KEY,
-    BASIC_NUMERIC_EXPRESSION_SORT_KEY,
+    BASIC_EXPRESSION_ELT_ORDER,
+    BASIC_NUMERIC_EXPRESSION_ELT_ORDER,
     Monomial,
 )
 from mathics.eval.tracing import trace_evaluate
@@ -215,6 +215,13 @@ class Atom(BaseElement):
     #              allow_symbols ))
     #        1/0
     #        return None if stop_on_error else {}
+
+    def get_lookup_name(self) -> str:
+        """
+        By default, atoms that are not symbols
+        have their class head_names as their lookup names.
+        """
+        return self.class_head_name
 
     @property
     def element_order(self) -> tuple:
@@ -461,6 +468,12 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     def get_head_name(self) -> str:
         return "System`Symbol"
 
+    def get_lookup_name(self) -> str:
+        """
+        The lookup name of a Symbol is its name.
+        """
+        return self.get_name()
+
     def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
         """
         Build a dictionary of options from an expression.
@@ -545,9 +558,9 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         """
         return (
             (
-                BASIC_NUMERIC_EXPRESSION_SORT_KEY
+                BASIC_NUMERIC_EXPRESSION_ELT_ORDER
                 if self.is_numeric()
-                else BASIC_EXPRESSION_SORT_KEY
+                else BASIC_EXPRESSION_ELT_ORDER
             ),
             Monomial({self.name: 1}),
             0,

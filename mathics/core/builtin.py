@@ -444,7 +444,7 @@ class Builtin:
     # for Sqrt[a, b] (one argument expected) or Subtract[a] (two
     # arguments expected) It assumes each builtin defines
     # "expected_args" for the correct number of arguments to give.
-    # See class mathics.builtins.basic.Sqrt for how to set up.
+    # See class mathics.builtin.arithfns.basic.Sqrt for how to set up.
     def generic_argument_error(self, invalid, evaluation: Evaluation):
         "%(name)s[invalid___]"
 
