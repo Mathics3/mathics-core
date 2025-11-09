@@ -40,10 +40,10 @@ from mathics.core.element import ElementsProperties, EvalMixin, ensure_context
 from mathics.core.evaluation import Evaluation
 from mathics.core.interrupt import ReturnInterrupt
 from mathics.core.keycomparable import (
-    BASIC_EXPRESSION_SORT_KEY,
-    BASIC_NUMERIC_EXPRESSION_SORT_KEY,
-    GENERAL_EXPRESSION_SORT_KEY,
-    GENERAL_NUMERIC_EXPRESSION_SORT_KEY,
+    BASIC_EXPRESSION_ELT_ORDER,
+    BASIC_NUMERIC_EXPRESSION_ELT_ORDER,
+    GENERAL_EXPRESSION_ELT_ORDER,
+    GENERAL_NUMERIC_EXPRESSION_ELT_ORDER,
     Monomial,
 )
 from mathics.core.structure import LinkedStructure
@@ -897,7 +897,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         of an expression. The tuple is ultimately compared lexicographically.
         """
         """
-        General sort key structure:
+        General element order key structure:
         0: 1/2:        Numeric / General Expression
         1: 2/3         Special arithmetic (Times / Power) / General Expression
         2: Element:        Head
@@ -932,9 +932,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         if exps:
             return (
                 (
-                    BASIC_NUMERIC_EXPRESSION_SORT_KEY
+                    BASIC_NUMERIC_EXPRESSION_ELT_ORDER
                     if self.is_numeric()
-                    else BASIC_EXPRESSION_SORT_KEY
+                    else BASIC_EXPRESSION_ELT_ORDER
                 ),
                 Monomial(exps),
                 1,
@@ -945,9 +945,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         else:
             return (
                 (
-                    GENERAL_NUMERIC_EXPRESSION_SORT_KEY
+                    GENERAL_NUMERIC_EXPRESSION_ELT_ORDER
                     if self.is_numeric()
-                    else GENERAL_EXPRESSION_SORT_KEY
+                    else GENERAL_EXPRESSION_ELT_ORDER
                 ),
                 head,
                 len(self._elements),

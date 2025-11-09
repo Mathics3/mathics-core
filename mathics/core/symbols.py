@@ -16,8 +16,8 @@ if TYPE_CHECKING:
 
 from mathics.core.keycomparable import (
     BASIC_ATOM_PATTERN_SORT_KEY,
-    BASIC_EXPRESSION_SORT_KEY,
-    BASIC_NUMERIC_EXPRESSION_SORT_KEY,
+    BASIC_EXPRESSION_ELT_ORDER,
+    BASIC_NUMERIC_EXPRESSION_ELT_ORDER,
     Monomial,
 )
 from mathics.eval.tracing import trace_evaluate
@@ -558,9 +558,9 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         """
         return (
             (
-                BASIC_NUMERIC_EXPRESSION_SORT_KEY
+                BASIC_NUMERIC_EXPRESSION_ELT_ORDER
                 if self.is_numeric()
-                else BASIC_EXPRESSION_SORT_KEY
+                else BASIC_EXPRESSION_ELT_ORDER
             ),
             Monomial({self.name: 1}),
             0,

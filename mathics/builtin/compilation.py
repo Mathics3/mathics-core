@@ -25,7 +25,7 @@ from mathics.core.convert.python import from_python
 from mathics.core.element import ImmutableValueMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.keycomparable import LITERAL_EXPRESSION_SORT_KEY
+from mathics.core.keycomparable import LITERAL_EXPRESSION_ELT_ORDER
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolCompiledFunction
 
@@ -146,7 +146,7 @@ class CompiledCode(Atom, ImmutableValueMixin):
         lexicographically.
 
         """
-        return (LITERAL_EXPRESSION_SORT_KEY, hex(id(self)))
+        return (LITERAL_EXPRESSION_ELT_ORDER, hex(id(self)))
 
     @property
     def pattern_precedence(self) -> tuple:
