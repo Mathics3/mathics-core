@@ -215,20 +215,26 @@ def test_plot(str_expr, msgs, str_expected, fail_msg):
 
 def check_structure(result, expected):
     """Check that expected is a prefix of result at every node"""
+
     # print_expr_tree(result)
     # print_expr_tree(expected)
-    assert result.get_head() == expected.get_head(), "heads must match"
+
+    def msg(s):
+        pos = getattr(getattr(expected, "location", None), "start_pos", None)
+        return f"in str_expected at pos {pos or '?'}: {s}"
+
+    assert result.get_head() == expected.get_head(), msg("heads must match")
     assert hasattr(result, "elements") == hasattr(
         expected, "elements"
-    ), "either both or none must have elements"
+    ), msg("either both or none must have elements")
     if hasattr(expected, "elements"):
         for i, e in enumerate(expected.elements):
             assert (
                 len(result.elements) > i
-            ), f"expected at least {i} elements, found only {len(result.elements)}"
+            ), msg("result has too few elements")
             check_structure(result.elements[i], e)
     else:
-        assert str(result) == str(expected), f"leaves don't match"
+        assert str(result) == str(expected), msg("leaves don't match")
 
 
 @pytest.mark.parametrize(
@@ -305,6 +311,11 @@ def check_structure(result, expected):
     ],
 )
 def test_plot_structure(str_expr, str_expected):
+
+    # TODO: unfortunately this only adds location information to the top-level expression
+    # so not very useful
+    session.evaluate("Set[$TrackLocations, True]")
+
     expr = session.parse(str_expr)
     result = expr.evaluate(session.evaluation)
     expected = session.parse(str_expected)
