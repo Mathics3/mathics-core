@@ -224,14 +224,12 @@ def check_structure(result, expected):
         return f"in str_expected at pos {pos or '?'}: {s}"
 
     assert result.get_head() == expected.get_head(), msg("heads must match")
-    assert hasattr(result, "elements") == hasattr(
-        expected, "elements"
-    ), msg("either both or none must have elements")
+    assert hasattr(result, "elements") == hasattr(expected, "elements"), msg(
+        "either both or none must have elements"
+    )
     if hasattr(expected, "elements"):
         for i, e in enumerate(expected.elements):
-            assert (
-                len(result.elements) > i
-            ), msg("result has too few elements")
+            assert len(result.elements) > i, msg("result has too few elements")
             check_structure(result.elements[i], e)
     else:
         assert str(result) == str(expected), msg("leaves don't match")
@@ -311,7 +309,6 @@ def check_structure(result, expected):
     ],
 )
 def test_plot_structure(str_expr, str_expected):
-
     # TODO: unfortunately this only adds location information to the top-level expression
     # so not very useful
     session.evaluate("Set[$TrackLocations, True]")
