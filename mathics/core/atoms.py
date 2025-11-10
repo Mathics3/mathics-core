@@ -1166,7 +1166,9 @@ class NumericArray(Atom, ImmutableValueMixin):
     # TODO: to make it less expensive only look at first 100 bytes - ok? needed?
     def __hash__(self):
         if not self._hash:
-            self._hash = hash(("NumericArray", self.value.shape, self.value.tobytes()[:100]))
+            self._hash = hash(
+                ("NumericArray", self.value.shape, self.value.tobytes()[:100])
+            )
         return self._hash
 
     def __str__(self) -> str:
@@ -1184,6 +1186,7 @@ class NumericArray(Atom, ImmutableValueMixin):
     @property
     def items(self) -> tuple:
         from mathics.core.convert.python import from_python
+
         if len(self.value.shape) == 1:
             return tuple(from_python(item.item()) for item in self.value)
         else:
@@ -1195,7 +1198,7 @@ class NumericArray(Atom, ImmutableValueMixin):
             BASIC_ATOM_NUMERICARRAY_ELT_ORDER,
             self.value.shape,
             self.value.dtype,
-            self.value.tobytes()
+            self.value.tobytes(),
         )
 
     @property
@@ -1203,7 +1206,9 @@ class NumericArray(Atom, ImmutableValueMixin):
         return super().pattern_precedence
 
     def sameQ(self, rhs) -> bool:
-        return isinstance(rhs, NumericArray) and numpy.array_equal(self.value, rhs.value)
+        return isinstance(rhs, NumericArray) and numpy.array_equal(
+            self.value, rhs.value
+        )
 
     def to_sympy(self, **kwargs) -> None:
         return None
