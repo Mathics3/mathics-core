@@ -1182,7 +1182,7 @@ class NumericArray(Atom, ImmutableValueMixin):
         return f"NumericArray[<{self._summary_string}>]"
 
     @property
-    def items(self) -> Tuple:
+    def items(self) -> tuple:
         from mathics.core.convert.python import from_python
         if len(self.value.shape) == 1:
             return tuple(from_python(item.item()) for item in self.value)
@@ -1205,7 +1205,7 @@ class NumericArray(Atom, ImmutableValueMixin):
     def sameQ(self, rhs) -> bool:
         return isinstance(rhs, NumericArray) and numpy.array_equal(self.value, rhs.value)
 
-    def to_sympy(self, **kwargs):
+    def to_sympy(self, **kwargs) -> None:
         return None
 
     # TODO: note that this returns a simple python list (of lists),
@@ -1213,9 +1213,8 @@ class NumericArray(Atom, ImmutableValueMixin):
     def to_python(self, *args, **kwargs) -> list:
         return self.value.tolist()
 
-    # TODO: what is this? is it right?
     def user_hash(self, update) -> None:
-        update(self._summary[2])
+        update(self.value.tobytes())
 
 
 class String(Atom, BoxElementMixin):
