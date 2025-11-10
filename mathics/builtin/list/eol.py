@@ -698,25 +698,24 @@ class First(Builtin):
             if not hasattr(expr, "items"):
                 evaluation.message("First", "normal", Integer1, expression)
                 return
-            expr_len = len(expr.items)
+            parts = expr.items
         else:
-            expr_len = len(expr.elements)
+            parts = expr.elements
+
+        expr_len = len(parts)
         if expr_len == 0:
             evaluation.message("First", "nofirst", expr)
             return
 
-        if isinstance(expr, ByteArray):
-            return expr.items[0]
-
-        if expr_len > 2 and expr.head is SymbolSequence:
+        if expr_len > 2 and expr.get_head() is SymbolSequence:
             evaluation.message(
                 "First", "argt", SymbolFirst, Integer(expr_len), Integer1, Integer2
             )
             return
 
-        first_elem = expr.elements[0]
+        first_elem = parts[0]
 
-        if expr.head == SymbolSequence or (
+        if expr.get_head() == SymbolSequence or (
             not isinstance(expr, ListExpression)
             and len == 2
             and isinstance(first_elem, Atom)
