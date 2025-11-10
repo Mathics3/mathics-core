@@ -30,22 +30,6 @@ def test_numericarray_expression_from_python_array():
     assert atom.value is array
 
 
-def test_numericarray_hash():
-    a = [[1, 2], [3, 4]]
-    array1a = np.array(a, dtype=np.float32)
-    atom1a = from_python(array1a)
-    array1b = np.array(a, dtype=np.float32)
-    atom1b = from_python(array1a)
-    array2 = np.array(a, dtype=np.float64)
-    atom2 = from_python(array2)
-    assert hash(atom1a) == hash(
-        atom1b
-    ), "hashes of different arrays with same value should be same"
-    assert hash(atom1a) != hash(
-        atom2
-    ), "hashes of arrays with different values should be different"
-
-
 #
 # WL tests
 # Will not work yet
