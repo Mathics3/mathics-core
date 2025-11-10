@@ -7,13 +7,9 @@ import re
 from typing import Any, Dict, Generic, Optional, Tuple, TypeVar, Union
 
 import mpmath
+import numpy
 import sympy
 from sympy.core import numbers as sympy_numbers
-
-try:  # pragma: no cover - optional dependency handled at runtime
-    import numpy
-except ImportError:  # pragma: no cover - numpy is optional at import time
-    numpy = None
 
 from mathics.core.element import BoxElementMixin, ImmutableValueMixin
 from mathics.core.keycomparable import (
@@ -1108,27 +1104,24 @@ NUMERICAL_CONSTANTS = {
 # NumericArray
 #
 
-if numpy is not None:
-    NUMERIC_ARRAY_TYPE_MAP = {
-        "UnsignedInteger8": numpy.dtype("uint8"),
-        "UnsignedInteger16": numpy.dtype("uint16"),
-        "UnsignedInteger32": numpy.dtype("uint32"),
-        "UnsignedInteger64": numpy.dtype("uint64"),
-        "Integer8": numpy.dtype("int8"),
-        "Integer16": numpy.dtype("int16"),
-        "Integer32": numpy.dtype("int32"),
-        "Integer64": numpy.dtype("int64"),
-        "Real32": numpy.dtype("float32"),
-        "Real64": numpy.dtype("float64"),
-        "ComplexReal32": numpy.dtype("complex64"),
-        "ComplexReal64": numpy.dtype("complex128"),
-    }
-    NUMERIC_ARRAY_DTYPE_TO_NAME = {
-        dtype: name for name, dtype in NUMERIC_ARRAY_TYPE_MAP.items()
-    }
-else:  # pragma: no cover - executed only when numpy is absent
-    NUMERIC_ARRAY_TYPE_MAP = {}
-    NUMERIC_ARRAY_DTYPE_TO_NAME = {}
+NUMERIC_ARRAY_TYPE_MAP = {
+    "UnsignedInteger8": numpy.dtype("uint8"),
+    "UnsignedInteger16": numpy.dtype("uint16"),
+    "UnsignedInteger32": numpy.dtype("uint32"),
+    "UnsignedInteger64": numpy.dtype("uint64"),
+    "Integer8": numpy.dtype("int8"),
+    "Integer16": numpy.dtype("int16"),
+    "Integer32": numpy.dtype("int32"),
+    "Integer64": numpy.dtype("int64"),
+    "Real32": numpy.dtype("float32"),
+    "Real64": numpy.dtype("float64"),
+    "ComplexReal32": numpy.dtype("complex64"),
+    "ComplexReal64": numpy.dtype("complex128"),
+}
+
+NUMERIC_ARRAY_DTYPE_TO_NAME = {
+    dtype: name for name, dtype in NUMERIC_ARRAY_TYPE_MAP.items()
+}
 
 
 class NumericArray(Atom, ImmutableValueMixin):
@@ -1140,8 +1133,6 @@ class NumericArray(Atom, ImmutableValueMixin):
     class_head_name = "NumericArray"
 
     def __init__(self, value, dtype=None):
-        if numpy is None:
-            raise ImportError("numpy is required for NumericArray")
 
         # compute value
         if not isinstance(value, numpy.ndarray):
