@@ -3,7 +3,8 @@
 Unit tests from mathics.builtin.drawing.plot
 """
 
-from test.helper import check_evaluation
+from mathics.core.util import print_expr_tree
+from test.helper import check_evaluation, session
 
 import pytest
 
@@ -201,3 +202,102 @@ def test_plot(str_expr, msgs, str_expected, fail_msg):
         failure_message=fail_msg,
         expected_messages=msgs,
     )
+
+#
+# Call plotting functions and examine the structure of the output
+# TODO: check_structure is a little fragile and a little hard to debug. Imrovements:
+#     some indication of where in the structure the error is occurring - e.g. tree coordinates?
+#          
+#
+
+
+def check_structure(result, expected):
+    """Check that expected is a prefix of result at every node"""
+    #print_expr_tree(result)
+    #print_expr_tree(expected)
+    assert result.get_head() == expected.get_head(), "heads must match"
+    assert hasattr(result, "elements") == hasattr(expected, "elements"), "either both or none must have elements"
+    if hasattr(expected, "elements"):
+        for i, e in enumerate(expected.elements):
+            assert len(result.elements) > i, f"expected at least {i} elements, found only {len(result.elements)}"
+            check_structure(result.elements[i], e)
+    else:
+        assert str(result) == str(expected), f"leaves don't match"
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected"),
+    [
+        # Plot3D, all default options
+        (
+            """
+            Plot3D[
+                x+y,
+                {x,0,1}, {y,0,1},
+                PlotPoints->{2,2},
+                MaxRecursion->0
+            ]
+            """, """
+            Graphics3D[
+                {
+                    Polygon[{{0.0,0.0,0.0}, {0.0,0.5,0.5}, {0.5,0.0,0.5}}],
+                    Polygon[{{}}]
+                },
+                AspectRatio -> 1,
+                Axes -> True,
+                AxesStyle -> {},
+                Background -> Automatic,
+                BoxRatios -> {1, 1, 0.4},
+                ImageSize -> Automatic,
+                LabelStyle -> {},
+                PlotRange -> Automatic,
+                PlotRangePadding -> Automatic,
+                TicksStyle -> {}
+            ]
+            """
+        ),
+        # Plot3D, all non-default options
+        (
+            """
+            Plot3D[
+                x+y,
+                {x,0,1}, {y,0,1},
+                PlotPoints->{2,2},
+                MaxRecursion->0
+                AspectRatio -> 0.5,
+                Axes -> False,
+                AxesStyle -> {Red,Blue},
+                Background -> Green,
+                BoxRatios -> {10, 10, 1},
+                ImageSize -> {200,200},
+                LabelStyle -> Red,
+                PlotRange -> {0,1},
+                PlotRangePadding -> {1,2},
+                TicksStyle -> {Purple,White}
+            ]
+            """, """
+            Graphics3D[
+                {
+                    Polygon[{{0.0,0.0,0.0}, {0.0,0.5,0.5}, {0.5,0.0,0.5}}],
+                    Polygon[{{}}]
+                },
+                AspectRatio -> 1, (* TODO: is not passed through apparently - or is my misunderstanding? *)
+                Axes -> False,
+                AxesStyle -> {RGBColor[1,0,0],RGBColor[0,0,1]},
+                Background -> RGBColor[0,1,0],
+                BoxRatios -> {10, 10, 1},
+                ImageSize -> {200,200},
+                LabelStyle -> RGBColor[1,0,0],
+                PlotRange -> {0,1},
+                PlotRangePadding -> {1,2},
+                TicksStyle -> {RGBColor[0.5,0,0.5],GrayLevel[1]}
+            ]
+            """
+        ),
+    ]
+)
+def test_plot_structure(str_expr, str_expected):
+    expr = session.parse(str_expr)
+    result = expr.evaluate(session.evaluation)
+    expected = session.parse(str_expected)
+    check_structure(result, expected)

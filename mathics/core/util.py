@@ -113,3 +113,23 @@ def subranges(
                 items[start : start + length],
                 (items[:start], items[start + length :]),
             )
+
+
+def print_expr_tree(expr, indent=1):
+    """Print a Mathics Expression as an indented tree"""
+    if not hasattr(expr, "elements"):
+        print("  " * indent + str(expr))
+    else:
+        print("  " * indent + str(expr.head))
+        for elt in expr.elements:
+            print_expr_tree(elt, indent + 1)
+
+
+def print_sympy_tree(expr, indent=""):
+    """Print a SymPy Expression as an indented tree"""
+    if expr.args:
+        print(f"{indent}{expr.func.__name__}")
+        for i, arg in enumerate(expr.args):
+            print_sympy_tree(arg, indent + "    ")
+    else:
+        print(f"{indent}{expr.func.__name__}({str(expr)})")
