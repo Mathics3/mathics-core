@@ -845,7 +845,6 @@ System`NumberQ
 System`NumberString
 System`Numerator
 System`NumericFunction
-System`NumericArray
 System`NumericQ
 System`O
 System`Octahedron
