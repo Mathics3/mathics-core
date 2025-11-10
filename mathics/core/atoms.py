@@ -1133,7 +1133,6 @@ class NumericArray(Atom, ImmutableValueMixin):
     class_head_name = "NumericArray"
 
     def __init__(self, value, dtype=None):
-
         # compute value
         if not isinstance(value, numpy.ndarray):
             value = numpy.asarray(value, dtype=dtype)
@@ -1200,8 +1199,11 @@ class NumericArray(Atom, ImmutableValueMixin):
     def to_sympy(self, **kwargs) -> None:
         return None
 
-    # TODO: note that this returns a simple python list (of lists),
-    # not the numpy array - ok?
+    # TODO: this returns a list instead of np.ndarray in keeping with
+    # idea that to_python should return only "native" Python types.
+    # Keep an eye on this because there is a slight risk that code may
+    # naively call to_python and cause a performance issue due to
+    # the cost of converting to a nested list structure for a large array.
     def to_python(self, *args, **kwargs) -> list:
         return self.value.tolist()
 
