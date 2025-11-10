@@ -1158,7 +1158,7 @@ class NumericArray(Atom, ImmutableValueMixin):
     def __hash__(self):
         if not self._hash:
             self._hash = hash(
-                ("NumericArray", self.value.shape, self.value.tobytes()[:100])
+                ("NumericArray", self.value.shape, id(self.value))
             )
         return self._hash
 
@@ -1189,7 +1189,7 @@ class NumericArray(Atom, ImmutableValueMixin):
             BASIC_ATOM_NUMERICARRAY_ELT_ORDER,
             self.value.shape,
             self.value.dtype,
-            self.value.tobytes(),
+            id(self.value),
         )
 
     @property
