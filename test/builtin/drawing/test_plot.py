@@ -3,10 +3,11 @@
 Unit tests from mathics.builtin.drawing.plot
 """
 
-from mathics.core.util import print_expr_tree
 from test.helper import check_evaluation, session
 
 import pytest
+
+from mathics.core.util import print_expr_tree
 
 
 def test__listplot():
@@ -203,23 +204,28 @@ def test_plot(str_expr, msgs, str_expected, fail_msg):
         expected_messages=msgs,
     )
 
+
 #
 # Call plotting functions and examine the structure of the output
 # TODO: check_structure is a little fragile and a little hard to debug. Imrovements:
 #     some indication of where in the structure the error is occurring - e.g. tree coordinates?
-#          
+#
 #
 
 
 def check_structure(result, expected):
     """Check that expected is a prefix of result at every node"""
-    #print_expr_tree(result)
-    #print_expr_tree(expected)
+    # print_expr_tree(result)
+    # print_expr_tree(expected)
     assert result.get_head() == expected.get_head(), "heads must match"
-    assert hasattr(result, "elements") == hasattr(expected, "elements"), "either both or none must have elements"
+    assert hasattr(result, "elements") == hasattr(
+        expected, "elements"
+    ), "either both or none must have elements"
     if hasattr(expected, "elements"):
         for i, e in enumerate(expected.elements):
-            assert len(result.elements) > i, f"expected at least {i} elements, found only {len(result.elements)}"
+            assert (
+                len(result.elements) > i
+            ), f"expected at least {i} elements, found only {len(result.elements)}"
             check_structure(result.elements[i], e)
     else:
         assert str(result) == str(expected), f"leaves don't match"
@@ -237,7 +243,8 @@ def check_structure(result, expected):
                 PlotPoints->{2,2},
                 MaxRecursion->0
             ]
-            """, """
+            """,
+            """
             Graphics3D[
                 {
                     Polygon[{{0.0,0.0,0.0}, {0.0,0.5,0.5}, {0.5,0.0,0.5}}],
@@ -254,7 +261,7 @@ def check_structure(result, expected):
                 PlotRangePadding -> Automatic,
                 TicksStyle -> {}
             ]
-            """
+            """,
         ),
         # Plot3D, all non-default options
         (
@@ -275,7 +282,8 @@ def check_structure(result, expected):
                 PlotRangePadding -> {1,2},
                 TicksStyle -> {Purple,White}
             ]
-            """, """
+            """,
+            """
             Graphics3D[
                 {
                     Polygon[{{0.0,0.0,0.0}, {0.0,0.5,0.5}, {0.5,0.0,0.5}}],
@@ -292,9 +300,9 @@ def check_structure(result, expected):
                 PlotRangePadding -> {1,2},
                 TicksStyle -> {RGBColor[0.5,0,0.5],GrayLevel[1]}
             ]
-            """
+            """,
         ),
-    ]
+    ],
 )
 def test_plot_structure(str_expr, str_expected):
     expr = session.parse(str_expr)
