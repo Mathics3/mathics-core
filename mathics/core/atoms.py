@@ -1131,8 +1131,6 @@ else:  # pragma: no cover - executed only when numpy is absent
     NUMERIC_ARRAY_DTYPE_TO_NAME = {}
 
 
-# TODO: would it be useful to follow the example of Complex and parameterize by type?
-# would that be array.dtype or the MMA type from the map above?
 class NumericArray(Atom, ImmutableValueMixin):
     """
     NumericArray provides compact storage and efficient access for machine-precision numeric arrays,
@@ -1212,15 +1210,12 @@ class NumericArray(Atom, ImmutableValueMixin):
 
     # TODO: note that this returns a simple python list (of lists),
     # not the numpy array - ok?
-    def to_python(self, *args, **kwargs):
+    def to_python(self, *args, **kwargs) -> list:
         return self.value.tolist()
 
     # TODO: what is this? is it right?
-    def user_hash(self, update):
+    def user_hash(self, update) -> None:
         update(self._summary[2])
-
-    def __getnewargs__(self):
-        return (self.value, self.value.dtype)
 
 
 class String(Atom, BoxElementMixin):
