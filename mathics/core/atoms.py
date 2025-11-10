@@ -1157,9 +1157,7 @@ class NumericArray(Atom, ImmutableValueMixin):
     # TODO: to make it less expensive only look at first 100 bytes - ok? needed?
     def __hash__(self):
         if not self._hash:
-            self._hash = hash(
-                ("NumericArray", self.value.shape, id(self.value))
-            )
+            self._hash = hash(("NumericArray", self.value.shape, id(self.value)))
         return self._hash
 
     def __str__(self) -> str:
