@@ -3,8 +3,9 @@
 Conversions between Python and Mathics3
 """
 
-import numpy
 from typing import Any
+
+import numpy
 
 from mathics.core.atoms import Complex, Integer, NumericArray, Rational, Real, String
 from mathics.core.number import get_type
