@@ -7,7 +7,15 @@ from typing import Any
 
 import numpy
 
-from mathics.core.atoms import Complex, Integer, NumericArray, Rational, Real, String
+from mathics.core.atoms import (
+    ByteArray,
+    Complex,
+    Integer,
+    NumericArray,
+    Rational,
+    Real,
+    String,
+)
 from mathics.core.number import get_type
 from mathics.core.symbols import (
     BaseElement,
@@ -16,7 +24,7 @@ from mathics.core.symbols import (
     SymbolNull,
     SymbolTrue,
 )
-from mathics.core.systemsymbols import SymbolByteArray, SymbolRule
+from mathics.core.systemsymbols import SymbolRule
 
 
 def from_bool(arg: bool) -> BooleanType:
@@ -112,9 +120,7 @@ def from_python(arg: Any) -> BaseElement:
     elif isinstance(arg, list) or isinstance(arg, tuple):
         return to_mathics_list(*arg, elements_conversion_fn=from_python)
     elif isinstance(arg, bytearray) or isinstance(arg, bytes):
-        from mathics.builtin.binary.bytearray import ByteArray
-
-        return Expression(SymbolByteArray, ByteArray(arg))
+        return ByteArray(arg)
     elif isinstance(arg, numpy.ndarray):
         return NumericArray(arg)
     else:
