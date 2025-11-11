@@ -115,14 +115,14 @@ def subranges(
             )
 
 
-def print_expr_tree(expr, indent=1):
+def print_expression_tree(expr, indent=1):
     """Print a Mathics Expression as an indented tree"""
     if not hasattr(expr, "elements"):
         print("  " * indent + str(expr))
     else:
         print("  " * indent + str(expr.head))
         for elt in expr.elements:
-            print_expr_tree(elt, indent + 1)
+            print_expression_tree(elt, indent + 1)
 
 
 def print_sympy_tree(expr, indent=""):

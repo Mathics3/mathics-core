@@ -7,8 +7,9 @@ from test.helper import check_evaluation, session
 
 import pytest
 
-from mathics.core.util import print_expr_tree
+from mathics.core.util import print_expression_tree
 
+import sys
 
 def test__listplot():
     """tests for module builtin.drawing.plot._ListPlot"""
@@ -207,117 +208,110 @@ def test_plot(str_expr, msgs, str_expected, fail_msg):
 
 #
 # Call plotting functions and examine the structure of the output
-# TODO: check_structure is a little fragile and a little hard to debug. Imrovements:
-#     some indication of where in the structure the error is occurring - e.g. tree coordinates?
 #
-
 
 def check_structure(result, expected):
     """Check that expected is a prefix of result at every node"""
 
-    # print_expr_tree(result)
-    # print_expr_tree(expected)
-
-    def msg(s):
-        pos = getattr(getattr(expected, "location", None), "start_pos", None)
-        return f"in str_expected at pos {pos or '?'}: {s}"
+    def error(msg):
+        print(f"\nERROR: {msg}", file=sys.stderr)
+        print("=== result:")
+        print_expression_tree(result)
+        print("=== expected:")
+        print_expression_tree(expected)
+        raise AssertionError(msg)
 
     # do the heads match?
-    assert result.get_head() == expected.get_head(), msg("heads must match")
+    if result.get_head() != expected.get_head():
+        error("heads don't match")
 
-    # do they either both or neither have elements?
-    assert hasattr(result, "elements") == hasattr(expected, "elements"), msg(
-        "either both or neither must have elements"
-    )
-
-    # do they match?
+    # does the structure match?
     if hasattr(expected, "elements"):
+        if not hasattr(result, "elements"):
+            error("expected elements but result has none")
         for i, e in enumerate(expected.elements):
-            assert len(result.elements) > i, msg("result has too few elements")
+            if len(result.elements) <= i:
+                error("result has too few elements")
             check_structure(result.elements[i], e)
     else:
-        assert str(result) == str(expected), msg("leaves don't match")
+        if str(result) != str(expected):
+            error("leaves don't match")
 
 
-@pytest.mark.parametrize(
-    ("str_expr", "str_expected"),
-    [
-        # Plot3D, all default options
-        (
-            """
-            Plot3D[
-                x+y,
-                {x,0,1}, {y,0,1},
-                PlotPoints->{2,2},
-                MaxRecursion->0
-            ]
-            """,
-            """
-            Graphics3D[
-                {
-                    Polygon[{{0.0,0.0,0.0}, {0.0,0.5,0.5}, {0.5,0.0,0.5}}],
-                    Polygon[{{}}]
-                },
-                AspectRatio -> 1,
-                Axes -> True,
-                AxesStyle -> {},
-                Background -> Automatic,
-                BoxRatios -> {1, 1, 0.4},
-                ImageSize -> Automatic,
-                LabelStyle -> {},
-                PlotRange -> Automatic,
-                PlotRangePadding -> Automatic,
-                TicksStyle -> {}
-            ]
-            """,
-        ),
-        # Plot3D, all non-default options
-        (
-            """
-            Plot3D[
-                x+y,
-                {x,0,1}, {y,0,1},
-                PlotPoints->{2,2},
-                MaxRecursion->0
-                AspectRatio -> 0.5,
-                Axes -> False,
-                AxesStyle -> {Red,Blue},
-                Background -> Green,
-                BoxRatios -> {10, 10, 1},
-                ImageSize -> {200,200},
-                LabelStyle -> Red,
-                PlotRange -> {0,1},
-                PlotRangePadding -> {1,2},
-                TicksStyle -> {Purple,White}
-            ]
-            """,
-            """
-            Graphics3D[
-                {
-                    Polygon[{{0.0,0.0,0.0}, {0.0,0.5,0.5}, {0.5,0.0,0.5}}],
-                    Polygon[{{}}]
-                },
-                AspectRatio -> 1, (* TODO: is not passed through apparently - or is my misunderstanding? *)
-                Axes -> False,
-                AxesStyle -> {RGBColor[1,0,0],RGBColor[0,0,1]},
-                Background -> RGBColor[0,1,0],
-                BoxRatios -> {10, 10, 1},
-                ImageSize -> {200,200},
-                LabelStyle -> RGBColor[1,0,0],
-                PlotRange -> {0,1},
-                PlotRangePadding -> {1,2},
-                TicksStyle -> {RGBColor[0.5,0,0.5],GrayLevel[1]}
-            ]
-            """,
-        ),
-    ],
-)
-def test_plot_structure(str_expr, str_expected):
-    # TODO: unfortunately this only adds location information to the top-level expression
-    # so not very useful
-    session.evaluate("Set[$TrackLocations, True]")
-
+def eval_and_check_structure(str_expr, str_expected):
     expr = session.parse(str_expr)
     result = expr.evaluate(session.evaluation)
     expected = session.parse(str_expected)
     check_structure(result, expected)
+    
+
+def test_plot3d_default():
+    eval_and_check_structure(
+        """
+        Plot3D[
+            x+y,
+            {x,0,1}, {y,0,1},
+            PlotPoints->{2,2},
+            MaxRecursion->0
+        ]
+        """,
+        """
+        Graphics3D[
+            {
+                Polygon[{{0.0,0.0,0.0}, {0.0,0.5,0.5}, {0.5,0.0,0.5}}],
+                Polygon[{{}}]
+            },
+            AspectRatio -> 1,
+            Axes -> True,
+            XAxesStyle -> {},
+            Background -> Automatic,
+            BoxRatios -> {1, 1, 0.4},
+            ImageSize -> Automatic,
+            LabelStyle -> {},
+            PlotRange -> Automatic,
+            PlotRangePadding -> Automatic,
+            TicksStyle -> {}
+        ]
+        """,
+    )    
+
+def test_plot3d_nondefault():
+    eval_and_check_structure(
+        """
+        Plot3D[
+            x+y,
+            {x,0,1}, {y,0,1},
+            PlotPoints->{2,2},
+            MaxRecursion->0
+            AspectRatio -> 0.5,
+            Axes -> False,
+            AxesStyle -> {Red,Blue},
+            Background -> Green,
+            BoxRatios -> {10, 10, 1},
+            ImageSize -> {200,200},
+            LabelStyle -> Red,
+            PlotRange -> {0,1},
+            PlotRangePadding -> {1,2},
+            TicksStyle -> {Purple,White}
+        ]
+        """,
+        """
+        Graphics3D[
+            {
+                Polygon[{{0.0,0.0,0.0}, {0.0,0.5,0.5}, {0.5,0.0,0.5}}],
+                Polygon[{{}}]
+            },
+            AspectRatio -> 1, (* TODO: is not passed through apparently - or is my misunderstanding? *)
+            Axes -> False,
+            AxesStyle -> {RGBColor[1,0,0],RGBColor[0,0,1]},
+            Background -> RGBColor[0,1,0],
+            BoxRatios -> {10, 10, 1},
+            ImageSize -> {200,200},
+            LabelStyle -> RGBColor[1,0,0],
+            PlotRange -> {0,1},
+            PlotRangePadding -> {1,2},
+            TicksStyle -> {RGBColor[0.5,0,0.5],GrayLevel[1]}
+        ]
+        """,
+    )
+
