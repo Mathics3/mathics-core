@@ -355,28 +355,32 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         """
 
         # All of the properties start out optimistic (True) and are reset when that proves wrong.
-        self.elements_properties = ElementsProperties(True, True, True, True)
 
         last_element = None
         values = []
         last_lookup_name = ""
+
+        fully_evaluated = True
+        flat = True
+        ordered = True
         uniform = True
         for element in self._elements:
             # Test for the literalness, and the three properties mentioned above
             if not element.is_literal:
-                self.elements_properties.elements_fully_evaluated = False
+                fully_evaluated = False
 
+            # Uniformness: all the elements are of the same type
             if uniform:
                 lookup_name = element.get_lookup_name()
                 if last_lookup_name:
                     if lookup_name != last_lookup_name:
-                        uniform = self.elements_properties.is_uniform = False
+                        uniform = False
                 else:
                     last_lookup_name = lookup_name
 
             if isinstance(element, Expression):
                 # "self" can't be flat.
-                self.elements_properties.is_flat = False
+                flat = False
 
                 # "elements_properties" only exists for Expression types
                 # If we haven't set element.elements properties, compute that...
@@ -386,8 +390,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     element._build_elements_properties()
 
                 # and now possibly adjust self.elements_properties.elements_fully_evaluted
-                if self.elements_properties.elements_fully_evaluated:
-                    self._elements_fully_evaluated = (
+                if fully_evaluated:
+                    fully_evaluated = (
                         element.elements_properties.elements_fully_evaluated
                     )
 
@@ -399,16 +403,22 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 # return boxes_to_method(elements, **opts)
                 # TypeError: boxes_to_text() takes 1 positional argument but 2 were given
                 # Why?
-                self.elements_properties.elements_fully_evaluated = False
+                fully_evaluated = False
 
             # Test for ordered property
-            if self.elements_properties.is_ordered and last_element is not None:
+            if ordered and last_element is not None:
                 try:
-                    self.elements_properties.is_ordered = last_element <= element
+                    ordered = last_element <= element
                 except Exception:
-                    self.elements_properties.is_ordered = False
+                    ordered = False
             last_element = element
 
+        self.elements_properties = ElementsProperties(
+            fully_evaluated,
+            flat,
+            ordered,
+            uniform,
+        )
         # self.is_literal should only be True for ListExpression.
         # However we have still some Expression(ListSymbol, ...) around?
         if self.is_literal:
@@ -1988,6 +1998,10 @@ def convert_expression_elements(
 
     result = []
     last_converted_elt = None
+    fully_evaluated = True
+    flat = True
+    ordered = True
+
     for element in elements:
         converted_elt = conversion_fn(element)
 
@@ -1995,28 +2009,34 @@ def convert_expression_elements(
         if is_literal and converted_elt.is_literal:
             values.append(converted_elt.value)
         else:
-            elements_properties.elements_fully_evaluated = False
+            fully_evaluated = False
             is_literal = False
 
         if isinstance(converted_elt, Expression):
-            elements_properties.is_flat = False
+            flat = False
             if converted_elt.elements_properties is None:
                 converted_elt._build_elements_properties()
                 assert converted_elt.elements_properties is not None
 
-            if elements_properties.elements_fully_evaluated:
-                elements_properties.elements_fully_evaluated = (
+            if fully_evaluated:
+                fully_evaluated = (
                     converted_elt.elements_properties.elements_fully_evaluated
                 )
 
-        if elements_properties.is_ordered and last_converted_elt is not None:
+        if ordered and last_converted_elt is not None:
             try:
-                elements_properties.is_ordered = last_converted_elt <= converted_elt
+                ordered = last_converted_elt <= converted_elt
             except Exception:
-                elements_properties.is_ordered = False
+                ordered = False
         last_converted_elt = converted_elt
         result.append(converted_elt)
 
+    elements_properties = ElementsProperties(
+        fully_evaluated,
+        flat,
+        ordered,
+        is_uniform=True,  # Assume that items from a Python iterable are uniform. Is this right?
+    )
     final_values = tuple(values) if is_literal else None
     return tuple(result), elements_properties, final_values
 
