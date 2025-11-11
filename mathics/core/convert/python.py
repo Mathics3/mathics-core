@@ -5,7 +5,9 @@ Conversions between Python and Mathics3
 
 from typing import Any
 
-from mathics.core.atoms import Complex, Integer, Rational, Real, String
+import numpy
+
+from mathics.core.atoms import Complex, Integer, NumericArray, Rational, Real, String
 from mathics.core.number import get_type
 from mathics.core.symbols import (
     BaseElement,
@@ -113,5 +115,7 @@ def from_python(arg: Any) -> BaseElement:
         from mathics.builtin.binary.bytearray import ByteArray
 
         return Expression(SymbolByteArray, ByteArray(arg))
+    elif isinstance(arg, numpy.ndarray):
+        return NumericArray(arg)
     else:
         raise NotImplementedError
