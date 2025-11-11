@@ -591,7 +591,7 @@ class TrackLocations(Predefined):
         """Set[$TrackLocations, value_]"""
         if value is SymbolTrue or value is SymbolFalse:
             evaluation.definitions.set_ownvalue("System`$TrackLocations", value)
-            mathics_scanner.location.TRACK_LOCATIONS = value.to_python()
+            mathics.core.parser.parser.TRACK_LOCATIONS = value.to_python()
         else:
             evaluation.message("$TrackLocations", "bool", value)
         return value
