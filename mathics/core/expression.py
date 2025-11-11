@@ -387,7 +387,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
                 # and now possibly adjust self.elements_properties.elements_fully_evaluted
                 if self.elements_properties.elements_fully_evaluated:
-                    self._elements_fully_evaluated = (
+                    self.elements_properties.elements_fully_evaluated = (
                         element.elements_properties.elements_fully_evaluated
                     )
 
@@ -976,7 +976,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # Lists. Lists definitions can't be changed right?
         return False
         # If we have a List we may do something like:
-        # return self._elements_fully_evaluated
+        # return self.elements_properties.elements_fully_evaluated
 
     def is_uncertain_final_definitions(self, definitions) -> bool:
         """
