@@ -208,17 +208,19 @@ def test_plot(str_expr, msgs, str_expected, fail_msg):
 
 #
 # Call plotting functions and examine the structure of the output
+# In case of error trees are printed with an embedded >>> marker showing location of error
 #
+
+def print_expression_tree_with_marker(expr):
+    print_expression_tree(expr, marker = lambda expr: getattr(expr, "_marker", ""))
+
 
 def check_structure(result, expected):
     """Check that expected is a prefix of result at every node"""
 
     def error(msg):
-        print(f"\nERROR: {msg}", file=sys.stderr)
-        print("=== result:")
-        print_expression_tree(result)
-        print("=== expected:")
-        print_expression_tree(expected)
+        result._marker = "RESULT >>> "
+        expected._marker = "EXPECTED >>> "
         raise AssertionError(msg)
 
     # do the heads match?
@@ -242,8 +244,16 @@ def eval_and_check_structure(str_expr, str_expected):
     expr = session.parse(str_expr)
     result = expr.evaluate(session.evaluation)
     expected = session.parse(str_expected)
-    check_structure(result, expected)
-    
+    try:
+        check_structure(result, expected)
+    except AssertionError as oops:
+        print(f"\nERROR: {oops} (error is marked with >>>)")
+        print("=== result:")
+        print_expression_tree_with_marker(result)
+        print("=== expected:")
+        print_expression_tree_with_marker(expected)
+        raise
+
 
 def test_plot3d_default():
     eval_and_check_structure(
@@ -261,9 +271,9 @@ def test_plot3d_default():
                 Polygon[{{0.0,0.0,0.0}, {0.0,0.5,0.5}, {0.5,0.0,0.5}}],
                 Polygon[{{}}]
             },
-            AspectRatio -> 1,
+            XAspectRatio -> 1,
             Axes -> True,
-            XAxesStyle -> {},
+            AxesStyle -> {},
             Background -> Automatic,
             BoxRatios -> {1, 1, 0.4},
             ImageSize -> Automatic,
