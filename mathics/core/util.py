@@ -117,20 +117,20 @@ def subranges(
             )
 
 
-def print_expression_tree(expr, indent="", marker = lambda expr: ""):
+def print_expression_tree(expr, indent="", marker=lambda expr: ""):
     """
     Print a Mathics Expression as an indented tree.
     Caller may supply a marker function that computes a marker
     to be displayed in the tree for the given node.
     """
     if isinstance(expr, Symbol):
-        print(f"{indent}{marker(expr)}{expr}")        
+        print(f"{indent}{marker(expr)}{expr}")
     elif not hasattr(expr, "elements"):
         print(f"{indent}{marker(expr)}{expr.get_head()} {expr}")
     else:
         print(f"{indent}{marker(expr)}{expr.head}")
         for elt in expr.elements:
-            print_expression_tree(elt, indent + "  ", marker = marker)
+            print_expression_tree(elt, indent + "  ", marker=marker)
 
 
 def print_sympy_tree(expr, indent=""):
