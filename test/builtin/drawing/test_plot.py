@@ -9,7 +9,6 @@ import pytest
 
 from mathics.core.util import print_expression_tree
 
-import sys
 
 def test__listplot():
     """tests for module builtin.drawing.plot._ListPlot"""
@@ -211,8 +210,9 @@ def test_plot(str_expr, msgs, str_expected, fail_msg):
 # In case of error trees are printed with an embedded >>> marker showing location of error
 #
 
+
 def print_expression_tree_with_marker(expr):
-    print_expression_tree(expr, marker = lambda expr: getattr(expr, "_marker", ""))
+    print_expression_tree(expr, marker=lambda expr: getattr(expr, "_marker", ""))
 
 
 def check_structure(result, expected):
@@ -247,7 +247,7 @@ def eval_and_check_structure(str_expr, str_expected):
     try:
         check_structure(result, expected)
     except AssertionError as oops:
-        print(f"\nERROR: {oops} (error is marked with >>>)")
+        print(f"\nERROR: {oops} (error is marked with >>> below)")
         print("=== result:")
         print_expression_tree_with_marker(result)
         print("=== expected:")
@@ -271,7 +271,7 @@ def test_plot3d_default():
                 Polygon[{{0.0,0.0,0.0}, {0.0,0.5,0.5}, {0.5,0.0,0.5}}],
                 Polygon[{{}}]
             },
-            XAspectRatio -> 1,
+            AspectRatio -> 1,
             Axes -> True,
             AxesStyle -> {},
             Background -> Automatic,
@@ -283,7 +283,8 @@ def test_plot3d_default():
             TicksStyle -> {}
         ]
         """,
-    )    
+    )
+
 
 def test_plot3d_nondefault():
     eval_and_check_structure(
@@ -324,4 +325,3 @@ def test_plot3d_nondefault():
         ]
         """,
     )
-
