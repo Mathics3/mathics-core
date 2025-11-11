@@ -210,7 +210,6 @@ def test_plot(str_expr, msgs, str_expected, fail_msg):
 # TODO: check_structure is a little fragile and a little hard to debug. Imrovements:
 #     some indication of where in the structure the error is occurring - e.g. tree coordinates?
 #
-#
 
 
 def check_structure(result, expected):
@@ -223,10 +222,15 @@ def check_structure(result, expected):
         pos = getattr(getattr(expected, "location", None), "start_pos", None)
         return f"in str_expected at pos {pos or '?'}: {s}"
 
+    # do the heads match?
     assert result.get_head() == expected.get_head(), msg("heads must match")
+
+    # do they either both or neither have elements?
     assert hasattr(result, "elements") == hasattr(expected, "elements"), msg(
-        "either both or none must have elements"
+        "either both or neither must have elements"
     )
+
+    # do they match?
     if hasattr(expected, "elements"):
         for i, e in enumerate(expected.elements):
             assert len(result.elements) > i, msg("result has too few elements")
