@@ -368,9 +368,9 @@ def test_densityplot_default():
             PlotRangePadding -> Automatic,
             TicksStyle -> {}
         ]
-        """
+        """,
     )
-    
+
 
 def test_densityplot_nondefault():
     eval_and_check_structure(
@@ -422,6 +422,5 @@ def test_densityplot_nondefault():
             PlotRangePadding -> {1,2},
             TicksStyle -> {RGBColor[0.5,0,0.5],GrayLevel[1]}
         ]
-        """
+        """,
     )
-    
