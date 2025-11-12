@@ -53,7 +53,7 @@ class _Blank(PatternObject, ABC):
             assert isinstance(target_head, Symbol)
             self.target_head = target_head
         else:
-            # FIXME: elswhere, some code wants to
+            # FIXME: elsewhere, some code wants to
             # get the attributes of head.
             # So is this really the best thing to do here?
             self.target_head = None
@@ -102,16 +102,17 @@ class Blank(_Blank):
     summary_text = "match to any single expression"
 
     def match(self, expression: BaseElement, pattern_context: dict):
+        if expression.has_form("Sequence", 0):
+            return
+
+        target_head = self.target_head
+        if target_head is not None and expression.get_head() is not target_head:
+            return
+
+        # Match!
         vars_dict = pattern_context["vars_dict"]
         yield_func = pattern_context["yield_func"]
-
-        if not expression.has_form("Sequence", 0):
-            target_head = self.target_head
-            if target_head is not None:
-                if expression.get_head() is target_head:
-                    yield_func(vars_dict, None)
-            else:
-                yield_func(vars_dict, None)
+        yield_func(vars_dict, None)
 
     @property
     def element_order(self):
@@ -172,10 +173,11 @@ class BlankNullSequence(_Blank):
             for element in elements:
                 if target_head is not element.get_head():
                     return
-                # If the expression is uniform, further checks are not necesary.
+                # If the expression is uniform, no further checks are necessary.
                 if is_uniform:
                     break
 
+        # Match!
         vars_dict = pattern_context["vars_dict"]
         yield_func = pattern_context["yield_func"]
         yield_func(vars_dict, None)
@@ -264,10 +266,11 @@ class BlankSequence(_Blank):
             for element in elements:
                 if target_head is not element.get_head():
                     return
-                # If the expression is uniform, further checks are not necesary.
+                # If the expression is uniform, no further checks are necessary.
                 if is_uniform:
                     break
 
+        # Match!
         vars_dict = pattern_context["vars_dict"]
         yield_func = pattern_context["yield_func"]
         yield_func(vars_dict, None)
