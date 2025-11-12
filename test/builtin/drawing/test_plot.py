@@ -243,6 +243,7 @@ def check_structure(result, expected):
 def eval_and_check_structure(str_expr, str_expected):
     expr = session.parse(str_expr)
     result = expr.evaluate(session.evaluation)
+    print_expression_tree(result)
     expected = session.parse(str_expected)
     try:
         check_structure(result, expected)
@@ -269,7 +270,10 @@ def test_plot3d_default():
         Graphics3D[
             {
                 Polygon[{{0.0,0.0,0.0}, {0.0,0.5,0.5}, {0.5,0.0,0.5}}],
-                Polygon[{{}}]
+                Polygon[{{}}], Polygon[{{}}], Polygon[{{}}],  Polygon[{{}}], Polygon[{{}}], Polygon[{{}}], Polygon[{{}}],
+                (* mesh lines for default Mesh->Full *)
+                Line[{{0.0,0.0,0.0},{0.0,0.5,0.5},{0.0,1.0,1.0}}],
+                Line[{{}}], Line[{{}}], Line[{{}}], Line[{{}}], Line[{{}}]
             },
             AspectRatio -> 1,
             Axes -> True,
