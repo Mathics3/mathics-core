@@ -325,3 +325,103 @@ def test_plot3d_nondefault():
         ]
         """,
     )
+
+
+def test_densityplot_default():
+    eval_and_check_structure(
+        """
+        DensityPlot[
+            x+y, {x,0,1}, {y,0,1},
+            PlotPoints-> {2,2},
+            MaxRecursion->0
+        ]
+        """,
+        """
+        Graphics[
+            {
+                Polygon[
+                    {
+                        {{0.0,0.0},{0.0,0.5},{0.5,0.0}},
+                        {{0.0,0.5},{0.5,0.0},{0.5,0.5}}
+                    },
+                    VertexColors -> {
+                        {
+                            RGBColor[0.293416, 0.0574044, 0.529412],
+                            RGBColor[0.49621975000000007, 0.41002484999999994, 0.8144772499999999],
+                            RGBColor[0.49621975000000007, 0.41002484999999994, 0.8144772499999999]
+                        },
+                        {
+                            RGBColor[0.49621975000000007, 0.41002484999999994, 0.8144772499999999],
+                            RGBColor[0.49621975000000007, 0.41002484999999994, 0.8144772499999999],
+                            RGBColor[0.663226, 0.6872815, 0.9117649999999999]
+                        }
+                    }
+                ]
+            },
+            AspectRatio -> 1,
+            Axes -> False,
+            AxesStyle -> {},
+            Background -> Automatic,
+            ImageSize -> Automatic,
+            LabelStyle -> {},
+            PlotRange -> Automatic,
+            PlotRangePadding -> Automatic,
+            TicksStyle -> {}
+        ]
+        """
+    )
+    
+
+def test_densityplot_nondefault():
+    eval_and_check_structure(
+        """
+        DensityPlot[
+            x+y, {x,0,1}, {y,0,1},
+            PlotPoints-> {2,2},
+            MaxRecursion->0
+            AspectRatio -> 0.5,
+            Axes -> True,
+            AxesStyle -> {Red,Blue},
+            Background -> Green,
+            ImageSize -> {200,200},
+            LabelStyle -> Red,
+            PlotRange -> {0,1},
+            PlotRangePadding -> {1,2},
+            TicksStyle -> {Purple,White}
+        ]
+        """,
+        """
+        Graphics[
+            {
+                Polygon[
+                    {
+                        {{0.0,0.0},{0.0,0.5},{0.5,0.0}},
+                        {{0.0,0.5},{0.5,0.0},{0.5,0.5}}
+                    },
+                    VertexColors -> {
+                        {
+                            RGBColor[0.293416, 0.0574044, 0.529412],
+                            RGBColor[0.49621975000000007, 0.41002484999999994, 0.8144772499999999],
+                            RGBColor[0.49621975000000007, 0.41002484999999994, 0.8144772499999999]
+                        },
+                        {
+                            RGBColor[0.49621975000000007, 0.41002484999999994, 0.8144772499999999],
+                            RGBColor[0.49621975000000007, 0.41002484999999994, 0.8144772499999999],
+                            RGBColor[0.663226, 0.6872815, 0.9117649999999999]
+                        }
+                    }
+                ]
+            },
+            AspectRatio -> 1, (* TODO: is not passed through apparently - or is my misunderstanding? *)
+            Axes -> True,
+            AxesStyle -> {RGBColor[1,0,0],RGBColor[0,0,1]},
+            Background -> RGBColor[0,1,0],
+            ImageSize -> {200,200},
+            LabelStyle -> RGBColor[1,0,0],
+            PlotRange -> {0,1},
+            PlotRangePadding -> {1,2},
+            TicksStyle -> {RGBColor[0.5,0,0.5],GrayLevel[1]}
+        ]
+        """
+    )
+    
