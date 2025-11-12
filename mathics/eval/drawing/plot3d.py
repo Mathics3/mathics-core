@@ -44,94 +44,14 @@ def eval_plot3d(
     y,
     ystart,
     ystop,
+    plotpoints,
+    max_depth,
+    mesh,
     evaluation: Evaluation,
     options: dict,
 ):
     """%(name)s[functions_, {x_Symbol, xstart_, xstop_},
     {y_Symbol, ystart_, ystop_}, OptionsPattern[%(name)s]]"""
-
-    xexpr_limits = ListExpression(x, xstart, xstop)
-    yexpr_limits = ListExpression(y, ystart, ystop)
-    expr = Expression(
-        Symbol(self.get_name()),
-        functions,
-        xexpr_limits,
-        yexpr_limits,
-        *options_to_rules(options),
-    )
-
-    functions = self.get_functions_param(functions)
-    plot_name = self.get_name()
-
-    def convert_limit(value, limits):
-        result = value.round_to_float(evaluation)
-        if result is None:
-            evaluation.message(plot_name, "plln", value, limits)
-        return result
-
-    xstart = convert_limit(xstart, xexpr_limits)
-    xstop = convert_limit(xstop, xexpr_limits)
-    ystart = convert_limit(ystart, yexpr_limits)
-    ystop = convert_limit(ystop, yexpr_limits)
-    if None in (xstart, xstop, ystart, ystop):
-        return
-
-    if ystart >= ystop:
-        evaluation.message(plot_name, "plln", ystop, expr)
-        return
-
-    if xstart >= xstop:
-        evaluation.message(plot_name, "plln", xstop, expr)
-        return
-
-    # Mesh Option
-    mesh_option = self.get_option(options, "Mesh", evaluation)
-    mesh = mesh_option.to_python()
-    if mesh not in ["System`None", "System`Full", "System`All"]:
-        evaluation.message("Mesh", "ilevels", mesh_option)
-        mesh = "System`Full"
-
-    # PlotPoints Option
-    plotpoints_option = self.get_option(options, "PlotPoints", evaluation)
-    plotpoints = plotpoints_option.to_python()
-
-    def check_plotpoints(steps):
-        if isinstance(steps, int) and steps > 0:
-            return True
-        return False
-
-    if plotpoints == "System`None":
-        plotpoints = (7, 7)
-    elif check_plotpoints(plotpoints):
-        plotpoints = (plotpoints, plotpoints)
-
-    if not (
-        isinstance(plotpoints, (list, tuple))
-        and len(plotpoints) == 2
-        and check_plotpoints(plotpoints[0])
-        and check_plotpoints(plotpoints[1])
-    ):
-        evaluation.message(self.get_name(), "invpltpts", plotpoints)
-        plotpoints = (7, 7)
-
-    # MaxRecursion Option
-    maxrec_option = self.get_option(options, "MaxRecursion", evaluation)
-    max_depth = maxrec_option.to_python()
-    if isinstance(max_depth, int):
-        if max_depth < 0:
-            max_depth = 0
-            evaluation.message(self.get_name(), "invmaxrec", max_depth, 15)
-        elif max_depth > 15:
-            max_depth = 15
-            evaluation.message(self.get_name(), "invmaxrec", max_depth, 15)
-        else:
-            pass  # valid
-    elif max_depth == float("inf"):
-        max_depth = 15
-        evaluation.message(self.get_name(), "invmaxrec", max_depth, 15)
-    else:
-        max_depth = 0
-        evaluation.message(self.get_name(), "invmaxrec", max_depth, 15)
 
     # Plot the functions
     graphics = []
