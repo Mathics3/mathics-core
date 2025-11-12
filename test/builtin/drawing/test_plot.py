@@ -243,7 +243,6 @@ def check_structure(result, expected):
 def eval_and_check_structure(str_expr, str_expected):
     expr = session.parse(str_expr)
     result = expr.evaluate(session.evaluation)
-    print_expression_tree(result)
     expected = session.parse(str_expected)
     try:
         check_structure(result, expected)
