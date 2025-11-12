@@ -3,9 +3,11 @@
 Unit tests from mathics.builtin.drawing.plot
 """
 
-from test.helper import check_evaluation
+from test.helper import check_evaluation, session
 
 import pytest
+
+from mathics.core.util import print_expression_tree
 
 
 def test__listplot():
@@ -200,4 +202,126 @@ def test_plot(str_expr, msgs, str_expected, fail_msg):
         hold_expected=True,
         failure_message=fail_msg,
         expected_messages=msgs,
+    )
+
+
+#
+# Call plotting functions and examine the structure of the output
+# In case of error trees are printed with an embedded >>> marker showing location of error
+#
+
+
+def print_expression_tree_with_marker(expr):
+    print_expression_tree(expr, marker=lambda expr: getattr(expr, "_marker", ""))
+
+
+def check_structure(result, expected):
+    """Check that expected is a prefix of result at every node"""
+
+    def error(msg):
+        result._marker = "RESULT >>> "
+        expected._marker = "EXPECTED >>> "
+        raise AssertionError(msg)
+
+    # do the heads match?
+    if result.get_head() != expected.get_head():
+        error("heads don't match")
+
+    # does the structure match?
+    if hasattr(expected, "elements"):
+        if not hasattr(result, "elements"):
+            error("expected elements but result has none")
+        for i, e in enumerate(expected.elements):
+            if len(result.elements) <= i:
+                error("result has too few elements")
+            check_structure(result.elements[i], e)
+    else:
+        if str(result) != str(expected):
+            error("leaves don't match")
+
+
+def eval_and_check_structure(str_expr, str_expected):
+    expr = session.parse(str_expr)
+    result = expr.evaluate(session.evaluation)
+    expected = session.parse(str_expected)
+    try:
+        check_structure(result, expected)
+    except AssertionError as oops:
+        print(f"\nERROR: {oops} (error is marked with >>> below)")
+        print("=== result:")
+        print_expression_tree_with_marker(result)
+        print("=== expected:")
+        print_expression_tree_with_marker(expected)
+        raise
+
+
+def test_plot3d_default():
+    eval_and_check_structure(
+        """
+        Plot3D[
+            x+y,
+            {x,0,1}, {y,0,1},
+            PlotPoints->{2,2},
+            MaxRecursion->0
+        ]
+        """,
+        """
+        Graphics3D[
+            {
+                Polygon[{{0.0,0.0,0.0}, {0.0,0.5,0.5}, {0.5,0.0,0.5}}],
+                Polygon[{{}}]
+            },
+            AspectRatio -> 1,
+            Axes -> True,
+            AxesStyle -> {},
+            Background -> Automatic,
+            BoxRatios -> {1, 1, 0.4},
+            ImageSize -> Automatic,
+            LabelStyle -> {},
+            PlotRange -> Automatic,
+            PlotRangePadding -> Automatic,
+            TicksStyle -> {}
+        ]
+        """,
+    )
+
+
+def test_plot3d_nondefault():
+    eval_and_check_structure(
+        """
+        Plot3D[
+            x+y,
+            {x,0,1}, {y,0,1},
+            PlotPoints->{2,2},
+            MaxRecursion->0
+            AspectRatio -> 0.5,
+            Axes -> False,
+            AxesStyle -> {Red,Blue},
+            Background -> Green,
+            BoxRatios -> {10, 10, 1},
+            ImageSize -> {200,200},
+            LabelStyle -> Red,
+            PlotRange -> {0,1},
+            PlotRangePadding -> {1,2},
+            TicksStyle -> {Purple,White}
+        ]
+        """,
+        """
+        Graphics3D[
+            {
+                Polygon[{{0.0,0.0,0.0}, {0.0,0.5,0.5}, {0.5,0.0,0.5}}],
+                Polygon[{{}}]
+            },
+            AspectRatio -> 1, (* TODO: is not passed through apparently - or is my misunderstanding? *)
+            Axes -> False,
+            AxesStyle -> {RGBColor[1,0,0],RGBColor[0,0,1]},
+            Background -> RGBColor[0,1,0],
+            BoxRatios -> {10, 10, 1},
+            ImageSize -> {200,200},
+            LabelStyle -> RGBColor[1,0,0],
+            PlotRange -> {0,1},
+            PlotRangePadding -> {1,2},
+            TicksStyle -> {RGBColor[0.5,0,0.5],GrayLevel[1]}
+        ]
+        """,
     )
