@@ -37,29 +37,26 @@ ListPlotNames = (
 
 def eval_plot3d(
     self,
-    functions,
-    x,
-    xstart,
-    xstop,
-    y,
-    ystart,
-    ystop,
-    plotpoints,
-    max_depth,
-    mesh,
+    plot_options,
     evaluation: Evaluation,
     options: dict,
 ):
     """%(name)s[functions_, {x_Symbol, xstart_, xstop_},
     {y_Symbol, ystart_, ystop_}, OptionsPattern[%(name)s]]"""
 
+    plotpoints = plot_options.plotpoints
+    _, xstart, xstop = plot_options.ranges[0]
+    _, ystart, ystop = plot_options.ranges[1]
+    max_depth = plot_options.max_depth
+    mesh = plot_options.mesh
+
     # Plot the functions
     graphics = []
-    for _, f in enumerate(functions):
+    for _, f in enumerate(plot_options.functions):
         stored = {}
 
         compiled_fn = compile_quiet_function(
-            f, [x.get_name(), y.get_name()], evaluation, False
+            f, [range[0].get_name() for range in plot_options.ranges], evaluation, False
         )
 
         def apply_fn(compiled_fn: Callable, x_value, y_value):

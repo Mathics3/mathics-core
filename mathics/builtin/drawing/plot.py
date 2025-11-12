@@ -449,7 +449,13 @@ class _Plot3D(Builtin):
             *options_to_rules(options),
         )
 
+        class PlotOptions:
+            pass
+        plot_options = PlotOptions
+
         functions = self.get_functions_param(functions)
+        plot_options.functions = functions
+
         plot_name = self.get_name()
 
         def convert_limit(value, limits):
@@ -473,12 +479,16 @@ class _Plot3D(Builtin):
             evaluation.message(plot_name, "plln", xstop, expr)
             return
 
+        plot_options.ranges = [[x, xstart, xstop], [y, ystart, ystop]]
+
+
         # Mesh Option
         mesh_option = self.get_option(options, "Mesh", evaluation)
         mesh = mesh_option.to_python()
         if mesh not in ["System`None", "System`Full", "System`All"]:
             evaluation.message("Mesh", "ilevels", mesh_option)
             mesh = "System`Full"
+        plot_options.mesh = mesh
 
         # PlotPoints Option
         plotpoints_option = self.get_option(options, "PlotPoints", evaluation)
@@ -503,6 +513,8 @@ class _Plot3D(Builtin):
             evaluation.message(self.get_name(), "invpltpts", plotpoints)
             plotpoints = (7, 7)
 
+        plot_options.plotpoints = plotpoints
+
         # MaxRecursion Option
         maxrec_option = self.get_option(options, "MaxRecursion", evaluation)
         max_depth = maxrec_option.to_python()
@@ -522,9 +534,10 @@ class _Plot3D(Builtin):
             max_depth = 0
             evaluation.message(self.get_name(), "invmaxrec", max_depth, 15)
 
+        plot_options.max_depth = max_depth
 
         return eval_plot3d(
-            self, functions, x, xstart, xstop, y, ystart, ystop, plotpoints, max_depth, mesh, evaluation, options
+            self, plot_options, evaluation, options
         )
 
 
