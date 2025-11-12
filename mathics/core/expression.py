@@ -1981,7 +1981,8 @@ def convert_expression_elements(
 
     # All of the properties start out optimistic (True) and are reset when that
     # proves wrong.
-    elements_properties = ElementsProperties(True, True, True)
+    # Also, expressions from this function are expected to be uniform.
+    elements_properties = ElementsProperties(True, True, True, True)
 
     is_literal = True
     values = []  # If is_literal, "values" contains the (Python) literal values

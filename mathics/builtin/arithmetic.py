@@ -42,7 +42,7 @@ from mathics.core.builtin import (
     Test,
 )
 from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol_prefix
-from mathics.core.element import BaseElement
+from mathics.core.element import BaseElement, ElementsProperties
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.expression_predefined import (
@@ -783,8 +783,12 @@ class Product(IterationFunction, SympyFunction, PrefixOperator):
     sympy_name = "Product"
     throw_iterb = False
 
-    def get_result(self, elements):
-        return Expression(SymbolTimes, *elements)
+    def get_result(self, elements, is_uniform=False):
+        return Expression(
+            SymbolTimes,
+            *elements,
+            elements_properties=ElementsProperties(is_uniform=is_uniform),
+        )
 
     def to_sympy(self, expr, **kwargs):
         if expr.has_form("Product", 2) and expr.elements[1].has_form("List", 3):
@@ -1020,8 +1024,12 @@ class Sum(IterationFunction, SympyFunction, PrefixOperator):
     # Do not throw warning message for symbolic iteration bounds
     throw_iterb = False
 
-    def get_result(self, elements) -> Expression:
-        return Expression(SymbolPlus, *elements)
+    def get_result(self, elements, is_uniform=False) -> Expression:
+        return Expression(
+            SymbolPlus,
+            *elements,
+            elements_properties=ElementsProperties(is_uniform=is_uniform),
+        )
 
     def to_sympy(self, expr, **kwargs) -> Optional[SympyExpression]:
         """
