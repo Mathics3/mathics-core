@@ -19,47 +19,6 @@ from mathics.eval.drawing.plot import compile_quiet_function
 
 from .util import GraphicsGenerator
 
-ListPlotNames = (
-    "DiscretePlot",
-    "ListPlot",
-    "ListLinePlot",
-    "ListStepPlot",
-)
-
-
-def eval_Plot3D(
-    plot_options,
-    evaluation: Evaluation,
-):
-    triangles, mesh_points, v_min, v_max = compute_triangles(plot_options, evaluation)
-
-    graphics = GraphicsGenerator(dim=3)
-
-    # add the triangles
-    for tri in triangles:
-        graphics.add_polyxyzs([tri])
-
-    # add the mesh lines
-    for xi in range(len(mesh_points)):
-        graphics.add_linexyzs([mesh_points[xi]])
-
-    return graphics
-
-
-def eval_DensityPlot(
-    self,
-    plot_options,
-    evaluation: Evaluation,
-    options: dict,
-):
-    triangles, mesh_points, v_min, v_max = compute_triangles(plot_options, evaluation)
-
-    graphics = construct_density_plot(
-        self, triangles, mesh_points, v_min, v_max, options, evaluation
-    )
-
-    return graphics
-
 
 def compute_triangles(plot_options, evaluation):
     plotpoints = plot_options.plotpoints
@@ -410,12 +369,34 @@ def compute_triangles(plot_options, evaluation):
     return triangles, mesh_points, v_min, v_max
 
 
-def construct_density_plot(
-    self, triangles, mesh_points, v_min, v_max, options, evaluation
+
+def eval_Plot3D(
+    plot_options,
+    evaluation: Evaluation,
 ):
-    """
-    Construct a density plot
-    """
+    triangles, mesh_points, v_min, v_max = compute_triangles(plot_options, evaluation)
+
+    graphics = GraphicsGenerator(dim=3)
+
+    # add the triangles
+    for tri in triangles:
+        graphics.add_polyxyzs([tri])
+
+    # add the mesh lines
+    for xi in range(len(mesh_points)):
+        graphics.add_linexyzs([mesh_points[xi]])
+
+    return graphics
+
+
+def eval_DensityPlot(
+    self,
+    plot_options,
+    evaluation: Evaluation,
+    options: dict,
+):
+    triangles, mesh_points, v_min, v_max = compute_triangles(plot_options, evaluation)
+
     color_function = self.get_option(options, "ColorFunction", evaluation, pop=True)
     color_function_scaling = self.get_option(
         options, "ColorFunctionScaling", evaluation, pop=True
@@ -494,3 +475,6 @@ def construct_density_plot(
         graphics.add_linexyzs([mesh_points[xi]])
 
     return graphics
+
+
+
