@@ -10,19 +10,13 @@ import itertools
 from math import cos, pi, sqrt
 from typing import Callable
 
-from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Integer1, Real, String
-from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolTrue
+from mathics.core.symbols import SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolColorData,
     SymbolFunction,
-    SymbolLine,
-    SymbolPolygon,
-    SymbolRule,
     SymbolSlot,
 )
 from mathics.eval.drawing.plot import compile_quiet_function
@@ -84,7 +78,6 @@ def compute_triangles(
     mesh = plot_options.mesh
 
     # Plot the functions
-    graphics = []
     for _, f in enumerate(plot_options.functions):
         stored = {}
 

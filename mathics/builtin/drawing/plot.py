@@ -9,7 +9,6 @@ points, as another parameter, and plot or show the function applied to the data.
 import numbers
 from abc import ABC
 from functools import lru_cache
-import itertools
 from math import cos, pi, sin
 from typing import Callable, Optional
 
@@ -31,16 +30,11 @@ from mathics.core.systemsymbols import (
     SymbolBlack,
     SymbolEdgeForm,
     SymbolGraphics,
-    SymbolGraphics3D,
     SymbolLine,
     SymbolLog10,
-    SymbolPolygon,
     SymbolRGBColor,
-    SymbolRule,
     SymbolStyle,
-    SymbolVertexColors,
 )
-from mathics.core.util import print_expression_tree
 from mathics.eval.drawing.charts import draw_bar_chart, eval_chart
 from mathics.eval.drawing.colors import COLOR_PALETTES, get_color_palette
 from mathics.eval.drawing.plot import (
@@ -518,7 +512,7 @@ class _Plot3D(Builtin):
         # parse options, bailing out if anything is wrong
         try:
             plot_options = PlotOptions(self, args.elements[1:3], options, evaluation)
-        except ValueError as oops:
+        except ValueError:
             return None
 
         # ask the subclass to get one or more functions as appropriate
@@ -648,7 +642,6 @@ class ColorDataFunction(Builtin):
     """
 
     summary_text = "color scheme object"
-    pass
 
 
 class DensityPlot(_Plot3D):

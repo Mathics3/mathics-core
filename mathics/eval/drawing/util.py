@@ -3,20 +3,15 @@ Common utilities for plotting
 """
 
 from mathics.core.systemsymbols import (
-    SymbolBlack,
-    SymbolEdgeForm,
     SymbolGraphics,
     SymbolGraphics3D,
     SymbolLine,
-    SymbolLog10,
     SymbolPolygon,
-    SymbolRGBColor,
     SymbolRule,
-    SymbolStyle,
     SymbolVertexColors,
 )
 
-from mathics.core.convert.expression import to_expression, to_mathics_list
+from mathics.core.convert.expression import to_mathics_list
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 
