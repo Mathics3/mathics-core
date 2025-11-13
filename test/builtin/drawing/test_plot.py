@@ -234,7 +234,7 @@ def check_structure(result, expected, parent_result=None, parent_expected=None, 
 
     # do the heads match?
     if result.get_head() != expected.get_head():
-        error("heads don't match")
+        error(f"heads {result.get_head()} and {expected.get_head()} don't match")
 
     # does the structure match?
     if hasattr(expected, "elements"):

@@ -9,6 +9,7 @@ points, as another parameter, and plot or show the function applied to the data.
 import numbers
 from abc import ABC
 from functools import lru_cache
+import itertools
 from math import cos, pi, sin
 from typing import Callable, Optional
 
@@ -35,6 +36,7 @@ from mathics.core.systemsymbols import (
     SymbolLog10,
     SymbolPolygon,
     SymbolRGBColor,
+    SymbolRule,
     SymbolStyle,
 )
 from mathics.core.util import print_expression_tree
@@ -696,16 +698,19 @@ class DensityPlot(_Plot3D):
     def construct_graphics(
         self, triangles, mesh_points, v_min, v_max, options, evaluation
     ):
-        return construct_density_plot(
+        self.graphics = construct_density_plot(
             self, triangles, mesh_points, v_min, v_max, options, evaluation
         )
 
-    def final_graphics(self, graphics, options):
+    def final_graphics(self, options):
+        return self.graphics.generate(options_to_rules(options, Graphics3D.options))
+        """
         return Expression(
             SymbolGraphics,
             ListExpression(*graphics),
             *options_to_rules(options, Graphics.options),
         )
+        """
 
 
 class DiscretePlot(_Plot):
@@ -1792,38 +1797,69 @@ class PolarPlot(_Plot):
 
 class GraphicsGenerator:
 
+    # TODO: more precise types
     poly_xyzs: list
+    poly_xyzs_colors: list
     line_xyzs: list
+    line_xyzs_colors: list
+
     dim: int    
 
     def __init__(self, dim: int):
-        self.poly_xyzs = []
-        self.line_xyzs = []
         self.dim = dim
+        self.poly_xyzs = []
+        self.poly_xyzs_colors = []
+        self.line_xyzs = []
+        self.line_xyzs_colors = []
 
-    def add_polyxyzs(self, poly_xyzs):
+    def add_polyxyzs(self, poly_xyzs, colors=None):
         self.poly_xyzs.append(poly_xyzs)
+        if colors:
+            self.poly_xyzs_colors.append(colors)
 
-    def add_linexyzs(self, line_xyzs):
+    def add_linexyzs(self, line_xyzs, colors=None):
         self.line_xyzs.append(line_xyzs)
+        if colors:
+            self.line_xyzs_colors.append(colors)
 
     def generate(self, options):
+
+        # TODO: system symbolx
+        VertexColorsSymbol = Symbol("VertexColors")
 
         # holds the elements of the final Graphics[3D] expr
         graphics = []
 
         # add polygons and lines
-        def add_thing(thingss, thing_symbol):
-            for things in thingss:
+        def add_thing(thing_symbol, thingss, colorss):
+            for things, colors in itertools.zip_longest(thingss, colorss):
                 arg = tuple(to_mathics_list(*thing) for thing in things)
-                if len(arg) > 1:
-                    arg = ListExpression(*args)
+                arg = ListExpression(*arg) if len(arg) > 1 else arg[0]
+                if colors:
+                    color_arg = tuple(to_mathics_list(*color) for color in colors)
+                    color_arg = ListExpression(*color_arg) if len(color_arg) > 1 else color_arg[0]
+                    color_rule = Expression(SymbolRule, VertexColorsSymbol, color_arg)
+                    graphics.append(Expression(thing_symbol, arg, color_rule))
                 else:
-                    arg = arg[0]
-                expr = Expression(thing_symbol, arg)
-                graphics.append(expr)
-        add_thing(self.poly_xyzs, SymbolPolygon)
-        add_thing(self.line_xyzs, SymbolLine)
+                    graphics.append(Expression(thing_symbol, arg))
+        add_thing(SymbolPolygon, self.poly_xyzs, self.poly_xyzs_colors)
+        add_thing(SymbolLine, self.line_xyzs, self.line_xyzs_colors)
+
+        # add colors
+        # TODO: this assumes caller has supplied color expressions like RGBColor
+        # possibly we should pull support for that into here for re-use
+        """
+        if len(self.colors):
+            print("xxx colors", self.colors)
+            color_expr = Expression(
+                SymbolRule,
+                # TODO: move to symbols.py
+                Symbol("VertexColors"),
+                ListExpression(*self.colors),
+            )
+            graphics.append(color_expr)
+        """
+            
 
         # generate Graphics[3D] expression
         graphics_expr = Expression(

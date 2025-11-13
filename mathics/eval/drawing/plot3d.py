@@ -469,6 +469,17 @@ def construct_density_plot(
             colors[v_lookup] = value
         return value
 
+    from mathics.builtin.drawing.plot import GraphicsGenerator # TODO: move to here
+
+    g = GraphicsGenerator(dim=2)
+
+    polys = tuple(tuple(p[:2] for p in tri) for tri in triangles)
+    colors = tuple(tuple(eval_color(*p) for p in tri) for tri in triangles)
+    g.add_polyxyzs(polys, colors)
+
+    return g
+
+
     points = []
     vertex_colors = []
     graphics = []
