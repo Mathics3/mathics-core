@@ -695,7 +695,7 @@ class DensityPlot(_Plot3D):
     # called by superclass
     def do_eval(self, plot_options, evaluation, options):
         graphics = eval_DensityPlot(self, plot_options, evaluation, options)
-        graphics_expr = graphics.generate(options_to_rules(options, Graphics3D.options))
+        graphics_expr = graphics.generate(options_to_rules(options, Graphics.options))
         return graphics_expr
 
     def get_functions_param(self, functions):
@@ -1893,7 +1893,9 @@ class Plot3D(_Plot3D):
 
     # called by superclass
     def do_eval(self, plot_options, evaluation, options):
-        return eval_Plot3D(self, plot_options, evaluation, options)
+        graphics = eval_Plot3D(self, plot_options, evaluation, options)
+        graphics_expr = graphics.generate(options_to_rules(options, Graphics3D.options))
+        return graphics_expr
 
     def get_functions_param(self, functions):
         if functions.has_form("List", None):
@@ -1901,18 +1903,3 @@ class Plot3D(_Plot3D):
         else:
             return [functions]
 
-    def construct_graphics(
-        self, triangles, mesh_points, v_min, v_max, options, evaluation: Evaluation
-    ):
-        self.graphics = GraphicsGenerator(3)
-
-        # add the triangles
-        for tri in triangles:
-            self.graphics.add_polyxyzs([tri])
-
-        # add the mesh lines
-        for xi in range(len(mesh_points)):
-            self.graphics.add_linexyzs([mesh_points[xi]])
-
-    def final_graphics(self, options: dict):
-        return self.graphics.generate(options_to_rules(options, Graphics3D.options))

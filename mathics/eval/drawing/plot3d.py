@@ -43,14 +43,19 @@ def eval_Plot3D(
 ):
     triangles, mesh_points, v_min, v_max = compute_triangles(plot_options, evaluation)
 
+    from mathics.builtin.drawing.plot import GraphicsGenerator # TODO: move to here
 
+    graphics = GraphicsGenerator(dim=3)
 
+    # add the triangles
+    for tri in triangles:
+        graphics.add_polyxyzs([tri])
 
-    self.construct_graphics(
-        triangles, mesh_points, v_min, v_max, options, evaluation
-    )
-    
-    return self.final_graphics(options)
+    # add the mesh lines
+    for xi in range(len(mesh_points)):
+        graphics.add_linexyzs([mesh_points[xi]])
+
+    return graphics
 
 
 def eval_DensityPlot(
@@ -499,6 +504,7 @@ def construct_density_plot(
 
     g = GraphicsGenerator(dim=2)
 
+    # add the triangles with their colors
     polys = tuple(tuple(p[:2] for p in tri) for tri in triangles)
     colors = tuple(tuple(eval_color(*p) for p in tri) for tri in triangles)
     g.add_polyxyzs(polys, colors)
