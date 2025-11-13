@@ -408,6 +408,12 @@ class _Plot(Builtin, ABC):
 # TODO: add more options
 # TODO: generalize, use for other plots
 class PlotOptions:
+    """
+    Extract Options common to many types of plotting.
+    This aims to reduce duplication of code,
+    and to make it easier to pass options to eval_* routines.
+    """
+
     # TODO: more precise types
     ranges: list
     mesh: str
@@ -482,6 +488,16 @@ class PlotOptions:
             evaluation.message(expr.get_name(), "invmaxrec", max_depth, 15)
         self.max_depth = max_depth
 
+        # ColorFunction and ColorFunctionScaling options
+        # This was pulled from construct_density_plot (now eval_DensityPlot).
+        # TODO: What does pop=True do? is it right?
+        # TODO: can we move some of the subsequent processing in eval_DensityPlot to here?
+        # TODO: what is the type of these? that may change if we do the above...
+        self.color_function = expr.get_option(options, "ColorFunction", evaluation, pop=True)
+        self.color_function_scaling = expr.get_option(
+            options, "ColorFunctionScaling", evaluation, pop=True
+        )
+
 
 class _Plot3D(Builtin):
     messages = {
@@ -519,7 +535,7 @@ class _Plot3D(Builtin):
         # ask the subclass to get one or more functions as appropriate
         plot_options.functions = self.get_functions_param(args.elements[0])
 
-        # delegate to subclass
+        # delegate to subclass, which will call the appropriate eval_* function
         return self.do_eval(plot_options, evaluation, options)
 
 
@@ -695,8 +711,7 @@ class DensityPlot(_Plot3D):
     # called by superclass
     def do_eval(self, plot_options, evaluation, options):
         """called by superclass to call appropriate eval_* function"""
-        # TODO: self and options needed b/c some options processing still done in DensityPlot
-        graphics = eval_DensityPlot(self, plot_options, evaluation, options)
+        graphics = eval_DensityPlot(plot_options, evaluation)
         graphics_expr = graphics.generate(options_to_rules(options, Graphics.options))
         return graphics_expr
 

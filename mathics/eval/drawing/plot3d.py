@@ -1,5 +1,5 @@
 """
-Evaluation routines for 2D plotting.
+Evaluation routines for Plot3D and DensityPlot, which share a good bit of code.
 
 These routines build Mathics M-Expressions that describe plots.
 Note that this is distinct from boxing, formatting and rendering e.g. to SVG.
@@ -21,6 +21,18 @@ from .util import GraphicsGenerator
 
 
 def compute_triangles(plot_options, evaluation):
+    """
+    This routine computes the value of a function over some points,
+    and constructs a triangular mesh over those points.
+    Used by both eval_Plot3D and eval_DensityPlot.
+
+    It also constructs a "mesh" of lines as specified by the Mesh option.
+
+    Caution: mesh is the industry-standard term for a collection of polygons
+    describing a surface. This is distinct from the "mesh" of lines generated
+    by the Mesh option.
+    """
+
     plotpoints = plot_options.plotpoints
     _, xstart, xstop = plot_options.ranges[0]
     _, ystart, ystop = plot_options.ranges[1]
@@ -390,18 +402,15 @@ def eval_Plot3D(
 
 
 def eval_DensityPlot(
-    self,
     plot_options,
     evaluation: Evaluation,
-    options: dict,
 ):
     triangles, mesh_points, v_min, v_max = compute_triangles(plot_options, evaluation)
 
-    color_function = self.get_option(options, "ColorFunction", evaluation, pop=True)
-    color_function_scaling = self.get_option(
-        options, "ColorFunctionScaling", evaluation, pop=True
-    )
+    color_function = plot_options.color_function
+    color_function_scaling = plot_options.color_function_scaling
 
+    # TODO: can some of this be pulled out into PlotOptions for more general use?
     color_function_min = color_function_max = None
     if color_function.get_name() == "System`Automatic":
         color_function = String("LakeColors")
