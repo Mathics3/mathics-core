@@ -38,6 +38,7 @@ from mathics.core.systemsymbols import (
     SymbolRGBColor,
     SymbolRule,
     SymbolStyle,
+    SymbolVertexColors,
 )
 from mathics.core.util import print_expression_tree
 from mathics.eval.drawing.charts import draw_bar_chart, eval_chart
@@ -703,14 +704,8 @@ class DensityPlot(_Plot3D):
         )
 
     def final_graphics(self, options):
-        return self.graphics.generate(options_to_rules(options, Graphics3D.options))
-        """
-        return Expression(
-            SymbolGraphics,
-            ListExpression(*graphics),
-            *options_to_rules(options, Graphics.options),
-        )
-        """
+        graphics_expr = self.graphics.generate(options_to_rules(options, Graphics3D.options))
+        return graphics_expr
 
 
 class DiscretePlot(_Plot):
@@ -1828,9 +1823,6 @@ class GraphicsGenerator:
             self.line_xyzs_colors.append(colors)
 
     def generate(self, options):
-
-        # TODO: system symbolx
-        SymbolVertexColors = Symbol("VertexColors")
 
         # holds the elements of the final Graphics[3D] expr
         graphics = []
