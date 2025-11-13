@@ -239,11 +239,14 @@ class Integer(Number[int]):
         return self
 
     def __eq__(self, other) -> bool:
-        return (
-            self._value == other.value
-            if isinstance(other, Integer)
-            else super().__eq__(other)
-        )
+        if isinstance(other, Integer):
+            return self._value == other.value
+        if isinstance(other, Number):
+            # If other is a number of a wider class, use
+            # its implementation:
+            return other.__eq__(self)
+
+        return super().__eq__(other)
 
     def __ge__(self, other) -> bool:
         return (
@@ -404,17 +407,18 @@ class Real(Number[T]):
             return PrecisionReal.__new__(PrecisionReal, value)
 
     def __eq__(self, other) -> bool:
-        if isinstance(other, Real):
-            # MMA Docs: "Approximate numbers that differ in their last seven
-            # binary digits are considered equal"
-            _prec = min_prec(self, other)
-            if _prec is not None:
-                with mpmath.workprec(_prec):
-                    rel_eps = 0.5 ** float(_prec - 7)
-                    return mpmath.almosteq(
-                        self.to_mpmath(), other.to_mpmath(), abs_eps=0, rel_eps=rel_eps
-                    )
-        return super().__eq__(other)
+        if not isinstance(other, Number):
+            return super().__eq__(other)
+
+        _prec = min_prec(self, other)
+        if prec is None:
+            return self.value == other.value
+
+        with mpmath.workprec(_prec):
+            rel_eps = 0.5 ** float(_prec - 7)
+            return mpmath.almosteq(
+                self.to_mpmath(), other.to_mpmath(), abs_eps=0, rel_eps=rel_eps
+            )
 
     def __hash__(self):
         # ignore last 7 binary digits when hashing
@@ -491,6 +495,20 @@ class MachineReal(Real[float]):
 
     def get_float_value(self, permit_complex=False) -> float:
         return self._value
+
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return (
+            BASIC_ATOM_NUMBER_ELT_ORDER,
+            self.value,
+            0,
+            1,
+            0,  # Machine precision comes first, and after Integers
+        )
 
     @property
     def is_approx_zero(self) -> bool:
@@ -602,6 +620,15 @@ class PrecisionReal(Real[sympy.Float]):
     def get_precision(self) -> int:
         """Returns the default specification for precision (in binary digits) in N and other numerical functions."""
         return self.value._prec + 1
+
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        value = self._value
+        return (BASIC_ATOM_NUMBER_ELT_ORDER, value, 0, 1, value._prec)
 
     @property
     def is_zero(self) -> bool:
@@ -902,10 +929,42 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         Return a tuple value that is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
+        order_real, order_imag = self.real.element_order, self.imag.element_order
+        # If the real of the imag parts are real numbers, sort according
+        # the minimum precision.
+        # Example:
+        # Sort[{1+2I, 1.+2.I, 1.`4+2.`5I, 1.`2+2.`7 I}]
+        #
+        # = {1+2I, 1.+2.I, 1.`2+2.`7 I, 1.`4+2.`5I}
+
+        if len(order_real) > 3:
+            if len(order_imag) > 3:
+                return (
+                    BASIC_ATOM_NUMBER_ELT_ORDER,
+                    order_real[1],
+                    order_imag[1],
+                    1,
+                    min(order_real[3], order_imag[3]),
+                )
+            return (
+                BASIC_ATOM_NUMBER_ELT_ORDER,
+                order_real[1],
+                order_imag[1],
+                1,
+                order_real[3],
+            )
+        if len(order_imag) > 3:
+            return (
+                BASIC_ATOM_NUMBER_ELT_ORDER,
+                order_real[1],
+                order_imag[1],
+                1,
+                order_imag[3],
+            )
         return (
             BASIC_ATOM_NUMBER_ELT_ORDER,
-            self.real.element_order[1],
-            self.imag.element_order[1],
+            order_real[1],
+            order_imag[1],
             1,
         )
 
@@ -966,8 +1025,12 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
     def __eq__(self, other) -> bool:
         if isinstance(other, Complex):
             return self.real == other.real and self.imag == other.imag
-        else:
-            return super().__eq__(other)
+        if isinstance(other, Number):
+            if self.imag != 0:
+                return False
+            return self.real == other
+
+        return super().__eq__(other)
 
     @property
     def is_zero(self) -> bool:
@@ -1018,6 +1081,17 @@ class Rational(Number[sympy.Rational]):
             # it is used this is fast.
             self.hash = hash(key)
         return self
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, Rational):
+            return self.value.as_numer_denom() == other.value.as_numer_denom()
+        if isinstance(other, Integer):
+            return (other.value, 1)== self.value.as_numer_denom()
+        if isinstance(other, Number):
+            # For general numbers, rely on Real or Complex implementations.
+            return other.__eq__(self)
+        # General expressions
+        return super().__eq__(other)
 
     def __getnewargs__(self) -> tuple:
         return (self.numerator().value, self.denominator().value)
