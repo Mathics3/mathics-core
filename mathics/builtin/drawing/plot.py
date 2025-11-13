@@ -515,12 +515,13 @@ class _Plot3D(Builtin):
 
         # TODO: test error for too many, too few, no args
 
+        # parse options, bailing out if anything is wrong
         try:
             plot_options = PlotOptions(self, args.elements[1:3], options, evaluation)
         except ValueError as oops:
             return None
 
-        # TODO: pass in?? don't put in Options??
+        # ask the subclass to get one or more functions as appropriate
         plot_options.functions = self.get_functions_param(args.elements[0])
 
         # delegate to subclass
@@ -692,15 +693,18 @@ class DensityPlot(_Plot3D):
     )
     summary_text = "density plot for a function"
 
+    # TODO: error if more than one function here
+    def get_functions_param(self, functions):
+        """can only have one function"""
+        return [functions]
+
     # called by superclass
     def do_eval(self, plot_options, evaluation, options):
+        """called by superclass to call appropriate eval_* function"""
+        # TODO: self and options needed b/c some options processing still done in DensityPlot
         graphics = eval_DensityPlot(self, plot_options, evaluation, options)
         graphics_expr = graphics.generate(options_to_rules(options, Graphics.options))
         return graphics_expr
-
-    def get_functions_param(self, functions):
-        return [functions]
-
 
 
 class DiscretePlot(_Plot):
@@ -1891,15 +1895,16 @@ class Plot3D(_Plot3D):
     )
     summary_text = "plots 3D surfaces of one or more functions"
 
-    # called by superclass
-    def do_eval(self, plot_options, evaluation, options):
-        graphics = eval_Plot3D(self, plot_options, evaluation, options)
-        graphics_expr = graphics.generate(options_to_rules(options, Graphics3D.options))
-        return graphics_expr
-
     def get_functions_param(self, functions):
+        """May have a function or a list of functions"""
         if functions.has_form("List", None):
             return functions.elements
         else:
             return [functions]
+
+    def do_eval(self, plot_options, evaluation, options):
+        """called by superclass to call appropriate eval_* function"""
+        graphics = eval_Plot3D(plot_options, evaluation)
+        graphics_expr = graphics.generate(options_to_rules(options, Graphics3D.options))
+        return graphics_expr
 

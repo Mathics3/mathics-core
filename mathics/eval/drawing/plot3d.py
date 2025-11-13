@@ -36,10 +36,8 @@ ListPlotNames = (
 
 
 def eval_Plot3D(
-    self,
     plot_options,
     evaluation: Evaluation,
-    options: dict,
 ):
     triangles, mesh_points, v_min, v_max = compute_triangles(plot_options, evaluation)
 
