@@ -430,8 +430,8 @@ class PlotOptions:
             name = range_expr.elements[0]
             range = [name]
             for limit_expr in range_expr.elements[1:3]:
-                limit = limit_expr.to_python()
-                if not isinstance(limit, (int, float)):
+                limit = limit_expr.round_to_float(evaluation)
+                if limit is None:
                     evaluation.message(expr.get_name(), "plln", limit_expr, range_expr)
                     raise ValueError()
                 range.append(limit)
