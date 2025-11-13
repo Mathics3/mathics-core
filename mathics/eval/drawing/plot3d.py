@@ -477,33 +477,8 @@ def construct_density_plot(
     colors = tuple(tuple(eval_color(*p) for p in tri) for tri in triangles)
     g.add_polyxyzs(polys, colors)
 
-    return g
-
-
-    points = []
-    vertex_colors = []
-    graphics = []
-    for p in triangles:
-        points.append(ListExpression(*(to_mathics_list(*x[:2]) for x in p)))
-        vertex_colors.append(ListExpression(*(eval_color(*x) for x in p)))
-
-    graphics.append(
-        Expression(
-            SymbolPolygon,
-            ListExpression(*points),
-            Expression(
-                SymbolRule,
-                Symbol("VertexColors"),
-                ListExpression(*vertex_colors),
-            ),
-        )
-    )
-
-    # add mesh
+    # add the mesh lines
     for xi in range(len(mesh_points)):
-        line = []
-        for yi in range(len(mesh_points[xi])):
-            line.append(to_mathics_list(mesh_points[xi][yi][0], mesh_points[xi][yi][1]))
-        graphics.append(Expression(SymbolLine, ListExpression(*line)))
+        g.add_linexyzs([mesh_points[xi]])
 
-    return graphics
+    return g
