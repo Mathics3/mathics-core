@@ -60,7 +60,12 @@ def test__listplot():
         ),
         ("Plot[x*y, {x, -1, 1}]", None, "-Graphics-", None),
         ("Plot3D[z, {x, 1, 20}, {y, 1, 10}]", None, "-Graphics3D-", None),
-        ("Plot3D[Exp[x] Cos[y], {x, -2, 1}, {y, -Pi, 2 Pi}]", None, "-Graphics3D-", None),
+        (
+            "Plot3D[Exp[x] Cos[y], {x, -2, 1}, {y, -Pi, 2 Pi}]",
+            None,
+            "-Graphics3D-",
+            None,
+        ),
         (
             "Graphics[{Disk[]}, Background->RGBColor[1,.1,.1]]//TeXForm//ToString",
             None,
