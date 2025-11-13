@@ -389,12 +389,12 @@ def eval_plot3d(
                     v_min = v
                 if v_max is None or v > v_max:
                     v_max = v
-        graphics.extend(
-            self.construct_graphics(
-                triangles, mesh_points, v_min, v_max, options, evaluation
-            )
+
+        self.construct_graphics(
+            triangles, mesh_points, v_min, v_max, options, evaluation
         )
-    return self.final_graphics(graphics, options)
+
+    return self.final_graphics(options)
 
 
 def construct_density_plot(

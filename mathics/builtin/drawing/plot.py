@@ -37,6 +37,7 @@ from mathics.core.systemsymbols import (
     SymbolRGBColor,
     SymbolStyle,
 )
+from mathics.core.util import print_expression_tree
 from mathics.eval.drawing.charts import draw_bar_chart, eval_chart
 from mathics.eval.drawing.colors import COLOR_PALETTES, get_color_palette
 from mathics.eval.drawing.plot import (
@@ -514,7 +515,7 @@ class _Plot3D(Builtin):
         try:
             plot_options = PlotOptions(self, args.elements[1:3], options, evaluation)
         except ValueError as oops:
-            return
+            return None
 
         # TODO: pass in?? don't put in Options??
         plot_options.functions = self.get_functions_param(args.elements[0])
@@ -1789,6 +1790,51 @@ class PolarPlot(_Plot):
             return (value * cos(x_value), value * sin(x_value))
 
 
+class GraphicsGenerator:
+
+    poly_xyzs: list
+    line_xyzs: list
+    dim: int    
+
+    def __init__(self, dim: int):
+        self.poly_xyzs = []
+        self.line_xyzs = []
+        self.dim = dim
+
+    def add_polyxyzs(self, poly_xyzs):
+        self.poly_xyzs.append(poly_xyzs)
+
+    def add_linexyzs(self, line_xyzs):
+        self.line_xyzs.append(line_xyzs)
+
+    def generate(self, options):
+
+        # holds the elements of the final Graphics[3D] expr
+        graphics = []
+
+        # add polygons and lines
+        def add_thing(thingss, thing_symbol):
+            for things in thingss:
+                arg = tuple(to_mathics_list(*thing) for thing in things)
+                if len(arg) > 1:
+                    arg = ListExpression(*args)
+                else:
+                    arg = arg[0]
+                expr = Expression(thing_symbol, arg)
+                graphics.append(expr)
+        add_thing(self.poly_xyzs, SymbolPolygon)
+        add_thing(self.line_xyzs, SymbolLine)
+
+        # generate Graphics[3D] expression
+        graphics_expr = Expression(
+            SymbolGraphics3D if self.dim==3 else SymbolGraphics,
+            ListExpression(*graphics),
+            *options
+        )
+
+        return graphics_expr
+
+
 class Plot3D(_Plot3D):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/Plot3D.html</url>
@@ -1842,6 +1888,24 @@ class Plot3D(_Plot3D):
     def construct_graphics(
         self, triangles, mesh_points, v_min, v_max, options, evaluation: Evaluation
     ):
+        self.graphics = GraphicsGenerator(3)
+
+        # add the triangles
+        for tri in triangles:
+            self.graphics.add_polyxyzs([tri])
+
+        # add the mesh lines
+        for xi in range(len(mesh_points)):
+            self.graphics.add_linexyzs([mesh_points[xi]])
+
+    def final_graphics(self, options: dict):
+        return self.graphics.generate(options_to_rules(options, Graphics3D.options))
+
+
+    """
+    def construct_graphics(
+        self, triangles, mesh_points, v_min, v_max, options, evaluation: Evaluation
+    ):
         graphics = []
         for p1, p2, p3 in triangles:
             graphics.append(
@@ -1874,3 +1938,4 @@ class Plot3D(_Plot3D):
             ListExpression(*graphics),
             *options_to_rules(options, Graphics3D.options),
         )
+    """
