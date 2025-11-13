@@ -54,7 +54,7 @@ from mathics.eval.drawing.plot import (
     get_plot_range,
     get_plot_range_option,
 )
-from mathics.eval.drawing.plot3d import construct_density_plot, eval_plot3d
+from mathics.eval.drawing.plot3d import eval_Plot3D, eval_DensityPlot
 from mathics.eval.nevaluator import eval_N
 
 # This tells documentation how to sort this module
@@ -523,9 +523,8 @@ class _Plot3D(Builtin):
         # TODO: pass in?? don't put in Options??
         plot_options.functions = self.get_functions_param(args.elements[0])
 
-        return eval_plot3d(
-            self, plot_options, evaluation, options
-        )
+        # delegate to subclass
+        return self.do_eval(plot_options, evaluation, options)
 
 
 class BarChart(_Chart):
@@ -693,19 +692,15 @@ class DensityPlot(_Plot3D):
     )
     summary_text = "density plot for a function"
 
+    # called by superclass
+    def do_eval(self, plot_options, evaluation, options):
+        graphics = eval_DensityPlot(self, plot_options, evaluation, options)
+        graphics_expr = graphics.generate(options_to_rules(options, Graphics3D.options))
+        return graphics_expr
+
     def get_functions_param(self, functions):
         return [functions]
 
-    def construct_graphics(
-        self, triangles, mesh_points, v_min, v_max, options, evaluation
-    ):
-        self.graphics = construct_density_plot(
-            self, triangles, mesh_points, v_min, v_max, options, evaluation
-        )
-
-    def final_graphics(self, options):
-        graphics_expr = self.graphics.generate(options_to_rules(options, Graphics3D.options))
-        return graphics_expr
 
 
 class DiscretePlot(_Plot):
@@ -1895,6 +1890,10 @@ class Plot3D(_Plot3D):
         }
     )
     summary_text = "plots 3D surfaces of one or more functions"
+
+    # called by superclass
+    def do_eval(self, plot_options, evaluation, options):
+        return eval_Plot3D(self, plot_options, evaluation, options)
 
     def get_functions_param(self, functions):
         if functions.has_form("List", None):

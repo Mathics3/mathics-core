@@ -35,15 +35,44 @@ ListPlotNames = (
 )
 
 
-def eval_plot3d(
+def eval_Plot3D(
     self,
     plot_options,
     evaluation: Evaluation,
     options: dict,
 ):
-    """%(name)s[functions_, {x_Symbol, xstart_, xstop_},
-    {y_Symbol, ystart_, ystop_}, OptionsPattern[%(name)s]]"""
+    triangles, mesh_points, v_min, v_max = compute_triangles(plot_options, evaluation)
 
+
+
+
+    self.construct_graphics(
+        triangles, mesh_points, v_min, v_max, options, evaluation
+    )
+    
+    return self.final_graphics(options)
+
+
+def eval_DensityPlot(
+    self,
+    plot_options,
+    evaluation: Evaluation,
+    options: dict,
+):
+    triangles, mesh_points, v_min, v_max = compute_triangles(plot_options, evaluation)
+
+    graphics = construct_density_plot(
+        self, triangles, mesh_points, v_min, v_max, options, evaluation
+    )
+
+    return graphics
+
+
+
+def compute_triangles(
+    plot_options,
+    evaluation
+):
     plotpoints = plot_options.plotpoints
     _, xstart, xstop = plot_options.ranges[0]
     _, ystart, ystop = plot_options.ranges[1]
@@ -390,11 +419,8 @@ def eval_plot3d(
                 if v_max is None or v > v_max:
                     v_max = v
 
-        self.construct_graphics(
-            triangles, mesh_points, v_min, v_max, options, evaluation
-        )
+    return triangles, mesh_points, v_min, v_max
 
-    return self.final_graphics(options)
 
 
 def construct_density_plot(
