@@ -27,6 +27,9 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.drawing.plot import compile_quiet_function
 
+from .util import GraphicsGenerator
+
+
 ListPlotNames = (
     "DiscretePlot",
     "ListPlot",
@@ -40,8 +43,6 @@ def eval_Plot3D(
     evaluation: Evaluation,
 ):
     triangles, mesh_points, v_min, v_max = compute_triangles(plot_options, evaluation)
-
-    from mathics.builtin.drawing.plot import GraphicsGenerator # TODO: move to here
 
     graphics = GraphicsGenerator(dim=3)
 
@@ -498,17 +499,15 @@ def construct_density_plot(
             colors[v_lookup] = value
         return value
 
-    from mathics.builtin.drawing.plot import GraphicsGenerator # TODO: move to here
-
-    g = GraphicsGenerator(dim=2)
+    graphics = GraphicsGenerator(dim=2)
 
     # add the triangles with their colors
     polys = tuple(tuple(p[:2] for p in tri) for tri in triangles)
     colors = tuple(tuple(eval_color(*p) for p in tri) for tri in triangles)
-    g.add_polyxyzs(polys, colors)
+    graphics.add_polyxyzs(polys, colors)
 
     # add the mesh lines
     for xi in range(len(mesh_points)):
-        g.add_linexyzs([mesh_points[xi]])
+        graphics.add_linexyzs([mesh_points[xi]])
 
-    return g
+    return graphics
