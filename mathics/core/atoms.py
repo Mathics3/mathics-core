@@ -4,6 +4,7 @@
 import base64
 import math
 import re
+from functools import cache
 from typing import Any, Dict, Generic, Optional, Tuple, TypeVar, Union
 
 import mpmath
@@ -56,10 +57,16 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
     being: Integer, Rational, Real, Complex.
     """
 
-    _value: T
+    _value: Any
     hash: int
 
-    def __getnewargs__(self):
+    def __eq__(self, other):
+        if isinstance(other, Number):
+            return self.element_order == other.element_order
+        else:
+            return False
+
+    def __getnewargs__(self) -> tuple:
         """
         __getnewargs__ is used in pickle loading to ensure __new__ is
         called with the right value.
@@ -70,12 +77,6 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         accordingly.
         """
         return (self._value,)
-
-    def __eq__(self, other):
-        if isinstance(other, Number):
-            return self.element_order == other.element_order
-        else:
-            return False
 
     def __str__(self) -> str:
         return str(self.value)
@@ -208,6 +209,7 @@ class Integer(Number[int]):
     # The key is the Integer's Python `int` value, and the
     # dictionary's value is the corresponding Mathics Integer object.
     _integers: Dict[Any, "Integer"] = {}
+    _value: int
 
     _sympy: sympy_numbers.Integer
 
@@ -448,6 +450,7 @@ class MachineReal(Real[float]):
     # The key is the MachineReal's Python `float` value, and the
     # dictionary's value is the corresponding Mathics MachineReal object.
     _machine_reals: Dict[Any, "MachineReal"] = {}
+    _value: float
 
     def __new__(cls, value) -> "MachineReal":
         n = float(value)
@@ -487,7 +490,7 @@ class MachineReal(Real[float]):
         return FP_MANTISA_BINARY_DIGITS
 
     def get_float_value(self, permit_complex=False) -> float:
-        return self.value
+        return self._value
 
     @property
     def is_approx_zero(self) -> bool:
@@ -561,7 +564,10 @@ class PrecisionReal(Real[sympy.Float]):
     # The key is the PrecisionReal's sympy.Float, and the
     # dictionary's value is the corresponding Mathics PrecisionReal object.
     _precision_reals: Dict[Any, "PrecisionReal"] = {}
-    _sympy: Number
+    _sympy: sympy.Float
+
+    # Note: We have no _value attribute or value property .
+    # value attribute comes from Number.value
 
     def __new__(cls, value) -> "PrecisionReal":
         n = sympy.Float(value)
@@ -635,10 +641,10 @@ class PrecisionReal(Real[sympy.Float]):
         diff = abs(value - other_value)
         return diff < 0.5**prec
 
-    def to_python(self, *args, **kwargs):
+    def to_python(self, *args, **kwargs) -> float:
         return float(self.value)
 
-    def to_sympy(self, *args, **kwargs):
+    def to_sympy(self, *args, **kwargs) -> sympy.Float:
         return self.value
 
 
@@ -683,7 +689,7 @@ class ByteArray(Atom, ImmutableValueMixin):
         """
         return self.value[index]
 
-    def __getnewargs__(self):
+    def __getnewargs__(self) -> tuple:
         return (self.value,)
 
     def __hash__(self) -> int:
@@ -795,11 +801,12 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
     # dictionary's value is the corresponding Mathics Complex object.
     _complex_numbers: Dict[Any, "Complex"] = {}
 
-    # We use __new__ here to ensure that two Integer's that have the same value
-    # return the same object, and to set an object hash value.
-    # Consider also @lru_cache, and mechanisms for limiting and
-    # clearing the cache and the object store which might be useful in implementing
-    # Builtin Share[].
+    # We use __new__ here to ensure that two Complex number that have
+    # down to the type on the imaginary and real parts and precision of those --
+    # the same value return the same object, and to set an object hash
+    # value.  Consider also @lru_cache, and mechanisms for limiting
+    # and clearing the cache and the object store which might be
+    # useful in implementing Builtin Share[].
     def __new__(cls, real, imag):
         if not isinstance(real, (Integer, Real, Rational)):
             raise ValueError(
@@ -852,8 +859,15 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
 
         return self
 
+    def __getnewargs__(self) -> tuple:
+        return (self.real, self.imag)
+
     def __hash__(self):
         return self.hash
+
+    @cache
+    def __neg__(self):
+        return Complex(-self.real, -self.imag)
 
     def __str__(self) -> str:
         return str(self.to_sympy())
@@ -955,12 +969,6 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         else:
             return super().__eq__(other)
 
-    def __getnewargs__(self):
-        return (self.real, self.imag)
-
-    def __neg__(self):
-        return Complex(-self.real, -self.imag)
-
     @property
     def is_zero(self) -> bool:
         return self.real.is_zero and self.imag.is_zero
@@ -985,6 +993,9 @@ class Rational(Number[sympy.Rational]):
 
     # Collection of integers defined so far.
     _rationals: Dict[Any, "Rational"] = {}
+    _value: Union[
+        sympy.Rational, sympy.core.numbers.NaN, sympy.core.numbers.ComplexInfinity
+    ]
 
     # We use __new__ here to ensure that two Rationals's that have the same value
     # return the same object, and to set an object hash value.
@@ -1008,15 +1019,27 @@ class Rational(Number[sympy.Rational]):
             self.hash = hash(key)
         return self
 
+    def __getnewargs__(self) -> tuple:
+        return (self.numerator().value, self.denominator().value)
+
     # __hash__ is defined so that we can store Number-derived objects
     # in a set or dictionary.
     def __hash__(self):
         return self.hash
 
+    def __neg__(self) -> "Rational":
+        return Rational(-self.numerator().value, self.denominator().value)
+
     def atom_to_boxes(self, f, evaluation):
         from mathics.eval.makeboxes import format_element
 
         return format_element(self, evaluation, f)
+
+    @property
+    def is_zero(self) -> bool:
+        return (
+            self.numerator().is_zero
+        )  # (implicit) and not (self.denominator().is_zero)
 
     def to_sympy(self, **kwargs):
         return self.value
@@ -1034,9 +1057,11 @@ class Rational(Number[sympy.Rational]):
         """Mathics SameQ"""
         return isinstance(rhs, Rational) and self.value == rhs.value
 
+    @cache
     def numerator(self) -> "Integer":
         return Integer(self.value.as_numer_denom()[0])
 
+    @cache
     def denominator(self) -> "Integer":
         return Integer(self.value.as_numer_denom()[1])
 
@@ -1072,18 +1097,6 @@ class Rational(Number[sympy.Rational]):
         update(
             b"System`Rational>" + ("%s>%s" % self.value.as_numer_denom()).encode("utf8")
         )
-
-    def __getnewargs__(self):
-        return (self.numerator().value, self.denominator().value)
-
-    def __neg__(self) -> "Rational":
-        return Rational(-self.numerator().value, self.denominator().value)
-
-    @property
-    def is_zero(self) -> bool:
-        return (
-            self.numerator().is_zero
-        )  # (implicit) and not (self.denominator().is_zero)
 
 
 RationalOneHalf = Rational(1, 2)
@@ -1299,7 +1312,7 @@ class String(Atom, BoxElementMixin):
         # hash value of the string's text. this corresponds to MMA behavior.
         update(self.value.encode("utf8"))
 
-    def __getnewargs__(self):
+    def __getnewargs__(self) -> tuple:
         return (self.value,)
 
 
