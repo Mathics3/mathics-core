@@ -48,7 +48,7 @@ from mathics.eval.drawing.plot import (
     get_plot_range,
     get_plot_range_option,
 )
-from mathics.eval.drawing.plot3d import eval_Plot3D, eval_DensityPlot
+from mathics.eval.drawing.plot3d import eval_DensityPlot, eval_Plot3D
 from mathics.eval.nevaluator import eval_N
 
 # This tells documentation how to sort this module
@@ -404,10 +404,10 @@ class _Plot(Builtin, ABC):
         x_range, y_range = get_plot_range_option(options, evaluation, self.get_name())
         return functions, x_name, py_start, py_stop, x_range, y_range, expr_limits, expr
 
+
 # TODO: add more options
 # TODO: generalize, use for other plots
 class PlotOptions:
-
     # TODO: more precise types
     ranges: list
     mesh: str
@@ -415,7 +415,6 @@ class PlotOptions:
     maxdepth: int
 
     def __init__(self, expr, range_exprs, options, evaluation):
-        
         # plot ranges
         # TODO: check length of range_expr
         # TODO: check type of name (should be Symbol)
@@ -426,7 +425,7 @@ class PlotOptions:
             range = [name]
             for limit_expr in range_expr.elements[1:3]:
                 limit = limit_expr.to_python()
-                if not isinstance(limit, (int,float)):
+                if not isinstance(limit, (int, float)):
                     evaluation.message(expr.get_name(), "plln", limit_expr, range_expr)
                     raise ValueError()
                 range.append(limit)
@@ -443,10 +442,12 @@ class PlotOptions:
         # PlotPoints option
         plotpoints_option = expr.get_option(options, "PlotPoints", evaluation)
         plotpoints = plotpoints_option.to_python()
+
         def check_plotpoints(steps):
             if isinstance(steps, int) and steps > 0:
                 return True
             return False
+
         if plotpoints == "System`None":
             plotpoints = (7, 7)
         elif check_plotpoints(plotpoints):
@@ -1838,4 +1839,3 @@ class Plot3D(_Plot3D):
         graphics = eval_Plot3D(plot_options, evaluation)
         graphics_expr = graphics.generate(options_to_rules(options, Graphics3D.options))
         return graphics_expr
-

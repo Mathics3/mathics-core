@@ -14,15 +14,10 @@ from mathics.core.atoms import Integer1, Real, String
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import SymbolTrue
-from mathics.core.systemsymbols import (
-    SymbolColorData,
-    SymbolFunction,
-    SymbolSlot,
-)
+from mathics.core.systemsymbols import SymbolColorData, SymbolFunction, SymbolSlot
 from mathics.eval.drawing.plot import compile_quiet_function
 
 from .util import GraphicsGenerator
-
 
 ListPlotNames = (
     "DiscretePlot",
@@ -66,11 +61,7 @@ def eval_DensityPlot(
     return graphics
 
 
-
-def compute_triangles(
-    plot_options,
-    evaluation
-):
+def compute_triangles(plot_options, evaluation):
     plotpoints = plot_options.plotpoints
     _, xstart, xstop = plot_options.ranges[0]
     _, ystart, ystop = plot_options.ranges[1]
@@ -417,7 +408,6 @@ def compute_triangles(
                     v_max = v
 
     return triangles, mesh_points, v_min, v_max
-
 
 
 def construct_density_plot(

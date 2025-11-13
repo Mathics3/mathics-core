@@ -8,8 +8,9 @@ from test.helper import check_evaluation, session
 import pytest
 
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol                
+from mathics.core.symbols import Symbol
 from mathics.core.util import print_expression_tree
+
 
 def test__listplot():
     """tests for module builtin.drawing.plot._ListPlot"""
@@ -216,18 +217,21 @@ def print_expression_tree_with_marker(expr):
     print_expression_tree(expr, marker=lambda expr: getattr(expr, "_marker", ""))
 
 
-def check_structure(result, expected, parent_result=None, parent_expected=None, parent_i=None):
+def check_structure(
+    result, expected, parent_result=None, parent_expected=None, parent_i=None
+):
     """Check that expected is a prefix of result at every node"""
 
     def error(msg):
         if parent_result and parent_expected:
+
             def mark(parent_expr, marker):
                 parent_expr._elements = list(parent_expr.elements)
                 parent_expr.elements[parent_i] = Expression(
-                    Symbol(marker),
-                    parent_expr.elements[parent_i]
+                    Symbol(marker), parent_expr.elements[parent_i]
                 )
-                #parent_expr.elements[parent_i]._marker = marker
+                # parent_expr.elements[parent_i]._marker = marker
+
             mark(parent_result, "RESULT >>> ")
             mark(parent_expected, "EXPECTED >>> ")
         raise AssertionError(msg)
