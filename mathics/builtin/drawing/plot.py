@@ -1795,10 +1795,13 @@ class PolarPlot(_Plot):
             return (value * cos(x_value), value * sin(x_value))
 
 
+# TODO: this will be extended with support for GraphicsComplex in a
+# subsequent PR, which may involve a little more refactoring
 class GraphicsGenerator:
 
     # TODO: more precise types
     # TODO: consider pre-zipping so only one for polys and one for lines
+    # TODO: consider whether we need to store these or can we just generate as we go?
     poly_xyzs: list
     poly_xyzs_colors: list
     line_xyzs: list
@@ -1827,7 +1830,7 @@ class GraphicsGenerator:
     def generate(self, options):
 
         # TODO: system symbolx
-        VertexColorsSymbol = Symbol("VertexColors")
+        SymbolVertexColors = Symbol("VertexColors")
 
         # holds the elements of the final Graphics[3D] expr
         graphics = []
@@ -1840,7 +1843,7 @@ class GraphicsGenerator:
                 if colors:
                     color_arg = tuple(to_mathics_list(*color) for color in colors)
                     color_arg = ListExpression(*color_arg) if len(color_arg) > 1 else color_arg[0]
-                    color_rule = Expression(SymbolRule, VertexColorsSymbol, color_arg)
+                    color_rule = Expression(SymbolRule, SymbolVertexColors, color_arg)
                     graphics.append(Expression(thing_symbol, arg, color_rule))
                 else:
                     graphics.append(Expression(thing_symbol, arg))
