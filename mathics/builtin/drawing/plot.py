@@ -1798,6 +1798,7 @@ class PolarPlot(_Plot):
 class GraphicsGenerator:
 
     # TODO: more precise types
+    # TODO: consider pre-zipping so only one for polys and one for lines
     poly_xyzs: list
     poly_xyzs_colors: list
     line_xyzs: list
@@ -1812,6 +1813,7 @@ class GraphicsGenerator:
         self.line_xyzs = []
         self.line_xyzs_colors = []
 
+    # TODO: is this correct if some polys have colors and some don't?
     def add_polyxyzs(self, poly_xyzs, colors=None):
         self.poly_xyzs.append(poly_xyzs)
         if colors:
@@ -1830,7 +1832,7 @@ class GraphicsGenerator:
         # holds the elements of the final Graphics[3D] expr
         graphics = []
 
-        # add polygons and lines
+        # add polygons and lines, optionally with vertex colors
         def add_thing(thing_symbol, thingss, colorss):
             for things, colors in itertools.zip_longest(thingss, colorss):
                 arg = tuple(to_mathics_list(*thing) for thing in things)
@@ -1844,22 +1846,6 @@ class GraphicsGenerator:
                     graphics.append(Expression(thing_symbol, arg))
         add_thing(SymbolPolygon, self.poly_xyzs, self.poly_xyzs_colors)
         add_thing(SymbolLine, self.line_xyzs, self.line_xyzs_colors)
-
-        # add colors
-        # TODO: this assumes caller has supplied color expressions like RGBColor
-        # possibly we should pull support for that into here for re-use
-        """
-        if len(self.colors):
-            print("xxx colors", self.colors)
-            color_expr = Expression(
-                SymbolRule,
-                # TODO: move to symbols.py
-                Symbol("VertexColors"),
-                ListExpression(*self.colors),
-            )
-            graphics.append(color_expr)
-        """
-            
 
         # generate Graphics[3D] expression
         graphics_expr = Expression(
@@ -1936,42 +1922,3 @@ class Plot3D(_Plot3D):
 
     def final_graphics(self, options: dict):
         return self.graphics.generate(options_to_rules(options, Graphics3D.options))
-
-
-    """
-    def construct_graphics(
-        self, triangles, mesh_points, v_min, v_max, options, evaluation: Evaluation
-    ):
-        graphics = []
-        for p1, p2, p3 in triangles:
-            graphics.append(
-                Expression(
-                    SymbolPolygon,
-                    ListExpression(
-                        to_mathics_list(*p1),
-                        to_mathics_list(*p2),
-                        to_mathics_list(*p3),
-                    ),
-                )
-            )
-        # Add the Grid
-        for xi in range(len(mesh_points)):
-            line = []
-            for yi in range(len(mesh_points[xi])):
-                line.append(
-                    to_mathics_list(
-                        mesh_points[xi][yi][0],
-                        mesh_points[xi][yi][1],
-                        mesh_points[xi][yi][2],
-                    )
-                )
-            graphics.append(Expression(SymbolLine, ListExpression(*line)))
-        return graphics
-
-    def final_graphics(self, graphics, options: dict):
-        return Expression(
-            SymbolGraphics3D,
-            ListExpression(*graphics),
-            *options_to_rules(options, Graphics3D.options),
-        )
-    """
