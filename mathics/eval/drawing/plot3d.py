@@ -26,7 +26,8 @@ def compute_triangles(plot_options, evaluation):
     and constructs a triangular mesh over those points.
     Used by both eval_Plot3D and eval_DensityPlot.
 
-    It also constructs a "mesh" of lines as specified by the Mesh option.
+    It also constructs a "mesh" of lines, as specified by the Mesh option,
+    lying on the surface to help make the surface more visible.
 
     Caution: mesh is the industry-standard term for a collection of polygons
     describing a surface. This is distinct from the "mesh" of lines generated
@@ -381,7 +382,6 @@ def compute_triangles(plot_options, evaluation):
     return triangles, mesh_points, v_min, v_max
 
 
-
 def eval_Plot3D(
     plot_options,
     evaluation: Evaluation,
@@ -484,6 +484,3 @@ def eval_DensityPlot(
         graphics.add_linexyzs([mesh_points[xi]])
 
     return graphics
-
-
-

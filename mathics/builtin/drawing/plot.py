@@ -493,7 +493,9 @@ class PlotOptions:
         # TODO: What does pop=True do? is it right?
         # TODO: can we move some of the subsequent processing in eval_DensityPlot to here?
         # TODO: what is the type of these? that may change if we do the above...
-        self.color_function = expr.get_option(options, "ColorFunction", evaluation, pop=True)
+        self.color_function = expr.get_option(
+            options, "ColorFunction", evaluation, pop=True
+        )
         self.color_function_scaling = expr.get_option(
             options, "ColorFunctionScaling", evaluation, pop=True
         )
