@@ -14,7 +14,13 @@ from mathics.core.atoms import Integer1, Real, String
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import SymbolTrue
-from mathics.core.systemsymbols import SymbolColorData, SymbolFunction, SymbolSlot, SymbolFull, SymbolAll
+from mathics.core.systemsymbols import (
+    SymbolAll,
+    SymbolColorData,
+    SymbolFull,
+    SymbolFunction,
+    SymbolSlot,
+)
 from mathics.eval.drawing.plot import compile_quiet_function
 
 from .util import GraphicsGenerator
