@@ -312,7 +312,7 @@ def compute_triangles(plot_options, evaluation):
 
         # add the mesh
         mesh_points = []
-        if mesh == SymbolFull:
+        if mesh is SymbolFull:
             for xi in range(plotpoints[0] + 1):
                 xval = xstart + xi / numx * (xstop - xstart)
                 mesh_row = []
@@ -368,7 +368,7 @@ def compute_triangles(plot_options, evaluation):
                 for mesh_line in mesh_points
                 if not any(x[2] is None for x in mesh_line)
             ]
-        elif mesh == SymbolAll:
+        elif mesh is SymbolAll:
             mesh_points = set()
             for t in triangles:
                 mesh_points.add((t[0], t[1]) if t[1] > t[0] else (t[1], t[0]))
