@@ -27,11 +27,14 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList
 from mathics.core.systemsymbols import (
+    SymbolAll,
     SymbolBlack,
     SymbolEdgeForm,
+    SymbolFull,
     SymbolGraphics,
     SymbolLine,
     SymbolLog10,
+    SymbolNone,
     SymbolRGBColor,
     SymbolStyle,
 )
@@ -447,11 +450,10 @@ class PlotOptions:
             self.ranges.append(range)
 
         # Mesh option
-        mesh_option = expr.get_option(options, "Mesh", evaluation)
-        mesh = mesh_option.to_python()
-        if mesh not in ["System`None", "System`Full", "System`All"]:
-            evaluation.message("Mesh", "ilevels", mesh_option)
-            mesh = "System`Full"
+        mesh = expr.get_option(options, "Mesh", evaluation)
+        if mesh not in (SymbolNone, SymbolFull, SymbolAll):
+            evaluation.message("Mesh", "ilevels", mesh)
+            mesh = SymbolFull
         self.mesh = mesh
 
         # PlotPoints option

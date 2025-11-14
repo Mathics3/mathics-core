@@ -14,7 +14,7 @@ from mathics.core.atoms import Integer1, Real, String
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import SymbolTrue
-from mathics.core.systemsymbols import SymbolColorData, SymbolFunction, SymbolSlot
+from mathics.core.systemsymbols import SymbolColorData, SymbolFunction, SymbolSlot, SymbolFull, SymbolAll
 from mathics.eval.drawing.plot import compile_quiet_function
 
 from .util import GraphicsGenerator
@@ -306,7 +306,7 @@ def compute_triangles(plot_options, evaluation):
 
         # add the mesh
         mesh_points = []
-        if mesh == "System`Full":
+        if mesh == SymbolFull:
             for xi in range(plotpoints[0] + 1):
                 xval = xstart + xi / numx * (xstop - xstart)
                 mesh_row = []
@@ -362,7 +362,7 @@ def compute_triangles(plot_options, evaluation):
                 for mesh_line in mesh_points
                 if not any(x[2] is None for x in mesh_line)
             ]
-        elif mesh == "System`All":
+        elif mesh == SymbolAll:
             mesh_points = set()
             for t in triangles:
                 mesh_points.add((t[0], t[1]) if t[1] > t[0] else (t[1], t[0]))
