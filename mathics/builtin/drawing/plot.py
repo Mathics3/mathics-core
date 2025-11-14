@@ -432,7 +432,9 @@ class PlotOptions:
         # plot ranges
         self.ranges = []
         for range_expr in range_exprs:
-            if not range_expr.has_form("List", 3) or not isinstance(range_expr.elements[0], Symbol):
+            if not range_expr.has_form("List", 3):
+                self.error(expr, "invrange", range_expr)
+            if not isinstance(range_expr.elements[0], Symbol):
                 self.error(expr, "invrange", range_expr)
             name = range_expr.elements[0]
             range = [name]
@@ -533,7 +535,7 @@ class _Plot3D(Builtin):
         "invrange": (
             "Plot range `1` must be of the form {variable, min, max}, "
             "where max > min."
-        )
+        ),
     }
 
     def eval(
@@ -551,7 +553,7 @@ class _Plot3D(Builtin):
         # parse options, bailing out if anything is wrong
         try:
             plot_options = PlotOptions(self, [xrange, yrange], options, evaluation)
-        except ValueError as oops:
+        except ValueError:
             return None
 
         # ask the subclass to get one or more functions as appropriate

@@ -66,11 +66,44 @@ def test__listplot():
             "-Graphics3D-",
             None,
         ),
-        ("Plot3D[]", ("Plot3D called with 0 arguments; 3 arguments are expected.",), "Plot3D[]", None),
-        ("Plot3D[1, 2, 3]", ("Plot range 2 must be of the form {variable, min, max}, where max > min.",), "Plot3D[1, 2, 3]", None),
-        ("Plot3D[1, {2, 3}, {3, 4}]", ("Plot range {2, 3} must be of the form {variable, min, max}, where max > min.",), "Plot3D[1, {2, 3}, {3, 4}]", None),
-        ("Plot3D[1, {1, 2, 3}, {1, 3, 4}]", ("Plot range {1, 2, 3} must be of the form {variable, min, max}, where max > min.",), "Plot3D[1, {1, 2, 3}, {1, 3, 4}]", None),
-        ("Plot3D[1, {x, 3, 2}, {1, 3, 4}]", ("Plot range {x, 3, 2} must be of the form {variable, min, max}, where max > min.",), "Plot3D[1, {x, 3, 2}, {1, 3, 4}]", None),
+        (
+            "Plot3D[]",
+            ("Plot3D called with 0 arguments; 3 arguments are expected.",),
+            "Plot3D[]",
+            None,
+        ),
+        (
+            "Plot3D[1, 2, 3]",
+            (
+                "Plot range 2 must be of the form {variable, min, max}, where max > min.",
+            ),
+            "Plot3D[1, 2, 3]",
+            None,
+        ),
+        (
+            "Plot3D[1, {2, 3}, {3, 4}]",
+            (
+                "Plot range {2, 3} must be of the form {variable, min, max}, where max > min.",
+            ),
+            "Plot3D[1, {2, 3}, {3, 4}]",
+            None,
+        ),
+        (
+            "Plot3D[1, {1, 2, 3}, {1, 3, 4}]",
+            (
+                "Plot range {1, 2, 3} must be of the form {variable, min, max}, where max > min.",
+            ),
+            "Plot3D[1, {1, 2, 3}, {1, 3, 4}]",
+            None,
+        ),
+        (
+            "Plot3D[1, {x, 3, 2}, {1, 3, 4}]",
+            (
+                "Plot range {x, 3, 2} must be of the form {variable, min, max}, where max > min.",
+            ),
+            "Plot3D[1, {x, 3, 2}, {1, 3, 4}]",
+            None,
+        ),
         (
             "Graphics[{Disk[]}, Background->RGBColor[1,.1,.1]]//TeXForm//ToString",
             None,
