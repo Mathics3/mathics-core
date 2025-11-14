@@ -23,6 +23,8 @@ def eval_Plot3D(
     graphics = GraphicsGenerator(dim=3)
 
     for function in plot_options.functions:
+
+        # pull out plot options
         _, xmin, xmax = plot_options.ranges[0]
         _, ymin, ymax = plot_options.ranges[1]
         nx, ny = plot_options.plotpoints
@@ -54,6 +56,7 @@ def eval_Plot3D(
         # indexes into xyzs array for corresponding vertex
         inxs = np.arange(math.prod(xs.shape)).reshape(xs.shape)
 
+        # shift inxs array four different ways and stack to form
         # (4, nx-1, ny-1) array of quads represented as indexes into xyzs array
         quads = np.stack([inxs[:-1, :-1], inxs[:-1, 1:], inxs[1:, 1:], inxs[1:, :-1]])
 
