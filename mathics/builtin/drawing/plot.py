@@ -420,21 +420,29 @@ class PlotOptions:
     plotpoints: list
     maxdepth: int
 
+    def error(self, what, *args, **kwargs):
+        if not isinstance(what, str):
+            what = what.get_name()
+        self.evaluation.message(what, *args, **kwargs)
+        raise ValueError()
+
     def __init__(self, expr, range_exprs, options, evaluation):
+        self.evaluation = evaluation
+
         # plot ranges
-        # TODO: check length of range_expr
-        # TODO: check type of name (should be Symbol)
-        # TODO: check that upper limit > lower limit
         self.ranges = []
         for range_expr in range_exprs:
+            if not range_expr.has_form("List", 3) or not isinstance(range_expr.elements[0], Symbol):
+                self.error(expr, "invrange", range_expr)
             name = range_expr.elements[0]
             range = [name]
             for limit_expr in range_expr.elements[1:3]:
                 limit = limit_expr.round_to_float(evaluation)
                 if limit is None:
-                    evaluation.message(expr.get_name(), "plln", limit_expr, range_expr)
-                    raise ValueError()
+                    self.error(expr, "plln", limit_expr, range_expr)
                 range.append(limit)
+            if range[2] <= range[1]:
+                self.error(expr, "invrange", range_expr)
             self.ranges.append(range)
 
         # Mesh option
@@ -502,6 +510,12 @@ class PlotOptions:
 
 
 class _Plot3D(Builtin):
+    """Common base class for Plot3D and DensityPlot"""
+
+    # Check for correct number of args
+    eval_error = Builtin.generic_argument_error
+    expected_args = 3
+
     messages = {
         "invmaxrec": (
             "MaxRecursion must be a non-negative integer; the recursion value "
@@ -516,26 +530,32 @@ class _Plot3D(Builtin):
             "Value of PlotPoints -> `1` is not a positive integer "
             "or appropriate list of positive integers."
         ),
+        "invrange": (
+            "Plot range `1` must be of the form {variable, min, max}, "
+            "where max > min."
+        )
     }
 
     def eval(
         self,
-        args,
+        functions,
+        xrange,
+        yrange,
         evaluation: Evaluation,
         options: dict,
     ):
-        """%(name)s[args___, OptionsPattern[%(name)s]]"""
+        """%(name)s[functions_, xrange_, yrange_, OptionsPattern[%(name)s]]"""
 
         # TODO: test error for too many, too few, no args
 
         # parse options, bailing out if anything is wrong
         try:
-            plot_options = PlotOptions(self, args.elements[1:3], options, evaluation)
-        except ValueError:
+            plot_options = PlotOptions(self, [xrange, yrange], options, evaluation)
+        except ValueError as oops:
             return None
 
         # ask the subclass to get one or more functions as appropriate
-        plot_options.functions = self.get_functions_param(args.elements[0])
+        plot_options.functions = self.get_functions_param(functions)
 
         # delegate to subclass, which will call the appropriate eval_* function
         return self.do_eval(plot_options, evaluation, options)
