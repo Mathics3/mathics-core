@@ -7,10 +7,10 @@ points, as another parameter, and plot or show the function applied to the data.
 """
 
 import numbers
+import os
 from abc import ABC
 from functools import lru_cache
 from math import cos, pi, sin
-import os
 from typing import Callable, Optional
 
 import palettable
@@ -52,10 +52,12 @@ from mathics.eval.drawing.plot import (
     get_plot_range,
     get_plot_range_option,
 )
+
 if os.getenv("MATHICS_USE_VECTORIZED_PLOT", False):
     from mathics.eval.drawing.plot3d_vectorized import eval_DensityPlot, eval_Plot3D
 else:
     from mathics.eval.drawing.plot3d import eval_DensityPlot, eval_Plot3D
+
 from mathics.eval.nevaluator import eval_N
 
 # This tells documentation how to sort this module
