@@ -436,8 +436,7 @@ class PlotOptions:
                 self.error(expr, "invrange", range_expr)
             if not isinstance(range_expr.elements[0], Symbol):
                 self.error(expr, "invrange", range_expr)
-            name = range_expr.elements[0]
-            range = [name]
+            range = [range_expr.elements[0]]
             for limit_expr in range_expr.elements[1:3]:
                 limit = limit_expr.round_to_float(evaluation)
                 if limit is None:
