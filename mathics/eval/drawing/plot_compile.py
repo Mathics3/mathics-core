@@ -1,3 +1,19 @@
+"""
+"Compile" an Expression by converting it to SymPy, then use sympy.lambdify
+to turn it into a Python function that calls NumPy functions to evaluate it.
+
+While possibly this provides an efficient function for point-wise evaluation,
+the main goal is to use NumPy to perform vectorized operations on arrays,
+which is a huge win for plotting.
+
+This will need testing and building out to make it robustly applicable
+to a wide array of expressions. So for now this is specific to plotting
+and is used only when enabled, so it lives with the plotting functions.
+Maybe eventually consider to move elsewhere if it seems to be more
+widely useful.
+"""
+
+
 import scipy
 import sympy
 
@@ -21,7 +37,7 @@ def compile(evaluation, function, names):
     print("=== compiling expr")
     print_expression_tree(function)
 
-    # obtain sympy expr and strip context from free symbols
+    # Obtain sympy expr and strip context from free symbols.
     sympy_expr = function.to_sympy()
     subs = {
         sym: sympy.Symbol(strip_context(str(sym))) for sym in sympy_expr.free_symbols
@@ -31,9 +47,9 @@ def compile(evaluation, function, names):
     print("=== compiled sympy", type(sympy_expr))
     print_sympy_tree(sympy_expr)
 
-    # ask sympy to generate a function that will evaluate the expr
-    # use numpy to do the evaluation so that operations are vectorized
-    # augment the default numpy mappings with some additional ones not handled by default
+    # Ask sympy to generate a function that will evaluate the expr.
+    # Use numpy to do the evaluation so that operations are vectorized.
+    # Augment the default numpy mappings with some additional ones not handled by default.
     compiled_function = sympy.lambdify(
         sympy.symbols(names), sympy_expr, [additional_mappings, "numpy"]
     )
