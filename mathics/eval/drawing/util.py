@@ -4,9 +4,11 @@ Common utilities for plotting
 
 import itertools
 
+from mathics.core.atoms import NumericArray
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
     SymbolGraphics,
     SymbolGraphics3D,
@@ -32,6 +34,7 @@ class GraphicsGenerator:
     poly_xyzs_colors: list
     line_xyzs: list
     line_xyzs_colors: list
+    complexes: list
 
     # 2 or 3
     dim: int
@@ -42,6 +45,7 @@ class GraphicsGenerator:
         self.poly_xyzs_colors = []
         self.line_xyzs = []
         self.line_xyzs_colors = []
+        self.complexes = []
 
     # TODO: is this correct if some polys have colors and some don't?
     def add_polyxyzs(self, poly_xyzs, colors=None):
@@ -55,6 +59,9 @@ class GraphicsGenerator:
         self.line_xyzs.append(line_xyzs)
         if colors:
             self.line_xyzs_colors.append(colors)
+
+    def add_complex(self, xyzs, lines, polys):
+        self.complexes.append((xyzs, lines, polys))
 
     def generate(self, options):
         """
@@ -83,6 +90,16 @@ class GraphicsGenerator:
 
         add_thing(SymbolPolygon, self.poly_xyzs, self.poly_xyzs_colors)
         add_thing(SymbolLine, self.line_xyzs, self.line_xyzs_colors)
+
+        # add complexes
+        for xyzs, lines, polys in self.complexes:
+            # TODO: lines
+            xyzs_expr = NumericArray(xyzs)
+            polys_expr = Expression(SymbolPolygon, NumericArray(polys))
+            # TODO: move to systemsymbols
+            SymbolGraphicsComplex = Symbol("System`GraphicsComplex")
+            gc_expr = Expression(SymbolGraphicsComplex, xyzs_expr, polys_expr)
+            graphics.append(gc_expr)
 
         # generate Graphics[3D] expression
         graphics_expr = Expression(
