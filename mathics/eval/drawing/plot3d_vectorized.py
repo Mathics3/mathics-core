@@ -8,11 +8,8 @@ import math
 
 import numpy as np
 
-from mathics.core.atoms import Integer1, Real, String
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression
-from mathics.core.symbols import SymbolTrue, strip_context
-from mathics.core.systemsymbols import SymbolColorData, SymbolFunction, SymbolSlot
+from mathics.core.symbols import strip_context
 
 from .plot_compile import compile
 from .util import GraphicsGenerator
@@ -25,7 +22,6 @@ def eval_Plot3D(
     graphics = GraphicsGenerator(dim=3)
 
     for function in plot_options.functions:
-
         # pull out plot options
         _, xmin, xmax = plot_options.ranges[0]
         _, ymin, ymax = plot_options.ranges[1]

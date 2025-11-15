@@ -18,9 +18,10 @@ import inspect
 import scipy
 import sympy
 
+from mathics.core.convert.sympy import SympyExpression, mathics_to_sympy
 from mathics.core.symbols import strip_context
 from mathics.core.util import print_expression_tree, print_sympy_tree
-from mathics.core.convert.sympy import SympyExpression, mathics_to_sympy
+
 
 # TODO: not in use yet
 # Add functions not found in scipy or numpy here.
@@ -28,20 +29,22 @@ from mathics.core.convert.sympy import SympyExpression, mathics_to_sympy
 # TODO: let's see how much is really needed here, and possibly consider moving
 # them to the Builtin somehow
 class AdditionalMappings:
-
     def hyppfq(p, q, x):
         if len(p) == 1 and len(q) == 1:
             return scipy.special.hyp1f1(p[0], q[0], x)
         else:
             raise Exception(f"can't handle hyppfq({p}, {q}, x)")
 
-#mappings = [dict(AdditionalMappings.__dict__), "numpy"]
+
+# mappings = [dict(AdditionalMappings.__dict__), "numpy"]
+
 
 class CompileError(Exception):
     pass
 
+
 def compile(evaluation, expr, names, debug=0):
-    """ Compile the specified expression as a function of the given names  """
+    """Compile the specified expression as a function of the given names"""
 
     if debug >= 2:
         print("=== compiling expr")
@@ -80,8 +83,10 @@ def compile(evaluation, expr, names, debug=0):
     # Augment the default numpy mappings with some additional ones not handled by default.
     try:
         symbols = sympy.symbols(names)
-        #compiled_function = sympy.lambdify(symbols, sympy_expr, mappings)
-        compiled_function = sympy.lambdify(symbols, sympy_expr, modules=["numpy", "scipy"])
+        # compiled_function = sympy.lambdify(symbols, sympy_expr, mappings)
+        compiled_function = sympy.lambdify(
+            symbols, sympy_expr, modules=["numpy", "scipy"]
+        )
     except Exception as oops:
         raise CompileError(f"error compiling sympy expr {sympy_expr}: {oops}")
 
