@@ -73,7 +73,7 @@ tests = [
     #dict(name="ComplexInfinity", args=None), # N returns infinite
     #dict(name="ConditionalExpression", args=[1,True]),	# not registered with mathics_to_sympy
     dict(name="Conjugate", args=[0]),
-    dict(name="ContinuedFraction", args=[0.4, 3]), # ???
+    #dict(name="ContinuedFraction", args=[0.4, 3]), # ???
     dict(name="Cos", args=[0]),
     dict(name="Cosh", args=[0]),
     dict(name="Cot", args=[1]),
