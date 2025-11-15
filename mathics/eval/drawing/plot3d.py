@@ -21,6 +21,7 @@ from mathics.core.systemsymbols import (
     SymbolFunction,
     SymbolSlot,
 )
+from mathics.core.util import Timer
 from mathics.eval.drawing.plot import compile_quiet_function
 
 from .util import GraphicsGenerator
@@ -388,6 +389,7 @@ def compute_triangles(plot_options, evaluation):
     return triangles, mesh_points, v_min, v_max
 
 
+@Timer("eval_Plot3D")
 def eval_Plot3D(
     plot_options,
     evaluation: Evaluation,
