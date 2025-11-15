@@ -239,11 +239,14 @@ class Integer(Number[int]):
         return self
 
     def __eq__(self, other) -> bool:
-        return (
-            self._value == other.value
-            if isinstance(other, Integer)
-            else super().__eq__(other)
-        )
+        if isinstance(other, Integer):
+            return self._value == other.value
+        if isinstance(other, Number):
+            # If other is a number of a wider class, use
+            # its implementation:
+            return other.__eq__(self)
+
+        return super().__eq__(other)
 
     def __ge__(self, other) -> bool:
         return (
@@ -1021,9 +1024,15 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
 
     def __eq__(self, other) -> bool:
         if isinstance(other, Complex):
+            print([self.real, other.real], [self.imag, other.imag])
+            print(self.real == other.real, self.imag == other.imag)
             return self.real == other.real and self.imag == other.imag
-        else:
-            return super().__eq__(other)
+        if isinstance(other, Number):
+            if self.imag != 0:
+                return False
+            return self.real == other
+
+        return super().__eq__(other)
 
     @property
     def is_zero(self) -> bool:
@@ -1074,6 +1083,21 @@ class Rational(Number[sympy.Rational]):
             # it is used this is fast.
             self.hash = hash(key)
         return self
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, Rational):
+            return (
+                self.numerator().value == other.numerator().value
+                and self.denominator().value == other.denominator().value
+            )
+
+        if isinstance(other, Integer):
+            return self.denominator().value == 1 and self.numerator() == other
+        if isinstance(other, Number):
+            # For general numbers, rely on Real or Complex implementations.
+            return other.__eq__(self)
+        # General expressions
+        return super().__eq__(other)
 
     def __getnewargs__(self) -> tuple:
         return (self.numerator().value, self.denominator().value)

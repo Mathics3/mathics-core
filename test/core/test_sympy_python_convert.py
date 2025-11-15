@@ -39,6 +39,10 @@ from mathics.core.systemsymbols import (
 
 class SympyConvert(unittest.TestCase):
     def compare_to_sympy(self, mathics_expr, sympy_expr, **kwargs):
+        print(
+            f"compare sympy expr: {mathics_expr} against sympy:{sympy_expr} with args:{kwargs}"
+        )
+        print("mathics_expr.to_sympy(**kwargs):", mathics_expr.to_sympy(**kwargs))
         assert mathics_expr.to_sympy(**kwargs) == sympy_expr
 
     def compare_to_mathics(self, mathics_expr, sympy_expr, **kwargs):

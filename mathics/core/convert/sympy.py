@@ -142,9 +142,11 @@ class SympyExpression(sympy.Expr):
 
         if all(isinstance(expr, BasicSympy) for expr in exprs):
             # called with SymPy arguments
+            print("expr is BasicSympy")
             obj = super().__new__(cls, *exprs)
             obj.expr = None
         elif len(exprs) == 1 and isinstance(exprs[0], Expression):
+            print("called with mathics argument")
             # called with Mathics argument
             expr = exprs[0]
             sympy_head = expr.head.to_sympy()
@@ -153,9 +155,12 @@ class SympyExpression(sympy.Expr):
             else:
                 sympy_elements = [element.to_sympy() for element in expr.elements]
             if sympy_head is None or None in sympy_elements:
+                print("no head")
                 return None
+            print("build super")
             obj = super().__new__(cls, sympy_head, *sympy_elements)
             obj.expr = expr
+            print("obj:", obj)
         else:
             raise TypeError
         return obj
@@ -234,6 +239,7 @@ def expression_to_sympy(expr: Expression, **kwargs):
         if head_name.startswith("Global`"):
             if kwargs.get("convert_all_global_functions", False):
                 if expr.get_head_name().startswith("Global`"):
+                    print("using as_sympy function")
                     return expr._as_sympy_function(**kwargs)
 
         functions = kwargs.get("converted_functions", [])
@@ -241,6 +247,7 @@ def expression_to_sympy(expr: Expression, **kwargs):
             sym_args = [element.to_sympy() for element in expr._elements]
             if None in sym_args:
                 return None
+            print("using sympy.Function (native)")
             func = sympy.Function(str(sympy_symbol_prefix + expr.get_head_name()))(
                 *sym_args
             )
@@ -249,9 +256,11 @@ def expression_to_sympy(expr: Expression, **kwargs):
     lookup_name = expr.get_lookup_name()
     builtin = mathics_to_sympy.get(lookup_name)
     if builtin is not None:
+        print("builtin?")
         sympy_expr = builtin.to_sympy(expr, **kwargs)
         if sympy_expr is not None:
             return sympy_expr
+    print("generic", expr)
     return SympyExpression(expr, **kwargs)
 
 
