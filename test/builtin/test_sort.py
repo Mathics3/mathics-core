@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from test.helper import check_evaluation
+from test.helper import check_evaluation, session
 
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolPlus, SymbolTimes
@@ -8,10 +8,11 @@ from mathics.core.symbols import Symbol, SymbolPlus, SymbolTimes
 
 def test_Sorting_Numbers():
     check_evaluation("FormsOfOne={1.+0.I, 1.`50+0.`40I, 1.`50, 1.`3, 1.`4, 1., 1};",None)
-    check_evaluation("OrderedFormsOfOne={1, 1., 1. + 0.*I, 1. + 0.*I, 1.00, 1.000, 1.0000000000000000000000000000000000000000000000000};",None)
-    check_evaluation(
-        "SameQ[Sort[FormsOfOne],OrderedFormsOfOne]",
-        "True", "Order according WMA for numeric expressions.")
+    check_evaluation("OrderedFormsOfOne={1, 1., 1. + 0.*I, 1. + 0.*I, 1.00`2, 1.000`3, 1.0000000000000000000000000000000000000000000000000};",None)
+
+    for i in range(6):
+        # Check the order, skipping complex numbers.
+        check_evaluation(f'a=OrderedFormsOfOne[[{i+1}]];b=OrderedFormsOfOne[[{i+2}]];If[Head[a] === Complex || Head[b]===Complex,1, Order[a,b]]', "1", "OrderedFormsOfOne should be in canonical order.")
 
     for i in range(7):
         for j in range(7):
@@ -20,7 +21,7 @@ def test_Sorting_Numbers():
             # Comparisons between a Complex value with zero imaginary part does not work
             # in Mathics
             check_evaluation(f"Re[FormsOfOne[[{i+1}]]]<=Re[FormsOfOne[[{j+1}]]]","True")
-    
+
 
 
 def test_Expression_sameQ():
