@@ -10,11 +10,13 @@ import numpy as np
 
 from mathics.core.evaluation import Evaluation
 from mathics.core.symbols import strip_context
+from mathics.core.util import Timer
 
 from .plot_compile import compile
 from .util import GraphicsGenerator
 
 
+@Timer("eval_Plot3D")
 def eval_Plot3D(
     plot_options,
     evaluation: Evaluation,
@@ -28,8 +30,8 @@ def eval_Plot3D(
         nx, ny = plot_options.plotpoints
         names = [strip_context(str(range[0])) for range in plot_options.ranges]
 
-        # with util.Timer("compile"):
-        function = compile(evaluation, function, names)
+        with Timer("compile"):
+            function = compile(evaluation, function, names)
 
         # compute (nx, ny) grids of xs and ys for corresponding vertexes
         xs = np.linspace(xmin, xmax, nx)
@@ -37,8 +39,8 @@ def eval_Plot3D(
         xs, ys = np.meshgrid(xs, ys)
 
         # compute zs from xs and ys using compiled function
-        # with util.Timer("compute zs"):
-        zs = function(**{str(names[0]): xs, str(names[1]): ys})
+        with Timer("compute zs"):
+            zs = function(**{str(names[0]): xs, str(names[1]): ys})
 
         # sometimes expr gets compiled into something that returns a complex
         # even though the imaginary part is 0
@@ -47,25 +49,26 @@ def eval_Plot3D(
         # assert np.all(np.isreal(zs)), "array contains complex values"
         zs = np.real(zs)
 
-        # (nx*ny, 3) array of points, to be indexed by quads
-        xyzs = np.stack([xs, ys, zs]).transpose(1, 2, 0).reshape(-1, 3)
+        with Timer("stack"):
+            # (nx*ny, 3) array of points, to be indexed by quads
+            xyzs = np.stack([xs, ys, zs]).transpose(1, 2, 0).reshape(-1, 3)
 
-        # (nx,ny) array of numbers from 0 to n-1 that are
-        # indexes into xyzs array for corresponding vertex
-        inxs = np.arange(math.prod(xs.shape)).reshape(xs.shape)
+            # (nx,ny) array of numbers from 0 to n-1 that are
+            # indexes into xyzs array for corresponding vertex
+            inxs = np.arange(math.prod(xs.shape)).reshape(xs.shape)
 
-        # shift inxs array four different ways and stack to form
-        # (4, nx-1, ny-1) array of quads represented as indexes into xyzs array
-        quads = np.stack([inxs[:-1, :-1], inxs[:-1, 1:], inxs[1:, 1:], inxs[1:, :-1]])
+            # shift inxs array four different ways and stack to form
+            # (4, nx-1, ny-1) array of quads represented as indexes into xyzs array
+            quads = np.stack([inxs[:-1, :-1], inxs[:-1, 1:], inxs[1:, 1:], inxs[1:, :-1]])
 
-        # transpose and flatten to ((nx-1)*(ny-1), 4) array, suitable for use in GraphicsComplex
-        quads = quads.T.reshape(-1, 4)
+            # transpose and flatten to ((nx-1)*(ny-1), 4) array, suitable for use in GraphicsComplex
+            quads = quads.T.reshape(-1, 4)
 
-        # ugh - indexes in Polygon are 1-based
-        quads += 1
+            # ugh - indexes in Polygon are 1-based
+            quads += 1
 
-        # add a GraphicsComplex for this function
-        graphics.add_complex(xyzs, lines=None, polys=quads)
+            # add a GraphicsComplex for this function
+            graphics.add_complex(xyzs, lines=None, polys=quads)
 
     return graphics
 
