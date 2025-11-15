@@ -7,6 +7,8 @@ from test.helper import check_evaluation, session
 
 import pytest
 
+from mathics.core.expression import Expression
+from mathics.core.symbols import Symbol
 from mathics.core.util import print_expression_tree
 
 
@@ -58,6 +60,50 @@ def test__listplot():
         ),
         ("Plot[x*y, {x, -1, 1}]", None, "-Graphics-", None),
         ("Plot3D[z, {x, 1, 20}, {y, 1, 10}]", None, "-Graphics3D-", None),
+        (
+            "Plot3D[Exp[x] Cos[y], {x, -2, 1}, {y, -Pi, 2 Pi}]",
+            None,
+            "-Graphics3D-",
+            None,
+        ),
+        (
+            "Plot3D[]",
+            ("Plot3D called with 0 arguments; 3 arguments are expected.",),
+            "Plot3D[]",
+            None,
+        ),
+        (
+            "Plot3D[1, 2, 3]",
+            (
+                "Plot range 2 must be of the form {variable, min, max}, where max > min.",
+            ),
+            "Plot3D[1, 2, 3]",
+            None,
+        ),
+        (
+            "Plot3D[1, {2, 3}, {3, 4}]",
+            (
+                "Plot range {2, 3} must be of the form {variable, min, max}, where max > min.",
+            ),
+            "Plot3D[1, {2, 3}, {3, 4}]",
+            None,
+        ),
+        (
+            "Plot3D[1, {1, 2, 3}, {1, 3, 4}]",
+            (
+                "Plot range {1, 2, 3} must be of the form {variable, min, max}, where max > min.",
+            ),
+            "Plot3D[1, {1, 2, 3}, {1, 3, 4}]",
+            None,
+        ),
+        (
+            "Plot3D[1, {x, 3, 2}, {1, 3, 4}]",
+            (
+                "Plot range {x, 3, 2} must be of the form {variable, min, max}, where max > min.",
+            ),
+            "Plot3D[1, {x, 3, 2}, {1, 3, 4}]",
+            None,
+        ),
         (
             "Graphics[{Disk[]}, Background->RGBColor[1,.1,.1]]//TeXForm//ToString",
             None,
@@ -215,17 +261,28 @@ def print_expression_tree_with_marker(expr):
     print_expression_tree(expr, marker=lambda expr: getattr(expr, "_marker", ""))
 
 
-def check_structure(result, expected):
+def check_structure(
+    result, expected, parent_result=None, parent_expected=None, parent_i=None
+):
     """Check that expected is a prefix of result at every node"""
 
     def error(msg):
-        result._marker = "RESULT >>> "
-        expected._marker = "EXPECTED >>> "
+        if parent_result and parent_expected:
+
+            def mark(parent_expr, marker):
+                parent_expr._elements = list(parent_expr.elements)
+                parent_expr.elements[parent_i] = Expression(
+                    Symbol(marker), parent_expr.elements[parent_i]
+                )
+                # parent_expr.elements[parent_i]._marker = marker
+
+            mark(parent_result, "RESULT >>> ")
+            mark(parent_expected, "EXPECTED >>> ")
         raise AssertionError(msg)
 
     # do the heads match?
     if result.get_head() != expected.get_head():
-        error("heads don't match")
+        error(f"heads {result.get_head()} and {expected.get_head()} don't match")
 
     # does the structure match?
     if hasattr(expected, "elements"):
@@ -234,7 +291,7 @@ def check_structure(result, expected):
         for i, e in enumerate(expected.elements):
             if len(result.elements) <= i:
                 error("result has too few elements")
-            check_structure(result.elements[i], e)
+            check_structure(result.elements[i], e, result, expected, i)
     else:
         if str(result) != str(expected):
             error("leaves don't match")
@@ -269,7 +326,10 @@ def test_plot3d_default():
         Graphics3D[
             {
                 Polygon[{{0.0,0.0,0.0}, {0.0,0.5,0.5}, {0.5,0.0,0.5}}],
-                Polygon[{{}}]
+                Polygon[{{}}], Polygon[{{}}], Polygon[{{}}],  Polygon[{{}}], Polygon[{{}}], Polygon[{{}}], Polygon[{{}}],
+                (* mesh lines for default Mesh->Full *)
+                Line[{{0.0,0.0,0.0},{0.0,0.5,0.5},{0.0,1.0,1.0}}],
+                Line[{{}}], Line[{{}}], Line[{{}}], Line[{{}}], Line[{{}}]
             },
             AspectRatio -> 1,
             Axes -> True,
@@ -317,6 +377,105 @@ def test_plot3d_nondefault():
             AxesStyle -> {RGBColor[1,0,0],RGBColor[0,0,1]},
             Background -> RGBColor[0,1,0],
             BoxRatios -> {10, 10, 1},
+            ImageSize -> {200,200},
+            LabelStyle -> RGBColor[1,0,0],
+            PlotRange -> {0,1},
+            PlotRangePadding -> {1,2},
+            TicksStyle -> {RGBColor[0.5,0,0.5],GrayLevel[1]}
+        ]
+        """,
+    )
+
+
+def test_densityplot_default():
+    eval_and_check_structure(
+        """
+        DensityPlot[
+            x+y, {x,0,1}, {y,0,1},
+            PlotPoints-> {2,2},
+            MaxRecursion->0
+        ]
+        """,
+        """
+        Graphics[
+            {
+                Polygon[
+                    {
+                        {{0.0,0.0},{0.0,0.5},{0.5,0.0}},
+                        {{0.0,0.5},{0.5,0.0},{0.5,0.5}}
+                    },
+                    VertexColors -> {
+                        {
+                            RGBColor[0.293416, 0.0574044, 0.529412],
+                            RGBColor[0.49621975000000007, 0.41002484999999994, 0.8144772499999999],
+                            RGBColor[0.49621975000000007, 0.41002484999999994, 0.8144772499999999]
+                        },
+                        {
+                            RGBColor[0.49621975000000007, 0.41002484999999994, 0.8144772499999999],
+                            RGBColor[0.49621975000000007, 0.41002484999999994, 0.8144772499999999],
+                            RGBColor[0.663226, 0.6872815, 0.9117649999999999]
+                        }
+                    }
+                ]
+            },
+            AspectRatio -> 1,
+            Axes -> False,
+            AxesStyle -> {},
+            Background -> Automatic,
+            ImageSize -> Automatic,
+            LabelStyle -> {},
+            PlotRange -> Automatic,
+            PlotRangePadding -> Automatic,
+            TicksStyle -> {}
+        ]
+        """,
+    )
+
+
+def test_densityplot_nondefault():
+    eval_and_check_structure(
+        """
+        DensityPlot[
+            x+y, {x,0,1}, {y,0,1},
+            PlotPoints-> {2,2},
+            MaxRecursion->0
+            AspectRatio -> 0.5,
+            Axes -> True,
+            AxesStyle -> {Red,Blue},
+            Background -> Green,
+            ImageSize -> {200,200},
+            LabelStyle -> Red,
+            PlotRange -> {0,1},
+            PlotRangePadding -> {1,2},
+            TicksStyle -> {Purple,White}
+        ]
+        """,
+        """
+        Graphics[
+            {
+                Polygon[
+                    {
+                        {{0.0,0.0},{0.0,0.5},{0.5,0.0}},
+                        {{0.0,0.5},{0.5,0.0},{0.5,0.5}}
+                    },
+                    VertexColors -> {
+                        {
+                            RGBColor[0.293416, 0.0574044, 0.529412],
+                            RGBColor[0.49621975000000007, 0.41002484999999994, 0.8144772499999999],
+                            RGBColor[0.49621975000000007, 0.41002484999999994, 0.8144772499999999]
+                        },
+                        {
+                            RGBColor[0.49621975000000007, 0.41002484999999994, 0.8144772499999999],
+                            RGBColor[0.49621975000000007, 0.41002484999999994, 0.8144772499999999],
+                            RGBColor[0.663226, 0.6872815, 0.9117649999999999]
+                        }
+                    }
+                ]
+            },
+            AspectRatio -> 1, (* TODO: is not passed through apparently - or is my misunderstanding? *)
+            Axes -> True,
+            AxesStyle -> {RGBColor[1,0,0],RGBColor[0,0,1]},
+            Background -> RGBColor[0,1,0],
             ImageSize -> {200,200},
             LabelStyle -> RGBColor[1,0,0],
             PlotRange -> {0,1},

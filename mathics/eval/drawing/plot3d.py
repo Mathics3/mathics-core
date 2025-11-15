@@ -1,5 +1,5 @@
 """
-Evaluation routines for 2D plotting.
+Evaluation routines for Plot3D and DensityPlot, which share a good bit of code.
 
 These routines build Mathics M-Expressions that describe plots.
 Note that this is distinct from boxing, formatting and rendering e.g. to SVG.
@@ -10,136 +10,48 @@ import itertools
 from math import cos, pi, sqrt
 from typing import Callable
 
-from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Integer1, Real, String
-from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolTrue
+from mathics.core.symbols import SymbolTrue
 from mathics.core.systemsymbols import (
+    SymbolAll,
     SymbolColorData,
+    SymbolFull,
     SymbolFunction,
-    SymbolLine,
-    SymbolPolygon,
-    SymbolRule,
     SymbolSlot,
 )
 from mathics.eval.drawing.plot import compile_quiet_function
 
-ListPlotNames = (
-    "DiscretePlot",
-    "ListPlot",
-    "ListLinePlot",
-    "ListStepPlot",
-)
+from .util import GraphicsGenerator
 
 
-def eval_plot3d(
-    self,
-    functions,
-    x,
-    xstart,
-    xstop,
-    y,
-    ystart,
-    ystop,
-    evaluation: Evaluation,
-    options: dict,
-):
-    """%(name)s[functions_, {x_Symbol, xstart_, xstop_},
-    {y_Symbol, ystart_, ystop_}, OptionsPattern[%(name)s]]"""
+def compute_triangles(plot_options, evaluation):
+    """
+    This routine computes the value of a function over some points,
+    and constructs a triangular mesh over those points.
+    Used by both eval_Plot3D and eval_DensityPlot.
 
-    xexpr_limits = ListExpression(x, xstart, xstop)
-    yexpr_limits = ListExpression(y, ystart, ystop)
-    expr = Expression(
-        Symbol(self.get_name()),
-        functions,
-        xexpr_limits,
-        yexpr_limits,
-        *options_to_rules(options),
-    )
+    It also constructs a "mesh" of lines, as specified by the Mesh option,
+    lying on the surface to help make the surface more visible.
 
-    functions = self.get_functions_param(functions)
-    plot_name = self.get_name()
+    Caution: mesh is the industry-standard term for a collection of polygons
+    describing a surface. This is distinct from the "mesh" of lines generated
+    by the Mesh option.
+    """
 
-    def convert_limit(value, limits):
-        result = value.round_to_float(evaluation)
-        if result is None:
-            evaluation.message(plot_name, "plln", value, limits)
-        return result
-
-    xstart = convert_limit(xstart, xexpr_limits)
-    xstop = convert_limit(xstop, xexpr_limits)
-    ystart = convert_limit(ystart, yexpr_limits)
-    ystop = convert_limit(ystop, yexpr_limits)
-    if None in (xstart, xstop, ystart, ystop):
-        return
-
-    if ystart >= ystop:
-        evaluation.message(plot_name, "plln", ystop, expr)
-        return
-
-    if xstart >= xstop:
-        evaluation.message(plot_name, "plln", xstop, expr)
-        return
-
-    # Mesh Option
-    mesh_option = self.get_option(options, "Mesh", evaluation)
-    mesh = mesh_option.to_python()
-    if mesh not in ["System`None", "System`Full", "System`All"]:
-        evaluation.message("Mesh", "ilevels", mesh_option)
-        mesh = "System`Full"
-
-    # PlotPoints Option
-    plotpoints_option = self.get_option(options, "PlotPoints", evaluation)
-    plotpoints = plotpoints_option.to_python()
-
-    def check_plotpoints(steps):
-        if isinstance(steps, int) and steps > 0:
-            return True
-        return False
-
-    if plotpoints == "System`None":
-        plotpoints = (7, 7)
-    elif check_plotpoints(plotpoints):
-        plotpoints = (plotpoints, plotpoints)
-
-    if not (
-        isinstance(plotpoints, (list, tuple))
-        and len(plotpoints) == 2
-        and check_plotpoints(plotpoints[0])
-        and check_plotpoints(plotpoints[1])
-    ):
-        evaluation.message(self.get_name(), "invpltpts", plotpoints)
-        plotpoints = (7, 7)
-
-    # MaxRecursion Option
-    maxrec_option = self.get_option(options, "MaxRecursion", evaluation)
-    max_depth = maxrec_option.to_python()
-    if isinstance(max_depth, int):
-        if max_depth < 0:
-            max_depth = 0
-            evaluation.message(self.get_name(), "invmaxrec", max_depth, 15)
-        elif max_depth > 15:
-            max_depth = 15
-            evaluation.message(self.get_name(), "invmaxrec", max_depth, 15)
-        else:
-            pass  # valid
-    elif max_depth == float("inf"):
-        max_depth = 15
-        evaluation.message(self.get_name(), "invmaxrec", max_depth, 15)
-    else:
-        max_depth = 0
-        evaluation.message(self.get_name(), "invmaxrec", max_depth, 15)
+    plotpoints = plot_options.plotpoints
+    _, xstart, xstop = plot_options.ranges[0]
+    _, ystart, ystop = plot_options.ranges[1]
+    max_depth = plot_options.max_depth
+    mesh = plot_options.mesh
 
     # Plot the functions
-    graphics = []
-    for _, f in enumerate(functions):
+    for _, f in enumerate(plot_options.functions):
         stored = {}
 
         compiled_fn = compile_quiet_function(
-            f, [x.get_name(), y.get_name()], evaluation, False
+            f, [range[0].get_name() for range in plot_options.ranges], evaluation, False
         )
 
         def apply_fn(compiled_fn: Callable, x_value, y_value):
@@ -400,7 +312,7 @@ def eval_plot3d(
 
         # add the mesh
         mesh_points = []
-        if mesh == "System`Full":
+        if mesh is SymbolFull:
             for xi in range(plotpoints[0] + 1):
                 xval = xstart + xi / numx * (xstop - xstart)
                 mesh_row = []
@@ -456,7 +368,7 @@ def eval_plot3d(
                 for mesh_line in mesh_points
                 if not any(x[2] is None for x in mesh_line)
             ]
-        elif mesh == "System`All":
+        elif mesh is SymbolAll:
             mesh_points = set()
             for t in triangles:
                 mesh_points.add((t[0], t[1]) if t[1] > t[0] else (t[1], t[0]))
@@ -472,25 +384,39 @@ def eval_plot3d(
                     v_min = v
                 if v_max is None or v > v_max:
                     v_max = v
-        graphics.extend(
-            self.construct_graphics(
-                triangles, mesh_points, v_min, v_max, options, evaluation
-            )
-        )
-    return self.final_graphics(graphics, options)
+
+    return triangles, mesh_points, v_min, v_max
 
 
-def construct_density_plot(
-    self, triangles, mesh_points, v_min, v_max, options, evaluation
+def eval_Plot3D(
+    plot_options,
+    evaluation: Evaluation,
 ):
-    """
-    Construct a density plot
-    """
-    color_function = self.get_option(options, "ColorFunction", evaluation, pop=True)
-    color_function_scaling = self.get_option(
-        options, "ColorFunctionScaling", evaluation, pop=True
-    )
+    triangles, mesh_points, v_min, v_max = compute_triangles(plot_options, evaluation)
 
+    graphics = GraphicsGenerator(dim=3)
+
+    # add the triangles
+    for tri in triangles:
+        graphics.add_polyxyzs([tri])
+
+    # add the mesh lines
+    for xi in range(len(mesh_points)):
+        graphics.add_linexyzs([mesh_points[xi]])
+
+    return graphics
+
+
+def eval_DensityPlot(
+    plot_options,
+    evaluation: Evaluation,
+):
+    triangles, mesh_points, v_min, v_max = compute_triangles(plot_options, evaluation)
+
+    color_function = plot_options.color_function
+    color_function_scaling = plot_options.color_function_scaling
+
+    # TODO: can some of this be pulled out into PlotOptions for more general use?
     color_function_min = color_function_max = None
     if color_function.get_name() == "System`Automatic":
         color_function = String("LakeColors")
@@ -552,30 +478,15 @@ def construct_density_plot(
             colors[v_lookup] = value
         return value
 
-    points = []
-    vertex_colors = []
-    graphics = []
-    for p in triangles:
-        points.append(ListExpression(*(to_mathics_list(*x[:2]) for x in p)))
-        vertex_colors.append(ListExpression(*(eval_color(*x) for x in p)))
+    graphics = GraphicsGenerator(dim=2)
 
-    graphics.append(
-        Expression(
-            SymbolPolygon,
-            ListExpression(*points),
-            Expression(
-                SymbolRule,
-                Symbol("VertexColors"),
-                ListExpression(*vertex_colors),
-            ),
-        )
-    )
+    # add the triangles with their colors
+    polys = tuple(tuple(p[:2] for p in tri) for tri in triangles)
+    colors = tuple(tuple(eval_color(*p) for p in tri) for tri in triangles)
+    graphics.add_polyxyzs(polys, colors)
 
-    # add mesh
+    # add the mesh lines
     for xi in range(len(mesh_points)):
-        line = []
-        for yi in range(len(mesh_points[xi])):
-            line.append(to_mathics_list(mesh_points[xi][yi][0], mesh_points[xi][yi][1]))
-        graphics.append(Expression(SymbolLine, ListExpression(*line)))
+        graphics.add_linexyzs([mesh_points[xi]])
 
     return graphics
