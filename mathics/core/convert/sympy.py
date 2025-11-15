@@ -4,7 +4,7 @@
 Converts expressions from SymPy to Mathics expressions.
 Conversion to SymPy is handled directly in BaseElement descendants.
 """
-from typing import TYPE_CHECKING, Dict, Iterator, List, Optional, Sequence, Tuple, Union, cast
+from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Tuple, Union, cast
 
 import sympy
 from sympy import Symbol as Sympy_Symbol, false as SympyFalse, true as SympyTrue
@@ -206,9 +206,6 @@ class SympyExpression(sympy.Expr):
 
     def __str__(self) -> str:
         return f"{super().__str__()}[{self.expr}])"
-
-    def __iter__(self) -> Iterator:
-        return iter(self.args)
 
 
 class SympyPrime(sympy.Function):
