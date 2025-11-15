@@ -2,13 +2,11 @@
 Common utilities for plotting
 """
 
-import itertools
 
 from mathics.core.atoms import NumericArray
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
     SymbolGraphics,
     SymbolGraphics3D,
@@ -45,9 +43,7 @@ class GraphicsGenerator:
         if colors:
             color_arg = tuple(to_mathics_list(*color) for color in colors)
             color_arg = (
-                ListExpression(*color_arg)
-                if len(color_arg) > 1
-                else color_arg[0]
+                ListExpression(*color_arg) if len(color_arg) > 1 else color_arg[0]
             )
             color_rule = Expression(SymbolRule, SymbolVertexColors, color_arg)
             self.graphics.append(Expression(thing_symbol, arg, color_rule))
@@ -66,7 +62,7 @@ class GraphicsGenerator:
     def add_complex(self, xyzs, lines=None, polys=None):
         complex = [NumericArray(xyzs)]
         if polys is not None:
-            polys_expr = Expression(SymbolPolygon, NumericArray(polys))            
+            polys_expr = Expression(SymbolPolygon, NumericArray(polys))
             complex.append(polys_expr)
         if lines is not None:
             polys_expr = Expression(SymbolLines, NumericArray(lines))
