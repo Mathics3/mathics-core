@@ -24,7 +24,7 @@ import numpy as np
 # Each test specifies:
 #     name - name of function
 #     args - suitable args to be given to N[function[args]] and compiled_function[args] for comparison
-#     tol (optional) - numerical tolerance 
+#     close (optional) - boolean indicating results will be close and not exact
 #     scipy (optional) - boolean marking whether scipy is needed for the test
 #
 
@@ -35,15 +35,15 @@ tests = [
     #
 
     dict(name="Abs", args=[-1]),
-    dict(name="AiryAi", args=[1], tol=1e-15),
-    dict(name="AiryAiPrime", args=[1], tol=1e-15),
-    dict(name="AiryBi", args=[1], tol=1e-15),
-    dict(name="AiryBiPrime", args=[1], tol=1e-15),
+    dict(name="AiryAi", args=[1], close=True),
+    dict(name="AiryAiPrime", args=[1], close=True),
+    dict(name="AiryBi", args=[1], close=True),
+    dict(name="AiryBiPrime", args=[1], close=True),
     #dict(name="AngerJ", args=[0,0]), # PULL8
     dict(name="ArcCos", args=[0]),
-    dict(name="ArcCosh", args=[2], tol=1e-15),
+    dict(name="ArcCosh", args=[2], close=True),
     dict(name="ArcCot", args=[1]),
-    dict(name="ArcCoth", args=[2], tol=1e-15),
+    dict(name="ArcCoth", args=[2], close=True),
     dict(name="ArcCsc", args=[2]),
     dict(name="ArcCsch", args=[0.1]),
     dict(name="ArcSec", args=[2]),
@@ -58,11 +58,11 @@ tests = [
     dict(name="BesselI", args=[0,0], scipy=True),
     dict(name="BesselJ", args=[0,0], scipy=True),
     #dict(name="BesselJZero", args=[1,1]), # PULL8
-    dict(name="BesselK", args=[0.5,0.5], tol=1e-15, scipy=True),
+    dict(name="BesselK", args=[0.5,0.5], close=True, scipy=True),
     dict(name="BesselY", args=[0,0], scipy=True),
     #dict(name="BesselYZero", args=[2,2]), # PULL8
-    dict(name="Beta", args=[0.5, 1], tol=1e-15),
-    dict(name="Binomial", args=[3, 0.5], tol=1e-15),
+    dict(name="Beta", args=[0.5, 1], close=True),
+    dict(name="Binomial", args=[3, 0.5], close=True),
     dict(name="Catalan", args=None),
     dict(name="CatalanNumber", args=[0]),
     dict(name="Ceiling", args=[0]),
@@ -144,7 +144,7 @@ tests = [
     dict(name="Less", args=[0,1]),
     dict(name="LessEqual", args=[0,1]),
     dict(name="Log", args=[1]),
-    dict(name="LogGamma", args=[0.5], tol=1e-15),
+    dict(name="LogGamma", args=[0.5], close=True),
     #dict(name="LucasL", args=[0]), # sympy expects lucas()
     #dict(name="MeijerG", args=[1,1]), # expects matrix
     #dict(name="MersennePrimeExponent", args=[10]), # to_sympy() fails
@@ -156,8 +156,8 @@ tests = [
     #dict(name="Piecewise", args=[False,0,True,1]), # expects list of lists
     dict(name="Plus", args=[0,1]),
     dict(name="Pochhammer", args=[3,2]),
-    dict(name="PolyGamma", args=[3], tol=1e-15),
-    dict(name="PolyGamma", args=[1,2], tol=1e-15),
+    dict(name="PolyGamma", args=[3], close=True),
+    dict(name="PolyGamma", args=[1,2], close=True),
     #dict(name="PolyLog", args=[3,0.5]), # sympy expects polylog()
     #dict(name="PossibleZeroQ", args=[1]), # to_sympy() failed
     #dict(name="Power", args=[2,2]),
@@ -165,7 +165,7 @@ tests = [
     #dict(name="PrimePi", args=[0]), # sympy expects primepi()
     #dict(name="PrimeQ", args=[17]), # to_sympy() failed
     #dict(name="Product", args=[1,2,3]), # expects a function - can it be compiled??
-    dict(name="ProductLog", args=[-1.5], tol=1e-17),
+    dict(name="ProductLog", args=[-1.5], close=True),
     dict(name="Re", args=[0]),
     #dict(name="Root", args=[0]), # expects a function - can it be compiled??
     #dict(name="RootSum", args=[0]), # expects a function - can it be compiled??
@@ -176,8 +176,8 @@ tests = [
     dict(name="Sinh", args=[0]),
     #dict(name="SixJSymbol", args=[0]), # expects a list
     #dict(name="Slot", args=[0]), # not numeric
-    dict(name="SphericalBesselJ", args=[1,1], tol=1e-15),
-    dict(name="SphericalBesselY", args=[1,1], tol=1e-14),
+    dict(name="SphericalBesselJ", args=[1,1], close=True),
+    dict(name="SphericalBesselY", args=[1,1], close=True),
     #dict(name="SphericalHankelH1", args=[1,2]), # N and sympy differ significantly
     #dict(name="SphericalHankelH2", args=[1,2]), # N and sympy differ significantly
     #dict(name="SphericalHarmonicY", args=[3,1,1,1]), # sympy expects Ymn()
@@ -341,7 +341,7 @@ def fail(name, msg):
     print(msg)
     raise AssertionError(msg)
 
-def one(name, args, tol=0, scipy=False, expected=None):
+def one(name, args, close=False, scipy=False, expected=None):
 
     print("===", name)
 
@@ -390,18 +390,9 @@ def one(name, args, tol=0, scipy=False, expected=None):
         src = inspect.getsource(fun)        
         fail(name, f"{oops} occurred running the following compiled code:\n{src}")
 
-        
     # compare
-    if result != expected:
-        try:
-            isfinite = np.isfinite(result) and np.isfinite(expected)
-        except:
-            isfinite = False
-        if isfinite:
-            if (diff := np.abs(result - expected)) > tol:
-                fail(name, f"expected {expected}, got {result}, diff {diff}")
-        else:
-            fail(name, f"expected {expected}, got {result}")
+    if result != expected and not (close and np.isclose(result,expected)):
+        fail(name, f"expected {expected}, got {result}")
     else:
         pass
         #print(f"{name} succeeds: expected {expected.value}, got {result}")
