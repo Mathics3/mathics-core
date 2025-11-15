@@ -16,6 +16,7 @@ from mathics.session import MathicsSession
 from mathics.eval.drawing.plot_compile import compile
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
+from mathics.core.convert.python import from_python
 import inspect
 import math
 import numpy as np
@@ -71,7 +72,7 @@ tests = [
     dict(name="Ceiling", args=[0]),
     dict(name="ChebyshevT", args=[0,1], scipy=True),
     dict(name="ChebyshevU", args=[0,1], scipy=True),
-    #dict(name="ClebschGordan", args=[0,1]), # args are complicated
+    #dict(name="ClebschGordan", args=[[5,0],[4,0],[1,0]]), # module 'sympy' has no attribute 'physics.quantum.cg.CG'
     dict(name="ComplexExpand", args=[0]),
     #dict(name="ComplexInfinity", args=None), # N returns infinite
     #dict(name="ConditionalExpression", args=[1,True]),	# not registered with mathics_to_sympy
@@ -90,7 +91,7 @@ tests = [
     #dict(name="DirectedInfinity", args=[0]), # infinity - how to handle
     #dict(name="DivisorSigma", args=[1,20]), # sympy expects divisor_sigma()
     dict(name="E", args=None),
-    #dict(name="Eigenvalues", args=[0]), # complicated
+    #dict(name="Eigenvalues", args=[[[1,2],[3,4]]]), # not registered with mathics_to_sympy
     #dict(name="EllipticE", args=[0]), # sympy expects elliptic_e()
     #dict(name="EllipticF", args=[0,0]), # sympy expectes elliptic_f()
     #dict(name="EllipticK", args=[0]), # sympy expects elliptic_k()
@@ -110,7 +111,7 @@ tests = [
     dict(name="Floor", args=[0]),
     dict(name="FresnelC", args=[0]),
     dict(name="FresnelS", args=[0]),
-    #dict(name="FromContinuedFraction", args=[0]), # args complicated
+    #dict(name="FromContinuedFraction", args=[[2,1,3,4]]), # ???
     #dict(name="Function", args=[0]), # is this really numeric
     dict(name="Gamma", args=[1]),
     dict(name="GegenbauerC", args=[1,1,1]),
@@ -123,8 +124,8 @@ tests = [
     #dict(name="Haversine", args=[0]), # module 'sympy' has no attribute 'haversine'
     dict(name="HermiteH", args=[0,0]),
     #dict(name="Hypergeometric1F1", args=[1,1,1]), # sympy_name is ''
-    #dict(name="Hypergeometric2F1", args=[0]), # args are complicated
-    #dict(name="HypergeometricPFQ", args=[0]), # args are complicated
+    #dict(name="Hypergeometric2F1", args=[2,3,4,5]), # ???
+    #dict(name="HypergeometricPFQ", args=[[1,1],[3,3,3],2]), # ???
     #dict(name="HypergeometricU", args=[1,1,1]), # sympy_name is ''
     dict(name="I", args=None),
     dict(name="Im", args=[0]),
@@ -150,14 +151,14 @@ tests = [
     dict(name="Log", args=[1]),
     dict(name="LogGamma", args=[0.5], close=True),
     #dict(name="LucasL", args=[0]), # sympy expects lucas()
-    #dict(name="MeijerG", args=[1,1]), # expects matrix
+    #dict(name="MeijerG", args=[[[], []], [[1], [-1]],1]), # ???
     #dict(name="MersennePrimeExponent", args=[10]), # to_sympy() fails
     #dict(name="ModularInverse", args=[3,5]), # SympyFunction.to_sympy silent TypeError
     #dict(name="MoebiusMu", args=[10]), # scipy expects mobius() [sic]
     #dict(name="PartitionsP", args=[10]), # lambdify generates incorrect code it seems
     #dict(name="PauliMatrix", args=[0]), # to_sympy failed
     dict(name="Pi", args=None),
-    #dict(name="Piecewise", args=[False,0,True,1]), # expects list of lists
+    #dict(name="Piecewise", args=[]), # expression in conditional - how to test?
     dict(name="Plus", args=[0,1]),
     dict(name="Pochhammer", args=[3,2]),
     dict(name="PolyGamma", args=[3], close=True),
@@ -178,7 +179,7 @@ tests = [
     dict(name="Sign", args=[0]),
     dict(name="Sin", args=[0]),
     dict(name="Sinh", args=[0]),
-    #dict(name="SixJSymbol", args=[0]), # expects a list
+    #dict(name="SixJSymbol", args=[[1,2,3],[2,1,2]]), # module 'sympy' has no attribute 'physics.wigner.wigner_6j'
     #dict(name="Slot", args=[0]), # not numeric
     dict(name="SphericalBesselJ", args=[1,1], close=True),
     dict(name="SphericalBesselY", args=[1,1], close=True),
@@ -195,7 +196,7 @@ tests = [
     #dict(name="Sum", args=[0]), # expects a function - can it be compiled??
     dict(name="Tan", args=[0]),
     dict(name="Tanh", args=[0]),
-    #dict(name="ThreeJSymbol", args=[0]), # expects lists
+    #dict(name="ThreeJSymbol", args=[[6,0],[4,0],[2,0]]), # module 'sympy' has no attribute 'physics.wigner.wigner_3j'
     dict(name="Times", args=[1,2,3]),
     dict(name="Unequal", args=[0,1]),
     #dict(name="WeberE", args=[0.5,5]), # sympy_name is ''
@@ -340,7 +341,7 @@ tests = [
 
 session = MathicsSession()
 
-debug = 0
+debug = 2
 
 def fail(name, msg):
     msg = f"{name}: {msg}"
@@ -363,7 +364,7 @@ def one(name, args, close=False, scipy=False, expected=None):
 
         # function
         parms = [c for c in "xyzuvw"[0:len(args)]]
-        n_expr = f"N[{name}[{','.join(str(arg) for arg in args)}]]"
+        n_expr = f"N[{name}[{','.join(str(from_python(arg)) for arg in args)}]]"
         def_expr = f"{name}[{','.join(parms)}]"
 
     # run N[] to get expected if it isn't provided
