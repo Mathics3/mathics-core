@@ -168,7 +168,7 @@ class Timer:
     """
 
     level = int(os.getenv("MATHICS_TIMING", "0"))
-    timers = []
+    timers: list = []
 
     def __init__(self, name):
         self.name = name
@@ -180,9 +180,11 @@ class Timer:
 
         return timed_fun
 
+    @staticmethod
     def start(name):
         Timer.timers.append((name, time.time()))
 
+    @staticmethod
     def stop():
         name, start = Timer.timers.pop()
         ms = (time.time() - start) * 1000
