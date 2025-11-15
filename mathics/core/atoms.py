@@ -504,7 +504,7 @@ class MachineReal(Real[float]):
         """
         return (
             BASIC_ATOM_NUMBER_ELT_ORDER,
-            self.value,
+            self._value,
             0,
             1,
             0,  # Machine precision comes first, and after Integers
@@ -627,8 +627,13 @@ class PrecisionReal(Real[sympy.Float]):
         Return a tuple value that is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
-        value = self._value
-        return (BASIC_ATOM_NUMBER_ELT_ORDER, value, 0, 1, value._prec)
+        try:
+            value = self._value
+            value, prec = float(value), value._prec
+        except ValueError: # Overflow?
+            value, prec = self._value, value._prec
+
+        return (BASIC_ATOM_NUMBER_ELT_ORDER, value, 0, 1, prec)
 
     @property
     def is_zero(self) -> bool:

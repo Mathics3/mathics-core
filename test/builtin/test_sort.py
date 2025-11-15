@@ -6,6 +6,12 @@ from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolPlus, SymbolTimes
 
 
+def test_Sorting_Numbers():
+    check_evaluation(
+        "SameQ[Sort[{1.+0.I, 1.`50+0.`40I, 1.`50, 1.`3, 1.`4, 1., 1}], {1, 1., 1. + 0.*I, 1. + 0.*I, 1.00, 1.000, 1.0000000000000000000000000000000000000000000000000}]",
+        "True", "Order according WMA for numeric expressions.")
+    
+
 def test_Expression_sameQ():
     """
     Test Expression.SameQ
