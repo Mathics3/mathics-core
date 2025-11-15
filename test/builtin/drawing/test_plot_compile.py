@@ -46,7 +46,7 @@ tests = [
     dict(name="ArcCosh", args=[2], close=True),
     dict(name="ArcCot", args=[1]),
     dict(name="ArcCoth", args=[2], close=True),
-    dict(name="ArcCsc", args=[2]),
+    dict(name="ArcCsc", args=[2], close=True),
     dict(name="ArcCsch", args=[0.1]),
     dict(name="ArcSec", args=[2]),
     dict(name="ArcSech", args=[0.1]),
