@@ -204,7 +204,12 @@ class _ColorObject(_GraphicsDirective, ImmutableValueMixin):
         return self.to_rgba()
 
     def to_expr(self):
-        return to_expression(self.get_name(), *self.components)
+        """Convert components to MachineReal consistently so that colors with
+        numerically-equal components but different numeric atom types compare equal.
+        """
+        return to_expression(
+            self.get_name(), *self.components, elements_conversion_fn=MachineReal
+        )
 
     def to_rgba(self):
         return self.to_color_space("RGB")
