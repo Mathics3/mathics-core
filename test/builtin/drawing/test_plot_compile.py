@@ -39,7 +39,7 @@ tests = [
     dict(name="AiryAiPrime", args=[1], close=True),
     dict(name="AiryBi", args=[1], close=True),
     dict(name="AiryBiPrime", args=[1], close=True),
-    #dict(name="AngerJ", args=[0,0]), # PULL8
+    #dict(name="AngerJ", args=[0,0]), # sympy_name is ''
     dict(name="ArcCos", args=[0]),
     dict(name="ArcCosh", args=[2], close=True),
     dict(name="ArcCot", args=[1]),
@@ -57,10 +57,10 @@ tests = [
     dict(name="BernoulliB", args=[0], scipy=True),
     dict(name="BesselI", args=[0,0], scipy=True),
     dict(name="BesselJ", args=[0,0], scipy=True),
-    #dict(name="BesselJZero", args=[1,1]), # PULL8
+    #dict(name="BesselJZero", args=[1,1]), # sympy_name is ''
     dict(name="BesselK", args=[0.5,0.5], close=True, scipy=True),
     dict(name="BesselY", args=[0,0], scipy=True),
-    #dict(name="BesselYZero", args=[2,2]), # PULL8
+    #dict(name="BesselYZero", args=[2,2]), # sympy_name is ''
     dict(name="Beta", args=[0.5, 1], close=True),
     dict(name="Binomial", args=[3, 0.5], close=True),
     dict(name="Catalan", args=None),
@@ -71,9 +71,9 @@ tests = [
     #dict(name="ClebschGordan", args=[0,1]), # args are complicated
     dict(name="ComplexExpand", args=[0]),
     #dict(name="ComplexInfinity", args=None), # N returns infinite
-    #dict(name="ConditionalExpression", args=[1,True]),	# PULL8
+    #dict(name="ConditionalExpression", args=[1,True]),	# not registered with mathics_to_sympy
     dict(name="Conjugate", args=[0]),
-    #dict(name="ContinuedFraction", args=[0.4, 3]), # PULL8
+    dict(name="ContinuedFraction", args=[0.4, 3]), # ???
     dict(name="Cos", args=[0]),
     dict(name="Cosh", args=[0]),
     dict(name="Cot", args=[1]),
@@ -118,10 +118,10 @@ tests = [
     dict(name="HarmonicNumber", args=[0]),
     #dict(name="Haversine", args=[0]), # module 'sympy' has no attribute 'haversine'
     dict(name="HermiteH", args=[0,0]),
-    #dict(name="Hypergeometric1F1", args=[1,1,1]), # PULL8
+    #dict(name="Hypergeometric1F1", args=[1,1,1]), # sympy_name is ''
     #dict(name="Hypergeometric2F1", args=[0]), # args are complicated
     #dict(name="HypergeometricPFQ", args=[0]), # args are complicated
-    #dict(name="HypergeometricU", args=[1,1,1]), # PULL8
+    #dict(name="HypergeometricU", args=[1,1,1]), # sympy_name is ''
     dict(name="I", args=None),
     dict(name="Im", args=[0]),
     #dict(name="Indeterminate", args=None), # N returns System`Indeterminate
@@ -131,15 +131,15 @@ tests = [
     dict(name="InverseErfc", args=[0]),
     #dict(name="InverseHaversine", args=[0]), # module 'sympy' has no attribute 'inversehaversine'
     dict(name="JacobiP", args=[1,1,1,1]),
-    #dict(name="KelvinBei", args=[0]), # PULL8
-    #dict(name="KelvinBer", args=[0]), # PULL8
-    #dict(name="KelvinKei", args=[0]), # PULL8
-    #dict(name="KelvinKer", args=[0]), # PULL8
+    #dict(name="KelvinBei", args=[0]), # sympy_name is ''
+    #dict(name="KelvinBer", args=[0]), # sympy_name is ''
+    #dict(name="KelvinKei", args=[0]), # sympy_name is ''
+    #dict(name="KelvinKer", args=[0]), # sympy_name is ''
     #dict(name="KroneckerProduct", args=[0]), # args are matrices
-    #dict(name="LaguerreL", args=[0]), # PULL8
-    #dict(name="LambertW", args=[0]), # PULL8
+    #dict(name="LaguerreL", args=[0]), # ???
+    #dict(name="LambertW", args=[0]), # not registered with mathics_to_sympy
     dict(name="LegendreP", args=[1,1]),
-    #dict(name="LegendreQ", args=[1,0]), # PULL8
+    #dict(name="LegendreQ", args=[1,0]), # sympy_name is ''
     #dict(name="LerchPhi", args=[1,2,0.25]), # sympy expects lerchphi()
     dict(name="Less", args=[0,1]),
     dict(name="LessEqual", args=[0,1]),
@@ -148,7 +148,7 @@ tests = [
     #dict(name="LucasL", args=[0]), # sympy expects lucas()
     #dict(name="MeijerG", args=[1,1]), # expects matrix
     #dict(name="MersennePrimeExponent", args=[10]), # to_sympy() fails
-    #dict(name="ModularInverse", args=[3,5]), # PULL8
+    #dict(name="ModularInverse", args=[3,5]), # ???
     #dict(name="MoebiusMu", args=[10]), # scipy expects mobius() [sic]
     #dict(name="PartitionsP", args=[10]), # lambdify generates incorrect code it seems
     #dict(name="PauliMatrix", args=[0]), # to_sympy failed
@@ -183,10 +183,10 @@ tests = [
     #dict(name="SphericalHarmonicY", args=[3,1,1,1]), # sympy expects Ymn()
     dict(name="Sqrt", args=[2]),
     #dict(name="StieltjesGamma", args=[1]), # N returns System`StieltjesGamma[1.0]
-    #dict(name="StirlingS1", args=[1,2]), # PULL8
-    #dict(name="StirlingS2", args=[1,2]), # PULL8
-    #dict(name="StruveH", args=[1,2]), # PULL8
-    #dict(name="StruveL", args=[1,2]), # PULL8
+    #dict(name="StirlingS1", args=[1,2]), # not registered with mathics_to_sympy
+    #dict(name="StirlingS2", args=[1,2]), # not registered with mathics_to_sympy
+    #dict(name="StruveH", args=[1,2]), # sympy_name is ''
+    #dict(name="StruveL", args=[1,2]), # sympy_name is ''
     #dict(name="Subfactorial", args=[4]), # N gives 9, sympy gives nan
     #dict(name="Sum", args=[0]), # expects a function - can it be compiled??
     dict(name="Tan", args=[0]),
@@ -194,7 +194,7 @@ tests = [
     #dict(name="ThreeJSymbol", args=[0]), # expects lists
     dict(name="Times", args=[1,2,3]),
     dict(name="Unequal", args=[0,1]),
-    #dict(name="WeberE", args=[0.5,5]), # PULL8
+    #dict(name="WeberE", args=[0.5,5]), # sympy_name is ''
     dict(name="Zeta", args=[0]),
 
     #
@@ -336,6 +336,8 @@ tests = [
 
 session = MathicsSession()
 
+debug = 0
+
 def fail(name, msg):
     msg = f"{name}: {msg}"
     print(msg)
@@ -372,7 +374,7 @@ def one(name, args, close=False, scipy=False, expected=None):
     # compile function
     try:
         expr = session.parse(def_expr)
-        fun = compile(session.evaluation, expr, parms)
+        fun = compile(session.evaluation, expr, parms, debug)
     except Exception as oops:
         fail(name, f"compilaton failed: {oops}")
 
@@ -403,4 +405,9 @@ def test():
 
 if __name__ == "__main__":
     for test in tests:
-        one(**test)
+        try:
+            debug = 1
+            one(**test)
+        except AssertionError as oops:
+            exit()
+            pass

@@ -13,11 +13,14 @@ Maybe eventually consider to move elsewhere if it seems to be more
 widely useful.
 """
 
+import inspect
+
 import scipy
 import sympy
 
 from mathics.core.symbols import strip_context
 from mathics.core.util import print_expression_tree, print_sympy_tree
+from mathics.core.convert.sympy import SympyExpression, mathics_to_sympy
 
 # TODO: not in use yet
 # Add functions not found in scipy or numpy here.
@@ -37,15 +40,30 @@ class AdditionalMappings:
 class CompileError(Exception):
     pass
 
-def compile(evaluation, function, names):
-    #print("=== compiling expr")
-    #print_expression_tree(function)
+def compile(evaluation, expr, names, debug=0):
+    """ Compile the specified expression as a function of the given names  """
 
-    # Ask the function Expression to generate a sympy expression
+    if debug >= 2:
+        print("=== compiling expr")
+        print_expression_tree(expr)
+
+    # Ask the expr Expression to generate a sympy expression and handle errors
     try:
-        sympy_expr = function.to_sympy()
+        sympy_expr = expr.to_sympy()
     except Exception as oops:
-        raise CompileError(f"{function}.to_sympy() failed: {oops}")
+        raise CompileError(f"{expr}.to_sympy() failed: {oops}")
+    if isinstance(sympy_expr, SympyExpression):
+        if debug:
+            # duplicates lookup logic in mathics.core.convert.sympy
+            lookup_name = expr.get_lookup_name()
+            builtin = mathics_to_sympy.get(lookup_name)
+            if builtin:
+                sympy_name = getattr(builtin, "sympy_name", None) if builtin else None
+                print(f"compile: Invalid sympy_expr {sympy_expr}")
+                print(f"compile: {builtin}.sympy_name is {repr(sympy_name)}")
+            else:
+                print(f"compile: {lookup_name} not registered with mathics_to_sympy")
+        raise CompileError(f"{expr.head}.to_sympy returns invalid sympy expr.")
 
     # Strip symbols in sympy expression of context.
     subs = {
@@ -53,8 +71,9 @@ def compile(evaluation, function, names):
     }
     sympy_expr = sympy_expr.subs(subs)
 
-    #print("=== compiled sympy", type(sympy_expr))
-    #print_sympy_tree(sympy_expr)
+    if debug >= 2:
+        print("=== equivalent sympy", type(sympy_expr))
+        print_sympy_tree(sympy_expr)
 
     # Ask sympy to generate a function that will evaluate the expr.
     # Use numpy and scipy to do the evaluation so that operations are vectorized.
@@ -65,5 +84,9 @@ def compile(evaluation, function, names):
         compiled_function = sympy.lambdify(symbols, sympy_expr, modules=["numpy", "scipy"])
     except Exception as oops:
         raise CompileError(f"error compiling sympy expr {sympy_expr}: {oops}")
+
+    if debug >= 2:
+        print("=== compiled python")
+        print(inspect.getsource(compiled_function))
 
     return compiled_function
