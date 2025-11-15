@@ -627,10 +627,11 @@ class PrecisionReal(Real[sympy.Float]):
         Return a tuple value that is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
-        try:
-            value = self._value
-            value, prec = float(value), value._prec
-        except ValueError: # Overflow?
+        
+        value = self._value
+        value, prec = float(value), value._prec
+        # For large values, use the sympy.Float value...
+        if math.isinf(value):
             value, prec = self._value, value._prec
 
         return (BASIC_ATOM_NUMBER_ELT_ORDER, value, 0, 1, prec)
@@ -1031,7 +1032,7 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         if isinstance(other, Complex):
             return self.real == other.real and self.imag == other.imag
         if isinstance(other, Number):
-            if self.imag != 0:
+            if self.imag._value != 0:
                 return False
             return self.real == other
 

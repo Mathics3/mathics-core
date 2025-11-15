@@ -7,10 +7,21 @@ from mathics.core.symbols import Symbol, SymbolPlus, SymbolTimes
 
 
 def test_Sorting_Numbers():
+    check_evaluation("FormsOfOne={1.+0.I, 1.`50+0.`40I, 1.`50, 1.`3, 1.`4, 1., 1};",None)
+    check_evaluation("OrderedFormsOfOne={1, 1., 1. + 0.*I, 1. + 0.*I, 1.00, 1.000, 1.0000000000000000000000000000000000000000000000000};",None)
     check_evaluation(
-        "SameQ[Sort[{1.+0.I, 1.`50+0.`40I, 1.`50, 1.`3, 1.`4, 1., 1}], {1, 1., 1. + 0.*I, 1. + 0.*I, 1.00, 1.000, 1.0000000000000000000000000000000000000000000000000}]",
+        "SameQ[Sort[FormsOfOne],OrderedFormsOfOne]",
         "True", "Order according WMA for numeric expressions.")
+
+    for i in range(7):
+        for j in range(7):
+            print(f"{[i+1,j+1]}")
+            check_evaluation(f"FormsOfOne[[{i+1}]]==FormsOfOne[[{j+1}]]","True")
+            # Comparisons between a Complex value with zero imaginary part does not work
+            # in Mathics
+            check_evaluation(f"Re[FormsOfOne[[{i+1}]]]<=Re[FormsOfOne[[{j+1}]]]","True")
     
+
 
 def test_Expression_sameQ():
     """
