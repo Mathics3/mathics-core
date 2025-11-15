@@ -36,8 +36,13 @@ def compile(evaluation, function, names):
     #print("=== compiling expr")
     #print_expression_tree(function)
 
-    # Obtain sympy expr and strip context from free symbols.
-    sympy_expr = function.to_sympy()
+    # Ask the function to generate a sympy expression
+    try:
+        sympy_expr = function.to_sympy()
+    except Exception as oops:
+        raise CompileError(f"{function}.to_sympy() failed: {oops}")
+
+    # Strip symbols in sympy expression of context.
     subs = {
         sym: sympy.Symbol(strip_context(str(sym))) for sym in sympy_expr.free_symbols
     }
@@ -47,7 +52,7 @@ def compile(evaluation, function, names):
     #print_sympy_tree(sympy_expr)
 
     # Ask sympy to generate a function that will evaluate the expr.
-    # Use numpy to do the evaluation so that operations are vectorized.
+    # Use numpy and scipy to do the evaluation so that operations are vectorized.
     # Augment the default numpy mappings with some additional ones not handled by default.
     try:
         symbols = sympy.symbols(names)
