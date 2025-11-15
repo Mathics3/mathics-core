@@ -59,7 +59,9 @@ def eval_Plot3D(
 
             # shift inxs array four different ways and stack to form
             # (4, nx-1, ny-1) array of quads represented as indexes into xyzs array
-            quads = np.stack([inxs[:-1, :-1], inxs[:-1, 1:], inxs[1:, 1:], inxs[1:, :-1]])
+            quads = np.stack(
+                [inxs[:-1, :-1], inxs[:-1, 1:], inxs[1:, 1:], inxs[1:, :-1]]
+            )
 
             # transpose and flatten to ((nx-1)*(ny-1), 4) array, suitable for use in GraphicsComplex
             quads = quads.T.reshape(-1, 4)

@@ -21,8 +21,8 @@ from mathics.core.systemsymbols import (
     SymbolFunction,
     SymbolSlot,
 )
-from mathics.eval.drawing.plot import compile_quiet_function
 from mathics.core.util import Timer
+from mathics.eval.drawing.plot import compile_quiet_function
 
 from .util import GraphicsGenerator
 

@@ -161,7 +161,7 @@ class Timer:
     Timings are nested (in execution order), and the output prints the nested
     timings as an "upside-down" indented outline, with an outer level printed after
     all nested inner levels, supporting both detailed and summary timings.
-    
+
     Timing.level controls how deeply nested timings are displayed:
     -1 all, 0 none, 1 only top level, etc.  Default is 0. Use MATHICS_TIMING
     environment variable to change.
@@ -177,6 +177,7 @@ class Timer:
         def timed_fun(*args, **kwargs):
             with self:
                 return fun(*args, **kwargs)
+
         return timed_fun
 
     def start(name):
@@ -195,4 +196,3 @@ class Timer:
     def __exit__(self, *args):
         if self.name:
             Timer.stop()
-        
