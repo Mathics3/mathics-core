@@ -1,3 +1,17 @@
+"""
+These tests were populated by introspecting _builtins and finding
+all that had a sympy_name, mpmath_name, or whose path included the
+string "numeric" or "number".
+
+The tests are performed by evaluating N[function[args]] to get an expected value,
+and then compiling the function and running compiled_function[args] get a result.
+In a number of cases a small numeric tolerance is allowed, presumably due to differences
+in exact algorithm used.
+
+I took a first pass over the tests providing suitable args for the ones that were easy.
+The tests that are uncommented pass; the commented ones need more work.
+"""
+
 from mathics.session import MathicsSession
 from mathics.eval.drawing.plot_compile import compile
 from mathics.core.expression import Expression
@@ -6,8 +20,20 @@ import inspect
 import math
 import numpy as np
 
+#
+# Each test specifies:
+#     name - name of function
+#     args - suitable args to be given to N[function[args]] and compiled_function[args] for comparison
+#     tol (optional) - numerical tolerance 
+#     scipy (optional) - boolean marking whether scipy is needed for the test
+#
+
 tests = [
-    # have sympy_name
+
+    #
+    # Following have sympy_name.
+    #
+
     dict(name="Abs", args=[-1]),
     dict(name="AiryAi", args=[1], tol=1e-15),
     dict(name="AiryAiPrime", args=[1], tol=1e-15),
@@ -171,11 +197,20 @@ tests = [
     #dict(name="WeberE", args=[0.5,5]), # PULL8
     dict(name="Zeta", args=[0]),
 
-    # no sympy_name but have mpmath_name
+    #
+    # Following have no sympy_name but do have mpamath_name.
+    #
+
     #dict(name="Glaisher", args=None), # to_sympy() fails
     #dict(name="Khinchin", args=None), # to_sympy() fails
 
-    # number or numeric in path
+    # 
+    # Following have no sympy_name and no mpmath_name,
+    # but do have "number" or "numeric" in their path.
+    # Some may be possible candidates for building out compilation
+    # by enabling sympy.
+    # 
+
     #dict(name="$MachineEpsilon", args=[0]),
     #dict(name="$MachinePrecision", args=[0]),
     #dict(name="$MaxMachineNumber", args=[0]),
@@ -302,8 +337,9 @@ tests = [
 session = MathicsSession()
 
 def fail(name, msg):
-    print(f"{name}: {msg}")
-    exit(-1)
+    msg = f"{name}: {msg}"
+    print(msg)
+    raise AssertionError(msg)
 
 def one(name, args, tol=0, scipy=False, expected=None):
 
@@ -369,6 +405,10 @@ def one(name, args, tol=0, scipy=False, expected=None):
     else:
         pass
         #print(f"{name} succeeds: expected {expected.value}, got {result}")
+
+def test():
+    for test in tests:
+        one(**test)
 
 if __name__ == "__main__":
     for test in tests:

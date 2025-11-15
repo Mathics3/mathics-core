@@ -53,6 +53,12 @@ from mathics.eval.drawing.plot import (
     get_plot_range_option,
 )
 
+# The vectorized plot function generates GraphicsComplex using NumericArray,
+# which no consumer will currently understand. So lets make it opt-in for now.
+# If it remains opt-in we'll probably want some combination of env variables,
+# Set option such as $UseVectorizedPlot, and maybe a non-standard Plot3D option.
+# For now an env variable is simplest.
+# TODO: work out exactly how to deploy.
 if os.getenv("MATHICS_USE_VECTORIZED_PLOT", False):
     from mathics.eval.drawing.plot3d_vectorized import eval_DensityPlot, eval_Plot3D
 else:

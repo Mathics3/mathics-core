@@ -19,6 +19,11 @@ import sympy
 from mathics.core.symbols import strip_context
 from mathics.core.util import print_expression_tree, print_sympy_tree
 
+# TODO: not in use yet
+# Add functions not found in scipy or numpy here.
+# Hopefully they are just thin adapater layers.
+# TODO: let's see how much is really needed here, and possibly consider moving
+# them to the Builtin somehow
 class AdditionalMappings:
 
     def hyppfq(p, q, x):
@@ -36,7 +41,7 @@ def compile(evaluation, function, names):
     #print("=== compiling expr")
     #print_expression_tree(function)
 
-    # Ask the function to generate a sympy expression
+    # Ask the function Expression to generate a sympy expression
     try:
         sympy_expr = function.to_sympy()
     except Exception as oops:
