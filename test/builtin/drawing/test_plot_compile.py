@@ -27,6 +27,9 @@ import numpy as np
 #     close (optional) - boolean indicating results will be close and not exact
 #     scipy (optional) - boolean marking whether scipy is needed for the test
 #
+# for ??? check
+#     sympy.expression_to_sympy
+#     builtin.SympyFunction, especially silent failure except TypeError in to_sympy
 
 tests = [
 
@@ -73,7 +76,8 @@ tests = [
     #dict(name="ComplexInfinity", args=None), # N returns infinite
     #dict(name="ConditionalExpression", args=[1,True]),	# not registered with mathics_to_sympy
     dict(name="Conjugate", args=[0]),
-    #dict(name="ContinuedFraction", args=[0.4, 3]), # ???
+    #dict(name="ContinuedFraction", args=[0.4, 3]), # continued_fraction() takes 1 positional argument but 2 were given
+    #dict(name="ContinuedFraction", args=[0.4]), # N fails
     dict(name="Cos", args=[0]),
     dict(name="Cosh", args=[0]),
     dict(name="Cot", args=[1]),
@@ -136,7 +140,7 @@ tests = [
     #dict(name="KelvinKei", args=[0]), # sympy_name is ''
     #dict(name="KelvinKer", args=[0]), # sympy_name is ''
     #dict(name="KroneckerProduct", args=[0]), # args are matrices
-    #dict(name="LaguerreL", args=[0]), # ???
+    #dict(name="LaguerreL", args=[1,0]), # SympyFunction.to_sympy silent TypeError
     #dict(name="LambertW", args=[0]), # not registered with mathics_to_sympy
     dict(name="LegendreP", args=[1,1]),
     #dict(name="LegendreQ", args=[1,0]), # sympy_name is ''
@@ -148,7 +152,7 @@ tests = [
     #dict(name="LucasL", args=[0]), # sympy expects lucas()
     #dict(name="MeijerG", args=[1,1]), # expects matrix
     #dict(name="MersennePrimeExponent", args=[10]), # to_sympy() fails
-    #dict(name="ModularInverse", args=[3,5]), # ???
+    #dict(name="ModularInverse", args=[3,5]), # SympyFunction.to_sympy silent TypeError
     #dict(name="MoebiusMu", args=[10]), # scipy expects mobius() [sic]
     #dict(name="PartitionsP", args=[10]), # lambdify generates incorrect code it seems
     #dict(name="PauliMatrix", args=[0]), # to_sympy failed
