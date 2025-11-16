@@ -163,7 +163,7 @@ tests = [
     dict(name="PolyGamma", args=[1, 2], close=True),
     # dict(name="PolyLog", args=[3,0.5]), # sympy expects polylog()
     # dict(name="PossibleZeroQ", args=[1]), # to_sympy() failed
-    dict(name="Power", args=[2,2]),
+    dict(name="Power", args=[2, 2]),
     # dict(name="Prime", args=[17]), # sympy expects SympyPrime()
     # dict(name="PrimePi", args=[0]), # sympy expects primepi()
     # dict(name="PrimeQ", args=[17]), # to_sympy() failed
