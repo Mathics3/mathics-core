@@ -7,6 +7,7 @@ points, as another parameter, and plot or show the function applied to the data.
 """
 
 import numbers
+import os
 from abc import ABC
 from functools import lru_cache
 from math import cos, pi, sin
@@ -51,7 +52,18 @@ from mathics.eval.drawing.plot import (
     get_plot_range,
     get_plot_range_option,
 )
-from mathics.eval.drawing.plot3d import eval_DensityPlot, eval_Plot3D
+
+# The vectorized plot function generates GraphicsComplex using NumericArray,
+# which no consumer will currently understand. So lets make it opt-in for now.
+# If it remains opt-in we'll probably want some combination of env variables,
+# Set option such as $UseVectorizedPlot, and maybe a non-standard Plot3D option.
+# For now an env variable is simplest.
+# TODO: work out exactly how to deploy.
+if os.getenv("MATHICS3_USE_VECTORIZED_PLOT", False):
+    from mathics.eval.drawing.plot3d_vectorized import eval_DensityPlot, eval_Plot3D
+else:
+    from mathics.eval.drawing.plot3d import eval_DensityPlot, eval_Plot3D
+
 from mathics.eval.nevaluator import eval_N
 
 # This tells documentation how to sort this module
