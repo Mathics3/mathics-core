@@ -43,7 +43,7 @@ class CompileError(Exception):
     pass
 
 
-def compile(evaluation, expr, names, debug=0):
+def plot_compile(evaluation, expr, names, debug=0):
     """Compile the specified expression as a function of the given names"""
 
     if debug >= 2:

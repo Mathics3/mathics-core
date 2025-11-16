@@ -12,7 +12,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.symbols import strip_context
 from mathics.core.util import Timer
 
-from .plot_compile import compile
+from .plot_compile import plot_compile
 from .util import GraphicsGenerator
 
 
@@ -31,7 +31,7 @@ def eval_Plot3D(
         names = [strip_context(str(range[0])) for range in plot_options.ranges]
 
         with Timer("compile"):
-            function = compile(evaluation, function, names)
+            function = plot_compile(evaluation, function, names)
 
         # compute (nx, ny) grids of xs and ys for corresponding vertexes
         xs = np.linspace(xmin, xmax, nx)

@@ -18,7 +18,7 @@ import numpy as np
 
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
-from mathics.eval.drawing.plot_compile import compile
+from mathics.eval.drawing.plot_compile import plot_compile
 from mathics.session import MathicsSession
 
 #
@@ -163,7 +163,7 @@ tests = [
     dict(name="PolyGamma", args=[1, 2], close=True),
     # dict(name="PolyLog", args=[3,0.5]), # sympy expects polylog()
     # dict(name="PossibleZeroQ", args=[1]), # to_sympy() failed
-    # dict(name="Power", args=[2,2]),
+    dict(name="Power", args=[2,2]),
     # dict(name="Prime", args=[17]), # sympy expects SympyPrime()
     # dict(name="PrimePi", args=[0]), # sympy expects primepi()
     # dict(name="PrimeQ", args=[17]), # to_sympy() failed
@@ -378,7 +378,7 @@ def one(name, args, close=True, scipy=False, expected=None):
     # compile function
     try:
         expr = session.parse(def_expr)
-        fun = compile(session.evaluation, expr, parms, debug)
+        fun = plot_compile(session.evaluation, expr, parms, debug)
     except Exception as oops:
         fail(name, f"compilaton failed: {oops}")
 
