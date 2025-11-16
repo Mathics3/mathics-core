@@ -163,11 +163,11 @@ class Timer:
     all nested inner levels, supporting both detailed and summary timings.
 
     Timing.level controls how deeply nested timings are displayed:
-    -1 all, 0 none, 1 only top level, etc.  Default is 0. Use MATHICS_TIMING
+    -1 all, 0 none, 1 only top level, etc.  Default is 0. Use MATHICS3_TIMING
     environment variable to change.
     """
 
-    level = int(os.getenv("MATHICS_TIMING", "0"))
+    level = int(os.getenv("MATHICS3_TIMING", "0"))
     timers: list = []
 
     def __init__(self, name):
