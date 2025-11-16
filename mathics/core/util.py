@@ -3,9 +3,7 @@
 Miscellaneous mathics.core utility functions.
 """
 
-import os
 import sys
-import time
 from itertools import chain
 from pathlib import PureWindowsPath
 from platform import python_implementation

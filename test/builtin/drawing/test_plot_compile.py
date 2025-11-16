@@ -13,16 +13,15 @@ The tests that are uncommented pass; the commented ones need more work.
 """
 
 import inspect
+from test.helper import session
 
 import numpy as np
 
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.eval.drawing.plot_compile import plot_compile
-from mathics.session import MathicsSession
-from test.helper import session
 
-#session = MathicsSession()
+# session = MathicsSession()
 
 
 #
