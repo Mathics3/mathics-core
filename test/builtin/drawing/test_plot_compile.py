@@ -20,6 +20,10 @@ from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.eval.drawing.plot_compile import plot_compile
 from mathics.session import MathicsSession
+from test.helper import session
+
+#session = MathicsSession()
+
 
 #
 # Each test specifies:
@@ -332,8 +336,6 @@ tests = [
     # dict(name="UnitStep", args=[0]),
     # dict(name="Variables", args=[0]),
 ]
-
-session = MathicsSession()
 
 debug = 0
 
