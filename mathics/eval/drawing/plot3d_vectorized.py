@@ -10,7 +10,7 @@ import numpy as np
 
 from mathics.core.evaluation import Evaluation
 from mathics.core.symbols import strip_context
-from mathics.core.util import Timer
+from mathics.timing import Timer
 
 from .plot_compile import plot_compile
 from .util import GraphicsGenerator
