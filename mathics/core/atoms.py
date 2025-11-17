@@ -936,41 +936,14 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         of an expression. The tuple is ultimately compared lexicographically.
         """
         order_real, order_imag = self.real.element_order, self.imag.element_order
+
         # If the real of the imag parts are real numbers, sort according
         # the minimum precision.
         # Example:
         # Sort[{1+2I, 1.+2.I, 1.`4+2.`5I, 1.`2+2.`7 I}]
         #
         # = {1+2I, 1.+2.I, 1.`2+2.`7 I, 1.`4+2.`5I}
-
-        if len(order_real) > 4:
-            prec = order_imag[4] if len(order_imag) > 4 else order_real[4]
-            return (
-                BASIC_ATOM_NUMBER_ELT_ORDER,
-                order_real[1],
-                0,
-                1,
-                prec,
-                order_imag[1],
-            )
-        if len(order_imag) > 4:
-            prec = order_imag[4]
-            return (
-                BASIC_ATOM_NUMBER_ELT_ORDER,
-                order_real[1],
-                0,
-                1,
-                order_imag[4],
-                order_imag[1],
-            )
-        return (
-            BASIC_ATOM_NUMBER_ELT_ORDER,
-            order_real[1],
-            0,
-            1,
-            -1,
-            order_imag[1],
-        )
+        return order_real + order_imag
 
     @property
     def pattern_precedence(self) -> tuple:
