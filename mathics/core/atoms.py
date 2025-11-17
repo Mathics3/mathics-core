@@ -5,7 +5,7 @@ import base64
 import math
 import re
 from functools import cache
-from typing import Any, Dict, Generic, Optional, Tuple, TypeVar, Union
+from typing import Any, Dict, Generic, Optional, Tuple, TypeVar, Union, cast
 
 import mpmath
 import numpy
@@ -240,7 +240,7 @@ class Integer(Number[int]):
 
     def __eq__(self, other) -> bool:
         if isinstance(other, Integer):
-            return self._value == other.value
+            return self._value == other._value
         if isinstance(other, Number):
             # If other is a number of a wider class, use
             # its implementation:
@@ -349,7 +349,7 @@ class Integer(Number[int]):
 
     def sameQ(self, rhs) -> bool:
         """Mathics SameQ"""
-        return isinstance(rhs, Integer) and self._value == rhs.value
+        return isinstance(rhs, Integer) and self._value == rhs._value
 
     def do_copy(self) -> "Integer":
         return Integer(self._value)
@@ -410,9 +410,9 @@ class Real(Number[T]):
         if not isinstance(other, Number):
             return super().__eq__(other)
 
-        _prec = min_prec(self, other)
-        if prec is None:
-            return self.value == other.value
+        _prec: Optional[int] = min_prec(self, other)
+        if _prec is None:
+            return self._value == other._value
 
         with mpmath.workprec(_prec):
             rel_eps = 0.5 ** float(_prec - 7)
@@ -532,7 +532,7 @@ class MachineReal(Real[float]):
 
     @property
     def is_zero(self) -> bool:
-        return self.value == 0.0
+        return self._value == 0.0
 
     def sameQ(self, rhs) -> bool:
         """Mathics SameQ for MachineReal.
@@ -542,9 +542,9 @@ class MachineReal(Real[float]):
         rhs-value's precision.  For any rhs type, sameQ is False.
         """
         if isinstance(rhs, MachineReal):
-            return self.value == rhs.value
+            return self._value == rhs._value
         if isinstance(rhs, PrecisionReal):
-            rhs_value = rhs.value
+            rhs_value = rhs._value
             value = self.to_sympy()
             # If sympy fixes the issue, this comparison would be
             # enough
@@ -790,7 +790,7 @@ class ByteArray(Atom, ImmutableValueMixin):
         """Mathics3 SameQ"""
         # FIX: check
         if isinstance(rhs, ByteArray):
-            return self.value == rhs.value
+            return self._value == rhs._value
         return False
 
     def get_string_value(self) -> Optional[str]:
@@ -1090,7 +1090,7 @@ class Rational(Number[sympy.Rational]):
         if isinstance(other, Rational):
             return self.value.as_numer_denom() == other.value.as_numer_denom()
         if isinstance(other, Integer):
-            return (other.value, 1) == self.value.as_numer_denom()
+            return (other._value, 1) == self.value.as_numer_denom()
         if isinstance(other, Number):
             # For general numbers, rely on Real or Complex implementations.
             return other.__eq__(self)
