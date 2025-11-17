@@ -29,6 +29,7 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList
 from mathics.core.systemsymbols import (
     SymbolAll,
+    SymbolAutomatic,
     SymbolBlack,
     SymbolEdgeForm,
     SymbolFull,
@@ -260,16 +261,18 @@ class _Plot(Builtin, ABC):
 
         # Mesh Option
         mesh_option = self.get_option(options, "Mesh", evaluation)
-        mesh = mesh_option.to_python()
-        if mesh not in ["System`None", "System`Full", "System`All"]:
+        if mesh_option not in (SymbolNone, SymbolFull, SymbolAll):
             evaluation.message("Mesh", "ilevels", mesh_option)
             mesh = "System`None"
+        else:
+            mesh = mesh_option.to_python()
 
         # PlotPoints Option
         plotpoints_option = self.get_option(options, "PlotPoints", evaluation)
-        plotpoints = plotpoints_option.to_python()
-        if plotpoints == "System`None":
+        if plotpoints_option is SymbolNone:
             plotpoints = 57
+        else:
+            plotpoints = plotpoints_option.to_python()
         if not (isinstance(plotpoints, int) and plotpoints >= 2):
             evaluation.message(self.get_name(), "ppts", plotpoints)
             return
@@ -277,26 +280,28 @@ class _Plot(Builtin, ABC):
         # MaxRecursion Option
         max_recursion_limit = 15
         maxrecursion_option = self.get_option(options, "MaxRecursion", evaluation)
-        maxrecursion = maxrecursion_option.to_python()
+        # Old default was 3. Bruce Lucas observes that
+        # 0 using more points is faster and gives better results.
+        maxrecursion = 0
         try:
-            if maxrecursion == "System`Automatic":
-                maxrecursion = 3
-            elif maxrecursion == float("inf"):
-                maxrecursion = max_recursion_limit
-                raise ValueError
-            elif isinstance(maxrecursion, int):
-                if maxrecursion > max_recursion_limit:
+            if maxrecursion_option is not SymbolAutomatic:
+                maxrecursion = maxrecursion_option.to_python()
+                if maxrecursion == float("inf"):
                     maxrecursion = max_recursion_limit
                     raise ValueError
-                if maxrecursion < 0:
+                elif isinstance(maxrecursion, int):
+                    if maxrecursion > max_recursion_limit:
+                        maxrecursion = max_recursion_limit
+                        raise ValueError
+                    if maxrecursion < 0:
+                        maxrecursion = 0
+                        raise ValueError
+                else:
                     maxrecursion = 0
                     raise ValueError
-            else:
-                maxrecursion = 0
-                raise ValueError
         except ValueError:
             evaluation.message(
-                self.get_name(), "invmaxrec", maxrecursion, max_recursion_limit
+                self.get_name(), "invmaxrec", maxrecursion_option, max_recursion_limit
             )
         assert isinstance(maxrecursion, int)
 
@@ -312,22 +317,23 @@ class _Plot(Builtin, ABC):
             return True
 
         exclusions_option = self.get_option(options, "Exclusions", evaluation)
-        exclusions = eval_N(exclusions_option, evaluation).to_python()
         # TODO Turn expressions into points E.g. Sin[x] == 0 becomes 0, 2 Pi...
 
-        if exclusions in ["System`None", ["System`None"]]:
+        if exclusions_option in (SymbolNone, (SymbolNone,)):
             exclusions = "System`None"
-        elif not isinstance(exclusions, list):
-            exclusions = [exclusions]
+        else:
+            exclusions = eval_N(exclusions_option, evaluation).to_python()
+            if not isinstance(exclusions, list):
+                exclusions = [exclusions]
 
-            if isinstance(exclusions, list) and all(  # noqa
-                check_exclusion(excl) for excl in exclusions
-            ):
-                pass
+                if isinstance(exclusions, list) and all(  # noqa
+                    check_exclusion(excl) for excl in exclusions
+                ):
+                    pass
 
-            else:
-                evaluation.message(self.get_name(), "invexcl", exclusions_option)
-                exclusions = ["System`Automatic"]
+                else:
+                    evaluation.message(self.get_name(), "invexcl", exclusions_option)
+                    exclusions = ["System`Automatic"]
 
         # exclusions is now either 'None' or a list of reals and 'Automatic'
         assert exclusions == "System`None" or isinstance(exclusions, list)
@@ -381,7 +387,7 @@ class _Plot(Builtin, ABC):
 
     def process_function_and_options(
         self, functions, x, start, stop, evaluation: Evaluation, options: dict
-    ) -> tuple:
+    ) -> Optional[tuple]:
         """Process the arguments of a plot expression."""
         if isinstance(functions, Symbol) and functions.name is not x.get_name():
             rules = evaluation.definitions.get_ownvalues(functions.name)
