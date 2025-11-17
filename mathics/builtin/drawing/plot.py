@@ -387,7 +387,7 @@ class _Plot(Builtin, ABC):
 
     def process_function_and_options(
         self, functions, x, start, stop, evaluation: Evaluation, options: dict
-    ) -> Optional[tuple]:
+    ) -> tuple:
         """Process the arguments of a plot expression."""
         if isinstance(functions, Symbol) and functions.name is not x.get_name():
             rules = evaluation.definitions.get_ownvalues(functions.name)
