@@ -627,14 +627,14 @@ class PrecisionReal(Real[sympy.Float]):
         Return a tuple value that is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
-        
+
         value = self._value
         value, prec = float(value), value._prec
         # For large values, use the sympy.Float value...
         if math.isinf(value):
             value, prec = self._value, value._prec
 
-        return (BASIC_ATOM_NUMBER_ELT_ORDER, value, 0, 1, prec)
+        return (BASIC_ATOM_NUMBER_ELT_ORDER, value, 0, 2, prec)
 
     @property
     def is_zero(self) -> bool:
@@ -943,35 +943,33 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         #
         # = {1+2I, 1.+2.I, 1.`2+2.`7 I, 1.`4+2.`5I}
 
-        if len(order_real) > 3:
-            if len(order_imag) > 3:
-                return (
-                    BASIC_ATOM_NUMBER_ELT_ORDER,
-                    order_real[1],
-                    order_imag[1],
-                    1,
-                    min(order_real[3], order_imag[3]),
-                )
+        if len(order_real) > 4:
+            prec = order_imag[4] if len(order_imag) > 4 else order_real[4]
             return (
                 BASIC_ATOM_NUMBER_ELT_ORDER,
                 order_real[1],
-                order_imag[1],
+                0,
                 1,
-                order_real[3],
+                prec,
+                order_imag[1],
             )
-        if len(order_imag) > 3:
+        if len(order_imag) > 4:
+            prec = order_imag[4]
             return (
                 BASIC_ATOM_NUMBER_ELT_ORDER,
                 order_real[1],
-                order_imag[1],
+                0,
                 1,
-                order_imag[3],
+                order_imag[4],
+                order_imag[1],
             )
         return (
             BASIC_ATOM_NUMBER_ELT_ORDER,
             order_real[1],
-            order_imag[1],
+            0,
             1,
+            -1,
+            order_imag[1],
         )
 
     @property
@@ -1030,11 +1028,11 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
 
     def __eq__(self, other) -> bool:
         if isinstance(other, Complex):
-            return self.real == other.real and self.imag == other.imag
+            return self.real.__eq__(other.real) and self.imag.__eq__(other.imag)
         if isinstance(other, Number):
-            if self.imag._value != 0:
+            if abs(self.imag._value) != 0:
                 return False
-            return self.real == other
+            return self.real.__eq__(other)
 
         return super().__eq__(other)
 
@@ -1092,7 +1090,7 @@ class Rational(Number[sympy.Rational]):
         if isinstance(other, Rational):
             return self.value.as_numer_denom() == other.value.as_numer_denom()
         if isinstance(other, Integer):
-            return (other.value, 1)== self.value.as_numer_denom()
+            return (other.value, 1) == self.value.as_numer_denom()
         if isinstance(other, Number):
             # For general numbers, rely on Real or Complex implementations.
             return other.__eq__(self)
@@ -1158,7 +1156,7 @@ class Rational(Number[sympy.Rational]):
         return (
             BASIC_ATOM_NUMBER_ELT_ORDER,
             sympy.Float(self.value),
-            0,
+            1,
             1,
         )
 
