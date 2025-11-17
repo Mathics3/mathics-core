@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from test.helper import check_evaluation, session
+from test.helper import check_evaluation
 
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolPlus, SymbolTimes
