@@ -280,9 +280,15 @@ class _Plot(Builtin, ABC):
         # MaxRecursion Option
         max_recursion_limit = 15
         maxrecursion_option = self.get_option(options, "MaxRecursion", evaluation)
-        # Old default was 3. Bruce Lucas observes that
-        # 0 using more points is faster and gives better results.
-        maxrecursion = 0
+
+        # Investigate whether the maxrecursion value is optimal. Bruce
+        # Lucas observes that in some cases, using more points and
+        # decreasing recursion is faster and gives better results.
+        # Note that the tradeoff may be different for Plot versus
+        # Plot3D. Recursive subdivision in Plot3D is probably a lot
+        # harder.
+        maxrecursion = 3
+
         try:
             if maxrecursion_option is not SymbolAutomatic:
                 maxrecursion = maxrecursion_option.to_python()
