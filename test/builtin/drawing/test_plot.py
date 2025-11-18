@@ -66,6 +66,7 @@ def test__listplot():
             "-Graphics3D-",
             None,
         ),
+        ("Plot3D[1, {x,-1,1}, {y,-1,1}]", None, "-Graphics3D-", None),
         (
             "Plot3D[]",
             ("Plot3D called with 0 arguments; 3 arguments are expected.",),
