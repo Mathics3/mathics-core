@@ -3,6 +3,7 @@
 Mathics3 Graphics box rendering to Asymptote Vector graphics strings.
 """
 
+import os
 import re
 
 from mathics.builtin.box.graphics import (
@@ -548,6 +549,13 @@ def polygon_3d_box(box: Polygon3DBox, **options) -> str:
     """
     Asymptote formatting of a Polygon3DBox.
     """
+
+    breakpoint()
+    if os.getenv("MATHICS3_USE_VECTORIZED_PLOT", True):
+        import mathics.format.asy_numpy.polyhedron_3d_box as polyhedron_3d_box_numpy
+
+        return polyhedron_3d_box_numpy(box, **options)
+
     stroke_width = box.style.get_line_width(face_element=True)
     if box.vertex_colors is None:
         face_color = box.face_color
@@ -575,7 +583,7 @@ def polygon_3d_box(box: Polygon3DBox, **options) -> str:
         )
         asy += "draw(surface(g), %s);" % (pen)
 
-    # print(asy)
+    print(asy)
     return asy
 
 
@@ -747,14 +755,20 @@ add_conversion_fn(Tube3DBox, tube_3d_box)
 def uniform_polyhedron_3d_box(box: UniformPolyhedron3DBox, **options) -> str:
     # l = box.style.get_line_width(face_element=True)
 
-    face_color = box.face_color.to_js() if box.face_color else (1, 1, 1)
-    opacity = box.face_opacity
-    color_str = build_3d_pen_color(face_color, opacity)
-    render_fn = HEDRON_NAME_MAP.get(box.sub_type, unimplimented_polygon)
-    return f"// {box.sub_type}\n" + "\n".join(
-        render_fn(tuple(coord.pos()[0]), box.edge_length, color_str)
-        for coord in box.points
-    )
+    if os.environ.get("MATHICS3_USE_VECTORIZED_PLOT", False):
+        import mathics.format.asy_numpy.uniform_polyhedron_3d_box as uniform_polyhedron_3d_box_numpy
+
+        breakpoint()
+        return uniform_polyhedron_3d_box_numpy(box, **options)
+    else:
+        face_color = box.face_color.to_js() if box.face_color else (1, 1, 1)
+        opacity = box.face_opacity
+        color_str = build_3d_pen_color(face_color, opacity)
+        render_fn = HEDRON_NAME_MAP.get(box.sub_type, unimplimented_polygon)
+        return f"// {box.sub_type}\n" + "\n".join(
+            render_fn(tuple(coord.pos()[0]), box.edge_length, color_str)
+            for coord in box.points
+        )
 
 
 add_conversion_fn(UniformPolyhedron3DBox, uniform_polyhedron_3d_box)
