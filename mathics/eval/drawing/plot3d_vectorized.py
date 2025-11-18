@@ -50,7 +50,7 @@ def eval_Plot3D(
         zs = np.real(zs)
 
         # if it's a constant, make it a full array
-        if isinstance(zs, (float,int,complex)):
+        if isinstance(zs, (float, int, complex)):
             zs = np.full(xs.shape, zs)
 
         with Timer("stack"):
