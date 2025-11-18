@@ -2,7 +2,7 @@
 """
 Unit tests for mathics.builtin.file_operations
 """
-
+import os
 import sys
 import time
 from test.helper import check_evaluation, evaluate
@@ -100,6 +100,10 @@ import pytest
             None,
         ),
     ],
+)
+@pytest.mark.skipif(
+    os.getenv("SANDBOX", False),
+    reason="Test doesn't work in a sandboxed environment with access to local files",
 )
 def test_private_doctests_file_properties(str_expr, msgs, str_expected, fail_msg):
     """file_opertions.file_properties"""

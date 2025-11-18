@@ -5,7 +5,7 @@ import base64
 import math
 import re
 from functools import cache
-from typing import Any, Dict, Generic, Optional, Tuple, TypeVar, Union
+from typing import Any, Dict, Generic, Optional, Tuple, TypeVar, Union, cast
 
 import mpmath
 import numpy
@@ -239,11 +239,14 @@ class Integer(Number[int]):
         return self
 
     def __eq__(self, other) -> bool:
-        return (
-            self._value == other.value
-            if isinstance(other, Integer)
-            else super().__eq__(other)
-        )
+        if isinstance(other, Integer):
+            return self._value == other._value
+        if isinstance(other, Number):
+            # If other is a number of a wider class, use
+            # its implementation:
+            return other.__eq__(self)
+
+        return super().__eq__(other)
 
     def __ge__(self, other) -> bool:
         return (
@@ -346,7 +349,7 @@ class Integer(Number[int]):
 
     def sameQ(self, rhs) -> bool:
         """Mathics SameQ"""
-        return isinstance(rhs, Integer) and self._value == rhs.value
+        return isinstance(rhs, Integer) and self._value == rhs._value
 
     def do_copy(self) -> "Integer":
         return Integer(self._value)
@@ -404,17 +407,18 @@ class Real(Number[T]):
             return PrecisionReal.__new__(PrecisionReal, value)
 
     def __eq__(self, other) -> bool:
-        if isinstance(other, Real):
-            # MMA Docs: "Approximate numbers that differ in their last seven
-            # binary digits are considered equal"
-            _prec = min_prec(self, other)
-            if _prec is not None:
-                with mpmath.workprec(_prec):
-                    rel_eps = 0.5 ** float(_prec - 7)
-                    return mpmath.almosteq(
-                        self.to_mpmath(), other.to_mpmath(), abs_eps=0, rel_eps=rel_eps
-                    )
-        return super().__eq__(other)
+        if not isinstance(other, Number):
+            return super().__eq__(other)
+
+        _prec: Optional[int] = min_prec(self, other)
+        if _prec is None:
+            return self._value == other._value
+
+        with mpmath.workprec(_prec):
+            rel_eps = 0.5 ** float(_prec - 7)
+            return mpmath.almosteq(
+                self.to_mpmath(), other.to_mpmath(), abs_eps=0, rel_eps=rel_eps
+            )
 
     def __hash__(self):
         # ignore last 7 binary digits when hashing
@@ -493,6 +497,20 @@ class MachineReal(Real[float]):
         return self._value
 
     @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return (
+            BASIC_ATOM_NUMBER_ELT_ORDER,
+            self._value,
+            0,
+            1,
+            0,  # Machine precision comes first, and after Integers
+        )
+
+    @property
     def is_approx_zero(self) -> bool:
         # In WMA, Chop[10.^(-10)] == 0,
         # so, lets take it.
@@ -514,7 +532,7 @@ class MachineReal(Real[float]):
 
     @property
     def is_zero(self) -> bool:
-        return self.value == 0.0
+        return self._value == 0.0
 
     def sameQ(self, rhs) -> bool:
         """Mathics SameQ for MachineReal.
@@ -524,9 +542,9 @@ class MachineReal(Real[float]):
         rhs-value's precision.  For any rhs type, sameQ is False.
         """
         if isinstance(rhs, MachineReal):
-            return self.value == rhs.value
+            return self._value == rhs._value
         if isinstance(rhs, PrecisionReal):
-            rhs_value = rhs.value
+            rhs_value = rhs._value
             value = self.to_sympy()
             # If sympy fixes the issue, this comparison would be
             # enough
@@ -602,6 +620,21 @@ class PrecisionReal(Real[sympy.Float]):
     def get_precision(self) -> int:
         """Returns the default specification for precision (in binary digits) in N and other numerical functions."""
         return self.value._prec + 1
+
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+
+        value = self._value
+        value, prec = float(value), value._prec
+        # For large values, use the sympy.Float value...
+        if math.isinf(value):
+            value, prec = self._value, value._prec
+
+        return (BASIC_ATOM_NUMBER_ELT_ORDER, value, 0, 2, prec)
 
     @property
     def is_zero(self) -> bool:
@@ -757,7 +790,7 @@ class ByteArray(Atom, ImmutableValueMixin):
         """Mathics3 SameQ"""
         # FIX: check
         if isinstance(rhs, ByteArray):
-            return self.value == rhs.value
+            return self._value == rhs._value
         return False
 
     def get_string_value(self) -> Optional[str]:
@@ -902,12 +935,15 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         Return a tuple value that is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
-        return (
-            BASIC_ATOM_NUMBER_ELT_ORDER,
-            self.real.element_order[1],
-            self.imag.element_order[1],
-            1,
-        )
+        order_real, order_imag = self.real.element_order, self.imag.element_order
+
+        # If the real of the imag parts are real numbers, sort according
+        # the minimum precision.
+        # Example:
+        # Sort[{1+2I, 1.+2.I, 1.`4+2.`5I, 1.`2+2.`7 I}]
+        #
+        # = {1+2I, 1.+2.I, 1.`2+2.`7 I, 1.`4+2.`5I}
+        return order_real + order_imag
 
     @property
     def pattern_precedence(self) -> tuple:
@@ -965,9 +1001,13 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
 
     def __eq__(self, other) -> bool:
         if isinstance(other, Complex):
-            return self.real == other.real and self.imag == other.imag
-        else:
-            return super().__eq__(other)
+            return self.real.__eq__(other.real) and self.imag.__eq__(other.imag)
+        if isinstance(other, Number):
+            if abs(self.imag._value) != 0:
+                return False
+            return self.real.__eq__(other)
+
+        return super().__eq__(other)
 
     @property
     def is_zero(self) -> bool:
@@ -1018,6 +1058,17 @@ class Rational(Number[sympy.Rational]):
             # it is used this is fast.
             self.hash = hash(key)
         return self
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, Rational):
+            return self.value.as_numer_denom() == other.value.as_numer_denom()
+        if isinstance(other, Integer):
+            return (other._value, 1) == self.value.as_numer_denom()
+        if isinstance(other, Number):
+            # For general numbers, rely on Real or Complex implementations.
+            return other.__eq__(self)
+        # General expressions
+        return super().__eq__(other)
 
     def __getnewargs__(self) -> tuple:
         return (self.numerator().value, self.denominator().value)
@@ -1078,7 +1129,7 @@ class Rational(Number[sympy.Rational]):
         return (
             BASIC_ATOM_NUMBER_ELT_ORDER,
             sympy.Float(self.value),
-            0,
+            1,
             1,
         )
 
