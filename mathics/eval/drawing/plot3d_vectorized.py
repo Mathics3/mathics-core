@@ -23,20 +23,20 @@ def eval_Plot3D(
 ):
     graphics = GraphicsGenerator(dim=3)
 
-    for function in plot_options.functions:
-        # pull out plot options
-        _, xmin, xmax = plot_options.ranges[0]
-        _, ymin, ymax = plot_options.ranges[1]
-        nx, ny = plot_options.plotpoints
-        names = [strip_context(str(range[0])) for range in plot_options.ranges]
+    # pull out plot options
+    _, xmin, xmax = plot_options.ranges[0]
+    _, ymin, ymax = plot_options.ranges[1]
+    nx, ny = plot_options.plotpoints
+    names = [strip_context(str(range[0])) for range in plot_options.ranges]
 
+    # compute (nx, ny) grids of xs and ys for corresponding vertexes
+    xs = np.linspace(xmin, xmax, nx)
+    ys = np.linspace(ymin, ymax, ny)
+    xs, ys = np.meshgrid(xs, ys)
+
+    for function in plot_options.functions:
         with Timer("compile"):
             function = plot_compile(evaluation, function, names)
-
-        # compute (nx, ny) grids of xs and ys for corresponding vertexes
-        xs = np.linspace(xmin, xmax, nx)
-        ys = np.linspace(ymin, ymax, ny)
-        xs, ys = np.meshgrid(xs, ys)
 
         # compute zs from xs and ys using compiled function
         with Timer("compute zs"):
@@ -48,6 +48,10 @@ def eval_Plot3D(
         # TODO: needed this for Hypergeometric - look into that
         # assert np.all(np.isreal(zs)), "array contains complex values"
         zs = np.real(zs)
+
+        # if it's a constant, make it a full array
+        if isinstance(zs, (float,int,complex)):
+            zs = np.full(xs.shape, zs)
 
         with Timer("stack"):
             # (nx*ny, 3) array of points, to be indexed by quads
