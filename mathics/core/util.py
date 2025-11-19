@@ -9,6 +9,8 @@ from pathlib import PureWindowsPath
 from platform import python_implementation
 from typing import Optional
 
+from mathics.core.symbols import Symbol
+
 IS_PYPY = python_implementation() == "PyPy"
 
 
@@ -113,3 +115,29 @@ def subranges(
                 items[start : start + length],
                 (items[:start], items[start + length :]),
             )
+
+
+def print_expression_tree(expr, indent="", marker=lambda expr: ""):
+    """
+    Print a Mathics Expression as an indented tree.
+    Caller may supply a marker function that computes a marker
+    to be displayed in the tree for the given node.
+    """
+    if isinstance(expr, Symbol):
+        print(f"{indent}{marker(expr)}{expr}")
+    elif not hasattr(expr, "elements"):
+        print(f"{indent}{marker(expr)}{expr.get_head()} {expr}")
+    else:
+        print(f"{indent}{marker(expr)}{expr.head}")
+        for elt in expr.elements:
+            print_expression_tree(elt, indent + "  ", marker=marker)
+
+
+def print_sympy_tree(expr, indent=""):
+    """Print a SymPy Expression as an indented tree"""
+    if expr.args:
+        print(f"{indent}{expr.func.__name__}")
+        for i, arg in enumerate(expr.args):
+            print_sympy_tree(arg, indent + "    ")
+    else:
+        print(f"{indent}{expr.func.__name__}({str(expr)})")

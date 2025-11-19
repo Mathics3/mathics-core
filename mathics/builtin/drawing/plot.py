@@ -7,6 +7,7 @@ points, as another parameter, and plot or show the function applied to the data.
 """
 
 import numbers
+import os
 from abc import ABC
 from functools import lru_cache
 from math import cos, pi, sin
@@ -27,13 +28,15 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList
 from mathics.core.systemsymbols import (
+    SymbolAll,
+    SymbolAutomatic,
     SymbolBlack,
     SymbolEdgeForm,
+    SymbolFull,
     SymbolGraphics,
-    SymbolGraphics3D,
     SymbolLine,
     SymbolLog10,
-    SymbolPolygon,
+    SymbolNone,
     SymbolRGBColor,
     SymbolStyle,
 )
@@ -50,7 +53,18 @@ from mathics.eval.drawing.plot import (
     get_plot_range,
     get_plot_range_option,
 )
-from mathics.eval.drawing.plot3d import construct_density_plot, eval_plot3d
+
+# The vectorized plot function generates GraphicsComplex using NumericArray,
+# which no consumer will currently understand. So lets make it opt-in for now.
+# If it remains opt-in we'll probably want some combination of env variables,
+# Set option such as $UseVectorizedPlot, and maybe a non-standard Plot3D option.
+# For now an env variable is simplest.
+# TODO: work out exactly how to deploy.
+if os.getenv("MATHICS3_USE_VECTORIZED_PLOT", False):
+    from mathics.eval.drawing.plot3d_vectorized import eval_DensityPlot, eval_Plot3D
+else:
+    from mathics.eval.drawing.plot3d import eval_DensityPlot, eval_Plot3D
+
 from mathics.eval.nevaluator import eval_N
 
 # This tells documentation how to sort this module
@@ -247,16 +261,18 @@ class _Plot(Builtin, ABC):
 
         # Mesh Option
         mesh_option = self.get_option(options, "Mesh", evaluation)
-        mesh = mesh_option.to_python()
-        if mesh not in ["System`None", "System`Full", "System`All"]:
+        if mesh_option not in (SymbolNone, SymbolFull, SymbolAll):
             evaluation.message("Mesh", "ilevels", mesh_option)
             mesh = "System`None"
+        else:
+            mesh = mesh_option.to_python()
 
         # PlotPoints Option
         plotpoints_option = self.get_option(options, "PlotPoints", evaluation)
-        plotpoints = plotpoints_option.to_python()
-        if plotpoints == "System`None":
+        if plotpoints_option is SymbolNone:
             plotpoints = 57
+        else:
+            plotpoints = plotpoints_option.to_python()
         if not (isinstance(plotpoints, int) and plotpoints >= 2):
             evaluation.message(self.get_name(), "ppts", plotpoints)
             return
@@ -264,26 +280,34 @@ class _Plot(Builtin, ABC):
         # MaxRecursion Option
         max_recursion_limit = 15
         maxrecursion_option = self.get_option(options, "MaxRecursion", evaluation)
-        maxrecursion = maxrecursion_option.to_python()
+
+        # Investigate whether the maxrecursion value is optimal. Bruce
+        # Lucas observes that in some cases, using more points and
+        # decreasing recursion is faster and gives better results.
+        # Note that the tradeoff may be different for Plot versus
+        # Plot3D. Recursive subdivision in Plot3D is probably a lot
+        # harder.
+        maxrecursion = 3
+
         try:
-            if maxrecursion == "System`Automatic":
-                maxrecursion = 3
-            elif maxrecursion == float("inf"):
-                maxrecursion = max_recursion_limit
-                raise ValueError
-            elif isinstance(maxrecursion, int):
-                if maxrecursion > max_recursion_limit:
+            if maxrecursion_option is not SymbolAutomatic:
+                maxrecursion = maxrecursion_option.to_python()
+                if maxrecursion == float("inf"):
                     maxrecursion = max_recursion_limit
                     raise ValueError
-                if maxrecursion < 0:
+                elif isinstance(maxrecursion, int):
+                    if maxrecursion > max_recursion_limit:
+                        maxrecursion = max_recursion_limit
+                        raise ValueError
+                    if maxrecursion < 0:
+                        maxrecursion = 0
+                        raise ValueError
+                else:
                     maxrecursion = 0
                     raise ValueError
-            else:
-                maxrecursion = 0
-                raise ValueError
         except ValueError:
             evaluation.message(
-                self.get_name(), "invmaxrec", maxrecursion, max_recursion_limit
+                self.get_name(), "invmaxrec", maxrecursion_option, max_recursion_limit
             )
         assert isinstance(maxrecursion, int)
 
@@ -299,22 +323,23 @@ class _Plot(Builtin, ABC):
             return True
 
         exclusions_option = self.get_option(options, "Exclusions", evaluation)
-        exclusions = eval_N(exclusions_option, evaluation).to_python()
         # TODO Turn expressions into points E.g. Sin[x] == 0 becomes 0, 2 Pi...
 
-        if exclusions in ["System`None", ["System`None"]]:
+        if exclusions_option in (SymbolNone, (SymbolNone,)):
             exclusions = "System`None"
-        elif not isinstance(exclusions, list):
-            exclusions = [exclusions]
+        else:
+            exclusions = eval_N(exclusions_option, evaluation).to_python()
+            if not isinstance(exclusions, list):
+                exclusions = [exclusions]
 
-            if isinstance(exclusions, list) and all(  # noqa
-                check_exclusion(excl) for excl in exclusions
-            ):
-                pass
+                if isinstance(exclusions, list) and all(  # noqa
+                    check_exclusion(excl) for excl in exclusions
+                ):
+                    pass
 
-            else:
-                evaluation.message(self.get_name(), "invexcl", exclusions_option)
-                exclusions = ["System`Automatic"]
+                else:
+                    evaluation.message(self.get_name(), "invexcl", exclusions_option)
+                    exclusions = ["System`Automatic"]
 
         # exclusions is now either 'None' or a list of reals and 'Automatic'
         assert exclusions == "System`None" or isinstance(exclusions, list)
@@ -407,7 +432,117 @@ class _Plot(Builtin, ABC):
         return functions, x_name, py_start, py_stop, x_range, y_range, expr_limits, expr
 
 
+# TODO: add more options
+# TODO: generalize, use for other plots
+class PlotOptions:
+    """
+    Extract Options common to many types of plotting.
+    This aims to reduce duplication of code,
+    and to make it easier to pass options to eval_* routines.
+    """
+
+    # TODO: more precise types
+    ranges: list
+    mesh: str
+    plotpoints: list
+    maxdepth: int
+
+    def error(self, what, *args, **kwargs):
+        if not isinstance(what, str):
+            what = what.get_name()
+        self.evaluation.message(what, *args, **kwargs)
+        raise ValueError()
+
+    def __init__(self, expr, range_exprs, options, evaluation):
+        self.evaluation = evaluation
+
+        # plot ranges
+        self.ranges = []
+        for range_expr in range_exprs:
+            if not range_expr.has_form("List", 3):
+                self.error(expr, "invrange", range_expr)
+            if not isinstance(range_expr.elements[0], Symbol):
+                self.error(expr, "invrange", range_expr)
+            range = [range_expr.elements[0]]
+            for limit_expr in range_expr.elements[1:3]:
+                limit = limit_expr.round_to_float(evaluation)
+                if limit is None:
+                    self.error(expr, "plln", limit_expr, range_expr)
+                range.append(limit)
+            if range[2] <= range[1]:
+                self.error(expr, "invrange", range_expr)
+            self.ranges.append(range)
+
+        # Mesh option
+        mesh = expr.get_option(options, "Mesh", evaluation)
+        if mesh not in (SymbolNone, SymbolFull, SymbolAll):
+            evaluation.message("Mesh", "ilevels", mesh)
+            mesh = SymbolFull
+        self.mesh = mesh
+
+        # PlotPoints option
+        plotpoints_option = expr.get_option(options, "PlotPoints", evaluation)
+        plotpoints = plotpoints_option.to_python()
+
+        def check_plotpoints(steps):
+            if isinstance(steps, int) and steps > 0:
+                return True
+            return False
+
+        if plotpoints == "System`None":
+            plotpoints = (7, 7)
+        elif check_plotpoints(plotpoints):
+            plotpoints = (plotpoints, plotpoints)
+        if not (
+            isinstance(plotpoints, (list, tuple))
+            and len(plotpoints) == 2
+            and check_plotpoints(plotpoints[0])
+            and check_plotpoints(plotpoints[1])
+        ):
+            evaluation.message(expr.get_name(), "invpltpts", plotpoints)
+            plotpoints = (7, 7)
+        self.plotpoints = plotpoints
+
+        # MaxRecursion Option
+        maxrec_option = expr.get_option(options, "MaxRecursion", evaluation)
+        max_depth = maxrec_option.to_python()
+        if isinstance(max_depth, int):
+            if max_depth < 0:
+                max_depth = 0
+                evaluation.message(expr.get_name(), "invmaxrec", max_depth, 15)
+            elif max_depth > 15:
+                max_depth = 15
+                evaluation.message(expr.get_name(), "invmaxrec", max_depth, 15)
+            else:
+                pass  # valid
+        elif max_depth == float("inf"):
+            max_depth = 15
+            evaluation.message(expr.get_name(), "invmaxrec", max_depth, 15)
+        else:
+            max_depth = 0
+            evaluation.message(expr.get_name(), "invmaxrec", max_depth, 15)
+        self.max_depth = max_depth
+
+        # ColorFunction and ColorFunctionScaling options
+        # This was pulled from construct_density_plot (now eval_DensityPlot).
+        # TODO: What does pop=True do? is it right?
+        # TODO: can we move some of the subsequent processing in eval_DensityPlot to here?
+        # TODO: what is the type of these? that may change if we do the above...
+        self.color_function = expr.get_option(
+            options, "ColorFunction", evaluation, pop=True
+        )
+        self.color_function_scaling = expr.get_option(
+            options, "ColorFunctionScaling", evaluation, pop=True
+        )
+
+
 class _Plot3D(Builtin):
+    """Common base class for Plot3D and DensityPlot"""
+
+    # Check for correct number of args
+    eval_error = Builtin.generic_argument_error
+    expected_args = 3
+
     messages = {
         "invmaxrec": (
             "MaxRecursion must be a non-negative integer; the recursion value "
@@ -422,25 +557,35 @@ class _Plot3D(Builtin):
             "Value of PlotPoints -> `1` is not a positive integer "
             "or appropriate list of positive integers."
         ),
+        "invrange": (
+            "Plot range `1` must be of the form {variable, min, max}, "
+            "where max > min."
+        ),
     }
 
     def eval(
         self,
         functions,
-        x,
-        xstart,
-        xstop,
-        y,
-        ystart,
-        ystop,
+        xrange,
+        yrange,
         evaluation: Evaluation,
         options: dict,
     ):
-        """%(name)s[functions_, {x_Symbol, xstart_, xstop_},
-        {y_Symbol, ystart_, ystop_}, OptionsPattern[%(name)s]]"""
-        return eval_plot3d(
-            self, functions, x, xstart, xstop, y, ystart, ystop, evaluation, options
-        )
+        """%(name)s[functions_, xrange_, yrange_, OptionsPattern[%(name)s]]"""
+
+        # TODO: test error for too many, too few, no args
+
+        # parse options, bailing out if anything is wrong
+        try:
+            plot_options = PlotOptions(self, [xrange, yrange], options, evaluation)
+        except ValueError:
+            return None
+
+        # ask the subclass to get one or more functions as appropriate
+        plot_options.functions = self.get_functions_param(functions)
+
+        # delegate to subclass, which will call the appropriate eval_* function
+        return self.do_eval(plot_options, evaluation, options)
 
 
 class BarChart(_Chart):
@@ -563,7 +708,6 @@ class ColorDataFunction(Builtin):
     """
 
     summary_text = "color scheme object"
-    pass
 
 
 class DensityPlot(_Plot3D):
@@ -608,22 +752,17 @@ class DensityPlot(_Plot3D):
     )
     summary_text = "density plot for a function"
 
+    # TODO: error if more than one function here
     def get_functions_param(self, functions):
+        """can only have one function"""
         return [functions]
 
-    def construct_graphics(
-        self, triangles, mesh_points, v_min, v_max, options, evaluation
-    ):
-        return construct_density_plot(
-            self, triangles, mesh_points, v_min, v_max, options, evaluation
-        )
-
-    def final_graphics(self, graphics, options):
-        return Expression(
-            SymbolGraphics,
-            ListExpression(*graphics),
-            *options_to_rules(options, Graphics.options),
-        )
+    # called by superclass
+    def do_eval(self, plot_options, evaluation, options):
+        """called by superclass to call appropriate eval_* function"""
+        graphics = eval_DensityPlot(plot_options, evaluation)
+        graphics_expr = graphics.generate(options_to_rules(options, Graphics.options))
+        return graphics_expr
 
 
 class DiscretePlot(_Plot):
@@ -1753,43 +1892,14 @@ class Plot3D(_Plot3D):
     summary_text = "plots 3D surfaces of one or more functions"
 
     def get_functions_param(self, functions):
+        """May have a function or a list of functions"""
         if functions.has_form("List", None):
             return functions.elements
         else:
             return [functions]
 
-    def construct_graphics(
-        self, triangles, mesh_points, v_min, v_max, options, evaluation: Evaluation
-    ):
-        graphics = []
-        for p1, p2, p3 in triangles:
-            graphics.append(
-                Expression(
-                    SymbolPolygon,
-                    ListExpression(
-                        to_mathics_list(*p1),
-                        to_mathics_list(*p2),
-                        to_mathics_list(*p3),
-                    ),
-                )
-            )
-        # Add the Grid
-        for xi in range(len(mesh_points)):
-            line = []
-            for yi in range(len(mesh_points[xi])):
-                line.append(
-                    to_mathics_list(
-                        mesh_points[xi][yi][0],
-                        mesh_points[xi][yi][1],
-                        mesh_points[xi][yi][2],
-                    )
-                )
-            graphics.append(Expression(SymbolLine, ListExpression(*line)))
-        return graphics
-
-    def final_graphics(self, graphics, options: dict):
-        return Expression(
-            SymbolGraphics3D,
-            ListExpression(*graphics),
-            *options_to_rules(options, Graphics3D.options),
-        )
+    def do_eval(self, plot_options, evaluation, options):
+        """called by superclass to call appropriate eval_* function"""
+        graphics = eval_Plot3D(plot_options, evaluation)
+        graphics_expr = graphics.generate(options_to_rules(options, Graphics3D.options))
+        return graphics_expr
