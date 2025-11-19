@@ -57,7 +57,7 @@ def plot_compile(evaluation, expr, names, debug=0):
         new_expr = expr.evaluate(evaluation)
         if new_expr:
             expr = new_expr
-    except Exception as oops:
+    except Exception:
         pass
     if debug >= 2:
         print("post-eval", expr)
