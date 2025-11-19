@@ -180,7 +180,10 @@ def walk_levels(
             )
             depth = max(element_depth + 1, depth)
             elements.append(element)
-        new_expr = make_expression(head, *elements)
+
+        new_expr = make_expression(
+            head, *elements, elements_properties=expr.elements_properties
+        )
 
     if is_in_level(current, depth, start, stop):
         if include_pos:
