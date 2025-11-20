@@ -713,8 +713,11 @@ class SympyFunction(SympyObject):
                 sympy_function = self.get_sympy_function(elements)
                 if sympy_function is not None:
                     return tracing.run_sympy(sympy_function, *sympy_args)
-        except TypeError:
-            pass
+            elif exc := kwargs.get("raise_on_error", None):
+                raise exc(f"{self.get_name()}.sympy_name is {repr(self.sympy_name)}")
+        except TypeError as oops:
+            if exc := kwargs.get("raise_on_error", None):
+                raise exc(f"TypeError: {oops}")
 
     def from_sympy(self, elements: Tuple[BaseElement, ...]) -> Expression:
         return Expression(Symbol(self.get_name()), *elements)
