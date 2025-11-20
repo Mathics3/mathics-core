@@ -220,15 +220,18 @@ tests = [
     dict(name="BernsteinBasis", args=[4, 3, 0.5]),
     dict(name="CubeRoot", args=[3]),
     dict(name="Divide", args=[1, 1]),
-    dict(name="FractionalPart", args=[3.5], fail="not registered"),
-    dict(name="IntegerPart", args=[1.2], fail="not registered"),
+    dict(name="FractionalPart", args=[3.5], fail="not registered"), # sympy.frac gives different answers :(
+    dict(name="IntegerPart", args=[1.2], fail="not registered"), # sympy.Integer doesn't quite work
     dict(name="Log10", args=[10]),
     dict(name="Log2", args=[10]),
     dict(name="LogisticSigmoid", args=[0], fail="not registered"),
     dict(name="Max", args=[0,1]),
     dict(name="Min", args=[0,1]),
     dict(name="Minus", args=[5]),
-    dict(name="Mod", args=[10,2], fail="not registered"),
+    dict(name="Mod", args=[10,3]),
+    dict(name="Mod", args=[-10,3]),
+    dict(name="Mod", args=[10,-3]),
+    dict(name="Mod", args=[-10,-3]),
     dict(name="Multinomial", args=[1,2,1]),
     dict(name="PolygonalNumber", args=[0], fail="not registered"),
     dict(name="Quotient", args=[5,3], fail="not registered"),
@@ -360,7 +363,7 @@ tests = [
 ]
 
 debug = 0
-test_failure = False
+check_failing = False
 
 
 # Testing is showing multiple small numerical deviations
@@ -437,6 +440,6 @@ def test():
 
 
 if __name__ == "__main__":
-    test_failure = True
-    debug = 2
+    check_failing = True
+    debug = 1
     test()
