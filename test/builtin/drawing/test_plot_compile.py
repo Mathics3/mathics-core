@@ -21,35 +21,41 @@ from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.eval.drawing.plot_compile import plot_compile
 
-# session = MathicsSession()
 
 
 #
 # Each test specifies:
 #     name - name of function
 #     args - suitable args to be given to N[function[args]] and compiled_function[args] for comparison
-#     close (optional) - boolean indicating results will be close and not exact
 #     scipy (optional) - boolean marking whether scipy is needed for the test
+#     fail (optional) - if test is known to fail, is string that is expected in the failure message
 #
-# for ??? check
-#     sympy.expression_to_sympy
-#     builtin.SympyFunction, especially silent failure except TypeError in to_sympy
+# common failures
+#     N fails                 N did not give numeric result.
+#                              Check test case args, or test may be more complicated
+#     sympy_name is ''        Builtin has .sympy_name = ''
+#                             Look into whether sympy in fact has an equivalent to use here.
+#     not registered          Bultin is not registered
+#                             Try making it a subclass of SympyFunction.
+#     '...' is not defined    Sympy expects function '...' to be defined.
+#                             Look into adding it in plot_compile.py
+#     TypeError               Look into builtin.to_sympy where it catches TypeError
 
 tests = [
     #
     # Following have sympy_name.
     #
     dict(name="Abs", args=[-1]),
-    dict(name="AiryAi", args=[1], close=True),
-    dict(name="AiryAiPrime", args=[1], close=True),
-    dict(name="AiryBi", args=[1], close=True),
-    dict(name="AiryBiPrime", args=[1], close=True),
-    # dict(name="AngerJ", args=[0,0]), # sympy_name is ''
+    dict(name="AiryAi", args=[1]),
+    dict(name="AiryAiPrime", args=[1]),
+    dict(name="AiryBi", args=[1]),
+    dict(name="AiryBiPrime", args=[1]),
+    dict(name="AngerJ", args=[0,0], fail="sympy_name is ''"),
     dict(name="ArcCos", args=[0]),
-    dict(name="ArcCosh", args=[2], close=True),
+    dict(name="ArcCosh", args=[2]),
     dict(name="ArcCot", args=[1]),
-    dict(name="ArcCoth", args=[2], close=True),
-    dict(name="ArcCsc", args=[2], close=True),
+    dict(name="ArcCoth", args=[2]),
+    dict(name="ArcCsc", args=[2]),
     dict(name="ArcCsch", args=[0.1]),
     dict(name="ArcSec", args=[2]),
     dict(name="ArcSech", args=[0.1]),
@@ -58,181 +64,181 @@ tests = [
     dict(name="ArcTan", args=[0]),
     dict(name="ArcTanh", args=[0]),
     dict(name="Arg", args=[0]),
-    # dict(name="BellB", args=[0]), # scipy wants bell()
+    dict(name="BellB", args=[0], fail="'bell' is not defined"),
     dict(name="BernoulliB", args=[0], scipy=True),
     dict(name="BesselI", args=[0, 0], scipy=True),
     dict(name="BesselJ", args=[0, 0], scipy=True),
-    # dict(name="BesselJZero", args=[1,1]), # sympy_name is ''
-    dict(name="BesselK", args=[0.5, 0.5], close=True, scipy=True),
+    dict(name="BesselJZero", args=[1,1], fail="sympy_name is ''"),
+    dict(name="BesselK", args=[0.5, 0.5], scipy=True),
     dict(name="BesselY", args=[0, 0], scipy=True),
-    # dict(name="BesselYZero", args=[2,2]), # sympy_name is ''
-    dict(name="Beta", args=[0.5, 1], close=True),
-    dict(name="Binomial", args=[3, 0.5], close=True),
+    dict(name="BesselYZero", args=[2,2], fail="sympy_name is ''"),
+    dict(name="Beta", args=[0.5, 1]),
+    dict(name="Binomial", args=[3, 0.5]),
     dict(name="Catalan", args=None),
     dict(name="CatalanNumber", args=[0]),
     dict(name="Ceiling", args=[0]),
     dict(name="ChebyshevT", args=[0, 1], scipy=True),
     dict(name="ChebyshevU", args=[0, 1], scipy=True),
-    # dict(name="ClebschGordan", args=[[5,0],[4,0],[1,0]]), # module 'sympy' has no attribute 'physics.quantum.cg.CG'
+    dict(name="ClebschGordan", args=[[5,0],[4,0],[1,0]], fail="physics.quantum.cg.CG"),
     dict(name="ComplexExpand", args=[0]),
-    # dict(name="ComplexInfinity", args=None), # N returns infinite
-    # dict(name="ConditionalExpression", args=[1,True]),	# not registered with mathics_to_sympy
+    dict(name="ComplexInfinity", args=None, fail="N fails"),
+    dict(name="ConditionalExpression", args=[1,True], fail="not registered"),
     dict(name="Conjugate", args=[0]),
-    # dict(name="ContinuedFraction", args=[0.4, 3]), # continued_fraction() takes 1 positional argument but 2 were given
-    # dict(name="ContinuedFraction", args=[0.4]), # N fails
+    dict(name="ContinuedFraction", args=[0.4, 3], fail="2 were given"),
+    dict(name="ContinuedFraction", args=[0.4], fail="N fails"),
     dict(name="Cos", args=[0]),
     dict(name="Cosh", args=[0]),
     dict(name="Cot", args=[1]),
     dict(name="Coth", args=[1]),
     dict(name="Csc", args=[1]),
-    # dict(name="Curl", args=[0]), # is this really numeric?
-    # dict(name="D", args=[0]), # is this really numeric
+    dict(name="Curl", args=[0], fail="N fails"), # takes function - compilable?
+    dict(name="D", args=[0], fail="N fails"), # takes function - compilable?
     dict(name="Degree", args=None),
-    # dict(name="Derivative", args=[0]),	# is this really numeric
-    # dict(name="DirectedInfinity", args=[0]), # infinity - how to handle
-    # dict(name="DivisorSigma", args=[1,20]), # sympy expects divisor_sigma()
+    dict(name="Derivative", args=[0], fail="N fails"),
+    dict(name="DirectedInfinity", args=[0], fail="N fails"),
+    dict(name="DivisorSigma", args=[1,20], fail="'divisor_sigma' is not defined"),
     dict(name="E", args=None),
-    # dict(name="Eigenvalues", args=[[[1,2],[3,4]]]), # not registered with mathics_to_sympy
-    # dict(name="EllipticE", args=[0]), # sympy expects elliptic_e()
-    # dict(name="EllipticF", args=[0,0]), # sympy expectes elliptic_f()
-    # dict(name="EllipticK", args=[0]), # sympy expects elliptic_k()
-    # dict(name="EllipticPi", args=[0,0]), # sympy expects elliptic_pi()
+    dict(name="Eigenvalues", args=[[[1,2],[3,4]]], fail="not registered"),
+    dict(name="EllipticE", args=[0], fail="'elliptic_e' is not defined"),
+    dict(name="EllipticF", args=[0,0], fail="'elliptic_f' is not defined"),
+    dict(name="EllipticK", args=[0], fail="'elliptic_k' is not defined"),
+    dict(name="EllipticPi", args=[0,0], fail="'elliptic_pi' is not defined"),
     dict(name="Equal", args=[0, 0]),
     dict(name="Erf", args=[0]),
     dict(name="Erfc", args=[0]),
     dict(name="EulerE", args=[0]),
     dict(name="EulerGamma", args=None),
-    # dict(name="EulerPhi", args=None), # N returns System`EulerPhi
+    dict(name="EulerPhi", args=None, fail="N fail"),
     dict(name="Exp", args=[0]),
-    # dict(name="ExpIntegralE", args=[1,1]), # sympy expects expint()
+    dict(name="ExpIntegralE", args=[1,1], fail="'expint' is not defined"),
     dict(name="ExpIntegralEi", args=[0]),
     dict(name="Factorial", args=[0]),
     dict(name="Factorial2", args=[0]),
-    # dict(name="Fibonacci", args=[0]), # sympyi expects fibonacci()
+    dict(name="Fibonacci", args=[0], fail="'fibonacci' is not defined"),
     dict(name="Floor", args=[0]),
     dict(name="FresnelC", args=[0]),
     dict(name="FresnelS", args=[0]),
-    # dict(name="FromContinuedFraction", args=[[2,1,3,4]]), # ???
-    # dict(name="Function", args=[0]), # is this really numeric
+    dict(name="FromContinuedFraction", args=[[2,1,3,4]], fail="TypeError"),
+    # dict(name="Function", args=[], fail=True), # compilable?
     dict(name="Gamma", args=[1]),
     dict(name="GegenbauerC", args=[1, 1, 1]),
     dict(name="GoldenRatio", args=None),
     dict(name="Greater", args=[0, 1]),
     dict(name="GreaterEqual", args=[0, 1]),
-    # dict(name="HankelH1", args=[1,1]), # N and sympy differ a lot
-    # dict(name="HankelH2", args=[1,1]), # N and sympy differ a lot
+    dict(name="HankelH1", args=[1,1], fail="N and sympy differ"),
+    dict(name="HankelH2", args=[1,1], fail="N and sympy differ"),
     dict(name="HarmonicNumber", args=[0]),
-    # dict(name="Haversine", args=[0]), # module 'sympy' has no attribute 'haversine'
+    dict(name="Haversine", args=[1]),
     dict(name="HermiteH", args=[0, 0]),
-    # dict(name="Hypergeometric1F1", args=[1,1,1]), # sympy_name is ''
-    # dict(name="Hypergeometric2F1", args=[2,3,4,5]), # ???
-    # dict(name="HypergeometricPFQ", args=[[1,1],[3,3,3],2]), # ???
-    # dict(name="HypergeometricU", args=[1,1,1]), # sympy_name is ''
+    dict(name="Hypergeometric1F1", args=[1,1,1], fail="List not registered"),
+    dict(name="Hypergeometric2F1", args=[2,3,4,5], fail="List not registered"),
+    dict(name="HypergeometricPFQ", args=[[1,1],[3,3,3],2], fail="TypeError"),
+    dict(name="HypergeometricU", args=[1,1,1], fail="sympy_name is ''"),
     dict(name="I", args=None),
     dict(name="Im", args=[0]),
-    # dict(name="Indeterminate", args=None), # N returns System`Indeterminate
+    dict(name="Indeterminate", args=None, fail="N fails"),
     dict(name="Infinity", args=None),
-    # dict(name="Integrate", args=[0]), # is this really numeric
+    dict(name="Integrate", args=[0], fail="N fails"), # takes function - compilable?
     dict(name="InverseErf", args=[0]),
     dict(name="InverseErfc", args=[0]),
-    # dict(name="InverseHaversine", args=[0]), # module 'sympy' has no attribute 'inversehaversine'
+    dict(name="InverseHaversine", args=[0.1]),
     dict(name="JacobiP", args=[1, 1, 1, 1]),
-    # dict(name="KelvinBei", args=[0]), # sympy_name is ''
-    # dict(name="KelvinBer", args=[0]), # sympy_name is ''
-    # dict(name="KelvinKei", args=[0]), # sympy_name is ''
-    # dict(name="KelvinKer", args=[0]), # sympy_name is ''
-    # dict(name="KroneckerProduct", args=[0]), # args are matrices
-    # dict(name="LaguerreL", args=[1,0]), # SympyFunction.to_sympy silent TypeError
+    dict(name="KelvinBei", args=[0], fail="sympy_name is ''"),
+    dict(name="KelvinBer", args=[0], fail="sympy_name is ''"),
+    dict(name="KelvinKei", args=[0], fail="sympy_name is ''"),
+    dict(name="KelvinKer", args=[0], fail="sympy_name is ''"),
+    dict(name="KroneckerProduct", args=[0], fail="N fails"),
+    dict(name="LaguerreL", args=[1,0], fail="TypeError"),
     dict(name="LambertW", args=[1]),
     dict(name="LegendreP", args=[1, 1]),
-    # dict(name="LegendreQ", args=[1,0]), # sympy_name is ''
-    # dict(name="LerchPhi", args=[1,2,0.25]), # sympy expects lerchphi()
+    dict(name="LegendreQ", args=[1,0], fail="sympy_name is ''"),
+    dict(name="LerchPhi", args=[1,2,0.25], fail="'lerchphi' is not defined"),
     dict(name="Less", args=[0, 1]),
     dict(name="LessEqual", args=[0, 1]),
     dict(name="Log", args=[1]),
-    dict(name="LogGamma", args=[0.5], close=True),
-    # dict(name="LucasL", args=[0]), # sympy expects lucas()
-    # dict(name="MeijerG", args=[[[], []], [[1], [-1]],1]), # ???
-    # dict(name="MersennePrimeExponent", args=[10]), # to_sympy() fails
-    # dict(name="ModularInverse", args=[3,5]), # SympyFunction.to_sympy silent TypeError
-    # dict(name="MoebiusMu", args=[10]), # scipy expects mobius() [sic]
-    # dict(name="PartitionsP", args=[10]), # lambdify generates incorrect code it seems
-    # dict(name="PauliMatrix", args=[0]), # to_sympy failed
+    dict(name="LogGamma", args=[0.5]),
+    dict(name="LucasL", args=[0], fail="'lucas' is not defined"),
+    dict(name="MeijerG", args=[[[], []], [[1], [-1]],1], fail="TypeError"),
+    dict(name="MersennePrimeExponent", args=[10], fail="x is not an integer"),
+    dict(name="ModularInverse", args=[3,5], fail="TypeError"),
+    dict(name="MoebiusMu", args=[10], fail="'mobius' is not defined"), # [sic] - is typo?
+    dict(name="PartitionsP", args=[10], fail="partition() missing 1"), # sympy generates incorrect code it seems
+    dict(name="PauliMatrix", args=[0], fail="physics.matrices.msigma"),
     dict(name="Pi", args=None),
-    # dict(name="Piecewise", args=[]), # expression in conditional - how to test?
+    dict(name="Piecewise", args=[], fail="N fails"), # how to test?
     dict(name="Plus", args=[0, 1]),
     dict(name="Pochhammer", args=[3, 2]),
-    dict(name="PolyGamma", args=[3], close=True),
-    dict(name="PolyGamma", args=[1, 2], close=True),
-    # dict(name="PolyLog", args=[3,0.5]), # sympy expects polylog()
-    # dict(name="PossibleZeroQ", args=[1]), # to_sympy() failed
+    dict(name="PolyGamma", args=[3]),
+    dict(name="PolyGamma", args=[1, 2]),
+    dict(name="PolyLog", args=[3,0.5], fail="'polylog' is not defined"),
+    dict(name="PossibleZeroQ", args=[1]),
     dict(name="Power", args=[2, 2]),
-    # dict(name="Prime", args=[17]), # sympy expects SympyPrime()
-    # dict(name="PrimePi", args=[0]), # sympy expects primepi()
-    # dict(name="PrimeQ", args=[17]), # to_sympy() failed
-    # dict(name="Product", args=[1,2,3]), # expects a function - can it be compiled??
-    dict(name="ProductLog", args=[-1.5], close=True),
+    dict(name="Prime", args=[17], fail="'SympyPrime' is not defined"),
+    dict(name="PrimePi", args=[0], fail="'primepi' is not defined"),
+    dict(name="PrimeQ", args=[17], fail="N and sympy differ"), # !
+    dict(name="Product", args=[1,2,3], fail="N fails"), # takes function - compilable?
+    dict(name="ProductLog", args=[-1.5]),
     dict(name="Re", args=[0]),
-    # dict(name="Root", args=[0]), # expects a function - can it be compiled??
-    # dict(name="RootSum", args=[0]), # expects a function - can it be compiled??
+    dict(name="Root", args=[0], fail="N fails"), # takes function - compilable?
+    dict(name="RootSum", args=[0], fail="N fails"), # takes function - compilable?
     dict(name="Sec", args=[0]),
     dict(name="Sech", args=[0]),
     dict(name="Sign", args=[0]),
     dict(name="Sin", args=[0]),
     dict(name="Sinh", args=[0]),
-    # dict(name="SixJSymbol", args=[[1,2,3],[2,1,2]]), # module 'sympy' has no attribute 'physics.wigner.wigner_6j'
-    # dict(name="Slot", args=[0]), # not numeric
-    dict(name="SphericalBesselJ", args=[1, 1], close=True),
-    dict(name="SphericalBesselY", args=[1, 1], close=True),
-    # dict(name="SphericalHankelH1", args=[1,2]), # N and sympy differ significantly
-    # dict(name="SphericalHankelH2", args=[1,2]), # N and sympy differ significantly
-    # dict(name="SphericalHarmonicY", args=[3,1,1,1]), # sympy expects Ymn()
+    dict(name="SixJSymbol", args=[[1,2,3],[2,1,2]], fail="physics.wigner.wigner_6j"),
+    dict(name="Slot", args=[0], fail="N fails"), # not numeric?
+    dict(name="SphericalBesselJ", args=[1, 1]),
+    dict(name="SphericalBesselY", args=[1, 1]),
+    dict(name="SphericalHankelH1", args=[1,2], fail="N and sympy differ"),
+    dict(name="SphericalHankelH2", args=[1,2], fail="N and sympy differ"),
+    dict(name="SphericalHarmonicY", args=[3,1,1,1], fail="assoc_legendre not registered"),
     dict(name="Sqrt", args=[2]),
-    # dict(name="StieltjesGamma", args=[1]), # N returns System`StieltjesGamma[1.0]
-    # dict(name="StirlingS1", args=[1,2]), # not registered with mathics_to_sympy
-    # dict(name="StirlingS2", args=[1,2]), # not registered with mathics_to_sympy
-    # dict(name="StruveH", args=[1,2]), # sympy_name is ''
-    # dict(name="StruveL", args=[1,2]), # sympy_name is ''
-    # dict(name="Subfactorial", args=[4]), # N gives 9, sympy gives nan
-    # dict(name="Sum", args=[0]), # expects a function - can it be compiled??
+    dict(name="StieltjesGamma", args=[1], fail="N fails"),
+    dict(name="StirlingS1", args=[1,2], fail="not registered"),
+    dict(name="StirlingS2", args=[1,2], fail="not registered"),
+    dict(name="StruveH", args=[1,2], fail="sympy_name is ''"),
+    dict(name="StruveL", args=[1,2], fail="sympy_name is ''"),
+    dict(name="Subfactorial", args=[4], fail="N and sympy differ"),
+    dict(name="Sum", args=[0], fail="N fails"), # takes function - compilable?
     dict(name="Tan", args=[0]),
     dict(name="Tanh", args=[0]),
-    # dict(name="ThreeJSymbol", args=[[6,0],[4,0],[2,0]]), # module 'sympy' has no attribute 'physics.wigner.wigner_3j'
+    dict(name="ThreeJSymbol", args=[[6,0],[4,0],[2,0]], fail="physics.wigner.wigner_3j"),
     dict(name="Times", args=[1, 2, 3]),
     dict(name="Unequal", args=[0, 1]),
-    # dict(name="WeberE", args=[0.5,5]), # sympy_name is ''
+    dict(name="WeberE", args=[0.5,5], fail="sympy_name is ''"),
     dict(name="Zeta", args=[0]),
     #
     # Following have no sympy_name but do have mpamath_name.
     #
-    # dict(name="Glaisher", args=None), # to_sympy() fails
-    # dict(name="Khinchin", args=None), # to_sympy() fails
+    # dict(name="Glaisher", args=None, fail="to_sympy() fails"),
+    # dict(name="Khinchin", args=None, fail="to_sympy() fails"),
     #
     # Following have none of the above but do have A_NUMERIC_FUNCTION set
     #
-    # dict(name="AiryAiZero", args=[1,1]),
-    # dict(name="AiryBiZero", args=[0]),
-    # dict(name="BernsteinBasis", args=[4, 3, 0.5]),
+    dict(name="AiryAiZero", args=[1,1], fail="N fail"),
+    dict(name="AiryBiZero", args=[0], fail="N fails"),
+    dict(name="BernsteinBasis", args=[4, 3, 0.5]),
     dict(name="CubeRoot", args=[3]),
     dict(name="Divide", args=[1, 1]),
-    # dict(name="FractionalPart", args=[3.5]),
-    # dict(name="IntegerPart", args=[1.2]),
+    dict(name="FractionalPart", args=[3.5], fail="not registered"),
+    dict(name="IntegerPart", args=[1.2], fail="not registered"),
     dict(name="Log10", args=[10]),
     dict(name="Log2", args=[10]),
-    # dict(name="LogisticSigmoid", args=[0]),
-    # dict(name="Max", args=[0,1]),
-    # dict(name="Min", args=[0,1]),
+    dict(name="LogisticSigmoid", args=[0], fail="not registered"),
+    dict(name="Max", args=[0,1]),
+    dict(name="Min", args=[0,1]),
     dict(name="Minus", args=[5]),
-    # dict(name="Mod", args=[10,2]),
-    # dict(name="Multinomial", args=[0]),
-    # dict(name="PolygonalNumber", args=[0]),
-    # dict(name="Quotient", args=[5,3]),
-    # dict(name="QuotientRemainder", args=[5,3]),
-    # dict(name="RealAbs", args=[-1]),
-    # dict(name="RealSign", args=[0]),
-    # dict(name="Round", args=[1.2]),
+    dict(name="Mod", args=[10,2], fail="not registered"),
+    dict(name="Multinomial", args=[1,2,1]),
+    dict(name="PolygonalNumber", args=[0], fail="not registered"),
+    dict(name="Quotient", args=[5,3], fail="not registered"),
+    dict(name="QuotientRemainder", args=[5,3], fail="not registered"),
+    dict(name="RealAbs", args=[-1], fail="not registered"),
+    dict(name="RealSign", args=[0], fail="not registered"),
+    dict(name="Round", args=[1.2], fail="not registered"),
     dict(name="Subtract", args=[5, 3]),
-    # dict(name="UnitStep", args=[0]),
+    dict(name="UnitStep", args=[0], fail="not registered"),
     #
     # Following have no sympy_name and no mpmath_name,
     # but do have "number" or "numeric" in their path.
@@ -354,19 +360,22 @@ tests = [
 ]
 
 debug = 0
+test_failure = False
 
 
-def fail(name, msg):
-    msg = f"{name}: {msg}"
-    print(msg)
-    raise AssertionError(msg)
-
-
-# Ttesting is showing multiple small numerical deviations
+# Testing is showing multiple small numerical deviations
 # between platforms, so instead of chasing them down one
 # by one, let's just make all the tests "close-enough" tests.
-# TODO: remove the close arg?
-def one(name, args, close=True, scipy=False, expected=None):
+def one(name, args, scipy=False, expected=None, fail=False):
+    if fail and not check_failing:
+        return
+
+    def failure(name, msg):
+        msg = f"{name}: {msg}"
+        if fail and str(fail) not in msg:
+            raise Exception(f"expected failure {fail}, got failure {msg}")
+        raise AssertionError(msg)
+
     print("===", name)
 
     if args is None:
@@ -389,7 +398,7 @@ def one(name, args, close=True, scipy=False, expected=None):
             expected.to_python(), (Expression, str)
         ):
             # TODO: messages might be helpful
-            fail(name, f"N fails, returning {expected} - check args")
+            failure(name, f"N fails, returning {expected} - check args")
         else:
             expected = expected.to_python()
 
@@ -398,39 +407,36 @@ def one(name, args, close=True, scipy=False, expected=None):
         expr = session.parse(def_expr)
         fun = plot_compile(session.evaluation, expr, parms, debug)
     except Exception as oops:
-        fail(name, f"compilaton failed: {oops}")
+        failure(name, f"compilaton failed: {oops}")
 
     # run compiled function to get result
     try:
         result = fun(*args)
-    except NameError as oops:
-        src = inspect.getsource(fun)
-        fail(
-            name,
-            f"{oops} because sympy expected it would be found in the modules\n"
-            f"that were configured during compiliation. The error occured while executing this compiled code:\n{src}",
-        )
     except Exception as oops:
         src = inspect.getsource(fun)
-        fail(name, f"{oops} occurred running the following compiled code:\n{src}")
+        failure(name, f"{oops} while executing:\n{src}")
 
     # compare
-    if result != expected and not (close and np.isclose(result, expected)):
-        fail(name, f"expected {expected}, got {result}")
+    if result != expected and not np.isclose(result, expected):
+        failure(name, f"N and sympy differ: expected {expected}, got {result}")
+    elif fail:
+        raise Exception("unexpected success")
     else:
-        pass
         # print(f"{name} succeeds: expected {expected.value}, got {result}")
+        pass
 
 
 def test():
     for test in tests:
-        one(**test)
+        try:
+            one(**test)
+        except AssertionError as oops:
+            if not "fail" in test:
+                print(oops)
+                raise
 
 
 if __name__ == "__main__":
-    for test in tests:
-        try:
-            debug = 1
-            one(**test)
-        except AssertionError:
-            exit()
+    test_failure = True
+    debug=2
+    test()
