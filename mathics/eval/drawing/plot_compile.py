@@ -18,7 +18,7 @@ import inspect
 import scipy
 import sympy
 
-from mathics.core.convert.sympy import SympyExpression, mathics_to_sympy
+from mathics.core.convert.sympy import SympyExpression
 from mathics.core.symbols import strip_context
 from mathics.core.util import print_expression_tree, print_sympy_tree
 

@@ -21,8 +21,6 @@ from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.eval.drawing.plot_compile import plot_compile
 
-
-
 #
 # Each test specifies:
 #     name - name of function
@@ -44,6 +42,7 @@ from mathics.eval.drawing.plot_compile import plot_compile
 tests = [
     #
     # Following have sympy_name.
+    # fmt: off
     #
     dict(name="Abs", args=[-1]),
     dict(name="AiryAi", args=[1]),
@@ -357,6 +356,7 @@ tests = [
     # dict(name="Undefined", args=[0]),
     # dict(name="Underflow", args=[0]),
     # dict(name="Variables", args=[0]),
+    # fmt: on
 ]
 
 debug = 0
@@ -438,5 +438,5 @@ def test():
 
 if __name__ == "__main__":
     test_failure = True
-    debug=2
+    debug = 2
     test()
