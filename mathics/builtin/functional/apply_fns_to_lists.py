@@ -298,7 +298,6 @@ class MapIndexed(Builtin):
         elem_prop = result.elements_properties
         if elem_prop is not None:
             elem_prop.elements_fully_evaluated = False
-        result.elements_properties
 
         return result
 

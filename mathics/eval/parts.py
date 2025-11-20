@@ -167,8 +167,9 @@ def walk_levels(
 
         # FIXME: we could keep track of elements properties here.
         elements = []
+        elem_prop = expr.elements_properties
         for index, element in enumerate(expr.elements):
-            element, element_depth = walk_levels(
+            new_element, element_depth = walk_levels(
                 element,
                 start,
                 stop,
@@ -179,11 +180,11 @@ def walk_levels(
                 cur_pos + [index + 1],
             )
             depth = max(element_depth + 1, depth)
-            elements.append(element)
+            elements.append(new_element)
+            if new_element is not element:
+                elem_prop = None
 
-        new_expr = make_expression(
-            head, *elements, elements_properties=expr.elements_properties
-        )
+        new_expr = make_expression(head, *elements, elements_properties=elem_prop)
 
     if is_in_level(current, depth, start, stop):
         if include_pos:
