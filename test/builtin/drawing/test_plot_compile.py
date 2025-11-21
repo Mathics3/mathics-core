@@ -39,6 +39,9 @@ from mathics.eval.drawing.plot_compile import plot_compile
 #                             Look into adding it in plot_compile.py
 #     TypeError               Look into builtin.to_sympy where it catches TypeError
 
+# common test case for Round, Floor, Ceiling, IntegerPart, FractionalPart
+rounding=[[-1.7, -1.5, -1.2, -1, 1, 1.2, 1.5, 1.7]]
+
 tests = [
     #
     # Following have sympy_name.
@@ -75,7 +78,7 @@ tests = [
     dict(name="Binomial", args=[3, 0.5]),
     dict(name="Catalan", args=None),
     dict(name="CatalanNumber", args=[0]),
-    dict(name="Ceiling", args=[0]),
+    dict(name="Ceiling", args=rounding),
     dict(name="ChebyshevT", args=[0, 1], scipy=True),
     dict(name="ChebyshevU", args=[0, 1], scipy=True),
     dict(name="ClebschGordan", args=[[5,0],[4,0],[1,0]], fail="physics.quantum.cg.CG"),
@@ -114,7 +117,7 @@ tests = [
     dict(name="Factorial", args=[0]),
     dict(name="Factorial2", args=[0]),
     dict(name="Fibonacci", args=[0], fail="'fibonacci' is not defined"),
-    dict(name="Floor", args=[0]),
+    dict(name="Floor", args=rounding),
     dict(name="FresnelC", args=[0]),
     dict(name="FresnelS", args=[0]),
     dict(name="FromContinuedFraction", args=[[2,1,3,4]], fail="TypeError"),
@@ -220,8 +223,8 @@ tests = [
     dict(name="BernsteinBasis", args=[4, 3, 0.5]),
     dict(name="CubeRoot", args=[3]),
     dict(name="Divide", args=[1, 1]),
-    dict(name="FractionalPart", args=[3.5], fail="not registered"), # sympy.frac gives different answers :(
-    dict(name="IntegerPart", args=[1.2], fail="not registered"), # sympy.Integer doesn't quite work
+    dict(name="FractionalPart", args=rounding, fail="not registered"), # sympy.frac gives different answers :(
+    dict(name="IntegerPart", args=rounding, fail="not registered"), # sympy.Integer doesn't quite work
     dict(name="Log10", args=[10]),
     dict(name="Log2", args=[10]),
     dict(name="LogisticSigmoid", args=[0], fail="not registered"),
@@ -238,7 +241,7 @@ tests = [
     dict(name="QuotientRemainder", args=[5,3], fail="not registered"),
     dict(name="RealAbs", args=[-1], fail="not registered"),
     dict(name="RealSign", args=[0], fail="not registered"),
-    dict(name="Round", args=[1.2], fail="not registered"),
+    dict(name="Round", args=rounding, fail="not registered"),
     dict(name="Subtract", args=[5, 3]),
     dict(name="UnitStep", args=[0], fail="not registered"),
     #
@@ -419,8 +422,15 @@ def one(name, args, scipy=False, expected=None, fail=False):
         src = inspect.getsource(fun)
         failure(name, f"{oops} while executing:\n{src}")
 
+    # this allows comparison of functions that return List using np.isclose
+    wrap = lambda x: np.array(x) if isinstance(x, list) else x
+    result = wrap(result)
+    expected = wrap(expected)
+
     # compare
-    if result != expected and not np.isclose(result, expected):
+    if not isinstance(result, (int,float,complex,bool,np.ndarray,np.number,np.bool)):
+        failure(name, f"bad type {type(result)}")
+    elif not np.isclose(result, expected).all():
         failure(name, f"N and sympy differ: expected {expected}, got {result}")
     elif fail:
         raise Exception("unexpected success")
