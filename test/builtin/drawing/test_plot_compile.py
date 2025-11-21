@@ -379,7 +379,7 @@ def one(name, args, scipy=False, expected=None, fail=False):
     def failure(name, msg):
         msg = f"{name}: {msg}"
         if fail and str(fail) not in msg:
-            raise Exception(f"expected failure {fail}, got failure {msg}")
+            raise Exception(f"expected failure '{fail}', got failure '{msg}'")
         raise AssertionError(msg)
 
     print("===", name)
