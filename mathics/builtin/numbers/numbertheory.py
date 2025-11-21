@@ -350,7 +350,7 @@ def _fractional_part(n, expr, evaluation: Evaluation):
         return expr
 
 
-class FractionalPart(Builtin):
+class FractionalPart(SympyFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/FractionalPart.html</url>
 
@@ -384,6 +384,14 @@ class FractionalPart(Builtin):
         image_fractional_part = _fractional_part(n_image, expr, evaluation)
         return Expression(SymbolComplex, real_fractional_part, image_fractional_part)
 
+    def to_sympy(self, expr, **kwargs):
+        if len(expr.elements) > 0:
+            x_sympy = expr.elements[0].to_sympy(**kwargs)
+            return sympy.Piecewise(
+                (-sympy.frac(-x_sympy), x_sympy < 0),
+                (sympy.frac(x_sympy), True)
+            )
+        
 
 class FromContinuedFraction(SympyFunction):
     """
@@ -415,7 +423,7 @@ class FromContinuedFraction(SympyFunction):
             return from_sympy(sympy.continued_fraction_reduce(nums))
 
 
-class IntegerPart(Builtin):
+class IntegerPart(SympyFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/IntegerPart.html</url>
 
@@ -448,6 +456,14 @@ class IntegerPart(Builtin):
         real_integer_part = _integer_part(n_real, expr, evaluation)
         image_integer_part = _integer_part(n_image, expr, evaluation)
         return Expression(SymbolComplex, real_integer_part, image_integer_part)
+
+    def to_sympy(self, expr, **kwargs):
+        if len(expr.elements) > 0:
+            x_sympy = expr.elements[0].to_sympy(**kwargs)
+            return sympy.Piecewise(
+                (-sympy.floor(-x_sympy), x_sympy < 0),
+                (sympy.floor(x_sympy), True)
+            )
 
 
 class IntegerPartitions(Builtin):
