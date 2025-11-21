@@ -40,7 +40,7 @@ from mathics.eval.drawing.plot_compile import plot_compile
 #     TypeError               Look into builtin.to_sympy where it catches TypeError
 
 # common test case for Round, Floor, Ceiling, IntegerPart, FractionalPart
-rounding=[[-1.7, -1.5, -1.2, -1, 1, 1.2, 1.5, 1.7]]
+rounding = [[-1.7, -1.5, -1.2, -1, 1, 1.2, 1.5, 1.7]]
 
 tests = [
     #
@@ -223,8 +223,8 @@ tests = [
     dict(name="BernsteinBasis", args=[4, 3, 0.5]),
     dict(name="CubeRoot", args=[3]),
     dict(name="Divide", args=[1, 1]),
-    dict(name="FractionalPart", args=rounding, fail="not registered"), # sympy.frac gives different answers :(
-    dict(name="IntegerPart", args=rounding, fail="not registered"), # sympy.Integer doesn't quite work
+    dict(name="FractionalPart", args=rounding),
+    dict(name="IntegerPart", args=rounding),
     dict(name="Log10", args=[10]),
     dict(name="Log2", args=[10]),
     dict(name="LogisticSigmoid", args=[0], fail="not registered"),
@@ -417,6 +417,7 @@ def one(name, args, scipy=False, expected=None, fail=False):
 
     # run compiled function to get result
     try:
+        args = [np.array(a) if isinstance(a, list) else a for a in args]
         result = fun(*args)
     except Exception as oops:
         src = inspect.getsource(fun)
@@ -428,7 +429,9 @@ def one(name, args, scipy=False, expected=None, fail=False):
     expected = wrap(expected)
 
     # compare
-    if not isinstance(result, (int,float,complex,bool,np.ndarray,np.number,np.bool)):
+    if not isinstance(
+        result, (int, float, complex, bool, np.ndarray, np.number, np.bool)
+    ):
         failure(name, f"bad type {type(result)}")
     elif not np.isclose(result, expected).all():
         failure(name, f"N and sympy differ: expected {expected}, got {result}")
