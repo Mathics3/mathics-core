@@ -387,10 +387,7 @@ class FractionalPart(SympyFunction):
     def to_sympy(self, expr, **kwargs):
         if len(expr.elements) > 0:
             x_sympy = expr.elements[0].to_sympy(**kwargs)
-            return sympy.Piecewise(
-                (-sympy.frac(-x_sympy), x_sympy < 0),
-                (sympy.frac(x_sympy), True)
-            )
+            return sympy.sign(x_sympy) * sympy.frac(abs(x_sympy))
         
 
 class FromContinuedFraction(SympyFunction):
@@ -460,10 +457,7 @@ class IntegerPart(SympyFunction):
     def to_sympy(self, expr, **kwargs):
         if len(expr.elements) > 0:
             x_sympy = expr.elements[0].to_sympy(**kwargs)
-            return sympy.Piecewise(
-                (-sympy.floor(-x_sympy), x_sympy < 0),
-                (sympy.floor(x_sympy), True)
-            )
+            return sympy.sign(x_sympy) * sympy.floor(abs(x_sympy))
 
 
 class IntegerPartitions(Builtin):
