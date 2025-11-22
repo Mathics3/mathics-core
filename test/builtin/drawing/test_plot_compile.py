@@ -40,7 +40,7 @@ from mathics.eval.drawing.plot_compile import plot_compile
 #     TypeError               Look into builtin.to_sympy where it catches TypeError
 
 # common test case for Round, Floor, Ceiling, IntegerPart, FractionalPart
-rounding = [[-1.7, -1.5, -1.2, -1, 1, 1.2, 1.5, 1.7]]
+rounding = [[-1.7, -1.5, -1.2, -1, 0, 1, 1.2, 1.5, 1.7]]
 
 tests = [
     #
@@ -417,7 +417,6 @@ def one(name, args, scipy=False, expected=None, fail=False):
 
     # run compiled function to get result
     try:
-        args = [np.array(a) if isinstance(a, list) else a for a in args]
         result = fun(*args)
     except Exception as oops:
         src = inspect.getsource(fun)
