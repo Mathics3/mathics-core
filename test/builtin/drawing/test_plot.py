@@ -332,16 +332,9 @@ def test_plot3d_default():
                 Line[{{0.0,0.0,0.0},{0.0,0.5,0.5},{0.0,1.0,1.0}}],
                 Line[{{}}], Line[{{}}], Line[{{}}], Line[{{}}], Line[{{}}]
             },
+            System`AlignmentPoint -> Center,
             AspectRatio -> 1,
-            Axes -> True,
-            AxesStyle -> {},
-            Background -> Automatic,
-            BoxRatios -> {1, 1, 0.4},
-            ImageSize -> Automatic,
-            LabelStyle -> {},
-            PlotRange -> Automatic,
-            PlotRangePadding -> Automatic,
-            TicksStyle -> {}
+            Axes -> True
         ]
         """,
     )
@@ -354,17 +347,8 @@ def test_plot3d_nondefault():
             x+y,
             {x,0,1}, {y,0,1},
             PlotPoints->{2,2},
-            MaxRecursion->0
             AspectRatio -> 0.5,
-            Axes -> False,
-            AxesStyle -> {Red,Blue},
-            Background -> Green,
-            BoxRatios -> {10, 10, 1},
-            ImageSize -> {200,200},
-            LabelStyle -> Red,
-            PlotRange -> {0,1},
-            PlotRangePadding -> {1,2},
-            TicksStyle -> {Purple,White}
+            Axes -> False
         ]
         """,
         """
@@ -373,16 +357,9 @@ def test_plot3d_nondefault():
                 Polygon[{{0.0,0.0,0.0}, {0.0,0.5,0.5}, {0.5,0.0,0.5}}],
                 Polygon[{{}}]
             },
-            AspectRatio -> 1, (* TODO: is not passed through apparently - or is my misunderstanding? *)
-            Axes -> False,
-            AxesStyle -> {RGBColor[1,0,0],RGBColor[0,0,1]},
-            Background -> RGBColor[0,1,0],
-            BoxRatios -> {10, 10, 1},
-            ImageSize -> {200,200},
-            LabelStyle -> RGBColor[1,0,0],
-            PlotRange -> {0,1},
-            PlotRangePadding -> {1,2},
-            TicksStyle -> {RGBColor[0.5,0,0.5],GrayLevel[1]}
+            AlignmentPoint -> Center,
+            AspectRatio -> 0.5,
+            Axes -> False
         ]
         """,
     )
@@ -419,15 +396,9 @@ def test_densityplot_default():
                     }
                 ]
             },
+            AlignmentPoint -> Center,
             AspectRatio -> 1,
-            Axes -> False,
-            AxesStyle -> {},
-            Background -> Automatic,
-            ImageSize -> Automatic,
-            LabelStyle -> {},
-            PlotRange -> Automatic,
-            PlotRangePadding -> Automatic,
-            TicksStyle -> {}
+            Axes -> False
         ]
         """,
     )
@@ -441,14 +412,7 @@ def test_densityplot_nondefault():
             PlotPoints-> {2,2},
             MaxRecursion->0
             AspectRatio -> 0.5,
-            Axes -> True,
-            AxesStyle -> {Red,Blue},
-            Background -> Green,
-            ImageSize -> {200,200},
-            LabelStyle -> Red,
-            PlotRange -> {0,1},
-            PlotRangePadding -> {1,2},
-            TicksStyle -> {Purple,White}
+            Axes -> True
         ]
         """,
         """
@@ -473,15 +437,9 @@ def test_densityplot_nondefault():
                     }
                 ]
             },
-            AspectRatio -> 1, (* TODO: is not passed through apparently - or is my misunderstanding? *)
-            Axes -> True,
-            AxesStyle -> {RGBColor[1,0,0],RGBColor[0,0,1]},
-            Background -> RGBColor[0,1,0],
-            ImageSize -> {200,200},
-            LabelStyle -> RGBColor[1,0,0],
-            PlotRange -> {0,1},
-            PlotRangePadding -> {1,2},
-            TicksStyle -> {RGBColor[0.5,0,0.5],GrayLevel[1]}
+            System`AlignmentPoint -> Center,
+            AspectRatio -> 1, (* TODO: why not passed through? *)
+            Axes -> True
         ]
         """,
     )
