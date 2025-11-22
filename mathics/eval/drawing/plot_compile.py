@@ -50,6 +50,18 @@ def plot_compile(evaluation, expr, names, debug=0):
         print("=== compiling expr")
         print_expression_tree(expr)
 
+    # Evaluate the expr first in case it hasn't been already,
+    # because some functions are not themselves sympy-enabled
+    # if they always get rewritten to one that is.
+    try:
+        new_expr = expr.evaluate(evaluation)
+        if new_expr:
+            expr = new_expr
+    except Exception:
+        pass
+    if debug >= 2:
+        print("post-eval", expr)
+
     # Ask the expr Expression to generate a sympy expression and handle errors
     try:
         sympy_expr = expr.to_sympy()

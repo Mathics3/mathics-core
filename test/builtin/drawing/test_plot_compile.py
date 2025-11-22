@@ -143,7 +143,7 @@ tests = [
     # dict(name="KelvinKer", args=[0]), # sympy_name is ''
     # dict(name="KroneckerProduct", args=[0]), # args are matrices
     # dict(name="LaguerreL", args=[1,0]), # SympyFunction.to_sympy silent TypeError
-    # dict(name="LambertW", args=[0]), # not registered with mathics_to_sympy
+    dict(name="LambertW", args=[1]),
     dict(name="LegendreP", args=[1, 1]),
     # dict(name="LegendreQ", args=[1,0]), # sympy_name is ''
     # dict(name="LerchPhi", args=[1,2,0.25]), # sympy expects lerchphi()
@@ -208,6 +208,32 @@ tests = [
     # dict(name="Glaisher", args=None), # to_sympy() fails
     # dict(name="Khinchin", args=None), # to_sympy() fails
     #
+    # Following have none of the above but do have A_NUMERIC_FUNCTION set
+    #
+    # dict(name="AiryAiZero", args=[1,1]),
+    # dict(name="AiryBiZero", args=[0]),
+    # dict(name="BernsteinBasis", args=[4, 3, 0.5]),
+    dict(name="CubeRoot", args=[3]),
+    dict(name="Divide", args=[1, 1]),
+    # dict(name="FractionalPart", args=[3.5]),
+    # dict(name="IntegerPart", args=[1.2]),
+    dict(name="Log10", args=[10]),
+    dict(name="Log2", args=[10]),
+    # dict(name="LogisticSigmoid", args=[0]),
+    # dict(name="Max", args=[0,1]),
+    # dict(name="Min", args=[0,1]),
+    dict(name="Minus", args=[5]),
+    # dict(name="Mod", args=[10,2]),
+    # dict(name="Multinomial", args=[0]),
+    # dict(name="PolygonalNumber", args=[0]),
+    # dict(name="Quotient", args=[5,3]),
+    # dict(name="QuotientRemainder", args=[5,3]),
+    # dict(name="RealAbs", args=[-1]),
+    # dict(name="RealSign", args=[0]),
+    # dict(name="Round", args=[1.2]),
+    dict(name="Subtract", args=[5, 3]),
+    # dict(name="UnitStep", args=[0]),
+    #
     # Following have no sympy_name and no mpmath_name,
     # but do have "number" or "numeric" in their path.
     # Some may be possible candidates for building out compilation
@@ -258,14 +284,12 @@ tests = [
     # dict(name="FindMinimum", args=[0]),
     # dict(name="FindRoot", args=[0]),
     # dict(name="FittedModel", args=[0]),
-    # dict(name="FractionalPart", args=[0]),
     # dict(name="FromDigits", args=[0]),
     # dict(name="FullSimplify", args=[0]),
     # dict(name="Gudermannian", args=[0]),
     # dict(name="IntegerDigits", args=[0]),
     # dict(name="IntegerExponent", args=[0]),
     # dict(name="IntegerLength", args=[0]),
-    # dict(name="IntegerPart", args=[0]),
     # dict(name="IntegerPartitions", args=[0]),
     # dict(name="IntegerReverse", args=[0]),
     # dict(name="IntegerString", args=[0]),
@@ -278,9 +302,6 @@ tests = [
     # dict(name="Limit", args=[0]),
     # dict(name="LinearModelFit", args=[0]),
     # dict(name="LinearSolve", args=[0]),
-    # dict(name="Log10", args=[0]),
-    # dict(name="Log2", args=[0]),
-    # dict(name="LogisticSigmoid", args=[0]),
     # dict(name="MachinePrecision", args=[0]),
     # dict(name="ManhattanDistance", args=[0]),
     # dict(name="MantissaExponent", args=[0]),
@@ -313,11 +334,8 @@ tests = [
     # dict(name="RandomReal", args=[0]),
     # dict(name="RandomSample", args=[0]),
     # dict(name="Rationalize", args=[0]),
-    # dict(name="RealAbs", args=[0]),
     # dict(name="RealDigits", args=[0]),
-    # dict(name="RealSign", args=[0]),
     # dict(name="Reals", args=[0]),
-    # dict(name="Round", args=[0]),
     # dict(name="RowReduce", args=[0]),
     # dict(name="SeedRandom", args=[0]),
     # dict(name="Series", args=[0]),
@@ -332,7 +350,6 @@ tests = [
     # dict(name="Tr", args=[0]),
     # dict(name="Undefined", args=[0]),
     # dict(name="Underflow", args=[0]),
-    # dict(name="UnitStep", args=[0]),
     # dict(name="Variables", args=[0]),
 ]
 
