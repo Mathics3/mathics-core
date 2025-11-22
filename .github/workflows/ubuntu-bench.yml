@@ -1,4 +1,4 @@
-name: Mathics3 (ubuntu)
+name: Mathics3 Basic Benchmarks(ubuntu)
 
 on:
   push:
