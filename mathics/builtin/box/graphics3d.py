@@ -20,7 +20,12 @@ from mathics.builtin.colors.color_directives import (
     RGBColor,
     _ColorObject,
 )
-from mathics.builtin.drawing.graphics3d import Coords3D, Graphics3DElements, Style3D
+from mathics.builtin.drawing.graphics3d import (
+    Coords3D,
+    Graphics3D,
+    Graphics3DElements,
+    Style3D,
+)
 from mathics.builtin.drawing.graphics_internals import (
     GLOBALS3D,
     _GraphicsElementBox,
@@ -43,6 +48,7 @@ class Graphics3DBox(GraphicsBox):
     </dl>
     """
 
+    options = Graphics3D.options
     summary_text = "symbol used boxing Graphics3D expressions"
 
     def _prepare_elements(self, elements, options, max_width=None):
