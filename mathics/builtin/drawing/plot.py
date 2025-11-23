@@ -60,7 +60,8 @@ from mathics.eval.drawing.plot import (
 # Set option such as $UseVectorizedPlot, and maybe a non-standard Plot3D option.
 # For now an env variable is simplest.
 # TODO: work out exactly how to deploy.
-if os.getenv("MATHICS3_USE_VECTORIZED_PLOT", False):
+use_vectorized_plot = os.getenv("MATHICS3_USE_VECTORIZED_PLOT", False)
+if use_vectorized_plot:
     from mathics.eval.drawing.plot3d_vectorized import eval_DensityPlot, eval_Plot3D
 else:
     from mathics.eval.drawing.plot3d import eval_DensityPlot, eval_Plot3D
@@ -489,8 +490,9 @@ class PlotOptions:
                 return True
             return False
 
+        default_plotpoints = (200, 200) if use_vectorized_plot else (7, 7)
         if plotpoints == "System`None":
-            plotpoints = (7, 7)
+            plotpoints = default_plotpoints
         elif check_plotpoints(plotpoints):
             plotpoints = (plotpoints, plotpoints)
         if not (
@@ -500,7 +502,7 @@ class PlotOptions:
             and check_plotpoints(plotpoints[1])
         ):
             evaluation.message(expr.get_name(), "invpltpts", plotpoints)
-            plotpoints = (7, 7)
+            plotpoints = default_plotpoints
         self.plotpoints = plotpoints
 
         # MaxRecursion Option
