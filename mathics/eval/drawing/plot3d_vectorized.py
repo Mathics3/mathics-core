@@ -10,6 +10,7 @@ import numpy as np
 
 from mathics.core.evaluation import Evaluation
 from mathics.core.symbols import strip_context
+from mathics.core.systemsymbols import SymbolRGBColor, SymbolNone
 from mathics.timing import Timer
 
 from .plot_compile import plot_compile
@@ -34,7 +35,20 @@ def eval_Plot3D(
     ys = np.linspace(ymin, ymax, ny)
     xs, ys = np.meshgrid(xs, ys)
 
-    for function in plot_options.functions:
+    # https://davidmathlogic.com/colorblind
+    palette = [
+        (255, 176, 0), # orange
+        (100, 143, 255), # blue
+        (220, 38, 127), # red
+        (50, 150, 140), # green
+        (120, 94, 240), # purple
+        #(240, 228, 66), # yellow
+        (254, 97, 0), # dark orange
+        (0, 114, 178), # dark blue
+        #(0, 0, 0), # black
+    ]
+
+    for i, function in enumerate(plot_options.functions):
         with Timer("compile"):
             function = plot_compile(evaluation, function, names)
 
@@ -73,8 +87,14 @@ def eval_Plot3D(
             # ugh - indexes in Polygon are 1-based
             quads += 1
 
+            # choose a color
+            rgb = palette[i%len(palette)]
+            rgb = [c/255.0 for c in rgb]
+            graphics.add_color(SymbolRGBColor, rgb)
+
             # add a GraphicsComplex for this function
             graphics.add_complex(xyzs, lines=None, polys=quads)
+
 
     return graphics
 

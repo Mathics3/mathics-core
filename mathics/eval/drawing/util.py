@@ -58,7 +58,11 @@ class GraphicsGenerator:
         """Add lines specified by explicit xy[z] coordinates"""
         self.add_thing(SymbolLine, line_xyzs, colors)
 
-    # TODO: color
+    def add_color(self, symbol, components):
+        from mathics.core.convert.expression import to_expression
+        expr = to_expression(symbol, *components)
+        self.graphics.append(expr)
+
     def add_complex(self, xyzs, lines=None, polys=None):
         complex = [NumericArray(xyzs)]
         if polys is not None:
