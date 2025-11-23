@@ -245,6 +245,32 @@ tests = [
     dict(name="Subtract", args=[5, 3]),
     dict(name="UnitStep", args=[0], fail="not registered"),
     #
+    # Following have none of the above but do have A_NUMERIC_FUNCTION set
+    #
+    # dict(name="AiryAiZero", args=[1,1]),
+    # dict(name="AiryBiZero", args=[0]),
+    # dict(name="BernsteinBasis", args=[4, 3, 0.5]),
+    dict(name="CubeRoot", args=[3]),
+    dict(name="Divide", args=[1, 1]),
+    # dict(name="FractionalPart", args=[3.5]),
+    # dict(name="IntegerPart", args=[1.2]),
+    dict(name="Log10", args=[10]),
+    dict(name="Log2", args=[10]),
+    # dict(name="LogisticSigmoid", args=[0]),
+    # dict(name="Max", args=[0,1]),
+    # dict(name="Min", args=[0,1]),
+    dict(name="Minus", args=[5]),
+    # dict(name="Mod", args=[10,2]),
+    # dict(name="Multinomial", args=[0]),
+    # dict(name="PolygonalNumber", args=[0]),
+    # dict(name="Quotient", args=[5,3]),
+    # dict(name="QuotientRemainder", args=[5,3]),
+    # dict(name="RealAbs", args=[-1]),
+    # dict(name="RealSign", args=[0]),
+    # dict(name="Round", args=[1.2]),
+    dict(name="Subtract", args=[5, 3]),
+    # dict(name="UnitStep", args=[0]),
+    #
     # Following have no sympy_name and no mpmath_name,
     # but do have "number" or "numeric" in their path.
     # Some may be possible candidates for building out compilation
