@@ -4,9 +4,10 @@ Common utilities for plotting
 
 
 from mathics.core.atoms import NumericArray
-from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.expression import to_mathics_list, to_expression
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
     SymbolGraphics,
     SymbolGraphics3D,
@@ -59,9 +60,20 @@ class GraphicsGenerator:
         self.add_thing(SymbolLine, line_xyzs, colors)
 
     def add_color(self, symbol, components):
-        from mathics.core.convert.expression import to_expression
         expr = to_expression(symbol, *components)
         self.graphics.append(expr)
+
+    def add_directives(self, *ds):
+        def cvt(d):
+            if isinstance(d, list) and len(d) > 0 and isinstance(d[0], Symbol):
+                expr = to_expression(d[0], *(cvt(dd) for dd in d[1:]))
+                return expr
+            else:
+                return d
+        for d in ds:
+            expr = cvt(d)
+            self.graphics.append(expr)
+        
 
     def add_complex(self, xyzs, lines=None, polys=None):
         complex = [NumericArray(xyzs)]
@@ -69,7 +81,7 @@ class GraphicsGenerator:
             polys_expr = Expression(SymbolPolygon, NumericArray(polys))
             complex.append(polys_expr)
         if lines is not None:
-            polys_expr = Expression(SymbolLines, NumericArray(lines))
+            lines_expr = Expression(SymbolLine, NumericArray(lines))
             complex.append(lines_expr)
         gc_expr = Expression(SymbolGraphicsComplex, *complex)
         self.graphics.append(gc_expr)
