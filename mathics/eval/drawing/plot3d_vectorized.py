@@ -57,9 +57,9 @@ def eval_Plot3D(
     def compute_over_grid(nx, ny):
         """
         For each function, computes an (nx*ny, 3) array of coordinates (xyzs),
-        and an (nx, ny) array of indices (inxs) into the coordinate array representing
-        the index into the coordinate orray of the corresponding position in the grid.
-        Returns an iterator over xyzs,inxs pairs, one for each function.
+        and an (nx, ny) array of indices (inxs) into xyzs representing
+        the index in xyzs of the corresponding position in the grid.
+        Returns an iterator over (xyzs,inxs) pairs, one for each function.
 
         This is used for computing the full grid of quads representing the
         surface defined by each function, and also for computing a sparse
@@ -122,7 +122,8 @@ def eval_Plot3D(
 
         with Timer("Mesh"):
             nx, ny = plot_options.plotpoints
-            # Do nmesh lines in each direction.
+            # Do nmesh lines in each direction, each line formed
+            # from one row or one column of the inxs array.
             # Each mesh line has high res (nx or ny) so it follows
             # the contours of the surface.
             for xyzs, inxs in compute_over_grid(nx, nmesh):
