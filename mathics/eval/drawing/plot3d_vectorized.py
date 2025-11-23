@@ -10,7 +10,7 @@ import numpy as np
 
 from mathics.core.evaluation import Evaluation
 from mathics.core.symbols import strip_context
-from mathics.core.systemsymbols import SymbolRGBColor, SymbolNone, SymbolEdgeForm
+from mathics.core.systemsymbols import SymbolNone, SymbolRGBColor
 from mathics.timing import Timer
 
 from .plot_compile import plot_compile
@@ -36,24 +36,35 @@ def eval_Plot3D(
     elif plot_options.mesh is not SymbolNone:
         nmesh = 20
 
-    # https://davidmathlogic.com/colorblind
+    # color-blind friendly palette from https://davidmathlogic.com/colorblind
     palette = [
-        (255, 176, 0), # orange
-        (100, 143, 255), # blue
-        (220, 38, 127), # red
-        (50, 150, 140), # green
-        (120, 94, 240), # purple
-        #(240, 228, 66), # yellow
-        (254, 97, 0), # dark orange
-        (0, 114, 178), # dark blue
-        #(0, 0, 0), # black
+        (255, 176, 0),  # orange
+        (100, 143, 255),  # blue
+        (220, 38, 127),  # red
+        (50, 150, 140),  # green
+        (120, 94, 240),  # purple
+        (254, 97, 0),  # dark orange
+        (0, 114, 178),  # dark blue
     ]
 
     # compile the functions
     with Timer("compile"):
-        compiled_functions = [plot_compile(evaluation, function, names) for function in plot_options.functions]
+        compiled_functions = [
+            plot_compile(evaluation, function, names)
+            for function in plot_options.functions
+        ]
 
     def compute_over_grid(nx, ny):
+        """
+        For each function, computes an (nx*ny, 3) array of coordinates (xyzs),
+        and an (nx, ny) array of indices (inxs) into the coordinate array representing
+        the index into the coordinate orray of the corresponding position in the grid.
+        Returns an iterator over xyzs,inxs pairs, one for each function.
+
+        This is used for computing the full grid of quads representing the
+        surface defined by each function, and also for computing a sparse
+        grid used to display a mesh of lines on the surface.
+        """
 
         # compute (nx, ny) grids of xs and ys for corresponding vertexes
         xs = np.linspace(xmin, xmax, nx)
@@ -66,7 +77,6 @@ def eval_Plot3D(
         inxs = np.arange(math.prod(xs.shape)).reshape(xs.shape) + 1
 
         for function in compiled_functions:
-
             # compute zs from xs and ys using compiled function
             with Timer("compute zs"):
                 zs = function(**{str(names[0]): xs, str(names[1]): ys})
@@ -89,33 +99,28 @@ def eval_Plot3D(
 
     # generate the quads and emit a GraphicsComplex containing them
     for i, (xyzs, inxs) in enumerate(compute_over_grid(*plot_options.plotpoints)):
-
         # shift inxs array four different ways and stack to form
         # (4, nx-1, ny-1) array of quads represented as indexes into xyzs array
-        quads = np.stack(
-            [inxs[:-1, :-1], inxs[:-1, 1:], inxs[1:, 1:], inxs[1:, :-1]]
-        )
+        quads = np.stack([inxs[:-1, :-1], inxs[:-1, 1:], inxs[1:, 1:], inxs[1:, :-1]])
 
         # transpose and flatten to ((nx-1)*(ny-1), 4) array, suitable for use in GraphicsComplex
         quads = quads.T.reshape(-1, 4)
 
         # choose a color
-        rgb = palette[i%len(palette)]
-        rgb = [c/255.0 for c in rgb]
-        #graphics.add_color(SymbolRGBColor, rgb)
+        rgb = palette[i % len(palette)]
+        rgb = [c / 255.0 for c in rgb]
+        # graphics.add_color(SymbolRGBColor, rgb)
         graphics.add_directives([SymbolRGBColor, *rgb])
 
-        # add a GraphicsComplex for this function
+        # add a GraphicsComplex displaying a surface for this function
         graphics.add_complex(xyzs, lines=None, polys=quads)
 
     # if requested by the Mesh attribute create a mesh of lines covering the surfaces
     if nmesh:
-
         # meshes are black for now
-        graphics.add_directives([SymbolRGBColor, 0,0,0])
+        graphics.add_directives([SymbolRGBColor, 0, 0, 0])
 
         with Timer("Mesh"):
-            nmesh = 20 # TODO: use supplied option
             nx, ny = plot_options.plotpoints
             # Do nmesh lines in each direction.
             # Each mesh line has high res (nx or ny) so it follows

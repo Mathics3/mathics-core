@@ -4,7 +4,7 @@ Common utilities for plotting
 
 
 from mathics.core.atoms import NumericArray
-from mathics.core.convert.expression import to_mathics_list, to_expression
+from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
@@ -70,10 +70,10 @@ class GraphicsGenerator:
                 return expr
             else:
                 return d
+
         for d in ds:
             expr = cvt(d)
             self.graphics.append(expr)
-        
 
     def add_complex(self, xyzs, lines=None, polys=None):
         complex = [NumericArray(xyzs)]
