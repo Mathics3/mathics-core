@@ -388,7 +388,7 @@ class FractionalPart(SympyFunction):
         if len(expr.elements) > 0:
             x_sympy = expr.elements[0].to_sympy(**kwargs)
             return sympy.sign(x_sympy) * sympy.frac(abs(x_sympy))
-        
+
 
 class FromContinuedFraction(SympyFunction):
     """

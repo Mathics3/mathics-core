@@ -24,7 +24,12 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
-from mathics.core.builtin import Builtin, InfixOperator, IterationFunction, SympyFunction
+from mathics.core.builtin import (
+    Builtin,
+    InfixOperator,
+    IterationFunction,
+    SympyFunction,
+)
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.interrupt import (
@@ -452,6 +457,7 @@ class If(SympyFunction):
             sympy_false = expr.elements[2].to_sympy(**kwargs)
             return sympy.Piecewise((sympy_true, sympy_cond), (sympy_false, True))
 
+
 class Interrupt(Builtin):
     r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/Interrupt.html</url>
@@ -726,6 +732,7 @@ class Which(SympyFunction):
                 sympy_value = value.to_sympy(**kwargs)
                 args.append((sympy_value, sympy_cond))
             return sympy.Piecewise(*args)
+
 
 class While(Builtin):
     """
