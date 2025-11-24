@@ -30,11 +30,9 @@ def eval_Plot3D(
     names = [strip_context(str(range[0])) for range in plot_options.ranges]
 
     # Mesh option
-    nmesh = None
-    if isinstance(plot_options.mesh, int):
-        nmesh = plot_options.mesh
-    elif plot_options.mesh is not SymbolNone:
-        nmesh = 20
+    nmesh = 20
+    if plot_options.mesh is SymbolNone:
+        nmesh = 0
 
     # color-blind friendly palette from https://davidmathlogic.com/colorblind
     palette = [
