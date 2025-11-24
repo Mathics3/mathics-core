@@ -245,31 +245,15 @@ tests = [
     dict(name="Subtract", args=[5, 3]),
     dict(name="UnitStep", args=[0], fail="not registered"),
     #
-    # Following have none of the above but do have A_NUMERIC_FUNCTION set
+    # Following are in procedural.py but aren't really procedural
     #
-    # dict(name="AiryAiZero", args=[1,1]),
-    # dict(name="AiryBiZero", args=[0]),
-    # dict(name="BernsteinBasis", args=[4, 3, 0.5]),
-    dict(name="CubeRoot", args=[3]),
-    dict(name="Divide", args=[1, 1]),
-    # dict(name="FractionalPart", args=[3.5]),
-    # dict(name="IntegerPart", args=[1.2]),
-    dict(name="Log10", args=[10]),
-    dict(name="Log2", args=[10]),
-    # dict(name="LogisticSigmoid", args=[0]),
-    # dict(name="Max", args=[0,1]),
-    # dict(name="Min", args=[0,1]),
-    dict(name="Minus", args=[5]),
-    # dict(name="Mod", args=[10,2]),
-    # dict(name="Multinomial", args=[0]),
-    # dict(name="PolygonalNumber", args=[0]),
-    # dict(name="Quotient", args=[5,3]),
-    # dict(name="QuotientRemainder", args=[5,3]),
-    # dict(name="RealAbs", args=[-1]),
-    # dict(name="RealSign", args=[0]),
-    # dict(name="Round", args=[1.2]),
-    dict(name="Subtract", args=[5, 3]),
-    # dict(name="UnitStep", args=[0]),
+    dict(name="If", args=[True, 1, 2]),
+    dict(name="If", args=[False, 1, 2]),
+    dict(name="Switch", args=[1, 1, 17, 2, 42], fail="not registered"), # args can be patterns - compilable?
+    dict(name="Switch", args=[2, 1, 17, 2, 42], fail="not registered"), # args can be patterns - compilable?
+    dict(name="Which", args=[True, 1]),
+    dict(name="Which", args=[False, 1, True, 2]),
+    dict(name="Which", args=[False, 1, True, 2, False, 3]),
     #
     # Following have no sympy_name and no mpmath_name,
     # but do have "number" or "numeric" in their path.
@@ -461,7 +445,7 @@ def one(name, args, scipy=False, expected=None, fail=False):
     elif not np.isclose(result, expected).all():
         failure(name, f"N and sympy differ: expected {expected}, got {result}")
     elif fail:
-        raise Exception("unexpected success")
+        raise Exception(f"unexpected success: result {result}, expected {expected}")
     else:
         # print(f"{name} succeeds: expected {expected.value}, got {result}")
         pass
@@ -479,5 +463,5 @@ def test():
 
 if __name__ == "__main__":
     check_failing = True
-    debug = 1
+    debug = 2
     test()
