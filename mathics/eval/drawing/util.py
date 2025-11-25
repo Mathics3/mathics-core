@@ -14,6 +14,7 @@ from mathics.core.systemsymbols import (
     SymbolGraphicsComplex,
     SymbolLine,
     SymbolPolygon,
+    SymbolRGBColor,
     SymbolRule,
     SymbolVertexColors,
 )
@@ -75,7 +76,7 @@ class GraphicsGenerator:
             expr = cvt(d)
             self.graphics.append(expr)
 
-    def add_complex(self, xyzs, lines=None, polys=None):
+    def add_complex(self, xyzs, lines=None, polys=None, colors=None):
         complex = [NumericArray(xyzs)]
         if polys is not None:
             polys_expr = Expression(SymbolPolygon, NumericArray(polys))
@@ -83,6 +84,10 @@ class GraphicsGenerator:
         if lines is not None:
             lines_expr = Expression(SymbolLine, NumericArray(lines))
             complex.append(lines_expr)
+        if colors is not None:
+            colors_expr = Expression(SymbolRGBColor, NumericArray(colors))
+            rule_expr = Expression(SymbolRule, SymbolVertexColors, colors_expr)
+            complex.append(rule_expr)
         gc_expr = Expression(SymbolGraphicsComplex, *complex)
         self.graphics.append(gc_expr)
 
