@@ -17,13 +17,12 @@ from .plot_compile import plot_compile
 from .util import GraphicsGenerator
 
 
-@Timer("eval_Plot3D")
-def eval_Plot3D(
+def make_plot(
     plot_options,
     evaluation: Evaluation,
-    density = False
+    dim: int
 ):
-    graphics = GraphicsGenerator(dim = 2 if density else 3)
+    graphics = GraphicsGenerator(dim)
 
     # pull out plot options
     _, xmin, xmax = plot_options.ranges[0]
@@ -105,7 +104,8 @@ def eval_Plot3D(
         # transpose and flatten to ((nx-1)*(ny-1), 4) array, suitable for use in GraphicsComplex
         quads = quads.T.reshape(-1, 4)
 
-        if not density:
+        # Plot3D
+        if dim == 3:
 
             # choose a color
             rgb = palette[i % len(palette)]
@@ -116,8 +116,11 @@ def eval_Plot3D(
             # add a GraphicsComplex displaying a surface for this function
             graphics.add_complex(xyzs, lines=None, polys=quads)
 
-        else:
+        # DensityPlot
+        elif dim == 2:
 
+            # Fixed palette for now
+            # TODO: accept color options
             with Timer("compute colors"):
                 zs = xyzs[:,2]
                 z_min, z_max = min(zs), max(zs)
@@ -130,8 +133,10 @@ def eval_Plot3D(
             graphics.add_complex(xyzs[:,0:2], lines=None, polys=quads, colors=colors)
             
 
-    # if requested by the Mesh attribute create a mesh of lines covering the surfaces
-    if nmesh:
+    # If requested by the Mesh attribute create a mesh of lines covering the surfaces
+    # For now only for Plot3D
+    # TODO: mesh for DensityPlot?
+    if nmesh and dim == 3:
         # meshes are black for now
         graphics.add_directives([SymbolRGBColor, 0, 0, 0])
 
@@ -149,13 +154,17 @@ def eval_Plot3D(
     return graphics
 
 
-#
-#
-#
+@Timer("eval_Plot3D")
+def eval_Plot3D(
+    plot_options,
+    evaluation: Evaluation,
+):
+    return make_plot(plot_options, evaluation, dim=3)
 
 
+@Timer("eval_DensityPlot")
 def eval_DensityPlot(
     plot_options,
     evaluation: Evaluation,
 ):
-    return eval_Plot3D(plot_options, evaluation, density=True)
+    return make_plot(plot_options, evaluation, dim=2)
