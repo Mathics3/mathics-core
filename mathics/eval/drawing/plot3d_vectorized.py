@@ -21,8 +21,9 @@ from .util import GraphicsGenerator
 def eval_Plot3D(
     plot_options,
     evaluation: Evaluation,
+    density = False
 ):
-    graphics = GraphicsGenerator(dim=3)
+    graphics = GraphicsGenerator(dim = 2 if density else 3)
 
     # pull out plot options
     _, xmin, xmax = plot_options.ranges[0]
@@ -104,14 +105,30 @@ def eval_Plot3D(
         # transpose and flatten to ((nx-1)*(ny-1), 4) array, suitable for use in GraphicsComplex
         quads = quads.T.reshape(-1, 4)
 
-        # choose a color
-        rgb = palette[i % len(palette)]
-        rgb = [c / 255.0 for c in rgb]
-        # graphics.add_color(SymbolRGBColor, rgb)
-        graphics.add_directives([SymbolRGBColor, *rgb])
+        if not density:
 
-        # add a GraphicsComplex displaying a surface for this function
-        graphics.add_complex(xyzs, lines=None, polys=quads)
+            # choose a color
+            rgb = palette[i % len(palette)]
+            rgb = [c / 255.0 for c in rgb]
+            # graphics.add_color(SymbolRGBColor, rgb)
+            graphics.add_directives([SymbolRGBColor, *rgb])
+
+            # add a GraphicsComplex displaying a surface for this function
+            graphics.add_complex(xyzs, lines=None, polys=quads)
+
+        else:
+
+            with Timer("compute colors"):
+                zs = xyzs[:,2]
+                z_min, z_max = min(zs), max(zs)
+                zs = zs[:, np.newaxis] # allow broadcasting
+                c_min, c_max = [0.5, 0, 0.1], [1.0, 0.9, 0.5]
+                c_min, c_max = np.full((len(zs),3), c_min), np.full((len(zs),3), c_max)
+                colors = ((zs - z_min) * c_max + (z_max - zs) * c_min) / (z_max - z_min)
+
+            # flatten the points and add the quads
+            graphics.add_complex(xyzs[:,0:2], lines=None, polys=quads, colors=colors)
+            
 
     # if requested by the Mesh attribute create a mesh of lines covering the surfaces
     if nmesh:
@@ -141,6 +158,4 @@ def eval_DensityPlot(
     plot_options,
     evaluation: Evaluation,
 ):
-    # TODO
-    # see plot3d.eval_DensityPlot for possible info on handling colors
-    pass
+    return eval_Plot3D(plot_options, evaluation, density=True)
