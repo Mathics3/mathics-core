@@ -17,11 +17,7 @@ from .plot_compile import plot_compile
 from .util import GraphicsGenerator
 
 
-def make_plot(
-    plot_options,
-    evaluation: Evaluation,
-    dim: int
-):
+def make_plot(plot_options, evaluation: Evaluation, dim: int):
     graphics = GraphicsGenerator(dim)
 
     # pull out plot options
@@ -106,7 +102,6 @@ def make_plot(
 
         # Plot3D
         if dim == 3:
-
             # choose a color
             rgb = palette[i % len(palette)]
             rgb = [c / 255.0 for c in rgb]
@@ -118,20 +113,21 @@ def make_plot(
 
         # DensityPlot
         elif dim == 2:
-
             # Fixed palette for now
             # TODO: accept color options
             with Timer("compute colors"):
-                zs = xyzs[:,2]
+                zs = xyzs[:, 2]
                 z_min, z_max = min(zs), max(zs)
-                zs = zs[:, np.newaxis] # allow broadcasting
+                zs = zs[:, np.newaxis]  # allow broadcasting
                 c_min, c_max = [0.5, 0, 0.1], [1.0, 0.9, 0.5]
-                c_min, c_max = np.full((len(zs),3), c_min), np.full((len(zs),3), c_max)
+                c_min, c_max = (
+                    np.full((len(zs), 3), c_min),
+                    np.full((len(zs), 3), c_max),
+                )
                 colors = ((zs - z_min) * c_max + (z_max - zs) * c_min) / (z_max - z_min)
 
             # flatten the points and add the quads
-            graphics.add_complex(xyzs[:,0:2], lines=None, polys=quads, colors=colors)
-            
+            graphics.add_complex(xyzs[:, 0:2], lines=None, polys=quads, colors=colors)
 
     # If requested by the Mesh attribute create a mesh of lines covering the surfaces
     # For now only for Plot3D
