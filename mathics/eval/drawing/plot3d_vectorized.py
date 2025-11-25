@@ -17,12 +17,8 @@ from .plot_compile import plot_compile
 from .util import GraphicsGenerator
 
 
-@Timer("eval_Plot3D")
-def eval_Plot3D(
-    plot_options,
-    evaluation: Evaluation,
-):
-    graphics = GraphicsGenerator(dim=3)
+def make_plot(plot_options, evaluation: Evaluation, dim: int):
+    graphics = GraphicsGenerator(dim)
 
     # pull out plot options
     _, xmin, xmax = plot_options.ranges[0]
@@ -104,17 +100,39 @@ def eval_Plot3D(
         # transpose and flatten to ((nx-1)*(ny-1), 4) array, suitable for use in GraphicsComplex
         quads = quads.T.reshape(-1, 4)
 
-        # choose a color
-        rgb = palette[i % len(palette)]
-        rgb = [c / 255.0 for c in rgb]
-        # graphics.add_color(SymbolRGBColor, rgb)
-        graphics.add_directives([SymbolRGBColor, *rgb])
+        # Plot3D
+        if dim == 3:
+            # choose a color
+            rgb = palette[i % len(palette)]
+            rgb = [c / 255.0 for c in rgb]
+            # graphics.add_color(SymbolRGBColor, rgb)
+            graphics.add_directives([SymbolRGBColor, *rgb])
 
-        # add a GraphicsComplex displaying a surface for this function
-        graphics.add_complex(xyzs, lines=None, polys=quads)
+            # add a GraphicsComplex displaying a surface for this function
+            graphics.add_complex(xyzs, lines=None, polys=quads)
 
-    # if requested by the Mesh attribute create a mesh of lines covering the surfaces
-    if nmesh:
+        # DensityPlot
+        elif dim == 2:
+            # Fixed palette for now
+            # TODO: accept color options
+            with Timer("compute colors"):
+                zs = xyzs[:, 2]
+                z_min, z_max = min(zs), max(zs)
+                zs = zs[:, np.newaxis]  # allow broadcasting
+                c_min, c_max = [0.5, 0, 0.1], [1.0, 0.9, 0.5]
+                c_min, c_max = (
+                    np.full((len(zs), 3), c_min),
+                    np.full((len(zs), 3), c_max),
+                )
+                colors = ((zs - z_min) * c_max + (z_max - zs) * c_min) / (z_max - z_min)
+
+            # flatten the points and add the quads
+            graphics.add_complex(xyzs[:, 0:2], lines=None, polys=quads, colors=colors)
+
+    # If requested by the Mesh attribute create a mesh of lines covering the surfaces
+    # For now only for Plot3D
+    # TODO: mesh for DensityPlot?
+    if nmesh and dim == 3:
         # meshes are black for now
         graphics.add_directives([SymbolRGBColor, 0, 0, 0])
 
@@ -132,15 +150,17 @@ def eval_Plot3D(
     return graphics
 
 
-#
-#
-#
+@Timer("eval_Plot3D")
+def eval_Plot3D(
+    plot_options,
+    evaluation: Evaluation,
+):
+    return make_plot(plot_options, evaluation, dim=3)
 
 
+@Timer("eval_DensityPlot")
 def eval_DensityPlot(
     plot_options,
     evaluation: Evaluation,
 ):
-    # TODO
-    # see plot3d.eval_DensityPlot for possible info on handling colors
-    pass
+    return make_plot(plot_options, evaluation, dim=2)
