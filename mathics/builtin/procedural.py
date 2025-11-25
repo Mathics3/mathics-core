@@ -455,7 +455,20 @@ class If(SympyFunction):
             sympy_cond = expr.elements[0].to_sympy(**kwargs)
             sympy_true = expr.elements[1].to_sympy(**kwargs)
             sympy_false = expr.elements[2].to_sympy(**kwargs)
-            return sympy.Piecewise((sympy_true, sympy_cond), (sympy_false, True))
+            if sympy_cond is None:
+                return
+            # sympy.Piecewise is is picky as to what type of conds it will accept,
+            # allowing Boolean, Relational, and Symbol (as an honorary Boolean,
+            # accompanied by a comment in the code that this isn't really correct).
+            # Seems an attempt at early typechecking, but maybe too restrictive -
+            # what about Exprs in general that might or might not evaluate to Boolean?
+            # See similar code in mathics.builtin.arithmetic.ConditionalExpression.
+            if (
+                sympy_cond.is_Boolean
+                or sympy_cond.is_Relational
+                or sympy_cond.is_Symbol
+            ):
+                return sympy.Piecewise((sympy_true, sympy_cond), (sympy_false, True))
 
 
 class Interrupt(Builtin):

@@ -372,6 +372,11 @@ language/ref/ConditionalExpression.html</url>
                 sympy_cond = False
         if sympy_cond is None:
             sympy_cond = cond.to_sympy(**kwargs)
+            # See similar code and comment in mathics.builtin.procedural.If
+            # TODO: consider adding .is_Symbol (as with If) so that this
+            # can be used for compilation. I tried that but it invalidated
+            # doctest 1876 in Simplify which depends on ConditionalExpression
+            # not getting rewritten, so may need update that secion of doc?
             if not (sympy_cond.is_Relational or sympy_cond.is_Boolean):
                 return
 
