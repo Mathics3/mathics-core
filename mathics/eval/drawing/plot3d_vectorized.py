@@ -17,12 +17,18 @@ from .plot_compile import plot_compile
 from .util import GraphicsGenerator
 
 
-def make_plot(plot_options, evaluation: Evaluation, dim: int):
+def make_plot(plot_options, evaluation: Evaluation, dim: int, is_complex: bool):
     graphics = GraphicsGenerator(dim)
 
     # pull out plot options
-    _, xmin, xmax = plot_options.ranges[0]
-    _, ymin, ymax = plot_options.ranges[1]
+    if not is_complex:
+        _, xmin, xmax = plot_options.ranges[0]
+        _, ymin, ymax = plot_options.ranges[1]
+    else:
+        # will generate xs and ys as for real, then combine to form complex cs
+        _, cmin, cmax = plot_options.ranges[0]
+        xmin, xmax = cmin.real, cmax.real
+        ymin, ymax = cmin.imag, cmax.imag
     names = [strip_context(str(range[0])) for range in plot_options.ranges]
 
     # Mesh option
@@ -73,7 +79,11 @@ def make_plot(plot_options, evaluation: Evaluation, dim: int):
         for function in compiled_functions:
             # compute zs from xs and ys using compiled function
             with Timer("compute zs"):
-                zs = function(**{str(names[0]): xs, str(names[1]): ys})
+                if not is_complex:
+                    zs = function(**{str(names[0]): xs, str(names[1]): ys})
+                else:
+                    cs = xs + ys * 1j # TODO: fast enough?
+                    zs = function(**{str(names[0]): cs})
 
             # sometimes expr gets compiled into something that returns a complex
             # even though the imaginary part is 0
@@ -155,7 +165,7 @@ def eval_Plot3D(
     plot_options,
     evaluation: Evaluation,
 ):
-    return make_plot(plot_options, evaluation, dim=3)
+    return make_plot(plot_options, evaluation, dim=3, is_complex=False)
 
 
 @Timer("eval_DensityPlot")
@@ -163,4 +173,20 @@ def eval_DensityPlot(
     plot_options,
     evaluation: Evaluation,
 ):
-    return make_plot(plot_options, evaluation, dim=2)
+    return make_plot(plot_options, evaluation, dim=2, is_complex=False)
+
+
+@Timer("eval_ComplexPlot3D")
+def eval_ComplexPlot3D(
+    plot_options,
+    evaluation: Evaluation,
+):
+    return None
+
+
+@Timer("eval_ComplexPlot")
+def eval_ComplexPlot(
+    plot_options,
+    evaluation: Evaluation,
+):
+    return make_plot(plot_options, evaluation, dim=2, is_complex=True)
