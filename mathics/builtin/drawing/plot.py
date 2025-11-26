@@ -26,7 +26,6 @@ from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.eval.nevaluator import eval_N
 from mathics.core.symbols import Symbol, SymbolList
 from mathics.core.systemsymbols import (
     SymbolAll,
@@ -55,6 +54,7 @@ from mathics.eval.drawing.plot import (
     get_plot_range,
     get_plot_range_option,
 )
+from mathics.eval.nevaluator import eval_N
 
 # The vectorized plot function generates GraphicsComplex using NumericArray,
 # which no consumer will currently understand. So lets make it opt-in for now.
@@ -64,9 +64,19 @@ from mathics.eval.drawing.plot import (
 # TODO: work out exactly how to deploy.
 use_vectorized_plot = os.getenv("MATHICS3_USE_VECTORIZED_PLOT", False)
 if use_vectorized_plot:
-    from mathics.eval.drawing.plot3d_vectorized import eval_DensityPlot, eval_Plot3D, eval_ComplexPlot, eval_ComplexPlot3D
+    from mathics.eval.drawing.plot3d_vectorized import (
+        eval_ComplexPlot,
+        eval_ComplexPlot3D,
+        eval_DensityPlot,
+        eval_Plot3D,
+    )
 else:
-    from mathics.eval.drawing.plot3d import eval_DensityPlot, eval_Plot3D, eval_ComplexPlot, eval_ComplexPlot3D
+    from mathics.eval.drawing.plot3d import (
+        eval_ComplexPlot,
+        eval_ComplexPlot3D,
+        eval_DensityPlot,
+        eval_Plot3D,
+    )
 
 # This tells documentation how to sort this module
 # Here we are also hiding "drawing" since this erroneously appears at the top level.
@@ -467,12 +477,14 @@ class PlotOptions:
             range = [range_expr.elements[0]]
             for limit_expr in range_expr.elements[1:3]:
                 limit = eval_N(limit_expr, evaluation).to_python()
-                if not isinstance(limit, (int,float,complex)):
+                if not isinstance(limit, (int, float, complex)):
                     self.error(expr, "plln", limit_expr, range_expr)
                 range.append(limit)
-            if isinstance(limit, (int,float)) and range[2] <= range[1]:
+            if isinstance(limit, (int, float)) and range[2] <= range[1]:
                 self.error(expr, "invrange", range_expr)
-            if isinstance(limit, complex) and (range[2].real <= range[1].real or range[2].imag <= range[1].imag):
+            if isinstance(limit, complex) and (
+                range[2].real <= range[1].real or range[2].imag <= range[1].imag
+            ):
                 self.error(expr, "invrange", range_expr)
             self.ranges.append(range)
 
@@ -621,9 +633,10 @@ class _Plot3D(Builtin):
         graphics = self.eval_function(plot_options, evaluation)
         if not graphics:
             return
-        graphics_expr = graphics.generate(options_to_rules(options, self.graphics_class.options))
+        graphics_expr = graphics.generate(
+            options_to_rules(options, self.graphics_class.options)
+        )
         return graphics_expr
-
 
 
 class BarChart(_Chart):
@@ -749,19 +762,16 @@ class ColorDataFunction(Builtin):
 
 
 class ComplexPlot3D(_Plot3D):
-
     summary_text = "plots one or more complex functions as a surface"
     expected_args = 2
-    options = _Plot3D.options3d | {
-        "Mesh": "None"
-    }
+    options = _Plot3D.options3d | {"Mesh": "None"}
 
     many_functions = True
     eval_function = staticmethod(eval_ComplexPlot3D)
     graphics_class = Graphics3D
 
+
 class ComplexPlot(_Plot3D):
-    
     summary_text = "plots a complex function showing amplitude and phase using colors"
     expected_args = 2
     options = _Plot3D.options2d
