@@ -762,6 +762,8 @@ class ColorDataFunction(Builtin):
 
 
 class ComplexPlot3D(_Plot3D):
+    """ """
+
     summary_text = "plots one or more complex functions as a surface"
     expected_args = 2
     options = _Plot3D.options3d | {"Mesh": "None"}
@@ -772,6 +774,8 @@ class ComplexPlot3D(_Plot3D):
 
 
 class ComplexPlot(_Plot3D):
+    """ """
+
     summary_text = "plots a complex function showing amplitude and phase using colors"
     expected_args = 2
     options = _Plot3D.options2d
