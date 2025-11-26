@@ -1,13 +1,13 @@
 """
-Vectorized evaluation routines for Plot3D and DensityPlot, which share a good bit of code.
-
-TODO: fill out eval_DensityPlot
+Vectorized evaluation routines for Plot3D, DensityPlot, ComplexPlot, and ComplexPlot3D,
+which share a good bit of code.
 """
 
 import math
 
 import numpy as np
 
+from mathics.builtin.colors.color_internals import convert_color
 from mathics.core.evaluation import Evaluation
 from mathics.core.symbols import strip_context
 from mathics.core.systemsymbols import SymbolNone, SymbolRGBColor
@@ -17,7 +17,7 @@ from .plot_compile import plot_compile
 from .util import GraphicsGenerator
 
 
-def make_plot(plot_options, evaluation: Evaluation, dim: int, is_complex: bool):
+def make_plot(plot_options, evaluation: Evaluation, dim: int, is_complex: bool, emit):
     graphics = GraphicsGenerator(dim)
 
     # pull out plot options
@@ -35,17 +35,6 @@ def make_plot(plot_options, evaluation: Evaluation, dim: int, is_complex: bool):
     nmesh = 20
     if plot_options.mesh is SymbolNone:
         nmesh = 0
-
-    # color-blind friendly palette from https://davidmathlogic.com/colorblind
-    palette = [
-        (255, 176, 0),  # orange
-        (100, 143, 255),  # blue
-        (220, 38, 127),  # red
-        (50, 150, 140),  # green
-        (120, 94, 240),  # purple
-        (254, 97, 0),  # dark orange
-        (0, 114, 178),  # dark blue
-    ]
 
     # compile the functions
     with Timer("compile"):
@@ -90,7 +79,8 @@ def make_plot(plot_options, evaluation: Evaluation, dim: int, is_complex: bool):
             # TODO: check that imag is all 0?
             # TODO: needed this for Hypergeometric - look into that
             # assert np.all(np.isreal(zs)), "array contains complex values"
-            zs = np.real(zs)
+            if not is_complex:
+                zs = np.real(zs)
 
             # if it's a constant, make it a full array
             if isinstance(zs, (float, int, complex)):
@@ -110,34 +100,9 @@ def make_plot(plot_options, evaluation: Evaluation, dim: int, is_complex: bool):
         # transpose and flatten to ((nx-1)*(ny-1), 4) array, suitable for use in GraphicsComplex
         quads = quads.T.reshape(-1, 4)
 
-        # Plot3D
-        if dim == 3:
-            # choose a color
-            rgb = palette[i % len(palette)]
-            rgb = [c / 255.0 for c in rgb]
-            # graphics.add_color(SymbolRGBColor, rgb)
-            graphics.add_directives([SymbolRGBColor, *rgb])
+        # pass the xyzs and quads back to the caller to add colors and emit quads as appropriate
+        emit(graphics, i, xyzs, quads)
 
-            # add a GraphicsComplex displaying a surface for this function
-            graphics.add_complex(xyzs, lines=None, polys=quads)
-
-        # DensityPlot
-        elif dim == 2:
-            # Fixed palette for now
-            # TODO: accept color options
-            with Timer("compute colors"):
-                zs = xyzs[:, 2]
-                z_min, z_max = min(zs), max(zs)
-                zs = zs[:, np.newaxis]  # allow broadcasting
-                c_min, c_max = [0.5, 0, 0.1], [1.0, 0.9, 0.5]
-                c_min, c_max = (
-                    np.full((len(zs), 3), c_min),
-                    np.full((len(zs), 3), c_max),
-                )
-                colors = ((zs - z_min) * c_max + (z_max - zs) * c_min) / (z_max - z_min)
-
-            # flatten the points and add the quads
-            graphics.add_complex(xyzs[:, 0:2], lines=None, polys=quads, colors=colors)
 
     # If requested by the Mesh attribute create a mesh of lines covering the surfaces
     # For now only for Plot3D
@@ -153,9 +118,9 @@ def make_plot(plot_options, evaluation: Evaluation, dim: int, is_complex: bool):
             # Each mesh line has high res (nx or ny) so it follows
             # the contours of the surface.
             for xyzs, inxs in compute_over_grid(nx, nmesh):
-                graphics.add_complex(xyzs, lines=inxs, polys=None)
+                graphics.add_complex(xyzs.astype(float), lines=inxs, polys=None)
             for xyzs, inxs in compute_over_grid(nmesh, ny):
-                graphics.add_complex(xyzs, lines=inxs.T, polys=None)
+                graphics.add_complex(xyzs.astype(float), lines=inxs.T, polys=None)
 
     return graphics
 
@@ -165,7 +130,30 @@ def eval_Plot3D(
     plot_options,
     evaluation: Evaluation,
 ):
-    return make_plot(plot_options, evaluation, dim=3, is_complex=False)
+    def emit(graphics, i, xyzs, quads):
+
+        # color-blind friendly palette from https://davidmathlogic.com/colorblind
+        palette = [
+            (255, 176, 0),  # orange
+            (100, 143, 255),  # blue
+            (220, 38, 127),  # red
+            (50, 150, 140),  # green
+            (120, 94, 240),  # purple
+            (254, 97, 0),  # dark orange
+            (0, 114, 178),  # dark blue
+        ]
+
+        # choose a color
+        rgb = palette[i % len(palette)]
+        rgb = [c / 255.0 for c in rgb]
+        # graphics.add_color(SymbolRGBColor, rgb)
+        graphics.add_directives([SymbolRGBColor, *rgb])
+        
+        # add a GraphicsComplex displaying a surface for this function
+        graphics.add_complex(xyzs, lines=None, polys=quads)
+
+
+    return make_plot(plot_options, evaluation, dim=3, is_complex=False, emit=emit)
 
 
 @Timer("eval_DensityPlot")
@@ -173,7 +161,50 @@ def eval_DensityPlot(
     plot_options,
     evaluation: Evaluation,
 ):
-    return make_plot(plot_options, evaluation, dim=2, is_complex=False)
+    def emit(graphics, i, xyzs, quads):
+
+        # Fixed palette for now
+        # TODO: accept color options
+        with Timer("compute colors"):
+            zs = xyzs[:, 2]
+            z_min, z_max = min(zs), max(zs)
+            zs = zs[:, np.newaxis]  # allow broadcasting
+            c_min, c_max = [0.5, 0, 0.1], [1.0, 0.9, 0.5]
+            c_min, c_max = (
+                np.full((len(zs), 3), c_min),
+                np.full((len(zs), 3), c_max),
+            )
+            colors = ((zs - z_min) * c_max + (z_max - zs) * c_min) / (z_max - z_min)
+
+        # flatten the points and add the quads
+        graphics.add_complex(xyzs[:, 0:2], lines=None, polys=quads, colors=colors)
+
+    return make_plot(plot_options, evaluation, dim=2, is_complex=False, emit=emit)
+
+
+@Timer("complex colors")
+def complex_colors(zs, s=None):
+
+    # hue depends on phase
+    h = np.angle(zs, deg=True) / 360
+    
+    # saturation depends on magnitude
+    if s is None:
+        zabs = abs(zs)
+        zabs = -np.log(zabs)
+        zmin, zmax = min(zabs), max(zabs)
+        s = (zabs - zmin) / (zmax - zmin)
+    else:
+        s = np.full(zs.shape, s)
+    
+    # brightness is constant
+    b = np.full(zs.shape, 1.0)
+    
+    # convert to rgb
+    hsb = np.array([h, s, b]).T
+    rgb = convert_color(hsb, "HSB", "RGB", False)
+
+    return rgb
 
 
 @Timer("eval_ComplexPlot3D")
@@ -181,7 +212,14 @@ def eval_ComplexPlot3D(
     plot_options,
     evaluation: Evaluation,
 ):
-    return None
+    def emit(graphics, i, xyzs, quads):
+        zs = xyzs[:,2]
+        rgb = complex_colors(zs, s=0.8)
+        xyzs[:,2] = abs(zs)
+        graphics.add_complex(xyzs.astype(float), lines=None, polys=quads, colors=rgb)        
+
+    return make_plot(plot_options, evaluation, dim=3, is_complex=True, emit=emit)
+
 
 
 @Timer("eval_ComplexPlot")
@@ -189,4 +227,9 @@ def eval_ComplexPlot(
     plot_options,
     evaluation: Evaluation,
 ):
-    return make_plot(plot_options, evaluation, dim=2, is_complex=True)
+    def emit(graphics, i, xyzs, quads):
+        # flatten the points and add the quads
+        rgb = complex_colors(xyzs[:,2])
+        graphics.add_complex(xyzs[:, 0:2].astype(float), lines=None, polys=quads, colors=rgb)
+
+    return make_plot(plot_options, evaluation, dim=2, is_complex=True, emit=emit)

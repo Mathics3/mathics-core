@@ -137,7 +137,6 @@ class _ListPlot(Builtin, ABC):
             )
 
         points = points.evaluate(evaluation)
-        print("xxx points", points)
         if not isinstance(points, ListExpression):
             evaluation.message(class_name, "lpn", points)
             return
@@ -461,7 +460,6 @@ class PlotOptions:
         # plot ranges
         self.ranges = []
         for range_expr in range_exprs:
-            print("xxx range_expr", range_expr)
             if not range_expr.has_form("List", 3):
                 self.error(expr, "invrange", range_expr)
             if not isinstance(range_expr.elements[0], Symbol):
@@ -754,7 +752,9 @@ class ComplexPlot3D(_Plot3D):
 
     summary_text = "plots one or more complex functions as a surface"
     expected_args = 2
-    options = _Plot3D.options3d
+    options = _Plot3D.options3d | {
+        "Mesh": "None"
+    }
 
     many_functions = True
     eval_function = staticmethod(eval_ComplexPlot3D)
