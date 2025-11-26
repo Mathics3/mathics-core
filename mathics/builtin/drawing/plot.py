@@ -762,7 +762,19 @@ class ColorDataFunction(Builtin):
 
 
 class ComplexPlot3D(_Plot3D):
-    """ """
+    """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/ComplexPlot3D.html</url>
+    <dl>
+      <dt>'Plot3D'[$f$, {$z$, $z_{min}$, $z_{max}$}]
+      <dd>creates a three-dimensional plot of the magnitude of $f$ with $z$ ranging from $z_{min}$ to \
+          $z_{max}$ with surface colored according to phase
+
+          See <url>:Drawing Option and Option Values:
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    </url> for a list of Plot options.
+    </dl>
+
+    """
 
     summary_text = "plots one or more complex functions as a surface"
     expected_args = 2
@@ -774,9 +786,21 @@ class ComplexPlot3D(_Plot3D):
 
 
 class ComplexPlot(_Plot3D):
-    """ """
+    """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/ComplexPlot.html</url>
+    <dl>
+      <dt>'Plot3D'[$f$, {$z$, $z_{min}$, $z_{max}$}]
+      <dd>creates two-dimensional plot of $f$ with $z$ ranging from $z_{min}$ to \
+          $z_{max}$ colored according to phase
 
-    summary_text = "plots a complex function showing amplitude and phase using colors"
+          See <url>:Drawing Option and Option Values:
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    </url> for a list of Plot options.
+    </dl>
+
+    """
+
+    summary_text = "plots a complex function showing phase using colors"
     expected_args = 2
     options = _Plot3D.options2d
 
