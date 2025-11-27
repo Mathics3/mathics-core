@@ -29,8 +29,8 @@ from mathics.eval.tracing import trace_evaluate
 # keep variable names short.  In tracing values, long names makes
 # output messy and harder to follow, since it detracts from the
 # important information
-sympy_symbol_prefix = "_u"
-sympy_slot_prefix = "_#"
+SYMPY_SYMBOL_PREFIX = "_u"
+SYMPY_SLOT_PREFIX = "_#"
 
 
 class NumericOperators:
@@ -109,6 +109,26 @@ class NumericOperators:
         return None
 
 
+def strip_context(name) -> str:
+    """strip context from a symbol name"""
+    if "`" in name:
+        return name[name.rindex("`") + 1 :]
+    return name
+
+
+def sympy_strip_context(name) -> str:
+    """
+    Strip context from sympy names.
+    Currenty we use the same context marks for
+    mathics and sympy symbols. However,
+    when using sympy to compile code,
+    having '`' in symbol names
+    produce invalid code. In a next round, we would like
+    to use another character for split contexts in sympy variables.
+    """
+    return strip_context(name)
+
+
 # system_symbols_dict({'SomeSymbol': ...}) -> {Symbol('System`SomeSymbol'): ...}
 def system_symbols_dict(d):
     return {Symbol(k): v for k, v in d.items()}
@@ -121,12 +141,6 @@ def valid_context_name(ctx, allow_initial_backquote=False) -> bool:
         and "``" not in ctx
         and (allow_initial_backquote or not ctx.startswith("`"))
     )
-
-
-def strip_context(name) -> str:
-    if "`" in name:
-        return name[name.rindex("`") + 1 :]
-    return name
 
 
 class Atom(BaseElement):
@@ -743,6 +757,11 @@ def symbol_set(*symbols: Symbol) -> FrozenSet[Symbol]:
     frozenset was the fastest.
     """
     return frozenset(symbols)
+
+
+def sympy_name(mathics_symbol: Symbol):
+    """Convert a mathics symbol name into a sympy symbol name"""
+    return SYMPY_SYMBOL_PREFIX + mathics_symbol.name
 
 
 # Symbols used in this module.
