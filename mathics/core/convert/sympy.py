@@ -7,7 +7,12 @@ Conversion to SymPy is handled directly in BaseElement descendants.
 from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Tuple, Union, cast
 
 import sympy
-from sympy import Symbol as Sympy_Symbol, false as SympyFalse, true as SympyTrue
+from sympy import (
+    Dummy as Sympy_Dummy,
+    Symbol as Sympy_Symbol,
+    false as SympyFalse,
+    true as SympyTrue,
+)
 from sympy.core.singleton import S
 
 from mathics.core.atoms import (
@@ -259,11 +264,10 @@ def symbol_to_sympy(symbol: Symbol, **kwargs) -> Sympy_Symbol:
     if result is not None:
         return result
 
-    if symbol.sympy_dummy is not None:
-        return symbol.sympy_dummy
-
     builtin = mathics_to_sympy.get(symbol.name)
     if builtin is None or not builtin.sympy_name or not builtin.is_constant():  # nopep8
+        if symbol in kwargs.get("dummies", {}):
+            return Sympy_Dummy(sympy_name(symbol))
         return Sympy_Symbol(sympy_name(symbol))
     return builtin.to_sympy(symbol, **kwargs)
 
@@ -364,9 +368,13 @@ def old_from_sympy(expr) -> BaseElement:
         if expr.is_Symbol:
             name = str(expr)
             if isinstance(expr, sympy.Dummy):
-                name = f"sympy`dummy`Dummy${expr.dummy_index}"  # type: ignore[attr-defined]
+                name = name[1:]
+                if "`" not in name:
+                    name = f"sympy`dummy`Dummy${expr.dummy_index}"  # type: ignore[attr-defined]
+                else:
+                    name = name[len(SYMPY_SYMBOL_PREFIX) :]
                 # Probably, this should be the value attribute
-                return Symbol(name, sympy_dummy=expr)
+                return Symbol(name)
             if is_Cn_expr(name):
                 return Expression(SymbolC, Integer(int(name[1:])))
             if name.startswith(SYMPY_SYMBOL_PREFIX):
