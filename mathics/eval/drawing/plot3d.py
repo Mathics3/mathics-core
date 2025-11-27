@@ -492,3 +492,17 @@ def eval_DensityPlot(
         graphics.add_linexyzs([mesh_points[xi]])
 
     return graphics
+
+
+def eval_ComplexPlot3D(
+    plot_options,
+    evaluation: Evaluation,
+):
+    return None
+
+
+def eval_ComplexPlot(
+    plot_options,
+    evaluation: Evaluation,
+):
+    return None

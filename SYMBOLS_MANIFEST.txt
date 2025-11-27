@@ -244,6 +244,8 @@ System`Complement
 System`Complex
 System`ComplexExpand
 System`ComplexInfinity
+System`ComplexPlot
+System`ComplexPlot3D
 System`Complexes
 System`CompositeQ
 System`Composition
