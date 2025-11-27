@@ -182,16 +182,7 @@ class SympyConvert(unittest.TestCase):
             SymbolFunction,
             Expression(SymbolPlus, Integer1, Expression(SymbolSlot, Integer1)),
         )
-        print("  * expr:", expr)
-        print("  * lambda:", sympy_lambda_expr)
         self.compare(expr, sympy_lambda_expr)
-        # compare_to_sympy does not pass because Slot[1] are translated as
-        # functions
-
-        # self.compare_to_mathics(
-        #    expr,
-        #     sympy_lambda_expr,
-        # )
 
 
 class PythonConvert(unittest.TestCase):
