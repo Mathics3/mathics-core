@@ -157,7 +157,9 @@ class SympyExpression(sympy.Expr):
             if kwargs.get("convert_functions_for_polynomialq", False):
                 sympy_elements = []
             else:
-                sympy_elements = [element.to_sympy() for element in expr.elements]
+                sympy_elements = [
+                    element.to_sympy(**kwargs) for element in expr.elements
+                ]
             if sympy_head is None or None in sympy_elements:
                 return None
             obj = super().__new__(cls, sympy_head, *sympy_elements)
