@@ -1,7 +1,5 @@
 import os
-import sys
-import time
-from test.helper import check_evaluation, evaluate, session
+from test.helper import session
 
 import pytest
 

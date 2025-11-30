@@ -41,7 +41,7 @@ from mathics.core.builtin import (
     SympyObject,
     Test,
 )
-from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol_prefix
+from mathics.core.convert.sympy import SympyExpression, from_sympy
 from mathics.core.element import BaseElement, ElementsProperties
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -62,6 +62,7 @@ from mathics.core.symbols import (
     SymbolPlus,
     SymbolTimes,
     SymbolTrue,
+    sympy_name,
 )
 from mathics.core.systemsymbols import (
     SymbolAnd,
@@ -377,7 +378,7 @@ language/ref/ConditionalExpression.html</url>
 
         sympy_cases = (
             (expr.to_sympy(**kwargs), sympy_cond),
-            (sympy.Symbol(sympy_symbol_prefix + "System`Undefined"), True),
+            (sympy.Symbol(sympy_name(SymbolUndefined)), True),
         )
         return sympy.Piecewise(*sympy_cases)
 

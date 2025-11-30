@@ -3,24 +3,22 @@
 """
 Solving Recurrence Equations
 """
-
-# This tells documentation how to sort this module
-# Here we are also hiding "moments" since this erroneously appears at the
-# top level.
-sort_order = "mathics.builtin.solving-recurrence-equations"
-
-
 import sympy
 
 from mathics.core.atoms import IntegerM1
 from mathics.core.attributes import A_CONSTANT
 from mathics.core.builtin import Builtin
-from mathics.core.convert.sympy import from_sympy, sympy_symbol_prefix
+from mathics.core.convert.sympy import from_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolTimes
 from mathics.core.systemsymbols import SymbolFunction, SymbolRule
+
+# This tells documentation how to sort this module
+# Here we are also hiding "moments" since this erroneously appears at the
+# top level.
+sort_order = "mathics.builtin.solving-recurrence-equations"
 
 
 class RSolve(Builtin):
@@ -121,7 +119,7 @@ class RSolve(Builtin):
                     r_sympy = ri.to_sympy()
                     if r_sympy is None:
                         raise ValueError
-                    conditions[le.elements[0].to_python()] = r_sympy
+                    conditions[le.elements[0]] = r_sympy
                     return False
             return True
 
@@ -137,18 +135,18 @@ class RSolve(Builtin):
             SymbolPlus, left, Expression(SymbolTimes, IntegerM1, right)
         ).evaluate(evaluation)
 
-        sym_eq = relation.to_sympy(converted_functions={func.get_head_name()})
+        func_name = func.get_head_name()
+        sym_eq = relation.to_sympy(converted_functions={func_name})
         if sym_eq is None:
             return
-        sym_n = sympy.core.symbols(str(sympy_symbol_prefix + n.name))
-        sym_func = sympy.Function(str(sympy_symbol_prefix + func.get_head_name()))(
-            sym_n
-        )
+        sym_func = func._as_sympy_function(converted_functions={func_name})
 
         sym_conds = {}
         for cond in conditions:
             sym_conds[
-                sympy.Function(str(sympy_symbol_prefix + func.get_head_name()))(cond)
+                Expression(func.head, cond)._as_sympy_function(
+                    converted_functions={func_name}
+                )
             ] = conditions[cond]
 
         try:

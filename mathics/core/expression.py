@@ -60,22 +60,14 @@ from mathics.core.symbols import (
     SymbolTimes,
     SymbolTrue,
     symbol_set,
+    sympy_name,
 )
 from mathics.core.systemsymbols import (
     SymbolAborted,
-    SymbolAlternatives,
-    SymbolBlank,
-    SymbolBlankNullSequence,
-    SymbolBlankSequence,
-    SymbolCondition,
     SymbolDirectedInfinity,
     SymbolFunction,
     SymbolMinus,
-    SymbolOptional,
-    SymbolOptionsPattern,
     SymbolOverflow,
-    SymbolPattern,
-    SymbolPatternTest,
     SymbolPower,
     SymbolSequence,
     SymbolSin,
@@ -83,7 +75,6 @@ from mathics.core.systemsymbols import (
     SymbolSqrt,
     SymbolSubtract,
     SymbolUnevaluated,
-    SymbolVerbatim,
 )
 from mathics.eval.tracing import trace_evaluate
 
@@ -331,9 +322,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         )
 
     def _as_sympy_function(self, **kwargs):
-        from mathics.core.convert.sympy import sympy_symbol_prefix
-
-        function_name = str(sympy_symbol_prefix + self.get_head_name())
+        function_name = sympy_name(self.head)
         f = sympy.Function(function_name)
 
         if kwargs.get("convert_functions_for_polynomial", False):

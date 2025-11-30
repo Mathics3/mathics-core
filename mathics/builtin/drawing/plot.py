@@ -38,6 +38,7 @@ from mathics.core.systemsymbols import (
     SymbolLog10,
     SymbolNone,
     SymbolRGBColor,
+    SymbolSequence,
     SymbolStyle,
 )
 from mathics.eval.drawing.charts import draw_bar_chart, eval_chart
@@ -53,6 +54,7 @@ from mathics.eval.drawing.plot import (
     get_plot_range,
     get_plot_range_option,
 )
+from mathics.eval.nevaluator import eval_N
 
 # The vectorized plot function generates GraphicsComplex using NumericArray,
 # which no consumer will currently understand. So lets make it opt-in for now.
@@ -62,11 +64,19 @@ from mathics.eval.drawing.plot import (
 # TODO: work out exactly how to deploy.
 use_vectorized_plot = os.getenv("MATHICS3_USE_VECTORIZED_PLOT", False)
 if use_vectorized_plot:
-    from mathics.eval.drawing.plot3d_vectorized import eval_DensityPlot, eval_Plot3D
+    from mathics.eval.drawing.plot3d_vectorized import (
+        eval_ComplexPlot,
+        eval_ComplexPlot3D,
+        eval_DensityPlot,
+        eval_Plot3D,
+    )
 else:
-    from mathics.eval.drawing.plot3d import eval_DensityPlot, eval_Plot3D
-
-from mathics.eval.nevaluator import eval_N
+    from mathics.eval.drawing.plot3d import (
+        eval_ComplexPlot,
+        eval_ComplexPlot3D,
+        eval_DensityPlot,
+        eval_Plot3D,
+    )
 
 # This tells documentation how to sort this module
 # Here we are also hiding "drawing" since this erroneously appears at the top level.
@@ -466,11 +476,15 @@ class PlotOptions:
                 self.error(expr, "invrange", range_expr)
             range = [range_expr.elements[0]]
             for limit_expr in range_expr.elements[1:3]:
-                limit = limit_expr.round_to_float(evaluation)
-                if limit is None:
+                limit = eval_N(limit_expr, evaluation).to_python()
+                if not isinstance(limit, (int, float, complex)):
                     self.error(expr, "plln", limit_expr, range_expr)
                 range.append(limit)
-            if range[2] <= range[1]:
+            if isinstance(limit, (int, float)) and range[2] <= range[1]:
+                self.error(expr, "invrange", range_expr)
+            if isinstance(limit, complex) and (
+                range[2].real <= range[1].real or range[2].imag <= range[1].imag
+            ):
                 self.error(expr, "invrange", range_expr)
             self.ranges.append(range)
 
@@ -539,7 +553,9 @@ class PlotOptions:
 
 
 class _Plot3D(Builtin):
-    """Common base class for Plot3D and DensityPlot"""
+    """Common base class for Plot3D, DensityPlot, ComplexPlot, ComplexPlot3D"""
+
+    attributes = A_HOLD_ALL | A_PROTECTED
 
     # Check for correct number of args
     eval_error = Builtin.generic_argument_error
@@ -565,29 +581,62 @@ class _Plot3D(Builtin):
         ),
     }
 
+    # Plot3D, ComplexPlot3D
+    options3d = Graphics3D.options | {
+        "Axes": "True",
+        "AspectRatio": "1",
+        "Mesh": "Full",
+        "PlotPoints": "None",
+        "BoxRatios": "{1, 1, 0.4}",
+        "MaxRecursion": "2",
+    }
+
+    # DensityPlot, ComplexPlot
+    options2d = Graphics.options | {
+        "Axes": "False",
+        "AspectRatio": "1",
+        "Mesh": "None",
+        "Frame": "True",
+        "ColorFunction": "Automatic",
+        "ColorFunctionScaling": "True",
+        "PlotPoints": "None",
+        "MaxRecursion": "0",
+        # 'MaxRecursion': '2',  # FIXME causes bugs in svg output see #303
+    }
+
     def eval(
         self,
         functions,
-        xrange,
-        yrange,
+        ranges,
         evaluation: Evaluation,
         options: dict,
     ):
-        """%(name)s[functions_, xrange_, yrange_, OptionsPattern[%(name)s]]"""
+        """%(name)s[functions_, ranges__, OptionsPattern[%(name)s]]"""
 
         # TODO: test error for too many, too few, no args
 
         # parse options, bailing out if anything is wrong
         try:
-            plot_options = PlotOptions(self, [xrange, yrange], options, evaluation)
+            ranges = ranges.elements if ranges.head is SymbolSequence else [ranges]
+            plot_options = PlotOptions(self, ranges, options, evaluation)
         except ValueError:
             return None
 
-        # ask the subclass to get one or more functions as appropriate
-        plot_options.functions = self.get_functions_param(functions)
+        # TODO: consult many_functions variable set by subclass and error
+        # if many_functions is False but multiple are supplied
+        if functions.has_form("List", None):
+            plot_options.functions = functions.elements
+        else:
+            plot_options.functions = [functions]
 
-        # delegate to subclass, which will call the appropriate eval_* function
-        return self.do_eval(plot_options, evaluation, options)
+        # subclass must set eval_function and graphics_class
+        graphics = self.eval_function(plot_options, evaluation)
+        if not graphics:
+            return
+        graphics_expr = graphics.generate(
+            options_to_rules(options, self.graphics_class.options)
+        )
+        return graphics_expr
 
 
 class BarChart(_Chart):
@@ -712,6 +761,54 @@ class ColorDataFunction(Builtin):
     summary_text = "color scheme object"
 
 
+class ComplexPlot3D(_Plot3D):
+    """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/ComplexPlot3D.html</url>
+    <dl>
+      <dt>'Plot3D'[$f$, {$z$, $z_{min}$, $z_{max}$}]
+      <dd>creates a three-dimensional plot of the magnitude of $f$ with $z$ ranging from $z_{min}$ to \
+          $z_{max}$ with surface colored according to phase
+
+          See <url>:Drawing Option and Option Values:
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    </url> for a list of Plot options.
+    </dl>
+
+    """
+
+    summary_text = "plots one or more complex functions as a surface"
+    expected_args = 2
+    options = _Plot3D.options3d | {"Mesh": "None"}
+
+    many_functions = True
+    eval_function = staticmethod(eval_ComplexPlot3D)
+    graphics_class = Graphics3D
+
+
+class ComplexPlot(_Plot3D):
+    """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/ComplexPlot.html</url>
+    <dl>
+      <dt>'Plot3D'[$f$, {$z$, $z_{min}$, $z_{max}$}]
+      <dd>creates two-dimensional plot of $f$ with $z$ ranging from $z_{min}$ to \
+          $z_{max}$ colored according to phase
+
+          See <url>:Drawing Option and Option Values:
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    </url> for a list of Plot options.
+    </dl>
+
+    """
+
+    summary_text = "plots a complex function showing phase using colors"
+    expected_args = 2
+    options = _Plot3D.options2d
+
+    many_functions = False
+    eval_function = staticmethod(eval_ComplexPlot)
+    graphics_class = Graphics
+
+
 class DensityPlot(_Plot3D):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/DensityPlot.html</url>
@@ -736,35 +833,13 @@ class DensityPlot(_Plot3D):
      = -Graphics-
     """
 
-    attributes = A_HOLD_ALL | A_PROTECTED
-
-    options = Graphics.options.copy()
-    options.update(
-        {
-            "Axes": "False",
-            "AspectRatio": "1",
-            "Mesh": "None",
-            "Frame": "True",
-            "ColorFunction": "Automatic",
-            "ColorFunctionScaling": "True",
-            "PlotPoints": "None",
-            "MaxRecursion": "0",
-            # 'MaxRecursion': '2',  # FIXME causes bugs in svg output see #303
-        }
-    )
     summary_text = "density plot for a function"
+    expected_args = 3
+    options = _Plot3D.options2d
 
-    # TODO: error if more than one function here
-    def get_functions_param(self, functions):
-        """can only have one function"""
-        return [functions]
-
-    # called by superclass
-    def do_eval(self, plot_options, evaluation, options):
-        """called by superclass to call appropriate eval_* function"""
-        graphics = eval_DensityPlot(plot_options, evaluation)
-        graphics_expr = graphics.generate(options_to_rules(options, Graphics.options))
-        return graphics_expr
+    many_functions = False
+    eval_function = staticmethod(eval_DensityPlot)
+    graphics_class = Graphics
 
 
 class DiscretePlot(_Plot):
@@ -1878,30 +1953,10 @@ class Plot3D(_Plot3D):
      = -Graphics3D-
     """
 
-    attributes = A_HOLD_ALL | A_PROTECTED
-
-    options = Graphics.options.copy()
-    options.update(
-        {
-            "Axes": "True",
-            "AspectRatio": "1",
-            "Mesh": "Full",
-            "PlotPoints": "None",
-            "BoxRatios": "{1, 1, 0.4}",
-            "MaxRecursion": "2",
-        }
-    )
     summary_text = "plots 3D surfaces of one or more functions"
+    expected_args = 3
+    options = _Plot3D.options3d
 
-    def get_functions_param(self, functions):
-        """May have a function or a list of functions"""
-        if functions.has_form("List", None):
-            return functions.elements
-        else:
-            return [functions]
-
-    def do_eval(self, plot_options, evaluation, options):
-        """called by superclass to call appropriate eval_* function"""
-        graphics = eval_Plot3D(plot_options, evaluation)
-        graphics_expr = graphics.generate(options_to_rules(options, Graphics3D.options))
-        return graphics_expr
+    many_functions = True
+    eval_function = staticmethod(eval_Plot3D)
+    graphics_class = Graphics3D
