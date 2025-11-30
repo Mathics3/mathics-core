@@ -793,8 +793,13 @@ class Product(IterationFunction, SympyFunction, PrefixOperator):
             try:
                 e_kwargs = kwargs.copy()
                 e_kwargs["convert_all_global_functions"] = True
+                e_kwargs["dummies"] = e_kwargs.get("dummies", set()).union((index,))
                 e = expr.elements[0].to_sympy(**e_kwargs)
-                i = index.elements[0].to_sympy(**kwargs)
+                e_kwargs["convert_all_global_functions"] = kwargs.get(
+                    "convert_all_global_functions", False
+                )
+
+                i = index.elements[0].to_sympy(**e_kwargs)
                 start = index.elements[1].to_sympy(**kwargs)
                 stop = index.elements[2].to_sympy(**kwargs)
 
@@ -1032,6 +1037,7 @@ class Sum(IterationFunction, SympyFunction, PrefixOperator):
             index = expr.elements[1]
             arg_kwargs = kwargs.copy()
             arg_kwargs["convert_all_global_functions"] = True
+            arg_kwargs["dummies"] = kwargs.get("dummies", set()).union((index,))
             f_sympy = expr.elements[0].to_sympy(**arg_kwargs)
             if f_sympy is None:
                 return
@@ -1039,16 +1045,19 @@ class Sum(IterationFunction, SympyFunction, PrefixOperator):
             evaluation = kwargs.get("evaluation", None)
 
             # Handle summation parameters: variable, min, max
-            var_min_max = index.elements[:3]
-            bounds = [expr.to_sympy(**kwargs) for expr in var_min_max]
 
+            arg_kwargs["convert_all_global_functions"] = kwargs.get(
+                "convert_all_global_functions", False
+            )
+            var_min_max = index.elements[:3]
+            bounds = [expr.to_sympy(**arg_kwargs) for expr in var_min_max]
             if evaluation:
                 # Min and max might be Mathics expressions. If so, evaluate them.
                 for i in (1, 2):
                     min_max_expr = var_min_max[i]
                     if not isinstance(expr, Symbol):
                         min_max_expr_eval = min_max_expr.evaluate(evaluation)
-                        value = min_max_expr_eval.to_sympy(**kwargs)
+                        value = min_max_expr_eval.to_sympy(**arg_kwargs)
                         bounds[i] = value
 
             # FIXME: The below tests on SympyExpression, but really the
@@ -1062,7 +1071,7 @@ class Sum(IterationFunction, SympyFunction, PrefixOperator):
                 # If we have integer bounds, we'll use Mathics's iterator Sum
                 # (which is Plus)
 
-                if all(
+                if evaluation and all(
                     (hasattr(i, "is_integer") and i.is_integer)
                     or (hasattr(i, "is_finite") and i.is_finite and i.is_constant())
                     for i in bounds[1:]
