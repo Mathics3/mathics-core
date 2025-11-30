@@ -41,18 +41,14 @@ from mathics.core.builtin import Builtin, PostfixOperator, SympyFunction
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.function import expression_to_callable_and_args
 from mathics.core.convert.python import from_python
-from mathics.core.convert.sympy import (
-    SymbolRootSum,
-    SympyExpression,
-    from_sympy,
-    sympy_symbol_prefix,
-)
+from mathics.core.convert.sympy import SymbolRootSum, SympyExpression, from_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import MACHINE_EPSILON, dps
 from mathics.core.rules import BasePattern
 from mathics.core.symbols import (
+    SYMPY_SYMBOL_PREFIX,
     BaseElement,
     Symbol,
     SymbolFalse,
@@ -532,7 +528,7 @@ class Derivative(PostfixOperator, SympyFunction):
             return
 
         func = exprs[1].elements[0]
-        sym_func = sympy.Function(str(sympy_symbol_prefix + func.__str__()))(*sym_args)
+        sym_func = sympy.Function(str(SYMPY_SYMBOL_PREFIX + func.__str__()))(*sym_args)
 
         counts = [element.get_int_value() for element in exprs[2].elements]
         if None in counts:
