@@ -19,7 +19,7 @@ import numpy as np
 
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
-from mathics.eval.drawing.plot_compile import plot_compile
+from mathics.core.convert.lambdify import lambdify_compile
 
 #
 # Each test specifies:
@@ -36,7 +36,7 @@ from mathics.eval.drawing.plot_compile import plot_compile
 #     not registered          Bultin is not registered
 #                             Try making it a subclass of SympyFunction.
 #     '...' is not defined    Sympy expects function '...' to be defined.
-#                             Look into adding it in plot_compile.py
+#                             Look into adding it in lambdify_compile.py
 #     TypeError               Look into builtin.to_sympy where it catches TypeError
 
 # common test case for Round, Floor, Ceiling, IntegerPart, FractionalPart
@@ -421,7 +421,7 @@ def one(name, args, scipy=False, expected=None, fail=False):
     # compile function
     try:
         expr = session.parse(def_expr)
-        fun = plot_compile(session.evaluation, expr, parms, debug)
+        fun = lambdify_compile(session.evaluation, expr, parms, debug)
     except Exception as oops:
         failure(name, f"compilaton failed: {oops}")
 

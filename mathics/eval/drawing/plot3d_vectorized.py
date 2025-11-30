@@ -13,7 +13,7 @@ from mathics.core.symbols import strip_context
 from mathics.core.systemsymbols import SymbolNone, SymbolRGBColor
 from mathics.timing import Timer
 
-from .plot_compile import plot_compile
+from mathics.core.convert.lambdify import lambdify_compile as plot_compile
 from .util import GraphicsGenerator
 
 
