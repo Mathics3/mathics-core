@@ -269,7 +269,7 @@ class _EqualityOperator(_InequalityOperator, ABC):
         return SymbolTrue
 
 
-class _MinMax(Builtin):
+class _MinMax(SympyFunction):
     attributes = (
         A_FLAT | A_NUMERIC_FUNCTION | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
     )
@@ -729,6 +729,7 @@ class Max(_MinMax):
     """
 
     summary_text = "get maximum value"
+    sympy_name = "Max"
 
 
 class Min(_MinMax):
@@ -763,6 +764,7 @@ class Min(_MinMax):
 
     sense = -1
     summary_text = "get minimum value"
+    sympy_name = "Min"
 
 
 class SameQ(_ComparisonOperator):

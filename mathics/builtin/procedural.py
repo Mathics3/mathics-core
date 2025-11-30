@@ -16,13 +16,20 @@ Procedural functions are integrated into \\Mathics symbolic programming \
 environment.
 """
 
+import sympy
+
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_REST,
     A_PROTECTED,
     A_READ_PROTECTED,
 )
-from mathics.core.builtin import Builtin, InfixOperator, IterationFunction
+from mathics.core.builtin import (
+    Builtin,
+    InfixOperator,
+    IterationFunction,
+    SympyFunction,
+)
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.interrupt import (
@@ -365,7 +372,7 @@ class For(Builtin):
         return SymbolNull
 
 
-class If(Builtin):
+class If(SympyFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/If.html</url>
 
@@ -442,6 +449,26 @@ class If(Builtin):
             return f.evaluate(evaluation)
         else:
             return u.evaluate(evaluation)
+
+    def to_sympy(self, expr, **kwargs):
+        if len(expr.elements) == 3:
+            sympy_cond = expr.elements[0].to_sympy(**kwargs)
+            sympy_true = expr.elements[1].to_sympy(**kwargs)
+            sympy_false = expr.elements[2].to_sympy(**kwargs)
+            if sympy_cond is None:
+                return
+            # sympy.Piecewise is is picky as to what type of conds it will accept,
+            # allowing Boolean, Relational, and Symbol (as an honorary Boolean,
+            # accompanied by a comment in the code that this isn't really correct).
+            # Seems an attempt at early typechecking, but maybe too restrictive -
+            # what about Exprs in general that might or might not evaluate to Boolean?
+            # See similar code in mathics.builtin.arithmetic.ConditionalExpression.
+            if (
+                sympy_cond.is_Boolean
+                or sympy_cond.is_Relational
+                or sympy_cond.is_Symbol
+            ):
+                return sympy.Piecewise((sympy_true, sympy_cond), (sympy_false, True))
 
 
 class Interrupt(Builtin):
@@ -648,7 +675,7 @@ class Throw(Builtin):
         raise WLThrowInterrupt(value, tag)
 
 
-class Which(Builtin):
+class Which(SympyFunction):
     """
     <url>
     :WMA link:
@@ -709,6 +736,15 @@ class Which(Builtin):
                 return Expression(SymbolWhich, *items)
             items = items[2:]
         return SymbolNull
+
+    def to_sympy(self, expr, **kwargs):
+        if len(expr.elements) % 2 == 0:
+            args = []
+            for cond, value in zip(expr.elements[::2], expr.elements[1::2]):
+                sympy_cond = cond.to_sympy(**kwargs)
+                sympy_value = value.to_sympy(**kwargs)
+                args.append((sympy_value, sympy_cond))
+            return sympy.Piecewise(*args)
 
 
 class While(Builtin):

@@ -247,6 +247,8 @@ def expression_to_sympy(expr: Expression, **kwargs):
         sympy_expr = builtin.to_sympy(expr, **kwargs)
         if sympy_expr is not None:
             return sympy_expr
+    elif exc := kwargs.get("raise_on_error", None):
+        raise exc(f"{lookup_name} not registered in mathics_to_sympy")
     return SympyExpression(expr, **kwargs)
 
 
