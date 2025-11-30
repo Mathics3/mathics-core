@@ -566,10 +566,12 @@ class Table(IterationFunction):
 
     summary_text = "make a table of values of an expression"
 
-    def get_result(self, elements) -> ListExpression:
+    def get_result(self, elements, is_uniform=False) -> ListExpression:
         return ListExpression(
             *elements,
-            elements_properties=ElementsProperties(elements_fully_evaluated=True),
+            elements_properties=ElementsProperties(
+                elements_fully_evaluated=True, is_uniform=is_uniform
+            ),
         )
 
 
