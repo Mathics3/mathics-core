@@ -60,22 +60,14 @@ from mathics.core.symbols import (
     SymbolTimes,
     SymbolTrue,
     symbol_set,
+    sympy_name,
 )
 from mathics.core.systemsymbols import (
     SymbolAborted,
-    SymbolAlternatives,
-    SymbolBlank,
-    SymbolBlankNullSequence,
-    SymbolBlankSequence,
-    SymbolCondition,
     SymbolDirectedInfinity,
     SymbolFunction,
     SymbolMinus,
-    SymbolOptional,
-    SymbolOptionsPattern,
     SymbolOverflow,
-    SymbolPattern,
-    SymbolPatternTest,
     SymbolPower,
     SymbolSequence,
     SymbolSin,
@@ -83,7 +75,6 @@ from mathics.core.systemsymbols import (
     SymbolSqrt,
     SymbolSubtract,
     SymbolUnevaluated,
-    SymbolVerbatim,
 )
 from mathics.eval.tracing import trace_evaluate
 
@@ -331,9 +322,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         )
 
     def _as_sympy_function(self, **kwargs):
-        from mathics.core.convert.sympy import sympy_symbol_prefix
-
-        function_name = str(sympy_symbol_prefix + self.get_head_name())
+        function_name = sympy_name(self.head)
         f = sympy.Function(function_name)
 
         if kwargs.get("convert_functions_for_polynomial", False):
@@ -1967,13 +1956,15 @@ def atom_list_constructor(evaluation, head, *atom_names):
 
 # Note: this function is called a *lot* so it needs to be fast.
 def convert_expression_elements(
-    elements: Iterable, conversion_fn: Callable = from_python
+    elements: Iterable, conversion_fn: Callable = from_python, is_uniform: bool = True
 ) -> Tuple[tuple, ElementsProperties, Optional[tuple]]:
     """
     Convert and return tuple of Elements from the Python-like items in
     `elements`, along with elements properties of the elements tuple,
     and a tuple of literal values if it elements are all literal
     otherwise, None.
+    By default, is is assumed that `elements` are *uniform*, which is the typical case
+    of elements coming from applying a numerical function to a set of different arguments.
 
     The return information is suitable for use to the Expression() constructor.
 
@@ -1981,7 +1972,7 @@ def convert_expression_elements(
 
     # All of the properties start out optimistic (True) and are reset when that
     # proves wrong.
-    elements_properties = ElementsProperties(True, True, True)
+    elements_properties = ElementsProperties(True, True, True, is_uniform)
 
     is_literal = True
     values = []  # If is_literal, "values" contains the (Python) literal values

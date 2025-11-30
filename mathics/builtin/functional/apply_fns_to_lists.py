@@ -8,7 +8,7 @@ in parallel to many elements in a list.
 Many mathematical functions are automatically taken to be "listable", so that \
 they are always applied to every element in a list.
 """
-
+from dataclasses import replace as dc_replace
 from typing import Iterable
 
 from mathics.core.atoms import Integer, Integer0, Integer1, Integer3
@@ -94,7 +94,10 @@ class Apply(InfixOperator):
             if isinstance(level, Atom):
                 return level
             else:
-                return Expression(f, *level.elements)
+                elem_prop = level.elements_properties
+                if elem_prop is not None:
+                    elem_prop = dc_replace(elem_prop, elements_fully_evaluated=False)
+                return Expression(f, *level.elements, elements_properties=elem_prop)
 
         heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
         result, _ = walk_levels(expr, start, stop, heads=heads, callback=callback)
@@ -154,6 +157,10 @@ class Map(InfixOperator):
 
         heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
         result, _ = walk_levels(expr, start, stop, heads=heads, callback=callback)
+        elem_prop = result.elements_properties
+        if elem_prop is not None:
+            elem_prop.elements_fully_evaluated = False
+        result.elements_properties
 
         return result
 
@@ -288,6 +295,9 @@ class MapIndexed(Builtin):
         result, depth = walk_levels(
             expr, start, stop, heads=heads, callback=callback, include_pos=True
         )
+        elem_prop = result.elements_properties
+        if elem_prop is not None:
+            elem_prop.elements_fully_evaluated = False
 
         return result
 

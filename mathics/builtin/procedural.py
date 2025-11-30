@@ -316,7 +316,7 @@ class Do(IterationFunction):
     allow_loopcontrol = True
     summary_text = "evaluate an expression looping over a variable"
 
-    def get_result(self, _items):
+    def get_result(self, _items, is_uniform=False):
         return SymbolNull
 
 

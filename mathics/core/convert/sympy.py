@@ -35,6 +35,8 @@ from mathics.core.expression_predefined import (
 from mathics.core.list import ListExpression
 from mathics.core.number import FP_MANTISA_BINARY_DIGITS
 from mathics.core.symbols import (
+    SYMPY_SLOT_PREFIX,
+    SYMPY_SYMBOL_PREFIX,
     Symbol,
     SymbolFalse,
     SymbolNull,
@@ -42,8 +44,7 @@ from mathics.core.symbols import (
     SymbolPower,
     SymbolTimes,
     SymbolTrue,
-    sympy_slot_prefix,
-    sympy_symbol_prefix,
+    sympy_name,
 )
 from mathics.core.systemsymbols import (
     SymbolC,
@@ -109,7 +110,7 @@ mathics_to_sympy_singleton = {
 
 def is_Cn_expr(name: str) -> bool:
     """Check if name is of the form {prefix}Cnnn"""
-    if name.startswith(sympy_symbol_prefix) or name.startswith(sympy_slot_prefix):
+    if name.startswith(SYMPY_SYMBOL_PREFIX) or name.startswith(SYMPY_SLOT_PREFIX):
         return False
     if not name.startswith("C"):
         return False
@@ -238,13 +239,7 @@ def expression_to_sympy(expr: Expression, **kwargs):
 
         functions = kwargs.get("converted_functions", [])
         if head_name in functions:
-            sym_args = [element.to_sympy() for element in expr._elements]
-            if None in sym_args:
-                return None
-            func = sympy.Function(str(sympy_symbol_prefix + expr.get_head_name()))(
-                *sym_args
-            )
-            return func
+            return expr._as_sympy_function(**kwargs)
 
     lookup_name = expr.get_lookup_name()
     builtin = mathics_to_sympy.get(lookup_name)
@@ -271,7 +266,7 @@ def symbol_to_sympy(symbol: Symbol, **kwargs) -> Sympy_Symbol:
 
     builtin = mathics_to_sympy.get(symbol.name)
     if builtin is None or not builtin.sympy_name or not builtin.is_constant():  # nopep8
-        return Sympy_Symbol(sympy_symbol_prefix + symbol.name)
+        return Sympy_Symbol(sympy_name(symbol))
     return builtin.to_sympy(symbol, **kwargs)
 
 
@@ -371,15 +366,15 @@ def old_from_sympy(expr) -> BaseElement:
         if expr.is_Symbol:
             name = str(expr)
             if isinstance(expr, sympy.Dummy):
-                name = name + (f"__Dummy_{expr.dummy_index}")  # type: ignore[attr-defined]
+                name = f"sympy`dummy`Dummy${expr.dummy_index}"  # type: ignore[attr-defined]
                 # Probably, this should be the value attribute
                 return Symbol(name, sympy_dummy=expr)
             if is_Cn_expr(name):
                 return Expression(SymbolC, Integer(int(name[1:])))
-            if name.startswith(sympy_symbol_prefix):
-                name = name[len(sympy_symbol_prefix) :]
-            if name.startswith(sympy_slot_prefix):
-                index = int(name[len(sympy_slot_prefix) :])
+            if name.startswith(SYMPY_SYMBOL_PREFIX):
+                name = name[len(SYMPY_SYMBOL_PREFIX) :]
+            if name.startswith(SYMPY_SLOT_PREFIX):
+                index = int(name[len(SYMPY_SLOT_PREFIX) :])
                 return Expression(SymbolSlot, Integer(index))
         elif expr.is_NumberSymbol:
             name = str(expr)
@@ -499,7 +494,7 @@ def old_from_sympy(expr) -> BaseElement:
         return Expression(SymbolRoot, from_sympy(e_root), Integer(indx + 1))
     if isinstance(expr, sympy.Lambda):
         variables = [
-            sympy.Symbol(f"{sympy_slot_prefix}{index + 1}")
+            sympy.Symbol(f"{SYMPY_SLOT_PREFIX}{index + 1}")
             for index in range(len(expr.variables))
         ]
         return Expression(SymbolFunction, from_sympy(expr(*variables)))
@@ -542,8 +537,8 @@ def old_from_sympy(expr) -> BaseElement:
                     Expression(Symbol("C"), Integer(int(name[1:]))),
                     *[from_sympy(arg) for arg in expr.args],
                 )
-            if name.startswith(sympy_symbol_prefix):
-                name = name[len(sympy_symbol_prefix) :]
+            if name.startswith(SYMPY_SYMBOL_PREFIX):
+                name = name[len(SYMPY_SYMBOL_PREFIX) :]
         args = [from_sympy(arg) for arg in expr.args]
         builtin = sympy_to_mathics.get(name)
         if builtin is not None:
