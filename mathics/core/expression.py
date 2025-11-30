@@ -1956,13 +1956,15 @@ def atom_list_constructor(evaluation, head, *atom_names):
 
 # Note: this function is called a *lot* so it needs to be fast.
 def convert_expression_elements(
-    elements: Iterable, conversion_fn: Callable = from_python
+    elements: Iterable, conversion_fn: Callable = from_python, is_uniform: bool = True
 ) -> Tuple[tuple, ElementsProperties, Optional[tuple]]:
     """
     Convert and return tuple of Elements from the Python-like items in
     `elements`, along with elements properties of the elements tuple,
     and a tuple of literal values if it elements are all literal
     otherwise, None.
+    By default, is is assumed that `elements` are *uniform*, which is the typical case
+    of elements coming from applying a numerical function to a set of different arguments.
 
     The return information is suitable for use to the Expression() constructor.
 
@@ -1970,7 +1972,7 @@ def convert_expression_elements(
 
     # All of the properties start out optimistic (True) and are reset when that
     # proves wrong.
-    elements_properties = ElementsProperties(True, True, True)
+    elements_properties = ElementsProperties(True, True, True, is_uniform)
 
     is_literal = True
     values = []  # If is_literal, "values" contains the (Python) literal values
