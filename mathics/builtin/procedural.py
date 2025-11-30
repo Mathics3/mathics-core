@@ -461,7 +461,7 @@ class If(SympyFunction):
             # Seems an attempt at early typechecking, but maybe too restrictive -
             # what about Exprs in general that might or might not evaluate to Boolean?
             # See similar code in mathics.builtin.arithmetic.ConditionalExpression.
-            if not(
+            if not (
                 sympy_cond.is_Boolean
                 or sympy_cond.is_Relational
                 or sympy_cond.is_Symbol
