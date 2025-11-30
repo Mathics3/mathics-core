@@ -1023,7 +1023,7 @@ class IterationFunction(Builtin, ABC):
     allow_loopcontrol = False
     throw_iterb = True
 
-    def get_result(self, elements) -> Expression:
+    def get_result(self, elements, is_uniform=False) -> Expression:
         raise NotImplementedError
 
     def eval_symbol(self, expr, iterator, evaluation):
@@ -1159,6 +1159,8 @@ class IterationFunction(Builtin, ABC):
         ).evaluate(evaluation)
 
         result = []
+        last_head = None
+        is_uniform = True
         while True:
             cont = Expression(SymbolLessEqual, index, normalised_range).evaluate(
                 evaluation
@@ -1186,6 +1188,10 @@ class IterationFunction(Builtin, ABC):
                     evaluation,
                 )
                 result.append(item)
+                if last_head is None:
+                    last_head = item.get_head()
+                elif is_uniform and last_head is not item.get_head():
+                    is_uniform = False
             except ContinueInterrupt:
                 if self.allow_loopcontrol:
                     pass
@@ -1202,7 +1208,7 @@ class IterationFunction(Builtin, ABC):
                 else:
                     raise
             index = Expression(SymbolPlus, index, Integer1).evaluate(evaluation)
-        return self.get_result(result)
+        return self.get_result(result, is_uniform=is_uniform)
 
     def eval_list(self, expr, i, items, evaluation):
         "%(name)s[expr_, {i_Symbol, {items___}}]"
