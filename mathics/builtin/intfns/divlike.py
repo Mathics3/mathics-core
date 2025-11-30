@@ -160,7 +160,7 @@ class LCM(Builtin):
         return Integer(result)
 
 
-class Mod(Builtin):
+class Mod(SympyFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Mod.html</url>
 
@@ -182,6 +182,8 @@ class Mod(Builtin):
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     summary_text = "the remainder in an integer division"
+
+    sympy_name = "Mod"
 
     def eval(self, n: Integer, m: Integer, evaluation: Evaluation):
         "Mod[n_Integer, m_Integer]"

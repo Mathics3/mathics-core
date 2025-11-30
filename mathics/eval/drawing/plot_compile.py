@@ -18,7 +18,7 @@ import inspect
 import scipy
 import sympy
 
-from mathics.core.convert.sympy import SympyExpression, mathics_to_sympy
+from mathics.core.convert.sympy import SympyExpression
 from mathics.core.symbols import strip_context
 from mathics.core.util import print_expression_tree, print_sympy_tree
 
@@ -63,21 +63,8 @@ def plot_compile(evaluation, expr, names, debug=0):
         print("post-eval", expr)
 
     # Ask the expr Expression to generate a sympy expression and handle errors
-    try:
-        sympy_expr = expr.to_sympy()
-    except Exception as oops:
-        raise CompileError(f"{expr}.to_sympy() failed: {oops}")
+    sympy_expr = expr.to_sympy(raise_on_error=CompileError)
     if isinstance(sympy_expr, SympyExpression):
-        if debug:
-            # duplicates lookup logic in mathics.core.convert.sympy
-            lookup_name = expr.get_lookup_name()
-            builtin = mathics_to_sympy.get(lookup_name)
-            if builtin:
-                sympy_name = getattr(builtin, "sympy_name", None) if builtin else None
-                print(f"compile: Invalid sympy_expr {sympy_expr}")
-                print(f"compile: {builtin}.sympy_name is {repr(sympy_name)}")
-            else:
-                print(f"compile: {lookup_name} not registered with mathics_to_sympy")
         raise CompileError(f"{expr.head}.to_sympy returns invalid sympy expr.")
 
     # Strip symbols in sympy expression of context.
