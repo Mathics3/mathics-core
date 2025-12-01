@@ -17,9 +17,9 @@ from test.helper import session
 
 import numpy as np
 
+from mathics.core.convert.lambdify import lambdify_compile
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
-from mathics.core.convert.lambdify import lambdify_compile
 
 #
 # Each test specifies:

@@ -1,22 +1,30 @@
 # -*- coding: utf-8 -*-
-import numpy
 from typing import Callable, List, Optional, Tuple
 
+import numpy
 
+from mathics.core.convert.lambdify import (
+    CompileError as LambdifyCompileError,
+    lambdify_compile,
+)
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, from_python
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
-from mathics.core.systemsymbols import SymbolBlank, SymbolInteger, SymbolReal, SymbolComplex, SymbolOr
+from mathics.core.systemsymbols import (
+    SymbolBlank,
+    SymbolComplex,
+    SymbolInteger,
+    SymbolOr,
+    SymbolReal,
+)
 from mathics.eval.nevaluator import eval_N
-from mathics.core.convert.lambdify import lambdify_compile, CompileError as LambdifyCompileError
-
 
 PERMITTED_TYPES = {
-        Expression(SymbolBlank, SymbolInteger): int,
-        Expression(SymbolBlank, SymbolReal): float,
-        Expression(SymbolBlank, SymbolComplex): complex,        
-        Expression(SymbolOr, SymbolTrue, SymbolFalse): bool,
-        Expression(SymbolOr, SymbolFalse, SymbolTrue): bool,
+    Expression(SymbolBlank, SymbolInteger): int,
+    Expression(SymbolBlank, SymbolReal): float,
+    Expression(SymbolBlank, SymbolComplex): complex,
+    Expression(SymbolOr, SymbolTrue, SymbolFalse): bool,
+    Expression(SymbolOr, SymbolFalse, SymbolTrue): bool,
 }
 
 
@@ -35,7 +43,6 @@ except ImportError:
     USE_LLVM = False
 
 
-
 class CompileDuplicateArgName(Exception):
     def __init__(self, symb):
         self.symb = symb
@@ -46,8 +53,11 @@ class CompileWrongArgType(Exception):
         self.var = var
 
 
-
-def expression_to_llvm(expr: Expression, args:Optional[list]=None, evaluation: Optional[Evaluation]=None):
+def expression_to_llvm(
+    expr: Expression,
+    args: Optional[list] = None,
+    evaluation: Optional[Evaluation] = None,
+):
     """
     Convert an expression to LLVM code. None if it fails.
     expr: Expression
@@ -61,17 +71,18 @@ def expression_to_llvm(expr: Expression, args:Optional[list]=None, evaluation: O
 
 
 def expression_to_python_function(
-        expr: Expression,
-        args: Optional[list] = None,
-        evaluation: Optional[Evaluation] = None,
+    expr: Expression,
+    args: Optional[list] = None,
+    evaluation: Optional[Evaluation] = None,
 ) -> Optional[Callable]:
     """
-    Return a Python function from an expression. 
+    Return a Python function from an expression.
     expr: Expression
     args: a list of CompileArg elements
     evaluation: an Evaluation object used if the llvm compilation fails
     """
     try:
+
         def _pythonized_mathics_expr(*x):
             inner_evaluation = Evaluation(definitions=evaluation.definitions)
             x_mathics = (from_python(u) for u in x[: len(args)])
@@ -87,7 +98,7 @@ def expression_to_python_function(
         return None
 
 
-def collect_args(vars)->Optional[List[CompileArg]]:
+def collect_args(vars) -> Optional[List[CompileArg]]:
     """
     Convert a List expression into a list of CompileArg objects.
     """
@@ -116,15 +127,14 @@ def collect_args(vars)->Optional[List[CompileArg]]:
             names.append(name)
             args.append(CompileArg(name, typ))
     return args
-    
 
 
 def expression_to_callable_and_args(
     expr: Expression,
     vars: Optional[list] = None,
     evaluation: Optional[Evaluation] = None,
-    debug:int = 0,
-    vectorize=False    
+    debug: int = 0,
+    vectorize=False,
 ) -> Tuple[Callable, Optional[list]]:
     """
     Return a tuple of Python callable and a list of CompileArgs.
@@ -143,18 +153,24 @@ def expression_to_callable_and_args(
 
     # Then, try with llvm if available
     if USE_LLVM:
-        try:            
-            llvm_args = None if args is None else [CompileArg(compile_arg.name, LLVM_TYPE_TRANSLATION[compile_arg.typ]) for compile_arg in args]
+        try:
+            llvm_args = (
+                None
+                if args is None
+                else [
+                    CompileArg(compile_arg.name, LLVM_TYPE_TRANSLATION[compile_arg.typ])
+                    for compile_arg in args
+                ]
+            )
             cfunc = expression_to_llvm(expr, llvm_args, evaluation)
             if vectorize:
                 cfunc = numpy.vectorize(cfunc)
             return cfunc, llvm_args
         except KeyError:
             pass
-        
+
     # Last resource
     cfunc = expression_to_python_function(expr, args, evaluation)
     if vectorize:
         cfunc = numpy.vectorize(cfunc)
-    return  cfunc, args
-
+    return cfunc, args
