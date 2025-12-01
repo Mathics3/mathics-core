@@ -11,7 +11,7 @@ import ctypes
 from types import FunctionType
 
 from mathics.builtin.box.compilation import CompiledCodeBox
-from mathics.core.atoms import Complex, Integer, Real, String
+from mathics.core.atoms import Complex, Integer, Rational, Real, String
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
@@ -235,12 +235,12 @@ class CompiledFunction(Builtin):
             try:
                 spec_type = spec.type
                 if spec_type is float:
-                    if isinstance(arg, (Integer, Real)):
+                    if isinstance(arg, (Integer, Rational, Real)):
                         val = spec_type(arg.value)
                     else:
                         raise TypeError
                 elif spec_type is int:
-                    if isinstance(arg, (Integer, Real)):
+                    if isinstance(arg, (Integer, Rational, Real)):
                         val = spec_type(arg.value)
                         # If arg.value was not an integer, show a message but accept it:
                         if val != arg.value:
@@ -264,7 +264,7 @@ class CompiledFunction(Builtin):
                     if isinstance(arg, Complex):
                         value = arg.value
                         val = complex(value[0].value, value[1].value)
-                    elif isinstance(arg, (Integer, Real)):
+                    elif isinstance(arg, (Integer, Rational, Real)):
                         val = complex(arg.value)
                     else:
                         raise TypeError
@@ -285,5 +285,7 @@ class CompiledFunction(Builtin):
             result = code.cfunc(*py_args)
         except (TypeError, ctypes.ArgumentError):
             evaluation.message("CompiledFunction", "argerr", args)
+            return
+        except Exception:
             return
         return from_python(result)

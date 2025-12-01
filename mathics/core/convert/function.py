@@ -175,6 +175,8 @@ def expression_to_callable_and_args(
                 return cfunc, args
         except KeyError:
             pass
+        except RuntimeError:
+            pass
 
     # Last resource
     cfunc = expression_to_python_function(expr, args, evaluation)
