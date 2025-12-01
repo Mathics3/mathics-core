@@ -74,28 +74,24 @@ def expression_to_python_function(
     expr: Expression,
     args: Optional[list] = None,
     evaluation: Optional[Evaluation] = None,
-) -> Optional[Callable]:
+) -> Callable:
     """
     Return a Python function from an expression.
     expr: Expression
     args: a list of CompileArg elements
     evaluation: an Evaluation object used if the llvm compilation fails
     """
-    try:
+    def _pythonized_mathics_expr(*x):
+        inner_evaluation = Evaluation(definitions=evaluation.definitions)
+        x_mathics = (from_python(u) for u in x[: len(args)])
+        vars = dict(list(zip([a.name for a in args], x_mathics)))
+        pyexpr = expr.replace_vars(vars)
+        pyexpr = eval_N(pyexpr, inner_evaluation)
+        res = pyexpr.to_python()
+        return res
 
-        def _pythonized_mathics_expr(*x):
-            inner_evaluation = Evaluation(definitions=evaluation.definitions)
-            x_mathics = (from_python(u) for u in x[: len(args)])
-            vars = dict(list(zip([a.name for a in args], x_mathics)))
-            pyexpr = expr.replace_vars(vars)
-            pyexpr = eval_N(pyexpr, inner_evaluation)
-            res = pyexpr.to_python()
-            return res
-
-        # TODO: check if we can use numba to compile this...
-        return _pythonized_mathics_expr
-    except Exception:
-        return None
+    # TODO: check if we can use numba to compile this...
+    return _pythonized_mathics_expr
 
 
 def collect_args(vars) -> Optional[List[CompileArg]]:

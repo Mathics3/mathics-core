@@ -1789,12 +1789,12 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                         (prefix + [innerelement])
                         for innerelement in element.get_elements()
                     ]
-                elif len(element._elements) != dim:
+                elif len(element.get_elements()) != dim:
                     evaluation.message("Thread", "tdlen")
                     return True, self
                 else:
                     for index in range(dim):
-                        items[index].append(element._elements[index])
+                        items[index].append(element.get_elements()[index])
             else:
                 if dim is None:
                     prefix.append(element)
