@@ -11,10 +11,10 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, from_python
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import (
+    SymbolAlternatives,
     SymbolBlank,
     SymbolComplex,
     SymbolInteger,
-    SymbolOr,
     SymbolReal,
 )
 from mathics.eval.nevaluator import eval_N
@@ -23,8 +23,8 @@ PERMITTED_TYPES = {
     Expression(SymbolBlank, SymbolInteger): int,
     Expression(SymbolBlank, SymbolReal): float,
     Expression(SymbolBlank, SymbolComplex): complex,
-    Expression(SymbolOr, SymbolTrue, SymbolFalse): bool,
-    Expression(SymbolOr, SymbolFalse, SymbolTrue): bool,
+    Expression(SymbolAlternatives, SymbolTrue, SymbolFalse): bool,
+    Expression(SymbolAlternatives, SymbolFalse, SymbolTrue): bool,
 }
 
 
@@ -120,6 +120,7 @@ def collect_args(vars) -> Optional[List[CompileArg]]:
                     name = symb.get_name()
                     t_typ = PERMITTED_TYPES[typ]
                 else:
+                    print(symb, typ, var)
                     raise CompileWrongArgType(var)
             else:
                 raise CompileWrongArgType(var)
@@ -145,15 +146,18 @@ def expression_to_callable_and_args(
     """
     args = collect_args(vars)
 
-    # First, try to lambdify the expression:
-    try:
-        cfunc = lambdify_compile(
-            evaluation, expr, [] if args is None else [arg.name for arg in args], debug
-        )
-        # lambdify_compile returns an already vectorized expression.
-        return cfunc, args
-    except LambdifyCompileError:
-        pass
+    # If vectorize is requested, first, try to lambdify the expression:
+    if vectorize:
+        try:
+            cfunc = lambdify_compile(
+                evaluation,
+                expr,
+                [] if args is None else [arg.name for arg in args],
+                debug,
+            )
+            return cfunc, args
+        except LambdifyCompileError:
+            pass
 
     # Then, try with llvm if available
     if USE_LLVM:
@@ -169,9 +173,10 @@ def expression_to_callable_and_args(
                 ]
             )
             cfunc = expression_to_llvm(expr, llvm_args, evaluation)
-            if vectorize:
-                cfunc = numpy.vectorize(cfunc)
-            return cfunc, llvm_args
+            if cfunc is not None:
+                if vectorize:
+                    cfunc = numpy.vectorize(cfunc)
+                return cfunc, args
         except KeyError:
             pass
 

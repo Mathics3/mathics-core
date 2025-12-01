@@ -33,6 +33,14 @@ from mathics.core.systemsymbols import SymbolCompiledFunction
 sort_order = "mathics.builtin.code-compilation"
 
 
+NAME_OF_TYPE = {
+    bool: String("True of False"),
+    int: String("integer"),
+    float: String("machine-size real number"),
+    complex: String("machine-size complex number"),
+}
+
+
 class Compile(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Compile.html</url>
@@ -199,7 +207,8 @@ class CompiledFunction(Builtin):
     """
 
     messages = {
-        "argerr": "Invalid argument `1` should be Integer, Real, Complex or boolean."
+        "argerr": "Invalid argument `1` should be Integer, Real, Complex or boolean.",
+        "cfsa": "Argument `1` at position `2` should be a `3`.",
     }
     summary_text = "A CompiledFunction object."
 
@@ -220,21 +229,56 @@ class CompiledFunction(Builtin):
                 Integer(len(args_spec)),
             )
             return
-        for arg, spec in zip(argseq, args_spec):
+        for pos, (arg, spec) in enumerate(zip(argseq, args_spec)):
             # TODO: check if the types are consistent.
             # If not, show a message.
-            if isinstance(arg, (Integer, Real, Complex)):
-                val = arg.value
-            elif arg.sameQ(SymbolTrue):
-                val = True
-            elif arg.sameQ(SymbolFalse):
-                val = False
-            else:
-                val = arg.to_python()
             try:
-                val = spec.type(val)
-            except TypeError:
+                spec_type = spec.type
+                if spec_type is float:
+                    if isinstance(arg, (Integer, Real)):
+                        val = spec_type(arg.value)
+                    else:
+                        raise TypeError
+                elif spec_type is int:
+                    if isinstance(arg, (Integer, Real)):
+                        val = spec_type(arg.value)
+                        # If arg.value was not an integer, show a message but accept it:
+                        if val != arg.value:
+                            evaluation.message(
+                                "CompiledFunction",
+                                "cfsa",
+                                arg,
+                                Integer(pos + 1),
+                                NAME_OF_TYPE[spec_type],
+                            )
+                    else:
+                        raise TypeError
+                elif spec_type is bool:
+                    if arg.sameQ(SymbolTrue):
+                        val = True
+                    elif arg.sameQ(SymbolFalse):
+                        val = False
+                    else:
+                        raise TypeError
+                elif spec_type is complex:
+                    if isinstance(arg, Complex):
+                        value = arg.value
+                        val = complex(value[0].value, value[1].value)
+                    elif isinstance(arg, (Integer, Real)):
+                        val = complex(arg.value)
+                    else:
+                        raise TypeError
+                else:
+                    raise TypeError
+            except (ValueError, TypeError):
                 # Fallback by replace values in expr?
+                evaluation.message(
+                    "CompiledFunction",
+                    "cfsa",
+                    arg,
+                    Integer(pos + 1),
+                    NAME_OF_TYPE[spec.type],
+                )
                 return
             py_args.append(val)
         try:
