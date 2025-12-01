@@ -108,15 +108,17 @@ def collect_args(vars) -> Optional[List[CompileArg]]:
         args = []
         names = []
         for var in vars:
+            name: str
+            t_typ: type
             if isinstance(var, Symbol):
                 symb = var
                 name = symb.get_name()
-                typ = float
+                t_typ = float
             elif var.has_form("List", 2):
                 symb, typ = var.elements
                 if isinstance(symb, Symbol) and typ in PERMITTED_TYPES:
                     name = symb.get_name()
-                    typ = PERMITTED_TYPES[typ]
+                    t_typ = PERMITTED_TYPES[typ]
                 else:
                     raise CompileWrongArgType(var)
             else:
@@ -125,7 +127,7 @@ def collect_args(vars) -> Optional[List[CompileArg]]:
             if name in names:
                 raise CompileDuplicateArgName(symb)
             names.append(name)
-            args.append(CompileArg(name, typ))
+            args.append(CompileArg(name, t_typ))
     return args
 
 
@@ -145,7 +147,9 @@ def expression_to_callable_and_args(
 
     # First, try to lambdify the expression:
     try:
-        cfunc = lambdify_compile(evaluation, expr, [arg.name for arg in args], debug)
+        cfunc = lambdify_compile(
+            evaluation, expr, [] if args is None else [arg.name for arg in args], debug
+        )
         # lambdify_compile returns an already vectorized expression.
         return cfunc, args
     except LambdifyCompileError:
@@ -158,7 +162,9 @@ def expression_to_callable_and_args(
                 None
                 if args is None
                 else [
-                    CompileArg(compile_arg.name, LLVM_TYPE_TRANSLATION[compile_arg.type])
+                    CompileArg(
+                        compile_arg.name, LLVM_TYPE_TRANSLATION[compile_arg.type]
+                    )
                     for compile_arg in args
                 ]
             )
