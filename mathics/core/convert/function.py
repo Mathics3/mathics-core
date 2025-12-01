@@ -158,7 +158,7 @@ def expression_to_callable_and_args(
                 None
                 if args is None
                 else [
-                    CompileArg(compile_arg.name, LLVM_TYPE_TRANSLATION[compile_arg.typ])
+                    CompileArg(compile_arg.name, LLVM_TYPE_TRANSLATION[compile_arg.type])
                     for compile_arg in args
                 ]
             )
