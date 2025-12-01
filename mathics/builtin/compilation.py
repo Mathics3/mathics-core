@@ -169,8 +169,12 @@ class CompiledCode(Atom, ImmutableValueMixin):
         try:
             return hash(("CompiledCode", ctypes.addressof(self.cfunc)))  # XXX hack
         except TypeError:
-            return hash(("CompiledCode", self.cfunc,))  # XXX hack
-            
+            return hash(
+                (
+                    "CompiledCode",
+                    self.cfunc,
+                )
+            )  # XXX hack
 
     def atom_to_boxes(self, f, evaluation: Evaluation):
         return CompiledCodeBox(String(self.__str__()), evaluation=evaluation)
@@ -194,7 +198,9 @@ class CompiledFunction(Builtin):
 
     """
 
-    messages = {"argerr": "Invalid argument `1` should be Integer, Real, Complex or boolean."}
+    messages = {
+        "argerr": "Invalid argument `1` should be Integer, Real, Complex or boolean."
+    }
     summary_text = "A CompiledFunction object."
 
     def eval(self, argnames, expr, code, args, evaluation: Evaluation):
@@ -206,8 +212,13 @@ class CompiledFunction(Builtin):
 
         py_args = []
         args_spec = code.args or []
-        if len(args_spec)!= len(argseq):
-            evaluation.mesage("CompiledFunction","cfct", Integer(len(argseq)), Integer(len(args_spec)))
+        if len(args_spec) != len(argseq):
+            evaluation.mesage(
+                "CompiledFunction",
+                "cfct",
+                Integer(len(argseq)),
+                Integer(len(args_spec)),
+            )
             return
         for arg, spec in zip(argseq, args_spec):
             # TODO: check if the types are consistent.
@@ -225,7 +236,7 @@ class CompiledFunction(Builtin):
             except TypeError:
                 # Fallback by replace values in expr?
                 return
-            py_args.append(val)                
+            py_args.append(val)
         try:
             result = code.cfunc(*py_args)
         except (TypeError, ctypes.ArgumentError):
