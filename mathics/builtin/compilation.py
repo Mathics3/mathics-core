@@ -11,7 +11,7 @@ import ctypes
 from types import FunctionType
 
 from mathics.builtin.box.compilation import CompiledCodeBox
-from mathics.core.atoms import Integer, String
+from mathics.core.atoms import Complex, Integer, Real, String
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
@@ -83,7 +83,6 @@ class Compile(Builtin):
 
     def eval(self, vars, expr, evaluation: Evaluation):
         "Compile[vars_, expr_]"
-
         if not vars.has_form("List", None):
             evaluation.message("Compile", "invars")
             return
@@ -167,7 +166,11 @@ class CompiledCode(Atom, ImmutableValueMixin):
         raise NotImplementedError
 
     def __hash__(self):
-        return hash(("CompiledCode", ctypes.addressof(self.cfunc)))  # XXX hack
+        try:
+            return hash(("CompiledCode", ctypes.addressof(self.cfunc)))  # XXX hack
+        except TypeError:
+            return hash(("CompiledCode", self.cfunc,))  # XXX hack
+            
 
     def atom_to_boxes(self, f, evaluation: Evaluation):
         return CompiledCodeBox(String(self.__str__()), evaluation=evaluation)
@@ -191,27 +194,38 @@ class CompiledFunction(Builtin):
 
     """
 
-    messages = {"argerr": "Invalid argument `1` should be Integer, Real or boolean."}
+    messages = {"argerr": "Invalid argument `1` should be Integer, Real, Complex or boolean."}
     summary_text = "A CompiledFunction object."
 
     def eval(self, argnames, expr, code, args, evaluation: Evaluation):
         "CompiledFunction[argnames_, expr_, code_CompiledCode][args__]"
-
         argseq = args.get_sequence()
 
         if len(argseq) != len(code.args):
             return
 
         py_args = []
-        for arg in argseq:
-            if isinstance(arg, Integer):
-                py_args.append(arg.get_int_value())
+        args_spec = code.args or []
+        if len(args_spec)!= len(argseq):
+            evaluation.mesage("CompiledFunction","cfct", Integer(len(argseq)), Integer(len(args_spec)))
+            return
+        for arg, spec in zip(argseq, args_spec):
+            # TODO: check if the types are consistent.
+            # If not, show a message.
+            if isinstance(arg, (Integer, Real, Complex)):
+                val = arg.value
             elif arg.sameQ(SymbolTrue):
-                py_args.append(True)
+                val = True
             elif arg.sameQ(SymbolFalse):
-                py_args.append(False)
+                val = False
             else:
-                py_args.append(arg.round_to_float(evaluation))
+                val = arg.to_python()
+            try:
+                val = spec.type(val)
+            except TypeError:
+                # Fallback by replace values in expr?
+                return
+            py_args.append(val)                
         try:
             result = code.cfunc(*py_args)
         except (TypeError, ctypes.ArgumentError):

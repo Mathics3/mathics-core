@@ -81,7 +81,7 @@ def lambdify_compile(evaluation, expr, names, debug=0):
     # Use numpy and scipy to do the evaluation so that operations are vectorized.
     # Augment the default numpy mappings with some additional ones not handled by default.
     try:
-        symbols = sympy.symbols(names)
+        symbols = sympy.symbols(tuple(strip_context(name) for name in names))
         # compiled_function = sympy.lambdify(symbols, sympy_expr, mappings)
         compiled_function = sympy.lambdify(
             symbols, sympy_expr, modules=["numpy", "scipy"]
