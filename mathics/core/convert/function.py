@@ -81,6 +81,7 @@ def expression_to_python_function(
     args: a list of CompileArg elements
     evaluation: an Evaluation object used if the llvm compilation fails
     """
+
     def _pythonized_mathics_expr(*x):
         inner_evaluation = Evaluation(definitions=evaluation.definitions)
         x_mathics = (from_python(u) for u in x[: len(args)])
