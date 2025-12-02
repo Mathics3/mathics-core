@@ -113,7 +113,7 @@ mathics_to_sympy_singleton = {
 }
 
 
-def sympy_decode_mathics_symbol_name(name: str):
+def sympy_decode_mathics_symbol_name(name: str) -> str:
     """
     Remove the Prefix for Mathics symbols
     and restore the context separator character.
