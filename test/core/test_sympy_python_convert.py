@@ -61,6 +61,12 @@ class SympyConvert(unittest.TestCase):
             Symbol_Mathics_User_x,
             sympy.Symbol(sympy_name(Symbol_Mathics_User_x)),
         )
+        # Sympy symbols without prefix are mapped to symbols in
+        # System` context:
+        self.compare_to_mathics(Symbol("x"), sympy.Symbol("x"))
+        # Notice that a sympy Symbol named "x" is converted
+        # to the Mathics symbol "System`x", and then, when converted
+        # back to sympy, goes to sympy.Symbol("_uSystem_x").
 
     def testReal(self):
         self.compare(Real("1.0"), sympy.Float("1.0"))
