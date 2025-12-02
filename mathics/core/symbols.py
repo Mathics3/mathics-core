@@ -126,7 +126,7 @@ def sympy_strip_context(name) -> str:
     produce invalid code. In a next round, we would like
     to use another character for split contexts in sympy variables.
     """
-    return strip_context(name)
+    return name.split("_")[-1]
 
 
 # system_symbols_dict({'SomeSymbol': ...}) -> {Symbol('System`SomeSymbol'): ...}
@@ -342,6 +342,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
 
     name: str
     hash: int
+    sympy_dummy: Any
     _short_name: str
 
     # Dictionary of Symbols defined so far.
@@ -354,7 +355,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
 
     # __new__ instead of __init__ is used here because we want
     # to return the same object for a given "name" value.
-    def __new__(cls, name: str):
+    def __new__(cls, name: str, sympy_dummy=None):
         """
         Allocate an object ensuring that for a given ``name`` and ``cls`` we get back the same object,
         id(object) is the same and its object.__hash__() is the same.
@@ -384,6 +385,18 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             # For example, this can happen with String constants.
 
             self.hash = hash((cls, name))
+
+            # TODO: revise how we convert sympy.Dummy
+            # symbols.
+            #
+            # In some cases, SymPy returns a sympy.Dummy
+            # object. It is converted to Mathics as a
+            # Symbol. However, we probably should have
+            # a different class for this kind of symbols.
+            # Also, sympy_dummy should be stored as the
+            # value attribute.
+            self.sympy_dummy = sympy_dummy
+
             self._short_name = strip_context(name)
 
         return self
@@ -392,7 +405,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         return self is other
 
     def __getnewargs__(self):
-        return (self.name,)
+        return (self.name, self.sympy_dummy)
 
     def __hash__(self) -> int:
         """
@@ -690,12 +703,6 @@ class SymbolConstant(Symbol):
             self.hash = hash((cls, name))
         return self
 
-    def __getnewargs__(self):
-        return (
-            self.name,
-            self._value,
-        )
-
     @property
     def is_literal(self) -> bool:
         """
@@ -754,7 +761,7 @@ def symbol_set(*symbols: Symbol) -> FrozenSet[Symbol]:
 
 def sympy_name(mathics_symbol: Symbol):
     """Convert a mathics symbol name into a sympy symbol name"""
-    return SYMPY_SYMBOL_PREFIX + mathics_symbol.name
+    return SYMPY_SYMBOL_PREFIX + mathics_symbol.name.replace("`", "_")
 
 
 # Symbols used in this module.
