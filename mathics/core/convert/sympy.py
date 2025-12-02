@@ -113,6 +113,16 @@ mathics_to_sympy_singleton = {
 }
 
 
+def sympy_decode_mathics_symbol_name(name: str):
+    """
+    Remove the Prefix for Mathics symbols
+    and restore the context separator character.
+    """
+    if name.startswith(SYMPY_SYMBOL_PREFIX):
+        return name[len(SYMPY_SYMBOL_PREFIX) :].replace("_", "`")
+    return name
+
+
 def is_Cn_expr(name: str) -> bool:
     """Check if name is of the form {prefix}Cnnn"""
     if name.startswith(SYMPY_SYMBOL_PREFIX) or name.startswith(SYMPY_SLOT_PREFIX):
@@ -373,13 +383,12 @@ def old_from_sympy(expr) -> BaseElement:
                 if "_" not in name:
                     name = f"sympy`dummy`Dummy${expr.dummy_index}"  # type: ignore[attr-defined]
                 else:
-                    name = name[len(SYMPY_SYMBOL_PREFIX) :].replace("_", "`")
+                    name = sympy_decode_mathics_symbol_name(name)
                 # Probably, this should be the value attribute
                 return Symbol(name)
             if is_Cn_expr(name):
                 return Expression(SymbolC, Integer(int(name[1:])))
-            if name.startswith(SYMPY_SYMBOL_PREFIX):
-                name = name[len(SYMPY_SYMBOL_PREFIX) :].replace("_", "`")
+            name = sympy_decode_mathics_symbol_name(name)
             if name.startswith(SYMPY_SLOT_PREFIX):
                 index = int(name[len(SYMPY_SLOT_PREFIX) :])
                 return Expression(SymbolSlot, Integer(index))
@@ -545,8 +554,7 @@ def old_from_sympy(expr) -> BaseElement:
                     Expression(Symbol("C"), Integer(int(name[1:]))),
                     *[from_sympy(arg) for arg in expr.args],
                 )
-            if name.startswith(SYMPY_SYMBOL_PREFIX):
-                name = name[len(SYMPY_SYMBOL_PREFIX) :].replace("_", "`")
+            name = sympy_decode_mathics_symbol_name(name)
         args = [from_sympy(arg) for arg in expr.args]
         builtin = sympy_to_mathics.get(name)
         if builtin is not None:

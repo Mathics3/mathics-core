@@ -25,6 +25,7 @@ from mathics.core.symbols import (
     SYMPY_SYMBOL_PREFIX,
     Symbol,
     SymbolPlus,
+    sympy_name,
 )
 from mathics.core.systemsymbols import (
     SymbolD,
@@ -35,6 +36,12 @@ from mathics.core.systemsymbols import (
     SymbolSin,
     SymbolSlot,
 )
+
+Symbol_f = Symbol("Global`f")
+Symbol_x = Symbol("Global`x")
+Symbol_y = Symbol("Global`y")
+Symbol_z = Symbol("Global`z")
+Symbol_Mathics_User_x = Symbol("Mathics`User`x")
 
 
 class SympyConvert(unittest.TestCase):
@@ -49,10 +56,10 @@ class SympyConvert(unittest.TestCase):
         self.compare_to_mathics(mathics_expr, sympy_expr)
 
     def testSymbol(self):
-        self.compare(Symbol("Global`x"), sympy.Symbol(f"{SYMPY_SYMBOL_PREFIX}Global_x"))
+        self.compare(Symbol_x, sympy.Symbol(sympy_name(Symbol_x)))
         self.compare(
-            Symbol("Mathics`User`x"),
-            sympy.Symbol(f"{SYMPY_SYMBOL_PREFIX}Mathics_User_x"),
+            Symbol_Mathics_User_x,
+            sympy.Symbol(sympy_name(Symbol_Mathics_User_x)),
         )
 
     def testReal(self):
@@ -87,25 +94,25 @@ class SympyConvert(unittest.TestCase):
 
     def testAdd(self):
         self.compare(
-            Expression(SymbolPlus, Integer1, Symbol("Global`x")),
-            sympy.Add(sympy.Integer(1), sympy.Symbol(f"{SYMPY_SYMBOL_PREFIX}Global_x")),
+            Expression(SymbolPlus, Integer1, Symbol_x),
+            sympy.Add(sympy.Integer(1), sympy.Symbol(sympy_name(Symbol_x))),
         )
 
     def testIntegrate(self):
         self.compare(
-            Expression(SymbolIntegrate, Symbol("Global`x"), Symbol("Global`y")),
+            Expression(SymbolIntegrate, Symbol_x, Symbol_y),
             sympy.Integral(
-                sympy.Symbol(f"{SYMPY_SYMBOL_PREFIX}Global_x"),
-                sympy.Symbol(f"{SYMPY_SYMBOL_PREFIX}Global_y"),
+                sympy.Symbol(sympy_name(Symbol_x)),
+                sympy.Symbol(sympy_name(Symbol_y)),
             ),
         )
 
     def testDerivative(self):
         self.compare(
-            Expression(SymbolD, Symbol("Global`x"), Symbol("Global`y")),
+            Expression(SymbolD, Symbol_x, Symbol_y),
             sympy.Derivative(
-                sympy.Symbol(f"{SYMPY_SYMBOL_PREFIX}Global_x"),
-                sympy.Symbol(f"{SYMPY_SYMBOL_PREFIX}Global_y"),
+                sympy.Symbol(sympy_name(Symbol_x)),
+                sympy.Symbol(sympy_name(Symbol_y)),
             ),
         )
 
@@ -114,17 +121,15 @@ class SympyConvert(unittest.TestCase):
 
         head = Expression(
             Expression(SymbolDerivative, Integer1, Integer0),
-            Symbol("Global`f"),
+            Symbol_f,
         )
-        expr = Expression(head, Symbol("Global`x"), Symbol("Global`y"))
+        expr = Expression(head, Symbol_x, Symbol_y)
 
-        sfxy = sympy.Function(str(f"{SYMPY_SYMBOL_PREFIX}Global_f"))(
-            sympy.Symbol(f"{SYMPY_SYMBOL_PREFIX}Global_x"),
-            sympy.Symbol(f"{SYMPY_SYMBOL_PREFIX}Global_y"),
+        sfxy = sympy.Function(sympy_name(Symbol_f))(
+            sympy.Symbol(sympy_name(Symbol_x)),
+            sympy.Symbol(sympy_name(Symbol_y)),
         )
-        sym_expr = sympy.Derivative(
-            sfxy, sympy.Symbol(f"{SYMPY_SYMBOL_PREFIX}Global_x")
-        )
+        sym_expr = sympy.Derivative(sfxy, sympy.Symbol(sympy_name(Symbol_x)))
 
         self.compare_to_sympy(expr, sym_expr, **kwargs)
         # compare_to_mathics fails because Derivative becomes D (which then evaluates to Derivative)
@@ -132,29 +137,27 @@ class SympyConvert(unittest.TestCase):
     def testConvertedFunctions(self):
         kwargs = {"converted_functions": set(["Global`f"])}
 
-        marg1 = Expression(Symbol("Global`f"), Symbol("Global`x"))
-        sarg1 = sympy.Function(str(f"{SYMPY_SYMBOL_PREFIX}Global_f"))(
-            sympy.Symbol(f"{SYMPY_SYMBOL_PREFIX}Global_x")
-        )
+        marg1 = Expression(Symbol_f, Symbol_x)
+        sarg1 = sympy.Function(sympy_name(Symbol_f))(sympy.Symbol(sympy_name(Symbol_x)))
         self.compare(marg1, sarg1, **kwargs)
 
-        marg2 = Expression(Symbol("Global`f"), Symbol("Global`x"), Symbol("Global`y"))
-        sarg2 = sympy.Function(str(f"{SYMPY_SYMBOL_PREFIX}Global_f"))(
-            sympy.Symbol(f"{SYMPY_SYMBOL_PREFIX}Global_x"),
-            sympy.Symbol(f"{SYMPY_SYMBOL_PREFIX}Global_y"),
+        marg2 = Expression(Symbol_f, Symbol_x, Symbol_y)
+        sarg2 = sympy.Function(sympy_name(Symbol_f))(
+            sympy.Symbol(sympy_name(Symbol_x)),
+            sympy.Symbol(sympy_name(Symbol_y)),
         )
         self.compare(marg2, sarg2, **kwargs)
 
         self.compare(
-            Expression(SymbolD, marg2, Symbol("Global`x")),
-            sympy.Derivative(sarg2, sympy.Symbol(f"{SYMPY_SYMBOL_PREFIX}Global_x")),
+            Expression(SymbolD, marg2, Symbol_x),
+            sympy.Derivative(sarg2, sympy.Symbol(sympy_name(Symbol_x))),
             **kwargs,
         )
 
     def testExpression(self):
         self.compare(
-            Expression(SymbolSin, Symbol("Global`x")),
-            sympy.sin(sympy.Symbol(f"{SYMPY_SYMBOL_PREFIX}Global_x")),
+            Expression(SymbolSin, Symbol_x),
+            sympy.sin(sympy.Symbol(sympy_name(Symbol_x))),
         )
 
     def testConstant(self):
@@ -163,14 +166,14 @@ class SympyConvert(unittest.TestCase):
 
     def testGamma(self):
         self.compare(
-            Expression(SymbolGamma, Symbol("Global`z")),
-            sympy.gamma(sympy.Symbol(f"{SYMPY_SYMBOL_PREFIX}Global_z")),
+            Expression(SymbolGamma, Symbol_z),
+            sympy.gamma(sympy.Symbol(sympy_name(Symbol_z))),
         )
         self.compare(
-            Expression(SymbolGamma, Symbol("Global`z"), Symbol("Global`x")),
+            Expression(SymbolGamma, Symbol_z, Symbol_x),
             sympy.uppergamma(
-                sympy.Symbol(f"{SYMPY_SYMBOL_PREFIX}Global_z"),
-                sympy.Symbol(f"{SYMPY_SYMBOL_PREFIX}Global_x"),
+                sympy.Symbol(sympy_name(Symbol_z)),
+                sympy.Symbol(sympy_name(Symbol_x)),
             ),
         )
 
