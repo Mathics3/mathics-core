@@ -16,6 +16,7 @@ def dynamic_scoping(func, vars, evaluation: Evaluation):
     and evaluates func(evaluation)
     """
     original_definitions = {}
+
     for var_name, new_def in vars.items():
         assert fully_qualified_symbol_name(var_name)
         original_definitions[var_name] = evaluation.definitions.get_user_definition(

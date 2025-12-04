@@ -2,6 +2,8 @@
 
 from typing import Callable, Optional, Tuple
 
+from mathics.core.definitions import SIDE_EFFECT_BUILTINS, Definition
+from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, from_python
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
@@ -44,6 +46,33 @@ class CompileWrongArgType(Exception):
         self.var = var
 
 
+def evaluate_without_side_effects(
+    expr: Expression, evaluation: Evaluation
+) -> Expression:
+    """
+    Evaluate an expression leaving unevaluated subexpressions
+    related with side-effects (assignments, loops).
+    """
+    definitions = evaluation.definitions
+    # Temporarily remove the builtin definitions
+    # of symbols with side effects
+    for name, defin in SIDE_EFFECT_BUILTINS.items():
+        # Change the definition by a temporal definition setting
+        # just the name and the attributes.
+        definitions.builtin[name] = Definition(
+            name, attributes=defin.attributes, builtin=defin.builtin
+        )
+        definitions.clear_cache(name)
+    try:
+        result = expr.evaluate(evaluation)
+    finally:
+        # Restore the definitions
+        for name, defin in SIDE_EFFECT_BUILTINS.items():
+            definitions.builtin[name] = defin
+            definitions.clear_cache(name)
+    return result if result is not None else expr
+
+
 def expression_to_callable(
     expr: Expression,
     args: Optional[list] = None,
@@ -56,6 +85,9 @@ def expression_to_callable(
     args: a list of CompileArg elements
     evaluation: an Evaluation object used if the llvm compilation fails
     """
+    if evaluation is not None:
+        expr = evaluate_without_side_effects(expr, evaluation)
+
     try:
         cfunc = _compile(expr, args) if (use_llvm and args is not None) else None
     except CompileError:
@@ -67,10 +99,13 @@ def expression_to_callable(
         try:
 
             def _pythonized_mathics_expr(*x):
+                from mathics.eval.scoping import dynamic_scoping
+
                 inner_evaluation = Evaluation(definitions=evaluation.definitions)
-                x_mathics = (from_python(u) for u in x[: len(args)])
-                vars = dict(list(zip([a.name for a in args], x_mathics)))
-                pyexpr = expr.replace_vars(vars)
+                vars = {a.name: from_python(u) for a, u in zip(args, x[: len(args)])}
+                pyexpr = dynamic_scoping(
+                    lambda ev: expr.evaluate(ev), vars, inner_evaluation
+                )
                 pyexpr = eval_N(pyexpr, inner_evaluation)
                 res = pyexpr.to_python()
                 return res

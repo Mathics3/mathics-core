@@ -99,6 +99,7 @@ class Begin(Builtin):
     ##  = Global`test`
     """
 
+    has_side_effects = True
     rules = {
         "Begin[context_String]": """
              Unprotect[System`Private`$ContextStack];
@@ -128,7 +129,7 @@ class BeginPackage(Builtin):
     ## >> BeginPackage["test`"]
     ##  = test`
     """
-
+    has_side_effects = True
     messages = {"unimpl": "The second argument to BeginPackage is not yet implemented."}
 
     rules = {
@@ -187,7 +188,7 @@ class Block(Builtin):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
-
+    has_side_effects = True
     messages = {
         "lvsym": (
             "Local variable specification contains `1`, "
@@ -351,6 +352,7 @@ class End(Builtin):
     </dl>
     """
 
+    has_side_effects = True
     messages = {
         "noctx": "No previous context defined.",
     }
@@ -385,7 +387,7 @@ class EndPackage(Builtin):
     After 'EndPackage', the values of '\$Context' and '\$ContextPath' at the \
     time of the 'BeginPackage' call are restored, with the new package\'s context prepended to '\$ContextPath'.
     """
-
+    has_side_effects = True
     messages = {
         "noctx": "No previous context defined.",
     }
@@ -450,7 +452,7 @@ class Module(Builtin):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
-
+    has_side_effects = True
     messages = {
         "lvsym": (
             "Local variable specification contains `1`, "
@@ -710,7 +712,7 @@ class With(Builtin):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
-
+    has_side_effects = True
     messages = {
         "lvsym": (
             "Local variable specification contains `1`, "
