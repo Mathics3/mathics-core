@@ -12,7 +12,12 @@ from types import FunctionType
 
 from mathics.builtin.box.compilation import CompiledCodeBox
 from mathics.core.atoms import Integer, String
-from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
+from mathics.core.attributes import (
+    A_HOLD_ALL,
+    A_N_HOLD_ALL,
+    A_PROTECTED,
+    A_READ_PROTECTED,
+)
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.function import (
@@ -66,8 +71,10 @@ class Compile(Builtin):
      = 2.18888
 
     Loops and variable assignments are supported using Python builtin "compile" function:
-    >> Compile[{{a, _Integer}, {b, _Integer}}, While[b != 0, {a, b} = {b, Mod[a, b]}]; a]       (* GCD of a, b *)
-     =  CompiledFunction[{a, b}, While[b != 0, {a, b} = {b, Mod[a, b]}] ; a, -PythonizedCode-]
+    >> gdc = Compile[{{a, _Integer}, {b, _Integer}}, Module[{x=a, y=b}, While[y != 0, {x, y} = {y, Mod[x, y]}]; x]] (* GCD of a, b *)
+     =  CompiledFunction[{a, b}, Module[{x = a, y = b}, While[y != 0, {x, y} = {y, Mod[x, y]}] ; x], -PythonizedCode-]
+    >> gdc[18, 81]
+     = 9.
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
@@ -167,7 +174,23 @@ class CompiledCode(Atom, ImmutableValueMixin):
         raise NotImplementedError
 
     def __hash__(self):
-        return hash(("CompiledCode", ctypes.addressof(self.cfunc)))  # XXX hack
+        cfunc = self.cfunc
+        if cfunc is None:
+            hash(
+                (
+                    "CompiledCode",
+                    None,
+                )
+            )  # XXX hack
+        try:
+            return hash(("CompiledCode", ctypes.addressof(cfunc)))  # XXX hack
+        except TypeError:
+            return hash(
+                (
+                    "Pythonized-function",
+                    cfunc,
+                )
+            )
 
     def atom_to_boxes(self, f, evaluation: Evaluation):
         return CompiledCodeBox(String(self.__str__()), evaluation=evaluation)
@@ -191,6 +214,7 @@ class CompiledFunction(Builtin):
 
     """
 
+    attributes = A_HOLD_ALL | A_PROTECTED | A_N_HOLD_ALL | A_READ_PROTECTED
     messages = {"argerr": "Invalid argument `1` should be Integer, Real or boolean."}
     summary_text = "A CompiledFunction object."
 

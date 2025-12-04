@@ -101,9 +101,12 @@ def expression_to_callable(
             def _pythonized_mathics_expr(*x):
                 from mathics.eval.scoping import dynamic_scoping
 
+                inner_evaluation = Evaluation(definitions=evaluation.definitions)
                 vars = {a.name: from_python(u) for a, u in zip(args, x[: len(args)])}
-                pyexpr = dynamic_scoping(lambda ev: expr.evaluate(ev), vars, evaluation)
-                pyexpr = eval_N(pyexpr, evaluation)
+                pyexpr = dynamic_scoping(
+                    lambda ev: expr.evaluate(ev), vars, inner_evaluation
+                )
+                pyexpr = eval_N(pyexpr, inner_evaluation)
                 res = pyexpr.to_python()
                 return res
 
