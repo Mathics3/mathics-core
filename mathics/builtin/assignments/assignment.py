@@ -134,7 +134,7 @@ class Set(InfixOperator):
         "setraw": "Cannot assign to raw object `1`.",
         "shape": "Lists `1` and `2` are not the same shape.",
     }
-
+    has_side_effects = True
     summary_text = "assign a value"
 
     def eval(self, lhs, rhs, evaluation):
@@ -258,7 +258,7 @@ class TagSet(Builtin):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED | A_SEQUENCE_HOLD
-
+    has_side_effects = True
     messages = {
         "tagnfd": "Tag `1` not found or too deep for an assigned rule.",
     }
@@ -353,6 +353,7 @@ class UpSet(InfixOperator):
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED | A_SEQUENCE_HOLD
+    has_side_effects = True
     grouping = "Right"
 
     summary_text = (

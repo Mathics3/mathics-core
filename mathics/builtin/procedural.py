@@ -219,7 +219,7 @@ class CompoundExpression(InfixOperator):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED | A_READ_PROTECTED
-
+    has_side_effects = True
     summary_text = "execute expressions in sequence"
 
     def eval(self, expr, evaluation):
@@ -346,6 +346,7 @@ class For(Builtin):
     """
 
     attributes = A_HOLD_REST | A_PROTECTED
+    has_side_effects = True
     rules = {
         "For[start_, test_, incr_]": "For[start, test, incr, Null]",
     }
@@ -486,6 +487,7 @@ class Interrupt(Builtin):
      | a
      = $Aborted
     """
+    has_side_effects = True
 
     # Set checking that the no arguments are allowed.
     # eval_error = Builtin.generic_argument_error
@@ -511,6 +513,7 @@ class Pause(Builtin):
     >> Pause[0.5]
     """
 
+    has_side_effects = True
     messages = {
         "numnm": (
             "Non-negative machine-sized number expected at " "position 1 in `1`."
@@ -563,7 +566,7 @@ class Return(Builtin):
     rules = {
         "Return[]": "Return[Null]",
     }
-
+    has_side_effects = True
     summary_text = "return from a function"
 
     def eval(self, expr, evaluation: Evaluation):  # pylint: disable=unused-argument
@@ -604,7 +607,7 @@ class Switch(Builtin):
 
     summary_text = "switch based on a value, with patterns allowed"
     attributes = A_HOLD_REST | A_PROTECTED
-
+    has_side_effects = True
     messages = {
         "argct": (
             "Switch called with `2` arguments. "
@@ -659,7 +662,7 @@ class Throw(Builtin):
     # Set checking that the number of arguments required is one or two. WMA uses 1..3.
     eval_error = Builtin.generic_argument_error
     expected_args = (1, 2)
-
+    has_side_effects = True
     messages = {
         "nocatch": "Uncaught `1` returned to top level.",
     }
@@ -714,6 +717,7 @@ class Which(SympyFunction):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
+    has_side_effects = True
     summary_text = "test which of a sequence of conditions are true"
 
     def eval(self, items, evaluation):
@@ -773,7 +777,7 @@ class While(Builtin):
     # Set checking that the number of arguments required is one.
     eval_error = Builtin.generic_argument_error
     expected_args = (1, 2)
-
+    has_side_effects = True
     rules = {
         "While[test_]": "While[test, Null]",
     }
