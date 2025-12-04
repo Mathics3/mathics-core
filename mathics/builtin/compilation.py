@@ -206,7 +206,7 @@ class CompiledFunction(Builtin):
     </dl>
 
     >> sqr = Compile[{x}, x x]
-     = CompiledFunction[{x}, x ^ 2, ...]
+     = CompiledFunction[{x}, x x, ...]
     >> Head[sqr]
      = CompiledFunction
     >> sqr[2]
