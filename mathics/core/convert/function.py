@@ -69,6 +69,7 @@ def evaluate_without_side_effects(
         # Restore the definitions
         for name, defin in SIDE_EFFECT_BUILTINS.items():
             definitions.builtin[name] = defin
+            definitions.clear_cache(name)
     return result if result is not None else expr
 
 
@@ -86,6 +87,7 @@ def expression_to_callable(
     """
     if evaluation is not None:
         expr = evaluate_without_side_effects(expr, evaluation)
+
     try:
         cfunc = _compile(expr, args) if (use_llvm and args is not None) else None
     except CompileError:
@@ -97,11 +99,11 @@ def expression_to_callable(
         try:
 
             def _pythonized_mathics_expr(*x):
-                inner_evaluation = Evaluation(definitions=evaluation.definitions)
-                x_mathics = (from_python(u) for u in x[: len(args)])
-                vars = dict(list(zip([a.name for a in args], x_mathics)))
-                pyexpr = expr.replace_vars(vars)
-                pyexpr = eval_N(pyexpr, inner_evaluation)
+                from mathics.eval.scoping import dynamic_scoping
+
+                vars = {a.name: from_python(u) for a, u in zip(args, x[: len(args)])}
+                pyexpr = dynamic_scoping(lambda ev: expr.evaluate(ev), vars, evaluation)
+                pyexpr = eval_N(pyexpr, evaluation)
                 res = pyexpr.to_python()
                 return res
 

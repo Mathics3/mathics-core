@@ -65,9 +65,9 @@ class Compile(Builtin):
     >> cf[3.5, 2]
      = 2.18888
 
-    Loops and variable assignments are supported usinv Python builtin "compile" function:
+    Loops and variable assignments are supported using Python builtin "compile" function:
     >> Compile[{{a, _Integer}, {b, _Integer}}, While[b != 0, {a, b} = {b, Mod[a, b]}]; a]       (* GCD of a, b *)
-     =  CompiledFunction[{a, b}, a, -PythonizedCode-]
+     =  CompiledFunction[{a, b}, While[b != 0, {a, b} = {b, Mod[a, b]}] ; a, -PythonizedCode-]
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
