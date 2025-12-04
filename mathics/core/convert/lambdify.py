@@ -53,6 +53,25 @@ def lambdify_compile(evaluation, expr, names, debug=0):
     # Evaluate the expr first in case it hasn't been already,
     # because some functions are not themselves sympy-enabled
     # if they always get rewritten to one that is.
+    # Comment MM:
+    #
+    # Suppose we define `F[x_,y_]:=(a=x; Do[a=a+1,{y}];a)`
+    # which essentially is a convoluted way to say x+y.
+    #
+    # Now, what is expected from this function is to produce
+    # lambda function which implements the loop, and when
+    # evaluated on `(1,2)` produce `3`. However, with this implementation,
+    # what we obtain is a function that returns its first input:
+    # since the evaluation of the loop fails, `a` takes the value `x`,
+    # and `new_expression` results in  `x`.
+    #
+    # Also, a side affect is produced, since after compiling the function,
+    # `a` now takes the value `x`.
+    #
+    # For this reason, I guess here we need an special way of evaluating
+    # expressions, which avoid rules like the one associated to `Do`
+    # or `*Set*`.
+    #
     try:
         new_expr = expr.evaluate(evaluation)
         if new_expr:

@@ -134,7 +134,7 @@ def expression_to_callable_and_args(
     vars: Optional[list] = None,
     evaluation: Optional[Evaluation] = None,
     debug: int = 0,
-    vectorize=False,
+    vectorize: bool = False,  # By now, just vectorize in drawing plots.
 ) -> Tuple[Callable, Optional[list]]:
     """
     Return a tuple of Python callable and a list of CompileArgs.
