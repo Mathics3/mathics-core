@@ -3,7 +3,7 @@
 from typing import Callable, Optional, Tuple
 
 from mathics.core.definitions import SIDE_EFFECT_BUILTINS, Definition
-from mathics.core.element import BaseElement
+from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, from_python
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
@@ -47,8 +47,8 @@ class CompileWrongArgType(Exception):
 
 
 def evaluate_without_side_effects(
-    expr: BaseElement, evaluation: Evaluation
-) -> BaseElement:
+    expr: Expression, evaluation: Evaluation
+) -> Expression:
     """
     Evaluate an expression leaving unevaluated subexpressions
     related with side-effects (assignments, loops).
@@ -69,7 +69,7 @@ def evaluate_without_side_effects(
         # Restore the definitions
         for name, defin in SIDE_EFFECT_BUILTINS.items():
             definitions.builtin[name] = defin
-    return result
+    return result if result is not None else expr
 
 
 def expression_to_callable(
@@ -84,7 +84,8 @@ def expression_to_callable(
     args: a list of CompileArg elements
     evaluation: an Evaluation object used if the llvm compilation fails
     """
-    expr = evaluate_without_side_effects(expr, evaluation)
+    if evaluation is not None:
+        expr = evaluate_without_side_effects(expr, evaluation)
     try:
         cfunc = _compile(expr, args) if (use_llvm and args is not None) else None
     except CompileError:

@@ -55,7 +55,7 @@ def plot_compile(evaluation, expr, names, debug=0):
     # because some functions are not themselves sympy-enabled
     # if they always get rewritten to one that is.
     try:
-        new_expr = eval_without_side_effects(expr, evaluation)
+        new_expr = evaluate_without_side_effects(expr, evaluation)
         if new_expr:
             expr = new_expr
     except Exception:

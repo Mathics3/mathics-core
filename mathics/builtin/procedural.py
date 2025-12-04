@@ -717,7 +717,6 @@ class Which(SympyFunction):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
-    has_side_effects = True
     summary_text = "test which of a sequence of conditions are true"
 
     def eval(self, items, evaluation):
