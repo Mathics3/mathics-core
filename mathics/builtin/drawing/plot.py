@@ -642,19 +642,18 @@ class _Plot3D(Builtin):
         plot_range = self.get_option(options, str(SymbolPlotRange), evaluation)
         plot_range = plot_range.to_python()
 
-        # expand to list with one more dimension than the {x,xmin,xmax} etc. range specifications
+        # expand to list of length dim
+        dim = 3 if self.graphics_class is Graphics3D else 2
         if isinstance(plot_range, str):
-            # PlotRange -> Automatic ~ PlotRange -> {Automatic,...}
-            plot_range = [plot_range] * (len(plot_options.ranges) + 1)
-        elif isinstance(plot_range, (int,float)):
-            # PlotRange -> s ~ PlotRange -> {Automatic, ..., {-s,s}}
-            # TODO: {-s,s} may not be optimal for all plot types - some prefer {0,s}
-            all_but_last = [str(SymbolAutomatic)] * len(plot_options.ranges)
-            plot_range = all_but_last + [[-plot_range, plot_range]]
-        elif isinstance(plot_range, (list,tuple)) and isinstance(plot_range[0], (int, float)):
-            # PlotRange -> {s0,s1} ~ PlotRange -> {Automatic, ..., {s0,s1}}
-            all_but_last = [str(SymbolAutomatic)] * len(plot_options.ranges)            
-            plot_range = all_but_last + [plot_range]
+            # PlotRange -> Automatic becomes PlotRange -> {Automatic,...}
+            plot_range = [plot_range] * dim
+        elif isinstance(plot_range, (int,float,list,tuple)):
+            # PlotRange -> s becomes PlotRange -> {Automatic,...,{-s,s}}
+            # PlotRange -> {s0,s1} becomes  PlotRange -> {Automatic,...,{s0,s1}}
+            s = plot_range
+            plot_range = [str(SymbolAutomatic)] * len(plot_options.ranges)
+            if dim > len(plot_range):
+                plot_range += s if isinstance(s, (list,tuple)) else [-s,s]
 
         # now we have a list, one for each range spec plus one
         # handle Automatic ~ {xmin,xmax} etc.

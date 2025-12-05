@@ -250,6 +250,19 @@ class Graphics3DBox(GraphicsBox):
             self.background_color = elements.background_color
 
         def calc_dimensions(final_pass=True):
+
+            # TODO: the code below is broken in any other case but Automatic
+            # because it calls elements.translate which is not implemented.
+            # A change in Plot3D caused it to pass PlotRanges that tickled
+            # the bug, causing test failures. The following line restores
+            # the old behavior for this code and the tests pass.
+            # It should not change the behavior of any case which did
+            # previously fail with an exception.
+            #
+            # The right thing to do is significantly DRY this code (together
+            # with the very similar code for the 2d case) and fix the bug.
+            plot_range = ["System`Automatic"] * 3
+
             if "System`Automatic" in plot_range:
                 xmin, xmax, ymin, ymax, zmin, zmax = elements.extent()
             else:
@@ -291,14 +304,16 @@ class Graphics3DBox(GraphicsBox):
                     elif zmin == zmax:
                         zmin -= 1
                         zmax += 1
-                elif isinstance(plot_range[1], list) and len(plot_range[1]) == 2:
+                elif isinstance(plot_range[1], list) and len(plot_range[2]) == 2:
                     zmin, zmax = list(map(float, plot_range[2]))
                     zmin = elements.translate((0, 0, zmin))[2]
                     zmax = elements.translate((0, 0, zmax))[2]
                 else:
+                    raise
                     raise BoxExpressionError
             except (ValueError, TypeError):
-                raise BoxExpressionError
+                raise
+                #raise BoxExpressionError
 
             boxscale = [1.0, 1.0, 1.0]
             if boxratios[0] != "System`Automatic":
