@@ -40,6 +40,7 @@ from mathics.core.systemsymbols import (
     SymbolRGBColor,
     SymbolSequence,
     SymbolStyle,
+    SymbolPlotRange,
 )
 from mathics.eval.drawing.charts import draw_bar_chart, eval_chart
 from mathics.eval.drawing.colors import COLOR_PALETTES, get_color_palette
@@ -469,7 +470,7 @@ class PlotOptions:
     def __init__(self, expr, range_exprs, options, evaluation):
         self.evaluation = evaluation
 
-        # plot ranges
+        # plot ranges of the form {x,xmin,xmax} etc.
         self.ranges = []
         for range_expr in range_exprs:
             if not range_expr.has_form("List", 3):
@@ -635,6 +636,25 @@ class _Plot3D(Builtin):
         graphics = self.eval_function(plot_options, evaluation)
         if not graphics:
             return
+
+        # update non-numeric PlotRanges with the specified {x,xmin,xmax} range options
+        plot_range = self.get_option(options, str(SymbolPlotRange), evaluation)
+        plot_range = plot_range.to_python()
+        # from here we've pythonized it, so Symbol becomes str, numeric becomes int or float
+        if isinstance(plot_range, str):
+            plot_range = [plot_range] * len(plot_options.ranges)
+        elif isinstance(plot_range, (int,float)):
+            # TODO: single numeric PlotRange is Automaic for all but last dimension - is correct?
+            all_but_last = [str(SymbolAutomatic)] * (len(plot_options.ranges)-1)
+            plot_range = all_but_last + [plot_range]
+        for i, (pr, r) in enumerate(zip(plot_range, plot_options.ranges)):
+            # TODO: this treats Automatic and Full as the same, which isn't quite right
+            if isinstance(pr, str):
+                plot_range[i] = r[1:]  # extract {xmin,xmax} from {x,xmin,xmax}
+        # unpythonize and update
+        options[str(SymbolPlotRange)] = to_mathics_list(*plot_range)
+
+        # generate the Graphics[3D] result
         graphics_expr = graphics.generate(
             options_to_rules(options, self.graphics_class.options)
         )
@@ -826,6 +846,7 @@ class ContourPlot(_Plot3D):
 
     """
 
+    requires = ["skimage"]
     summary_text = "creates a contour plot"
     expected_args = 3
     options = _Plot3D.options2d

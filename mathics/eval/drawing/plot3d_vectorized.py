@@ -217,7 +217,7 @@ def eval_ContourPlot(
 
     # whether to show a background similar to density plot, except quantized
     background = len(plot_options.functions) == 1
-    contour_levels = None
+    contour_levels = None # TODO: implement Contours option
 
     # convert fs of the form a==b to a-b, inplicit contour level 0
     plot_options.functions = list(plot_options.functions) # so we can modify it
@@ -246,7 +246,7 @@ def eval_ContourPlot(
         zs = xyzs[:,2] # this is a linear list matching with quads
 
         # n contours if not specified
-        n = 8
+        n = 8 # TODO: need to pick "nice" number so levels have few digits
         levels = contour_levels
         if not levels:
             zmin, zmax = np.min(zs), np.max(zs)
