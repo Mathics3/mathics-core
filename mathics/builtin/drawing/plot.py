@@ -637,21 +637,33 @@ class _Plot3D(Builtin):
         if not graphics:
             return
 
-        # update non-numeric PlotRanges with the specified {x,xmin,xmax} range options
+        # Expand PlotRange option using the {x,xmin,xmax} etc. range specifications
+        # Pythonize it, so Symbol becomes str, numeric becomes int or float
         plot_range = self.get_option(options, str(SymbolPlotRange), evaluation)
         plot_range = plot_range.to_python()
-        # from here we've pythonized it, so Symbol becomes str, numeric becomes int or float
+
+        # expand to list with one more dimension than the {x,xmin,xmax} etc. range specifications
         if isinstance(plot_range, str):
-            plot_range = [plot_range] * len(plot_options.ranges)
+            # PlotRange -> Automatic ~ PlotRange -> {Automatic,...}
+            plot_range = [plot_range] * (len(plot_options.ranges) + 1)
         elif isinstance(plot_range, (int,float)):
-            # TODO: single numeric PlotRange is Automaic for all but last dimension - is correct?
-            all_but_last = [str(SymbolAutomatic)] * (len(plot_options.ranges)-1)
+            # PlotRange -> s ~ PlotRange -> {Automatic, ..., {-s,s}}
+            # TODO: {-s,s} may not be optimal for all plot types - some prefer {0,s}
+            all_but_last = [str(SymbolAutomatic)] * len(plot_options.ranges)
+            plot_range = all_but_last + [[-plot_range, plot_range]]
+        elif isinstance(plot_range, (list,tuple)) and isinstance(plot_range[0], (int, float)):
+            # PlotRange -> {s0,s1} ~ PlotRange -> {Automatic, ..., {s0,s1}}
+            all_but_last = [str(SymbolAutomatic)] * len(plot_options.ranges)            
             plot_range = all_but_last + [plot_range]
+
+        # now we have a list, one for each range spec plus one
+        # handle Automatic ~ {xmin,xmax} etc.
         for i, (pr, r) in enumerate(zip(plot_range, plot_options.ranges)):
             # TODO: this treats Automatic and Full as the same, which isn't quite right
             if isinstance(pr, str):
                 plot_range[i] = r[1:]  # extract {xmin,xmax} from {x,xmin,xmax}
-        # unpythonize and update
+
+        # unpythonize and update PlotRange
         options[str(SymbolPlotRange)] = to_mathics_list(*plot_range)
 
         # generate the Graphics[3D] result
