@@ -67,6 +67,7 @@ if use_vectorized_plot:
     from mathics.eval.drawing.plot3d_vectorized import (
         eval_ComplexPlot,
         eval_ComplexPlot3D,
+        eval_ContourPlot,
         eval_DensityPlot,
         eval_Plot3D,
     )
@@ -74,6 +75,7 @@ else:
     from mathics.eval.drawing.plot3d import (
         eval_ComplexPlot,
         eval_ComplexPlot3D,
+        eval_ContourPlot,
         eval_DensityPlot,
         eval_Plot3D,
     )
@@ -807,6 +809,32 @@ class ComplexPlot(_Plot3D):
     many_functions = False
     eval_function = staticmethod(eval_ComplexPlot)
     graphics_class = Graphics
+
+
+class ContourPlot(_Plot3D):
+    """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/ContourPlot.html</url>
+    <dl>
+      <dt>'Contour'[$f$, {$x$, $x_{min}$, $x_{max}$}, {$y$, $y_{min}$, $y_{max}$}]
+      <dd>creates a two-dimensional contour plot ofh $f$ over the region
+          $x$ ranging from $x_{min}$ to $x_{max}$ and $y$ ranging from $y_{min}$ to $y_{max}$.
+
+          See <url>:Drawing Option and Option Values:
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    </url> for a list of Plot options.
+    </dl>
+
+    """
+
+    summary_text = "creates a contour plot"
+    expected_args = 3
+    options = _Plot3D.options2d
+    # TODO: updates? #
+
+    many_functions = True
+    eval_function = staticmethod(eval_ContourPlot)
+    graphics_class = Graphics
+
 
 
 class DensityPlot(_Plot3D):
