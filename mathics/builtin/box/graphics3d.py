@@ -250,7 +250,6 @@ class Graphics3DBox(GraphicsBox):
             self.background_color = elements.background_color
 
         def calc_dimensions(final_pass=True):
-
             # TODO: the code below is broken in any other case but Automatic
             # because it calls elements.translate which is not implemented.
             # A change in Plot3D caused it to pass PlotRanges that tickled
@@ -312,8 +311,7 @@ class Graphics3DBox(GraphicsBox):
                     raise
                     raise BoxExpressionError
             except (ValueError, TypeError):
-                raise
-                #raise BoxExpressionError
+                raise BoxExpressionError
 
             boxscale = [1.0, 1.0, 1.0]
             if boxratios[0] != "System`Automatic":

@@ -37,10 +37,10 @@ from mathics.core.systemsymbols import (
     SymbolLine,
     SymbolLog10,
     SymbolNone,
+    SymbolPlotRange,
     SymbolRGBColor,
     SymbolSequence,
     SymbolStyle,
-    SymbolPlotRange,
 )
 from mathics.eval.drawing.charts import draw_bar_chart, eval_chart
 from mathics.eval.drawing.colors import COLOR_PALETTES, get_color_palette
@@ -645,12 +645,14 @@ class _Plot3D(Builtin):
         if isinstance(plot_range, str):
             # PlotRange -> Automatic becomes PlotRange -> {Automatic, ...}
             plot_range = [str(SymbolAutomatic)] * dim
-        if isinstance(plot_range, (int,float)):
+        if isinstance(plot_range, (int, float)):
             # PlotRange -> s becomes PlotRange -> {Automatic,...,{-s,s}}
             pr = plot_range
             plot_range = [str(SymbolAutomatic)] * dim
-            plot_range[-1] = [-pr,pr]
-        elif isinstance(plot_range, (list,tuple)) and isinstance(plot_range[0], (int,float)):
+            plot_range[-1] = [-pr, pr]
+        elif isinstance(plot_range, (list, tuple)) and isinstance(
+            plot_range[0], (int, float)
+        ):
             # PlotRange -> {s0,s1} becomes  PlotRange -> {Automatic,...,{s0,s1}}
             pr = plot_range
             plot_range = [str(SymbolAutomatic)] * dim
@@ -867,7 +869,6 @@ class ContourPlot(_Plot3D):
     many_functions = True
     eval_function = staticmethod(eval_ContourPlot)
     graphics_class = Graphics
-
 
 
 class DensityPlot(_Plot3D):

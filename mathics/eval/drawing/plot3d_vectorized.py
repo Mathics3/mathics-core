@@ -8,10 +8,15 @@ import math
 import numpy as np
 
 from mathics.builtin.colors.color_internals import convert_color
-from mathics.core.expression import Expression
 from mathics.core.evaluation import Evaluation
+from mathics.core.expression import Expression
 from mathics.core.symbols import strip_context
-from mathics.core.systemsymbols import SymbolNone, SymbolRGBColor, SymbolEqual, SymbolSubtract
+from mathics.core.systemsymbols import (
+    SymbolEqual,
+    SymbolNone,
+    SymbolRGBColor,
+    SymbolSubtract,
+)
 from mathics.timing import Timer
 
 from .plot_compile import plot_compile
@@ -152,7 +157,7 @@ palette2 = [
 
 
 def palette_color_directive(palette, i):
-    """ returns a directive in a form suitable for graphics.add_directives """
+    """returns a directive in a form suitable for graphics.add_directives"""
     """ for setting the color of an entire entity such as a line or surface """
     rgb = palette[i % len(palette)]
     rgb = [c / 255.0 for c in rgb]
@@ -164,7 +169,7 @@ def density_colors(zs):
     """default color palette for DensityPlot and ContourPlot (f(x) form)"""
     z_min, z_max = min(zs), max(zs)
     zs = zs[:, np.newaxis]  # allow broadcasting
-    #c_min, c_max = [0.3, 0.00, 0.3], [1.0, 0.95, 0.8]
+    # c_min, c_max = [0.3, 0.00, 0.3], [1.0, 0.95, 0.8]
     c_min, c_max = [0.5, 0, 0.1], [1.0, 0.9, 0.5]
     c_min, c_max = (
         np.full((len(zs), 3), c_min),
@@ -180,7 +185,6 @@ def eval_Plot3D(
     evaluation: Evaluation,
 ):
     def emit(graphics, i, xyzs, quads):
-
         # choose a color
         color_directive = palette_color_directive(palette3, i)
         graphics.add_directives(color_directive)
@@ -197,7 +201,6 @@ def eval_DensityPlot(
     evaluation: Evaluation,
 ):
     def emit(graphics, i, xyzs, quads):
-
         # Fixed palette for now
         # TODO: accept color options
         colors = density_colors(xyzs[:, 2])
@@ -217,10 +220,10 @@ def eval_ContourPlot(
 
     # whether to show a background similar to density plot, except quantized
     background = len(plot_options.functions) == 1
-    contour_levels = None # TODO: implement Contours option
+    contour_levels = None  # TODO: implement Contours option
 
     # convert fs of the form a==b to a-b, inplicit contour level 0
-    plot_options.functions = list(plot_options.functions) # so we can modify it
+    plot_options.functions = list(plot_options.functions)  # so we can modify it
     for i, f in enumerate(plot_options.functions):
         if f.head == SymbolEqual:
             f = Expression(SymbolSubtract, *f.elements[0:2])
@@ -229,7 +232,6 @@ def eval_ContourPlot(
             background = False
 
     def emit(graphics, i, xyzs, quads):
-
         # set line color
         if background:
             # showing a background, so just black lines
@@ -243,10 +245,10 @@ def eval_ContourPlot(
         nx, ny = plot_options.plotpoints
         _, xmin, xmax = plot_options.ranges[0]
         _, ymin, ymax = plot_options.ranges[1]
-        zs = xyzs[:,2] # this is a linear list matching with quads
+        zs = xyzs[:, 2]  # this is a linear list matching with quads
 
         # n contours if not specified
-        n = 8 # TODO: need to pick "nice" number so levels have few digits
+        n = 8  # TODO: need to pick "nice" number so levels have few digits
         levels = contour_levels
         if not levels:
             zmin, zmax = np.min(zs), np.max(zs)
@@ -255,28 +257,25 @@ def eval_ContourPlot(
 
         # one contour line per contour level
         for level in levels:
-
             # find contours and add lines
             with Timer("contours"):
-                zgrid = zs.reshape((nx, ny)) # find_contours needs it as an array
+                zgrid = zs.reshape((nx, ny))  # find_contours needs it as an array
                 contours = skimage.measure.find_contours(zgrid, level)
 
             # add lines
             for segment in contours:
-                segment[:,0] = segment[:,0] * ((xmax-xmin)/nx) + xmin
-                segment[:,1] = segment[:,1] * ((ymax-ymin)/ny) + ymin
+                segment[:, 0] = segment[:, 0] * ((xmax - xmin) / nx) + xmin
+                segment[:, 1] = segment[:, 1] * ((ymax - ymin) / ny) + ymin
                 graphics.add_linexyzs(segment)
 
         # background
         if background:
-            zs = np.floor(zs / dz_per_level) # quantize the zs to match the contours
-            colors = density_colors(zs) # and get colors using the quantized zs
+            zs = np.floor(zs / dz_per_level)  # quantize the zs to match the contours
+            colors = density_colors(zs)  # and get colors using the quantized zs
             graphics.add_complex(xyzs[:, 0:2], lines=None, polys=quads, colors=colors)
-            
 
-    #plot_options.plotpoints = [n * 10 for n in plot_options.plotpoints]
-    return make_plot(plot_options, evaluation, dim=2, is_complex=False, emit=emit)    
-
+    # plot_options.plotpoints = [n * 10 for n in plot_options.plotpoints]
+    return make_plot(plot_options, evaluation, dim=2, is_complex=False, emit=emit)
 
 
 @Timer("complex colors")
@@ -330,5 +329,3 @@ def eval_ComplexPlot(
         )
 
     return make_plot(plot_options, evaluation, dim=2, is_complex=True, emit=emit)
-
-
