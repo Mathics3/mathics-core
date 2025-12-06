@@ -307,7 +307,6 @@ class Graphics3DBox(GraphicsBox):
                     zmin = elements.translate((0, 0, zmin))[2]
                     zmax = elements.translate((0, 0, zmax))[2]
                 else:
-                    raise
                     raise BoxExpressionError
             except (ValueError, TypeError):
                 raise BoxExpressionError
