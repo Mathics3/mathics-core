@@ -659,7 +659,7 @@ class _Plot3D(Builtin):
         # handle Automatic ~ {xmin,xmax} etc.
         for i, (pr, r) in enumerate(zip(plot_range, plot_options.ranges)):
             # TODO: this treats Automatic and Full as the same, which isn't quite right
-            if isinstance(pr, str):
+            if isinstance(pr, str) and not isinstance(r[1], complex):
                 plot_range[i] = r[1:]  # extract {xmin,xmax} from {x,xmin,xmax}
 
         # unpythonize and update PlotRange
