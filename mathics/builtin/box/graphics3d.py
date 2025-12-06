@@ -252,14 +252,13 @@ class Graphics3DBox(GraphicsBox):
         def calc_dimensions(final_pass=True):
             # TODO: the code below is broken in any other case but Automatic
             # because it calls elements.translate which is not implemented.
-            # A change in Plot3D caused it to pass PlotRanges that tickled
-            # the bug, causing test failures. The following line restores
-            # the old behavior for this code and the tests pass.
-            # It should not change the behavior of any case which did
+            # Plots may pass specific plot ranges, triggering this deficiency
+            # and causing tests to fail The following line avoids this,
+            # and it should not change the behavior of any case which did
             # previously fail with an exception.
             #
-            # The right thing to do is significantly DRY this code (together
-            # with the very similar code for the 2d case) and fix the bug.
+            # This code should be DRYed (together with the very similar code
+            # for the 2d case), and the missing .translate method added.
             plot_range = ["System`Automatic"] * 3
 
             if "System`Automatic" in plot_range:
