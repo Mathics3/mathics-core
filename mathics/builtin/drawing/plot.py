@@ -641,28 +641,29 @@ class _Plot3D(Builtin):
         # Pythonize it, so Symbol becomes str, numeric becomes int or float
         plot_range = self.get_option(options, str(SymbolPlotRange), evaluation)
         plot_range = plot_range.to_python()
-
-        # expand to list of length dim
         dim = 3 if self.graphics_class is Graphics3D else 2
         if isinstance(plot_range, str):
-            # PlotRange -> Automatic becomes PlotRange -> {Automatic,...}
-            plot_range = [plot_range] * dim
-        elif isinstance(plot_range, (int,float,list,tuple)):
+            # PlotRange -> Automatic becomes PlotRange -> {Automatic, ...}
+            plot_range = [str(SymbolAutomatic)] * dim
+        if isinstance(plot_range, (int,float)):
             # PlotRange -> s becomes PlotRange -> {Automatic,...,{-s,s}}
+            pr = plot_range
+            plot_range = [str(SymbolAutomatic)] * dim
+            plot_range[-1] = [-pr,pr]
+        elif isinstance(plot_range, (list,tuple)) and isinstance(plot_range[0], (int,float)):
             # PlotRange -> {s0,s1} becomes  PlotRange -> {Automatic,...,{s0,s1}}
-            s = plot_range
-            plot_range = [str(SymbolAutomatic)] * len(plot_options.ranges)
-            if dim > len(plot_range):
-                plot_range += s if isinstance(s, (list,tuple)) else [-s,s]
+            pr = plot_range
+            plot_range = [str(SymbolAutomatic)] * dim
+            plot_range[-1] = pr
 
-        # now we have a list, one for each range spec plus one
+        # now we have a list of length dim
         # handle Automatic ~ {xmin,xmax} etc.
         for i, (pr, r) in enumerate(zip(plot_range, plot_options.ranges)):
             # TODO: this treats Automatic and Full as the same, which isn't quite right
             if isinstance(pr, str) and not isinstance(r[1], complex):
                 plot_range[i] = r[1:]  # extract {xmin,xmax} from {x,xmin,xmax}
 
-        # unpythonize and update PlotRange
+        # unpythonize and update PlotRange option
         options[str(SymbolPlotRange)] = to_mathics_list(*plot_range)
 
         # generate the Graphics[3D] result
