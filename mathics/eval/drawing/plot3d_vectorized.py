@@ -258,7 +258,7 @@ def eval_ContourPlot(
             # computed contour levels have equal distance between them,
             # and half that between first/last contours and zmin/zmax
             dz = (zmax - zmin) / levels
-            levels = zmin + np.arange(levels) * dz + dz/2
+            levels = zmin + np.arange(levels) * dz + dz / 2
 
         # one contour line per contour level
         for level in levels:
@@ -277,12 +277,18 @@ def eval_ContourPlot(
         if background:
             with Timer("contour background"):
                 # add extra levels below zmin and above zmax to define end ranges
-                levels = [zmin-(levels[0]-zmin)] + list(levels) + [zmax+(zmax-levels[-1])]
+                levels = (
+                    [zmin - (levels[0] - zmin)]
+                    + list(levels)
+                    + [zmax + (zmax - levels[-1])]
+                )
                 for lo, hi in zip(levels[:-1], levels[1:]):
                     # use masks and fancy indexing to assign (lo+hi)/2 to all zs between lo and hi
                     zs[(lo < zs) & (zs <= hi)] = (lo + hi) / 2
-                colors = density_colors(zs) # same colors as density plot
-                graphics.add_complex(xyzs[:, 0:2], lines=None, polys=quads, colors=colors)
+                colors = density_colors(zs)  # same colors as density plot
+                graphics.add_complex(
+                    xyzs[:, 0:2], lines=None, polys=quads, colors=colors
+                )
 
     # plot_options.plotpoints = [n * 10 for n in plot_options.plotpoints]
     return make_plot(plot_options, evaluation, dim=2, is_complex=False, emit=emit)

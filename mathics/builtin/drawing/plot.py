@@ -495,7 +495,12 @@ class PlotOptions:
         contours = expr.get_option(options, "Contours", evaluation)
         if contours is not None:
             c = contours.to_python()
-            if not (c=="System`Automatic" or isinstance(c, int) or isinstance(c, tuple) and all(isinstance(cc, (int,float)) for cc in c) ):
+            if not (
+                c == "System`Automatic"
+                or isinstance(c, int)
+                or isinstance(c, tuple)
+                and all(isinstance(cc, (int, float)) for cc in c)
+            ):
                 self.error(expr, "invcontour", contours)
             self.contours = c
 
@@ -592,7 +597,7 @@ class _Plot3D(Builtin):
         ),
         "invcontour": (
             "Contours option must be Automatic, an integer, or a list of numbers."
-        )
+        ),
     }
 
     # Plot3D, ComplexPlot3D
