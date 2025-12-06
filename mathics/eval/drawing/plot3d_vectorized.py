@@ -220,7 +220,7 @@ def eval_ContourPlot(
 
     # whether to show a background similar to density plot, except quantized
     background = len(plot_options.functions) == 1
-    contour_levels = None  # TODO: implement Contours option
+    contour_levels = plot_options.contours
 
     # convert fs of the form a==b to a-b, inplicit contour level 0
     plot_options.functions = list(plot_options.functions)  # so we can modify it
@@ -247,13 +247,18 @@ def eval_ContourPlot(
         _, ymin, ymax = plot_options.ranges[1]
         zs = xyzs[:, 2]  # this is a linear list matching with quads
 
-        # n contours if not specified
-        n = 8  # TODO: need to pick "nice" number so levels have few digits
+        # process contour_levels
         levels = contour_levels
-        if not levels:
-            zmin, zmax = np.min(zs), np.max(zs)
-            dz_per_level = (zmax - zmin) / n
-            levels = np.arange(n) * dz_per_level + zmin
+        zmin, zmax = np.min(zs), np.max(zs)
+        if isinstance(levels, str):
+            # TODO: need to pick "nice" number so levels have few digits
+            # an odd number ensures there is a contour at 0 if range is balanced
+            levels = 9
+        if isinstance(levels, int):
+            # computed contour levels have equal distance between them,
+            # and half that between first/last contours and zmin/zmax
+            dz = (zmax - zmin) / levels
+            levels = zmin + np.arange(levels) * dz + dz/2
 
         # one contour line per contour level
         for level in levels:
@@ -268,11 +273,16 @@ def eval_ContourPlot(
                 segment[:, 1] = segment[:, 1] * ((ymax - ymin) / ny) + ymin
                 graphics.add_linexyzs(segment)
 
-        # background
+        # background is solid colors between contour lines
         if background:
-            zs = np.floor(zs / dz_per_level)  # quantize the zs to match the contours
-            colors = density_colors(zs)  # and get colors using the quantized zs
-            graphics.add_complex(xyzs[:, 0:2], lines=None, polys=quads, colors=colors)
+            with Timer("contour background"):
+                # add extra levels below zmin and above zmax to define end ranges
+                levels = [zmin-(levels[0]-zmin)] + list(levels) + [zmax+(zmax-levels[-1])]
+                for lo, hi in zip(levels[:-1], levels[1:]):
+                    # use masks and fancy indexing to assign (lo+hi)/2 to all zs between lo and hi
+                    zs[(lo < zs) & (zs <= hi)] = (lo + hi) / 2
+                colors = density_colors(zs) # same colors as density plot
+                graphics.add_complex(xyzs[:, 0:2], lines=None, polys=quads, colors=colors)
 
     # plot_options.plotpoints = [n * 10 for n in plot_options.plotpoints]
     return make_plot(plot_options, evaluation, dim=2, is_complex=False, emit=emit)

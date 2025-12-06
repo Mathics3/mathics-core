@@ -491,6 +491,14 @@ class PlotOptions:
                 self.error(expr, "invrange", range_expr)
             self.ranges.append(range)
 
+        # Contours option
+        contours = expr.get_option(options, "Contours", evaluation)
+        if contours is not None:
+            c = contours.to_python()
+            if not (c=="System`Automatic" or isinstance(c, int) or isinstance(c, tuple) and all(isinstance(cc, (int,float)) for cc in c) ):
+                self.error(expr, "invcontour", contours)
+            self.contours = c
+
         # Mesh option
         mesh = expr.get_option(options, "Mesh", evaluation)
         if mesh not in (SymbolNone, SymbolFull, SymbolAll):
@@ -582,6 +590,9 @@ class _Plot3D(Builtin):
             "Plot range `1` must be of the form {variable, min, max}, "
             "where max > min."
         ),
+        "invcontour": (
+            "Contours option must be Automatic, an integer, or a list of numbers."
+        )
     }
 
     # Plot3D, ComplexPlot3D
@@ -863,8 +874,8 @@ class ContourPlot(_Plot3D):
     requires = ["skimage"]
     summary_text = "creates a contour plot"
     expected_args = 3
-    options = _Plot3D.options2d
-    # TODO: updates? #
+    options = _Plot3D.options2d | {"Contours": "Automatic"}
+    # TODO: other options?
 
     many_functions = True
     eval_function = staticmethod(eval_ContourPlot)
