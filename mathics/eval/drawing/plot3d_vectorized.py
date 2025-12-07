@@ -276,15 +276,11 @@ def eval_ContourPlot(
         # background is solid colors between contour lines
         if background:
             with Timer("contour background"):
-                # add extra levels below zmin and above zmax to define end ranges
-                levels = (
-                    [zmin - (levels[0] - zmin)]
-                    + list(levels)
-                    + [zmax + (zmax - levels[-1])]
-                )
+                # use masks and fancy indexing to assign (lo+hi)/2 to all zs between lo and hi
+                zs[zs <= levels[0]] = zmin
                 for lo, hi in zip(levels[:-1], levels[1:]):
-                    # use masks and fancy indexing to assign (lo+hi)/2 to all zs between lo and hi
                     zs[(lo < zs) & (zs <= hi)] = (lo + hi) / 2
+                zs[levels[-1] < zs] = zmax
                 colors = density_colors(zs)  # same colors as density plot
                 graphics.add_complex(
                     xyzs[:, 0:2], lines=None, polys=quads, colors=colors
