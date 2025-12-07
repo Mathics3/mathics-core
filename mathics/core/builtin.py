@@ -852,12 +852,14 @@ class UnavailableFunction:
 
     def __init__(self, builtin):
         self.name = builtin.get_name()
+        self.requires = builtin.requires
 
     def __call__(self, **kwargs):
         kwargs["evaluation"].message(
             "General",
             "pyimport",  # see messages.py for error message definition
             strip_context(self.name),
+            ", ".join(self.requires),
         )
 
 

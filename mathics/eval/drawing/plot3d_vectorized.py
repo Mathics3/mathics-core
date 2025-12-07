@@ -9,8 +9,14 @@ import numpy as np
 
 from mathics.builtin.colors.color_internals import convert_color
 from mathics.core.evaluation import Evaluation
+from mathics.core.expression import Expression
 from mathics.core.symbols import strip_context
-from mathics.core.systemsymbols import SymbolNone, SymbolRGBColor
+from mathics.core.systemsymbols import (
+    SymbolEqual,
+    SymbolNone,
+    SymbolRGBColor,
+    SymbolSubtract,
+)
 from mathics.timing import Timer
 
 from .plot_compile import plot_compile
@@ -124,28 +130,64 @@ def make_plot(plot_options, evaluation: Evaluation, dim: int, is_complex: bool, 
     return graphics
 
 
+# color-blind friendly palette from https://davidmathlogic.com/colorblind
+# palette3 is for 3d plots, i.e. surfaces
+palette3 = [
+    (255, 176, 0),  # orange
+    (100, 143, 255),  # blue
+    (220, 38, 127),  # red
+    (50, 150, 140),  # green
+    (120, 94, 240),  # purple
+    (254, 97, 0),  # dark orange
+    (0, 114, 178),  # dark blue
+]
+
+
+# palette 2 is for 2d plots, i.e. lines
+# same colors as palette3 but in a little different order
+palette2 = [
+    (100, 143, 255),  # blue
+    (255, 176, 0),  # orange
+    (50, 150, 140),  # green
+    (220, 38, 127),  # red
+    (120, 94, 240),  # purple
+    (254, 97, 0),  # dark orange
+    (0, 114, 178),  # dark blue
+]
+
+
+def palette_color_directive(palette, i):
+    """returns a directive in a form suitable for graphics.add_directives"""
+    """ for setting the color of an entire entity such as a line or surface """
+    rgb = palette[i % len(palette)]
+    rgb = [c / 255.0 for c in rgb]
+    return [SymbolRGBColor, *rgb]
+
+
+@Timer("density_colors")
+def density_colors(zs):
+    """default color palette for DensityPlot and ContourPlot (f(x) form)"""
+    z_min, z_max = min(zs), max(zs)
+    zs = zs[:, np.newaxis]  # allow broadcasting
+    # c_min, c_max = [0.3, 0.00, 0.3], [1.0, 0.95, 0.8]
+    c_min, c_max = [0.5, 0, 0.1], [1.0, 0.9, 0.5]
+    c_min, c_max = (
+        np.full((len(zs), 3), c_min),
+        np.full((len(zs), 3), c_max),
+    )
+    colors = ((zs - z_min) * c_max + (z_max - zs) * c_min) / (z_max - z_min)
+    return colors
+
+
 @Timer("eval_Plot3D")
 def eval_Plot3D(
     plot_options,
     evaluation: Evaluation,
 ):
     def emit(graphics, i, xyzs, quads):
-        # color-blind friendly palette from https://davidmathlogic.com/colorblind
-        palette = [
-            (255, 176, 0),  # orange
-            (100, 143, 255),  # blue
-            (220, 38, 127),  # red
-            (50, 150, 140),  # green
-            (120, 94, 240),  # purple
-            (254, 97, 0),  # dark orange
-            (0, 114, 178),  # dark blue
-        ]
-
         # choose a color
-        rgb = palette[i % len(palette)]
-        rgb = [c / 255.0 for c in rgb]
-        # graphics.add_color(SymbolRGBColor, rgb)
-        graphics.add_directives([SymbolRGBColor, *rgb])
+        color_directive = palette_color_directive(palette3, i)
+        graphics.add_directives(color_directive)
 
         # add a GraphicsComplex displaying a surface for this function
         graphics.add_complex(xyzs, lines=None, polys=quads)
@@ -161,20 +203,90 @@ def eval_DensityPlot(
     def emit(graphics, i, xyzs, quads):
         # Fixed palette for now
         # TODO: accept color options
-        with Timer("compute colors"):
-            zs = xyzs[:, 2]
-            z_min, z_max = min(zs), max(zs)
-            zs = zs[:, np.newaxis]  # allow broadcasting
-            c_min, c_max = [0.5, 0, 0.1], [1.0, 0.9, 0.5]
-            c_min, c_max = (
-                np.full((len(zs), 3), c_min),
-                np.full((len(zs), 3), c_max),
-            )
-            colors = ((zs - z_min) * c_max + (z_max - zs) * c_min) / (z_max - z_min)
+        colors = density_colors(xyzs[:, 2])
 
         # flatten the points and add the quads
         graphics.add_complex(xyzs[:, 0:2], lines=None, polys=quads, colors=colors)
 
+    return make_plot(plot_options, evaluation, dim=2, is_complex=False, emit=emit)
+
+
+@Timer("eval_ContourPlot")
+def eval_ContourPlot(
+    plot_options,
+    evaluation: Evaluation,
+):
+    import skimage.measure
+
+    # whether to show a background similar to density plot, except quantized
+    background = len(plot_options.functions) == 1
+    contour_levels = plot_options.contours
+
+    # convert fs of the form a==b to a-b, inplicit contour level 0
+    plot_options.functions = list(plot_options.functions)  # so we can modify it
+    for i, f in enumerate(plot_options.functions):
+        if f.head == SymbolEqual:
+            f = Expression(SymbolSubtract, *f.elements[0:2])
+            plot_options.functions[i] = f
+            contour_levels = [0]
+            background = False
+
+    def emit(graphics, i, xyzs, quads):
+        # set line color
+        if background:
+            # showing a background, so just black lines
+            color_directive = [SymbolRGBColor, 0, 0, 0]
+        else:
+            # no background - each curve gets its own color
+            color_directive = palette_color_directive(palette2, i)
+        graphics.add_directives(color_directive)
+
+        # get data
+        nx, ny = plot_options.plotpoints
+        _, xmin, xmax = plot_options.ranges[0]
+        _, ymin, ymax = plot_options.ranges[1]
+        zs = xyzs[:, 2]  # this is a linear list matching with quads
+
+        # process contour_levels
+        levels = contour_levels
+        zmin, zmax = np.min(zs), np.max(zs)
+        if isinstance(levels, str):
+            # TODO: need to pick "nice" number so levels have few digits
+            # an odd number ensures there is a contour at 0 if range is balanced
+            levels = 9
+        if isinstance(levels, int):
+            # computed contour levels have equal distance between them,
+            # and half that between first/last contours and zmin/zmax
+            dz = (zmax - zmin) / levels
+            levels = zmin + np.arange(levels) * dz + dz / 2
+
+        # one contour line per contour level
+        for level in levels:
+            # find contours and add lines
+            with Timer("contours"):
+                zgrid = zs.reshape((nx, ny))  # find_contours needs it as an array
+                contours = skimage.measure.find_contours(zgrid, level)
+
+            # add lines
+            for segment in contours:
+                segment[:, 0] = segment[:, 0] * ((xmax - xmin) / nx) + xmin
+                segment[:, 1] = segment[:, 1] * ((ymax - ymin) / ny) + ymin
+                graphics.add_linexyzs(segment)
+
+        # background is solid colors between contour lines
+        if background:
+            with Timer("contour background"):
+                # use masks and fancy indexing to assign (lo+hi)/2 to all zs between lo and hi
+                zs[zs <= levels[0]] = zmin
+                for lo, hi in zip(levels[:-1], levels[1:]):
+                    zs[(lo < zs) & (zs <= hi)] = (lo + hi) / 2
+                zs[levels[-1] < zs] = zmax
+                colors = density_colors(zs)  # same colors as density plot
+                graphics.add_complex(
+                    xyzs[:, 0:2], lines=None, polys=quads, colors=colors
+                )
+
+    # plot_options.plotpoints = [n * 10 for n in plot_options.plotpoints]
     return make_plot(plot_options, evaluation, dim=2, is_complex=False, emit=emit)
 
 
