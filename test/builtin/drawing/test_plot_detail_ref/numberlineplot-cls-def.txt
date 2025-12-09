@@ -7,13 +7,13 @@ System`Graphics
     System`Point
       System`List
         System`List
-          System`Real 1.0
+          System`Real 1
           System`Integer 1
         System`List
-          System`Real 3.0
+          System`Real 3
           System`Integer 1
         System`List
-          System`Real 4.0
+          System`Real 4
           System`Integer 1
   System`Rule
     System`AlignmentPoint
@@ -82,7 +82,7 @@ System`Graphics
     System`List
   System`Rule
     System`ImageMargins
-    System`Real 0.0
+    System`Real 0
   System`Rule
     System`ImagePadding
     System`All
@@ -112,10 +112,10 @@ System`Graphics
     System`List
       System`List
         System`Real -0.1
-        System`Real 4.0
+        System`Real 4
       System`List
         System`Integer 0
-        System`Real 2.0
+        System`Real 2
   System`Rule
     System`PlotRangeClipping
     System`False

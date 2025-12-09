@@ -9,7 +9,7 @@ from pathlib import PureWindowsPath
 from platform import python_implementation
 from typing import Optional
 
-from mathics.core.atoms import NumericArray
+from mathics.core.atoms import NumericArray, MachineReal
 from mathics.core.symbols import Symbol
 
 IS_PYPY = python_implementation() == "PyPy"
@@ -129,7 +129,11 @@ def print_expression_tree(expr, indent="", marker=lambda expr: "", file=None):
     if isinstance(expr, Symbol):
         print(f"{indent}{marker(expr)}{expr}", file=file)
     elif not hasattr(expr, "elements"):
-        print(f"{indent}{marker(expr)}{expr.get_head()} {expr}", file=file)
+        if isinstance(expr, MachineReal):
+            value = f"{expr.value:.8g}"
+        else:
+            value = str(expr)
+        print(f"{indent}{marker(expr)}{expr.get_head()} {value}", file=file)
         if isinstance(expr, NumericArray):
             # numpy provides an abbreviated version of the array
             na_str = str(expr.value)

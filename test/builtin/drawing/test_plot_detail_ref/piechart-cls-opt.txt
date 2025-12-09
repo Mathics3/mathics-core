@@ -8,48 +8,48 @@ System`Graphics
     System`Style
       System`Disk
         System`List
-          System`Real 0.0
-          System`Real 0.0
+          System`Real 0
+          System`Real 0
         System`List
-          System`Real 2.0
-          System`Real 2.0
+          System`Real 2
+          System`Real 2
         System`List
-          System`Real 3.141592653589793
-          System`Real 1.2566370614359172
+          System`Real 3.1415927
+          System`Real 1.2566371
       System`RGBColor
-        System`Real 0.9411764705882353
-        System`Real 0.6470588235294118
-        System`Real 0.6901960784313725
+        System`Real 0.94117647
+        System`Real 0.64705882
+        System`Real 0.69019608
     System`Style
       System`Disk
         System`List
-          System`Real 0.0
-          System`Real 0.0
+          System`Real 0
+          System`Real 0
         System`List
-          System`Real 2.0
-          System`Real 2.0
+          System`Real 2
+          System`Real 2
         System`List
-          System`Real 1.2566370614359172
-          System`Real 0.0
+          System`Real 1.2566371
+          System`Real 0
       System`RGBColor
-        System`Real 0.5490196078431373
-        System`Real 0.5215686274509804
-        System`Real 0.21176470588235294
+        System`Real 0.54901961
+        System`Real 0.52156863
+        System`Real 0.21176471
     System`Style
       System`Disk
         System`List
-          System`Real 0.0
-          System`Real 0.0
+          System`Real 0
+          System`Real 0
         System`List
-          System`Real 2.0
-          System`Real 2.0
+          System`Real 2
+          System`Real 2
         System`List
-          System`Real 0.0
-          System`Real -3.141592653589793
+          System`Real 0
+          System`Real -3.1415927
       System`RGBColor
-        System`Real 0.9803921568627451
-        System`Real 0.8156862745098039
-        System`Real 0.38823529411764707
+        System`Real 0.98039216
+        System`Real 0.81568627
+        System`Real 0.38823529
   System`Rule
     System`AlignmentPoint
     System`Center
@@ -127,7 +127,7 @@ System`Graphics
     System`List
   System`Rule
     System`ImageMargins
-    System`Real 0.0
+    System`Real 0
   System`Rule
     System`ImagePadding
     System`All
@@ -153,11 +153,11 @@ System`Graphics
     System`PlotRange
     System`List
       System`List
-        System`Real -2.0
-        System`Real 2.0
+        System`Real -2
+        System`Real 2
       System`List
-        System`Real -2.0
-        System`Real 2.0
+        System`Real -2
+        System`Real 2
   System`Rule
     System`PlotRangeClipping
     System`False

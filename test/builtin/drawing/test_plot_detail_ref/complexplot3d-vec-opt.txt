@@ -836,7 +836,7 @@ System`Graphics3D
     System`List
   System`Rule
     System`ImageMargins
-    System`Real 0.0
+    System`Real 0
   System`Rule
     System`ImagePadding
     System`All
@@ -908,7 +908,7 @@ System`Graphics3D
     System`List
       System`Real 1.3
       System`Real -2.4
-      System`Real 2.0
+      System`Real 2
   System`Rule
     System`ViewProjection
     System`Automatic

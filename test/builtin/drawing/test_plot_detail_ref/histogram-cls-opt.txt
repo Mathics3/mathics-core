@@ -11,103 +11,103 @@ System`Graphics
           System`Integer 0
           System`Integer 0
         System`List
-          System`Real 1.0
+          System`Real 1
           System`Integer 0
       System`RGBColor
-        System`Real 0.8862745098039215
-        System`Real 0.7843137254901961
-        System`Real 0.6549019607843137
+        System`Real 0.88627451
+        System`Real 0.78431373
+        System`Real 0.65490196
     System`Style
       System`Rectangle
         System`List
-          System`Real 1.0
+          System`Real 1
           System`Integer 0
         System`List
-          System`Real 2.0
+          System`Real 2
           System`Integer 3
       System`RGBColor
-        System`Real 0.8862745098039215
-        System`Real 0.7843137254901961
-        System`Real 0.6549019607843137
+        System`Real 0.88627451
+        System`Real 0.78431373
+        System`Real 0.65490196
     System`Style
       System`Rectangle
         System`List
-          System`Real 2.0
+          System`Real 2
           System`Integer 0
         System`List
-          System`Real 3.0
+          System`Real 3
           System`Integer 0
       System`RGBColor
-        System`Real 0.8862745098039215
-        System`Real 0.7843137254901961
-        System`Real 0.6549019607843137
+        System`Real 0.88627451
+        System`Real 0.78431373
+        System`Real 0.65490196
     System`Style
       System`Rectangle
         System`List
-          System`Real 3.0
+          System`Real 3
           System`Integer 0
         System`List
-          System`Real 4.0
+          System`Real 4
           System`Integer 0
       System`RGBColor
-        System`Real 0.8862745098039215
-        System`Real 0.7843137254901961
-        System`Real 0.6549019607843137
+        System`Real 0.88627451
+        System`Real 0.78431373
+        System`Real 0.65490196
     System`Style
       System`Rectangle
         System`List
-          System`Real 4.0
+          System`Real 4
           System`Integer 0
         System`List
-          System`Real 5.0
+          System`Real 5
           System`Integer 0
       System`RGBColor
-        System`Real 0.8862745098039215
-        System`Real 0.7843137254901961
-        System`Real 0.6549019607843137
+        System`Real 0.88627451
+        System`Real 0.78431373
+        System`Real 0.65490196
     System`Style
       System`Rectangle
         System`List
-          System`Real 5.0
+          System`Real 5
           System`Integer 0
         System`List
-          System`Real 6.0
+          System`Real 6
           System`Integer 2
       System`RGBColor
-        System`Real 0.8862745098039215
-        System`Real 0.7843137254901961
-        System`Real 0.6549019607843137
+        System`Real 0.88627451
+        System`Real 0.78431373
+        System`Real 0.65490196
     System`Style
       System`Rectangle
         System`List
-          System`Real 6.0
+          System`Real 6
           System`Integer 0
         System`List
-          System`Real 7.0
+          System`Real 7
           System`Integer 0
       System`RGBColor
-        System`Real 0.8862745098039215
-        System`Real 0.7843137254901961
-        System`Real 0.6549019607843137
+        System`Real 0.88627451
+        System`Real 0.78431373
+        System`Real 0.65490196
     System`Style
       System`Rectangle
         System`List
-          System`Real 7.0
+          System`Real 7
           System`Integer 0
         System`List
-          System`Real 8.0
+          System`Real 8
           System`Integer 4
       System`RGBColor
-        System`Real 0.8862745098039215
-        System`Real 0.7843137254901961
-        System`Real 0.6549019607843137
+        System`Real 0.88627451
+        System`Real 0.78431373
+        System`Real 0.65490196
     System`Line
       System`List
         System`List
           System`Integer 0
           System`Integer 0
         System`List
-          System`Real 8.0
+          System`Real 8
           System`Integer 0
   System`Rule
     System`AlignmentPoint
@@ -177,7 +177,7 @@ System`Graphics
     System`List
   System`Rule
     System`ImageMargins
-    System`Real 0.0
+    System`Real 0
   System`Rule
     System`ImagePadding
     System`All
@@ -204,7 +204,7 @@ System`Graphics
     System`List
       System`List
         System`Real -0.1
-        System`Real 8.0
+        System`Real 8
       System`List
         System`Integer 0
         System`Integer 4

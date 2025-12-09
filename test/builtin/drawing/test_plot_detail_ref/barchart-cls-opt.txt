@@ -8,15 +8,15 @@ System`Graphics
     System`Style
       System`Rectangle
         System`List
-          System`Real 0.15999999999999998
+          System`Real 0.16
           System`Integer 0
         System`List
           System`Real 1.06
-          System`Real 3.0
+          System`Real 3
       System`RGBColor
-        System`Real 0.4470588235294118
-        System`Real 0.792156862745098
-        System`Real 0.8666666666666667
+        System`Real 0.44705882
+        System`Real 0.79215686
+        System`Real 0.86666667
     System`Style
       System`Rectangle
         System`List
@@ -24,11 +24,11 @@ System`Graphics
           System`Integer 0
         System`List
           System`Real 2.02
-          System`Real 5.0
+          System`Real 5
       System`RGBColor
-        System`Real 0.4470588235294118
-        System`Real 0.792156862745098
-        System`Real 0.8666666666666667
+        System`Real 0.44705882
+        System`Real 0.79215686
+        System`Real 0.86666667
     System`Style
       System`Rectangle
         System`List
@@ -36,11 +36,11 @@ System`Graphics
           System`Integer 0
         System`List
           System`Real 2.98
-          System`Real 2.0
+          System`Real 2
       System`RGBColor
-        System`Real 0.4470588235294118
-        System`Real 0.792156862745098
-        System`Real 0.8666666666666667
+        System`Real 0.44705882
+        System`Real 0.79215686
+        System`Real 0.86666667
     System`Style
       System`Rectangle
         System`List
@@ -48,11 +48,11 @@ System`Graphics
           System`Integer 0
         System`List
           System`Real 3.94
-          System`Real 7.0
+          System`Real 7
       System`RGBColor
-        System`Real 0.4470588235294118
-        System`Real 0.792156862745098
-        System`Real 0.8666666666666667
+        System`Real 0.44705882
+        System`Real 0.79215686
+        System`Real 0.86666667
     System`Line
       System`List
         System`List
@@ -69,10 +69,10 @@ System`Graphics
     System`Line
       System`List
         System`List
-          System`Real 0.15999999999999998
+          System`Real 0.16
           System`Integer 0
         System`List
-          System`Real 0.15999999999999998
+          System`Real 0.16
           System`Real -0.2
     System`Line
       System`List
@@ -159,7 +159,7 @@ System`Graphics
     System`List
   System`Rule
     System`ImageMargins
-    System`Real 0.0
+    System`Real 0
   System`Rule
     System`ImagePadding
     System`All
@@ -189,7 +189,7 @@ System`Graphics
         System`Real 3.94
       System`List
         System`Integer 0
-        System`Real 7.0
+        System`Real 7
   System`Rule
     System`PlotRangeClipping
     System`False
