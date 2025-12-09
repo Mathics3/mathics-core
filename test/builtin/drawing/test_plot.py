@@ -253,6 +253,10 @@ def test_plot(str_expr, msgs, str_expected, fail_msg):
 
 
 #
+# NOTE: I think the following tests have been superseded by test_plot_detail.py which
+# does similar (actually, more stringent) tests much less laboriously. Keeping these
+# for now just in case, but probably better to add new tests to test_plot_detail.py
+#
 # Call plotting functions and examine the structure of the output
 # In case of error trees are printed with an embedded >>> marker showing location of error
 #
