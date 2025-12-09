@@ -89,11 +89,10 @@ def one_test(name, str_expr, act_dir="/tmp"):
         print_expression_tree(act_expr, file=act_f)
 
     # use diff to compare the actual result in act_fn to reference result in ref_fn
-
     ref_fn = os.path.join(ref_dir(), f"{name}.txt")
     result = subprocess.run(["diff", "-u", ref_fn, act_fn], capture_output=False)
     assert result.returncode == 0, "reference and actual output differ"
-
+    os.remove(act_fn)
 
 def test_all(act_dir="/tmp"):
     # run vectorized tests
