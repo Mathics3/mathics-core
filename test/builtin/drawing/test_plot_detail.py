@@ -1,3 +1,56 @@
+"""
+These tests evaluate Plot* functions, write the result expression to a file in
+outline tree form, and then compare the actual result with an expected reference
+result using diff. For example, if the code that emits a PlotRange based on
+the actual range of data plotted is disabled, the diff looks like this,
+making it fairly clear what is wrong:
+
+@@ -109,13 +109,7 @@
+     System`None
+   System`Rule
+     System`PlotRange
+-    System`List
+-      System`List
+-        System`Real 0.0
+-        System`Real 1.0
+-      System`List
+-        System`Real 0.0
+-        System`Real 1.0
++    System`Automatic
+   System`Rule
+     System`PlotRangeClipping
+     System`False
+
+The NumericArrays are emitted using NumPy's default str, which is an
+abbreviated display of the array, which has enough data that it should
+generally catch any gross error. For example if the function being
+plotted is changed the diff shows that the the of the array is correct,
+but the xyz coordinates output points are changed:
+
+@@ -7,12 +7,12 @@
+     System`GraphicsComplex
+       System`NumericArray NumericArray[Real64, 40000×3]
+         [[0.         0.         0.        ]
+-         [0.00502513 0.         0.        ]
+-         [0.01005025 0.         0.        ]
++         [0.00502513 0.         0.00502513]
++         [0.01005025 0.         0.01005025]
+          ...
+-         [0.98994975 1.         0.98994975]
+-         [0.99497487 1.         0.99497487]
+-         [1.         1.         1.        ]]
++         [0.98994975 1.         1.98994975]
++         [0.99497487 1.         1.99497487]
++         [1.         1.         2.        ]]
+       System`Polygon
+         System`NumericArray NumericArray[Integer64, 39601×4]
+           [[    1     2   202   201]
+
+The reference results are not huge but they are too unwieldy
+to include in code, so they are stored as files in their own
+*_ref directory.
+"""
+
 import os
 import subprocess
 from test.helper import session
