@@ -133,12 +133,20 @@ def one_test(name, str_expr, vec, opt, act_dir="/tmp"):
         with open(act_fn, "w") as act_f:
             print_expression_tree(act_expr, file=act_f)
 
-        # use diff to compare the actual result in act_fn to reference result in ref_fn
+        # use diff to compare the actual result in act_fn to reference result in ref_fn,
+        # with a fallback of simple string comparison if diff is not available
         ref_fn = os.path.join(ref_dir, f"{name}.txt")
-        result = subprocess.run(
-            ["diff", "-U", "5", ref_fn, act_fn], capture_output=False
-        )
-        assert result.returncode == 0, "reference and actual result differ"
+        try:
+            result = subprocess.run(
+                ["diff", "-U", "5", ref_fn, act_fn], capture_output=False
+            )
+            assert result.returncode == 0, "reference and actual result differ"
+        except OSError:
+            with open(ref_fn) as ref_f, open(act_fn) as act_f:
+                ref_str, act_str = ref_f.read(), act_f.read()
+            assert ref_str == act_str, "reference and actual result differ"
+
+        # remove /tmp file if test was successful
         if act_fn != ref_fn:
             os.remove(act_fn)
 
