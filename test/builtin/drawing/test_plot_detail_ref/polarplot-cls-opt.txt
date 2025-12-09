@@ -1,0 +1,36 @@
+System`PolarPlot
+  System`Plus
+    System`Integer 1
+    System`Times
+      System`Real 0.5
+      System`Cos
+        System`Times
+          System`Integer 3
+          Global`θ
+  System`List
+    Global`θ
+    System`Integer 0
+    System`Times
+      System`Integer 2
+      System`Pi
+  System`Rule
+    System`AspectRatio
+    System`Integer 2
+  System`Rule
+    System`Axes
+    System`False
+  System`Rule
+    System`BoxRatios
+    System`List
+      System`Integer 1
+      System`Integer 2
+      System`Integer 3
+  System`Rule
+    System`Frame
+    System`False
+  System`Rule
+    System`Mesh
+    System`Full
+  System`Rule
+    System`PlotPoints
+    System`Integer 10
