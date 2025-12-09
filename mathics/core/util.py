@@ -9,8 +9,8 @@ from pathlib import PureWindowsPath
 from platform import python_implementation
 from typing import Optional
 
-from mathics.core.symbols import Symbol
 from mathics.core.atoms import NumericArray
+from mathics.core.symbols import Symbol
 
 IS_PYPY = python_implementation() == "PyPy"
 
@@ -134,7 +134,7 @@ def print_expression_tree(expr, indent="", marker=lambda expr: "", file=None):
             # numpy provides an abbreviated version of the array
             na_str = str(expr.value)
             i = indent + "  "
-            na_str = i + na_str.replace("\n", "\n"+i)
+            na_str = i + na_str.replace("\n", "\n" + i)
             print(na_str, file=file)
     else:
         print(f"{indent}{marker(expr)}{expr.head}", file=file)

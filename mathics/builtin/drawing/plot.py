@@ -10,12 +10,13 @@ import numbers
 import os
 from abc import ABC
 from functools import lru_cache
-import importlib
 from math import cos, pi, sin
 from typing import Callable, Optional
 
 import palettable
 
+import mathics.eval.drawing.plot3d
+import mathics.eval.drawing.plot3d_vectorized
 from mathics.builtin.drawing.graphics3d import Graphics3D
 from mathics.builtin.graphics import Graphics
 from mathics.builtin.options import options_to_rules
@@ -65,18 +66,21 @@ from mathics.eval.nevaluator import eval_N
 # For now an env variable is simplest.
 # TODO: work out exactly how to deploy.
 
-import mathics.eval.drawing.plot3d
-import mathics.eval.drawing.plot3d_vectorized
 
 # can be set via environment variable at startup time,
 # or changed dynamically by setting the use_vectorized_plot flag
 use_vectorized_plot = os.getenv("MATHICS3_USE_VECTORIZED_PLOT", False)
 
+
 # get the plot eval function for the given class,
 # depending on whether vectorized plot functions are enabled
 def get_plot_eval_function(cls):
     function_name = "eval_" + cls.__name__
-    plot_module = mathics.eval.drawing.plot3d_vectorized if use_vectorized_plot else mathics.eval.drawing.plot3d
+    plot_module = (
+        mathics.eval.drawing.plot3d_vectorized
+        if use_vectorized_plot
+        else mathics.eval.drawing.plot3d
+    )
     fun = getattr(plot_module, function_name)
     return fun
 
