@@ -9,7 +9,7 @@ from pathlib import PureWindowsPath
 from platform import python_implementation
 from typing import Optional
 
-from mathics.core.atoms import NumericArray, MachineReal
+from mathics.core.atoms import MachineReal, NumericArray
 from mathics.core.symbols import Symbol
 
 IS_PYPY = python_implementation() == "PyPy"
