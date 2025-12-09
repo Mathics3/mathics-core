@@ -58,7 +58,7 @@ from test.helper import session
 import mathics.builtin.drawing.plot as plot
 from mathics.core.util import print_expression_tree
 
-# non-vectorized available, vectorized not available, 
+# non-vectorized available, vectorized not available,
 classic = [
     ("barchart", "BarChart[{3,5,2,7}]"),
     ("discreteplot", "DiscretePlot[n^2,{n,1,10}]"),
@@ -66,7 +66,7 @@ classic = [
     ("listlineplot", "ListLinePlot[{1,4,2,5,3}]"),
     ("listplot", "ListPlot[{1,4,2,5,3}]"),
     ("liststepplot", "ListStepPlot[{1,4,2,5,3}]"),
-    #("manipulate", "Manipulate[Plot[a x,{x,0,1}],{a,0,5}]"),
+    # ("manipulate", "Manipulate[Plot[a x,{x,0,1}],{a,0,5}]"),
     ("numberlineplot", "NumberLinePlot[{1,3,4}]"),
     ("parametricplot", "ParametricPlot[{Cos[t],Sin[t]},{t,0,2 Pi}]"),
     ("piechart", "PieChart[{3,2,5}]"),
@@ -105,7 +105,6 @@ print(f"ref_dir {ref_dir}")
 
 
 def one_test(name, str_expr, vec, opt, act_dir="/tmp"):
-
     # update name and set use_vectorized_plot depending on
     # whether vectorized test
     if vec:
@@ -136,7 +135,9 @@ def one_test(name, str_expr, vec, opt, act_dir="/tmp"):
 
         # use diff to compare the actual result in act_fn to reference result in ref_fn
         ref_fn = os.path.join(ref_dir, f"{name}.txt")
-        result = subprocess.run(["diff", "-U", "5", ref_fn, act_fn], capture_output=False)
+        result = subprocess.run(
+            ["diff", "-U", "5", ref_fn, act_fn], capture_output=False
+        )
         assert result.returncode == 0, "reference and actual result differ"
         if act_fn != ref_fn:
             os.remove(act_fn)
@@ -146,17 +147,15 @@ def one_test(name, str_expr, vec, opt, act_dir="/tmp"):
 
 
 def test_all(act_dir="/tmp", opt=None):
+    # run twice, once without and once with options
+    for opt in [False, True]:
+        # run classic tests
+        for name, str_expr in classic + both:
+            one_test(name, str_expr, False, opt, act_dir)
 
-        # run twice, once without and once with options
-        for opt in [False, True]:
-
-            # run classic tests
-            for name, str_expr in classic + both:
-                one_test(name, str_expr, False, opt, act_dir)
-
-            # run vectorized tests
-            for name, str_expr in vectorized + both:
-                one_test(name, str_expr, True, opt, act_dir)
+        # run vectorized tests
+        for name, str_expr in vectorized + both:
+            one_test(name, str_expr, True, opt, act_dir)
 
 
 if __name__ == "__main__":
@@ -171,5 +170,5 @@ if __name__ == "__main__":
         except AssertionError:
             print("FAIL")
 
-    #make_ref_files()
+    # make_ref_files()
     run_tests()
