@@ -10,6 +10,7 @@ from platform import python_implementation
 from typing import Optional
 
 from mathics.core.symbols import Symbol
+from mathics.core.atoms import NumericArray
 
 IS_PYPY = python_implementation() == "PyPy"
 
@@ -117,20 +118,28 @@ def subranges(
             )
 
 
-def print_expression_tree(expr, indent="", marker=lambda expr: ""):
+def print_expression_tree(expr, indent="", marker=lambda expr: "", file=None):
     """
     Print a Mathics Expression as an indented tree.
     Caller may supply a marker function that computes a marker
     to be displayed in the tree for the given node.
     """
+    if file is None:
+        file = sys.stdout
     if isinstance(expr, Symbol):
-        print(f"{indent}{marker(expr)}{expr}")
+        print(f"{indent}{marker(expr)}{expr}", file=file)
     elif not hasattr(expr, "elements"):
-        print(f"{indent}{marker(expr)}{expr.get_head()} {expr}")
+        print(f"{indent}{marker(expr)}{expr.get_head()} {expr}", file=file)
+        if isinstance(expr, NumericArray):
+            # numpy provides an abbreviated version of the array
+            na_str = str(expr.value)
+            i = indent + "  "
+            na_str = i + na_str.replace("\n", "\n"+i)
+            print(na_str, file=file)
     else:
-        print(f"{indent}{marker(expr)}{expr.head}")
+        print(f"{indent}{marker(expr)}{expr.head}", file=file)
         for elt in expr.elements:
-            print_expression_tree(elt, indent + "  ", marker=marker)
+            print_expression_tree(elt, indent + "  ", marker=marker, file=file)
 
 
 def print_sympy_tree(expr, indent=""):
