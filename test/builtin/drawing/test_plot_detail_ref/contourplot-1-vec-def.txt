@@ -5506,10 +5506,10 @@ System`Graphics
           System`Real 0.02
           System`Real 0.02
         System`List
-          System`Real 1.3322676e-15
+          System`Real 0
           System`Real 0
         System`List
-          System`Real 1.3322676e-15
+          System`Real 0
           System`Real -0.02
         System`List
           System`Real 0.02

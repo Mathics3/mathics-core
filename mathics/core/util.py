@@ -130,9 +130,10 @@ def print_expression_tree(expr, indent="", marker=lambda expr: "", file=None):
         print(f"{indent}{marker(expr)}{expr}", file=file)
     elif not hasattr(expr, "elements"):
         if isinstance(expr, MachineReal):
-            if abs(value) < 1e-15:
+            value = expr.value
+            if abs(value) < 1e-14:
                 value = 0
-            value = f"{expr.value:.8g}"
+            value = f"{value:.8g}"
         else:
             value = str(expr)
         print(f"{indent}{marker(expr)}{expr.get_head()} {value}", file=file)
