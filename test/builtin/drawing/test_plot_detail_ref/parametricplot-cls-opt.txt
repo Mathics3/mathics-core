@@ -1,15 +1,13 @@
 System`ParametricPlot
   System`List
-    System`Cos
-      Global`t
-    System`Sin
+    Global`t
+    System`Times
+      System`Integer 2
       Global`t
   System`List
     Global`t
     System`Integer 0
-    System`Times
-      System`Integer 2
-      System`Pi
+    System`Integer 2
   System`Rule
     System`AspectRatio
     System`Integer 2

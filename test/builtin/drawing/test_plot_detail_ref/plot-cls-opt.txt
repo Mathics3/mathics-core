@@ -1,12 +1,9 @@
 System`Plot
-  System`Sin
-    Global`x
+  Global`x
   System`List
     Global`x
     System`Integer 0
-    System`Times
-      System`Integer 2
-      System`Pi
+    System`Integer 1
   System`Rule
     System`AspectRatio
     System`Integer 2

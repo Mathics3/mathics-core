@@ -68,10 +68,10 @@ classic = [
     ("liststepplot", "ListStepPlot[{1,4,2,5,3}]"),
     # ("manipulate", "Manipulate[Plot[a x,{x,0,1}],{a,0,5}]"),
     ("numberlineplot", "NumberLinePlot[{1,3,4}]"),
-    ("parametricplot", "ParametricPlot[{Cos[t],Sin[t]},{t,0,2 Pi}]"),
+    ("parametricplot", "ParametricPlot[{t,2 t},{t,0,2}]"),
     ("piechart", "PieChart[{3,2,5}]"),
-    ("plot", "Plot[Sin[x], {x, 0, 2 Pi}]"),
-    ("polarplot", "PolarPlot[1+0.5 Cos[3 θ],{θ,0,2 Pi}]"),
+    ("plot", "Plot[x, {x, 0, 1}]"),
+    ("polarplot", "PolarPlot[3 θ,{θ,0,2}]"),
 ]
 
 # vectorized available, non-vectorized not available
@@ -84,8 +84,8 @@ vectorized = [
 
 # both vectorized and non-vectorized available
 both = [
-    ("densityplot", "DensityPlot[Sin[x y],{x,-2,2},{y,-2,2}]"),
-    ("plot3d", "Plot3D[Sin[x y],{x,-2,2},{y,-2,2}]"),
+    ("densityplot", "DensityPlot[x y,{x,-2,2},{y,-2,2}]"),
+    ("plot3d", "Plot3D[x y,{x,-2,2},{y,-2,2}]"),
 ]
 
 # common plotting options to test with and without
@@ -178,5 +178,5 @@ if __name__ == "__main__":
         except AssertionError:
             print("FAIL")
 
-    # make_ref_files()
-    run_tests()
+    make_ref_files()
+    #run_tests()

@@ -1,18 +1,11 @@
 System`PolarPlot
-  System`Plus
-    System`Integer 1
-    System`Times
-      System`Real 0.5
-      System`Cos
-        System`Times
-          System`Integer 3
-          Global`θ
+  System`Times
+    System`Integer 3
+    Global`θ
   System`List
     Global`θ
     System`Integer 0
-    System`Times
-      System`Integer 2
-      System`Pi
+    System`Integer 2
   System`Rule
     System`AspectRatio
     System`Integer 2
