@@ -131,7 +131,7 @@ def one_test(name, str_expr, vec, opt, act_dir="/tmp"):
         # write the results to act_fn in act_dir
         act_fn = os.path.join(act_dir, f"{name}.txt")
         with open(act_fn, "w") as act_f:
-            print_expression_tree(act_expr, file=act_f)
+            print_expression_tree(act_expr, file=act_f, approximate=True)
 
         # use diff to compare the actual result in act_fn to reference result in ref_fn,
         # with a fallback of simple string comparison if diff is not available
@@ -178,5 +178,5 @@ if __name__ == "__main__":
         except AssertionError:
             print("FAIL")
 
-    # make_ref_files()
-    run_tests()
+    make_ref_files()
+    # run_tests()

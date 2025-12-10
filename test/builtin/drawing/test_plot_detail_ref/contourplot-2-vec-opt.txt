@@ -1,8 +1,8 @@
 System`Graphics
   System`List
     System`RGBColor
-      System`Real 0.39215686
-      System`Real 0.56078431
+      System`Real 0.392157
+      System`Real 0.560784
       System`Real 1
     System`Line
       System`List

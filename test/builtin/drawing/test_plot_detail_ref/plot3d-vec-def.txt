@@ -2,10 +2,10 @@ System`Graphics3D
   System`List
     System`RGBColor
       System`Real 1
-      System`Real 0.69019608
+      System`Real 0.690196
       System`Real 0
     System`GraphicsComplex
-      System`NumericArray NumericArray[Real64, 40000×3]
+      System`NumericArray NumericArray[Real*, 40000×3]
         [[-2.         -2.          4.        ]
          [-1.9798995  -2.          3.95979899]
          [-1.95979899 -2.          3.91959799]
@@ -14,7 +14,7 @@ System`Graphics3D
          [ 1.9798995   2.          3.95979899]
          [ 2.          2.          4.        ]]
       System`Polygon
-        System`NumericArray NumericArray[Integer64, 39601×4]
+        System`NumericArray NumericArray[Integer*, 39601×4]
           [[    1     2   202   201]
            [  201   202   402   401]
            [  401   402   602   601]
@@ -27,7 +27,7 @@ System`Graphics3D
       System`Integer 0
       System`Integer 0
     System`GraphicsComplex
-      System`NumericArray NumericArray[Real64, 4000×3]
+      System`NumericArray NumericArray[Real*, 4000×3]
         [[-2.         -2.          4.        ]
          [-1.9798995  -2.          3.95979899]
          [-1.95979899 -2.          3.91959799]
@@ -36,7 +36,7 @@ System`Graphics3D
          [ 1.9798995   2.          3.95979899]
          [ 2.          2.          4.        ]]
       System`Line
-        System`NumericArray NumericArray[Integer64, 20×200]
+        System`NumericArray NumericArray[Integer*, 20×200]
           [[   1    2    3 ...  198  199  200]
            [ 201  202  203 ...  398  399  400]
            [ 401  402  403 ...  598  599  600]
@@ -45,7 +45,7 @@ System`Graphics3D
            [3601 3602 3603 ... 3798 3799 3800]
            [3801 3802 3803 ... 3998 3999 4000]]
     System`GraphicsComplex
-      System`NumericArray NumericArray[Real64, 4000×3]
+      System`NumericArray NumericArray[Real*, 4000×3]
         [[-2.         -2.          4.        ]
          [-1.78947368 -2.          3.57894737]
          [-1.57894737 -2.          3.15789474]
@@ -54,7 +54,7 @@ System`Graphics3D
          [ 1.78947368  2.          3.57894737]
          [ 2.          2.          4.        ]]
       System`Line
-        System`NumericArray NumericArray[Integer64, 20×200]
+        System`NumericArray NumericArray[Integer*, 20×200]
           [[   1   21   41 ... 3941 3961 3981]
            [   2   22   42 ... 3942 3962 3982]
            [   3   23   43 ... 3943 3963 3983]

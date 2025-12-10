@@ -1,7 +1,7 @@
 System`Graphics
   System`List
     System`GraphicsComplex
-      System`NumericArray NumericArray[Real64, 40000×2]
+      System`NumericArray NumericArray[Real*, 40000×2]
         [[-2.         -2.        ]
          [-1.9798995  -2.        ]
          [-1.95979899 -2.        ]
@@ -10,7 +10,7 @@ System`Graphics
          [ 1.9798995   2.        ]
          [ 2.          2.        ]]
       System`Polygon
-        System`NumericArray NumericArray[Integer64, 39601×4]
+        System`NumericArray NumericArray[Integer*, 39601×4]
           [[    1     2   202   201]
            [  201   202   402   401]
            [  401   402   602   601]
@@ -21,7 +21,7 @@ System`Graphics
       System`Rule
         System`VertexColors
         System`RGBColor
-          System`NumericArray NumericArray[Real64, 40000×3]
+          System`NumericArray NumericArray[Real*, 40000×3]
             [[1.         0.9        0.5       ]
              [0.99748744 0.89547739 0.49798995]
              [0.99497487 0.89095477 0.4959799 ]

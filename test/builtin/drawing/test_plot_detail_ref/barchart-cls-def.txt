@@ -14,9 +14,9 @@ System`Graphics
           System`Real 1.06
           System`Real 3
       System`RGBColor
-        System`Real 0.44705882
-        System`Real 0.79215686
-        System`Real 0.86666667
+        System`Real 0.447059
+        System`Real 0.792157
+        System`Real 0.866667
     System`Style
       System`Rectangle
         System`List
@@ -26,9 +26,9 @@ System`Graphics
           System`Real 2.02
           System`Real 5
       System`RGBColor
-        System`Real 0.44705882
-        System`Real 0.79215686
-        System`Real 0.86666667
+        System`Real 0.447059
+        System`Real 0.792157
+        System`Real 0.866667
     System`Style
       System`Rectangle
         System`List
@@ -38,9 +38,9 @@ System`Graphics
           System`Real 2.98
           System`Real 2
       System`RGBColor
-        System`Real 0.44705882
-        System`Real 0.79215686
-        System`Real 0.86666667
+        System`Real 0.447059
+        System`Real 0.792157
+        System`Real 0.866667
     System`Style
       System`Rectangle
         System`List
@@ -50,9 +50,9 @@ System`Graphics
           System`Real 3.94
           System`Real 7
       System`RGBColor
-        System`Real 0.44705882
-        System`Real 0.79215686
-        System`Real 0.86666667
+        System`Real 0.447059
+        System`Real 0.792157
+        System`Real 0.866667
     System`Line
       System`List
         System`List

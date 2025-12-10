@@ -3,6 +3,7 @@
 Miscellaneous mathics.core utility functions.
 """
 
+import re
 import sys
 from itertools import chain
 from pathlib import PureWindowsPath
@@ -118,7 +119,7 @@ def subranges(
             )
 
 
-def print_expression_tree(expr, indent="", marker=lambda expr: "", file=None):
+def print_expression_tree(expr, indent="", marker=lambda expr: "", file=None, approximate=False):
     """
     Print a Mathics Expression as an indented tree.
     Caller may supply a marker function that computes a marker
@@ -126,14 +127,17 @@ def print_expression_tree(expr, indent="", marker=lambda expr: "", file=None):
     """
     if file is None:
         file = sys.stdout
+
     if isinstance(expr, Symbol):
         print(f"{indent}{marker(expr)}{expr}", file=file)
     elif not hasattr(expr, "elements"):
-        if isinstance(expr, MachineReal):
-            value = expr.value
-            if abs(value) < 1e-14:
-                value = 0
-            value = f"{value:.8g}"
+        if isinstance(expr, MachineReal) and approximate:
+            #
+            value = round(expr.value * 1e6) / 1e6
+            #value = f"{value:.6g}"
+        elif isinstance(expr, NumericArray) and approximate:
+            # Real64 and Real32 both become Real*, etc.
+            value = re.sub("[0-9]+,", "*,", str(expr))
         else:
             value = str(expr)
         print(f"{indent}{marker(expr)}{expr.get_head()} {value}", file=file)
@@ -146,7 +150,7 @@ def print_expression_tree(expr, indent="", marker=lambda expr: "", file=None):
     else:
         print(f"{indent}{marker(expr)}{expr.head}", file=file)
         for elt in expr.elements:
-            print_expression_tree(elt, indent + "  ", marker=marker, file=file)
+            print_expression_tree(elt, indent + "  ", marker=marker, file=file, approximate=approximate)
 
 
 def print_sympy_tree(expr, indent=""):

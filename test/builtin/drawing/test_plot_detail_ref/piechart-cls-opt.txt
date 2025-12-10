@@ -14,12 +14,12 @@ System`Graphics
           System`Real 2
           System`Real 2
         System`List
-          System`Real 3.1415927
-          System`Real 1.2566371
+          System`Real 3.14159
+          System`Real 1.25664
       System`RGBColor
-        System`Real 0.94117647
-        System`Real 0.64705882
-        System`Real 0.69019608
+        System`Real 0.941176
+        System`Real 0.647059
+        System`Real 0.690196
     System`Style
       System`Disk
         System`List
@@ -29,12 +29,12 @@ System`Graphics
           System`Real 2
           System`Real 2
         System`List
-          System`Real 1.2566371
+          System`Real 1.25664
           System`Real 0
       System`RGBColor
-        System`Real 0.54901961
-        System`Real 0.52156863
-        System`Real 0.21176471
+        System`Real 0.54902
+        System`Real 0.521569
+        System`Real 0.211765
     System`Style
       System`Disk
         System`List
@@ -45,11 +45,11 @@ System`Graphics
           System`Real 2
         System`List
           System`Real 0
-          System`Real -3.1415927
+          System`Real -3.14159
       System`RGBColor
-        System`Real 0.98039216
-        System`Real 0.81568627
-        System`Real 0.38823529
+        System`Real 0.980392
+        System`Real 0.815686
+        System`Real 0.388235
   System`Rule
     System`AlignmentPoint
     System`Center

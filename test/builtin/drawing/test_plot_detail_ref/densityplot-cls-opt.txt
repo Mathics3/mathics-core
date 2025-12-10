@@ -2011,2596 +2011,2596 @@ System`Graphics
               System`Real 0.906538
               System`Real 0.834043
             System`RGBColor
-              System`Real 0.8876125
+              System`Real 0.887612
               System`Real 0.888676
-              System`Real 0.8580394
+              System`Real 0.858039
             System`RGBColor
-              System`Real 0.8876125
+              System`Real 0.887612
               System`Real 0.888676
-              System`Real 0.8580394
+              System`Real 0.858039
           System`List
             System`RGBColor
-              System`Real 0.8876125
+              System`Real 0.887612
               System`Real 0.888676
-              System`Real 0.8580394
+              System`Real 0.858039
             System`RGBColor
-              System`Real 0.8876125
+              System`Real 0.887612
               System`Real 0.888676
-              System`Real 0.8580394
+              System`Real 0.858039
             System`RGBColor
-              System`Real 0.8447617
-              System`Real 0.8743864
-              System`Real 0.87723652
+              System`Real 0.844762
+              System`Real 0.874386
+              System`Real 0.877237
           System`List
             System`RGBColor
-              System`Real 0.8876125
+              System`Real 0.887612
               System`Real 0.888676
-              System`Real 0.8580394
+              System`Real 0.858039
             System`RGBColor
               System`Real 0.834049
               System`Real 0.870814
-              System`Real 0.8820358
+              System`Real 0.882036
             System`RGBColor
-              System`Real 0.8447617
-              System`Real 0.8743864
-              System`Real 0.87723652
-          System`List
-            System`RGBColor
-              System`Real 0.834049
-              System`Real 0.870814
-              System`Real 0.8820358
-            System`RGBColor
-              System`Real 0.8447617
-              System`Real 0.8743864
-              System`Real 0.87723652
-            System`RGBColor
-              System`Real 0.8019109
-              System`Real 0.8600968
-              System`Real 0.89643364
+              System`Real 0.844762
+              System`Real 0.874386
+              System`Real 0.877237
           System`List
             System`RGBColor
               System`Real 0.834049
               System`Real 0.870814
-              System`Real 0.8820358
+              System`Real 0.882036
             System`RGBColor
-              System`Real 0.7804855
-              System`Real 0.852952
-              System`Real 0.9060322
+              System`Real 0.844762
+              System`Real 0.874386
+              System`Real 0.877237
             System`RGBColor
-              System`Real 0.8019109
-              System`Real 0.8600968
-              System`Real 0.89643364
+              System`Real 0.801911
+              System`Real 0.860097
+              System`Real 0.896434
           System`List
             System`RGBColor
-              System`Real 0.7804855
+              System`Real 0.834049
+              System`Real 0.870814
+              System`Real 0.882036
+            System`RGBColor
+              System`Real 0.780486
               System`Real 0.852952
-              System`Real 0.9060322
+              System`Real 0.906032
             System`RGBColor
-              System`Real 0.8019109
-              System`Real 0.8600968
-              System`Real 0.89643364
-            System`RGBColor
-              System`Real 0.7586548
-              System`Real 0.84060934
-              System`Real 0.91394036
+              System`Real 0.801911
+              System`Real 0.860097
+              System`Real 0.896434
           System`List
             System`RGBColor
-              System`Real 0.7804855
+              System`Real 0.780486
               System`Real 0.852952
-              System`Real 0.9060322
+              System`Real 0.906032
+            System`RGBColor
+              System`Real 0.801911
+              System`Real 0.860097
+              System`Real 0.896434
+            System`RGBColor
+              System`Real 0.758655
+              System`Real 0.840609
+              System`Real 0.91394
+          System`List
+            System`RGBColor
+              System`Real 0.780486
+              System`Real 0.852952
+              System`Real 0.906032
             System`RGBColor
               System`Real 0.722869
-              System`Real 0.7831114
-              System`Real 0.9131246
+              System`Real 0.783111
+              System`Real 0.913125
             System`RGBColor
-              System`Real 0.7586548
-              System`Real 0.84060934
-              System`Real 0.91394036
+              System`Real 0.758655
+              System`Real 0.840609
+              System`Real 0.91394
           System`List
             System`RGBColor
               System`Real 0.722869
-              System`Real 0.7831114
-              System`Real 0.9131246
+              System`Real 0.783111
+              System`Real 0.913125
             System`RGBColor
-              System`Real 0.7586548
-              System`Real 0.84060934
-              System`Real 0.91394036
+              System`Real 0.758655
+              System`Real 0.840609
+              System`Real 0.91394
             System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
           System`List
             System`RGBColor
               System`Real 0.722869
-              System`Real 0.7831114
-              System`Real 0.9131246
+              System`Real 0.783111
+              System`Real 0.913125
             System`RGBColor
               System`Real 0.663226
-              System`Real 0.6872815
+              System`Real 0.687282
               System`Real 0.911765
             System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
           System`List
             System`RGBColor
               System`Real 0.663226
-              System`Real 0.6872815
+              System`Real 0.687282
               System`Real 0.911765
             System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
             System`RGBColor
               System`Real 0.663226
-              System`Real 0.6872815
+              System`Real 0.687282
               System`Real 0.911765
           System`List
             System`RGBColor
               System`Real 0.663226
-              System`Real 0.6872815
+              System`Real 0.687282
               System`Real 0.911765
             System`RGBColor
               System`Real 0.663226
-              System`Real 0.6872815
+              System`Real 0.687282
               System`Real 0.911765
             System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
           System`List
             System`RGBColor
               System`Real 0.663226
-              System`Real 0.6872815
+              System`Real 0.687282
               System`Real 0.911765
             System`RGBColor
               System`Real 0.603583
-              System`Real 0.5914516
-              System`Real 0.9104054
+              System`Real 0.591452
+              System`Real 0.910405
             System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
           System`List
             System`RGBColor
               System`Real 0.603583
-              System`Real 0.5914516
-              System`Real 0.9104054
+              System`Real 0.591452
+              System`Real 0.910405
             System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
             System`RGBColor
-              System`Real 0.5677972
-              System`Real 0.53395366
-              System`Real 0.90958964
+              System`Real 0.567797
+              System`Real 0.533954
+              System`Real 0.90959
           System`List
             System`RGBColor
               System`Real 0.603583
-              System`Real 0.5914516
-              System`Real 0.9104054
+              System`Real 0.591452
+              System`Real 0.910405
             System`RGBColor
-              System`Real 0.5367805
-              System`Real 0.48054894
-              System`Real 0.8714903
+              System`Real 0.536781
+              System`Real 0.480549
+              System`Real 0.87149
             System`RGBColor
-              System`Real 0.5677972
-              System`Real 0.53395366
-              System`Real 0.90958964
+              System`Real 0.567797
+              System`Real 0.533954
+              System`Real 0.90959
           System`List
             System`RGBColor
-              System`Real 0.5367805
-              System`Real 0.48054894
-              System`Real 0.8714903
+              System`Real 0.536781
+              System`Real 0.480549
+              System`Real 0.87149
             System`RGBColor
-              System`Real 0.5677972
-              System`Real 0.53395366
-              System`Real 0.90958964
+              System`Real 0.567797
+              System`Real 0.533954
+              System`Real 0.90959
             System`RGBColor
-              System`Real 0.5043319
-              System`Real 0.42412967
-              System`Real 0.82587986
+              System`Real 0.504332
+              System`Real 0.42413
+              System`Real 0.82588
           System`List
             System`RGBColor
-              System`Real 0.5367805
-              System`Real 0.48054894
-              System`Real 0.8714903
+              System`Real 0.536781
+              System`Real 0.480549
+              System`Real 0.87149
             System`RGBColor
               System`Real 0.455659
-              System`Real 0.33950076
-              System`Real 0.7574642
+              System`Real 0.339501
+              System`Real 0.757464
             System`RGBColor
-              System`Real 0.5043319
-              System`Real 0.42412967
-              System`Real 0.82587986
-          System`List
-            System`RGBColor
-              System`Real 0.455659
-              System`Real 0.33950076
-              System`Real 0.7574642
-            System`RGBColor
-              System`Real 0.5043319
-              System`Real 0.42412967
-              System`Real 0.82587986
-            System`RGBColor
-              System`Real 0.4394347
-              System`Real 0.31129112
-              System`Real 0.73465898
+              System`Real 0.504332
+              System`Real 0.42413
+              System`Real 0.82588
           System`List
             System`RGBColor
               System`Real 0.455659
-              System`Real 0.33950076
-              System`Real 0.7574642
+              System`Real 0.339501
+              System`Real 0.757464
             System`RGBColor
-              System`Real 0.3745375
-              System`Real 0.19845258
-              System`Real 0.6434381
+              System`Real 0.504332
+              System`Real 0.42413
+              System`Real 0.82588
             System`RGBColor
-              System`Real 0.4394347
-              System`Real 0.31129112
-              System`Real 0.73465898
+              System`Real 0.439435
+              System`Real 0.311291
+              System`Real 0.734659
           System`List
             System`RGBColor
-              System`Real 0.3745375
-              System`Real 0.19845258
-              System`Real 0.6434381
+              System`Real 0.455659
+              System`Real 0.339501
+              System`Real 0.757464
             System`RGBColor
-              System`Real 0.4394347
-              System`Real 0.31129112
-              System`Real 0.73465898
+              System`Real 0.374537
+              System`Real 0.198453
+              System`Real 0.643438
             System`RGBColor
-              System`Real 0.3745375
-              System`Real 0.19845258
-              System`Real 0.6434381
+              System`Real 0.439435
+              System`Real 0.311291
+              System`Real 0.734659
           System`List
             System`RGBColor
-              System`Real 0.3745375
-              System`Real 0.19845258
-              System`Real 0.6434381
+              System`Real 0.374537
+              System`Real 0.198453
+              System`Real 0.643438
+            System`RGBColor
+              System`Real 0.439435
+              System`Real 0.311291
+              System`Real 0.734659
+            System`RGBColor
+              System`Real 0.374537
+              System`Real 0.198453
+              System`Real 0.643438
+          System`List
+            System`RGBColor
+              System`Real 0.374537
+              System`Real 0.198453
+              System`Real 0.643438
             System`RGBColor
               System`Real 0.293416
-              System`Real 0.0574044
+              System`Real 0.057404
               System`Real 0.529412
             System`RGBColor
-              System`Real 0.3745375
-              System`Real 0.19845258
-              System`Real 0.6434381
+              System`Real 0.374537
+              System`Real 0.198453
+              System`Real 0.643438
           System`List
             System`RGBColor
-              System`Real 0.8876125
+              System`Real 0.887612
               System`Real 0.888676
-              System`Real 0.8580394
+              System`Real 0.858039
             System`RGBColor
-              System`Real 0.8447617
-              System`Real 0.8743864
-              System`Real 0.87723652
-            System`RGBColor
-              System`Real 0.834049
-              System`Real 0.870814
-              System`Real 0.8820358
-          System`List
-            System`RGBColor
-              System`Real 0.8447617
-              System`Real 0.8743864
-              System`Real 0.87723652
+              System`Real 0.844762
+              System`Real 0.874386
+              System`Real 0.877237
             System`RGBColor
               System`Real 0.834049
               System`Real 0.870814
-              System`Real 0.8820358
-            System`RGBColor
-              System`Real 0.8019109
-              System`Real 0.8600968
-              System`Real 0.89643364
+              System`Real 0.882036
           System`List
             System`RGBColor
-              System`Real 0.8447617
-              System`Real 0.8743864
-              System`Real 0.87723652
-            System`RGBColor
-              System`Real 0.8019109
-              System`Real 0.8600968
-              System`Real 0.89643364
-            System`RGBColor
-              System`Real 0.8019109
-              System`Real 0.8600968
-              System`Real 0.89643364
-          System`List
-            System`RGBColor
-              System`Real 0.8019109
-              System`Real 0.8600968
-              System`Real 0.89643364
-            System`RGBColor
-              System`Real 0.8019109
-              System`Real 0.8600968
-              System`Real 0.89643364
-            System`RGBColor
-              System`Real 0.7697728
-              System`Real 0.8493796
-              System`Real 0.91083148
-          System`List
-            System`RGBColor
-              System`Real 0.8019109
-              System`Real 0.8600968
-              System`Real 0.89643364
-            System`RGBColor
-              System`Real 0.7586548
-              System`Real 0.84060934
-              System`Real 0.91394036
-            System`RGBColor
-              System`Real 0.7697728
-              System`Real 0.8493796
-              System`Real 0.91083148
-          System`List
-            System`RGBColor
-              System`Real 0.7586548
-              System`Real 0.84060934
-              System`Real 0.91394036
-            System`RGBColor
-              System`Real 0.7697728
-              System`Real 0.8493796
-              System`Real 0.91083148
-            System`RGBColor
-              System`Real 0.7347976
-              System`Real 0.80227738
-              System`Real 0.91339652
-          System`List
-            System`RGBColor
-              System`Real 0.7586548
-              System`Real 0.84060934
-              System`Real 0.91394036
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-            System`RGBColor
-              System`Real 0.7347976
-              System`Real 0.80227738
-              System`Real 0.91339652
-          System`List
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-            System`RGBColor
-              System`Real 0.7347976
-              System`Real 0.80227738
-              System`Real 0.91339652
-            System`RGBColor
-              System`Real 0.6990118
-              System`Real 0.74477944
-              System`Real 0.91258076
-          System`List
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6990118
-              System`Real 0.74477944
-              System`Real 0.91258076
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6990118
-              System`Real 0.74477944
-              System`Real 0.91258076
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6274402
-              System`Real 0.62978356
-              System`Real 0.91094924
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
-            System`RGBColor
-              System`Real 0.6274402
-              System`Real 0.62978356
-              System`Real 0.91094924
-          System`List
-            System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
-            System`RGBColor
-              System`Real 0.6274402
-              System`Real 0.62978356
-              System`Real 0.91094924
-            System`RGBColor
-              System`Real 0.5916544
-              System`Real 0.57228562
-              System`Real 0.91013348
-          System`List
-            System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
-            System`RGBColor
-              System`Real 0.5677972
-              System`Real 0.53395366
-              System`Real 0.90958964
-            System`RGBColor
-              System`Real 0.5916544
-              System`Real 0.57228562
-              System`Real 0.91013348
-          System`List
-            System`RGBColor
-              System`Real 0.5677972
-              System`Real 0.53395366
-              System`Real 0.90958964
-            System`RGBColor
-              System`Real 0.5916544
-              System`Real 0.57228562
-              System`Real 0.91013348
-            System`RGBColor
-              System`Real 0.5530048
-              System`Real 0.50875858
-              System`Real 0.89429552
-          System`List
-            System`RGBColor
-              System`Real 0.5677972
-              System`Real 0.53395366
-              System`Real 0.90958964
-            System`RGBColor
-              System`Real 0.5043319
-              System`Real 0.42412967
-              System`Real 0.82587986
-            System`RGBColor
-              System`Real 0.5530048
-              System`Real 0.50875858
-              System`Real 0.89429552
-          System`List
-            System`RGBColor
-              System`Real 0.5043319
-              System`Real 0.42412967
-              System`Real 0.82587986
-            System`RGBColor
-              System`Real 0.5530048
-              System`Real 0.50875858
-              System`Real 0.89429552
-            System`RGBColor
-              System`Real 0.5043319
-              System`Real 0.42412967
-              System`Real 0.82587986
-          System`List
-            System`RGBColor
-              System`Real 0.5043319
-              System`Real 0.42412967
-              System`Real 0.82587986
-            System`RGBColor
-              System`Real 0.4394347
-              System`Real 0.31129112
-              System`Real 0.73465898
-            System`RGBColor
-              System`Real 0.5043319
-              System`Real 0.42412967
-              System`Real 0.82587986
-          System`List
-            System`RGBColor
-              System`Real 0.4394347
-              System`Real 0.31129112
-              System`Real 0.73465898
-            System`RGBColor
-              System`Real 0.5043319
-              System`Real 0.42412967
-              System`Real 0.82587986
-            System`RGBColor
-              System`Real 0.455659
-              System`Real 0.33950076
-              System`Real 0.7574642
-          System`List
-            System`RGBColor
-              System`Real 0.4394347
-              System`Real 0.31129112
-              System`Real 0.73465898
-            System`RGBColor
-              System`Real 0.3745375
-              System`Real 0.19845258
-              System`Real 0.6434381
-            System`RGBColor
-              System`Real 0.455659
-              System`Real 0.33950076
-              System`Real 0.7574642
-          System`List
+              System`Real 0.844762
+              System`Real 0.874386
+              System`Real 0.877237
             System`RGBColor
               System`Real 0.834049
               System`Real 0.870814
-              System`Real 0.8820358
+              System`Real 0.882036
             System`RGBColor
-              System`Real 0.8019109
-              System`Real 0.8600968
-              System`Real 0.89643364
-            System`RGBColor
-              System`Real 0.7804855
-              System`Real 0.852952
-              System`Real 0.9060322
+              System`Real 0.801911
+              System`Real 0.860097
+              System`Real 0.896434
           System`List
             System`RGBColor
-              System`Real 0.8019109
-              System`Real 0.8600968
-              System`Real 0.89643364
+              System`Real 0.844762
+              System`Real 0.874386
+              System`Real 0.877237
             System`RGBColor
-              System`Real 0.7804855
-              System`Real 0.852952
-              System`Real 0.9060322
+              System`Real 0.801911
+              System`Real 0.860097
+              System`Real 0.896434
             System`RGBColor
-              System`Real 0.7586548
-              System`Real 0.84060934
-              System`Real 0.91394036
+              System`Real 0.801911
+              System`Real 0.860097
+              System`Real 0.896434
           System`List
             System`RGBColor
-              System`Real 0.8019109
-              System`Real 0.8600968
-              System`Real 0.89643364
+              System`Real 0.801911
+              System`Real 0.860097
+              System`Real 0.896434
             System`RGBColor
-              System`Real 0.7697728
-              System`Real 0.8493796
-              System`Real 0.91083148
+              System`Real 0.801911
+              System`Real 0.860097
+              System`Real 0.896434
             System`RGBColor
-              System`Real 0.7586548
-              System`Real 0.84060934
-              System`Real 0.91394036
+              System`Real 0.769773
+              System`Real 0.84938
+              System`Real 0.910831
           System`List
             System`RGBColor
-              System`Real 0.7697728
-              System`Real 0.8493796
-              System`Real 0.91083148
+              System`Real 0.801911
+              System`Real 0.860097
+              System`Real 0.896434
             System`RGBColor
-              System`Real 0.7586548
-              System`Real 0.84060934
-              System`Real 0.91394036
+              System`Real 0.758655
+              System`Real 0.840609
+              System`Real 0.91394
             System`RGBColor
-              System`Real 0.7347976
-              System`Real 0.80227738
-              System`Real 0.91339652
+              System`Real 0.769773
+              System`Real 0.84938
+              System`Real 0.910831
           System`List
             System`RGBColor
-              System`Real 0.7697728
-              System`Real 0.8493796
-              System`Real 0.91083148
+              System`Real 0.758655
+              System`Real 0.840609
+              System`Real 0.91394
             System`RGBColor
-              System`Real 0.7347976
-              System`Real 0.80227738
-              System`Real 0.91339652
+              System`Real 0.769773
+              System`Real 0.84938
+              System`Real 0.910831
             System`RGBColor
-              System`Real 0.7347976
-              System`Real 0.80227738
-              System`Real 0.91339652
+              System`Real 0.734798
+              System`Real 0.802277
+              System`Real 0.913397
           System`List
             System`RGBColor
-              System`Real 0.7347976
-              System`Real 0.80227738
-              System`Real 0.91339652
+              System`Real 0.758655
+              System`Real 0.840609
+              System`Real 0.91394
             System`RGBColor
-              System`Real 0.7347976
-              System`Real 0.80227738
-              System`Real 0.91339652
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
             System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
+              System`Real 0.734798
+              System`Real 0.802277
+              System`Real 0.913397
           System`List
             System`RGBColor
-              System`Real 0.7347976
-              System`Real 0.80227738
-              System`Real 0.91339652
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
             System`RGBColor
-              System`Real 0.6990118
-              System`Real 0.74477944
-              System`Real 0.91258076
+              System`Real 0.734798
+              System`Real 0.802277
+              System`Real 0.913397
             System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
+              System`Real 0.699012
+              System`Real 0.744779
+              System`Real 0.912581
           System`List
             System`RGBColor
-              System`Real 0.6990118
-              System`Real 0.74477944
-              System`Real 0.91258076
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-            System`RGBColor
-              System`Real 0.6870832
-              System`Real 0.72561346
-              System`Real 0.91230884
-          System`List
-            System`RGBColor
-              System`Real 0.6990118
-              System`Real 0.74477944
-              System`Real 0.91258076
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
             System`RGBColor
               System`Real 0.663226
-              System`Real 0.6872815
+              System`Real 0.687282
               System`Real 0.911765
             System`RGBColor
-              System`Real 0.6870832
-              System`Real 0.72561346
-              System`Real 0.91230884
+              System`Real 0.699012
+              System`Real 0.744779
+              System`Real 0.912581
           System`List
             System`RGBColor
               System`Real 0.663226
-              System`Real 0.6872815
+              System`Real 0.687282
               System`Real 0.911765
             System`RGBColor
-              System`Real 0.6870832
-              System`Real 0.72561346
-              System`Real 0.91230884
+              System`Real 0.699012
+              System`Real 0.744779
+              System`Real 0.912581
             System`RGBColor
               System`Real 0.663226
-              System`Real 0.6872815
+              System`Real 0.687282
               System`Real 0.911765
           System`List
             System`RGBColor
               System`Real 0.663226
-              System`Real 0.6872815
+              System`Real 0.687282
               System`Real 0.911765
             System`RGBColor
               System`Real 0.663226
-              System`Real 0.6872815
+              System`Real 0.687282
               System`Real 0.911765
             System`RGBColor
-              System`Real 0.6393688
-              System`Real 0.64894954
-              System`Real 0.91122116
+              System`Real 0.62744
+              System`Real 0.629784
+              System`Real 0.910949
           System`List
             System`RGBColor
               System`Real 0.663226
-              System`Real 0.6872815
+              System`Real 0.687282
               System`Real 0.911765
             System`RGBColor
-              System`Real 0.6274402
-              System`Real 0.62978356
-              System`Real 0.91094924
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
             System`RGBColor
-              System`Real 0.6393688
-              System`Real 0.64894954
-              System`Real 0.91122116
+              System`Real 0.62744
+              System`Real 0.629784
+              System`Real 0.910949
           System`List
             System`RGBColor
-              System`Real 0.6274402
-              System`Real 0.62978356
-              System`Real 0.91094924
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
             System`RGBColor
-              System`Real 0.6393688
-              System`Real 0.64894954
-              System`Real 0.91122116
+              System`Real 0.62744
+              System`Real 0.629784
+              System`Real 0.910949
             System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
+              System`Real 0.591654
+              System`Real 0.572286
+              System`Real 0.910133
           System`List
             System`RGBColor
-              System`Real 0.6274402
-              System`Real 0.62978356
-              System`Real 0.91094924
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
             System`RGBColor
-              System`Real 0.5916544
-              System`Real 0.57228562
-              System`Real 0.91013348
+              System`Real 0.567797
+              System`Real 0.533954
+              System`Real 0.90959
             System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
+              System`Real 0.591654
+              System`Real 0.572286
+              System`Real 0.910133
           System`List
             System`RGBColor
-              System`Real 0.5916544
-              System`Real 0.57228562
-              System`Real 0.91013348
+              System`Real 0.567797
+              System`Real 0.533954
+              System`Real 0.90959
             System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
+              System`Real 0.591654
+              System`Real 0.572286
+              System`Real 0.910133
             System`RGBColor
-              System`Real 0.5916544
-              System`Real 0.57228562
-              System`Real 0.91013348
+              System`Real 0.553005
+              System`Real 0.508759
+              System`Real 0.894296
           System`List
             System`RGBColor
-              System`Real 0.5916544
-              System`Real 0.57228562
-              System`Real 0.91013348
+              System`Real 0.567797
+              System`Real 0.533954
+              System`Real 0.90959
             System`RGBColor
-              System`Real 0.5530048
-              System`Real 0.50875858
-              System`Real 0.89429552
+              System`Real 0.504332
+              System`Real 0.42413
+              System`Real 0.82588
             System`RGBColor
-              System`Real 0.5916544
-              System`Real 0.57228562
-              System`Real 0.91013348
+              System`Real 0.553005
+              System`Real 0.508759
+              System`Real 0.894296
           System`List
             System`RGBColor
-              System`Real 0.5530048
-              System`Real 0.50875858
-              System`Real 0.89429552
+              System`Real 0.504332
+              System`Real 0.42413
+              System`Real 0.82588
             System`RGBColor
-              System`Real 0.5916544
-              System`Real 0.57228562
-              System`Real 0.91013348
+              System`Real 0.553005
+              System`Real 0.508759
+              System`Real 0.894296
             System`RGBColor
-              System`Real 0.5677972
-              System`Real 0.53395366
-              System`Real 0.90958964
+              System`Real 0.504332
+              System`Real 0.42413
+              System`Real 0.82588
           System`List
             System`RGBColor
-              System`Real 0.5530048
-              System`Real 0.50875858
-              System`Real 0.89429552
+              System`Real 0.504332
+              System`Real 0.42413
+              System`Real 0.82588
             System`RGBColor
-              System`Real 0.5043319
-              System`Real 0.42412967
-              System`Real 0.82587986
+              System`Real 0.439435
+              System`Real 0.311291
+              System`Real 0.734659
             System`RGBColor
-              System`Real 0.5677972
-              System`Real 0.53395366
-              System`Real 0.90958964
+              System`Real 0.504332
+              System`Real 0.42413
+              System`Real 0.82588
           System`List
             System`RGBColor
-              System`Real 0.5043319
-              System`Real 0.42412967
-              System`Real 0.82587986
+              System`Real 0.439435
+              System`Real 0.311291
+              System`Real 0.734659
             System`RGBColor
-              System`Real 0.5677972
-              System`Real 0.53395366
-              System`Real 0.90958964
-            System`RGBColor
-              System`Real 0.5367805
-              System`Real 0.48054894
-              System`Real 0.8714903
-          System`List
-            System`RGBColor
-              System`Real 0.5043319
-              System`Real 0.42412967
-              System`Real 0.82587986
+              System`Real 0.504332
+              System`Real 0.42413
+              System`Real 0.82588
             System`RGBColor
               System`Real 0.455659
-              System`Real 0.33950076
-              System`Real 0.7574642
-            System`RGBColor
-              System`Real 0.5367805
-              System`Real 0.48054894
-              System`Real 0.8714903
-          System`List
-            System`RGBColor
-              System`Real 0.7804855
-              System`Real 0.852952
-              System`Real 0.9060322
-            System`RGBColor
-              System`Real 0.7586548
-              System`Real 0.84060934
-              System`Real 0.91394036
-            System`RGBColor
-              System`Real 0.722869
-              System`Real 0.7831114
-              System`Real 0.9131246
-          System`List
-            System`RGBColor
-              System`Real 0.7586548
-              System`Real 0.84060934
-              System`Real 0.91394036
-            System`RGBColor
-              System`Real 0.722869
-              System`Real 0.7831114
-              System`Real 0.9131246
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-          System`List
-            System`RGBColor
-              System`Real 0.7586548
-              System`Real 0.84060934
-              System`Real 0.91394036
-            System`RGBColor
-              System`Real 0.7347976
-              System`Real 0.80227738
-              System`Real 0.91339652
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-          System`List
-            System`RGBColor
-              System`Real 0.7347976
-              System`Real 0.80227738
-              System`Real 0.91339652
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-            System`RGBColor
-              System`Real 0.6990118
-              System`Real 0.74477944
-              System`Real 0.91258076
-          System`List
-            System`RGBColor
-              System`Real 0.7347976
-              System`Real 0.80227738
-              System`Real 0.91339652
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-            System`RGBColor
-              System`Real 0.6990118
-              System`Real 0.74477944
-              System`Real 0.91258076
-          System`List
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-            System`RGBColor
-              System`Real 0.6990118
-              System`Real 0.74477944
-              System`Real 0.91258076
-            System`RGBColor
-              System`Real 0.6870832
-              System`Real 0.72561346
-              System`Real 0.91230884
-          System`List
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-            System`RGBColor
-              System`Real 0.6870832
-              System`Real 0.72561346
-              System`Real 0.91230884
-            System`RGBColor
-              System`Real 0.6870832
-              System`Real 0.72561346
-              System`Real 0.91230884
-          System`List
-            System`RGBColor
-              System`Real 0.6870832
-              System`Real 0.72561346
-              System`Real 0.91230884
-            System`RGBColor
-              System`Real 0.6870832
-              System`Real 0.72561346
-              System`Real 0.91230884
-            System`RGBColor
-              System`Real 0.6751546
-              System`Real 0.70644748
-              System`Real 0.91203692
-          System`List
-            System`RGBColor
-              System`Real 0.6870832
-              System`Real 0.72561346
-              System`Real 0.91230884
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6751546
-              System`Real 0.70644748
-              System`Real 0.91203692
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6751546
-              System`Real 0.70644748
-              System`Real 0.91203692
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6512974
-              System`Real 0.66811552
-              System`Real 0.91149308
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6393688
-              System`Real 0.64894954
-              System`Real 0.91122116
-            System`RGBColor
-              System`Real 0.6512974
-              System`Real 0.66811552
-              System`Real 0.91149308
-          System`List
-            System`RGBColor
-              System`Real 0.6393688
-              System`Real 0.64894954
-              System`Real 0.91122116
-            System`RGBColor
-              System`Real 0.6512974
-              System`Real 0.66811552
-              System`Real 0.91149308
-            System`RGBColor
-              System`Real 0.6393688
-              System`Real 0.64894954
-              System`Real 0.91122116
-          System`List
-            System`RGBColor
-              System`Real 0.6393688
-              System`Real 0.64894954
-              System`Real 0.91122116
-            System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
-            System`RGBColor
-              System`Real 0.6393688
-              System`Real 0.64894954
-              System`Real 0.91122116
-          System`List
-            System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
-            System`RGBColor
-              System`Real 0.6393688
-              System`Real 0.64894954
-              System`Real 0.91122116
-            System`RGBColor
-              System`Real 0.6274402
-              System`Real 0.62978356
-              System`Real 0.91094924
-          System`List
-            System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
-            System`RGBColor
-              System`Real 0.5916544
-              System`Real 0.57228562
-              System`Real 0.91013348
-            System`RGBColor
-              System`Real 0.6274402
-              System`Real 0.62978356
-              System`Real 0.91094924
-          System`List
-            System`RGBColor
-              System`Real 0.5916544
-              System`Real 0.57228562
-              System`Real 0.91013348
-            System`RGBColor
-              System`Real 0.6274402
-              System`Real 0.62978356
-              System`Real 0.91094924
-            System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
-          System`List
-            System`RGBColor
-              System`Real 0.5916544
-              System`Real 0.57228562
-              System`Real 0.91013348
-            System`RGBColor
-              System`Real 0.5677972
-              System`Real 0.53395366
-              System`Real 0.90958964
-            System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
-          System`List
-            System`RGBColor
-              System`Real 0.5677972
-              System`Real 0.53395366
-              System`Real 0.90958964
-            System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
-            System`RGBColor
-              System`Real 0.603583
-              System`Real 0.5914516
-              System`Real 0.9104054
-          System`List
-            System`RGBColor
-              System`Real 0.5677972
-              System`Real 0.53395366
-              System`Real 0.90958964
-            System`RGBColor
-              System`Real 0.5367805
-              System`Real 0.48054894
-              System`Real 0.8714903
-            System`RGBColor
-              System`Real 0.603583
-              System`Real 0.5914516
-              System`Real 0.9104054
-          System`List
-            System`RGBColor
-              System`Real 0.722869
-              System`Real 0.7831114
-              System`Real 0.9131246
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-            System`RGBColor
-              System`Real 0.6990118
-              System`Real 0.74477944
-              System`Real 0.91258076
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.6990118
-              System`Real 0.74477944
-              System`Real 0.91258076
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.6990118
-              System`Real 0.74477944
-              System`Real 0.91258076
-            System`RGBColor
-              System`Real 0.6870832
-              System`Real 0.72561346
-              System`Real 0.91230884
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.6870832
-              System`Real 0.72561346
-              System`Real 0.91230884
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.6870832
-              System`Real 0.72561346
-              System`Real 0.91230884
-            System`RGBColor
-              System`Real 0.6751546
-              System`Real 0.70644748
-              System`Real 0.91203692
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.6751546
-              System`Real 0.70644748
-              System`Real 0.91203692
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.6751546
-              System`Real 0.70644748
-              System`Real 0.91203692
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6512974
-              System`Real 0.66811552
-              System`Real 0.91149308
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.6512974
-              System`Real 0.66811552
-              System`Real 0.91149308
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.6512974
-              System`Real 0.66811552
-              System`Real 0.91149308
-            System`RGBColor
-              System`Real 0.6393688
-              System`Real 0.64894954
-              System`Real 0.91122116
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.6393688
-              System`Real 0.64894954
-              System`Real 0.91122116
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.6393688
-              System`Real 0.64894954
-              System`Real 0.91122116
-            System`RGBColor
-              System`Real 0.6274402
-              System`Real 0.62978356
-              System`Real 0.91094924
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.6274402
-              System`Real 0.62978356
-              System`Real 0.91094924
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.6274402
-              System`Real 0.62978356
-              System`Real 0.91094924
-            System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
-            System`RGBColor
-              System`Real 0.603583
-              System`Real 0.5914516
-              System`Real 0.9104054
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.603583
-              System`Real 0.5914516
-              System`Real 0.9104054
-            System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
-            System`RGBColor
-              System`Real 0.6274402
-              System`Real 0.62978356
-              System`Real 0.91094924
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6274402
-              System`Real 0.62978356
-              System`Real 0.91094924
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6274402
-              System`Real 0.62978356
-              System`Real 0.91094924
-            System`RGBColor
-              System`Real 0.6393688
-              System`Real 0.64894954
-              System`Real 0.91122116
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6393688
-              System`Real 0.64894954
-              System`Real 0.91122116
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6393688
-              System`Real 0.64894954
-              System`Real 0.91122116
-            System`RGBColor
-              System`Real 0.6512974
-              System`Real 0.66811552
-              System`Real 0.91149308
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6512974
-              System`Real 0.66811552
-              System`Real 0.91149308
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6512974
-              System`Real 0.66811552
-              System`Real 0.91149308
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6751546
-              System`Real 0.70644748
-              System`Real 0.91203692
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6751546
-              System`Real 0.70644748
-              System`Real 0.91203692
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6751546
-              System`Real 0.70644748
-              System`Real 0.91203692
-            System`RGBColor
-              System`Real 0.6870832
-              System`Real 0.72561346
-              System`Real 0.91230884
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6870832
-              System`Real 0.72561346
-              System`Real 0.91230884
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6870832
-              System`Real 0.72561346
-              System`Real 0.91230884
-            System`RGBColor
-              System`Real 0.6990118
-              System`Real 0.74477944
-              System`Real 0.91258076
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6990118
-              System`Real 0.74477944
-              System`Real 0.91258076
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6990118
-              System`Real 0.74477944
-              System`Real 0.91258076
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-            System`RGBColor
-              System`Real 0.722869
-              System`Real 0.7831114
-              System`Real 0.9131246
-          System`List
-            System`RGBColor
-              System`Real 0.603583
-              System`Real 0.5914516
-              System`Real 0.9104054
-            System`RGBColor
-              System`Real 0.5367805
-              System`Real 0.48054894
-              System`Real 0.8714903
-            System`RGBColor
-              System`Real 0.5677972
-              System`Real 0.53395366
-              System`Real 0.90958964
-          System`List
-            System`RGBColor
-              System`Real 0.603583
-              System`Real 0.5914516
-              System`Real 0.9104054
-            System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
-            System`RGBColor
-              System`Real 0.5677972
-              System`Real 0.53395366
-              System`Real 0.90958964
-          System`List
-            System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
-            System`RGBColor
-              System`Real 0.5677972
-              System`Real 0.53395366
-              System`Real 0.90958964
-            System`RGBColor
-              System`Real 0.5916544
-              System`Real 0.57228562
-              System`Real 0.91013348
-          System`List
-            System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
-            System`RGBColor
-              System`Real 0.6274402
-              System`Real 0.62978356
-              System`Real 0.91094924
-            System`RGBColor
-              System`Real 0.5916544
-              System`Real 0.57228562
-              System`Real 0.91013348
-          System`List
-            System`RGBColor
-              System`Real 0.6274402
-              System`Real 0.62978356
-              System`Real 0.91094924
-            System`RGBColor
-              System`Real 0.5916544
-              System`Real 0.57228562
-              System`Real 0.91013348
-            System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
-          System`List
-            System`RGBColor
-              System`Real 0.6274402
-              System`Real 0.62978356
-              System`Real 0.91094924
-            System`RGBColor
-              System`Real 0.6393688
-              System`Real 0.64894954
-              System`Real 0.91122116
-            System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
-          System`List
-            System`RGBColor
-              System`Real 0.6393688
-              System`Real 0.64894954
-              System`Real 0.91122116
-            System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
-            System`RGBColor
-              System`Real 0.6393688
-              System`Real 0.64894954
-              System`Real 0.91122116
-          System`List
-            System`RGBColor
-              System`Real 0.6393688
-              System`Real 0.64894954
-              System`Real 0.91122116
-            System`RGBColor
-              System`Real 0.6512974
-              System`Real 0.66811552
-              System`Real 0.91149308
-            System`RGBColor
-              System`Real 0.6393688
-              System`Real 0.64894954
-              System`Real 0.91122116
-          System`List
-            System`RGBColor
-              System`Real 0.6512974
-              System`Real 0.66811552
-              System`Real 0.91149308
-            System`RGBColor
-              System`Real 0.6393688
-              System`Real 0.64894954
-              System`Real 0.91122116
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.6512974
-              System`Real 0.66811552
-              System`Real 0.91149308
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6751546
-              System`Real 0.70644748
-              System`Real 0.91203692
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.6751546
-              System`Real 0.70644748
-              System`Real 0.91203692
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6870832
-              System`Real 0.72561346
-              System`Real 0.91230884
-          System`List
-            System`RGBColor
-              System`Real 0.6751546
-              System`Real 0.70644748
-              System`Real 0.91203692
-            System`RGBColor
-              System`Real 0.6870832
-              System`Real 0.72561346
-              System`Real 0.91230884
-            System`RGBColor
-              System`Real 0.6870832
-              System`Real 0.72561346
-              System`Real 0.91230884
-          System`List
-            System`RGBColor
-              System`Real 0.6870832
-              System`Real 0.72561346
-              System`Real 0.91230884
-            System`RGBColor
-              System`Real 0.6870832
-              System`Real 0.72561346
-              System`Real 0.91230884
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-          System`List
-            System`RGBColor
-              System`Real 0.6870832
-              System`Real 0.72561346
-              System`Real 0.91230884
-            System`RGBColor
-              System`Real 0.6990118
-              System`Real 0.74477944
-              System`Real 0.91258076
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-          System`List
-            System`RGBColor
-              System`Real 0.6990118
-              System`Real 0.74477944
-              System`Real 0.91258076
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-            System`RGBColor
-              System`Real 0.7347976
-              System`Real 0.80227738
-              System`Real 0.91339652
-          System`List
-            System`RGBColor
-              System`Real 0.6990118
-              System`Real 0.74477944
-              System`Real 0.91258076
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-            System`RGBColor
-              System`Real 0.7347976
-              System`Real 0.80227738
-              System`Real 0.91339652
-          System`List
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-            System`RGBColor
-              System`Real 0.7347976
-              System`Real 0.80227738
-              System`Real 0.91339652
-            System`RGBColor
-              System`Real 0.7586548
-              System`Real 0.84060934
-              System`Real 0.91394036
-          System`List
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-            System`RGBColor
-              System`Real 0.722869
-              System`Real 0.7831114
-              System`Real 0.9131246
-            System`RGBColor
-              System`Real 0.7586548
-              System`Real 0.84060934
-              System`Real 0.91394036
+              System`Real 0.339501
+              System`Real 0.757464
           System`List
             System`RGBColor
-              System`Real 0.722869
-              System`Real 0.7831114
-              System`Real 0.9131246
-            System`RGBColor
-              System`Real 0.7586548
-              System`Real 0.84060934
-              System`Real 0.91394036
-            System`RGBColor
-              System`Real 0.7804855
-              System`Real 0.852952
-              System`Real 0.9060322
-          System`List
+              System`Real 0.439435
+              System`Real 0.311291
+              System`Real 0.734659
             System`RGBColor
-              System`Real 0.5367805
-              System`Real 0.48054894
-              System`Real 0.8714903
+              System`Real 0.374537
+              System`Real 0.198453
+              System`Real 0.643438
             System`RGBColor
               System`Real 0.455659
-              System`Real 0.33950076
-              System`Real 0.7574642
-            System`RGBColor
-              System`Real 0.5043319
-              System`Real 0.42412967
-              System`Real 0.82587986
-          System`List
-            System`RGBColor
-              System`Real 0.5367805
-              System`Real 0.48054894
-              System`Real 0.8714903
-            System`RGBColor
-              System`Real 0.5677972
-              System`Real 0.53395366
-              System`Real 0.90958964
-            System`RGBColor
-              System`Real 0.5043319
-              System`Real 0.42412967
-              System`Real 0.82587986
-          System`List
-            System`RGBColor
-              System`Real 0.5677972
-              System`Real 0.53395366
-              System`Real 0.90958964
-            System`RGBColor
-              System`Real 0.5043319
-              System`Real 0.42412967
-              System`Real 0.82587986
-            System`RGBColor
-              System`Real 0.5530048
-              System`Real 0.50875858
-              System`Real 0.89429552
-          System`List
-            System`RGBColor
-              System`Real 0.5677972
-              System`Real 0.53395366
-              System`Real 0.90958964
-            System`RGBColor
-              System`Real 0.5916544
-              System`Real 0.57228562
-              System`Real 0.91013348
-            System`RGBColor
-              System`Real 0.5530048
-              System`Real 0.50875858
-              System`Real 0.89429552
-          System`List
-            System`RGBColor
-              System`Real 0.5916544
-              System`Real 0.57228562
-              System`Real 0.91013348
-            System`RGBColor
-              System`Real 0.5530048
-              System`Real 0.50875858
-              System`Real 0.89429552
-            System`RGBColor
-              System`Real 0.5916544
-              System`Real 0.57228562
-              System`Real 0.91013348
-          System`List
-            System`RGBColor
-              System`Real 0.5916544
-              System`Real 0.57228562
-              System`Real 0.91013348
-            System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
-            System`RGBColor
-              System`Real 0.5916544
-              System`Real 0.57228562
-              System`Real 0.91013348
-          System`List
-            System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
-            System`RGBColor
-              System`Real 0.5916544
-              System`Real 0.57228562
-              System`Real 0.91013348
-            System`RGBColor
-              System`Real 0.6274402
-              System`Real 0.62978356
-              System`Real 0.91094924
-          System`List
-            System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
-            System`RGBColor
-              System`Real 0.6393688
-              System`Real 0.64894954
-              System`Real 0.91122116
-            System`RGBColor
-              System`Real 0.6274402
-              System`Real 0.62978356
-              System`Real 0.91094924
-          System`List
-            System`RGBColor
-              System`Real 0.6393688
-              System`Real 0.64894954
-              System`Real 0.91122116
-            System`RGBColor
-              System`Real 0.6274402
-              System`Real 0.62978356
-              System`Real 0.91094924
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.6393688
-              System`Real 0.64894954
-              System`Real 0.91122116
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6870832
-              System`Real 0.72561346
-              System`Real 0.91230884
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.6870832
-              System`Real 0.72561346
-              System`Real 0.91230884
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6990118
-              System`Real 0.74477944
-              System`Real 0.91258076
-          System`List
-            System`RGBColor
-              System`Real 0.6870832
-              System`Real 0.72561346
-              System`Real 0.91230884
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-            System`RGBColor
-              System`Real 0.6990118
-              System`Real 0.74477944
-              System`Real 0.91258076
-          System`List
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-            System`RGBColor
-              System`Real 0.6990118
-              System`Real 0.74477944
-              System`Real 0.91258076
-            System`RGBColor
-              System`Real 0.7347976
-              System`Real 0.80227738
-              System`Real 0.91339652
-          System`List
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-            System`RGBColor
-              System`Real 0.7347976
-              System`Real 0.80227738
-              System`Real 0.91339652
-            System`RGBColor
-              System`Real 0.7347976
-              System`Real 0.80227738
-              System`Real 0.91339652
-          System`List
-            System`RGBColor
-              System`Real 0.7347976
-              System`Real 0.80227738
-              System`Real 0.91339652
-            System`RGBColor
-              System`Real 0.7347976
-              System`Real 0.80227738
-              System`Real 0.91339652
-            System`RGBColor
-              System`Real 0.7697728
-              System`Real 0.8493796
-              System`Real 0.91083148
-          System`List
-            System`RGBColor
-              System`Real 0.7347976
-              System`Real 0.80227738
-              System`Real 0.91339652
-            System`RGBColor
-              System`Real 0.7586548
-              System`Real 0.84060934
-              System`Real 0.91394036
-            System`RGBColor
-              System`Real 0.7697728
-              System`Real 0.8493796
-              System`Real 0.91083148
-          System`List
-            System`RGBColor
-              System`Real 0.7586548
-              System`Real 0.84060934
-              System`Real 0.91394036
-            System`RGBColor
-              System`Real 0.7697728
-              System`Real 0.8493796
-              System`Real 0.91083148
-            System`RGBColor
-              System`Real 0.8019109
-              System`Real 0.8600968
-              System`Real 0.89643364
-          System`List
-            System`RGBColor
-              System`Real 0.7586548
-              System`Real 0.84060934
-              System`Real 0.91394036
-            System`RGBColor
-              System`Real 0.7804855
-              System`Real 0.852952
-              System`Real 0.9060322
-            System`RGBColor
-              System`Real 0.8019109
-              System`Real 0.8600968
-              System`Real 0.89643364
-          System`List
-            System`RGBColor
-              System`Real 0.7804855
-              System`Real 0.852952
-              System`Real 0.9060322
-            System`RGBColor
-              System`Real 0.8019109
-              System`Real 0.8600968
-              System`Real 0.89643364
-            System`RGBColor
-              System`Real 0.834049
-              System`Real 0.870814
-              System`Real 0.8820358
-          System`List
-            System`RGBColor
-              System`Real 0.455659
-              System`Real 0.33950076
-              System`Real 0.7574642
-            System`RGBColor
-              System`Real 0.3745375
-              System`Real 0.19845258
-              System`Real 0.6434381
-            System`RGBColor
-              System`Real 0.4394347
-              System`Real 0.31129112
-              System`Real 0.73465898
-          System`List
-            System`RGBColor
-              System`Real 0.455659
-              System`Real 0.33950076
-              System`Real 0.7574642
-            System`RGBColor
-              System`Real 0.5043319
-              System`Real 0.42412967
-              System`Real 0.82587986
-            System`RGBColor
-              System`Real 0.4394347
-              System`Real 0.31129112
-              System`Real 0.73465898
-          System`List
-            System`RGBColor
-              System`Real 0.5043319
-              System`Real 0.42412967
-              System`Real 0.82587986
-            System`RGBColor
-              System`Real 0.4394347
-              System`Real 0.31129112
-              System`Real 0.73465898
-            System`RGBColor
-              System`Real 0.5043319
-              System`Real 0.42412967
-              System`Real 0.82587986
-          System`List
-            System`RGBColor
-              System`Real 0.5043319
-              System`Real 0.42412967
-              System`Real 0.82587986
-            System`RGBColor
-              System`Real 0.5530048
-              System`Real 0.50875858
-              System`Real 0.89429552
-            System`RGBColor
-              System`Real 0.5043319
-              System`Real 0.42412967
-              System`Real 0.82587986
-          System`List
-            System`RGBColor
-              System`Real 0.5530048
-              System`Real 0.50875858
-              System`Real 0.89429552
-            System`RGBColor
-              System`Real 0.5043319
-              System`Real 0.42412967
-              System`Real 0.82587986
-            System`RGBColor
-              System`Real 0.5677972
-              System`Real 0.53395366
-              System`Real 0.90958964
-          System`List
-            System`RGBColor
-              System`Real 0.5530048
-              System`Real 0.50875858
-              System`Real 0.89429552
-            System`RGBColor
-              System`Real 0.5916544
-              System`Real 0.57228562
-              System`Real 0.91013348
-            System`RGBColor
-              System`Real 0.5677972
-              System`Real 0.53395366
-              System`Real 0.90958964
-          System`List
-            System`RGBColor
-              System`Real 0.5916544
-              System`Real 0.57228562
-              System`Real 0.91013348
-            System`RGBColor
-              System`Real 0.5677972
-              System`Real 0.53395366
-              System`Real 0.90958964
-            System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
-          System`List
-            System`RGBColor
-              System`Real 0.5916544
-              System`Real 0.57228562
-              System`Real 0.91013348
-            System`RGBColor
-              System`Real 0.6274402
-              System`Real 0.62978356
-              System`Real 0.91094924
-            System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
-          System`List
-            System`RGBColor
-              System`Real 0.6274402
-              System`Real 0.62978356
-              System`Real 0.91094924
-            System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.6274402
-              System`Real 0.62978356
-              System`Real 0.91094924
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.6990118
-              System`Real 0.74477944
-              System`Real 0.91258076
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.6990118
-              System`Real 0.74477944
-              System`Real 0.91258076
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-          System`List
-            System`RGBColor
-              System`Real 0.6990118
-              System`Real 0.74477944
-              System`Real 0.91258076
-            System`RGBColor
-              System`Real 0.7347976
-              System`Real 0.80227738
-              System`Real 0.91339652
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-          System`List
-            System`RGBColor
-              System`Real 0.7347976
-              System`Real 0.80227738
-              System`Real 0.91339652
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-            System`RGBColor
-              System`Real 0.7586548
-              System`Real 0.84060934
-              System`Real 0.91394036
-          System`List
-            System`RGBColor
-              System`Real 0.7347976
-              System`Real 0.80227738
-              System`Real 0.91339652
-            System`RGBColor
-              System`Real 0.7697728
-              System`Real 0.8493796
-              System`Real 0.91083148
-            System`RGBColor
-              System`Real 0.7586548
-              System`Real 0.84060934
-              System`Real 0.91394036
-          System`List
-            System`RGBColor
-              System`Real 0.7697728
-              System`Real 0.8493796
-              System`Real 0.91083148
-            System`RGBColor
-              System`Real 0.7586548
-              System`Real 0.84060934
-              System`Real 0.91394036
-            System`RGBColor
-              System`Real 0.8019109
-              System`Real 0.8600968
-              System`Real 0.89643364
-          System`List
-            System`RGBColor
-              System`Real 0.7697728
-              System`Real 0.8493796
-              System`Real 0.91083148
-            System`RGBColor
-              System`Real 0.8019109
-              System`Real 0.8600968
-              System`Real 0.89643364
-            System`RGBColor
-              System`Real 0.8019109
-              System`Real 0.8600968
-              System`Real 0.89643364
-          System`List
-            System`RGBColor
-              System`Real 0.8019109
-              System`Real 0.8600968
-              System`Real 0.89643364
-            System`RGBColor
-              System`Real 0.8019109
-              System`Real 0.8600968
-              System`Real 0.89643364
-            System`RGBColor
-              System`Real 0.8447617
-              System`Real 0.8743864
-              System`Real 0.87723652
-          System`List
-            System`RGBColor
-              System`Real 0.8019109
-              System`Real 0.8600968
-              System`Real 0.89643364
-            System`RGBColor
-              System`Real 0.834049
-              System`Real 0.870814
-              System`Real 0.8820358
-            System`RGBColor
-              System`Real 0.8447617
-              System`Real 0.8743864
-              System`Real 0.87723652
+              System`Real 0.339501
+              System`Real 0.757464
           System`List
             System`RGBColor
               System`Real 0.834049
               System`Real 0.870814
-              System`Real 0.8820358
+              System`Real 0.882036
             System`RGBColor
-              System`Real 0.8447617
-              System`Real 0.8743864
-              System`Real 0.87723652
+              System`Real 0.801911
+              System`Real 0.860097
+              System`Real 0.896434
             System`RGBColor
-              System`Real 0.8876125
+              System`Real 0.780486
+              System`Real 0.852952
+              System`Real 0.906032
+          System`List
+            System`RGBColor
+              System`Real 0.801911
+              System`Real 0.860097
+              System`Real 0.896434
+            System`RGBColor
+              System`Real 0.780486
+              System`Real 0.852952
+              System`Real 0.906032
+            System`RGBColor
+              System`Real 0.758655
+              System`Real 0.840609
+              System`Real 0.91394
+          System`List
+            System`RGBColor
+              System`Real 0.801911
+              System`Real 0.860097
+              System`Real 0.896434
+            System`RGBColor
+              System`Real 0.769773
+              System`Real 0.84938
+              System`Real 0.910831
+            System`RGBColor
+              System`Real 0.758655
+              System`Real 0.840609
+              System`Real 0.91394
+          System`List
+            System`RGBColor
+              System`Real 0.769773
+              System`Real 0.84938
+              System`Real 0.910831
+            System`RGBColor
+              System`Real 0.758655
+              System`Real 0.840609
+              System`Real 0.91394
+            System`RGBColor
+              System`Real 0.734798
+              System`Real 0.802277
+              System`Real 0.913397
+          System`List
+            System`RGBColor
+              System`Real 0.769773
+              System`Real 0.84938
+              System`Real 0.910831
+            System`RGBColor
+              System`Real 0.734798
+              System`Real 0.802277
+              System`Real 0.913397
+            System`RGBColor
+              System`Real 0.734798
+              System`Real 0.802277
+              System`Real 0.913397
+          System`List
+            System`RGBColor
+              System`Real 0.734798
+              System`Real 0.802277
+              System`Real 0.913397
+            System`RGBColor
+              System`Real 0.734798
+              System`Real 0.802277
+              System`Real 0.913397
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+          System`List
+            System`RGBColor
+              System`Real 0.734798
+              System`Real 0.802277
+              System`Real 0.913397
+            System`RGBColor
+              System`Real 0.699012
+              System`Real 0.744779
+              System`Real 0.912581
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+          System`List
+            System`RGBColor
+              System`Real 0.699012
+              System`Real 0.744779
+              System`Real 0.912581
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+            System`RGBColor
+              System`Real 0.687083
+              System`Real 0.725613
+              System`Real 0.912309
+          System`List
+            System`RGBColor
+              System`Real 0.699012
+              System`Real 0.744779
+              System`Real 0.912581
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.687083
+              System`Real 0.725613
+              System`Real 0.912309
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.687083
+              System`Real 0.725613
+              System`Real 0.912309
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.639369
+              System`Real 0.64895
+              System`Real 0.911221
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.62744
+              System`Real 0.629784
+              System`Real 0.910949
+            System`RGBColor
+              System`Real 0.639369
+              System`Real 0.64895
+              System`Real 0.911221
+          System`List
+            System`RGBColor
+              System`Real 0.62744
+              System`Real 0.629784
+              System`Real 0.910949
+            System`RGBColor
+              System`Real 0.639369
+              System`Real 0.64895
+              System`Real 0.911221
+            System`RGBColor
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
+          System`List
+            System`RGBColor
+              System`Real 0.62744
+              System`Real 0.629784
+              System`Real 0.910949
+            System`RGBColor
+              System`Real 0.591654
+              System`Real 0.572286
+              System`Real 0.910133
+            System`RGBColor
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
+          System`List
+            System`RGBColor
+              System`Real 0.591654
+              System`Real 0.572286
+              System`Real 0.910133
+            System`RGBColor
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
+            System`RGBColor
+              System`Real 0.591654
+              System`Real 0.572286
+              System`Real 0.910133
+          System`List
+            System`RGBColor
+              System`Real 0.591654
+              System`Real 0.572286
+              System`Real 0.910133
+            System`RGBColor
+              System`Real 0.553005
+              System`Real 0.508759
+              System`Real 0.894296
+            System`RGBColor
+              System`Real 0.591654
+              System`Real 0.572286
+              System`Real 0.910133
+          System`List
+            System`RGBColor
+              System`Real 0.553005
+              System`Real 0.508759
+              System`Real 0.894296
+            System`RGBColor
+              System`Real 0.591654
+              System`Real 0.572286
+              System`Real 0.910133
+            System`RGBColor
+              System`Real 0.567797
+              System`Real 0.533954
+              System`Real 0.90959
+          System`List
+            System`RGBColor
+              System`Real 0.553005
+              System`Real 0.508759
+              System`Real 0.894296
+            System`RGBColor
+              System`Real 0.504332
+              System`Real 0.42413
+              System`Real 0.82588
+            System`RGBColor
+              System`Real 0.567797
+              System`Real 0.533954
+              System`Real 0.90959
+          System`List
+            System`RGBColor
+              System`Real 0.504332
+              System`Real 0.42413
+              System`Real 0.82588
+            System`RGBColor
+              System`Real 0.567797
+              System`Real 0.533954
+              System`Real 0.90959
+            System`RGBColor
+              System`Real 0.536781
+              System`Real 0.480549
+              System`Real 0.87149
+          System`List
+            System`RGBColor
+              System`Real 0.504332
+              System`Real 0.42413
+              System`Real 0.82588
+            System`RGBColor
+              System`Real 0.455659
+              System`Real 0.339501
+              System`Real 0.757464
+            System`RGBColor
+              System`Real 0.536781
+              System`Real 0.480549
+              System`Real 0.87149
+          System`List
+            System`RGBColor
+              System`Real 0.780486
+              System`Real 0.852952
+              System`Real 0.906032
+            System`RGBColor
+              System`Real 0.758655
+              System`Real 0.840609
+              System`Real 0.91394
+            System`RGBColor
+              System`Real 0.722869
+              System`Real 0.783111
+              System`Real 0.913125
+          System`List
+            System`RGBColor
+              System`Real 0.758655
+              System`Real 0.840609
+              System`Real 0.91394
+            System`RGBColor
+              System`Real 0.722869
+              System`Real 0.783111
+              System`Real 0.913125
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+          System`List
+            System`RGBColor
+              System`Real 0.758655
+              System`Real 0.840609
+              System`Real 0.91394
+            System`RGBColor
+              System`Real 0.734798
+              System`Real 0.802277
+              System`Real 0.913397
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+          System`List
+            System`RGBColor
+              System`Real 0.734798
+              System`Real 0.802277
+              System`Real 0.913397
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+            System`RGBColor
+              System`Real 0.699012
+              System`Real 0.744779
+              System`Real 0.912581
+          System`List
+            System`RGBColor
+              System`Real 0.734798
+              System`Real 0.802277
+              System`Real 0.913397
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+            System`RGBColor
+              System`Real 0.699012
+              System`Real 0.744779
+              System`Real 0.912581
+          System`List
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+            System`RGBColor
+              System`Real 0.699012
+              System`Real 0.744779
+              System`Real 0.912581
+            System`RGBColor
+              System`Real 0.687083
+              System`Real 0.725613
+              System`Real 0.912309
+          System`List
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+            System`RGBColor
+              System`Real 0.687083
+              System`Real 0.725613
+              System`Real 0.912309
+            System`RGBColor
+              System`Real 0.687083
+              System`Real 0.725613
+              System`Real 0.912309
+          System`List
+            System`RGBColor
+              System`Real 0.687083
+              System`Real 0.725613
+              System`Real 0.912309
+            System`RGBColor
+              System`Real 0.687083
+              System`Real 0.725613
+              System`Real 0.912309
+            System`RGBColor
+              System`Real 0.675155
+              System`Real 0.706447
+              System`Real 0.912037
+          System`List
+            System`RGBColor
+              System`Real 0.687083
+              System`Real 0.725613
+              System`Real 0.912309
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.675155
+              System`Real 0.706447
+              System`Real 0.912037
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.675155
+              System`Real 0.706447
+              System`Real 0.912037
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.651297
+              System`Real 0.668116
+              System`Real 0.911493
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.639369
+              System`Real 0.64895
+              System`Real 0.911221
+            System`RGBColor
+              System`Real 0.651297
+              System`Real 0.668116
+              System`Real 0.911493
+          System`List
+            System`RGBColor
+              System`Real 0.639369
+              System`Real 0.64895
+              System`Real 0.911221
+            System`RGBColor
+              System`Real 0.651297
+              System`Real 0.668116
+              System`Real 0.911493
+            System`RGBColor
+              System`Real 0.639369
+              System`Real 0.64895
+              System`Real 0.911221
+          System`List
+            System`RGBColor
+              System`Real 0.639369
+              System`Real 0.64895
+              System`Real 0.911221
+            System`RGBColor
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
+            System`RGBColor
+              System`Real 0.639369
+              System`Real 0.64895
+              System`Real 0.911221
+          System`List
+            System`RGBColor
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
+            System`RGBColor
+              System`Real 0.639369
+              System`Real 0.64895
+              System`Real 0.911221
+            System`RGBColor
+              System`Real 0.62744
+              System`Real 0.629784
+              System`Real 0.910949
+          System`List
+            System`RGBColor
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
+            System`RGBColor
+              System`Real 0.591654
+              System`Real 0.572286
+              System`Real 0.910133
+            System`RGBColor
+              System`Real 0.62744
+              System`Real 0.629784
+              System`Real 0.910949
+          System`List
+            System`RGBColor
+              System`Real 0.591654
+              System`Real 0.572286
+              System`Real 0.910133
+            System`RGBColor
+              System`Real 0.62744
+              System`Real 0.629784
+              System`Real 0.910949
+            System`RGBColor
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
+          System`List
+            System`RGBColor
+              System`Real 0.591654
+              System`Real 0.572286
+              System`Real 0.910133
+            System`RGBColor
+              System`Real 0.567797
+              System`Real 0.533954
+              System`Real 0.90959
+            System`RGBColor
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
+          System`List
+            System`RGBColor
+              System`Real 0.567797
+              System`Real 0.533954
+              System`Real 0.90959
+            System`RGBColor
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
+            System`RGBColor
+              System`Real 0.603583
+              System`Real 0.591452
+              System`Real 0.910405
+          System`List
+            System`RGBColor
+              System`Real 0.567797
+              System`Real 0.533954
+              System`Real 0.90959
+            System`RGBColor
+              System`Real 0.536781
+              System`Real 0.480549
+              System`Real 0.87149
+            System`RGBColor
+              System`Real 0.603583
+              System`Real 0.591452
+              System`Real 0.910405
+          System`List
+            System`RGBColor
+              System`Real 0.722869
+              System`Real 0.783111
+              System`Real 0.913125
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+            System`RGBColor
+              System`Real 0.699012
+              System`Real 0.744779
+              System`Real 0.912581
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.699012
+              System`Real 0.744779
+              System`Real 0.912581
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.699012
+              System`Real 0.744779
+              System`Real 0.912581
+            System`RGBColor
+              System`Real 0.687083
+              System`Real 0.725613
+              System`Real 0.912309
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.687083
+              System`Real 0.725613
+              System`Real 0.912309
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.687083
+              System`Real 0.725613
+              System`Real 0.912309
+            System`RGBColor
+              System`Real 0.675155
+              System`Real 0.706447
+              System`Real 0.912037
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.675155
+              System`Real 0.706447
+              System`Real 0.912037
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.675155
+              System`Real 0.706447
+              System`Real 0.912037
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.651297
+              System`Real 0.668116
+              System`Real 0.911493
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.651297
+              System`Real 0.668116
+              System`Real 0.911493
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.651297
+              System`Real 0.668116
+              System`Real 0.911493
+            System`RGBColor
+              System`Real 0.639369
+              System`Real 0.64895
+              System`Real 0.911221
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.639369
+              System`Real 0.64895
+              System`Real 0.911221
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.639369
+              System`Real 0.64895
+              System`Real 0.911221
+            System`RGBColor
+              System`Real 0.62744
+              System`Real 0.629784
+              System`Real 0.910949
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.62744
+              System`Real 0.629784
+              System`Real 0.910949
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.62744
+              System`Real 0.629784
+              System`Real 0.910949
+            System`RGBColor
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
+            System`RGBColor
+              System`Real 0.603583
+              System`Real 0.591452
+              System`Real 0.910405
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.603583
+              System`Real 0.591452
+              System`Real 0.910405
+            System`RGBColor
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
+            System`RGBColor
+              System`Real 0.62744
+              System`Real 0.629784
+              System`Real 0.910949
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.62744
+              System`Real 0.629784
+              System`Real 0.910949
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.62744
+              System`Real 0.629784
+              System`Real 0.910949
+            System`RGBColor
+              System`Real 0.639369
+              System`Real 0.64895
+              System`Real 0.911221
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.639369
+              System`Real 0.64895
+              System`Real 0.911221
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.639369
+              System`Real 0.64895
+              System`Real 0.911221
+            System`RGBColor
+              System`Real 0.651297
+              System`Real 0.668116
+              System`Real 0.911493
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.651297
+              System`Real 0.668116
+              System`Real 0.911493
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.651297
+              System`Real 0.668116
+              System`Real 0.911493
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.675155
+              System`Real 0.706447
+              System`Real 0.912037
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.675155
+              System`Real 0.706447
+              System`Real 0.912037
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.675155
+              System`Real 0.706447
+              System`Real 0.912037
+            System`RGBColor
+              System`Real 0.687083
+              System`Real 0.725613
+              System`Real 0.912309
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.687083
+              System`Real 0.725613
+              System`Real 0.912309
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.687083
+              System`Real 0.725613
+              System`Real 0.912309
+            System`RGBColor
+              System`Real 0.699012
+              System`Real 0.744779
+              System`Real 0.912581
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.699012
+              System`Real 0.744779
+              System`Real 0.912581
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.699012
+              System`Real 0.744779
+              System`Real 0.912581
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+            System`RGBColor
+              System`Real 0.722869
+              System`Real 0.783111
+              System`Real 0.913125
+          System`List
+            System`RGBColor
+              System`Real 0.603583
+              System`Real 0.591452
+              System`Real 0.910405
+            System`RGBColor
+              System`Real 0.536781
+              System`Real 0.480549
+              System`Real 0.87149
+            System`RGBColor
+              System`Real 0.567797
+              System`Real 0.533954
+              System`Real 0.90959
+          System`List
+            System`RGBColor
+              System`Real 0.603583
+              System`Real 0.591452
+              System`Real 0.910405
+            System`RGBColor
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
+            System`RGBColor
+              System`Real 0.567797
+              System`Real 0.533954
+              System`Real 0.90959
+          System`List
+            System`RGBColor
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
+            System`RGBColor
+              System`Real 0.567797
+              System`Real 0.533954
+              System`Real 0.90959
+            System`RGBColor
+              System`Real 0.591654
+              System`Real 0.572286
+              System`Real 0.910133
+          System`List
+            System`RGBColor
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
+            System`RGBColor
+              System`Real 0.62744
+              System`Real 0.629784
+              System`Real 0.910949
+            System`RGBColor
+              System`Real 0.591654
+              System`Real 0.572286
+              System`Real 0.910133
+          System`List
+            System`RGBColor
+              System`Real 0.62744
+              System`Real 0.629784
+              System`Real 0.910949
+            System`RGBColor
+              System`Real 0.591654
+              System`Real 0.572286
+              System`Real 0.910133
+            System`RGBColor
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
+          System`List
+            System`RGBColor
+              System`Real 0.62744
+              System`Real 0.629784
+              System`Real 0.910949
+            System`RGBColor
+              System`Real 0.639369
+              System`Real 0.64895
+              System`Real 0.911221
+            System`RGBColor
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
+          System`List
+            System`RGBColor
+              System`Real 0.639369
+              System`Real 0.64895
+              System`Real 0.911221
+            System`RGBColor
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
+            System`RGBColor
+              System`Real 0.639369
+              System`Real 0.64895
+              System`Real 0.911221
+          System`List
+            System`RGBColor
+              System`Real 0.639369
+              System`Real 0.64895
+              System`Real 0.911221
+            System`RGBColor
+              System`Real 0.651297
+              System`Real 0.668116
+              System`Real 0.911493
+            System`RGBColor
+              System`Real 0.639369
+              System`Real 0.64895
+              System`Real 0.911221
+          System`List
+            System`RGBColor
+              System`Real 0.651297
+              System`Real 0.668116
+              System`Real 0.911493
+            System`RGBColor
+              System`Real 0.639369
+              System`Real 0.64895
+              System`Real 0.911221
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.651297
+              System`Real 0.668116
+              System`Real 0.911493
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.675155
+              System`Real 0.706447
+              System`Real 0.912037
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.675155
+              System`Real 0.706447
+              System`Real 0.912037
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.687083
+              System`Real 0.725613
+              System`Real 0.912309
+          System`List
+            System`RGBColor
+              System`Real 0.675155
+              System`Real 0.706447
+              System`Real 0.912037
+            System`RGBColor
+              System`Real 0.687083
+              System`Real 0.725613
+              System`Real 0.912309
+            System`RGBColor
+              System`Real 0.687083
+              System`Real 0.725613
+              System`Real 0.912309
+          System`List
+            System`RGBColor
+              System`Real 0.687083
+              System`Real 0.725613
+              System`Real 0.912309
+            System`RGBColor
+              System`Real 0.687083
+              System`Real 0.725613
+              System`Real 0.912309
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+          System`List
+            System`RGBColor
+              System`Real 0.687083
+              System`Real 0.725613
+              System`Real 0.912309
+            System`RGBColor
+              System`Real 0.699012
+              System`Real 0.744779
+              System`Real 0.912581
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+          System`List
+            System`RGBColor
+              System`Real 0.699012
+              System`Real 0.744779
+              System`Real 0.912581
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+            System`RGBColor
+              System`Real 0.734798
+              System`Real 0.802277
+              System`Real 0.913397
+          System`List
+            System`RGBColor
+              System`Real 0.699012
+              System`Real 0.744779
+              System`Real 0.912581
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+            System`RGBColor
+              System`Real 0.734798
+              System`Real 0.802277
+              System`Real 0.913397
+          System`List
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+            System`RGBColor
+              System`Real 0.734798
+              System`Real 0.802277
+              System`Real 0.913397
+            System`RGBColor
+              System`Real 0.758655
+              System`Real 0.840609
+              System`Real 0.91394
+          System`List
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+            System`RGBColor
+              System`Real 0.722869
+              System`Real 0.783111
+              System`Real 0.913125
+            System`RGBColor
+              System`Real 0.758655
+              System`Real 0.840609
+              System`Real 0.91394
+          System`List
+            System`RGBColor
+              System`Real 0.722869
+              System`Real 0.783111
+              System`Real 0.913125
+            System`RGBColor
+              System`Real 0.758655
+              System`Real 0.840609
+              System`Real 0.91394
+            System`RGBColor
+              System`Real 0.780486
+              System`Real 0.852952
+              System`Real 0.906032
+          System`List
+            System`RGBColor
+              System`Real 0.536781
+              System`Real 0.480549
+              System`Real 0.87149
+            System`RGBColor
+              System`Real 0.455659
+              System`Real 0.339501
+              System`Real 0.757464
+            System`RGBColor
+              System`Real 0.504332
+              System`Real 0.42413
+              System`Real 0.82588
+          System`List
+            System`RGBColor
+              System`Real 0.536781
+              System`Real 0.480549
+              System`Real 0.87149
+            System`RGBColor
+              System`Real 0.567797
+              System`Real 0.533954
+              System`Real 0.90959
+            System`RGBColor
+              System`Real 0.504332
+              System`Real 0.42413
+              System`Real 0.82588
+          System`List
+            System`RGBColor
+              System`Real 0.567797
+              System`Real 0.533954
+              System`Real 0.90959
+            System`RGBColor
+              System`Real 0.504332
+              System`Real 0.42413
+              System`Real 0.82588
+            System`RGBColor
+              System`Real 0.553005
+              System`Real 0.508759
+              System`Real 0.894296
+          System`List
+            System`RGBColor
+              System`Real 0.567797
+              System`Real 0.533954
+              System`Real 0.90959
+            System`RGBColor
+              System`Real 0.591654
+              System`Real 0.572286
+              System`Real 0.910133
+            System`RGBColor
+              System`Real 0.553005
+              System`Real 0.508759
+              System`Real 0.894296
+          System`List
+            System`RGBColor
+              System`Real 0.591654
+              System`Real 0.572286
+              System`Real 0.910133
+            System`RGBColor
+              System`Real 0.553005
+              System`Real 0.508759
+              System`Real 0.894296
+            System`RGBColor
+              System`Real 0.591654
+              System`Real 0.572286
+              System`Real 0.910133
+          System`List
+            System`RGBColor
+              System`Real 0.591654
+              System`Real 0.572286
+              System`Real 0.910133
+            System`RGBColor
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
+            System`RGBColor
+              System`Real 0.591654
+              System`Real 0.572286
+              System`Real 0.910133
+          System`List
+            System`RGBColor
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
+            System`RGBColor
+              System`Real 0.591654
+              System`Real 0.572286
+              System`Real 0.910133
+            System`RGBColor
+              System`Real 0.62744
+              System`Real 0.629784
+              System`Real 0.910949
+          System`List
+            System`RGBColor
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
+            System`RGBColor
+              System`Real 0.639369
+              System`Real 0.64895
+              System`Real 0.911221
+            System`RGBColor
+              System`Real 0.62744
+              System`Real 0.629784
+              System`Real 0.910949
+          System`List
+            System`RGBColor
+              System`Real 0.639369
+              System`Real 0.64895
+              System`Real 0.911221
+            System`RGBColor
+              System`Real 0.62744
+              System`Real 0.629784
+              System`Real 0.910949
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.639369
+              System`Real 0.64895
+              System`Real 0.911221
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.687083
+              System`Real 0.725613
+              System`Real 0.912309
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.687083
+              System`Real 0.725613
+              System`Real 0.912309
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.699012
+              System`Real 0.744779
+              System`Real 0.912581
+          System`List
+            System`RGBColor
+              System`Real 0.687083
+              System`Real 0.725613
+              System`Real 0.912309
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+            System`RGBColor
+              System`Real 0.699012
+              System`Real 0.744779
+              System`Real 0.912581
+          System`List
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+            System`RGBColor
+              System`Real 0.699012
+              System`Real 0.744779
+              System`Real 0.912581
+            System`RGBColor
+              System`Real 0.734798
+              System`Real 0.802277
+              System`Real 0.913397
+          System`List
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+            System`RGBColor
+              System`Real 0.734798
+              System`Real 0.802277
+              System`Real 0.913397
+            System`RGBColor
+              System`Real 0.734798
+              System`Real 0.802277
+              System`Real 0.913397
+          System`List
+            System`RGBColor
+              System`Real 0.734798
+              System`Real 0.802277
+              System`Real 0.913397
+            System`RGBColor
+              System`Real 0.734798
+              System`Real 0.802277
+              System`Real 0.913397
+            System`RGBColor
+              System`Real 0.769773
+              System`Real 0.84938
+              System`Real 0.910831
+          System`List
+            System`RGBColor
+              System`Real 0.734798
+              System`Real 0.802277
+              System`Real 0.913397
+            System`RGBColor
+              System`Real 0.758655
+              System`Real 0.840609
+              System`Real 0.91394
+            System`RGBColor
+              System`Real 0.769773
+              System`Real 0.84938
+              System`Real 0.910831
+          System`List
+            System`RGBColor
+              System`Real 0.758655
+              System`Real 0.840609
+              System`Real 0.91394
+            System`RGBColor
+              System`Real 0.769773
+              System`Real 0.84938
+              System`Real 0.910831
+            System`RGBColor
+              System`Real 0.801911
+              System`Real 0.860097
+              System`Real 0.896434
+          System`List
+            System`RGBColor
+              System`Real 0.758655
+              System`Real 0.840609
+              System`Real 0.91394
+            System`RGBColor
+              System`Real 0.780486
+              System`Real 0.852952
+              System`Real 0.906032
+            System`RGBColor
+              System`Real 0.801911
+              System`Real 0.860097
+              System`Real 0.896434
+          System`List
+            System`RGBColor
+              System`Real 0.780486
+              System`Real 0.852952
+              System`Real 0.906032
+            System`RGBColor
+              System`Real 0.801911
+              System`Real 0.860097
+              System`Real 0.896434
+            System`RGBColor
+              System`Real 0.834049
+              System`Real 0.870814
+              System`Real 0.882036
+          System`List
+            System`RGBColor
+              System`Real 0.455659
+              System`Real 0.339501
+              System`Real 0.757464
+            System`RGBColor
+              System`Real 0.374537
+              System`Real 0.198453
+              System`Real 0.643438
+            System`RGBColor
+              System`Real 0.439435
+              System`Real 0.311291
+              System`Real 0.734659
+          System`List
+            System`RGBColor
+              System`Real 0.455659
+              System`Real 0.339501
+              System`Real 0.757464
+            System`RGBColor
+              System`Real 0.504332
+              System`Real 0.42413
+              System`Real 0.82588
+            System`RGBColor
+              System`Real 0.439435
+              System`Real 0.311291
+              System`Real 0.734659
+          System`List
+            System`RGBColor
+              System`Real 0.504332
+              System`Real 0.42413
+              System`Real 0.82588
+            System`RGBColor
+              System`Real 0.439435
+              System`Real 0.311291
+              System`Real 0.734659
+            System`RGBColor
+              System`Real 0.504332
+              System`Real 0.42413
+              System`Real 0.82588
+          System`List
+            System`RGBColor
+              System`Real 0.504332
+              System`Real 0.42413
+              System`Real 0.82588
+            System`RGBColor
+              System`Real 0.553005
+              System`Real 0.508759
+              System`Real 0.894296
+            System`RGBColor
+              System`Real 0.504332
+              System`Real 0.42413
+              System`Real 0.82588
+          System`List
+            System`RGBColor
+              System`Real 0.553005
+              System`Real 0.508759
+              System`Real 0.894296
+            System`RGBColor
+              System`Real 0.504332
+              System`Real 0.42413
+              System`Real 0.82588
+            System`RGBColor
+              System`Real 0.567797
+              System`Real 0.533954
+              System`Real 0.90959
+          System`List
+            System`RGBColor
+              System`Real 0.553005
+              System`Real 0.508759
+              System`Real 0.894296
+            System`RGBColor
+              System`Real 0.591654
+              System`Real 0.572286
+              System`Real 0.910133
+            System`RGBColor
+              System`Real 0.567797
+              System`Real 0.533954
+              System`Real 0.90959
+          System`List
+            System`RGBColor
+              System`Real 0.591654
+              System`Real 0.572286
+              System`Real 0.910133
+            System`RGBColor
+              System`Real 0.567797
+              System`Real 0.533954
+              System`Real 0.90959
+            System`RGBColor
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
+          System`List
+            System`RGBColor
+              System`Real 0.591654
+              System`Real 0.572286
+              System`Real 0.910133
+            System`RGBColor
+              System`Real 0.62744
+              System`Real 0.629784
+              System`Real 0.910949
+            System`RGBColor
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
+          System`List
+            System`RGBColor
+              System`Real 0.62744
+              System`Real 0.629784
+              System`Real 0.910949
+            System`RGBColor
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.62744
+              System`Real 0.629784
+              System`Real 0.910949
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.699012
+              System`Real 0.744779
+              System`Real 0.912581
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.699012
+              System`Real 0.744779
+              System`Real 0.912581
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+          System`List
+            System`RGBColor
+              System`Real 0.699012
+              System`Real 0.744779
+              System`Real 0.912581
+            System`RGBColor
+              System`Real 0.734798
+              System`Real 0.802277
+              System`Real 0.913397
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+          System`List
+            System`RGBColor
+              System`Real 0.734798
+              System`Real 0.802277
+              System`Real 0.913397
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+            System`RGBColor
+              System`Real 0.758655
+              System`Real 0.840609
+              System`Real 0.91394
+          System`List
+            System`RGBColor
+              System`Real 0.734798
+              System`Real 0.802277
+              System`Real 0.913397
+            System`RGBColor
+              System`Real 0.769773
+              System`Real 0.84938
+              System`Real 0.910831
+            System`RGBColor
+              System`Real 0.758655
+              System`Real 0.840609
+              System`Real 0.91394
+          System`List
+            System`RGBColor
+              System`Real 0.769773
+              System`Real 0.84938
+              System`Real 0.910831
+            System`RGBColor
+              System`Real 0.758655
+              System`Real 0.840609
+              System`Real 0.91394
+            System`RGBColor
+              System`Real 0.801911
+              System`Real 0.860097
+              System`Real 0.896434
+          System`List
+            System`RGBColor
+              System`Real 0.769773
+              System`Real 0.84938
+              System`Real 0.910831
+            System`RGBColor
+              System`Real 0.801911
+              System`Real 0.860097
+              System`Real 0.896434
+            System`RGBColor
+              System`Real 0.801911
+              System`Real 0.860097
+              System`Real 0.896434
+          System`List
+            System`RGBColor
+              System`Real 0.801911
+              System`Real 0.860097
+              System`Real 0.896434
+            System`RGBColor
+              System`Real 0.801911
+              System`Real 0.860097
+              System`Real 0.896434
+            System`RGBColor
+              System`Real 0.844762
+              System`Real 0.874386
+              System`Real 0.877237
+          System`List
+            System`RGBColor
+              System`Real 0.801911
+              System`Real 0.860097
+              System`Real 0.896434
+            System`RGBColor
+              System`Real 0.834049
+              System`Real 0.870814
+              System`Real 0.882036
+            System`RGBColor
+              System`Real 0.844762
+              System`Real 0.874386
+              System`Real 0.877237
+          System`List
+            System`RGBColor
+              System`Real 0.834049
+              System`Real 0.870814
+              System`Real 0.882036
+            System`RGBColor
+              System`Real 0.844762
+              System`Real 0.874386
+              System`Real 0.877237
+            System`RGBColor
+              System`Real 0.887612
               System`Real 0.888676
-              System`Real 0.8580394
+              System`Real 0.858039
           System`List
             System`RGBColor
-              System`Real 0.3745375
-              System`Real 0.19845258
-              System`Real 0.6434381
+              System`Real 0.374537
+              System`Real 0.198453
+              System`Real 0.643438
             System`RGBColor
               System`Real 0.293416
-              System`Real 0.0574044
+              System`Real 0.057404
               System`Real 0.529412
             System`RGBColor
-              System`Real 0.3745375
-              System`Real 0.19845258
-              System`Real 0.6434381
+              System`Real 0.374537
+              System`Real 0.198453
+              System`Real 0.643438
           System`List
             System`RGBColor
-              System`Real 0.3745375
-              System`Real 0.19845258
-              System`Real 0.6434381
+              System`Real 0.374537
+              System`Real 0.198453
+              System`Real 0.643438
             System`RGBColor
-              System`Real 0.4394347
-              System`Real 0.31129112
-              System`Real 0.73465898
+              System`Real 0.439435
+              System`Real 0.311291
+              System`Real 0.734659
             System`RGBColor
-              System`Real 0.3745375
-              System`Real 0.19845258
-              System`Real 0.6434381
+              System`Real 0.374537
+              System`Real 0.198453
+              System`Real 0.643438
           System`List
             System`RGBColor
-              System`Real 0.4394347
-              System`Real 0.31129112
-              System`Real 0.73465898
+              System`Real 0.439435
+              System`Real 0.311291
+              System`Real 0.734659
             System`RGBColor
-              System`Real 0.3745375
-              System`Real 0.19845258
-              System`Real 0.6434381
+              System`Real 0.374537
+              System`Real 0.198453
+              System`Real 0.643438
             System`RGBColor
               System`Real 0.455659
-              System`Real 0.33950076
-              System`Real 0.7574642
+              System`Real 0.339501
+              System`Real 0.757464
           System`List
             System`RGBColor
-              System`Real 0.4394347
-              System`Real 0.31129112
-              System`Real 0.73465898
+              System`Real 0.439435
+              System`Real 0.311291
+              System`Real 0.734659
             System`RGBColor
-              System`Real 0.5043319
-              System`Real 0.42412967
-              System`Real 0.82587986
+              System`Real 0.504332
+              System`Real 0.42413
+              System`Real 0.82588
             System`RGBColor
               System`Real 0.455659
-              System`Real 0.33950076
-              System`Real 0.7574642
+              System`Real 0.339501
+              System`Real 0.757464
           System`List
             System`RGBColor
-              System`Real 0.5043319
-              System`Real 0.42412967
-              System`Real 0.82587986
+              System`Real 0.504332
+              System`Real 0.42413
+              System`Real 0.82588
             System`RGBColor
               System`Real 0.455659
-              System`Real 0.33950076
-              System`Real 0.7574642
+              System`Real 0.339501
+              System`Real 0.757464
             System`RGBColor
-              System`Real 0.5367805
-              System`Real 0.48054894
-              System`Real 0.8714903
+              System`Real 0.536781
+              System`Real 0.480549
+              System`Real 0.87149
           System`List
             System`RGBColor
-              System`Real 0.5043319
-              System`Real 0.42412967
-              System`Real 0.82587986
+              System`Real 0.504332
+              System`Real 0.42413
+              System`Real 0.82588
             System`RGBColor
-              System`Real 0.5677972
-              System`Real 0.53395366
-              System`Real 0.90958964
+              System`Real 0.567797
+              System`Real 0.533954
+              System`Real 0.90959
             System`RGBColor
-              System`Real 0.5367805
-              System`Real 0.48054894
-              System`Real 0.8714903
+              System`Real 0.536781
+              System`Real 0.480549
+              System`Real 0.87149
           System`List
             System`RGBColor
-              System`Real 0.5677972
-              System`Real 0.53395366
-              System`Real 0.90958964
+              System`Real 0.567797
+              System`Real 0.533954
+              System`Real 0.90959
             System`RGBColor
-              System`Real 0.5367805
-              System`Real 0.48054894
-              System`Real 0.8714903
+              System`Real 0.536781
+              System`Real 0.480549
+              System`Real 0.87149
             System`RGBColor
               System`Real 0.603583
-              System`Real 0.5914516
-              System`Real 0.9104054
+              System`Real 0.591452
+              System`Real 0.910405
           System`List
             System`RGBColor
-              System`Real 0.5677972
-              System`Real 0.53395366
-              System`Real 0.90958964
+              System`Real 0.567797
+              System`Real 0.533954
+              System`Real 0.90959
             System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
             System`RGBColor
               System`Real 0.603583
-              System`Real 0.5914516
-              System`Real 0.9104054
+              System`Real 0.591452
+              System`Real 0.910405
           System`List
             System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
             System`RGBColor
               System`Real 0.603583
-              System`Real 0.5914516
-              System`Real 0.9104054
+              System`Real 0.591452
+              System`Real 0.910405
             System`RGBColor
               System`Real 0.663226
-              System`Real 0.6872815
+              System`Real 0.687282
               System`Real 0.911765
           System`List
             System`RGBColor
-              System`Real 0.6155116
-              System`Real 0.61061758
-              System`Real 0.91067732
+              System`Real 0.615512
+              System`Real 0.610618
+              System`Real 0.910677
             System`RGBColor
               System`Real 0.663226
-              System`Real 0.6872815
+              System`Real 0.687282
               System`Real 0.911765
             System`RGBColor
               System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-          System`List
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
-              System`Real 0.911765
-            System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
-            System`RGBColor
-              System`Real 0.663226
-              System`Real 0.6872815
+              System`Real 0.687282
               System`Real 0.911765
           System`List
             System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
+              System`Real 0.663226
+              System`Real 0.687282
+              System`Real 0.911765
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
             System`RGBColor
               System`Real 0.663226
-              System`Real 0.6872815
+              System`Real 0.687282
+              System`Real 0.911765
+          System`List
+            System`RGBColor
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
+            System`RGBColor
+              System`Real 0.663226
+              System`Real 0.687282
               System`Real 0.911765
             System`RGBColor
               System`Real 0.722869
-              System`Real 0.7831114
-              System`Real 0.9131246
+              System`Real 0.783111
+              System`Real 0.913125
           System`List
             System`RGBColor
-              System`Real 0.7109404
-              System`Real 0.76394542
-              System`Real 0.91285268
+              System`Real 0.71094
+              System`Real 0.763945
+              System`Real 0.912853
             System`RGBColor
-              System`Real 0.7586548
-              System`Real 0.84060934
-              System`Real 0.91394036
+              System`Real 0.758655
+              System`Real 0.840609
+              System`Real 0.91394
             System`RGBColor
               System`Real 0.722869
-              System`Real 0.7831114
-              System`Real 0.9131246
+              System`Real 0.783111
+              System`Real 0.913125
           System`List
             System`RGBColor
-              System`Real 0.7586548
-              System`Real 0.84060934
-              System`Real 0.91394036
+              System`Real 0.758655
+              System`Real 0.840609
+              System`Real 0.91394
             System`RGBColor
               System`Real 0.722869
-              System`Real 0.7831114
-              System`Real 0.9131246
+              System`Real 0.783111
+              System`Real 0.913125
             System`RGBColor
-              System`Real 0.7804855
+              System`Real 0.780486
               System`Real 0.852952
-              System`Real 0.9060322
+              System`Real 0.906032
           System`List
             System`RGBColor
-              System`Real 0.7586548
-              System`Real 0.84060934
-              System`Real 0.91394036
+              System`Real 0.758655
+              System`Real 0.840609
+              System`Real 0.91394
             System`RGBColor
-              System`Real 0.8019109
-              System`Real 0.8600968
-              System`Real 0.89643364
+              System`Real 0.801911
+              System`Real 0.860097
+              System`Real 0.896434
             System`RGBColor
-              System`Real 0.7804855
+              System`Real 0.780486
               System`Real 0.852952
-              System`Real 0.9060322
+              System`Real 0.906032
           System`List
             System`RGBColor
-              System`Real 0.8019109
-              System`Real 0.8600968
-              System`Real 0.89643364
+              System`Real 0.801911
+              System`Real 0.860097
+              System`Real 0.896434
             System`RGBColor
-              System`Real 0.7804855
+              System`Real 0.780486
               System`Real 0.852952
-              System`Real 0.9060322
+              System`Real 0.906032
             System`RGBColor
               System`Real 0.834049
               System`Real 0.870814
-              System`Real 0.8820358
+              System`Real 0.882036
           System`List
             System`RGBColor
-              System`Real 0.8019109
-              System`Real 0.8600968
-              System`Real 0.89643364
+              System`Real 0.801911
+              System`Real 0.860097
+              System`Real 0.896434
             System`RGBColor
-              System`Real 0.8447617
-              System`Real 0.8743864
-              System`Real 0.87723652
+              System`Real 0.844762
+              System`Real 0.874386
+              System`Real 0.877237
             System`RGBColor
               System`Real 0.834049
               System`Real 0.870814
-              System`Real 0.8820358
+              System`Real 0.882036
           System`List
             System`RGBColor
-              System`Real 0.8447617
-              System`Real 0.8743864
-              System`Real 0.87723652
+              System`Real 0.844762
+              System`Real 0.874386
+              System`Real 0.877237
             System`RGBColor
               System`Real 0.834049
               System`Real 0.870814
-              System`Real 0.8820358
+              System`Real 0.882036
             System`RGBColor
-              System`Real 0.8876125
+              System`Real 0.887612
               System`Real 0.888676
-              System`Real 0.8580394
+              System`Real 0.858039
           System`List
             System`RGBColor
-              System`Real 0.8447617
-              System`Real 0.8743864
-              System`Real 0.87723652
+              System`Real 0.844762
+              System`Real 0.874386
+              System`Real 0.877237
             System`RGBColor
-              System`Real 0.8876125
+              System`Real 0.887612
               System`Real 0.888676
-              System`Real 0.8580394
+              System`Real 0.858039
             System`RGBColor
-              System`Real 0.8876125
+              System`Real 0.887612
               System`Real 0.888676
-              System`Real 0.8580394
+              System`Real 0.858039
           System`List
             System`RGBColor
-              System`Real 0.8876125
+              System`Real 0.887612
               System`Real 0.888676
-              System`Real 0.8580394
+              System`Real 0.858039
             System`RGBColor
-              System`Real 0.8876125
+              System`Real 0.887612
               System`Real 0.888676
-              System`Real 0.8580394
+              System`Real 0.858039
             System`RGBColor
               System`Real 0.941176
               System`Real 0.906538
