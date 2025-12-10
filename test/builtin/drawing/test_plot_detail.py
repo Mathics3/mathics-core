@@ -53,50 +53,64 @@ to include in code, so they are stored as files in their own
 
 import os
 import subprocess
+
+# couple tests depend on ths
+try:
+    import skimage
+except:
+    skimage = None
+
 from test.helper import session
 
 import mathics.builtin.drawing.plot as plot
 from mathics.core.util import print_expression_tree
 
-# non-vectorized available, vectorized not available,
-classic = [
-    ("barchart", "BarChart[{3,5,2,7}]"),
-    ("discreteplot", "DiscretePlot[n^2,{n,1,10}]"),
-    ("histogram", "Histogram[{1,1,1,5,5,7,8,8,8}]"),
-    ("listlineplot", "ListLinePlot[{1,4,2,5,3}]"),
-    ("listplot", "ListPlot[{1,4,2,5,3}]"),
-    ("liststepplot", "ListStepPlot[{1,4,2,5,3}]"),
-    # ("manipulate", "Manipulate[Plot[a x,{x,0,1}],{a,0,5}]"),
-    ("numberlineplot", "NumberLinePlot[{1,3,4}]"),
-    ("parametricplot", "ParametricPlot[{t,2 t},{t,0,2}]"),
-    ("piechart", "PieChart[{3,2,5}]"),
-    ("plot", "Plot[x, {x, 0, 1}]"),
-    ("polarplot", "PolarPlot[3 θ,{θ,0,2}]"),
-]
-
-# vectorized available, non-vectorized not available
-vectorized = [
-    ("complexplot", "ComplexPlot[Exp[I z],{z,-2-2 I,2+2 I}]"),
-    ("complexplot3d", "ComplexPlot3D[Exp[I z],{z,-2-2 I,2+2 I}]"),
-    ("contourplot-1", "ContourPlot[x^2-y^2,{x,-2,2},{y,-2,2}]"),
-    ("contourplot-2", "ContourPlot[x^2+y^2==1,{x,-2,2},{y,-2,2}]"),
-]
-
-# both vectorized and non-vectorized available
-both = [
-    ("densityplot", "DensityPlot[x y,{x,-2,2},{y,-2,2}]"),
-    ("plot3d", "Plot3D[x y,{x,-2,2},{y,-2,2}]"),
-]
-
-# common plotting options to test with and without
-opts = """
+# common plotting options for 2d plots to test with and without
+opt2 = """
     AspectRatio -> 2,
     Axes -> False,
-    BoxRatios -> {1, 2, 3},
     Frame -> False,
     Mesh -> Full,
     PlotPoints -> 10
 """
+
+# 3d plots add these options
+opt3 = (
+    opt2
+    + """,
+    BoxRatios -> {1, 2, 3}
+"""
+)
+
+# non-vectorized available, vectorized not available,
+classic = [
+    ("barchart", "BarChart[{3,5,2,7}]", opt2, True),
+    ("discreteplot", "DiscretePlot[n^2,{n,1,10}]", opt2, True),
+    ("histogram", "Histogram[{1,1,1,5,5,7,8,8,8}]", opt2, True),
+    ("listlineplot", "ListLinePlot[{1,4,2,5,3}]", opt2, True),
+    ("listplot", "ListPlot[{1,4,2,5,3}]", opt2, True),
+    ("liststepplot", "ListStepPlot[{1,4,2,5,3}]", opt2, True),
+    # ("manipulate", "Manipulate[Plot[a x,{x,0,1}],{a,0,5}]", opt2, True),
+    ("numberlineplot", "NumberLinePlot[{1,3,4}]", opt2, True),
+    ("parametricplot", "ParametricPlot[{t,2 t},{t,0,2}]", opt2, True),
+    ("piechart", "PieChart[{3,2,5}]", opt2, True),
+    ("plot", "Plot[x, {x, 0, 1}]", opt2, True),
+    ("polarplot", "PolarPlot[3 θ,{θ,0,2}]", opt2, True),
+]
+
+# vectorized available, non-vectorized not available
+vectorized = [
+    ("complexplot", "ComplexPlot[Exp[I z],{z,-2-2 I,2+2 I}]", opt2, True),
+    ("complexplot3d", "ComplexPlot3D[Exp[I z],{z,-2-2 I,2+2 I}]", opt3, True),
+    ("contourplot-1", "ContourPlot[x^2-y^2,{x,-2,2},{y,-2,2}]", opt2, True),
+    ("contourplot-2", "ContourPlot[x^2+y^2==1,{x,-2,2},{y,-2,2}]", opt2, True),
+]
+
+# both vectorized and non-vectorized available
+both = [
+    ("densityplot", "DensityPlot[x y,{x,-2,2},{y,-2,2}]", opt2, True),
+    ("plot3d", "Plot3D[x y,{x,-2,2},{y,-2,2}]", opt3, True),
+]
 
 # compute reference dir, which is this file minus .py plus _ref
 path, _ = os.path.splitext(__file__)
@@ -117,7 +131,7 @@ def one_test(name, str_expr, vec, opt, act_dir="/tmp"):
     # whether default or with-options test
     if opt:
         name += "-opt"
-        str_expr = f"{str_expr[:-1]}, {opts}]"
+        str_expr = f"{str_expr[:-1]}, {opt}]"
     else:
         name += "-def"
 
@@ -127,6 +141,11 @@ def one_test(name, str_expr, vec, opt, act_dir="/tmp"):
         # evaluate the expression to be tested
         expr = session.parse(str_expr)
         act_expr = expr.evaluate(session.evaluation)
+        if len(session.evaluation.out):
+            print("=== messages:")
+            for message in session.evaluation.out:
+                print(message.text)
+        assert not session.evaluation.out, "no output messages expected"
 
         # write the results to act_fn in act_dir
         act_fn = os.path.join(act_dir, f"{name}.txt")
@@ -156,14 +175,18 @@ def one_test(name, str_expr, vec, opt, act_dir="/tmp"):
 
 def test_all(act_dir="/tmp", opt=None):
     # run twice, once without and once with options
-    for opt in [False, True]:
+    for use_opt in [False, True]:
         # run classic tests
-        for name, str_expr in classic + both:
-            one_test(name, str_expr, False, opt, act_dir)
+        for name, str_expr, opt, cond in classic + both:
+            if cond:
+                opt = opt if use_opt else None
+                one_test(name, str_expr, False, opt, act_dir)
 
         # run vectorized tests
-        for name, str_expr in vectorized + both:
-            one_test(name, str_expr, True, opt, act_dir)
+        for name, str_expr, opt, cond in vectorized + both:
+            if cond:
+                opt = opt if use_opt else None
+                one_test(name, str_expr, True, opt, act_dir)
 
 
 if __name__ == "__main__":

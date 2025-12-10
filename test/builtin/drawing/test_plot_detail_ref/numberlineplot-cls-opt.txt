@@ -43,12 +43,6 @@ System`Graphics
     System`BaselinePosition
     System`Automatic
   System`Rule
-    System`BoxRatios
-    System`List
-      System`Integer 1
-      System`Integer 2
-      System`Integer 3
-  System`Rule
     System`ContentSelectable
     System`Automatic
   System`Rule

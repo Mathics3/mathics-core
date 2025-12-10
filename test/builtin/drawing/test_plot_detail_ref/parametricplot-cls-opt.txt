@@ -1,13 +1,81 @@
-System`ParametricPlot
+System`Graphics
   System`List
-    Global`t
-    System`Times
-      System`Integer 2
-      Global`t
-  System`List
-    Global`t
-    System`Integer 0
-    System`Integer 2
+    System`Hue
+      System`Real 0.67
+      System`Real 0.6
+      System`Real 0.6
+    System`Line
+      System`List
+        System`List
+          System`List
+            System`Real 0.0
+            System`Real 0.0
+          System`List
+            System`Real 0.222222
+            System`Real 0.444444
+          System`List
+            System`Real 0.444444
+            System`Real 0.888889
+          System`List
+            System`Real 0.666667
+            System`Real 1.333333
+          System`List
+            System`Real 0.888889
+            System`Real 1.777778
+          System`List
+            System`Real 1.111111
+            System`Real 2.222222
+          System`List
+            System`Real 1.333333
+            System`Real 2.666667
+          System`List
+            System`Real 1.555556
+            System`Real 3.111111
+          System`List
+            System`Real 1.777778
+            System`Real 3.555556
+          System`List
+            System`Real 2.0
+            System`Real 4.0
+    System`Hue
+      System`Real 0.67
+      System`Real 0.6
+      System`Real 0.6
+    System`Point
+      System`List
+        System`List
+          System`Real 0.0
+          System`Real 0.0
+        System`List
+          System`Real 0.222222
+          System`Real 0.444444
+        System`List
+          System`Real 0.444444
+          System`Real 0.888889
+        System`List
+          System`Real 0.666667
+          System`Real 1.333333
+        System`List
+          System`Real 0.888889
+          System`Real 1.777778
+        System`List
+          System`Real 1.111111
+          System`Real 2.222222
+        System`List
+          System`Real 1.333333
+          System`Real 2.666667
+        System`List
+          System`Real 1.555556
+          System`Real 3.111111
+        System`List
+          System`Real 1.777778
+          System`Real 3.555556
+        System`List
+          System`Real 2.0
+          System`Real 4.0
+  System`Rule
+    System`AlignmentPoint
+    System`Center
   System`Rule
     System`AspectRatio
     System`Integer 2
@@ -15,17 +83,116 @@ System`ParametricPlot
     System`Axes
     System`False
   System`Rule
-    System`BoxRatios
+    System`AxesLabel
+    System`None
+  System`Rule
+    System`AxesOrigin
+    System`Automatic
+  System`Rule
+    System`AxesStyle
     System`List
-      System`Integer 1
-      System`Integer 2
-      System`Integer 3
+  System`Rule
+    System`Background
+    System`Automatic
+  System`Rule
+    System`BaseStyle
+    System`List
+  System`Rule
+    System`BaselinePosition
+    System`Automatic
+  System`Rule
+    System`ContentSelectable
+    System`Automatic
+  System`Rule
+    System`CoordinatesToolOptions
+    System`Automatic
+  System`Rule
+    System`Epilog
+    System`List
+  System`Rule
+    System`Exclusions
+    System`Automatic
+  System`Rule
+    System`FormatType
+    System`TraditionalForm
   System`Rule
     System`Frame
     System`False
   System`Rule
+    System`FrameLabel
+    System`None
+  System`Rule
+    System`FrameStyle
+    System`List
+  System`Rule
+    System`FrameTicks
+    System`Automatic
+  System`Rule
+    System`FrameTicksStyle
+    System`List
+  System`Rule
+    System`GridLines
+    System`None
+  System`Rule
+    System`GridLinesStyle
+    System`List
+  System`Rule
+    System`ImageMargins
+    System`Real 0.0
+  System`Rule
+    System`ImagePadding
+    System`All
+  System`Rule
+    System`ImageSize
+    System`Automatic
+  System`Rule
+    System`LabelStyle
+    System`List
+  System`Rule
+    System`MaxRecursion
+    System`Automatic
+  System`Rule
     System`Mesh
     System`Full
   System`Rule
+    System`Method
+    System`Automatic
+  System`Rule
+    System`PlotLabel
+    System`None
+  System`Rule
     System`PlotPoints
     System`Integer 10
+  System`Rule
+    System`PlotRange
+    System`List
+      System`List
+        System`Real -0.1
+        System`Real 2.1
+      System`List
+        System`Real -0.2
+        System`Real 4.2
+  System`Rule
+    System`PlotRangeClipping
+    System`False
+  System`Rule
+    System`PlotRangePadding
+    System`Automatic
+  System`Rule
+    System`PlotRegion
+    System`Automatic
+  System`Rule
+    System`PreserveImageOptions
+    System`Automatic
+  System`Rule
+    System`Prolog
+    System`List
+  System`Rule
+    System`RotateLabel
+    System`True
+  System`Rule
+    System`Ticks
+    System`Automatic
+  System`Rule
+    System`TicksStyle
+    System`List
