@@ -119,7 +119,9 @@ def subranges(
             )
 
 
-def print_expression_tree(expr, indent="", marker=lambda expr: "", file=None, approximate=False):
+def print_expression_tree(
+    expr, indent="", marker=lambda expr: "", file=None, approximate=False
+):
     """
     Print a Mathics Expression as an indented tree.
     Caller may supply a marker function that computes a marker
@@ -154,7 +156,9 @@ def print_expression_tree(expr, indent="", marker=lambda expr: "", file=None, ap
     else:
         print(f"{indent}{marker(expr)}{expr.head}", file=file)
         for elt in expr.elements:
-            print_expression_tree(elt, indent + "  ", marker=marker, file=file, approximate=approximate)
+            print_expression_tree(
+                elt, indent + "  ", marker=marker, file=file, approximate=approximate
+            )
 
 
 def print_sympy_tree(expr, indent=""):
