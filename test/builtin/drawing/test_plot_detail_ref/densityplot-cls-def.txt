@@ -4,197 +4,197 @@ System`Graphics
       System`List
         System`List
           System`List
-            System`Real -2
-            System`Real -2
+            System`Real -2.0
+            System`Real -2.0
           System`List
-            System`Real -2
-            System`Real -1.42857
+            System`Real -2.0
+            System`Real -1.428571
           System`List
-            System`Real -1.42857
-            System`Real -2
+            System`Real -1.428571
+            System`Real -2.0
         System`List
           System`List
-            System`Real -2
-            System`Real -1.42857
+            System`Real -2.0
+            System`Real -1.428571
           System`List
-            System`Real -1.42857
-            System`Real -2
+            System`Real -1.428571
+            System`Real -2.0
           System`List
-            System`Real -1.42857
-            System`Real -1.42857
+            System`Real -1.428571
+            System`Real -1.428571
         System`List
           System`List
-            System`Real -2
-            System`Real -1.42857
+            System`Real -2.0
+            System`Real -1.428571
           System`List
-            System`Real -2
+            System`Real -2.0
             System`Real -0.857143
           System`List
-            System`Real -1.42857
-            System`Real -1.42857
+            System`Real -1.428571
+            System`Real -1.428571
         System`List
           System`List
-            System`Real -2
+            System`Real -2.0
             System`Real -0.857143
           System`List
-            System`Real -1.42857
-            System`Real -1.42857
+            System`Real -1.428571
+            System`Real -1.428571
           System`List
-            System`Real -1.42857
+            System`Real -1.428571
             System`Real -0.857143
         System`List
           System`List
-            System`Real -2
+            System`Real -2.0
             System`Real -0.857143
           System`List
-            System`Real -2
+            System`Real -2.0
             System`Real -0.285714
           System`List
-            System`Real -1.42857
+            System`Real -1.428571
             System`Real -0.857143
         System`List
           System`List
-            System`Real -2
+            System`Real -2.0
             System`Real -0.285714
           System`List
-            System`Real -1.42857
+            System`Real -1.428571
             System`Real -0.857143
           System`List
-            System`Real -1.42857
+            System`Real -1.428571
             System`Real -0.285714
         System`List
           System`List
-            System`Real -2
+            System`Real -2.0
             System`Real -0.285714
           System`List
-            System`Real -2
+            System`Real -2.0
             System`Real 0.285714
           System`List
-            System`Real -1.42857
+            System`Real -1.428571
             System`Real -0.285714
         System`List
           System`List
-            System`Real -2
+            System`Real -2.0
             System`Real 0.285714
           System`List
-            System`Real -1.42857
+            System`Real -1.428571
             System`Real -0.285714
           System`List
-            System`Real -1.42857
+            System`Real -1.428571
             System`Real 0.285714
         System`List
           System`List
-            System`Real -2
+            System`Real -2.0
             System`Real 0.285714
           System`List
-            System`Real -1.42857
+            System`Real -1.428571
             System`Real 0.285714
           System`List
-            System`Real -1.42857
+            System`Real -1.428571
             System`Real 0.857143
         System`List
           System`List
-            System`Real -2
+            System`Real -2.0
             System`Real 0.285714
           System`List
-            System`Real -2
+            System`Real -2.0
             System`Real 0.857143
           System`List
-            System`Real -1.42857
+            System`Real -1.428571
             System`Real 0.857143
         System`List
           System`List
-            System`Real -2
+            System`Real -2.0
             System`Real 0.857143
           System`List
-            System`Real -1.42857
+            System`Real -1.428571
             System`Real 0.857143
           System`List
-            System`Real -1.42857
-            System`Real 1.42857
+            System`Real -1.428571
+            System`Real 1.428571
         System`List
           System`List
-            System`Real -2
+            System`Real -2.0
             System`Real 0.857143
           System`List
-            System`Real -2
-            System`Real 1.42857
+            System`Real -2.0
+            System`Real 1.428571
           System`List
-            System`Real -1.42857
-            System`Real 1.42857
+            System`Real -1.428571
+            System`Real 1.428571
         System`List
           System`List
-            System`Real -2
-            System`Real 1.42857
+            System`Real -2.0
+            System`Real 1.428571
           System`List
-            System`Real -1.42857
-            System`Real 1.42857
+            System`Real -1.428571
+            System`Real 1.428571
           System`List
-            System`Real -1.42857
-            System`Real 2
+            System`Real -1.428571
+            System`Real 2.0
         System`List
           System`List
-            System`Real -2
-            System`Real 1.42857
+            System`Real -2.0
+            System`Real 1.428571
           System`List
-            System`Real -2
-            System`Real 2
+            System`Real -2.0
+            System`Real 2.0
           System`List
-            System`Real -1.42857
-            System`Real 2
+            System`Real -1.428571
+            System`Real 2.0
         System`List
           System`List
-            System`Real -1.42857
-            System`Real -2
+            System`Real -1.428571
+            System`Real -2.0
           System`List
-            System`Real -1.42857
-            System`Real -1.42857
+            System`Real -1.428571
+            System`Real -1.428571
           System`List
             System`Real -0.857143
-            System`Real -2
+            System`Real -2.0
         System`List
           System`List
-            System`Real -1.42857
-            System`Real -1.42857
+            System`Real -1.428571
+            System`Real -1.428571
           System`List
             System`Real -0.857143
-            System`Real -2
+            System`Real -2.0
           System`List
             System`Real -0.857143
-            System`Real -1.42857
+            System`Real -1.428571
         System`List
           System`List
-            System`Real -1.42857
-            System`Real -1.42857
+            System`Real -1.428571
+            System`Real -1.428571
           System`List
-            System`Real -1.42857
+            System`Real -1.428571
             System`Real -0.857143
           System`List
             System`Real -0.857143
-            System`Real -1.42857
+            System`Real -1.428571
         System`List
           System`List
-            System`Real -1.42857
+            System`Real -1.428571
             System`Real -0.857143
           System`List
             System`Real -0.857143
-            System`Real -1.42857
+            System`Real -1.428571
           System`List
             System`Real -0.857143
             System`Real -0.857143
         System`List
           System`List
-            System`Real -1.42857
+            System`Real -1.428571
             System`Real -0.857143
           System`List
-            System`Real -1.42857
+            System`Real -1.428571
             System`Real -0.285714
           System`List
             System`Real -0.857143
             System`Real -0.857143
         System`List
           System`List
-            System`Real -1.42857
+            System`Real -1.428571
             System`Real -0.285714
           System`List
             System`Real -0.857143
@@ -204,17 +204,17 @@ System`Graphics
             System`Real -0.285714
         System`List
           System`List
-            System`Real -1.42857
+            System`Real -1.428571
             System`Real -0.285714
           System`List
-            System`Real -1.42857
+            System`Real -1.428571
             System`Real 0.285714
           System`List
             System`Real -0.857143
             System`Real -0.285714
         System`List
           System`List
-            System`Real -1.42857
+            System`Real -1.428571
             System`Real 0.285714
           System`List
             System`Real -0.857143
@@ -224,7 +224,7 @@ System`Graphics
             System`Real 0.285714
         System`List
           System`List
-            System`Real -1.42857
+            System`Real -1.428571
             System`Real 0.285714
           System`List
             System`Real -0.857143
@@ -234,91 +234,91 @@ System`Graphics
             System`Real 0.857143
         System`List
           System`List
-            System`Real -1.42857
+            System`Real -1.428571
             System`Real 0.285714
           System`List
-            System`Real -1.42857
+            System`Real -1.428571
             System`Real 0.857143
           System`List
             System`Real -0.857143
             System`Real 0.857143
         System`List
           System`List
-            System`Real -1.42857
+            System`Real -1.428571
             System`Real 0.857143
           System`List
             System`Real -0.857143
             System`Real 0.857143
           System`List
             System`Real -0.857143
-            System`Real 1.42857
+            System`Real 1.428571
         System`List
           System`List
-            System`Real -1.42857
+            System`Real -1.428571
             System`Real 0.857143
           System`List
-            System`Real -1.42857
-            System`Real 1.42857
+            System`Real -1.428571
+            System`Real 1.428571
           System`List
             System`Real -0.857143
-            System`Real 1.42857
+            System`Real 1.428571
         System`List
           System`List
-            System`Real -1.42857
-            System`Real 1.42857
+            System`Real -1.428571
+            System`Real 1.428571
           System`List
             System`Real -0.857143
-            System`Real 1.42857
+            System`Real 1.428571
           System`List
             System`Real -0.857143
-            System`Real 2
+            System`Real 2.0
         System`List
           System`List
-            System`Real -1.42857
-            System`Real 1.42857
+            System`Real -1.428571
+            System`Real 1.428571
           System`List
-            System`Real -1.42857
-            System`Real 2
+            System`Real -1.428571
+            System`Real 2.0
           System`List
             System`Real -0.857143
-            System`Real 2
+            System`Real 2.0
         System`List
           System`List
             System`Real -0.857143
-            System`Real -2
+            System`Real -2.0
           System`List
             System`Real -0.857143
-            System`Real -1.42857
+            System`Real -1.428571
           System`List
             System`Real -0.285714
-            System`Real -2
+            System`Real -2.0
         System`List
           System`List
             System`Real -0.857143
-            System`Real -1.42857
+            System`Real -1.428571
           System`List
             System`Real -0.285714
-            System`Real -2
+            System`Real -2.0
           System`List
             System`Real -0.285714
-            System`Real -1.42857
+            System`Real -1.428571
         System`List
           System`List
             System`Real -0.857143
-            System`Real -1.42857
+            System`Real -1.428571
           System`List
             System`Real -0.857143
             System`Real -0.857143
           System`List
             System`Real -0.285714
-            System`Real -1.42857
+            System`Real -1.428571
         System`List
           System`List
             System`Real -0.857143
             System`Real -0.857143
           System`List
             System`Real -0.285714
-            System`Real -1.42857
+            System`Real -1.428571
           System`List
             System`Real -0.285714
             System`Real -0.857143
@@ -391,74 +391,74 @@ System`Graphics
             System`Real 0.857143
           System`List
             System`Real -0.285714
-            System`Real 1.42857
+            System`Real 1.428571
         System`List
           System`List
             System`Real -0.857143
             System`Real 0.857143
           System`List
             System`Real -0.857143
-            System`Real 1.42857
+            System`Real 1.428571
           System`List
             System`Real -0.285714
-            System`Real 1.42857
+            System`Real 1.428571
         System`List
           System`List
             System`Real -0.857143
-            System`Real 1.42857
+            System`Real 1.428571
           System`List
             System`Real -0.285714
-            System`Real 1.42857
+            System`Real 1.428571
           System`List
             System`Real -0.285714
-            System`Real 2
+            System`Real 2.0
         System`List
           System`List
             System`Real -0.857143
-            System`Real 1.42857
+            System`Real 1.428571
           System`List
             System`Real -0.857143
-            System`Real 2
+            System`Real 2.0
           System`List
             System`Real -0.285714
-            System`Real 2
+            System`Real 2.0
         System`List
           System`List
             System`Real -0.285714
-            System`Real -2
+            System`Real -2.0
           System`List
             System`Real -0.285714
-            System`Real -1.42857
+            System`Real -1.428571
           System`List
             System`Real 0.285714
-            System`Real -2
+            System`Real -2.0
         System`List
           System`List
             System`Real -0.285714
-            System`Real -1.42857
+            System`Real -1.428571
           System`List
             System`Real 0.285714
-            System`Real -2
+            System`Real -2.0
           System`List
             System`Real 0.285714
-            System`Real -1.42857
+            System`Real -1.428571
         System`List
           System`List
             System`Real -0.285714
-            System`Real -1.42857
+            System`Real -1.428571
           System`List
             System`Real -0.285714
             System`Real -0.857143
           System`List
             System`Real 0.285714
-            System`Real -1.42857
+            System`Real -1.428571
         System`List
           System`List
             System`Real -0.285714
             System`Real -0.857143
           System`List
             System`Real 0.285714
-            System`Real -1.42857
+            System`Real -1.428571
           System`List
             System`Real 0.285714
             System`Real -0.857143
@@ -531,71 +531,71 @@ System`Graphics
             System`Real 0.857143
           System`List
             System`Real 0.285714
-            System`Real 1.42857
+            System`Real 1.428571
         System`List
           System`List
             System`Real -0.285714
             System`Real 0.857143
           System`List
             System`Real -0.285714
-            System`Real 1.42857
+            System`Real 1.428571
           System`List
             System`Real 0.285714
-            System`Real 1.42857
+            System`Real 1.428571
         System`List
           System`List
             System`Real -0.285714
-            System`Real 1.42857
+            System`Real 1.428571
           System`List
             System`Real 0.285714
-            System`Real 1.42857
+            System`Real 1.428571
           System`List
             System`Real 0.285714
-            System`Real 2
+            System`Real 2.0
         System`List
           System`List
             System`Real -0.285714
-            System`Real 1.42857
+            System`Real 1.428571
           System`List
             System`Real -0.285714
-            System`Real 2
+            System`Real 2.0
           System`List
             System`Real 0.285714
-            System`Real 2
+            System`Real 2.0
         System`List
           System`List
             System`Real 0.285714
-            System`Real -2
+            System`Real -2.0
           System`List
             System`Real 0.857143
-            System`Real -2
+            System`Real -2.0
           System`List
             System`Real 0.857143
-            System`Real -1.42857
+            System`Real -1.428571
         System`List
           System`List
             System`Real 0.285714
-            System`Real -2
+            System`Real -2.0
           System`List
             System`Real 0.285714
-            System`Real -1.42857
+            System`Real -1.428571
           System`List
             System`Real 0.857143
-            System`Real -1.42857
+            System`Real -1.428571
         System`List
           System`List
             System`Real 0.285714
-            System`Real -1.42857
+            System`Real -1.428571
           System`List
             System`Real 0.857143
-            System`Real -1.42857
+            System`Real -1.428571
           System`List
             System`Real 0.857143
             System`Real -0.857143
         System`List
           System`List
             System`Real 0.285714
-            System`Real -1.42857
+            System`Real -1.428571
           System`List
             System`Real 0.285714
             System`Real -0.857143
@@ -668,89 +668,89 @@ System`Graphics
             System`Real 0.857143
           System`List
             System`Real 0.285714
-            System`Real 1.42857
+            System`Real 1.428571
           System`List
             System`Real 0.857143
             System`Real 0.857143
         System`List
           System`List
             System`Real 0.285714
-            System`Real 1.42857
+            System`Real 1.428571
           System`List
             System`Real 0.857143
             System`Real 0.857143
           System`List
             System`Real 0.857143
-            System`Real 1.42857
+            System`Real 1.428571
         System`List
           System`List
             System`Real 0.285714
-            System`Real 1.42857
+            System`Real 1.428571
           System`List
             System`Real 0.285714
-            System`Real 2
+            System`Real 2.0
           System`List
             System`Real 0.857143
-            System`Real 1.42857
+            System`Real 1.428571
         System`List
           System`List
             System`Real 0.285714
-            System`Real 2
+            System`Real 2.0
           System`List
             System`Real 0.857143
-            System`Real 1.42857
+            System`Real 1.428571
           System`List
             System`Real 0.857143
-            System`Real 2
+            System`Real 2.0
         System`List
           System`List
             System`Real 0.857143
-            System`Real -2
+            System`Real -2.0
           System`List
-            System`Real 1.42857
-            System`Real -2
+            System`Real 1.428571
+            System`Real -2.0
           System`List
-            System`Real 1.42857
-            System`Real -1.42857
+            System`Real 1.428571
+            System`Real -1.428571
         System`List
           System`List
             System`Real 0.857143
-            System`Real -2
+            System`Real -2.0
           System`List
             System`Real 0.857143
-            System`Real -1.42857
+            System`Real -1.428571
           System`List
-            System`Real 1.42857
-            System`Real -1.42857
+            System`Real 1.428571
+            System`Real -1.428571
         System`List
           System`List
             System`Real 0.857143
-            System`Real -1.42857
+            System`Real -1.428571
           System`List
-            System`Real 1.42857
-            System`Real -1.42857
+            System`Real 1.428571
+            System`Real -1.428571
           System`List
-            System`Real 1.42857
+            System`Real 1.428571
             System`Real -0.857143
         System`List
           System`List
             System`Real 0.857143
-            System`Real -1.42857
+            System`Real -1.428571
           System`List
             System`Real 0.857143
             System`Real -0.857143
           System`List
-            System`Real 1.42857
+            System`Real 1.428571
             System`Real -0.857143
         System`List
           System`List
             System`Real 0.857143
             System`Real -0.857143
           System`List
-            System`Real 1.42857
+            System`Real 1.428571
             System`Real -0.857143
           System`List
-            System`Real 1.42857
+            System`Real 1.428571
             System`Real -0.285714
         System`List
           System`List
@@ -760,17 +760,17 @@ System`Graphics
             System`Real 0.857143
             System`Real -0.285714
           System`List
-            System`Real 1.42857
+            System`Real 1.428571
             System`Real -0.285714
         System`List
           System`List
             System`Real 0.857143
             System`Real -0.285714
           System`List
-            System`Real 1.42857
+            System`Real 1.428571
             System`Real -0.285714
           System`List
-            System`Real 1.42857
+            System`Real 1.428571
             System`Real 0.285714
         System`List
           System`List
@@ -780,7 +780,7 @@ System`Graphics
             System`Real 0.857143
             System`Real 0.285714
           System`List
-            System`Real 1.42857
+            System`Real 1.428571
             System`Real 0.285714
         System`List
           System`List
@@ -790,17 +790,17 @@ System`Graphics
             System`Real 0.857143
             System`Real 0.857143
           System`List
-            System`Real 1.42857
+            System`Real 1.428571
             System`Real 0.285714
         System`List
           System`List
             System`Real 0.857143
             System`Real 0.857143
           System`List
-            System`Real 1.42857
+            System`Real 1.428571
             System`Real 0.285714
           System`List
-            System`Real 1.42857
+            System`Real 1.428571
             System`Real 0.857143
         System`List
           System`List
@@ -808,180 +808,180 @@ System`Graphics
             System`Real 0.857143
           System`List
             System`Real 0.857143
-            System`Real 1.42857
+            System`Real 1.428571
           System`List
-            System`Real 1.42857
+            System`Real 1.428571
             System`Real 0.857143
         System`List
           System`List
             System`Real 0.857143
-            System`Real 1.42857
+            System`Real 1.428571
           System`List
-            System`Real 1.42857
+            System`Real 1.428571
             System`Real 0.857143
           System`List
-            System`Real 1.42857
-            System`Real 1.42857
+            System`Real 1.428571
+            System`Real 1.428571
         System`List
           System`List
             System`Real 0.857143
-            System`Real 1.42857
+            System`Real 1.428571
           System`List
             System`Real 0.857143
-            System`Real 2
+            System`Real 2.0
           System`List
-            System`Real 1.42857
-            System`Real 1.42857
+            System`Real 1.428571
+            System`Real 1.428571
         System`List
           System`List
             System`Real 0.857143
-            System`Real 2
+            System`Real 2.0
           System`List
-            System`Real 1.42857
-            System`Real 1.42857
+            System`Real 1.428571
+            System`Real 1.428571
           System`List
-            System`Real 1.42857
-            System`Real 2
+            System`Real 1.428571
+            System`Real 2.0
         System`List
           System`List
-            System`Real 1.42857
-            System`Real -2
+            System`Real 1.428571
+            System`Real -2.0
           System`List
-            System`Real 2
-            System`Real -2
+            System`Real 2.0
+            System`Real -2.0
           System`List
-            System`Real 2
-            System`Real -1.42857
+            System`Real 2.0
+            System`Real -1.428571
         System`List
           System`List
-            System`Real 1.42857
-            System`Real -2
+            System`Real 1.428571
+            System`Real -2.0
           System`List
-            System`Real 1.42857
-            System`Real -1.42857
+            System`Real 1.428571
+            System`Real -1.428571
           System`List
-            System`Real 2
-            System`Real -1.42857
+            System`Real 2.0
+            System`Real -1.428571
         System`List
           System`List
-            System`Real 1.42857
-            System`Real -1.42857
+            System`Real 1.428571
+            System`Real -1.428571
           System`List
-            System`Real 2
-            System`Real -1.42857
+            System`Real 2.0
+            System`Real -1.428571
           System`List
-            System`Real 2
+            System`Real 2.0
             System`Real -0.857143
         System`List
           System`List
-            System`Real 1.42857
-            System`Real -1.42857
+            System`Real 1.428571
+            System`Real -1.428571
           System`List
-            System`Real 1.42857
+            System`Real 1.428571
             System`Real -0.857143
           System`List
-            System`Real 2
+            System`Real 2.0
             System`Real -0.857143
         System`List
           System`List
-            System`Real 1.42857
+            System`Real 1.428571
             System`Real -0.857143
           System`List
-            System`Real 2
+            System`Real 2.0
             System`Real -0.857143
           System`List
-            System`Real 2
+            System`Real 2.0
             System`Real -0.285714
         System`List
           System`List
-            System`Real 1.42857
+            System`Real 1.428571
             System`Real -0.857143
           System`List
-            System`Real 1.42857
+            System`Real 1.428571
             System`Real -0.285714
           System`List
-            System`Real 2
+            System`Real 2.0
             System`Real -0.285714
         System`List
           System`List
-            System`Real 1.42857
+            System`Real 1.428571
             System`Real -0.285714
           System`List
-            System`Real 2
+            System`Real 2.0
             System`Real -0.285714
           System`List
-            System`Real 2
+            System`Real 2.0
             System`Real 0.285714
         System`List
           System`List
-            System`Real 1.42857
+            System`Real 1.428571
             System`Real -0.285714
           System`List
-            System`Real 1.42857
+            System`Real 1.428571
             System`Real 0.285714
           System`List
-            System`Real 2
+            System`Real 2.0
             System`Real 0.285714
         System`List
           System`List
-            System`Real 1.42857
+            System`Real 1.428571
             System`Real 0.285714
           System`List
-            System`Real 1.42857
+            System`Real 1.428571
             System`Real 0.857143
           System`List
-            System`Real 2
+            System`Real 2.0
             System`Real 0.285714
         System`List
           System`List
-            System`Real 1.42857
+            System`Real 1.428571
             System`Real 0.857143
           System`List
-            System`Real 2
+            System`Real 2.0
             System`Real 0.285714
           System`List
-            System`Real 2
+            System`Real 2.0
             System`Real 0.857143
         System`List
           System`List
-            System`Real 1.42857
+            System`Real 1.428571
             System`Real 0.857143
           System`List
-            System`Real 1.42857
-            System`Real 1.42857
+            System`Real 1.428571
+            System`Real 1.428571
           System`List
-            System`Real 2
+            System`Real 2.0
             System`Real 0.857143
         System`List
           System`List
-            System`Real 1.42857
-            System`Real 1.42857
+            System`Real 1.428571
+            System`Real 1.428571
           System`List
-            System`Real 2
+            System`Real 2.0
             System`Real 0.857143
           System`List
-            System`Real 2
-            System`Real 1.42857
+            System`Real 2.0
+            System`Real 1.428571
         System`List
           System`List
-            System`Real 1.42857
-            System`Real 1.42857
+            System`Real 1.428571
+            System`Real 1.428571
           System`List
-            System`Real 1.42857
-            System`Real 2
+            System`Real 1.428571
+            System`Real 2.0
           System`List
-            System`Real 2
-            System`Real 1.42857
+            System`Real 2.0
+            System`Real 1.428571
         System`List
           System`List
-            System`Real 1.42857
-            System`Real 2
+            System`Real 1.428571
+            System`Real 2.0
           System`List
-            System`Real 2
-            System`Real 1.42857
+            System`Real 2.0
+            System`Real 1.428571
           System`List
-            System`Real 2
-            System`Real 2
+            System`Real 2.0
+            System`Real 2.0
       System`Rule
         System`VertexColors
         System`List
@@ -2321,7 +2321,7 @@ System`Graphics
     System`List
   System`Rule
     System`ImageMargins
-    System`Real 0
+    System`Real 0.0
   System`Rule
     System`ImagePadding
     System`All
@@ -2341,11 +2341,11 @@ System`Graphics
     System`PlotRange
     System`List
       System`List
-        System`Real -2
-        System`Real 2
+        System`Real -2.0
+        System`Real 2.0
       System`List
-        System`Real -2
-        System`Real 2
+        System`Real -2.0
+        System`Real 2.0
   System`Rule
     System`PlotRangeClipping
     System`False

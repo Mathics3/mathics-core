@@ -8,8 +8,8 @@ System`Graphics
       System`List
         System`List
           System`List
-            System`Real 0
-            System`Real 0
+            System`Real 0.0
+            System`Real 0.0
           System`List
             System`Real 0.017857
             System`Real 0.017857
@@ -176,8 +176,8 @@ System`Graphics
             System`Real 0.982143
             System`Real 0.982143
           System`List
-            System`Real 1
-            System`Real 1
+            System`Real 1.0
+            System`Real 1.0
   System`Rule
     System`AlignmentPoint
     System`Center
@@ -245,7 +245,7 @@ System`Graphics
     System`List
   System`Rule
     System`ImageMargins
-    System`Real 0
+    System`Real 0.0
   System`Rule
     System`ImagePadding
     System`All

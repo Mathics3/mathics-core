@@ -1,9 +1,9 @@
 System`Graphics3D
   System`List
     System`RGBColor
-      System`Real 1
+      System`Real 1.0
       System`Real 0.690196
-      System`Real 0
+      System`Real 0.0
     System`GraphicsComplex
       System`NumericArray NumericArray[Real*, 40000×3]
         [[-2.         -2.          4.        ]
@@ -157,7 +157,7 @@ System`Graphics3D
     System`List
   System`Rule
     System`ImageMargins
-    System`Real 0
+    System`Real 0.0
   System`Rule
     System`ImagePadding
     System`All
@@ -180,11 +180,11 @@ System`Graphics3D
     System`PlotRange
     System`List
       System`List
-        System`Real -2
-        System`Real 2
+        System`Real -2.0
+        System`Real 2.0
       System`List
-        System`Real -2
-        System`Real 2
+        System`Real -2.0
+        System`Real 2.0
       System`String "System`Automatic"
   System`Rule
     System`PlotRangeClipping
@@ -233,7 +233,7 @@ System`Graphics3D
     System`List
       System`Real 1.3
       System`Real -2.4
-      System`Real 2
+      System`Real 2.0
   System`Rule
     System`ViewProjection
     System`Automatic

@@ -8,14 +8,14 @@ System`Graphics
     System`Style
       System`Disk
         System`List
-          System`Real 0
-          System`Real 0
+          System`Real 0.0
+          System`Real 0.0
         System`List
-          System`Real 2
-          System`Real 2
+          System`Real 2.0
+          System`Real 2.0
         System`List
-          System`Real 3.14159
-          System`Real 1.25664
+          System`Real 3.141593
+          System`Real 1.256637
       System`RGBColor
         System`Real 0.941176
         System`Real 0.647059
@@ -23,14 +23,14 @@ System`Graphics
     System`Style
       System`Disk
         System`List
-          System`Real 0
-          System`Real 0
+          System`Real 0.0
+          System`Real 0.0
         System`List
-          System`Real 2
-          System`Real 2
+          System`Real 2.0
+          System`Real 2.0
         System`List
-          System`Real 1.25664
-          System`Real 0
+          System`Real 1.256637
+          System`Real 0.0
       System`RGBColor
         System`Real 0.54902
         System`Real 0.521569
@@ -38,14 +38,14 @@ System`Graphics
     System`Style
       System`Disk
         System`List
-          System`Real 0
-          System`Real 0
+          System`Real 0.0
+          System`Real 0.0
         System`List
-          System`Real 2
-          System`Real 2
+          System`Real 2.0
+          System`Real 2.0
         System`List
-          System`Real 0
-          System`Real -3.14159
+          System`Real 0.0
+          System`Real -3.141593
       System`RGBColor
         System`Real 0.980392
         System`Real 0.815686
@@ -127,7 +127,7 @@ System`Graphics
     System`List
   System`Rule
     System`ImageMargins
-    System`Real 0
+    System`Real 0.0
   System`Rule
     System`ImagePadding
     System`All
@@ -153,11 +153,11 @@ System`Graphics
     System`PlotRange
     System`List
       System`List
-        System`Real -2
-        System`Real 2
+        System`Real -2.0
+        System`Real 2.0
       System`List
-        System`Real -2
-        System`Real 2
+        System`Real -2.0
+        System`Real 2.0
   System`Rule
     System`PlotRangeClipping
     System`False

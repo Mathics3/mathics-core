@@ -124,6 +124,10 @@ def print_expression_tree(expr, indent="", marker=lambda expr: "", file=None, ap
     Print a Mathics Expression as an indented tree.
     Caller may supply a marker function that computes a marker
     to be displayed in the tree for the given node.
+    The approximate flag causes numbers to be printed with fewer digits
+    and the number of bits of precision (i.e. Real32 vs Real64) to be
+    omitted from printing for numpy arrays, to faciliate comparisons
+    across systems.
     """
     if file is None:
         file = sys.stdout
@@ -132,17 +136,17 @@ def print_expression_tree(expr, indent="", marker=lambda expr: "", file=None, ap
         print(f"{indent}{marker(expr)}{expr}", file=file)
     elif not hasattr(expr, "elements"):
         if isinstance(expr, MachineReal) and approximate:
-            #
-            value = round(expr.value * 1e6) / 1e6
-            #value = f"{value:.6g}"
+            # fewer digits
+            value = str(round(expr.value * 1e6) / 1e6)
         elif isinstance(expr, NumericArray) and approximate:
-            # Real64 and Real32 both become Real*, etc.
+            # Real32/64->Real*, Integer32/64->Integer*
             value = re.sub("[0-9]+,", "*,", str(expr))
         else:
             value = str(expr)
         print(f"{indent}{marker(expr)}{expr.get_head()} {value}", file=file)
         if isinstance(expr, NumericArray):
             # numpy provides an abbreviated version of the array
+            # it is inherently approximated (i.e. limited precision) in its own way
             na_str = str(expr.value)
             i = indent + "  "
             na_str = i + na_str.replace("\n", "\n" + i)

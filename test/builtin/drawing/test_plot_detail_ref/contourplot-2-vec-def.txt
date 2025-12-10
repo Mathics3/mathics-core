@@ -3,7 +3,7 @@ System`Graphics
     System`RGBColor
       System`Real 0.392157
       System`Real 0.560784
-      System`Real 1
+      System`Real 1.0
     System`Line
       System`List
         System`List
@@ -289,7 +289,7 @@ System`Graphics
           System`Real 0.02
           System`Real 0.984513
         System`List
-          System`Real 0
+          System`Real 0.0
           System`Real 0.984912
         System`List
           System`Real -0.02
@@ -574,40 +574,40 @@ System`Graphics
           System`Real -0.99889
           System`Real 0.1
         System`List
-          System`Real -1
+          System`Real -1.0
           System`Real 0.089125
         System`List
-          System`Real -1.00091
+          System`Real -1.000912
           System`Real 0.08
         System`List
-          System`Real -1.00251
+          System`Real -1.002512
           System`Real 0.06
         System`List
-          System`Real -1.00371
+          System`Real -1.003712
           System`Real 0.04
         System`List
-          System`Real -1.00451
+          System`Real -1.004512
           System`Real 0.02
         System`List
-          System`Real -1.00491
-          System`Real 0
+          System`Real -1.004912
+          System`Real 0.0
         System`List
-          System`Real -1.00491
+          System`Real -1.004912
           System`Real -0.02
         System`List
-          System`Real -1.00451
+          System`Real -1.004512
           System`Real -0.04
         System`List
-          System`Real -1.00371
+          System`Real -1.003712
           System`Real -0.06
         System`List
-          System`Real -1.00251
+          System`Real -1.002512
           System`Real -0.08
         System`List
-          System`Real -1.00091
+          System`Real -1.000912
           System`Real -0.1
         System`List
-          System`Real -1
+          System`Real -1.0
           System`Real -0.109125
         System`List
           System`Real -0.99889
@@ -875,40 +875,40 @@ System`Graphics
           System`Real -0.99889
         System`List
           System`Real -0.109125
-          System`Real -1
+          System`Real -1.0
         System`List
           System`Real -0.1
-          System`Real -1.00091
+          System`Real -1.000912
         System`List
           System`Real -0.08
-          System`Real -1.00251
+          System`Real -1.002512
         System`List
           System`Real -0.06
-          System`Real -1.00371
+          System`Real -1.003712
         System`List
           System`Real -0.04
-          System`Real -1.00451
+          System`Real -1.004512
         System`List
           System`Real -0.02
-          System`Real -1.00491
+          System`Real -1.004912
         System`List
-          System`Real 0
-          System`Real -1.00491
+          System`Real 0.0
+          System`Real -1.004912
         System`List
           System`Real 0.02
-          System`Real -1.00451
+          System`Real -1.004512
         System`List
           System`Real 0.04
-          System`Real -1.00371
+          System`Real -1.003712
         System`List
           System`Real 0.06
-          System`Real -1.00251
+          System`Real -1.002512
         System`List
           System`Real 0.08
-          System`Real -1.00091
+          System`Real -1.000912
         System`List
           System`Real 0.089125
-          System`Real -1
+          System`Real -1.0
         System`List
           System`Real 0.1
           System`Real -0.99889
@@ -1193,7 +1193,7 @@ System`Graphics
           System`Real -0.02
         System`List
           System`Real 0.984912
-          System`Real 0
+          System`Real 0.0
         System`List
           System`Real 0.984513
           System`Real 0.02
@@ -1271,7 +1271,7 @@ System`Graphics
     System`List
   System`Rule
     System`ImageMargins
-    System`Real 0
+    System`Real 0.0
   System`Rule
     System`ImagePadding
     System`All
@@ -1291,11 +1291,11 @@ System`Graphics
     System`PlotRange
     System`List
       System`List
-        System`Real -2
-        System`Real 2
+        System`Real -2.0
+        System`Real 2.0
       System`List
-        System`Real -2
-        System`Real 2
+        System`Real -2.0
+        System`Real 2.0
   System`Rule
     System`PlotRangeClipping
     System`False

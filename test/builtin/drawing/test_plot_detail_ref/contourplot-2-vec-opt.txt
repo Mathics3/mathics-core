@@ -3,14 +3,14 @@ System`Graphics
     System`RGBColor
       System`Real 0.392157
       System`Real 0.560784
-      System`Real 1
+      System`Real 1.0
     System`Line
       System`List
         System`List
           System`Real 0.4
           System`Real 0.45625
         System`List
-          System`Real 0
+          System`Real 0.0
           System`Real 0.65625
         System`List
           System`Real -0.4
@@ -23,7 +23,7 @@ System`Graphics
           System`Real 0.4
         System`List
           System`Real -1.05625
-          System`Real 0
+          System`Real 0.0
         System`List
           System`Real -1.05625
           System`Real -0.4
@@ -37,7 +37,7 @@ System`Graphics
           System`Real -0.4
           System`Real -1.05625
         System`List
-          System`Real 0
+          System`Real 0.0
           System`Real -1.05625
         System`List
           System`Real 0.4
@@ -50,7 +50,7 @@ System`Graphics
           System`Real -0.4
         System`List
           System`Real 0.65625
-          System`Real 0
+          System`Real 0.0
         System`List
           System`Real 0.45625
           System`Real 0.4
@@ -119,7 +119,7 @@ System`Graphics
     System`List
   System`Rule
     System`ImageMargins
-    System`Real 0
+    System`Real 0.0
   System`Rule
     System`ImagePadding
     System`All
@@ -139,11 +139,11 @@ System`Graphics
     System`PlotRange
     System`List
       System`List
-        System`Real -2
-        System`Real 2
+        System`Real -2.0
+        System`Real 2.0
       System`List
-        System`Real -2
-        System`Real 2
+        System`Real -2.0
+        System`Real 2.0
   System`Rule
     System`PlotRangeClipping
     System`False
