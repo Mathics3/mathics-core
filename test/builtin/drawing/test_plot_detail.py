@@ -102,8 +102,8 @@ classic = [
 vectorized = [
     ("complexplot", "ComplexPlot[Exp[I z],{z,-2-2 I,2+2 I}]", opt2, True),
     ("complexplot3d", "ComplexPlot3D[Exp[I z],{z,-2-2 I,2+2 I}]", opt3, True),
-    ("contourplot-1", "ContourPlot[x^2-y^2,{x,-2,2},{y,-2,2}]", opt2, True),
-    ("contourplot-2", "ContourPlot[x^2+y^2==1,{x,-2,2},{y,-2,2}]", opt2, True),
+    ("contourplot-1", "ContourPlot[x^2-y^2,{x,-2,2},{y,-2,2}]", opt2, skimage),
+    ("contourplot-2", "ContourPlot[x^2+y^2==1,{x,-2,2},{y,-2,2}]", opt2, skimage),
 ]
 
 # both vectorized and non-vectorized available
