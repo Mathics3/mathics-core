@@ -8,6 +8,7 @@ import math
 import numpy as np
 
 from mathics.builtin.colors.color_internals import convert_color
+from mathics.core.convert.lambdify import lambdify_compile
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import strip_context
@@ -19,7 +20,6 @@ from mathics.core.systemsymbols import (
 )
 from mathics.timing import Timer
 
-from .plot_compile import plot_compile
 from .util import GraphicsGenerator
 
 
@@ -45,7 +45,7 @@ def make_plot(plot_options, evaluation: Evaluation, dim: int, is_complex: bool, 
     # compile the functions
     with Timer("compile"):
         compiled_functions = [
-            plot_compile(evaluation, function, names)
+            lambdify_compile(evaluation, function, names)
             for function in plot_options.functions
         ]
 

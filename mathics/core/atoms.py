@@ -628,7 +628,7 @@ class PrecisionReal(Real[sympy.Float]):
         of an expression. The tuple is ultimately compared lexicographically.
         """
 
-        value = self._value
+        value: sympy.Float = self._value
         value, prec = float(value), value._prec
         # For large values, use the sympy.Float value...
         if math.isinf(value):
