@@ -15,6 +15,8 @@ from typing import Callable, Optional
 
 import palettable
 
+import mathics.eval.drawing.plot3d
+import mathics.eval.drawing.plot3d_vectorized
 from mathics.builtin.drawing.graphics3d import Graphics3D
 from mathics.builtin.graphics import Graphics
 from mathics.builtin.options import options_to_rules
@@ -63,23 +65,25 @@ from mathics.eval.nevaluator import eval_N
 # Set option such as $UseVectorizedPlot, and maybe a non-standard Plot3D option.
 # For now an env variable is simplest.
 # TODO: work out exactly how to deploy.
+
+
+# can be set via environment variable at startup time,
+# or changed dynamically by setting the use_vectorized_plot flag
 use_vectorized_plot = os.getenv("MATHICS3_USE_VECTORIZED_PLOT", False)
-if use_vectorized_plot:
-    from mathics.eval.drawing.plot3d_vectorized import (
-        eval_ComplexPlot,
-        eval_ComplexPlot3D,
-        eval_ContourPlot,
-        eval_DensityPlot,
-        eval_Plot3D,
+
+
+# get the plot eval function for the given class,
+# depending on whether vectorized plot functions are enabled
+def get_plot_eval_function(cls):
+    function_name = "eval_" + cls.__name__
+    plot_module = (
+        mathics.eval.drawing.plot3d_vectorized
+        if use_vectorized_plot
+        else mathics.eval.drawing.plot3d
     )
-else:
-    from mathics.eval.drawing.plot3d import (
-        eval_ComplexPlot,
-        eval_ComplexPlot3D,
-        eval_ContourPlot,
-        eval_DensityPlot,
-        eval_Plot3D,
-    )
+    fun = getattr(plot_module, function_name)
+    return fun
+
 
 # This tells documentation how to sort this module
 # Here we are also hiding "drawing" since this erroneously appears at the top level.
@@ -649,7 +653,8 @@ class _Plot3D(Builtin):
             plot_options.functions = [functions]
 
         # subclass must set eval_function and graphics_class
-        graphics = self.eval_function(plot_options, evaluation)
+        eval_function = get_plot_eval_function(self.__class__)
+        graphics = eval_function(plot_options, evaluation)
         if not graphics:
             return
 
@@ -833,7 +838,6 @@ class ComplexPlot3D(_Plot3D):
     options = _Plot3D.options3d | {"Mesh": "None"}
 
     many_functions = True
-    eval_function = staticmethod(eval_ComplexPlot3D)
     graphics_class = Graphics3D
 
 
@@ -857,7 +861,6 @@ class ComplexPlot(_Plot3D):
     options = _Plot3D.options2d
 
     many_functions = False
-    eval_function = staticmethod(eval_ComplexPlot)
     graphics_class = Graphics
 
 
@@ -883,7 +886,6 @@ class ContourPlot(_Plot3D):
     # TODO: other options?
 
     many_functions = True
-    eval_function = staticmethod(eval_ContourPlot)
     graphics_class = Graphics
 
 
@@ -916,7 +918,6 @@ class DensityPlot(_Plot3D):
     options = _Plot3D.options2d
 
     many_functions = False
-    eval_function = staticmethod(eval_DensityPlot)
     graphics_class = Graphics
 
 
@@ -2036,5 +2037,4 @@ class Plot3D(_Plot3D):
     options = _Plot3D.options3d
 
     many_functions = True
-    eval_function = staticmethod(eval_Plot3D)
     graphics_class = Graphics3D
