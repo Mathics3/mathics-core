@@ -210,8 +210,8 @@ def test_all(act_dir="/tmp", opt=None):
         skip = info.get("skip", False)
         if isinstance(skip, str):
             skip = {
-                "pyodide": pyodide, # skip if on pyodide
-                "skimage": not skimage, # skip if no skimage
+                "pyodide": pyodide,  # skip if on pyodide
+                "skimage": not skimage,  # skip if no skimage
             }[skip]
         if not skip:
             one_test(name, info["expr"], False, ..., act_dir)
