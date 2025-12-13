@@ -7,7 +7,12 @@ Conversion to SymPy is handled directly in BaseElement descendants.
 from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Tuple, Union, cast
 
 import sympy
-from sympy import Symbol as Sympy_Symbol, false as SympyFalse, true as SympyTrue
+from sympy import (
+    Dummy as Sympy_Dummy,
+    Symbol as Sympy_Symbol,
+    false as SympyFalse,
+    true as SympyTrue,
+)
 from sympy.core.singleton import S
 
 from mathics.core.atoms import (
@@ -108,6 +113,16 @@ mathics_to_sympy_singleton = {
 }
 
 
+def sympy_decode_mathics_symbol_name(name: str) -> str:
+    """
+    Remove the Prefix for Mathics symbols
+    and restore the context separator character.
+    """
+    if name.startswith(SYMPY_SYMBOL_PREFIX):
+        return name[len(SYMPY_SYMBOL_PREFIX) :].replace("_", "`")
+    return name
+
+
 def is_Cn_expr(name: str) -> bool:
     """Check if name is of the form {prefix}Cnnn"""
     if name.startswith(SYMPY_SYMBOL_PREFIX) or name.startswith(SYMPY_SLOT_PREFIX):
@@ -152,7 +167,9 @@ class SympyExpression(sympy.Expr):
             if kwargs.get("convert_functions_for_polynomialq", False):
                 sympy_elements = []
             else:
-                sympy_elements = [element.to_sympy() for element in expr.elements]
+                sympy_elements = [
+                    element.to_sympy(**kwargs) for element in expr.elements
+                ]
             if sympy_head is None or None in sympy_elements:
                 return None
             obj = super().__new__(cls, sympy_head, *sympy_elements)
@@ -229,7 +246,6 @@ def expression_to_sympy(expr: Expression, **kwargs):
     """
     Convert `expr` to its sympy form.
     """
-
     if len(expr.elements) > 0:
         head_name = expr.get_head_name()
         if head_name.startswith("Global`"):
@@ -243,6 +259,7 @@ def expression_to_sympy(expr: Expression, **kwargs):
 
     lookup_name = expr.get_lookup_name()
     builtin = mathics_to_sympy.get(lookup_name)
+
     if builtin is not None:
         sympy_expr = builtin.to_sympy(expr, **kwargs)
         if sympy_expr is not None:
@@ -261,11 +278,10 @@ def symbol_to_sympy(symbol: Symbol, **kwargs) -> Sympy_Symbol:
     if result is not None:
         return result
 
-    if symbol.sympy_dummy is not None:
-        return symbol.sympy_dummy
-
     builtin = mathics_to_sympy.get(symbol.name)
     if builtin is None or not builtin.sympy_name or not builtin.is_constant():  # nopep8
+        if symbol in kwargs.get("dummies", {}):
+            return Sympy_Dummy(sympy_name(symbol))
         return Sympy_Symbol(sympy_name(symbol))
     return builtin.to_sympy(symbol, **kwargs)
 
@@ -342,7 +358,6 @@ def old_from_sympy(expr) -> BaseElement:
     """
     converts a SymPy object to a Mathics3 element.
     """
-
     if isinstance(expr, (tuple, list)):
         return to_mathics_list(*expr, elements_conversion_fn=from_sympy)
     if isinstance(expr, int):
@@ -366,13 +381,16 @@ def old_from_sympy(expr) -> BaseElement:
         if expr.is_Symbol:
             name = str(expr)
             if isinstance(expr, sympy.Dummy):
-                name = f"sympy`dummy`Dummy${expr.dummy_index}"  # type: ignore[attr-defined]
+                name = name[1:]
+                if "_" not in name:
+                    name = f"sympy`dummy`Dummy${expr.dummy_index}"  # type: ignore[attr-defined]
+                else:
+                    name = sympy_decode_mathics_symbol_name(name)
                 # Probably, this should be the value attribute
-                return Symbol(name, sympy_dummy=expr)
+                return Symbol(name)
             if is_Cn_expr(name):
                 return Expression(SymbolC, Integer(int(name[1:])))
-            if name.startswith(SYMPY_SYMBOL_PREFIX):
-                name = name[len(SYMPY_SYMBOL_PREFIX) :]
+            name = sympy_decode_mathics_symbol_name(name)
             if name.startswith(SYMPY_SLOT_PREFIX):
                 index = int(name[len(SYMPY_SLOT_PREFIX) :])
                 return Expression(SymbolSlot, Integer(index))
@@ -411,7 +429,8 @@ def old_from_sympy(expr) -> BaseElement:
         if isinstance(expr, sympy.core.numbers.NaN):
             return SymbolIndeterminate
         if isinstance(expr, sympy.core.function.FunctionClass):
-            return Symbol(str(expr))
+            name = str(expr).replace("_", "`")
+            return Symbol(name)
         if expr is sympy.true:
             return SymbolTrue
         if expr is sympy.false:
@@ -537,8 +556,7 @@ def old_from_sympy(expr) -> BaseElement:
                     Expression(Symbol("C"), Integer(int(name[1:]))),
                     *[from_sympy(arg) for arg in expr.args],
                 )
-            if name.startswith(SYMPY_SYMBOL_PREFIX):
-                name = name[len(SYMPY_SYMBOL_PREFIX) :]
+            name = sympy_decode_mathics_symbol_name(name)
         args = [from_sympy(arg) for arg in expr.args]
         builtin = sympy_to_mathics.get(name)
         if builtin is not None:
