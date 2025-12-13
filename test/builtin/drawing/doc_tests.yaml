@@ -130,6 +130,7 @@ doc-058:
     expr: Plot3D[{x^2 + y^2, -x^2 - y^2}, {x, -2, 2}, {y, -2, 2}, BoxRatios-> Automatic, Mesh->None]
 doc-059:
     expr: Plot[3, {x, 0, 1}]
+    skip: pyodide # pyodide emits Real 3 where other platforms emit Integer 3
 doc-060:
     expr: Plot[Abs[x], {x, -4, 4}]
 doc-061:
