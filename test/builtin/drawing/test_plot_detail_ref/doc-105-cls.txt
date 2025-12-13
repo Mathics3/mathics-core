@@ -1,0 +1,734 @@
+System`Graphics
+  System`List
+    System`Hue
+      System`Real 0.67
+      System`Real 0.6
+      System`Real 0.6
+    System`Line
+      System`List
+        System`List
+          System`List
+            System`Real 0.178571
+            System`Real -31.856021
+          System`List
+            System`Real 0.267857
+            System`Real -14.428845
+          System`List
+            System`Real 0.357143
+            System`Real -8.324169
+          System`List
+            System`Real 0.446429
+            System`Real -5.492962
+          System`List
+            System`Real 0.491071
+            System`Real -4.617034
+          System`List
+            System`Real 0.513393
+            System`Real -4.261559
+          System`List
+            System`Real 0.535714
+            System`Real -3.949139
+          System`List
+            System`Real 0.580357
+            System`Real -3.427673
+          System`List
+            System`Real 0.602679
+            System`Real -3.208647
+          System`List
+            System`Real 0.625
+            System`Real -3.012221
+          System`List
+            System`Real 0.647321
+            System`Real -2.835321
+          System`List
+            System`Real 0.658482
+            System`Real -2.753372
+          System`List
+            System`Real 0.669643
+            System`Real -2.675373
+          System`List
+            System`Real 0.691964
+            System`Real -2.530213
+          System`List
+            System`Real 0.703125
+            System`Real -2.462594
+          System`List
+            System`Real 0.714286
+            System`Real -2.398009
+          System`List
+            System`Real 0.736607
+            System`Real -2.277205
+          System`List
+            System`Real 0.758929
+            System`Real -2.166468
+          System`List
+            System`Real 0.770089
+            System`Real -2.114511
+          System`List
+            System`Real 0.78125
+            System`Real -2.064654
+          System`List
+            System`Real 0.803571
+            System`Real -1.970775
+          System`List
+            System`Real 0.825893
+            System`Real -1.883977
+          System`List
+            System`Real 0.837054
+            System`Real -1.842996
+          System`List
+            System`Real 0.848214
+            System`Real -1.803514
+          System`List
+            System`Real 0.870536
+            System`Real -1.728737
+          System`List
+            System`Real 0.881696
+            System`Real -1.6933
+          System`List
+            System`Real 0.887277
+            System`Real -1.676041
+          System`List
+            System`Real 0.892857
+            System`Real -1.659077
+          System`List
+            System`Real 0.915179
+            System`Real -1.594033
+          System`List
+            System`Real 0.926339
+            System`Real -1.563101
+          System`List
+            System`Real 0.9375
+            System`Real -1.533163
+          System`List
+            System`Real 0.948661
+            System`Real -1.504169
+          System`List
+            System`Real 0.959821
+            System`Real -1.476076
+          System`List
+            System`Real 0.970982
+            System`Real -1.448842
+          System`List
+            System`Real 0.982143
+            System`Real -1.422426
+          System`List
+            System`Real 0.993304
+            System`Real -1.396793
+          System`List
+            System`Real 1.004464
+            System`Real -1.371906
+          System`List
+            System`Real 1.015625
+            System`Real -1.347732
+          System`List
+            System`Real 1.026786
+            System`Real -1.324239
+          System`List
+            System`Real 1.049107
+            System`Real -1.27918
+          System`List
+            System`Real 1.060268
+            System`Real -1.257559
+          System`List
+            System`Real 1.065848
+            System`Real -1.246964
+          System`List
+            System`Real 1.071429
+            System`Real -1.236509
+          System`List
+            System`Real 1.09375
+            System`Real -1.196028
+          System`List
+            System`Real 1.104911
+            System`Real -1.176553
+          System`List
+            System`Real 1.116071
+            System`Real -1.157559
+          System`List
+            System`Real 1.127232
+            System`Real -1.139028
+          System`List
+            System`Real 1.138393
+            System`Real -1.120941
+          System`List
+            System`Real 1.149554
+            System`Real -1.103281
+          System`List
+            System`Real 1.160714
+            System`Real -1.08603
+          System`List
+            System`Real 1.171875
+            System`Real -1.069172
+          System`List
+            System`Real 1.183036
+            System`Real -1.052693
+          System`List
+            System`Real 1.194196
+            System`Real -1.036577
+          System`List
+            System`Real 1.205357
+            System`Real -1.020812
+          System`List
+            System`Real 1.227679
+            System`Real -0.990278
+          System`List
+            System`Real 1.238839
+            System`Real -0.975486
+          System`List
+            System`Real 1.24442
+            System`Real -0.968203
+          System`List
+            System`Real 1.25
+            System`Real -0.960994
+          System`List
+            System`Real 1.272321
+            System`Real -0.932869
+          System`List
+            System`Real 1.283482
+            System`Real -0.919215
+          System`List
+            System`Real 1.294643
+            System`Real -0.905821
+          System`List
+            System`Real 1.305804
+            System`Real -0.892678
+          System`List
+            System`Real 1.316964
+            System`Real -0.879777
+          System`List
+            System`Real 1.339286
+            System`Real -0.854666
+          System`List
+            System`Real 1.361607
+            System`Real -0.830427
+          System`List
+            System`Real 1.372768
+            System`Real -0.818616
+          System`List
+            System`Real 1.383929
+            System`Real -0.807002
+          System`List
+            System`Real 1.40625
+            System`Real -0.784339
+          System`List
+            System`Real 1.417411
+            System`Real -0.773277
+          System`List
+            System`Real 1.422991
+            System`Real -0.767811
+          System`List
+            System`Real 1.428571
+            System`Real -0.762388
+          System`List
+            System`Real 1.450893
+            System`Real -0.741105
+          System`List
+            System`Real 1.473214
+            System`Real -0.720449
+          System`List
+            System`Real 1.495536
+            System`Real -0.700381
+          System`List
+            System`Real 1.517857
+            System`Real -0.680868
+          System`List
+            System`Real 1.540179
+            System`Real -0.661876
+          System`List
+            System`Real 1.551339
+            System`Real -0.652566
+          System`List
+            System`Real 1.5625
+            System`Real -0.643376
+          System`List
+            System`Real 1.584821
+            System`Real -0.62534
+          System`List
+            System`Real 1.595982
+            System`Real -0.616488
+          System`List
+            System`Real 1.607143
+            System`Real -0.607742
+          System`List
+            System`Real 1.651786
+            System`Real -0.57377
+          System`List
+            System`Real 1.674107
+            System`Real -0.557352
+          System`List
+            System`Real 1.696429
+            System`Real -0.541288
+          System`List
+            System`Real 1.71875
+            System`Real -0.52556
+          System`List
+            System`Real 1.741071
+            System`Real -0.510152
+          System`List
+            System`Real 1.763393
+            System`Real -0.495049
+          System`List
+            System`Real 1.785714
+            System`Real -0.480236
+          System`List
+            System`Real 1.830357
+            System`Real -0.451432
+          System`List
+            System`Real 1.875
+            System`Real -0.423645
+          System`List
+            System`Real 1.919643
+            System`Real -0.396796
+          System`List
+            System`Real 1.941964
+            System`Real -0.3837
+          System`List
+            System`Real 1.964286
+            System`Real -0.370814
+          System`List
+            System`Real 2.008929
+            System`Real -0.345639
+          System`List
+            System`Real 2.053571
+            System`Real -0.321219
+          System`List
+            System`Real 2.098214
+            System`Real -0.297509
+          System`List
+            System`Real 2.120536
+            System`Real -0.285908
+          System`List
+            System`Real 2.142857
+            System`Real -0.27447
+          System`List
+            System`Real 2.1875
+            System`Real -0.252069
+          System`List
+            System`Real 2.232143
+            System`Real -0.230278
+          System`List
+            System`Real 2.276786
+            System`Real -0.209072
+          System`List
+            System`Real 2.321429
+            System`Real -0.188431
+          System`List
+            System`Real 2.410714
+            System`Real -0.148776
+          System`List
+            System`Real 2.455357
+            System`Real -0.129736
+          System`List
+            System`Real 2.5
+            System`Real -0.111206
+          System`List
+            System`Real 2.589286
+            System`Real -0.075646
+          System`List
+            System`Real 2.633929
+            System`Real -0.058604
+          System`List
+            System`Real 2.678571
+            System`Real -0.042048
+          System`List
+            System`Real 2.767857
+            System`Real -0.010385
+          System`List
+            System`Real 2.8125
+            System`Real 0.004726
+          System`List
+            System`Real 2.857143
+            System`Real 0.019357
+          System`List
+            System`Real 2.946429
+            System`Real 0.047184
+          System`List
+            System`Real 2.991071
+            System`Real 0.060378
+          System`List
+            System`Real 3.035714
+            System`Real 0.073092
+          System`List
+            System`Real 3.125
+            System`Real 0.097076
+          System`List
+            System`Real 3.169643
+            System`Real 0.108345
+          System`List
+            System`Real 3.214286
+            System`Real 0.11913
+          System`List
+            System`Real 3.258929
+            System`Real 0.129431
+          System`List
+            System`Real 3.303571
+            System`Real 0.139247
+          System`List
+            System`Real 3.325893
+            System`Real 0.143973
+          System`List
+            System`Real 3.348214
+            System`Real 0.148577
+          System`List
+            System`Real 3.370536
+            System`Real 0.15306
+          System`List
+            System`Real 3.392857
+            System`Real 0.157422
+          System`List
+            System`Real 3.4375
+            System`Real 0.165781
+          System`List
+            System`Real 3.482143
+            System`Real 0.173655
+          System`List
+            System`Real 3.526786
+            System`Real 0.181045
+          System`List
+            System`Real 3.549107
+            System`Real 0.184558
+          System`List
+            System`Real 3.571429
+            System`Real 0.18795
+          System`List
+            System`Real 3.616071
+            System`Real 0.194374
+          System`List
+            System`Real 3.660714
+            System`Real 0.200316
+          System`List
+            System`Real 3.705357
+            System`Real 0.20578
+          System`List
+            System`Real 3.727679
+            System`Real 0.208333
+          System`List
+            System`Real 3.75
+            System`Real 0.210767
+          System`List
+            System`Real 3.794643
+            System`Real 0.215281
+          System`List
+            System`Real 3.839286
+            System`Real 0.219325
+          System`List
+            System`Real 3.883929
+            System`Real 0.222903
+          System`List
+            System`Real 3.90625
+            System`Real 0.224518
+          System`List
+            System`Real 3.928571
+            System`Real 0.226018
+          System`List
+            System`Real 3.973214
+            System`Real 0.228676
+          System`List
+            System`Real 4.017857
+            System`Real 0.230881
+          System`List
+            System`Real 4.0625
+            System`Real 0.23264
+          System`List
+            System`Real 4.107143
+            System`Real 0.233956
+          System`List
+            System`Real 4.196429
+            System`Real 0.235293
+          System`List
+            System`Real 4.241071
+            System`Real 0.235326
+          System`List
+            System`Real 4.285714
+            System`Real 0.234946
+          System`List
+            System`Real 4.375
+            System`Real 0.232979
+          System`List
+            System`Real 4.419643
+            System`Real 0.23141
+          System`List
+            System`Real 4.464286
+            System`Real 0.229463
+          System`List
+            System`Real 4.553571
+            System`Real 0.224471
+          System`List
+            System`Real 4.598214
+            System`Real 0.221448
+          System`List
+            System`Real 4.642857
+            System`Real 0.218087
+          System`List
+            System`Real 4.732143
+            System`Real 0.210397
+          System`List
+            System`Real 4.776786
+            System`Real 0.206092
+          System`List
+            System`Real 4.821429
+            System`Real 0.201494
+          System`List
+            System`Real 4.910714
+            System`Real 0.191474
+          System`List
+            System`Real 5.0
+            System`Real 0.180438
+          System`List
+            System`Real 5.178571
+            System`Real 0.155737
+          System`List
+            System`Real 5.357143
+            System`Real 0.128251
+          System`List
+            System`Real 5.535714
+            System`Real 0.098867
+          System`List
+            System`Real 5.714286
+            System`Real 0.068472
+          System`List
+            System`Real 5.892857
+            System`Real 0.037937
+          System`List
+            System`Real 6.071429
+            System`Real 0.008095
+          System`List
+            System`Real 6.25
+            System`Real -0.020277
+          System`List
+            System`Real 6.339286
+            System`Real -0.03369
+          System`List
+            System`Real 6.428571
+            System`Real -0.046478
+          System`List
+            System`Real 6.517857
+            System`Real -0.058569
+          System`List
+            System`Real 6.607143
+            System`Real -0.069894
+          System`List
+            System`Real 6.696429
+            System`Real -0.080393
+          System`List
+            System`Real 6.785714
+            System`Real -0.090011
+          System`List
+            System`Real 6.875
+            System`Real -0.098703
+          System`List
+            System`Real 6.919643
+            System`Real -0.102689
+          System`List
+            System`Real 6.964286
+            System`Real -0.106429
+          System`List
+            System`Real 7.053571
+            System`Real -0.113156
+          System`List
+            System`Real 7.098214
+            System`Real -0.116137
+          System`List
+            System`Real 7.142857
+            System`Real -0.118861
+          System`List
+            System`Real 7.232143
+            System`Real -0.123526
+          System`List
+            System`Real 7.276786
+            System`Real -0.125465
+          System`List
+            System`Real 7.321429
+            System`Real -0.127142
+          System`List
+            System`Real 7.410714
+            System`Real -0.129708
+          System`List
+            System`Real 7.455357
+            System`Real -0.130599
+          System`List
+            System`Real 7.5
+            System`Real -0.131229
+          System`List
+            System`Real 7.589286
+            System`Real -0.131718
+          System`List
+            System`Real 7.633929
+            System`Real -0.131581
+          System`List
+            System`Real 7.678571
+            System`Real -0.131194
+          System`List
+            System`Real 7.767857
+            System`Real -0.129684
+          System`List
+            System`Real 7.857143
+            System`Real -0.127221
+          System`List
+            System`Real 7.946429
+            System`Real -0.123843
+          System`List
+            System`Real 8.035714
+            System`Real -0.119596
+          System`List
+            System`Real 8.125
+            System`Real -0.114529
+          System`List
+            System`Real 8.214286
+            System`Real -0.108697
+          System`List
+            System`Real 8.392857
+            System`Real -0.094979
+          System`List
+            System`Real 8.571429
+            System`Real -0.078958
+          System`List
+            System`Real 8.75
+            System`Real -0.061198
+          System`List
+            System`Real 8.928571
+            System`Real -0.042291
+          System`List
+            System`Real 9.107143
+            System`Real -0.02284
+          System`List
+            System`Real 9.285714
+            System`Real -0.003442
+          System`List
+            System`Real 9.464286
+            System`Real 0.015329
+          System`List
+            System`Real 9.642857
+            System`Real 0.032937
+          System`List
+            System`Real 9.821429
+            System`Real 0.048898
+          System`List
+            System`Real 10.0
+            System`Real 0.062793
+  System`Rule
+    System`AlignmentPoint
+    System`Center
+  System`Rule
+    System`AspectRatio
+    System`Power
+      System`GoldenRatio
+      System`Integer -1
+  System`Rule
+    System`Axes
+    System`True
+  System`Rule
+    System`AxesLabel
+    System`None
+  System`Rule
+    System`AxesOrigin
+    System`Automatic
+  System`Rule
+    System`AxesStyle
+    System`List
+  System`Rule
+    System`Background
+    System`Automatic
+  System`Rule
+    System`BaseStyle
+    System`List
+  System`Rule
+    System`BaselinePosition
+    System`Automatic
+  System`Rule
+    System`ContentSelectable
+    System`Automatic
+  System`Rule
+    System`CoordinatesToolOptions
+    System`Automatic
+  System`Rule
+    System`Epilog
+    System`List
+  System`Rule
+    System`Exclusions
+    System`Automatic
+  System`Rule
+    System`FormatType
+    System`TraditionalForm
+  System`Rule
+    System`Frame
+    System`False
+  System`Rule
+    System`FrameLabel
+    System`None
+  System`Rule
+    System`FrameStyle
+    System`List
+  System`Rule
+    System`FrameTicks
+    System`Automatic
+  System`Rule
+    System`FrameTicksStyle
+    System`List
+  System`Rule
+    System`GridLines
+    System`None
+  System`Rule
+    System`GridLinesStyle
+    System`List
+  System`Rule
+    System`ImageMargins
+    System`Real 0.0
+  System`Rule
+    System`ImagePadding
+    System`All
+  System`Rule
+    System`ImageSize
+    System`Automatic
+  System`Rule
+    System`LabelStyle
+    System`List
+  System`Rule
+    System`MaxRecursion
+    System`Automatic
+  System`Rule
+    System`Mesh
+    System`None
+  System`Rule
+    System`Method
+    System`Automatic
+  System`Rule
+    System`PlotLabel
+    System`None
+  System`Rule
+    System`PlotPoints
+    System`None
+  System`Rule
+    System`PlotRange
+    System`List
+      System`List
+        System`Real -0.3125
+        System`Real 10.491071
+      System`List
+        System`Real -8.752124
+        System`Real 0.662902
+  System`Rule
+    System`PlotRangeClipping
+    System`False
+  System`Rule
+    System`PlotRangePadding
+    System`Automatic
+  System`Rule
+    System`PlotRegion
+    System`Automatic
+  System`Rule
+    System`PreserveImageOptions
+    System`Automatic
+  System`Rule
+    System`Prolog
+    System`List
+  System`Rule
+    System`RotateLabel
+    System`True
+  System`Rule
+    System`Ticks
+    System`Automatic
+  System`Rule
+    System`TicksStyle
+    System`List

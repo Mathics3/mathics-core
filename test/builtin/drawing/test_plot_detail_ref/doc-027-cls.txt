@@ -1,0 +1,487 @@
+System`Graphics
+  System`List
+    System`Hue
+      System`Real 0.67
+      System`Real 0.6
+      System`Real 0.6
+    System`Point
+      System`List
+        System`List
+          System`Real 1.0
+          System`Real 1.01
+        System`List
+          System`Real 2.0
+          System`Integer 4
+        System`List
+          System`Real 3.0
+          System`Real 6.94
+        System`List
+          System`Real 4.0
+          System`Real 9.01
+        System`List
+          System`Real 5.0
+          System`Real 10.8
+        System`List
+          System`Real 6.0
+          System`Real 12.01
+        System`List
+          System`Real 7.0
+          System`Real 14.01
+        System`List
+          System`Real 8.0
+          System`Integer 16
+        System`List
+          System`Real 9.0
+          System`Integer 19
+        System`List
+          System`Real 10.0
+          System`Real 20.18
+        System`List
+          System`Real 11.0
+          System`Real 22.99
+        System`List
+          System`Real 12.0
+          System`Real 24.31
+        System`List
+          System`Real 13.0
+          System`Real 26.98
+        System`List
+          System`Real 14.0
+          System`Real 28.09
+        System`List
+          System`Real 15.0
+          System`Real 30.97
+        System`List
+          System`Real 16.0
+          System`Real 32.07
+        System`List
+          System`Real 17.0
+          System`Real 35.45
+        System`List
+          System`Real 18.0
+          System`Real 39.95
+        System`List
+          System`Real 19.0
+          System`Real 39.1
+        System`List
+          System`Real 20.0
+          System`Real 40.08
+        System`List
+          System`Real 21.0
+          System`Real 44.96
+        System`List
+          System`Real 22.0
+          System`Real 47.87
+        System`List
+          System`Real 23.0
+          System`Real 50.94
+        System`List
+          System`Real 24.0
+          System`Integer 52
+        System`List
+          System`Real 25.0
+          System`Real 54.94
+        System`List
+          System`Real 26.0
+          System`Real 55.85
+        System`List
+          System`Real 27.0
+          System`Real 58.93
+        System`List
+          System`Real 28.0
+          System`Real 58.69
+        System`List
+          System`Real 29.0
+          System`Real 63.55
+        System`List
+          System`Real 30.0
+          System`Real 65.38
+        System`List
+          System`Real 31.0
+          System`Real 69.72
+        System`List
+          System`Real 32.0
+          System`Real 72.63
+        System`List
+          System`Real 33.0
+          System`Real 74.92
+        System`List
+          System`Real 34.0
+          System`Real 78.96
+        System`List
+          System`Real 35.0
+          System`Real 79.9
+        System`List
+          System`Real 36.0
+          System`Real 83.8
+        System`List
+          System`Real 37.0
+          System`Real 85.47
+        System`List
+          System`Real 38.0
+          System`Real 87.62
+        System`List
+          System`Real 39.0
+          System`Real 88.91
+        System`List
+          System`Real 40.0
+          System`Real 91.22
+        System`List
+          System`Real 41.0
+          System`Real 92.91
+        System`List
+          System`Real 42.0
+          System`Real 95.96
+        System`List
+          System`Real 43.0
+          System`Integer 98
+        System`List
+          System`Real 44.0
+          System`Real 101.07
+        System`List
+          System`Real 45.0
+          System`Real 102.91
+        System`List
+          System`Real 46.0
+          System`Real 106.42
+        System`List
+          System`Real 47.0
+          System`Real 107.87
+        System`List
+          System`Real 48.0
+          System`Real 112.41
+        System`List
+          System`Real 49.0
+          System`Real 114.82
+        System`List
+          System`Real 50.0
+          System`Real 118.71
+        System`List
+          System`Real 51.0
+          System`Real 121.76
+        System`List
+          System`Real 52.0
+          System`Real 127.6
+        System`List
+          System`Real 53.0
+          System`Real 126.9
+        System`List
+          System`Real 54.0
+          System`Real 131.29
+        System`List
+          System`Real 55.0
+          System`Real 132.91
+        System`List
+          System`Real 56.0
+          System`Real 137.33
+        System`List
+          System`Real 57.0
+          System`Real 138.91
+        System`List
+          System`Real 58.0
+          System`Real 140.12
+        System`List
+          System`Real 59.0
+          System`Real 140.91
+        System`List
+          System`Real 60.0
+          System`Real 144.24
+        System`List
+          System`Real 61.0
+          System`Integer 145
+        System`List
+          System`Real 62.0
+          System`Real 150.36
+        System`List
+          System`Real 63.0
+          System`Real 151.96
+        System`List
+          System`Real 64.0
+          System`Real 157.25
+        System`List
+          System`Real 65.0
+          System`Real 158.93
+        System`List
+          System`Real 66.0
+          System`Real 162.5
+        System`List
+          System`Real 67.0
+          System`Real 164.93
+        System`List
+          System`Real 68.0
+          System`Real 167.26
+        System`List
+          System`Real 69.0
+          System`Real 168.93
+        System`List
+          System`Real 70.0
+          System`Real 173.05
+        System`List
+          System`Real 71.0
+          System`Real 174.97
+        System`List
+          System`Real 72.0
+          System`Real 178.49
+        System`List
+          System`Real 73.0
+          System`Real 180.95
+        System`List
+          System`Real 74.0
+          System`Real 183.84
+        System`List
+          System`Real 75.0
+          System`Real 186.21
+        System`List
+          System`Real 76.0
+          System`Real 190.23
+        System`List
+          System`Real 77.0
+          System`Real 192.22
+        System`List
+          System`Real 78.0
+          System`Real 195.08
+        System`List
+          System`Real 79.0
+          System`Real 196.97
+        System`List
+          System`Real 80.0
+          System`Real 200.59
+        System`List
+          System`Real 81.0
+          System`Real 204.38
+        System`List
+          System`Real 82.0
+          System`Real 207.2
+        System`List
+          System`Real 83.0
+          System`Real 208.98
+        System`List
+          System`Real 84.0
+          System`Integer 209
+        System`List
+          System`Real 85.0
+          System`Integer 210
+        System`List
+          System`Real 86.0
+          System`Integer 222
+        System`List
+          System`Real 87.0
+          System`Integer 223
+        System`List
+          System`Real 88.0
+          System`Integer 226
+        System`List
+          System`Real 89.0
+          System`Integer 227
+        System`List
+          System`Real 90.0
+          System`Real 232.04
+        System`List
+          System`Real 91.0
+          System`Real 231.04
+        System`List
+          System`Real 92.0
+          System`Real 238.03
+        System`List
+          System`Real 93.0
+          System`Integer 237
+        System`List
+          System`Real 94.0
+          System`Integer 244
+        System`List
+          System`Real 95.0
+          System`Integer 243
+        System`List
+          System`Real 96.0
+          System`Integer 247
+        System`List
+          System`Real 97.0
+          System`Integer 247
+        System`List
+          System`Real 98.0
+          System`Integer 251
+        System`List
+          System`Real 99.0
+          System`Integer 252
+        System`List
+          System`Real 100.0
+          System`Integer 257
+        System`List
+          System`Real 101.0
+          System`Integer 258
+        System`List
+          System`Real 102.0
+          System`Integer 259
+        System`List
+          System`Real 103.0
+          System`Integer 262
+        System`List
+          System`Real 104.0
+          System`Integer 267
+        System`List
+          System`Real 105.0
+          System`Integer 268
+        System`List
+          System`Real 106.0
+          System`Integer 269
+        System`List
+          System`Real 107.0
+          System`Integer 270
+        System`List
+          System`Real 108.0
+          System`Integer 269
+        System`List
+          System`Real 109.0
+          System`Integer 278
+        System`List
+          System`Real 110.0
+          System`Integer 281
+        System`List
+          System`Real 111.0
+          System`Integer 281
+        System`List
+          System`Real 112.0
+          System`Integer 285
+        System`List
+          System`Real 113.0
+          System`Integer 286
+        System`List
+          System`Real 114.0
+          System`Integer 289
+        System`List
+          System`Real 115.0
+          System`Integer 288
+        System`List
+          System`Real 116.0
+          System`Integer 293
+        System`List
+          System`Real 117.0
+          System`Integer 294
+        System`List
+          System`Real 118.0
+          System`Integer 294
+  System`Rule
+    System`AlignmentPoint
+    System`Center
+  System`Rule
+    System`AspectRatio
+    System`Power
+      System`GoldenRatio
+      System`Integer -1
+  System`Rule
+    System`Axes
+    System`True
+  System`Rule
+    System`AxesLabel
+    System`None
+  System`Rule
+    System`AxesOrigin
+    System`Automatic
+  System`Rule
+    System`AxesStyle
+    System`List
+  System`Rule
+    System`Background
+    System`Automatic
+  System`Rule
+    System`BaseStyle
+    System`List
+  System`Rule
+    System`BaselinePosition
+    System`Automatic
+  System`Rule
+    System`ContentSelectable
+    System`Automatic
+  System`Rule
+    System`CoordinatesToolOptions
+    System`Automatic
+  System`Rule
+    System`Epilog
+    System`List
+  System`Rule
+    System`Filling
+    System`None
+  System`Rule
+    System`FormatType
+    System`TraditionalForm
+  System`Rule
+    System`Frame
+    System`False
+  System`Rule
+    System`FrameLabel
+    System`None
+  System`Rule
+    System`FrameStyle
+    System`List
+  System`Rule
+    System`FrameTicks
+    System`Automatic
+  System`Rule
+    System`FrameTicksStyle
+    System`List
+  System`Rule
+    System`GridLines
+    System`None
+  System`Rule
+    System`GridLinesStyle
+    System`List
+  System`Rule
+    System`ImageMargins
+    System`Real 0.0
+  System`Rule
+    System`ImagePadding
+    System`All
+  System`Rule
+    System`ImageSize
+    System`Automatic
+  System`Rule
+    System`Joined
+    System`False
+  System`Rule
+    System`LabelStyle
+    System`List
+  System`Rule
+    System`Mesh
+    System`None
+  System`Rule
+    System`Method
+    System`Automatic
+  System`Rule
+    System`PlotLabel
+    System`None
+  System`Rule
+    System`PlotPoints
+    System`None
+  System`Rule
+    System`PlotRange
+    System`List
+      System`List
+        System`Integer 0
+        System`Real 118.0
+      System`List
+        System`Real -0.1
+        System`Integer 294
+  System`Rule
+    System`PlotRangeClipping
+    System`False
+  System`Rule
+    System`PlotRangePadding
+    System`Automatic
+  System`Rule
+    System`PlotRegion
+    System`Automatic
+  System`Rule
+    System`PreserveImageOptions
+    System`Automatic
+  System`Rule
+    System`Prolog
+    System`List
+  System`Rule
+    System`RotateLabel
+    System`True
+  System`Rule
+    System`Ticks
+    System`Automatic
+  System`Rule
+    System`TicksStyle
+    System`List
