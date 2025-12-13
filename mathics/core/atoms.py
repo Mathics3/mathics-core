@@ -364,6 +364,7 @@ Integer2 = Integer(2)
 Integer3 = Integer(3)
 Integer4 = Integer(4)
 Integer310 = Integer(310)
+Integer400 = Integer(400)
 Integer10 = Integer(10)
 IntegerM1 = Integer(-1)
 
