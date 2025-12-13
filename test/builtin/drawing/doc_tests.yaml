@@ -1,0 +1,267 @@
+#
+# These tests were automatically picked up from doc 2025-12-13
+# The doc-xxx numbers are simply sequential numbers in alphebatized list as of that date
+# The doc-xxx labels correspond to test output so shouldn't be changed
+# New tests can just be added at end of list, disregarding alphabetical order
+#
+
+doc-001:
+    expr: BarChart[{1, 4, 2}, ChartStyle -> {Red, Green, Blue}]
+doc-002:
+    expr: BarChart[{1, 4, 2}]
+doc-003:
+    expr: BarChart[{{1, 2, 3}, {2, 3, 4}}, ChartLabels -> {"a", "b", "c"}]
+doc-004:
+    expr: BarChart[{{1, 2, 3}, {2, 3, 4}}]
+doc-005:
+    expr: BarChart[{{1, 5}, {3, 4}}, ChartStyle -> {{EdgeForm[Thin], White}, {EdgeForm[Thick], White}}]
+doc-006:
+    expr: DensityPlot[1 / x, {x, 0, 1}, {y, 0, 1}]
+doc-007:
+    expr: DensityPlot[1/(x^2 + y^2 + 1), {x, -1, 1}, {y, -2,2}, Mesh->Full]
+doc-008:
+    expr: DensityPlot[Sin[x y], {x, -2, 2}, {y, -2, 2}, Mesh->Full]
+doc-009:
+    expr: DensityPlot[Sqrt[x * y], {x, -1, 1}, {y, -1, 1}]
+doc-010:
+    expr: 'DensityPlot[x ^ 2 + 1 / y, {x, -1, 1}, {y, 1, 4}, ColorFunction -> (Blend[{Red, Green, Blue}, #]&)]'
+    skip: true # for now
+doc-011:
+    expr: DensityPlot[x ^ 2 + 1 / y, {x, -1, 1}, {y, 1, 4}]
+doc-012:
+    expr: DensityPlot[x^2 y, {x, -1, 1}, {y, -1, 1}, Mesh->All]
+doc-013:
+    expr: DiscretePlot[2.5 Sqrt[k], {k, 100}]
+doc-014:
+    expr: DiscretePlot[PrimePi[k], {k, 1, 100}]
+doc-015:
+    expr: DiscretePlot[{Sin[Pi x/20], Cos[Pi x/20]}, {x, 0, 40}]
+doc-016:
+    expr: Histogram[{3, 8, 10, 100, 1000, 500, 300, 200, 10, 20, 200, 100, 200, 300, 500}]
+doc-017:
+    expr: Histogram[{{1, 2, 10, 5, 50, 20}, {90, 100, 101, 120, 80}}]
+doc-018:
+    expr: ListLinePlot[Table[Cos[x], {x, -5, 5, 0.2}], Filling->Top]
+doc-019:
+    expr: ListLinePlot[Table[Sin[x], {x, -5, 5, 0.2}], Filling->Axis]
+doc-020:
+    expr: ListLinePlot[Table[Sin[x], {x, -5, 5, 0.2}], Filling->Bottom]
+doc-021:
+    expr: ListLinePlot[Table[{n, n ^ 0.5}, {n, 10}]]
+doc-022:
+    expr: ListLinePlot[list]
+    skip: true # malformed test - depends on list
+doc-023:
+    expr: ListLinePlot[{{-2, -1}, {-1, -1}, {1, 3}}, Filling->Axis]
+doc-024:
+    expr: ListLogPlot[Table[Fibonacci[n], {n, 10}]]
+doc-025:
+    expr: ListLogPlot[Table[n!, {n, 10}], Joined -> True]
+doc-026:
+    expr: ListPlot[Prime[Range[30]]]
+doc-027:
+    expr: ListPlot[Table[ElementData[z, "AtomicWeight"], {z, 118}]]
+doc-028:
+    expr: ListPlot[Table[n ^ 2 / 8, {n, 30}]]
+doc-029:
+    expr: ListPlot[Table[n ^ 2, {n, 10}], Joined->True]
+doc-030:
+    expr: ListPlot[Table[n ^ 2, {n, 30}], Filling->Axis]
+doc-031:
+    expr: ListPlot[Table[n ^ 2, {n, 30}], Joined->True]
+doc-032:
+    expr: ListPlot[ToCharacterCode["plot this string"], Filling -> Axis]
+doc-033:
+    expr: ListStepPlot[{1, 1, 2, 3, 5, 8, 13, 21}, Joined->False]
+doc-034:
+    expr: ListStepPlot[{1, 1, 2, 3, 5, 8, 13, 21}]
+doc-035:
+    expr: ListStepPlot[{{1, 1}, {3, 2}, {4, 5}, {5, 8}, {6, 13}, {7, 21}}, Filling->Axis]
+doc-036:
+    expr: LogPlot[x^x, {x, 1, 5}]
+doc-037:
+    expr: LogPlot[{10^x, Factorial[x], Subfactorial[x]}, {x, 0, 25}, PlotPoints->26]
+doc-038:
+    expr: LogPlot[{x^x, Exp[x], x!}, {x, 1, 5}]
+doc-039:
+    expr: NumberLinePlot[Prime[Range[10]]]
+doc-040:
+    expr: NumberLinePlot[Table[x^2, {x, 10}]]
+doc-041:
+    expr: ParametricPlot[ {LegendreP[7, x], LegendreP[5, x]}, {x, -1, 1}]
+doc-042:
+    expr: ParametricPlot[{Cos[u] / u, Sin[u] / u}, {u, 0, 50}, PlotRange->0.5]
+doc-043:
+    expr: ParametricPlot[{Sin[u], Cos[3 u]}, {u, 0, 2 Pi}]
+doc-044:
+    expr: ParametricPlot[{{Sin[u], Cos[u]},{0.6 Sin[u], 0.6 Cos[u]}, {0.2 Sin[u], 0.2 Cos[u]}}, {u, 0, 2 Pi}, PlotRange->1, AspectRatio->1]
+doc-045:
+    expr: PieChart[{1, -1, 3}]
+doc-046:
+    expr: PieChart[{30, 20, 10}, ChartLabels -> {Dogs, Cats, Fish}]
+doc-047:
+    expr: PieChart[{8, 16, 2}, SectorOrigin -> {Automatic, 1.5}]
+doc-048:
+    expr: PieChart[{{10, 20, 30}, {15, 22, 30}}, ChartLabels -> {A, B, C}]
+doc-049:
+    expr: PieChart[{{10, 20, 30}, {15, 22, 30}}, SectorSpacing -> None]
+doc-050:
+    expr: PieChart[{{10, 20, 30}, {15, 22, 30}}]
+doc-051:
+    expr: Plot3D[Exp[x] Cos[y], {x, -2, 1}, {y, -Pi, 2 Pi}]
+doc-052:
+    expr: Plot3D[Log[x + y^2], {x, -1, 1}, {y, -1, 1}]
+doc-053:
+    expr: Plot3D[Sin[x y] /(x y), {x, -3, 3}, {y, -3, 3}, Mesh->All]
+doc-054:
+    expr: Plot3D[Sin[x y], {x, -2, 2}, {y, -2, 2}, Mesh->Full]
+doc-055:
+    expr: Plot3D[Sin[y + Sin[3 x]], {x, -2, 2}, {y, -2, 2}, PlotPoints->20]
+doc-056:
+    expr: Plot3D[x / (x ^ 2 + y ^ 2 + 1), {x, -2, 2}, {y, -2, 2}, Mesh->None]
+doc-057:
+    expr: Plot3D[x ^ 2 + 1 / y, {x, -1, 1}, {y, 1, 4}]
+doc-058:
+    expr: Plot3D[{x^2 + y^2, -x^2 - y^2}, {x, -2, 2}, {y, -2, 2}, BoxRatios-> Automatic, Mesh->None]
+doc-059:
+    expr: Plot[3, {x, 0, 1}]
+doc-060:
+    expr: Plot[Abs[x], {x, -4, 4}]
+doc-061:
+    expr: Plot[AiryAiPrime[x], {x, -10, 10}]
+doc-062:
+    expr: Plot[AiryAi[x], {x, -10, 10}]
+doc-063:
+    expr: Plot[AiryBiPrime[x], {x, -10, 2}]
+doc-064:
+    expr: Plot[AiryBi[x], {x, -10, 2}]
+doc-065:
+    expr: Plot[AngerJ[1, x], {x, -10, 10}]
+doc-066:
+    expr: Plot[BesselI[0, x], {x, 0, 5}]
+doc-067:
+    expr: Plot[BesselJ[0, x], {x, 0, 10}]
+doc-068:
+    expr: Plot[BesselK[0, x], {x, 0, 5}]
+doc-069:
+    expr: Plot[BesselY[0, x], {x, 0, 10}]
+doc-070:
+    expr: Plot[EllipticE[m], {m, -2, 2}]
+doc-071:
+    expr: Plot[EllipticK[n], {n, -1, 1}]
+doc-072:
+    expr: Plot[Erf[x], {x, -2, 2}]
+doc-073:
+    expr: Plot[Erfc[x], {x, -2, 2}]
+doc-074:
+    expr: Plot[Evaluate[Table[x^y, {y, 1, 5}]], {x, -1.5, 1.5}, AspectRatio -> 1]
+doc-075:
+    expr: Plot[Exp[x], {x, 0, 3}]
+doc-076:
+    expr: Plot[Gudermannian[x], {x, -10, 10}]
+doc-077:
+    expr: Plot[Hypergeometric1F1[1, 2, x], {x, -5, 5}]
+doc-078:
+    expr: Plot[Hypergeometric2F1[1/3, 1/3, 2/3, x], {x, -1, 1}]
+doc-079:
+    expr: Plot[HypergeometricPFQ[{1, 1}, {3, 3, 3}, x], {x, -30, 30}]
+doc-080:
+    expr: Plot[HypergeometricU[3, 2, x], {x, 0.5, 10}]
+    skip: true # hits iteration limit
+doc-081:
+    expr: Plot[InverseErf[x], {x, -1, 1}]
+doc-082:
+    expr: Plot[InverseGudermannian[x], {x, -2 Pi, 2 Pi}]
+doc-083:
+    expr: Plot[KelvinBei[x], {x, 0, 10}]
+doc-084:
+    expr: Plot[KelvinBer[x], {x, 0, 10}]
+doc-085:
+    expr: Plot[KelvinKei[x], {x, 0, 10}]
+doc-086:
+    expr: Plot[KelvinKer[x], {x, 0, 10}]
+doc-087:
+    expr: Plot[LambertW[x], {x, -1/E, E}]
+doc-088:
+    expr: Plot[LerchPhi[x, 1, 2], {x, -1, 1}]
+doc-089:
+    expr: Plot[Log[x], {x, 0, 5}, MaxRecursion->0]
+doc-090:
+    expr: Plot[Log[x], {x, 0, 5}]
+doc-091:
+    expr: Plot[LucasL[1/2, x], {x, -5, 5}]
+doc-092:
+    expr: Plot[Piecewise[{{Log[x], x > 0}, {x*-0.5, x < 0}}], {x, -1, 1}]
+    skip: true # hits iteration limit
+doc-093:
+    expr: Plot[PolyLog[2,x], {x, -20, 1}]
+doc-094:
+    expr: Plot[ProductLog[x], {x, -1/E, E}]
+doc-095:
+    expr: Plot[Sin[Cos[x^2]],{x,-4,4}, PlotPoints->22]
+doc-096:
+    expr: Plot[Sin[Cos[x^2]],{x,-4,4}, PlotRange -> All]
+doc-097:
+    expr: Plot[Sin[Cos[x^2]],{x,-4,4},Mesh->All]
+doc-098:
+    expr: Plot[Sin[x], {x, -Pi, Pi}]
+doc-099:
+    expr: Plot[Sin[x], {x, 0, 10}, ImageSize -> Small]
+doc-100:
+    expr: Plot[Sin[x], {x, 0, 2 Pi}, Background -> LightBlue]
+doc-101:
+    expr: Plot[Sin[x], {x, 0, 2 Pi}]
+doc-102:
+    expr: Plot[Sin[x], {x, 0, 4 Pi}, PlotRange->{{0, 4 Pi}, {0, 1.5}}]
+doc-103:
+    expr: Plot[Sin[x], {x,0,4 Pi}, Mesh->Full]
+doc-104:
+    expr: Plot[SphericalBesselJ[1, x], {x, 0.1, 10}]
+doc-105:
+    expr: Plot[SphericalBesselY[1, x], {x, 0, 10}]
+doc-106:
+    expr: Plot[Sqrt[a^2], {a, -2, 2}]
+doc-107:
+    expr: Plot[StruveH[0, x], {x, 0, 10}]
+doc-108:
+    expr: Plot[StruveL[0, x], {x, 0, 5}]
+doc-109:
+    expr: Plot[Tan[x], {x, -6, 6}, Mesh->Full]
+doc-110:
+    expr: Plot[Tan[x], {x, 0, 6}, Mesh->All, PlotRange->{{-1, 5}, {0, 15}}, MaxRecursion->10]
+doc-111:
+    expr: Plot[UnitStep[x], {x, -4, 4}]
+doc-112:
+    expr: Plot[WeberE[1, x], {x, -10, 10}]
+doc-113:
+    expr: Plot[Zeta[z], {z, -20, 10}]
+doc-114:
+    expr: Plot[f[x], {x, -8, 6}]
+doc-115:
+    expr: Plot[x^2, {x, -1, 1}, MaxRecursion->5, Mesh->All]
+doc-116:
+    expr: Plot[{Cos[a], Re[E^(I a)]}, {a, 0, 2 Pi}]
+doc-117:
+    expr: Plot[{Gamma[x], x!}, {x, 0, 4}]
+doc-118:
+    expr: Plot[{Hypergeometric1F1[1/2, Sqrt[2], x], Hypergeometric1F1[1/2, Sqrt[3], x], Hypergeometric1F1[1/2, Sqrt[5], x]}, {x, -4, 4}]
+doc-119:
+    expr: Plot[{Hypergeometric1F1[Sqrt[2], b, 1], Hypergeometric1F1[Sqrt[5], b, 1], Hypergeometric1F1[Sqrt[7], b, 1]}, {b, -3, 3}]
+doc-120:
+    expr: Plot[{Hypergeometric1F1[Sqrt[3], Sqrt[2], z], -0.01}, {z, -10, -2}]
+doc-121:
+    expr: Plot[{Sin[a], Im[E^(I a)]}, {a, 0, 2 Pi}]
+doc-122:
+    expr: Plot[{Sin[x], Cos[x], x / 3}, {x, -Pi, Pi}, Background -> RGBColor[0.5, .5, .5, 0.1]]
+doc-123:
+    expr: Plot[{Sin[x], Cos[x], x / 3}, {x, -Pi, Pi}]
+doc-124:
+    expr: Plot[{Sin[x], Cos[x], x ^ 2}, {x, -1, 1}]
+doc-125:
+    expr: PolarPlot[Abs[Cos[5t]], {t, 0, Pi}]
+doc-126:
+    expr: PolarPlot[Cos[5t], {t, 0, Pi}]
+doc-127:
+    expr: PolarPlot[Sqrt[t], {t, 0, 16 Pi}]
+doc-128:
+    expr: PolarPlot[{1, 1 + Sin[20 t] / 5}, {t, 0, 2 Pi}]

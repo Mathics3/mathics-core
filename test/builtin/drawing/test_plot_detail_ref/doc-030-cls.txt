@@ -1,0 +1,463 @@
+System`Graphics
+  System`List
+    System`Hue
+      System`Real 0.67
+      System`Real 0.6
+      System`Real 0.6
+    System`Point
+      System`List
+        System`List
+          System`Real 1.0
+          System`Integer 1
+        System`List
+          System`Real 2.0
+          System`Integer 4
+        System`List
+          System`Real 3.0
+          System`Integer 9
+        System`List
+          System`Real 4.0
+          System`Integer 16
+        System`List
+          System`Real 5.0
+          System`Integer 25
+        System`List
+          System`Real 6.0
+          System`Integer 36
+        System`List
+          System`Real 7.0
+          System`Integer 49
+        System`List
+          System`Real 8.0
+          System`Integer 64
+        System`List
+          System`Real 9.0
+          System`Integer 81
+        System`List
+          System`Real 10.0
+          System`Integer 100
+        System`List
+          System`Real 11.0
+          System`Integer 121
+        System`List
+          System`Real 12.0
+          System`Integer 144
+        System`List
+          System`Real 13.0
+          System`Integer 169
+        System`List
+          System`Real 14.0
+          System`Integer 196
+        System`List
+          System`Real 15.0
+          System`Integer 225
+        System`List
+          System`Real 16.0
+          System`Integer 256
+        System`List
+          System`Real 17.0
+          System`Integer 289
+        System`List
+          System`Real 18.0
+          System`Integer 324
+        System`List
+          System`Real 19.0
+          System`Integer 361
+        System`List
+          System`Real 20.0
+          System`Integer 400
+        System`List
+          System`Real 21.0
+          System`Integer 441
+        System`List
+          System`Real 22.0
+          System`Integer 484
+        System`List
+          System`Real 23.0
+          System`Integer 529
+        System`List
+          System`Real 24.0
+          System`Integer 576
+        System`List
+          System`Real 25.0
+          System`Integer 625
+        System`List
+          System`Real 26.0
+          System`Integer 676
+        System`List
+          System`Real 27.0
+          System`Integer 729
+        System`List
+          System`Real 28.0
+          System`Integer 784
+        System`List
+          System`Real 29.0
+          System`Integer 841
+        System`List
+          System`Real 30.0
+          System`Integer 900
+    System`Line
+      System`List
+        System`List
+          System`Real 1.0
+          System`Integer 0
+        System`List
+          System`Real 1.0
+          System`Integer 1
+    System`Line
+      System`List
+        System`List
+          System`Real 2.0
+          System`Integer 0
+        System`List
+          System`Real 2.0
+          System`Integer 4
+    System`Line
+      System`List
+        System`List
+          System`Real 3.0
+          System`Integer 0
+        System`List
+          System`Real 3.0
+          System`Integer 9
+    System`Line
+      System`List
+        System`List
+          System`Real 4.0
+          System`Integer 0
+        System`List
+          System`Real 4.0
+          System`Integer 16
+    System`Line
+      System`List
+        System`List
+          System`Real 5.0
+          System`Integer 0
+        System`List
+          System`Real 5.0
+          System`Integer 25
+    System`Line
+      System`List
+        System`List
+          System`Real 6.0
+          System`Integer 0
+        System`List
+          System`Real 6.0
+          System`Integer 36
+    System`Line
+      System`List
+        System`List
+          System`Real 7.0
+          System`Integer 0
+        System`List
+          System`Real 7.0
+          System`Integer 49
+    System`Line
+      System`List
+        System`List
+          System`Real 8.0
+          System`Integer 0
+        System`List
+          System`Real 8.0
+          System`Integer 64
+    System`Line
+      System`List
+        System`List
+          System`Real 9.0
+          System`Integer 0
+        System`List
+          System`Real 9.0
+          System`Integer 81
+    System`Line
+      System`List
+        System`List
+          System`Real 10.0
+          System`Integer 0
+        System`List
+          System`Real 10.0
+          System`Integer 100
+    System`Line
+      System`List
+        System`List
+          System`Real 11.0
+          System`Integer 0
+        System`List
+          System`Real 11.0
+          System`Integer 121
+    System`Line
+      System`List
+        System`List
+          System`Real 12.0
+          System`Integer 0
+        System`List
+          System`Real 12.0
+          System`Integer 144
+    System`Line
+      System`List
+        System`List
+          System`Real 13.0
+          System`Integer 0
+        System`List
+          System`Real 13.0
+          System`Integer 169
+    System`Line
+      System`List
+        System`List
+          System`Real 14.0
+          System`Integer 0
+        System`List
+          System`Real 14.0
+          System`Integer 196
+    System`Line
+      System`List
+        System`List
+          System`Real 15.0
+          System`Integer 0
+        System`List
+          System`Real 15.0
+          System`Integer 225
+    System`Line
+      System`List
+        System`List
+          System`Real 16.0
+          System`Integer 0
+        System`List
+          System`Real 16.0
+          System`Integer 256
+    System`Line
+      System`List
+        System`List
+          System`Real 17.0
+          System`Integer 0
+        System`List
+          System`Real 17.0
+          System`Integer 289
+    System`Line
+      System`List
+        System`List
+          System`Real 18.0
+          System`Integer 0
+        System`List
+          System`Real 18.0
+          System`Integer 324
+    System`Line
+      System`List
+        System`List
+          System`Real 19.0
+          System`Integer 0
+        System`List
+          System`Real 19.0
+          System`Integer 361
+    System`Line
+      System`List
+        System`List
+          System`Real 20.0
+          System`Integer 0
+        System`List
+          System`Real 20.0
+          System`Integer 400
+    System`Line
+      System`List
+        System`List
+          System`Real 21.0
+          System`Integer 0
+        System`List
+          System`Real 21.0
+          System`Integer 441
+    System`Line
+      System`List
+        System`List
+          System`Real 22.0
+          System`Integer 0
+        System`List
+          System`Real 22.0
+          System`Integer 484
+    System`Line
+      System`List
+        System`List
+          System`Real 23.0
+          System`Integer 0
+        System`List
+          System`Real 23.0
+          System`Integer 529
+    System`Line
+      System`List
+        System`List
+          System`Real 24.0
+          System`Integer 0
+        System`List
+          System`Real 24.0
+          System`Integer 576
+    System`Line
+      System`List
+        System`List
+          System`Real 25.0
+          System`Integer 0
+        System`List
+          System`Real 25.0
+          System`Integer 625
+    System`Line
+      System`List
+        System`List
+          System`Real 26.0
+          System`Integer 0
+        System`List
+          System`Real 26.0
+          System`Integer 676
+    System`Line
+      System`List
+        System`List
+          System`Real 27.0
+          System`Integer 0
+        System`List
+          System`Real 27.0
+          System`Integer 729
+    System`Line
+      System`List
+        System`List
+          System`Real 28.0
+          System`Integer 0
+        System`List
+          System`Real 28.0
+          System`Integer 784
+    System`Line
+      System`List
+        System`List
+          System`Real 29.0
+          System`Integer 0
+        System`List
+          System`Real 29.0
+          System`Integer 841
+    System`Line
+      System`List
+        System`List
+          System`Real 30.0
+          System`Integer 0
+        System`List
+          System`Real 30.0
+          System`Integer 900
+  System`Rule
+    System`AlignmentPoint
+    System`Center
+  System`Rule
+    System`AspectRatio
+    System`Power
+      System`GoldenRatio
+      System`Integer -1
+  System`Rule
+    System`Axes
+    System`True
+  System`Rule
+    System`AxesLabel
+    System`None
+  System`Rule
+    System`AxesOrigin
+    System`Automatic
+  System`Rule
+    System`AxesStyle
+    System`List
+  System`Rule
+    System`Background
+    System`Automatic
+  System`Rule
+    System`BaseStyle
+    System`List
+  System`Rule
+    System`BaselinePosition
+    System`Automatic
+  System`Rule
+    System`ContentSelectable
+    System`Automatic
+  System`Rule
+    System`CoordinatesToolOptions
+    System`Automatic
+  System`Rule
+    System`Epilog
+    System`List
+  System`Rule
+    System`Filling
+    System`Axis
+  System`Rule
+    System`FormatType
+    System`TraditionalForm
+  System`Rule
+    System`Frame
+    System`False
+  System`Rule
+    System`FrameLabel
+    System`None
+  System`Rule
+    System`FrameStyle
+    System`List
+  System`Rule
+    System`FrameTicks
+    System`Automatic
+  System`Rule
+    System`FrameTicksStyle
+    System`List
+  System`Rule
+    System`GridLines
+    System`None
+  System`Rule
+    System`GridLinesStyle
+    System`List
+  System`Rule
+    System`ImageMargins
+    System`Real 0.0
+  System`Rule
+    System`ImagePadding
+    System`All
+  System`Rule
+    System`ImageSize
+    System`Automatic
+  System`Rule
+    System`Joined
+    System`False
+  System`Rule
+    System`LabelStyle
+    System`List
+  System`Rule
+    System`Mesh
+    System`None
+  System`Rule
+    System`Method
+    System`Automatic
+  System`Rule
+    System`PlotLabel
+    System`None
+  System`Rule
+    System`PlotPoints
+    System`None
+  System`Rule
+    System`PlotRange
+    System`List
+      System`List
+        System`Integer 0
+        System`Real 30.0
+      System`List
+        System`Real -0.1
+        System`Integer 900
+  System`Rule
+    System`PlotRangeClipping
+    System`False
+  System`Rule
+    System`PlotRangePadding
+    System`Automatic
+  System`Rule
+    System`PlotRegion
+    System`Automatic
+  System`Rule
+    System`PreserveImageOptions
+    System`Automatic
+  System`Rule
+    System`Prolog
+    System`List
+  System`Rule
+    System`RotateLabel
+    System`True
+  System`Rule
+    System`Ticks
+    System`Automatic
+  System`Rule
+    System`TicksStyle
+    System`List
