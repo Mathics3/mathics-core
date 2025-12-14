@@ -224,7 +224,7 @@ class HypergeometricU(MPMathFunction):
     </dl>
     Result is symbollicaly simplified, where possible:
     >> HypergeometricU[3, 2, 1]
-     = MeijerG[{{-2}, {}}, {{0, -1}, {}}, 1] / 2
+     = MeijerG[{{-2}, {}}, ...
     >> HypergeometricU[1,4,8]
      = HypergeometricU[1, 4, 8]
     unless a numerical evaluation is explicitly requested:

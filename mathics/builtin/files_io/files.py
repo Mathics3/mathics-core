@@ -90,9 +90,6 @@ class _OpenAction(Builtin):
 
     messages = {
         "argx": "OpenRead called with 0 arguments; 1 argument is expected.",
-        "fstr": (
-            "File specification `1` is not a string of " "one or more characters."
-        ),
     }
 
     mode = "r"  # A default; this is changed in subclassing.
@@ -301,6 +298,9 @@ class FilePrint(Builtin):
         record_separators = options["System`RecordSeparators"].to_python()
         assert isinstance(record_separators, tuple)
 
+        # Note: If we get a "noopen" message why we do not return SymbolFailed, I don't understand.
+        # But this is what WMA does.
+        # Also, this is error is tagged "General" instead of FilePrint, I also don't understand.
         if resolved_pypath is None:
             evaluation.message("General", "noopen", path)
             return
@@ -313,7 +313,8 @@ class FilePrint(Builtin):
                 result = f.read()
         except IOError:
             evaluation.message("General", "noopen", path)
-            return
+            return SymbolFailed
+
         except MessageException as e:
             e.message(evaluation)
             return
@@ -669,6 +670,8 @@ class PutAppend(InfixOperator):
             return
 
         instream = to_expression("OpenAppend", filename).evaluate(evaluation)
+        if instream is SymbolFailed:
+            return SymbolFailed
         if len(instream.elements) == 2:
             name, n = instream.elements
         else:
@@ -834,9 +837,6 @@ class Read(Builtin):
     """
 
     messages = {
-        "openx": "`1` is not open.",
-        "noopen": "Cannot open `1`.",
-        "readf": "`1` is not a valid format specification.",
         "readn": "Invalid real number found when reading from `1`.",
         "readt": "Invalid input found when reading `1` from `2`.",
     }
@@ -1012,7 +1012,6 @@ class ReadList(Read):
     """
     messages = {
         "opstl": "Value of option `1` should be a string or a list of strings.",
-        "readf": "`1` is not a valid format specification.",
     }
     options = {
         "NullRecords": "False",

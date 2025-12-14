@@ -122,7 +122,10 @@ def print_evaluate(expr, evaluation, status: str, fn: Callable, orig_expr=None):
                 expr = expr[0]
             elif not evaluation.definitions.trace_evaluation:
                 return
-            evaluation.print_out(f"{indents}{status}: {orig_expr} = " + str(expr))
+            expr_str = str(expr)
+            if status == "Replacing" and orig_expr == expr_str:
+                return
+            evaluation.print_out(f"{indents}{status}: {orig_expr} = {expr_str}")
 
     elif not is_performing_rewrite(fn):
         if not evaluation.definitions.trace_evaluation:

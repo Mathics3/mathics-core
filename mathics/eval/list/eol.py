@@ -128,7 +128,7 @@ def list_parts(exprs, selectors, evaluation):
 
             picked = list(list_parts(selected, selectors[1:], evaluation))
 
-            if unwrap is None:
+            if unwrap is None and hasattr(expr, "restructure"):
                 expr = expr.restructure(expr.head, picked, evaluation)
                 yield expr
             else:
@@ -197,7 +197,7 @@ def parts_sequence_selector(pspec):
             raise MessageException("Part", "pspec", pspec)
 
     def select(inner):
-        if isinstance(inner, Atom):
+        if not hasattr(inner, "elements"):
             raise MessageException("Part", "partd")
 
         elements = inner.elements

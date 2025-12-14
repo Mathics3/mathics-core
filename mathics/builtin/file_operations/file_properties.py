@@ -163,7 +163,7 @@ class FileHash(Builtin):
                 dump = f.read()
         except IOError:
             evaluation.message("General", "noopen", filename)
-            return
+            return SymbolFailed
         except MessageException as e:
             e.message(evaluation)
             return

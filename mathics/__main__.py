@@ -17,7 +17,7 @@ import os.path as osp
 import re
 import subprocess
 import sys
-from typing import List
+from typing import List, Optional
 
 import mathics_scanner.location
 from mathics_scanner.location import ContainerKind
@@ -379,6 +379,16 @@ def interactive_eval_loop(shell, full_form: bool, strict_wl_output: bool):
             shell.reset_lineno()
 
 
+class VersionAction(argparse.Action):
+    def __init__(self, option_strings, version=Optional[str], **kwargs):
+        super().__init__(option_strings=option_strings, nargs=0, **kwargs)
+        self.version = version
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        print(version_string)
+        parser.exit()
+
+
 def main() -> int:
     """
     Command-line entry.
@@ -462,13 +472,11 @@ Please contribute to Mathics!""",
         "multiple times)",
     )
 
-    # Python 3.7 does not support cProfile as a context manager
-    if sys.version_info >= (3, 8):
-        argparser.add_argument(
-            "--cprofile",
-            help="run cProfile on --execute argument",
-            action="store_true",
-        )
+    argparser.add_argument(
+        "--cprofile",
+        help="run cProfile on --execute argument",
+        action="store_true",
+    )
 
     argparser.add_argument(
         "--colors",
@@ -490,7 +498,11 @@ Please contribute to Mathics!""",
     )
 
     argparser.add_argument(
-        "--version", "-v", action="version", version="%(prog)s " + __version__
+        "--version",
+        "-v",
+        action=VersionAction,
+        version="%(prog)s " + __version__,
+        help="show program's version number and version of important software used, and exit",
     )
 
     argparser.add_argument(

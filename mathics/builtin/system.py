@@ -215,6 +215,58 @@ class GetEnvironment(Builtin):
             evaluation.message("GetEnvironment", "name", var)
 
 
+# The current value of $Language
+LANGUAGE = "English"
+
+
+class Language(Predefined):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/\\$Language.html</url>
+
+    <dl>
+      <dt>'\\$Language'
+      <dd>is a settable global variable for the default language used in Mathics3.
+    </dl>
+
+    See the language in effect used for functions like 'Alphabet[]':
+
+    By setting its value, The letters of 'Alphabet[]' are changed:
+
+    >> $Language = "German"; Alphabet[]
+     = ...
+
+    #> $Language = "English"
+     = English
+
+    See also <url>
+    :Alphabet:
+     /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/string-manipulation/alphabet/
+      </url>.
+    """
+
+    name = "$Language"
+    messages = {
+        "notstr": "`1` is not a string. Only strings can be set as the value of $Language.",
+    }
+
+    summary_text = "settable global variable giving the default language"
+    value = f'"{LANGUAGE}"'
+    # Rules has to come after "value"
+    rules = {
+        "$Language": value,
+    }
+
+    def eval_set(self, value, evaluation: Evaluation):
+        """Set[$Language, value_]"""
+        if isinstance(value, String):
+            evaluation.definitions.set_ownvalue("$Language", value)
+        else:
+            evaluation.message("$Language", "notstr", value)
+        return value
+
+
 class Machine(Predefined):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/\\$Machine.html</url>
@@ -238,7 +290,7 @@ class Machine(Predefined):
 
 class MachineName(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/MachineName.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\\$MachineName.html</url>
 
     <dl>
       <dt>'\\$MachineName'
@@ -417,7 +469,7 @@ class Packages(Predefined):
 
 class ParentProcessID(Predefined):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$ParentProcessID.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$ParentProcessID.html</url>
 
     <dl>
       <dt>'\$ParentProcesID'

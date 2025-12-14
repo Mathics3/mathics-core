@@ -13,7 +13,7 @@ from itertools import permutations
 from typing import Optional, Tuple
 
 from mathics.builtin.box.layout import RowBox
-from mathics.core.atoms import Integer, Integer1, is_integer_rational_or_real
+from mathics.core.atoms import ByteArray, Integer, Integer1, is_integer_rational_or_real
 from mathics.core.attributes import A_HOLD_FIRST, A_LISTABLE, A_LOCKED, A_PROTECTED
 from mathics.core.builtin import BasePattern, Builtin, IterationFunction
 from mathics.core.convert.expression import to_expression
@@ -198,6 +198,8 @@ class Normal(Builtin):
     def eval_general(self, expr: Expression, evaluation: Evaluation):
         "Normal[expr_]"
         if isinstance(expr, Atom):
+            if isinstance(expr, ByteArray):
+                return ListExpression(*expr.items)
             return expr
         if expr.has_form("RootSum", 2):
             return from_sympy(expr.to_sympy().doit(roots=True))
@@ -564,10 +566,12 @@ class Table(IterationFunction):
 
     summary_text = "make a table of values of an expression"
 
-    def get_result(self, elements) -> ListExpression:
+    def get_result(self, elements, is_uniform=False) -> ListExpression:
         return ListExpression(
             *elements,
-            elements_properties=ElementsProperties(elements_fully_evaluated=True),
+            elements_properties=ElementsProperties(
+                elements_fully_evaluated=True, is_uniform=is_uniform
+            ),
         )
 
 

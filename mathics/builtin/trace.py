@@ -20,7 +20,7 @@ import sys
 from collections import defaultdict
 from io import StringIO
 from time import time
-from typing import Callable
+from typing import Callable, Optional
 
 import mathics_scanner.location
 
@@ -41,6 +41,8 @@ from mathics.core.symbols import (
     strip_context,
 )
 
+SymbolTableForm = Symbol("System`TableForm")
+
 
 def traced_apply_function(
     self, expression, vars, options: dict, evaluation: Evaluation
@@ -51,16 +53,22 @@ def traced_apply_function(
     vars_noctx = dict(((strip_context(s), vars[s]) for s in vars))
     builtin_name = self.function.__qualname__.split(".")[0]
     stat = TraceBuiltins.function_stats[builtin_name]
+    prev_expression = evaluation.current_expression
+    evaluation.current_expression = expression
     t_start = time()
 
     stat["count"] += 1
     if options:
-        result = self.function(evaluation=evaluation, options=options, **vars_noctx)
+        result = (
+            self.function(evaluation=evaluation, options=options, **vars_noctx)
+            or expression
+        )
     else:
-        result = self.function(evaluation=evaluation, **vars_noctx)
+        result = self.function(evaluation=evaluation, **vars_noctx) or expression
     t_end = time()
     elapsed = (t_end - t_start) * 1000
     stat["elapsed_milliseconds"] += elapsed
+    evaluation.current_expression = prev_expression
     return result
 
 
@@ -89,7 +97,7 @@ class ClearTrace(Builtin):
 
     Dump Builtin-Function statistics gathered in running that assignment:
     >> PrintTrace[]
-
+     | ...
     >> ClearTrace[]
 
     #> $TraceBuiltins = False
@@ -130,12 +138,13 @@ class PrintTrace(_TraceBase):
 
     Note: before '\$TraceBuiltins' is set to 'True', 'PrintTrace[]' will print an empty
     list.
-    >> PrintTrace[] (* See console log *)
-
+    >> PrintTrace[]
+     | ...
     >> $TraceBuiltins = True
      = True
 
     >> PrintTrace[SortBy -> "time"]
+     | ...
 
     #> $TraceBuiltins = False
      = False
@@ -174,27 +183,34 @@ class TraceBuiltins(_TraceBase):
     </ul>
 
 
-    >> TraceBuiltins[Graphics3D[Tetrahedron[]]] (* See console log *)
+    >> TraceBuiltins[Graphics3D[Tetrahedron[]]]
+     | ...
      = -Graphics3D-
 
     By default, the output is sorted by the name:
-    >> TraceBuiltins[Times[x, x]] (* See console log *)
+    >> TraceBuiltins[Times[x, x]]
+     | ...
      = x ^ 2
 
     By default, the output is sorted by the number of calls of the builtin from \
     highest to lowest:
-    >> TraceBuiltins[Times[x, x], SortBy->"count"] (* See console log *)
+    >> TraceBuiltins[Times[x, x], SortBy->"count"]
+     | ...
      = x ^ 2
 
     You can have results ordered by name, or time.
 
     Trace an expression and list the result by time from highest to lowest.
-    >> TraceBuiltins[Times[x, x], SortBy->"time"] (* See console log *)
+    >> TraceBuiltins[Times[x, x], SortBy->"time"]
+     | ...
      = x ^ 2
     """
 
-    definitions_copy: Definitions
-    apply_function_copy: Callable
+    # None if normal evaluation, the main definition object
+    # if TraceBuiltin is activated.
+    definitions_copy: Optional[Definitions] = None
+    # Saves the default apply_function method.
+    _default_apply_function: Callable = FunctionApplyRule.apply_function
 
     function_stats: "defaultdict" = defaultdict(
         lambda: {"count": 0, "elapsed_milliseconds": 0.0}
@@ -222,7 +238,13 @@ class TraceBuiltins(_TraceBase):
         def sort_by_name(tup: tuple):
             return tup[0]
 
-        print("count     ms Builtin name")
+        header = [
+            (
+                " count",
+                "ms",
+                "Builtin name",
+            )
+        ]
 
         if sort_by == "count":
             inverse = True
@@ -234,33 +256,39 @@ class TraceBuiltins(_TraceBase):
             inverse = False
             sort_fn = sort_by_name
 
-        for name, statistic in sorted(
-            TraceBuiltins.function_stats.items(),
-            key=sort_fn,
-            reverse=inverse,
-        ):
-            print(
-                "%5d %6g %s"
-                % (statistic["count"], int(statistic["elapsed_milliseconds"]), name)
+            # TODO: show a table through a message...
+        table = header + [
+            (
+                statistic["count"],
+                int(statistic["elapsed_milliseconds"]),
+                name,
             )
+            for name, statistic in sorted(
+                TraceBuiltins.function_stats.items(),
+                key=sort_fn,
+                reverse=inverse,
+            )
+        ]
+        evaluation.print_out(Expression(SymbolTableForm, from_python(table)))
 
     @staticmethod
     def enable_trace(evaluation) -> None:
-        if TraceBuiltins.traced_definitions is None:
-            TraceBuiltins.apply_function_copy = FunctionApplyRule.apply_function
-            TraceBuiltins.definitions_copy = evaluation.definitions
-
-            # Replaces apply_function by the custom one
-            FunctionApplyRule.apply_function = traced_apply_function
-            # Create new definitions uses the new apply_function
-            evaluation.definitions = Definitions(add_builtin=True)
-        else:
-            evaluation.definitions = TraceBuiltins.definitions_copy
+        if TraceBuiltins.definitions_copy:
+            # Trace already enabled. Do nothing.
+            return
+        TraceBuiltins.definitions_copy = evaluation.definitions
+        # Replaces apply_function by the custom one
+        FunctionApplyRule.apply_function = traced_apply_function
+        # Create new definitions uses the new apply_function
+        evaluation.definitions = Definitions(add_builtin=True)
 
     @staticmethod
     def disable_trace(evaluation) -> None:
-        FunctionApplyRule.apply_function = TraceBuiltins.apply_function_copy
-        evaluation.definitions = TraceBuiltins.definitions_copy
+        # Disable tracebuiltin mode just if it was previously enabled:
+        if TraceBuiltins.definitions_copy:
+            FunctionApplyRule.apply_function = TraceBuiltins._default_apply_function
+            evaluation.definitions = TraceBuiltins.definitions_copy
+            TraceBuiltins.definitions_copy = None
 
     def eval(self, expr, evaluation, options={}):
         "%(name)s[expr_, OptionsPattern[%(name)s]]"
@@ -328,23 +356,19 @@ class TraceBuiltinsVariable(Builtin):
 
     messages = {"bool": "`1` should be True or False."}
 
-    value = SymbolFalse
-
     summary_text = "enable or disable Built-in function evaluation statistics"
 
     def eval_get(self, evaluation: Evaluation):
         "%(name)s"
 
-        return self.value
+        return SymbolTrue if TraceBuiltins.definitions_copy else SymbolFalse
 
     def eval_set(self, value, evaluation: Evaluation):
         "%(name)s = value_"
 
         if value is SymbolTrue:
-            self.value = SymbolTrue
             TraceBuiltins.enable_trace(evaluation)
         elif value is SymbolFalse:
-            self.value = SymbolFalse
             TraceBuiltins.disable_trace(evaluation)
         else:
             evaluation.message("$TraceBuiltins", "bool", value)

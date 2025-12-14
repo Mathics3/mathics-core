@@ -4,16 +4,20 @@
 import base64
 import math
 import re
-from typing import Any, Dict, Generic, Optional, Tuple, TypeVar, Union
+from functools import cache
+from typing import Any, Dict, Generic, Optional, Tuple, TypeVar, Union, cast
 
 import mpmath
+import numpy
 import sympy
 from sympy.core import numbers as sympy_numbers
 
 from mathics.core.element import BoxElementMixin, ImmutableValueMixin
 from mathics.core.keycomparable import (
-    BASIC_ATOM_NUMBER_SORT_KEY,
-    BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY,
+    BASIC_ATOM_BYTEARRAY_ELT_ORDER,
+    BASIC_ATOM_NUMBER_ELT_ORDER,
+    BASIC_ATOM_NUMERICARRAY_ELT_ORDER,
+    BASIC_ATOM_STRING_ELT_ORDER,
 )
 from mathics.core.number import (
     FP_MANTISA_BINARY_DIGITS,
@@ -53,10 +57,16 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
     being: Integer, Rational, Real, Complex.
     """
 
-    _value: T
+    _value: Any
     hash: int
 
-    def __getnewargs__(self):
+    def __eq__(self, other):
+        if isinstance(other, Number):
+            return self.element_order == other.element_order
+        else:
+            return False
+
+    def __getnewargs__(self) -> tuple:
         """
         __getnewargs__ is used in pickle loading to ensure __new__ is
         called with the right value.
@@ -67,12 +77,6 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         accordingly.
         """
         return (self._value,)
-
-    def __eq__(self, other):
-        if isinstance(other, Number):
-            return self.element_order == other.element_order
-        else:
-            return False
 
     def __str__(self) -> str:
         return str(self.value)
@@ -90,7 +94,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         of an expression. The tuple is ultimately compared lexicographically.
         """
         return (
-            BASIC_ATOM_NUMBER_SORT_KEY,
+            BASIC_ATOM_NUMBER_ELT_ORDER,
             self.value,
             0,
             1,
@@ -205,6 +209,7 @@ class Integer(Number[int]):
     # The key is the Integer's Python `int` value, and the
     # dictionary's value is the corresponding Mathics Integer object.
     _integers: Dict[Any, "Integer"] = {}
+    _value: int
 
     _sympy: sympy_numbers.Integer
 
@@ -234,11 +239,14 @@ class Integer(Number[int]):
         return self
 
     def __eq__(self, other) -> bool:
-        return (
-            self._value == other.value
-            if isinstance(other, Integer)
-            else super().__eq__(other)
-        )
+        if isinstance(other, Integer):
+            return self._value == other._value
+        if isinstance(other, Number):
+            # If other is a number of a wider class, use
+            # its implementation:
+            return other.__eq__(self)
+
+        return super().__eq__(other)
 
     def __ge__(self, other) -> bool:
         return (
@@ -341,7 +349,7 @@ class Integer(Number[int]):
 
     def sameQ(self, rhs) -> bool:
         """Mathics SameQ"""
-        return isinstance(rhs, Integer) and self._value == rhs.value
+        return isinstance(rhs, Integer) and self._value == rhs._value
 
     def do_copy(self) -> "Integer":
         return Integer(self._value)
@@ -400,17 +408,18 @@ class Real(Number[T]):
             return PrecisionReal.__new__(PrecisionReal, value)
 
     def __eq__(self, other) -> bool:
-        if isinstance(other, Real):
-            # MMA Docs: "Approximate numbers that differ in their last seven
-            # binary digits are considered equal"
-            _prec = min_prec(self, other)
-            if _prec is not None:
-                with mpmath.workprec(_prec):
-                    rel_eps = 0.5 ** float(_prec - 7)
-                    return mpmath.almosteq(
-                        self.to_mpmath(), other.to_mpmath(), abs_eps=0, rel_eps=rel_eps
-                    )
-        return super().__eq__(other)
+        if not isinstance(other, Number):
+            return super().__eq__(other)
+
+        _prec: Optional[int] = min_prec(self, other)
+        if _prec is None:
+            return self._value == other._value
+
+        with mpmath.workprec(_prec):
+            rel_eps = 0.5 ** float(_prec - 7)
+            return mpmath.almosteq(
+                self.to_mpmath(), other.to_mpmath(), abs_eps=0, rel_eps=rel_eps
+            )
 
     def __hash__(self):
         # ignore last 7 binary digits when hashing
@@ -446,6 +455,7 @@ class MachineReal(Real[float]):
     # The key is the MachineReal's Python `float` value, and the
     # dictionary's value is the corresponding Mathics MachineReal object.
     _machine_reals: Dict[Any, "MachineReal"] = {}
+    _value: float
 
     def __new__(cls, value) -> "MachineReal":
         n = float(value)
@@ -485,7 +495,21 @@ class MachineReal(Real[float]):
         return FP_MANTISA_BINARY_DIGITS
 
     def get_float_value(self, permit_complex=False) -> float:
-        return self.value
+        return self._value
+
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return (
+            BASIC_ATOM_NUMBER_ELT_ORDER,
+            self._value,
+            0,
+            1,
+            0,  # Machine precision comes first, and after Integers
+        )
 
     @property
     def is_approx_zero(self) -> bool:
@@ -509,7 +533,7 @@ class MachineReal(Real[float]):
 
     @property
     def is_zero(self) -> bool:
-        return self.value == 0.0
+        return self._value == 0.0
 
     def sameQ(self, rhs) -> bool:
         """Mathics SameQ for MachineReal.
@@ -519,9 +543,9 @@ class MachineReal(Real[float]):
         rhs-value's precision.  For any rhs type, sameQ is False.
         """
         if isinstance(rhs, MachineReal):
-            return self.value == rhs.value
+            return self._value == rhs._value
         if isinstance(rhs, PrecisionReal):
-            rhs_value = rhs.value
+            rhs_value = rhs._value
             value = self.to_sympy()
             # If sympy fixes the issue, this comparison would be
             # enough
@@ -559,7 +583,10 @@ class PrecisionReal(Real[sympy.Float]):
     # The key is the PrecisionReal's sympy.Float, and the
     # dictionary's value is the corresponding Mathics PrecisionReal object.
     _precision_reals: Dict[Any, "PrecisionReal"] = {}
-    _sympy: Number
+    _sympy: sympy.Float
+
+    # Note: We have no _value attribute or value property .
+    # value attribute comes from Number.value
 
     def __new__(cls, value) -> "PrecisionReal":
         n = sympy.Float(value)
@@ -594,6 +621,21 @@ class PrecisionReal(Real[sympy.Float]):
     def get_precision(self) -> int:
         """Returns the default specification for precision (in binary digits) in N and other numerical functions."""
         return self.value._prec + 1
+
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+
+        value = self._value
+        value, prec = float(value), value._prec
+        # For large values, use the sympy.Float value...
+        if math.isinf(value):
+            value, prec = self._value, value._prec
+
+        return (BASIC_ATOM_NUMBER_ELT_ORDER, value, 0, 2, prec)
 
     @property
     def is_zero(self) -> bool:
@@ -633,37 +675,58 @@ class PrecisionReal(Real[sympy.Float]):
         diff = abs(value - other_value)
         return diff < 0.5**prec
 
-    def to_python(self, *args, **kwargs):
+    def to_python(self, *args, **kwargs) -> float:
         return float(self.value)
 
-    def to_sympy(self, *args, **kwargs):
+    def to_sympy(self, *args, **kwargs) -> sympy.Float:
         return self.value
 
 
-class ByteArrayAtom(Atom, ImmutableValueMixin):
-    value: Union[bytes, bytearray]
-    class_head_name = "System`ByteArrayAtom"
+class ByteArray(Atom, ImmutableValueMixin):
+    _value: Union[bytes, bytearray]
 
-    # We use __new__ here to ensure that two ByteArrayAtom's that have the same value
+    # Items is analogous to "elements" in Lists.
+    # However the name is different because there is a concern
+    # having these be distinct names may catch mistakes in coding
+    # where an expanded or Normal[]'d value is used when it should
+    # not be used.
+    _items: Optional[tuple] = None
+
+    class_head_name = "System`ByteArray"
+    hash: int
+
+    # We use __new__ here to ensure that two ByteArray's that have the same value
     # return the same object, and to set an object hash value.
     # Consider also @lru_cache, and mechanisms for limiting and
     # clearing the cache and the object store which might be useful in implementing
     # Builtin Share[].
     def __new__(cls, value):
         self = super().__new__(cls)
-        if type(value) in (bytes, bytearray):
-            self.value = value
-        elif type(value) is list:
-            self.value = bytearray(list)
-        elif type(value) is str:
-            self.value = base64.b64decode(value)
+        if isinstance(value, (bytes, bytearray)):
+            self._value = value
+        elif isinstance(value, list):
+            self._value = bytearray(value)
+        elif isinstance(value, str):
+            try:
+                self._value = base64.b64decode(value)
+            except Exception as e:
+                raise TypeError(f"base64 string decode failed: {e}")
         else:
-            raise Exception("value does not belongs to a valid type")
+            raise TypeError("value does not belongs to a valid type")
 
-        self.hash = hash(("ByteArrayAtom", str(self.value)))
+        self.hash = hash(("ByteArray", str(self.value)))
         return self
 
-    def __hash__(self):
+    def __getitem__(self, index: int) -> int:
+        """
+        Support List index lookup without having to expand the entire bytearray into a Mathics3 list.
+        """
+        return self.value[index]
+
+    def __getnewargs__(self) -> tuple:
+        return (self.value,)
+
+    def __hash__(self) -> int:
         return self.hash
 
     def __str__(self) -> str:
@@ -676,15 +739,23 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
     # is removed and the form makes decisions, rather than
     # have this routine know everything about all forms.
     def atom_to_boxes(self, f, evaluation) -> "String":
-        res = String(f"<{len(self.value)}>")
-        return res
+        return String(f"ByteArray[<{len(self.value)}>]")
 
-    def do_copy(self) -> "ByteArrayAtom":
-        return ByteArrayAtom(self.value)
+    def do_copy(self) -> "ByteArray":
+        return ByteArray(self.value)
 
     def default_format(self, evaluation, form) -> str:
         value = self.value
         return '"' + value.__str__() + '"'
+
+    @property
+    def items(self) -> Tuple[Integer, ...]:
+        """
+        Return a tuple value of Mathics3 Integers for each element of the ByteArray.
+        """
+        if self._items is None:
+            self._items = tuple([Integer(i) for i in self.value])
+        return self._items
 
     @property
     def element_order(self) -> tuple:
@@ -693,8 +764,9 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
         of an expression. The tuple is ultimately compared lexicographically.
         """
         return (
-            BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY,
+            BASIC_ATOM_BYTEARRAY_ELT_ORDER,
             self.value,
+            "utf-8",
             0,
             1,
         )
@@ -709,17 +781,17 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
 
     @property
     def is_literal(self) -> bool:
-        """For an ByteArrayAtom, the value can't change and has a Python representation,
+        """For a ByteArray, the value can't change and has a Python representation,
         i.e. a value is set and it does not depend on definition
         bindings. So we say it is a literal.
         """
         return True
 
     def sameQ(self, rhs) -> bool:
-        """Mathics SameQ"""
+        """Mathics3 SameQ"""
         # FIX: check
-        if isinstance(rhs, ByteArrayAtom):
-            return self.value == rhs.value
+        if isinstance(rhs, ByteArray):
+            return self._value == rhs._value
         return False
 
     def get_string_value(self) -> Optional[str]:
@@ -735,12 +807,17 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
         return self.value
 
     def user_hash(self, update):
-        # hashing a String is the one case where the user gets the untampered
+        """
+        returned untampered hash value.
+
+        hashing a String is the one case where the user gets the untampered
         # hash value of the string's text. this corresponds to MMA behavior.
+        """
         update(self.value)
 
-    def __getnewargs__(self):
-        return (self.value,)
+    @property
+    def value(self) -> Union[bytes, bytearray]:
+        return self._value
 
 
 class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
@@ -758,11 +835,12 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
     # dictionary's value is the corresponding Mathics Complex object.
     _complex_numbers: Dict[Any, "Complex"] = {}
 
-    # We use __new__ here to ensure that two Integer's that have the same value
-    # return the same object, and to set an object hash value.
-    # Consider also @lru_cache, and mechanisms for limiting and
-    # clearing the cache and the object store which might be useful in implementing
-    # Builtin Share[].
+    # We use __new__ here to ensure that two Complex number that have
+    # down to the type on the imaginary and real parts and precision of those --
+    # the same value return the same object, and to set an object hash
+    # value.  Consider also @lru_cache, and mechanisms for limiting
+    # and clearing the cache and the object store which might be
+    # useful in implementing Builtin Share[].
     def __new__(cls, real, imag):
         if not isinstance(real, (Integer, Real, Rational)):
             raise ValueError(
@@ -815,8 +893,15 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
 
         return self
 
+    def __getnewargs__(self) -> tuple:
+        return (self.real, self.imag)
+
     def __hash__(self):
         return self.hash
+
+    @cache
+    def __neg__(self):
+        return Complex(-self.real, -self.imag)
 
     def __str__(self) -> str:
         return str(self.to_sympy())
@@ -851,12 +936,15 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         Return a tuple value that is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
-        return (
-            BASIC_ATOM_NUMBER_SORT_KEY,
-            self.real.element_order[1],
-            self.imag.element_order[1],
-            1,
-        )
+        order_real, order_imag = self.real.element_order, self.imag.element_order
+
+        # If the real of the imag parts are real numbers, sort according
+        # the minimum precision.
+        # Example:
+        # Sort[{1+2I, 1.+2.I, 1.`4+2.`5I, 1.`2+2.`7 I}]
+        #
+        # = {1+2I, 1.+2.I, 1.`2+2.`7 I, 1.`4+2.`5I}
+        return order_real + order_imag
 
     @property
     def pattern_precedence(self) -> tuple:
@@ -914,15 +1002,13 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
 
     def __eq__(self, other) -> bool:
         if isinstance(other, Complex):
-            return self.real == other.real and self.imag == other.imag
-        else:
-            return super().__eq__(other)
+            return self.real.__eq__(other.real) and self.imag.__eq__(other.imag)
+        if isinstance(other, Number):
+            if abs(self.imag._value) != 0:
+                return False
+            return self.real.__eq__(other)
 
-    def __getnewargs__(self):
-        return (self.real, self.imag)
-
-    def __neg__(self):
-        return Complex(-self.real, -self.imag)
+        return super().__eq__(other)
 
     @property
     def is_zero(self) -> bool:
@@ -948,6 +1034,9 @@ class Rational(Number[sympy.Rational]):
 
     # Collection of integers defined so far.
     _rationals: Dict[Any, "Rational"] = {}
+    _value: Union[
+        sympy.Rational, sympy.core.numbers.NaN, sympy.core.numbers.ComplexInfinity
+    ]
 
     # We use __new__ here to ensure that two Rationals's that have the same value
     # return the same object, and to set an object hash value.
@@ -971,15 +1060,38 @@ class Rational(Number[sympy.Rational]):
             self.hash = hash(key)
         return self
 
+    def __eq__(self, other) -> bool:
+        if isinstance(other, Rational):
+            return self.value.as_numer_denom() == other.value.as_numer_denom()
+        if isinstance(other, Integer):
+            return (other._value, 1) == self.value.as_numer_denom()
+        if isinstance(other, Number):
+            # For general numbers, rely on Real or Complex implementations.
+            return other.__eq__(self)
+        # General expressions
+        return super().__eq__(other)
+
+    def __getnewargs__(self) -> tuple:
+        return (self.numerator().value, self.denominator().value)
+
     # __hash__ is defined so that we can store Number-derived objects
     # in a set or dictionary.
     def __hash__(self):
         return self.hash
 
+    def __neg__(self) -> "Rational":
+        return Rational(-self.numerator().value, self.denominator().value)
+
     def atom_to_boxes(self, f, evaluation):
         from mathics.eval.makeboxes import format_element
 
         return format_element(self, evaluation, f)
+
+    @property
+    def is_zero(self) -> bool:
+        return (
+            self.numerator().is_zero
+        )  # (implicit) and not (self.denominator().is_zero)
 
     def to_sympy(self, **kwargs):
         return self.value
@@ -997,9 +1109,11 @@ class Rational(Number[sympy.Rational]):
         """Mathics SameQ"""
         return isinstance(rhs, Rational) and self.value == rhs.value
 
+    @cache
     def numerator(self) -> "Integer":
         return Integer(self.value.as_numer_denom()[0])
 
+    @cache
     def denominator(self) -> "Integer":
         return Integer(self.value.as_numer_denom()[1])
 
@@ -1014,9 +1128,9 @@ class Rational(Number[sympy.Rational]):
         """
         # HACK: otherwise "Bus error" when comparing 1==1.
         return (
-            BASIC_ATOM_NUMBER_SORT_KEY,
+            BASIC_ATOM_NUMBER_ELT_ORDER,
             sympy.Float(self.value),
-            0,
+            1,
             1,
         )
 
@@ -1036,20 +1150,6 @@ class Rational(Number[sympy.Rational]):
             b"System`Rational>" + ("%s>%s" % self.value.as_numer_denom()).encode("utf8")
         )
 
-    def __getnewargs__(self):
-        return (self.numerator().get_int_value(), self.denominator().get_int_value())
-
-    def __neg__(self) -> "Rational":
-        return Rational(
-            -self.numerator().get_int_value(), self.denominator().get_int_value()
-        )
-
-    @property
-    def is_zero(self) -> bool:
-        return (
-            self.numerator().is_zero
-        )  # (implicit) and not (self.denominator().is_zero)
-
 
 RationalOneHalf = Rational(1, 2)
 RationalMinusOneHalf = Rational(-1, 2)
@@ -1065,9 +1165,121 @@ NUMERICAL_CONSTANTS = {
 }
 
 
+#
+# NumericArray
+#
+
+NUMERIC_ARRAY_TYPE_MAP = {
+    "UnsignedInteger8": numpy.dtype("uint8"),
+    "UnsignedInteger16": numpy.dtype("uint16"),
+    "UnsignedInteger32": numpy.dtype("uint32"),
+    "UnsignedInteger64": numpy.dtype("uint64"),
+    "Integer8": numpy.dtype("int8"),
+    "Integer16": numpy.dtype("int16"),
+    "Integer32": numpy.dtype("int32"),
+    "Integer64": numpy.dtype("int64"),
+    "Real32": numpy.dtype("float32"),
+    "Real64": numpy.dtype("float64"),
+    "ComplexReal32": numpy.dtype("complex64"),
+    "ComplexReal64": numpy.dtype("complex128"),
+}
+
+NUMERIC_ARRAY_DTYPE_TO_NAME = {
+    dtype: name for name, dtype in NUMERIC_ARRAY_TYPE_MAP.items()
+}
+
+
+class NumericArray(Atom, ImmutableValueMixin):
+    """
+    NumericArray provides compact storage and efficient access for machine-precision numeric arrays,
+    backed by NumPy arrays.
+    """
+
+    class_head_name = "NumericArray"
+
+    def __init__(self, value, dtype=None):
+        # compute value
+        if not isinstance(value, numpy.ndarray):
+            value = numpy.asarray(value, dtype=dtype)
+        elif dtype is not None:
+            value = value.astype(dtype)
+        self.value = value
+
+        # check type
+        self._type_name = NUMERIC_ARRAY_DTYPE_TO_NAME.get(self.value.dtype, None)
+        if not self._type_name:
+            allowed = ", ".join(str(dtype) for dtype in NUMERIC_ARRAY_TYPE_MAP.values())
+            message = f"Argument 'value' must be one of {allowed}; is {str(self.value.dtype)}."
+            raise ValueError(message)
+
+        # summary and hash
+        shape_string = "×".join(str(dim) for dim in self.value.shape) or "0"
+        self._summary_string = f"{self._type_name}, {shape_string}"
+        self._hash = None
+
+    def __hash__(self):
+        if not self._hash:
+            self._hash = hash(("NumericArray", self.value.shape, id(self.value)))
+        return self._hash
+
+    def __str__(self) -> str:
+        return f"NumericArray[{self._summary_string}]"
+
+    def atom_to_boxes(self, f, evaluation):
+        return String(f"<{self._summary_string}>")
+
+    def do_copy(self) -> "NumericArray":
+        return NumericArray(self.value.copy())
+
+    def default_format(self, evaluation, form) -> str:
+        return f"NumericArray[<{self._summary_string}>]"
+
+    @property
+    def items(self) -> tuple:
+        from mathics.core.convert.python import from_python
+
+        if len(self.value.shape) == 1:
+            return tuple(from_python(item.item()) for item in self.value)
+        else:
+            return tuple(NumericArray(array) for array in self.value)
+
+    @property
+    def element_order(self) -> tuple:
+        return (
+            BASIC_ATOM_NUMERICARRAY_ELT_ORDER,
+            self.value.shape,
+            self.value.dtype,
+            id(self.value),
+        )
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        return super().pattern_precedence
+
+    def sameQ(self, rhs) -> bool:
+        return isinstance(rhs, NumericArray) and numpy.array_equal(
+            self.value, rhs.value
+        )
+
+    def to_sympy(self, **kwargs) -> None:
+        return None
+
+    # TODO: this returns a list instead of np.ndarray in keeping with
+    # idea that to_python should return only "native" Python types.
+    # Keep an eye on this because there is a slight risk that code may
+    # naively call to_python and cause a performance issue due to
+    # the cost of converting to a nested list structure for a large array.
+    def to_python(self, *args, **kwargs) -> list:
+        return self.value.tolist()
+
+    def user_hash(self, update) -> None:
+        update(self.value.tobytes())
+
+
 class String(Atom, BoxElementMixin):
     value: str
     class_head_name = "System`String"
+    hash: int
 
     def __new__(cls, value):
         self = super().__new__(cls)
@@ -1077,7 +1289,7 @@ class String(Atom, BoxElementMixin):
         self.hash = hash(("String", self.value))
         return self
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return self.hash
 
     def __str__(self) -> str:
@@ -1106,7 +1318,7 @@ class String(Atom, BoxElementMixin):
         of an expression. The tuple is ultimately compared lexicographically.
         """
         return (
-            BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY,
+            BASIC_ATOM_STRING_ELT_ORDER,
             self.value,
             0,
             1,
@@ -1152,7 +1364,7 @@ class String(Atom, BoxElementMixin):
         # hash value of the string's text. this corresponds to MMA behavior.
         update(self.value.encode("utf8"))
 
-    def __getnewargs__(self):
+    def __getnewargs__(self) -> tuple:
         return (self.value,)
 
 

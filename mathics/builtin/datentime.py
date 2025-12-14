@@ -982,7 +982,7 @@ class DateString(_DateFormat):
 
 class DateStringFormat(Predefined):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$DateStringFormat.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$DateStringFormat.html</url>
 
     <dl>
       <dt>'\$DateStringFormat'
@@ -1053,7 +1053,7 @@ class SystemTimeZone(Predefined):
     r"""
     <url>
     :WMA link:
-    https://reference.wolfram.com/language/ref/$SystemTimeZone.html</url>
+    https://reference.wolfram.com/language/ref/\$SystemTimeZone.html</url>
 
     <dl>
       <dt>'\$SystemTimeZone'
@@ -1162,7 +1162,7 @@ class TimeZone(Predefined):
     r"""
     <url>:Time Zone:https://en.wikipedia.org/wiki/Time_zone</url> (<url>
     :WMA:
-    https://reference.wolfram.com/language/ref/$TimeZone.html</url>)
+    https://reference.wolfram.com/language/ref/\$TimeZone.html</url>)
 
     <dl>
       <dt>'\$TimeZone'

@@ -89,6 +89,8 @@ def Mathics3_interrupt_handler(
             elif user_input in ("continue", "c"):
                 print_fn("continuing")
                 break
+            elif user_input in ("debugger", "d"):
+                breakpoint()
             elif user_input in ("exit", "quit"):
                 print_fn("Mathics3 exited because of an interrupt.")
                 sys.exit(3)
@@ -105,9 +107,12 @@ def Mathics3_interrupt_handler(
                 if eval_frame is None:
                     continue
                 eval_method_name = eval_frame.f_code.co_name
-                eval_method = getattr(eval_frame.f_locals.get("self"), eval_method_name)
+                self_param = eval_frame.f_locals.get("self")
+                name = self_param.__class__.__name__
+                eval_method = getattr(self_param, eval_method_name)
                 if eval_method:
-                    print_fn(eval_method.__doc__)
+                    replaced_doc = eval_method.__doc__.replace("%(name)", name)
+                    print_fn(replaced_doc)
                 eval_expression = get_eval_Expression()
                 if eval_expression is not None:
                     print_fn(str(eval_expression))
@@ -119,6 +124,7 @@ def Mathics3_interrupt_handler(
                     """Your options are:
 	abort (or a) to abort current calculation
 	continue (or c) to continue
+	debugger (or d) to to enter a Python debugger
 	exit (or quit) to exit Mathics3
 	inspect (or i) to enter an interactive dialog
 	show (or s) to show current operation (and then continue)

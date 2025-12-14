@@ -26,7 +26,7 @@ from itertools import chain
 from urllib.error import HTTPError, URLError
 
 from mathics.builtin.pymimesniffer import magic
-from mathics.core.atoms import ByteArrayAtom
+from mathics.core.atoms import ByteArray
 from mathics.core.attributes import A_NO_ATTRIBUTES, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Integer, Predefined, String, get_option
 from mathics.core.convert.expression import to_mathics_list
@@ -1013,7 +1013,7 @@ class ExportFormats(Predefined):
 
 class ImportFormats(Predefined):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$ImportFormats.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$ImportFormats.html</url>
 
     <dl>
       <dt>'\$ImportFormats'
@@ -2005,7 +2005,7 @@ class ExportString(Builtin):
                     evaluation.predetermined_out = current_predetermined_out
                     return SymbolFailed
                 if is_binary:
-                    res = Expression(SymbolByteArray, ByteArrayAtom(res))
+                    res = Expression(SymbolByteArray, ByteArray(res))
                 else:
                     res = String(str(res))
         elif function_channels == ListExpression(String("Streams")):
@@ -2030,9 +2030,7 @@ class ExportString(Builtin):
             res = exporter_function.evaluate(evaluation)
             if res is SymbolNull:
                 if is_binary:
-                    res = Expression(
-                        SymbolByteArray, ByteArrayAtom(pystream.getvalue())
-                    )
+                    res = Expression(SymbolByteArray, ByteArray(pystream.getvalue()))
                 else:
                     res = String(str(pystream.getvalue()))
             else:

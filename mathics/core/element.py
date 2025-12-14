@@ -6,6 +6,7 @@ Here we have the base class and related function for element inside an Expressio
 """
 
 from abc import ABC
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Dict, Optional, Sequence, Tuple, Union
 
 from mathics.core.attributes import A_NO_ATTRIBUTES
@@ -41,84 +42,43 @@ def fully_qualified_symbol_name(name) -> bool:
     )
 
 
-try:
-    from recordclass import RecordClass  # type: ignore[import-not-found]
+@dataclass
+class ElementsProperties:
+    """Properties of Expression elements that are useful in evaluation.
 
-    # Note: Something in cythonization barfs if we put this in
-    # Expression and you try to call this like
-    # ExpressionProperties(True, True, True). Cython reports:
-    # number of the arguments greater than the number of the items
-    class ElementsProperties(RecordClass):
-        """Properties of Expression elements that are useful in evaluation.
+    In general, if you have some set of properties that you know should
+    be set a particular way, but don't know about the others, it is safe
+    to set the unknown properties to False. Omitting that property is the
+    same as setting a property to False.
 
-        In general, if you have some set of properties that you know should
-        be set a particular way, but don't know about the others, it is safe
-        to set the unknown properties to False. Omitting that property is the
-        same as setting a property to False.
+    However, when *all* of the properties are unknown, use a `None` value in
+    the Expression.properties field instead of creating an
+    ElementsProperties object with everything set False.
+    By setting the field to None, the code will look over the elements before
+    evaluation and set the property values correctly.
+    """
 
-        However, when *all* of the properties are unknown, use a `None` value in
-        the Expression.properties field instead of creating an
-        ElementsProperties object with everything set False.
-        By setting the field to None, the code will look over the elements before
-        evaluation and set the property values correctly.
-        """
+    # True if none of the elements needs to be evaluated.
+    elements_fully_evaluated: bool = False
 
-        # True if none of the elements needs to be evaluated.
-        elements_fully_evaluated: bool = False
+    # is_flat: True if none of the elements is an Expression
+    # Some Mathics functions allow flattening of elements. Therefore
+    # it can be useful to know if the elements are already flat
+    is_flat: bool = False
 
-        # is_flat: True if none of the elements is an Expression
-        # Some Mathics functions allow flattening of elements. Therefore
-        # it can be useful to know if the elements are already flat
-        is_flat: bool = False
+    # is_ordered: True if all of the elements are ordered. Of course this is true,
+    # if there are less than 2 elements. Ordered is an Attribute of a
+    # Mathics function.
+    #
+    # In rewrite_eval_apply() if a function is not marked as Ordered this attribute
+    # has no effect which means it doesn't matter how it is set. So
+    # when it doubt, it is always safe to set is_ordered to False since at worst
+    # it will cause an ordering operation on elements sometimes. On the other hand, setting
+    # this True elements are not sorted can cause evaluation differences.
+    is_ordered: bool = False
 
-        # is_ordered: True if all of the elements are ordered. Of course this is true,
-        # if there are less than 2 elements. Ordered is an Attribute of a
-        # Mathics function.
-        #
-        # In rewrite_eval_apply() if a function is not marked as Ordered this attribute
-        # has no effect which means it doesn't matter how it is set. So
-        # when it doubt, it is always safe to set is_ordered to False since at worst
-        # it will cause an ordering operation on elements sometimes. On the other hand, setting
-        # this True elements are not sorted can cause evaluation differences.
-        is_ordered: bool = False
-
-except ImportError:
-    from dataclasses import dataclass
-
-    @dataclass
-    class ElementsProperties:  # type: ignore[no-redef]
-        """Properties of Expression elements that are useful in evaluation.
-
-        In general, if you have some set of properties that you know should
-        be set a particular way, but don't know about the others, it is safe
-        to set the unknown properties to False. Omitting that property is the
-        same as setting a property to False.
-
-        However, when *all* of the properties are unknown, use a `None` value in
-        the Expression.properties field instead of creating an
-        ElementsProperties object with everything set False.
-        By setting the field to None, the code will look over the elements before
-        evaluation and set the property values correctly.
-        """
-
-        # True if none of the elements needs to be evaluated.
-        elements_fully_evaluated: bool = False
-
-        # is_flat: True if none of the elements is an Expression
-        # Some Mathics functions allow flattening of elements. Therefore
-        # it can be useful to know if the elements are already flat
-        is_flat: bool = False
-
-        # is_ordered: True if all of the elements are ordered. Of course this is true,
-        # if there are less than 2 elements. Ordered is an Attribute of a
-        # Mathics function.
-        #
-        # In rewrite_eval_apply() if a function is not marked as Ordered this attribute
-        # has no effect which means it doesn't matter how it is set. So
-        # when it doubt, it is always safe to set is_ordered to False since at worst
-        # it will cause an ordering operation on elements sometimes. On the other hand, setting
-        # this True elements are not sorted can cause evaluation differences.
-        is_ordered: bool = False
+    # Uniform expressions have all their elements with the same Head.
+    is_uniform: bool = False
 
 
 class ImmutableValueMixin:

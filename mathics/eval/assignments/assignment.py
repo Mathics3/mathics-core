@@ -508,7 +508,7 @@ def eval_assign_format(
     lhs_reference = get_reference_expression(lhs)
     lhs_reference = (
         lhs_reference.get_head()
-        if isinstance(lhs_reference, Expression)
+        if not isinstance(lhs_reference, Symbol)
         else lhs_reference
     )
     tags = process_tags_and_upset_dont_allow_custom(
@@ -1302,9 +1302,44 @@ def find_tag_and_check(
     return tag
 
 
+def get_lookup_reference_name(expr: BaseElement) -> str:
+    """
+    Find the lookup name of the reference expression associated to
+    `expr`, or None if there is no such a reference.
+
+    In general, the lookup reference name coincides with the lookup_name
+    of the expression. However, there are some exceptions:
+
+    * Expressions with heads `HoldPattern`, Condition`, or `PatternTest`
+      are not considered *reference* expressions. The reference expression
+      is the reference expression of its first element.
+    * (named) `Pattern` expressions takes its lookup_reference_name from the
+      pattern their hold.
+    * `Verbatim` expressions pick the lookup_reference_name from
+       the lookup_name of the expression they hold.
+    * Blanks pick the lookup_reference_name from the pattern head
+      (its unique element if they has one). If the Blank expression does not
+      have elements (generic blank) then there is no lookup_reference_name,
+      and returns an empty string.
+    """
+    expr = get_reference_expression(expr)
+    if expr.has_form("System`Pattern", 2):
+        return get_lookup_reference_name(expr.elements[1])
+    if expr.has_form("System`Verbatim", 1):
+        # For Verbatim pick the lookup name directly from the expression.
+        return expr.elements[0].get_lookup_name()
+    if expr.has_form(
+        ("System`Blank", "System`BlankSequence", "System`BlankNullSequence"), None
+    ):
+        if len(expr.elements) == 1:
+            return get_lookup_reference_name(expr.elements[0])
+        return ""
+    return expr.get_lookup_name()
+
+
 def get_reference_expression(lhs: BaseElement) -> BaseElement:
     """
-    Strip `Condition`, `PatternTest` and `HoldPattern` from an expression
+    Strip `Condition`, `PatternTest` and `HoldPattern` from an expression.
     """
     strip_headers = (
         SymbolHoldPattern,
@@ -1379,18 +1414,8 @@ def process_tags_and_upset_allow_custom(
     name = lhs.get_head_name()
     lhs_reference_expr = get_reference_expression(lhs)
 
-    def get_lookup_name(expr):
-        expr = get_reference_expression(expr)
-        if expr.has_form("System`Pattern", 2):
-            return expr.elements[1].get_lookup_name()
-        if expr.has_form(
-            ("System`Blank", "System`BlankSequence", "System`BlankNullSequence"), 1
-        ):
-            return expr.elements[0].get_lookup_name()
-        return expr.get_lookup_name()
-
     if upset:
-        tags = []
+        tags_set = set()
         if isinstance(lhs_reference_expr, Atom):
             symbol_name = self.get_name()
             evaluation.message(
@@ -1401,20 +1426,33 @@ def process_tags_and_upset_allow_custom(
             )
             raise AssignmentException(lhs, None)
         for element in lhs_reference_expr.get_elements():
-            name = get_lookup_name(element)
-            tags.append(name)
-        return tags, lhs_reference_expr
+            # elements of the expression can also be wrapped in `HoldPattern`
+            # or `Condition`. Tag candidates are obtained by stripping out
+            # these wrappers.
+            # Still, if the element is a `Blank*`, the reference is
+            # set to its argument. If it does not have arguments (or have many)
+            # skip it.
+            name = get_lookup_reference_name(element)
+            if name is not None:
+                tags_set.add(name)
+        return list(tags_set), lhs_reference_expr
 
     if tags is None:
-        name = get_lookup_name(lhs_reference_expr)
+        name = get_lookup_reference_name(lhs_reference_expr)
         if not name:
             evaluation.message(self.get_name(), "setraw", lhs_reference_expr)
             raise AssignmentException(lhs, None)
         tags = [name]
     else:
-        allowed_names = [get_lookup_name(lhs_reference_expr)]
+        allowed_names = set()
+        name = get_lookup_reference_name(lhs_reference_expr)
+        if name:
+            allowed_names.add(name)
+
         for element in lhs_reference_expr.get_elements():
-            allowed_names.append(get_lookup_name(element))
+            name = get_lookup_reference_name(element)
+            if name:
+                allowed_names.add(name)
         for name in tags:
             if name not in allowed_names:
                 evaluation.message(self.get_name(), "tagnfd", Symbol(name))
@@ -1463,19 +1501,34 @@ def process_tags_and_upset_dont_allow_custom(
         the list of allowed tags.
 
     """
+
+    def get_lookup_name(expr):
+        expr = get_reference_expression(expr)
+        if expr.has_form("System`Pattern", 2):
+            return get_lookup_name(expr.elements[1])
+        if expr.has_form(
+            ("System`Blank", "System`BlankSequence", "System`BlankNullSequence"), None
+        ):
+            if len(expr.elements) == 1:
+                return get_lookup_name(expr.elements[0])
+            return None
+        return expr.get_lookup_name()
+
     if isinstance(lhs_reference, Expression):
         lhs_reference = lhs_reference.evaluate_elements(evaluation)
     name = lhs.get_head_name()
     if upset:
-        tags = [lhs_reference.get_lookup_name()]
+        name = get_lookup_name(lhs_reference)
+        tags = [name] if name is not None else None
     elif tags is None:
-        name = lhs_reference.get_lookup_name()
+        name = get_lookup_name(lhs_reference)
         if not name:
             evaluation.message(self.get_name(), "setraw", lhs_reference)
             raise AssignmentException(lhs, None)
         tags = [name]
     else:
-        allowed_names = [lhs_reference.get_lookup_name()]
+        name = get_lookup_name(lhs_reference)
+        allowed_names = [name] if name else []
         for name in tags:
             if name not in allowed_names:
                 evaluation.message(self.get_name(), "tagnfd", Symbol(name))

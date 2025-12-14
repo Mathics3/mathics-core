@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-import sys
+import numpy as np
 
 import mathics.core.atoms as atoms
 import mathics.core.systemsymbols as system_symbols
@@ -12,11 +12,13 @@ from mathics.core.atoms import (
     Integer2,
     MachineReal,
     MachineReal0,
+    NumericArray,
     Rational,
     RationalOneHalf,
     Real,
     String,
 )
+from mathics.core.convert.python import from_python
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -238,3 +240,29 @@ def test_mixed_object_canonicalization():
         Complex(Rational(1, 0), Integer(0)), # 3
     )
     # fmt: on
+
+
+#
+# NumericArray tests
+#
+
+
+def test_numericarray_atom_preserves_array_reference():
+    array = np.array([1, 2, 3], dtype=np.int64)
+    atom = NumericArray(array)
+    assert atom.value is array, "NumericArray.value should be a NumPy array"
+
+
+def test_numericarray_atom_preserves_equality():
+    array = np.array([1, 2, 3], dtype=np.int64)
+    atom = NumericArray(array, dtype=np.float64)
+    np.testing.assert_array_equal(atom.value, array)
+
+
+def test_numericarray_expression_from_python_array():
+    array = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    atom = from_python(array)
+    assert isinstance(
+        atom, NumericArray
+    ), "from_python() conversion of a NumPy Array should yield a NumericArray"
+    assert atom.value is array

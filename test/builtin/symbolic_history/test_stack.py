@@ -17,5 +17,10 @@ def test_trace():
             "{}",
             "Trace with Symbol - no intermediate values",
         ),
+        (
+            "Trace[Sin[Log[2.5, 7]]]",
+            "{Sin[Log[2.5, 7]], Log[2.5, 7], 2.12368, 2.12368, 0.851013, 0.851013}",
+            "Trace with expression. Issue #1465",
+        ),
     ):
-        check_evaluation(str_expr, str_expected, message)
+        check_evaluation(str_expr, str_expected, message, hold_expected=True)

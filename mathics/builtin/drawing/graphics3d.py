@@ -110,7 +110,30 @@ class Graphics3D(Graphics):
     summary_text = "a three-dimensional graphics image wrapper"
     options = Graphics.options.copy()
     options.update(
-        {"BoxRatios": "Automatic", "Lighting": "Automatic", "ViewPoint": "{1.3,-2.4,2}"}
+        {
+            "AxesEdge": "Automatic",
+            "BoxRatios": "Automatic",
+            "BoxStyle": "{}",
+            "Boxed": "True",
+            "ClipPlanes": "None",
+            "ClipPlanesStyle": "Automatic",
+            "ControllerLinking": "False",
+            "ControllerPath": "Automatic",
+            "FaceGrids": "None",
+            "FaceGridsStyle": "{}",
+            "Lighting": "Automatic",
+            "RotationAction": "Fit",
+            "SphericalRegion": "Automatic",
+            "TouchscreenAutoZoom": "False",
+            "ViewAngle": "Automatic",
+            "ViewCenter": "Automatic",
+            "ViewMatrix": "Automatic",
+            "ViewPoint": "{1.3,-2.4,2.}",
+            "ViewProjection": "Automatic",
+            "ViewRange": "All",
+            "ViewVector": "Automatic",
+            "ViewVertical": "{0,0,1}",
+        }
     )
 
     box_suffix = "3DBox"

@@ -32,7 +32,7 @@ sort_order = "mathics.builtin.the-main-loop"
 
 class HistoryLength(Builtin):
     r"""
-    <url>:WMA: https://reference.wolfram.com/language/ref/$HistoryLength</url>
+    <url>:WMA: https://reference.wolfram.com/language/ref/\$HistoryLength</url>
     <dl>
       <dt>'\$HistoryLength'
       <dd>specifies the maximum number of 'In' and 'Out' entries.
@@ -204,7 +204,7 @@ class IOHookSyntaxHandler(Builtin):
 
 class Line(Builtin):
     r"""
-    <url>:WMA: https://reference.wolfram.com/language/ref/$Line</url>
+    <url>:WMA: https://reference.wolfram.com/language/ref/\$Line</url>
     <dl>
       <dt>'\$Line'
       <dd>holds the current input line number.

@@ -6,7 +6,6 @@ from mathics.compile.ir import IRGenerator
 from mathics.compile.utils import llvm_to_ctype
 
 # setup llvm for code generation
-llvm.initialize()
 llvm.initialize_native_target()
 llvm.initialize_native_asmprinter()  # yes, even this one
 

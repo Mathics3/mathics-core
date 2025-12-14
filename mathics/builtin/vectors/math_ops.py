@@ -115,6 +115,11 @@ class Curl(SympyFunction):
     """
 
     attributes = A_PROTECTED
+
+    # Set checking that the number of arguments required is two or three.
+    eval_error = Builtin.generic_argument_error
+    expected_args = (2, 3)
+
     rules = {
         "Curl[{f1_, f2_}, {x1_, x2_}]": " D[f2, x1] - D[f1, x2]",
         "Curl[{f1_, f2_, f3_}, {x1_, x2_, x3_}]": """{

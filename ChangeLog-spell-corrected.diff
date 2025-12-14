@@ -1,6 +1,60 @@
---- ChangeLog	2025-07-19 09:06:30.957273629 -0400
-+++ ChangeLog-spell-corrected	2025-07-19 09:19:45.452339498 -0400
-@@ -131,14 +131,14 @@
+--- ChangeLog	2025-08-28 18:26:22.193129485 -0400
++++ ChangeLog.spell-corrected	2025-08-28 18:24:29.199031586 -0400
+@@ -111,7 +111,7 @@
+ 	test/builtin/specialfns/test_elliptic.py,
+ 	test/builtin/test_numeric.py, test/builtin/test_procedural.py,
+ 	test/builtin/test_quantities.py,
+-	test/builtin/vectors/test_mathops.py, test/helper.py: Simplfy
++	test/builtin/vectors/test_mathops.py, test/helper.py: Simplify
+ 	invalid-argumnent-count pytest testing (#1488) There was way too much verbiage and clutter around running pytests
+ 	to check that we are giving a message when calling Mathics3 Builtin
+ 	Function with the wrong number of arguments.  Also, in pytest -s output, show the failure reason. This makes it
+@@ -156,7 +156,7 @@
+ 
+ 	* mathics/builtin/evaluation.py, mathics/core/evaluation.py,
+ 	mathics/core/symbols.py, mathics/session.py,
+-	test/builtin/test_attributes.py, test/builtin/test_evaluation.py: 
++	test/builtin/test_attributes.py, test/builtin/test_evaluation.py:
+ 	respect $IterationLimit more places (#1477) Respect $IterationLimit more places. Fixes #1476 There are probably more places where we need to do something
+ 	similar, but this is a start.  --------- Co-authored-by: Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
+ 
+@@ -166,7 +166,7 @@
+ 
+ 2025-08-24  rocky <rb@dustyfeet.com>
+ 
+-	* test/builtin/test_messages.py: Temporily disable test while it is
++	* test/builtin/test_messages.py: Temporarily disable test while it is
+ 	being fixed.
+ 
+ 2025-08-24  R. Bernstein <rocky@users.noreply.github.com>
+@@ -177,7 +177,7 @@
+ 
+ 2025-08-21  rocky <rb@dustyfeet.com>
+ 
+-	* mathics/builtin/options.py: Correct a link referene
++	* mathics/builtin/options.py: Correct a link reference
+ 
+ 2025-08-21  R. Bernstein <rocky@users.noreply.github.com>
+ 
+@@ -265,7 +265,7 @@
+ 
+ 	* Makefile, mathics/builtin/arithmetic.py,
+ 	mathics/builtin/numeric.py, mathics/core/atoms.py,
+-	mathics/core/element.py, mathics/eval/makeboxes/numberform.py: 
++	mathics/core/element.py, mathics/eval/makeboxes/numberform.py:
+ 	Assume @dataclasses exists and other small cleanups (#1462) The dataclass module has existed since 3.7+ Reduce use of `get_{int,float}_value()`.  Add Makefile targets `doctest-x`, `check-x` which stop on first
+ 	error.
+ 
+@@ -374,7 +374,7 @@
+ 
+ 2025-08-04  rocky <rb@dustyfeet.com>
+ 
+-	* mathics/eval/interrupt.py: Restore accidently deleted code
++	* mathics/eval/interrupt.py: Restore accidentally deleted code
+ 
+ 2025-08-04  R. Bernstein <rocky@users.noreply.github.com>
+ 
+@@ -623,14 +623,14 @@
  	mathics/core/parser/parser.py, mathics/core/parser/util.py,
  	mathics/core/pattern.py, mathics/core/symbols.py,
  	mathics/eval/tracing.py: Lesser changes and possible bugs
@@ -17,7 +71,7 @@
  	used by other tracing tools as well.
  
  2025-06-21  R. Bernstein <rocky@users.noreply.github.com>
-@@ -164,7 +164,7 @@
+@@ -656,7 +656,7 @@
  2025-06-07  R. Bernstein <rocky@users.noreply.github.com>
  
  	* mathics/core/expression.py: Address bug in structure cache `None
@@ -26,7 +80,7 @@
  
  2025-06-07  Frédéric Chapoton <chapoton@unistra.fr>
  
-@@ -179,7 +179,7 @@
+@@ -671,7 +671,7 @@
  	mathics/builtin/testing_expressions/numerical_properties.py,
  	mathics/core/convert/regex.py, mathics/eval/drawing/plot3d.py,
  	mathics/format/latex.py: remove unused parentheses in for etc
@@ -35,7 +89,7 @@
  
  2025-06-03  R. Bernstein <rocky@users.noreply.github.com>
  
-@@ -316,7 +316,7 @@
+@@ -808,7 +808,7 @@
  	mathics/builtin/specialfns/gamma.py,
  	test/builtin/specialfns/test_gamma.py: Match WMA for Gamma[1+x] and
  	Product[...] (#1395) We want to match the behavior of WMA for `Gamma` and `Product`.
@@ -44,7 +98,7 @@
  
  2025-02-21  R. Bernstein <rocky@users.noreply.github.com>
  
-@@ -361,7 +361,7 @@
+@@ -853,7 +853,7 @@
  
  2025-02-12  R. Bernstein <rocky@users.noreply.github.com>
  
@@ -53,7 +107,7 @@
  	Option management tweaks (#1384) Option-related things noticed in trying (unsuccessfully) to get
  	MUnit working...  * Adjust `OptionValue` error messages to align better with WMA.  * Go over `Options`, `OptionValue`, and `OptionsPattern` docs.  * Lint code a little
  
-@@ -372,7 +372,7 @@
+@@ -864,7 +864,7 @@
  
  2025-02-11  R. Bernstein <rocky@users.noreply.github.com>
  
@@ -62,7 +116,7 @@
  	Bug: an association was confused with an option (#1379) Union, Complement and Intersection allow a SameTest option. This has
  	to be matched not as a general options association, but instead as a
  	SameTest association
-@@ -388,7 +388,7 @@
+@@ -880,7 +880,7 @@
  
  2025-02-08  R. Bernstein <rocky@users.noreply.github.com>
  
@@ -71,7 +125,7 @@
  	Get ready for release 8.0.1 (#1376)
  
  2025-02-08  R. Bernstein <rocky@users.noreply.github.com>
-@@ -524,10 +524,10 @@
+@@ -1016,10 +1016,10 @@
  	mathics/builtin/files_io/importexport.py,
  	mathics/builtin/numbers/randomnumbers.py,
  	mathics/doc/common_doc.py, mathics/doc/doc_entries.py,
@@ -84,7 +138,7 @@
  	non-existing `<imgpng>` tag, and replacing it by the existing but
  	not used <img>.  * Fixing remaining docstrings containing  '$Symbol'
  
-@@ -621,7 +621,7 @@
+@@ -1113,7 +1113,7 @@
  	* mathics/builtin/numbers/calculus.py,
  	mathics/builtin/specialfns/elliptic.py,
  	mathics/builtin/specialfns/orthogonal.py,
@@ -93,7 +147,7 @@
  	Adjust the plain-text form of documentation (#1340) This PR modifies the code that generates the text shown in
  	`Information`.  * Remove escape characters * symbols with subindices are resembled as valid variable names.
  
-@@ -985,7 +985,7 @@
+@@ -1477,7 +1477,7 @@
  	mathics/eval/makeboxes/operators.py,
  	mathics/eval/makeboxes/outputforms.py,
  	mathics/eval/makeboxes/precedence.py, setup.py,
@@ -102,7 +156,16 @@
  	Moving evaluation code from mathics.builtin.makeboxes to
  	mathics.eval.makeboxes (#1309) This goes in the same line as #1307. Essentially, moving code from
  	mathics.builtin.makeboxes to `mathics.eval.makeboxes`, and
-@@ -1037,7 +1037,7 @@
+@@ -1507,7 +1507,7 @@
+ 
+ 2025-01-21  rocky <rb@dustyfeet.com>
+ 
+-	* tmp/README.rst: Remove accidently-added file
++	* tmp/README.rst: Remove accidentally-added file
+ 
+ 2025-01-21  R. Bernstein <rocky@users.noreply.github.com>
+ 
+@@ -1529,7 +1529,7 @@
  	mathics/builtin/intfns/combinatorial.py,
  	mathics/builtin/numbers/numbertheory.py,
  	mathics/builtin/specialfns/bessel.py, mathics/builtin/system.py,
@@ -111,7 +174,7 @@
  	(#1306) Also some linting
  
  2025-01-19  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
-@@ -1049,7 +1049,7 @@
+@@ -1541,7 +1541,7 @@
  
  	* mathics/builtin/arithfns/basic.py,
  	test/builtin/arithmetic/test_basic.py,
@@ -120,7 +183,7 @@
  	flycheck two pytests (#1294) @mmatera I was trying to add a test for `HoldForm[Times[x]] ==
  	Times[x]` of a recent PR of yours (from a while ago) but haven't
  	been able to figure out how to do. in the process, I have this lint
-@@ -1092,7 +1092,7 @@
+@@ -1584,7 +1584,7 @@
  	mathics/builtin/functional/apply_fns_to_lists.py,
  	mathics/builtin/testing_expressions/equality_inequality.py,
  	mathics/builtin/trace.py, mathics/core/builtin.py,
@@ -129,7 +192,7 @@
  	Doc updates (#1297) First part of an unknown number of rounds of documentation review.
  
  2025-01-17  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
-@@ -1348,7 +1348,7 @@
+@@ -1840,7 +1840,7 @@
  
  2025-01-05  R. Bernstein <rocky@users.noreply.github.com>
  
@@ -138,7 +201,7 @@
  	Add SequenceForm... (#1258) It is used in CombinatoricaV201 even though it is deprecated.
  
  2025-01-05  R. Bernstein <rocky@users.noreply.github.com>
-@@ -1374,7 +1374,7 @@
+@@ -1866,7 +1866,7 @@
  
  2025-01-05  R. Bernstein <rocky@users.noreply.github.com>
  
@@ -147,7 +210,7 @@
  	Parser refactor part2 (#1262) Last round of changes before getting to box parsing proper.
  
  2025-01-03  rocky <rb@dustyfeet.com>
-@@ -1437,7 +1437,7 @@
+@@ -1929,7 +1929,7 @@
  2024-12-29  R. Bernstein <rocky@users.noreply.github.com>
  
  	* mathics/builtin/functional/functional_iteration.py,
@@ -156,7 +219,7 @@
  	Administrative fixups and tweak (#1254) Miscellaneous docstring hard linebreaks removed and some mypy
  	linting.
  
-@@ -1464,7 +1464,7 @@
+@@ -1956,7 +1956,7 @@
  
  2024-12-29  rocky <rb@dustyfeet.com>
  
@@ -165,7 +228,7 @@
  	Spelling/grammar typos
  
  2024-12-29  R. Bernstein <rocky@users.noreply.github.com>
-@@ -1508,7 +1508,7 @@
+@@ -2000,7 +2000,7 @@
  	test/builtin/{test_functional.py =>
  	functional/test_apply_fns_to_lists.py}: Corrections to MapAt for
  	Multi-dimensions... (#1239) The following changes implement pretty much all of what
@@ -174,7 +237,7 @@
  	MapAt[]
  
  2024-12-24  R. Bernstein <rocky@users.noreply.github.com>
-@@ -1622,7 +1622,7 @@
+@@ -2114,7 +2114,7 @@
  
  	* mathics/packages/DiscreteMath/CombinatoricaV0.9.m,
  	test/package/test_combinatorica.py: Combinatorica V0.9 workarounds
@@ -183,7 +246,7 @@
  	V2.0 (In V.09 it is not broken, it is just altogether missing.) So copy the 2.0.0 code into V0.9
  
  2024-12-14  R. Bernstein <rocky@users.noreply.github.com>
-@@ -1779,7 +1779,7 @@
+@@ -2271,7 +2271,7 @@
  	mathics/eval/testing_expressions.py,
  	test/builtin/calculus/test_integrate.py,
  	test/builtin/distance/__init__.py,
@@ -192,7 +255,7 @@
  	that class
  
  2024-12-02  rocky <rb@dustyfeet.com>
-@@ -1801,7 +1801,7 @@
+@@ -2293,7 +2293,7 @@
  2024-12-01  R. Bernstein <rocky@users.noreply.github.com>
  
  	* mathics/builtin/files_io/files.py, mathics/core/streams.py,
@@ -201,7 +264,7 @@
  	Lookup streams by user (short) names (#1188) We need to lookup streams opened by the name or string the gives,
  	not the resolved path name.  This bug was discovered in trying to run Analytica. <strike>At some
  	point in the vague future, I'll write up a bug report, and possibly
-@@ -2146,7 +2146,7 @@
+@@ -2638,7 +2638,7 @@
  2024-10-28  R. Bernstein <rocky@users.noreply.github.com>
  
  	* mathics/builtin/atomic/numbers.py,
@@ -210,7 +273,7 @@
  	Two postponed TODOs in recent PRs... (#1148) * Move eval functions to mathics.eval.numbers.numbers * Move "no_doc" after imports
  
  2024-10-28  David A Roberts <d@vidr.cc>
-@@ -2244,7 +2244,7 @@
+@@ -2736,7 +2736,7 @@
  2024-10-22  R. Bernstein <rocky@users.noreply.github.com>
  
  	* CHANGES.rst, mathics/builtin/scipy_utils/integrators.py,
@@ -219,7 +282,7 @@
  	Romberg is deprecated... (#1131) and will be removed by SciPyi 1.15
  
  2024-10-21  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
-@@ -2315,7 +2315,7 @@
+@@ -2807,7 +2807,7 @@
  	mathics/builtin/file_operations/file_utilities.py,
  	mathics/builtin/files_io/files.py,
  	mathics/builtin/functional/apply_fns_to_lists.py,
@@ -228,7 +291,7 @@
  	Remove duplication of "intnm" messages (#1128)
  
  2024-10-12  R. Bernstein <rocky@users.noreply.github.com>
-@@ -2410,7 +2410,7 @@
+@@ -2902,7 +2902,7 @@
  
  	* .github/workflows/{osx.yml => macos.yml}, CHANGES.rst,
  	mathics/builtin/box/compilation.py, mathics/core/pattern.py: A few
@@ -237,7 +300,7 @@
  	pattern comment * Remove Lint warning on compilation box * rename osx to macos in CI test
  
  2024-10-02  R. Bernstein <rocky@users.noreply.github.com>
-@@ -2441,7 +2441,7 @@
+@@ -2933,7 +2933,7 @@
  	mathics/builtin/patterns.py, mathics/core/builtin.py,
  	mathics/core/pattern.py, mathics/core/rules.py,
  	mathics/eval/numbers/calculus/series.py, mathics/eval/parts.py,
@@ -246,7 +309,7 @@
  	Earlier initialization of patterns (#1103) When a ExpressionPattern is created, the way in which the matching
  	with expressions is determined in part by the attributes of its
  	head. For example, if `S` is `Orderless`, the match method of the
-@@ -2501,7 +2501,7 @@
+@@ -2993,7 +2993,7 @@
  
  2024-09-27  R. Bernstein <rocky@users.noreply.github.com>
  
@@ -255,7 +318,7 @@
  	Get trace/debug tweaks and fixes... (#1098) Get[xx, Trace->True] was not showing all lines read. And we did not
  	properly hook into a changeable print function.  Using:    import a.b.c as e reduces unchangeable lookup (a.b.c) does not change and simplifies
  	and use -- e.GET_PRINT_FN as opposed to a.b.c.GET_PRINT_FN
-@@ -2519,8 +2519,8 @@
+@@ -3011,8 +3011,8 @@
  2024-09-26  R. Bernstein <rocky@users.noreply.github.com>
  
  	* mathics/builtin/files_io/files.py, mathics/core/rules.py,
@@ -266,7 +329,7 @@
  	the call.  * Change the way Get[..., Trace->True] so that a debugger can hook
  	into this more naturally -- separate the line number from the text.  Some other small changes were made like putting the Number class in
  	alphabetic order, or adding more annotations.
-@@ -2556,8 +2556,8 @@
+@@ -3048,8 +3048,8 @@
  
  2024-09-21  R. Bernstein <rocky@users.noreply.github.com>
  
@@ -277,7 +340,7 @@
  	outside in the interactive session we set "In[]" to be "Debug In[]"
  	and Out[] to be "Debug Out[]".  Also we DRY the eval loop of main()
  
-@@ -2568,7 +2568,7 @@
+@@ -3060,7 +3060,7 @@
  
  2024-09-19  R. Bernstein <rocky@users.noreply.github.com>
  
@@ -286,7 +349,7 @@
  	`isinstance(pat, Pattern)`.  I think there are other places where we are using ``get_head_name()
  	== "System`xxx`` but that is left for a different time.
  
-@@ -2580,7 +2580,7 @@
+@@ -3072,7 +3072,7 @@
  	mathics/builtin/numbers/calculus.py, mathics/builtin/patterns.py,
  	mathics/core/builtin.py, mathics/core/pattern.py,
  	mathics/core/rules.py, mathics/eval/numbers/calculus/series.py,
@@ -295,7 +358,7 @@
  	Starting to tidy up mathics.core.pattern (#1086) In line with the last changes proposed by @rocky, I was doing a pass
  	over mathics.core.pattern and fixing some issues reported by the
  	linter.  --------- Co-authored-by: R. Bernstein <rocky@users.noreply.github.com>
-@@ -2595,7 +2595,7 @@
+@@ -3087,7 +3087,7 @@
  
  2024-09-15  R. Bernstein <rocky@users.noreply.github.com>
  
@@ -304,7 +367,7 @@
  	apply_rule -> apply_function ... (#1084) Change `apply_rule()` -> to `apply_function()` when that is what is
  	is; (and not when it is not).  Also mark BaseRule an abstract class, and go over docstrings in
  	mathics.core.rules @mmatera I think i now understand what you were getting at when we
-@@ -2606,7 +2606,7 @@
+@@ -3098,7 +3098,7 @@
  
  2024-09-08  R. Bernstein <rocky@users.noreply.github.com>
  
@@ -313,7 +376,7 @@
  	do_replace -> apply_rule (#1083)
  
  2024-08-31  R. Bernstein <rocky@users.noreply.github.com>
-@@ -2626,7 +2626,7 @@
+@@ -3118,7 +3118,7 @@
  
  2024-08-31  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
  
@@ -322,7 +385,7 @@
  	Blanks as singleton (#1081) Looking at the initialization process, `Blank*` PatternObjets are
  	created several times. This PR makes that these elements be created
  	just once when a parameter is not provided. This would also help to
-@@ -2688,7 +2688,7 @@
+@@ -3180,7 +3180,7 @@
  	.github/workflows/ubuntu.yml, .github/workflows/windows.yml,
  	mathics/builtin/assignments/assign_binaryop.py,
  	mathics/builtin/atomic/strings.py,
@@ -331,7 +394,7 @@
  	Go over operators (#1076)
  
  2024-08-29  R. Bernstein <rocky@users.noreply.github.com>
-@@ -2701,7 +2701,7 @@
+@@ -3193,7 +3193,7 @@
  
  2024-08-20  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
  
@@ -340,7 +403,7 @@
  	fix tests for sympy conversions (#1073) This PR just fixes the pytest, and marks some issues in the
  	conversion of Lambda functions.  --------- Co-authored-by: rocky <rb@dustyfeet.com>
  
-@@ -2709,7 +2709,7 @@
+@@ -3201,7 +3201,7 @@
  
  	* CHANGES.rst, mathics/builtin/numbers/algebra.py,
  	mathics/builtin/numbers/numbertheory.py,
@@ -349,7 +412,7 @@
  	Misc tweaks... (#1072) (These were noticed in working on event tracing) `mathics/builtin/numbers/algebra.py`: black changes its
  	autoformatting `mathics/builtin/numbers/numbertheory.py`: some linting prefers
  	triples quotes for docstrings `mathics/core/convert/sympy.py`: use accurate location for singleton
-@@ -2732,7 +2732,7 @@
+@@ -3224,7 +3224,7 @@
  	mathics/core/convert/sympy.py: Remove "sympy_name" in from_sympy()
  	calls: (#1070) Generally, we can get sympy_name from the object.  Previously, we
  	sometimes we had two-parameter "from_sympy()" calls and
@@ -358,7 +421,7 @@
  
  2024-08-13  R. Bernstein <rocky@users.noreply.github.com>
  
-@@ -2777,7 +2777,7 @@
+@@ -3269,7 +3269,7 @@
  2024-08-09  rocky <rb@dustyfeet.com>
  
  	* AUTHORS.txt, Makefile, README.rst, mathics/__init__.py,
@@ -367,7 +430,7 @@
  
  2024-08-09  rocky <rb@dustyfeet.com>
  
-@@ -2873,7 +2873,7 @@
+@@ -3365,7 +3365,7 @@
  	mathics/builtin/procedural.py, mathics/builtin/specialfns/gamma.py,
  	mathics/builtin/system.py,
  	mathics/builtin/testing_expressions/logic.py,
@@ -376,7 +439,7 @@
  	normalizing linebreaks after </dl> (#1055) This PR just normalizes the line breaks after </dl> in the
  	docstrings
  
-@@ -2935,7 +2935,7 @@
+@@ -3427,7 +3427,7 @@
  	mathics/doc/latex/mathics.tex: Misc doc-related changes (#1051) * numbers.py: Precision; fix spelling, remove hard line-wrap and
  	            make render in LaTeX better * symbols.py: Need `\n` after `</dl>`. Hash was not doctest'd
  	properly combinatorial.py: Add Subset link; shorten Subset * test
@@ -385,7 +448,7 @@
  	DirectedInfinity orderstats. WMA -> WMA link (when there are no
  	other links) expression_tests.py: move and *Q here.  * systemsymbols.py: More symbols
  
-@@ -2965,7 +2965,7 @@
+@@ -3457,7 +3457,7 @@
  	* mathics/doc/latex/mathics-test.tex, mathics/docpipeline.py: using
  	more print_and_log (#1050) In the refactor of docpipeline I forgot to use more this method, and
  	also at some place it was called from the wrong object. This PR
@@ -394,7 +457,7 @@
  
  2024-08-03  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
  
-@@ -3078,7 +3078,7 @@
+@@ -3570,7 +3570,7 @@
  2024-07-29  R. Bernstein <rocky@users.noreply.github.com>
  
  	* pyproject.toml: Minimum Python version supported is 3.8 (#1040) MathicsScanner currently supports 3.8 or greater in order to support
@@ -403,7 +466,7 @@
  
  2024-07-29  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
  
-@@ -3088,7 +3088,7 @@
+@@ -3580,7 +3580,7 @@
  	mathics/builtin/testing_expressions/numerical_properties.py,
  	mathics/core/atoms.py, mathics/eval/testing_expressions.py: Sympy
  	1.13 compatibility (#1037) This PR implements the changes required for compatibility with the
@@ -412,7 +475,7 @@
  	that the new version does not allows to compare `Sympy.Float`s
  	against Python `float`s
  
-@@ -3217,7 +3217,7 @@
+@@ -3709,7 +3709,7 @@
  2024-02-10  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
  
  	* mathics/builtin/evaluation.py,
@@ -421,7 +484,7 @@
  	adding Exit as an alias of Quit (#998) This fixes #996. It seems that the rule for `Exit` was not loaded
  	together with `Quit`.  --------- Co-authored-by: R. Bernstein <rocky@users.noreply.github.com>
  
-@@ -3451,7 +3451,7 @@
+@@ -3943,7 +3943,7 @@
  	* mathics/session.py, test/builtin/test_attributes.py,
  	test/builtin/{test_evalution.py => test_evaluation.py},
  	test/builtin/test_functional.py, test/builtin/test_messages.py,
@@ -430,7 +493,7 @@
  	MathicsSession.evaluate_as_in_cli (#931) This PR implements a method in the `MathicsSession` class that uses
  	the `Evaluation.evaluate` method. This allows to handle exceptions
  	and special symbols like % or Line references. This method is used
-@@ -3851,7 +3851,7 @@
+@@ -4343,7 +4343,7 @@
  
  2023-11-19  rocky <rb@dustyfeet.com>
  
@@ -439,7 +502,7 @@
  
  2023-11-16  rocky <rb@dustyfeet.com>
  
-@@ -3907,7 +3907,7 @@
+@@ -4399,7 +4399,7 @@
  	mathics/builtin/drawing/graphics3d.py,
  	mathics/builtin/drawing/plot.py,
  	test/builtin/colors/test_color_directives.py,
@@ -448,7 +511,7 @@
  	move private doctests to pytest for builtin.drawing and
  	builtin.colors (#930)
  
-@@ -3932,8 +3932,8 @@
+@@ -4424,8 +4424,8 @@
  	mathics/builtin/functional/application.py,
  	mathics/builtin/functional/apply_fns_to_lists.py,
  	mathics/builtin/functional/functional_iteration.py,
@@ -459,7 +522,7 @@
  	(#927) and another
  
  2023-10-15  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
-@@ -4159,7 +4159,7 @@
+@@ -4651,7 +4651,7 @@
  2023-08-14  mmatera <matera@fisica.unlp.edu.ar>
  
  	* test/builtin/list/test_association.py,
@@ -468,7 +531,7 @@
  	adding pytests modules for list
  
  2023-08-13  mmatera <matera@fisica.unlp.edu.ar>
-@@ -4180,7 +4180,7 @@
+@@ -4672,7 +4672,7 @@
  	mathics/builtin/image/geometric.py, mathics/builtin/image/misc.py,
  	mathics/builtin/image/pixel.py,
  	mathics/builtin/image/properties.py,
@@ -477,7 +540,7 @@
  	Moving private doctests to pytest for assignment and image (#901) Just another round Co-authored-by: R. Bernstein <rocky@users.noreply.github.com>
  
  2023-08-12  R. Bernstein <rocky@users.noreply.github.com>
-@@ -4190,7 +4190,7 @@
+@@ -4682,7 +4682,7 @@
  2023-08-12  rocky <rb@dustyfeet.com>
  
  	* mathics/builtin/image/basic.py: tolerate various Threshold values;
@@ -486,7 +549,7 @@
  
  2023-08-12  rocky <rb@dustyfeet.com>
  
-@@ -4405,7 +4405,7 @@
+@@ -4897,7 +4897,7 @@
  
  2023-07-21  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
  
@@ -495,7 +558,7 @@
  	trailing changes (#887) This PR fixes the `RealSign` docstring and removes a trailing
  	unreachable piece of code in the `eval_Sign` function.
  
-@@ -4500,7 +4500,7 @@
+@@ -4992,7 +4992,7 @@
  
  2023-07-10  rocky <rb@dustyfeet.com>
  
@@ -504,7 +567,7 @@
  	Combine CProfiling and Tracing Both are pretty short and it makes the overall organization more
  	coherent. (Should both code grow a lot, we can create a directory to
  	make this a "Guide Section".
-@@ -4624,9 +4624,9 @@
+@@ -5116,9 +5116,9 @@
  
  	* mathics/builtin/drawing/graphics3d.py,
  	mathics/builtin/drawing/graphics_internals.py,
@@ -516,7 +579,7 @@
  
  2023-06-01  R. Bernstein <rocky@users.noreply.github.com>
  
-@@ -4665,7 +4665,7 @@
+@@ -5157,7 +5157,7 @@
  2023-05-28  rocky <rb@dustyfeet.com>
  
  	* mathics/builtin/files_io/filesystem.py, mathics/core/number.py: Go
@@ -525,7 +588,7 @@
  
  2023-05-28  R. Bernstein <rocky@users.noreply.github.com>
  
-@@ -4720,7 +4720,7 @@
+@@ -5212,7 +5212,7 @@
  	mathics/builtin/string/operations.py,
  	mathics/builtin/string/patterns.py,
  	mathics/builtin/vectors/math_ops.py, mathics/core/convert/regex.py,
@@ -534,7 +597,7 @@
  	passing callables instead of Evaluation when messages are required.
  
  2023-05-24  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
-@@ -4806,13 +4806,13 @@
+@@ -5298,13 +5298,13 @@
  
  	* mathics/builtin/atomic/strings.py,
  	mathics/builtin/atomic/symbols.py,
@@ -550,7 +613,7 @@
  	3.11 supported Note in regexp conversion function the change that needs to go on.
  
  2023-05-08  R. Bernstein <rocky@users.noreply.github.com>
-@@ -4847,7 +4847,7 @@
+@@ -5339,7 +5339,7 @@
  
  2023-04-25  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
  
@@ -559,7 +622,7 @@
  	Enclosing autoload Limit rules between Begin/End context (#842) This just adds the Begin/End block to the `autoload/rules/Limit.m`
  	module. The `BeginPackage` is not used here because we are not
  	trying to define a package, but just to define the default context.
-@@ -4965,7 +4965,7 @@
+@@ -5457,7 +5457,7 @@
  
  2023-04-06  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
  
@@ -568,7 +631,7 @@
  	Arithmetic refactor 0 (#826) Another smaller chunk of #766.
  
  2023-04-06  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
-@@ -4978,7 +4978,7 @@
+@@ -5470,7 +5470,7 @@
  	mathics/builtin/string/operations.py,
  	mathics/builtin/testing_expressions/equality_inequality.py,
  	mathics/core/atoms.py, mathics/core/convert/mpmath.py,
@@ -577,7 +640,7 @@
  	Expression constants (#831) This comes from #828. Here a new module is added to contain the
  	expression constants of the form `DirectedInfinity[...]`.
  
-@@ -5007,7 +5007,7 @@
+@@ -5499,7 +5499,7 @@
  2023-03-25  rocky <rb@dustyfeet.com>
  
  	* SYMBOLS_MANIFEST.txt, mathics/builtin/atomic/symbols.py,
@@ -586,7 +649,7 @@
  	Go over mathics.builtin.image.colors Remove ColorCombine which does not work Move pytests out of doctests
  
  2023-03-23  rocky <rb@dustyfeet.com>
-@@ -5232,7 +5232,7 @@
+@@ -5724,7 +5724,7 @@
  2023-02-23  rocky <rb@dustyfeet.com>
  
  	* mathics/doc/documentation/1-Manual.mdoc: Wolfram Alpha -> Wolfram
@@ -595,7 +658,7 @@
  
  2023-02-23  rocky <rb@dustyfeet.com>
  
-@@ -5269,7 +5269,7 @@
+@@ -5761,7 +5761,7 @@
  2023-02-17  rocky <rb@dustyfeet.com>
  
  	* mathics/doc/latex/Makefile: Use UTF-8 for MATHICS_ENCODING in
@@ -604,7 +667,7 @@
  
  2023-02-17  R. Bernstein <rocky@users.noreply.github.com>
  
-@@ -5326,7 +5326,7 @@
+@@ -5818,7 +5818,7 @@
  	mathics/builtin/statistics/dependency.py,
  	mathics/builtin/string/operations.py, mathics/builtin/system.py,
  	mathics/core/convert/mpmath.py, mathics/core/parser/convert.py,
@@ -613,7 +676,7 @@
  	Flake8 cleans (#791) Just another round of cleaning
  
  2023-02-16  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
-@@ -5341,7 +5341,7 @@
+@@ -5833,7 +5833,7 @@
  2023-02-14  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
  
  	* mathics/builtin/arithfns/basic.py, mathics/builtin/arithmetic.py,
@@ -622,7 +685,7 @@
  	move basic arithmetic to mathics.eval.arithmetic (#789) This PR starts to move the context independent arithmetic to a
  	separate module. Interestingly, just by moving around a little piece
  	of code, the doctest time seems to be reduced in another 10 seconds
-@@ -5350,7 +5350,7 @@
+@@ -5842,7 +5842,7 @@
  2023-02-13  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
  
  	* mathics/builtin/files_io/files.py,
@@ -631,7 +694,7 @@
  	removing the use of Evaluation.format_output in builtins (#786) This PR fixes an issue reported by @rocky, where the behavior or
  	`Put` was modified when is was called from mathics-server. Now, in
  	`mathics.builtin` all the references to `format_output` which is
-@@ -5363,7 +5363,7 @@
+@@ -5855,7 +5855,7 @@
  
  2023-02-11  rocky <rb@dustyfeet.com>
  
@@ -640,7 +703,7 @@
  	Better document what's up in the PCL file also change Makefile target doc-data -> doctest-data
  
  2023-02-11  rocky <rb@dustyfeet.com>
-@@ -5537,7 +5537,7 @@
+@@ -6029,7 +6029,7 @@
  2023-02-04  rocky <rb@dustyfeet.com>
  
  	* mathics/builtin/assignments/assignment.py,
@@ -649,7 +712,7 @@
  	mathics.core.pymathics -> mathics.eval.pymathics What is in mathics.eval is primarily for builtin LoadModule mathics.core are for atoms, symbols, parsing, conversion - things at
  	the very lowest level that aren't focused directly around evaluation
  	of a particular Mathics3 builtin function.
-@@ -5549,14 +5549,14 @@
+@@ -6041,14 +6041,14 @@
  2023-02-04  mmatera <matera@fisica.unlp.edu.ar>
  
  	* mathics/core/convert/mpmath.py: removing prec and acc parameters
@@ -666,7 +729,7 @@
  	improving precision handling in from_mpmath
  
  2023-02-02  rocky <rb@dustyfeet.com>
-@@ -5583,7 +5583,7 @@
+@@ -6075,7 +6075,7 @@
  	mathics/core/convert/mpmath.py, mathics/core/convert/sympy.py,
  	mathics/core/number.py, mathics/core/parser/convert.py,
  	test/builtin/colors/test_colors.py: renaming constants according to
@@ -675,7 +738,7 @@
  	arithmetic/precision code.
  
  2023-02-01  R. Bernstein <rocky@users.noreply.github.com>
-@@ -5778,7 +5778,7 @@
+@@ -6270,7 +6270,7 @@
  2023-01-17  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
  
  	* mathics/builtin/box/image.py, mathics/builtin/image/base.py,
@@ -684,7 +747,7 @@
  	the PDF documentation.
  
  2023-01-17  rocky <rb@dustyfeet.com>
-@@ -5820,12 +5820,12 @@
+@@ -6312,12 +6312,12 @@
  
  2023-01-14  rocky <rb@dustyfeet.com>
  
@@ -699,7 +762,7 @@
  	assigned - fix
  
  2023-01-14  rocky <rb@dustyfeet.com>
-@@ -5853,7 +5853,7 @@
+@@ -6345,7 +6345,7 @@
  	mathics/builtin/numpy_utils/__init__.py,
  	mathics/builtin/numpy_utils/without_numpy.py,
  	mathics/builtin/options.py, mathics/core/expression.py: Last batch
@@ -708,7 +771,7 @@
  	been converted Now that numpy is required we can remove the numpy simulation.  Less
  	homegrown code and more reliance on better maintained libraries ==
  	win.
-@@ -5913,7 +5913,7 @@
+@@ -6405,7 +6405,7 @@
  	mathics/core/element.py, mathics/core/rules.py,
  	mathics/core/systemsymbols.py,
  	test/builtin/box/test_custom_boxexpression.py: Last of the
@@ -717,7 +780,7 @@
  
  2023-01-12  rocky <rb@dustyfeet.com>
  
-@@ -5954,7 +5954,7 @@
+@@ -6446,7 +6446,7 @@
  	* mathics/algorithm/parts.py, mathics/builtin/base.py,
  	mathics/builtin/box/layout.py, mathics/builtin/distance/numeric.py,
  	mathics/builtin/list/constructing.py,
@@ -726,7 +789,7 @@
  	apply->eval + spelling, long lines, etc.
  
  2023-01-11  rocky <rb@dustyfeet.com>
-@@ -5973,7 +5973,7 @@
+@@ -6465,7 +6465,7 @@
  2023-01-11  rocky <rb@dustyfeet.com>
  
  	* .github/workflows/isort-and-black-checks.yml: Comment out
@@ -735,7 +798,7 @@
  
  2023-01-11  rocky <rb@dustyfeet.com>
  
-@@ -6023,7 +6023,7 @@
+@@ -6515,7 +6515,7 @@
  	* mathics/builtin/attributes.py,
  	mathics/builtin/functional/composition.py,
  	mathics/builtin/inout.py, mathics/builtin/intfns/divlike.py,
@@ -744,7 +807,7 @@
  	apply->eval and doc stuff some do changes and the usual stuff.
  
  2023-01-10  R. Bernstein <rocky@users.noreply.github.com>
-@@ -6092,7 +6092,7 @@
+@@ -6584,7 +6584,7 @@
  	mathics/builtin/numbers/diffeqns.py,
  	mathics/builtin/numbers/hyperbolic.py,
  	mathics/builtin/numbers/linalg.py, mathics/builtin/numbers/trig.py,
@@ -753,7 +816,7 @@
  	apply->eval go over trig fns & some hyperbolic...  The usual eval->apply, long lines, Add Wiki + SymPy, mpmath to trig.  Start hyperbolic for the same.
  	More should be done in another PR.
  
-@@ -6102,7 +6102,7 @@
+@@ -6594,7 +6594,7 @@
  
  2023-01-08  rocky <rb@dustyfeet.com>
  
@@ -762,7 +825,7 @@
  	NO_PARENTHESIS_EVER -> NEVER_ADD_PARENTHESIS thanks Tiago
  
  2023-01-08  rocky <rb@dustyfeet.com>
-@@ -6289,7 +6289,7 @@
+@@ -6781,7 +6781,7 @@
  	mathics/builtin/forms/output.py, mathics/builtin/layout.py,
  	mathics/builtin/list/associations.py,
  	mathics/builtin/quantities.py, mathics/builtin/specialfns/gamma.py,
@@ -771,7 +834,7 @@
  	showing...  in docs because no header text.  more apply->eval conversions misc doc tweaks
  
  2023-01-03  R. Bernstein <rocky@users.noreply.github.com>
-@@ -6363,7 +6363,7 @@
+@@ -6855,7 +6855,7 @@
  
  2023-01-02  rocky <rb@dustyfeet.com>
  
@@ -780,7 +843,7 @@
  	Adjust tests.  and comment graphics routine a little better
  
  2023-01-02  rocky <rb@dustyfeet.com>
-@@ -6377,7 +6377,7 @@
+@@ -6869,7 +6869,7 @@
  
  2023-01-02  R. Bernstein <rocky@users.noreply.github.com>
  
@@ -789,7 +852,7 @@
  
  2023-01-01  R. Bernstein <rocky@users.noreply.github.com>
  
-@@ -6409,7 +6409,7 @@
+@@ -6901,7 +6901,7 @@
  2022-12-31  rocky <rb@dustyfeet.com>
  
  	* mathics/builtin/graphics.py, mathics/core/atoms.py,
@@ -798,7 +861,7 @@
  	More url hacking.  Make sure ref's are $ safe.
  
  2022-12-30  rocky <rb@dustyfeet.com>
-@@ -6444,7 +6444,7 @@
+@@ -6936,7 +6936,7 @@
  2022-12-30  rocky <rb@dustyfeet.com>
  
  	* CHANGES.rst, mathics/builtin/image/misc.py,
@@ -807,7 +870,7 @@
  	Split out Image Pixel operations Update CHANGES.rst for all of the splitting going on
  
  2022-12-30  rocky <rb@dustyfeet.com>
-@@ -6486,7 +6486,7 @@
+@@ -6978,7 +6978,7 @@
  
  2022-12-29  rocky <rb@dustyfeet.com>
  
@@ -816,7 +879,7 @@
  	TextRecognize.png: data file for trying out OCR recognition
  
  2022-12-29  R. Bernstein <rocky@users.noreply.github.com>
-@@ -6495,7 +6495,7 @@
+@@ -6987,7 +6987,7 @@
  
  2022-12-28  rocky <rb@dustyfeet.com>
  
@@ -825,7 +888,7 @@
  	streamline a little & document TODO's.
  
  2022-12-28  rocky <rb@dustyfeet.com>
-@@ -6593,7 +6593,7 @@
+@@ -7085,7 +7085,7 @@
  
  2022-12-25  rocky <rb@dustyfeet.com>
  
@@ -834,7 +897,7 @@
  	Make a pass over importexport
  
  2022-12-25  rocky <rb@dustyfeet.com>
-@@ -6628,7 +6628,7 @@
+@@ -7120,7 +7120,7 @@
  2022-12-25  rocky <rb@dustyfeet.com>
  
  	* mathics/__init__.py, mathics/doc/common_doc.py, mathics/main.py,
@@ -843,7 +906,7 @@
  
  2022-12-25  R. Bernstein <rocky@users.noreply.github.com>
  
-@@ -6895,7 +6895,7 @@
+@@ -7387,7 +7387,7 @@
  
  2022-12-21  mmatera <matera@fisica.unlp.edu.ar>
  
@@ -852,7 +915,7 @@
  	docstr url for files_io, intfns, list and trace
  
  2022-12-24  R. Bernstein <rocky@users.noreply.github.com>
-@@ -6939,7 +6939,7 @@
+@@ -7431,7 +7431,7 @@
  	mathics/builtin/fileformats/htmlformat.py,
  	mathics/builtin/fileformats/xmlformat.py,
  	mathics/builtin/numeric.py: complete docstr url for fileformats,
@@ -861,7 +924,7 @@
  
  2022-12-21  mmatera <matera@fisica.unlp.edu.ar>
  
-@@ -6996,7 +6996,7 @@
+@@ -7488,7 +7488,7 @@
  2022-12-23  rocky <rb@dustyfeet.com>
  
  	* mathics/eval/image.py: Correct use of numpy bool type...  remove a Builtin-specific "no-doc" module variable.  Since this has
@@ -870,7 +933,7 @@
  	modularization can *simplify* workarounds.
  
  2022-12-23  rocky <rb@dustyfeet.com>
-@@ -7093,7 +7093,7 @@
+@@ -7585,7 +7585,7 @@
  	mathics/core/list.py, mathics/core/symbols.py,
  	test/core/test_atoms.py: Correct singleton atoms and revise atom
  	tests We were allocating singleton numbers/atoms like like Integer(1) more
@@ -879,7 +942,7 @@
  	now checks *all* symbols for dissimilarity from one another.  It
  	also starts a test for object canonicalization, e.g.  Integer(1) and
  	Complex(Integer(1), Integer(0)) are the same object.  In a few places we have propagate constants for number other than
-@@ -7225,7 +7225,7 @@
+@@ -7717,7 +7717,7 @@
  
  2022-12-14  rocky <rb@dustyfeet.com>
  
@@ -888,7 +951,7 @@
  	Add WMA and other links
  
  2022-12-14  rocky <rb@dustyfeet.com>
-@@ -7249,14 +7249,14 @@
+@@ -7741,14 +7741,14 @@
  
  2022-12-07  R. Bernstein <rocky@users.noreply.github.com>
  
@@ -905,7 +968,7 @@
  	to be rebased after this and #651 go in.
  
  2022-12-07  rocky <rb@dustyfeet.com>
-@@ -7390,7 +7390,7 @@
+@@ -7882,7 +7882,7 @@
  
  2022-11-19  rocky <rb@dustyfeet.com>
  
@@ -914,7 +977,7 @@
  	get_module_doc move to mathics.doc.common_doc
  
  2022-11-19  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
-@@ -7415,16 +7415,16 @@
+@@ -7907,16 +7907,16 @@
  	mathics/builtin/scoping.py,
  	mathics/{builtin/assignments/internals.py => core/assignment.py},
  	mathics/core/expression.py, mathics/core/list.py,
@@ -934,7 +997,7 @@
  	(We may want to split up core more in the future though) Better sort long list of assignment methods alphabetically Some small RstT tagging in a docstring Remove nonexistent word "evaluable" Add yet another type annotation to a signature Make test assert failure messages unique * Move ASSIGNMENT_FUNCTION_MAP into core Co-authored-by: R. Bernstein <rocky@users.noreply.github.com>
  	Co-authored-by: rocky <rb@dustyfeet.com>
  
-@@ -7451,7 +7451,7 @@
+@@ -7943,7 +7943,7 @@
  2022-11-12  rocky <rb@dustyfeet.com>
  
  	* mathics/core/pattern.py: Pattern_create -> Pattern.create It appears this was originally Pattern.create. I suspect due to bad
@@ -943,7 +1006,7 @@
  	added inside the routine, this static method got moved outside of
  	the class.  Later on, the modularity was fixed, but the hack persisted. These
  	kinds of code smells side effects of poor communication.
-@@ -7523,7 +7523,7 @@
+@@ -8015,7 +8015,7 @@
  
  2022-11-10  mmatera <matera@fisica.unlp.edu.ar>
  
@@ -952,7 +1015,7 @@
  	fix a bug that makes that URLSave always fails
  
  2022-11-07  mmatera <matera@fisica.unlp.edu.ar>
-@@ -7809,7 +7809,7 @@
+@@ -8301,7 +8301,7 @@
  	evaluation.  As a result, we now use operator-to-{ascii,unicode}.
  	operator-to-{unicode-wl} still needs adding.  Some hard nl's on docstrings on Builtins have been removed since
  	formatting doesn't handle that.  Some methods and classes have been alphabeticed better.  $CharacterEncoding now respects MATHICS_CHARACTER_ENCODING
@@ -961,7 +1024,7 @@
  
  2022-10-04  rocky <rb@dustyfeet.com>
  
-@@ -7883,7 +7883,7 @@
+@@ -8375,7 +8375,7 @@
  
  2022-09-18  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
  
@@ -970,7 +1033,7 @@
  	moving pending doctests in MakeBoxes to pytests (#558) * moving pending doctests in MakeBoxes to pytests * improving tests and mark what is working now * xfailed optional
  
  2022-09-16  R. Bernstein <rocky@users.noreply.github.com>
-@@ -7910,7 +7910,7 @@
+@@ -8402,7 +8402,7 @@
  	test/builtin/atomic/test_numbers.py: Go over docs for Accuracy and
  	Precision * Shy away from using markup that doesn't render properly in Django.
  	  In partuclar, math mode * Add Wiki and WMA links in Accuracy and Precision builtin
@@ -979,7 +1042,7 @@
  	character
  
  2022-09-13  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
-@@ -7928,7 +7928,7 @@
+@@ -8420,7 +8420,7 @@
  	mathics/builtin/numbers/randomnumbers.py,
  	mathics/core/convert/function.py, mathics/core/element.py,
  	mathics/core/symbols.py: This is one part of #551, plus several
@@ -988,7 +1051,7 @@
  	``expr.to_python(n_evaluation=evaluation)`` in favor of
  	``eval_N(expr, evaluation).to_python()`` * adding several comments.
  
-@@ -7961,7 +7961,7 @@
+@@ -8453,7 +8453,7 @@
  
  2022-09-11  mmatera <matera@fisica.unlp.edu.ar>
  
@@ -997,7 +1060,7 @@
  	improving Accuracy docstring. fixing a typo
  
  2022-09-11  mmatera <matera@fisica.unlp.edu.ar>
-@@ -7993,7 +7993,7 @@
+@@ -8485,7 +8485,7 @@
  
  2022-09-09  mmatera <matera@fisica.unlp.edu.ar>
  
@@ -1006,7 +1069,16 @@
  	fix typo in docstring. Check the arguments in comparison.
  
  2022-09-09  mmatera <matera@fisica.unlp.edu.ar>
-@@ -8035,7 +8035,7 @@
+@@ -8496,7 +8496,7 @@
+ 	mathics/core/number.py, mathics/core/parser/convert.py,
+ 	mathics/core/systemsymbols.py,
+ 	mathics/doc/documentation/1-Manual.mdoc: improving support for
+-	aritmethic and comparisons of finite precision numbers.
++	arithmetic and comparisons of finite precision numbers.
+ 
+ 2022-09-09  rocky <rb@dustyfeet.com>
+ 
+@@ -8527,7 +8527,7 @@
  2022-08-28  rocky <rb@dustyfeet.com>
  
  	* mathics/builtin/arithmetic.py, mathics/builtin/atomic/numbers.py,
@@ -1015,7 +1087,7 @@
  	Add cache for running sympy with literals
  
  2022-08-28  rocky <rb@dustyfeet.com>
-@@ -8052,7 +8052,7 @@
+@@ -8544,7 +8544,7 @@
  	mathics/builtin/base.py, mathics/core/atoms.py,
  	mathics/core/convert/expression.py, mathics/core/element.py,
  	mathics/core/expression.py, mathics/core/list.py,
@@ -1024,7 +1096,7 @@
  	Start to make use of literalness...  to reduce conversions If an object is_literal, then its value is the Python
  	representation.  Although there may be benefit in noting literals that do not have
  	direct Python representations like Complex (as it currently is
-@@ -8130,13 +8130,13 @@
+@@ -8622,13 +8622,13 @@
  	mathics/builtin/lists.py, mathics/builtin/numbers/exp.py,
  	mathics/builtin/numbers/{exptrig.py => trig.py},
  	mathics/builtin/procedural.py, mathics/builtin/statistics/shape.py,
@@ -1040,7 +1112,7 @@
  	KroneckerProduct signature fix was previous detected and fixed in docs but not in code
  
  2022-08-25  R. Bernstein <rocky@users.noreply.github.com>
-@@ -8168,7 +8168,7 @@
+@@ -8660,7 +8660,7 @@
  	* mathics/builtin/atomic/numbers.py,
  	mathics/builtin/list/rearrange.py, mathics/builtin/lists.py,
  	mathics/builtin/numbers/algebra.py,
@@ -1049,7 +1121,7 @@
  	removing duplicated 1 (#525)
  
  2022-08-21  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
-@@ -8281,7 +8281,7 @@
+@@ -8773,7 +8773,7 @@
  
  2022-08-14  rocky <rb@dustyfeet.com>
  
@@ -1058,7 +1130,7 @@
  	Go over parser/convert ...  and have it create ListExpression for list expressions Try to make this less confusing by using more traditional Python
  	practice, and add type annotations
  
-@@ -8526,7 +8526,7 @@
+@@ -9018,7 +9018,7 @@
  	admin-tools/pyenv-versions, mathics/builtin/specialfns/elliptic.py,
  	mathics/doc/tex/sed-hack.sh, mathics/version.py: Into 5.0.0.dev0
  	now...  version.py: bump version Linking a section heading message up Mathics-Django. Remove it on
@@ -1067,7 +1139,7 @@
  
  2022-07-31  R. Bernstein <rocky@users.noreply.github.com>
  
-@@ -8544,7 +8544,7 @@
+@@ -9036,7 +9036,7 @@
  
  2022-07-30  rocky <rb@dustyfeet.com>
  
@@ -1076,7 +1148,7 @@
  
  2022-07-30  rocky <rb@dustyfeet.com>
  
-@@ -8625,7 +8625,7 @@
+@@ -9117,7 +9117,7 @@
  	mathics/builtin/intfns/combinatorial.py,
  	mathics/builtin/specialfns/__init__.py,
  	mathics/builtin/specialfns/bessel.py,
@@ -1085,7 +1157,7 @@
  	Allow text link in URL try it out and some small typos. There needs to be a corresponding
  	change made in Django.
  
-@@ -8639,7 +8639,7 @@
+@@ -9131,7 +9131,7 @@
  
  2022-07-27  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
  
@@ -1094,7 +1166,7 @@
  	adding controls for the number of arguments (#472) * adding controls for the number of arguments * Update elliptic.py
  
  2022-07-27  rocky <rb@dustyfeet.com>
-@@ -8752,7 +8752,7 @@
+@@ -9244,7 +9244,7 @@
  
  2022-07-24  R. Bernstein <rocky@users.noreply.github.com>
  
@@ -1103,7 +1175,7 @@
  
  2022-07-24  rocky <rb@dustyfeet.com>
  
-@@ -8786,7 +8786,7 @@
+@@ -9278,7 +9278,7 @@
  2022-07-24  rocky <rb@dustyfeet.com>
  
  	* mathics/builtin/intfns/divlike.py: Tweak ModularInverse doc
@@ -1112,7 +1184,7 @@
  
  2022-07-24  rocky <rb@dustyfeet.com>
  
-@@ -8795,7 +8795,7 @@
+@@ -9287,7 +9287,7 @@
  2022-07-24  rocky <rb@dustyfeet.com>
  
  	* mathics/doc/common_doc.py, mathics/docpipeline.py: WIP - start to
@@ -1121,7 +1193,7 @@
  
  2022-07-24  R. Bernstein <rocky@users.noreply.github.com>
  
-@@ -8867,7 +8867,7 @@
+@@ -9359,7 +9359,7 @@
  
  	* mathics/builtin/atomic/symbols.py, mathics/builtin/scoping.py,
  	mathics/core/definitions.py: Reinstate documenting "Scoping
@@ -1130,7 +1202,7 @@
  	don't run pytest kinds of tests in doctest. A pytest should be
  	written here.  I fear the entire module was disabled because too many of the tests
  	were flaky.
-@@ -8955,7 +8955,7 @@
+@@ -9447,7 +9447,7 @@
  
  	* mathics/builtin/atomic/strings.py, mathics/core/element.py,
  	mathics/core/systemsymbols.py: Move SymbolOutputForm & other
@@ -1139,7 +1211,7 @@
  
  2022-07-21  R. Bernstein <rocky@users.noreply.github.com>
  
-@@ -8989,7 +8989,7 @@
+@@ -9481,7 +9481,7 @@
  
  2022-07-20  rocky <rb@dustyfeet.com>
  
@@ -1148,7 +1220,7 @@
  	significantly
  
  2022-07-19  rocky <rb@dustyfeet.com>
-@@ -9137,15 +9137,15 @@
+@@ -9629,15 +9629,15 @@
  	mathics/builtin/numbers/calculus.py,
  	mathics/builtin/scipy_utils/optimizers.py,
  	mathics/core/convert/function.py, mathics/core/expression.py,
@@ -1167,7 +1239,7 @@
  	Nuke the python3 This was misguided and it hinders our ability to run pyston
  
  2022-07-15  R. Bernstein <rocky@users.noreply.github.com>
-@@ -9294,7 +9294,7 @@
+@@ -9786,7 +9786,7 @@
  	mathics/builtin/string/operations.py, mathics/core/atoms.py,
  	mathics/core/convert/expression.py, mathics/core/convert/mpmath.py,
  	mathics/core/convert/python.py, mathics/core/evaluation.py,
@@ -1176,7 +1248,7 @@
  	Move from_pyton to convert module
  
  2022-06-22  rocky <rb@dustyfeet.com>
-@@ -9515,7 +9515,7 @@
+@@ -10007,7 +10007,7 @@
  
  	* .github/workflows/windows.yml, CHANGES.rst,
  	mathics/builtin/__init__.py, mathics/builtin/base.py,
@@ -1185,7 +1257,7 @@
  	more control over tests and doctest
  
  2022-06-19  R. Bernstein <rocky@users.noreply.github.com>
-@@ -9533,7 +9533,7 @@
+@@ -10025,7 +10025,7 @@
  	mathics/builtin/scipy_utils/integrators.py,
  	mathics/builtin/scipy_utils/optimizers.py,
  	mathics/builtin/system.py, mathics/core/util.py,
@@ -1194,7 +1266,7 @@
  	Changes to allow PyPy to build and mostly run ...  we can get through pytests and the Gries & Schneider tests.  There is probably a PyPy bug or weirdness around `Binarize`: ``` In[1]:= img = Import["ExampleData/lena.tif"] Out[1]= -Image-
  	In[2]:= Binarize[img] terminate called after throwing an instance of
  	  'pybind11::error_already_set' what():  IndentationError:
-@@ -9565,7 +9565,7 @@
+@@ -10057,7 +10057,7 @@
  	* mathics/builtin/list/associations.py,
  	mathics/builtin/list/constructing.py, mathics/builtin/list/eol.py,
  	mathics/builtin/numbers/diffeqns.py,
@@ -1203,7 +1275,7 @@
  	72 more conversions to go And the usual imports and class variable ordering, and docstring
  	tagging canonicalization
  
-@@ -9628,7 +9628,7 @@
+@@ -10120,7 +10120,7 @@
  	mathics/builtin/matrices/constrmatrix.py,
  	mathics/builtin/sparse.py, mathics/builtin/string/operations.py,
  	mathics/builtin/tensors.py, mathics/core/systemsymbols.py,
@@ -1212,7 +1284,7 @@
  	...) removal and other Expressions as well
  
  2022-06-15  R. Bernstein <rocky@users.noreply.github.com>
-@@ -9690,7 +9690,7 @@
+@@ -10182,7 +10182,7 @@
  2022-06-12  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
  
  	* mathics/algorithm/integrators.py,
@@ -1221,7 +1293,7 @@
  	fixing NIntegrate to make the internal integrators available. (#363)
  
  2022-06-12  R. Bernstein <rocky@users.noreply.github.com>
-@@ -9716,7 +9716,7 @@
+@@ -10208,7 +10208,7 @@
  2022-06-10  rocky <rb@dustyfeet.com>
  
  	* mathics/builtin/numbers/numbertheory.py, mathics/core/convert.py,
@@ -1230,7 +1302,7 @@
  	Expression -> ListExpression penultimate
  
  2022-06-09  R. Bernstein <rocky@users.noreply.github.com>
-@@ -9757,7 +9757,7 @@
+@@ -10249,7 +10249,7 @@
  	mathics/builtin/box/graphics.py, mathics/builtin/box/inout.py,
  	mathics/builtin/colors/color_directives.py,
  	mathics/builtin/colors/color_operations.py,
@@ -1239,7 +1311,7 @@
  	Expression(SymbolList -> ListExpression...  or to_mathics_ilst
  
  2022-06-09  R. Bernstein <rocky@users.noreply.github.com>
-@@ -9768,7 +9768,7 @@
+@@ -10260,7 +10260,7 @@
  
  	* mathics/builtin/attributes.py, mathics/builtin/options.py,
  	mathics/core/convert.py, mathics/core/evaluation.py,
@@ -1248,7 +1320,7 @@
  	{List,}Expression changes to pass test/builtins
  
  2022-06-07  rocky <rb@dustyfeet.com>
-@@ -9805,8 +9805,8 @@
+@@ -10297,8 +10297,8 @@
  2022-06-07  rocky <rb@dustyfeet.com>
  
  	* mathics/builtin/list/eol.py, mathics/builtin/list/rearrange.py,
@@ -1259,7 +1331,7 @@
  
  2022-06-07  R. Bernstein <rocky@users.noreply.github.com>
  
-@@ -9902,7 +9902,7 @@
+@@ -10394,7 +10394,7 @@
  	mathics/builtin/scipy_utils/optimizers.py,
  	test/builtin/files_io/__init__.py, test/{ =>
  	builtin/files_io}/test_importexport.py: more about removing
@@ -1268,7 +1340,7 @@
  
  2022-06-06  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
  
-@@ -9916,7 +9916,7 @@
+@@ -10408,7 +10408,7 @@
  
  2022-06-06  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
  
@@ -1277,7 +1349,7 @@
  	adding a test to check that builtin classes are properly documented.
  	Complete documentation for mathics.builtin.graphics and
  	mathics.builtin.numbers.algebra (#341)
-@@ -9933,7 +9933,7 @@
+@@ -10425,7 +10425,7 @@
  2022-06-05  rocky <rb@dustyfeet.com>
  
  	* mathics/algorithm/optimizers.py, mathics/algorithm/series.py,
@@ -1286,7 +1358,7 @@
  	Use .value, .leaves and fix some bugs optimizers.py:   * Was missing Integer0 import - a bug   * use .value when we know the object in an Integer   * remove duplicate function series.py: ome more Expression("XXX"...) removed lists.py: Make
  	another pass over this others: more of the same
  
-@@ -9989,7 +9989,7 @@
+@@ -10481,7 +10481,7 @@
  	* mathics/builtin/base.py, mathics/builtin/drawing/plot.py,
  	mathics/builtin/files_io/importexport.py,
  	mathics/builtin/graphics.py, mathics/builtin/options.py,
@@ -1295,7 +1367,7 @@
  	More of the same...  Partial go over of graphics, importexport, options, operations, and
  	plot, More work could be done on graphics, and plot, but that is left for
  	later. This is already large.  Also another pass over everything to improve specific calls is
-@@ -10030,8 +10030,8 @@
+@@ -10522,8 +10522,8 @@
  
  2022-06-03  rocky <rb@dustyfeet.com>
  
@@ -1306,7 +1378,7 @@
  	that will come as a later step.
  
  2022-06-02  rocky <rb@dustyfeet.com>
-@@ -10086,7 +10086,7 @@
+@@ -10578,7 +10578,7 @@
  	mathics/core/atoms.py, mathics/core/convert.py,
  	mathics/core/expression.py, mathics/core/symbols.py,
  	mathics/core/systemsymbols.py,
@@ -1315,7 +1387,7 @@
  	Use symbols in NumericOperators
  
  2022-06-01  rocky <rb@dustyfeet.com>
-@@ -10255,7 +10255,7 @@
+@@ -10747,7 +10747,7 @@
  2022-05-28  rocky <rb@dustyfeet.com>
  
  	* CHANGES.rst, mathics/builtin/arithfns/basic.py,
@@ -1324,7 +1396,7 @@
  	and small corrections
  
  2022-05-28  rocky <rb@dustyfeet.com>
-@@ -10337,7 +10337,7 @@
+@@ -10829,7 +10829,7 @@
  	* CHANGES.rst, mathics/algorithm/simplify.py,
  	mathics/builtin/numbers/algebra.py,
  	mathics/builtin/numbers/calculus.py, mathics/core/systemsymbols.py,
@@ -1333,7 +1405,7 @@
  
  2022-05-24  R. Bernstein <rocky@users.noreply.github.com>
  
-@@ -10352,7 +10352,7 @@
+@@ -10844,7 +10844,7 @@
  	mathics/core/element.py, mathics/core/expression.py,
  	mathics/core/symbols.py, test/test_format.py: Expression and Symbol
  	are EvalMixin (#293) * adding tests * simplify get_option_values * improve get_option_values * renaming InstanceableBuiltin-> BuiltinElement and BoxConstruct ->
@@ -1342,7 +1414,7 @@
  	Co-authored-by: rocky <rb@dustyfeet.com>
  
  2022-05-23  R. Bernstein <rocky@users.noreply.github.com>
-@@ -10410,7 +10410,7 @@
+@@ -10902,7 +10902,7 @@
  	* mathics/builtin/assignments/internals.py,
  	mathics/builtin/base.py, mathics/builtin/box/graphics.py,
  	mathics/builtin/inference.py, mathics/builtin/patterns.py,
@@ -1351,7 +1423,7 @@
  	BaseElement.apply_rules-> BaseElement.do_apply_rules BoxConstruct
  	now inherits from BaseElement
  
-@@ -10431,7 +10431,7 @@
+@@ -10923,7 +10923,7 @@
  
  2022-05-17  mmatera <matera@fisica.unlp.edu.ar>
  
@@ -1360,7 +1432,7 @@
  	recovered memory
  
  2022-05-17  mmatera <matera@fisica.unlp.edu.ar>
-@@ -10482,7 +10482,7 @@
+@@ -10974,7 +10974,7 @@
  
  2022-05-15  rocky <rb@dustyfeet.com>
  
@@ -1369,7 +1441,7 @@
  	Start using element_conversion_fn in Expression()
  
  2022-05-15  rocky <rb@dustyfeet.com>
-@@ -10539,8 +10539,8 @@
+@@ -11031,8 +11031,8 @@
  
  2022-05-08  mmatera <matera@fisica.unlp.edu.ar>
  
@@ -1380,7 +1452,7 @@
  
  2022-05-06  mmatera <matera@fisica.unlp.edu.ar>
  
-@@ -10668,7 +10668,7 @@
+@@ -11160,7 +11160,7 @@
  	builtin}/test_assignment.py, test/helper.py: Use get_elements() (not
  	_elements) ...  get_elements is what element access uses.  _elements is a private
  	structure on Expression.  Small tweaks to test_helper and move test/test_assignment.py into
@@ -1389,7 +1461,7 @@
  
  2022-04-25  R. Bernstein <rocky@users.noreply.github.com>
  
-@@ -10694,7 +10694,7 @@
+@@ -11186,7 +11186,7 @@
  2022-04-24  rocky <rb@dustyfeet.com>
  
  	* mathics/builtin/base.py, mathics/core/evaluation.py,
@@ -1398,7 +1470,7 @@
  	add element properties
  
  2022-04-04  rocky <rb@dustyfeet.com>
-@@ -10759,7 +10759,7 @@
+@@ -11251,7 +11251,7 @@
  	mathics/builtin/graphics.py, mathics/core/atoms.py,
  	mathics/core/element.py, mathics/core/streams.py,
  	mathics/core/symbols.py: Fix merge conflicts. Revise Atom
@@ -1407,7 +1479,7 @@
  
  2022-04-10  R. Bernstein <rocky@users.noreply.github.com>
  
-@@ -10805,7 +10805,7 @@
+@@ -11297,7 +11297,7 @@
  
  2022-03-28  rocky <rb@dustyfeet.com>
  
@@ -1416,7 +1488,7 @@
  	class where it makes sense.
  
  2022-03-28  rocky <rb@dustyfeet.com>
-@@ -10814,7 +10814,7 @@
+@@ -11306,7 +11306,7 @@
  
  2022-03-27  rocky <rb@dustyfeet.com>
  
@@ -1425,7 +1497,7 @@
  
  2022-03-27  rocky <rb@dustyfeet.com>
  
-@@ -10842,7 +10842,7 @@
+@@ -11334,7 +11334,7 @@
  
  2022-04-01  mmatera <matera@fisica.unlp.edu.ar>
  
@@ -1434,7 +1506,7 @@
  	more docstring fixes
  
  2022-04-01  mmatera <matera@fisica.unlp.edu.ar>
-@@ -10890,7 +10890,7 @@
+@@ -11382,7 +11382,7 @@
  	mathics/builtin/colors/named_colors.py,
  	mathics/builtin/drawing/graphics3d.py,
  	mathics/builtin/drawing/graphics_internals.py,
@@ -1443,7 +1515,7 @@
  	fixing summary texts in builtin.box, and builtin.drawing.
  
  2022-03-31  mmatera <matera@fisica.unlp.edu.ar>
-@@ -11008,7 +11008,7 @@
+@@ -11500,7 +11500,7 @@
  
  	* mathics/builtin/numbers/linalg.py,
  	mathics/builtin/numbers/numbertheory.py: summary_texts in
@@ -1452,7 +1524,7 @@
  
  2022-03-26  mmatera <matera@fisica.unlp.edu.ar>
  
-@@ -11042,7 +11042,7 @@
+@@ -11534,7 +11534,7 @@
  
  2022-03-24  mmatera <matera@fisica.unlp.edu.ar>
  
@@ -1461,7 +1533,16 @@
  	comment
  
  2022-03-24  mmatera <matera@fisica.unlp.edu.ar>
-@@ -11201,7 +11201,7 @@
+@@ -11613,7 +11613,7 @@
+ 
+ 2022-03-24  mmatera <matera@fisica.unlp.edu.ar>
+ 
+-	* mathics/builtin/specialfns/othogonal.py: remove othogonal
++	* mathics/builtin/specialfns/othogonal.py: remove orthogonal
+ 
+ 2022-03-24  mmatera <matera@fisica.unlp.edu.ar>
+ 
+@@ -11693,7 +11693,7 @@
  
  2022-03-20  Hannes Rüter <git@hannesrueter.de>
  
@@ -1470,7 +1551,7 @@
  	Use python builtin escape function in GenericConverter
  
  2022-03-20  rocky <rb@dustyfeet.com>
-@@ -11236,7 +11236,7 @@
+@@ -11728,7 +11728,7 @@
  
  	* mathics/builtin/compilation.py,
  	mathics/builtin/numbers/calculus.py,
@@ -1479,7 +1560,7 @@
  	Regularize recent summaries Summaries don't start out with a capital letter.  Summaries don't
  	end in a period.  Make this more closely match form and idea
  	reported on Mathematica site
-@@ -11312,7 +11312,7 @@
+@@ -11804,7 +11804,7 @@
  
  2022-03-19  rocky <rb@dustyfeet.com>
  
@@ -1488,7 +1569,7 @@
  	Tolerate Unicode in parser testing
  
  2022-03-18  R. Bernstein <rocky@users.noreply.github.com>
-@@ -11335,7 +11335,7 @@
+@@ -11827,7 +11827,7 @@
  
  2022-03-17  Tiago Cavalcante Trindade <tiagotrindade111@gmail.com>
  
@@ -1497,7 +1578,7 @@
  	method remove
  
  2022-03-17  R. Bernstein <rocky@users.noreply.github.com>
-@@ -11380,7 +11380,7 @@
+@@ -11872,7 +11872,7 @@
  	test/test_combinatorica.py, test/test_control.py,
  	test/test_datentime.py, test/test_strings.py,
  	test/test_structure.py: Improving Clear and ClearAll (#199) * adding a reset method to MathicsSession. Using it to reset the
@@ -1506,7 +1587,7 @@
  	warning messages.  * improving test initialization using pytest.fixture * improving reset in tests * Change in the logic of ``test.helper.check_evaluation``: now, if
  	the  parameter ``to_string_expected`` is ``True``, ``str_expected``
  	is considered as a literal, that should match with
-@@ -11513,7 +11513,7 @@
+@@ -12005,7 +12005,7 @@
  
  2022-03-06  mmatera <matera@fisica.unlp.edu.ar>
  
@@ -1515,7 +1596,7 @@
  	leaves->boxes
  
  2022-02-28  mmatera <matera@fisica.unlp.edu.ar>
-@@ -11551,7 +11551,7 @@
+@@ -12043,7 +12043,7 @@
  2022-03-06  rocky <rb@dustyfeet.com>
  
  	* mathics/core/atoms.py, mathics/core/expression.py: Make a stab
@@ -1524,7 +1605,7 @@
  
  2022-03-05  R. Bernstein <rocky@users.noreply.github.com>
  
-@@ -11679,7 +11679,7 @@
+@@ -12171,7 +12171,7 @@
  2022-02-24  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
  
  	* CHANGES.rst, mathics/builtin/numbers/algebra.py,
@@ -1533,7 +1614,7 @@
  	Extend `Simplify` to handle the `Assumptions` argument more
  	correctly  (#170) * fixes 167 * fix integrate * improve FullSimplify rules
  
-@@ -11789,7 +11789,7 @@
+@@ -12281,7 +12281,7 @@
  
  	* mathics/builtin/base.py, mathics/builtin/list/__init__.py,
  	mathics/builtin/patterns.py, mathics/core/expression.py,
@@ -1542,7 +1623,7 @@
  	leaf_{count{,s},index} -> element_*
  
  2022-02-20  rocky <rb@dustyfeet.com>
-@@ -11807,7 +11807,7 @@
+@@ -12299,7 +12299,7 @@
  
  2022-02-20  mmatera <matera@fisica.unlp.edu.ar>
  
@@ -1551,7 +1632,7 @@
  	small remaining fix
  
  2022-02-20  mmatera <matera@fisica.unlp.edu.ar>
-@@ -11862,7 +11862,7 @@
+@@ -12354,7 +12354,7 @@
  	mathics/builtin/box/graphics.py, mathics/builtin/compilation.py,
  	mathics/builtin/files_io/importexport.py,
  	mathics/builtin/inference.py, mathics/builtin/inout.py,
@@ -1560,7 +1641,7 @@
  	More leaf/leaves -> element(s) conversion
  
  2022-02-20  rocky <rb@dustyfeet.com>
-@@ -11878,7 +11878,7 @@
+@@ -12370,7 +12370,7 @@
  	mathics/builtin/drawing/graphics3d.py,
  	mathics/builtin/numbers/algebra.py, mathics/builtin/options.py,
  	mathics/builtin/string/charcodes.py,
@@ -1569,7 +1650,7 @@
  	leaf -> element replacement There are more, but I need to batch changes so I can narrow in case
  	CI fails
  
-@@ -11916,7 +11916,7 @@
+@@ -12408,7 +12408,7 @@
  	mathics/core/pattern.py, mathics/core/read.py,
  	mathics/core/rules.py, mathics/core/subexpression.py,
  	mathics/core/symbols.py, mathics/format/svg.py, mathics/main.py,
@@ -1578,7 +1659,7 @@
  	Start converting leaves -> elements elements is the term Mathematica uses. It is a perfectly appropriate
  	term. "leaves" is just plain wrong.
  
-@@ -11933,7 +11933,7 @@
+@@ -12425,7 +12425,7 @@
  
  2022-02-13  rocky <rb@dustyfeet.com>
  
@@ -1587,7 +1668,7 @@
  	docstring
  
  2022-02-13  R. Bernstein <rocky@users.noreply.github.com>
-@@ -12011,7 +12011,7 @@
+@@ -12503,7 +12503,7 @@
  	mathics/builtin/numbers/exptrig.py,
  	mathics/builtin/numbers/integer.py,
  	mathics/builtin/numbers/numbertheory.py,
@@ -1596,7 +1677,7 @@
  	Make a pass separating atomic.numbers from numeric
  
  2022-02-02  mmatera <matera@fisica.unlp.edu.ar>
-@@ -12131,7 +12131,7 @@
+@@ -12623,7 +12623,7 @@
  	which are necessarily not a NValues rule.  N[expr, prec,
  	Method->method] establishes the preferred method, by storing it in
  	the queue property _preferred_n_method of the Evaluation object.  * get_precision -> Optional[float] * Ensure precision is float and tidy... (#140) We were inconsistent about the type returned in precision.  Also
@@ -1605,7 +1686,7 @@
  	figure out.  also a stray import things noticed by my editor.  Co-authored-by: R. Bernstein <rocky@users.noreply.github.com>
  
  2022-01-25  mmatera <matera@fisica.unlp.edu.ar>
-@@ -12194,7 +12194,7 @@
+@@ -12686,7 +12686,7 @@
  	* mathics/builtin/lists.py, mathics/builtin/procedural.py,
  	mathics/core/evaluation.py, mathics/core/expression.py,
  	mathics/core/interrupt.py, mathics/main.py: clean imports, reduce
@@ -1614,7 +1695,7 @@
  	expression.py * Correct return type of Expression.evaluate() * remove unused imports including those that are imported improperly   elsewhere * import from a module only once
  
  2022-01-22  mmatera <matera@fisica.unlp.edu.ar>
-@@ -12563,7 +12563,7 @@
+@@ -13055,7 +13055,7 @@
  	* CHANGES.rst, mathics/builtin/lists.py,
  	mathics/builtin/numbers/calculus.py,
  	mathics/builtin/numbers/diffeqns.py,
@@ -1623,7 +1704,7 @@
  
  2021-11-25  mmatera <matera@fisica.unlp.edu.ar>
  
-@@ -12737,7 +12737,7 @@
+@@ -13229,7 +13229,7 @@
  
  2021-11-19  rocky <rb@dustyfeet.com>
  
@@ -1632,7 +1713,7 @@
  	``Name`` in user-visible hacky XML markup.
  
  2021-10-26  mmatera <matera@fisica.unlp.edu.ar>
-@@ -12804,7 +12804,7 @@
+@@ -13296,7 +13296,7 @@
  	* mathics/builtin/assignments/assignment.py,
  	mathics/builtin/assignments/clear.py,
  	mathics/builtin/assignments/internals.py,
@@ -1641,7 +1722,7 @@
  	Split out assignment upvalies and clear operations
  
  2021-10-16  rocky <rb@dustyfeet.com>
-@@ -12832,11 +12832,11 @@
+@@ -13324,11 +13324,11 @@
  
  	* CHANGES.rst, mathics/builtin/trace.py, mathics/core/rules.py,
  	mathics/main.py, test/test_cli.py: Add TraceBuiltins.  I moved the
@@ -1656,7 +1737,7 @@
  
  2021-10-03  rocky <rb@dustyfeet.com>
  
-@@ -12867,7 +12867,7 @@
+@@ -13359,7 +13359,7 @@
  	* .editorconfig, .github/workflows/osx.yml,
  	.github/workflows/ubuntu-cython.yml, .github/workflows/ubuntu.yml,
  	.github/workflows/windows.yml, CHANGES.rst, Makefile,
@@ -1665,7 +1746,7 @@
  	running Cython Set environment variable NO_CYTHON before running setup.py to avoid
  	running Cython even if it is installed.  Go over CHANGE.rst (note NO_CYTHON) Blacken setup.py Remove Cython except once on Ubuntu 3.9 Go over workflows, and extensions Makefile:   - when running develop include development Python modules   - add a develop target that includes Cython .github:   - Simplify by using improved develop-full and develop-full- cython
  	  target
-@@ -12947,7 +12947,7 @@
+@@ -13439,7 +13439,7 @@
  	mathics/autoload/formats/Asy/Export.m, mathics/core/atoms.py,
  	mathics/core/convert.py, mathics/core/expression.py,
  	mathics/core/read.py, mathics/core/streams.py,
@@ -1674,7 +1755,7 @@
  	SymbolMakeBoxes goes into symbols.py move systemsymbols used in symbols.py to symbols.py improving handling of circular reference flake8 flake8
  
  2021-09-21  Tiago Cavalcante Trindade <tiagotrindade111@gmail.com>
-@@ -13018,7 +13018,7 @@
+@@ -13510,7 +13510,7 @@
  	mathics/system_info.py, test/test_arithmetic.py,
  	test/test_compile.py, test/test_formatter/test_asy.py,
  	test/test_formatter/test_svg.py, test/test_hash.py,
@@ -1683,7 +1764,7 @@
  	get_style_class() -> style_class Remove useless check The code was checking if a builtin which ends
  	with "Box" is None, in this case it can't be None, because "Box" is
  	only added if the non-box version of that builtin exists Remove useless imports Remove useless None checking That was never None, and if that be, an
-@@ -13064,7 +13064,7 @@
+@@ -13556,7 +13556,7 @@
  2021-09-17  rocky <rb@dustyfeet.com>
  
  	* mathics/builtin/assignment.py, test/test_assignment.py,
@@ -1692,7 +1773,7 @@
  	Functions.  This text currently appears in Django when it is listed in a group.
  	See for example "Operations on Strings".  This PR expands that use so that this short text also appears when
  	`?xxx` or Information[xxx, LongForm->False]` is requested.  Add tests for `?` and `??`
-@@ -13263,7 +13263,7 @@
+@@ -13755,7 +13755,7 @@
  2021-08-25  mmatera <matera@fisica.unlp.edu.ar>
  
  	* mathics/builtin/numbers/constants.py,
@@ -1701,7 +1782,7 @@
  	revert some cases...  fixup: Format Python code with Black
  
  2021-08-25  mmatera <matera@fisica.unlp.edu.ar>
-@@ -13492,7 +13492,7 @@
+@@ -13984,7 +13984,7 @@
  2021-08-07  rocky <rb@dustyfeet.com>
  
  	* CHANGES.rst, mathics/builtin/numeric.py,
@@ -1710,7 +1791,7 @@
  	Add more spherical Bessel Functions
  
  2021-08-07  rocky <rb@dustyfeet.com>
-@@ -13544,7 +13544,7 @@
+@@ -14036,7 +14036,7 @@
  
  2021-08-03  rocky <rb@dustyfeet.com>
  
@@ -1719,7 +1800,7 @@
  	Aymptote: scale needs to come before figure Cuboid 2nd example. Possible workaround to ensure the 2nd test gets
  	into the doc.
  
-@@ -14009,7 +14009,7 @@
+@@ -14501,7 +14501,7 @@
  
  2021-07-01  rocky <rb@dustyfeet.com>
  
@@ -1728,7 +1809,7 @@
  	what's up and find and fix the bug.
  
  2021-07-01  rocky <rb@dustyfeet.com>
-@@ -14224,7 +14224,7 @@
+@@ -14716,7 +14716,7 @@
  
  2021-06-24  rocky <rb@dustyfeet.com>
  
@@ -1737,7 +1818,7 @@
  	Revert theta use for now.
  
  2021-06-24  rocky <rb@dustyfeet.com>
-@@ -14300,14 +14300,14 @@
+@@ -14792,14 +14792,14 @@
  	color_internals.py Note drawing/color_internals.py used to be somewhat vague name
  	drawing/colors.py. But really it just had internal color routines.  drawing/colors.py was selected because that's what the Section name
  	is in WL https://reference.wolfram.com/language/guide/Colors.html
@@ -1756,7 +1837,7 @@
  	Move spline functions to drawing
  
  2021-06-22  Tiago Cavalcante Trindade <tiagotrindade111@gmail.com>
-@@ -14397,7 +14397,7 @@
+@@ -14889,7 +14889,7 @@
  
  2021-06-18  rocky <rb@dustyfeet.com>
  
@@ -1765,7 +1846,7 @@
  	Asymptote should use evenodd crossing in polygons Like WL does. SVG was changed a little recently in another PR.
  
  2021-06-18  rocky <rb@dustyfeet.com>
-@@ -14508,7 +14508,7 @@
+@@ -15000,7 +15000,7 @@
  
  2021-06-06  rocky <rb@dustyfeet.com>
  
@@ -1774,7 +1855,7 @@
  	docpipeline: add --exclude option to exclude tests
  
  2021-06-06  rocky <rb@dustyfeet.com>
-@@ -14525,7 +14525,7 @@
+@@ -15017,7 +15017,7 @@
  
  2021-06-07  rocky <rb@dustyfeet.com>
  
@@ -1783,7 +1864,7 @@
  	Move Some FullForm tests to unit testing
  
  2021-06-07  rocky <rb@dustyfeet.com>
-@@ -14556,7 +14556,7 @@
+@@ -15048,7 +15048,7 @@
  
  2021-06-07  rocky <rb@dustyfeet.com>
  
@@ -1792,7 +1873,7 @@
  	Allow PointSize option to pass through to 3D box
  
  2021-06-07  rocky <rb@dustyfeet.com>
-@@ -14570,7 +14570,7 @@
+@@ -15062,7 +15062,7 @@
  
  2021-06-06  rocky <rb@dustyfeet.com>
  
@@ -1801,7 +1882,7 @@
  	Two more color examples
  
  2021-06-06  rocky <rb@dustyfeet.com>
-@@ -14684,7 +14684,7 @@
+@@ -15176,7 +15176,7 @@
  2021-05-31  rb@dustyfeet.conf <rocky>
  
  	* mathics/builtin/numbers/constants.py: Go over Pi doc to make
@@ -1810,7 +1891,7 @@
  
  2021-05-31  rb@dustyfeet.conf <rocky>
  
-@@ -14719,7 +14719,7 @@
+@@ -15211,7 +15211,7 @@
  
  2021-05-24  R. Bernstein <rocky@users.noreply.github.com>
  
@@ -1819,7 +1900,7 @@
  
  2021-05-24  rocky <rb@dustyfeet.com>
  
-@@ -14735,7 +14735,7 @@
+@@ -15227,7 +15227,7 @@
  
  2021-05-22  rocky <rb@dustyfeet.com>
  
@@ -1828,7 +1909,7 @@
  	Make pyston 2.2 compatible
  
  2021-05-23  R. Bernstein <rocky@users.noreply.github.com>
-@@ -15049,7 +15049,7 @@
+@@ -15541,7 +15541,7 @@
  
  2021-05-04  rocky <rb@dustyfeet.com>
  
@@ -1837,7 +1918,7 @@
  	Unprotect All and Subsets..  These are prerequisites for having Combinatorica V2.0 to load
  	without given errors.  Combinatorica v2.0 (the version that is on par with the latest book)
  	is starting to work, although testing shows it is not as good as
-@@ -15166,7 +15166,7 @@
+@@ -15658,7 +15658,7 @@
  	mathics/builtin/files_io/__init__.py, mathics/builtin/{ =>
  	files_io}/files.py, mathics/builtin/{ => files_io}/filesystem.py,
  	mathics/builtin/{ => files_io}/importexport.py, mathics/builtin/{
@@ -1846,7 +1927,7 @@
  	Segregate I/O, Files, and Filesystem builtins
  
  2021-05-01  R. Bernstein <rocky@users.noreply.github.com>
-@@ -15264,7 +15264,7 @@
+@@ -15756,7 +15756,7 @@
  2021-04-30  rocky <rb@dustyfeet.com>
  
  	* CHANGES.rst, mathics/builtin/logic.py: Add logical operations:
@@ -1855,7 +1936,7 @@
  	ConditionalExpressions.
  
  2021-04-30  mmatera <matera@fisica.unlp.edu.ar>
-@@ -15282,7 +15282,7 @@
+@@ -15774,7 +15774,7 @@
  
  2021-04-28  rocky <rb@dustyfeet.com>
  
@@ -1864,7 +1945,7 @@
  
  2021-04-28  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
  
-@@ -15384,7 +15384,7 @@
+@@ -15876,7 +15876,7 @@
  	* mathics/builtin/__init__.py, mathics/builtin/algebra.py,
  	mathics/builtin/arithmetic.py, mathics/builtin/bessel.py,
  	mathics/builtin/erf.py, mathics/builtin/legendre.py,
@@ -1873,7 +1954,7 @@
  	Split and Sort specialfunctions This is in preparation for bigger refactoring.
  
  2021-04-25  rocky <rb@dustyfeet.com>
-@@ -15491,7 +15491,7 @@
+@@ -15983,7 +15983,7 @@
  
  2021-04-20  R. Bernstein <rocky@users.noreply.github.com>
  
@@ -1882,7 +1963,7 @@
  
  2021-04-06  mmatera <matera@fisica.unlp.edu.ar>
  
-@@ -15515,7 +15515,7 @@
+@@ -16007,7 +16007,7 @@
  
  2021-04-19  rocky <rb@dustyfeet.com>
  
@@ -1891,7 +1972,7 @@
  	duplicate definitions as there had been before this commit.
  
  2021-04-19  R. Bernstein <rocky@users.noreply.github.com>
-@@ -15672,7 +15672,7 @@
+@@ -16164,7 +16164,7 @@
  
  2021-04-14  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
  
@@ -1900,7 +1981,7 @@
  	methods to isolate logic.  * Extensive comparison tests were added in test/test_compare.py
  	which use make use of the Commutative property of Equal.  * Equal, Unequal, SameQ and UnsameQ docs gone over and make explicit
  	  the commutative aspect of these operators * Integer1 symbolic constant introduced.
-@@ -15960,7 +15960,7 @@
+@@ -16452,7 +16452,7 @@
  
  2021-03-31  mmatera <matera@fisica.unlp.edu.ar>
  
@@ -1909,7 +1990,7 @@
  	conditions in SetDelayed
  
  2021-03-31  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
-@@ -16037,7 +16037,7 @@
+@@ -16529,7 +16529,7 @@
  2021-03-14  mmatera <matera@fisica.unlp.edu.ar>
  
  	* mathics/builtin/strings.py, mathics/core/expression.py,
@@ -1918,7 +1999,7 @@
  	boxes_to_text and ToString
  
  2021-03-28  R. Bernstein <rocky@users.noreply.github.com>
-@@ -16080,7 +16080,7 @@
+@@ -16572,7 +16572,7 @@
  
  	* mathics/autoload/settings.m, mathics/main.py: Microsoft
  	Windows-inspired fixes settings.m: a non-ASCII character got in here main.py: remove debug
@@ -1927,7 +2008,7 @@
  
  2021-03-27  rocky <rb@dustyfeet.com>
  
-@@ -16089,7 +16089,7 @@
+@@ -16581,7 +16581,7 @@
  
  2021-03-27  mmatera <matera@fisica.unlp.edu.ar>
  
@@ -1936,7 +2017,7 @@
  	implementing Conditions in LHS blacken
  
  2021-03-26  R. Bernstein <rocky@users.noreply.github.com>
-@@ -16138,7 +16138,7 @@
+@@ -16630,7 +16630,7 @@
  
  2021-03-25  R. Bernstein <rocky@users.noreply.github.com>
  
@@ -1945,7 +2026,7 @@
  
  2021-03-25  rocky <rb@dustyfeet.com>
  
-@@ -16181,7 +16181,7 @@
+@@ -16673,7 +16673,7 @@
  
  	* CHANGES.rst, mathics/builtin/comparison.py,
  	mathics/builtin/compilation.py, mathics/builtin/numbertheory.py,
@@ -1954,7 +2035,7 @@
  	Make a pass over documents Include deletion in conjunction of worksheets.  Go over
  	typographical setting in various new docs.
  
-@@ -16217,13 +16217,13 @@
+@@ -16709,13 +16709,13 @@
  
  2021-03-20  R. Bernstein <rocky@users.noreply.github.com>
  
@@ -1970,7 +2051,7 @@
  	optimistic that by starting this as we add more Sympy functions we
  	will be making more use of this.  I think it is better to have one way that is used regularly than
  	open-code this a number of places.
-@@ -16236,7 +16236,7 @@
+@@ -16728,7 +16728,7 @@
  
  2021-03-19  rocky <rb@dustyfeet.com>
  
@@ -1979,7 +2060,7 @@
  	Redo PartionsP using SymPy...  alphabetize numbertheory functions.
  
  2021-03-19  R. Bernstein <rocky@users.noreply.github.com>
-@@ -16298,7 +16298,7 @@
+@@ -16790,7 +16790,7 @@
  
  2021-03-14  mmatera <matera@fisica.unlp.edu.ar>
  
@@ -1988,7 +2069,7 @@
  	blacked
  
  2021-03-14  mmatera <matera@fisica.unlp.edu.ar>
-@@ -16327,7 +16327,7 @@
+@@ -16819,7 +16819,7 @@
  
  2021-02-20  mmatera <matera@fisica.unlp.edu.ar>
  
@@ -1997,7 +2078,7 @@
  	Implementing Compile for non compilable llvmlite functions as python
  	functions
  
-@@ -16443,7 +16443,7 @@
+@@ -16935,7 +16935,7 @@
  	test/test_arithmetic.py, test/test_convert.py,
  	test/test_datentime.py, test/test_file.py, test/test_hash.py,
  	test/test_numpy_utils.py, test/test_parser/test_parser.py: More M$
@@ -2006,7 +2087,7 @@
  
  2021-03-09  mmatera <matera@fisica.unlp.edu.ar>
  
-@@ -16463,7 +16463,7 @@
+@@ -16955,7 +16955,7 @@
  
  2021-03-09  rocky <rb@dustyfeet.com>
  
@@ -2015,7 +2096,7 @@
  	Try Windows CI. One more duplicate key commented out
  
  2021-03-09  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
-@@ -16682,7 +16682,7 @@
+@@ -17174,7 +17174,7 @@
  
  2021-02-28  rocky <rb@dustyfeet.com>
  
@@ -2024,7 +2105,7 @@
  	More lint-like things
  
  2021-02-27  rocky <rb@dustyfeet.com>
-@@ -16744,7 +16744,7 @@
+@@ -17236,7 +17236,7 @@
  
  2021-02-21  mmatera <matera@fisica.unlp.edu.ar>
  
@@ -2033,7 +2114,7 @@
  
  	https://github.com/mathics/Mathics/pull/1160#pullrequestreview-594830742
  
-@@ -16760,7 +16760,7 @@
+@@ -17252,7 +17252,7 @@
  
  2021-02-07  mmatera <matera@fisica.unlp.edu.ar>
  
@@ -2042,7 +2123,7 @@
  	inactivating show tests for Information in documentation
  
  2021-02-06  mmatera <matera@fisica.unlp.edu.ar>
-@@ -16794,7 +16794,7 @@
+@@ -17286,7 +17286,7 @@
  
  2021-02-20  mmatera <matera@fisica.unlp.edu.ar>
  
@@ -2051,7 +2132,7 @@
  	Implementing Compile for non compilable llvmlite functions as python
  	functions
  
-@@ -16928,7 +16928,7 @@
+@@ -17420,7 +17420,7 @@
  
  2021-02-07  mmatera <matera@fisica.unlp.edu.ar>
  
@@ -2060,7 +2141,7 @@
  	inactivating show tests for Information in documentation
  
  2021-02-07  rocky <rb@dustyfeet.com>
-@@ -16969,7 +16969,7 @@
+@@ -17461,7 +17461,7 @@
  
  2021-02-06  mmatera <matera@fisica.unlp.edu.ar>
  
@@ -2069,7 +2150,7 @@
  	fixing accuracy
  
  2021-02-06  mmatera <matera@fisica.unlp.edu.ar>
-@@ -17016,7 +17016,7 @@
+@@ -17508,7 +17508,7 @@
  
  2021-02-06  rocky <rb@dustyfeet.com>
  
@@ -2078,7 +2159,7 @@
  	Use a released version of mathics-parser
  
  2021-02-06  mmatera <matera@fisica.unlp.edu.ar>
-@@ -17060,7 +17060,7 @@
+@@ -17552,7 +17552,7 @@
  
  2021-02-02  mmatera <matera@fisica.unlp.edu.ar>
  
@@ -2087,7 +2168,7 @@
  
  2021-02-01  mmatera <matera@fisica.unlp.edu.ar>
  
-@@ -17089,7 +17089,7 @@
+@@ -17581,7 +17581,7 @@
  2021-02-01  rocky <rb@dustyfeet.com>
  
  	* mathics/builtin/assignment.py, mathics/builtin/constants.py,
@@ -2096,7 +2177,7 @@
  
  2021-01-31  mmatera <matera@fisica.unlp.edu.ar>
  
-@@ -17209,7 +17209,7 @@
+@@ -17701,7 +17701,7 @@
  
  2021-01-24  rocky <rb@dustyfeet.com>
  
@@ -2105,7 +2186,7 @@
  	constant is preferred.
  
  2021-01-24  rocky <rb@dustyfeet.com>
-@@ -17219,7 +17219,7 @@
+@@ -17711,7 +17711,7 @@
  	mathics/builtin/comparison.py, mathics/builtin/constants.py,
  	mathics/builtin/exptrig.py, mathics/version.py,
  	test/test_combinatorica.py: Split off constants This is in preparation for constant expansion and handling new
@@ -2114,7 +2195,7 @@
  
  2021-01-24  R. Bernstein <rocky@users.noreply.github.com>
  
-@@ -17346,7 +17346,7 @@
+@@ -17838,7 +17838,7 @@
  
  	* mathics/core/util.py: Fixed a bug that aliased named character
  	whose WL representation is the same as it's unicode equivalent to
@@ -2123,7 +2204,7 @@
  
  2021-01-14  Pablo Emilio Escobar Gaviria <pablo-escobar@riseup.net>
  
-@@ -17678,7 +17678,7 @@
+@@ -18170,7 +18170,7 @@
  2020-12-31  mmatera <matera@fisica.unlp.edu.ar>
  
  	* mathics/builtin/xmlformat.py, mathics/core/characters.py,
@@ -2132,7 +2213,7 @@
  	misc
  
  2020-12-31  mmatera <matera@fisica.unlp.edu.ar>
-@@ -17770,7 +17770,7 @@
+@@ -18262,7 +18262,7 @@
  2020-12-27  rocky <rb@dustyfeet.com>
  
  	* mathics/builtin/graphics3d.py, mathics/doc/doc.py: Finally!
@@ -2141,7 +2222,7 @@
  
  2020-12-26  rocky <rb@dustyfeet.com>
  
-@@ -18926,7 +18926,7 @@
+@@ -19418,7 +19418,7 @@
  
  	* CHANGES.rst, mathics/builtin/arithmetic.py,
  	mathics/builtin/attributes.py, mathics/builtin/image.py,
@@ -2150,7 +2231,7 @@
  	release 1.1.1
  
  2020-12-23  R. Bernstein <rocky@users.noreply.github.com>
-@@ -18944,7 +18944,7 @@
+@@ -19436,7 +19436,7 @@
  
  2020-11-19  mmatera <matera@fisica.unlp.edu.ar>
  
@@ -2159,7 +2240,7 @@
  	improving Needs to do not load again packages already loaded
  
  2020-11-16  mmatera <matera@fisica.unlp.edu.ar>
-@@ -19000,7 +19000,7 @@
+@@ -19492,7 +19492,7 @@
  
  2020-12-20  rocky <rb@dustyfeet.com>
  
@@ -2168,7 +2249,7 @@
  	Small doc improvements.
  
  2020-12-20  R. Bernstein <rocky@users.noreply.github.com>
-@@ -19195,7 +19195,7 @@
+@@ -19687,7 +19687,7 @@
  
  2020-12-07  rocky <rb@dustyfeet.com>
  
@@ -2177,7 +2258,7 @@
  	Tuples[expr_, n_] -> Tuples[expr_, n_Integer]...  since that's what we currently handle.  In the future we should expand to Tuples[{list1, list2, ...}] Some white space and blackening done too.
  
  2020-12-07  rocky <rb@dustyfeet.com>
-@@ -19232,7 +19232,7 @@
+@@ -19724,7 +19724,7 @@
  
  	* mathics/builtin/image.py, setup.py: Two bugs noticed...  setup.py: builtin/image.py directly imports wordcloud but that is
  	not in setup.py Not sure why this wasn't seen before. Maybe some
@@ -2186,7 +2267,7 @@
  	here, it should be mentioned in setup.py mathics/builtin/image.py: now that from_python distinguishs ints
  	from bools image data needs to be converted to an "int" not a
  	"bool".  Otherwise, we get: 1867 ( 4): TEST ImageData[Image[{{0, 1}, {1, 0}, {1, 1}}], "Bit"]
-@@ -19416,7 +19416,7 @@
+@@ -19908,7 +19908,7 @@
  2020-11-22  rocky <rb@dustyfeet.com>
  
  	* mathics/packages/DiscreteMath/CombinatoricaLite.m,
@@ -2195,7 +2276,7 @@
  	Expand via combinatorica 0.6 routines From combinatorica 0.6 add: * BinarySearch, * KSubsets, From combinatorica 2.0 add: * Compostions, * CyclicGroup, * DihedralGroupIndex, * OrbitInventory, * KSetPartitions, * TransposePartition * SetPartitions * LastLexicogrpahicTableau Add test/helper.py to DRY testing.
  
  2020-11-22  R. Bernstein <rocky@users.noreply.github.com>
-@@ -19480,16 +19480,16 @@
+@@ -19972,16 +19972,16 @@
  	examples/combinatorica/test-c.sh, examples/test_driver.m,
  	examples/combinatorica/c-small.m =>
  	mathics/autoload/combinatorica/CombinatoricaSmall.m,
@@ -2215,7 +2296,7 @@
  	Failed attempt at adding binary search
  
  2020-11-21  rocky <rb@dustyfeet.com>
-@@ -19509,7 +19509,7 @@
+@@ -20001,7 +20001,7 @@
  	examples/symbolic_logic/gries_schneider/GS1.m,
  	examples/symbolic_logic/gries_schneider/GS2.m,
  	examples/symbolic_logic/gries_schneider/GS3.m,
@@ -2224,7 +2305,7 @@
  	Start combinatorica examples Basically try the examples in the first page of the book.  The test
  	harness has been move from GS0.m to test_driver.m so we can reuse
  	it. (It really doesn't have anything to do with Gries-Schneider
-@@ -19588,7 +19588,7 @@
+@@ -20080,7 +20080,7 @@
  
  2020-11-14  mmatera <matera@fisica.unlp.edu.ar>
  
@@ -2233,7 +2314,7 @@
  	protect
  
  2020-11-14  mmatera <matera@fisica.unlp.edu.ar>
-@@ -19619,7 +19619,7 @@
+@@ -20111,7 +20111,7 @@
  
  2020-11-07  Juan Mauricio Matera <matera@fisica.unlp.edu.ar>
  
@@ -2242,7 +2323,7 @@
  
  2020-11-05  weakit <vsroshan86@gmail.com>
  
-@@ -19712,7 +19712,7 @@
+@@ -20204,7 +20204,7 @@
  
  2020-10-26  mmatera <matera@fisica.unlp.edu.ar>
  
@@ -2251,7 +2332,7 @@
  	fixing ReplaceAll tokenizer with lookahead regexp
  
  2020-10-26  mmatera <matera@fisica.unlp.edu.ar>
-@@ -19752,7 +19752,7 @@
+@@ -20244,7 +20244,7 @@
  	* mathics/builtin/integer.py, mathics/builtin/numeric.py,
  	mathics/builtin/options.py, mathics/builtin/patterns.py,
  	mathics/builtin/strings.py,
@@ -2260,7 +2341,7 @@
  	Title Capitalization; StringInsert examples
  
  2020-10-18  R. Bernstein <rocky@users.noreply.github.com>
-@@ -19820,7 +19820,7 @@
+@@ -20312,7 +20312,7 @@
  
  2020-10-15  rocky <rb@dustyfeet.com>
  
@@ -2269,7 +2350,7 @@
  	Simplify doc building And try not to duplication running tests
  
  2020-10-15  rocky <rb@dustyfeet.com>
-@@ -19834,7 +19834,7 @@
+@@ -20326,7 +20326,7 @@
  
  2020-10-14  rocky <rb@dustyfeet.com>
  
@@ -2278,7 +2359,7 @@
  	Don't be sensitive in testing to SansSerif..
  
  2020-10-14  rocky <rb@dustyfeet.com>
-@@ -20001,7 +20001,7 @@
+@@ -20493,7 +20493,7 @@
  2020-10-07  rocky <rb@dustyfeet.com>
  
  	* mathics/builtin/datentime.py, mathics/builtin/evaluation.py,
@@ -2287,7 +2368,7 @@
  	Add --keep-going, and --doc-only...  And also go over more test doc descriptions.  Fixes #947
  
  2020-10-07  rocky <rb@dustyfeet.com>
-@@ -20102,7 +20102,7 @@
+@@ -20594,7 +20594,7 @@
  
  2020-10-05  rocky <rb@dustyfeet.com>
  
@@ -2296,7 +2377,7 @@
  	not set --count is expected to facilitate going over the docstrings for new
  	builtins
  
-@@ -20139,7 +20139,7 @@
+@@ -20631,7 +20631,7 @@
  2020-10-04  rocky <rb@dustyfeet.com>
  
  	* Makefile, mathics/web/urls.py, mathics/web/views.py, setup.py: 4
@@ -2305,7 +2386,7 @@
  	     the corresponding graphs pymathics module views.py: remove some
  	unused imports Makefile: A better description of what "doc" is
  	about.
-@@ -20329,7 +20329,7 @@
+@@ -20821,7 +20821,7 @@
  
  2016-10-13  Bernhard Liebl <Bernhard.Liebl@gmx.org>
  
@@ -2314,7 +2395,7 @@
  	unification with _sequences
  
  2016-10-13  Bernhard Liebl <Bernhard.Liebl@gmx.org>
-@@ -20435,7 +20435,7 @@
+@@ -20927,7 +20927,7 @@
  2020-09-27  rocky <rb@dustyfeet.com>
  
  	* README.rst: Revise docker setup instructions https://hub.docker.com/repository/docker/rockyb/mathics has a more
@@ -2323,7 +2404,7 @@
  	important. Never let perfection get in the way of progress.  Issue #927 has been created to track remaining steps.
  
  2020-09-27  R. Bernstein <rocky@users.noreply.github.com>
-@@ -22386,7 +22386,7 @@
+@@ -22878,7 +22878,7 @@
  
  2020-09-27  rocky <rb@dustyfeet.com>
  
@@ -2332,7 +2413,7 @@
  
  2020-09-27  Pablo Emilio Escobar Gaviria <pablo-escobar@riseup.net>
  
-@@ -22395,7 +22395,7 @@
+@@ -22887,7 +22887,7 @@
  2020-09-27  Pablo Emilio Escobar Gaviria <pablo-escobar@riseup.net>
  
  	* COPYING.txt, README.rst, mathics/doc/documentation/1-Manual.mdoc,
@@ -2341,7 +2422,7 @@
  	Updated the links in the documentation to point to mathics.org
  	instead of mathics.github.io
  
-@@ -22503,20 +22503,20 @@
+@@ -22995,20 +22995,20 @@
  
  2020-09-19  mmatera <matera@fisica.unlp.edu.ar>
  
@@ -2366,7 +2447,7 @@
  	fixing 1-Manual.doc and Format
  
  2020-09-19  mmatera <matera@fisica.unlp.edu.ar>
-@@ -22699,11 +22699,11 @@
+@@ -23191,11 +23191,11 @@
  
  2020-09-16  Pablo Emilio Escobar Gaviria <pablo-escobar@riseup.net>
  
@@ -2380,7 +2461,7 @@
  
  2020-09-16  Gark Garcia <37553739+GarkGarcia@users.noreply.github.com>
  
-@@ -22992,12 +22992,12 @@
+@@ -23484,12 +23484,12 @@
  	=> admin-tools/release.sh, test/test_console.py, tox.ini: Build and
  	Doc tweaks .gitignore: There is a lot of stuff in mathics/doc/tex that is
  	derived and should be ignored Makefile: Add a top-level Makefile to simplify most of the routine
@@ -2395,7 +2476,7 @@
  
  2019-06-06  mmatera <matera@fisica.unlp.edu.ar>
  
-@@ -23014,7 +23014,7 @@
+@@ -23506,7 +23506,7 @@
  
  2020-09-12  Gark Garcia <37553739+GarkGarcia@users.noreply.github.com>
  
@@ -2404,7 +2485,7 @@
  
  2020-09-12  Gark Garcia <37553739+GarkGarcia@users.noreply.github.com>
  
-@@ -23056,7 +23056,7 @@
+@@ -23548,7 +23548,7 @@
  
  2020-09-11  rocky <rb@dustyfeet.com>
  
@@ -2413,7 +2494,7 @@
  
  2020-09-11  Gark Garcia <37553739+GarkGarcia@users.noreply.github.com>
  
-@@ -23128,7 +23128,7 @@
+@@ -23620,7 +23620,7 @@
  2020-09-11  Gark Garcia <37553739+GarkGarcia@users.noreply.github.com>
  
  	* : Merge pull request #859 from
@@ -2422,7 +2503,7 @@
  
  2020-09-11  Gark Garcia <37553739+GarkGarcia@users.noreply.github.com>
  
-@@ -23143,7 +23143,7 @@
+@@ -23635,7 +23635,7 @@
  
  	* .travis.yml, mathics/doc/doc.py, mathics/doc/images.sh,
  	mathics/doc/tex/Makefile: fixing dependencies "convert" from imagemagick produces an error due to new security
@@ -2431,7 +2512,7 @@
  	able to make the conversion, I just removed imagemagick from the
  	dependencies, using here just inkscape adding escape characters to latex filter showing errors in documentation compiling
  
-@@ -23376,8 +23376,8 @@
+@@ -23868,8 +23868,8 @@
  2020-09-06  Pablo Emilio Escobar Gaviria <pablo-escobar@riseup.net>
  
  	* mathics/builtin/linalg.py: Reverted the decision to normalize the
@@ -2442,7 +2523,7 @@
  
  2020-09-06  Pablo Emilio Escobar Gaviria <pablo-escobar@riseup.net>
  
-@@ -23385,21 +23385,21 @@
+@@ -23877,21 +23877,21 @@
  
  2020-09-06  Pablo Emilio Escobar Gaviria <pablo-escobar@riseup.net>
  
@@ -2468,7 +2549,7 @@
  	generator, so next(neighobors) is used instead of neighbors[0] An unused import and trailing blanks have been removed. (My editor
  	did the latter, my programming environment suggested removing the
  	unused import)
-@@ -23510,7 +23510,7 @@
+@@ -24002,7 +24002,7 @@
  2020-09-03  Pablo Emilio Escobar Gaviria <pablo-escobar@riseup.net>
  
  	* mathics/builtin/functional.py, mathics/core/expression.py: Fixed
@@ -2477,7 +2558,7 @@
  
  2020-09-03  Gark Garcia <37553739+GarkGarcia@users.noreply.github.com>
  
-@@ -23531,7 +23531,7 @@
+@@ -24023,7 +24023,7 @@
  
  2020-09-01  Pablo Emilio Escobar Gaviria <pablo-escobar@riseup.net>
  
@@ -2486,7 +2567,7 @@
  	expansion
  
  2020-08-30  Gark Garcia <37553739+GarkGarcia@users.noreply.github.com>
-@@ -23558,7 +23558,7 @@
+@@ -24050,7 +24050,7 @@
  
  2020-08-29  Pablo Emilio Escobar Gaviria <pablo-escobar@riseup.net>
  
@@ -2495,7 +2576,7 @@
  	implementation
  
  2020-08-29  Bernhard Liebl <poke1024@gmx.de>
-@@ -23727,12 +23727,12 @@
+@@ -24219,12 +24219,12 @@
  2020-08-26  Pablo Emilio Escobar Gaviria <pablo-escobar@riseup.net>
  
  	* mathics/builtin/calculus.py: Revert "Adjusted the index check to
@@ -2510,7 +2591,7 @@
  
  2020-08-26  mmatera <matera@fisica.unlp.edu.ar>
  
-@@ -23948,7 +23948,7 @@
+@@ -24440,7 +24440,7 @@
  
  2019-05-26  Ð¡ÑƒÑ…Ð°Ñ€Ð¸Ðº <suhr@i2pmail.org>
  
@@ -2519,7 +2600,7 @@
  	Add big O conversion
  
  2019-05-25  Ð¡ÑƒÑ…Ð°Ñ€Ð¸Ðº <suhr@i2pmail.org>
-@@ -24225,7 +24225,7 @@
+@@ -24717,7 +24717,7 @@
  
  2017-03-20  Long Nguyen <longnkh@elarion.com>
  
@@ -2528,7 +2609,7 @@
  	to_sympy errors handling
  
  2017-03-20  Long Nguyen <longnkh@elarion.com>
-@@ -24369,7 +24369,7 @@
+@@ -24861,7 +24861,7 @@
  
  2016-12-28  Angus Griffith <16sn6uv@gmail.com>
  
@@ -2537,7 +2618,7 @@
  	cleanup parser code
  
  2016-12-28  Angus Griffith <16sn6uv@gmail.com>
-@@ -24382,7 +24382,7 @@
+@@ -24874,7 +24874,7 @@
  	mathics/core/parser/ast.py, mathics/core/parser/convert.py,
  	mathics/core/parser/feed.py, mathics/core/parser/parser.py,
  	mathics/core/parser/prescanner.py,
@@ -2546,7 +2627,7 @@
  	fix #654
  
  2016-12-28  Angus Griffith <16sn6uv@gmail.com>
-@@ -25167,7 +25167,7 @@
+@@ -25659,7 +25659,7 @@
  
  2016-09-26  Bernhard Liebl <Bernhard.Liebl@gmx.org>
  
@@ -2555,7 +2636,7 @@
  	added display="block" to fix Jupyter display problems
  
  2016-09-25  Angus Griffith <16sn6uv@gmail.com>
-@@ -25176,7 +25176,7 @@
+@@ -25668,7 +25668,7 @@
  
  2016-09-25  Bernhard Liebl <Bernhard.Liebl@gmx.org>
  
@@ -2564,7 +2645,7 @@
  	fixes test cases
  
  2016-09-25  Bernhard Liebl <Bernhard.Liebl@gmx.org>
-@@ -25300,7 +25300,7 @@
+@@ -25792,7 +25792,7 @@
  2016-09-21  Bernhard Liebl <Bernhard.Liebl@gmx.org>
  
  	* mathics/builtin/strings.py: unicode, support for multiple
@@ -2573,7 +2654,7 @@
  
  2016-09-21  Bernhard Liebl <Bernhard.Liebl@gmx.org>
  
-@@ -25392,7 +25392,7 @@
+@@ -25884,7 +25884,7 @@
  	* mathics/builtin/__init__.py, mathics/builtin/compilation.py,
  	mathics/builtin/compile/__init__.py,
  	mathics/builtin/compile/base.py, mathics/builtin/compile/ir.py,
@@ -2582,7 +2663,7 @@
  	implement Compile and CompiledFunction
  
  2016-09-14  Angus Griffith <16sn6uv@gmail.com>
-@@ -25450,7 +25450,7 @@
+@@ -25942,7 +25942,7 @@
  2016-09-14  Angus Griffith <16sn6uv@gmail.com>
  
  	* mathics/builtin/compile.py, test/test_compile.py: implement Equal,
@@ -2591,7 +2672,7 @@
  
  2016-09-14  Angus Griffith <16sn6uv@gmail.com>
  
-@@ -25512,7 +25512,7 @@
+@@ -26004,7 +26004,7 @@
  
  2016-09-20  Bernhard Liebl <Bernhard.Liebl@gmx.org>
  
@@ -2600,7 +2681,7 @@
  	StringCases, Shortest, Longest
  
  2016-09-20  Angus Griffith <16sn6uv@gmail.com>
-@@ -25521,7 +25521,7 @@
+@@ -26013,7 +26013,7 @@
  
  2016-09-20  Angus Griffith <16sn6uv@gmail.com>
  
@@ -2609,7 +2690,7 @@
  
  2016-09-20  Angus Griffith <16sn6uv@gmail.com>
  
-@@ -25595,7 +25595,7 @@
+@@ -26087,7 +26087,7 @@
  
  2016-09-17  Bernhard Liebl <Bernhard.Liebl@gmx.org>
  
@@ -2618,7 +2699,7 @@
  
  2016-09-17  Angus Griffith <16sn6uv@gmail.com>
  
-@@ -25814,12 +25814,12 @@
+@@ -26306,12 +26306,12 @@
  
  2016-05-19  Bernhard Liebl <Bernhard.Liebl@gmx.org>
  
@@ -2633,7 +2714,7 @@
  	$OutputSizeLimit support for OutputForm
  
  2016-05-18  Bernhard Liebl <Bernhard.Liebl@gmx.org>
-@@ -25996,7 +25996,7 @@
+@@ -26488,7 +26488,7 @@
  2016-09-11  Josh Chen <jaycech3n@gmail.com>
  
  	* mathics/web/media/css/styles.css,
@@ -2642,7 +2723,7 @@
  	Checkpoint commit before starting rewrite of undo-redo
  
  2016-09-11  Piruzzolo <svlmrc@gmail.com>
-@@ -26061,7 +26061,7 @@
+@@ -26553,7 +26553,7 @@
  2016-09-10  Josh Chen <jaycech3n@gmail.com>
  
  	* mathics/web/media/css/styles.css,
@@ -2651,7 +2732,7 @@
  	Animate logo when working
  
  2016-09-10  Josh Chen <jaycech3n@gmail.com>
-@@ -26486,7 +26486,7 @@
+@@ -26978,7 +26978,7 @@
  
  2016-06-23  Bernhard Liebl <Bernhard.Liebl@gmx.org>
  
@@ -2660,7 +2741,7 @@
  
  2016-06-23  Bernhard Liebl <Bernhard.Liebl@gmx.org>
  
-@@ -26504,7 +26504,7 @@
+@@ -26996,7 +26996,7 @@
  
  	* mathics/builtin/colors.py,
  	mathics/builtin/numpy_utils/with_numpy.py,
@@ -2669,7 +2750,7 @@
  	work in progress: bug fixes, test cases
  
  2016-06-16  Bernhard Liebl <Bernhard.Liebl@gmx.org>
-@@ -26517,7 +26517,7 @@
+@@ -27009,7 +27009,7 @@
  	numpy_utils}/__init__.py, mathics/builtin/{numpy =>
  	numpy_utils}/with_numpy.py, mathics/builtin/{numpy =>
  	numpy_utils}/without_numpy.py, mathics/builtin/randomnumbers.py,
@@ -2678,7 +2759,7 @@
  	renamed package "numpy" back to "numpy_utils"
  
  2016-06-16  Bernhard Liebl <Bernhard.Liebl@gmx.org>
-@@ -26526,7 +26526,7 @@
+@@ -27018,7 +27018,7 @@
  	mathics/builtin/numpy/with_numpy.py,
  	mathics/builtin/numpy/without_numpy.py,
  	mathics/builtin/numpy_utils.py, mathics/builtin/randomnumbers.py,
@@ -2687,7 +2768,7 @@
  	moved numpy_utils into a new "numpy" package
  
  2016-06-15  Bernhard Liebl <Bernhard.Liebl@gmx.org>
-@@ -26563,13 +26563,13 @@
+@@ -27055,13 +27055,13 @@
  2016-06-14  Bernhard Liebl <Bernhard.Liebl@gmx.org>
  
  	* mathics/builtin/colors.py, mathics/builtin/graphics.py,
@@ -2703,7 +2784,7 @@
  
  2016-06-04  Bernhard Liebl <Bernhard.Liebl@gmx.org>
  
-@@ -26767,7 +26767,7 @@
+@@ -27259,7 +27259,7 @@
  
  2016-08-22  Bernhard Liebl <Bernhard.Liebl@gmx.org>
  
@@ -2712,7 +2793,7 @@
  	fixes for to_sympy in non-binary comparisons, fixes for Piecewise[]
  
  2016-08-19  Bernhard Liebl <Bernhard.Liebl@gmx.org>
-@@ -26862,7 +26862,7 @@
+@@ -27354,7 +27354,7 @@
  
  2016-07-17  Bernhard Liebl <Bernhard.Liebl@gmx.org>
  
@@ -2721,7 +2802,7 @@
  	silhouette and dunn as default k criteria; use fsum where possible;
  	major cleanup
  
-@@ -26926,7 +26926,7 @@
+@@ -27418,7 +27418,7 @@
  
  2016-07-09  Bernhard Liebl <Bernhard.Liebl@gmx.org>
  
@@ -2730,7 +2811,7 @@
  	ClusteringComponents[]: better test cases, fixes a bug with
  	Agglomerate
  
-@@ -26941,7 +26941,7 @@
+@@ -27433,7 +27433,7 @@
  
  2016-07-09  Bernhard Liebl <Bernhard.Liebl@gmx.org>
  
@@ -2739,7 +2820,7 @@
  	DistanceFunction option for FindClusters[]
  
  2016-07-09  Bernhard Liebl <Bernhard.Liebl@gmx.org>
-@@ -27097,7 +27097,7 @@
+@@ -27589,7 +27589,7 @@
  
  2016-05-05  Angus Griffith <16sn6uv@gmail.com>
  
@@ -2748,7 +2829,7 @@
  
  2016-05-05  Angus Griffith <16sn6uv@gmail.com>
  
-@@ -27233,7 +27233,7 @@
+@@ -27725,7 +27725,7 @@
  
  2016-04-27  Bernhard Liebl <Bernhard.Liebl@gmx.org>
  
@@ -2757,7 +2838,7 @@
  	basic support for images (python 3 version)
  
  2016-08-16  Bernhard Liebl <Bernhard.Liebl@rz.uni-regensburg.de>
-@@ -27448,7 +27448,7 @@
+@@ -27940,7 +27940,7 @@
  
  2016-08-09  Bernhard Liebl <Bernhard.Liebl@gmx.org>
  
@@ -2766,7 +2847,7 @@
  	cleanup
  
  2016-08-09  Bernhard Liebl <Bernhard.Liebl@gmx.org>
-@@ -27526,7 +27526,7 @@
+@@ -28018,7 +28018,7 @@
  
  2016-08-06  Angus Griffith <16sn6uv@gmail.com>
  
@@ -2775,7 +2856,7 @@
  	MachineReal unittests
  
  2016-08-05  Angus Griffith <16sn6uv@gmail.com>
-@@ -27715,7 +27715,7 @@
+@@ -28207,7 +28207,7 @@
  
  2016-07-29  Angus Griffith <16sn6uv@gmail.com>
  
@@ -2784,7 +2865,7 @@
  	implement mpmath machine precision workaround
  
  2016-07-29  Angus Griffith <16sn6uv@gmail.com>
-@@ -27744,7 +27744,7 @@
+@@ -28236,7 +28236,7 @@
  
  	* mathics/builtin/arithmetic.py, mathics/builtin/files.py,
  	mathics/builtin/numeric.py, mathics/builtin/randomnumbers.py,
@@ -2793,7 +2874,7 @@
  
  2016-07-26  Angus Griffith <16sn6uv@gmail.com>
  
-@@ -27778,7 +27778,7 @@
+@@ -28270,7 +28270,7 @@
  2016-07-21  Angus Griffith <16sn6uv@gmail.com>
  
  	* mathics/builtin/exptrig.py, mathics/builtin/numeric.py,
@@ -2802,7 +2883,7 @@
  	MachineReal support for N
  
  2016-07-21  Angus Griffith <16sn6uv@gmail.com>
-@@ -28271,7 +28271,7 @@
+@@ -28763,7 +28763,7 @@
  
  2016-07-06  Angus Griffith <16sn6uv@gmail.com>
  
@@ -2811,7 +2892,7 @@
  	fix #431 and #274
  
  2016-07-05  Angus Griffith <16sn6uv@gmail.com>
-@@ -28288,7 +28288,7 @@
+@@ -28780,7 +28780,7 @@
  	* mathics/builtin/arithmetic.py, mathics/builtin/calculus.py,
  	mathics/builtin/control.py, mathics/builtin/exptrig.py,
  	mathics/builtin/graphics3d.py, mathics/builtin/linalg.py,
@@ -2820,7 +2901,7 @@
  	fix some precision tests
  
  2016-07-04  Angus Griffith <16sn6uv@gmail.com>
-@@ -28497,12 +28497,12 @@
+@@ -28989,12 +28989,12 @@
  
  2016-06-23  Angus Griffith <16sn6uv@gmail.com>
  
@@ -2835,7 +2916,7 @@
  	remove ExpressionGenerator
  
  2016-06-22  Angus Griffith <16sn6uv@gmail.com>
-@@ -28518,7 +28518,7 @@
+@@ -29010,7 +29010,7 @@
  
  2016-06-22  Angus Griffith <16sn6uv@gmail.com>
  
@@ -2844,7 +2925,7 @@
  	flatten unary plus too
  
  2016-06-22  Angus Griffith <16sn6uv@gmail.com>
-@@ -28532,7 +28532,7 @@
+@@ -29024,7 +29024,7 @@
  
  2016-06-22  Angus Griffith <16sn6uv@gmail.com>
  
@@ -2853,7 +2934,7 @@
  	fix operator precedences
  
  2016-06-21  Angus Griffith <16sn6uv@gmail.com>
-@@ -28643,7 +28643,7 @@
+@@ -29135,7 +29135,7 @@
  
  2016-06-18  Angus Griffith <16sn6uv@gmail.com>
  
@@ -2862,7 +2943,7 @@
  	tokeniser modes
  
  2016-06-18  Angus Griffith <16sn6uv@gmail.com>
-@@ -28680,7 +28680,7 @@
+@@ -29172,7 +29172,7 @@
  
  2016-06-16  Angus Griffith <16sn6uv@gmail.com>
  
@@ -2871,7 +2952,7 @@
  	add Backslash token (different to RawBackslash)
  
  2016-06-16  Angus Griffith <16sn6uv@gmail.com>
-@@ -28697,12 +28697,12 @@
+@@ -29189,12 +29189,12 @@
  
  2016-06-16  Angus Griffith <16sn6uv@gmail.com>
  
@@ -2886,7 +2967,7 @@
  	tokenise slot symb
  
  2016-06-16  Angus Griffith <16sn6uv@gmail.com>
-@@ -28831,7 +28831,7 @@
+@@ -29323,7 +29323,7 @@
  
  2016-06-12  Angus Griffith <16sn6uv@gmail.com>
  
@@ -2895,7 +2976,7 @@
  	boolean op parsing
  
  2016-06-12  Angus Griffith <16sn6uv@gmail.com>
-@@ -28841,7 +28841,7 @@
+@@ -29333,7 +29333,7 @@
  2016-06-12  Angus Griffith <16sn6uv@gmail.com>
  
  	* mathics/core/parser/ast.py, mathics/core/parser/operators.py,
@@ -2904,7 +2985,7 @@
  	inequality parsing
  
  2016-06-12  Angus Griffith <16sn6uv@gmail.com>
-@@ -28872,7 +28872,7 @@
+@@ -29364,7 +29364,7 @@
  
  2016-06-10  Angus Griffith <16sn6uv@gmail.com>
  
@@ -2913,7 +2994,7 @@
  	fix Postfix parsing
  
  2016-06-10  Angus Griffith <16sn6uv@gmail.com>
-@@ -28979,12 +28979,12 @@
+@@ -29471,12 +29471,12 @@
  
  2016-06-06  Angus Griffith <16sn6uv@gmail.com>
  
@@ -2928,7 +3009,7 @@
  	implement all_operator_names
  
  2016-06-06  Angus Griffith <16sn6uv@gmail.com>
-@@ -29039,7 +29039,7 @@
+@@ -29531,7 +29531,7 @@
  
  2016-06-05  Angus Griffith <16sn6uv@gmail.com>
  
@@ -2937,7 +3018,7 @@
  	Prefix @ parsing
  
  2016-06-05  Angus Griffith <16sn6uv@gmail.com>
-@@ -29053,7 +29053,7 @@
+@@ -29545,7 +29545,7 @@
  
  2016-06-05  Angus Griffith <16sn6uv@gmail.com>
  
@@ -2946,7 +3027,7 @@
  	postfix parsing
  
  2016-06-05  Angus Griffith <16sn6uv@gmail.com>
-@@ -29078,7 +29078,7 @@
+@@ -29570,7 +29570,7 @@
  
  2016-06-05  Angus Griffith <16sn6uv@gmail.com>
  
@@ -2955,7 +3036,7 @@
  	fix integral parsing
  
  2016-06-05  Angus Griffith <16sn6uv@gmail.com>
-@@ -29091,7 +29091,7 @@
+@@ -29583,7 +29583,7 @@
  
  2016-06-05  Angus Griffith <16sn6uv@gmail.com>
  
@@ -2964,7 +3045,7 @@
  	fix repreated int bug
  
  2016-06-05  Angus Griffith <16sn6uv@gmail.com>
-@@ -29111,12 +29111,12 @@
+@@ -29603,12 +29603,12 @@
  
  2016-06-05  Angus Griffith <16sn6uv@gmail.com>
  
@@ -2979,7 +3060,7 @@
  	defaultdict for all_ops
  
  2016-06-05  Angus Griffith <16sn6uv@gmail.com>
-@@ -29151,7 +29151,7 @@
+@@ -29643,7 +29643,7 @@
  
  2016-06-04  Angus Griffith <16sn6uv@gmail.com>
  
@@ -2988,7 +3069,7 @@
  	cleanup parser tests
  
  2016-06-04  Angus Griffith <16sn6uv@gmail.com>
-@@ -29206,7 +29206,7 @@
+@@ -29698,7 +29698,7 @@
  
  2016-06-04  Angus Griffith <16sn6uv@gmail.com>
  
@@ -2997,7 +3078,7 @@
  	rename ParseError to TranslateError
  
  2016-06-04  Angus Griffith <16sn6uv@gmail.com>
-@@ -29223,7 +29223,7 @@
+@@ -29715,7 +29715,7 @@
  	mathics/core/parser/ast.py, mathics/core/parser/convert.py,
  	mathics/core/parser/errors.py, mathics/core/parser/operators.py,
  	mathics/core/parser/parser.py, mathics/core/parser/prescanner.py,
@@ -3006,7 +3087,7 @@
  	recursive descent parser
  
  2016-06-12  Angus Griffith <16sn6uv@gmail.com>
-@@ -29509,7 +29509,7 @@
+@@ -30001,7 +30001,7 @@
  
  2016-05-21  Bernhard Liebl <Bernhard.Liebl@gmx.org>
  
@@ -3015,7 +3096,7 @@
  	currently not supported
  
  2016-05-21  Bernhard Liebl <Bernhard.Liebl@gmx.org>
-@@ -29649,7 +29649,7 @@
+@@ -30141,7 +30141,7 @@
  
  2016-05-10  Bernhard Liebl <Bernhard.Liebl@gmx.org>
  
@@ -3024,7 +3105,7 @@
  	reorganization with existing DeleteDuplicates, Complement (work in
  	progress)
  
-@@ -30246,7 +30246,7 @@
+@@ -30738,7 +30738,7 @@
  
  2016-02-14  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3033,7 +3114,7 @@
  	patch unittest encoding
  
  2016-02-14  Angus Griffith <16sn6uv@gmail.com>
-@@ -30313,7 +30313,7 @@
+@@ -30805,7 +30805,7 @@
  
  2016-02-12  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3042,7 +3123,7 @@
  	fixup pickle binary read/write
  
  2016-02-12  Angus Griffith <16sn6uv@gmail.com>
-@@ -30361,7 +30361,7 @@
+@@ -30853,7 +30853,7 @@
  
  2016-02-11  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3051,7 +3132,7 @@
  	fix failed byte tests
  
  2016-02-11  Angus Griffith <16sn6uv@gmail.com>
-@@ -30481,7 +30481,7 @@
+@@ -30973,7 +30973,7 @@
  	mathics/web/media/js/authentication.js,
  	mathics/web/media/js/doc.js, mathics/web/media/js/inout.js,
  	mathics/web/media/js/mathics.js, mathics/web/media/js/utils.js,
@@ -3060,7 +3141,7 @@
  	update license headers
  
  2015-08-03  Angus Griffith <16sn6uv@gmail.com>
-@@ -30537,7 +30537,7 @@
+@@ -31029,7 +31029,7 @@
  
  	* mathics/benchmark.py, mathics/builtin/arithmetic.py,
  	mathics/builtin/calculus.py, mathics/core/evaluation.py,
@@ -3069,7 +3150,7 @@
  	remove old style exceptions
  
  2015-08-03  Angus Griffith <16sn6uv@gmail.com>
-@@ -30555,11 +30555,11 @@
+@@ -31047,11 +31047,11 @@
  
  2016-02-12  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3083,7 +3164,7 @@
  
  2016-02-12  Angus Griffith <16sn6uv@gmail.com>
  
-@@ -30608,7 +30608,7 @@
+@@ -31100,7 +31100,7 @@
  
  2016-01-31  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3092,7 +3173,7 @@
  
  2016-01-31  Angus Griffith <16sn6uv@gmail.com>
  
-@@ -30652,7 +30652,7 @@
+@@ -31144,7 +31144,7 @@
  
  2015-10-14  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3101,7 +3182,7 @@
  
  2015-10-14  Angus Griffith <16sn6uv@gmail.com>
  
-@@ -30684,7 +30684,7 @@
+@@ -31176,7 +31176,7 @@
  
  2015-09-12  mauricio <mauricio@huayra.(none)>
  
@@ -3110,7 +3191,7 @@
  	Removing tabs from the code.          modified:   mathics/builtin/strings.py
  
  2015-09-11  Juan Mauricio Matera <mauricio@fringy.(none)>
-@@ -30712,7 +30712,7 @@
+@@ -31204,7 +31204,7 @@
  
  2015-09-10  Juan Mauricio Matera <mauricio@fringy.(none)>
  
@@ -3119,7 +3200,7 @@
  	        Plots to svg new file:   autoload/formats/SVG/Export.m
  
  2015-09-10  Juan Mauricio Matera <mauricio@fringy.(none)>
-@@ -30851,7 +30851,7 @@
+@@ -31343,7 +31343,7 @@
  
  	* mathics/builtin/importexport.py,
  	mathics/doc/documentation/1-Manual.mdoc, setup.py,
@@ -3128,7 +3209,7 @@
  	drop python 2.6 support
  
  2015-06-22  Angus Griffith <16sn6uv@gmail.com>
-@@ -30935,7 +30935,7 @@
+@@ -31427,7 +31427,7 @@
  
  2015-07-06  Wolf Vollprecht <w.vollprecht@gmail.com>
  
@@ -3137,7 +3218,7 @@
  
  2015-07-05  Wolf Vollprecht <w.vollprecht@gmail.com>
  
-@@ -31015,7 +31015,7 @@
+@@ -31507,7 +31507,7 @@
  
  2015-06-20  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3146,7 +3227,7 @@
  
  2015-06-20  Angus Griffith <16sn6uv@gmail.com>
  
-@@ -31081,7 +31081,7 @@
+@@ -31573,7 +31573,7 @@
  
  2015-05-28  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3155,7 +3236,7 @@
  	i ^ 2, {i, Infinity}]
  
  2015-05-22  Angus Griffith <16sn6uv@gmail.com>
-@@ -31126,7 +31126,7 @@
+@@ -31618,7 +31618,7 @@
  	* mathics/__init__.py, mathics/builtin/algebra.py,
  	mathics/builtin/arithmetic.py, mathics/builtin/exptrig.py,
  	mathics/builtin/numeric.py, mathics/builtin/specialfunctions.py,
@@ -3164,7 +3245,7 @@
  	prepare for sympy/mpmath unbundle
  
  2015-05-16  Ben Jones <benj2579@gmail.com>
-@@ -31260,7 +31260,7 @@
+@@ -31752,7 +31752,7 @@
  
  2014-12-09  Ben Jones <benj2579@gmail.com>
  
@@ -3173,7 +3254,7 @@
  	doc: disambiguate Context and $Context Django's default slugify function removes all non-alphanumeric
  	characters, including ones that are significant in symbol names,
  	like $ and `. This meant that although Context and $Context both
-@@ -31531,7 +31531,7 @@
+@@ -32023,7 +32023,7 @@
  
  2014-03-25  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3182,7 +3263,7 @@
  
  2014-03-25  Angus Griffith <16sn6uv@gmail.com>
  
-@@ -31578,12 +31578,12 @@
+@@ -32070,12 +32070,12 @@
  
  2013-09-28  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3197,7 +3278,7 @@
  	replace unittest with unittest2
  
  2013-09-24  Angus Griffith <16sn6uv@gmail.com>
-@@ -31881,7 +31881,7 @@
+@@ -32373,7 +32373,7 @@
  
  2014-02-21  Ben Jones <benj2579@gmail.com>
  
@@ -3206,7 +3287,7 @@
  	Replace --show-contexts option with DEBUG_CONTEXTS setting
  
  2014-02-21  Ben Jones <benj2579@gmail.com>
-@@ -32459,7 +32459,7 @@
+@@ -32951,7 +32951,7 @@
  2013-10-20  Angus Griffith <16sn6uv@gmail.com>
  
  	* mathics/doc/images.sh, mathics/doc/tex/Makefile,
@@ -3215,7 +3296,7 @@
  	documentation tweaks
  
  2013-10-21  Angus Griffith <16sn6uv@gmail.com>
-@@ -32662,7 +32662,7 @@
+@@ -33154,7 +33154,7 @@
  2013-08-02  Angus Griffith <16sn6uv@gmail.com>
  
  	* mathics/builtin/calculus.py, mathics/builtin/specialfunctions.py,
@@ -3224,7 +3305,16 @@
  
  2013-09-14  Angus Griffith <16sn6uv@gmail.com>
  
-@@ -34162,7 +34162,7 @@
+@@ -33240,7 +33240,7 @@
+ 
+ 2013-06-21  Angus Griffith <16sn6uv@gmail.com>
+ 
+-	* mathics/builtin/arithmetic.py: improve DirectedInfinity formating
++	* mathics/builtin/arithmetic.py: improve DirectedInfinity formatting
+ 	and fix Abs bug
+ 
+ 2013-06-21  Angus Griffith <16sn6uv@gmail.com>
+@@ -34654,7 +34654,7 @@
  	mathics/web/media/js/authentication.js,
  	mathics/web/media/js/doc.js, mathics/web/media/js/inout.js,
  	mathics/web/media/js/mathics.js, mathics/web/media/js/utils.js,
@@ -3233,7 +3323,7 @@
  	Copyright is 2011-2013 The Mathics Team
  
  2013-04-29  Angus Griffith <16sn6uv@gmail.com>
-@@ -34309,7 +34309,7 @@
+@@ -34801,7 +34801,7 @@
  
  2013-04-24  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3242,7 +3332,7 @@
  
  2013-04-23  Angus Griffith <16sn6uv@gmail.com>
  
-@@ -34345,7 +34345,7 @@
+@@ -34837,7 +34837,7 @@
  
  2013-04-21  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3251,7 +3341,7 @@
  
  2013-04-19  Angus Griffith <16sn6uv@gmail.com>
  
-@@ -34359,7 +34359,7 @@
+@@ -34851,7 +34851,7 @@
  
  2013-04-17  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3260,7 +3350,16 @@
  	_MPMathFunction
  
  2013-04-17  Angus Griffith <16sn6uv@gmail.com>
-@@ -34527,14 +34527,14 @@
+@@ -34957,7 +34957,7 @@
+ 2013-04-08  Angus Griffith <16sn6uv@gmail.com>
+ 
+ 	* mathics/core/expression.py, mathics/core/parser.py: fix bug force
+-	machine precision with arbitary base
++	machine precision with arbitrary base
+ 
+ 2013-04-08  Angus Griffith <16sn6uv@gmail.com>
+ 
+@@ -35019,14 +35019,14 @@
  
  2013-04-03  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3277,7 +3376,7 @@
  	correct some tests
  
  2013-04-02  Angus Griffith <16sn6uv@gmail.com>
-@@ -34581,7 +34581,7 @@
+@@ -35073,7 +35073,7 @@
  
  	* mathics/builtin/arithmetic.py, mathics/core/expression.py,
  	mathics/core/parser.py: implement automatic precision determination
@@ -3286,7 +3385,7 @@
  
  2013-03-30  Angus Griffith <16sn6uv@gmail.com>
  
-@@ -34884,7 +34884,7 @@
+@@ -35376,7 +35376,7 @@
  
  2013-04-21  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3295,7 +3394,7 @@
  	cleanup setting python recursion limit
  
  2013-04-21  Angus Griffith <16sn6uv@gmail.com>
-@@ -34908,7 +34908,7 @@
+@@ -35400,7 +35400,7 @@
  
  2013-04-08  Jan Pöschko <jan@poeschko.com>
  
@@ -3304,7 +3403,25 @@
  
  2013-04-09  Angus Griffith <16sn6uv@gmail.com>
  
-@@ -35003,7 +35003,7 @@
+@@ -35425,7 +35425,7 @@
+ 
+ 2013-04-05  Angus Griffith <16sn6uv@gmail.com>
+ 
+-	* mathics/main.py: cleanup Ipython style propmpt
++	* mathics/main.py: cleanup Ipython style prompt
+ 
+ 2013-04-03  Angus Griffith <16sn6uv@gmail.com>
+ 
+@@ -35441,7 +35441,7 @@
+ 
+ 2013-04-02  Angus Griffith <16sn6uv@gmail.com>
+ 
+-	* mathics/main.py: enable IPython syle input
++	* mathics/main.py: enable IPython style input
+ 
+ 2013-04-07  Jan Pöschko <jan@poeschko.com>
+ 
+@@ -35495,7 +35495,7 @@
  2013-03-08  Angus Griffith <16sn6uv@gmail.com>
  
  	* mathics/builtin/files.py, mathics/builtin/scoping.py,
@@ -3313,7 +3430,7 @@
  	for another line of input which fixes issues with Get command
  
  2013-03-07  Angus Griffith <16sn6uv@gmail.com>
-@@ -35032,8 +35032,8 @@
+@@ -35524,8 +35524,8 @@
  
  2013-03-07  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3324,7 +3441,7 @@
  	ParamaterRanges
  
  2013-03-07  Angus Griffith <16sn6uv@gmail.com>
-@@ -35047,7 +35047,7 @@
+@@ -35539,7 +35539,7 @@
  
  2013-03-06  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3333,7 +3450,7 @@
  	Implement CrossProduct DotProduct and ScalarTripleProduct
  
  2013-03-20  Jan Pöschko <jan@poeschko.com>
-@@ -35113,7 +35113,7 @@
+@@ -35605,7 +35605,7 @@
  
  2013-02-26  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3342,7 +3459,7 @@
  	MPMathFunctions should use sympy on symbolic arguments not just
  	exact numbers
  
-@@ -35181,7 +35181,7 @@
+@@ -35673,7 +35673,7 @@
  
  	* mathics/builtin/arithmetic.py, mathics/builtin/exptrig.py,
  	mathics/builtin/specialfunctions.py: cleanup of _MPMathFunction by
@@ -3351,7 +3468,7 @@
  
  2013-03-12  Jan Pöschko <jan@poeschko.com>
  
-@@ -35225,7 +35225,7 @@
+@@ -35717,7 +35717,7 @@
  
  2013-03-08  mr.Shu <mr@shu.io>
  
@@ -3360,7 +3477,7 @@
  	added CSS
  
  2013-03-08  mr.Shu <mr@shu.io>
-@@ -35408,7 +35408,7 @@
+@@ -35900,7 +35900,7 @@
  
  2012-12-26  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3369,7 +3486,7 @@
  	fix bug in ReadList: graceful fail
  
  2012-12-25  Angus Griffith <16sn6uv@gmail.com>
-@@ -35420,13 +35420,13 @@
+@@ -35912,13 +35912,13 @@
  2012-12-26  Angus Griffith <16sn6uv@gmail.com>
  
  	* mathics/builtin/importexport.py,
@@ -3385,7 +3502,7 @@
  
  2012-12-26  Angus Griffith <16sn6uv@gmail.com>
  
-@@ -35479,7 +35479,7 @@
+@@ -35971,7 +35971,7 @@
  
  2013-02-28  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3394,7 +3511,7 @@
  	correct $RecursionLimit tests
  
  2013-02-26  Jan Pöschko <jan@poeschko.com>
-@@ -35654,7 +35654,7 @@
+@@ -36146,7 +36146,7 @@
  2012-12-22  mr.Shu <mr@shu.io>
  
  	* mathics/builtin/numeric.py, mathics/core/expression.py: removed
@@ -3403,7 +3520,7 @@
  
  2012-12-21  mr.Shu <mr@shu.io>
  
-@@ -35843,7 +35843,7 @@
+@@ -36335,7 +36335,7 @@
  
  2012-12-06  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3412,7 +3529,7 @@
  	files
  
  2012-12-05  Angus Griffith <16sn6uv@gmail.com>
-@@ -36160,7 +36160,7 @@
+@@ -36652,7 +36652,7 @@
  
  2012-09-11  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3421,7 +3538,7 @@
  
  2012-09-11  Angus Griffith <16sn6uv@gmail.com>
  
-@@ -36291,7 +36291,7 @@
+@@ -36783,7 +36783,7 @@
  
  2012-12-08  mr.Shu <mr@shu.io>
  
@@ -3430,7 +3547,7 @@
  
  2012-12-08  mr.Shu <mr@shu.io>
  
-@@ -36439,7 +36439,7 @@
+@@ -36931,7 +36931,7 @@
  
  2012-11-15  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3439,7 +3556,7 @@
  	arrays
  
  2012-08-30  Angus Griffith <16sn6uv@gmail.com>
-@@ -36662,7 +36662,7 @@
+@@ -37154,7 +37154,7 @@
  
  2012-11-05  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3448,7 +3565,7 @@
  	mathicsserver
  
  2012-11-05  Angus Griffith <16sn6uv@gmail.com>
-@@ -36698,7 +36698,7 @@
+@@ -37190,7 +37190,7 @@
  
  2012-10-26  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3457,7 +3574,7 @@
  	optimise RandomReal 100x
  
  2012-10-26  Angus Griffith <16sn6uv@gmail.com>
-@@ -36904,7 +36904,7 @@
+@@ -37396,7 +37396,7 @@
  
  2012-10-13  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3466,7 +3583,7 @@
  	formatting for Real, 1772 passed, 28 failed
  
  2012-10-13  Angus Griffith <16sn6uv@gmail.com>
-@@ -36928,7 +36928,7 @@
+@@ -37420,7 +37420,7 @@
  
  2012-10-13  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3475,7 +3592,7 @@
  	precision handling for Plus, fix precision bug in Real, fix
  	formatting bug in Complex, 1756 passed, 39 failed
  
-@@ -36959,7 +36959,7 @@
+@@ -37451,7 +37451,7 @@
  
  2012-10-12  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3484,7 +3601,7 @@
  	improvements to sympy (0.7.2) fix some issues, 1750 passed, 43
  	failed
  
-@@ -36976,7 +36976,7 @@
+@@ -37468,7 +37468,7 @@
  
  2012-10-11  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3493,7 +3610,7 @@
  	fix Binomial precision
  
  2012-10-11  Angus Griffith <16sn6uv@gmail.com>
-@@ -36997,7 +36997,7 @@
+@@ -37489,7 +37489,7 @@
  
  2012-10-10  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3502,7 +3619,7 @@
  	Changed failed tests in which the new result is more accurate, 1650
  	passed, 140 failed
  
-@@ -37068,7 +37068,7 @@
+@@ -37560,7 +37560,7 @@
  
  2012-10-08  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3511,7 +3628,7 @@
  	fix some complex arithmetic bugs, 1627 passed, 160 failed
  
  2012-10-07  Angus Griffith <16sn6uv@gmail.com>
-@@ -37091,7 +37091,7 @@
+@@ -37583,7 +37583,7 @@
  	mathics/builtin/numbertheory.py, mathics/builtin/numeric.py,
  	mathics/core/convert.py, mathics/core/evaluation.py,
  	mathics/core/expression.py, mathics/core/numbers.py,
@@ -3520,7 +3637,7 @@
  	1787 Tests for 389 built-in symbols, 1540 passed, 247 failed.
  
  2012-10-05  Angus Griffith <16sn6uv@gmail.com>
-@@ -37101,7 +37101,7 @@
+@@ -37593,7 +37593,7 @@
  
  2012-10-05  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3529,7 +3646,7 @@
  	Replace gmpy.bincoef with mpmath.binomial
  
  2012-10-05  Angus Griffith <16sn6uv@gmail.com>
-@@ -37179,7 +37179,7 @@
+@@ -37671,7 +37671,7 @@
  
  2012-09-10  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3538,7 +3655,7 @@
  
  2012-09-10  Angus Griffith <16sn6uv@gmail.com>
  
-@@ -37237,7 +37237,7 @@
+@@ -37729,7 +37729,7 @@
  2012-09-09  Angus Griffith <16sn6uv@gmail.com>
  
  	* mathics/builtin/diffeqns.py, mathics/core/convert.py: Added some
@@ -3547,7 +3664,7 @@
  
  2012-09-09  Angus Griffith <16sn6uv@gmail.com>
  
-@@ -37280,7 +37280,7 @@
+@@ -37772,7 +37772,7 @@
  2012-09-09  Angus Griffith <16sn6uv@gmail.com>
  
  	* mathics/builtin/datentime.py: date parsing for uniform implied
@@ -3556,7 +3673,7 @@
  
  2012-09-09  Angus Griffith <16sn6uv@gmail.com>
  
-@@ -37349,12 +37349,12 @@
+@@ -37841,12 +37841,12 @@
  
  2012-09-08  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3571,7 +3688,7 @@
  	ThermalConductivity for ElementData
  
  2012-09-08  Angus Griffith <16sn6uv@gmail.com>
-@@ -37374,7 +37374,7 @@
+@@ -37866,7 +37866,7 @@
  
  2012-09-07  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3580,7 +3697,7 @@
  	ElectronAffinity
  
  2012-09-07  Angus Griffith <16sn6uv@gmail.com>
-@@ -37538,7 +37538,7 @@
+@@ -38030,7 +38030,7 @@
  2012-08-24  Angus Griffith <16sn6uv@gmail.com>
  
  	* mathics/builtin/calculus.py, mathics/builtin/diffeqns.py,
@@ -3589,7 +3706,7 @@
  
  2012-08-24  Angus Griffith <16sn6uv@gmail.com>
  
-@@ -37553,7 +37553,7 @@
+@@ -38045,7 +38045,7 @@
  2012-08-24  Angus Griffith <16sn6uv@gmail.com>
  
  	* mathics/builtin/calculus.py, mathics/builtin/diffeqns.py: Started
@@ -3598,7 +3715,7 @@
  
  2012-08-23  Angus Griffith <16sn6uv@gmail.com>
  
-@@ -37763,7 +37763,7 @@
+@@ -38255,7 +38255,7 @@
  2012-08-04  Jan Pöschko <jan@poeschko.com>
  
  	* mathics/builtin/graphics.py, mathics/builtin/graphics3d.py,
@@ -3607,7 +3724,7 @@
  	documentation
  
  2012-08-04  Jan Pöschko <jan@poeschko.com>
-@@ -37792,7 +37792,7 @@
+@@ -38284,7 +38284,7 @@
  
  2012-08-03  Jan Pöschko <jan@poeschko.com>
  
@@ -3616,7 +3733,7 @@
  	handle parser exception
  
  2012-08-04  Angus Griffith <16sn6uv@gmail.com>
-@@ -37834,7 +37834,7 @@
+@@ -38326,7 +38326,7 @@
  
  2012-08-02  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3625,7 +3742,7 @@
  	Add ViewPoint option to client-side graphics
  
  2012-08-02  Angus Griffith <16sn6uv@gmail.com>
-@@ -37857,12 +37857,12 @@
+@@ -38349,12 +38349,12 @@
  
  2012-08-02  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3640,7 +3757,7 @@
  	Move default Point color bug fix to server-side
  
  2012-08-02  Angus Griffith <16sn6uv@gmail.com>
-@@ -37887,7 +37887,7 @@
+@@ -38379,7 +38379,7 @@
  
  2012-07-31  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3649,7 +3766,7 @@
  	Move graphics box scaling from client-side to server-side
  
  2012-07-31  Angus Griffith <16sn6uv@gmail.com>
-@@ -37940,7 +37940,7 @@
+@@ -38432,7 +38432,7 @@
  
  2012-07-29  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3658,7 +3775,7 @@
  	multiple graphics in the same notebook
  
  2012-07-29  Angus Griffith <16sn6uv@gmail.com>
-@@ -37949,7 +37949,7 @@
+@@ -38441,7 +38441,7 @@
  
  2012-07-29  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3667,7 +3784,7 @@
  	Add sphere rendering method to client-side
  
  2012-07-28  Angus Griffith <16sn6uv@gmail.com>
-@@ -37958,7 +37958,7 @@
+@@ -38450,7 +38450,7 @@
  
  2012-07-28  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3676,7 +3793,7 @@
  	Fix Spot light angle
  
  2012-07-28  Angus Griffith <16sn6uv@gmail.com>
-@@ -37987,7 +37987,7 @@
+@@ -38479,7 +38479,7 @@
  
  2012-07-27  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3685,7 +3802,7 @@
  	Fix Spot light angle TODO: Convert degrees input to radians. E.g.
  	15Degree becomes 0.2618.
  
-@@ -37998,12 +37998,12 @@
+@@ -38490,12 +38490,12 @@
  
  2012-07-27  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3700,7 +3817,7 @@
  	All Directional lights move when camera moves since this is required
  	for Lighing->Automatic.  Fixing this bug requires implementing
  	ImageScaled[] and Scaled[].
-@@ -38036,7 +38036,7 @@
+@@ -38528,7 +38528,7 @@
  
  2012-07-26  Jan Pöschko <jan@poeschko.com>
  
@@ -3709,7 +3826,7 @@
  	default face color in 3D is white
  
  2012-07-26  Jan Pöschko <jan@poeschko.com>
-@@ -38061,7 +38061,7 @@
+@@ -38553,7 +38553,7 @@
  
  2012-07-25  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3718,7 +3835,7 @@
  	Replace tick label hack
  
  2012-07-25  Angus Griffith <16sn6uv@gmail.com>
-@@ -38128,7 +38128,7 @@
+@@ -38620,7 +38620,7 @@
  
  2012-07-23  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3727,7 +3844,7 @@
  	Use inbult methods to format axis tick labels
  
  2012-07-20  Angus Griffith <16sn6uv@gmail.com>
-@@ -38138,7 +38138,7 @@
+@@ -38630,7 +38630,7 @@
  
  2012-07-20  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3736,7 +3853,7 @@
  	axes (bounding box edges).
  
  2012-07-18  Angus Griffith <16sn6uv@gmail.com>
-@@ -38167,7 +38167,7 @@
+@@ -38659,7 +38659,7 @@
  
  2012-07-17  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3745,7 +3862,7 @@
  	Tick lines handled by server.
  
  2012-07-16  Angus Griffith <16sn6uv@gmail.com>
-@@ -38194,7 +38194,7 @@
+@@ -38686,7 +38686,7 @@
  
  2012-07-15  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3754,7 +3871,7 @@
  	Axes lines for Graphics3D.
  
  2012-07-14  Angus Griffith <16sn6uv@gmail.com>
-@@ -38328,7 +38328,7 @@
+@@ -38820,7 +38820,7 @@
  
  2012-07-04  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3763,7 +3880,7 @@
  	Accuracy of Plot3D grids is now the same as the plot itself.
  
  2012-07-03  Angus Griffith <16sn6uv@gmail.com>
-@@ -38436,7 +38436,7 @@
+@@ -38928,7 +38928,7 @@
  
  2012-06-30  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3772,7 +3889,7 @@
  	partially implemented
  
  2012-06-29  Angus Griffith <16sn6uv@gmail.com>
-@@ -38447,7 +38447,7 @@
+@@ -38939,7 +38939,7 @@
  2012-06-29  Angus Griffith <16sn6uv@gmail.com>
  
  	* mathics/web/media/js/graphics3d.js: Started implemented graphics3d
@@ -3781,7 +3898,7 @@
  
  2012-06-29  Angus Griffith <16sn6uv@gmail.com>
  
-@@ -38621,7 +38621,7 @@
+@@ -39113,7 +39113,7 @@
  
  2012-06-16  Jan Pöschko <jan@poeschko.com>
  
@@ -3790,7 +3907,7 @@
  
  2012-06-15  Jan Pöschko <jan@poeschko.com>
  
-@@ -38763,7 +38763,7 @@
+@@ -39255,7 +39255,7 @@
  
  2012-06-11  Angus Griffith <16sn6uv@gmail.com>
  
@@ -3799,7 +3916,7 @@
  	rest of the code base
  
  2012-06-11  Angus Griffith <16sn6uv@gmail.com>
-@@ -38819,7 +38819,7 @@
+@@ -39311,7 +39311,7 @@
  
  	* mathics/builtin/plot.py: Implemented Mesh->All and Mesh->Full
  	along with default Mesh->None something strange is happening with
@@ -3808,7 +3925,7 @@
  	PlotRange .
  
  2012-06-11  Angus Griffith <16sn6uv@gmail.com>
-@@ -38876,7 +38876,7 @@
+@@ -39368,7 +39368,7 @@
  
  2012-06-09  Jan Pöschko <jan@poeschko.com>
  
@@ -3817,7 +3934,7 @@
  	PlotRange, to_python
  
  2012-06-10  Angus Griffith <16sn6uv@gmail.com>
-@@ -38929,7 +38929,7 @@
+@@ -39421,7 +39421,7 @@
  
  	* mathics/builtin/plot.py: Added x-scaling to the sampling algorithm
  	so that angles are independent of x-range.  All line segments of
@@ -3826,7 +3943,7 @@
  
  2012-06-09  Angus Griffith <16sn6uv@gmail.com>
  
-@@ -39061,7 +39061,7 @@
+@@ -39553,7 +39553,7 @@
  
  2012-04-19  Jan Pöschko <jan@poeschko.com>
  
@@ -3835,7 +3952,7 @@
  	MathJax config in document:loaded, minor interface text changes
  
  2011-04-18  Jan Pöschko <jan@poeschko.com>
-@@ -40550,7 +40550,7 @@
+@@ -41042,7 +41042,7 @@
  2011-03-09  Jan Pöschko <jan@poeschko.com>
  
  	* mathics/builtin/arithmetic.py, mathics/core/evaluation.py,
@@ -3844,7 +3961,7 @@
  	parser issue, threaded exception traceback
  
  2011-03-09  Jan Pöschko <jan@poeschko.com>
-@@ -40583,7 +40583,7 @@
+@@ -41075,7 +41075,7 @@
  	* mathics/doc/doc.py, mathics/doc/documentation/1-Manual.mdoc,
  	mathics/doc/tex/Makefile, mathics/doc/tex/logo.pdf,
  	mathics/doc/tex/mathics.tex, mathics/doc/tex/prepare_latex.py,
@@ -3853,7 +3970,7 @@
  	small changes to doc and setup
  
  2011-03-07  Jan Pöschko <jan@poeschko.com>
-@@ -40611,4 +40611,3 @@
+@@ -41103,4 +41103,3 @@
  2011-03-07  Jan <jan@poeschko.com>
  
  	* initial version

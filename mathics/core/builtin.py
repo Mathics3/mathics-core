@@ -40,6 +40,7 @@ import mathics.core.parser.operators
 # run time.
 import mathics.eval.tracing as tracing
 from mathics.core.atoms import (
+    Atom,
     Integer,
     Integer0,
     Integer1,
@@ -197,15 +198,19 @@ class Builtin:
 
     """
 
-    name: Optional[str] = None
-    context: str = ""
-    attributes: int = A_PROTECTED
     _is_numeric: bool = False
-    rules: Dict[str, Any] = {}
+    attributes: int = A_PROTECTED
+    context: str = ""
+    defaults: Dict[Optional[int], str] = {}
+
+    # Number of arguments expected. -1 is used for arbitrary number.
+    expected_args: Union[int, Tuple[int, int], range] = -1
+
     formats: Dict[str, Any] = {}
     messages: Dict[str, Any] = {}
+    name: Optional[str] = None
     options: Dict[str, Any] = {}
-    defaults: Dict[Optional[int], str] = {}
+    rules: Dict[str, Any] = {}
 
     def __getnewargs_ex__(self):
         return tuple(), {
@@ -433,6 +438,66 @@ class Builtin:
         for rule in box_rules:
             makeboxes_def.add_rule(rule)
 
+    # This method is used to produce generic argument mismatch errors
+    # (tags: "argx", "argr", "argrx", "argt", or "argtu") for builtin
+    # functions that define this as an eval method. e.g.  For example
+    # for Sqrt[a, b] (one argument expected) or Subtract[a] (two
+    # arguments expected) It assumes each builtin defines
+    # "expected_args" for the correct number of arguments to give.
+    # See class mathics.builtin.arithfns.basic.Sqrt for how to set up.
+    def generic_argument_error(self, invalid, evaluation: Evaluation):
+        "%(name)s[invalid___]"
+
+        name = self.get_name(short=True)
+        if isinstance(invalid, Atom):
+            got_arg_count = 1
+        else:
+            got_arg_count = len(invalid.elements)
+
+        if isinstance(self.expected_args, tuple):
+            expected_args1, expected_args2 = self.expected_args
+            if got_arg_count == 1:
+                evaluation.message(
+                    name,
+                    "argtu",
+                    Symbol(name),
+                    Integer(expected_args1),
+                    Integer(expected_args2),
+                )
+            else:
+                evaluation.message(
+                    name,
+                    "argt",
+                    Symbol(name),
+                    Integer(got_arg_count),
+                    Integer(expected_args1),
+                    Integer(expected_args2),
+                )
+        elif isinstance(self.expected_args, range):
+            evaluation.message(
+                name,
+                "argb",
+                Symbol(name),
+                Integer(got_arg_count),
+                Integer(self.expected_args.start),
+                Integer(self.expected_args.stop - 1),
+            )
+        else:
+            if self.expected_args == 1:
+                evaluation.message(name, "argx", Symbol(name), Integer(got_arg_count))
+            elif got_arg_count == 1:
+                evaluation.message(
+                    name, "argr", Symbol(name), Integer(self.expected_args)
+                )
+            else:
+                evaluation.message(
+                    name,
+                    "argrx",
+                    Symbol(name),
+                    Integer(got_arg_count),
+                    Integer(self.expected_args),
+                )
+
     @classmethod
     def get_name(cls, short=False) -> str:
         if cls.name is None:
@@ -648,8 +713,11 @@ class SympyFunction(SympyObject):
                 sympy_function = self.get_sympy_function(elements)
                 if sympy_function is not None:
                     return tracing.run_sympy(sympy_function, *sympy_args)
-        except TypeError:
-            pass
+            elif exc := kwargs.get("raise_on_error", None):
+                raise exc(f"{self.get_name()}.sympy_name is {repr(self.sympy_name)}")
+        except TypeError as oops:
+            if exc := kwargs.get("raise_on_error", None):
+                raise exc(f"TypeError: {oops}")
 
     def from_sympy(self, elements: Tuple[BaseElement, ...]) -> Expression:
         return Expression(Symbol(self.get_name()), *elements)
@@ -784,12 +852,14 @@ class UnavailableFunction:
 
     def __init__(self, builtin):
         self.name = builtin.get_name()
+        self.requires = builtin.requires
 
     def __call__(self, **kwargs):
         kwargs["evaluation"].message(
             "General",
             "pyimport",  # see messages.py for error message definition
             strip_context(self.name),
+            ", ".join(self.requires),
         )
 
 
@@ -958,7 +1028,7 @@ class IterationFunction(Builtin, ABC):
     allow_loopcontrol = False
     throw_iterb = True
 
-    def get_result(self, elements) -> Expression:
+    def get_result(self, elements, is_uniform=False) -> Expression:
         raise NotImplementedError
 
     def eval_symbol(self, expr, iterator, evaluation):
@@ -1094,6 +1164,8 @@ class IterationFunction(Builtin, ABC):
         ).evaluate(evaluation)
 
         result = []
+        last_head = None
+        is_uniform = True
         while True:
             cont = Expression(SymbolLessEqual, index, normalised_range).evaluate(
                 evaluation
@@ -1121,6 +1193,10 @@ class IterationFunction(Builtin, ABC):
                     evaluation,
                 )
                 result.append(item)
+                if last_head is None:
+                    last_head = item.get_head()
+                elif is_uniform and last_head is not item.get_head():
+                    is_uniform = False
             except ContinueInterrupt:
                 if self.allow_loopcontrol:
                     pass
@@ -1137,7 +1213,7 @@ class IterationFunction(Builtin, ABC):
                 else:
                     raise
             index = Expression(SymbolPlus, index, Integer1).evaluate(evaluation)
-        return self.get_result(result)
+        return self.get_result(result, is_uniform=is_uniform)
 
     def eval_list(self, expr, i, items, evaluation):
         "%(name)s[expr_, {i_Symbol, {items___}}]"

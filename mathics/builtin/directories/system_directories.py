@@ -13,7 +13,7 @@ from mathics.settings import ROOT_DIR
 class BaseDirectory_(Predefined):
     r"""
     <url>:WMA link:
-    https://reference.wolfram.com/language/ref/$BaseDirectory.html</url>
+    https://reference.wolfram.com/language/ref/\$BaseDirectory.html</url>
 
     <dl>
       <dt>'\$BaseDirectory'
@@ -34,7 +34,7 @@ class BaseDirectory_(Predefined):
 class InitialDirectory(Predefined):
     r"""
     <url>:WMA link:
-    https://reference.wolfram.com/language/ref/$InitialDirectory.html</url>
+    https://reference.wolfram.com/language/ref/\$InitialDirectory.html</url>
 
     <dl>
       <dt>'\$InitialDirectory'
@@ -77,7 +77,7 @@ class InstallationDirectory(Predefined):
 
 class RootDirectory(Predefined):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$RootDirectory.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$RootDirectory.html</url>
 
     <dl>
     <dt>'\$RootDirectory'
@@ -98,7 +98,7 @@ class RootDirectory(Predefined):
 class TemporaryDirectory(Predefined):
     r"""
     <url>:WMA link:
-    https://reference.wolfram.com/language/ref/$TemporaryDirectory.html</url>
+    https://reference.wolfram.com/language/ref/\$TemporaryDirectory.html</url>
 
     <dl>
     <dt>'\$TemporaryDirectory'

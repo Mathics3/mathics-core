@@ -581,7 +581,7 @@ class RealDigits(Builtin):
 
 class MaxPrecision(Predefined):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$MaxPrecision.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$MaxPrecision.html</url>
 
     <dl>
       <dt>'\$MaxPrecision'
@@ -617,7 +617,7 @@ class MaxPrecision(Predefined):
 class MachineEpsilon_(Predefined):
     r"""
     <url>:WMA link:
-    https://reference.wolfram.com/language/ref/$MachineEpsilon.html</url>
+    https://reference.wolfram.com/language/ref/\$MachineEpsilon.html</url>
 
     <dl>
       <dt>'\$MachineEpsilon'
@@ -644,7 +644,7 @@ class MachineEpsilon_(Predefined):
 
 class MachinePrecision_(Predefined):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$MachinePrecision.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$MachinePrecision.html</url>
 
     <dl>
       <dt>'\$MachinePrecision'
@@ -693,7 +693,7 @@ class MachinePrecision(Predefined):
 class MinPrecision(Builtin):
     r"""
     <url>
-    :WMA link:https://reference.wolfram.com/language/ref/$MinPrecision.html</url>
+    :WMA link:https://reference.wolfram.com/language/ref/\$MinPrecision.html</url>
 
     <dl>
       <dt>'\$MinPrecision'
