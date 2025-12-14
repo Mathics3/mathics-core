@@ -506,3 +506,10 @@ def eval_ComplexPlot(
     evaluation: Evaluation,
 ):
     return None
+
+
+def eval_ContourPlot(
+    plot_options,
+    evaluation: Evaluation,
+):
+    return None
