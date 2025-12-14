@@ -15,6 +15,8 @@ from typing import Callable, Optional
 
 import palettable
 
+import mathics.eval.drawing.plot3d
+import mathics.eval.drawing.plot3d_vectorized
 from mathics.builtin.drawing.graphics3d import Graphics3D
 from mathics.builtin.graphics import Graphics
 from mathics.builtin.options import options_to_rules
@@ -37,6 +39,7 @@ from mathics.core.systemsymbols import (
     SymbolLine,
     SymbolLog10,
     SymbolNone,
+    SymbolPlotRange,
     SymbolRGBColor,
     SymbolSequence,
     SymbolStyle,
@@ -62,21 +65,25 @@ from mathics.eval.nevaluator import eval_N
 # Set option such as $UseVectorizedPlot, and maybe a non-standard Plot3D option.
 # For now an env variable is simplest.
 # TODO: work out exactly how to deploy.
+
+
+# can be set via environment variable at startup time,
+# or changed dynamically by setting the use_vectorized_plot flag
 use_vectorized_plot = os.getenv("MATHICS3_USE_VECTORIZED_PLOT", False)
-if use_vectorized_plot:
-    from mathics.eval.drawing.plot3d_vectorized import (
-        eval_ComplexPlot,
-        eval_ComplexPlot3D,
-        eval_DensityPlot,
-        eval_Plot3D,
+
+
+# get the plot eval function for the given class,
+# depending on whether vectorized plot functions are enabled
+def get_plot_eval_function(cls):
+    function_name = "eval_" + cls.__name__
+    plot_module = (
+        mathics.eval.drawing.plot3d_vectorized
+        if use_vectorized_plot
+        else mathics.eval.drawing.plot3d
     )
-else:
-    from mathics.eval.drawing.plot3d import (
-        eval_ComplexPlot,
-        eval_ComplexPlot3D,
-        eval_DensityPlot,
-        eval_Plot3D,
-    )
+    fun = getattr(plot_module, function_name)
+    return fun
+
 
 # This tells documentation how to sort this module
 # Here we are also hiding "drawing" since this erroneously appears at the top level.
@@ -467,7 +474,7 @@ class PlotOptions:
     def __init__(self, expr, range_exprs, options, evaluation):
         self.evaluation = evaluation
 
-        # plot ranges
+        # plot ranges of the form {x,xmin,xmax} etc.
         self.ranges = []
         for range_expr in range_exprs:
             if not range_expr.has_form("List", 3):
@@ -487,6 +494,19 @@ class PlotOptions:
             ):
                 self.error(expr, "invrange", range_expr)
             self.ranges.append(range)
+
+        # Contours option
+        contours = expr.get_option(options, "Contours", evaluation)
+        if contours is not None:
+            c = contours.to_python()
+            if not (
+                c == "System`Automatic"
+                or isinstance(c, int)
+                or isinstance(c, tuple)
+                and all(isinstance(cc, (int, float)) for cc in c)
+            ):
+                self.error(expr, "invcontour", contours)
+            self.contours = c
 
         # Mesh option
         mesh = expr.get_option(options, "Mesh", evaluation)
@@ -579,6 +599,9 @@ class _Plot3D(Builtin):
             "Plot range `1` must be of the form {variable, min, max}, "
             "where max > min."
         ),
+        "invcontour": (
+            "Contours option must be Automatic, an integer, or a list of numbers."
+        ),
     }
 
     # Plot3D, ComplexPlot3D
@@ -630,9 +653,43 @@ class _Plot3D(Builtin):
             plot_options.functions = [functions]
 
         # subclass must set eval_function and graphics_class
-        graphics = self.eval_function(plot_options, evaluation)
+        eval_function = get_plot_eval_function(self.__class__)
+        graphics = eval_function(plot_options, evaluation)
         if not graphics:
             return
+
+        # Expand PlotRange option using the {x,xmin,xmax} etc. range specifications
+        # Pythonize it, so Symbol becomes str, numeric becomes int or float
+        plot_range = self.get_option(options, str(SymbolPlotRange), evaluation)
+        plot_range = plot_range.to_python()
+        dim = 3 if self.graphics_class is Graphics3D else 2
+        if isinstance(plot_range, str):
+            # PlotRange -> Automatic becomes PlotRange -> {Automatic, ...}
+            plot_range = [str(SymbolAutomatic)] * dim
+        if isinstance(plot_range, (int, float)):
+            # PlotRange -> s becomes PlotRange -> {Automatic,...,{-s,s}}
+            pr = plot_range
+            plot_range = [str(SymbolAutomatic)] * dim
+            plot_range[-1] = [-pr, pr]
+        elif isinstance(plot_range, (list, tuple)) and isinstance(
+            plot_range[0], (int, float)
+        ):
+            # PlotRange -> {s0,s1} becomes  PlotRange -> {Automatic,...,{s0,s1}}
+            pr = plot_range
+            plot_range = [str(SymbolAutomatic)] * dim
+            plot_range[-1] = pr
+
+        # now we have a list of length dim
+        # handle Automatic ~ {xmin,xmax} etc.
+        for i, (pr, r) in enumerate(zip(plot_range, plot_options.ranges)):
+            # TODO: this treats Automatic and Full as the same, which isn't quite right
+            if isinstance(pr, str) and not isinstance(r[1], complex):
+                plot_range[i] = r[1:]  # extract {xmin,xmax} from {x,xmin,xmax}
+
+        # unpythonize and update PlotRange option
+        options[str(SymbolPlotRange)] = to_mathics_list(*plot_range)
+
+        # generate the Graphics[3D] result
         graphics_expr = graphics.generate(
             options_to_rules(options, self.graphics_class.options)
         )
@@ -781,7 +838,6 @@ class ComplexPlot3D(_Plot3D):
     options = _Plot3D.options3d | {"Mesh": "None"}
 
     many_functions = True
-    eval_function = staticmethod(eval_ComplexPlot3D)
     graphics_class = Graphics3D
 
 
@@ -805,7 +861,31 @@ class ComplexPlot(_Plot3D):
     options = _Plot3D.options2d
 
     many_functions = False
-    eval_function = staticmethod(eval_ComplexPlot)
+    graphics_class = Graphics
+
+
+class ContourPlot(_Plot3D):
+    """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/ContourPlot.html</url>
+    <dl>
+      <dt>'Contour'[$f$, {$x$, $x_{min}$, $x_{max}$}, {$y$, $y_{min}$, $y_{max}$}]
+      <dd>creates a two-dimensional contour plot ofh $f$ over the region
+          $x$ ranging from $x_{min}$ to $x_{max}$ and $y$ ranging from $y_{min}$ to $y_{max}$.
+
+          See <url>:Drawing Option and Option Values:
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    </url> for a list of Plot options.
+    </dl>
+
+    """
+
+    requires = ["skimage"]
+    summary_text = "creates a contour plot"
+    expected_args = 3
+    options = _Plot3D.options2d | {"Contours": "Automatic"}
+    # TODO: other options?
+
+    many_functions = True
     graphics_class = Graphics
 
 
@@ -838,7 +918,6 @@ class DensityPlot(_Plot3D):
     options = _Plot3D.options2d
 
     many_functions = False
-    eval_function = staticmethod(eval_DensityPlot)
     graphics_class = Graphics
 
 
@@ -1958,5 +2037,4 @@ class Plot3D(_Plot3D):
     options = _Plot3D.options3d
 
     many_functions = True
-    eval_function = staticmethod(eval_Plot3D)
     graphics_class = Graphics3D

@@ -57,6 +57,7 @@ from mathics.core.symbols import (
     SymbolPower,
     SymbolTimes,
     SymbolTrue,
+    sympy_name,
 )
 from mathics.core.systemsymbols import (
     SymbolAnd,
@@ -528,7 +529,7 @@ class Derivative(PostfixOperator, SympyFunction):
             return
 
         func = exprs[1].elements[0]
-        sym_func = sympy.Function(str(SYMPY_SYMBOL_PREFIX + func.__str__()))(*sym_args)
+        sym_func = sympy.Function(sympy_name(func))(*sym_args)
 
         counts = [element.get_int_value() for element in exprs[2].elements]
         if None in counts:
