@@ -70,7 +70,8 @@ def plot_compile(evaluation, expr, names, debug=0):
 
     # Strip symbols in sympy expression of context.
     subs = {
-        sym: sympy.Symbol(strip_context(str(sym))) for sym in sympy_expr.free_symbols
+        sym: sympy.Symbol(sympy_strip_context(str(sym)))
+        for sym in sympy_expr.free_symbols
     }
     sympy_expr = sympy_expr.subs(subs)
 
