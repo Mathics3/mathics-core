@@ -42,7 +42,7 @@ class AdditionalMappings:
 # mappings = [dict(AdditionalMappings.__dict__), "numpy"]
 
 
-class CompileError(Exception):
+class LambdifyCompileError(Exception):
     pass
 
 
@@ -85,9 +85,9 @@ def lambdify_compile(evaluation, expr, names, debug=0):
         print("post-eval", expr)
 
     # Ask the expr Expression to generate a sympy expression and handle errors
-    sympy_expr = expr.to_sympy(raise_on_error=CompileError)
+    sympy_expr = expr.to_sympy(raise_on_error=LambdifyCompileError)
     if isinstance(sympy_expr, SympyExpression):
-        raise CompileError(f"{expr.head}.to_sympy returns invalid sympy expr.")
+        raise LambdifyCompileError(f"{expr.head}.to_sympy returns invalid sympy expr.")
 
     # Strip symbols in sympy expression of context.
     subs = {
@@ -110,7 +110,7 @@ def lambdify_compile(evaluation, expr, names, debug=0):
             symbols, sympy_expr, modules=["numpy", "scipy"]
         )
     except Exception as oops:
-        raise CompileError(f"error compiling sympy expr {sympy_expr}: {oops}")
+        raise LambdifyCompileError(f"error compiling sympy expr {sympy_expr}: {oops}")
 
     if debug >= 2:
         print("=== compiled python")

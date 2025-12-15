@@ -1099,7 +1099,7 @@ def load_builtin_definitions(
         mathics3_builtins_modules,
     )
     from mathics.eval.files_io.files import get_file_time
-    from mathics.eval.pymathics import PyMathicsLoadException, load_pymathics_module
+    from mathics.eval.pymathics import load_pymathics_module
     from mathics.session import autoload_files
 
     loaded = False

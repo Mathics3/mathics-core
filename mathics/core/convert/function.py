@@ -5,7 +5,6 @@ import numpy
 
 
 from mathics.core.definitions import SIDE_EFFECT_BUILTINS, Definition
-from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, from_python
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
@@ -193,6 +192,8 @@ def expression_to_callable_and_args(
     expr: A Mathics Expression object
     vars: a list of Symbols or Mathics Lists of the form {Symbol, Type}
     """
+    from mathics.core.convert.lambdify import LambdifyCompileError, lambdify_compile
+    
     args = collect_args(vars)
 
     # If vectorize is requested, first, try to lambdify the expression:

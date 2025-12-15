@@ -2,7 +2,7 @@
 Conversion from expressions to functions
 """
 
-from test.helper import check_evaluation, session
+from test.helper import session
 
 from mathics.core.convert.function import evaluate_without_side_effects
 
