@@ -107,7 +107,6 @@ class Graphics3D(Graphics):
          . draw(((1,1,-1)--(1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
          . \end{asy}
     """
-
     summary_text = "a three-dimensional graphics image wrapper"
     options = Graphics.options.copy()
     options.update(
@@ -173,9 +172,11 @@ class Graphics3DElements(_GraphicsElements):
     def __init__(self, content, evaluation, neg_y=False):
         super(Graphics3DElements, self).__init__(content, evaluation)
         self.neg_y = neg_y
-        self.xmin = self.ymin = self.pixel_width = self.pixel_height = (
-            self.extent_width
-        ) = self.extent_height = None
+        self.xmin = (
+            self.ymin
+        ) = (
+            self.pixel_width
+        ) = self.pixel_height = self.extent_width = self.extent_height = None
         self.view_width = None
         self.content = content
 
