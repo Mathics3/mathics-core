@@ -27,7 +27,7 @@ from mathics.compile import has_llvmlite
         ("cf[4]", None, "-0.756802", None),
         (
             "cf[x]",
-            ("Invalid argument x should be Integer, Real or boolean.",),
+            ("Argument x at position 1 should be a machine-size real number.",),
             "CompiledFunction[{x}, Sin[x], -CompiledCode-][x]",
             None,
         ),

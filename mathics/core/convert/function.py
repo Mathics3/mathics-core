@@ -1,39 +1,45 @@
 # -*- coding: utf-8 -*-
+from typing import Callable, List, Optional, Tuple
 
-from typing import Callable, Optional, Tuple
+import numpy
+
 
 from mathics.core.definitions import SIDE_EFFECT_BUILTINS, Definition
 from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, from_python
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
-from mathics.core.systemsymbols import SymbolBlank, SymbolInteger, SymbolReal
+from mathics.core.systemsymbols import (
+    SymbolAlternatives,
+    SymbolBlank,
+    SymbolComplex,
+    SymbolInteger,
+    SymbolReal,
+)
 from mathics.eval.nevaluator import eval_N
+
+PERMITTED_TYPES = {
+    Expression(SymbolBlank, SymbolInteger): int,
+    Expression(SymbolBlank, SymbolReal): float,
+    Expression(SymbolBlank, SymbolComplex): complex,
+    Expression(SymbolAlternatives, SymbolTrue, SymbolFalse): bool,
+    Expression(SymbolAlternatives, SymbolFalse, SymbolTrue): bool,
+}
+
 
 try:
     from mathics.compile import CompileArg, CompileError, _compile
     from mathics.compile.types import bool_type, int_type, real_type
 
-    use_llvm = True
+    USE_LLVM = True
     # _Complex not implemented
-    permitted_types = {
-        Expression(SymbolBlank, SymbolInteger): int_type,
-        Expression(SymbolBlank, SymbolReal): real_type,
-        SymbolTrue: bool_type,
-        SymbolFalse: bool_type,
+    LLVM_TYPE_TRANSLATION = {
+        int: int_type,
+        float: real_type,
+        bool: bool_type,
     }
 except ImportError:
-    use_llvm = False
-    bool_type = bool
-    int_type = int
-    real_type = float
-
-    permitted_types = {
-        Expression(SymbolBlank, SymbolInteger): int,
-        Expression(SymbolBlank, SymbolReal): float,
-        SymbolTrue: bool,
-        SymbolFalse: bool,
-    }
+    USE_LLVM = False
 
 
 class CompileDuplicateArgName(Exception):
@@ -77,10 +83,9 @@ def expression_to_callable(
     expr: Expression,
     args: Optional[list] = None,
     evaluation: Optional[Evaluation] = None,
-) -> Optional[Callable]:
+):
     """
-    Return a Python callable from an expression. If llvm is available,
-    tries to produce llvm code. Otherwise, returns a Python function.
+    Convert an expression to LLVM code. None if it fails.
     expr: Expression
     args: a list of CompileArg elements
     evaluation: an Evaluation object used if the llvm compilation fails
@@ -89,7 +94,7 @@ def expression_to_callable(
         expr = evaluate_without_side_effects(expr, evaluation)
 
     try:
-        cfunc = _compile(expr, args) if (use_llvm and args is not None) else None
+        return _compile(expr, args) if (USE_LLVM and args is not None) else None
     except CompileError:
         cfunc = None
 
@@ -117,32 +122,54 @@ def expression_to_callable(
     return cfunc
 
 
-def expression_to_callable_and_args(
+def expression_to_python_function(
     expr: Expression,
-    vars: Optional[list] = None,
+    args: Optional[list] = None,
     evaluation: Optional[Evaluation] = None,
-) -> Tuple[Optional[Callable], Optional[list]]:
+) -> Callable:
     """
-    Return a tuple of Python callable and a list of CompileArgs.
-    expr: A Mathics Expression object
-    vars: a list of Symbols or Mathics Lists of the form {Symbol, Type}
+    Return a Python function from an expression.
+    expr: Expression
+    args: a list of CompileArg elements
+    evaluation: an Evaluation object used if the llvm compilation fails
+    """
+
+    def _pythonized_mathics_expr(*x):
+        inner_evaluation = Evaluation(definitions=evaluation.definitions)
+        x_mathics = (from_python(u) for u in x[: len(args)])
+        vars = dict(list(zip([a.name for a in args], x_mathics)))
+        pyexpr = expr.replace_vars(vars)
+        pyexpr = eval_N(pyexpr, inner_evaluation)
+        res = pyexpr.to_python()
+        return res
+
+    # TODO: check if we can use numba to compile this...
+    return _pythonized_mathics_expr
+
+
+def collect_args(vars) -> Optional[List[CompileArg]]:
+    """
+    Convert a List expression into a list of CompileArg objects.
     """
     if vars is None:
-        args = None
+        return None
     else:
         args = []
         names = []
         for var in vars:
+            name: str
+            t_typ: type
             if isinstance(var, Symbol):
                 symb = var
                 name = symb.get_name()
-                typ = real_type
+                t_typ = float
             elif var.has_form("List", 2):
                 symb, typ = var.elements
-                if isinstance(symb, Symbol) and typ in permitted_types:
+                if isinstance(symb, Symbol) and typ in PERMITTED_TYPES:
                     name = symb.get_name()
-                    typ = permitted_types[typ]
+                    t_typ = PERMITTED_TYPES[typ]
                 else:
+                    print(symb, typ, var)
                     raise CompileWrongArgType(var)
             else:
                 raise CompileWrongArgType(var)
@@ -150,6 +177,62 @@ def expression_to_callable_and_args(
             if name in names:
                 raise CompileDuplicateArgName(symb)
             names.append(name)
-            args.append(CompileArg(name, typ))
+            args.append(CompileArg(name, t_typ))
+    return args
 
-    return expression_to_callable(expr, args, evaluation), args
+
+def expression_to_callable_and_args(
+    expr: Expression,
+    vars: Optional[list] = None,
+    evaluation: Optional[Evaluation] = None,
+    debug: int = 0,
+    vectorize: bool = False,  # By now, just vectorize in drawing plots.
+) -> Tuple[Callable, Optional[list]]:
+    """
+    Return a tuple of Python callable and a list of CompileArgs.
+    expr: A Mathics Expression object
+    vars: a list of Symbols or Mathics Lists of the form {Symbol, Type}
+    """
+    args = collect_args(vars)
+
+    # If vectorize is requested, first, try to lambdify the expression:
+    if vectorize:
+        try:
+            cfunc = lambdify_compile(
+                evaluation,
+                expr,
+                [] if args is None else [arg.name for arg in args],
+                debug,
+            )
+            return cfunc, args
+        except LambdifyCompileError:
+            pass
+
+    # Then, try with llvm if available
+    if USE_LLVM:
+        try:
+            llvm_args = (
+                None
+                if args is None
+                else [
+                    CompileArg(
+                        compile_arg.name, LLVM_TYPE_TRANSLATION[compile_arg.type]
+                    )
+                    for compile_arg in args
+                ]
+            )
+            cfunc = expression_to_callable(expr, llvm_args, evaluation)
+            if cfunc is not None:
+                if vectorize:
+                    cfunc = numpy.vectorize(cfunc)
+                return cfunc, args
+        except KeyError:
+            pass
+        except RuntimeError:
+            pass
+
+    # Last resource
+    cfunc = expression_to_python_function(expr, args, evaluation)
+    if vectorize:
+        cfunc = numpy.vectorize(cfunc)
+    return cfunc, args

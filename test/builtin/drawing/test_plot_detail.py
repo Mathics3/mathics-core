@@ -139,8 +139,7 @@ def one_test(name, str_expr, vec, opt, act_dir="/tmp"):
 
     try:
         # evaluate the expression to be tested
-        expr = session.parse(str_expr)
-        act_expr = expr.evaluate(session.evaluation)
+        act_expr = session.evaluate(str_expr)
         if len(session.evaluation.out):
             print("=== messages:")
             for message in session.evaluation.out:
