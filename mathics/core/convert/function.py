@@ -3,7 +3,6 @@ from typing import Callable, List, Optional, Tuple
 
 import numpy
 
-
 from mathics.core.definitions import SIDE_EFFECT_BUILTINS, Definition
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, from_python
