@@ -5,7 +5,6 @@ MathicsSession object is used here just as a handy way to built Pattern
 expressions.
 """
 
-
 from test.helper import check_evaluation, session
 
 import pytest
