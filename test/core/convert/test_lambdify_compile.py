@@ -255,6 +255,13 @@ tests = [
     dict(name="Which", args=[False, 1, True, 2]),
     dict(name="Which", args=[False, 1, True, 2, False, 3]),
     #
+    # Certain procedure constructs can be handled provided the initial
+    # evaluation in lambdify_compile is able to expand them to a
+    # non-procedural expression
+    #
+    dict(name="Module[{sum=0, i}, For[i=1, i<=3, i++,  sum += Sin[i #]]; sum]&", args=[1]),
+    #
+    #
     # Following have no sympy_name and no mpmath_name,
     # but do have "number" or "numeric" in their path.
     # Some may be possible candidates for building out compilation
@@ -447,7 +454,7 @@ def one(name, args, scipy=False, expected=None, fail=False):
     elif fail:
         raise Exception(f"unexpected success: result {result}, expected {expected}")
     else:
-        # print(f"{name} succeeds: expected {expected.value}, got {result}")
+        #print(f"{name} succeeds: expected {expected}, got {result}")
         pass
 
 
