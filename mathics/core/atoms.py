@@ -628,11 +628,11 @@ class PrecisionReal(Real[sympy.Float]):
         of an expression. The tuple is ultimately compared lexicographically.
         """
 
-        value = self._value
-        value, prec = float(value), value._prec
+        sympy_float = self._value
+        value, prec = float(sympy_float), sympy_float._prec
         # For large values, use the sympy.Float value...
         if math.isinf(value):
-            value, prec = self._value, value._prec
+            return (BASIC_ATOM_NUMBER_ELT_ORDER, sympy_float, 0, 2, prec)
 
         return (BASIC_ATOM_NUMBER_ELT_ORDER, value, 0, 2, prec)
 
