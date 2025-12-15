@@ -1,7 +1,6 @@
 """
 Base classes for Descriptive Statistics
 """
-
 from mathics.core.builtin import Builtin
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression

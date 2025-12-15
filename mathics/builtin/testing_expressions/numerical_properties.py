@@ -1,7 +1,6 @@
 """
 Numerical Properties
 """
-
 from itertools import combinations
 
 import sympy

@@ -1,7 +1,6 @@
 """
 Image testing
 """
-
 from mathics.builtin.image.base import Image, skimage_requires
 from mathics.core.builtin import Test
 

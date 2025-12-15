@@ -1,7 +1,6 @@
 """
 Expression Tests
 """
-
 from mathics.core.atoms import Integer0, Integer1, IntegerM1
 from mathics.core.builtin import Builtin, PatternError, Test
 from mathics.core.evaluation import Evaluation

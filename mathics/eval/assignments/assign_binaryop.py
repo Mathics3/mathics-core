@@ -2,7 +2,6 @@
 evaluation functions associated with the mathics.builtin.assign_binary_op
 module.
 """
-
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.systemsymbols import SymbolSet

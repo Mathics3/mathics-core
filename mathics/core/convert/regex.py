@@ -1,7 +1,6 @@
 """
 Convert expressions to Python regular expressions
 """
-
 import re
 from binascii import hexlify
 from typing import Callable, Optional

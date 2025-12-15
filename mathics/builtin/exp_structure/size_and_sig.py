@@ -1,7 +1,6 @@
 """
 Expression Sizes and Signatures
 """
-
 import hashlib
 import platform
 import zlib
