@@ -78,7 +78,7 @@ def evaluate_without_side_effects(
     return result if result is not None else expr
 
 
-def expression_to_callable(
+def expression_to_llvm(
     expr: Expression,
     args: Optional[list] = None,
     evaluation: Optional[Evaluation] = None,
@@ -192,7 +192,10 @@ def expression_to_callable_and_args(
     expr: A Mathics Expression object
     vars: a list of Symbols or Mathics Lists of the form {Symbol, Type}
     """
-    from mathics.core.convert.lambdify import LambdifyCompileError, lambdify_compile
+    from mathics.core.convert.lambdify import (
+        CompileError as LambdifyCompileError,
+        lambdify_compile,
+    )
     
     args = collect_args(vars)
 
@@ -222,7 +225,7 @@ def expression_to_callable_and_args(
                     for compile_arg in args
                 ]
             )
-            cfunc = expression_to_callable(expr, llvm_args, evaluation)
+            cfunc = expression_to_llvm(expr, llvm_args, evaluation)
             if cfunc is not None:
                 if vectorize:
                     cfunc = numpy.vectorize(cfunc)
