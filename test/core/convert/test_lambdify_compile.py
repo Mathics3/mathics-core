@@ -454,7 +454,7 @@ def one(name, args, scipy=False, expected=None, fail=False):
     elif fail:
         raise Exception(f"unexpected success: result {result}, expected {expected}")
     else:
-        #print(f"{name} succeeds: expected {expected}, got {result}")
+        # print(f"{name} succeeds: expected {expected}, got {result}")
         pass
 
 
