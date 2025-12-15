@@ -7,7 +7,6 @@ Maximize[] and Minimize[]
 
 
 """
-
 from test.helper import check_evaluation
 
 import pytest

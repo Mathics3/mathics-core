@@ -72,15 +72,13 @@ def gridbox(self, elements=None, **box_options) -> str:
         widths = [0]
 
     cells = [
-        (
-            [
-                # TODO: check if this evaluation is necessary.
-                boxes_to_text(item, **box_options).splitlines()
-                for item in row
-            ]
-            if isinstance(row, tuple)
-            else [boxes_to_text(row, **box_options).splitlines()]
-        )
+        [
+            # TODO: check if this evaluation is necessary.
+            boxes_to_text(item, **box_options).splitlines()
+            for item in row
+        ]
+        if isinstance(row, tuple)
+        else [boxes_to_text(row, **box_options).splitlines()]
         for row in items
     ]
 
