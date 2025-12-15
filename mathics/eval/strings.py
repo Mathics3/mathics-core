@@ -1,6 +1,7 @@
 """
 String-related evaluation functions.
 """
+
 import re
 
 from mathics.core.atoms import Integer1, Integer3, String
