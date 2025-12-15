@@ -129,6 +129,7 @@ class BeginPackage(Builtin):
     ## >> BeginPackage["test`"]
     ##  = test`
     """
+
     has_side_effects = True
     messages = {"unimpl": "The second argument to BeginPackage is not yet implemented."}
 
@@ -387,6 +388,7 @@ class EndPackage(Builtin):
     After 'EndPackage', the values of '\$Context' and '\$ContextPath' at the \
     time of the 'BeginPackage' call are restored, with the new package\'s context prepended to '\$ContextPath'.
     """
+
     has_side_effects = True
     messages = {
         "noctx": "No previous context defined.",

@@ -200,7 +200,6 @@ class CompiledCode(Atom, ImmutableValueMixin):
                 )
             )
 
-
     def atom_to_boxes(self, f, evaluation: Evaluation):
         return CompiledCodeBox(String(self.__str__()), evaluation=evaluation)
 
@@ -222,7 +221,6 @@ class CompiledFunction(Builtin):
      = 4.
 
     """
-
 
     attributes = A_HOLD_ALL | A_PROTECTED | A_N_HOLD_ALL | A_READ_PROTECTED
     messages = {

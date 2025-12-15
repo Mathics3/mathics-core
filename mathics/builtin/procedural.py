@@ -487,6 +487,7 @@ class Interrupt(Builtin):
      | a
      = $Aborted
     """
+
     has_side_effects = True
 
     # Set checking that the no arguments are allowed.

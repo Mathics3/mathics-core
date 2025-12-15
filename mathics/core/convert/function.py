@@ -196,7 +196,7 @@ def expression_to_callable_and_args(
         CompileError as LambdifyCompileError,
         lambdify_compile,
     )
-    
+
     args = collect_args(vars)
 
     # If vectorize is requested, first, try to lambdify the expression:
