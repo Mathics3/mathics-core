@@ -1,0 +1,278 @@
+System`Graphics
+  System`List
+    System`EdgeForm
+      System`RGBColor
+        System`Integer 0
+        System`Integer 0
+        System`Integer 0
+    System`Style
+      System`Disk
+        System`List
+          System`Real 0.0
+          System`Real 0.0
+        System`List
+          System`Real 2.0
+          System`Real 2.0
+        System`List
+          System`Real 3.141593
+          System`Real 2.094395
+      System`RGBColor
+        System`Real 0.941176
+        System`Real 0.647059
+        System`Real 0.690196
+    System`Style
+      System`Disk
+        System`List
+          System`Real 0.0
+          System`Real 0.0
+        System`List
+          System`Real 2.0
+          System`Real 2.0
+        System`List
+          System`Real 2.094395
+          System`Real 0.0
+      System`RGBColor
+        System`Real 0.54902
+        System`Real 0.521569
+        System`Real 0.211765
+    System`Style
+      System`Disk
+        System`List
+          System`Real 0.0
+          System`Real 0.0
+        System`List
+          System`Real 2.0
+          System`Real 2.0
+        System`List
+          System`Real 0.0
+          System`Real -3.141593
+      System`RGBColor
+        System`Real 0.980392
+        System`Real 0.815686
+        System`Real 0.388235
+    System`Style
+      System`Disk
+        System`List
+          System`Real 0.0
+          System`Real 0.0
+        System`List
+          System`Real 1.0
+          System`Real 1.0
+      System`GrayLevel
+        System`Integer 1
+    System`Style
+      System`Disk
+        System`List
+          System`Real 0.0
+          System`Real 0.0
+        System`List
+          System`Real 0.8
+          System`Real 0.8
+        System`List
+          System`Real 3.141593
+          System`Real 1.734909
+      System`RGBColor
+        System`Real 0.941176
+        System`Real 0.647059
+        System`Real 0.690196
+    System`Style
+      System`Disk
+        System`List
+          System`Real 0.0
+          System`Real 0.0
+        System`List
+          System`Real 0.8
+          System`Real 0.8
+        System`List
+          System`Real 1.734909
+          System`Real -0.328226
+      System`RGBColor
+        System`Real 0.54902
+        System`Real 0.521569
+        System`Real 0.211765
+    System`Style
+      System`Disk
+        System`List
+          System`Real 0.0
+          System`Real 0.0
+        System`List
+          System`Real 0.8
+          System`Real 0.8
+        System`List
+          System`Real -0.328226
+          System`Real -3.141593
+      System`RGBColor
+        System`Real 0.980392
+        System`Real 0.815686
+        System`Real 0.388235
+    System`FaceForm
+      System`RGBColor
+        System`Integer 0
+        System`Integer 0
+        System`Integer 0
+    System`Text
+      Global`A
+      System`List
+        System`Real -1.299038
+        System`Real 0.75
+    System`Text
+      Global`B
+      System`List
+        System`Real 0.75
+        System`Real 1.299038
+    System`Text
+      System`C
+      System`List
+        System`Real 0.0
+        System`Real -1.5
+    System`Text
+      Global`A
+      System`List
+        System`Real -0.305074
+        System`Real 0.258708
+    System`Text
+      Global`B
+      System`List
+        System`Real 0.305074
+        System`Real 0.258708
+    System`Text
+      System`C
+      System`List
+        System`Real -0.065351
+        System`Real -0.394625
+  System`Rule
+    System`AlignmentPoint
+    System`Center
+  System`Rule
+    System`AspectRatio
+    System`Integer 1
+  System`Rule
+    System`Axes
+    System`List
+      System`False
+      System`False
+  System`Rule
+    System`AxesLabel
+    System`None
+  System`Rule
+    System`AxesOrigin
+    System`Automatic
+  System`Rule
+    System`AxesStyle
+    System`List
+  System`Rule
+    System`Background
+    System`Automatic
+  System`Rule
+    System`BaseStyle
+    System`List
+  System`Rule
+    System`BaselinePosition
+    System`Automatic
+  System`Rule
+    System`ChartLabels
+    System`List
+      Global`A
+      Global`B
+      System`C
+  System`Rule
+    System`ChartLegends
+    System`None
+  System`Rule
+    System`ChartStyle
+    System`Automatic
+  System`Rule
+    System`ContentSelectable
+    System`Automatic
+  System`Rule
+    System`CoordinatesToolOptions
+    System`Automatic
+  System`Rule
+    System`Epilog
+    System`List
+  System`Rule
+    System`FormatType
+    System`TraditionalForm
+  System`Rule
+    System`Frame
+    System`False
+  System`Rule
+    System`FrameLabel
+    System`None
+  System`Rule
+    System`FrameStyle
+    System`List
+  System`Rule
+    System`FrameTicks
+    System`Automatic
+  System`Rule
+    System`FrameTicksStyle
+    System`List
+  System`Rule
+    System`GridLines
+    System`None
+  System`Rule
+    System`GridLinesStyle
+    System`List
+  System`Rule
+    System`ImageMargins
+    System`Real 0.0
+  System`Rule
+    System`ImagePadding
+    System`All
+  System`Rule
+    System`ImageSize
+    System`Automatic
+  System`Rule
+    System`LabelStyle
+    System`List
+  System`Rule
+    System`Mesh
+    System`None
+  System`Rule
+    System`Method
+    System`Automatic
+  System`Rule
+    System`PlotLabel
+    System`None
+  System`Rule
+    System`PlotRange
+    System`List
+      System`List
+        System`Real -2.0
+        System`Real 2.0
+      System`List
+        System`Real -2.0
+        System`Real 2.0
+  System`Rule
+    System`PlotRangeClipping
+    System`False
+  System`Rule
+    System`PlotRangePadding
+    System`Automatic
+  System`Rule
+    System`PlotRegion
+    System`Automatic
+  System`Rule
+    System`PreserveImageOptions
+    System`Automatic
+  System`Rule
+    System`Prolog
+    System`List
+  System`Rule
+    System`RotateLabel
+    System`True
+  System`Rule
+    System`SectorOrigin
+    System`List
+      System`Automatic
+      System`Integer 0
+  System`Rule
+    System`SectorSpacing
+    System`Automatic
+  System`Rule
+    System`Ticks
+    System`Automatic
+  System`Rule
+    System`TicksStyle
+    System`List
