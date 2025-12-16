@@ -186,7 +186,7 @@ def one_test(name, str_expr, vec, opt, act_dir="/tmp"):
 
 
 def yaml_tests(fn, act_dir, vec):
-    """ run a set of tests from yaml file fn """
+    """run a set of tests from yaml file fn"""
 
     # read the yaml file
     fn = pathlib.Path(__file__).resolve().parent / fn
