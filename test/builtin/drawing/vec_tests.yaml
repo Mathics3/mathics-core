@@ -1,0 +1,7 @@
+#
+# This file will be for a set of tests specifically aimed at
+# the new vectorized plot functions
+# TODO: add more
+#
+vec-contourplot-expr-x:
+    expr: ContourPlot[x, {x, -2, 2}, {y, -1, 1}, Contours->{0, 0.5}, AspectRatio->Automatic]

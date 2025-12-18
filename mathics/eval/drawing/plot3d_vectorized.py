@@ -225,7 +225,7 @@ def eval_ContourPlot(
     # convert fs of the form a==b to a-b, inplicit contour level 0
     plot_options.functions = list(plot_options.functions)  # so we can modify it
     for i, f in enumerate(plot_options.functions):
-        if f.head == SymbolEqual:
+        if hasattr(f, "head") and f.head == SymbolEqual:
             f = Expression(SymbolSubtract, *f.elements[0:2])
             plot_options.functions[i] = f
             contour_levels = [0]
@@ -264,7 +264,7 @@ def eval_ContourPlot(
         for level in levels:
             # find contours and add lines
             with Timer("contours"):
-                zgrid = zs.reshape((nx, ny))  # find_contours needs it as an array
+                zgrid = zs.reshape((nx, ny)).T  # find_contours needs it as an array
                 contours = skimage.measure.find_contours(zgrid, level)
 
             # add lines
