@@ -66,7 +66,7 @@ def eval_pause(sleeptime: float, evaluation):
 
 
 if sys.platform == "emscripten":
-    # from stopit import SignalTimeout as TimeoutHandler
+    # from timed_threads import SignalTimeout as TimeoutHandler
 
     def eval_timeconstrained(
         expr: BaseElement, timeout: float, failexpr: BaseElement, evaluation: Evaluation
@@ -75,7 +75,7 @@ if sys.platform == "emscripten":
         evaluation.message("TimeConstrained", "tcns")
 
 else:
-    from stopit import ThreadingTimeout as TimeoutHandler
+    from timed_threads import ThreadingTimeout as TimeoutHandler
 
     def eval_timeconstrained(
         expr: BaseElement, timeout: float, failexpr: BaseElement, evaluation: Evaluation

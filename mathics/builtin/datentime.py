@@ -42,7 +42,7 @@ from mathics.core.systemsymbols import (
 from mathics.settings import TIME_12HOUR
 
 if sys.platform == "emscripten":
-    from stopit import SignalTimeout as TimeoutHandler
+    from timed_threads import SignalTimeout as TimeoutHandler
 else:
     from timed_threads import ThreadingTimeout as TimeoutHandler
 

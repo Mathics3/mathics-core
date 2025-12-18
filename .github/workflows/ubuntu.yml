@@ -24,11 +24,8 @@ jobs:
     - name: Install Mathics3 with full dependencies
       run: |
         python -m pip install --upgrade pip
-        # First install our patched version of stopit
-        git clone --depth 1 https://github.com/Mathics3/stopit.git
-        cd stopit/
-        pip install -e .
-        cd ..
+        # First, install our patched version of stopit called Timed-Threads
+        python -m pip install Timed-Threads
         # We can comment out after next Mathics-Scanner release
         # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
         git clone --depth 1 https://github.com/Mathics3/mathics-scanner.git
