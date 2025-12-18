@@ -150,7 +150,7 @@ class MathicsSession:
         )
         if form is None:
             form = self.form
-        self.last_result = expr.evaluate(self.evaluation)
+        self.last_result = expr.evaluate(self.evaluation) if expr else None
         return self.last_result
 
     def evaluate_as_in_cli(self, str_expression, timeout=None, form=None, src_name=""):
