@@ -19,6 +19,7 @@ from mathics_scanner.location import ContainerKind
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Result
 from mathics.core.parser import MathicsSingleLineFeeder, parse
+from mathics.core.symbols import SymbolNull
 
 
 def autoload_files(
@@ -150,7 +151,7 @@ class MathicsSession:
         )
         if form is None:
             form = self.form
-        self.last_result = expr.evaluate(self.evaluation)
+        self.last_result = expr.evaluate(self.evaluation) if expr else SymbolNull
         return self.last_result
 
     def evaluate_as_in_cli(self, str_expression, timeout=None, form=None, src_name=""):
