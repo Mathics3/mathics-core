@@ -6,11 +6,10 @@ import inspect
 from typing import Any, Callable, Tuple
 
 import mathics.eval.tracing
-from mathics.core.atoms import Symbol
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import SymbolConstant, SymbolHoldForm
+from mathics.core.symbols import Symbol, SymbolConstant, SymbolHoldForm
 
 
 def eval_Stack() -> ListExpression:
