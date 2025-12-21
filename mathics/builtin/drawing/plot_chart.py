@@ -19,7 +19,7 @@ from mathics.eval.drawing.charts import draw_bar_chart, eval_chart
 from mathics.eval.nevaluator import eval_N
 
 # This tells documentation how to sort this module
-from .plot import sort_order # noqa
+from .plot import sort_order  # noqa
 
 SymbolDisk = Symbol("Disk")
 SymbolFaceForm = Symbol("FaceForm")

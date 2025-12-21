@@ -19,7 +19,7 @@ from mathics.eval.nevaluator import eval_N
 from . import plot
 
 # This tells documentation how to sort this module
-from .plot import sort_order # noqa
+from .plot import sort_order  # noqa
 
 
 # TODO: add more options

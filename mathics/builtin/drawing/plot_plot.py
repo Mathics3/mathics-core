@@ -31,7 +31,7 @@ from mathics.eval.drawing.plot import (
 from mathics.eval.nevaluator import eval_N
 
 # This tells documentation how to sort this module
-from .plot import sort_order # noqa
+from .plot import sort_order  # noqa
 
 
 class _Plot(Builtin, ABC):
