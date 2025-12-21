@@ -7,7 +7,6 @@ Support for Set and SetDelayed, and other assignment-like builtins
 
 from typing import Callable, List, Optional, Tuple
 
-from mathics.core.atoms import Atom
 from mathics.core.attributes import A_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.definitions import Definitions
@@ -16,7 +15,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import Rule
-from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.symbols import Atom, Symbol, SymbolList
 from mathics.core.systemsymbols import (
     SymbolAnd,
     SymbolBlank,
