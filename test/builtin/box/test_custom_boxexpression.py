@@ -98,8 +98,7 @@ def test_custom_boxconstruct():
     defs = session.evaluation.definitions
     instance_custom_atom = CustomAtom(expression=False)
     instance_custom_atom.contribute(defs, is_pymodule=True)
-    evaluate("MakeBoxes[CustomAtom, InputForm]")
-    formatted = session.format_result().boxes_to_mathml()
+    formatted = session.evaluate("MakeBoxes[InputForm[CustomAtom]]").boxes_to_mathml()
     assert formatted == "CustomBoxExpression<<[1, 2, 3]>>"
 
 
@@ -109,8 +108,8 @@ def test_custom_graphicsbox_constructor():
         expression=False, evaluation=session.evaluation
     )
     instance_customgb_atom.contribute(defs, is_pymodule=True)
-    evaluate("MakeBoxes[Graphics[{Circle[{0,0},1]}], OutputForm]")
-    formatted = session.format_result().boxes_to_mathml()
+    result = session.evaluate("MakeBoxes[OutputForm[Graphics[{Circle[{0,0},1]}]]]")
+    formatted = result.boxes_to_mathml()
     assert (
         formatted
         == "--custom graphics--: I should plot (<Expression: <Symbol: System`Circle>[<ListExpression: (<Integer: 0>, <Integer: 0>)>, <Integer: 1>]>,) items"
