@@ -1,6 +1,8 @@
 """
 Numeric types: Number, Integer Real, MachineReal, PrecisionReal, Complex, Rational
 """
+# Note: Python warns of ambiguity numpy's module numpy.numerics if we name this file this numeric.py
+
 import math
 import re
 from functools import cache

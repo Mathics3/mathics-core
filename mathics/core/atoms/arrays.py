@@ -7,7 +7,7 @@ from typing import Optional, Tuple, Union
 
 import numpy
 
-from mathics.core.atoms.numeric import Integer
+from mathics.core.atoms.numerics import Integer
 from mathics.core.atoms.strings import String
 from mathics.core.element import ImmutableValueMixin
 from mathics.core.keycomparable import (
