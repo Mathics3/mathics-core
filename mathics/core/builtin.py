@@ -40,7 +40,6 @@ import mathics.core.parser.operators
 # run time.
 import mathics.eval.tracing as tracing
 from mathics.core.atoms import (
-    Atom,
     Integer,
     Integer0,
     Integer1,
@@ -73,6 +72,7 @@ from mathics.core.parser.util import PyMathicsDefinitions, SystemDefinitions
 from mathics.core.pattern import BasePattern, build_pattern_sort_key
 from mathics.core.rules import BaseRule, FunctionApplyRule, Rule
 from mathics.core.symbols import (
+    Atom,
     BaseElement,
     BooleanType,
     Symbol,
