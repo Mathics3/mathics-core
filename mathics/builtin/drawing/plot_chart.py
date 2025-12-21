@@ -1,59 +1,25 @@
-import numbers
-import os
-from abc import ABC
-from functools import lru_cache
 from math import cos, pi, sin
-from typing import Callable, Optional
 
-import palettable
-
-import mathics.eval.drawing.plot3d
-import mathics.eval.drawing.plot3d_vectorized
-from mathics.builtin.drawing.graphics3d import Graphics3D
 from mathics.builtin.graphics import Graphics
 from mathics.builtin.options import options_to_rules
-from mathics.core.atoms import Integer, Integer0, Integer1, MachineReal, Real, String
-from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.atoms import Integer0, Real, String
+from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 from mathics.core.builtin import Builtin
-from mathics.core.convert.expression import to_expression, to_mathics_list
-from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
-    SymbolAll,
-    SymbolAutomatic,
     SymbolBlack,
     SymbolEdgeForm,
-    SymbolFull,
     SymbolGraphics,
-    SymbolLine,
-    SymbolLog10,
-    SymbolNone,
-    SymbolPlotRange,
-    SymbolRGBColor,
-    SymbolSequence,
     SymbolStyle,
 )
 from mathics.eval.drawing.charts import draw_bar_chart, eval_chart
-from mathics.eval.drawing.colors import COLOR_PALETTES, get_color_palette
-from mathics.eval.drawing.plot import (
-    ListPlotPairOfNumbersError,
-    ListPlotType,
-    check_plot_range,
-    compile_quiet_function,
-    eval_ListPlot,
-    eval_Plot,
-    get_filling_option,
-    get_plot_range,
-    get_plot_range_option,
-)
 from mathics.eval.nevaluator import eval_N
 
-
 # This tells documentation how to sort this module
-from .plot import sort_order
+from .plot import sort_order # noqa
 
 SymbolDisk = Symbol("Disk")
 SymbolFaceForm = Symbol("FaceForm")
@@ -330,4 +296,3 @@ class PieChart(_Chart):
         return Expression(
             SymbolGraphics, ListExpression(*graphics), *options_to_rules(options)
         )
-    
