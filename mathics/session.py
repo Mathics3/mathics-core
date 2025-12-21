@@ -174,13 +174,14 @@ class MathicsSession:
         return res
 
     def format_result(self, str_expression=None, timeout=None, form=None):
-        if str_expression:
-            self.evaluate(str_expression, timeout=None, form=None)
-
-        res = self.last_result
         if form is None:
             form = self.form
-        return res.do_format(self.evaluation, form)
+
+        if str_expression:
+            return self.evaluate(str_expression, timeout=timeout, form=form)
+
+        res = self.last_result
+        return self.evaluation.format_output(res, form)
 
     def parse(self, str_expression, src_name=""):
         """
