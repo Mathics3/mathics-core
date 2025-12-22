@@ -28,8 +28,8 @@ dependencies = [
     "requests",
     "scipy",
     "setuptools",
-    # stopit is needed in TimeRemaining[]
-    "stopit; platform_system != 'Emscripten'",
+    # Timed-Threads is needed in TimeRemaining[]
+    "Timed-Threads",
     "sympy>=1.13",
 ]
 license = "GPL-3.0-or-later"
