@@ -79,6 +79,7 @@ GRAPHICS_OPTIONS = {
     "ImagePadding": "All",
     "ImageSize": "Automatic",
     "LabelStyle": "{}",
+    "LogPlot": "False",  # not standard afaics
     "Method": "Automatic",
     "PlotLabel": "None",
     "PlotRange": "Automatic",
