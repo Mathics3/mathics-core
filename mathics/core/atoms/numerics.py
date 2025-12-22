@@ -99,7 +99,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
     @property
     def is_literal(self) -> bool:
         """Number can't change and has a Python representation,
-        i.e. a value is set and it does not depend on definition
+        i.e., a value is set and it does not depend on definition
         bindings. So we say it is a literal.
         """
         return True
@@ -356,7 +356,7 @@ Integer10 = Integer(10)
 IntegerM1 = Integer(-1)
 
 
-# This has to come before Complex
+# This has to come before Complex which uses Real.
 class Real(Number[T]):
     class_head_name = "System`Real"
 
@@ -429,7 +429,7 @@ class Real(Number[T]):
         update(b"System`Real>" + str(self.to_sympy().n(_prec)).encode("utf8"))
 
 
-# Has to come before PrecisionReal
+# This has to come before PrecisionReal which uses MachineReal.
 class MachineReal(Real[float]):
     """
     Machine precision real number.
@@ -670,19 +670,30 @@ class PrecisionReal(Real[sympy.Float]):
 
 
 class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
-    """
-    Complex wraps two real-valued Numbers.
+    """Complex wraps two real-valued Numbers.
+
+    Note that Mathics3 complex values are more precise than complex
+    values in Python, NumPy, or mpmath. Both the Real and Imaginary
+    parts can be Mathics3-kinds of numbers, as opposed to a generic
+    floating point number (which does not distinguish exact from approximate
+    values like an integer does). Also, there can be a precision associated
+    with a Mathics3 complex number.
     """
 
     class_head_name = "System`Complex"
     real: Number[T]
     imag: Number[T]
+    precision: Optional[int]
 
     # Dictionary of Complex constant values defined so far.
     # We use this for object uniqueness.
     # The key is the Complex value's real and imaginary parts as a tuple,
     # dictionary's value is the corresponding Mathics Complex object.
     _complex_numbers: Dict[Any, "Complex"] = {}
+
+    # The precise value: a real number, an imaginary number, and a
+    # precision value.
+    _exact_value: Tuple[Number[T], Number[T], Optional[int]]
 
     # We use __new__ here to ensure that two Complex number that have
     # down to the type on the imaginary and real parts and precision of those --
@@ -711,34 +722,37 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
 
         if isinstance(real, MachineReal) and not isinstance(imag, MachineReal):
             imag = imag.round()
-            prec = FP_MANTISA_BINARY_DIGITS
+            precision = FP_MANTISA_BINARY_DIGITS
         elif isinstance(imag, MachineReal) and not isinstance(real, MachineReal):
             real = real.round()
-            prec = FP_MANTISA_BINARY_DIGITS
+            precision = FP_MANTISA_BINARY_DIGITS
         else:
-            prec = min(
+            precision = min(
                 (u for u in (x.get_precision() for x in (real, imag)) if u is not None),
                 default=None,
             )
 
-        value = (real, imag, prec)
-        self = cls._complex_numbers.get(value)
+        exact_value = (real, imag, precision)
+
+        self = cls._complex_numbers.get(exact_value)
         if self is None:
             self = super().__new__(cls)
             self.real = real
             self.imag = imag
+            self.precision = precision
 
-            self._value = value
+            self._exact_value = exact_value
+            self._value = complex(real.value, imag.value)
 
             # Cache object so we don't allocate again.
-            self._complex_numbers[value] = self
+            self._complex_numbers[exact_value] = self
 
             # Set a value for self.__hash__() once so that every time
             # it is used this is fast. Note that in contrast to the
             # cached object key, the hash key needs to be unique across all
             # Python objects, so we include the class in the
             # event that different objects have the same Python value
-            self.hash = hash((cls, value))
+            self.hash = hash((cls, exact_value))
 
         return self
 
@@ -1002,8 +1016,8 @@ class Rational(Number[sympy.Rational]):
 
 RationalOneHalf = Rational(1, 2)
 RationalMinusOneHalf = Rational(-1, 2)
-MATHICS3_COMPLEX_I: Complex[int] = Complex(Integer0, Integer1)
-MATHICS3_COMPLEX_I_NEG: Complex[int] = Complex(Integer0, IntegerM1)
+MATHICS3_COMPLEX_I: Complex = Complex(Integer0, Integer1)
+MATHICS3_COMPLEX_I_NEG: Complex = Complex(Integer0, IntegerM1)
 
 # Numerical constants
 # These constants are populated by the `Predefined`
