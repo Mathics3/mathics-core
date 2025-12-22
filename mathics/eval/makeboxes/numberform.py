@@ -113,7 +113,7 @@ def NumberForm_to_String(
     value: Union[Real, Integer],
     digits: Optional[int],
     digits_after_decimal_point: Optional[int],
-    evaluation: Evaluation,
+    evaluation: Optional[Evaluation],
     options: dict,
 ) -> String:
     """
