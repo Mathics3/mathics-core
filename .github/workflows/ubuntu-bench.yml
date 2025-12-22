@@ -24,8 +24,6 @@ jobs:
     - name: Install Mathics3 with full dependencies
       run: |
         python -m pip install --upgrade pip
-        # First, install our Timed-Threads
-        pip install Timed-Threads
         python -m pip install pytest-benchmark
         # We can comment out after next Mathics-Scanner release
         # python -m pip install Mathics-Scanner[full]

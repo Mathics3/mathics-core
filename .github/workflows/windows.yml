@@ -33,8 +33,6 @@ jobs:
         set LLVM_DIR="C:\Program Files\LLVM"
     - name: Install Mathics3 with Python dependencies
       run: |
-        # First, install our patched version of stopit called Timed-Threads
-        pip install Timed-Treads
         # We can comment out after next Mathics-Scanner release
         # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
         pip install -e .
