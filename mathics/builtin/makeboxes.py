@@ -4,17 +4,9 @@ Low-level Format definitions
 """
 
 
-from mathics.core.atoms import Integer
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Predefined
-from mathics.core.symbols import Symbol
-from mathics.eval.makeboxes import (
-    eval_generic_makeboxes,
-    eval_infix,
-    eval_postprefix,
-    format_element,
-    parenthesize,
-)
+from mathics.eval.makeboxes import eval_generic_makeboxes, format_element
 
 # TODO: Differently from the current implementation, MakeBoxes should only
 # accept as its format field the symbols in `$BoxForms`. This is something to
@@ -111,25 +103,6 @@ class MakeBoxes(Builtin):
         """MakeBoxes[expr_,
         f:TraditionalForm|StandardForm|OutputForm|InputForm|FullForm]"""
         return eval_generic_makeboxes(self, expr, f, evaluation)
-
-    def eval_outerprecedenceform(self, expr, precedence, form, evaluation):
-        """MakeBoxes[PrecedenceForm[expr_, precedence_],
-        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
-
-        py_precedence = precedence.get_int_value()
-        boxes = MakeBoxes(expr, form)
-        return parenthesize(py_precedence, expr, boxes, True)
-
-    def eval_postprefix(self, p, expr, h, precedence, form, evaluation):
-        """MakeBoxes[(p:Prefix|Postfix)[expr_, h_, precedence_:None],
-        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
-        return eval_postprefix(self, p, expr, h, precedence, form, evaluation)
-
-    def eval_infix(
-        self, expr, operator, precedence: Integer, grouping, form: Symbol, evaluation
-    ):
-        """MakeBoxes[Infix[expr_, operator_, precedence_:None, grouping_:None], form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
-        return eval_infix(self, expr, operator, precedence, grouping, form, evaluation)
 
 
 class ToBoxes(Builtin):

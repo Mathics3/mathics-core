@@ -15,14 +15,19 @@ we can use 'Row'.
 from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
 from mathics.builtin.makeboxes import MakeBoxes
 from mathics.builtin.options import options_to_rules
-from mathics.core.atoms import Real, String
+from mathics.core.atoms import Integer, Real, String
 from mathics.core.builtin import Builtin, Operator, PostfixOperator, PrefixOperator
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolMakeBoxes
+from mathics.core.systemsymbols import SymbolMakeBoxes, SymbolPostfix, SymbolPrefix
 from mathics.eval.lists import list_boxes
-from mathics.eval.makeboxes import format_element
+from mathics.eval.makeboxes import (
+    eval_infix,
+    eval_postprefix,
+    format_element,
+    parenthesize,
+)
 
 SymbolSubscriptBox = Symbol("System`SubscriptBox")
 
@@ -181,6 +186,12 @@ class Infix(Builtin):
 
     summary_text = "infix form"
 
+    def eval_infix(
+        self, expr, operator, precedence: Integer, grouping, form: Symbol, evaluation
+    ):
+        """MakeBoxes[Infix[expr_, operator_, precedence_:None, grouping_:None], form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+        return eval_infix(self, expr, operator, precedence, grouping, form, evaluation)
+
 
 class Left(Builtin):
     """
@@ -233,6 +244,13 @@ class Postfix(PostfixOperator):
     grouping = "Left"
     operator_display = None
     summary_text = "postfix form"
+
+    def eval_postfix(self, expr, h, precedence, form, evaluation):
+        """MakeBoxes[Postfix[expr_, h_, precedence_:None],
+        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+        return eval_postprefix(
+            self, SymbolPostfix, expr, h, precedence, form, evaluation
+        )
 
 
 class Precedence(Builtin):
@@ -292,6 +310,14 @@ class PrecedenceForm(Builtin):
 
     summary_text = "parenthesize with a precedence"
 
+    def eval_outerprecedenceform(self, expr, precedence, form, evaluation):
+        """MakeBoxes[PrecedenceForm[expr_, precedence_],
+        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+
+        py_precedence = precedence.get_int_value()
+        boxes = MakeBoxes(expr, form)
+        return parenthesize(py_precedence, expr, boxes, True)
+
 
 class Prefix(PrefixOperator):
     """
@@ -325,6 +351,13 @@ class Prefix(PrefixOperator):
     grouping = "Right"
     operator_display = None
     summary_text = "prefix form"
+
+    def eval_prefix(self, expr, h, precedence, form, evaluation):
+        """MakeBoxes[Prefix[expr_, h_, precedence_:None],
+        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+        return eval_postprefix(
+            self, SymbolPrefix, expr, h, precedence, form, evaluation
+        )
 
 
 class Right(Builtin):
