@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [macOS]
-        python-version: ['3.12', '3.13']
+        python-version: ['3.13', '3.12']
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
@@ -28,14 +28,10 @@ jobs:
         python -m pip install --upgrade pip
     - name: Install Mathics3 with full Python dependencies
       run: |
-        # First install our patched version of stopit
-        git clone --depth 1 https://github.com/Mathics3/stopit.git
-        cd stopit/
-        pip install -e .
-        cd ..
+        python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
         # We can comment out after next Mathics-Scanner release
         # python -m pip install Mathics-Scanner[full]
-        python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
+        # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
         pip install -e .
         remake -x develop-full
     - name: Test Mathics3

@@ -7,7 +7,6 @@ Support for Set and SetDelayed, and other assignment-like builtins
 
 from typing import Callable, List, Optional, Tuple
 
-from mathics.core.atoms import Atom
 from mathics.core.attributes import A_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.definitions import Definitions
@@ -16,7 +15,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import Rule
-from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.symbols import Atom, Symbol, SymbolList
 from mathics.core.systemsymbols import (
     SymbolAnd,
     SymbolBlank,
@@ -102,10 +101,10 @@ def get_symbol_values(
         A list of rules. None if `symbol` is not a Symbol.
 
     """
-    name = symbol.get_name()
-    if not name:
+    if not isinstance(symbol, Symbol):
         evaluation.message(func_name, "sym", symbol, 1)
         return None
+    name = symbol.get_name()
     definitions = evaluation.definitions
     try:
         definition = (
@@ -200,6 +199,35 @@ def normalize_lhs(lhs, evaluation):
     if cond:
         lhs = Expression(cond.get_head(), lhs, cond.elements[1])
     return lhs, lookup_name
+
+
+def pop_reference_head(lhs: Expression, lhs_reference: BaseElement):
+    """
+    Convert expressions of the form
+    ```
+    Head1[Head2[...Headn[ReferenceHead[a,b],p1],p2,...]..]
+    ```
+    into
+    ```
+    ReferenceHead[Head1[Head2[...Headn[a],p1],p2,...]..],b]
+    ```
+    Used in eval_assign_[n|format|...]
+    """
+    if lhs is lhs_reference:
+        return lhs
+
+    lhs_head = lhs.get_head()
+    if lhs_head is lhs_reference:
+        return lhs
+
+    elems = lhs.elements
+    lhs_reference_expr = elems[0]
+    if lhs_reference_expr.get_head() is not lhs_reference:
+        lhs_reference_expr = pop_reference_head(lhs_reference_expr, lhs_reference)
+
+    lhs_reference_elems = lhs_reference_expr.elements
+    inner = Expression(lhs_head, lhs_reference_elems[0], *elems[1:])
+    return Expression(lhs_reference, inner, *lhs_reference_elems[1:])
 
 
 def repl_pattern_by_symbol(expr: BaseElement) -> BaseElement:

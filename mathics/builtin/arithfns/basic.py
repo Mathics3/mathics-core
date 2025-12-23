@@ -39,6 +39,7 @@ from mathics.core.builtin import (
 )
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.sympy import from_sympy
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
@@ -82,6 +83,10 @@ class CubeRoot(Builtin):
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
 
+    # Set checking that the number of arguments required is one.
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
+
     messages = {
         "preal": "The parameter `1` should be real valued.",
     }
@@ -96,7 +101,7 @@ class CubeRoot(Builtin):
 
     summary_text = "compute cube root of a number"
 
-    def eval(self, n, evaluation):
+    def eval(self, n, evaluation: Evaluation):
         "CubeRoot[n_Complex]"
 
         evaluation.message("CubeRoot", "preal", n)
@@ -151,6 +156,10 @@ class Divide(InfixOperator):
 
     default_formats = False
 
+    # Set checking that the number of arguments required is two.
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
+
     formats = {
         (("InputForm", "OutputForm"), "Divide[x_, y_]"): (
             'Infix[{HoldForm[x], HoldForm[y]}, "/", 400, Left]'
@@ -195,6 +204,10 @@ class Minus(PrefixOperator):
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+
+    # Set checking that the number of arguments required is two.
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
 
     formats = {
         "Minus[x_]": 'Prefix[{HoldForm[x]}, "-", 480]',
@@ -283,7 +296,12 @@ class Plus(InfixOperator, SympyFunction):
     # Remember to up sympy doc link when this is corrected
     sympy_name = "Add"
 
-    def format_plus(self, items, evaluation):
+    def eval(self, elements, evaluation: Evaluation):
+        "Plus[elements___]"
+        elements_tuple = numerify(elements, evaluation).get_sequence()
+        return eval_Plus(*elements_tuple)
+
+    def format_plus(self, items, evaluation: Evaluation):
         "Plus[items__]"
 
         def negate(item):  # -> Expression (see FIXME below)
@@ -333,11 +351,6 @@ class Plus(InfixOperator, SympyFunction):
             Integer310,
             SymbolLeft,
         )
-
-    def eval(self, items, evaluation):
-        "Plus[items___]"
-        items_tuple = numerify(items, evaluation).get_sequence()
-        return eval_Plus(*items_tuple)
 
 
 class Power(InfixOperator, MPMathFunction):
@@ -437,7 +450,7 @@ class Power(InfixOperator, MPMathFunction):
     # Remember to up sympy doc link when this is corrected
     sympy_name = "Pow"
 
-    def eval_check(self, x, y, evaluation):
+    def eval_check(self, x, y, evaluation: Evaluation):
         "Power[x_, y_]"
 
         # Power uses MPMathFunction but does some error checking first
@@ -468,7 +481,7 @@ class Power(InfixOperator, MPMathFunction):
             )
 
         result = self.eval(Expression(SymbolSequence, x, y), evaluation)
-        if result is None or result != SymbolNull:
+        if result is None or result is not SymbolNull:
             return result
 
 
@@ -508,6 +521,10 @@ class Sqrt(SympyFunction):
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
+    # Set checking that the number of arguments required is one.
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
+
     rules = {
         "Sqrt[x_]": "x ^ (1/2)",
         "MakeBoxes[Sqrt[x_], f:StandardForm|TraditionalForm]": (
@@ -542,6 +559,11 @@ class Subtract(InfixOperator):
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+
+    # Set checking that the number of arguments required is two.
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
+
     grouping = "Left"
 
     rules = {
@@ -614,9 +636,14 @@ class Times(InfixOperator, SympyFunction):
     # Remember to up sympy doc link when this is corrected
     sympy_name = "Mul"
 
-    summary_text = "multiply a number"
+    summary_text = "multiply numbers"
 
-    def format_times(self, items, evaluation, op="\u2062"):
+    def eval(self, elements, evaluation: Evaluation):
+        "Times[elements___]"
+        numeric_elements = numerify(elements, evaluation).get_sequence()
+        return eval_Times(*numeric_elements)
+
+    def format_times(self, items, evaluation: Evaluation, op="\u2062"):
         "Times[items__]"
 
         def inverse(item):
@@ -650,7 +677,8 @@ class Times(InfixOperator, SympyFunction):
                 negative.append(item.denominator())
             else:
                 positive.append(item)
-        if positive and positive[0].get_int_value() == -1:
+
+        if positive and hasattr(positive[0], "value") and positive[0].value == -1:
             del positive[0]
             minus = True
         else:
@@ -688,8 +716,3 @@ class Times(InfixOperator, SympyFunction):
     def format_outputform(self, items, evaluation):
         "(OutputForm,): Times[items__]"
         return self.format_times(items, evaluation, op=" ")
-
-    def eval(self, items, evaluation):
-        "Times[items___]"
-        items = numerify(items, evaluation).get_sequence()
-        return eval_Times(*items)

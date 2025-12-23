@@ -289,6 +289,20 @@ if sys.platform in ("linux",):
 #             check_evaluation_with_err(str_expr, str_expected, message)
 
 
+def test_eval_atom_upvalues():
+    """Check that upvalues of atoms are taken into account in evaluations"""
+    # Clear definitions
+    check_evaluation(None, None, None)
+    check_evaluation(
+        "Unprotect[Real]; Real/:F[x_Real]:=x; DownValues[F]",
+        "{}",
+        "F does not have downvalues",
+    )
+    check_evaluation("F[3.]", "3.", "Upvalue of Real is taken into account.")
+    # Clear definitions again.
+    check_evaluation(None, None, None)
+
+
 def test_exit():
     global session
     try:

@@ -10,7 +10,16 @@ patterns of criteria.
 from itertools import chain
 
 from mathics.builtin.box.layout import RowBox
-from mathics.core.atoms import Integer, Integer0, Integer1, Integer3, Integer4, String
+from mathics.core.atoms import (
+    ByteArray,
+    Integer,
+    Integer0,
+    Integer1,
+    Integer2,
+    Integer3,
+    Integer4,
+    String,
+)
 from mathics.core.attributes import (
     A_HOLD_FIRST,
     A_HOLD_REST,
@@ -30,6 +39,7 @@ from mathics.core.exceptions import (
     PartRangeError,
 )
 from mathics.core.expression import Expression, ExpressionInfinity
+from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
 from mathics.core.rules import Rule
 from mathics.core.symbols import Atom, Symbol, SymbolNull, SymbolTrue
@@ -39,8 +49,10 @@ from mathics.core.systemsymbols import (
     SymbolByteArray,
     SymbolDrop,
     SymbolFailed,
+    SymbolFirst,
     SymbolInfinity,
     SymbolKey,
+    SymbolLast,
     SymbolMakeBoxes,
     SymbolMissing,
     SymbolSelect,
@@ -61,7 +73,7 @@ from mathics.eval.parts import (
     set_part,
     walk_levels,
 )
-from mathics.eval.patterns import Matcher
+from mathics.eval.patterns import Matcher, param_and_option_from_optional_place
 
 SymbolDeleteCases = Symbol("System`DeleteCases")
 SymbolPrepend = Symbol("System`Prepend")
@@ -197,25 +209,25 @@ class Cases(Builtin):
 
     summary_text = "list elements matching a pattern"
 
-    def eval(self, items, pattern, ls, evaluation, options):
-        "Cases[items_, pattern_, ls_:{1}, OptionsPattern[]]"
+    def eval(self, items, pattern, levelspec, evaluation, options):
+        "Cases[items_, pattern_, levelspec_:{1}, OptionsPattern[]]"
         if isinstance(items, Atom):
             return ListExpression()
 
-        if ls.has_form("Rule", 2):
-            if ls.elements[0].get_name() == "System`Heads":
-                heads = ls.elements[1] is SymbolTrue
-                ls = ListExpression(Integer1)
+        if levelspec.has_form("Rule", 2):
+            if levelspec.elements[0].get_name() == "System`Heads":
+                heads = levelspec.elements[1] is SymbolTrue
+                levelspec = ListExpression(Integer1)
             else:
-                evaluation.message("Position", "level", ls)
+                evaluation.message("Position", "level", levelspec)
                 return
         else:
             heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
 
         try:
-            start, stop = python_levelspec(ls)
+            start, stop = python_levelspec(levelspec)
         except InvalidLevelspecError:
-            evaluation.message("Position", "level", ls)
+            evaluation.message("Position", "level", levelspec)
             return
 
         results = []
@@ -362,7 +374,9 @@ class Delete(Builtin):
 
     def eval(self, expr, positions, evaluation):
         "Delete[expr_, positions___]"
+
         positions = positions.get_sequence()
+
         if len(positions) > 1:
             evaluation.message("Delete", "argt", Integer(len(positions) + 1))
             return
@@ -388,9 +402,10 @@ class Delete(Builtin):
             if isinstance(elements[0], ListExpression)
             else [positions]
         )
-        positions.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
+        # Sort the positions in ascending order
+        positions.sort()
         newexpr = expr
-        for position in positions:
+        for position in positions[::-1]:
             pos = [p.get_int_value() for p in position.get_elements()]
             if None in pos:
                 evaluation.message(
@@ -671,7 +686,6 @@ class First(Builtin):
 
     attributes = A_HOLD_REST | A_PROTECTED
     messages = {
-        "argt": "First called with `1` arguments; 1 or 2 arguments are expected.",
         "nofirst": "`1` has zero length and no first element.",
     }
     summary_text = "first element of a list or expression"
@@ -681,14 +695,23 @@ class First(Builtin):
         "expression: First[expr__]"
 
         if isinstance(expr, Atom):
-            evaluation.message("First", "normal", Integer1, expression)
-            return
-        expr_len = len(expr.elements)
+            if not hasattr(expr, "items"):
+                evaluation.message("First", "normal", Integer1, expression)
+                return
+            expr_len = len(expr.items)
+        else:
+            expr_len = len(expr.elements)
         if expr_len == 0:
             evaluation.message("First", "nofirst", expr)
             return
+
+        if isinstance(expr, ByteArray):
+            return expr.items[0]
+
         if expr_len > 2 and expr.head is SymbolSequence:
-            evaluation.message("First", "argt", expr_len)
+            evaluation.message(
+                "First", "argt", SymbolFirst, Integer(expr_len), Integer1, Integer2
+            )
             return
 
         first_elem = expr.elements[0]
@@ -945,7 +968,6 @@ class Last(Builtin):
 
     attributes = A_HOLD_REST | A_PROTECTED
     messages = {
-        "argt": "Last called with `1` arguments; 1 or 2 arguments are expected.",
         "nolast": "`1` has zero length and no last element.",
     }
     summary_text = "last element of a list or expression"
@@ -955,14 +977,24 @@ class Last(Builtin):
         "expression: Last[expr__]"
 
         if isinstance(expr, Atom):
-            evaluation.message("Last", "normal", Integer1, expression)
-            return
-        expr_len = len(expr.elements)
+            if not hasattr(expr, "items"):
+                evaluation.message("First", "normal", Integer1, expression)
+                return
+            expr_len = len(expr.items)
+        else:
+            expr_len = len(expr.elements)
         if expr_len == 0:
             evaluation.message("Last", "nolast", expr)
             return
+
+        if isinstance(expr, ByteArray):
+            # ByteArray or NumericArray, ...
+            return expr.items[-1]
+
         if expr_len > 2 and expr.head is SymbolSequence:
-            evaluation.message("Last", "argt", expr_len)
+            evaluation.message(
+                "Last", "argt", SymbolLast, Integer(expr_len), Integer1, Integer2
+            )
             return
 
         return expr.elements[-1]
@@ -1156,7 +1188,6 @@ class Part(Builtin):
         indices = i.get_sequence()
         # How to deal with ByteArrays
         if list.get_head() is SymbolByteArray:
-            list = list.evaluate(evaluation)
             if len(indices) > 1:
                 print(
                     "Part::partd1: Depth of object ByteArray[<3>] "
@@ -1168,19 +1199,18 @@ class Part(Builtin):
                 idx = idx.value
                 if idx == 0:
                     return SymbolByteArray
-                data = list.elements[0].value
-                lendata = len(data)
+                n = len(list.value)
                 if idx < 0:
-                    idx = data - idx
+                    idx = n - idx
                     if idx < 0:
                         evaluation.message("Part", "partw", i, list)
                         return
                 else:
                     idx = idx - 1
-                    if idx > lendata:
+                    if idx > n:
                         evaluation.message("Part", "partw", i, list)
                         return
-                return Integer(data[idx])
+                return Integer(list[idx])
             if idx is Symbol("System`All"):
                 return list
             # TODO: handling ranges and lists...
@@ -1282,20 +1312,16 @@ class Position(Builtin):
     }
     summary_text = "positions of matching elements"
 
-    def eval_invalidlevel(self, patt, expr, ls, evaluation, options={}):
-        "Position[expr_, patt_, ls_, OptionsPattern[Position]]"
-
-        evaluation.message("Position", "level", ls)
-        return
-
-    def eval_level(self, expr, patt, ls, evaluation, options={}):
-        """Position[expr_, patt_, Optional[Pattern[ls, _?LevelQ], {0, DirectedInfinity[1]}],
+    def eval_level(self, expr, patt, levelspec, evaluation, options={}):
+        """Position[expr_, patt_, Optional[levelspec_, {0, DirectedInfinity[1]}],
         OptionsPattern[Position]]"""
-
+        levelspec = param_and_option_from_optional_place(
+            levelspec, options, "System`Position", evaluation
+        ) or ListExpression(Integer0, MATHICS3_INFINITY)
         try:
-            start, stop = python_levelspec(ls)
+            start, stop = python_levelspec(levelspec)
         except InvalidLevelspecError:
-            evaluation.message("Position", "level", ls)
+            evaluation.message("Position", "level", levelspec)
             return
 
         match = Matcher(patt, evaluation).match

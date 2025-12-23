@@ -90,14 +90,29 @@ class _Out(KeyComparable):
         self.is_print = False
         self.text = ""
 
-    def get_sort_key(self):
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
         return (self.is_message, self.is_print, self.text)
+
+    def get_sort_key(self):
+        return self.element_order
 
     def get_data(self) -> Dict[str, Any]:
         raise NotImplementedError
 
 
 class Evaluation:
+    """An Evaluation object contains everyting about the evaluation
+    environment, such as evaluation definitions, exception and
+    formatting information, and a grab bag of other things.
+
+    It is a rather fat object.
+    """
+
     def __init__(
         self, definitions=None, output=None, format="text", catch_interrupt=True
     ) -> None:
@@ -105,35 +120,45 @@ class Evaluation:
 
         if definitions is None:
             definitions = Definitions()
-        self.definitions: Definitions = definitions
-        self.recursion_depth = 0
-        self.timeout = False
-        self.timeout_queue: List[Tuple[float, float]] = []
-        self.stopped = False
-        self.out: List[_Out] = []
-        self.output = output if output else Output()
-        self.listeners: Dict[str, List[Callable]] = {}
-        self.options: Optional[Dict[str, Any]] = None
-        self.predetermined_out = None
-
-        self.quiet_all = False
-        self.format = format
-        self.catch_interrupt = catch_interrupt
+        self.current_expression: Optional[BaseElement] = None
         self.SymbolNull = SymbolNull
-
-        # status of last evaluate
-        self.exc_result: Optional[Symbol] = self.SymbolNull
-        self.last_eval = None
-
-        # A place for Trace and friend to store information about the
-        # last evaluation
-        self.trace_info: Optional[Any] = None
 
         # Used in ``mathics.builtin.numbers.constants.get_constant`` and
         # ``mathics.builtin.numeric.N``.
         self._preferred_n_method: List[str] = []
 
+        self.catch_interrupt = catch_interrupt
+        self.definitions: Definitions = definitions
+        self.exc_result: Optional[Symbol] = self.SymbolNull
+        self.format = format
         self.is_boxing = False
+
+        # status of last evaluate
+        self.last_eval = None
+
+        self.listeners: Dict[str, List[Callable]] = {}
+        self.options: Optional[Dict[str, Any]] = None
+        self.out: List[_Out] = []
+        self.output = output if output else Output()
+        self.predetermined_out = None
+        self.quiet_all = False
+        self.recursion_depth = 0
+
+        # iteration is used to keep track of evaluation chains and is
+        # compared against $IterationLimit.
+        self.iteration_count = 0
+
+        # Interrupt handlers may need access to the shell
+        # that invoked the evaluation.
+        self.shell = None
+
+        self.stopped = False
+        self.timeout = False
+        self.timeout_queue: List[Tuple[float, float]] = []
+
+        # A place for Trace and friends to store information about the
+        # last evaluation
+        self.trace_info: Optional[Any] = None
 
     def parse(self, query, src_name: str = ""):
         "Parse a single expression and print the messages."
@@ -280,13 +305,27 @@ class Evaluation:
                 self.exc_result = Expression(SymbolHold, Expression(SymbolContinue))
             except TimeoutInterrupt:
                 self.stopped = False
-                self.timeout = True
-                self.message("General", "timeout")
+
+                # Due to interrupt handling, we might have already
+                # handled a timeout.
+                if not self.timeout:
+                    self.timeout = True
+                    self.message("General", "timeout")
+
+                # Clear shell interrupt if that exists.
                 self.exc_result = SymbolAborted
             except AbortInterrupt:  # , error:
                 self.exc_result = SymbolAborted
             except ReturnInterrupt as ret:
                 self.exc_result = ret.expr
+
+                # Clear shell interrupt if that exists.
+                if (
+                    hasattr(self.shell, "is_inside_interrupt")
+                    and self.shell.is_inside_interrupt
+                ):
+                    self.shell.is_inside_interrupt = False
+                    raise
 
             if self.exc_result is not None:
                 self.recursion_depth = 0

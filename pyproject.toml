@@ -15,26 +15,26 @@ description = "A general-purpose computer algebra system."
 dependencies = [
     "Mathics-Scanner > 1.4.1",
     "mpmath>=1.2.0",
-    "numpy<2.3",
+    "numpy",
     "palettable",
     # Pillow 9.1.0 supports BigTIFF with big-endian byte order.
     # ExampleData image hedy.tif is in this format.
     # Pillow 9.2 handles sunflowers.jpg
     "pillow >= 9.2",
-    "pint",
+    "pint >=0.24", # Earlier pint has problems with numpy 2.2.6
     "python-dateutil",
     # Pympler is used in ByteCount[] and MemoryInUse[].
     "Pympler",
     "requests",
     "scipy",
     "setuptools",
-    # stopit is needed in TimeRemaining[]
-    "stopit; platform_system != 'Emscripten'",
-    "sympy>=1.13,<1.14",
+    # Timed-Threads is needed in TimeRemaining[]
+    "Timed-Threads",
+    "sympy>=1.13",
 ]
-license = {text = "GPL3"}
+license = "GPL-3.0-or-later"
 name = "Mathics3"
-requires-python = ">=3.8" # Sympy 1.11 is supported only down to 3.8
+requires-python = ">=3.10" # bisect.insort_left with key parameter starts in 3.10
 readme = "README.rst"
 keywords = ["Mathematica", "Wolfram", "Interpreter", "Shell", "Math", "CAS"]
 maintainers = [
@@ -43,13 +43,11 @@ maintainers = [
 classifiers = [
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
     "Topic :: Scientific/Engineering",
@@ -83,7 +81,8 @@ cython = [
 ]
 
 [project.scripts]
-mathics = "mathics.main:main"
+mathics = "mathics.__main__:main"
+mathics3 = "mathics.__main__:main"
 
 [tool.setuptools]
 include-package-data = false

@@ -8,11 +8,12 @@ import PIL.Image
 
 from mathics.builtin.box.image import ImageBox
 from mathics.builtin.colors.color_internals import convert_color
-from mathics.core.atoms import Atom
 from mathics.core.builtin import AtomBuiltin, String
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.keycomparable import IMAGE_EXPRESSION_ELT_ORDER
 from mathics.core.list import ListExpression
+from mathics.core.symbols import Atom
 from mathics.core.systemsymbols import SymbolImage, SymbolRule
 from mathics.eval.image import image_pixels, pixels_as_float, pixels_as_ubyte
 
@@ -110,16 +111,24 @@ class Image(Atom):
         ]
         return Image(numpy.dstack(channels), self.color_space)
 
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        if pattern_sort:
-            # If pattern_sort=True, returns the sort key that matches to an Atom.
-            return super(Image, self).get_sort_key(True)
-        else:
-            # If pattern is False, return a sort_key for the expression `Image[]`,
-            # but with a `2` instead of `1` in the 5th position,
-            # and adding two extra fields: the length in the 5th position,
-            # and a hash in the 6th place.
-            return (1, 3, SymbolImage, len(self.pixels), tuple(), 2, hash(self))
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a value which is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        # Return the precedence the expression `Image[]`,
+        # but with a `2` instead of `1` in the 5th position,
+        # and adding two extra fields: the length in the 5th position,
+        # and a hash in the 6th place.
+        return (
+            IMAGE_EXPRESSION_ELT_ORDER,
+            SymbolImage,
+            len(self.pixels),
+            tuple(),
+            2,
+            hash(self),
+        )
 
     def grayscale(self):
         return self.color_convert("Grayscale")

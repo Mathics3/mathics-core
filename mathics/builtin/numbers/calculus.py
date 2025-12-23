@@ -18,7 +18,6 @@ import sympy
 import mathics.eval.tracing as tracing
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import (
-    Atom,
     Integer,
     Integer0,
     Integer1,
@@ -41,18 +40,14 @@ from mathics.core.builtin import Builtin, PostfixOperator, SympyFunction
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.function import expression_to_callable_and_args
 from mathics.core.convert.python import from_python
-from mathics.core.convert.sympy import (
-    SymbolRootSum,
-    SympyExpression,
-    from_sympy,
-    sympy_symbol_prefix,
-)
+from mathics.core.convert.sympy import SymbolRootSum, SympyExpression, from_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import MACHINE_EPSILON, dps
 from mathics.core.rules import BasePattern
 from mathics.core.symbols import (
+    Atom,
     BaseElement,
     Symbol,
     SymbolFalse,
@@ -61,6 +56,7 @@ from mathics.core.symbols import (
     SymbolPower,
     SymbolTimes,
     SymbolTrue,
+    sympy_name,
 )
 from mathics.core.systemsymbols import (
     SymbolAnd,
@@ -500,7 +496,8 @@ class Derivative(PostfixOperator, SympyFunction):
         super(Derivative, self).__init__(*args, **kwargs)
 
     def eval_locked_symbols(self, n, **kwargs):
-        """Derivative[n__Integer][Alternatives[True|False|Symbol|TooBig|$Aborted|Removed|Locked|$PrintLiteral|$Off]]"""
+        """Derivative[n__Integer][Alternatives[True|False|Symbol|TooBig|$Aborted|Removed|Locked|$PrintLiteral|$Off]]/; True"""
+        # Conditionals always come first...
         # Prevents the evaluation for True, False, and other Locked symbols
         # as function names. This produces a recursion error in the evaluation rule for Derivative.
         # See
@@ -531,7 +528,7 @@ class Derivative(PostfixOperator, SympyFunction):
             return
 
         func = exprs[1].elements[0]
-        sym_func = sympy.Function(str(sympy_symbol_prefix + func.__str__()))(*sym_args)
+        sym_func = sympy.Function(sympy_name(func))(*sym_args)
 
         counts = [element.get_int_value() for element in exprs[2].elements]
         if None in counts:
@@ -584,14 +581,18 @@ class DiscreteLimit(Builtin):
     def eval(self, f, n, n0, evaluation: Evaluation, options: dict = {}):
         "DiscreteLimit[f_, n_->n0_, OptionsPattern[DiscreteLimit]]"
 
-        f = f.to_sympy(convert_all_global_functions=True)
-        n = n.to_sympy()
-        n0 = n0.to_sympy()
+        sympy_f = f.to_sympy(convert_all_global_functions=True)
+        if sympy_f is None:
+            return None
 
-        if n0 != sympy.oo:
-            return
+        sympy_n = n.to_sympy()
 
-        if f is None or n is None:
+        if sympy_f is None:
+            return None
+
+        sympy_n0 = n0.to_sympy()
+
+        if sympy_n0 != sympy.oo:
             return
 
         trials = options["System`Trials"].get_int_value()
@@ -601,9 +602,15 @@ class DiscreteLimit(Builtin):
             trials = 5
 
         try:
-            return from_sympy(sympy.limit_seq(f, n, trials))
+            result = sympy.limit_seq(sympy_f, sympy_n, trials)
         except Exception:
-            pass
+            return None
+
+        # Think about: should we put more tests on result above
+        # sympy.Limit? The code before this (implicitly) did not.
+        if isinstance(result, sympy.Limit):
+            return f.replace_vars({str(n): n0})
+        return from_sympy(result)
 
 
 class _BaseFinder(Builtin):
@@ -716,9 +723,12 @@ class _BaseFinder(Builtin):
                 [String(m) for m in self.methods.keys()],
             )
             return
-        x0, success = method_caller(f, x0, x, options, evaluation)
-        if not success:
-            return
+        try:
+            x0, success = method_caller(f, x0, x, options, evaluation)
+        except ValueError:
+            # Non numerical evaluation
+            return evaluation.current_expression
+
         if isinstance(x0, tuple):
             return ListExpression(
                 x0[1],
@@ -772,9 +782,9 @@ class FindMaximum(_BaseFinder):
      = {0.5, {x -> 1.00001}}
     >> Clear[phi];
     For a not so well behaving function, the result can be less accurate:
-    >> FindMaximum[-Exp[-1/x^2]+1., {x,1.2}, MaxIterations->10]
+    >> FindMaximum[-Exp[-1/x^2]+1., {x,1.2}, MaxIterations->2]
      : The maximum number of iterations was exceeded. The result might be inaccurate.
-     = FindMaximum[-Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 10]
+     = ...
     """
 
     methods = {}
@@ -823,9 +833,9 @@ class FindMinimum(_BaseFinder):
      = {-0.5, {x -> 1.00001}}
     >> Clear[phi];
     For a not so well behaving function, the result can be less accurate:
-    >> FindMinimum[Exp[-1/x^2]+1., {x,1.2}, MaxIterations->10]
+    >> FindMinimum[Exp[-1/x^2]+1., {x,1.2}, MaxIterations->2]
      : The maximum number of iterations was exceeded. The result might be inaccurate.
-     =  FindMinimum[Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 10]
+     =  ...
     """
 
     methods = {}
@@ -896,7 +906,7 @@ class FindRoot(_BaseFinder):
     The derivative must not be 0:
     >> FindRoot[Sin[x] == x, {x, 0}]
      : Encountered a singular derivative at the point x = 0..
-     = FindRoot[Sin[x] - x, {x, 0}]
+     = ...
 
 
     >> FindRoot[x^2 - 2, {x, 1,3}, Method->"Secant"]

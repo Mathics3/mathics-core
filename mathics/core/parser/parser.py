@@ -8,7 +8,7 @@ https://mathics-development-guide.readthedocs.io/en/latest/extending/code-overvi
 
 
 import string
-from typing import Optional, Union
+from typing import Literal, Optional, Union
 
 from mathics_scanner.errors import (
     EscapeSyntaxError,
@@ -30,6 +30,7 @@ from mathics.core.parser.ast import (
     String,
     Symbol,
 )
+from mathics.core.parser.location import track_location, track_token_location
 from mathics.core.parser.operators import (
     all_operators,
     binary_operators,
@@ -59,7 +60,7 @@ special_symbols["\uf74f"] = special_symbols["\uf74e"] = "I"
 # will be surrounded by parenthesis, e.g. ... (...op...) ...
 # In named-characters.yml of mathics-scanner we start at 0.
 # However, negative values would also work.
-NEVER_ADD_PARENTHESIS: int = 0
+NEVER_ADD_PARENTHESIS: Literal[0] = 0
 
 permitted_digits = {c: i for i, c in enumerate(string.digits + string.ascii_lowercase)}
 permitted_digits["."] = 0
@@ -97,6 +98,7 @@ class Parser:
                 "DifferentialD",
             ]
         )
+        self.location = None
 
     def backtrack(self, pos):
         """
@@ -166,8 +168,10 @@ class Parser:
         self.current_token = None
         self.bracket_depth = 0
         self.box_depth = 0
+
         return self.parse_e()
 
+    @track_location
     def parse_e(self) -> Optional[Node]:
         """
         Parse the single top-level or "start" expression.
@@ -183,6 +187,7 @@ class Parser:
         else:
             return None
 
+    @track_location
     def parse_binary_operator(
         self, expr1, token: Token, expr1_precedence: int
     ) -> Optional[Node]:
@@ -253,6 +258,7 @@ class Parser:
         <b_tag_fn(expr1)>
         | \( box-expr \)
         | \( box-expr <box-operator> box-expr \)
+        | \( \* box-expr \)
 
         """
         result = None
@@ -272,6 +278,9 @@ class Parser:
                 break
             elif tag == "END":
                 self.get_more_input(token.pos)
+            elif tag == "BoxInputEscape":
+                self.consume()
+                new_result = self.parse_box_escape(token, precedence)
             elif result is None and tag != "END":
                 self.consume()
                 # TODO: handle non-box expressions inside RowBox
@@ -328,7 +337,7 @@ class Parser:
         we return Node(<box-operator>, expr1, expr2)
         """
         tag = token.tag
-        operator_precedence = binary_operators[tag]
+        operator_precedence = binary_operators.get(tag, NEVER_ADD_PARENTHESIS)
         if box_expr1_precedence > operator_precedence:
             return None
         self.consume()
@@ -354,6 +363,7 @@ class Parser:
 
         return result
 
+    @track_location
     def parse_comparison(
         self, expr1, token: Token, expr1_precedence: int
     ) -> Optional[Node]:
@@ -409,8 +419,68 @@ class Parser:
             expr1 = Node(tag, expr1, expr2).flatten()
         return expr1
 
-    def parse_expr(self, precedence: int) -> Optional[Node]:
+    @track_location
+    def parse_box_escape(self, token: Token, precedence: int) -> Optional[Node]:
+        r"""
+        Parse the "..." part of "\( \* ... \)".
+        For now, we are just handling "..." where it is a (Boxing) function.
+        We don't actually check the function to see if it does boxing though.
         """
+        result = self.parse_p()
+
+        # Note: Number and String below are the mathics.core.parser's Number, String and Symbol,
+        # not mathics.core.atom's Number and String, and Symbol.
+        if self.is_inside_rowbox and isinstance(result, Number):
+            tag, pre_error, post_error = self.tokeniser.sntx_message(token.pos)
+            raise InvalidSyntaxError(tag, pre_error, post_error)
+
+        while True:
+            if self.bracket_depth > 0 or self.is_inside_rowbox:
+                token = self.next_noend()
+                if token.tag in ("OtherscriptBox", "RightRowBox"):
+                    if self.is_inside_rowbox:
+                        break
+                    else:
+                        tag, pre_error, post_error = self.tokeniser.sntx_message(
+                            token.pos
+                        )
+                        raise InvalidSyntaxError(tag, pre_error, post_error)
+            else:
+                try:
+                    token = self.next()
+                except (NamedCharacterSyntaxError, EscapeSyntaxError) as escape_error:
+                    self.tokeniser.feeder.message(
+                        escape_error.name, escape_error.tag, *escape_error.args
+                    )
+                    raise
+
+            tag = token.tag
+            method = getattr(self, "e_" + tag, None)
+            if method is not None:
+                # Temporarily set inside rowbox to be False, which we do by setting the box depth.
+                # By doing this boxing function is treated like a function, e.g. RowBox[a],
+                # than a list of strings: "RowBox", "[", "a", "]".
+                old_depth = self.box_depth
+                self.box_depth = 0
+                new_result = method(result, token, precedence)
+                self.box_depth = old_depth
+            elif (
+                tag not in self.halt_tags
+                and flat_binary_operators["Times"] >= precedence
+            ):
+                if tag in box_operators:
+                    new_result = self.parse_box_operator(result, token, precedence)
+            else:
+                new_result = None
+            if new_result is None:
+                break
+            else:
+                result = new_result
+        return result
+
+    @track_location
+    def parse_expr(self, precedence: int) -> Optional[Node]:
+        r"""
         Parse an expression returning an AST Node tree for this.
 
         This code recognizes grammar rules of the form:
@@ -420,7 +490,7 @@ class Parser:
         | expr1 binary_operator expr2 ...
         | expr1 ternary_operator expr2 ternary_operator2 expr3 ...
         | expr1 postfix_operator ...
-        | box-expr box-operator box-expr2 (* only if inside rowbox *)
+        | box-expr (* only if inside rowbox *)
         | expr1 expr2 ... (* implicit multiplication *)
 
         and transforming this into its corresponding Node S-expression form.
@@ -502,6 +572,7 @@ class Parser:
                 result = new_result
         return result
 
+    @track_location
     def parse_p(self):
         """Parse a "p_"-tagged expression.
         "p_" tags include prefix operators, left-bracketed expressions
@@ -552,6 +623,7 @@ class Parser:
 
     # Note: returning a list is different from how most other parse_ routines
     # work and it makes the type system more complicated.
+    @track_location
     def parse_seq(self) -> list:
         result: list = []
         while True:
@@ -713,7 +785,7 @@ class Parser:
         expr2 = self.parse_expr(q + 1)
         return Node("Alternatives", expr1, expr2).flatten()
 
-    def e_ApplyList(self, expr1, token: Token, p: int) -> Optional[Node]:
+    def e_ApplyList(self, expr1, _: Token, p: int) -> Optional[Node]:
         operator_precedence = right_binary_operators["Apply"]
         if operator_precedence < p:
             return None
@@ -722,7 +794,7 @@ class Parser:
         expr3 = Node("List", Number1)
         return Node("Apply", expr1, expr2, expr3)
 
-    def e_Derivative(self, expr1, token: Token, p: int) -> Optional[Node]:
+    def e_Derivative(self, expr1, _: Token, p: int) -> Optional[Node]:
         q = postfix_operators["Derivative"]
         if q < p:
             return None
@@ -733,7 +805,7 @@ class Parser:
         head = Node("Derivative", Number(str(n)))
         return Node(head, expr1)
 
-    def e_Divide(self, expr1, token: Token, expr1_precedence: int):
+    def e_Divide(self, expr1, _: Token, expr1_precedence: int):
         """
         Implements parsing and transformation of Divide
            expr1 /  expr2
@@ -768,7 +840,8 @@ class Parser:
         expr2 = self.parse_expr(operator_precedence + 1)
         return Node("Times", expr1, Node("Power", expr2, NumberM1)).flatten()
 
-    def e_Infix(self, expr1, token: Token, expr1_precedence) -> Optional[Node]:
+    @track_location
+    def e_Infix(self, expr1, _: Token, expr1_precedence) -> Optional[Node]:
         """
         Used to implement the rule:
            expr : expr1 '~' expr2 '~' expr3
@@ -861,7 +934,7 @@ class Parser:
         expr2 = self.parse_expr(operator_precedence)
         return Node(expr1, expr2)
 
-    def e_Postfix(self, expr1, token: Token, expr1_precedence: int) -> Optional[Node]:
+    def e_Postfix(self, expr1, _: Token, expr1_precedence: int) -> Optional[Node]:
         """
         Used to parse
            expr1 // expr2
@@ -891,7 +964,7 @@ class Parser:
         expr2 = self.parse_expr(operator_precedence + 1)
         return Node(expr2, expr1)
 
-    def e_RawColon(self, expr1, token: Token, p: int) -> Optional[Node]:
+    def e_RawColon(self, expr1, _: Token, p: int) -> Optional[Node]:
         head_name = expr1.get_head_name()
         if head_name == "Symbol":
             head = "Pattern"
@@ -912,6 +985,7 @@ class Parser:
         expr2 = self.parse_expr(q + 1)
         return Node(head, expr1, expr2)
 
+    @track_location
     def e_RawLeftBracket(self, expr, token: Token, p: int) -> Optional[Node]:
         q = all_operators["Part"]
         if q < p:
@@ -940,7 +1014,8 @@ class Parser:
             result.parenthesised = True
             return result
 
-    def e_Semicolon(self, expr1, token: Token, expr1_precedence: int) -> Optional[Node]:
+    @track_location
+    def e_Semicolon(self, expr1, _: Token, expr1_precedence: int) -> Optional[Node]:
         """
         Used to parse
            expr1 ; expr2
@@ -985,6 +1060,7 @@ class Parser:
             expr2 = NullSymbol
         return Node("CompoundExpression", expr1, expr2).flatten()
 
+    @track_location
     def e_Span(self, expr1, token: Token, p) -> Optional[Node]:
         q = ternary_operators["Span"]
         if q < p:
@@ -1046,7 +1122,8 @@ class Parser:
         expr3 = self.parse_expr(q + 1)
         return Node(head, expr1, expr2, expr3)
 
-    def e_Unset(self, expr1, token: Token, p: int) -> Optional[Node]:
+    @track_location
+    def e_Unset(self, expr1, _: Token, p: int) -> Optional[Node]:
         q = all_operators["Set"]
         if q < p:
             return None
@@ -1061,17 +1138,17 @@ class Parser:
     # can uniquely identified by a prefix character or string.
 
     # FIXME DRY with pre_Decrement
-    def p_Decrement(self, token: Token) -> Node:
+    def p_Decrement(self, _: Token) -> Node:
         self.consume()
         q = prefix_operators["PreDecrement"]
         return Node("PreDecrement", self.parse_expr(q))
 
-    def p_Increment(self, token: Token) -> Node:
+    def p_Increment(self, _: Token) -> Node:
         self.consume()
         q = prefix_operators["PreIncrement"]
         return Node("PreIncrement", self.parse_expr(q))
 
-    def p_Information(self, token: Token) -> Node:
+    def p_Information(self, _: Token) -> Node:
         self.consume()
         q = prefix_operators["Information"]
         child = self.parse_expr(q)
@@ -1081,7 +1158,7 @@ class Parser:
             "Information", child, Node("Rule", Symbol("LongForm"), Symbol("True"))
         )
 
-    def p_Integral(self, token: Token) -> Node:
+    def p_Integral(self, _: Token) -> Node:
         self.consume()
         inner_prec, outer_prec = all_operators["Sum"] + 1, all_operators["Power"] - 1
         expr1 = self.parse_expr(inner_prec)
@@ -1089,17 +1166,19 @@ class Parser:
         expr2 = self.parse_expr(outer_prec)
         return Node("Integrate", expr1, expr2)
 
-    def p_Factorial2(self, token: Token) -> Node:
+    def p_Factorial2(self, _: Token) -> Node:
         self.consume()
         q = prefix_operators["Not"]
         child = self.parse_expr(q)
         return Node("Not", Node("Not", child))
 
+    @track_token_location
     def p_Filename(self, token: Token) -> Filename:
         result = Filename(token.text)
         self.consume()
         return result
 
+    @track_token_location
     def p_LeftRowBox(self, token: Token) -> Union[Node, String]:
         self.consume()
         children = []
@@ -1123,7 +1202,8 @@ class Parser:
         result.parenthesised = True
         return result
 
-    def p_Minus(self, token: Token) -> Optional[Node]:
+    @track_token_location
+    def p_Minus(self, _: Token) -> Optional[Node]:
         """
         Used to parse:
            - expr1
@@ -1140,7 +1220,8 @@ class Parser:
         else:
             return Node("Times", NumberM1, expr).flatten()
 
-    def p_MinusPlus(self, token: Token) -> Node:
+    @track_token_location
+    def p_MinusPlus(self, _: Token) -> Node:
         """
         Used to parse:
            ∓ expr1
@@ -1153,7 +1234,8 @@ class Parser:
         operator_precedence = operator_precedences["UnaryMinusPlus"]
         return Node("MinusPlus", self.parse_expr(operator_precedence))
 
-    def p_Not(self, token: Token) -> Node:
+    @track_token_location
+    def p_Not(self, _: Token) -> Node:
         self.consume()
         operator_precedence = prefix_operators["Not"]
         child = self.parse_expr(operator_precedence)
@@ -1165,6 +1247,7 @@ class Parser:
     # See if we can fix this mess.
     p_Factorial = p_Not
 
+    @track_token_location
     def p_Number(self, token: Token) -> Number:
         s = token.text
 
@@ -1260,7 +1343,8 @@ class Parser:
             "Information", child, Node("Rule", Symbol("LongForm"), Symbol("False"))
         )
 
-    def p_Plus(self, token: Token):
+    @track_token_location
+    def p_Plus(self, _: Token):
         """
         Used to parse:
            + expr1

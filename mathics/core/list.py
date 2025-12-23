@@ -4,7 +4,7 @@ Module containing ListExpression
 """
 
 import reprlib
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 
 from mathics.core.element import ElementsProperties
 from mathics.core.evaluation import Evaluation
@@ -29,6 +29,7 @@ class ListExpression(Expression):
     """
 
     _is_literal: bool
+    _sympy: Optional[Any]
 
     def __init__(
         self,
@@ -39,6 +40,7 @@ class ListExpression(Expression):
         self.options = None
         self.pattern_sequence = False
         self._head = SymbolList
+        self._sympy = None
 
         # For debugging:
 

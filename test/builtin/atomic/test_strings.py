@@ -4,7 +4,7 @@ Unit tests from mathics.builtin.atomic.strings.
 
 In particular, Alphabet
 """
-from test.helper import check_evaluation
+from test.helper import check_evaluation, check_wrong_number_of_arguments
 
 import pytest
 
@@ -33,28 +33,26 @@ def test_alphabet(str_expr, str_expected, fail_msg, warnings):
 
 
 @pytest.mark.parametrize(
-    ("str_expr", "warnings", "str_expected", "fail_msg"),
+    ("str_expr", "warnings", "str_expected"),
     [
         (
             "LetterNumber[4]",
             ("The argument 4 is not a string.",),
             "LetterNumber[4]",
-            None,
         ),
-        ('StringContainsQ["Hello", "o"]', None, "True", None),
-        ('StringContainsQ["a"]["abcd"]', None, "True", None),
-        ('StringContainsQ["Mathics", "ma", IgnoreCase -> False]', None, "False", None),
-        ('StringContainsQ["Mathics", "MA" , IgnoreCase -> True]', None, "True", None),
-        ('StringContainsQ["", "Empty String"]', None, "False", None),
-        ('StringContainsQ["", ___]', None, "True", None),
-        ('StringContainsQ["Empty Pattern", ""]', None, "True", None),
+        ('StringContainsQ["Hello", "o"]', None, "True"),
+        ('StringContainsQ["a"]["abcd"]', None, "True"),
+        ('StringContainsQ["Mathics", "ma", IgnoreCase -> False]', None, "False"),
+        ('StringContainsQ["Mathics", "MA" , IgnoreCase -> True]', None, "True"),
+        ('StringContainsQ["", "Empty String"]', None, "False"),
+        ('StringContainsQ["", ___]', None, "True"),
+        ('StringContainsQ["Empty Pattern", ""]', None, "True"),
         (
             'StringContainsQ[notastring, "n"]',
             (
                 "String or list of strings expected at position 1 in StringContainsQ[notastring, n].",
             ),
             "StringContainsQ[notastring, n]",
-            None,
         ),
         (
             'StringContainsQ["Welcome", notapattern]',
@@ -62,27 +60,23 @@ def test_alphabet(str_expr, str_expected, fail_msg, warnings):
                 "Element notapattern is not a valid string or pattern element in notapattern.",
             ),
             "StringContainsQ[Welcome, notapattern]",
-            None,
         ),
-        ('StringContainsQ[{}, "list of string is empty"]', None, "{}", None),
+        ('StringContainsQ[{}, "list of string is empty"]', None, "{}"),
         ## special cases, Mathematica allows list of patterns
         (
             'StringContainsQ[{"A", "Galaxy", "Far", "Far", "Away"}, {"F" ~~ __ ~~ "r", "aw" ~~ ___}]',
             None,
             "{False, False, True, True, False}",
-            None,
         ),
         (
             'StringContainsQ[{"A", "Galaxy", "Far", "Far", "Away"}, {"F" ~~ __ ~~ "r", "aw" ~~ ___}, IgnoreCase -> True]',
             None,
             "{False, False, True, True, True}",
-            None,
         ),
         (
             'StringContainsQ[{"A", "Galaxy", "Far", "Far", "Away"}, {}]',
             None,
             "{False, False, False, False, False}",
-            None,
         ),
         (
             'StringContainsQ[{"A", Galaxy, "Far", "Far", Away}, {"F" ~~ __ ~~ "r", "aw" ~~ ___}]',
@@ -90,7 +84,6 @@ def test_alphabet(str_expr, str_expected, fail_msg, warnings):
                 "String or list of strings expected at position 1 in StringContainsQ[{A, Galaxy, Far, Far, Away}, {F ~~ __ ~~ r, aw ~~ ___}].",
             ),
             "StringContainsQ[{A, Galaxy, Far, Far, Away}, {F ~~ __ ~~ r, aw ~~ ___}]",
-            None,
         ),
         (
             'StringContainsQ[{"A", "Galaxy", "Far", "Far", "Away"}, {F ~~ __ ~~ "r", aw ~~ ___}]',
@@ -98,7 +91,6 @@ def test_alphabet(str_expr, str_expected, fail_msg, warnings):
                 "Element F ~~ __ ~~ r is not a valid string or pattern element in {F ~~ __ ~~ r, aw ~~ ___}.",
             ),
             "StringContainsQ[{A, Galaxy, Far, Far, Away}, {F ~~ __ ~~ r, aw ~~ ___}]",
-            None,
         ),
         # Mathematica can determine correct invalid element in the pattern, it reports error:
         # Element F is not a valid string or pattern element in {F ~~ __ ~~ r, aw ~~ ___}.
@@ -106,29 +98,19 @@ def test_alphabet(str_expr, str_expected, fail_msg, warnings):
             'StringRepeat["x", 0]',
             ("A positive integer is expected at position 2 in StringRepeat[x, 0].",),
             "StringRepeat[x, 0]",
-            None,
         ),
-        ('ToExpression["log(x)", InputForm]', None, "log x", None),
+        ('ToExpression["log(x)", InputForm]', None, "log x"),
         (
             'ToExpression["1+"]',
             (
                 "Incomplete expression; more input is needed (line 1 of \"ToExpression['1+']\").",
             ),
             "$Failed",
-            None,
         ),
-        (
-            "ToExpression[]",
-            (
-                "ToExpression called with 0 arguments; between 1 and 3 arguments are expected.",
-            ),
-            "ToExpression[]",
-            None,
-        ),
-        # ('ToExpression["log(x)", StandardForm]', None, "log x", None),
+        # ('ToExpression["log(x)", StandardForm]', None, "log x"),
     ],
 )
-def test_private_doctests_string(str_expr, warnings, str_expected, fail_msg):
+def test_string(str_expr, warnings, str_expected):
     check_evaluation(
         str_expr,
         str_expected,
@@ -136,3 +118,16 @@ def test_private_doctests_string(str_expr, warnings, str_expected, fail_msg):
         expected_messages=warnings,
         hold_expected=True,
     )
+
+
+def test_wrong_number_of_arguments():
+    tests = [
+        (
+            "ToExpression[]",
+            [
+                "ToExpression called with 0 arguments; between 1 and 3 arguments are expected."
+            ],
+            "ToExpression argument error call",
+        )
+    ]
+    check_wrong_number_of_arguments(tests)

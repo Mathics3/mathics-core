@@ -1,6 +1,7 @@
 # cython: language_level=3
 # -*- coding: utf-8 -*-
 
+import sys
 from typing import TYPE_CHECKING, Any, Dict, FrozenSet, List, Optional, Sequence, Union
 
 from mathics.core.element import (
@@ -13,6 +14,12 @@ from mathics.core.element import (
 if TYPE_CHECKING:
     from mathics.core.atoms import String
 
+from mathics.core.keycomparable import (
+    BASIC_ATOM_PATTERN_SORT_KEY,
+    BASIC_EXPRESSION_ELT_ORDER,
+    BASIC_NUMERIC_EXPRESSION_ELT_ORDER,
+    Monomial,
+)
 from mathics.eval.tracing import trace_evaluate
 
 # I put this constants here instead of inside `mathics.core.convert.sympy`
@@ -22,8 +29,8 @@ from mathics.eval.tracing import trace_evaluate
 # keep variable names short.  In tracing values, long names makes
 # output messy and harder to follow, since it detracts from the
 # important information
-sympy_symbol_prefix = "_u"
-sympy_slot_prefix = "_#"
+SYMPY_SYMBOL_PREFIX = "_u"
+SYMPY_SLOT_PREFIX = "_#"
 
 
 class NumericOperators:
@@ -102,6 +109,26 @@ class NumericOperators:
         return None
 
 
+def strip_context(name) -> str:
+    """strip context from a symbol name"""
+    if "`" in name:
+        return name[name.rindex("`") + 1 :]
+    return name
+
+
+def sympy_strip_context(name) -> str:
+    """
+    Strip context from sympy names.
+    Currenty we use the same context marks for
+    mathics and sympy symbols. However,
+    when using sympy to compile code,
+    having '`' in symbol names
+    produce invalid code. In a next round, we would like
+    to use another character for split contexts in sympy variables.
+    """
+    return name.split("_")[-1]
+
+
 # system_symbols_dict({'SomeSymbol': ...}) -> {Symbol('System`SomeSymbol'): ...}
 def system_symbols_dict(d):
     return {Symbol(k): v for k, v in d.items()}
@@ -114,91 +141,6 @@ def valid_context_name(ctx, allow_initial_backquote=False) -> bool:
         and "``" not in ctx
         and (allow_initial_backquote or not ctx.startswith("`"))
     )
-
-
-def strip_context(name) -> str:
-    if "`" in name:
-        return name[name.rindex("`") + 1 :]
-    return name
-
-
-class Monomial:
-    """
-    An object to sort monomials, used in Expression.get_sort_key and
-    Symbol.get_sort_key.
-    """
-
-    def __init__(self, exps_dict):
-        self.exps = exps_dict
-
-    def __cmp(self, other) -> int:
-        self_exps = self.exps.copy()
-        other_exps = other.exps.copy()
-        for var in self.exps:
-            if var in other.exps:
-                dec = min(self_exps[var], other_exps[var])
-                self_exps[var] -= dec
-                if not self_exps[var]:
-                    del self_exps[var]
-                other_exps[var] -= dec
-                if not other_exps[var]:
-                    del other_exps[var]
-        self_exps = sorted((var, exp) for var, exp in self_exps.items())
-        other_exps = sorted((var, exp) for var, exp in other_exps.items())
-
-        index = 0
-        self_len = len(self_exps)
-        other_len = len(other_exps)
-        while True:
-            if index >= self_len and index >= other_len:
-                return 0
-            if index >= self_len:
-                return -1  # self < other
-            if index >= other_len:
-                return 1  # self > other
-            self_var, self_exp = self_exps[index]
-            other_var, other_exp = other_exps[index]
-            if self_var < other_var:
-                return -1
-            if self_var > other_var:
-                return 1
-            if self_exp != other_exp:
-                if index + 1 == self_len or index + 1 == other_len:
-                    # smaller exponents first
-                    if self_exp < other_exp:
-                        return -1
-                    elif self_exp == other_exp:
-                        return 0
-                    else:
-                        return 1
-                else:
-                    # bigger exponents first
-                    if self_exp < other_exp:
-                        return 1
-                    elif self_exp == other_exp:
-                        return 0
-                    else:
-                        return -1
-            index += 1
-        return 0
-
-    def __eq__(self, other) -> bool:
-        return self.__cmp(other) == 0
-
-    def __le__(self, other) -> bool:
-        return self.__cmp(other) <= 0
-
-    def __lt__(self, other) -> bool:
-        return self.__cmp(other) < 0
-
-    def __ge__(self, other) -> bool:
-        return self.__cmp(other) >= 0
-
-    def __gt__(self, other) -> bool:
-        return self.__cmp(other) > 0
-
-    def __ne__(self, other) -> bool:
-        return self.__cmp(other) != 0
 
 
 class Atom(BaseElement):
@@ -288,11 +230,28 @@ class Atom(BaseElement):
     #        1/0
     #        return None if stop_on_error else {}
 
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        if pattern_sort:
-            return (0, 0, 1, 1, 0, 0, 0, 1)
-        else:
-            raise NotImplementedError
+    def get_lookup_name(self) -> str:
+        """
+        By default, atoms that are not symbols
+        have their class head_names as their lookup names.
+        """
+        return self.class_head_name
+
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        raise NotImplementedError
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return BASIC_ATOM_PATTERN_SORT_KEY
 
     def has_form(
         self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
@@ -383,7 +342,6 @@ class Symbol(Atom, NumericOperators, EvalMixin):
 
     name: str
     hash: int
-    sympy_dummy: Any
     _short_name: str
 
     # Dictionary of Symbols defined so far.
@@ -396,7 +354,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
 
     # __new__ instead of __init__ is used here because we want
     # to return the same object for a given "name" value.
-    def __new__(cls, name: str, sympy_dummy=None):
+    def __new__(cls, name: str):
         """
         Allocate an object ensuring that for a given ``name`` and ``cls`` we get back the same object,
         id(object) is the same and its object.__hash__() is the same.
@@ -424,20 +382,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             # Python objects, so we include the class in the
             # event that different objects have the same Python value.
             # For example, this can happen with String constants.
-
             self.hash = hash((cls, name))
-
-            # TODO: revise how we convert sympy.Dummy
-            # symbols.
-            #
-            # In some cases, SymPy returns a sympy.Dummy
-            # object. It is converted to Mathics as a
-            # Symbol. However, we probably should have
-            # a different class for this kind of symbols.
-            # Also, sympy_dummy should be stored as the
-            # value attribute.
-            self.sympy_dummy = sympy_dummy
-
             self._short_name = strip_context(name)
 
         return self
@@ -446,7 +391,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         return self is other
 
     def __getnewargs__(self):
-        return (self.name, self.sympy_dummy)
+        return (self.name,)
 
     def __hash__(self) -> int:
         """
@@ -497,6 +442,23 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             if result is not None and not result.sameQ(self):
                 if result.is_literal:
                     return result
+
+                # We will be using $IterationLimit, not $RecursionLimit below
+                # to catch symbolic looping rewrite expansions.
+                # We do this to model Mathematica behavior more closely.
+                limit = (
+                    evaluation.definitions.get_config_value("$IterationLimit")
+                    or sys.maxsize
+                )
+                if limit is None:
+                    limit = sys.maxsize
+                if limit != sys.maxsize and evaluation.iteration_count > limit:
+                    evaluation.error("$IterationLimit", "itlim", limit)
+                    from mathics.core.systemsymbols import SymbolAborted
+
+                    return SymbolAborted
+                evaluation.iteration_count += 1
+
                 return result.evaluate(evaluation)
         return self
 
@@ -505,6 +467,12 @@ class Symbol(Atom, NumericOperators, EvalMixin):
 
     def get_head_name(self) -> str:
         return "System`Symbol"
+
+    def get_lookup_name(self) -> str:
+        """
+        The lookup name of a Symbol is its name.
+        """
+        return self.get_name()
 
     def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
         """
@@ -582,18 +550,31 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         """
         return self.name.split("`")[-1] if short else self.name
 
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        if pattern_sort:
-            return super(Symbol, self).get_sort_key(True)
-        else:
-            return (
-                1 if self.is_numeric() else 2,
-                2,
-                Monomial({self.name: 1}),
-                0,
-                self.name,
-                1,
-            )
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return (
+            (
+                BASIC_NUMERIC_EXPRESSION_ELT_ORDER
+                if self.is_numeric()
+                else BASIC_EXPRESSION_ELT_ORDER
+            ),
+            Monomial({self.name: 1}),
+            0,
+            self.name,
+            1,
+        )
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return super(Symbol, self).pattern_precedence
 
     def replace_vars(self, vars, options={}, in_scoping=True):
         assert all(fully_qualified_symbol_name(v) for v in vars)
@@ -708,6 +689,9 @@ class SymbolConstant(Symbol):
             self.hash = hash((cls, name))
         return self
 
+    def __getnewargs__(self):
+        return (self.name, self._value)
+
     @property
     def is_literal(self) -> bool:
         """
@@ -762,6 +746,11 @@ def symbol_set(*symbols: Symbol) -> FrozenSet[Symbol]:
     frozenset was the fastest.
     """
     return frozenset(symbols)
+
+
+def sympy_name(mathics_symbol: Symbol):
+    """Convert a mathics symbol name into a sympy symbol name"""
+    return SYMPY_SYMBOL_PREFIX + mathics_symbol.name.replace("`", "_")
 
 
 # Symbols used in this module.

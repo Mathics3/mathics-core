@@ -215,6 +215,58 @@ class GetEnvironment(Builtin):
             evaluation.message("GetEnvironment", "name", var)
 
 
+# The current value of $Language
+LANGUAGE = "English"
+
+
+class Language(Predefined):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/\\$Language.html</url>
+
+    <dl>
+      <dt>'\\$Language'
+      <dd>is a settable global variable for the default language used in Mathics3.
+    </dl>
+
+    See the language in effect used for functions like 'Alphabet[]':
+
+    By setting its value, The letters of 'Alphabet[]' are changed:
+
+    >> $Language = "German"; Alphabet[]
+     = ...
+
+    #> $Language = "English"
+     = English
+
+    See also <url>
+    :Alphabet:
+     /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/string-manipulation/alphabet/
+      </url>.
+    """
+
+    name = "$Language"
+    messages = {
+        "notstr": "`1` is not a string. Only strings can be set as the value of $Language.",
+    }
+
+    summary_text = "settable global variable giving the default language"
+    value = f'"{LANGUAGE}"'
+    # Rules has to come after "value"
+    rules = {
+        "$Language": value,
+    }
+
+    def eval_set(self, value, evaluation: Evaluation):
+        """Set[$Language, value_]"""
+        if isinstance(value, String):
+            evaluation.definitions.set_ownvalue("$Language", value)
+        else:
+            evaluation.message("$Language", "notstr", value)
+        return value
+
+
 class Machine(Predefined):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/\\$Machine.html</url>
@@ -238,7 +290,7 @@ class Machine(Predefined):
 
 class MachineName(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/MachineName.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\\$MachineName.html</url>
 
     <dl>
       <dt>'\\$MachineName'
@@ -417,7 +469,7 @@ class Packages(Predefined):
 
 class ParentProcessID(Predefined):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$ParentProcessID.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$ParentProcessID.html</url>
 
     <dl>
       <dt>'\$ParentProcesID'
@@ -603,7 +655,6 @@ class SetEnvironment(Builtin):
 
      Set two environment variables:
      S> SetEnvironment[{"FOO" -> "baz", "A" -> "B"}]
-      = SetEnvironment[{FOO -> baz, A -> B}]
 
      See that the environment variable has changed:
      S> GetEnvironment["FOO"]
@@ -621,6 +672,7 @@ class SetEnvironment(Builtin):
     If the environment name is not a string, the evaluation fails without a message.
 
      S> SetEnvironment[1 -> "bar"]
+      = SetEnvironment[1 -> bar]
 
      See also <url>
      :'Environment':
@@ -633,24 +685,35 @@ class SetEnvironment(Builtin):
     summary_text = "set system environment variable(s)"
 
     def eval(self, rule, evaluation):
-        "SetEnvironment[rule_]"
+        "SetEnvironment[rule_Rule]"
         env_var_name, env_var_value = rule.elements
+        # WMA does not give an error message if env_var_name is not a String - weird.
+        if not isinstance(env_var_name, String):
+            return None
+
         if not (env_var_value is SymbolNone or isinstance(env_var_value, String)):
             evaluation.message("SetEnvironment", "value", env_var_value)
             return SymbolFailed
 
-        if isinstance(env_var_name, String):
-            # WMA does not give an error message if env_var_name is not a String - weird.
-            os.environ[env_var_name.value] = (
-                None if None is SymbolNone else env_var_value.value
-            )
+        os.environ[env_var_name.value] = (
+            None if None is SymbolNone else env_var_value.value
+        )
         return SymbolNull
 
     def eval_list(self, rules: Expression, evaluation: Evaluation):
         "SetEnvironment[{rules__}]"
+
+        # All the rules must be of the form
+        for rule in rules.elements:
+            if not rule.has_form("System`Rule", 2):
+                return None
+            if not isinstance(rule.elements[0], String):
+                return None
+
         for rule in rules.elements:
             self.eval(rule, evaluation)
-        return None
+
+        return SymbolNull
 
 
 class Share(Builtin):

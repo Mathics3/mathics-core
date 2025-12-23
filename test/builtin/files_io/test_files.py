@@ -188,12 +188,12 @@ def test_close():
             "",
         ),
         ## writing to dir
-        ("x >>> /var/", ("Cannot open /var/.",), "x >>> /var/", ""),
+        ("x >>> /var/", ("Cannot open /var/.",), "$Failed", ""),
         ## writing to read only file
         (
             "x >>> /proc/uptime",
             ("Cannot open /proc/uptime.",),
-            "x >>> /proc/uptime",
+            "$Failed",
             "",
         ),
         ## Malformed InputString
@@ -416,7 +416,7 @@ def test_open_read():
         return
     check_evaluation(
         str_expr=f'OpenRead["{name}"]',
-        str_expected=f"OpenRead[{name}]",
+        str_expected="$Failed",
         to_string_expr=True,
         hold_expected=True,
         failure_message="",

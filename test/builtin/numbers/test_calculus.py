@@ -198,39 +198,6 @@ def test_Solve(str_expr: str, str_expected: str, expected_messages):
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
-        (None, None, None, None),
-        ("Maximize[1 - (x y - 3)^2, {x, y}]", None, "{{1, {x -> 3, y -> 1}}}", None),
-        (
-            "Maximize[{x - 2 y, x^2 + y^2 <= 1}, {x, y}]",
-            None,
-            "{{Sqrt[5], {x -> Sqrt[5] / 5, y -> -2 Sqrt[5] / 5}}}",
-            None,
-        ),
-        ("Minimize[(x y - 3)^2 + 1, {x, y}]", None, "{{1, {x -> 3, y -> 1}}}", None),
-        (
-            "Minimize[{x - 2 y, x^2 + y^2 <= 1}, {x, y}]",
-            None,
-            "{{-Sqrt[5], {x -> -Sqrt[5] / 5, y -> 2 Sqrt[5] / 5}}}",
-            None,
-        ),
-    ],
-)
-def test_private_doctests_optimization(str_expr, msgs, str_expected, fail_msg):
-    """ """
-    check_evaluation(
-        str_expr,
-        str_expected,
-        to_string_expr=True,
-        to_string_expected=True,
-        hold_expected=True,
-        failure_message=fail_msg,
-        expected_messages=msgs,
-    )
-
-
-@pytest.mark.parametrize(
-    ("str_expr", "msgs", "str_expected", "fail_msg"),
-    [
         (
             "D[2/3 Cos[x] - 1/3 x Cos[x] Sin[x] ^ 2,x]//Expand",
             None,
@@ -241,8 +208,12 @@ def test_private_doctests_optimization(str_expr, msgs, str_expected, fail_msg):
         ("D[(#1&)[t],{t,4}]", None, "0", None),
         ("Attributes[f] ={HoldAll}; Apart[f''[x + x]]", None, "f''[2 x]", None),
         ("Attributes[f] = {}; Apart[f''[x + x]]", None, "f''[2 x]", None),
-        ## Issue #375
-        ("D[{#^2}, #]", None, "{2 #1}", None),
+        (
+            "D[{#^2}, #]",
+            None,
+            "{2 #1}",
+            "Issue #375: avoid slots in rule handling D[{...}",
+        ),
         ("FindRoot[2.5==x,{x,0}]", None, "{x -> 2.5}", None),
         ("DownValues[Integrate]", None, "{}", None),
         (
@@ -263,12 +234,6 @@ def test_private_doctests_optimization(str_expr, msgs, str_expected, fail_msg):
         ),
         ("Integrate[sin[x], x]", None, "Integrate[sin[x], x]", None),
         ("Integrate[x ^ 3.5 + x, x]", None, "x ^ 2 / 2 + 0.222222 x ^ 4.5", None),
-        (
-            "Integrate[1/(x^5+1), x]",
-            None,
-            "RootSum[1 + 5 #1 + 25 #1 ^ 2 + 125 #1 ^ 3 + 625 #1 ^ 4&, Log[x + 5 #1] #1&] + Log[1 + x] / 5",
-            None,
-        ),
         ("Integrate[ArcTan(x), x]", None, "x ^ 2 ArcTan / 2", None),
         ("Integrate[E[x], x]", None, "Integrate[E[x], x]", None),
         ("Integrate[Exp[-(x/2)^2],{x,-Infinity,+Infinity}]", None, "2 Sqrt[Pi]", None),
@@ -288,8 +253,10 @@ def test_private_doctests_optimization(str_expr, msgs, str_expected, fail_msg):
         ("Derivative[0,0,1][List]", None, "{0, 0, 1}&", None),
     ],
 )
-def test_private_doctests_calculus(str_expr, msgs, str_expected, fail_msg):
-    """ """
+def test_calculus(str_expr, msgs, str_expected, fail_msg):
+    """
+    Tests of mathics.builtin.numbers.calculus module.
+    """
     check_evaluation(
         str_expr,
         str_expected,

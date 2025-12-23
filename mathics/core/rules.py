@@ -53,11 +53,12 @@ from inspect import signature
 from itertools import chain
 from typing import Callable, Optional
 
-from mathics.core.element import BaseElement, KeyComparable
+from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.keycomparable import PATTERN_SORT_KEY_CONDITIONAL, KeyComparable
 from mathics.core.pattern import BasePattern, StopGenerator
-from mathics.core.symbols import strip_context
+from mathics.core.symbols import SymbolTrue, strip_context
 
 
 def _python_function_arguments(f):
@@ -71,6 +72,15 @@ def function_arguments(f):
 class StopGenerator_BaseRule(StopGenerator):
     """
     Signals that there are no more rules to check for pattern matching
+    """
+
+    pass
+
+
+class RuleApplicationFailed(Exception):
+    """
+    Exception raised when a condition fails
+    in the RHS, indicating that the match have failed.
     """
 
     pass
@@ -98,6 +108,7 @@ class BaseRule(KeyComparable, ABC):
         evaluation: Optional[Evaluation] = None,
         attributes: Optional[int] = None,
     ) -> None:
+        self.location: Optional[Callable] = None
         self.pattern = BasePattern.create(
             pattern, attributes=attributes, evaluation=evaluation
         )
@@ -133,9 +144,10 @@ class BaseRule(KeyComparable, ABC):
                 if isinstance(self, FunctionApplyRule)
                 else self.apply_rule
             )
-            new_expression = apply_fn(expression, vars, options, evaluation)
-            if new_expression is None:
-                new_expression = expression
+            try:
+                new_expression = apply_fn(expression, vars, options, evaluation)
+            except RuleApplicationFailed:
+                return None
             if rest[0] or rest[1]:
                 result = Expression(
                     expression.get_head(),
@@ -175,10 +187,12 @@ class BaseRule(KeyComparable, ABC):
             # For now we have to take a pessimistic view
             expr = exc.value
             # FIXME: expr is sometimes a list - why the changing types
-            if hasattr(expr, "_elements_fully_evaluated"):
-                expr._elements_fully_evaluated = False
-                expr._is_flat = False  # I think this is fully updated
-                expr._is_ordered = False
+            if (
+                hasattr(expression, "location")
+                and hasattr(expr, "location")
+                and expression.location is not None
+            ):
+                expr.location = expression.location
             return expr
 
         if return_list:
@@ -199,9 +213,23 @@ class BaseRule(KeyComparable, ABC):
     def get_replace_value(self) -> BaseElement:
         raise ValueError
 
-    def get_sort_key(self, pattern_sort=True) -> tuple:
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
         # FIXME: check if this makes sense:
-        return tuple((self.system, self.pattern.get_sort_key(pattern_sort)))
+        return tuple((self.system, self.pattern.element_order))
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        # FIXME: check if this makes sense:
+        return tuple((self.system, self.pattern.pattern_precedence))
 
 
 # FIXME: the class name would be better called RewriteRule.
@@ -247,6 +275,13 @@ class Rule(BaseRule):
         new = self.replace.replace_vars(vars)
         new.options = options
 
+        while new.has_form("System`Condition", 2):
+            new, cond = new.get_elements()
+            if isinstance(cond, Expression):
+                cond = cond.evaluate(evaluation)
+            if cond is not SymbolTrue:
+                raise RuleApplicationFailed()
+
         # If options is a non-empty dict, we need to ensure
         # reevaluation of the whole expression, since 'new' will
         # usually contain one or more matching OptionValue[symbol_]
@@ -276,6 +311,24 @@ class Rule(BaseRule):
 
     def __repr__(self) -> str:
         return "<Rule: %s -> %s>" % (self.pattern, self.replace)
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        sort_key = self.pattern.pattern_precedence
+        if self.replace.has_form("System`Condition", 2):
+            sort_key_list = list(sort_key)
+            sort_key_list[0] = sort_key_list[0] & PATTERN_SORT_KEY_CONDITIONAL
+            sort_key = tuple(sort_key_list)
+        return tuple(
+            (
+                self.system,
+                sort_key,
+            )
+        )
 
 
 class FunctionApplyRule(BaseRule):
@@ -335,7 +388,7 @@ class FunctionApplyRule(BaseRule):
             pattern, system=system, attributes=attributes, evaluation=evaluation
         )
         self.name = name
-        self.function = function
+        self.location = self.function = function
         self.check_options = check_options
 
     # If you update this, you must also update traced_apply_function
@@ -349,11 +402,21 @@ class FunctionApplyRule(BaseRule):
         # The Python function implementing this builtin expects
         # argument names corresponding to the symbol names without
         # context marks.
+        prev_expression = evaluation.current_expression
+        evaluation.current_expression = expression
         vars_noctx = dict(((strip_context(s), vars[s]) for s in vars))
+        # Now call the method. If the method returns `None`, then
+        # the rule is considered to be applied, and that the return value
+        # is the original expression.
         if options:
-            return self.function(evaluation=evaluation, options=options, **vars_noctx)
+            result = (
+                self.function(evaluation=evaluation, options=options, **vars_noctx)
+                or expression
+            )
         else:
-            return self.function(evaluation=evaluation, **vars_noctx)
+            result = self.function(evaluation=evaluation, **vars_noctx) or expression
+        evaluation.current_expression = prev_expression
+        return result
 
     def __repr__(self) -> str:
         # Cython doesn't allow f-string below and reports:

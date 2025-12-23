@@ -21,6 +21,7 @@ from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.systemsymbols import SymbolPower, SymbolQuantity, SymbolTimes
+from mathics.core.util import strip_string_quotes
 
 ureg = UnitRegistry()
 Q_ = ureg.Quantity
@@ -28,7 +29,7 @@ Q_ = ureg.Quantity
 
 def add_quantities(
     mag_1: float, u_1: BaseElement, mag_2: float, u_2: BaseElement, evaluation=None
-) -> Expression:
+) -> Optional[Expression]:
     """Try to add two quantities"""
     cmp = compare_units(u_1, u_2)
     if cmp is None:
@@ -285,7 +286,8 @@ def validate_pint_unit(unit: str) -> bool:
 def validate_unit_expression(unit: BaseElement) -> bool:
     """Test if `unit` is a valid unit"""
     if isinstance(unit, String):
-        return validate_pint_unit(unit.value)
+        unit_value = strip_string_quotes(unit.value)
+        return validate_pint_unit(unit_value)
     if unit.has_form("Power", 2):
         base, exp = unit.elements
         if not isinstance(exp, Integer):

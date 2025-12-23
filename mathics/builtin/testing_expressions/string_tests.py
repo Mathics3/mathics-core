@@ -5,6 +5,7 @@ String Tests
 import re
 
 from mathics_scanner import SingleLineFeeder, SyntaxError
+from mathics_scanner.location import ContainerKind
 
 from mathics.builtin.atomic.strings import anchor_pattern
 from mathics.core.atoms import Integer1, String
@@ -278,7 +279,7 @@ class SyntaxQ(Builtin):
             )
             return
 
-        feeder = SingleLineFeeder(string.value)
+        feeder = SingleLineFeeder(string.value, "<SyntaxQ>", ContainerKind.STRING)
         try:
             parser.parse(feeder)
         except SyntaxError:

@@ -11,6 +11,7 @@ from mathics_scanner.errors import (
     InvalidSyntaxError,
     SyntaxError,
 )
+from mathics_scanner.location import ContainerKind
 
 import mathics
 import mathics.core.parser
@@ -185,7 +186,7 @@ def eval_Open(
     if tmp is None:
         if mode in ["r", "rb"]:
             evaluation.message("General", "noopen", name)
-            return
+            return SymbolFailed
     else:
         path = tmp
 
@@ -201,7 +202,7 @@ def eval_Open(
         n = opener.n
     except IOError:
         evaluation.message("General", "noopen", name)
-        return
+        return SymbolFailed
     except MessageException as e:
         e.message(evaluation)
         return
@@ -271,7 +272,7 @@ def eval_Read(
                 assert isinstance(tmp, str)
                 while True:
                     try:
-                        feeder = MathicsMultiLineFeeder(tmp)
+                        feeder = MathicsMultiLineFeeder(tmp, [], ContainerKind.STREAM)
                         expr = parse_incrementally_by_line(
                             evaluation.definitions, feeder
                         )

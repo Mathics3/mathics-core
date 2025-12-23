@@ -16,13 +16,20 @@ Procedural functions are integrated into \\Mathics symbolic programming \
 environment.
 """
 
+import sympy
+
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_REST,
     A_PROTECTED,
     A_READ_PROTECTED,
 )
-from mathics.core.builtin import Builtin, InfixOperator, IterationFunction
+from mathics.core.builtin import (
+    Builtin,
+    InfixOperator,
+    IterationFunction,
+    SympyFunction,
+)
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.interrupt import (
@@ -55,9 +62,13 @@ class Abort(Builtin):
      = $Aborted
     """
 
+    # Set checking that the no arguments are allowed.
+    # eval_error = Builtin.generic_argument_error
+    # expected_args = 0
+
     summary_text = "generate an abort"
 
-    def eval(self, evaluation: Evaluation):
+    def eval(self, evaluation: Evaluation):  # pylint: disable=unused-argument
         "Abort[]"
 
         raise AbortInterrupt
@@ -78,13 +89,17 @@ class Break(Builtin):
      = 11
     """
 
+    # Set checking that the no arguments are allowed.
+    # eval_error = Builtin.generic_argument_error
+    # expected_args = 0
+
     messages = {
         "nofwd": "No enclosing For, While, or Do found for Break[].",
     }
 
     summary_text = "exit a 'For', 'While', or 'Do' loop"
 
-    def eval(self, evaluation: Evaluation):
+    def eval(self, evaluation: Evaluation):  # pylint: disable=unused-argument
         "Break[]"
 
         raise BreakInterrupt
@@ -124,6 +139,10 @@ class Catch(Builtin):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
+
+    # Set checking that the between one and three arguments are allowed.
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 4)
 
     summary_text = "handle an exception raised by a 'Throw'"
 
@@ -216,7 +235,7 @@ class CompoundExpression(InfixOperator):
             # `expr1; expr2;` returns `Null` but assigns `expr2` to
             # `Out[n]`.  even stranger `CompoundExpression[expr1,
             # Null, Null]` assigns `expr1` to `Out[n]`.
-            if result is SymbolNull and prev_result != SymbolNull:
+            if result is SymbolNull and prev_result is not SymbolNull:
                 evaluation.predetermined_out = prev_result
 
         return result
@@ -297,7 +316,7 @@ class Do(IterationFunction):
     allow_loopcontrol = True
     summary_text = "evaluate an expression looping over a variable"
 
-    def get_result(self, items):
+    def get_result(self, _items, is_uniform=False):
         return SymbolNull
 
 
@@ -353,7 +372,7 @@ class For(Builtin):
         return SymbolNull
 
 
-class If(Builtin):
+class If(SympyFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/If.html</url>
 
@@ -377,15 +396,32 @@ class If(Builtin):
     >> If[False, a] //FullForm
      = Null
 
-    You might use comments (inside '(*' and '*)') to make the branches of 'If'
+    You might use comments inside '(*' and '*)' to make the branches of 'If'
     more readable:
     >> If[a, (*then*) b, (*else*) c];
+
+
+    Since one or more arguments to a boolean operation could be symbolic, it is\
+    possible that an 'If' cannot be evaluated. For example:
+
+    >> Clear[a, b]; If [a < b, a, b]
+     = If[a < b, a, b]
+
+    To handle this, 'If' takes an optional fourth parameter:
+
+    >> If [a < b, a, b, "I give up"]
+     = I give up
+
     """
 
-    summary_text = "if-then-else conditional expression"
     # This is the WR summary: "test if a condition is true, false, or
     # of unknown truth value"
     attributes = A_HOLD_REST | A_PROTECTED
+
+    # Set checking that the number of arguments required between 2 and 4.
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(2, 5)
+
     summary_text = "test if a condition is true, false, or of unknown truth value"
 
     def eval(self, condition, t, evaluation):
@@ -414,6 +450,28 @@ class If(Builtin):
         else:
             return u.evaluate(evaluation)
 
+    def to_sympy(self, expr, **kwargs):
+        if len(expr.elements) == 3:
+            sympy_cond = expr.elements[0].to_sympy(**kwargs)
+            if sympy_cond is None:
+                return
+            # sympy.Piecewise is is picky as to what type of conds it will accept,
+            # allowing Boolean, Relational, and Symbol (as an honorary Boolean,
+            # accompanied by a comment in the code that this isn't really correct).
+            # Seems an attempt at early typechecking, but maybe too restrictive -
+            # what about Exprs in general that might or might not evaluate to Boolean?
+            # See similar code in mathics.builtin.arithmetic.ConditionalExpression.
+            if not (
+                sympy_cond.is_Boolean
+                or sympy_cond.is_Relational
+                or sympy_cond.is_Symbol
+            ):
+                return
+            sympy_true = expr.elements[1].to_sympy(**kwargs)
+            sympy_false = expr.elements[2].to_sympy(**kwargs)
+
+            return sympy.Piecewise((sympy_true, sympy_cond), (sympy_false, True))
+
 
 class Interrupt(Builtin):
     r"""
@@ -429,9 +487,13 @@ class Interrupt(Builtin):
      = $Aborted
     """
 
+    # Set checking that the no arguments are allowed.
+    # eval_error = Builtin.generic_argument_error
+    # expected_args = 0
+
     summary_text = "interrupt evaluation and return '$Aborted'"
 
-    def eval(self, evaluation: Evaluation):
+    def eval(self, evaluation: Evaluation):  # pylint: disable=unused-argument
         "Interrupt[]"
 
         raise AbortInterrupt
@@ -460,13 +522,14 @@ class Pause(Builtin):
     # Number of timeout polls per second that we perform in looking
     # for a timeout.
 
-    def eval(self, n, evaluation: Evaluation):
+    def eval(self, n, evaluation: Evaluation):  # pylint: disable=unused-argument
         "Pause[n_]"
         try:
             sleep_time = valid_time_from_expression(n, evaluation)
         except ValueError:
             evaluation.message("Pause", "numnm", Expression(SymbolPause, n))
             return
+
         eval_pause(sleep_time, evaluation)
         return SymbolNull
 
@@ -504,9 +567,8 @@ class Return(Builtin):
 
     summary_text = "return from a function"
 
-    def eval(self, expr, evaluation: Evaluation):
+    def eval(self, expr, evaluation: Evaluation):  # pylint: disable=unused-argument
         "Return[expr_]"
-
         raise ReturnInterrupt(expr)
 
 
@@ -595,22 +657,28 @@ class Throw(Builtin):
      = Hold[Throw[1]]
     """
 
+    # Set checking that the number of arguments required is one or two. WMA uses 1..3.
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
+
     messages = {
         "nocatch": "Uncaught `1` returned to top level.",
     }
 
     summary_text = "throw an expression to be caught by a surrounding 'Catch'"
 
-    def eval(self, value, evaluation: Evaluation):
+    def eval(self, value, evaluation: Evaluation):  # pylint: disable=unused-argument
         "Throw[value_]"
         raise WLThrowInterrupt(value)
 
-    def eval_with_tag(self, value, tag, evaluation: Evaluation):
+    def eval_with_tag(
+        self, value, tag, evaluation: Evaluation
+    ):  # pylint: disable=unused-argument
         "Throw[value_, tag_]"
         raise WLThrowInterrupt(value, tag)
 
 
-class Which(Builtin):
+class Which(SympyFunction):
     """
     <url>
     :WMA link:
@@ -672,6 +740,15 @@ class Which(Builtin):
             items = items[2:]
         return SymbolNull
 
+    def to_sympy(self, expr, **kwargs):
+        if len(expr.elements) % 2 == 0:
+            args = []
+            for cond, value in zip(expr.elements[::2], expr.elements[1::2]):
+                sympy_cond = cond.to_sympy(**kwargs)
+                sympy_value = value.to_sympy(**kwargs)
+                args.append((sympy_value, sympy_cond))
+            return sympy.Piecewise(*args)
+
 
 class While(Builtin):
     """
@@ -693,11 +770,15 @@ class While(Builtin):
      = 3
     """
 
-    summary_text = "evaluate an expression while a criterion is true"
     attributes = A_HOLD_ALL | A_PROTECTED
+    # Set checking that the number of arguments required is one.
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
+
     rules = {
         "While[test_]": "While[test, Null]",
     }
+    summary_text = "evaluate an expression while a criterion is true"
 
     def eval(self, test, body, evaluation):
         "While[test_, body_]"

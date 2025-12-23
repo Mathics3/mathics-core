@@ -113,7 +113,7 @@ def NumberForm_to_String(
     value: Union[Real, Integer],
     digits: Optional[int],
     digits_after_decimal_point: Optional[int],
-    evaluation: Evaluation,
+    evaluation: Optional[Evaluation],
     options: dict,
 ) -> String:
     """
@@ -267,7 +267,7 @@ def NumberForm_to_String(
 
 
 def eval_baseform(self, expr, n, f, evaluation: Evaluation):
-    base = n.get_int_value()
+    base = n.value
     if base <= 0:
         evaluation.message("BaseForm", "intpm", expr, n)
         return None

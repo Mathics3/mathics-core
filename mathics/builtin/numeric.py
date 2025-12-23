@@ -19,6 +19,7 @@ from mathics.core.atoms import (
     Complex,
     Integer,
     Integer0,
+    Integer1,
     IntegerM1,
     Number,
     Rational,
@@ -41,6 +42,7 @@ from mathics.core.symbols import (
     SymbolDivide,
     SymbolFalse,
     SymbolMachinePrecision,
+    SymbolPlus,
     SymbolTimes,
     SymbolTrue,
 )
@@ -61,13 +63,13 @@ def chop(expr, delta=10.0 ** (-10.0)):
     if isinstance(expr, Real):
         if expr.is_nan(expr):
             return expr
-        if -delta < expr.get_float_value() < delta:
+        if -delta < expr.value < delta:
             return Integer0
     elif isinstance(expr, Complex) and expr.is_inexact():
         real, imag = expr.real, expr.imag
         if -delta < real.get_float_value() < delta:
             real = Integer0
-        if -delta < imag.get_float_value() < delta:
+        if -delta < imag.value < delta:
             imag = Integer0
         return Complex(real, imag)
     elif isinstance(expr, Expression):
@@ -707,8 +709,14 @@ class Round(Builtin):
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
+    # Set checking that the number of arguments required is one or two.
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
+
+    # For now, we handle Rounding Complex numbers as rules.
+    # In the future consider folding this into the code.
     rules = {
-        "Round[expr_?NumericQ]": "Round[Re[expr], 1] + I * Round[Im[expr], 1]",
+        "Round[expr_Complex]": "Round[Re[expr], 1] + I * Round[Im[expr], 1]",
         "Round[expr_Complex, k_?RealValuedNumberQ]": (
             "Round[Re[expr], k] + I * Round[Im[expr], k]"
         ),
@@ -716,8 +724,16 @@ class Round(Builtin):
 
     summary_text = "find closest integer or multiple of"
 
-    def eval(self, expr, k, evaluation: Evaluation):
-        "Round[expr_?NumericQ, k_?NumericQ]"
+    def eval_one_arg(self, expr, evaluation: Evaluation):
+        "Round[expr_]"
+        return self.eval_two_args(expr, Integer1, evaluation)
+
+    def eval_two_args(self, expr, k, evaluation: Evaluation):
+        "Round[expr_, k_]"
+
+        if not expr.is_numeric(evaluation):
+            # We can't evaluate, so keep the symbolic representation.
+            return
 
         n = Expression(SymbolDivide, expr, k).round_to_float(
             evaluation, permit_complex=True
@@ -760,19 +776,19 @@ class Sign(SympyFunction):
 
     """
 
-    summary_text = "complex sign of a number"
-    sympy_name = "sign"
-    # mpmath_name = 'sign'
-
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
-    messages = {
-        "argx": "Sign called with `1` arguments; 1 argument is expected.",
-    }
+    # Set checking that the number of arguments required is one.
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
 
     rules = {
         "Sign[Power[a_, b_]]": "Power[Sign[a], b]",
     }
+
+    summary_text = "complex sign of a number"
+    sympy_name = "sign"
+    # mpmath_name = 'sign'
 
     def eval(self, x, evaluation: Evaluation):
         "Sign[x_]"
@@ -786,10 +802,6 @@ class Sign(SympyFunction):
             return None
         # Unhandled cases. Use sympy
         return super(Sign, self).eval(x, evaluation)
-
-    def eval_error(self, x, seqs, evaluation: Evaluation):
-        "Sign[x_, seqs__]"
-        evaluation.message("Sign", "argx", Integer(len(seqs.get_sequence()) + 1))
 
 
 class UnitStep(Builtin):

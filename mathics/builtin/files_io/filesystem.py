@@ -36,8 +36,7 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.directories import DIRECTORY_STACK
 from mathics.eval.files_io.files import eval_Get
-
-SymbolAbsoluteTime = Symbol("AbsoluteTime")
+from mathics.eval.stackframe import get_eval_Expression
 
 
 class AbsoluteFileName(Builtin):
@@ -55,10 +54,6 @@ class AbsoluteFileName(Builtin):
 
     """
 
-    messages = {
-        "fstr": ("File specification x is not a string of one or more characters."),
-        "nffil": "File not found during `1`.",
-    }
     summary_text = "get absolute file path"
 
     def eval(self, name, evaluation):
@@ -155,7 +150,6 @@ class CopyFile(Builtin):
         "fstr": (
             "File specification `1` is not a string of " "one or more characters."
         ),
-        "nffil": "File not found during `1`.",
     }
     summary_text = "copy a file into a new path"
 
@@ -192,9 +186,7 @@ class CopyFile(Builtin):
         try:
             shutil.copy(py_source, py_dest)
         except IOError:
-            evaluation.message(
-                "CopyFile", "nffil", to_expression("CopyFile", source, dest)
-            )
+            evaluation.message("CopyFile", "nffil", get_eval_Expression())
             return SymbolFailed
 
         return dest
@@ -287,7 +279,6 @@ class DeleteFile(Builtin):
         "strs": (
             "String or non-empty list of strings expected at " "position `1` in `2`."
         ),
-        "nffil": "File not found during `1`.",
     }
     summary_text = "delete a file"
 
@@ -303,10 +294,7 @@ class DeleteFile(Builtin):
             # Check filenames
             if not isinstance(path, str):
                 evaluation.message(
-                    "DeleteFile",
-                    "strs",
-                    filename,
-                    to_expression("DeleteFile", filename),
+                    "DeleteFile", "strs", filename, get_eval_Expression()
                 )
                 return
 
@@ -315,9 +303,7 @@ class DeleteFile(Builtin):
             path, _ = path_search(path)
 
             if path is None:
-                evaluation.message(
-                    "DeleteFile", "nffil", to_expression("DeleteFile", filename)
-                )
+                evaluation.message("DeleteFile", "nffil", get_eval_Expression())
                 return SymbolFailed
             py_paths.append(path)
 
@@ -397,9 +383,7 @@ class ExpandFileName(Builtin):
         py_name = name.to_python()
 
         if not (isinstance(py_name, str) and py_name[0] == py_name[-1] == '"'):
-            evaluation.message(
-                "ExpandFileName", "string", to_expression("ExpandFileName", name)
-            )
+            evaluation.message("ExpandFileName", "string", get_eval_Expression())
             return
         py_name = py_name[1:-1]
 
@@ -490,7 +474,7 @@ class FileByteCount(Builtin):
 
         except IOError:
             evaluation.message("General", "noopen", filename)
-            return
+            return SymbolFailed
         except MessageException as e:
             e.message(evaluation)
             return
@@ -618,7 +602,7 @@ class FindFile(Builtin):
         py_name = name.to_python()
 
         if not (isinstance(py_name, str) and py_name[0] == py_name[-1] == '"'):
-            evaluation.message("FindFile", "string", to_expression("FindFile", name))
+            evaluation.message("FindFile", "string", get_eval_Expression())
             return
         py_name = py_name[1:-1]
 
@@ -921,7 +905,7 @@ class PathnameSeparator(Predefined):
     r"""
     <url>
     :WMA link:
-    https://reference.wolfram.com/language/ref/$PathnameSeparator.html</url>
+    https://reference.wolfram.com/language/ref/\$PathnameSeparator.html</url>
 
     <dl>
       <dt>'\$PathnameSeparator'
@@ -961,7 +945,6 @@ class RenameFile(Builtin):
         "fstr": (
             "File specification `1` is not a string of " "one or more characters."
         ),
-        "nffil": "File not found during `1`.",
     }
     summary_text = "change the name of a file"
 
@@ -982,7 +965,7 @@ class RenameFile(Builtin):
         py_source = py_source[1:-1]
         py_dest = py_dest[1:-1]
 
-        py_source, is_temporary_file = path_search(py_source)
+        py_source, _ = path_search(py_source)
 
         if py_source is None:
             evaluation.message("RenameFile", "filex", source)

@@ -15,7 +15,7 @@ from mathics.core.builtin import Builtin, InfixOperator
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolNull
+from mathics.core.symbols import Atom, Symbol, SymbolNull
 from mathics.core.systemsymbols import SymbolFailed
 from mathics.eval.assignments import eval_assign
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
@@ -363,7 +363,9 @@ class UpSet(InfixOperator):
         self, lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
     ) -> Optional[BaseElement]:
         "lhs_ ^= rhs_"
-
+        if isinstance(lhs, Atom):
+            evaluation.message("UpSet", "normal", 1, evaluation.current_expression)
+            return None
         eval_assign(self, lhs, rhs, evaluation, upset=True)
         return rhs
 
@@ -399,6 +401,20 @@ class UpSetDelayed(UpSet):
         self, lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
     ) -> Symbol:
         "lhs_ ^:= rhs_"
+        if isinstance(lhs, Atom):
+            evaluation.message(
+                "UpSetDelayed",
+                "normal",
+                1,
+                Expression(Symbol(self.get_name()), lhs, rhs),
+            )
+            return
+
+        if isinstance(lhs, Atom):
+            evaluation.message(
+                "UpSetDelayed", "normal", 1, evaluation.current_expression
+            )
+            return None
 
         if eval_assign(self, lhs, rhs, evaluation, upset=True):
             return SymbolNull

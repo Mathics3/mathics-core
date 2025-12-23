@@ -20,6 +20,7 @@ However, things like 'N[Pi, 100]' should work as expected.
 import mpmath
 
 from mathics.core.atoms import (
+    Complex,
     Integer,
     Integer0,
     Integer3,
@@ -393,10 +394,6 @@ class RealDigits(Builtin):
 
     summary_text = "get digits of a real number"
 
-    def eval_complex(self, n, var, evaluation):
-        "%(name)s[n_Complex, var___]"
-        evaluation.message("RealDigits", "realx", n)
-
     def eval_rational_with_base(self, n, b, evaluation):
         "%(name)s[n_Rational, b_Integer]"
         # expr = Expression(SymbolRealDigits, n)
@@ -436,6 +433,10 @@ class RealDigits(Builtin):
     def eval_with_base(self, n, b, evaluation, nr_elements=None, pos=None):
         """%(name)s[n_?NumericQ, b_Integer]"""
 
+        if isinstance(n, Complex):
+            evaluation.message("RealDigits", "realx", n)
+            return
+
         expr = Expression(SymbolRealDigits, n)
         rational_no = (
             True if isinstance(n, Rational) else False
@@ -456,6 +457,7 @@ class RealDigits(Builtin):
                 else:
                     evaluation.message("RealDigits", "ndig", expr)
                     return
+
         py_n = abs(n.value)
 
         if not py_b > 1:
@@ -579,7 +581,7 @@ class RealDigits(Builtin):
 
 class MaxPrecision(Predefined):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$MaxPrecision.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$MaxPrecision.html</url>
 
     <dl>
       <dt>'\$MaxPrecision'
@@ -615,7 +617,7 @@ class MaxPrecision(Predefined):
 class MachineEpsilon_(Predefined):
     r"""
     <url>:WMA link:
-    https://reference.wolfram.com/language/ref/$MachineEpsilon.html</url>
+    https://reference.wolfram.com/language/ref/\$MachineEpsilon.html</url>
 
     <dl>
       <dt>'\$MachineEpsilon'
@@ -642,7 +644,7 @@ class MachineEpsilon_(Predefined):
 
 class MachinePrecision_(Predefined):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$MachinePrecision.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$MachinePrecision.html</url>
 
     <dl>
       <dt>'\$MachinePrecision'
@@ -691,7 +693,7 @@ class MachinePrecision(Predefined):
 class MinPrecision(Builtin):
     r"""
     <url>
-    :WMA link:https://reference.wolfram.com/language/ref/$MinPrecision.html</url>
+    :WMA link:https://reference.wolfram.com/language/ref/\$MinPrecision.html</url>
 
     <dl>
       <dt>'\$MinPrecision'
