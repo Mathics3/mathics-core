@@ -708,7 +708,9 @@ class GraphicsBox(BoxExpression):
         # "yaxis", "xtick" "labelx", "labely". Extend our language
         # here and use those in render-like routines.
 
-        use_log_for_y_axis = graphics_options.get("System`LogPlot", SymbolFalse).to_python()
+        use_log_for_y_axis = graphics_options.get(
+            "System`LogPlot", SymbolFalse
+        ).to_python()
         axes_option = graphics_options.get("System`Axes")
 
         if axes_option is SymbolTrue:
