@@ -73,9 +73,9 @@ except:
 from test.helper import session
 
 import mathics.builtin.drawing.plot as plot
+from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
 from mathics.core.util import print_expression_tree
-from mathics.core.expression import Expression
 
 # common plotting options for 2d plots to test with and without
 opt2 = """
@@ -187,14 +187,15 @@ def one_test(name, str_expr, vec, svg, opt, act_dir="/tmp"):
         if svg:
             act_svg_fn = os.path.join(act_dir, f"{name}.svg")
             ref_svg_fn = os.path.join(ref_dir, f"{name}.svg")
-            boxed_expr = Expression(Symbol("System`ToBoxes"), act_expr).evaluate(session.evaluation)
+            boxed_expr = Expression(Symbol("System`ToBoxes"), act_expr).evaluate(
+                session.evaluation
+            )
             act_svg = boxed_expr.boxes_to_svg()
             with open(act_svg_fn, "w") as act_svg_f:
                 act_svg_f.write(act_svg)
             with open(ref_svg_fn) as ref_svg_f:
                 ref_svg = ref_svg_f.read()
             assert ref_svg == act_svg
-        
 
     finally:
         plot.use_vectorized_plot = False
@@ -219,7 +220,9 @@ def yaml_tests(fn, act_dir, vec):
                 "skimage": not skimage,  # skip if no skimage
             }[skip]
         if not skip:
-            svg = not vec and info.get("svg", True) # no svg for vectorized functions yet
+            svg = not vec and info.get(
+                "svg", True
+            )  # no svg for vectorized functions yet
             one_test(name, info["expr"], vec, svg, ..., act_dir)
         else:
             print(f"skipping {name}")
