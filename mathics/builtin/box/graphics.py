@@ -35,7 +35,7 @@ from mathics.core.exceptions import BoxExpressionError
 from mathics.core.expression import Expression
 from mathics.core.formatter import lookup_method
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolTrue
+from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolTraditionalForm
 from mathics.eval.makeboxes import format_element
 
@@ -708,7 +708,7 @@ class GraphicsBox(BoxExpression):
         # "yaxis", "xtick" "labelx", "labely". Extend our language
         # here and use those in render-like routines.
 
-        use_log_for_y_axis = graphics_options.get("System`LogPlot", False)
+        use_log_for_y_axis = graphics_options.get("System`LogPlot", SymbolFalse).to_python()
         axes_option = graphics_options.get("System`Axes")
 
         if axes_option is SymbolTrue:
