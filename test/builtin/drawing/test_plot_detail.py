@@ -73,7 +73,9 @@ except:
 from test.helper import session
 
 import mathics.builtin.drawing.plot as plot
+from mathics.core.symbols import Symbol
 from mathics.core.util import print_expression_tree
+from mathics.core.expression import Expression
 
 # common plotting options for 2d plots to test with and without
 opt2 = """
@@ -129,7 +131,7 @@ ref_dir = path + "_ref"
 print(f"ref_dir {ref_dir}")
 
 
-def one_test(name, str_expr, vec, opt, act_dir="/tmp"):
+def one_test(name, str_expr, vec, svg, opt, act_dir="/tmp"):
     # update name and set use_vectorized_plot depending on
     # whether vectorized test
     if vec:
@@ -181,6 +183,19 @@ def one_test(name, str_expr, vec, opt, act_dir="/tmp"):
         if act_fn != ref_fn:
             os.remove(act_fn)
 
+        # generate svg and compare
+        if svg:
+            act_svg_fn = os.path.join(act_dir, f"{name}.svg")
+            ref_svg_fn = os.path.join(ref_dir, f"{name}.svg")
+            boxed_expr = Expression(Symbol("System`ToBoxes"), act_expr).evaluate(session.evaluation)
+            act_svg = boxed_expr.boxes_to_svg()
+            with open(act_svg_fn, "w") as act_svg_f:
+                act_svg_f.write(act_svg)
+            with open(ref_svg_fn) as ref_svg_f:
+                ref_svg = ref_svg_f.read()
+            assert ref_svg == act_svg
+        
+
     finally:
         plot.use_vectorized_plot = False
 
@@ -204,7 +219,8 @@ def yaml_tests(fn, act_dir, vec):
                 "skimage": not skimage,  # skip if no skimage
             }[skip]
         if not skip:
-            one_test(name, info["expr"], vec, ..., act_dir)
+            svg = not vec and info.get("svg", True) # no svg for vectorized functions yet
+            one_test(name, info["expr"], vec, svg, ..., act_dir)
         else:
             print(f"skipping {name}")
 
@@ -216,13 +232,13 @@ def test_all(act_dir="/tmp", opt=None):
         for name, str_expr, opt, cond in classic + both:
             if cond:
                 opt = opt if use_opt else None
-                one_test(name, str_expr, False, opt, act_dir)
+                one_test(name, str_expr, False, False, opt, act_dir)
 
         # run vectorized tests
         for name, str_expr, opt, cond in vectorized + both:
             if cond:
                 opt = opt if use_opt else None
-                one_test(name, str_expr, True, opt, act_dir)
+                one_test(name, str_expr, True, False, opt, act_dir)
 
     # several of these tests failed on pyodide due to apparent differences
     # in numpy (and/or the blas library backing it) between pyodide and other platforms
