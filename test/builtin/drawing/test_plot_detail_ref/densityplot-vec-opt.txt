@@ -362,6 +362,9 @@ System`Graphics
     System`LabelStyle
     System`List
   System`Rule
+    System`LogPlot
+    System`False
+  System`Rule
     System`Method
     System`Automatic
   System`Rule
