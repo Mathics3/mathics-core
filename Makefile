@@ -17,6 +17,7 @@ MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang
 
 .PHONY: \
    all \
+   benchmarks \
    build \
    check \
    check-builtin-manifest \
@@ -53,6 +54,10 @@ endif
 
 #: Default target - same as "develop"
 all: develop
+
+# run pytest benchmarks
+benchmarks:
+	BENCHMARKS=True $(PYTHON) -m pytest $(PYTEST_OPTIONS) test/timings
 
 #: build everything needed to install
 build:

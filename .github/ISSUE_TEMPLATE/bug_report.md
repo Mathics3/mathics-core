@@ -53,24 +53,23 @@ If this is too long, then try narrowing the problem to something short.
 <!--
 
 Sometimes problems are specific to a particular environment or
-software release. If you have access to several environments, it is
-helpful check whether this fails on more than one environment.  Plase
+software release. If you have access to several environments, it is helpful to check whether this fails on more than one environment.  Please
 indicate that when available.
 
-If you are using a recently-released Python package that Mathics3
-uses, it is possible we haven't tested this and the new package is not
-compatible. Try on an older software release, and if that is still the problem let us
-know about the breakage in version.
+If you are using a recently released Python package that Mathics3
+uses, it is possible we haven't tested this, and the new package is not
+compatible. Try on an older software release, and if that is still the problem, let us
+know about the breakage in the version.
 
 In either case, please include the output from:
 
   mathics --version
 
-This information is also posted when you enter the mathics command-line or mathicsscript.
+This information is also posted when you enter either the `mathics` or `mathicsscript` commands.
 
-If you are running from a browser Django, please note browser type, e.g., firefox, chrome, safari.
+If you are running from a browser Django, please note the browser type, e.g., Firefox, Chrome, Safari.
 
-Inside Django http://localhost/about provides information, which you can cut and paste here.
+Inside Django, http://localhost/about provides information, which you can cut and paste here.
  -->
 
 ## Workarounds

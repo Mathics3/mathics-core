@@ -31,7 +31,7 @@ from mathics.core.atoms import (
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.convert.python import from_bool
-from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol_prefix
+from mathics.core.convert.sympy import SympyExpression, from_sympy
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -42,6 +42,7 @@ from mathics.core.expression_predefined import (
 from mathics.core.list import ListExpression
 from mathics.core.rules import BasePattern
 from mathics.core.symbols import (
+    SYMPY_SYMBOL_PREFIX,
     Atom,
     Symbol,
     SymbolFalse,
@@ -183,7 +184,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
 
     def store_sub_expr(expr):
         sub_exprs.append(expr)
-        result = sympy.Symbol(sympy_symbol_prefix + str(len(sub_exprs) - 1))
+        result = sympy.Symbol(SYMPY_SYMBOL_PREFIX + str(len(sub_exprs) - 1))
         return result
 
     def get_sub_expr(expr):

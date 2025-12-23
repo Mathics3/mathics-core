@@ -19,6 +19,7 @@ from mathics_scanner.location import ContainerKind
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Result
 from mathics.core.parser import MathicsSingleLineFeeder, parse
+from mathics.core.symbols import SymbolNull
 
 
 def autoload_files(
@@ -150,7 +151,7 @@ class MathicsSession:
         )
         if form is None:
             form = self.form
-        self.last_result = expr.evaluate(self.evaluation)
+        self.last_result = expr.evaluate(self.evaluation) if expr else SymbolNull
         return self.last_result
 
     def evaluate_as_in_cli(self, str_expression, timeout=None, form=None, src_name=""):
@@ -173,13 +174,14 @@ class MathicsSession:
         return res
 
     def format_result(self, str_expression=None, timeout=None, form=None):
-        if str_expression:
-            self.evaluate(str_expression, timeout=None, form=None)
-
-        res = self.last_result
         if form is None:
             form = self.form
-        return res.do_format(self.evaluation, form)
+
+        if str_expression:
+            return self.evaluate(str_expression, timeout=timeout, form=form)
+
+        res = self.last_result
+        return self.evaluation.format_output(res, form)
 
     def parse(self, str_expression, src_name=""):
         """

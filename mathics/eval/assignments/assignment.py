@@ -10,16 +10,12 @@ from functools import reduce
 from typing import List, Optional, Tuple
 
 from mathics.core.assignment import (
-    build_rulopc,
     get_symbol_list,
     is_protected,
-    normalize_lhs,
     pop_reference_head,
     rejected_because_protected,
-    unroll_conditions,
-    unroll_patterns,
 )
-from mathics.core.atoms import Atom, Integer, Integer1
+from mathics.core.atoms import Integer, Integer1
 from mathics.core.attributes import A_LOCKED, attribute_string_to_number
 from mathics.core.builtin import Builtin
 from mathics.core.element import BaseElement
@@ -31,6 +27,7 @@ from mathics.core.evaluation import (
 from mathics.core.expression import Expression
 from mathics.core.rules import Rule
 from mathics.core.symbols import (
+    Atom,
     Symbol,
     SymbolFalse,
     SymbolMaxPrecision,
@@ -508,7 +505,7 @@ def eval_assign_format(
     lhs_reference = get_reference_expression(lhs)
     lhs_reference = (
         lhs_reference.get_head()
-        if isinstance(lhs_reference, Expression)
+        if not isinstance(lhs_reference, Symbol)
         else lhs_reference
     )
     tags = process_tags_and_upset_dont_allow_custom(

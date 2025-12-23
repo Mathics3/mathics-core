@@ -244,6 +244,8 @@ System`Complement
 System`Complex
 System`ComplexExpand
 System`ComplexInfinity
+System`ComplexPlot
+System`ComplexPlot3D
 System`Complexes
 System`CompositeQ
 System`Composition
@@ -263,6 +265,7 @@ System`Context
 System`Contexts
 System`Continue
 System`ContinuedFraction
+System`ContourPlot
 System`Convert`B64Dump`B64Decode
 System`Convert`B64Dump`B64Encode
 System`ConvertersDump`$ExtensionMappings

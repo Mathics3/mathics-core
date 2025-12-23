@@ -41,8 +41,8 @@ from mathics.core.builtin import (
     SympyObject,
     Test,
 )
-from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol_prefix
-from mathics.core.element import BaseElement
+from mathics.core.convert.sympy import SympyExpression, from_sympy
+from mathics.core.element import BaseElement, ElementsProperties
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.expression_predefined import (
@@ -62,6 +62,7 @@ from mathics.core.symbols import (
     SymbolPlus,
     SymbolTimes,
     SymbolTrue,
+    sympy_name,
 )
 from mathics.core.systemsymbols import (
     SymbolAnd,
@@ -372,12 +373,17 @@ language/ref/ConditionalExpression.html</url>
                 sympy_cond = False
         if sympy_cond is None:
             sympy_cond = cond.to_sympy(**kwargs)
+            # See similar code and comment in mathics.builtin.procedural.If
+            # TODO: consider adding .is_Symbol (as with If) so that this
+            # can be used for compilation. I tried that but it invalidated
+            # doctest 1876 in Simplify which depends on ConditionalExpression
+            # not getting rewritten, so may need update that secion of doc?
             if not (sympy_cond.is_Relational or sympy_cond.is_Boolean):
                 return
 
         sympy_cases = (
             (expr.to_sympy(**kwargs), sympy_cond),
-            (sympy.Symbol(sympy_symbol_prefix + "System`Undefined"), True),
+            (sympy.Symbol(sympy_name(SymbolUndefined)), True),
         )
         return sympy.Piecewise(*sympy_cases)
 
@@ -783,8 +789,12 @@ class Product(IterationFunction, SympyFunction, PrefixOperator):
     sympy_name = "Product"
     throw_iterb = False
 
-    def get_result(self, elements):
-        return Expression(SymbolTimes, *elements)
+    def get_result(self, elements, is_uniform=False):
+        return Expression(
+            SymbolTimes,
+            *elements,
+            elements_properties=ElementsProperties(is_uniform=is_uniform),
+        )
 
     def to_sympy(self, expr, **kwargs):
         if expr.has_form("Product", 2) and expr.elements[1].has_form("List", 3):
@@ -792,8 +802,13 @@ class Product(IterationFunction, SympyFunction, PrefixOperator):
             try:
                 e_kwargs = kwargs.copy()
                 e_kwargs["convert_all_global_functions"] = True
+                e_kwargs["dummies"] = e_kwargs.get("dummies", set()).union((index,))
                 e = expr.elements[0].to_sympy(**e_kwargs)
-                i = index.elements[0].to_sympy(**kwargs)
+                e_kwargs["convert_all_global_functions"] = kwargs.get(
+                    "convert_all_global_functions", False
+                )
+
+                i = index.elements[0].to_sympy(**e_kwargs)
                 start = index.elements[1].to_sympy(**kwargs)
                 stop = index.elements[2].to_sympy(**kwargs)
 
@@ -1020,8 +1035,12 @@ class Sum(IterationFunction, SympyFunction, PrefixOperator):
     # Do not throw warning message for symbolic iteration bounds
     throw_iterb = False
 
-    def get_result(self, elements) -> Expression:
-        return Expression(SymbolPlus, *elements)
+    def get_result(self, elements, is_uniform=False) -> Expression:
+        return Expression(
+            SymbolPlus,
+            *elements,
+            elements_properties=ElementsProperties(is_uniform=is_uniform),
+        )
 
     def to_sympy(self, expr, **kwargs) -> Optional[SympyExpression]:
         """
@@ -1031,6 +1050,7 @@ class Sum(IterationFunction, SympyFunction, PrefixOperator):
             index = expr.elements[1]
             arg_kwargs = kwargs.copy()
             arg_kwargs["convert_all_global_functions"] = True
+            arg_kwargs["dummies"] = kwargs.get("dummies", set()).union((index,))
             f_sympy = expr.elements[0].to_sympy(**arg_kwargs)
             if f_sympy is None:
                 return
@@ -1038,16 +1058,19 @@ class Sum(IterationFunction, SympyFunction, PrefixOperator):
             evaluation = kwargs.get("evaluation", None)
 
             # Handle summation parameters: variable, min, max
-            var_min_max = index.elements[:3]
-            bounds = [expr.to_sympy(**kwargs) for expr in var_min_max]
 
+            arg_kwargs["convert_all_global_functions"] = kwargs.get(
+                "convert_all_global_functions", False
+            )
+            var_min_max = index.elements[:3]
+            bounds = [expr.to_sympy(**arg_kwargs) for expr in var_min_max]
             if evaluation:
                 # Min and max might be Mathics expressions. If so, evaluate them.
                 for i in (1, 2):
                     min_max_expr = var_min_max[i]
                     if not isinstance(expr, Symbol):
                         min_max_expr_eval = min_max_expr.evaluate(evaluation)
-                        value = min_max_expr_eval.to_sympy(**kwargs)
+                        value = min_max_expr_eval.to_sympy(**arg_kwargs)
                         bounds[i] = value
 
             # FIXME: The below tests on SympyExpression, but really the
@@ -1061,7 +1084,7 @@ class Sum(IterationFunction, SympyFunction, PrefixOperator):
                 # If we have integer bounds, we'll use Mathics's iterator Sum
                 # (which is Plus)
 
-                if all(
+                if evaluation and all(
                     (hasattr(i, "is_integer") and i.is_integer)
                     or (hasattr(i, "is_finite") and i.is_finite and i.is_constant())
                     for i in bounds[1:]

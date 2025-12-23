@@ -21,15 +21,15 @@ dependencies = [
     # ExampleData image hedy.tif is in this format.
     # Pillow 9.2 handles sunflowers.jpg
     "pillow >= 9.2",
-    "pint",
+    "pint >=0.24", # Earlier pint has problems with numpy 2.2.6
     "python-dateutil",
     # Pympler is used in ByteCount[] and MemoryInUse[].
     "Pympler",
     "requests",
     "scipy",
     "setuptools",
-    # stopit is needed in TimeRemaining[]
-    "stopit; platform_system != 'Emscripten'",
+    # Timed-Threads is needed in TimeRemaining[]
+    "Timed-Threads",
     "sympy>=1.13",
 ]
 license = "GPL-3.0-or-later"
@@ -82,6 +82,7 @@ cython = [
 
 [project.scripts]
 mathics = "mathics.__main__:main"
+mathics3 = "mathics.__main__:main"
 
 [tool.setuptools]
 include-package-data = false

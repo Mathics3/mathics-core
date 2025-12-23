@@ -16,8 +16,8 @@ if TYPE_CHECKING:
 
 from mathics.core.keycomparable import (
     BASIC_ATOM_PATTERN_SORT_KEY,
-    BASIC_EXPRESSION_SORT_KEY,
-    BASIC_NUMERIC_EXPRESSION_SORT_KEY,
+    BASIC_EXPRESSION_ELT_ORDER,
+    BASIC_NUMERIC_EXPRESSION_ELT_ORDER,
     Monomial,
 )
 from mathics.eval.tracing import trace_evaluate
@@ -29,8 +29,8 @@ from mathics.eval.tracing import trace_evaluate
 # keep variable names short.  In tracing values, long names makes
 # output messy and harder to follow, since it detracts from the
 # important information
-sympy_symbol_prefix = "_u"
-sympy_slot_prefix = "_#"
+SYMPY_SYMBOL_PREFIX = "_u"
+SYMPY_SLOT_PREFIX = "_#"
 
 
 class NumericOperators:
@@ -109,6 +109,26 @@ class NumericOperators:
         return None
 
 
+def strip_context(name) -> str:
+    """strip context from a symbol name"""
+    if "`" in name:
+        return name[name.rindex("`") + 1 :]
+    return name
+
+
+def sympy_strip_context(name) -> str:
+    """
+    Strip context from sympy names.
+    Currenty we use the same context marks for
+    mathics and sympy symbols. However,
+    when using sympy to compile code,
+    having '`' in symbol names
+    produce invalid code. In a next round, we would like
+    to use another character for split contexts in sympy variables.
+    """
+    return name.split("_")[-1]
+
+
 # system_symbols_dict({'SomeSymbol': ...}) -> {Symbol('System`SomeSymbol'): ...}
 def system_symbols_dict(d):
     return {Symbol(k): v for k, v in d.items()}
@@ -121,12 +141,6 @@ def valid_context_name(ctx, allow_initial_backquote=False) -> bool:
         and "``" not in ctx
         and (allow_initial_backquote or not ctx.startswith("`"))
     )
-
-
-def strip_context(name) -> str:
-    if "`" in name:
-        return name[name.rindex("`") + 1 :]
-    return name
 
 
 class Atom(BaseElement):
@@ -215,6 +229,13 @@ class Atom(BaseElement):
     #              allow_symbols ))
     #        1/0
     #        return None if stop_on_error else {}
+
+    def get_lookup_name(self) -> str:
+        """
+        By default, atoms that are not symbols
+        have their class head_names as their lookup names.
+        """
+        return self.class_head_name
 
     @property
     def element_order(self) -> tuple:
@@ -321,7 +342,6 @@ class Symbol(Atom, NumericOperators, EvalMixin):
 
     name: str
     hash: int
-    sympy_dummy: Any
     _short_name: str
 
     # Dictionary of Symbols defined so far.
@@ -334,7 +354,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
 
     # __new__ instead of __init__ is used here because we want
     # to return the same object for a given "name" value.
-    def __new__(cls, name: str, sympy_dummy=None):
+    def __new__(cls, name: str):
         """
         Allocate an object ensuring that for a given ``name`` and ``cls`` we get back the same object,
         id(object) is the same and its object.__hash__() is the same.
@@ -362,20 +382,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             # Python objects, so we include the class in the
             # event that different objects have the same Python value.
             # For example, this can happen with String constants.
-
             self.hash = hash((cls, name))
-
-            # TODO: revise how we convert sympy.Dummy
-            # symbols.
-            #
-            # In some cases, SymPy returns a sympy.Dummy
-            # object. It is converted to Mathics as a
-            # Symbol. However, we probably should have
-            # a different class for this kind of symbols.
-            # Also, sympy_dummy should be stored as the
-            # value attribute.
-            self.sympy_dummy = sympy_dummy
-
             self._short_name = strip_context(name)
 
         return self
@@ -384,7 +391,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         return self is other
 
     def __getnewargs__(self):
-        return (self.name, self.sympy_dummy)
+        return (self.name,)
 
     def __hash__(self) -> int:
         """
@@ -460,6 +467,12 @@ class Symbol(Atom, NumericOperators, EvalMixin):
 
     def get_head_name(self) -> str:
         return "System`Symbol"
+
+    def get_lookup_name(self) -> str:
+        """
+        The lookup name of a Symbol is its name.
+        """
+        return self.get_name()
 
     def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
         """
@@ -545,9 +558,9 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         """
         return (
             (
-                BASIC_NUMERIC_EXPRESSION_SORT_KEY
+                BASIC_NUMERIC_EXPRESSION_ELT_ORDER
                 if self.is_numeric()
-                else BASIC_EXPRESSION_SORT_KEY
+                else BASIC_EXPRESSION_ELT_ORDER
             ),
             Monomial({self.name: 1}),
             0,
@@ -676,6 +689,9 @@ class SymbolConstant(Symbol):
             self.hash = hash((cls, name))
         return self
 
+    def __getnewargs__(self):
+        return (self.name, self._value)
+
     @property
     def is_literal(self) -> bool:
         """
@@ -730,6 +746,11 @@ def symbol_set(*symbols: Symbol) -> FrozenSet[Symbol]:
     frozenset was the fastest.
     """
     return frozenset(symbols)
+
+
+def sympy_name(mathics_symbol: Symbol):
+    """Convert a mathics symbol name into a sympy symbol name"""
+    return SYMPY_SYMBOL_PREFIX + mathics_symbol.name.replace("`", "_")
 
 
 # Symbols used in this module.

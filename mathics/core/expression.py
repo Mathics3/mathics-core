@@ -40,10 +40,10 @@ from mathics.core.element import ElementsProperties, EvalMixin, ensure_context
 from mathics.core.evaluation import Evaluation
 from mathics.core.interrupt import ReturnInterrupt
 from mathics.core.keycomparable import (
-    BASIC_EXPRESSION_SORT_KEY,
-    BASIC_NUMERIC_EXPRESSION_SORT_KEY,
-    GENERAL_EXPRESSION_SORT_KEY,
-    GENERAL_NUMERIC_EXPRESSION_SORT_KEY,
+    BASIC_EXPRESSION_ELT_ORDER,
+    BASIC_NUMERIC_EXPRESSION_ELT_ORDER,
+    GENERAL_EXPRESSION_ELT_ORDER,
+    GENERAL_NUMERIC_EXPRESSION_ELT_ORDER,
     Monomial,
 )
 from mathics.core.structure import LinkedStructure
@@ -60,22 +60,14 @@ from mathics.core.symbols import (
     SymbolTimes,
     SymbolTrue,
     symbol_set,
+    sympy_name,
 )
 from mathics.core.systemsymbols import (
     SymbolAborted,
-    SymbolAlternatives,
-    SymbolBlank,
-    SymbolBlankNullSequence,
-    SymbolBlankSequence,
-    SymbolCondition,
     SymbolDirectedInfinity,
     SymbolFunction,
     SymbolMinus,
-    SymbolOptional,
-    SymbolOptionsPattern,
     SymbolOverflow,
-    SymbolPattern,
-    SymbolPatternTest,
     SymbolPower,
     SymbolSequence,
     SymbolSin,
@@ -83,7 +75,6 @@ from mathics.core.systemsymbols import (
     SymbolSqrt,
     SymbolSubtract,
     SymbolUnevaluated,
-    SymbolVerbatim,
 )
 from mathics.eval.tracing import trace_evaluate
 
@@ -331,9 +322,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         )
 
     def _as_sympy_function(self, **kwargs):
-        from mathics.core.convert.sympy import sympy_symbol_prefix
-
-        function_name = str(sympy_symbol_prefix + self.get_head_name())
+        function_name = sympy_name(self.head)
         f = sympy.Function(function_name)
 
         if kwargs.get("convert_functions_for_polynomial", False):
@@ -355,14 +344,24 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         """
 
         # All of the properties start out optimistic (True) and are reset when that proves wrong.
-        self.elements_properties = ElementsProperties(True, True, True)
+        self.elements_properties = ElementsProperties(True, True, True, True)
 
         last_element = None
         values = []
+        last_lookup_name = ""
+        uniform = True
         for element in self._elements:
             # Test for the literalness, and the three properties mentioned above
             if not element.is_literal:
                 self.elements_properties.elements_fully_evaluated = False
+
+            if uniform:
+                lookup_name = element.get_lookup_name()
+                if last_lookup_name:
+                    if lookup_name != last_lookup_name:
+                        uniform = self.elements_properties.is_uniform = False
+                else:
+                    last_lookup_name = lookup_name
 
             if isinstance(element, Expression):
                 # "self" can't be flat.
@@ -377,7 +376,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
                 # and now possibly adjust self.elements_properties.elements_fully_evaluted
                 if self.elements_properties.elements_fully_evaluated:
-                    self._elements_fully_evaluated = (
+                    self.elements_properties.elements_fully_evaluated = (
                         element.elements_properties.elements_fully_evaluated
                     )
 
@@ -887,7 +886,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         of an expression. The tuple is ultimately compared lexicographically.
         """
         """
-        General sort key structure:
+        General element order key structure:
         0: 1/2:        Numeric / General Expression
         1: 2/3         Special arithmetic (Times / Power) / General Expression
         2: Element:        Head
@@ -922,9 +921,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         if exps:
             return (
                 (
-                    BASIC_NUMERIC_EXPRESSION_SORT_KEY
+                    BASIC_NUMERIC_EXPRESSION_ELT_ORDER
                     if self.is_numeric()
-                    else BASIC_EXPRESSION_SORT_KEY
+                    else BASIC_EXPRESSION_ELT_ORDER
                 ),
                 Monomial(exps),
                 1,
@@ -935,9 +934,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         else:
             return (
                 (
-                    GENERAL_NUMERIC_EXPRESSION_SORT_KEY
+                    GENERAL_NUMERIC_EXPRESSION_ELT_ORDER
                     if self.is_numeric()
-                    else GENERAL_EXPRESSION_SORT_KEY
+                    else GENERAL_EXPRESSION_ELT_ORDER
                 ),
                 head,
                 len(self._elements),
@@ -966,7 +965,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # Lists. Lists definitions can't be changed right?
         return False
         # If we have a List we may do something like:
-        # return self._elements_fully_evaluated
+        # return self.elements_properties.elements_fully_evaluated
 
     def is_uncertain_final_definitions(self, definitions) -> bool:
         """
@@ -1296,6 +1295,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 else:
                     return threaded, True
 
+        elements_properties = new.elements_properties
         # Step 6:
         # Look at the rules associated with:
         #   1. the upvalues of each element
@@ -1335,15 +1335,17 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         def rules():
             rules_names = set()
             if not A_HOLD_ALL_COMPLETE & attributes:
-                for element in elements:
-                    if not isinstance(element, EvalMixin):
-                        continue
+                sample_elements = (
+                    (elements[0],)
+                    if elements and elements_properties.is_uniform
+                    else elements
+                )
+                for element in sample_elements:
                     name = element.get_lookup_name()
-                    if len(name) > 0:  # only lookup rules if this is a symbol
-                        if name not in rules_names:
-                            rules_names.add(name)
-                            for rule in evaluation.definitions.get_upvalues(name):
-                                yield rule
+                    if name and name not in rules_names:
+                        rules_names.add(name)
+                        for rule in evaluation.definitions.get_upvalues(name):
+                            yield rule
             lookup_name = new.get_lookup_name()
             if lookup_name == new.get_head_name():
                 for rule in evaluation.definitions.get_downvalues(lookup_name):
@@ -1787,12 +1789,12 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                         (prefix + [innerelement])
                         for innerelement in element.get_elements()
                     ]
-                elif len(element._elements) != dim:
+                elif len(element.get_elements()) != dim:
                     evaluation.message("Thread", "tdlen")
                     return True, self
                 else:
                     for index in range(dim):
-                        items[index].append(element._elements[index])
+                        items[index].append(element.get_elements()[index])
             else:
                 if dim is None:
                     prefix.append(element)
@@ -1954,13 +1956,15 @@ def atom_list_constructor(evaluation, head, *atom_names):
 
 # Note: this function is called a *lot* so it needs to be fast.
 def convert_expression_elements(
-    elements: Iterable, conversion_fn: Callable = from_python
+    elements: Iterable, conversion_fn: Callable = from_python, is_uniform: bool = True
 ) -> Tuple[tuple, ElementsProperties, Optional[tuple]]:
     """
     Convert and return tuple of Elements from the Python-like items in
     `elements`, along with elements properties of the elements tuple,
     and a tuple of literal values if it elements are all literal
     otherwise, None.
+    By default, is is assumed that `elements` are *uniform*, which is the typical case
+    of elements coming from applying a numerical function to a set of different arguments.
 
     The return information is suitable for use to the Expression() constructor.
 
@@ -1968,7 +1972,7 @@ def convert_expression_elements(
 
     # All of the properties start out optimistic (True) and are reset when that
     # proves wrong.
-    elements_properties = ElementsProperties(True, True, True)
+    elements_properties = ElementsProperties(True, True, True, is_uniform)
 
     is_literal = True
     values = []  # If is_literal, "values" contains the (Python) literal values

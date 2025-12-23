@@ -77,6 +77,9 @@ class ElementsProperties:
     # this True elements are not sorted can cause evaluation differences.
     is_ordered: bool = False
 
+    # Uniform expressions have all their elements with the same Head.
+    is_uniform: bool = False
+
 
 class ImmutableValueMixin:
     @property
@@ -187,13 +190,17 @@ class BaseElement(KeyComparable, ABC):
         """
         raise NotImplementedError
 
-    # FIXME: this behavior of defining a specific default implementation
-    # that is basically saying it isn't implemented is wrong.
-    # However fixing this means not only removing but fixing up code
-    # in the callers.
-    def get_float_value(self, permit_complex=False):
+    # FIXME: this behavior -- defining a specific default implementation
+    # that is basically saying: "it isn't implemented" -- is wrong.
+    # To remove this method, we need to fix up calls that expect this behavior,
+    # that I am not certain how to do right now. - rocky
+    def get_float_value(self, permit_complex=False) -> Optional[complex]:
         return None
 
+    # FIXME: this behavior -- defining a specific default implementation
+    # that is basically saying: "it isn't implemented" -- is wrong.
+    # To remove this method, we need to fix up calls that expect this behavior,
+    # that I am not certain how to do right now. - rocky
     def get_int_value(self) -> Optional[int]:
         return None
 

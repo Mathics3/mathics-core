@@ -677,7 +677,8 @@ class Times(InfixOperator, SympyFunction):
                 negative.append(item.denominator())
             else:
                 positive.append(item)
-        if positive and positive[0].get_int_value() == -1:
+
+        if positive and hasattr(positive[0], "value") and positive[0].value == -1:
             del positive[0]
             minus = True
         else:

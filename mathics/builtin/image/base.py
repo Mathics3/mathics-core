@@ -8,12 +8,12 @@ import PIL.Image
 
 from mathics.builtin.box.image import ImageBox
 from mathics.builtin.colors.color_internals import convert_color
-from mathics.core.atoms import Atom
 from mathics.core.builtin import AtomBuiltin, String
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.keycomparable import IMAGE_EXPRESSION_SORT_KEY
+from mathics.core.keycomparable import IMAGE_EXPRESSION_ELT_ORDER
 from mathics.core.list import ListExpression
+from mathics.core.symbols import Atom
 from mathics.core.systemsymbols import SymbolImage, SymbolRule
 from mathics.eval.image import image_pixels, pixels_as_float, pixels_as_ubyte
 
@@ -122,7 +122,7 @@ class Image(Atom):
         # and adding two extra fields: the length in the 5th position,
         # and a hash in the 6th place.
         return (
-            IMAGE_EXPRESSION_SORT_KEY,
+            IMAGE_EXPRESSION_ELT_ORDER,
             SymbolImage,
             len(self.pixels),
             tuple(),

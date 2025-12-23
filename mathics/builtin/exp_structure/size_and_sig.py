@@ -5,7 +5,7 @@ import hashlib
 import platform
 import zlib
 
-from mathics.core.atoms import ByteArrayAtom, Integer, String
+from mathics.core.atoms import ByteArray, Integer, String
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.evaluation import Evaluation
@@ -132,7 +132,7 @@ class Hash(Builtin):
         if py_format == "DecimalString":
             return String(str(res))
         elif py_format == "ByteArray":
-            return Expression(SymbolByteArray, ByteArrayAtom(res))
+            return Expression(SymbolByteArray, ByteArray(res))
         return Integer(res)
 
     def eval(self, expr, hashtype: String, outformat: String, evaluation: Evaluation):
