@@ -271,3 +271,10 @@ doc-127:
     expr: PolarPlot[Sqrt[t], {t, 0, 16 Pi}]
 doc-128:
     expr: PolarPlot[{1, 1 + Sin[20 t] / 5}, {t, 0, 2 Pi}]
+#
+# Tests with prefix "nondoc" aren't act doc tests and provide additional coverage.
+# We give them their own prefix to avoid collisions.
+# TODO: these may indicate gaps in the doctests
+#
+nondoc-plot-exclusions:
+    expr: Plot[x, {x,0,10}, Exclusions->{-1, 1, 2.5, 11}]
