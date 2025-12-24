@@ -1,3 +1,8 @@
+"""
+This module contains a group of plotting functions that share a _Plot base class,
+including DiscretePlot, LogPlot, ParametricPlot, PolarPlot, and Plot.
+"""
+
 import numbers
 from abc import ABC
 from functools import lru_cache
@@ -36,7 +41,7 @@ from mathics.eval.nevaluator import eval_N
 from . import plot
 
 # This tells documentation how to sort this module
-from .plot import sort_order  # noqa
+sort_order = "mathics.builtin.plotting-data"
 
 
 class _Plot(Builtin, ABC):

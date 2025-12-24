@@ -1,3 +1,8 @@
+"""
+This module contains a group of plotting functions that share an _Plot3D base class,
+including ContourPlot, DensityPlot, ComplexPlot, ComplexPlot3D, and Plot3D.
+"""
+
 from mathics.builtin.drawing.graphics3d import Graphics3D
 from mathics.builtin.graphics import Graphics
 from mathics.builtin.options import options_to_rules
@@ -18,7 +23,7 @@ from mathics.core.systemsymbols import (
 from . import plot
 
 # This tells documentation how to sort this module
-from .plot import sort_order  # noqa
+sort_order = "mathics.builtin.plotting-data"
 
 
 class _Plot3D(Builtin):
