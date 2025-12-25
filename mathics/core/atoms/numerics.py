@@ -24,7 +24,14 @@ from mathics.core.number import (
     min_prec,
     prec,
 )
-from mathics.core.symbols import Atom, NumericOperators, Symbol, SymbolNull, symbol_set
+from mathics.core.symbols import (
+    Atom,
+    NumericOperators,
+    Symbol,
+    SymbolNull,
+    SymbolTrue,
+    symbol_set,
+)
 from mathics.core.systemsymbols import SymbolFullForm, SymbolInfinity, SymbolInputForm
 
 # The below value is an empirical number for comparison precedence
@@ -299,7 +306,7 @@ class Integer(Number[int]):
 
         try:
             if form in ("System`InputForm", "System`FullForm"):
-                return _boxed_string(str(self.value), number_as_text=True)
+                return _boxed_string(str(self.value), number_as_text=SymbolTrue)
 
             return String(str(self._value))
         except ValueError:
