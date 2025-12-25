@@ -129,6 +129,9 @@ doc-057:
 doc-058:
     expr: Plot3D[{x^2 + y^2, -x^2 - y^2}, {x, -2, 2}, {y, -2, 2}, BoxRatios-> Automatic, Mesh->None]
 doc-059:
+    # The original doctest had 3 instead of 3.1, but that would give int on some platforms
+    # and float on others. So changed here to 3.1 to force float on all platforms.
+    # TODO: consider making test insensitive to float vs int provided the value is the same.
     expr: Plot[3.1, {x, 0, 1}]
     skip: pyodide # pyodide emits Real 3 where other platforms emit Integer 3
 doc-060:
