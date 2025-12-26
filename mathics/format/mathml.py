@@ -30,7 +30,7 @@ from mathics.core.formatter import (
     lookup_method as lookup_conversion_method,
 )
 from mathics.core.load_builtin import display_operators_set as operators
-from mathics.core.symbols import SymbolTrue
+from mathics.core.symbols import SymbolFalse, SymbolTrue
 
 
 def encode_mathml(text: str) -> str:
@@ -69,7 +69,7 @@ def string(self, **options) -> str:
     )
     if isinstance(self, BoxElementMixin):
         if number_as_text is None:
-            number_as_text = options.get("number_as_text", False)
+            number_as_text = SymbolFalse
 
     def render(format, string):
         encoded_text = encode_mathml(string)
@@ -84,7 +84,9 @@ def string(self, **options) -> str:
                 outtext += render("<mtext>%s</mtext>", line)
             return outtext
     elif (
-        text and not number_as_text and ("0" <= text[0] <= "9" or text[0] in (".", "-"))
+        text
+        and (number_as_text is SymbolFalse)
+        and ("0" <= text[0] <= "9" or text[0] in (".", "-"))
     ):
         return render("<mn>%s</mn>", text)
     else:

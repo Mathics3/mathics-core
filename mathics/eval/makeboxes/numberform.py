@@ -16,6 +16,7 @@ from mathics.core.number import (
     convert_base,
     dps,
 )
+from mathics.core.symbols import SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolMakeBoxes,
     SymbolOutputForm,
@@ -257,9 +258,9 @@ def NumberForm_to_String(
     method = options["NumberFormat"]
     if options["_Form"] in ("System`InputForm", "System`FullForm"):
         return method(
-            _boxed_string(s, number_as_text=True),
-            _boxed_string(base, number_as_text=True),
-            _boxed_string(pexp, number_as_text=True),
+            _boxed_string(s, number_as_text=SymbolTrue),
+            _boxed_string(base, number_as_text=SymbolTrue),
+            _boxed_string(pexp, number_as_text=SymbolTrue),
             options,
         )
     else:
