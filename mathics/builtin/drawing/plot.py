@@ -396,7 +396,7 @@ class Histogram(Builtin):
 # TODO: because of the history of this code, it's very inconsistent about
 # strings vs symbols. Keep moving it towards Symbols.
 #
-# Some of this is because to_python is convient because it turns List into list,
+# Some of this is because to_python is convenient because it turns List into list,
 # but it also turns Symbols to str. Maybe needs an option not to do that, e.g.
 # to_python(preserve_symbols=True)
 #

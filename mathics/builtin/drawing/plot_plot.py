@@ -1,6 +1,7 @@
 """
-This module contains a group of plotting functions that share a _Plot base class,
-including DiscretePlot, LogPlot, ParametricPlot, PolarPlot, and Plot.
+General Graphical Plots
+
+A graphical plot displays information about functions or points.
 """
 
 import numbers
@@ -13,20 +14,12 @@ from mathics.builtin.graphics import Graphics
 from mathics.builtin.options import options_to_rules
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
-from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList
-from mathics.core.systemsymbols import (
-    SymbolAll,
-    SymbolAutomatic,
-    SymbolFull,
-    SymbolNone,
-    SymbolPlotRange,
-    SymbolSequence,
-)
+from mathics.core.systemsymbols import SymbolSequence
 from mathics.eval.drawing.plot import (
     ListPlotType,
     check_plot_range,
@@ -41,7 +34,7 @@ from mathics.eval.nevaluator import eval_N
 from . import plot
 
 # This tells documentation how to sort this module
-sort_order = "mathics.builtin.plotting-data"
+sort_order = "mathics.builtin.graphical-plot"
 
 
 class _Plot(Builtin, ABC):
@@ -97,7 +90,7 @@ class _Plot(Builtin, ABC):
         except ValueError:
             return None
 
-        # additonal options specific to this class
+        # additional options specific to this class
         plot_options.functions = self.get_functions_param(functions)
         plot_options.apply_function = self.apply_function
         plot_options.use_log_scale = self.use_log_scale
