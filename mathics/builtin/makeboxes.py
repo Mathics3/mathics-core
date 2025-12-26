@@ -6,7 +6,15 @@ Low-level Format definitions
 
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Predefined
-from mathics.eval.makeboxes import eval_generic_makeboxes, format_element
+from mathics.core.symbols import Symbol
+from mathics.eval.makeboxes import (
+    eval_generic_makeboxes,
+    eval_infix,
+    eval_makeboxes_fullform,
+    eval_postprefix,
+    format_element,
+    parenthesize,
+)
 
 # TODO: Differently from the current implementation, MakeBoxes should only
 # accept as its format field the symbols in `$BoxForms`. This is something to
@@ -99,9 +107,13 @@ class MakeBoxes(Builtin):
     }
     summary_text = "settable low-level translator from expression to display boxes"
 
+    def eval_fullform(self, expr, evaluation):
+        """MakeBoxes[expr_, FullForm]"""
+        return eval_makeboxes_fullform(expr, evaluation)
+
     def eval_general(self, expr, f, evaluation):
         """MakeBoxes[expr_,
-        f:TraditionalForm|StandardForm|OutputForm|InputForm|FullForm]"""
+        f:TraditionalForm|StandardForm|OutputForm|InputForm]"""
         return eval_generic_makeboxes(self, expr, f, evaluation)
 
 

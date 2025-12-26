@@ -9141,6 +9141,9 @@ System`Graphics3D
     System`Lighting
     System`Automatic
   System`Rule
+    System`LogPlot
+    System`False
+  System`Rule
     System`Method
     System`Automatic
   System`Rule
