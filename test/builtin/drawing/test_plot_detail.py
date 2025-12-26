@@ -69,7 +69,7 @@ except:
 try:
     import cairosvg
 except:
-    print("not running PNG tests because cairosvg is not installed")
+    print("WARNING: not running PNG tests because cairosvg is not installed")
     cairosvg = None
 
 # check if pyoidide so we can skip some there
