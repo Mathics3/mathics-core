@@ -114,9 +114,6 @@ System`Graphics
     System`Epilog
     System`List
   System`Rule
-    System`Filling
-    System`None
-  System`Rule
     System`FormatType
     System`TraditionalForm
   System`Rule
@@ -150,22 +147,16 @@ System`Graphics
     System`ImageSize
     System`Automatic
   System`Rule
-    System`Joined
-    System`True
-  System`Rule
     System`LabelStyle
     System`List
   System`Rule
-    System`Mesh
-    System`None
+    System`LogPlot
+    System`False
   System`Rule
     System`Method
     System`Automatic
   System`Rule
     System`PlotLabel
-    System`None
-  System`Rule
-    System`PlotPoints
     System`None
   System`Rule
     System`PlotRange

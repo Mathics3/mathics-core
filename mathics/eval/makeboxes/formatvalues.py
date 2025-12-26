@@ -182,27 +182,17 @@ def do_format_rational(
 ) -> Optional[BaseElement]:
     if not isinstance(element, Rational):
         return None
-    if form is SymbolFullForm:
-        return do_format_expression(
-            Expression(
-                Expression(SymbolHoldForm, SymbolRational),
-                element.numerator(),
-                element.denominator(),
-            ),
-            evaluation,
-            form,
-        )
-    else:
-        numerator = element.numerator()
-        minus = numerator.value < 0
-        if minus:
-            numerator = Integer(-numerator.value)
-        result = Expression(SymbolDivide, numerator, element.denominator())
-        if minus:
-            result = Expression(SymbolMinus, result)
-        result = Expression(SymbolHoldForm, result)
-        result = do_format_expression(result, evaluation, form)
-        return result
+
+    numerator = element.numerator()
+    minus = numerator.value < 0
+    if minus:
+        numerator = Integer(-numerator.value)
+    result = Expression(SymbolDivide, numerator, element.denominator())
+    if minus:
+        result = Expression(SymbolMinus, result)
+    result = Expression(SymbolHoldForm, result)
+    result = do_format_expression(result, evaluation, form)
+    return result
 
 
 def do_format_complex(
@@ -210,14 +200,6 @@ def do_format_complex(
 ) -> Optional[BaseElement]:
     if not isinstance(element, Complex):
         return None
-    if form is SymbolFullForm:
-        return do_format_expression(
-            Expression(
-                Expression(SymbolHoldForm, SymbolComplex), element.real, element.imag
-            ),
-            evaluation,
-            form,
-        )
 
     parts: List[Any] = []
     if element.is_machine_precision() or not element.real.is_zero:

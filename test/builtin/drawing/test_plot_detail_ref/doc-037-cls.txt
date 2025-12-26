@@ -466,9 +466,6 @@ System`Graphics
     System`Epilog
     System`List
   System`Rule
-    System`Exclusions
-    System`Automatic
-  System`Rule
     System`FormatType
     System`TraditionalForm
   System`Rule
@@ -508,20 +505,11 @@ System`Graphics
     System`LogPlot
     System`True
   System`Rule
-    System`MaxRecursion
-    System`Automatic
-  System`Rule
-    System`Mesh
-    System`None
-  System`Rule
     System`Method
     System`Automatic
   System`Rule
     System`PlotLabel
     System`None
-  System`Rule
-    System`PlotPoints
-    System`Integer 26
   System`Rule
     System`PlotRange
     System`List

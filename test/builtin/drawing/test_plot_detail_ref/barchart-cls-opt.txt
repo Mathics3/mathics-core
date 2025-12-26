@@ -164,6 +164,9 @@ System`Graphics
     System`LabelStyle
     System`List
   System`Rule
+    System`LogPlot
+    System`False
+  System`Rule
     System`Mesh
     System`Full
   System`Rule

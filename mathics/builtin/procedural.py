@@ -529,6 +529,7 @@ class Pause(Builtin):
         except ValueError:
             evaluation.message("Pause", "numnm", Expression(SymbolPause, n))
             return
+
         eval_pause(sleep_time, evaluation)
         return SymbolNull
 
