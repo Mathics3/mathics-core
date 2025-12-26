@@ -207,6 +207,11 @@ class Builtin:
     expected_args: Union[int, Tuple[int, int], range] = -1
 
     formats: Dict[str, Any] = {}
+
+    # If the symbol include rules involving loops,
+    # setting values, or creating/changing contexts.
+    has_side_effects: bool = False
+
     messages: Dict[str, Any] = {}
     name: Optional[str] = None
     options: Dict[str, Any] = {}
@@ -433,6 +438,13 @@ class Builtin:
             definitions.pymathics[name] = definition
         else:
             definitions.builtin[name] = definition
+
+        # If the definition has side effects, store it in a
+        # dictionary.
+        if self.has_side_effects:
+            from mathics.core.definitions import SIDE_EFFECT_BUILTINS
+
+            SIDE_EFFECT_BUILTINS[name] = definition
 
         makeboxes_def = definitions.builtin["System`MakeBoxes"]
         for rule in box_rules:
@@ -1026,6 +1038,7 @@ class AtomBuiltin(Builtin):
 class IterationFunction(Builtin, ABC):
     attributes = A_HOLD_ALL | A_PROTECTED
     allow_loopcontrol = False
+    has_side_effects = True
     throw_iterb = True
 
     def get_result(self, elements, is_uniform=False) -> Expression:

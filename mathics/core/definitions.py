@@ -121,6 +121,12 @@ class Definition:
         return repr_str
 
 
+# Dictionary of builtin definitions involving side effects
+# like setting values, changing contexts or running loops:
+
+SIDE_EFFECT_BUILTINS: Dict[str, Definition] = {}
+
+
 class Definitions:
     """The state of one instance of the Mathics3 interpreter is stored in this object.
 
@@ -1093,7 +1099,7 @@ def load_builtin_definitions(
         mathics3_builtins_modules,
     )
     from mathics.eval.files_io.files import get_file_time
-    from mathics.eval.pymathics import PyMathicsLoadException, load_pymathics_module
+    from mathics.eval.pymathics import load_pymathics_module
     from mathics.session import autoload_files
 
     loaded = False
