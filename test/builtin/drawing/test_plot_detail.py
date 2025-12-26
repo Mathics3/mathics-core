@@ -55,13 +55,22 @@ import os
 import pathlib
 import subprocess
 
+import numpy as np
 import yaml
 
 # couple tests depend on this
 try:
     import skimage
 except:
+    print("not running some tests because scikit-image is not installed")
     skimage = None
+
+# Plot->Graphics->SVG->PNG tests depend on this for the SVG-PNG part
+try:
+    import cairosvg
+except:
+    print("not running PNG tests because cairosvg is not installed")
+    cairosvg = None
 
 # check if pyoidide so we can skip some there
 try:
@@ -73,7 +82,9 @@ except:
 from test.helper import session
 
 import mathics.builtin.drawing.plot as plot
+from mathics.core.symbols import Symbol
 from mathics.core.util import print_expression_tree
+from mathics.core.expression import Expression
 
 # common plotting options for 2d plots to test with and without
 opt2 = """
@@ -129,7 +140,71 @@ ref_dir = path + "_ref"
 print(f"ref_dir {ref_dir}")
 
 
-def one_test(name, str_expr, vec, opt, act_dir="/tmp"):
+# determines action to take if actual and reference files differ:
+# either raise assertion error, or update reference file
+update_mode = False
+
+
+def copy_file(dst_fn, src_fn):
+    with open(dst_fn, "wb") as dst_f, open(src_fn, "rb") as src_f:
+        dst_f.write(src_f.read())
+
+
+# finish up: raise exception or update ref, and delete /tmp file if no assertion
+def finish(differ, ref_fn, act_fn):
+
+    # if ref and act differ, either update act_fn if in update_mode, or raise assertion if not
+    if differ:
+        if update_mode:
+            if os.path.exists(ref_fn):
+                print(f"WARNING: updating existing {ref_fn}; check updated file against committed file")
+            else:
+                print(f"NOTE: creating {ref_fn}")
+            copy_file(ref_fn, act_fn)
+        else:
+            if os.path.exists(ref_fn):
+                msg = f"reference {ref_fn} and actual {act_fn} differ"
+            else:
+                msg = f"reference {ref_fn} does not exist. Use --update mode to create it"
+            print(msg)
+            raise AssertionError(msg)
+    
+    # remove /tmp file if test was successful
+    if act_fn != ref_fn:
+        os.remove(act_fn)
+
+
+# compare ref_fn and act_fn and either raise exception or update act_fn,
+# depending on update_mode
+def check_text(ref_fn, act_fn):
+    if os.path.exists(ref_fn):
+        try:
+            result = subprocess.run(
+                ["diff", "-U", "5", ref_fn, act_fn], capture_output=False
+            )
+            differ = result.returncode != 0
+        except OSError:
+            with open(ref_fn) as ref_f, open(act_fn) as act_f:
+                ref_str, act_str = ref_f.read(), act_f.read()
+            differ = ref_str != act_str
+    else:
+        differ = True
+    finish(differ, ref_fn, act_fn)
+        
+# compare ref_png_fn and act_png_fn and either raise exception or update act_fn,
+# depending on update_mode
+# for PNG files we have to read the file and compare the actual image data
+def check_png(ref_png_fn, act_png_fn):
+    if os.path.exists(ref_png_fn):
+        act_img = skimage.io.imread(act_png_fn)[:,:,0:3]
+        ref_img = skimage.io.imread(ref_png_fn)[:,:,0:3]
+        differ = not np.all(act_img == ref_img)
+    else:
+        differ = True
+    finish(differ, ref_png_fn, act_png_fn)
+
+
+def one_test(name, str_expr, vec, png, opt, act_dir="/tmp"):
     # update name and set use_vectorized_plot depending on
     # whether vectorized test
     if vec:
@@ -167,19 +242,20 @@ def one_test(name, str_expr, vec, opt, act_dir="/tmp"):
         # use diff to compare the actual result in act_fn to reference result in ref_fn,
         # with a fallback of simple string comparison if diff is not available
         ref_fn = os.path.join(ref_dir, f"{name}.txt")
-        try:
-            result = subprocess.run(
-                ["diff", "-U", "5", ref_fn, act_fn], capture_output=False
-            )
-            assert result.returncode == 0, "reference and actual result differ"
-        except OSError:
-            with open(ref_fn) as ref_f, open(act_fn) as act_f:
-                ref_str, act_str = ref_f.read(), act_f.read()
-            assert ref_str == act_str, "reference and actual result differ"
+        check_text(ref_fn, act_fn)
 
-        # remove /tmp file if test was successful
-        if act_fn != ref_fn:
-            os.remove(act_fn)
+        # generate png and compare if requested
+        if png:
+            act_png_fn = os.path.join(act_dir, f"{name}.png")
+            ref_png_fn = os.path.join(ref_dir, f"{name}.png")
+            boxed_expr = Expression(Symbol("System`ToBoxes"), act_expr).evaluate(session.evaluation)
+            act_svg = boxed_expr.boxes_to_svg()
+            cairosvg.svg2png(
+                bytestring=act_svg.encode('utf-8'),
+                write_to=act_png_fn,
+                background_color="white"
+            )
+            check_png(ref_png_fn, act_png_fn)
 
     finally:
         plot.use_vectorized_plot = False
@@ -204,7 +280,10 @@ def yaml_tests(fn, act_dir, vec):
                 "skimage": not skimage,  # skip if no skimage
             }[skip]
         if not skip:
-            one_test(name, info["expr"], vec, ..., act_dir)
+            png = not vec and info.get("png", True) # no png for vectorized functions yet
+            if not cairosvg or not skimage:
+                png = False
+            one_test(name, info["expr"], vec, png, ..., act_dir)
         else:
             print(f"skipping {name}")
 
@@ -216,13 +295,13 @@ def test_all(act_dir="/tmp", opt=None):
         for name, str_expr, opt, cond in classic + both:
             if cond:
                 opt = opt if use_opt else None
-                one_test(name, str_expr, False, opt, act_dir)
+                one_test(name, str_expr, False, False, opt, act_dir)
 
         # run vectorized tests
         for name, str_expr, opt, cond in vectorized + both:
             if cond:
                 opt = opt if use_opt else None
-                one_test(name, str_expr, True, opt, act_dir)
+                one_test(name, str_expr, True, False, opt, act_dir)
 
     # several of these tests failed on pyodide due to apparent differences
     # in numpy (and/or the blas library backing it) between pyodide and other platforms
@@ -236,16 +315,24 @@ def test_all(act_dir="/tmp", opt=None):
 
 # reference files can be generated by pointing saved actual
 # output at reference dir instead of /tmp
+# TODO: this is redundant with --update mode; consider removing this
 def make_ref_files():
     test_all(ref_dir)
 
 
 if __name__ == "__main__":
 
-    def run_tests():
-        try:
-            test_all()
-        except AssertionError:
-            print("FAIL")
+    import argparse
 
-    run_tests()
+    parser = argparse.ArgumentParser(description="manage plot tests")
+    parser.add_argument(
+        "--update", action="store_true", help="update reference files"
+    )
+    args = parser.parse_args()
+    update_mode = args.update
+
+    try:
+        test_all()
+    except AssertionError:
+        print("FAIL")
+
