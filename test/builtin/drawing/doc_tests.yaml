@@ -129,7 +129,10 @@ doc-057:
 doc-058:
     expr: Plot3D[{x^2 + y^2, -x^2 - y^2}, {x, -2, 2}, {y, -2, 2}, BoxRatios-> Automatic, Mesh->None]
 doc-059:
-    expr: Plot[3, {x, 0, 1}]
+    # The original doctest had 3 instead of 3.1, but that would give int on some platforms
+    # and float on others. So changed here to 3.1 to force float on all platforms.
+    # TODO: consider making test insensitive to float vs int provided the value is the same.
+    expr: Plot[3.1, {x, 0, 1}]
     skip: pyodide # pyodide emits Real 3 where other platforms emit Integer 3
 doc-060:
     expr: Plot[Abs[x], {x, -4, 4}]
@@ -271,3 +274,10 @@ doc-127:
     expr: PolarPlot[Sqrt[t], {t, 0, 16 Pi}]
 doc-128:
     expr: PolarPlot[{1, 1 + Sin[20 t] / 5}, {t, 0, 2 Pi}]
+#
+# Tests with prefix "nondoc" aren't act doc tests and provide additional coverage.
+# We give them their own prefix to avoid collisions.
+# TODO: these may indicate gaps in the doctests
+#
+nondoc-plot-exclusions:
+    expr: Plot[x, {x,0,10}, Exclusions->{-1, 1, 2.5, 11}]
