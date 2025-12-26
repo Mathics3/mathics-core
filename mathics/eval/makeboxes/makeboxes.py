@@ -8,7 +8,7 @@ makeboxes rules.
 
 from typing import Optional, Union
 
-from mathics.core.atoms import String
+from mathics.core.atoms import Complex, Integer, Rational, String
 from mathics.core.element import BaseElement, BoxElementMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -20,6 +20,8 @@ from mathics.core.symbols import (
     SymbolMakeBoxes,
 )
 from mathics.core.systemsymbols import (  # SymbolRule, SymbolRuleDelayed,
+    SymbolComplex,
+    SymbolRational,
     SymbolStandardForm,
 )
 from mathics.eval.makeboxes.formatvalues import do_format
@@ -145,7 +147,12 @@ def eval_makeboxes_fullform(
     if isinstance(expr, BoxElementMixin):
         expr = expr.to_expression()
     if isinstance(expr, Atom):
-        return expr.atom_to_boxes(SymbolFullForm, evaluation)
+        if isinstance(expr, Rational):
+            expr = Expression(SymbolRational, expr.numerator(), expr.denominator())
+        elif isinstance(expr, Complex):
+            expr = Expression(SymbolComplex, expr.real, expr.imag)
+        else:
+            return expr.atom_to_boxes(SymbolFullForm, evaluation)
     head, elements = expr.head, expr.elements
     boxed_elements = tuple(
         (eval_makeboxes_fullform(element, evaluation) for element in elements)
