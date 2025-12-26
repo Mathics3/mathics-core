@@ -149,6 +149,7 @@ def eval_makeboxes_outputform(expr, evaluation, form):
     elem2 = Expression(SymbolOutputForm, expr)
     return InterpretationBox(elem1, elem2)
 
+
 # TODO: evaluation is needed because `atom_to_boxes` uses it. Can we remove this
 # argument?
 def eval_makeboxes_fullform(
@@ -283,7 +284,7 @@ def format_element(
         element = element.elements[0]
 
     if element.has_form("FullForm", 1):
-        return eval_fullform_makeboxes(element.elements[0], evaluation)
+        return eval_makeboxes_fullform(element.elements[0], evaluation)
 
     # In order to work like in WMA, `format_element`
     # should evaluate `MakeBoxes[element//form, StandardForm]`
