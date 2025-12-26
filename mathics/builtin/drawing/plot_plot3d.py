@@ -1,6 +1,15 @@
 """
-This module contains a group of plotting functions that share an _Plot3D base class,
-including ContourPlot, DensityPlot, ComplexPlot, ComplexPlot3D, and Plot3D.
+Plots with Points Having 3 Items.
+
+Contour Plots ('ContourPlot'), Density Plots ('DensityPlot') and Surface Plots ('Plot3D') are all plot having  "points" containing 3 items.
+
+A Density plot is kind of <url>:heat map:https://en.wikipedia.org/wiki/Heat_map</url> that represents magnitude or individual values as a color.
+
+Similar is a Contour Plot which is a kind of <url>:contour map:https://en.wikipedia.org/wiki/Contour_line</url>.
+
+A <url>:Surface plot:https://en.wikipedia.org/wiki/Plot_(graphics)#Surface_plot</url> ('Plot3D') shows its 3rd or "height" dimension in a way that is projected onto a 2-dimensional surface.
+
+'ComplexPlot' and 'ComplexPlot3D' use color and to visualize complex-valued functions in two and three dimensions respectively.
 """
 
 from mathics.builtin.drawing.graphics3d import Graphics3D
@@ -10,15 +19,7 @@ from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
-from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import (
-    SymbolAll,
-    SymbolAutomatic,
-    SymbolFull,
-    SymbolNone,
-    SymbolPlotRange,
-    SymbolSequence,
-)
+from mathics.core.systemsymbols import SymbolPlotRange, SymbolSequence
 
 from . import plot
 
@@ -154,7 +155,7 @@ class ComplexPlot3D(_Plot3D):
 
     """
 
-    summary_text = "plots one or more complex functions as a surface"
+    summary_text = "plots one or more complex functions as a 3D surface"
     expected_args = 2
     options = _Plot3D.options3d | {"Mesh": "None"}
 
@@ -212,7 +213,7 @@ class ContourPlot(_Plot3D):
 
 class DensityPlot(_Plot3D):
     """
-    <url>:WMA link: https://reference.wolfram.com/language/ref/DensityPlot.html</url>
+    <url>:heat map:https://en.wikipedia.org/wiki/Heat_map</url>(<url>:WMA link: https://reference.wolfram.com/language/ref/DensityPlot.html</url>)
     <dl>
       <dt>'DensityPlot'[$f$, {$x$, $x_{min}$, $x_{max}$}, {$y$, $y_{min}$, $y_{max}$}]
       <dd>plots a density plot of $f$ with $x$ ranging from $x_{min}$ to $x_{max}$ and $y$ ranging from $y_{min}$ to $y_{max}$.

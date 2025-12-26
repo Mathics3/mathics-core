@@ -1,6 +1,8 @@
 """
-This module contains a group of plotting functions that share an _ListPlot base clase,
-including ListPlot, ListLinePlot, ListStepPlot, ListLogPlot, and NumberLinePlot.
+List Plots
+
+
+List plots graph discrete points on a coordinate system.
 """
 
 from abc import ABC
