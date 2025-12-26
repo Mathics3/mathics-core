@@ -17,12 +17,12 @@ from mpmath import ceil as mpceil, floor as mpfloor
 
 from mathics.algorithm.introselect import introselect
 from mathics.builtin.list.math import _RankedTakeLargest, _RankedTakeSmallest
-from mathics.core.atoms import Atom, Integer, Integer1, SymbolTrue
+from mathics.core.atoms import Integer, Integer1
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import SymbolFloor, SymbolPlus, SymbolTimes
+from mathics.core.symbols import Atom, SymbolFloor, SymbolPlus, SymbolTimes, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolRankedMax,
     SymbolRankedMin,

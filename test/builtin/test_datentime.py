@@ -10,11 +10,15 @@ from test.helper import check_evaluation, evaluate
 import pytest
 
 try:
-    from stopit import __version__ as stopit_version
+    from timed_threads import __version__ as stopit_version
 except ImportError:
-    have_stopit_for_timeconstrained = False
+    have_timed_threads_for_timeconstrained = False
 else:
-    have_stopit_for_timeconstrained = stopit_version.split(".")[:3] >= ["1", "1", "3"]
+    have_timed_threads_for_timeconstrained = stopit_version.split(".")[:3] >= [
+        "1",
+        "1",
+        "3",
+    ]
 
 
 @pytest.mark.skipif(
@@ -154,7 +158,7 @@ def test_private_doctests_datetime(str_expr, msgs, str_expected, fail_msg):
 
 
 @pytest.mark.skipif(
-    sys.platform in ("emscripten",) or not have_stopit_for_timeconstrained,
+    sys.platform in ("emscripten",) or not have_timed_threads_for_timeconstrained,
     reason="TimeConstrained[] is not supported in Pyodide or an unpatched 'stopit'",
 )
 @pytest.mark.parametrize(

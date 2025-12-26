@@ -18,7 +18,6 @@ import sympy
 import mathics.eval.tracing as tracing
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import (
-    Atom,
     Integer,
     Integer0,
     Integer1,
@@ -48,7 +47,7 @@ from mathics.core.list import ListExpression
 from mathics.core.number import MACHINE_EPSILON, dps
 from mathics.core.rules import BasePattern
 from mathics.core.symbols import (
-    SYMPY_SYMBOL_PREFIX,
+    Atom,
     BaseElement,
     Symbol,
     SymbolFalse,
