@@ -24,7 +24,14 @@ from mathics.core.number import (
     min_prec,
     prec,
 )
-from mathics.core.symbols import Atom, NumericOperators, Symbol, SymbolNull, symbol_set
+from mathics.core.symbols import (
+    Atom,
+    NumericOperators,
+    Symbol,
+    SymbolNull,
+    SymbolTrue,
+    symbol_set,
+)
 from mathics.core.systemsymbols import SymbolFullForm, SymbolInfinity, SymbolInputForm
 
 # The below value is an empirical number for comparison precedence
@@ -288,6 +295,9 @@ class Integer(Number[int]):
     def get_int_value(self) -> int:
         return self._value
 
+    def get_float_value(self, permit_complex=False) -> float:
+        return float(self._value)
+
     @property
     def is_zero(self) -> bool:
         # Note: 0 is self._value or the other way around is a syntax
@@ -299,7 +309,7 @@ class Integer(Number[int]):
 
         try:
             if form in ("System`InputForm", "System`FullForm"):
-                return _boxed_string(str(self.value), number_as_text=True)
+                return _boxed_string(str(self.value), number_as_text=SymbolTrue)
 
             return String(str(self._value))
         except ValueError:
@@ -695,6 +705,10 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
     # precision value.
     _exact_value: Tuple[Number[T], Number[T], Optional[int]]
 
+    # An approximate Python-equivalent number. Often, this is
+    # all that is needed.
+    _value: complex
+
     # We use __new__ here to ensure that two Complex number that have
     # down to the type on the imaginary and real parts and precision of those --
     # the same value return the same object, and to set an object hash
@@ -756,11 +770,39 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
 
         return self
 
+    def __eq__(self, other) -> bool:
+        if isinstance(other, Complex):
+            return self.real.__eq__(other.real) and self.imag.__eq__(other.imag)
+        if isinstance(other, Number):
+            if abs(self.imag._value) != 0:
+                return False
+            return self.real.__eq__(other)
+
+        return super().__eq__(other)
+
     def __getnewargs__(self) -> tuple:
         return (self.real, self.imag)
 
     def __hash__(self):
         return self.hash
+
+    @property
+    def is_approx_zero(self) -> bool:
+        real_zero = (
+            self.real.is_approx_zero
+            if hasattr(self.real, "is_approx_zero")
+            else self.real.is_zero
+        )
+        imag_zero = (
+            self.imag.is_approx_zero
+            if hasattr(self.imag, "is_approx_zero")
+            else self.imag.is_zero
+        )
+        return real_zero and imag_zero
+
+    @property
+    def is_zero(self) -> bool:
+        return self.real.is_zero and self.imag.is_zero
 
     @cache
     def __neg__(self):
@@ -774,24 +816,14 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
 
         return format_element(self, evaluation, f)
 
-    def to_sympy(self, **kwargs):
-        return self.real.to_sympy() + sympy.I * self.imag.to_sympy()
-
-    def to_python(self, *args, **kwargs):
-        return complex(
-            self.real.to_python(*args, **kwargs), self.imag.to_python(*args, **kwargs)
-        )
-
-    def to_mpmath(self, precision: Optional[int] = None):
-        return mpmath.mpc(
-            self.real.to_mpmath(precision), self.imag.to_mpmath(precision)
-        )
-
     def default_format(self, evaluation, form) -> str:
         return "Complex[%s, %s]" % (
             self.real.default_format(evaluation, form),
             self.imag.default_format(evaluation, form),
         )
+
+    def do_copy(self) -> "Complex":
+        return Complex(self.real.do_copy(), self.imag.do_copy())
 
     @property
     def element_order(self) -> tuple:
@@ -809,37 +841,11 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         # = {1+2I, 1.+2.I, 1.`2+2.`7 I, 1.`4+2.`5I}
         return order_real + order_imag
 
-    @property
-    def pattern_precedence(self) -> tuple:
-        """
-        Return a precedence value, a tuple, which is used in selecting
-        which pattern to select when several match.
-        """
-        return super().pattern_precedence
-
-    def sameQ(self, rhs) -> bool:
-        """Mathics SameQ"""
-        return (
-            isinstance(rhs, Complex) and self.real == rhs.real and self.imag == rhs.imag
-        )
-
-    def round(self, d=None) -> "Complex":
-        real = self.real.round(d)
-        imag = self.imag.round(d)
-        return Complex(real, imag)
-
-    def is_machine_precision(self) -> bool:
-        if self.real.is_machine_precision() or self.imag.is_machine_precision():
-            return True
-        return False
-
-    # FIXME: funny name get_float_value returns complex?
-    def get_float_value(self, permit_complex=False) -> Optional[complex]:
+    def get_float_value(self, permit_complex=False) -> Optional[Union[complex, float]]:
+        if self.imag == 0:
+            return self.real.get_float_value()
         if permit_complex:
-            real = self.real.get_float_value()
-            imag = self.imag.get_float_value()
-            if real is not None and imag is not None:
-                return complex(real, imag)
+            return self._value
         return None
 
     def get_precision(self) -> Optional[int]:
@@ -855,41 +861,47 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
             return None
         return min(real_prec, imag_prec)
 
-    def do_copy(self) -> "Complex":
-        return Complex(self.real.do_copy(), self.imag.do_copy())
+    def is_machine_precision(self) -> bool:
+        if self.real.is_machine_precision() or self.imag.is_machine_precision():
+            return True
+        return False
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return super().pattern_precedence
+
+    def round(self, d=None) -> "Complex":
+        real = self.real.round(d)
+        imag = self.imag.round(d)
+        return Complex(real, imag)
+
+    def sameQ(self, rhs) -> bool:
+        """Mathics SameQ"""
+        return (
+            isinstance(rhs, Complex) and self.real == rhs.real and self.imag == rhs.imag
+        )
 
     def user_hash(self, update) -> None:
         update(b"System`Complex>")
         update(self.real)
         update(self.imag)
 
-    def __eq__(self, other) -> bool:
-        if isinstance(other, Complex):
-            return self.real.__eq__(other.real) and self.imag.__eq__(other.imag)
-        if isinstance(other, Number):
-            if abs(self.imag._value) != 0:
-                return False
-            return self.real.__eq__(other)
-
-        return super().__eq__(other)
-
-    @property
-    def is_zero(self) -> bool:
-        return self.real.is_zero and self.imag.is_zero
-
-    @property
-    def is_approx_zero(self) -> bool:
-        real_zero = (
-            self.real.is_approx_zero
-            if hasattr(self.real, "is_approx_zero")
-            else self.real.is_zero
+    def to_python(self, *args, **kwargs):
+        return complex(
+            self.real.to_python(*args, **kwargs), self.imag.to_python(*args, **kwargs)
         )
-        imag_zero = (
-            self.imag.is_approx_zero
-            if hasattr(self.imag, "is_approx_zero")
-            else self.imag.is_zero
+
+    def to_mpmath(self, precision: Optional[int] = None):
+        return mpmath.mpc(
+            self.real.to_mpmath(precision), self.imag.to_mpmath(precision)
         )
-        return real_zero and imag_zero
+
+    def to_sympy(self, **kwargs):
+        return self.real.to_sympy() + sympy.I * self.imag.to_sympy()
 
 
 class Rational(Number[sympy.Rational]):
