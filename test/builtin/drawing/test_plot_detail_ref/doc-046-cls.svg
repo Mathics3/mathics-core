@@ -1,0 +1,12 @@
+
+<svg width="350.0px" height="350.0px" xmlns:svg="http://www.w3.org/2000/svg"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0.000000 0.000000 350.000000, 350.000000">
+    <!--GraphicsElements-->
+<path d="M 175.000000,175.000000 L 350.000000,175.000000 A 175.000000,175.000000,0,0,0,0.000000,175.000000 Z" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-width: 1.066667px; fill: rgb(94.117647%, 64.705882%, 69.019608%); opacity: 1.0" />
+<path d="M 175.000000,175.000000 L 87.500000,326.554446 A 175.000000,175.000000,0,0,0,350.000000,175.000000 Z" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-width: 1.066667px; fill: rgb(54.901961%, 52.156863%, 21.176471%); opacity: 1.0" />
+<path d="M 175.000000,175.000000 L 0.000000,175.000000 A 175.000000,175.000000,0,0,0,87.500000,326.554446 Z" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-width: 1.066667px; fill: rgb(98.039216%, 81.568627%, 38.823529%); opacity: 1.0" />
+<text x="175.0" y="87.5" ox="0" oy="0" font-size="10px" style=" dominant-baseline:hanging; stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 0.200000px; fill: rgb(0.000000%, 0.000000%, 0.000000%); fill-opacity: 1; color: rgb(0.000000%, 0.000000%, 0.000000%); opacity: 1.0">Dogs</text>
+<text x="218.75" y="250.7772228311384" ox="0" oy="0" font-size="10px" style=" dominant-baseline:hanging; stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 0.200000px; fill: rgb(0.000000%, 0.000000%, 0.000000%); fill-opacity: 1; color: rgb(0.000000%, 0.000000%, 0.000000%); opacity: 1.0">Cats</text>
+<text x="99.2227771688616" y="218.75" ox="0" oy="0" font-size="10px" style=" dominant-baseline:hanging; stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 0.200000px; fill: rgb(0.000000%, 0.000000%, 0.000000%); fill-opacity: 1; color: rgb(0.000000%, 0.000000%, 0.000000%); opacity: 1.0">Fish</text>
+</svg>

@@ -1,0 +1,531 @@
+
+<svg width="434.1333333333334px" height="277.6542191296559px" xmlns:svg="http://www.w3.org/2000/svg"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="-17.066667 -14.010939 434.133333, 277.654219">
+    <!--GraphicsElements-->
+<!--LineBox-->
+<polyline points="18.181818,-5.718683 24.675325,11.236982 31.168831,27.576077 37.662338,43.298603 44.155844,58.404559 50.649351,72.893945 57.142857,86.766762 63.636364,100.023009 70.129870,112.662687 76.623377,124.685795 79.870130,130.466135 83.116883,136.092333 86.363636,141.564388 89.610390,146.882302 92.857143,152.046072 96.103896,157.055700 99.350649,161.911186 100.974026,164.281126 102.597403,166.612530 105.844156,171.159731 107.467532,173.375528 109.090909,175.552790 112.337662,179.791706 113.961039,181.853361 115.584416,183.876480 118.831169,187.807111 120.454545,189.714623 122.077922,191.583600 125.324675,195.205947 126.948052,196.959317 128.571429,198.674151 131.818182,201.988213 133.441558,203.587440 135.064935,205.148132 136.688312,206.670288 138.311688,208.153909 139.123377,208.881269 139.935065,209.598994 140.746753,210.307086 141.558442,211.005544 143.181818,212.373558 144.805195,213.703036 146.428571,214.993978 147.240260,215.624999 148.051948,216.246386 149.675325,217.460257 151.298701,218.635593 152.922078,219.772393 153.733766,220.326342 154.545455,220.870658 156.168831,221.930387 156.980519,222.445801 157.792208,222.951580 158.603896,223.447726 159.415584,223.934238 160.227273,224.411116 161.038961,224.878360 162.662338,225.783947 163.474026,226.222290 164.285714,226.650998 165.097403,227.070073 165.503247,227.275997 165.909091,227.479514 166.720779,227.879320 167.126623,228.075611 167.532468,228.269493 168.344156,228.650033 169.155844,229.020938 169.561688,229.202778 169.967532,229.382209 170.779221,229.733846 171.590909,230.075850 171.996753,230.243239 172.402597,230.408219 173.214286,230.730955 173.620130,230.888710 173.823052,230.966685 174.025974,231.044057 174.837662,231.347525 175.649351,231.641359 176.461039,231.925559 177.272727,232.200125 178.084416,232.465057 178.490260,232.593911 178.896104,232.720355 179.707792,232.966020 180.113636,233.085239 180.316558,233.143946 180.519481,233.202051 181.331169,233.428447 182.142857,233.645210 182.954545,233.852339 183.766234,234.049834 184.577922,234.237695 184.983766,234.328013 185.389610,234.415922 186.201299,234.584515 186.607143,234.665199 186.810065,234.704638 187.012987,234.743475 187.824675,234.892800 188.230519,234.963850 188.636364,235.032492 189.042208,235.098725 189.448052,235.162549 189.853896,235.223965 190.259740,235.282973 190.665584,235.339572 191.071429,235.393763 191.477273,235.445545 191.883117,235.494919 192.694805,235.586441 193.100649,235.628589 193.303571,235.648760 193.506494,235.668329 194.318182,235.740583 194.724026,235.773098 195.129870,235.803204 195.535714,235.830901 195.941558,235.856190 196.347403,235.879071 196.753247,235.899543 197.159091,235.917606 197.564935,235.933261 197.970779,235.946508 198.376623,235.957346 199.188312,235.971797 199.594156,235.975410 199.797078,235.976313 200.000000,235.976614 200.811688,235.971797 201.217532,235.965776 201.623377,235.957346 202.029221,235.946508 202.435065,235.933261 202.840909,235.917606 203.246753,235.899543 203.652597,235.879071 204.058442,235.856190 204.464286,235.830901 204.870130,235.803204 205.681818,235.740583 206.087662,235.705660 206.290584,235.687296 206.493506,235.668329 207.305195,235.586441 207.711039,235.541884 208.116883,235.494919 208.522727,235.445545 208.928571,235.393763 209.334416,235.339572 209.740260,235.282973 210.146104,235.223965 210.551948,235.162549 210.957792,235.098725 211.363636,235.032492 212.175325,234.892800 212.581169,234.819342 212.784091,234.781709 212.987013,234.743475 213.798701,234.584515 214.610390,234.415922 215.422078,234.237695 216.233766,234.049834 217.045455,233.852339 217.451299,233.749979 217.857143,233.645210 218.668831,233.428447 219.074675,233.316453 219.277597,233.259553 219.480519,233.202051 220.292208,232.966020 221.103896,232.720355 221.915584,232.465057 222.727273,232.200125 223.538961,231.925559 223.944805,231.784663 224.350649,231.641359 225.162338,231.347525 225.568182,231.196995 225.974026,231.044057 226.785714,230.730955 227.597403,230.408219 228.003247,230.243239 228.409091,230.075850 229.220779,229.733846 230.032468,229.382209 230.438312,229.202778 230.844156,229.020938 231.655844,228.650033 232.061688,228.460967 232.467532,228.269493 233.279221,227.879320 234.090909,227.479514 234.496753,227.275997 234.902597,227.070073 235.714286,226.650998 236.525974,226.222290 237.337662,225.783947 238.149351,225.335971 238.961039,224.878360 240.584416,223.934238 241.396104,223.447726 242.207792,222.951580 243.019481,222.445801 243.831169,221.930387 244.642857,221.405339 245.454545,220.870658 247.077922,219.772393 248.701299,218.635593 250.324675,217.460257 251.136364,216.858138 251.948052,216.246386 253.571429,214.993978 255.194805,213.703036 256.818182,212.373558 257.629870,211.694368 258.441558,211.005544 260.064935,209.598994 261.688312,208.153909 263.311688,206.670288 264.935065,205.148132 268.181818,201.988213 269.805195,200.350450 271.428571,198.674151 274.675325,195.205947 276.298701,193.414041 277.922078,191.583600 281.168831,187.807111 282.792208,185.861063 284.415584,183.876480 287.662338,179.791706 289.285714,177.691515 290.909091,175.552790 294.155844,171.159731 295.779221,168.905398 297.402597,166.612530 300.649351,161.911186 303.896104,157.055700 307.142857,152.046072 310.389610,146.882302 313.636364,141.564388 316.883117,136.092333 323.376623,124.685795 329.870130,112.662687 336.363636,100.023009 342.857143,86.766762 349.350649,72.893945 355.844156,58.404559 362.337662,43.298603 368.831169,27.576077 375.324675,11.236982 381.818182,-5.718683" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--PointBox-->
+  <circle cx="18.181818" cy="-5.718683"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="24.675325" cy="11.236982"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="31.168831" cy="27.576077"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="37.662338" cy="43.298603"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="44.155844" cy="58.404559"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="50.649351" cy="72.893945"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="57.142857" cy="86.766762"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="63.636364" cy="100.023009"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="70.129870" cy="112.662687"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="76.623377" cy="124.685795"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="79.870130" cy="130.466135"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="83.116883" cy="136.092333"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="86.363636" cy="141.564388"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="89.610390" cy="146.882302"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="92.857143" cy="152.046072"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="96.103896" cy="157.055700"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="99.350649" cy="161.911186"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="100.974026" cy="164.281126"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="102.597403" cy="166.612530"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="105.844156" cy="171.159731"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="107.467532" cy="173.375528"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="109.090909" cy="175.552790"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="112.337662" cy="179.791706"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="113.961039" cy="181.853361"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="115.584416" cy="183.876480"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="118.831169" cy="187.807111"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="120.454545" cy="189.714623"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="122.077922" cy="191.583600"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="125.324675" cy="195.205947"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="126.948052" cy="196.959317"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="128.571429" cy="198.674151"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="131.818182" cy="201.988213"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="133.441558" cy="203.587440"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="135.064935" cy="205.148132"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="136.688312" cy="206.670288"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="138.311688" cy="208.153909"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="139.123377" cy="208.881269"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="139.935065" cy="209.598994"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="140.746753" cy="210.307086"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="141.558442" cy="211.005544"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="143.181818" cy="212.373558"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="144.805195" cy="213.703036"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="146.428571" cy="214.993978"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="147.240260" cy="215.624999"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="148.051948" cy="216.246386"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="149.675325" cy="217.460257"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="151.298701" cy="218.635593"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="152.922078" cy="219.772393"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="153.733766" cy="220.326342"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="154.545455" cy="220.870658"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="156.168831" cy="221.930387"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="156.980519" cy="222.445801"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="157.792208" cy="222.951580"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="158.603896" cy="223.447726"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="159.415584" cy="223.934238"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="160.227273" cy="224.411116"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="161.038961" cy="224.878360"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="162.662338" cy="225.783947"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="163.474026" cy="226.222290"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="164.285714" cy="226.650998"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="165.097403" cy="227.070073"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="165.503247" cy="227.275997"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="165.909091" cy="227.479514"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="166.720779" cy="227.879320"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="167.126623" cy="228.075611"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="167.532468" cy="228.269493"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="168.344156" cy="228.650033"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="169.155844" cy="229.020938"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="169.561688" cy="229.202778"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="169.967532" cy="229.382209"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="170.779221" cy="229.733846"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="171.590909" cy="230.075850"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="171.996753" cy="230.243239"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="172.402597" cy="230.408219"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="173.214286" cy="230.730955"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="173.620130" cy="230.888710"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="173.823052" cy="230.966685"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="174.025974" cy="231.044057"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="174.837662" cy="231.347525"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="175.649351" cy="231.641359"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="176.461039" cy="231.925559"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="177.272727" cy="232.200125"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="178.084416" cy="232.465057"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="178.490260" cy="232.593911"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="178.896104" cy="232.720355"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="179.707792" cy="232.966020"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="180.113636" cy="233.085239"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="180.316558" cy="233.143946"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="180.519481" cy="233.202051"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="181.331169" cy="233.428447"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="182.142857" cy="233.645210"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="182.954545" cy="233.852339"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="183.766234" cy="234.049834"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="184.577922" cy="234.237695"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="184.983766" cy="234.328013"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="185.389610" cy="234.415922"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="186.201299" cy="234.584515"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="186.607143" cy="234.665199"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="186.810065" cy="234.704638"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="187.012987" cy="234.743475"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="187.824675" cy="234.892800"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="188.230519" cy="234.963850"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="188.636364" cy="235.032492"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="189.042208" cy="235.098725"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="189.448052" cy="235.162549"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="189.853896" cy="235.223965"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="190.259740" cy="235.282973"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="190.665584" cy="235.339572"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="191.071429" cy="235.393763"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="191.477273" cy="235.445545"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="191.883117" cy="235.494919"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="192.694805" cy="235.586441"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="193.100649" cy="235.628589"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="193.303571" cy="235.648760"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="193.506494" cy="235.668329"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="194.318182" cy="235.740583"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="194.724026" cy="235.773098"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="195.129870" cy="235.803204"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="195.535714" cy="235.830901"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="195.941558" cy="235.856190"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="196.347403" cy="235.879071"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="196.753247" cy="235.899543"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="197.159091" cy="235.917606"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="197.564935" cy="235.933261"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="197.970779" cy="235.946508"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="198.376623" cy="235.957346"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="199.188312" cy="235.971797"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="199.594156" cy="235.975410"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="199.797078" cy="235.976313"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="200.000000" cy="235.976614"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="200.811688" cy="235.971797"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="201.217532" cy="235.965776"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="201.623377" cy="235.957346"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="202.029221" cy="235.946508"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="202.435065" cy="235.933261"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="202.840909" cy="235.917606"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="203.246753" cy="235.899543"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="203.652597" cy="235.879071"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="204.058442" cy="235.856190"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="204.464286" cy="235.830901"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="204.870130" cy="235.803204"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="205.681818" cy="235.740583"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="206.087662" cy="235.705660"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="206.290584" cy="235.687296"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="206.493506" cy="235.668329"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="207.305195" cy="235.586441"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="207.711039" cy="235.541884"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="208.116883" cy="235.494919"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="208.522727" cy="235.445545"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="208.928571" cy="235.393763"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="209.334416" cy="235.339572"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="209.740260" cy="235.282973"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="210.146104" cy="235.223965"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="210.551948" cy="235.162549"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="210.957792" cy="235.098725"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="211.363636" cy="235.032492"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="212.175325" cy="234.892800"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="212.581169" cy="234.819342"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="212.784091" cy="234.781709"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="212.987013" cy="234.743475"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="213.798701" cy="234.584515"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="214.610390" cy="234.415922"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="215.422078" cy="234.237695"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="216.233766" cy="234.049834"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="217.045455" cy="233.852339"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="217.451299" cy="233.749979"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="217.857143" cy="233.645210"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="218.668831" cy="233.428447"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="219.074675" cy="233.316453"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="219.277597" cy="233.259553"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="219.480519" cy="233.202051"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="220.292208" cy="232.966020"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="221.103896" cy="232.720355"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="221.915584" cy="232.465057"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="222.727273" cy="232.200125"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="223.538961" cy="231.925559"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="223.944805" cy="231.784663"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="224.350649" cy="231.641359"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="225.162338" cy="231.347525"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="225.568182" cy="231.196995"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="225.974026" cy="231.044057"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="226.785714" cy="230.730955"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="227.597403" cy="230.408219"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="228.003247" cy="230.243239"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="228.409091" cy="230.075850"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="229.220779" cy="229.733846"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="230.032468" cy="229.382209"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="230.438312" cy="229.202778"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="230.844156" cy="229.020938"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="231.655844" cy="228.650033"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="232.061688" cy="228.460967"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="232.467532" cy="228.269493"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="233.279221" cy="227.879320"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="234.090909" cy="227.479514"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="234.496753" cy="227.275997"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="234.902597" cy="227.070073"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="235.714286" cy="226.650998"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="236.525974" cy="226.222290"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="237.337662" cy="225.783947"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="238.149351" cy="225.335971"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="238.961039" cy="224.878360"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="240.584416" cy="223.934238"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="241.396104" cy="223.447726"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="242.207792" cy="222.951580"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="243.019481" cy="222.445801"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="243.831169" cy="221.930387"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="244.642857" cy="221.405339"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="245.454545" cy="220.870658"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="247.077922" cy="219.772393"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="248.701299" cy="218.635593"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="250.324675" cy="217.460257"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="251.136364" cy="216.858138"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="251.948052" cy="216.246386"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="253.571429" cy="214.993978"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="255.194805" cy="213.703036"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="256.818182" cy="212.373558"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="257.629870" cy="211.694368"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="258.441558" cy="211.005544"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="260.064935" cy="209.598994"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="261.688312" cy="208.153909"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="263.311688" cy="206.670288"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="264.935065" cy="205.148132"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="268.181818" cy="201.988213"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="269.805195" cy="200.350450"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="271.428571" cy="198.674151"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="274.675325" cy="195.205947"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="276.298701" cy="193.414041"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="277.922078" cy="191.583600"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="281.168831" cy="187.807111"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="282.792208" cy="185.861063"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="284.415584" cy="183.876480"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="287.662338" cy="179.791706"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="289.285714" cy="177.691515"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="290.909091" cy="175.552790"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="294.155844" cy="171.159731"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="295.779221" cy="168.905398"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="297.402597" cy="166.612530"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="300.649351" cy="161.911186"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="303.896104" cy="157.055700"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="307.142857" cy="152.046072"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="310.389610" cy="146.882302"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="313.636364" cy="141.564388"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="316.883117" cy="136.092333"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="323.376623" cy="124.685795"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="329.870130" cy="112.662687"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="336.363636" cy="100.023009"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="342.857143" cy="86.766762"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="349.350649" cy="72.893945"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="355.844156" cy="58.404559"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="362.337662" cy="43.298603"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="368.831169" cy="27.576077"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="375.324675" cy="11.236982"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="381.818182" cy="-5.718683"
+          r="3.038933" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+<!--LineBox-->
+<polyline points="-16.000000,235.976614 416.000000,235.976614" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<text x="18.181818181818198" y="238.64328055299012" ox="0" oy="1" font-size="10px" style=" dominant-baseline:hanging; text-anchor:middle; stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 0.200000px; fill: rgb(0.000000%, 0.000000%, 0.000000%); fill-opacity: 1; color: rgb(0.000000%, 0.000000%, 0.000000%); opacity: 1.0">-1.0</text>
+<text x="109.0909090909091" y="238.64328055299012" ox="0" oy="1" font-size="10px" style=" dominant-baseline:hanging; text-anchor:middle; stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 0.200000px; fill: rgb(0.000000%, 0.000000%, 0.000000%); fill-opacity: 1; color: rgb(0.000000%, 0.000000%, 0.000000%); opacity: 1.0">-0.5</text>
+<text x="290.9090909090909" y="238.64328055299012" ox="0" oy="1" font-size="10px" style=" dominant-baseline:hanging; text-anchor:middle; stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 0.200000px; fill: rgb(0.000000%, 0.000000%, 0.000000%); fill-opacity: 1; color: rgb(0.000000%, 0.000000%, 0.000000%); opacity: 1.0">0.5</text>
+<text x="381.8181818181818" y="238.64328055299012" ox="0" oy="1" font-size="10px" style=" dominant-baseline:hanging; text-anchor:middle; stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 0.200000px; fill: rgb(0.000000%, 0.000000%, 0.000000%); fill-opacity: 1; color: rgb(0.000000%, 0.000000%, 0.000000%); opacity: 1.0">1.0</text>
+<!--LineBox-->
+<polyline points="18.181818,235.976614 18.181818,229.309947" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="109.090909,235.976614 109.090909,229.309947" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="290.909091,235.976614 290.909091,229.309947" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="381.818182,235.976614 381.818182,229.309947" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="0.000000,235.976614 0.000000,231.976614" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="36.363636,235.976614 36.363636,231.976614" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="54.545455,235.976614 54.545455,231.976614" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="72.727273,235.976614 72.727273,231.976614" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="90.909091,235.976614 90.909091,231.976614" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="127.272727,235.976614 127.272727,231.976614" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="145.454545,235.976614 145.454545,231.976614" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="163.636364,235.976614 163.636364,231.976614" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="181.818182,235.976614 181.818182,231.976614" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="218.181818,235.976614 218.181818,231.976614" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="236.363636,235.976614 236.363636,231.976614" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="254.545455,235.976614 254.545455,231.976614" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="272.727273,235.976614 272.727273,231.976614" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="309.090909,235.976614 309.090909,231.976614" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="327.272727,235.976614 327.272727,231.976614" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="345.454545,235.976614 345.454545,231.976614" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="363.636364,235.976614 363.636364,231.976614" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="400.000000,235.976614 400.000000,231.976614" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="200.000000,260.157867 200.000000,-12.944272" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<text x="197.33333333333334" y="187.6375544345297" ox="1" oy="0" font-size="10px" style=" dominant-baseline:middle; text-anchor:end; stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 0.200000px; fill: rgb(0.000000%, 0.000000%, 0.000000%); fill-opacity: 1; color: rgb(0.000000%, 0.000000%, 0.000000%); opacity: 1.0">0.2</text>
+<text x="197.33333333333334" y="139.29849498273597" ox="1" oy="0" font-size="10px" style=" dominant-baseline:middle; text-anchor:end; stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 0.200000px; fill: rgb(0.000000%, 0.000000%, 0.000000%); fill-opacity: 1; color: rgb(0.000000%, 0.000000%, 0.000000%); opacity: 1.0">0.4</text>
+<text x="197.33333333333334" y="90.95943553094222" ox="1" oy="0" font-size="10px" style=" dominant-baseline:middle; text-anchor:end; stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 0.200000px; fill: rgb(0.000000%, 0.000000%, 0.000000%); fill-opacity: 1; color: rgb(0.000000%, 0.000000%, 0.000000%); opacity: 1.0">0.6</text>
+<text x="197.33333333333334" y="42.620376079148514" ox="1" oy="0" font-size="10px" style=" dominant-baseline:middle; text-anchor:end; stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 0.200000px; fill: rgb(0.000000%, 0.000000%, 0.000000%); fill-opacity: 1; color: rgb(0.000000%, 0.000000%, 0.000000%); opacity: 1.0">0.8</text>
+<!--LineBox-->
+<polyline points="200.000000,187.637554 206.666667,187.637554" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="200.000000,139.298495 206.666667,139.298495" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="200.000000,90.959436 206.666667,90.959436" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="200.000000,42.620376 206.666667,42.620376" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="200.000000,248.061379 204.000000,248.061379" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="200.000000,223.891849 204.000000,223.891849" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="200.000000,211.807084 204.000000,211.807084" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="200.000000,199.722319 204.000000,199.722319" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="200.000000,175.552790 204.000000,175.552790" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="200.000000,163.468025 204.000000,163.468025" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="200.000000,151.383260 204.000000,151.383260" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="200.000000,127.213730 204.000000,127.213730" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="200.000000,115.128965 204.000000,115.128965" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="200.000000,103.044200 204.000000,103.044200" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="200.000000,78.874671 204.000000,78.874671" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="200.000000,66.789906 204.000000,66.789906" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="200.000000,54.705141 204.000000,54.705141" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="200.000000,30.535611 204.000000,30.535611" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="200.000000,18.450846 204.000000,18.450846" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="200.000000,6.366081 204.000000,6.366081" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+</svg>

@@ -1,0 +1,343 @@
+
+<svg width="447.73333333333335px" height="275.2354726532896px" xmlns:svg="http://www.w3.org/2000/svg"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="-30.666667 -14.010939 447.733333, 275.235473">
+    <!--GraphicsElements-->
+<!--PointBox-->
+  <circle cx="0.000000" cy="123.606798"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="10.256410" cy="104.270434"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="20.512821" cy="85.410197"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="30.769231" cy="67.490486"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="41.025641" cy="50.952545"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="51.282051" cy="36.203593"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="61.538462" cy="23.606798"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="71.794872" cy="13.472335"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="82.051282" cy="6.049747"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="92.307692" cy="1.521805"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="102.564103" cy="0.000000"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="112.820513" cy="1.521805"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="123.076923" cy="6.049747"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="133.333333" cy="13.472335"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="143.589744" cy="23.606798"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="153.846154" cy="36.203593"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="164.102564" cy="50.952545"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="174.358974" cy="67.490486"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="184.615385" cy="85.410197"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="194.871795" cy="104.270434"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="205.128205" cy="123.606798"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="215.384615" cy="142.943161"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="225.641026" cy="161.803399"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="235.897436" cy="179.723110"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="246.153846" cy="196.261051"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="256.410256" cy="211.010003"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="266.666667" cy="223.606798"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="276.923077" cy="233.741261"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="287.179487" cy="241.163848"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="297.435897" cy="245.691791"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="307.692308" cy="247.213595"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="317.948718" cy="245.691791"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="328.205128" cy="241.163848"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="338.461538" cy="233.741261"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="348.717949" cy="223.606798"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="358.974359" cy="211.010003"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="369.230769" cy="196.261051"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="379.487179" cy="179.723110"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="389.743590" cy="161.803399"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="400.000000" cy="142.943161"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(24.720000%, 24.000000%, 60.000000%); opacity: 1.0; fill-rule:even-odd"/>
+<!--LineBox-->
+<polyline points="0.000000,123.606798 0.000000,123.606798" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="10.256410,123.606798 10.256410,104.270434" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="20.512821,123.606798 20.512821,85.410197" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="30.769231,123.606798 30.769231,67.490486" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="41.025641,123.606798 41.025641,50.952545" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="51.282051,123.606798 51.282051,36.203593" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="61.538462,123.606798 61.538462,23.606798" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="71.794872,123.606798 71.794872,13.472335" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="82.051282,123.606798 82.051282,6.049747" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="92.307692,123.606798 92.307692,1.521805" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="102.564103,123.606798 102.564103,0.000000" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="112.820513,123.606798 112.820513,1.521805" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="123.076923,123.606798 123.076923,6.049747" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="133.333333,123.606798 133.333333,13.472335" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="143.589744,123.606798 143.589744,23.606798" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="153.846154,123.606798 153.846154,36.203593" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="164.102564,123.606798 164.102564,50.952545" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="174.358974,123.606798 174.358974,67.490486" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="184.615385,123.606798 184.615385,85.410197" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="194.871795,123.606798 194.871795,104.270434" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="205.128205,123.606798 205.128205,123.606798" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="215.384615,123.606798 215.384615,142.943161" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="225.641026,123.606798 225.641026,161.803399" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="235.897436,123.606798 235.897436,179.723110" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="246.153846,123.606798 246.153846,196.261051" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="256.410256,123.606798 256.410256,211.010003" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="266.666667,123.606798 266.666667,223.606798" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="276.923077,123.606798 276.923077,233.741261" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="287.179487,123.606798 287.179487,241.163848" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="297.435897,123.606798 297.435897,245.691791" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="307.692308,123.606798 307.692308,247.213595" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="317.948718,123.606798 317.948718,245.691791" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="328.205128,123.606798 328.205128,241.163848" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="338.461538,123.606798 338.461538,233.741261" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="348.717949,123.606798 348.717949,223.606798" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="358.974359,123.606798 358.974359,211.010003" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="369.230769,123.606798 369.230769,196.261051" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="379.487179,123.606798 379.487179,179.723110" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="389.743590,123.606798 389.743590,161.803399" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="400.000000,123.606798 400.000000,142.943161" style="stroke: rgb(24.720000%, 24.000000%, 60.000000%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--PointBox-->
+  <circle cx="0.000000" cy="0.000000"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="10.256410" cy="1.521805"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="20.512821" cy="6.049747"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="30.769231" cy="13.472335"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="41.025641" cy="23.606798"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="51.282051" cy="36.203593"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="61.538462" cy="50.952545"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="71.794872" cy="67.490486"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="82.051282" cy="85.410197"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="92.307692" cy="104.270434"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="102.564103" cy="123.606798"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="112.820513" cy="142.943161"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="123.076923" cy="161.803399"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="133.333333" cy="179.723110"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="143.589744" cy="196.261051"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="153.846154" cy="211.010003"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="164.102564" cy="223.606798"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="174.358974" cy="233.741261"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="184.615385" cy="241.163848"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="194.871795" cy="245.691791"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="205.128205" cy="247.213595"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="215.384615" cy="245.691791"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="225.641026" cy="241.163848"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="235.897436" cy="233.741261"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="246.153846" cy="223.606798"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="256.410256" cy="211.010003"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="266.666667" cy="196.261051"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="276.923077" cy="179.723110"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="287.179487" cy="161.803399"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="297.435897" cy="142.943161"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="307.692308" cy="123.606798"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="317.948718" cy="104.270434"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="328.205128" cy="85.410197"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="338.461538" cy="67.490486"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="348.717949" cy="50.952545"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="358.974359" cy="36.203593"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="369.230769" cy="23.606798"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="379.487179" cy="13.472335"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="389.743590" cy="6.049747"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+  <circle cx="400.000000" cy="1.521805"
+          r="3.134133" style="stroke: none; stroke-width: 0.000000px; fill: rgb(60.000000%, 24.000000%, 44.289312%); opacity: 1.0; fill-rule:even-odd"/>
+<!--LineBox-->
+<polyline points="0.000000,123.606798 0.000000,0.000000" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="10.256410,123.606798 10.256410,1.521805" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="20.512821,123.606798 20.512821,6.049747" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="30.769231,123.606798 30.769231,13.472335" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="41.025641,123.606798 41.025641,23.606798" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="51.282051,123.606798 51.282051,36.203593" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="61.538462,123.606798 61.538462,50.952545" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="71.794872,123.606798 71.794872,67.490486" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="82.051282,123.606798 82.051282,85.410197" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="92.307692,123.606798 92.307692,104.270434" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="102.564103,123.606798 102.564103,123.606798" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="112.820513,123.606798 112.820513,142.943161" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="123.076923,123.606798 123.076923,161.803399" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="133.333333,123.606798 133.333333,179.723110" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="143.589744,123.606798 143.589744,196.261051" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="153.846154,123.606798 153.846154,211.010003" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="164.102564,123.606798 164.102564,223.606798" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="174.358974,123.606798 174.358974,233.741261" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="184.615385,123.606798 184.615385,241.163848" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="194.871795,123.606798 194.871795,245.691791" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="205.128205,123.606798 205.128205,247.213595" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="215.384615,123.606798 215.384615,245.691791" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="225.641026,123.606798 225.641026,241.163848" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="235.897436,123.606798 235.897436,233.741261" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="246.153846,123.606798 246.153846,223.606798" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="256.410256,123.606798 256.410256,211.010003" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="266.666667,123.606798 266.666667,196.261051" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="276.923077,123.606798 276.923077,179.723110" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="287.179487,123.606798 287.179487,161.803399" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="297.435897,123.606798 297.435897,142.943161" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="307.692308,123.606798 307.692308,123.606798" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="317.948718,123.606798 317.948718,104.270434" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="328.205128,123.606798 328.205128,85.410197" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="338.461538,123.606798 338.461538,67.490486" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="348.717949,123.606798 348.717949,50.952545" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="358.974359,123.606798 358.974359,36.203593" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="369.230769,123.606798 369.230769,23.606798" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="379.487179,123.606798 379.487179,13.472335" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="389.743590,123.606798 389.743590,6.049747" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="400.000000,123.606798 400.000000,1.521805" style="stroke: rgb(60.000000%, 24.000000%, 44.289312%); stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="-16.000000,123.606798 416.000000,123.606798" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<text x="102.56410256410257" y="126.27346441664562" ox="0" oy="1" font-size="10px" style=" dominant-baseline:hanging; text-anchor:middle; stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 0.200000px; fill: rgb(0.000000%, 0.000000%, 0.000000%); fill-opacity: 1; color: rgb(0.000000%, 0.000000%, 0.000000%); opacity: 1.0">10</text>
+<text x="205.12820512820514" y="126.27346441664562" ox="0" oy="1" font-size="10px" style=" dominant-baseline:hanging; text-anchor:middle; stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 0.200000px; fill: rgb(0.000000%, 0.000000%, 0.000000%); fill-opacity: 1; color: rgb(0.000000%, 0.000000%, 0.000000%); opacity: 1.0">20</text>
+<text x="307.6923076923077" y="126.27346441664562" ox="0" oy="1" font-size="10px" style=" dominant-baseline:hanging; text-anchor:middle; stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 0.200000px; fill: rgb(0.000000%, 0.000000%, 0.000000%); fill-opacity: 1; color: rgb(0.000000%, 0.000000%, 0.000000%); opacity: 1.0">30</text>
+<!--LineBox-->
+<polyline points="102.564103,123.606798 102.564103,116.940131" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="205.128205,123.606798 205.128205,116.940131" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="307.692308,123.606798 307.692308,116.940131" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="20.512821,123.606798 20.512821,119.606798" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="41.025641,123.606798 41.025641,119.606798" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="61.538462,123.606798 61.538462,119.606798" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="82.051282,123.606798 82.051282,119.606798" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="123.076923,123.606798 123.076923,119.606798" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="143.589744,123.606798 143.589744,119.606798" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="164.102564,123.606798 164.102564,119.606798" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="184.615385,123.606798 184.615385,119.606798" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="225.641026,123.606798 225.641026,119.606798" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="246.153846,123.606798 246.153846,119.606798" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="266.666667,123.606798 266.666667,119.606798" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="287.179487,123.606798 287.179487,119.606798" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="328.205128,123.606798 328.205128,119.606798" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="348.717949,123.606798 348.717949,119.606798" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="369.230769,123.606798 369.230769,119.606798" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="389.743590,123.606798 389.743590,119.606798" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<!--LineBox-->
+<polyline points="0.000000,260.157867 0.000000,-12.944272" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+<text x="-2.6666666666666665" y="247.2135954999579" ox="1" oy="0" font-size="10px" style=" dominant-baseline:middle; text-anchor:end; stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 0.200000px; fill: rgb(0.000000%, 0.000000%, 0.000000%); fill-opacity: 1; color: rgb(0.000000%, 0.000000%, 0.000000%); opacity: 1.0">-1.0</text>
+<text x="-2.6666666666666665" y="185.41019662496842" ox="1" oy="0" font-size="10px" style=" dominant-baseline:middle; text-anchor:end; stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 0.200000px; fill: rgb(0.000000%, 0.000000%, 0.000000%); fill-opacity: 1; color: rgb(0.000000%, 0.000000%, 0.000000%); opacity: 1.0">-0.5</text>
+<text x="-2.6666666666666665" y="61.80339887498948" ox="1" oy="0" font-size="10px" style=" dominant-baseline:middle; text-anchor:end; stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 0.200000px; fill: rgb(0.000000%, 0.000000%, 0.000000%); fill-opacity: 1; color: rgb(0.000000%, 0.000000%, 0.000000%); opacity: 1.0">0.5</text>
+<text x="-2.6666666666666665" y="0.0" ox="1" oy="0" font-size="10px" style=" dominant-baseline:middle; text-anchor:end; stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 0.200000px; fill: rgb(0.000000%, 0.000000%, 0.000000%); fill-opacity: 1; color: rgb(0.000000%, 0.000000%, 0.000000%); opacity: 1.0">1.0</text>
+<!--LineBox-->
+<polyline points="0.000000,247.213595 6.666667,247.213595" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="0.000000,185.410197 6.666667,185.410197" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="0.000000,61.803399 6.666667,61.803399" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="0.000000,0.000000 6.666667,0.000000" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="0.000000,234.852916 4.000000,234.852916" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="0.000000,222.492236 4.000000,222.492236" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="0.000000,210.131556 4.000000,210.131556" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="0.000000,197.770876 4.000000,197.770876" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="0.000000,173.049517 4.000000,173.049517" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="0.000000,160.688837 4.000000,160.688837" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="0.000000,148.328157 4.000000,148.328157" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="0.000000,135.967478 4.000000,135.967478" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="0.000000,111.246118 4.000000,111.246118" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="0.000000,98.885438 4.000000,98.885438" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="0.000000,86.524758 4.000000,86.524758" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="0.000000,74.164079 4.000000,74.164079" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="0.000000,49.442719 4.000000,49.442719" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="0.000000,37.082039 4.000000,37.082039" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="0.000000,24.721360 4.000000,24.721360" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" /><polyline points="0.000000,12.360680 4.000000,12.360680" style="stroke: rgb(0.000000%, 0.000000%, 0.000000%); stroke-opacity: 1; stroke-width: 1.066667px; fill: none; opacity: 1.0; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25" />
+</svg>
