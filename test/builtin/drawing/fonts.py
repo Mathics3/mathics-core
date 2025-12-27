@@ -17,6 +17,7 @@ text, tspan, * {{
     font-size: 10px !important;
     font-style: normal !important;
     font-weight: regular !important;
+    text-anchor: left !important;
     /*font-kerning: none !important;
     letter-spacing: 0px !important;
     font-stretch: 100%;
