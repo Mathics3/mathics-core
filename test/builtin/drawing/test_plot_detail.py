@@ -69,7 +69,7 @@ except:
 try:
     import cairosvg
     import fonts
-except exception as oops:
+except Exception as oops:
     print(f"WARNING: not running PNG tests because {oops}")
     cairosvg = None
 
