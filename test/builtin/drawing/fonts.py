@@ -4,8 +4,6 @@ Courtesy ChatGPT
 """
 
 
-from pathlib import Path
-import urllib.parse
 import xml.etree.ElementTree as ET
 
 SVG_NS = "http://www.w3.org/2000/svg"

@@ -70,10 +70,11 @@ except:
 # Plot->Graphics->SVG->PNG tests depend on this for the SVG-PNG part
 try:
     import cairosvg
+
     from .fonts import inject_font_style
-except Exception as oops:
+except Exception:
     # not yet in service - see note below
-    #print(f"WARNING: not running PNG tests because {oops}")
+    # print(f"WARNING: not running PNG tests because {oops}")
     cairosvg = None
 
 # check if pyoidide so we can skip some there
@@ -86,9 +87,9 @@ except:
 from test.helper import session
 
 import mathics.builtin.drawing.plot as plot
+from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
 from mathics.core.util import print_expression_tree
-from mathics.core.expression import Expression
 
 # common plotting options for 2d plots to test with and without
 opt2 = """
@@ -156,12 +157,13 @@ def copy_file(dst_fn, src_fn):
 
 # finish up: raise exception or update ref, and delete /tmp file if no assertion
 def finish(differ, ref_fn, act_fn):
-
     # if ref and act differ, either update act_fn if in update_mode, or raise assertion if not
     if differ:
         if update_mode:
             if os.path.exists(ref_fn):
-                print(f"WARNING: updating existing {ref_fn}; check updated file against committed file")
+                print(
+                    f"WARNING: updating existing {ref_fn}; check updated file against committed file"
+                )
             else:
                 print(f"NOTE: creating {ref_fn}")
             copy_file(ref_fn, act_fn)
@@ -169,10 +171,12 @@ def finish(differ, ref_fn, act_fn):
             if os.path.exists(ref_fn):
                 msg = f"reference {ref_fn} and actual {act_fn} differ"
             else:
-                msg = f"reference {ref_fn} does not exist. Use --update mode to create it"
+                msg = (
+                    f"reference {ref_fn} does not exist. Use --update mode to create it"
+                )
             print(msg)
             raise AssertionError(msg)
-    
+
     # remove /tmp file if test was successful
     if act_fn != ref_fn:
         os.remove(act_fn)
@@ -195,15 +199,15 @@ def check_text(ref_fn, act_fn):
         differ = True
     finish(differ, ref_fn, act_fn)
 
-        
+
 # compare ref_png_fn and act_png_fn and either raise exception or update act_fn,
 # depending on update_mode
 # for PNG files we have to read the file and compare the actual image data
 # NOTE: this is not yet in service - see not below
 def check_png(ref_png_fn, act_png_fn):
     if os.path.exists(ref_png_fn):
-        act_img = skimage.io.imread(act_png_fn)[:,:,0:3]
-        ref_img = skimage.io.imread(ref_png_fn)[:,:,0:3]
+        act_img = skimage.io.imread(act_png_fn)[:, :, 0:3]
+        ref_img = skimage.io.imread(ref_png_fn)[:, :, 0:3]
         differ = not np.all(act_img == ref_img)
         if differ:
             n = act_img.size
@@ -257,9 +261,13 @@ def one_test(name, str_expr, vec, svg, opt, act_dir="/tmp"):
         if svg:
             act_svg_fn = os.path.join(act_dir, f"{name}.svg.txt")
             ref_svg_fn = os.path.join(ref_dir, f"{name}.svg.txt")
-            boxed_expr = Expression(Symbol("System`ToBoxes"), act_expr).evaluate(session.evaluation)
+            boxed_expr = Expression(Symbol("System`ToBoxes"), act_expr).evaluate(
+                session.evaluation
+            )
             act_svg = boxed_expr.boxes_to_svg()
-            act_svg = outline_svg(act_svg, precision=2, include_text=True, include_tail=True)
+            act_svg = outline_svg(
+                act_svg, precision=2, include_text=True, include_tail=True
+            )
             with open(act_svg_fn, "w") as f:
                 f.write(act_svg)
             check_text(ref_svg_fn, act_svg_fn)
@@ -271,13 +279,15 @@ def one_test(name, str_expr, vec, svg, opt, act_dir="/tmp"):
         if False:
             act_png_fn = os.path.join(act_dir, f"{name}.png")
             ref_png_fn = os.path.join(ref_dir, f"{name}.png")
-            boxed_expr = Expression(Symbol("System`ToBoxes"), act_expr).evaluate(session.evaluation)
+            boxed_expr = Expression(Symbol("System`ToBoxes"), act_expr).evaluate(
+                session.evaluation
+            )
             act_svg = boxed_expr.boxes_to_svg()
             act_svg = inject_font_style(act_svg)
             cairosvg.svg2png(
-                bytestring=act_svg.encode('utf-8'),
+                bytestring=act_svg.encode("utf-8"),
                 write_to=act_png_fn,
-                background_color="white"
+                background_color="white",
             )
             check_png(ref_png_fn, act_png_fn)
 
@@ -304,9 +314,11 @@ def yaml_tests(fn, act_dir, vec):
                 "skimage": not skimage,  # skip if no skimage
             }[skip]
         if not skip:
-            svg = not vec and info.get("svg", True) # no png for vectorized functions yet
+            svg = not vec and info.get(
+                "svg", True
+            )  # no png for vectorized functions yet
             # not yet in service - see note above
-            #if not cairosvg or not skimage:
+            # if not cairosvg or not skimage:
             #    png = False
             one_test(name, info["expr"], vec, svg, ..., act_dir)
         else:
@@ -346,13 +358,10 @@ def make_ref_files():
 
 
 if __name__ == "__main__":
-
     import argparse
 
     parser = argparse.ArgumentParser(description="manage plot tests")
-    parser.add_argument(
-        "--update", action="store_true", help="update reference files"
-    )
+    parser.add_argument("--update", action="store_true", help="update reference files")
     args = parser.parse_args()
     update_mode = args.update
 
@@ -360,4 +369,3 @@ if __name__ == "__main__":
         test_all()
     except AssertionError:
         print("FAIL")
-

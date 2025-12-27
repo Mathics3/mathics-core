@@ -29,7 +29,6 @@ import sys
 import xml.etree.ElementTree as ET
 from typing import Iterable, List, Optional, Tuple
 
-
 # Matches floats/ints including scientific notation.
 _NUM_RE = re.compile(
     r"""
@@ -138,8 +137,10 @@ def emit_element(
         if k_local == "points":
             out.append(f"{ind}  @points:")
             pts = parse_points(v)
-            for (x, y) in pts:
-                out.append(f"{ind}    - {format_float(x, precision)}, {format_float(y, precision)}")
+            for x, y in pts:
+                out.append(
+                    f"{ind}    - {format_float(x, precision)}, {format_float(y, precision)}"
+                )
 
         elif k_local == "style":
             out.append(f"{ind}  @style:")
@@ -165,18 +166,34 @@ def emit_element(
             out.append(f"{ind}  #tail: {tail}")
 
 
-def outline_svg(svg_str: str, precision: int, include_text: bool, include_tail: bool) -> str:
+def outline_svg(
+    svg_str: str, precision: int, include_text: bool, include_tail: bool
+) -> str:
     root = ET.fromstring(svg_str)
 
     out: List[str] = []
-    emit_element(root, out, indent=0, precision=precision, include_text=include_text, include_tail=include_tail)
+    emit_element(
+        root,
+        out,
+        indent=0,
+        precision=precision,
+        include_text=include_text,
+        include_tail=include_tail,
+    )
     return "\n".join(out) + "\n"
 
 
 def main(argv: Optional[Iterable[str]] = None) -> int:
-    ap = argparse.ArgumentParser(description="Print an SVG as an indented outline for diffing.")
+    ap = argparse.ArgumentParser(
+        description="Print an SVG as an indented outline for diffing."
+    )
     ap.add_argument("svg", help="Input SVG file")
-    ap.add_argument("--precision", type=int, default=4, help="Decimal places for numeric values (default 4)")
+    ap.add_argument(
+        "--precision",
+        type=int,
+        default=4,
+        help="Decimal places for numeric values (default 4)",
+    )
     ap.add_argument("--no-text", action="store_true", help="Omit element .text nodes")
     ap.add_argument("--no-tail", action="store_true", help="Omit child .tail text")
     args = ap.parse_args(list(argv) if argv is not None else None)
