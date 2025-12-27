@@ -13,15 +13,10 @@ ET.register_namespace("", SVG_NS)
 
 css = f"""
 text, tspan, * {{
-    font-family: "Noto Sans Mono" !important;
+    font-family: "Noto Sans" !important;
     font-size: 10px !important;
     font-style: normal !important;
     font-weight: regular !important;
-    text-anchor: left !important;
-    font-kerning: none !important;
-    letter-spacing: 0px !important;
-    font-stretch: 100%;
-    font-variation-settings: "wdth" 100;
 }}
 """.strip()
 

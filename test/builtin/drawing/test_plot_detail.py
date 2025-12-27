@@ -58,6 +58,8 @@ import subprocess
 import numpy as np
 import yaml
 
+from .svg_outline import outline_svg
+
 # couple tests depend on this
 try:
     import skimage
@@ -70,7 +72,8 @@ try:
     import cairosvg
     from .fonts import inject_font_style
 except Exception as oops:
-    print(f"WARNING: not running PNG tests because {oops}")
+    # not yet in service - see note below
+    #print(f"WARNING: not running PNG tests because {oops}")
     cairosvg = None
 
 # check if pyoidide so we can skip some there
@@ -191,10 +194,12 @@ def check_text(ref_fn, act_fn):
     else:
         differ = True
     finish(differ, ref_fn, act_fn)
+
         
 # compare ref_png_fn and act_png_fn and either raise exception or update act_fn,
 # depending on update_mode
 # for PNG files we have to read the file and compare the actual image data
+# NOTE: this is not yet in service - see not below
 def check_png(ref_png_fn, act_png_fn):
     if os.path.exists(ref_png_fn):
         act_img = skimage.io.imread(act_png_fn)[:,:,0:3]
@@ -209,7 +214,7 @@ def check_png(ref_png_fn, act_png_fn):
     finish(differ, ref_png_fn, act_png_fn)
 
 
-def one_test(name, str_expr, vec, png, opt, act_dir="/tmp"):
+def one_test(name, str_expr, vec, svg, opt, act_dir="/tmp"):
     # update name and set use_vectorized_plot depending on
     # whether vectorized test
     if vec:
@@ -249,8 +254,21 @@ def one_test(name, str_expr, vec, png, opt, act_dir="/tmp"):
         ref_fn = os.path.join(ref_dir, f"{name}.txt")
         check_text(ref_fn, act_fn)
 
+        if svg:
+            act_svg_fn = os.path.join(act_dir, f"{name}.svg.txt")
+            ref_svg_fn = os.path.join(ref_dir, f"{name}.svg.txt")
+            boxed_expr = Expression(Symbol("System`ToBoxes"), act_expr).evaluate(session.evaluation)
+            act_svg = boxed_expr.boxes_to_svg()
+            act_svg = outline_svg(act_svg, precision=2, include_text=True, include_tail=True)
+            with open(act_svg_fn, "w") as f:
+                f.write(act_svg)
+            check_text(ref_svg_fn, act_svg_fn)
+
         # generate png and compare if requested
-        if png:
+        # NOTE: this experiment was only partially successful, so is not in service.
+        # The inject_font_style call improves things by using a predictable font,
+        # but was only partially successful. Leaving here in case we find a way to use it.
+        if False:
             act_png_fn = os.path.join(act_dir, f"{name}.png")
             ref_png_fn = os.path.join(ref_dir, f"{name}.png")
             boxed_expr = Expression(Symbol("System`ToBoxes"), act_expr).evaluate(session.evaluation)
@@ -286,10 +304,11 @@ def yaml_tests(fn, act_dir, vec):
                 "skimage": not skimage,  # skip if no skimage
             }[skip]
         if not skip:
-            png = not vec and info.get("png", True) # no png for vectorized functions yet
-            if not cairosvg or not skimage:
-                png = False
-            one_test(name, info["expr"], vec, png, ..., act_dir)
+            svg = not vec and info.get("svg", True) # no png for vectorized functions yet
+            # not yet in service - see note above
+            #if not cairosvg or not skimage:
+            #    png = False
+            one_test(name, info["expr"], vec, svg, ..., act_dir)
         else:
             print(f"skipping {name}")
 
