@@ -56,6 +56,7 @@ import pathlib
 import subprocess
 
 import numpy as np
+import pytest
 import yaml
 
 from .svg_outline import outline_svg
@@ -147,7 +148,7 @@ print(f"ref_dir {ref_dir}")
 
 # determines action to take if actual and reference files differ:
 # either raise assertion error, or update reference file
-update_mode = False
+UPDATE_MODE = False
 
 
 def copy_file(dst_fn, src_fn):
@@ -157,9 +158,9 @@ def copy_file(dst_fn, src_fn):
 
 # finish up: raise exception or update ref, and delete /tmp file if no assertion
 def finish(differ, ref_fn, act_fn):
-    # if ref and act differ, either update act_fn if in update_mode, or raise assertion if not
+    # if ref and act differ, either update act_fn if in UPDATE_MODE, or raise assertion if not
     if differ:
-        if update_mode:
+        if UPDATE_MODE:
             if os.path.exists(ref_fn):
                 print(
                     f"WARNING: updating existing {ref_fn}; check updated file against committed file"
@@ -183,7 +184,7 @@ def finish(differ, ref_fn, act_fn):
 
 
 # compare ref_fn and act_fn and either raise exception or update act_fn,
-# depending on update_mode
+# depending on UPDATE_MODE
 def check_text(ref_fn, act_fn):
     if os.path.exists(ref_fn):
         try:
@@ -201,7 +202,7 @@ def check_text(ref_fn, act_fn):
 
 
 # compare ref_png_fn and act_png_fn and either raise exception or update act_fn,
-# depending on update_mode
+# depending on UPDATE_MODE
 # for PNG files we have to read the file and compare the actual image data
 # NOTE: this is not yet in service - see not below
 def check_png(ref_png_fn, act_png_fn):
@@ -325,6 +326,10 @@ def yaml_tests(fn, act_dir, vec):
             print(f"skipping {name}")
 
 
+@pytest.mark.skipif(
+    not os.environ.get("MATHICS_PLOT_DETAILED_TESTS", False),
+    reason="Run just if required",
+)
 def test_all(act_dir="/tmp", opt=None):
     # run twice, once without and once with options
     for use_opt in [False, True]:
@@ -363,8 +368,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="manage plot tests")
     parser.add_argument("--update", action="store_true", help="update reference files")
     args = parser.parse_args()
-    update_mode = args.update
-
+    UPDATE_MODE = args.update
+    if not os.environ.get("MATHICS_PLOT_DETAILED_TESTS", False) and not UPDATE_MODE:
+        exit(0)
     try:
         test_all()
     except AssertionError:

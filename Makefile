@@ -36,6 +36,7 @@ MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang
    djangotest \
    gstest \
    latexdoc \
+   plot-detailed-tests\
    pytest \
    pytest-x \
    rmChangeLog \
@@ -126,6 +127,9 @@ clean: clean-cython clean-cache
 	rm -f factorials || true; \
 	rm -f mathics/data/op-tables || true; \
 	rm -rf build || true
+
+plot-detailed-tests:
+	MATHICS_CHARACTER_ENCODING="ASCII" MATHICS_PLOT_DETAILED_TESTS="1" $(PYTHON) -m pytest $(PYTEST_OPTIONS) test/builtin/drawing/test_plot_detail.py
 
 #: Run pytest tests. Use environment variable "PYTEST_OPTIONS" for pytest options
 pytest:
