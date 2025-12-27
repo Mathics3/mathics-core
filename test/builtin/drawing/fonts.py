@@ -13,7 +13,7 @@ ET.register_namespace("", SVG_NS)
 
 css = f"""
 text, tspan, * {{
-    font-family: "Ubuntu Mono" !important;
+    font-family: "Noto Sans Mono" !important;
     font-size: 10px !important;
     font-style: normal !important;
     font-weight: regular !important;
