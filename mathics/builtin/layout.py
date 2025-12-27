@@ -244,13 +244,13 @@ class Pane(Builtin):
         return PaneBox(box_expr, **options)
 
     def eval_makeboxes2(self, expr, width, f, evaluation, options):
-        """MakeBoxes[Pane[expr_, width_, OptionsPattern[Pane]], f_]"""
+        """MakeBoxes[Pane[expr_, width_Integer, OptionsPattern[Pane]], f_]"""
         box_expr = Expression(SymbolMakeBoxes, expr, f).evaluate(evaluation)
         options["System`ImageSize"] = width
         return PaneBox(box_expr, **options)
 
     def eval_makeboxes3(self, expr, width, height, f, evaluation, options):
-        """MakeBoxes[Pane[expr_, width_, height_, OptionsPattern[Pane]], f_]"""
+        """MakeBoxes[Pane[expr_, List[width_Integer, height_Integer], OptionsPattern[Pane]], f_]"""
         box_expr = Expression(SymbolMakeBoxes, expr, f).evaluate(evaluation)
         options["System`ImageSize"] = ListExpression(width, height)
         return PaneBox(box_expr, **options)
