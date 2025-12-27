@@ -327,8 +327,6 @@ def skip_doc(instance, module="") -> bool:
     if not isinstance(module, str):
         module = module.__name__ if module else ""
 
-    if type(instance).__name__.endswith("Box"):
-        return True
     if hasattr(instance, "no_doc") and instance.no_doc:
         return True
 
