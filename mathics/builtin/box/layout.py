@@ -20,6 +20,7 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
+    SymbolAutomatic,
     SymbolFractionBox,
     SymbolRowBox,
     SymbolSqrtBox,
@@ -192,7 +193,7 @@ class PaneBox(BoxExpression):
     """
     <url>
     :WMA link:
-    https://reference.wolfram.com/language/ref/InterpretationBox.html</url>
+    https://reference.wolfram.com/language/ref/Pane.html</url>
 
     <dl>
       <dt>'PaneBox[expr]'
@@ -202,15 +203,23 @@ class PaneBox(BoxExpression):
     """
 
     attributes = A_HOLD_ALL_COMPLETE | A_PROTECTED | A_READ_PROTECTED
-    summary_text = "box associated to panel"
+    summary_text = "box associated to pane"
+    options = {"ImageSize": "Automatic"}
 
-    def apply_display_form(boxexpr, form, evaluation, expression):
-        """ToExpression[boxexpr_PaneBox, form_]"""
+    def init(self, expr, **options):
+        self.box_options = options
+
+    def eval_panebox1(self, expr, evaluation, options):
+        "PaneBox[expr_, OptionsPattern[]]"
+        return PaneBox(expr, **options)
+
+    def eval_display_form(boxexpr, form, evaluation, expression, options):
+        """ToExpression[boxexpr_PaneBox, form_, OptionsPattern[]]"""
         return Expression(expression.head, boxexpr.elements[0], form).evaluate(
             evaluation
         )
 
-    def apply_display(boxexpr, evaluation):
+    def eval_display(boxexpr, evaluation):
         """DisplayForm[boxexpr_PaneBox]"""
         return boxexpr.elements[0]
 

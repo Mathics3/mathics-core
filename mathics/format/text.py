@@ -42,12 +42,18 @@ def string(self, **options) -> str:
 add_conversion_fn(String, string)
 
 
-def interpretation_panebox(self, **options):
+def interpretation_box(self, **options):
     return boxes_to_text(self.elements[0], **options)
 
 
-add_conversion_fn(InterpretationBox, interpretation_panebox)
-add_conversion_fn(PaneBox, interpretation_panebox)
+add_conversion_fn(InterpretationBox, interpretation_box)
+
+
+def pane_box(self, **options):
+    return boxes_to_text(self.elements[0], **options)
+
+
+add_conversion_fn(PaneBox, pane_box)
 
 
 def fractionbox(self, **options) -> str:
