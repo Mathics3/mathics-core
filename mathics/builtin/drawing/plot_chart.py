@@ -1,3 +1,9 @@
+"""
+Charts
+
+A Chart represents categorical or statistical data in some form.
+"""
+
 from math import cos, pi, sin
 
 from mathics.builtin.graphics import Graphics
@@ -19,7 +25,7 @@ from mathics.eval.drawing.charts import draw_bar_chart, eval_chart
 from mathics.eval.nevaluator import eval_N
 
 # This tells documentation how to sort this module
-from .plot import sort_order  # noqa
+sort_order = "mathics.builtin.chart"
 
 SymbolDisk = Symbol("Disk")
 SymbolFaceForm = Symbol("FaceForm")
