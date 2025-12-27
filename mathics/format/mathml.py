@@ -33,6 +33,7 @@ from mathics.core.formatter import (
 )
 from mathics.core.load_builtin import display_operators_set as operators
 from mathics.core.symbols import SymbolFalse, SymbolTrue
+from mathics.core.systemsymbols import SymbolAutomatic
 
 
 def encode_mathml(text: str) -> str:
@@ -114,14 +115,51 @@ def string(self, **options) -> str:
 add_conversion_fn(String, string)
 
 
-def interpretation_panebox(self, **options):
-    return lookup_conversion_method(self.elements[0], "latex")(
+def interpretation_box(self, **options):
+    return lookup_conversion_method(self.elements[0], "mathml")(
         self.elements[0], **options
     )
 
 
-add_conversion_fn(InterpretationBox, interpretation_panebox)
-add_conversion_fn(PaneBox, interpretation_panebox)
+add_conversion_fn(InterpretationBox, interpretation_box)
+
+
+def pane_box(self, **options):
+    content = lookup_conversion_method(self.elements[0], "latex")(
+        self.elements[0], **options
+    )
+    options = self.box_options
+    size = options.get("System`ImageSize", SymbolAutomatic).to_python()
+    if size is SymbolAutomatic:
+        width = ""
+        height = ""
+    elif isinstance(size, int):
+        width = f"{size}pt"
+        height = ""
+    elif isinstance(size, tuple) and len(size) == 2:
+        width_val, height_val = size[0], size[1]
+        if isinstance(width_val, int):
+            width = f"{width_val}pt"
+        else:
+            width = ""
+        if isinstance(height_val, int):
+            height = f"[{height_val}pt]"
+        else:
+            height = ""
+    else:
+        width = ""
+        height = ""
+
+    dims = f"width:{width};" if width else ""
+    if height:
+        dims += f"height:{width};"
+    if dims:
+        dims = f' style="{dims}" '
+
+    return f"<div{dims}>\n" + content + "\n</div>"
+
+
+add_conversion_fn(PaneBox, pane_box)
 
 
 def fractionbox(self, **options) -> str:
