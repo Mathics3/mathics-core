@@ -1,3 +1,10 @@
+"""
+List Plots
+
+
+List plots graph discrete points on a coordinate system.
+"""
+
 from abc import ABC
 
 from mathics.builtin.graphics import Graphics
@@ -20,7 +27,7 @@ from mathics.eval.drawing.plot import (
 from mathics.eval.nevaluator import eval_N
 
 # This tells documentation how to sort this module
-from .plot import sort_order  # noqa
+sort_order = "mathics.builtin.plotting-data"
 
 
 class _ListPlot(Builtin, ABC):
