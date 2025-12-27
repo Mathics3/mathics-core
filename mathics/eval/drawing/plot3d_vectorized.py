@@ -123,9 +123,9 @@ def make_plot(plot_options, evaluation: Evaluation, dim: int, is_complex: bool, 
             # Each mesh line has high res (nx or ny) so it follows
             # the contours of the surface.
             for xyzs, inxs in compute_over_grid(nx, nmesh):
-                graphics.add_complex(xyzs.astype(float), lines=inxs, polys=None)
+                graphics.add_complex(xyzs.real, lines=inxs, polys=None)
             for xyzs, inxs in compute_over_grid(nmesh, ny):
-                graphics.add_complex(xyzs.astype(float), lines=inxs.T, polys=None)
+                graphics.add_complex(xyzs.real, lines=inxs.T, polys=None)
 
     return graphics
 
@@ -323,7 +323,7 @@ def eval_ComplexPlot3D(
         zs = xyzs[:, 2]
         rgb = complex_colors(zs, s=0.8)
         xyzs[:, 2] = abs(zs)
-        graphics.add_complex(xyzs.astype(float), lines=None, polys=quads, colors=rgb)
+        graphics.add_complex(xyzs.real, lines=None, polys=quads, colors=rgb)
 
     return make_plot(plot_options, evaluation, dim=3, is_complex=True, emit=emit)
 
@@ -336,8 +336,7 @@ def eval_ComplexPlot(
     def emit(graphics, i, xyzs, quads):
         # flatten the points and add the quads
         rgb = complex_colors(xyzs[:, 2])
-        graphics.add_complex(
-            xyzs[:, 0:2].astype(float), lines=None, polys=quads, colors=rgb
-        )
+        xyzs_re = xyzs[:, 0:2].real
+        graphics.add_complex(xyzs_re, lines=None, polys=quads, colors=rgb)
 
     return make_plot(plot_options, evaluation, dim=2, is_complex=True, emit=emit)
