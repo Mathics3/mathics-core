@@ -297,12 +297,11 @@ def format_element(
     if element.has_form("OutputForm", 1):
         return eval_makeboxes_outputform(element.elements[0], evaluation, form)
 
-    expr = do_format(element, evaluation, form)
-    if expr is None:
+    formatted_expr = do_format(element, evaluation, form)
+    if formatted_expr is None:
         return None
 
-    result = Expression(SymbolMakeBoxes, expr, form)
-    result_box = result.evaluate(evaluation)
+    result_box = eval_makeboxes(formatted_expr, evaluation, form)
     if isinstance(result_box, String):
         return result_box
     if isinstance(result_box, BoxElementMixin):
