@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """
 Layout
 
@@ -12,7 +11,7 @@ we can use 'Row'.
 """
 
 
-from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
+from mathics.builtin.box.layout import GridBox, PaneBox, RowBox, to_boxes
 from mathics.builtin.makeboxes import MakeBoxes
 from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Real, String
@@ -209,6 +208,50 @@ class NonAssociative(Builtin):
     """
 
     summary_text = "non-associative operator"
+
+
+class Pane(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Pane.html</url>
+
+    <dl>
+      <dt>'Pane[$expr$, $width$]'
+      <dd> display $expr$ inside a pane.
+    </dl>
+
+    >> Pane[37!]
+     = 13763753091226345046315979581580902400000000
+
+    In TeXForm, $Pane$ produce minipage environments:
+    >> {{Pane[a,3], Pane[expt, 3]}}//TableForm//TeXForm
+     = ...
+    In MathMLForm, $Pane$ wraps the elements in <div>...</div> tags:
+    >> {{Pane[a,3], Pane[expt, 3]}}//TableForm//MathMLForm
+     = ...
+
+    """
+
+    summary_text = "put expressions inside a pane"
+    options = {
+        "ImageSize": "Automatic",
+    }
+
+    def eval_makeboxes(self, expr, f, evaluation, options):
+        """MakeBoxes[Pane[expr_, OptionsPattern[Pane]], f_]"""
+        box_expr = Expression(SymbolMakeBoxes, expr, f).evaluate(evaluation)
+        return PaneBox(box_expr, **options)
+
+    def eval_makeboxes2(self, expr, width, f, evaluation, options):
+        """MakeBoxes[Pane[expr_, width_, OptionsPattern[Pane]], f_]"""
+        box_expr = Expression(SymbolMakeBoxes, expr, f).evaluate(evaluation)
+        options["System`ImageSize"] = width
+        return PaneBox(box_expr, **options)
+
+    def eval_makeboxes3(self, expr, width, height, f, evaluation, options):
+        """MakeBoxes[Pane[expr_, width_, height_, OptionsPattern[Pane]], f_]"""
+        box_expr = Expression(SymbolMakeBoxes, expr, f).evaluate(evaluation)
+        options["System`ImageSize"] = ListExpression(width, height)
+        return PaneBox(box_expr, **options)
 
 
 class Postfix(PostfixOperator):
