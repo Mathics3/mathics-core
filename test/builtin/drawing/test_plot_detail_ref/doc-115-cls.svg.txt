@@ -1,0 +1,3505 @@
+svg
+  @height: 277.65px
+  @viewBox: -17.07 -14.01 434.13, 277.65
+  @width: 434.13px
+  polyline
+    @points:
+      - 18.18, -5.72
+      - 24.68, 11.24
+      - 31.17, 27.58
+      - 37.66, 43.30
+      - 44.16, 58.40
+      - 50.65, 72.89
+      - 57.14, 86.77
+      - 63.64, 100.02
+      - 70.13, 112.66
+      - 76.62, 124.69
+      - 79.87, 130.47
+      - 83.12, 136.09
+      - 86.36, 141.56
+      - 89.61, 146.88
+      - 92.86, 152.05
+      - 96.10, 157.06
+      - 99.35, 161.91
+      - 100.97, 164.28
+      - 102.60, 166.61
+      - 105.84, 171.16
+      - 107.47, 173.38
+      - 109.09, 175.55
+      - 112.34, 179.79
+      - 113.96, 181.85
+      - 115.58, 183.88
+      - 118.83, 187.81
+      - 120.45, 189.71
+      - 122.08, 191.58
+      - 125.32, 195.21
+      - 126.95, 196.96
+      - 128.57, 198.67
+      - 131.82, 201.99
+      - 133.44, 203.59
+      - 135.06, 205.15
+      - 136.69, 206.67
+      - 138.31, 208.15
+      - 139.12, 208.88
+      - 139.94, 209.60
+      - 140.75, 210.31
+      - 141.56, 211.01
+      - 143.18, 212.37
+      - 144.81, 213.70
+      - 146.43, 214.99
+      - 147.24, 215.62
+      - 148.05, 216.25
+      - 149.68, 217.46
+      - 151.30, 218.64
+      - 152.92, 219.77
+      - 153.73, 220.33
+      - 154.55, 220.87
+      - 156.17, 221.93
+      - 156.98, 222.45
+      - 157.79, 222.95
+      - 158.60, 223.45
+      - 159.42, 223.93
+      - 160.23, 224.41
+      - 161.04, 224.88
+      - 162.66, 225.78
+      - 163.47, 226.22
+      - 164.29, 226.65
+      - 165.10, 227.07
+      - 165.50, 227.28
+      - 165.91, 227.48
+      - 166.72, 227.88
+      - 167.13, 228.08
+      - 167.53, 228.27
+      - 168.34, 228.65
+      - 169.16, 229.02
+      - 169.56, 229.20
+      - 169.97, 229.38
+      - 170.78, 229.73
+      - 171.59, 230.08
+      - 172.00, 230.24
+      - 172.40, 230.41
+      - 173.21, 230.73
+      - 173.62, 230.89
+      - 173.82, 230.97
+      - 174.03, 231.04
+      - 174.84, 231.35
+      - 175.65, 231.64
+      - 176.46, 231.93
+      - 177.27, 232.20
+      - 178.08, 232.47
+      - 178.49, 232.59
+      - 178.90, 232.72
+      - 179.71, 232.97
+      - 180.11, 233.09
+      - 180.32, 233.14
+      - 180.52, 233.20
+      - 181.33, 233.43
+      - 182.14, 233.65
+      - 182.95, 233.85
+      - 183.77, 234.05
+      - 184.58, 234.24
+      - 184.98, 234.33
+      - 185.39, 234.42
+      - 186.20, 234.58
+      - 186.61, 234.67
+      - 186.81, 234.70
+      - 187.01, 234.74
+      - 187.82, 234.89
+      - 188.23, 234.96
+      - 188.64, 235.03
+      - 189.04, 235.10
+      - 189.45, 235.16
+      - 189.85, 235.22
+      - 190.26, 235.28
+      - 190.67, 235.34
+      - 191.07, 235.39
+      - 191.48, 235.45
+      - 191.88, 235.49
+      - 192.69, 235.59
+      - 193.10, 235.63
+      - 193.30, 235.65
+      - 193.51, 235.67
+      - 194.32, 235.74
+      - 194.72, 235.77
+      - 195.13, 235.80
+      - 195.54, 235.83
+      - 195.94, 235.86
+      - 196.35, 235.88
+      - 196.75, 235.90
+      - 197.16, 235.92
+      - 197.56, 235.93
+      - 197.97, 235.95
+      - 198.38, 235.96
+      - 199.19, 235.97
+      - 199.59, 235.98
+      - 199.80, 235.98
+      - 200.00, 235.98
+      - 200.81, 235.97
+      - 201.22, 235.97
+      - 201.62, 235.96
+      - 202.03, 235.95
+      - 202.44, 235.93
+      - 202.84, 235.92
+      - 203.25, 235.90
+      - 203.65, 235.88
+      - 204.06, 235.86
+      - 204.46, 235.83
+      - 204.87, 235.80
+      - 205.68, 235.74
+      - 206.09, 235.71
+      - 206.29, 235.69
+      - 206.49, 235.67
+      - 207.31, 235.59
+      - 207.71, 235.54
+      - 208.12, 235.49
+      - 208.52, 235.45
+      - 208.93, 235.39
+      - 209.33, 235.34
+      - 209.74, 235.28
+      - 210.15, 235.22
+      - 210.55, 235.16
+      - 210.96, 235.10
+      - 211.36, 235.03
+      - 212.18, 234.89
+      - 212.58, 234.82
+      - 212.78, 234.78
+      - 212.99, 234.74
+      - 213.80, 234.58
+      - 214.61, 234.42
+      - 215.42, 234.24
+      - 216.23, 234.05
+      - 217.05, 233.85
+      - 217.45, 233.75
+      - 217.86, 233.65
+      - 218.67, 233.43
+      - 219.07, 233.32
+      - 219.28, 233.26
+      - 219.48, 233.20
+      - 220.29, 232.97
+      - 221.10, 232.72
+      - 221.92, 232.47
+      - 222.73, 232.20
+      - 223.54, 231.93
+      - 223.94, 231.78
+      - 224.35, 231.64
+      - 225.16, 231.35
+      - 225.57, 231.20
+      - 225.97, 231.04
+      - 226.79, 230.73
+      - 227.60, 230.41
+      - 228.00, 230.24
+      - 228.41, 230.08
+      - 229.22, 229.73
+      - 230.03, 229.38
+      - 230.44, 229.20
+      - 230.84, 229.02
+      - 231.66, 228.65
+      - 232.06, 228.46
+      - 232.47, 228.27
+      - 233.28, 227.88
+      - 234.09, 227.48
+      - 234.50, 227.28
+      - 234.90, 227.07
+      - 235.71, 226.65
+      - 236.53, 226.22
+      - 237.34, 225.78
+      - 238.15, 225.34
+      - 238.96, 224.88
+      - 240.58, 223.93
+      - 241.40, 223.45
+      - 242.21, 222.95
+      - 243.02, 222.45
+      - 243.83, 221.93
+      - 244.64, 221.41
+      - 245.45, 220.87
+      - 247.08, 219.77
+      - 248.70, 218.64
+      - 250.32, 217.46
+      - 251.14, 216.86
+      - 251.95, 216.25
+      - 253.57, 214.99
+      - 255.19, 213.70
+      - 256.82, 212.37
+      - 257.63, 211.69
+      - 258.44, 211.01
+      - 260.06, 209.60
+      - 261.69, 208.15
+      - 263.31, 206.67
+      - 264.94, 205.15
+      - 268.18, 201.99
+      - 269.81, 200.35
+      - 271.43, 198.67
+      - 274.68, 195.21
+      - 276.30, 193.41
+      - 277.92, 191.58
+      - 281.17, 187.81
+      - 282.79, 185.86
+      - 284.42, 183.88
+      - 287.66, 179.79
+      - 289.29, 177.69
+      - 290.91, 175.55
+      - 294.16, 171.16
+      - 295.78, 168.91
+      - 297.40, 166.61
+      - 300.65, 161.91
+      - 303.90, 157.06
+      - 307.14, 152.05
+      - 310.39, 146.88
+      - 313.64, 141.56
+      - 316.88, 136.09
+      - 323.38, 124.69
+      - 329.87, 112.66
+      - 336.36, 100.02
+      - 342.86, 86.77
+      - 349.35, 72.89
+      - 355.84, 58.40
+      - 362.34, 43.30
+      - 368.83, 27.58
+      - 375.32, 11.24
+      - 381.82, -5.72
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(24.72%, 24.00%, 60.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-width: 1.07px
+  circle
+    @cx: 18.18
+    @cy: -5.72
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 24.68
+    @cy: 11.24
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 31.17
+    @cy: 27.58
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 37.66
+    @cy: 43.30
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 44.16
+    @cy: 58.40
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 50.65
+    @cy: 72.89
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 57.14
+    @cy: 86.77
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 63.64
+    @cy: 100.02
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 70.13
+    @cy: 112.66
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 76.62
+    @cy: 124.69
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 79.87
+    @cy: 130.47
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 83.12
+    @cy: 136.09
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 86.36
+    @cy: 141.56
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 89.61
+    @cy: 146.88
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 92.86
+    @cy: 152.05
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 96.10
+    @cy: 157.06
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 99.35
+    @cy: 161.91
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 100.97
+    @cy: 164.28
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 102.60
+    @cy: 166.61
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 105.84
+    @cy: 171.16
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 107.47
+    @cy: 173.38
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 109.09
+    @cy: 175.55
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 112.34
+    @cy: 179.79
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 113.96
+    @cy: 181.85
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 115.58
+    @cy: 183.88
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 118.83
+    @cy: 187.81
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 120.45
+    @cy: 189.71
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 122.08
+    @cy: 191.58
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 125.32
+    @cy: 195.21
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 126.95
+    @cy: 196.96
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 128.57
+    @cy: 198.67
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 131.82
+    @cy: 201.99
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 133.44
+    @cy: 203.59
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 135.06
+    @cy: 205.15
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 136.69
+    @cy: 206.67
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 138.31
+    @cy: 208.15
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 139.12
+    @cy: 208.88
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 139.94
+    @cy: 209.60
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 140.75
+    @cy: 210.31
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 141.56
+    @cy: 211.01
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 143.18
+    @cy: 212.37
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 144.81
+    @cy: 213.70
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 146.43
+    @cy: 214.99
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 147.24
+    @cy: 215.62
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 148.05
+    @cy: 216.25
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 149.68
+    @cy: 217.46
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 151.30
+    @cy: 218.64
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 152.92
+    @cy: 219.77
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 153.73
+    @cy: 220.33
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 154.55
+    @cy: 220.87
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 156.17
+    @cy: 221.93
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 156.98
+    @cy: 222.45
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 157.79
+    @cy: 222.95
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 158.60
+    @cy: 223.45
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 159.42
+    @cy: 223.93
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 160.23
+    @cy: 224.41
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 161.04
+    @cy: 224.88
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 162.66
+    @cy: 225.78
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 163.47
+    @cy: 226.22
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 164.29
+    @cy: 226.65
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 165.10
+    @cy: 227.07
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 165.50
+    @cy: 227.28
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 165.91
+    @cy: 227.48
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 166.72
+    @cy: 227.88
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 167.13
+    @cy: 228.08
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 167.53
+    @cy: 228.27
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 168.34
+    @cy: 228.65
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 169.16
+    @cy: 229.02
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 169.56
+    @cy: 229.20
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 169.97
+    @cy: 229.38
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 170.78
+    @cy: 229.73
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 171.59
+    @cy: 230.08
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 172.00
+    @cy: 230.24
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 172.40
+    @cy: 230.41
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 173.21
+    @cy: 230.73
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 173.62
+    @cy: 230.89
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 173.82
+    @cy: 230.97
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 174.03
+    @cy: 231.04
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 174.84
+    @cy: 231.35
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 175.65
+    @cy: 231.64
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 176.46
+    @cy: 231.93
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 177.27
+    @cy: 232.20
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 178.08
+    @cy: 232.47
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 178.49
+    @cy: 232.59
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 178.90
+    @cy: 232.72
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 179.71
+    @cy: 232.97
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 180.11
+    @cy: 233.09
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 180.32
+    @cy: 233.14
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 180.52
+    @cy: 233.20
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 181.33
+    @cy: 233.43
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 182.14
+    @cy: 233.65
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 182.95
+    @cy: 233.85
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 183.77
+    @cy: 234.05
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 184.58
+    @cy: 234.24
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 184.98
+    @cy: 234.33
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 185.39
+    @cy: 234.42
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 186.20
+    @cy: 234.58
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 186.61
+    @cy: 234.67
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 186.81
+    @cy: 234.70
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 187.01
+    @cy: 234.74
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 187.82
+    @cy: 234.89
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 188.23
+    @cy: 234.96
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 188.64
+    @cy: 235.03
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 189.04
+    @cy: 235.10
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 189.45
+    @cy: 235.16
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 189.85
+    @cy: 235.22
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 190.26
+    @cy: 235.28
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 190.67
+    @cy: 235.34
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 191.07
+    @cy: 235.39
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 191.48
+    @cy: 235.45
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 191.88
+    @cy: 235.49
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 192.69
+    @cy: 235.59
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 193.10
+    @cy: 235.63
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 193.30
+    @cy: 235.65
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 193.51
+    @cy: 235.67
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 194.32
+    @cy: 235.74
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 194.72
+    @cy: 235.77
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 195.13
+    @cy: 235.80
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 195.54
+    @cy: 235.83
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 195.94
+    @cy: 235.86
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 196.35
+    @cy: 235.88
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 196.75
+    @cy: 235.90
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 197.16
+    @cy: 235.92
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 197.56
+    @cy: 235.93
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 197.97
+    @cy: 235.95
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 198.38
+    @cy: 235.96
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 199.19
+    @cy: 235.97
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 199.59
+    @cy: 235.98
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 199.80
+    @cy: 235.98
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 200.00
+    @cy: 235.98
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 200.81
+    @cy: 235.97
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 201.22
+    @cy: 235.97
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 201.62
+    @cy: 235.96
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 202.03
+    @cy: 235.95
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 202.44
+    @cy: 235.93
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 202.84
+    @cy: 235.92
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 203.25
+    @cy: 235.90
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 203.65
+    @cy: 235.88
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 204.06
+    @cy: 235.86
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 204.46
+    @cy: 235.83
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 204.87
+    @cy: 235.80
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 205.68
+    @cy: 235.74
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 206.09
+    @cy: 235.71
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 206.29
+    @cy: 235.69
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 206.49
+    @cy: 235.67
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 207.31
+    @cy: 235.59
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 207.71
+    @cy: 235.54
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 208.12
+    @cy: 235.49
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 208.52
+    @cy: 235.45
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 208.93
+    @cy: 235.39
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 209.33
+    @cy: 235.34
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 209.74
+    @cy: 235.28
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 210.15
+    @cy: 235.22
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 210.55
+    @cy: 235.16
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 210.96
+    @cy: 235.10
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 211.36
+    @cy: 235.03
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 212.18
+    @cy: 234.89
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 212.58
+    @cy: 234.82
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 212.78
+    @cy: 234.78
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 212.99
+    @cy: 234.74
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 213.80
+    @cy: 234.58
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 214.61
+    @cy: 234.42
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 215.42
+    @cy: 234.24
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 216.23
+    @cy: 234.05
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 217.05
+    @cy: 233.85
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 217.45
+    @cy: 233.75
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 217.86
+    @cy: 233.65
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 218.67
+    @cy: 233.43
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 219.07
+    @cy: 233.32
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 219.28
+    @cy: 233.26
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 219.48
+    @cy: 233.20
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 220.29
+    @cy: 232.97
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 221.10
+    @cy: 232.72
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 221.92
+    @cy: 232.47
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 222.73
+    @cy: 232.20
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 223.54
+    @cy: 231.93
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 223.94
+    @cy: 231.78
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 224.35
+    @cy: 231.64
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 225.16
+    @cy: 231.35
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 225.57
+    @cy: 231.20
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 225.97
+    @cy: 231.04
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 226.79
+    @cy: 230.73
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 227.60
+    @cy: 230.41
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 228.00
+    @cy: 230.24
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 228.41
+    @cy: 230.08
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 229.22
+    @cy: 229.73
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 230.03
+    @cy: 229.38
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 230.44
+    @cy: 229.20
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 230.84
+    @cy: 229.02
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 231.66
+    @cy: 228.65
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 232.06
+    @cy: 228.46
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 232.47
+    @cy: 228.27
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 233.28
+    @cy: 227.88
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 234.09
+    @cy: 227.48
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 234.50
+    @cy: 227.28
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 234.90
+    @cy: 227.07
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 235.71
+    @cy: 226.65
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 236.53
+    @cy: 226.22
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 237.34
+    @cy: 225.78
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 238.15
+    @cy: 225.34
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 238.96
+    @cy: 224.88
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 240.58
+    @cy: 223.93
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 241.40
+    @cy: 223.45
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 242.21
+    @cy: 222.95
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 243.02
+    @cy: 222.45
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 243.83
+    @cy: 221.93
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 244.64
+    @cy: 221.41
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 245.45
+    @cy: 220.87
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 247.08
+    @cy: 219.77
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 248.70
+    @cy: 218.64
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 250.32
+    @cy: 217.46
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 251.14
+    @cy: 216.86
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 251.95
+    @cy: 216.25
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 253.57
+    @cy: 214.99
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 255.19
+    @cy: 213.70
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 256.82
+    @cy: 212.37
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 257.63
+    @cy: 211.69
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 258.44
+    @cy: 211.01
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 260.06
+    @cy: 209.60
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 261.69
+    @cy: 208.15
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 263.31
+    @cy: 206.67
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 264.94
+    @cy: 205.15
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 268.18
+    @cy: 201.99
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 269.81
+    @cy: 200.35
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 271.43
+    @cy: 198.67
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 274.68
+    @cy: 195.21
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 276.30
+    @cy: 193.41
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 277.92
+    @cy: 191.58
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 281.17
+    @cy: 187.81
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 282.79
+    @cy: 185.86
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 284.42
+    @cy: 183.88
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 287.66
+    @cy: 179.79
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 289.29
+    @cy: 177.69
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 290.91
+    @cy: 175.55
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 294.16
+    @cy: 171.16
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 295.78
+    @cy: 168.91
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 297.40
+    @cy: 166.61
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 300.65
+    @cy: 161.91
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 303.90
+    @cy: 157.06
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 307.14
+    @cy: 152.05
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 310.39
+    @cy: 146.88
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 313.64
+    @cy: 141.56
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 316.88
+    @cy: 136.09
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 323.38
+    @cy: 124.69
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 329.87
+    @cy: 112.66
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 336.36
+    @cy: 100.02
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 342.86
+    @cy: 86.77
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 349.35
+    @cy: 72.89
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 355.84
+    @cy: 58.40
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 362.34
+    @cy: 43.30
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 368.83
+    @cy: 27.58
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 375.32
+    @cy: 11.24
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  circle
+    @cx: 381.82
+    @cy: -5.72
+    @r: 3.04
+    @style:
+      - fill: rgb(24.72%, 24.00%, 60.00%)
+      - fill-rule: even-odd
+      - opacity: 1.00
+      - stroke: none
+      - stroke-width: 0.00px
+  polyline
+    @points:
+      - -16.00, 235.98
+      - 416.00, 235.98
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  text
+    @font-size: 10.00px
+    @ox: 0.00
+    @oy: 1.00
+    @style:
+      - color: rgb(0.00%, 0.00%, 0.00%)
+      - dominant-baseline: hanging
+      - fill: rgb(0.00%, 0.00%, 0.00%)
+      - fill-opacity: 1.00
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-opacity: 1.00
+      - stroke-width: 0.20px
+      - text-anchor: middle
+    @x: 18.18
+    @y: 238.64
+    #text: -1.0
+  text
+    @font-size: 10.00px
+    @ox: 0.00
+    @oy: 1.00
+    @style:
+      - color: rgb(0.00%, 0.00%, 0.00%)
+      - dominant-baseline: hanging
+      - fill: rgb(0.00%, 0.00%, 0.00%)
+      - fill-opacity: 1.00
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-opacity: 1.00
+      - stroke-width: 0.20px
+      - text-anchor: middle
+    @x: 109.09
+    @y: 238.64
+    #text: -0.5
+  text
+    @font-size: 10.00px
+    @ox: 0.00
+    @oy: 1.00
+    @style:
+      - color: rgb(0.00%, 0.00%, 0.00%)
+      - dominant-baseline: hanging
+      - fill: rgb(0.00%, 0.00%, 0.00%)
+      - fill-opacity: 1.00
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-opacity: 1.00
+      - stroke-width: 0.20px
+      - text-anchor: middle
+    @x: 290.91
+    @y: 238.64
+    #text: 0.5
+  text
+    @font-size: 10.00px
+    @ox: 0.00
+    @oy: 1.00
+    @style:
+      - color: rgb(0.00%, 0.00%, 0.00%)
+      - dominant-baseline: hanging
+      - fill: rgb(0.00%, 0.00%, 0.00%)
+      - fill-opacity: 1.00
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-opacity: 1.00
+      - stroke-width: 0.20px
+      - text-anchor: middle
+    @x: 381.82
+    @y: 238.64
+    #text: 1.0
+  polyline
+    @points:
+      - 18.18, 235.98
+      - 18.18, 229.31
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 109.09, 235.98
+      - 109.09, 229.31
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 290.91, 235.98
+      - 290.91, 229.31
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 381.82, 235.98
+      - 381.82, 229.31
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 0.00, 235.98
+      - 0.00, 231.98
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 36.36, 235.98
+      - 36.36, 231.98
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 54.55, 235.98
+      - 54.55, 231.98
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 72.73, 235.98
+      - 72.73, 231.98
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 90.91, 235.98
+      - 90.91, 231.98
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 127.27, 235.98
+      - 127.27, 231.98
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 145.45, 235.98
+      - 145.45, 231.98
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 163.64, 235.98
+      - 163.64, 231.98
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 181.82, 235.98
+      - 181.82, 231.98
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 218.18, 235.98
+      - 218.18, 231.98
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 236.36, 235.98
+      - 236.36, 231.98
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 254.55, 235.98
+      - 254.55, 231.98
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 272.73, 235.98
+      - 272.73, 231.98
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 309.09, 235.98
+      - 309.09, 231.98
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 327.27, 235.98
+      - 327.27, 231.98
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 345.45, 235.98
+      - 345.45, 231.98
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 363.64, 235.98
+      - 363.64, 231.98
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 400.00, 235.98
+      - 400.00, 231.98
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 200.00, 260.16
+      - 200.00, -12.94
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  text
+    @font-size: 10.00px
+    @ox: 1.00
+    @oy: 0.00
+    @style:
+      - color: rgb(0.00%, 0.00%, 0.00%)
+      - dominant-baseline: middle
+      - fill: rgb(0.00%, 0.00%, 0.00%)
+      - fill-opacity: 1.00
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-opacity: 1.00
+      - stroke-width: 0.20px
+      - text-anchor: end
+    @x: 197.33
+    @y: 187.64
+    #text: 0.2
+  text
+    @font-size: 10.00px
+    @ox: 1.00
+    @oy: 0.00
+    @style:
+      - color: rgb(0.00%, 0.00%, 0.00%)
+      - dominant-baseline: middle
+      - fill: rgb(0.00%, 0.00%, 0.00%)
+      - fill-opacity: 1.00
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-opacity: 1.00
+      - stroke-width: 0.20px
+      - text-anchor: end
+    @x: 197.33
+    @y: 139.30
+    #text: 0.4
+  text
+    @font-size: 10.00px
+    @ox: 1.00
+    @oy: 0.00
+    @style:
+      - color: rgb(0.00%, 0.00%, 0.00%)
+      - dominant-baseline: middle
+      - fill: rgb(0.00%, 0.00%, 0.00%)
+      - fill-opacity: 1.00
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-opacity: 1.00
+      - stroke-width: 0.20px
+      - text-anchor: end
+    @x: 197.33
+    @y: 90.96
+    #text: 0.6
+  text
+    @font-size: 10.00px
+    @ox: 1.00
+    @oy: 0.00
+    @style:
+      - color: rgb(0.00%, 0.00%, 0.00%)
+      - dominant-baseline: middle
+      - fill: rgb(0.00%, 0.00%, 0.00%)
+      - fill-opacity: 1.00
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-opacity: 1.00
+      - stroke-width: 0.20px
+      - text-anchor: end
+    @x: 197.33
+    @y: 42.62
+    #text: 0.8
+  polyline
+    @points:
+      - 200.00, 187.64
+      - 206.67, 187.64
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 200.00, 139.30
+      - 206.67, 139.30
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 200.00, 90.96
+      - 206.67, 90.96
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 200.00, 42.62
+      - 206.67, 42.62
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 200.00, 248.06
+      - 204.00, 248.06
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 200.00, 223.89
+      - 204.00, 223.89
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 200.00, 211.81
+      - 204.00, 211.81
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 200.00, 199.72
+      - 204.00, 199.72
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 200.00, 175.55
+      - 204.00, 175.55
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 200.00, 163.47
+      - 204.00, 163.47
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 200.00, 151.38
+      - 204.00, 151.38
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 200.00, 127.21
+      - 204.00, 127.21
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 200.00, 115.13
+      - 204.00, 115.13
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 200.00, 103.04
+      - 204.00, 103.04
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 200.00, 78.87
+      - 204.00, 78.87
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 200.00, 66.79
+      - 204.00, 66.79
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 200.00, 54.71
+      - 204.00, 54.71
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 200.00, 30.54
+      - 204.00, 30.54
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 200.00, 18.45
+      - 204.00, 18.45
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 200.00, 6.37
+      - 204.00, 6.37
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
