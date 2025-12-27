@@ -18,7 +18,7 @@ text, tspan, * {{
     font-style: normal !important;
     font-weight: regular !important;
     font-kerning: none !important;
-
+    letter-spacing: 0px !important;
 }}
 """.strip()
 
