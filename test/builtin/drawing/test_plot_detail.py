@@ -69,8 +69,8 @@ except:
 try:
     import cairosvg
     import fonts
-except:
-    print("WARNING: not running PNG tests because cairosvg is not installed")
+except exception as oops:
+    print(f"WARNING: not running PNG tests because {oops}")
     cairosvg = None
 
 # check if pyoidide so we can skip some there
