@@ -13,8 +13,7 @@ ET.register_namespace("", SVG_NS)
 
 css = f"""
 text, tspan, * {{
-    font-family: "Noto Sans" !important;
-    /*font-family: "Inter" !important;*/
+    font-family: "Noto Sans Mono" !important;
     font-size: 8pt !important;
     font-style: normal !important;
     font-weight: regular !important;
