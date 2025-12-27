@@ -68,6 +68,7 @@ except:
 # Plot->Graphics->SVG->PNG tests depend on this for the SVG-PNG part
 try:
     import cairosvg
+    import fonts
 except:
     print("WARNING: not running PNG tests because cairosvg is not installed")
     cairosvg = None
@@ -254,6 +255,7 @@ def one_test(name, str_expr, vec, png, opt, act_dir="/tmp"):
             ref_png_fn = os.path.join(ref_dir, f"{name}.png")
             boxed_expr = Expression(Symbol("System`ToBoxes"), act_expr).evaluate(session.evaluation)
             act_svg = boxed_expr.boxes_to_svg()
+            act_svg = fonts.inject_font_style(act_svg)
             cairosvg.svg2png(
                 bytestring=act_svg.encode('utf-8'),
                 write_to=act_png_fn,
