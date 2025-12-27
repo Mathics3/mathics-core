@@ -199,6 +199,10 @@ def check_png(ref_png_fn, act_png_fn):
         act_img = skimage.io.imread(act_png_fn)[:,:,0:3]
         ref_img = skimage.io.imread(ref_png_fn)[:,:,0:3]
         differ = not np.all(act_img == ref_img)
+        if differ:
+            n = act_img.size
+            sum_diff = np.sum(np.abs(act_img.astype(float) - ref_img.astype(float)))
+            print(f"relative difference: {sum_diff/n:.8f}")
     else:
         differ = True
     finish(differ, ref_png_fn, act_png_fn)
