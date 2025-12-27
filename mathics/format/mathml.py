@@ -125,7 +125,7 @@ add_conversion_fn(InterpretationBox, interpretation_box)
 
 
 def pane_box(self, **options):
-    content = lookup_conversion_method(self.elements[0], "latex")(
+    content = lookup_conversion_method(self.elements[0], "mathml")(
         self.elements[0], **options
     )
     options = self.box_options
@@ -134,16 +134,16 @@ def pane_box(self, **options):
         width = ""
         height = ""
     elif isinstance(size, int):
-        width = f"{size}pt"
+        width = f"{size}px"
         height = ""
     elif isinstance(size, tuple) and len(size) == 2:
         width_val, height_val = size[0], size[1]
         if isinstance(width_val, int):
-            width = f"{width_val}pt"
+            width = f"{width_val}px"
         else:
             width = ""
         if isinstance(height_val, int):
-            height = f"[{height_val}pt]"
+            height = f"{height_val}px"
         else:
             height = ""
     else:
@@ -152,11 +152,13 @@ def pane_box(self, **options):
 
     dims = f"width:{width};" if width else ""
     if height:
-        dims += f"height:{width};"
+        dims += f"height:{height};"
     if dims:
+        dims += "overflow:hidden;"
         dims = f' style="{dims}" '
-
-    return f"<div{dims}>\n" + content + "\n</div>"
+    if dims:
+        return f"<mstyle {dims}>\n{content}\n</mstyle>"
+    return content
 
 
 add_conversion_fn(PaneBox, pane_box)
