@@ -1,0 +1,31 @@
+  - name: Set up Python 3.11
+    uses: actions/setup-python@v5
+    with:
+      python-version: '3.11'
+
+  - name: Install OS dependencies
+    run: |
+      sudo apt-get update -qq
+      sudo apt-get install -qq liblapack-dev llvm-dev tesseract-ocr remake
+
+  - name: Install Python dependencies
+    run: |
+      python -m pip install --upgrade pip
+      git clone --depth 1 https://github.com/Mathics3/mathics-scanner.git
+      cd mathics-scanner && pip install -e . && cd ..
+      pip install -e .
+      # install minimal extras needed by these tests
+      pip install pytest pyyaml scikit-image
+
+  - name: Run plot tests (test_plot_detail::test_all)
+    run: |
+      pytest -q test/builtin/drawing/test_plot_detail.py::test_all
+
+  - name: Upload test artifacts
+    if: always()
+    uses: actions/upload-artifact@v4
+    with:
+      name: plot-test-outputs
+      path: |
+        /tmp/*.txt
+        test/builtin/drawing/*_ref/*.txt
