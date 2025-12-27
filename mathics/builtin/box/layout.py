@@ -5,7 +5,7 @@ Low-Level Notebook Structure
 Formatting constructs are represented as a hierarchy of low-level \
 symbolic "boxes".
 
-The routines here assist in boxing at the bottom of the hierarchy, typically found when using notebook.
+The routines here assist in boxing at the bottom of the hierarchy, typically found when using in a notebook.
 """
 
 from mathics.builtin.box.expression import BoxExpression
