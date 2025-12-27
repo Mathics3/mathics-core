@@ -20,7 +20,8 @@ text, tspan, * {{
     font-weight: regular !important;
     font-kerning: none !important;
     letter-spacing: 0px !important;
-    font-stretch: normal;
+    font-stretch: 100%;
+    font-variation-settings: "wdth" 100;
 }}
 """.strip()
 
