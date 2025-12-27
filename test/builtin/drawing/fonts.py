@@ -13,7 +13,7 @@ ET.register_namespace("", SVG_NS)
 
 css = f"""
 text, tspan {{
-    font-family: Noto Sans !important;
+    font-family: "Noto Sans" !important;
 }}
 """.strip()
 
