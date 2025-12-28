@@ -9,6 +9,8 @@ from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
     FractionBox,
     GridBox,
+    InterpretationBox,
+    PaneBox,
     RowBox,
     SqrtBox,
     StyleBox,
@@ -38,6 +40,20 @@ def string(self, **options) -> str:
 
 
 add_conversion_fn(String, string)
+
+
+def interpretation_box(self, **options):
+    return boxes_to_text(self.elements[0], **options)
+
+
+add_conversion_fn(InterpretationBox, interpretation_box)
+
+
+def pane_box(self, **options):
+    return boxes_to_text(self.elements[0], **options)
+
+
+add_conversion_fn(PaneBox, pane_box)
 
 
 def fractionbox(self, **options) -> str:
@@ -72,13 +88,15 @@ def gridbox(self, elements=None, **box_options) -> str:
         widths = [0]
 
     cells = [
-        [
-            # TODO: check if this evaluation is necessary.
-            boxes_to_text(item, **box_options).splitlines()
-            for item in row
-        ]
-        if isinstance(row, tuple)
-        else [boxes_to_text(row, **box_options).splitlines()]
+        (
+            [
+                # TODO: check if this evaluation is necessary.
+                boxes_to_text(item, **box_options).splitlines()
+                for item in row
+            ]
+            if isinstance(row, tuple)
+            else [boxes_to_text(row, **box_options).splitlines()]
+        )
         for row in items
     ]
 
