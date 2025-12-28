@@ -169,7 +169,7 @@ class InterpretationBox(BoxExpression):
     </dl>
 
     >> A = InterpretationBox["Four", 4]
-     = InterpretationBox["Four", 4]
+     = InterpretationBox[Four, 4]
     >> DisplayForm[A]
      = Four
     >> ToExpression[A] + 4
