@@ -240,7 +240,7 @@ class Alphabet(Builtin):
      = True
 
     See also <url>
-    :$Language:
+    :\\$Language:
       /doc/reference-of-built-in-symbols/global-system-information/\\$language/
       </url>.
 
