@@ -10,6 +10,8 @@ from functools import lru_cache
 from math import cos, sin
 from typing import Callable, Optional
 
+import numpy as np
+
 from mathics.builtin.graphics import Graphics
 from mathics.builtin.options import options_to_rules
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, A_READ_PROTECTED
@@ -29,6 +31,7 @@ from mathics.eval.drawing.plot import (
     get_plot_range,
     get_plot_range_option,
 )
+from mathics.eval.drawing.plot_vectorized import eval_Plot_vectorized
 from mathics.eval.nevaluator import eval_N
 
 from . import plot
@@ -74,7 +77,6 @@ class _Plot(Builtin, ABC):
         }
     )
 
-    @lru_cache()
     def apply_function(self, f: Callable, x_value):
         value = f(x_value)
         if value is not None:
@@ -90,16 +92,26 @@ class _Plot(Builtin, ABC):
         except ValueError:
             return None
 
+        # for classic plot we cache results, but for vectorized we can't
+        # because ndarray is unhashable, and in any case probably isn't useful
+        # TODO: does caching results in the classic case have demonstrable performance benefit?
+        apply_function = self.apply_function
+        if not plot.use_vectorized_plot:
+            apply_function = lru_cache(apply_function)
+
         # additional options specific to this class
         plot_options.functions = self.get_functions_param(functions)
-        plot_options.apply_function = self.apply_function
+        plot_options.apply_function = apply_function
         plot_options.use_log_scale = self.use_log_scale
         plot_options.expect_list = self.expect_list
         if plot_options.plot_points is None:
-            default_plot_points = 57
+            default_plot_points = 1000 if plot.use_vectorized_plot else 57
             plot_options.plot_points = default_plot_points
 
-        return eval_Plot(plot_options, options, evaluation)
+        # this will be either the vectorized or the classic eval function
+        eval_function = eval_Plot_vectorized if plot.use_vectorized_plot else eval_Plot
+        graphics = eval_function(plot_options, options, evaluation)
+        return graphics
 
     def get_functions_param(self, functions):
         """Get the numbers of parameters in a function"""
@@ -421,7 +433,6 @@ class Plot(_Plot):
 
     summary_text = "plot curves of one or more functions"
 
-    @lru_cache()
     def apply_function(self, f: Callable, x_value):
         value = f(x_value)
         if value is not None:
@@ -472,7 +483,6 @@ class ParametricPlot(_Plot):
             functions = list(functions.elements)
         return functions
 
-    @lru_cache()
     def apply_function(self, fn: Callable, x_value):
         value = fn(x_value)
         if value is not None and len(value) == 2:
@@ -525,8 +535,8 @@ class PolarPlot(_Plot):
     )
     summary_text = "draw a polar plot"
 
-    @lru_cache()
     def apply_function(self, fn: Callable, x_value):
         value = fn(x_value)
         if value is not None:
-            return (value * cos(x_value), value * sin(x_value))
+            # use np.sin and np.cos to support vectorized plot
+            return (value * np.cos(x_value), value * np.sin(x_value))
