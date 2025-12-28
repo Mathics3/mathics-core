@@ -2,23 +2,15 @@
 Vectorized evaluation routines for Plot and related subclasses of _Plot
 """
 
-import math
 
 import numpy as np
 
-from mathics.builtin.colors.color_internals import convert_color
 from mathics.builtin.graphics import Graphics
 from mathics.builtin.options import options_to_rules
 from mathics.core.convert.lambdify import lambdify_compile
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import SymbolList, strip_context
-from mathics.core.systemsymbols import (
-    SymbolEqual,
-    SymbolNone,
-    SymbolRGBColor,
-    SymbolSubtract,
-)
 from mathics.timing import Timer
 
 from .colors import palette2, palette_color_directive

@@ -7,7 +7,6 @@ A graphical plot displays information about functions or points.
 import numbers
 from abc import ABC
 from functools import lru_cache
-from math import cos, sin
 from typing import Callable, Optional
 
 import numpy as np
