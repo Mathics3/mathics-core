@@ -49,6 +49,8 @@ class BoxData(Builtin):
 
 class ButtonBox(BoxExpression):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ButtonBox.html</url>
     <dl>
       <dt>'ButtonBox'[$boxes$]
       <dd> is a low-level box undocumented construct that represents a button \
@@ -103,6 +105,7 @@ class FractionBox(BoxExpression):
 
 class GridBox(BoxExpression):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/GridBox.html</url>
     <dl>
       <dt>'GridBox[{{...}, {...}}]'
       <dd>is a box construct that represents a sequence of boxes arranged in a grid.
@@ -423,6 +426,7 @@ class StyleBox(BoxExpression):
 
 class SubscriptBox(BoxExpression):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SubscriptBox.html</url>
     <dl>
       <dt>'SubscriptBox'[$a$, $b$]
       <dd>is a box construct that represents $a_b$.
