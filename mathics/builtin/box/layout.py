@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
+Low-Level Notebook Structure
+
 Formatting constructs are represented as a hierarchy of low-level \
 symbolic "boxes".
 
-The routines here assist in boxing at the bottom of the hierarchy. \
-At the other end, the top level, we have a Notebook which is just a \
-collection of Expressions usually contained in boxes.
+The routines here assist in boxing at the bottom of the hierarchy, typically found when using in a notebook.
 """
 
 from mathics.builtin.box.expression import BoxExpression
@@ -20,7 +20,6 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
-    SymbolAutomatic,
     SymbolFractionBox,
     SymbolRowBox,
     SymbolSqrtBox,
@@ -30,8 +29,8 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.makeboxes import to_boxes
 
-# Docs are not yet ready for prime time. Maybe after release 6.0.0.
-no_doc = True
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.low-level-notebook-structure"
 
 
 class BoxData(Builtin):
@@ -52,7 +51,7 @@ class ButtonBox(BoxExpression):
     """
     <dl>
       <dt>'ButtonBox'[$boxes$]
-      <dd> is a low-level box construct that represents a button \
+      <dd> is a low-level box undocumented construct that represents a button \
            in a notebook expression.
     </dl>
     """
@@ -164,13 +163,13 @@ class InterpretationBox(BoxExpression):
     https://reference.wolfram.com/language/ref/InterpretationBox.html</url>
 
     <dl>
-      <dt>'InterpretationBox[{...}, expr]'
+      <dt>'InterpretationBox[{...}, $expr$]'
       <dd> is a low-level box construct that displays as boxes, but is \
-           interpreted on input as expr.
+           interpreted on input as an $exp$r.
     </dl>
 
     >> A = InterpretationBox["Four", 4]
-     = InterpretationBox["Four", 4]
+     = InterpretationBox[Four, 4]
     >> DisplayForm[A]
      = Four
     >> ToExpression[A] + 4
@@ -205,7 +204,7 @@ class PaneBox(BoxExpression):
 
     <dl>
       <dt>'PaneBox[expr]'
-      <dd> is a low-level box construct, used in OutputForm.
+      <dd> is a low-level undocumented box construct, used in OutputForm.
     </dl>
 
     """
@@ -394,11 +393,11 @@ class StyleBox(BoxExpression):
         """StyleBox[boxes_, style_String, OptionsPattern[]]"""
         return StyleBox(boxes, style=style, **options)
 
-    def get_string_value(self):
+    def get_string_value(self) -> str:
         box = self.boxes
         if isinstance(box, String):
             return box.value
-        return None
+        return ""
 
     def init(self, boxes, style=None, **options):
         # This implementation supersedes Expression.process_style_box
@@ -429,10 +428,10 @@ class SubscriptBox(BoxExpression):
       <dd>is a box construct that represents $a_b$.
     </dl>
 
-    >> MakeBoxes[x_{3}]
-     = Subscript[x, 3]
-    >> ToBoxes[%]
-     = SubscriptBox[x, 3]
+    ## >> MakeBoxes[x_{3}]
+    ##  = Subscript[x, 3]
+    ## >> ToBoxes[%]
+    ## = SubscriptBox[x, 3]
     """
 
     #    attributes =  A_PROTECTED | A_READ_PROTECTED
