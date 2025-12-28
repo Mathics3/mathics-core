@@ -1,30 +1,24 @@
 # -*- coding: utf-8 -*-
-
 """
 Layout
 
-This module contains symbols used to define the high level layout for
-expression formatting.
+This module contains symbols used to define the high-level layout for expression formatting.
 
-For instance, to represent a set of consecutive expressions in a row,
-we can use 'Row'.
+For instance, to represent a set of consecutive expressions in a row, we can use 'Row'.
 
 """
 
 
-from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
+from mathics.builtin.box.layout import GridBox, PaneBox, RowBox, to_boxes
 from mathics.builtin.makeboxes import MakeBoxes
 from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Real, String
 from mathics.core.builtin import Builtin, Operator, PostfixOperator, PrefixOperator
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolMakeBoxes
+from mathics.core.systemsymbols import SymbolMakeBoxes, SymbolSubscriptBox
 from mathics.eval.lists import list_boxes
 from mathics.eval.makeboxes import format_element
-
-SymbolSubscriptBox = Symbol("System`SubscriptBox")
 
 
 class Center(Builtin):
@@ -209,6 +203,57 @@ class NonAssociative(Builtin):
     """
 
     summary_text = "non-associative operator"
+
+
+class Pane(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Pane.html</url>
+
+    <dl>
+      <dt>'Pane[$expr$]'
+      <dd> display $expr$ inside a pane.
+
+      <dt>'Pane[$expr$, $width$]'
+      <dd> display $expr$ inside a pane $width$ points wide.
+
+      <dt>'Pane[$expr$, {$width$, $height$}]'
+      <dd> display $expr$ in a pane with width $width$ and height $height$.
+    </dl>
+    A Pane is treated as an unbroken rectangular region for purposes of line breaking.
+
+    >> Pane[37!]
+     = 13763753091226345046315979581580902400000000
+
+    In TeXForm, $Pane$ produce minipage environments:
+    >> {{Pane[a,3], Pane[expt, 3]}}//TableForm//TeXForm
+     = ...
+
+    In MathMLForm, $Pane$ wraps the elements in <div>...</div> tags:
+    >> {{Pane[a,3], Pane[expt, 3]}}//TableForm//MathMLForm
+     = ...
+    """
+
+    summary_text = "put expressions inside a pane"
+    options = {
+        "ImageSize": "Automatic",
+    }
+
+    def eval_makeboxes(self, expr, f, evaluation, options):
+        """MakeBoxes[Pane[expr_, OptionsPattern[Pane]], f_]"""
+        box_expr = Expression(SymbolMakeBoxes, expr, f).evaluate(evaluation)
+        return PaneBox(box_expr, **options)
+
+    def eval_makeboxes2(self, expr, width, f, evaluation, options):
+        """MakeBoxes[Pane[expr_, width_Integer, OptionsPattern[Pane]], f_]"""
+        box_expr = Expression(SymbolMakeBoxes, expr, f).evaluate(evaluation)
+        options["System`ImageSize"] = width
+        return PaneBox(box_expr, **options)
+
+    def eval_makeboxes3(self, expr, width, height, f, evaluation, options):
+        """MakeBoxes[Pane[expr_, List[width_Integer, height_Integer], OptionsPattern[Pane]], f_]"""
+        box_expr = Expression(SymbolMakeBoxes, expr, f).evaluate(evaluation)
+        options["System`ImageSize"] = ListExpression(width, height)
+        return PaneBox(box_expr, **options)
 
 
 class Postfix(PostfixOperator):
