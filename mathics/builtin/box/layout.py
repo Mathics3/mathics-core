@@ -180,11 +180,19 @@ class InterpretationBox(BoxExpression):
     attributes = A_HOLD_ALL_COMPLETE | A_PROTECTED | A_READ_PROTECTED
     summary_text = "box associated to an input expression"
 
-    def eval_to_expression(boxexpr, form, evaluation):
-        """ToExpression[boxexpr_InterpretationBox, form___]"""
+    def eval_create(self, reprs, expr, evaluation):
+        """InterpretationBox[reprs_, expr_]"""
+        return InterpretationBox(reprs, expr)
+
+    def eval_to_expression1(self, boxexpr, evaluation):
+        """ToExpression[boxexpr_InterpretationBox]"""
         return boxexpr.elements[1]
 
-    def eval_display(boxexpr, evaluation):
+    def eval_to_expression2(self, boxexpr, form, evaluation):
+        """ToExpression[boxexpr_InterpretationBox, form_]"""
+        return boxexpr.elements[1]
+
+    def eval_display(self, boxexpr, evaluation):
         """DisplayForm[boxexpr_InterpretationBox]"""
         return boxexpr.elements[0]
 
