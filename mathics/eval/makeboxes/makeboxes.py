@@ -279,6 +279,7 @@ def format_element(
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
+    # Halt any potential evaluation tracing while performing boxing.
     evaluation.is_boxing = True
     while element.get_head() is form:
         element = element.elements[0]
