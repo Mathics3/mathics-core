@@ -15,12 +15,13 @@ from mathics.builtin.graphics import Graphics
 from mathics.builtin.options import options_to_rules
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
+from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList
-from mathics.core.systemsymbols import SymbolSequence
+from mathics.core.systemsymbols import SymbolPlotRange, SymbolSequence
 from mathics.eval.drawing.plot import (
     ListPlotType,
     check_plot_range,
@@ -106,6 +107,9 @@ class _Plot(Builtin, ABC):
         if plot_options.plot_points is None:
             default_plot_points = 1000 if plot.use_vectorized_plot else 57
             plot_options.plot_points = default_plot_points
+
+        # pass through the expanded plot_range options
+        options[str(SymbolPlotRange)] = to_mathics_list(*plot_options.plot_range)
 
         # this will be either the vectorized or the classic eval function
         eval_function = eval_Plot_vectorized if plot.use_vectorized_plot else eval_Plot
