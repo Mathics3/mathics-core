@@ -165,7 +165,7 @@ class InterpretationBox(BoxExpression):
     <dl>
       <dt>'InterpretationBox[{...}, $expr$]'
       <dd> is a low-level box construct that displays as boxes, but is \
-           interpreted on input as an $exp$r.
+           interpreted on input as an $expr$.
     </dl>
 
     >> A = InterpretationBox["Four", 4]
