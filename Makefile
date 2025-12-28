@@ -94,7 +94,7 @@ install:
 check: pytest gstest doctest
 
 #: Run the most extensive set of tests, stopping on first error
-check-x: pytest-x gstest doctest-x
+check-x: pytest-x gstest doctest-x plot-detailed-tests
 
 #: Run the most extensive set of tests
 check-for-Windows: pytest-for-windows gstest doctest
@@ -107,7 +107,7 @@ check-builtin-manifest:
 check-consistency-and-style:
 	MATHICS_LINT=t $(PYTHON) -m pytest $(PYTEST_OPTIONS) test/consistency-and-style
 
-check-full: check-builtin-manifest check-builtin-manifest check
+check-full: check-builtin-manifest check-builtin-manifest check plot-detailed-tests
 
 #: Remove Cython-derived files
 clean-cython:
@@ -129,7 +129,7 @@ clean: clean-cython clean-cache
 	rm -rf build || true
 
 plot-detailed-tests:
-	MATHICS_CHARACTER_ENCODING="ASCII" MATHICS_PLOT_DETAILED_TESTS="1" $(PYTHON) -m pytest $(PYTEST_OPTIONS) test/builtin/drawing/test_plot_detail.py
+	MATHICS_CHARACTER_ENCODING="ASCII" MATHICS_PLOT_DETAILED_TESTS="1" $(PYTHON) -m pytest -x $(PYTEST_OPTIONS) test/builtin/drawing/test_plot_detail.py
 
 #: Run pytest tests. Use environment variable "PYTEST_OPTIONS" for pytest options
 pytest:
@@ -155,7 +155,7 @@ doctest:
 
 #: Run tests that appear in docstring in the code, stopping on the first error.
 doctest-x:
-	PYTEST_OPTIONS="-x" $(MAKE) doctest
+	DOCTEST_OPTIONS="-x" $(MAKE) doctest
 
 #: Make Mathics PDF manual via Asymptote and LaTeX
 latexdoc texdoc doc:
