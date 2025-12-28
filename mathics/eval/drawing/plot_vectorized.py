@@ -17,6 +17,7 @@ from .colors import palette2, palette_color_directive
 from .util import GraphicsGenerator
 
 
+@Timer("eval_Plot_vectorized")
 def eval_Plot_vectorized(plot_options, options, evaluation: Evaluation):
     # Note on naming: we use t to refer to the independent variable initially.
     # For Plot etc. it will be x, but for ParametricPlot it is better called t,
@@ -56,7 +57,7 @@ def eval_Plot_vectorized(plot_options, options, evaluation: Evaluation):
     for i, function in enumerate(compiled_functions):
         # compute xs and ys from ts using the compiled function
         # and the apply_function supplied by the plot class
-        with Timer("compute zs"):
+        with Timer("compute xs and ys"):
             xs, ys = plot_options.apply_function(function, ts)
 
         # take log if requested; downstream axes will adjust accordingly

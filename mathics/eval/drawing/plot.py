@@ -38,6 +38,7 @@ from mathics.core.systemsymbols import (
     SymbolPolygon,
 )
 from mathics.eval.nevaluator import eval_N
+from mathics.timing import Timer
 
 ListPlotNames = (
     "DiscretePlot",
@@ -470,6 +471,7 @@ def eval_ListPlot(
     )
 
 
+@Timer("eval_Plot")
 def eval_Plot(plot_options, options: dict, evaluation: Evaluation) -> Expression:
     """
     Evaluation part of Plot[]
