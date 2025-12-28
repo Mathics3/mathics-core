@@ -139,7 +139,7 @@ def int_to_string_shorter_repr(value: int, form: Symbol, max_digits=640):
 
 def eval_makeboxes_outputform(expr, evaluation, form):
     """
-    Build a 2D text representation of the expression.
+    Build a 2D representation of the expression using only keyboard characters.
     """
     from mathics.builtin.box.layout import InterpretationBox, PaneBox
     from mathics.format.outputform import expression_to_outputform_text
