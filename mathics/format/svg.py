@@ -202,7 +202,7 @@ def density_plot_box(self, **options):
     # two overlaid rectangular gradients each at opacity 0.5
     # to go from the center to each of the (square) sides.
 
-    svg_data = ["<--DensityPlot-->"]
+    svg_data = ["<!--DensityPlot-->"]
     for index, triangle_coords in enumerate(self.lines):
         triangle = [coords.pos() for coords in triangle_coords]
         colors = [rgb.to_js() for rgb in self.vertex_colors[index]]
