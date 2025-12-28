@@ -369,8 +369,7 @@ if __name__ == "__main__":
     parser.add_argument("--update", action="store_true", help="update reference files")
     args = parser.parse_args()
     UPDATE_MODE = args.update
-    if not os.environ.get("MATHICS_PLOT_DETAILED_TESTS", False) and not UPDATE_MODE:
-        exit(0)
+
     try:
         test_all()
     except AssertionError:
