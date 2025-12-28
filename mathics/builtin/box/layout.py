@@ -169,7 +169,7 @@ class InterpretationBox(BoxExpression):
            interpreted on input as expr.
     </dl>
 
-    >> A = InterpretationBox["Pepe", 4]
+    >> A = InterpretationBox["Four", 4]
      = InterpretationBox["Four", 4]
     >> DisplayForm[A]
      = Four
