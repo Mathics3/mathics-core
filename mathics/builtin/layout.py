@@ -216,7 +216,7 @@ class Pane(Builtin):
       <dt>'Pane[$expr$, $width$]'
       <dd> display $expr$ inside a pane $width$ points wide.
 
-      <dt>'Pane[$expr$, {$width$, $height$]'
+      <dt>'Pane[$expr$, {$width$, $height$}]'
       <dd> display $expr$ in a pane with width $width$ and height $height$.
     </dl>
     A Pane is treated as an unbroken rectangular region for purposes of line breaking.
