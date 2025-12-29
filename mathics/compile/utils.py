@@ -12,12 +12,8 @@ def pairwise(args):
     >>> list(pairwise([1, 2, 3]))
     [(1, 2), (2, 3)]
     """
-    first = True
-    for arg in args:
-        if not first:
-            yield last, arg
-        first = False
-        last = arg
+    for pair in zip(args[:-1], args[1:]):
+        yield pair
 
 
 def llvm_to_ctype(t):

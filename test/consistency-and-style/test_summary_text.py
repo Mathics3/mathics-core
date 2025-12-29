@@ -11,7 +11,6 @@ import pytest
 from mathics import __file__ as mathics_initfile_path
 from mathics.core.builtin import Builtin
 from mathics.core.load_builtin import name_is_builtin_symbol
-from mathics.doc.doc_entries import MATHICS_RE
 from mathics.doc.gather import skip_doc
 from mathics.doc.latex_doc import LATEX_INLINE_EQUATION_RE
 

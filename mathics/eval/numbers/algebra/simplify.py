@@ -74,11 +74,13 @@ def eval_Simplify(symbol_name: Symbol, expr, evaluation, options: dict):
     else:
         if isinstance(complexity_function, (Expression, Symbol)):
             _complexity_function = complexity_function
-            complexity_function = (
-                lambda x: Expression(_complexity_function, from_sympy(x))
-                .evaluate(evaluation)
-                .to_python()
-            )
+
+            def complexity_function(x):
+                return (
+                    Expression(_complexity_function, from_sympy(x))
+                    .evaluate(evaluation)
+                    .to_python()
+                )
 
     try:
         # At this point, ``complexity_function`` is a function that takes a

@@ -2,11 +2,8 @@
 Pytests for the documentation system. Basic functions and classes.
 """
 
-import os.path as osp
 
-from mathics.core.evaluation import Message, Print
 from mathics.core.load_builtin import import_and_load_builtins
-from mathics.doc.doc_entries import parse_docstring_to_DocumentationEntry_items
 from mathics.doc.latex_doc import (
     LaTeXDocChapter,
     LaTeXDocPart,
@@ -17,7 +14,6 @@ from mathics.doc.latex_doc import (
     LaTeXDocumentationEntry,
     LaTeXMathicsDocumentation,
 )
-from mathics.settings import DOC_DIR
 
 # Load the documentation once.
 import_and_load_builtins()

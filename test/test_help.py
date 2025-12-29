@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from mathics.core.builtin import Builtin
 
-from .helper import check_evaluation, session
+from .helper import check_evaluation
 
 # TODO: These builtins should be loaded in Definitions
 # to have any effect...

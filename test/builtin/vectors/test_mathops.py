@@ -7,8 +7,6 @@ In particular, Curl[] and Norm[].
 
 from test.helper import check_evaluation, check_wrong_number_of_arguments
 
-import pytest
-
 
 def test_norm():
     for str_expr, expected_message in (
