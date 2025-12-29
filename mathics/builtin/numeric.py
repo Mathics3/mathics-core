@@ -42,7 +42,6 @@ from mathics.core.symbols import (
     SymbolDivide,
     SymbolFalse,
     SymbolMachinePrecision,
-    SymbolPlus,
     SymbolTimes,
     SymbolTrue,
 )

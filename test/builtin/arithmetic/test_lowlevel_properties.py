@@ -7,7 +7,6 @@ from test.helper import session
 import pytest
 
 from mathics.eval.arithmetic import (
-    test_arithmetic_expr as check_arithmetic,
     test_positive_arithmetic_expr as check_positive,
     test_zero_arithmetic_expr as check_zero,
 )

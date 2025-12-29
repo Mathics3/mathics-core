@@ -5,7 +5,6 @@ from test.helper import session
 import pytest
 
 from mathics.core.assignment import pop_reference_head
-from mathics.core.symbols import Symbol
 from mathics.eval.assignments.assignment import get_reference_expression
 
 evaluation = session.evaluation

@@ -30,7 +30,7 @@ from mathics.core.symbols import (
     SymbolRepeatedNull,
     SymbolTimes,
 )
-from mathics.core.systemsymbols import SymbolComplex, SymbolMinus, SymbolRational
+from mathics.core.systemsymbols import SymbolMinus
 
 # These Strings are used in Boxing output
 StringElipsis = String("...")
