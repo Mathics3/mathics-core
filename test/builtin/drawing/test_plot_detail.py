@@ -408,7 +408,22 @@ def test_one_tests(use_opt, test, vec, svg):
     pyodide is not None,
     reason="Does not work in Pyodide",
 )
-@pytest.mark.parametrize(("file", "vec"), [parms for parms in (("vec_tests.yaml", True,), ("doc_tests.yaml", False,))])
+@pytest.mark.parametrize(
+    ("file", "vec"),
+    [
+        parms
+        for parms in (
+            (
+                "vec_tests.yaml",
+                True,
+            ),
+            (
+                "doc_tests.yaml",
+                False,
+            ),
+        )
+    ],
+)
 def test_yaml(file, vec):
     """
     Do yaml tests

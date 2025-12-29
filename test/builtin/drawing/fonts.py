@@ -3,7 +3,6 @@ Injects font styling in svg for repeatable text
 Courtesy ChatGPT
 """
 
-
 import xml.etree.ElementTree as ET
 
 SVG_NS = "http://www.w3.org/2000/svg"
