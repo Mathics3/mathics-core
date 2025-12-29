@@ -8,7 +8,7 @@ makeboxes rules.
 
 from typing import Optional, Union
 
-from mathics.core.atoms import Complex, Integer, Rational, String
+from mathics.core.atoms import Complex, Rational, String
 from mathics.core.element import BaseElement, BoxElementMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression

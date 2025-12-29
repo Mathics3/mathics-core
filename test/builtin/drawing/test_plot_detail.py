@@ -54,29 +54,28 @@ to include in code, so they are stored as files in their own
 import os
 import pathlib
 import subprocess
+from test.helper import session
 
 import yaml
+
+from mathics.builtin.drawing import plot
+from mathics.core.util import print_expression_tree
 
 # couple tests depend on this
 try:
     import skimage
-except:
+except ImportError:
     skimage = None
 
 # check if pyoidide so we can skip some there
 try:
     import pyodide
-except:
+except ImportError:
     pyodide = None
 
 
-from test.helper import session
-
-import mathics.builtin.drawing.plot as plot
-from mathics.core.util import print_expression_tree
-
 # common plotting options for 2d plots to test with and without
-opt2 = """
+OPT_2 = """
     AspectRatio -> 2,
     Axes -> False,
     Frame -> False,
@@ -85,8 +84,8 @@ opt2 = """
 """
 
 # 3d plots add these options
-opt3 = (
-    opt2
+OPT_3 = (
+    OPT_2
     + """,
     BoxRatios -> {1, 2, 3}
 """
@@ -94,32 +93,32 @@ opt3 = (
 
 # non-vectorized available, vectorized not available,
 classic = [
-    ("barchart", "BarChart[{3,5,2,7}]", opt2, True),
-    ("discreteplot", "DiscretePlot[n^2,{n,1,10}]", opt2, True),
-    ("histogram", "Histogram[{1,1,1,5,5,7,8,8,8}]", opt2, True),
-    ("listlineplot", "ListLinePlot[{1,4,2,5,3}]", opt2, True),
-    ("listplot", "ListPlot[{1,4,2,5,3}]", opt2, True),
-    ("liststepplot", "ListStepPlot[{1,4,2,5,3}]", opt2, True),
-    # ("manipulate", "Manipulate[Plot[a x,{x,0,1}],{a,0,5}]", opt2, True),
-    ("numberlineplot", "NumberLinePlot[{1,3,4}]", opt2, True),
-    ("parametricplot", "ParametricPlot[{t,2 t},{t,0,2}]", opt2, True),
-    ("piechart", "PieChart[{3,2,5}]", opt2, True),
-    ("plot", "Plot[x, {x, 0, 1}]", opt2, True),
-    ("polarplot", "PolarPlot[3 θ,{θ,0,2}]", opt2, True),
+    ("barchart", "BarChart[{3,5,2,7}]", OPT_2, True),
+    ("discreteplot", "DiscretePlot[n^2,{n,1,10}]", OPT_2, True),
+    ("histogram", "Histogram[{1,1,1,5,5,7,8,8,8}]", OPT_2, True),
+    ("listlineplot", "ListLinePlot[{1,4,2,5,3}]", OPT_2, True),
+    ("listplot", "ListPlot[{1,4,2,5,3}]", OPT_2, True),
+    ("liststepplot", "ListStepPlot[{1,4,2,5,3}]", OPT_2, True),
+    # ("manipulate", "Manipulate[Plot[a x,{x,0,1}],{a,0,5}]", OPT_2, True),
+    ("numberlineplot", "NumberLinePlot[{1,3,4}]", OPT_2, True),
+    ("parametricplot", "ParametricPlot[{t,2 t},{t,0,2}]", OPT_2, True),
+    ("piechart", "PieChart[{3,2,5}]", OPT_2, True),
+    ("plot", "Plot[x, {x, 0, 1}]", OPT_2, True),
+    ("polarplot", "PolarPlot[3 θ,{θ,0,2}]", OPT_2, True),
 ]
 
 # vectorized available, non-vectorized not available
 vectorized = [
-    ("complexplot", "ComplexPlot[Exp[I z],{z,-2-2 I,2+2 I}]", opt2, True),
-    ("complexplot3d", "ComplexPlot3D[Exp[I z],{z,-2-2 I,2+2 I}]", opt3, True),
-    ("contourplot-1", "ContourPlot[x^2-y^2,{x,-2,2},{y,-2,2}]", opt2, skimage),
-    ("contourplot-2", "ContourPlot[x^2+y^2==1,{x,-2,2},{y,-2,2}]", opt2, skimage),
+    ("complexplot", "ComplexPlot[Exp[I z],{z,-2-2 I,2+2 I}]", OPT_2, True),
+    ("complexplot3d", "ComplexPlot3D[Exp[I z],{z,-2-2 I,2+2 I}]", OPT_3, True),
+    ("contourplot-1", "ContourPlot[x^2-y^2,{x,-2,2},{y,-2,2}]", OPT_2, skimage),
+    ("contourplot-2", "ContourPlot[x^2+y^2==1,{x,-2,2},{y,-2,2}]", OPT_2, skimage),
 ]
 
 # both vectorized and non-vectorized available
 both = [
-    ("densityplot", "DensityPlot[x y,{x,-2,2},{y,-2,2}]", opt2, True),
-    ("plot3d", "Plot3D[x y,{x,-2,2},{y,-2,2}]", opt3, True),
+    ("densityplot", "DensityPlot[x y,{x,-2,2},{y,-2,2}]", OPT_2, True),
+    ("plot3d", "Plot3D[x y,{x,-2,2},{y,-2,2}]", OPT_3, True),
 ]
 
 
@@ -129,9 +128,31 @@ ref_dir = path + "_ref"
 print(f"ref_dir {ref_dir}")
 
 
-def one_test(name, str_expr, vec, opt, act_dir="/tmp"):
+def one_test(name: str, str_expr: str, vec: bool, opt, act_dir: str = "/tmp"):
+    """
+    Individual test
+
+    Parameters
+    ----------
+    name : str
+        Name of the test.
+    str_expr : str
+        expression to be tested.
+    vec : bool
+        if True, use the vectorized code.
+    opt : bool
+        Test with options.
+    act_dir : str, optional
+        The output folder. "/tmp".
+
+    Returns
+    -------
+    None.
+
+    """
     # update name and set use_vectorized_plot depending on
     # whether vectorized test
+
     if vec:
         name += "-vec"
         plot.use_vectorized_plot = vec
@@ -153,7 +174,7 @@ def one_test(name, str_expr, vec, opt, act_dir="/tmp"):
     try:
         # evaluate the expression to be tested
         act_expr = session.evaluate(str_expr)
-        if len(session.evaluation.out):
+        if len(session.evaluation.out) != 0:
             print("=== messages:")
             for message in session.evaluation.out:
                 print(message.text)
@@ -209,7 +230,8 @@ def yaml_tests(fn, act_dir, vec):
             print(f"skipping {name}")
 
 
-def test_all(act_dir="/tmp", opt=None):
+def test_all(act_dir="/tmp"):
+    """Run all the tests"""
     # run twice, once without and once with options
     for use_opt in [False, True]:
         # run classic tests
@@ -237,12 +259,14 @@ def test_all(act_dir="/tmp", opt=None):
 # reference files can be generated by pointing saved actual
 # output at reference dir instead of /tmp
 def make_ref_files():
+    """Build the reference files"""
     test_all(ref_dir)
 
 
 if __name__ == "__main__":
 
     def run_tests():
+        """Rull all the tests"""
         try:
             test_all()
         except AssertionError:

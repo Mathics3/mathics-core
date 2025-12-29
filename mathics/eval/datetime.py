@@ -84,7 +84,10 @@ else:
 
         try:
             evaluation.timeout_queue.append((timeout, datetime.now().timestamp()))
-            request = lambda: expr.evaluate(evaluation)
+
+            def request():
+                return expr.evaluate(evaluation)
+
             done = False
             with TimeoutHandler(timeout) as to_ctx_mgr:
                 assert to_ctx_mgr.state == to_ctx_mgr.EXECUTING

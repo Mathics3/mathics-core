@@ -433,7 +433,9 @@ def one(name, args, scipy=False, expected=None, fail=False):
         failure(name, f"{oops} while executing:\n{src}")
 
     # this allows comparison of functions that return List using np.isclose
-    wrap = lambda x: np.array(x) if isinstance(x, list) else x
+    def wrap(x):
+        return np.array(x) if isinstance(x, list) else x
+
     result = wrap(result)
     expected = wrap(expected)
 
@@ -456,7 +458,7 @@ def test():
         try:
             one(**test)
         except AssertionError as oops:
-            if not "fail" in test:
+            if "fail" not in test:
                 print(oops)
                 raise
 
