@@ -144,9 +144,9 @@ BOTH = [
 
 
 # compute reference dir, which is this file minus .py plus _ref
+# and actual dir that stores actual output, this file minus .py plus _act
 PATH, _ = os.path.splitext(__file__)
 REF_DIR = PATH + "_ref"
-
 ACT_DIR = PATH + "_act"
 if not os.path.exists(ACT_DIR):
     os.mkdir(ACT_DIR)
@@ -258,7 +258,6 @@ def one_test(name: str, str_expr: str, vec: bool, svg: bool, opt: bool):
     None.
 
     """
-
     # update name and set use_vectorized_plot depending on
     # whether VECTORIZED test
     if vec:
