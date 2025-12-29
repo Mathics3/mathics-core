@@ -369,7 +369,54 @@ def yaml_tests(fn, vec):
     not os.environ.get("MATHICS_PLOT_DETAILED_TESTS", False),
     reason="Run just if required",
 )
-def test_all():
+@pytest.mark.parametrize(
+    (
+        "use_opt",
+        "test",
+        "vec",
+        "svg",
+    ),
+    [
+        (
+            use_opt,
+            test,
+            vec,
+            svg,
+        )
+        for use_opt in (False, True)
+        for vec in (True, False)
+        for svg in (False,)
+        for test in ((VECTORIZED if vec else CLASSIC) + BOTH)
+    ],
+)
+def test_one_tests(use_opt, test, vec, svg):
+    """
+    Do indivual one_test
+    """
+    print({"use_opt": use_opt, "test": test, "vec": vec, "svg": svg})
+    name, str_expr, opt, cond = test
+    if cond:
+        opt = opt if use_opt else None
+        one_test(name, str_expr, vec, svg, opt)
+
+
+@pytest.mark.skipif(
+    not os.environ.get("MATHICS_PLOT_DETAILED_TESTS", False),
+    reason="Run just if required",
+)
+@pytest.mark.skipif(
+    pyodide is not None,
+    reason="Does not work in Pyodide",
+)
+@pytest.mark.parametrize(("file", "vec"), [parms for parms in (("vec_tests.yaml", True,), ("doc_tests.yaml", False,))])
+def test_yaml(file, vec):
+    """
+    Do yaml tests
+    """
+    yaml_tests(file, vec=vec)
+
+
+def do_test_all():
     # run twice, once without and once with options
     for use_opt in [False, True]:
         # run CLASSIC tests
@@ -403,6 +450,6 @@ if __name__ == "__main__":
     UPDATE_MODE = args.update
 
     try:
-        test_all()
+        do_test_all()
     except AssertionError:
         print("FAIL")
