@@ -117,7 +117,7 @@ def copy_file(dst_fn, src_fn):
 
 def finish(differ: bool, ref_fn: str, act_fn: str):
     """
-    finish up: raise exception or update ref, and delete /tmp file
+    finish up: raise exception or update ref, and delete ACT_DIR  file
     if no assertion
     """
     # if ref and act differ, either update act_fn if in UPDATE_MODE, or raise assertion if not
@@ -143,7 +143,7 @@ def finish(differ: bool, ref_fn: str, act_fn: str):
             print(msg)
             raise AssertionError(msg)
 
-    # remove /tmp file if test was successful
+    # remove ACT_DIR file if test was successful
     if act_fn != ref_fn:
         os.remove(act_fn)
 
@@ -199,9 +199,10 @@ def one_test(name: str, str_expr: str, vec: bool, svg: bool, opts: str):
     str_expr : str
         expression to be tested.
     vec : bool
-        if True, do a vectorized code.
+        if True, do a vectorized test, else do a classic test.
     svg: bool
-        if True, do an svg test.
+        if True, do an svg test in addition to the vectorized or classic test,
+        using the Graphics output of the vectorized or classic test
     opts :
         Options to splice in
 
@@ -211,7 +212,7 @@ def one_test(name: str, str_expr: str, vec: bool, svg: bool, opts: str):
 
     """
     # update name and set use_vectorized_plot depending on
-    # whether VECTORIZED test
+    # whether vectorized test
     if vec:
         name += "-vec"
         plot.use_vectorized_plot = vec
@@ -283,7 +284,11 @@ def one_test(name: str, str_expr: str, vec: bool, svg: bool, opts: str):
         plot.use_vectorized_plot = False
 
 
-def yaml_tests_generator(fn):
+def yaml_tests_generator(fn: str):
+    """
+    Yields a sequence of dictionaries containing parameters for one_test
+    driven by entries in yaml file fn
+    """
     fn = pathlib.Path(__file__).resolve().parent / fn
     with open(fn) as r:
         tests = yaml.safe_load(r)
