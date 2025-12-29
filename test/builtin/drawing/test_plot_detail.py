@@ -413,7 +413,7 @@ def test_yaml(vec):
     """
     Do yaml tests
     """
-    yaml_tests("doc_tests.yaml", vec=False)
+    yaml_tests("doc_tests.yaml", vec=vec)
 
 
 def do_test_all():
