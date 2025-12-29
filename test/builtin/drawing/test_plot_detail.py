@@ -54,14 +54,10 @@ to include in code, so they are stored as files in their own
 import os
 import pathlib
 import subprocess
-from test.helper import session
 
 import numpy as np
 import pytest
 import yaml
-
-from mathics.builtin.drawing import plot
-from mathics.core.util import print_expression_tree
 
 # couple tests depend on this
 try:
