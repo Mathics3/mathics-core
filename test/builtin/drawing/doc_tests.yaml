@@ -1,10 +1,11 @@
 #
 # These tests were automatically picked up from doc 2025-12-13
 # The doc-xxx numbers are simply sequential numbers in alphebatized list as of that date
-# The doc-xxx labels correspond to test output so shouldn't be changed
-# New tests can just be added at end of list, disregarding alphabetical order
+# Most of the tests don't have vectorized implementations, so we only test classic
+# Tests aimed specifically at vectorized implementations can be found in vec_tests.yaml
 #
-
+__DEFAULTS__:
+    vec: False
 doc-001:
     expr: BarChart[{1, 4, 2}, ChartStyle -> {Red, Green, Blue}]
 doc-002:

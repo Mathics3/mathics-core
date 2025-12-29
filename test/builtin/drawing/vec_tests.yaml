@@ -1,7 +1,10 @@
 #
 # This file will be for a set of tests specifically aimed at
-# the new vectorized plot functions
+# the new vectorized plot functions, so they are run only ogainst
+# the vectorized implementations
 # TODO: add more
 #
+__DEFAULTS__:
+    cls: False
 vec-contourplot-expr-x:
     expr: ContourPlot[x, {x, -2, 2}, {y, -1, 1}, Contours->{0, 0.5}, AspectRatio->Automatic]
