@@ -54,46 +54,28 @@ to include in code, so they are stored as files in their own
 import os
 import pathlib
 import subprocess
+from test.helper import session
 
-import numpy as np
-import pytest
 import yaml
+
+from mathics.builtin.drawing import plot
+from mathics.core.util import print_expression_tree
 
 # couple tests depend on this
 try:
     import skimage
 except ImportError:
-    print("not running some tests because scikit-image is not installed")
-    skimage = None  # noqa
-
-# Plot->Graphics->SVG->PNG tests depend on this for the SVG-PNG part
-try:
-    import cairosvg
-
-    from .fonts import inject_font_style
-except ImportError:
-    # not yet in service - see note below
-    # print(f"WARNING: not running PNG tests because {oops}")
-    cairosvg = None  # noqa
+    skimage = None
 
 # check if pyoidide so we can skip some there
 try:
     import pyodide
 except ImportError:
-    pyodide = None  # noqa
+    pyodide = None
 
-
-from test.helper import session
-
-from mathics.builtin.drawing import plot
-from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol
-from mathics.core.util import print_expression_tree
-
-from .svg_outline import outline_svg
 
 # common plotting options for 2d plots to test with and without
-OPT2 = """
+OPT_2 = """
     AspectRatio -> 2,
     Axes -> False,
     Frame -> False,
@@ -102,129 +84,75 @@ OPT2 = """
 """
 
 # 3d plots add these options
-OPT3 = (
-    OPT2
+OPT_3 = (
+    OPT_2
     + """,
     BoxRatios -> {1, 2, 3}
 """
 )
 
-# non-VECTORIZED available, VECTORIZED not available,
-CLASSIC = [
-    ("barchart", "BarChart[{3,5,2,7}]", OPT2, True),
-    ("discreteplot", "DiscretePlot[n^2,{n,1,10}]", OPT2, True),
-    ("histogram", "Histogram[{1,1,1,5,5,7,8,8,8}]", OPT2, True),
-    ("listlineplot", "ListLinePlot[{1,4,2,5,3}]", OPT2, True),
-    ("listplot", "ListPlot[{1,4,2,5,3}]", OPT2, True),
-    ("liststepplot", "ListStepPlot[{1,4,2,5,3}]", OPT2, True),
-    # ("manipulate", "Manipulate[Plot[a x,{x,0,1}],{a,0,5}]", OPT2, True),
-    ("numberlineplot", "NumberLinePlot[{1,3,4}]", OPT2, True),
-    ("parametricplot", "ParametricPlot[{t,2 t},{t,0,2}]", OPT2, True),
-    ("piechart", "PieChart[{3,2,5}]", OPT2, True),
-    ("plot", "Plot[x, {x, 0, 1}]", OPT2, True),
-    ("polarplot", "PolarPlot[3 θ,{θ,0,2}]", OPT2, True),
+# non-vectorized available, vectorized not available,
+classic = [
+    ("barchart", "BarChart[{3,5,2,7}]", OPT_2, True),
+    ("discreteplot", "DiscretePlot[n^2,{n,1,10}]", OPT_2, True),
+    ("histogram", "Histogram[{1,1,1,5,5,7,8,8,8}]", OPT_2, True),
+    ("listlineplot", "ListLinePlot[{1,4,2,5,3}]", OPT_2, True),
+    ("listplot", "ListPlot[{1,4,2,5,3}]", OPT_2, True),
+    ("liststepplot", "ListStepPlot[{1,4,2,5,3}]", OPT_2, True),
+    # ("manipulate", "Manipulate[Plot[a x,{x,0,1}],{a,0,5}]", OPT_2, True),
+    ("numberlineplot", "NumberLinePlot[{1,3,4}]", OPT_2, True),
+    ("parametricplot", "ParametricPlot[{t,2 t},{t,0,2}]", OPT_2, True),
+    ("piechart", "PieChart[{3,2,5}]", OPT_2, True),
+    ("plot", "Plot[x, {x, 0, 1}]", OPT_2, True),
+    ("polarplot", "PolarPlot[3 θ,{θ,0,2}]", OPT_2, True),
 ]
 
-# VECTORIZED available, non-VECTORIZED not available
-VECTORIZED = [
-    ("complexplot", "ComplexPlot[Exp[I z],{z,-2-2 I,2+2 I}]", OPT2, True),
-    ("complexplot3d", "ComplexPlot3D[Exp[I z],{z,-2-2 I,2+2 I}]", OPT3, True),
-    ("contourplot-1", "ContourPlot[x^2-y^2,{x,-2,2},{y,-2,2}]", OPT2, skimage),
-    ("contourplot-2", "ContourPlot[x^2+y^2==1,{x,-2,2},{y,-2,2}]", OPT2, skimage),
+# vectorized available, non-vectorized not available
+vectorized = [
+    ("complexplot", "ComplexPlot[Exp[I z],{z,-2-2 I,2+2 I}]", OPT_2, True),
+    ("complexplot3d", "ComplexPlot3D[Exp[I z],{z,-2-2 I,2+2 I}]", OPT_3, True),
+    ("contourplot-1", "ContourPlot[x^2-y^2,{x,-2,2},{y,-2,2}]", OPT_2, skimage),
+    ("contourplot-2", "ContourPlot[x^2+y^2==1,{x,-2,2},{y,-2,2}]", OPT_2, skimage),
 ]
 
-# both VECTORIZED and non-VECTORIZED available
-BOTH = [
-    ("densityplot", "DensityPlot[x y,{x,-2,2},{y,-2,2}]", OPT2, True),
-    ("plot3d", "Plot3D[x y,{x,-2,2},{y,-2,2}]", OPT3, True),
+# both vectorized and non-vectorized available
+both = [
+    ("densityplot", "DensityPlot[x y,{x,-2,2},{y,-2,2}]", OPT_2, True),
+    ("plot3d", "Plot3D[x y,{x,-2,2},{y,-2,2}]", OPT_3, True),
 ]
 
 
 # compute reference dir, which is this file minus .py plus _ref
-PATH, _ = os.path.splitext(__file__)
-REF_DIR = PATH + "_ref"
-print(f"ref_dir {REF_DIR}")
+path, _ = os.path.splitext(__file__)
+ref_dir = path + "_ref"
+print(f"ref_dir {ref_dir}")
 
 
-# determines action to take if actual and reference files differ:
-# either raise assertion error, or update reference file
-UPDATE_MODE = False
+def one_test(name: str, str_expr: str, vec: bool, opt, act_dir: str = "/tmp"):
+    """
+    Individual test
 
+    Parameters
+    ----------
+    name : str
+        Name of the test.
+    str_expr : str
+        expression to be tested.
+    vec : bool
+        if True, use the vectorized code.
+    opt : bool
+        Test with options.
+    act_dir : str, optional
+        The output folder. "/tmp".
 
-def copy_file(dst_fn, src_fn):
-    with open(dst_fn, "wb") as dst_f, open(src_fn, "rb") as src_f:
-        dst_f.write(src_f.read())
+    Returns
+    -------
+    None.
 
-
-# finish up: raise exception or update ref, and delete /tmp file if no assertion
-def finish(differ, ref_fn, act_fn):
-    # if ref and act differ, either update act_fn if in UPDATE_MODE, or raise assertion if not
-    if differ:
-        if UPDATE_MODE:
-            if os.path.exists(ref_fn):
-                print(
-                    (
-                        f"WARNING: updating existing {ref_fn}; "
-                        "check updated file against committed file"
-                    )
-                )
-            else:
-                print(f"NOTE: creating {ref_fn}")
-            copy_file(ref_fn, act_fn)
-        else:
-            if os.path.exists(ref_fn):
-                msg = f"reference {ref_fn} and actual {act_fn} differ"
-            else:
-                msg = (
-                    f"reference {ref_fn} does not exist. Use --update mode to create it"
-                )
-            print(msg)
-            raise AssertionError(msg)
-
-    # remove /tmp file if test was successful
-    if act_fn != ref_fn:
-        os.remove(act_fn)
-
-
-# compare ref_fn and act_fn and either raise exception or update act_fn,
-# depending on UPDATE_MODE
-def check_text(ref_fn, act_fn):
-    if os.path.exists(ref_fn):
-        try:
-            result = subprocess.run(
-                ["diff", "-U", "5", ref_fn, act_fn], capture_output=False
-            )
-            differ = result.returncode != 0
-        except OSError:
-            with open(ref_fn) as ref_f, open(act_fn) as act_f:
-                ref_str, act_str = ref_f.read(), act_f.read()
-            differ = ref_str != act_str
-    else:
-        differ = True
-    finish(differ, ref_fn, act_fn)
-
-
-# compare ref_png_fn and act_png_fn and either raise exception or update act_fn,
-# depending on UPDATE_MODE
-# for PNG files we have to read the file and compare the actual image data
-# NOTE: this is not yet in service - see not below
-def check_png(ref_png_fn, act_png_fn):
-    if os.path.exists(ref_png_fn):
-        act_img = skimage.io.imread(act_png_fn)[:, :, 0:3]
-        ref_img = skimage.io.imread(ref_png_fn)[:, :, 0:3]
-        differ = not np.all(act_img == ref_img)
-        if differ:
-            n = act_img.size
-            sum_diff = np.sum(np.abs(act_img.astype(float) - ref_img.astype(float)))
-            print(f"relative difference: {sum_diff/n:.8f}")
-    else:
-        differ = True
-    finish(differ, ref_png_fn, act_png_fn)
-
-
-def one_test(name, str_expr, vec, svg, opt, act_dir="/tmp"):
+    """
     # update name and set use_vectorized_plot depending on
-    # whether VECTORIZED test
+    # whether vectorized test
+
     if vec:
         name += "-vec"
         plot.use_vectorized_plot = vec
@@ -246,7 +174,7 @@ def one_test(name, str_expr, vec, svg, opt, act_dir="/tmp"):
     try:
         # evaluate the expression to be tested
         act_expr = session.evaluate(str_expr)
-        if session.evaluation.out:
+        if len(session.evaluation.out) != 0:
             print("=== messages:")
             for message in session.evaluation.out:
                 print(message.text)
@@ -259,41 +187,20 @@ def one_test(name, str_expr, vec, svg, opt, act_dir="/tmp"):
 
         # use diff to compare the actual result in act_fn to reference result in ref_fn,
         # with a fallback of simple string comparison if diff is not available
-        ref_fn = os.path.join(REF_DIR, f"{name}.txt")
-        check_text(ref_fn, act_fn)
+        ref_fn = os.path.join(ref_dir, f"{name}.txt")
+        try:
+            result = subprocess.run(
+                ["diff", "-U", "5", ref_fn, act_fn], capture_output=False
+            )
+            assert result.returncode == 0, "reference and actual result differ"
+        except OSError:
+            with open(ref_fn) as ref_f, open(act_fn) as act_f:
+                ref_str, act_str = ref_f.read(), act_f.read()
+            assert ref_str == act_str, "reference and actual result differ"
 
-        if svg:
-            act_svg_fn = os.path.join(act_dir, f"{name}.svg.txt")
-            ref_svg_fn = os.path.join(REF_DIR, f"{name}.svg.txt")
-            boxed_expr = Expression(Symbol("System`ToBoxes"), act_expr).evaluate(
-                session.evaluation
-            )
-            act_svg = boxed_expr.boxes_to_svg()
-            act_svg = outline_svg(
-                act_svg, precision=2, include_text=True, include_tail=True
-            )
-            with open(act_svg_fn, "w") as f:
-                f.write(act_svg)
-            check_text(ref_svg_fn, act_svg_fn)
-
-        # generate png and compare if requested
-        # NOTE: this experiment was only partially successful, so is not in service.
-        # The inject_font_style call improves things by using a predictable font,
-        # but was only partially successful. Leaving here in case we find a way to use it.
-        if False:
-            act_png_fn = os.path.join(act_dir, f"{name}.png")
-            ref_png_fn = os.path.join(REF_DIR, f"{name}.png")
-            boxed_expr = Expression(Symbol("System`ToBoxes"), act_expr).evaluate(
-                session.evaluation
-            )
-            act_svg = boxed_expr.boxes_to_svg()
-            act_svg = inject_font_style(act_svg)
-            cairosvg.svg2png(
-                bytestring=act_svg.encode("utf-8"),
-                write_to=act_png_fn,
-                background_color="white",
-            )
-            check_png(ref_png_fn, act_png_fn)
+        # remove /tmp file if test was successful
+        if act_fn != ref_fn:
+            os.remove(act_fn)
 
     finally:
         plot.use_vectorized_plot = False
@@ -318,35 +225,26 @@ def yaml_tests(fn, act_dir, vec):
                 "skimage": not skimage,  # skip if no skimage
             }[skip]
         if not skip:
-            svg = not vec and info.get(
-                "svg", True
-            )  # no png for VECTORIZED functions yet
-            # not yet in service - see note above
-            # if not cairosvg or not skimage:
-            #    png = False
-            one_test(name, info["expr"], vec, svg, ..., act_dir)
+            one_test(name, info["expr"], vec, ..., act_dir)
         else:
             print(f"skipping {name}")
 
 
-@pytest.mark.skipif(
-    not os.environ.get("MATHICS_PLOT_DETAILED_TESTS", False),
-    reason="Run just if required",
-)
 def test_all(act_dir="/tmp"):
+    """Run all the tests"""
     # run twice, once without and once with options
     for use_opt in [False, True]:
-        # run CLASSIC tests
-        for name, str_expr, opt, cond in CLASSIC + BOTH:
+        # run classic tests
+        for name, str_expr, opt, cond in classic + both:
             if cond:
                 opt = opt if use_opt else None
-                one_test(name, str_expr, False, False, opt, act_dir)
+                one_test(name, str_expr, False, opt, act_dir)
 
-        # run VECTORIZED tests
-        for name, str_expr, opt, cond in VECTORIZED + BOTH:
+        # run vectorized tests
+        for name, str_expr, opt, cond in vectorized + both:
             if cond:
                 opt = opt if use_opt else None
-                one_test(name, str_expr, True, False, opt, act_dir)
+                one_test(name, str_expr, True, opt, act_dir)
 
     # several of these tests failed on pyodide due to apparent differences
     # in numpy (and/or the blas library backing it) between pyodide and other platforms
@@ -360,21 +258,18 @@ def test_all(act_dir="/tmp"):
 
 # reference files can be generated by pointing saved actual
 # output at reference dir instead of /tmp
-# TODO: this is redundant with --update mode; consider removing this
 def make_ref_files():
-    """build the reference files"""
-    test_all(REF_DIR)
+    """Build the reference files"""
+    test_all(ref_dir)
 
 
 if __name__ == "__main__":
-    import argparse
 
-    parser = argparse.ArgumentParser(description="manage plot tests")
-    parser.add_argument("--update", action="store_true", help="update reference files")
-    args = parser.parse_args()
-    UPDATE_MODE = args.update
+    def run_tests():
+        """Rull all the tests"""
+        try:
+            test_all()
+        except AssertionError:
+            print("FAIL")
 
-    try:
-        test_all()
-    except AssertionError:
-        print("FAIL")
+    run_tests()
