@@ -1,4 +1,4 @@
-from test.helper import check_evaluation, evaluate, session
+from test.helper import check_evaluation, evaluate
 
 import pytest
 

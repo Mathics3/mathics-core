@@ -20,13 +20,7 @@ from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import (
-    SYMPY_SLOT_PREFIX,
-    SYMPY_SYMBOL_PREFIX,
-    Symbol,
-    SymbolPlus,
-    sympy_name,
-)
+from mathics.core.symbols import SYMPY_SLOT_PREFIX, Symbol, SymbolPlus, sympy_name
 from mathics.core.systemsymbols import (
     SymbolD,
     SymbolDerivative,

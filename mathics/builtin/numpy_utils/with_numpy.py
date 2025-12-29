@@ -21,7 +21,9 @@ from mathics.core.list import ListExpression
 try:
     ast_Str = ast.Constant
 except AttributeError:
-    ast_Str = lambda x: ast.Str(s=x)
+
+    def ast_Str(x):
+        return ast.Str(s=x)
 
 
 def _promote(x, shape):
