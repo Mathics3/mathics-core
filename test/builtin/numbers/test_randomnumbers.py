@@ -41,15 +41,6 @@ def test_random_sample(str_expr, str_expected):
     )
 
 
-# -*- coding: utf-8 -*-
-"""
-Unit tests for mathics.builtins.specialfns.gamma
-"""
-from test.helper import check_evaluation
-
-import pytest
-
-
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [

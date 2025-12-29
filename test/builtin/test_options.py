@@ -4,7 +4,7 @@ Unit tests from mathics.builtin.options.
 """
 
 
-from test.helper import check_evaluation, session
+from test.helper import check_evaluation
 
 import pytest
 

@@ -1,5 +1,3 @@
-import test.helper
-
 import pytest
 from sympy import Float as SympyFloat
 
