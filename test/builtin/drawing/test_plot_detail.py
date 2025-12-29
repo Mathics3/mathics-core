@@ -95,54 +95,6 @@ from mathics.core.util import print_expression_tree
 
 from .svg_outline import outline_svg
 
-# common plotting options for 2d plots to test with and without
-OPT_2 = """
-    AspectRatio -> 2,
-    Axes -> False,
-    Frame -> False,
-    Mesh -> Full,
-    PlotPoints -> 10
-"""
-
-# 3d plots add these options
-OPT_3 = (
-    OPT_2
-    + """,
-    BoxRatios -> {1, 2, 3}
-"""
-)
-
-# non-VECTORIZED available, VECTORIZED not available,
-CLASSIC = [
-    ("barchart", "BarChart[{3,5,2,7}]", OPT_2, True),
-    ("discreteplot", "DiscretePlot[n^2,{n,1,10}]", OPT_2, True),
-    ("histogram", "Histogram[{1,1,1,5,5,7,8,8,8}]", OPT_2, True),
-    ("listlineplot", "ListLinePlot[{1,4,2,5,3}]", OPT_2, True),
-    ("listplot", "ListPlot[{1,4,2,5,3}]", OPT_2, True),
-    ("liststepplot", "ListStepPlot[{1,4,2,5,3}]", OPT_2, True),
-    # ("manipulate", "Manipulate[Plot[a x,{x,0,1}],{a,0,5}]", OPT_2, True),
-    ("numberlineplot", "NumberLinePlot[{1,3,4}]", OPT_2, True),
-    ("parametricplot", "ParametricPlot[{t,2 t},{t,0,2}]", OPT_2, True),
-    ("piechart", "PieChart[{3,2,5}]", OPT_2, True),
-    ("plot", "Plot[x, {x, 0, 1}]", OPT_2, True),
-    ("polarplot", "PolarPlot[3 θ,{θ,0,2}]", OPT_2, True),
-]
-
-# VECTORIZED available, non-VECTORIZED not available
-VECTORIZED = [
-    ("complexplot", "ComplexPlot[Exp[I z],{z,-2-2 I,2+2 I}]", OPT_2, True),
-    ("complexplot3d", "ComplexPlot3D[Exp[I z],{z,-2-2 I,2+2 I}]", OPT_3, True),
-    ("contourplot-1", "ContourPlot[x^2-y^2,{x,-2,2},{y,-2,2}]", OPT_2, skimage),
-    ("contourplot-2", "ContourPlot[x^2+y^2==1,{x,-2,2},{y,-2,2}]", OPT_2, skimage),
-]
-
-# both VECTORIZED and non-VECTORIZED available
-BOTH = [
-    ("densityplot", "DensityPlot[x y,{x,-2,2},{y,-2,2}]", OPT_2, True),
-    ("plot3d", "Plot3D[x y,{x,-2,2},{y,-2,2}]", OPT_3, True),
-]
-
-
 # compute reference dir, which is this file minus .py plus _ref
 # and actual dir that stores actual output, this file minus .py plus _act
 PATH, _ = os.path.splitext(__file__)
@@ -236,7 +188,7 @@ def check_png(ref_png_fn: str, act_png_fn: str):
     finish(differ, ref_png_fn, act_png_fn)
 
 
-def one_test(name: str, str_expr: str, vec: bool, svg: bool, opt: bool):
+def one_test(name: str, str_expr: str, vec: bool, svg: bool, opts: str):
     """
     Individual test
 
@@ -247,11 +199,11 @@ def one_test(name: str, str_expr: str, vec: bool, svg: bool, opt: bool):
     str_expr : str
         expression to be tested.
     vec : bool
-        if True, use the vectorized code.
+        if True, do a vectorized code.
     svg: bool
-        if True, do the svg test.
-    opt : bool
-        Test with options.
+        if True, do an svg test.
+    opts :
+        Options to splice in
 
     Returns
     -------
@@ -268,13 +220,9 @@ def one_test(name: str, str_expr: str, vec: bool, svg: bool, opt: bool):
 
     # update name and splice in options depending on
     # whether default or with-options test
-    if opt is None:
-        name += "-def"
-    elif opt is ...:
-        pass
-    else:
+    if opts is not None:
         name += "-opt"
-        str_expr = f"{str_expr[:-1]}, {opt}]"
+        str_expr = f"{str_expr[:-1]}, {opts}]"
 
     print(f"=== running {name} {str_expr}")
 
@@ -335,69 +283,70 @@ def one_test(name: str, str_expr: str, vec: bool, svg: bool, opt: bool):
         plot.use_vectorized_plot = False
 
 
-def yaml_tests(fn, vec):
-    """run a set of tests from yaml file fn"""
-
-    # read the yaml file
+def yaml_tests_generator(fn):
     fn = pathlib.Path(__file__).resolve().parent / fn
     with open(fn) as r:
         tests = yaml.safe_load(r)
 
-    # switch to appropriate mode
-    plot.use_vectorized_plot = vec
-
+    defaults = {}
     for name, info in tests.items():
+        # apply defaults if found
+        if name == "__DEFAULTS__":
+            defaults = info
+            continue
+        else:
+            info = defaults | info
+
+        # skip test if marked to skip
         skip = info.get("skip", False)
         if isinstance(skip, str):
             skip = {
                 "pyodide": pyodide,  # skip if on pyodide
                 "skimage": not skimage,  # skip if no skimage
             }[skip]
-        if not skip:
-            svg = not vec and info.get(
-                "svg", True
-            )  # no png for VECTORIZED functions yet
-            # not yet in service - see note above
-            # if not cairosvg or not skimage:
-            #    png = False
-            one_test(name, info["expr"], vec, svg, ...)
-        else:
+        if skip:
             print(f"skipping {name}")
+            continue
+
+        # default is to do both classic and vectorized tests,
+        # but can be overriden either in __DEFAULTS__ or individual tests
+        do_vec = info.get("vec", True)
+        do_cls = info.get("cls", True)
+
+        # some tests run with and without options
+        opts = info.get("opts", None)
+
+        # default is to run svg tests in classic mode (vectorized mode svg not yet available)
+        # unless disabled by test
+        do_svg = not do_vec and info.get(
+            "svg", True
+        )  # no png for VECTORIZED functions yet
+        # not yet in service - see note above
+        # if not cairosvg or not skimage:
+        #    png = False
+
+        for vec in [True, False]:
+            for svg in [True, False] if do_svg else [False]:
+                for opts in [None] if opts is None else [opts, None]:
+                    if vec and not do_vec:
+                        continue
+                    if not vec and not do_cls:
+                        continue
+                    yield dict(
+                        name=name, str_expr=info["expr"], vec=vec, svg=svg, opts=opts
+                    )
 
 
-@pytest.mark.skipif(
-    not os.environ.get("MATHICS_PLOT_DETAILED_TESTS", False),
-    reason="Run just if required",
-)
-@pytest.mark.parametrize(
-    (
-        "use_opt",
-        "test",
-        "vec",
-        "svg",
-    ),
-    [
-        (
-            use_opt,
-            test,
-            vec,
-            svg,
-        )
-        for use_opt in (False, True)
-        for vec in (True, False)
-        for svg in (False,)
-        for test in ((VECTORIZED if vec else CLASSIC) + BOTH)
-    ],
-)
-def test_one_tests(use_opt, test, vec, svg):
-    """
-    Do indivual one_test
-    """
-    print({"use_opt": use_opt, "test": test, "vec": vec, "svg": svg})
-    name, str_expr, opt, cond = test
-    if cond:
-        opt = opt if use_opt else None
-        one_test(name, str_expr, vec, svg, opt)
+YAML_TESTS = [
+    "doc_tests.yaml",
+    "vec_tests.yaml",
+    "parameters.yaml",
+]
+
+
+def all_yaml_tests_generator():
+    for fn in YAML_TESTS:
+        yield from yaml_tests_generator(fn)
 
 
 @pytest.mark.skipif(
@@ -408,52 +357,23 @@ def test_one_tests(use_opt, test, vec, svg):
     pyodide is not None,
     reason="Does not work in Pyodide",
 )
-@pytest.mark.parametrize(
-    ("file", "vec"),
-    [
-        parms
-        for parms in (
-            (
-                "vec_tests.yaml",
-                True,
-            ),
-            (
-                "doc_tests.yaml",
-                False,
-            ),
-        )
-    ],
-)
-def test_yaml(file, vec):
+@pytest.mark.parametrize(("parms"), all_yaml_tests_generator())
+def test_yaml(parms):
     """
-    Do yaml tests
+    Execute the yaml test
     """
-    yaml_tests(file, vec=vec)
+    one_test(**parms)
 
 
 def do_test_all():
-    # run twice, once without and once with options
-    for use_opt in [False, True]:
-        # run CLASSIC tests
-        for name, str_expr, opt, cond in CLASSIC + BOTH:
-            if cond:
-                opt = opt if use_opt else None
-                one_test(name, str_expr, False, False, opt)
-
-        # run VECTORIZED tests
-        for name, str_expr, opt, cond in VECTORIZED + BOTH:
-            if cond:
-                opt = opt if use_opt else None
-                one_test(name, str_expr, True, False, opt)
-
     # several of these tests failed on pyodide due to apparent differences
     # in numpy (and/or the blas library backing it) between pyodide and other platforms
     # including numerical instability, different data types (integer vs real)
     # the tests above seem so far to be ok on pyodide, but generally they are
     # simpler than these doc_tests
     if not pyodide:
-        yaml_tests("doc_tests.yaml", vec=False)
-        yaml_tests("vec_tests.yaml", vec=True)
+        for parms in all_yaml_tests_generator():
+            one_test(**parms)
 
 
 if __name__ == "__main__":
