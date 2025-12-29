@@ -1,4 +1,7 @@
 """
+See https://mathics-development-guide.readthedocs.io/en/latest/extending/developing-code/testing.html#plot-output-tests
+for more information, including some helpful hints on how to effectively run the tests and analyze the results.
+
 These tests evaluate Plot* functions, write the result expression to a file in
 outline tree form, and then compare the actual result with an expected reference
 result using diff. For example, if the code that emits a PlotRange based on
