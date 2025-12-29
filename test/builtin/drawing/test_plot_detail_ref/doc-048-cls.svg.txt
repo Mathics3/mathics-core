@@ -1,0 +1,153 @@
+svg
+  @height: 350.00px
+  @viewBox: 0.00 0.00 350.00, 350.00
+  @width: 350.00px
+  path
+    @d: M 175.00,175.00 L 87.50,23.45 A 175.00,175.00,0.00,0.00,0.00,0.00,175.00 Z
+    @style:
+      - fill: rgb(94.12%, 64.71%, 69.02%)
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-width: 1.07px
+  path
+    @d: M 175.00,175.00 L 350.00,175.00 A 175.00,175.00,0.00,0.00,0.00,87.50,23.45 Z
+    @style:
+      - fill: rgb(54.90%, 52.16%, 21.18%)
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-width: 1.07px
+  path
+    @d: M 175.00,175.00 L 0.00,175.00 A 175.00,175.00,0.00,0.00,0.00,350.00,175.00 Z
+    @style:
+      - fill: rgb(98.04%, 81.57%, 38.82%)
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-width: 1.07px
+  ellipse
+    @cx: 175.00
+    @cy: 175.00
+    @rx: 87.50
+    @ry: 87.50
+    @style:
+      - fill: rgb(100.00%, 100.00%, 100.00%)
+      - fill-opacity: 1.00
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-width: 1.07px
+  path
+    @d: M 175.00,175.00 L 163.56,105.94 A 70.00,70.00,0.00,0.00,0.00,105.00,175.00 Z
+    @style:
+      - fill: rgb(94.12%, 64.71%, 69.02%)
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-width: 1.07px
+  path
+    @d: M 175.00,175.00 L 241.26,197.57 A 70.00,70.00,0.00,0.00,0.00,163.56,105.94 Z
+    @style:
+      - fill: rgb(54.90%, 52.16%, 21.18%)
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-width: 1.07px
+  path
+    @d: M 175.00,175.00 L 105.00,175.00 A 70.00,70.00,0.00,0.00,0.00,241.26,197.57 Z
+    @style:
+      - fill: rgb(98.04%, 81.57%, 38.82%)
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-width: 1.07px
+  text
+    @font-size: 10.00px
+    @ox: 0.00
+    @oy: 0.00
+    @style:
+      - color: rgb(0.00%, 0.00%, 0.00%)
+      - dominant-baseline: hanging
+      - fill: rgb(0.00%, 0.00%, 0.00%)
+      - fill-opacity: 1.00
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-opacity: 1.00
+      - stroke-width: 0.20px
+    @x: 61.33
+    @y: 109.38
+    #text: A
+  text
+    @font-size: 10.00px
+    @ox: 0.00
+    @oy: 0.00
+    @style:
+      - color: rgb(0.00%, 0.00%, 0.00%)
+      - dominant-baseline: hanging
+      - fill: rgb(0.00%, 0.00%, 0.00%)
+      - fill-opacity: 1.00
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-opacity: 1.00
+      - stroke-width: 0.20px
+    @x: 240.62
+    @y: 61.33
+    #text: B
+  text
+    @font-size: 10.00px
+    @ox: 0.00
+    @oy: 0.00
+    @style:
+      - color: rgb(0.00%, 0.00%, 0.00%)
+      - dominant-baseline: hanging
+      - fill: rgb(0.00%, 0.00%, 0.00%)
+      - fill-opacity: 1.00
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-opacity: 1.00
+      - stroke-width: 0.20px
+    @x: 175.00
+    @y: 306.25
+    #text: C
+  text
+    @font-size: 10.00px
+    @ox: 0.00
+    @oy: 0.00
+    @style:
+      - color: rgb(0.00%, 0.00%, 0.00%)
+      - dominant-baseline: hanging
+      - fill: rgb(0.00%, 0.00%, 0.00%)
+      - fill-opacity: 1.00
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-opacity: 1.00
+      - stroke-width: 0.20px
+    @x: 148.31
+    @y: 152.36
+    #text: A
+  text
+    @font-size: 10.00px
+    @ox: 0.00
+    @oy: 0.00
+    @style:
+      - color: rgb(0.00%, 0.00%, 0.00%)
+      - dominant-baseline: hanging
+      - fill: rgb(0.00%, 0.00%, 0.00%)
+      - fill-opacity: 1.00
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-opacity: 1.00
+      - stroke-width: 0.20px
+    @x: 201.69
+    @y: 152.36
+    #text: B
+  text
+    @font-size: 10.00px
+    @ox: 0.00
+    @oy: 0.00
+    @style:
+      - color: rgb(0.00%, 0.00%, 0.00%)
+      - dominant-baseline: hanging
+      - fill: rgb(0.00%, 0.00%, 0.00%)
+      - fill-opacity: 1.00
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-opacity: 1.00
+      - stroke-width: 0.20px
+    @x: 169.28
+    @y: 209.53
+    #text: C
