@@ -93,7 +93,7 @@ from mathics.core.util import print_expression_tree
 from .svg_outline import outline_svg
 
 # common plotting options for 2d plots to test with and without
-OPT2 = """
+OPT_2 = """
     AspectRatio -> 2,
     Axes -> False,
     Frame -> False,
@@ -102,8 +102,8 @@ OPT2 = """
 """
 
 # 3d plots add these options
-OPT3 = (
-    OPT2
+OPT_3 = (
+    OPT_2
     + """,
     BoxRatios -> {1, 2, 3}
 """
@@ -111,32 +111,32 @@ OPT3 = (
 
 # non-VECTORIZED available, VECTORIZED not available,
 CLASSIC = [
-    ("barchart", "BarChart[{3,5,2,7}]", OPT2, True),
-    ("discreteplot", "DiscretePlot[n^2,{n,1,10}]", OPT2, True),
-    ("histogram", "Histogram[{1,1,1,5,5,7,8,8,8}]", OPT2, True),
-    ("listlineplot", "ListLinePlot[{1,4,2,5,3}]", OPT2, True),
-    ("listplot", "ListPlot[{1,4,2,5,3}]", OPT2, True),
-    ("liststepplot", "ListStepPlot[{1,4,2,5,3}]", OPT2, True),
-    # ("manipulate", "Manipulate[Plot[a x,{x,0,1}],{a,0,5}]", OPT2, True),
-    ("numberlineplot", "NumberLinePlot[{1,3,4}]", OPT2, True),
-    ("parametricplot", "ParametricPlot[{t,2 t},{t,0,2}]", OPT2, True),
-    ("piechart", "PieChart[{3,2,5}]", OPT2, True),
-    ("plot", "Plot[x, {x, 0, 1}]", OPT2, True),
-    ("polarplot", "PolarPlot[3 θ,{θ,0,2}]", OPT2, True),
+    ("barchart", "BarChart[{3,5,2,7}]", OPT_2, True),
+    ("discreteplot", "DiscretePlot[n^2,{n,1,10}]", OPT_2, True),
+    ("histogram", "Histogram[{1,1,1,5,5,7,8,8,8}]", OPT_2, True),
+    ("listlineplot", "ListLinePlot[{1,4,2,5,3}]", OPT_2, True),
+    ("listplot", "ListPlot[{1,4,2,5,3}]", OPT_2, True),
+    ("liststepplot", "ListStepPlot[{1,4,2,5,3}]", OPT_2, True),
+    # ("manipulate", "Manipulate[Plot[a x,{x,0,1}],{a,0,5}]", OPT_2, True),
+    ("numberlineplot", "NumberLinePlot[{1,3,4}]", OPT_2, True),
+    ("parametricplot", "ParametricPlot[{t,2 t},{t,0,2}]", OPT_2, True),
+    ("piechart", "PieChart[{3,2,5}]", OPT_2, True),
+    ("plot", "Plot[x, {x, 0, 1}]", OPT_2, True),
+    ("polarplot", "PolarPlot[3 θ,{θ,0,2}]", OPT_2, True),
 ]
 
 # VECTORIZED available, non-VECTORIZED not available
 VECTORIZED = [
-    ("complexplot", "ComplexPlot[Exp[I z],{z,-2-2 I,2+2 I}]", OPT2, True),
-    ("complexplot3d", "ComplexPlot3D[Exp[I z],{z,-2-2 I,2+2 I}]", OPT3, True),
-    ("contourplot-1", "ContourPlot[x^2-y^2,{x,-2,2},{y,-2,2}]", OPT2, skimage),
-    ("contourplot-2", "ContourPlot[x^2+y^2==1,{x,-2,2},{y,-2,2}]", OPT2, skimage),
+    ("complexplot", "ComplexPlot[Exp[I z],{z,-2-2 I,2+2 I}]", OPT_2, True),
+    ("complexplot3d", "ComplexPlot3D[Exp[I z],{z,-2-2 I,2+2 I}]", OPT_3, True),
+    ("contourplot-1", "ContourPlot[x^2-y^2,{x,-2,2},{y,-2,2}]", OPT_2, skimage),
+    ("contourplot-2", "ContourPlot[x^2+y^2==1,{x,-2,2},{y,-2,2}]", OPT_2, skimage),
 ]
 
 # both VECTORIZED and non-VECTORIZED available
 BOTH = [
-    ("densityplot", "DensityPlot[x y,{x,-2,2},{y,-2,2}]", OPT2, True),
-    ("plot3d", "Plot3D[x y,{x,-2,2},{y,-2,2}]", OPT3, True),
+    ("densityplot", "DensityPlot[x y,{x,-2,2},{y,-2,2}]", OPT_2, True),
+    ("plot3d", "Plot3D[x y,{x,-2,2},{y,-2,2}]", OPT_3, True),
 ]
 
 
@@ -156,8 +156,11 @@ def copy_file(dst_fn, src_fn):
         dst_f.write(src_f.read())
 
 
-# finish up: raise exception or update ref, and delete /tmp file if no assertion
-def finish(differ, ref_fn, act_fn):
+def finish(differ: bool, ref_fn: str, act_fn: str):
+    """
+    finish up: raise exception or update ref, and delete /tmp file
+    if no assertion
+    """
     # if ref and act differ, either update act_fn if in UPDATE_MODE, or raise assertion if not
     if differ:
         if UPDATE_MODE:
@@ -186,9 +189,11 @@ def finish(differ, ref_fn, act_fn):
         os.remove(act_fn)
 
 
-# compare ref_fn and act_fn and either raise exception or update act_fn,
-# depending on UPDATE_MODE
-def check_text(ref_fn, act_fn):
+def check_text(ref_fn: str, act_fn: str):
+    """
+    compare ref_fn and act_fn and either raise exception or update act_fn,
+    depending on UPDATE_MODE
+    """
     if os.path.exists(ref_fn):
         try:
             result = subprocess.run(
@@ -204,11 +209,13 @@ def check_text(ref_fn, act_fn):
     finish(differ, ref_fn, act_fn)
 
 
-# compare ref_png_fn and act_png_fn and either raise exception or update act_fn,
-# depending on UPDATE_MODE
-# for PNG files we have to read the file and compare the actual image data
 # NOTE: this is not yet in service - see not below
-def check_png(ref_png_fn, act_png_fn):
+def check_png(ref_png_fn: str, act_png_fn: str):
+    """
+    compare ref_png_fn and act_png_fn and either raise exception
+    or update act_fn, depending on UPDATE_MODE
+    for PNG files we have to read the file and compare the actual image data.
+    """
     if os.path.exists(ref_png_fn):
         act_img = skimage.io.imread(act_png_fn)[:, :, 0:3]
         ref_img = skimage.io.imread(ref_png_fn)[:, :, 0:3]
@@ -222,7 +229,33 @@ def check_png(ref_png_fn, act_png_fn):
     finish(differ, ref_png_fn, act_png_fn)
 
 
-def one_test(name, str_expr, vec, svg, opt, act_dir="/tmp"):
+def one_test(
+    name: str, str_expr: str, vec: bool, svg: bool, opt: bool, act_dir: str = "/tmp"
+):
+    """
+    Individual test
+
+    Parameters
+    ----------
+    name : str
+        Name of the test.
+    str_expr : str
+        expression to be tested.
+    vec : bool
+        if True, use the vectorized code.
+    svg: bool
+        if True, do the svg test.
+    opt : bool
+        Test with options.
+    act_dir : str, optional
+        The output folder. "/tmp".
+
+    Returns
+    -------
+    None.
+
+    """
+
     # update name and set use_vectorized_plot depending on
     # whether VECTORIZED test
     if vec:
