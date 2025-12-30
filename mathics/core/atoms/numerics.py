@@ -309,7 +309,7 @@ class Integer(Number[int]):
 
         try:
             if form in ("System`InputForm", "System`FullForm"):
-                return _boxed_string(str(self.value), number_as_text=SymbolTrue)
+                return _boxed_string(str(self._value), number_as_text=SymbolTrue)
 
             return String(str(self._value))
         except ValueError:
@@ -522,11 +522,9 @@ class MachineReal(Real[float]):
         from mathics.eval.makeboxes import NumberForm_to_String
 
         _number_form_options["_Form"] = form  # passed to _NumberFormat
-        if form in ("System`InputForm", "System`FullForm"):
-            n = None
-        else:
-            n = 6
-        return NumberForm_to_String(self, n, None, None, _number_form_options)
+        n = 6 if form == "System`OutputForm" else None
+        num_str = NumberForm_to_String(self, n, None, None, _number_form_options)
+        return num_str
 
     @property
     def is_zero(self) -> bool:
@@ -643,9 +641,8 @@ class PrecisionReal(Real[sympy.Float]):
         from mathics.eval.makeboxes import NumberForm_to_String
 
         _number_form_options["_Form"] = form  # passed to _NumberFormat
-        return NumberForm_to_String(
-            self, dps(self.get_precision()), None, None, _number_form_options
-        )
+        digits = dps(self.get_precision()) if form == "System`OutputForm" else None
+        return NumberForm_to_String(self, digits, None, None, _number_form_options)
 
     def round(self, d: Optional[int] = None) -> Union[MachineReal, "PrecisionReal"]:
         if d is None:
