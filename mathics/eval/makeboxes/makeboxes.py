@@ -146,8 +146,7 @@ def eval_makeboxes_outputform(expr, evaluation, form):
 
     text_outputform = str(expression_to_outputform_text(expr, evaluation, form))
     elem1 = PaneBox(String(text_outputform))
-    elem2 = Expression(SymbolOutputForm, expr)
-    return InterpretationBox(elem1, elem2)
+    return elem1
 
 
 # TODO: evaluation is needed because `atom_to_boxes` uses it. Can we remove this

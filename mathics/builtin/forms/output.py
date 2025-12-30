@@ -14,7 +14,7 @@ Form Functions
 """
 from typing import Optional
 
-from mathics.builtin.box.layout import RowBox
+from mathics.builtin.box.layout import InterpretationBox, RowBox
 from mathics.builtin.forms.base import FormBaseClass
 from mathics.core.atoms import Integer, Real, String, StringFromPython
 from mathics.core.builtin import Builtin
@@ -28,6 +28,7 @@ from mathics.core.systemsymbols import (
     SymbolInfinity,
     SymbolMakeBoxes,
     SymbolNumberForm,
+    SymbolOutputForm,
     SymbolRowBox,
     SymbolRuleDelayed,
     SymbolSuperscriptBox,
@@ -496,7 +497,10 @@ class OutputForm(FormBaseClass):
 
     def eval_makeboxes(self, expr, form, evaluation):
         """MakeBoxes[OutputForm[expr_], form_]"""
-        return eval_makeboxes_outputform(expr, evaluation, form)
+        pane = eval_makeboxes_outputform(expr, evaluation, form)
+        return InterpretationBox(
+            pane, Expression(SymbolOutputForm, expr), **{"System`Editable": SymbolFalse}
+        )
 
 
 class PythonForm(FormBaseClass):
