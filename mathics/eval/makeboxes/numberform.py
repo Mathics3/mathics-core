@@ -284,7 +284,7 @@ def NumberForm_to_String(
 
     boxed_base = _boxed_string(base, number_as_text=SymbolFalse)
     boxed_pexp = _boxed_string(pexp, number_as_text=SymbolFalse)
-    print("parts:", [boxed_s, boxed_base, boxed_pexp], method)
+
     return method(
         boxed_s,
         boxed_base,
