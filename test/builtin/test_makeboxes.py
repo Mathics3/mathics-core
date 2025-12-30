@@ -9,9 +9,95 @@ import pytest
 DEBUGMAKEBOXES = int(os.environ.get("DEBUGMAKEBOXES", "0")) == 1
 
 if DEBUGMAKEBOXES:
-    skip_or_fail = pytest.mark.xfail
+
+    def skip_or_fail(x):
+        return x
+
 else:
-    skip_or_fail = pytest.mark.skip
+    skip_or_fail = pytest.mark.xfail
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "fail_msg", "msgs"),
+    [
+        ("MakeBoxes[x]", '"x"', "StandardForm"),
+        (
+            "MakeBoxes[InputForm[x]]",
+            'InterpretationBox[StyleBox["x", ShowStringCharacters -> True, NumberMarks -> True], InputForm[x], Editable -> True, AutoDelete -> True]',
+            "InputForm, expression",
+        ),
+        (
+            "MakeBoxes[OutputForm[x]]",
+            'InterpretationBox[PaneBox[""x""], OutputForm[x], Editable -> False]',
+            "OutputForm, expression",
+        ),
+        (
+            "MakeBoxes[FullForm[x]]",
+            'TagBox[StyleBox["x", ShowSpecialCharacters -> False, ShowStringCharacters -> True, NumberMarks -> True], FullForm]',
+            "MakeBoxes expression FullForm",
+        ),
+        (
+            "MakeBoxes[TeXForm[x]]",
+            'InterpretationBox[""x"", TeXForm[x], Editable -> True, AutoDelete -> True]',
+            "TeXForm, expression",
+        ),
+        # Basic Expressions
+        ("MakeBoxes[F[x]]", 'RowBox[{"F", "[", "x", "]"}]', "StandardForm"),
+        (
+            "MakeBoxes[InputForm[F[x]]]",
+            'InterpretationBox[StyleBox["F[x]", ShowStringCharacters -> True, NumberMarks -> True], InputForm[F[x]], Editable -> True, AutoDelete -> True]',
+            "InputForm, expression",
+        ),
+        (
+            "MakeBoxes[OutputForm[F[x]]]",
+            'InterpretationBox[PaneBox[""F[x]""], OutputForm[F[x]], Editable -> False]',
+            "OutputForm, expression",
+        ),
+        (
+            "MakeBoxes[FullForm[F[x]]]",
+            'TagBox[StyleBox[RowBox[{"F", "[", "x", "]"}], ShowSpecialCharacters -> False, ShowStringCharacters -> True, NumberMarks -> True], FullForm]',
+            "MakeBoxes expression FullForm",
+        ),
+        (
+            "MakeBoxes[TeXForm[F[x]]]",
+            'InterpretationBox[""F(x)"", TeXForm[F[x]], Editable -> True, AutoDelete -> True]',
+            "TeXForm, expression",
+        ),
+        # Arithmetic
+        ("MakeBoxes[a-b]", 'RowBox[{"a", "-", "b"}]', "difference, StandardForm"),
+        (
+            "MakeBoxes[a-b//InputForm]",
+            'InterpretationBox[StyleBox["a - b", ShowStringCharacters -> True, NumberMarks -> True], InputForm[a - b], Editable -> True, AutoDelete -> True]',
+            "difference, InputForm",
+        ),
+        (
+            "MakeBoxes[a-b//OutputForm]",
+            'InterpretationBox[PaneBox[""a - b""], OutputForm[a - b], Editable -> False]',
+            "difference, OutputForm",
+        ),
+        (
+            "MakeBoxes[a-b//FullForm]",
+            'TagBox[StyleBox[RowBox[{"Plus", "[", RowBox[{"a", ",", RowBox[{"Times", "[", RowBox[{RowBox[{"-", "1"}], ",", "b"}], "]"}]}], "]"}], ShowSpecialCharacters -> False, ShowStringCharacters -> True, NumberMarks -> True], FullForm]',
+            "Difference, FullForm",
+        ),
+        (
+            "MakeBoxes[a-b//TeXForm]",
+            ' InterpretationBox[""a-b"", TeXForm[a-b], Editable -> True, AutoDelete -> True]',
+            "Difference, TeXForm",
+        ),
+    ],
+)
+@skip_or_fail
+def test_makeboxes_basic_forms(str_expr, str_expected, fail_msg, msgs):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=fail_msg,
+        expected_messages=msgs,
+    )
 
 
 @pytest.mark.parametrize(
@@ -79,8 +165,22 @@ def test_makeboxes_real(str_expr, str_expected, msg):
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "msg"),
     [
-        (r"MakeBoxes[1.4]", r"1.4`", None),
-        (r"MakeBoxes[1.4`]", r"1.4`", None),
+        (r"MakeBoxes[1.4`]", r"1.4`", "StandardForm always shows a prec mark."),
+        (
+            r"MakeBoxes[OutputForm[1.4]]",
+            r'InterpretationBox[PaneBox["1.4"], 1.4, Editable -> False]',
+            "MachineReal, OutputForm",
+        ),
+        (
+            r"MakeBoxes[3.142`3]",
+            r"3.142`3",
+            "StandadForm with Prec real shows all the stored digits, and prec",
+        ),
+        (
+            r"MakeBoxes[OutputForm[3.142`3]]",
+            r'InterpretationBox[PaneBox["3.14"], 3.14, Editable -> False]',
+            "OutputForm trims digits up to prec.",
+        ),
         (r"MakeBoxes[1.5`20]", r"1.5`20.", None),
         (r"MakeBoxes[1.4`20]", r"1.4`20.", None),
         (r"MakeBoxes[1.5``20]", r"1.5`20.1760912591", None),
@@ -88,7 +188,6 @@ def test_makeboxes_real(str_expr, str_expected, msg):
         (r"MakeBoxes[34.*^3]", r"34000.`", None),
         (r"MakeBoxes[0`]", r"0.`", None),
         (r"MakeBoxes[0``30]", r"0.``30.", None),
-        (r"MakeBoxes[0.`]", r"0.`", None),
         (r"MakeBoxes[0.`3]", r"0.`", None),
         (r"MakeBoxes[0.``30]", r"0.``30.", None),
         (r"MakeBoxes[-14]", r"RowBox[{-, 14}]", None),
