@@ -6,24 +6,18 @@ A graphical plot displays information about functions or points.
 
 from abc import ABC
 from functools import lru_cache
-from typing import Callable, Optional
+from typing import Callable
 
 import numpy as np
 
 from mathics.builtin.graphics import Graphics
-from mathics.builtin.options import options_to_rules
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
-from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression
-from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolList
 from mathics.core.systemsymbols import SymbolPlotRange, SymbolSequence
-from mathics.eval.drawing.plot import ListPlotType, eval_Plot
+from mathics.eval.drawing.plot import eval_Plot
 from mathics.eval.drawing.plot_vectorized import eval_Plot_vectorized
-from mathics.eval.nevaluator import eval_N
 
 from . import plot
 
