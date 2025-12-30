@@ -6,7 +6,120 @@
 #
 __DEFAULTS__:
     cls: False
+
 vec-contourplot-expr-x:
     expr: ContourPlot[x, {x, -2, 2}, {y, -1, 1}, Contours->{0, 0.5}, AspectRatio->Automatic]
 vec-plot3d-plotrange-z:
     expr: Plot3D[x y, {x, -2, 2}, {y, -1, 1}, PlotRange -> {-1, 1}]
+vec-plot-exclusions:
+    expr: Plot[x, {x,0,10}, Exclusions->{-1, 1, 2.5, 11}]
+vec-parametricplot-zeta-sideways:
+    expr: '
+        ParametricPlot[
+            {{Abs[Zeta[0.5 + I y]], y}},
+            {y,0,50},
+            PlotRange -> {{0, 4}, {0, 50}},
+            AxesLabel -> {"|zeta(x + i y)|", "y"},
+            ImageSize->{300,400}
+        ]
+    '
+
+#
+# Following is a curated subset of doc_tests.yaml that have vectorized implementation.
+# Culled to remove repetitive tests.
+# If the switch is flipped in doc_tests.yaml so that it does vectorized tests on everything
+# then these will become redundant.
+#
+vec-doc-006:
+    expr: DensityPlot[1 / x, {x, 0, 1}, {y, 0, 1}]
+vec-doc-008:
+    expr: DensityPlot[Sin[x y], {x, -2, 2}, {y, -2, 2}, Mesh->Full]
+vec-doc-009:
+    expr: DensityPlot[Sqrt[x * y], {x, -1, 1}, {y, -1, 1}]
+vec-doc-010:
+    expr: "DensityPlot[x ^ 2 + 1 / y, {x, -1, 1}, {y, 1, 4}, ColorFunction -> (Blend[{Red, Green, Blue}, #]&)]"
+vec-doc-012:
+    expr: DensityPlot[x^2 y, {x, -1, 1}, {y, -1, 1}, Mesh->All]
+vec-doc-036:
+    expr: LogPlot[x^x, {x, 1, 5}]
+vec-doc-037:
+    expr: LogPlot[{10^x, Factorial[x], Subfactorial[x]}, {x, 0, 25}, PlotPoints->26]
+vec-doc-038:
+    expr: LogPlot[{x^x, Exp[x], x!}, {x, 1, 5}]
+vec-doc-041:
+    expr: ParametricPlot[ {LegendreP[7, x], LegendreP[5, x]}, {x, -1, 1}]
+vec-doc-042:
+    expr: ParametricPlot[{Cos[u] / u, Sin[u] / u}, {u, 0, 50}, PlotRange->0.5]
+vec-doc-043:
+    expr: ParametricPlot[{Sin[u], Cos[3 u]}, {u, 0, 2 Pi}]
+vec-doc-044:
+    expr: ParametricPlot[{{Sin[u], Cos[u]},{0.6 Sin[u], 0.6 Cos[u]}, {0.2 Sin[u], 0.2 Cos[u]}}, {u, 0, 2 Pi}, PlotRange->1, AspectRatio->1]
+vec-doc-051:
+    expr: Plot3D[Exp[x] Cos[y], {x, -2, 1}, {y, -Pi, 2 Pi}]
+vec-doc-052:
+    expr: Plot3D[Log[x + y^2], {x, -1, 1}, {y, -1, 1}]
+vec-doc-053:
+    expr: Plot3D[Sin[x y] /(x y), {x, -3, 3}, {y, -3, 3}, Mesh->All]
+vec-doc-054:
+    expr: Plot3D[Sin[x y], {x, -2, 2}, {y, -2, 2}, Mesh->Full]
+vec-doc-055:
+    expr: Plot3D[Sin[y + Sin[3 x]], {x, -2, 2}, {y, -2, 2}, PlotPoints->20]
+vec-doc-056:
+    expr: Plot3D[x / (x ^ 2 + y ^ 2 + 1), {x, -2, 2}, {y, -2, 2}, Mesh->None]
+vec-doc-058:
+    expr: Plot3D[{x^2 + y^2, -x^2 - y^2}, {x, -2, 2}, {y, -2, 2}, BoxRatios-> Automatic, Mesh->None]
+vec-doc-059:
+    expr: Plot[3.1, {x, 0, 1}]
+vec-doc-060:
+    expr: Plot[Abs[x], {x, -4, 4}]
+vec-doc-061:
+    expr: Plot[AiryAiPrime[x], {x, -10, 10}]
+vec-doc-066:
+    expr: Plot[BesselI[0, x], {x, 0, 5}]
+vec-doc-074:
+    expr: Plot[Evaluate[Table[x^y, {y, 1, 5}]], {x, -1.5, 1.5}, AspectRatio -> 1]
+vec-doc-077:
+    expr: Plot[Hypergeometric1F1[1, 2, x], {x, -5, 5}]
+vec-doc-087:
+    expr: Plot[LambertW[x], {x, -1/E, E}]
+vec-doc-089:
+    expr: Plot[Log[x], {x, 0, 5}, MaxRecursion->0]
+vec-doc-090:
+    expr: Plot[Log[x], {x, 0, 5}]
+vec-doc-091:
+    expr: Plot[LucasL[1/2, x], {x, -5, 5}]
+vec-doc-092:
+    expr: Plot[Piecewise[{{Log[x], x > 0}, {x*-0.5, x < 0}}], {x, -1, 1}]
+vec-doc-094:
+    expr: Plot[ProductLog[x], {x, -1/E, E}]
+vec-doc-095:
+    expr: Plot[Sin[Cos[x^2]],{x,-4,4}, PlotPoints->22]
+vec-doc-096:
+    expr: Plot[Sin[Cos[x^2]],{x,-4,4}, PlotRange -> All]
+vec-doc-097:
+    expr: Plot[Sin[Cos[x^2]],{x,-4,4},Mesh->All]
+vec-doc-099:
+    expr: Plot[Sin[x], {x, 0, 10}, ImageSize -> Small]
+vec-doc-100:
+    expr: Plot[Sin[x], {x, 0, 2 Pi}, Background -> LightBlue]
+vec-doc-102:
+    expr: Plot[Sin[x], {x, 0, 4 Pi}, PlotRange->{{0, 4 Pi}, {0, 1.5}}]
+vec-doc-103:
+    expr: Plot[Sin[x], {x,0,4 Pi}, Mesh->Full]
+vec-doc-105:
+    expr: Plot[SphericalBesselY[1, x], {x, 0, 10}]
+vec-doc-109:
+    expr: Plot[Tan[x], {x, -6, 6}, Mesh->Full]
+vec-doc-110:
+    expr: Plot[Tan[x], {x, 0, 6}, Mesh->All, PlotRange->{{-1, 5}, {0, 15}}, MaxRecursion->10]
+vec-doc-113:
+    expr: Plot[Zeta[z], {z, -20, 10}]
+vec-doc-116:
+    expr: Plot[{Cos[a], Re[E^(I a)]}, {a, 0, 2 Pi}]
+vec-doc-122:
+    expr: Plot[{Sin[x], Cos[x], x / 3}, {x, -Pi, Pi}, Background -> RGBColor[0.5, .5, .5, 0.1]]
+vec-doc-125:
+    expr: PolarPlot[Abs[Cos[5t]], {t, 0, Pi}]
+vec-doc-128:
+    expr: PolarPlot[{1, 1 + Sin[20 t] / 5}, {t, 0, 2 Pi}]
+    
