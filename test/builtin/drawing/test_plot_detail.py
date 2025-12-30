@@ -391,5 +391,7 @@ if __name__ == "__main__":
 
     try:
         do_test_all()
-    except AssertionError:
+    except AssertionError as oops:
+        print(oops)
         print("FAIL")
+        raise

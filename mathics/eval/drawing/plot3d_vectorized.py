@@ -20,6 +20,7 @@ from mathics.core.systemsymbols import (
 )
 from mathics.timing import Timer
 
+from .colors import palette2, palette3, palette_color_directive
 from .util import GraphicsGenerator
 
 
@@ -128,40 +129,6 @@ def make_plot(plot_options, evaluation: Evaluation, dim: int, is_complex: bool, 
                 graphics.add_complex(xyzs.real, lines=inxs.T, polys=None)
 
     return graphics
-
-
-# color-blind friendly palette from https://davidmathlogic.com/colorblind
-# palette3 is for 3d plots, i.e. surfaces
-palette3 = [
-    (255, 176, 0),  # orange
-    (100, 143, 255),  # blue
-    (220, 38, 127),  # red
-    (50, 150, 140),  # green
-    (120, 94, 240),  # purple
-    (254, 97, 0),  # dark orange
-    (0, 114, 178),  # dark blue
-]
-
-
-# palette 2 is for 2d plots, i.e. lines
-# same colors as palette3 but in a little different order
-palette2 = [
-    (100, 143, 255),  # blue
-    (255, 176, 0),  # orange
-    (50, 150, 140),  # green
-    (220, 38, 127),  # red
-    (120, 94, 240),  # purple
-    (254, 97, 0),  # dark orange
-    (0, 114, 178),  # dark blue
-]
-
-
-def palette_color_directive(palette, i):
-    """returns a directive in a form suitable for graphics.add_directives"""
-    """ for setting the color of an entire entity such as a line or surface """
-    rgb = palette[i % len(palette)]
-    rgb = [c / 255.0 for c in rgb]
-    return [SymbolRGBColor, *rgb]
 
 
 @Timer("density_colors")
