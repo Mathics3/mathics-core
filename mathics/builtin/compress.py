@@ -23,7 +23,7 @@ class Compress(Builtin):
     </dl>
 
     >> Compress[N[Pi, 10]]
-     = eJwz1jM0MTS1NDIzNQEADRsCNw==
+     = eJwz1jM0MTS1NDIzNTZLMDQAABh8Ay0=
 
     """
 
