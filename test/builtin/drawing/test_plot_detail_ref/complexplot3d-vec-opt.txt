@@ -861,9 +861,9 @@ System`Graphics3D
   System`Rule
     System`PlotRange
     System`List
-      System`String "System`Automatic"
-      System`String "System`Automatic"
-      System`String "System`Automatic"
+      System`Automatic
+      System`Automatic
+      System`Automatic
   System`Rule
     System`PlotRangeClipping
     System`False

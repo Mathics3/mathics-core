@@ -188,7 +188,7 @@ System`Graphics3D
       System`List
         System`Real -2.0
         System`Real 2.0
-      System`String "System`Automatic"
+      System`Automatic
   System`Rule
     System`PlotRangeClipping
     System`False
