@@ -1,78 +1,24 @@
 System`Graphics
   System`List
-    System`Hue
-      System`Real 0.67
-      System`Real 0.6
-      System`Real 0.6
-    System`Line
-      System`List
-        System`List
-          System`List
-            System`Real 0.0
-            System`Real 0.0
-          System`List
-            System`Real 0.111111
-            System`Real 0.111111
-          System`List
-            System`Real 0.222222
-            System`Real 0.222222
-          System`List
-            System`Real 0.333333
-            System`Real 0.333333
-          System`List
-            System`Real 0.444444
-            System`Real 0.444444
-          System`List
-            System`Real 0.555556
-            System`Real 0.555556
-          System`List
-            System`Real 0.666667
-            System`Real 0.666667
-          System`List
-            System`Real 0.777778
-            System`Real 0.777778
-          System`List
-            System`Real 0.888889
-            System`Real 0.888889
-          System`List
-            System`Real 1.0
-            System`Real 1.0
-    System`Hue
-      System`Real 0.67
-      System`Real 0.6
-      System`Real 0.6
-    System`Point
-      System`List
-        System`List
-          System`Real 0.0
-          System`Real 0.0
-        System`List
-          System`Real 0.111111
-          System`Real 0.111111
-        System`List
-          System`Real 0.222222
-          System`Real 0.222222
-        System`List
-          System`Real 0.333333
-          System`Real 0.333333
-        System`List
-          System`Real 0.444444
-          System`Real 0.444444
-        System`List
-          System`Real 0.555556
-          System`Real 0.555556
-        System`List
-          System`Real 0.666667
-          System`Real 0.666667
-        System`List
-          System`Real 0.777778
-          System`Real 0.777778
-        System`List
-          System`Real 0.888889
-          System`Real 0.888889
-        System`List
-          System`Real 1.0
-          System`Real 1.0
+    System`RGBColor
+      System`Real 0.392157
+      System`Real 0.560784
+      System`Real 1.0
+    System`GraphicsComplex
+      System`NumericArray NumericArray[Real*, 10×2]
+        [[0.         0.        ]
+         [0.11111111 0.11111111]
+         [0.22222222 0.22222222]
+         [0.33333333 0.33333333]
+         [0.44444444 0.44444444]
+         [0.55555556 0.55555556]
+         [0.66666667 0.66666667]
+         [0.77777778 0.77777778]
+         [0.88888889 0.88888889]
+         [1.         1.        ]]
+      System`Line
+        System`NumericArray NumericArray[Integer*, 10]
+          [ 1  2  3  4  5  6  7  8  9 10]
   System`Rule
     System`AlignmentPoint
     System`Center
@@ -157,12 +103,8 @@ System`Graphics
   System`Rule
     System`PlotRange
     System`List
-      System`List
-        System`Real -0.05
-        System`Real 1.05
-      System`List
-        System`Real -0.05
-        System`Real 1.05
+      System`Automatic
+      System`Automatic
   System`Rule
     System`PlotRangeClipping
     System`False

@@ -38,6 +38,7 @@ from mathics.core.systemsymbols import (
     SymbolPolygon,
 )
 from mathics.eval.nevaluator import eval_N
+from mathics.timing import Timer
 
 ListPlotNames = (
     "DiscretePlot",
@@ -63,8 +64,6 @@ class ListPlotPairOfNumbersError(Exception):
     """
     Called eval_ListPlot with a plot group that is not a list of pairs.
     """
-
-    pass
 
 
 def automatic_plot_range(values):
@@ -338,7 +337,6 @@ def eval_ListPlot(
                     plot_groups[lidx][i + 1] = seg[j + 1 :]
                     i -= 1
                     break
-                pass
 
             # For step plots, we have 2n points; n -1 of these
             # we create from the n points by
@@ -405,7 +403,6 @@ def eval_ListPlot(
                 ]
                 for line_segment in line_segments:
                     graphics.append(Expression(SymbolLine, from_python(line_segment)))
-                pass
             else:
                 mathics_segment = from_python(segment)
                 if is_joined_plot:
@@ -446,8 +443,6 @@ def eval_ListPlot(
                                     ),
                                 )
                             )
-                pass
-            pass
 
         if index % 4 == 0:
             hue += hue_pos
@@ -470,6 +465,7 @@ def eval_ListPlot(
     )
 
 
+@Timer("eval_Plot")
 def eval_Plot(plot_options, options: dict, evaluation: Evaluation) -> Expression:
     """
     Evaluation part of Plot[]
