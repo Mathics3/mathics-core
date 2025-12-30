@@ -17,9 +17,8 @@ System`Graphics
          [-1.09603584  5.21949709]
          [-2.49688102  5.45578456]]
       System`Line
-        System`NumericArray NumericArray[Integer*, 2×9]
-          [[ 1  2  3  4  5  6  7  8  9]
-           [ 2  3  4  5  6  7  8  9 10]]
+        System`NumericArray NumericArray[Integer*, 10]
+          [ 1  2  3  4  5  6  7  8  9 10]
   System`Rule
     System`AlignmentPoint
     System`Center

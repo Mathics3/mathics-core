@@ -48,9 +48,8 @@ def eval_Plot_vectorized(plot_options, options, evaluation: Evaluation):
     # compute requested regularly spaced points over the requested range
     ts = np.linspace(tmin, tmax, nt)
 
-    # 1-based indexes into point array, and stacked to form lines
-    inxs = np.arange(nt) + 1
-    lines = np.stack([inxs[:-1], inxs[1:]])
+    # 1-based indexes into point array to form a line
+    line = np.arange(nt) + 1
 
     # compute the curves and accumulate in a GraphicsGenerator
     graphics = GraphicsGenerator(dim=2)
@@ -85,7 +84,7 @@ def eval_Plot_vectorized(plot_options, options, evaluation: Evaluation):
         graphics.add_directives(color)
 
         # emit this line
-        graphics.add_complex(xys, lines=lines, polys=None)
+        graphics.add_complex(xys, lines=line, polys=None)
 
     # copy options to output and generate the Graphics expr
     options = options_to_rules(options, Graphics.options)
