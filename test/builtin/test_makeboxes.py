@@ -18,7 +18,7 @@ else:
 
 
 @pytest.mark.parametrize(
-    ("str_expr", "str_expected", "fail_msg", "msgs"),
+    ("str_expr", "str_expected", "fail_msg"),
     [
         ("MakeBoxes[x]", '"x"', "StandardForm"),
         (
