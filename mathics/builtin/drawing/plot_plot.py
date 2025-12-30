@@ -15,7 +15,8 @@ from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
-from mathics.core.systemsymbols import SymbolPlotRange, SymbolSequence
+from mathics.core.symbols import SymbolTrue
+from mathics.core.systemsymbols import SymbolLogPlot, SymbolPlotRange, SymbolSequence
 from mathics.eval.drawing.plot import eval_Plot
 from mathics.eval.drawing.plot_vectorized import eval_Plot_vectorized
 
@@ -95,6 +96,11 @@ class _Plot(Builtin, ABC):
 
         # pass through the expanded plot_range options
         options[str(SymbolPlotRange)] = to_mathics_list(*plot_options.plot_range)
+
+        # inform Graphics renderer that we have taken log10 of values
+        # and that it should adjust the axes accordingly
+        if plot_options.use_log_scale:
+            options[str(SymbolLogPlot)] = SymbolTrue
 
         # this will be either the vectorized or the classic eval function
         eval_function = eval_Plot_vectorized if plot.use_vectorized_plot else eval_Plot
