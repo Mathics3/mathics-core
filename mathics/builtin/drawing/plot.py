@@ -527,6 +527,7 @@ class PlotOptions:
             preserve_symbols = True
             symbol_type = Symbol
         else:
+            # TODO: get rid of these
             preserve_symbols = False
             symbol_type = str
         plot_range = builtin.get_option(options, str(SymbolPlotRange), evaluation)
@@ -539,7 +540,7 @@ class PlotOptions:
         if isinstance(plot_range, (int, float)):
             # PlotRange -> s becomes PlotRange -> {Automatic,...,{-s,s}}
             pr = float(plot_range)
-            plot_range = [symbol_type(SymbolAutomatic)] * dim
+            plot_range = [symbol_type("System`Automatic")] * dim
             plot_range[-1] = [-pr, pr]
             if builtin.get_name() == "System`ParametricPlot":
                 plot_range[0] = [-pr, pr]
@@ -548,7 +549,7 @@ class PlotOptions:
         ):
             # PlotRange -> {s0,s1} becomes  PlotRange -> {Automatic,...,{s0,s1}}
             pr = plot_range
-            plot_range = [symbol_type(SymbolAutomatic)] * dim
+            plot_range = [symbol_type("System`Automatic")] * dim
             plot_range[-1] = pr
         self.plot_range = plot_range
 

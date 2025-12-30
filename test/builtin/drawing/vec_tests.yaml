@@ -8,3 +8,5 @@ __DEFAULTS__:
     cls: False
 vec-contourplot-expr-x:
     expr: ContourPlot[x, {x, -2, 2}, {y, -1, 1}, Contours->{0, 0.5}, AspectRatio->Automatic]
+vec-plot3d-plotrange-z:
+    expr: Plot3D[x y, {x, -2, 2}, {y, -1, 1}, PlotRange -> {-1, 1}]
