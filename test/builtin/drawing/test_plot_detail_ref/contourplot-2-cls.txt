@@ -1,0 +1,18 @@
+System`ContourPlot
+  System`Equal
+    System`Plus
+      System`Power
+        Global`x
+        System`Integer 2
+      System`Power
+        Global`y
+        System`Integer 2
+    System`Integer 1
+  System`List
+    Global`x
+    System`Integer -2
+    System`Integer 2
+  System`List
+    Global`y
+    System`Integer -2
+    System`Integer 2
