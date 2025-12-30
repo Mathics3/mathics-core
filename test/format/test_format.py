@@ -106,8 +106,8 @@ all_test = {
     "-4.32": {
         "msg": "A MachineReal number",
         "text": {
-            "System`StandardForm": "-4.32",
-            "System`TraditionalForm": "-4.32",
+            "System`StandardForm": "-4.32`",
+            "System`TraditionalForm": "-4.32`",
             "System`InputForm": "-4.32",
             "System`OutputForm": "-4.32",
         },
@@ -117,7 +117,7 @@ all_test = {
         "mathml": {
             "System`StandardForm": "<mn>-4.32</mn>",
             "System`TraditionalForm": "<mn>-4.32</mn>",
-            "System`InputForm": "<mtext>-4.32</mtext>",
+            "System`InputForm": "<mn>-4.32</mn>",
             "System`OutputForm": "<mn>-4.32</mn>",
         },
         "latex": {
@@ -130,53 +130,57 @@ all_test = {
     "-4.32`4": {
         "msg": "A PrecisionReal number",
         "text": {
-            "System`StandardForm": "-4.320",
-            "System`TraditionalForm": "-4.320",
-            "System`InputForm": "-4.320",
+            "System`StandardForm": "-4.32`4",
+            "System`TraditionalForm": "-4.32`4",
+            "System`InputForm": "-4.32`4",
             "System`OutputForm": "-4.320",
         },
         "mathml": {
-            "System`StandardForm": "<mn>-4.320</mn>",
-            "System`TraditionalForm": "<mn>-4.320</mn>",
-            "System`InputForm": "<mtext>-4.320</mtext>",
+            "System`StandardForm": "<mn>-4.32</mn>",
+            "System`TraditionalForm": "<mn>-4.32</mn>",
+            "System`InputForm": "<mn>-4.32</mn>",
             "System`OutputForm": "<mn>-4.320</mn>",
         },
         "latex": {
-            "System`StandardForm": "-4.320",
-            "System`TraditionalForm": "-4.320",
-            "System`InputForm": "-4.320",
+            "System`StandardForm": "-4.32",
+            "System`TraditionalForm": "-4.32",
+            "System`InputForm": "-4.32",
             "System`OutputForm": "-4.320",
         },
     },
     "-4.326563712`2": {
         "msg": "A Real number",
         "text": {
-            "System`StandardForm": "-4.3",
-            "System`TraditionalForm": "-4.3",
-            "System`InputForm": "-4.3",
+            "System`StandardForm": "-4.33`2",
+            "System`TraditionalForm": "-4.33`2",
+            "System`InputForm": "-4.33`2",
             "System`OutputForm": "-4.3",
         },
         "mathml": {
-            "System`StandardForm": "<mn>-4.3</mn>",
-            "System`TraditionalForm": "<mn>-4.3</mn>",
-            "System`InputForm": "<mtext>-4.3</mtext>",
+            "System`StandardForm": "<mn>-4.33</mn>",
+            "System`TraditionalForm": "<mn>-4.33</mn>",
+            "System`InputForm": "<mn>-4.33</mn>",
             "System`OutputForm": "<mn>-4.3</mn>",
         },
         "latex": {
-            "System`StandardForm": "-4.3",
-            "System`TraditionalForm": "-4.3",
-            "System`InputForm": "-4.3",
+            "System`StandardForm": "-4.33",
+            "System`TraditionalForm": "-4.33",
+            "System`InputForm": "-4.33",
             "System`OutputForm": "-4.3",
         },
     },
     "1. 10^6": {
         "msg": "very large real number (>10^6)",
         "text": {
-            "System`InputForm": r"1.000000*^6",
+            "System`StandardForm": r"1.0`*^6",
+            "System`TraditionalForm": r"1.0`×10^6",
+            "System`InputForm": r"1.0*^6",
             "System`OutputForm": "1.×10^6",
         },
         "latex": {
-            "System`InputForm": r"1.000000\text{*${}^{\wedge}$}6",
+            "System`StandardForm": r"1.0\text{*${}^{\wedge}$}6",
+            "System`TraditionalForm": r"1.0\times 10^6",
+            "System`InputForm": r"1.0\text{*${}^{\wedge}$}6",
             "System`OutputForm": r"1.\times 10^6",
         },
         "mathml": {},
@@ -184,10 +188,14 @@ all_test = {
     "1. 10^5": {
         "msg": "large real number (<10^6)",
         "text": {
+            "System`StandardForm": r"100000.`",
+            "System`TraditionalForm": "100000.`",
             "System`InputForm": r"100000.",
             "System`OutputForm": "100000.",
         },
         "latex": {
+            "System`StandardForm": r"100000.",
+            "System`TraditionalForm": r"100000.",
             "System`InputForm": r"100000.",
             "System`OutputForm": "100000.",
         },
@@ -196,11 +204,15 @@ all_test = {
     "-1. 10^6": {
         "msg": "large negative real number (>10^6)",
         "text": {
-            "System`InputForm": r"-1.000000*^6",
+            "System`StandardForm": r"-1.0`*^6",
+            "System`TraditionalForm": r"-1.0`×10^6",
+            "System`InputForm": r"-1.0*^6",
             "System`OutputForm": "-1.×10^6",
         },
         "latex": {
-            "System`InputForm": r"-1.000000\text{*${}^{\wedge}$}6",
+            "System`StandardForm": r"-1.0\text{*${}^{\wedge}$}6",
+            "System`TraditionalForm": r"-1.0\times 10^6",
+            "System`InputForm": r"-1.0\text{*${}^{\wedge}$}6",
             "System`OutputForm": r"-1.\times 10^6",
         },
         "mathml": {},
@@ -265,24 +277,24 @@ all_test = {
         },
         "mathml": {},
     },
-    "Complex[1.09*^12,3.]": {
+    "Complex[1.09*^12, 3.]": {
         "msg": "Complex number",
         "text": {
-            "System`StandardForm": "1.09*^12+3. I",
-            "System`TraditionalForm": "1.09×10^12+3.⁢I",
-            "System`InputForm": "1.090000000000*^12 + 3.*I",
+            "System`StandardForm": "1.09`*^12+3.` I",
+            "System`TraditionalForm": "1.09`×10^12+3.`⁢I",
+            "System`InputForm": "1.09*^12 + 3.*I",
             "System`OutputForm": "1.09×10^12 + 3. I",
         },
         "mathml": {
             "System`StandardForm": r"<mrow><mrow><mn>1.09</mn> <mtext>*^</mtext> <mn>12</mn></mrow> <mo>+</mo> <mrow><mn>3.</mn> <mo>&nbsp;</mo> <mi>I</mi></mrow></mrow>",
             "System`TraditionalForm": r'<mrow><mrow><mn>1.09</mn> <mo>×</mo> <msup><mn>10</mn> <mn>12</mn></msup></mrow> <mo>+</mo> <mrow><mn>3.</mn> <mo form="prefix" lspace="0" rspace="0.2em">⁢</mo> <mi>I</mi></mrow></mrow>',
-            "System`InputForm": r"<mrow><mrow><mtext>1.090000000000</mtext> <mtext>*^</mtext> <mtext>12</mtext></mrow> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>3.</mtext> <mtext>*</mtext> <mi>I</mi></mrow></mrow>",
+            "System`InputForm": r"<mrow><mrow><mn>1.09</mn> <mtext>*^</mtext> <mn>12</mn></mrow> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>3.</mn> <mtext>*</mtext> <mi>I</mi></mrow></mrow>",
             "System`OutputForm": r"<mrow><mrow><mn>1.09</mn> <mo>×</mo> <msup><mn>10</mn> <mn>12</mn></msup></mrow> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>3.</mn> <mo>&nbsp;</mo> <mi>I</mi></mrow></mrow>",
         },
         "latex": {
             "System`StandardForm": r"1.09\text{*${}^{\wedge}$}12+3. I",
             "System`TraditionalForm": r"1.09\times 10^{12}+3. I",
-            "System`InputForm": r"1.090000000000\text{*${}^{\wedge}$}12\text{ + }3.*I",
+            "System`InputForm": r"1.09\text{*${}^{\wedge}$}12\text{ + }3.*I",
             "System`OutputForm": r"1.09\times 10^{12}\text{ + }3. I",
         },
     },

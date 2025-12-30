@@ -9,9 +9,12 @@ import pytest
 DEBUGMAKEBOXES = int(os.environ.get("DEBUGMAKEBOXES", "0")) == 1
 
 if DEBUGMAKEBOXES:
-    skip_or_fail = pytest.mark.xfail
+
+    def skip_or_fail(x):
+        return x
+
 else:
-    skip_or_fail = pytest.mark.skip
+    skip_or_fail = pytest.mark.xfail
 
 
 @pytest.mark.parametrize(
@@ -79,8 +82,18 @@ def test_makeboxes_real(str_expr, str_expected, msg):
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "msg"),
     [
-        (r"MakeBoxes[1.4]", r"1.4`", None),
-        (r"MakeBoxes[1.4`]", r"1.4`", None),
+        (r"MakeBoxes[1.4`]", r"1.4`", "StandardForm always shows a precision mark."),
+        (r"MakeBoxes[OutputForm[1.4]]", r"1.4", "OutputForm, no mark for MachineReal"),
+        (
+            r"MakeBoxes[3.142`3]",
+            r"3.142`3",
+            "StandardForm with PrecisionReal shows all the stored digits, and precision",
+        ),
+        (
+            r"MakeBoxes[OutputForm[3.142`3]]",
+            r"3.14",
+            "OutputForm trims digits up to precision.",
+        ),
         (r"MakeBoxes[1.5`20]", r"1.5`20.", None),
         (r"MakeBoxes[1.4`20]", r"1.4`20.", None),
         (r"MakeBoxes[1.5``20]", r"1.5`20.1760912591", None),
