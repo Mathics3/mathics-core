@@ -82,17 +82,17 @@ def test_makeboxes_real(str_expr, str_expected, msg):
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "msg"),
     [
-        (r"MakeBoxes[1.4`]", r"1.4`", "StandardForm always shows a prec mark."),
+        (r"MakeBoxes[1.4`]", r"1.4`", "StandardForm always shows a precision mark."),
         (r"MakeBoxes[OutputForm[1.4]]", r"1.4", "OutputForm, no mark for MachineReal"),
         (
             r"MakeBoxes[3.142`3]",
             r"3.142`3",
-            "StandadForm with Prec real shows all the stored digits, and prec",
+            "StandardForm with PrecisionReal shows all the stored digits, and precision",
         ),
         (
             r"MakeBoxes[OutputForm[3.142`3]]",
             r"3.14",
-            "OutputForm trims digits up to prec.",
+            "OutputForm trims digits up to precision.",
         ),
         (r"MakeBoxes[1.5`20]", r"1.5`20.", None),
         (r"MakeBoxes[1.4`20]", r"1.4`20.", None),
