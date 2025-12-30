@@ -306,10 +306,10 @@ def test_power(str_expr, str_expected, expected_message, fail_msg):
         # For some weird reason, the following tests
         # pass if we run this unit test alone, but not
         # if we run it together all the tests
-        ("0. + 0. I//FullForm", "Complex[0., 0.]", "WMA compatibility"),
-        ("0. I//FullForm", "Complex[0., 0.]", None),
-        ("1. + 0. I//FullForm", "Complex[1., 0.]", None),
-        ("0. + 1. I//FullForm", "Complex[0., 1.]", None),
+        ("0. + 0. I//FullForm", "Complex[0.`, 0.`]", "WMA compatibility"),
+        ("0. I//FullForm", "Complex[0.`, 0.`]", None),
+        ("1. + 0. I//FullForm", "Complex[1.`, 0.`]", None),
+        ("0. + 1. I//FullForm", "Complex[0.`, 1.`]", None),
         ("1. + 0. I//OutputForm", "1. + 0. I", "Formatted"),
         ("0. + 1. I//OutputForm", "0. + 1. I", "Formatting 1. I"),
         ("-2/3-I//FullForm", "Complex[Rational[-2, 3], -1]", "Adding a rational"),

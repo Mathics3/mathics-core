@@ -16,7 +16,7 @@ from mathics.core.number import (
     convert_base,
     dps,
 )
-from mathics.core.symbols import SymbolTrue
+from mathics.core.symbols import SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolMakeBoxes,
     SymbolOutputForm,
@@ -133,6 +133,7 @@ def NumberForm_to_String(
     from the converted number, that is, otherwise the number may be
     padded on the right-hand side with zeros.
     """
+    form = options["_Form"]
 
     assert isinstance(digits, int) and digits > 0 or digits is None
     assert digits_after_decimal_point is None or (
@@ -146,8 +147,11 @@ def NumberForm_to_String(
         if digits_after_decimal_point is None:
             is_int = True
     elif isinstance(value, Real):
-        if digits is not None:
-            digits = min(digits, dps(value.get_precision()) + 1)
+        prec = dps(value.get_precision())
+        if digits is None:
+            digits = prec + 1
+        else:
+            digits = min(digits, prec + 1)
         s, exp, is_nonnegative = real_to_tuple_info(value, digits)
         if digits is None:
             digits = len(s)
@@ -178,6 +182,7 @@ def NumberForm_to_String(
         if evaluation is not None:
             evaluation.message("NumberForm", "sigz")
         # TODO NumberPadding?
+
         s = s + "0" * (1 + exp - len(s))
     # pad left with '0'.
     if exp < 0:
@@ -201,7 +206,17 @@ def NumberForm_to_String(
         return number
 
     # pad with NumberPadding
-    if digits_after_decimal_point is not None:
+    if digits_after_decimal_point is None:
+        if form != "System`OutputForm":
+            # Other forms strip trailing zeros:
+
+            while len(right) > 1:
+                if right[-1] == "0":
+                    right = right[:-1]
+                else:
+                    break
+
+    else:
         if len(right) < digits_after_decimal_point:
             # pad right
             right = (
@@ -251,20 +266,31 @@ def NumberForm_to_String(
     else:
         s = prefix + left + options["NumberPoint"] + right
 
+    if isinstance(value, MachineReal):
+        if form not in ("System`InputForm", "System`OutputForm"):
+            s = s + "`"
+    elif isinstance(value, PrecisionReal):
+        if form not in ("System`OutputForm"):
+            s = s + "`" + str(prec)
+
     # base
     base = "10"
 
     # build number
     method = options["NumberFormat"]
-    if options["_Form"] in ("System`InputForm", "System`FullForm"):
-        return method(
-            _boxed_string(s, number_as_text=SymbolTrue),
-            _boxed_string(base, number_as_text=SymbolTrue),
-            _boxed_string(pexp, number_as_text=SymbolTrue),
-            options,
-        )
-    else:
-        return method(String(s), String(base), String(pexp), options)
+    boxed_s = _boxed_string(s, number_as_text=SymbolFalse)
+    if pexp == "":
+        return boxed_s
+
+    boxed_base = _boxed_string(base, number_as_text=SymbolFalse)
+    boxed_pexp = _boxed_string(pexp, number_as_text=SymbolFalse)
+    print("parts:", [boxed_s, boxed_base, boxed_pexp], method)
+    return method(
+        boxed_s,
+        boxed_base,
+        boxed_pexp,
+        options,
+    )
 
 
 def eval_baseform(self, expr, n, f, evaluation: Evaluation):
