@@ -112,7 +112,6 @@ def test_makeboxes_real_fail(str_expr, str_expected, msg):
     """
     # TODO: Constructing boxes from Real which are currently failing
     """
-    print("test ", str_expr)
     check_evaluation(
         str_expr,
         str_expected,
