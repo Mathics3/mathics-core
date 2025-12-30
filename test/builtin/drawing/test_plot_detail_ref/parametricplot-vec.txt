@@ -1,183 +1,22 @@
 System`Graphics
   System`List
-    System`Hue
-      System`Real 0.67
-      System`Real 0.6
-      System`Real 0.6
-    System`Line
-      System`List
-        System`List
-          System`List
-            System`Real 0.0
-            System`Real 0.0
-          System`List
-            System`Real 0.035714
-            System`Real 0.071429
-          System`List
-            System`Real 0.071429
-            System`Real 0.142857
-          System`List
-            System`Real 0.107143
-            System`Real 0.214286
-          System`List
-            System`Real 0.142857
-            System`Real 0.285714
-          System`List
-            System`Real 0.178571
-            System`Real 0.357143
-          System`List
-            System`Real 0.214286
-            System`Real 0.428571
-          System`List
-            System`Real 0.25
-            System`Real 0.5
-          System`List
-            System`Real 0.285714
-            System`Real 0.571429
-          System`List
-            System`Real 0.321429
-            System`Real 0.642857
-          System`List
-            System`Real 0.357143
-            System`Real 0.714286
-          System`List
-            System`Real 0.392857
-            System`Real 0.785714
-          System`List
-            System`Real 0.428571
-            System`Real 0.857143
-          System`List
-            System`Real 0.464286
-            System`Real 0.928571
-          System`List
-            System`Real 0.5
-            System`Real 1.0
-          System`List
-            System`Real 0.535714
-            System`Real 1.071429
-          System`List
-            System`Real 0.571429
-            System`Real 1.142857
-          System`List
-            System`Real 0.607143
-            System`Real 1.214286
-          System`List
-            System`Real 0.642857
-            System`Real 1.285714
-          System`List
-            System`Real 0.678571
-            System`Real 1.357143
-          System`List
-            System`Real 0.714286
-            System`Real 1.428571
-          System`List
-            System`Real 0.75
-            System`Real 1.5
-          System`List
-            System`Real 0.785714
-            System`Real 1.571429
-          System`List
-            System`Real 0.821429
-            System`Real 1.642857
-          System`List
-            System`Real 0.857143
-            System`Real 1.714286
-          System`List
-            System`Real 0.892857
-            System`Real 1.785714
-          System`List
-            System`Real 0.928571
-            System`Real 1.857143
-          System`List
-            System`Real 0.964286
-            System`Real 1.928571
-          System`List
-            System`Real 1.0
-            System`Real 2.0
-          System`List
-            System`Real 1.035714
-            System`Real 2.071429
-          System`List
-            System`Real 1.071429
-            System`Real 2.142857
-          System`List
-            System`Real 1.107143
-            System`Real 2.214286
-          System`List
-            System`Real 1.142857
-            System`Real 2.285714
-          System`List
-            System`Real 1.178571
-            System`Real 2.357143
-          System`List
-            System`Real 1.214286
-            System`Real 2.428571
-          System`List
-            System`Real 1.25
-            System`Real 2.5
-          System`List
-            System`Real 1.285714
-            System`Real 2.571429
-          System`List
-            System`Real 1.321429
-            System`Real 2.642857
-          System`List
-            System`Real 1.357143
-            System`Real 2.714286
-          System`List
-            System`Real 1.392857
-            System`Real 2.785714
-          System`List
-            System`Real 1.428571
-            System`Real 2.857143
-          System`List
-            System`Real 1.464286
-            System`Real 2.928571
-          System`List
-            System`Real 1.5
-            System`Real 3.0
-          System`List
-            System`Real 1.535714
-            System`Real 3.071429
-          System`List
-            System`Real 1.571429
-            System`Real 3.142857
-          System`List
-            System`Real 1.607143
-            System`Real 3.214286
-          System`List
-            System`Real 1.642857
-            System`Real 3.285714
-          System`List
-            System`Real 1.678571
-            System`Real 3.357143
-          System`List
-            System`Real 1.714286
-            System`Real 3.428571
-          System`List
-            System`Real 1.75
-            System`Real 3.5
-          System`List
-            System`Real 1.785714
-            System`Real 3.571429
-          System`List
-            System`Real 1.821429
-            System`Real 3.642857
-          System`List
-            System`Real 1.857143
-            System`Real 3.714286
-          System`List
-            System`Real 1.892857
-            System`Real 3.785714
-          System`List
-            System`Real 1.928571
-            System`Real 3.857143
-          System`List
-            System`Real 1.964286
-            System`Real 3.928571
-          System`List
-            System`Real 2.0
-            System`Real 4.0
+    System`RGBColor
+      System`Real 0.392157
+      System`Real 0.560784
+      System`Real 1.0
+    System`GraphicsComplex
+      System`NumericArray NumericArray[Real*, 1000×2]
+        [[0.00000000e+00 0.00000000e+00]
+         [2.00200200e-03 4.00400400e-03]
+         [4.00400400e-03 8.00800801e-03]
+         ...
+         [1.99599600e+00 3.99199199e+00]
+         [1.99799800e+00 3.99599600e+00]
+         [2.00000000e+00 4.00000000e+00]]
+      System`Line
+        System`NumericArray NumericArray[Integer*, 2×999]
+          [[   1    2    3 ...  997  998  999]
+           [   2    3    4 ...  998  999 1000]]
   System`Rule
     System`AlignmentPoint
     System`Center
@@ -264,12 +103,8 @@ System`Graphics
   System`Rule
     System`PlotRange
     System`List
-      System`List
-        System`Real -0.1
-        System`Real 2.1
-      System`List
-        System`Real -0.2
-        System`Real 4.2
+      System`Automatic
+      System`Automatic
   System`Rule
     System`PlotRangeClipping
     System`False
