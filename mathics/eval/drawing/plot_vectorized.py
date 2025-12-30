@@ -60,6 +60,13 @@ def eval_Plot_vectorized(plot_options, options, evaluation: Evaluation):
         with Timer("compute xs and ys"):
             xs, ys = plot_options.apply_function(function, ts)
 
+        # sometimes expr gets compiled into something that returns a complex
+        # even though the imaginary part is 0
+        # TODO: check that imag is all 0?
+        # assert np.all(np.isreal(zs)), "array contains complex values"
+        xs = np.real(xs)
+        ys = np.real(ys)
+
         # take log if requested; downstream axes will adjust accordingly
         if plot_options.use_log_scale:
             ys = np.log10(ys)
