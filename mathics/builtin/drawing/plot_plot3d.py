@@ -12,6 +12,8 @@ A <url>:Surface plot:https://en.wikipedia.org/wiki/Plot_(graphics)#Surface_plot<
 'ComplexPlot' and 'ComplexPlot3D' use color and to visualize complex-valued functions in two and three dimensions respectively.
 """
 
+import numpy as np
+
 from mathics.builtin.drawing.graphics3d import Graphics3D
 from mathics.builtin.graphics import Graphics
 from mathics.builtin.options import options_to_rules
@@ -117,7 +119,8 @@ class _Plot3D(Builtin):
 
         # subclass must set eval_function and graphics_class
         eval_function = plot.get_plot_eval_function(self.__class__)
-        graphics = eval_function(plot_options, evaluation)
+        with np.errstate(all="ignore"):  # suppress numpy warnings
+            graphics = eval_function(plot_options, evaluation)
         if not graphics:
             return
 
