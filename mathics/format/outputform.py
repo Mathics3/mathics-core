@@ -64,7 +64,20 @@ def bracket(expr_str: str) -> str:
 
 
 def grid(expr):
-    raise NotImplementedError
+    # Very basic implementation.
+    result = "Grid["
+    for row in expr:
+        if result[-1] != "[":
+            result += ","
+
+        result += "\n{"
+        for field in row:
+            if result[-1] != "}":
+                result += ","
+            result += field
+        result += "}"
+    result += "}]"
+    return result
 
 
 def expression_to_outputform_text(
