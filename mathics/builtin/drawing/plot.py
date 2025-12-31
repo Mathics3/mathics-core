@@ -22,7 +22,7 @@ from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolList
 from mathics.core.systemsymbols import (
     SymbolAll,
     SymbolAutomatic,
@@ -413,10 +413,20 @@ class PlotOptions:
     plot_points: list
     maxdepth: int
 
-    def __init__(self, builtin, range_exprs, options, dim, evaluation):
+    def __init__(self, builtin, functions, range_exprs, options, dim, evaluation):
         def error(*args, **kwargs):
             evaluation.message(builtin.get_name(), *args, **kwargs)
             raise ValueError()
+
+        # convert functions to list of lists of exprs
+        def to_list(expr):
+            if isinstance(expr, Expression) and expr.head is SymbolList:
+                return [to_list(e) for e in expr.elements]
+            else:
+                return expr
+
+        functions = to_list(functions)
+        self.functions = functions if isinstance(functions, list) else [functions]
 
         # plot ranges of the form {x,xmin,xmax} etc. (returns Symbol)
         self.ranges = []

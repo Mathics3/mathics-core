@@ -74,7 +74,9 @@ class _Plot(Builtin, ABC):
         # parse options, bailing out if anything is wrong
         try:
             ranges = ranges.elements if ranges.head is SymbolSequence else [ranges]
-            plot_options = plot.PlotOptions(self, ranges, options, 2, evaluation)
+            plot_options = plot.PlotOptions(
+                self, functions, ranges, options, 2, evaluation
+            )
         except ValueError:
             return None
 

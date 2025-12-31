@@ -101,21 +101,20 @@ class _Plot3D(Builtin):
         try:
             dim = 3 if self.graphics_class is Graphics3D else 2
             ranges = ranges.elements if ranges.head is SymbolSequence else [ranges]
-            plot_options = plot.PlotOptions(self, ranges, options, dim, evaluation)
+            plot_options = plot.PlotOptions(
+                self, functions, ranges, options, dim, evaluation
+            )
         except ValueError:
             return None
-
-        # TODO: consult many_functions variable set by subclass and error
-        # if many_functions is False but multiple are supplied
-        if functions.has_form("List", None):
-            plot_options.functions = functions.elements
-        else:
-            plot_options.functions = [functions]
 
         # supply default value
         if plot_options.plot_points is None:
             default_plot_points = (200, 200) if plot.use_vectorized_plot else (7, 7)
             plot_options.plot_points = default_plot_points
+
+        # supply apply_function which knows how to take the plot parameters
+        # and produce xs, ys, and zs
+        plot_options.apply_function = self.apply_function
 
         # subclass must set eval_function and graphics_class
         eval_function = plot.get_plot_eval_function(self.__class__)
@@ -127,11 +126,14 @@ class _Plot3D(Builtin):
         # now we have a list of length dim
         # handle Automatic ~ {xmin,xmax} etc.
         # TODO: dowstream consumers might be happier if we used data range where applicable
-        for i, (pr, r) in enumerate(zip(plot_options.plot_range, plot_options.ranges)):
-            # TODO: this treats Automatic and Full as the same, which isn't quite right
-            if isinstance(pr, (str, Symbol)) and not isinstance(r[1], complex):
-                # extract {xmin,xmax} from {x,xmin,xmax}
-                plot_options.plot_range[i] = r[1:]
+        if not isinstance(self, ParametricPlot3D):
+            for i, (pr, r) in enumerate(
+                zip(plot_options.plot_range, plot_options.ranges)
+            ):
+                # TODO: this treats Automatic and Full as the same, which isn't quite right
+                if isinstance(pr, (str, Symbol)) and not isinstance(r[1], complex):
+                    # extract {xmin,xmax} from {x,xmin,xmax}
+                    plot_options.plot_range[i] = r[1:]
 
         # unpythonize and update PlotRange option
         options[str(SymbolPlotRange)] = to_mathics_list(*plot_options.plot_range)
@@ -141,6 +143,10 @@ class _Plot3D(Builtin):
             options_to_rules(options, self.graphics_class.options)
         )
         return graphics_expr
+
+    def apply_function(self, function, names, us, vs):
+        parms = {str(names[0]): us, str(names[1]): vs}
+        return us, vs, function(**parms)
 
 
 class ComplexPlot3D(_Plot3D):
@@ -165,6 +171,10 @@ class ComplexPlot3D(_Plot3D):
     many_functions = True
     graphics_class = Graphics3D
 
+    def apply_function(self, function, names, us, vs):
+        parms = {str(names[0]): us + vs * 1j}
+        return us, vs, function(**parms)
+
 
 class ComplexPlot(_Plot3D):
     """
@@ -187,6 +197,10 @@ class ComplexPlot(_Plot3D):
 
     many_functions = False
     graphics_class = Graphics
+
+    def apply_function(self, function, names, us, vs):
+        parms = {str(names[0]): us + vs * 1j}
+        return us, vs, function(**parms)
 
 
 class ContourPlot(_Plot3D):
@@ -244,6 +258,19 @@ class DensityPlot(_Plot3D):
 
     many_functions = False
     graphics_class = Graphics
+
+
+class ParametricPlot3D(_Plot3D):
+    summary_text = "plot a parametric surface"
+    expected_args = 3
+    options = _Plot3D.options3d
+
+    many_functions = True
+    graphics_class = Graphics3D
+
+    def apply_function(self, functions, names, us, vs):
+        parms = {str(names[0]): us, str(names[1]): vs}
+        return [f(**parms) for f in functions]
 
 
 class Plot3D(_Plot3D):
