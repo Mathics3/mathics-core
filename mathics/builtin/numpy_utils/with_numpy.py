@@ -14,6 +14,12 @@ import numpy
 from mathics.core.list import ListExpression
 
 #
+# Suppress numpy warnings for things like divide by zero
+#
+
+numpy.seterr(all="ignore")
+
+#
 # INTERNAL FUNCTIONS
 #
 
