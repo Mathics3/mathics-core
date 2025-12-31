@@ -104,7 +104,8 @@ class _Plot(Builtin, ABC):
 
         # this will be either the vectorized or the classic eval function
         eval_function = eval_Plot_vectorized if plot.use_vectorized_plot else eval_Plot
-        graphics = eval_function(plot_options, options, evaluation)
+        with np.errstate(all="ignore"):  # suppress numpy warnings
+            graphics = eval_function(plot_options, options, evaluation)
         return graphics
 
     def get_functions_param(self, functions):
