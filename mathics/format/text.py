@@ -165,7 +165,17 @@ def superscriptbox(self, **options) -> str:
     _options = self.box_options.copy()
     _options.update(options)
     options = _options
-    fmt_str = "%s^%s" if isinstance(self.superindex, Atom) else "%s^(%s)"
+    no_parenthesize = True
+    index = self.superindex
+    while not isinstance(index, Atom):
+        if isinstance(index, StyleBox):
+            index = index.boxes
+        else:
+            break
+    if isinstance(index, FractionBox):
+        no_parenthesize = False
+
+    fmt_str = "%s^%s" if no_parenthesize else "%s^(%s)"
     return fmt_str % (
         boxes_to_text(self.base, **options),
         boxes_to_text(self.superindex, **options),
