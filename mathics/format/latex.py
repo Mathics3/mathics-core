@@ -110,6 +110,7 @@ def string(self, **options) -> str:
         else:
             return render(r"\text{%s}", text[1:-1], in_text=True)
     elif text and text[0] in "0123456789-.":
+        text = text.split("`")[0]
         return render("%s", text)
     else:
         # First consider the special cases

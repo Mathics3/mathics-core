@@ -91,6 +91,7 @@ def string(self, **options) -> str:
         and (number_as_text is SymbolFalse)
         and ("0" <= text[0] <= "9" or text[0] in (".", "-"))
     ):
+        text = text.split("`")[0]
         return render("<mn>%s</mn>", text)
     else:
         if text in operators or text in extra_operators:

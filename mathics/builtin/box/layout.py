@@ -249,7 +249,7 @@ class RowBox(BoxExpression):
     summary_text = "horizontal arrange of boxes"
 
     def __repr__(self):
-        return "RowBox[List[" + self.elements.__repr__() + "]]"
+        return f"RowBox[{self.elements[0].__repr__()}]"
 
     def eval_list(self, boxes, evaluation):
         """RowBox[boxes_List]"""
@@ -283,7 +283,7 @@ class RowBox(BoxExpression):
             return item
 
         self.items = tuple((check_item(item) for item in items))
-        self._elements = self.items
+        self._elements = (ListExpression(*self.items),)
 
     def to_expression(self) -> Expression:
         """
@@ -300,12 +300,19 @@ class RowBox(BoxExpression):
         in the apply method, this function must be called.
         """
         if self._elements is None:
-            self._elements = tuple(
-                item.to_expression() if isinstance(item, BoxElementMixin) else item
-                for item in self.items
+            self._elements = (
+                ListExpression(
+                    *(
+                        item.to_expression()
+                        if isinstance(item, BoxElementMixin)
+                        else item
+                        for item in self.items
+                    )
+                ),
             )
 
-        return Expression(SymbolRowBox, ListExpression(*self._elements))
+        result = Expression(SymbolRowBox, *self._elements)
+        return result
 
 
 class ShowStringCharacters(Builtin):
@@ -387,6 +394,9 @@ class StyleBox(BoxExpression):
     options = {"ShowStringCharacters": "True", "$OptionSyntax": "Ignore"}
     attributes = A_PROTECTED | A_READ_PROTECTED
     summary_text = "associate boxes with styles"
+
+    def __repr__(self):
+        return repr(self.to_expression())
 
     def eval_options(self, boxes, evaluation: Evaluation, options: dict):
         """StyleBox[boxes_, OptionsPattern[]]"""

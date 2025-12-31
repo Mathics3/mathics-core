@@ -19,7 +19,7 @@ from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
-from mathics.core.systemsymbols import SymbolPlotRange, SymbolSequence
+from mathics.core.systemsymbols import Symbol, SymbolPlotRange, SymbolSequence
 
 from . import plot
 
@@ -126,7 +126,7 @@ class _Plot3D(Builtin):
         # TODO: dowstream consumers might be happier if we used data range where applicable
         for i, (pr, r) in enumerate(zip(plot_options.plot_range, plot_options.ranges)):
             # TODO: this treats Automatic and Full as the same, which isn't quite right
-            if isinstance(pr, str) and not isinstance(r[1], complex):
+            if isinstance(pr, (str, Symbol)) and not isinstance(r[1], complex):
                 # extract {xmin,xmax} from {x,xmin,xmax}
                 plot_options.plot_range[i] = r[1:]
 
