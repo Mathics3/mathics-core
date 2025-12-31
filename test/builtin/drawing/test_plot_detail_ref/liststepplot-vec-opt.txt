@@ -1,40 +1,59 @@
 System`Graphics
   System`List
-    System`GraphicsComplex
-      System`NumericArray NumericArray[Real*, 40000×2]
-        [[-2.         -2.        ]
-         [-1.9798995  -2.        ]
-         [-1.95979899 -2.        ]
-         ...
-         [ 1.95979899  2.        ]
-         [ 1.9798995   2.        ]
-         [ 2.          2.        ]]
-      System`Polygon
-        System`NumericArray NumericArray[Integer*, 39601×4]
-          [[    1     2   202   201]
-           [  201   202   402   401]
-           [  401   402   602   601]
-           ...
-           [39399 39400 39600 39599]
-           [39599 39600 39800 39799]
-           [39799 39800 40000 39999]]
-      System`Rule
-        System`VertexColors
-        System`RGBColor
-          System`NumericArray NumericArray[Real*, 40000×3]
-            [[1.         1.         1.        ]
-             [1.         1.         1.        ]
-             [1.         1.         1.        ]
-             ...
-             [0.12852981 1.         0.        ]
-             [0.10933525 1.         0.        ]
-             [0.09014068 1.         0.        ]]
+    System`Hue
+      System`Real 0.67
+      System`Real 0.6
+      System`Real 0.6
+    System`Line
+      System`List
+        System`List
+          System`Real 1.0
+          System`Integer 1
+        System`List
+          System`Real 2.0
+          System`Integer 1
+        System`List
+          System`Real 2.0
+          System`Integer 4
+        System`List
+          System`Real 2.0
+          System`Integer 4
+        System`List
+          System`Real 3.0
+          System`Integer 4
+        System`List
+          System`Real 3.0
+          System`Integer 2
+        System`List
+          System`Real 3.0
+          System`Integer 2
+        System`List
+          System`Real 4.0
+          System`Integer 2
+        System`List
+          System`Real 4.0
+          System`Integer 5
+        System`List
+          System`Real 4.0
+          System`Integer 5
+        System`List
+          System`Real 5.0
+          System`Integer 5
+        System`List
+          System`Real 5.0
+          System`Integer 3
+        System`List
+          System`Real 5.0
+          System`Integer 3
+        System`List
+          System`Real 8.0
+          System`Integer 3
   System`Rule
     System`AlignmentPoint
     System`Center
   System`Rule
     System`AspectRatio
-    System`Integer 1
+    System`Integer 2
   System`Rule
     System`Axes
     System`False
@@ -70,7 +89,7 @@ System`Graphics
     System`TraditionalForm
   System`Rule
     System`Frame
-    System`True
+    System`False
   System`Rule
     System`FrameLabel
     System`None
@@ -113,8 +132,12 @@ System`Graphics
   System`Rule
     System`PlotRange
     System`List
-      System`String "System`Automatic"
-      System`String "System`Automatic"
+      System`List
+        System`Integer 0
+        System`Real 5.0
+      System`List
+        System`Real -0.1
+        System`Integer 5
   System`Rule
     System`PlotRangeClipping
     System`False

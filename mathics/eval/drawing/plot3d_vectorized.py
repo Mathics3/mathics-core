@@ -20,6 +20,7 @@ from mathics.core.systemsymbols import (
 )
 from mathics.timing import Timer
 
+from .colors import palette2, palette3, palette_color_directive
 from .util import GraphicsGenerator
 
 
@@ -98,7 +99,7 @@ def make_plot(plot_options, evaluation: Evaluation, dim: int, is_complex: bool, 
             yield xyzs, inxs
 
     # generate the quads and emit a GraphicsComplex containing them
-    for i, (xyzs, inxs) in enumerate(compute_over_grid(*plot_options.plotpoints)):
+    for i, (xyzs, inxs) in enumerate(compute_over_grid(*plot_options.plot_points)):
         # shift inxs array four different ways and stack to form
         # (4, nx-1, ny-1) array of quads represented as indexes into xyzs array
         quads = np.stack([inxs[:-1, :-1], inxs[:-1, 1:], inxs[1:, 1:], inxs[1:, :-1]])
@@ -117,51 +118,17 @@ def make_plot(plot_options, evaluation: Evaluation, dim: int, is_complex: bool, 
         graphics.add_directives([SymbolRGBColor, 0, 0, 0])
 
         with Timer("Mesh"):
-            nx, ny = plot_options.plotpoints
+            nx, ny = plot_options.plot_points
             # Do nmesh lines in each direction, each line formed
             # from one row or one column of the inxs array.
             # Each mesh line has high res (nx or ny) so it follows
             # the contours of the surface.
             for xyzs, inxs in compute_over_grid(nx, nmesh):
-                graphics.add_complex(xyzs.astype(float), lines=inxs, polys=None)
+                graphics.add_complex(xyzs.real, lines=inxs, polys=None)
             for xyzs, inxs in compute_over_grid(nmesh, ny):
-                graphics.add_complex(xyzs.astype(float), lines=inxs.T, polys=None)
+                graphics.add_complex(xyzs.real, lines=inxs.T, polys=None)
 
     return graphics
-
-
-# color-blind friendly palette from https://davidmathlogic.com/colorblind
-# palette3 is for 3d plots, i.e. surfaces
-palette3 = [
-    (255, 176, 0),  # orange
-    (100, 143, 255),  # blue
-    (220, 38, 127),  # red
-    (50, 150, 140),  # green
-    (120, 94, 240),  # purple
-    (254, 97, 0),  # dark orange
-    (0, 114, 178),  # dark blue
-]
-
-
-# palette 2 is for 2d plots, i.e. lines
-# same colors as palette3 but in a little different order
-palette2 = [
-    (100, 143, 255),  # blue
-    (255, 176, 0),  # orange
-    (50, 150, 140),  # green
-    (220, 38, 127),  # red
-    (120, 94, 240),  # purple
-    (254, 97, 0),  # dark orange
-    (0, 114, 178),  # dark blue
-]
-
-
-def palette_color_directive(palette, i):
-    """returns a directive in a form suitable for graphics.add_directives"""
-    """ for setting the color of an entire entity such as a line or surface """
-    rgb = palette[i % len(palette)]
-    rgb = [c / 255.0 for c in rgb]
-    return [SymbolRGBColor, *rgb]
 
 
 @Timer("density_colors")
@@ -242,7 +209,7 @@ def eval_ContourPlot(
         graphics.add_directives(color_directive)
 
         # get data
-        nx, ny = plot_options.plotpoints
+        nx, ny = plot_options.plot_points
         _, xmin, xmax = plot_options.ranges[0]
         _, ymin, ymax = plot_options.ranges[1]
         zs = xyzs[:, 2]  # this is a linear list matching with quads
@@ -286,7 +253,7 @@ def eval_ContourPlot(
                     xyzs[:, 0:2], lines=None, polys=quads, colors=colors
                 )
 
-    # plot_options.plotpoints = [n * 10 for n in plot_options.plotpoints]
+    # plot_options.plot_points = [n * 10 for n in plot_options.plot_points]
     return make_plot(plot_options, evaluation, dim=2, is_complex=False, emit=emit)
 
 
@@ -323,7 +290,7 @@ def eval_ComplexPlot3D(
         zs = xyzs[:, 2]
         rgb = complex_colors(zs, s=0.8)
         xyzs[:, 2] = abs(zs)
-        graphics.add_complex(xyzs.astype(float), lines=None, polys=quads, colors=rgb)
+        graphics.add_complex(xyzs.real, lines=None, polys=quads, colors=rgb)
 
     return make_plot(plot_options, evaluation, dim=3, is_complex=True, emit=emit)
 
@@ -336,8 +303,7 @@ def eval_ComplexPlot(
     def emit(graphics, i, xyzs, quads):
         # flatten the points and add the quads
         rgb = complex_colors(xyzs[:, 2])
-        graphics.add_complex(
-            xyzs[:, 0:2].astype(float), lines=None, polys=quads, colors=rgb
-        )
+        xyzs_re = xyzs[:, 0:2].real
+        graphics.add_complex(xyzs_re, lines=None, polys=quads, colors=rgb)
 
     return make_plot(plot_options, evaluation, dim=2, is_complex=True, emit=emit)

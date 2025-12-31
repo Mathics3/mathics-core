@@ -4,7 +4,7 @@ Unit tests for mathics.builtins.image.colors
 
 Largely tests error messages when parameters are incorrect.
 """
-from test.helper import check_evaluation, session
+from test.helper import check_evaluation
 
 import pytest
 

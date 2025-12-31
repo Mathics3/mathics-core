@@ -34,6 +34,7 @@ System`$Input
 System`$InputFileName
 System`$InstallationDirectory
 System`$IterationLimit
+System`$Language
 System`$Line
 System`$Machine
 System`$MachineEpsilon
@@ -74,6 +75,7 @@ System`$TemporaryDirectory
 System`$TimeZone
 System`$TraceBuiltins
 System`$TraceEvaluation
+System`$TrackLocations
 System`$UserBaseDirectory
 System`$UserName
 System`$Version
@@ -287,6 +289,7 @@ System`CreateFile
 System`CreateTemporary
 System`Cross
 System`Csc
+System`Cube
 System`CubeRoot
 System`Cuboid
 System`Cuboid3DBox
@@ -546,6 +549,9 @@ System`HoldRest
 System`Hue
 System`HumpDownHump
 System`HumpEqual
+System`Hypergeometric1F1
+System`Hypergeometric2F1
+System`HypergeometricPFQ
 System`HypergeometricU
 System`I
 System`Icosahedron
@@ -751,6 +757,7 @@ System`Mean
 System`Median
 System`MedianFilter
 System`Medium
+System`MeijerG
 System`MemberQ
 System`MemoryAvailable
 System`MemoryInUse
@@ -880,6 +887,8 @@ System`Overflow
 System`OwnValues
 System`PadLeft
 System`PadRight
+System`Pane
+System`PaneBox
 System`ParametricPlot
 System`ParentDirectory
 System`Part

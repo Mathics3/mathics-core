@@ -325,7 +325,7 @@ try:
     from packaging import version
 
     skip_fullsimplify_test = version.parse(sympy.__version__) < version.parse("1.10.0")
-except:
+except ImportError:
     pass
 
 

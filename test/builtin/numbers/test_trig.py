@@ -8,7 +8,6 @@ mathics/autoload/rules/trig.m
 from test.helper import check_evaluation
 
 import pytest
-from sympy.core.numbers import ComplexInfinity
 
 
 def test_ArcCos():

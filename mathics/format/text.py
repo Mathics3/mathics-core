@@ -9,6 +9,8 @@ from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
     FractionBox,
     GridBox,
+    InterpretationBox,
+    PaneBox,
     RowBox,
     SqrtBox,
     StyleBox,
@@ -38,6 +40,20 @@ def string(self, **options) -> str:
 
 
 add_conversion_fn(String, string)
+
+
+def interpretation_box(self, **options):
+    return boxes_to_text(self.elements[0], **options)
+
+
+add_conversion_fn(InterpretationBox, interpretation_box)
+
+
+def pane_box(self, **options):
+    return boxes_to_text(self.elements[0], **options)
+
+
+add_conversion_fn(PaneBox, pane_box)
 
 
 def fractionbox(self, **options) -> str:
@@ -72,13 +88,15 @@ def gridbox(self, elements=None, **box_options) -> str:
         widths = [0]
 
     cells = [
-        [
-            # TODO: check if this evaluation is necessary.
-            boxes_to_text(item, **box_options).splitlines()
-            for item in row
-        ]
-        if isinstance(row, tuple)
-        else [boxes_to_text(row, **box_options).splitlines()]
+        (
+            [
+                # TODO: check if this evaluation is necessary.
+                boxes_to_text(item, **box_options).splitlines()
+                for item in row
+            ]
+            if isinstance(row, tuple)
+            else [boxes_to_text(row, **box_options).splitlines()]
+        )
         for row in items
     ]
 
@@ -147,7 +165,17 @@ def superscriptbox(self, **options) -> str:
     _options = self.box_options.copy()
     _options.update(options)
     options = _options
-    fmt_str = "%s^%s" if isinstance(self.superindex, Atom) else "%s^(%s)"
+    no_parenthesize = True
+    index = self.superindex
+    while not isinstance(index, Atom):
+        if isinstance(index, StyleBox):
+            index = index.boxes
+        else:
+            break
+    if isinstance(index, FractionBox):
+        no_parenthesize = False
+
+    fmt_str = "%s^%s" if no_parenthesize else "%s^(%s)"
     return fmt_str % (
         boxes_to_text(self.base, **options),
         boxes_to_text(self.superindex, **options),

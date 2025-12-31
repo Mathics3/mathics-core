@@ -19,6 +19,8 @@ from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
     FractionBox,
     GridBox,
+    InterpretationBox,
+    PaneBox,
     RowBox,
     SqrtBox,
     StyleBox,
@@ -35,6 +37,7 @@ from mathics.core.formatter import (
     lookup_method as lookup_conversion_method,
 )
 from mathics.core.symbols import SymbolTrue
+from mathics.core.systemsymbols import SymbolAutomatic
 from mathics.format.asy_fns import asy_color, asy_create_pens, asy_number
 
 # mathics_scanner does not generates this table in a way that we can load it here.
@@ -107,6 +110,7 @@ def string(self, **options) -> str:
         else:
             return render(r"\text{%s}", text[1:-1], in_text=True)
     elif text and text[0] in "0123456789-.":
+        text = text.split("`")[0]
         return render("%s", text)
     else:
         # First consider the special cases
@@ -131,6 +135,55 @@ def string(self, **options) -> str:
 
 
 add_conversion_fn(String, string)
+
+
+def interpretation_box(self, **options):
+    return lookup_conversion_method(self.elements[0], "latex")(
+        self.elements[0], **options
+    )
+
+
+add_conversion_fn(InterpretationBox, interpretation_box)
+
+
+def pane_box(self, **options):
+    content = lookup_conversion_method(self.elements[0], "latex")(
+        self.elements[0], **options
+    )
+    options = self.box_options
+    size = options.get("System`ImageSize", SymbolAutomatic).to_python()
+    if size is SymbolAutomatic:
+        width = "\\textwidth"
+        height = ""
+    elif isinstance(size, int):
+        width = f"{size}pt"
+        height = ""
+    elif isinstance(size, tuple) and len(size) == 2:
+        width_val, height_val = size[0], size[1]
+        if isinstance(width_val, int):
+            width = f"{width_val}pt"
+        else:
+            width = "\\textwidth"
+        if isinstance(height_val, int):
+            height = f"[{height_val}pt]"
+        else:
+            height = ""
+    else:
+        width = "\\textwidth"
+        height = ""
+
+    return (
+        "\\begin{minipage}{"
+        + width
+        + "}"
+        + height
+        + "\n"
+        + content
+        + "\n\\end{minipage}"
+    )
+
+
+add_conversion_fn(PaneBox, pane_box)
 
 
 def fractionbox(self, **options) -> str:

@@ -190,7 +190,6 @@ class Dispatch(Atom):
 
     def atom_to_boxes(self, f: Symbol, evaluation: Evaluation):
         from mathics.builtin.box.layout import RowBox
-        from mathics.eval.makeboxes import format_element
 
         # box_element = format_element(self.src, evaluation, f)
         box_element = String(f"<{len(self.rules)}>")
