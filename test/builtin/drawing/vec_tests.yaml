@@ -6,13 +6,54 @@
 #
 __DEFAULTS__:
     cls: False
-
+#
+# ContourPlot
+#
 vec-contourplot-expr-x:
     expr: ContourPlot[x, {x, -2, 2}, {y, -1, 1}, Contours->{0, 0.5}, AspectRatio->Automatic]
-vec-plot3d-plotrange-z:
-    expr: Plot3D[x y, {x, -2, 2}, {y, -1, 1}, PlotRange -> {-1, 1}]
-vec-plot-exclusions:
-    expr: Plot[x, {x,0,10}, Exclusions->{-1, 1, 2.5, 11}]
+vec-contourplot-waves:
+    expr: ContourPlot[x - y^3, {x, -2, 2}, {y, -1, 1}, AspectRatio->Automatic]
+vec-contourplot-explicit-contours:
+    expr: ContourPlot[x, {x, -2, 2}, {y, -1, 1}, Contours->{0, 0.5}, AspectRatio->Automatic]
+vec-contourplot-n-contours:
+    expr: ContourPlot[x^2 - y^2, {x, -2, 2}, {y, -1, 1}, Contours->10]
+vec-contourplot-equals-constant:
+    expr: ContourPlot[x^2+y^2==1,{x,-2,2},{y,-2,2}]
+vec-contourplot-two-equations:
+    expr: ContourPlot[{Re[Sin[x + I y]] == 5, Im[Sin[x + I y]] == 0}, {x, -10, 10}, {y, -10, 10}]
+vec-contourplot-one-equation-two-branches:
+    expr: ContourPlot[{a b + Sqrt[a^2 + b^2] == a+b}, {a,-10,10}, {b,-10,10}]
+#
+# ComplexPlot
+#
+vec-complexplot-poles-zeros:
+    expr: ComplexPlot[(z^2 + 1)/(z^2 - 1), {z, -2 - 2 I, 2 + 2 I}]
+#
+# ComplexPlot3D
+#
+vec-complexplot3d-poles-zeros:
+    expr: ComplexPlot3D[(z^2 + 1)/(z^2 - 1), {z, -2 - 2 I, 2 + 2 I}, PlotRange-> {0,4}]
+#
+# DensityPlot
+#
+vec-densityplot-infinity:
+    expr: DensityPlot[1 / x, {x, 0, 1}, {y, 0, 1}]
+vec-densityplot-mesh-full:
+    expr: DensityPlot[1/(x^2 + y^2 + 1), {x, -1, 1}, {y, -2,2}, Mesh->Full]
+vec-densityplot-plotrange:
+    expr: DensityPlot[Cos[x] Sin[y], {x,-15,15},{y,-10,10}, PlotRange->{{0,1},{0,1}}]
+vec-densityplot-plotpoints:
+    expr: DensityPlot[Sin[10 x + y], {x,0,1}, {y,0,1}, PlotPoints -> {20,20}, Axes->True]
+vec-density-plot-nan:
+    expr: DensityPlot[Sqrt[x * y], {x, -1, 1}, {y, -1, 1}]
+#
+# LogPlot
+#
+vec-logplot-sinx-x:
+    expr: LogPlot[Sin[x]^x, {x,0,10}]
+#
+# ParametricPlot
+#
 vec-parametricplot-zeta-sideways:
     expr: '
         ParametricPlot[
@@ -23,7 +64,46 @@ vec-parametricplot-zeta-sideways:
             ImageSize->{300,400}
         ]
     '
-
+#
+# Plot
+#
+vec-plot-exclusions:
+    expr: Plot[x, {x,0,10}, Exclusions->{-1, 1, 2.5, 11}]
+vec-plot-label-x:
+    expr: Plot[x, {x,0,1}, AxesLabel -> "x"]
+vec-plot-plotrange-z:
+    expr: Plot3D[(0.6*(Min[1,x^2+(-5y/4+Sqrt[Abs[x]])^2]-1))+1,{x,-1.5,1.5},{y,-1,1.8},PlotRange->{Automatic,Automatic,{0,1}}]
+#
+# Plot3D
+#
+vec-plot3d-plotrange-z:
+    expr: Plot3D[x y, {x, -2, 2}, {y, -1, 1}, PlotRange -> {-1, 1}]
+vec-plot3d-two-labels-ratios-viewpoint:
+    expr: '
+        Plot3D[
+            {Abs[Exp[Exp[x + I y]]-1], 0},
+            {x, -3, 3}, {y, -9, 9},
+            PlotRange -> {-0.5, 1.5},
+            AxesLabel -> {"x", "y"},
+            BoxRatios->{1,1,0.75},
+            ViewPoint->{-0.5, -10, 3}
+        ]
+    '
+vec-plot3d-discontinuous:
+    expr: Plot3D[FractionalPart[x y], {x,-2,2}, {y,-2,2}, Axes->False, Boxed->False]
+vec-plot3d-conditional:
+    expr: Plot3D[If[Floor[x^2+y^2]==2, 1, 0], {x,-2,2}, {y,-2,2}, Axes->False, Boxed->False]
+vec-plot3d-max:
+    expr: Plot3D[Max[x,y], {x,-2,2}, {y,-2,2}, Axes->False, Boxed->False]
+vec-plot3d-which:
+    expr: Plot3D[Which[Floor[x^2+y^2]==2, 1, Floor[x+0.5]==0, -1, True, 0], {x,-2,2}, {y,-2,2}, Axes->False, Boxed->False]
+vec-plot3d-stack:
+    expr: Plot3D[{1,2,3,4,5,6,7}, {x,0,1},{y,0,1}, BoxRatios->{1,1,1}]
+#
+# PolarPlot
+#
+vec-polarplot-theataxxx-8:
+    expr: PolarPlot[1+0.5 Cos[3 θ],{θ,0,2 Pi}]
 #
 # Following is a curated subset of doc_tests.yaml that have vectorized implementation.
 # Culled to remove repetitive tests.
