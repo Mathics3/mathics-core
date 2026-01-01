@@ -481,7 +481,9 @@ class PlotOptions:
         self.exclusions = exclusions
 
         # Mesh option (returns Symbol)
-        mesh = builtin.get_option(options, "Mesh", evaluation).to_python(preserve_symbols=True)
+        mesh = builtin.get_option(options, "Mesh", evaluation).to_python(
+            preserve_symbols=True
+        )
         if isinstance(mesh, (list, tuple)) and all(isinstance(m, int) for m in mesh):
             self.mesh = mesh
         elif mesh not in (SymbolNone, SymbolFull, SymbolAll):
