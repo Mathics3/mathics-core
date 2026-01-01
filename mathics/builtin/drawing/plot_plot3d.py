@@ -109,7 +109,13 @@ class _Plot3D(Builtin):
 
         # supply default value
         if plot_options.plot_points is None:
-            default_plot_points = (200, 200) if plot.use_vectorized_plot else (7, 7)
+            if isinstance(self, ParametricPlot3D) and len(plot_options.ranges) == 1:
+                # ParametricPlot3D with one independent variable generating a curve
+                default_plot_points = (1000,)
+            elif plot.use_vectorized_plot:
+                default_plot_points = (200, 200)
+            else:
+                default_plot_points = (7, 7)
             plot_options.plot_points = default_plot_points
 
         # supply apply_function which knows how to take the plot parameters
@@ -268,8 +274,8 @@ class ParametricPlot3D(_Plot3D):
     many_functions = True
     graphics_class = Graphics3D
 
-    def apply_function(self, functions, names, us, vs):
-        parms = {str(names[0]): us, str(names[1]): vs}
+    def apply_function(self, functions, names, *parms):
+        parms = {str(n): p for n, p in zip(names, parms)}
         return [f(**parms) for f in functions]
 
 
