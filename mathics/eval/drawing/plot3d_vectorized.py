@@ -136,7 +136,7 @@ def make_surfaces(
 
 # For ParametricPlot3D with just one independent variable we generate a curve
 # TODO: consider whether we can DRY this with similar code in ParmetricPlot
-def make_curvess(plot_options, evaluation: Evaluation, dim: int, emit):
+def make_curves(plot_options, evaluation: Evaluation, dim: int, emit):
     graphics = GraphicsGenerator(dim)
 
     # pull out plot options
