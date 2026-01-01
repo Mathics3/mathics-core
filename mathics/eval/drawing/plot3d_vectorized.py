@@ -4,7 +4,6 @@ which share a good bit of code.
 """
 
 import math
-from typing import Sequence
 
 import numpy as np
 
@@ -13,7 +12,6 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import strip_context
 from mathics.core.systemsymbols import (
-    Symbol,
     SymbolAbsoluteThickness,
     SymbolEqual,
     SymbolNone,
