@@ -106,6 +106,16 @@ vec-parametricplot3d-rings:
             ]
         ]
     '
+vec-parametricplot-moebius:
+    expr: '
+        ParametricPlot3D[
+            {(1 + (v/2) Cos[u/2]) Cos[u],
+            (1 + (v/2) Cos[u/2]) Sin[u],
+            (v/2) Sin[u/2]},
+            {u, 0, 2 Pi}, {v, -1, 1},
+            Mesh -> {15, 5}
+        ]
+    '
 #
 # Plot
 #

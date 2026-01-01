@@ -41,9 +41,14 @@ def make_surfaces(
     names = [strip_context(str(range[0])) for range in plot_options.ranges]
 
     # Mesh option
-    nmesh = 20
-    if plot_options.mesh is SymbolNone:
-        nmesh = 0
+    mesh = plot_options.mesh
+    nmeshx = nmeshy = 20
+    if mesh is SymbolNone:
+        nmeshx = nmeshy = 0
+    elif isinstance(plot_options.mesh, int):
+        nmeshx = nmeshy = plot_options.mesh
+    elif isinstance(mesh, (list, tuple)) and all(isinstance(m, int) for m in mesh):
+        nmeshx, nmeshy = mesh
 
     # compile the functions
     with Timer("compile"):
@@ -113,7 +118,7 @@ def make_surfaces(
     # If requested by the Mesh attribute create a mesh of lines covering the surfaces
     # For now only for Plot3D
     # TODO: mesh for DensityPlot?
-    if nmesh and dim == 3:
+    if nmeshx and nmeshy and dim == 3:
         # meshes are black for now
         graphics.add_directives([SymbolRGBColor, 0, 0, 0])
 
@@ -123,9 +128,9 @@ def make_surfaces(
             # from one row or one column of the inxs array.
             # Each mesh line has high res (nx or ny) so it follows
             # the contours of the surface.
-            for xyzs, inxs in compute_over_grid(nx, nmesh):
+            for xyzs, inxs in compute_over_grid(nx, nmeshy):
                 graphics.add_complex(xyzs.real, lines=inxs, polys=None)
-            for xyzs, inxs in compute_over_grid(nmesh, ny):
+            for xyzs, inxs in compute_over_grid(nmeshx, ny):
                 graphics.add_complex(xyzs.real, lines=inxs.T, polys=None)
 
     return graphics
