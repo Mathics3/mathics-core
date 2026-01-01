@@ -343,8 +343,8 @@ def yaml_tests_generator(fn: str):
 
 
 YAML_TESTS = [
-    "doc_tests.yaml",
     "vec_tests.yaml",
+    "doc_tests.yaml",
     "parameters.yaml",
 ]
 

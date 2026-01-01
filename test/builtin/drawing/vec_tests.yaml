@@ -65,6 +65,48 @@ vec-parametricplot-zeta-sideways:
         ]
     '
 #
+# ParametricPlot3D
+#
+vec-parametricplot3d-trefoil:
+    expr: ParametricPlot3D[{Sin[t] + 2 Sin[2 t], Cos[t] - 2 Cos[2 t], -Sin[3 t]}, {t, 0, 2 Pi}]
+vec-parametricplot3d-multi:
+    expr: '
+        ParametricPlot3D[
+            {{Sin[t] + 2 Sin[2 t], Cos[t] - 2 Cos[2 t], -Sin[3 t]},
+            {2 Sin[t], 2 Cos[t], Sin[40 t]},
+            {2 Sin[t], 2 Cos[t], 0}},
+            {t, 0, 2 Pi}
+        ]
+    '
+vec-parametricplot3d-torus:
+    expr: '
+        ParametricPlot3D[
+            {(2 + Cos[v]) Cos[u], (2 + Cos[v]) Sin[u], Sin[v]},
+            {u, 0, 2 Pi}, {v, 0, 2 Pi}
+        ]
+    '
+vec-parametricplot3d-torus-plotrange:
+    expr: '
+        ParametricPlot3D[
+            {(2 + Cos[v]) Cos[u], (2 + Cos[v]) Sin[u], Sin[v]},
+            {u, 0, 2 Pi}, {v, 0, 2 Pi},
+            PlotRange -> {{0,3},{0,3}}
+        ]
+    '
+vec-parametricplot3d-rings:
+    expr: '
+        Module[{R, r, x, y, z},
+            R=5; r=1;
+            x = (R + r Cos[v]) Cos[u];
+            y = (R + r Cos[v]) Sin[u];
+            z = r Sin[v];
+            ParametricPlot3D[
+                {{x, y, z}, {y, z, x}, {z, x, y}},
+                {u, 0, 2 Pi}, {v, 0, 2 Pi}, BoxRatios->{1,1,1}
+            ]
+        ]
+    '
+#
 # Plot
 #
 vec-plot-exclusions:
