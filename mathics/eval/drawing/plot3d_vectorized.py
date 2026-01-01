@@ -18,7 +18,6 @@ from mathics.core.systemsymbols import (
     SymbolRGBColor,
     SymbolSubtract,
 )
-from mathics.core.util import print_expression_tree  # noqa
 from mathics.timing import Timer
 
 from .colors import palette2, palette3, palette_color_directive
@@ -142,7 +141,6 @@ def make_curves(plot_options, evaluation: Evaluation, dim: int, emit):
     nt = plot_options.plot_points[0]
 
     # compile
-    print_expression_tree(plot_options.functions)
     names = [strip_context(str(range[0])) for range in plot_options.ranges]
     with Timer("compile"):
         compiled_functions = compile_exprs(evaluation, plot_options.functions, names)

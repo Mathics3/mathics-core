@@ -2,7 +2,7 @@
 Common utilities for plotting
 """
 
-from typing import Sequence, String
+from typing import Sequence
 
 from mathics.core.atoms import NumericArray
 from mathics.core.convert.expression import to_expression, to_mathics_list
@@ -105,7 +105,7 @@ class GraphicsGenerator:
 
 
 def compile_exprs(
-    evaluation: Evaluation, expr_or_list: Expression | Sequence, names: Sequence[String]
+    evaluation: Evaluation, expr_or_list: Expression | Sequence, names: Sequence[str]
 ):
     """Traverse a nested list structure and compile the functions at the leaves"""
     if isinstance(expr_or_list, (list, tuple)):
