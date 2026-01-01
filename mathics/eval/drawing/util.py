@@ -5,6 +5,7 @@ Common utilities for plotting
 
 from mathics.core.atoms import NumericArray
 from mathics.core.convert.expression import to_expression, to_mathics_list
+from mathics.core.convert.lambdify import lambdify_compile
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
@@ -102,3 +103,11 @@ class GraphicsGenerator:
         )
 
         return graphics_expr
+
+
+def compile_exprs(evaluation, expr_or_list, names):
+    """Traverse a nested list structure and compile the functions at the leaves"""
+    if isinstance(expr_or_list, (list, tuple)):
+        return [compile_exprs(evaluation, e, names) for e in expr_or_list]
+    else:
+        return lambdify_compile(evaluation, expr_or_list, names)

@@ -9,7 +9,6 @@ from typing import Sequence
 import numpy as np
 
 from mathics.builtin.colors.color_internals import convert_color
-from mathics.core.convert.lambdify import lambdify_compile
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import strip_context
@@ -22,7 +21,7 @@ from mathics.core.systemsymbols import (
 from mathics.timing import Timer
 
 from .colors import palette2, palette3, palette_color_directive
-from .util import GraphicsGenerator
+from .util import GraphicsGenerator, compile_exprs
 
 
 def make_plot(plot_options, evaluation: Evaluation, dim: int, is_complex: bool, emit):
@@ -45,14 +44,8 @@ def make_plot(plot_options, evaluation: Evaluation, dim: int, is_complex: bool, 
         nmesh = 0
 
     # compile the functions
-    def compile_exprs(expr_or_list: Sequence | Expression) -> Sequence:
-        if isinstance(expr_or_list, (list, tuple)):
-            return [compile_exprs(e) for e in expr_or_list]
-        else:
-            return lambdify_compile(evaluation, expr_or_list, names)
-
     with Timer("compile"):
-        compiled_functions = compile_exprs(plot_options.functions)
+        compiled_functions = compile_exprs(evaluation, plot_options.functions, names)
 
     def compute_over_grid(nu, nv):
         """

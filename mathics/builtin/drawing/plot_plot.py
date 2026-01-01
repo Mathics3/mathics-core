@@ -86,10 +86,15 @@ class _Plot(Builtin, ABC):
         apply_function = self.apply_function
         if not plot.use_vectorized_plot:
             apply_function = lru_cache(apply_function)
+        plot_options.apply_function = apply_function
+
+        # TODO: PlotOptions has already regularized .functions to be a list
+        # (of lists) of functions, used by the _Plot3d builtins.
+        # But _Plot builtins still need to be reworked to use it,
+        # so we still use the old mechanism here.
+        plot_options.functions = self.get_functions_param(functions)
 
         # additional options specific to this class
-        plot_options.functions = self.get_functions_param(functions)
-        plot_options.apply_function = apply_function
         plot_options.use_log_scale = self.use_log_scale
         plot_options.expect_list = self.expect_list
         if plot_options.plot_points is None:
