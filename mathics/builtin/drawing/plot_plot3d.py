@@ -267,7 +267,22 @@ class DensityPlot(_Plot3D):
 
 
 class ParametricPlot3D(_Plot3D):
-    summary_text = "plot a parametric surface"
+    """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/ParametricPlot3D.html</url>
+    <dl>
+      <dt>'ParametricPlot3D'[${x(u,v), y(u,v), z(u,v)}$, {$u$, $u_{min}$, $u_{max}$}, {$v$, $v_{min}$, $v_{max}$}]
+      <dd>creates a three-dimensional surface using the functions $x$, $y$, $z$ over the specified ranges for parameters $u$ and $v$.
+
+      <dt>'ParametricPlot3D'[${x(u), y(u), z(u)}$, {$u$, $u_{min}$, $u_{max}$}]
+      <dd>creates a three-dimensional space curve using the functions $x$, $y$, $z$ over the specified range for parameter $u$.
+
+          See <url>:Drawing Option and Option Values:
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    </url> for a list of Plot options.
+    </dl>
+    """
+
+    summary_text = "plot a parametric surface or curve in three dimensions"
     expected_args = 3
     options = _Plot3D.options3d
 
