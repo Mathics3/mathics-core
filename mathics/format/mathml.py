@@ -23,6 +23,7 @@ from mathics.builtin.box.layout import (
     SubscriptBox,
     SubsuperscriptBox,
     SuperscriptBox,
+    TagBox,
 )
 from mathics.core.atoms import String
 from mathics.core.element import BoxElementMixin
@@ -367,3 +368,12 @@ def graphics3dbox(self, elements=None, **options) -> str:
 
 
 add_conversion_fn(Graphics3DBox, graphics3dbox)
+
+
+def tag_box(self, **options):
+    return lookup_conversion_method(self.elements[0], "mathml")(
+        self.elements[0], **options
+    )
+
+
+add_conversion_fn(TagBox, tag_box)
