@@ -430,7 +430,10 @@ class PlotOptions:
 
         # plot ranges of the form {x,xmin,xmax} etc. (returns Symbol)
         self.ranges = []
-        for range_expr in range_exprs:
+        for i, range_expr in enumerate(range_exprs):
+            if isinstance(range_expr, Symbol) and hasattr(builtin, "default_ranges"):
+                self.ranges.append([range_expr, *builtin.default_ranges[i]])
+                continue
             if not range_expr.has_form("List", 3):
                 error("invrange", range_expr)
             if not isinstance(range_expr.elements[0], Symbol):
@@ -495,9 +498,7 @@ class PlotOptions:
         # PlotPoints option (returns Symbol)
         plot_points_option = builtin.get_option(options, "PlotPoints", evaluation)
         pp = plot_points_option.to_python(preserve_symbols=True)
-        npp = len(self.ranges)
-        if builtin.get_name() in ("System`ComplexPlot3D", "System`ComplexPlot"):
-            npp = 2
+        npp = builtin.num_plot_points if hasattr(builtin, "num_plot_points") else len(self.ranges)
         if pp == SymbolNone:
             pp = None
         else:

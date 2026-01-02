@@ -37,6 +37,7 @@ class _Plot3D(Builtin):
     # Check for correct number of args
     eval_error = Builtin.generic_argument_error
     expected_args = 3
+    is_cartesian = True
 
     messages = {
         "invmaxrec": (
@@ -107,7 +108,7 @@ class _Plot3D(Builtin):
         except ValueError:
             return None
 
-        # supply default value
+        # supply default value for PlotPoints
         if plot_options.plot_points is None:
             if isinstance(self, ParametricPlot3D) and len(plot_options.ranges) == 1:
                 # ParametricPlot3D with one independent variable generating a curve
@@ -130,9 +131,9 @@ class _Plot3D(Builtin):
             return
 
         # now we have a list of length dim
-        # handle Automatic ~ {xmin,xmax} etc.
+        # handle Automatic ~ {xmin,xmax} etc., but only if is_cartesion: the independent variables are x and y
         # TODO: dowstream consumers might be happier if we used data range where applicable
-        if not isinstance(self, ParametricPlot3D):
+        if self.is_cartesian:
             for i, (pr, r) in enumerate(
                 zip(plot_options.plot_range, plot_options.ranges)
             ):
@@ -175,6 +176,7 @@ class ComplexPlot3D(_Plot3D):
     options = _Plot3D.options3d | {"Mesh": "None"}
 
     many_functions = True
+    num_plot_points = 2  # different from number of ranges
     graphics_class = Graphics3D
 
     def apply_function(self, function, names, us, vs):
@@ -202,6 +204,7 @@ class ComplexPlot(_Plot3D):
     options = _Plot3D.options2d
 
     many_functions = False
+    num_plot_points = 2  # different from number of ranges
     graphics_class = Graphics
 
     def apply_function(self, function, names, us, vs):
@@ -286,6 +289,7 @@ class ParametricPlot3D(_Plot3D):
     expected_args = 3
     options = _Plot3D.options3d
 
+    is_cartesian = False
     many_functions = True
     graphics_class = Graphics3D
 
@@ -329,3 +333,36 @@ class Plot3D(_Plot3D):
 
     many_functions = True
     graphics_class = Graphics3D
+
+
+class SphericalPlot3D(_Plot3D):
+    """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/SphericalPlot3D.html</url>
+    <dl>
+      <dt>'ParametricPlot3D'[$r(θ, φ)$, {$θ$, $θ_{min}$, $θ_{max}$}, {$φ$, $φ_{min}$, $φ_{max}$}]
+      <dd>creates a three-dimensional surface at radius $r(θ, φ) for spherical angles θ and φ over the specified ranges
+
+      <dt>'ParametricPlot3D'[$r(θ, φ)$, $θ$, $φ$]
+      <dd>creates a three-dimensional surface at radius $r(θ, φ)$ for spherical angles θ and φ
+          in the ranges 0 < θ < π and 0 < φ < 2π covering the entire sphere
+
+          See <url>:Drawing Option and Option Values:
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    </url> for a list of Plot options.
+    </dl>
+    """
+
+    summary_text = "produce a surface plot functions spherical angles θ and φ"
+    expected_args = 3
+    options = _Plot3D.options3d | {"BoxRatios": "{1,1,1}"}
+
+    is_cartesian = False
+    many_functions = True
+    graphics_class = Graphics3D
+    default_ranges = [[0, np.pi], [0, 2 * np.pi]]
+
+    def apply_function(self, function, names, θ, φ):
+        parms = {names[0]: θ, names[1]: φ}
+        r = function(**parms)
+        x, y, z = r * np.sin(θ) * np.cos(φ), r * np.sin(θ) * np.sin(φ), r * np.cos(θ)
+        return x, y, z

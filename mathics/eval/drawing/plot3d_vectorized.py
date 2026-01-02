@@ -383,3 +383,14 @@ def eval_ParametricPlot3D(
         )
     else:
         return make_curves(plot_options, evaluation, dim=3, emit=emit)
+
+
+@Timer("eval_SphericalPlot3D")
+def eval_SphericalPlot3D(
+    plot_options,
+    evaluation: Evaluation,
+):
+    # At this point it's just like Plot3D - the apply_function that has been passed
+    # in plot_options will converts spherical coordinates to cartesian coordinates
+    # after evaluating the function(s) to get r
+    return eval_Plot3D(plot_options, evaluation)

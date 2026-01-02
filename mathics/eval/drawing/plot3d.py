@@ -520,3 +520,10 @@ def eval_ParametricPlot3D(
     evaluation: Evaluation,
 ):
     return None
+
+
+def eval_SphericalPlot3D(
+    plot_options,
+    evaluation: Evaluation,
+):
+    return None
