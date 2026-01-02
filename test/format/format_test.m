@@ -21,6 +21,7 @@ Do[key = ToExpression[tests[[1]]];
  latex = ("latex" /. fields);
  mathml = ("mathml" /. fields);
  Print[Head[key], "  msg:", mesg, "<<", key, ">>"];
+ If[Head[text]===List,
  Print["    text", "\n    -----", "\n"];
  Do[form = ToExpression[subtest[[1]]]; expr = form[key];
   result = ToString[expr];
@@ -28,18 +29,23 @@ Do[key = ToExpression[tests[[1]]];
   If[result != subtest[[2]], 
    Print["      * ", form, "(text)    [Failed]\n        result:", "<<" <> result <> ">>", 
     "\n        expected: ", "<<" <> expected <> ">>\n"], 
-   Print["      * ", form, "(text)    [OK]"]];, {subtest, text}];
+   Print["      * ", form, "(text)    [OK]"]];, {subtest, text}]];
    (*LaTeX*)
- Print["    latex", "\n    -----", "\n"];
- Do[form = ToExpression[subtest[[1]]]; expr = form[key];
-  result = ToString[expr, TeXForm];
-  expected = subtest[[2]];
-  If[result != subtest[[2]], 
-   Print["      * ", form, "(latex)    [Failed]\n        result:", 
-    "<<" <> result <> ">>", "\n        expected: ", 
-    "<<" <> expected <> ">>\n"], 
-   Print["      * ", form, "(latex)    [OK]"]];, {subtest, latex}];
+ If[Head[latex]===List,
+   Print["    latex", "\n    -----", "\n"];
+   Do[form = ToExpression[subtest[[1]]]; expr = form[key];
+      result = ToString[expr, TeXForm];
+      expected = subtest[[2]];
+      If[result != subtest[[2]], 
+        Print["      * ", form, "(latex)    [Failed]\n        result:", 
+        "<<" <> result <> ">>", "\n        expected: ", 
+        "<<" <> expected <> ">>\n"], 
+      Print["      * ", form, "(latex)    [OK]"]];,
+   {subtest, latex}]
+   ];
+   
 (*MathML*)
+ If[Head[mathml]===List, 
  Print["    mathml", "\n    ------", "\n"];
  Do[form = ToExpression[subtest[[1]]]; expr = form[key];
   result = ToString[expr, MathMLForm];
@@ -48,6 +54,6 @@ Do[key = ToExpression[tests[[1]]];
    Print["      * ", form, "(mathml)    [Failed]\n        result:", 
     "<<" <> result <> ">>", "\n        expected: ", 
     "<<" <> expected <> ">>\n"], 
-   Print["      * ", form, "(mathml)    [OK]"]];, {subtest, mathml}];
-
-  , {tests, data}]
+   Print["      * ", form, "(mathml)    [OK]"]];, {subtest, mathml}]];
+  , {tests, data}
+  ]
