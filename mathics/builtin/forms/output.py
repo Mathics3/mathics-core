@@ -14,7 +14,7 @@ Form Functions
 """
 from typing import Optional
 
-from mathics.builtin.box.layout import RowBox
+from mathics.builtin.box.layout import RowBox, StyleBox, TagBox
 from mathics.builtin.forms.base import FormBaseClass
 from mathics.core.atoms import Integer, Real, String, StringFromPython
 from mathics.core.builtin import Builtin
@@ -22,7 +22,13 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import dps
-from mathics.core.symbols import Symbol, SymbolFalse, SymbolNull, SymbolTrue
+from mathics.core.symbols import (
+    Symbol,
+    SymbolFalse,
+    SymbolFullForm,
+    SymbolNull,
+    SymbolTrue,
+)
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
     SymbolInfinity,
@@ -37,6 +43,7 @@ from mathics.eval.makeboxes import (
     StringLParen,
     StringRParen,
     eval_baseform,
+    eval_makeboxes_fullform,
     eval_mathmlform,
     eval_tableform,
     eval_texform,
@@ -123,6 +130,19 @@ class FullForm(FormBaseClass):
     in_outputforms = True
     in_printforms = True
     summary_text = "underlying M-Expression representation"
+
+    def eval_makeboxes(self, expr, fmt, evaluation):
+        """MakeBoxes[FullForm[expr_], fmt_]"""
+        fullform_box = eval_makeboxes_fullform(expr, evaluation)
+        style_box = StyleBox(
+            fullform_box,
+            **{
+                "System`ShowSpecialCharacters": SymbolFalse,
+                "System`ShowStringCharacters": SymbolTrue,
+                "System`NumberMarks": SymbolTrue,
+            },
+        )
+        return TagBox(style_box, SymbolFullForm)
 
 
 class MathMLForm(FormBaseClass):

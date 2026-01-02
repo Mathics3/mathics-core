@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import os
+import test
 from test.helper import check_evaluation
 
 import pytest
+import yaml
 
 # To check the progress in the improvement of formatting routines, set this variable to 1.
 # Otherwise, the tests are going to be skipped.
@@ -17,78 +19,27 @@ else:
     skip_or_fail = pytest.mark.xfail
 
 
+path = os.path.dirname(__file__) + os.path.sep
+
+with open(path + "makeboxes_tests.yaml", "r") as src:
+    MAKEBOXES_TESTS = yaml.safe_load(src)
+
+
+def makeboxes_basic_forms_iterator(block):
+    for key, tests in MAKEBOXES_TESTS[block].items():
+        for form, entry in tests.items():
+            msg = f"{key}, {form}"
+            expr = entry["expr"]
+            expect = entry["expect"]
+            yield expr, expect, msg
+
+
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "fail_msg"),
-    [
-        ("MakeBoxes[x]", '"x"', "StandardForm"),
-        (
-            "MakeBoxes[InputForm[x]]",
-            'InterpretationBox[StyleBox["x", ShowStringCharacters -> True, NumberMarks -> True], InputForm[x], Editable -> True, AutoDelete -> True]',
-            "InputForm, expression",
-        ),
-        (
-            "MakeBoxes[OutputForm[x]]",
-            'InterpretationBox[PaneBox[""x""], OutputForm[x], Editable -> False]',
-            "OutputForm, expression",
-        ),
-        (
-            "MakeBoxes[FullForm[x]]",
-            'TagBox[StyleBox["x", ShowSpecialCharacters -> False, ShowStringCharacters -> True, NumberMarks -> True], FullForm]',
-            "MakeBoxes expression FullForm",
-        ),
-        (
-            "MakeBoxes[TeXForm[x]]",
-            'InterpretationBox[""x"", TeXForm[x], Editable -> True, AutoDelete -> True]',
-            "TeXForm, expression",
-        ),
-        # Basic Expressions
-        ("MakeBoxes[F[x]]", 'RowBox[{"F", "[", "x", "]"}]', "StandardForm"),
-        (
-            "MakeBoxes[InputForm[F[x]]]",
-            'InterpretationBox[StyleBox["F[x]", ShowStringCharacters -> True, NumberMarks -> True], InputForm[F[x]], Editable -> True, AutoDelete -> True]',
-            "InputForm, expression",
-        ),
-        (
-            "MakeBoxes[OutputForm[F[x]]]",
-            'InterpretationBox[PaneBox[""F[x]""], OutputForm[F[x]], Editable -> False]',
-            "OutputForm, expression",
-        ),
-        (
-            "MakeBoxes[FullForm[F[x]]]",
-            'TagBox[StyleBox[RowBox[{"F", "[", "x", "]"}], ShowSpecialCharacters -> False, ShowStringCharacters -> True, NumberMarks -> True], FullForm]',
-            "MakeBoxes expression FullForm",
-        ),
-        (
-            "MakeBoxes[TeXForm[F[x]]]",
-            'InterpretationBox[""F(x)"", TeXForm[F[x]], Editable -> True, AutoDelete -> True]',
-            "TeXForm, expression",
-        ),
-        # Arithmetic
-        ("MakeBoxes[a-b]", 'RowBox[{"a", "-", "b"}]', "difference, StandardForm"),
-        (
-            "MakeBoxes[a-b//InputForm]",
-            'InterpretationBox[StyleBox["a - b", ShowStringCharacters -> True, NumberMarks -> True], InputForm[a - b], Editable -> True, AutoDelete -> True]',
-            "difference, InputForm",
-        ),
-        (
-            "MakeBoxes[a-b//OutputForm]",
-            'InterpretationBox[PaneBox[""a - b""], OutputForm[a - b], Editable -> False]',
-            "difference, OutputForm",
-        ),
-        (
-            "MakeBoxes[a-b//FullForm]",
-            'TagBox[StyleBox[RowBox[{"Plus", "[", RowBox[{"a", ",", RowBox[{"Times", "[", RowBox[{RowBox[{"-", "1"}], ",", "b"}], "]"}]}], "]"}], ShowSpecialCharacters -> False, ShowStringCharacters -> True, NumberMarks -> True], FullForm]',
-            "Difference, FullForm",
-        ),
-        (
-            "MakeBoxes[a-b//TeXForm]",
-            ' InterpretationBox[""a-b"", TeXForm[a-b], Editable -> True, AutoDelete -> True]',
-            "Difference, TeXForm",
-        ),
-    ],
+    list(makeboxes_basic_forms_iterator("Basic Forms")),
 )
 @skip_or_fail
-def test_makeboxes_basic_forms(str_expr, str_expected, fail_msg, msgs):
+def test_makeboxes_basic_forms(str_expr, str_expected, fail_msg):
     check_evaluation(
         str_expr,
         str_expected,
@@ -96,7 +47,59 @@ def test_makeboxes_basic_forms(str_expr, str_expected, fail_msg, msgs):
         to_string_expected=True,
         hold_expected=True,
         failure_message=fail_msg,
-        expected_messages=msgs,
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"), list(makeboxes_basic_forms_iterator("Numbers"))
+)
+@skip_or_fail
+def test_makeboxes_real(str_expr, str_expected, msg):
+    """
+    # TODO: Constructing boxes from Real which are currently failing
+    """
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=msg,
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    list(makeboxes_basic_forms_iterator("Parsing string form")),
+)
+def test_makeboxes_precedence(str_expr, str_expected, msg):
+    """Test precedence in string-like boxes"""
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=msg,
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    list(makeboxes_basic_forms_iterator("Graphics")),
+)
+@skip_or_fail
+def test_makeboxes_graphics(str_expr, str_expected, msg):
+    """
+    # TODO: Constructing boxes from Real which are currently failing
+    """
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=msg,
     )
 
 
@@ -116,9 +119,9 @@ def test_makeboxes_basic_forms(str_expr, str_expected, fail_msg, msgs):
         ('sb=StyleBox["string", "Section"]; sb[[0]]', "StyleBox", None, []),
         ("sb[[1]]", "string", None, []),
         # FIXME: <<RowBox object does not have the attribute "restructure">>
-        # ('rb[[All, 1]]', "{a, b}", "\"a\"", []),
-        # ('fb[[All]][[1]]','1', None, []),
-        # ('sb[[All]][[1]]','string', None, []),
+        ("rb[[All, 1]]", "{a, b}", '"a"', []),
+        ("fb[[All]][[1]]", "1", None, []),
+        ("sb[[All]][[1]]", "string", None, []),
     ],
 )
 @skip_or_fail
@@ -136,185 +139,6 @@ def test_part_boxes(str_expr, str_expected, fail_msg, msgs):
         hold_expected=True,
         failure_message=fail_msg,
         expected_messages=msgs,
-    )
-
-
-# 15 tests
-@pytest.mark.parametrize(
-    ("str_expr", "str_expected", "msg"),
-    [
-        (r"MakeBoxes[0`3]", r"0", None),
-        (r"MakeBoxes[14]", r"14", None),
-    ],
-)
-def test_makeboxes_real(str_expr, str_expected, msg):
-    """
-    # Constructing boxes from Real
-    """
-    check_evaluation(
-        str_expr,
-        str_expected,
-        to_string_expr=True,
-        to_string_expected=True,
-        hold_expected=True,
-        failure_message=msg,
-    )
-
-
-# 15 tests
-@pytest.mark.parametrize(
-    ("str_expr", "str_expected", "msg"),
-    [
-        (r"MakeBoxes[1.4`]", r"1.4`", "StandardForm always shows a precision mark."),
-        (
-            r"MakeBoxes[OutputForm[1.4]]",
-            r'InterpretationBox[PaneBox["1.4"], 1.4, Editable -> False]',
-            "MachineReal, OutputForm",
-        ),
-        (
-            r"MakeBoxes[3.142`3]",
-            r"3.142`3",
-            "StandadForm with PrecisionReal shows all the stored digits, and precision.",
-        ),
-        (
-            r"MakeBoxes[OutputForm[3.142`3]]",
-            r'InterpretationBox[PaneBox["3.14"], 3.14, Editable -> False]',
-            "OutputForm trims digits up to precision.",
-        ),
-        (r"MakeBoxes[1.5`20]", r"1.5`20.", None),
-        (r"MakeBoxes[1.4`20]", r"1.4`20.", None),
-        (r"MakeBoxes[1.5``20]", r"1.5`20.1760912591", None),
-        (r"MakeBoxes[-1.4]", r"RowBox[{-, 1.4`}]", None),
-        (r"MakeBoxes[34.*^3]", r"34000.`", None),
-        (r"MakeBoxes[0`]", r"0.`", None),
-        (r"MakeBoxes[0``30]", r"0.``30.", None),
-        (r"MakeBoxes[0.`3]", r"0.`", None),
-        (r"MakeBoxes[0.``30]", r"0.``30.", None),
-        (r"MakeBoxes[-14]", r"RowBox[{-, 14}]", None),
-    ],
-)
-@skip_or_fail
-def test_makeboxes_real_fail(str_expr, str_expected, msg):
-    """
-    # TODO: Constructing boxes from Real which are currently failing
-    """
-    check_evaluation(
-        str_expr,
-        str_expected,
-        to_string_expr=True,
-        to_string_expected=True,
-        hold_expected=True,
-        failure_message=msg,
-    )
-
-
-# 3 tests
-@pytest.mark.parametrize(
-    ("str_expr", "str_expected", "msg"),
-    [
-        (r"\(x \/ y + z\)", r"RowBox[{FractionBox[x, y], +, z}]", None),
-        (r"\( \@ a + b \)", r"RowBox[{SqrtBox[a], +, b}]", None),
-    ],
-)
-def test_makeboxes_precedence(str_expr, str_expected, msg):
-    """Test precedence in string-like boxes"""
-    check_evaluation(
-        str_expr,
-        str_expected,
-        to_string_expr=True,
-        to_string_expected=True,
-        hold_expected=True,
-        failure_message=msg,
-    )
-
-
-# 2 tests
-@pytest.mark.parametrize(
-    ("str_expr", "str_expected", "msg"),
-    [
-        (
-            r"\(x \/ (y + z)\)",
-            r"FractionBox[x, RowBox[{(, RowBox[{y, +, z}], )}]]",
-            None,
-        ),
-    ],
-)
-@skip_or_fail
-def test_makeboxes_precedence_fail(str_expr, str_expected, msg):
-    """TODO: fix the parsing for testing precedence in string-like boxes ("""
-    check_evaluation(
-        str_expr,
-        str_expected,
-        to_string_expr=True,
-        to_string_expected=True,
-        hold_expected=True,
-        failure_message=msg,
-    )
-
-
-# 3 tests
-# TODO: Convert operators to appropriate representations e.g. 'Plus' to '+'
-@pytest.mark.parametrize(
-    ("str_expr", "str_expected", "msg"),
-    [
-        (r"\(a + b\)", r"RowBox[{a, +, b}]", None),
-        (r"\(x \/ \(y + z\)\)", r"FractionBox[x, RowBox[{y, +, z}]]", None),
-    ],
-)
-def test_makeboxes_representation(str_expr, str_expected, msg):
-    check_evaluation(
-        str_expr,
-        str_expected,
-        to_string_expr=True,
-        to_string_expected=True,
-        hold_expected=True,
-        failure_message=msg,
-    )
-
-
-# 3 tests
-# TODO: Convert operators to appropriate representations e.g. 'Plus' to '+'
-@pytest.mark.parametrize(
-    ("str_expr", "str_expected", "msg"),
-    [
-        (
-            r"\(TraditionalForm \` a + b\)",
-            r"FormBox[RowBox[{a, +, b}], TraditionalForm]",
-            None,
-        ),
-    ],
-)
-@skip_or_fail
-def test_makeboxes_representation_fail(str_expr, str_expected, msg):
-    check_evaluation(
-        str_expr,
-        str_expected,
-        to_string_expr=True,
-        to_string_expected=True,
-        hold_expected=True,
-        failure_message=msg,
-    )
-
-
-#  5 tests
-@pytest.mark.parametrize(
-    ("str_expr", "str_expected", "msg"),
-    [
-        (
-            r"\( a, b \)",
-            r"RowBox[{a, ,, b}]",
-            "TODO: Parsing of special characters (like commas)",
-        ),
-    ],
-)
-def test_makeboxes_others(str_expr, str_expected, msg):
-    check_evaluation(
-        str_expr,
-        str_expected,
-        to_string_expr=True,
-        to_string_expected=True,
-        hold_expected=True,
-        failure_message=msg,
     )
 
 
