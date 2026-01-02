@@ -498,7 +498,11 @@ class PlotOptions:
         # PlotPoints option (returns Symbol)
         plot_points_option = builtin.get_option(options, "PlotPoints", evaluation)
         pp = plot_points_option.to_python(preserve_symbols=True)
-        npp = builtin.num_plot_points if hasattr(builtin, "num_plot_points") else len(self.ranges)
+        npp = (
+            builtin.num_plot_points
+            if hasattr(builtin, "num_plot_points")
+            else len(self.ranges)
+        )
         if pp == SymbolNone:
             pp = None
         else:
