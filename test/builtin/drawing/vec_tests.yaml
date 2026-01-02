@@ -157,6 +157,19 @@ vec-plot3d-stack:
 vec-polarplot-theataxxx-8:
     expr: PolarPlot[1+0.5 Cos[3 θ],{θ,0,2 Pi}]
 #
+# SphericalPlot3D
+#
+vec-sphericalplot3d-harmonics:
+    expr: SphericalPlot3D[1 + 0.4 Abs[SphericalHarmonicY[10, 4, θ, φ]], θ, φ]
+vec-sphericalplot3d-spiral:
+    expr: SphericalPlot3D[1 + 0.3 Sin[6 θ + 4 φ], {θ, 0, Pi}, {φ, 0, 2 Pi},  Mesh -> None]
+vec-sphericalplot3d-orbital:
+    expr: SphericalPlot3D[1 + 2 Cos[2 θ], θ, φ, BoxRatios->{1,1,1.5}, ViewPoint->{10,-20,5}]
+vec-sphericalplot3d-shells:
+    expr: SphericalPlot3D[{3, 2, 1}, {θ, 0,  π}, {φ, 0, 3π/2}]
+vec-sphericalplot3d-onion:
+    expr: SphericalPlot3D[1 + Sin[5φ] / 5, {θ, π/2, π}, φ, PlotRange->{Automatic,Automatic,{-1.2,1}}, Mesh->{10,20}]
+#
 # Following is a curated subset of doc_tests.yaml that have vectorized implementation.
 # Culled to remove repetitive tests.
 # If the switch is flipped in doc_tests.yaml so that it does vectorized tests on everything
