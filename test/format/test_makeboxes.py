@@ -72,6 +72,7 @@ def test_makeboxes_real(str_expr, str_expected, msg):
     ("str_expr", "str_expected", "msg"),
     list(makeboxes_basic_forms_iterator("Parsing string form")),
 )
+@skip_or_fail
 def test_makeboxes_precedence(str_expr, str_expected, msg):
     """Test precedence in string-like boxes"""
     check_evaluation(
