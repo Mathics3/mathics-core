@@ -113,6 +113,8 @@ class _Plot3D(Builtin):
             if isinstance(self, ParametricPlot3D) and len(plot_options.ranges) == 1:
                 # ParametricPlot3D with one independent variable generating a curve
                 default_plot_points = (1000,)
+            elif isinstance(self, ContourPlot3D):
+                default_plot_points = (50, 50, 50)
             elif plot.use_vectorized_plot:
                 default_plot_points = (200, 200)
             else:
@@ -235,6 +237,30 @@ class ContourPlot(_Plot3D):
 
     many_functions = True
     graphics_class = Graphics
+
+
+class ContourPlot3D(_Plot3D):
+    """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/ContourPlot3D.html</url>
+    <dl>
+      <dt>'ContourPlot3D'[$f(x,y,z)$, {$x$, $x_{min}$, $x_{max}$}, {$y$, $y_{min}$, $y_{max}$, {$y$, $y_{min}$, $y_{max}$}]
+      <dd>creates a three-dimensional contour plot of $f(x,y,z)$ over the specified region on $x$, $y$, and $z$.
+
+          See <url>:Drawing Option and Option Values:
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    </url> for a list of Plot options.
+    </dl>
+
+    """
+
+    requires = ["skimage"]
+    summary_text = "creates a 3d contour plot"
+    expected_args = 4
+    options = _Plot3D.options3d | {"Contours": "Automatic", "BoxRatios": "{1,1,1}"}
+    # TODO: other options?
+
+    many_functions = False
+    graphics_class = Graphics3D
 
 
 class DensityPlot(_Plot3D):

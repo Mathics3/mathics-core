@@ -222,6 +222,19 @@ def eval_DensityPlot(
     return make_surfaces(plot_options, evaluation, dim=2, is_complex=False, emit=emit)
 
 
+def equations_to_contours(plot_options):
+    """
+    For contour plots, convert functions of the form f==g to f-g,
+    and adjust contours ot [0] and disable background
+    """
+    for i, f in enumerate(plot_options.functions):
+        if hasattr(f, "head") and f.head == SymbolEqual:
+            f = Expression(SymbolSubtract, *f.elements[0:2])
+            plot_options.functions[i] = f
+            plot_options.contours = [0]
+            plot_options.background = False
+    
+
 @Timer("eval_ContourPlot")
 def eval_ContourPlot(
     plot_options,
@@ -230,21 +243,14 @@ def eval_ContourPlot(
     import skimage.measure
 
     # whether to show a background similar to density plot, except quantized
-    background = len(plot_options.functions) == 1
-    contour_levels = plot_options.contours
+    plot_options.background = len(plot_options.functions) == 1
 
-    # convert fs of the form a==b to a-b, inplicit contour level 0
-    plot_options.functions = list(plot_options.functions)  # so we can modify it
-    for i, f in enumerate(plot_options.functions):
-        if hasattr(f, "head") and f.head == SymbolEqual:
-            f = Expression(SymbolSubtract, *f.elements[0:2])
-            plot_options.functions[i] = f
-            contour_levels = [0]
-            background = False
+    # adjust functions, contours, and background for functions of the form f==g
+    equations_to_contours(plot_options)
 
     def emit(graphics, i, xyzs, _, quads):
         # set line color
-        if background:
+        if plot_options.background:
             # showing a background, so just black lines
             color_directive = [SymbolRGBColor, 0, 0, 0]
         else:
@@ -259,7 +265,7 @@ def eval_ContourPlot(
         zs = xyzs[:, 2]  # this is a linear list matching with quads
 
         # process contour_levels
-        levels = contour_levels
+        levels = plot_options.contours
         zmin, zmax = np.min(zs), np.max(zs)
         if isinstance(levels, str):
             # TODO: need to pick "nice" number so levels have few digits
@@ -285,7 +291,7 @@ def eval_ContourPlot(
                 graphics.add_linexyzs(segment)
 
         # background is solid colors between contour lines
-        if background:
+        if plot_options.background:
             with Timer("contour background"):
                 # use masks and fancy indexing to assign (lo+hi)/2 to all zs between lo and hi
                 zs[zs <= levels[0]] = zmin
@@ -299,6 +305,65 @@ def eval_ContourPlot(
 
     # plot_options.plot_points = [n * 10 for n in plot_options.plot_points]
     return make_surfaces(plot_options, evaluation, dim=2, is_complex=False, emit=emit)
+
+
+
+@Timer("eval_ContourPlot3D")
+def eval_ContourPlot3D(
+    plot_options,
+    evaluation: Evaluation,
+):
+    import skimage.measure
+
+    # adjust functions, contours, and background for functions of the form f==g
+    equations_to_contours(plot_options)
+
+    # pull out options
+    _, xmin, xmax = plot_options.ranges[0]
+    _, ymin, ymax = plot_options.ranges[1]
+    _, zmin, zmax = plot_options.ranges[2]
+    nx, ny, nz = plot_options.plot_points
+    names = [strip_context(str(r[0])) for r in plot_options.ranges]
+
+    # compile the functions
+    with Timer("compile"):
+        compiled_functions = compile_exprs(evaluation, plot_options.functions, names)
+
+    # construct (nx,ny,nz) grid
+    xs = np.linspace(xmin, xmax, nx)
+    ys = np.linspace(ymin, ymax, ny)
+    zs = np.linspace(zmin, zmax, nz)
+    xs, ys, zs = np.meshgrid(xs, ys, zs)
+
+    # just one function
+    function = compiled_functions[0]
+
+    # compute function values fs over the grid
+    with Timer("compute fs"):
+        fs = function(**{n: v for n, v in zip(names, [xs, ys, zs])})
+
+    # find contour for each level and emit it
+    graphics = GraphicsGenerator(dim=3)
+    for i, level in enumerate(plot_options.contours):
+        color_directive = palette_color_directive(palette3, i)
+        graphics.add_directives(color_directive)
+
+        # find contour for this level
+        with Timer("3d contours"):
+            verts, faces, normals, values = skimage.measure.marching_cubes(fs, level)
+
+        # marching_cubes gives back coordinates relative to grid unit, so rescale to x, y, z
+        offset = np.array([xmin, ymin, zmin])
+        scale = np.array([(xmax-xmin)/(nx-1), (ymax-ymin)/(ny-1), (zmax-zmin)/(nz-1)])
+        verts = offset + verts * scale
+
+        # WL is 1-based
+        faces += 1
+
+        # emit as graphics complex
+        graphics.add_complex(verts, lines=None, polys=faces, colors=None)
+
+    return graphics
 
 
 @Timer("complex colors")
