@@ -242,11 +242,17 @@ class ContourPlot(_Plot3D):
 class ContourPlot3D(_Plot3D):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/ContourPlot3D.html</url>
+    <url>:Isosurface: https://en.wikipedia.org/wiki/Isosurface</usr>
     <dl>
       <dt>'ContourPlot3D'[$f(x,y,z)$, {$x$, $x_{min}$, $x_{max}$}, {$y$, $y_{min}$, $y_{max}$, {$y$, $y_{min}$, $y_{max}$}]
       <dd>creates a three-dimensional contour plot of $f(x,y,z)$ over the specified region on $x$, $y$, and $z$.
 
-          See <url>:Drawing Option and Option Values:
+      >> ContourPlot3D[x ^ 2 + y ^ 2 - z ^ 2, {x, -1, 1}, {y, -1, 1}, {z, -1, 1}]
+       = ContourPlot3D[x ^ 2 + y ^ 2 - z ^ 2, {x, -1, 1}, {y, -1, 1}, {z, -1, 1}]
+
+      Multiple isosurfaces (3d contours) of a second degree equation form conical suraces, hyperboloids in this case.
+
+      See <url>:Drawing Option and Option Values:
     /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
     </url> for a list of Plot options.
     </dl>
