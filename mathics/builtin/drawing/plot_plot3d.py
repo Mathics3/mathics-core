@@ -269,6 +269,7 @@ class DensityPlot(_Plot3D):
 class ParametricPlot3D(_Plot3D):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/ParametricPlot3D.html</url>
+    <url>:Parametric equation: https://en.wikipedia.org/wiki/Parametric_equation</url>
     <dl>
       <dt>'ParametricPlot3D'[${x(u,v), y(u,v), z(u,v)}$, {$u$, $u_{min}$, $u_{max}$}, {$v$, $v_{min}$, $v_{max}$}]
       <dd>creates a three-dimensional surface using the functions $x$, $y$, $z$ over the specified ranges for parameters $u$ and $v$.
@@ -280,6 +281,18 @@ class ParametricPlot3D(_Plot3D):
     /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
     </url> for a list of Plot options.
     </dl>
+
+    >> ParametricPlot3D[{Sin[t] + 2 Sin[2 t], Cos[t] - 2 Cos[2 t], -Sin[3 t]}, {t, 0, 2 Pi}]
+     = -Graphics-
+
+    A function of a single parameter $t$ generates a trefoil knot.
+
+    >> ParametricPlot3D[{(2 + Cos[v]) Cos[u], (2 + Cos[v]) Sin[u], Sin[v]}, {u, 0, 2 Pi}, {v, 0, 2 Pi}
+        ]
+     = -Graphics-
+    
+    A function of two parameters $u$ and $v$ generates a torus.
+
     """
 
     summary_text = "plot a parametric surface or curve in three dimensions"
