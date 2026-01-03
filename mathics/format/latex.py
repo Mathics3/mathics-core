@@ -27,6 +27,7 @@ from mathics.builtin.box.layout import (
     SubscriptBox,
     SubsuperscriptBox,
     SuperscriptBox,
+    TagBox,
 )
 from mathics.builtin.colors.color_directives import RGBColor
 from mathics.core.atoms import String
@@ -629,3 +630,12 @@ currentlight=light(rgb(0.5,0.5,0.5), {5}specular=red, (2,0,2), (2,2,2), (0,2,2))
 
 
 add_conversion_fn(Graphics3DBox, graphics3dbox)
+
+
+def tag_box(self, **options):
+    return lookup_conversion_method(self.elements[0], "latex")(
+        self.elements[0], **options
+    )
+
+
+add_conversion_fn(TagBox, tag_box)
