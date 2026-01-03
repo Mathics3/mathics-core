@@ -306,8 +306,8 @@ class DensityPlot(_Plot3D):
 
 class ParametricPlot3D(_Plot3D):
     """
-    <url>:WMA link: https://reference.wolfram.com/language/ref/ParametricPlot3D.html</url>
     <url>:Parametric equation: https://en.wikipedia.org/wiki/Parametric_equation</url>
+    <url>:WMA link: https://reference.wolfram.com/language/ref/ParametricPlot3D.html</url>
     <dl>
       <dt>'ParametricPlot3D'[${x(u,v), y(u,v), z(u,v)}$, {$u$, $u_{min}$, $u_{max}$}, {$v$, $v_{min}$, $v_{max}$}]
       <dd>creates a three-dimensional surface using the functions $x$, $y$, $z$ over the specified ranges for parameters $u$ and $v$.
@@ -384,30 +384,30 @@ class Plot3D(_Plot3D):
 
 class SphericalPlot3D(_Plot3D):
     """
-    <url>:WMA link: https://reference.wolfram.com/language/ref/SphericalPlot3D.html</url>
     <url>:Spherical coordinate system: https://en.wikipedia.org/wiki/Spherical_coordinate_system</url>
+    <url>:WMA link: https://reference.wolfram.com/language/ref/SphericalPlot3D.html</url>
     <dl>
-      <dt>'SphericalPlot3D'[$r(θ, φ)$, {$θ$, $θ_{min}$, $θ_{max}$}, {$φ$, $φ_{min}$, $φ_{max}$}]
-      <dd>creates a three-dimensional surface at radius $r(θ, φ)$ for spherical angles $θ$ and $φ$ over the specified ranges
+      <dt>'SphericalPlot3D'[$r(theta, phi)$, {$theta$, $theta_{min}$, $theta_{max}$}, {$phi$, $phi_{min}$, $phi_{max}$}]
+      <dd>creates a three-dimensional surface at radius $r(theta, phi)$ for spherical angles $theta$ and $phi$ over the specified ranges
 
-      <dt>'SphericalPlot3D'[$r(θ, φ)$, $θ$, $φ$]
-      <dd>creates a three-dimensional surface at radius $r(θ, φ)$ for spherical angles $θ$ and $φ$
-          in the ranges $0 < θ < π$ and $0 < φ < 2π$ covering the entire sphere
+      <dt>'SphericalPlot3D'[$r(theta, phi)$, $theta$, $phi$]
+      <dd>creates a three-dimensional surface at radius $r(theta, phi)$ for spherical angles $theta$ and $phi$
+          in the ranges $0 < theta < pi$ and $0 < phi < 2pi$ covering the entire sphere
 
           See <url>:Drawing Option and Option Values:
     /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
     </url> for a list of Plot options.
     </dl>
 
-    >> SphericalPlot3D[1 + 0.4 Abs[SphericalHarmonicY[10, 4, θ, φ]], θ, φ]
-     = SphericalPlot3D[1 + 0.4 Abs[SphericalHarmonicY[10, 4, θ, φ]], θ, φ]
+    >> SphericalPlot3D[1 + 0.4 Abs[SphericalHarmonicY[10, 4, theta, phi]], theta, phi]
+     = SphericalPlot3D[1 + 0.4 Abs[SphericalHarmonicY[10, 4, theta, phi]], theta, phi]
 
     Spherical harmonics are the canonical use case for spherical plots.
 
 
     """
 
-    summary_text = "produce a surface plot functions spherical angles θ and φ"
+    summary_text = "produce a surface plot functions spherical angles theta and phi"
     expected_args = 3
     options = _Plot3D.options3d | {"BoxRatios": "{1,1,1}"}
 
