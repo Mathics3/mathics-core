@@ -368,15 +368,21 @@ class Plot3D(_Plot3D):
 class SphericalPlot3D(_Plot3D):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/SphericalPlot3D.html</url>
+    <url>:Spherical coordinate system: https://en.wikipedia.org/wiki/Spherical_coordinate_system</url>
     <dl>
-      <dt>'ParametricPlot3D'[$r(θ, φ)$, {$θ$, $θ_{min}$, $θ_{max}$}, {$φ$, $φ_{min}$, $φ_{max}$}]
-      <dd>creates a three-dimensional surface at radius $r(θ, φ) for spherical angles θ and φ over the specified ranges
+      <dt>'SphericalPlot3D'[$r(θ, φ)$, {$θ$, $θ_{min}$, $θ_{max}$}, {$φ$, $φ_{min}$, $φ_{max}$}]
+      <dd>creates a three-dimensional surface at radius $r(θ, φ)$ for spherical angles $θ$ and $φ$ over the specified ranges
 
-      <dt>'ParametricPlot3D'[$r(θ, φ)$, $θ$, $φ$]
-      <dd>creates a three-dimensional surface at radius $r(θ, φ)$ for spherical angles θ and φ
-          in the ranges 0 < θ < π and 0 < φ < 2π covering the entire sphere
+      <dt>'SphericalPlot3D'[$r(θ, φ)$, $θ$, $φ$]
+      <dd>creates a three-dimensional surface at radius $r(θ, φ)$ for spherical angles $θ$ and $φ$
+          in the ranges $0 < θ < π$ and $0 < φ < 2π$ covering the entire sphere
 
-          See <url>:Drawing Option and Option Values:
+      >> SphericalPlot3D[1 + 0.4 Abs[SphericalHarmonicY[10, 4, θ, φ]], θ, φ]
+       = SphericalPlot3D[1 + 0.4 Abs[SphericalHarmonicY[10, 4, θ, φ]], θ, φ]
+
+      Spherical harmonics are the canonical use case for spherical plots.
+
+      See <url>:Drawing Option and Option Values:
     /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
     </url> for a list of Plot options.
     </dl>
