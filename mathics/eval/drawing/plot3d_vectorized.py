@@ -226,7 +226,7 @@ def eval_DensityPlot(
 def equations_to_contours(plot_options):
     """
     For contour plots, convert functions of the form f==g to f-g,
-    and adjust contours ot [0] and disable background
+    and adjust contours to [0] and disable background
     """
     for i, f in enumerate(plot_options.functions):
         if hasattr(f, "head") and f.head == SymbolEqual:
