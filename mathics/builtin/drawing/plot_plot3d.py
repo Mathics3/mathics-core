@@ -247,10 +247,9 @@ class ContourPlot3D(_Plot3D):
       <dt>'ContourPlot3D'[$f(x,y,z)$, {$x$, $x_{min}$, $x_{max}$}, {$y$, $y_{min}$, $y_{max}$, {$y$, $y_{min}$, $y_{max}$}]
       <dd>creates a three-dimensional contour plot of $f(x,y,z)$ over the specified region on $x$, $y$, and $z$.
 
-      See <url>:Drawing Option and Option Values:
+          See <url>:Drawing Option and Option Values:
     /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
     </url> for a list of Plot options.
-
     </dl>
 
     >> ContourPlot3D[x ^ 2 + y ^ 2 - z ^ 2, {x, -1, 1}, {y, -1, 1}, {z, -1, 1}]
