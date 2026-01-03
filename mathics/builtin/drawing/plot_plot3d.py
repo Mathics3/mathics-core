@@ -283,13 +283,12 @@ class ParametricPlot3D(_Plot3D):
     </dl>
 
     >> ParametricPlot3D[{Sin[t] + 2 Sin[2 t], Cos[t] - 2 Cos[2 t], -Sin[3 t]}, {t, 0, 2 Pi}]
-     = -Graphics-
+     = ParametricPlot3D[{Sin[t] + 2 Sin[2 t], Cos[t] - 2 Cos[2 t], -Sin[3 t]}, {t, 0, 2 Pi}]
 
     A function of a single parameter $t$ generates a trefoil knot.
 
-    >> ParametricPlot3D[{(2 + Cos[v]) Cos[u], (2 + Cos[v]) Sin[u], Sin[v]}, {u, 0, 2 Pi}, {v, 0, 2 Pi}
-        ]
-     = -Graphics-
+    >> ParametricPlot3D[{(2 + Cos[v]) Cos[u], (2 + Cos[v]) Sin[u], Sin[v]}, {u, 0, 2 Pi}, {v, 0, 2 Pi}]
+     = ParametricPlot3D[{(2 + Cos[v]) Cos[u], (2 + Cos[v]) Sin[u], Sin[v]}, {u, 0, 2 Pi}, {v, 0, 2 Pi}]
     
     A function of two parameters $u$ and $v$ generates a torus.
 
