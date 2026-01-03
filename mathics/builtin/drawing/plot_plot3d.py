@@ -20,6 +20,7 @@ from mathics.builtin.options import options_to_rules
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
+from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.core.systemsymbols import Symbol, SymbolPlotRange, SymbolSequence
 
@@ -85,6 +86,14 @@ class _Plot3D(Builtin):
         "MaxRecursion": "0",
         # 'MaxRecursion': '2',  # FIXME causes bugs in svg output see #303
     }
+    require_vectorized = False
+
+    def contribute(self, definitions: Definitions, is_pymodule=False):
+        from .plot import use_vectorized_plot
+
+        if self.require_vectorized and not use_vectorized_plot:
+            return None
+        return super().contribute(definitions, is_pymodule)
 
     def eval(
         self,
@@ -145,9 +154,10 @@ class _Plot3D(Builtin):
 
 class ComplexPlot3D(_Plot3D):
     """
+    <url>:Domain coloring:https://en.wikipedia.org/wiki/Domain_coloring</url>
     <url>:WMA link: https://reference.wolfram.com/language/ref/ComplexPlot3D.html</url>
     <dl>
-      <dt>'Plot3D'[$f$, {$z$, $z_{min}$, $z_{max}$}]
+      <dt>'ComplexPlot3D'[$f$, {$z$, $z_{min}$, $z_{max}$}]
       <dd>creates a three-dimensional plot of the magnitude of $f$ with $z$ ranging from $z_{min}$ to \
           $z_{max}$ with surface colored according to phase
 
@@ -156,6 +166,14 @@ class ComplexPlot3D(_Plot3D):
     </url> for a list of Plot options.
     </dl>
 
+    'ComplexPlot' allows to visualize the changes both in the phase and \
+    the module  of a complex function:
+
+    In the neighbourhood of the poles, the module of a rational function \
+    grows without limit, and the phase varies between $-\\Pi$ to $\\Pi$
+    an integer number of times:
+    >> ComplexPlot3D[(z^2 + 1)/(z^2 - 1), {z, -2 - 2 I, 2 + 2 I}]
+     = -Graphics3D-
     """
 
     summary_text = "plots one or more complex functions as a 3D surface"
@@ -164,13 +182,15 @@ class ComplexPlot3D(_Plot3D):
 
     many_functions = True
     graphics_class = Graphics3D
+    require_vectorized = True
 
 
 class ComplexPlot(_Plot3D):
     """
+    <url>:Domain coloring:https://en.wikipedia.org/wiki/Domain_coloring</url>
     <url>:WMA link: https://reference.wolfram.com/language/ref/ComplexPlot.html</url>
     <dl>
-      <dt>'Plot3D'[$f$, {$z$, $z_{min}$, $z_{max}$}]
+      <dt>'ComplexPlot'[$f$, {$z$, $z_{min}$, $z_{max}$}]
       <dd>creates two-dimensional plot of $f$ with $z$ ranging from $z_{min}$ to \
           $z_{max}$ colored according to phase
 
@@ -179,6 +199,12 @@ class ComplexPlot(_Plot3D):
     </url> for a list of Plot options.
     </dl>
 
+    'ComplexPlot' allows to visualize the changes in the phase of a \
+    complex function.
+    In the neighbourhood of the poles, the module of a rational function \
+    the phase varies between $-\\Pi$ to $\\Pi$ an integer number of times.
+    >> ComplexPlot[(z^2 + 1)/(z^2 - 1), {z, -2 - 2 I, 2 + 2 I}]
+     = -Graphics-
     """
 
     summary_text = "plots a complex function showing phase using colors"
@@ -187,10 +213,13 @@ class ComplexPlot(_Plot3D):
 
     many_functions = False
     graphics_class = Graphics
+    require_vectorized = True
 
 
 class ContourPlot(_Plot3D):
     """
+    <url>:heat map:https://en.wikipedia.org/wiki/Heat_map</url>
+    <url>:contour map:https://en.wikipedia.org/wiki/Contour_line</url>
     <url>:WMA link: https://reference.wolfram.com/language/ref/ContourPlot.html</url>
     <dl>
       <dt>'Contour'[$f$, {$x$, $x_{min}$, $x_{max}$}, {$y$, $y_{min}$, $y_{max}$}]
@@ -202,6 +231,19 @@ class ContourPlot(_Plot3D):
     </url> for a list of Plot options.
     </dl>
 
+    Colorize the regions where a function takes values close to different \
+    integer values
+    >> ContourPlot[x - y^3, {x, -2, 2}, {y, -1, 1}, AspectRatio->Automatic]
+     = -Graphics-
+
+    The same, but with a finer division:
+    >> ContourPlot[x^2 - y^2, {x, -2, 2}, {y, -1, 1}, Contours->10]
+     = -Graphics-
+
+    Plot curves where the real and the imaginary part of a function take
+    specific values:
+    >> ContourPlot[{Re[Sin[x + I y]] == 5, Im[Sin[x + I y]] == 0}, {x, -10, 10}, {y, -10, 10}]
+     = -Graphics-
     """
 
     requires = ["skimage"]
@@ -212,6 +254,7 @@ class ContourPlot(_Plot3D):
 
     many_functions = True
     graphics_class = Graphics
+    require_vectorized = True
 
 
 class DensityPlot(_Plot3D):
