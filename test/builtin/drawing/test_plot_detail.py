@@ -343,14 +343,14 @@ def yaml_tests_generator(fn: str):
 
 
 YAML_TESTS = [
-    "vec_tests.yaml",
     "doc_tests.yaml",
+    "vec_tests.yaml",
     "parameters.yaml",
 ]
 
 
-def all_yaml_tests_generator(fns=None):
-    for fn in fns or YAML_TESTS:
+def all_yaml_tests_generator():
+    for fn in YAML_TESTS:
         yield from yaml_tests_generator(fn)
 
 
@@ -370,14 +370,14 @@ def test_yaml(parms):
     one_test(**parms)
 
 
-def do_test_all(fns):
+def do_test_all():
     # several of these tests failed on pyodide due to apparent differences
     # in numpy (and/or the blas library backing it) between pyodide and other platforms
     # including numerical instability, different data types (integer vs real)
     # the tests above seem so far to be ok on pyodide, but generally they are
     # simpler than these doc_tests
     if not pyodide:
-        for parms in all_yaml_tests_generator(fns):
+        for parms in all_yaml_tests_generator():
             one_test(**parms)
 
 
@@ -386,12 +386,11 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="manage plot tests")
     parser.add_argument("--update", action="store_true", help="update reference files")
-    parser.add_argument("files", nargs="*", help="yaml test files")
     args = parser.parse_args()
     UPDATE_MODE = args.update
 
     try:
-        do_test_all(args.files)
+        do_test_all()
     except AssertionError as oops:
         print(oops)
         print("FAIL")
