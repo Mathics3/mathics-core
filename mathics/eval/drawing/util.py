@@ -2,9 +2,12 @@
 Common utilities for plotting
 """
 
+from typing import Sequence
 
 from mathics.core.atoms import NumericArray
 from mathics.core.convert.expression import to_expression, to_mathics_list
+from mathics.core.convert.lambdify import lambdify_compile
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
@@ -20,10 +23,7 @@ from mathics.core.systemsymbols import (
 )
 
 
-# TODO: this will be extended with support for GraphicsComplex in a
-# subsequent PR, which may involve a little more refactoring
 class GraphicsGenerator:
-
     """
     Support for generating Graphics and Graphics3D expressions
     """
@@ -102,3 +102,13 @@ class GraphicsGenerator:
         )
 
         return graphics_expr
+
+
+def compile_exprs(
+    evaluation: Evaluation, expr_or_list: Expression | Sequence, names: Sequence[str]
+):
+    """Traverse a nested list structure and compile the functions at the leaves"""
+    if isinstance(expr_or_list, (list, tuple)):
+        return [compile_exprs(evaluation, e, names) for e in expr_or_list]
+    else:
+        return lambdify_compile(evaluation, expr_or_list, names)
