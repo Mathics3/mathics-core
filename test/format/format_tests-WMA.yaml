@@ -23,7 +23,7 @@
 #  because we use both in documentation and in the web interface.
 #
 
-"-7.32":
+'"-7.32"':
   latex:
     InputForm: \\text{``-7.32''}
     OutputForm: \\text{-7.32}
@@ -36,10 +36,10 @@
     TraditionalForm: <mtext>-7.32</mtext>
   msg: A String with a number
   text:
-    InputForm: "-7.32"
+    InputForm: '"-7.32"'
     OutputForm: "-7.32"
-    StandardForm: "\\!\\(\\*RowBox[{\"-\", \"7.32`\"}]\\)"
-    TraditionalForm: "\\!\\(\\*FormBox[RowBox[{\"-\", \"7.32`\"}], TraditionalForm]\\)"
+    StandardForm: '\!\(\*RowBox[{"\"-7.32\""}]\)'
+    TraditionalForm: '\!\(\*FormBox["\"-7.32\"", TraditionalForm]\)'
 '"Hola!"':
   latex:
     InputForm: \text{``Hola!''}

@@ -23,7 +23,7 @@
 #  because we use both in documentation and in the web interface.
 #
 
-"-7.32":
+'"-7.32"':
   latex:
     System`InputForm: \text{``-7.32''}
     System`OutputForm: \text{-7.32}
