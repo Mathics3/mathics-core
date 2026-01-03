@@ -1,13 +1,13 @@
 """
 Custom Plots
 
-A Density plot is kind of <url>:heat map:https://en.wikipedia.org/wiki/Heat_map</url> that represents magnitude or individual values as a color.
+A Density plot is a kind of <url>:heat map:https://en.wikipedia.org/wiki/Heat_map</url> that represents magnitude or individual values as a color.
 
-Similar, is a Contour Plot which is a kind of <url>:contour map:https://en.wikipedia.org/wiki/Contour_line</url>.
+Similar is a Contour Plot, which is a kind of <url>:contour map:https://en.wikipedia.org/wiki/Contour_line</url>.
 
 A <url>:Surface plot:https://en.wikipedia.org/wiki/Plot_(graphics)#Surface_plot</url> ('Plot3D') shows its 3rd or "height" dimension in a way that is projected onto a 2-dimensional surface.
 
-'ComplexPlot' and 'ComplexPlot3D' use color and to visualize complex-valued functions in two and three dimensions respectively.
+'ComplexPlot' and 'ComplexPlot3D' use color to visualize complex-valued functions in two and three dimensions, respectively.
 """
 
 import numpy as np
