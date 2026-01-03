@@ -7,9 +7,11 @@ in the Notebook interface, the CLI (math) and wolframscript are not fully consis
 
 ****************************************************************************************)
 
+ISMATHICSINTERPRETER=(StringTake[$Version, 8]==="Mathics3")
+
 
 Print["Read json"];
-data = Import["format_tests.json"];
+data = Import["format_tests-WMA.json"];
 Print["Found ", Length[data], " expressions to test."];
 
 Print["Run the tests"];
@@ -34,7 +36,7 @@ Do[key = ToExpression[tests[[1]]];
  {subtest, text}]
  ];
  (*LaTeX*)
- If[And[False, Head[latex]===List],
+ If[And[ISMATHICSINTERPRETER, Head[latex]===List],
    Print["    latex", "\n    -----", "\n"];
    Do[form = ToExpression[subtest[[1]]]; expr = form[key];
       result = ToString[expr, TeXForm, CharacterEncoding->"ASCII"];
@@ -47,7 +49,7 @@ Do[key = ToExpression[tests[[1]]];
    {subtest, latex}]
    ];
 (*MathML*)
- If[And[False, Head[mathml]===List], 
+ If[And[ISMATHICSINTERPRETER, Head[mathml]===List], 
  Print["    mathml", "\n    ------", "\n"];
  Do[form = ToExpression[subtest[[1]]]; expr = form[key];
   result = ToString[expr, MathMLForm, CharacterEncoding->"ASCII"];

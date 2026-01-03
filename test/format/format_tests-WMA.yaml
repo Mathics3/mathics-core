@@ -1,3 +1,28 @@
+#  Tests for formatting according WMA.
+#
+#  These tests are prepared to compare the output obtained using WL code in
+#  both WMA and Mathics interpreters:
+#  ./convert_yaml2json.py format_tests.yaml &&  $(WMAINTERPRETER) -f format_tests.m
+#
+#  In this case, 'text' are certificated against the WMA result,
+#  as the result of evaluating
+#   ```ToString[form_[expr_], CharacterEncoding->"ASCII"]```
+#  so when `WMAINTERPRETER` == `wolframscript` CLI, all these tests pass.
+#
+#  Running the same code against `mathics` CLI, most of these tests fails because
+#  - `ToString` with `CharacterEncoding->"ASCII"` does not produce string
+#  representations of Boxes.
+#  - `OutputForm` in Mathics does not produce *pretty-print-like* output.
+#    And eventually, if we start to do it, probably we can also do it better,
+#    so we are not going to coincide neither.
+#  - Box constructions are still too diferent in both interpreters.
+#
+#  Regarding tests for `MathMLForm` and `TeXForm`, WMA does not do it
+#  really well in its conversions, and in several cases just returns an
+#  error message. On the other hand, in Mathics we want to test them,
+#  because we use both in documentation and in the web interface.
+#
+
 "-7.32":
   latex:
     InputForm: \\text{``-7.32''}
@@ -66,7 +91,7 @@
   msg: very small negative real number (<10^-6)
   text:
     InputForm: -1.*^-6
-    OutputForm: "-1.\xD710^-6"
+    OutputForm: "      -6\n-1. 10"
 -1. 10^5:
   latex:
     InputForm: '-100000.'
@@ -86,7 +111,7 @@
   msg: large negative real number (>10^6)
   text:
     InputForm: -1.*^6
-    OutputForm: "-1.\xD710^6"
+    OutputForm: "      6\n-1. 10"
     StandardForm: "\\!\\(\\*RowBox[{\"-\", \"1.`*^6\"}]\\)"
     TraditionalForm: "\\!\\(\\*FormBox[RowBox[{\"-\", \"1.`*^6\"}], TraditionalForm]\\)"
 '-4':
@@ -174,7 +199,7 @@
   msg: very small real number (<10^-6)
   text:
     InputForm: 1.*^-6
-    OutputForm: "1.\xD710^-6"
+    OutputForm: "     -6\n1. 10"
 1. 10^5:
   latex:
     InputForm: '100000.'
@@ -198,7 +223,7 @@
   msg: very large real number (>10^6)
   text:
     InputForm: 1.*^6
-    OutputForm: "1.\xD710^6"
+    OutputForm: "     6\n1. 10"
     StandardForm: "\\!\\(\\*RowBox[{\"1.`*^6\"}]\\)"
     TraditionalForm: "\\!\\(\\*FormBox[\"1.`*^6\", TraditionalForm]\\)"
 1/(1+1/(1+1/a)):
@@ -231,7 +256,7 @@
   msg: FractionBox
   text:
     InputForm: "(1 + (1 + a^(-1))^(-1))^(-1)"
-    OutputForm: 1 / (1 + 1 / (1 + 1 / a))
+    OutputForm: "    1\n---------\n      1\n1 + -----\n        1\n    1 + -\n        a"
     StandardForm: "\\!\\(\\*FractionBox[\"1\", RowBox[{\"1\", \"+\", FractionBox[\"1\", RowBox[{\"1\", \"+\", FractionBox[\"1\", \"a\"]}]]}]]\\)"
     TraditionalForm: "\\!\\(\\*FormBox[FractionBox[\"1\", RowBox[{FractionBox[\"1\", RowBox[{FractionBox[\"1\", \"a\"], \"+\", \"1\"}]], \"+\", \"1\"}]], TraditionalForm]\\)"
 # Nested Association
@@ -326,7 +351,7 @@ Complex[1.09*^12, 3.]:
   msg: Complex number
   text:
     InputForm: 1.09*^12 + 3.*I
-    OutputForm: "1.09\xD710^12 + 3. I"
+    OutputForm: "       12\n1.09 10   + 3. I"
     StandardForm: "\\!\\(\\*RowBox[{\"1.09`*^12\", \"+\", RowBox[{\"3.`\", \" \", \"\\[ImaginaryI]\"}]}]\\)"
     TraditionalForm: "\\!\\(\\*FormBox[RowBox[{\"1.09`*^12\", \"+\", RowBox[{\"3.`\", \" \", \"\\[ImaginaryI]\"}]}], TraditionalForm]\\)"
 Graphics[{Text[a^b,{0,0}]}]:
@@ -637,7 +662,7 @@ Sqrt[1/(1+1/(1+1/a))]:
   msg: SqrtBox
   text:
     InputForm: Sqrt[(1 + (1 + a^(-1))^(-1))^(-1)]
-    OutputForm: Sqrt[1 / (1 + 1 / (1 + 1 / a))]
+    OutputForm: "         1\nSqrt[---------]\n           1\n     1 + -----\n             1\n         1 + -\n             a"
     StandardForm: "\\!\\(\\*SqrtBox[FractionBox[\"1\", RowBox[{\"1\", \"+\", FractionBox[\"1\", RowBox[{\"1\", \"+\", FractionBox[\"1\", \"a\"]}]]}]]]\\)"
     TraditionalForm: "\\!\\(\\*FormBox[SqrtBox[FractionBox[\"1\", RowBox[{FractionBox[\"1\", RowBox[{FractionBox[\"1\", \"a\"], \"+\", \"1\"}]], \"+\", \"1\"}]]], TraditionalForm]\\)"
 Subscript[a, 4]:
@@ -660,7 +685,7 @@ Subscript[a, 4]:
   msg: SubscriptBox
   text:
     InputForm: Subscript[a, 4]
-    OutputForm: Subscript[a, 4]
+    OutputForm: "a\n 4"
     StandardForm: &id003
     - Subscript[a, 4]
     - BoxError
@@ -681,7 +706,7 @@ Subsuperscript[a, p, q]:
   msg: SubsuperscriptBox
   text:
     InputForm: Subsuperscript[a, p, q]
-    OutputForm: Subsuperscript[a, p, q]
+    OutputForm: " q\na\n p"
     StandardForm: "\\!\\(\\*TemplateBox[List[\"a\", \"p\", \"q\"], \"Subsuperscript\", Rule[SyntaxForm, SubsuperscriptBox]]\\)"
     TraditionalForm: "\\!\\(\\*FormBox[TemplateBox[List[\"a\", \"p\", \"q\"], \"Subsuperscript\", Rule[SyntaxForm, SubsuperscriptBox]], TraditionalForm]\\)"
 TableForm[{Graphics[{Text[a^b,{0,0}]}], Graphics[{Text[a^b,{0,0}]}]}]:
@@ -768,8 +793,7 @@ TableForm[{{a,b},{c,d}}]:
     InputForm: Pi
     OutputForm: Pi
     StandardForm: "\\!\\(\\*RowBox[{\"\\[Pi]\"}]\\)"
-    TraditionalForm: "\\!\\(\\*FormBox[\"\\[Pi]\", TraditionalForm]\\)
-"
+    TraditionalForm: "\\!\\(\\*FormBox[\"\\[Pi]\", TraditionalForm]\\)"
 a:
   latex:
     InputForm: a
@@ -803,7 +827,7 @@ a^(g[b]/c):
   msg: SuperscriptBox with a nested expression.
   text:
     InputForm: a^(g[b]/c)
-    OutputForm: a ^ (g[b] / c)
+    OutputForm: " g[b]/c\na"
     StandardForm: "\\!\\(\\*SuperscriptBox[\"a\", FractionBox[RowBox[{\"g\", \"[\", \"b\", \"]\"}], \"c\"]]\\)"
     TraditionalForm: "\\!\\(\\*FormBox[SuperscriptBox[\"a\", FractionBox[RowBox[{\"g\", \"(\", \"b\", \")\"}], \"c\"]], TraditionalForm]\\)"
 a^4:
@@ -820,6 +844,6 @@ a^4:
   msg: SuperscriptBox
   text:
     InputForm: a^4
-    OutputForm: a ^ 4
+    OutputForm: " 4\na"
     StandardForm: "\\!\\(\\*SuperscriptBox[\"a\", \"4\"]\\)"
     TraditionalForm: "\\!\\(\\*FormBox[SuperscriptBox[\"a\", \"4\"], TraditionalForm]\\)"
