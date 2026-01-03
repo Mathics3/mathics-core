@@ -191,8 +191,8 @@ class Minus(PrefixOperator):
       <dd> is the negation of $expr$.
     </dl>
 
-    >> -a //FullForm
-     = Times[-1, a]
+    >> -a // FullForm
+     = Times[-1,a]
 
     'Minus' automatically distributes:
     >> -(x - 2/3)
@@ -551,7 +551,7 @@ class Subtract(InfixOperator):
     >> 5 - 3
      = 2
     >> a - b // FullForm
-     = Plus[a, Times[-1, b]]
+     = Plus[a,Times[-1,b]]
     >> a - b - c
      = a - b - c
     >> a - (b - c)

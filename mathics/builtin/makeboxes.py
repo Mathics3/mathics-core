@@ -155,7 +155,7 @@ class ToBoxes(Builtin):
     >> ToBoxes[a + b]
      = RowBox[{a, +, b}]
     >> ToBoxes[a ^ b] // FullForm
-     = SuperscriptBox["a", "b"]
+     = SuperscriptBox["a","b"]
     """
 
     summary_text = "produce the display boxes of an evaluated expression"

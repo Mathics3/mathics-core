@@ -39,7 +39,7 @@ import pytest
         (
             "DSolve[f'[x] == f[x], f, x] // FullForm",
             None,
-            "{{Rule[f, Function[{x}, Times[C[1], Power[E, x]]]]}}",
+            "{{Rule[f,Function[{x},Times[C[1],Power[E,x]]]]}}",
             None,
         ),
         (

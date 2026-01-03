@@ -100,7 +100,17 @@ class FractionBox(BoxExpression):
         self.box_options = options
 
     def to_expression(self):
-        return Expression(SymbolFractionBox, self.num, self.den)
+        elems = (
+            self.num,
+            self.den,
+        )
+        return Expression(
+            SymbolFractionBox,
+            *(
+                el.to_expression() if isinstance(el, BoxExpression) else el
+                for el in elems
+            ),
+        )
 
 
 class GridBox(BoxExpression):
@@ -283,7 +293,14 @@ class RowBox(BoxExpression):
             return item
 
         self.items = tuple((check_item(item) for item in items))
-        self._elements = (ListExpression(*self.items),)
+        self._elements = (
+            ListExpression(
+                *(
+                    item.to_expression() if isinstance(item, BoxExpression) else item
+                    for item in self.items
+                )
+            ),
+        )
 
     def to_expression(self) -> Expression:
         """
@@ -373,9 +390,21 @@ class SqrtBox(BoxExpression):
         self.box_options = options
 
     def to_expression(self):
-        if self.index:
-            return Expression(SymbolSqrtBox, self.radicand, self.index)
-        return Expression(SymbolSqrtBox, self.radicand)
+        elems = (
+            (
+                self.radicand,
+                self.index,
+            )
+            if self.index
+            else (self.radicand,)
+        )
+        return Expression(
+            SymbolSqrtBox,
+            *(
+                el.to_expression() if isinstance(el, BoxExpression) else el
+                for el in elems
+            ),
+        )
 
 
 class StyleBox(BoxExpression):
@@ -391,7 +420,11 @@ class StyleBox(BoxExpression):
     </dl>
     """
 
-    options = {"ShowStringCharacters": "True", "$OptionSyntax": "Ignore"}
+    options = {
+        "ShowStringCharacters": "True",
+        "ShowSpecialCharacters": "False",
+        "$OptionSyntax": "Ignore",
+    }
     attributes = A_PROTECTED | A_READ_PROTECTED
     summary_text = "associate boxes with styles"
 
@@ -420,18 +453,16 @@ class StyleBox(BoxExpression):
         self.style = style
         self.box_options = options
         self.boxes = boxes
+        if style:
+            elements = [boxes.to_expression(), style]
+        else:
+            elements = [boxes.to_expression()]
+        if options:
+            elements = elements + sorted(options_to_rules(self.box_options))
+        self._elements = tuple(elements)
 
     def to_expression(self):
-        if self.style:
-            return Expression(
-                Symbol(self.get_name()),
-                self.boxes,
-                self.style,
-                *options_to_rules(self.box_options),
-            )
-        return Expression(
-            Symbol(self.get_name()), self.boxes, *options_to_rules(self.box_options)
-        )
+        return Expression(Symbol(self.get_name()), *self._elements)
 
 
 class SubscriptBox(BoxExpression):
@@ -473,7 +504,11 @@ class SubscriptBox(BoxExpression):
         """
         returns an evaluable expression.
         """
-        return Expression(SymbolSubscriptBox, self.base, self.subindex)
+        elems = (self.base, self.subindex)
+        return Expression(
+            SymbolSubscriptBox,
+            *(el.to_boxes() if isinstance(el, BoxExpression) else el for el in elems),
+        )
 
 
 class SubsuperscriptBox(BoxExpression):
@@ -513,8 +548,13 @@ class SubsuperscriptBox(BoxExpression):
         """
         returns an evaluable expression.
         """
+        elems = (self.base, self.subindex, self.superindex)
         return Expression(
-            SymbolSubsuperscriptBox, self.base, self.subindex, self.superindex
+            SymbolSubsuperscriptBox,
+            *(
+                el.to_expression() if isinstance(el, BoxExpression) else el
+                for el in elems
+            ),
         )
 
 
@@ -553,7 +593,15 @@ class SuperscriptBox(BoxExpression):
         """
         returns an evaluable expression.
         """
-        return Expression(SymbolSuperscriptBox, self.base, self.superindex)
+        elems = (self.base, self.superindex)
+
+        return Expression(
+            SymbolSuperscriptBox,
+            *(
+                el.to_expression() if isinstance(el, BoxExpression) else el
+                for el in elems
+            ),
+        )
 
 
 class TagBox(BoxExpression):
@@ -569,8 +617,31 @@ class TagBox(BoxExpression):
     </dl>
     """
 
-    attributes = A_HOLD_ALL_COMPLETE | A_PROTECTED | A_READ_PROTECTED
+    attributes = A_PROTECTED | A_READ_PROTECTED
     summary_text = "box tag with a head"
+
+    def init(self, *elems, **kwargs):
+        self.box_options = kwargs
+        self.form = elems[1]
+        self.boxed = elems[0]
+
+    def eval_tagbox(self, expr, form: Symbol, evaluation: Evaluation):
+        """TagBox[expr_, form_Symbol]"""
+        options = {}
+        expr = to_boxes(expr, evaluation, options)
+        return TagBox(expr, form, **options)
+
+    def to_expression(self):
+        elems = (
+            item.to_expression() if isinstance(item, BoxExpression) else item
+            for item in (
+                self.boxed,
+                self.form,
+            )
+        )
+        opts = options_to_rules(self.box_options)
+
+        return Expression(Symbol(self.get_name()), *elems, *opts)
 
 
 class TemplateBox(BoxExpression):

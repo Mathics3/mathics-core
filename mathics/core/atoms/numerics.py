@@ -24,14 +24,7 @@ from mathics.core.number import (
     min_prec,
     prec,
 )
-from mathics.core.symbols import (
-    Atom,
-    NumericOperators,
-    Symbol,
-    SymbolNull,
-    SymbolTrue,
-    symbol_set,
-)
+from mathics.core.symbols import Atom, NumericOperators, Symbol, SymbolNull, symbol_set
 from mathics.core.systemsymbols import SymbolFullForm, SymbolInfinity, SymbolInputForm
 
 # The below value is an empirical number for comparison precedence
@@ -305,13 +298,22 @@ class Integer(Number[int]):
         return self._value == 0
 
     def make_boxes(self, form) -> "String":
-        from mathics.eval.makeboxes import _boxed_string
+        from mathics.builtin.box.layout import RowBox
 
         try:
-            if form in ("System`InputForm", "System`FullForm"):
-                return _boxed_string(str(self._value), number_as_text=SymbolTrue)
-
-            return String(str(self._value))
+            if form in (
+                "System`FullForm",
+                "System`StandardForm",
+                "System`TraditionalForm",
+            ):
+                val_str = str(self._value)
+                if val_str[0] == "-":
+                    boxed = RowBox(String("-"), String(val_str[1:]))
+                else:
+                    boxed = String(val_str)
+            else:
+                boxed = String(str(self._value))
+            return boxed
         except ValueError:
             # In Python 3.11, the size of the string
             # obtained from an integer is limited, and for longer

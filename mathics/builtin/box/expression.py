@@ -208,7 +208,12 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
     def to_expression(self) -> Expression:
         # FIXME: All classes should store their symbol name.
         # So there should be a self.head.
-        return Expression(Symbol(self.get_name()), *self._elements)
+        items = (elem for elem in self._elements)
+        items = (
+            item.to_expression() if isinstance(item, BoxExpression) else item
+            for item in items
+        )
+        return Expression(Symbol(self.get_name()), *items)
 
     def flatten_pattern_sequence(self, evaluation) -> "BoxExpression":
         return self

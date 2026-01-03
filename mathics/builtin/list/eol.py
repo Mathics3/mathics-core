@@ -1017,7 +1017,7 @@ class Length(Builtin):
     >> Length[Exp[x]]
      = 2
     >> FullForm[Exp[x]]
-     = Power[E, x]
+     = Power[E,x]
 
     The length of atoms is 0:
     >> Length[a]
@@ -1028,7 +1028,7 @@ class Length(Builtin):
     >> Length[1/3]
      = 0
     >> FullForm[1/3]
-     = Rational[1, 3]
+     = Rational[1,3]
     """
 
     summary_text = "number of elements in a list or expression"
@@ -1160,7 +1160,7 @@ class Part(Builtin):
 
     Of course, part specifications have precedence over most arithmetic operations:
     >> A[[1]] + B[[2]] + C[[3]] // Hold // FullForm
-     = Hold[Plus[Part[A, 1], Part[B, 2], Part[C, 3]]]
+     = Hold[Plus[Part[A,1],Part[B,2],Part[C,3]]]
     """
 
     attributes = A_N_HOLD_REST | A_PROTECTED | A_READ_PROTECTED
@@ -1645,13 +1645,13 @@ class Span(InfixOperator):
     </dl>
 
     >> ;; // FullForm
-     = Span[1, All]
+     = Span[1,All]
     >> 1;;4;;2 // FullForm
-     = Span[1, 4, 2]
+     = Span[1,4,2]
     >> 2;;-2 // FullForm
-     = Span[2, -2]
+     = Span[2,-2]
     >> ;;3 // FullForm
-     = Span[1, 3]
+     = Span[1,3]
     """
 
     summary_text = "general specification for spans or blocks of elements"

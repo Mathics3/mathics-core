@@ -146,7 +146,7 @@ def test_multiply(str_expr, str_expected, msg):
         ),
         ("DirectedInfinity[Sqrt[3]]", "Infinity", None),
         (
-            "a  b  DirectedInfinity[1. + 2. I]",
+            "a  b DirectedInfinity[1. + 2. I]",
             "a b ((0.447214 + 0.894427 I) Infinity)",
             "symbols times floating point complex directed infinity",
         ),
@@ -306,13 +306,13 @@ def test_power(str_expr, str_expected, expected_message, fail_msg):
         # For some weird reason, the following tests
         # pass if we run this unit test alone, but not
         # if we run it together all the tests
-        ("0. + 0. I//FullForm", "Complex[0.`, 0.`]", "WMA compatibility"),
-        ("0. I//FullForm", "Complex[0.`, 0.`]", None),
-        ("1. + 0. I//FullForm", "Complex[1.`, 0.`]", None),
-        ("0. + 1. I//FullForm", "Complex[0.`, 1.`]", None),
+        ("0. + 0. I//FullForm", "Complex[0.`,0.`]", "WMA compatibility"),
+        ("0. I//FullForm", "Complex[0.`,0.`]", None),
+        ("1. + 0. I//FullForm", "Complex[1.`,0.`]", None),
+        ("0. + 1. I//FullForm", "Complex[0.`,1.`]", None),
         ("1. + 0. I//OutputForm", "1. + 0. I", "Formatted"),
         ("0. + 1. I//OutputForm", "0. + 1. I", "Formatting 1. I"),
-        ("-2/3-I//FullForm", "Complex[Rational[-2, 3], -1]", "Adding a rational"),
+        ("-2/3-I//FullForm", "Complex[Rational[-2,3],-1]", "Adding a rational"),
     ],
 )
 def test_complex(str_expr, str_expected, msg):
@@ -343,8 +343,8 @@ def test_complex(str_expr, str_expected, msg):
             "according to WMA. Now it fails",
         ),
         ("1 / 4.0", "0.25", None),
-        ("10 / 3 // FullForm", "Rational[10, 3]", None),
-        ("a / b // FullForm", "Times[a, Power[b, -1]]", None),
+        ("10 / 3 // FullForm", "Rational[10,3]", None),
+        ("a / b // FullForm", "Times[a,Power[b,-1]]", None),
         # Plus
         ("-2a - 2b", "-2 a - 2 b", None),
         ("-4+2x+2*Sqrt[3]", "-4 + 2 Sqrt[3] + 2 x", None),
@@ -356,11 +356,11 @@ def test_complex(str_expr, str_expected, msg):
         ("Times[]// FullForm", "1", None),
         ("Times[-1]// FullForm", "-1", None),
         ("Times[-5]// FullForm", "-5", None),
-        ("Times[-5, a]// FullForm", "Times[-5, a]", None),
-        ("-a*b // FullForm", "Times[-1, a, b]", None),
+        ("Times[-5, a]// FullForm", "Times[-5,a]", None),
+        ("-a*b // FullForm", "Times[-1,a,b]", None),
         ("-(x - 2/3)", "2 / 3 - x", None),
         ("-x*2", "-2 x", None),
-        ("-(h/2) // FullForm", "Times[Rational[-1, 2], h]", None),
+        ("-(h/2) // FullForm", "Times[Rational[-1,2],h]", None),
         ("x / x", "1", None),
         ("2x^2 / x^2", "2", None),
         ("3. Pi", "9.42478", None),

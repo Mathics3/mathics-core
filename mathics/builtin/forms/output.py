@@ -80,15 +80,15 @@ class BaseForm(FormBaseClass):
      = x
 
     >> BaseForm[12, 3] // FullForm
-     = BaseForm[12, 3]
+     = BaseForm[12,3]
 
     Bases must be between 2 and 36:
     >> BaseForm[12, -3]
      : Positive machine-sized integer expected at position 2 in BaseForm[12, -3].
-     = BaseForm[12, -3]
+     = BaseForm[12,-3]
     >> BaseForm[12, 100]
      : Requested base 100 must be between 2 and 36.
-     = BaseForm[12, 100]
+     = BaseForm[12,100]
     """
 
     in_outputforms = True
@@ -120,9 +120,9 @@ class FullForm(FormBaseClass):
     </dl>
 
     >> FullForm[a + b * c]
-     = Plus[a, Times[b, c]]
+     = Plus[a,Times[b,c]]
     >> FullForm[2/3]
-     = Rational[2, 3]
+     = Rational[2,3]
     >> FullForm["A string"]
      = "A string"
     """

@@ -16,13 +16,12 @@ from mathics.core.number import (
     convert_base,
     dps,
 )
-from mathics.core.symbols import SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolMakeBoxes,
     SymbolOutputForm,
     SymbolSubscriptBox,
 )
-from mathics.eval.makeboxes import _boxed_string, to_boxes
+from mathics.eval.makeboxes import to_boxes
 
 
 def int_to_tuple_info(integer: Integer) -> Tuple[str, int, bool]:
@@ -147,11 +146,11 @@ def NumberForm_to_String(
         if digits_after_decimal_point is None:
             is_int = True
     elif isinstance(value, Real):
-        prec = dps(value.get_precision())
+        precision = dps(value.get_precision())
         if digits is None:
-            digits = prec + 1
+            digits = precision + 1
         else:
-            digits = min(digits, prec + 1)
+            digits = min(digits, precision + 1)
         s, exp, is_nonnegative = real_to_tuple_info(value, digits)
         if digits is None:
             digits = len(s)
@@ -210,7 +209,7 @@ def NumberForm_to_String(
         if form != "System`OutputForm":
             # Other forms strip trailing zeros:
 
-            while len(right) > 1:
+            while len(right) > 0:
                 if right[-1] == "0":
                     right = right[:-1]
                 else:
@@ -262,35 +261,45 @@ def NumberForm_to_String(
         prefix = left_padding + sign_prefix
 
     if is_int:
-        s = prefix + left
+        s = left
     else:
-        s = prefix + left + options["NumberPoint"] + right
+        s = left + options["NumberPoint"] + right
+
+    # PrintForms attach the prefix to the number. FullForm and $BoxForms
+    # put the prefix and the number in a RowBox:
+    if form not in ("System`StandardForm", "System`TraditionalForm", "System`FullForm"):
+        s = prefix + s
+        prefix = ""
 
     if isinstance(value, MachineReal):
         if form not in ("System`InputForm", "System`OutputForm"):
             s = s + "`"
     elif isinstance(value, PrecisionReal):
         if form not in ("System`OutputForm"):
-            s = s + "`" + str(prec)
-
-    # base
-    base = "10"
+            str_precision = str(precision)
+            if "." not in str_precision:
+                str_precision += "."
+            s = s + "`" + str_precision
 
     # build number
-    method = options["NumberFormat"]
-    boxed_s = _boxed_string(s, number_as_text=SymbolFalse)
-    if pexp == "":
-        return boxed_s
+    boxed_s = String(s)
+    if pexp:
+        # base
+        base = "10"
+        method = options["NumberFormat"]
+        boxed_base = String(base)
+        boxed_pexp = String(pexp)
+        boxed_s = method(
+            boxed_s,
+            boxed_base,
+            boxed_pexp,
+            options,
+        )
+    if prefix:
+        from mathics.builtin.box.layout import RowBox
 
-    boxed_base = _boxed_string(base, number_as_text=SymbolFalse)
-    boxed_pexp = _boxed_string(pexp, number_as_text=SymbolFalse)
-
-    return method(
-        boxed_s,
-        boxed_base,
-        boxed_pexp,
-        options,
-    )
+        boxed_s = RowBox(String(prefix), boxed_s)
+    return boxed_s
 
 
 def eval_baseform(self, expr, n, f, evaluation: Evaluation):

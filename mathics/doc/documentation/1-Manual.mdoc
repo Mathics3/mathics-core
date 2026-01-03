@@ -492,11 +492,11 @@ It is an error to combine lists with unequal lengths:
 Every expression in \Mathics is built upon the same principle: it consists of a <em>head</em> and an arbitrary number of <em>children</em>, unless it is an <em>atom</em>, i.e., it can not be subdivided any further. To put it another way: everything is a function call. This can be best seen when displaying expressions in their "full form":
 
   >> FullForm[a + b + c]
-  = Plus[a, b, c]
+  = Plus[a,b,c]
 
 Nested calculations are nested function calls:
   >> FullForm[a + b * (c + d)]
-  = Plus[a, Times[b, Plus[c, d]]]
+  = Plus[a,Times[b,Plus[c,d]]]
 
 Even lists are function calls of the function 'List':
   >> Head[{1, 2, 3}]
@@ -557,9 +557,9 @@ The atoms of \Mathics are numbers, symbols, and strings. 'AtomQ' tests whether a
 
 The full form of rational and complex numbers looks like they were compound expressions:
   >> FullForm[3 / 5]
-  = Rational[3, 5]
+  = Rational[3,5]
   >> FullForm[3 + 4 I]
-  = Complex[3, 4]
+  = Complex[3,4]
 
 However, they are still atoms, thus unaffected by applying functions, for instance:
   >> f @@ Complex[3, 4]

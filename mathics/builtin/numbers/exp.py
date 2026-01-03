@@ -172,8 +172,8 @@ class Exp(MPMathFunction):
      = E
     >> Exp[10.0]
      = 22026.5
-    >> Exp[x] //FullForm
-     = Power[E, x]
+    >> Exp[x] // FullForm
+     = Power[E,x]
 
     >> Plot[Exp[x], {x, 0, 3}]
      = -Graphics-

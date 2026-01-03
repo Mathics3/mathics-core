@@ -605,7 +605,7 @@ class String_(Builtin, ABC):
 
     'FullForm' also displays quotes:
     >> FullForm["abc" + 2]
-     = Plus[2, "abc"]
+     = Plus[2,"abc"]
     """
 
     name = "String"

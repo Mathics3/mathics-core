@@ -322,11 +322,11 @@ class MessageName(InfixOperator):
 
     'MessageName' is the head of message IDs of the form 'symbol::tag'.
     >> FullForm[a::b]
-     = MessageName[a, "b"]
+     = MessageName[a,"b"]
 
     The second parameter 'tag' is interpreted as a string.
     >> FullForm[a::"b"]
-     = MessageName[a, "b"]
+     = MessageName[a,"b"]
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED

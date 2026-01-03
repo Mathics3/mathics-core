@@ -721,7 +721,7 @@ def test_assignment(expr, expect, fail_msg, expected_msgs):
         ),
         (
             "ClearAll[A,x]; f[A_, x_] := x /; x == 2; DownValues[f] // FullForm",
-            "{RuleDelayed[HoldPattern[f[Pattern[A, Blank[]], Pattern[x, Blank[]]]], Condition[x, Equal[x, 2]]]}",
+            "{RuleDelayed[HoldPattern[f[Pattern[A,Blank[]],Pattern[x,Blank[]]]],Condition[x,Equal[x,2]]]}",
             "Issue #1209 - Another problem seen in loading Rubi.",
             True,
             [],
