@@ -268,8 +268,8 @@ class DensityPlot(_Plot3D):
 
 class ParametricPlot3D(_Plot3D):
     """
-    <url>:WMA link: https://reference.wolfram.com/language/ref/ParametricPlot3D.html</url>
     <url>:Parametric equation: https://en.wikipedia.org/wiki/Parametric_equation</url>
+    <url>:WMA link: https://reference.wolfram.com/language/ref/ParametricPlot3D.html</url>
     <dl>
       <dt>'ParametricPlot3D'[${x(u,v), y(u,v), z(u,v)}$, {$u$, $u_{min}$, $u_{max}$}, {$v$, $v_{min}$, $v_{max}$}]
       <dd>creates a three-dimensional surface using the functions $x$, $y$, $z$ over the specified ranges for parameters $u$ and $v$.
