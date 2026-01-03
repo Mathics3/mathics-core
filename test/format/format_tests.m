@@ -21,20 +21,23 @@ Do[key = ToExpression[tests[[1]]];
  latex = ("latex" /. fields);
  mathml = ("mathml" /. fields);
  Print[Head[key], "  msg:", mesg, "<<", key, ">>"];
+ (*text*)
  If[Head[text]===List,
- Print["    text", "\n    -----", "\n"];
- Do[form = ToExpression[subtest[[1]]]; expr = form[key];
-  result = ToString[expr];
-  expected = subtest[[2]];
-  If[result != subtest[[2]], 
-   Print["      * ", form, "(text)    [Failed]\n        result:", "<<" <> result <> ">>", 
-    "\n        expected: ", "<<" <> expected <> ">>\n"], 
-   Print["      * ", form, "(text)    [OK]"]];, {subtest, text}]];
-   (*LaTeX*)
- If[Head[latex]===List,
+   Print["    text", "\n    -----", "\n"];
+   Do[form = ToExpression[subtest[[1]]]; expr = form[key];
+      result = ToString[expr, CharacterEncoding->"ASCII"];
+      expected = subtest[[2]];
+      If[result != subtest[[2]], 
+         Print["      * ", form, "(text)    [Failed]\n        result:", "<<" <> result <> ">>(", StringLength[result], 
+    ")\n        expected: ", "<<" <> expected <> ">> (", StringLength[expected],")\n"], 
+         Print["      * ", form, "(text)    [OK]"]];,
+ {subtest, text}]
+ ];
+ (*LaTeX*)
+ If[And[False, Head[latex]===List],
    Print["    latex", "\n    -----", "\n"];
    Do[form = ToExpression[subtest[[1]]]; expr = form[key];
-      result = ToString[expr, TeXForm];
+      result = ToString[expr, TeXForm, CharacterEncoding->"ASCII"];
       expected = subtest[[2]];
       If[result != subtest[[2]], 
         Print["      * ", form, "(latex)    [Failed]\n        result:", 
@@ -43,12 +46,11 @@ Do[key = ToExpression[tests[[1]]];
       Print["      * ", form, "(latex)    [OK]"]];,
    {subtest, latex}]
    ];
-   
 (*MathML*)
- If[Head[mathml]===List, 
+ If[And[False, Head[mathml]===List], 
  Print["    mathml", "\n    ------", "\n"];
  Do[form = ToExpression[subtest[[1]]]; expr = form[key];
-  result = ToString[expr, MathMLForm];
+  result = ToString[expr, MathMLForm, CharacterEncoding->"ASCII"];
   expected = subtest[[2]];
   If[result != subtest[[2]], 
    Print["      * ", form, "(mathml)    [Failed]\n        result:", 

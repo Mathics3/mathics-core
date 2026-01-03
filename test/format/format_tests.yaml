@@ -829,25 +829,23 @@ a:
     System`OutputForm: a
     System`StandardForm: a
     System`TraditionalForm: a
-a^(b/c):
+a^(g[b]/c):
   latex:
-    System`InputForm: a{}^{\wedge}\left(b\text{ / }c\right)
-    System`OutputForm: a\text{ ${}^{\wedge}$ }\left(b\text{ / }c\right)
-    System`StandardForm: a^{\frac{b}{c}}
-    System`TraditionalForm: a^{\frac{b}{c}}
+    System`InputForm: a{}^{\wedge}\left(g\left[b\right]\text{ / }c\right)
+    System`OutputForm: a\text{ ${}^{\wedge}$ }\left(g\left[b\right]\text{ / }c\right)
+    System`StandardForm: a^{\frac{g\left[b\right]}{c}}
+    System`TraditionalForm: a^{\frac{g\left(b\right)}{c}}
   mathml:
-    System`InputForm: <mrow><mi>a</mi> <mo>^</mo> <mrow><mo>(</mo> <mrow><mi>b</mi>
-      <mtext>&nbsp;/&nbsp;</mtext> <mi>c</mi></mrow> <mo>)</mo></mrow></mrow>
-    System`OutputForm: <mrow><mi>a</mi> <mtext>&nbsp;^&nbsp;</mtext> <mrow><mo>(</mo>
-      <mrow><mi>b</mi> <mtext>&nbsp;/&nbsp;</mtext> <mi>c</mi></mrow> <mo>)</mo></mrow></mrow>
-    System`StandardForm: <msup><mi>a</mi> <mfrac><mi>b</mi> <mi>c</mi></mfrac></msup>
-    System`TraditionalForm: <msup><mi>a</mi> <mfrac><mi>b</mi> <mi>c</mi></mfrac></msup>
+    System`InputForm: <mrow><mi>a</mi> <mo>^</mo> <mrow><mo>(</mo> <mrow><mrow><mi>g</mi> <mo>[</mo> <mi>b</mi> <mo>]</mo></mrow> <mtext>&nbsp;/&nbsp;</mtext> <mi>c</mi></mrow> <mo>)</mo></mrow></mrow>
+    System`OutputForm: <mrow><mi>a</mi> <mtext>&nbsp;^&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mrow><mi>g</mi> <mo>[</mo> <mi>b</mi> <mo>]</mo></mrow> <mtext>&nbsp;/&nbsp;</mtext> <mi>c</mi></mrow> <mo>)</mo></mrow></mrow>
+    System`StandardForm: <msup><mi>a</mi> <mfrac><mrow><mi>g</mi> <mo>[</mo> <mi>b</mi> <mo>]</mo></mrow> <mi>c</mi></mfrac></msup>
+    System`TraditionalForm: <msup><mi>a</mi> <mfrac><mrow><mi>g</mi> <mo>(</mo> <mi>b</mi> <mo>)</mo></mrow> <mi>c</mi></mfrac></msup>
   msg: SuperscriptBox with a nested expression.
   text:
-    System`InputForm: a^(b / c)
-    System`OutputForm: a ^ (b / c)
-    System`StandardForm: a^(b / c)
-    System`TraditionalForm: a^(b / c)
+    System`InputForm: a^(g[b] / c)
+    System`OutputForm: a ^ (g[b] / c)
+    System`StandardForm: a^((g[b]) / c)
+    System`TraditionalForm: a^((g(b)) / c)
 a^4:
   latex:
     System`InputForm: a{}^{\wedge}4
