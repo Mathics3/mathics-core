@@ -11,7 +11,7 @@
 #  matching with the result. If `fmt` is omitted, it is assumed  `StandardForm`.
 #
 #  For example,  `MakeBoxes[A+B, StandardForm]` applies first the format rule
-#  `Format[Plus[x___], StandardForm] :> Infix[{x}, "+",...]` leadint to
+#  `Format[Plus[x___], StandardForm] :> Infix[{x}, "+",...]` leading to
 #  `Infix[{A,B},"+"]`
 #  and then the MakeBoxes rule `Infix[{x}, "+",...]:> RowBox[{ToString[x[[1]]],"+",ToString[x[[2]]],...}`
 #  leading to `RowBox[{"A","+","B"}]`.
