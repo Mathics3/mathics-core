@@ -234,7 +234,7 @@ def equations_to_contours(plot_options):
             plot_options.functions[i] = f
             plot_options.contours = [0]
             plot_options.background = False
-    
+
 
 def choose_contour_levels(plot_options, vmin, vmax, default):
     levels = plot_options.contours
@@ -313,7 +313,6 @@ def eval_ContourPlot(
     return make_surfaces(plot_options, evaluation, dim=2, is_complex=False, emit=emit)
 
 
-
 @Timer("eval_ContourPlot3D")
 def eval_ContourPlot3D(
     plot_options,
@@ -364,9 +363,13 @@ def eval_ContourPlot3D(
             verts[:, (0, 1)] = verts[:, (1, 0)]  # skimage bug?
 
         # marching_cubes gives back coordinates relative to grid unit, so rescale to x, y, z
-        offset = np.array([xmin, ymin, zmin])
-        scale = np.array([(xmax-xmin)/(nx-1), (ymax-ymin)/(ny-1), (zmax-zmin)/(nz-1)])
-        verts = offset + verts * scale
+        offset = [xmin, ymin, zmin]
+        scale = [
+            (xmax - xmin) / (nx - 1),
+            (ymax - ymin) / (ny - 1),
+            (zmax - zmin) / (nz - 1),
+        ]
+        verts = np.array(offset) + verts * np.array(scale)
 
         # WL is 1-based
         faces += 1
@@ -378,7 +381,7 @@ def eval_ContourPlot3D(
         # TODO: this should share vertices with previous GraphicsComplex
         if plot_options.mesh is SymbolFull:
             # TODO: each segment emitted twice - is there reasonable way to fix?
-            lines = np.array([faces[:,[0,1]], faces[:,[1,2]], faces[:,[2,0]]])
+            lines = np.array([faces[:, [0, 1]], faces[:, [1, 2]], faces[:, [2, 0]]])
             graphics.add_directives([SymbolRGBColor, 0, 0, 0])
             graphics.add_complex(verts, lines=lines, polys=None, colors=None)
 

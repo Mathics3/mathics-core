@@ -259,7 +259,7 @@ class ContourPlot3D(_Plot3D):
     options = _Plot3D.options3d | {
         "Contours": "Automatic",
         "BoxRatios": "{1,1,1}",
-        "Mesh": "None"
+        "Mesh": "None",
     }
     # TODO: other options?
 
