@@ -8,9 +8,9 @@
 #  ```MakeBoxes[expr, fmt_]```
 #
 #  Apply the format rules matching with `Format[expr, fmt]`, and then the MakeBoxes rules
-#  matching with the result. If `fmt` is ommited, it is assumed  `StandardForm`.
+#  matching with the result. If `fmt` is omitted, it is assumed  `StandardForm`.
 #
-#  For example,  `MakeBoxes[A+B, StandardForm]` applyies first the format rule
+#  For example,  `MakeBoxes[A+B, StandardForm]` applies first the format rule
 #  `Format[Plus[x___], StandardForm] :> Infix[{x}, "+",...]` leadint to
 #  `Infix[{A,B},"+"]`
 #  and then the MakeBoxes rule `Infix[{x}, "+",...]:> RowBox[{ToString[x[[1]]],"+",ToString[x[[2]]],...}`
