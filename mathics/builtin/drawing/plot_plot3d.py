@@ -241,8 +241,8 @@ class ContourPlot(_Plot3D):
 
 class ContourPlot3D(_Plot3D):
     """
-    <url>:WMA link: https://reference.wolfram.com/language/ref/ContourPlot3D.html</url>
-    <url>:Isosurface: https://en.wikipedia.org/wiki/Isosurface</usr>
+    <url>:Isosurface: https://en.wikipedia.org/wiki/Isosurface</url> (
+    <url>:WMA link: https://reference.wolfram.com/language/ref/ContourPlot3D.html</url>)
     <dl>
       <dt>'ContourPlot3D'[$f(x,y,z)$, {$x$, $x_{min}$, $x_{max}$}, {$y$, $y_{min}$, $y_{max}$, {$y$, $y_{min}$, $y_{max}$}]
       <dd>creates a three-dimensional contour plot of $f(x,y,z)$ over the specified region on $x$, $y$, and $z$.
