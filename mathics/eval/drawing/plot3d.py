@@ -513,10 +513,3 @@ def eval_ContourPlot(
     evaluation: Evaluation,
 ):
     return None
-
-
-def eval_ParametricPlot3D(
-    plot_options,
-    evaluation: Evaluation,
-):
-    return None

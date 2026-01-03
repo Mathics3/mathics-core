@@ -134,10 +134,7 @@ def print_expression_tree(
     if file is None:
         file = sys.stdout
 
-    if isinstance(expr, (tuple, list)):
-        for e in expr:
-            print_expression_tree(e, indent, marker, file, approximate)
-    elif isinstance(expr, Symbol):
+    if isinstance(expr, Symbol):
         print(f"{indent}{marker(expr)}{expr}", file=file)
     elif not hasattr(expr, "elements"):
         if isinstance(expr, MachineReal) and approximate:
