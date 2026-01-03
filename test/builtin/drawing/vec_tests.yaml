@@ -140,7 +140,7 @@ vec-parametricplot3d-rings:
             ]
         ]
     '
-vec-parametricplot-moebius:
+vec-parametricplot3d-moebius:
     expr: '
         ParametricPlot3D[
             {(1 + (v/2) Cos[u/2]) Cos[u],
