@@ -3,7 +3,7 @@
 (**************************************************************************************
 Run the format tests in WMA.
 
-Notice that some of the tests that produce meaninful outputs in Mathics,
+Notice that some of the tests that produce meaningful outputs in Mathics3,
 fails miserably to produce an output in WMA. Also, the results of these tests
 in the Notebook interface, the CLI (math) and wolframscript are not fully consistent.
 
