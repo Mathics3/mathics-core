@@ -13,7 +13,7 @@ import sympy
 from sympy.core import numbers as sympy_numbers
 
 from mathics.core.atoms.strings import String
-from mathics.core.element import ImmutableValueMixin
+from mathics.core.element import BoxElementMixin, ImmutableValueMixin
 from mathics.core.keycomparable import BASIC_ATOM_NUMBER_ELT_ORDER
 from mathics.core.number import (
     FP_MANTISA_BINARY_DIGITS,
@@ -297,9 +297,10 @@ class Integer(Number[int]):
         # error.
         return self._value == 0
 
-    def make_boxes(self, form) -> "String":
+    def make_boxes(self, form) -> BoxElementMixin:
         from mathics.builtin.box.layout import RowBox
 
+        boxed: BoxElementMixin
         try:
             if form in (
                 "System`FullForm",

@@ -8,6 +8,7 @@ from typing import Optional, Tuple, Union
 import mpmath
 
 from mathics.core.atoms import Integer, MachineReal, PrecisionReal, Real, String
+from mathics.core.element import BoxElementMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.number import (
@@ -115,7 +116,7 @@ def NumberForm_to_String(
     digits_after_decimal_point: Optional[int],
     evaluation: Optional[Evaluation],
     options: dict,
-) -> String:
+) -> BoxElementMixin:
     """
     Converts a Real or Integer value to a String.
 
