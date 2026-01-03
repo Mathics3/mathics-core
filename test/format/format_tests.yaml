@@ -1,20 +1,45 @@
-'"-4.32"':
+#  Tests for formatting according WMA.
+#
+#  These tests are prepared to compare the output obtained using WL code in
+#  both WMA and Mathics3 interpreters:
+#  ./convert_yaml2json.py format_tests.yaml &&  $(WMAINTERPRETER) -f format_tests.m
+#
+#  In this case, 'text' are certificated against the WMA result,
+#  as the result of evaluating
+#   ```ToString[form_[expr_], CharacterEncoding->"ASCII"]```
+#  so when `WMAINTERPRETER` == `wolframscript` CLI, all these tests pass.
+#  
+#  Running the same code against `mathics` CLI, most of these tests fails because
+#  - `ToString` with `CharacterEncoding->"ASCII"` does not produce string
+#  representations of Boxes.
+#  - `OutputForm` in Mathics3 does not produce *pretty-print-like* output.
+#    And eventually, if we start to do it, probably we can also do it better,
+#    so we are not going to coincide neither.
+#  - Box constructions are still too diferent in both interpreters.
+#
+#  Regarding tests for `MathMLForm` and `TeXForm`, WMA does not do it
+#  really well in its conversions, and in several cases just returns an
+#  error message. On the other hand, in Mathics3 we want to test them,
+#  because we use both in documentation and in the web interface.
+#
+
+'"-7.32"':
   latex:
-    System`InputForm: \text{``-4.32''}
-    System`OutputForm: \text{-4.32}
-    System`StandardForm: \text{-4.32}
-    System`TraditionalForm: \text{-4.32}
+    System`InputForm: \text{``-7.32''}
+    System`OutputForm: \text{-7.32}
+    System`StandardForm: \text{-7.32}
+    System`TraditionalForm: \text{-7.32}
   mathml:
-    System`InputForm: <ms>-4.32</ms>
-    System`OutputForm: <mtext>-4.32</mtext>
-    System`StandardForm: <mtext>-4.32</mtext>
-    System`TraditionalForm: <mtext>-4.32</mtext>
+    System`InputForm: <ms>-7.32</ms>
+    System`OutputForm: <mtext>-7.32</mtext>
+    System`StandardForm: <mtext>-7.32</mtext>
+    System`TraditionalForm: <mtext>-7.32</mtext>
   msg: A String with a number
   text:
-    System`InputForm: '"-4.32"'
-    System`OutputForm: '-4.32'
-    System`StandardForm: '-4.32'
-    System`TraditionalForm: '-4.32'
+    System`InputForm: '"-7.32"'
+    System`OutputForm: '-7.32'
+    System`StandardForm: '-7.32'
+    System`TraditionalForm: '-7.32'
 '"Hola!"':
   latex:
     System`InputForm: \text{``Hola!''}
@@ -829,25 +854,23 @@ a:
     System`OutputForm: a
     System`StandardForm: a
     System`TraditionalForm: a
-a^(b/c):
+a^(g[b]/c):
   latex:
-    System`InputForm: a{}^{\wedge}\left(b\text{ / }c\right)
-    System`OutputForm: a\text{ ${}^{\wedge}$ }\left(b\text{ / }c\right)
-    System`StandardForm: a^{\frac{b}{c}}
-    System`TraditionalForm: a^{\frac{b}{c}}
+    System`InputForm: a{}^{\wedge}\left(g\left[b\right]\text{ / }c\right)
+    System`OutputForm: a\text{ ${}^{\wedge}$ }\left(g\left[b\right]\text{ / }c\right)
+    System`StandardForm: a^{\frac{g\left[b\right]}{c}}
+    System`TraditionalForm: a^{\frac{g\left(b\right)}{c}}
   mathml:
-    System`InputForm: <mrow><mi>a</mi> <mo>^</mo> <mrow><mo>(</mo> <mrow><mi>b</mi>
-      <mtext>&nbsp;/&nbsp;</mtext> <mi>c</mi></mrow> <mo>)</mo></mrow></mrow>
-    System`OutputForm: <mrow><mi>a</mi> <mtext>&nbsp;^&nbsp;</mtext> <mrow><mo>(</mo>
-      <mrow><mi>b</mi> <mtext>&nbsp;/&nbsp;</mtext> <mi>c</mi></mrow> <mo>)</mo></mrow></mrow>
-    System`StandardForm: <msup><mi>a</mi> <mfrac><mi>b</mi> <mi>c</mi></mfrac></msup>
-    System`TraditionalForm: <msup><mi>a</mi> <mfrac><mi>b</mi> <mi>c</mi></mfrac></msup>
+    System`InputForm: <mrow><mi>a</mi> <mo>^</mo> <mrow><mo>(</mo> <mrow><mrow><mi>g</mi> <mo>[</mo> <mi>b</mi> <mo>]</mo></mrow> <mtext>&nbsp;/&nbsp;</mtext> <mi>c</mi></mrow> <mo>)</mo></mrow></mrow>
+    System`OutputForm: <mrow><mi>a</mi> <mtext>&nbsp;^&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mrow><mi>g</mi> <mo>[</mo> <mi>b</mi> <mo>]</mo></mrow> <mtext>&nbsp;/&nbsp;</mtext> <mi>c</mi></mrow> <mo>)</mo></mrow></mrow>
+    System`StandardForm: <msup><mi>a</mi> <mfrac><mrow><mi>g</mi> <mo>[</mo> <mi>b</mi> <mo>]</mo></mrow> <mi>c</mi></mfrac></msup>
+    System`TraditionalForm: <msup><mi>a</mi> <mfrac><mrow><mi>g</mi> <mo>(</mo> <mi>b</mi> <mo>)</mo></mrow> <mi>c</mi></mfrac></msup>
   msg: SuperscriptBox with a nested expression.
   text:
-    System`InputForm: a^(b / c)
-    System`OutputForm: a ^ (b / c)
-    System`StandardForm: a^(b / c)
-    System`TraditionalForm: a^(b / c)
+    System`InputForm: a^(g[b] / c)
+    System`OutputForm: a ^ (g[b] / c)
+    System`StandardForm: a^((g[b]) / c)
+    System`TraditionalForm: a^((g(b)) / c)
 a^4:
   latex:
     System`InputForm: a{}^{\wedge}4
