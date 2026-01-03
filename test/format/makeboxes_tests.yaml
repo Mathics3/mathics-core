@@ -137,7 +137,7 @@ Basic Forms:
     FullForm:
       expect: TagBox[StyleBox[RowBox[{"-", "14.`3."}], ShowSpecialCharacters -> False, ShowStringCharacters-> True, NumberMarks -> True], FullForm]
       expr: MakeBoxes[-14.`3//FullForm]
-      msg: "In Mathics, precision is always an integer number."
+      msg: "In Mathics3, precision is always an integer number."
     InputForm:
       expr: MakeBoxes[-14.`3//InputForm]
       expect: InterpretationBox[StyleBox["-14.`3.", ShowStringCharacters -> True, NumberMarks-> True], InputForm[-14.`3], Editable -> True, AutoDelete -> True]
@@ -207,12 +207,12 @@ Numbers:
     StandardForm:
       expr: MakeBoxes[1.4`20]
       expect: "\"1.4`20.\""
-      msg: "In Mathics, precision is always an integer number."
+      msg: "In Mathics3, precision is always an integer number."
   "PrecisionReal, Many Accuracy":
     StandardForm:
       expr: MakeBoxes[1.5``20]
       expect: "\"1.5`20.176091259055685\""
-      msg: "In Mathics, precision is always an integer number."
+      msg: "In Mathics3, precision is always an integer number."
   "PrecisionReal, Zero_LowPrec":
     StandardForm:
       expr: MakeBoxes[0.`3]
@@ -225,7 +225,7 @@ Numbers:
     StandardForm:
       expr: MakeBoxes[0.``30]
       expect: "\"0``30.\""
-      msg: "In Mathics, precision is always an integer number."
+      msg: "In Mathics3, precision is always an integer number."
 Graphics:
   "Disk":
     StandardForm:
