@@ -348,7 +348,7 @@ class SphericalPlot3D(_Plot3D):
           in the ranges $0 < θ < π$ and $0 < φ < 2π$ covering the entire sphere
 
       >> SphericalPlot3D[1 + 0.4 Abs[SphericalHarmonicY[10, 4, θ, φ]], θ, φ]
-       - SphericalPlot3D[1 + 0.4 Abs[SphericalHarmonicY[10, 4, θ, φ]], θ, φ]
+       = SphericalPlot3D[1 + 0.4 Abs[SphericalHarmonicY[10, 4, θ, φ]], θ, φ]
 
       Spherical harmonics are the canonical use case for spherical plots.
 
