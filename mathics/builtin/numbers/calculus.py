@@ -1919,7 +1919,7 @@ class SeriesData(Builtin):
      = SeriesData
 
     >> series // FullForm
-     = SeriesData[x,0,{1,0,Rational[1, 2]},0,3,1]
+     = SeriesData[x,0,{1,0,Rational[1,2]},0,3,1]
 
     You can apply certain mathematical operations to 'SeriesData' objects to get \
     new 'SeriesData' objects truncated to the appropriate order.
