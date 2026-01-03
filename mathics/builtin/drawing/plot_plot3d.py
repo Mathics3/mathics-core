@@ -102,22 +102,26 @@ class _Plot3D(Builtin):
         try:
             dim = 3 if self.graphics_class is Graphics3D else 2
             ranges = ranges.elements if ranges.head is SymbolSequence else [ranges]
-            plot_options = plot.PlotOptions(self, ranges, options, dim, evaluation)
+            plot_options = plot.PlotOptions(
+                self, functions, ranges, options, dim, evaluation
+            )
         except ValueError:
             return None
 
         # supply default value for PlotPoints
-        # TODO: consult many_functions variable set by subclass and error
-        # if many_functions is False but multiple are supplied
-        if functions.has_form("List", None):
-            plot_options.functions = functions.elements
-        else:
-            plot_options.functions = [functions]
-
-        # supply default value
         if plot_options.plot_points is None:
-            default_plot_points = (200, 200) if plot.use_vectorized_plot else (7, 7)
+            if isinstance(self, ParametricPlot3D) and len(plot_options.ranges) == 1:
+                # ParametricPlot3D with one independent variable generating a curve
+                default_plot_points = (1000,)
+            elif plot.use_vectorized_plot:
+                default_plot_points = (200, 200)
+            else:
+                default_plot_points = (7, 7)
             plot_options.plot_points = default_plot_points
+
+        # supply apply_function which knows how to take the plot parameters
+        # and produce xs, ys, and zs
+        plot_options.apply_function = self.apply_function
 
         # subclass must set eval_function and graphics_class
         eval_function = plot.get_plot_eval_function(self.__class__)
@@ -147,6 +151,10 @@ class _Plot3D(Builtin):
         )
         return graphics_expr
 
+    def apply_function(self, function, names, us, vs):
+        parms = {str(names[0]): us, str(names[1]): vs}
+        return us, vs, function(**parms)
+
 
 class ComplexPlot3D(_Plot3D):
     """
@@ -171,6 +179,10 @@ class ComplexPlot3D(_Plot3D):
     num_plot_points = 2  # different from number of ranges
     graphics_class = Graphics3D
 
+    def apply_function(self, function, names, us, vs):
+        parms = {str(names[0]): us + vs * 1j}
+        return us, vs, function(**parms)
+
 
 class ComplexPlot(_Plot3D):
     """
@@ -194,6 +206,10 @@ class ComplexPlot(_Plot3D):
     many_functions = False
     num_plot_points = 2  # different from number of ranges
     graphics_class = Graphics
+
+    def apply_function(self, function, names, us, vs):
+        parms = {str(names[0]): us + vs * 1j}
+        return us, vs, function(**parms)
 
 
 class ContourPlot(_Plot3D):
