@@ -256,7 +256,11 @@ class ContourPlot3D(_Plot3D):
     requires = ["skimage"]
     summary_text = "creates a 3d contour plot"
     expected_args = 4
-    options = _Plot3D.options3d | {"Contours": "Automatic", "BoxRatios": "{1,1,1}"}
+    options = _Plot3D.options3d | {
+        "Contours": "Automatic",
+        "BoxRatios": "{1,1,1}",
+        "Mesh": "None"
+    }
     # TODO: other options?
 
     many_functions = False

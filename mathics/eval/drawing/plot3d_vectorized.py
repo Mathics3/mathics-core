@@ -14,6 +14,7 @@ from mathics.core.symbols import strip_context
 from mathics.core.systemsymbols import (
     SymbolAbsoluteThickness,
     SymbolEqual,
+    SymbolFull,
     SymbolNone,
     SymbolRGBColor,
     SymbolSubtract,
@@ -235,6 +236,20 @@ def equations_to_contours(plot_options):
             plot_options.background = False
     
 
+def choose_contour_levels(plot_options, vmin, vmax, default):
+    levels = plot_options.contours
+    if isinstance(levels, str):
+        # TODO: need to pick "nice" number so levels have few digits
+        # an odd number ensures there is a contour at 0 if range is balanced
+        levels = default
+    if isinstance(levels, int):
+        # computed contour levels have equal distance between them,
+        # and half that between first/last contours and vmin/vmax
+        dv = (vmax - vmin) / levels
+        levels = vmin + np.arange(levels) * dv + dv / 2
+    return levels
+
+
 @Timer("eval_ContourPlot")
 def eval_ContourPlot(
     plot_options,
@@ -265,17 +280,8 @@ def eval_ContourPlot(
         zs = xyzs[:, 2]  # this is a linear list matching with quads
 
         # process contour_levels
-        levels = plot_options.contours
         zmin, zmax = np.min(zs), np.max(zs)
-        if isinstance(levels, str):
-            # TODO: need to pick "nice" number so levels have few digits
-            # an odd number ensures there is a contour at 0 if range is balanced
-            levels = 9
-        if isinstance(levels, int):
-            # computed contour levels have equal distance between them,
-            # and half that between first/last contours and zmin/zmax
-            dz = (zmax - zmin) / levels
-            levels = zmin + np.arange(levels) * dz + dz / 2
+        levels = choose_contour_levels(plot_options, zmin, zmax, default=9)
 
         # one contour line per contour level
         for level in levels:
@@ -342,15 +348,20 @@ def eval_ContourPlot3D(
     with Timer("compute fs"):
         fs = function(**{n: v for n, v in zip(names, [xs, ys, zs])})
 
+    # process contour_levels
+    fmin, fmax = np.min(fs), np.max(fs)
+    levels = choose_contour_levels(plot_options, fmin, fmax, default=7)
+
     # find contour for each level and emit it
     graphics = GraphicsGenerator(dim=3)
-    for i, level in enumerate(plot_options.contours):
+    for i, level in enumerate(levels):
         color_directive = palette_color_directive(palette3, i)
         graphics.add_directives(color_directive)
 
         # find contour for this level
         with Timer("3d contours"):
             verts, faces, normals, values = skimage.measure.marching_cubes(fs, level)
+            verts[:, (0, 1)] = verts[:, (1, 0)]  # skimage bug?
 
         # marching_cubes gives back coordinates relative to grid unit, so rescale to x, y, z
         offset = np.array([xmin, ymin, zmin])
@@ -360,8 +371,16 @@ def eval_ContourPlot3D(
         # WL is 1-based
         faces += 1
 
-        # emit as graphics complex
+        # emit faces as GraphicsComplex
         graphics.add_complex(verts, lines=None, polys=faces, colors=None)
+
+        # emit mesh as GraphicsComplex
+        # TODO: this should share vertices with previous GraphicsComplex
+        if plot_options.mesh is SymbolFull:
+            # TODO: each segment emitted twice - is there reasonable way to fix?
+            lines = np.array([faces[:,[0,1]], faces[:,[1,2]], faces[:,[2,0]]])
+            graphics.add_directives([SymbolRGBColor, 0, 0, 0])
+            graphics.add_complex(verts, lines=lines, polys=None, colors=None)
 
     return graphics
 
