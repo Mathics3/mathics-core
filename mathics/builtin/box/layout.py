@@ -230,7 +230,7 @@ class InterpretationBox(BoxExpression):
                     self.boxed,
                     self.expr,
                 ),
-                {},
+                self.box_options,
             )
         return self._elements
 

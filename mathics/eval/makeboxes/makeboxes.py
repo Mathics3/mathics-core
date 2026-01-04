@@ -145,7 +145,7 @@ def eval_makeboxes_outputform(expr, evaluation, form):
     from mathics.format.outputform import expression_to_outputform_text
 
     text_outputform = str(expression_to_outputform_text(expr, evaluation, form))
-    elem1 = PaneBox(String(text_outputform))
+    elem1 = PaneBox(String('"' + text_outputform + '"'))
     return elem1
 
 

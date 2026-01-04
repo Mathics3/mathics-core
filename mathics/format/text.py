@@ -52,7 +52,8 @@ add_conversion_fn(InterpretationBox, interpretation_box)
 
 
 def pane_box(self, **options):
-    return boxes_to_text(self.boxed, **options)
+    result = boxes_to_text(self.boxed, **options)
+    return result
 
 
 add_conversion_fn(PaneBox, pane_box)
