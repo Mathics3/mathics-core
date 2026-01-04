@@ -208,7 +208,6 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
                 return tex
 
     def to_expression(self) -> Expression:
-        # FIXME: All classes should store their symbol name.
         return Expression(Symbol(self.get_name()), *self.elements)
 
     def flatten_pattern_sequence(self, evaluation) -> "BoxExpression":
