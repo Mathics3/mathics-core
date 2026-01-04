@@ -86,14 +86,6 @@ class _Plot3D(Builtin):
         "MaxRecursion": "0",
         # 'MaxRecursion': '2',  # FIXME causes bugs in svg output see #303
     }
-    require_vectorized = False
-
-    def contribute(self, definitions: Definitions, is_pymodule=False):
-        from .plot import use_vectorized_plot
-
-        if self.require_vectorized and not use_vectorized_plot:
-            return None
-        return super().contribute(definitions, is_pymodule)
 
     def eval(
         self,
@@ -182,7 +174,6 @@ class ComplexPlot3D(_Plot3D):
 
     many_functions = True
     graphics_class = Graphics3D
-    require_vectorized = True
 
 
 class ComplexPlot(_Plot3D):
@@ -213,7 +204,6 @@ class ComplexPlot(_Plot3D):
 
     many_functions = False
     graphics_class = Graphics
-    require_vectorized = True
 
 
 class ContourPlot(_Plot3D):
@@ -254,7 +244,6 @@ class ContourPlot(_Plot3D):
 
     many_functions = True
     graphics_class = Graphics
-    require_vectorized = True
 
 
 class DensityPlot(_Plot3D):
