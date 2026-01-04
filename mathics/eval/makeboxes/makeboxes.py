@@ -182,7 +182,7 @@ def eval_makeboxes_fullform(
         left, right, sep = (String(ch) for ch in ("{", "}", ","))
         result_elements = [left]
     else:
-        left, right, sep = (String(ch) for ch in ("[", "]", ", "))
+        left, right, sep = (String(ch) for ch in ("[", "]", ","))
         result_elements = [eval_makeboxes_fullform(head, evaluation), left]
 
     if len(boxed_elements) > 1:
