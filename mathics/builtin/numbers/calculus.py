@@ -1611,7 +1611,7 @@ class O_(Builtin):
 
     When called alone, a `SeriesData` expression is built:
     >> O[x] // FullForm
-     = SeriesData[x,0,{},1,1,1]
+     = SeriesData[x, 0, {}, 1, 1, 1]
 
     """
 
@@ -1783,7 +1783,7 @@ class Series(Builtin):
 
      The expression created is a 'SeriesData' object:
      >> series // FullForm
-      = SeriesData[x,0,{1,0,1},0,3,1]
+      = SeriesData[x, 0, {1, 0, 1}, 0, 3, 1]
 
      Replacing $x$ with does a value produces another 'SeriesData' object:
      >> series /. x->4
@@ -1919,7 +1919,7 @@ class SeriesData(Builtin):
      = SeriesData
 
     >> series // FullForm
-     = SeriesData[x,0,{1,0,Rational[1,2]},0,3,1]
+     = SeriesData[x, 0, {1, 0, Rational[1, 2]}, 0, 3, 1]
 
     You can apply certain mathematical operations to 'SeriesData' objects to get \
     new 'SeriesData' objects truncated to the appropriate order.

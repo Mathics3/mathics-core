@@ -38,7 +38,7 @@ def test_downvalues():
         ("a`x === a`x", None, "True", None),
         ("a`x === b`x", None, "False", None),
         ## awkward parser cases
-        ("FullForm[a`b_]", None, "Pattern[a`b,Blank[]]", None),
+        ("FullForm[a`b_]", None, "Pattern[a`b, Blank[]]", None),
         ("a = 2;", None, "Null", None),
         ("Information[a]", tuple(), "Global`a\n\na = 2\n", None),
         ("f[x_] := x ^ 2;", None, "Null", None),

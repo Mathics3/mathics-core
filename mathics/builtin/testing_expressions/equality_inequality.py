@@ -567,7 +567,7 @@ class Greater(_ComparisonOperator, _SympyComparison):
 
     Greater operator can be chained:
     >> a > b > c // FullForm
-     = Greater[a,b,c]
+     = Greater[a, b, c]
 
     >> 3 > 2 > 1
      = True

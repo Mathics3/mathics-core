@@ -99,7 +99,7 @@ def test_private_doctests_dispatch(str_expr, msgs, str_expected, fail_msg):
             None,
         ),
         ("a:b:c", None, "a : b : c", None),
-        ("FullForm[a:b:c]", None, "Optional[Pattern[a,b],c]", None),
+        ("FullForm[a:b:c]", None, "Optional[Pattern[a, b], c]", None),
         ("(a:b):c", None, "a : b : c", None),
         ("a:(b:c)", None, "a : (b : c)", None),
         ('StringReplace["hello world!", _ -> "x"]', None, "xxxxxxxxxxxx", None),

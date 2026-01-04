@@ -40,16 +40,16 @@ class Optional(InfixOperator, PatternObject):
     disambiguity, since $symb$ has to be a symbol in this case.
 
     >> x:_ // FullForm
-     = Pattern[x,Blank[]]
+     = Pattern[x, Blank[]]
     >> _:d // FullForm
-     = Optional[Blank[],d]
+     = Optional[Blank[], d]
     >> x:_+y_:d // FullForm
-     = Pattern[x,Plus[Blank[],Optional[Pattern[y,Blank[]],d]]]
+     = Pattern[x, Plus[Blank[], Optional[Pattern[y, Blank[]], d]]]
 
     's_.' is equivalent to 'Optional[s_]' and represents an optional parameter which, if omitted,
     gets its value from 'Default'.
     >> FullForm[s_.]
-     = Optional[Pattern[s,Blank[]]]
+     = Optional[Pattern[s, Blank[]]]
 
     >> Default[h, k_] := k
     >> h[a] /. h[x_, y_.] -> {x, y}

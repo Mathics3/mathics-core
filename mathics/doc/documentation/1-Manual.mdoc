@@ -492,11 +492,11 @@ It is an error to combine lists with unequal lengths:
 Every expression in \Mathics is built upon the same principle: it consists of a <em>head</em> and an arbitrary number of <em>children</em>, unless it is an <em>atom</em>, i.e., it can not be subdivided any further. To put it another way: everything is a function call. This can be best seen when displaying expressions in their "full form":
 
   >> FullForm[a + b + c]
-  = Plus[a,b,c]
+  = Plus[a, b, c]
 
 Nested calculations are nested function calls:
   >> FullForm[a + b * (c + d)]
-  = Plus[a,Times[b,Plus[c,d]]]
+  = Plus[a, Times[b, Plus[c, d]]]
 
 Even lists are function calls of the function 'List':
   >> Head[{1, 2, 3}]
@@ -504,7 +504,7 @@ Even lists are function calls of the function 'List':
 
 However, its full form is presented with '{...}'
   >> FullForm[{1, 2, 3}]
-   = {1,2,3}
+   = {1, 2, 3}
 
  The head of an expression can be determined with 'Head':
   >> Head[a + b + c]
@@ -557,9 +557,9 @@ The atoms of \Mathics are numbers, symbols, and strings. 'AtomQ' tests whether a
 
 The full form of rational and complex numbers looks like they were compound expressions:
   >> FullForm[3 / 5]
-  = Rational[3,5]
+  = Rational[3, 5]
   >> FullForm[3 + 4 I]
-  = Complex[3,4]
+  = Complex[3, 4]
 
 However, they are still atoms, thus unaffected by applying functions, for instance:
   >> f @@ Complex[3, 4]
@@ -888,7 +888,7 @@ There are several methods to display expressions in 2-D:
   . c   d
 
   >> Subscript[a, 1, 2] // TeXForm
-  = a_{1,2}
+  = a_{1, 2}
 
 If you want even more low-level control over expression display, override 'MakeBoxes':
 
@@ -963,7 +963,7 @@ The desired effect can be achieved in the following way:
   = squared[1, 2]
 
   #> squared[1, 2] // TeXForm
-   = \text{squared}\left[1,2\right]^2
+   = \text{squared}\left[1, 2\right]^2
 
 You can view the box structure of a formatted expression using 'ToBoxes':
 

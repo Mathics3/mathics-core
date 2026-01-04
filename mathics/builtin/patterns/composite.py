@@ -399,9 +399,9 @@ class Pattern(PatternObject):
     </dl>
 
     >> FullForm[a_b]
-     = Pattern[a,Blank[b]]
+     = Pattern[a, Blank[b]]
     >> FullForm[a:_:b]
-     = Optional[Pattern[a,Blank[]],b]
+     = Optional[Pattern[a, Blank[]], b]
 
     'Pattern' has attribute 'HoldFirst', so it does not evaluate its name:
     >> x = 2
@@ -418,7 +418,7 @@ class Pattern(PatternObject):
      = {a, b}
     'FullForm':
     >> FullForm[a:b:c:d:e]
-     = Optional[Pattern[a,b],Optional[Pattern[c,d],e]]
+     = Optional[Pattern[a, b], Optional[Pattern[c, d], e]]
 
     >> f[] /. f[a:_:b] -> {a, b}
      = {b, b}
@@ -548,7 +548,7 @@ class Repeated(PostfixOperator, PatternObject):
     </dl>
 
     >> a_Integer.. // FullForm
-     = Repeated[Pattern[a,Blank[Integer]]]
+     = Repeated[Pattern[a, Blank[Integer]]]
     >> 0..1 // FullForm
      = Repeated[0]
     >> {{}, {a}, {a, b}, {a, a, a}, {a, a, a, a}} /. {Repeated[x : a | b, 3]} -> x
@@ -663,7 +663,7 @@ class RepeatedNull(Repeated):
     </dl>
 
     >> a___Integer... // FullForm
-     = RepeatedNull[Pattern[a,BlankNullSequence[Integer]]]
+     = RepeatedNull[Pattern[a, BlankNullSequence[Integer]]]
     >> f[x] /. f[x, 0...] -> t
      = t
     """
