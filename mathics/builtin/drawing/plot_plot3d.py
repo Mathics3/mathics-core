@@ -173,7 +173,7 @@ class ComplexPlot3D(_Plot3D):
     grows without limit, and the phase varies between $-\\Pi$ to $\\Pi$
     an integer number of times:
     >> ComplexPlot3D[(z^2 + 1)/(z^2 - 1), {z, -2 - 2 I, 2 + 2 I}]
-     = -Graphics3D-
+     = ...
     """
 
     summary_text = "plots one or more complex functions as a 3D surface"
@@ -204,7 +204,7 @@ class ComplexPlot(_Plot3D):
     In the neighbourhood of the poles, the module of a rational function \
     the phase varies between $-\\Pi$ to $\\Pi$ an integer number of times.
     >> ComplexPlot[(z^2 + 1)/(z^2 - 1), {z, -2 - 2 I, 2 + 2 I}]
-     = -Graphics-
+     = ...
     """
 
     summary_text = "plots a complex function showing phase using colors"
@@ -234,16 +234,16 @@ class ContourPlot(_Plot3D):
     Colorize the regions where a function takes values close to different \
     integer values
     >> ContourPlot[x - y^3, {x, -2, 2}, {y, -1, 1}, AspectRatio->Automatic]
-     = -Graphics-
+     = ...
 
     The same, but with a finer division:
     >> ContourPlot[x^2 - y^2, {x, -2, 2}, {y, -1, 1}, Contours->10]
-     = -Graphics-
+     = ...
 
     Plot curves where the real and the imaginary part of a function take
     specific values:
     >> ContourPlot[{Re[Sin[x + I y]] == 5, Im[Sin[x + I y]] == 0}, {x, -10, 10}, {y, -10, 10}]
-     = -Graphics-
+     = ...
     """
 
     requires = ["skimage"]
