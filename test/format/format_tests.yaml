@@ -103,17 +103,17 @@
     System`OutputForm: '-100000.'
 -1. 10^6:
   latex:
-    System`InputForm: -1.0\text{*${}^{\wedge}$}6
+    System`InputForm: -1.\text{*${}^{\wedge}$}6
     System`OutputForm: -1.\times 10^6
-    System`StandardForm: -1.0\text{*${}^{\wedge}$}6
-    System`TraditionalForm: -1.0\times 10^6
+    System`StandardForm: -1.\text{*${}^{\wedge}$}6
+    System`TraditionalForm: -1.\times 10^6
   mathml: {}
   msg: large negative real number (>10^6)
   text:
-    System`InputForm: -1.0*^6
+    System`InputForm: -1.*^6
     System`OutputForm: "-1.\xD710^6"
-    System`StandardForm: -1.0`*^6
-    System`TraditionalForm: "-1.0`\xD710^6"
+    System`StandardForm: -1.`*^6
+    System`TraditionalForm: "-1.`\xD710^6"
 '-4':
   latex:
     System`InputForm: '-4'
@@ -121,10 +121,10 @@
     System`StandardForm: '-4'
     System`TraditionalForm: '-4'
   mathml:
-    System`InputForm: <mtext>-4</mtext>
+    System`InputForm: <mn>-4</mn>
     System`OutputForm: <mn>-4</mn>
-    System`StandardForm: <mn>-4</mn>
-    System`TraditionalForm: <mn>-4</mn>
+    System`StandardForm: <mrow><mn>-</mn> <mn>4</mn></mrow>
+    System`TraditionalForm: <mrow><mn>-</mn> <mn>4</mn></mrow>
   msg: An Integer
   text:
     System`InputForm: '-4'
@@ -140,8 +140,8 @@
   mathml:
     System`InputForm: <mn>-4.32</mn>
     System`OutputForm: <mn>-4.32</mn>
-    System`StandardForm: <mn>-4.32</mn>
-    System`TraditionalForm: <mn>-4.32</mn>
+    System`StandardForm: <mrow><mn>-</mn> <mn>4.32</mn></mrow>
+    System`TraditionalForm: <mrow><mn>-</mn> <mn>4.32</mn></mrow>
   msg: A MachineReal number
   text:
     System`InputForm: '-4.32'
@@ -157,14 +157,14 @@
   mathml:
     System`InputForm: <mn>-4.33</mn>
     System`OutputForm: <mn>-4.3</mn>
-    System`StandardForm: <mn>-4.33</mn>
-    System`TraditionalForm: <mn>-4.33</mn>
+    System`StandardForm: <mrow><mn>-</mn> <mn>4.33</mn></mrow>
+    System`TraditionalForm: <mrow><mn>-</mn> <mn>4.33</mn></mrow>
   msg: A Real number
   text:
-    System`InputForm: -4.33`2
+    System`InputForm: -4.33`2.
     System`OutputForm: '-4.3'
-    System`StandardForm: -4.33`2
-    System`TraditionalForm: -4.33`2
+    System`StandardForm: -4.33`2.
+    System`TraditionalForm: -4.33`2.
 -4.32`4:
   latex:
     System`InputForm: '-4.32'
@@ -174,14 +174,14 @@
   mathml:
     System`InputForm: <mn>-4.32</mn>
     System`OutputForm: <mn>-4.320</mn>
-    System`StandardForm: <mn>-4.32</mn>
-    System`TraditionalForm: <mn>-4.32</mn>
+    System`StandardForm: <mrow><mn>-</mn> <mn>4.32</mn></mrow>
+    System`TraditionalForm: <mrow><mn>-</mn> <mn>4.32</mn></mrow>
   msg: A PrecisionReal number
   text:
-    System`InputForm: -4.32`4
+    System`InputForm: -4.32`4.
     System`OutputForm: '-4.320'
-    System`StandardForm: -4.32`4
-    System`TraditionalForm: -4.32`4
+    System`StandardForm: -4.32`4.
+    System`TraditionalForm: -4.32`4.
 1. 10^-5:
   latex:
     System`InputForm: '0.00001'
@@ -215,17 +215,17 @@
     System`TraditionalForm: 100000.`
 1. 10^6:
   latex:
-    System`InputForm: 1.0\text{*${}^{\wedge}$}6
+    System`InputForm: 1.\text{*${}^{\wedge}$}6
     System`OutputForm: 1.\times 10^6
-    System`StandardForm: 1.0\text{*${}^{\wedge}$}6
-    System`TraditionalForm: 1.0\times 10^6
+    System`StandardForm: 1.\text{*${}^{\wedge}$}6
+    System`TraditionalForm: 1.\times 10^6
   mathml: {}
   msg: very large real number (>10^6)
   text:
-    System`InputForm: 1.0*^6
+    System`InputForm: 1.*^6
     System`OutputForm: "1.\xD710^6"
-    System`StandardForm: 1.0`*^6
-    System`TraditionalForm: "1.0`\xD710^6"
+    System`StandardForm: 1.`*^6
+    System`TraditionalForm: "1.`\xD710^6"
 1/(1+1/(1+1/a)):
   latex:
     System`InputForm: 1\text{ / }\left(1\text{ + }1\text{ / }\left(1\text{ + }1\text{
@@ -236,11 +236,7 @@
     System`TraditionalForm: \frac{1}{1+\frac{1}{1+\frac{1}{a}}}
   mathml:
     System`InputForm:
-    - <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mtext>1</mtext>
-      <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext>
-      <mrow><mo>(</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>1</mtext>
-      <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow>
-      <mo>)</mo></mrow></mrow>
+    - <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow> <mo>)</mo></mrow></mrow>
     - Fragile!
     System`OutputForm:
     - <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn>
@@ -265,8 +261,8 @@
       -> }t\text{$\vert$>}\text{$\vert$>}
     System`OutputForm: \text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{
       -> }t\text{$\vert$>}\text{$\vert$>}
-    System`StandardForm: \text{<$\vert$}a->x,b->y,c->\text{<$\vert$}d->t\text{$\vert$>}\text{$\vert$>}
-    System`TraditionalForm: \text{<$\vert$}a->x,b->y,c->\text{<$\vert$}d->t\text{$\vert$>}\text{$\vert$>}
+    System`StandardForm: \text{<$\vert$}a->x, b->y, c->\text{<$\vert$}d->t\text{$\vert$>}\text{$\vert$>}
+    System`TraditionalForm: \text{<$\vert$}a->x, b->y, c->\text{<$\vert$}d->t\text{$\vert$>}\text{$\vert$>}
   mathml:
     System`InputForm: <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
       <mi>x</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>b</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
@@ -290,16 +286,16 @@
   text:
     System`InputForm: <|a -> x, b -> y, c -> <|d -> t|>|>
     System`OutputForm: <|a -> x, b -> y, c -> <|d -> t|>|>
-    System`StandardForm: <|a->x,b->y,c-><|d->t|>|>
-    System`TraditionalForm: <|a->x,b->y,c-><|d->t|>|>
+    System`StandardForm: <|a->x, b->y, c-><|d->t|>|>
+    System`TraditionalForm: <|a->x, b->y, c-><|d->t|>|>
 Association[a -> x, b -> y, c -> Association[d -> t, Association[e -> u]]]:
   latex:
     System`InputForm: \text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{
       -> }t, e\text{ -> }u\text{$\vert$>}\text{$\vert$>}
     System`OutputForm: \text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{
       -> }t, e\text{ -> }u\text{$\vert$>}\text{$\vert$>}
-    System`StandardForm: \text{<$\vert$}a->x,b->y,c->\text{<$\vert$}d->t,e->u\text{$\vert$>}\text{$\vert$>}
-    System`TraditionalForm: \text{<$\vert$}a->x,b->y,c->\text{<$\vert$}d->t,e->u\text{$\vert$>}\text{$\vert$>}
+    System`StandardForm: \text{<$\vert$}a->x, b->y, c->\text{<$\vert$}d->t, e->u\text{$\vert$>}\text{$\vert$>}
+    System`TraditionalForm: \text{<$\vert$}a->x, b->y, c->\text{<$\vert$}d->t, e->u\text{$\vert$>}\text{$\vert$>}
   mathml:
     System`InputForm: <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
       <mi>x</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>b</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
@@ -327,8 +323,8 @@ Association[a -> x, b -> y, c -> Association[d -> t, Association[e -> u]]]:
   text:
     System`InputForm: <|a -> x, b -> y, c -> <|d -> t, e -> u|>|>
     System`OutputForm: <|a -> x, b -> y, c -> <|d -> t, e -> u|>|>
-    System`StandardForm: <|a->x,b->y,c-><|d->t,e->u|>|>
-    System`TraditionalForm: <|a->x,b->y,c-><|d->t,e->u|>|>
+    System`StandardForm: <|a->x, b->y, c-><|d->t, e->u|>|>
+    System`TraditionalForm: <|a->x, b->y, c-><|d->t, e->u|>|>
 Complex[1.09*^12, 3.]:
   latex:
     System`InputForm: 1.09\text{*${}^{\wedge}$}12\text{ + }3.*I
@@ -661,11 +657,7 @@ Sqrt[1/(1+1/(1+1/a))]:
     System`TraditionalForm: \sqrt{\frac{1}{1+\frac{1}{1+\frac{1}{a}}}}
   mathml:
     System`InputForm:
-    - <mrow><mi>Sqrt</mi> <mo>[</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext>
-      <mrow><mo>(</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>1</mtext>
-      <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;+&nbsp;</mtext>
-      <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow>
-      <mo>)</mo></mrow></mrow></mrow> <mo>)</mo></mrow></mrow> <mo>]</mo></mrow>
+    - <mrow><mi>Sqrt</mi> <mo>[</mo> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow> <mo>)</mo></mrow></mrow> <mo>]</mo></mrow>
     - Fragile!
     System`OutputForm:
     - <mrow><mi>Sqrt</mi> <mo>[</mo> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext>
@@ -695,7 +687,7 @@ Subscript[a, 4]:
   mathml:
     System`InputForm:
     - <mrow><mi>Subscript</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext>
-      <mtext>4</mtext></mrow> <mo>]</mo></mrow>
+      <mn>4</mn></mrow> <mo>]</mo></mrow>
     - Fragile!
     System`OutputForm:
     - <mrow><mi>Subscript</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext>
@@ -878,7 +870,7 @@ a^4:
     System`StandardForm: a^4
     System`TraditionalForm: a^4
   mathml:
-    System`InputForm: <mrow><mi>a</mi> <mo>^</mo> <mtext>4</mtext></mrow>
+    System`InputForm: <mrow><mi>a</mi> <mo>^</mo> <mn>4</mn></mrow>
     System`OutputForm: <mrow><mi>a</mi> <mtext>&nbsp;^&nbsp;</mtext> <mn>4</mn></mrow>
     System`StandardForm: <msup><mi>a</mi> <mn>4</mn></msup>
     System`TraditionalForm: <msup><mi>a</mi> <mn>4</mn></msup>

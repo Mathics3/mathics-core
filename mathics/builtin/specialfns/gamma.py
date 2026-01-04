@@ -175,7 +175,7 @@ class Factorial(PostfixOperator, MPMathFunction):
      = ComplexInfinity
 
     'Factorial' has the same operator ('!') as 'Not', but with higher precedence:
-    >> !a! //FullForm
+    >> !a! // FullForm
      = Not[Factorial[a]]
 
     """
