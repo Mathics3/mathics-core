@@ -393,7 +393,7 @@ class If(SympyFunction):
     If the second branch is not specified, 'Null' is taken:
     >> If[1<2, a]
      = a
-    >> If[False, a] //FullForm
+    >> If[False, a] // FullForm
      = Null
 
     You might use comments inside '(*' and '*)' to make the branches of 'If'

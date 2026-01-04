@@ -78,7 +78,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         # There should be a better way to implement this
         # behaviour...
         if not hasattr(instance, "_elements"):
-            instance._elements = tuple(elements)
+            instance._elements = None
         return instance
 
     def do_format(self, evaluation, format):
@@ -86,6 +86,8 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
 
     @property
     def elements(self):
+        if self._elements is None:
+            self._elements = tuple()
         return self._elements
 
     @elements.setter
@@ -165,7 +167,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         if not element_counts:
             return False
         if element_counts and element_counts[0] is not None:
-            count = len(self._elements)
+            count = len(self.elements)
             if count not in element_counts:
                 if (
                     len(element_counts) == 2
@@ -206,9 +208,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
                 return tex
 
     def to_expression(self) -> Expression:
-        # FIXME: All classes should store their symbol name.
-        # So there should be a self.head.
-        return Expression(Symbol(self.get_name()), *self._elements)
+        return Expression(Symbol(self.get_name()), *self.elements)
 
     def flatten_pattern_sequence(self, evaluation) -> "BoxExpression":
         return self

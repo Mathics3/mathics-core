@@ -504,7 +504,7 @@ Even lists are function calls of the function 'List':
 
 However, its full form is presented with '{...}'
   >> FullForm[{1, 2, 3}]
-   = {1,2,3}
+   = {1, 2, 3}
 
  The head of an expression can be determined with 'Head':
   >> Head[a + b + c]
@@ -888,7 +888,7 @@ There are several methods to display expressions in 2-D:
   . c   d
 
   >> Subscript[a, 1, 2] // TeXForm
-  = a_{1,2}
+  = a_{1, 2}
 
 If you want even more low-level control over expression display, override 'MakeBoxes':
 
@@ -963,7 +963,7 @@ The desired effect can be achieved in the following way:
   = squared[1, 2]
 
   #> squared[1, 2] // TeXForm
-   = \text{squared}\left[1,2\right]^2
+   = \text{squared}\left[1, 2\right]^2
 
 You can view the box structure of a formatted expression using 'ToBoxes':
 
