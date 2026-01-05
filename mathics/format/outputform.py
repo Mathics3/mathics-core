@@ -40,7 +40,7 @@ SymbolPostfix = Symbol("System`Postfix")
 SymbolPrefix = Symbol("System`Prefix")
 
 
-expr_to_outputform_text_map: Dict[str, Callable] = {}
+EXPR_TO_OUTPUTFORM_TEXT_MAP: Dict[str, Callable] = {}
 
 
 # This Exception if the expression should
@@ -120,6 +120,15 @@ def parenthesize(expr_str: str) -> str:
     return f"({expr_str})"
 
 
+def register_outputform(head_name):
+    def _register(func):
+        EXPR_TO_OUTPUTFORM_TEXT_MAP[head_name] = func
+        return func
+
+    return _register
+
+
+@register_outputform("System`Derivative")
 def derivative_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> str:
@@ -152,11 +161,7 @@ def derivative_expression_to_outputform_text(
     return _default_expression_to_outputform_text(expr, evaluation, form, **kwargs)
 
 
-expr_to_outputform_text_map[
-    "System`Derivative"
-] = derivative_expression_to_outputform_text
-
-
+@register_outputform("System`Divide")
 def divide_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> str:
@@ -164,9 +169,6 @@ def divide_expression_to_outputform_text(
         raise _WrongFormattedExpression
     num, den = expr.elements
     return _divide(num, den, evaluation, form, **kwargs)
-
-
-expr_to_outputform_text_map["System`Divide"] = divide_expression_to_outputform_text
 
 
 def expression_to_outputform_text(
@@ -184,7 +186,7 @@ def expression_to_outputform_text(
 
     lookup_name = format_expr.get_head().get_lookup_name()
     try:
-        result = expr_to_outputform_text_map[lookup_name](
+        result = EXPR_TO_OUTPUTFORM_TEXT_MAP[lookup_name](
             format_expr, evaluation, form, **kwargs
         )
         return result
@@ -199,20 +201,17 @@ def expression_to_outputform_text(
     )
 
 
+@register_outputform("System`Graphics")
 def graphics(expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs) -> str:
     return "-Graphics-"
 
 
-expr_to_outputform_text_map["System`Graphics"] = graphics
-
-
+@register_outputform("System`Graphics3D")
 def graphics3d(expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs) -> str:
     return "-Graphics3D-"
 
 
-expr_to_outputform_text_map["System`Graphics3D"] = graphics3d
-
-
+@register_outputform("System`Grid")
 def grid_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> str:
@@ -241,17 +240,12 @@ def grid_expression_to_outputform_text(
     return grid(rows)
 
 
-expr_to_outputform_text_map["System`Grid"] = grid_expression_to_outputform_text
+register_outputform("System`HoldForm")(_strip_1_parm_expression_to_outputform_text)
+# TODO: Do it better when InputForm be implemented.
+register_outputform("System`InputForm")(_strip_1_parm_expression_to_outputform_text)
 
 
-expr_to_outputform_text_map[
-    "System`HoldForm"
-] = _strip_1_parm_expression_to_outputform_text
-expr_to_outputform_text_map[
-    "System`InputForm"
-] = _strip_1_parm_expression_to_outputform_text
-
-
+@register_outputform("System`Infix")
 def infix_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> str:
@@ -375,18 +369,14 @@ def infix_expression_to_outputform_text(
         return "".join(result_lst)
 
 
-expr_to_outputform_text_map["System`Infix"] = infix_expression_to_outputform_text
-
-
+@register_outputform("System`Integer")
 def integer_expression_to_outputform_text(
     n: Integer, evaluation: Evaluation, form: Symbol, **kwargs
 ):
     return str(n.value)
 
 
-expr_to_outputform_text_map["System`Integer"] = integer_expression_to_outputform_text
-
-
+@register_outputform("System`List")
 def list_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> str:
@@ -400,9 +390,7 @@ def list_expression_to_outputform_text(
     return "{" + result + "}"
 
 
-expr_to_outputform_text_map["System`List"] = list_expression_to_outputform_text
-
-
+@register_outputform("System`MathMLForm")
 def mathmlform_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> str:
@@ -413,11 +401,7 @@ def mathmlform_expression_to_outputform_text(
     return boxes.boxes_to_mathml()  # type: ignore[union-attr]
 
 
-expr_to_outputform_text_map[
-    "System`MathMLForm"
-] = mathmlform_expression_to_outputform_text
-
-
+@register_outputform("System`MatrixForm")
 def matrixform_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> str:
@@ -425,11 +409,7 @@ def matrixform_expression_to_outputform_text(
     return tableform_expression_to_outputform_text(expr, evaluation, form, **kwargs)
 
 
-expr_to_outputform_text_map[
-    "System`MatrixForm"
-] = matrixform_expression_to_outputform_text
-
-
+@register_outputform("System`Plus")
 def plus_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> str:
@@ -497,9 +477,7 @@ def plus_expression_to_outputform_text(
     return result
 
 
-expr_to_outputform_text_map["System`Plus"] = plus_expression_to_outputform_text
-
-
+@register_outputform("System`Power")
 def power_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
 ):
@@ -516,9 +494,7 @@ def power_expression_to_outputform_text(
     return expression_to_outputform_text(infix_form, evaluation, form, **kwargs)
 
 
-expr_to_outputform_text_map["System`Power"] = power_expression_to_outputform_text
-
-
+@register_outputform("System`PrecedenceForm")
 def precedenceform_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> str:
@@ -529,11 +505,8 @@ def precedenceform_expression_to_outputform_text(
     raise _WrongFormattedExpression
 
 
-expr_to_outputform_text_map[
-    "System`PrecedenceForm"
-] = precedenceform_expression_to_outputform_text
-
-
+@register_outputform("System`Prefix")
+@register_outputform("System`Postfix")
 def pre_pos_fix_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> str:
@@ -594,12 +567,7 @@ def pre_pos_fix_expression_to_outputform_text(
     return ops_txt[0] + target_txt if head is SymbolPrefix else target_txt + ops_txt[0]
 
 
-expr_to_outputform_text_map["System`Prefix"] = pre_pos_fix_expression_to_outputform_text
-expr_to_outputform_text_map[
-    "System`Postfix"
-] = pre_pos_fix_expression_to_outputform_text
-
-
+@register_outputform("System`Rational")
 def rational_expression_to_outputform_text(
     n: Union[Rational, Expression], evaluation: Evaluation, form: Symbol, **kwargs
 ):
@@ -610,9 +578,7 @@ def rational_expression_to_outputform_text(
     return _divide(num, den, evaluation, form, **kwargs)
 
 
-expr_to_outputform_text_map["System`Rational"] = rational_expression_to_outputform_text
-
-
+@register_outputform("System`Real")
 def real_expression_to_outputform_text(
     n: Real, evaluation: Evaluation, form: Symbol, **kwargs
 ):
@@ -620,9 +586,7 @@ def real_expression_to_outputform_text(
     return str(str_n)
 
 
-expr_to_outputform_text_map["System`Real"] = real_expression_to_outputform_text
-
-
+@register_outputform("System`String")
 def string_expression_to_outputform_text(
     expr: String, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> str:
@@ -632,9 +596,7 @@ def string_expression_to_outputform_text(
     return "\n".join(lines)
 
 
-expr_to_outputform_text_map["System`String"] = string_expression_to_outputform_text
-
-
+@register_outputform("System`StringForm")
 def stringform_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> str:
@@ -686,31 +648,21 @@ def stringform_expression_to_outputform_text(
     return result
 
 
-expr_to_outputform_text_map[
-    "System`StringForm"
-] = stringform_expression_to_outputform_text
-
-
+@register_outputform("System`Symbol")
 def symbol_expression_to_outputform_text(
     symb: Symbol, evaluation: Evaluation, form: Symbol, **kwargs
 ):
     return evaluation.definitions.shorten_name(symb.name)
 
 
-expr_to_outputform_text_map["System`Symbol"] = symbol_expression_to_outputform_text
-
-
+@register_outputform("System`TableForm")
 def tableform_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> str:
     return grid_expression_to_outputform_text(expr, evaluation, form)
 
 
-expr_to_outputform_text_map[
-    "System`TableForm"
-] = tableform_expression_to_outputform_text
-
-
+@register_outputform("System`TeXForm")
 def texform_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> str:
@@ -721,9 +673,7 @@ def texform_expression_to_outputform_text(
     return boxes.boxes_to_tex()  # type: ignore
 
 
-expr_to_outputform_text_map["System`TeXForm"] = texform_expression_to_outputform_text
-
-
+@register_outputform("System`Times")
 def times_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> str:
@@ -791,6 +741,3 @@ def times_expression_to_outputform_text(
     if prefactor == -1:
         result = "-" + result
     return result
-
-
-expr_to_outputform_text_map["System`Times"] = times_expression_to_outputform_text
