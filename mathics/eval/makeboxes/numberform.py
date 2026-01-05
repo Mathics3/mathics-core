@@ -8,6 +8,7 @@ from typing import Optional, Tuple, Union
 import mpmath
 
 from mathics.core.atoms import Integer, MachineReal, PrecisionReal, Real, String
+from mathics.core.element import BoxElementMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.number import (
@@ -16,13 +17,12 @@ from mathics.core.number import (
     convert_base,
     dps,
 )
-from mathics.core.symbols import SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolMakeBoxes,
     SymbolOutputForm,
     SymbolSubscriptBox,
 )
-from mathics.eval.makeboxes import _boxed_string, to_boxes
+from mathics.eval.makeboxes import to_boxes
 
 
 def int_to_tuple_info(integer: Integer) -> Tuple[str, int, bool]:
@@ -116,7 +116,7 @@ def NumberForm_to_String(
     digits_after_decimal_point: Optional[int],
     evaluation: Optional[Evaluation],
     options: dict,
-) -> String:
+) -> BoxElementMixin:
     """
     Converts a Real or Integer value to a String.
 
@@ -133,6 +133,7 @@ def NumberForm_to_String(
     from the converted number, that is, otherwise the number may be
     padded on the right-hand side with zeros.
     """
+    form = options["_Form"]
 
     assert isinstance(digits, int) and digits > 0 or digits is None
     assert digits_after_decimal_point is None or (
@@ -146,8 +147,11 @@ def NumberForm_to_String(
         if digits_after_decimal_point is None:
             is_int = True
     elif isinstance(value, Real):
-        if digits is not None:
-            digits = min(digits, dps(value.get_precision()) + 1)
+        precision = dps(value.get_precision())
+        if digits is None:
+            digits = precision + 1
+        else:
+            digits = min(digits, precision + 1)
         s, exp, is_nonnegative = real_to_tuple_info(value, digits)
         if digits is None:
             digits = len(s)
@@ -178,6 +182,7 @@ def NumberForm_to_String(
         if evaluation is not None:
             evaluation.message("NumberForm", "sigz")
         # TODO NumberPadding?
+
         s = s + "0" * (1 + exp - len(s))
     # pad left with '0'.
     if exp < 0:
@@ -201,7 +206,17 @@ def NumberForm_to_String(
         return number
 
     # pad with NumberPadding
-    if digits_after_decimal_point is not None:
+    if digits_after_decimal_point is None:
+        if form != "System`OutputForm":
+            # Other forms strip trailing zeros:
+
+            while len(right) > 0:
+                if right[-1] == "0":
+                    right = right[:-1]
+                else:
+                    break
+
+    else:
         if len(right) < digits_after_decimal_point:
             # pad right
             right = (
@@ -247,24 +262,45 @@ def NumberForm_to_String(
         prefix = left_padding + sign_prefix
 
     if is_int:
-        s = prefix + left
+        s = left
     else:
-        s = prefix + left + options["NumberPoint"] + right
+        s = left + options["NumberPoint"] + right
 
-    # base
-    base = "10"
+    # PrintForms attach the prefix to the number. FullForm and $BoxForms
+    # put the prefix and the number in a RowBox:
+    if form not in ("System`StandardForm", "System`TraditionalForm", "System`FullForm"):
+        s = prefix + s
+        prefix = ""
+
+    if isinstance(value, MachineReal):
+        if form not in ("System`InputForm", "System`OutputForm"):
+            s = s + "`"
+    elif isinstance(value, PrecisionReal):
+        if form not in ("System`OutputForm"):
+            str_precision = str(precision)
+            if "." not in str_precision:
+                str_precision += "."
+            s = s + "`" + str_precision
 
     # build number
-    method = options["NumberFormat"]
-    if options["_Form"] in ("System`InputForm", "System`FullForm"):
-        return method(
-            _boxed_string(s, number_as_text=SymbolTrue),
-            _boxed_string(base, number_as_text=SymbolTrue),
-            _boxed_string(pexp, number_as_text=SymbolTrue),
+    boxed_s = String(s)
+    if pexp:
+        # base
+        base = "10"
+        method = options["NumberFormat"]
+        boxed_base = String(base)
+        boxed_pexp = String(pexp)
+        boxed_s = method(
+            boxed_s,
+            boxed_base,
+            boxed_pexp,
             options,
         )
-    else:
-        return method(String(s), String(base), String(pexp), options)
+    if prefix:
+        from mathics.builtin.box.layout import RowBox
+
+        boxed_s = RowBox(String(prefix), boxed_s)
+    return boxed_s
 
 
 def eval_baseform(self, expr, n, f, evaluation: Evaluation):

@@ -14,7 +14,7 @@ Form Functions
 """
 from typing import Optional
 
-from mathics.builtin.box.layout import RowBox
+from mathics.builtin.box.layout import InterpretationBox, RowBox, StyleBox, TagBox
 from mathics.builtin.forms.base import FormBaseClass
 from mathics.core.atoms import Integer, Real, String, StringFromPython
 from mathics.core.builtin import Builtin
@@ -22,12 +22,19 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import dps
-from mathics.core.symbols import Symbol, SymbolFalse, SymbolNull, SymbolTrue
+from mathics.core.symbols import (
+    Symbol,
+    SymbolFalse,
+    SymbolFullForm,
+    SymbolNull,
+    SymbolTrue,
+)
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
     SymbolInfinity,
     SymbolMakeBoxes,
     SymbolNumberForm,
+    SymbolOutputForm,
     SymbolRowBox,
     SymbolRuleDelayed,
     SymbolSuperscriptBox,
@@ -37,6 +44,8 @@ from mathics.eval.makeboxes import (
     StringLParen,
     StringRParen,
     eval_baseform,
+    eval_makeboxes_fullform,
+    eval_makeboxes_outputform,
     eval_mathmlform,
     eval_tableform,
     eval_texform,
@@ -123,6 +132,19 @@ class FullForm(FormBaseClass):
     in_outputforms = True
     in_printforms = True
     summary_text = "underlying M-Expression representation"
+
+    def eval_makeboxes(self, expr, fmt, evaluation):
+        """MakeBoxes[FullForm[expr_], fmt_]"""
+        fullform_box = eval_makeboxes_fullform(expr, evaluation)
+        style_box = StyleBox(
+            fullform_box,
+            **{
+                "System`ShowSpecialCharacters": SymbolFalse,
+                "System`ShowStringCharacters": SymbolTrue,
+                "System`NumberMarks": SymbolTrue,
+            },
+        )
+        return TagBox(style_box, SymbolFullForm)
 
 
 class MathMLForm(FormBaseClass):
@@ -490,7 +512,15 @@ class OutputForm(FormBaseClass):
      = -Graphics-
     """
 
+    formats = {"OutputForm[s_String]": "s"}
     summary_text = "plain-text output format"
+
+    def eval_makeboxes(self, expr, form, evaluation):
+        """MakeBoxes[OutputForm[expr_], form_]"""
+        pane = eval_makeboxes_outputform(expr, evaluation, form)
+        return InterpretationBox(
+            pane, Expression(SymbolOutputForm, expr), **{"System`Editable": SymbolFalse}
+        )
 
 
 class PythonForm(FormBaseClass):

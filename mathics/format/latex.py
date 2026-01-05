@@ -19,12 +19,15 @@ from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
     FractionBox,
     GridBox,
+    InterpretationBox,
+    PaneBox,
     RowBox,
     SqrtBox,
     StyleBox,
     SubscriptBox,
     SubsuperscriptBox,
     SuperscriptBox,
+    TagBox,
 )
 from mathics.builtin.colors.color_directives import RGBColor
 from mathics.core.atoms import String
@@ -35,6 +38,7 @@ from mathics.core.formatter import (
     lookup_method as lookup_conversion_method,
 )
 from mathics.core.symbols import SymbolTrue
+from mathics.core.systemsymbols import SymbolAutomatic
 from mathics.format.asy_fns import asy_color, asy_create_pens, asy_number
 
 # mathics_scanner does not generates this table in a way that we can load it here.
@@ -107,6 +111,7 @@ def string(self, **options) -> str:
         else:
             return render(r"\text{%s}", text[1:-1], in_text=True)
     elif text and text[0] in "0123456789-.":
+        text = text.split("`")[0]
         return render("%s", text)
     else:
         # First consider the special cases
@@ -131,6 +136,51 @@ def string(self, **options) -> str:
 
 
 add_conversion_fn(String, string)
+
+
+def interpretation_box(self, **options):
+    return lookup_conversion_method(self.boxed, "latex")(self.boxed, **options)
+
+
+add_conversion_fn(InterpretationBox, interpretation_box)
+
+
+def pane_box(self, **options):
+    content = lookup_conversion_method(self.boxed, "latex")(self.boxed, **options)
+    options = self.box_options
+    size = options.get("System`ImageSize", SymbolAutomatic).to_python()
+    if size is SymbolAutomatic:
+        width = "\\textwidth"
+        height = ""
+    elif isinstance(size, int):
+        width = f"{size}pt"
+        height = ""
+    elif isinstance(size, tuple) and len(size) == 2:
+        width_val, height_val = size[0], size[1]
+        if isinstance(width_val, int):
+            width = f"{width_val}pt"
+        else:
+            width = "\\textwidth"
+        if isinstance(height_val, int):
+            height = f"[{height_val}pt]"
+        else:
+            height = ""
+    else:
+        width = "\\textwidth"
+        height = ""
+
+    return (
+        "\\begin{minipage}{"
+        + width
+        + "}"
+        + height
+        + "\n"
+        + content
+        + "\n\\end{minipage}"
+    )
+
+
+add_conversion_fn(PaneBox, pane_box)
 
 
 def fractionbox(self, **options) -> str:
@@ -277,12 +327,29 @@ def rowbox(self, **options) -> str:
     _options = self.box_options.copy()
     _options.update(options)
     options = _options
-    return "".join(
-        [
-            lookup_conversion_method(element, "latex")(element, **options)
-            for element in self.items
-        ]
-    )
+    parts_str = [
+        lookup_conversion_method(element, "latex")(element, **options)
+        for element in self.items
+    ]
+    if len(parts_str) == 1:
+        return parts_str[0]
+    # This loop integrate all the row adding spaces after a ",", followed
+    # by something which is not a comma. For example,
+    # >> ToString[RowBox[{",",",","p"}]//DisplayForm]
+    #  = ",, p"
+    result = parts_str[0]
+    comma = result == ","
+    for elem in parts_str[1:]:
+        if elem == ",":
+            result += elem
+            comma = True
+            continue
+        if comma:
+            result += " "
+            comma = False
+
+        result += elem
+    return result
 
 
 add_conversion_fn(RowBox, rowbox)
@@ -576,3 +643,10 @@ currentlight=light(rgb(0.5,0.5,0.5), {5}specular=red, (2,0,2), (2,2,2), (0,2,2))
 
 
 add_conversion_fn(Graphics3DBox, graphics3dbox)
+
+
+def tag_box(self, **options):
+    return lookup_conversion_method(self.boxed, "latex")(self.boxed, **options)
+
+
+add_conversion_fn(TagBox, tag_box)

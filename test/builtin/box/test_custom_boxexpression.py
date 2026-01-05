@@ -1,4 +1,4 @@
-from test.helper import evaluate, session
+from test.helper import session
 
 from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.graphics import GRAPHICS_OPTIONS
@@ -64,6 +64,13 @@ class CustomGraphicsBox(BoxExpression):
     def eval_box(self, expr, evaluation: Evaluation, options: dict):
         """System`MakeBoxes[System`Graphics[System`expr_, System`OptionsPattern[System`Graphics]],
         System`StandardForm|System`TraditionalForm|System`OutputForm]"""
+        instance = CustomGraphicsBox(*(expr.elements), evaluation=evaluation)
+        return instance
+
+    def eval_box_outputForm(self, expr, evaluation: Evaluation, options: dict):
+        """System`MakeBoxes[System`OutputForm[System`Graphics[System`expr_, System`OptionsPattern[System`Graphics]]],
+        System`StandardForm|System`TraditionalForm]"""
+        print("MakeBoxes OutputForm")
         instance = CustomGraphicsBox(*(expr.elements), evaluation=evaluation)
         return instance
 

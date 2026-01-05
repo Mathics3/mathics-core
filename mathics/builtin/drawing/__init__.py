@@ -1,5 +1,5 @@
 """
-Graphics and Drawing
+Plotting, Graphing, and Drawing
 
 Showing something visually can be done in a number of ways:
 
@@ -23,4 +23,4 @@ Showing something visually can be done in a number of ways:
 """
 
 # This tells documentation how to sort this module
-sort_order = "mathics.builtin.graphing-and-drawing"
+sort_order = "mathics.builtin.plotting-graphing-and-drawing"

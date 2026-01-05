@@ -8,6 +8,7 @@ from mathics.eval.makeboxes.makeboxes import (
     eval_generic_makeboxes,
     eval_makeboxes,
     eval_makeboxes_fullform,
+    eval_makeboxes_outputform,
     format_element,
     int_to_string_shorter_repr,
     to_boxes,
@@ -19,7 +20,11 @@ from mathics.eval.makeboxes.outputforms import (
     eval_tableform,
     eval_texform,
 )
-from mathics.eval.makeboxes.precedence import builtins_precedence, parenthesize
+from mathics.eval.makeboxes.precedence import (
+    builtins_precedence,
+    compare_precedence,
+    parenthesize,
+)
 
 __all__ = [
     "NumberForm_to_String",
@@ -27,12 +32,14 @@ __all__ = [
     "StringRParen",
     "_boxed_string",
     "builtins_precedence",
+    "compare_precedence",
     "do_format",
     "eval_baseform",
     "eval_generic_makeboxes",
     "eval_infix",
     "eval_makeboxes",
     "eval_makeboxes_fullform",
+    "eval_makeboxes_outputform",
     "eval_mathmlform",
     "eval_postprefix",
     "eval_tableform",

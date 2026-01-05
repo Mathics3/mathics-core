@@ -8,7 +8,7 @@ makeboxes rules.
 
 from typing import Optional, Union
 
-from mathics.core.atoms import Complex, Integer, Rational, String
+from mathics.core.atoms import Complex, Rational, String
 from mathics.core.element import BaseElement, BoxElementMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -21,6 +21,7 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (  # SymbolRule, SymbolRuleDelayed,
     SymbolComplex,
+    SymbolOutputForm,
     SymbolRational,
     SymbolStandardForm,
 )
@@ -136,6 +137,18 @@ def int_to_string_shorter_repr(value: int, form: Symbol, max_digits=640):
     return String(value_str)
 
 
+def eval_makeboxes_outputform(expr, evaluation, form):
+    """
+    Build a 2D representation of the expression using only keyboard characters.
+    """
+    from mathics.builtin.box.layout import InterpretationBox, PaneBox
+    from mathics.format.outputform import expression_to_outputform_text
+
+    text_outputform = str(expression_to_outputform_text(expr, evaluation, form))
+    elem1 = PaneBox(String('"' + text_outputform + '"'))
+    return elem1
+
+
 # TODO: evaluation is needed because `atom_to_boxes` uses it. Can we remove this
 # argument?
 def eval_makeboxes_fullform(
@@ -169,7 +182,7 @@ def eval_makeboxes_fullform(
         left, right, sep = (String(ch) for ch in ("{", "}", ","))
         result_elements = [left]
     else:
-        left, right, sep = (String(ch) for ch in ("[", "]", ", "))
+        left, right, sep = (String(ch) for ch in ("[", "]", ","))
         result_elements = [eval_makeboxes_fullform(head, evaluation), left]
 
     if len(boxed_elements) > 1:
@@ -265,10 +278,29 @@ def format_element(
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
+    # Halt any potential evaluation tracing while performing boxing.
     evaluation.is_boxing = True
+    while element.get_head() is form:
+        element = element.elements[0]
+
+    if element.has_form("FullForm", 1):
+        return eval_makeboxes_fullform(element.elements[0], evaluation)
+
+    # In order to work like in WMA, `format_element`
+    # should evaluate `MakeBoxes[element//form, StandardForm]`
+    # Then, MakeBoxes[expr_, StandardForm], for any expr,
+    # should apply Format[...] rules, and then
+    # MakeBoxes[...] rules. These rules should be stored
+    # as FormatValues[...]
+    # As a first step in that direction, let's mimic this behaviour
+    # just for the case of OutputForm:
+    if element.has_form("OutputForm", 1):
+        return eval_makeboxes_outputform(element.elements[0], evaluation, form)
+
     formatted_expr = do_format(element, evaluation, form)
     if formatted_expr is None:
         return None
+
     result_box = eval_makeboxes(formatted_expr, evaluation, form)
     if isinstance(result_box, String):
         return result_box

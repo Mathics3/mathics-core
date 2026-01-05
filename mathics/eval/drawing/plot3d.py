@@ -41,7 +41,7 @@ def compute_triangles(plot_options, evaluation):
     by the Mesh option.
     """
 
-    plotpoints = plot_options.plotpoints
+    plot_points = plot_options.plot_points
     _, xstart, xstop = plot_options.ranges[0]
     _, ystart, ystop = plot_options.ranges[1]
     max_depth = plot_options.max_depth
@@ -116,10 +116,10 @@ def compute_triangles(plot_options, evaluation):
             triangles.append(sorted(((x1, y1, v1), (x2, y2, v2), (x3, y3, v3))))
 
         # linear (grid) sampling
-        numx = plotpoints[0] * 1.0
-        numy = plotpoints[1] * 1.0
-        for xi in range(plotpoints[0]):
-            for yi in range(plotpoints[1]):
+        numx = plot_points[0] * 1.0
+        numy = plot_points[1] * 1.0
+        for xi in range(plot_points[0]):
+            for yi in range(plot_points[1]):
                 # Decide which way to break the square grid into triangles
                 # by looking at diagonal lengths.
                 #
@@ -314,19 +314,19 @@ def compute_triangles(plot_options, evaluation):
         # add the mesh
         mesh_points = []
         if mesh is SymbolFull:
-            for xi in range(plotpoints[0] + 1):
+            for xi in range(plot_points[0] + 1):
                 xval = xstart + xi / numx * (xstop - xstart)
                 mesh_row = []
-                for yi in range(plotpoints[1] + 1):
+                for yi in range(plot_points[1] + 1):
                     yval = ystart + yi / numy * (ystop - ystart)
                     z = stored[(xval, yval)]
                     mesh_row.append((xval, yval, z))
                 mesh_points.append(mesh_row)
 
-            for yi in range(plotpoints[1] + 1):
+            for yi in range(plot_points[1] + 1):
                 yval = ystart + yi / numy * (ystop - ystart)
                 mesh_col = []
-                for xi in range(plotpoints[0] + 1):
+                for xi in range(plot_points[0] + 1):
                     xval = xstart + xi / numx * (xstop - xstart)
                     z = stored[(xval, yval)]
                     mesh_col.append((xval, yval, z))

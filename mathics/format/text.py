@@ -7,14 +7,18 @@ Lower-level formatter Mathics objects as plain text.
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
+    BoxElementMixin,
     FractionBox,
     GridBox,
+    InterpretationBox,
+    PaneBox,
     RowBox,
     SqrtBox,
     StyleBox,
     SubscriptBox,
     SubsuperscriptBox,
     SuperscriptBox,
+    TagBox,
 )
 from mathics.core.atoms import String
 from mathics.core.exceptions import BoxConstructError
@@ -40,6 +44,21 @@ def string(self, **options) -> str:
 add_conversion_fn(String, string)
 
 
+def interpretation_box(self, **options):
+    return boxes_to_text(self.boxed, **options)
+
+
+add_conversion_fn(InterpretationBox, interpretation_box)
+
+
+def pane_box(self, **options):
+    result = boxes_to_text(self.boxed, **options)
+    return result
+
+
+add_conversion_fn(PaneBox, pane_box)
+
+
 def fractionbox(self, **options) -> str:
     _options = self.box_options.copy()
     _options.update(options)
@@ -59,7 +78,7 @@ add_conversion_fn(FractionBox, fractionbox)
 
 def gridbox(self, elements=None, **box_options) -> str:
     if not elements:
-        elements = self._elements
+        elements = self.items
     evaluation = box_options.get("evaluation", None)
     items, options = self.get_array(elements, evaluation)
 
@@ -72,13 +91,15 @@ def gridbox(self, elements=None, **box_options) -> str:
         widths = [0]
 
     cells = [
-        [
-            # TODO: check if this evaluation is necessary.
-            boxes_to_text(item, **box_options).splitlines()
-            for item in row
-        ]
-        if isinstance(row, tuple)
-        else [boxes_to_text(row, **box_options).splitlines()]
+        (
+            [
+                # TODO: check if this evaluation is necessary.
+                boxes_to_text(item, **box_options).splitlines()
+                for item in row
+            ]
+            if isinstance(row, tuple)
+            else [boxes_to_text(row, **box_options).splitlines()]
+        )
         for row in items
     ]
 
@@ -147,7 +168,17 @@ def superscriptbox(self, **options) -> str:
     _options = self.box_options.copy()
     _options.update(options)
     options = _options
-    fmt_str = "%s^%s" if isinstance(self.superindex, Atom) else "%s^(%s)"
+    no_parenthesize = True
+    index = self.superindex
+    while not isinstance(index, Atom):
+        if isinstance(index, StyleBox):
+            index = index.boxes
+        else:
+            break
+    if isinstance(index, FractionBox):
+        no_parenthesize = False
+
+    fmt_str = "%s^%s" if no_parenthesize else "%s^(%s)"
     return fmt_str % (
         boxes_to_text(self.base, **options),
         boxes_to_text(self.superindex, **options),
@@ -188,7 +219,26 @@ def rowbox(self, elements=None, **options) -> str:
     _options = self.box_options.copy()
     _options.update(options)
     options = _options
-    return "".join([boxes_to_text(element, **options) for element in self.items])
+    parts_str = [boxes_to_text(element, **options) for element in self.items]
+    if len(parts_str) == 1:
+        return parts_str[0]
+    # This loop integrate all the row adding spaces after a ",", followed
+    # by something which is not a comma. For example,
+    # >> ToString[RowBox[{",",",","p"}]//DisplayForm]
+    #  = ",, p"
+    result = parts_str[0]
+    comma = result == ","
+    for elem in parts_str[1:]:
+        if elem == ",":
+            result += elem
+            comma = True
+            continue
+        if comma:
+            result += " "
+            comma = False
+
+        result += elem
+    return result
 
 
 add_conversion_fn(RowBox, rowbox)
@@ -223,3 +273,10 @@ def graphics3dbox(self, elements=None, **options) -> str:
 
 
 add_conversion_fn(Graphics3DBox, graphics3dbox)
+
+
+def tag_box(self, **options):
+    return boxes_to_text(self.boxed, **options)
+
+
+add_conversion_fn(TagBox, tag_box)

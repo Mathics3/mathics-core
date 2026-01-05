@@ -7,7 +7,7 @@ from .helper import session
 def test_settings():
     load_default_settings_files(session.definitions)
 
-    assert get_settings_value(session.definitions, "NoSettingHere") == None
+    assert get_settings_value(session.definitions, "NoSettingHere") is None
     assert type(session.evaluate("Settings`$TraceGet").to_python()) is bool
 
     assert (
@@ -30,4 +30,4 @@ def test_settings():
 
 def test_is_not_notebook():
     # the settings already were loaded
-    assert session.evaluate("System`$Notebooks").to_python() == False
+    assert session.evaluate("System`$Notebooks").to_python() is False

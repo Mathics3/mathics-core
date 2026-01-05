@@ -3,9 +3,30 @@
 Unit tests from mathics.builtin.forms.
 """
 
-from test.helper import check_evaluation
+from test.helper import check_evaluation, session
 
 import pytest
+
+
+@pytest.mark.parametrize(
+    ("expr", "form", "head", "subhead"),
+    [
+        ("x", "InputForm", "InterpretationBox", "StyleBox"),
+        ("x", "OutputForm", "InterpretationBox", "PaneBox"),
+        ("x", "TeXForm", "InterpretationBox", "String"),
+        ("x", "StandardForm", "TagForm", "FormBox"),
+        ("x", "FullForm", "TagBox", "StyleBox"),
+    ],
+)
+@pytest.mark.xfail
+def test_makeboxes_form(expr, form, head, subhead):
+    """
+    Check the structure of the result of MakeBoxes
+    on expressions with different forms.
+    """
+    expr = session.evaluate("MakeBoxes[{form}[{expr}]]")
+    assert expr.get_head_name() == f"System`{head}"
+    assert expr.elements[0].get_head_name() == f"System`{subhead}"
 
 
 @pytest.mark.parametrize(

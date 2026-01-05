@@ -24,14 +24,20 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
+    SymbolAll,
+    SymbolAutomatic,
     SymbolEdgeForm,
+    SymbolFull,
     SymbolGraphics,
     SymbolLine,
+    SymbolNone,
+    SymbolPlotRange,
     SymbolRGBColor,
     SymbolStyle,
 )
 from mathics.eval.drawing.colors import COLOR_PALETTES, get_color_palette
 from mathics.eval.drawing.plot import get_plot_range
+from mathics.eval.nevaluator import eval_N
 
 # The vectorized plot function generates GraphicsComplex using NumericArray,
 # which no consumer will currently understand. So lets make it opt-in for now.
@@ -383,4 +389,178 @@ class Histogram(Builtin):
             SymbolGraphics,
             ListExpression(*graphics),
             *options_to_rules(options, Graphics.options),
+        )
+
+
+#
+# TODO: because of the history of this code, it's very inconsistent about
+# strings vs symbols. Keep moving it towards Symbols.
+#
+# Some of this is because to_python is convenient because it turns List into list,
+# but it also turns Symbols to str. Maybe needs an option not to do that, e.g.
+# to_python(preserve_symbols=True)
+#
+class PlotOptions:
+    """
+    Extract Options common to many types of plotting.
+    This aims to reduce duplication of code,
+    and to make it easier to pass options to eval_* routines.
+    """
+
+    # TODO: more precise types
+    ranges: list
+    mesh: str
+    plot_points: list
+    maxdepth: int
+
+    def __init__(self, builtin, range_exprs, options, dim, evaluation):
+        def error(*args, **kwargs):
+            evaluation.message(builtin.get_name(), *args, **kwargs)
+            raise ValueError()
+
+        # plot ranges of the form {x,xmin,xmax} etc. (returns Symbol)
+        self.ranges = []
+        for range_expr in range_exprs:
+            if not range_expr.has_form("List", 3):
+                error("invrange", range_expr)
+            if not isinstance(range_expr.elements[0], Symbol):
+                error("invrange", range_expr)
+            range = [range_expr.elements[0]]
+            for limit_expr in range_expr.elements[1:3]:
+                limit = eval_N(limit_expr, evaluation).to_python()
+                if not isinstance(limit, (int, float, complex)):
+                    error("plln", limit_expr, range_expr)
+                range.append(limit)
+            if isinstance(limit, (int, float)) and range[2] <= range[1]:
+                error("invrange", range_expr)
+            if isinstance(limit, complex) and (
+                range[2].real <= range[1].real or range[2].imag <= range[1].imag
+            ):
+                error("invrange", range_expr)
+            self.ranges.append(range)
+
+        # Contours option (returns str)
+        contours = builtin.get_option(options, "Contours", evaluation)
+        if contours is not None:
+            c = contours.to_python()
+            if not (
+                c == "System`Automatic"
+                or isinstance(c, int)
+                or isinstance(c, tuple)
+                and all(isinstance(cc, (int, float)) for cc in c)
+            ):
+                error("invcontour", contours)
+            self.contours = c
+
+        # Supports None, Automatic, or list of numbers
+        # TODO Turn expressions into points E.g. Sin[x] == 0 becomes 0, 2 Pi...
+        # (returns Symbol)
+        exclusions_option = builtin.get_option(options, "Exclusions", evaluation)
+        exclusions = eval_N(exclusions_option, evaluation).to_python(
+            preserve_symbols=True
+        )
+        if exclusions in (SymbolNone, SymbolAutomatic):
+            pass
+        elif isinstance(exclusions, (int, float)):
+            exclusions = [exclusions]
+        elif isinstance(exclusions, (list, tuple)):
+            if not all(isinstance(e, (int, float)) for e in exclusions):
+                error("invexcl", exclusions_option)
+        else:
+            error("invexcl", exclusions_option)
+        self.exclusions = exclusions
+
+        # Mesh option (returns Symbol)
+        mesh = builtin.get_option(options, "Mesh", evaluation)
+        if mesh not in (SymbolNone, SymbolFull, SymbolAll):
+            evaluation.message("Mesh", "ilevels", mesh)
+            mesh = SymbolFull
+        self.mesh = mesh
+
+        # PlotPoints option (returns Symbol)
+        plot_points_option = builtin.get_option(options, "PlotPoints", evaluation)
+        pp = plot_points_option.to_python(preserve_symbols=True)
+        npp = len(self.ranges)
+        if builtin.get_name() in ("System`ComplexPlot3D", "System`ComplexPlot"):
+            npp = 2
+        if pp == SymbolNone:
+            pp = None
+        else:
+            if not isinstance(pp, (tuple, list)):
+                pp = (pp,) * npp
+            if not (
+                isinstance(pp, (list, tuple))
+                and len(pp) == npp
+                and all(isinstance(p, int) and p >= 2 for p in pp)
+            ):
+                error("invpltpts", plot_points_option)
+                pp = None
+            elif npp == 1:
+                pp = pp[0]
+        self.plot_points = pp
+
+        # MaxRecursion Option
+        maxrec_option = builtin.get_option(options, "MaxRecursion", evaluation)
+        max_depth = maxrec_option.to_python()
+        if isinstance(max_depth, int):
+            if max_depth < 0:
+                max_depth = 0
+                evaluation.message(builtin.get_name(), "invmaxrec", max_depth, 15)
+            elif max_depth > 15:
+                max_depth = 15
+                evaluation.message(builtin.get_name(), "invmaxrec", max_depth, 15)
+            else:
+                pass  # valid
+        elif max_depth == float("inf"):
+            max_depth = 15
+            evaluation.message(builtin.get_name(), "invmaxrec", max_depth, 15)
+        else:
+            max_depth = 0
+            evaluation.message(builtin.get_name(), "invmaxrec", max_depth, 15)
+        self.max_depth = max_depth
+
+        # PlotRange option
+        # Normalize to always return a list of either numeric,
+        # Symbol (for vectorized plots), or str (for classic plogs)
+        # TODO: convert classic plots to use Symbol instead of str also
+        if use_vectorized_plot:
+            preserve_symbols = True
+            symbol_type = Symbol
+        else:
+            # TODO: get rid of these
+            preserve_symbols = False
+            symbol_type = str
+        plot_range = builtin.get_option(options, str(SymbolPlotRange), evaluation)
+        plot_range = eval_N(plot_range, evaluation).to_python(
+            preserve_symbols=preserve_symbols
+        )
+        if isinstance(plot_range, symbol_type):
+            # PlotRange -> Automatic becomes PlotRange -> {Automatic, ...}
+            plot_range = [plot_range] * dim
+        if isinstance(plot_range, (int, float)):
+            # PlotRange -> s becomes PlotRange -> {Automatic,...,{-s,s}}
+            pr = float(plot_range)
+            plot_range = [symbol_type("System`Automatic")] * dim
+            plot_range[-1] = [-pr, pr]
+            if builtin.get_name() == "System`ParametricPlot":
+                plot_range[0] = [-pr, pr]
+        elif isinstance(plot_range, (list, tuple)) and isinstance(
+            plot_range[0], (int, float)
+        ):
+            # PlotRange -> {s0,s1} becomes  PlotRange -> {Automatic,...,{s0,s1}}
+            pr = plot_range
+            plot_range = [symbol_type("System`Automatic")] * dim
+            plot_range[-1] = pr
+        self.plot_range = plot_range
+
+        # ColorFunction and ColorFunctionScaling options
+        # This was pulled from construct_density_plot (now eval_DensityPlot).
+        # TODO: What does pop=True do? is it right?
+        # TODO: can we move some of the subsequent processing in eval_DensityPlot to here?
+        # TODO: what is the type of these? that may change if we do the above...
+        self.color_function = builtin.get_option(
+            options, "ColorFunction", evaluation, pop=True
+        )
+        self.color_function_scaling = builtin.get_option(
+            options, "ColorFunctionScaling", evaluation, pop=True
         )

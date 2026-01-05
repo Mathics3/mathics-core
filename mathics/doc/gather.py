@@ -212,7 +212,6 @@ def gather_guides_and_sections(chapter, module, builtins_by_module):
     )
 
     # Loop over submodules
-    docpath = f"/doc/{chapter.part.slug}/{chapter.slug}/"
 
     for sub_module in sorted_modules(submodules(module)):
         if skip_module_doc(sub_module):
@@ -327,8 +326,6 @@ def skip_doc(instance, module="") -> bool:
     if not isinstance(module, str):
         module = module.__name__ if module else ""
 
-    if type(instance).__name__.endswith("Box"):
-        return True
     if hasattr(instance, "no_doc") and instance.no_doc:
         return True
 

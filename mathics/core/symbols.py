@@ -627,7 +627,10 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         # that native (builtin) Python types
         # are better for being used as keys in
         # dictionaries.
-        return self.name
+        if kwargs.get("preserve_symbols", False):
+            return self
+        else:
+            return self.name
 
     def to_sympy(self, **kwargs):
         from mathics.core.convert.sympy import symbol_to_sympy

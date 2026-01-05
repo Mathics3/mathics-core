@@ -8,8 +8,12 @@ from argparse import ArgumentParser
 try:
     from statistics import mean, median_low as median
 except ImportError:
-    mean = lambda l: sum(l) / len(l)
-    median = lambda l: sorted(l)[len(l) // 2]
+
+    def mean(li):
+        return sum(li) / len(li)
+
+    def median(li):
+        return sorted(li)[len(li) // 2]
 
 
 import mathics

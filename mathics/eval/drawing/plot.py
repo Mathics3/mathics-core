@@ -13,7 +13,7 @@ from typing import Callable, Iterable, List, Optional, Tuple, Type, Union
 
 from mathics.builtin.graphics import Graphics
 from mathics.builtin.numeric import chop
-from mathics.builtin.options import options_to_rules
+from mathics.builtin.options import filter_from_iterable, options_to_rules
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import Integer, Integer0, Real
 from mathics.core.builtin import get_option
@@ -25,15 +25,20 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import SymbolN, SymbolTrue
 from mathics.core.systemsymbols import (
+    SymbolAll,
+    SymbolAutomatic,
+    SymbolFull,
     SymbolGraphics,
     SymbolHue,
     SymbolLine,
     SymbolLog10,
     SymbolLogPlot,
+    SymbolNone,
     SymbolPoint,
     SymbolPolygon,
 )
 from mathics.eval.nevaluator import eval_N
+from mathics.timing import Timer
 
 ListPlotNames = (
     "DiscretePlot",
@@ -59,8 +64,6 @@ class ListPlotPairOfNumbersError(Exception):
     """
     Called eval_ListPlot with a plot group that is not a list of pairs.
     """
-
-    pass
 
 
 def automatic_plot_range(values):
@@ -164,12 +167,12 @@ def get_filling_option(options, evaluation):
     return None
 
 
-def compile_quiet_function(expr, arg_names, evaluation, list_is_expected: bool):
+def compile_quiet_function(expr, arg_names, evaluation, expect_list: bool):
     """
     Given an expression return a quiet callable version.
     Compiles the expression where possible.
     """
-    if has_compile and not list_is_expected:
+    if has_compile and not expect_list:
         try:
             cfunc = _compile(
                 expr, [CompileArg(arg_name, real_type) for arg_name in arg_names]
@@ -196,7 +199,7 @@ def compile_quiet_function(expr, arg_names, evaluation, list_is_expected: bool):
         vars = {arg_name: Real(arg) for arg_name, arg in zip(arg_names, args)}
         value = dynamic_scoping(expr.evaluate, vars, evaluation)
         evaluation.quiet_all = old_quiet_all
-        if list_is_expected:
+        if expect_list:
             if value.has_form("List", None):
                 value = [extract_pyreal(item) for item in value.elements]
                 if any(item is None for item in value):
@@ -334,7 +337,6 @@ def eval_ListPlot(
                     plot_groups[lidx][i + 1] = seg[j + 1 :]
                     i -= 1
                     break
-                pass
 
             # For step plots, we have 2n points; n -1 of these
             # we create from the n points by
@@ -401,7 +403,6 @@ def eval_ListPlot(
                 ]
                 for line_segment in line_segments:
                     graphics.append(Expression(SymbolLine, from_python(line_segment)))
-                pass
             else:
                 mathics_segment = from_python(segment)
                 if is_joined_plot:
@@ -442,8 +443,6 @@ def eval_ListPlot(
                                     ),
                                 )
                             )
-                pass
-            pass
 
         if index % 4 == 0:
             hue += hue_pos
@@ -462,27 +461,12 @@ def eval_ListPlot(
     return Expression(
         SymbolGraphics,
         ListExpression(*graphics),
-        *options_to_rules(options, Graphics.options),
+        *options_to_rules(options, filter_from_iterable(Graphics.options)),
     )
 
 
-def eval_Plot(
-    functions: List[Expression],
-    apply_fn: Callable,
-    x_name: str,
-    start: int,
-    stop: int,
-    x_range: list,
-    y_range,
-    num_plot_points: int,
-    mesh,
-    list_is_expected: bool,
-    exclusions: list,
-    max_recursion: int,
-    use_log_scale: bool,
-    options: dict,
-    evaluation: Evaluation,
-) -> Expression:
+@Timer("eval_Plot")
+def eval_Plot(plot_options, options: dict, evaluation: Evaluation) -> Expression:
     """
     Evaluation part of Plot[]
 
@@ -496,11 +480,26 @@ def eval_Plot(
     y_range: y-axis range of the form Automatic, All, or [min, max]
     y_range: either Automatic, All, or of the form [min, max]
     num_plot_points: number of points to plot
-    list_is_expected: list is expected in evaluation (?)
+    expect_list: list is expected in evaluation (?)
     max_recursion: maximum number of levels of recursion in evaluation (?)
     options: Plot options
     evaluation: Expression evaluation object typically needed in evaluation
     """
+
+    functions: List[Expression] = plot_options.functions
+    apply_fn: Callable = plot_options.apply_function
+    x_name: str = str(plot_options.ranges[0][0])
+    start: int = plot_options.ranges[0][1]
+    stop: int = plot_options.ranges[0][2]
+    x_range: list = plot_options.plot_range[0]
+    y_range: list = plot_options.plot_range[1]
+    num_plot_points: int = plot_options.plot_points
+    mesh = plot_options.mesh
+    expect_list: bool = plot_options.expect_list
+    exclusions: list = plot_options.exclusions
+    max_recursion: int = plot_options.max_depth
+    use_log_scale: bool = plot_options.use_log_scale
+
     # constants to generate colors
     hue = 0.67
     hue_pos = 0.236068
@@ -535,7 +534,7 @@ def eval_Plot(
             # Scale point values down by Log 10.
             # Tick mark values will be adjusted to be 10^n in GraphicsBox.
             f = Expression(SymbolLog10, f)
-        compiled_fn = compile_quiet_function(f, [x_name], evaluation, list_is_expected)
+        compiled_fn = compile_quiet_function(f, [x_name], evaluation, expect_list)
         for i in range(num_plot_points):
             x_value = start + i * d
             point = apply_fn(compiled_fn, x_value)
@@ -560,7 +559,7 @@ def eval_Plot(
         ymin, ymax = automatic_plot_range([yy for xx, yy in base_points])
         yscale = 1.0 / zero_to_one(ymax - ymin)
 
-        if mesh == "System`Full":
+        if mesh is SymbolFull:
             for line in points:
                 tmp_mesh_points.extend(line)
 
@@ -580,9 +579,9 @@ def eval_Plot(
                     return line, xi + 1, True
             return line, xi + 1, False
 
-        if exclusions != "System`None":
+        if isinstance(exclusions, list):
             for excl in exclusions:
-                if excl != "System`Automatic":
+                if excl != SymbolAutomatic:
                     l, xi, split_required = find_excl(excl)
                     if split_required:
                         xvalues.insert(l + 1, xvalues[l][xi:])
@@ -642,7 +641,7 @@ def eval_Plot(
                         i += incr
                     i += 1
 
-        if exclusions == "System`None":  # Join all the Lines
+        if exclusions == SymbolNone:  # Join all the Lines
             points = [[(xx, yy) for line in points for xx, yy in line]]
 
         graphics.append(Expression(SymbolHue, Real(hue), RealPoint6, RealPoint6))
@@ -651,11 +650,11 @@ def eval_Plot(
         for line in points:
             plot_points.extend(line)
 
-        if mesh == "System`All":
+        if mesh is SymbolAll:
             for line in points:
                 tmp_mesh_points.extend(line)
 
-        if mesh != "System`None":
+        if mesh is not SymbolNone:
             mesh_points.append(tmp_mesh_points)
 
         function_hues.append(hue)
@@ -700,7 +699,7 @@ def eval_Plot(
     return Expression(
         SymbolGraphics,
         ListExpression(*graphics),
-        *options_to_rules(options, Graphics.options),
+        *options_to_rules(options, filter_from_iterable(Graphics.options)),
     )
 
 
