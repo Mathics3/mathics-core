@@ -126,6 +126,7 @@ class ClearAttributes(Builtin):
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED
+    has_side_effects = True
     summary_text = "clear the attributes of a symbol"
 
     def eval(self, symbols, attributes, evaluation):
@@ -526,6 +527,7 @@ class Protect(Builtin):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
+    has_side_effects = True
     summary_text = "protect a symbol against redefinitions"
 
     def eval(self, symbols, evaluation):
@@ -696,7 +698,7 @@ class SetAttributes(Builtin):
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED
-
+    has_side_effects = True
     messages = {
         "unknownattr": f"`1` should be one of {', '.join(attribute_string_to_number.keys())}"
     }
@@ -752,6 +754,7 @@ class Unprotect(Builtin):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
+    has_side_effects = True
     summary_text = "remove protection against redefinitions"
 
     def eval(self, symbols, evaluation):
