@@ -1,5 +1,9 @@
 """
-This module builts the 2D string associated to the OutputForm
+This module builts the string associated to the OutputForm.
+
+OutputForm produce a pretty-print-like output, suitable for CLI
+and text terminals. 
+
 """
 
 from typing import Callable, Dict, List, Union
@@ -53,63 +57,6 @@ class IsNot2DArray(Exception):
     pass
 
 
-def parenthesize(expr_str: str) -> str:
-    """wrap with parenthesis"""
-    return f"({expr_str})"
-
-
-def bracket(expr_str: str) -> str:
-    """wrap with square brackets"""
-    return f"[{expr_str}]"
-
-
-def grid(expr):
-    # Very basic implementation.
-    result = "Grid["
-    for row in expr:
-        if result[-1] != "[":
-            result += ","
-
-        result += "\n{"
-        for field in row:
-            if result[-1] != "}":
-                result += ","
-            result += field
-        result += "}"
-    result += "}]"
-    return result
-
-
-def expression_to_outputform_text(
-    expr: BaseElement, evaluation: Evaluation, form=SymbolStandardForm, **kwargs
-):
-    """
-    Build a 2d text from an `Expression`
-    """
-    ## TODO: format the expression
-    format_expr: Expression = do_format(expr, evaluation, SymbolOutputForm)  # type: ignore
-
-    # Strip HoldForm
-    while format_expr.has_form("HoldForm", 1):  # type: ignore
-        format_expr = format_expr.elements[0]
-
-    lookup_name = format_expr.get_head().get_lookup_name()
-    try:
-        result = expr_to_outputform_text_map[lookup_name](
-            format_expr, evaluation, form, **kwargs
-        )
-        return result
-    except _WrongFormattedExpression:
-        # If the key is not present, or the execution fails for any reason, use
-        # the default
-        pass
-    except KeyError:
-        pass
-    return _default_expression_to_outputform_text(
-        format_expr, evaluation, form, **kwargs
-    )
-
-
 def _default_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> str:
@@ -146,12 +93,31 @@ def _strip_1_parm_expression_to_outputform_text(
     return expression_to_outputform_text(expr.elements[0], evaluation, form, **kwargs)
 
 
-expr_to_outputform_text_map[
-    "System`HoldForm"
-] = _strip_1_parm_expression_to_outputform_text
-expr_to_outputform_text_map[
-    "System`InputForm"
-] = _strip_1_parm_expression_to_outputform_text
+def bracket(expr_str: str) -> str:
+    """wrap with square brackets"""
+    return f"[{expr_str}]"
+
+
+def grid(expr):
+    # Very basic implementation.
+    result = "Grid["
+    for row in expr:
+        if result[-1] != "[":
+            result += ","
+
+        result += "\n{"
+        for field in row:
+            if result[-1] != "}":
+                result += ","
+            result += field
+        result += "}"
+    result += "}]"
+    return result
+
+
+def parenthesize(expr_str: str) -> str:
+    """wrap with parenthesis"""
+    return f"({expr_str})"
 
 
 def derivative_expression_to_outputform_text(
@@ -203,6 +169,36 @@ def divide_expression_to_outputform_text(
 expr_to_outputform_text_map["System`Divide"] = divide_expression_to_outputform_text
 
 
+def expression_to_outputform_text(
+    expr: BaseElement, evaluation: Evaluation, form=SymbolStandardForm, **kwargs
+):
+    """
+    Build a pretty-print text from an `Expression`
+    """
+    ## TODO: format the expression
+    format_expr: Expression = do_format(expr, evaluation, SymbolOutputForm)  # type: ignore
+
+    # Strip HoldForm
+    while format_expr.has_form("HoldForm", 1):  # type: ignore
+        format_expr = format_expr.elements[0]
+
+    lookup_name = format_expr.get_head().get_lookup_name()
+    try:
+        result = expr_to_outputform_text_map[lookup_name](
+            format_expr, evaluation, form, **kwargs
+        )
+        return result
+    except _WrongFormattedExpression:
+        # If the key is not present, or the execution fails for any reason, use
+        # the default
+        pass
+    except KeyError:
+        pass
+    return _default_expression_to_outputform_text(
+        format_expr, evaluation, form, **kwargs
+    )
+
+
 def graphics(expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs) -> str:
     return "-Graphics-"
 
@@ -246,6 +242,140 @@ def grid_expression_to_outputform_text(
 
 
 expr_to_outputform_text_map["System`Grid"] = grid_expression_to_outputform_text
+
+
+expr_to_outputform_text_map[
+    "System`HoldForm"
+] = _strip_1_parm_expression_to_outputform_text
+expr_to_outputform_text_map[
+    "System`InputForm"
+] = _strip_1_parm_expression_to_outputform_text
+
+
+def infix_expression_to_outputform_text(
+    expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
+) -> str:
+    elements = expr.elements
+    if not (0 <= len(elements) <= 4):
+        raise _WrongFormattedExpression
+
+    group = None
+    precedence = 670
+    # Processing the first argument:
+    head = expr.get_head()
+    target = expr.elements[0]
+    if isinstance(target, Atom):
+        raise _WrongFormattedExpression
+
+    operands = list(target.elements)
+
+    if len(operands) < 2:
+        raise _WrongFormattedExpression
+
+    # Processing the second argument, if it is there:
+    if len(elements) > 1:
+        ops = elements[1]
+        if head is SymbolInfix:
+            # This is not the WMA behaviour, but the Mathics current implementation requires it:
+            num_ops = 1
+            if ops.has_form("List", None):
+                num_ops = len(ops.elements)
+                ops_lst = [
+                    expression_to_outputform_text(op, evaluation, form, **kwargs)
+                    for op in ops.elements
+                ]
+            else:
+                ops_lst = [
+                    expression_to_outputform_text(ops, evaluation, form, **kwargs)
+                ]
+        elif head in (SymbolPrefix, SymbolPostfix):
+            ops_txt = [expression_to_outputform_text(ops, evaluation, form, **kwargs)]
+    else:
+        if head is SymbolInfix:
+            num_ops = 1
+            default_symb = " ~ "
+            ops_lst = [
+                default_symb
+                + expression_to_outputform_text(head, evaluation, form, **kwargs)
+                + default_symb
+            ]
+        elif head is SymbolPrefix:
+            default_symb = " @ "
+            ops_txt = (
+                expression_to_outputform_text(head, evaluation, form, **kwargs)
+                + default_symb
+            )
+        elif head is SymbolPostfix:
+            default_symb = " // "
+            ops_txt = default_symb + expression_to_outputform_text(
+                head, evaluation, form, **kwargs
+            )
+
+    # Processing the third argument, if it is there:
+    if len(elements) > 2:
+        if isinstance(elements[2], Integer):
+            precedence = elements[2].value
+        else:
+            raise _WrongFormattedExpression
+
+    # Processing the forth argument, if it is there:
+    if len(elements) > 3:
+        group = elements[3]
+        if group not in (SymbolNone, SymbolLeft, SymbolRight, SymbolNonAssociative):
+            raise _WrongFormattedExpression
+        if group is SymbolNone:
+            group = None
+
+    if head is SymbolPrefix:
+        operand = operands[0]
+        cmp_precedence = compare_precedence(operand, precedence)
+        target_txt = expression_to_outputform_text(operand, evaluation, form, **kwargs)
+        if cmp_precedence is not None and cmp_precedence != -1:
+            target_txt = parenthesize(target_txt)
+        return ops_txt[0] + target_txt
+    if head is SymbolPostfix:
+        operand = operands[0]
+        cmp_precedence = compare_precedence(operand, precedence)
+        target_txt = expression_to_outputform_text(operand, evaluation, form, **kwargs)
+        if cmp_precedence is not None and cmp_precedence != -1:
+            target_txt = parenthesize(target_txt)
+        return target_txt + ops_txt[0]
+    else:  # Infix
+        parenthesized = group in (None, SymbolRight, SymbolNonAssociative)
+        for index, operand in enumerate(operands):
+            operand_txt = str(
+                expression_to_outputform_text(operand, evaluation, form, **kwargs)
+            )
+            cmp_precedence = compare_precedence(operand, precedence)
+            if cmp_precedence is not None and (
+                cmp_precedence == -1 or (cmp_precedence == 0 and parenthesized)
+            ):
+                operand_txt = parenthesize(operand_txt)
+
+            if index == 0:
+                result = operand_txt
+                # After the first element, for lateral
+                # associativity, parenthesized is flipped:
+                if group in (SymbolLeft, SymbolRight):
+                    parenthesized = not parenthesized
+            else:
+                space = " "
+                result_lst: List[str]
+                if str(ops_lst[index % num_ops]) != " ":
+                    result_lst = [
+                        result,
+                        space,
+                        str(ops_lst[index % num_ops]),
+                        space,
+                        operand_txt,
+                    ]
+                else:
+                    result_lst = [result, space, operand_txt]
+
+        return "".join(result_lst)
+
+
+expr_to_outputform_text_map["System`Infix"] = infix_expression_to_outputform_text
 
 
 def integer_expression_to_outputform_text(
@@ -389,6 +519,21 @@ def power_expression_to_outputform_text(
 expr_to_outputform_text_map["System`Power"] = power_expression_to_outputform_text
 
 
+def precedenceform_expression_to_outputform_text(
+    expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
+) -> str:
+    if len(expr.elements) == 2:
+        return expression_to_outputform_text(
+            expr.elements[0], evaluation, form, **kwargs
+        )
+    raise _WrongFormattedExpression
+
+
+expr_to_outputform_text_map[
+    "System`PrecedenceForm"
+] = precedenceform_expression_to_outputform_text
+
+
 def pre_pos_fix_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> str:
@@ -453,147 +598,6 @@ expr_to_outputform_text_map["System`Prefix"] = pre_pos_fix_expression_to_outputf
 expr_to_outputform_text_map[
     "System`Postfix"
 ] = pre_pos_fix_expression_to_outputform_text
-
-
-def infix_expression_to_outputform_text(
-    expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
-) -> str:
-    elements = expr.elements
-    if not (0 <= len(elements) <= 4):
-        raise _WrongFormattedExpression
-
-    group = None
-    precedence = 670
-    # Processing the first argument:
-    head = expr.get_head()
-    target = expr.elements[0]
-    if isinstance(target, Atom):
-        raise _WrongFormattedExpression
-
-    operands = list(target.elements)
-
-    if len(operands) < 2:
-        raise _WrongFormattedExpression
-
-    # Processing the second argument, if it is there:
-    if len(elements) > 1:
-        ops = elements[1]
-        if head is SymbolInfix:
-            # This is not the WMA behaviour, but the Mathics current implementation requires it:
-            num_ops = 1
-            if ops.has_form("List", None):
-                num_ops = len(ops.elements)
-                ops_lst = [
-                    expression_to_outputform_text(op, evaluation, form, **kwargs)
-                    for op in ops.elements
-                ]
-            else:
-                ops_lst = [
-                    expression_to_outputform_text(ops, evaluation, form, **kwargs)
-                ]
-        elif head in (SymbolPrefix, SymbolPostfix):
-            ops_txt = [expression_to_outputform_text(ops, evaluation, form, **kwargs)]
-    else:
-        if head is SymbolInfix:
-            num_ops = 1
-            default_symb = " ~ "
-            ops_lst = [
-                default_symb
-                + expression_to_outputform_text(head, evaluation, form, **kwargs)
-                + default_symb
-            ]
-        elif head is SymbolPrefix:
-            default_symb = " @ "
-            ops_txt = (
-                expression_to_outputform_text(head, evaluation, form, **kwargs)
-                + default_symb
-            )
-        elif head is SymbolPostfix:
-            default_symb = " // "
-            ops_txt = default_symb + expression_to_outputform_text(
-                head, evaluation, form, **kwargs
-            )
-
-    # Processing the third argument, if it is there:
-    if len(elements) > 2:
-        if isinstance(elements[2], Integer):
-            precedence = elements[2].value
-        else:
-            raise _WrongFormattedExpression
-
-    # Processing the forth argument, if it is there:
-    if len(elements) > 3:
-        group = elements[3]
-        if group not in (SymbolNone, SymbolLeft, SymbolRight, SymbolNonAssociative):
-            raise _WrongFormattedExpression
-        if group is SymbolNone:
-            group = None
-
-    if head is SymbolPrefix:
-        operand = operands[0]
-        cmp_precedence = compare_precedence(operand, precedence)
-        target_txt = expression_to_outputform_text(operand, evaluation, form, **kwargs)
-        if cmp_precedence is not None and cmp_precedence != -1:
-            target_txt = parenthesize(target_txt)
-        return ops_txt[0] + target_txt
-    if head is SymbolPostfix:
-        operand = operands[0]
-        cmp_precedence = compare_precedence(operand, precedence)
-        target_txt = expression_to_outputform_text(operand, evaluation, form, **kwargs)
-        if cmp_precedence is not None and cmp_precedence != -1:
-            target_txt = parenthesize(target_txt)
-        return target_txt + ops_txt[0]
-    else:  # Infix
-        parenthesized = group in (None, SymbolRight, SymbolNonAssociative)
-        for index, operand in enumerate(operands):
-            operand_txt = str(
-                expression_to_outputform_text(operand, evaluation, form, **kwargs)
-            )
-            cmp_precedence = compare_precedence(operand, precedence)
-            if cmp_precedence is not None and (
-                cmp_precedence == -1 or (cmp_precedence == 0 and parenthesized)
-            ):
-                operand_txt = parenthesize(operand_txt)
-
-            if index == 0:
-                result = operand_txt
-                # After the first element, for lateral
-                # associativity, parenthesized is flipped:
-                if group in (SymbolLeft, SymbolRight):
-                    parenthesized = not parenthesized
-            else:
-                space = " "
-                result_lst: List[str]
-                if str(ops_lst[index % num_ops]) != " ":
-                    result_lst = [
-                        result,
-                        space,
-                        str(ops_lst[index % num_ops]),
-                        space,
-                        operand_txt,
-                    ]
-                else:
-                    result_lst = [result, space, operand_txt]
-
-        return "".join(result_lst)
-
-
-expr_to_outputform_text_map["System`Infix"] = infix_expression_to_outputform_text
-
-
-def precedenceform_expression_to_outputform_text(
-    expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
-) -> str:
-    if len(expr.elements) == 2:
-        return expression_to_outputform_text(
-            expr.elements[0], evaluation, form, **kwargs
-        )
-    raise _WrongFormattedExpression
-
-
-expr_to_outputform_text_map[
-    "System`PrecedenceForm"
-] = precedenceform_expression_to_outputform_text
 
 
 def rational_expression_to_outputform_text(
