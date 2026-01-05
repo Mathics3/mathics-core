@@ -14,7 +14,7 @@ import numpy as np
 
 from mathics.builtin.drawing.graphics3d import Graphics3D
 from mathics.builtin.graphics import Graphics
-from mathics.builtin.options import options_to_rules
+from mathics.builtin.options import filter_from_iterable, options_to_rules
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
@@ -136,7 +136,7 @@ class _Plot3D(Builtin):
 
         # generate the Graphics[3D] result
         graphics_expr = graphics.generate(
-            options_to_rules(options, self.graphics_class.options)
+            options_to_rules(options, filter_from_iterable(self.graphics_class.options))
         )
         return graphics_expr
 
