@@ -516,8 +516,8 @@ class Subscript(Builtin):
       <dd>displays as $a_i$.
     </dl>
 
-    >> Subscript[x,1,2,3] // TeXForm
-     = x_{1,2,3}
+    >> Subscript[x, 1, 2, 3] // TeXForm
+     = x_{1, 2, 3}
     """
 
     summary_text = "format an expression with a subscript"

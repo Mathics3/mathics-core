@@ -519,23 +519,28 @@ class PlotOptions:
             evaluation.message(builtin.get_name(), "invmaxrec", max_depth, 15)
         self.max_depth = max_depth
 
-        #
         # PlotRange option
-        # Expand PlotRange option using the {x,xmin,xmax} etc. range specifications
-        # Pythonize it, so Symbol becomes str, numeric becomes int or float
-        # (returns  str)
-        #
+        # Normalize to always return a list of either numeric,
+        # Symbol (for vectorized plots), or str (for classic plogs)
+        # TODO: convert classic plots to use Symbol instead of str also
+        if use_vectorized_plot:
+            preserve_symbols = True
+            symbol_type = Symbol
+        else:
+            # TODO: get rid of these
+            preserve_symbols = False
+            symbol_type = str
         plot_range = builtin.get_option(options, str(SymbolPlotRange), evaluation)
-        plot_range = eval_N(
-            plot_range, evaluation
-        ).to_python()  # TODO: add this to plot3d and add a test!
-        if isinstance(plot_range, str):
+        plot_range = eval_N(plot_range, evaluation).to_python(
+            preserve_symbols=preserve_symbols
+        )
+        if isinstance(plot_range, symbol_type):
             # PlotRange -> Automatic becomes PlotRange -> {Automatic, ...}
             plot_range = [plot_range] * dim
         if isinstance(plot_range, (int, float)):
             # PlotRange -> s becomes PlotRange -> {Automatic,...,{-s,s}}
             pr = float(plot_range)
-            plot_range = [str(SymbolAutomatic)] * dim
+            plot_range = [symbol_type("System`Automatic")] * dim
             plot_range[-1] = [-pr, pr]
             if builtin.get_name() == "System`ParametricPlot":
                 plot_range[0] = [-pr, pr]
@@ -544,7 +549,7 @@ class PlotOptions:
         ):
             # PlotRange -> {s0,s1} becomes  PlotRange -> {Automatic,...,{s0,s1}}
             pr = plot_range
-            plot_range = [str(SymbolAutomatic)] * dim
+            plot_range = [symbol_type("System`Automatic")] * dim
             plot_range[-1] = pr
         self.plot_range = plot_range
 

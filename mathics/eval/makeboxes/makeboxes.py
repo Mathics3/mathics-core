@@ -8,7 +8,7 @@ makeboxes rules.
 
 from typing import Optional, Union
 
-from mathics.core.atoms import Complex, Integer, Rational, String
+from mathics.core.atoms import Complex, Rational, String
 from mathics.core.element import BaseElement, BoxElementMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -183,7 +183,7 @@ def eval_makeboxes_fullform(
         left, right, sep = (String(ch) for ch in ("{", "}", ","))
         result_elements = [left]
     else:
-        left, right, sep = (String(ch) for ch in ("[", "]", ", "))
+        left, right, sep = (String(ch) for ch in ("[", "]", ","))
         result_elements = [eval_makeboxes_fullform(head, evaluation), left]
 
     if len(boxed_elements) > 1:

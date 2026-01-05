@@ -6,7 +6,7 @@ expressions.
 """
 
 
-from test.helper import check_evaluation, session
+from test.helper import session
 
 import pytest
 

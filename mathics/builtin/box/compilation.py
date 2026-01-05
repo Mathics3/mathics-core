@@ -19,6 +19,10 @@ class CompiledCodeBox(BoxExpression):
 
     summary_text = "symbol used in boxing 'CompiledCode' expressions"
 
+    def init(self, *args, **kwargs):
+        self._elements = args
+        self.box_options = kwargs
+
     def boxes_to_text(self, elements=None, **options):
         if elements is None:
             elements = self.elements

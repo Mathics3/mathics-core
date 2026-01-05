@@ -1,4 +1,4 @@
-from test.helper import evaluate, session
+from test.helper import session
 
 from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.graphics import GRAPHICS_OPTIONS

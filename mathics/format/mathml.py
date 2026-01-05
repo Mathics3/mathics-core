@@ -23,6 +23,7 @@ from mathics.builtin.box.layout import (
     SubscriptBox,
     SubsuperscriptBox,
     SuperscriptBox,
+    TagBox,
 )
 from mathics.core.atoms import String
 from mathics.core.element import BoxElementMixin
@@ -91,6 +92,7 @@ def string(self, **options) -> str:
         and (number_as_text is SymbolFalse)
         and ("0" <= text[0] <= "9" or text[0] in (".", "-"))
     ):
+        text = text.split("`")[0]
         return render("<mn>%s</mn>", text)
     else:
         if text in operators or text in extra_operators:
@@ -366,3 +368,12 @@ def graphics3dbox(self, elements=None, **options) -> str:
 
 
 add_conversion_fn(Graphics3DBox, graphics3dbox)
+
+
+def tag_box(self, **options):
+    return lookup_conversion_method(self.elements[0], "mathml")(
+        self.elements[0], **options
+    )
+
+
+add_conversion_fn(TagBox, tag_box)

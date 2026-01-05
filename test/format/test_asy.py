@@ -3,12 +3,10 @@ from test.helper import session
 
 from mathics.builtin.makeboxes import MakeBoxes
 from mathics.core.atoms import Integer0, Integer1, Real
-from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolGraphics, SymbolPoint
-from mathics.session import MathicsSession
 
 evaluation = session.evaluation
 

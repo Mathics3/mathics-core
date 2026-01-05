@@ -13,7 +13,7 @@ import sympy
 from sympy.core import numbers as sympy_numbers
 
 from mathics.core.atoms.strings import String
-from mathics.core.element import ImmutableValueMixin
+from mathics.core.element import BoxElementMixin, ImmutableValueMixin
 from mathics.core.keycomparable import BASIC_ATOM_NUMBER_ELT_ORDER
 from mathics.core.number import (
     FP_MANTISA_BINARY_DIGITS,
@@ -24,14 +24,7 @@ from mathics.core.number import (
     min_prec,
     prec,
 )
-from mathics.core.symbols import (
-    Atom,
-    NumericOperators,
-    Symbol,
-    SymbolNull,
-    SymbolTrue,
-    symbol_set,
-)
+from mathics.core.symbols import Atom, NumericOperators, Symbol, SymbolNull, symbol_set
 from mathics.core.systemsymbols import SymbolFullForm, SymbolInfinity, SymbolInputForm
 
 # The below value is an empirical number for comparison precedence
@@ -304,14 +297,24 @@ class Integer(Number[int]):
         # error.
         return self._value == 0
 
-    def make_boxes(self, form) -> "String":
-        from mathics.eval.makeboxes import _boxed_string
+    def make_boxes(self, form) -> BoxElementMixin:
+        from mathics.builtin.box.layout import RowBox
 
+        boxed: BoxElementMixin
         try:
-            if form in ("System`InputForm", "System`FullForm"):
-                return _boxed_string(str(self.value), number_as_text=SymbolTrue)
-
-            return String(str(self._value))
+            if form in (
+                "System`FullForm",
+                "System`StandardForm",
+                "System`TraditionalForm",
+            ):
+                val_str = str(self._value)
+                if val_str[0] == "-":
+                    boxed = RowBox(String("-"), String(val_str[1:]))
+                else:
+                    boxed = String(val_str)
+            else:
+                boxed = String(str(self._value))
+            return boxed
         except ValueError:
             # In Python 3.11, the size of the string
             # obtained from an integer is limited, and for longer
@@ -522,11 +525,9 @@ class MachineReal(Real[float]):
         from mathics.eval.makeboxes import NumberForm_to_String
 
         _number_form_options["_Form"] = form  # passed to _NumberFormat
-        if form in ("System`InputForm", "System`FullForm"):
-            n = None
-        else:
-            n = 6
-        return NumberForm_to_String(self, n, None, None, _number_form_options)
+        n = 6 if form == "System`OutputForm" else None
+        num_str = NumberForm_to_String(self, n, None, None, _number_form_options)
+        return num_str
 
     @property
     def is_zero(self) -> bool:
@@ -643,9 +644,8 @@ class PrecisionReal(Real[sympy.Float]):
         from mathics.eval.makeboxes import NumberForm_to_String
 
         _number_form_options["_Form"] = form  # passed to _NumberFormat
-        return NumberForm_to_String(
-            self, dps(self.get_precision()), None, None, _number_form_options
-        )
+        digits = dps(self.get_precision()) if form == "System`OutputForm" else None
+        return NumberForm_to_String(self, digits, None, None, _number_form_options)
 
     def round(self, d: Optional[int] = None) -> Union[MachineReal, "PrecisionReal"]:
         if d is None:

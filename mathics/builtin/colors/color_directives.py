@@ -348,15 +348,18 @@ class ColorDistance(Builtin):
         elif distance_function.has_form("List", 2):
             if distance_function.elements[0].get_string_value() == "CMC":
                 if distance_function.elements[1].get_string_value() == "Acceptability":
-                    compute = (
-                        lambda c1, c2: _CMC_distance(
-                            100 * c1.to_color_space("LAB")[:3],
-                            100 * c2.to_color_space("LAB")[:3],
-                            2,
-                            1,
+
+                    def compute(c1, c2):
+                        return (
+                            _CMC_distance(
+                                100 * c1.to_color_space("LAB")[:3],
+                                100 * c2.to_color_space("LAB")[:3],
+                                2,
+                                1,
+                            )
+                            / 100
                         )
-                        / 100
-                    )
+
                 elif (
                     distance_function.elements[1].get_string_value() == "Perceptibility"
                 ):
@@ -386,15 +389,17 @@ class ColorDistance(Builtin):
                                 .elements[1]
                                 .get_int_value()
                             )
-                            compute = (
-                                lambda c1, c2: _CMC_distance(
-                                    100 * c1.to_color_space("LAB")[:3],
-                                    100 * c2.to_color_space("LAB")[:3],
-                                    lightness,
-                                    chroma,
+
+                            def compute(c1, c2):
+                                return (
+                                    _CMC_distance(
+                                        100 * c1.to_color_space("LAB")[:3],
+                                        100 * c2.to_color_space("LAB")[:3],
+                                        lightness,
+                                        chroma,
+                                    )
+                                    / 100
                                 )
-                                / 100
-                            )
 
         elif (
             isinstance(distance_function, Symbol)
