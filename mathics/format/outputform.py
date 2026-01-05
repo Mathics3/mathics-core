@@ -21,9 +21,11 @@ from mathics.core.symbols import Atom, Symbol, SymbolTimes
 from mathics.core.systemsymbols import (
     SymbolDerivative,
     SymbolInfix,
+    SymbolLeft,
     SymbolNone,
     SymbolOutputForm,
     SymbolPower,
+    SymbolRight,
     SymbolStandardForm,
     SymbolTraditionalForm,
 )
@@ -32,8 +34,6 @@ from mathics.eval.makeboxes import compare_precedence, do_format  # , format_ele
 SymbolNonAssociative = Symbol("System`NonAssociative")
 SymbolPostfix = Symbol("System`Postfix")
 SymbolPrefix = Symbol("System`Prefix")
-SymbolRight = Symbol("System`Right")
-SymbolLeft = Symbol("System`Left")
 
 
 expr_to_outputform_text_map: Dict[str, Callable] = {}
@@ -64,7 +64,20 @@ def bracket(expr_str: str) -> str:
 
 
 def grid(expr):
-    raise NotImplementedError
+    # Very basic implementation.
+    result = "Grid["
+    for row in expr:
+        if result[-1] != "[":
+            result += ","
+
+        result += "\n{"
+        for field in row:
+            if result[-1] != "}":
+                result += ","
+            result += field
+        result += "}"
+    result += "}]"
+    return result
 
 
 def expression_to_outputform_text(

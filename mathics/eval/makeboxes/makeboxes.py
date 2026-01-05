@@ -139,15 +139,14 @@ def int_to_string_shorter_repr(value: int, form: Symbol, max_digits=640):
 
 def eval_makeboxes_outputform(expr, evaluation, form):
     """
-    Build a 2D text representation of the expression.
+    Build a 2D representation of the expression using only keyboard characters.
     """
     from mathics.builtin.box.layout import InterpretationBox, PaneBox
     from mathics.format.outputform import expression_to_outputform_text
 
     text_outputform = str(expression_to_outputform_text(expr, evaluation, form))
-    elem1 = PaneBox(String(text_outputform))
-    elem2 = Expression(SymbolOutputForm, expr)
-    return InterpretationBox(elem1, elem2)
+    elem1 = PaneBox(String('"' + text_outputform + '"'))
+    return elem1
 
 
 # TODO: evaluation is needed because `atom_to_boxes` uses it. Can we remove this
@@ -279,6 +278,7 @@ def format_element(
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
+    # Halt any potential evaluation tracing while performing boxing.
     evaluation.is_boxing = True
     while element.get_head() is form:
         element = element.elements[0]

@@ -7,7 +7,8 @@ in the Notebook interface, the CLI (math) and wolframscript are not fully consis
 
 ****************************************************************************************)
 
-ISMATHICSINTERPRETER=(StringTake[$Version, 8]==="Mathics3")
+ISMATHICSINTERPRETER=(StringTake[$Version, 8]==="Mathics3");
+ISMATHICSINTERPRETER=False;
 
 
 Print["Read json"];
@@ -29,10 +30,10 @@ Do[key = ToExpression[tests[[1]]];
    Do[form = ToExpression[subtest[[1]]]; expr = form[key];
       result = ToString[expr, CharacterEncoding->"ASCII"];
       expected = subtest[[2]];
-      If[result != subtest[[2]], 
-         Print["      * ", form, "(text)    [Failed]\n        result:", "<<" <> result <> ">>(", StringLength[result], 
+      If[result != expected, 
+         Print["      * ", FullForm[expr], " //", form, "(text)    [Failed]\n        result:", "<<" <> result <> ">>(", StringLength[result], 
     ")\n        expected: ", "<<" <> expected <> ">> (", StringLength[expected],")\n"], 
-         Print["      * ", form, "(text)    [OK]"]];,
+         Print["      * ", FullForm[expr], " //", form, "(text)    [OK]"]];,
  {subtest, text}]
  ];
  (*LaTeX*)
@@ -42,10 +43,10 @@ Do[key = ToExpression[tests[[1]]];
       result = ToString[expr, TeXForm, CharacterEncoding->"ASCII"];
       expected = subtest[[2]];
       If[result != subtest[[2]], 
-        Print["      * ", form, "(latex)    [Failed]\n        result:", 
+        Print["      * ", key, " //", form, "(latex)    [Failed]\n        result:", 
         "<<" <> result <> ">>", "\n        expected: ", 
         "<<" <> expected <> ">>\n"], 
-      Print["      * ", form, "(latex)    [OK]"]];,
+      Print["      * ", key, " //",  form, "(latex)    [OK]"]];,
    {subtest, latex}]
    ];
 (*MathML*)
@@ -55,9 +56,9 @@ Do[key = ToExpression[tests[[1]]];
   result = ToString[expr, MathMLForm, CharacterEncoding->"ASCII"];
   expected = subtest[[2]];
   If[result != subtest[[2]], 
-   Print["      * ", form, "(mathml)    [Failed]\n        result:", 
+   Print["      * ", key, " //",  form, "(mathml)    [Failed]\n        result:", 
     "<<" <> result <> ">>", "\n        expected: ", 
     "<<" <> expected <> ">>\n"], 
-   Print["      * ", form, "(mathml)    [OK]"]];, {subtest, mathml}]];
+   Print["      * ", key, " //",  form, "(mathml)    [OK]"]];, {subtest, mathml}]];
   , {tests, data}
   ]
