@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import os
-import test
 from test.helper import check_evaluation
 
 import pytest

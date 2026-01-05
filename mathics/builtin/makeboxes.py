@@ -6,14 +6,10 @@ Low-level Format definitions
 
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Predefined
-from mathics.core.symbols import Symbol
 from mathics.eval.makeboxes import (
     eval_generic_makeboxes,
-    eval_infix,
     eval_makeboxes_fullform,
-    eval_postprefix,
     format_element,
-    parenthesize,
 )
 
 # TODO: Differently from the current implementation, MakeBoxes should only
