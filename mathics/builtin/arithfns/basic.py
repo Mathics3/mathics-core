@@ -191,7 +191,7 @@ class Minus(PrefixOperator):
       <dd> is the negation of $expr$.
     </dl>
 
-    >> -a //FullForm
+    >> -a // FullForm
      = Times[-1, a]
 
     'Minus' automatically distributes:

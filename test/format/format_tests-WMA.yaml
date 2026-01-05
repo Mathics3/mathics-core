@@ -1,0 +1,849 @@
+#  Tests for formatting according WMA.
+#
+#  These tests are prepared to compare the output obtained using WL code in
+#  both WMA and Mathics interpreters:
+#  ./convert_yaml2json.py format_tests.yaml &&  $(WMAINTERPRETER) -f format_tests.m
+#
+#  In this case, 'text' are certificated against the WMA result,
+#  as the result of evaluating
+#   ```ToString[form_[expr_], CharacterEncoding->"ASCII"]```
+#  so when `WMAINTERPRETER` == `wolframscript` CLI, all these tests pass.
+#
+#  Running the same code against `mathics` CLI, most of these tests fails because
+#  - `ToString` with `CharacterEncoding->"ASCII"` does not produce string
+#  representations of Boxes.
+#  - `OutputForm` in Mathics does not produce *pretty-print-like* output.
+#    And eventually, if we start to do it, probably we can also do it better,
+#    so we are not going to coincide neither.
+#  - Box constructions are still too diferent in both interpreters.
+#
+#  Regarding tests for `MathMLForm` and `TeXForm`, WMA does not do it
+#  really well in its conversions, and in several cases just returns an
+#  error message. On the other hand, in Mathics we want to test them,
+#  because we use both in documentation and in the web interface.
+#
+
+'"-7.32"':
+  latex:
+    InputForm: \\text{``-7.32''}
+    OutputForm: \\text{-7.32}
+    StandardForm: \\text{-7.32}
+    TraditionalForm: \\text{-7.32}
+  mathml:
+    InputForm: <ms>-7.32</ms>
+    OutputForm: <mtext>-7.32</mtext>
+    StandardForm: <mtext>-7.32</mtext>
+    TraditionalForm: <mtext>-7.32</mtext>
+  msg: A String with a number
+  text:
+    InputForm: '"-7.32"'
+    OutputForm: "-7.32"
+    StandardForm: '\!\(\*RowBox[{"\"-7.32\""}]\)'
+    TraditionalForm: '\!\(\*FormBox["\"-7.32\"", TraditionalForm]\)'
+'"Hola!"':
+  latex:
+    InputForm: \text{``Hola!''}
+    OutputForm: \text{Hola!}
+    StandardForm: \text{Hola!}
+    TraditionalForm: \text{Hola!}
+  mathml:
+    InputForm: <ms>Hola!</ms>
+    OutputForm: <mtext>Hola!</mtext>
+    StandardForm: <mtext>Hola!</mtext>
+    TraditionalForm: <mtext>Hola!</mtext>
+  msg: A String
+  text:
+    InputForm: '"Hola!"'
+    OutputForm: Hola!
+    StandardForm: "\\!\\(\\*RowBox[{\"\\\"Hola!\\\"\"}]\\)"
+    TraditionalForm: "\\!\\(\\*FormBox[\"\\\"Hola!\\\"\", TraditionalForm]\\)"
+'"\[Pi] is a trascendental number"':
+  latex:
+    InputForm: "\\text{``\u03C0 is a trascendental number''}"
+    OutputForm: "\\text{\u03C0 is a trascendental number}"
+    StandardForm: "\\text{\u03C0 is a trascendental number}"
+    TraditionalForm: "\\text{\u03C0 is a trascendental number}"
+  mathml:
+    InputForm: "<ms>\u03C0&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</ms>"
+    OutputForm: "<mtext>\u03C0&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>"
+    StandardForm: "<mtext>\u03C0&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>"
+    TraditionalForm: "<mtext>\u03C0&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>"
+  msg: A String
+  text:
+    InputForm: "\"\\[Pi] is a trascendental number\""
+    OutputForm: "\\[Pi] is a trascendental number"
+    StandardForm: "\\!\\(\\*RowBox[{\"\\\"\\[Pi] is a trascendental number\\\"\"}]\\)"
+    TraditionalForm: "\\!\\(\\*FormBox[\"\\\"\\[Pi] is a trascendental number\\\"\", TraditionalForm]\\)"
+-1. 10^-5:
+  latex:
+    InputForm: '-0.00001'
+    OutputForm: '-0.00001'
+  mathml: {}
+  msg: small negative real number (>10^-5)
+  text:
+    InputForm: '-0.00001'
+    OutputForm: '-0.00001'
+-1. 10^-6:
+  latex:
+    InputForm: -1.\text{*${}^{\wedge}$}-6
+    OutputForm: -1.\times 10^{-6}
+  mathml: {}
+  msg: very small negative real number (<10^-6)
+  text:
+    InputForm: -1.*^-6
+    OutputForm: "      -6\n-1. 10"
+-1. 10^5:
+  latex:
+    InputForm: '-100000.'
+    OutputForm: '-100000.'
+  mathml: {}
+  msg: large negative real number (<10^6)
+  text:
+    InputForm: '-100000.'
+    OutputForm: '-100000.'
+-1. 10^6:
+  latex:
+    InputForm: -1.0\text{*${}^{\wedge}$}6
+    OutputForm: -1.\times 10^6
+    StandardForm: -1.0\text{*${}^{\wedge}$}6
+    TraditionalForm: -1.0\times 10^6
+  mathml: {}
+  msg: large negative real number (>10^6)
+  text:
+    InputForm: -1.*^6
+    OutputForm: "      6\n-1. 10"
+    StandardForm: "\\!\\(\\*RowBox[{\"-\", \"1.`*^6\"}]\\)"
+    TraditionalForm: "\\!\\(\\*FormBox[RowBox[{\"-\", \"1.`*^6\"}], TraditionalForm]\\)"
+'-4':
+  latex:
+    InputForm: '-4'
+    OutputForm: '-4'
+    StandardForm: '-4'
+    TraditionalForm: '-4'
+  mathml:
+    InputForm: <mtext>-4</mtext>
+    OutputForm: <mn>-4</mn>
+    StandardForm: <mn>-4</mn>
+    TraditionalForm: <mn>-4</mn>
+  msg: An Integer
+  text:
+    InputForm: '-4'
+    OutputForm: '-4'
+    StandardForm: "\\!\\(\\*RowBox[{\"-\", \"4\"}]\\)"
+    TraditionalForm: "\\!\\(\\*FormBox[RowBox[{\"-\", \"4\"}], TraditionalForm]\\)"
+'-4.32':
+  latex:
+    InputForm: '-4.32'
+    OutputForm: '-4.32'
+    StandardForm: '-4.32'
+    TraditionalForm: '-4.32'
+  mathml:
+    InputForm: <mn>-4.32</mn>
+    OutputForm: <mn>-4.32</mn>
+    StandardForm: <mn>-4.32</mn>
+    TraditionalForm: <mn>-4.32</mn>
+  msg: A MachineReal number
+  text:
+    InputForm: '-4.32'
+    OutputForm: '-4.32'
+    StandardForm: "\\!\\(\\*RowBox[{\"-\", \"4.32`\"}]\\)"
+    TraditionalForm: "\\!\\(\\*FormBox[RowBox[{\"-\", \"4.32`\"}], TraditionalForm]\\)"
+'-4.326563712`2':
+  latex:
+    InputForm: '-4.33'
+    OutputForm: '-4.3'
+    StandardForm: '-4.33'
+    TraditionalForm: '-4.33'
+  mathml:
+    InputForm: <mn>-4.33</mn>
+    OutputForm: <mn>-4.3</mn>
+    StandardForm: <mn>-4.33</mn>
+    TraditionalForm: <mn>-4.33</mn>
+  msg: A Real number
+  text:
+    InputForm: "-4.326563712`2."
+    OutputForm: "-4.3"
+    StandardForm: "\\!\\(\\*RowBox[{\"-\", \"4.326563712`2.\"}]\\)"
+    TraditionalForm: "\\!\\(\\*FormBox[RowBox[{\"-\", \"4.326563712`2.\"}], TraditionalForm]\\)"
+-4.32`4:
+  latex:
+    InputForm: '-4.32'
+    OutputForm: '-4.320'
+    StandardForm: '-4.32'
+    TraditionalForm: '-4.32'
+  mathml:
+    InputForm: <mn>-4.32</mn>
+    OutputForm: <mn>-4.320</mn>
+    StandardForm: <mn>-4.32</mn>
+    TraditionalForm: <mn>-4.32</mn>
+  msg: A PrecisionReal number
+  text:
+    InputForm: -4.32`4.
+    OutputForm: '-4.320'
+    StandardForm: "\\!\\(\\*RowBox[{\"-\", \"4.32`4.\"}]\\)"
+    TraditionalForm: "\\!\\(\\*FormBox[RowBox[{\"-\", \"4.32`4.\"}], TraditionalForm]\\)"
+1. 10^-5:
+  latex:
+    InputForm: '0.00001'
+    OutputForm: '0.00001'
+  mathml: {}
+  msg: small real number (<10^-5)
+  text:
+    InputForm: '0.00001'
+    OutputForm: '0.00001'
+1. 10^-6:
+  latex:
+    InputForm: 1.\text{*${}^{\wedge}$}-6
+    OutputForm: 1.\times 10^{-6}
+  mathml: {}
+  msg: very small real number (<10^-6)
+  text:
+    InputForm: 1.*^-6
+    OutputForm: "     -6\n1. 10"
+1. 10^5:
+  latex:
+    InputForm: '100000.'
+    OutputForm: '100000.'
+    StandardForm: '100000.'
+    TraditionalForm: '100000.'
+  mathml: {}
+  msg: large real number (<10^6)
+  text:
+    InputForm: '100000.'
+    OutputForm: '100000.'
+    StandardForm: "\\!\\(\\*RowBox[{\"100000.`\"}]\\)"
+    TraditionalForm: "\\!\\(\\*FormBox[\"100000.`\", TraditionalForm]\\)"
+1. 10^6:
+  latex:
+    InputForm: 1.0\text{*${}^{\wedge}$}6
+    OutputForm: 1.\times 10^6
+    StandardForm: 1.0\text{*${}^{\wedge}$}6
+    TraditionalForm: 1.0\times 10^6
+  mathml: {}
+  msg: very large real number (>10^6)
+  text:
+    InputForm: 1.*^6
+    OutputForm: "     6\n1. 10"
+    StandardForm: "\\!\\(\\*RowBox[{\"1.`*^6\"}]\\)"
+    TraditionalForm: "\\!\\(\\*FormBox[\"1.`*^6\", TraditionalForm]\\)"
+1/(1+1/(1+1/a)):
+  latex:
+    InputForm: 1\text{ / }\left(1\text{ + }1\text{ / }\left(1\text{ + }1\text{
+      / }a\right)\right)
+    OutputForm: 1\text{ / }\left(1\text{ + }1\text{ / }\left(1\text{ + }1\text{
+      / }a\right)\right)
+    StandardForm: \frac{1}{1+\frac{1}{1+\frac{1}{a}}}
+    TraditionalForm: \frac{1}{1+\frac{1}{1+\frac{1}{a}}}
+  mathml:
+    InputForm:
+    - <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mtext>1</mtext>
+      <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext>
+      <mrow><mo>(</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>1</mtext>
+      <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow>
+      <mo>)</mo></mrow></mrow>
+    - Fragile!
+    OutputForm:
+    - <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn>
+      <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo>
+      <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext>
+      <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow> <mo>)</mo></mrow></mrow>
+    - Fragile!
+    StandardForm: &id001
+    - <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mrow><mn>1</mn>
+      <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow></mfrac>
+    - Fragile!
+    TraditionalForm: "*id001"
+  msg: FractionBox
+  text:
+    InputForm: "(1 + (1 + a^(-1))^(-1))^(-1)"
+    OutputForm: "    1\n---------\n      1\n1 + -----\n        1\n    1 + -\n        a"
+    StandardForm: "\\!\\(\\*FractionBox[\"1\", RowBox[{\"1\", \"+\", FractionBox[\"1\", RowBox[{\"1\", \"+\", FractionBox[\"1\", \"a\"]}]]}]]\\)"
+    TraditionalForm: "\\!\\(\\*FormBox[FractionBox[\"1\", RowBox[{FractionBox[\"1\", RowBox[{FractionBox[\"1\", \"a\"], \"+\", \"1\"}]], \"+\", \"1\"}]], TraditionalForm]\\)"
+# Nested Association
+<|a \[Rule] x, b \[Rule] y, c \[Rule] <|d \[Rule] t|>|>:
+  latex:
+    InputForm: \text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{
+      -> }t\text{$\vert$>}\text{$\vert$>}
+    OutputForm: \text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{
+      -> }t\text{$\vert$>}\text{$\vert$>}
+    StandardForm: \text{<$\vert$}a \[Rule] x,b \[Rule] y,c \[Rule] \text{<$\vert$}d \[Rule] t\text{$\vert$>}\text{$\vert$>}
+    TraditionalForm: \text{<$\vert$}a\[Rule]x,b\[Rule]y,c\[Rule]\text{<$\vert$}d\[Rule]t\text{$\vert$>}\text{$\vert$>}
+  mathml:
+    InputForm: <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
+      <mi>x</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>b</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
+      <mi>y</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>c</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
+      <mrow><mtext>&lt;|</mtext> <mrow><mi>d</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
+      <mi>t</mi></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>
+    OutputForm: <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
+      <mi>x</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>b</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
+      <mi>y</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>c</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
+      <mrow><mtext>&lt;|</mtext> <mrow><mi>d</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
+      <mi>t</mi></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>
+    StandardForm: <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mn>-&gt;</mn>
+      <mi>x</mi></mrow> <mo>,</mo> <mrow><mi>b</mi> <mn>-&gt;</mn> <mi>y</mi></mrow>
+      <mo>,</mo> <mrow><mi>c</mi> <mn>-&gt;</mn> <mrow><mtext>&lt;|</mtext> <mrow><mi>d</mi>
+      <mn>-&gt;</mn> <mi>t</mi></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>
+    TraditionalForm: "<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mn>-&gt;</mn>
+      <mi>x</mi></mrow> <mo>,</mo> <mrow><mi>b</mi> <mn>-&gt;</mn> <mi>y</mi></mrow>
+      <mo>,</mo> <mrow><mi>c</mi> <mn>-&gt;</mn> <mrow><mtext>&lt;|</mtext> <mrow><mi>d</mi>
+      <mn>-&gt;</mn> <mi>t</mi></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>"
+  msg: Association
+  text:
+    InputForm: "<|a -> x, b -> y, c -> <|d -> t|>|>"
+    OutputForm: "<|a -> x, b -> y, c -> <|d -> t|>|>"
+    StandardForm: "\\!\\(\\*RowBox[{\"\\[LeftAssociation]\", RowBox[{RowBox[{\"a\", \"\\[Rule]\", \"x\"}], \",\", RowBox[{\"b\", \"\\[Rule]\", \"y\"}], \",\", RowBox[{\"c\", \"\\[Rule]\", RowBox[{\"\\[LeftAssociation]\", RowBox[{\"d\", \"\\[Rule]\", \"t\"}], \"\\[RightAssociation]\"}]}]}], \"\\[RightAssociation]\"}]\\)"
+    TraditionalForm: "\\!\\(\\*FormBox[RowBox[{\"\\[LeftAssociation]\", RowBox[{RowBox[{\"a\", \"\\[Rule]\", \"x\"}], \",\", RowBox[{\"b\", \"\\[Rule]\", \"y\"}], \",\", RowBox[{\"c\", \"\\[Rule]\", RowBox[{\"\\[LeftAssociation]\", RowBox[{\"d\", \"\\[Rule]\", \"t\"}], \"\\[RightAssociation]\"}]}]}], \"\\[RightAssociation]\"}], TraditionalForm]\\)"
+# Association nested 2
+Association[a -> x, b -> y, c -> Association[d -> t, Association[e -> u]]]:
+  latex:
+    InputForm: \text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{
+      -> }t, e\text{ -> }u\text{$\vert$>}\text{$\vert$>}
+    OutputForm: \text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{
+      -> }t, e\text{ -> }u\text{$\vert$>}\text{$\vert$>}
+    StandardForm: \text{<$\vert$}a->x,b->y,c->\text{<$\vert$}d->t,e->u\text{$\vert$>}\text{$\vert$>}
+    TraditionalForm: \text{<$\vert$}a->x,b->y,c->\text{<$\vert$}d->t,e->u\text{$\vert$>}\text{$\vert$>}
+  mathml:
+    InputForm: <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
+      <mi>x</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>b</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
+      <mi>y</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>c</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
+      <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>d</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
+      <mi>t</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>e</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
+      <mi>u</mi></mrow></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>
+    OutputForm: <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
+      <mi>x</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>b</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
+      <mi>y</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>c</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
+      <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>d</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
+      <mi>t</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>e</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
+      <mi>u</mi></mrow></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>
+    StandardForm: <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mn>-&gt;</mn>
+      <mi>x</mi></mrow> <mo>,</mo> <mrow><mi>b</mi> <mn>-&gt;</mn> <mi>y</mi></mrow>
+      <mo>,</mo> <mrow><mi>c</mi> <mn>-&gt;</mn> <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>d</mi>
+      <mn>-&gt;</mn> <mi>t</mi></mrow> <mo>,</mo> <mrow><mi>e</mi> <mn>-&gt;</mn>
+      <mi>u</mi></mrow></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>
+    TraditionalForm: <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mn>-&gt;</mn>
+      <mi>x</mi></mrow> <mo>,</mo> <mrow><mi>b</mi> <mn>-&gt;</mn> <mi>y</mi></mrow>
+      <mo>,</mo> <mrow><mi>c</mi> <mn>-&gt;</mn> <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>d</mi>
+      <mn>-&gt;</mn> <mi>t</mi></mrow> <mo>,</mo> <mrow><mi>e</mi> <mn>-&gt;</mn>
+      <mi>u</mi></mrow></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>
+  msg: Nested Association
+  text:
+    InputForm: <|a -> x, b -> y, c -> <|d -> t, e -> u|>|>
+    OutputForm: <|a -> x, b -> y, c -> <|d -> t, e -> u|>|>
+    StandardForm: "\\!\\(\\*RowBox[{\"\\[LeftAssociation]\", RowBox[{RowBox[{\"a\", \"\\[Rule]\", \"x\"}], \",\", RowBox[{\"b\", \"\\[Rule]\", \"y\"}], \",\", RowBox[{\"c\", \"\\[Rule]\", RowBox[{\"\\[LeftAssociation]\", RowBox[{RowBox[{\"d\", \"\\[Rule]\", \"t\"}], \",\", RowBox[{\"e\", \"\\[Rule]\", \"u\"}]}], \"\\[RightAssociation]\"}]}]}], \"\\[RightAssociation]\"}]\\)"
+    TraditionalForm: "\\!\\(\\*FormBox[RowBox[{\"\\[LeftAssociation]\", RowBox[{RowBox[{\"a\", \"\\[Rule]\", \"x\"}], \",\", RowBox[{\"b\", \"\\[Rule]\", \"y\"}], \",\", RowBox[{\"c\", \"\\[Rule]\", RowBox[{\"\\[LeftAssociation]\", RowBox[{RowBox[{\"d\", \"\\[Rule]\", \"t\"}], \",\", RowBox[{\"e\", \"\\[Rule]\", \"u\"}]}], \"\\[RightAssociation]\"}]}]}], \"\\[RightAssociation]\"}], TraditionalForm]\\)"
+Complex[1.09*^12, 3.]:
+  latex:
+    InputForm: 1.09\text{*${}^{\wedge}$}12\text{ + }3.*I
+    OutputForm: 1.09\times 10^{12}\text{ + }3. I
+    StandardForm: 1.09\text{*${}^{\wedge}$}12+3. I
+    TraditionalForm: 1.09\times 10^{12}+3. I
+  mathml:
+    InputForm: <mrow><mrow><mn>1.09</mn> <mtext>*^</mtext> <mn>12</mn></mrow>
+      <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>3.</mn> <mtext>*</mtext> <mi>I</mi></mrow></mrow>
+    OutputForm: "<mrow><mrow><mn>1.09</mn> <mo>\xD7</mo> <msup><mn>10</mn>\
+      \ <mn>12</mn></msup></mrow> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>3.</mn> <mo>&nbsp;</mo>\
+      \ <mi>I</mi></mrow></mrow>"
+    StandardForm: <mrow><mrow><mn>1.09</mn> <mtext>*^</mtext> <mn>12</mn></mrow>
+      <mo>+</mo> <mrow><mn>3.</mn> <mo>&nbsp;</mo> <mi>I</mi></mrow></mrow>
+    TraditionalForm: "<mrow><mrow><mn>1.09</mn> <mo>\xD7</mo> <msup><mn>10</mn>\
+      \ <mn>12</mn></msup></mrow> <mo>+</mo> <mrow><mn>3.</mn> <mo form=\"prefix\"\
+      \ lspace=\"0\" rspace=\"0.2em\">\u2062</mo> <mi>I</mi></mrow></mrow>"
+  msg: Complex number
+  text:
+    InputForm: 1.09*^12 + 3.*I
+    OutputForm: "       12\n1.09 10   + 3. I"
+    StandardForm: "\\!\\(\\*RowBox[{\"1.09`*^12\", \"+\", RowBox[{\"3.`\", \" \", \"\\[ImaginaryI]\"}]}]\\)"
+    TraditionalForm: "\\!\\(\\*FormBox[RowBox[{\"1.09`*^12\", \"+\", RowBox[{\"3.`\", \" \", \"\\[ImaginaryI]\"}]}], TraditionalForm]\\)"
+Graphics[{Text[a^b,{0,0}]}]:
+  latex:
+    InputForm: \text{Graphics}\left[\left\{\text{Text}\left[\text{Power}\left[a,
+      b\right], \left\{0, 0\right\}\right]\right\}\right]
+    OutputForm: '
+
+      \begin{asy}
+
+      usepackage("amsmath");
+
+      size(4.9cm, 5.8333cm);
+
+
+      // InsetBox
+
+      label("$a^b$", (147.0,175.0), align=SW, rgb(0, 0, 0)+fontsize(3));
+
+
+      clip(box((136.5,162.5), (157.5,187.5)));
+
+
+      \end{asy}
+
+      '
+    StandardForm: '
+
+      \begin{asy}
+
+      usepackage("amsmath");
+
+      size(4.9cm, 5.8333cm);
+
+
+      // InsetBox
+
+      label("$a^b$", (147.0,175.0), align=SW, rgb(0, 0, 0)+fontsize(3));
+
+
+      clip(box((136.5,162.5), (157.5,187.5)));
+
+
+      \end{asy}
+
+      '
+    TraditionalForm: '
+
+      \begin{asy}
+
+      usepackage("amsmath");
+
+      size(4.9cm, 5.8333cm);
+
+
+      // InsetBox
+
+      label("$a^b$", (147.0,175.0), align=SW, rgb(0, 0, 0)+fontsize(3));
+
+
+      clip(box((136.5,162.5), (157.5,187.5)));
+
+
+      \end{asy}
+
+      '
+  msg: Nontrivial Graphics - Fragile!
+  text:
+    InputForm: Graphics[{Text[a^b, {0, 0}]}]
+    OutputForm: -Graphics-
+    StandardForm: "\\!\\(\\*GraphicsBox[List[InsetBox[FormBox[SuperscriptBox[\"a\", \"b\"], TraditionalForm], List[0, 0]]]]\\)"
+    TraditionalForm: "\\!\\(\\*FormBox[GraphicsBox[List[InsetBox[FormBox[SuperscriptBox[\"a\", \"b\"], TraditionalForm], List[0, 0]]]], TraditionalForm]\\)"
+Graphics[{}]:
+  latex:
+    InputForm: \text{Graphics}\left[\left\{\right\}\right]
+    OutputForm: '
+
+      \begin{asy}
+
+      usepackage("amsmath");
+
+      size(5.8333cm, 5.8333cm);
+
+
+
+      clip(box((-1,-1), (1,1)));
+
+
+      \end{asy}
+
+      '
+    StandardForm: '
+
+      \begin{asy}
+
+      usepackage("amsmath");
+
+      size(5.8333cm, 5.8333cm);
+
+
+
+      clip(box((-1,-1), (1,1)));
+
+
+      \end{asy}
+
+      '
+    TraditionalForm: '
+
+      \begin{asy}
+
+      usepackage("amsmath");
+
+      size(5.8333cm, 5.8333cm);
+
+
+
+      clip(box((-1,-1), (1,1)));
+
+
+      \end{asy}
+
+      '
+  msg: GraphicsBox - Fragile!
+  text:
+    InputForm: Graphics[{}]
+    OutputForm: -Graphics-
+    StandardForm: "\\!\\(\\*GraphicsBox[List[]]\\)"
+    TraditionalForm: "\\!\\(\\*FormBox[GraphicsBox[List[]], TraditionalForm]\\)"
+"Grid[{{\"Spanish\", \"Hola!\"},{\"Portuguese\", \"Ol\\[AGrave]!\"},{\"English\", \"Hi!\"}}]":
+  latex:
+    InputForm: "\\text{Grid}\\left[\\left\\{\\left\\{\\text{``Spanish''}, \\\
+      text{``Hola!''}\\right\\}, \\left\\{\\text{``Portuguese''}, \\text{``Ol\xE0\
+      !''}\\right\\}, \\left\\{\\text{``English''}, \\text{``Hi!''}\\right\\}\\right\\\
+      }\\right]"
+    OutputForm: "\\begin{array}{cc} \\text{Spanish} & \\text{Hola!}\\\\ \\\
+      text{Portuguese} & \\text{Ol\\`a!}\\\\ \\text{English} & \\text{Hi!}\\end{array}"
+    StandardForm: "\\begin{array}{cc} \\text{Spanish} & \\text{Hola!}\\\\ \\\
+      text{Portuguese} & \\text{Ol\xE0!}\\\\ \\text{English} & \\text{Hi!}\\end{array}"
+    TraditionalForm: "\\begin{array}{cc} \\text{Spanish} & \\text{Hola!}\\\\\
+      \ \\text{Portuguese} & \\text{Ol\xE0!}\\\\ \\text{English} & \\text{Hi!}\\end{array}"
+  mathml:
+    InputForm: "<mrow><mi>Grid</mi> <mo>[</mo> <mrow><mo>{</mo> <mrow><mrow><mo>{</mo>\
+      \ <mrow><ms>Spanish</ms> <mtext>,&nbsp;</mtext> <ms>Hola!</ms></mrow> <mo>}</mo></mrow>\
+      \ <mtext>,&nbsp;</mtext> <mrow><mo>{</mo> <mrow><ms>Portuguese</ms> <mtext>,&nbsp;</mtext>\
+      \ <ms>Ol\xE0!</ms></mrow> <mo>}</mo></mrow> <mtext>,&nbsp;</mtext> <mrow><mo>{</mo>\
+      \ <mrow><ms>English</ms> <mtext>,&nbsp;</mtext> <ms>Hi!</ms></mrow> <mo>}</mo></mrow></mrow>\
+      \ <mo>}</mo></mrow> <mo>]</mo></mrow>"
+    OutputForm: "<mtable columnalign=\"center\">\n<mtr><mtd columnalign=\"\
+      center\"><mtext>Spanish</mtext></mtd><mtd columnalign=\"center\"><mtext>Hola!</mtext></mtd></mtr>\n\
+      <mtr><mtd columnalign=\"center\"><mtext>Portuguese</mtext></mtd><mtd columnalign=\"\
+      center\"><mtext>Ol\xE0!</mtext></mtd></mtr>\n<mtr><mtd columnalign=\"center\"\
+      ><mtext>English</mtext></mtd><mtd columnalign=\"center\"><mtext>Hi!</mtext></mtd></mtr>\n\
+      </mtable>"
+    StandardForm: "<mtable columnalign=\"center\">\n<mtr><mtd columnalign=\"\
+      center\"><mtext>Spanish</mtext></mtd><mtd columnalign=\"center\"><mtext>Hola!</mtext></mtd></mtr>\n\
+      <mtr><mtd columnalign=\"center\"><mtext>Portuguese</mtext></mtd><mtd columnalign=\"\
+      center\"><mtext>Ol\xE0!</mtext></mtd></mtr>\n<mtr><mtd columnalign=\"center\"\
+      ><mtext>English</mtext></mtd><mtd columnalign=\"center\"><mtext>Hi!</mtext></mtd></mtr>\n\
+      </mtable>"
+    TraditionalForm: "<mtable columnalign=\"center\">\n<mtr><mtd columnalign=\"\
+      center\"><mtext>Spanish</mtext></mtd><mtd columnalign=\"center\"><mtext>Hola!</mtext></mtd></mtr>\n\
+      <mtr><mtd columnalign=\"center\"><mtext>Portuguese</mtext></mtd><mtd columnalign=\"\
+      center\"><mtext>Ol\xE0!</mtext></mtd></mtr>\n<mtr><mtd columnalign=\"center\"\
+      ><mtext>English</mtext></mtd><mtd columnalign=\"center\"><mtext>Hi!</mtext></mtd></mtr>\n\
+      </mtable>"
+  msg: Strings in a GridBox
+  text:
+    InputForm: "Grid[{{\"Spanish\", \"Hola!\"}, {\"Portuguese\", \"Ol\\[AGrave]!\"\
+      }, {\"English\", \"Hi!\"}}]"
+    OutputForm: "Spanish      Hola!\n\nPortuguese   Ol\\[AGrave]!\n\nEnglish    \
+      \  Hi!\n"
+    StandardForm: "\\!\\(\\*TagBox[GridBox[{{\"\\\"Spanish\\\"\", \"\\\"Hola!\\\"\"}, {\"\\\"Portuguese\\\"\", \"\\\"Ol\\[AGrave]!\\\"\"}, {\"\\\"English\\\"\", \"\\\"Hi!\\\"\"}}, Rule[AutoDelete, False], Rule[GridBoxItemSize, List[Rule[\"Columns\", List[List[Automatic]]], Rule[\"Rows\", List[List[Automatic]]]]]], \"Grid\"]\\)"
+    TraditionalForm: "\\!\\(\\*FormBox[TagBox[GridBox[{{\"\\\"Spanish\\\"\", \"\\\"Hola!\\\"\"}, {\"\\\"Portuguese\\\"\", \"\\\"Ol\\[AGrave]!\\\"\"}, {\"\\\"English\\\"\", \"\\\"Hi!\\\"\"}}, Rule[AutoDelete, False], Rule[GridBoxItemSize, List[Rule[\"Columns\", List[List[Automatic]]], Rule[\"Rows\", List[List[Automatic]]]]]], \"Grid\"], TraditionalForm]\\)"
+Grid[{{a,b},{c,d}}]:
+  latex:
+    InputForm: \text{Grid}\left[\left\{\left\{a, b\right\}, \left\{c, d\right\}\right\}\right]
+    OutputForm: \begin{array}{cc} a & b\\ c & d\end{array}
+    StandardForm: \begin{array}{cc} a & b\\ c & d\end{array}
+    TraditionalForm: \begin{array}{cc} a & b\\ c & d\end{array}
+  mathml:
+    InputForm: <mrow><mi>Grid</mi> <mo>[</mo> <mrow><mo>{</mo> <mrow><mrow><mo>{</mo>
+      <mrow><mi>a</mi> <mtext>,&nbsp;</mtext> <mi>b</mi></mrow> <mo>}</mo></mrow>
+      <mtext>,&nbsp;</mtext> <mrow><mo>{</mo> <mrow><mi>c</mi> <mtext>,&nbsp;</mtext>
+      <mi>d</mi></mrow> <mo>}</mo></mrow></mrow> <mo>}</mo></mrow> <mo>]</mo></mrow>
+    OutputForm: '<mtable columnalign="center">
+
+      <mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>
+
+      <mtr><mtd columnalign="center"><mi>c</mi></mtd><mtd columnalign="center"><mi>d</mi></mtd></mtr>
+
+      </mtable>'
+    StandardForm: '<mtable columnalign="center">
+
+      <mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>
+
+      <mtr><mtd columnalign="center"><mi>c</mi></mtd><mtd columnalign="center"><mi>d</mi></mtd></mtr>
+
+      </mtable>'
+    TraditionalForm: '<mtable columnalign="center">
+
+      <mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>
+
+      <mtr><mtd columnalign="center"><mi>c</mi></mtd><mtd columnalign="center"><mi>d</mi></mtd></mtr>
+
+      </mtable>'
+  msg: GridBox
+  text:
+    InputForm: Grid[{{a, b}, {c, d}}]
+    OutputForm: 'a   b
+
+
+      c   d'
+    StandardForm: "\\!\\(\\*TagBox[GridBox[{{\"a\", \"b\"}, {\"c\", \"d\"}}, Rule[AutoDelete, False], Rule[GridBoxItemSize, List[Rule[\"Columns\", List[List[Automatic]]], Rule[\"Rows\", List[List[Automatic]]]]]], \"Grid\"]\\)"
+    TraditionalForm: "\\!\\(\\*FormBox[TagBox[GridBox[{{\"a\", \"b\"}, {\"c\", \"d\"}}, Rule[AutoDelete, False], Rule[GridBoxItemSize, List[Rule[\"Columns\", List[List[Automatic]]], Rule[\"Rows\", List[List[Automatic]]]]]], \"Grid\"], TraditionalForm]\\)"
+#
+# Integrate
+#
+Integrate[F[x], {x, a, g[b]}]:
+  latex:
+    InputForm: \text{Integrate}\left[F\left[x\right], \left\{x, a, g\left[b\right]\right\}\right]
+    OutputForm: \text{Integrate}\left[F\left[x\right], \left\{x, a, g\left[b\right]\right\}\right]
+    StandardForm: \int_a^{g\left[b\right]} F\left[x\right] \, dx
+    TraditionalForm: \int_a^{g\left(b\right)} F\left(x\right) \, dx
+  mathml:
+    InputForm: <mrow><mi>Integrate</mi> <mo>[</mo> <mrow><mrow><mi>F</mi> <mo>[</mo>
+      <mi>x</mi> <mo>]</mo></mrow> <mtext>,&nbsp;</mtext> <mrow><mo>{</mo> <mrow><mi>x</mi>
+      <mtext>,&nbsp;</mtext> <mi>a</mi> <mtext>,&nbsp;</mtext> <mrow><mi>g</mi> <mo>[</mo>
+      <mi>b</mi> <mo>]</mo></mrow></mrow> <mo>}</mo></mrow></mrow> <mo>]</mo></mrow>
+    OutputForm: <mrow><mi>Integrate</mi> <mo>[</mo> <mrow><mrow><mi>F</mi>
+      <mo>[</mo> <mi>x</mi> <mo>]</mo></mrow> <mtext>,&nbsp;</mtext> <mrow><mo>{</mo>
+      <mrow><mi>x</mi> <mtext>,&nbsp;</mtext> <mi>a</mi> <mtext>,&nbsp;</mtext> <mrow><mi>g</mi>
+      <mo>[</mo> <mi>b</mi> <mo>]</mo></mrow></mrow> <mo>}</mo></mrow></mrow> <mo>]</mo></mrow>
+  msg: Nontrivial SubsuperscriptBox
+  text:
+    OutputForm: Integrate[F[x], {x, a, g[b]}]
+MatrixForm[{{a,b},{c,d}}]:
+  latex:
+    InputForm: \text{MatrixForm}\left[\left\{\left\{a, b\right\}, \left\{c,
+      d\right\}\right\}\right]
+    OutputForm: \begin{array}{cc} a & b\\ c & d\end{array}
+    StandardForm: \left(\begin{array}{cc} a & b\\ c & d\end{array}\right)
+    TraditionalForm: \left(\begin{array}{cc} a & b\\ c & d\end{array}\right)
+  mathml:
+    InputForm: <mrow><mi>MatrixForm</mi> <mo>[</mo> <mrow><mo>{</mo> <mrow><mrow><mo>{</mo>
+      <mrow><mi>a</mi> <mtext>,&nbsp;</mtext> <mi>b</mi></mrow> <mo>}</mo></mrow>
+      <mtext>,&nbsp;</mtext> <mrow><mo>{</mo> <mrow><mi>c</mi> <mtext>,&nbsp;</mtext>
+      <mi>d</mi></mrow> <mo>}</mo></mrow></mrow> <mo>}</mo></mrow> <mo>]</mo></mrow>
+    OutputForm: '<mtable columnalign="center">
+
+      <mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>
+
+      <mtr><mtd columnalign="center"><mi>c</mi></mtd><mtd columnalign="center"><mi>d</mi></mtd></mtr>
+
+      </mtable>'
+    StandardForm: '<mrow><mo>(</mo> <mtable columnalign="center">
+
+      <mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>
+
+      <mtr><mtd columnalign="center"><mi>c</mi></mtd><mtd columnalign="center"><mi>d</mi></mtd></mtr>
+
+      </mtable> <mo>)</mo></mrow>'
+    TraditionalForm: '<mrow><mo>(</mo> <mtable columnalign="center">
+
+      <mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>
+
+      <mtr><mtd columnalign="center"><mi>c</mi></mtd><mtd columnalign="center"><mi>d</mi></mtd></mtr>
+
+      </mtable> <mo>)</mo></mrow>'
+  msg: GridBox in a matrix
+  text:
+    InputForm: MatrixForm[{{a, b}, {c, d}}]
+    OutputForm: 'a   b
+
+
+      c   d'
+    StandardForm: "\\!\\(\\*TagBox[RowBox[{\"(\", \"\\[NoBreak]\", GridBox[{{\"a\", \"b\"}, {\"c\", \"d\"}}, Rule[RowSpacings, 1], Rule[ColumnSpacings, 1], Rule[RowAlignments, Baseline], Rule[ColumnAlignments, Center]], \"\\[NoBreak]\", \")\"}], Function[BoxForm`e$, MatrixForm[BoxForm`e$]]]\\)"
+    TraditionalForm: "\\!\\(\\*FormBox[TagBox[RowBox[{\"(\", \"\\[NoBreak]\", GridBox[{{\"a\", \"b\"}, {\"c\", \"d\"}}, Rule[RowSpacings, 1], Rule[ColumnSpacings, 1], Rule[RowAlignments, Baseline], Rule[ColumnAlignments, Center]], \"\\[NoBreak]\", \")\"}], Function[BoxForm`e$, MatrixForm[BoxForm`e$]]], TraditionalForm]\\)"
+Sqrt[1/(1+1/(1+1/a))]:
+  latex:
+    InputForm: \text{Sqrt}\left[1\text{ / }\left(1\text{ + }1\text{ / }\left(1\text{
+      + }1\text{ / }a\right)\right)\right]
+    OutputForm: \text{Sqrt}\left[1\text{ / }\left(1\text{ + }1\text{ / }\left(1\text{
+      + }1\text{ / }a\right)\right)\right]
+    StandardForm: \sqrt{\frac{1}{1+\frac{1}{1+\frac{1}{a}}}}
+    TraditionalForm: \sqrt{\frac{1}{1+\frac{1}{1+\frac{1}{a}}}}
+  mathml:
+    InputForm:
+    - <mrow><mi>Sqrt</mi> <mo>[</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext>
+      <mrow><mo>(</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>1</mtext>
+      <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;+&nbsp;</mtext>
+      <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow>
+      <mo>)</mo></mrow></mrow></mrow> <mo>)</mo></mrow></mrow> <mo>]</mo></mrow>
+    - Fragile!
+    OutputForm:
+    - <mrow><mi>Sqrt</mi> <mo>[</mo> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext>
+      <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn>
+      <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext>
+      <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow>
+      <mo>)</mo></mrow></mrow> <mo>]</mo></mrow>
+    - Fragile!
+    StandardForm: &id002
+    - <msqrt> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mrow><mn>1</mn>
+      <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow></mfrac>
+      </msqrt>
+    - Fragile!
+    TraditionalForm: *id002
+  msg: SqrtBox
+  text:
+    InputForm: Sqrt[(1 + (1 + a^(-1))^(-1))^(-1)]
+    OutputForm: "         1\nSqrt[---------]\n           1\n     1 + -----\n             1\n         1 + -\n             a"
+    StandardForm: "\\!\\(\\*SqrtBox[FractionBox[\"1\", RowBox[{\"1\", \"+\", FractionBox[\"1\", RowBox[{\"1\", \"+\", FractionBox[\"1\", \"a\"]}]]}]]]\\)"
+    TraditionalForm: "\\!\\(\\*FormBox[SqrtBox[FractionBox[\"1\", RowBox[{FractionBox[\"1\", RowBox[{FractionBox[\"1\", \"a\"], \"+\", \"1\"}]], \"+\", \"1\"}]]], TraditionalForm]\\)"
+Subscript[a, 4]:
+  latex:
+    InputForm: \text{Subscript}\left[a, 4\right]
+    OutputForm: \text{Subscript}\left[a, 4\right]
+    StandardForm: a_4
+    TraditionalForm: a_4
+  mathml:
+    InputForm:
+    - <mrow><mi>Subscript</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext>
+      <mtext>4</mtext></mrow> <mo>]</mo></mrow>
+    - Fragile!
+    OutputForm:
+    - <mrow><mi>Subscript</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext>
+      <mn>4</mn></mrow> <mo>]</mo></mrow>
+    - Fragile!
+    StandardForm: <msub><mi>a</mi> <mn>4</mn></msub>
+    TraditionalForm: <msub><mi>a</mi> <mn>4</mn></msub>
+  msg: SubscriptBox
+  text:
+    InputForm: Subscript[a, 4]
+    OutputForm: "a\n 4"
+    StandardForm: &id003
+    - Subscript[a, 4]
+    - BoxError
+    TraditionalForm: *id003
+Subsuperscript[a, p, q]:
+  latex:
+    InputForm: \text{Subsuperscript}\left[a, p, q\right]
+    OutputForm: \text{Subsuperscript}\left[a, p, q\right]
+    StandardForm: a_p^q
+    TraditionalForm: a_p^q
+  mathml:
+    InputForm: <mrow><mi>Subsuperscript</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext>
+      <mi>p</mi> <mtext>,&nbsp;</mtext> <mi>q</mi></mrow> <mo>]</mo></mrow>
+    OutputForm: <mrow><mi>Subsuperscript</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext>
+      <mi>p</mi> <mtext>,&nbsp;</mtext> <mi>q</mi></mrow> <mo>]</mo></mrow>
+    StandardForm: <msubsup><mi>a</mi> <mi>p</mi> <mi>q</mi></msubsup>
+    TraditionalForm: <msubsup><mi>a</mi> <mi>p</mi> <mi>q</mi></msubsup>
+  msg: SubsuperscriptBox
+  text:
+    InputForm: Subsuperscript[a, p, q]
+    OutputForm: " q\na\n p"
+    StandardForm: "\\!\\(\\*TemplateBox[List[\"a\", \"p\", \"q\"], \"Subsuperscript\", Rule[SyntaxForm, SubsuperscriptBox]]\\)"
+    TraditionalForm: "\\!\\(\\*FormBox[TemplateBox[List[\"a\", \"p\", \"q\"], \"Subsuperscript\", Rule[SyntaxForm, SubsuperscriptBox]], TraditionalForm]\\)"
+TableForm[{Graphics[{Text[a^b,{0,0}]}], Graphics[{Text[a^b,{0,0}]}]}]:
+  latex:
+    StandardForm: "\\begin{array}{c} \n\\begin{asy}\nusepackage(\"amsmath\"\
+      );\nsize(2.45cm, 2.9167cm);\n\n// InsetBox\nlabel(\"$a^b$\", (73.5,87.5), align=SW,\
+      \ rgb(0, 0, 0)+fontsize(3));\n\nclip(box((63,75), (84,100)));\n\n\\end{asy}\n\
+      \\\\ \n\\begin{asy}\nusepackage(\"amsmath\");\nsize(2.45cm, 2.9167cm);\n\n//\
+      \ InsetBox\nlabel(\"$a^b$\", (73.5,87.5), align=SW, rgb(0, 0, 0)+fontsize(3));\n\
+      \nclip(box((63,75), (84,100)));\n\n\\end{asy}\n\\end{array}"
+    TraditionalForm: "\\begin{array}{c} \n\\begin{asy}\nusepackage(\"amsmath\"\
+      );\nsize(2.45cm, 2.9167cm);\n\n// InsetBox\nlabel(\"$a^b$\", (73.5,87.5), align=SW,\
+      \ rgb(0, 0, 0)+fontsize(3));\n\nclip(box((63,75), (84,100)));\n\n\\end{asy}\n\
+      \\\\ \n\\begin{asy}\nusepackage(\"amsmath\");\nsize(2.45cm, 2.9167cm);\n\n//\
+      \ InsetBox\nlabel(\"$a^b$\", (73.5,87.5), align=SW, rgb(0, 0, 0)+fontsize(3));\n\
+      \nclip(box((63,75), (84,100)));\n\n\\end{asy}\n\\end{array}"
+  msg: A table of graphics - Fragile!
+  text:
+    InputForm: TableForm[{Graphics[{Text[a^b, {0, 0}]}], Graphics[{Text[a^b, {0, 0}]}]}]
+    OutputForm: '-Graphics-
+
+
+      -Graphics-'
+    StandardForm: "\\!\\(\\*TagBox[TagBox[GridBox[{{GraphicsBox[List[InsetBox[FormBox[SuperscriptBox[\"a\", \"b\"], TraditionalForm], List[0, 0]]]]}, {GraphicsBox[List[InsetBox[FormBox[SuperscriptBox[\"a\", \"b\"], TraditionalForm], List[0, 0]]]]}}, Rule[RowSpacings, 1], Rule[ColumnAlignments, Left], Rule[ColumnAlignments, Left]], Column], Function[BoxForm`e$, TableForm[BoxForm`e$]]]\\)"
+    TraditionalForm: "\\!\\(\\*FormBox[TagBox[TagBox[GridBox[{{GraphicsBox[List[InsetBox[FormBox[SuperscriptBox[\"a\", \"b\"], TraditionalForm], List[0, 0]]]]}, {GraphicsBox[List[InsetBox[FormBox[SuperscriptBox[\"a\", \"b\"], TraditionalForm], List[0, 0]]]]}}, Rule[RowSpacings, 1], Rule[ColumnAlignments, Left], Rule[ColumnAlignments, Left]], Column], Function[BoxForm`e$, TableForm[BoxForm`e$]]], TraditionalForm]\\)"
+#
+#
+#
+TableForm[{{a,b},{c,d}}]:
+  latex:
+    InputForm: \text{TableForm}\left[\left\{\left\{a, b\right\}, \left\{c,
+      d\right\}\right\}\right]
+    OutputForm: \begin{array}{cc} a & b\\ c & d\end{array}
+    StandardForm: \begin{array}{cc} a & b\\ c & d\end{array}
+    TraditionalForm: \begin{array}{cc} a & b\\ c & d\end{array}
+  mathml:
+    InputForm: <mrow><mi>TableForm</mi> <mo>[</mo> <mrow><mo>{</mo> <mrow><mrow><mo>{</mo>
+      <mrow><mi>a</mi> <mtext>,&nbsp;</mtext> <mi>b</mi></mrow> <mo>}</mo></mrow>
+      <mtext>,&nbsp;</mtext> <mrow><mo>{</mo> <mrow><mi>c</mi> <mtext>,&nbsp;</mtext>
+      <mi>d</mi></mrow> <mo>}</mo></mrow></mrow> <mo>}</mo></mrow> <mo>]</mo></mrow>
+    OutputForm: '<mtable columnalign="center">
+
+      <mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>
+
+      <mtr><mtd columnalign="center"><mi>c</mi></mtd><mtd columnalign="center"><mi>d</mi></mtd></mtr>
+
+      </mtable>'
+    StandardForm: '<mtable columnalign="center">
+
+      <mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>
+
+      <mtr><mtd columnalign="center"><mi>c</mi></mtd><mtd columnalign="center"><mi>d</mi></mtd></mtr>
+
+      </mtable>'
+    TraditionalForm: '<mtable columnalign="center">
+
+      <mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>
+
+      <mtr><mtd columnalign="center"><mi>c</mi></mtd><mtd columnalign="center"><mi>d</mi></mtd></mtr>
+
+      </mtable>'
+  msg: GridBox in a table
+  text:
+    InputForm: TableForm[{{a, b}, {c, d}}]
+    OutputForm: 'a   b
+
+
+      c   d'
+    StandardForm: "\\!\\(\\*TagBox[GridBox[{{\"a\", \"b\"}, {\"c\", \"d\"}}, Rule[RowSpacings, 1], Rule[ColumnSpacings, 3], Rule[RowAlignments, Baseline], Rule[ColumnAlignments, Left]], Function[BoxForm`e$, TableForm[BoxForm`e$]]]\\)"
+    TraditionalForm: "\\!\\(\\*FormBox[TagBox[GridBox[{{\"a\", \"b\"}, {\"c\", \"d\"}}, Rule[RowSpacings, 1], Rule[ColumnSpacings, 3], Rule[RowAlignments, Baseline], Rule[ColumnAlignments, Left]], Function[BoxForm`e$, TableForm[BoxForm`e$]]], TraditionalForm]\\)"
+\[Pi]:
+  latex:
+    InputForm: \text{Pi}
+    OutputForm: \text{Pi}
+    StandardForm: \pi
+    TraditionalForm: \pi
+  mathml:
+    InputForm: <mi>Pi</mi>
+    OutputForm: <mi>Pi</mi>
+    StandardForm: "<mi>\u03C0</mi>"
+    TraditionalForm: "<mi>\u03C0</mi>"
+  msg: A greek letter Symbol
+  text:
+    InputForm: Pi
+    OutputForm: Pi
+    StandardForm: "\\!\\(\\*RowBox[{\"\\[Pi]\"}]\\)"
+    TraditionalForm: "\\!\\(\\*FormBox[\"\\[Pi]\", TraditionalForm]\\)"
+a:
+  latex:
+    InputForm: a
+    OutputForm: a
+    StandardForm: a
+    TraditionalForm: a
+  mathml:
+    InputForm: <mi>a</mi>
+    OutputForm: <mi>a</mi>
+    StandardForm: <mi>a</mi>
+    TraditionalForm: <mi>a</mi>
+  msg: A Symbol
+  text:
+    InputForm: a
+    OutputForm: a
+    StandardForm: "\\!\\(\\*RowBox[{\"a\"}]\\)"
+    TraditionalForm: "\\!\\(\\*FormBox[\"a\", TraditionalForm]\\)"
+a^(g[b]/c):
+  latex:
+    InputForm: a{}^{\wedge}\left(g(b)\text{ / }c\right)
+    OutputForm: a\text{ ${}^{\wedge}$ }\left(g(b)\text{ / }c\right)
+    StandardForm: a^{\frac{g(b)}{c}}
+    TraditionalForm: a^{\frac{g(b)}{c}}
+  mathml:
+    InputForm: <mrow><mi>a</mi> <mo>^</mo> <mrow><mo>(</mo> <mrow><mi>b</mi>
+      <mtext>&nbsp;/&nbsp;</mtext> <mi>c</mi></mrow> <mo>)</mo></mrow></mrow>
+    OutputForm: <mrow><mi>a</mi> <mtext>&nbsp;^&nbsp;</mtext> <mrow><mo>(</mo>
+      <mrow><mi>b</mi> <mtext>&nbsp;/&nbsp;</mtext> <mi>c</mi></mrow> <mo>)</mo></mrow></mrow>
+    StandardForm: <msup><mi>a</mi> <mfrac><mi>b</mi> <mi>c</mi></mfrac></msup>
+    TraditionalForm: <msup><mi>a</mi> <mfrac><mrow><mi>g</mi> <mo>(</mo> <mi>b</mi> <mo>)</mo></mrow> <mi>c</mi></mfrac></msup>
+  msg: SuperscriptBox with a nested expression.
+  text:
+    InputForm: a^(g[b]/c)
+    OutputForm: " g[b]/c\na"
+    StandardForm: "\\!\\(\\*SuperscriptBox[\"a\", FractionBox[RowBox[{\"g\", \"[\", \"b\", \"]\"}], \"c\"]]\\)"
+    TraditionalForm: "\\!\\(\\*FormBox[SuperscriptBox[\"a\", FractionBox[RowBox[{\"g\", \"(\", \"b\", \")\"}], \"c\"]], TraditionalForm]\\)"
+a^4:
+  latex:
+    InputForm: a{}^{\wedge}4
+    OutputForm: a\text{ ${}^{\wedge}$ }4
+    StandardForm: a^4
+    TraditionalForm: a^4
+  mathml:
+    InputForm: <mrow><mi>a</mi> <mo>^</mo> <mtext>4</mtext></mrow>
+    OutputForm: <mrow><mi>a</mi> <mtext>&nbsp;^&nbsp;</mtext> <mn>4</mn></mrow>
+    StandardForm: <msup><mi>a</mi> <mn>4</mn></msup>
+    TraditionalForm: <msup><mi>a</mi> <mn>4</mn></msup>
+  msg: SuperscriptBox
+  text:
+    InputForm: a^4
+    OutputForm: " 4\na"
+    StandardForm: "\\!\\(\\*SuperscriptBox[\"a\", \"4\"]\\)"
+    TraditionalForm: "\\!\\(\\*FormBox[SuperscriptBox[\"a\", \"4\"], TraditionalForm]\\)"

@@ -27,6 +27,7 @@ from mathics.builtin.box.layout import (
     SubscriptBox,
     SubsuperscriptBox,
     SuperscriptBox,
+    TagBox,
 )
 from mathics.builtin.colors.color_directives import RGBColor
 from mathics.core.atoms import String
@@ -330,12 +331,29 @@ def rowbox(self, **options) -> str:
     _options = self.box_options.copy()
     _options.update(options)
     options = _options
-    return "".join(
-        [
-            lookup_conversion_method(element, "latex")(element, **options)
-            for element in self.items
-        ]
-    )
+    parts_str = [
+        lookup_conversion_method(element, "latex")(element, **options)
+        for element in self.items
+    ]
+    if len(parts_str) == 1:
+        return parts_str[0]
+    # This loop integrate all the row adding spaces after a ",", followed
+    # by something which is not a comma. For example,
+    # >> ToString[RowBox[{",",",","p"}]//DisplayForm]
+    #  = ",, p"
+    result = parts_str[0]
+    comma = result == ","
+    for elem in parts_str[1:]:
+        if elem == ",":
+            result += elem
+            comma = True
+            continue
+        if comma:
+            result += " "
+            comma = False
+
+        result += elem
+    return result
 
 
 add_conversion_fn(RowBox, rowbox)
@@ -629,3 +647,12 @@ currentlight=light(rgb(0.5,0.5,0.5), {5}specular=red, (2,0,2), (2,2,2), (0,2,2))
 
 
 add_conversion_fn(Graphics3DBox, graphics3dbox)
+
+
+def tag_box(self, **options):
+    return lookup_conversion_method(self.elements[0], "latex")(
+        self.elements[0], **options
+    )
+
+
+add_conversion_fn(TagBox, tag_box)
