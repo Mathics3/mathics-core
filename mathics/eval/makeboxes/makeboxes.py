@@ -21,6 +21,7 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (  # SymbolRule, SymbolRuleDelayed,
     SymbolComplex,
+    SymbolOutputForm,
     SymbolRational,
     SymbolStandardForm,
 )
@@ -136,14 +137,16 @@ def int_to_string_shorter_repr(value: int, form: Symbol, max_digits=640):
     return String(value_str)
 
 
-def eval_makeboxes_outputform(expr, evaluation, form):
+def eval_makeboxes_outputform(expr, evaluation, form, **kwargs):
     """
     Build a 2D representation of the expression using only keyboard characters.
     """
     from mathics.builtin.box.layout import PaneBox
     from mathics.form.outputform import expression_to_outputform_text
 
-    text_outputform = str(expression_to_outputform_text(expr, evaluation, form))
+    text_outputform = str(
+        expression_to_outputform_text(expr, evaluation, form, **kwargs)
+    )
     elem1 = PaneBox(String('"' + text_outputform + '"'))
     return elem1
 
@@ -281,6 +284,12 @@ def format_element(
     evaluation.is_boxing = True
     while element.get_head() is form:
         element = element.elements[0]
+
+    # By now, eval_makeboxes_outputform is only used when we explicitly
+    # ask for MakeBoxes[OutputForm[expr], fmt]
+    # When it get ready, we can uncomment this.
+    # if form is SymbolOutputForm:
+    #    return eval_makeboxes_outputform(element, evaluation, form, **kwargs)
 
     if element.has_form("FullForm", 1):
         return eval_makeboxes_fullform(element.elements[0], evaluation)

@@ -16,6 +16,7 @@ from mathics.eval.makeboxes import (
     format_element,
     parenthesize,
 )
+from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
 # TODO: Differently from the current implementation, MakeBoxes should only
 # accept as its format field the symbols in `$BoxForms`. This is something to

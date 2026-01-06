@@ -149,9 +149,9 @@ def pane_box(self, **options):
     content = lookup_conversion_method(self.boxed, "latex")(self.boxed, **options)
     options = self.box_options
     size = options.get("System`ImageSize", SymbolAutomatic).to_python()
-    if size is SymbolAutomatic:
-        width = "\\textwidth"
-        height = ""
+
+    if size == "System`Automatic":
+        return content
     elif isinstance(size, int):
         width = f"{size}pt"
         height = ""
