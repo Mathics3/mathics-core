@@ -686,11 +686,11 @@ class Times(InfixOperator, SympyFunction):
         positive = [Expression(SymbolHoldForm, item) for item in positive]
         negative = [Expression(SymbolHoldForm, item) for item in negative]
         if positive:
-            positive = create_infix(positive, op, 400, "None")
+            positive = create_infix(positive, op, 400, "Left")
         else:
             positive = Integer1
         if negative:
-            negative = create_infix(negative, op, 400, "None")
+            negative = create_infix(negative, op, 400, "Left")
             result = Expression(
                 SymbolDivide,
                 Expression(SymbolHoldForm, positive),

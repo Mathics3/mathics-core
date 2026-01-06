@@ -903,7 +903,7 @@ This will even apply to 'TeXForm', because 'TeXForm' implies 'StandardForm':
 
 Except some other form is applied first:
   >> b // OutputForm // TeXForm
-  = b
+  = \text{b}
 'MakeBoxes' for another form:
 
   >> MakeBoxes[b, TeXForm] = "d";
