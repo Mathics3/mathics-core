@@ -67,6 +67,13 @@ class CustomGraphicsBox(BoxExpression):
         instance = CustomGraphicsBox(*(expr.elements), evaluation=evaluation)
         return instance
 
+    def eval_box_outputForm(self, expr, evaluation: Evaluation, options: dict):
+        """System`MakeBoxes[System`OutputForm[System`Graphics[System`expr_, System`OptionsPattern[System`Graphics]]],
+        System`StandardForm|System`TraditionalForm]"""
+        print("MakeBoxes OutputForm")
+        instance = CustomGraphicsBox(*(expr.elements), evaluation=evaluation)
+        return instance
+
     def boxes_to_text(self, elements=None, **options):
         if elements:
             self._elements = elements
