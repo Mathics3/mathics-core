@@ -48,6 +48,7 @@ from mathics.eval.makeboxes import (
     eval_tableform,
     eval_texform,
 )
+from mathics.format import render_input_form
 
 
 class BaseForm(FormBaseClass):
@@ -206,6 +207,14 @@ class InputForm(FormBaseClass):
     in_outputforms = True
     in_printforms = True
     summary_text = "plain-text input format"
+
+    def eval_makeboxes(self, expr, evaluation):
+        """MakeBoxes[InputForm[expr], _]"""
+        inputform_str = render_input_form(expr, evaluation)
+        expr = Expression(SymbolInputForm, expr)
+        return InterpretationBox(
+            inputform_str, expr, **{"Editable": SymbolTrue, "AutoDelete": SymboLTrue}
+        )
 
 
 class _NumberForm(Builtin):
