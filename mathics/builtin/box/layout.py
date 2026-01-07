@@ -14,20 +14,12 @@ from mathics.builtin.options import filter_non_default_values, options_to_rules
 from mathics.core.atoms import String
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
-from mathics.core.element import BaseElement, BoxElementMixin
+from mathics.core.element import BaseElement, BoxElementMixin, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import (
-    SymbolFractionBox,
-    SymbolRowBox,
-    SymbolSqrtBox,
-    SymbolSubscriptBox,
-    SymbolSubsuperscriptBox,
-    SymbolSuperscriptBox,
-)
 from mathics.eval.makeboxes import to_boxes
 
 # This tells documentation how to sort this module
@@ -105,8 +97,8 @@ class FractionBox(BoxExpression):
     def elements(self):
         if self._elements is None:
             self._elements = elements_to_expressions(
+                self,
                 (
-                    self,
                     self.num,
                     self.den,
                 ),
@@ -216,7 +208,16 @@ class InterpretationBox(BoxExpression):
     """
 
     attributes = A_HOLD_ALL_COMPLETE | A_PROTECTED | A_READ_PROTECTED
+    options = {
+        "Editable": "Automatic",
+        "AutoDelete": "Automatic",
+    }
     summary_text = "box associated to an input expression"
+
+    def __repr__(self):
+        result = "InterpretationBox\n  " + repr(self.boxed)
+        result += f"\n  {self.box_options}"
+        return result
 
     def init(self, *expr, **options):
         self.boxed = expr[0]
@@ -236,9 +237,13 @@ class InterpretationBox(BoxExpression):
             )
         return self._elements
 
-    def eval_create(self, reprs, expr, evaluation):
-        """InterpretationBox[reprs_, expr_]"""
-        return InterpretationBox(reprs, expr)
+    def eval_create(self, reprs, expr, evaluation, options):
+        """InterpretationBox[reprs_, expr_, OptionsPattern[]]"""
+        if isinstance(reprs, EvalMixin):
+            reprs = reprs.evaluate(evaluation)
+        if not isinstance(reprs, BoxElementMixin):
+            return
+        return InterpretationBox(reprs, expr, **options)
 
     def eval_to_expression1(self, boxexpr, evaluation):
         """ToExpression[boxexpr_InterpretationBox]"""
@@ -450,7 +455,7 @@ class StyleBox(BoxExpression):
     """
 
     options = {
-        "ShowStringCharacters": "True",
+        "ShowStringCharacters": "False",
         "ShowSpecialCharacters": "False",
         "$OptionSyntax": "Ignore",
     }
@@ -477,10 +482,14 @@ class StyleBox(BoxExpression):
 
     def eval_options(self, boxes, evaluation: Evaluation, options: dict):
         """StyleBox[boxes_, OptionsPattern[]]"""
-        return StyleBox(boxes, style="", **options)
+        if not isinstance(boxes, BoxElementMixin):
+            return
+        return StyleBox(boxes, style=None, **options)
 
     def eval_style(self, boxes, style, evaluation: Evaluation, options: dict):
         """StyleBox[boxes_, style_String, OptionsPattern[]]"""
+        if not isinstance(boxes, BoxElementMixin):
+            return
         return StyleBox(boxes, style=style, **options)
 
     def get_string_value(self) -> str:
@@ -498,7 +507,9 @@ class StyleBox(BoxExpression):
         self.box_options = options
         assert options is not None
         self.boxes = boxes
-        assert isinstance(self.boxes, BoxElementMixin), "f{type(self.boxes)}"
+        assert isinstance(
+            self.boxes, BoxElementMixin
+        ), f"{type(self.boxes)},{self.boxes}"
 
 
 class SubscriptBox(BoxExpression):
@@ -670,7 +681,7 @@ class TagBox(BoxExpression):
                     self.boxed,
                     self.form,
                 ),
-                self.box_option,
+                self.box_options,
             )
         return self._elements
 
