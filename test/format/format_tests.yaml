@@ -25,7 +25,7 @@
 
 '"-7.32"':
   latex:
-    System`InputForm: \text{``-7.32''}
+    System`InputForm: '\text{``-7.32''}'
     System`OutputForm: \text{-7.32}
     System`StandardForm: \text{-7.32}
     System`TraditionalForm: \text{-7.32}

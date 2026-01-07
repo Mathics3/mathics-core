@@ -8,7 +8,7 @@ in the Notebook interface, the CLI (math) and wolframscript are not fully consis
 ****************************************************************************************)
 
 ISMATHICSINTERPRETER=(StringTake[$Version, 8]==="Mathics3");
-
+ISMATHICSINTERPRETER=True;
 
 Print["Read json"];
 data = Import["format_tests-WMA.json"];
@@ -28,6 +28,7 @@ Do[key = ToExpression[tests[[1]]];
    Print["    text", "\n    -----", "\n"];
    Do[form = ToExpression[subtest[[1]]]; expr = form[key];
       result = ToString[expr, CharacterEncoding->"ASCII"];
+      (*JSON importer understands double backslash literally instead of escaped backslash*)
       expected = subtest[[2]];
       If[result != expected, 
          Print["      * ", FullForm[expr], " //", form, "(text)    [Failed]\n        result:", "<<" <> result <> ">>(", StringLength[result], 
