@@ -1,12 +1,11 @@
 """
-This module builts the string associated to the OutputForm.
+This module implements the "OutputForm" textual representation of expressions.
 
-OutputForm produce a pretty-print-like output, suitable for CLI
-and text terminals. 
-
+OutputForm is two-dimensional keyboard-character-only output, suitable for CLI
+and text terminals.
 """
 
-from typing import Callable, Dict, List, Union
+from typing import Callable, Dict, Final, List, Union
 
 from mathics.core.atoms import (
     Integer,
@@ -22,7 +21,7 @@ from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.parser.operators import OPERATOR_DATA
+from mathics.core.parser.operators import OPERATOR_DATA, box_operators
 from mathics.core.symbols import Atom, Symbol, SymbolTimes
 from mathics.core.systemsymbols import (
     SymbolBlank,
@@ -46,11 +45,15 @@ SymbolPostfix = Symbol("System`Postfix")
 SymbolPrefix = Symbol("System`Prefix")
 
 
-PRECEDENCES = OPERATOR_DATA.get("operator-precedences")
-PRECEDENCE_DEFAULT = PRECEDENCES.get("FunctionApply")
-PRECEDENCE_PLUS = PRECEDENCES.get("Plus")
-PRECEDENCE_TIMES = PRECEDENCES.get("Times")
-PRECEDENCE_POWER = PRECEDENCES.get("Power")
+PRECEDENCES: Final = OPERATOR_DATA.get("operator-precedences")
+PRECEDENCE_DEFAULT: Final = PRECEDENCES.get("FunctionApply")
+PRECEDENCE_PLUS: Final = PRECEDENCES.get("Plus")
+PRECEDENCE_TIMES: Final = PRECEDENCES.get("Times")
+PRECEDENCE_POWER: Final = PRECEDENCES.get("Power")
+
+# When new mathics-scanner tables are updagted:
+# BOX_GROUP_PRECEDENCE: Final = box_operators["BoxGroup"]
+BOX_GROUP_PRECEDENCE: Final = PRECEDENCE_DEFAULT
 
 EXPR_TO_OUTPUTFORM_TEXT_MAP: Dict[str, Callable] = {}
 
@@ -328,7 +331,8 @@ def infix_expression_to_outputform_text(
         raise _WrongFormattedExpression
 
     group = None
-    precedence = PRECEDENCE_DEFAULT
+    precedence = BOX_GROUP_PRECEDENCE
+
     # Processing the first argument:
     head = expr.get_head()
     target = expr.elements[0]
@@ -606,7 +610,8 @@ def pre_pos_fix_expression_to_outputform_text(
         raise _WrongFormattedExpression
 
     group = None
-    precedence = PRECEDENCE_DEFAULT
+    precedence = BOX_GROUP_PRECEDENCE
+
     # Processing the first argument:
     head = expr.get_head()
     target = expr.elements[0]
