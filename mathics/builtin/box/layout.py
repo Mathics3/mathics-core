@@ -14,7 +14,7 @@ from mathics.builtin.options import filter_non_default_values, options_to_rules
 from mathics.core.atoms import String
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
-from mathics.core.element import BaseElement, BoxElementMixin
+from mathics.core.element import BaseElement, BoxElementMixin, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.expression import Expression
@@ -208,6 +208,10 @@ class InterpretationBox(BoxExpression):
     """
 
     attributes = A_HOLD_ALL_COMPLETE | A_PROTECTED | A_READ_PROTECTED
+    options = {
+        "Editable": "Automatic",
+        "AutoDelete": "Automatic",
+    }
     summary_text = "box associated to an input expression"
 
     def __repr__(self):
@@ -233,9 +237,13 @@ class InterpretationBox(BoxExpression):
             )
         return self._elements
 
-    def eval_create(self, reprs, expr, evaluation):
-        """InterpretationBox[reprs_, expr_]"""
-        return InterpretationBox(reprs, expr)
+    def eval_create(self, reprs, expr, evaluation, options):
+        """InterpretationBox[reprs_, expr_, OptionsPattern[]]"""
+        if isinstance(reprs, EvalMixin):
+            reprs = reprs.evaluate(evaluation)
+        if not isinstance(reprs, BoxElementMixin):
+            return
+        return InterpretationBox(reprs, expr, **options)
 
     def eval_to_expression1(self, boxexpr, evaluation):
         """ToExpression[boxexpr_InterpretationBox]"""
