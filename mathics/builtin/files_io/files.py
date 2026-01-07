@@ -48,8 +48,9 @@ from mathics.eval.files_io.read import (
     parse_read_options,
     read_name_and_stream,
 )
-from mathics.eval.makeboxes import do_format, format_element, render_input_form
+from mathics.eval.makeboxes import do_format, format_element
 from mathics.eval.stackframe import get_eval_Expression
+from mathics.form import render_input_form
 
 
 class Input_(Predefined):
