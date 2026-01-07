@@ -241,7 +241,7 @@ def bezier_curve_box(self: BezierCurveBox, **options) -> str:
             asy += """pair[] P%d_%d={%s};\n""" % (i, j, triple)
             asy += """pair G%d_%d(real t){return Bezier(P%d_%d,t);}\n""" % (i, j, i, j)
             asy += """draw(shift(0, -2)*graph(G%d_%d,0,1,350), %s);\n""" % (i, j, pen)
-    # print("BezierCurveBox: " asy)
+    # print("BezierCurveBox: ", asy)
     return asy
 
 
@@ -409,6 +409,7 @@ def graphics_elements(self, **options) -> str:
         else:
             result.append(format_fn(element))
 
+    # print("### elements", result)
     return "\n".join(result)
 
 

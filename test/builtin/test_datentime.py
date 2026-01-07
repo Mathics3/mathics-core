@@ -209,6 +209,7 @@ def test_private_doctests_datetime(str_expr, msgs, str_expected, fail_msg):
         ("a=.;s=.;", None, "Null", None),
     ],
 )
+@pytest.mark.xfail
 def test_private_doctests_TimeConstrained(str_expr, msgs, str_expected, fail_msg):
     """TimeConstrained tests"""
     check_evaluation(

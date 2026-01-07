@@ -8,7 +8,6 @@ in the Notebook interface, the CLI (math) and wolframscript are not fully consis
 ****************************************************************************************)
 
 ISMATHICSINTERPRETER=(StringTake[$Version, 8]==="Mathics3");
-ISMATHICSINTERPRETER=False;
 
 
 Print["Read json"];
