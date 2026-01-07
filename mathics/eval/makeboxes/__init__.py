@@ -3,6 +3,7 @@ Functions related to the evaluation of MakeBoxes.
 """
 
 from mathics.eval.makeboxes.formatvalues import StringLParen, StringRParen, do_format
+from mathics.eval.makeboxes.inputform import render_input_form
 from mathics.eval.makeboxes.makeboxes import (
     _boxed_string,
     eval_generic_makeboxes,
@@ -19,7 +20,11 @@ from mathics.eval.makeboxes.outputforms import (
     eval_tableform,
     eval_texform,
 )
-from mathics.eval.makeboxes.precedence import builtins_precedence, parenthesize
+from mathics.eval.makeboxes.precedence import (
+    builtins_precedence,
+    compare_precedence,
+    parenthesize,
+)
 
 __all__ = [
     "NumberForm_to_String",
@@ -27,6 +32,7 @@ __all__ = [
     "StringRParen",
     "_boxed_string",
     "builtins_precedence",
+    "compare_precedence",
     "do_format",
     "eval_baseform",
     "eval_generic_makeboxes",
@@ -40,5 +46,6 @@ __all__ = [
     "format_element",
     "int_to_string_shorter_repr",
     "parenthesize",
+    "render_input_form",
     "to_boxes",
 ]

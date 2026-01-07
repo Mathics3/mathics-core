@@ -48,7 +48,7 @@ from mathics.eval.files_io.read import (
     parse_read_options,
     read_name_and_stream,
 )
-from mathics.eval.makeboxes import do_format, format_element
+from mathics.eval.makeboxes import do_format, format_element, render_input_form
 from mathics.eval.stackframe import get_eval_Expression
 
 
@@ -596,11 +596,11 @@ class Put(InfixOperator):
         # Eventually, we are going to replace this by a `MakeBoxes` call.
         def do_format_output(expr, evaluation):
             try:
-                boxed_expr = format_element(expr, evaluation, SymbolInputForm)
+                # TODO: set character encoding?
+                return render_input_form(expr, evaluation)
             except BoxError:
                 boxed_expr = format_element(expr, evaluation, SymbolFullForm)
-
-            return boxed_expr.boxes_to_text()
+                return boxed_expr.boxes_to_text()
 
         text = [do_format_output(expr, evaluation) for expr in exprs.get_sequence()]
         text = "\n".join(text) + "\n"

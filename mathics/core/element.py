@@ -154,6 +154,7 @@ class BaseElement(KeyComparable, ABC):
 
         if isinstance(form, str):
             form = Symbol(form)
+        print("self.format", self, form)
         return format_element(self, evaluation, form, **kwargs)
 
     def get_atoms(self, include_heads=True):

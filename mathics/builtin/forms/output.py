@@ -14,7 +14,7 @@ Form Functions
 """
 from typing import Optional
 
-from mathics.builtin.box.layout import RowBox, StyleBox, TagBox
+from mathics.builtin.box.layout import InterpretationBox, RowBox, StyleBox, TagBox
 from mathics.builtin.forms.base import FormBaseClass
 from mathics.core.atoms import Integer, Real, String, StringFromPython
 from mathics.core.builtin import Builtin
@@ -32,6 +32,7 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
     SymbolInfinity,
+    SymbolInputForm,
     SymbolMakeBoxes,
     SymbolNumberForm,
     SymbolRowBox,
@@ -48,7 +49,7 @@ from mathics.eval.makeboxes import (
     eval_tableform,
     eval_texform,
 )
-from mathics.format import render_input_form
+from mathics.eval.makeboxes.inputform import render_input_form
 
 
 class BaseForm(FormBaseClass):
@@ -208,12 +209,24 @@ class InputForm(FormBaseClass):
     in_printforms = True
     summary_text = "plain-text input format"
 
+    # TODO: eventually, remove OutputForm in the second argument.
     def eval_makeboxes(self, expr, evaluation):
-        """MakeBoxes[InputForm[expr], _]"""
-        inputform_str = render_input_form(expr, evaluation)
+        """MakeBoxes[InputForm[expr_], Alternatives[StandardForm,TraditionalForm,OutputForm]]"""
+
+        inputform = String(render_input_form(expr, evaluation))
+        inputform = StyleBox(
+            inputform,
+            **{
+                "System`ShowSpecialCharacters": SymbolFalse,
+                "System`ShowStringCharacters": SymbolTrue,
+                "System`NumberMarks": SymbolTrue,
+            },
+        )
         expr = Expression(SymbolInputForm, expr)
         return InterpretationBox(
-            inputform_str, expr, **{"Editable": SymbolTrue, "AutoDelete": SymboLTrue}
+            inputform,
+            expr,
+            **{"System`Editable": SymbolTrue, "System`AutoDelete": SymbolTrue},
         )
 
 

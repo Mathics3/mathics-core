@@ -21,6 +21,7 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (  # SymbolRule, SymbolRuleDelayed,
     SymbolComplex,
+    SymbolInputForm,
     SymbolRational,
     SymbolStandardForm,
 )
@@ -253,9 +254,14 @@ def eval_makeboxes(
 
     Basically: MakeBoxes[expr // form]
     """
-    # This is going to be reimplemented.
+    # This is going to be reimplemented. By now, much of the formatting
+    # relies in rules of the form `MakeBoxes[expr, OutputForm]`
+    # which is wrong.
     if form is SymbolFullForm:
         return eval_makeboxes_fullform(expr, evaluation)
+    if form is SymbolInputForm:
+        expr = Expression(form, expr)
+        form = SymbolStandardForm
     return Expression(SymbolMakeBoxes, expr, form).evaluate(evaluation)
 
 
