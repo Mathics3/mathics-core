@@ -1,7 +1,7 @@
 #  Tests for formatting according WMA.
 #
 #  These tests are prepared to compare the output obtained using WL code in
-#  both WMA and Mathics interpreters:
+#  both WMA and Mathics3 interpreters:
 #  ./convert_yaml2json.py format_tests.yaml &&  $(WMAINTERPRETER) -f format_tests.m
 #
 #  In this case, 'text' are certificated against the WMA result,
@@ -12,7 +12,7 @@
 #  Running the same code against `mathics` CLI, most of these tests fails because
 #  - `ToString` with `CharacterEncoding->"ASCII"` does not produce string
 #  representations of Boxes.
-#  - `OutputForm` in Mathics does not produce *pretty-print-like* output.
+#  - `OutputForm` in Mathics3 does not produce *pretty-print-like* output.
 #    And eventually, if we start to do it, probably we can also do it better,
 #    so we are not going to coincide neither.
 #  - Box constructions are still too diferent in both interpreters.

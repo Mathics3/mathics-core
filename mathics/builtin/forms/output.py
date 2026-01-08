@@ -186,23 +186,48 @@ class MathMLForm(FormBaseClass):
 
 class InputForm(FormBaseClass):
     r"""
-    <url>
-      :WMA link:
-      https://reference.wolfram.com/language/ref/InputForm.html</url>
+     <url>
+       :WMA link:
+       https://reference.wolfram.com/language/ref/InputForm.html</url>
 
-    <dl>
-      <dt>'InputForm'[$expr$]
-      <dd>displays $expr$ in an unambiguous form suitable for input.
-    </dl>
+     <dl>
+       <dt>'InputForm'[$expr$]
+       <dd>displays $expr$ in an unambiguous form suitable for input to Mathics3.
+     </dl>
 
-    >> InputForm[a + b * c]
-     = a + b*c
-    >> InputForm["A string"]
-     = "A string"
-    >> InputForm[f'[x]]
-     = Derivative[1][f][x]
-    >> InputForm[Derivative[1, 0][f][x]]
-     = Derivative[1, 0][f][x]
+     'InputForm' produces one-dimensional output that is suitable for input to Mathics3:
+
+     >> InputForm["A string"]
+      = "A string"
+
+     >> InputForm[f'[x]]
+      = Derivative[1][f][x]
+
+     >> InputForm[Derivative[1, 0][f][x]]
+      = Derivative[1, 0][f][x]
+
+     'InputForm' shows arithmetic expressions in traditional mathematical notation:
+
+     >> 2+F[x] // InputForm
+      = 2 + F[x]
+
+     Compare this to 'FullForm':
+
+     >> 2+F[x] // FullForm
+      = Plus[2, F[x]]
+
+    'InputForm' output can be altered via 'Format' assignment :
+
+     >> Format[Foo[x], InputForm] := Bar
+
+     >> Foo[x] // InputForm
+      = Bar
+
+    In contrast, 'FullForm' output is not altered via 'Format' assignment :
+     >> Format[Foo[x], InputForm] := Baz
+
+     >> Foo[x] // FullForm
+      = Foo[x]
     """
 
     in_outputforms = True
