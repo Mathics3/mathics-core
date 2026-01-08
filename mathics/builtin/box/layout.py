@@ -6,6 +6,10 @@ Formatting constructs are represented as a hierarchy of low-level \
 symbolic "boxes".
 
 The routines here assist in boxing at the bottom of the hierarchy, typically found when using in a notebook.
+
+`Expression` objects having symbols in this module as head, are evaluated to 
+`BoxElementMixin` objects. These objects are literal objects, so do not have the method `evaluate`. Text render functions (in `mathics.format`) process `BoxElementMixin` to produce their output.
+
 """
 from typing import Tuple
 
@@ -14,7 +18,7 @@ from mathics.builtin.options import filter_non_default_values, options_to_rules
 from mathics.core.atoms import String
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
-from mathics.core.element import BaseElement, BoxElementMixin
+from mathics.core.element import BaseElement, BoxElementMixin, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.expression import Expression
@@ -208,6 +212,10 @@ class InterpretationBox(BoxExpression):
     """
 
     attributes = A_HOLD_ALL_COMPLETE | A_PROTECTED | A_READ_PROTECTED
+    options = {
+        "Editable": "Automatic",
+        "AutoDelete": "Automatic",
+    }
     summary_text = "box associated to an input expression"
 
     def __repr__(self):
@@ -233,17 +241,26 @@ class InterpretationBox(BoxExpression):
             )
         return self._elements
 
-    def eval_create(self, reprs, expr, evaluation):
-        """InterpretationBox[reprs_, expr_]"""
-        return InterpretationBox(reprs, expr)
+    def eval_create(self, reprs, expr, evaluation, options):
+        """InterpretationBox[reprs_, expr_, OptionsPattern[]]"""
+        # If the first element is not a literal, this
+        # function evaluates it (because the symbol has
+        # the attribute HoldAllComplete, this does not happen
+        # in the evaluation loop). Then, if the result is a
+        # BoxElementMixin, creates and return instance of `InterpretationBox`.
+        if isinstance(reprs, EvalMixin):
+            reprs = reprs.evaluate(evaluation)
+        if not isinstance(reprs, BoxElementMixin):
+            return
+        return InterpretationBox(reprs, expr, **options)
 
     def eval_to_expression1(self, boxexpr, evaluation):
         """ToExpression[boxexpr_InterpretationBox]"""
-        return boxexpr.elements[1]
+        return boxexpr.expr
 
     def eval_to_expression2(self, boxexpr, form, evaluation):
         """ToExpression[boxexpr_InterpretationBox, form_]"""
-        return boxexpr.elements[1]
+        return boxexpr.expr
 
     def eval_display(self, boxexpr, evaluation):
         """DisplayForm[boxexpr_InterpretationBox]"""
