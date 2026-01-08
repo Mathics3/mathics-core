@@ -55,10 +55,10 @@ SymbolPrefix = Symbol("System`Prefix")
 # Use 670 until BoxGroup precedence gets in.
 PRECEDENCE_BOX_GROUP: Final[int] = 670  # box_operators["BoxGroup"]
 
-PRECEDENCES: Final[int] = OPERATOR_DATA.get("operator-precedences")
-PRECEDENCE_PLUS: Final[int] = PRECEDENCES.get("Plus")
-PRECEDENCE_TIMES: Final[int] = PRECEDENCES.get("Times")
-PRECEDENCE_POWER: Final[int] = PRECEDENCES.get("Power")
+PRECEDENCES: Final = OPERATOR_DATA.get("operator-precedences")
+PRECEDENCE_PLUS: Final[int] = PRECEDENCES.get("Plus", 310)
+PRECEDENCE_TIMES: Final[int] = PRECEDENCES.get("Times", 400)
+PRECEDENCE_POWER: Final[int] = PRECEDENCES.get("Power", 590)
 
 EXPR_TO_INPUTFORM_TEXT_MAP: Dict[str, Callable] = {}
 
