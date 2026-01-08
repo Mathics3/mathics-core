@@ -243,7 +243,7 @@ class InterpretationBox(BoxExpression):
 
     def eval_create(self, reprs, expr, evaluation, options):
         """InterpretationBox[reprs_, expr_, OptionsPattern[]]"""
-        # If the first element is not a litera, this
+        # If the first element is not a literal, this
         # function evaluates it (because the symbol has
         # the attribute HoldAllComplete, this does not happend
         # in the evaluation loop). Then, if the result is a
