@@ -34,7 +34,6 @@ from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolHold,
     SymbolHoldExpression,
-    SymbolInputForm,
     SymbolInputStream,
     SymbolOutputForm,
     SymbolOutputStream,

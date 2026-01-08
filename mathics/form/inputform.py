@@ -64,7 +64,6 @@ from typing import Callable, Dict, List, Optional, Tuple
 
 from mathics.core.atoms import Integer, String
 from mathics.core.convert.op import operator_to_ascii, operator_to_unicode
-from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.parser.operators import OPERATOR_DATA
@@ -152,11 +151,11 @@ def render_input_form(expr, evaluation, **kwargs):
             format_expr, evaluation, **kwargs
         )
         return result
-    except _WrongFormattedExpression as e:
+    except _WrongFormattedExpression:
         # If the key is not present, or the execution fails for any reason, use
         # the default
         pass
-    except KeyError as e:
+    except KeyError:
         pass
     return _generic_to_inputform_text(format_expr, evaluation, **kwargs)
 

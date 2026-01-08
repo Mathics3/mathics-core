@@ -46,7 +46,7 @@ class CustomAtom(Predefined):
         "System`MakeBoxes[System`CustomAtom, StandardForm|TraditionalForm|OutputForm]"
         return CustomBoxExpression(evaluation=evaluation)
 
-    def eval_to_boxes(self, evaluation):
+    def eval_to_boxes_inputform(self, evaluation):
         "System`MakeBoxes[InputForm[System`CustomAtom], StandardForm|TraditionalForm|OutputForm]"
         return CustomBoxExpression(evaluation=evaluation)
 
