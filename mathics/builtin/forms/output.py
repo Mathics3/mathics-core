@@ -49,7 +49,7 @@ from mathics.eval.makeboxes import (
     eval_tableform,
     eval_texform,
 )
-from mathics.eval.makeboxes.inputform import render_input_form
+from mathics.form import render_input_form
 
 
 class BaseForm(FormBaseClass):

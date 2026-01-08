@@ -3,7 +3,6 @@ Functions related to the evaluation of MakeBoxes.
 """
 
 from mathics.eval.makeboxes.formatvalues import StringLParen, StringRParen, do_format
-from mathics.eval.makeboxes.inputform import render_input_form
 from mathics.eval.makeboxes.makeboxes import (
     _boxed_string,
     eval_generic_makeboxes,
