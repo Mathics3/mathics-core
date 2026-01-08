@@ -243,9 +243,9 @@ class InterpretationBox(BoxExpression):
 
     def eval_create(self, reprs, expr, evaluation, options):
         """InterpretationBox[reprs_, expr_, OptionsPattern[]]"""
-        # If the first element is not a litera, this
+        # If the first element is not a literal, this
         # function evaluates it (because the symbol has
-        # the attribute HoldAllComplete, this does not happend
+        # the attribute HoldAllComplete, this does not happen
         # in the evaluation loop). Then, if the result is a
         # BoxElementMixin, creates and return instance of `InterpretationBox`.
         if isinstance(reprs, EvalMixin):
