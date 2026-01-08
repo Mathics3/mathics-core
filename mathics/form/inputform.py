@@ -25,7 +25,7 @@ both cases, underneath the `InterpretationBox` or `Tagbox` is a
 
 """
 
-from typing import Callable, Dict, Final, List, Optional, Tuple
+from typing import Callable, Dict, Final, FrozenSet, List, Optional, Tuple
 
 from mathics.core.atoms import Integer, String
 from mathics.core.convert.op import operator_to_ascii, operator_to_unicode
@@ -243,6 +243,17 @@ def collect_in_pre_post_arguments(
     return operands, operator_spec, precedence, group
 
 
+ARITHMETIC_OPERATOR_STRINGS: Final[FrozenSet[str]] = frozenset(
+    [
+        *operator_to_string["Divide"],
+        *operator_to_string["NonCommutativeMultiply"],
+        *operator_to_string["Power"],
+        *operator_to_string["Times"],
+        " ",
+    ]
+)
+
+
 @register_inputform("System`Infix")
 def _infix_expression_to_inputform_text(
     expr: Expression, evaluation: Evaluation, **kwargs
@@ -282,7 +293,7 @@ def _infix_expression_to_inputform_text(
         else:
             num_ops = len(ops_lst)
             curr_op = ops_lst[index % num_ops]
-            if curr_op not in ("*", "**", "/", "^", " "):
+            if curr_op not in ARITHMETIC_OPERATOR_STRINGS:
                 # In the tests, we add spaces just for + and -:
                 curr_op = f" {curr_op} "
 
