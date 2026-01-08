@@ -665,7 +665,7 @@ class TeXForm(FormBaseClass):
     summary_text = "formatted expression as TeX commands"
 
     def eval_tex(self, expr, evaluation) -> Expression:
-        "MakeBoxes[expr_, TeXForm]"
+        "MakeBoxes[TeXForm[expr_], Alternatives[StandardForm,TraditionalForm]]"
         return eval_texform(expr, evaluation)
 
 
