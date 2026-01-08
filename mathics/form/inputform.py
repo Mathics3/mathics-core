@@ -214,7 +214,7 @@ def _list_expression_to_inputform_text(
 
 
 def collect_in_pre_post_arguments(
-    expr: BaseElement, evaluation: Evaluation, **kwargs
+    expr: Expression, evaluation: Evaluation, **kwargs
 ) -> Tuple[list, str | List[str], int, Optional[Symbol]]:
     """
     Determine operands, operator(s), precedence, and grouping
@@ -411,7 +411,7 @@ def _rule_to_inputform_text(expr, evaluation: Evaluation, **kwargs):
     elements = expr.elements
     kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     if len(elements) != 2:
-        return _generic_to_inputform_text(expr, evaluation, kwargs)
+        return _generic_to_inputform_text(expr, evaluation, **kwargs)
     pat, rule = (render_input_form(elem, evaluation, **kwargs) for elem in elements)
 
     op_str = get_operator_str(head, evaluation, **kwargs)
