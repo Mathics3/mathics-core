@@ -14,7 +14,7 @@ Form Functions
 """
 from typing import Optional
 
-from mathics.builtin.box.layout import RowBox, StyleBox, TagBox
+from mathics.builtin.box.layout import InterpretationBox, RowBox, StyleBox, TagBox
 from mathics.builtin.forms.base import FormBaseClass
 from mathics.core.atoms import Integer, Real, String, StringFromPython
 from mathics.core.builtin import Builtin
@@ -32,6 +32,7 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
     SymbolInfinity,
+    SymbolInputForm,
     SymbolMakeBoxes,
     SymbolNumberForm,
     SymbolRowBox,
@@ -48,6 +49,7 @@ from mathics.eval.makeboxes import (
     eval_tableform,
     eval_texform,
 )
+from mathics.form import render_input_form
 
 
 class BaseForm(FormBaseClass):
@@ -184,28 +186,73 @@ class MathMLForm(FormBaseClass):
 
 class InputForm(FormBaseClass):
     r"""
-    <url>
-      :WMA link:
-      https://reference.wolfram.com/language/ref/InputForm.html</url>
+     <url>
+       :WMA link:
+       https://reference.wolfram.com/language/ref/InputForm.html</url>
 
-    <dl>
-      <dt>'InputForm'[$expr$]
-      <dd>displays $expr$ in an unambiguous form suitable for input.
-    </dl>
+     <dl>
+       <dt>'InputForm'[$expr$]
+       <dd>displays $expr$ in an unambiguous form suitable for input to Mathics3.
+     </dl>
 
-    >> InputForm[a + b * c]
-     = a + b*c
-    >> InputForm["A string"]
-     = "A string"
-    >> InputForm[f'[x]]
-     = Derivative[1][f][x]
-    >> InputForm[Derivative[1, 0][f][x]]
-     = Derivative[1, 0][f][x]
+     'InputForm' produces one-dimensional output that is suitable for input to Mathics3:
+
+     >> InputForm["A string"]
+      = "A string"
+
+     >> InputForm[f'[x]]
+      = Derivative[1][f][x]
+
+     >> InputForm[Derivative[1, 0][f][x]]
+      = Derivative[1, 0][f][x]
+
+     'InputForm' shows arithmetic expressions in traditional mathematical notation:
+
+     >> 2+F[x] // InputForm
+      = 2 + F[x]
+
+     Compare this to 'FullForm':
+
+     >> 2+F[x] // FullForm
+      = Plus[2, F[x]]
+
+    'InputForm' output can be altered via 'Format' assignment :
+
+     >> Format[Foo[x], InputForm] := Bar
+
+     >> Foo[x] // InputForm
+      = Bar
+
+    In contrast, 'FullForm' output is not altered via 'Format' assignment :
+     >> Format[Foo[x], InputForm] := Baz
+
+     >> Foo[x] // FullForm
+      = Foo[x]
     """
 
     in_outputforms = True
     in_printforms = True
     summary_text = "plain-text input format"
+
+    # TODO: eventually, remove OutputForm in the second argument.
+    def eval_makeboxes(self, expr, evaluation):
+        """MakeBoxes[InputForm[expr_], Alternatives[StandardForm,TraditionalForm,OutputForm]]"""
+
+        inputform = String(render_input_form(expr, evaluation))
+        inputform = StyleBox(
+            inputform,
+            **{
+                "System`ShowSpecialCharacters": SymbolFalse,
+                "System`ShowStringCharacters": SymbolTrue,
+                "System`NumberMarks": SymbolTrue,
+            },
+        )
+        expr = Expression(SymbolInputForm, expr)
+        return InterpretationBox(
+            inputform,
+            expr,
+            **{"System`Editable": SymbolTrue, "System`AutoDelete": SymbolTrue},
+        )
 
 
 class _NumberForm(Builtin):

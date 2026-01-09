@@ -1,7 +1,7 @@
 #  Tests for formatting according WMA.
 #
 #  These tests are prepared to compare the output obtained using WL code in
-#  both WMA and Mathics interpreters:
+#  both WMA and Mathics3 interpreters:
 #  ./convert_yaml2json.py format_tests.yaml &&  $(WMAINTERPRETER) -f format_tests.m
 #
 #  In this case, 'text' are certificated against the WMA result,
@@ -12,7 +12,7 @@
 #  Running the same code against `mathics` CLI, most of these tests fails because
 #  - `ToString` with `CharacterEncoding->"ASCII"` does not produce string
 #  representations of Boxes.
-#  - `OutputForm` in Mathics does not produce *pretty-print-like* output.
+#  - `OutputForm` in Mathics3 does not produce *pretty-print-like* output.
 #    And eventually, if we start to do it, probably we can also do it better,
 #    so we are not going to coincide neither.
 #  - Box constructions are still too diferent in both interpreters.
@@ -25,10 +25,10 @@
 
 '"-7.32"':
   latex:
-    InputForm: \\text{``-7.32''}
-    OutputForm: \\text{-7.32}
-    StandardForm: \\text{-7.32}
-    TraditionalForm: \\text{-7.32}
+    InputForm: \text{``-7.32''}
+    OutputForm: \text{-7.32}
+    StandardForm: \text{-7.32}
+    TraditionalForm: \text{-7.32}
   mathml:
     InputForm: <ms>-7.32</ms>
     OutputForm: <mtext>-7.32</mtext>
@@ -85,7 +85,7 @@
     OutputForm: '-0.00001'
 -1. 10^-6:
   latex:
-    InputForm: -1.\text{*${}^{\wedge}$}-6
+    InputForm: -1.*{}^{\wedge}-6
     OutputForm: -1.\times 10^{-6}
   mathml: {}
   msg: very small negative real number (<10^-6)
@@ -103,7 +103,7 @@
     OutputForm: '-100000.'
 -1. 10^6:
   latex:
-    InputForm: -1.0\text{*${}^{\wedge}$}6
+    InputForm: -1.*{}^{\wedge}6
     OutputForm: -1.\times 10^6
     StandardForm: -1.0\text{*${}^{\wedge}$}6
     TraditionalForm: -1.0\times 10^6
@@ -193,7 +193,7 @@
     OutputForm: '0.00001'
 1. 10^-6:
   latex:
-    InputForm: 1.\text{*${}^{\wedge}$}-6
+    InputForm: 1.*{}^{\wedge}-6
     OutputForm: 1.\times 10^{-6}
   mathml: {}
   msg: very small real number (<10^-6)
@@ -215,7 +215,7 @@
     TraditionalForm: "\\!\\(\\*FormBox[\"100000.`\", TraditionalForm]\\)"
 1. 10^6:
   latex:
-    InputForm: 1.0\text{*${}^{\wedge}$}6
+    InputForm: 1.*{}^{\wedge}6
     OutputForm: 1.\times 10^6
     StandardForm: 1.0\text{*${}^{\wedge}$}6
     TraditionalForm: 1.0\times 10^6
@@ -228,8 +228,7 @@
     TraditionalForm: "\\!\\(\\*FormBox[\"1.`*^6\", TraditionalForm]\\)"
 1/(1+1/(1+1/a)):
   latex:
-    InputForm: 1\text{ / }\left(1\text{ + }1\text{ / }\left(1\text{ + }1\text{
-      / }a\right)\right)
+    InputForm: 1/(1 + 1/(1 + 1/a))
     OutputForm: 1\text{ / }\left(1\text{ + }1\text{ / }\left(1\text{ + }1\text{
       / }a\right)\right)
     StandardForm: \frac{1}{1+\frac{1}{1+\frac{1}{a}}}
@@ -262,8 +261,7 @@
 # Nested Association
 <|a \[Rule] x, b \[Rule] y, c \[Rule] <|d \[Rule] t|>|>:
   latex:
-    InputForm: \text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{
-      -> }t\text{$\vert$>}\text{$\vert$>}
+    InputForm: \text{<$\vert$a -> x, b -> y, c -> <$\vert$d -> t$\vert$>$\vert$>}
     OutputForm: \text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{
       -> }t\text{$\vert$>}\text{$\vert$>}
     StandardForm: \text{<$\vert$}a \[Rule] x,b \[Rule] y,c \[Rule] \text{<$\vert$}d \[Rule] t\text{$\vert$>}\text{$\vert$>}
@@ -296,8 +294,7 @@
 # Association nested 2
 Association[a -> x, b -> y, c -> Association[d -> t, Association[e -> u]]]:
   latex:
-    InputForm: \text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{
-      -> }t, e\text{ -> }u\text{$\vert$>}\text{$\vert$>}
+    InputForm: \text{<$\vert$a -> x, b -> y, c -> <$\vert$d -> t, e -> u$\vert$>$\vert$>}
     OutputForm: \text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{
       -> }t, e\text{ -> }u\text{$\vert$>}\text{$\vert$>}
     StandardForm: \text{<$\vert$}a->x,b->y,c->\text{<$\vert$}d->t,e->u\text{$\vert$>}\text{$\vert$>}
@@ -333,7 +330,7 @@ Association[a -> x, b -> y, c -> Association[d -> t, Association[e -> u]]]:
     TraditionalForm: "\\!\\(\\*FormBox[RowBox[{\"\\[LeftAssociation]\", RowBox[{RowBox[{\"a\", \"\\[Rule]\", \"x\"}], \",\", RowBox[{\"b\", \"\\[Rule]\", \"y\"}], \",\", RowBox[{\"c\", \"\\[Rule]\", RowBox[{\"\\[LeftAssociation]\", RowBox[{RowBox[{\"d\", \"\\[Rule]\", \"t\"}], \",\", RowBox[{\"e\", \"\\[Rule]\", \"u\"}]}], \"\\[RightAssociation]\"}]}]}], \"\\[RightAssociation]\"}], TraditionalForm]\\)"
 Complex[1.09*^12, 3.]:
   latex:
-    InputForm: 1.09\text{*${}^{\wedge}$}12\text{ + }3.*I
+    InputForm: 1.09*{}^{\wedge}12 + 3.*I
     OutputForm: 1.09\times 10^{12}\text{ + }3. I
     StandardForm: 1.09\text{*${}^{\wedge}$}12+3. I
     TraditionalForm: 1.09\times 10^{12}+3. I
@@ -356,8 +353,7 @@ Complex[1.09*^12, 3.]:
     TraditionalForm: "\\!\\(\\*FormBox[RowBox[{\"1.09`*^12\", \"+\", RowBox[{\"3.`\", \" \", \"\\[ImaginaryI]\"}]}], TraditionalForm]\\)"
 Graphics[{Text[a^b,{0,0}]}]:
   latex:
-    InputForm: \text{Graphics}\left[\left\{\text{Text}\left[\text{Power}\left[a,
-      b\right], \left\{0, 0\right\}\right]\right\}\right]
+    InputForm: \text{Graphics[\{Text[a${}^{\wedge}$b, \{0, 0\}]\}]}
     OutputForm: '
 
       \begin{asy}
@@ -426,7 +422,7 @@ Graphics[{Text[a^b,{0,0}]}]:
     TraditionalForm: "\\!\\(\\*FormBox[GraphicsBox[List[InsetBox[FormBox[SuperscriptBox[\"a\", \"b\"], TraditionalForm], List[0, 0]]]], TraditionalForm]\\)"
 Graphics[{}]:
   latex:
-    InputForm: \text{Graphics}\left[\left\{\right\}\right]
+    InputForm: \text{Graphics[\{\}]}
     OutputForm: '
 
       \begin{asy}
@@ -483,10 +479,7 @@ Graphics[{}]:
     TraditionalForm: "\\!\\(\\*FormBox[GraphicsBox[List[]], TraditionalForm]\\)"
 "Grid[{{\"Spanish\", \"Hola!\"},{\"Portuguese\", \"Ol\\[AGrave]!\"},{\"English\", \"Hi!\"}}]":
   latex:
-    InputForm: "\\text{Grid}\\left[\\left\\{\\left\\{\\text{``Spanish''}, \\\
-      text{``Hola!''}\\right\\}, \\left\\{\\text{``Portuguese''}, \\text{``Ol\xE0\
-      !''}\\right\\}, \\left\\{\\text{``English''}, \\text{``Hi!''}\\right\\}\\right\\\
-      }\\right]"
+    InputForm: \text{Grid[\{\{"Spanish", "Hola!"\}, \{"Portuguese", "Olà!"\}, \{"English", "Hi!"\}\}]}
     OutputForm: "\\begin{array}{cc} \\text{Spanish} & \\text{Hola!}\\\\ \\\
       text{Portuguese} & \\text{Ol\\`a!}\\\\ \\text{English} & \\text{Hi!}\\end{array}"
     StandardForm: "\\begin{array}{cc} \\text{Spanish} & \\text{Hola!}\\\\ \\\
@@ -528,7 +521,7 @@ Graphics[{}]:
     TraditionalForm: "\\!\\(\\*FormBox[TagBox[GridBox[{{\"\\\"Spanish\\\"\", \"\\\"Hola!\\\"\"}, {\"\\\"Portuguese\\\"\", \"\\\"Ol\\[AGrave]!\\\"\"}, {\"\\\"English\\\"\", \"\\\"Hi!\\\"\"}}, Rule[AutoDelete, False], Rule[GridBoxItemSize, List[Rule[\"Columns\", List[List[Automatic]]], Rule[\"Rows\", List[List[Automatic]]]]]], \"Grid\"], TraditionalForm]\\)"
 Grid[{{a,b},{c,d}}]:
   latex:
-    InputForm: \text{Grid}\left[\left\{\left\{a, b\right\}, \left\{c, d\right\}\right\}\right]
+    InputForm: \text{Grid[\{\{a, b\}, \{c, d\}\}]}
     OutputForm: \begin{array}{cc} a & b\\ c & d\end{array}
     StandardForm: \begin{array}{cc} a & b\\ c & d\end{array}
     TraditionalForm: \begin{array}{cc} a & b\\ c & d\end{array}
@@ -572,7 +565,7 @@ Grid[{{a,b},{c,d}}]:
 #
 Integrate[F[x], {x, a, g[b]}]:
   latex:
-    InputForm: \text{Integrate}\left[F\left[x\right], \left\{x, a, g\left[b\right]\right\}\right]
+    InputForm: \text{Integrate[F[x], \{x, a, g[b]\}]}
     OutputForm: \text{Integrate}\left[F\left[x\right], \left\{x, a, g\left[b\right]\right\}\right]
     StandardForm: \int_a^{g\left[b\right]} F\left[x\right] \, dx
     TraditionalForm: \int_a^{g\left(b\right)} F\left(x\right) \, dx
@@ -590,8 +583,7 @@ Integrate[F[x], {x, a, g[b]}]:
     OutputForm: Integrate[F[x], {x, a, g[b]}]
 MatrixForm[{{a,b},{c,d}}]:
   latex:
-    InputForm: \text{MatrixForm}\left[\left\{\left\{a, b\right\}, \left\{c,
-      d\right\}\right\}\right]
+    InputForm: \text{MatrixForm[\{\{a, b\}, \{c, d\}\}]}
     OutputForm: \begin{array}{cc} a & b\\ c & d\end{array}
     StandardForm: \left(\begin{array}{cc} a & b\\ c & d\end{array}\right)
     TraditionalForm: \left(\begin{array}{cc} a & b\\ c & d\end{array}\right)
@@ -632,8 +624,7 @@ MatrixForm[{{a,b},{c,d}}]:
     TraditionalForm: "\\!\\(\\*FormBox[TagBox[RowBox[{\"(\", \"\\[NoBreak]\", GridBox[{{\"a\", \"b\"}, {\"c\", \"d\"}}, Rule[RowSpacings, 1], Rule[ColumnSpacings, 1], Rule[RowAlignments, Baseline], Rule[ColumnAlignments, Center]], \"\\[NoBreak]\", \")\"}], Function[BoxForm`e$, MatrixForm[BoxForm`e$]]], TraditionalForm]\\)"
 Sqrt[1/(1+1/(1+1/a))]:
   latex:
-    InputForm: \text{Sqrt}\left[1\text{ / }\left(1\text{ + }1\text{ / }\left(1\text{
-      + }1\text{ / }a\right)\right)\right]
+    InputForm: \text{Sqrt[1/(1 + 1/(1 + 1/a))]}
     OutputForm: \text{Sqrt}\left[1\text{ / }\left(1\text{ + }1\text{ / }\left(1\text{
       + }1\text{ / }a\right)\right)\right]
     StandardForm: \sqrt{\frac{1}{1+\frac{1}{1+\frac{1}{a}}}}
@@ -667,7 +658,7 @@ Sqrt[1/(1+1/(1+1/a))]:
     TraditionalForm: "\\!\\(\\*FormBox[SqrtBox[FractionBox[\"1\", RowBox[{FractionBox[\"1\", RowBox[{FractionBox[\"1\", \"a\"], \"+\", \"1\"}]], \"+\", \"1\"}]]], TraditionalForm]\\)"
 Subscript[a, 4]:
   latex:
-    InputForm: \text{Subscript}\left[a, 4\right]
+    InputForm: \text{Subscript[a, 4]}
     OutputForm: \text{Subscript}\left[a, 4\right]
     StandardForm: a_4
     TraditionalForm: a_4
@@ -692,7 +683,7 @@ Subscript[a, 4]:
     TraditionalForm: *id003
 Subsuperscript[a, p, q]:
   latex:
-    InputForm: \text{Subsuperscript}\left[a, p, q\right]
+    InputForm: \text{Subsuperscript[a, p, q]}
     OutputForm: \text{Subsuperscript}\left[a, p, q\right]
     StandardForm: a_p^q
     TraditionalForm: a_p^q
@@ -737,8 +728,7 @@ TableForm[{Graphics[{Text[a^b,{0,0}]}], Graphics[{Text[a^b,{0,0}]}]}]:
 #
 TableForm[{{a,b},{c,d}}]:
   latex:
-    InputForm: \text{TableForm}\left[\left\{\left\{a, b\right\}, \left\{c,
-      d\right\}\right\}\right]
+    InputForm: \text{TableForm[\{\{a, b\}, \{c, d\}\}]}
     OutputForm: \begin{array}{cc} a & b\\ c & d\end{array}
     StandardForm: \begin{array}{cc} a & b\\ c & d\end{array}
     TraditionalForm: \begin{array}{cc} a & b\\ c & d\end{array}
@@ -813,7 +803,7 @@ a:
     TraditionalForm: "\\!\\(\\*FormBox[\"a\", TraditionalForm]\\)"
 a^(g[b]/c):
   latex:
-    InputForm: a{}^{\wedge}\left(g(b)\text{ / }c\right)
+    InputForm: \text{a${}^{\wedge}$(g[b]/c)}
     OutputForm: a\text{ ${}^{\wedge}$ }\left(g(b)\text{ / }c\right)
     StandardForm: a^{\frac{g(b)}{c}}
     TraditionalForm: a^{\frac{g(b)}{c}}
@@ -832,7 +822,7 @@ a^(g[b]/c):
     TraditionalForm: "\\!\\(\\*FormBox[SuperscriptBox[\"a\", FractionBox[RowBox[{\"g\", \"(\", \"b\", \")\"}], \"c\"]], TraditionalForm]\\)"
 a^4:
   latex:
-    InputForm: a{}^{\wedge}4
+    InputForm: \text{a${}^{\wedge}$4}
     OutputForm: a\text{ ${}^{\wedge}$ }4
     StandardForm: a^4
     TraditionalForm: a^4
