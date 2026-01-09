@@ -35,6 +35,9 @@ misc_operators = OPERATOR_DATA["miscellaneous-operators"]
 nonassoc_binary_operators = OPERATOR_DATA["non-associative-binary-operators"]
 operator_precedences = OPERATOR_DATA["operator-precedences"]
 operator_to_amslatex = OPERATOR_DATA["operator-to-amslatex"]
+operator_to_string = OPERATOR_DATA[
+    "operator-to_string"
+]  # FIXME: should be operator-to-string
 postfix_operators = OPERATOR_DATA["postfix-operators"]
 prefix_operators = OPERATOR_DATA["prefix-operators"]
 right_binary_operators = OPERATOR_DATA["right-binary-operators"]
