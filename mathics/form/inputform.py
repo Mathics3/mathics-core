@@ -86,7 +86,7 @@ def get_operator_str(head, evaluation, **kwargs) -> str:
 
 
 def bracket(expr_str: str) -> str:
-    """Wrap `expr_str` with brackets"""
+    """Wrap `expr_str` with square braces"""
     return f"[{expr_str}]"
 
 
