@@ -904,11 +904,15 @@ This will even apply to 'TeXForm', because 'TeXForm' implies 'StandardForm':
 Except some other form is applied first:
   >> b // OutputForm // TeXForm
   = \text{b}
-'MakeBoxes' for another form:
 
-  >> MakeBoxes[b, TeXForm] = "d";
+Notice however that `MakeBoxes` rules does not apply when are attached to PrintForms like 'TeXForm':
+
+  >> MakeBoxes[TeXForm[b], fmt_] = "d";
   >> b // TeXForm
-  = d
+  = c
+
+
+
 You can cause a much bigger mess by overriding 'MakeBoxes' than by sticking to 'Format', e.g. generate invalid XML:
 
   >> MakeBoxes[c, MathMLForm] = "<not closed";

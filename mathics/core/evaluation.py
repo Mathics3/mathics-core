@@ -401,14 +401,16 @@ class Evaluation:
         from mathics.core.expression import BoxError, Expression
 
         if format == "text":
-            result = format_element(expr, self, SymbolOutputForm)
+            result = format_element(
+                Expression(SymbolOutputForm, expr), self, SymbolStandardForm
+            )
         elif format == "xml":
             result = format_element(
-                Expression(SymbolStandardForm, expr), self, SymbolMathMLForm
+                Expression(SymbolMathMLForm, expr), self, SymbolStandardForm
             )
         elif format == "latex":
             result = format_element(
-                Expression(SymbolStandardForm, expr), self, SymbolTeXForm
+                Expression(SymbolTeXForm, expr), self, SymbolStandardForm
             )
         elif format == "unformatted":
             self.exc_result = None

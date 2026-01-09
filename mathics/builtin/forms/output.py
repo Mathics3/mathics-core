@@ -39,6 +39,7 @@ from mathics.core.systemsymbols import (
     SymbolRowBox,
     SymbolRuleDelayed,
     SymbolSuperscriptBox,
+    SymbolTraditionalForm,
 )
 from mathics.eval.makeboxes import (
     NumberForm_to_String,
@@ -182,7 +183,7 @@ class MathMLForm(FormBaseClass):
     summary_text = "formatted expression as MathML commands"
 
     def eval_mathml(self, expr, evaluation) -> Expression:
-        "MakeBoxes[expr_, MathMLForm]"
+        "MakeBoxes[MathMLForm[expr_], Alternatives[StandardForm,TraditionalForm] ]"
         return eval_mathmlform(expr, evaluation)
 
 
@@ -713,7 +714,7 @@ class TeXForm(FormBaseClass):
 
     def eval_tex(self, expr, evaluation) -> Expression:
         "MakeBoxes[TeXForm[expr_], Alternatives[StandardForm,TraditionalForm]]"
-        return eval_texform(expr, evaluation)
+        return eval_texform(Expression(SymbolTraditionalForm, expr), evaluation)
 
 
 class TableForm(FormBaseClass):
