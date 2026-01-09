@@ -21,7 +21,6 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (  # SymbolRule, SymbolRuleDelayed,
     SymbolComplex,
-    SymbolOutputForm,
     SymbolInputForm,
     SymbolRational,
     SymbolStandardForm,
