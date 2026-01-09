@@ -47,5 +47,6 @@ __all__ = [
     "format_element",
     "int_to_string_shorter_repr",
     "parenthesize",
+    "render_input_form",
     "to_boxes",
 ]

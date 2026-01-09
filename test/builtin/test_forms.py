@@ -382,11 +382,11 @@ def test_makeboxes_form(expr, form, head, subhead):
         (
             '{"hi","you"} //InputForm //TeXForm',
             None,
-            "\\left\\{\\text{``hi''}, \\text{``you''}\\right\\}",
+            r'\text{\{"hi", "you"\}}',
             None,
         ),
         ("a=.;b=.;c=.;TeXForm[a+b*c]", None, "a+b c", None),
-        ("TeXForm[InputForm[a+b*c]]", None, r"a\text{ + }b*c", None),
+        ("TeXForm[InputForm[a+b*c]]", None, r"\text{a + b*c}", None),
         ("TableForm[{}]", None, "", None),
         (
             "{{2*a, 0},{0,0}}//MatrixForm",
