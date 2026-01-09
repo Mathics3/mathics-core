@@ -1,18 +1,24 @@
 """
 Form Variables
 
+Below are are Built-in variables that contain lists of the forms available according to some criteria.
+
 """
 
 from mathics.core.attributes import A_LOCKED, A_PROTECTED
 from mathics.core.builtin import Predefined
 from mathics.core.list import ListExpression
 
+sort_order = "mathics.builtin.forms.form-variables"
+
 
 class PrintForms_(Predefined):
     r"""
     <dl>
       <dt>'\$PrintForms'
-      <dd>contains the list of basic print forms. It is updated automatically when new 'PrintForms' are defined by setting format values.
+      <dd>contains the list of basic print forms. It is updated automatically when new 'PrintForms' are defined \
+      via setting <url>:Format:/doc/reference-of-built-in-symbols/layout/format/</url>\
+      in the the left-hand-side of a delayed assignment.
     </dl>
 
     >> $PrintForms
@@ -33,7 +39,7 @@ class PrintForms_(Predefined):
 
     attributes = A_LOCKED | A_PROTECTED
     name = "$PrintForms"
-    summary_text = "list common print forms"
+    summary_text = "contains a list of print forms"
 
     def evaluate(self, evaluation):
         return ListExpression(*evaluation.definitions.printforms)
@@ -52,7 +58,7 @@ class OutputForms_(Predefined):
 
     attributes = A_LOCKED | A_PROTECTED
     name = "$OutputForms"
-    summary_text = "list all output forms"
+    summary_text = "contains a list all output forms"
 
     def evaluate(self, evaluation):
         return ListExpression(*evaluation.definitions.outputforms)
