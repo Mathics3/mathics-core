@@ -5,7 +5,7 @@ OutputForm is two-dimensional keyboard-character-only output, suitable for CLI
 and text terminals.
 """
 
-from typing import Callable, Dict, Final, List, Union
+from typing import Callable, Dict, Final, List, Optional, Union
 
 from mathics.core.atoms import (
     Integer,
@@ -169,7 +169,7 @@ def register_outputform(head_name):
 @register_outputform("System`Blank")
 @register_outputform("System`BlankSequence")
 @register_outputform("System`BlankNullSequence")
-def pattern(expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs):
+def blank_pattern(expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs):
     elements = expr.elements
     if len(elements) > 1:
         return _default_expression_to_outputform_text(expr, evaluation, form, **kwargs)
@@ -237,9 +237,13 @@ def expression_to_outputform_text(
     Build a pretty-print text from an `Expression`
     """
 
-    format_expr: Expression = do_format(expr, evaluation, SymbolOutputForm)
+    format_expr: Expression = do_format(expr, evaluation, SymbolOutputForm)  # type: ignore
+
     while format_expr.has_form("HoldForm", 1):  # type: ignore
         format_expr = format_expr.elements[0]
+
+    if format_expr is None:
+        return ""
 
     lookup_name: str = format_expr.get_head().get_lookup_name()
     try:
@@ -700,7 +704,7 @@ def rule_to_outputform_text(expr, evaluation: Evaluation, form: Symbol, **kwargs
     elements = expr.elements
     kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     if len(elements) != 2:
-        return _default_expression_to_outputform_text(expr, evaluation, form, kwargs)
+        return _default_expression_to_outputform_text(expr, evaluation, form, **kwargs)
     pat, rule = (
         expression_to_outputform_text(elem, evaluation, form, **kwargs)
         for elem in elements
