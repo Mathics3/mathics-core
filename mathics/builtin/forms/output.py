@@ -130,7 +130,7 @@ class FullForm(FormBaseClass):
     """
 
     in_outputforms = True
-    in_printforms = True
+    in_printforms = False
     summary_text = "underlying M-Expression representation"
 
     def eval_makeboxes(self, expr, fmt, evaluation):
@@ -262,7 +262,7 @@ class _NumberForm(Builtin):
 
     default_ExponentFunction = None
     default_NumberFormat = None
-
+    in_outputforms = True
     messages = {
         "npad": "Value for option NumberPadding -> `1` should be a string or a pair of strings.",
         "dblk": "Value for option DigitBlock should be a positive integer, Infinity, or a pair of positive integers.",
