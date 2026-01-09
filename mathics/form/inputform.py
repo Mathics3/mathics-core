@@ -51,11 +51,8 @@ SymbolNonAssociative = Symbol("System`NonAssociative")
 SymbolPostfix = Symbol("System`Postfix")
 SymbolPrefix = Symbol("System`Prefix")
 
-
-# Use 670 until BoxGroup precedence gets in.
-PRECEDENCE_BOX_GROUP: Final[int] = 670  # box_operators["BoxGroup"]
-
 PRECEDENCES: Final = OPERATOR_DATA.get("operator-precedences")
+PRECEDENCE_BOX_GROUP: Final[int] = PRECEDENCES.get("BoxGroup", 670)
 PRECEDENCE_PLUS: Final[int] = PRECEDENCES.get("Plus", 310)
 PRECEDENCE_TIMES: Final[int] = PRECEDENCES.get("Times", 400)
 PRECEDENCE_POWER: Final[int] = PRECEDENCES.get("Power", 590)
