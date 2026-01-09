@@ -1,72 +1,37 @@
-"""
-This module builts the string associated to the InputForm.
+"""This module contains functions for turning Mathics3 expressions to
+InputForm-formatted strings.
 
-`InputForm` produces a textual output suitable for being parsed and directly
-evaluated in Mathics CLI. Differently from `FullForm`, `InputForm`
-show arithmetic expressions using Infix/Prefix/Postfix forms. Apart from that,
-the apareance  of the result is almost the same that produce `FullForm`.
+`InputForm` produces textual output suitable for being parsed and
+evaluated in Mathics CLI.
 
-On the other hand, internally, there are more differences. In the first place,
-InputForm always produces a single `String` object, while `FullForm` produces
-a nested   `RowBox` structure.
+`InputForm` is not affected by MakeBox assignment.
 
-```
-In[1]:= 2+F[x] // FullForm // MakeBoxes // InputForm
-Out[1]//InputForm=
-TagBox[StyleBox[RowBox[{"Plus", "[", RowBox[{"2", ",", RowBox[{"F", "[", "x", "]"}]}], "]"}], ShowSpecialCharacters -> False, ShowStringCharacters -> True, 
-  NumberMarks -> True], FullForm]
+InputForm versus FullForm
+--------------------------
 
-In[2]:= 2+F[x] // InputForm // MakeBoxes // InputForm
-Out[2]//InputForm= InterpretationBox[StyleBox["2 + F[x]", ShowStringCharacters -> True, NumberMarks -> True], InputForm[2 + F[x]], Editable -> True, AutoDelete -> True]
-```
-In the case of `FullForm`, we get a `TagBox`, which ensures the content to be interpreted as a `FullForm` boxed expression. In the case of the `InputForm`, we get  an `InterpretationBox`, which keeps the information about the original expression. But the main difference is inside the `StyleBox`: for `InputForm` we have a shallow `String object, while for `FullForm` we have a nested `RowBox` expression.
+In contrast to `FullForm`, `InputForm` shows arithmetic expressions in
+traditional mathematical notation. Apart from that and the allowance
+of `InputForm` output to be altered via a `Format` assignment, the
+appearance of the result is about the same as `FullForm`.
 
- 
-Another important difference between `FullForm` and `InputForm` is that `FullForm` does not take into account `FormatValues`, while `InputForm` does: 
+Internally, `FullForm` produces `String` object,  while `FullForm`
+produces a nested `RowBox` structure.
 
-
-
-Differently from `FullForm`, which produces a nested `RowBox` 
-expression, InputForm produces a single `String` (not boxed), which can be
-parsed and interpreted as an expression in the Mathics3 interpreter.
-```
-In[3]:= Format[F[x_],InputForm]:="-inputform formatted "<>ToString[x]<>"F-"
-In[4]:= Format[F[x_],FullForm]:="-fullform formatted "<>ToString[x]<>"F-"
-
-In[5]:= 3 F[r] //InputForm
-Out[5]//InputForm= 3*"-inputform formatted rF-"
-
-In[6]:= 3 F[r] //FullForm
-Out[6]//FullForm= Times[3, F[r]]
-```
-
-On the other hand, neither `InputForm` or `FulLForm` do not take into accout MakeBoxes rules: setting
-
-```
-In[7]:= MakeBoxes[InputForm[G[x_]],f_]:=RowBox[{"--mb if G--", MakeBoxes[InputForm[x],f]}]
-In[8]:= MakeBoxes[FullForm[G[x_]],f_]:=RowBox[{"--mb ff G--", MakeBoxes[FullForm[x],f]}]
-```
-
-Evaluating  `G[3 F[t]]` in any of these forms we get
-
-```
-In[9]:= G[3 F[t]]//InputForm
-Out[9]//InputForm= G[3*"-inputform formatted tF-"]
-
-In[10]:= G[3 F[t]]//FullForm
-Out[10]//FullForm= G[Times[3, F[t]]]
-```
-In the first case, the `FormatValue` rule for `F` is applied but not the `MakeBoxes` rules for `G`.
+`InputForm` conversion produces an `InterpretationBox` The
+`InterpetationBox` preserves information about the original
+expression. In contrast, `FullForm` output produces a `TagBox`. In
+both cases, underneath the `InterpretationBox` or `Tagbox` is a
+`StyleBox`.
 
 """
 
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, Final, FrozenSet, List, Optional, Tuple
 
 from mathics.core.atoms import Integer, String
 from mathics.core.convert.op import operator_to_ascii, operator_to_unicode
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.parser.operators import OPERATOR_DATA
+from mathics.core.parser.operators import OPERATOR_DATA, operator_to_string
 from mathics.core.symbols import Atom, Symbol
 from mathics.core.systemsymbols import (
     SymbolBlank,
@@ -87,11 +52,13 @@ SymbolPostfix = Symbol("System`Postfix")
 SymbolPrefix = Symbol("System`Prefix")
 
 
-PRECEDENCES = OPERATOR_DATA.get("operator-precedences")
-PRECEDENCE_DEFAULT = PRECEDENCES.get("FunctionApply")
-PRECEDENCE_PLUS = PRECEDENCES.get("Plus")
-PRECEDENCE_TIMES = PRECEDENCES.get("Times")
-PRECEDENCE_POWER = PRECEDENCES.get("Power")
+# Use 670 until BoxGroup precedence gets in.
+PRECEDENCE_BOX_GROUP: Final[int] = 670  # box_operators["BoxGroup"]
+
+PRECEDENCES: Final = OPERATOR_DATA.get("operator-precedences")
+PRECEDENCE_PLUS: Final[int] = PRECEDENCES.get("Plus", 310)
+PRECEDENCE_TIMES: Final[int] = PRECEDENCES.get("Times", 400)
+PRECEDENCE_POWER: Final[int] = PRECEDENCES.get("Power", 590)
 
 EXPR_TO_INPUTFORM_TEXT_MAP: Dict[str, Callable] = {}
 
@@ -119,12 +86,12 @@ def get_operator_str(head, evaluation, **kwargs) -> str:
 
 
 def bracket(expr_str: str) -> str:
-    """wrap with parenthesis"""
+    """Wrap `expr_str` with square braces"""
     return f"[{expr_str}]"
 
 
 def parenthesize(expr_str: str) -> str:
-    """wrap with parenthesis"""
+    """Wrap `expr_str` with parenthesis"""
     return f"({expr_str})"
 
 
@@ -233,24 +200,26 @@ def collect_in_pre_post_arguments(
 
     head = expr.head
     group = None
-    precedence = PRECEDENCE_DEFAULT
+    precedence = PRECEDENCE_BOX_GROUP
     operands = list(target.elements)
 
     # Just one parameter:
     if len(elements) == 1:
         operator_spec = render_input_form(head, evaluation, **kwargs)
         if head is SymbolInfix:
-            operator_spec = [f"~{operator_spec}~"]
+            operator_spec = [
+                f"{operator_to_string['Infix']}{operator_spec}{operator_to_string['Infix']}"
+            ]
         elif head is SymbolPrefix:
-            operator_spec = f"{operator_spec}@"
+            operator_spec = f"{operator_spec}{operator_to_string['Prefix']}"
         elif head is SymbolPostfix:
-            operator_spec = f"//{operator_spec}"
+            operator_spec = f"{operator_to_string['Postfix']}{operator_spec}"
         return operands, operator_spec, precedence, group
 
     # At least two parameters: get the operator spec.
     ops = elements[1]
     if head is SymbolInfix:
-        # This is not the WMA behaviour, but the Mathics current implementation requires it:
+        # This is not the WMA behaviour, but the Mathics3 current implementation requires it:
         ops = ops.elements if ops.has_form("List", None) else (ops,)
         operator_spec = [get_operator_str(op, evaluation, **kwargs) for op in ops]
     else:
@@ -272,6 +241,17 @@ def collect_in_pre_post_arguments(
             group = None
 
     return operands, operator_spec, precedence, group
+
+
+ARITHMETIC_OPERATOR_STRINGS: Final[FrozenSet[str]] = frozenset(
+    [
+        *operator_to_string["Divide"],
+        *operator_to_string["NonCommutativeMultiply"],
+        *operator_to_string["Power"],
+        *operator_to_string["Times"],
+        " ",
+    ]
+)
 
 
 @register_inputform("System`Infix")
@@ -313,7 +293,7 @@ def _infix_expression_to_inputform_text(
         else:
             num_ops = len(ops_lst)
             curr_op = ops_lst[index % num_ops]
-            if curr_op not in ("*", "**", "/", "^", " "):
+            if curr_op not in ARITHMETIC_OPERATOR_STRINGS:
                 # In the tests, we add spaces just for + and -:
                 curr_op = f" {curr_op} "
 

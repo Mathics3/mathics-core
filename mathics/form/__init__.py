@@ -1,5 +1,5 @@
 """
-Function that generate $PrintForms
+Module containing functions for rendering $PrintForms Forms
 """
 
 from mathics.form.inputform import render_input_form

@@ -15,7 +15,7 @@ from mathics.core.symbols import Symbol
 # In these tests, we check that the current behavior of makeboxes does not change
 # without noticing that it could affect compatibility with WL and with
 # mathics-django. Also looking at some issues in the current behavior regarding
-# the WL standard (for instance, how to represent $a^(b/c)$) and the Mathics
+# the WL standard (for instance, how to represent $a^(b/c)$) and the Mathics3
 # own implementation (BoxError raising in some simple conditions).
 # These test should be updated as we fix pending issues.
 
