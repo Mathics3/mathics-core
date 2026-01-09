@@ -150,9 +150,9 @@ class MathMLForm(FormBaseClass):
     >> MathMLForm[\\[Mu]]
     = ...
 
-    # This can causes the TeX to fail
-    # >> MathMLForm[Graphics[Text["\u03bc"]]]
-    #  = ...
+    ## This can causes the TeX to fail
+    ## >> MathMLForm[Graphics[Text["\u03bc"]]]
+    ##  = ...
 
     ## The <mo> should contain U+2062 INVISIBLE TIMES
     ## MathMLForm[MatrixForm[{{2*a, 0},{0,0}}]]
