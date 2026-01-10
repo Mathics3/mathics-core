@@ -194,7 +194,15 @@ class OutputForm(FormBaseClass):
      = -Graphics-
     """
 
+    formats = {"OutputForm[s_String]": "s"}
     summary_text = "plain-text output format"
+
+    def eval_makeboxes(self, expr, form, evaluation):
+        """MakeBoxes[OutputForm[expr_], form_]"""
+        pane = eval_makeboxes_outputform(expr, evaluation, form)
+        return InterpretationBox(
+            pane, Expression(SymbolOutputForm, expr), **{"System`Editable": SymbolFalse}
+        )
 
 
 class StandardForm(FormBaseClass):
