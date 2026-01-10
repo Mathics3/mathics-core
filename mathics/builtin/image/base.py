@@ -211,7 +211,7 @@ class Image(Atom):
             return "Bit16"
         elif dtype == numpy.uint8:
             return "Byte"
-        elif dtype is bool:
+        elif dtype == numpy.bool:
             return "Bit"
         else:
             return str(dtype)
