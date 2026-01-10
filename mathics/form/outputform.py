@@ -483,7 +483,6 @@ def plus_expression_to_outputform_text(
                         + expression_to_outputform_text(
                             Expression(SymbolTimes, *term.elements[1:]),
                             evaluation,
-                            form,
                             **kwargs,
                         )
                     )
@@ -492,9 +491,7 @@ def plus_expression_to_outputform_text(
                     result = (
                         result
                         + " "
-                        + expression_to_outputform_text(
-                            term, evaluation, form, **kwargs
-                        )
+                        + expression_to_outputform_text(term, evaluation, **kwargs)
                     )
                     continue
             elif isinstance(first, Real):
@@ -502,19 +499,17 @@ def plus_expression_to_outputform_text(
                     result = (
                         result
                         + " "
-                        + expression_to_outputform_text(
-                            term, evaluation, form, **kwargs
-                        )
+                        + expression_to_outputform_text(term, evaluation, **kwargs)
                     )
                     continue
             result = (
                 result
                 + " + "
-                + expression_to_outputform_text(term, evaluation, form, **kwargs)
+                + expression_to_outputform_text(term, evaluation, **kwargs)
             )
             ## TODO: handle complex numbers?
         else:
-            elem_txt = expression_to_outputform_text(term, evaluation, form, **kwargs)
+            elem_txt = expression_to_outputform_text(term, evaluation, **kwargs)
             if (compare_precedence(term, PRECEDENCE_PLUS) or -1) < 0:
                 elem_txt = parenthesize(elem_txt)
                 result = result + " + " + elem_txt
@@ -527,7 +522,7 @@ def plus_expression_to_outputform_text(
                 result = (
                     result
                     + " + "
-                    + expression_to_outputform_text(term, evaluation, form, **kwargs)
+                    + expression_to_outputform_text(term, evaluation, **kwargs)
                 )
     return result
 
@@ -546,7 +541,7 @@ def power_expression_to_outputform_text(
         Integer(PRECEDENCE_POWER),
         SymbolRight,
     )
-    return expression_to_outputform_text(infix_form, evaluation, form, **kwargs)
+    return expression_to_outputform_text(infix_form, evaluation, **kwargs)
 
 
 @register_outputform("System`PrecedenceForm")
@@ -554,9 +549,7 @@ def precedenceform_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> str:
     if len(expr.elements) == 2:
-        return expression_to_outputform_text(
-            expr.elements[0], evaluation, form, **kwargs
-        )
+        return expression_to_outputform_text(expr.elements[0], evaluation, **kwargs)
     raise _WrongFormattedExpression
 
 
@@ -585,18 +578,17 @@ def pre_pos_fix_expression_to_outputform_text(
     # Processing the second argument, if it is there:
     if len(elements) > 1:
         ops = elements[1]
-        ops_txt = [expression_to_outputform_text(ops, evaluation, form, **kwargs)]
+        ops_txt = [expression_to_outputform_text(ops, evaluation, **kwargs)]
     else:
         if head is SymbolPrefix:
             default_symb = " @ "
             ops_txt = (
-                expression_to_outputform_text(head, evaluation, form, **kwargs)
-                + default_symb
+                expression_to_outputform_text(head, evaluation, **kwargs) + default_symb
             )
         elif head is SymbolPostfix:
             default_symb = " // "
             ops_txt = default_symb + expression_to_outputform_text(
-                head, evaluation, form, **kwargs
+                head, evaluation, **kwargs
             )
 
     # Processing the third argument, if it is there:
@@ -616,7 +608,7 @@ def pre_pos_fix_expression_to_outputform_text(
 
     operand = operands[0]
     cmp_precedence = compare_precedence(operand, precedence)
-    target_txt = expression_to_outputform_text(operand, evaluation, form, **kwargs)
+    target_txt = expression_to_outputform_text(operand, evaluation, **kwargs)
     if cmp_precedence is not None and cmp_precedence != -1:
         target_txt = parenthesize(target_txt)
 
@@ -625,7 +617,7 @@ def pre_pos_fix_expression_to_outputform_text(
 
 @register_outputform("System`Rational")
 def rational_expression_to_outputform_text(
-    n: Union[Rational, Expression], evaluation: Evaluation, form: Symbol, **kwargs
+    n: Union[Rational, Expression], evaluation: Evaluation, **kwargs
 ):
     if n.has_form("Rational", 2):
         num, den = n.elements  # type: ignore[union-attr]
@@ -635,15 +627,13 @@ def rational_expression_to_outputform_text(
 
 
 @register_outputform("System`Real")
-def real_expression_to_outputform_text(
-    n: Real, evaluation: Evaluation, form: Symbol, **kwargs
-):
+def real_expression_to_outputform_text(n: Real, evaluation: Evaluation, **kwargs):
     str_n = n.make_boxes("System`OutputForm").boxes_to_text()  # type: ignore[attr-defined]
     return str(str_n)
 
 
 @register_outputform("System`Row")
-def row_to_outputform_text(expr, evaluation: Evaluation, form: Symbol, **kwargs):
+def row_to_outputform_text(expr, evaluation: Evaluation, **kwargs):
     """Row[{...}]"""
     elements = expr.elements[0].elements
     return "".join(
@@ -653,13 +643,13 @@ def row_to_outputform_text(expr, evaluation: Evaluation, form: Symbol, **kwargs)
 
 @register_outputform("System`Rule")
 @register_outputform("System`RuleDelayed")
-def rule_to_outputform_text(expr, evaluation: Evaluation, form: Symbol, **kwargs):
+def rule_to_outputform_text(expr, evaluation: Evaluation, **kwargs):
     """Rule|RuleDelayed[{...}]"""
     head = expr.head
     elements = expr.elements
     kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     if len(elements) != 2:
-        return _default_expression_to_outputform_text(expr, evaluation, form, **kwargs)
+        return _default_expression_to_outputform_text(expr, evaluation, **kwargs)
     pat, rule = (
         expression_to_outputform_text(elem, evaluation, **kwargs) for elem in elements
     )
@@ -748,7 +738,7 @@ def tableform_expression_to_outputform_text(
 def texform_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, **kwargs
 ) -> str:
-    #  boxes = format_element(expr.elements[0], evaluation, form)
+    #  boxes = format_element(expr.elements[0], evaluation)
     boxes = Expression(
         Symbol("System`MakeBoxes"), expr.elements[0], SymbolStandardForm
     ).evaluate(evaluation)
