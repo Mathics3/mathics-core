@@ -2,8 +2,6 @@
 """
 Boxing Symbol for Raster Images
 """
-# Docs are not yet ready for prime time. Maybe after release 6.0.0.
-no_doc = True
 
 import base64
 import tempfile
@@ -18,7 +16,11 @@ from mathics.builtin.box.expression import BoxExpression
 from mathics.core.element import BaseElement
 from mathics.eval.image import pixels_as_ubyte
 
+# Docs are not yet ready for prime time. Maybe after release 6.0.0.
+no_doc = True
 
+
+# This should be 'RasterBox'
 class ImageBox(BoxExpression):
     """
     <dl>
@@ -29,6 +31,14 @@ class ImageBox(BoxExpression):
     """
 
     summary_text = "symbol used boxing Image expressions"
+
+    def init(self, image, **kwargs):
+        self.image = image
+        self.options = kwargs
+
+    @property
+    def elements(self):
+        return self.image.elements
 
     def boxes_to_b64text(
         self, elements: Tuple[BaseElement] = None, **options
