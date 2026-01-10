@@ -1,22 +1,20 @@
 """
-Plots with Points Having 3 Items.
+Custom Plots
 
-Contour Plots ('ContourPlot'), Density Plots ('DensityPlot') and Surface Plots ('Plot3D') are all plot having  "points" containing 3 items.
+A Density plot is a kind of <url>:heat map:https://en.wikipedia.org/wiki/Heat_map</url> that represents magnitude or individual values as a color.
 
-A Density plot is kind of <url>:heat map:https://en.wikipedia.org/wiki/Heat_map</url> that represents magnitude or individual values as a color.
-
-Similar is a Contour Plot which is a kind of <url>:contour map:https://en.wikipedia.org/wiki/Contour_line</url>.
+Similar is a Contour Plot, which is a kind of <url>:contour map:https://en.wikipedia.org/wiki/Contour_line</url>.
 
 A <url>:Surface plot:https://en.wikipedia.org/wiki/Plot_(graphics)#Surface_plot</url> ('Plot3D') shows its 3rd or "height" dimension in a way that is projected onto a 2-dimensional surface.
 
-'ComplexPlot' and 'ComplexPlot3D' use color and to visualize complex-valued functions in two and three dimensions respectively.
+'ComplexPlot' and 'ComplexPlot3D' use color to visualize complex-valued functions in two and three dimensions, respectively.
 """
 
 import numpy as np
 
 from mathics.builtin.drawing.graphics3d import Graphics3D
 from mathics.builtin.graphics import Graphics
-from mathics.builtin.options import options_to_rules
+from mathics.builtin.options import filter_from_iterable, options_to_rules
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
@@ -26,7 +24,7 @@ from mathics.core.systemsymbols import Symbol, SymbolPlotRange, SymbolSequence
 from . import plot
 
 # This tells documentation how to sort this module
-sort_order = "mathics.builtin.plotting-data"
+sort_order = "mathics.builtin.custom-plots"
 
 
 class _Plot3D(Builtin):
@@ -149,7 +147,7 @@ class _Plot3D(Builtin):
 
         # generate the Graphics[3D] result
         graphics_expr = graphics.generate(
-            options_to_rules(options, self.graphics_class.options)
+            options_to_rules(options, filter_from_iterable(self.graphics_class.options))
         )
         return graphics_expr
 
@@ -274,7 +272,7 @@ class ContourPlot3D(_Plot3D):
 
 class DensityPlot(_Plot3D):
     """
-    <url>:heat map:https://en.wikipedia.org/wiki/Heat_map</url>(<url>:WMA link: https://reference.wolfram.com/language/ref/DensityPlot.html</url>)
+    <url>:heat map:https://en.wikipedia.org/wiki/Heat_map</url> (<url>:WMA link: https://reference.wolfram.com/language/ref/DensityPlot.html</url>)
     <dl>
       <dt>'DensityPlot'[$f$, {$x$, $x_{min}$, $x_{max}$}, {$y$, $y_{min}$, $y_{max}$}]
       <dd>plots a density plot of $f$ with $x$ ranging from $x_{min}$ to $x_{max}$ and $y$ ranging from $y_{min}$ to $y_{max}$.

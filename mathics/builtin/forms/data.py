@@ -1,23 +1,19 @@
-# FIXME: split these forms up further.
-# MathML and TeXForm feel more closely related since they go with
-# specific kinds of interpreters: LaTeX and MathML
+"""
+Data-Specific Forms
 
-# SympyForm and PythonForm feel related since are our own hacky thing
-# (and mostly broken for now)
+Some forms are specific to formatting certain kinds of data, like numbers, strings, or matrices.
 
-# NumberForm, TableForm, and MatrixForm seem closely related since
-# they seem to be relevant for particular kinds of structures rather
-# than applicable to all kinds of expressions.
+These are in contrast to the Forms like 'OutputForm' or 'StandardForm', which are intended to work over all kinds of data.
 
 """
-Form Functions
-"""
-from typing import Optional
+import re
 
-from mathics.builtin.box.layout import RowBox
+from mathics.builtin.box.layout import RowBox, to_boxes
 from mathics.builtin.forms.base import FormBaseClass
-from mathics.core.atoms import Integer, Real, String, StringFromPython
+from mathics.builtin.makeboxes import MakeBoxes
+from mathics.core.atoms import Integer, Real, String
 from mathics.core.builtin import Builtin
+from mathics.core.element import EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -37,10 +33,9 @@ from mathics.eval.makeboxes import (
     StringLParen,
     StringRParen,
     eval_baseform,
-    eval_mathmlform,
     eval_tableform,
-    eval_texform,
 )
+from mathics.eval.strings import eval_ToString
 
 
 class BaseForm(FormBaseClass):
@@ -101,93 +96,6 @@ class BaseForm(FormBaseClass):
         return eval_baseform(self, expr, n, f, evaluation)
 
 
-class FullForm(FormBaseClass):
-    """
-    <url>
-      :WMA link:
-      https://reference.wolfram.com/language/ref/FullForm.html</url>
-
-    <dl>
-      <dt>'FullForm'[$expr$]
-      <dd>displays the underlying form of $expr$.
-    </dl>
-
-    >> FullForm[a + b * c]
-     = Plus[a, Times[b, c]]
-    >> FullForm[2/3]
-     = Rational[2, 3]
-    >> FullForm["A string"]
-     = "A string"
-    """
-
-    in_outputforms = True
-    in_printforms = True
-    summary_text = "underlying M-Expression representation"
-
-
-class MathMLForm(FormBaseClass):
-    """
-    <url>
-      :WMA link:
-      https://reference.wolfram.com/language/ref/MathMLForm.html</url>
-
-    <dl>
-      <dt>'MathMLForm'[$expr$]
-      <dd>displays $expr$ as a MathML expression.
-    </dl>
-
-    >> MathMLForm[HoldForm[Sqrt[a^3]]]
-     = ...
-
-    ## Test cases for Unicode - redo please as a real test
-    >> MathMLForm[\\[Mu]]
-    = ...
-
-    # This can causes the TeX to fail
-    # >> MathMLForm[Graphics[Text["\u03bc"]]]
-    #  = ...
-
-    ## The <mo> should contain U+2062 INVISIBLE TIMES
-    ## MathMLForm[MatrixForm[{{2*a, 0},{0,0}}]]
-    = ...
-    """
-
-    in_outputforms = True
-    in_printforms = True
-
-    summary_text = "formatted expression as MathML commands"
-
-    def eval_mathml(self, expr, evaluation) -> Expression:
-        "MakeBoxes[expr_, MathMLForm]"
-        return eval_mathmlform(expr, evaluation)
-
-
-class InputForm(FormBaseClass):
-    r"""
-    <url>
-      :WMA link:
-      https://reference.wolfram.com/language/ref/InputForm.html</url>
-
-    <dl>
-      <dt>'InputForm'[$expr$]
-      <dd>displays $expr$ in an unambiguous form suitable for input.
-    </dl>
-
-    >> InputForm[a + b * c]
-     = a + b*c
-    >> InputForm["A string"]
-     = "A string"
-    >> InputForm[f'[x]]
-     = Derivative[1][f][x]
-    >> InputForm[Derivative[1, 0][f][x]]
-     = Derivative[1, 0][f][x]
-    """
-
-    in_outputforms = True
-    in_printforms = True
-    summary_text = "plain-text input format"
-
-
 class _NumberForm(Builtin):
     """
     Base class for NumberForm, AccountingForm, EngineeringForm, and ScientificForm.
@@ -195,7 +103,7 @@ class _NumberForm(Builtin):
 
     default_ExponentFunction = None
     default_NumberFormat = None
-
+    in_outputforms = True
     messages = {
         "npad": "Value for option NumberPadding -> `1` should be a string or a pair of strings.",
         "dblk": "Value for option DigitBlock should be a positive integer, Infinity, or a pair of positive integers.",
@@ -465,178 +373,101 @@ class NumberForm(_NumberForm):
         return Expression(SymbolMakeBoxes, expr, form)
 
 
-class OutputForm(FormBaseClass):
-    """
-    <url>
-      :WMA link:
-      https://reference.wolfram.com/language/ref/OutputForm.html</url>
-
-    <dl>
-      <dt>'OutputForm'[$expr$]
-      <dd>displays $expr$ in a plain-text form.
-    </dl>
-
-    >> OutputForm[f'[x]]
-     = f'[x]
-    >> OutputForm[Derivative[1, 0][f][x]]
-     = Derivative[1, 0][f][x]
-
-    'OutputForm' is used by default:
-    >> OutputForm[{"A string", a + b}]
-     = {A string, a + b}
-    >> {"A string", a + b}
-     = {A string, a + b}
-    >> OutputForm[Graphics[Rectangle[]]]
-     = -Graphics-
-    """
-
-    summary_text = "plain-text output format"
-
-
-class PythonForm(FormBaseClass):
-    """
-    <dl>
-      <dt>'PythonForm'[$expr$]
-      <dd>returns an approximate equivalent of $expr$ in Python, when that is possible. We assume
-      that Python has SymPy imported. No explicit import will be include in the result.
-    </dl>
-
-    >> PythonForm[Infinity]
-    = math.inf
-    >> PythonForm[Pi]
-    = sympy.pi
-    >> E // PythonForm
-    = sympy.E
-    >> {1, 2, 3} // PythonForm
-    = (1, 2, 3)
-    """
-
-    in_outputforms = True
-    in_printforms = True
-    summary_text = "translate expressions as Python source code"
-    # >> PythonForm[HoldForm[Sqrt[a^3]]]
-    #  = sympy.sqrt{a**3} # or something like this
-
-    def eval_python(self, expr, evaluation) -> Expression:
-        "MakeBoxes[expr_, PythonForm]"
-
-        def build_python_form(expr):
-            if isinstance(expr, Symbol):
-                return expr.to_sympy()
-            return expr.to_python()
-
-        try:
-            python_equivalent = build_python_form(expr)
-        except Exception:
-            return
-        return StringFromPython(python_equivalent)
-
-    def eval(self, expr, evaluation) -> Expression:
-        "PythonForm[expr_]"
-        return self.eval_python(expr, evaluation)
-
-
-class SympyForm(FormBaseClass):
-    """
-    <dl>
-      <dt>'SympyForm'[$expr$]
-      <dd>returns an Sympy $expr$ in Python. Sympy is used internally
-      to implement a number of Mathics functions, like Simplify.
-    </dl>
-
-    >> SympyForm[Pi^2]
-    = pi**2
-    >> E^2 + 3E // SympyForm
-    = exp(2) + 3*E
-    """
-
-    in_outputforms = True
-    in_printforms = True
-    summary_text = "translate expressions to SymPy"
-
-    def eval_sympy(self, expr, evaluation) -> Optional[Expression]:
-        "MakeBoxes[expr_, SympyForm]"
-
-        try:
-            sympy_equivalent = expr.to_sympy()
-        except Exception:
-            return
-        return StringFromPython(sympy_equivalent)
-
-    def eval(self, expr, evaluation) -> Expression:
-        "SympyForm[expr_]"
-        return self.eval_sympy(expr, evaluation)
-
-
-class StandardForm(FormBaseClass):
-    """
-    <url>
-      :WMA link:
-      https://reference.wolfram.com/language/ref/StandardForm.html</url>
-
-    <dl>
-      <dt>'StandardForm'[$expr$]
-      <dd>displays $expr$ in the default form.
-    </dl>
-
-    >> StandardForm[a + b * c]
-     = a+b c
-    >> StandardForm["A string"]
-     = A string
-    >> f'[x]
-     = f'[x]
-    """
-
-    in_outputforms = True
-    in_printforms = True
-    summary_text = "default output format"
-
-
-class TraditionalForm(FormBaseClass):
-    """
-    <url>
-      :WMA link:
-      https://reference.wolfram.com/language/ref/TraditionalForm.html</url>
-
-    <dl>
-      <dt>'TraditionalForm'[$expr$]
-      <dd>displays $expr$ in a format similar to the traditional mathematical notation, where
-           function evaluations are represented by brackets instead of square brackets.
-    </dl>
-
-    ## To pass this test, we need to improve the implementation of Element.format
-    ## >> TraditionalForm[g[x]]
-    ## = g(x)
-    """
-
-    in_outputforms = True
-    in_printforms = True
-
-    summary_text = "traditional output format"
-
-
-class TeXForm(FormBaseClass):
+class SequenceForm(FormBaseClass):
     r"""
     <url>
       :WMA link:
-      https://reference.wolfram.com/language/ref/TeXForm.html</url>
+      https://reference.wolfram.com/language/ref/SequenceForm.html</url>
 
     <dl>
-      <dt>'TeXForm'[$expr$]
-      <dd>displays $expr$ using TeX math mode commands.
+      <dt>'SequenceForm'[$expr_1$, $expr_2$, ..]
+      <dd>format the textual concatenation of the printed forms of $expi$.
     </dl>
+    'SequenceForm' has been superseded by <url>:Row:
+    /doc/reference-of-built-in-symbols/layout/row
+    </url> and 'Text' (which is not implemented yet).
 
-    >> TeXForm[HoldForm[Sqrt[a^3]]]
-     = \sqrt{a^3}
+    >> SequenceForm["[", "x = ", 56, "]"]
+     = [x = 56]
     """
 
-    in_outputforms = True
-    in_printforms = True
-    summary_text = "formatted expression as TeX commands"
+    in_outputforms = False
+    in_printforms = False
 
-    def eval_tex(self, expr, evaluation) -> Expression:
-        "MakeBoxes[expr_, TeXForm]"
-        return eval_texform(expr, evaluation)
+    options = {
+        "CharacterEncoding": '"Unicode"',
+    }
+
+    summary_text = "format a string from a template and a list of parameters"
+
+    def eval_makeboxes(self, args, form, evaluation, options: dict):
+        """MakeBoxes[SequenceForm[args___, OptionsPattern[SequenceForm]],
+        form:StandardForm|TraditionalForm|OutputForm]"""
+        encoding = options["System`CharacterEncoding"]
+        return RowBox(
+            *[
+                (
+                    arg
+                    if isinstance(arg, String)
+                    else eval_ToString(arg, form, encoding.value, evaluation)
+                )
+                for arg in args.get_sequence()
+            ]
+        )
+
+
+class StringForm(FormBaseClass):
+    r"""
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/StringForm.html</url>
+
+    <dl>
+      <dt>'StringForm'[$str$, $expr_1$, $expr_2$, ...]
+      <dd>displays the string $str$, replacing placeholders in $str$
+        with the corresponding expressions.
+    </dl>
+
+    >> StringForm["`1` bla `2` blub `` bla `2`", a, b, c]
+     = a bla b blub c bla b
+    """
+
+    in_outputforms = False
+    in_printforms = False
+    summary_text = "format a string from a template and a list of parameters"
+
+    def eval_makeboxes(self, s, args, form, evaluation):
+        """MakeBoxes[StringForm[s_String, args___],
+        form:StandardForm|TraditionalForm|OutputForm]"""
+
+        s = s.value
+        args = args.get_sequence()
+        result = []
+        pos = 0
+        last_index = 0
+        for match in re.finditer(r"(\`(\d*)\`)", s):
+            start, end = match.span(1)
+            if match.group(2):
+                index = int(match.group(2))
+            else:
+                index = last_index + 1
+            last_index = max(index, last_index)
+            if start > pos:
+                result.append(to_boxes(String(s[pos:start]), evaluation))
+            pos = end
+            if 1 <= index <= len(args):
+                arg = args[index - 1]
+                result.append(
+                    to_boxes(MakeBoxes(arg, form).evaluate(evaluation), evaluation)
+                )
+        if pos < len(s):
+            result.append(to_boxes(String(s[pos:]), evaluation))
+        return RowBox(
+            *tuple(
+                r.evaluate(evaluation) if isinstance(r, EvalMixin) else r
+                for r in result
+            )
+        )
 
 
 class TableForm(FormBaseClass):
@@ -689,6 +520,7 @@ class TableForm(FormBaseClass):
         return eval_tableform(self, table, f, evaluation, options)
 
 
+# This has to come after TableForm
 class MatrixForm(TableForm):
     """
     <url>

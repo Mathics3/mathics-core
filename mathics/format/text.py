@@ -17,6 +17,7 @@ from mathics.builtin.box.layout import (
     SubscriptBox,
     SubsuperscriptBox,
     SuperscriptBox,
+    TagBox,
 )
 from mathics.core.atoms import String
 from mathics.core.exceptions import BoxConstructError
@@ -43,14 +44,15 @@ add_conversion_fn(String, string)
 
 
 def interpretation_box(self, **options):
-    return boxes_to_text(self.elements[0], **options)
+    return boxes_to_text(self.boxed, **options)
 
 
 add_conversion_fn(InterpretationBox, interpretation_box)
 
 
 def pane_box(self, **options):
-    return boxes_to_text(self.elements[0], **options)
+    result = boxes_to_text(self.boxed, **options)
+    return result
 
 
 add_conversion_fn(PaneBox, pane_box)
@@ -75,7 +77,7 @@ add_conversion_fn(FractionBox, fractionbox)
 
 def gridbox(self, elements=None, **box_options) -> str:
     if not elements:
-        elements = self._elements
+        elements = self.items
     evaluation = box_options.get("evaluation", None)
     items, options = self.get_array(elements, evaluation)
 
@@ -216,7 +218,26 @@ def rowbox(self, elements=None, **options) -> str:
     _options = self.box_options.copy()
     _options.update(options)
     options = _options
-    return "".join([boxes_to_text(element, **options) for element in self.items])
+    parts_str = [boxes_to_text(element, **options) for element in self.items]
+    if len(parts_str) == 1:
+        return parts_str[0]
+    # This loop integrate all the row adding spaces after a ",", followed
+    # by something which is not a comma. For example,
+    # >> ToString[RowBox[{",",",","p"}]//DisplayForm]
+    #  = ",, p"
+    result = parts_str[0]
+    comma = result == ","
+    for elem in parts_str[1:]:
+        if elem == ",":
+            result += elem
+            comma = True
+            continue
+        if comma:
+            result += " "
+            comma = False
+
+        result += elem
+    return result
 
 
 add_conversion_fn(RowBox, rowbox)
@@ -251,3 +272,10 @@ def graphics3dbox(self, elements=None, **options) -> str:
 
 
 add_conversion_fn(Graphics3DBox, graphics3dbox)
+
+
+def tag_box(self, **options):
+    return boxes_to_text(self.boxed, **options)
+
+
+add_conversion_fn(TagBox, tag_box)
