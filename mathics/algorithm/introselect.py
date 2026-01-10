@@ -167,25 +167,25 @@ if __name__ == "__main__":
     import itertools
     import random
 
-    def test_algorithm(l, r_max, name, f):
-        a = [random.randint(-r_max, r_max) for _ in range(l)]
+    def test_algorithm(m, r_max, name, f):
+        a = [random.randint(-r_max, r_max) for _ in range(m)]
         b = sorted(a)
         c = [f(a[:], i) for i in range(len(a))]
         if b == c:
-            print("OK %s r: %d l: %d" % (name, r_max, l))
+            print("OK %s r: %d l: %d" % (name, r_max, m))
             return True
         else:
-            print("FAIL %s r: %d l: %d" % (name, r_max, l))
+            print("FAIL %s r: %d l: %d" % (name, r_max, m))
             print(a, b, c)
             return False
 
-    def test_configuration(l_max, r_max):
-        for l in range(l_max):
-            if not test_algorithm(l, r_max, "bfprt", bfprt):
+    def test_configuration(m_max, r_max):
+        for m in range(m_max):
+            if not test_algorithm(m, r_max, "bfprt", bfprt):
                 return False
 
-        for l in range(l_max):
-            if not test_algorithm(l, r_max, "introselect", introselect):
+        for m in range(m_max):
+            if not test_algorithm(m, r_max, "introselect", introselect):
                 return False
 
         return True

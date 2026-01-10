@@ -727,7 +727,9 @@ class LaTeXDocChapter(DocChapter):
         if self.part.is_reference:
             sort_section_function = sorted
         else:
-            sort_section_function = lambda x: x
+
+            def sort_section_function(x):
+                return x
 
         chapter_sections = [
             ("\n\n\\chapter{%(title)s}\n\\chapterstart\n\n%(intro)s")
@@ -773,7 +775,10 @@ class LaTeXDocPart(DocPart):
         if self.is_reference:
             chapter_fn = sorted_chapters
         else:
-            chapter_fn = lambda x: x
+
+            def chapter_fn(x):
+                return x
+
         result = "\n\n\\part{%s}\n\n" % escape_latex(self.title) + (
             "\n\n".join(
                 chapter.latex(doc_data, quiet, filter_sections=filter_sections)
