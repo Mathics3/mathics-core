@@ -6,28 +6,24 @@ Formatting constructs are represented as a hierarchy of low-level \
 symbolic "boxes".
 
 The routines here assist in boxing at the bottom of the hierarchy, typically found when using in a notebook.
+
+`Expression` objects having symbols in this module as head, are evaluated to 
+`BoxElementMixin` objects. These objects are literal objects, so do not have the method `evaluate`. Text render functions (in `mathics.format`) process `BoxElementMixin` to produce their output.
+
 """
 from typing import Tuple
 
 from mathics.builtin.box.expression import BoxExpression
-from mathics.builtin.options import options_to_rules
+from mathics.builtin.options import filter_non_default_values, options_to_rules
 from mathics.core.atoms import String
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
-from mathics.core.element import BaseElement, BoxElementMixin
+from mathics.core.element import BaseElement, BoxElementMixin, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import (
-    SymbolFractionBox,
-    SymbolRowBox,
-    SymbolSqrtBox,
-    SymbolSubscriptBox,
-    SymbolSubsuperscriptBox,
-    SymbolSuperscriptBox,
-)
 from mathics.eval.makeboxes import to_boxes
 
 # This tells documentation how to sort this module
@@ -35,12 +31,12 @@ sort_order = "mathics.builtin.low-level-notebook-structure"
 
 
 def elements_to_expressions(
-    elements: Tuple[BaseElement], options: dict
+    self: BoxExpression, elements: Tuple[BaseElement], options: dict
 ) -> Tuple[BaseElement]:
     """
     Return a tuple of Mathics3 normal atoms or expressions.
     """
-    opts = sorted(options_to_rules(options))
+    opts = sorted(options_to_rules(options, filter_non_default_values(self)))
     expr_elements = [
         elem.to_expression() if isinstance(elem, BoxExpression) else elem
         for elem in elements
@@ -105,6 +101,7 @@ class FractionBox(BoxExpression):
     def elements(self):
         if self._elements is None:
             self._elements = elements_to_expressions(
+                self,
                 (
                     self.num,
                     self.den,
@@ -159,7 +156,7 @@ class GridBox(BoxExpression):
     @property
     def elements(self):
         if self._elements is None:
-            self._elements = elements_to_expressions(self.items, self.box_options)
+            self._elements = elements_to_expressions(self, self.items, self.box_options)
         return self.elements
 
     def init(self, *elems, **kwargs):
@@ -215,7 +212,16 @@ class InterpretationBox(BoxExpression):
     """
 
     attributes = A_HOLD_ALL_COMPLETE | A_PROTECTED | A_READ_PROTECTED
+    options = {
+        "Editable": "Automatic",
+        "AutoDelete": "Automatic",
+    }
     summary_text = "box associated to an input expression"
+
+    def __repr__(self):
+        result = "InterpretationBox\n  " + repr(self.boxed)
+        result += f"\n  {self.box_options}"
+        return result
 
     def init(self, *expr, **options):
         self.boxed = expr[0]
@@ -226,25 +232,35 @@ class InterpretationBox(BoxExpression):
     def elements(self):
         if self._elements is None:
             self._elements = elements_to_expressions(
+                self,
                 (
                     self.boxed,
                     self.expr,
                 ),
-                {},
+                self.box_options,
             )
         return self._elements
 
-    def eval_create(self, reprs, expr, evaluation):
-        """InterpretationBox[reprs_, expr_]"""
-        return InterpretationBox(reprs, expr)
+    def eval_create(self, reprs, expr, evaluation, options):
+        """InterpretationBox[reprs_, expr_, OptionsPattern[]]"""
+        # If the first element is not a literal, this
+        # function evaluates it (because the symbol has
+        # the attribute HoldAllComplete, this does not happen
+        # in the evaluation loop). Then, if the result is a
+        # BoxElementMixin, creates and return instance of `InterpretationBox`.
+        if isinstance(reprs, EvalMixin):
+            reprs = reprs.evaluate(evaluation)
+        if not isinstance(reprs, BoxElementMixin):
+            return
+        return InterpretationBox(reprs, expr, **options)
 
     def eval_to_expression1(self, boxexpr, evaluation):
         """ToExpression[boxexpr_InterpretationBox]"""
-        return boxexpr.elements[1]
+        return boxexpr.expr
 
     def eval_to_expression2(self, boxexpr, form, evaluation):
         """ToExpression[boxexpr_InterpretationBox, form_]"""
-        return boxexpr.elements[1]
+        return boxexpr.expr
 
     def eval_display(self, boxexpr, evaluation):
         """DisplayForm[boxexpr_InterpretationBox]"""
@@ -271,7 +287,9 @@ class PaneBox(BoxExpression):
     @property
     def elements(self):
         if self._elements is None:
-            self._elements = elements_to_expressions((self.boxed,), self.box_options)
+            self._elements = elements_to_expressions(
+                self, (self.boxed,), self.box_options
+            )
         return self._elements
 
     def init(self, expr, **options):
@@ -404,9 +422,13 @@ class SqrtBox(BoxExpression):
             index = self.index
             if index is None:
                 # self.box_options
-                self._elements = elements_to_expressions((self.radicand,), {})
+                self._elements = elements_to_expressions(
+                    self, (self.radicand,), self.box_options
+                )
             else:
-                self._elements = elements_to_expressions((self.radicand, index), {})
+                self._elements = elements_to_expressions(
+                    self, (self.radicand, index), self.box_options
+                )
         return self._elements
 
     def eval_index(self, radicand, index, evaluation: Evaluation, options: dict):
@@ -442,7 +464,7 @@ class StyleBox(BoxExpression):
     """
 
     options = {
-        "ShowStringCharacters": "True",
+        "ShowStringCharacters": "False",
         "ShowSpecialCharacters": "False",
         "$OptionSyntax": "Ignore",
     }
@@ -459,18 +481,24 @@ class StyleBox(BoxExpression):
             boxes = self.boxes
             if style:
                 self._elements = elements_to_expressions(
-                    (boxes, style), self.box_options
+                    self, (boxes, style), self.box_options
                 )
             else:
-                self._elements = elements_to_expressions((boxes,), self.box_options)
+                self._elements = elements_to_expressions(
+                    self, (boxes,), self.box_options
+                )
         return self._elements
 
     def eval_options(self, boxes, evaluation: Evaluation, options: dict):
         """StyleBox[boxes_, OptionsPattern[]]"""
-        return StyleBox(boxes, style="", **options)
+        if not isinstance(boxes, BoxElementMixin):
+            return
+        return StyleBox(boxes, style=None, **options)
 
     def eval_style(self, boxes, style, evaluation: Evaluation, options: dict):
         """StyleBox[boxes_, style_String, OptionsPattern[]]"""
+        if not isinstance(boxes, BoxElementMixin):
+            return
         return StyleBox(boxes, style=style, **options)
 
     def get_string_value(self) -> str:
@@ -486,8 +514,11 @@ class StyleBox(BoxExpression):
             boxes = boxes.boxes
         self.style = style
         self.box_options = options
+        assert options is not None
         self.boxes = boxes
-        assert isinstance(self.boxes, BoxElementMixin), "f{type(self.boxes)}"
+        assert isinstance(
+            self.boxes, BoxElementMixin
+        ), f"{type(self.boxes)},{self.boxes}"
 
 
 class SubscriptBox(BoxExpression):
@@ -513,8 +544,9 @@ class SubscriptBox(BoxExpression):
     @property
     def elements(self):
         if self._elements is None:
-            # self.box_options
-            self._elements = elements_to_expressions((self.base, self.subindex), {})
+            self._elements = elements_to_expressions(
+                self, (self.base, self.subindex), self.box_options
+            )
         return self._elements
 
     def eval(self, a, b, evaluation: Evaluation, options: dict):
@@ -555,11 +587,12 @@ class SubsuperscriptBox(BoxExpression):
             # self.box_options
             self._elements = elements_to_expressions(
                 (
+                    self,
                     self.base,
                     self.subindex,
                     self.superindex,
                 ),
-                {},
+                self.box_options,
             )
         return self._elements
 
@@ -600,13 +633,13 @@ class SuperscriptBox(BoxExpression):
     @property
     def elements(self):
         if self._elements is None:
-            # self.box_options
             self._elements = elements_to_expressions(
+                self,
                 (
                     self.base,
                     self.superindex,
                 ),
-                {},
+                self.box_options,
             )
         return self._elements
 
@@ -652,6 +685,7 @@ class TagBox(BoxExpression):
     def elements(self):
         if self._elements is None:
             self._elements = elements_to_expressions(
+                self,
                 (
                     self.boxed,
                     self.form,

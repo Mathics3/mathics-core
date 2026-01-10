@@ -13,7 +13,7 @@ from typing import Callable, Iterable, List, Optional, Tuple, Type, Union
 
 from mathics.builtin.graphics import Graphics
 from mathics.builtin.numeric import chop
-from mathics.builtin.options import options_to_rules
+from mathics.builtin.options import filter_from_iterable, options_to_rules
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import Integer, Integer0, Real
 from mathics.core.builtin import get_option
@@ -461,7 +461,7 @@ def eval_ListPlot(
     return Expression(
         SymbolGraphics,
         ListExpression(*graphics),
-        *options_to_rules(options, Graphics.options),
+        *options_to_rules(options, filter_from_iterable(Graphics.options)),
     )
 
 
@@ -699,7 +699,7 @@ def eval_Plot(plot_options, options: dict, evaluation: Evaluation) -> Expression
     return Expression(
         SymbolGraphics,
         ListExpression(*graphics),
-        *options_to_rules(options, Graphics.options),
+        *options_to_rules(options, filter_from_iterable(Graphics.options)),
     )
 
 

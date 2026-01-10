@@ -43,7 +43,11 @@ class CustomAtom(Predefined):
     }
 
     def eval_to_boxes(self, evaluation):
-        "System`MakeBoxes[System`CustomAtom, StandardForm|TraditionalForm|OutputForm|InputForm]"
+        "System`MakeBoxes[System`CustomAtom, StandardForm|TraditionalForm|OutputForm]"
+        return CustomBoxExpression(evaluation=evaluation)
+
+    def eval_to_boxes_inputform(self, evaluation):
+        "System`MakeBoxes[InputForm[System`CustomAtom], StandardForm|TraditionalForm|OutputForm]"
         return CustomBoxExpression(evaluation=evaluation)
 
 
@@ -64,6 +68,13 @@ class CustomGraphicsBox(BoxExpression):
     def eval_box(self, expr, evaluation: Evaluation, options: dict):
         """System`MakeBoxes[System`Graphics[System`expr_, System`OptionsPattern[System`Graphics]],
         System`StandardForm|System`TraditionalForm|System`OutputForm]"""
+        instance = CustomGraphicsBox(*(expr.elements), evaluation=evaluation)
+        return instance
+
+    def eval_box_outputForm(self, expr, evaluation: Evaluation, options: dict):
+        """System`MakeBoxes[System`OutputForm[System`Graphics[System`expr_, System`OptionsPattern[System`Graphics]]],
+        System`StandardForm|System`TraditionalForm]"""
+        print("MakeBoxes OutputForm")
         instance = CustomGraphicsBox(*(expr.elements), evaluation=evaluation)
         return instance
 
