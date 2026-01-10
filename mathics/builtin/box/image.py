@@ -57,7 +57,7 @@ class ImageBox(BoxExpression):
         returns a tuple with the set of bytes with a png representation of the image
         and the scaled size.
         """
-        image = self.elements[0] if elements is None else elements[0]
+        image = self.image if elements is None else elements[0]
 
         pixels = pixels_as_ubyte(image.color_convert("RGB", True).pixels)
         shape = pixels.shape
@@ -112,6 +112,7 @@ class ImageBox(BoxExpression):
         Store the associated image as a png file and return
         a LaTeX command for including it.
         """
+        image = self.image if elements is None else elements[0]
 
         data, size = self.boxes_to_png(elements, **options)
         res = 100  # pixels/cm
