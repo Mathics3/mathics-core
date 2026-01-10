@@ -363,7 +363,7 @@ class SphericalPlot3D(_Plot3D):
     </dl>
 
     >> SphericalPlot3D[1 + 0.4 Abs[SphericalHarmonicY[10, 4, theta, phi]], theta, phi]
-     = SphericalPlot3D[1 + 0.4 Abs[SphericalHarmonicY[10, 4, theta, phi]], theta, phi]
+     = ...
 
     Spherical harmonics are the canonical use case for spherical plots.
 
