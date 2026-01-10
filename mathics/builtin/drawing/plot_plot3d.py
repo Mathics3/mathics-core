@@ -288,7 +288,7 @@ class ParametricPlot3D(_Plot3D):
     A function of a single parameter $t$ generates a trefoil knot.
 
     >> ParametricPlot3D[{(2 + Cos[v]) Cos[u], (2 + Cos[v]) Sin[u], Sin[v]}, {u, 0, 2 Pi}, {v, 0, 2 Pi}]
-     = ParametricPlot3D[{(2 + Cos[v]) Cos[u], (2 + Cos[v]) Sin[u], Sin[v]}, {u, 0, 2 Pi}, {v, 0, 2 Pi}]
+     = ...
 
     A function of two parameters $u$ and $v$ generates a torus.
 
