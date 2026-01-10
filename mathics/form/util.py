@@ -12,6 +12,9 @@ from mathics.core.expression import Expression
 from mathics.core.parser.operators import OPERATOR_DATA, operator_to_string
 from mathics.core.symbols import Atom, Symbol
 from mathics.core.systemsymbols import (
+    SymbolBlank,
+    SymbolBlankNullSequence,
+    SymbolBlankSequence,
     SymbolInfix,
     SymbolLeft,
     SymbolNonAssociative,
@@ -28,11 +31,27 @@ class _WrongFormattedExpression(Exception):
     pass
 
 
+ARITHMETIC_OPERATOR_STRINGS: Final[FrozenSet[str]] = frozenset(
+    [
+        *operator_to_string["Divide"],
+        *operator_to_string["NonCommutativeMultiply"],
+        *operator_to_string["Power"],
+        *operator_to_string["Times"],
+        " ",
+    ]
+)
+
 PRECEDENCES: Final = OPERATOR_DATA.get("operator-precedences")
 PRECEDENCE_BOX_GROUP: Final[int] = PRECEDENCES.get("BoxGroup", 670)
 PRECEDENCE_PLUS: Final[int] = PRECEDENCES.get("Plus", 310)
 PRECEDENCE_TIMES: Final[int] = PRECEDENCES.get("Times", 400)
 PRECEDENCE_POWER: Final[int] = PRECEDENCES.get("Power", 590)
+
+BLANKS_TO_STRINGS = {
+    SymbolBlank: "_",
+    SymbolBlankSequence: "__",
+    SymbolBlankNullSequence: "___",
+}
 
 
 def bracket(expr_str: str) -> str:

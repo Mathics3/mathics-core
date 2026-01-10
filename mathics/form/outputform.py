@@ -5,7 +5,7 @@ OutputForm is two-dimensional keyboard-character-only output, suitable for CLI
 and text terminals.
 """
 
-from typing import Callable, Dict, Final, List, Union
+from typing import Callable, Dict, List, Union
 
 from mathics.core.atoms import (
     Integer,
@@ -20,7 +20,6 @@ from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.parser.operators import OPERATOR_DATA
 from mathics.core.symbols import Atom, Symbol, SymbolTimes
 from mathics.core.systemsymbols import (
     SymbolBlank,
@@ -39,17 +38,17 @@ from mathics.core.systemsymbols import (
 from mathics.eval.makeboxes import compare_precedence, do_format  # , format_element
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
-from .util import _WrongFormattedExpression, bracket, get_operator_str, parenthesize
-
-PRECEDENCES: Final = OPERATOR_DATA.get("operator-precedences")
-PRECEDENCE_DEFAULT: Final = PRECEDENCES.get("FunctionApply")
-PRECEDENCE_PLUS: Final = PRECEDENCES.get("Plus")
-PRECEDENCE_TIMES: Final = PRECEDENCES.get("Times")
-PRECEDENCE_POWER: Final = PRECEDENCES.get("Power")
-
-# When new mathics-scanner tables are updagted:
-# BOX_GROUP_PRECEDENCE: Final = box_operators["BoxGroup"]
-BOX_GROUP_PRECEDENCE: Final = PRECEDENCE_DEFAULT
+from .util import (
+    BLANKS_TO_STRINGS,
+    BOX_GROUP_PRECEDENCE,
+    PRECEDENCE_PLUS,
+    PRECEDENCE_POWER,
+    PRECEDENCE_TIMES,
+    _WrongFormattedExpression,
+    bracket,
+    get_operator_str,
+    parenthesize,
+)
 
 EXPR_TO_OUTPUTFORM_TEXT_MAP: Dict[str, Callable] = {}
 
@@ -147,13 +146,10 @@ def blank_pattern(expr: Expression, evaluation: Evaluation, **kwargs):
     else:
         elem = ""
     head = expr.head
-    if head is SymbolBlank:
-        return "_" + elem
-    elif head is SymbolBlankSequence:
-        return "__" + elem
-    elif head is SymbolBlankNullSequence:
-        return "___" + elem
-    return _default_expression_to_outputform_text(expr, evaluation, **kwargs)
+    try:
+        return BLANKS_TO_STRINGS[head] + elem
+    except KeyError:
+        return _generic_to_inputform_text(expr, evaluation, **kwargs)
 
 
 @register_outputform("System`Derivative")
@@ -655,7 +651,7 @@ def rule_to_outputform_text(expr, evaluation: Evaluation, **kwargs):
     )
     kwargs["_render_function"] = expression_to_outputform_text
     op_str = get_operator_str(head, evaluation, **kwargs)
-    return pat + " " + op_str + " " + rule
+    return f"{pat} {op_str} {rule}"
 
 
 @register_outputform("System`String")

@@ -30,14 +30,12 @@ from typing import Callable, Dict, Final, FrozenSet
 from mathics.core.atoms import Integer, String
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.parser.operators import OPERATOR_DATA, operator_to_string
-from mathics.core.symbols import Atom, Symbol
+from mathics.core.parser.operators import operator_to_string
+from mathics.core.symbols import Atom
 from mathics.core.systemsymbols import (
-    SymbolBlank,
-    SymbolBlankNullSequence,
-    SymbolBlankSequence,
     SymbolInputForm,
     SymbolLeft,
+    SymbolNonAssociative,
     SymbolRight,
 )
 from mathics.eval.makeboxes.formatvalues import do_format  # , format_element
@@ -45,22 +43,14 @@ from mathics.eval.makeboxes.precedence import compare_precedence
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
 from .util import (
+    ARITHMETIC_OPERATOR_STRINGS,
+    BLANKS_TO_STRINGS,
     _WrongFormattedExpression,
     bracket,
     collect_in_pre_post_arguments,
     get_operator_str,
     parenthesize,
 )
-
-SymbolNonAssociative = Symbol("System`NonAssociative")
-SymbolPostfix = Symbol("System`Postfix")
-SymbolPrefix = Symbol("System`Prefix")
-
-PRECEDENCES: Final = OPERATOR_DATA.get("operator-precedences")
-PRECEDENCE_BOX_GROUP: Final[int] = PRECEDENCES.get("BoxGroup", 670)
-PRECEDENCE_PLUS: Final[int] = PRECEDENCES.get("Plus", 310)
-PRECEDENCE_TIMES: Final[int] = PRECEDENCES.get("Times", 400)
-PRECEDENCE_POWER: Final[int] = PRECEDENCES.get("Power", 590)
 
 EXPR_TO_INPUTFORM_TEXT_MAP: Dict[str, Callable] = {}
 
@@ -147,17 +137,6 @@ def _list_expression_to_inputform_text(
         for elem in rest:
             result += ", " + elem
     return result + "}"
-
-
-ARITHMETIC_OPERATOR_STRINGS: Final[FrozenSet[str]] = frozenset(
-    [
-        *operator_to_string["Divide"],
-        *operator_to_string["NonCommutativeMultiply"],
-        *operator_to_string["Power"],
-        *operator_to_string["Times"],
-        " ",
-    ]
-)
 
 
 @register_inputform("System`Infix")
@@ -270,13 +249,10 @@ def _blanks(expr: Expression, evaluation: Evaluation, **kwargs):
     else:
         elem = ""
     head = expr.head
-    if head is SymbolBlank:
-        return "_" + elem
-    elif head is SymbolBlankSequence:
-        return "__" + elem
-    elif head is SymbolBlankNullSequence:
-        return "___" + elem
-    return _generic_to_inputform_text(expr, evaluation, **kwargs)
+    try:
+        return BLANKS_TO_STRINGS[head] + elem
+    except KeyError:
+        return _generic_to_inputform_text(expr, evaluation, **kwargs)
 
 
 @register_inputform("System`Pattern")
