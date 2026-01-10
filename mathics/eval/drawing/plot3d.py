@@ -515,6 +515,13 @@ def eval_ContourPlot(
     return None
 
 
+def eval_ContourPlot3D(
+    plot_options,
+    evaluation: Evaluation,
+):
+    return None
+
+
 def eval_ParametricPlot3D(
     plot_options,
     evaluation: Evaluation,

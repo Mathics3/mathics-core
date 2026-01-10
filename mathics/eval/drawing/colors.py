@@ -181,9 +181,11 @@ palette2 = [
 ]
 
 
-def palette_color_directive(palette, i):
+def palette_color_directive(palette, i, opacity=None):
     """returns a directive in a form suitable for GraphicsGenerator.add_directives"""
     """ for setting the color of an entire entity such as a line or surface """
     rgb = palette[i % len(palette)]
     rgb = [c / 255.0 for c in rgb]
+    if opacity is not None:
+        rgb.append(opacity)
     return [SymbolRGBColor, *rgb]
