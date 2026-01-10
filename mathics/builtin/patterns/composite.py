@@ -549,7 +549,7 @@ class Repeated(PostfixOperator, PatternObject):
 
     >> a_Integer.. // FullForm
      = Repeated[Pattern[a, Blank[Integer]]]
-    >> 0..1//FullForm
+    >> 0..1 // FullForm
      = Repeated[0]
     >> {{}, {a}, {a, b}, {a, a, a}, {a, a, a, a}} /. {Repeated[x : a | b, 3]} -> x
      = {{}, a, {a, b}, a, {a, a, a, a}}
@@ -662,7 +662,7 @@ class RepeatedNull(Repeated):
       <dd>matches zero or more occurrences of $pat$.
     </dl>
 
-    >> a___Integer...//FullForm
+    >> a___Integer... // FullForm
      = RepeatedNull[Pattern[a, BlankNullSequence[Integer]]]
     >> f[x] /. f[x, 0...] -> t
      = t
