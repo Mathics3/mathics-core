@@ -207,7 +207,6 @@ def text_cells_to_grid(cells: List, **kwargs):
 
     cells, heights = normalize_rows(cells)
     cells, col_widths = normalize_cols(cells)
-    full_width = sum(col_widths) + len(col_widths) - 1
     row_sep = "\n\n"
     col_sep = "   "
     result = ""
