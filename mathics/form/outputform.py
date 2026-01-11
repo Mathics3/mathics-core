@@ -34,10 +34,10 @@ from mathics.core.systemsymbols import (
     SymbolTraditionalForm,
 )
 from mathics.eval.makeboxes import compare_precedence, do_format  # , format_element
+from mathics.eval.makeboxes.numberform import get_baseform_elements
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
 from .util import (
-    ARITHMETIC_OPERATOR_STRINGS,
     BLANKS_TO_STRINGS,
     PRECEDENCE_PLUS,
     PRECEDENCE_POWER,
@@ -108,26 +108,30 @@ def _strip_1_parm_expression_to_outputform_text(
     return expression_to_outputform_text(expr.elements[0], evaluation, **kwargs)
 
 
-def grid(expr):
-    # Very basic implementation.
-    result = ""
-    for idx_row, row in enumerate(expr):
-        if idx_row > 0:
-            result += "\n\n"
-        for idx_field, field in enumerate(row):
-            if idx_field > 0:
-                result += "   "
-            result += field
-
-    return result
-
-
 def register_outputform(head_name):
     def _register(func):
         EXPR_TO_OUTPUTFORM_TEXT_MAP[head_name] = func
         return func
 
     return _register
+
+
+@register_outputform("System`BaseForm")
+def _baseform_outputform(expr: Expression, evaluation: Evaluation, **kwargs):
+    elements = expr.elements
+    if len(elements) != 2:
+        evaluation.message("BaseForm", "argr", Integer(len(elements)), Integer2)
+        raise _WrongFormattedExpression
+
+    number, base_expr = elements
+    try:
+        val, base = get_baseform_elements(number, base_expr, evaluation)
+    except ValueError:
+        raise _WrongFormattedExpression
+
+    if base is None:
+        return expression_to_outputform_text(number, evaluation, **kwargs)
+    return val + "_" + str(base)
 
 
 @register_outputform("System`Blank")
@@ -630,10 +634,11 @@ def _slotsequence_outputform_text(expr: Expression, evaluation: Evaluation, **kw
 def string_expression_to_outputform_text(
     expr: String, evaluation: Evaluation, **kwargs
 ) -> str:
-    lines = expr.value.split("\n")
-    max_len = max([len(line) for line in lines])
-    lines = [line + (max_len - len(line)) * " " for line in lines]
-    return "\n".join(lines)
+    # lines = expr.value.split("\n")
+    # max_len = max([len(line) for line in lines])
+    # lines = [line + (max_len - len(line)) * " " for line in lines]
+    # return "\n".join(lines)
+    return expr.value
 
 
 @register_outputform("System`StringForm")
@@ -724,22 +729,12 @@ def tableform_expression_to_outputform_text(
 
 
 @register_outputform("System`TeXForm")
-def texform_expression_to_outputform_text(
-    expr: Expression, evaluation: Evaluation, **kwargs
-) -> str:
-    #  boxes = format_element(expr.elements[0], evaluation)
-    boxes = Expression(
-        Symbol("System`MakeBoxes"), expr.elements[0], SymbolStandardForm
-    ).evaluate(evaluation)
-    return boxes.boxes_to_tex()  # type: ignore
-
-
-@register_outputform("System`TeXForm")
 def _texform_outputform(expr, evaluation, **kwargs):
     boxes = Expression(
         Symbol("System`MakeBoxes"), expr.elements[0], SymbolTraditionalForm
     ).evaluate(evaluation)
-    return boxes.boxes_to_tex()  # type: ignore[union-attr]
+    result = boxes.boxes_to_tex(evaluation=evaluation)  # type: ignore[union-attr]
+    return result
 
 
 @register_outputform("System`Times")

@@ -17,11 +17,7 @@ from mathics.core.number import (
     convert_base,
     dps,
 )
-from mathics.core.systemsymbols import (
-    SymbolMakeBoxes,
-    SymbolOutputForm,
-    SymbolSubscriptBox,
-)
+from mathics.core.systemsymbols import SymbolMakeBoxes, SymbolSubscriptBox
 from mathics.eval.makeboxes import to_boxes
 
 
@@ -303,11 +299,15 @@ def NumberForm_to_String(
     return boxed_s
 
 
-def eval_baseform(self, expr, n, f, evaluation: Evaluation):
-    base = n.value
-    if base <= 0:
+def get_baseform_elements(expr, n, evaluation: Evaluation):
+    if not isinstance(n, Integer):
         evaluation.message("BaseForm", "intpm", expr, n)
-        return None
+        raise ValueError
+
+    base = n.value
+    if base <= 1:
+        evaluation.message("BaseForm", "intpm", expr, n)
+        raise ValueError
 
     if isinstance(expr, PrecisionReal):
         x = expr.to_sympy()
@@ -319,17 +319,21 @@ def eval_baseform(self, expr, n, f, evaluation: Evaluation):
         x = expr.value
         p = 0
     else:
-        return to_boxes(Expression(SymbolMakeBoxes, expr, f), evaluation)
-
+        return None, None
     try:
-        val = convert_base(x, base, p)
+        return convert_base(x, base, p), base
     except ValueError:
         evaluation.message("BaseForm", "basf", n)
-        return
+        raise
 
-    if f is SymbolOutputForm:
-        return to_boxes(String("%s_%d" % (val, base)), evaluation)
-    else:
-        return to_boxes(
-            Expression(SymbolSubscriptBox, String(val), String(base)), evaluation
-        )
+
+def eval_baseform(self, expr, n, f, evaluation: Evaluation):
+    try:
+        val, base = get_baseform_elements(expr, n, evaluation)
+    except ValueError:
+        return None
+    if base is None:
+        return to_boxes(Expression(SymbolMakeBoxes, expr, f), evaluation)
+    return to_boxes(
+        Expression(SymbolSubscriptBox, String(val), String(base)), evaluation
+    )

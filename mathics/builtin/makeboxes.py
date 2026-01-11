@@ -97,8 +97,9 @@ class MakeBoxes(Builtin):
             'MakeBoxes[Infix[head[elements], StringForm["~`1`~", head]], f]'
         ),
         "MakeBoxes[expr_]": "MakeBoxes[expr, StandardForm]",
-        "MakeBoxes[(form:StandardForm|TraditionalForm|TeXForm|"
-        "MathMLForm)[expr_], StandardForm|TraditionalForm]": ("MakeBoxes[expr, form]"),
+        "MakeBoxes[(form:StandardForm|TraditionalForm)[expr_], StandardForm|TraditionalForm]": (
+            "MakeBoxes[expr, form]"
+        ),
         "MakeBoxes[(form:StandardForm|TraditionalForm)[expr_], _]": "MakeBoxes[expr, form]",
         "MakeBoxes[PrecedenceForm[expr_, prec_], f_]": "MakeBoxes[expr, f]",
         "MakeBoxes[Style[expr_, OptionsPattern[Style]], f_]": (
