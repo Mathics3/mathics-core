@@ -1,7 +1,7 @@
 r"""
 Forms of Input and Output
 
-A <i>Form</i> specifies the way Mathics3 Expressions are formatted and displayed.
+A <i>Form</i> specifies the way Mathics3 Expressions are formatted or displayed.
 
 The variable <url>:$OutputForms:
 /doc/reference-of-built-in-symbols/forms-of-input-and-output/form-variables/\$outputforms/</url> \
