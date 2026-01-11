@@ -44,10 +44,10 @@ from .util import (
     PRECEDENCE_POWER,
     PRECEDENCE_TIMES,
     _WrongFormattedExpression,
-    bracket,
     collect_in_pre_post_arguments,
     get_operator_str,
     parenthesize,
+    square_bracket,
     text_cells_to_grid,
 )
 
@@ -88,7 +88,7 @@ def _default_expression_to_outputform_text(
     form = kwargs.get("_Form", SymbolOutputForm)
     if form is SymbolTraditionalForm:
         return head + parenthesize(result)
-    return head + bracket(result)
+    return head + square_bracket(result)
 
 
 def _divide(num, den, evaluation, **kwargs):

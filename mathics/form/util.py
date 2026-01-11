@@ -55,8 +55,8 @@ BLANKS_TO_STRINGS = {
 }
 
 
-def bracket(expr_str: str) -> str:
-    """Wrap `expr_str` with square braces"""
+def square_bracket(expr_str: str) -> str:
+    """Wrap `expr_str` with square parenthesis"""
     return f"[{expr_str}]"
 
 

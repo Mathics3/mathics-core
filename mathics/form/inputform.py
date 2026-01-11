@@ -45,10 +45,10 @@ from .util import (
     ARITHMETIC_OPERATOR_STRINGS,
     BLANKS_TO_STRINGS,
     _WrongFormattedExpression,
-    bracket,
     collect_in_pre_post_arguments,
     get_operator_str,
     parenthesize,
+    square_bracket,
 )
 
 EXPR_TO_INPUTFORM_TEXT_MAP: Dict[str, Callable] = {}
@@ -119,7 +119,7 @@ def _generic_to_inputform_text(
     while elements:
         result = result + comma + elements.pop(0)
 
-    return head + bracket(result)
+    return head + square_bracket(result)
 
 
 @register_inputform("System`List")
