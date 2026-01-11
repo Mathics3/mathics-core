@@ -24,6 +24,7 @@ from mathics.core.systemsymbols import (  # SymbolRule, SymbolRuleDelayed,
     SymbolInputForm,
     SymbolRational,
     SymbolStandardForm,
+    SymbolTraditionalForm,
 )
 from mathics.eval.makeboxes.formatvalues import do_format
 from mathics.eval.makeboxes.precedence import parenthesize
@@ -144,9 +145,7 @@ def eval_makeboxes_outputform(expr, evaluation, form, **kwargs):
     from mathics.builtin.box.layout import PaneBox
     from mathics.form.outputform import expression_to_outputform_text
 
-    text_outputform = str(
-        expression_to_outputform_text(expr, evaluation, form, **kwargs)
-    )
+    text_outputform = str(expression_to_outputform_text(expr, evaluation, **kwargs))
     elem1 = PaneBox(String('"' + text_outputform + '"'))
     return elem1
 
@@ -287,6 +286,11 @@ def format_element(
     """
     # Halt any potential evaluation tracing while performing boxing.
     evaluation.is_boxing = True
+
+    if form not in (SymbolStandardForm, SymbolTraditionalForm):
+        element = Expression(form, element)
+        form = SymbolStandardForm
+
     while element.get_head() is form:
         element = element.elements[0]
 

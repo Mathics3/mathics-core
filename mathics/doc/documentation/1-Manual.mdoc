@@ -890,49 +890,8 @@ There are several methods to display expressions in 2-D:
   >> Subscript[a, 1, 2] // TeXForm
   = a_{1, 2}
 
-If you want even more low-level control over expression display, override 'MakeBoxes':
 
-  >> MakeBoxes[b, StandardForm] = "c";
-  >> b
-  = b
-
-## This will be displayed as c in the browser and LaTeX documentation.
-This will even apply to 'TeXForm', because 'TeXForm' implies 'StandardForm':
-  >> b // TeXForm
-  = c
-
-  ## This test requires another round of changes in order to 
-  ## pass:
-  ## Except some other form is applied first:
-  ## >> b // OutputForm // TeXForm
-  ## = \text{b}
-'MakeBoxes' for another form:
-
-  >> MakeBoxes[b, TeXForm] = "d";
-  >> b // TeXForm
-  = d
-You can cause a much bigger mess by overriding 'MakeBoxes' than by sticking to 'Format', e.g. generate invalid XML:
-
-  >> MakeBoxes[c, MathMLForm] = "<not closed";
-  >> c // MathMLForm
-  = <not closed
-
-However, this will not affect formatting of expressions involving 'c':
-  >> c + 1 // MathMLForm
-  = ...
-
-That\'s because 'MathMLForm' will, when not overridden for a special case, call 'StandardForm' first.
-'Format' will produce escaped output:
-
-  >> Format[d, MathMLForm] = "<not closed";
-  >> d // MathMLForm
-  = ...
-
-  >> d + 1 // MathMLForm
-  = ...
-
-For instance, you can override 'MakeBoxes' to format lists in a different way:
-  >> MakeBoxes[{items___}, StandardForm] := RowBox[{"[", Sequence @@ Riffle[MakeBoxes /@ {items}, " "], "]"}]
+  >> MakeBoxes[{items___}, TraditionalForm] := RowBox[{"[", Sequence @@ Riffle[MakeBoxes /@ {items}, " "], "]"}]
   >> {1, 2, 3}
    = {1, 2, 3}
 
@@ -941,7 +900,7 @@ For instance, you can override 'MakeBoxes' to format lists in a different way:
 
 However, this will not be accepted as input to \Mathics anymore:
   >> [1 2 3]
-  : Expression cannot begin with "[1 2 3]" (line 1 of "<test-Formatting Output-27>").
+  : Expression cannot begin with "[1 2 3]" (line 1 of "<test-Formatting Output-16>").
 
   >> Clear[MakeBoxes]
 
@@ -960,7 +919,7 @@ By the way, 'MakeBoxes' is the only built-in symbol that is not protected by def
   =
 
 The desired effect can be achieved in the following way:
-  >> MakeBoxes[squared[args___], StandardForm] := SuperscriptBox[RowBox[{MakeBoxes[squared], "[", RowBox[Riffle[MakeBoxes[#]& /@ {args}, ","]], "]"}], 2]
+  >> MakeBoxes[squared[args___], TraditionalForm] := SuperscriptBox[RowBox[{MakeBoxes[squared], "[", RowBox[Riffle[MakeBoxes[#]& /@ {args}, ","]], "]"}], 2]
   >> squared[1, 2]
   = squared[1, 2]
 

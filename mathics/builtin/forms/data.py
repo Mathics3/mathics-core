@@ -434,11 +434,15 @@ class StringForm(FormBaseClass):
 
     in_outputforms = False
     in_printforms = False
+    messages = {
+        "sfr": 'Item `1` requested in "`3`" out of range; `2` items available.',
+        "sfq": "Unmatched backquote in `1`.",
+    }
     summary_text = "format a string from a template and a list of parameters"
 
     def eval_makeboxes(self, s, args, form, evaluation):
         """MakeBoxes[StringForm[s_String, args___],
-        form:StandardForm|TraditionalForm|OutputForm]"""
+        form:StandardForm|TraditionalForm]"""
 
         s = s.value
         args = args.get_sequence()

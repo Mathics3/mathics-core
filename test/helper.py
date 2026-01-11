@@ -129,7 +129,7 @@ def check_evaluation(
         print(f"got: {result}, expect: {expected} -- {failure_message}")
         assert result == expected, failure_message
     else:
-        print(f"got: {result}, expect: {expected}")
+        print(f"got:\n<<{result}>>\nexpect:\n<<{expected}>>")
         if isinstance(expected, re.Pattern):
             assert expected.match(result)
         else:

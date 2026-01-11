@@ -25,12 +25,11 @@ both cases, underneath the `InterpretationBox` or `Tagbox` is a
 
 """
 
-from typing import Callable, Dict, Final, FrozenSet
+from typing import Callable, Dict
 
 from mathics.core.atoms import Integer, String
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.parser.operators import operator_to_string
 from mathics.core.symbols import Atom
 from mathics.core.systemsymbols import (
     SymbolInputForm,
@@ -151,10 +150,12 @@ def _infix_expression_to_inputform_text(
     # has a head that matches with a symbol associated to an infix
     # operator, WMA builds its inputform without passing through
     # its "Infix" form.
+    print("input infix", expr)
     kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     operands, ops_lst, precedence, group = collect_in_pre_post_arguments(
         expr, evaluation, **kwargs
     )
+    print("  ", operands, ops_lst)
     # Infix needs at least two operands:
     if len(operands) < 2:
         raise _WrongFormattedExpression
@@ -177,7 +178,7 @@ def _infix_expression_to_inputform_text(
                 parenthesized = not parenthesized
         else:
             num_ops = len(ops_lst)
-            curr_op = ops_lst[index % num_ops]
+            curr_op = ops_lst[(index - 1) % num_ops]
             if curr_op not in ARITHMETIC_OPERATOR_STRINGS:
                 # In the tests, we add spaces just for + and -:
                 curr_op = f" {curr_op} "
@@ -197,7 +198,7 @@ def _prefix_expression_to_inputform_text(
     expr: Expression, evaluation: Evaluation, **kwargs
 ) -> str:
     """
-    Convert Prefix[...] into a InputForm string.
+    Convert Prefix[...] into a OutputForm string.
     """
     kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     operands, op_head, precedence, group = collect_in_pre_post_arguments(
@@ -210,7 +211,7 @@ def _prefix_expression_to_inputform_text(
     kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     cmp_precedence = compare_precedence(operand, precedence)
     target_txt = render_input_form(operand, evaluation, **kwargs)
-    if cmp_precedence is not None and cmp_precedence != -1:
+    if cmp_precedence is not None and cmp_precedence != 1:
         target_txt = parenthesize(target_txt)
     return op_head + target_txt
 
@@ -220,7 +221,7 @@ def _postfix_expression_to_inputform_text(
     expr: Expression, evaluation: Evaluation, **kwargs
 ) -> str:
     """
-    Convert Postfix[...] into a InputForm string.
+    Convert Postfix[...] into a OutputForm string.
     """
     kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     operands, op_head, precedence, group = collect_in_pre_post_arguments(
@@ -232,7 +233,7 @@ def _postfix_expression_to_inputform_text(
     operand = operands[0]
     cmp_precedence = compare_precedence(operand, precedence)
     target_txt = render_input_form(operand, evaluation, **kwargs)
-    if cmp_precedence is not None and cmp_precedence != -1:
+    if cmp_precedence is not None and cmp_precedence != 1:
         target_txt = parenthesize(target_txt)
     return target_txt + op_head
 

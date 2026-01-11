@@ -23,6 +23,7 @@ from mathics.core.atoms import String
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import add_conversion_fn, lookup_method
 from mathics.core.symbols import Atom, SymbolTrue
+from mathics.form.util import _WrongFormattedExpression, text_cells_to_grid
 
 
 def boxes_to_text(boxes, **options) -> str:
@@ -101,48 +102,10 @@ def gridbox(self, elements=None, **box_options) -> str:
         )
         for row in items
     ]
-
-    # compute widths
-    full_width = 0
-    for i, row in enumerate(cells):
-        for index, cell in enumerate(row):
-            if index >= len(widths):
-                raise BoxConstructError
-            if not isinstance(items[i], tuple):
-                for line in cell:
-                    full_width = max(full_width, len(line))
-            else:
-                for line in cell:
-                    widths[index] = max(widths[index], len(line))
-
-    full_width = max(sum(widths), full_width)
-
-    for row_index, row in enumerate(cells):
-        if row_index > 0:
-            result += "\n"
-        k = 0
-        while True:
-            line_exists = False
-            line = ""
-            for cell_index, cell in enumerate(row):
-                if len(cell) > k:
-                    line_exists = True
-                    text = cell[k]
-                else:
-                    text = ""
-                line += text
-                if isinstance(items[row_index], tuple):
-                    if cell_index < len(row) - 1:
-                        line += " " * (widths[cell_index] - len(text))
-                        # if cell_index < len(row) - 1:
-                        line += "   "
-
-            if line_exists:
-                result += line + "\n"
-            else:
-                break
-            k += 1
-    return result
+    try:
+        return text_cells_to_grid(cells)
+    except _WrongFormattedExpression:
+        raise BoxConstructError
 
 
 add_conversion_fn(GridBox, gridbox)
