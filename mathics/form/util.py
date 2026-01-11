@@ -23,6 +23,7 @@ from mathics.core.systemsymbols import (
     SymbolPrefix,
     SymbolRight,
 )
+from mathics.eval.makeboxes import compare_precedence
 
 
 # This Exception if the expression should
@@ -142,9 +143,23 @@ def get_operator_str(head, evaluation, **kwargs) -> str:
     return operator
 
 
-def parenthesize(expr_str: str) -> str:
-    """Wrap `expr_str` with parenthesis"""
-    return f"({expr_str})"
+def parenthesize(
+    precedence: Optional[int],
+    element: Expression,
+    element_str,
+    when_equal: bool,
+) -> Expression:
+    """
+    "Add parenthesis to ``element_str`` according to the precedence of
+    ``element``.
+
+    If when_equal is True, parentheses will be added if the two
+    precedence values are equal.
+    """
+    cmp = compare_precedence(element, precedence)
+    if cmp is not None and (cmp == -1 or cmp == 0 and when_equal):
+        return f"({element_str})"
+    return element_str
 
 
 def text_cells_to_grid(cells: List, **kwargs):

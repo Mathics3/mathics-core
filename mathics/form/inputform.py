@@ -158,36 +158,34 @@ def _infix_expression_to_inputform_text(
     if len(operands) < 2:
         raise _WrongFormattedExpression
 
-    # Process the operands:
+    # Process the first operand:
     parenthesized = group in (None, SymbolRight, SymbolNonAssociative)
-    for index, operand in enumerate(operands):
+    operand = operands[0]
+    result = str(render_input_form(operand, evaluation, **kwargs))
+    result = parenthesize(precedence, operand, result, parenthesized)
+
+    if group in (SymbolLeft, SymbolRight):
+        parenthesized = not parenthesized
+
+    # Process the rest of operands
+    num_ops = len(ops_lst)
+    for index, operand in enumerate(operands[1:]):
+        curr_op = ops_lst[index % num_ops]
+        # In OutputForm we always add the spaces, except for
+        # " "
+        if curr_op != " ":
+            curr_op = f" {curr_op} "
+
         operand_txt = str(render_input_form(operand, evaluation, **kwargs))
-        cmp_precedence = compare_precedence(operand, precedence)
-        if cmp_precedence is not None and (
-            cmp_precedence == -1 or (cmp_precedence == 0 and parenthesized)
-        ):
-            operand_txt = parenthesize(operand_txt)
+        operand_txt = parenthesize(precedence, operand, operand_txt, parenthesized)
 
-        if index == 0:
-            result = operand_txt
-            # After the first element, for lateral
-            # associativity, parenthesized is flipped:
-            if group in (SymbolLeft, SymbolRight):
-                parenthesized = not parenthesized
-        else:
-            num_ops = len(ops_lst)
-            curr_op = ops_lst[(index - 1) % num_ops]
-            if curr_op not in ARITHMETIC_OPERATOR_STRINGS:
-                # In the tests, we add spaces just for + and -:
-                curr_op = f" {curr_op} "
-
-            result = "".join(
-                (
-                    result,
-                    curr_op,
-                    operand_txt,
-                )
+        result = "".join(
+            (
+                result,
+                curr_op,
+                operand_txt,
             )
+        )
     return result
 
 
@@ -207,10 +205,9 @@ def _prefix_expression_to_inputform_text(
         raise _WrongFormattedExpression
     operand = operands[0]
     kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
-    cmp_precedence = compare_precedence(operand, precedence)
     target_txt = render_input_form(operand, evaluation, **kwargs)
-    if cmp_precedence is not None and cmp_precedence != 1:
-        target_txt = parenthesize(target_txt)
+    parenthesized = group in (None, SymbolRight, SymbolNonAssociative)
+    target_txt = parenthesize(precedence, operand, target_txt, True)
     return op_head + target_txt
 
 
@@ -229,10 +226,9 @@ def _postfix_expression_to_inputform_text(
     if len(operands) != 1:
         raise _WrongFormattedExpression
     operand = operands[0]
-    cmp_precedence = compare_precedence(operand, precedence)
     target_txt = render_input_form(operand, evaluation, **kwargs)
-    if cmp_precedence is not None and cmp_precedence != 1:
-        target_txt = parenthesize(target_txt)
+    parenthesized = group in (None, SymbolRight, SymbolNonAssociative)
+    target_txt = parenthesize(precedence, operand, target_txt, True)
     return target_txt + op_head
 
 

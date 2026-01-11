@@ -87,7 +87,7 @@ def _default_expression_to_outputform_text(
 
     form = kwargs.get("_Form", SymbolOutputForm)
     if form is SymbolTraditionalForm:
-        return head + parenthesize(result)
+        return head + f"({result})"
     return head + square_bracket(result)
 
 
@@ -298,37 +298,36 @@ def _infix_outputform_text(expr: Expression, evaluation: Evaluation, **kwargs) -
     if len(operands) < 2:
         raise _WrongFormattedExpression
 
-    # Process the operands:
+    # Process the first operand:
+    print("infix", {"ops_lst": ops_lst, "group": group, "precedence": precedence})
+    print("   ", {"operands": operands})
     parenthesized = group in (None, SymbolRight, SymbolNonAssociative)
-    for index, operand in enumerate(operands):
+    operand = operands[0]
+    result = str(expression_to_outputform_text(operand, evaluation, **kwargs))
+    result = parenthesize(precedence, operand, result, parenthesized)
+
+    if group in (SymbolLeft, SymbolRight):
+        parenthesized = not parenthesized
+
+    # Process the rest of operands
+    num_ops = len(ops_lst)
+    for index, operand in enumerate(operands[1:]):
+        curr_op = ops_lst[index % num_ops]
+        # In OutputForm we always add the spaces, except for
+        # " "
+        if curr_op != " ":
+            curr_op = f" {curr_op} "
+
         operand_txt = str(expression_to_outputform_text(operand, evaluation, **kwargs))
-        cmp_precedence = compare_precedence(operand, precedence)
-        if cmp_precedence is not None and (
-            cmp_precedence == -1 or (cmp_precedence == 0 and parenthesized)
-        ):
-            operand_txt = parenthesize(operand_txt)
+        operand_txt = parenthesize(precedence, operand, operand_txt, parenthesized)
 
-        if index == 0:
-            result = operand_txt
-            # After the first element, for lateral
-            # associativity, parenthesized is flipped:
-            if group in (SymbolLeft, SymbolRight):
-                parenthesized = not parenthesized
-        else:
-            num_ops = len(ops_lst)
-            curr_op = ops_lst[(index - 1) % num_ops]
-            # In OutputForm we always add the spaces, except for
-            # " "
-            if curr_op != " ":
-                curr_op = f" {curr_op} "
-
-            result = "".join(
-                (
-                    result,
-                    curr_op,
-                    operand_txt,
-                )
+        result = "".join(
+            (
+                result,
+                curr_op,
+                operand_txt,
             )
+        )
     return result
 
 
