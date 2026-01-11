@@ -40,10 +40,6 @@ from mathics.doc.doc_entries import (
     post_sub,
     pre_sub,
 )
-
-gather_tests = parse_docstring_to_DocumentationEntry_items
-XMLDOC = DocumentationEntry
-
 from mathics.doc.structure import (
     MATHICS3_MODULES_TITLE,
     SUBSECTION_END_RE,
@@ -57,6 +53,9 @@ from mathics.doc.structure import (
     MathicsMainDocumentation,
     sorted_chapters,
 )
+
+gather_tests = parse_docstring_to_DocumentationEntry_items
+XMLDOC = DocumentationEntry
 
 __all__ = [
     "ALLOWED_TAGS",

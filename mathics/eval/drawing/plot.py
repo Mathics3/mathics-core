@@ -307,7 +307,7 @@ def eval_ListPlot(
             x_max = len(plot_groups)
 
             plot_groups = [
-                [[float(i + 1), l] for i, l in enumerate(plot_group)]
+                [[float(i + 1), m] for i, m in enumerate(plot_group)]
                 for plot_group in plot_groups
             ]
 
@@ -582,13 +582,13 @@ def eval_Plot(plot_options, options: dict, evaluation: Evaluation) -> Expression
         if isinstance(exclusions, list):
             for excl in exclusions:
                 if excl != SymbolAutomatic:
-                    l, xi, split_required = find_excl(excl)
+                    m, xi, split_required = find_excl(excl)
                     if split_required:
-                        xvalues.insert(l + 1, xvalues[l][xi:])
-                        xvalues[l] = xvalues[l][:xi]
-                        points.insert(l + 1, points[l][xi:])
-                        points[l] = points[l][:xi]
-                # assert(xvalues[l][-1] <= excl  <= xvalues[l+1][0])
+                        xvalues.insert(m + 1, xvalues[m][xi:])
+                        xvalues[m] = xvalues[m][:xi]
+                        points.insert(m + 1, points[m][xi:])
+                        points[m] = points[m][:xi]
+                # assert(xvalues[m][-1] <= excl  <= xvalues[m+1][0])
 
         # Adaptive Sampling - loop again and interpolate highly angled
         # sections
