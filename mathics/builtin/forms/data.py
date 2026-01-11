@@ -35,7 +35,7 @@ from mathics.eval.makeboxes import (
     eval_baseform,
     eval_tableform,
 )
-from mathics.eval.strings import eval_ToString
+from mathics.eval.strings import eval_StringForm_MakeBoxes, eval_ToString
 
 
 class BaseForm(FormBaseClass):
@@ -434,40 +434,16 @@ class StringForm(FormBaseClass):
 
     in_outputforms = False
     in_printforms = False
+    messages = {
+        "sfr": 'Item `1` requested in "`3`" out of range; `2` items available.',
+        "sfq": "Unmatched backquote in `1`.",
+    }
     summary_text = "format a string from a template and a list of parameters"
 
     def eval_makeboxes(self, s, args, form, evaluation):
         """MakeBoxes[StringForm[s_String, args___],
         form:StandardForm|TraditionalForm|OutputForm]"""
-
-        s = s.value
-        args = args.get_sequence()
-        result = []
-        pos = 0
-        last_index = 0
-        for match in re.finditer(r"(\`(\d*)\`)", s):
-            start, end = match.span(1)
-            if match.group(2):
-                index = int(match.group(2))
-            else:
-                index = last_index + 1
-            last_index = max(index, last_index)
-            if start > pos:
-                result.append(to_boxes(String(s[pos:start]), evaluation))
-            pos = end
-            if 1 <= index <= len(args):
-                arg = args[index - 1]
-                result.append(
-                    to_boxes(MakeBoxes(arg, form).evaluate(evaluation), evaluation)
-                )
-        if pos < len(s):
-            result.append(to_boxes(String(s[pos:]), evaluation))
-        return RowBox(
-            *tuple(
-                r.evaluate(evaluation) if isinstance(r, EvalMixin) else r
-                for r in result
-            )
-        )
+        return eval_StringForm_MakeBoxes(s, args.get_sequence(), form, evaluation)
 
 
 class TableForm(FormBaseClass):

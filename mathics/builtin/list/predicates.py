@@ -51,18 +51,8 @@ class ContainsOnly(Builtin):
 
     summary_text = "test if all the elements of a list appears into another list"
 
-    def check_options(self, expr, evaluation, options):
-        for key in options:
-            if key != "System`SameTest":
-                if expr is None:
-                    evaluation.message("ContainsOnly", "optx", Symbol(key))
-                else:
-                    evaluation.message("ContainsOnly", "optx", Symbol(key), expr)
-
-        return None
-
     def eval(self, list1, list2, evaluation, options={}):
-        "ContainsOnly[list1_List, list2_List, OptionsPattern[ContainsOnly]]"
+        "ContainsOnly[list1_List, list2_List, OptionsPattern[]]"
 
         same_test = self.get_option(options, "SameTest", evaluation)
 
@@ -71,31 +61,28 @@ class ContainsOnly(Builtin):
             result = Expression(same_test, a, b).evaluate(evaluation)
             return result is SymbolTrue
 
-        self.check_options(None, evaluation, options)
         for a in list1.elements:
             if not any(sameQ(a, b) for b in list2.elements):
                 return SymbolFalse
         return SymbolTrue
 
-    def eval_msg(self, e1, e2, evaluation, options={}):
-        "ContainsOnly[e1_, e2_, OptionsPattern[ContainsOnly]]"
-
+    def eval_msg(self, e1, e2, evaluation, expression, options={}):
+        "expression:(ContainsOnly[e1_, e2_, OptionsPattern[]])"
         opts = (
             options_to_rules(options)
             if len(options) <= 1
             else [ListExpression(*options_to_rules(options))]
         )
-        expr = Expression(SymbolContainsOnly, e1, e2, *opts)
 
         if not isinstance(e1, Symbol) and not e1.has_form("List", None):
             evaluation.message("ContainsOnly", "lsa", e1)
-            return self.check_options(expr, evaluation, options)
+            return expression
 
         if not isinstance(e2, Symbol) and not e2.has_form("List", None):
             evaluation.message("ContainsOnly", "lsa", e2)
-            return self.check_options(expr, evaluation, options)
+            return expression
 
-        return self.check_options(expr, evaluation, options)
+        return expression
 
 
 # TODO: ContainsAll, ContainsNone ContainsAny ContainsExactly
