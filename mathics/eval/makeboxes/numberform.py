@@ -309,7 +309,7 @@ def get_baseform_elements(expr, n, evaluation: Evaluation):
         raise ValueError
 
     base = n.value
-    if base <= 1:
+    if base <= 0:
         evaluation.message("BaseForm", "intpm", expr, n)
         raise ValueError
 
