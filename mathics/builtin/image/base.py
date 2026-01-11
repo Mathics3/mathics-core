@@ -6,7 +6,7 @@ from typing import Tuple
 import numpy
 import PIL.Image
 
-from mathics.builtin.box.image import ImageBox
+from mathics.builtin.box.image import RasterBox
 from mathics.builtin.colors.color_internals import convert_color
 from mathics.core.builtin import AtomBuiltin, String
 from mathics.core.evaluation import Evaluation
@@ -64,11 +64,11 @@ class Image(Atom):
             )
         )
 
-    def atom_to_boxes(self, form, evaluation: Evaluation) -> ImageBox:
+    def atom_to_boxes(self, form, evaluation: Evaluation) -> RasterBox:
         """
         Converts our internal Image object into a PNG base64-encoded.
         """
-        return ImageBox(self)
+        return RasterBox(self)
 
     # __hash__ is defined so that we can store Number-derived objects
     # in a set or dictionary.

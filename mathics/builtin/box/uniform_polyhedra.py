@@ -6,7 +6,7 @@ from mathics.builtin.drawing.graphics_internals import GLOBALS3D, _GraphicsEleme
 from mathics.core.exceptions import BoxExpressionError
 from mathics.core.symbols import Symbol
 
-# Docs are not yet ready for prime time. Maybe after release 6.0.0.
+# No user docs here: Box primitives aren't documented.
 no_doc = True
 
 
