@@ -242,3 +242,17 @@ def text_cells_to_grid(cells: List, **kwargs):
         result = result + new_text_row
 
     return result + "\n"
+
+
+def process_options(opts: dict, rules: Tuple):
+    for opt in rules:
+        if not opt.has_form(["Rule", "RuleDelayed"], 2):
+            raise _WrongFormattedExpression
+        opt_symb, opt_val = opt.elements
+        if isinstance(opt_symb, Symbol):
+            opts[opt_symb.get_name(short=True)] = opt_val
+        elif isinstance(opt_symb, String):
+            opts[opt_symb.value] = opt_val
+        else:
+            raise _WrongFormattedExpression
+    return

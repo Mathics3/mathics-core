@@ -500,7 +500,6 @@ class TableForm(FormBaseClass):
      .
      . -Graphics-   -Graphics-   -Graphics-
      .
-     . -Graphics-   -Graphics-   -Graphics-
      .
      . -Graphics-   -Graphics-   -Graphics-
      .
@@ -508,9 +507,14 @@ class TableForm(FormBaseClass):
      .
      . -Graphics-   -Graphics-   -Graphics-
      .
+     .
      . -Graphics-   -Graphics-   -Graphics-
      .
      . -Graphics-   -Graphics-   -Graphics-
+     .
+     . -Graphics-   -Graphics-   -Graphics-
+     .
+     .
     """
 
     in_outputforms = True
@@ -520,7 +524,7 @@ class TableForm(FormBaseClass):
 
     def eval_makeboxes(self, table, f, evaluation, options):
         """MakeBoxes[%(name)s[table_, OptionsPattern[%(name)s]],
-        f:StandardForm|TraditionalForm|OutputForm]"""
+        f:StandardForm|TraditionalForm]"""
         return eval_tableform(self, table, f, evaluation, options)
 
 

@@ -35,6 +35,7 @@ from mathics.core.systemsymbols import (
     SymbolInputForm,
     SymbolLeft,
     SymbolNonAssociative,
+    SymbolNone,
     SymbolRight,
 )
 from mathics.eval.makeboxes.formatvalues import do_format  # , format_element
@@ -159,7 +160,7 @@ def _infix_expression_to_inputform_text(
         raise _WrongFormattedExpression
 
     # Process the first operand:
-    parenthesized = group in (None, SymbolRight, SymbolNonAssociative)
+    parenthesized = group in (SymbolNone, SymbolRight, SymbolNonAssociative)
     operand = operands[0]
     result = str(render_input_form(operand, evaluation, **kwargs))
     result = parenthesize(precedence, operand, result, parenthesized)
@@ -173,7 +174,7 @@ def _infix_expression_to_inputform_text(
         curr_op = ops_lst[index % num_ops]
         # In OutputForm we always add the spaces, except for
         # " "
-        if curr_op != " ":
+        if curr_op not in ARITHMETIC_OPERATOR_STRINGS:
             curr_op = f" {curr_op} "
 
         operand_txt = str(render_input_form(operand, evaluation, **kwargs))

@@ -1014,7 +1014,7 @@ class Integrate(SympyFunction):
 
     Here how is an example of converting integral equation to TeX:
     >> Integrate[f[x], {x, a, b}] // TeXForm
-     = \int_a^b f\left[x\right] \, dx
+     = \int_a^b f\left(x\right) \, dx
 
     Sometimes there is a loss of precision during integration.
     You can check the precision of your result with the following sequence \

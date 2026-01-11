@@ -22,20 +22,25 @@ from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Atom, Symbol, SymbolTimes
+from mathics.core.symbols import Atom, Symbol, SymbolList, SymbolTimes
 from mathics.core.systemsymbols import (
     SymbolDerivative,
+    SymbolGrid,
+    SymbolInfinity,
     SymbolInfix,
     SymbolLeft,
     SymbolNonAssociative,
+    SymbolNone,
     SymbolOutputForm,
     SymbolPower,
     SymbolRight,
     SymbolStandardForm,
+    SymbolTableForm,
     SymbolTraditionalForm,
 )
 from mathics.eval.makeboxes import compare_precedence, do_format  # , format_element
 from mathics.eval.makeboxes.numberform import get_baseform_elements
+from mathics.eval.testing_expressions import expr_min
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
 from .util import (
@@ -47,6 +52,7 @@ from .util import (
     collect_in_pre_post_arguments,
     get_operator_str,
     parenthesize,
+    process_options,
     square_bracket,
     text_cells_to_grid,
 )
@@ -299,9 +305,7 @@ def _infix_outputform_text(expr: Expression, evaluation: Evaluation, **kwargs) -
         raise _WrongFormattedExpression
 
     # Process the first operand:
-    print("infix", {"ops_lst": ops_lst, "group": group, "precedence": precedence})
-    print("   ", {"operands": operands})
-    parenthesized = group in (None, SymbolRight, SymbolNonAssociative)
+    parenthesized = group in (SymbolNone, SymbolRight, SymbolNonAssociative)
     operand = operands[0]
     result = str(expression_to_outputform_text(operand, evaluation, **kwargs))
     result = parenthesize(precedence, operand, result, parenthesized)
@@ -529,10 +533,9 @@ def _prefix_output_text(expr: Expression, evaluation: Evaluation, **kwargs) -> s
         raise _WrongFormattedExpression
     operand = operands[0]
     kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
-    cmp_precedence = compare_precedence(operand, precedence)
     target_txt = expression_to_outputform_text(operand, evaluation, **kwargs)
-    if cmp_precedence is not None and cmp_precedence != 1:
-        target_txt = parenthesize(target_txt)
+    parenthesized = group in (None, SymbolRight, SymbolNonAssociative)
+    target_txt = parenthesize(precedence, operand, target_txt, True)
     return op_head + target_txt
 
 
@@ -549,10 +552,9 @@ def _postfix_output_text(expr: Expression, evaluation: Evaluation, **kwargs) -> 
     if len(operands) != 1:
         raise _WrongFormattedExpression
     operand = operands[0]
-    cmp_precedence = compare_precedence(operand, precedence)
     target_txt = expression_to_outputform_text(operand, evaluation, **kwargs)
-    if cmp_precedence is not None and cmp_precedence != 1:
-        target_txt = parenthesize(target_txt)
+    parenthesized = group in (None, SymbolRight, SymbolNonAssociative)
+    target_txt = parenthesize(precedence, operand, target_txt, True)
     return target_txt + op_head
 
 
@@ -597,6 +599,15 @@ def rule_to_outputform_text(expr, evaluation: Evaluation, **kwargs):
     kwargs["_render_function"] = expression_to_outputform_text
     op_str = get_operator_str(head, evaluation, **kwargs)
     return f"{pat} {op_str} {rule}"
+
+
+@register_outputform("System`SequenceForm")
+def sequenceform_to_outputform_text(expr, evaluation: Evaluation, **kwargs):
+    """Row[{...}]"""
+    elements = expr.elements
+    return "".join(
+        expression_to_outputform_text(elem, evaluation, **kwargs) for elem in elements
+    )
 
 
 @register_outputform("System`Slot")
@@ -715,6 +726,14 @@ def stringform_expression_to_outputform_text(
     return result
 
 
+@register_outputform("System`Style")
+def style_to_outputform_text(expr: String, evaluation: Evaluation, **kwargs) -> str:
+    elements = expr.elements
+    if not elements:
+        raise _WrongFormattedExpression
+    return expression_to_outputform_text(elements[0], evaluation, **kwargs)
+
+
 @register_outputform("System`Symbol")
 def symbol_expression_to_outputform_text(
     symb: Symbol, evaluation: Evaluation, **kwargs
@@ -726,7 +745,41 @@ def symbol_expression_to_outputform_text(
 def tableform_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, **kwargs
 ) -> str:
-    return grid_expression_to_outputform_text(expr, evaluation, **kwargs)
+    from mathics.builtin.tensors import get_dimensions
+
+    elements = expr.elements
+
+    if len(elements) == 0:
+        raise _WrongFormattedExpression
+
+    table, *opts = elements
+    dims = len(get_dimensions(table, head=SymbolList))
+    process_options(kwargs, opts)
+    depth = expr_min((Integer(dims), kwargs.pop("TableDepth", SymbolInfinity))).value
+    if depth is None:
+        evaluation.message(self.get_name(), "int")
+        raise _WrongFormattedExpression
+    if depth <= 0:
+        return expression_to_outputform_text(table, evaluation, **kwargs)
+    if depth == 1:
+        return text_cells_to_grid(
+            [
+                [expression_to_outputform_text(elem, evaluation, **kwargs)]
+                for elem in table.elements
+            ]
+        )
+    kwargs["TableDepth"] = Integer(depth - 2)
+
+    def transform_item(item):
+        if depth > 2:
+            return tableform_expression_to_outputform_text(
+                Expression(SymbolTableForm, item), evaluation, **kwargs
+            )
+        else:
+            return expression_to_outputform_text(item, evaluation, **kwargs)
+
+    grid_array = [[transform_item(elem) for elem in row] for row in table.elements]
+    return text_cells_to_grid(grid_array)
 
 
 @register_outputform("System`TeXForm")
