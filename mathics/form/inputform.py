@@ -150,12 +150,10 @@ def _infix_expression_to_inputform_text(
     # has a head that matches with a symbol associated to an infix
     # operator, WMA builds its inputform without passing through
     # its "Infix" form.
-    print("input infix", expr)
     kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     operands, ops_lst, precedence, group = collect_in_pre_post_arguments(
         expr, evaluation, **kwargs
     )
-    print("  ", operands, ops_lst)
     # Infix needs at least two operands:
     if len(operands) < 2:
         raise _WrongFormattedExpression
