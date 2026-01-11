@@ -563,7 +563,6 @@ System`Image
 System`ImageAdd
 System`ImageAdjust
 System`ImageAspectRatio
-System`ImageBox
 System`ImageChannels
 System`ImageColorSpace
 System`ImageConvolve
@@ -992,6 +991,7 @@ System`RandomSample
 System`Range
 System`RankedMax
 System`RankedMin
+System`RasterBox
 System`Rational
 System`Rationalize
 System`Re
