@@ -5,6 +5,7 @@ OutputForm is two-dimensional keyboard-character-only output, suitable for CLI
 and text terminals.
 """
 
+import re
 from typing import Callable, Dict, List, Union
 
 from mathics.core.atoms import (
@@ -51,6 +52,7 @@ from .util import (
 )
 
 EXPR_TO_OUTPUTFORM_TEXT_MAP: Dict[str, Callable] = {}
+MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 
 
 class IsNotGrid(Exception):
@@ -733,8 +735,18 @@ def _texform_outputform(expr, evaluation, **kwargs):
     boxes = Expression(
         Symbol("System`MakeBoxes"), expr.elements[0], SymbolTraditionalForm
     ).evaluate(evaluation)
-    result = boxes.boxes_to_tex(evaluation=evaluation)  # type: ignore[union-attr]
-    return result
+    try:
+        tex = boxes.boxes_to_tex(evaluation=evaluation)  # type: ignore[union-attr]
+        tex = MULTI_NEWLINE_RE.sub("\n", tex)
+        tex = tex.replace(" \uF74c", " \\, d")  # tmp hack for Integrate
+        return tex
+    except BoxError:
+        evaluation.message(
+            "General",
+            "notboxes",
+            Expression(SymbolFullForm, boxes).evaluate(evaluation),
+        )
+        raise _WrongFormattedExpression
 
 
 @register_outputform("System`Times")
