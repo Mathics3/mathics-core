@@ -16,15 +16,14 @@ from mathics.builtin.box.expression import BoxExpression
 from mathics.core.element import BaseElement
 from mathics.eval.image import pixels_as_ubyte
 
-# Docs are not yet ready for prime time. Maybe after release 6.0.0.
+# No user docs here: Box primitives aren't documented.
 no_doc = True
 
 
-# This should be 'RasterBox'
-class ImageBox(BoxExpression):
+class RasterBox(BoxExpression):
     """
     <dl>
-      <dt>'ImageBox'
+      <dt>'RasterBox'
       <dd>is the symbol used in boxing 'Image' expressions.
     </dl>
 
@@ -112,8 +111,6 @@ class ImageBox(BoxExpression):
         Store the associated image as a png file and return
         a LaTeX command for including it.
         """
-        image = self.image if elements is None else elements[0]
-
         data, size = self.boxes_to_png(elements, **options)
         res = 100  # pixels/cm
         width_str, height_str = (str(n / res).strip() for n in size)
