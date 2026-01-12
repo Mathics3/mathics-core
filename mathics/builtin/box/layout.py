@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 Low-Level Notebook Structure
 
 Formatting constructs are represented as a hierarchy of low-level \
@@ -7,10 +7,15 @@ symbolic "boxes".
 
 The routines here assist in boxing at the bottom of the hierarchy, typically found when using in a notebook.
 
-`Expression` objects having symbols in this module as head, are evaluated to 
-`BoxElementMixin` objects. These objects are literal objects, so do not have the method `evaluate`. Text render functions (in `mathics.format`) process `BoxElementMixin` to produce their output.
-
+Boxing is recursively performed using on the <url>:Head:/doc/reference-of-built-in-symbols/atomic-elements-of-expressions/atomic-primitives/head/</url> of a \Mathics expression
 """
+
+# The Box objects are `BoxElementMixin` objects. These objects are literal
+# objects, and do `evaluate`.  Instead text render functions in
+# `mathics.format` processes the `BoxElementMixin` object to produce
+# output.
+
+
 from typing import Tuple
 
 from mathics.builtin.box.expression import BoxExpression

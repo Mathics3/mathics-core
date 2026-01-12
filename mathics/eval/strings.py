@@ -142,6 +142,19 @@ def eval_StringFind(self, string, rule, n, evaluation, options, cases):
         return self._find(py_strings, py_rules, py_n, flags, evaluation)
 
 
+def safe_backquotes(string: str):
+    """Handle escaped backquotes."""
+    # TODO: Fix in the scanner how escaped backslashes
+    # are parsed.
+    # "\\`" must be parsed as "\\`" in order this
+    # works properly, but the parser converts `\\`
+    # into `\`.
+    string = string.replace(r"\\", r"\[RawBackslash]")
+    string = string.replace(r"\`", r"\[RawBackquote]")
+    string = string.replace(r"\[RawBackslash]", r"\\")
+    return string
+
+
 def eval_StringForm_MakeBoxes(strform, items, form, evaluation):
     """MakeBoxes[StringForm[s_String, items___], form_]"""
 
@@ -151,7 +164,9 @@ def eval_StringForm_MakeBoxes(strform, items, form, evaluation):
     items = [format_element(item, evaluation, form) for item in items]
 
     curr_indx = 0
-    parts = strform.value.split("`")
+    strform_str = safe_backquotes(strform.value)
+
+    parts = strform_str.split("`")
     parts = [part.replace("\\[RawBackquote]", "`") for part in parts]
     result = [String(parts[0])]
     if len(parts) <= 1:

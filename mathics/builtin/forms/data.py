@@ -3,8 +3,11 @@ Data-Specific Forms
 
 Some forms are specific to formatting certain kinds of data, like numbers, strings, or matrices.
 
-These are in contrast to the Forms like 'OutputForm' or 'StandardForm', which are intended to work over all kinds of data.
-
+These are in contrast to the Forms like <url>:OutputForm:
+/doc/reference-of-built-in-symbols/forms-of-input-and-output/printforms/outputform/</url> \
+or <url>:StandardForm:
+/doc/reference-of-built-in-symbols/forms-of-input-and-output/printforms/standardform/</url>, \
+which are intended to work over all kinds of data.
 """
 import re
 
@@ -81,7 +84,7 @@ class BaseForm(FormBaseClass):
 
     in_outputforms = True
     in_printforms = False
-    summary_text = "print with all numbers given in a base"
+    summary_text = "format numbers according to the given base"
     messages = {
         "intpm": (
             "Positive machine-sized integer expected at position 2 in "
@@ -257,7 +260,7 @@ class NumberForm(_NumberForm):
         "NumberSigns": '{"-", ""}',
         "SignPadding": "False",
     }
-    summary_text = "print at most a number of digits of all approximate real numbers in the expression"
+    summary_text = "format expression to at most a number of digits of all approximate real numbers "
 
     @staticmethod
     def default_ExponentFunction(value):

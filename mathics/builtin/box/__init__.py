@@ -1,8 +1,15 @@
-r"""
-Boxing modules.
+r"""Expression Boxing
 
-Boxes are added in formatting \Mathics Expressions.
+Boxes are central to <url>:Form:/doc/reference-of-built-in-symbols/forms-of-input-and-output/</url> \
+processing of \Mathics expressions.
 
-Boxing information like bounding-box width and size makes it easier for formatters to do
-layout without having to know the intricacies of what is inside the box.
+Boxing information, like the class of expression to be worked on and \
+its size, allow formatters, like <url>:StandardForm:
+/doc/reference-of-built-in-symbols/forms-of-input-and-output/printforms/standardform/</url> \
+to do their work without \
+having to know more specific details and intricacies of expression to be formatted.
+
 """
+
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.expression-boxing"

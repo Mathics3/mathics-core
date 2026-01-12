@@ -1411,9 +1411,9 @@ class NIntegrate(Builtin):
     messages.update(
         {
             "bdmtd": "The Method option should be a "
-            + "built-in method name in {\\[RawBackquote]"
-            + "\\[RawBackquote], \\[RawBackquote]".join(list(methods))
-            + "\\[RawBackquote]}. Using \\[RawBackquote]Automatic\\[RawBackquote]"
+            + r"built-in method name in {\`"
+            + r"\`, \`".join(list(methods))
+            + r"\`}. Using \`Automatic\`."
         }
     )
 
