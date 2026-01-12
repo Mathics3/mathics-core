@@ -11,7 +11,7 @@ which are intended to work over all kinds of data.
 """
 import re
 
-from mathics.builtin.box.layout import RowBox, to_boxes
+from mathics.builtin.box.layout import RowBox, StyleBox, to_boxes
 from mathics.builtin.forms.base import FormBaseClass
 from mathics.builtin.makeboxes import MakeBoxes
 from mathics.core.atoms import Integer, Real, String
@@ -431,8 +431,46 @@ class StringForm(FormBaseClass):
         with the corresponding expressions.
     </dl>
 
-    >> StringForm["`1` bla `2` blub `` bla `2`", a, b, c]
+    StringForm replace placeholders '`[number]`' by the element \
+    $expr_{[number]}$.
+    >> StringForm["`1` bla `2` blub `3` bla `2`", a, b, c]
      = a bla b blub c bla b
+
+    An empty placeholder '``' is replaced \
+    by the element that follows the one used in the previous \
+    placeholder:
+
+    >> StringForm["`2` bla `1` blub `` bla `3`", a, b, c]
+     = b bla a blub b bla c
+
+    The index of a placeholder must be always a non-negative integer:
+    >> StringForm["`x` bla", a]
+     : Item 0 requested in "`x` bla" out of range; 1 items available.
+     = StringForm["`x` bla", a]
+    >> StringForm["`-1` bla", a]
+     : Item -1 requested in "`-1` bla" out of range; 1 items available.
+     = StringForm["`-1` bla", a]
+    and cannot exceed the number of extra parameters:
+    >> StringForm["`2` bla", a]
+     : Item 2 requested in "`2` bla" out of range; 1 items available.
+     = StringForm["`2` bla", a]
+
+    Backquotes ('`') are always interpreted as part of a placeholder:
+    >> StringForm["`` is Global`a", a]
+     : Unmatched backquote in `` is Global`a.
+     = StringForm["`` is Global`a", a]
+
+    To use a 'Backquote' as a character, escape it with a backslash:
+    >> StringForm["`` is Global\`a", a]
+     = a is Global`a
+
+    Notice that elements are formatted according the context:
+    >> OutputForm[StringForm["Integral of f: ``", Integrate[F[x],x]]]
+     = Integral of f: Integrate[F[x], x]
+    ## In documentation should appear the expression using Unicode:
+    >> StandardForm[StringForm["Integral of f: ``", Integrate[F[x],x]]]
+     = ...
+
     """
 
     in_outputforms = False
@@ -446,7 +484,14 @@ class StringForm(FormBaseClass):
     def eval_makeboxes(self, s, args, form, evaluation):
         """MakeBoxes[StringForm[s_String, args___],
         form:StandardForm|TraditionalForm|OutputForm]"""
-        return eval_StringForm_MakeBoxes(s, args.get_sequence(), form, evaluation)
+        try:
+            result = eval_StringForm_MakeBoxes(s, args.get_sequence(), form, evaluation)
+        except ValueError:
+            return evaluation.current_expression
+
+        if isinstance(result, String):
+            result = StyleBox(String(result))
+        return result
 
 
 class TableForm(FormBaseClass):
