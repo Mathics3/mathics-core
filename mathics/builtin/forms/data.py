@@ -307,7 +307,7 @@ class NumberForm(_NumberForm):
 
     def eval_makeboxes(self, expr, form, evaluation, options={}):
         """MakeBoxes[NumberForm[expr_, OptionsPattern[NumberForm]],
-        form:StandardForm|TraditionalForm|OutputForm]"""
+        form:StandardForm|TraditionalForm]"""
 
         fallback = Expression(SymbolMakeBoxes, expr, form)
 

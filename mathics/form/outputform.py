@@ -38,7 +38,11 @@ from mathics.core.systemsymbols import (
     SymbolTableForm,
     SymbolTraditionalForm,
 )
-from mathics.eval.makeboxes import compare_precedence, do_format  # , format_element
+from mathics.eval.makeboxes import (  # , format_element
+    NumberForm_to_String,
+    compare_precedence,
+    do_format,
+)
 from mathics.eval.makeboxes.numberform import get_baseform_elements
 from mathics.eval.testing_expressions import expr_min
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
@@ -871,3 +875,25 @@ def times_expression_to_outputform_text(
     if prefactor == -1:
         result = "-" + result
     return result
+
+
+@register_outputform("System`NumberForm")
+def _numberform_outputform(expr, evaluation, **kwargs):
+    py_options = self.check_options(options, evaluation)
+    if py_options is None:
+        return fallback
+
+    if isinstance(expr, Integer):
+        py_n = len(str(abs(expr.get_int_value())))
+    elif isinstance(expr, Real):
+        if expr.is_machine_precision():
+            py_n = 6
+        else:
+            py_n = dps(expr.get_precision())
+    else:
+        py_n = None
+
+    if py_n is not None:
+        py_options["_Form"] = form.get_name()
+        return NumberForm_to_String(expr, py_n, None, evaluation, py_options)
+    raise _WrongFormattedExpression
