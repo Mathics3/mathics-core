@@ -183,7 +183,7 @@ def eval_StringForm_MakeBoxes(strform, items, form, evaluation):
             # character:
             if not remaining:
                 evaluation.message("StringForm", "sfq", strform)
-                return ValueError
+                raise ValueError
             # part must be an index or an empty string.
             # If is an empty string, pick the next element:
             if part == "":

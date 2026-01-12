@@ -9,14 +9,11 @@ or <url>:StandardForm:
 /doc/reference-of-built-in-symbols/forms-of-input-and-output/printforms/standardform/</url>, \
 which are intended to work over all kinds of data.
 """
-import re
 
-from mathics.builtin.box.layout import RowBox, StyleBox, to_boxes
+from mathics.builtin.box.layout import RowBox, StyleBox
 from mathics.builtin.forms.base import FormBaseClass
-from mathics.builtin.makeboxes import MakeBoxes
 from mathics.core.atoms import Integer, Real, String
 from mathics.core.builtin import Builtin
-from mathics.core.element import EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -448,7 +445,7 @@ class StringForm(FormBaseClass):
      : Item 0 requested in "`x` bla" out of range; 1 items available.
      = `x` bla
     >> StringForm["`-1` bla", a]
-     : item -1 requested in "`-1` bla" out of range; 1 items available.
+     : Item -1 requested in "`-1` bla" out of range; 1 items available.
      = `-1` bla
     and cannot exceed the number of extra parameters:
     >> StringForm["`2` bla", a]
@@ -458,7 +455,7 @@ class StringForm(FormBaseClass):
     Backquotes ('`') are always interpreted as part of a placeholder:
     >> StringForm["`` is Global`a", a]
      : Unmatched backquote in `` is Global`a.
-     = "`` is Global`a"
+     = `` is Global`a
 
     To use a 'Backquote' as a character, escape it with a backslash:
     >> StringForm["`` is Global\`a", a]
@@ -488,7 +485,6 @@ class StringForm(FormBaseClass):
             result = eval_StringForm_MakeBoxes(s, args.get_sequence(), form, evaluation)
         except ValueError:
             result = s
-
         if isinstance(result, String):
             result = StyleBox(String(result))
         return result
