@@ -16,7 +16,9 @@ class PrintForms_(Predefined):
     r"""
     <dl>
       <dt>'\$PrintForms'
-      <dd>contains the list of basic print forms. It is updated automatically when new 'PrintForms' are defined \
+      <dd>contains the current list of general-purpose "Forms" formatters.
+
+      It is updated automatically when new forms are defined \
       via setting <url>:Format:/doc/reference-of-built-in-symbols/layout/format/</url>\
       in the the left-hand-side of a delayed assignment.
     </dl>
