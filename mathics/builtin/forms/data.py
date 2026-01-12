@@ -487,7 +487,7 @@ class StringForm(FormBaseClass):
         try:
             result = eval_StringForm_MakeBoxes(s, args.get_sequence(), form, evaluation)
         except ValueError:
-            return evaluation.current_expression
+            result = s
 
         if isinstance(result, String):
             result = StyleBox(String(result))
