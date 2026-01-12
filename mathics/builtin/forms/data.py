@@ -446,19 +446,19 @@ class StringForm(FormBaseClass):
     The index of a placeholder must be always a non-negative integer:
     >> StringForm["`x` bla", a]
      : Item 0 requested in "`x` bla" out of range; 1 items available.
-     = StringForm["`x` bla", a]
+     = `x` bla
     >> StringForm["`-1` bla", a]
-     : Item -1 requested in "`-1` bla" out of range; 1 items available.
-     = StringForm["`-1` bla", a]
+     : item -1 requested in "`-1` bla" out of range; 1 items available.
+     = `-1` bla
     and cannot exceed the number of extra parameters:
     >> StringForm["`2` bla", a]
      : Item 2 requested in "`2` bla" out of range; 1 items available.
-     = StringForm["`2` bla", a]
+     = `2` bla
 
     Backquotes ('`') are always interpreted as part of a placeholder:
     >> StringForm["`` is Global`a", a]
      : Unmatched backquote in `` is Global`a.
-     = StringForm["`` is Global`a", a]
+     = "`` is Global`a"
 
     To use a 'Backquote' as a character, escape it with a backslash:
     >> StringForm["`` is Global\`a", a]
