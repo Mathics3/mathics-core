@@ -96,6 +96,11 @@ def string(self, **options) -> str:
         return render("<mn>%s</mn>", text)
     else:
         if text in operators or text in extra_operators:
+            # Empty strings are taken as an operator character,
+            # but this confuses the MathML interpreter in
+            # Mathics-Django:
+            if text == "":
+                return ""
             if text == "\u2146":
                 return render(
                     '<mo form="prefix" lspace="0.2em" rspace="0">%s</mo>', text
