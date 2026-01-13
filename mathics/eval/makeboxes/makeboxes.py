@@ -186,7 +186,7 @@ def eval_makeboxes_fullform(
     return RowBox(*result_elements)
 
 
-def eval_generic_makeboxes(self, expr, f, evaluation):
+def eval_generic_makeboxes(expr, f, evaluation):
     """MakeBoxes[expr_,
     f:TraditionalForm|StandardForm|OutputForm|InputForm]"""
     from mathics.builtin.box.layout import RowBox
