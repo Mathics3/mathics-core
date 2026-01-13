@@ -10,33 +10,35 @@ or <url>:StandardForm:
 which are intended to work over all kinds of data.
 """
 import re
+from typing import Any, Callable, Dict, List, Optional
 
 from mathics.builtin.box.layout import RowBox, to_boxes
 from mathics.builtin.forms.base import FormBaseClass
 from mathics.builtin.makeboxes import MakeBoxes
 from mathics.core.atoms import Integer, Real, String
 from mathics.core.builtin import Builtin
-from mathics.core.element import EvalMixin
+from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import dps
-from mathics.core.symbols import Symbol, SymbolFalse, SymbolNull, SymbolTrue
+from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
     SymbolInfinity,
     SymbolMakeBoxes,
-    SymbolNumberForm,
     SymbolRowBox,
-    SymbolRuleDelayed,
     SymbolSuperscriptBox,
 )
 from mathics.eval.makeboxes import (
-    NumberForm_to_String,
     StringLParen,
     StringRParen,
     eval_baseform,
+    eval_generic_makeboxes,
     eval_tableform,
+    format_element,
+    get_numberform_parameters,
+    numberform_to_boxes,
 )
 from mathics.eval.strings import eval_ToString
 
@@ -96,7 +98,7 @@ class BaseForm(FormBaseClass):
     def eval_makeboxes(self, expr, n, f, evaluation: Evaluation):
         """MakeBoxes[BaseForm[expr_, n_],
         f:StandardForm|TraditionalForm|OutputForm]"""
-        return eval_baseform(self, expr, n, f, evaluation)
+        return eval_baseform(expr, n, f, evaluation)
 
 
 class _NumberForm(Builtin):
@@ -108,32 +110,78 @@ class _NumberForm(Builtin):
     default_NumberFormat = None
     in_outputforms = True
     messages = {
-        "npad": "Value for option NumberPadding -> `1` should be a string or a pair of strings.",
-        "dblk": "Value for option DigitBlock should be a positive integer, Infinity, or a pair of positive integers.",
-        "npt": "Value for option `1` -> `2` is expected to be a string.",
-        "nsgn": "Value for option NumberSigns -> `1` should be a pair of strings or two pairs of strings.",
-        "nspr": "Value for option NumberSeparator -> `1` should be a string or a pair of strings.",
-        "opttf": "Value of option `1` -> `2` should be True or False.",
+        "argm": ("`` called with `` arguments; 1 or more " "arguments are expected."),
+        "argct": "`` called with `` arguments.",
+        "npad": (
+            "Value for option NumberPadding -> `1` should be a string or "
+            "a pair of strings."
+        ),
+        "dblk": (
+            "Value for option DigitBlock should be a positive integer, "
+            "Infinity, or a pair of positive integers."
+        ),
         "estep": "Value of option `1` -> `2` is not a positive integer.",
-        "iprf": "Formatting specification `1` should be a positive integer or a pair of positive integers.",  # NumberFormat only
-        "sigz": "In addition to the number of digits requested, one or more zeros will appear as placeholders.",
+        "iprf": (
+            "Formatting specification `1` should be a positive integer "
+            "or a pair of positive integers."
+        ),  # NumberFormat only
+        "npt": "Value for option `1` -> `2` is expected to be a string.",
+        "nsgn": (
+            "Value for option NumberSigns -> `1` should be a pair of "
+            "strings or two pairs of strings."
+        ),
+        "nspr": (
+            "Value for option NumberSeparator -> `1` should be a string "
+            "or a pair of strings."
+        ),
+        "opttf": "Value of option `1` -> `2` should be True or False.",
+        "sigz": (
+            "In addition to the number of digits requested, one or more "
+            "zeros will appear as placeholders."
+        ),
     }
 
-    def check_options(self, options: dict, evaluation: Evaluation):
+    def check_and_convert_options(self, options: dict, evaluation: Evaluation):
         """
         Checks options are valid and converts them to python.
         """
         result = {}
+        default_options = evaluation.definitions.get_options(self.get_name())
         for option_name in self.options:
+            context_option_name = "System`" + option_name
             method = getattr(self, "check_" + option_name)
-            arg = options["System`" + option_name]
+            arg = options[context_option_name]
             value = method(arg, evaluation)
-            if value is None:
-                return None
+            if value is not None:
+                result[option_name] = value
+                continue
+            # If the value is None, try with the default value
+            arg = default_options[context_option_name]
+            value = method(arg, evaluation)
+            # If fails, handle None in situ.
             result[option_name] = value
+
         return result
 
-    def check_DigitBlock(self, value, evaluation: Evaluation):
+    def check_DigitBlock(self, value, evaluation: Evaluation) -> Optional[List[int]]:
+        """
+        Check and convert to Python the DigitBlock option value.
+
+        Parameters
+        ----------
+        value : BaseElement
+            The value of the option.
+        evaluation : Evaluation
+            used for messages.
+
+        Returns
+        -------
+        Optional[List[int]]
+            If the specification is valid, a list with
+            two elements specifying the size of the blocks
+            at the left and right of the decimal separator. `None` otherwise.
+
+        """
         py_value = value.get_int_value()
         if value.sameQ(SymbolInfinity):
             return [0, 0]
@@ -158,8 +206,29 @@ class _NumberForm(Builtin):
             if None not in result:
                 return result
         evaluation.message(self.get_name(), "dblk", value)
+        return None
 
-    def check_ExponentFunction(self, value, evaluation: Evaluation):
+    def check_ExponentFunction(
+        self, value: BaseElement, evaluation: Evaluation
+    ) -> Callable[BaseElement, BaseElement]:
+        """
+        Check and convert the ExponentFunction option value
+
+        Parameters
+        ----------
+        value : BaseElement
+            Automatic, or a Function to be applyied to the expression to
+            format the exponent.
+        evaluation : Evaluation
+            evaluation object to send messages.
+
+        Returns
+        -------
+        Callable[BaseElement, BaseElement]
+            A Python function that implements the format.
+
+        """
+
         if value.sameQ(SymbolAutomatic):
             return self.default_ExponentFunction
 
@@ -168,59 +237,250 @@ class _NumberForm(Builtin):
 
         return exp_function
 
-    def check_NumberFormat(self, value, evaluation: Evaluation):
+    def check_NumberFormat(
+        self, value: BaseElement, evaluation: Evaluation
+    ) -> Callable[BaseElement, BaseElement]:
+        """
+        Function that implement custumozed number formatting.
+
+        Parameters
+        ----------
+        value : BaseElement
+            Automatic, or a function to be applied to the expression to get
+            it formatted.
+        evaluation : Evaluation
+            Evaluation object used to show messages.
+
+        Returns
+        -------
+        Callable[BaseElement, BaseElement]
+            A function that implements the formatting.
+
+        """
         if value.sameQ(SymbolAutomatic):
             return self.default_NumberFormat
 
-        def num_function(man, base, exp, options):
+        def num_function(man, base, exp, _):
             return Expression(value, man, base, exp).evaluate(evaluation)
 
         return num_function
 
-    def check_NumberMultiplier(self, value, evaluation: Evaluation):
+    def check_NumberMultiplier(
+        self, value: BaseElement, evaluation: Evaluation
+    ) -> Optional[str]:
+        """
+        Character used when two numbers are multiplied. Used in Scientific
+        notation.
+
+        Parameters
+        ----------
+        value : BaseElement
+            Value of the option.
+        evaluation : Evaluation
+            Evaluation object used to show messages.
+
+        Returns
+        -------
+        Optional[str]
+            If the value is valid, the value of the option. `None` otherwise.
+
+        """
         result = value.get_string_value()
         if result is None:
             evaluation.message(self.get_name(), "npt", "NumberMultiplier", value)
         return result
 
-    def check_NumberPoint(self, value, evaluation: Evaluation):
+    def check_NumberPoint(
+        self, value: BaseElement, evaluation: Evaluation
+    ) -> Optional[str]:
+        """
+        The decimal separator
+
+        Parameters
+        ----------
+        value : BaseElement
+            Option value.
+        evaluation : Evaluation
+            Evaluation object used to show messages.
+
+        Returns
+        -------
+        Optional[str]
+            If the value is valid, the value of the option. `None` otherwise.
+
+        """
         result = value.get_string_value()
         if result is None:
             evaluation.message(self.get_name(), "npt", "NumberPoint", value)
         return result
 
-    def check_ExponentStep(self, value, evaluation: Evaluation):
+    def check_ExponentStep(
+        self, value: BaseElement, evaluation: Evaluation
+    ) -> Optional[int]:
+        """
+        The round step for exponents in Scientific notation. This number
+        decides for example if format 10000 as "10x10^3" or "1x10^4"
+
+        Parameters
+        ----------
+        value : BaseElemenet
+            The value of the option.
+        evaluation : Evaluation
+            Evaluation object used to show messages.
+
+        Returns
+        -------
+        Optional[int]
+            If the value is valid, the value of the option. `None` otherwise.
+
+        """
         result = value.get_int_value()
         if result is None or result <= 0:
             evaluation.message(self.get_name(), "estep", "ExponentStep", value)
-            return
+            return None
         return result
 
-    def check_SignPadding(self, value, evaluation: Evaluation):
+    def check_SignPadding(
+        self, value: BaseElement, evaluation: Evaluation
+    ) -> Optional[bool]:
+        """
+        True if the left padding is used between the sign of the number of
+        its magnitude. False otherwise.
+
+        Parameters
+        ----------
+        value : BaseElement
+            The value of the option.
+        evaluation : Evaluation
+            Evaluation object used to show messages.
+
+        Returns
+        -------
+        Optional[bool]
+            If the value is valid, the value of the option. `None` otherwise.
+
+        """
         if value.sameQ(SymbolTrue):
             return True
-        elif value.sameQ(SymbolFalse):
+        if value.sameQ(SymbolFalse):
             return False
         evaluation.message(self.get_name(), "opttf", value)
+        return None
 
-    def _check_List2str(self, value, msg, evaluation: Evaluation):
+    def _check_List2str(
+        self, value, msg, evaluation: Evaluation
+    ) -> Optional[List[str]]:
         if value.has_form("List", 2):
             result = [element.get_string_value() for element in value.elements]
             if None not in result:
                 return result
         evaluation.message(self.get_name(), msg, value)
+        return None
 
-    def check_NumberSigns(self, value, evaluation: Evaluation):
+    def check_NumberSigns(
+        self, value: BaseElement, evaluation: Evaluation
+    ) -> Optional[List[str]]:
+        """
+
+        Parameters
+        ----------
+        value : BaseElement
+            The value of the option.
+        evaluation : Evaluation
+            Evaluation object used to show messages.
+
+        Returns
+        -------
+        Optional[bool]
+            If the value is valid, the value of the option. `None` otherwise.
+
+        """
+
         return self._check_List2str(value, "nsgn", evaluation)
 
-    def check_NumberPadding(self, value, evaluation: Evaluation):
+    def check_NumberPadding(
+        self, value: BaseElement, evaluation: Evaluation
+    ) -> Optional[List[str]]:
+        """
+
+        Parameters
+        ----------
+        value : BaseElement
+            The value of the option.
+        evaluation : Evaluation
+            Evaluation object used to show messages.
+
+        Returns
+        -------
+        Optional[bool]
+            If the value is valid, the value of the option. `None` otherwise.
+
+        """
+
         return self._check_List2str(value, "npad", evaluation)
 
-    def check_NumberSeparator(self, value, evaluation: Evaluation):
+    def check_NumberSeparator(
+        self, value: BaseElement, evaluation: Evaluation
+    ) -> Optional[List[str]]:
+        """
+
+        Parameters
+        ----------
+        value : BaseElement
+            The value of the option.
+        evaluation : Evaluation
+            Evaluation object used to show messages.
+
+        Returns
+        -------
+        Optional[bool]
+            If the value is valid, the value of the option. `None` otherwise.
+
+        """
+
         py_str = value.get_string_value()
         if py_str is not None:
             return [py_str, py_str]
         return self._check_List2str(value, "nspr", evaluation)
+
+    def eval_number_makeboxes_nonatomic(self, expr, form, evaluation):
+        """MakeBoxes[expr_%(name)s, form_]"""
+        # Generic form. If parameters are OK,
+        # distribute the form on the head and elements.
+        # If the expression is an Atom, leave it alone.
+        # First, collect the parts of the expression
+        num_form = expr.head
+        try:
+            target, prec_parms, _ = get_numberform_parameters(expr, evaluation)
+        except ValueError:
+            return eval_generic_makeboxes(expr, form, evaluation)
+
+        # Atoms are not processed here
+        if isinstance(target, Atom):
+            return None
+
+        # This part broadcast the format to the head and elements
+        # of the expression. In the future, this is going to happend
+        # by passing parameters to a makeboxes evaluation function.
+
+        if prec_parms is None:
+            option_rules = expr.elements[1:]
+
+            def wrapper(elem):
+                return Expression(num_form, elem, *option_rules)
+
+        else:
+            option_rules = expr.elements[2:]
+
+            def wrapper(elem):
+                return Expression(num_form, elem, prec_parms, *option_rules)
+
+        head = target.head
+        if not isinstance(head, Symbol):
+            head = wrapper(target.head)
+        elements = (wrapper(elem) for elem in target.elements)
+        expr = Expression(head, *elements)
+        return format_element(expr, evaluation, form)
 
 
 class NumberForm(_NumberForm):
@@ -260,18 +520,46 @@ class NumberForm(_NumberForm):
         "NumberSigns": '{"-", ""}',
         "SignPadding": "False",
     }
-    summary_text = "format expression to at most a number of digits of all approximate real numbers "
+    summary_text = (
+        "format expression to at most a number of digits of all "
+        "approximate real numbers "
+    )
 
     @staticmethod
-    def default_ExponentFunction(value):
+    def default_ExponentFunction(value: Integer):
+        """The default function used to format exponent."""
+
         n = value.get_int_value()
         if -5 <= n <= 5:
             return SymbolNull
-        else:
-            return value
+
+        return value
 
     @staticmethod
-    def default_NumberFormat(man, base, exp, options):
+    def default_NumberFormat(
+        man: BaseElement, base: BaseElement, exp: BaseElement, options: Dict[str, Any]
+    ) -> BaseElement:
+        """
+        The default function used to format numbers from its mantisa, and
+        an exponential factor base^exp.
+
+        Parameters
+        ----------
+        man : BaseElement
+            mantisa.
+        base : BaseElement
+            base used for scientific notation.
+        exp : BaseElement
+            exponent.
+        options : Dict[str, Any]
+            more format options.
+
+        Returns
+        -------
+        Expression
+            An valid box expression representing the number.
+        """
+
         py_exp = exp.get_string_value()
         if py_exp:
             mul = String(options["NumberMultiplier"])
@@ -279,101 +567,44 @@ class NumberForm(_NumberForm):
                 SymbolRowBox,
                 ListExpression(man, mul, Expression(SymbolSuperscriptBox, base, exp)),
             )
-        else:
-            return man
 
-    def eval_list_n(self, expr, n, evaluation, options) -> Expression:
-        "NumberForm[expr_List, n_, OptionsPattern[NumberForm]]"
-        options = [
-            Expression(SymbolRuleDelayed, Symbol(key), value)
-            for key, value in options.items()
-        ]
-        return ListExpression(
-            *[
-                Expression(SymbolNumberForm, element, n, *options)
-                for element in expr.elements
-            ]
-        )
+        return man
 
-    def eval_list_nf(self, expr, n, f, evaluation, options) -> Expression:
-        "NumberForm[expr_List, {n_, f_}, OptionsPattern[NumberForm]]"
-        options = [
-            Expression(SymbolRuleDelayed, Symbol(key), value)
-            for key, value in options.items()
-        ]
-        return ListExpression(
-            *[
-                Expression(SymbolNumberForm, element, ListExpression(n, f), *options)
-                for element in expr.elements
-            ],
-        )
-
-    def eval_makeboxes(self, expr, form, evaluation, options={}):
-        """MakeBoxes[NumberForm[expr_, OptionsPattern[NumberForm]],
+    def eval_makeboxes(self, fexpr, form, evaluation):
+        """MakeBoxes[fexpr:NumberForm[_?AtomQ, ___],
         form:StandardForm|TraditionalForm|OutputForm]"""
+        try:
+            target, prec_parms, py_options = get_numberform_parameters(
+                fexpr, evaluation
+            )
+        except ValueError:
+            return eval_generic_makeboxes(fexpr, form, evaluation)
 
-        fallback = Expression(SymbolMakeBoxes, expr, form)
+        assert all(isinstance(key, str) for key in py_options)
 
-        py_options = self.check_options(options, evaluation)
-        if py_options is None:
-            return fallback
-
-        if isinstance(expr, Integer):
-            py_n = len(str(abs(expr.get_int_value())))
-        elif isinstance(expr, Real):
-            if expr.is_machine_precision():
-                py_n = 6
-            else:
-                py_n = dps(expr.get_precision())
-        else:
-            py_n = None
+        py_f = py_n = None
+        if prec_parms is None:
+            if isinstance(target, Integer):
+                py_n = len(str(abs(target.get_int_value())))
+            elif isinstance(target, Real):
+                if target.is_machine_precision():
+                    py_n = 6
+                else:
+                    py_n = dps(target.get_precision())
+        elif isinstance(prec_parms, Integer):
+            if isinstance(target, (Integer, Real)):
+                py_n = prec_parms.value
+        elif prec_parms.has_form("List", 2):
+            if isinstance(target, (Integer, Real)):
+                n, f = prec_parms.elements
+                py_n = n.value
+                py_f = f.value
 
         if py_n is not None:
             py_options["_Form"] = form.get_name()
-            return NumberForm_to_String(expr, py_n, None, evaluation, py_options)
-        return Expression(SymbolMakeBoxes, expr, form)
 
-    def eval_makeboxes_n(self, expr, n, form, evaluation, options={}):
-        """MakeBoxes[NumberForm[expr_, n_?NotOptionQ, OptionsPattern[NumberForm]],
-        form:StandardForm|TraditionalForm|OutputForm]"""
-
-        fallback = Expression(SymbolMakeBoxes, expr, form)
-
-        py_n = n.get_int_value()
-        if py_n is None or py_n <= 0:
-            evaluation.message("NumberForm", "iprf", n)
-            return fallback
-
-        py_options = self.check_options(options, evaluation)
-        if py_options is None:
-            return fallback
-
-        if isinstance(expr, (Integer, Real)):
-            py_options["_Form"] = form.get_name()
-            return NumberForm_to_String(expr, py_n, None, evaluation, py_options)
-        return Expression(SymbolMakeBoxes, expr, form)
-
-    def eval_makeboxes_nf(self, expr, n, f, form, evaluation, options={}):
-        """MakeBoxes[NumberForm[expr_, {n_, f_}, OptionsPattern[NumberForm]],
-        form:StandardForm|TraditionalForm|OutputForm]"""
-
-        fallback = Expression(SymbolMakeBoxes, expr, form)
-
-        nf = ListExpression(n, f)
-        py_n = n.get_int_value()
-        py_f = f.get_int_value()
-        if py_n is None or py_n <= 0 or py_f is None or py_f < 0:
-            evaluation.message("NumberForm", "iprf", nf)
-            return fallback
-
-        py_options = self.check_options(options, evaluation)
-        if py_options is None:
-            return fallback
-
-        if isinstance(expr, (Integer, Real)):
-            py_options["_Form"] = form.get_name()
-            return NumberForm_to_String(expr, py_n, py_f, evaluation, py_options)
-        return Expression(SymbolMakeBoxes, expr, form)
+            return numberform_to_boxes(target, py_n, py_f, evaluation, py_options)
+        return Expression(SymbolMakeBoxes, target, form)
 
 
 class SequenceForm(FormBaseClass):
@@ -553,8 +784,7 @@ class MatrixForm(TableForm):
         """MakeBoxes[%(name)s[table_, OptionsPattern[%(name)s]],
         form:StandardForm|TraditionalForm]"""
 
-        result = super(MatrixForm, self).eval_makeboxes(
-            table, form, evaluation, options
-        )
+        result = super().eval_makeboxes(table, form, evaluation, options)
         if result.get_head_name() == "System`GridBox":
             return RowBox(StringLParen, result, StringRParen)
+        return None

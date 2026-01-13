@@ -522,11 +522,11 @@ class MachineReal(Real[float]):
         return True
 
     def make_boxes(self, form):
-        from mathics.eval.makeboxes import NumberForm_to_String
+        from mathics.eval.makeboxes import numberform_to_boxes
 
         _number_form_options["_Form"] = form  # passed to _NumberFormat
         n = 6 if form == "System`OutputForm" else None
-        num_str = NumberForm_to_String(self, n, None, None, _number_form_options)
+        num_str = numberform_to_boxes(self, n, None, None, _number_form_options)
         return num_str
 
     @property
@@ -641,11 +641,11 @@ class PrecisionReal(Real[sympy.Float]):
         return self.value.is_zero or False
 
     def make_boxes(self, form):
-        from mathics.eval.makeboxes import NumberForm_to_String
+        from mathics.eval.makeboxes import numberform_to_boxes
 
         _number_form_options["_Form"] = form  # passed to _NumberFormat
         digits = dps(self.get_precision()) if form == "System`OutputForm" else None
-        return NumberForm_to_String(self, digits, None, None, _number_form_options)
+        return numberform_to_boxes(self, digits, None, None, _number_form_options)
 
     def round(self, d: Optional[int] = None) -> Union[MachineReal, "PrecisionReal"]:
         if d is None:
