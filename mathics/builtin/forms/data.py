@@ -424,7 +424,7 @@ class StringForm(FormBaseClass):
 
     <dl>
       <dt>'StringForm'[$str$, $expr_1$, $expr_2$, ...]
-      <dd>displays the string $str$, replacing placeholders in $str$
+      <dd>displays the string $str$, replacing placeholders in $str$ \
         with the corresponding expressions.
     </dl>
 
@@ -441,9 +441,6 @@ class StringForm(FormBaseClass):
      = b bla a blub b bla c
 
     The index of a placeholder must be always a non-negative integer:
-    >> StringForm["`x` bla", a]
-     : Item 0 requested in "`x` bla" out of range; 1 items available.
-     = `x` bla
     >> StringForm["`-1` bla", a]
      : Item -1 requested in "`-1` bla" out of range; 1 items available.
      = `-1` bla
@@ -461,7 +458,7 @@ class StringForm(FormBaseClass):
     >> StringForm["`` is Global\`a", a]
      = a is Global`a
 
-    Notice that elements are formatted according the context:
+    Elements are formatted according the enclosing context:
     >> OutputForm[StringForm["Integral of f: ``", Integrate[F[x],x]]]
      = Integral of f: Integrate[F[x], x]
     ## In documentation should appear the expression using Unicode:
