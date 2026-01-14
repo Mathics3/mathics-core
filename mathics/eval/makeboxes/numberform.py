@@ -48,7 +48,7 @@ DEFAULT_NUMBERFORM_OPTIONS = {
 }
 
 
-def int_to_tuple_info(integer: Integer) -> Tuple[str, int, bool]:
+def int_to_tuple_info(integer: Integer, digits: Optional[int]) -> Tuple[str, int, bool]:
     """
     Convert ``integer`` to a tuple representing that value. The tuple consists of:
     * the string absolute value of ``integer``.
@@ -62,8 +62,10 @@ def int_to_tuple_info(integer: Integer) -> Tuple[str, int, bool]:
     else:
         is_nonnegative = True
     s = str(value)
+    if digits is None:
+        digits = len(s)
     exponent = len(s) - 1
-    return s, exponent, is_nonnegative
+    return s, exponent, is_nonnegative, digits
 
 
 def real_to_tuple_info(
@@ -117,7 +119,7 @@ def real_to_tuple_info(
     else:
         assert value >= 0
         is_nonnegative = True
-    # Set exponent. ``exponent`` is actual, ``pexp`` of ``NumberForm_to_string()`` is printed.
+    # Set exponent. ``exponent`` is actual, ``pexp`` of ``numberform_to_boxes()`` is printed.
     if "e" in s:
         s, exponent = s.split("e")
         exponent = int(exponent)
@@ -348,9 +350,8 @@ def numberform_to_boxes(
     # Get information about `value`
     is_int = False
     if isinstance(value, Integer):
-        assert digits is not None
         precision = None
-        s, exp, is_nonnegative = int_to_tuple_info(value)
+        s, exp, is_nonnegative, digits = int_to_tuple_info(value, digits)
         if digits_after_decimal_point is None:
             is_int = True
     elif isinstance(value, Real):
