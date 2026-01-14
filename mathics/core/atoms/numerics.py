@@ -13,7 +13,7 @@ import sympy
 from sympy.core import numbers as sympy_numbers
 
 from mathics.core.atoms.strings import String
-from mathics.core.element import BoxElementMixin, ImmutableValueMixin
+from mathics.core.element import ImmutableValueMixin
 from mathics.core.keycomparable import BASIC_ATOM_NUMBER_ELT_ORDER
 from mathics.core.number import (
     FP_MANTISA_BINARY_DIGITS,
@@ -283,7 +283,16 @@ class Integer(Number[int]):
         return -self if self < Integer0 else self
 
     def atom_to_boxes(self, f, evaluation):
-        return self.make_boxes(f.get_name())
+        from mathics.eval.makeboxes.numberform import numberform_to_boxes
+
+        try:
+            return numberform_to_boxes(
+                self, None, None, evaluation, {"_Form": f.get_name()}
+            )
+        except ValueError:
+            # from mathics.eval.makeboxes import int_to_string_shorter_repr
+            # return int_to_string_shorter_repr(self._value, form)
+            raise
 
     def get_int_value(self) -> int:
         return self._value
@@ -296,35 +305,6 @@ class Integer(Number[int]):
         # Note: 0 is self._value or the other way around is a syntax
         # error.
         return self._value == 0
-
-    def make_boxes(self, form) -> BoxElementMixin:
-        from mathics.builtin.box.layout import RowBox
-
-        boxed: BoxElementMixin
-        try:
-            if form in (
-                "System`FullForm",
-                "System`StandardForm",
-                "System`TraditionalForm",
-            ):
-                val_str = str(self._value)
-                if val_str[0] == "-":
-                    boxed = RowBox(String("-"), String(val_str[1:]))
-                else:
-                    boxed = String(val_str)
-            else:
-                boxed = String(str(self._value))
-            return boxed
-        except ValueError:
-            # In Python 3.11, the size of the string
-            # obtained from an integer is limited, and for longer
-            # numbers, this exception is raised.
-            # The idea is to represent the number by its
-            # more significant digits, the lowest significant digits,
-            # and a placeholder saying the number of omitted digits.
-            from mathics.eval.makeboxes import int_to_string_shorter_repr
-
-            return int_to_string_shorter_repr(self._value, form)
 
     def round(self, d: Optional[int] = None) -> Union["MachineReal", "PrecisionReal"]:
         """
@@ -430,9 +410,6 @@ class Real(Number[T]):
         # Real is a total order
         return not (self == other)
 
-    def atom_to_boxes(self, f, evaluation):
-        return self.make_boxes(f.get_name())
-
     def is_nan(self, d=None) -> bool:
         return isinstance(self.value, sympy.core.numbers.NaN)
 
@@ -487,6 +464,15 @@ class MachineReal(Real[float]):
     def __neg__(self) -> "MachineReal":
         return MachineReal(-self.value)
 
+    def atom_to_boxes(self, f, evaluation):
+        from mathics.eval.makeboxes import numberform_to_boxes
+
+        form = f.get_name()
+        _number_form_options["_Form"] = form  # passed to _NumberFormat
+        n = 6 if form == "System`OutputForm" else None
+        num_str = numberform_to_boxes(self, n, None, evaluation, _number_form_options)
+        return num_str
+
     def do_copy(self) -> "MachineReal":
         return MachineReal(self._value)
 
@@ -520,14 +506,6 @@ class MachineReal(Real[float]):
 
     def is_machine_precision(self) -> bool:
         return True
-
-    def make_boxes(self, form):
-        from mathics.eval.makeboxes import numberform_to_boxes
-
-        _number_form_options["_Form"] = form  # passed to _NumberFormat
-        n = 6 if form == "System`OutputForm" else None
-        num_str = numberform_to_boxes(self, n, None, None, _number_form_options)
-        return num_str
 
     @property
     def is_zero(self) -> bool:
@@ -613,6 +591,14 @@ class PrecisionReal(Real[sympy.Float]):
     def __neg__(self) -> "PrecisionReal":
         return PrecisionReal(-self.value)
 
+    def atom_to_boxes(self, f, evaluation):
+        from mathics.eval.makeboxes import numberform_to_boxes
+
+        form = f.get_name()
+        _number_form_options["_Form"] = form  # passed to _NumberFormat
+        digits = dps(self.get_precision()) if form == "System`OutputForm" else None
+        return numberform_to_boxes(self, digits, None, evaluation, _number_form_options)
+
     def do_copy(self) -> "PrecisionReal":
         return PrecisionReal(self.value)
 
@@ -639,13 +625,6 @@ class PrecisionReal(Real[sympy.Float]):
     def is_zero(self) -> bool:
         # self.value == 0 does not work for sympy >=1.13
         return self.value.is_zero or False
-
-    def make_boxes(self, form):
-        from mathics.eval.makeboxes import numberform_to_boxes
-
-        _number_form_options["_Form"] = form  # passed to _NumberFormat
-        digits = dps(self.get_precision()) if form == "System`OutputForm" else None
-        return numberform_to_boxes(self, digits, None, None, _number_form_options)
 
     def round(self, d: Optional[int] = None) -> Union[MachineReal, "PrecisionReal"]:
         if d is None:

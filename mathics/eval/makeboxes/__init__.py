@@ -3,13 +3,12 @@ Functions related to the evaluation of MakeBoxes.
 """
 
 from mathics.eval.makeboxes.formatvalues import StringLParen, StringRParen, do_format
-from mathics.eval.makeboxes.makeboxes import (
+from mathics.eval.makeboxes.makeboxes import (  # int_to_string_shorter_repr,
     _boxed_string,
     eval_generic_makeboxes,
     eval_makeboxes,
     eval_makeboxes_fullform,
     format_element,
-    int_to_string_shorter_repr,
     to_boxes,
 )
 from mathics.eval.makeboxes.numberform import (
