@@ -40,7 +40,7 @@ from mathics.eval.makeboxes import (
     get_numberform_parameters,
     numberform_to_boxes,
 )
-from mathics.eval.strings import eval_ToString
+from mathics.eval.strings import eval_StringForm_MakeBoxes, eval_ToString
 
 
 class BaseForm(FormBaseClass):
@@ -572,7 +572,7 @@ class NumberForm(_NumberForm):
 
     def eval_makeboxes(self, fexpr, form, evaluation):
         """MakeBoxes[fexpr:NumberForm[_?AtomQ, ___],
-        form:StandardForm|TraditionalForm|OutputForm]"""
+        form:StandardForm|TraditionalForm]"""
         try:
             target, prec_parms, py_options = get_numberform_parameters(
                 fexpr, evaluation
@@ -602,7 +602,6 @@ class NumberForm(_NumberForm):
 
         if py_n is not None:
             py_options["_Form"] = form.get_name()
-
             return numberform_to_boxes(target, py_n, py_f, evaluation, py_options)
         return Expression(SymbolMakeBoxes, target, form)
 
@@ -668,40 +667,16 @@ class StringForm(FormBaseClass):
 
     in_outputforms = False
     in_printforms = False
+    messages = {
+        "sfr": 'Item `1` requested in "`3`" out of range; `2` items available.',
+        "sfq": "Unmatched backquote in `1`.",
+    }
     summary_text = "format a string from a template and a list of parameters"
 
     def eval_makeboxes(self, s, args, form, evaluation):
         """MakeBoxes[StringForm[s_String, args___],
-        form:StandardForm|TraditionalForm|OutputForm]"""
-
-        s = s.value
-        args = args.get_sequence()
-        result = []
-        pos = 0
-        last_index = 0
-        for match in re.finditer(r"(\`(\d*)\`)", s):
-            start, end = match.span(1)
-            if match.group(2):
-                index = int(match.group(2))
-            else:
-                index = last_index + 1
-            last_index = max(index, last_index)
-            if start > pos:
-                result.append(to_boxes(String(s[pos:start]), evaluation))
-            pos = end
-            if 1 <= index <= len(args):
-                arg = args[index - 1]
-                result.append(
-                    to_boxes(MakeBoxes(arg, form).evaluate(evaluation), evaluation)
-                )
-        if pos < len(s):
-            result.append(to_boxes(String(s[pos:]), evaluation))
-        return RowBox(
-            *tuple(
-                r.evaluate(evaluation) if isinstance(r, EvalMixin) else r
-                for r in result
-            )
-        )
+        form:StandardForm|TraditionalForm]"""
+        return eval_StringForm_MakeBoxes(s, args.get_sequence(), form, evaluation)
 
 
 class TableForm(FormBaseClass):
@@ -730,7 +705,6 @@ class TableForm(FormBaseClass):
      .
      . -Graphics-   -Graphics-   -Graphics-
      .
-     . -Graphics-   -Graphics-   -Graphics-
      .
      . -Graphics-   -Graphics-   -Graphics-
      .
@@ -738,9 +712,14 @@ class TableForm(FormBaseClass):
      .
      . -Graphics-   -Graphics-   -Graphics-
      .
+     .
      . -Graphics-   -Graphics-   -Graphics-
      .
      . -Graphics-   -Graphics-   -Graphics-
+     .
+     . -Graphics-   -Graphics-   -Graphics-
+     .
+     .
     """
 
     in_outputforms = True
@@ -750,7 +729,7 @@ class TableForm(FormBaseClass):
 
     def eval_makeboxes(self, table, f, evaluation, options):
         """MakeBoxes[%(name)s[table_, OptionsPattern[%(name)s]],
-        f:StandardForm|TraditionalForm|OutputForm]"""
+        f:StandardForm|TraditionalForm]"""
         return eval_tableform(self, table, f, evaluation, options)
 
 

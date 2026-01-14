@@ -262,23 +262,24 @@ class Definition(Builtin):
     >> Definition[r]
      = Attributes[r] = {Orderless}
      .
-     . arg_. ~ OptionsPattern[r] = {arg, OptionValue[Opt]}
+     . Optional[arg_] ~ OptionsPattern[r] = {arg, OptionValue[Opt]}
      .
      . N[r, MachinePrecision] = 3.5
      .
-     . Format[args___, MathMLForm] = Infix[{args}, "~"]
+     . Format[Infix[{args___}, ~], MathMLForm] = Infix[{args}, "~"]
      .
-     . Format[args___, OutputForm] = Infix[{args}, "~"]
+     . Format[Infix[{args___}, ~], OutputForm] = Infix[{args}, "~"]
      .
-     . Format[args___, StandardForm] = Infix[{args}, "~"]
+     . Format[Infix[{args___}, ~], StandardForm] = Infix[{args}, "~"]
      .
-     . Format[args___, TeXForm] = Infix[{args}, "~"]
+     . Format[Infix[{args___}, ~], TeXForm] = Infix[{args}, "~"]
      .
-     . Format[args___, TraditionalForm] = Infix[{args}, "~"]
+     . Format[Infix[{args___}, ~], TraditionalForm] = Infix[{args}, "~"]
      .
      . Default[r, 1] = 2
      .
-     . Options[r] = {Opt -> 3}
+     .Options[r] = {Opt -> 3}
+     .
 
     For 'ReadProtected' symbols, 'Definition' just prints attributes, default values and options:
     >> SetAttributes[r, ReadProtected]

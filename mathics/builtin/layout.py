@@ -122,7 +122,7 @@ class Grid(Builtin):
 
     def eval_makeboxes(self, array, f, evaluation: Evaluation, options) -> Expression:
         """MakeBoxes[Grid[array_List, OptionsPattern[Grid]],
-        f:StandardForm|TraditionalForm|OutputForm]"""
+        f:StandardForm|TraditionalForm]"""
 
         elements = array.elements
 
@@ -222,7 +222,7 @@ class Pane(Builtin):
     A Pane is treated as an unbroken rectangular region for purposes of line breaking.
 
     >> Pane[37!]
-     = 13763753091226345046315979581580902400000000
+     = Pane[13763753091226345046315979581580902400000000]
 
     In TeXForm, $Pane$ produce minipage environments:
     >> {{Pane[a,3], Pane[expt, 3]}}//TableForm//TeXForm
@@ -399,7 +399,7 @@ class Row(Builtin):
 
     def eval_makeboxes(self, items, sep, form, evaluation: Evaluation):
         """MakeBoxes[Row[{items___}, sep_:""],
-        form:StandardForm|TraditionalForm|OutputForm]"""
+        form:StandardForm|TraditionalForm]"""
 
         items = items.get_sequence()
         if not isinstance(sep, String):

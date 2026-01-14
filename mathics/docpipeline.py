@@ -232,7 +232,7 @@ def test_case(
         )
     if not comparison_result:
         print("result != wanted")
-        fail_msg = f"Result: {result}\nWanted: {test.result}"
+        fail_msg = f"Result: <<{result}>>\nWanted: <<{test.result}>>"
         if out:
             fail_msg += "\nAdditional output:\n"
             fail_msg += "\n".join(str(o) for o in out)

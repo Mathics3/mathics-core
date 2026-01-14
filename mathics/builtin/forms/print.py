@@ -17,7 +17,7 @@ from mathics.builtin.forms.base import FormBaseClass
 from mathics.core.atoms import String
 from mathics.core.expression import Expression
 from mathics.core.symbols import SymbolFalse, SymbolFullForm, SymbolTrue
-from mathics.core.systemsymbols import SymbolInputForm
+from mathics.core.systemsymbols import SymbolInputForm, SymbolTraditionalForm
 from mathics.eval.makeboxes import (
     eval_makeboxes_fullform,
     eval_mathmlform,
@@ -169,7 +169,8 @@ class MathMLForm(FormBaseClass):
     summary_text = "format expression as MathML commands"
 
     def eval_mathml(self, expr, evaluation) -> Expression:
-        "MakeBoxes[expr_, MathMLForm]"
+        "MakeBoxes[MathMLForm[expr_], Alternatives[StandardForm,TraditionalForm]]"
+        # TraditionalForm by default
         return eval_mathmlform(expr, evaluation)
 
 
@@ -198,7 +199,15 @@ class OutputForm(FormBaseClass):
      = -Graphics-
     """
 
+    formats = {"OutputForm[s_String]": "s"}
     summary_text = "format expression in plain text"
+
+    def eval_makeboxes(self, expr, form, evaluation):
+        """MakeBoxes[OutputForm[expr_], form_]"""
+        pane = eval_makeboxes_outputform(expr, evaluation, form)
+        return InterpretationBox(
+            pane, Expression(SymbolOutputForm, expr), **{"System`Editable": SymbolFalse}
+        )
 
 
 class StandardForm(FormBaseClass):
@@ -268,5 +277,6 @@ class TeXForm(FormBaseClass):
     summary_text = "format expression as LaTeX commands"
 
     def eval_tex(self, expr, evaluation) -> Expression:
-        "MakeBoxes[expr_, TeXForm]"
+        "MakeBoxes[TeXForm[expr_], Alternatives[StandardForm,TraditionalForm]]"
+        # TeXForm by default uses `TraditionalForm`
         return eval_texform(expr, evaluation)

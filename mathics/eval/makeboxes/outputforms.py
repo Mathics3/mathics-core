@@ -4,7 +4,11 @@ from mathics.core.atoms import Integer, String
 from mathics.core.expression import BoxError, Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import SymbolFullForm, SymbolList
-from mathics.core.systemsymbols import SymbolMakeBoxes, SymbolRowBox
+from mathics.core.systemsymbols import (
+    SymbolMakeBoxes,
+    SymbolRowBox,
+    SymbolTraditionalForm,
+)
 from mathics.eval.makeboxes.makeboxes import format_element
 from mathics.eval.testing_expressions import expr_min
 
@@ -14,7 +18,9 @@ MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 def eval_mathmlform(expr, evaluation) -> Expression:
     "MakeBoxes[expr_, MathMLForm]"
 
-    boxes = Expression(SymbolMakeBoxes, expr).evaluate(evaluation)
+    boxes = Expression(SymbolMakeBoxes, expr, SymbolTraditionalForm).evaluate(
+        evaluation
+    )
     try:
         mathml = boxes.boxes_to_mathml(evaluation=evaluation)
     except BoxError:
@@ -91,7 +97,9 @@ def eval_tableform(self, table, f, evaluation, options):
 
 
 def eval_texform(expr, evaluation) -> Expression:
-    boxes = Expression(SymbolMakeBoxes, expr).evaluate(evaluation)
+    boxes = Expression(SymbolMakeBoxes, expr, SymbolTraditionalForm).evaluate(
+        evaluation
+    )
     try:
         # Here we set ``show_string_characters`` to False, to reproduce
         # the standard behaviour in WMA. Remove this parameter to recover the
