@@ -117,7 +117,7 @@ def real_to_tuple_info(
     else:
         assert value >= 0
         is_nonnegative = True
-    # Set exponent. ``exponent`` is actual, ``pexp`` of ``NumberForm_to_string()`` is printed.
+    # Set exponent. ``exponent`` is actual, ``pexp`` of ``numberform_to_boxes()`` is printed.
     if "e" in s:
         s, exponent = s.split("e")
         exponent = int(exponent)
