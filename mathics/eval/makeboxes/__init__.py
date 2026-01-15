@@ -9,7 +9,6 @@ from mathics.eval.makeboxes.makeboxes import (
     eval_makeboxes,
     eval_makeboxes_fullform,
     format_element,
-    int_to_string_shorter_repr,
     to_boxes,
 )
 from mathics.eval.makeboxes.numberform import (
@@ -48,7 +47,6 @@ __all__ = [
     "eval_texform",
     "format_element",
     "get_numberform_parameters",
-    "int_to_string_shorter_repr",
     "parenthesize",
     "render_input_form",
     "to_boxes",
