@@ -85,7 +85,7 @@ def test_series_show():
     for str_expr, str_expected, message in (
         (
             "Series[Exp[x],{x,0,2}]",
-            '"1 + x + x ^ 2 / 2 + O[x] ^ 3"',
+            '"1 + x + 1 / 2 x ^ 2 + O[x] ^ 3"',
             "Series in one variable, around 0",
         ),
         (
