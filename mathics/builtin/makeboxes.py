@@ -114,7 +114,7 @@ class MakeBoxes(Builtin):
     def eval_general(self, expr, f, evaluation):
         """MakeBoxes[expr_,
         f:TraditionalForm|StandardForm|OutputForm]"""
-        return eval_generic_makeboxes(self, expr, f, evaluation)
+        return eval_generic_makeboxes(expr, f, evaluation)
 
     def eval_outerprecedenceform(self, expr, precedence, form, evaluation):
         """MakeBoxes[PrecedenceForm[expr_, precedence_],

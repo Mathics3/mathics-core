@@ -9,10 +9,13 @@ from mathics.eval.makeboxes.makeboxes import (
     eval_makeboxes,
     eval_makeboxes_fullform,
     format_element,
-    int_to_string_shorter_repr,
     to_boxes,
 )
-from mathics.eval.makeboxes.numberform import NumberForm_to_String, eval_baseform
+from mathics.eval.makeboxes.numberform import (
+    eval_baseform,
+    get_numberform_parameters,
+    numberform_to_boxes,
+)
 from mathics.eval.makeboxes.operators import eval_infix, eval_postprefix
 from mathics.eval.makeboxes.outputforms import (
     eval_mathmlform,
@@ -26,7 +29,7 @@ from mathics.eval.makeboxes.precedence import (
 )
 
 __all__ = [
-    "NumberForm_to_String",
+    "numberform_to_boxes",
     "StringLParen",
     "StringRParen",
     "_boxed_string",
@@ -43,7 +46,7 @@ __all__ = [
     "eval_tableform",
     "eval_texform",
     "format_element",
-    "int_to_string_shorter_repr",
+    "get_numberform_parameters",
     "parenthesize",
     "render_input_form",
     "to_boxes",

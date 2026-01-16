@@ -147,32 +147,32 @@ def test_makeboxes_form(expr, form, head, subhead):
             (
                 "Value for option DigitBlock should be a positive integer, Infinity, or a pair of positive integers.",
             ),
-            "1.2345",
-            None,
+            "1.23",
+            "Options with wrong values are just discarded.",
         ),
         (
             "NumberForm[1.2345, 3, DigitBlock -> x]",
             (
                 "Value for option DigitBlock should be a positive integer, Infinity, or a pair of positive integers.",
             ),
-            "1.2345",
-            None,
+            "1.23",
+            "Options with wrong values are just discarded.",
         ),
         (
             "NumberForm[1.2345, 3, DigitBlock -> {x, 3}]",
             (
                 "Value for option DigitBlock should be a positive integer, Infinity, or a pair of positive integers.",
             ),
-            "1.2345",
-            None,
+            "1.23",
+            "Options with wrong values are just discarded.",
         ),
         (
             "NumberForm[1.2345, 3, DigitBlock -> {5, -3}]",
             (
                 "Value for option DigitBlock should be a positive integer, Infinity, or a pair of positive integers.",
             ),
-            "1.2345",
-            None,
+            "1.23",
+            "Options with wrong values are just discarded.",
         ),
         ## ExponentFunction
         (
@@ -213,14 +213,14 @@ def test_makeboxes_form(expr, form, head, subhead):
         (
             "NumberForm[1.2345, 3, ExponentStep -> x]",
             ("Value of option ExponentStep -> x is not a positive integer.",),
-            "1.2345",
-            None,
+            "1.23",
+            "Options with wrong values are just discarded.",
         ),
         (
             "NumberForm[1.2345, 3, ExponentStep -> 0]",
             ("Value of option ExponentStep -> 0 is not a positive integer.",),
-            "1.2345",
-            None,
+            "1.23",
+            "Options with wrong values are just discarded.",
         ),
         (
             "NumberForm[y, 10, ExponentStep -> 6]",
@@ -239,8 +239,8 @@ def test_makeboxes_form(expr, form, head, subhead):
         (
             "NumberForm[1.2345, 3, NumberMultiplier -> 0]",
             ("Value for option NumberMultiplier -> 0 is expected to be a string.",),
-            "1.2345",
-            None,
+            "1.23",
+            "Options with wrong values are just discarded.",
         ),
         (
             'NumberForm[N[10^ 7 Pi], 15, NumberMultiplier -> "*"]',
@@ -253,8 +253,8 @@ def test_makeboxes_form(expr, form, head, subhead):
         (
             "NumberForm[1.2345, 3, NumberPoint -> 0]",
             ("Value for option NumberPoint -> 0 is expected to be a string.",),
-            "1.2345",
-            None,
+            "1.23",
+            "Options with wrong values are just discarded.",
         ),
         ## NumberPadding
         ("NumberForm[1.41, {10, 5}]", None, "1.41000", None),
@@ -281,8 +281,8 @@ def test_makeboxes_form(expr, form, head, subhead):
             (
                 "Value for option NumberPadding -> 0 should be a string or a pair of strings.",
             ),
-            "1.2345",
-            None,
+            "1.23",
+            "Options with wrong values are just discarded.",
         ),
         (
             'NumberForm[1.41, 10, NumberPadding -> {"X", "Y"}, NumberSigns -> {"-------------", ""}]',
@@ -326,8 +326,8 @@ def test_makeboxes_form(expr, form, head, subhead):
             (
                 "Value for option NumberSeparator -> 0 should be a string or a pair of strings.",
             ),
-            "1.2345",
-            None,
+            "1.23",
+            "Options with wrong values are just discarded.",
         ),
         ## NumberSigns
         ('NumberForm[1.2345, 5, NumberSigns -> {"-", "+"}]', None, "+1.2345", None),
@@ -337,8 +337,8 @@ def test_makeboxes_form(expr, form, head, subhead):
             (
                 "Value for option NumberSigns -> 0 should be a pair of strings or two pairs of strings.",
             ),
-            "1.2345",
-            None,
+            "1.23",
+            "Options with wrong values are just discarded.",
         ),
         ## SignPadding
         (
@@ -393,6 +393,13 @@ def test_makeboxes_form(expr, form, head, subhead):
             None,
             "2 \u2062 a   0\n\n0       0\n",
             "Issue #182",
+        ),
+        ##
+        (
+            "NumberForm[N[10^ 5 Pi], 15, DigitBlock -> {4, 2}, ExponentStep->x]",
+            ("Value of option ExponentStep -> x is not a positive integer.",),
+            "31,4159.26 53 58 97 9",
+            "Options with wrong values are discarded, but other properties are kept.",
         ),
     ],
 )
