@@ -414,3 +414,87 @@ def test_private_doctests_output(str_expr, msgs, str_expected, fail_msg):
         failure_message=fail_msg,
         expected_messages=msgs,
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "fail_msg", "msgs"),
+    [
+        (
+            'StringForm["This is symbol ``.", A]',
+            '"This is symbol A."',
+            "empty placeholder",
+            None,
+        ),
+        (
+            'StringForm["This is symbol `1`.", A]',
+            '"This is symbol A."',
+            "numerated placeholder",
+            None,
+        ),
+        (
+            'StringForm["This is symbol `0`.", A]',
+            'StringForm["This is symbol `0`.", A]',
+            "placeholder index must be positive",
+            (
+                'Item 0 requested in "This is symbol `0`." out of range; 1 items available.',
+            ),
+        ),
+        (
+            'StringForm["This is symbol `symbol`.", A]',
+            'StringForm["This is symbol `symbol`.", A]',
+            "placeholder must be an integer",
+            (
+                'Item 0 requested in "This is symbol `symbol`." out of range; 1 items available.',
+            ),
+        ),
+        (
+            'StringForm["This is symbol `5`.", A]',
+            'StringForm["This is symbol `5`.", A]',
+            "placeholder index too large",
+            (
+                'Item 5 requested in "This is symbol `5`." out of range; 1 items available.',
+            ),
+        ),
+        (
+            'StringForm["This is symbol `2`, then `1`.", A, B]',
+            '"This is symbol B, then A."',
+            "numerated placeholder",
+            None,
+        ),
+        (
+            'StringForm["This is symbol `1`, then ``.", A, B]',
+            '"This is symbol A, then B."',
+            "empty placeholder use the next avaliable entry.",
+            None,
+        ),
+        (
+            'StringForm["This is symbol `2`, then ``.", A, B]',
+            'StringForm["This is symbol `2`, then ``.", A, B]',
+            "no more available entry.",
+            (
+                'Item 3 requested in "This is symbol `2`, then ``." out of range; 2 items available.',
+            ),
+        ),
+        (
+            'StringForm["This is symbol `.", A]',
+            'StringForm["This is symbol `.", A]',
+            "Unbalanced",
+            ("Unmatched backquote in This is symbol `..",),
+        ),
+        (
+            r'StringForm["This is symbol \`.", A]',
+            '"This is symbol `."',
+            "literal backquote",
+            None,
+        ),
+    ],
+)
+def test_stringform(str_expr, str_expected, fail_msg, msgs):
+    """ """
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        failure_message=fail_msg,
+        expected_messages=msgs,
+    )

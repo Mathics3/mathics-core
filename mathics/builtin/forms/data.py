@@ -12,9 +12,8 @@ which are intended to work over all kinds of data.
 import re
 from typing import Any, Callable, Dict, List, Optional
 
-from mathics.builtin.box.layout import RowBox, to_boxes
+from mathics.builtin.box.layout import RowBox, StyleBox
 from mathics.builtin.forms.base import FormBaseClass
-from mathics.builtin.makeboxes import MakeBoxes
 from mathics.core.atoms import Integer, Real, String
 from mathics.core.builtin import Builtin
 from mathics.core.element import BaseElement, EvalMixin
@@ -40,7 +39,7 @@ from mathics.eval.makeboxes import (
     get_numberform_parameters,
     numberform_to_boxes,
 )
-from mathics.eval.strings import eval_ToString
+from mathics.eval.strings import eval_StringForm_MakeBoxes, eval_ToString
 
 
 class BaseForm(FormBaseClass):
@@ -658,50 +657,67 @@ class StringForm(FormBaseClass):
 
     <dl>
       <dt>'StringForm'[$str$, $expr_1$, $expr_2$, ...]
-      <dd>displays the string $str$, replacing placeholders in $str$
+      <dd>displays the string $str$, replacing placeholders in $str$ \
         with the corresponding expressions.
     </dl>
 
-    >> StringForm["`1` bla `2` blub `` bla `2`", a, b, c]
+    StringForm replace placeholders '`[number]`' by the element \
+    $expr_{[number]}$.
+    >> StringForm["`1` bla `2` blub `3` bla `2`", a, b, c]
      = a bla b blub c bla b
+
+    An empty placeholder '``' is replaced \
+    by the element that follows the one used in the previous \
+    placeholder:
+
+    >> StringForm["`2` bla `1` blub `` bla `3`", a, b, c]
+     = b bla a blub b bla c
+
+    The index of a placeholder must be always a non-negative integer:
+    >> StringForm["`-1` bla", a]
+     : Item -1 requested in "`-1` bla" out of range; 1 items available.
+     = `-1` bla
+    and cannot exceed the number of extra parameters:
+    >> StringForm["`2` bla", a]
+     : Item 2 requested in "`2` bla" out of range; 1 items available.
+     = `2` bla
+
+    Backquotes ('`') are always interpreted as part of a placeholder:
+    >> StringForm["`` is Global`a", a]
+     : Unmatched backquote in `` is Global`a.
+     = `` is Global`a
+
+    To use a 'Backquote' as a character, escape it with a backslash:
+    >> StringForm["`` is Global\`a", a]
+     = a is Global`a
+
+    Elements are formatted according the enclosing context:
+    >> OutputForm[StringForm["Integral of f: ``", Integrate[F[x],x]]]
+     = Integral of f: Integrate[F[x], x]
+    ## In documentation should appear the expression using Unicode:
+    >> StandardForm[StringForm["Integral of f: ``", Integrate[F[x],x]]]
+     = ...
+
     """
 
     in_outputforms = False
     in_printforms = False
+    messages = {
+        "sfr": 'Item `1` requested in "`3`" out of range; `2` items available.',
+        "sfq": "Unmatched backquote in `1`.",
+    }
     summary_text = "format a string from a template and a list of parameters"
 
     def eval_makeboxes(self, s, args, form, evaluation):
         """MakeBoxes[StringForm[s_String, args___],
         form:StandardForm|TraditionalForm|OutputForm]"""
-
-        s = s.value
-        args = args.get_sequence()
-        result = []
-        pos = 0
-        last_index = 0
-        for match in re.finditer(r"(\`(\d*)\`)", s):
-            start, end = match.span(1)
-            if match.group(2):
-                index = int(match.group(2))
-            else:
-                index = last_index + 1
-            last_index = max(index, last_index)
-            if start > pos:
-                result.append(to_boxes(String(s[pos:start]), evaluation))
-            pos = end
-            if 1 <= index <= len(args):
-                arg = args[index - 1]
-                result.append(
-                    to_boxes(MakeBoxes(arg, form).evaluate(evaluation), evaluation)
-                )
-        if pos < len(s):
-            result.append(to_boxes(String(s[pos:]), evaluation))
-        return RowBox(
-            *tuple(
-                r.evaluate(evaluation) if isinstance(r, EvalMixin) else r
-                for r in result
-            )
-        )
+        try:
+            result = eval_StringForm_MakeBoxes(s, args.get_sequence(), form, evaluation)
+        except ValueError:
+            result = s
+        if isinstance(result, String):
+            result = StyleBox(String(result))
+        return result
 
 
 class TableForm(FormBaseClass):

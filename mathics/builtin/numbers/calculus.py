@@ -1410,9 +1410,9 @@ class NIntegrate(Builtin):
     messages.update(
         {
             "bdmtd": "The Method option should be a "
-            + "built-in method name in {`"
-            + "`, `".join(list(methods))
-            + "`}. Using `Automatic`"
+            + r"built-in method name in {\`"
+            + r"\`, \`".join(list(methods))
+            + r"\`}. Using \`Automatic\`."
         }
     )
 
