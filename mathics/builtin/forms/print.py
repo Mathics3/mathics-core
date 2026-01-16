@@ -17,9 +17,10 @@ from mathics.builtin.forms.base import FormBaseClass
 from mathics.core.atoms import String
 from mathics.core.expression import Expression
 from mathics.core.symbols import SymbolFalse, SymbolFullForm, SymbolTrue
-from mathics.core.systemsymbols import SymbolInputForm, SymbolTraditionalForm
+from mathics.core.systemsymbols import SymbolInputForm, SymbolOutputForm
 from mathics.eval.makeboxes import (
     eval_makeboxes_fullform,
+    eval_makeboxes_outputform,
     eval_mathmlform,
     eval_texform,
 )

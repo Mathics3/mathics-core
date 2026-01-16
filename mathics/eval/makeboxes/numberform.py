@@ -2,6 +2,7 @@
 NumberForm related routines.
 """
 
+import sys
 from math import ceil
 from typing import Any, Dict, Optional, Tuple, Union
 
@@ -33,11 +34,20 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.makeboxes import to_boxes
 
+STR_DIGITS_CHECK_THRESHOLD = sys.int_info.str_digits_check_threshold
+
+
+def default_numberformat_outputform(man, base, exp, opts):
+    """Default number format function for OutputForm"""
+    res = f"{man.value}{opts['NumberMultiplier']}{base.value}^{exp.value}"
+    return String(res)
+
+
 DEFAULT_NUMBERFORM_OPTIONS = {
     "DigitBlock": [0, 0],
     "ExponentFunction": lambda x: (SymbolNull if abs(x.value) <= 5 else x),
     "ExponentStep": 1,
-    "NumberFormat": lambda x: x,
+    "NumberFormat": default_numberformat_outputform,
     "NumberMultiplier": "×",
     "NumberPadding": ["", "0"],
     "NumberPoint": ".",
@@ -48,7 +58,9 @@ DEFAULT_NUMBERFORM_OPTIONS = {
 }
 
 
-def int_to_tuple_info(integer: Integer, digits: Optional[int]) -> Tuple[str, int, bool]:
+def int_to_tuple_info(
+    integer: Integer, digits: Optional[int] = None
+) -> Tuple[str, int, bool, int]:
     """
     Convert ``integer`` to a tuple representing that value. The tuple consists of:
     * the string absolute value of ``integer``.
@@ -61,11 +73,95 @@ def int_to_tuple_info(integer: Integer, digits: Optional[int]) -> Tuple[str, int
         value = -value
     else:
         is_nonnegative = True
-    s = str(value)
-    if digits is None:
-        digits = len(s)
+    try:
+        s = str(value)
+    except ValueError:
+        # To large int values raise an error in Python when
+        # converted into a string. Use in this case an
+        # special function to process them:
+        s = int_to_string_shorter_repr(value)
+
+    digits = len(s) if digits is None else min(len(s), digits)
     exponent = len(s) - 1
     return s, exponent, is_nonnegative, digits
+
+
+# STR_DIGITS_CHECK_THRESHOLD=640 is the maximum number of characters allowed by Python for an integer to be converted into a string.
+def int_to_string_shorter_repr(
+    value: int, max_digits: int = STR_DIGITS_CHECK_THRESHOLD
+) -> str:
+    """Convert value to a String, restricted to max_digits characters.
+
+    if value has an n-digit decimal representation,
+      value = d_1 *10^{n-1} d_2 * 10^{n-2} + d_3 10^{n-3} + ..... +
+              d_{n-2}*100 +d_{n-1}*10 + d_{n}
+    is represented as the string
+
+    "d_1d_2d_3...d_{k}<<n-2k>>d_{n-k-1}...d_{n-2}d_{n-1}d_{n}"
+
+    where n-2k digits are replaced by a placeholder.
+    """
+    if max_digits == 0:
+        return str(value)
+
+    # Normalize to positive quantities
+    is_negative = value < 0
+    if is_negative:
+        value = -value
+        max_digits = max_digits - 1
+
+    # Estimate the number of decimal digits
+    num_digits = int(value.bit_length() * 0.3)
+
+    # If the estimated number is below the threshold,
+    # return it as it is.
+    if num_digits <= max_digits:
+        if is_negative:
+            return "-" + str(value)
+        return str(value)
+
+    # estimate the size of the placeholder
+    size_placeholder = len(str(num_digits)) + 6
+    # Estimate the number of available decimal places
+    avaliable_digits = max(max_digits - size_placeholder, 0)
+    # how many most significative digits include
+    len_msd = (avaliable_digits + 1) // 2
+    # how many least significative digits to include:
+    len_lsd = avaliable_digits - len_msd
+    # Compute the msd.
+    msd = str(value // 10 ** (num_digits - len_msd))
+    if msd == "0":
+        msd = ""
+
+    # If msd has more digits than the expected, it means that
+    # num_digits was wrong.
+    extra_msd_digits = len(msd) - len_msd
+    if extra_msd_digits > 0:
+        # Remove the extra digit and fix the real
+        # number of digits.
+        msd = msd[:len_msd]
+        num_digits = num_digits + 1
+
+    lsd = ""
+    if len_lsd > 0:
+        lsd = str(value % 10 ** (len_lsd))
+        # complete decimal positions in the lsd:
+        lsd = (len_lsd - len(lsd)) * "0" + lsd
+
+    # Now, compute the true number of hiding
+    # decimal places, and built the placeholder
+    remaining = num_digits - len_lsd - len_msd
+    placeholder = f" <<{remaining}>> "
+    # Check if the shorten string is actually
+    # shorter than the full string representation:
+    if len(placeholder) < remaining:
+        value_str = f"{msd}{placeholder}{lsd}"
+    else:
+        value_str = str(value)
+
+    if is_negative:
+        value_str = "-" + value_str
+    return value_str
 
 
 def real_to_tuple_info(

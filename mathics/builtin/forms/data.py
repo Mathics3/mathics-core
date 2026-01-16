@@ -9,27 +9,18 @@ or <url>:StandardForm:
 /doc/reference-of-built-in-symbols/forms-of-input-and-output/printforms/standardform/</url>, \
 which are intended to work over all kinds of data.
 """
-import re
 from typing import Any, Callable, Dict, List, Optional
 
-from mathics.builtin.box.layout import RowBox, to_boxes
+from mathics.builtin.box.layout import RowBox, SuperscriptBox
 from mathics.builtin.forms.base import FormBaseClass
-from mathics.builtin.makeboxes import MakeBoxes
 from mathics.core.atoms import Integer, Real, String
 from mathics.core.builtin import Builtin
-from mathics.core.element import BaseElement, EvalMixin
+from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.list import ListExpression
 from mathics.core.number import dps
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolNull, SymbolTrue
-from mathics.core.systemsymbols import (
-    SymbolAutomatic,
-    SymbolInfinity,
-    SymbolMakeBoxes,
-    SymbolRowBox,
-    SymbolSuperscriptBox,
-)
+from mathics.core.systemsymbols import SymbolAutomatic, SymbolInfinity, SymbolMakeBoxes
 from mathics.eval.makeboxes import (
     StringLParen,
     StringRParen,
@@ -97,7 +88,7 @@ class BaseForm(FormBaseClass):
 
     def eval_makeboxes(self, expr, n, f, evaluation: Evaluation):
         """MakeBoxes[BaseForm[expr_, n_],
-        f:StandardForm|TraditionalForm|OutputForm]"""
+        f:StandardForm|TraditionalForm]"""
         return eval_baseform(expr, n, f, evaluation)
 
 
@@ -563,10 +554,7 @@ class NumberForm(_NumberForm):
         py_exp = exp.get_string_value()
         if py_exp:
             mul = String(options["NumberMultiplier"])
-            return Expression(
-                SymbolRowBox,
-                ListExpression(man, mul, Expression(SymbolSuperscriptBox, base, exp)),
-            )
+            return RowBox(man, mul, SuperscriptBox(base, exp))
 
         return man
 
@@ -728,7 +716,7 @@ class TableForm(FormBaseClass):
     summary_text = "format as a table"
 
     def eval_makeboxes(self, table, f, evaluation, options):
-        """MakeBoxes[%(name)s[table_, OptionsPattern[%(name)s]],
+        """MakeBoxes[%(name)s[table_, OptionsPattern[]],
         f:StandardForm|TraditionalForm]"""
         return eval_tableform(self, table, f, evaluation, options)
 

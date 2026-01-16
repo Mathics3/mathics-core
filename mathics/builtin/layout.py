@@ -11,7 +11,6 @@ For instance, to represent a set of consecutive expressions in a row, we can use
 
 from mathics.builtin.box.layout import GridBox, PaneBox, RowBox, to_boxes
 from mathics.builtin.makeboxes import MakeBoxes
-from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Real, String
 from mathics.core.builtin import Builtin, Operator, PostfixOperator, PrefixOperator
 from mathics.core.expression import Evaluation, Expression
@@ -140,7 +139,7 @@ class Grid(Builtin):
 
         return GridBox(
             ListExpression(*(format_row(row) for row in rows)),
-            *options_to_rules(options),
+            **options,
         )
 
 

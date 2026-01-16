@@ -14,18 +14,19 @@ from mathics.core.atoms import (
     Integer1,
     Integer2,
     IntegerM1,
+    PrecisionReal,
     Rational,
     Real,
     String,
 )
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression
+from mathics.core.expression import BoxError, Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Atom, Symbol, SymbolList, SymbolTimes
+from mathics.core.number import dps
+from mathics.core.symbols import Atom, Symbol, SymbolFullForm, SymbolList, SymbolTimes
 from mathics.core.systemsymbols import (
     SymbolDerivative,
-    SymbolGrid,
     SymbolInfinity,
     SymbolInfix,
     SymbolLeft,
@@ -44,6 +45,7 @@ from mathics.eval.makeboxes.numberform import (
     get_numberform_parameters,
     numberform_to_boxes,
 )
+from mathics.eval.strings import safe_backquotes
 from mathics.eval.testing_expressions import expr_min
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
@@ -128,13 +130,21 @@ def register_outputform(head_name):
     return _register
 
 
+@register_outputform("System`Association")
+def _association_outputform(expr: Expression, evaluation: Evaluation, **kwargs):
+    head = expr.head
+    elements = expr.elements
+    parts = []
+    for element in elements:
+        if not element.has_form(("Rule", "RuleDelayed"), 2):
+            raise _WrongFormattedExpression
+        parts.append(rule_to_outputform_text(element, evaluation, **kwargs))
+    return "<|" + ", ".join(parts) + "|>"
+
+
 @register_outputform("System`BaseForm")
 def _baseform_outputform(expr: Expression, evaluation: Evaluation, **kwargs):
     elements = expr.elements
-    if len(elements) != 2:
-        evaluation.message("BaseForm", "argr", Integer(len(elements)), Integer2)
-        raise _WrongFormattedExpression
-
     number, base_expr = elements
     try:
         val, base = get_baseform_elements(number, base_expr, evaluation)
@@ -142,7 +152,7 @@ def _baseform_outputform(expr: Expression, evaluation: Evaluation, **kwargs):
         raise _WrongFormattedExpression
 
     if base is None:
-        return expression_to_outputform_text(number, evaluation, **kwargs)
+        return _default_expression_to_outputform_text(number, evaluation, **kwargs)
     return val + "_" + str(base)
 
 
@@ -216,18 +226,20 @@ def expression_to_outputform_text(expr: BaseElement, evaluation: Evaluation, **k
 
     if format_expr is None:
         return ""
-
-    lookup_name: str = format_expr.get_head().get_lookup_name()
+    head = format_expr.get_head()
+    lookup_name: str = head.get_lookup_name()
+    callback = EXPR_TO_OUTPUTFORM_TEXT_MAP.get(lookup_name, None)
+    if callback is None:
+        if head in evaluation.definitions.outputforms:
+            callback = other_forms
+        else:
+            callback = _default_expression_to_outputform_text
     try:
-        result = EXPR_TO_OUTPUTFORM_TEXT_MAP[lookup_name](
-            format_expr, evaluation, **kwargs
-        )
+        result = callback(format_expr, evaluation, **kwargs)
         return result
     except _WrongFormattedExpression:
         # If the key is not present, or the execution fails for any reason, use
         # the default
-        pass
-    except KeyError:
         pass
     return _default_expression_to_outputform_text(format_expr, evaluation, **kwargs)
 
@@ -280,6 +292,23 @@ def other_forms(expr, evaluation, **kwargs):
     from mathics.eval.makeboxes import format_element
 
     result = format_element(expr, evaluation, SymbolStandardForm, **kwargs)
+
+    if isinstance(result, String):
+        return result.value[1:-1]
+    return result.boxes_to_text()
+
+
+@register_outputform("System`Integer")
+def integer_outputform(n, evaluation, **kwargs):
+    py_digits, py_options = kwargs.setdefault(
+        "_numberform_args",
+        (
+            (None, None),
+            {},
+        ),
+    )
+    digits, padding = py_digits
+    result = numberform_to_boxes(n, digits, padding, evaluation, py_options)
     if isinstance(result, String):
         return result.value
     return result.boxes_to_text()
@@ -393,6 +422,47 @@ def message_name_outputform(expr: Expression, evaluation: Evaluation, **kwargs):
         return _default_expression_to_outputform_text(expr, evaluation, **kwargs)
     symbol_name = evaluation.definitions.shorten_name(symb.get_name())
     return f"{symbol_name}::{msg.value}"
+
+
+@register_outputform("System`NumberForm")
+def _numberform_outputform(expr, evaluation, **kwargs):
+    target, precision, py_options = get_numberform_parameters(expr, evaluation)
+    if isinstance(precision, Integer):
+        py_precision = (
+            precision.value,
+            None,
+        )
+    elif precision is not None and precision.has_form("List", 2):
+        py_precision = precision.to_python()
+    else:
+        py_precision = (
+            None,
+            None,
+        )
+
+    kwargs["_numberform_args"] = (
+        py_precision,
+        py_options,
+    )
+    return expression_to_outputform_text(target, evaluation, **kwargs)
+
+
+@register_outputform("System`Out")
+def out_outputform(expr: Expression, evaluation: Evaluation, **kwargs):
+    elements = expr.elements
+    if len(elements) > 1:
+        raise _WrongFormattedExpression
+    if len(elements) == 0:
+        return "%"
+    indx = elements[0]
+    if not isinstance(indx, Integer):
+        raise _WrongFormattedExpression
+    value = indx.value
+    if value == 0:
+        raise _WrongFormattedExpression
+    if value > 0:
+        return f"%{value}"
+    return "%" * (-value)
 
 
 @register_outputform("System`OutputForm")
@@ -570,8 +640,22 @@ def rational_expression_to_outputform_text(
 
 @register_outputform("System`Real")
 def real_expression_to_outputform_text(n: Real, evaluation: Evaluation, **kwargs):
-    str_n = n.make_boxes("System`OutputForm").boxes_to_text()  # type: ignore[attr-defined]
-    return str(str_n)
+    py_digits, py_options = kwargs.setdefault(
+        "_numberform_args",
+        (
+            (None, None),
+            {},
+        ),
+    )
+    py_options["_Form"] = "System`OutputForm"
+    digits, padding = py_digits
+    if digits is None:
+        digits = dps(n.get_precision()) if isinstance(n, PrecisionReal) else 6
+
+    result = numberform_to_boxes(n, digits, padding, evaluation, py_options)
+    if isinstance(result, String):
+        return result.value
+    return result.boxes_to_text()
 
 
 @register_outputform("System`Row")
@@ -649,27 +733,35 @@ def string_expression_to_outputform_text(
     # max_len = max([len(line) for line in lines])
     # lines = [line + (max_len - len(line)) * " " for line in lines]
     # return "\n".join(lines)
-    return expr.value
+    value = expr.value
+    return value
 
 
 @register_outputform("System`StringForm")
 def stringform_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, **kwargs
 ) -> str:
-    strform = expr.elements[0]
+    items = expr.elements
+    if len(items) == 0:
+        evaluation.message("StringForm", "argm", Integer0)
+        raise _WrongFormattedExpression
+    strform, *items = items
+
     if not isinstance(strform, String):
+        evaluation.message("StringForm", "string", strform)
         raise _WrongFormattedExpression
 
-    items = list(
-        expression_to_outputform_text(item, evaluation, **kwargs)
-        for item in expr.elements[1:]
-    )
+    items = [
+        expression_to_outputform_text(item, evaluation, **kwargs) for item in items
+    ]
 
     curr_indx = 0
-    parts = strform.value.split("`")
-    result = str(parts[0])
+    strform_str = safe_backquotes(strform.value)
+    parts = strform_str.split("`")
+    parts = [part.replace("\\[RawBackquote]", "`") for part in parts]
+    result = [parts[0]]
     if len(parts) <= 1:
-        return result
+        return result[0]
 
     quote_open = True
     remaining = len(parts) - 1
@@ -695,7 +787,7 @@ def stringform_expression_to_outputform_text(
                         strform,
                     )
                     return strform.value
-                result = result + items[curr_indx]
+                result.append(items[curr_indx])
                 curr_indx += 1
                 quote_open = False
                 continue
@@ -714,15 +806,15 @@ def stringform_expression_to_outputform_text(
                     "StringForm", "sfr", Integer(indx), Integer(len(items)), strform
                 )
                 return strform.value
-            result = result + items[indx - 1]
+            result.append(items[indx - 1])
             curr_indx = indx
             quote_open = False
             continue
 
-        result = result + part
+        result.append(part)
         quote_open = True
 
-    return result
+    return "".join(result)
 
 
 @register_outputform("System`Style")
@@ -756,7 +848,7 @@ def tableform_expression_to_outputform_text(
     process_options(kwargs, opts)
     depth = expr_min((Integer(dims), kwargs.pop("TableDepth", SymbolInfinity))).value
     if depth is None:
-        evaluation.message(self.get_name(), "int")
+        evaluation.message(expr.head.get_name(), "int")
         raise _WrongFormattedExpression
     if depth <= 0:
         return expression_to_outputform_text(table, evaluation, **kwargs)
@@ -870,19 +962,3 @@ def times_expression_to_outputform_text(
     if prefactor == -1:
         result = "-" + result
     return result
-
-
-@register_outputform("System`NumberForm")
-def _numberform_outputform(expr, evaluation, **kwargs):
-    target, precision, py_options = get_numberform_parameters(expr, evaluation)
-    kwargs["_numberform_pyopts"] = py_options
-    return expression_to_outputform_text(expr, evaluation, **kwargs)
-
-
-@register_outputform("System`Integer")
-def integer_outputform(expr, evaluation, **kwargs):
-    py_options = kwargs.get("_numberform_pyopts", {})
-    result = numberform_to_boxes(expr, None, None, evaluation, py_options)
-    if isinstance(result, String):
-        return result.value
-    return result.boxes_to_text(evaluation)
