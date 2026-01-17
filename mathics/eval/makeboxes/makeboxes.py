@@ -195,9 +195,12 @@ def format_element(
     """
     evaluation.is_boxing = True
     formatted_expr = do_format(element, evaluation, form)
+    # print("format",element, form)
     if formatted_expr is None:
         return None
+    # print(" FormatValues->", formatted_expr)
     result_box = eval_makeboxes(formatted_expr, evaluation, form)
+    # print(" box rules->", result_box)
     if isinstance(result_box, String):
         return result_box
     if isinstance(result_box, BoxElementMixin):
