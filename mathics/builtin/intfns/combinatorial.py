@@ -308,7 +308,7 @@ class LucasL(SympyFunction):
      = {1, 3, 4, 7, 11}
 
     >> Series[LucasL[1/2, x], {x, 0, 5}]
-     = 1 + 1 / 4 x + 1 / 32 x ^ 2 + (-1 / 128) x ^ 3 + (-5 / 2048) x ^ 4 + 7 / 8192 x ^ 5 + O[x] ^ 6
+     = 1 + x / 4 + x ^ 2 / 32 - x ^ 3 / 128 - 5 x ^ 4 / 2048 + 7 x ^ 5 / 8192 + O[x] ^ 6
 
     >> Plot[LucasL[1/2, x], {x, -5, 5}]
      = -Graphics-
