@@ -11,7 +11,7 @@ which are intended to work over all kinds of data.
 """
 from typing import Any, Callable, Dict, List, Optional
 
-from mathics.builtin.box.layout import RowBox, SuperscriptBox
+from mathics.builtin.box.layout import RowBox, StyleBox, SuperscriptBox
 from mathics.builtin.forms.base import FormBaseClass
 from mathics.core.atoms import Integer, Real, String
 from mathics.core.builtin import Builtin
@@ -645,12 +645,47 @@ class StringForm(FormBaseClass):
 
     <dl>
       <dt>'StringForm'[$str$, $expr_1$, $expr_2$, ...]
-      <dd>displays the string $str$, replacing placeholders in $str$
+      <dd>displays the string $str$, replacing placeholders in $str$ \
         with the corresponding expressions.
     </dl>
 
-    >> StringForm["`1` bla `2` blub `` bla `2`", a, b, c]
+    StringForm replace placeholders '`[number]`' by the element \
+    $expr_{[number]}$.
+    >> StringForm["`1` bla `2` blub `3` bla `2`", a, b, c]
      = a bla b blub c bla b
+
+    An empty placeholder '``' is replaced \
+    by the element that follows the one used in the previous \
+    placeholder:
+
+    >> StringForm["`2` bla `1` blub `` bla `3`", a, b, c]
+     = b bla a blub b bla c
+
+    The index of a placeholder must be always a non-negative integer:
+    >> StringForm["`-1` bla", a]
+     : Item -1 requested in "`-1` bla" out of range; 1 items available.
+     = `-1` bla
+    and cannot exceed the number of extra parameters:
+    >> StringForm["`2` bla", a]
+     : Item 2 requested in "`2` bla" out of range; 1 items available.
+     = `2` bla
+
+    Backquotes ('`') are always interpreted as part of a placeholder:
+    >> StringForm["`` is Global`a", a]
+     : Unmatched backquote in `` is Global`a.
+     = `` is Global`a
+
+    To use a 'Backquote' as a character, escape it with a backslash:
+    >> StringForm["`` is Global\`a", a]
+     = a is Global`a
+
+    Elements are formatted according the enclosing context:
+    >> OutputForm[StringForm["Integral of f: ``", Integrate[F[x],x]]]
+     = Integral of f: Integrate[F[x], x]
+    ## In documentation should appear the expression using Unicode:
+    >> StandardForm[StringForm["Integral of f: ``", Integrate[F[x],x]]]
+     = ...
+
     """
 
     in_outputforms = False
