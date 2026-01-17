@@ -38,7 +38,7 @@ from mathics.core.systemsymbols import (
     SymbolTableForm,
     SymbolTraditionalForm,
 )
-from mathics.eval.makeboxes import compare_precedence, do_format  # , format_element
+from mathics.eval.makeboxes import compare_precedence, do_format, format_element
 from mathics.eval.makeboxes.numberform import (
     get_baseform_elements,
     get_numberform_parameters,
@@ -324,9 +324,6 @@ def other_forms(expr, evaluation, **kwargs):
         raise _WrongFormattedExpression
 
     result = format_element(expr, evaluation, SymbolStandardForm, **kwargs)
-
-    if isinstance(result, String):
-        return result.value[1:-1]
     return result.boxes_to_text()
 
 
@@ -441,13 +438,11 @@ def list_expression_to_outputform_text(
 def mathmlform_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, **kwargs
 ) -> str:
-    if not isinstance(expr.head, Symbol):
+    if not expr.has_form("MathMLForm", 1):
         raise _WrongFormattedExpression
 
     #  boxes = format_element(expr.elements[0], evaluation)
-    boxes = Expression(
-        Symbol("System`MakeBoxes"), expr.elements[0], SymbolTraditionalForm
-    ).evaluate(evaluation)
+    boxes = format_element(expr.elements[0], evaluation, SymbolTraditionalForm)
     return boxes.boxes_to_mathml()  # type: ignore[union-attr]
 
 
@@ -459,7 +454,9 @@ def matrixform_expression_to_outputform_text(
         raise _WrongFormattedExpression
 
     # return parenthesize(tableform_expression_to_outputform_text(expr, evaluation, **kwargs))
-    return tableform_expression_to_outputform_text(expr, evaluation, **kwargs)
+    return (
+        "(" + tableform_expression_to_outputform_text(expr, evaluation, **kwargs) + ")"
+    )
 
 
 @register_outputform("System`MessageName")
@@ -990,12 +987,10 @@ def tableform_expression_to_outputform_text(
 
 @register_outputform("System`TeXForm")
 def _texform_outputform(expr, evaluation, **kwargs):
-    if not isinstance(expr.head, Symbol):
+    if not expr.has_form("TeXForm", 1):
         raise _WrongFormattedExpression
 
-    boxes = Expression(
-        Symbol("System`MakeBoxes"), expr.elements[0], SymbolTraditionalForm
-    ).evaluate(evaluation)
+    boxes = format_element(expr.elements[0], evaluation, SymbolTraditionalForm)
     try:
         tex = boxes.boxes_to_tex(evaluation=evaluation)  # type: ignore[union-attr]
         tex = MULTI_NEWLINE_RE.sub("\n", tex)
