@@ -891,6 +891,44 @@ There are several methods to display expressions in 2-D:
   = a_{1, 2}
 
 
+  >> MakeBoxes[b, TraditionalForm] = "c";
+  >> b
+  = b
+
+## This will be displayed as c in the browser and LaTeX documentation.
+This will even apply to 'TeXForm', because 'TeXForm' implies 'TraditionalForm':
+  >> b // TeXForm
+  = c
+
+Except some other form is applied first:
+  >> b // OutputForm // TeXForm
+  = b
+'MakeBoxes' for another form:
+
+  >> MakeBoxes[TeXForm[b], form_] = "d";
+  >> b // TeXForm
+  = d
+You can cause a much bigger mess by overriding 'MakeBoxes' than by sticking to 'Format', e.g. generate invalid XML:
+
+  >> MakeBoxes[MathMLForm[c], form_] = "<not closed";
+  >> c // MathMLForm
+  = <not closed
+
+However, this will not affect formatting of expressions involving 'c':
+  >> c + 1 // MathMLForm
+  = ...
+
+That\'s because 'MathMLForm' will, when not overridden for a special case, call 'StandardForm' first.
+'Format' will produce escaped output:
+
+  >> Format[d, MathMLForm] = "<not closed";
+  >> d // MathMLForm
+  = ...
+
+  >> d + 1 // MathMLForm
+  = ...
+
+For instance, you can override 'MakeBoxes' to format lists in a different way:
   >> MakeBoxes[{items___}, TraditionalForm] := RowBox[{"[", Sequence @@ Riffle[MakeBoxes /@ {items}, " "], "]"}]
   >> {1, 2, 3}
    = {1, 2, 3}
@@ -909,7 +947,7 @@ By the way, 'MakeBoxes' is the only built-in symbol that is not protected by def
   = {HoldAllComplete}
 
 'MakeBoxes' must return a valid box construct:
-  >> MakeBoxes[squared[args___], StandardForm] := squared[args] ^ 2
+  >> MakeBoxes[squared[args___], TraditionalForm] := squared[args] ^ 2
   >> squared[1, 2]
    = squared[1, 2]
 

@@ -269,12 +269,26 @@ def create_output(test_pipeline, tests):
     test_pipeline.reset_user_definitions()
     session = test_pipeline.session
 
+    # By default, latex and xml form produce outputs in `TraditionalForm`.
+    # For the documentation, we want StandardForm.
+    if output_format in ("latex", "xml"):
+
+        def out_wrapper(expr):
+            return f"{expr} // StandardForm"
+
+    else:
+
+        def out_wrapper(expr):
+            return expr
+
     for test in tests:
         if test.private:
             continue
         key = test.key
         try:
-            result = session.evaluate_as_in_cli(test.test, form=output_format)
+            result = session.evaluate_as_in_cli(
+                out_wrapper(test.test), form=output_format
+            )
         except Exception:  # noqa
             result = None
         if result is None:

@@ -171,7 +171,6 @@ class MathMLForm(FormBaseClass):
 
     def eval_mathml(self, expr, evaluation) -> Expression:
         "MakeBoxes[MathMLForm[expr_], Alternatives[StandardForm,TraditionalForm]]"
-        # TraditionalForm by default
         return eval_mathmlform(expr, evaluation)
 
 
@@ -202,6 +201,8 @@ class OutputForm(FormBaseClass):
 
     formats = {"OutputForm[s_String]": "s"}
     summary_text = "format expression in plain text"
+    # Remove me at the end of the refactor
+    rules = {"MakeBoxes[OutputForm[expr_], form_]": "MakeBoxes[expr, OutputForm]"}
 
     def eval_makeboxes(self, expr, form, evaluation):
         """MakeBoxes[OutputForm[expr_], form_]"""
@@ -280,4 +281,5 @@ class TeXForm(FormBaseClass):
     def eval_tex(self, expr, evaluation) -> Expression:
         "MakeBoxes[TeXForm[expr_], Alternatives[StandardForm,TraditionalForm]]"
         # TeXForm by default uses `TraditionalForm`
+
         return eval_texform(expr, evaluation)
