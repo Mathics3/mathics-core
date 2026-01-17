@@ -44,6 +44,7 @@ ARITHMETIC_OPERATOR_STRINGS: Final[FrozenSet[str]] = frozenset(
 
 PRECEDENCES: Final = OPERATOR_DATA.get("operator-precedences")
 PRECEDENCE_BOX_GROUP: Final[int] = PRECEDENCES.get("BoxGroup", 670)
+PRECEDENCE_FUNCTION_APPLY: Final[int] = PRECEDENCES.get("FunctionApply", 670)
 PRECEDENCE_PLUS: Final[int] = PRECEDENCES.get("Plus", 310)
 PRECEDENCE_TIMES: Final[int] = PRECEDENCES.get("Times", 400)
 PRECEDENCE_POWER: Final[int] = PRECEDENCES.get("Power", 590)
@@ -169,9 +170,8 @@ def text_cells_to_grid(cells: List, **kwargs):
     """
     if not cells:
         return ""
-    cells = [[row] if isinstance(row, str) else row for row in cells]
-    for row in cells:
-        assert all(isinstance(field, str) for field in row)
+    full_rows = [isinstance(row, str) for row in cells]
+    cells = [[row] if full else row for row, full in zip(cells, full_rows)]
 
     def normalize_rows(rows):
         """
@@ -200,19 +200,27 @@ def text_cells_to_grid(cells: List, **kwargs):
             heights.append(max_height)
         return new_rows, heights
 
-    def normalize_cols(rows):
+    def normalize_cols(rows, full_rows):
         """
         Ensure that all the lines of fields on the same line
         have the same width.
         """
         # TODO: implement horizontal alignments
-        col_widths = [0] * len(rows[0])
-        for row in rows:
+        num_fields = max(
+            (len(row) for row, is_full_row in zip(rows, full_rows) if not is_full_row),
+            default=0,
+        )
+        col_widths = [0] * num_fields
+        for row, is_full_row in zip(rows, full_rows):
+            if is_full_row:
+                continue
             for col, cell in enumerate(row):
                 for line in cell:
                     col_widths[col] = max(col_widths[col], len(line))
         rows = [
-            [
+            row
+            if is_full_row
+            else [
                 [line.ljust(col_widths[col]) for line in cell]
                 for col, cell in enumerate(row)
             ]
@@ -221,13 +229,19 @@ def text_cells_to_grid(cells: List, **kwargs):
         return rows, col_widths
 
     cells, heights = normalize_rows(cells)
-    cells, col_widths = normalize_cols(cells)
+    cells, col_widths = normalize_cols(cells, full_rows)
     row_sep = "\n\n"
     col_sep = "   "
     result = ""
     for row_idx, row in enumerate(cells):
         if row_idx != 0:
             result += row_sep
+        # If the row is a full_row,
+        # just add the lines and continue.
+        if full_rows[row_idx]:
+            result += "\n".join(row[0])
+            continue
+
         new_lines = [""] * heights[row_idx]
         for field_no, field in enumerate(row):
             for l_no, line in enumerate(field):

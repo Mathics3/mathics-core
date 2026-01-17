@@ -22,6 +22,7 @@ from mathics.core.atoms import (
     Integer0,
     Integer1,
     Integer10,
+    Integer310,
     IntegerM1,
     Number,
     Rational,
@@ -65,6 +66,7 @@ from mathics.core.systemsymbols import (
     SymbolD,
     SymbolDerivative,
     SymbolFunction,
+    SymbolHoldForm,
     SymbolIndeterminate,
     SymbolInfinity,
     SymbolInfix,
@@ -1013,7 +1015,7 @@ class Integrate(SympyFunction):
 
     Here how is an example of converting integral equation to TeX:
     >> Integrate[f[x], {x, a, b}] // TeXForm
-     = \int_a^b f\left[x\right] \, dx
+     = \int_a^b f\left(x\right) \, dx
 
     Sometimes there is a loss of precision during integration.
     You can check the precision of your result with the following sequence \
@@ -2236,67 +2238,48 @@ class SeriesData(Builtin):
             ],
         )
 
-    def pre_makeboxes(self, x, x0, data, nmin, nmax, den, form, evaluation: Evaluation):
-        if x0.is_zero:
-            variable = x
+    def format_series(self, x, x0, data, nmin, nmax, den, evaluation):
+        """(OutputForm,StandardForm,TraditionalForm,):SeriesData[
+            x_, x0_, data_List, nmin_Integer, nmax_Integer, den_Integer
+        ]
+        """
+        if den.value != 1:
+            powers = [Rational(i, den) for i in range(nmin.value, nmax.value + 1)]
         else:
-            variable = Expression(SymbolPlus, x, Expression(SymbolTimes, IntegerM1, x0))
-        den = den.get_int_value()
-        nmin = nmin.get_int_value()
-        nmax = nmax.get_int_value()
-        if den != 1:
-            powers = [Rational(i, den) for i in range(nmin, nmax)]
-            powers = powers + [Rational(nmax, den)]
-        else:
-            powers = [Integer(i) for i in range(nmin, nmax)]
-            powers = powers + [Integer(nmax)]
+            powers = [Integer(i) for i in range(nmin.value, nmax.value + 1)]
 
-        expansion = []
-        for i, element in enumerate(data.elements):
-            if element.get_head() is Symbol("SeriesData"):
-                element = self.pre_makeboxes(*(element.elements), form, evaluation)
-            elif element.is_numeric(evaluation) and element.is_zero:
+        terms = []
+        base = x if x0 is Integer0 else x - x0
+        factors = data.elements
+        if len(factors) >= len(powers):
+            factors = factors[: len(powers)]
+
+        for idx, prefactor in enumerate(factors):
+            if prefactor is Integer0:
                 continue
-            if powers[i].is_zero:
-                expansion.append(element)
-                continue
-            if powers[i] == Integer1:
-                if element == Integer1:
-                    term = variable
+            power = powers[idx]
+            if power is Integer0:
+                terms.append(prefactor)
+            elif power is Integer1:
+                if prefactor is Integer1:
+                    terms.append(base)
                 else:
-                    term = Expression(SymbolTimes, element, variable)
+                    terms.append(prefactor * base)
             else:
-                if element == Integer1:
-                    term = Expression(SymbolPower, variable, powers[i])
+                if prefactor is Integer1:
+                    terms.append((base**power))
                 else:
-                    term = Expression(
-                        SymbolTimes,
-                        element,
-                        Expression(SymbolPower, variable, powers[i]),
-                    )
-            expansion.append(term)
-        expansion = ListExpression(
-            Expression(SymbolPlus, *expansion),
-            Expression(SymbolPower, Expression(SymbolO, variable), powers[-1]),
+                    terms.append(prefactor * (base**power))
+
+        regular = Expression(SymbolHoldForm, Expression(SymbolPlus, *terms))
+        last = Expression(SymbolHoldForm, Expression(SymbolO, base) ** (powers[-1]))
+        return Expression(
+            SymbolInfix,
+            ListExpression(regular, last),
+            String("+"),
+            Integer310,
+            SymbolLeft,
         )
-        return Expression(SymbolInfix, expansion, String("+"), Integer(300), SymbolLeft)
-
-    def eval_makeboxes(
-        self,
-        x,
-        x0,
-        data,
-        nmin: Integer,
-        nmax: Integer,
-        den: Integer,
-        form,
-        evaluation: Evaluation,
-    ):
-        """MakeBoxes[SeriesData[x_, x0_, data_List, nmin_Integer, nmax_Integer, den_Integer],
-        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
-
-        expansion = self.pre_makeboxes(x, x0, data, nmin, nmax, den, form, evaluation)
-        return format_element(expansion, evaluation, form)
 
 
 class Solve(Builtin):

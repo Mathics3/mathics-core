@@ -162,7 +162,7 @@ class GridBox(BoxExpression):
     def elements(self):
         if self._elements is None:
             self._elements = elements_to_expressions(self, self.items, self.box_options)
-        return self.elements
+        return self._elements
 
     def init(self, *elems, **kwargs):
         assert kwargs

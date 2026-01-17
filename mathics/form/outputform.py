@@ -12,7 +12,6 @@ from mathics.core.atoms import (
     Integer,
     Integer0,
     Integer1,
-    Integer2,
     IntegerM1,
     PrecisionReal,
     Rational,
@@ -51,6 +50,7 @@ from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
 from .util import (
     BLANKS_TO_STRINGS,
+    PRECEDENCE_FUNCTION_APPLY,
     PRECEDENCE_PLUS,
     PRECEDENCE_POWER,
     PRECEDENCE_TIMES,
@@ -89,6 +89,9 @@ def _default_expression_to_outputform_text(
 
     expr_head = expr.head
     head = expression_to_outputform_text(expr_head, evaluation, **kwargs)
+    if not isinstance(expr_head, Atom):
+        head = parenthesize(PRECEDENCE_FUNCTION_APPLY, expr_head, head, False)
+
     comma = ", "
     elements = [
         expression_to_outputform_text(elem, evaluation) for elem in expr.elements
@@ -98,6 +101,7 @@ def _default_expression_to_outputform_text(
         result = result + comma + elements.pop(0)
 
     form = kwargs.get("_Form", SymbolOutputForm)
+
     if form is SymbolTraditionalForm:
         return head + f"({result})"
     return head + square_bracket(result)
@@ -117,9 +121,10 @@ def _divide(num, den, evaluation, **kwargs):
 def _strip_1_parm_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, **kwargs
 ) -> str:
-    if len(expr.elements) != 1:
+    if not isinstance(expr.head, Symbol) or len(expr.elements) != 1:
         raise _WrongFormattedExpression
-    return expression_to_outputform_text(expr.elements[0], evaluation, **kwargs)
+    inner = expr.elements[0]
+    return expression_to_outputform_text(inner, evaluation, **kwargs)
 
 
 def register_outputform(head_name):
@@ -133,6 +138,9 @@ def register_outputform(head_name):
 @register_outputform("System`Association")
 def _association_outputform(expr: Expression, evaluation: Evaluation, **kwargs):
     head = expr.head
+    if not isinstance(head, Symbol):
+        raise _WrongFormattedExpression
+
     elements = expr.elements
     parts = []
     for element in elements:
@@ -144,6 +152,9 @@ def _association_outputform(expr: Expression, evaluation: Evaluation, **kwargs):
 
 @register_outputform("System`BaseForm")
 def _baseform_outputform(expr: Expression, evaluation: Evaluation, **kwargs):
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     elements = expr.elements
     number, base_expr = elements
     try:
@@ -160,6 +171,9 @@ def _baseform_outputform(expr: Expression, evaluation: Evaluation, **kwargs):
 @register_outputform("System`BlankSequence")
 @register_outputform("System`BlankNullSequence")
 def blank_pattern(expr: Expression, evaluation: Evaluation, **kwargs):
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     elements = expr.elements
     if len(elements) > 1:
         return _default_expression_to_outputform_text(expr, evaluation, **kwargs)
@@ -180,9 +194,12 @@ def derivative_expression_to_outputform_text(
 ) -> str:
     """Derivative operator"""
     head = expr.get_head()
+    # Pure derivative 'Derivative[...]'
     if head is SymbolDerivative:
         return _default_expression_to_outputform_text(expr, evaluation, **kwargs)
+
     super_head = head.get_head()
+    # Derivative[...][F]
     if super_head is SymbolDerivative:
         expr_elements = expr.elements
         if len(expr_elements) != 1:
@@ -193,13 +210,14 @@ def derivative_expression_to_outputform_text(
         derivatives = head.elements
         if len(derivatives) == 1:
             order_iv = derivatives[0]
-            if order_iv == Integer1:
-                return function_head + "'"
-            elif order_iv == Integer2:
-                return function_head + "''"
+            if isinstance(order_iv, Integer):
+                order_value = order_iv.value
+                if 0 < order_value < 3:
+                    return function_head + "'" * order_value
+                # -> f^(value)
+        # -> f^(fomat(derivatives))
 
-        return _default_expression_to_outputform_text(expr, evaluation, **kwargs)
-
+    # Derivative[...][F][...]....
     # Full Function with arguments: delegate to the default conversion.
     # It will call us again with the head
     return _default_expression_to_outputform_text(expr, evaluation, **kwargs)
@@ -209,6 +227,9 @@ def derivative_expression_to_outputform_text(
 def divide_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, **kwargs
 ) -> str:
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     if len(expr.elements) != 2:
         raise _WrongFormattedExpression
     num, den = expr.elements
@@ -227,7 +248,7 @@ def expression_to_outputform_text(expr: BaseElement, evaluation: Evaluation, **k
     if format_expr is None:
         return ""
     head = format_expr.get_head()
-    lookup_name: str = head.get_lookup_name()
+    lookup_name: str = head.get_name() or head.get_lookup_name()
     callback = EXPR_TO_OUTPUTFORM_TEXT_MAP.get(lookup_name, None)
     if callback is None:
         if head in evaluation.definitions.outputforms:
@@ -246,11 +267,17 @@ def expression_to_outputform_text(expr: BaseElement, evaluation: Evaluation, **k
 
 @register_outputform("System`Graphics")
 def graphics(expr: Expression, evaluation: Evaluation, **kwargs) -> str:
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     return "-Graphics-"
 
 
 @register_outputform("System`Graphics3D")
 def graphics3d(expr: Expression, evaluation: Evaluation, **kwargs) -> str:
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     return "-Graphics3D-"
 
 
@@ -258,6 +285,9 @@ def graphics3d(expr: Expression, evaluation: Evaluation, **kwargs) -> str:
 def grid_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, **kwargs
 ) -> str:
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     if len(expr.elements) == 0:
         raise IsNotGrid
     if len(expr.elements) > 1 and not expr.elements[1].has_form(
@@ -287,9 +317,11 @@ register_outputform("System`HoldForm")(_strip_1_parm_expression_to_outputform_te
 
 
 @register_outputform("System`FullForm")
-@register_outputform("System`InputForm")
 def other_forms(expr, evaluation, **kwargs):
     from mathics.eval.makeboxes import format_element
+
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
 
     result = format_element(expr, evaluation, SymbolStandardForm, **kwargs)
 
@@ -300,6 +332,9 @@ def other_forms(expr, evaluation, **kwargs):
 
 @register_outputform("System`Integer")
 def integer_outputform(n, evaluation, **kwargs):
+    if not isinstance(n, Integer):
+        raise _WrongFormattedExpression
+
     py_digits, py_options = kwargs.setdefault(
         "_numberform_args",
         (
@@ -316,6 +351,9 @@ def integer_outputform(n, evaluation, **kwargs):
 
 @register_outputform("System`Image")
 def image_outputform_text(expr: Expression, evaluation: Evaluation, **kwargs):
+    if not isinstance(expr, Atom):
+        raise _WrongFormattedExpression
+
     return "-Image-"
 
 
@@ -324,6 +362,9 @@ def _infix_outputform_text(expr: Expression, evaluation: Evaluation, **kwargs) -
     """
     Convert Infix[...] into a InputForm string.
     """
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     # In WMA, expressions associated to Infix operators are not
     # formatted using this path: in some way, when an expression
     # has a head that matches with a symbol associated to an infix
@@ -333,9 +374,10 @@ def _infix_outputform_text(expr: Expression, evaluation: Evaluation, **kwargs) -
     operands, ops_lst, precedence, group = collect_in_pre_post_arguments(
         expr, evaluation, **kwargs
     )
-    # Infix needs at least two operands:
-    if len(operands) < 2:
-        raise _WrongFormattedExpression
+    # In WMA, Infix needs at least two operands:
+    # In Mathics, we allow Infix with one operator:
+    # if len(operands) < 2:
+    #    raise _WrongFormattedExpression
 
     # Process the first operand:
     parenthesized = group in (SymbolNone, SymbolRight, SymbolNonAssociative)
@@ -379,6 +421,8 @@ def inputform(expr: Expression, evaluation: Evaluation, **kwargs):
 def list_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, **kwargs
 ) -> str:
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
     elements = expr.elements
     if not elements:
         return "{}"
@@ -397,6 +441,9 @@ def list_expression_to_outputform_text(
 def mathmlform_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, **kwargs
 ) -> str:
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     #  boxes = format_element(expr.elements[0], evaluation)
     boxes = Expression(
         Symbol("System`MakeBoxes"), expr.elements[0], SymbolTraditionalForm
@@ -408,12 +455,18 @@ def mathmlform_expression_to_outputform_text(
 def matrixform_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, **kwargs
 ) -> str:
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     # return parenthesize(tableform_expression_to_outputform_text(expr, evaluation, **kwargs))
     return tableform_expression_to_outputform_text(expr, evaluation, **kwargs)
 
 
 @register_outputform("System`MessageName")
 def message_name_outputform(expr: Expression, evaluation: Evaluation, **kwargs):
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     elements = expr.elements
     if len(elements) != 2:
         return _default_expression_to_outputform_text(expr, evaluation, **kwargs)
@@ -426,6 +479,9 @@ def message_name_outputform(expr: Expression, evaluation: Evaluation, **kwargs):
 
 @register_outputform("System`NumberForm")
 def _numberform_outputform(expr, evaluation, **kwargs):
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     target, precision, py_options = get_numberform_parameters(expr, evaluation)
     if isinstance(precision, Integer):
         py_precision = (
@@ -449,6 +505,9 @@ def _numberform_outputform(expr, evaluation, **kwargs):
 
 @register_outputform("System`Out")
 def out_outputform(expr: Expression, evaluation: Evaluation, **kwargs):
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     elements = expr.elements
     if len(elements) > 1:
         raise _WrongFormattedExpression
@@ -467,6 +526,9 @@ def out_outputform(expr: Expression, evaluation: Evaluation, **kwargs):
 
 @register_outputform("System`OutputForm")
 def outputform(expr: Expression, evaluation: Evaluation, **kwargs):
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     elements = expr.elements
     if len(elements) != 1:
         return _default_expression_to_outputform_text(expr, evaluation, **kwargs)
@@ -475,6 +537,9 @@ def outputform(expr: Expression, evaluation: Evaluation, **kwargs):
 
 @register_outputform("System`Part")
 def part(expr: Expression, evaluation: Evaluation, **kwargs):
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     elements = expr.elements
     if len(elements) == 0:
         raise _WrongFormattedExpression
@@ -490,6 +555,9 @@ def part(expr: Expression, evaluation: Evaluation, **kwargs):
 
 @register_outputform("System`Pattern")
 def pattern(expr: Expression, evaluation: Evaluation, **kwargs):
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     elements = expr.elements
     if len(elements) != 2:
         return _default_expression_to_outputform_text(expr, evaluation, **kwargs)
@@ -503,6 +571,9 @@ def pattern(expr: Expression, evaluation: Evaluation, **kwargs):
 def plus_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> str:
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     elements = expr.elements
     result = ""
     for i, term in enumerate(elements):
@@ -566,6 +637,9 @@ def plus_expression_to_outputform_text(
 def power_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
 ):
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     if len(expr.elements) != 2:
         raise _WrongFormattedExpression
 
@@ -583,6 +657,9 @@ def power_expression_to_outputform_text(
 def precedenceform_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> str:
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     if len(expr.elements) == 2:
         return expression_to_outputform_text(expr.elements[0], evaluation, **kwargs)
     raise _WrongFormattedExpression
@@ -593,6 +670,9 @@ def _prefix_output_text(expr: Expression, evaluation: Evaluation, **kwargs) -> s
     """
     Convert Prefix[...] into a InputForm string.
     """
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     operands, op_head, precedence, group = collect_in_pre_post_arguments(
         expr, evaluation, **kwargs
@@ -613,6 +693,9 @@ def _postfix_output_text(expr: Expression, evaluation: Evaluation, **kwargs) -> 
     """
     Convert Postfix[...] into a InputForm string.
     """
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     operands, op_head, precedence, group = collect_in_pre_post_arguments(
         expr, evaluation, **kwargs
@@ -631,6 +714,9 @@ def _postfix_output_text(expr: Expression, evaluation: Evaluation, **kwargs) -> 
 def rational_expression_to_outputform_text(
     n: Union[Rational, Expression], evaluation: Evaluation, **kwargs
 ):
+    if not isinstance(n, Rational):
+        raise _WrongFormattedExpression
+
     if n.has_form("Rational", 2):
         num, den = n.elements  # type: ignore[union-attr]
     else:
@@ -640,6 +726,8 @@ def rational_expression_to_outputform_text(
 
 @register_outputform("System`Real")
 def real_expression_to_outputform_text(n: Real, evaluation: Evaluation, **kwargs):
+    if not isinstance(n, Real):
+        raise _WrongFormattedExpression
     py_digits, py_options = kwargs.setdefault(
         "_numberform_args",
         (
@@ -661,6 +749,9 @@ def real_expression_to_outputform_text(n: Real, evaluation: Evaluation, **kwargs
 @register_outputform("System`Row")
 def row_to_outputform_text(expr, evaluation: Evaluation, **kwargs):
     """Row[{...}]"""
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     elements = expr.elements[0].elements
     return "".join(
         expression_to_outputform_text(elem, evaluation, **kwargs) for elem in elements
@@ -672,6 +763,9 @@ def row_to_outputform_text(expr, evaluation: Evaluation, **kwargs):
 def rule_to_outputform_text(expr, evaluation: Evaluation, **kwargs):
     """Rule|RuleDelayed[{...}]"""
     head = expr.head
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     elements = expr.elements
     kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     if len(elements) != 2:
@@ -687,6 +781,9 @@ def rule_to_outputform_text(expr, evaluation: Evaluation, **kwargs):
 @register_outputform("System`SequenceForm")
 def sequenceform_to_outputform_text(expr, evaluation: Evaluation, **kwargs):
     """Row[{...}]"""
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     elements = expr.elements
     return "".join(
         expression_to_outputform_text(elem, evaluation, **kwargs) for elem in elements
@@ -695,6 +792,9 @@ def sequenceform_to_outputform_text(expr, evaluation: Evaluation, **kwargs):
 
 @register_outputform("System`Slot")
 def _slot_outputform_text(expr: Expression, evaluation: Evaluation, **kwargs):
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     elements = expr.elements
     if len(elements) != 1:
         raise _WrongFormattedExpression
@@ -711,6 +811,9 @@ def _slot_outputform_text(expr: Expression, evaluation: Evaluation, **kwargs):
 
 @register_outputform("System`SlotSequence")
 def _slotsequence_outputform_text(expr: Expression, evaluation: Evaluation, **kwargs):
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     elements = expr.elements
     if len(elements) != 1:
         raise _WrongFormattedExpression
@@ -741,6 +844,9 @@ def string_expression_to_outputform_text(
 def stringform_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, **kwargs
 ) -> str:
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     items = expr.elements
     if len(items) == 0:
         evaluation.message("StringForm", "argm", Integer0)
@@ -819,6 +925,9 @@ def stringform_expression_to_outputform_text(
 
 @register_outputform("System`Style")
 def style_to_outputform_text(expr: String, evaluation: Evaluation, **kwargs) -> str:
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     elements = expr.elements
     if not elements:
         raise _WrongFormattedExpression
@@ -829,6 +938,9 @@ def style_to_outputform_text(expr: String, evaluation: Evaluation, **kwargs) -> 
 def symbol_expression_to_outputform_text(
     symb: Symbol, evaluation: Evaluation, **kwargs
 ):
+    if not isinstance(symb, Symbol):
+        raise _WrongFormattedExpression
+
     return evaluation.definitions.shorten_name(symb.name)
 
 
@@ -837,6 +949,9 @@ def tableform_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, **kwargs
 ) -> str:
     from mathics.builtin.tensors import get_dimensions
+
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
 
     elements = expr.elements
 
@@ -875,6 +990,9 @@ def tableform_expression_to_outputform_text(
 
 @register_outputform("System`TeXForm")
 def _texform_outputform(expr, evaluation, **kwargs):
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     boxes = Expression(
         Symbol("System`MakeBoxes"), expr.elements[0], SymbolTraditionalForm
     ).evaluate(evaluation)
@@ -896,6 +1014,9 @@ def _texform_outputform(expr, evaluation, **kwargs):
 def times_expression_to_outputform_text(
     expr: Expression, evaluation: Evaluation, **kwargs
 ) -> str:
+    if not isinstance(expr.head, Symbol):
+        raise _WrongFormattedExpression
+
     elements = expr.elements
     if len(elements) < 2:
         return _default_expression_to_outputform_text(expr, evaluation, **kwargs)
