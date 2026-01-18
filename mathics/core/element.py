@@ -150,7 +150,7 @@ class BaseElement(KeyComparable, ABC):
         self, evaluation, form, **kwargs
     ) -> Optional[Union["BaseElement", "BoxElementMixin"]]:
         from mathics.core.symbols import Symbol
-        from mathics.format.makeboxes import format_element
+        from mathics.format.box import format_element
 
         if isinstance(form, str):
             form = Symbol(form)

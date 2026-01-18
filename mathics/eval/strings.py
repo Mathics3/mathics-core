@@ -14,7 +14,7 @@ from mathics.core.expression import Expression
 from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolTrue
-from mathics.format.makeboxes import format_element
+from mathics.format.box import format_element
 
 
 # A better thing to do would be to write a pymathics module that

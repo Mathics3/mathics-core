@@ -29,7 +29,7 @@ from mathics.core.exceptions import BoxConstructError
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
-from mathics.format.makeboxes import to_boxes
+from mathics.format.box import to_boxes
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.low-level-notebook-structure"

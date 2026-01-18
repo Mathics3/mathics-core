@@ -39,7 +39,7 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.list.eol import convert_seq, python_seq
 from mathics.eval.strings import eval_StringFind
-from mathics.format.makeboxes import format_element
+from mathics.format.box import format_element
 
 
 class StringDrop(Builtin):
