@@ -7,7 +7,7 @@ which are defined here.
 
 Note that there are other modules to collect specific aspects a
 Builtin, such as ``mathics.eval`` for evaluation specifics, or
-``mathics.format`` for rendering details, or ``mathics.compile`` for
+``mathics.format.export`` for rendering details, or ``mathics.compile`` for
 compilation details.
 
 A Mathics Builtin is implemented one of a particular kind of Python

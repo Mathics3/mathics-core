@@ -36,9 +36,9 @@ __py_files__ = [
 
 for module_name in __py_files__:
     try:
-        importlib.import_module(f"mathics.format.{module_name}")
+        importlib.import_module(f"mathics.format.export.{module_name}")
     except Exception as e:
         print(e)
         print(f"    Not able to load {module_name}. Check your installation.")
-        print(f"    mathics.format loads from {osp.dirname(__file__)}")
+        print(f"    mathics.format.export loads from {osp.dirname(__file__)}")
         sys.exit(-1)

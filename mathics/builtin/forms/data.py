@@ -746,7 +746,6 @@ class TableForm(FormBaseClass):
      .
      . -Graphics-   -Graphics-   -Graphics-
      .
-     . -Graphics-   -Graphics-   -Graphics-
      .
      . -Graphics-   -Graphics-   -Graphics-
      .
@@ -754,9 +753,14 @@ class TableForm(FormBaseClass):
      .
      . -Graphics-   -Graphics-   -Graphics-
      .
+     .
      . -Graphics-   -Graphics-   -Graphics-
      .
      . -Graphics-   -Graphics-   -Graphics-
+     .
+     . -Graphics-   -Graphics-   -Graphics-
+     .
+     .
     """
 
     in_outputforms = True
