@@ -37,7 +37,7 @@ from mathics.builtin.graphics import (
     RGBColor,
 )
 from mathics.core.formatter import add_conversion_fn, lookup_method
-from mathics.format.asy_fns import (
+from mathics.format.export.asy_fns import (
     asy_add_bezier_fn,
     asy_add_graph_import,
     asy_bezier,
@@ -45,7 +45,7 @@ from mathics.format.asy_fns import (
     asy_create_pens,
     asy_number,
 )
-from mathics.format.asy_polyhedra import HEDRON_NAME_MAP, unimplimented_polygon
+from mathics.format.export.asy_polyhedra import HEDRON_NAME_MAP, unimplimented_polygon
 
 INVERSE_POINT_FACTOR = 1 / DEFAULT_POINT_FACTOR
 
