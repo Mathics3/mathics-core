@@ -4,7 +4,7 @@ from test.helper import reset_session, session
 import pytest
 
 from mathics.core.systemsymbols import SymbolStandardForm
-from mathics.format.makeboxes import format_element
+from mathics.format.box import format_element
 
 reset_session()
 evaluation = session.evaluation
