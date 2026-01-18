@@ -38,14 +38,14 @@ from mathics.core.systemsymbols import (
     SymbolTableForm,
     SymbolTraditionalForm,
 )
-from mathics.eval.makeboxes import compare_precedence, do_format, format_element
-from mathics.eval.makeboxes.numberform import (
+from mathics.eval.strings import safe_backquotes
+from mathics.eval.testing_expressions import expr_min
+from mathics.format.makeboxes import compare_precedence, do_format, format_element
+from mathics.format.makeboxes.numberform import (
     get_baseform_elements,
     get_numberform_parameters,
     numberform_to_boxes,
 )
-from mathics.eval.strings import safe_backquotes
-from mathics.eval.testing_expressions import expr_min
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
 from .util import (
@@ -318,7 +318,7 @@ register_outputform("System`HoldForm")(_strip_1_parm_expression_to_outputform_te
 
 @register_outputform("System`FullForm")
 def other_forms(expr, evaluation, **kwargs):
-    from mathics.eval.makeboxes import format_element
+    from mathics.format.makeboxes import format_element
 
     if not isinstance(expr.head, Symbol):
         raise _WrongFormattedExpression

@@ -283,14 +283,14 @@ class Integer(Number[int]):
         return -self if self < Integer0 else self
 
     def atom_to_boxes(self, f, evaluation):
-        from mathics.eval.makeboxes.numberform import numberform_to_boxes
+        from mathics.format.makeboxes.numberform import numberform_to_boxes
 
         try:
             return numberform_to_boxes(
                 self, None, None, evaluation, {"_Form": f.get_name()}
             )
         except ValueError:
-            # from mathics.eval.makeboxes import int_to_string_shorter_repr
+            # from mathics.format.makeboxes import int_to_string_shorter_repr
             # return int_to_string_shorter_repr(self._value, form)
             raise
 
@@ -465,7 +465,7 @@ class MachineReal(Real[float]):
         return MachineReal(-self.value)
 
     def atom_to_boxes(self, f, evaluation):
-        from mathics.eval.makeboxes import numberform_to_boxes
+        from mathics.format.makeboxes import numberform_to_boxes
 
         form = f.get_name()
         _number_form_options["_Form"] = form  # passed to _NumberFormat
@@ -592,7 +592,7 @@ class PrecisionReal(Real[sympy.Float]):
         return PrecisionReal(-self.value)
 
     def atom_to_boxes(self, f, evaluation):
-        from mathics.eval.makeboxes import numberform_to_boxes
+        from mathics.format.makeboxes import numberform_to_boxes
 
         form = f.get_name()
         _number_form_options["_Form"] = form  # passed to _NumberFormat
@@ -791,7 +791,7 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         return str(self.to_sympy())
 
     def atom_to_boxes(self, f, evaluation):
-        from mathics.eval.makeboxes import format_element
+        from mathics.format.makeboxes import format_element
 
         return format_element(self, evaluation, f)
 
@@ -937,7 +937,7 @@ class Rational(Number[sympy.Rational]):
         return Rational(-self.numerator().value, self.denominator().value)
 
     def atom_to_boxes(self, f, evaluation):
-        from mathics.eval.makeboxes import format_element
+        from mathics.format.makeboxes import format_element
 
         return format_element(self, evaluation, f)
 

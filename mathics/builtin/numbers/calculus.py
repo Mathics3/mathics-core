@@ -84,7 +84,6 @@ from mathics.core.systemsymbols import (
     SymbolSlot,
     SymbolUndefined,
 )
-from mathics.eval.makeboxes import format_element
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numbers.calculus.integrators import (
     _fubini,
@@ -98,6 +97,7 @@ from mathics.eval.numbers.calculus.series import (
     series_plus_series,
     series_times_series,
 )
+from mathics.format.makeboxes import format_element
 
 # These should be used in lower-level formatting
 SymbolDifferentialD = Symbol("System`DifferentialD")

@@ -38,8 +38,8 @@ from mathics.core.systemsymbols import (
     SymbolNone,
     SymbolRight,
 )
-from mathics.eval.makeboxes.formatvalues import do_format  # , format_element
-from mathics.eval.makeboxes.precedence import compare_precedence
+from mathics.format.makeboxes.formatvalues import do_format  # , format_element
+from mathics.format.makeboxes.precedence import compare_precedence
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
 from .util import (

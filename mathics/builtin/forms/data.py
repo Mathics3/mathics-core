@@ -29,7 +29,8 @@ from mathics.core.systemsymbols import (
     SymbolRowBox,
     SymbolSuperscriptBox,
 )
-from mathics.eval.makeboxes import (
+from mathics.eval.strings import eval_StringForm_MakeBoxes, eval_ToString
+from mathics.format.makeboxes import (
     StringLParen,
     StringRParen,
     eval_baseform,
@@ -39,7 +40,6 @@ from mathics.eval.makeboxes import (
     get_numberform_parameters,
     numberform_to_boxes,
 )
-from mathics.eval.strings import eval_StringForm_MakeBoxes, eval_ToString
 
 
 class BaseForm(FormBaseClass):

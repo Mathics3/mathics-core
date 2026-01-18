@@ -2,8 +2,8 @@
 Functions related to the evaluation of MakeBoxes.
 """
 
-from mathics.eval.makeboxes.formatvalues import StringLParen, StringRParen, do_format
-from mathics.eval.makeboxes.makeboxes import (
+from mathics.format.makeboxes.formatvalues import StringLParen, StringRParen, do_format
+from mathics.format.makeboxes.makeboxes import (
     _boxed_string,
     eval_generic_makeboxes,
     eval_makeboxes,
@@ -11,18 +11,18 @@ from mathics.eval.makeboxes.makeboxes import (
     format_element,
     to_boxes,
 )
-from mathics.eval.makeboxes.numberform import (
+from mathics.format.makeboxes.numberform import (
     eval_baseform,
     get_numberform_parameters,
     numberform_to_boxes,
 )
-from mathics.eval.makeboxes.operators import eval_infix, eval_postprefix
-from mathics.eval.makeboxes.outputforms import (
+from mathics.format.makeboxes.operators import eval_infix, eval_postprefix
+from mathics.format.makeboxes.outputforms import (
     eval_mathmlform,
     eval_tableform,
     eval_texform,
 )
-from mathics.eval.makeboxes.precedence import (
+from mathics.format.makeboxes.precedence import (
     builtins_precedence,
     compare_precedence,
     parenthesize,

@@ -9,8 +9,8 @@ from mathics.core.systemsymbols import (
     SymbolRowBox,
     SymbolTraditionalForm,
 )
-from mathics.eval.makeboxes.makeboxes import format_element
 from mathics.eval.testing_expressions import expr_min
+from mathics.format.makeboxes.makeboxes import format_element
 
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 

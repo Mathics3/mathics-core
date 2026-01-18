@@ -18,7 +18,7 @@ from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
 from mathics.core.systemsymbols import SymbolMakeBoxes, SymbolSubscriptBox
 from mathics.eval.lists import list_boxes
-from mathics.eval.makeboxes import format_element
+from mathics.format.makeboxes import format_element
 
 
 class Center(Builtin):

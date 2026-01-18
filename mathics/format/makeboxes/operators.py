@@ -13,7 +13,7 @@ from mathics.core.systemsymbols import (
     SymbolOutputForm,
     SymbolRowBox,
 )
-from mathics.eval.makeboxes.precedence import parenthesize
+from mathics.format.makeboxes.precedence import parenthesize
 
 
 # FIXME: op should be a string, so remove the Union.

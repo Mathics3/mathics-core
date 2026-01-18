@@ -32,7 +32,7 @@ from mathics.core.systemsymbols import (
     SymbolOutputForm,
     SymbolSubscriptBox,
 )
-from mathics.eval.makeboxes import to_boxes
+from mathics.format.makeboxes import to_boxes
 
 STR_DIGITS_CHECK_THRESHOLD = sys.int_info.str_digits_check_threshold
 
