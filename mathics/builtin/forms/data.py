@@ -783,9 +783,8 @@ class MatrixForm(TableForm):
     summary_text = "format as a matrix"
 
     def eval_makeboxes_matrix(self, table, form, evaluation, options):
-        """MakeBoxes[%(name)s[table_, OptionsPattern[%(name)s]],
-        form:StandardForm|TraditionalForm]"""
-
+        """MakeBoxes[MatrixForm[table_, OptionsPattern[]],
+        (form:StandardForm|TraditionalForm)]"""
         result = super().eval_makeboxes(table, form, evaluation, options)
         if result.get_head_name() == "System`GridBox":
             return RowBox(StringLParen, result, StringRParen)

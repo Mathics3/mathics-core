@@ -323,6 +323,7 @@ def other_forms(expr, evaluation, **kwargs):
     if not isinstance(expr.head, Symbol):
         raise _WrongFormattedExpression
 
+    print("format", expr)
     result = format_element(expr, evaluation, SymbolStandardForm, **kwargs)
     return result.boxes_to_text()
 
@@ -454,9 +455,7 @@ def matrixform_expression_to_outputform_text(
         raise _WrongFormattedExpression
 
     # return parenthesize(tableform_expression_to_outputform_text(expr, evaluation, **kwargs))
-    return (
-        "(" + tableform_expression_to_outputform_text(expr, evaluation, **kwargs) + ")"
-    )
+    return tableform_expression_to_outputform_text(expr, evaluation, **kwargs)
 
 
 @register_outputform("System`MessageName")

@@ -66,8 +66,8 @@ def eval_tableform(self, table, f, evaluation, options):
                     ListExpression(format_element(item, evaluation, f))
                     for item in table.elements
                 ),
-                **grid_options,
             ),
+            **grid_options,
         )
         # return Expression(
         #    'GridBox', Expression('List', *(
