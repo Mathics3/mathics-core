@@ -206,7 +206,6 @@ def _prefix_expression_to_inputform_text(
     operand = operands[0]
     kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     target_txt = render_input_form(operand, evaluation, **kwargs)
-    parenthesized = group in (None, SymbolRight, SymbolNonAssociative)
     target_txt = parenthesize(precedence, operand, target_txt, True)
     return op_head + target_txt
 
