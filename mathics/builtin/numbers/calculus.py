@@ -90,7 +90,7 @@ from mathics.eval.numbers.calculus.series import (
     series_plus_series,
     series_times_series,
 )
-from mathics.format.formvalues.calculus import format_series
+from mathics.format.form_rule.calculus import format_series
 
 # These should be used in lower-level formatting
 SymbolDifferentialD = Symbol("System`DifferentialD")

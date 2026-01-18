@@ -25,8 +25,8 @@ from mathics.core.systemsymbols import (  # SymbolRule, SymbolRuleDelayed,
     SymbolRational,
     SymbolStandardForm,
 )
-from mathics.format.makeboxes.formatvalues import do_format
-from mathics.format.makeboxes.precedence import parenthesize
+from mathics.format.box.formatvalues import do_format
+from mathics.format.box.precedence import parenthesize
 
 
 def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElementMixin:

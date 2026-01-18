@@ -37,7 +37,7 @@ from mathics.builtin.graphics import (
     RGBColor,
 )
 from mathics.core.formatter import add_conversion_fn, lookup_method
-from mathics.format.export.asy_fns import (
+from mathics.format.render.asy_fns import (
     asy_add_bezier_fn,
     asy_add_graph_import,
     asy_bezier,
@@ -45,7 +45,7 @@ from mathics.format.export.asy_fns import (
     asy_create_pens,
     asy_number,
 )
-from mathics.format.export.asy_polyhedra import HEDRON_NAME_MAP, unimplimented_polygon
+from mathics.format.render.asy_polyhedra import HEDRON_NAME_MAP, unimplimented_polygon
 
 INVERSE_POINT_FACTOR = 1 / DEFAULT_POINT_FACTOR
 
@@ -89,7 +89,7 @@ class _ASYTransform:
 
 def arcbox(self: _ArcBox, **options) -> str:
     """
-    Aymptote formatting for an arc of a circle or an ellipse.
+    Aysmptote formatting for an arc of a circle or an ellipse.
     """
     if self.arc is None:
         # We have a doughnut graph and this is the inner blank hole of that.
@@ -191,7 +191,7 @@ def build_3d_pen_color(color, opacity=None):
 
 def arrow3dbox(self, **options) -> str:
     """
-    Aymptote 3D formatter for Arrow3DBox
+    Asymptote 3D formatter for Arrow3DBox
     """
 
     # Set style parameters.
@@ -488,7 +488,7 @@ add_conversion_fn(LineBox, line_box)
 
 def point3dbox(self: Point3DBox, **options) -> str:
     """
-    Aymptote 3D formatter for Point3DBox
+    Asymptote 3D formatter for Point3DBox
     """
 
     face_color = self.face_color

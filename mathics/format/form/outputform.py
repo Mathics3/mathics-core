@@ -40,8 +40,8 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.strings import safe_backquotes
 from mathics.eval.testing_expressions import expr_min
-from mathics.format.makeboxes import compare_precedence, do_format, format_element
-from mathics.format.makeboxes.numberform import (
+from mathics.format.box import compare_precedence, do_format, format_element
+from mathics.format.box.numberform import (
     get_baseform_elements,
     get_numberform_parameters,
     numberform_to_boxes,
@@ -318,7 +318,7 @@ register_outputform("System`HoldForm")(_strip_1_parm_expression_to_outputform_te
 
 @register_outputform("System`FullForm")
 def other_forms(expr, evaluation, **kwargs):
-    from mathics.format.makeboxes import format_element
+    from mathics.format.box import format_element
 
     if not isinstance(expr.head, Symbol):
         raise _WrongFormattedExpression

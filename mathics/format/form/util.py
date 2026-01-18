@@ -23,7 +23,7 @@ from mathics.core.systemsymbols import (
     SymbolPrefix,
     SymbolRight,
 )
-from mathics.format.makeboxes import compare_precedence
+from mathics.format.box import compare_precedence
 
 
 # This Exception if the expression should

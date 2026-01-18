@@ -20,7 +20,7 @@ from mathics.core.convert.sympy import mathics_to_sympy, sympy_to_mathics
 from mathics.core.parser.operators import calculate_operator_information
 from mathics.core.pattern import pattern_objects
 from mathics.core.symbols import Symbol
-from mathics.format.makeboxes import builtins_precedence
+from mathics.format.box import builtins_precedence
 from mathics.settings import ENABLE_FILES_MODULE
 
 if TYPE_CHECKING:

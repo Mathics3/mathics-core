@@ -390,7 +390,7 @@ class Evaluation:
         Notice that this function can be overwritten by the front-ends, so it should not be
         used in Builtin classes where it is expected a front-end independent result.
         """
-        from mathics.format.makeboxes import format_element
+        from mathics.format.box import format_element
 
         if format is None:
             format = self.format

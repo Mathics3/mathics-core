@@ -6,7 +6,7 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import SymbolFullForm, SymbolList
 from mathics.core.systemsymbols import SymbolRowBox, SymbolTraditionalForm
 from mathics.eval.testing_expressions import expr_min
-from mathics.format.makeboxes.makeboxes import format_element
+from mathics.format.box.makeboxes import format_element
 
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 
