@@ -49,7 +49,7 @@ from mathics.eval.files_io.read import (
 )
 from mathics.eval.stackframe import get_eval_Expression
 from mathics.format.box import do_format, format_element
-from mathics.format.forms import render_input_form
+from mathics.format.form import render_input_form
 
 
 class Input_(Predefined):
