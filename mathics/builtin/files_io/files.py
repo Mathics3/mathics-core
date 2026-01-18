@@ -48,7 +48,7 @@ from mathics.eval.files_io.read import (
     read_name_and_stream,
 )
 from mathics.eval.stackframe import get_eval_Expression
-from mathics.form import render_input_form
+from mathics.format.forms import render_input_form
 from mathics.format.makeboxes import do_format, format_element
 
 

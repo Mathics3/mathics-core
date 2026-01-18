@@ -23,7 +23,7 @@ from mathics.core.atoms import String
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import add_conversion_fn, lookup_method
 from mathics.core.symbols import Atom, SymbolTrue
-from mathics.form.util import _WrongFormattedExpression, text_cells_to_grid
+from mathics.format.forms.util import _WrongFormattedExpression, text_cells_to_grid
 
 
 def boxes_to_text(boxes, **options) -> str:
