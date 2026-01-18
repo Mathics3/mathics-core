@@ -36,11 +36,18 @@ from mathics.eval.makeboxes import to_boxes
 
 STR_DIGITS_CHECK_THRESHOLD = sys.int_info.str_digits_check_threshold
 
+
+def default_numberformat_outputform(man, base, exp, opts):
+    """Default number format function for OutputForm"""
+    res = f"{man.value}{opts['NumberMultiplier']}{base.value}^{exp.value}"
+    return String(res)
+
+
 DEFAULT_NUMBERFORM_OPTIONS = {
     "DigitBlock": [0, 0],
     "ExponentFunction": lambda x: (SymbolNull if abs(x.value) <= 5 else x),
     "ExponentStep": 1,
-    "NumberFormat": lambda x: x,
+    "NumberFormat": default_numberformat_outputform,
     "NumberMultiplier": "×",
     "NumberPadding": ["", "0"],
     "NumberPoint": ".",

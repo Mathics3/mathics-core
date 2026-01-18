@@ -9,26 +9,18 @@ or <url>:StandardForm:
 /doc/reference-of-built-in-symbols/forms-of-input-and-output/printforms/standardform/</url>, \
 which are intended to work over all kinds of data.
 """
-import re
 from typing import Any, Callable, Dict, List, Optional
 
-from mathics.builtin.box.layout import RowBox, StyleBox
+from mathics.builtin.box.layout import RowBox, StyleBox, SuperscriptBox
 from mathics.builtin.forms.base import FormBaseClass
 from mathics.core.atoms import Integer, Real, String
 from mathics.core.builtin import Builtin
-from mathics.core.element import BaseElement, EvalMixin
+from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.list import ListExpression
 from mathics.core.number import dps
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolNull, SymbolTrue
-from mathics.core.systemsymbols import (
-    SymbolAutomatic,
-    SymbolInfinity,
-    SymbolMakeBoxes,
-    SymbolRowBox,
-    SymbolSuperscriptBox,
-)
+from mathics.core.systemsymbols import SymbolAutomatic, SymbolInfinity, SymbolMakeBoxes
 from mathics.eval.makeboxes import (
     StringLParen,
     StringRParen,
@@ -96,7 +88,7 @@ class BaseForm(FormBaseClass):
 
     def eval_makeboxes(self, expr, n, f, evaluation: Evaluation):
         """MakeBoxes[BaseForm[expr_, n_],
-        f:StandardForm|TraditionalForm|OutputForm]"""
+        f:StandardForm|TraditionalForm]"""
         return eval_baseform(expr, n, f, evaluation)
 
 
@@ -562,16 +554,13 @@ class NumberForm(_NumberForm):
         py_exp = exp.get_string_value()
         if py_exp:
             mul = String(options["NumberMultiplier"])
-            return Expression(
-                SymbolRowBox,
-                ListExpression(man, mul, Expression(SymbolSuperscriptBox, base, exp)),
-            )
+            return RowBox(man, mul, SuperscriptBox(base, exp))
 
         return man
 
     def eval_makeboxes(self, fexpr, form, evaluation):
         """MakeBoxes[fexpr:NumberForm[_?AtomQ, ___],
-        form:StandardForm|TraditionalForm|OutputForm]"""
+        form:StandardForm|TraditionalForm]"""
         try:
             target, prec_parms, py_options = get_numberform_parameters(
                 fexpr, evaluation
@@ -601,7 +590,6 @@ class NumberForm(_NumberForm):
 
         if py_n is not None:
             py_options["_Form"] = form.get_name()
-
             return numberform_to_boxes(target, py_n, py_f, evaluation, py_options)
         return Expression(SymbolMakeBoxes, target, form)
 
@@ -710,14 +698,8 @@ class StringForm(FormBaseClass):
 
     def eval_makeboxes(self, s, args, form, evaluation):
         """MakeBoxes[StringForm[s_String, args___],
-        form:StandardForm|TraditionalForm|OutputForm]"""
-        try:
-            result = eval_StringForm_MakeBoxes(s, args.get_sequence(), form, evaluation)
-        except ValueError:
-            result = s
-        if isinstance(result, String):
-            result = StyleBox(String(result))
-        return result
+        form:StandardForm|TraditionalForm]"""
+        return eval_StringForm_MakeBoxes(s, args.get_sequence(), form, evaluation)
 
 
 class TableForm(FormBaseClass):
@@ -746,7 +728,6 @@ class TableForm(FormBaseClass):
      .
      . -Graphics-   -Graphics-   -Graphics-
      .
-     . -Graphics-   -Graphics-   -Graphics-
      .
      . -Graphics-   -Graphics-   -Graphics-
      .
@@ -754,9 +735,14 @@ class TableForm(FormBaseClass):
      .
      . -Graphics-   -Graphics-   -Graphics-
      .
+     .
      . -Graphics-   -Graphics-   -Graphics-
      .
      . -Graphics-   -Graphics-   -Graphics-
+     .
+     . -Graphics-   -Graphics-   -Graphics-
+     .
+     .
     """
 
     in_outputforms = True
@@ -765,8 +751,8 @@ class TableForm(FormBaseClass):
     summary_text = "format as a table"
 
     def eval_makeboxes(self, table, f, evaluation, options):
-        """MakeBoxes[%(name)s[table_, OptionsPattern[%(name)s]],
-        f:StandardForm|TraditionalForm|OutputForm]"""
+        """MakeBoxes[%(name)s[table_, OptionsPattern[]],
+        f:StandardForm|TraditionalForm]"""
         return eval_tableform(self, table, f, evaluation, options)
 
 
@@ -797,9 +783,8 @@ class MatrixForm(TableForm):
     summary_text = "format as a matrix"
 
     def eval_makeboxes_matrix(self, table, form, evaluation, options):
-        """MakeBoxes[%(name)s[table_, OptionsPattern[%(name)s]],
-        form:StandardForm|TraditionalForm]"""
-
+        """MakeBoxes[MatrixForm[table_, OptionsPattern[]],
+        (form:StandardForm|TraditionalForm)]"""
         result = super().eval_makeboxes(table, form, evaluation, options)
         if result.get_head_name() == "System`GridBox":
             return RowBox(StringLParen, result, StringRParen)

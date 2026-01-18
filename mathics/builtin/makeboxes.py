@@ -16,6 +16,7 @@ from mathics.eval.makeboxes import (
     format_element,
     parenthesize,
 )
+from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
 # TODO: Differently from the current implementation, MakeBoxes should only
 # accept as its format field the symbols in `$BoxForms`. This is something to
@@ -92,7 +93,7 @@ class MakeBoxes(Builtin):
 
     rules = {
         "MakeBoxes[Infix[head_[elements___]], "
-        "    f:StandardForm|TraditionalForm|OutputForm]": (
+        "    f:StandardForm|TraditionalForm]": (
             'MakeBoxes[Infix[head[elements], StringForm["~`1`~", head]], f]'
         ),
         "MakeBoxes[expr_]": "MakeBoxes[expr, StandardForm]",
@@ -100,7 +101,7 @@ class MakeBoxes(Builtin):
         "MakeBoxes[expr_, form:(TeXForm|MathMLForm)]": "MakeBoxes[form[expr], StandardForm]",
         (
             "MakeBoxes[(form:StandardForm|TraditionalForm)"
-            "[expr_], StandardForm|TraditionalForm|OutputForm]"
+            "[expr_], StandardForm|TraditionalForm]"
         ): ("MakeBoxes[expr, form]"),
         # BoxForms goes as second argument
         "MakeBoxes[(form:StandardForm|TraditionalForm|OutputForm)[expr_], OutputForm]": "MakeBoxes[expr, form]",
@@ -118,12 +119,12 @@ class MakeBoxes(Builtin):
 
     def eval_general(self, expr, f, evaluation):
         """MakeBoxes[expr_,
-        f:TraditionalForm|StandardForm|OutputForm]"""
+        f:TraditionalForm|StandardForm]"""
         return eval_generic_makeboxes(expr, f, evaluation)
 
     def eval_outerprecedenceform(self, expr, precedence, form, evaluation):
         """MakeBoxes[PrecedenceForm[expr_, precedence_],
-        form:StandardForm|TraditionalForm|OutputForm]"""
+        form:StandardForm|TraditionalForm]"""
 
         py_precedence = precedence.get_int_value()
         boxes = MakeBoxes(expr, form)
@@ -131,13 +132,13 @@ class MakeBoxes(Builtin):
 
     def eval_postprefix(self, p, expr, h, precedence, form, evaluation):
         """MakeBoxes[(p:Prefix|Postfix)[expr_, h_, precedence_:None],
-        form:StandardForm|TraditionalForm|OutputForm]"""
+        form:StandardForm|TraditionalForm]"""
         return eval_postprefix(self, p, expr, h, precedence, form, evaluation)
 
     def eval_infix(
         self, expr, operator, precedence: Integer, grouping, form: Symbol, evaluation
     ):
-        """MakeBoxes[Infix[expr_, operator_, precedence_:None, grouping_:None], form:StandardForm|TraditionalForm|OutputForm]"""
+        """MakeBoxes[Infix[expr_, operator_, precedence_:None, grouping_:None], form:StandardForm|TraditionalForm]"""
         return eval_infix(self, expr, operator, precedence, grouping, form, evaluation)
 
 

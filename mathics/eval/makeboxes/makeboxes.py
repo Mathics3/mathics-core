@@ -24,6 +24,7 @@ from mathics.core.systemsymbols import (  # SymbolRule, SymbolRuleDelayed,
     SymbolInputForm,
     SymbolRational,
     SymbolStandardForm,
+    SymbolTraditionalForm,
 )
 from mathics.eval.makeboxes.formatvalues import do_format
 from mathics.eval.makeboxes.precedence import parenthesize
@@ -57,6 +58,18 @@ def _boxed_string(string: str, **options):
     from mathics.builtin.box.layout import StyleBox
 
     return StyleBox(String(string), **options)
+
+
+def eval_makeboxes_outputform(expr, evaluation, form, **kwargs):
+    """
+    Build a 2D representation of the expression using only keyboard characters.
+    """
+    from mathics.builtin.box.layout import PaneBox
+    from mathics.form.outputform import expression_to_outputform_text
+
+    text_outputform = str(expression_to_outputform_text(expr, evaluation, **kwargs))
+    elem1 = PaneBox(String('"' + text_outputform + '"'))
+    return elem1
 
 
 # TODO: evaluation is needed because `atom_to_boxes` uses it. Can we remove this
@@ -179,12 +192,11 @@ def eval_makeboxes(
     # This is going to be reimplemented. By now, much of the formatting
     # relies in rules of the form `MakeBoxes[expr, OutputForm]`
     # which is wrong.
-    if form is SymbolFullForm:
-        return eval_makeboxes_fullform(expr, evaluation)
-    if form is SymbolInputForm:
+    if form in (SymbolFullForm, SymbolInputForm):
         expr = Expression(form, expr)
         form = SymbolStandardForm
-    return Expression(SymbolMakeBoxes, expr, form).evaluate(evaluation)
+    result = Expression(SymbolMakeBoxes, expr, form).evaluate(evaluation)
+    return result
 
 
 def format_element(
@@ -193,11 +205,32 @@ def format_element(
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
+    # Halt any potential evaluation tracing while performing boxing.
     evaluation.is_boxing = True
+
+    if form not in (SymbolStandardForm, SymbolTraditionalForm):
+        element = Expression(form, element)
+        form = SymbolStandardForm
+
+    while element.get_head() is form:
+        element = element.elements[0]
+
+    # In order to work like in WMA, `format_element`
+    # should evaluate `MakeBoxes[element//form, StandardForm]`
+    # Then, MakeBoxes[expr_, StandardForm], for any expr,
+    # should apply Format[...] rules, and then
+    # MakeBoxes[...] rules. These rules should be stored
+    # as FormatValues[...]
+    # As a first step in that direction, let's mimic this behaviour
+    # just for the case of OutputForm:
+    if element.has_form("OutputForm", 1):
+        return eval_makeboxes_outputform(element.elements[0], evaluation, form)
+
     formatted_expr = do_format(element, evaluation, form)
     # print("format",element, form)
     if formatted_expr is None:
         return None
+
     # print(" FormatValues->", formatted_expr)
     result_box = eval_makeboxes(formatted_expr, evaluation, form)
     # print(" box rules->", result_box)
