@@ -82,6 +82,8 @@ def gridbox(self, elements=None, **box_options) -> str:
     evaluation = box_options.get("evaluation", None)
     items, options = self.get_array(elements, evaluation)
 
+    box_options.update(self.options)
+
     result = ""
     if not items:
         return ""
@@ -98,10 +100,11 @@ def gridbox(self, elements=None, **box_options) -> str:
                 for item in row
             ]
             if isinstance(row, tuple)
-            else [boxes_to_text(row, **box_options)]
+            else boxes_to_text(row, **box_options)
         )
         for row in items
     ]
+
     try:
         return text_cells_to_grid(cells)
     except _WrongFormattedExpression:

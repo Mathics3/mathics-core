@@ -55,6 +55,8 @@ def eval_tableform(self, table, f, evaluation, options):
         evaluation.message(self.get_name(), "int")
         return
 
+    grid_options = evaluation.definitions.get_options("System`GridBox")
+
     if depth <= 0:
         return format_element(table, evaluation, f)
     elif depth == 1:
@@ -64,7 +66,8 @@ def eval_tableform(self, table, f, evaluation, options):
                     ListExpression(format_element(item, evaluation, f))
                     for item in table.elements
                 ),
-            )
+            ),
+            **grid_options,
         )
         # return Expression(
         #    'GridBox', Expression('List', *(
@@ -87,7 +90,8 @@ def eval_tableform(self, table, f, evaluation, options):
                     )
                     for row in table.elements
                 ),
-            )
+            ),
+            **grid_options,
         )
         options["System`TableDepth"] = Integer(depth)
         return result

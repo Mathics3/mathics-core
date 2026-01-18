@@ -140,7 +140,7 @@ class Grid(Builtin):
 
         return GridBox(
             ListExpression(*(format_row(row) for row in rows)),
-            *options_to_rules(options),
+            **options,
         )
 
 

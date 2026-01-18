@@ -162,7 +162,7 @@ class GridBox(BoxExpression):
     def elements(self):
         if self._elements is None:
             self._elements = elements_to_expressions(self, self.items, self.box_options)
-        return self.elements
+        return self._elements
 
     def init(self, *elems, **kwargs):
         self.options = kwargs
@@ -173,7 +173,8 @@ class GridBox(BoxExpression):
         if not elements:
             raise BoxConstructError
 
-        options = self.get_option_values(elements=elements[1:], evaluation=evaluation)
+        options = self.options
+
         expr = elements[0]
         if not expr.has_form("List", None):
             if not all(element.has_form("List", None) for element in expr.elements):
