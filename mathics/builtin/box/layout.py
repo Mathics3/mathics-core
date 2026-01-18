@@ -5,13 +5,13 @@ Low-Level Notebook Structure
 Formatting constructs are represented as a hierarchy of low-level \
 symbolic "boxes".
 
-The routines here assist in boxing at the bottom of the hierarchy, typically found when using in a notebook.
+The routines here assist in boxing at the bottom of the hierarchy, typically found when used via a notebook.
 
 Boxing is recursively performed using on the <url>:Head:/doc/reference-of-built-in-symbols/atomic-elements-of-expressions/atomic-primitives/head/</url> of a \Mathics expression
 """
 
 # The Box objects are `BoxElementMixin` objects. These objects are literal
-# objects, and do `evaluate`.  Instead text render functions in
+# objects, and do `evaluate`.  Instead, text render functions in
 # `mathics.format.render` processes the `BoxElementMixin` object to produce
 # output.
 
@@ -78,7 +78,7 @@ class ButtonBox(BoxExpression):
     summary_text = "box construct for buttons"
 
 
-# Right now this seems to be used only in GridBox.
+# Right now, this seems to be used only in GridBox.
 def is_constant_list(list):
     if list:
         return all(item == list[0] for item in list[1:])
@@ -156,7 +156,7 @@ class GridBox(BoxExpression):
     summary_text = "low-level representation of an arbitrary 2D layout"
 
     # TODO: elements in the GridBox should be stored as an array with
-    # elements in its evaluated form.
+    # elements in their evaluated form.
 
     @property
     def elements(self):
