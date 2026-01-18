@@ -225,9 +225,8 @@ def _postfix_expression_to_inputform_text(
     if len(operands) != 1:
         raise _WrongFormattedExpression
     operand = operands[0]
-    target_txt = render_input_form(operand, evaluation, **kwargs)
-    parenthesized = group in (None, SymbolRight, SymbolNonAssociative)
-    target_txt = parenthesize(precedence, operand, target_txt, True)
+    inputform_txt = render_input_form(operand, evaluation, **kwargs)
+    target_txt = parenthesize(precedence, operand, inputform_txt, True)
     return target_txt + op_head
 
 

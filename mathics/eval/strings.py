@@ -17,7 +17,6 @@ from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.format.box import format_element
 
 
-# A better thing to do would be to write a pymathics module that
 def eval_ToString(
     expr: BaseElement, form: Symbol, encoding: String, evaluation: Evaluation
 ) -> String:

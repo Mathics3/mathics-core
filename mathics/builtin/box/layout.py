@@ -12,7 +12,7 @@ Boxing is recursively performed using on the <url>:Head:/doc/reference-of-built-
 
 # The Box objects are `BoxElementMixin` objects. These objects are literal
 # objects, and do `evaluate`.  Instead text render functions in
-# `mathics.format.export` processes the `BoxElementMixin` object to produce
+# `mathics.format.render` processes the `BoxElementMixin` object to produce
 # output.
 
 

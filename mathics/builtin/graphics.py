@@ -928,7 +928,7 @@ class _BezierCurve:
         return draw
 
     def make_draw_asy(self, pen):
-        from mathics.format.export.asy_fns import asy_bezier
+        from mathics.format.render.asy_fns import asy_bezier
 
         def draw(points):
             for path in asy_bezier((self.spline_degree, points)):
