@@ -21,7 +21,6 @@ from mathics.core.atoms import (
     Integer0,
     Integer1,
     Integer10,
-    Integer310,
     IntegerM1,
     Number,
     Rational,
@@ -64,17 +63,12 @@ from mathics.core.systemsymbols import (
     SymbolConditionalExpression,
     SymbolD,
     SymbolDerivative,
-    SymbolDivide,
     SymbolFunction,
-    SymbolHoldForm,
     SymbolIndeterminate,
     SymbolInfinity,
-    SymbolInfix,
     SymbolIntegrate,
-    SymbolLeft,
     SymbolLog,
     SymbolNIntegrate,
-    SymbolO,
     SymbolRule,
     SymbolSequence,
     SymbolSeries,
@@ -97,7 +91,6 @@ from mathics.eval.numbers.calculus.series import (
     series_times_series,
 )
 from mathics.format.formvalues.calculus import format_series
-from mathics.format.makeboxes import format_element
 
 # These should be used in lower-level formatting
 SymbolDifferentialD = Symbol("System`DifferentialD")

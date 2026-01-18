@@ -39,7 +39,6 @@ from mathics.core.systemsymbols import (
     SymbolRight,
 )
 from mathics.format.makeboxes.formatvalues import do_format  # , format_element
-from mathics.format.makeboxes.precedence import compare_precedence
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
 from .util import (

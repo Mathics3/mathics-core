@@ -4,11 +4,7 @@ from mathics.core.atoms import Integer, String
 from mathics.core.expression import BoxError, Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import SymbolFullForm, SymbolList
-from mathics.core.systemsymbols import (
-    SymbolMakeBoxes,
-    SymbolRowBox,
-    SymbolTraditionalForm,
-)
+from mathics.core.systemsymbols import SymbolRowBox, SymbolTraditionalForm
 from mathics.eval.testing_expressions import expr_min
 from mathics.format.makeboxes.makeboxes import format_element
 

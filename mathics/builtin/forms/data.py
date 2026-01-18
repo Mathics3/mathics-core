@@ -9,14 +9,13 @@ or <url>:StandardForm:
 /doc/reference-of-built-in-symbols/forms-of-input-and-output/printforms/standardform/</url>, \
 which are intended to work over all kinds of data.
 """
-import re
 from typing import Any, Callable, Dict, List, Optional
 
 from mathics.builtin.box.layout import RowBox, StyleBox
 from mathics.builtin.forms.base import FormBaseClass
 from mathics.core.atoms import Integer, Real, String
 from mathics.core.builtin import Builtin
-from mathics.core.element import BaseElement, EvalMixin
+from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
