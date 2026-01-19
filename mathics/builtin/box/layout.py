@@ -165,7 +165,6 @@ class GridBox(BoxExpression):
         return self._elements
 
     def init(self, *elems, **kwargs):
-        assert kwargs
         self.options = kwargs
         self.items = elems
         self._elements = elems

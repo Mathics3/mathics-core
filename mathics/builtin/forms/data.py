@@ -702,7 +702,13 @@ class StringForm(FormBaseClass):
     def eval_makeboxes(self, s, args, form, evaluation):
         """MakeBoxes[StringForm[s_String, args___],
         form:StandardForm|TraditionalForm]"""
-        return eval_StringForm_MakeBoxes(s, args.get_sequence(), form, evaluation)
+        try:
+            result = eval_StringForm_MakeBoxes(s, args.get_sequence(), form, evaluation)
+        except ValueError:
+            result = s
+        if isinstance(result, String):
+            result = StyleBox(String(result))
+        return result
 
 
 class TableForm(FormBaseClass):

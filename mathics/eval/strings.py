@@ -182,8 +182,7 @@ def eval_StringForm_MakeBoxes(strform, items, form, evaluation):
             # character:
             if not remaining:
                 evaluation.message("StringForm", "sfq", strform)
-                return strform.value
-
+                raise ValueError
             # part must be an index or an empty string.
             # If is an empty string, pick the next element:
             if part == "":
@@ -195,8 +194,7 @@ def eval_StringForm_MakeBoxes(strform, items, form, evaluation):
                         Integer(num_items),
                         strform,
                     )
-                    return strform.value
-
+                    return ValueError
                 result.append(items[curr_indx])
                 curr_indx += 1
                 quote_open = False
@@ -208,16 +206,14 @@ def eval_StringForm_MakeBoxes(strform, items, form, evaluation):
                 evaluation.message(
                     "StringForm", "sfr", Integer0, Integer(num_items), strform
                 )
-                return strform.value
-
+                raise
             # indx must be greater than 0, and not greater than
             # the number of items
             if indx <= 0 or indx > len(items):
                 evaluation.message(
                     "StringForm", "sfr", Integer(indx), Integer(len(items)), strform
                 )
-                return strform.value
-
+                raise ValueError
             result.append(items[indx - 1])
             curr_indx = indx
             quote_open = False

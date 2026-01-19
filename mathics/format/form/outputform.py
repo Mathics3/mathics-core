@@ -114,7 +114,6 @@ def _divide(num, den, evaluation, **kwargs):
         Integer(PRECEDENCE_TIMES),
         SymbolLeft,
     )
-
     return render_output_form(infix_form, evaluation, **kwargs)
 
 
@@ -680,11 +679,9 @@ def rational_render_output_form(
 ):
     if isinstance(n, Rational):
         num, den = n.numerator(), n.denominator()  # type: ignore[union-attr]
-    elif isinstance(n, Expression) and n.has_form("Rational", 2):
+    elif n.has_form("Rational", 2):
         num, den = n.elements  # type: ignore[union-attr]
     else:
-        print("n=", n)
-        1 / 0
         raise _WrongFormattedExpression
     return _divide(num, den, evaluation, **kwargs)
 
@@ -886,7 +883,6 @@ def style_to_outputform_text(expr: Expression, evaluation: Evaluation, **kwargs)
     elements = expr.elements
     if not elements:
         raise _WrongFormattedExpression
-
     return render_output_form(elements[0], evaluation, **kwargs)
 
 
