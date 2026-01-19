@@ -78,6 +78,7 @@ def gather_and_format_definition_rules(
                     {"System`Definition": Expression(SymbolHoldForm, SymbolDefinition)}
                 )
             )
+            r = Expression(SymbolInputForm, r)
             lines.append(
                 Expression(
                     SymbolHoldForm,
@@ -107,7 +108,9 @@ def gather_and_format_definition_rules(
             for rule in rules:
 
                 def lhs(expr):
-                    return Expression(SymbolFormat, expr, Symbol(format))
+                    return Expression(
+                        SymbolInputForm, Expression(SymbolFormat, expr, Symbol(format))
+                    )
 
                 def rhs(expr):
                     if expr.has_form("Infix", None):
@@ -235,7 +238,7 @@ class Definition(Builtin):
     >> f[x_] := x ^ 2
     >> g[f] ^:= 2
     >> Definition[f]
-     = f[x_] = x ^ 2
+     = f[x_] = x^2
      .
      . g[f] ^= 2
 
@@ -266,19 +269,20 @@ class Definition(Builtin):
      .
      . N[r, MachinePrecision] = 3.5
      .
-     . Format[args___, MathMLForm] = Infix[{args}, "~"]
+     . Format[r[args___], MathMLForm] = Infix[{args}, "~"]
      .
-     . Format[args___, OutputForm] = Infix[{args}, "~"]
+     . Format[r[args___], OutputForm] = Infix[{args}, "~"]
      .
-     . Format[args___, StandardForm] = Infix[{args}, "~"]
+     . Format[r[args___], StandardForm] = Infix[{args}, "~"]
      .
-     . Format[args___, TeXForm] = Infix[{args}, "~"]
+     . Format[r[args___], TeXForm] = Infix[{args}, "~"]
      .
-     . Format[args___, TraditionalForm] = Infix[{args}, "~"]
+     . Format[r[args___], TraditionalForm] = Infix[{args}, "~"]
      .
      . Default[r, 1] = 2
      .
-     . Options[r] = {Opt -> 3}
+     .Options[r] = {Opt -> 3}
+     .
 
     For 'ReadProtected' symbols, 'Definition' just prints attributes, default values and options:
     >> SetAttributes[r, ReadProtected]
