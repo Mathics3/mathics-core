@@ -82,7 +82,7 @@ def collect_in_pre_post_arguments(
         raise _WrongFormattedExpression
 
     head = expr.head
-    group = None
+    group = SymbolNone
     precedence = PRECEDENCE_BOX_GROUP
     operands = list(target.elements)
 
@@ -122,7 +122,7 @@ def collect_in_pre_post_arguments(
         if group not in (SymbolNone, SymbolLeft, SymbolRight, SymbolNonAssociative):
             raise _WrongFormattedExpression
         if group is SymbolNone:
-            group = None
+            group = SymbolNone
 
     return operands, operator_spec, precedence, group
 

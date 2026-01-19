@@ -51,6 +51,13 @@ class Optional(InfixOperator, PatternObject):
     >> FullForm[s_.]
      = Optional[Pattern[s, Blank[]]]
 
+    'InputForm' shows it in its 'Infix' or 'Postfix' form depending on the \
+    number of parameters:
+    >> InputForm[s_:a+b^2]
+     = s_ : a + b^2
+    Following WMA conventions,
+    >> InputForm[Optional[s__]]
+     = (s__.)
     >> Default[h, k_] := k
     >> h[a] /. h[x_, y_.] -> {x, y}
      = {a, 2}
