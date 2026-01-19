@@ -163,7 +163,7 @@ def _infix_expression_to_inputform_text(
         raise _WrongFormattedExpression
 
     # Process the first operand:
-    parenthesized = group in (SymbolNone, SymbolRight, SymbolNonAssociative)
+    parenthesized = group in (SymbolRight, SymbolNonAssociative)
     operand = operands[0]
     result = str(render_input_form(operand, evaluation, **kwargs))
     result = parenthesize(precedence, operand, result, parenthesized)
