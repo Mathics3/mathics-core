@@ -59,12 +59,14 @@ def do_format(
 
 def do_format_element(
     element: BaseElement, evaluation: Evaluation, form: Symbol
-) -> BaseElement:
+) -> Optional[BaseElement]:
     """
     Applies formats associated to the expression and removes
     superfluous enclosing formats.
     """
     from mathics.core.definitions import OutputForms
+
+    head: BaseElement
 
     evaluation.inc_recursion_depth()
     try:
@@ -170,7 +172,7 @@ def do_format_element(
             )
             expr_head = expr.head
             do_format = _element_formatters.get(type(expr_head), do_format_element)
-            head = do_format(expr_head, evaluation, form)
+            head = do_format(expr_head, evaluation, form) or expr_head
             expr = to_expression_with_specialization(head, *new_elements)
 
         if include_form:
@@ -186,6 +188,7 @@ def do_format_rational(
     if not isinstance(element, Rational):
         return None
 
+    result: BaseElement
     numerator = element.numerator()
     minus = numerator.value < 0
     if minus:
@@ -194,7 +197,7 @@ def do_format_rational(
     if minus:
         result = Expression(SymbolMinus, result)
     result = Expression(SymbolHoldForm, result)
-    result = do_format_expression(result, evaluation, form)
+    result = do_format_expression(result, evaluation, form) or result
     return result
 
 
@@ -236,7 +239,7 @@ def do_format_expression(
     #            last_evaluated_time, set((symbolname,))
     #        ):
     #            return expr
-    expr = do_format_element(element, evaluation, form)
+    expr = do_format_element(element, evaluation, form) or element
     # element._format_cache[form] = (evaluation.definitions.now, expr)
     return expr
 
