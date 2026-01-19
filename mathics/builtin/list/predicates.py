@@ -2,13 +2,12 @@
 Predicates on Lists
 """
 
-from mathics.builtin.options import options_to_rules
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
+from mathics.core.element import BaseElement
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
-from mathics.core.systemsymbols import SymbolContainsOnly
 
 
 class ContainsOnly(Builtin):
@@ -51,7 +50,13 @@ class ContainsOnly(Builtin):
 
     summary_text = "test if all the elements of a list appears into another list"
 
-    def eval(self, list1, list2, evaluation, options={}):
+    def eval(
+        self,
+        list1: BaseElement,
+        list2: BaseElement,
+        evaluation: Evaluation,
+        options: dict,
+    ) -> BaseElement:
         "ContainsOnly[list1_List, list2_List, OptionsPattern[]]"
 
         same_test = self.get_option(options, "SameTest", evaluation)
@@ -66,13 +71,20 @@ class ContainsOnly(Builtin):
                 return SymbolFalse
         return SymbolTrue
 
-    def eval_msg(self, e1, e2, evaluation, expression, options={}):
+    def eval_msg(
+        self,
+        e1: BaseElement,
+        e2: BaseElement,
+        evaluation: Evaluation,
+        expression: Expression,
+        options: dict,
+    ) -> BaseElement:
         "expression:(ContainsOnly[e1_, e2_, OptionsPattern[]])"
-        opts = (
-            options_to_rules(options)
-            if len(options) <= 1
-            else [ListExpression(*options_to_rules(options))]
-        )
+        # opts = (
+        #    options_to_rules(options)
+        #    if len(options) <= 1
+        #    else [ListExpression(*options_to_rules(options))]
+        # )
 
         if not isinstance(e1, Symbol) and not e1.has_form("List", None):
             evaluation.message("ContainsOnly", "lsa", e1)

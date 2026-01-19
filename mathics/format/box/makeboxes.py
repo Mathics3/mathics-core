@@ -6,7 +6,7 @@ makeboxes rules.
 """
 
 
-from typing import Optional, Union
+from typing import List
 
 from mathics.core.atoms import Complex, Rational, String
 from mathics.core.element import BaseElement, BoxElementMixin
@@ -26,8 +26,10 @@ from mathics.core.systemsymbols import (  # SymbolRule, SymbolRuleDelayed,
     SymbolStandardForm,
     SymbolTraditionalForm,
 )
-from mathics.eval.makeboxes.formatvalues import do_format
-from mathics.eval.makeboxes.precedence import parenthesize
+from mathics.format.box.formatvalues import do_format
+from mathics.format.box.precedence import parenthesize
+
+BOX_FORMS = {SymbolStandardForm, SymbolTraditionalForm}
 
 
 def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElementMixin:
@@ -60,35 +62,33 @@ def _boxed_string(string: str, **options):
     return StyleBox(String(string), **options)
 
 
-def eval_makeboxes_outputform(expr, evaluation, form, **kwargs):
-    """
-    Build a 2D representation of the expression using only keyboard characters.
-    """
-    from mathics.builtin.box.layout import PaneBox
-    from mathics.form.outputform import expression_to_outputform_text
-
-    text_outputform = str(expression_to_outputform_text(expr, evaluation, **kwargs))
-    elem1 = PaneBox(String('"' + text_outputform + '"'))
-    return elem1
-
-
 # TODO: evaluation is needed because `atom_to_boxes` uses it. Can we remove this
 # argument?
 def eval_makeboxes_fullform(
-    expr: BaseElement, evaluation: Evaluation
+    element: BaseElement, evaluation: Evaluation
 ) -> BoxElementMixin:
     """Same as MakeBoxes[FullForm[expr_], f_]"""
+    from mathics.builtin.box.expression import BoxExpression
     from mathics.builtin.box.layout import RowBox
 
-    if isinstance(expr, BoxElementMixin):
-        expr = expr.to_expression()
-    if isinstance(expr, Atom):
-        if isinstance(expr, Rational):
-            expr = Expression(SymbolRational, expr.numerator(), expr.denominator())
-        elif isinstance(expr, Complex):
-            expr = Expression(SymbolComplex, expr.real, expr.imag)
+    expr: Expression
+
+    if isinstance(element, BoxExpression):
+        expr = element.to_expression()
+    elif isinstance(element, Atom):
+        if isinstance(element, Rational):
+            expr = Expression(
+                SymbolRational, element.numerator(), element.denominator()
+            )
+        elif isinstance(element, Complex):
+            expr = Expression(SymbolComplex, element.real, element.imag)
         else:
-            return expr.atom_to_boxes(SymbolFullForm, evaluation)
+            return element.atom_to_boxes(SymbolFullForm, evaluation)
+    elif isinstance(element, Expression):
+        expr = element
+    else:
+        raise ValueError
+
     head, elements = expr.head, expr.elements
     boxed_elements = tuple(
         (eval_makeboxes_fullform(element, evaluation) for element in elements)
@@ -101,6 +101,7 @@ def eval_makeboxes_fullform(
     #    return RowBox(boxed_elements[0], String("->"), boxed_elements[1])
     # if head is SymbolRuleDelayed and len(elements) == 2:
     #    return RowBox(boxed_elements[0], String(":>"), boxed_elements[1])
+    result_elements: List[BoxElementMixin]
     if head is SymbolList:
         left, right, sep = (String(ch) for ch in ("{", "}", ","))
         result_elements = [left]
@@ -109,7 +110,7 @@ def eval_makeboxes_fullform(
         result_elements = [eval_makeboxes_fullform(head, evaluation), left]
 
     if len(boxed_elements) > 1:
-        arguments = []
+        arguments: List[BoxElementMixin] = []
         for b_elem in boxed_elements:
             if len(arguments) > 0:
                 arguments.append(sep)
@@ -121,9 +122,23 @@ def eval_makeboxes_fullform(
     return RowBox(*result_elements)
 
 
+def eval_makeboxes_outputform(
+    expr: BaseElement, evaluation: Evaluation, form: Symbol, **kwargs
+):
+    """
+    Build a 2D representation of the expression using only keyboard characters.
+    """
+    from mathics.builtin.box.layout import PaneBox
+    from mathics.format.form.outputform import render_output_form
+
+    text_outputform = str(render_output_form(expr, evaluation, **kwargs))
+    elem1 = PaneBox(String('"' + text_outputform + '"'))
+    return elem1
+
+
 def eval_generic_makeboxes(expr, f, evaluation):
     """MakeBoxes[expr_,
-    f:TraditionalForm|StandardForm|OutputForm|InputForm]"""
+    f:TraditionalForm|StandardForm]"""
     from mathics.builtin.box.layout import RowBox
 
     if isinstance(expr, BoxElementMixin):
@@ -182,7 +197,7 @@ def eval_generic_makeboxes(expr, f, evaluation):
 
 def eval_makeboxes(
     expr, evaluation: Evaluation, form=SymbolStandardForm
-) -> Optional[BaseElement]:
+) -> BoxElementMixin:
     """
     This function takes the definitions provided by the evaluation
     object, and produces a boxed fullform for expr.
@@ -192,51 +207,32 @@ def eval_makeboxes(
     # This is going to be reimplemented. By now, much of the formatting
     # relies in rules of the form `MakeBoxes[expr, OutputForm]`
     # which is wrong.
-    if form in (SymbolFullForm, SymbolInputForm):
+    if form is SymbolFullForm:
+        return eval_makeboxes_fullform(expr, evaluation)
+    if form not in BOX_FORMS:
+        # print(form, "not in", BOX_FORMS)
         expr = Expression(form, expr)
         form = SymbolStandardForm
-    result = Expression(SymbolMakeBoxes, expr, form).evaluate(evaluation)
-    return result
+    mb_expr = Expression(SymbolMakeBoxes, expr, form)
+    # print("   evaluate", mb_expr)
+    return mb_expr.evaluate(evaluation)
 
 
 def format_element(
     element: BaseElement, evaluation: Evaluation, form: Symbol, **kwargs
-) -> Optional[Union[BoxElementMixin, BaseElement]]:
+) -> BoxElementMixin:
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
-    # Halt any potential evaluation tracing while performing boxing.
+    # print(" * format",form, element)
+    if form is SymbolFullForm:
+        return eval_makeboxes_fullform(element, evaluation)
+
     evaluation.is_boxing = True
-
-    if form not in (SymbolStandardForm, SymbolTraditionalForm):
-        element = Expression(form, element)
-        form = SymbolStandardForm
-
-    while element.get_head() is form:
-        element = element.elements[0]
-
-    # In order to work like in WMA, `format_element`
-    # should evaluate `MakeBoxes[element//form, StandardForm]`
-    # Then, MakeBoxes[expr_, StandardForm], for any expr,
-    # should apply Format[...] rules, and then
-    # MakeBoxes[...] rules. These rules should be stored
-    # as FormatValues[...]
-    # As a first step in that direction, let's mimic this behaviour
-    # just for the case of OutputForm:
-    if element.has_form("OutputForm", 1):
-        return eval_makeboxes_outputform(element.elements[0], evaluation, form)
-
     formatted_expr = do_format(element, evaluation, form)
-    # print("format",element, form)
-    if formatted_expr is None:
-        return None
-
-    # print(" FormatValues->", formatted_expr)
+    # print(" * FormatValues->", formatted_expr)
     result_box = eval_makeboxes(formatted_expr, evaluation, form)
     # print(" box rules->", result_box)
-    if isinstance(result_box, String):
-        return result_box
     if isinstance(result_box, BoxElementMixin):
         return result_box
-    else:
-        return eval_makeboxes_fullform(element, evaluation)
+    return eval_makeboxes_fullform(element, evaluation)

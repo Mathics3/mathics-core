@@ -23,7 +23,7 @@ from mathics.core.atoms import String
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import add_conversion_fn, lookup_method
 from mathics.core.symbols import Atom, SymbolTrue
-from mathics.form.util import _WrongFormattedExpression, text_cells_to_grid
+from mathics.format.form.util import _WrongFormattedExpression, text_cells_to_grid
 
 
 def boxes_to_text(boxes, **options) -> str:
@@ -82,13 +82,10 @@ def gridbox(self, elements=None, **box_options) -> str:
     evaluation = box_options.get("evaluation", None)
     items, options = self.get_array(elements, evaluation)
 
-    result = ""
+    box_options.update(self.options)
+
     if not items:
         return ""
-    try:
-        widths = [0] * max(1, max(len(row) for row in items if isinstance(row, tuple)))
-    except ValueError:
-        widths = [0]
 
     cells = [
         (
@@ -98,10 +95,11 @@ def gridbox(self, elements=None, **box_options) -> str:
                 for item in row
             ]
             if isinstance(row, tuple)
-            else [boxes_to_text(row, **box_options)]
+            else boxes_to_text(row, **box_options)
         )
         for row in items
     ]
+
     try:
         return text_cells_to_grid(cells)
     except _WrongFormattedExpression:

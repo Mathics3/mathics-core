@@ -18,13 +18,13 @@ from mathics.core.atoms import String
 from mathics.core.expression import Expression
 from mathics.core.symbols import SymbolFalse, SymbolFullForm, SymbolTrue
 from mathics.core.systemsymbols import SymbolInputForm, SymbolOutputForm
-from mathics.eval.makeboxes import (
+from mathics.format.box import (
     eval_makeboxes_fullform,
     eval_makeboxes_outputform,
     eval_mathmlform,
     eval_texform,
 )
-from mathics.form import render_input_form
+from mathics.format.form import render_input_form
 
 sort_order = "mathics.builtin.forms.general-purpose-forms"
 
@@ -118,7 +118,7 @@ class InputForm(FormBaseClass):
 
     # TODO: eventually, remove OutputForm in the second argument.
     def eval_makeboxes(self, expr, evaluation):
-        """MakeBoxes[InputForm[expr_], Alternatives[StandardForm,TraditionalForm,OutputForm]]"""
+        """MakeBoxes[InputForm[expr_], Alternatives[StandardForm,TraditionalForm]]"""
 
         inputform = String(render_input_form(expr, evaluation))
         inputform = StyleBox(
@@ -201,8 +201,6 @@ class OutputForm(FormBaseClass):
 
     formats = {"OutputForm[s_String]": "s"}
     summary_text = "format expression in plain text"
-    # Remove me at the end of the refactor
-    rules = {"MakeBoxes[OutputForm[expr_], form_]": "MakeBoxes[expr, OutputForm]"}
 
     def eval_makeboxes(self, expr, form, evaluation):
         """MakeBoxes[OutputForm[expr_], form_]"""

@@ -11,7 +11,7 @@ which are intended to work over all kinds of data.
 """
 from typing import Any, Callable, Dict, List, Optional
 
-from mathics.builtin.box.layout import RowBox, StyleBox, SuperscriptBox
+from mathics.builtin.box.layout import RowBox, SuperscriptBox
 from mathics.builtin.forms.base import FormBaseClass
 from mathics.core.atoms import Integer, Real, String
 from mathics.core.builtin import Builtin
@@ -21,7 +21,8 @@ from mathics.core.expression import Expression
 from mathics.core.number import dps
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolInfinity, SymbolMakeBoxes
-from mathics.eval.makeboxes import (
+from mathics.eval.strings import eval_StringForm_MakeBoxes, eval_ToString
+from mathics.format.box import (
     StringLParen,
     StringRParen,
     eval_baseform,
@@ -31,7 +32,6 @@ from mathics.eval.makeboxes import (
     get_numberform_parameters,
     numberform_to_boxes,
 )
-from mathics.eval.strings import eval_StringForm_MakeBoxes, eval_ToString
 
 
 class BaseForm(FormBaseClass):
@@ -88,8 +88,11 @@ class BaseForm(FormBaseClass):
 
     def eval_makeboxes(self, expr, n, f, evaluation: Evaluation):
         """MakeBoxes[BaseForm[expr_, n_],
-        f:StandardForm|TraditionalForm]"""
-        return eval_baseform(expr, n, f, evaluation)
+        (f:StandardForm|TraditionalForm)]"""
+        try:
+            return eval_baseform(expr, n, f, evaluation)
+        except ValueError:
+            return None
 
 
 class _NumberForm(Builtin):
@@ -623,7 +626,7 @@ class SequenceForm(FormBaseClass):
 
     def eval_makeboxes(self, args, form, evaluation, options: dict):
         """MakeBoxes[SequenceForm[args___, OptionsPattern[SequenceForm]],
-        form:StandardForm|TraditionalForm|OutputForm]"""
+        form:StandardForm|TraditionalForm]"""
         encoding = options["System`CharacterEncoding"]
         return RowBox(
             *[

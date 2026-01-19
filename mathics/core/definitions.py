@@ -167,7 +167,7 @@ class Definitions:
         self.trace_show_rewrite = False
         self.timing_trace_evaluation = False
 
-        # Importing "mathics.format" populates the Symbol of the
+        # Importing "mathics.format.render" populates the Symbol of the
         # PrintForms and OutputForms sets.
         #
         # If "importlib" is used instead of "import", then we get:
@@ -176,7 +176,7 @@ class Definitions:
         # Rocky: this smells of something not quite right in terms of
         # modularity.
 
-        import mathics.format  # noqa
+        import mathics.format.render  # noqa
 
         self.printforms = list(PrintForms)
         self.outputforms = list(OutputForms)

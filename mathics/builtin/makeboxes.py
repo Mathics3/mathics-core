@@ -8,7 +8,7 @@ from mathics.core.atoms import Integer
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Predefined
 from mathics.core.symbols import Symbol
-from mathics.eval.makeboxes import (
+from mathics.format.box import (
     eval_generic_makeboxes,
     eval_infix,
     eval_makeboxes_fullform,
@@ -16,7 +16,6 @@ from mathics.eval.makeboxes import (
     format_element,
     parenthesize,
 )
-from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
 # TODO: Differently from the current implementation, MakeBoxes should only
 # accept as its format field the symbols in `$BoxForms`. This is something to
@@ -104,7 +103,6 @@ class MakeBoxes(Builtin):
             "[expr_], StandardForm|TraditionalForm]"
         ): ("MakeBoxes[expr, form]"),
         # BoxForms goes as second argument
-        "MakeBoxes[(form:StandardForm|TraditionalForm|OutputForm)[expr_], OutputForm]": "MakeBoxes[expr, form]",
         "MakeBoxes[PrecedenceForm[expr_, prec_], f_]": "MakeBoxes[expr, f]",
         "MakeBoxes[Style[expr_, OptionsPattern[Style]], f_]": (
             "StyleBox[MakeBoxes[expr, f], "

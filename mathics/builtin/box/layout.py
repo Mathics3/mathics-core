@@ -5,14 +5,14 @@ Low-Level Notebook Structure
 Formatting constructs are represented as a hierarchy of low-level \
 symbolic "boxes".
 
-The routines here assist in boxing at the bottom of the hierarchy, typically found when using in a notebook.
+The routines here assist in boxing at the bottom of the hierarchy, typically found when used via a notebook.
 
 Boxing is recursively performed using on the <url>:Head:/doc/reference-of-built-in-symbols/atomic-elements-of-expressions/atomic-primitives/head/</url> of a \Mathics expression
 """
 
 # The Box objects are `BoxElementMixin` objects. These objects are literal
-# objects, and do `evaluate`.  Instead text render functions in
-# `mathics.format` processes the `BoxElementMixin` object to produce
+# objects, and do `evaluate`.  Instead, text render functions in
+# `mathics.format.render` processes the `BoxElementMixin` object to produce
 # output.
 
 
@@ -29,7 +29,7 @@ from mathics.core.exceptions import BoxConstructError
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
-from mathics.eval.makeboxes import to_boxes
+from mathics.format.box import to_boxes
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.low-level-notebook-structure"
@@ -78,7 +78,7 @@ class ButtonBox(BoxExpression):
     summary_text = "box construct for buttons"
 
 
-# Right now this seems to be used only in GridBox.
+# Right now, this seems to be used only in GridBox.
 def is_constant_list(list):
     if list:
         return all(item == list[0] for item in list[1:])
@@ -156,7 +156,7 @@ class GridBox(BoxExpression):
     summary_text = "low-level representation of an arbitrary 2D layout"
 
     # TODO: elements in the GridBox should be stored as an array with
-    # elements in its evaluated form.
+    # elements in their evaluated form.
 
     @property
     def elements(self):
@@ -175,6 +175,7 @@ class GridBox(BoxExpression):
             raise BoxConstructError
 
         options = self.options
+
         expr = elements[0]
         if not expr.has_form("List", None):
             if not all(element.has_form("List", None) for element in expr.elements):

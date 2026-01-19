@@ -39,7 +39,7 @@ from mathics.core.formatter import (
 )
 from mathics.core.symbols import SymbolTrue
 from mathics.core.systemsymbols import SymbolAutomatic
-from mathics.format.asy_fns import asy_color, asy_create_pens, asy_number
+from mathics.format.render.asy_fns import asy_color, asy_create_pens, asy_number
 
 # mathics_scanner does not generates this table in a way that we can load it here.
 # When it get fixed, we can use that table instead of this one:
