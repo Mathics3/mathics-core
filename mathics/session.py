@@ -115,7 +115,7 @@ class MathicsSession:
         # the formats must be already loaded.
         # The need of importing this module here seems
         # to be related to an issue in the modularity design.
-        import mathics.format.export
+        import mathics.format.render
 
         if character_encoding is not None:
             mathics.settings.SYSTEM_CHARACTER_ENCODING = character_encoding
