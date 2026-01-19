@@ -3,6 +3,7 @@
 Common routines and objects used in rendering PrintForms.
 
 """
+
 from typing import Final, FrozenSet, List, Optional, Tuple
 
 from mathics.core.atoms import Integer, String
@@ -51,7 +52,7 @@ PRECEDENCE_POWER: Final[int] = PRECEDENCES.get("Power", 590)
 
 
 # TODO: (rocky) See if we can accomplish parenthesization using precedence and association values as is common for this kind of thing.
-# 
+#
 # These constants are used to decide if two operands with the
 # same precedence than the operation which are part of must be
 # parenthesized or not.
@@ -233,12 +234,14 @@ def text_cells_to_grid(cells: List, **kwargs):
                 for line in cell:
                     col_widths[col] = max(col_widths[col], len(line))
         rows = [
-            row
-            if is_full_row
-            else [
-                [line.ljust(col_widths[col]) for line in cell]
-                for col, cell in enumerate(row)
-            ]
+            (
+                row
+                if is_full_row
+                else [
+                    [line.ljust(col_widths[col]) for line in cell]
+                    for col, cell in enumerate(row)
+                ]
+            )
             for row in rows
         ]
         return rows, col_widths
