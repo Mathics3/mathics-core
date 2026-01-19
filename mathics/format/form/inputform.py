@@ -168,10 +168,8 @@ def _infix_expression_to_inputform_text(
     result = str(render_input_form(operand, evaluation, **kwargs))
     result = parenthesize(precedence, operand, result, parenthesized)
 
-    if group in (SymbolLeft, SymbolRight):
-        parenthesized = not parenthesized
-
     # Process the rest of operands
+    parenthesized = (SymbolLeft, SymbolNonAssociative)
     num_ops = len(ops_lst)
     for index, operand in enumerate(operands[1:]):
         curr_op = ops_lst[index % num_ops]

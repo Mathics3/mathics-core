@@ -378,10 +378,8 @@ def _infix_outputform_text(expr: Expression, evaluation: Evaluation, **kwargs) -
     result = str(render_output_form(operand, evaluation, **kwargs))
     result = parenthesize(precedence, operand, result, parenthesized)
 
-    if group in (SymbolLeft, SymbolRight):
-        parenthesized = not parenthesized
-
     # Process the rest of operands
+    parenthesized = (SymbolLeft, SymbolNonAssociative)
     num_ops = len(ops_lst)
     for index, operand in enumerate(operands[1:]):
         curr_op = ops_lst[index % num_ops]
