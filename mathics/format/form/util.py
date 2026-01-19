@@ -3,6 +3,7 @@
 Common routines and objects used in rendering PrintForms.
 
 """
+
 from typing import Final, FrozenSet, List, Optional, Tuple
 
 from mathics.core.atoms import Integer, String
@@ -50,6 +51,22 @@ PRECEDENCE_TIMES: Final[int] = PRECEDENCES.get("Times", 400)
 PRECEDENCE_POWER: Final[int] = PRECEDENCES.get("Power", 590)
 
 
+# TODO: (rocky) See if we can accomplish parenthesization using precedence and association values as is common for this kind of thing.
+#
+# These constants are used to decide if two operands with the
+# same precedence than the operation which are part of must be
+# parenthesized or not.
+# For example, `Sequence[a,b,c]` === a;;b;;c has "None" associativity,
+# so `Sequence[-1;;-1;;-1]` is formatted as  ``-1;;-1;;-1``
+# On the other hand, `Divide` is left associative, so
+# `Divide[-1,-1]` is formatted as `-1 / (-1)`, while
+# `Power`, which is right associative, format `Power[-1,-1]`
+# as `(-1)^-1`.
+
+PARENTHESIZED_FIRST = {SymbolRight.name, SymbolNonAssociative.name}
+PARENTHESIZED_REST = {SymbolLeft.name, SymbolNonAssociative.name}
+
+
 BLANKS_TO_STRINGS = {
     SymbolBlank: "_",
     SymbolBlankSequence: "__",
@@ -64,7 +81,7 @@ def square_bracket(expr_str: str) -> str:
 
 def collect_in_pre_post_arguments(
     expr: Expression, evaluation: Evaluation, **kwargs
-) -> Tuple[list, str | List[str], int, Optional[Symbol]]:
+) -> Tuple[list, str | List[str], int, str]:
     """
     Determine operands, operator(s), precedence, and grouping
     """
@@ -82,7 +99,7 @@ def collect_in_pre_post_arguments(
         raise _WrongFormattedExpression
 
     head = expr.head
-    group = None
+    group_name = "None"
     precedence = PRECEDENCE_BOX_GROUP
     operands = list(target.elements)
 
@@ -98,7 +115,7 @@ def collect_in_pre_post_arguments(
             operator_spec = f"{operator_spec}{operator_to_string['Prefix']}"
         elif head is SymbolPostfix:
             operator_spec = f"{operator_to_string['Postfix']}{operator_spec}"
-        return operands, operator_spec, precedence, group
+        return operands, operator_spec, precedence, group_name
 
     # At least two parameters: get the operator spec.
     ops = elements[1]
@@ -121,10 +138,9 @@ def collect_in_pre_post_arguments(
         group = elements[3]
         if group not in (SymbolNone, SymbolLeft, SymbolRight, SymbolNonAssociative):
             raise _WrongFormattedExpression
-        if group is SymbolNone:
-            group = None
+        group_name = group.get_name()
 
-    return operands, operator_spec, precedence, group
+    return operands, operator_spec, precedence, group_name
 
 
 def get_operator_str(head, evaluation, **kwargs) -> str:
@@ -218,12 +234,14 @@ def text_cells_to_grid(cells: List, **kwargs):
                 for line in cell:
                     col_widths[col] = max(col_widths[col], len(line))
         rows = [
-            row
-            if is_full_row
-            else [
-                [line.ljust(col_widths[col]) for line in cell]
-                for col, cell in enumerate(row)
-            ]
+            (
+                row
+                if is_full_row
+                else [
+                    [line.ljust(col_widths[col]) for line in cell]
+                    for col, cell in enumerate(row)
+                ]
+            )
             for row in rows
         ]
         return rows, col_widths

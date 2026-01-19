@@ -51,6 +51,8 @@ from mathics.settings import SYSTEM_CHARACTER_ENCODING
 from .inputform import render_input_form
 from .util import (
     BLANKS_TO_STRINGS,
+    PARENTHESIZED_FIRST,
+    PARENTHESIZED_REST,
     PRECEDENCE_FUNCTION_APPLY,
     PRECEDENCE_PLUS,
     PRECEDENCE_POWER,
@@ -373,15 +375,13 @@ def _infix_outputform_text(expr: Expression, evaluation: Evaluation, **kwargs) -
     #    raise _WrongFormattedExpression
 
     # Process the first operand:
-    parenthesized = group in (SymbolNone, SymbolRight, SymbolNonAssociative)
+    parenthesized = group in PARENTHESIZED_FIRST
     operand = operands[0]
     result = str(render_output_form(operand, evaluation, **kwargs))
     result = parenthesize(precedence, operand, result, parenthesized)
 
-    if group in (SymbolLeft, SymbolRight):
-        parenthesized = not parenthesized
-
     # Process the rest of operands
+    parenthesized = group in PARENTHESIZED_REST
     num_ops = len(ops_lst)
     for index, operand in enumerate(operands[1:]):
         curr_op = ops_lst[index % num_ops]
