@@ -72,7 +72,7 @@ def eval_makeboxes_fullform(
 
     if isinstance(element, BoxExpression):
         expr = element.to_expression()
-    if isinstance(element, Atom):
+    elif isinstance(element, Atom):
         if isinstance(element, Rational):
             expr = Expression(
                 SymbolRational, element.numerator(), element.denominator()
