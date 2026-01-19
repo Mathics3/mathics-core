@@ -118,7 +118,7 @@ class InputForm(FormBaseClass):
 
     # TODO: eventually, remove OutputForm in the second argument.
     def eval_makeboxes(self, expr, evaluation):
-        """MakeBoxes[InputForm[expr_], Alternatives[StandardForm,TraditionalForm]]"""
+        """MakeBoxes[InputForm[expr_], StandardForm|TraditionalForm]"""
 
         inputform = String(render_input_form(expr, evaluation))
         inputform = StyleBox(
@@ -170,7 +170,7 @@ class MathMLForm(FormBaseClass):
     summary_text = "format expression as MathML commands"
 
     def eval_mathml(self, expr, evaluation) -> Expression:
-        "MakeBoxes[MathMLForm[expr_], Alternatives[StandardForm,TraditionalForm]]"
+        "MakeBoxes[MathMLForm[expr_], StandardForm|TraditionalForm]"
         return eval_mathmlform(expr, evaluation)
 
 
@@ -277,7 +277,7 @@ class TeXForm(FormBaseClass):
     summary_text = "format expression as LaTeX commands"
 
     def eval_tex(self, expr, evaluation) -> Expression:
-        "MakeBoxes[TeXForm[expr_], Alternatives[StandardForm,TraditionalForm]]"
+        "MakeBoxes[TeXForm[expr_], StandardForm|TraditionalForm]"
         # TeXForm by default uses `TraditionalForm`
 
         return eval_texform(expr, evaluation)
