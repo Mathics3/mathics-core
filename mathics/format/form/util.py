@@ -50,6 +50,8 @@ PRECEDENCE_TIMES: Final[int] = PRECEDENCES.get("Times", 400)
 PRECEDENCE_POWER: Final[int] = PRECEDENCES.get("Power", 590)
 
 
+# TODO: (rocky) See if we can accomplish parenthesization using precedence and association values as is common for this kind of thing.
+# 
 # These constants are used to decide if two operands with the
 # same precedence than the operation which are part of must be
 # parenthesized or not.
