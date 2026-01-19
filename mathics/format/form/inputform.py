@@ -46,7 +46,6 @@ from mathics.settings import SYSTEM_CHARACTER_ENCODING
 from .util import (
     ARITHMETIC_OPERATOR_STRINGS,
     BLANKS_TO_STRINGS,
-    PRECEDENCE_BOX_GROUP,
     _WrongFormattedExpression,
     collect_in_pre_post_arguments,
     get_operator_str,
@@ -161,14 +160,6 @@ def _infix_expression_to_inputform_text(
     )
     # Infix needs at least two operands:
     if len(operands) < 2:
-        if (
-            ops_lst[0] == "~"
-            and group is SymbolNone
-            and precedence == PRECEDENCE_BOX_GROUP
-        ):
-            expr = Expression(expr.get_head(), expr.elements[0])
-            return _generic_to_inputform_text(expr, evaluation, **kwargs)
-
         raise _WrongFormattedExpression
 
     # Process the first operand:

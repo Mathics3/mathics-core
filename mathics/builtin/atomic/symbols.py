@@ -62,6 +62,11 @@ def gather_and_format_definition_rules(
     """Return a list of lines describing the definition of `symbol`"""
     lines = []
 
+    def rhs_format(expr):
+        if expr.has_form("Infix", None):
+            expr = Expression(Expression(SymbolHoldForm, expr.head), *expr.elements)
+        return expr
+
     def format_rule(
         rule: Rule,
         up: bool = False,
@@ -73,18 +78,17 @@ def gather_and_format_definition_rules(
         """
         evaluation.check_stopped()
         if isinstance(rule, Rule):
-            r = rhs(
+            lhs_pat = Expression(SymbolInputForm, lhs(rule.pattern.expr))
+            repl_expr = rhs(
                 rule.replace.replace_vars(
                     {"System`Definition": Expression(SymbolHoldForm, SymbolDefinition)}
                 )
             )
-            r = Expression(SymbolInputForm, r)
+            repl_expr = Expression(SymbolInputForm, repl_expr)
             lines.append(
                 Expression(
                     SymbolHoldForm,
-                    Expression(
-                        up and SymbolUpSet or SymbolSet, lhs(rule.pattern.expr), r
-                    ),
+                    Expression(up and SymbolUpSet or SymbolSet, lhs_pat, repl_expr),
                 )
             )
 
@@ -104,22 +108,13 @@ def gather_and_format_definition_rules(
         for rule in definition.nvalues:
             format_rule(rule)
         formats = sorted(definition.formatvalues.items())
-        for format, rules in formats:
+        for form_name, rules in formats:
             for rule in rules:
 
-                def lhs(expr):
-                    return Expression(
-                        SymbolInputForm, Expression(SymbolFormat, expr, Symbol(format))
-                    )
+                def lhs_format(expr):
+                    return Expression(SymbolFormat, expr, Symbol(form_name))
 
-                def rhs(expr):
-                    if expr.has_form("Infix", None):
-                        expr = Expression(
-                            Expression(SymbolHoldForm, expr.head), *expr.elements
-                        )
-                    return Expression(SymbolInputForm, expr)
-
-                format_rule(rule, lhs=lhs, rhs=rhs)
+                format_rule(rule, lhs=lhs_format, rhs=rhs_format)
 
     name = symbol.get_name()
     if not name:
@@ -244,7 +239,7 @@ class Definition(Builtin):
 
     Definition of a rather evolved (though meaningless) symbol:
     >> Attributes[r] := {Orderless}
-    >> Format[r[args___]] := Infix[{args}, "~"]
+    >> Format[r[args___]] := Infix[{args}, "#"]
     >> N[r] := 3.5
     >> Default[r, 1] := 2
     >> r::msg := "My message"
@@ -253,7 +248,7 @@ class Definition(Builtin):
 
     Some usage:
     >> r[z, x, y]
-     = x ~ y ~ z
+     = x # y # z
     >> N[r]
      = 3.5
     >> r[]
@@ -265,19 +260,19 @@ class Definition(Builtin):
     >> Definition[r]
      = Attributes[r] = {Orderless}
      .
-     . arg_. ~ OptionsPattern[r] = {arg, OptionValue[Opt]}
+     . r[(arg_.), OptionsPattern[r]] = {arg, OptionValue[Opt]}
      .
      . N[r, MachinePrecision] = 3.5
      .
-     . Format[r[args___], MathMLForm] = Infix[{args}, "~"]
+     . Format[r[args___], MathMLForm] = Infix[{args}, "#"]
      .
-     . Format[r[args___], OutputForm] = Infix[{args}, "~"]
+     . Format[r[args___], OutputForm] = Infix[{args}, "#"]
      .
-     . Format[r[args___], StandardForm] = Infix[{args}, "~"]
+     . Format[r[args___], StandardForm] = Infix[{args}, "#"]
      .
-     . Format[r[args___], TeXForm] = Infix[{args}, "~"]
+     . Format[r[args___], TeXForm] = Infix[{args}, "#"]
      .
-     . Format[r[args___], TraditionalForm] = Infix[{args}, "~"]
+     . Format[r[args___], TraditionalForm] = Infix[{args}, "#"]
      .
      . Default[r, 1] = 2
      .
