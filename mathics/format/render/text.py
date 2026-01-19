@@ -84,13 +84,8 @@ def gridbox(self, elements=None, **box_options) -> str:
 
     box_options.update(self.options)
 
-    result = ""
     if not items:
         return ""
-    try:
-        widths = [0] * max(1, max(len(row) for row in items if isinstance(row, tuple)))
-    except ValueError:
-        widths = [0]
 
     cells = [
         (

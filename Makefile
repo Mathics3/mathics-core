@@ -36,6 +36,7 @@ MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang
    djangotest \
    gstest \
    latexdoc \
+   mypy \
    plot-detailed-tests\
    pytest \
    pytest-x \
@@ -127,6 +128,9 @@ clean: clean-cython clean-cache
 	rm -f factorials || true; \
 	rm -f mathics/data/op-tables || true; \
 	rm -rf build || true
+
+mypy:
+	mypy --install-types --ignore-missing-imports --non-interactive mathics
 
 plot-detailed-tests:
 	MATHICS_CHARACTER_ENCODING="ASCII" MATHICS_PLOT_DETAILED_TESTS="1" $(PYTHON) -m pytest -x $(PYTEST_OPTIONS) test/builtin/drawing/test_plot_detail.py
