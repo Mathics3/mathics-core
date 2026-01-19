@@ -222,7 +222,7 @@ def _postfix_expression_to_inputform_text(
         expr, evaluation, **kwargs
     )
     # Prefix works with just one operand:
-    if len(operands) != 1:
+    if len(operands) != 1 or not isinstance(op_head, str):
         raise _WrongFormattedExpression
     operand = operands[0]
     inputform_txt = render_input_form(operand, evaluation, **kwargs)

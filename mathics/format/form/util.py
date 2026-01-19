@@ -149,7 +149,7 @@ def parenthesize(
     element: Expression,
     element_str,
     when_equal: bool,
-) -> Expression:
+) -> str:
     """
     "Add parenthesis to ``element_str`` according to the precedence of
     ``element``.

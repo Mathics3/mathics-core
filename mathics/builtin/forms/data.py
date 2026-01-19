@@ -96,7 +96,10 @@ class BaseForm(FormBaseClass):
     def eval_makeboxes(self, expr, n, f, evaluation: Evaluation):
         """MakeBoxes[BaseForm[expr_, n_],
         f:StandardForm|TraditionalForm|OutputForm]"""
-        return eval_baseform(expr, n, f, evaluation)
+        try:
+            return eval_baseform(expr, n, f, evaluation)
+        except ValueError:
+            return None
 
 
 class _NumberForm(Builtin):

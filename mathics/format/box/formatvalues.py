@@ -49,14 +49,17 @@ _element_formatters: Dict[
 
 def do_format(
     element: BaseElement, evaluation: Evaluation, form: Symbol
-) -> Optional[BaseElement]:
+) -> BaseElement:
     do_format_method = _element_formatters.get(type(element), do_format_element)
-    return do_format_method(element, evaluation, form)
+    result = do_format_method(element, evaluation, form)
+    if result is None:
+        return element
+    return result
 
 
 def do_format_element(
     element: BaseElement, evaluation: Evaluation, form: Symbol
-) -> Optional[BaseElement]:
+) -> BaseElement:
     """
     Applies formats associated to the expression and removes
     superfluous enclosing formats.
@@ -72,7 +75,7 @@ def do_format_element(
         # If the expression is enclosed by a Format
         # takes the form from the expression and
         # removes the format from the expression.
-        if head in OutputForms and len(elements) == 1:
+        if head in OutputForms and len(elements) == 1 and isinstance(head, Symbol):
             expr = elements[0]
             if not form.sameQ(head):
                 form = head
@@ -154,7 +157,7 @@ def do_format_element(
 
         elif (
             head is not SymbolNumberForm
-            and not isinstance(expr, (Atom, BoxElementMixin))
+            and isinstance(expr, Expression)
             and head not in (SymbolGraphics, SymbolGraphics3D)
         ):
             new_elements = tuple(
@@ -219,7 +222,7 @@ def do_format_complex(
 
 def do_format_expression(
     element: BaseElement, evaluation: Evaluation, form: Symbol
-) -> Optional[BaseElement]:
+) -> BaseElement:
     # # not sure how much useful is this format_cache
     # if element._format_cache is None:
     #    element._format_cache = {}

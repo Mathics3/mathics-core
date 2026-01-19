@@ -611,21 +611,10 @@ def plus_expression_to_outputform_text(
             )
             ## TODO: handle complex numbers?
         else:
-            elem_txt = expression_to_outputform_text(term, evaluation, **kwargs)
-            if (compare_precedence(term, PRECEDENCE_PLUS) or -1) < 0:
-                elem_txt = parenthesize(elem_txt)
-                result = result + " + " + elem_txt
-            elif i == 0 or (
-                (isinstance(term, Integer) and term.value < 0)
-                or (isinstance(term, Real) and term.value < 0)
-            ):
-                result = result + elem_txt
-            else:
-                result = (
-                    result
-                    + " + "
-                    + expression_to_outputform_text(term, evaluation, **kwargs)
-                )
+            elem_txt: str = expression_to_outputform_text(term, evaluation, **kwargs)
+            elem_txt = parenthesize(PRECEDENCE_PLUS, term, elem_txt, True)
+            result = result + " + " + elem_txt
+
     return result
 
 
@@ -710,13 +699,12 @@ def _postfix_output_text(expr: Expression, evaluation: Evaluation, **kwargs) -> 
 def rational_expression_to_outputform_text(
     n: Union[Rational, Expression], evaluation: Evaluation, **kwargs
 ):
-    if not isinstance(n, Rational):
-        raise _WrongFormattedExpression
-
-    if n.has_form("Rational", 2):
+    if isinstance(n, Rational):
+        num, den = n.numerator(), n.denominator()  # type: ignore[union-attr]
+    elif n.has_form("Rational", 2):
         num, den = n.elements  # type: ignore[union-attr]
     else:
-        num, den = n.numerator(), n.denominator()  # type: ignore[union-attr]
+        raise _WrongFormattedExpression
     return _divide(num, den, evaluation, **kwargs)
 
 
@@ -920,7 +908,7 @@ def stringform_expression_to_outputform_text(
 
 
 @register_outputform("System`Style")
-def style_to_outputform_text(expr: String, evaluation: Evaluation, **kwargs) -> str:
+def style_to_outputform_text(expr: Expression, evaluation: Evaluation, **kwargs) -> str:
     if not isinstance(expr.head, Symbol):
         raise _WrongFormattedExpression
 
@@ -957,7 +945,15 @@ def tableform_expression_to_outputform_text(
     table, *opts = elements
     dims = len(get_dimensions(table, head=SymbolList))
     process_options(kwargs, opts)
-    depth = expr_min((Integer(dims), kwargs.pop("TableDepth", SymbolInfinity))).value
+
+    def value_or_none(x):
+        if isinstance(x, Integer):
+            return x.value
+        return None
+
+    depth = value_or_none(
+        expr_min((Integer(dims), kwargs.pop("TableDepth", SymbolInfinity)))
+    )
     if depth is None:
         evaluation.message(expr.head.get_name(), "int")
         raise _WrongFormattedExpression
@@ -1066,8 +1062,7 @@ def times_expression_to_outputform_text(
             factor = Integer(-factor.value)
 
         factor_txt = expression_to_outputform_text(factor, evaluation, **kwargs)
-        if compare_precedence(factor, PRECEDENCE_TIMES):
-            factor_txt = parenthesize(factor_txt)
+        factor_txt = parenthesize(PRECEDENCE_TIMES, factor, factor_txt, True)
         if i == 0:
             result = factor_txt
         else:
