@@ -119,6 +119,20 @@ def eval_makeboxes_fullform(
     return RowBox(*result_elements)
 
 
+def eval_makeboxes_outputform(
+    expr: BaseElement, evaluation: Evaluation, form: Symbol, **kwargs
+):
+    """
+    Build a 2D representation of the expression using only keyboard characters.
+    """
+    from mathics.builtin.box.layout import PaneBox
+    from mathics.format.form.outputform import render_output_form
+
+    text_outputform = str(render_output_form(expr, evaluation, **kwargs))
+    elem1 = PaneBox(String('"' + text_outputform + '"'))
+    return elem1
+
+
 def eval_generic_makeboxes(expr, f, evaluation):
     """MakeBoxes[expr_,
     f:TraditionalForm|StandardForm|OutputForm|InputForm]"""

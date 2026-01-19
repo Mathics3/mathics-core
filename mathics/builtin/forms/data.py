@@ -20,13 +20,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.number import dps
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolNull, SymbolTrue
-from mathics.core.systemsymbols import (
-    SymbolAutomatic,
-    SymbolInfinity,
-    SymbolMakeBoxes,
-    SymbolRowBox,
-    SymbolSuperscriptBox,
-)
+from mathics.core.systemsymbols import SymbolAutomatic, SymbolInfinity, SymbolMakeBoxes
 from mathics.eval.strings import eval_StringForm_MakeBoxes, eval_ToString
 from mathics.format.box import (
     StringLParen,
