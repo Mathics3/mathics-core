@@ -10,7 +10,7 @@ from typing import Any, Callable, Dict, List, Optional, Type
 
 from mathics.core.atoms import Complex, Integer, Rational, String, SymbolI
 from mathics.core.convert.expression import to_expression_with_specialization
-from mathics.core.element import BaseElement, BoxElementMixin, EvalMixin
+from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression

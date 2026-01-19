@@ -6,7 +6,7 @@ makeboxes rules.
 """
 
 
-from typing import List, Optional, Union
+from typing import List
 
 from mathics.core.atoms import Complex, Rational, String
 from mathics.core.element import BaseElement, BoxElementMixin
@@ -77,7 +77,7 @@ def eval_makeboxes_fullform(
             expr = Expression(
                 SymbolRational, element.numerator(), element.denominator()
             )
-        elif isinstance(expr, Complex):
+        elif isinstance(element, Complex):
             expr = Expression(SymbolComplex, element.real, element.imag)
         else:
             return element.atom_to_boxes(SymbolFullForm, evaluation)

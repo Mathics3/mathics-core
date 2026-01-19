@@ -40,7 +40,7 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.strings import safe_backquotes
 from mathics.eval.testing_expressions import expr_min
-from mathics.format.box import compare_precedence, do_format, format_element
+from mathics.format.box import do_format, format_element
 from mathics.format.box.numberform import (
     get_baseform_elements,
     get_numberform_parameters,
@@ -669,7 +669,7 @@ def _prefix_output_text(expr: Expression, evaluation: Evaluation, **kwargs) -> s
     kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     target_txt = expression_to_outputform_text(operand, evaluation, **kwargs)
     parenthesized = group in (None, SymbolRight, SymbolNonAssociative)
-    target_txt = parenthesize(precedence, operand, target_txt, True)
+    target_txt = parenthesize(precedence, operand, target_txt, parenthesized)
     return op_head + target_txt
 
 
@@ -691,7 +691,7 @@ def _postfix_output_text(expr: Expression, evaluation: Evaluation, **kwargs) -> 
     operand = operands[0]
     target_txt = expression_to_outputform_text(operand, evaluation, **kwargs)
     parenthesized = group in (None, SymbolRight, SymbolNonAssociative)
-    target_txt = parenthesize(precedence, operand, target_txt, True)
+    target_txt = parenthesize(precedence, operand, target_txt, parenthesized)
     return target_txt + op_head
 
 
