@@ -32,15 +32,22 @@ from mathics.core.systemsymbols import (
     SymbolOutputForm,
     SymbolSubscriptBox,
 )
-from mathics.eval.makeboxes import to_boxes
+from mathics.format.box import to_boxes
 
 STR_DIGITS_CHECK_THRESHOLD = sys.int_info.str_digits_check_threshold
+
+
+def default_numberformat_outputform(man, base, exp, opts):
+    """Default number format function for OutputForm"""
+    res = f"{man.value}{opts['NumberMultiplier']}{base.value}^{exp.value}"
+    return String(res)
+
 
 DEFAULT_NUMBERFORM_OPTIONS = {
     "DigitBlock": [0, 0],
     "ExponentFunction": lambda x: (SymbolNull if abs(x.value) <= 5 else x),
     "ExponentStep": 1,
-    "NumberFormat": lambda x: x,
+    "NumberFormat": default_numberformat_outputform,
     "NumberMultiplier": "×",
     "NumberPadding": ["", "0"],
     "NumberPoint": ".",
@@ -210,8 +217,8 @@ def real_to_tuple_info(
         is_nonnegative = True
     # Set exponent. ``exponent`` is actual, ``pexp`` of ``numberform_to_boxes()`` is printed.
     if "e" in s:
-        s, exponent = s.split("e")
-        exponent = int(exponent)
+        s, exponent_str = s.split("e")
+        exponent = int(exponent_str)
         if len(s) > 1 and s[1] == ".":
             # str(float) doesn't always include '.' if 'e' is present.
             s = s[0] + s[2:].rstrip("0")
@@ -259,7 +266,7 @@ def eval_baseform(
     try:
         val, base = get_baseform_elements(expr, n, evaluation)
     except ValueError:
-        return None
+        raise
     if base is None:
         return to_boxes(Expression(SymbolMakeBoxes, expr, f), evaluation)
     if f is SymbolOutputForm:
@@ -272,7 +279,7 @@ def eval_baseform(
 
 def get_baseform_elements(
     expr: BaseElement, n: BaseElement, evaluation: Evaluation
-) -> Dict[str, Any]:
+) -> Tuple[str, Any]:
     """
     Collect the options for BaseForm expressions.
 
@@ -316,7 +323,7 @@ def get_baseform_elements(
         x = expr.value
         p = 0
     else:
-        return None, None
+        return "", None
     try:
         return convert_base(x, base, p), base
     except ValueError:
@@ -326,7 +333,7 @@ def get_baseform_elements(
 
 def get_numberform_parameters(
     full_expr, evaluation
-) -> Tuple[BaseElement, BaseElement, Dict[str, Any]]:
+) -> Tuple[BaseElement, Optional[BaseElement], Dict[str, Any]]:
     """Collect the parameters of a NumberForm[...] expression.
     Return a tuple with the expression, to be formatted,
     the precision especification and a dictionary of options
@@ -340,7 +347,9 @@ def get_numberform_parameters(
     # This picks the builtin object used to do the option
     # checks...
     self = evaluation.definitions.builtin[form_name].builtin
-    default_options: [str, BaseElement] = evaluation.definitions.get_options(form_name)
+    default_options: Dict[str, BaseElement] = evaluation.definitions.get_options(
+        form_name
+    )
     options: Dict[str, BaseElement] = {}
     py_options: Dict = {}
 
@@ -485,7 +494,7 @@ def numberform_to_boxes(
         prefix = ""
 
     # build number
-    boxed_s = String(s)
+    boxed_s: BoxElementMixin = String(s)
     if pexp:
         # base
         boxed_s = options["NumberFormat"](
@@ -517,7 +526,7 @@ def _add_digit_block_separators(
     return part
 
 
-def _attach_precision(s: str, value, form: str, precision: float) -> str:
+def _attach_precision(s: str, value, form: str, precision) -> str:
     """Add the precision mark if needed."""
 
     if isinstance(value, MachineReal):
@@ -587,15 +596,23 @@ def _do_pre_paddings(
             right = right + (daadp - len(right)) * options["NumberPadding"][1]
         elif len(right) > daadp:
             # round right
-            tmp = int(left + right)
-            tmp = _round(tmp, daadp - len(right))
-            tmp = str(tmp)
-            left, right = tmp[: exp + 1], tmp[exp + 1 :]
+            if int(right[daadp]) < 5:
+                right = right[:daadp]
+            else:
+                right = str(int(right[:daadp]) + 1)
+                # carry
+                if len(right) > daadp:
+                    right = right[1:]
+                    left = str(int(left) + 1)
     return left, right
 
 
 def _format_exponent(
-    s: str, exp: int, is_int: bool, evaluation: Evaluation, options: Dict[str, Any]
+    s: str,
+    exp: int,
+    is_int: bool,
+    evaluation: Optional[Evaluation],
+    options: Dict[str, Any],
 ) -> Tuple[str, str, int, str]:
     # round exponent to ExponentStep
     exponent_step = options["ExponentStep"]
@@ -606,10 +623,10 @@ def _format_exponent(
         pexp = ""
     else:
         method = options["ExponentFunction"]
-        pexp = method(Integer(rexp)).get_int_value()
-        if pexp is not None:
-            exp -= pexp
-            pexp = str(pexp)
+        pexp_val = method(Integer(rexp)).get_int_value()
+        if pexp_val is not None:
+            exp -= pexp_val
+            pexp = str(pexp_val)
         else:
             pexp = ""
 

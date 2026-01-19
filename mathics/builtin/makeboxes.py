@@ -8,7 +8,7 @@ from mathics.core.atoms import Integer
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Predefined
 from mathics.core.symbols import Symbol
-from mathics.eval.makeboxes import (
+from mathics.format.box import (
     eval_generic_makeboxes,
     eval_infix,
     eval_makeboxes_fullform,
@@ -96,9 +96,14 @@ class MakeBoxes(Builtin):
             'MakeBoxes[Infix[head[elements], StringForm["~`1`~", head]], f]'
         ),
         "MakeBoxes[expr_]": "MakeBoxes[expr, StandardForm]",
-        "MakeBoxes[(form:StandardForm|TraditionalForm|OutputForm|TeXForm|"
-        "MathMLForm)[expr_], StandardForm|TraditionalForm]": ("MakeBoxes[expr, form]"),
-        "MakeBoxes[(form:StandardForm|OutputForm|MathMLForm|TeXForm)[expr_], OutputForm]": "MakeBoxes[expr, form]",
+        # The following rule is temporal.
+        "MakeBoxes[expr_, form:(TeXForm|MathMLForm)]": "MakeBoxes[form[expr], StandardForm]",
+        (
+            "MakeBoxes[(form:StandardForm|TraditionalForm)"
+            "[expr_], StandardForm|TraditionalForm|OutputForm]"
+        ): ("MakeBoxes[expr, form]"),
+        # BoxForms goes as second argument
+        "MakeBoxes[(form:StandardForm|TraditionalForm|OutputForm)[expr_], OutputForm]": "MakeBoxes[expr, form]",
         "MakeBoxes[PrecedenceForm[expr_, prec_], f_]": "MakeBoxes[expr, f]",
         "MakeBoxes[Style[expr_, OptionsPattern[Style]], f_]": (
             "StyleBox[MakeBoxes[expr, f], "

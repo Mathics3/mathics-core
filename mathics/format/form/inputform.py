@@ -25,71 +25,35 @@ both cases, underneath the `InterpretationBox` or `Tagbox` is a
 
 """
 
-from typing import Callable, Dict, Final, FrozenSet, List, Optional, Tuple
+from typing import Callable, Dict
 
+from mathics.builtin.box.expression import BoxExpression
 from mathics.core.atoms import Integer, String
-from mathics.core.convert.op import operator_to_ascii, operator_to_unicode
+from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.parser.operators import OPERATOR_DATA, operator_to_string
-from mathics.core.symbols import Atom, Symbol
+from mathics.core.symbols import Atom
 from mathics.core.systemsymbols import (
-    SymbolBlank,
-    SymbolBlankNullSequence,
-    SymbolBlankSequence,
-    SymbolInfix,
     SymbolInputForm,
     SymbolLeft,
+    SymbolNonAssociative,
     SymbolNone,
     SymbolRight,
 )
-from mathics.eval.makeboxes.formatvalues import do_format  # , format_element
-from mathics.eval.makeboxes.precedence import compare_precedence
+from mathics.format.box.formatvalues import do_format  # , format_element
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
-SymbolNonAssociative = Symbol("System`NonAssociative")
-SymbolPostfix = Symbol("System`Postfix")
-SymbolPrefix = Symbol("System`Prefix")
-
-PRECEDENCES: Final = OPERATOR_DATA.get("operator-precedences")
-PRECEDENCE_BOX_GROUP: Final[int] = PRECEDENCES.get("BoxGroup", 670)
-PRECEDENCE_PLUS: Final[int] = PRECEDENCES.get("Plus", 310)
-PRECEDENCE_TIMES: Final[int] = PRECEDENCES.get("Times", 400)
-PRECEDENCE_POWER: Final[int] = PRECEDENCES.get("Power", 590)
+from .util import (
+    ARITHMETIC_OPERATOR_STRINGS,
+    BLANKS_TO_STRINGS,
+    _WrongFormattedExpression,
+    collect_in_pre_post_arguments,
+    get_operator_str,
+    parenthesize,
+    square_bracket,
+)
 
 EXPR_TO_INPUTFORM_TEXT_MAP: Dict[str, Callable] = {}
-
-
-# This Exception if the expression should
-# be processed by the default routine
-class _WrongFormattedExpression(Exception):
-    pass
-
-
-def get_operator_str(head, evaluation, **kwargs) -> str:
-    encoding = kwargs["encoding"]
-    if isinstance(head, String):
-        op_str = head.value
-    elif isinstance(head, Symbol):
-        op_str = head.short_name
-    else:
-        return render_input_form(head, evaluation, **kwargs)
-
-    if encoding == "ASCII":
-        operator = operator_to_ascii.get(op_str, op_str)
-    else:
-        operator = operator_to_unicode.get(op_str, op_str)
-    return operator
-
-
-def bracket(expr_str: str) -> str:
-    """Wrap `expr_str` with square braces"""
-    return f"[{expr_str}]"
-
-
-def parenthesize(expr_str: str) -> str:
-    """Wrap `expr_str` with parenthesis"""
-    return f"({expr_str})"
 
 
 def register_inputform(head_name):
@@ -100,12 +64,12 @@ def register_inputform(head_name):
     return _register
 
 
-def render_input_form(expr, evaluation, **kwargs):
+def render_input_form(expr: BaseElement, evaluation: Evaluation, **kwargs) -> str:
     """
     Build a string with the InputForm of the expression.
     """
-    format_expr: Expression = do_format(expr, evaluation, SymbolInputForm)
-    while format_expr.has_form("HoldForm", 1):  # type: ignore
+    format_expr: BaseElement = do_format(expr, evaluation, SymbolInputForm)
+    while isinstance(format_expr, Expression) and format_expr.has_form("HoldForm", 1):
         format_expr = format_expr.elements[0]
 
     lookup_name: str = format_expr.get_head().get_lookup_name()
@@ -123,8 +87,6 @@ def render_input_form(expr, evaluation, **kwargs):
         pass
     return _generic_to_inputform_text(format_expr, evaluation, **kwargs)
 
-    return ""
-
 
 @register_inputform("System`Association")
 def _association_expression_to_inputform_text(
@@ -138,7 +100,7 @@ def _association_expression_to_inputform_text(
 
 
 def _generic_to_inputform_text(
-    expr: Expression, evaluation: Evaluation, **kwargs
+    expr: BaseElement, evaluation: Evaluation, **kwargs
 ) -> str:
     """
     Default representation of a function
@@ -148,6 +110,10 @@ def _generic_to_inputform_text(
         if isinstance(result, String):
             return result.value
         return result.boxes_to_text(**kwargs)
+    if isinstance(expr, BoxExpression):
+        expr = expr.to_expression()
+    elif not isinstance(expr, Expression):
+        raise _WrongFormattedExpression
 
     expr_head = expr.head
     head = render_input_form(expr_head, evaluation, **kwargs)
@@ -157,7 +123,7 @@ def _generic_to_inputform_text(
     while elements:
         result = result + comma + elements.pop(0)
 
-    return head + bracket(result)
+    return head + square_bracket(result)
 
 
 @register_inputform("System`List")
@@ -174,81 +140,6 @@ def _list_expression_to_inputform_text(
         for elem in rest:
             result += ", " + elem
     return result + "}"
-
-
-def collect_in_pre_post_arguments(
-    expr: Expression, evaluation: Evaluation, **kwargs
-) -> Tuple[list, str | List[str], int, Optional[Symbol]]:
-    """
-    Determine operands, operator(s), precedence, and grouping
-    """
-    # Processing the second argument, if it is there:
-    elements = expr.elements
-    # expr at least has to have one element
-    if len(elements) < 1:
-        raise _WrongFormattedExpression
-
-    target = elements[0]
-    if isinstance(target, Atom):
-        raise _WrongFormattedExpression
-
-    if not (0 <= len(elements) <= 4):
-        raise _WrongFormattedExpression
-
-    head = expr.head
-    group = None
-    precedence = PRECEDENCE_BOX_GROUP
-    operands = list(target.elements)
-
-    # Just one parameter:
-    if len(elements) == 1:
-        operator_spec = render_input_form(head, evaluation, **kwargs)
-        if head is SymbolInfix:
-            operator_spec = [
-                f"{operator_to_string['Infix']}{operator_spec}{operator_to_string['Infix']}"
-            ]
-        elif head is SymbolPrefix:
-            operator_spec = f"{operator_spec}{operator_to_string['Prefix']}"
-        elif head is SymbolPostfix:
-            operator_spec = f"{operator_to_string['Postfix']}{operator_spec}"
-        return operands, operator_spec, precedence, group
-
-    # At least two parameters: get the operator spec.
-    ops = elements[1]
-    if head is SymbolInfix:
-        # This is not the WMA behaviour, but the Mathics3 current implementation requires it:
-        ops = ops.elements if ops.has_form("List", None) else (ops,)
-        operator_spec = [get_operator_str(op, evaluation, **kwargs) for op in ops]
-    else:
-        operator_spec = get_operator_str(ops, evaluation, **kwargs)
-
-    # At least three arguments: get the precedence
-    if len(elements) > 2:
-        if isinstance(elements[2], Integer):
-            precedence = elements[2].value
-        else:
-            raise _WrongFormattedExpression
-
-    # Four arguments: get the grouping:
-    if len(elements) > 3:
-        group = elements[3]
-        if group not in (SymbolNone, SymbolLeft, SymbolRight, SymbolNonAssociative):
-            raise _WrongFormattedExpression
-        if group is SymbolNone:
-            group = None
-
-    return operands, operator_spec, precedence, group
-
-
-ARITHMETIC_OPERATOR_STRINGS: Final[FrozenSet[str]] = frozenset(
-    [
-        *operator_to_string["Divide"],
-        *operator_to_string["NonCommutativeMultiply"],
-        *operator_to_string["Power"],
-        *operator_to_string["Times"],
-        " ",
-    ]
-)
 
 
 @register_inputform("System`Infix")
@@ -271,36 +162,34 @@ def _infix_expression_to_inputform_text(
     if len(operands) < 2:
         raise _WrongFormattedExpression
 
-    # Process the operands:
-    parenthesized = group in (None, SymbolRight, SymbolNonAssociative)
-    for index, operand in enumerate(operands):
+    # Process the first operand:
+    parenthesized = group in (SymbolNone, SymbolRight, SymbolNonAssociative)
+    operand = operands[0]
+    result = str(render_input_form(operand, evaluation, **kwargs))
+    result = parenthesize(precedence, operand, result, parenthesized)
+
+    if group in (SymbolLeft, SymbolRight):
+        parenthesized = not parenthesized
+
+    # Process the rest of operands
+    num_ops = len(ops_lst)
+    for index, operand in enumerate(operands[1:]):
+        curr_op = ops_lst[index % num_ops]
+        # In OutputForm we always add the spaces, except for
+        # " "
+        if curr_op not in ARITHMETIC_OPERATOR_STRINGS:
+            curr_op = f" {curr_op} "
+
         operand_txt = str(render_input_form(operand, evaluation, **kwargs))
-        cmp_precedence = compare_precedence(operand, precedence)
-        if cmp_precedence is not None and (
-            cmp_precedence == -1 or (cmp_precedence == 0 and parenthesized)
-        ):
-            operand_txt = parenthesize(operand_txt)
+        operand_txt = parenthesize(precedence, operand, operand_txt, parenthesized)
 
-        if index == 0:
-            result = operand_txt
-            # After the first element, for lateral
-            # associativity, parenthesized is flipped:
-            if group in (SymbolLeft, SymbolRight):
-                parenthesized = not parenthesized
-        else:
-            num_ops = len(ops_lst)
-            curr_op = ops_lst[index % num_ops]
-            if curr_op not in ARITHMETIC_OPERATOR_STRINGS:
-                # In the tests, we add spaces just for + and -:
-                curr_op = f" {curr_op} "
-
-            result = "".join(
-                (
-                    result,
-                    curr_op,
-                    operand_txt,
-                )
+        result = "".join(
+            (
+                result,
+                curr_op,
+                operand_txt,
             )
+        )
     return result
 
 
@@ -309,7 +198,7 @@ def _prefix_expression_to_inputform_text(
     expr: Expression, evaluation: Evaluation, **kwargs
 ) -> str:
     """
-    Convert Prefix[...] into a InputForm string.
+    Convert Prefix[...] into a OutputForm string.
     """
     kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     operands, op_head, precedence, group = collect_in_pre_post_arguments(
@@ -320,11 +209,9 @@ def _prefix_expression_to_inputform_text(
         raise _WrongFormattedExpression
     operand = operands[0]
     kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
-    cmp_precedence = compare_precedence(operand, precedence)
     target_txt = render_input_form(operand, evaluation, **kwargs)
-    if cmp_precedence is not None and cmp_precedence != -1:
-        target_txt = parenthesize(target_txt)
-    return op_head + target_txt
+    target_txt = parenthesize(precedence, operand, target_txt, True)
+    return str(op_head) + target_txt
 
 
 @register_inputform("System`Postfix")
@@ -332,20 +219,18 @@ def _postfix_expression_to_inputform_text(
     expr: Expression, evaluation: Evaluation, **kwargs
 ) -> str:
     """
-    Convert Postfix[...] into a InputForm string.
+    Convert Postfix[...] into a OutputForm string.
     """
     kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     operands, op_head, precedence, group = collect_in_pre_post_arguments(
         expr, evaluation, **kwargs
     )
     # Prefix works with just one operand:
-    if len(operands) != 1:
+    if len(operands) != 1 or not isinstance(op_head, str):
         raise _WrongFormattedExpression
     operand = operands[0]
-    cmp_precedence = compare_precedence(operand, precedence)
-    target_txt = render_input_form(operand, evaluation, **kwargs)
-    if cmp_precedence is not None and cmp_precedence != -1:
-        target_txt = parenthesize(target_txt)
+    inputform_txt = render_input_form(operand, evaluation, **kwargs)
+    target_txt = parenthesize(precedence, operand, inputform_txt, True)
     return target_txt + op_head
 
 
@@ -361,13 +246,10 @@ def _blanks(expr: Expression, evaluation: Evaluation, **kwargs):
     else:
         elem = ""
     head = expr.head
-    if head is SymbolBlank:
-        return "_" + elem
-    elif head is SymbolBlankSequence:
-        return "__" + elem
-    elif head is SymbolBlankNullSequence:
-        return "___" + elem
-    return _generic_to_inputform_text(expr, evaluation, **kwargs)
+    try:
+        return BLANKS_TO_STRINGS[head] + elem
+    except KeyError:
+        return _generic_to_inputform_text(expr, evaluation, **kwargs)
 
 
 @register_inputform("System`Pattern")
@@ -389,7 +271,7 @@ def _rule_to_inputform_text(expr, evaluation: Evaluation, **kwargs):
     if len(elements) != 2:
         return _generic_to_inputform_text(expr, evaluation, **kwargs)
     pat, rule = (render_input_form(elem, evaluation, **kwargs) for elem in elements)
-
+    kwargs["_render_function"] = render_input_form
     op_str = get_operator_str(head, evaluation, **kwargs)
     # In WMA there are spaces between operators.
     return pat + f" {op_str} " + rule

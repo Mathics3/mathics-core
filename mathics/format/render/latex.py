@@ -39,7 +39,7 @@ from mathics.core.formatter import (
 )
 from mathics.core.symbols import SymbolTrue
 from mathics.core.systemsymbols import SymbolAutomatic
-from mathics.format.asy_fns import asy_color, asy_create_pens, asy_number
+from mathics.format.render.asy_fns import asy_color, asy_create_pens, asy_number
 
 # mathics_scanner does not generates this table in a way that we can load it here.
 # When it get fixed, we can use that table instead of this one:
@@ -204,10 +204,9 @@ def gridbox(self, elements=None, **box_options) -> str:
         elements = self._elements
     evaluation = box_options.get("evaluation")
     items, options = self.get_array(elements, evaluation)
-
-    new_box_options = box_options.copy()
-    new_box_options["inside_list"] = True
-    column_alignments = options["System`ColumnAlignments"].get_name()
+    box_options.update(options)
+    box_options["inside_list"] = True
+    column_alignments = box_options["System`ColumnAlignments"].get_name()
     try:
         column_alignments = {
             "System`Center": "c",
@@ -225,12 +224,12 @@ def gridbox(self, elements=None, **box_options) -> str:
     result = r"\begin{array}{%s} " % (column_alignments * column_count)
     for index, row in enumerate(items):
         if isinstance(row, tuple):
-            result += " & ".join(boxes_to_tex(item, **new_box_options) for item in row)
+            result += " & ".join(boxes_to_tex(item, **box_options) for item in row)
         else:
             result += r"\multicolumn{%s}{%s}{%s}" % (
                 str(column_count),
                 column_alignments,
-                boxes_to_tex(row, **new_box_options),
+                boxes_to_tex(row, **box_options),
             )
         if index != len(items) - 1:
             result += "\\\\ "

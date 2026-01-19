@@ -9,14 +9,13 @@ or <url>:StandardForm:
 /doc/reference-of-built-in-symbols/forms-of-input-and-output/printforms/standardform/</url>, \
 which are intended to work over all kinds of data.
 """
-import re
 from typing import Any, Callable, Dict, List, Optional
 
 from mathics.builtin.box.layout import RowBox, StyleBox
 from mathics.builtin.forms.base import FormBaseClass
 from mathics.core.atoms import Integer, Real, String
 from mathics.core.builtin import Builtin
-from mathics.core.element import BaseElement, EvalMixin
+from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -29,7 +28,8 @@ from mathics.core.systemsymbols import (
     SymbolRowBox,
     SymbolSuperscriptBox,
 )
-from mathics.eval.makeboxes import (
+from mathics.eval.strings import eval_StringForm_MakeBoxes, eval_ToString
+from mathics.format.box import (
     StringLParen,
     StringRParen,
     eval_baseform,
@@ -39,7 +39,6 @@ from mathics.eval.makeboxes import (
     get_numberform_parameters,
     numberform_to_boxes,
 )
-from mathics.eval.strings import eval_StringForm_MakeBoxes, eval_ToString
 
 
 class BaseForm(FormBaseClass):
@@ -97,7 +96,10 @@ class BaseForm(FormBaseClass):
     def eval_makeboxes(self, expr, n, f, evaluation: Evaluation):
         """MakeBoxes[BaseForm[expr_, n_],
         f:StandardForm|TraditionalForm|OutputForm]"""
-        return eval_baseform(expr, n, f, evaluation)
+        try:
+            return eval_baseform(expr, n, f, evaluation)
+        except ValueError:
+            return None
 
 
 class _NumberForm(Builtin):
@@ -746,7 +748,6 @@ class TableForm(FormBaseClass):
      .
      . -Graphics-   -Graphics-   -Graphics-
      .
-     . -Graphics-   -Graphics-   -Graphics-
      .
      . -Graphics-   -Graphics-   -Graphics-
      .
@@ -754,9 +755,14 @@ class TableForm(FormBaseClass):
      .
      . -Graphics-   -Graphics-   -Graphics-
      .
+     .
      . -Graphics-   -Graphics-   -Graphics-
      .
      . -Graphics-   -Graphics-   -Graphics-
+     .
+     . -Graphics-   -Graphics-   -Graphics-
+     .
+     .
     """
 
     in_outputforms = True

@@ -4,7 +4,7 @@ import pytest
 import sympy
 
 from mathics.core.atoms import Integer, Integer0, Integer1, IntegerM1, Real
-from mathics.eval.makeboxes.numberform import (
+from mathics.format.box.numberform import (
     int_to_string_shorter_repr,
     int_to_tuple_info,
     real_to_tuple_info,
