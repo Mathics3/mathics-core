@@ -8,6 +8,7 @@ from mathics.format.box.makeboxes import (
     eval_generic_makeboxes,
     eval_makeboxes,
     eval_makeboxes_fullform,
+    eval_makeboxes_outputform,
     format_element,
     to_boxes,
 )
@@ -37,6 +38,7 @@ __all__ = [
     "eval_infix",
     "eval_makeboxes",
     "eval_makeboxes_fullform",
+    "eval_makeboxes_outputform",
     "eval_mathmlform",
     "eval_postprefix",
     "eval_tableform",

@@ -244,6 +244,7 @@ def render_output_form(expr: BaseElement, evaluation: Evaluation, **kwargs):
 
     if format_expr is None:
         return ""
+
     head = format_expr.get_head()
     lookup_name: str = head.get_name() or head.get_lookup_name()
     callback = EXPR_TO_OUTPUTFORM_TEXT_MAP.get(lookup_name, None)
@@ -373,7 +374,7 @@ def _infix_outputform_text(expr: Expression, evaluation: Evaluation, **kwargs) -
     #    raise _WrongFormattedExpression
 
     # Process the first operand:
-    parenthesized = group in (SymbolNone, SymbolRight, SymbolNonAssociative)
+    parenthesized = group in (SymbolRight, SymbolNonAssociative)
     operand = operands[0]
     result = str(render_output_form(operand, evaluation, **kwargs))
     result = parenthesize(precedence, operand, result, parenthesized)

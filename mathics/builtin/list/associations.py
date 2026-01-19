@@ -56,7 +56,7 @@ class Association(Builtin):
 
     def eval_makeboxes(self, rules, f, evaluation: Evaluation):
         """MakeBoxes[<|rules___|>,
-        f:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+        (f:StandardForm|TraditionalForm)]"""
 
         def validate(exprs):
             for expr in exprs:

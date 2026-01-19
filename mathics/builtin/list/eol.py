@@ -1168,14 +1168,11 @@ class Part(Builtin):
 
     def eval_makeboxes(self, list, i, f, evaluation):
         """MakeBoxes[Part[list_, i___],
-        f:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+        (f:StandardForm|TraditionalForm)]"""
 
         i = i.get_sequence()
         list = Expression(SymbolMakeBoxes, list, f).evaluate(evaluation)
-        if f.get_name() in ("System`OutputForm", "System`InputForm"):
-            open, close = "[[", "]]"
-        else:
-            open, close = "\u301a", "\u301b"
+        open, close = "\u301a", "\u301b"
         indices = list_boxes(i, f, evaluation, open, close)
         result = RowBox(list, *indices)
         return result

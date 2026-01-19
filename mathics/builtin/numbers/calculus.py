@@ -417,7 +417,6 @@ class Derivative(PostfixOperator, SympyFunction):
             r'  "\[Prime]\[Prime]", If[{n} === {1}, "\[Prime]", '
             r'    RowBox[{"(", Sequence @@ Riffle[{n}, ","], ")"}]]]]'
         ),
-        "MakeBoxes[Derivative[n:1|2][f_], form:OutputForm]": """RowBox[{MakeBoxes[f, form], If[n==1, "'", "''"]}]""",
         # The following rules should be applied in the eval method, instead of relying on the pattern matching
         # mechanism.
         "Derivative[0...][f_]": "f",
