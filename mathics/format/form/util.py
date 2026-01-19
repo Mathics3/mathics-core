@@ -23,7 +23,7 @@ from mathics.core.systemsymbols import (
     SymbolPrefix,
     SymbolRight,
 )
-from mathics.eval.makeboxes import compare_precedence
+from mathics.format.box import compare_precedence
 
 
 # This Exception if the expression should
@@ -149,7 +149,7 @@ def parenthesize(
     element: Expression,
     element_str,
     when_equal: bool,
-) -> Expression:
+) -> str:
     """
     "Add parenthesis to ``element_str`` according to the precedence of
     ``element``.

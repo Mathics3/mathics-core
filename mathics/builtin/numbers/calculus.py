@@ -84,7 +84,6 @@ from mathics.core.systemsymbols import (
     SymbolSlot,
     SymbolUndefined,
 )
-from mathics.eval.makeboxes import format_element
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numbers.calculus.integrators import (
     _fubini,

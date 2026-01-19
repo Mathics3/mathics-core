@@ -3,10 +3,10 @@ import re
 from mathics.core.atoms import Integer, String
 from mathics.core.expression import BoxError, Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import SymbolFullForm, SymbolList
+from mathics.core.symbols import SymbolFalse, SymbolFullForm, SymbolList
 from mathics.core.systemsymbols import SymbolRowBox, SymbolTraditionalForm
-from mathics.eval.makeboxes.makeboxes import format_element
 from mathics.eval.testing_expressions import expr_min
+from mathics.format.box.makeboxes import format_element
 
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 
@@ -20,7 +20,7 @@ def eval_mathmlform(expr, evaluation) -> Expression:
         evaluation.message(
             "General",
             "notboxes",
-            Expression(SymbolFullForm, boxes).evaluate(evaluation),
+            Expression(SymbolFullForm, expr).evaluate(evaluation),
         )
         mathml = ""
     is_a_picture = mathml[:6] == "<mtext"
@@ -99,7 +99,9 @@ def eval_texform(expr, evaluation) -> Expression:
         # Here we set ``show_string_characters`` to False, to reproduce
         # the standard behaviour in WMA. Remove this parameter to recover the
         # quotes in InputForm and FullForm
-        tex = boxes.boxes_to_tex(show_string_characters=False, evaluation=evaluation)
+        tex = boxes.boxes_to_tex(
+            evaluation=evaluation, show_string_characters=SymbolFalse
+        )
 
         # Replace multiple newlines by a single one e.g. between asy-blocks
         tex = MULTI_NEWLINE_RE.sub("\n", tex)
@@ -109,7 +111,7 @@ def eval_texform(expr, evaluation) -> Expression:
         evaluation.message(
             "General",
             "notboxes",
-            Expression(SymbolFullForm, boxes).evaluate(evaluation),
+            Expression(SymbolFullForm, expr).evaluate(evaluation),
         )
         tex = ""
     return Expression(SymbolRowBox, ListExpression(String(tex)))
