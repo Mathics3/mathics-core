@@ -37,9 +37,9 @@ from mathics.core.formatter import lookup_method
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolTraditionalForm
-from mathics.eval.makeboxes import format_element
+from mathics.format.box import format_element
 
-# Docs are not yet ready for prime time. Maybe after release 6.0.0.
+# No user docs here: Box primitives aren't documented.
 no_doc = True
 
 SymbolRegularPolygonBox = Symbol("RegularPolygonBox")

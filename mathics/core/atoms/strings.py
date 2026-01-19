@@ -37,7 +37,7 @@ class String(Atom, BoxElementMixin):
         return '"%s"' % self.value
 
     def atom_to_boxes(self, f, evaluation):
-        from mathics.eval.makeboxes import _boxed_string
+        from mathics.format.box import _boxed_string
 
         inner = str(self.value)
         if f in SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM:

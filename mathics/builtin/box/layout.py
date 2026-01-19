@@ -1,16 +1,21 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 Low-Level Notebook Structure
 
 Formatting constructs are represented as a hierarchy of low-level \
 symbolic "boxes".
 
-The routines here assist in boxing at the bottom of the hierarchy, typically found when using in a notebook.
+The routines here assist in boxing at the bottom of the hierarchy, typically found when used via a notebook.
 
-`Expression` objects having symbols in this module as head, are evaluated to 
-`BoxElementMixin` objects. These objects are literal objects, so do not have the method `evaluate`. Text render functions (in `mathics.format`) process `BoxElementMixin` to produce their output.
-
+Boxing is recursively performed using on the <url>:Head:/doc/reference-of-built-in-symbols/atomic-elements-of-expressions/atomic-primitives/head/</url> of a \Mathics expression
 """
+
+# The Box objects are `BoxElementMixin` objects. These objects are literal
+# objects, and do `evaluate`.  Instead, text render functions in
+# `mathics.format.render` processes the `BoxElementMixin` object to produce
+# output.
+
+
 from typing import Tuple
 
 from mathics.builtin.box.expression import BoxExpression
@@ -24,7 +29,7 @@ from mathics.core.exceptions import BoxConstructError
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
-from mathics.eval.makeboxes import to_boxes
+from mathics.format.box import to_boxes
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.low-level-notebook-structure"
@@ -73,7 +78,7 @@ class ButtonBox(BoxExpression):
     summary_text = "box construct for buttons"
 
 
-# Right now this seems to be used only in GridBox.
+# Right now, this seems to be used only in GridBox.
 def is_constant_list(list):
     if list:
         return all(item == list[0] for item in list[1:])
@@ -151,13 +156,13 @@ class GridBox(BoxExpression):
     summary_text = "low-level representation of an arbitrary 2D layout"
 
     # TODO: elements in the GridBox should be stored as an array with
-    # elements in its evaluated form.
+    # elements in their evaluated form.
 
     @property
     def elements(self):
         if self._elements is None:
             self._elements = elements_to_expressions(self, self.items, self.box_options)
-        return self.elements
+        return self._elements
 
     def init(self, *elems, **kwargs):
         self.options = kwargs
@@ -168,7 +173,8 @@ class GridBox(BoxExpression):
         if not elements:
             raise BoxConstructError
 
-        options = self.get_option_values(elements=elements[1:], evaluation=evaluation)
+        options = self.options
+
         expr = elements[0]
         if not expr.has_form("List", None):
             if not all(element.has_form("List", None) for element in expr.elements):
