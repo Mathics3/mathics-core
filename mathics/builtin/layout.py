@@ -11,14 +11,13 @@ For instance, to represent a set of consecutive expressions in a row, we can use
 
 from mathics.builtin.box.layout import GridBox, PaneBox, RowBox, to_boxes
 from mathics.builtin.makeboxes import MakeBoxes
-from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Real, String
 from mathics.core.builtin import Builtin, Operator, PostfixOperator, PrefixOperator
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
 from mathics.core.systemsymbols import SymbolMakeBoxes, SymbolSubscriptBox
 from mathics.eval.lists import list_boxes
-from mathics.eval.makeboxes import format_element
+from mathics.format.box import format_element
 
 
 class Center(Builtin):
@@ -140,7 +139,7 @@ class Grid(Builtin):
 
         return GridBox(
             ListExpression(*(format_row(row) for row in rows)),
-            *options_to_rules(options),
+            **options,
         )
 
 
@@ -477,8 +476,8 @@ class Subscript(Builtin):
       <dd>displays as $a_i$.
     </dl>
 
-    >> Subscript[x,1,2,3] // TeXForm
-     = x_{1,2,3}
+    >> Subscript[x, 1, 2, 3] // TeXForm
+     = x_{1, 2, 3}
     """
 
     summary_text = "format an expression with a subscript"

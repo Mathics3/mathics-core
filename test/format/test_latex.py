@@ -4,7 +4,7 @@ from test.helper import reset_session, session
 import pytest
 
 from mathics.core.systemsymbols import SymbolStandardForm
-from mathics.eval.makeboxes import format_element
+from mathics.format.box import format_element
 
 reset_session()
 evaluation = session.evaluation
@@ -24,7 +24,7 @@ def get_latex(wl_expression):
     [
         ('"["', r"\text{[}"),
         ('"]"', r"\text{]}"),
-        ("HoldForm[A[[1,2]]]", r"A\left[\left[1,2\right]\right]"),
+        ("HoldForm[A[[1,2]]]", r"A\left[\left[1, 2\right]\right]"),
         ('"wrong ]"', r"\text{wrong ]}"),
         ("Integrate[F[x],x]", r"\int F\left[x\right] \, dx"),
         ("Cap[c,b]", r"c \cap b"),

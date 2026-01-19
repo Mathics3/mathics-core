@@ -6,7 +6,7 @@ Vectorized evaluation routines for Plot and related subclasses of _Plot
 import numpy as np
 
 from mathics.builtin.graphics import Graphics
-from mathics.builtin.options import options_to_rules
+from mathics.builtin.options import filter_from_iterable, options_to_rules
 from mathics.core.convert.lambdify import lambdify_compile
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -32,7 +32,10 @@ def eval_Plot_vectorized(plot_options, options, evaluation: Evaluation):
     def compile_maybe_list(evaluation, function, names):
         if isinstance(function, Expression) and function.head == SymbolList:
             fs = [lambdify_compile(evaluation, f, names) for f in function.elements]
-            compiled = lambda vs: [f(vs) for f in fs]
+
+            def compiled(vs):
+                return [f(vs) for f in fs]
+
         else:
             compiled = lambdify_compile(evaluation, function, names)
         return compiled
@@ -87,6 +90,6 @@ def eval_Plot_vectorized(plot_options, options, evaluation: Evaluation):
         graphics.add_complex(xys, lines=line, polys=None)
 
     # copy options to output and generate the Graphics expr
-    options = options_to_rules(options, Graphics.options)
+    options = options_to_rules(options, filter_from_iterable(Graphics.options))
     graphics_expr = graphics.generate(options)
     return graphics_expr

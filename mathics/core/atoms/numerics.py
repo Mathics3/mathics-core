@@ -24,14 +24,7 @@ from mathics.core.number import (
     min_prec,
     prec,
 )
-from mathics.core.symbols import (
-    Atom,
-    NumericOperators,
-    Symbol,
-    SymbolNull,
-    SymbolTrue,
-    symbol_set,
-)
+from mathics.core.symbols import Atom, NumericOperators, Symbol, SymbolNull, symbol_set
 from mathics.core.systemsymbols import SymbolFullForm, SymbolInfinity, SymbolInputForm
 
 # The below value is an empirical number for comparison precedence
@@ -290,7 +283,16 @@ class Integer(Number[int]):
         return -self if self < Integer0 else self
 
     def atom_to_boxes(self, f, evaluation):
-        return self.make_boxes(f.get_name())
+        from mathics.format.box.numberform import numberform_to_boxes
+
+        try:
+            return numberform_to_boxes(
+                self, None, None, evaluation, {"_Form": f.get_name()}
+            )
+        except ValueError:
+            # from mathics.format.box import int_to_string_shorter_repr
+            # return int_to_string_shorter_repr(self._value, form)
+            raise
 
     def get_int_value(self) -> int:
         return self._value
@@ -303,25 +305,6 @@ class Integer(Number[int]):
         # Note: 0 is self._value or the other way around is a syntax
         # error.
         return self._value == 0
-
-    def make_boxes(self, form) -> "String":
-        from mathics.eval.makeboxes import _boxed_string
-
-        try:
-            if form in ("System`InputForm", "System`FullForm"):
-                return _boxed_string(str(self._value), number_as_text=SymbolTrue)
-
-            return String(str(self._value))
-        except ValueError:
-            # In Python 3.11, the size of the string
-            # obtained from an integer is limited, and for longer
-            # numbers, this exception is raised.
-            # The idea is to represent the number by its
-            # more significant digits, the lowest significant digits,
-            # and a placeholder saying the number of omitted digits.
-            from mathics.eval.makeboxes import int_to_string_shorter_repr
-
-            return int_to_string_shorter_repr(self._value, form)
 
     def round(self, d: Optional[int] = None) -> Union["MachineReal", "PrecisionReal"]:
         """
@@ -427,9 +410,6 @@ class Real(Number[T]):
         # Real is a total order
         return not (self == other)
 
-    def atom_to_boxes(self, f, evaluation):
-        return self.make_boxes(f.get_name())
-
     def is_nan(self, d=None) -> bool:
         return isinstance(self.value, sympy.core.numbers.NaN)
 
@@ -484,6 +464,15 @@ class MachineReal(Real[float]):
     def __neg__(self) -> "MachineReal":
         return MachineReal(-self.value)
 
+    def atom_to_boxes(self, f, evaluation):
+        from mathics.format.box import numberform_to_boxes
+
+        form = f.get_name()
+        _number_form_options["_Form"] = form  # passed to _NumberFormat
+        n = 6 if form == "System`OutputForm" else None
+        num_str = numberform_to_boxes(self, n, None, evaluation, _number_form_options)
+        return num_str
+
     def do_copy(self) -> "MachineReal":
         return MachineReal(self._value)
 
@@ -517,14 +506,6 @@ class MachineReal(Real[float]):
 
     def is_machine_precision(self) -> bool:
         return True
-
-    def make_boxes(self, form):
-        from mathics.eval.makeboxes import NumberForm_to_String
-
-        _number_form_options["_Form"] = form  # passed to _NumberFormat
-        n = 6 if form == "System`OutputForm" else None
-        num_str = NumberForm_to_String(self, n, None, None, _number_form_options)
-        return num_str
 
     @property
     def is_zero(self) -> bool:
@@ -610,6 +591,14 @@ class PrecisionReal(Real[sympy.Float]):
     def __neg__(self) -> "PrecisionReal":
         return PrecisionReal(-self.value)
 
+    def atom_to_boxes(self, f, evaluation):
+        from mathics.format.box import numberform_to_boxes
+
+        form = f.get_name()
+        _number_form_options["_Form"] = form  # passed to _NumberFormat
+        digits = dps(self.get_precision()) if form == "System`OutputForm" else None
+        return numberform_to_boxes(self, digits, None, evaluation, _number_form_options)
+
     def do_copy(self) -> "PrecisionReal":
         return PrecisionReal(self.value)
 
@@ -636,13 +625,6 @@ class PrecisionReal(Real[sympy.Float]):
     def is_zero(self) -> bool:
         # self.value == 0 does not work for sympy >=1.13
         return self.value.is_zero or False
-
-    def make_boxes(self, form):
-        from mathics.eval.makeboxes import NumberForm_to_String
-
-        _number_form_options["_Form"] = form  # passed to _NumberFormat
-        digits = dps(self.get_precision()) if form == "System`OutputForm" else None
-        return NumberForm_to_String(self, digits, None, None, _number_form_options)
 
     def round(self, d: Optional[int] = None) -> Union[MachineReal, "PrecisionReal"]:
         if d is None:
@@ -809,7 +791,7 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         return str(self.to_sympy())
 
     def atom_to_boxes(self, f, evaluation):
-        from mathics.eval.makeboxes import format_element
+        from mathics.format.box import format_element
 
         return format_element(self, evaluation, f)
 
@@ -955,7 +937,7 @@ class Rational(Number[sympy.Rational]):
         return Rational(-self.numerator().value, self.denominator().value)
 
     def atom_to_boxes(self, f, evaluation):
-        from mathics.eval.makeboxes import format_element
+        from mathics.format.box import format_element
 
         return format_element(self, evaluation, f)
 

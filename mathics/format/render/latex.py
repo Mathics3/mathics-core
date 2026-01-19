@@ -27,6 +27,7 @@ from mathics.builtin.box.layout import (
     SubscriptBox,
     SubsuperscriptBox,
     SuperscriptBox,
+    TagBox,
 )
 from mathics.builtin.colors.color_directives import RGBColor
 from mathics.core.atoms import String
@@ -38,7 +39,7 @@ from mathics.core.formatter import (
 )
 from mathics.core.symbols import SymbolTrue
 from mathics.core.systemsymbols import SymbolAutomatic
-from mathics.format.asy_fns import asy_color, asy_create_pens, asy_number
+from mathics.format.render.asy_fns import asy_color, asy_create_pens, asy_number
 
 # mathics_scanner does not generates this table in a way that we can load it here.
 # When it get fixed, we can use that table instead of this one:
@@ -138,23 +139,19 @@ add_conversion_fn(String, string)
 
 
 def interpretation_box(self, **options):
-    return lookup_conversion_method(self.elements[0], "latex")(
-        self.elements[0], **options
-    )
+    return lookup_conversion_method(self.boxed, "latex")(self.boxed, **options)
 
 
 add_conversion_fn(InterpretationBox, interpretation_box)
 
 
 def pane_box(self, **options):
-    content = lookup_conversion_method(self.elements[0], "latex")(
-        self.elements[0], **options
-    )
+    content = lookup_conversion_method(self.boxed, "latex")(self.boxed, **options)
     options = self.box_options
     size = options.get("System`ImageSize", SymbolAutomatic).to_python()
-    if size is SymbolAutomatic:
-        width = "\\textwidth"
-        height = ""
+
+    if size == "System`Automatic":
+        return content
     elif isinstance(size, int):
         width = f"{size}pt"
         height = ""
@@ -207,10 +204,9 @@ def gridbox(self, elements=None, **box_options) -> str:
         elements = self._elements
     evaluation = box_options.get("evaluation")
     items, options = self.get_array(elements, evaluation)
-
-    new_box_options = box_options.copy()
-    new_box_options["inside_list"] = True
-    column_alignments = options["System`ColumnAlignments"].get_name()
+    box_options.update(options)
+    box_options["inside_list"] = True
+    column_alignments = box_options["System`ColumnAlignments"].get_name()
     try:
         column_alignments = {
             "System`Center": "c",
@@ -228,12 +224,12 @@ def gridbox(self, elements=None, **box_options) -> str:
     result = r"\begin{array}{%s} " % (column_alignments * column_count)
     for index, row in enumerate(items):
         if isinstance(row, tuple):
-            result += " & ".join(boxes_to_tex(item, **new_box_options) for item in row)
+            result += " & ".join(boxes_to_tex(item, **box_options) for item in row)
         else:
             result += r"\multicolumn{%s}{%s}{%s}" % (
                 str(column_count),
                 column_alignments,
-                boxes_to_tex(row, **new_box_options),
+                boxes_to_tex(row, **box_options),
             )
         if index != len(items) - 1:
             result += "\\\\ "
@@ -330,12 +326,29 @@ def rowbox(self, **options) -> str:
     _options = self.box_options.copy()
     _options.update(options)
     options = _options
-    return "".join(
-        [
-            lookup_conversion_method(element, "latex")(element, **options)
-            for element in self.items
-        ]
-    )
+    parts_str = [
+        lookup_conversion_method(element, "latex")(element, **options)
+        for element in self.items
+    ]
+    if len(parts_str) == 1:
+        return parts_str[0]
+    # This loop integrate all the row adding spaces after a ",", followed
+    # by something which is not a comma. For example,
+    # >> ToString[RowBox[{",",",","p"}]//DisplayForm]
+    #  = ",, p"
+    result = parts_str[0]
+    comma = result == ","
+    for elem in parts_str[1:]:
+        if elem == ",":
+            result += elem
+            comma = True
+            continue
+        if comma:
+            result += " "
+            comma = False
+
+        result += elem
+    return result
 
 
 add_conversion_fn(RowBox, rowbox)
@@ -629,3 +642,10 @@ currentlight=light(rgb(0.5,0.5,0.5), {5}specular=red, (2,0,2), (2,2,2), (0,2,2))
 
 
 add_conversion_fn(Graphics3DBox, graphics3dbox)
+
+
+def tag_box(self, **options):
+    return lookup_conversion_method(self.boxed, "latex")(self.boxed, **options)
+
+
+add_conversion_fn(TagBox, tag_box)

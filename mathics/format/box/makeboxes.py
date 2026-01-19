@@ -6,7 +6,7 @@ makeboxes rules.
 """
 
 
-from typing import Optional, Union
+from typing import List
 
 from mathics.core.atoms import Complex, Rational, String
 from mathics.core.element import BaseElement, BoxElementMixin
@@ -21,11 +21,12 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (  # SymbolRule, SymbolRuleDelayed,
     SymbolComplex,
+    SymbolInputForm,
     SymbolRational,
     SymbolStandardForm,
 )
-from mathics.eval.makeboxes.formatvalues import do_format
-from mathics.eval.makeboxes.precedence import parenthesize
+from mathics.format.box.formatvalues import do_format
+from mathics.format.box.precedence import parenthesize
 
 
 def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElementMixin:
@@ -58,101 +59,33 @@ def _boxed_string(string: str, **options):
     return StyleBox(String(string), **options)
 
 
-# 640 = sys.int_info.str_digits_check_threshold.
-# Someday when 3.11 is the minimum version of Python supported,
-# we can replace the magic value 640 below with sys.int.str_digits_check_threshold.
-def int_to_string_shorter_repr(value: int, form: Symbol, max_digits=640):
-    """Convert value to a String, restricted to max_digits characters.
-
-    if value has an n-digit decimal representation,
-      value = d_1 *10^{n-1} d_2 * 10^{n-2} + d_3 10^{n-3} + ..... +
-              d_{n-2}*100 +d_{n-1}*10 + d_{n}
-    is represented as the string
-
-    "d_1d_2d_3...d_{k}<<n-2k>>d_{n-k-1}...d_{n-2}d_{n-1}d_{n}"
-
-    where n-2k digits are replaced by a placeholder.
-    """
-    if max_digits == 0:
-        return String(str(value))
-
-    # Normalize to positive quantities
-    is_negative = value < 0
-    if is_negative:
-        value = -value
-        max_digits = max_digits - 1
-
-    # Estimate the number of decimal digits
-    num_digits = int(value.bit_length() * 0.3)
-
-    # If the estimated number is below the threshold,
-    # return it as it is.
-    if num_digits <= max_digits:
-        if is_negative:
-            return String("-" + str(value))
-        return String(str(value))
-
-    # estimate the size of the placeholder
-    size_placeholder = len(str(num_digits)) + 6
-    # Estimate the number of available decimal places
-    avaliable_digits = max(max_digits - size_placeholder, 0)
-    # how many most significative digits include
-    len_msd = (avaliable_digits + 1) // 2
-    # how many least significative digits to include:
-    len_lsd = avaliable_digits - len_msd
-    # Compute the msd.
-    msd = str(value // 10 ** (num_digits - len_msd))
-    if msd == "0":
-        msd = ""
-
-    # If msd has more digits than the expected, it means that
-    # num_digits was wrong.
-    extra_msd_digits = len(msd) - len_msd
-    if extra_msd_digits > 0:
-        # Remove the extra digit and fix the real
-        # number of digits.
-        msd = msd[:len_msd]
-        num_digits = num_digits + 1
-
-    lsd = ""
-    if len_lsd > 0:
-        lsd = str(value % 10 ** (len_lsd))
-        # complete decimal positions in the lsd:
-        lsd = (len_lsd - len(lsd)) * "0" + lsd
-
-    # Now, compute the true number of hiding
-    # decimal places, and built the placeholder
-    remaining = num_digits - len_lsd - len_msd
-    placeholder = f" <<{remaining}>> "
-    # Check if the shorten string is actually
-    # shorter than the full string representation:
-    if len(placeholder) < remaining:
-        value_str = f"{msd}{placeholder}{lsd}"
-    else:
-        value_str = str(value)
-
-    if is_negative:
-        value_str = "-" + value_str
-    return String(value_str)
-
-
 # TODO: evaluation is needed because `atom_to_boxes` uses it. Can we remove this
 # argument?
 def eval_makeboxes_fullform(
-    expr: BaseElement, evaluation: Evaluation
+    element: BaseElement, evaluation: Evaluation
 ) -> BoxElementMixin:
     """Same as MakeBoxes[FullForm[expr_], f_]"""
+    from mathics.builtin.box.expression import BoxExpression
     from mathics.builtin.box.layout import RowBox
 
-    if isinstance(expr, BoxElementMixin):
-        expr = expr.to_expression()
-    if isinstance(expr, Atom):
-        if isinstance(expr, Rational):
-            expr = Expression(SymbolRational, expr.numerator(), expr.denominator())
-        elif isinstance(expr, Complex):
-            expr = Expression(SymbolComplex, expr.real, expr.imag)
+    expr: Expression
+
+    if isinstance(element, BoxExpression):
+        expr = element.to_expression()
+    elif isinstance(element, Atom):
+        if isinstance(element, Rational):
+            expr = Expression(
+                SymbolRational, element.numerator(), element.denominator()
+            )
+        elif isinstance(element, Complex):
+            expr = Expression(SymbolComplex, element.real, element.imag)
         else:
-            return expr.atom_to_boxes(SymbolFullForm, evaluation)
+            return element.atom_to_boxes(SymbolFullForm, evaluation)
+    elif isinstance(element, Expression):
+        expr = element
+    else:
+        raise ValueError
+
     head, elements = expr.head, expr.elements
     boxed_elements = tuple(
         (eval_makeboxes_fullform(element, evaluation) for element in elements)
@@ -165,15 +98,16 @@ def eval_makeboxes_fullform(
     #    return RowBox(boxed_elements[0], String("->"), boxed_elements[1])
     # if head is SymbolRuleDelayed and len(elements) == 2:
     #    return RowBox(boxed_elements[0], String(":>"), boxed_elements[1])
+    result_elements: List[BoxElementMixin]
     if head is SymbolList:
         left, right, sep = (String(ch) for ch in ("{", "}", ","))
         result_elements = [left]
     else:
-        left, right, sep = (String(ch) for ch in ("[", "]", ", "))
+        left, right, sep = (String(ch) for ch in ("[", "]", ","))
         result_elements = [eval_makeboxes_fullform(head, evaluation), left]
 
     if len(boxed_elements) > 1:
-        arguments = []
+        arguments: List[BoxElementMixin] = []
         for b_elem in boxed_elements:
             if len(arguments) > 0:
                 arguments.append(sep)
@@ -185,7 +119,7 @@ def eval_makeboxes_fullform(
     return RowBox(*result_elements)
 
 
-def eval_generic_makeboxes(self, expr, f, evaluation):
+def eval_generic_makeboxes(expr, f, evaluation):
     """MakeBoxes[expr_,
     f:TraditionalForm|StandardForm|OutputForm|InputForm]"""
     from mathics.builtin.box.layout import RowBox
@@ -246,33 +180,35 @@ def eval_generic_makeboxes(self, expr, f, evaluation):
 
 def eval_makeboxes(
     expr, evaluation: Evaluation, form=SymbolStandardForm
-) -> Optional[BaseElement]:
+) -> BoxElementMixin:
     """
     This function takes the definitions provided by the evaluation
     object, and produces a boxed fullform for expr.
 
     Basically: MakeBoxes[expr // form]
     """
-    # This is going to be reimplemented.
+    # This is going to be reimplemented. By now, much of the formatting
+    # relies in rules of the form `MakeBoxes[expr, OutputForm]`
+    # which is wrong.
     if form is SymbolFullForm:
         return eval_makeboxes_fullform(expr, evaluation)
+    if form is SymbolInputForm:
+        expr = Expression(form, expr)
+        form = SymbolStandardForm
     return Expression(SymbolMakeBoxes, expr, form).evaluate(evaluation)
 
 
 def format_element(
     element: BaseElement, evaluation: Evaluation, form: Symbol, **kwargs
-) -> Optional[Union[BoxElementMixin, BaseElement]]:
+) -> BoxElementMixin:
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
     evaluation.is_boxing = True
     formatted_expr = do_format(element, evaluation, form)
-    if formatted_expr is None:
-        return None
+    # print(" FormatValues->", formatted_expr)
     result_box = eval_makeboxes(formatted_expr, evaluation, form)
-    if isinstance(result_box, String):
-        return result_box
+    # print(" box rules->", result_box)
     if isinstance(result_box, BoxElementMixin):
         return result_box
-    else:
-        return eval_makeboxes_fullform(element, evaluation)
+    return eval_makeboxes_fullform(element, evaluation)

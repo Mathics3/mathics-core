@@ -504,7 +504,7 @@ Even lists are function calls of the function 'List':
 
 However, its full form is presented with '{...}'
   >> FullForm[{1, 2, 3}]
-   = {1,2,3}
+   = {1, 2, 3}
 
  The head of an expression can be determined with 'Head':
   >> Head[a + b + c]
@@ -888,16 +888,16 @@ There are several methods to display expressions in 2-D:
   . c   d
 
   >> Subscript[a, 1, 2] // TeXForm
-  = a_{1,2}
+  = a_{1, 2}
 
 If you want even more low-level control over expression display, override 'MakeBoxes':
 
-  >> MakeBoxes[b, StandardForm] = "c";
+  >> MakeBoxes[b, TraditionalForm] = "c";
   >> b
   = b
 
 ## This will be displayed as c in the browser and LaTeX documentation.
-This will even apply to 'TeXForm', because 'TeXForm' implies 'StandardForm':
+This will even apply to 'TeXForm', because 'TeXForm' implies 'TraditionalForm':
   >> b // TeXForm
   = c
 
@@ -906,12 +906,12 @@ Except some other form is applied first:
   = b
 'MakeBoxes' for another form:
 
-  >> MakeBoxes[b, TeXForm] = "d";
+  >> MakeBoxes[TeXForm[b], form_] = "d";
   >> b // TeXForm
   = d
 You can cause a much bigger mess by overriding 'MakeBoxes' than by sticking to 'Format', e.g. generate invalid XML:
 
-  >> MakeBoxes[c, MathMLForm] = "<not closed";
+  >> MakeBoxes[MathMLForm[c], form_] = "<not closed";
   >> c // MathMLForm
   = <not closed
 
@@ -930,7 +930,7 @@ That\'s because 'MathMLForm' will, when not overridden for a special case, call 
   = ...
 
 For instance, you can override 'MakeBoxes' to format lists in a different way:
-  >> MakeBoxes[{items___}, StandardForm] := RowBox[{"[", Sequence @@ Riffle[MakeBoxes /@ {items}, " "], "]"}]
+  >> MakeBoxes[{items___}, TraditionalForm] := RowBox[{"[", Sequence @@ Riffle[MakeBoxes /@ {items}, " "], "]"}]
   >> {1, 2, 3}
    = {1, 2, 3}
 
@@ -948,7 +948,7 @@ By the way, 'MakeBoxes' is the only built-in symbol that is not protected by def
   = {HoldAllComplete}
 
 'MakeBoxes' must return a valid box construct:
-  >> MakeBoxes[squared[args___], StandardForm] := squared[args] ^ 2
+  >> MakeBoxes[squared[args___], TraditionalForm] := squared[args] ^ 2
   >> squared[1, 2]
    = squared[1, 2]
 
@@ -958,12 +958,12 @@ By the way, 'MakeBoxes' is the only built-in symbol that is not protected by def
   =
 
 The desired effect can be achieved in the following way:
-  >> MakeBoxes[squared[args___], StandardForm] := SuperscriptBox[RowBox[{MakeBoxes[squared], "[", RowBox[Riffle[MakeBoxes[#]& /@ {args}, ","]], "]"}], 2]
+  >> MakeBoxes[squared[args___], TraditionalForm] := SuperscriptBox[RowBox[{MakeBoxes[squared], "[", RowBox[Riffle[MakeBoxes[#]& /@ {args}, ","]], "]"}], 2]
   >> squared[1, 2]
   = squared[1, 2]
 
   #> squared[1, 2] // TeXForm
-   = \text{squared}\left[1,2\right]^2
+   = \text{squared}\left[1, 2\right]^2
 
 You can view the box structure of a formatted expression using 'ToBoxes':
 
@@ -1224,16 +1224,16 @@ A dice object shall be displayed as a rectangle with the given number of points 
 
   #> Definition[Dice]
     = Attributes[Dice] = {Orderless}
-   .
-   . Format[Dice[n_Integer ? (1 <= #1 <= 6&)], MathMLForm] = Block[{p = 0.2, r = 0.05}, Graphics[{EdgeForm[Black], White, Rectangle[], Black, EdgeForm[], If[OddQ[n], Disk[{0.5, 0.5}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{p, p}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{Plus[1, Times[-1, p]], Plus[1, Times[-1, p]]}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{p, Plus[1, Times[-1, p]]}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{Plus[1, Times[-1, p]], p}, r]], If[n === 6, {Disk[{p, 0.5}, r], Disk[{Plus[1, Times[-1, p]], 0.5}, r]}]}, ImageSize -> Tiny]]
-   .
-   . Format[Dice[n_Integer ? (1 <= #1 <= 6&)], OutputForm] = Block[{p = 0.2, r = 0.05}, Graphics[{EdgeForm[Black], White, Rectangle[], Black, EdgeForm[], If[OddQ[n], Disk[{0.5, 0.5}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{p, p}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{Plus[1, Times[-1, p]], Plus[1, Times[-1, p]]}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{p, Plus[1, Times[-1, p]]}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{Plus[1, Times[-1, p]], p}, r]], If[n === 6, {Disk[{p, 0.5}, r], Disk[{Plus[1, Times[-1, p]], 0.5}, r]}]}, ImageSize -> Tiny]]
-   .
-   . Format[Dice[n_Integer ? (1 <= #1 <= 6&)], StandardForm] = Block[{p = 0.2, r = 0.05}, Graphics[{EdgeForm[Black], White, Rectangle[], Black, EdgeForm[], If[OddQ[n], Disk[{0.5, 0.5}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{p, p}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{Plus[1, Times[-1, p]], Plus[1, Times[-1, p]]}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{p, Plus[1, Times[-1, p]]}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{Plus[1, Times[-1, p]], p}, r]], If[n === 6, {Disk[{p, 0.5}, r], Disk[{Plus[1, Times[-1, p]], 0.5}, r]}]}, ImageSize -> Tiny]]
-   .
-   . Format[Dice[n_Integer ? (1 <= #1 <= 6&)], TeXForm] = Block[{p = 0.2, r = 0.05}, Graphics[{EdgeForm[Black], White, Rectangle[], Black, EdgeForm[], If[OddQ[n], Disk[{0.5, 0.5}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{p, p}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{Plus[1, Times[-1, p]], Plus[1, Times[-1, p]]}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{p, Plus[1, Times[-1, p]]}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{Plus[1, Times[-1, p]], p}, r]], If[n === 6, {Disk[{p, 0.5}, r], Disk[{Plus[1, Times[-1, p]], 0.5}, r]}]}, ImageSize -> Tiny]]
-   .
-   . Format[Dice[n_Integer ? (1 <= #1 <= 6&)], TraditionalForm] = Block[{p = 0.2, r = 0.05}, Graphics[{EdgeForm[Black], White, Rectangle[], Black, EdgeForm[], If[OddQ[n], Disk[{0.5, 0.5}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{p, p}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{Plus[1, Times[-1, p]], Plus[1, Times[-1, p]]}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{p, Plus[1, Times[-1, p]]}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{Plus[1, Times[-1, p]], p}, r]], If[n === 6, {Disk[{p, 0.5}, r], Disk[{Plus[1, Times[-1, p]], 0.5}, r]}]}, ImageSize -> Tiny]]
+    .
+    . Format[Dice[n_Integer ? (1 <= #1 <= 6&)], MathMLForm] = Block[{p = 0.2, r = 0.05}, Graphics[{EdgeForm[Black], White, Rectangle[], Black, EdgeForm[], If[OddQ[n], Disk[{0.5, 0.5}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{p, p}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{1 - p, 1 - p}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{p, 1 - p}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{1 - p, p}, r]], If[n === 6, {Disk[{p, 0.5}, r], Disk[{1 - p, 0.5}, r]}]}, ImageSize -> Tiny]]
+    .
+    . Format[Dice[n_Integer ? (1 <= #1 <= 6&)], OutputForm] = Block[{p = 0.2, r = 0.05}, Graphics[{EdgeForm[Black], White, Rectangle[], Black, EdgeForm[], If[OddQ[n], Disk[{0.5, 0.5}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{p, p}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{1 - p, 1 - p}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{p, 1 - p}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{1 - p, p}, r]], If[n === 6, {Disk[{p, 0.5}, r], Disk[{1 - p, 0.5}, r]}]}, ImageSize -> Tiny]]
+    .
+    . Format[Dice[n_Integer ? (1 <= #1 <= 6&)], StandardForm] = Block[{p = 0.2, r = 0.05}, Graphics[{EdgeForm[Black], White, Rectangle[], Black, EdgeForm[], If[OddQ[n], Disk[{0.5, 0.5}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{p, p}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{1 - p, 1 - p}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{p, 1 - p}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{1 - p, p}, r]], If[n === 6, {Disk[{p, 0.5}, r], Disk[{1 - p, 0.5}, r]}]}, ImageSize -> Tiny]]
+    .
+    . Format[Dice[n_Integer ? (1 <= #1 <= 6&)], TeXForm] = Block[{p = 0.2, r = 0.05}, Graphics[{EdgeForm[Black], White, Rectangle[], Black, EdgeForm[], If[OddQ[n], Disk[{0.5, 0.5}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{p, p}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{1 - p, 1 - p}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{p, 1 - p}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{1 - p, p}, r]], If[n === 6, {Disk[{p, 0.5}, r], Disk[{1 - p, 0.5}, r]}]}, ImageSize -> Tiny]]
+    .
+    . Format[Dice[n_Integer ? (1 <= #1 <= 6&)], TraditionalForm] = Block[{p = 0.2, r = 0.05}, Graphics[{EdgeForm[Black], White, Rectangle[], Black, EdgeForm[], If[OddQ[n], Disk[{0.5, 0.5}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{p, p}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{1 - p, 1 - p}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{p, 1 - p}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{1 - p, p}, r]], If[n === 6, {Disk[{p, 0.5}, r], Disk[{1 - p, 0.5}, r]}]}, ImageSize -> Tiny]]
 
 The empty series of dice shall be displayed as an empty dice:
   >> Format[Dice[]] := Graphics[{EdgeForm[Black], White, Rectangle[]}, ImageSize -> Tiny]

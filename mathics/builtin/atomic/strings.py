@@ -876,7 +876,7 @@ class ToString(Builtin):
     >> "U" <> ToString[2]
      = U2
     >> ToString[Integrate[f[x],x], TeXForm]
-     = \\int f\\left[x\\right] \\, dx
+     = \\int f\\left(x\\right) \\, dx
 
     """
 
@@ -897,7 +897,7 @@ class ToString(Builtin):
         return self.eval_form(value, SymbolOutputForm, evaluation, options)
 
     def eval_form(self, expr, form, evaluation: Evaluation, options: dict):
-        "ToString[expr_, form_, OptionsPattern[ToString]]"
+        "ToString[expr_, form_Symbol, OptionsPattern[ToString]]"
         encoding = options["System`CharacterEncoding"]
         return eval_ToString(expr, form, encoding.value, evaluation)
 

@@ -8,7 +8,10 @@ try:
     real_type = ir.DoubleType()
     bool_type = ir.IntType(1)
     void_type = ir.VoidType()
-except:
+except (
+    ImportError,
+    ModuleNotFoundError,
+):
     int_type = int
     real_type = float
     bool_type = bool

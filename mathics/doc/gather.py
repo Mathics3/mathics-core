@@ -95,6 +95,7 @@ def doc_chapter(module, part, builtins_by_module):
     doc_class = documentation.doc_class if documentation else DocumentationEntry
     title, text = get_module_doc(module)
     chapter = chapter_class(part, title, doc_class(text, title, None))
+    visited = set()
     part.chapters.append(chapter)
 
     assert len(chapter.sections) == 0

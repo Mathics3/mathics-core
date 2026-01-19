@@ -3,9 +3,30 @@
 Unit tests from mathics.builtin.forms.
 """
 
-from test.helper import check_evaluation
+from test.helper import check_evaluation, session
 
 import pytest
+
+
+@pytest.mark.parametrize(
+    ("expr", "form", "head", "subhead"),
+    [
+        ("x", "InputForm", "InterpretationBox", "StyleBox"),
+        ("x", "OutputForm", "InterpretationBox", "PaneBox"),
+        ("x", "TeXForm", "InterpretationBox", "String"),
+        ("x", "StandardForm", "TagForm", "FormBox"),
+        ("x", "FullForm", "TagBox", "StyleBox"),
+    ],
+)
+@pytest.mark.xfail
+def test_makeboxes_form(expr, form, head, subhead):
+    """
+    Check the structure of the result of MakeBoxes
+    on expressions with different forms.
+    """
+    expr = session.evaluate("MakeBoxes[{form}[{expr}]]")
+    assert expr.get_head_name() == f"System`{head}"
+    assert expr.elements[0].get_head_name() == f"System`{subhead}"
 
 
 @pytest.mark.parametrize(
@@ -126,32 +147,32 @@ import pytest
             (
                 "Value for option DigitBlock should be a positive integer, Infinity, or a pair of positive integers.",
             ),
-            "1.2345",
-            None,
+            "1.23",
+            "Options with wrong values are just discarded.",
         ),
         (
             "NumberForm[1.2345, 3, DigitBlock -> x]",
             (
                 "Value for option DigitBlock should be a positive integer, Infinity, or a pair of positive integers.",
             ),
-            "1.2345",
-            None,
+            "1.23",
+            "Options with wrong values are just discarded.",
         ),
         (
             "NumberForm[1.2345, 3, DigitBlock -> {x, 3}]",
             (
                 "Value for option DigitBlock should be a positive integer, Infinity, or a pair of positive integers.",
             ),
-            "1.2345",
-            None,
+            "1.23",
+            "Options with wrong values are just discarded.",
         ),
         (
             "NumberForm[1.2345, 3, DigitBlock -> {5, -3}]",
             (
                 "Value for option DigitBlock should be a positive integer, Infinity, or a pair of positive integers.",
             ),
-            "1.2345",
-            None,
+            "1.23",
+            "Options with wrong values are just discarded.",
         ),
         ## ExponentFunction
         (
@@ -192,14 +213,14 @@ import pytest
         (
             "NumberForm[1.2345, 3, ExponentStep -> x]",
             ("Value of option ExponentStep -> x is not a positive integer.",),
-            "1.2345",
-            None,
+            "1.23",
+            "Options with wrong values are just discarded.",
         ),
         (
             "NumberForm[1.2345, 3, ExponentStep -> 0]",
             ("Value of option ExponentStep -> 0 is not a positive integer.",),
-            "1.2345",
-            None,
+            "1.23",
+            "Options with wrong values are just discarded.",
         ),
         (
             "NumberForm[y, 10, ExponentStep -> 6]",
@@ -218,8 +239,8 @@ import pytest
         (
             "NumberForm[1.2345, 3, NumberMultiplier -> 0]",
             ("Value for option NumberMultiplier -> 0 is expected to be a string.",),
-            "1.2345",
-            None,
+            "1.23",
+            "Options with wrong values are just discarded.",
         ),
         (
             'NumberForm[N[10^ 7 Pi], 15, NumberMultiplier -> "*"]',
@@ -232,8 +253,8 @@ import pytest
         (
             "NumberForm[1.2345, 3, NumberPoint -> 0]",
             ("Value for option NumberPoint -> 0 is expected to be a string.",),
-            "1.2345",
-            None,
+            "1.23",
+            "Options with wrong values are just discarded.",
         ),
         ## NumberPadding
         ("NumberForm[1.41, {10, 5}]", None, "1.41000", None),
@@ -260,8 +281,8 @@ import pytest
             (
                 "Value for option NumberPadding -> 0 should be a string or a pair of strings.",
             ),
-            "1.2345",
-            None,
+            "1.23",
+            "Options with wrong values are just discarded.",
         ),
         (
             'NumberForm[1.41, 10, NumberPadding -> {"X", "Y"}, NumberSigns -> {"-------------", ""}]',
@@ -305,8 +326,8 @@ import pytest
             (
                 "Value for option NumberSeparator -> 0 should be a string or a pair of strings.",
             ),
-            "1.2345",
-            None,
+            "1.23",
+            "Options with wrong values are just discarded.",
         ),
         ## NumberSigns
         ('NumberForm[1.2345, 5, NumberSigns -> {"-", "+"}]', None, "+1.2345", None),
@@ -316,8 +337,8 @@ import pytest
             (
                 "Value for option NumberSigns -> 0 should be a pair of strings or two pairs of strings.",
             ),
-            "1.2345",
-            None,
+            "1.23",
+            "Options with wrong values are just discarded.",
         ),
         ## SignPadding
         (
@@ -361,17 +382,24 @@ import pytest
         (
             '{"hi","you"} //InputForm //TeXForm',
             None,
-            "\\left\\{\\text{``hi''}, \\text{``you''}\\right\\}",
+            r'\text{\{"hi", "you"\}}',
             None,
         ),
         ("a=.;b=.;c=.;TeXForm[a+b*c]", None, "a+b c", None),
-        ("TeXForm[InputForm[a+b*c]]", None, r"a\text{ + }b*c", None),
+        ("TeXForm[InputForm[a+b*c]]", None, r"\text{a + b*c}", None),
         ("TableForm[{}]", None, "", None),
         (
             "{{2*a, 0},{0,0}}//MatrixForm",
             None,
             "2 \u2062 a   0\n\n0       0\n",
             "Issue #182",
+        ),
+        ##
+        (
+            "NumberForm[N[10^ 5 Pi], 15, DigitBlock -> {4, 2}, ExponentStep->x]",
+            ("Value of option ExponentStep -> x is not a positive integer.",),
+            "31,4159.26 53 58 97 9",
+            "Options with wrong values are discarded, but other properties are kept.",
         ),
     ],
 )
@@ -383,6 +411,90 @@ def test_private_doctests_output(str_expr, msgs, str_expected, fail_msg):
         to_string_expr=True,
         to_string_expected=True,
         hold_expected=True,
+        failure_message=fail_msg,
+        expected_messages=msgs,
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "fail_msg", "msgs"),
+    [
+        (
+            'StringForm["This is symbol ``.", A]',
+            '"This is symbol A."',
+            "empty placeholder",
+            None,
+        ),
+        (
+            'StringForm["This is symbol `1`.", A]',
+            '"This is symbol A."',
+            "numerated placeholder",
+            None,
+        ),
+        (
+            'StringForm["This is symbol `0`.", A]',
+            'StringForm["This is symbol `0`.", A]',
+            "placeholder index must be positive",
+            (
+                'Item 0 requested in "This is symbol `0`." out of range; 1 items available.',
+            ),
+        ),
+        (
+            'StringForm["This is symbol `symbol`.", A]',
+            'StringForm["This is symbol `symbol`.", A]',
+            "placeholder must be an integer",
+            (
+                'Item 0 requested in "This is symbol `symbol`." out of range; 1 items available.',
+            ),
+        ),
+        (
+            'StringForm["This is symbol `5`.", A]',
+            'StringForm["This is symbol `5`.", A]',
+            "placeholder index too large",
+            (
+                'Item 5 requested in "This is symbol `5`." out of range; 1 items available.',
+            ),
+        ),
+        (
+            'StringForm["This is symbol `2`, then `1`.", A, B]',
+            '"This is symbol B, then A."',
+            "numerated placeholder",
+            None,
+        ),
+        (
+            'StringForm["This is symbol `1`, then ``.", A, B]',
+            '"This is symbol A, then B."',
+            "empty placeholder use the next avaliable entry.",
+            None,
+        ),
+        (
+            'StringForm["This is symbol `2`, then ``.", A, B]',
+            'StringForm["This is symbol `2`, then ``.", A, B]',
+            "no more available entry.",
+            (
+                'Item 3 requested in "This is symbol `2`, then ``." out of range; 2 items available.',
+            ),
+        ),
+        (
+            'StringForm["This is symbol `.", A]',
+            'StringForm["This is symbol `.", A]',
+            "Unbalanced",
+            ("Unmatched backquote in This is symbol `..",),
+        ),
+        (
+            r'StringForm["This is symbol \`.", A]',
+            '"This is symbol `."',
+            "literal backquote",
+            None,
+        ),
+    ],
+)
+def test_stringform(str_expr, str_expected, fail_msg, msgs):
+    """ """
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
         failure_message=fail_msg,
         expected_messages=msgs,
     )

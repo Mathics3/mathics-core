@@ -23,6 +23,7 @@ from mathics.builtin.box.layout import (
     SubscriptBox,
     SubsuperscriptBox,
     SuperscriptBox,
+    TagBox,
 )
 from mathics.core.atoms import String
 from mathics.core.element import BoxElementMixin
@@ -95,6 +96,11 @@ def string(self, **options) -> str:
         return render("<mn>%s</mn>", text)
     else:
         if text in operators or text in extra_operators:
+            # Empty strings are taken as an operator character,
+            # but this confuses the MathML interpreter in
+            # Mathics-Django:
+            if text == "":
+                return ""
             if text == "\u2146":
                 return render(
                     '<mo form="prefix" lspace="0.2em" rspace="0">%s</mo>', text
@@ -117,18 +123,14 @@ add_conversion_fn(String, string)
 
 
 def interpretation_box(self, **options):
-    return lookup_conversion_method(self.elements[0], "mathml")(
-        self.elements[0], **options
-    )
+    return lookup_conversion_method(self.boxed, "mathml")(self.boxed, **options)
 
 
 add_conversion_fn(InterpretationBox, interpretation_box)
 
 
 def pane_box(self, **options):
-    content = lookup_conversion_method(self.elements[0], "mathml")(
-        self.elements[0], **options
-    )
+    content = lookup_conversion_method(self.boxed, "mathml")(self.boxed, **options)
     options = self.box_options
     size = options.get("System`ImageSize", SymbolAutomatic).to_python()
     if size is SymbolAutomatic:
@@ -367,3 +369,10 @@ def graphics3dbox(self, elements=None, **options) -> str:
 
 
 add_conversion_fn(Graphics3DBox, graphics3dbox)
+
+
+def tag_box(self, **options):
+    return lookup_conversion_method(self.boxed, "mathml")(self.boxed, **options)
+
+
+add_conversion_fn(TagBox, tag_box)
