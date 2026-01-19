@@ -6,7 +6,7 @@ makeboxes rules.
 """
 
 
-from typing import Optional, Union
+from typing import List
 
 from mathics.core.atoms import Complex, Rational, String
 from mathics.core.element import BaseElement, BoxElementMixin
@@ -25,8 +25,8 @@ from mathics.core.systemsymbols import (  # SymbolRule, SymbolRuleDelayed,
     SymbolRational,
     SymbolStandardForm,
 )
-from mathics.eval.makeboxes.formatvalues import do_format
-from mathics.eval.makeboxes.precedence import parenthesize
+from mathics.format.box.formatvalues import do_format
+from mathics.format.box.precedence import parenthesize
 
 
 def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElementMixin:
@@ -62,20 +62,30 @@ def _boxed_string(string: str, **options):
 # TODO: evaluation is needed because `atom_to_boxes` uses it. Can we remove this
 # argument?
 def eval_makeboxes_fullform(
-    expr: BaseElement, evaluation: Evaluation
+    element: BaseElement, evaluation: Evaluation
 ) -> BoxElementMixin:
     """Same as MakeBoxes[FullForm[expr_], f_]"""
+    from mathics.builtin.box.expression import BoxExpression
     from mathics.builtin.box.layout import RowBox
 
-    if isinstance(expr, BoxElementMixin):
-        expr = expr.to_expression()
-    if isinstance(expr, Atom):
-        if isinstance(expr, Rational):
-            expr = Expression(SymbolRational, expr.numerator(), expr.denominator())
-        elif isinstance(expr, Complex):
-            expr = Expression(SymbolComplex, expr.real, expr.imag)
+    expr: Expression
+
+    if isinstance(element, BoxExpression):
+        expr = element.to_expression()
+    elif isinstance(element, Atom):
+        if isinstance(element, Rational):
+            expr = Expression(
+                SymbolRational, element.numerator(), element.denominator()
+            )
+        elif isinstance(element, Complex):
+            expr = Expression(SymbolComplex, element.real, element.imag)
         else:
-            return expr.atom_to_boxes(SymbolFullForm, evaluation)
+            return element.atom_to_boxes(SymbolFullForm, evaluation)
+    elif isinstance(element, Expression):
+        expr = element
+    else:
+        raise ValueError
+
     head, elements = expr.head, expr.elements
     boxed_elements = tuple(
         (eval_makeboxes_fullform(element, evaluation) for element in elements)
@@ -88,6 +98,7 @@ def eval_makeboxes_fullform(
     #    return RowBox(boxed_elements[0], String("->"), boxed_elements[1])
     # if head is SymbolRuleDelayed and len(elements) == 2:
     #    return RowBox(boxed_elements[0], String(":>"), boxed_elements[1])
+    result_elements: List[BoxElementMixin]
     if head is SymbolList:
         left, right, sep = (String(ch) for ch in ("{", "}", ","))
         result_elements = [left]
@@ -96,7 +107,7 @@ def eval_makeboxes_fullform(
         result_elements = [eval_makeboxes_fullform(head, evaluation), left]
 
     if len(boxed_elements) > 1:
-        arguments = []
+        arguments: List[BoxElementMixin] = []
         for b_elem in boxed_elements:
             if len(arguments) > 0:
                 arguments.append(sep)
@@ -169,7 +180,7 @@ def eval_generic_makeboxes(expr, f, evaluation):
 
 def eval_makeboxes(
     expr, evaluation: Evaluation, form=SymbolStandardForm
-) -> Optional[BaseElement]:
+) -> BoxElementMixin:
     """
     This function takes the definitions provided by the evaluation
     object, and produces a boxed fullform for expr.
@@ -189,21 +200,15 @@ def eval_makeboxes(
 
 def format_element(
     element: BaseElement, evaluation: Evaluation, form: Symbol, **kwargs
-) -> Optional[Union[BoxElementMixin, BaseElement]]:
+) -> BoxElementMixin:
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
     evaluation.is_boxing = True
     formatted_expr = do_format(element, evaluation, form)
-    # print("format",element, form)
-    if formatted_expr is None:
-        return None
     # print(" FormatValues->", formatted_expr)
     result_box = eval_makeboxes(formatted_expr, evaluation, form)
     # print(" box rules->", result_box)
-    if isinstance(result_box, String):
-        return result_box
     if isinstance(result_box, BoxElementMixin):
         return result_box
-    else:
-        return eval_makeboxes_fullform(element, evaluation)
+    return eval_makeboxes_fullform(element, evaluation)

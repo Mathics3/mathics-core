@@ -3,14 +3,10 @@ import re
 from mathics.core.atoms import Integer, String
 from mathics.core.expression import BoxError, Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import SymbolFullForm, SymbolList
-from mathics.core.systemsymbols import (
-    SymbolMakeBoxes,
-    SymbolRowBox,
-    SymbolTraditionalForm,
-)
-from mathics.eval.makeboxes.makeboxes import format_element
+from mathics.core.symbols import SymbolFalse, SymbolFullForm, SymbolList
+from mathics.core.systemsymbols import SymbolRowBox, SymbolTraditionalForm
 from mathics.eval.testing_expressions import expr_min
+from mathics.format.box.makeboxes import format_element
 
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 
@@ -24,7 +20,7 @@ def eval_mathmlform(expr, evaluation) -> Expression:
         evaluation.message(
             "General",
             "notboxes",
-            Expression(SymbolFullForm, boxes).evaluate(evaluation),
+            Expression(SymbolFullForm, expr).evaluate(evaluation),
         )
         mathml = ""
     is_a_picture = mathml[:6] == "<mtext"
@@ -55,6 +51,8 @@ def eval_tableform(self, table, f, evaluation, options):
         evaluation.message(self.get_name(), "int")
         return
 
+    grid_options = evaluation.definitions.get_options("System`GridBox")
+
     if depth <= 0:
         return format_element(table, evaluation, f)
     elif depth == 1:
@@ -64,7 +62,8 @@ def eval_tableform(self, table, f, evaluation, options):
                     ListExpression(format_element(item, evaluation, f))
                     for item in table.elements
                 ),
-            )
+            ),
+            **grid_options,
         )
         # return Expression(
         #    'GridBox', Expression('List', *(
@@ -87,7 +86,8 @@ def eval_tableform(self, table, f, evaluation, options):
                     )
                     for row in table.elements
                 ),
-            )
+            ),
+            **grid_options,
         )
         options["System`TableDepth"] = Integer(depth)
         return result
@@ -99,7 +99,9 @@ def eval_texform(expr, evaluation) -> Expression:
         # Here we set ``show_string_characters`` to False, to reproduce
         # the standard behaviour in WMA. Remove this parameter to recover the
         # quotes in InputForm and FullForm
-        tex = boxes.boxes_to_tex(show_string_characters=False, evaluation=evaluation)
+        tex = boxes.boxes_to_tex(
+            evaluation=evaluation, show_string_characters=SymbolFalse
+        )
 
         # Replace multiple newlines by a single one e.g. between asy-blocks
         tex = MULTI_NEWLINE_RE.sub("\n", tex)
@@ -109,7 +111,7 @@ def eval_texform(expr, evaluation) -> Expression:
         evaluation.message(
             "General",
             "notboxes",
-            Expression(SymbolFullForm, boxes).evaluate(evaluation),
+            Expression(SymbolFullForm, expr).evaluate(evaluation),
         )
         tex = ""
     return Expression(SymbolRowBox, ListExpression(String(tex)))
