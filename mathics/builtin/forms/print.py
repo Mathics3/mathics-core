@@ -209,13 +209,6 @@ class OutputForm(FormBaseClass):
             pane, Expression(SymbolOutputForm, expr), **{"System`Editable": SymbolFalse}
         )
 
-    def eval_makeboxes(self, expr, form, evaluation):
-        """MakeBoxes[OutputForm[expr_], form_]"""
-        pane = eval_makeboxes_outputform(expr, evaluation, form)
-        return InterpretationBox(
-            pane, Expression(SymbolOutputForm, expr), **{"System`Editable": SymbolFalse}
-        )
-
 
 class StandardForm(FormBaseClass):
     """

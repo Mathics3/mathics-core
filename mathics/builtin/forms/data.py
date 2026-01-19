@@ -11,7 +11,7 @@ which are intended to work over all kinds of data.
 """
 from typing import Any, Callable, Dict, List, Optional
 
-from mathics.builtin.box.layout import RowBox, SuperscriptBox
+from mathics.builtin.box.layout import RowBox, StyleBox, SuperscriptBox
 from mathics.builtin.forms.base import FormBaseClass
 from mathics.core.atoms import Integer, Real, String
 from mathics.core.builtin import Builtin
