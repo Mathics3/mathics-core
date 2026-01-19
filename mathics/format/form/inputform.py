@@ -210,7 +210,8 @@ def _prefix_expression_to_inputform_text(
     operand = operands[0]
     kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     target_txt = render_input_form(operand, evaluation, **kwargs)
-    target_txt = parenthesize(precedence, operand, target_txt, True)
+    parenthesized = group in (None, SymbolRight, SymbolNonAssociative)
+    target_txt = parenthesize(precedence, operand, target_txt, parenthesized)
     return str(op_head) + target_txt
 
 
@@ -229,8 +230,9 @@ def _postfix_expression_to_inputform_text(
     if len(operands) != 1 or not isinstance(op_head, str):
         raise _WrongFormattedExpression
     operand = operands[0]
+    parenthesized = group in (None, SymbolRight, SymbolNonAssociative)
     inputform_txt = render_input_form(operand, evaluation, **kwargs)
-    target_txt = parenthesize(precedence, operand, inputform_txt, True)
+    target_txt = parenthesize(precedence, operand, inputform_txt, parenthesized)
     return target_txt + op_head
 
 

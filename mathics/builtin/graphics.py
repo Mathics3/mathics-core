@@ -316,7 +316,7 @@ class Graphics(Builtin):
 
     def eval_makeboxes(self, content, evaluation, options):
         """MakeBoxes[%(name)s[content_, OptionsPattern[%(name)s]],
-        StandardForm|TraditionalForm|OutputForm]"""
+        Alternatives[StandardForm,TraditionalForm]]"""
 
         def convert(content):
             head = content.get_head()

@@ -121,7 +121,7 @@ class Grid(Builtin):
 
     def eval_makeboxes(self, array, f, evaluation: Evaluation, options) -> Expression:
         """MakeBoxes[Grid[array_List, OptionsPattern[Grid]],
-        (f:StandardForm|TraditionalForm|OutputForm)]"""
+        f:StandardForm|TraditionalForm]"""
 
         elements = array.elements
 

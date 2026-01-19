@@ -88,7 +88,7 @@ class BaseForm(FormBaseClass):
 
     def eval_makeboxes(self, expr, n, f, evaluation: Evaluation):
         """MakeBoxes[BaseForm[expr_, n_],
-        (f:StandardForm|TraditionalForm|OutputForm)]"""
+        (f:StandardForm|TraditionalForm)]"""
         try:
             return eval_baseform(expr, n, f, evaluation)
         except ValueError:
@@ -626,7 +626,7 @@ class SequenceForm(FormBaseClass):
 
     def eval_makeboxes(self, args, form, evaluation, options: dict):
         """MakeBoxes[SequenceForm[args___, OptionsPattern[SequenceForm]],
-        form:StandardForm|TraditionalForm|OutputForm]"""
+        form:StandardForm|TraditionalForm]"""
         encoding = options["System`CharacterEncoding"]
         return RowBox(
             *[
@@ -702,7 +702,13 @@ class StringForm(FormBaseClass):
     def eval_makeboxes(self, s, args, form, evaluation):
         """MakeBoxes[StringForm[s_String, args___],
         form:StandardForm|TraditionalForm]"""
-        return eval_StringForm_MakeBoxes(s, args.get_sequence(), form, evaluation)
+        try:
+            result = eval_StringForm_MakeBoxes(s, args.get_sequence(), form, evaluation)
+        except ValueError:
+            result = s
+        if isinstance(result, String):
+            result = StyleBox(String(result))
+        return result
 
 
 class TableForm(FormBaseClass):

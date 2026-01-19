@@ -103,7 +103,6 @@ class MakeBoxes(Builtin):
             "[expr_], StandardForm|TraditionalForm]"
         ): ("MakeBoxes[expr, form]"),
         # BoxForms goes as second argument
-        "MakeBoxes[(form:StandardForm|TraditionalForm|OutputForm)[expr_], OutputForm]": "MakeBoxes[expr, form]",
         "MakeBoxes[PrecedenceForm[expr_, prec_], f_]": "MakeBoxes[expr, f]",
         "MakeBoxes[Style[expr_, OptionsPattern[Style]], f_]": (
             "StyleBox[MakeBoxes[expr, f], "

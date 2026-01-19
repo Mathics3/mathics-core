@@ -24,9 +24,12 @@ from mathics.core.systemsymbols import (  # SymbolRule, SymbolRuleDelayed,
     SymbolInputForm,
     SymbolRational,
     SymbolStandardForm,
+    SymbolTraditionalForm,
 )
 from mathics.format.box.formatvalues import do_format
 from mathics.format.box.precedence import parenthesize
+
+BOX_FORMS = {SymbolStandardForm, SymbolTraditionalForm}
 
 
 def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElementMixin:
@@ -135,7 +138,7 @@ def eval_makeboxes_outputform(
 
 def eval_generic_makeboxes(expr, f, evaluation):
     """MakeBoxes[expr_,
-    f:TraditionalForm|StandardForm|OutputForm|InputForm]"""
+    f:TraditionalForm|StandardForm]"""
     from mathics.builtin.box.layout import RowBox
 
     if isinstance(expr, BoxElementMixin):
@@ -206,10 +209,13 @@ def eval_makeboxes(
     # which is wrong.
     if form is SymbolFullForm:
         return eval_makeboxes_fullform(expr, evaluation)
-    if form is SymbolInputForm:
+    if form not in BOX_FORMS:
+        # print(form, "not in", BOX_FORMS)
         expr = Expression(form, expr)
         form = SymbolStandardForm
-    return Expression(SymbolMakeBoxes, expr, form).evaluate(evaluation)
+    mb_expr = Expression(SymbolMakeBoxes, expr, form)
+    # print("   evaluate", mb_expr)
+    return mb_expr.evaluate(evaluation)
 
 
 def format_element(
@@ -218,11 +224,12 @@ def format_element(
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
+    if form is SymbolFullForm:
+        return eval_makeboxes_fullform(element, evaluation)
+
     evaluation.is_boxing = True
     formatted_expr = do_format(element, evaluation, form)
-    # print(" FormatValues->", formatted_expr)
     result_box = eval_makeboxes(formatted_expr, evaluation, form)
-    # print(" box rules->", result_box)
     if isinstance(result_box, BoxElementMixin):
         return result_box
     return eval_makeboxes_fullform(element, evaluation)

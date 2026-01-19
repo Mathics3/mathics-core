@@ -65,8 +65,8 @@ class Optional(InfixOperator, PatternObject):
     }
     grouping = "Right"
     rules = {
-        "MakeBoxes[Verbatim[Optional][Verbatim[Pattern][symbol_Symbol, Verbatim[_]]], f:StandardForm|TraditionalForm|InputForm|OutputForm]": 'MakeBoxes[symbol, f] <> "_."',
-        "MakeBoxes[Verbatim[Optional][Verbatim[_]], f:StandardForm|TraditionalForm|InputForm|OutputForm]": '"_."',
+        "MakeBoxes[Verbatim[Optional][Verbatim[Pattern][symbol_Symbol, Verbatim[_]]], (f:StandardForm|TraditionalForm)]": 'MakeBoxes[symbol, f] <> "_."',
+        "MakeBoxes[Verbatim[Optional][Verbatim[_]], (f:StandardForm|TraditionalForm)]": '"_."',
     }
     summary_text = "an optional argument with a default value"
 

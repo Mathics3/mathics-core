@@ -247,7 +247,7 @@ class TerminalShell(MathicsLineFeeder):
 
         out_str = str(result.result)
         if eval_type == "System`String" and not strict_wl_output:
-            out_str = '"' + out_str.replace('"', r"\"") + '"'
+            out_str = out_str.replace('"', r"\"")
         if eval_type == "System`Graph":
             out_str = "-Graph-"
 
