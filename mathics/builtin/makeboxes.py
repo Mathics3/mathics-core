@@ -8,7 +8,7 @@ from mathics.core.atoms import Integer
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Predefined
 from mathics.core.symbols import Symbol
-from mathics.eval.makeboxes import (
+from mathics.format.box import (
     eval_generic_makeboxes,
     eval_infix,
     eval_makeboxes_fullform,

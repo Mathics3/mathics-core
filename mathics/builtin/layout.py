@@ -17,7 +17,7 @@ from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
 from mathics.core.systemsymbols import SymbolMakeBoxes, SymbolSubscriptBox
 from mathics.eval.lists import list_boxes
-from mathics.eval.makeboxes import format_element
+from mathics.format.box import format_element
 
 
 class Center(Builtin):
@@ -121,7 +121,7 @@ class Grid(Builtin):
 
     def eval_makeboxes(self, array, f, evaluation: Evaluation, options) -> Expression:
         """MakeBoxes[Grid[array_List, OptionsPattern[Grid]],
-        f:StandardForm|TraditionalForm]"""
+        (f:StandardForm|TraditionalForm|OutputForm)]"""
 
         elements = array.elements
 

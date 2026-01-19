@@ -18,13 +18,13 @@ from mathics.core.atoms import String
 from mathics.core.expression import Expression
 from mathics.core.symbols import SymbolFalse, SymbolFullForm, SymbolTrue
 from mathics.core.systemsymbols import SymbolInputForm, SymbolOutputForm
-from mathics.eval.makeboxes import (
+from mathics.format.box import (
     eval_makeboxes_fullform,
     eval_makeboxes_outputform,
     eval_mathmlform,
     eval_texform,
 )
-from mathics.form import render_input_form
+from mathics.format.form import render_input_form
 
 sort_order = "mathics.builtin.forms.general-purpose-forms"
 
