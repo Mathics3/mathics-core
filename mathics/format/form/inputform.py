@@ -257,9 +257,15 @@ def _blanks(expr: Expression, evaluation: Evaluation, **kwargs) -> str:
 @register_inputform("System`Optional")
 def _optional(expr: Expression, evaluation: Evaluation, **kwargs) -> str:
     name: str = ""
+    post: str = ""
     elements = expr.elements
-    if len(elements) != 1:
+    if not expr.has_form("Optional", 1, 2):
         raise _WrongFormattedExpression
+    if len(elements) == 2:
+        post = ":" + render_input_form(elements[1], evaluation, **kwargs)
+    else:
+        post = "."
+
     operand = elements[0]
     if operand.has_form("Pattern", 2):
         name = render_input_form(operand.elements[0], evaluation, **kwargs)
@@ -268,7 +274,11 @@ def _optional(expr: Expression, evaluation: Evaluation, **kwargs) -> str:
     if not operand.has_form(("Blank", "BlankNullSequence", "BlankSequence"), 0):
         raise _WrongFormattedExpression
 
-    return name + BLANKS_TO_STRINGS[operand.head] + "."
+    result = name + BLANKS_TO_STRINGS[operand.head] + post
+    # `name_.` cannot be reentered if it is not wrapped in parenthesis:
+    if post == ".":
+        result = f"({result})"
+    return result
 
 
 @register_inputform("System`Pattern")
