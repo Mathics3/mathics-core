@@ -27,7 +27,9 @@ both cases, underneath the `InterpretationBox` or `Tagbox` is a
 
 from typing import Callable, Dict
 
+from mathics.builtin.box.expression import BoxExpression
 from mathics.core.atoms import Integer, String
+from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Atom
@@ -62,12 +64,12 @@ def register_inputform(head_name):
     return _register
 
 
-def render_input_form(expr, evaluation, **kwargs):
+def render_input_form(expr: BaseElement, evaluation: Evaluation, **kwargs) -> str:
     """
     Build a string with the InputForm of the expression.
     """
-    format_expr: Expression = do_format(expr, evaluation, SymbolInputForm)
-    while format_expr.has_form("HoldForm", 1):  # type: ignore
+    format_expr: BaseElement = do_format(expr, evaluation, SymbolInputForm)
+    while isinstance(format_expr, Expression) and format_expr.has_form("HoldForm", 1):
         format_expr = format_expr.elements[0]
 
     lookup_name: str = format_expr.get_head().get_lookup_name()
@@ -85,8 +87,6 @@ def render_input_form(expr, evaluation, **kwargs):
         pass
     return _generic_to_inputform_text(format_expr, evaluation, **kwargs)
 
-    return ""
-
 
 @register_inputform("System`Association")
 def _association_expression_to_inputform_text(
@@ -100,7 +100,7 @@ def _association_expression_to_inputform_text(
 
 
 def _generic_to_inputform_text(
-    expr: Expression, evaluation: Evaluation, **kwargs
+    expr: BaseElement, evaluation: Evaluation, **kwargs
 ) -> str:
     """
     Default representation of a function
@@ -110,6 +110,10 @@ def _generic_to_inputform_text(
         if isinstance(result, String):
             return result.value
         return result.boxes_to_text(**kwargs)
+    if isinstance(expr, BoxExpression):
+        expr = expr.to_expression()
+    elif not isinstance(expr, Expression):
+        raise _WrongFormattedExpression
 
     expr_head = expr.head
     head = render_input_form(expr_head, evaluation, **kwargs)
@@ -207,7 +211,7 @@ def _prefix_expression_to_inputform_text(
     kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     target_txt = render_input_form(operand, evaluation, **kwargs)
     target_txt = parenthesize(precedence, operand, target_txt, True)
-    return op_head + target_txt
+    return str(op_head) + target_txt
 
 
 @register_inputform("System`Postfix")
