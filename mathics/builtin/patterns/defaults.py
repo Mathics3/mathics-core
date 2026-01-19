@@ -36,7 +36,7 @@ class Optional(InfixOperator, PatternObject):
     >> f[a]
      = {a, 1}
 
-    Note that '$symb$ : $pattern$' represents a 'Pattern' object. However, there is no
+    Note that '$symb$ : $pattern$' represents a 'Pattern' object. However, there is no \
     disambiguity, since $symb$ has to be a symbol in this case.
 
     >> x:_ // FullForm
@@ -46,7 +46,7 @@ class Optional(InfixOperator, PatternObject):
     >> x:_+y_:d // FullForm
      = Pattern[x, Plus[Blank[], Optional[Pattern[y, Blank[]], d]]]
 
-    's_.' is equivalent to 'Optional[s_]' and represents an optional parameter which, if omitted,
+    's_.' is equivalent to 'Optional[s_]' and represents an optional parameter which, if omitted, \
     gets its value from 'Default'.
     >> FullForm[s_.]
      = Optional[Pattern[s, Blank[]]]
