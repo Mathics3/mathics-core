@@ -19,48 +19,58 @@ sort_order = "mathics.builtin.rules-and-patterns.patttern-defaults"
 
 
 class Optional(InfixOperator, PatternObject):
-    """
-
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Optional.html</url>
+    """<url>:WMA link:https://reference.wolfram.com/language/ref/Optional.html</url>
 
     <dl>
       <dt>'Optional'[$pattern$, $default$]
       <dt>'$pattern$ : $default$'
-      <dd>is a pattern which matches $pattern$, which if omitted
-        should be replaced by $default$.
+      <dd>is a pattern matching $pattern$; when $pattern$ is omitted, \
+        $default$ is substituted for $pattern$.
     </dl>
 
+    Optional is used to specify optional arguments in function signatures.
+
+    Set up a default value of 1 for the pattern 'y_' in function 'f':
+
     >> f[x_, y_:1] := {x, y}
-    >> f[1, 2]
-     = {1, 2}
+
+    When we specify a value for the 'y' parameter, it has the value provided:
+    >> f[a, 2]
+     = {a, 2}
+
+    But if the 'y' parameter is missing, we replace the parameter \
+    using the default given in the delayed assignment above:
+
     >> f[a]
      = {a, 1}
 
-    Note that '$symb$ : $pattern$' represents a 'Pattern' object. However, there is no \
-    disambiguity, since $symb$ has to be a symbol in this case.
+    Do not confuse with '$symbol$ : $pattern$', which is also a 'Pattern'. \
+    The distinction is to left of the colon. When a $symbol$ is given, we get:
 
-    >> x:_ // FullForm
-     = Pattern[x, Blank[]]
-    >> _:d // FullForm
-     = Optional[Blank[], d]
-    >> x:_+y_:d // FullForm
-     = Pattern[x, Plus[Blank[], Optional[Pattern[y, Blank[]], d]]]
+    >> y:1 // FullForm
+     = Pattern[y, 1]
 
-    's_.' is equivalent to 'Optional[s_]' and represents an optional parameter which, if omitted, \
-    gets its value from 'Default'.
-    >> FullForm[s_.]
-     = Optional[Pattern[s, Blank[]]]
+    Whereas, in an 'Optional' expression, on the left of the colon we have a pattern like 'y_':
 
-    'InputForm' shows it in its 'Infix' or 'Postfix' form depending on the \
-    number of parameters:
-    >> InputForm[s_:a+b^2]
-     = s_ : a + b^2
-    Following WMA conventions,
-    >> InputForm[Optional[s__]]
-     = (s__.)
-    >> Default[h, k_] := k
-    >> h[a] /. h[x_, y_.] -> {x, y}
-     = {a, 2}
+    >> y_:1 // FullForm
+     = Optional[Pattern[y, Blank[]], 1]
+
+    The special form 'y_.' is equivalent to 'Optional[y_]':
+
+    >> FullForm[y_.]
+     = Optional[Pattern[y, Blank[]]]
+
+    In this situation, when the is 'y' parameter omitted, the value comes from <url>\
+    :Default:/doc/reference-of-built-in-symbols/options-management/default/</url>:
+
+    >> Default[g] = 4
+     = 4
+
+    >> g[x_, y_.] := {x, y}
+
+    >> g[a]
+     = {a, 4}
+
     """
 
     arg_counts = [1, 2]
