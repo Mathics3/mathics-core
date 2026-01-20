@@ -24,6 +24,7 @@
 #
 
 '"-7.32"':
+  msg: A String with a number
   latex:
     System`InputForm: \text{``-7.32''}
     System`OutputForm: \text{-7.32}
@@ -34,13 +35,15 @@
     System`OutputForm: <mtext>-7.32</mtext>
     System`StandardForm: <mtext>-7.32</mtext>
     System`TraditionalForm: <mtext>-7.32</mtext>
-  msg: A String with a number
   text:
     System`InputForm: '"-7.32"'
     System`OutputForm: '-7.32'
     System`StandardForm: '-7.32'
     System`TraditionalForm: '-7.32'
+
+
 '"Hola!"':
+  msg: A String
   latex:
     System`InputForm: \text{``Hola!''}
     System`OutputForm: \text{Hola!}
@@ -51,13 +54,15 @@
     System`OutputForm: <mtext>Hola!</mtext>
     System`StandardForm: <mtext>Hola!</mtext>
     System`TraditionalForm: <mtext>Hola!</mtext>
-  msg: A String
   text:
     System`InputForm: '"Hola!"'
     System`OutputForm: Hola!
     System`StandardForm: Hola!
     System`TraditionalForm: Hola!
+
+
 '"\[Pi] is a trascendental number"':
+  msg: A String
   latex:
     System`InputForm: "\\text{``\u03C0 is a trascendental number''}"
     System`OutputForm: "\\text{\u03C0 is a trascendental number}"
@@ -68,12 +73,13 @@
     System`OutputForm: "<mtext>\u03C0&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>"
     System`StandardForm: "<mtext>\u03C0&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>"
     System`TraditionalForm: "<mtext>\u03C0&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>"
-  msg: A String
   text:
     System`InputForm: "\"\u03C0 is a trascendental number\""
     System`OutputForm: "\u03C0 is a trascendental number"
     System`StandardForm: "\u03C0 is a trascendental number"
     System`TraditionalForm: "\u03C0 is a trascendental number"
+
+
 -1. 10^-5:
   msg: small negative real number (>10^-5)
   latex:
@@ -83,6 +89,8 @@
   text:
     System`InputForm: '-0.00001'
     System`OutputForm: '-0.00001'
+
+
 -1. 10^-6:
   msg: very small negative real number (<10^-6)
   latex:
@@ -92,6 +100,8 @@
   text:
     System`InputForm: -1.*^-6
     System`OutputForm: "-1.\xD710^-6"
+
+
 -1. 10^5:
   msg: large negative real number (<10^6)
   latex:
@@ -101,6 +111,8 @@
   text:
     System`InputForm: '-100000.'
     System`OutputForm: '-100000.'
+
+
 -1. 10^6:
   msg: very large negative real number (>10^6)
   latex:
@@ -114,6 +126,8 @@
     System`OutputForm: "-1.\xD710^6"
     System`StandardForm: -1.`*^6
     System`TraditionalForm: "-1.`\xD710^6"
+
+
 '-4':
   msg: An Integer
   latex:
@@ -131,6 +145,8 @@
     System`OutputForm: '-4'
     System`StandardForm: '-4'
     System`TraditionalForm: '-4'
+
+
 '-4.32':
   msg: A MachineReal number
   latex:
@@ -148,6 +164,8 @@
     System`OutputForm: '-4.32'
     System`StandardForm: -4.32`
     System`TraditionalForm: -4.32`
+
+
 -4.326563712`2:
   msg: A negative Real number
   latex:
@@ -165,6 +183,8 @@
     System`OutputForm: '-4.3'
     System`StandardForm: -4.33`2.
     System`TraditionalForm: -4.33`2.
+
+
 -4.32`4:
   msg: A negative PrecisionReal number
   latex:
@@ -182,6 +202,8 @@
     System`OutputForm: '-4.320'
     System`StandardForm: -4.32`4.
     System`TraditionalForm: -4.32`4.
+
+
 1. 10^-5:
   msg: small positive real number (>10^-6)
   latex:
@@ -191,6 +213,8 @@
   text:
     System`InputForm: '0.00001'
     System`OutputForm: '0.00001'
+
+
 1. 10^-6:
   msg: very small positive real number (<10^-6)
   latex:
@@ -200,6 +224,8 @@
   text:
     System`InputForm: 1.*^-6
     System`OutputForm: "1.\xD710^-6"
+
+
 1. 10^5:
   msg: large positive real number (<10^6)
   latex:
@@ -213,6 +239,8 @@
     System`OutputForm: '100000.'
     System`StandardForm: 100000.`
     System`TraditionalForm: 100000.`
+
+
 1. 10^6:
   msg: very large positive real number (>10^6)
   latex:
@@ -226,6 +254,8 @@
     System`OutputForm: "1.\xD710^6"
     System`StandardForm: 1.`*^6
     System`TraditionalForm: "1.`\xD710^6"
+
+
 1/(1+1/(1+1/a)):
   msg: FractionBox
   latex:
@@ -245,12 +275,13 @@
       <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow></mfrac>
     - Fragile!
     System`TraditionalForm: *id001
-
   text:
     System`InputForm:  1/(1 + 1/(1 + 1/a))
     System`OutputForm: 1 / (1 + 1 / (1 + 1 / a))
     System`StandardForm: 1 / (1+1 / (1+1 / a))
     System`TraditionalForm: 1 / (1+1 / (1+1 / a))
+
+
 <|a -> x, b -> y, c -> <|d -> t|>|>:
   msg: Association
   latex:
@@ -274,6 +305,8 @@
     System`OutputForm: <|a -> x, b -> y, c -> <|d -> t|>|>
     System`StandardForm: <|a->x, b->y, c-><|d->t|>|>
     System`TraditionalForm: <|a->x, b->y, c-><|d->t|>|>
+
+
 Association[a -> x, b -> y, c -> Association[d -> t, Association[e -> u]]]:
   msg: Nested Association
   latex:
@@ -299,6 +332,8 @@ Association[a -> x, b -> y, c -> Association[d -> t, Association[e -> u]]]:
     System`OutputForm: <|a -> x, b -> y, c -> <|d -> t, e -> u|>|>
     System`StandardForm: <|a->x, b->y, c-><|d->t, e->u|>|>
     System`TraditionalForm: <|a->x, b->y, c-><|d->t, e->u|>|>
+
+
 Complex[1.09*^12, 3.]:
   msg: Complex number
   latex:
@@ -319,6 +354,8 @@ Complex[1.09*^12, 3.]:
     System`OutputForm: "1.09\xD710^12 + 3. I"
     System`StandardForm: 1.09`*^12+3.` I
     System`TraditionalForm: "1.09`\xD710^12+3.`\u2062I"
+
+
 Graphics[{Text[a^b,{0,0}]}]:
   msg: Nontrivial Graphics - Fragile!
   latex:
@@ -369,7 +406,10 @@ Graphics[{Text[a^b,{0,0}]}]:
     System`OutputForm: -Graphics-
     System`StandardForm: -Graphics-
     System`TraditionalForm: -Graphics-
+
+
 Graphics[{}]:
+  msg: GraphicsBox - Fragile!
   latex:
     System`InputForm: \text{Graphics[\{\}]}
     System`OutputForm: '\text{-Graphics-}'
@@ -405,12 +445,13 @@ Graphics[{}]:
       \end{asy}
 
       '
-  msg: GraphicsBox - Fragile!
   text:
     System`InputForm: Graphics[{}]
     System`OutputForm: -Graphics-
     System`StandardForm: -Graphics-
     System`TraditionalForm: -Graphics-
+
+
 "Grid[{{\"Spanish\", \"Hola!\"},{\"Portuguese\", \"Ol\xE0!\"},{\"English\", \"Hi!\"}}]":
   msg: Strings in a GridBox
   latex:
@@ -455,6 +496,8 @@ Graphics[{}]:
       \    Hi!\n"
     System`TraditionalForm: "Spanish      Hola!\n\nPortuguese   Ol\xE0!\n\nEnglish\
       \      Hi!\n"
+
+
 Grid[{{a,b},{c,d}}]:
   msg: GridBox
   latex:
@@ -505,8 +548,10 @@ Grid[{{a,b},{c,d}}]:
       c   d
 
       '
+
+
 Integrate[F[x], {x, a, g[b]}]:
-  msg: Nontrivial SubsuperscriptBox
+  msg: Definite Integral - Nontrivial SubsuperscriptBox
   latex:
     System`InputForm: \text{Integrate[F[x], \{x, a, g[b]\}]}
     System`OutputForm: '\text{Integrate[F[x], \{x, a, g[b]\}]}'
@@ -517,6 +562,8 @@ Integrate[F[x], {x, a, g[b]}]:
     System`OutputForm: '<mtext>Integrate[F[x],&nbsp;{x,&nbsp;a,&nbsp;g[b]}]</mtext>'
   text:
     System`OutputForm: Integrate[F[x], {x, a, g[b]}]
+
+
 MatrixForm[{{a,b},{c,d}}]:
   msg: GridBox in a matrix
   latex:
@@ -568,6 +615,8 @@ MatrixForm[{{a,b},{c,d}}]:
       c   d
 
       )'
+
+
 Sqrt[1/(1+1/(1+1/a))]:
   msg: SqrtBox
   latex:
@@ -593,6 +642,8 @@ Sqrt[1/(1+1/(1+1/a))]:
     System`OutputForm: Sqrt[1 / (1 + 1 / (1 + 1 / a))]
     System`StandardForm: Sqrt[1 / (1+1 / (1+1 / a))]
     System`TraditionalForm: Sqrt[1 / (1+1 / (1+1 / a))]
+
+
 Subscript[a, 4]:
   msg: SubscriptBox
   latex:
@@ -616,6 +667,8 @@ Subscript[a, 4]:
     - Subscript[a, 4]
     - BoxError
     System`TraditionalForm: *id003
+
+
 Subsuperscript[a, p, q]:
   msg: SubsuperscriptBox
   latex:
@@ -633,6 +686,8 @@ Subsuperscript[a, p, q]:
     System`OutputForm: Subsuperscript[a, p, q]
     System`StandardForm: Subsuperscript[a, p, q]
     System`TraditionalForm: Subsuperscript[a, p, q]
+
+
 TableForm[{Graphics[{Text[a^b,{0,0}]}], Graphics[{Text[a^b,{0,0}]}]}]:
   msg: A table of graphics - Fragile!
   latex:
@@ -668,6 +723,8 @@ TableForm[{Graphics[{Text[a^b,{0,0}]}], Graphics[{Text[a^b,{0,0}]}]}]:
       -Graphics-
 
       '
+
+
 TableForm[{{a,b},{c,d}}]:
   msg: GridBox in a table
   latex:
@@ -718,6 +775,8 @@ TableForm[{{a,b},{c,d}}]:
       c   d
 
       '
+
+
 \[Pi]:
   msg: Pi
   latex:
@@ -735,6 +794,8 @@ TableForm[{{a,b},{c,d}}]:
     System`OutputForm: Pi
     System`StandardForm: "\u03C0"
     System`TraditionalForm: "\u03C0"
+
+
 \[Alpha]:
   msg: A greek letter symbol
   latex:
@@ -769,6 +830,8 @@ a:
     System`OutputForm: a
     System`StandardForm: a
     System`TraditionalForm: a
+
+
 a^(g[b]/c):
   msg: SuperscriptBox with a nested expression.
   latex:
@@ -785,6 +848,8 @@ a^(g[b]/c):
     System`OutputForm: a ^ (g[b] / c)
     System`StandardForm: a^((g[b]) / c)
     System`TraditionalForm: a^((g(b)) / c)
+
+
 a^4:
   msg: SuperscriptBox
   latex:
