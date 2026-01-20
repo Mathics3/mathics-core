@@ -34,6 +34,12 @@ class Optional(InfixOperator, PatternObject):
 
     >> f[x_, y_:1] := {x, y}
 
+    Above, we put no spaces before or after ':', but they can be added. So:
+
+    >> f[x_, y_: 1] := {x, y}
+
+    is the same as the above.
+
     When we specify a value for the 'y' parameter, it has the value provided:
     >> f[a, 2]
      = {a, 2}
@@ -44,15 +50,19 @@ class Optional(InfixOperator, PatternObject):
     >> f[a]
      = {a, 1}
 
-    Do not confuse with '$symbol$ : $pattern$', which is also a 'Pattern'. \
-    The distinction is to left of the colon. When a $symbol$ is given, we get:
+    Both 'Optional' and <url>:Pattern:
+    /doc/reference-of-built-in-symbols/rules-and-patterns/composite-patterns/pattern/</url> \
+    use ':' as their operator symbol. And both operators are used to represent a pattern.
 
-    >> y:1 // FullForm
+    The way to disambiguate which of the two is used is by the first or left operand. When \
+    this is a $symbol$, like 'y', the ':' operator indicates a 'Pattern':
+
+    >> y : 1 // FullForm
      = Pattern[y, 1]
 
-    Whereas, in an 'Optional' expression, on the left of the colon we have a pattern like 'y_':
+    In contrast, we have a <i>pattern</i> to the left of the colon, like 'y_' we have an 'Optional' expression:
 
-    >> y_:1 // FullForm
+    >> y_ : 1 // FullForm
      = Optional[Pattern[y, Blank[]], 1]
 
     The special form 'y_.' is equivalent to 'Optional[y_]':
@@ -71,15 +81,13 @@ class Optional(InfixOperator, PatternObject):
     >> g[a]
      = {a, 4}
 
-    When there are several unparenthesized colons, the colon for 'Optional' binds more tightly than the \
-    colon for 'Pattern'.
+    Note that the 'Optional' operator binds more tightly than the \
+    'Pattern'.  Keep this in mind when there is more than one colon, \
+    juxtaposed, each representing different operators:
 
-
-    Notice below that 'Optional', the second colon, is inclosed inside 'Pattern', \
-    the first colon:
-
-    >> x:_+y_:d // FullForm
+    >> x : _+y_ : d // FullForm
      = Pattern[x, Plus[Blank[], Optional[Pattern[y, Blank[]], d]]]
+
     """
 
     arg_counts = [1, 2]
