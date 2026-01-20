@@ -276,7 +276,6 @@
       <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow></mfrac>
     - Fragile!
     System`TraditionalForm: *id001
-
   text:
     System`InputForm:  1/(1 + 1/(1 + 1/a))
     System`OutputForm: 1 / (1 + 1 / (1 + 1 / a))
@@ -553,7 +552,7 @@ Grid[{{a,b},{c,d}}]:
 
 
 Integrate[F[x], {x, a, g[b]}]:
-  msg: Nontrivial SubsuperscriptBox
+  msg: Definite Integral - Nontrivial SubsuperscriptBox
   latex:
     System`InputForm: \text{Integrate[F[x], \{x, a, g[b]\}]}
     System`OutputForm: '\text{Integrate[F[x], \{x, a, g[b]\}]}'
