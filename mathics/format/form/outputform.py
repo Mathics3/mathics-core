@@ -619,13 +619,16 @@ def power_render_output_form(
 
 @register_outputform("System`PrecedenceForm")
 def precedenceform_render_output_form(
-    expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
+    expr: Expression, evaluation: Evaluation, **kwargs
 ) -> str:
     if not isinstance(expr.head, Symbol):
         raise _WrongFormattedExpression
 
     if len(expr.elements) == 2:
-        return render_output_form(expr.elements[0], evaluation, **kwargs)
+        arg_1, arg_2 = expr.elements
+        if not isinstance(arg_2, (Integer, Real)):
+            raise _WrongFormattedExpression
+        return render_output_form(arg_1, evaluation, **kwargs)
     raise _WrongFormattedExpression
 
 
