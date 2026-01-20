@@ -61,6 +61,7 @@ TEX_REPLACE = {
     "\u2146": r"\, d",
     "\uF74C": r"\, d",
     "\U0001D451": r"\, d",
+    "\u00d7": r"\times ",
 }
 TEX_TEXT_REPLACE = TEX_REPLACE.copy()
 TEX_TEXT_REPLACE.update(
@@ -73,6 +74,7 @@ TEX_TEXT_REPLACE.update(
         "^": r"${}^{\wedge}$",
         "\u222b": r"$\int$ ",
         "\uF74C": r"\, d",
+        "\u00d7": r"$\times$",
     }
 )
 TEX_REPLACE_RE = re.compile("([" + "".join([re.escape(c) for c in TEX_REPLACE]) + "])")
