@@ -140,11 +140,6 @@ class Graphics3D(Graphics):
 
     messages = {"invlight": "`1` is not a valid list of light sources."}
 
-    rules = {
-        "MakeBoxes[Graphics3D[content_, OptionsPattern[Graphics3D]], "
-        "        OutputForm]": '"-Graphics3D-"'
-    }
-
 
 def total_extent_3d(extents):
     xmin = xmax = ymin = ymax = zmin = zmax = None
