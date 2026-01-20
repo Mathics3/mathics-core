@@ -167,7 +167,7 @@ class List(Builtin):
 
     def eval_makeboxes(self, items, f, evaluation):
         """MakeBoxes[{items___},
-        f:StandardForm|TraditionalForm|OutputForm|InputForm|FullForm]"""
+        (f:StandardForm|TraditionalForm)]"""
 
         items = items.get_sequence()
         return RowBox(*list_boxes(items, f, evaluation, "{", "}"))
