@@ -1172,6 +1172,7 @@ class Part(Builtin):
 
         i = i.get_sequence()
         list = Expression(SymbolMakeBoxes, list, f).evaluate(evaluation)
+        # FIXME: pick up values LeftDoubleBracket and RightDoubleBracket from named-characters.yaml
         open, close = "\u301a", "\u301b"
         indices = list_boxes(i, f, evaluation, open, close)
         result = RowBox(list, *indices)
