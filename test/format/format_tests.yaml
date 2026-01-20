@@ -805,7 +805,8 @@ a^4:
 Optional[x__]:
    msg: Optional with one argument
    latex:
-     System`OutputForm: '\text{x$\_\_$.}'
+     System`OutputForm: '\text{x\_\_.}'
+     System`StandardForm: '\text{x\_\_.}'
    mathml:
      System`OutputForm: '<mtext>x__.</mtext>'
      System`StandardForm: '<mtext>x__.</mtext>'
@@ -817,8 +818,8 @@ Optional[x__]:
 Optional[x__, a+b]:
    msg: Optional with two arguments
    latex:
-     System`OutputForm: ' \text{x$\_\_$ : a + b}'
-     System`StandardForm: '\text{x$\_\_$}:a+b'
+     System`OutputForm: ' \text{x\_\_ : a + b}'
+     System`StandardForm: '\text{x\_\_}:a+b'
    mathml:
      System`OutputForm: '<mtext>x__&nbsp;:&nbsp;a&nbsp;+&nbsp;b</mtext>'
    text:
@@ -826,3 +827,16 @@ Optional[x__, a+b]:
      System`OutputForm: 'x__ : a + b'
      System`StandardForm: 'x__:a+b'
      System`TraditionalForm: 'x__:a+b'
+a+PrecedenceForm[b+c,10]:
+  msg: "PrecedenceForm"
+  latex:
+    System`OutputForm: '\text{a + (b + c)}'
+    System`StandardForm: 'a+\left(b+c\right)'
+  mathml:
+    System`OutputForm: '<mtext>a&nbsp;+&nbsp;(b&nbsp;+&nbsp;c)</mtext>'
+    System`StandardForm: '<mrow><mi>a</mi> <mo>+</mo> <mrow><mo>(</mo> <mrow><mi>b</mi> <mo>+</mo> <mi>c</mi></mrow> <mo>)</mo></mrow></mrow>'
+  text:
+    System`InputForm: 'a + (PrecedenceForm[b + c, 10])'
+    System`OutputForm: 'a + (b + c)'
+    System`StandardForm: 'a+(b+c)'
+    System`TraditionalForm: 'a+(b+c)'
