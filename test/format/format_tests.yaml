@@ -87,7 +87,7 @@
   msg: very small negative real number (<10^-6)
   latex:
     System`InputForm:  -1.*{}^{\wedge}-6
-    System`OutputForm: '\text{-1.×10${}^{\wedge}$-6}'
+    System`OutputForm: '\text{-1.$\times$10${}^{\wedge}$-6}'
   mathml: {}
   text:
     System`InputForm: -1.*^-6
@@ -105,7 +105,7 @@
   msg: very large negative real number (>10^6)
   latex:
     System`InputForm: -1.*{}^{\wedge}6
-    System`OutputForm: '\text{-1.×10${}^{\wedge}$6}'
+    System`OutputForm: '\text{-1.$\times$10${}^{\wedge}$6}'
     System`StandardForm: -1.\text{*${}^{\wedge}$}6
     System`TraditionalForm: -1.\times 10^6
   mathml: {}
@@ -195,7 +195,7 @@
   msg: very small positive real number (<10^-6)
   latex:
     System`InputForm: 1.*{}^{\wedge}-6
-    System`OutputForm: '\text{1.×10${}^{\wedge}$-6}'
+    System`OutputForm: '\text{1.$\times$10${}^{\wedge}$-6}'
   mathml: {}
   text:
     System`InputForm: 1.*^-6
@@ -217,7 +217,7 @@
   msg: very large positive real number (>10^6)
   latex:
     System`InputForm: 1.*{}^{\wedge}6
-    System`OutputForm: '\text{1.×10${}^{\wedge}$6}'
+    System`OutputForm: '\text{1.$\times$10${}^{\wedge}$6}'
     System`StandardForm: 1.\text{*${}^{\wedge}$}6
     System`TraditionalForm: 1.\times 10^6
   mathml: {}
@@ -303,7 +303,7 @@ Complex[1.09*^12, 3.]:
   msg: Complex number
   latex:
     System`InputForm: 1.09*{}^{\wedge}12 + 3.*I
-    System`OutputForm: '\text{1.09×10${}^{\wedge}$12 + 3. I}'
+    System`OutputForm: '\text{1.09$\times$10${}^{\wedge}$12 + 3. I}'
     System`StandardForm: 1.09\text{*${}^{\wedge}$}12+3. I
     System`TraditionalForm: 1.09\times 10^{12}+3. I
   mathml:
