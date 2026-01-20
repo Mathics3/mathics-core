@@ -30,7 +30,6 @@ from mathics.core.systemsymbols import (
     SymbolInfix,
     SymbolLeft,
     SymbolNonAssociative,
-    SymbolNone,
     SymbolOutputForm,
     SymbolPower,
     SymbolRight,
@@ -321,7 +320,6 @@ def other_forms(expr, evaluation, **kwargs):
     if not isinstance(expr.head, Symbol):
         raise _WrongFormattedExpression
 
-    print("format", expr)
     result = format_element(expr, evaluation, SymbolStandardForm, **kwargs)
     return result.boxes_to_text()
 
@@ -488,6 +486,32 @@ def _numberform_outputform(expr, evaluation, **kwargs):
         py_options,
     )
     return render_output_form(target, evaluation, **kwargs)
+
+
+# TODO: DRY ME with input form
+@register_outputform("System`Optional")
+def _optional(expr: Expression, evaluation: Evaluation, **kwargs) -> str:
+    name: str = ""
+    post: str = ""
+    elements = expr.elements
+    if not expr.has_form("Optional", 1, 2):
+        raise _WrongFormattedExpression
+    if len(elements) == 2:
+        post = ":" + render_output_form(elements[1], evaluation, **kwargs)
+    else:
+        post = "."
+
+    operand = elements[0]
+    if operand.has_form("Pattern", 2):
+        name = render_output_form(operand.elements[0], evaluation, **kwargs)
+        operand = operand.elements[1]
+
+    if not operand.has_form(("Blank", "BlankNullSequence", "BlankSequence"), 0):
+        raise _WrongFormattedExpression
+
+    blank_kind = operand.head
+    result = name + BLANKS_TO_STRINGS[blank_kind] + post
+    return result
 
 
 @register_outputform("System`Out")

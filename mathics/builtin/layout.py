@@ -16,7 +16,12 @@ from mathics.core.builtin import Builtin, Operator, PostfixOperator, PrefixOpera
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolMakeBoxes, SymbolSubscriptBox
+from mathics.core.systemsymbols import (
+    SymbolMakeBoxes,
+    SymbolPostfix,
+    SymbolPrefix,
+    SymbolSubscriptBox,
+)
 from mathics.eval.lists import list_boxes
 from mathics.format.box import eval_infix, eval_postprefix, format_element, parenthesize
 

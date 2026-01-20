@@ -802,3 +802,27 @@ a^4:
     System`OutputForm: a ^ 4
     System`StandardForm: a^4
     System`TraditionalForm: a^4
+Optional[x__]:
+   msg: Optional with one argument
+   latex:
+     System`OutputForm: '\text{x$\_\_$.}'
+   mathml:
+     System`OutputForm: '<mtext>x__.</mtext>'
+     System`StandardForm: '<mtext>x__.</mtext>'
+   text:
+     System`InputForm: '(x__.)'
+     System`OutputForm: 'x__.'
+     System`StandardForm: 'x__.'
+     System`TraditionalForm: 'x__.'
+Optional[x__, a+b]:
+   msg: Optional with two arguments
+   latex:
+     System`OutputForm: ' \text{x$\_\_$ : a + b}'
+     System`StandardForm: '\text{x$\_\_$}:a+b'
+   mathml:
+     System`OutputForm: '<mtext>x__&nbsp;:&nbsp;a&nbsp;+&nbsp;b</mtext>'
+   text:
+     System`InputForm: 'x__ : a + b'
+     System`OutputForm: 'x__ : a + b'
+     System`StandardForm: 'x__:a+b'
+     System`TraditionalForm: 'x__:a+b'
