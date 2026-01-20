@@ -35,9 +35,7 @@ from mathics.core.expression import Expression
 from mathics.core.symbols import Atom
 from mathics.core.systemsymbols import (
     SymbolInputForm,
-    SymbolLeft,
     SymbolNonAssociative,
-    SymbolNone,
     SymbolRight,
 )
 from mathics.format.box.formatvalues import do_format  # , format_element
@@ -274,8 +272,9 @@ def _optional(expr: Expression, evaluation: Evaluation, **kwargs) -> str:
     if not operand.has_form(("Blank", "BlankNullSequence", "BlankSequence"), 0):
         raise _WrongFormattedExpression
 
-    result = name + BLANKS_TO_STRINGS[operand.head] + post
-    # `name_.` cannot be reentered if it is not wrapped in parenthesis:
+    blank_kind = operand.head
+    result = name + BLANKS_TO_STRINGS[blank_kind] + post
+    # `name__.` cannot be reentered if it is not wrapped in parenthesis:
     if post == ".":
         result = f"({result})"
     return result
