@@ -71,6 +71,15 @@ class Optional(InfixOperator, PatternObject):
     >> g[a]
      = {a, 4}
 
+    When there are several unparenthesized colons, the colon for 'Optional' binds more tightly than the \
+    colon for 'Pattern'.
+
+
+    Notice below that 'Optional', the second colon, is inclosed inside 'Pattern', \
+    the first colon:
+
+    >> x:_+y_:d // FullForm
+     = Pattern[x, Plus[Blank[], Optional[Pattern[y, Blank[]], d]]]
     """
 
     arg_counts = [1, 2]
