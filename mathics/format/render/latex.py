@@ -45,6 +45,7 @@ from mathics.format.render.asy_fns import asy_color, asy_create_pens, asy_number
 # When it get fixed, we can use that table instead of this one:
 
 
+# FIXME: get the below character symbols from a JSON file derived from  named-characters.yml 
 TEX_REPLACE = {
     "{": r"\{",
     "}": r"\}",
