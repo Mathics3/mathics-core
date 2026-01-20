@@ -84,7 +84,7 @@
   msg: small negative real number (>10^-5)
   latex:
     System`InputForm: '-0.00001'
-    System`OutputForm: '-0.00001'
+    System`OutputForm: '\text{-0.00001}'
   mathml: {}
   text:
     System`InputForm: '-0.00001'
@@ -95,7 +95,7 @@
   msg: very small negative real number (<10^-6)
   latex:
     System`InputForm:  -1.*{}^{\wedge}-6
-    System`OutputForm: -1.\times 10^{-6}
+    System`OutputForm: '\text{-1.$\times$10${}^{\wedge}$-6}'
   mathml: {}
   text:
     System`InputForm: -1.*^-6
@@ -103,10 +103,10 @@
 
 
 -1. 10^5:
-  msg: large negative real number (>10^6)
+  msg: large negative real number (<10^6)
   latex:
     System`InputForm: '-100000.'
-    System`OutputForm: '-100000.'
+    System`OutputForm: '\text{-100000.}'
   mathml: {}
   text:
     System`InputForm: '-100000.'
@@ -114,10 +114,10 @@
 
 
 -1. 10^6:
-  msg: large negative real number (>10^6)
+  msg: very large negative real number (>10^6)
   latex:
     System`InputForm: -1.*{}^{\wedge}6
-    System`OutputForm: -1.\times 10^6
+    System`OutputForm: '\text{-1.$\times$10${}^{\wedge}$6}'
     System`StandardForm: -1.\text{*${}^{\wedge}$}6
     System`TraditionalForm: -1.\times 10^6
   mathml: {}
@@ -132,12 +132,12 @@
   msg: An Integer
   latex:
     System`InputForm: '-4'
-    System`OutputForm: '-4'
+    System`OutputForm: '\text{-4}'
     System`StandardForm: '-4'
     System`TraditionalForm: '-4'
   mathml:
     System`InputForm: <mn>-4</mn>
-    System`OutputForm: <mn>-4</mn>
+    System`OutputForm: <mtext>-4</mtext>
     System`StandardForm: <mrow><mn>-</mn> <mn>4</mn></mrow>
     System`TraditionalForm: <mrow><mn>-</mn> <mn>4</mn></mrow>
   text:
@@ -151,12 +151,12 @@
   msg: A MachineReal number
   latex:
     System`InputForm: '-4.32'
-    System`OutputForm: '-4.32'
+    System`OutputForm: '\text{-4.32}'
     System`StandardForm: '-4.32'
     System`TraditionalForm: '-4.32'
   mathml:
     System`InputForm: <mn>-4.32</mn>
-    System`OutputForm: <mn>-4.32</mn>
+    System`OutputForm: <mtext>-4.32</mtext>
     System`StandardForm: <mrow><mn>-</mn> <mn>4.32</mn></mrow>
     System`TraditionalForm: <mrow><mn>-</mn> <mn>4.32</mn></mrow>
   text:
@@ -167,15 +167,15 @@
 
 
 -4.326563712`2:
-  msg: A Real number
+  msg: A negative Real number
   latex:
     System`InputForm: '-4.33'
-    System`OutputForm: '-4.3'
+    System`OutputForm: '\text{-4.3}'
     System`StandardForm: '-4.33'
     System`TraditionalForm: '-4.33'
   mathml:
     System`InputForm: <mn>-4.33</mn>
-    System`OutputForm: <mn>-4.3</mn>
+    System`OutputForm: <mtext>-4.3</mtext>
     System`StandardForm: <mrow><mn>-</mn> <mn>4.33</mn></mrow>
     System`TraditionalForm: <mrow><mn>-</mn> <mn>4.33</mn></mrow>
   text:
@@ -186,15 +186,15 @@
 
 
 -4.32`4:
-  msg: A PrecisionReal number
+  msg: A negative PrecisionReal number
   latex:
     System`InputForm: '-4.32'
-    System`OutputForm: '-4.320'
+    System`OutputForm: '\text{-4.320}'
     System`StandardForm: '-4.32'
     System`TraditionalForm: '-4.32'
   mathml:
     System`InputForm: <mn>-4.32</mn>
-    System`OutputForm: <mn>-4.320</mn>
+    System`OutputForm: <mtext>-4.320</mtext>
     System`StandardForm: <mrow><mn>-</mn> <mn>4.32</mn></mrow>
     System`TraditionalForm: <mrow><mn>-</mn> <mn>4.32</mn></mrow>
   text:
@@ -205,10 +205,10 @@
 
 
 1. 10^-5:
-  msg: small real number (<10^-5)
+  msg: small positive real number (>10^-6)
   latex:
     System`InputForm: '0.00001'
-    System`OutputForm: '0.00001'
+    System`OutputForm: '\text{0.00001}'
   mathml: {}
   text:
     System`InputForm: '0.00001'
@@ -216,10 +216,10 @@
 
 
 1. 10^-6:
-  msg: very small real number (<10^-6)
+  msg: very small positive real number (<10^-6)
   latex:
     System`InputForm: 1.*{}^{\wedge}-6
-    System`OutputForm: 1.\times 10^{-6}
+    System`OutputForm: '\text{1.$\times$10${}^{\wedge}$-6}'
   mathml: {}
   text:
     System`InputForm: 1.*^-6
@@ -227,10 +227,10 @@
 
 
 1. 10^5:
-  msg: large real number (>10^6)
+  msg: large positive real number (<10^6)
   latex:
     System`InputForm: '100000.'
-    System`OutputForm: '100000.'
+    System`OutputForm: '\text{100000.}'
     System`StandardForm: '100000.'
     System`TraditionalForm: '100000.'
   mathml: {}
@@ -242,10 +242,10 @@
 
 
 1. 10^6:
-  msg: very large real number (>10^6)
+  msg: very large positive real number (>10^6)
   latex:
     System`InputForm: 1.*{}^{\wedge}6
-    System`OutputForm: 1.\times 10^6
+    System`OutputForm: '\text{1.$\times$10${}^{\wedge}$6}'
     System`StandardForm: 1.\text{*${}^{\wedge}$}6
     System`TraditionalForm: 1.\times 10^6
   mathml: {}
@@ -260,8 +260,7 @@
   msg: FractionBox
   latex:
     System`InputForm: 1/(1 + 1/(1 + 1/a))
-    System`OutputForm: 1\text{ / }\left(1\text{ + }1\text{ / }\left(1\text{ + }1\text{
-      / }a\right)\right)
+    System`OutputForm: '\text{1 / (1 + 1 / (1 + 1 / a))}'
     System`StandardForm: \frac{1}{1+\frac{1}{1+\frac{1}{a}}}
     System`TraditionalForm: \frac{1}{1+\frac{1}{1+\frac{1}{a}}}
   mathml:
@@ -269,10 +268,7 @@
     - <mn>1/(1&nbsp;+&nbsp;1/(1&nbsp;+&nbsp;1/a))</mn>
     - Fragile!
     System`OutputForm:
-    - <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn>
-      <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo>
-      <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext>
-      <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow> <mo>)</mo></mrow></mrow>
+    -  '<mtext>1&nbsp;/&nbsp;(1&nbsp;+&nbsp;1&nbsp;/&nbsp;(1&nbsp;+&nbsp;1&nbsp;/&nbsp;a))</mtext>'
     - Fragile!
     System`StandardForm: &id001
     - <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mrow><mn>1</mn>
@@ -290,17 +286,12 @@
   msg: Association
   latex:
     System`InputForm: \text{<$\vert$a -> x, b -> y, c -> <$\vert$d -> t$\vert$>$\vert$>}
-    System`OutputForm: \text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{
-      -> }t\text{$\vert$>}\text{$\vert$>}
+    System`OutputForm: '\text{<$\vert$a -> x, b -> y, c -> <$\vert$d -> t$\vert$>$\vert$>}'
     System`StandardForm: \text{<$\vert$}a->x, b->y, c->\text{<$\vert$}d->t\text{$\vert$>}\text{$\vert$>}
     System`TraditionalForm: \text{<$\vert$}a->x, b->y, c->\text{<$\vert$}d->t\text{$\vert$>}\text{$\vert$>}
   mathml:
     System`InputForm: <mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t|&gt;|&gt;</mtext>
-    System`OutputForm: <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
-      <mi>x</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>b</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
-      <mi>y</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>c</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
-      <mrow><mtext>&lt;|</mtext> <mrow><mi>d</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
-      <mi>t</mi></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>
+    System`OutputForm: '<mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t|&gt;|&gt;</mtext>'
     System`StandardForm: <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mn>-&gt;</mn>
       <mi>x</mi></mrow> <mo>,</mo> <mrow><mi>b</mi> <mn>-&gt;</mn> <mi>y</mi></mrow>
       <mo>,</mo> <mrow><mi>c</mi> <mn>-&gt;</mn> <mrow><mtext>&lt;|</mtext> <mrow><mi>d</mi>
@@ -320,18 +311,12 @@ Association[a -> x, b -> y, c -> Association[d -> t, Association[e -> u]]]:
   msg: Nested Association
   latex:
     System`InputForm: \text{<$\vert$a -> x, b -> y, c -> <$\vert$d -> t, e -> u$\vert$>$\vert$>}
-    System`OutputForm: \text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{
-      -> }t, e\text{ -> }u\text{$\vert$>}\text{$\vert$>}
+    System`OutputForm: '\text{<$\vert$a -> x, b -> y, c -> <$\vert$d -> t, e -> u$\vert$>$\vert$>}'
     System`StandardForm: \text{<$\vert$}a->x, b->y, c->\text{<$\vert$}d->t, e->u\text{$\vert$>}\text{$\vert$>}
     System`TraditionalForm: \text{<$\vert$}a->x, b->y, c->\text{<$\vert$}d->t, e->u\text{$\vert$>}\text{$\vert$>}
   mathml:
     System`InputForm: <mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t,&nbsp;e&nbsp;-&gt;&nbsp;u|&gt;|&gt;</mtext>
-    System`OutputForm: <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
-      <mi>x</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>b</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
-      <mi>y</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>c</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
-      <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>d</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
-      <mi>t</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>e</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext>
-      <mi>u</mi></mrow></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>
+    System`OutputForm: '<mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t,&nbsp;e&nbsp;-&gt;&nbsp;u|&gt;|&gt;</mtext>'
     System`StandardForm: <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mn>-&gt;</mn>
       <mi>x</mi></mrow> <mo>,</mo> <mrow><mi>b</mi> <mn>-&gt;</mn> <mi>y</mi></mrow>
       <mo>,</mo> <mrow><mi>c</mi> <mn>-&gt;</mn> <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>d</mi>
@@ -353,14 +338,12 @@ Complex[1.09*^12, 3.]:
   msg: Complex number
   latex:
     System`InputForm: 1.09*{}^{\wedge}12 + 3.*I
-    System`OutputForm: 1.09\times 10^{12}\text{ + }3. I
+    System`OutputForm: '\text{1.09$\times$10${}^{\wedge}$12 + 3. I}'
     System`StandardForm: 1.09\text{*${}^{\wedge}$}12+3. I
     System`TraditionalForm: 1.09\times 10^{12}+3. I
   mathml:
     System`InputForm: <mn>1.09*^12&nbsp;+&nbsp;3.*I</mn>
-    System`OutputForm: "<mrow><mrow><mn>1.09</mn> <mo>\xD7</mo> <msup><mn>10</mn>\
-      \ <mn>12</mn></msup></mrow> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>3.</mn> <mo>&nbsp;</mo>\
-      \ <mi>I</mi></mrow></mrow>"
+    System`OutputForm: '<mtext>1.09×10^12&nbsp;+&nbsp;3.&nbsp;I</mtext>'
     System`StandardForm: <mrow><mrow><mn>1.09</mn> <mtext>*^</mtext> <mn>12</mn></mrow>
       <mo>+</mo> <mrow><mn>3.</mn> <mo>&nbsp;</mo> <mi>I</mi></mrow></mrow>
     System`TraditionalForm: "<mrow><mrow><mn>1.09</mn> <mo>\xD7</mo> <msup><mn>10</mn>\
@@ -377,26 +360,7 @@ Graphics[{Text[a^b,{0,0}]}]:
   msg: Nontrivial Graphics - Fragile!
   latex:
     System`InputForm: \text{Graphics[\{Text[a${}^{\wedge}$b, \{0, 0\}]\}]}
-    System`OutputForm: '
-
-      \begin{asy}
-
-      usepackage("amsmath");
-
-      size(4.9cm, 5.8333cm);
-
-
-      // InsetBox
-
-      label("$a^b$", (147.0,175.0), align=SW, rgb(0, 0, 0)+fontsize(3));
-
-
-      clip(box((136.5,162.5), (157.5,187.5)));
-
-
-      \end{asy}
-
-      '
+    System`OutputForm: '\text{-Graphics-}'
     System`StandardForm: '
 
       \begin{asy}
@@ -448,22 +412,7 @@ Graphics[{}]:
   msg: GraphicsBox - Fragile!
   latex:
     System`InputForm: \text{Graphics[\{\}]}
-    System`OutputForm: '
-
-      \begin{asy}
-
-      usepackage("amsmath");
-
-      size(5.8333cm, 5.8333cm);
-
-
-
-      clip(box((-1,-1), (1,1)));
-
-
-      \end{asy}
-
-      '
+    System`OutputForm: '\text{-Graphics-}'
     System`StandardForm: '
 
       \begin{asy}
@@ -507,20 +456,25 @@ Graphics[{}]:
   msg: Strings in a GridBox
   latex:
     System`InputForm:  \text{Grid[\{\{"Spanish", "Hola!"\}, \{"Portuguese", "Olà!"\}, \{"English", "Hi!"\}\}]}
-    System`OutputForm: "\\begin{array}{cc} \\text{Spanish} & \\text{Hola!}\\\\ \\\
-      text{Portuguese} & \\text{Ol\xE0!}\\\\ \\text{English} & \\text{Hi!}\\end{array}"
+    System`OutputForm: '\text{Spanish      Hola!\newline
+    
+    \newline
+    
+    Portuguese   Olà!\newline
+    
+    \newline
+    
+    English      Hi!\newline
+    
+    }
+'
     System`StandardForm: "\\begin{array}{cc} \\text{Spanish} & \\text{Hola!}\\\\ \\\
       text{Portuguese} & \\text{Ol\xE0!}\\\\ \\text{English} & \\text{Hi!}\\end{array}"
     System`TraditionalForm: "\\begin{array}{cc} \\text{Spanish} & \\text{Hola!}\\\\\
       \ \\text{Portuguese} & \\text{Ol\xE0!}\\\\ \\text{English} & \\text{Hi!}\\end{array}"
   mathml:
     System`InputForm: "<mtext>Grid[{{&quot;Spanish&quot;,&nbsp;&quot;Hola!&quot;},&nbsp;{&quot;Portuguese&quot;,&nbsp;&quot;Olà!&quot;},&nbsp;{&quot;English&quot;,&nbsp;&quot;Hi!&quot;}}]</mtext>"
-    System`OutputForm: "<mtable columnalign=\"center\">\n<mtr><mtd columnalign=\"\
-      center\"><mtext>Spanish</mtext></mtd><mtd columnalign=\"center\"><mtext>Hola!</mtext></mtd></mtr>\n\
-      <mtr><mtd columnalign=\"center\"><mtext>Portuguese</mtext></mtd><mtd columnalign=\"\
-      center\"><mtext>Ol\xE0!</mtext></mtd></mtr>\n<mtr><mtd columnalign=\"center\"\
-      ><mtext>English</mtext></mtd><mtd columnalign=\"center\"><mtext>Hi!</mtext></mtd></mtr>\n\
-      </mtable>"
+    System`OutputForm: '<mtext>Spanish&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Hola!</mtext><mtext></mtext><mtext>Portuguese&nbsp;&nbsp;&nbsp;Olà!</mtext><mtext></mtext><mtext>English&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Hi!</mtext><mtext></mtext>'
     System`StandardForm: "<mtable columnalign=\"center\">\n<mtr><mtd columnalign=\"\
       center\"><mtext>Spanish</mtext></mtd><mtd columnalign=\"center\"><mtext>Hola!</mtext></mtd></mtr>\n\
       <mtr><mtd columnalign=\"center\"><mtext>Portuguese</mtext></mtd><mtd columnalign=\"\
@@ -548,18 +502,18 @@ Grid[{{a,b},{c,d}}]:
   msg: GridBox
   latex:
     System`InputForm: \text{Grid[\{\{a, b\}, \{c, d\}\}]}
-    System`OutputForm: \begin{array}{cc} a & b\\ c & d\end{array}
-    System`StandardForm: \begin{array}{cc} a & b\\ c & d\end{array}
-    System`TraditionalForm: \begin{array}{cc} a & b\\ c & d\end{array}
+    System`OutputForm: '
+        \text{a   b\newline
+    
+        \newline
+	     
+        c   d\newline
+	     
+        }
+        '
   mathml:
     System`InputForm: <mtext>Grid[{{a,&nbsp;b},&nbsp;{c,&nbsp;d}}]</mtext>
-    System`OutputForm: '<mtable columnalign="center">
-
-      <mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>
-
-      <mtr><mtd columnalign="center"><mi>c</mi></mtd><mtd columnalign="center"><mi>d</mi></mtd></mtr>
-
-      </mtable>'
+    System`OutputForm: '<mtext>a&nbsp;&nbsp;&nbsp;b</mtext><mtext></mtext><mtext>c&nbsp;&nbsp;&nbsp;d</mtext><mtext></mtext>'
     System`StandardForm: '<mtable columnalign="center">
 
       <mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>
@@ -600,15 +554,12 @@ Integrate[F[x], {x, a, g[b]}]:
   msg: Definite Integral - Nontrivial SubsuperscriptBox
   latex:
     System`InputForm: \text{Integrate[F[x], \{x, a, g[b]\}]}
-    System`OutputForm: \text{Integrate}\left[F\left[x\right], \left\{x, a, g\left[b\right]\right\}\right]
+    System`OutputForm: '\text{Integrate[F[x], \{x, a, g[b]\}]}'
     System`StandardForm: \int_a^{g\left[b\right]} F\left[x\right] \, dx
     System`TraditionalForm: \int_a^{g\left(b\right)} F\left(x\right) \, dx
   mathml:
     System`InputForm: <mtext>Integrate[F[x],&nbsp;{x,&nbsp;a,&nbsp;g[b]}]</mtext>
-    System`OutputForm: <mrow><mi>Integrate</mi> <mo>[</mo> <mrow><mrow><mi>F</mi>
-      <mo>[</mo> <mi>x</mi> <mo>]</mo></mrow> <mtext>,&nbsp;</mtext> <mrow><mo>{</mo>
-      <mrow><mi>x</mi> <mtext>,&nbsp;</mtext> <mi>a</mi> <mtext>,&nbsp;</mtext> <mrow><mi>g</mi>
-      <mo>[</mo> <mi>b</mi> <mo>]</mo></mrow></mrow> <mo>}</mo></mrow></mrow> <mo>]</mo></mrow>
+    System`OutputForm: '<mtext>Integrate[F[x],&nbsp;{x,&nbsp;a,&nbsp;g[b]}]</mtext>'
   text:
     System`OutputForm: Integrate[F[x], {x, a, g[b]}]
 
@@ -617,18 +568,19 @@ MatrixForm[{{a,b},{c,d}}]:
   msg: GridBox in a matrix
   latex:
     System`InputForm: \text{MatrixForm[\{\{a, b\}, \{c, d\}\}]}
-    System`OutputForm: \begin{array}{cc} a & b\\ c & d\end{array}
+    System`OutputForm: '\text{a   b\newline
+    
+    \newline
+    
+    c   d\newline
+    
+    }
+'
     System`StandardForm: \left(\begin{array}{cc} a & b\\ c & d\end{array}\right)
     System`TraditionalForm: \left(\begin{array}{cc} a & b\\ c & d\end{array}\right)
   mathml:
     System`InputForm: <mtext>MatrixForm[{{a,&nbsp;b},&nbsp;{c,&nbsp;d}}]</mtext>
-    System`OutputForm: '<mtable columnalign="center">
-    
-      <mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>
-
-      <mtr><mtd columnalign="center"><mi>c</mi></mtd><mtd columnalign="center"><mi>d</mi></mtd></mtr>
-
-      </mtable>'
+    System`OutputForm: '<mtext>a&nbsp;&nbsp;&nbsp;b</mtext><mtext></mtext><mtext>c&nbsp;&nbsp;&nbsp;d</mtext><mtext></mtext>'
     System`StandardForm: '<mrow><mo>(</mo> <mtable columnalign="center">
 
       <mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>
@@ -669,8 +621,7 @@ Sqrt[1/(1+1/(1+1/a))]:
   msg: SqrtBox
   latex:
     System`InputForm: \text{Sqrt[1/(1 + 1/(1 + 1/a))]}
-    System`OutputForm: \text{Sqrt}\left[1\text{ / }\left(1\text{ + }1\text{ / }\left(1\text{
-      + }1\text{ / }a\right)\right)\right]
+    System`OutputForm: '\text{Sqrt[1 / (1 + 1 / (1 + 1 / a))]}'
     System`StandardForm: \sqrt{\frac{1}{1+\frac{1}{1+\frac{1}{a}}}}
     System`TraditionalForm: \sqrt{\frac{1}{1+\frac{1}{1+\frac{1}{a}}}}
   mathml:
@@ -678,11 +629,7 @@ Sqrt[1/(1+1/(1+1/a))]:
     -  <mtext>Sqrt[1/(1&nbsp;+&nbsp;1/(1&nbsp;+&nbsp;1/a))]</mtext>
     - Fragile!
     System`OutputForm:
-    - <mrow><mi>Sqrt</mi> <mo>[</mo> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext>
-      <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn>
-      <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext>
-      <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow>
-      <mo>)</mo></mrow></mrow> <mo>]</mo></mrow>
+    - '<mtext>Sqrt[1&nbsp;/&nbsp;(1&nbsp;+&nbsp;1&nbsp;/&nbsp;(1&nbsp;+&nbsp;1&nbsp;/&nbsp;a))]</mtext>'
     - Fragile!
     System`StandardForm: &id002
     - <msqrt> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mrow><mn>1</mn>
@@ -701,7 +648,7 @@ Subscript[a, 4]:
   msg: SubscriptBox
   latex:
     System`InputForm: \text{Subscript[a, 4]}
-    System`OutputForm: \text{Subscript}\left[a, 4\right]
+    System`OutputForm: '\text{Subscript[a, 4]}'
     System`StandardForm: a_4
     System`TraditionalForm: a_4
   mathml:
@@ -709,8 +656,7 @@ Subscript[a, 4]:
     - <mtext>Subscript[a,&nbsp;4]</mtext>
     - Fragile!
     System`OutputForm:
-    - <mrow><mi>Subscript</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext>
-      <mn>4</mn></mrow> <mo>]</mo></mrow>
+    - '<mtext>Subscript[a,&nbsp;4]</mtext>'
     - Fragile!
     System`StandardForm: <msub><mi>a</mi> <mn>4</mn></msub>
     System`TraditionalForm: <msub><mi>a</mi> <mn>4</mn></msub>
@@ -727,13 +673,12 @@ Subsuperscript[a, p, q]:
   msg: SubsuperscriptBox
   latex:
     System`InputForm: \text{Subsuperscript[a, p, q]}
-    System`OutputForm: \text{Subsuperscript}\left[a, p, q\right]
+    System`OutputForm: '\text{Subsuperscript[a, p, q]}'
     System`StandardForm: a_p^q
     System`TraditionalForm: a_p^q
   mathml:
     System`InputForm: <mtext>Subsuperscript[a,&nbsp;p,&nbsp;q]</mtext>
-    System`OutputForm: <mrow><mi>Subsuperscript</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext>
-      <mi>p</mi> <mtext>,&nbsp;</mtext> <mi>q</mi></mrow> <mo>]</mo></mrow>
+    System`OutputForm: '<mtext>Subsuperscript[a,&nbsp;p,&nbsp;q]</mtext>'
     System`StandardForm: <msubsup><mi>a</mi> <mi>p</mi> <mi>q</mi></msubsup>
     System`TraditionalForm: <msubsup><mi>a</mi> <mi>p</mi> <mi>q</mi></msubsup>
   text:
@@ -784,18 +729,18 @@ TableForm[{{a,b},{c,d}}]:
   msg: GridBox in a table
   latex:
     System`InputForm:  \text{TableForm[\{\{a, b\}, \{c, d\}\}]}
-    System`OutputForm: \begin{array}{cc} a & b\\ c & d\end{array}
+    System`OutputForm: '\text{a   b\newline
+
+    \newline
+    
+    c   d\newline
+
+    }'
     System`StandardForm: \begin{array}{cc} a & b\\ c & d\end{array}
     System`TraditionalForm: \begin{array}{cc} a & b\\ c & d\end{array}
   mathml:
     System`InputForm: <mtext>TableForm[{{a,&nbsp;b},&nbsp;{c,&nbsp;d}}]</mtext>
-    System`OutputForm: '<mtable columnalign="center">
-
-      <mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>
-
-      <mtr><mtd columnalign="center"><mi>c</mi></mtd><mtd columnalign="center"><mi>d</mi></mtd></mtr>
-
-      </mtable>'
+    System`OutputForm: '<mtext>a&nbsp;&nbsp;&nbsp;b</mtext><mtext></mtext><mtext>c&nbsp;&nbsp;&nbsp;d</mtext><mtext></mtext>'
     System`StandardForm: '<mtable columnalign="center">
 
       <mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>
@@ -833,7 +778,7 @@ TableForm[{{a,b},{c,d}}]:
 
 
 \[Pi]:
-  msg: A greek letter Symbol
+  msg: Pi
   latex:
     System`InputForm: \text{Pi}
     System`OutputForm: \text{Pi}
@@ -841,7 +786,7 @@ TableForm[{{a,b},{c,d}}]:
     System`TraditionalForm: \pi
   mathml:
     System`InputForm: <mi>Pi</mi>
-    System`OutputForm: <mi>Pi</mi>
+    System`OutputForm: '<mtext>Pi</mtext>'
     System`StandardForm: "<mi>\u03C0</mi>"
     System`TraditionalForm: "<mi>\u03C0</mi>"
   text:
@@ -851,16 +796,33 @@ TableForm[{{a,b},{c,d}}]:
     System`TraditionalForm: "\u03C0"
 
 
+\[Alpha]:
+  msg: A greek letter symbol
+  latex:
+    System`InputForm: \alpha
+    System`OutputForm: \text{α}
+    System`StandardForm: \alpha
+    System`TraditionalForm: \alpha
+  mathml:
+    System`InputForm: '<mi>α</mi>'
+    System`OutputForm: '<mtext>α</mtext>'
+    System`StandardForm: '<mi>α</mi>'
+    System`TraditionalForm: '<mi>α</mi>'
+  text:
+    System`InputForm: 'α'
+    System`OutputForm: 'α'
+    System`StandardForm: "α"
+    System`TraditionalForm: "α"
 a:
   msg: A Symbol
   latex:
     System`InputForm: a
-    System`OutputForm: a
+    System`OutputForm: '\text{a}'
     System`StandardForm: a
     System`TraditionalForm: a
   mathml:
     System`InputForm: <mi>a</mi>
-    System`OutputForm: <mi>a</mi>
+    System`OutputForm: '<mtext>a</mtext>'
     System`StandardForm: <mi>a</mi>
     System`TraditionalForm: <mi>a</mi>
   text:
@@ -874,13 +836,12 @@ a^(g[b]/c):
   msg: SuperscriptBox with a nested expression.
   latex:
     System`InputForm: \text{a${}^{\wedge}$(g[b]/c)}
-    System`OutputForm: a\text{ ${}^{\wedge}$ }\left(g\left[b\right]\text{ / }c\right)
+    System`OutputForm: '\text{a ${}^{\wedge}$ (g[b] / c)}'
     System`StandardForm: a^{\frac{g\left[b\right]}{c}}
     System`TraditionalForm: a^{\frac{g\left(b\right)}{c}}
   mathml:
     System`InputForm:  <mtext>a^(g[b]/c)</mtext>
-    System`OutputForm: <mrow><mi>a</mi> <mtext>&nbsp;^&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mrow><mi>g</mi> <mo>[</mo> <mi>b</mi> <mo>]</mo></mrow> <mtext>&nbsp;/&nbsp;</mtext> <mi>c</mi></mrow> <mo>)</mo></mrow></mrow>
-    System`StandardForm: <msup><mi>a</mi> <mfrac><mrow><mi>g</mi> <mo>[</mo> <mi>b</mi> <mo>]</mo></mrow> <mi>c</mi></mfrac></msup>
+    System`OutputForm: '<mtext>a&nbsp;^&nbsp;(g[b]&nbsp;/&nbsp;c)</mtext>'
     System`TraditionalForm: <msup><mi>a</mi> <mfrac><mrow><mi>g</mi> <mo>(</mo> <mi>b</mi> <mo>)</mo></mrow> <mi>c</mi></mfrac></msup>
   text:
     System`InputForm: a^(g[b]/c)
@@ -893,12 +854,12 @@ a^4:
   msg: SuperscriptBox
   latex:
     System`InputForm: \text{a${}^{\wedge}$4}
-    System`OutputForm: a\text{ ${}^{\wedge}$ }4
+    System`OutputForm: '\text{a ${}^{\wedge}$ 4}'
     System`StandardForm: a^4
     System`TraditionalForm: a^4
   mathml:
-    System`InputForm: <mtext>a^4</mtext>
-    System`OutputForm: <mrow><mi>a</mi> <mtext>&nbsp;^&nbsp;</mtext> <mn>4</mn></mrow>
+    System`InputForm: '<mtext>a^4</mtext>'
+    System`OutputForm: '<mtext>a&nbsp;^&nbsp;4</mtext>'
     System`StandardForm: <msup><mi>a</mi> <mn>4</mn></msup>
     System`TraditionalForm: <msup><mi>a</mi> <mn>4</mn></msup>
   text:
