@@ -45,7 +45,7 @@ from mathics.format.render.asy_fns import asy_color, asy_create_pens, asy_number
 # When it get fixed, we can use that table instead of this one:
 
 
-# FIXME: get the below character symbols from a JSON file derived from  named-characters.yml 
+# FIXME: get the below character symbols from a JSON file derived from  named-characters.yml
 TEX_REPLACE = {
     "{": r"\{",
     "}": r"\}",
@@ -60,8 +60,8 @@ TEX_REPLACE = {
     "|": r"\vert{}",
     "\u222b": r"\int ",
     "\u2146": r"\, d",
-    "\uF74C": r"\, d",
-    "\U0001D451": r"\, d",
+    "\uf74c": r"\, d",
+    "\U0001d451": r"\, d",
     "\u00d7": r"\times ",
 }
 TEX_TEXT_REPLACE = TEX_REPLACE.copy()
@@ -74,7 +74,7 @@ TEX_TEXT_REPLACE.update(
         "\\": r"$\backslash$",
         "^": r"${}^{\wedge}$",
         "\u222b": r"$\int$ ",
-        "\uF74C": r"\, d",
+        "\uf74c": r"\, d",
         "\u00d7": r"$\times$",
     }
 )
