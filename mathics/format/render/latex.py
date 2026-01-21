@@ -17,6 +17,7 @@ import re
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
+    FormBox,
     FractionBox,
     GridBox,
     InterpretationBox,
@@ -646,8 +647,9 @@ currentlight=light(rgb(0.5,0.5,0.5), {5}specular=red, (2,0,2), (2,2,2), (0,2,2))
 add_conversion_fn(Graphics3DBox, graphics3dbox)
 
 
-def tag_box(self, **options):
+def tag_and_form_box(self, **options):
     return lookup_conversion_method(self.boxed, "latex")(self.boxed, **options)
 
 
-add_conversion_fn(TagBox, tag_box)
+add_conversion_fn(FormBox, tag_and_form_box)
+add_conversion_fn(TagBox, tag_and_form_box)
