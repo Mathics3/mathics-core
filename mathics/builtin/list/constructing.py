@@ -164,13 +164,6 @@ class List(Builtin):
         elements_part_of_elements__ = elements.get_sequence()
         return ListExpression(*elements_part_of_elements__)
 
-    # def eval_makeboxes(self, items, f, evaluation):
-    #    """MakeBoxes[{items___},
-    #    (f:StandardForm|TraditionalForm)]"""
-    #
-    #    items = items.get_sequence()
-    #    return RowBox(*list_boxes(items, f, evaluation, "{", "}"))
-
 
 class Normal(Builtin):
     """

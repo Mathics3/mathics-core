@@ -91,27 +91,6 @@ class MakeBoxes(Builtin):
         """MakeBoxes[expr_, f:TraditionalForm|StandardForm]"""
         return format_element(expr, evaluation, f)
 
-    # TODO: Consider to attach this rule as FormatValue of MakeBoxes.
-    #
-    # In WMA, "upvalue" rules are considered before downvalues.
-    # Consider this assignments:
-    #
-    # MakeBoxes[F[x_],_]:="1"
-    # MakeBoxes[F[x_],_]^:="2"
-    # MakeBoxes[F[3],_]:="3"
-    #
-    # If we evaluate StandardForm[F[3]] is evaluated, we get "2".
-    # Now, if we set
-    #
-    # MakeBoxes[TeXForm[c],_]:="x"
-    # in WMA, StandardForm[TeXForm[c]] result in "x", but
-    # here, the default rule (which is an upvalue) is applied giving
-    # "c".
-    # Same apply to MathMLForm and other forms.
-
-    def format_inputform(self, expr, evaluation):
-        """(_MakeBoxes,):MakeBoxes[InputForm[expr_], StandardForm|TraditionalForm]"""
-
 
 class ToBoxes(Builtin):
     """

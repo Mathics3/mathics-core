@@ -319,6 +319,7 @@ def other_forms(expr, evaluation, **kwargs):
 
     if not isinstance(expr.head, Symbol):
         raise _WrongFormattedExpression
+
     result = format_element(expr, evaluation, SymbolStandardForm, **kwargs)
     return result.boxes_to_text()
 
