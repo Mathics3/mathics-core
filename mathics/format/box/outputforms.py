@@ -12,7 +12,11 @@ from mathics.core.symbols import (
     SymbolList,
     SymbolTrue,
 )
-from mathics.core.systemsymbols import SymbolTeXForm, SymbolTraditionalForm
+from mathics.core.systemsymbols import (
+    SymbolMathMLForm,
+    SymbolTeXForm,
+    SymbolTraditionalForm,
+)
 from mathics.eval.testing_expressions import expr_min
 from mathics.format.box.makeboxes import format_element, is_print_form_callback
 
@@ -45,7 +49,11 @@ def eval_mathmlform(expr: BaseElement, evaluation: Evaluation) -> BoxElementMixi
             mathml = '<mstyle mathvariant="sans-serif">%s</mstyle>' % mathml
 
     mathml = '<math display="block">%s</math>' % mathml  # convert_box(boxes)
-    return RowBox(String(mathml))
+    return InterpretationBox(
+        String(f'"{mathml}"'),
+        Expression(SymbolMathMLForm, expr),
+        **{"System`AutoDelete": SymbolTrue, "System`Editable": SymbolTrue},
+    )
 
 
 def eval_tableform(
@@ -134,7 +142,7 @@ def eval_texform(expr: BaseElement, evaluation: Evaluation) -> BoxElementMixin:
         )
         tex = ""
     return InterpretationBox(
-        String(tex),
+        String(f'"{tex}"'),
         Expression(SymbolTeXForm, expr),
         **{"System`AutoDelete": SymbolTrue, "System`Editable": SymbolTrue},
     )

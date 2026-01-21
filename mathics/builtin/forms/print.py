@@ -237,7 +237,6 @@ def eval_makeboxes_inputform(expr: BaseElement, evaluation: Evaluation):
     inputform = StyleBox(
         inputform,
         **{
-            "System`ShowSpecialCharacters": SymbolFalse,
             "System`ShowStringCharacters": SymbolTrue,
             "System`NumberMarks": SymbolTrue,
         },

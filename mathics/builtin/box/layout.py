@@ -514,8 +514,6 @@ class StyleBox(BoxExpression):
     """
 
     options = {
-        "ShowStringCharacters": "False",
-        "ShowSpecialCharacters": "False",
         "$OptionSyntax": "Ignore",
     }
     attributes = A_PROTECTED | A_READ_PROTECTED
