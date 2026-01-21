@@ -65,6 +65,58 @@ vec-parametricplot-zeta-sideways:
         ]
     '
 #
+# ParametricPlot3D
+#
+vec-parametricplot3d-trefoil:
+    expr: ParametricPlot3D[{Sin[t] + 2 Sin[2 t], Cos[t] - 2 Cos[2 t], -Sin[3 t]}, {t, 0, 2 Pi}]
+vec-parametricplot3d-multi:
+    expr: '
+        ParametricPlot3D[
+            {{Sin[t] + 2 Sin[2 t], Cos[t] - 2 Cos[2 t], -Sin[3 t]},
+            {2 Sin[t], 2 Cos[t], Sin[40 t]},
+            {2 Sin[t], 2 Cos[t], 0}},
+            {t, 0, 2 Pi}
+        ]
+    '
+vec-parametricplot3d-torus:
+    expr: '
+        ParametricPlot3D[
+            {(2 + Cos[v]) Cos[u], (2 + Cos[v]) Sin[u], Sin[v]},
+            {u, 0, 2 Pi}, {v, 0, 2 Pi}
+        ]
+    '
+vec-parametricplot3d-torus-plotrange:
+    expr: '
+        ParametricPlot3D[
+            {(2 + Cos[v]) Cos[u], (2 + Cos[v]) Sin[u], Sin[v]},
+            {u, 0, 2 Pi}, {v, 0, 2 Pi},
+            PlotRange -> {{0,3},{0,3}}
+        ]
+    '
+vec-parametricplot3d-rings:
+    expr: '
+        Module[{R, r, x, y, z},
+            R=5; r=1;
+            x = (R + r Cos[v]) Cos[u];
+            y = (R + r Cos[v]) Sin[u];
+            z = r Sin[v];
+            ParametricPlot3D[
+                {{x, y, z}, {y, z, x}, {z, x, y}},
+                {u, 0, 2 Pi}, {v, 0, 2 Pi}, BoxRatios->{1,1,1}
+            ]
+        ]
+    '
+vec-parametricplot3d-moebius:
+    expr: '
+        ParametricPlot3D[
+            {(1 + (v/2) Cos[u/2]) Cos[u],
+            (1 + (v/2) Cos[u/2]) Sin[u],
+            (v/2) Sin[u/2]},
+            {u, 0, 2 Pi}, {v, -1, 1},
+            Mesh -> {15, 5}
+        ]
+    '
+#
 # Plot
 #
 vec-plot-exclusions:
@@ -104,6 +156,19 @@ vec-plot3d-stack:
 #
 vec-polarplot-theataxxx-8:
     expr: PolarPlot[1+0.5 Cos[3 θ],{θ,0,2 Pi}]
+#
+# SphericalPlot3D
+#
+vec-sphericalplot3d-harmonics:
+    expr: SphericalPlot3D[1 + 0.4 Abs[SphericalHarmonicY[10, 4, θ, φ]], θ, φ]
+vec-sphericalplot3d-spiral:
+    expr: SphericalPlot3D[1 + 0.3 Sin[6 θ + 4 φ], {θ, 0, Pi}, {φ, 0, 2 Pi},  Mesh -> None]
+vec-sphericalplot3d-orbital:
+    expr: SphericalPlot3D[1 + 2 Cos[2 θ], θ, φ, BoxRatios->{1,1,1.5}, ViewPoint->{10,-20,5}]
+vec-sphericalplot3d-shells:
+    expr: SphericalPlot3D[{3, 2, 1}, {θ, 0,  π}, {φ, 0, 3π/2}]
+vec-sphericalplot3d-onion:
+    expr: SphericalPlot3D[1 + Sin[5φ] / 5, {θ, π/2, π}, φ, PlotRange->{Automatic,Automatic,{-1.2,1}}, Mesh->{10,20}]
 #
 # Following is a curated subset of doc_tests.yaml that have vectorized implementation.
 # Culled to remove repetitive tests.
