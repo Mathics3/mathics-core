@@ -41,7 +41,9 @@ class String(Atom, BoxElementMixin):
 
         inner = str(self.value)
         if f in SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM:
-            inner = '"' + inner.replace("\\", "\\\\") + '"'
+            inner = inner.replace("\\", "\\\\")
+            inner = inner.replace('"', '\\"')
+            inner = f'"{inner}"'
             return _boxed_string(
                 inner,
                 **{

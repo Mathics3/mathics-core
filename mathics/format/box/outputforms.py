@@ -26,7 +26,7 @@ MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 @is_print_form_callback("System`MathMLForm")
 def eval_mathmlform(expr: BaseElement, evaluation: Evaluation) -> BoxElementMixin:
     "MakeBoxes[MathMLForm[expr_], form_]"
-    from mathics.builtin.box.layout import RowBox
+    from mathics.builtin.box.layout import InterpretationBox
 
     boxes = format_element(expr, evaluation, SymbolTraditionalForm)
     try:
