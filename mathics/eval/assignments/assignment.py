@@ -661,19 +661,26 @@ def eval_assign_makeboxes(
         True if the assignment was successful.
 
     """
-    # FIXME: the below is a big hack.
-    # Currently MakeBoxes boxing is implemented as a bunch of rules.
-    # See mathics.core.builtin contribute().
-    # I think we want to change this so it works like normal SetDelayed
-    # That is:
-    #   MakeBoxes[CubeRoot, StandardForm] := RadicalBox[3, StandardForm]
-    # rather than:
-    #   MakeBoxes[CubeRoot, StandardForm] -> RadicalBox[3, StandardForm]
+    if not lhs.has_form("MakeBoxes", 2):
+        evaluation.message("MakeBoxes", "argrx", Integer(len(lhs.elements)))
+        raise AssignmentException(lhs, None)
+    target, form = lhs.elements
+    # Check second argument
+
     makeboxes_rule = Rule(lhs, rhs, system=False)
+    tags = [] if tags is None else tags
+    if upset:
+        tags = tags + [target.get_lookup_name()]
+    else:
+        if not tags:
+            tags = ["System`MakeBoxes"]
+
     definitions = evaluation.definitions
-    definitions.add_rule("System`MakeBoxes", makeboxes_rule, "downvalues")
-    #    makeboxes_defs = evaluation.definitions.builtin["System`MakeBoxes"]
-    #    makeboxes_defs.add_rule(makeboxes_rule)
+    for tag in tags:
+        if is_protected(tag, definitions):
+            evaluation.message(self.get_name(), "wrsym", Symbol(tag))
+            return False
+        definitions.add_format(tag, makeboxes_rule, "_MakeBoxes")
     return True
 
 

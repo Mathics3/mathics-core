@@ -347,7 +347,7 @@ class Builtin:
                 """Handle adding 'System`' to a form name, unless it's ""
                 (meaning the rule applies to all forms).
                 """
-                return "" if f == "" else ensure_context(f)
+                return f if f in ("", "_MakeBoxes") else ensure_context(f)
 
             if isinstance(pattern, tuple):
                 forms, pattern = pattern
@@ -383,6 +383,9 @@ class Builtin:
                 formatvalues[form].append(
                     Rule(pattern, parse_builtin_rule(replace), system=True)
                 )
+
+        formatvalues.setdefault("_MakeBoxes", []).extend(box_rules)
+
         for form, formatrules in formatvalues.items():
             formatrules.sort(key=lambda x: x.pattern_precedence)
 
@@ -433,10 +436,6 @@ class Builtin:
             definitions.pymathics[name] = definition
         else:
             definitions.builtin[name] = definition
-
-        makeboxes_def = definitions.builtin["System`MakeBoxes"]
-        for rule in box_rules:
-            makeboxes_def.add_rule(rule)
 
     # This method is used to produce generic argument mismatch errors
     # (tags: "argx", "argr", "argrx", "argt", or "argtu") for builtin
