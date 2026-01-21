@@ -25,7 +25,7 @@ ChangeLog.orig
 ChangeLog.rej
 Documents/
 Homepage/
-Test/
+#Test/
 _Copies_/
 _Database_/
 build/
