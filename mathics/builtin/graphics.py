@@ -4,13 +4,10 @@
 """
 Drawing Graphics
 """
-
-import logging
 from math import sqrt
 
 from mathics.builtin.colors.color_directives import (
     CMYKColor,
-    ColorError,
     GrayLevel,
     Hue,
     LABColor,
@@ -19,41 +16,21 @@ from mathics.builtin.colors.color_directives import (
     Opacity,
     RGBColor,
     XYZColor,
-    _ColorObject,
 )
-from mathics.builtin.drawing.graphics_internals import (
-    GLOBALS,
-    _GraphicsDirective,
-    _GraphicsElementBox,
-    get_class,
-)
+from mathics.builtin.drawing.graphics_internals import GLOBALS, _GraphicsDirective
 from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Integer, Rational, Real
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
-from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.exceptions import BoxExpressionError
-from mathics.core.expression import Expression
-from mathics.core.formatter import lookup_method
-from mathics.core.list import ListExpression
-from mathics.core.symbols import (
-    Symbol,
-    SymbolList,
-    SymbolNull,
-    symbol_set,
-    system_symbols_dict,
-)
-from mathics.core.systemsymbols import (
-    SymbolEdgeForm,
-    SymbolFaceForm,
-    SymbolMakeBoxes,
-    SymbolRule,
-)
+from mathics.core.symbols import Symbol, SymbolList, symbol_set, system_symbols_dict
+from mathics.core.systemsymbols import SymbolEdgeForm, SymbolFaceForm, SymbolRule
 from mathics.eval.nevaluator import eval_N
 
 # This following line tells documentation how to sort this module
 sort_order = "mathics.builtin.drawing-graphics"
 
+GRAPHICS_SYMBOLS = {}
 GRAPHICS_OPTIONS = {
     "AlignmentPoint": "Center",
     "AspectRatio": "Automatic",
@@ -98,121 +75,11 @@ GRAPHICS_OPTIONS = {
 DEFAULT_POINT_FACTOR = 0.007
 
 
-ERROR_BACKGROUND_COLOR = RGBColor(components=[1, 0.3, 0.3, 0.25])
-
-
-class CoordinatesError(BoxExpressionError):
-    pass
-
-
-def coords(value):
-    if value.has_form("List", 2):
-        x, y = value.elements[0].round_to_float(), value.elements[1].round_to_float()
-        if x is None or y is None:
-            raise CoordinatesError
-        return (x, y)
-    raise CoordinatesError
-
-
-class Coords:
-    def __init__(self, graphics, expr=None, pos=None, d=None):
-        self.graphics = graphics
-        self.p = pos
-        self.d = d
-        if expr is not None:
-            if expr.has_form("Offset", 1, 2):
-                self.d = coords(expr.elements[0])
-                if len(expr.elements) > 1:
-                    self.p = coords(expr.elements[1])
-                else:
-                    self.p = None
-            else:
-                self.p = coords(expr)
-
-    def pos(self):
-        p = self.graphics.translate(self.p)
-        p = (cut(p[0]), cut(p[1]))
-        if self.d is not None:
-            d = self.graphics.translate_absolute(self.d)
-            return (p[0] + d[0], p[1] + d[1])
-        return p
-
-    def add(self, x, y):
-        p = (self.p[0] + x, self.p[1] + y)
-        return Coords(self.graphics, pos=p, d=self.d)
-
-
-def cut(value):
-    "Cut values in graphics primitives (not displayed otherwise in SVG)"
-    border = 10**8
-    if value < -border:
-        value = -border
-    elif value > border:
-        value = border
-    return value
-
-
 def _to_float(x):
     x = x.round_to_float()
     if x is None:
         raise BoxExpressionError
     return x
-
-
-def _data_and_options(elements, defined_options):
-    data = []
-    options = defined_options.copy()
-    for element in elements:
-        if element.get_head_name() == "System`Rule":
-            if len(element.elements) != 2:
-                raise BoxExpressionError
-            name, value = element.elements
-            name_head = name.get_head_name()
-            if name_head == "System`Symbol":
-                py_name = name.get_name()
-            elif name_head == "System`String":
-                py_name = "System`" + name.get_string_value()
-            else:  # unsupported name type
-                raise BoxExpressionError
-            options[py_name] = value
-        else:
-            data.append(element)
-    return data, options
-
-
-def _extract_graphics(graphics, format, evaluation):
-    graphics_box = Expression(SymbolMakeBoxes, graphics).evaluate(evaluation)
-    # builtin = GraphicsBox(expression=False)
-    elements, calc_dimensions = graphics_box._prepare_elements(
-        graphics_box.elements, {"evaluation": evaluation}, neg_y=True
-    )
-    xmin, xmax, ymin, ymax, _, _, _, _ = calc_dimensions()
-
-    # xmin, xmax have always been moved to 0 here. the untransformed
-    # and unscaled bounds are found in elements.xmin, elements.ymin,
-    # elements.extent_width, elements.extent_height.
-
-    # now compute the position of origin (0, 0) in the transformed
-    # coordinate space.
-
-    ex = elements.extent_width
-    ey = elements.extent_height
-
-    sx = (xmax - xmin) / ex
-    sy = (ymax - ymin) / ey
-
-    ox = -elements.xmin * sx + xmin
-    oy = -elements.ymin * sy + ymin
-
-    # generate code for svg or asy.
-
-    if format in ("asy", "svg"):
-        format_fn = lookup_method(elements, format)
-        code = format_fn(elements)
-    else:
-        raise NotImplementedError
-
-    return xmin, xmax, ymin, ymax, ox, oy, ex, ey, code
 
 
 class Show(Builtin):
@@ -317,121 +184,28 @@ class Graphics(Builtin):
     def eval_makeboxes(self, content, evaluation, options):
         """MakeBoxes[%(name)s[content_, OptionsPattern[%(name)s]],
         StandardForm|TraditionalForm]"""
-
-        def convert(content):
-            head = content.get_head()
-
-            if head is SymbolList:
-                return to_mathics_list(
-                    *content.elements, elements_conversion_fn=convert
-                )
-            elif head is Symbol("System`Style"):
-                return to_expression(
-                    "StyleBox", *[convert(item) for item in content.elements]
-                )
-
-            if head in element_heads:
-                if head is Symbol("System`Text"):
-                    head = Symbol("System`Inset")
-                atoms = content.get_atoms(include_heads=False)
-                if any(
-                    not isinstance(atom, (Integer, Real))
-                    and atom not in GRAPHICS_SYMBOLS
-                    for atom in atoms
-                ):
-                    if head is Symbol("System`Inset"):
-                        inset = content.elements[0]
-                        if inset.get_head() is Symbol("System`Graphics"):
-                            opts = {}
-                            # opts = dict(opt._elements[0].name:opt_elements[1]   for opt in  inset._elements[1:])
-                            inset = self.eval_makeboxes(
-                                inset._elements[0], evaluation, opts
-                            )
-                        n_elements = [inset] + [
-                            eval_N(element, evaluation)
-                            for element in content.elements[1:]
-                        ]
-                    else:
-                        n_elements = (
-                            eval_N(element, evaluation) for element in content.elements
-                        )
-                else:
-                    n_elements = content.elements
-                return Expression(Symbol(head.name + self.box_suffix), *n_elements)
-            return content
+        from mathics.builtin.box.graphics import GraphicsBox
+        from mathics.builtin.box.graphics3d import Graphics3DBox
+        from mathics.builtin.drawing.graphics3d import Graphics3D
+        from mathics.format.box.graphics import primitives_to_boxes
 
         for option in options:
             if option not in ("System`ImageSize",):
                 options[option] = eval_N(options[option], evaluation)
 
-        from mathics.builtin.box.graphics import GraphicsBox
-        from mathics.builtin.box.graphics3d import Graphics3DBox
-        from mathics.builtin.drawing.graphics3d import Graphics3D
-
         if type(self) is Graphics:
             return GraphicsBox(
-                convert(content), evaluation=evaluation, *options_to_rules(options)
+                primitives_to_boxes(content, evaluation, self.box_suffix),
+                _evaluation=evaluation,
+                **options,
             )
         elif type(self) is Graphics3D:
             return Graphics3DBox(
-                convert(content), evaluation=evaluation, *options_to_rules(options)
+                primitives_to_boxes(content, evaluation, self.box_suffix),
+                _evaluation=evaluation,
+                **options,
             )
-
-
-class _Polyline(_GraphicsElementBox):
-    """
-    A structure containing a list of line segments
-    stored in ``self.lines`` created from
-    a list of points.
-
-    Lines are formed by pairs of consecutive point.
-    """
-
-    def do_init(self, graphics, points):
-        if not points.has_form("List", None):
-            raise BoxExpressionError
-        if (
-            points.elements
-            and points.elements[0].has_form("List", None)
-            and all(
-                element.has_form("List", None)
-                for element in points.elements[0].elements
-            )
-        ):
-            elements = points.elements
-            self.multi_parts = True
-        elif len(points.elements) == 0:
-            # Ensure there are no line segments if there are no points.
-            self.lines = []
-            return
-        else:
-            elements = [ListExpression(*points.elements)]
-            self.multi_parts = False
-        lines = []
-        for element in elements:
-            if element.has_form("List", None):
-                lines.append(element.elements)
-            else:
-                raise BoxExpressionError
-        self.lines = [
-            [graphics.coords(graphics, point) for point in line] for line in lines
-        ]
-
-    def extent(self) -> list:
-        lw = self.style.get_line_width(face_element=False)
-        result = []
-        for line in self.lines:
-            for c in line:
-                x, y = c.pos()
-                result.extend(
-                    [
-                        (x - lw, y - lw),
-                        (x - lw, y + lw),
-                        (x + lw, y - lw),
-                        (x + lw, y + lw),
-                    ]
-                )
-        return result
+        raise BoxExpressionError
 
 
 class _Size(_GraphicsDirective):
@@ -831,6 +605,7 @@ def _norm(p, q):
     return dx, dy, length
 
 
+# belongs to mathics.format.box.graph?
 class _Line:
     def make_draw_svg(self, style):
         def draw(points):
@@ -961,317 +736,6 @@ class _BezierCurve:
 
             for shape in draw(px, py, tx, ty, 0.0, s):
                 yield shape
-
-
-def total_extent(extents):
-    xmin = xmax = ymin = ymax = None
-    for extent in extents:
-        for x, y in extent:
-            if xmin is None or x < xmin:
-                xmin = x
-            if xmax is None or x > xmax:
-                xmax = x
-            if ymin is None or y < ymin:
-                ymin = y
-            if ymax is None or y > ymax:
-                ymax = y
-    return xmin, xmax, ymin, ymax
-
-
-def _style(graphics, item):
-    head = item.get_head()
-    if head in style_heads:
-        klass = get_class(head)
-        style = klass.create_as_style(klass, graphics, item)
-    elif head in (SymbolEdgeForm, SymbolFaceForm):
-        style = graphics.style_class(
-            graphics, edge=head is SymbolEdgeForm, face=head is SymbolFaceForm
-        )
-        if len(item.elements) > 1:
-            raise BoxExpressionError
-        if item.elements:
-            if item.elements[0].has_form("List", None):
-                for dir in item.elements[0].elements:
-                    style.append(dir, allow_forms=False)
-            else:
-                style.append(item.elements[0], allow_forms=False)
-    else:
-        raise BoxExpressionError
-    return style
-
-
-class Style:
-    def __init__(self, graphics, edge=False, face=False):
-        self.styles = []
-        self.options = {}
-        self.graphics = graphics
-        self.edge = edge
-        self.face = face
-        self.klass = graphics.style_class
-
-    def append(self, item, allow_forms=True):
-        self.styles.append(_style(self.graphics, item))
-
-    def set_option(self, name, value):
-        self.options[name] = value
-
-    def extend(self, style):
-        self.styles.extend(style.styles)
-
-    def clone(self):
-        result = self.klass(self.graphics, edge=self.edge, face=self.face)
-        result.styles = self.styles[:]
-        result.options = self.options.copy()
-        return result
-
-    def get_default_face_color(self):
-        return RGBColor(components=(0, 0, 0, 1))
-
-    def get_default_edge_color(self):
-        return RGBColor(components=(0, 0, 0, 1))
-
-    def get_style(
-        self, style_class, face_element=None, default_to_faces=True, consider_forms=True
-    ):
-        if face_element is not None:
-            default_to_faces = consider_forms = face_element
-        edge_style = face_style = None
-        if style_class == _ColorObject:
-            if default_to_faces:
-                face_style = self.get_default_face_color()
-            else:
-                edge_style = self.get_default_edge_color()
-        elif style_class == _Thickness:
-            if not default_to_faces:
-                edge_style = AbsoluteThickness(self.graphics, value=1.6)
-        for item in self.styles:
-            if isinstance(item, style_class):
-                if default_to_faces:
-                    face_style = item
-                else:
-                    edge_style = item
-            elif isinstance(item, Style):
-                if consider_forms:
-                    if item.edge:
-                        edge_style, _ = item.get_style(
-                            style_class, default_to_faces=False, consider_forms=False
-                        )
-                    elif item.face:
-                        _, face_style = item.get_style(
-                            style_class, default_to_faces=True, consider_forms=False
-                        )
-        return edge_style, face_style
-
-    def get_option(self, name):
-        return self.options.get(name, None)
-
-    def get_line_width(self, face_element=True) -> float:
-        if self.graphics.pixel_width is None:
-            return 0.0
-        edge_style, _ = self.get_style(
-            _Thickness, default_to_faces=face_element, consider_forms=face_element
-        )
-        if edge_style is None:
-            return 0.0
-        return edge_style.get_thickness() / 2.0
-
-
-def _flatten(elements):
-    for element in elements:
-        if element.get_head() is SymbolList:
-            flattened = element.flatten_with_respect_to_head(SymbolList)
-            if flattened.get_head() is SymbolList:
-                for x in flattened.elements:
-                    yield x
-            else:
-                yield flattened
-        else:
-            yield element
-
-
-class _GraphicsElements:
-    style_class = Style
-
-    def __init__(self, content, evaluation):
-        self.evaluation = evaluation
-        self.elements = []
-
-        builtins = evaluation.definitions.builtin
-
-        def get_options(name):
-            builtin = builtins.get(name)
-            if builtin is None:
-                return None
-            return builtin.options
-
-        def stylebox_style(style, specs):
-            new_style = style.clone()
-            for spec in _flatten(specs):
-                head = spec.get_head()
-                if head in style_and_form_heads:
-                    new_style.append(spec)
-                elif head is Symbol("System`Rule") and len(spec.elements) == 2:
-                    option, expr = spec.elements
-                    if not isinstance(option, Symbol):
-                        raise BoxExpressionError
-
-                    name = option.get_name()
-                    create = style_options.get(name, None)
-                    if create is None:
-                        raise BoxExpressionError
-
-                    new_style.set_option(name, create(style.graphics, expr))
-                else:
-                    raise BoxExpressionError
-            return new_style
-
-        failed = []
-
-        def convert(content, style):
-            if content.has_form("List", None):
-                items = content.elements
-            else:
-                items = [content]
-            style = style.clone()
-            for item in items:
-                if item is SymbolNull:
-                    continue
-                head = item.get_head()
-                if head in style_and_form_heads:
-                    try:
-                        style.append(item)
-                    except ColorError:
-                        failed.append(head)
-                elif head is Symbol("System`StyleBox"):
-                    if len(item.elements) < 1:
-                        failed.append(item.head)
-                    for element in convert(
-                        item.elements[0], stylebox_style(style, item.elements[1:])
-                    ):
-                        yield element
-                elif head.name[-3:] == "Box":  # and head[:-3] in element_heads:
-                    element_class = get_class(head)
-                    if element_class is None:
-                        failed.append(head)
-                        continue
-                    options = get_options(head.name[:-3])
-                    if options:
-                        data, options = _data_and_options(item.elements, options)
-                        new_item = Expression(head, *data)
-                        try:
-                            element = element_class(self, style, new_item, options)
-                        except (BoxExpressionError, CoordinatesError):
-                            failed.append(head)
-                            continue
-                    else:
-                        try:
-                            element = element_class(self, style, item)
-                        except (BoxExpressionError, CoordinatesError):
-                            failed.append(head)
-                            continue
-                    yield element
-                elif head is SymbolList:
-                    for element in convert(item, style):
-                        yield element
-                else:
-                    failed.append(head)
-                    continue
-
-            # if failed:
-            #    yield build_error_box2(style)
-            #    raise BoxExpressionError(messages)
-
-        self.elements = list(convert(content, self.style_class(self)))
-        if failed:
-            messages = "\n".join(
-                [f"{str(h)} is not a valid primitive or directive." for h in failed]
-            )
-            self.tooltip_text = messages
-            self.background_color = ERROR_BACKGROUND_COLOR
-            logging.warning(messages)
-
-    def create_style(self, expr):
-        style = self.style_class(self)
-
-        def convert(expr):
-            if expr.has_form(("List", "Directive"), None):
-                for item in expr.elements:
-                    convert(item)
-            else:
-                style.append(expr)
-
-        convert(expr)
-        return style
-
-
-class GraphicsElements(_GraphicsElements):
-    coords = Coords
-
-    def __init__(self, content, evaluation, neg_y=False):
-        super(GraphicsElements, self).__init__(content, evaluation)
-        self.neg_y = neg_y
-        self.xmin = self.ymin = self.pixel_width = None
-        self.pixel_height = self.extent_width = self.extent_height = None
-        self.view_width = None
-        self.content = content
-
-    def translate(self, coords):
-        if self.pixel_width is not None:
-            w = self.extent_width if self.extent_width > 0 else 1
-            h = self.extent_height if self.extent_height > 0 else 1
-            result = [
-                (coords[0] - self.xmin) * self.pixel_width / w,
-                (coords[1] - self.ymin) * self.pixel_height / h,
-            ]
-            if self.neg_y:
-                result[1] = self.pixel_height - result[1]
-            return tuple(result)
-        else:
-            return (coords[0], coords[1])
-
-    def translate_absolute(self, d):
-        if self.pixel_width is None:
-            return (0, 0)
-        else:
-            lw = 96.0 / 72
-            return (d[0] * lw, (-1 if self.neg_y else 1) * d[1] * lw)
-
-    def translate_relative(self, x):
-        if self.pixel_width is None:
-            return 0
-        else:
-            return x * self.pixel_width
-
-    def extent(self, completely_visible_only=False):
-        if completely_visible_only:
-            ext = total_extent(
-                [
-                    element.extent()
-                    for element in self.elements
-                    if element.is_completely_visible
-                ]
-            )
-        else:
-            ext = total_extent([element.extent() for element in self.elements])
-        xmin, xmax, ymin, ymax = ext
-        if xmin == xmax:
-            if xmin is None:
-                return 0, 0, 0, 0
-            xmin = 0
-            xmax *= 2
-        if ymin == ymax:
-            if ymin is None:
-                return 0, 0, 0, 0
-            ymin = 0
-            ymax *= 2
-        return xmin, xmax, ymin, ymax
-
-    def set_size(
-        self, xmin, ymin, extent_width, extent_height, pixel_width, pixel_height
-    ):
-        self.xmin, self.ymin = xmin, ymin
-        self.extent_width, self.extent_height = extent_width, extent_height
-        self.pixel_width, self.pixel_height = pixel_width, pixel_height
 
 
 class Circle(Builtin):
@@ -1580,7 +1044,7 @@ class Tiny(Builtin):
     summary_text = "tiny size style or option setting"
 
 
-element_heads = frozenset(
+ELEMENT_HEADS = frozenset(
     symbol_set(
         Symbol("System`Arrow"),
         Symbol("System`BezierCurve"),
@@ -1604,7 +1068,8 @@ element_heads = frozenset(
     )
 )
 
-styles = system_symbols_dict(
+
+STYLES = system_symbols_dict(
     {
         "RGBColor": RGBColor,
         "XYZColor": XYZColor,
@@ -1624,16 +1089,11 @@ styles = system_symbols_dict(
     }
 )
 
-style_options = system_symbols_dict(
-    {"FontColor": _style, "ImageSizeMultipliers": (lambda *x: x[1])}
+
+STYLE_HEADS = frozenset(STYLES.keys())
+STYLE_AND_FORM_HEADS = frozenset(
+    STYLE_HEADS.union(symbol_set(SymbolEdgeForm, SymbolFaceForm))
 )
-
-style_heads = frozenset(styles.keys())
-
-style_and_form_heads = frozenset(
-    style_heads.union(symbol_set(SymbolEdgeForm, SymbolFaceForm))
-)
-
 GLOBALS.update(
     system_symbols_dict(
         {
@@ -1648,13 +1108,13 @@ GLOBALS.update(
     )
 )
 
-GLOBALS.update(styles)
+GLOBALS.update(STYLES)
 
 GRAPHICS_SYMBOLS = {
     SymbolList,
     SymbolRule,
     Symbol("System`VertexColors"),
-    *element_heads,
-    *[Symbol(element.name + "Box") for element in element_heads],
-    *style_heads,
+    *ELEMENT_HEADS,
+    *[Symbol(element.name + "Box") for element in ELEMENT_HEADS],
+    *STYLE_HEADS,
 }

@@ -2,8 +2,9 @@
 """
 Boxing Symbols for 2D Graphics
 """
-from math import atan2, ceil, cos, degrees, floor, log10, pi, sin
-from typing import Optional
+from abc import ABC
+from math import atan2, cos, degrees, pi, sin
+from typing import Any, Dict, Optional, Tuple
 
 from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.colors.color_directives import (
@@ -12,38 +13,101 @@ from mathics.builtin.colors.color_directives import (
     RGBColor,
     _ColorObject,
 )
-from mathics.builtin.drawing.graphics_internals import GLOBALS, _GraphicsElementBox
+from mathics.builtin.drawing.graphics_internals import GLOBALS
 from mathics.builtin.graphics import (
     DEFAULT_POINT_FACTOR,
     Arrowheads,
-    Coords,
     Graphics,
-    GraphicsElements,
     PointSize,
     _BezierCurve,
-    _data_and_options,
-    _extract_graphics,
     _Line,
     _norm,
-    _Polyline,
     _to_float,
-    coords,
 )
-from mathics.core.atoms import Integer, Real, String
+from mathics.core.atoms import Integer, Real
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.element import BaseElement
 from mathics.core.exceptions import BoxExpressionError
 from mathics.core.expression import Expression
 from mathics.core.formatter import lookup_method
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
-from mathics.core.systemsymbols import SymbolAutomatic, SymbolTraditionalForm
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import SymbolTraditionalForm
 from mathics.format.box import format_element
+from mathics.format.box.common import elements_to_expressions
+from mathics.format.box.graphics import Coords, _data_and_options, coords
 
 # No user docs here: Box primitives aren't documented.
 no_doc = True
 
 SymbolRegularPolygonBox = Symbol("RegularPolygonBox")
 SymbolStandardForm = Symbol("StandardForm")
+
+
+class _GraphicsElementBox(BoxExpression, ABC):
+    def init(self, graphics, item=None, style={}, opacity=1.0):
+        if item is not None and not item.has_form(self.get_name(), None):
+            raise BoxExpressionError
+        self.graphics = graphics
+        self.style = style
+        self.opacity = opacity
+        self.is_completely_visible = False  # True for axis elements
+
+
+class _Polyline(_GraphicsElementBox):
+    """
+    A structure containing a list of line segments
+    stored in ``self.lines`` created from
+    a list of points.
+
+    Lines are formed by pairs of consecutive point.
+    """
+
+    def do_init(self, graphics, points):
+        if not points.has_form("List", None):
+            raise BoxExpressionError
+        if (
+            points.elements
+            and points.elements[0].has_form("List", None)
+            and all(
+                element.has_form("List", None)
+                for element in points.elements[0].elements
+            )
+        ):
+            elements = points.elements
+            self.multi_parts = True
+        elif len(points.elements) == 0:
+            # Ensure there are no line segments if there are no points.
+            self.lines = []
+            return
+        else:
+            elements = [ListExpression(*points.elements)]
+            self.multi_parts = False
+        lines = []
+        for element in elements:
+            if element.has_form("List", None):
+                lines.append(element.elements)
+            else:
+                raise BoxExpressionError
+        self.lines = [
+            [graphics.coords(graphics, point) for point in line] for line in lines
+        ]
+
+    def extent(self) -> list:
+        lw = self.style.get_line_width(face_element=False)
+        result = []
+        for line in self.lines:
+            for c in line:
+                x, y = c.pos()
+                result.extend(
+                    [
+                        (x - lw, y - lw),
+                        (x - lw, y + lw),
+                        (x + lw, y - lw),
+                        (x + lw, y + lw),
+                    ]
+                )
+        return result
 
 
 # Note: has to come before _ArcBox
@@ -295,6 +359,8 @@ class ArrowBox(_Polyline):
                 yield s
 
     def _custom_arrow(self, format, format_transform):
+        from mathics.format.box.graphics import _extract_graphics
+
         def make(graphics):
             xmin, xmax, ymin, ymax, ox, oy, ex, ey, code = _extract_graphics(
                 graphics, format, self.graphics.evaluation
@@ -399,14 +465,22 @@ class GraphicsBox(BoxExpression):
     options = Graphics.options
     summary_text = "symbol used in boxing 'Graphics'"
 
-    def __new__(cls, *elements, **kwargs):
-        instance = super().__new__(cls, *elements, **kwargs)
-        instance.evaluation = kwargs.get("evaluation", None)
-        instance.elements = elements
-        return instance
+    def init(self, *items, **kwargs):
+        self._elements: Optional[Tuple[BaseElement], ...] = None
+        self.content = items[0]
+        self.box_options: Dict[str, Any] = kwargs
+        self.background_color = None
+        self.tooltip_text: Optional[str] = None
+        self.evaluation = kwargs.pop("_evaluation", None)
 
     @property
     def elements(self):
+        if self._elements is None:
+            self._elements = elements_to_expressions(
+                self,
+                (self.content,),
+                self.box_options,
+            )
         return self._elements
 
     @elements.setter
@@ -414,501 +488,17 @@ class GraphicsBox(BoxExpression):
         self._elements = value
         return self._elements
 
-    def _get_image_size(self, options, graphics_options, max_width):
-        inside_row = options.pop("inside_row", False)
-        inside_list = options.pop("inside_list", False)
-        image_size_multipliers = options.pop("image_size_multipliers", None)
-
-        aspect_ratio = graphics_options["System`AspectRatio"]
-
-        if image_size_multipliers is None:
-            image_size_multipliers = (0.5, 0.25)
-
-        if aspect_ratio is SymbolAutomatic:
-            aspect = None
-        else:
-            aspect = aspect_ratio.round_to_float()
-
-        image_size = graphics_options["System`ImageSize"]
-        if isinstance(image_size, Integer):
-            base_width = image_size.get_int_value()
-            base_height = None  # will be computed later in calc_dimensions
-        elif image_size.has_form("System`List", 2):
-            base_width, base_height = (
-                [x.round_to_float() for x in image_size.elements] + [0, 0]
-            )[:2]
-            if base_width is None or base_height is None:
-                raise BoxExpressionError
-            aspect = base_height / base_width
-        else:
-            image_size = image_size.get_name()
-            base_width, base_height = {
-                "System`Automatic": (400, 350),
-                "System`Tiny": (100, 100),
-                "System`Small": (200, 200),
-                "System`Medium": (400, 350),
-                "System`Large": (600, 500),
-            }.get(image_size, (None, None))
-        if base_width is None:
-            raise BoxExpressionError
-        if max_width is not None and base_width > max_width:
-            base_width = max_width
-
-        if inside_row:
-            multi = image_size_multipliers[1]
-        elif inside_list:
-            multi = image_size_multipliers[0]
-        else:
-            multi = 1
-
-        return base_width, base_height, multi, aspect
-
-    def _prepare_elements(self, elements, options, neg_y=False, max_width=None):
-        if not elements:
-            raise BoxExpressionError
-        self.graphics_options = self.get_option_values(elements[1:], **options)
-        background = self.graphics_options["System`Background"]
-        if (
-            isinstance(background, Symbol)
-            and background.get_name() == "System`Automatic"
-        ):
-            self.background_color = None
-        else:
-            try:
-                self.background_color = _ColorObject.create(background)
-            except ColorError:
-                self.background_color = None
-
-        base_width, base_height, size_multiplier, size_aspect = self._get_image_size(
-            options, self.graphics_options, max_width
-        )
-
-        plot_range = self.graphics_options["System`PlotRange"].to_python()
-        if plot_range == "System`Automatic":
-            plot_range = ["System`Automatic", "System`Automatic"]
-
-        if not isinstance(plot_range, list) or len(plot_range) != 2:
-            raise BoxExpressionError
-
-        evaluation = options.get("evaluation", None)
-        if evaluation is None:
-            evaluation = self.evaluation
-        elements = GraphicsElements(elements[0], evaluation, neg_y)
-        if hasattr(elements, "background_color"):
-            self.background_color = elements.background_color
-        if hasattr(elements, "tooltip_text"):
-            self.tooltip_text = elements.tooltip_text
-
-        axes = []  # to be filled further down
-
-        def calc_dimensions(final_pass=True):
-            """
-            calc_dimensions gets called twice: In the first run
-            (final_pass = False, called inside _prepare_elements), the extent
-            of all user-defined graphics is determined.
-            Axes are created accordingly.
-            In the second run (final_pass = True, called from outside),
-            the dimensions of these axes are taken into account as well.
-            This is also important to size absolutely sized objects correctly
-            (e.g. values using AbsoluteThickness).
-            """
-
-            # always need to compute extent if size aspect is automatic
-            if "System`Automatic" in plot_range or size_aspect is None:
-                xmin, xmax, ymin, ymax = elements.extent()
-            else:
-                xmin = xmax = ymin = ymax = None
-
-            if (
-                final_pass
-                and any(x for x in axes)
-                and plot_range != ["System`Automatic", "System`Automatic"]
-            ):
-                # Take into account the dimensions of axes and axes labels
-                # (they should be displayed completely even when a specific
-                # PlotRange is given).
-                exmin, exmax, eymin, eymax = elements.extent(
-                    completely_visible_only=True
-                )
-            else:
-                exmin = exmax = eymin = eymax = None
-
-            def get_range(min, max):
-                if max < min:
-                    min, max = max, min
-                elif min == max:
-                    if min < 0:
-                        min, max = 2 * min, 0
-                    elif min > 0:
-                        min, max = 0, 2 * min
-                    else:
-                        min, max = -1, 1
-                return min, max
-
-            try:
-                if plot_range[0] == "System`Automatic":
-                    if xmin is None and xmax is None:
-                        xmin = 0
-                        xmax = 1
-                    elif xmin == xmax:
-                        xmin -= 1
-                        xmax += 1
-                elif isinstance(plot_range[0], list) and len(plot_range[0]) == 2:
-                    xmin, xmax = list(map(float, plot_range[0]))
-                    xmin, xmax = get_range(xmin, xmax)
-                    xmin = elements.translate((xmin, 0))[0]
-                    xmax = elements.translate((xmax, 0))[0]
-                    if exmin is not None and exmin < xmin:
-                        xmin = exmin
-                    if exmax is not None and exmax > xmax:
-                        xmax = exmax
-                else:
-                    raise BoxExpressionError
-
-                if plot_range[1] == "System`Automatic":
-                    if ymin is None and ymax is None:
-                        ymin = 0
-                        ymax = 1
-                    elif ymin == ymax:
-                        ymin -= 1
-                        ymax += 1
-                elif isinstance(plot_range[1], list) and len(plot_range[1]) == 2:
-                    ymin, ymax = list(map(float, plot_range[1]))
-                    ymin, ymax = get_range(ymin, ymax)
-                    ymin = elements.translate((0, ymin))[1]
-                    ymax = elements.translate((0, ymax))[1]
-                    if ymin > ymax:
-                        ymin, ymax = ymax, ymin
-                    if eymin is not None and eymin < ymin:
-                        ymin = eymin
-                    if eymax is not None and eymax > ymax:
-                        ymax = eymax
-                else:
-                    raise BoxExpressionError
-            except (ValueError, TypeError):
-                raise BoxExpressionError
-
-            w = 0 if (xmin is None or xmax is None) else xmax - xmin
-            h = 0 if (ymin is None or ymax is None) else ymax - ymin
-
-            if size_aspect is None:
-                aspect = h / w
-            else:
-                aspect = size_aspect
-
-            height = base_height
-            if height is None:
-                height = base_width * aspect
-            width = height / aspect
-            if width > base_width:
-                width = base_width
-                height = width * aspect
-
-            width *= size_multiplier
-            height *= size_multiplier
-
-            return xmin, xmax, ymin, ymax, w, h, width, height
-
-        xmin, xmax, ymin, ymax, w, h, width, height = calc_dimensions(final_pass=False)
-
-        elements.set_size(xmin, ymin, w, h, width, height)
-
-        xmin -= w * 0.02
-        xmax += w * 0.02
-        ymin -= h * 0.02
-        ymax += h * 0.02
-
-        axes.extend(
-            self.create_axes(elements, self.graphics_options, xmin, xmax, ymin, ymax)
-        )
-
-        return elements, calc_dimensions
-
-    # FIXME: this doesn't always properly align with overlaid SVG plots
-    def axis_ticks(self, xmin, xmax):
-        def round_to_zero(value):
-            if value == 0:
-                return 0
-            elif value < 0:
-                return ceil(value)
-            else:
-                return floor(value)
-
-        def round_step(value):
-            if not value:
-                return 1, 1
-            sub_steps = 5
-            try:
-                shift = 10.0 ** floor(log10(value))
-            except ValueError:
-                return 1, 1
-            value = value / shift
-            if value < 1.5:
-                value = 1
-            elif value < 3:
-                value = 2
-                sub_steps = 4
-            elif value < 8:
-                value = 5
-            else:
-                value = 10
-            return value * shift, sub_steps
-
-        step_x, sub_x = round_step((xmax - xmin) / 5.0)
-        step_x_small = step_x / sub_x
-        steps_x = int(floor((xmax - xmin) / step_x))
-        steps_x_small = int(floor((xmax - xmin) / step_x_small))
-
-        start_k_x = int(ceil(xmin / step_x))
-        start_k_x_small = int(ceil(xmin / step_x_small))
-
-        if xmin <= 0 <= xmax:
-            origin_k_x = 0
-        else:
-            origin_k_x = start_k_x
-        origin_x = origin_k_x * step_x
-
-        ticks = []
-        ticks_small = []
-        for k in range(start_k_x, start_k_x + steps_x + 1):
-            if k != origin_k_x:
-                x = k * step_x
-                if x > xmax:
-                    break
-                ticks.append(x)
-        for k in range(start_k_x_small, start_k_x_small + steps_x_small + 1):
-            if k % sub_x != 0:
-                x = k * step_x_small
-                if x > xmax:
-                    break
-                ticks_small.append(x)
-
-        return ticks, ticks_small, origin_x
-
     def boxes_to_svg(self, elements=None, **options) -> str:
         """This is the top-level function that converts a Mathics Expression
         in to something suitable for SVG rendering.
         """
-        if not elements:
-            elements = self._elements
+        assert elements is None
 
-        elements, calc_dimensions = self._prepare_elements(
-            elements, options, neg_y=True
-        )
-        xmin, xmax, ymin, ymax, w, h, self.width, self.height = calc_dimensions()
-        data = (elements, xmin, xmax, ymin, ymax, w, h, self.width, self.height)
-        elements.view_width = w
+        elements = self.content
 
         format_fn = lookup_method(self, "svg")
-        svg_body = format_fn(self, elements, data=data, **options)
+        svg_body = format_fn(self, elements, **options)
         return svg_body
-
-    def create_axes(self, elements, graphics_options, xmin, xmax, ymin, ymax) -> tuple:
-        # Note that Asymptote has special commands for drawing axes, like "xaxis"
-        # "yaxis", "xtick" "labelx", "labely". Extend our language
-        # here and use those in render-like routines.
-
-        use_log_for_y_axis = graphics_options.get(
-            "System`LogPlot", SymbolFalse
-        ).to_python()
-        axes_option = graphics_options.get("System`Axes")
-
-        if axes_option is SymbolTrue:
-            axes = (True, True)
-        elif axes_option.has_form("List", 2):
-            axes = (
-                axes_option.elements[0] is SymbolTrue,
-                axes_option.elements[1] is SymbolTrue,
-            )
-        else:
-            axes = (False, False)
-
-        # The Style option pushes its setting down into graphics components
-        # like ticks, axes, and labels.
-        ticks_style_option = graphics_options.get("System`TicksStyle")
-        axes_style_option = graphics_options.get("System`AxesStyle")
-        label_style = graphics_options.get("System`LabelStyle")
-
-        if ticks_style_option.has_form("List", 2):
-            ticks_style = ticks_style_option.elements
-        else:
-            ticks_style = [ticks_style_option] * 2
-
-        if axes_style_option.has_form("List", 2):
-            axes_style = axes_style_option.elements
-        else:
-            axes_style = [axes_style_option] * 2
-
-        ticks_style = [elements.create_style(s) for s in ticks_style]
-        axes_style = [elements.create_style(s) for s in axes_style]
-        label_style = elements.create_style(label_style)
-        ticks_style[0].extend(axes_style[0])
-        ticks_style[1].extend(axes_style[1])
-
-        def add_element(element):
-            element.is_completely_visible = True
-            elements.elements.append(element)
-
-        # Units seem to be in point size units
-
-        ticks_x, ticks_x_small, origin_x = self.axis_ticks(xmin, xmax)
-        ticks_y, ticks_y_small, origin_y = self.axis_ticks(ymin, ymax)
-
-        axes_extra = 6
-
-        tick_small_size = 3
-        tick_large_size = 5
-
-        tick_label_d = 2
-
-        ticks_x_int = all(floor(x) == x for x in ticks_x)
-        ticks_y_int = all(floor(x) == x for x in ticks_y)
-
-        for (
-            index,
-            (
-                min,
-                max,
-                p_self0,
-                p_other0,
-                p_origin,
-                ticks,
-                ticks_small,
-                ticks_int,
-                is_logscale,
-            ),
-        ) in enumerate(
-            [
-                (
-                    xmin,
-                    xmax,
-                    lambda y: (0, y),
-                    lambda x: (x, 0),
-                    lambda x: (x, origin_y),
-                    ticks_x,
-                    ticks_x_small,
-                    ticks_x_int,
-                    False,
-                ),
-                (
-                    ymin,
-                    ymax,
-                    lambda x: (x, 0),
-                    lambda y: (0, y),
-                    lambda y: (origin_x, y),
-                    ticks_y,
-                    ticks_y_small,
-                    ticks_y_int,
-                    use_log_for_y_axis,
-                ),
-            ]
-        ):
-            # Where should the placement of tick mark labels go?
-            if index == 0:
-                # x labels go under tick marks
-                alignment = "bottom"
-            elif index == 1:
-                # y labels go to the left of tick marks
-                alignment = "left"
-            else:
-                alignment = None
-
-            if axes[index]:
-                add_element(
-                    LineBox(
-                        elements,
-                        axes_style[index],
-                        lines=[
-                            [
-                                Coords(
-                                    elements, pos=p_origin(min), d=p_other0(-axes_extra)
-                                ),
-                                Coords(
-                                    elements, pos=p_origin(max), d=p_other0(axes_extra)
-                                ),
-                            ]
-                        ],
-                    )
-                )
-                ticks_lines = []
-
-                tick_label_style = ticks_style[index].clone()
-                tick_label_style.extend(label_style)
-
-                for x in ticks:
-                    ticks_lines.append(
-                        [
-                            Coords(elements, pos=p_origin(x)),
-                            Coords(
-                                elements, pos=p_origin(x), d=p_self0(tick_large_size)
-                            ),
-                        ]
-                    )
-
-                    # FIXME: for log plots we labels should appear
-                    # as 10^x rather than say 1000000.
-                    tick_value = 10**x if is_logscale else x
-                    if ticks_int:
-                        content = String(str(int(tick_value)))
-                    elif tick_value == floor(x):
-                        content = String(
-                            "%.1f" % tick_value
-                        )  # e.g. 1.0 (instead of 1.)
-                    else:
-                        content = String(
-                            "%g" % tick_value
-                        )  # fix e.g. 0.6000000000000001
-
-                    add_element(
-                        InsetBox(
-                            elements,
-                            tick_label_style,
-                            content=content,
-                            pos=Coords(
-                                elements, pos=p_origin(x), d=p_self0(-tick_label_d)
-                            ),
-                            opos=p_self0(1),
-                            opacity=1.0,
-                            alignment=alignment,
-                        )
-                    )
-                for x in ticks_small:
-                    pos = p_origin(x)
-                    ticks_lines.append(
-                        [
-                            Coords(elements, pos=pos),
-                            Coords(elements, pos=pos, d=p_self0(tick_small_size)),
-                        ]
-                    )
-                add_element(LineBox(elements, axes_style[0], lines=ticks_lines))
-        return axes
-
-        # Old code?
-        # if axes[1]:
-        #     add_element(LineBox(elements, axes_style[1], lines=[[Coords(elements, pos=(origin_x,ymin), d=(0,-axes_extra)),
-        #         Coords(elements, pos=(origin_x,ymax), d=(0,axes_extra))]]))
-        #     ticks = []
-        #     tick_label_style = ticks_style[1].clone()
-        #     tick_label_style.extend(label_style)
-        #     for k in range(start_k_y, start_k_y+steps_y+1):
-        #         if k != origin_k_y:
-        #             y = k * step_y
-        #             if y > ymax:
-        #                 break
-        #             pos = (origin_x,y)
-        #             ticks.append([Coords(elements, pos=pos),
-        #                 Coords(elements, pos=pos, d=(tick_large_size,0))])
-        #             add_element(InsetBox(elements, tick_label_style, content=Real(y), pos=Coords(elements, pos=pos,
-        #                 d=(-tick_label_d,0)), opos=(1,0)))
-        #     for k in range(start_k_y_small, start_k_y_small+steps_y_small+1):
-        #         if k % sub_y != 0:
-        #             y = k * step_y_small
-        #             if y > ymax:
-        #                 break
-        #             pos = (origin_x,y)
-        #             ticks.append([Coords(elements, pos=pos),
-        #                 Coords(elements, pos=pos, d=(tick_small_size,0))])
-        #     add_element(LineBox(elements, axes_style[1], lines=ticks))
 
 
 class FilledCurveBox(_GraphicsElementBox):

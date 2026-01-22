@@ -23,6 +23,8 @@ from mathics.core.atoms import String
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import add_conversion_fn, lookup_method
 from mathics.core.symbols import Atom, SymbolTrue
+from mathics.format.box.graphics import prepare_elements as prepare_elements2d
+from mathics.format.box.graphics3d import prepare_elements as prepare_elements3d
 from mathics.format.form.util import _WrongFormattedExpression, text_cells_to_grid
 
 
@@ -216,10 +218,9 @@ add_conversion_fn(StyleBox, stylebox)
 
 
 def graphicsbox(self, elements=None, **options) -> str:
-    if not elements:
-        elements = self._elements
+    assert elements is None
 
-    self._prepare_elements(elements, options)  # to test for Box errors
+    prepare_elements2d(self, self.content, options)  # to test for Box errors
     return "-Graphics-"
 
 
@@ -227,8 +228,9 @@ add_conversion_fn(GraphicsBox, graphicsbox)
 
 
 def graphics3dbox(self, elements=None, **options) -> str:
-    if not elements:
-        elements = self._elements
+    assert elements is None
+
+    prepare_elements3d(self, self.content, options)  # to test for Box errors
     return "-Graphics3D-"
 
 
