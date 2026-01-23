@@ -928,8 +928,8 @@ def prepare_elements(self, content, options, neg_y=False, max_width=None):
 
 
 def primitives_to_boxes(
-    content: BaseElement, evaluation: Evaluation, box_suffix: str = "Box"
-) -> ListExpression | BoxElementMixin:
+    content: Expression, evaluation: Evaluation, box_suffix: str = "Box"
+) -> Expression | BoxElementMixin:
     """
     Convert a primitive into the corresponding
     box expression.
@@ -971,9 +971,9 @@ def primitives_to_boxes(
                     eval_N(element, evaluation) for element in content.elements[1:]
                 ]
             else:
-                n_elements = (
+                n_elements = [
                     eval_N(element, evaluation) for element in content.elements
-                )
+                ]
         else:
             n_elements = content.elements
         return Expression(Symbol(head.name + box_suffix), *n_elements)

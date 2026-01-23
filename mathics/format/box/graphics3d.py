@@ -86,7 +86,7 @@ def create_axes(
     return axes, ticks, ticks_style
 
 
-def expr_to_list_of_3d_points(expr: BaseElement) -> Tuple[Coords3D]:
+def expr_to_list_of_3d_points(expr: BaseElement) -> Tuple[Coords3D, ...]:
     points = expr.to_python()
     if not all(isinstance(point, (tuple, list)) for point in points):
         points = [points]
