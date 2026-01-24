@@ -18,12 +18,11 @@ from mathics.builtin.graphics import (
 )
 from mathics.core.atoms import Integer, Real, String
 from mathics.core.convert.expression import to_expression, to_mathics_list
-from mathics.core.element import BaseElement, BoxElementMixin
+from mathics.core.element import BoxElementMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import BoxExpressionError
 from mathics.core.expression import Expression
 from mathics.core.formatter import lookup_method
-from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
