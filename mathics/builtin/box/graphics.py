@@ -41,7 +41,6 @@ from mathics.format.box.graphics import Coords, _data_and_options, coords
 no_doc = True
 
 SymbolRegularPolygonBox = Symbol("RegularPolygonBox")
-SymbolStandardForm = Symbol("StandardForm")
 
 
 class _GraphicsElementBox(BoxExpression, ABC):
@@ -893,7 +892,7 @@ GLOBALS.update(
         Symbol("ArrowBox"): ArrowBox,
         Symbol("CircleBox"): CircleBox,
         Symbol("PolygonBox"): PolygonBox,
-        Symbol("RegularPolygonBox"): RegularPolygonBox,
+        SymbolRegularPolygonBox: RegularPolygonBox,
         Symbol("PointBox"): PointBox,
         Symbol("InsetBox"): InsetBox,
     }
