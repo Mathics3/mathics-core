@@ -6,6 +6,8 @@ PYTHON=${PYTHON:-python}
 
 cd $mydir/../mathics/data
 mathics3-generate-json-table \
+    --field=latex-named-characters \
+    --field=unicode-to-latex \
     --field=ascii-operator-to-symbol \
     --field=ascii-operator-to-unicode \
     --field=ascii-operator-to-wl-unicode \
