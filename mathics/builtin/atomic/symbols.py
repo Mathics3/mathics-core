@@ -412,7 +412,12 @@ class FormatValues(Builtin):
 
     >> Format[F[x_], OutputForm]:= Subscript[x, F]
     >> FormatValues[F]
-     = {HoldPattern[Format[Subscript[x_, F], OutputForm]] :> Subscript[x, F]}
+     = {HoldPattern[Subscript[x_, F]] :> Subscript[x, F]}
+
+    Notice that the pattern was formatted using the rule. To reveal \
+    the rules, use 'InputForm':
+    >> FormatValues[F]  //InputForm
+     = {HoldPattern[Format[F[x_], OutputForm]] :> Subscript[x, F]}
     """
 
     summary_text = (

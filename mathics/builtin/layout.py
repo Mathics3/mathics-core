@@ -62,12 +62,56 @@ class Format(Builtin):
     Formats must be attached to the head of an expression:
     >> f /: Format[g[f]] = "my f";
      : Tag f not found or too deep for an assigned rule.
+
+    Format can be used to specify the request format:
+    >> Format[Integrate[F[x], x], TeXForm]
+     = \\int F\\left(x\\right) \\, dx
+
+    Format evaluates its first element before applying the format:
+    >> Format[Integrate[Cos[x], x], TeXForm]
+     = ...
+    but the result keeps the structure:
+    >> % //FullForm
+     = Format[Sin[x], TeXForm]
+
+    If the second parameter is ommited, 'Format' is ignored:
+    >> Format[F[x]]
+     = F[x]
+
+    If the second argument is not one of '$PrintForms', a message \
+    is shown, and the argument is discarded:
+    >> Format[F[x], NoFormat]
+     : Value of option FormatType -> NoFormat is not valid.
+     = F[x]
+
+    Notice that differently from WMA, 'Format' expressions are not \
+    formatted in 'InputForm':
+    >> Format[{a->Integrate[F[x], x]}, StandardForm]
+     = ...
+    >> Format[{a->Integrate[F[x], x]}, StandardForm] //InputForm
+     = Format[{a -> Integrate[F[x], x]}, StandardForm]
+
+    This choice is more consistent with the meaning of 'InputForm' \
+    in the sense it gives the text required to reproduce the expression.
+    Also, it allows to get a more clear expression that what would be \
+    get using 'FullForm':
+    >> Format[{a->Integrate[F[x], x]}, StandardForm] //FullForm
+     = Format[{Rule[a, Integrate[F[x], x]]}, StandardForm]
+
     """
 
     messages = {"fttp": "Format type `1` is not a symbol."}
     summary_text = (
         "settable low-level translator from various forms to evaluatable expressions"
     )
+    rules = {"MakeBoxes[Format[expr_], fmt_]": "MakeBoxes[expr, fmt]"}
+
+    def eval_Makeboxes(self, expr, form, evaluation):
+        """MakeBoxes[Format[expr_, form_], _]"""
+        if form not in evaluation.definitions.printforms:
+            evaluation.message("FormatType", "ftype", form)
+            return format_element(expr, evaluation)
+        return format_element(expr, evaluation, form)
 
 
 class Grid(Builtin):
