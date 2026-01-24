@@ -209,7 +209,7 @@ class GridBox(BoxExpression):
         return self._elements
 
     def init(self, *elems, **kwargs):
-        self.options = kwargs
+        self.box_options = kwargs
         self.items = elems
         self._elements = elems
 
@@ -217,7 +217,7 @@ class GridBox(BoxExpression):
         if not elements:
             raise BoxConstructError
 
-        options = self.options
+        options = self.box_options
 
         expr = elements[0]
         if not expr.has_form("List", None):
@@ -514,8 +514,6 @@ class StyleBox(BoxExpression):
     """
 
     options = {
-        "ShowStringCharacters": "False",
-        "ShowSpecialCharacters": "False",
         "$OptionSyntax": "Ignore",
     }
     attributes = A_PROTECTED | A_READ_PROTECTED

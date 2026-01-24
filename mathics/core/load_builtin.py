@@ -133,11 +133,8 @@ def definition_contribute(definitions):
     Load the Definition objects associated to all the builtins
     on `Definitions`
     """
-    # let MakeBoxes contribute first
-    _builtins["System`MakeBoxes"].contribute(definitions)
     for name, item in _builtins.items():
-        if name != "System`MakeBoxes":
-            item.contribute(definitions)
+        item.contribute(definitions)
 
     from mathics.core.definitions import Definition
     from mathics.core.expression import ensure_context
