@@ -7,7 +7,7 @@ symbolic "boxes".
 
 The routines here assist in boxing at the bottom of the hierarchy, typically found when used via a notebook.
 
-Boxing is recursively performed using on the <url>:Head:/doc/reference-of-built-in-symbols/atomic-elements-of-expressions/atomic-primitives/head/</url> of a \Mathics expression
+Boxing is recursively performed using on the <url>:Head:/doc/reference-of-built-in-symbols/atomic-elements-of-expressions/atomic-primitives/head/</url> of a \Mathics expression.
 """
 
 # The Box objects are `BoxElementMixin` objects. These objects are literal

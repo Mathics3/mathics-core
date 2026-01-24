@@ -24,7 +24,17 @@ from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.exceptions import BoxExpressionError
 from mathics.core.symbols import Symbol, SymbolList, symbol_set, system_symbols_dict
-from mathics.core.systemsymbols import SymbolEdgeForm, SymbolFaceForm, SymbolRule
+from mathics.core.systemsymbols import (
+    SymbolEdgeForm,
+    SymbolFaceForm,
+    SymbolInset,
+    SymbolLine,
+    SymbolPoint,
+    SymbolPolygon,
+    SymbolRule,
+    SymbolStyle,
+    SymbolText,
+)
 from mathics.eval.nevaluator import eval_N
 
 # This following line tells documentation how to sort this module
@@ -1054,15 +1064,15 @@ ELEMENT_HEADS = frozenset(
         Symbol("System`Cylinder"),
         Symbol("System`Disk"),
         Symbol("System`FilledCurve"),
-        Symbol("System`Inset"),
-        Symbol("System`Line"),
-        Symbol("System`Point"),
-        Symbol("System`Polygon"),
+        SymbolInset,
+        SymbolLine,
+        SymbolPoint,
+        SymbolPolygon,
         Symbol("System`Rectangle"),
         Symbol("System`RegularPolygon"),
         Symbol("System`Sphere"),
-        Symbol("System`Style"),
-        Symbol("System`Text"),
+        SymbolStyle,
+        SymbolText,
         Symbol("System`Tube"),
         Symbol("System`UniformPolyhedron"),
     )

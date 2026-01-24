@@ -32,7 +32,7 @@ from mathics.core.expression import Expression
 from mathics.core.formatter import lookup_method
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolTraditionalForm
+from mathics.core.systemsymbols import SymbolInsetBox, SymbolTraditionalForm
 from mathics.format.box import format_element
 from mathics.format.box.common import elements_to_expressions
 from mathics.format.box.graphics import Coords, _data_and_options, coords
@@ -894,6 +894,6 @@ GLOBALS.update(
         Symbol("PolygonBox"): PolygonBox,
         SymbolRegularPolygonBox: RegularPolygonBox,
         Symbol("PointBox"): PointBox,
-        Symbol("InsetBox"): InsetBox,
+        SymbolInsetBox: InsetBox,
     }
 )
