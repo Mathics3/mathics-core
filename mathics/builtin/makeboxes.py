@@ -3,9 +3,10 @@
 Low-level Format definitions
 """
 
+
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Predefined
-from mathics.format.box import format_element
+from mathics.format.box import eval_generic_makeboxes, format_element
 
 # TODO: Differently from the current implementation, MakeBoxes should only
 # accept as its format field the symbols in `$BoxForms`. This is something to
@@ -84,12 +85,16 @@ class MakeBoxes(Builtin):
         "MakeBoxes[expr_]": "MakeBoxes[expr, StandardForm]",
         # The following rule is temporal.
         "MakeBoxes[expr_, form:(TeXForm|MathMLForm)]": "MakeBoxes[form[expr], StandardForm]",
+        (
+            "MakeBoxes[(form:StandardForm|TraditionalForm)"
+            "[expr_], StandardForm|TraditionalForm]"
+        ): ("MakeBoxes[expr, form]"),
     }
     summary_text = "settable low-level translator from expression to display boxes"
 
     def eval_general(self, expr, f, evaluation):
         """MakeBoxes[expr_, f:TraditionalForm|StandardForm]"""
-        return format_element(expr, evaluation, f)
+        return eval_generic_makeboxes(expr, f, evaluation)
 
 
 class ToBoxes(Builtin):
