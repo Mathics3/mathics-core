@@ -1,18 +1,33 @@
 import re
 
 from mathics.core.atoms import Integer, String
+from mathics.core.element import BaseElement, BoxElementMixin
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BoxError, Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import SymbolFalse, SymbolFullForm, SymbolList
-from mathics.core.systemsymbols import SymbolRowBox, SymbolTraditionalForm
+from mathics.core.symbols import (
+    Symbol,
+    SymbolFalse,
+    SymbolFullForm,
+    SymbolList,
+    SymbolTrue,
+)
+from mathics.core.systemsymbols import (
+    SymbolMathMLForm,
+    SymbolTeXForm,
+    SymbolTraditionalForm,
+)
 from mathics.eval.testing_expressions import expr_min
-from mathics.format.box.makeboxes import format_element
+from mathics.format.box.makeboxes import format_element, is_print_form_callback
 
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 
 
-def eval_mathmlform(expr, evaluation) -> Expression:
+@is_print_form_callback("System`MathMLForm")
+def eval_mathmlform(expr: BaseElement, evaluation: Evaluation) -> BoxElementMixin:
     "MakeBoxes[MathMLForm[expr_], form_]"
+    from mathics.builtin.box.layout import InterpretationBox
+
     boxes = format_element(expr, evaluation, SymbolTraditionalForm)
     try:
         mathml = boxes.boxes_to_mathml(evaluation=evaluation)
@@ -34,13 +49,22 @@ def eval_mathmlform(expr, evaluation) -> Expression:
             mathml = '<mstyle mathvariant="sans-serif">%s</mstyle>' % mathml
 
     mathml = '<math display="block">%s</math>' % mathml  # convert_box(boxes)
-    return Expression(SymbolRowBox, ListExpression(String(mathml)))
+    return InterpretationBox(
+        String(f'"{mathml}"'),
+        Expression(SymbolMathMLForm, expr),
+        **{"System`AutoDelete": SymbolTrue, "System`Editable": SymbolTrue},
+    )
 
 
-def eval_tableform(self, table, f, evaluation, options):
+def eval_tableform(
+    self, table: BaseElement, f: Symbol, evaluation: Evaluation, options
+):
     """MakeBoxes[TableForm[table_], f_]"""
     from mathics.builtin.box.layout import GridBox
     from mathics.builtin.tensors import get_dimensions
+
+    if not isinstance(table, Expression):
+        return format_element(table, evaluation, f)
 
     dims = len(get_dimensions(table, head=SymbolList))
     depth = self.get_option(options, "TableDepth", evaluation, pop=True)
@@ -93,7 +117,10 @@ def eval_tableform(self, table, f, evaluation, options):
         return result
 
 
-def eval_texform(expr, evaluation) -> Expression:
+@is_print_form_callback("System`TeXForm")
+def eval_texform(expr: BaseElement, evaluation: Evaluation) -> BoxElementMixin:
+    from mathics.builtin.box.layout import InterpretationBox
+
     boxes = format_element(expr, evaluation, SymbolTraditionalForm)
     try:
         # Here we set ``show_string_characters`` to False, to reproduce
@@ -114,4 +141,8 @@ def eval_texform(expr, evaluation) -> Expression:
             Expression(SymbolFullForm, expr).evaluate(evaluation),
         )
         tex = ""
-    return Expression(SymbolRowBox, ListExpression(String(tex)))
+    return InterpretationBox(
+        String(f'"{tex}"'),
+        Expression(SymbolTeXForm, expr),
+        **{"System`AutoDelete": SymbolTrue, "System`Editable": SymbolTrue},
+    )
