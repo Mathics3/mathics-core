@@ -912,14 +912,13 @@ In a similar way, in the CLI, we can ask for TraditionalForm explicitly
   = c
 
 'MakeBoxes' for another form:
-
   >> MakeBoxes[TeXForm[b], form_] = "d";
   >> b // TeXForm
   = ...
 
 You can cause a much bigger mess by overriding 'MakeBoxes' than by sticking to 'Format', e.g. generate invalid XML:
 
-  >> MakeBoxes[MathMLForm[c], form_] = "<not closed";
+  >> MakeBoxes[MathMLForm[c], form_] := "<not closed";
   >> c // MathMLForm //StandardForm
   = <not closed
 

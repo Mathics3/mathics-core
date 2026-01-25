@@ -28,8 +28,8 @@ def makeboxes_basic_forms_iterator(block):
     for key, tests in MAKEBOXES_TESTS[block].items():
         for form, entry in tests.items():
             msg = f"{key}, {form}"
-            expr = entry["expr"]
-            expect = entry["expect"]
+            expr = entry["expr"] + "//InputForm"
+            expect = entry["expect"] + "//InputForm"
             yield expr, expect, msg
 
 
@@ -44,7 +44,7 @@ def test_makeboxes_basic_forms(str_expr, str_expected, fail_msg):
         str_expected,
         to_string_expr=True,
         to_string_expected=True,
-        hold_expected=True,
+        hold_expected=False,
         failure_message=fail_msg,
     )
 
@@ -62,7 +62,7 @@ def test_makeboxes_real(str_expr, str_expected, msg):
         str_expected,
         to_string_expr=True,
         to_string_expected=True,
-        hold_expected=True,
+        hold_expected=False,
         failure_message=msg,
     )
 
