@@ -72,8 +72,29 @@ class Optional(InfixOperator, PatternObject):
     }
     grouping = "Right"
     rules = {
-        "MakeBoxes[Verbatim[Optional][Verbatim[Pattern][symbol_Symbol, Verbatim[_]]], (f:StandardForm|TraditionalForm)]": 'MakeBoxes[symbol, f] <> "_."',
-        "MakeBoxes[Verbatim[Optional][Verbatim[_]], (f:StandardForm|TraditionalForm)]": '"_."',
+        (
+            "MakeBoxes[Verbatim[Optional]["
+            "Verbatim[Pattern][symbol_Symbol,"
+            "(kind:(Verbatim[Blank]|Verbatim[BlankSequence]|Verbatim[BlankNullSequence])[])]], "
+            "(f:StandardForm|TraditionalForm)]"
+        ): 'MakeBoxes[symbol, f] <> ToString[kind, f] <>"."',
+        (
+            "MakeBoxes[Verbatim[Optional]["
+            "(kind:(Verbatim[Blank]|Verbatim[BlankSequence]|Verbatim[BlankNullSequence])[])], "
+            "(f:StandardForm|TraditionalForm)]"
+        ): 'ToString[kind, f]<>"."',
+        # Two arguments
+        (
+            "MakeBoxes[Verbatim[Optional]["
+            "Verbatim[Pattern][symbol_Symbol,"
+            "(kind:(Verbatim[Blank]|Verbatim[BlankSequence]|Verbatim[BlankNullSequence])[]), value_]], "
+            "(f:StandardForm|TraditionalForm)]"
+        ): 'RowBox[{MakeBoxes[symbol, f], ToString[kind, f], ":",MakeBoxes[value, f]}]',
+        (
+            "MakeBoxes[Verbatim[Optional]["
+            "(kind:(Verbatim[Blank]|Verbatim[BlankSequence]|Verbatim[BlankNullSequence])[]), value_], "
+            "(f:StandardForm|TraditionalForm)]"
+        ): 'RowBox[{ToString[kind, f], ":", MakeBoxes[value, f]}]',
     }
     summary_text = "an optional argument with a default value"
 
