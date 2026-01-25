@@ -6,6 +6,7 @@ from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Predefined
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.rules import BaseRule, FunctionApplyRule, Rule
 from mathics.core.symbols import Symbol
 
 SymbolCustomGraphicsBox = Symbol("CustomGraphicsBox")
@@ -42,12 +43,28 @@ class CustomAtom(Predefined):
         "N[System`CustomAtom]": "37",
     }
 
-    def eval_to_boxes(self, evaluation):
-        "System`MakeBoxes[System`CustomAtom, StandardForm|TraditionalForm|OutputForm]"
+    # Since this is a Mathics3 Module which is loaded after
+    # the core symbols are loaded, it is safe to assume that `MakeBoxes`
+    # definition was already loaded. We can add then rules to it.
+    # This modified `contribute` method do that, adding specific
+    # makeboxes rules for this kind of atoms.
+    def contribute(self, definitions, is_pymodule=True):
+        super().contribute(definitions, is_pymodule)
+        # Add specific MakeBoxes rules
+        name = self.get_name()
+
+        for pattern, function in self.get_functions("makeboxes_"):
+            mb_rule = FunctionApplyRule(
+                name, pattern, function, None, attributes=None, system=True
+            )
+            definitions.add_format("System`MakeBoxes", mb_rule, "_MakeBoxes")
+
+    def makeboxes_general(self, evaluation):
+        "System`MakeBoxes[System`CustomAtom, StandardForm|TraditionalForm]"
         return CustomBoxExpression(evaluation=evaluation)
 
-    def eval_to_boxes_inputform(self, evaluation):
-        "System`MakeBoxes[InputForm[System`CustomAtom], StandardForm|TraditionalForm|OutputForm]"
+    def makeboxes_inputform(self, evaluation):
+        "System`MakeBoxes[InputForm[System`CustomAtom], StandardForm|TraditionalForm]"
         return CustomBoxExpression(evaluation=evaluation)
 
 
@@ -57,6 +74,22 @@ class CustomGraphicsBox(BoxExpression):
     options = GRAPHICS_OPTIONS
     attributes = A_HOLD_ALL | A_PROTECTED | A_READ_PROTECTED
 
+    # Since this is a Mathics3 Module which is loaded after
+    # the core symbols are loaded, it is safe to assume that `MakeBoxes`
+    # definition was already loaded. We can add then rules to it.
+    # This modified `contribute` method do that, adding specific
+    # makeboxes rules for this kind of BoxExpression.
+    def contribute(self, definitions, is_pymodule=True):
+        super().contribute(definitions, is_pymodule)
+        # Add specific MakeBoxes rules
+        name = self.get_name()
+
+        for pattern, function in self.get_functions("makeboxes_"):
+            mb_rule = FunctionApplyRule(
+                name, pattern, function, None, attributes=None, system=True
+            )
+            definitions.add_format("System`MakeBoxes", mb_rule, "_MakeBoxes")
+
     def init(self, *elems, **options):
         self._elements = elems
         self.evaluation = options.pop("evaluation", None)
@@ -65,16 +98,15 @@ class CustomGraphicsBox(BoxExpression):
     def to_expression(self):
         return Expression(SymbolCustomGraphicsBox, *self.elements)
 
-    def eval_box(self, expr, evaluation: Evaluation, options: dict):
+    def makeboxes_graphics(self, expr, evaluation: Evaluation, options: dict):
         """System`MakeBoxes[System`Graphics[System`expr_, System`OptionsPattern[System`Graphics]],
-        System`StandardForm|System`TraditionalForm|System`OutputForm]"""
+        System`StandardForm|System`TraditionalForm]"""
         instance = CustomGraphicsBox(*(expr.elements), evaluation=evaluation)
         return instance
 
-    def eval_box_outputForm(self, expr, evaluation: Evaluation, options: dict):
+    def makeboxes_outputForm(self, expr, evaluation: Evaluation, options: dict):
         """System`MakeBoxes[System`OutputForm[System`Graphics[System`expr_, System`OptionsPattern[System`Graphics]]],
         System`StandardForm|System`TraditionalForm]"""
-        print("MakeBoxes OutputForm")
         instance = CustomGraphicsBox(*(expr.elements), evaluation=evaluation)
         return instance
 

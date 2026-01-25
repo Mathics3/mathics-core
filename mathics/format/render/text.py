@@ -7,6 +7,7 @@ Lower-level formatter Mathics objects as plain text.
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
+    FormBox,
     FractionBox,
     GridBox,
     InterpretationBox,
@@ -237,8 +238,9 @@ def graphics3dbox(self, elements=None, **options) -> str:
 add_conversion_fn(Graphics3DBox, graphics3dbox)
 
 
-def tag_box(self, **options):
+def tag_and_form_box(self, **options):
     return boxes_to_text(self.boxed, **options)
 
 
-add_conversion_fn(TagBox, tag_box)
+add_conversion_fn(FormBox, tag_and_form_box)
+add_conversion_fn(TagBox, tag_and_form_box)
