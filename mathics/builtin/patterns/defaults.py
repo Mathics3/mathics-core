@@ -19,48 +19,75 @@ sort_order = "mathics.builtin.rules-and-patterns.patttern-defaults"
 
 
 class Optional(InfixOperator, PatternObject):
-    """
-
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Optional.html</url>
+    """<url>:WMA link:https://reference.wolfram.com/language/ref/Optional.html</url>
 
     <dl>
       <dt>'Optional'[$pattern$, $default$]
       <dt>'$pattern$ : $default$'
-      <dd>is a pattern which matches $pattern$, which if omitted
-        should be replaced by $default$.
+      <dd>is a pattern matching $pattern$; when $pattern$ is omitted, \
+        $default$ is substituted for $pattern$.
     </dl>
 
+    Optional is used to specify optional arguments in function signatures.
+
+    Set up a default value of 1 for the pattern 'y_' in function 'f':
+
     >> f[x_, y_:1] := {x, y}
-    >> f[1, 2]
-     = {1, 2}
+
+    Above, we put no spaces before or after ':', but they can be added. So:
+
+    >> f[x_, y_: 1] := {x, y}
+
+    is the same as the above.
+
+    When we specify a value for the 'y' parameter, it has the value provided:
+    >> f[a, 2]
+     = {a, 2}
+
+    But if the 'y' parameter is missing, we replace the parameter \
+    using the default given in the delayed assignment above:
+
     >> f[a]
      = {a, 1}
 
-    Note that '$symb$ : $pattern$' represents a 'Pattern' object. However, there is no \
-    disambiguity, since $symb$ has to be a symbol in this case.
+    Both 'Optional' and <url>:Pattern:
+    /doc/reference-of-built-in-symbols/rules-and-patterns/composite-patterns/pattern/</url> \
+    use ':' as their operator symbol. And both operators are used to represent a pattern.
 
-    >> x:_ // FullForm
-     = Pattern[x, Blank[]]
-    >> _:d // FullForm
-     = Optional[Blank[], d]
-    >> x:_+y_:d // FullForm
+    The way to disambiguate which of the two is used is by the first or left operand. When \
+    this is a $symbol$, like 'y', the ':' operator indicates a 'Pattern':
+
+    >> y : 1 // FullForm
+     = Pattern[y, 1]
+
+    In contrast, we have a <i>pattern</i> to the left of the colon, like 'y_' we have an 'Optional' expression:
+
+    >> y_ : 1 // FullForm
+     = Optional[Pattern[y, Blank[]], 1]
+
+    The special form 'y_.' is equivalent to 'Optional[y_]':
+
+    >> FullForm[y_.]
+     = Optional[Pattern[y, Blank[]]]
+
+    In this situation, when the is 'y' parameter omitted, the value comes from <url>\
+    :Default:/doc/reference-of-built-in-symbols/options-management/default/</url>:
+
+    >> Default[g] = 4
+     = 4
+
+    >> g[x_, y_.] := {x, y}
+
+    >> g[a]
+     = {a, 4}
+
+    Note that the 'Optional' operator binds more tightly than the \
+    'Pattern'.  Keep this in mind when there is more than one colon, \
+    juxtaposed, each representing different operators:
+
+    >> x : _+y_ : d // FullForm
      = Pattern[x, Plus[Blank[], Optional[Pattern[y, Blank[]], d]]]
 
-    's_.' is equivalent to 'Optional[s_]' and represents an optional parameter which, if omitted, \
-    gets its value from 'Default'.
-    >> FullForm[s_.]
-     = Optional[Pattern[s, Blank[]]]
-
-    'InputForm' shows it in its 'Infix' or 'Postfix' form depending on the \
-    number of parameters:
-    >> InputForm[s_:a+b^2]
-     = s_ : a + b^2
-    Following WMA conventions,
-    >> InputForm[Optional[s__]]
-     = (s__.)
-    >> Default[h, k_] := k
-    >> h[a] /. h[x_, y_.] -> {x, y}
-     = {a, 2}
     """
 
     arg_counts = [1, 2]
@@ -72,8 +99,29 @@ class Optional(InfixOperator, PatternObject):
     }
     grouping = "Right"
     rules = {
-        "MakeBoxes[Verbatim[Optional][Verbatim[Pattern][symbol_Symbol, Verbatim[_]]], (f:StandardForm|TraditionalForm)]": 'MakeBoxes[symbol, f] <> "_."',
-        "MakeBoxes[Verbatim[Optional][Verbatim[_]], (f:StandardForm|TraditionalForm)]": '"_."',
+        (
+            "MakeBoxes[Verbatim[Optional]["
+            "Verbatim[Pattern][symbol_Symbol,"
+            "(kind:(Verbatim[Blank]|Verbatim[BlankSequence]|Verbatim[BlankNullSequence])[])]], "
+            "(f:StandardForm|TraditionalForm)]"
+        ): 'MakeBoxes[symbol, f] <> ToString[kind, f] <>"."',
+        (
+            "MakeBoxes[Verbatim[Optional]["
+            "(kind:(Verbatim[Blank]|Verbatim[BlankSequence]|Verbatim[BlankNullSequence])[])], "
+            "(f:StandardForm|TraditionalForm)]"
+        ): 'ToString[kind, f]<>"."',
+        # Two arguments
+        (
+            "MakeBoxes[Verbatim[Optional]["
+            "Verbatim[Pattern][symbol_Symbol,"
+            "(kind:(Verbatim[Blank]|Verbatim[BlankSequence]|Verbatim[BlankNullSequence])[]), value_]], "
+            "(f:StandardForm|TraditionalForm)]"
+        ): 'RowBox[{MakeBoxes[symbol, f], ToString[kind, f], ":",MakeBoxes[value, f]}]',
+        (
+            "MakeBoxes[Verbatim[Optional]["
+            "(kind:(Verbatim[Blank]|Verbatim[BlankSequence]|Verbatim[BlankNullSequence])[]), value_], "
+            "(f:StandardForm|TraditionalForm)]"
+        ): 'RowBox[{ToString[kind, f], ":", MakeBoxes[value, f]}]',
     }
     summary_text = "an optional argument with a default value"
 
