@@ -85,6 +85,50 @@ def is_constant_list(list):
     return True
 
 
+class FormBox(BoxExpression):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/FormBox.html</url>
+
+    <dl>
+      <dt>'FormBox[boxes, form]'
+      <dd> is a low-level box construct that displays as \
+    boxes and keep information about the form used to generate \
+    the box representation.
+    </dl>
+    """
+
+    attributes = A_PROTECTED | A_READ_PROTECTED
+    summary_text = "box with an associated form"
+
+    def init(self, *elems, **kwargs):
+        self.box_options = kwargs
+        self.form = elems[1]
+        self.boxed = elems[0]
+        assert isinstance(self.boxed, BoxElementMixin), f"{type(self.boxes)}"
+
+    @property
+    def elements(self):
+        if self._elements is None:
+            self._elements = elements_to_expressions(
+                self,
+                (
+                    self.boxed,
+                    self.form,
+                ),
+                self.box_options,
+            )
+        return self._elements
+
+    def eval_tagbox(self, expr, form: Symbol, evaluation: Evaluation):
+        """FormBox[expr_, form_Symbol]"""
+        options = {}
+        expr = to_boxes(expr, evaluation, options)
+        assert isinstance(expr, BoxElementMixin), f"{expr}"
+        return FormBox(expr, form, **options)
+
+
 class FractionBox(BoxExpression):
     """
     <url>
@@ -165,7 +209,7 @@ class GridBox(BoxExpression):
         return self._elements
 
     def init(self, *elems, **kwargs):
-        self.options = kwargs
+        self.box_options = kwargs
         self.items = elems
         self._elements = elems
 
@@ -173,7 +217,7 @@ class GridBox(BoxExpression):
         if not elements:
             raise BoxConstructError
 
-        options = self.options
+        options = self.box_options
 
         expr = elements[0]
         if not expr.has_form("List", None):
@@ -470,8 +514,6 @@ class StyleBox(BoxExpression):
     """
 
     options = {
-        "ShowStringCharacters": "False",
-        "ShowSpecialCharacters": "False",
         "$OptionSyntax": "Ignore",
     }
     attributes = A_PROTECTED | A_READ_PROTECTED
