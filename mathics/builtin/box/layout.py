@@ -95,19 +95,9 @@ class FormBox(BoxExpression):
       <dd> is a low-level boxing construct that wraps $boxes$ and $form$ into a box.
     </dl>
 
-    The $form$ parameter of 'FormBox' can change the way that variables get rendered.
-
-    Consider the following 'SuperscriptBox' nested inside 'TraditionalForm'
-
-    >> TraditionalForm[FormBox[SuperscriptBox["x", "2"], InputForm]]
-     = FormBox(SuperscriptBox(x, 2), InputForm)
-
-    Compare with the following where we reverse 'TraditionalForm' and 'InputForm':
-
-    >> InputForm[FormBox[SuperscriptBox["x", "2"], TraditionalForm]]
-     = FormBox[SuperscriptBox["x", "2"], TraditionalForm]
-
-    The difference is in how the form style settings are applied to the variable $x$.
+    ## No examples because our implementation and understanding of the concept
+    ## may be lacking. See https://github.com/Mathics3/mathics-core/pull/1653
+    ## for the sordid discussion.
     """
 
     attributes = A_PROTECTED | A_READ_PROTECTED
