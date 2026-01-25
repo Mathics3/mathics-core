@@ -92,31 +92,22 @@ class FormBox(BoxExpression):
 
     <dl>
       <dt>'FormBox[$boxes$, $form$]'
-      <dd> is a low-level boxing construct that wraps $boxes$ and $form$ into a box. \
-      It indicates to outer encompassing Forms, that $boxes$ \
-      should be rendered using rules of $form$, \
-      even though the surrounding form may be different.
+      <dd> is a low-level boxing construct that wraps $boxes$ and $form$ into a box.
     </dl>
 
-
-    We can use 'FormBox' to specify the way a particular \
-    box context renders, independent of the encompassing form it might be inside.
+    The $form$ parameter of 'FormBox' can change the way that variables get rendered.
 
     Consider the following 'SuperscriptBox' nested inside 'TraditionalForm'
 
     >> TraditionalForm[FormBox[SuperscriptBox["x", "2"], InputForm]]
      = FormBox(SuperscriptBox(x, 2), InputForm)
 
-    Because we have that 'FormBox' inside specifying 'InputForm', that has precedence, \
-    and so SuperscriptBox is rendered the way 'InputForm' renders.
-
-    Compare with the following where we reverse this. The outside form is 'InputForm', \
-    but dictate inside the 'FormBox' that we want the 'SuperscriptBox' portion to get rendered \
-    the way 'TraditionalForm' handles 'SuperscriptBox':
+    Compare with the following where we reverse 'TraditionalForm' and 'InputForm':
 
     >> InputForm[FormBox[SuperscriptBox["x", "2"], TraditionalForm]]
      = FormBox[SuperscriptBox["x", "2"], TraditionalForm]
 
+    The difference is in how the form style settings are applied to the variable $x$.
     """
 
     attributes = A_PROTECTED | A_READ_PROTECTED
