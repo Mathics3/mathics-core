@@ -1353,7 +1353,6 @@ class InfixOperator(Operator):
                 "MakeBoxes[{0}, form:StandardForm|TraditionalForm]".format(
                     op_pattern
                 ): formatted,
-                f"MakeBoxes[{op_pattern}, form:InputForm|OutputForm]": formatted,
             }
             default_rules.update(self.rules)
             self.rules = default_rules

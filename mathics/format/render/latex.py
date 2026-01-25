@@ -17,6 +17,7 @@ import re
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
+    FormBox,
     FractionBox,
     GridBox,
     InterpretationBox,
@@ -31,7 +32,12 @@ from mathics.builtin.box.layout import (
 )
 from mathics.builtin.colors.color_directives import RGBColor
 from mathics.core.atoms import String
-from mathics.core.convert.op import amstex_operators, get_latex_operator
+from mathics.core.convert.op import (
+    AMSTEX_OPERATORS,
+    UNICODE_TO_AMSLATEX,
+    UNICODE_TO_LATEX,
+    get_latex_operator,
+)
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import (
     add_conversion_fn,
@@ -57,24 +63,38 @@ TEX_REPLACE = {
     "^": r"{}^{\wedge}",
     "~": r"\sim{}",
     "|": r"\vert{}",
-    "\u222b": r"\int ",
-    "\u2146": r"\, d",
-    "\uF74C": r"\, d",
-    "\U0001D451": r"\, d",
 }
-TEX_TEXT_REPLACE = TEX_REPLACE.copy()
-TEX_TEXT_REPLACE.update(
+TEX_TEXT_REPLACE = {
+    r"{": r"\{",
+    r"}": r"\}",
+    r"_": r"\_",
+    "<": r"$<$",
+    ">": r"$>$",
+    "~": r"$\sim$",
+    "|": r"$\vert$",
+    "\\": r"$\backslash$",
+    "^": r"${}^{\wedge}$",
+}
+
+TEX_REPLACE.update(UNICODE_TO_AMSLATEX)
+TEX_REPLACE.update(
     {
-        "<": r"$<$",
-        ">": r"$>$",
-        "~": r"$\sim$",
-        "|": r"$\vert$",
-        "\\": r"$\backslash$",
-        "^": r"${}^{\wedge}$",
-        "\u222b": r"$\int$ ",
-        "\uF74C": r"\, d",
+        key: r"\text{" + val + "}"
+        for key, val in UNICODE_TO_LATEX.items()
+        if key not in TEX_REPLACE
     }
 )
+
+TEX_TEXT_REPLACE.update(UNICODE_TO_LATEX)
+TEX_TEXT_REPLACE.update(
+    {
+        key: f"${val}$"
+        for key, val in UNICODE_TO_AMSLATEX.items()
+        if key not in TEX_TEXT_REPLACE
+    }
+)
+
+
 TEX_REPLACE_RE = re.compile("([" + "".join([re.escape(c) for c in TEX_REPLACE]) + "])")
 
 
@@ -115,7 +135,7 @@ def string(self, **options) -> str:
         return render("%s", text)
     else:
         # First consider the special cases
-        op_string = amstex_operators.get(text, None)
+        op_string = AMSTEX_OPERATORS.get(text, None)
         if op_string:
             return op_string
 
@@ -644,8 +664,9 @@ currentlight=light(rgb(0.5,0.5,0.5), {5}specular=red, (2,0,2), (2,2,2), (0,2,2))
 add_conversion_fn(Graphics3DBox, graphics3dbox)
 
 
-def tag_box(self, **options):
+def tag_and_form_box(self, **options):
     return lookup_conversion_method(self.boxed, "latex")(self.boxed, **options)
 
 
-add_conversion_fn(TagBox, tag_box)
+add_conversion_fn(FormBox, tag_and_form_box)
+add_conversion_fn(TagBox, tag_and_form_box)

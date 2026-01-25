@@ -4,18 +4,9 @@ Low-level Format definitions
 """
 
 
-from mathics.core.atoms import Integer
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Predefined
-from mathics.core.symbols import Symbol
-from mathics.format.box import (
-    eval_generic_makeboxes,
-    eval_infix,
-    eval_makeboxes_fullform,
-    eval_postprefix,
-    format_element,
-    parenthesize,
-)
+from mathics.format.box import eval_generic_makeboxes, format_element
 
 # TODO: Differently from the current implementation, MakeBoxes should only
 # accept as its format field the symbols in `$BoxForms`. This is something to
@@ -91,54 +82,19 @@ class MakeBoxes(Builtin):
     attributes = A_HOLD_ALL_COMPLETE
 
     rules = {
-        "MakeBoxes[Infix[head_[elements___]], "
-        "    f:StandardForm|TraditionalForm|OutputForm]": (
-            'MakeBoxes[Infix[head[elements], StringForm["~`1`~", head]], f]'
-        ),
         "MakeBoxes[expr_]": "MakeBoxes[expr, StandardForm]",
         # The following rule is temporal.
         "MakeBoxes[expr_, form:(TeXForm|MathMLForm)]": "MakeBoxes[form[expr], StandardForm]",
         (
             "MakeBoxes[(form:StandardForm|TraditionalForm)"
-            "[expr_], StandardForm|TraditionalForm|OutputForm]"
+            "[expr_], StandardForm|TraditionalForm]"
         ): ("MakeBoxes[expr, form]"),
-        # BoxForms goes as second argument
-        "MakeBoxes[(form:StandardForm|TraditionalForm|OutputForm)[expr_], OutputForm]": "MakeBoxes[expr, form]",
-        "MakeBoxes[PrecedenceForm[expr_, prec_], f_]": "MakeBoxes[expr, f]",
-        "MakeBoxes[Style[expr_, OptionsPattern[Style]], f_]": (
-            "StyleBox[MakeBoxes[expr, f], "
-            "ImageSizeMultipliers -> OptionValue[ImageSizeMultipliers]]"
-        ),
     }
     summary_text = "settable low-level translator from expression to display boxes"
 
-    def eval_fullform(self, expr, evaluation):
-        """MakeBoxes[expr_, FullForm]"""
-        return eval_makeboxes_fullform(expr, evaluation)
-
     def eval_general(self, expr, f, evaluation):
-        """MakeBoxes[expr_,
-        f:TraditionalForm|StandardForm|OutputForm]"""
+        """MakeBoxes[expr_, f:TraditionalForm|StandardForm]"""
         return eval_generic_makeboxes(expr, f, evaluation)
-
-    def eval_outerprecedenceform(self, expr, precedence, form, evaluation):
-        """MakeBoxes[PrecedenceForm[expr_, precedence_],
-        form:StandardForm|TraditionalForm|OutputForm]"""
-
-        py_precedence = precedence.get_int_value()
-        boxes = MakeBoxes(expr, form)
-        return parenthesize(py_precedence, expr, boxes, True)
-
-    def eval_postprefix(self, p, expr, h, precedence, form, evaluation):
-        """MakeBoxes[(p:Prefix|Postfix)[expr_, h_, precedence_:None],
-        form:StandardForm|TraditionalForm|OutputForm]"""
-        return eval_postprefix(self, p, expr, h, precedence, form, evaluation)
-
-    def eval_infix(
-        self, expr, operator, precedence: Integer, grouping, form: Symbol, evaluation
-    ):
-        """MakeBoxes[Infix[expr_, operator_, precedence_:None, grouping_:None], form:StandardForm|TraditionalForm|OutputForm]"""
-        return eval_infix(self, expr, operator, precedence, grouping, form, evaluation)
 
 
 class ToBoxes(Builtin):

@@ -30,7 +30,6 @@ from mathics.core.systemsymbols import (
     SymbolInfix,
     SymbolLeft,
     SymbolNonAssociative,
-    SymbolNone,
     SymbolOutputForm,
     SymbolPower,
     SymbolRight,
@@ -51,6 +50,8 @@ from mathics.settings import SYSTEM_CHARACTER_ENCODING
 from .inputform import render_input_form
 from .util import (
     BLANKS_TO_STRINGS,
+    PARENTHESIZED_FIRST,
+    PARENTHESIZED_REST,
     PRECEDENCE_FUNCTION_APPLY,
     PRECEDENCE_PLUS,
     PRECEDENCE_POWER,
@@ -244,6 +245,7 @@ def render_output_form(expr: BaseElement, evaluation: Evaluation, **kwargs):
 
     if format_expr is None:
         return ""
+
     head = format_expr.get_head()
     lookup_name: str = head.get_name() or head.get_lookup_name()
     callback = EXPR_TO_OUTPUTFORM_TEXT_MAP.get(lookup_name, None)
@@ -318,7 +320,6 @@ def other_forms(expr, evaluation, **kwargs):
     if not isinstance(expr.head, Symbol):
         raise _WrongFormattedExpression
 
-    print("format", expr)
     result = format_element(expr, evaluation, SymbolStandardForm, **kwargs)
     return result.boxes_to_text()
 
@@ -373,15 +374,13 @@ def _infix_outputform_text(expr: Expression, evaluation: Evaluation, **kwargs) -
     #    raise _WrongFormattedExpression
 
     # Process the first operand:
-    parenthesized = group in (SymbolNone, SymbolRight, SymbolNonAssociative)
+    parenthesized = group in PARENTHESIZED_FIRST
     operand = operands[0]
     result = str(render_output_form(operand, evaluation, **kwargs))
     result = parenthesize(precedence, operand, result, parenthesized)
 
-    if group in (SymbolLeft, SymbolRight):
-        parenthesized = not parenthesized
-
     # Process the rest of operands
+    parenthesized = group in PARENTHESIZED_REST
     num_ops = len(ops_lst)
     for index, operand in enumerate(operands[1:]):
         curr_op = ops_lst[index % num_ops]
@@ -487,6 +486,32 @@ def _numberform_outputform(expr, evaluation, **kwargs):
         py_options,
     )
     return render_output_form(target, evaluation, **kwargs)
+
+
+# TODO: DRY ME with input form
+@register_outputform("System`Optional")
+def _optional(expr: Expression, evaluation: Evaluation, **kwargs) -> str:
+    name: str = ""
+    post: str = ""
+    elements = expr.elements
+    if not expr.has_form("Optional", 1, 2):
+        raise _WrongFormattedExpression
+    if len(elements) == 2:
+        post = ":" + render_output_form(elements[1], evaluation, **kwargs)
+    else:
+        post = "."
+
+    operand = elements[0]
+    if operand.has_form("Pattern", 2):
+        name = render_output_form(operand.elements[0], evaluation, **kwargs)
+        operand = operand.elements[1]
+
+    if not operand.has_form(("Blank", "BlankNullSequence", "BlankSequence"), 0):
+        raise _WrongFormattedExpression
+
+    blank_kind = operand.head
+    result = name + BLANKS_TO_STRINGS[blank_kind] + post
+    return result
 
 
 @register_outputform("System`Out")
@@ -618,13 +643,16 @@ def power_render_output_form(
 
 @register_outputform("System`PrecedenceForm")
 def precedenceform_render_output_form(
-    expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
+    expr: Expression, evaluation: Evaluation, **kwargs
 ) -> str:
     if not isinstance(expr.head, Symbol):
         raise _WrongFormattedExpression
 
     if len(expr.elements) == 2:
-        return render_output_form(expr.elements[0], evaluation, **kwargs)
+        arg_1, arg_2 = expr.elements
+        if not isinstance(arg_2, (Integer, Real)):
+            raise _WrongFormattedExpression
+        return render_output_form(arg_1, evaluation, **kwargs)
     raise _WrongFormattedExpression
 
 

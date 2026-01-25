@@ -11,13 +11,19 @@ For instance, to represent a set of consecutive expressions in a row, we can use
 
 from mathics.builtin.box.layout import GridBox, PaneBox, RowBox, to_boxes
 from mathics.builtin.makeboxes import MakeBoxes
-from mathics.core.atoms import Real, String
+from mathics.core.atoms import Integer, Real, String
 from mathics.core.builtin import Builtin, Operator, PostfixOperator, PrefixOperator
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
-from mathics.core.systemsymbols import SymbolMakeBoxes, SymbolSubscriptBox
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import (
+    SymbolMakeBoxes,
+    SymbolPostfix,
+    SymbolPrefix,
+    SymbolSubscriptBox,
+)
 from mathics.eval.lists import list_boxes
-from mathics.format.box import format_element
+from mathics.format.box import eval_infix, eval_postprefix, format_element, parenthesize
 
 
 class Center(Builtin):
@@ -121,7 +127,7 @@ class Grid(Builtin):
 
     def eval_makeboxes(self, array, f, evaluation: Evaluation, options) -> Expression:
         """MakeBoxes[Grid[array_List, OptionsPattern[Grid]],
-        f:StandardForm|TraditionalForm|OutputForm]"""
+        f:StandardForm|TraditionalForm]"""
 
         elements = array.elements
 
@@ -172,7 +178,19 @@ class Infix(Builtin):
      = a + b - c
     """
 
+    rules = {
+        (
+            "MakeBoxes[Infix[head_[elements___]], "
+            "    f:StandardForm|TraditionalForm]"
+        ): ('MakeBoxes[Infix[head[elements], StringForm["~`1`~", head]], f]'),
+    }
     summary_text = "infix form"
+
+    def eval_makeboxes_infix(
+        self, expr, operator, precedence: Integer, grouping, form: Symbol, evaluation
+    ):
+        """MakeBoxes[Infix[expr_, operator_, precedence_:None, grouping_:None], form:StandardForm|TraditionalForm]"""
+        return eval_infix(self, expr, operator, precedence, grouping, form, evaluation)
 
 
 class Left(Builtin):
@@ -221,7 +239,7 @@ class Pane(Builtin):
     A Pane is treated as an unbroken rectangular region for purposes of line breaking.
 
     >> Pane[37!]
-     = 13763753091226345046315979581580902400000000
+     = Pane[13763753091226345046315979581580902400000000]
 
     In TeXForm, $Pane$ produce minipage environments:
     >> {{Pane[a,3], Pane[expt, 3]}}//TableForm//TeXForm
@@ -278,6 +296,13 @@ class Postfix(PostfixOperator):
     operator_display = None
     summary_text = "postfix form"
 
+    def eval_makeboxes_postfix(self, expr, h, precedence, form, evaluation):
+        """MakeBoxes[Postfix[expr_, h_, precedence_:None],
+        form:StandardForm|TraditionalForm]"""
+        return eval_postprefix(
+            self, SymbolPostfix, expr, h, precedence, form, evaluation
+        )
+
 
 class Precedence(Builtin):
     """
@@ -332,7 +357,19 @@ class PrecedenceForm(Builtin):
       <dt>'PrecedenceForm'[$expr$, $prec$]
       <dd> format $expr$ parenthesized as it would be if it contained an operator of precedence $prec$.
     </dl>
+
+    >> PrecedenceForm[x/y, 12] - z
+     = -z + (x / y)
+
     """
+
+    def eval_outerprecedenceform(self, expr, precedence, form, evaluation):
+        """MakeBoxes[PrecedenceForm[expr_, precedence_],
+        form:StandardForm|TraditionalForm]"""
+
+        py_precedence = precedence.get_int_value()
+        boxes = format_element(expr, evaluation, form)
+        return parenthesize(py_precedence, expr, boxes, True)
 
     summary_text = "parenthesize with a precedence"
 
@@ -370,6 +407,13 @@ class Prefix(PrefixOperator):
     operator_display = None
     summary_text = "prefix form"
 
+    def eval_makeboxes_prefix(self, expr, h, precedence, form, evaluation):
+        """MakeBoxes[Prefix[expr_, h_, precedence_:None],
+        form:StandardForm|TraditionalForm]"""
+        return eval_postprefix(
+            self, SymbolPrefix, expr, h, precedence, form, evaluation
+        )
+
 
 class Right(Builtin):
     """
@@ -398,7 +442,7 @@ class Row(Builtin):
 
     def eval_makeboxes(self, items, sep, form, evaluation: Evaluation):
         """MakeBoxes[Row[{items___}, sep_:""],
-        form:StandardForm|TraditionalForm|OutputForm]"""
+        form:StandardForm|TraditionalForm]"""
 
         items = items.get_sequence()
         if not isinstance(sep, String):
@@ -456,7 +500,12 @@ class Style(Builtin):
 
     summary_text = "wrapper for styles and style options to apply"
     options = {"ImageSizeMultipliers": "Automatic"}
-
+    rules = {
+        "MakeBoxes[Style[expr_, OptionsPattern[Style]], f_]": (
+            "StyleBox[MakeBoxes[expr, f], "
+            "ImageSizeMultipliers -> OptionValue[ImageSizeMultipliers]]"
+        ),
+    }
     rules = {
         "MakeBoxes[Style[expr_, OptionsPattern[Style]], f_]": (
             "StyleBox[MakeBoxes[expr, f], "
