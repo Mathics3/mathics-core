@@ -86,21 +86,41 @@ def is_constant_list(list):
 
 
 class FormBox(BoxExpression):
-    """
-    <url>
+    r"""<url>
     :WMA link:
     https://reference.wolfram.com/language/ref/FormBox.html</url>
 
     <dl>
-      <dt>'FormBox[boxes, form]'
-      <dd> is a low-level box construct that displays as \
-    boxes and keep information about the form used to generate \
-    the box representation.
+      <dt>'FormBox[$boxes$, $form$]'
+      <dd> is a low-level boxing construct that wraps $boxes$ and $form$ into a box. \
+      It indicates to outer encompassing Forms, that $boxes$ \
+      should be rendered using rules of $form$, \
+      even though the surrounding form may be different.
     </dl>
+
+
+    We can use 'FormBox' to specify the way a particular \
+    box context renders, independent of the encompassing form it might be inside.
+
+    Consider the following 'SuperscriptBox' nested inside 'TraditionalForm'
+
+    >> TraditionalForm[FormBox[SuperscriptBox["x", "2"], InputForm]]
+     = FormBox(SuperscriptBox(x, 2), InputForm)
+
+    Because we have that 'FormBox' inside specifying 'InputForm', that has precedence, \
+    and so SuperscriptBox is rendered the way 'InputForm' renders.
+
+    Compare with the following where we reverse this. The outside form is 'InputForm', \
+    but dictate inside the 'FormBox' that we want the 'SuperscriptBox' portion to get rendered \
+    the way 'TraditionalForm' handles 'SuperscriptBox':
+
+    >> InputForm[FormBox[SuperscriptBox["x", "2"], TraditionalForm]]
+     = FormBox[SuperscriptBox["x", "2"], TraditionalForm]
+
     """
 
     attributes = A_PROTECTED | A_READ_PROTECTED
-    summary_text = "box with an associated form"
+    summary_text = "wrap boxes with an association to a particular form"
 
     def init(self, *elems, **kwargs):
         self.box_options = kwargs
