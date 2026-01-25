@@ -159,14 +159,14 @@ add_conversion_fn(String, string)
 
 
 def interpretation_box(self, **options):
-    return lookup_conversion_method(self.boxed, "latex")(self.boxed, **options)
+    return lookup_conversion_method(self.boxes, "latex")(self.boxes, **options)
 
 
 add_conversion_fn(InterpretationBox, interpretation_box)
 
 
 def pane_box(self, **options):
-    content = lookup_conversion_method(self.boxed, "latex")(self.boxed, **options)
+    content = lookup_conversion_method(self.boxes, "latex")(self.boxes, **options)
     options = self.box_options
     size = options.get("System`ImageSize", SymbolAutomatic).to_python()
 
@@ -665,7 +665,7 @@ add_conversion_fn(Graphics3DBox, graphics3dbox)
 
 
 def tag_and_form_box(self, **options):
-    return lookup_conversion_method(self.boxed, "latex")(self.boxed, **options)
+    return lookup_conversion_method(self.boxes, "latex")(self.boxes, **options)
 
 
 add_conversion_fn(FormBox, tag_and_form_box)
