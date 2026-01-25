@@ -46,12 +46,15 @@ class Format(Builtin):
 
     <dl>
       <dt>'Format'[$expr$]
-      <dd>holds values specifying how $expr$ should be printed.
+      <dd>used on the left-hand side of an assignment to specify how $expr$ should be printed.
     </dl>
 
-    Assign values to 'Format' to control how particular expressions
-    should be formatted when printed to the user.
+    First, we set up a 'Format' definition for 'f' to display its arguments as if it were equivalent to an infix operator "~":
+
     >> Format[f[x___]] := Infix[{x}, "~"]
+
+    Now, to see this format in use:
+
     >> f[1, 2, 3]
      = 1 ~ 2 ~ 3
     >> f[1]
@@ -80,7 +83,7 @@ class Format(Builtin):
     >> % //FullForm
      = Format[Sin[x], TeXForm]
 
-    If the second parameter is ommited, 'Format' is ignored:
+    If the second parameter is omitted, 'Format' is ignored:
     >> Format[F[x]]
      = F[x]
 
@@ -90,20 +93,21 @@ class Format(Builtin):
      : Value of option FormatType -> NoFormat is not valid.
      = F[x]
 
-    Notice that differently from WMA, 'Format' expressions are not \
-    formatted in 'InputForm':
-    >> Format[{a->Integrate[F[x], x]}, StandardForm]
-     = ...
+    Mathics3 'Format' output can differ slightly from WMA in what we hope \
+    is a more useful way.
+
+    Use 'InputForm' if you want to get a 'Format' definition that can be used as \
+    Mathics3 input:
+
     >> Format[{a->Integrate[F[x], x]}, StandardForm] //InputForm
      = Format[{a -> Integrate[F[x], x]}, StandardForm]
 
-    This choice is more consistent with the meaning of 'InputForm' \
-    in the sense it gives the text required to reproduce the expression.
-    Also, it allows to get a more clear expression that what would be \
-    get using 'FullForm':
+    In WMA, you might not get something that can be used as input.
+
+    Similarly, use 'Fullform' to get a valid FullForm equivalent expression:
+
     >> Format[{a->Integrate[F[x], x]}, StandardForm] //FullForm
      = Format[{Rule[a, Integrate[F[x], x]]}, StandardForm]
-
     """
 
     messages = {"fttp": "Format type `1` is not a symbol."}

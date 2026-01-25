@@ -407,15 +407,19 @@ class FormatValues(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/tutorial/PatternsAndTransformationRules.html#6025</url>
     <dl>
       <dt>'FormatValues'[$symbol$]
-      <dd>gives the list of formatvalues associated with $symbol$.
+      <dd>gives the list of format rules associated with $symbol$.
     </dl>
 
+    First, use 'Format' to set a formatting rule for a form:
+
     >> Format[F[x_], OutputForm]:= Subscript[x, F]
+
+    Now, to see the rules, we can use 'FormatValues':
+
     >> FormatValues[F]
      = {HoldPattern[Subscript[x_, F]] :> Subscript[x, F]}
 
-    Notice that the pattern was formatted using the rule. To reveal \
-    the rules, use 'InputForm':
+    The replacment pattern on the right in the delayed rule is formatted according to the top-level form. To see the rule input, we can use 'InputForm':
     >> FormatValues[F]  //InputForm
      = {HoldPattern[Format[F[x_], OutputForm]] :> Subscript[x, F]}
     """
