@@ -791,7 +791,7 @@ class MatrixForm(TableForm):
     in_printforms = False
     summary_text = "format as a matrix"
 
-    def eval_makeboxes_matrix(self, table, form, evaluation, options):
+    def eval_makeboxes(self, table, form, evaluation, options):
         """MakeBoxes[MatrixForm[table_, OptionsPattern[]],
         (form:StandardForm|TraditionalForm)]"""
         result = super().eval_makeboxes(table, form, evaluation, options)
