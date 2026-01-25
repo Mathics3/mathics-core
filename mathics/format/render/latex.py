@@ -31,7 +31,12 @@ from mathics.builtin.box.layout import (
 )
 from mathics.builtin.colors.color_directives import RGBColor
 from mathics.core.atoms import String
-from mathics.core.convert.op import amstex_operators, get_latex_operator
+from mathics.core.convert.op import (
+    AMSTEX_OPERATORS,
+    UNICODE_TO_AMSLATEX,
+    UNICODE_TO_LATEX,
+    get_latex_operator,
+)
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import (
     add_conversion_fn,
@@ -57,26 +62,38 @@ TEX_REPLACE = {
     "^": r"{}^{\wedge}",
     "~": r"\sim{}",
     "|": r"\vert{}",
-    "\u222b": r"\int ",
-    "\u2146": r"\, d",
-    "\uF74C": r"\, d",
-    "\U0001D451": r"\, d",
-    "\u00d7": r"\times ",
 }
-TEX_TEXT_REPLACE = TEX_REPLACE.copy()
-TEX_TEXT_REPLACE.update(
+TEX_TEXT_REPLACE = {
+    r"{": r"\{",
+    r"}": r"\}",
+    r"_": r"\_",
+    "<": r"$<$",
+    ">": r"$>$",
+    "~": r"$\sim$",
+    "|": r"$\vert$",
+    "\\": r"$\backslash$",
+    "^": r"${}^{\wedge}$",
+}
+
+TEX_REPLACE.update(UNICODE_TO_AMSLATEX)
+TEX_REPLACE.update(
     {
-        "<": r"$<$",
-        ">": r"$>$",
-        "~": r"$\sim$",
-        "|": r"$\vert$",
-        "\\": r"$\backslash$",
-        "^": r"${}^{\wedge}$",
-        "\u222b": r"$\int$ ",
-        "\uF74C": r"\, d",
-        "\u00d7": r"$\times$",
+        key: r"\text{" + val + "}"
+        for key, val in UNICODE_TO_LATEX.items()
+        if key not in TEX_REPLACE
     }
 )
+
+TEX_TEXT_REPLACE.update(UNICODE_TO_LATEX)
+TEX_TEXT_REPLACE.update(
+    {
+        key: f"${val}$"
+        for key, val in UNICODE_TO_AMSLATEX.items()
+        if key not in TEX_TEXT_REPLACE
+    }
+)
+
+
 TEX_REPLACE_RE = re.compile("([" + "".join([re.escape(c) for c in TEX_REPLACE]) + "])")
 
 
@@ -117,7 +134,7 @@ def string(self, **options) -> str:
         return render("%s", text)
     else:
         # First consider the special cases
-        op_string = amstex_operators.get(text, None)
+        op_string = AMSTEX_OPERATORS.get(text, None)
         if op_string:
             return op_string
 

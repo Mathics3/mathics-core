@@ -65,10 +65,10 @@
 '"\[Pi] is a trascendental number"':
   msg: A String
   latex:
-    System`InputForm: "\\text{``\u03C0 is a trascendental number''}"
-    System`OutputForm: "\\text{\u03C0 is a trascendental number}"
-    System`StandardForm: "\\text{\u03C0 is a trascendental number}"
-    System`TraditionalForm: "\\text{\u03C0 is a trascendental number}"
+    System`InputForm: "\\text{``$\\pi$ is a trascendental number''}"
+    System`OutputForm: "\\text{$\\pi$ is a trascendental number}"
+    System`StandardForm: "\\text{$\\pi$ is a trascendental number}"
+    System`TraditionalForm: "\\text{$\\pi$ is a trascendental number}"
   mathml:
     System`InputForm: "<ms>\u03C0&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</ms>"
     System`OutputForm: "<mtext>\u03C0&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>"
@@ -456,12 +456,12 @@ Graphics[{}]:
 "Grid[{{\"Spanish\", \"Hola!\"},{\"Portuguese\", \"Ol\xE0!\"},{\"English\", \"Hi!\"}}]":
   msg: Strings in a GridBox
   latex:
-    System`InputForm:  \text{Grid[\{\{"Spanish", "Hola!"\}, \{"Portuguese", "Olà!"\}, \{"English", "Hi!"\}\}]}
+    System`InputForm:  \text{Grid[\{\{"Spanish", "Hola!"\}, \{"Portuguese", "Ol\`{a}!"\}, \{"English", "Hi!"\}\}]}
     System`OutputForm: '\text{Spanish      Hola!\newline
     
     \newline
     
-    Portuguese   Olà!\newline
+    Portuguese   Ol\`{a}!\newline
     
     \newline
     
@@ -470,9 +470,9 @@ Graphics[{}]:
     }
 '
     System`StandardForm: "\\begin{array}{cc} \\text{Spanish} & \\text{Hola!}\\\\ \\\
-      text{Portuguese} & \\text{Ol\xE0!}\\\\ \\text{English} & \\text{Hi!}\\end{array}"
+      text{Portuguese} & \\text{Ol\\`{a}!}\\\\ \\text{English} & \\text{Hi!}\\end{array}"
     System`TraditionalForm: "\\begin{array}{cc} \\text{Spanish} & \\text{Hola!}\\\\\
-      \ \\text{Portuguese} & \\text{Ol\xE0!}\\\\ \\text{English} & \\text{Hi!}\\end{array}"
+      \ \\text{Portuguese} & \\text{Ol\\`{a}!}\\\\ \\text{English} & \\text{Hi!}\\end{array}"
   mathml:
     System`InputForm: "<mtext>Grid[{{&quot;Spanish&quot;,&nbsp;&quot;Hola!&quot;},&nbsp;{&quot;Portuguese&quot;,&nbsp;&quot;Olà!&quot;},&nbsp;{&quot;English&quot;,&nbsp;&quot;Hi!&quot;}}]</mtext>"
     System`OutputForm: '<mtext>Spanish&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Hola!</mtext><mtext></mtext><mtext>Portuguese&nbsp;&nbsp;&nbsp;Olà!</mtext><mtext></mtext><mtext>English&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Hi!</mtext><mtext></mtext>'
@@ -801,7 +801,7 @@ TableForm[{{a,b},{c,d}}]:
   msg: A greek letter symbol
   latex:
     System`InputForm: \alpha
-    System`OutputForm: \text{α}
+    System`OutputForm: \text{$\alpha$}
     System`StandardForm: \alpha
     System`TraditionalForm: \alpha
   mathml:
