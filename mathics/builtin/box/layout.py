@@ -86,18 +86,19 @@ def is_constant_list(list):
 
 
 class FormBox(BoxExpression):
-    """
-    <url>
+    r"""<url>
     :WMA link:
     https://reference.wolfram.com/language/ref/FormBox.html</url>
 
     <dl>
-      <dt>'FormBox'['boxes', 'form']
-      <dd> is a low-level box construct that displays as \
-    boxes and keep information about the form used to generate \
-    the box representation. 'form' must be one of the forms \
-    in '$BoxForms' list.
+      <dt>'FormBox'[$boxes$, $form$]
+      <dd> is a low-level boxing construct that wraps $boxes$ and $form$ into a box. \
+      'form' must be one of the forms in '$BoxForms' list.
     </dl>
+
+    ## No examples because our implementation and understanding of the concept
+    ## may be lacking. See https://github.com/Mathics3/mathics-core/pull/1653
+    ## for the sordid discussion.
     """
 
     # FormBox provides a way to tell the interpreter in `ToExpression`
@@ -118,7 +119,7 @@ class FormBox(BoxExpression):
     # Mathics3 frontends.
 
     attributes = A_PROTECTED | A_READ_PROTECTED
-    summary_text = "box with an associated form"
+    summary_text = "wrap boxes with an association to a particular form"
 
     def init(self, *elems, **kwargs):
         self.box_options = kwargs
