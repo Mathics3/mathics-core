@@ -41,7 +41,7 @@ from mathics.core.systemsymbols import (
     SymbolText,
 )
 from mathics.eval.nevaluator import eval_N
-from mathics.format.box.makeboxes import eval_makeboxes
+from mathics.format.box.makeboxes import apply_makeboxes_rules
 
 SymbolRegularPolygonBox = Symbol("RegularPolygonBox")
 
@@ -363,7 +363,7 @@ def _data_and_options(elements, defined_options):
 
 
 def _extract_graphics(graphics, format, evaluation):
-    graphics_box = eval_makeboxes(graphics, evaluation)
+    graphics_box = apply_makeboxes_rules(graphics, evaluation)
     # builtin = GraphicsBox(expression=False)
     elements, calc_dimensions = prepare_elements(
         graphics_box, graphics_box.content, {"_evaluation": evaluation}, neg_y=True
@@ -965,7 +965,9 @@ def primitives_to_boxes(
             if head is SymbolInset:
                 inset = content.elements[0]
                 if inset.get_head() is SymbolGraphics:
-                    inset = eval_makeboxes(inset.elements[0], evaluation)
+                    # TODO: consider to use format_element instead of
+                    # apply_makeboxes_rules
+                    inset = apply_makeboxes_rules(inset.elements[0], evaluation)
                 n_elements = [inset] + [
                     eval_N(element, evaluation) for element in content.elements[1:]
                 ]

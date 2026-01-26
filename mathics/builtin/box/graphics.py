@@ -496,7 +496,7 @@ class GraphicsBox(BoxExpression):
         elements = self.content
 
         format_fn = lookup_method(self, "svg")
-        svg_body = format_fn(self, elements, **options)
+        svg_body = format_fn(self, **options)
         return svg_body
 
 
