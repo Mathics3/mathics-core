@@ -48,8 +48,8 @@ ListPlotNames = (
 )
 ListPlotType = Enum("ListPlotType", ListPlotNames)
 
-RealPoint6 = Real(0.6)
-RealPoint2 = Real(0.2)
+SixTenths = Real(0.6)
+TwoTenths = Real(0.2)
 
 
 try:
@@ -393,7 +393,7 @@ def eval_ListPlot(
     graphics = []
 
     for index, plot_group in enumerate(plot_groups):
-        graphics.append(Expression(SymbolHue, Real(hue), RealPoint6, RealPoint6))
+        graphics.append(Expression(SymbolHue, Real(hue), SixTenths, SixTenths))
         for segment in plot_group:
             if not is_joined_plot and list_plot_type == ListPlotType.ListStepPlot:
                 line_segments = [
@@ -410,7 +410,7 @@ def eval_ListPlot(
                     if filling is not None:
                         graphics.append(
                             Expression(
-                                SymbolHue, Real(hue), RealPoint6, RealPoint6, RealPoint2
+                                SymbolHue, Real(hue), SixTenths, SixTenths, TwoTenths
                             )
                         )
                         fill_area = list(segment)
@@ -644,7 +644,7 @@ def eval_Plot(plot_options, options: dict, evaluation: Evaluation) -> Expression
         if exclusions == SymbolNone:  # Join all the Lines
             points = [[(xx, yy) for line in points for xx, yy in line]]
 
-        graphics.append(Expression(SymbolHue, Real(hue), RealPoint6, RealPoint6))
+        graphics.append(Expression(SymbolHue, Real(hue), SixTenths, SixTenths))
         graphics.append(Expression(SymbolLine, from_python(points)))
 
         for line in points:
@@ -690,7 +690,7 @@ def eval_Plot(plot_options, options: dict, evaluation: Evaluation) -> Expression
 
     if mesh != "None":
         for hue, points in zip(function_hues, mesh_points):
-            graphics.append(Expression(SymbolHue, Real(hue), RealPoint6, RealPoint6))
+            graphics.append(Expression(SymbolHue, Real(hue), SixTenths, SixTenths))
             mesh_points = [to_mathics_list(xx, yy) for xx, yy in points]
             graphics.append(Expression(SymbolPoint, ListExpression(*mesh_points)))
 

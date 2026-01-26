@@ -22,7 +22,6 @@ from mathics.builtin.box.graphics3d import (
     Cone3DBox,
     Cuboid3DBox,
     Cylinder3DBox,
-    Graphics3DElements,
     Line3DBox,
     Point3DBox,
     Polygon3DBox,
@@ -30,13 +29,10 @@ from mathics.builtin.box.graphics3d import (
     Tube3DBox,
 )
 from mathics.builtin.box.uniform_polyhedra import UniformPolyhedron3DBox
-from mathics.builtin.graphics import (
-    DEFAULT_POINT_FACTOR,
-    GraphicsElements,
-    PointSize,
-    RGBColor,
-)
+from mathics.builtin.drawing.graphics3d import Graphics3DElements
+from mathics.builtin.graphics import DEFAULT_POINT_FACTOR, PointSize, RGBColor
 from mathics.core.formatter import add_conversion_fn, lookup_method
+from mathics.format.box.graphics import GraphicsElements
 from mathics.format.render.asy_fns import (
     asy_add_bezier_fn,
     asy_add_graph_import,
