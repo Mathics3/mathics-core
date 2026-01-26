@@ -286,10 +286,10 @@
 <|a -> x, b -> y, c -> <|d -> t|>|>:
   msg: Association
   latex:
-    System`InputForm: \text{<$\vert$a -> x, b -> y, c -> <$\vert$d -> t$\vert$>$\vert$>}
-    System`OutputForm: '\text{<$\vert$a -> x, b -> y, c -> <$\vert$d -> t$\vert$>$\vert$>}'
-    System`StandardForm: \text{<$\vert$}a->x, b->y, c->\text{<$\vert$}d->t\text{$\vert$>}\text{$\vert$>}
-    System`TraditionalForm: \text{<$\vert$}a->x, b->y, c->\text{<$\vert$}d->t\text{$\vert$>}\text{$\vert$>}
+    System`InputForm: '\text{$<$$\vert$a -$>$ x, b -$>$ y, c -$>$ $<$$\vert$d -$>$ t$\vert$$>$$\vert$$>$}'
+    System`OutputForm: '\text{$<$$\vert$a -$>$ x, b -$>$ y, c -$>$ $<$$\vert$d -$>$ t$\vert$$>$$\vert$$>$}'
+    System`StandardForm: '\text{$<$$\vert$}a->x, b->y, c->\text{$<$$\vert$}d->t\text{$\vert$$>$}\text{$\vert$$>$}'
+    System`TraditionalForm: '\text{$<$$\vert$}a->x, b->y, c->\text{$<$$\vert$}d->t\text{$\vert$$>$}\text{$\vert$$>$}'
   mathml:
     System`InputForm: <mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t|&gt;|&gt;</mtext>
     System`OutputForm: '<mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t|&gt;|&gt;</mtext>'
@@ -311,10 +311,10 @@
 Association[a -> x, b -> y, c -> Association[d -> t, Association[e -> u]]]:
   msg: Nested Association
   latex:
-    System`InputForm: \text{<$\vert$a -> x, b -> y, c -> <$\vert$d -> t, e -> u$\vert$>$\vert$>}
-    System`OutputForm: '\text{<$\vert$a -> x, b -> y, c -> <$\vert$d -> t, e -> u$\vert$>$\vert$>}'
-    System`StandardForm: \text{<$\vert$}a->x, b->y, c->\text{<$\vert$}d->t, e->u\text{$\vert$>}\text{$\vert$>}
-    System`TraditionalForm: \text{<$\vert$}a->x, b->y, c->\text{<$\vert$}d->t, e->u\text{$\vert$>}\text{$\vert$>}
+    System`InputForm: '\text{$<$$\vert$a -$>$ x, b -$>$ y, c -$>$ $<$$\vert$d -$>$ t, e -$>$ u$\vert$$>$$\vert$$>$}'
+    System`OutputForm: '\text{$<$$\vert$a -$>$ x, b -$>$ y, c -$>$ $<$$\vert$d -$>$ t, e -$>$ u$\vert$$>$$\vert$$>$}'
+    System`StandardForm: '\text{$<$$\vert$}a->x, b->y, c->\text{$<$$\vert$}d->t, e->u\text{$\vert$$>$}\text{$\vert$$>$}'
+    System`TraditionalForm: '\text{$<$$\vert$}a->x, b->y, c->\text{$<$$\vert$}d->t, e->u\text{$\vert$$>$}\text{$\vert$$>$}'
   mathml:
     System`InputForm: <mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t,&nbsp;e&nbsp;-&gt;&nbsp;u|&gt;|&gt;</mtext>
     System`OutputForm: '<mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t,&nbsp;e&nbsp;-&gt;&nbsp;u|&gt;|&gt;</mtext>'
