@@ -171,6 +171,20 @@ class FilterRules(Builtin):
         return ListExpression(*list(matched()))
 
 
+class FormatType(Predefined):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FormatType.html</url>
+    <dl>
+      <dt>'FormatType'
+      <dd>is an option for output streams, graphics and functions like 'Text' \
+          that specifies the default format.
+    </dl>
+    """
+
+    messages = {"ftype": "Value of option FormatType -> `` is not valid."}
+    summary_text = "specify the request format"
+
+
 class None_(Predefined):
     """
         <url>:WMA link:https://reference.wolfram.com/language/ref/None.html</url>

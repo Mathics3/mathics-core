@@ -46,12 +46,15 @@ class Format(Builtin):
 
     <dl>
       <dt>'Format'[$expr$]
-      <dd>holds values specifying how $expr$ should be printed.
+      <dd>used on the left-hand side of an assignment to specify how $expr$ should be printed.
     </dl>
 
-    Assign values to 'Format' to control how particular expressions
-    should be formatted when printed to the user.
+    First, we set up a 'Format' definition for 'f' to display its arguments as if it were equivalent to an infix operator "~":
+
     >> Format[f[x___]] := Infix[{x}, "~"]
+
+    Now, to see this format in use:
+
     >> f[1, 2, 3]
      = 1 ~ 2 ~ 3
     >> f[1]
@@ -68,12 +71,57 @@ class Format(Builtin):
     Formats must be attached to the head of an expression:
     >> f /: Format[g[f]] = "my f";
      : Tag f not found or too deep for an assigned rule.
+
+    Format can be used to specify the request format:
+    >> Format[Integrate[F[x], x], TeXForm]
+     = \\int F\\left(x\\right) \\, dx
+
+    Format evaluates its first element before applying the format:
+    >> Format[Integrate[Cos[x], x], TeXForm]
+     = ...
+    but the result keeps the structure:
+    >> % //FullForm
+     = Format[Sin[x], TeXForm]
+
+    If the second parameter is omitted, 'Format' is ignored:
+    >> Format[F[x]]
+     = F[x]
+
+    If the second argument is not one of '$PrintForms', a message \
+    is shown, and the argument is discarded:
+    >> Format[F[x], NoFormat]
+     : Value of option FormatType -> NoFormat is not valid.
+     = F[x]
+
+    Mathics3 'Format' output can differ slightly from WMA in what we hope \
+    is a more useful way.
+
+    Use 'InputForm' if you want to get a 'Format' definition that can be used as \
+    Mathics3 input:
+
+    >> Format[{a->Integrate[F[x], x]}, StandardForm] //InputForm
+     = Format[{a -> Integrate[F[x], x]}, StandardForm]
+
+    In WMA, you might not get something that can be used as input.
+
+    Similarly, use 'Fullform' to get a valid FullForm equivalent expression:
+
+    >> Format[{a->Integrate[F[x], x]}, StandardForm] //FullForm
+     = Format[{Rule[a, Integrate[F[x], x]]}, StandardForm]
     """
 
     messages = {"fttp": "Format type `1` is not a symbol."}
     summary_text = (
         "settable low-level translator from various forms to evaluatable expressions"
     )
+    rules = {"MakeBoxes[Format[expr_], fmt_]": "MakeBoxes[expr, fmt]"}
+
+    def eval_Makeboxes(self, expr, form, evaluation):
+        """MakeBoxes[Format[expr_, form_], _]"""
+        if form not in evaluation.definitions.printforms:
+            evaluation.message("FormatType", "ftype", form)
+            return format_element(expr, evaluation)
+        return format_element(expr, evaluation, form)
 
 
 class Grid(Builtin):

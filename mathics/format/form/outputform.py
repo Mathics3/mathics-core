@@ -264,6 +264,21 @@ def render_output_form(expr: BaseElement, evaluation: Evaluation, **kwargs):
     return _default_render_output_form(format_expr, evaluation, **kwargs)
 
 
+@register_outputform("System`Format")
+def format_format(expr, evaluation, **kwargs):
+    """Format[expr_, form___]"""
+    elements = expr.elements
+    if len(elements) == 1:
+        return render_output_form(elements[0], evaluation, **kwargs)
+    if len(elements) == 2:
+        expr, form = elements
+        if form not in evaluation.definitions.printforms:
+            evaluation.message("FormatType", "ftype", form)
+            return render_output_form(expr, evaluation, **kwargs)
+        return other_forms(Expression(form, expr), evaluation, **kwargs)
+    raise _WrongFormattedExpression
+
+
 @register_outputform("System`Graphics")
 def graphics(expr: Expression, evaluation: Evaluation, **kwargs) -> str:
     if not isinstance(expr.head, Symbol):
