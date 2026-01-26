@@ -54,7 +54,7 @@ def get_latex(wl_expression):
         ('"$Failed"', r"\text{\$Failed}"),
         ("a < b", r"a<b"),
         ('"<a|b>"', r"\text{$<$a$\vert$b$>$}"),
-        ('"a & b"', r"\text{a \& b}"),
+        ('"a & b"', r"\text{a $\&$ b}"),
         ("a&", r"a\&"),
         ('"a # b"', r"\text{a $\#$ b}"),
         ("#1", r"\text{$\#$1}"),
