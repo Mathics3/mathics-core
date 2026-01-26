@@ -49,6 +49,17 @@ def get_latex(wl_expression):
         (r'"\[Alpha]s"', r"\text{$\alpha$s}"),
         (r'"\[AAcute]"', r"\text{\'{a}}"),
         (r'"M\[AAcute]s!"', r"\text{M\'{a}s!}"),
+        # $
+        ("$Failed", r"\text{\$Failed}"),
+        ('"$Failed"', r"\text{\$Failed}"),
+        ("a < b", r"a<b"),
+        ('"<a|b>"', r"\text{$<$a$\vert$b$>$}"),
+        ('"a & b"', r"\text{a $\&$ b}"),
+        ("a&", r"a\&"),
+        ('"a # b"', r"\text{a $\#$ b}"),
+        ("#1", r"\text{$\#$1}"),
+        ("%1", r"\text{$\%$1}"),
+        ('"%1"', r"\text{$\%$1}"),
     ],
 )
 def test_expressions(testcase, expected):

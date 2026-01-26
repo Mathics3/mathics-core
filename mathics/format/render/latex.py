@@ -68,8 +68,16 @@ TEX_REPLACE = {
     "^": r"{}^{\wedge}",
     "~": r"\sim{}",
     "|": r"\vert{}",
+    # These two are trivial replaces,
+    # but are needed to define the regular expression
+    "<": "<",
+    ">": ">",
 }
 TEX_TEXT_REPLACE = {
+    "$": r"\$",
+    "&": r"$\&$",
+    "#": r"$\#$",
+    "%": r"$\%$",
     r"{": r"\{",
     r"}": r"\}",
     r"_": r"\_",
@@ -119,8 +127,8 @@ def string(self, **options) -> str:
     """String to LaTeX form"""
     text = self.value
 
-    def render(format, string, in_text=False):
-        return format % encode_tex(string, in_text)
+    def render(format, string_, in_text=False):
+        return format % encode_tex(string_, in_text)
 
     if text.startswith('"') and text.endswith('"'):
         show_string_characters = (
@@ -133,31 +141,30 @@ def string(self, **options) -> str:
         # show_string_characters = False
         if show_string_characters:
             return render(r"\text{``%s''}", text[1:-1], in_text=True)
-        else:
-            return render(r"\text{%s}", text[1:-1], in_text=True)
-    elif text and text[0] in "0123456789-.":
+        return render(r"\text{%s}", text[1:-1], in_text=True)
+    if text and text[0] in "0123456789-.":
         text = text.split("`")[0]
         return render("%s", text)
-    else:
-        # First consider the special cases
-        op_string = AMSTEX_OPERATORS.get(text, None)
-        if op_string:
-            return op_string
 
-        # Regular text:
-        if len(text) > 1:
-            return render(r"\text{%s}", text, in_text=True)
+    # First consider the special cases
+    op_string = AMSTEX_OPERATORS.get(text, None)
+    if op_string:
+        return op_string
 
-        # Unicode operator or variable?
-        op_string = get_latex_operator(text)
-        if len(op_string) > 7 and op_string[:7] == r"\symbol":
-            op_string = r"\text{" + op_string + "}"
+    # Regular text:
+    if len(text) > 1:
+        return render(r"\text{%s}", text, in_text=True)
 
-        if op_string != text:
-            return f" {op_string} "
+    # Unicode operator or variable?
+    op_string = get_latex_operator(text)
+    if len(op_string) > 7 and op_string[:7] == r"\symbol":
+        op_string = r"\text{" + op_string + "}"
 
-        # must be a variable...
-        return render("%s", text)
+    if op_string != text:
+        return f" {op_string} "
+
+    # must be a variable...
+    return render("%s", text)
 
 
 add_conversion_fn(String, string)
@@ -177,7 +184,7 @@ def pane_box(self, **options):
 
     if size == "System`Automatic":
         return content
-    elif isinstance(size, int):
+    if isinstance(size, int):
         width = f"{size}pt"
         height = ""
     elif isinstance(size, tuple) and len(size) == 2:
@@ -238,9 +245,9 @@ def gridbox(self, elements=None, **box_options) -> str:
             "System`Left": "l",
             "System`Right": "r",
         }[column_alignments]
-    except KeyError:
+    except KeyError as exc:
         # invalid column alignment
-        raise BoxConstructError
+        raise BoxConstructError from exc
     column_count = 1
     for row in items:
         if isinstance(row, tuple):
@@ -293,22 +300,20 @@ def superscriptbox(self, **options):
     # Handle derivatives
     if sup_string == "\u2032":
         return "%s'" % tex1
-    elif sup_string == "\u2032\u2032":
+    if sup_string == "\u2032\u2032":
         return "%s''" % tex1
-    else:
-        base = self.tex_block(tex1, True)
-        superidx_to_tex = lookup_conversion_method(self.superindex, "latex")
-        superindx = self.tex_block(superidx_to_tex(self.superindex, **options), True)
-        if len(superindx) == 1 and isinstance(self.superindex, (String, StyleBox)):
-            return "%s^%s" % (
-                base,
-                superindx,
-            )
-        else:
-            return "%s^{%s}" % (
-                base,
-                superindx,
-            )
+    base = self.tex_block(tex1, True)
+    superidx_to_tex = lookup_conversion_method(self.superindex, "latex")
+    superindx = self.tex_block(superidx_to_tex(self.superindex, **options), True)
+    if len(superindx) == 1 and isinstance(self.superindex, (String, StyleBox)):
+        return "%s^%s" % (
+            base,
+            superindx,
+        )
+    return "%s^{%s}" % (
+        base,
+        superindx,
+    )
 
 
 add_conversion_fn(SuperscriptBox, superscriptbox)
