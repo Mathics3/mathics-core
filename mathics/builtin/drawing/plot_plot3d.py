@@ -145,7 +145,7 @@ class ComplexPlot3D(_Plot3D):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/ComplexPlot3D.html</url>
     <dl>
-      <dt>'Plot3D'[$f$, {$z$, $z_{min}$, $z_{max}$}]
+      <dt>'ComplexPlot3D'[$f$, {$z$, $z_{min}$, $z_{max}$}]
       <dd>creates a three-dimensional plot of the magnitude of $f$ with $z$ ranging from $z_{min}$ to \
           $z_{max}$ with surface colored according to phase
 
@@ -154,6 +154,8 @@ class ComplexPlot3D(_Plot3D):
     </url> for a list of Plot options.
     </dl>
 
+    >> ComplexPlot3D[(z^2 + 1)/(z^2 - 1), {z, -2 - 2 I, 2 + 2 I}]
+     = ...
     """
 
     summary_text = "plots one or more complex functions as a 3D surface"
