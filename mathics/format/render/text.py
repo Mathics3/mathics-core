@@ -48,14 +48,14 @@ add_conversion_fn(String, string)
 
 
 def interpretation_box(self, **options):
-    return boxes_to_text(self.boxed, **options)
+    return boxes_to_text(self.boxes, **options)
 
 
 add_conversion_fn(InterpretationBox, interpretation_box)
 
 
 def pane_box(self, **options):
-    result = boxes_to_text(self.boxed, **options)
+    result = boxes_to_text(self.boxes, **options)
     return result
 
 
@@ -239,7 +239,7 @@ add_conversion_fn(Graphics3DBox, graphics3dbox)
 
 
 def tag_and_form_box(self, **options):
-    return boxes_to_text(self.boxed, **options)
+    return boxes_to_text(self.boxes, **options)
 
 
 add_conversion_fn(FormBox, tag_and_form_box)

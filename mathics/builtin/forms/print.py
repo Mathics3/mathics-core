@@ -3,13 +3,12 @@ General-purpose Forms
 
 A number of forms are suitable for formatting any kind of \Mathics expression.
 
-The variable <url>:$PrintForms:
-/doc/reference-of-built-in-symbols/forms-of-input-and-output/form-variables/$printforms/</url> \
+The variable <url>:\$PrintForms:/doc/reference-of-built-in-symbols/forms-of-input-and-output/form-variables/\$printforms</url> \
 contains a list of Forms \
 that are in this category. After formatting the \Mathics expression, these removing mention of the form.
 
-While Forms that appear in '$PrintForms' can be altered at run time, \
-below are the functions that appear in '$PrintForms' at startup.
+While Forms that appear in '\$PrintForms' can be altered at run time, \
+below are the functions that appear in '\$PrintForms' at startup.
 """
 
 from mathics.builtin.box.layout import InterpretationBox, PaneBox, StyleBox

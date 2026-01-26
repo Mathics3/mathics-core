@@ -108,8 +108,8 @@ class FormBox(BoxExpression):
     def init(self, *elems, **kwargs):
         self.box_options = kwargs
         self.form = elems[1]
-        self.boxed = elems[0]
-        assert isinstance(self.boxed, BoxElementMixin), f"{type(self.boxes)}"
+        self.boxes = elems[0]
+        assert isinstance(self.boxes, BoxElementMixin), f"{type(self.boxes)}"
 
     @property
     def elements(self):
@@ -117,7 +117,7 @@ class FormBox(BoxExpression):
             self._elements = elements_to_expressions(
                 self,
                 (
-                    self.boxed,
+                    self.boxes,
                     self.form,
                 ),
                 self.box_options,
@@ -272,12 +272,12 @@ class InterpretationBox(BoxExpression):
     summary_text = "box associated to an input expression"
 
     def __repr__(self):
-        result = "InterpretationBox\n  " + repr(self.boxed)
+        result = "InterpretationBox\n  " + repr(self.boxes)
         result += f"\n  {self.box_options}"
         return result
 
     def init(self, *expr, **options):
-        self.boxed = expr[0]
+        self.boxes = expr[0]
         self.expr = expr[1]
         self.box_options = options
 
@@ -287,7 +287,7 @@ class InterpretationBox(BoxExpression):
             self._elements = elements_to_expressions(
                 self,
                 (
-                    self.boxed,
+                    self.boxes,
                     self.expr,
                 ),
                 self.box_options,
@@ -317,7 +317,7 @@ class InterpretationBox(BoxExpression):
 
     def eval_display(self, boxexpr, evaluation):
         """DisplayForm[boxexpr_InterpretationBox]"""
-        return boxexpr.boxed
+        return boxexpr.boxes
 
 
 class PaneBox(BoxExpression):
@@ -341,12 +341,12 @@ class PaneBox(BoxExpression):
     def elements(self):
         if self._elements is None:
             self._elements = elements_to_expressions(
-                self, (self.boxed,), self.box_options
+                self, (self.boxes,), self.box_options
             )
         return self._elements
 
     def init(self, expr, **options):
-        self.boxed = expr
+        self.boxes = expr
         self.box_options = options
 
     def eval_panebox1(self, expr, evaluation, options):
@@ -729,8 +729,8 @@ class TagBox(BoxExpression):
     def init(self, *elems, **kwargs):
         self.box_options = kwargs
         self.form = elems[1]
-        self.boxed = elems[0]
-        assert isinstance(self.boxed, BoxElementMixin), f"{type(self.boxes)}"
+        self.boxes = elems[0]
+        assert isinstance(self.boxes, BoxElementMixin), f"{type(self.boxes)}"
 
     @property
     def elements(self):
@@ -738,7 +738,7 @@ class TagBox(BoxExpression):
             self._elements = elements_to_expressions(
                 self,
                 (
-                    self.boxed,
+                    self.boxes,
                     self.form,
                 ),
                 self.box_options,

@@ -66,7 +66,7 @@ class Graphics3D(Graphics):
           <dd>represents a three-dimensional graphic.
 
           See <url>:Drawing Option and Option Values:
-    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    /doc/reference-of-built-in-symbols/plotting-graphing-and-drawing/drawing-options-and-option-values
     </url> for a list of Plot options.
         </dl>
 
