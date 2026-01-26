@@ -9,9 +9,9 @@ from mathics.core.evaluation import Evaluation
 
 class Out(Builtin):
     r"""
-    <url>:WMA: https://reference.wolfram.com/language/ref/\$Out</url>
+    <url>:WMA: https://reference.wolfram.com/language/ref/Out</url>
     <dl>
-      <dt>'%$k$' or 'Out'[$k$]
+      <dt>'$\%k$' or 'Out'[$k$]
       <dd>gives the result of the $k$-th input line.
 
       <dt>'%'
