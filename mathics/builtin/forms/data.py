@@ -4,9 +4,9 @@ Data-Specific Forms
 Some forms are specific to formatting certain kinds of data, like numbers, strings, or matrices.
 
 These are in contrast to the Forms like <url>:OutputForm:
-/doc/reference-of-built-in-symbols/forms-of-input-and-output/printforms/outputform/</url> \
+/doc/reference-of-built-in-symbols/forms-of-input-and-output/general-purpose-forms/outputform/</url> \
 or <url>:StandardForm:
-/doc/reference-of-built-in-symbols/forms-of-input-and-output/printforms/standardform/</url>, \
+/doc/reference-of-built-in-symbols/forms-of-input-and-output/general-purpose-forms/standardform/</url>, \
 which are intended to work over all kinds of data.
 """
 from typing import Any, Callable, Dict, List, Optional
