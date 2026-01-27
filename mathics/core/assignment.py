@@ -120,8 +120,17 @@ def get_symbol_values(
     if position == "formatvalues":
         format_rules = definition.formatvalues
         for key, rules in format_rules.items():
-            if key == "System`MakeBoxes":
-                elements.extend(rules)
+            if key == "_MakeBoxes":
+                elements.extend(
+                    (
+                        Expression(
+                            SymbolRuleDelayed,
+                            Expression(SymbolHoldPattern, rule.pattern.expr),
+                            rule.replace,
+                        )
+                        for rule in rules
+                    )
+                )
                 continue
             if key:
                 elements.extend(

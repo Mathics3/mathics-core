@@ -1337,9 +1337,17 @@ class InfixOperator(Operator):
         if self.default_formats:
             if name not in ("Rule", "RuleDelayed"):
                 formats = {
-                    op_pattern: "HoldForm[Infix[{%s}, %s, %d, %s]]"
+                    form_and_pattern: "HoldForm[Infix[{%s}, %s, %d, %s]]"
                     % (replace_items, operator, self.precedence, self.grouping)
+                    for form_and_pattern in (
+                        op_pattern,
+                        (
+                            ("InputForm",),
+                            op_pattern,
+                        ),
+                    )
                 }
+                print("formats", formats)
                 formats.update(self.formats)
                 self.formats = formats
             formatted = "MakeBoxes[Infix[{%s}, %s, %d,%s], form]" % (

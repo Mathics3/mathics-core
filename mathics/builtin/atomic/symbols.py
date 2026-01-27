@@ -110,9 +110,20 @@ def gather_and_format_definition_rules(
         formats = sorted(definition.formatvalues.items())
         for form_name, rules in formats:
             for rule in rules:
+                if form_name == "_MakeBoxes":
 
-                def lhs_format(expr):
-                    return Expression(SymbolFormat, expr, Symbol(form_name))
+                    def lhs_format(expr):
+                        return expr
+
+                elif form_name == "":
+
+                    def lhs_format(expr):
+                        return Expression(SymbolFormat, expr)
+
+                else:
+
+                    def lhs_format(expr):
+                        return Expression(SymbolFormat, expr, Symbol(form_name))
 
                 format_rule(rule, lhs=lhs_format, rhs=rhs_format)
 

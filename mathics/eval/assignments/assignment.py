@@ -37,10 +37,15 @@ from mathics.core.symbols import (
     valid_context_name,
 )
 from mathics.core.systemsymbols import (
+    SymbolBlank,
     SymbolCondition,
     SymbolDefault,
+    SymbolFormat,
+    SymbolFormatType,
     SymbolHoldPattern,
     SymbolMachinePrecision,
+    SymbolMakeBoxes,
+    SymbolPattern,
     SymbolPatternTest,
 )
 from mathics.eval.list.eol import eval_Part
@@ -494,13 +499,9 @@ def eval_assign_format(
             if form not in form_list:
                 form_list.append(form)
     else:
-        form_name = [
-            "System`StandardForm",
-            "System`TraditionalForm",
-            "System`OutputForm",
-            "System`TeXForm",
-            "System`MathMLForm",
-        ]
+        form_name = ""
+        # Add MakeBoxes rule
+
     lhs = lhs.elements[0]
     lhs_reference = get_reference_expression(lhs)
     lhs_reference = (
@@ -517,6 +518,17 @@ def eval_assign_format(
             continue
         count += 1
         defs.add_format(tag, rule, form_name)
+
+    if form_name == "":
+        makeboxes_pat = Expression(
+            SymbolMakeBoxes,
+            lhs,
+            Expression(SymbolPattern, SymbolFormatType, Expression(SymbolBlank)),
+        )
+        repl = Expression(SymbolFormat, rhs, SymbolFormatType)
+        rule = Rule(makeboxes_pat, repl)
+        defs.add_format(tag, rule, "_MakeBoxes")
+
     return count > 0
 
 

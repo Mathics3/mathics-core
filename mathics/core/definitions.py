@@ -552,7 +552,14 @@ class Definitions:
         to that format.
         """
         formats = self.get_definition(name).formatvalues
-        result = formats.get(format_name, []) + formats.get("", [])
+        result = formats.get(format_name, [])
+        # Use the default "" format just for these forms:
+        if format_name in (
+            "System`StandardForm",
+            "System`TraditionalForm",
+            "System`OutputForm",
+        ):
+            result += formats.get("", [])
         result.sort(key=lambda x: x.pattern_precedence)
         return result
 

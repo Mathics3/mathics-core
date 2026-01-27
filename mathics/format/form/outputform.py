@@ -590,9 +590,7 @@ def pattern(expr: Expression, evaluation: Evaluation, **kwargs):
 
 
 @register_outputform("System`Plus")
-def plus_render_output_form(
-    expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
-) -> str:
+def plus_render_output_form(expr: Expression, evaluation: Evaluation, **kwargs) -> str:
     if not isinstance(expr.head, Symbol):
         raise _WrongFormattedExpression
 

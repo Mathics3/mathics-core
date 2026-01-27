@@ -261,12 +261,15 @@ def format_element(
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
+    # print("format element", element, form)
     evaluation.is_boxing = True
     formatted_expr = do_format(element, evaluation, form)
+    # print("formatted_expr", formatted_expr)
     if form not in BOX_FORMS:
         formatted_expr = Expression(form, formatted_expr)
         form = SymbolStandardForm
     result_box = apply_makeboxes_rules(formatted_expr, evaluation, form)
+    # print(" boxed", result_box)
     if isinstance(result_box, BoxElementMixin):
         return result_box
     return eval_makeboxes_fullform_recursive(element, evaluation)
