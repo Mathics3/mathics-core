@@ -41,7 +41,10 @@ def inspect_eval_loop(evaluation: Evaluation):
             query, source_code = evaluation.parse_feeder_returning_code(shell)
             # show_echo(source_code, evaluation)
             if len(source_code) and source_code[0] == "!" and shell is not None:
-                subprocess.run(source_code[1:], shell=True)
+                if not settings.ENABLE_SYSTEM_COMMANDS:
+                    evaluation.message("Run", "dis")
+                else:
+                    subprocess.run(source_code[1:], shell=True)
                 if shell.definitions is not None:
                     shell.definitions.increment_line_no(1)
                 continue
