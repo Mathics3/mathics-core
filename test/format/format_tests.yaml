@@ -139,8 +139,8 @@
   mathml:
     System`InputForm: <mn>-4</mn>
     System`OutputForm: <mtext>-4</mtext>
-    System`StandardForm: "<mrow>\n<mn>-</mn> <mn>4</mn>\n</mrow>"
-    System`TraditionalForm: "<mrow>\n<mn>-</mn> <mn>4</mn>\n</mrow>"
+    System`StandardForm: "<mrow>\n<mn>-</mn>\n<mn>4</mn>\n</mrow>"
+    System`TraditionalForm: "<mrow>\n<mn>-</mn>\n<mn>4</mn>\n</mrow>"
   text:
     System`InputForm: '-4'
     System`OutputForm: '-4'
@@ -158,8 +158,8 @@
   mathml:
     System`InputForm: <mn>-4.32</mn>
     System`OutputForm: <mtext>-4.32</mtext>
-    System`StandardForm: "<mrow>\n<mn>-</mn> <mn>4.32</mn>\n</mrow>"
-    System`TraditionalForm: "<mrow>\n<mn>-</mn> <mn>4.32</mn>\n</mrow>"
+    System`StandardForm: "<mrow>\n<mn>-</mn>\n<mn>4.32</mn>\n</mrow>"
+    System`TraditionalForm: "<mrow>\n<mn>-</mn>\n<mn>4.32</mn>\n</mrow>"
   text:
     System`InputForm: '-4.32'
     System`OutputForm: '-4.32'
@@ -177,8 +177,8 @@
   mathml:
     System`InputForm: <mn>-4.33</mn>
     System`OutputForm: <mtext>-4.3</mtext>
-    System`StandardForm: "<mrow>\n<mn>-</mn> <mn>4.33</mn>\n</mrow>"
-    System`TraditionalForm: "<mrow>\n<mn>-</mn> <mn>4.33</mn>\n</mrow>"
+    System`StandardForm: "<mrow>\n<mn>-</mn>\n<mn>4.33</mn>\n</mrow>"
+    System`TraditionalForm: "<mrow>\n<mn>-</mn>\n<mn>4.33</mn>\n</mrow>"
   text:
     System`InputForm: -4.33`2.
     System`OutputForm: '-4.3'
@@ -196,8 +196,8 @@
   mathml:
     System`InputForm: <mn>-4.32</mn>
     System`OutputForm: <mtext>-4.320</mtext>
-    System`StandardForm: "<mrow>\n<mn>-</mn> <mn>4.32</mn>\n</mrow>"
-    System`TraditionalForm: "<mrow>\n<mn>-</mn> <mn>4.32</mn>\n</mrow>"
+    System`StandardForm: "<mrow>\n<mn>-</mn>\n<mn>4.32</mn>\n</mrow>"
+    System`TraditionalForm: "<mrow>\n<mn>-</mn>\n<mn>4.32</mn>\n</mrow>"
   text:
     System`InputForm: -4.32`4.
     System`OutputForm: '-4.320'
@@ -272,7 +272,7 @@
     -  '<mtext>1&nbsp;/&nbsp;(1&nbsp;+&nbsp;1&nbsp;/&nbsp;(1&nbsp;+&nbsp;1&nbsp;/&nbsp;a))</mtext>'
     - Fragile!
     System`StandardForm: &id001
-    - "<mfrac>\n<mn>1</mn>\n <mrow>\n<mn>1</mn> <mo>+</mo> <mfrac>\n<mn>1</mn>\n <mrow>\n<mn>1</mn> <mo>+</mo> <mfrac>\n<mn>1</mn>\n <mi>a</mi>\n</mfrac>\n</mrow>\n</mfrac>\n</mrow>\n</mfrac>"
+    - "<mfrac>\n<mn>1</mn>\n<mrow>\n<mn>1</mn>\n<mo>+</mo>\n<mfrac>\n<mn>1</mn>\n<mrow>\n<mn>1</mn>\n<mo>+</mo>\n<mfrac>\n<mn>1</mn>\n<mi>a</mi>\n</mfrac>\n</mrow>\n</mfrac>\n</mrow>\n</mfrac>"
     - Fragile!
     System`TraditionalForm: *id001
   text:
@@ -292,8 +292,8 @@
   mathml:
     System`InputForm: <mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t|&gt;|&gt;</mtext>
     System`OutputForm: '<mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t|&gt;|&gt;</mtext>'
-    System`StandardForm: "<mrow>\n<mtext>&lt;|</mtext> <mrow>\n<mrow>\n<mi>a</mi> <mn>-&gt;</mn> <mi>x</mi>\n</mrow> <mo>,</mo> <mrow>\n<mi>b</mi> <mn>-&gt;</mn> <mi>y</mi>\n</mrow> <mo>,</mo> <mrow>\n<mi>c</mi> <mn>-&gt;</mn> <mrow>\n<mtext>&lt;|</mtext> <mrow>\n<mi>d</mi> <mn>-&gt;</mn> <mi>t</mi>\n</mrow> <mtext>|&gt;</mtext>\n</mrow>\n</mrow>\n</mrow> <mtext>|&gt;</mtext>\n</mrow>"
-    System`TraditionalForm: "<mrow>\n<mtext>&lt;|</mtext> <mrow>\n<mrow>\n<mi>a</mi> <mn>-&gt;</mn> <mi>x</mi>\n</mrow> <mo>,</mo> <mrow>\n<mi>b</mi> <mn>-&gt;</mn> <mi>y</mi>\n</mrow> <mo>,</mo> <mrow>\n<mi>c</mi> <mn>-&gt;</mn> <mrow>\n<mtext>&lt;|</mtext> <mrow>\n<mi>d</mi> <mn>-&gt;</mn> <mi>t</mi>\n</mrow> <mtext>|&gt;</mtext>\n</mrow>\n</mrow>\n</mrow> <mtext>|&gt;</mtext>\n</mrow>"
+    System`StandardForm: "<mrow>\n<mtext>&lt;|</mtext>\n<mrow>\n<mrow>\n<mi>a</mi>\n<mn>-&gt;</mn>\n<mi>x</mi>\n</mrow>\n<mo>,</mo>\n<mrow>\n<mi>b</mi>\n<mn>-&gt;</mn>\n<mi>y</mi>\n</mrow>\n<mo>,</mo>\n<mrow>\n<mi>c</mi>\n<mn>-&gt;</mn>\n<mrow>\n<mtext>&lt;|</mtext>\n<mrow>\n<mi>d</mi>\n<mn>-&gt;</mn>\n<mi>t</mi>\n</mrow>\n<mtext>|&gt;</mtext>\n</mrow>\n</mrow>\n</mrow>\n<mtext>|&gt;</mtext>\n</mrow>"
+    System`TraditionalForm: "<mrow>\n<mtext>&lt;|</mtext>\n<mrow>\n<mrow>\n<mi>a</mi>\n<mn>-&gt;</mn>\n<mi>x</mi>\n</mrow>\n<mo>,</mo>\n<mrow>\n<mi>b</mi>\n<mn>-&gt;</mn>\n<mi>y</mi>\n</mrow>\n<mo>,</mo>\n<mrow>\n<mi>c</mi>\n<mn>-&gt;</mn>\n<mrow>\n<mtext>&lt;|</mtext>\n<mrow>\n<mi>d</mi>\n<mn>-&gt;</mn>\n<mi>t</mi>\n</mrow>\n<mtext>|&gt;</mtext>\n</mrow>\n</mrow>\n</mrow>\n<mtext>|&gt;</mtext>\n</mrow>"
   text:
     System`InputForm: <|a -> x, b -> y, c -> <|d -> t|>|>
     System`OutputForm: <|a -> x, b -> y, c -> <|d -> t|>|>
@@ -311,8 +311,8 @@ Association[a -> x, b -> y, c -> Association[d -> t, Association[e -> u]]]:
   mathml:
     System`InputForm: "<mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t,&nbsp;e&nbsp;-&gt;&nbsp;u|&gt;|&gt;</mtext>"
     System`OutputForm: '<mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t,&nbsp;e&nbsp;-&gt;&nbsp;u|&gt;|&gt;</mtext>'
-    System`StandardForm: "<mrow>\n<mtext>&lt;|</mtext> <mrow>\n<mrow>\n<mi>a</mi> <mn>-&gt;</mn> <mi>x</mi>\n</mrow> <mo>,</mo> <mrow>\n<mi>b</mi> <mn>-&gt;</mn> <mi>y</mi>\n</mrow> <mo>,</mo> <mrow>\n<mi>c</mi> <mn>-&gt;</mn> <mrow>\n<mtext>&lt;|</mtext> <mrow>\n<mrow>\n<mi>d</mi> <mn>-&gt;</mn> <mi>t</mi>\n</mrow> <mo>,</mo> <mrow>\n<mi>e</mi> <mn>-&gt;</mn> <mi>u</mi>\n</mrow>\n</mrow> <mtext>|&gt;</mtext>\n</mrow>\n</mrow>\n</mrow> <mtext>|&gt;</mtext>\n</mrow>"
-    System`TraditionalForm: "<mrow>\n<mtext>&lt;|</mtext> <mrow>\n<mrow>\n<mi>a</mi> <mn>-&gt;</mn> <mi>x</mi>\n</mrow> <mo>,</mo> <mrow>\n<mi>b</mi> <mn>-&gt;</mn> <mi>y</mi>\n</mrow> <mo>,</mo> <mrow>\n<mi>c</mi> <mn>-&gt;</mn> <mrow>\n<mtext>&lt;|</mtext> <mrow>\n<mrow>\n<mi>d</mi> <mn>-&gt;</mn> <mi>t</mi>\n</mrow> <mo>,</mo> <mrow>\n<mi>e</mi> <mn>-&gt;</mn> <mi>u</mi>\n</mrow>\n</mrow> <mtext>|&gt;</mtext>\n</mrow>\n</mrow>\n</mrow> <mtext>|&gt;</mtext>\n</mrow>"
+    System`StandardForm: "<mrow>\n<mtext>&lt;|</mtext>\n<mrow>\n<mrow>\n<mi>a</mi>\n<mn>-&gt;</mn>\n<mi>x</mi>\n</mrow>\n<mo>,</mo>\n<mrow>\n<mi>b</mi>\n<mn>-&gt;</mn>\n<mi>y</mi>\n</mrow>\n<mo>,</mo>\n<mrow>\n<mi>c</mi>\n<mn>-&gt;</mn>\n<mrow>\n<mtext>&lt;|</mtext>\n<mrow>\n<mrow>\n<mi>d</mi>\n<mn>-&gt;</mn>\n<mi>t</mi>\n</mrow>\n<mo>,</mo>\n<mrow>\n<mi>e</mi>\n<mn>-&gt;</mn>\n<mi>u</mi>\n</mrow>\n</mrow>\n<mtext>|&gt;</mtext>\n</mrow>\n</mrow>\n</mrow>\n<mtext>|&gt;</mtext>\n</mrow>"
+    System`TraditionalForm: "<mrow>\n<mtext>&lt;|</mtext>\n<mrow>\n<mrow>\n<mi>a</mi>\n<mn>-&gt;</mn>\n<mi>x</mi>\n</mrow>\n<mo>,</mo>\n<mrow>\n<mi>b</mi>\n<mn>-&gt;</mn>\n<mi>y</mi>\n</mrow>\n<mo>,</mo>\n<mrow>\n<mi>c</mi>\n<mn>-&gt;</mn>\n<mrow>\n<mtext>&lt;|</mtext>\n<mrow>\n<mrow>\n<mi>d</mi>\n<mn>-&gt;</mn>\n<mi>t</mi>\n</mrow>\n<mo>,</mo>\n<mrow>\n<mi>e</mi>\n<mn>-&gt;</mn>\n<mi>u</mi>\n</mrow>\n</mrow>\n<mtext>|&gt;</mtext>\n</mrow>\n</mrow>\n</mrow>\n<mtext>|&gt;</mtext>\n</mrow>"
   text:
     System`InputForm: <|a -> x, b -> y, c -> <|d -> t, e -> u|>|>
     System`OutputForm: <|a -> x, b -> y, c -> <|d -> t, e -> u|>|>
@@ -330,8 +330,8 @@ Complex[1.09*^12, 3.]:
   mathml:
     System`InputForm: <mn>1.09*^12&nbsp;+&nbsp;3.*I</mn>
     System`OutputForm: '<mtext>1.09×10^12&nbsp;+&nbsp;3.&nbsp;I</mtext>'
-    System`StandardForm: "<mrow>\n<mrow>\n<mn>1.09</mn> <mtext>*^</mtext> <mn>12</mn>\n</mrow> <mo>+</mo> <mrow>\n<mn>3.</mn> <mo>&nbsp;</mo> <mi>I</mi>\n</mrow>\n</mrow>"
-    System`TraditionalForm: "<mrow>\n<mrow>\n<mn>1.09</mn> <mo>×</mo> <msup>\n<mn>10</mn> \n<mn>12</mn>\n</msup>\n</mrow> <mo>+</mo> <mrow>\n<mn>3.</mn> <mo form=\"prefix\" lspace=\"0\" rspace=\"0.2em\">⁢</mo> <mi>I</mi>\n</mrow>\n</mrow>"
+    System`StandardForm: "<mrow>\n<mrow>\n<mn>1.09</mn>\n<mtext>*^</mtext>\n<mn>12</mn>\n</mrow>\n<mo>+</mo>\n<mrow>\n<mn>3.</mn>\n<mo>&nbsp;</mo>\n<mi>I</mi>\n</mrow>\n</mrow>"
+    System`TraditionalForm: "<mrow>\n<mrow>\n<mn>1.09</mn>\n<mo>×</mo>\n<msup>\n<mn>10</mn>\n<mn>12</mn>\n</msup>\n</mrow>\n<mo>+</mo>\n<mrow>\n<mn>3.</mn>\n<mo form=\"prefix\" lspace=\"0\" rspace=\"0.2em\">⁢</mo>\n<mi>I</mi>\n</mrow>\n</mrow>"
   text:
     System`InputForm: 1.09*^12 + 3.*I
     System`OutputForm: "1.09\xD710^12 + 3. I"
@@ -543,8 +543,8 @@ Integrate[F[x], {x, a, g[b]}]:
   mathml:
     System`InputForm: '<mtext>Integrate[F[x],&nbsp;{x,&nbsp;a,&nbsp;g[b]}]</mtext>'
     System`OutputForm: '<mtext>Integrate[F[x],&nbsp;{x,&nbsp;a,&nbsp;g[b]}]</mtext>'
-    System`StandardForm: "<mrow>\n<msubsup>\n<mo>∫</mo>\n <mi>a</mi>\n <mrow>\n<mi>g</mi> <mo>[</mo> <mi>b</mi> <mo>]</mo>\n</mrow>\n</msubsup> <mo form=\"prefix\" lspace=\"0\" rspace=\"0.2em\">⁢</mo> <mrow>\n<mi>F</mi> <mo>[</mo> <mi>x</mi> <mo>]</mo>\n</mrow> <mo form=\"prefix\" lspace=\"0\" rspace=\"0.2em\">⁢</mo> <mrow>\n<mo>𝑑</mo> <mi>x</mi>\n</mrow>\n</mrow>"
-    System`TraditionalForm: "<mrow>\n<msubsup>\n<mo>∫</mo>\n <mi>a</mi>\n <mrow>\n<mi>g</mi> <mo>(</mo> <mi>b</mi> <mo>)</mo>\n</mrow>\n</msubsup> <mo form=\"prefix\" lspace=\"0\" rspace=\"0.2em\">⁢</mo> <mrow>\n<mi>F</mi> <mo>(</mo> <mi>x</mi> <mo>)</mo>\n</mrow> <mo form=\"prefix\" lspace=\"0\" rspace=\"0.2em\">⁢</mo> <mrow>\n<mo>𝑑</mo> <mi>x</mi>\n</mrow>\n</mrow>"
+    System`StandardForm: "<mrow>\n<msubsup>\n<mo>∫</mo>\n<mi>a</mi>\n<mrow>\n<mi>g</mi>\n<mo>[</mo>\n<mi>b</mi>\n<mo>]</mo>\n</mrow>\n</msubsup>\n<mo form=\"prefix\" lspace=\"0\" rspace=\"0.2em\">⁢</mo>\n<mrow>\n<mi>F</mi>\n<mo>[</mo>\n<mi>x</mi>\n<mo>]</mo>\n</mrow>\n<mo form=\"prefix\" lspace=\"0\" rspace=\"0.2em\">⁢</mo>\n<mrow>\n<mo>𝑑</mo>\n<mi>x</mi>\n</mrow>\n</mrow>"
+    System`TraditionalForm: "<mrow>\n<msubsup>\n<mo>∫</mo>\n<mi>a</mi>\n<mrow>\n<mi>g</mi>\n<mo>(</mo>\n<mi>b</mi>\n<mo>)</mo>\n</mrow>\n</msubsup>\n<mo form=\"prefix\" lspace=\"0\" rspace=\"0.2em\">⁢</mo>\n<mrow>\n<mi>F</mi>\n<mo>(</mo>\n<mi>x</mi>\n<mo>)</mo>\n</mrow>\n<mo form=\"prefix\" lspace=\"0\" rspace=\"0.2em\">⁢</mo>\n<mrow>\n<mo>𝑑</mo>\n<mi>x</mi>\n</mrow>\n</mrow>"
   text:
     System`InputForm: Integrate[F[x], {x, a, g[b]}]
     System`OutputForm: Integrate[F[x], {x, a, g[b]}]
@@ -568,8 +568,8 @@ MatrixForm[{{a,b},{c,d}}]:
   mathml:
     System`InputForm: <mtext>MatrixForm[{{a,&nbsp;b},&nbsp;{c,&nbsp;d}}]</mtext>
     System`OutputForm: '<mtext>a&nbsp;&nbsp;&nbsp;b<mspace linebreak="newline" /><mspace linebreak="newline" />c&nbsp;&nbsp;&nbsp;d<mspace linebreak="newline" /></mtext>'
-    System`StandardForm: "<mrow>\n<mo>(</mo> <mtable columnalign=\"center\">\n<mtr><mtd columnalign=\"center\"><mi>a</mi></mtd><mtd columnalign=\"center\"><mi>b</mi></mtd></mtr>\n<mtr><mtd columnalign=\"center\"><mi>c</mi></mtd><mtd columnalign=\"center\"><mi>d</mi></mtd></mtr>\n</mtable> <mo>)</mo>\n</mrow>"
-    System`TraditionalForm: "<mrow>\n<mo>(</mo> <mtable columnalign=\"center\">\n<mtr><mtd columnalign=\"center\"><mi>a</mi></mtd><mtd columnalign=\"center\"><mi>b</mi></mtd></mtr>\n<mtr><mtd columnalign=\"center\"><mi>c</mi></mtd><mtd columnalign=\"center\"><mi>d</mi></mtd></mtr>\n</mtable> <mo>)</mo>\n</mrow>"
+    System`StandardForm: "<mrow>\n<mo>(</mo>\n<mtable columnalign=\"center\">\n<mtr><mtd columnalign=\"center\"><mi>a</mi></mtd><mtd columnalign=\"center\"><mi>b</mi></mtd></mtr>\n<mtr><mtd columnalign=\"center\"><mi>c</mi></mtd><mtd columnalign=\"center\"><mi>d</mi></mtd></mtr>\n</mtable>\n<mo>)</mo>\n</mrow>"
+    System`TraditionalForm: "<mrow>\n<mo>(</mo>\n<mtable columnalign=\"center\">\n<mtr><mtd columnalign=\"center\"><mi>a</mi></mtd><mtd columnalign=\"center\"><mi>b</mi></mtd></mtr>\n<mtr><mtd columnalign=\"center\"><mi>c</mi></mtd><mtd columnalign=\"center\"><mi>d</mi></mtd></mtr>\n</mtable>\n<mo>)</mo>\n</mrow>"
   text:
     System`InputForm: MatrixForm[{{a, b}, {c, d}}]
     System`OutputForm: 'a   b
@@ -607,10 +607,10 @@ Sqrt[1/(1+1/(1+1/a))]:
     - '<mtext>Sqrt[1&nbsp;/&nbsp;(1&nbsp;+&nbsp;1&nbsp;/&nbsp;(1&nbsp;+&nbsp;1&nbsp;/&nbsp;a))]</mtext>'
     - Fragile!
     System`StandardForm:
-    - "<msqrt>\n <mfrac>\n<mn>1</mn>\n <mrow>\n<mn>1</mn> <mo>+</mo> <mfrac>\n<mn>1</mn>\n <mrow>\n<mn>1</mn> <mo>+</mo> <mfrac>\n<mn>1</mn>\n <mi>a</mi>\n</mfrac>\n</mrow>\n</mfrac>\n</mrow>\n</mfrac>\n</msqrt>"
+    - "<msqrt>\n<mfrac>\n<mn>1</mn>\n<mrow>\n<mn>1</mn>\n<mo>+</mo>\n<mfrac>\n<mn>1</mn>\n<mrow>\n<mn>1</mn>\n<mo>+</mo>\n<mfrac>\n<mn>1</mn>\n<mi>a</mi>\n</mfrac>\n</mrow>\n</mfrac>\n</mrow>\n</mfrac>\n</msqrt>"
     - Fragile!
     System`TraditionalForm: 
-    - "<msqrt>\n <mfrac>\n<mn>1</mn>\n <mrow>\n<mn>1</mn> <mo>+</mo> <mfrac>\n<mn>1</mn>\n <mrow>\n<mn>1</mn> <mo>+</mo> <mfrac>\n<mn>1</mn>\n <mi>a</mi>\n</mfrac>\n</mrow>\n</mfrac>\n</mrow>\n</mfrac>\n</msqrt>"
+    - "<msqrt>\n<mfrac>\n<mn>1</mn>\n<mrow>\n<mn>1</mn>\n<mo>+</mo>\n<mfrac>\n<mn>1</mn>\n<mrow>\n<mn>1</mn>\n<mo>+</mo>\n<mfrac>\n<mn>1</mn>\n<mi>a</mi>\n</mfrac>\n</mrow>\n</mfrac>\n</mrow>\n</mfrac>\n</msqrt>"
     - Fragile!    
   text:
     System`InputForm: Sqrt[1/(1 + 1/(1 + 1/a))]
@@ -633,8 +633,8 @@ Subscript[a, 4]:
     System`OutputForm:
     - '<mtext>Subscript[a,&nbsp;4]</mtext>'
     - Fragile!
-    System`StandardForm: "<msub>\n<mi>a</mi>\n <mn>4</mn>\n</msub>"
-    System`TraditionalForm: "<msub>\n<mi>a</mi>\n <mn>4</mn>\n</msub>"
+    System`StandardForm: "<msub>\n<mi>a</mi>\n<mn>4</mn>\n</msub>"
+    System`TraditionalForm: "<msub>\n<mi>a</mi>\n<mn>4</mn>\n</msub>"
   text:
     System`InputForm: Subscript[a, 4]
     System`OutputForm: Subscript[a, 4]
@@ -654,8 +654,8 @@ Subsuperscript[a, p, q]:
   mathml:
     System`InputForm: <mtext>Subsuperscript[a,&nbsp;p,&nbsp;q]</mtext>
     System`OutputForm: '<mtext>Subsuperscript[a,&nbsp;p,&nbsp;q]</mtext>'
-    System`StandardForm: "<msubsup>\n<mi>a</mi>\n <mi>p</mi>\n <mi>q</mi>\n</msubsup>"
-    System`TraditionalForm: "<msubsup>\n<mi>a</mi>\n <mi>p</mi>\n <mi>q</mi>\n</msubsup>"
+    System`StandardForm: "<msubsup>\n<mi>a</mi>\n<mi>p</mi>\n<mi>q</mi>\n</msubsup>"
+    System`TraditionalForm: "<msubsup>\n<mi>a</mi>\n<mi>p</mi>\n<mi>q</mi>\n</msubsup>"
   text:
     System`InputForm: Subsuperscript[a, p, q]
     System`OutputForm: Subsuperscript[a, p, q]
@@ -807,7 +807,7 @@ a^(g[b]/c):
   mathml:
     System`InputForm:  <mtext>a^(g[b]/c)</mtext>
     System`OutputForm: '<mtext>a&nbsp;^&nbsp;(g[b]&nbsp;/&nbsp;c)</mtext>'
-    System`TraditionalForm: "<msup>\n<mi>a</mi> \n<mfrac>\n<mrow>\n<mi>g</mi> <mo>(</mo> <mi>b</mi> <mo>)</mo>\n</mrow>\n <mi>c</mi>\n</mfrac>\n</msup>"
+    System`TraditionalForm: "<msup>\n<mi>a</mi>\n<mfrac>\n<mrow>\n<mi>g</mi>\n<mo>(</mo>\n<mi>b</mi>\n<mo>)</mo>\n</mrow>\n<mi>c</mi>\n</mfrac>\n</msup>"
   text:
     System`InputForm: a^(g[b]/c)
     System`OutputForm: a ^ (g[b] / c)
@@ -825,8 +825,8 @@ a^4:
   mathml:
     System`InputForm: '<mtext>a^4</mtext>'
     System`OutputForm: '<mtext>a&nbsp;^&nbsp;4</mtext>'
-    System`StandardForm: "<msup>\n<mi>a</mi> \n<mn>4</mn>\n</msup>"
-    System`TraditionalForm: "<msup>\n<mi>a</mi> \n<mn>4</mn>\n</msup>"
+    System`StandardForm: "<msup>\n<mi>a</mi>\n<mn>4</mn>\n</msup>"
+    System`TraditionalForm: "<msup>\n<mi>a</mi>\n<mn>4</mn>\n</msup>"
   text:
     System`InputForm: a^4
     System`OutputForm: a ^ 4
@@ -870,7 +870,7 @@ a+PrecedenceForm[b+c,10]:
     System`StandardForm: 'a+(b+c)'
   mathml:
     System`OutputForm: '<mtext>a&nbsp;+&nbsp;(b&nbsp;+&nbsp;c)</mtext>'
-    System`StandardForm: "<mrow>\n<mi>a</mi> <mo>+</mo> <mrow>\n<mo>(</mo> <mrow>\n<mi>b</mi> <mo>+</mo> <mi>c</mi>\n</mrow> <mo>)</mo>\n</mrow>\n</mrow>"
+    System`StandardForm: "<mrow>\n<mi>a</mi>\n<mo>+</mo>\n<mrow>\n<mo>(</mo>\n<mrow>\n<mi>b</mi>\n<mo>+</mo>\n<mi>c</mi>\n</mrow>\n<mo>)</mo>\n</mrow>\n</mrow>"
   text:
     System`InputForm: 'a + (PrecedenceForm[b + c, 10])'
     System`OutputForm: 'a + (b + c)'
