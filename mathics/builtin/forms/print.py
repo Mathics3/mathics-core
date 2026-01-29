@@ -158,7 +158,6 @@ class OutputForm(FormBaseClass):
      = -Graphics-
     """
 
-    formats = {"OutputForm[s_String]": "s"}
     summary_text = "format expression in plain text"
 
 
