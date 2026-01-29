@@ -236,6 +236,7 @@ def test_Solve(str_expr: str, str_expected: str, expected_messages):
         ("Integrate[x ^ 3.5 + x, x]", None, "x ^ 2 / 2 + 0.222222 x ^ 4.5", None),
         (
             'Integrate[F[a, "x"],{x,"p","q"}]',
+            None,
             'Integrate[F[a, "x"],{x,"p","q"}]',
             "Integrand cannot be converted to sympy because of the string",
         ),
