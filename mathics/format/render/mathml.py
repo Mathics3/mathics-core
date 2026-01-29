@@ -3,6 +3,30 @@
 Lower-level formatter of Mathics objects as MathML strings.
 
 MathML formatting is usually initiated in Mathics via MathMLForm[].
+
+For readability, and following WMA MathML generated code,  tags \
+containing sub-tags are split on several lines, one by
+sub element. For example, the Box expression
+
+>> FractionBox[RowBox[{"a", "+", SuperscriptBox["b", "c"]}], "d"]
+
+produces
+```
+<mfrac>
+<mrow>
+<mi>a</mi>
+<mo>+</mo>
+<msup>
+<mi>b</mi> 
+<mi>c</mi>
+</msup>
+</mrow>
+<mi>d</mi>
+</mfrac>
+```
+In WMA, each line would be also indented adding one space on each \
+level of indentation.
+
 """
 
 import base64
@@ -188,7 +212,7 @@ def fractionbox(self, **options) -> str:
     _options = self.box_options.copy()
     _options.update(options)
     options = _options
-    return "<mfrac>\n%s\n %s\n</mfrac>" % (
+    return "<mfrac>\n%s\n%s\n</mfrac>" % (
         lookup_conversion_method(self.num, "mathml")(self.num, **options),
         lookup_conversion_method(self.den, "mathml")(self.den, **options),
     )
@@ -248,7 +272,7 @@ def sqrtbox(self, **options):
             lookup_conversion_method(self.index, "mathml")(self.index, **options),
         )
 
-    return "<msqrt>\n %s\n</msqrt>" % lookup_conversion_method(self.radicand, "mathml")(
+    return "<msqrt>\n%s\n</msqrt>" % lookup_conversion_method(self.radicand, "mathml")(
         self.radicand, **options
     )
 
@@ -260,7 +284,7 @@ def subscriptbox(self, **options):
     _options = self.box_options.copy()
     _options.update(options)
     options = _options
-    return "<msub>\n%s\n %s\n</msub>" % (
+    return "<msub>\n%s\n%s\n</msub>" % (
         lookup_conversion_method(self.base, "mathml")(self.base, **options),
         lookup_conversion_method(self.subindex, "mathml")(self.subindex, **options),
     )
@@ -273,7 +297,7 @@ def superscriptbox(self, **options):
     _options = self.box_options.copy()
     _options.update(options)
     options = _options
-    return "<msup>\n%s \n%s\n</msup>" % (
+    return "<msup>\n%s\n%s\n</msup>" % (
         lookup_conversion_method(self.base, "mathml")(self.base, **options),
         lookup_conversion_method(self.superindex, "mathml")(self.superindex, **options),
     )
@@ -287,7 +311,7 @@ def subsuperscriptbox(self, **options):
     _options.update(options)
     options = _options
     options["inside_row"] = True
-    return "<msubsup>\n%s\n %s\n %s\n</msubsup>" % (
+    return "<msubsup>\n%s\n%s\n%s\n</msubsup>" % (
         lookup_conversion_method(self.base, "mathml")(self.base, **options),
         lookup_conversion_method(self.subindex, "mathml")(self.subindex, **options),
         lookup_conversion_method(self.superindex, "mathml")(self.superindex, **options),
@@ -335,7 +359,7 @@ def rowbox(self, **options) -> str:
 
     # print(f"mrow: {result}")
 
-    return "<mrow>\n%s\n</mrow>" % " ".join(result)
+    return "<mrow>\n%s\n</mrow>" % "\n".join(result)
 
 
 add_conversion_fn(RowBox, rowbox)

@@ -55,7 +55,7 @@ def test_session_format_evaluation():
     assert session.format_result(form="text") == "a / b"
     assert session.format_result(form="latex") == "\\frac{a}{b}"
     assert session.format_result(form="xml") == (
-        '<math display="block"><mfrac>\n' "<mi>a</mi>\n <mi>b</mi>" "\n</mfrac></math>"
+        '<math display="block"><mfrac>\n<mi>a</mi>\n<mi>b</mi>\n</mfrac></math>'
     )
 
 
