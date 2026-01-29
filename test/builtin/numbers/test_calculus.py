@@ -237,7 +237,7 @@ def test_Solve(str_expr: str, str_expected: str, expected_messages):
         (
             'Integrate[F[a, "x"],{x,"p","q"}]',
             None,
-            'Integrate[F[a, "x"],{x,"p","q"}]',
+            'Integrate[F[a, x], {x, p, q}]',
             "Integrand cannot be converted to sympy because of the string",
         ),
         ("Integrate[ArcTan(x), x]", None, "x ^ 2 ArcTan / 2", None),
