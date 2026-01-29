@@ -44,6 +44,7 @@ def encode_mathml(text: str) -> str:
     return text
 
 
+# "Operators" which are not in display_operators_set
 extra_operators = {
     ",",
     "(",
@@ -52,20 +53,21 @@ extra_operators = {
     "]",
     "{",
     "}",
-    "\u301a",
-    "\u301b",
-    "\u00d7",
-    "\u2032",
-    "\u2032\u2032",
-    " ",
-    "\u2062",
-    "\u222b",
-    "\u2146",
+    "\u301a",  # [[
+    "\u301b",  # ]]
+    "\u00d7",  # \[Times]
+    "\u2032",  # \[RawComma]
+    "\u2032\u2032",  # \[RawComma]\[RawComma]
+    " ",  # \[RawSpace]
+    "\u2062",  # \[InvisibleTimes]
+    "\u222b",  # \[Integral]
+    "\u2146",  # \[DifferentialD]
 }
 
 
 def string(self, **options) -> str:
     text = self.value
+    print("mathml string", text, "options:", options)
 
     number_as_text = options.get("number_as_text", None)
     show_string_characters = (
@@ -80,13 +82,10 @@ def string(self, **options) -> str:
         return format % encoded_text
 
     if text.startswith('"') and text.endswith('"'):
-        if show_string_characters:
-            return render("<ms>%s</ms>", text[1:-1])
-        else:
-            outtext = ""
-            for line in text[1:-1].split("\n"):
-                outtext += render("<mtext>%s</mtext>", line)
-            return outtext
+        text = text[1:-1]
+        if not show_string_characters:
+            return render("<mtext>%s</mtext>", text)
+        return render("<ms>%s</ms>", text)
     elif (
         text
         and (number_as_text is SymbolFalse)
@@ -101,11 +100,11 @@ def string(self, **options) -> str:
             # Mathics-Django:
             if text == "":
                 return ""
-            if text == "\u2146":
+            if text == "\u2146":  # DifferentialD
                 return render(
                     '<mo form="prefix" lspace="0.2em" rspace="0">%s</mo>', text
                 )
-            if text == "\u2062":
+            if text == "\u2062":  # InvisibleTimes
                 return render(
                     '<mo form="prefix" lspace="0" rspace="0.2em">%s</mo>', text
                 )
@@ -113,17 +112,35 @@ def string(self, **options) -> str:
         elif is_symbol_name(text):
             return render("<mi>%s</mi>", text)
         else:
-            outtext = ""
-            for line in text.split("\n"):
-                outtext += render("<mtext>%s</mtext>", line)
-            return outtext
+            return "".join(
+                render("<mtext>%s</mtext>", line) for line in text.split("\n")
+            )
 
 
 add_conversion_fn(String, string)
 
 
 def interpretation_box(self, **options):
-    return lookup_conversion_method(self.boxes, "mathml")(self.boxes, **options)
+    boxes = self.boxes
+    origin = self.expr
+    if origin.has_form("InputForm", None):
+        # InputForm produce outputs of the form
+        # InterpretationBox[Style[_String, ...], origin_InputForm, opts___]
+        assert isinstance(boxes, StyleBox), f"boxes={boxes} are not a StyleBox"
+        boxes = boxes.boxes
+        options["System`ShowStringCharacters"] = SymbolTrue
+        assert isinstance(boxes, String)
+        # Remove the outer quotes
+    elif origin.has_form("OutputForm", None):
+        # OutputForm produce outputs of the form
+        # InterpretationBox[PaneBox[_String, ...], origin_OutputForm, opts___]
+        assert boxes.has_form("PaneBox", 1, None)
+        boxes = boxes.boxes
+        assert isinstance(boxes, String)
+        # Remove the outer quotes
+        boxes = String(boxes.value)
+
+    return lookup_conversion_method(boxes, "mathml")(boxes, **options)
 
 
 add_conversion_fn(InterpretationBox, interpretation_box)
@@ -171,7 +188,7 @@ def fractionbox(self, **options) -> str:
     _options = self.box_options.copy()
     _options.update(options)
     options = _options
-    return "<mfrac>%s %s</mfrac>" % (
+    return "<mfrac>\n%s\n %s\n</mfrac>" % (
         lookup_conversion_method(self.num, "mathml")(self.num, **options),
         lookup_conversion_method(self.den, "mathml")(self.den, **options),
     )
@@ -231,7 +248,7 @@ def sqrtbox(self, **options):
             lookup_conversion_method(self.index, "mathml")(self.index, **options),
         )
 
-    return "<msqrt> %s </msqrt>" % lookup_conversion_method(self.radicand, "mathml")(
+    return "<msqrt>\n %s\n</msqrt>" % lookup_conversion_method(self.radicand, "mathml")(
         self.radicand, **options
     )
 
@@ -243,7 +260,7 @@ def subscriptbox(self, **options):
     _options = self.box_options.copy()
     _options.update(options)
     options = _options
-    return "<msub>%s %s</msub>" % (
+    return "<msub>\n%s\n %s\n</msub>" % (
         lookup_conversion_method(self.base, "mathml")(self.base, **options),
         lookup_conversion_method(self.subindex, "mathml")(self.subindex, **options),
     )
@@ -256,7 +273,7 @@ def superscriptbox(self, **options):
     _options = self.box_options.copy()
     _options.update(options)
     options = _options
-    return "<msup>%s %s</msup>" % (
+    return "<msup>\n%s \n%s\n</msup>" % (
         lookup_conversion_method(self.base, "mathml")(self.base, **options),
         lookup_conversion_method(self.superindex, "mathml")(self.superindex, **options),
     )
@@ -270,7 +287,7 @@ def subsuperscriptbox(self, **options):
     _options.update(options)
     options = _options
     options["inside_row"] = True
-    return "<msubsup>%s %s %s</msubsup>" % (
+    return "<msubsup>\n%s\n %s\n %s\n</msubsup>" % (
         lookup_conversion_method(self.base, "mathml")(self.base, **options),
         lookup_conversion_method(self.subindex, "mathml")(self.subindex, **options),
         lookup_conversion_method(self.superindex, "mathml")(self.superindex, **options),
@@ -318,7 +335,7 @@ def rowbox(self, **options) -> str:
 
     # print(f"mrow: {result}")
 
-    return "<mrow>%s</mrow>" % " ".join(result)
+    return "<mrow>\n%s\n</mrow>" % " ".join(result)
 
 
 add_conversion_fn(RowBox, rowbox)
