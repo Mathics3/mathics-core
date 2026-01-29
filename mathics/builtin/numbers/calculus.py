@@ -1086,10 +1086,11 @@ class Integrate(SympyFunction):
     def eval(self, f, xs, evaluation: Evaluation, options: dict):  # type: ignore[override]
         "Integrate[f_, xs__, OptionsPattern[]]"
         f_sympy = f.to_sympy()
-        if f_sympy.is_infinite:
-            return Expression(SymbolIntegrate, Integer1, xs).evaluate(evaluation) * f
         if f_sympy is None or isinstance(f_sympy, SympyExpression):
             return
+
+        if f_sympy.is_infinite:
+            return Expression(SymbolIntegrate, Integer1, xs).evaluate(evaluation) * f
         xs = xs.get_sequence()
         vars = []
         prec = None
