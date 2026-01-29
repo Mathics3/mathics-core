@@ -68,7 +68,6 @@ extra_operators = {
 
 def string(self, **options) -> str:
     text = self.value
-    print("mathml string", text, "options:", options)
 
     number_as_text = options.get("number_as_text", None)
     show_string_characters = (
