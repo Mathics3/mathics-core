@@ -110,8 +110,7 @@ class CommandLine(Predefined):
         from mathics import settings
 
         if not settings.ENABLE_SYSTEM_COMMANDS:
-            evaluation.message("CommandLine", "dis")
-            return SymbolFailed
+            return ListExpression()
         return ListExpression(*(String(arg) for arg in sys.argv))
 
 
@@ -651,8 +650,7 @@ class ScriptCommandLine(Predefined):
         from mathics import settings
 
         if not settings.ENABLE_SYSTEM_COMMANDS:
-            evaluation.message("ScriptCommandLine", "dis")
-            return SymbolFailed
+            return ListExpression()
         try:
             dash_index = sys.argv.index("--")
         except ValueError:
@@ -979,8 +977,14 @@ if have_psutil:
 
         name = "$SystemMemory"
         summary_text = "get the total amount of physical memory in the system"
+        messages = {"dis": "Execution of external commands is disabled."}
 
         def evaluate(self, evaluation: Evaluation) -> Integer:
+            from mathics import settings
+
+            if not settings.ENABLE_SYSTEM_COMMANDS:
+                evaluation.message("$SystemMemory", "dis")
+                return SymbolFailed
             totalmem = psutil.virtual_memory().total
             return Integer(totalmem)
 
@@ -1002,9 +1006,15 @@ if have_psutil:
         """
 
         summary_text = "get the available amount of physical memory in the system"
+        messages = {"dis": "Execution of external commands is disabled."}
 
         def eval(self, evaluation: Evaluation) -> Integer:
             """MemoryAvailable[]"""
+            from mathics import settings
+
+            if not settings.ENABLE_SYSTEM_COMMANDS:
+                evaluation.message("MemoryAvailable", "dis")
+                return SymbolFailed
             totalmem = psutil.virtual_memory().available
             return Integer(totalmem)
 
@@ -1026,8 +1036,14 @@ else:
 
         summary_text = "the total amount of physical memory in the system"
         name = "$SystemMemory"
+        messages = {"dis": "Execution of external commands is disabled."}
 
         def evaluate(self, evaluation: Evaluation) -> Integer:
+            from mathics import settings
+
+            if not settings.ENABLE_SYSTEM_COMMANDS:
+                evaluation.message("$SystemMemory", "dis")
+                return SymbolFailed
             return IntegerM1
 
     class MemoryAvailable(Builtin):
@@ -1045,7 +1061,13 @@ else:
         """
 
         summary_text = "get the available amount of physical memory in the system"
+        messages = {"dis": "Execution of external commands is disabled."}
 
         def eval(self, evaluation: Evaluation) -> Integer:
             """MemoryAvailable[]"""
+            from mathics import settings
+
+            if not settings.ENABLE_SYSTEM_COMMANDS:
+                evaluation.message("MemoryAvailable", "dis")
+                return SymbolFailed
             return IntegerM1

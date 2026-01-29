@@ -93,7 +93,10 @@ def Mathics3_interrupt_handler(
                 print_fn("continuing")
                 break
             elif user_input in ("debugger", "d"):
-                breakpoint()
+                if not settings.ENABLE_SYSTEM_COMMANDS:
+                    print_fn("Execution of external commands is disabled.")
+                else:
+                    breakpoint()
             elif user_input in ("exit", "quit"):
                 print_fn("Mathics3 exited because of an interrupt.")
                 sys.exit(3)
