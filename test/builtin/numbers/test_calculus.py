@@ -234,6 +234,11 @@ def test_Solve(str_expr: str, str_expected: str, expected_messages):
         ),
         ("Integrate[sin[x], x]", None, "Integrate[sin[x], x]", None),
         ("Integrate[x ^ 3.5 + x, x]", None, "x ^ 2 / 2 + 0.222222 x ^ 4.5", None),
+        (
+            'Integrate[F[a, "x"],{x,"p","q"}]',
+            'Integrate[F[a, "x"],{x,"p","q"}]',
+            "Integrand cannot be converted to sympy because of the string",
+        ),
         ("Integrate[ArcTan(x), x]", None, "x ^ 2 ArcTan / 2", None),
         ("Integrate[E[x], x]", None, "Integrate[E[x], x]", None),
         ("Integrate[Exp[-(x/2)^2],{x,-Infinity,+Infinity}]", None, "2 Sqrt[Pi]", None),
