@@ -63,11 +63,15 @@ class Breakpoint(Builtin):
 
     Here is how to use 'mathics.disabled_breakpoint':
 
-    >> SetEnvironment["PYTHONBREAKPOINT" -> "mathics.disabled_breakpoint"];
+    X> SetEnvironment["PYTHONBREAKPOINT" -> "mathics.disabled_breakpoint"];
 
-    >> Breakpoint[]
-    = Hit disabled breakpoint.
+    X> Breakpoint[]
+    | Hit disabled breakpoint.
     = Breakpoint[]
+
+    X> Breakpoint[]
+    : Breakpoint::dis: Execution of external commands is disabled.
+    = Null
 
     The environment variable 'PYTHONBREAKPOINT' can be changed at runtime to switch \
     'breakpoint()' and 'Breakpoint[]' behavior.
@@ -75,8 +79,15 @@ class Breakpoint(Builtin):
 
     summary_text = "invoke Python breakpoint()"
 
+    messages = {"dis": "Execution of external commands is disabled."}
+
     def eval(self, evaluation: Evaluation):
         "Breakpoint[]"
+        from mathics import settings
+
+        if not settings.ENABLE_SYSTEM_COMMANDS:
+            evaluation.message("Breakpoint", "dis")
+            return SymbolNull
         breakpoint()
 
 
@@ -88,17 +99,25 @@ class CommandLine(Predefined):
       <dd>is a list of strings passed on the command line to launch the Mathics3 session.
     </dl>
 
-    >> $CommandLine
+    S> $CommandLine
      = {...}
+
+    S> $CommandLine
+     = {}
     """
 
     name = "$CommandLine"
+    messages = {"dis": "Execution of external commands is disabled."}
     summary_text = (
         "get the command line arguments passed when the current Mathics3 "
         "session was launched"
     )
 
     def evaluate(self, evaluation: Evaluation) -> Expression:
+        from mathics import settings
+
+        if not settings.ENABLE_SYSTEM_COMMANDS:
+            return ListExpression()
         return ListExpression(*(String(arg) for arg in sys.argv))
 
 
@@ -114,17 +133,21 @@ class Environment(Builtin):
     S> Environment["HOME"]
      = ...
 
-    See also <url>
-    :'GetEnvironment':
-    /doc/reference-of-built-in-symbols/global-system-information/getenvironment/</url> and <url>
-    :'SetEnvironment':
-    /doc/reference-of-built-in-symbols/global-system-information/setenvironment/</url>.
+    S> Environment["HOME"]
+    : Environment::dis: Execution of external commands is disabled.
+    = $Failed
     """
 
+    messages = {"dis": "Execution of external commands is disabled."}
     summary_text = "list the system environment variables"
 
     def eval(self, var, evaluation: Evaluation):
         "Environment[var_String]"
+        from mathics import settings
+
+        if not settings.ENABLE_SYSTEM_COMMANDS:
+            evaluation.message("Environment", "dis")
+            return SymbolFailed
         env_var = var.get_string_value()
         if env_var not in os.environ:
             return SymbolFailed
@@ -150,29 +173,26 @@ class GetEnvironment(Builtin):
 
     On POSIX systems, the following gets the users HOME directory:
     S> GetEnvironment["HOME"]
-    = ...
+     = ...
 
-    We can get both the HOME directory and the user name in one go:
-    S> GetEnvironment[{"HOME", "USER"}]
-    = ...
-
-    Arguments however must be strings:
-    S> GetEnvironment[HOME]
-    : HOME is not ALL or a string or a list of strings.
-    = GetEnvironment[HOME]
-
-    See also <url>
-    :'Environment':
-    /doc/reference-of-built-in-symbols/global-system-information/environment/</url> and <url>
-    :'SetEnvironment':
-    /doc/reference-of-built-in-symbols/global-system-information/setenvironment/</url>.
+    S> GetEnvironment["HOME"]
+    : GetEnvironment::dis: Execution of external commands is disabled.
+    = $Failed
     """
 
-    messages = {"name": "`1` is not ALL or a string or a list of strings."}
+    messages = {
+        "name": "`1` is not ALL or a string or a list of strings.",
+        "dis": "Execution of external commands is disabled.",
+    }
     summary_text = "retrieve the value of a system environment variable"
 
     def eval(self, var, evaluation: Evaluation):
         "GetEnvironment[var___]"
+        from mathics import settings
+
+        if not settings.ENABLE_SYSTEM_COMMANDS:
+            evaluation.message("GetEnvironment", "dis")
+            return SymbolFailed
         if isinstance(var, String):
             env_var = var.value
             tup = (
@@ -289,7 +309,7 @@ class Machine(Predefined):
 
 
 class MachineName(Predefined):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/\\$MachineName.html</url>
 
     <dl>
@@ -300,13 +320,26 @@ class MachineName(Predefined):
 
     S> $MachineName
      = ...
+
+    S> $MachineName
+    : $MachineName::dis: Execution of external commands is disabled.
+    = $Failed
     """
 
     name = "$MachineName"
+    messages = {"dis": "Execution of external commands is disabled."}
     summary_text = "get the name of computer that Mathics3 is running"
 
     def evaluate(self, evaluation: Evaluation) -> String:
-        return String(platform.uname().node)
+        from mathics import settings
+
+        if not settings.ENABLE_SYSTEM_COMMANDS:
+            evaluation.message("$MachineName", "dis")
+            return SymbolFailed
+        try:
+            return String(platform.uname().node)
+        except Exception:
+            return String("unknown")
 
 
 class MathicsVersion(Predefined):
@@ -477,15 +510,24 @@ class ParentProcessID(Predefined):
           system under which it is run.
     </dl>
 
-    >> $ParentProcessID
+    S> $ParentProcessID
      = ...
 
+    S> $ParentProcessID
+    : $ParentProcessID::dis: Execution of external commands is disabled.
+    = $Failed
     """
 
     name = "$ParentProcessID"
+    messages = {"dis": "Execution of external commands is disabled."}
     summary_text = "get process id of the process that invoked Mathics3"
 
     def evaluate(self, evaluation: Evaluation) -> Integer:
+        from mathics import settings
+
+        if not settings.ENABLE_SYSTEM_COMMANDS:
+            evaluation.message("$ParentProcessID", "dis")
+            return SymbolFailed
         return Integer(os.getppid())
 
 
@@ -499,14 +541,24 @@ class ProcessID(Predefined):
           which it is run.
     </dl>
 
-    >> $ProcessID
+    S> $ProcessID
      = ...
+
+    S> $ProcessID
+    : $ProcessID::dis: Execution of external commands is disabled.
+    = $Failed
     """
 
     name = "$ProcessID"
+    messages = {"dis": "Execution of external commands is disabled."}
     summary_text = "get process id of the Mathics process"
 
     def evaluate(self, evaluation: Evaluation) -> Integer:
+        from mathics import settings
+
+        if not settings.ENABLE_SYSTEM_COMMANDS:
+            evaluation.message("$ProcessID", "dis")
+            return SymbolFailed
         return Integer(os.getpid())
 
 
@@ -571,10 +623,16 @@ class Run(Builtin):
      = ...
     """
 
+    messages = {"dis": "Execution of external commands is disabled."}
     summary_text = "run a system command"
 
     def eval(self, command, evaluation: Evaluation):
         "Run[command_String]"
+        from mathics import settings
+
+        if not settings.ENABLE_SYSTEM_COMMANDS:
+            evaluation.message("Run", "dis")
+            return SymbolFailed
         command_str = command.to_python()
         return Integer(subprocess.call(command_str, shell=True))
 
@@ -588,14 +646,22 @@ class ScriptCommandLine(Predefined):
       <dd>is a list of string arguments when running the kernel is script mode.
     </dl>
 
-    >> $ScriptCommandLine
-     = {...}
+    S> $ScriptCommandLine
+     = {}
+
+    S> $ScriptCommandLine
+     = {}
     """
 
     summary_text = "list of command line arguments"
     name = "$ScriptCommandLine"
+    messages = {"dis": "Execution of external commands is disabled."}
 
     def evaluate(self, evaluation: Evaluation):
+        from mathics import settings
+
+        if not settings.ENABLE_SYSTEM_COMMANDS:
+            return ListExpression()
         try:
             dash_index = sys.argv.index("--")
         except ValueError:
@@ -649,6 +715,10 @@ class SetEnvironment(Builtin):
      Set a single environment variable:
      S> SetEnvironment["FOO" -> "bar"]
 
+     S> SetEnvironment["FOO" -> "bar"]
+     : SetEnvironment::dis: Execution of external commands is disabled.
+     = $Failed
+
      See that the environment variable has changed:
      S> GetEnvironment["FOO"]
       = FOO -> bar
@@ -681,11 +751,20 @@ class SetEnvironment(Builtin):
      /doc/reference-of-built-in-symbols/global-system-information/getenvironment/</url>.
     """
 
-    messages = {"value": "`1` must be a string or None."}
+    messages = {
+        "value": "`1` must be a string or None.",
+        "dis": "Execution of external commands is disabled.",
+    }
     summary_text = "set system environment variable(s)"
 
     def eval(self, rule, evaluation):
         "SetEnvironment[rule_Rule]"
+        from mathics import settings
+
+        if not settings.ENABLE_SYSTEM_COMMANDS:
+            evaluation.message("SetEnvironment", "dis")
+            return SymbolFailed
+
         env_var_name, env_var_value = rule.elements
         # WMA does not give an error message if env_var_name is not a String - weird.
         if not isinstance(env_var_name, String):
@@ -695,13 +774,19 @@ class SetEnvironment(Builtin):
             evaluation.message("SetEnvironment", "value", env_var_value)
             return SymbolFailed
 
-        os.environ[env_var_name.value] = (
-            None if None is SymbolNone else env_var_value.value
-        )
+        if env_var_value is SymbolNone:
+            os.environ.pop(env_var_name.value, None)
+        else:
+            os.environ[env_var_name.value] = env_var_value.value
         return SymbolNull
 
     def eval_list(self, rules: Expression, evaluation: Evaluation):
         "SetEnvironment[{rules__}]"
+        from mathics import settings
+
+        if not settings.ENABLE_SYSTEM_COMMANDS:
+            evaluation.message("SetEnvironment", "dis")
+            return SymbolFailed
 
         # All the rules must be of the form
         for rule in rules.elements:
@@ -825,14 +910,24 @@ class UserName(Predefined):
       \Mathics session.
     </dl>
 
-    X> $UserName
+    S> $UserName
      = ...
+
+    S> $UserName
+    : $UserName::dis: Execution of external commands is disabled.
+    = $Failed
     """
 
     name = "$UserName"
+    messages = {"dis": "Execution of external commands is disabled."}
     summary_text = "get login name of the user that invoked the current session"
 
     def evaluate(self, evaluation: Evaluation) -> String:
+        from mathics import settings
+
+        if not settings.ENABLE_SYSTEM_COMMANDS:
+            evaluation.message("$UserName", "dis")
+            return SymbolFailed
         try:
             user = os.getlogin()
         except Exception:
@@ -896,14 +991,24 @@ if have_psutil:
           <dd>Returns the total amount of physical memory.
         </dl>
 
-        >> $SystemMemory
+        S> $SystemMemory
          = ...
+
+        S> $SystemMemory
+        : $SystemMemory::dis: Execution of external commands is disabled.
+        = $Failed
         """
 
         name = "$SystemMemory"
         summary_text = "get the total amount of physical memory in the system"
+        messages = {"dis": "Execution of external commands is disabled."}
 
         def evaluate(self, evaluation: Evaluation) -> Integer:
+            from mathics import settings
+
+            if not settings.ENABLE_SYSTEM_COMMANDS:
+                evaluation.message("$SystemMemory", "dis")
+                return SymbolFailed
             totalmem = psutil.virtual_memory().total
             return Integer(totalmem)
 
@@ -916,18 +1021,28 @@ if have_psutil:
           <dd>Returns the amount of the available physical memory.
         </dl>
 
-        >> MemoryAvailable[]
+        S> MemoryAvailable[]
          = ...
 
+        S> MemoryAvailable[]
+        : MemoryAvailable::dis: Execution of external commands is disabled.
+        = $Failed
+
         The relationship between \\$SystemMemory, MemoryAvailable, and MemoryInUse:
-        >> $SystemMemory > MemoryAvailable[] > MemoryInUse[]
+        S> $SystemMemory > MemoryAvailable[] > MemoryInUse[]
          = True
         """
 
         summary_text = "get the available amount of physical memory in the system"
+        messages = {"dis": "Execution of external commands is disabled."}
 
         def eval(self, evaluation: Evaluation) -> Integer:
             """MemoryAvailable[]"""
+            from mathics import settings
+
+            if not settings.ENABLE_SYSTEM_COMMANDS:
+                evaluation.message("MemoryAvailable", "dis")
+                return SymbolFailed
             totalmem = psutil.virtual_memory().available
             return Integer(totalmem)
 
@@ -943,14 +1058,24 @@ else:
           This system however doesn't have that installed, so -1 is returned instead.
         </dl>
 
-        >> $SystemMemory
+        S> $SystemMemory
          = -1
+
+        S> $SystemMemory
+        : $SystemMemory::dis: Execution of external commands is disabled.
+        = $Failed
         """
 
         summary_text = "the total amount of physical memory in the system"
         name = "$SystemMemory"
+        messages = {"dis": "Execution of external commands is disabled."}
 
         def evaluate(self, evaluation: Evaluation) -> Integer:
+            from mathics import settings
+
+            if not settings.ENABLE_SYSTEM_COMMANDS:
+                evaluation.message("$SystemMemory", "dis")
+                return SymbolFailed
             return IntegerM1
 
     class MemoryAvailable(Builtin):
@@ -959,16 +1084,26 @@ else:
 
         <dl>
           <dt>'MemoryAvailable'
-          <dd>Returns the amount of the available physical when Python module "psutil" is installed.
+          <dd>Returns the amount of the available physical memory when Python module "psutil" is installed.
           This system however doesn't have that installed, so -1 is returned instead.
         </dl>
 
-        >> MemoryAvailable[]
+        S> MemoryAvailable[]
          = -1
+
+        S> MemoryAvailable[]
+        : MemoryAvailable::dis: Execution of external commands is disabled.
+        = $Failed
         """
 
         summary_text = "get the available amount of physical memory in the system"
+        messages = {"dis": "Execution of external commands is disabled."}
 
         def eval(self, evaluation: Evaluation) -> Integer:
             """MemoryAvailable[]"""
+            from mathics import settings
+
+            if not settings.ENABLE_SYSTEM_COMMANDS:
+                evaluation.message("MemoryAvailable", "dis")
+                return SymbolFailed
             return IntegerM1

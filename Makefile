@@ -44,13 +44,13 @@ MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang
    test \
    texdoc
 
-SANDBOX	?=
+MATHICS3_SANDBOX	?=
 ifeq ($(OS),Windows_NT)
-	SANDBOX = t
+	MATHICS3_SANDBOX = t
 else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Darwin)
-		SANDBOX = t
+		MATHICS3_SANDBOX = t
 	endif
 endif
 
@@ -155,7 +155,7 @@ doctest-data: mathics/builtin/*.py mathics/doc/documentation/*.mdoc mathics/doc/
 
 #: Run tests that appear in docstring in the code. Use environment variable "DOCTEST_OPTIONS" for doctest options
 doctest:
-	MATHICS_CHARACTER_ENCODING="ASCII" SANDBOX=$(SANDBOX) $(PYTHON) mathics/docpipeline.py $(DOCTEST_OPTIONS)
+	MATHICS_CHARACTER_ENCODING="ASCII" MATHICS3_SANDBOX=$(MATHICS3_SANDBOX) $(PYTHON) mathics/docpipeline.py $(DOCTEST_OPTIONS)
 
 #: Run tests that appear in docstring in the code, stopping on the first error.
 doctest-x:
