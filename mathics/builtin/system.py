@@ -11,8 +11,8 @@ import os
 import platform
 import subprocess
 import sys
-
 from functools import wraps
+
 from pympler.asizeof import asizeof
 
 from mathics import settings, version_string
@@ -51,29 +51,30 @@ def not_in_sandboxed_environment(func):
 
     If we are sandboxed, a "dis" message is printed and we return $Failed.
     """
+
     @wraps(func)
     def wrapper(self, *args, **kwargs):
-
         # Get the function signature once during decoration
         sig = inspect.signature(func)
 
         # Here is we check to see if we are in a sandoxed environment.
         if not settings.ENABLE_SYSTEM_COMMANDS:
-
             # Bind args/kwargs to the function's parameter names
             bound_args = sig.bind(self, *args, **kwargs)
             # Apply default values for any missing arguments
             bound_args.apply_defaults()
 
             # Access "evaluation" by name, regardless of its position
-            self = bound_args.arguments.get('self')
-            evaluation = bound_args.arguments.get('evaluation')
+            self = bound_args.arguments.get("self")
+            evaluation = bound_args.arguments.get("evaluation")
 
             evaluation.message(self.__class__.__name__, "dis")
             return SymbolFailed
 
         return func(self, *args, **kwargs)
+
     return wrapper
+
 
 class Breakpoint(Builtin):
     """<url>:Python breakpoint():https://docs.python.org/3/library/functions.html#breakpoint</url>
@@ -133,7 +134,6 @@ class CommandLine(Predefined):
         "get the command line arguments passed when the current Mathics3 "
         "session was launched"
     )
-
 
     @not_in_sandboxed_environment
     def evaluate(self, evaluation: Evaluation) -> Expression:
@@ -216,7 +216,6 @@ class GetEnvironment(Builtin):
     @not_in_sandboxed_environment
     def eval(self, var, evaluation: Evaluation):
         "GetEnvironment[var___]"
-        from mathics import settings
 
         if isinstance(var, String):
             env_var = var.value
@@ -352,7 +351,6 @@ class MachineName(Predefined):
 
     @not_in_sandboxed_environment
     def evaluate(self, evaluation: Evaluation) -> String:
-
         try:
             return String(platform.uname().node)
         except Exception:
@@ -650,8 +648,6 @@ class ScriptCommandLine(Predefined):
 
     @not_in_sandboxed_environment
     def evaluate(self, evaluation: Evaluation):
-        from mathics import settings
-
         try:
             dash_index = sys.argv.index("--")
         except ValueError:
@@ -742,13 +738,9 @@ class SetEnvironment(Builtin):
     }
     summary_text = "set system environment variable(s)"
 
+    @not_in_sandboxed_environment
     def eval(self, rule, evaluation):
         "SetEnvironment[rule_Rule]"
-        from mathics import settings
-
-        if not settings.ENABLE_SYSTEM_COMMANDS:
-            evaluation.message("SetEnvironment", "dis")
-            return SymbolFailed
 
         env_var_name, env_var_value = rule.elements
         # WMA does not give an error message if env_var_name is not a String - weird.
@@ -765,13 +757,9 @@ class SetEnvironment(Builtin):
             os.environ[env_var_name.value] = env_var_value.value
         return SymbolNull
 
+    @not_in_sandboxed_environment
     def eval_list(self, rules: Expression, evaluation: Evaluation):
         "SetEnvironment[{rules__}]"
-        from mathics import settings
-
-        if not settings.ENABLE_SYSTEM_COMMANDS:
-            evaluation.message("SetEnvironment", "dis")
-            return SymbolFailed
 
         # All the rules must be of the form
         for rule in rules.elements:
@@ -903,8 +891,6 @@ class UserName(Predefined):
     summary_text = "get login name of the user that invoked the current session"
 
     def evaluate(self, evaluation: Evaluation) -> String:
-        from mathics import settings
-
         if not settings.ENABLE_SYSTEM_COMMANDS:
             evaluation.message("$UserName", "dis")
             return SymbolFailed
@@ -978,12 +964,8 @@ if have_psutil:
         name = "$SystemMemory"
         summary_text = "get the total amount of physical memory in the system"
 
+        @not_in_sandboxed_environment
         def evaluate(self, evaluation: Evaluation) -> Integer:
-            from mathics import settings
-
-            if not settings.ENABLE_SYSTEM_COMMANDS:
-                evaluation.message("$SystemMemory", "dis")
-                return SymbolFailed
             totalmem = psutil.virtual_memory().total
             return Integer(totalmem)
 
@@ -1000,19 +982,16 @@ if have_psutil:
          = ...
 
         The relationship between \\$SystemMemory, MemoryAvailable, and MemoryInUse:
-        >> $SystemMemory > MemoryAvailable[] > MemoryInUse[]
+        S> $SystemMemory > MemoryAvailable[] > MemoryInUse[]
          = True
         """
 
         summary_text = "get the available amount of physical memory in the system"
 
+        @not_in_sandboxed_environment
         def eval(self, evaluation: Evaluation) -> Integer:
             """MemoryAvailable[]"""
-            from mathics import settings
 
-            if not settings.ENABLE_SYSTEM_COMMANDS:
-                evaluation.message("MemoryAvailable", "dis")
-                return SymbolFailed
             totalmem = psutil.virtual_memory().available
             return Integer(totalmem)
 
@@ -1035,12 +1014,8 @@ else:
         summary_text = "the total amount of physical memory in the system"
         name = "$SystemMemory"
 
+        @not_in_sandboxed_environment
         def evaluate(self, evaluation: Evaluation) -> Integer:
-            from mathics import settings
-
-            if not settings.ENABLE_SYSTEM_COMMANDS:
-                evaluation.message("$SystemMemory", "dis")
-                return SymbolFailed
             return IntegerM1
 
     class MemoryAvailable(Builtin):
@@ -1059,11 +1034,8 @@ else:
 
         summary_text = "get the available amount of physical memory in the system"
 
+        @not_in_sandboxed_environment
         def eval(self, evaluation: Evaluation) -> Integer:
             """MemoryAvailable[]"""
-            from mathics import settings
 
-            if not settings.ENABLE_SYSTEM_COMMANDS:
-                evaluation.message("MemoryAvailable", "dis")
-                return SymbolFailed
             return IntegerM1
