@@ -112,7 +112,7 @@ class OutputForms_(Predefined):
 
 
 class ParentForm(Builtin):
-    """
+    r"""
     <dl>
       <dt>'ParentForm'[$Form$]
       <dd>Return the parent form of the Box Form $Form$.

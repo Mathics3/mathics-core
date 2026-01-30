@@ -175,15 +175,6 @@ class Definitions:
         self.trace_show_rewrite = False
         self.timing_trace_evaluation = False
 
-        # Importing "mathics.builtin.forms" populates the Symbol of the
-        # PrintForms and OutputForms sets.
-        #
-        # If "importlib" is used instead of "import", then we get:
-        #   TypeError: boxes_to_text() takes 1 positional argument but
-        #   2 were given
-        # Rocky: this smells of something not quite right in terms of
-        # modularity.
-
         self.boxforms = list(BOX_FORMS)
         self.printforms = list(PRINT_FORMS)
         self.outputforms = list(OUTPUT_FORMS)

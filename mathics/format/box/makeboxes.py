@@ -9,6 +9,7 @@ makeboxes rules.
 from typing import List
 
 from mathics.core.atoms import Complex, Rational, String
+from mathics.core.definitions import BOX_FORMS
 from mathics.core.element import BaseElement, BoxElementMixin, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -17,6 +18,7 @@ from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
     SymbolFullForm,
+    SymbolHoldForm,
     SymbolList,
     SymbolMakeBoxes,
     SymbolTrue,
@@ -32,7 +34,6 @@ from mathics.eval.lists import list_boxes
 from mathics.format.box.formatvalues import do_format
 from mathics.format.box.precedence import parenthesize
 
-BOX_FORMS = {SymbolStandardForm, SymbolTraditionalForm}
 PRINT_FORMS_CALLBACK = {}
 
 
@@ -82,7 +83,16 @@ def apply_makeboxes_rules(
 
     Basically: MakeBoxes[expr, form]
     """
-    assert form in BOX_FORMS, f"{form} not in BOX_FORMS"
+    parent_form = form
+
+    if form not in evaluation.definitions.boxforms:
+        expr = Expression(
+            SymbolFullForm,
+            Expression(SymbolHoldForm, Expression(SymbolMakeBoxes, expr, f)),
+        )
+        evaluation.message("MakeBoxes", "boxfmt", form, expr)
+    elif form not in BOX_FORMS:
+        parent_form = find_parent_form(form)
 
     def yield_rules():
         # Look
@@ -108,6 +118,11 @@ def apply_makeboxes_rules(
             return boxed.evaluate(evaluation)
         if isinstance(boxed, BoxElementMixin):
             return boxed
+
+    # Try with the ParentForm
+    if parent_form is not form:
+        apply_makeboxes_rules(expr, evaluation, parent_form)
+
     return eval_generic_makeboxes(expr, form, evaluation)
 
 
@@ -253,6 +268,18 @@ def eval_generic_makeboxes(expr, f, evaluation):
             )
         result.append(to_boxes(String(right), evaluation))
         return RowBox(*result)
+
+
+def find_parent_form(form, evaluation):
+    """Recursively find the ParentForm of the BoxForm `form`"""
+    parent_form = form
+    while parent_form not in BOX_FORMS:
+        parent_form_expr = Expression(SymbolParentForm, form)
+        parent_form = parent_form_expr.evaluate(evaluation)
+        if parent_form_expr is parent_form:
+            evaluation.message("ParentForm", "deflt", parent_form_expr)
+            return SymbolStandardForm
+    return parent_form
 
 
 def format_element(

@@ -95,14 +95,16 @@ class MakeBoxes(Builtin):
     summary_text = "settable low-level translator from expression to display boxes"
 
     def eval_general(self, expr, f, evaluation):
-        """MakeBoxes[expr_, f:TraditionalForm|StandardForm]"""
-        if False and f not in evaluation.definitions.boxforms:
-            expr = Expression(
-                SymbolFullForm,
-                Expression(SymbolHoldForm, Expression(SymbolMakeBoxes, expr, f)),
-            )
+        """MakeBoxes[expr_, f:StandardForm|TraditionalForm]"""
+        return format_element(expr, evaluation, f)
+
+    def eval_general_custom(self, expr, mbexpr, f, evaluation):
+        """mbexpr:MakeBoxes[expr_, f_]"""
+        if f not in evaluation.definitions.boxforms:
+            expr = Expression(SymbolHoldForm, mbexpr)
             evaluation.message("MakeBoxes", "boxfmt", f, expr)
             return None
+
         return format_element(expr, evaluation, f)
 
 
@@ -127,14 +129,20 @@ class ToBoxes(Builtin):
      = SuperscriptBox["a", "b"]
     """
 
+    messages = {
+        "boxfmt": (
+            "`1` in `2` is not a box formatting type. "
+            "A box formatting type is any member of $BoxForms."
+        )
+    }
     summary_text = "produce the display boxes of an evaluated expression"
 
-    def eval(self, expr, form, evaluation):
-        "ToBoxes[expr_, form_:StandardForm]"
-
-        form_name = form.get_name()
-        if form_name is None:
-            evaluation.message("ToBoxes", "boxfmt", form)
+    def eval(self, expr, tbexpr, form, evaluation):
+        "tbexpr:ToBoxes[expr_, form_:StandardForm]"
+        if form not in evaluation.definitions.boxforms:
+            expr = Expression(SymbolHoldForm, tbexpr)
+            evaluation.message("ToBoxes", "boxfmt", form, expr)
+            return None
 
         boxes = format_element(expr, evaluation, form)
         return boxes
