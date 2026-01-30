@@ -4,17 +4,36 @@ Unit tests from mathics.builtin.system.
 """
 
 
+import os
 from test.helper import check_evaluation
 
 import pytest
+
+from mathics import settings
 
 
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "assert_tag_message"),
     [
         ('MemberQ[$Packages, "System`"]', "True", "$Packages"),
-        ("Head[$ParentProcessID] == Integer", "True", "$ParentProcessID"),
-        ("Head[$ProcessID] == Integer", "True", "$ProcessID"),
+        pytest.param(
+            "Head[$ParentProcessID] == Integer",
+            "True",
+            "$ParentProcessID",
+            marks=pytest.mark.skipif(
+                not settings.ENABLE_SYSTEM_COMMANDS,
+                reason="In sandbox mode, $ParentProcessID returns $Failed",
+            ),
+        ),
+        pytest.param(
+            "Head[$ProcessID] == Integer",
+            "True",
+            "$ProcessID",
+            marks=pytest.mark.skipif(
+                not settings.ENABLE_SYSTEM_COMMANDS,
+                reason="In sandbox mode, $ProcessID returns $Failed",
+            ),
+        ),
         ("Head[$SessionID] == Integer", "True", "$SessionID"),
         ("Head[$SystemWordLength] == Integer", "True", "$SystemWordLength"),
     ],

@@ -35,10 +35,10 @@ class _WrongFormattedExpression(Exception):
 
 ARITHMETIC_OPERATOR_STRINGS: Final[FrozenSet[str]] = frozenset(
     [
-        *operator_to_string["Divide"],
-        *operator_to_string["NonCommutativeMultiply"],
-        *operator_to_string["Power"],
-        *operator_to_string["Times"],
+        *operator_to_string.get("Divide", ["/"]),
+        *operator_to_string.get("NonCommutativeMultiply", ["**"]),
+        *operator_to_string.get("Power", ["^"]),
+        *operator_to_string.get("Times", ["*"]),
         " ",
     ]
 )
@@ -109,12 +109,13 @@ def collect_in_pre_post_arguments(
         operator_spec = render_function(head, evaluation, **kwargs)
         if head is SymbolInfix:
             operator_spec = [
-                f"{operator_to_string['Infix']}{operator_spec}{operator_to_string['Infix']}"
+                f"{operator_to_string.get('Infix', '')}{operator_spec}"
+                f"{operator_to_string.get('Infix', '')}"
             ]
         elif head is SymbolPrefix:
-            operator_spec = f"{operator_spec}{operator_to_string['Prefix']}"
+            operator_spec = f"{operator_spec}{operator_to_string.get('Prefix', '')}"
         elif head is SymbolPostfix:
-            operator_spec = f"{operator_to_string['Postfix']}{operator_spec}"
+            operator_spec = f"{operator_to_string.get('Postfix', '')}{operator_spec}"
         return operands, operator_spec, precedence, group_name
 
     # At least two parameters: get the operator spec.
