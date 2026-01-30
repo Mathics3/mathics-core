@@ -30,7 +30,7 @@ def eval_mathmlform(expr: BaseElement, evaluation: Evaluation) -> BoxElementMixi
 
     boxes = format_element(expr, evaluation, SymbolTraditionalForm)
     try:
-        mathml = boxes.boxes_to_mathml(evaluation=evaluation)
+        mathml = boxes.boxes_to_mathml(evaluation=evaluation,_indent_level=1)
     except BoxError:
         evaluation.message(
             "General",

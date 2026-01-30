@@ -91,6 +91,7 @@ extra_operators = {
 
 
 def string(self, **options) -> str:
+
     text = self.value
 
     number_as_text = options.get("number_as_text", None)
@@ -101,10 +102,15 @@ def string(self, **options) -> str:
         if number_as_text is None:
             number_as_text = SymbolFalse
 
+
+    indent_level = options.get("_indent_level", 0)
+    indent_spaces = " "*indent_level    
+            
     def render(format, string):
         encoded_text = encode_mathml(string)
-        return format % encoded_text
+        return indent_spaces + format % encoded_text
 
+    
     if text.startswith('"') and text.endswith('"'):
         text = text[1:-1]
         if not show_string_characters:
@@ -171,6 +177,11 @@ add_conversion_fn(InterpretationBox, interpretation_box)
 
 
 def pane_box(self, **options):
+
+    indent_level = options.get("_indent_level", 0)
+    indent_spaces = " "*indent_level    
+    options["_indent_level"] = indent_level + 1        
+    
     content = lookup_conversion_method(self.boxes, "mathml")(self.boxes, **options)
     options = self.box_options
     size = options.get("System`ImageSize", SymbolAutomatic).to_python()
@@ -201,8 +212,8 @@ def pane_box(self, **options):
         dims += "overflow:hidden;"
         dims = f' style="{dims}" '
     if dims:
-        return f"<mstyle {dims}>\n{content}\n</mstyle>"
-    return content
+        return f"{indent_level}<mstyle {dims}>\n{content}\n{indent_level}</mstyle>"
+    return f"{indent_level}{content}"
 
 
 add_conversion_fn(PaneBox, pane_box)
@@ -212,7 +223,10 @@ def fractionbox(self, **options) -> str:
     _options = self.box_options.copy()
     _options.update(options)
     options = _options
-    return "<mfrac>\n%s\n%s\n</mfrac>" % (
+    indent_level = options.get("_indent_level", 0)
+    indent_spaces = " "*indent_level    
+    options["_indent_level"] = indent_level + 1
+    return f"{indent_spaces}<mfrac>\n%s\n%s\n{indent_spaces}</mfrac>" % (
         lookup_conversion_method(self.num, "mathml")(self.num, **options),
         lookup_conversion_method(self.den, "mathml")(self.den, **options),
     )
@@ -243,18 +257,22 @@ def gridbox(self, elements=None, **box_options) -> str:
         # invalid column alignment
         raise BoxConstructError
     joined_attrs = " ".join(f'{name}="{value}"' for name, value in attrs.items())
-    result = f"<mtable {joined_attrs}>\n"
+    indent_level = options.get("_indent_level", 0)
+    indent_spaces = " "*indent_level    
+    result = f"{indent_spaces}<mtable {joined_attrs}>\n"
     new_box_options = box_options.copy()
     new_box_options["inside_list"] = True
+    new_box_options["_indent_level"] = indent_level + 3
+    
     for row in items:
-        result += "<mtr>"
+        result += "{indent_spaces} <mtr>\n"
         if isinstance(row, tuple):
             for item in row:
-                result += f"<mtd {joined_attrs}>{boxes_to_mathml(item, **new_box_options)}</mtd>"
+                result += f"\n{indent_spaces}  <mtd {joined_attrs}>{boxes_to_mathml(item, **new_box_options)}</mtd>"
         else:
-            result += f"<mtd {joined_attrs} columnspan={num_fields}>{boxes_to_mathml(row, **new_box_options)}</mtd>"
-        result += "</mtr>\n"
-    result += "</mtable>"
+            result += f"\n{indent_spaces}  <mtd {joined_attrs} columnspan={num_fields}>\n{boxes_to_mathml(row, **new_box_options)}\n{indent_spaces}  </mtd>"
+        result += "{indent_spaces} </mtr>\n"
+    result += "{indent_spaces}</mtable>"
     # print(f"gridbox: {result}")
     return result
 
@@ -266,13 +284,17 @@ def sqrtbox(self, **options):
     _options = self.box_options.copy()
     _options.update(options)
     options = _options
+    indent_level = options.get("_indent_level", 0)
+    indent_spaces = " "*indent_level
+    options["_indent_level"] = indent_level + 1
+    
     if self.index:
-        return "<mroot> %s %s </mroot>" % (
+        return f"{indent_spaces}<mroot>\n%s\n%s\n{indent_spaces}</mroot>" % (
             lookup_conversion_method(self.radicand, "mathml")(self.radicand, **options),
             lookup_conversion_method(self.index, "mathml")(self.index, **options),
         )
 
-    return "<msqrt>\n%s\n</msqrt>" % lookup_conversion_method(self.radicand, "mathml")(
+    return f"{indent_spaces}<msqrt>\n%s\n{indent_spaces}</msqrt>" % lookup_conversion_method(self.radicand, "mathml")(
         self.radicand, **options
     )
 
@@ -284,7 +306,10 @@ def subscriptbox(self, **options):
     _options = self.box_options.copy()
     _options.update(options)
     options = _options
-    return "<msub>\n%s\n%s\n</msub>" % (
+    indent_level = options.get("_indent_level", 0)
+    indent_spaces = " "*indent_level
+    options["_indent_level"] = indent_level + 1    
+    return "{indent_spaces}<msub>\n%s\n%s\n{indent_spaces}</msub>" % (
         lookup_conversion_method(self.base, "mathml")(self.base, **options),
         lookup_conversion_method(self.subindex, "mathml")(self.subindex, **options),
     )
@@ -297,7 +322,11 @@ def superscriptbox(self, **options):
     _options = self.box_options.copy()
     _options.update(options)
     options = _options
-    return "<msup>\n%s\n%s\n</msup>" % (
+    indent_level = options.get("_indent_level", 0)
+    indent_spaces = " "*indent_level
+    options["_indent_level"] = indent_level + 1
+    
+    return f"{indent_spaces}<msup>\n%s\n%s\n{indent_spaces}</msup>" % (
         lookup_conversion_method(self.base, "mathml")(self.base, **options),
         lookup_conversion_method(self.superindex, "mathml")(self.superindex, **options),
     )
@@ -311,7 +340,12 @@ def subsuperscriptbox(self, **options):
     _options.update(options)
     options = _options
     options["inside_row"] = True
-    return "<msubsup>\n%s\n%s\n%s\n</msubsup>" % (
+
+    indent_level = options.get("_indent_level", 0)
+    indent_spaces = " "*indent_level
+    options["_indent_level"] = indent_level + 1
+    
+    return f"{indent_spaces}<msubsup>\n%s\n%s\n%s\n{indent_spaces}</msubsup>" % (
         lookup_conversion_method(self.base, "mathml")(self.base, **options),
         lookup_conversion_method(self.subindex, "mathml")(self.subindex, **options),
         lookup_conversion_method(self.superindex, "mathml")(self.superindex, **options),
@@ -354,12 +388,15 @@ def rowbox(self, **options) -> str:
     else:
         options["inside_row"] = True
 
+    indent_level = options.get("_indent_level", 0)
+    indent_spaces = " "*indent_level
+    options["_indent_level"] = indent_level + 1
+
     for element in self.items:
         result.append(lookup_conversion_method(element, "mathml")(element, **options))
 
-    # print(f"mrow: {result}")
-
-    return "<mrow>\n%s\n</mrow>" % "\n".join(result)
+    # print(f"mrow: {result}")    
+    return f"{indent_spaces}<mrow>\n{'\n'.join(result)}\n{indent_spaces}</mrow>"
 
 
 add_conversion_fn(RowBox, rowbox)
@@ -394,6 +431,10 @@ def graphicsbox(self, elements=None, **options) -> str:
         int(self.height),
         base64.b64encode(svg_body.encode("utf8")).decode("utf8"),
     )
+    indent_level = options.get("_indent_level",0)
+    if indent_level:
+        mathml = " " * indent_level + mathml
+    
     # print("boxes_to_mathml", mathml)
     return mathml
 
@@ -406,6 +447,9 @@ def graphics3dbox(self, elements=None, **options) -> str:
     json_repr = self.boxes_to_json(elements, **options)
     mathml = f'<graphics3d data="{html.escape(json_repr)}" />'
     mathml = f"<mtable>\n<mtr>\n<mtd>\n{mathml}\n</mtd>\n</mtr>\n</mtable>"
+    indent_level = options.get("_indent_level",0)
+    if indent_level:
+        mathml = " " * indent_level + mathml
     return mathml
 
 
