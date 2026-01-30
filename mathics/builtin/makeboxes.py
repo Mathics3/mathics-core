@@ -3,10 +3,10 @@
 Low-level Format definitions
 """
 
-from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_READ_PROTECTED
-from mathics.core.builtin import Builtin, Predefined
+from mathics.core.attributes import A_HOLD_ALL_COMPLETE
+from mathics.core.builtin import Builtin
 from mathics.core.expression import Expression
-from mathics.core.systemsymbols import SymbolFullForm, SymbolHoldForm, SymbolMakeBoxes
+from mathics.core.systemsymbols import SymbolHoldForm
 from mathics.format.box import format_element
 
 # TODO: Differently from the current implementation, MakeBoxes should only

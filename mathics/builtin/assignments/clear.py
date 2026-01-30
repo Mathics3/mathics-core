@@ -17,7 +17,6 @@ from mathics.core.attributes import (
 )
 from mathics.core.builtin import Builtin, PostfixOperator
 from mathics.core.expression import Expression
-from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol, SymbolNull, symbol_set
 from mathics.core.systemsymbols import (
     SymbolContext,

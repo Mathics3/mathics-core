@@ -89,7 +89,7 @@ def apply_makeboxes_rules(
     if form not in evaluation.definitions.boxforms:
         expr = Expression(
             SymbolFullForm,
-            Expression(SymbolHoldForm, Expression(SymbolMakeBoxes, expr, f)),
+            Expression(SymbolHoldForm, Expression(SymbolMakeBoxes, expr, form)),
         )
         evaluation.message("MakeBoxes", "boxfmt", form, expr)
     elif form not in BOX_FORMS:
