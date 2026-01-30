@@ -6,14 +6,16 @@ Global System Information
 
 import _thread
 import gc
+import inspect
 import os
 import platform
 import subprocess
 import sys
 
+from functools import wraps
 from pympler.asizeof import asizeof
 
-from mathics import version_string
+from mathics import settings, version_string
 from mathics.core.atoms import Integer, Integer0, IntegerM1, Real, String
 from mathics.core.attributes import A_CONSTANT
 from mathics.core.builtin import Builtin, Predefined
@@ -39,6 +41,39 @@ else:
 
 sort_order = "mathics.builtin.global-system-information"
 
+
+def not_in_sandboxed_environment(func):
+    """
+    A decorator for eval() and evaluate() methods which
+    checks that mathics.settings.ENABLE_SYSTEM_COMMANDS is set.
+    In other words, check to see if we are not in a sandboxed
+    environment.
+
+    If we are sandboxed, a "dis" message is printed and we return $Failed.
+    """
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+
+        # Get the function signature once during decoration
+        sig = inspect.signature(func)
+
+        # Here is we check to see if we are in a sandoxed environment.
+        if not settings.ENABLE_SYSTEM_COMMANDS:
+
+            # Bind args/kwargs to the function's parameter names
+            bound_args = sig.bind(self, *args, **kwargs)
+            # Apply default values for any missing arguments
+            bound_args.apply_defaults()
+
+            # Access "evaluation" by name, regardless of its position
+            self = bound_args.arguments.get('self')
+            evaluation = bound_args.arguments.get('evaluation')
+
+            evaluation.message(self.__class__.__name__, "dis")
+            return SymbolFailed
+
+        return func(self, *args, **kwargs)
+    return wrapper
 
 class Breakpoint(Builtin):
     """<url>:Python breakpoint():https://docs.python.org/3/library/functions.html#breakpoint</url>
@@ -74,15 +109,10 @@ class Breakpoint(Builtin):
 
     summary_text = "invoke Python breakpoint()"
 
-    messages = {"dis": "Execution of external commands is disabled."}
-
+    @not_in_sandboxed_environment
     def eval(self, evaluation: Evaluation):
         "Breakpoint[]"
-        from mathics import settings
 
-        if not settings.ENABLE_SYSTEM_COMMANDS:
-            evaluation.message("Breakpoint", "dis")
-            return SymbolNull
         breakpoint()
 
 
@@ -99,17 +129,14 @@ class CommandLine(Predefined):
     """
 
     name = "$CommandLine"
-    messages = {"dis": "Execution of external commands is disabled."}
     summary_text = (
         "get the command line arguments passed when the current Mathics3 "
         "session was launched"
     )
 
-    def evaluate(self, evaluation: Evaluation) -> Expression:
-        from mathics import settings
 
-        if not settings.ENABLE_SYSTEM_COMMANDS:
-            return ListExpression()
+    @not_in_sandboxed_environment
+    def evaluate(self, evaluation: Evaluation) -> Expression:
         return ListExpression(*(String(arg) for arg in sys.argv))
 
 
@@ -132,16 +159,12 @@ class Environment(Builtin):
     /doc/reference-of-built-in-symbols/global-system-information/setenvironment/</url>.
     """
 
-    messages = {"dis": "Execution of external commands is disabled."}
     summary_text = "list the system environment variables"
 
+    @not_in_sandboxed_environment
     def eval(self, var, evaluation: Evaluation):
         "Environment[var_String]"
-        from mathics import settings
 
-        if not settings.ENABLE_SYSTEM_COMMANDS:
-            evaluation.message("Environment", "dis")
-            return SymbolFailed
         env_var = var.get_string_value()
         if env_var not in os.environ:
             return SymbolFailed
@@ -187,17 +210,14 @@ class GetEnvironment(Builtin):
 
     messages = {
         "name": "`1` is not ALL or a string or a list of strings.",
-        "dis": "Execution of external commands is disabled.",
     }
     summary_text = "retrieve the value of a system environment variable"
 
+    @not_in_sandboxed_environment
     def eval(self, var, evaluation: Evaluation):
         "GetEnvironment[var___]"
         from mathics import settings
 
-        if not settings.ENABLE_SYSTEM_COMMANDS:
-            evaluation.message("GetEnvironment", "dis")
-            return SymbolFailed
         if isinstance(var, String):
             env_var = var.value
             tup = (
@@ -328,15 +348,11 @@ class MachineName(Predefined):
     """
 
     name = "$MachineName"
-    messages = {"dis": "Execution of external commands is disabled."}
     summary_text = "get the name of computer that Mathics3 is running"
 
+    @not_in_sandboxed_environment
     def evaluate(self, evaluation: Evaluation) -> String:
-        from mathics import settings
 
-        if not settings.ENABLE_SYSTEM_COMMANDS:
-            evaluation.message("$MachineName", "dis")
-            return SymbolFailed
         try:
             return String(platform.uname().node)
         except Exception:
@@ -516,15 +532,10 @@ class ParentProcessID(Predefined):
     """
 
     name = "$ParentProcessID"
-    messages = {"dis": "Execution of external commands is disabled."}
     summary_text = "get process id of the process that invoked Mathics3"
 
+    @not_in_sandboxed_environment
     def evaluate(self, evaluation: Evaluation) -> Integer:
-        from mathics import settings
-
-        if not settings.ENABLE_SYSTEM_COMMANDS:
-            evaluation.message("$ParentProcessID", "dis")
-            return SymbolFailed
         return Integer(os.getppid())
 
 
@@ -543,15 +554,10 @@ class ProcessID(Predefined):
     """
 
     name = "$ProcessID"
-    messages = {"dis": "Execution of external commands is disabled."}
     summary_text = "get process id of the Mathics process"
 
+    @not_in_sandboxed_environment
     def evaluate(self, evaluation: Evaluation) -> Integer:
-        from mathics import settings
-
-        if not settings.ENABLE_SYSTEM_COMMANDS:
-            evaluation.message("$ProcessID", "dis")
-            return SymbolFailed
         return Integer(os.getpid())
 
 
@@ -616,16 +622,12 @@ class Run(Builtin):
      = ...
     """
 
-    messages = {"dis": "Execution of external commands is disabled."}
     summary_text = "run a system command"
 
+    @not_in_sandboxed_environment
     def eval(self, command, evaluation: Evaluation):
         "Run[command_String]"
-        from mathics import settings
 
-        if not settings.ENABLE_SYSTEM_COMMANDS:
-            evaluation.message("Run", "dis")
-            return SymbolFailed
         command_str = command.to_python()
         return Integer(subprocess.call(command_str, shell=True))
 
@@ -645,13 +647,11 @@ class ScriptCommandLine(Predefined):
 
     summary_text = "list of command line arguments"
     name = "$ScriptCommandLine"
-    messages = {"dis": "Execution of external commands is disabled."}
 
+    @not_in_sandboxed_environment
     def evaluate(self, evaluation: Evaluation):
         from mathics import settings
 
-        if not settings.ENABLE_SYSTEM_COMMANDS:
-            return ListExpression()
         try:
             dash_index = sys.argv.index("--")
         except ValueError:
@@ -739,7 +739,6 @@ class SetEnvironment(Builtin):
 
     messages = {
         "value": "`1` must be a string or None.",
-        "dis": "Execution of external commands is disabled.",
     }
     summary_text = "set system environment variable(s)"
 
@@ -901,7 +900,6 @@ class UserName(Predefined):
     """
 
     name = "$UserName"
-    messages = {"dis": "Execution of external commands is disabled."}
     summary_text = "get login name of the user that invoked the current session"
 
     def evaluate(self, evaluation: Evaluation) -> String:
@@ -979,7 +977,6 @@ if have_psutil:
 
         name = "$SystemMemory"
         summary_text = "get the total amount of physical memory in the system"
-        messages = {"dis": "Execution of external commands is disabled."}
 
         def evaluate(self, evaluation: Evaluation) -> Integer:
             from mathics import settings
@@ -1008,7 +1005,6 @@ if have_psutil:
         """
 
         summary_text = "get the available amount of physical memory in the system"
-        messages = {"dis": "Execution of external commands is disabled."}
 
         def eval(self, evaluation: Evaluation) -> Integer:
             """MemoryAvailable[]"""
@@ -1038,7 +1034,6 @@ else:
 
         summary_text = "the total amount of physical memory in the system"
         name = "$SystemMemory"
-        messages = {"dis": "Execution of external commands is disabled."}
 
         def evaluate(self, evaluation: Evaluation) -> Integer:
             from mathics import settings
@@ -1063,7 +1058,6 @@ else:
         """
 
         summary_text = "get the available amount of physical memory in the system"
-        messages = {"dis": "Execution of external commands is disabled."}
 
         def eval(self, evaluation: Evaluation) -> Integer:
             """MemoryAvailable[]"""
