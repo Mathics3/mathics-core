@@ -5,7 +5,7 @@ Below are are Built-in variables that contain lists of the forms available accor
 
 """
 
-from mathics.core.attributes import A_LOCKED, A_PROTECTED
+from mathics.core.attributes import A_LOCKED, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Predefined
 from mathics.core.list import ListExpression
 
@@ -25,36 +25,114 @@ class BoxForms_(Predefined):
     >> $BoxForms
      = ...
     
-    ## TODO: The rest describes how this works in WMA, but is not already implemented here.
-    ##
-    ## Differently from <url>:\$PrintForm':
-    ## /doc/reference-of-built-in-symbols/forms-of-input-and-output/form-variables/\$printforms
-    ## </url>, elements are not automatically appended to '$BoxForms' by setting 'MakeBoxes' values.
-    ## To do that, explicit assignment to '$BoxForms' is required:
-    ##
-    ## >> AppendTo[$BoxForms, MyBoxForm]
-    ## = ...
-    ##
-    ## On the other hand, to use a custom 'BoxForm' in a 'MakeBoxes' construction, a 'ParentForm' \
-    ## must be associated to the new form:
-    ##
-    ## >> Unprotect[ParentForm]; ParentForm[MyBoxForm] = TraditionalForm
-    ## = ...
-    ##
-    ## Now we can define MakeBoxes rules. For example,
-    ## 
-    ## >> MakeBoxes[F[x_], MyBoxForm] := RowBox[{MakeBoxes[F, MyBoxForm], "<", MakeBoxes[x, MyBoxForm] ,">"}]
-    ## >> MyBoxForm[F[3]]
-    ##  = F < a > 
-    ##
-    """
+    Differently from <url>:\$PrintForm':
+    /doc/reference-of-built-in-symbols/forms-of-input-and-output/form-variables/\$printforms
+    </url> which is updated when new 'FormatValues' are defined, it is not \
+    enough to add a 'MakeBoxes' rule to extend $BoxForms:
+    >> MakeBoxes[x_Integer, MyBoxForm]:=StringJoin[Table["o",{x}]]
+    >> MyBoxForm[3]
+     = MyBoxForm[3]
+    >> $BoxForms
+     = ...
 
-    attributes = A_LOCKED | A_PROTECTED
+    To extend the available box form, and make the rule available, \
+    we start by adding the new form to '\$BoxForms':
+    >> AppendTo[$BoxForms, MyBoxForm]
+     = ...
+    Automatically this stores the new form in '\$PrintForms' and \
+    '\$OutputForms':
+    >> MemberQ[$PrintForms, MyBoxForm]
+     = True
+    >> MemberQ[$OutputForms, MyBoxForm]
+     = True
+
+    Still, this is not enough:
+    >> MyBoxForm[F[3]]
+     | The ParentForm of ParentForm[MyBoxForm] is not defined on $BoxForms.
+     = F[3]
+    To complete the extension, we need to establish what is the \
+    'ParentForm'  of the new box form:
+    >> Unprotect[ParentForm];ParentForm[MyBoxForm]=TraditionalForm
+     = TraditionalForm
+    Now,
+    >> MyBoxForm[3]
+     = ooo
+
+    The 'ParentForm' is used when a 'MakeBoxes' rule for a given expression \
+    is not available:
+    >> MyBoxForm[F[3, g[x]]]
+     = F(3, g(x))
+
+    Notice that our rule is not used to format the argument. This is because \
+    the rule used to format the expression propagates 'TratidionalForm' (the \
+    'ParentForm' of our custom 'BoxForm') to the arguments.
+
+    To make available for nested expressions, we need to define a rule that \
+    propagates the box form to their elements:
+
+    >> MakeBoxes[head_[elements___],MyBoxForm]:=RowBox[{MakeBoxes[head,MyBoxForm], "<", RowBox[MakeBoxes[#1, MyBoxForm]&/@{elements}]     ,">"}]
+    Now,
+    >> MyBoxForm[F[3]]
+     = F<ooo>    
+
+    Suppose now we want to remove the new BoxForm. We can reset '$BoxForms' \
+    to its default values by unset it:
+    >> $BoxForms=.; $BoxForms
+     = ...
+    Notice that this do not clean automatically the other variables:
+    >> {MemberQ[$PrintForms, MyBoxForm], MemberQ[$OutputForms, MyBoxForm]}
+     = {True, True}
+    To reset them too, unset their values:
+    >> $PrintForms=.; $OutputForms=.; 
+    >> {MemberQ[$PrintForms, MyBoxForm], MemberQ[$OutputForms, MyBoxForm]}
+     = {False, False}
+    """
+    attributes = A_READ_PROTECTED
+    messages = {
+        "formset": "Cannot set $BoxForms to ``; value must be a list that includes TraditionalForm and StandardForm."
+    }
     name = "$BoxForms"
-    summary_text = "contains a list of box forms"
+    summary_text = "the list of box formats"
 
     def evaluate(self, evaluation):
         return ListExpression(*evaluation.definitions.boxforms)
+
+
+class OutputForms_(Predefined):
+    r"""
+    <dl>
+      <dt>'\$OutputForms'
+      <dd>contains the list of all output forms. It is updated automatically when new 'OutputForms' are defined by setting format values.
+    </dl>
+
+    >> $OutputForms
+     = ...
+    """
+
+    attributes = A_LOCKED | A_PROTECTED
+    name = "$OutputForms"
+    summary_text = "contains a list all output forms"
+
+    def evaluate(self, evaluation):
+        return ListExpression(*evaluation.definitions.outputforms)
+
+
+class ParentForm(Builtin):
+    r"""
+    <dl>
+      <dt>'ParentForm'[$Form$]
+      <dd>Return the parent form of the Box Form $Form$.
+    </dl>
+    
+    'ParentForm' is used to set and retrieve the parent form of a user-defined \
+    box form. See <url>:\$BoxForms':
+    /doc/reference-of-built-in-symbols/forms-of-input-and-output/form-variables/\$boxforms
+    </url> for a usage example.
+    """
+
+    attributes = A_PROTECTED
+    messages = {"deflt": "The ParentForm of `` is not defined on $BoxForms."}
+    summary_text = "Associated ParentForm to a custom BoxForm"
 
 
 class PrintForms_(Predefined):
@@ -90,58 +168,3 @@ class PrintForms_(Predefined):
 
     def evaluate(self, evaluation):
         return ListExpression(*evaluation.definitions.printforms)
-
-
-class OutputForms_(Predefined):
-    r"""
-    <dl>
-      <dt>'\$OutputForms'
-      <dd>contains the list of all output forms. It is updated automatically when new 'OutputForms' are defined by setting format values.
-    </dl>
-
-    >> $OutputForms
-     = ...
-    """
-
-    attributes = A_LOCKED | A_PROTECTED
-    name = "$OutputForms"
-    summary_text = "contains a list all output forms"
-
-    def evaluate(self, evaluation):
-        return ListExpression(*evaluation.definitions.outputforms)
-
-
-class ParentForm(Builtin):
-    r"""
-    <dl>
-      <dt>'ParentForm'[$Form$]
-      <dd>Return the parent form of the Box Form $Form$.
-    </dl>
-    
-    'ParentForm' is used to set and retrieve the parent form of a user-defined \
-    box form. 'MakeBoxes'
-
-    ## TODO: This is how this works in WMA: 
-    ## MakeBoxes can not be evaluated with a second argument not in '\$BoxForms'
-    ## >> MakeBoxes[F[x], MyForm]
-    ##  | MakeBoxes::boxfmt: MyForm in MakeBoxes[F[x], MyForm] is not a box formatting type. A box formatting type is any member of $BoxForms.
-    ##  = MakeBoxes[F[x], MyForm]
-    ##
-    ## Append the custom format to $BoxForms is not enough:
-    ## >> AppendTo[$BoxForms, MyForm];
-    ## >> MakeBoxes[F[x], MyForm]
-    ##  | ParentForm::deflt: The ParentForm of ParentForm[MyForm] is not defined on $BoxForms.
-    ##  = MakeBoxes[F[x], MyForm]
-    ##
-    ## Setting 'ParentForm' for this new form
-    ## >> Unprotect[ParentForm];ParentForm[MyForm]=TraditionalForm;
-    ## >> MakeBoxes[F[x], MyForm]
-    ##  = RowBox[{F, (, x, )}]
-    ##  
-    ## >> MyForm[F[x]]
-    ##  = F(x)
-    """
-
-    attributes = A_PROTECTED
-    messages = {"deflt": "The ParentForm of `` is not defined on $BoxForms."}
-    summary_text = "Associated ParentForm to a custom BoxForm"

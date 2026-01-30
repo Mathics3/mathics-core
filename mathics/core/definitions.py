@@ -785,6 +785,19 @@ class Definitions:
     def unset(self, name: str, expr: BaseElement) -> bool:
         """Remove the rule corresponding to the expression `expr` in
         the definition of Symbol `name`"""
+        # These special symbol names are stored
+        # as attributes of the `Definitions` object.
+        # If this grows, maybe we should split this code.
+        if name == "System`$BoxForms":
+            self.boxforms = BOX_FORMS
+            return True
+        if name == "System`$PrintForms":
+            self.printforms = PRINT_FORMS
+            return True
+        if name == "System`$OutputForms":
+            self.outputforms = OUTPUT_FORMS
+            return True
+
         definition = self.get_user_definition(self.lookup_name(name))
         result = definition.remove_rule(expr)
         self.mark_changed(definition)

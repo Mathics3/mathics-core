@@ -14,25 +14,6 @@ from mathics.format.box import format_element
 # fix in a following step, changing the way in which Format and MakeBoxes work.
 
 
-class BoxForms_(Predefined):
-    r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/\$BoxForms.html</url>
-
-    <dl>
-      <dt>'\$BoxForms'
-      <dd>contains the list of box formats.
-    </dl>
-
-    >> $BoxForms
-     = ...
-    """
-
-    attributes = A_READ_PROTECTED
-    name = "$BoxForms"
-    rules = {"$BoxForms": "{StandardForm, TraditionalForm}"}
-    summary_text = "the list of box formats"
-
-
 class MakeBoxes(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/MakeBoxes.html</url>

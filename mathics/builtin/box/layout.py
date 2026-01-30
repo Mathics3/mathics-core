@@ -434,6 +434,9 @@ class RowBox(BoxExpression):
     def init(self, *items, **kwargs):
         # TODO: check that each element is an string or a BoxElementMixin
         self.box_options = {}
+        if len(items) == 0:
+            self.items = tuple()
+            return
         if isinstance(items[0], Expression):
             if len(items) != 1:
                 raise Exception(
