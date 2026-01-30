@@ -417,6 +417,8 @@ def rowbox_sequence(items, **options):
         lookup_conversion_method(element, "latex")(element, **options)
         for element in items
     ]
+    if len(parts_str) == 0:
+        return ""
     if len(parts_str) == 1:
         return parts_str[0]
     # This loop integrate all the row adding spaces after a ",", followed
@@ -445,14 +447,15 @@ def rowbox_parenthesized(items, **options):
         items[0],
         items[-1],
     )
+    items = items[1:-1]
     try:
         bracket_data = BRACKET_INFO[key]
     except KeyError:
         return None
 
-    contain = rowbox_sequence(items[1:-1], **options) if len(items) > 2 else ""
+    contain = rowbox_sequence(items, **options) if len(items) > 0 else ""
 
-    if any(c in contain for c in ("\\", "^", "_")):
+    if any(item.is_multiline for item in items):
         return f'{bracket_data["latex_open_large"]}{contain}{bracket_data["latex_closing_large"]}'
     return f'{bracket_data["latex_open"]}{contain}{bracket_data["latex_closing"]}'
 
