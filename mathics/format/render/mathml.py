@@ -260,14 +260,15 @@ def gridbox(self, elements=None, **box_options) -> str:
     new_box_options["_indent_level"] = indent_level + 3
 
     for row in items:
-        result += "{indent_spaces} <mtr>\n"
+        result += f"{indent_spaces} <mtr>"
         if isinstance(row, tuple):
             for item in row:
-                result += f"\n{indent_spaces}  <mtd {joined_attrs}>{boxes_to_mathml(item, **new_box_options)}</mtd>"
+                new_box_options["_indent_level"] = indent_level + 4
+                result += f"\n{indent_spaces}  <mtd {joined_attrs}>\n{boxes_to_mathml(item, **new_box_options)}\n{indent_spaces}  </mtd>"
         else:
             result += f"\n{indent_spaces}  <mtd {joined_attrs} columnspan={num_fields}>\n{boxes_to_mathml(row, **new_box_options)}\n{indent_spaces}  </mtd>"
-        result += "{indent_spaces} </mtr>\n"
-    result += "{indent_spaces}</mtable>"
+        result += f"\n{indent_spaces} </mtr>\n"
+    result += f"{indent_spaces}</mtable>"
     # print(f"gridbox: {result}")
     return result
 
