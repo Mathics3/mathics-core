@@ -789,13 +789,13 @@ class Definitions:
         # as attributes of the `Definitions` object.
         # If this grows, maybe we should split this code.
         if name == "System`$BoxForms":
-            self.boxforms = BOX_FORMS
+            self.boxforms = list(BOX_FORMS)
             return True
         if name == "System`$PrintForms":
-            self.printforms = PRINT_FORMS
+            self.printforms = list(PRINT_FORMS)
             return True
         if name == "System`$OutputForms":
-            self.outputforms = OUTPUT_FORMS
+            self.outputforms = list(OUTPUT_FORMS)
             return True
 
         definition = self.get_user_definition(self.lookup_name(name))

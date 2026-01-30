@@ -141,10 +141,8 @@ def test_custom_boxconstruct():
     defs = session.evaluation.definitions
     instance_custom_atom = CustomAtom(expression=False)
     instance_custom_atom.contribute(defs, is_pymodule=True)
-    formatted = session.evaluate("MakeBoxes[InputForm[CustomAtom]]")
-    assert hasattr(formatted, "boxes_to_mathml"), f"{formatted} is not a Box Expression"
-    mathml_result = formatted.boxes_to_mathml()
-    assert mathml_result == "CustomBoxExpression<<[1, 2, 3]>>"
+    formatted = session.evaluate("MakeBoxes[InputForm[CustomAtom]]").boxes_to_mathml()
+    assert formatted == "CustomBoxExpression<<[1, 2, 3]>>"
 
 
 def test_custom_graphicsbox_constructor():
