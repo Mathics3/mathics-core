@@ -6,26 +6,25 @@ MathML formatting is usually initiated in Mathics via MathMLForm[].
 
 For readability, and following WMA MathML generated code,  tags \
 containing sub-tags are split on several lines, one by
-sub element. For example, the Box expression
+sub element, and indented according to the level of the part. \
+For example, the Box expression
 
 >> FractionBox[RowBox[{"a", "+", SuperscriptBox["b", "c"]}], "d"]
 
 produces
 ```
 <mfrac>
-<mrow>
-<mi>a</mi>
-<mo>+</mo>
-<msup>
-<mi>b</mi> 
-<mi>c</mi>
-</msup>
-</mrow>
-<mi>d</mi>
+ <mrow>
+  <mi>a</mi>
+  <mo>+</mo>
+  <msup>
+   <mi>b</mi>
+   <mi>c</mi>
+  </msup>
+ </mrow>
+ <mi>d</mi>
 </mfrac>
 ```
-In WMA, each line would be also indented adding one space on each \
-level of indentation.
 
 """
 
@@ -91,7 +90,6 @@ extra_operators = {
 
 
 def string(self, **options) -> str:
-
     text = self.value
 
     number_as_text = options.get("number_as_text", None)
@@ -175,7 +173,6 @@ add_conversion_fn(InterpretationBox, interpretation_box)
 
 
 def pane_box(self, **options):
-
     indent_level = options.get("_indent_level", 0)
     indent_spaces = " " * indent_level
     options["_indent_level"] = indent_level + 1
@@ -210,8 +207,8 @@ def pane_box(self, **options):
         dims += "overflow:hidden;"
         dims = f' style="{dims}" '
     if dims:
-        return f"{indent_level}<mstyle {dims}>\n{content}\n{indent_level}</mstyle>"
-    return f"{indent_level}{content}"
+        return f"{indent_spaces}<mstyle {dims}>\n{content}\n{indent_spaces}</mstyle>"
+    return f"{indent_spaces}{content}"
 
 
 add_conversion_fn(PaneBox, pane_box)
@@ -308,7 +305,7 @@ def subscriptbox(self, **options):
     indent_level = options.get("_indent_level", 0)
     indent_spaces = " " * indent_level
     options["_indent_level"] = indent_level + 1
-    return "{indent_spaces}<msub>\n%s\n%s\n{indent_spaces}</msub>" % (
+    return f"{indent_spaces}<msub>\n%s\n%s\n{indent_spaces}</msub>" % (
         lookup_conversion_method(self.base, "mathml")(self.base, **options),
         lookup_conversion_method(self.subindex, "mathml")(self.subindex, **options),
     )
@@ -395,7 +392,7 @@ def rowbox(self, **options) -> str:
         result.append(lookup_conversion_method(element, "mathml")(element, **options))
 
     # print(f"mrow: {result}")
-    return f"{indent_spaces}<mrow>\n{'\n'.join(result)}\n{indent_spaces}</mrow>"
+    return f"{indent_spaces}<mrow>\n%s\n{indent_spaces}</mrow>" % ("\n".join(result),)
 
 
 add_conversion_fn(RowBox, rowbox)
