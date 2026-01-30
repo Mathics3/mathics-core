@@ -5,6 +5,8 @@ Low-level Format definitions
 
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Predefined
+from mathics.core.expression import Expression
+from mathics.core.systemsymbols import SymbolFullForm, SymbolHoldForm, SymbolMakeBoxes
 from mathics.format.box import format_element
 
 # TODO: Differently from the current implementation, MakeBoxes should only
@@ -79,7 +81,12 @@ class MakeBoxes(Builtin):
     """
 
     attributes = A_HOLD_ALL_COMPLETE
-
+    messages = {
+        "boxfmt": (
+            "`1` in `2` is not a box formatting type. "
+            "A box formatting type is any member of $BoxForms."
+        )
+    }
     rules = {
         "MakeBoxes[expr_]": "MakeBoxes[expr, StandardForm]",
         # The following rule is temporal.
@@ -89,6 +96,13 @@ class MakeBoxes(Builtin):
 
     def eval_general(self, expr, f, evaluation):
         """MakeBoxes[expr_, f:TraditionalForm|StandardForm]"""
+        if False and f not in evaluation.definitions.boxforms:
+            expr = Expression(
+                SymbolFullForm,
+                Expression(SymbolHoldForm, Expression(SymbolMakeBoxes, expr, f)),
+            )
+            evaluation.message("MakeBoxes", "boxfmt", f, expr)
+            return None
         return format_element(expr, evaluation, f)
 
 
