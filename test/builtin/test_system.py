@@ -48,3 +48,34 @@ def test_private_doctests_system(str_expr, str_expected, assert_tag_message):
         hold_expected=True,
         failure_message=assert_tag_message,
     )
+
+
+@pytest.mark.skipif(
+    settings.ENABLE_SYSTEM_COMMANDS,
+    reason="These tests are used to a Sandboxed environment",
+)
+@pytest.mark.parametrize(
+    "str_expr",
+    [
+        "$CommandLine",
+        "$MachineName",
+        "$ParentProcessID",
+        "$ProcessID",
+        "$ScriptCommandLine",
+        "$SystemMemory",
+        "$UserName",
+        "Breakpoint[]",
+        'Environment["HOME"]',
+        'GetEnvironment["HOME"]',
+        "MemoryAvailable[]",
+        'Run["date"]',
+        'SetEnvironment["FOO"->"bar"]',
+    ],
+)
+def test_sandboxing_system_functions(str_expr):
+    """ """
+    check_evaluation(
+        str_expr,
+        str_expected="$Failed",
+        expected_messages=["Execution of external commands is disabled."],
+    )

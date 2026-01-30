@@ -333,7 +333,7 @@ class Machine(Predefined):
 
 
 class MachineName(Predefined):
-    r"""
+    """
     <url>:WMA link:https://reference.wolfram.com/language/ref/\\$MachineName.html</url>
 
     <dl>
@@ -890,10 +890,8 @@ class UserName(Predefined):
     name = "$UserName"
     summary_text = "get login name of the user that invoked the current session"
 
+    @not_in_sandboxed_environment
     def evaluate(self, evaluation: Evaluation) -> String:
-        if not settings.ENABLE_SYSTEM_COMMANDS:
-            evaluation.message("$UserName", "dis")
-            return SymbolFailed
         try:
             user = os.getlogin()
         except Exception:
@@ -997,27 +995,6 @@ if have_psutil:
 
 else:
 
-    class SystemMemory(Predefined):
-        """
-        <url>:WMA link:https://reference.wolfram.com/language/ref/SystemMemory.html</url>
-
-        <dl>
-          <dt>'$SystemMemory'
-          <dd>Returns the total amount of physical memory when Python module "psutil" is installed.
-          This system however doesn't have that installed, so -1 is returned instead.
-        </dl>
-
-        S> $SystemMemory
-         = -1
-        """
-
-        summary_text = "the total amount of physical memory in the system"
-        name = "$SystemMemory"
-
-        @not_in_sandboxed_environment
-        def evaluate(self, evaluation: Evaluation) -> Integer:
-            return IntegerM1
-
     class MemoryAvailable(Builtin):
         """
         <url>:WMA link:https://reference.wolfram.com/language/ref/MemoryAvailable.html</url>
@@ -1038,4 +1015,25 @@ else:
         def eval(self, evaluation: Evaluation) -> Integer:
             """MemoryAvailable[]"""
 
+            return IntegerM1
+
+    class SystemMemory(Predefined):
+        """
+        <url>:WMA link:https://reference.wolfram.com/language/ref/SystemMemory.html</url>
+
+        <dl>
+          <dt>'$SystemMemory'
+          <dd>Returns the total amount of physical memory when Python module "psutil" is installed.
+          This system however doesn't have that installed, so -1 is returned instead.
+        </dl>
+
+        S> $SystemMemory
+         = -1
+        """
+
+        summary_text = "the total amount of physical memory in the system"
+        name = "$SystemMemory"
+
+        @not_in_sandboxed_environment
+        def evaluate(self, evaluation: Evaluation) -> Integer:
             return IntegerM1
