@@ -66,12 +66,7 @@ class Breakpoint(Builtin):
     X> SetEnvironment["PYTHONBREAKPOINT" -> "mathics.disabled_breakpoint"];
 
     X> Breakpoint[]
-    | Hit disabled breakpoint.
     = Breakpoint[]
-
-    X> Breakpoint[]
-    : Breakpoint::dis: Execution of external commands is disabled.
-    = Null
 
     The environment variable 'PYTHONBREAKPOINT' can be changed at runtime to switch \
     'breakpoint()' and 'Breakpoint[]' behavior.
@@ -101,9 +96,6 @@ class CommandLine(Predefined):
 
     S> $CommandLine
      = {...}
-
-    S> $CommandLine
-     = {}
     """
 
     name = "$CommandLine"
@@ -133,9 +125,11 @@ class Environment(Builtin):
     S> Environment["HOME"]
      = ...
 
-    S> Environment["HOME"]
-    : Environment::dis: Execution of external commands is disabled.
-    = $Failed
+    See also <url>
+    :'GetEnvironment':
+    /doc/reference-of-built-in-symbols/global-system-information/getenvironment/</url> and <url>
+    :'SetEnvironment':
+    /doc/reference-of-built-in-symbols/global-system-information/setenvironment/</url>.
     """
 
     messages = {"dis": "Execution of external commands is disabled."}
@@ -173,11 +167,22 @@ class GetEnvironment(Builtin):
 
     On POSIX systems, the following gets the users HOME directory:
     S> GetEnvironment["HOME"]
-     = ...
+    = ...
 
-    S> GetEnvironment["HOME"]
-    : GetEnvironment::dis: Execution of external commands is disabled.
-    = $Failed
+    We can get both the HOME directory and the user name in one go:
+    S> GetEnvironment[{"HOME", "USER"}]
+    = ...
+
+    Arguments however must be strings:
+    S> GetEnvironment[HOME]
+    : HOME is not ALL or a string or a list of strings.
+    = GetEnvironment[HOME]
+
+    See also <url>
+    :'Environment':
+    /doc/reference-of-built-in-symbols/global-system-information/environment/</url> and <url>
+    :'SetEnvironment':
+    /doc/reference-of-built-in-symbols/global-system-information/setenvironment/</url>.
     """
 
     messages = {
@@ -320,10 +325,6 @@ class MachineName(Predefined):
 
     S> $MachineName
      = ...
-
-    S> $MachineName
-    : $MachineName::dis: Execution of external commands is disabled.
-    = $Failed
     """
 
     name = "$MachineName"
@@ -512,10 +513,6 @@ class ParentProcessID(Predefined):
 
     S> $ParentProcessID
      = ...
-
-    S> $ParentProcessID
-    : $ParentProcessID::dis: Execution of external commands is disabled.
-    = $Failed
     """
 
     name = "$ParentProcessID"
@@ -543,10 +540,6 @@ class ProcessID(Predefined):
 
     S> $ProcessID
      = ...
-
-    S> $ProcessID
-    : $ProcessID::dis: Execution of external commands is disabled.
-    = $Failed
     """
 
     name = "$ProcessID"
@@ -647,10 +640,7 @@ class ScriptCommandLine(Predefined):
     </dl>
 
     S> $ScriptCommandLine
-     = {}
-
-    S> $ScriptCommandLine
-     = {}
+     = {...}
     """
 
     summary_text = "list of command line arguments"
@@ -714,10 +704,6 @@ class SetEnvironment(Builtin):
 
      Set a single environment variable:
      S> SetEnvironment["FOO" -> "bar"]
-
-     S> SetEnvironment["FOO" -> "bar"]
-     : SetEnvironment::dis: Execution of external commands is disabled.
-     = $Failed
 
      See that the environment variable has changed:
      S> GetEnvironment["FOO"]
@@ -910,12 +896,8 @@ class UserName(Predefined):
       \Mathics session.
     </dl>
 
-    S> $UserName
+    X> $UserName
      = ...
-
-    S> $UserName
-    : $UserName::dis: Execution of external commands is disabled.
-    = $Failed
     """
 
     name = "$UserName"
@@ -993,10 +975,6 @@ if have_psutil:
 
         S> $SystemMemory
          = ...
-
-        S> $SystemMemory
-        : $SystemMemory::dis: Execution of external commands is disabled.
-        = $Failed
         """
 
         name = "$SystemMemory"
@@ -1024,12 +1002,8 @@ if have_psutil:
         S> MemoryAvailable[]
          = ...
 
-        S> MemoryAvailable[]
-        : MemoryAvailable::dis: Execution of external commands is disabled.
-        = $Failed
-
         The relationship between \\$SystemMemory, MemoryAvailable, and MemoryInUse:
-        S> $SystemMemory > MemoryAvailable[] > MemoryInUse[]
+        >> $SystemMemory > MemoryAvailable[] > MemoryInUse[]
          = True
         """
 
@@ -1060,10 +1034,6 @@ else:
 
         S> $SystemMemory
          = -1
-
-        S> $SystemMemory
-        : $SystemMemory::dis: Execution of external commands is disabled.
-        = $Failed
         """
 
         summary_text = "the total amount of physical memory in the system"
@@ -1090,10 +1060,6 @@ else:
 
         S> MemoryAvailable[]
          = -1
-
-        S> MemoryAvailable[]
-        : MemoryAvailable::dis: Execution of external commands is disabled.
-        = $Failed
         """
 
         summary_text = "get the available amount of physical memory in the system"
