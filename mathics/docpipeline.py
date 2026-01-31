@@ -274,7 +274,7 @@ def create_output(test_pipeline, tests):
     if output_format in ("latex", "xml"):
 
         def out_wrapper(expr):
-            return f"{expr} // StandardForm"
+            return f"StandardForm[{expr}]"
 
     else:
 

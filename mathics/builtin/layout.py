@@ -74,7 +74,7 @@ class Format(Builtin):
 
     Format can be used to specify the request format:
     >> Format[Integrate[F[x], x], TeXForm]
-     = \\int F\\left(x\\right) \\, dx
+     = \\int F(x) \\, dx
 
     Format evaluates its first element before applying the format:
     >> Format[Integrate[Cos[x], x], TeXForm]

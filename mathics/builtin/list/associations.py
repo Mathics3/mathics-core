@@ -40,8 +40,8 @@ class Association(Builtin):
     >> <|a -> x, b -> y|>
      = <|a -> x, b -> y|>
 
-    >> Association[{a -> x, b -> y}]
-     = <|a -> x, b -> y|>
+    >> Association[{a -> x^2, b -> y}]
+     = <|a -> x ^ 2, b -> y|>
 
     Associations can be nested:
     >> <|a -> x, b -> y, <|a -> z, d -> t|>|>

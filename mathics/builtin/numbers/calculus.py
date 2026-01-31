@@ -1007,8 +1007,8 @@ class Integrate(SympyFunction):
      = Integrate[1, {x, Infinity, 0}]
 
     Here how is an example of converting integral equation to TeX:
-    >> Integrate[f[x], {x, a, b}] // TeXForm
-     = \int_a^b f\left(x\right) \, dx
+    >> Integrate[f[x^2], {x, a, b}] // TeXForm
+     = \int_a^b f\left(x^2\right) \, dx
 
     Sometimes there is a loss of precision during integration.
     You can check the precision of your result with the following sequence \
