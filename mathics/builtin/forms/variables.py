@@ -20,70 +20,81 @@ class BoxForms_(Predefined):
     </dl>
 
     Elements of '\$BoxForms' are valid forms to be used as a second parameter \
-    in 'MakeBoxes' expressions. 
-    
-    >> $BoxForms
-     = ...
-    
-    Differently from <url>:\$PrintForm':
+    in 'MakeBoxes' expressions.
+
+    Adding a new 'MakeBoxes' rule does not \
+    automatically extend the $BoxForms list as happens, for example, in <url>:\$PrintForm:
     /doc/reference-of-built-in-symbols/forms-of-input-and-output/form-variables/\$printforms
-    </url> which is updated when new 'FormatValues' are defined, it is not \
-    enough to add a 'MakeBoxes' rule to extend $BoxForms:
-    >> MakeBoxes[x_Integer, MyBoxForm]:=StringJoin[Table["o",{x}]]
-    >> MyBoxForm[3]
-     = MyBoxForm[3]
+    </url> when new 'FormatValues' are defined.
+
+    To see how to add a new form, let us first list the values defined in '\$Boxforms'. \
+    This will be useful to compare against later:
     >> $BoxForms
      = ...
 
-    To extend the available box form, and make the rule available, \
-    we start by adding the new form to '\$BoxForms':
+    Now we add a rule with our new form 'MyBoxForm':
+
+    >> MakeBoxes[x_Integer, MyBoxForm] := StringJoin[Table["o",{x}]]
+
+    Although a rule involving 'MyBoxForm' has been defined in 'MakeBoxes', the \
+    rule is not triggered in boxing.
+
+    >> MyBoxForm[3]
+     = MyBoxForm[3]
+
+    And it is not defined in '\$BoxForms' either:
+
+    >> $BoxForms
+     = ...
+
+    To have 'MyBoxForm' formatting take effect in boxing via 'MakeBoxes', \
+    we first need to add the new form to '\$BoxForms':
     >> AppendTo[$BoxForms, MyBoxForm]
      = ...
-    Automatically this stores the new form in '\$PrintForms' and \
+
+    This automatically stores the new form in '\$PrintForms' and \
     '\$OutputForms':
     >> MemberQ[$PrintForms, MyBoxForm]
      = True
     >> MemberQ[$OutputForms, MyBoxForm]
      = True
 
-    Still, this is not enough:
-    >> MyBoxForm[F[3]]
-     | The ParentForm of ParentForm[MyBoxForm] is not defined on $BoxForms.
-     = F[3]
-    To complete the extension, we need to establish what is the \
-    'ParentForm'  of the new box form:
+    We also need to define in 'MyBoxForm' its 'ParentForm':
+
     >> Unprotect[ParentForm];ParentForm[MyBoxForm]=TraditionalForm
      = TraditionalForm
+
     Now,
     >> MyBoxForm[3]
      = ooo
 
     The 'ParentForm' is used when a 'MakeBoxes' rule for a given expression \
     is not available:
-    >> MyBoxForm[F[3, g[x]]]
-     = F(3, g(x))
+    >> MyBoxForm[F[3]]
+     = F(3)
 
-    Notice that our rule is not used to format the argument. This is because \
-    the rule used to format the expression propagates 'TratidionalForm' (the \
+    Above, the 'MyBoxForm' rule is not used to format the argument, because \
+    the rule used to format the expression propagates 'TradionalForm' (the \
     'ParentForm' of our custom 'BoxForm') to the arguments.
 
-    To make available for nested expressions, we need to define a rule that \
-    propagates the box form to their elements:
+    To fix this, define a rule that propagates the box form to its elements:
 
-    >> MakeBoxes[head_[elements___],MyBoxForm]:=RowBox[{MakeBoxes[head,MyBoxForm], "<", RowBox[MakeBoxes[#1, MyBoxForm]&/@{elements}]     ,">"}]
+    >> MakeBoxes[head_[elements___],MyBoxForm] := RowBox[{MakeBoxes[head,MyBoxForm], "<", RowBox[MakeBoxes[#1, MyBoxForm]&/@{elements}]     ,">"}]
     Now,
     >> MyBoxForm[F[3]]
-     = F<ooo>    
+     = F<ooo>
 
     Suppose now we want to remove the new BoxForm. We can reset '$BoxForms' \
     to its default values by unset it:
     >> $BoxForms=.; $BoxForms
      = ...
-    Notice that this do not clean automatically the other variables:
+
+    This does not remove the value from '\$PrintForm' or '\$OutputForm':
     >> {MemberQ[$PrintForms, MyBoxForm], MemberQ[$OutputForms, MyBoxForm]}
      = {True, True}
-    To reset them too, unset their values:
-    >> $PrintForms=.; $OutputForms=.; 
+
+    To remove 'MyBoxForm', unset in each variable:
+    >> $PrintForms=.; $OutputForms=.;
     >> {MemberQ[$PrintForms, MyBoxForm], MemberQ[$OutputForms, MyBoxForm]}
      = {False, False}
     """
@@ -92,7 +103,7 @@ class BoxForms_(Predefined):
         "formset": "Cannot set $BoxForms to ``; value must be a list that includes TraditionalForm and StandardForm."
     }
     name = "$BoxForms"
-    summary_text = "the list of box formats"
+    summary_text = "the list of box forms"
 
     def evaluate(self, evaluation):
         return ListExpression(*evaluation.definitions.boxforms)
@@ -111,7 +122,7 @@ class OutputForms_(Predefined):
 
     attributes = A_LOCKED | A_PROTECTED
     name = "$OutputForms"
-    summary_text = "contains a list all output forms"
+    summary_text = "the list of output forms"
 
     def evaluate(self, evaluation):
         return ListExpression(*evaluation.definitions.outputforms)
@@ -123,7 +134,7 @@ class ParentForm(Builtin):
       <dt>'ParentForm'[$Form$]
       <dd>Return the parent form of the Box Form $Form$.
     </dl>
-    
+
     'ParentForm' is used to set and retrieve the parent form of a user-defined \
     box form. See <url>:\$BoxForms':
     /doc/reference-of-built-in-symbols/forms-of-input-and-output/form-variables/\$boxforms
@@ -132,7 +143,7 @@ class ParentForm(Builtin):
 
     attributes = A_PROTECTED
     messages = {"deflt": "The ParentForm of `` is not defined on $BoxForms."}
-    summary_text = "Associated ParentForm to a custom BoxForm"
+    summary_text = "sets the parent form of a custom box form"
 
 
 class PrintForms_(Predefined):
@@ -164,7 +175,7 @@ class PrintForms_(Predefined):
 
     attributes = A_LOCKED | A_PROTECTED
     name = "$PrintForms"
-    summary_text = "contains a list of print forms"
+    summary_text = "the list of print forms"
 
     def evaluate(self, evaluation):
         return ListExpression(*evaluation.definitions.printforms)
