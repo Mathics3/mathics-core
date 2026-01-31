@@ -6,7 +6,7 @@ import time
 from abc import ABC
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, overload
 
-from mathics_scanner import TranslateError
+from mathics_scanner.errors import SyntaxError
 
 from mathics import settings
 from mathics.core.atoms import Integer, String
@@ -90,14 +90,29 @@ class _Out(KeyComparable):
         self.is_print = False
         self.text = ""
 
-    def get_sort_key(self):
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
         return (self.is_message, self.is_print, self.text)
+
+    def get_sort_key(self):
+        return self.element_order
 
     def get_data(self) -> Dict[str, Any]:
         raise NotImplementedError
 
 
 class Evaluation:
+    """An Evaluation object contains everyting about the evaluation
+    environment, such as evaluation definitions, exception and
+    formatting information, and a grab bag of other things.
+
+    It is a rather fat object.
+    """
+
     def __init__(
         self, definitions=None, output=None, format="text", catch_interrupt=True
     ) -> None:
@@ -105,28 +120,45 @@ class Evaluation:
 
         if definitions is None:
             definitions = Definitions()
-        self.definitions: Definitions = definitions
-        self.recursion_depth = 0
-        self.timeout = False
-        self.timeout_queue: List[Tuple[float, float]] = []
-        self.stopped = False
-        self.out: List[_Out] = []
-        self.output = output if output else Output()
-        self.listeners: Dict[str, List[Callable]] = {}
-        self.options: Optional[Dict[str, Any]] = None
-        self.predetermined_out = None
-
-        self.quiet_all = False
-        self.format = format
-        self.catch_interrupt = catch_interrupt
+        self.current_expression: Optional[BaseElement] = None
         self.SymbolNull = SymbolNull
 
-        # status of last evaluate
-        self.exc_result: Optional[Symbol] = self.SymbolNull
-        self.last_eval = None
         # Used in ``mathics.builtin.numbers.constants.get_constant`` and
         # ``mathics.builtin.numeric.N``.
         self._preferred_n_method: List[str] = []
+
+        self.catch_interrupt = catch_interrupt
+        self.definitions: Definitions = definitions
+        self.exc_result: Optional[Symbol] = self.SymbolNull
+        self.format = format
+        self.is_boxing = False
+
+        # status of last evaluate
+        self.last_eval = None
+
+        self.listeners: Dict[str, List[Callable]] = {}
+        self.options: Optional[Dict[str, Any]] = None
+        self.out: List[_Out] = []
+        self.output = output if output else Output()
+        self.predetermined_out = None
+        self.quiet_all = False
+        self.recursion_depth = 0
+
+        # iteration is used to keep track of evaluation chains and is
+        # compared against $IterationLimit.
+        self.iteration_count = 0
+
+        # Interrupt handlers may need access to the shell
+        # that invoked the evaluation.
+        self.shell = None
+
+        self.stopped = False
+        self.timeout = False
+        self.timeout_queue: List[Tuple[float, float]] = []
+
+        # A place for Trace and friends to store information about the
+        # last evaluation
+        self.trace_info: Optional[Any] = None
 
     def parse(self, query, src_name: str = ""):
         "Parse a single expression and print the messages."
@@ -154,16 +186,20 @@ class Evaluation:
         Parse a single expression from feeder, print the messages it produces and
         return the result, the source code for this and evaluated
         messages created in evaluation.
+
+        If there was a SyntaxError, the source code returned is "" and the result is None.
         """
         from mathics.core.parser.util import parse_returning_code
 
         try:
             result, source_code = parse_returning_code(self.definitions, feeder)
-        except TranslateError:
+        except SyntaxError:
+            result = None
+            source_code = ""
+
+        if result is None:
             self.recursion_depth = 0
             self.stopped = False
-            source_code = ""
-            result = None
         messages = feeder.send_messages(self)
         return result, source_code, messages
 
@@ -269,13 +305,27 @@ class Evaluation:
                 self.exc_result = Expression(SymbolHold, Expression(SymbolContinue))
             except TimeoutInterrupt:
                 self.stopped = False
-                self.timeout = True
-                self.message("General", "timeout")
+
+                # Due to interrupt handling, we might have already
+                # handled a timeout.
+                if not self.timeout:
+                    self.timeout = True
+                    self.message("General", "timeout")
+
+                # Clear shell interrupt if that exists.
                 self.exc_result = SymbolAborted
             except AbortInterrupt:  # , error:
                 self.exc_result = SymbolAborted
             except ReturnInterrupt as ret:
                 self.exc_result = ret.expr
+
+                # Clear shell interrupt if that exists.
+                if (
+                    hasattr(self.shell, "is_inside_interrupt")
+                    and self.shell.is_inside_interrupt
+                ):
+                    self.shell.is_inside_interrupt = False
+                    raise
 
             if self.exc_result is not None:
                 self.recursion_depth = 0
@@ -310,6 +360,8 @@ class Evaluation:
         """Return `eval_result` stripped of any format, e.g. FullForm, MathML, TeX
         that it might have been wrapped in.
         """
+        if eval_result is None:
+            return None
         head = eval_result.get_head()
         if head in output_forms:
             return eval_result.elements[0]
@@ -338,7 +390,7 @@ class Evaluation:
         Notice that this function can be overwritten by the front-ends, so it should not be
         used in Builtin classes where it is expected a front-end independent result.
         """
-        from mathics.eval.makeboxes import format_element
+        from mathics.format.box import format_element
 
         if format is None:
             format = self.format
@@ -387,7 +439,7 @@ class Evaluation:
     def get_quiet_messages(self):
         from mathics.core.expression import Expression
 
-        value = self.definitions.get_definition("Internal`$QuietMessages").ownvalues
+        value = self.definitions.get_ownvalues("Internal`$QuietMessages")
         if value:
             try:
                 value = value[0].replace
@@ -397,10 +449,9 @@ class Evaluation:
             return []
         return value.elements
 
-    def message(self, symbol_name: str, tag, *msgs) -> Optional["Message"]:
+    def message(self, symbol_name: str, tag: str, *msgs) -> Optional["Message"]:
         """
-        Format message given its components, ``symbol``, ``tag``
-
+        Format message given its components, ``symbol_name``, ``tag``
 
         """
         from mathics.core.expression import Expression
@@ -424,22 +475,25 @@ class Evaluation:
         if settings.DEBUG_PRINT:
             print(f"MESSAGE: {symbol_shortname}::{tag} ({msgs})")
 
-        text = self.definitions.get_value(symbol, "System`Messages", pattern, self)
-        if text is None:
-            pattern = Expression(SymbolMessageName, Symbol("General"), String(tag))
-            text = self.definitions.get_value(
-                "System`General", "System`Messages", pattern, self
+        try:
+            text: BaseElement = self.definitions.get_value(
+                symbol, "System`Messages", pattern, self
             )
+        except ValueError:
+            pattern = Expression(SymbolMessageName, Symbol("General"), String(tag))
+            try:
+                text = self.definitions.get_value(
+                    "System`General", "System`Messages", pattern, self
+                )
+            except ValueError:
+                text = String(f"Message {symbol_shortname}::{tag} not found.")
 
-        if text is None:
-            text = String(f"Message {symbol_shortname}::{tag} not found.")
-
-        text = self.format_output(
+        formatted_text = self.format_output(
             Expression(SymbolStringForm, text, *(from_python(arg) for arg in msgs)),
             "text",
         )
 
-        message = Message(symbol_shortname, tag, text)
+        message = Message(symbol_shortname, tag, str(formatted_text))
         self.out.append(message)
         self.output.out(self.out[-1])
         return message
@@ -450,6 +504,7 @@ class Evaluation:
         if self.definitions.trace_evaluation:
             self.definitions.trace_evaluation = False
             text = self.format_output(from_python(text), "text")
+            self.is_boxing = False
             self.definitions.trace_evaluation = True
         else:
             text = self.format_output(from_python(text), "text")
@@ -501,8 +556,7 @@ class Evaluation:
             "$RecursionLimit", MAX_RECURSION_DEPTH
         )
         if limit is not None:
-            if limit < 20:
-                limit = 20
+            limit = max(limit, 20)
             self.recursion_depth += 1
             if self.recursion_depth > limit:
                 self.error("$RecursionLimit", "reclim", limit)
@@ -530,16 +584,17 @@ class Evaluation:
 class Message(_Out):
     def __init__(self, symbol: Union[Symbol, str], tag: str, text: str) -> None:
         """
-        A Mathics3 message of some sort. symbol_or_string can either be a symbol or a
-        string.
+        A Mathics3 message of some sort. ``symbol`` can either
+        be a symbol or a string.
 
-        Symbol: classifies which predefined or variable this comes from? If there is none
-                use a string.
-        tag: a short slug string that indicates the kind of message
+        ``symbol``: classifies which predefined or variable this comes
+        from? If there is none use a string.
+
+        ``tag``: a short slug string that indicates the kind of message
 
         In Django we need to use a string for symbol, since we need
-        something that is JSON serializable and a Mathics3 Symbol is not
-        like this.
+        something that is JSON serializable and a Mathics3 Symbol is
+        not like this.
         """
         super(Message, self).__init__()
         self.is_message = True  # Why do we need this?
@@ -614,8 +669,10 @@ class Result:
     In particular, there are the following fields:
 
     result: the actual result produced.
-    out: a list of additional output strings. These are warning or error messages. See "form"
-         for exactly what they are.
+
+    out: a list of additional output strings. These are warning or
+         error messages. See "form" for exactly what they are.
+
     form: is the *format* of the result which tags the kind of result .
           Think of this as something like a mime/type. Some formats:
 

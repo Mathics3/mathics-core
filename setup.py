@@ -84,7 +84,7 @@ else:
                 "patterns/rules",
                 "graphics",
             ],
-            "eval": ("nevaluator", "makeboxes", "test"),
+            "eval": ("nevaluator", "test"),
         }
         EXTENSIONS = [
             Extension(

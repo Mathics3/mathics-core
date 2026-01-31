@@ -21,7 +21,7 @@ class DirectoryName(Builtin):
     https://reference.wolfram.com/language/ref/DirectoryName.html</url>
 
     <dl>
-      <dt>'DirectoryName["$name$"]'
+      <dt>'DirectoryName'["$name$"]
       <dd>extracts the directory name from a filename.
     </dl>
 
@@ -64,7 +64,7 @@ class DirectoryName(Builtin):
 
         result = py_name
         for i in range(py_n):
-            (result, tmp) = osp.split(result)
+            result, tmp = osp.split(result)
 
         return String(result)
 
@@ -79,7 +79,7 @@ class DirectoryQ(Builtin):
     https://reference.wolfram.com/language/ref/DirectoryQ.html</url>
 
     <dl>
-      <dt>'DirectoryQ["$name$"]'
+      <dt>'DirectoryQ'["$name$"]
       <dd>returns 'True' if the directory called $name$ exists and 'False' otherwise.
     </dl>
 
@@ -118,7 +118,7 @@ class FileNameDepth(Builtin):
     https://reference.wolfram.com/language/ref/FileNameDepth.html</url>
 
     <dl>
-      <dt>'FileNameDepth["$name$"]'
+      <dt>'FileNameDepth'["$name$"]
       <dd>gives the number of path parts in the given filename.
     </dl>
 
@@ -145,7 +145,7 @@ class FileNameJoin(Builtin):
     https://reference.wolfram.com/language/ref/FileNameJoin.html</url>
 
     <dl>
-      <dt>'FileNameJoin[{"$dir_1$", "$dir_2$", ...}]'
+      <dt>'FileNameJoin'[{"$dir_1$", "$dir_2$", ...}]
       <dd>joins the $dir_i$ together into one path.
 
       <dt>'FileNameJoin[..., OperatingSystem->"os"]'
@@ -177,14 +177,19 @@ class FileNameJoin(Builtin):
     def eval(self, pathlist, evaluation: Evaluation, options: dict):
         "FileNameJoin[pathlist_List, OptionsPattern[FileNameJoin]]"
 
+        # Convert pathlist to a Python list, and strip leading and trailing
+        # quotes if that appears.
         py_pathlist = pathlist.to_python()
-        if not all(isinstance(p, str) and p[0] == p[-1] == '"' for p in py_pathlist):
-            return
-        py_pathlist = [p[1:-1] for p in py_pathlist]
 
-        operating_system = (
-            options["System`OperatingSystem"].evaluate(evaluation).get_string_value()
-        )
+        if not all(isinstance(p, str) for p in py_pathlist):
+            return
+
+        if isinstance(py_pathlist, tuple):
+            py_pathlist = list(py_pathlist)
+        else:
+            py_pathlist = [p[1:-1] if p[0] == p[-1] == '"' else p for p in py_pathlist]
+
+        operating_system = options["System`OperatingSystem"].evaluate(evaluation).value
 
         if operating_system not in ["MacOSX", "Windows", "Unix"]:
             evaluation.message(
@@ -219,7 +224,7 @@ class FileNameSplit(Builtin):
     https://reference.wolfram.com/language/ref/FileNameSplit.html</url>
 
     <dl>
-      <dt>'FileNameSplit["$filenames$"]'
+      <dt>'FileNameSplit'["$filenames$"]
       <dd>splits a $filename$ into a list of parts.
     </dl>
 
@@ -280,7 +285,7 @@ class ParentDirectory(Builtin):
       <dt>'ParentDirectory[]'
       <dd>returns the parent of the current working directory.
 
-      <dt>'ParentDirectory["$dir$"]'
+      <dt>'ParentDirectory'["$dir$"]
       <dd>returns the parent $dir$.
     </dl>
 

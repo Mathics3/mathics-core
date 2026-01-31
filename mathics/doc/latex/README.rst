@@ -6,7 +6,7 @@ Here we have document data and scripts for generating the Mathics Reference manu
 The document is a LaTeX file run through XeTeX with Asymptote graphics.
 
 You'll need Asymptote 2.71-37 or greater and 9.54.0 or greater to
-process the graphics. Ealier version may have bugs in them which
+process the graphics. Earlier version may have bugs in them which
 prevent some images from getting processed. Notable here are the
 "Filling" ande "Bottom" examples which need opacity to work on various kinds of plots.
 
@@ -42,7 +42,7 @@ a list of Makefile targets.
 
 If the problem is with graphics, if you don't have the figure name but
 just its number, you may be able to figure out its number by going
-into ``documetation.tex`` and finding the appropriate section in the
+into ``documentation.tex`` and finding the appropriate section in the
 LaTeX document and then getting the number that is listed there.
 
 To view one of the asymptote figures, e.g. ``mathics-83.asy``::

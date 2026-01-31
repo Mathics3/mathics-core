@@ -6,7 +6,7 @@ Unit tests for mathics.builtins.calculus.Integrate
 from test.helper import check_evaluation, session
 
 
-def test_integtrate():
+def test_integrate():
     for str_expr, str_expected, message in (
         ("Integrate[Integrate[1,{y,0,E^x}],{x,0,Log[13]}]", "12", "Issue #153"),
         (
@@ -17,7 +17,7 @@ def test_integtrate():
         (
             "h=x;Integrate[Do[h=x*h,{5}]; h,x]",
             "x^7/7",
-            "a more agressive SymPy translation.",
+            "a more aggressive SymPy translation.",
         ),
     ):
         session.evaluate("Clear[h]; Clear[g]; Clear[f];")

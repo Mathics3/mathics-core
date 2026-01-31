@@ -11,6 +11,10 @@ from mathics.core.attributes import A_HOLD_REST, A_PROTECTED
 from mathics.core.builtin import InfixOperator, PatternObject, Test
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.keycomparable import (
+    PATTERN_SORT_KEY_CONDITIONAL,
+    PATTERN_SORT_KEY_PATTERNTEST,
+)
 from mathics.core.pattern import BasePattern
 from mathics.core.symbols import Atom, SymbolTrue
 
@@ -25,7 +29,7 @@ class Condition(InfixOperator, PatternObject):
     https://reference.wolfram.com/language/ref/Condition.html</url>
 
     <dl>
-      <dt>'Condition[$pattern$, $expr$]'
+      <dt>'Condition'[$pattern$, $expr$]
       <dt>'$pattern$ /; $expr$'
       <dd>places an additional constraint on $pattern$ that only \
           allows it to match if $expr$ evaluates to 'True'.
@@ -49,7 +53,6 @@ class Condition(InfixOperator, PatternObject):
     arg_counts = [2]
     # Don't know why this has attribute HoldAll in Mathematica
     attributes = A_HOLD_REST | A_PROTECTED
-    operator = "/;"
     summary_text = "conditional definition"
 
     def init(
@@ -81,6 +84,26 @@ class Condition(InfixOperator, PatternObject):
         pattern_context["yield_func"] = yield_match
         self.pattern.match(expression, pattern_context)
 
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_order
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        sub = list(self.pattern.pattern_precedence)
+        # Remove the bit "inconditional" to increase
+        # the priority of this pattern.
+        sub[0] &= PATTERN_SORT_KEY_CONDITIONAL
+        return tuple(sub)
+
 
 class PatternTest(InfixOperator, PatternObject):
     """
@@ -90,7 +113,7 @@ class PatternTest(InfixOperator, PatternObject):
     https://reference.wolfram.com/language/ref/PatternTest.html</url>
 
     <dl>
-      <dt>'PatternTest[$pattern$, $test$]'
+      <dt>'PatternTest'[$pattern$, $test$]
       <dt>'$pattern$ ? $test$'
       <dd>constrains $pattern$ to match $expr$ only if the \
           evaluation of '$test$[$expr$]' yields 'True'.
@@ -106,7 +129,6 @@ class PatternTest(InfixOperator, PatternObject):
     """
 
     arg_counts = [2]
-    operator = "?"
     summary_text = "match to a pattern conditioned to a test result"
 
     def init(
@@ -307,10 +329,11 @@ class PatternTest(InfixOperator, PatternObject):
                 and candidate.elements[1].value < 0
             )
 
-        builtin = None
-        builtin = evaluation.definitions.get_definition(test)
-        if builtin:
-            builtin = builtin.builtin
+        try:
+            builtin = evaluation.definitions.get_definition(test, True).builtin
+        except KeyError:
+            return None
+
         if builtin is not None and isinstance(builtin, Test):
             return builtin.test(candidate)
         return None
@@ -356,3 +379,23 @@ class PatternTest(InfixOperator, PatternObject):
 
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> Tuple[int, int]:
         return self.pattern.get_match_count(vars_dict)
+
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_order
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        sub = list(self.pattern.pattern_precedence)
+        # Remove the bit "not pattern test" to increase
+        # the priority of this pattern.
+        sub[0] &= PATTERN_SORT_KEY_PATTERNTEST
+        return tuple(sub)

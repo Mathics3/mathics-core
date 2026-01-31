@@ -166,8 +166,21 @@ class Dispatch(Atom):
         self._elements = None
         self._head = SymbolDispatch
 
-    def get_sort_key(self, pattern_sort: bool = False) -> tuple:
-        return self.src.get_sort_key()
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a value, a tuple, which is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.src.element_order
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return self.src.pattern_precedence
 
     def get_atom_name(self):
         return "System`Dispatch"
@@ -177,7 +190,6 @@ class Dispatch(Atom):
 
     def atom_to_boxes(self, f: Symbol, evaluation: Evaluation):
         from mathics.builtin.box.layout import RowBox
-        from mathics.eval.makeboxes import format_element
 
         # box_element = format_element(self.src, evaluation, f)
         box_element = String(f"<{len(self.rules)}>")

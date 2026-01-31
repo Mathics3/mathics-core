@@ -6,11 +6,11 @@ String Distances and Similarity Measures
 import unicodedata
 from typing import Callable
 
-from mathics.core.atoms import Integer, String, Symbol
+from mathics.core.atoms import Integer, String
 from mathics.core.builtin import Builtin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.symbols import SymbolTrue
+from mathics.core.symbols import Symbol, SymbolTrue
 
 SymbolEditDistance = Symbol("EditDistance")
 
@@ -148,7 +148,7 @@ class DamerauLevenshteinDistance(_StringDistance):
     <url>:WMA link:https://reference.wolfram.com/language/ref/DamerauLevenshteinDistance.html</url>
 
     <dl>
-    <dt>'DamerauLevenshteinDistance[$a$, $b$]'
+    <dt>'DamerauLevenshteinDistance'[$a$, $b$]
         <dd>returns the Damerau-Levenshtein distance of $a$ and $b$, which is defined as the minimum number of
         transpositions, insertions, deletions and substitutions needed to transform one into the other.
         In contrast to EditDistance, DamerauLevenshteinDistance counts transposition of adjacent items (e.g.
@@ -190,7 +190,7 @@ class EditDistance(_StringDistance):
     <url>:WMA link:https://reference.wolfram.com/language/ref/EditDistance.html</url>
 
     <dl>
-    <dt>'EditDistance[$a$, $b$]'
+    <dt>'EditDistance'[$a$, $b$]
         <dd>returns the Levenshtein distance of $a$ and $b$, which is defined as the minimum number of
         insertions, deletions and substitutions on the constituents of $a$ and $b$ needed to transform
         one into the other.
@@ -231,7 +231,7 @@ class HammingDistance(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/HammingDistance.html</url>
 
     <dl>
-    <dt>'HammingDistance[$u$, $v$]'
+    <dt>'HammingDistance'[$u$, $v$]
       <dd>returns the Hamming distance between $u$ and $v$, i.e. the number of different elements.
       $u$ and $v$ may be lists or strings.
     </dl>

@@ -8,38 +8,39 @@ in parallel to many elements in a list.
 Many mathematical functions are automatically taken to be "listable", so that \
 they are always applied to every element in a list.
 """
+from dataclasses import replace as dc_replace
+from typing import Iterable
+
+from mathics.core.atoms import Integer, Integer0, Integer1, Integer3
+from mathics.core.builtin import Builtin, InfixOperator
+from mathics.core.convert.expression import to_mathics_list
+from mathics.core.evaluation import Evaluation
+from mathics.core.exceptions import InvalidLevelspecError, MessageException
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
+from mathics.core.symbols import Atom, SymbolNull, SymbolTrue
+from mathics.core.systemsymbols import SymbolMapThread
+from mathics.eval.functional.apply_fns_to_lists import eval_MapAt
+from mathics.eval.parts import python_levelspec, walk_levels
+from mathics.eval.patterns import param_and_option_from_optional_place
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.applying-functions-to-lists"
 
-from typing import Iterable
-
-from mathics.builtin.list.constructing import List
-from mathics.core.atoms import Integer, Integer3
-from mathics.core.builtin import Builtin, InfixOperator
-from mathics.core.convert.expression import to_mathics_list
-from mathics.core.evaluation import Evaluation
-from mathics.core.exceptions import (
-    InvalidLevelspecError,
-    MessageException,
-    PartRangeError,
-)
-from mathics.core.expression import Expression
-from mathics.core.list import ListExpression
-from mathics.core.symbols import Atom, Symbol, SymbolNull, SymbolTrue
-from mathics.core.systemsymbols import SymbolMapThread, SymbolRule
-from mathics.eval.parts import python_levelspec, walk_levels
-
 
 class Apply(InfixOperator):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/Apply.html</url>
+
+
     <dl>
-      <dt>'Apply[$f$, $expr$]'
+      <dt>'Apply'[$f$, $expr$]
 
       <dt>'$f$ @@ $expr$'
       <dd>replaces the head of $expr$ with $f$.
 
-      <dt>'Apply[$f$, $expr$, $levelspec$]'
+      <dt>'Apply'[$f$, $expr$, $levelspec$]
       <dd>applies $f$ on the parts specified by $levelspec$.
     </dl>
 
@@ -69,47 +70,51 @@ class Apply(InfixOperator):
     """
 
     summary_text = "apply a function to a list, at specified levels"
-    operator = "@@"
     grouping = "Right"
 
     options = {
         "Heads": "False",
     }
 
-    def eval_invalidlevel(self, f, expr, ls, evaluation, options={}):
-        "Apply[f_, expr_, ls_, OptionsPattern[Apply]]"
-
-        evaluation.message("Apply", "level", ls)
-
-    def eval(self, f, expr, ls, evaluation, options={}):
-        """Apply[f_, expr_, Optional[Pattern[ls, _?LevelQ], {0}],
+    def eval(self, f, expr, levelspec, evaluation, options={}):
+        """Apply[f_, expr_, Optional[levelspec_, {0}],
         OptionsPattern[Apply]]"""
 
+        levelspec = param_and_option_from_optional_place(
+            levelspec, options, "System`Apply", evaluation
+        ) or ListExpression(Integer0)
+
         try:
-            start, stop = python_levelspec(ls)
+            start, stop = python_levelspec(levelspec)
         except InvalidLevelspecError:
-            evaluation.message("Apply", "level", ls)
+            evaluation.message("Apply", "level", levelspec)
             return
 
         def callback(level):
             if isinstance(level, Atom):
                 return level
             else:
-                return Expression(f, *level.elements)
+                elem_prop = level.elements_properties
+                if elem_prop is not None:
+                    elem_prop = dc_replace(elem_prop, elements_fully_evaluated=False)
+                return Expression(f, *level.elements, elements_properties=elem_prop)
 
         heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
-        result, depth = walk_levels(expr, start, stop, heads=heads, callback=callback)
+        result, _ = walk_levels(expr, start, stop, heads=heads, callback=callback)
 
         return result
 
 
 class Map(InfixOperator):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/Map.html</url>
+
     <dl>
-      <dt>'Map[$f$, $expr$]' or '$f$ /@ $expr$'
+      <dt>'Map'[$f$, $expr$] or '$f$ /@ $expr$'
       <dd>applies $f$ to each part on the first level of $expr$.
 
-      <dt>'Map[$f$, $expr$, $levelspec$]'
+      <dt>'Map'[$f$, $expr$, $levelspec$]
       <dd>applies $f$ to each level specified by $levelspec$ of $expr$.
     </dl>
 
@@ -128,125 +133,113 @@ class Map(InfixOperator):
     """
 
     summary_text = "map a function over a list, at specified levels"
-    operator = "/@"
     grouping = "Right"
 
     options = {
         "Heads": "False",
     }
 
-    def eval_invalidlevel(self, f, expr, ls, evaluation, options={}):
-        "Map[f_, expr_, ls_, OptionsPattern[Map]]"
-
-        evaluation.message("Map", "level", ls)
-
-    def eval_level(self, f, expr, ls, evaluation, options={}):
-        """Map[f_, expr_, Optional[Pattern[ls, _?LevelQ], {1}],
+    def eval_level(self, f, expr, levelspec, evaluation, options={}):
+        """Map[f_, expr_, Optional[levelspec_, {1}],
         OptionsPattern[Map]]"""
 
+        levelspec = param_and_option_from_optional_place(
+            levelspec, options, "System`Map", evaluation
+        ) or ListExpression(Integer1)
         try:
-            start, stop = python_levelspec(ls)
+            start, stop = python_levelspec(levelspec)
         except InvalidLevelspecError:
-            evaluation.message("Map", "level", ls)
+            evaluation.message("Map", "level", levelspec)
             return
 
         def callback(level):
             return Expression(f, level)
 
         heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
-        result, depth = walk_levels(expr, start, stop, heads=heads, callback=callback)
+        result, _ = walk_levels(expr, start, stop, heads=heads, callback=callback)
+        elem_prop = result.elements_properties
+        if elem_prop is not None:
+            elem_prop.elements_fully_evaluated = False
+        result.elements_properties
 
         return result
 
 
 class MapAt(Builtin):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/MapAt.html</url>
+
     <dl>
-      <dt>'MapAt[$f$, $expr$, $n$]'
+      <dt>'MapAt'[$f$, $expr$, $n$]
       <dd>applies $f$ to the element at position $n$ in $expr$. If $n$ is negative, the position is counted from the end.
 
-      <dt>'MapAt[f, $exp$r, {$i$, $j$ ...}]'
+      <dt>'MapAt'[f, $expr$, {$i$, $j$ ...}]
       <dd>applies $f$ to the part of $expr$ at position {$i$, $j$, ...}.
 
-      <dt>'MapAt[$f$,$pos$]'
-      <dd>represents an operator form of MapAt that can be applied to an expression.
+      <dt>'MapAt'[$f$, $pos$]
+      <dd>represents an operator form of 'MapAt' that can be applied to an expression.
     </dl>
 
-    Map $f$ onto the part at position 2:
-    >> MapAt[f, {a, b, c, d}, 2]
-     = {a, f[b], c, d}
+    Map function $f$ to the second element of an simple flat list:
+    >> MapAt[f, {a, b, c}, 2]
+     = {a, f[b], c}
 
-    Map $f$ onto multiple parts:
-    >> MapAt[f, {a, b, c, d}, {{1}, {4}}]
-     = {f[a], b, c, f[d]}
+    Above, we specified a simple integer value 2. In general, the expression can be an arbitrary vector.
 
-    Map $f$ onto the at the end:
-    >> MapAt[f, {a, b, c, d}, -1]
-     = {a, b, c, f[d]}
+    Using 'MapAt' with 'Function[0]', we can zero a value or values in a vector:
 
-     Map $f$ onto an association:
-    >> MapAt[f, <|"a" -> 1, "b" -> 2, "c" -> 3, "d" -> 4, "e" -> 5|>, 3]
-     = {a -> 1, b -> 2, c -> f[3], d -> 4, e -> 5}
+    >> MapAt[0&, {{1, 1}, {1, 1}}, {2, 1}]
+     = {{1, 1}, {0, 1}}
 
-    Use negative position in an association:
-    >> MapAt[f, <|"a" -> 1, "b" -> 2, "c" -> 3, "d" -> 4|>, -3]
+    When the dimension of the replacement expression is less than the vector, \
+    that element's dimension changes:
+
+    >> MapAt[0&, {{0, 1}, {1, 0}}, 2]
+     = {{0, 1}, 0}
+
+    So now compare what happen when using {{2}, {1}} instead of {2, 1} above:
+    >> MapAt[0&, {{0, 1}, {1, 0}}, {{2}, {1}}]
+     = {0, 0}
+
+    Map $f$ onto the last element of a list:
+    >> MapAt[f, {a, b, c}, -1]
+     = {a, b, f[c]}
+
+    Same as above, but use the operator form of 'MapAt':
+    >> MapAt[f, -1][{a, b, c}]
+     = {a, b, f[c]}
+
+    Map $f$ onto at the second position of an association:
+    >> MapAt[f, <|"a" -> 1, "b" -> 2, "c" -> 3, "d" -> 4|>, 2]
      = {a -> 1, b -> f[2], c -> 3, d -> 4}
 
-    Use the operator form of MapAt:
-    >> MapAt[f, 1][{a, b, c, d}]
-     = {f[a], b, c, d}
+    Same as above, but select the second-from-the-end position:
+    >> MapAt[f, <|"a" -> 1, "b" -> 2, "c" -> 3, "d" -> 4|>, -2]
+     = {a -> 1, b -> 2, c -> f[3], d -> 4}
+
     """
 
-    summary_text = "map a function at particular positions"
     rules = {
         "MapAt[f_, pos_][expr_]": "MapAt[f, expr, pos]",
     }
+    summary_text = "map a function at particular positions"
 
-    def eval(self, f, expr, args, evaluation, options={}):
+    def eval(self, f, expr, args, evaluation: Evaluation):
         "MapAt[f_, expr_, args_]"
-
-        m = len(expr.elements)
-
-        def map_at_one(i, elements):
-            if 1 <= i <= m:
-                j = i - 1
-            elif -m <= i <= -1:
-                j = m + i
-            else:
-                raise PartRangeError
-            replace_element = new_elements[j]
-            if hasattr(replace_element, "head") and replace_element.head is Symbol(
-                "System`Rule"
-            ):
-                new_elements[j] = Expression(
-                    SymbolRule,
-                    replace_element.elements[0],
-                    Expression(f, replace_element.elements[1]),
-                )
-            else:
-                new_elements[j] = Expression(f, replace_element)
-            return new_elements
-
-        a = args.to_python()
-        if isinstance(a, int):
-            new_elements = list(expr.elements)
-            new_elements = map_at_one(a, new_elements)
-            return List(*new_elements)
-        elif isinstance(a, list):
-            new_elements = list(expr.elements)
-            for item in a:
-                if len(item) == 1 and isinstance(item[0], int):
-                    new_elements = map_at_one(item[0], new_elements)
-            return List(*new_elements)
+        return eval_MapAt(f, expr, args, evaluation)
 
 
 class MapIndexed(Builtin):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/MapIndexed.html</url>
+
     <dl>
-      <dt>'MapIndexed[$f$, $expr$]'
+      <dt>'MapIndexed'[$f$, $expr$]
       <dd>applies $f$ to each part on the first level of $expr$, including the part positions in the call to $f$.
 
-      <dt>'MapIndexed[$f$, $expr$, $levelspec$]'
+      <dt>'MapIndexed'[$f$, $expr$, $levelspec$]
       <dd>applies $f$ to each level specified by $levelspec$ of $expr$.
     </dl>
 
@@ -281,19 +274,16 @@ class MapIndexed(Builtin):
         "Heads": "False",
     }
 
-    def eval_invalidlevel(self, f, expr, ls, evaluation, options={}):
-        "MapIndexed[f_, expr_, ls_, OptionsPattern[MapIndexed]]"
-
-        evaluation.message("MapIndexed", "level", ls)
-
-    def eval_level(self, f, expr, ls, evaluation, options={}):
-        """MapIndexed[f_, expr_, Optional[Pattern[ls, _?LevelQ], {1}],
+    def eval_level(self, f, expr, levelspec, evaluation, options={}):
+        """MapIndexed[f_, expr_, Optional[levelspec_, {1}],
         OptionsPattern[MapIndexed]]"""
-
+        levelspec = param_and_option_from_optional_place(
+            levelspec, options, "System`MapIndexed", evaluation
+        ) or ListExpression(Integer1)
         try:
-            start, stop = python_levelspec(ls)
+            start, stop = python_levelspec(levelspec)
         except InvalidLevelspecError:
-            evaluation.message("MapIndexed", "level", ls)
+            evaluation.message("MapIndexed", "level", levelspec)
             return
 
         def callback(level, pos: Iterable):
@@ -305,17 +295,23 @@ class MapIndexed(Builtin):
         result, depth = walk_levels(
             expr, start, stop, heads=heads, callback=callback, include_pos=True
         )
+        elem_prop = result.elements_properties
+        if elem_prop is not None:
+            elem_prop.elements_fully_evaluated = False
 
         return result
 
 
 class MapThread(Builtin):
     """
-    <dl>
-      <dt>'MapThread[$f$, {{$a1$, $a2$, ...}, {$b1$, $b2$, ...}, ...}]
-      <dd>returns '{$f$[$a1$, $b1$, ...], $f$[$a2$, $b2$, ...], ...}'.
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/MapThread.html</url>
 
-      <dt>'MapThread[$f$, {$expr1$, $expr2$, ...}, $n$]'
+    <dl>
+      <dt>'MapThread[$f$, {{$a_1$, $a_2$, ...}, {$b_1$, $b_2$, ...}, ...}]
+      <dd>returns '{$f$[$a_1$, $b_1$, ...], $f$[$a_2$, $b_2$, ...], ...}'.
+
+      <dt>'MapThread'[$f$, {$expr_1$, $expr_2$, ...}, $n$]
       <dd>applies $f$ at level $n$.
     </dl>
 
@@ -398,11 +394,14 @@ class MapThread(Builtin):
 
 class Scan(Builtin):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/Scan.html</url>
+
     <dl>
-      <dt>'Scan[$f$, $expr$]'
+      <dt>'Scan'[$f$, $expr$]
       <dd>applies $f$ to each element of $expr$ and returns 'Null'.
 
-      <dt>'Scan[$f$, $expr$, $levelspec$]
+      <dt>'Scan'[$f$, $expr$, $levelspec$]
       <dd>applies $f$ to each level specified by $levelspec$ of $expr$.
     </dl>
 
@@ -421,19 +420,16 @@ class Scan(Builtin):
         "Scan[f_][expr_]": "Scan[f, expr]",
     }
 
-    def eval_invalidlevel(self, f, expr, ls, evaluation, options={}):
-        "Scan[f_, expr_, ls_, OptionsPattern[Map]]"
-
-        evaluation.message("Map", "level", ls)
-
-    def eval_level(self, f, expr, ls, evaluation, options={}):
-        """Scan[f_, expr_, Optional[Pattern[ls, _?LevelQ], {1}],
+    def eval_level(self, f, expr, levelspec, evaluation, options={}):
+        """Scan[f_, expr_, Optional[levelspec_, {1}],
         OptionsPattern[Map]]"""
-
+        levelspec = param_and_option_from_optional_place(
+            levelspec, options, "System`Scan", evaluation
+        ) or ListExpression(Integer0)
         try:
-            start, stop = python_levelspec(ls)
+            start, stop = python_levelspec(levelspec)
         except InvalidLevelspecError:
-            evaluation.message("Map", "level", ls)
+            evaluation.message("Map", "level", levelspec)
             return
 
         def callback(level):
@@ -448,11 +444,14 @@ class Scan(Builtin):
 
 class Thread(Builtin):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/Thread.html</url>
+
     <dl>
-      <dt>'Thread[$f$[$args$]]'
+      <dt>'Thread[$f$'[$args$]]
       <dd>threads $f$ over any lists that appear in $args$.
 
-      <dt>'Thread[$f$[$args$], $h$]'
+      <dt>'Thread[$f$'[$args$], $h$]
       <dd>threads over any parts with head $h$.
     </dl>
 
@@ -483,5 +482,5 @@ class Thread(Builtin):
 
         args = args.get_sequence()
         expr = Expression(f, *args)
-        threaded, result = expr.thread(evaluation, head=h)
+        _, result = expr.thread(evaluation, head=h)
         return result

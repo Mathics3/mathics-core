@@ -2,7 +2,7 @@
 """
 Unit tests for mathics.builtins.arithmetic.basic
 """
-from test.helper import check_evaluation
+from test.helper import check_evaluation, check_wrong_number_of_arguments
 
 import pytest
 
@@ -108,6 +108,16 @@ def test_exponential(str_expr, str_expected):
             "a  b ComplexInfinity",
             "ComplexInfinity",
             "Goes to the previous case because of the rule in Power",
+        ),
+        (
+            "HoldForm[Times[]]",
+            "Times[]",
+            "Times without arguments is not formatted",
+        ),
+        (
+            "HoldForm[Times[x]]",
+            "Times[x]",
+            "Times with a single argument is not formatted",
         ),
     ],
 )
@@ -296,10 +306,10 @@ def test_power(str_expr, str_expected, expected_message, fail_msg):
         # For some weird reason, the following tests
         # pass if we run this unit test alone, but not
         # if we run it together all the tests
-        ("0. + 0. I//FullForm", "Complex[0., 0.]", "WMA compatibility"),
-        ("0. I//FullForm", "Complex[0., 0.]", None),
-        ("1. + 0. I//FullForm", "Complex[1., 0.]", None),
-        ("0. + 1. I//FullForm", "Complex[0., 1.]", None),
+        ("0. + 0. I//FullForm", "Complex[0.`, 0.`]", "WMA compatibility"),
+        ("0. I//FullForm", "Complex[0.`, 0.`]", None),
+        ("1. + 0. I//FullForm", "Complex[1.`, 0.`]", None),
+        ("0. + 1. I//FullForm", "Complex[0.`, 1.`]", None),
         ("1. + 0. I//OutputForm", "1. + 0. I", "Formatted"),
         ("0. + 1. I//OutputForm", "0. + 1. I", "Formatting 1. I"),
         ("-2/3-I//FullForm", "Complex[Rational[-2, 3], -1]", "Adding a rational"),
@@ -481,3 +491,49 @@ def test_private_doctests_arithmetic(str_expr, msgs, str_expected, fail_msg):
         failure_message=fail_msg,
         expected_messages=msgs,
     )
+
+
+def test_wrong_number_of_arguments():
+    tests = [
+        (
+            "CubeRoot[a, b]",
+            ["CubeRoot called with 2 arguments; 1 argument is expected."],
+            "CubeRoot error call",
+        ),
+        (
+            "CubeRoot[a, b, c]",
+            ["CubeRoot called with 3 arguments; 1 argument is expected."],
+            "CubeRoot error call with 3 arguments",
+        ),
+        (
+            "Divide[a]",
+            ["Divide called with 1 argument; 2 arguments are expected."],
+            "Divide error call with 1 argument",
+        ),
+        (
+            "Minus[]",
+            ["Minus called with 0 arguments; 1 argument is expected."],
+            "Minus error call with 0 arguments",
+        ),
+        (
+            "Sqrt[a, b, c, d]",
+            ["Sqrt called with 4 arguments; 1 argument is expected."],
+            "Sqrt error call with 4 arguments",
+        ),
+        (
+            "Sqrt[]",
+            ["Sqrt called with 0 arguments; 1 argument is expected."],
+            "Sqrt error call with 0 arguments",
+        ),
+        (
+            "Subtract[]",
+            ["Subtract called with 0 arguments; 2 arguments are expected."],
+            "argrx error call with 0 arguments",
+        ),
+        (
+            "Subtract[a]",
+            ["Subtract called with 1 argument; 2 arguments are expected."],
+            "Subtract argrx error call with 1 argument",
+        ),
+    ]
+    check_wrong_number_of_arguments(tests)

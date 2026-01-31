@@ -53,15 +53,45 @@ def get_default_value(
         defaultexpr = Expression(
             SymbolDefault, Symbol(name), *[Integer(index) for index in pos[:pos_len]]
         )
-        result = evaluation.definitions.get_value(
-            name, "System`DefaultValues", defaultexpr, evaluation
-        )
-        if result is not None:
-            if result.sameQ(defaultexpr):
-                result = result.evaluate(evaluation)
-            return result
+        try:
+            result = evaluation.definitions.get_value(
+                name, "System`DefaultValues", defaultexpr, evaluation
+            )
+        except ValueError:
+            continue
+
+        if result.sameQ(defaultexpr):
+            result = result.evaluate(evaluation)
+        return result
     return None
 
 
 def match(expr, form, evaluation: Evaluation):
     return Matcher(form, evaluation).match(expr, evaluation)
+
+
+def param_and_option_from_optional_place(opt_param, options, head, evaluation):
+    """
+    If ls is a `Rule` or `RuleDelayed` expression, and it is not
+    expected in an Optional parameter, store the option in the
+    `options` dictionary, and return the default value for the
+    parameter.
+
+    Used for rules of the form
+     ```Head[elem1,... ,Optional[...],OptionValues[]]```
+    """
+
+    if not opt_param.has_form(
+        (
+            "Rule",
+            "RuleDelayed",
+        ),
+        2,
+    ):
+        return opt_param
+
+    options_ = opt_param.get_option_values(evaluation, True)
+    for key in options_:
+        del options[key]
+    options.update(options_)
+    return get_default_value(head, evaluation)

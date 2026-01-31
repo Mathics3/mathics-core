@@ -55,20 +55,47 @@ from mathics.eval.nevaluator import eval_N
 sort_order = "mathics.builtin.drawing-graphics"
 
 GRAPHICS_OPTIONS = {
+    "AlignmentPoint": "Center",
     "AspectRatio": "Automatic",
     "Axes": "False",
+    "AxesLabel": "None",
+    "AxesOrigin": "Automatic",
     "AxesStyle": "{}",
     "Background": "Automatic",
+    "BaseStyle": "{}",
+    "BaselinePosition": "Automatic",
+    "ContentSelectable": "Automatic",
+    "CoordinatesToolOptions": "Automatic",
+    "Epilog": "{}",
+    "FormatType": "TraditionalForm",
+    "Frame": "False",
+    "FrameLabel": "None",
+    "FrameStyle": "{}",
+    "FrameTicks": "Automatic",
+    "FrameTicksStyle": "{}",
+    "GridLines": "None",
+    "GridLinesStyle": "{}",
+    "ImageMargins": "0.",
+    "ImagePadding": "All",
     "ImageSize": "Automatic",
     "LabelStyle": "{}",
+    "LogPlot": "False",  # not standard afaics
+    "Method": "Automatic",
+    "PlotLabel": "None",
     "PlotRange": "Automatic",
+    "PlotRangeClipping": "False",
     "PlotRangePadding": "Automatic",
+    "PlotRegion": "Automatic",
+    "PreserveImageOptions": "Automatic",
+    "Prolog": "{}",
+    "RotateLabel": "True",
+    "Ticks": "Automatic",
     "TicksStyle": "{}",
     "$OptionSyntax": "Ignore",
 }
 
 # fraction of point relative canvas width
-DEFAULT_POINT_FACTOR = 0.005
+DEFAULT_POINT_FACTOR = 0.007
 
 
 ERROR_BACKGROUND_COLOR = RGBColor(components=[1, 0.3, 0.3, 0.25])
@@ -194,7 +221,7 @@ class Show(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Show.html</url>
 
     <dl>
-      <dt>'Show[$graphics$, $options$]'
+      <dt>'Show'[$graphics$, $options$]
       <dd>shows a list of graphics with the specified options added.
     </dl>
 
@@ -235,7 +262,7 @@ class Graphics(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Graphics.html</url>
 
     <dl>
-      <dt>'Graphics[$primitives$, $options$]'
+      <dt>'Graphics'[$primitives$, $options$]
       <dd>represents a graphic.
     </dl>
 
@@ -276,9 +303,9 @@ class Graphics(Builtin):
      = #<--#
      . \begin{asy}
      . usepackage("amsmath");
-     . size(5.8556cm, 5.8333cm);
-     . draw(ellipse((175,175),175,175), rgb(0, 0, 0)+linewidth(0.66667));
-     . clip(box((-0.33333,0.33333), (350.33,349.67)));
+     . size(5.869cm, 5.8333cm);
+     . draw(ellipse((175,175),175,175), rgb(0, 0, 0)+linewidth(1.0667));
+     . clip(box((-0.53333,0.53333), (350.53,349.47)));
      . \end{asy}
     """
 
@@ -289,7 +316,7 @@ class Graphics(Builtin):
 
     def eval_makeboxes(self, content, evaluation, options):
         """MakeBoxes[%(name)s[content_, OptionsPattern[%(name)s]],
-        StandardForm|TraditionalForm|OutputForm]"""
+        StandardForm|TraditionalForm]"""
 
         def convert(content):
             head = content.get_head()
@@ -411,7 +438,7 @@ class _Size(_GraphicsDirective):
     def init(self, graphics, item=None, value=None):
         super(_Size, self).init(graphics, item)
         if item is not None:
-            self.value = item.elements[0].round_to_float()
+            self.value = item.elements[0].round_to_float() * 0.7
         elif value is not None:
             self.value = value
         else:
@@ -431,7 +458,7 @@ class AbsoluteThickness(_Thickness):
     https://reference.wolfram.com/language/ref/AbsoluteThickness.html</url>
 
     <dl>
-      <dt>'AbsoluteThickness[$p$]'
+      <dt>'AbsoluteThickness'[$p$]
       <dd>sets the line thickness for subsequent graphics primitives to $p$ \
           points.
     </dl>
@@ -451,9 +478,9 @@ class Point(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Point.html</url>
 
     <dl>
-      <dt>'Point[{$point_1$, $point_2$ ...}]'
+      <dt>'Point'[{$point_1$, $point_2$ ...}]
       <dd>represents the point primitive.
-      <dt>'Point[{{$p_11$, $p_12$, ...}, {$p_21$, $p_22$, ...}, ...}]'
+      <dt>'Point'[{{$p_11$, $p_12$, ...}, {$p_21$, $p_22$, ...}, ...}]
       <dd>represents a number of point primitives.
     </dl>
 
@@ -482,7 +509,7 @@ class PointSize(_Size):
     <url>:WMA link:https://reference.wolfram.com/language/ref/PointSize.html</url>
 
     <dl>
-      <dt>'PointSize[$t$]'
+      <dt>'PointSize'[$t$]
       <dd>sets the diameter of points to $t$, which is relative to the overall width.
     </dl>
 
@@ -514,10 +541,10 @@ class Line(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Line.html</url>
 
     <dl>
-      <dt>'Line[{$point_1$, $point_2$ ...}]'
+      <dt>'Line'[{$point_1$, $point_2$ ...}]
       <dd>represents the line primitive.
 
-      <dt>'Line[{{$p_11$, $p_12$, ...}, {$p_21$, $p_22$, ...}, ...}]'
+      <dt>'Line'[{{$point_{11}$, $point_{12}$, ...}, {$point_{21}$, $point_{22}$, ...}, ...}]
       <dd>represents a number of line primitives.
     </dl>
 
@@ -571,7 +598,7 @@ class FilledCurve(Builtin):
     https://reference.wolfram.com/language/ref/FilledCurve.html</url>
 
     <dl>
-      <dt>'FilledCurve[{$segment1$, $segment2$ ...}]'
+      <dt>'FilledCurve'[{$segment_1$, $segment_2$ ...}]
       <dd>represents a filled curve.
     </dl>
 
@@ -590,10 +617,10 @@ class Polygon(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Polygon.html</url>
 
     <dl>
-      <dt>'Polygon[{$point_1$, $point_2$ ...}]'
+      <dt>'Polygon'[{$point_1$, $point_2$ ...}]
       <dd>represents the filled polygon primitive.
 
-      <dt>'Polygon[{{$p_11$, $p_12$, ...}, {$p_21$, $p_22$, ...}, ...}]'
+      <dt>'Polygon'[{{$p_11$, $p_12$, ...}, {$p_21$, $p_22$, ...}, ...}]
       <dd>represents a number of filled polygon primitives.
     </dl>
 
@@ -616,21 +643,21 @@ class Polygon(Builtin):
 
 
 class RegularPolygon(Builtin):
-    """
+    r"""
 
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/RegularPolygon.html</url>
 
     <dl>
-      <dt>'RegularPolygon[$n$]'
+      <dt>'RegularPolygon'[$n$]
       <dd>gives the regular polygon with $n$ edges.
-      <dt>'RegularPolygon[$r$, $n$]'
+      <dt>'RegularPolygon'[$r$, $n$]
       <dd>gives the regular polygon with $n$ edges and radius $r$.
-      <dt>'RegularPolygon[{$r$, $phi$}, $n$]'
-      <dd>gives the regular polygon with radius $r$ with one vertex drawn at angle $phi$.
-      <dt>'RegularPolygon[{$x, $y}, $r$, $n$]'
-      <dd>gives the regular polygon centered at the position {$x, $y}.
+      <dt>'RegularPolygon'[{$r$, $\phi$}, $n$]
+      <dd>gives the regular polygon with radius $r$ with one vertex drawn at angle $\phi$.
+      <dt>'RegularPolygon'[{$x$, $y$}, $r$, $n$]
+      <dd>gives the regular polygon centered at the position {$x$, $y$}.
     </dl>
 
     >> Graphics[RegularPolygon[5]]
@@ -650,19 +677,19 @@ class Arrow(Builtin):
     https://reference.wolfram.com/language/ref/Arrow.html</url>
 
     <dl>
-      <dt>'Arrow[{$p1$, $p2$}]'
-      <dd>represents a line from $p1$ to $p2$ that ends with an arrow at $p2$.
+      <dt>'Arrow'[{$p_1$, $p_2$}]
+      <dd>represents a line from $p_1$ to $p_2$ that ends with an arrow at $p_2$.
 
-      <dt>'Arrow[{$p1$, $p2$}, $s$]'
-      <dd>represents a line with arrow that keeps a distance of $s$ from $p1$ and $p2$.
+      <dt>'Arrow'[{$p_1$, $p_2$}, $s$]
+      <dd>represents a line with arrow that keeps a distance of $s$ from $p_1$ and $p_2$.
 
-      <dt>'Arrow[{$point_1$, $point_2$}, {$s1$, $s2$}]'
-      <dd>represents a line with arrow that keeps a distance of $s1$ from $p1$ and a \
-          distance of $s2$ from $p2$.
+      <dt>'Arrow'[{$point_1$, $point_2$}, {$s_1$, $s_2$}]
+      <dd>represents a line with arrow that keeps a distance of $s_1$ from $p_1$ and a \
+          distance of $s_2$ from $p_2$.
 
-      <dt>'Arrow[{$point_1$, $point_2$}, {$s1$, $s2$}]'
-      <dd>represents a line with arrow that keeps a distance of $s1$ from $p1$ and a \
-          distance of $s2$ from $p2$.
+      <dt>'Arrow'[{$point_1$, $point_2$}, {$s_1$, $s_2$}]
+      <dd>represents a line with arrow that keeps a distance of $s_1$ from $p_1$ and a \
+          distance of $s_2$ from $p_2$.
     </dl>
 
     >> Graphics[Arrow[{{0,0}, {1,1}}]]
@@ -693,23 +720,23 @@ class Arrowheads(_GraphicsDirective):
     https://reference.wolfram.com/language/ref/Arrowheads.html</url>
 
     <dl>
-      <dt>'Arrowheads[$s$]'
+      <dt>'Arrowheads'[$s$]
       <dd>specifies that Arrow[] draws one arrow of size $s$ (relative to width of \
           image, defaults to 0.04).
 
-      <dt>'Arrowheads[{$spec1$, $spec2$, ..., $specn$}]'
-      <dd>specifies that Arrow[] draws n arrows as defined by $spec1$, $spec2$, \
-          ... $specn$.
+      <dt>'Arrowheads'[{$spec_1$, $spec_2$, ..., $spec_n$}]
+      <dd>specifies that Arrow[] draws n arrows as defined by $spec_1$, $spec_2$, \
+          ... $spec_n$.
 
-      <dt>'Arrowheads[{{$s$}}]'
+      <dt>'Arrowheads'[{{$s$}}]
       <dd>specifies that one arrow of size $s$ should be drawn.
 
-      <dt>'Arrowheads[{{$s$, $pos$}}]'
+      <dt>'Arrowheads'[{{$s$, $pos$}}]
       <dd>specifies that one arrow of size $s$ should be drawn at position $pos$ (for \
           the arrow to be on the line, $pos$ has to be between 0, i.e. the start for \
           the line, and 1, i.e. the end of the line).
 
-      <dt>'Arrowheads[{{$s$, $pos$, $g$}}]'
+      <dt>'Arrowheads'[{{$s$, $pos$, $g$}}]
       <dd>specifies that one arrow of size $s$ should be drawn at position $pos$ \
           using Graphics $g$.
     </dl>
@@ -901,7 +928,7 @@ class _BezierCurve:
         return draw
 
     def make_draw_asy(self, pen):
-        from mathics.format.asy_fns import asy_bezier
+        from mathics.format.render.asy_fns import asy_bezier
 
         def draw(points):
             for path in asy_bezier((self.spline_degree, points)):
@@ -1016,7 +1043,7 @@ class Style:
                 edge_style = self.get_default_edge_color()
         elif style_class == _Thickness:
             if not default_to_faces:
-                edge_style = AbsoluteThickness(self.graphics, value=0.5)
+                edge_style = AbsoluteThickness(self.graphics, value=1.6)
         for item in self.styles:
             if isinstance(item, style_class):
                 if default_to_faces:
@@ -1038,15 +1065,15 @@ class Style:
     def get_option(self, name):
         return self.options.get(name, None)
 
-    def get_line_width(self, face_element=True):
+    def get_line_width(self, face_element=True) -> float:
         if self.graphics.pixel_width is None:
-            return 0
+            return 0.0
         edge_style, _ = self.get_style(
             _Thickness, default_to_faces=face_element, consider_forms=face_element
         )
         if edge_style is None:
-            return 0
-        return edge_style.get_thickness()
+            return 0.0
+        return edge_style.get_thickness() / 2.0
 
 
 def _flatten(elements):
@@ -1161,7 +1188,7 @@ class _GraphicsElements:
             )
             self.tooltip_text = messages
             self.background_color = ERROR_BACKGROUND_COLOR
-            logging.warn(messages)
+            logging.warning(messages)
 
     def create_style(self, expr):
         style = self.style_class(self)
@@ -1252,13 +1279,13 @@ class Circle(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Circle.html</url>
 
     <dl>
-      <dt>'Circle[{$cx$, $cy$}, $r$]'
-      <dd>draws a circle with center '($cx$, $cy$)' and radius $r$.
+      <dt>'Circle'[{$c_x$, $c_y$}, $r$]
+      <dd>draws a circle with center '($c_x$, $c_y$)' and radius $r$.
 
-      <dt>'Circle[{$cx$, $cy$}, {$rx$, $ry$}]'
+      <dt>'Circle'[{$c_x$, $c_y$}, {$r_x$, $r_y$}]
       <dd>draws an ellipse.
 
-      <dt>'Circle[{$cx$, $cy$}]'
+      <dt>'Circle'[{$c_x$, $c_y$}]
       <dd>chooses radius 1.
 
       <dt>'Circle[]'
@@ -1284,20 +1311,20 @@ class Disk(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Disk.html</url>
 
     <dl>
-      <dt>'Disk[{$cx$, $cy$}, $r$]'
-      <dd>fills a circle with center '($cx$, $cy$)' and radius $r$.
+      <dt>'Disk'[{$c_x$, $c_y$}, $r$]
+      <dd>fills a circle with center ($c_x$, $c_y$) and radius $r$.
 
-      <dt>'Disk[{$cx$, $cy$}, {$rx$, $ry$}]'
+      <dt>'Disk'[{$c_x$, $c_y$}, {$r_x$, $r_y$}]
       <dd>fills an ellipse.
 
-      <dt>'Disk[{$cx$, $cy$}]'
+      <dt>'Disk'[{$c_x$, $c_y$}]
       <dd>chooses radius 1.
 
       <dt>'Disk[]'
-      <dd>chooses center '(0, 0)' and radius 1.
+      <dd>chooses center $(0, 0)$' and radius 1.
 
-      <dt>'Disk[{$x$, $y$}, ..., {$t1$, $t2$}]'
-      <dd>is a sector from angle $t1$ to $t2$.
+      <dt>'Disk'[{$x$, $y$}, ..., {$t_1$, $t_2$}]
+      <dd>is a sector from angle $t_1$ to $t_2$.
     </dl>
 
     >> Graphics[{Blue, Disk[{0, 0}, {2, 1}]}]
@@ -1336,7 +1363,7 @@ class EdgeForm(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/EdgeForm.html</url>
 
     <dl>
-      <dt> 'EdgeForm[$g$]'
+      <dt> 'EdgeForm'[$g$]
       <dd> is a graphics directive that specifies that edges of filled graphics objects are to be drawn using the graphics directive or list of directives $g$.
     </dl>
 
@@ -1356,7 +1383,7 @@ class FaceForm(Builtin):
     :https://reference.wolfram.com/language/ref/FaceForm.html</url>
 
     <dl>
-      <dt> 'FaceForm[$g$]'
+      <dt> 'FaceForm'[$g$]
       <dd> is a graphics directive that specifies that faces of filled graphics\
            objects are to be drawn using the graphics directive or list of \
            directives $g$.
@@ -1387,13 +1414,13 @@ class Inset(Builtin):
     https://reference.wolfram.com/language/ref/Inset.html</url>
 
     <dl>
-      <dt>'Text[$obj$]'
+      <dt>'Text'[$obj$]
       <dd>represents an object $obj$ inset in a graphic.
 
-      <dt>'Text[$obj$, $pos$]'
+      <dt>'Text'[$obj$, $pos$]
       <dd>represents an object $obj$ inset in a graphic at position $pos$.
 
-      <dt>'Text[$obj$, $pos$, $$]'
+      <dt>'Text'[$obj$, $pos$, $opos$]
       <dd>represents an object $obj$ inset in a graphic at position $pos$, \
           in away that the position $opos$ of $obj$ coincides with $pos$ \
           in the enclosing graphic.
@@ -1413,7 +1440,7 @@ class Large(Builtin):
     </dl>
     """
 
-    summary_text = "large size style or option setting"
+    summary_text = "large size symbol for style or option setting"
 
 
 class Medium(Builtin):
@@ -1426,7 +1453,7 @@ class Medium(Builtin):
     </dl>
     """
 
-    summary_text = "medium size style or option setting"
+    summary_text = "medium size symbol for style or option setting"
 
 
 class Offset(Builtin):
@@ -1434,8 +1461,8 @@ class Offset(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Offset.html</url>
 
     <dl>
-      <dt>'Offset[{$dx$, $dy$}, $position$]'
-      <dd>gives the position of a graphical object obtained by starting at the specified $position$ and then moving by absolute offset {$dx$,$dy$}.
+      <dt>'Offset'[{$d_x$, $d_y$}, $position$]
+      <dd>gives the position of a graphical object obtained by starting at the specified $position$ and then moving by absolute offset {$d_x$,$d_y$}.
     </dl>
     """
 
@@ -1447,11 +1474,10 @@ class Rectangle(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Rectangle.html</url>
 
     <dl>
-      <dt>'Rectangle[{$xmin$, $ymin$}]'
-      <dd>represents a unit square with bottom-left corner at {$xmin$, $ymin$}.
-
-      <dt>'Rectangle[{$xmin$, $ymin$}, {$xmax$, $ymax$}]
-      <dd>is a rectangle extending from {$xmin$, $ymin$} to {$xmax$, $ymax$}.
+      <dt>'Rectangle'[{$x_{min}$, $y_{min}$}]
+      <dd>represents a unit square with bottom-left corner at {$x_{min}$, $y_{min}$}.
+      <dt>'Rectangle[{$x_{min}$, $y_{min}$}, {$x_{max}$, $y_{max}$}]
+      <dd>is a rectangle extending from {$x_{min}$, $y_{min}$} to {$x_{max}$, $y_{max}$}.
     </dl>
 
     >> Graphics[Rectangle[]]
@@ -1483,8 +1509,8 @@ class Text(Inset):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Text.html</url>
 
     <dl>
-      <dt>'Text["$text$", {$x$, $y$}]'
-      <dd>draws $text$ centered on position '{$x$, $y$}'.
+      <dt>'Text'["$text$", {$x$, $y$}]
+      <dd>draws $text$ centered on position {$x$, $y$}.
     </dl>
 
     >> Graphics[{Text["First", {0, 0}], Text["Second", {1, 1}]}, Axes->True, PlotRange->{{-2, 2}, {-2, 2}}]
@@ -1527,7 +1553,7 @@ class Thickness(_Thickness):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Thickness.html</url>
 
     <dl>
-      <dt>'Thickness[$t$]'
+      <dt>'Thickness'[$t$]
       <dd>sets the line thickness for subsequent graphics primitives to $t$ times the size of the plot area.
     </dl>
 

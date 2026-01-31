@@ -4,21 +4,18 @@ File Properties
 
 import os
 import os.path as osp
-import time
+from datetime import datetime
 
 from mathics.builtin.exp_structure.size_and_sig import Hash
 from mathics.builtin.files_io.files import MathicsOpen
-from mathics.core.atoms import Real, String
+from mathics.core.atoms import String
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, MessageException
 from mathics.core.convert.expression import to_expression
-from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression
 from mathics.core.streams import path_search
 from mathics.core.symbols import Symbol, SymbolNull
-from mathics.core.systemsymbols import SymbolAbsoluteTime, SymbolFailed, SymbolNone
-from mathics.eval.nevaluator import eval_N
+from mathics.core.systemsymbols import SymbolFailed, SymbolNone
 
 sort_order = "mathics.builtin.file-operations.file_properties"
 
@@ -29,7 +26,7 @@ class FileDate(Builtin):
     :WMA link:https://reference.wolfram.com/language/ref/FileDate.html</url>
 
     <dl>
-      <dt>'FileDate[$file$, $types$]'
+      <dt>'FileDate'[$file$, $types$]
       <dd>returns the time and date at which the file was last modified.
     </dl>
 
@@ -53,7 +50,6 @@ class FileDate(Builtin):
     """
 
     messages = {
-        "nffil": "File not found during `1`.",
         "datetype": (
             'Date type Fail should be "Access", "Modification", '
             '"Creation" (Windows only), '
@@ -67,7 +63,7 @@ class FileDate(Builtin):
             "Change" -> FileDate[filepath, "Change"],
             "Modification" -> FileDate[filepath, "Modification"]}""",
     }
-    summary_text = "date and time of the last change in a file"
+    summary_text = "get date and time of the last change in a file"
 
     def eval(self, path, timetype, evaluation):
         "FileDate[path_, timetype_]"
@@ -103,14 +99,17 @@ class FileDate(Builtin):
             evaluation.message("FileDate", "datetype")
             return
 
-        # Offset for system epoch
-        epochtime_expr = Expression(
-            SymbolAbsoluteTime, String(time.strftime("%Y-%m-%d %H:%M", time.gmtime(0)))
+        dt_object = datetime.fromtimestamp(result)
+        # Extract the year, month, day, hour, and minute into a tuple
+        datetime_tuple = (
+            dt_object.year,
+            dt_object.month,
+            dt_object.day,
+            dt_object.hour,
+            dt_object.minute,
+            dt_object.second,
         )
-        epochtime = eval_N(epochtime_expr, evaluation).to_python()
-        result += epochtime
-
-        return to_expression("DateList", Real(result))
+        return to_expression("DateList", datetime_tuple)
 
     def eval_default(self, path, evaluation):
         "FileDate[path_]"
@@ -123,15 +122,15 @@ class FileHash(Builtin):
     https://reference.wolfram.com/language/ref/FileHash.html</url>
 
     <dl>
-      <dt>'FileHash[$file$]'
+      <dt>'FileHash'[$file$]
       <dd>returns an integer hash for the given $file$.
 
-      <dt>'FileHash[$file$, $type$]'
+      <dt>'FileHash'[$file$, $type$]
       <dd>returns an integer hash of the specified $type$ for the given $file$.
       <dd>The types supported are "MD5", "Adler32", "CRC32", "SHA", "SHA224", "SHA256", \
           "SHA384", and "SHA512".
 
-      <dt>'FileHash[$file$, $type$, $format$]'
+      <dt>'FileHash'[$file$, $type$, $format$]
       <dd>gives a hash code in the specified format.
     </dl>
 
@@ -164,7 +163,7 @@ class FileHash(Builtin):
                 dump = f.read()
         except IOError:
             evaluation.message("General", "noopen", filename)
-            return
+            return SymbolFailed
         except MessageException as e:
             e.message(evaluation)
             return
@@ -183,7 +182,7 @@ class FileType(Builtin):
     https://reference.wolfram.com/language/ref/FileType.html</url>
 
     <dl>
-      <dt>'FileType["$file$"]'
+      <dt>'FileType'["$file$"]
       <dd>gives the type of a file, a string. This is typically 'File', 'Directory' \
           or 'None'.
     </dl>
@@ -201,7 +200,7 @@ class FileType(Builtin):
             "File specification `1` is not a string of " "one or more characters."
         ),
     }
-    summary_text = "type of a file"
+    summary_text = "get the file extension or file type of a file"
 
     def eval(self, filename, evaluation):
         "FileType[filename_]"
@@ -210,7 +209,7 @@ class FileType(Builtin):
             return
         path = filename.to_python()[1:-1]
 
-        path, is_temporary_file = path_search(path)
+        path, _ = path_search(path)
 
         if path is None:
             return SymbolNone
@@ -226,11 +225,11 @@ class SetFileDate(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/SetFileDate.html</url>
 
     <dl>
-    <dt>'SetFileDate["$file$"]'
+    <dt>'SetFileDate'["$file$"]
       <dd>set the file access and modification dates of $file$ to the current date.
-    <dt>'SetFileDate["$file$", $date$]'
+    <dt>'SetFileDate'["$file$", $date$]
       <dd>set the file access and modification dates of $file$ to the specified date list.
-    <dt>'SetFileDate["$file$", $date$, "$type$"]'
+    <dt>'SetFileDate'["$file$", $date$, "$type$"]
       <dd>set the file date of $file$ to the specified date list.
       The "$type$" can be one of "$Access$", "$Creation$", "$Modification$", or 'All'.
     </dl>
@@ -248,7 +247,6 @@ class SetFileDate(Builtin):
         "fstr": (
             "File specification `1` is not a string of one or " "more characters."
         ),
-        "nffil": "File not found during `1`.",
         "fdate": (
             "Date specification should be either the number of seconds "
             "since January 1, 1900 or a {y, m, d, h, m, s} list."
@@ -288,7 +286,7 @@ class SetFileDate(Builtin):
         ):
             evaluation.message("SetFileDate", "fstr", filename)
             return
-        py_filename, is_temporary_file = path_search(py_filename[1:-1])
+        py_filename, _ = path_search(py_filename[1:-1])
 
         if py_filename is None:
             evaluation.message("SetFileDate", "nffil", expr)
@@ -296,7 +294,7 @@ class SetFileDate(Builtin):
 
         # Check datelist
         if not (
-            isinstance(py_datelist, list)
+            isinstance(py_datelist, (list, tuple))
             and len(py_datelist) == 6
             and all(isinstance(d, int) for d in py_datelist[:-1])
             and isinstance(py_datelist[-1], float)
@@ -308,23 +306,13 @@ class SetFileDate(Builtin):
             evaluation.message("SetFileDate", "datetype")
             return
 
-        epochtime = (
-            to_expression(
-                "AbsoluteTime", time.strftime("%Y-%m-%d %H:%M", time.gmtime(0))
-            )
-            .evaluate(evaluation)
-            .to_python()
-        )
-
-        stattime = to_expression("AbsoluteTime", from_python(py_datelist))
-        stattime = eval_N(stattime, evaluation).to_python()
-
-        stattime -= epochtime
+        file_timestamp = datetime(*py_datelist[:4]).timestamp()
 
         try:
             os.stat(py_filename)
             if py_attr == '"Access"':
-                os.utime(py_filename, (stattime, osp.getatime(py_filename)))
+                os.utime(py_filename, (file_timestamp, osp.getatime(py_filename)))
+                return SymbolNull
             if py_attr == '"Creation"':
                 if os.name == "posix":
                     evaluation.message("SetFileDate", "nocreationunix")
@@ -333,9 +321,9 @@ class SetFileDate(Builtin):
                     # TODO: Note: This is windows only
                     return SymbolFailed
             if py_attr == '"Modification"':
-                os.utime(py_filename, (osp.getatime(py_filename), stattime))
-            if py_attr == "All":
-                os.utime(py_filename, (stattime, stattime))
+                os.utime(py_filename, (osp.getatime(py_filename), file_timestamp))
+            elif py_attr == "All":
+                os.utime(py_filename, (file_timestamp, file_timestamp))
         except OSError:
             # evaluation.message(...)
             return SymbolFailed

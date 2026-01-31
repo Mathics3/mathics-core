@@ -10,7 +10,7 @@ for describing how this works.
 """
 
 
-from mathics_scanner import is_symbol_name
+from mathics_scanner.tokeniser import is_symbol_name
 
 from mathics.core.parser.feed import (
     MathicsFileLineFeeder,
@@ -18,7 +18,7 @@ from mathics.core.parser.feed import (
     MathicsMultiLineFeeder,
     MathicsSingleLineFeeder,
 )
-from mathics.core.parser.operators import all_operator_names
+from mathics.core.parser.operators import all_operator_names, operator_precedences
 from mathics.core.parser.util import parse, parse_builtin_rule
 
 __all__ = [
@@ -29,6 +29,7 @@ __all__ = [
     "MathicsSingleLineFeeder",
     "all_operator_names",
     "is_symbol_name",
+    "operator_precedences",
     "parse",
     "parse_builtin_rule",
 ]

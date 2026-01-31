@@ -3,9 +3,7 @@
 Unit tests from mathics.builtin.compilation.
 """
 
-import sys
-import time
-from test.helper import check_evaluation, evaluate
+from test.helper import check_evaluation
 
 import pytest
 
@@ -29,7 +27,7 @@ from mathics.compile import has_llvmlite
         ("cf[4]", None, "-0.756802", None),
         (
             "cf[x]",
-            ("Invalid argument x should be Integer, Real or boolean.",),
+            ("Argument x at position 1 should be a machine-size real number.",),
             "CompiledFunction[{x}, Sin[x], -CompiledCode-][x]",
             None,
         ),

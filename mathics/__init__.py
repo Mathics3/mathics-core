@@ -16,6 +16,7 @@ from mathics.version import __version__
 # if the package is not installed and "No version information"
 # if we can't get version information.
 version_info: Dict[str, str] = {
+    "OS": sys.platform,
     "mathics": __version__,
     "mpmath": mpmath_version,
     "numpy": numpy_version,
@@ -51,20 +52,43 @@ for package in optional_software:
 
     version_info[package] = package_version
 
-version_string = """Mathics {mathics}
-on {python}
+version_string = """Mathics3 {mathics}
+Running on {OS} {python}
 using SymPy {sympy}, mpmath {mpmath}, numpy {numpy}""".format(
     **version_info
 )
 
 
-if "cython" in version_info:
-    version_string += f", cython {version_info['cython']}"
-
+for opt_package in ("cython", "scipy", "skimage"):
+    if opt_package in version_info:
+        version_string += f", {opt_package} {version_info[opt_package]}"
 
 license_string = """\
-Copyright (C) 2011-2024 The Mathics3 Team.
+Copyright (C) 2011-2025 The Mathics3 Team.
 This program comes with ABSOLUTELY NO WARRANTY.
 This is free software, and you are welcome to redistribute it
 under certain conditions.
 See the documentation for the full license."""
+
+
+def disabled_breakpoint():
+    """
+    This breakpoint handler can be used as a dummy breakpoint
+    handler function which does not stop in Mathics3 when `Breakpoint[]` is
+    called. In effect, it disables, going into a Python breakpoint handler.
+
+    Here is how to set this from inside Mathics3:
+        SetEnvironment["PYTHONBREAKPOINT" -> "mathics.disabled_breakpoint"];
+
+    Or when invoking `mathics` from a POSIX shell:
+
+       PYTHONBREAKPOINT=mathics.disabled_breakpoint mathics # other arguments
+
+    See https://docs.python.org/3/library/functions.html#breakpoint for information on
+    the Python builtin breakpoint() function
+
+    """
+    # Note that we were called. In Django and other front-ends, the
+    # print message below will appear on the console; it might not be user
+    # visible by default.
+    print("Hit disabled breakpoint.")

@@ -2,13 +2,12 @@
 Predicates on Lists
 """
 
-from mathics.builtin.options import options_to_rules
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
+from mathics.core.element import BaseElement
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
-from mathics.core.systemsymbols import SymbolContainsOnly
 
 
 class ContainsOnly(Builtin):
@@ -18,8 +17,8 @@ class ContainsOnly(Builtin):
     https://reference.wolfram.com/language/ref/ContainsOnly.html</url>
 
     <dl>
-      <dt>'ContainsOnly[$list1$, $list2$]'
-      <dd>yields True if $list1$ contains only elements that appear in $list2$.
+      <dt>'ContainsOnly'[$list_1$, $list_2$]
+      <dd>yields True if $list_1$ contains only elements that appear in $list_2$.
     </dl>
 
     >> ContainsOnly[{b, a, a}, {a, b, c}]
@@ -51,18 +50,14 @@ class ContainsOnly(Builtin):
 
     summary_text = "test if all the elements of a list appears into another list"
 
-    def check_options(self, expr, evaluation, options):
-        for key in options:
-            if key != "System`SameTest":
-                if expr is None:
-                    evaluation.message("ContainsOnly", "optx", Symbol(key))
-                else:
-                    evaluation.message("ContainsOnly", "optx", Symbol(key), expr)
-
-        return None
-
-    def eval(self, list1, list2, evaluation, options={}):
-        "ContainsOnly[list1_List, list2_List, OptionsPattern[ContainsOnly]]"
+    def eval(
+        self,
+        list1: BaseElement,
+        list2: BaseElement,
+        evaluation: Evaluation,
+        options: dict,
+    ) -> BaseElement:
+        "ContainsOnly[list1_List, list2_List, OptionsPattern[]]"
 
         same_test = self.get_option(options, "SameTest", evaluation)
 
@@ -71,31 +66,35 @@ class ContainsOnly(Builtin):
             result = Expression(same_test, a, b).evaluate(evaluation)
             return result is SymbolTrue
 
-        self.check_options(None, evaluation, options)
         for a in list1.elements:
             if not any(sameQ(a, b) for b in list2.elements):
                 return SymbolFalse
         return SymbolTrue
 
-    def eval_msg(self, e1, e2, evaluation, options={}):
-        "ContainsOnly[e1_, e2_, OptionsPattern[ContainsOnly]]"
-
-        opts = (
-            options_to_rules(options)
-            if len(options) <= 1
-            else [ListExpression(*options_to_rules(options))]
-        )
-        expr = Expression(SymbolContainsOnly, e1, e2, *opts)
+    def eval_msg(
+        self,
+        e1: BaseElement,
+        e2: BaseElement,
+        evaluation: Evaluation,
+        expression: Expression,
+        options: dict,
+    ) -> BaseElement:
+        "expression:(ContainsOnly[e1_, e2_, OptionsPattern[]])"
+        # opts = (
+        #    options_to_rules(options)
+        #    if len(options) <= 1
+        #    else [ListExpression(*options_to_rules(options))]
+        # )
 
         if not isinstance(e1, Symbol) and not e1.has_form("List", None):
             evaluation.message("ContainsOnly", "lsa", e1)
-            return self.check_options(expr, evaluation, options)
+            return expression
 
         if not isinstance(e2, Symbol) and not e2.has_form("List", None):
             evaluation.message("ContainsOnly", "lsa", e2)
-            return self.check_options(expr, evaluation, options)
+            return expression
 
-        return self.check_options(expr, evaluation, options)
+        return expression
 
 
 # TODO: ContainsAll, ContainsNone ContainsAny ContainsExactly

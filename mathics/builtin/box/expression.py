@@ -78,7 +78,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         # There should be a better way to implement this
         # behaviour...
         if not hasattr(instance, "_elements"):
-            instance._elements = tuple(elements)
+            instance._elements = None
         return instance
 
     def do_format(self, evaluation, format):
@@ -86,6 +86,8 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
 
     @property
     def elements(self):
+        if self._elements is None:
+            self._elements = tuple()
         return self._elements
 
     @elements.setter
@@ -111,8 +113,22 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
     def get_lookup_name(self):
         return self.get_name()
 
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        return self.to_expression().get_sort_key(pattern_sort)
+    @property
+    def element_order(self) -> tuple:
+        """Return a tuple value that is used in ordering elements of
+        an expression. The tuple is ultimately compared
+        lexicographically.
+
+        """
+        return self.to_expression().element_order
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return self.to_expression().pattern_precedence
 
     def get_string_value(self):
         return "-@" + self.get_head_name() + "@-"
@@ -151,7 +167,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         if not element_counts:
             return False
         if element_counts and element_counts[0] is not None:
-            count = len(self._elements)
+            count = len(self.elements)
             if count not in element_counts:
                 if (
                     len(element_counts) == 2
@@ -180,7 +196,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
 
     def sameQ(self, expr) -> bool:
         """Mathics SameQ"""
-        return expr.sameQ(self)
+        return expr.sameQ(self.to_expression())
 
     def tex_block(self, tex, only_subsup=False):
         if len(tex) == 1:
@@ -192,9 +208,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
                 return tex
 
     def to_expression(self) -> Expression:
-        # FIXME: All classes should store their symbol name.
-        # So there should be a self.head.
-        return Expression(Symbol(self.get_name()), *self._elements)
+        return Expression(Symbol(self.get_name()), *self.elements)
 
     def flatten_pattern_sequence(self, evaluation) -> "BoxExpression":
         return self

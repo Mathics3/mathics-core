@@ -8,11 +8,11 @@ SympyFunction, MPMathFunction, etc.
 
 import importlib
 import importlib.util
-import os.path as osp
 import re
 from abc import ABC
 from functools import total_ordering
 from itertools import chain
+from types import ModuleType
 from typing import (
     Any,
     Callable,
@@ -27,8 +27,9 @@ from typing import (
 )
 
 import mpmath
-import pkg_resources
 import sympy
+
+import mathics.core.parser.operators
 
 # Note: it is important *not* to use:
 #   from mathics.eval.tracing import run_sympy
@@ -56,20 +57,22 @@ from mathics.core.attributes import (
     A_PROTECTED,
 )
 from mathics.core.convert.expression import to_expression
-from mathics.core.convert.op import ascii_operator_to_symbol
+from mathics.core.convert.op import ascii_operator_to_symbol, operator_to_unicode
 from mathics.core.convert.python import from_bool
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.definitions import Definition, Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import MessageException
-from mathics.core.expression import Expression, SymbolDefault
+from mathics.core.expression import Expression
 from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
 from mathics.core.list import ListExpression
 from mathics.core.number import PrecisionValueError, dps, get_precision, min_prec
+from mathics.core.parser.operators import OPERATOR_DATA
 from mathics.core.parser.util import PyMathicsDefinitions, SystemDefinitions
-from mathics.core.pattern import BasePattern
+from mathics.core.pattern import BasePattern, build_pattern_sort_key
 from mathics.core.rules import BaseRule, FunctionApplyRule, Rule
 from mathics.core.symbols import (
+    Atom,
     BaseElement,
     BooleanType,
     Symbol,
@@ -82,6 +85,7 @@ from mathics.core.symbols import (
     strip_context,
 )
 from mathics.core.systemsymbols import (
+    SymbolDefault,
     SymbolLessEqual,
     SymbolMessageName,
     SymbolRule,
@@ -92,21 +96,6 @@ from mathics.eval.numbers.numbers import cancel
 from mathics.eval.numerify import numerify
 from mathics.eval.scoping import dynamic_scoping
 from mathics.eval.sympy import eval_sympy
-
-try:
-    import ujson
-except ImportError:
-    import json as ujson  # type: ignore[no-redef]
-
-ROOT_DIR = pkg_resources.resource_filename("mathics", "")
-
-# Load the conversion tables from disk
-operator_tables_path = osp.join(ROOT_DIR, "data", "operator-tables.json")
-assert osp.exists(
-    operator_tables_path
-), f"Internal error: Operator precedence tables are missing; expected to be in {operator_tables_path}"
-with open(operator_tables_path, "r") as f:
-    OPERATOR_DATA = ujson.load(f)
 
 
 # Exceptions...
@@ -130,9 +119,9 @@ class PatternArgumentError(PatternError):
 
 class Builtin:
     """
-    A base class for a Built-in function symbols, like List, or
-    variables, like $SystemID, and Built-in Objects, like
-    DateTimeObject.
+    A base class for a Built-in function symbols, like ``List``, or
+    variables, like ``$SystemID``, and Built-in Objects, like
+    ``DateTimeObject``.
 
     Some of the class variables of the Builtin object are used to
     create a definition object for that built-in symbol.  In particular,
@@ -148,11 +137,11 @@ class Builtin:
 
     For example:
 
-    ```
+    .. code-block:: python
+
         def eval(x, evaluation):
              "F[x_Real]"
              return Expression(Symbol("G"), x*2)
-    ```
 
     adds a ``FunctionApplyRule`` to the symbol's definition object that implements
     ``F[x_]->G[x*2]``.
@@ -209,15 +198,19 @@ class Builtin:
 
     """
 
-    name: Optional[str] = None
-    context: str = ""
-    attributes: int = A_PROTECTED
     _is_numeric: bool = False
-    rules: Dict[str, Any] = {}
+    attributes: int = A_PROTECTED
+    context: str = ""
+    defaults: Dict[Optional[int], str] = {}
+
+    # Number of arguments expected. -1 is used for arbitrary number.
+    expected_args: Union[int, Tuple[int, int], range] = -1
+
     formats: Dict[str, Any] = {}
     messages: Dict[str, Any] = {}
+    name: Optional[str] = None
     options: Dict[str, Any] = {}
-    defaults: Dict[Optional[int], str] = {}
+    rules: Dict[str, Any] = {}
 
     def __getnewargs_ex__(self):
         return tuple(), {
@@ -251,12 +244,16 @@ class Builtin:
     def contribute(self, definitions: Definitions, is_pymodule=False):
         from mathics.core.parser import parse_builtin_rule
 
-        # Set the default context
-        if not self.context:
-            self.context = "Pymathics`" if is_pymodule else "System`"
         name = self.get_name()
         attributes = self.attributes
         options = {}
+        # Set the default context
+        if not self.context:
+            self.context = "Pymathics`" if is_pymodule else "System`"
+            # get_name takes the context from the class, not from the
+            # instance, so even if we set the context here,
+            # self.get_name() does not includes the context.
+            name = self.context + name
 
         # - 'Strict': warn and fail with unsupported options
         # - 'Warn': warn about unsupported options, but continue
@@ -275,7 +272,7 @@ class Builtin:
                 # Otherwise it'll be created in Global` when it's
                 # used, so it won't work.
                 if option not in definitions.builtin:
-                    definitions.builtin[option] = Definition(name=name)
+                    definitions.builtin[option] = Definition(name=option)
 
         # Check if the given options are actually supported by the
         # Builtin.  If not, we might issue an "optx" error and
@@ -302,18 +299,6 @@ class Builtin:
         for pattern, function in self.get_functions(
             prefix="eval", is_pymodule=is_pymodule
         ):
-            pat_attr = attributes if pattern.get_head_name() == name else None
-            rules.append(
-                FunctionApplyRule(
-                    name,
-                    pattern,
-                    function,
-                    check_options,
-                    attributes=pat_attr,
-                    system=True,
-                )
-            )
-        for pattern, function in self.get_functions(is_pymodule=is_pymodule):
             pat_attr = attributes if pattern.get_head_name() == name else None
             rules.append(
                 FunctionApplyRule(
@@ -362,7 +347,7 @@ class Builtin:
                 """Handle adding 'System`' to a form name, unless it's ""
                 (meaning the rule applies to all forms).
                 """
-                return "" if f == "" else ensure_context(f)
+                return f if f in ("", "_MakeBoxes") else ensure_context(f)
 
             if isinstance(pattern, tuple):
                 forms, pattern = pattern
@@ -398,8 +383,11 @@ class Builtin:
                 formatvalues[form].append(
                     Rule(pattern, parse_builtin_rule(replace), system=True)
                 )
+
+        formatvalues.setdefault("_MakeBoxes", []).extend(box_rules)
+
         for form, formatrules in formatvalues.items():
-            formatrules.sort()
+            formatrules.sort(key=lambda x: x.pattern_precedence)
 
         if hasattr(self, "summary_text"):
             self.messages["usage"] = self.summary_text
@@ -433,12 +421,14 @@ class Builtin:
 
         definition = Definition(
             name=name,
-            rules=rules,
-            formatvalues=formatvalues,
-            messages=messages,
+            rules=tuple(rules),
+            rules_dict={
+                "formatvalues": formatvalues,
+                "messages": messages,
+                "options": options,
+                "defaultvalues": defaults,
+            },
             attributes=attributes,
-            options=options,
-            defaultvalues=defaults,
             builtin=self,
             is_numeric=self._is_numeric,
         )
@@ -447,9 +437,65 @@ class Builtin:
         else:
             definitions.builtin[name] = definition
 
-        makeboxes_def = definitions.builtin["System`MakeBoxes"]
-        for rule in box_rules:
-            makeboxes_def.add_rule(rule)
+    # This method is used to produce generic argument mismatch errors
+    # (tags: "argx", "argr", "argrx", "argt", or "argtu") for builtin
+    # functions that define this as an eval method. e.g.  For example
+    # for Sqrt[a, b] (one argument expected) or Subtract[a] (two
+    # arguments expected) It assumes each builtin defines
+    # "expected_args" for the correct number of arguments to give.
+    # See class mathics.builtin.arithfns.basic.Sqrt for how to set up.
+    def generic_argument_error(self, invalid, evaluation: Evaluation):
+        "%(name)s[invalid___]"
+
+        name = self.get_name(short=True)
+        if isinstance(invalid, Atom):
+            got_arg_count = 1
+        else:
+            got_arg_count = len(invalid.elements)
+
+        if isinstance(self.expected_args, tuple):
+            expected_args1, expected_args2 = self.expected_args
+            if got_arg_count == 1:
+                evaluation.message(
+                    name,
+                    "argtu",
+                    Symbol(name),
+                    Integer(expected_args1),
+                    Integer(expected_args2),
+                )
+            else:
+                evaluation.message(
+                    name,
+                    "argt",
+                    Symbol(name),
+                    Integer(got_arg_count),
+                    Integer(expected_args1),
+                    Integer(expected_args2),
+                )
+        elif isinstance(self.expected_args, range):
+            evaluation.message(
+                name,
+                "argb",
+                Symbol(name),
+                Integer(got_arg_count),
+                Integer(self.expected_args.start),
+                Integer(self.expected_args.stop - 1),
+            )
+        else:
+            if self.expected_args == 1:
+                evaluation.message(name, "argx", Symbol(name), Integer(got_arg_count))
+            elif got_arg_count == 1:
+                evaluation.message(
+                    name, "argr", Symbol(name), Integer(self.expected_args)
+                )
+            else:
+                evaluation.message(
+                    name,
+                    "argrx",
+                    Symbol(name),
+                    Integer(got_arg_count),
+                    Integer(self.expected_args),
+                )
 
     @classmethod
     def get_name(cls, short=False) -> str:
@@ -474,11 +520,26 @@ class Builtin:
         for name in dir(self):
             if name.startswith(prefix):
                 function = getattr(self, name)
+                if not hasattr(function, "__call__"):
+                    continue
                 pattern = function.__doc__
                 if pattern is None:  # Fixes PyPy bug
                     continue
                 else:
-                    m = re.match(r"([\w,]+)\:\s*(.*)", pattern)
+                    # TODO 1: consider to use a more sophisticated
+                    # regular expression, which handles breaklines
+                    # more properly, that supports format names
+                    # with contexts (context`name) and be less
+                    # fragile against leaving spaces between the
+                    # elements.
+                    #
+                    # TODO 2: allow
+                    # expr: pat
+                    # to allow passing the whole expression instead their elements.
+                    # This requires to change how Format rules are stored...
+                    m = re.match(
+                        r"[(]([\w,]+),[ ]*[)]\:\s*(.*)", pattern.replace("\n", " ")
+                    )
                 if m is not None:
                     attrs = m.group(1).split(",")
                     pattern = m.group(2)
@@ -492,7 +553,15 @@ class Builtin:
                 definition_class = (
                     PyMathicsDefinitions() if is_pymodule else SystemDefinitions()
                 )
-                pattern = parse_builtin_rule(pattern, definition_class)
+
+                # Passing the function parameter is in a way
+                # redundant, because creating FunctionApplyRule has
+                # access to the function and sets the postion this
+                # way. But revised afte the dust has settled and
+                # we have a very good idea of what is desirable and useful.
+                pattern = parse_builtin_rule(
+                    pattern, definition_class, location=function
+                )
                 if unavailable_function:
                     function = unavailable_function
                 if attrs:
@@ -501,7 +570,7 @@ class Builtin:
                     yield (pattern, function)
 
     @staticmethod
-    def get_option(options, name, evaluation, pop=False):
+    def get_option(options, name, evaluation, pop=False) -> Optional[BaseElement]:
         return get_option(options, name, evaluation, pop)
 
     def _get_unavailable_function(self) -> Optional[Callable]:
@@ -513,7 +582,12 @@ class Builtin:
         requires = getattr(self, "requires", [])
         return None if check_requires_list(requires) else UnavailableFunction(self)
 
-    def get_option_string(self, *params):
+    def get_option_string(self, *params) -> Tuple[Optional[str], Optional[BaseElement]]:
+        """
+        Return a tuple of a `str` representing the option name,
+        and the proper Mathics value of the option.
+        If the value does not have a name, the name is None.
+        """
         s = self.get_option(*params)
         if isinstance(s, String):
             return s.get_string_value(), s
@@ -576,24 +650,27 @@ class SympyObject(Builtin):
             self.sympy_name = strip_context(self.get_name()).lower()
         self.mathics_to_sympy[self.__class__.__name__] = self.sympy_name
 
-    def is_constant(self) -> bool:
-        return False
-
     def get_sympy_names(self) -> List[str]:
         if self.sympy_name:
             return [self.sympy_name]
         return []
 
-    def to_sympy(self, expr=None, **kwargs):
-        raise NotImplementedError
+    def is_constant(self) -> bool:
+        """Returns true if the value of evaluation of this object can
+        never change.
+        """
+        return False
 
     def from_sympy(self, elements: Tuple[BaseElement, ...]) -> Expression:
+        raise NotImplementedError
+
+    def to_sympy(self, expr=None, **kwargs):
         raise NotImplementedError
 
 
 # This has to come before MPMathFunction
 class SympyFunction(SympyObject):
-    def eval(self, z, evaluation: Evaluation):
+    def eval(self, elements, evaluation: Evaluation):
         # Note: we omit a docstring here, so as not to confuse
         # function signature collector ``contribute``.
 
@@ -601,8 +678,8 @@ class SympyFunction(SympyObject):
         # to call the corresponding sympy function. Arguments are
         # converted to python and the result is converted from sympy
         #
-        # "%(name)s[z__]"
-        return eval_sympy(self, z, evaluation)
+        # "%(name)s[elements]"
+        return eval_sympy(self, elements, evaluation)
 
     def get_constant(self, precision, evaluation, have_mpmath=False):
         try:
@@ -635,8 +712,11 @@ class SympyFunction(SympyObject):
                 sympy_function = self.get_sympy_function(elements)
                 if sympy_function is not None:
                     return tracing.run_sympy(sympy_function, *sympy_args)
-        except TypeError:
-            pass
+            elif exc := kwargs.get("raise_on_error", None):
+                raise exc(f"{self.get_name()}.sympy_name is {repr(self.sympy_name)}")
+        except TypeError as oops:
+            if exc := kwargs.get("raise_on_error", None):
+                raise exc(f"TypeError: {oops}")
 
     def from_sympy(self, elements: Tuple[BaseElement, ...]) -> Expression:
         return Expression(Symbol(self.get_name()), *elements)
@@ -771,12 +851,14 @@ class UnavailableFunction:
 
     def __init__(self, builtin):
         self.name = builtin.get_name()
+        self.requires = builtin.requires
 
     def __call__(self, **kwargs):
         kwargs["evaluation"].message(
             "General",
             "pyimport",  # see messages.py for error message definition
             strip_context(self.name),
+            ", ".join(self.requires),
         )
 
 
@@ -799,7 +881,9 @@ def check_requires_list(requires: list) -> bool:
     return True
 
 
-def get_option(options, name, evaluation, pop=False, evaluate=True):
+def get_option(
+    options: dict, name, evaluation, pop=False, evaluate=True
+) -> Optional[BaseElement]:
     # we do not care whether an option X is given as System`X,
     # Global`X, or with any prefix from $ContextPath for that
     # matter. Also, the quoted string form "X" is ok. all these
@@ -938,13 +1022,13 @@ class AtomBuiltin(Builtin):
         return re.sub(r"Atom$", "", name)
 
 
-class IterationFunction(Builtin):
+class IterationFunction(Builtin, ABC):
     attributes = A_HOLD_ALL | A_PROTECTED
     allow_loopcontrol = False
     throw_iterb = True
 
-    def get_result(self, items):
-        pass
+    def get_result(self, elements, is_uniform=False) -> Expression:
+        raise NotImplementedError
 
     def eval_symbol(self, expr, iterator, evaluation):
         "%(name)s[expr_, iterator_Symbol]"
@@ -1079,6 +1163,8 @@ class IterationFunction(Builtin):
         ).evaluate(evaluation)
 
         result = []
+        last_head = None
+        is_uniform = True
         while True:
             cont = Expression(SymbolLessEqual, index, normalised_range).evaluate(
                 evaluation
@@ -1106,6 +1192,10 @@ class IterationFunction(Builtin):
                     evaluation,
                 )
                 result.append(item)
+                if last_head is None:
+                    last_head = item.get_head()
+                elif is_uniform and last_head is not item.get_head():
+                    is_uniform = False
             except ContinueInterrupt:
                 if self.allow_loopcontrol:
                     pass
@@ -1122,7 +1212,7 @@ class IterationFunction(Builtin):
                 else:
                     raise
             index = Expression(SymbolPlus, index, Integer1).evaluate(evaluation)
-        return self.get_result(result)
+        return self.get_result(result, is_uniform=is_uniform)
 
     def eval_list(self, expr, i, items, evaluation):
         "%(name)s[expr_, {i_Symbol, {items___}}]"
@@ -1159,7 +1249,7 @@ class IterationFunction(Builtin):
         return to_expression(name, to_expression(name, expr, *sequ), first)
 
 
-class Operator(Builtin, ABC):
+class Operator(Builtin):
     """
     Base Class for operators: binary, unary, nullary, prefix postfix, ...
     """
@@ -1172,18 +1262,19 @@ class Operator(Builtin, ABC):
     default_formats = True
 
     def get_precedence(self, name: str) -> int:
-        operator_info = OPERATOR_DATA.get("operator-precedence")
+        operator_info = OPERATOR_DATA.get("operator-precedences")
         assert isinstance(
             operator_info, dict
-        ), 'Internal error: "operator-precedence" should be found in operators.json'
+        ), 'Internal error: "operator-precedences" should be found in operators.json'
         precedence = operator_info.get(name)
         assert isinstance(
             precedence, int
-        ), f'Internal error: "precedence" field for "{name}" should be an integer is {precedence}'
+        ), f'Internal error: "precedence" field for "{name}" should be an integer; is {precedence}'
         return precedence
 
     def get_operator(self) -> Optional[str]:
-        return self.operator
+        name = self.__class__.__name__
+        return operator_to_unicode.get(name)
 
     def get_operator_display(self) -> Optional[str]:
         if hasattr(self, "operator_display"):
@@ -1192,7 +1283,9 @@ class Operator(Builtin, ABC):
             return self.operator
 
 
-class InfixOperator(Operator, ABC):
+# Note: Metaprogramming in mathics.builtin.no_meaning fails if
+# we inherit from ABC
+class InfixOperator(Operator):
     """
     Class for Mathics3 built-in Infix Operators. Infix operators are
     represented with an operator in between each argument. A common
@@ -1211,6 +1304,17 @@ class InfixOperator(Operator, ABC):
     def __init__(self, *args, **kwargs):
         super(InfixOperator, self).__init__(*args, **kwargs)
         name = self.get_name(short=True)
+
+        # Pick up operator string from JSON table if
+        # it appears there.
+        operator_string = self.get_operator()
+        if operator_string:
+            self.operator = operator_string
+        # else:
+        #     if self.operator is None:
+        #         breakpoint()
+        #     print("FIX UP", self.operator, name)
+
         self.precedence = self.get_precedence(name)
 
         # Prevent pattern matching symbols from gaining meaning here using
@@ -1248,10 +1352,46 @@ class InfixOperator(Operator, ABC):
                 "MakeBoxes[{0}, form:StandardForm|TraditionalForm]".format(
                     op_pattern
                 ): formatted,
-                f"MakeBoxes[{op_pattern}, form:InputForm|OutputForm]": formatted,
             }
             default_rules.update(self.rules)
             self.rules = default_rules
+
+
+class NoMeaningInfixOperator(InfixOperator):
+    """
+    Operators that have no pre-defined meaning are derived from this class.
+    """
+
+    # This will be used to create a docstring
+    __doc_pattern__ = r"""
+    <url>
+    :WML link:
+    https://reference.wolfram.com/language/ref/{operator_name}.html</url>
+
+    <dl>
+      <dt>'{operator_name}['$x$, $y$, ...']'
+      <dd>displays $x$ {operator_string} $y$ {operator_string} ...
+    </dl>
+
+    >> {operator_name}[x, y, z]
+     = x {operator_string} y {operator_string} z
+
+    >> a \[{operator_name}] b
+     = a {operator_string} b
+
+    """
+    __formats_pattern__ = r"""{lbrace}
+                    (
+                           ("InputForm", "OutputForm", "StandardForm"),
+                        f"{operator_name}[args__]",
+                    ): (('Infix[{lbrace}args{rbrace}, {operator_string}"]'))
+                {rbrace}"""
+
+    attributes = A_NO_ATTRIBUTES
+    default_formats = False  # Don't use any default format rules. Instead, see below.
+
+    operator = "This should be overwritten"
+    summary_text = "This should be overwritten"
 
 
 class Predefined(Builtin, ABC):
@@ -1266,8 +1406,10 @@ class Predefined(Builtin, ABC):
         return functions
 
 
-# Has to come before PostFixOperator and PrefixOperator
-class UnaryOperator(Operator, ABC):
+# Has to come before PostfixOperator and PrefixOperator
+# Note: Metaprogramming in mathics.builtin.no_meaning fails if
+# we inherit from ABC
+class UnaryOperator(Operator):
     """
     Class for Unary Operators, (e.g. Not, Factorial)
     """
@@ -1275,6 +1417,18 @@ class UnaryOperator(Operator, ABC):
     def __init__(self, format_function, *args, **kwargs):
         super().__init__(*args, **kwargs)
         name = self.get_name(short=True)
+
+        # Pick up operator string from JSON table if
+        # it appears there.
+        if self.operator is None:
+            operator_string = self.get_operator()
+            if operator_string:
+                self.operator = operator_string
+            # else:
+            #     if self.operator is None:
+            #         breakpoint()
+            #     print("FIX UP", self.operator, name)
+
         self.precedence = self.get_precedence(name)
         if self.needs_verbatim:
             name = f"Verbatim[{name}"
@@ -1291,7 +1445,9 @@ class UnaryOperator(Operator, ABC):
                     self.formats[op_pattern] = form
 
 
-class PostfixOperator(UnaryOperator, ABC):
+# Note: Metaprogramming in mathics.builtin.no_meaning fails if
+# we inherit from ABC
+class PostfixOperator(UnaryOperator):
     """
     Class for Builtin Postfix Unary Operators, e.g. Factorial (!)
     """
@@ -1300,13 +1456,118 @@ class PostfixOperator(UnaryOperator, ABC):
         super().__init__("Postfix", *args, **kwargs)
 
 
-class PrefixOperator(UnaryOperator, ABC):
+# Has to be after PostfixOperator
+class NoMeaningPostfixOperator(PostfixOperator):
+    """
+    Postfix Operators that have no pre-defined meaning are derived from this class.
+    """
+
+    # This will be used to create a docstring
+    __doc_pattern__ = r"""
+    <url>
+    :WML link:
+    https://reference.wolfram.com/language/ref/{operator_name}.html</url>
+
+    <dl>
+      <dt>'{operator_name}['$x$']'
+      <dd>displays $x$ {operator_string}
+    </dl>
+
+    >> {operator_name}[x]
+     = x {operator_string}
+
+    >> x \[{operator_name}]
+     = x {operator_string}
+
+    """
+    attributes = A_NO_ATTRIBUTES
+    default_formats = False  # Don't use any default format rules. Instead, see below.
+
+    operator = "This should be overwritten"
+    summary_text = "This should be overwritten"
+
+
+# Note: Metaprogramming in mathics.builtin.no_meaning fails if
+# we inherit from ABC
+class PrefixOperator(UnaryOperator):
     """
     Class for Builtin Prefix Unary Operators, e.g. Not ("¬")
     """
 
     def __init__(self, *args, **kwargs):
         super().__init__("Prefix", *args, **kwargs)
+
+
+# Has to be after PrefixOperator
+class NoMeaningPrefixOperator(PrefixOperator):
+    """
+    Prefix Operators that have no pre-defined meaning are derived from this class.
+    """
+
+    # This will be used to create a docstring
+    __doc_pattern__ = r"""
+    <url>
+    :WML link:
+    https://reference.wolfram.com/language/ref/{operator_name}.html</url>
+
+    <dl>
+      <dt>'{operator_name}['$x$']'
+      <dd>displays {operator_string} $x$
+    </dl>
+
+    >> {operator_name}[x]
+     = {operator_string}x
+
+    >> \[{operator_name}]x
+     = {operator_string}x
+
+    """
+    attributes = A_NO_ATTRIBUTES
+    default_formats = False  # Don't use any default format rules. Instead, see below.
+
+    operator = "This should be overwritten"
+    summary_text = "This should be overwritten"
+
+
+def add_no_meaning_builtin_classes(
+    create_operator_class: Callable,
+    affix: str,
+    mathics3_format_function_name: str,
+    operator_base_class: Union[
+        NoMeaningInfixOperator, NoMeaningPostfixOperator, NoMeaningPrefixOperator
+    ],
+    builtin_module: ModuleType,
+):
+    """
+    Creates all of the operators (infix, postfix, prefix) that
+    have no pre-set builtin meaning.
+    """
+    operator_key = f"no-meaning-{affix}-operators"
+    for operator_name, operator_tuple in OPERATOR_DATA[operator_key].items():
+        operator_string = operator_tuple[0]
+        generated_operator_class = create_operator_class(
+            operator_name,
+            operator_base_class,
+            operator_string,
+            mathics3_format_function_name,
+        )
+
+        if affix == "infix":
+            mathics.core.parser.operators.flat_binary_operators[
+                operator_name
+            ] = operator_tuple[1]
+        elif affix == "postfix":
+            mathics.core.parser.operators.postfix_operators[
+                operator_name
+            ] = operator_tuple[1]
+        elif affix == "prefix":
+            mathics.core.parser.operators.prefix_operators[
+                operator_name
+            ] = operator_tuple[1]
+
+        # Put the newly-created Builtin class inside the module under
+        # mathics.builtin.no_meaning.xxx.
+        setattr(builtin_module, operator_name, generated_operator_class)
 
 
 class PatternObject(BuiltinElement, BasePattern):
@@ -1361,8 +1622,21 @@ class PatternObject(BuiltinElement, BasePattern):
     def get_match_count(self, vars_dict: Optional[dict] = None):
         return (1, 1)
 
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        return self.expr.get_sort_key(pattern_sort=pattern_sort)
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_order
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return build_pattern_sort_key(self)
 
 
 class Test(Builtin, ABC):

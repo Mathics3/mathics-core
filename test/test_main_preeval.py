@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import mathics.core as mathics_core
+from mathics.__main__ import TerminalShell, interactive_eval_loop
 from mathics.core.atoms import Integer1, Integer2
 from mathics.core.definitions import Definitions
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
-from mathics.main import TerminalShell, interactive_eval_loop
 
 hook_was_called = False
 
@@ -29,7 +29,7 @@ def test_pre_evaluation_hook():
     def mock_read_line(self, prompt=""):
         """
         Replacement for reading a line of input from stdin.
-        Note that the particular expression  is tied into the
+        Note that the particular expression is tied into the
         assert test we make in pre_evaluation_hook.
         """
         return "1+2\n"
@@ -37,7 +37,7 @@ def test_pre_evaluation_hook():
     # Set up a pre-evaluation hook.
     mathics_core.PRE_EVALUATION_HOOK = pre_evaluation_hook
 
-    definitions = Definitions(add_builtin=False, extension_modules=[])
+    definitions = Definitions(add_builtin=False, extension_modules=tuple())
 
     # Mock patch in our own terminal shell, but with a replace read_line()
     # routine we can use for testing.

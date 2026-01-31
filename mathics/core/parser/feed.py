@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from typing import List
+
 from mathics_scanner import (
     FileLineFeeder,
     LineFeeder,
@@ -8,6 +10,8 @@ from mathics_scanner import (
 
 
 class MathicsLineFeeder(LineFeeder):
+    messages: List[str]
+
     def send_messages(self, evaluation) -> list:
         evaluated_messages = []
         for message in self.messages:
@@ -17,7 +21,7 @@ class MathicsLineFeeder(LineFeeder):
 
 
 class MathicsSingleLineFeeder(SingleLineFeeder, MathicsLineFeeder):
-    "A feeder that feeds lines from an open ``File`` object"
+    "A feeder that feeds lines from an open location container object"
 
 
 class MathicsFileLineFeeder(FileLineFeeder, MathicsLineFeeder):
@@ -25,4 +29,4 @@ class MathicsFileLineFeeder(FileLineFeeder, MathicsLineFeeder):
 
 
 class MathicsMultiLineFeeder(MultiLineFeeder, MathicsLineFeeder):
-    "A feeder that feeds lines from an open ``File`` object"
+    "A feeder that feeds lines from an open contianer object"

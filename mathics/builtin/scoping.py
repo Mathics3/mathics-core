@@ -3,7 +3,7 @@
 Scoping Constructs
 """
 
-from mathics_scanner import is_symbol_name
+from mathics_scanner.tokeniser import is_symbol_name
 
 from mathics.core.assignment import get_symbol_list
 from mathics.core.atoms import Integer, String
@@ -12,6 +12,7 @@ from mathics.core.builtin import Builtin, Predefined
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, fully_qualified_symbol_name
+from mathics.eval.scoping import eval_contexts, eval_contexts_with_string
 
 
 def get_scoping_vars(var_list, msg_symbol="", evaluation=None):
@@ -26,6 +27,7 @@ def get_scoping_vars(var_list, msg_symbol="", evaluation=None):
     scoping_vars = set()
     for var in vars:
         var_name = None
+        new_def = None
         if var.has_form("Set", 2):
             var_name = var.elements[0].get_name()
             new_def = var.elements[1]
@@ -110,7 +112,7 @@ class Begin(Builtin):
 
 
 class BeginPackage(Builtin):
-    """
+    r"""
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/BeginPackage.html</url>
@@ -121,7 +123,7 @@ class BeginPackage(Builtin):
     </dl>
 
     The $context$ argument must be a valid context name. 'BeginPackage' changes \
-    the values of '$Context' and '$ContextPath', setting the current context to $context$.
+    the values of '\$Context' and '\$ContextPath', setting the current context to $context$.
 
     ## >> BeginPackage["test`"]
     ##  = test`
@@ -151,11 +153,11 @@ class Block(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Block.html</url>
 
     <dl>
-      <dt>'Block[{$x$, $y$, ...}, $expr$]'
+      <dt>'Block'[{$x$, $y$, ...}, $expr$]
       <dd>temporarily removes the definitions of the given variables, evaluates \
           $expr$, and restores the original definitions afterwards.
 
-      <dt>'Block[{$x$=$x0$, $y$=$y0$, ...}, $expr$]'
+      <dt>'Block'[{$x$=$x_0$, $y$=$y_0$, ...}, $expr$]
       <dd>assigns temporary values to the variables during the evaluation of $expr$.
     </dl>
 
@@ -207,10 +209,10 @@ class Block(Builtin):
 
 
 class Context_(Predefined):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$Context.html</url>
+    r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$Context.html</url>
     <dl>
-      <dt>'$Context'
+      <dt>'\$Context'
       <dd>is the current context.
     </dl>
 
@@ -232,33 +234,47 @@ class Contexts(Builtin):
 
     <dl>
       <dt>'Contexts[]'
-      <dd>yields a list of all contexts.
+      <dd>returns a list of contexts.
+      <dt>'Contexts["string"]'
+      <dd>returns a list of contexts that match the string.
     </dl>
 
-    ## this assignment makes sure that a definition in Global` exists
-    ## >> x = 5;
-    ## X> Contexts[] // InputForm
+    'Contexts' allows the string patterns with the following metacharacters:
+    <ul>
+     <li> '*' zero or more characters
+     <li> '@' one or more characters, excluding uppercase letters
+    </ul>
+
+    Get a list of all contexts:
+    >> Contexts[]
+     = ...
+
+    Get a list of HTML contexts only:
+    >> Contexts["HTML*"]
+     = {HTML`, HTML`Parser`}
     """
 
-    summary_text = "list all the defined contexts"
+    summary_text = "list defined contexts"
 
-    def eval(self, evaluation: Evaluation):
+    def eval(self, evaluation: Evaluation) -> ListExpression:
         "Contexts[]"
 
-        contexts = set()
-        for name in evaluation.definitions.get_names():
-            contexts.add(String(name[: name.rindex("`") + 1]))
+        return eval_contexts(evaluation.definitions)
 
-        return ListExpression(*sorted(contexts))
+    def eval_with_string(self, string, evaluation: Evaluation) -> ListExpression:
+        "Contexts[string_]"
+        if not isinstance(string, String):
+            return ListExpression()
+        return eval_contexts_with_string(string.value, evaluation.definitions)
 
 
 class ContextPath_(Predefined):
-    """
+    r"""
     <url>
     :WMA link
-    :https://reference.wolfram.com/language/ref/$ContextPath.html</url>
+    :https://reference.wolfram.com/language/ref/\$ContextPath.html</url>
     <dl>
-      <dt>'$ContextPath'
+      <dt>'\$ContextPath'
       <dd>is the search path for contexts.
     </dl>
 
@@ -283,14 +299,14 @@ class ContextPath_(Predefined):
 
 
 class ContextPathStack(Builtin):
-    """
+    r"""
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/ContextPathStack.html</url>
 
     <dl>
-      <dt>'System`Private`$ContextPathStack'
-      <dd>is an internal variable tracking the values of '$ContextPath' \
+      <dt>'System`Private`\$ContextPathStack'
+      <dd>is an internal variable tracking the values of '\$ContextPath' \
           saved by 'Begin' and 'BeginPackage'.
     </dl>
     """
@@ -305,13 +321,13 @@ class ContextPathStack(Builtin):
 
 
 class ContextStack(Builtin):
-    """
+    r"""
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/ContextStack.html</url>
     <dl>
-        <dt>'System`Private`$ContextStack'
-        <dd>is an internal variable tracking the values of '$Context'
+        <dt>'System`Private`\$ContextStack'
+        <dd>is an internal variable tracking the values of '\$Context'
         saved by 'Begin' and 'BeginPackage'.
     </dl>
     """
@@ -356,7 +372,7 @@ class End(Builtin):
 
 
 class EndPackage(Builtin):
-    """
+    r"""
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/EndPackage.html</url>
@@ -366,8 +382,8 @@ class EndPackage(Builtin):
       <dd>marks the end of a package, undoing a previous 'BeginPackage'.
     </dl>
 
-    After 'EndPackage', the values of '$Context' and '$ContextPath' at the \
-    time of the 'BeginPackage' call are restored, with the new package\'s context prepended to $ContextPath.
+    After 'EndPackage', the values of '\$Context' and '\$ContextPath' at the \
+    time of the 'BeginPackage' call are restored, with the new package\'s context prepended to '\$ContextPath'.
     """
 
     messages = {
@@ -392,16 +408,16 @@ class EndPackage(Builtin):
 
 
 class Module(Builtin):
-    """
+    r"""
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/Module.html</url>
 
     <dl>
-      <dt>'Module[{$vars$}, $expr$]'
+      <dt>'Module'[{$vars$}, $expr$]
       <dd>localizes variables by giving them a temporary name of the form \
-          'name$number', where number is the current value of '$ModuleNumber'. \
-          Each time a module is evaluated, '$ModuleNumber' is incremented.
+          'name\$number', where number is the current value of '\$ModuleNumber'. \
+          Each time a module is evaluated, '\$ModuleNumber' is incremented.
     </dl>
 
     ## FIXME: fix and go over
@@ -467,30 +483,30 @@ class Module(Builtin):
 
 
 class ModuleNumber_(Predefined):
-    """
+    r"""
     <url>
     :WMA link:
-    https://reference.wolfram.com/language/ref/$ModuleNumber.html</url>
+    https://reference.wolfram.com/language/ref/\$ModuleNumber.html</url>
     <dl>
-      <dt>'$ModuleNumber'
+      <dt>'\$ModuleNumber'
       <dd>is the current "serial number" to be used for local module variables.
     </dl>
 
 
     <ul>
-      <li>'$ModuleNumber' is incremented every time 'Module' or 'Unique' is called.
-      <li> a Mathics session starts with '$ModuleNumber' set to 1.
-      <li> You can reset $ModuleNumber to a positive machine integer, but if \
+      <li>'\$ModuleNumber' is incremented every time 'Module' or 'Unique' is called.
+      <li> a Mathics session starts with '\$ModuleNumber' set to 1.
+      <li> You can reset '\$ModuleNumber' to a positive machine integer, but if \
       you do so, naming conflicts may lead to inefficiencies.
     </li>
 
     ## Fixme: go over and adjuset
-    ## Each use of 'Module' increments '$ModuleNumber':
+    ## Each use of 'Module' increments '\$ModuleNumber':
     ## >> {$ModuleNumber, Module[{y}, y], $ModuleNumber}
     ##  = {..., ...}
 
     ## FIXME and go over
-    ## You can reset $ModuleNumber:
+    ## You can reset '\$ModuleNumber':
     ## >> $ModuleNumber = 17; {Module[{x}, x], $ModuleNumber}
     ##  = {x$17, 18}
     ##
@@ -513,17 +529,17 @@ class ModuleNumber_(Predefined):
 
 
 class Unique(Predefined):
-    """
+    r"""
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/Unique.html</url>
 
     <dl>
       <dt>'Unique[]'
-      <dd>generates a new symbol and gives a name of the form '$number'.
+      <dd>generates a new symbol and gives a name of the form '\$number'.
 
       <dt>'Unique[x]'
-      <dd>generates a new symbol and gives a name of the form 'x$number'.
+      <dd>generates a new symbol and gives a name of the form 'x\$number'.
 
       <dt>'Unique[{x, y, ...}]'
       <dd>generates a list of new symbols.
@@ -541,7 +557,7 @@ class Unique(Predefined):
     = x...
 
     ## FIXME: include the rest of these in test/builtin/test-unique.py
-    ## Each use of Unique[symbol] increments $ModuleNumber:
+    ## Each use of Unique[symbol] increments '\$ModuleNumber':
     ## >> {$ModuleNumber, Unique[x], $ModuleNumber}
     ##  = ...
 
@@ -599,7 +615,7 @@ class Unique(Predefined):
         new_name = "$%d" % (self.seq_number)
         self.seq_number += 1
         # Next symbol in case of new name is defined before
-        while evaluation.definitions.get_definition(new_name, True) is not None:
+        while evaluation.definitions.have_definition(new_name):
             new_name = "$%d" % (self.seq_number)
             self.seq_number += 1
         return Symbol(new_name)
@@ -639,7 +655,7 @@ class Unique(Predefined):
                 new_name = f"{symbol.get_string_value()}{self.seq_number}"
                 self.seq_number += 1
                 # Next symbol in case of new name is defined before
-                while evaluation.definitions.get_definition(new_name, True) is not None:
+                while evaluation.definitions.have_definition(new_name):
                     new_name = f"{symbol.get_string_value()}{self.seq_number}"
                     self.seq_number += 1
                 list.append(Symbol(new_name))
@@ -662,9 +678,9 @@ class With(Builtin):
     https://reference.wolfram.com/language/ref/With.html</url>
 
     <dl>
-      <dt>'With[{$x$=$x0$, $y$=$y0$, ...}, $expr$]'
+      <dt>'With'[{$x$=$x_0$, $y$=$y_0$, ...}, $expr$]
       <dd>specifies that all occurrences of the symbols $x$, $y$, ... in \
-          $expr$ should be replaced by $x0$, $y0$, ...
+          $expr$ should be replaced by $x_0$, $y_0$, ...
     </dl>
 
     ## >> n = 10
@@ -712,5 +728,4 @@ class With(Builtin):
 
         vars = dict(get_scoping_vars(vars, "With", evaluation))
         result = expr.replace_vars(vars)
-        result.evaluate(evaluation)
-        return result
+        return result.evaluate(evaluation)

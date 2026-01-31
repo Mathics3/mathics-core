@@ -1,0 +1,18 @@
+System`ComplexPlot3D
+  System`Exp
+    System`Times
+      System`I
+      Global`z
+  System`List
+    Global`z
+    System`Plus
+      System`Integer -2
+      System`Times
+        System`Integer -1
+        System`Integer 2
+        System`I
+    System`Plus
+      System`Integer 2
+      System`Times
+        System`Integer 2
+        System`I

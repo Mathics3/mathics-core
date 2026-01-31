@@ -20,7 +20,12 @@ from mathics.builtin.colors.color_directives import (
     RGBColor,
     _ColorObject,
 )
-from mathics.builtin.drawing.graphics3d import Coords3D, Graphics3DElements, Style3D
+from mathics.builtin.drawing.graphics3d import (
+    Coords3D,
+    Graphics3D,
+    Graphics3DElements,
+    Style3D,
+)
 from mathics.builtin.drawing.graphics_internals import (
     GLOBALS3D,
     _GraphicsElementBox,
@@ -31,7 +36,7 @@ from mathics.core.formatter import lookup_method
 from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.eval.nevaluator import eval_N
 
-# Docs are not yet ready for prime time. Maybe after release 7.0.0.
+# No user docs here - Box primitives aren't documented.
 no_doc = True
 
 
@@ -43,6 +48,7 @@ class Graphics3DBox(GraphicsBox):
     </dl>
     """
 
+    options = Graphics3D.options
     summary_text = "symbol used boxing Graphics3D expressions"
 
     def _prepare_elements(self, elements, options, max_width=None):
@@ -226,8 +232,7 @@ class Graphics3DBox(GraphicsBox):
         boxratios = self.graphics_options["System`BoxRatios"].to_python()
         if boxratios == "System`Automatic":
             boxratios = ["System`Automatic"] * 3
-        else:
-            boxratios = boxratios
+
         if not isinstance(boxratios, list) or len(boxratios) != 3:
             raise BoxExpressionError
 
@@ -245,6 +250,17 @@ class Graphics3DBox(GraphicsBox):
             self.background_color = elements.background_color
 
         def calc_dimensions(final_pass=True):
+            # TODO: the code below is broken in any other case but Automatic
+            # because it calls elements.translate which is not implemented.
+            # Plots may pass specific plot ranges, triggering this deficiency
+            # and causing tests to fail The following line avoids this,
+            # and it should not change the behavior of any case which did
+            # previously fail with an exception.
+            #
+            # This code should be DRYed (together with the very similar code
+            # for the 2d case), and the missing .translate method added.
+            plot_range = ["System`Automatic"] * 3
+
             if "System`Automatic" in plot_range:
                 xmin, xmax, ymin, ymax, zmin, zmax = elements.extent()
             else:
@@ -286,7 +302,7 @@ class Graphics3DBox(GraphicsBox):
                     elif zmin == zmax:
                         zmin -= 1
                         zmax += 1
-                elif isinstance(plot_range[1], list) and len(plot_range[1]) == 2:
+                elif isinstance(plot_range[1], list) and len(plot_range[2]) == 2:
                     zmin, zmax = list(map(float, plot_range[2]))
                     zmin = elements.translate((0, 0, zmin))[2]
                     zmax = elements.translate((0, 0, zmax))[2]

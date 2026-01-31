@@ -1,0 +1,189 @@
+Notebook[{
+Cell[TextData[{
+ "New in: ",
+ Cell["1.0", "HistoryData",
+  CellTags->"New"],
+ " | Modified in: ",
+ Cell[" ", "HistoryData",
+  CellTags->"Modified"],
+ " | Obsolete in: ",
+ Cell[" ", "HistoryData",
+  CellTags->"Obsolete"],
+ " | Excised in: ",
+ Cell[" ", "HistoryData",
+  CellTags->"Excised"]
+}], "History",
+ CellID->1247902091],
+
+Cell[CellGroupData[{
+
+Cell["Categorization", "CategorizationSection",
+ CellID->1122911449],
+
+Cell["Guide", "Categorization",
+ CellLabel->"Entity Type",
+ CellID->686433507],
+
+Cell["BoolEval", "Categorization",
+ CellLabel->"Paclet Name",
+ CellID->605800465],
+
+Cell["BoolEval`", "Categorization",
+ CellLabel->"Context",
+ CellID->468444828],
+
+Cell["BoolEval/guide/BoolEval", "Categorization",
+ CellLabel->"URI"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Keywords", "KeywordsSection",
+ CellID->1427428552],
+
+Cell["BoolEval", "Keywords",
+ CellID->1251852827],
+
+Cell["vectorize", "Keywords",
+ CellID->431852709],
+
+Cell["vectorise", "Keywords",
+ CellID->1581027636],
+
+Cell["array comparison", "Keywords",
+ CellID->1783044154],
+
+Cell["select", "Keywords",
+ CellID->1354248362]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Details", "DetailsSection",
+ CellID->307771771],
+
+Cell["XXXX", "Details",
+ CellLabel->"Lead",
+ CellID->795394057],
+
+Cell["XXXX", "Details",
+ CellLabel->"Developers",
+ CellID->350963985],
+
+Cell["XXXX", "Details",
+ CellLabel->"Authors",
+ CellID->802101],
+
+Cell["XXXX", "Details",
+ CellLabel->"Feature Name",
+ CellID->509823116],
+
+Cell["XXXX", "Details",
+ CellLabel->"QA",
+ CellID->199884516],
+
+Cell["XXXX", "Details",
+ CellLabel->"DA",
+ CellID->463951815],
+
+Cell["XXXX", "Details",
+ CellLabel->"Docs",
+ CellID->8237523],
+
+Cell["XXXX", "Details",
+ CellLabel->"Features Page Notes",
+ CellID->813936640],
+
+Cell["XXXX", "Details",
+ CellLabel->"Comments",
+ CellID->240026365]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["BoolEval", "GuideTitle",
+ CellID->942062912],
+
+Cell[TextData[{
+ "The BoolEval package provides an easy way to vectorize comparison \
+operations, and thus filter or count array elements in a highly efficient \
+way. BoolEval was inspired by the question ",
+ ButtonBox["\"Does Mathematica have advanced indexing?\"",
+  BaseStyle->"Hyperlink",
+  ButtonData->{
+    URL["https://mathematica.stackexchange.com/q/2821/12"], None}],
+ " on the ",
+ StyleBox["Mathematica",
+  FontSlant->"Italic"],
+ " StackExchange."
+}], "GuideAbstract",
+ CellID->2001916300]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["", "GuideFunctionsSection",
+ CellID->1866139230],
+
+Cell[TextData[{
+ Cell[BoxData[
+  ButtonBox["BoolEval",
+   BaseStyle->"Link",
+   ButtonData->"paclet:BoolEval/ref/BoolEval"]], "InlineGuideFunction"],
+ " \[LongDash] mark elements of an array that satisfy a condition"
+}], "GuideText",
+ CellID->1550317592],
+
+Cell[TextData[{
+ Cell[BoxData[
+  ButtonBox["BoolPick",
+   BaseStyle->"Link",
+   ButtonData->"paclet:BoolEval/ref/BoolPick"]], "InlineGuideFunction"],
+ " \[LongDash] filter an array based on a condition"
+}], "GuideText",
+ CellID->203374175],
+
+Cell[TextData[{
+ Cell[BoxData[
+  ButtonBox["BoolCount",
+   BaseStyle->"Link",
+   ButtonData->"paclet:BoolEval/ref/BoolCount"]], "InlineGuideFunction"],
+ " \[LongDash] count elements of an array that satisfy a condition"
+}], "GuideText",
+ CellID->1463276848]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Tutorials", "GuideTutorialsSection",
+ CellID->415694126],
+
+Cell[TextData[ButtonBox["Introduction to BoolEval",
+ BaseStyle->"Link",
+ ButtonData->
+  "paclet:BoolEval/tutorial/IntroductionToBoolEval"]], "GuideTutorial",
+ CellID->806871991]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["More About", "GuideMoreAboutSection",
+ CellID->23220180],
+
+Cell[TextData[ButtonBox["Elements of Lists",
+ BaseStyle->"Link",
+ ButtonData->"paclet:guide/ElementsOfLists"]], "GuideMoreAbout",
+ CellID->1567025153]
+}, Open  ]],
+
+Cell["Related Links", "GuideRelatedLinksSection",
+ CellID->415694148]
+},
+WindowSize->{700, 770},
+WindowMargins->{{4, Automatic}, {Automatic, 0}},
+TrackCellChangeTimes->False,
+FrontEndVersion->"10.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (December 4, \
+2014)",
+StyleDefinitions->FrontEnd`FileName[{"Wolfram"}, "GuidePageStyles.nb", 
+  CharacterEncoding -> "UTF-8"]
+]

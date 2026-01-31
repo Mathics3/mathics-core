@@ -5,7 +5,7 @@ Unit tests from mathics.builtin.evaluation.
 
 
 import sys
-from test.helper import check_evaluation_as_in_cli, session
+from test.helper import check_evaluation_as_in_cli
 
 import pytest
 
@@ -36,7 +36,7 @@ import pytest
         ),
         (
             "ClearAll[f]; f[x_] := f[x + 1];f[x]",
-            ("Iteration limit of 1000 exceeded.",),
+            ("Iteration limit of 4096 exceeded.",),
             "$Aborted",
             None,
         ),

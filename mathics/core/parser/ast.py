@@ -23,7 +23,7 @@ class Node:
     expression's leaves and a non-leaf nodes.
     """
 
-    def __init__(self, head, *children):
+    def __init__(self, head, *children, location=None):
         if isinstance(head, Node):
             self.head = head
         else:
@@ -31,6 +31,7 @@ class Node:
         self.value = None
         self.children = list(children)
         self.parenthesised = False
+        self.location = location
 
     def get_head_name(self):
         if isinstance(self.head, Symbol):
@@ -68,11 +69,12 @@ class Atom(Node):
     their own. You can however compare Atoms for equality.
     """
 
-    def __init__(self, value):
+    def __init__(self, value, location=None):
         self.head = Symbol(self.__class__.__name__)
         self.value = value
         self.children = []
         self.parenthesised = False
+        self.location = location
 
     def __repr__(self):
         return "%s[%s]" % (self.head, self.value)
@@ -90,7 +92,13 @@ class Number(Atom):
     """
 
     def __init__(
-        self, value: str, sign: int = 1, base: int = 10, suffix=None, exp: int = 0
+        self,
+        value: str,
+        sign: int = 1,
+        base: int = 10,
+        suffix=None,
+        exp: int = 0,
+        location=None,
     ):
         assert isinstance(value, str)
         assert sign in (-1, 1)
@@ -104,6 +112,7 @@ class Number(Atom):
         self.base = base
         self.suffix = suffix
         self.exp = exp
+        self.location = location
 
     def __repr__(self):
         result = self.value
@@ -125,17 +134,18 @@ class Symbol(Atom):
     """
     Symbols are like variables in a programming language.
 
-    But initially in an M-Expression the only properties it has is its name
-    and a representation of its name.
+    But initially in an M-Expression the only properties it has are its
+    name, and a representation of its name.
 
     Devoid of a binding to the Symbol, which is done via a Definition, Symbols
     are unique as they are say in Lisp, or Python.
     """
 
-    def __init__(self, value: str, context: Optional[str] = "System"):
+    def __init__(self, value: str, context: Optional[str] = "System", location=None):
         self.context = context
         self.value = value
         self.children = []
+        self.location = location
 
     # avoids recursive definition
     @property

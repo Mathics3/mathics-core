@@ -12,13 +12,13 @@ jobs:
   pyodide-test:
     runs-on: ubuntu-latest
     env:
-      PYODIDE_VERSION: 0.27.0a2
+      PYODIDE_VERSION: 0.28.2
       # PYTHON_VERSION and EMSCRIPTEN_VERSION are determined by PYODIDE_VERSION.
       # The appropriate versions can be found in the Pyodide repodata.json
       # "info" field, or in Makefile.envs:
       # https://github.com/pyodide/pyodide/blob/main/Makefile.envs#L2
-      PYTHON_VERSION: 3.12.1
-      EMSCRIPTEN_VERSION: 3.1.58
+      PYTHON_VERSION: 3.13.2
+      EMSCRIPTEN_VERSION: 4.0.9
       NODE_VERSION: 20
     steps:
       - name: Checkout
@@ -54,11 +54,9 @@ jobs:
 
           pip install "setuptools>=70.0.0" PyYAML click packaging pytest
 
-          git clone https://github.com/Mathics3/mathics-scanner.git
-          cd mathics-scanner/
-          pip install --no-build-isolation -e .
-          cd ..
+          # We can comment out after next Mathics-Scanner release
+          python -m pip install --no-build-isolation -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner
 
-          make mathics/data/op-tables.json mathics/data/operator-tables.json
           pip install --no-build-isolation -e .
+          make mathics/data/op-tables.json mathics/data/operator-tables.json
           make -j3 check

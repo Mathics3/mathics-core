@@ -54,7 +54,12 @@ class MathicsOpen(Stream):
     """
 
     def __init__(
-        self, file: str, mode: str = "r", encoding=None, is_temporary_file: bool = False
+        self,
+        path: str,
+        mode: str = "r",
+        name=None,
+        encoding=None,
+        is_temporary_file: bool = False,
     ):
         if encoding is not None:
             encoding = to_python_encoding(encoding)
@@ -62,9 +67,11 @@ class MathicsOpen(Stream):
                 # We should not specify an encoding for a binary mode
                 encoding = None
             elif encoding is None:
-                raise MessageException("General", "charcode", self.encoding)
+                raise MessageException("General", "charcode", encoding)
         self.encoding = encoding
-        super().__init__(file, mode, self.encoding)
+        if name is None:
+            name = path
+        super().__init__(name, mode=mode, path=path, encoding=encoding)
         self.is_temporary_file = is_temporary_file
 
         # The following are set in __enter__ and __exit__
@@ -85,8 +92,9 @@ class MathicsOpen(Stream):
 
         # Add to our internal list of streams
         self.stream = stream_manager.add(
-            name=path,
+            name=self.name,
             mode=self.mode,
+            path=path,
             encoding=self.encoding,
             io=self.fp,
             num=stream_manager.next,
@@ -97,8 +105,10 @@ class MathicsOpen(Stream):
         return self.fp
 
     def __exit__(self, type, value, traceback):
-        self.fp.close()
-        stream_manager.delete_stream(self.stream)
+        if self.fp is not None:
+            self.fp.close()
+        if self.stream is not None:
+            stream_manager.delete_stream(self.stream)
         super().__exit__(type, value, traceback)
 
 
@@ -158,7 +168,7 @@ def parse_read_options(options) -> dict:
         record_separators = options["System`RecordSeparators"].to_python(
             string_quotes=False
         )
-        assert isinstance(record_separators, list)
+        assert isinstance(record_separators, (list, tuple))
         # assert all(
         #     isinstance(s, str) and s[0] == s[-1] == '"' for s in record_separators
         # )
@@ -170,7 +180,7 @@ def parse_read_options(options) -> dict:
         word_separators = options["System`WordSeparators"].to_python(
             string_quotes=False
         )
-        assert isinstance(word_separators, list)
+        assert isinstance(word_separators, (list, tuple))
         result["WordSeparators"] = word_separators
 
     # NullRecords
@@ -198,7 +208,8 @@ def close_stream(stream: Stream, stream_number: int):
     Close stream: `stream` and delete it from the list of streams we manage.
     If the stream was to a temporary file, remove the temporary file.
     """
-    stream.io.close()
+    if stream.io is not None:
+        stream.io.close()
     stream_manager.delete(stream_number)
 
 
@@ -215,8 +226,7 @@ def read_name_and_stream(stream_designator, evaluation: Evaluation) -> tuple:
 
         stream_name, n = strm.elements
 
-        n_int = n.value
-        if n_int < 0:
+        if not isinstance(n, Integer) or (n_int := n.value) < 0:
             evaluation.message("InputStream", "intpm", strm)
             return None, None, None
 
@@ -228,7 +238,7 @@ def read_name_and_stream(stream_designator, evaluation: Evaluation) -> tuple:
         if stream.io is None:
             stream.__enter__()
 
-        if stream.io.closed:
+        elif stream.io.closed:
             evaluation.message("Read", "openx", strm)
             return SymbolFailed, None, None
 
@@ -298,7 +308,7 @@ def read_check_options(options: dict, evaluation: Evaluation) -> Optional[dict]:
         record_separators = options["System`RecordSeparators"].to_python(
             string_quotes=False
         )
-        assert isinstance(record_separators, list)
+        assert isinstance(record_separators, (list, tuple))
         result["RecordSeparators"] = record_separators
 
     # WordSeparators
@@ -306,7 +316,7 @@ def read_check_options(options: dict, evaluation: Evaluation) -> Optional[dict]:
         word_separators = options["System`WordSeparators"].to_python(
             string_quotes=False
         )
-        assert isinstance(word_separators, list)
+        assert isinstance(word_separators, (list, tuple))
         result["WordSeparators"] = word_separators
 
     # NullRecords
@@ -324,7 +334,9 @@ def read_check_options(options: dict, evaluation: Evaluation) -> Optional[dict]:
     # TokenWords
     if "System`TokenWords" in keys:
         token_words = options["System`TokenWords"].to_python(string_quotes=False)
-        if not (isinstance(token_words, list) or isinstance(token_words, String)):
+        if not (
+            isinstance(token_words, (list, tuple)) or isinstance(token_words, String)
+        ):
             evaluation.message("ReadList", "opstl", token_words)
             return None
         result["TokenWords"] = token_words
@@ -334,7 +346,7 @@ def read_check_options(options: dict, evaluation: Evaluation) -> Optional[dict]:
 
 def read_get_separators(
     options, evaluation: Evaluation
-) -> Optional[Tuple[dict, dict, dict]]:
+) -> Optional[Tuple[list, list, list]]:
     """Get record and word separators from apply "options"."""
     # Options
     # TODO Implement extra options
@@ -347,7 +359,7 @@ def read_get_separators(
     token_words = py_options.get("TokenWords", {})
     word_separators = py_options["WordSeparators"]
 
-    return record_separators, token_words, word_separators
+    return list(record_separators), list(token_words), list(word_separators)
 
 
 def read_from_stream(

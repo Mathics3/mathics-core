@@ -11,9 +11,8 @@ from mathics.builtin.atomic.strings import (
     _parallel_match,
     _StringFind,
     mathics_split,
-    to_regex,
 )
-from mathics.core.atoms import Integer, Integer1, String
+from mathics.core.atoms import Integer, Integer1, Integer2, Integer3, String
 from mathics.core.attributes import (
     A_FLAT,
     A_LISTABLE,
@@ -23,6 +22,7 @@ from mathics.core.attributes import (
 )
 from mathics.core.builtin import Builtin, InfixOperator
 from mathics.core.convert.python import from_python
+from mathics.core.convert.regex import to_regex
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BoxError, Expression, string_list
 from mathics.core.expression_predefined import MATHICS3_INFINITY
@@ -37,9 +37,9 @@ from mathics.core.systemsymbols import (
     SymbolStringRiffle,
     SymbolStringSplit,
 )
-from mathics.eval.makeboxes import format_element
-from mathics.eval.parts import convert_seq, python_seq
+from mathics.eval.list.eol import convert_seq, python_seq
 from mathics.eval.strings import eval_StringFind
+from mathics.format.box import format_element
 
 
 class StringDrop(Builtin):
@@ -49,16 +49,16 @@ class StringDrop(Builtin):
     https://reference.wolfram.com/language/ref/StringDrop.html</url>
 
     <dl>
-      <dt>'StringDrop["$string$", $n$]'
+      <dt>'StringDrop'["$string$", $n$]
       <dd>gives $string$ with the first $n$ characters dropped.
 
-      <dt>'StringDrop["$string$", -$n$]'
+      <dt>'StringDrop'["$string$", -$n$]
       <dd>gives $string$ with the last $n$ characters dropped.
 
-      <dt>'StringDrop["$string$", {$n$}]'
-      <dd>gives $string$ with the $n$th character dropped.
+      <dt>'StringDrop'["$string$", {$n$}]
+      <dd>gives $string$ with the $n$-th character dropped.
 
-      <dt>'StringDrop["$string$", {$m$, $n$}]'
+      <dt>'StringDrop'["$string$", {$m$, $n$}]
       <dd>gives $string$ with the characters $m$ through $n$ dropped.
     </dl>
 
@@ -164,17 +164,17 @@ class StringInsert(Builtin):
     https://reference.wolfram.com/language/ref/StringInsert.html</url>
 
     <dl>
-      <dt>'StringInsert["$string$", "$snew$", $n$]'
+      <dt>'StringInsert'["$string$", "$snew$", $n$]
       <dd>yields a string with $snew$ inserted starting at position $n$ in $string$.
 
-      <dt>'StringInsert["$string$", "$snew$", -$n$]'
+      <dt>'StringInsert'["$string$", "$snew$", -$n$]
       <dd>inserts a at position $n$ from the end of "$string$".
 
-      <dt>'StringInsert["$string$", "$snew$", {$n_1$, $n_2$, ...}]'
+      <dt>'StringInsert'["$string$", "$snew$", {$n_1$, $n_2$, ...}]
       <dd>inserts a copy of $snew$ at each position $n_i$ in $string$;
         the $n_i$ are taken before any insertion is done.
 
-      <dt>'StringInsert[{$s_1$, $s_2$, ...}, "$snew$", $n$]'
+      <dt>'StringInsert'[{$s_1$, $s_2$, ...}, "$snew$", $n$]
       <dd>gives the list of results for each of the $s_i$.
     </dl>
 
@@ -200,7 +200,6 @@ class StringInsert(Builtin):
     messages = {
         "string": "String expected at position `1` in `2`.",
         "ins": "Cannot insert at position `1` in `2`.",
-        "psl": "Position specification `1` in `2` is not a machine-sized integer or a list of machine-sized integers.",
     }
 
     summary_text = "insert a string in a given position"
@@ -304,8 +303,8 @@ class StringJoin(InfixOperator):
     <url>:WMA link:https://reference.wolfram.com/language/ref/StringJoin.html</url>
 
     <dl>
-      <dt>'StringJoin["$s1$", "$s2$", ...]'
-      <dd>returns the concatenation of the strings $s1$, $s2$,  .
+      <dt>'StringJoin'["$s_1$", "$s_2$", ...]
+      <dd>returns the concatenation of the strings $s_1$, $s_2$,  .
     </dl>
 
     >> StringJoin["a", "b", "c"]
@@ -321,7 +320,6 @@ class StringJoin(InfixOperator):
     """
 
     attributes = A_FLAT | A_ONE_IDENTITY | A_PROTECTED
-    operator = "<>"
     summary_text = "join strings together"
 
     def eval(self, items, evaluation):
@@ -346,7 +344,7 @@ class StringLength(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/StringLength.html</url>
 
     <dl>
-      <dt>'StringLength["$string$"]'
+      <dt>'StringLength'["$string$"]
       <dd>gives the length of $string$.
     </dl>
 
@@ -378,13 +376,13 @@ class StringPosition(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/StringPosition.html</url>
 
     <dl>
-      <dt>'StringPosition["$string$", $patt$]'
+      <dt>'StringPosition'["$string$", $patt$]
       <dd>gives a list of starting and ending positions where $patt$ matches "$string$".
-      <dt>'StringPosition["$string$", $patt$, $n$]'
+      <dt>'StringPosition'["$string$", $patt$, $n$]
       <dd>returns the first $n$ matches only.
-      <dt>'StringPosition["$string$", {$patt1$, $patt2$, ...}, $n$]'
+      <dt>'StringPosition'["$string$", {$patt_1$, $patt_2$, ...}, $n$]
       <dd>matches multiple patterns.
-      <dt>'StringPosition[{$s1$, $s2$, ...}, $patt$]'
+      <dt>'StringPosition'[{$s_1$, $s_2$, ...}, $patt$]
       <dd>returns a list of matches for multiple strings.
     </dl>
 
@@ -438,7 +436,7 @@ class StringPosition(Builtin):
         else:
             py_n = n.get_int_value()
             if py_n is None or py_n < 0:
-                evaluation.message("StringPosition", "innf", expr, Integer(3))
+                evaluation.message("StringPosition", "innf", expr, Integer3)
                 return
 
         # check options
@@ -509,14 +507,14 @@ class StringReplace(_StringFind):
     <url>:WMA link:https://reference.wolfram.com/language/ref/StringReplace.html</url>
 
     <dl>
-      <dt>'StringReplace["$string$", "$a$"->"$b$"]'
+      <dt>'StringReplace'["$string$", "$a$"->"$b$"]
       <dd>replaces each occurrence of $old$ with $new$ in $string$.
-      <dt>'StringReplace["$string$", {"$s1$"->"$sp1$", "$s2$"->"$sp2$"}]'
+      <dt>'StringReplace'["$string$", {"$s_1$"->"$sp_1$", "$s_2$"->"$sp_2$"}]
       <dd>performs multiple replacements of each $si$ by the
         corresponding $spi$ in $string$.
-      <dt>'StringReplace["$string$", $srules$, $n$]'
+      <dt>'StringReplace'["$string$", $srules$, $n$]
       <dd>only performs the first $n$ replacements.
-      <dt>'StringReplace[{"$string1$", "$string2$", ...}, $srules$]'
+      <dt>'StringReplace'[{"$string_1$", "$string_2$", ...}, $srules$]
       <dd>performs the replacements specified by $srules$ on a list
         of strings.
     </dl>
@@ -583,7 +581,7 @@ class StringReverse(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/StringReverse.html</url>
 
     <dl>
-      <dt>'StringReverse["$string$"]'
+      <dt>'StringReverse'["$string$"]
       <dd>reverses the order of the characters in "string".
     </dl>
 
@@ -659,16 +657,15 @@ class StringRiffle(Builtin):
                 if len(separators[0].elements) != 3 or any(
                     not isinstance(s, String) for s in separators[0].elements
                 ):
-                    evaluation.message("StringRiffle", "string", Integer(2), exp)
+                    evaluation.message("StringRiffle", "string", Integer2, exp)
                     return
             elif not isinstance(separators[0], String):
-                evaluation.message("StringRiffle", "string", Integer(2), exp)
+                evaluation.message("StringRiffle", "string", Integer2, exp)
                 return
 
         # Validate list of string
         if not liststr.has_form("List", None):
             evaluation.message("StringRiffle", "list", Integer1, exp)
-            evaluation.message("StringRiffle", "argmu", exp)
             return
         elif any(element.has_form("List", None) for element in liststr.elements):
             evaluation.message("StringRiffle", "sublist")
@@ -705,16 +702,16 @@ class StringSplit(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/StringSplit.html</url>
 
     <dl>
-      <dt>'StringSplit[$s$]'
+      <dt>'StringSplit'[$s$]
       <dd>splits the string $s$ at whitespace, discarding the whitespace and returning a list of strings.
 
-      <dt>'StringSplit[$s$, $pattern$]'
+      <dt>'StringSplit'[$s$, $pattern$]
       <dd>splits $s$ into substrings separated by delimiters matching the string expression $pattern$.
 
-      <dt>'StringSplit[$s$, {$p_1$, $p_2$, ...}]'
+      <dt>'StringSplit'[$s$, {$p_1$, $p_2$, ...}]
       <dd>splits $s$ at any of the $p_i$ patterns.
 
-      <dt>'StringSplit[{$s_1$, $s_2$, ...}, {$d_1$, $d_2$, ...}]'
+      <dt>'StringSplit'[{$s_1$, $s_2$, ...}, {$d_1$, $d_2$, ...}]
       <dd>returns a list with the result of applying the function to each element.
     </dl>
 
@@ -742,7 +739,7 @@ class StringSplit(Builtin):
     >> StringSplit["x", "x"]
      = {}
 
-    Split using a delmiter that has nonzero list of 12's
+    Split using a delimiter that has nonzero list of 12's
     >> StringSplit["12312123", "12"..]
      = {3, 3}
 
@@ -818,22 +815,22 @@ class StringTake(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/StringTake.html</url>
 
     <dl>
-      <dt>'StringTake["$string$", $n$]'
+      <dt>'StringTake'["$string$", $n$]
       <dd>gives the first $n$ characters in $string$.
 
-      <dt>'StringTake["$string$", -$n$]'
+      <dt>'StringTake'["$string$", -$n$]
       <dd>gives the last $n$ characters in $string$.
 
-      <dt>'StringTake["$string$", {$n$}]'
+      <dt>'StringTake'["$string$", {$n$}]
       <dd>gives the $n$th character in $string$.
 
-      <dt>'StringTake["$string$", {$m$, $n$}]'
+      <dt>'StringTake'["$string$", {$m$, $n$}]
       <dd>gives characters $m$ through $n$ in $string$.
 
-      <dt>'StringTake["$string$", {$m$, $n$, $s$}]'
+      <dt>'StringTake'["$string$", {$m$, $n$, $s$}]
       <dd>gives characters $m$ through $n$ in steps of $s$.
 
-      <dt>'StringTake[{$s1$, $s2$, ...} $spec$}]'
+      <dt>'StringTake'[{$s_1$, $s_2$, ...} $spec$}]
       <dd>gives the list of results for each of the $si$.
     </dl>
 
@@ -915,7 +912,7 @@ class StringTrim(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/StringTrim.html</url>
 
     <dl>
-      <dt>'StringTrim[$s$]'
+      <dt>'StringTrim'[$s$]
       <dd>returns a version of $s$ with whitespace removed from start and end.
     </dl>
 
@@ -932,8 +929,8 @@ class StringTrim(Builtin):
         "StringTrim[s_String]"
         return String(s.get_string_value().strip(" \t\n"))
 
-    def eval_pattern(self, s, patt, expression, evaluation):
-        "StringTrim[s_String, patt_]"
+    def eval_pattern(self, expression, s, patt, evaluation):
+        "expression: StringTrim[s_String, patt_]"
         text = s.get_string_value()
         if not text:
             return s

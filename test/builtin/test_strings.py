@@ -3,7 +3,7 @@
 Unit tests from mathics.builtin.string.
 """
 
-from test.helper import check_evaluation, session
+from test.helper import check_evaluation
 
 import pytest
 
@@ -162,78 +162,11 @@ import pytest
         ),
         ('StringPosition[{"abc"}, "a", Infinity]', None, "{{{1, 1}}}", None),
         ('StringPosition["abc"]["123AabcDEabc"]', None, "{{5, 7}, {10, 12}}", None),
-        ('StringReplace["abcabc", "a" -> "b", Infinity]', None, "bbcbbc", None),
-        (
-            'StringReplace[x, "a" -> "b"]',
-            (
-                "String or list of strings expected at position 1 in StringReplace[x, a -> b].",
-            ),
-            "StringReplace[x, a -> b]",
-            None,
-        ),
-        (
-            'StringReplace["xyzwxyzwaxyzxyzw", x]',
-            ("x is not a valid string replacement rule.",),
-            "StringReplace[xyzwxyzwaxyzxyzw, x]",
-            None,
-        ),
-        (
-            'StringReplace["xyzwxyzwaxyzxyzw", x -> y]',
-            ("Element x is not a valid string or pattern element in x.",),
-            "StringReplace[xyzwxyzwaxyzxyzw, x -> y]",
-            None,
-        ),
-        (
-            'StringReplace["abcabc", "a" -> "b", -1]',
-            (
-                "Non-negative integer or Infinity expected at position 3 in StringReplace[abcabc, a -> b, -1].",
-            ),
-            "StringReplace[abcabc, a -> b, -1]",
-            None,
-        ),
-        ('StringReplace["abc", "b" -> 4]', ("String expected.",), "a <> 4 <> c", None),
-        ('StringReplace["01101100010", "01" .. -> "x"]', None, "x1x100x0", None),
-        ('StringReplace["abc abcb abdc", "ab" ~~ _ -> "X"]', None, "X Xb Xc", None),
-        (
-            'StringReplace["abc abcd abcd",  WordBoundary ~~ "abc" ~~ WordBoundary -> "XX"]',
-            None,
-            "XX abcd abcd",
-            None,
-        ),
-        (
-            'StringReplace["abcd acbd", RegularExpression["[ab]"] -> "XX"]',
-            None,
-            "XXXXcd XXcXXd",
-            None,
-        ),
-        (
-            'StringReplace["abcd acbd", RegularExpression["[ab]"] ~~ _ -> "YY"]',
-            None,
-            "YYcd YYYY",
-            None,
-        ),
-        (
-            'StringReplace["abcdabcdaabcabcd", {"abc" -> "Y", "d" -> "XXX"}]',
-            None,
-            "YXXXYXXXaYYXXX",
-            None,
-        ),
-        (
-            'StringReplace["  Have a nice day.  ", (StartOfString ~~ Whitespace) | (Whitespace ~~ EndOfString) -> ""] // FullForm',
-            None,
-            '"Have a nice day."',
-            None,
-        ),
-        ('StringReplace["xyXY", "xy" -> "01"]', None, "01XY", None),
-        ('StringReplace["xyXY", "xy" -> "01", IgnoreCase -> True]', None, "0101", None),
         ('StringRiffle[{a, b, c, "d", e, "f"}]', None, "a b c d e f", None),
         ## 1st is not a list
         (
             'StringRiffle["abcdef"]',
-            (
-                "List expected at position 1 in StringRiffle[abcdef].",
-                "StringRiffle called with 1 argument; 2 or more arguments are expected.",
-            ),
+            ("List expected at position 1 in StringRiffle[abcdef].",),
             "StringRiffle[abcdef]",
             None,
         ),
@@ -387,8 +320,8 @@ def test_private_doctests_operations(str_expr, msgs, str_expected, fail_msg):
             "StringFreeQ[{A, Galaxy, Far, Far, Away}, {F ~~ __ ~~ r, aw ~~ ___}]",
             None,
         ),
-        ## Mathematica can detemine correct invalid element in the pattern, it reports error:
-        ## Element F is not a valid string or pattern element in {F ~~ __ ~~ r, aw ~~ ___}.
+        # Mathematica can determine correct invalid element in the pattern, it reports error:
+        # Element F is not a valid string or pattern element in {F ~~ __ ~~ r, aw ~~ ___}.
         ('StringMatchQ["abc1", LetterCharacter]', None, "False", None),
         ('StringMatchQ["abc", "ABC"]', None, "False", None),
         ('StringMatchQ["abc", "ABC", IgnoreCase -> True]', None, "True", None),
@@ -579,7 +512,7 @@ def test_private_doctests_characters(str_expr, msgs, str_expected, fail_msg):
         ),
     ],
 )
-def test_private_doctests_characters(str_expr, str_expected, fail_msg):
+def test_private_doctests_characters2(str_expr, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,

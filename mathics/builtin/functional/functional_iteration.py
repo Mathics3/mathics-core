@@ -23,10 +23,10 @@ class FixedPoint(Builtin):
       https://reference.wolfram.com/language/ref/FixedPoint.html</url>
 
     <dl>
-      <dt>'FixedPoint[$f$, $expr$]'
+      <dt>'FixedPoint'[$f$, $expr$]
       <dd>starting with $expr$, iteratively applies $f$ until the result no longer changes.
 
-      <dt>'FixedPoint[$f$, $expr$, $n$]'
+      <dt>'FixedPoint'[$f$, $expr$, $n$]
       <dd>performs at most $n$ iterations. The same that using $MaxIterations->n$
     </dl>
 
@@ -91,11 +91,11 @@ class FixedPointList(Builtin):
       https://reference.wolfram.com/language/ref/FixedPointList.html</url>
 
     <dl>
-      <dt>'FixedPointList[$f$, $expr$]'
+      <dt>'FixedPointList'[$f$, $expr$]
       <dd>starting with $expr$, iteratively applies $f$ until the result no longer changes, \
           and returns a list of all intermediate results.
 
-      <dt>'FixedPointList[$f$, $expr$, $n$]'
+      <dt>'FixedPointList'[$f$, $expr$, $n$]
       <dd>performs at most $n$ iterations.
     </dl>
 
@@ -159,10 +159,10 @@ class Fold(Builtin):
       https://reference.wolfram.com/language/ref/Fold.html</url>
 
     <dl>
-      <dt>'Fold[$f$, $x$, $list$]'
+      <dt>'Fold'[$f$, $x$, $list$]
       <dd>returns the result of iteratively applying the binary
         operator $f$ to each element of $list$, starting with $x$.
-      <dt>'Fold[$f$, $list$]'
+      <dt>'Fold'[$f$, $list$]
       <dd>is equivalent to 'Fold[$f$, First[$list$], Rest[$list$]]'.
     </dl>
 
@@ -185,11 +185,11 @@ class FoldList(Builtin):
       https://reference.wolfram.com/language/ref/FoldList.html</url>
 
     <dl>
-      <dt>'FoldList[$f$, $x$, $list$]'
+      <dt>'FoldList'[$f$, $x$, $list$]
       <dd>returns a list starting with $x$, where each element is
         the result of applying the binary operator $f$ to the previous
         result and the next element of $list$.
-      <dt>'FoldList[$f$, $list$]'
+      <dt>'FoldList'[$f$, $list$]
       <dd>is equivalent to 'FoldList[$f$, First[$list$], Rest[$list$]]'.
     </dl>
 
@@ -212,7 +212,7 @@ class Nest(Builtin):
       https://reference.wolfram.com/language/ref/Nest.html</url>
 
     <dl>
-      <dt>'Nest[$f$, $expr$, $n$]'
+      <dt>'Nest'[$f$, $expr$, $n$]
       <dd>starting with $expr$, iteratively applies $f$ $n$ times and returns the final result.
     </dl>
 
@@ -220,6 +220,8 @@ class Nest(Builtin):
      = f[f[f[x]]]
     >> Nest[(1+#) ^ 2 &, x, 2]
      = (1 + (1 + x) ^ 2) ^ 2
+    >> Nest[Subsuperscript[#,#,#]&,0,5]
+     = ...
     """
 
     summary_text = "give the result of nesting a function"
@@ -242,7 +244,7 @@ class NestList(Builtin):
       https://reference.wolfram.com/language/ref/NestList.html</url>
 
     <dl>
-      <dt>'NestList[$f$, $expr$, $n$]'
+      <dt>'NestList'[$f$, $expr$, $n$]
       <dd>starting with $expr$, iteratively applies $f$ $n$ times and \
           returns a list of all intermediate results.
     </dl>
@@ -285,14 +287,14 @@ class NestWhile(Builtin):
       https://reference.wolfram.com/language/ref/NestWhile.html</url>
 
     <dl>
-      <dt>'NestWhile[$f$, $expr$, $test$]'
+      <dt>'NestWhile'[$f$, $expr$, $test$]
       <dd>applies a function $f$ repeatedly on an expression $expr$, until \
           applying $test$ on the result no longer yields 'True'.
 
-      <dt>'NestWhile[$f$, $expr$, $test$, $m$]'
+      <dt>'NestWhile'[$f$, $expr$, $test$, $m$]
       <dd>supplies the last $m$ results to $test$ (default value: 1).
 
-      <dt>'NestWhile[$f$, $expr$, $test$, All]'
+      <dt>'NestWhile'[$f$, $expr$, $test$, All]
       <dd>supplies all results gained so far to $test$.
     </dl>
 

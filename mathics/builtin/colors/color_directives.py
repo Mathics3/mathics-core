@@ -204,7 +204,12 @@ class _ColorObject(_GraphicsDirective, ImmutableValueMixin):
         return self.to_rgba()
 
     def to_expr(self):
-        return to_expression(self.get_name(), *self.components)
+        """Convert components to MachineReal consistently so that colors with
+        numerically-equal components but different numeric atom types compare equal.
+        """
+        return to_expression(
+            self.get_name(), *self.components, elements_conversion_fn=MachineReal
+        )
 
     def to_rgba(self):
         return self.to_color_space("RGB")
@@ -227,7 +232,7 @@ class CMYKColor(_ColorObject):
     https://reference.wolfram.com/language/ref/CMYKColor.html</url>)
 
     <dl>
-      <dt>'CMYKColor[$c$, $m$, $y$, $k$]'
+      <dt>'CMYKColor'[$c$, $m$, $y$, $k$]
       <dd>represents a color with the specified cyan, magenta, \
         yellow and black components.
     </dl>
@@ -250,11 +255,11 @@ class ColorDistance(Builtin):
     https://reference.wolfram.com/language/ref/ColorDistance.html</url>)
 
     <dl>
-      <dt>'ColorDistance[$c1$, $c2$]'
-      <dd>returns a measure of color distance between the colors $c1$ and $c2$.
+      <dt>'ColorDistance'[$c_1$, $c_2$]
+      <dd>returns a measure of color distance between the colors $c_1$ and $c_2$.
 
-      <dt>'ColorDistance[$list$, $c2$]'
-      <dd>returns a list of color distances between the colors in $list$ and $c2$.
+      <dt>'ColorDistance'[$list$, $c_2$]
+      <dd>returns a list of color distances between the colors in $list$ and $c_2$.
     </dl>
 
     The option DistanceFunction specifies the method used to measure the color
@@ -343,15 +348,18 @@ class ColorDistance(Builtin):
         elif distance_function.has_form("List", 2):
             if distance_function.elements[0].get_string_value() == "CMC":
                 if distance_function.elements[1].get_string_value() == "Acceptability":
-                    compute = (
-                        lambda c1, c2: _CMC_distance(
-                            100 * c1.to_color_space("LAB")[:3],
-                            100 * c2.to_color_space("LAB")[:3],
-                            2,
-                            1,
+
+                    def compute(c1, c2):
+                        return (
+                            _CMC_distance(
+                                100 * c1.to_color_space("LAB")[:3],
+                                100 * c2.to_color_space("LAB")[:3],
+                                2,
+                                1,
+                            )
+                            / 100
                         )
-                        / 100
-                    )
+
                 elif (
                     distance_function.elements[1].get_string_value() == "Perceptibility"
                 ):
@@ -381,15 +389,17 @@ class ColorDistance(Builtin):
                                 .elements[1]
                                 .get_int_value()
                             )
-                            compute = (
-                                lambda c1, c2: _CMC_distance(
-                                    100 * c1.to_color_space("LAB")[:3],
-                                    100 * c2.to_color_space("LAB")[:3],
-                                    lightness,
-                                    chroma,
+
+                            def compute(c1, c2):
+                                return (
+                                    _CMC_distance(
+                                        100 * c1.to_color_space("LAB")[:3],
+                                        100 * c2.to_color_space("LAB")[:3],
+                                        lightness,
+                                        chroma,
+                                    )
+                                    / 100
                                 )
-                                / 100
-                            )
 
         elif (
             isinstance(distance_function, Symbol)
@@ -460,10 +470,10 @@ class GrayLevel(_ColorObject):
     https://reference.wolfram.com/language/ref/GrayLevel.html</url>
 
     <dl>
-      <dt>'GrayLevel[$g$]'
+      <dt>'GrayLevel'[$g$]
       <dd>represents a shade of gray specified by $g$, ranging from
         0 (black) to 1 (white).
-      <dt>'GrayLevel[$g$, $a$]'
+      <dt>'GrayLevel'[$g$, $a$]
       <dd>represents a shade of gray specified by $g$ with opacity $a$.
     </dl>
     """
@@ -482,16 +492,16 @@ class Hue(_ColorObject):
     https://reference.wolfram.com/language/ref/Hue.html</url>
 
     <dl>
-      <dt>'Hue[$h$, $s$, $l$, $a$]'
+      <dt>'Hue'[$h$, $s$, $l$, $a$]
       <dd>represents the color with hue $h$, saturation $s$, lightness $l$ and opacity $a$.
 
-      <dt>'Hue[$h$, $s$, $l$]'
+      <dt>'Hue'[$h$, $s$, $l$]
       <dd>is equivalent to 'Hue[$h$, $s$, $l$, 1]'.
 
-      <dt>'Hue[$h$, $s$]'
+      <dt>'Hue'[$h$, $s$]
       <dd>is equivalent to 'Hue[$h$, $s$, 1, 1]'.
 
-      <dt>'Hue[$h$]'
+      <dt>'Hue'[$h$]
       <dd>is equivalent to 'Hue[$h$, 1, 1, 1]'.
     </dl>
 
@@ -546,7 +556,7 @@ class LABColor(_ColorObject):
     https://reference.wolfram.com/language/ref/LABColor.html</url>
 
     <dl>
-      <dt>'LABColor[$l$, $a$, $b$]'
+      <dt>'LABColor'[$l$, $a$, $b$]
       <dd>represents a color with the specified lightness, red/green and yellow/blue
         components in the CIE 1976 L*a*b* (CIELAB) color space.
     </dl>
@@ -566,7 +576,7 @@ class LCHColor(_ColorObject):
     https://reference.wolfram.com/language/ref/LCHColor.html</url>
 
     <dl>
-      <dt>'LCHColor[$l$, $c$, $h$]'
+      <dt>'LCHColor'[$l$, $c$, $h$]
       <dd>represents a color with the specified lightness, chroma and hue
         components in the CIELCh CIELab cube color space.
     </dl>
@@ -584,7 +594,7 @@ class LUVColor(_ColorObject):
     <url>:WMA link:https://reference.wolfram.com/language/ref/LUVColor.html</url>
 
     <dl>
-      <dt>'LCHColor[$l$, $u$, $v$]'
+      <dt>'LCHColor'[$l$, $u$, $v$]
       <dd>represents a color with the specified components in the CIE 1976 L*u*v* \
           (CIELUV) color space.
     </dl>
@@ -605,7 +615,7 @@ class Opacity(_GraphicsDirective):
     https://reference.wolfram.com/language/ref/Opacity.html</url>)
 
     <dl>
-      <dt>'Opacity[$level$]'
+      <dt>'Opacity'[$level$]
       <dd> is a graphics directive that sets the opacity to $level$; $level$ is a \
            value between 0 and 1.
     </dl>
@@ -648,7 +658,7 @@ class RGBColor(_ColorObject):
     https://reference.wolfram.com/language/ref/RGBColor.html</url>)
 
     <dl>
-      <dt>'RGBColor[$r$, $g$, $b$]'
+      <dt>'RGBColor'[$r$, $g$, $b$]
       <dd>represents a color with the specified red, green and blue \
         components. These values should be a number between 0 and 1. \
         Unless specified using the form below or using <url>
@@ -656,7 +666,7 @@ class RGBColor(_ColorObject):
       /doc/reference-of-built-in-symbols/colors/color-directives/opacity</url>,\
         default opacity is 1, a solid opaque color.
 
-      <dt>'RGBColor[$r$, $g$, $b$, $a$]'
+      <dt>'RGBColor'[$r$, $g$, $b$, $a$]
       <dd>Same as above but an opacity value is specified. $a$ must have \
           value between 0 and 1. \
           'RGBColor[$r$,$g$,$b$,$a$]' is equivalent to '{RGBColor[$r$,$g$,$b$],Opacity[$a$]}.'
@@ -700,7 +710,7 @@ class XYZColor(_ColorObject):
     https://reference.wolfram.com/language/ref/XYZColor.html</url>
 
     <dl>
-      <dt>'XYZColor[$x$, $y$, $z$]'
+      <dt>'XYZColor'[$x$, $y$, $z$]
       <dd>represents a color with the specified components in the CIE 1931 XYZ color space.
     </dl>
     """

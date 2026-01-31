@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [macOS]
-        python-version: ['3.9', '3.10']
+        python-version: ['3.13', '3.12']
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
@@ -29,12 +29,9 @@ jobs:
     - name: Install Mathics3 with full Python dependencies
       run: |
         # We can comment out after next Mathics-Scanner release
-        python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
-        git clone https://github.com/Mathics3/mathics-scanner.git
-        cd mathics-scanner/
-        pip install -e .
-        cd ..
         # python -m pip install Mathics-Scanner[full]
+        python -m pip install -e "Mathics-Scanner[full] @ git+https://github.com/Mathics3/mathics-scanner"
+        pip install -e .
         remake -x develop-full
     - name: Test Mathics3
       run: |

@@ -5,7 +5,7 @@ import hashlib
 import platform
 import zlib
 
-from mathics.core.atoms import ByteArrayAtom, Integer, String
+from mathics.core.atoms import ByteArray, Integer, String
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.evaluation import Evaluation
@@ -43,7 +43,7 @@ class ByteCount(Builtin):
     https://reference.wolfram.com/language/ref/ByteCount.html</url>
 
     <dl>
-      <dt>'ByteCount[$expr$]'
+      <dt>'ByteCount'[$expr$]
       <dd>gives the internal memory space used by $expr$, in bytes.
     </dl>
 
@@ -66,15 +66,15 @@ class Hash(Builtin):
     (<url>:WMA link:https://reference.wolfram.com/language/ref/Hash.html</url>)
 
     <dl>
-      <dt>'Hash[$expr$]'
+      <dt>'Hash'[$expr$]
       <dd>returns an integer hash for the given $expr$.
 
-      <dt>'Hash[$expr$, $type$]'
+      <dt>'Hash'[$expr$, $type$]
       <dd>returns an integer hash of the specified $type$ for the given $expr$.
       <dd>The types supported are "MD5", "Adler32", "CRC32", "SHA", "SHA224", \
           "SHA256", "SHA384", and "SHA512".
 
-      <dt>'Hash[$expr$, $type$, $format$]'
+      <dt>'Hash'[$expr$, $type$, $format$]
       <dd>Returns the hash in the specified format.
     </dl>
 
@@ -132,7 +132,7 @@ class Hash(Builtin):
         if py_format == "DecimalString":
             return String(str(res))
         elif py_format == "ByteArray":
-            return Expression(SymbolByteArray, ByteArrayAtom(res))
+            return Expression(SymbolByteArray, ByteArray(res))
         return Integer(res)
 
     def eval(self, expr, hashtype: String, outformat: String, evaluation: Evaluation):
@@ -147,7 +147,7 @@ class LeafCount(Builtin):
     https://reference.wolfram.com/language/ref/LeafCount.html</url>
 
     <dl>
-      <dt>'LeafCount[$expr$]'
+      <dt>'LeafCount'[$expr$]
       <dd>returns the total number of indivisible subexpressions in $expr$.
     </dl>
 

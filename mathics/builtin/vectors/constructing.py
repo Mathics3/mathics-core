@@ -12,21 +12,21 @@ from mathics.core.builtin import Builtin
 
 
 class AngleVector(Builtin):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/AngleVector.html</url>
 
     <dl>
-      <dt>'AngleVector[$phi$]'
-      <dd>returns the point at angle $phi$ on the unit circle.
+      <dt>'AngleVector'[$\phi$]
+      <dd>returns the point at angle $\phi$ on the unit circle.
 
-      <dt>'AngleVector[{$r$, $phi$}]'
-      <dd>returns the point at angle $phi$ on a circle of radius $r$.
+      <dt>'AngleVector'[{$r$, $\phi$}]
+      <dd>returns the point at angle $\phi$ on a circle of radius $r$.
 
-      <dt>'AngleVector[{$x$, $y$}, $phi$]'
-      <dd>returns the point at angle $phi$ on a circle of radius 1 centered at {$x$, $y$}.
+      <dt>'AngleVector'[{$x$, $y$}, $\phi$]
+      <dd>returns the point at angle $\phi$ on a circle of radius 1 centered at {$x$, $y$}.
 
-      <dt>'AngleVector[{$x$, $y$}, {$r$, $phi$}]'
-      <dd>returns point at angle $phi$ on a circle of radius $r$ centered at {$x$, $y$}.
+      <dt>'AngleVector'[{$x$, $y$}, {$r$, $\phi$}]
+      <dd>returns point at angle $\phi$ on a circle of radius $r$ centered at {$x$, $y$}.
     </dl>
 
     >> AngleVector[90 Degree]

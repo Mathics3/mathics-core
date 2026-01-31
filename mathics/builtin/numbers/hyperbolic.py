@@ -42,7 +42,7 @@ class ArcCosh(MPMathFunction):
     https://reference.wolfram.com/language/ref/ArcCosh.html</url>)
 
     <dl>
-      <dt>'ArcCosh[$z$]'
+      <dt>'ArcCosh'[$z$]
       <dd>returns the inverse hyperbolic cosine of $z$.
     </dl>
 
@@ -80,7 +80,7 @@ class ArcCoth(MPMathFunction):
     https://reference.wolfram.com/language/ref/ArcCoth.html</url>)
 
     <dl>
-      <dt>'ArcCoth[$z$]'
+      <dt>'ArcCoth'[$z$]
       <dd>returns the inverse hyperbolic cotangent of $z$.
     </dl>
 
@@ -118,7 +118,7 @@ class ArcCsch(MPMathFunction):
     https://reference.wolfram.com/language/ref/ArcCsch.html</url>)
 
     <dl>
-      <dt>'ArcCsch[$z$]'
+      <dt>'ArcCsch'[$z$]
       <dd>returns the inverse hyperbolic cosecant of $z$.
     </dl>
 
@@ -152,7 +152,7 @@ class ArcSech(MPMathFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ArcSech.html</url>
 
     <dl>
-      <dt>'ArcSech[$z$]'
+      <dt>'ArcSech'[$z$]
       <dd>returns the inverse hyperbolic secant of $z$.
     </dl>
 
@@ -188,7 +188,7 @@ class ArcSinh(MPMathFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ArcSinh.html</url>
 
     <dl>
-      <dt>'ArcSinh[$z$]'
+      <dt>'ArcSinh'[$z$]
       <dd>returns the inverse hyperbolic sine of $z$.
     </dl>
 
@@ -215,7 +215,7 @@ class ArcTanh(MPMathFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ArcTanh.html</url>
 
     <dl>
-      <dt>'ArcTanh[$z$]'
+      <dt>'ArcTanh'[$z$]
       <dd>returns the inverse hyperbolic tangent of $z$.
     </dl>
 
@@ -253,10 +253,10 @@ class ComplexExpand(SympyFunction):
         </url>)
 
         <dl>
-          <dt>'ComplexExpand[$expr$]'
+          <dt>'ComplexExpand'[$expr$]
           <dd>expands $expr$ assuming that all variables are real.
 
-          <dt>'ComplexExpand[$expr$,{$x1$,$x2$, ...}]'
+          <dt>'ComplexExpand'[$expr$,{$x_1$,$x_2$, ...}]
           <dd>expands $expr$ assuming that variables matching any of the $xi$ are complex.
         </dl>
 
@@ -310,7 +310,7 @@ class Cosh(MPMathFunction):
     https://reference.wolfram.com/language/ref/Cosh.html</url>
 
     <dl>
-      <dt>'Cosh[$z$]'
+      <dt>'Cosh'[$z$]
       <dd>returns the hyperbolic cosine of $z$.
     </dl>
 
@@ -333,7 +333,7 @@ class Coth(MPMathFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Coth.html</url>
 
     <dl>
-      <dt>'Coth[$z$]'
+      <dt>'Coth'[$z$]
       <dd>returns the hyperbolic cotangent of $z$.
     </dl>
 
@@ -360,7 +360,7 @@ class Gudermannian(Builtin):
     :WMA: https://reference.wolfram.com/language/ref/Gudermannian.html</url>, <url>
     :MathWorld: https://mathworld.wolfram.com/Gudermannian.html</url>)
     <dl>
-      <dt>'Gudermannian[$z$]'
+      <dt>'Gudermannian'[$z$]
       <dd>returns the Gudermannian function $gd$($z$).
     </dl>
 
@@ -377,7 +377,7 @@ class Gudermannian(Builtin):
     """
 
     # See https://mathworld.wolfram.com/Gudermannian.html for a number
-    # of relatiions to trigonometric and hyperbolic functions that could be
+    # of relations to trigonometric and hyperbolic functions that could be
     # used if needed.
     rules = {
         "Gudermannian[Undefined]": "Undefined",
@@ -405,7 +405,7 @@ class InverseGudermannian(Builtin):
     https://reference.wolfram.com/language/ref/InverseGudermannian.html</url>, <url>
     :MathWorld: https://mathworld.wolfram.com/InverseGudermannian.html</url>)
     <dl>
-      <dt>'InverseGudermannian[$z$]'
+      <dt>'InverseGudermannian'[$z$]
       <dd>returns the inverse Gudermannian function $gd$^-1($z$).
     </dl>
 
@@ -437,7 +437,7 @@ class Sech(MPMathFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Sech.html</url>
 
     <dl>
-      <dt>'Sech[$z$]'
+      <dt>'Sech'[$z$]
       <dd>returns the hyperbolic secant of $z$.
     </dl>
 
@@ -466,7 +466,7 @@ class Sinh(MPMathFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Sinh.html</url>
 
     <dl>
-      <dt>'Sinh[$z$]'
+      <dt>'Sinh'[$z$]
       <dd>returns the hyperbolic sine of $z$.
     </dl>
 
@@ -488,7 +488,7 @@ class Tanh(MPMathFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Tanh.html</url>
 
     <dl>
-      <dt>'Tanh[$z$]'
+      <dt>'Tanh'[$z$]
       <dd>returns the hyperbolic tangent of $z$.
     </dl>
 

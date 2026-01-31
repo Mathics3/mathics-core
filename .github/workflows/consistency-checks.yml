@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.11']
+        python-version: ['3.13']
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
@@ -23,11 +23,8 @@ jobs:
         sudo apt update -qq && sudo apt install llvm-dev remake
         python -m pip install --upgrade pip
         # We can comment out after next Mathics-Scanner release
-        # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
-        git clone https://github.com/Mathics3/mathics-scanner.git
-        cd mathics-scanner/
+        python -m pip install -e "Mathics-Scanner[full] @ git+https://github.com/Mathics3/mathics-scanner"
         pip install -e .
-        cd ..
 
     - name: Install Mathics with minimum dependencies
       run: |

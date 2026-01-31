@@ -36,12 +36,13 @@ from mathics.core.builtin import (
     IterationFunction,
     MPMathFunction,
     Predefined,
+    PrefixOperator,
     SympyFunction,
     SympyObject,
     Test,
 )
-from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol_prefix
-from mathics.core.element import BaseElement
+from mathics.core.convert.sympy import SympyExpression, from_sympy
+from mathics.core.element import BaseElement, ElementsProperties
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.expression_predefined import (
@@ -61,6 +62,7 @@ from mathics.core.symbols import (
     SymbolPlus,
     SymbolTimes,
     SymbolTrue,
+    sympy_name,
 )
 from mathics.core.systemsymbols import (
     SymbolAnd,
@@ -70,9 +72,9 @@ from mathics.core.systemsymbols import (
     SymbolTable,
     SymbolUndefined,
 )
-from mathics.eval.arithmetic import eval_Sign
 from mathics.eval.inference import get_assumptions_list
 from mathics.eval.nevaluator import eval_N
+from mathics.eval.numeric import eval_Sign
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.mathematical-functions"
@@ -106,7 +108,7 @@ class Arg(MPMathFunction):
     :WMA link:https://reference.wolfram.com/language/ref/Arg.html</url>)
 
     <dl>
-      <dt>'Arg'[$z$, $method_option$]
+      <dt>'Arg'[$z$, 'Method ->' "$option$"]
       <dd>returns the argument of a complex value $z$.
     </dl>
 
@@ -122,15 +124,15 @@ class Arg(MPMathFunction):
      >> Arg[-3]
       = Pi
 
-     Same as above using sympy's method:
+     Same as above, but using SymPy's method:
      >> Arg[-3, Method->"sympy"]
       = Pi
 
     >> Arg[1-I]
      = -Pi / 4
 
-    Arg evaluate the direction of DirectedInfinity quantities by
-    the Arg of they arguments:
+    'Arg' evaluates the direction of 'DirectedInfinity' quantities by \
+    the 'Arg' of its arguments:
     >> Arg[DirectedInfinity[1+I]]
      = Pi / 4
     >> Arg[DirectedInfinity[]]
@@ -177,7 +179,7 @@ class Assuming(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Assuming.html</url>
 
     <dl>
-      <dt>'Assuming[$cond$, $expr$]'
+      <dt>'Assuming'[$cond$, $expr$]
       <dd>Evaluates $expr$ assuming the conditions $cond$.
     </dl>
 
@@ -212,11 +214,11 @@ class Assuming(Builtin):
 
 
 class Assumptions(Predefined):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$Assumptions.html</url>
+    r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$Assumptions.html</url>
     <dl>
-      <dt>'$Assumptions'
-      <dd>is the default setting for the Assumptions option used in such functions as Simplify, Refine, and Integrate.
+      <dt>'\$Assumptions'
+      <dd>is the default setting for the 'Assumptions' option used in such functions as 'Simplify', 'Refine', and 'Integrate'.
     </dl>
     """
 
@@ -270,7 +272,7 @@ class Complex_(Builtin):
       <dt>'Complex'
       <dd>is the head of complex numbers.
 
-      <dt>'Complex[$a$, $b$]'
+      <dt>'Complex'[$a$, $b$]
       <dd>constructs the complex number '$a$ + I $b$'.
     </dl>
 
@@ -301,7 +303,7 @@ class ConditionalExpression(Builtin):
 language/ref/ConditionalExpression.html</url>
 
     <dl>
-      <dt>'ConditionalExpression[$expr$, $cond$]'
+      <dt>'ConditionalExpression'[$expr$, $cond$]
       <dd>returns $expr$ if $cond$ evaluates to $True$, $Undefined$ if $cond$ \
           evaluates to $False$.
     </dl>
@@ -371,12 +373,17 @@ language/ref/ConditionalExpression.html</url>
                 sympy_cond = False
         if sympy_cond is None:
             sympy_cond = cond.to_sympy(**kwargs)
+            # See similar code and comment in mathics.builtin.procedural.If
+            # TODO: consider adding .is_Symbol (as with If) so that this
+            # can be used for compilation. I tried that but it invalidated
+            # doctest 1876 in Simplify which depends on ConditionalExpression
+            # not getting rewritten, so may need update that secion of doc?
             if not (sympy_cond.is_Relational or sympy_cond.is_Boolean):
                 return
 
         sympy_cases = (
             (expr.to_sympy(**kwargs), sympy_cond),
-            (sympy.Symbol(sympy_symbol_prefix + "System`Undefined"), True),
+            (sympy.Symbol(sympy_name(SymbolUndefined)), True),
         )
         return sympy.Piecewise(*sympy_cases)
 
@@ -388,7 +395,7 @@ class Conjugate(MPMathFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Conjugate.html</url>
 
     <dl>
-      <dt>'Conjugate[$z$]'
+      <dt>'Conjugate'[$z$]
       <dd>returns the complex conjugate of the complex number $z$.
     </dl>
 
@@ -412,7 +419,7 @@ class Conjugate(MPMathFunction):
     rules = {
         "Conjugate[Undefined]": "Undefined",
     }
-    summary_text = "complex conjugation"
+    summary_text = "compute complex conjugation"
 
 
 class DirectedInfinity(SympyFunction):
@@ -421,7 +428,7 @@ class DirectedInfinity(SympyFunction):
     https://reference.wolfram.com/language/ref/DirectedInfinity.html</url>
 
     <dl>
-      <dt>'DirectedInfinity[$z$]'
+      <dt>'DirectedInfinity'[$z$]
       <dd>represents an infinite multiple of the complex number $z$.
       <dt>'DirectedInfinity[]'
       <dd>is the same as 'ComplexInfinity'.
@@ -526,7 +533,7 @@ class DirectedInfinity(SympyFunction):
 
     def to_sympy(self, expr, **kwargs):
         if len(expr.elements) == 1:
-            dir = expr.elements[0].get_int_value()
+            dir = expr.elements[0].value
             if dir == 1:
                 return sympy.oo
             elif dir == -1:
@@ -543,9 +550,9 @@ class Element(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Element.html</url>
 
     <dl>
-      <dt>'Element[$expr$, $domain$]'
+      <dt>'Element'[$expr$, $domain$]
       <dd>returns $True$ if $expr$ is an element of $domain$
-      <dt>'Element[$expr_1$|$expr_2$|..., $domain$]'
+      <dt>'Element'[$expr_1$|$expr_2$|..., $domain$]
       <dd>returns $True$ if all the $expr_i$ belongs to $domain$, and \
     $False$ if one of the items doesn't.
     </dl>
@@ -627,17 +634,26 @@ class I_(Predefined, SympyObject):
     name = "I"
     sympy_name = "I"
     sympy_obj = sympy.I
-    summary_text = "imaginary unit"
+    summary_text = "imaginary unit number Sqrt[-1]"
     python_equivalent = 1j
-
-    def is_constant(self) -> bool:
-        return True
-
-    def to_sympy(self, symb, **kwargs):
-        return self.sympy_obj
 
     def evaluate(self, evaluation: Evaluation):
         return Complex(Integer0, Integer1)
+
+    def is_constant(self) -> bool:
+        """The value and evaluation of this object can never change."""
+        return True
+
+    @property
+    def is_literal(self):
+        return True
+
+    @property
+    def value(self) -> complex:
+        return complex(0, 1)
+
+    def to_sympy(self, expr, **kwargs):
+        return self.sympy_obj
 
 
 class Im(SympyFunction):
@@ -647,7 +663,7 @@ class Im(SympyFunction):
     https://reference.wolfram.com/language/ref/Im.html</url>
 
     <dl>
-      <dt>'Im[$z$]'
+      <dt>'Im'[$z$]
       <dd>returns the imaginary component of the complex number $z$.
     </dl>
 
@@ -658,7 +674,7 @@ class Im(SympyFunction):
      = -Graphics-
     """
 
-    summary_text = "imaginary part"
+    summary_text = "imaginary part of a complex number"
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
     def eval_complex(self, number, evaluation: Evaluation):
@@ -694,52 +710,70 @@ class Integer_(Builtin):
     name = "Integer"
 
 
-class Product(IterationFunction, SympyFunction):
+class Product(IterationFunction, SympyFunction, PrefixOperator):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Product.html</url>
+    <url>:Direct product:https://en.wikipedia.org/wiki/Direct_product</url> (<url>
+      :SymPy:https://docs.sympy.org/latest/modules/concrete.html#sympy.concrete.products.Product</url>, <url>
+      :WMA:https://reference.wolfram.com/language/ref/Product.html</url>)
 
     <dl>
-      <dt>'Product[$expr$, {$i$, $imin$, $imax$}]'
-      <dd>evaluates the discrete product of $expr$ with $i$ ranging from $imin$ to $imax$.
+      <dt>'Product'[$f$, {$i$, $i_{min}$, $i_{max}$}]
+      <dd>evaluates the discrete product of $f$ with $i$ ranging from $i_{min}$ to $i_{max}$.
 
-      <dt>'Product[$expr$, {$i$, $imax$}]'
-      <dd>same as 'Product[$expr$, {$i$, 1, $imax$}]'.
+      <dt>'Product'[$f$, {$i$, $i_{max}$}]
+      <dd>same as 'Product'[$f$, {$i, 1, i_{max}$}].
 
-      <dt>'Product[$expr$, {$i$, $imin$, $imax$, $di$}]'
-      <dd>$i$ ranges from $imin$ to $imax$ in steps of $di$.
+      <dt>'Product'[$f$, {$i, i_{min}, i_{max}$, $di$}]
+      <dd>$i$ ranges from $i_{min}$ to $i_{max}$ in steps of $di$.
 
-      <dt>'Product[$expr$, {$i$, $imin$, $imax$}, {$j$, $jmin$, $jmax$}, ...]'
-      <dd>evaluates $expr$ as a multiple product, with {$i$, ...}, {$j$, ...}, ... being in outermost-to-innermost order.
+      <dt>'Product'[$f$, {$i, i_{min}, i_{max}$}, {$j, j_{min}, j_{max}$}, ...]
+      <dd>evaluates $f$ as a multiple product, with {$i$, ...}, {$j$, ...}, ... being in \
+      outermost-to-innermost order.
     </dl>
 
-    >> Product[k, {k, 1, 10}]
-     = 3628800
-    >> 10!
-     = 3628800
-    >> Product[x^k, {k, 2, 20, 2}]
-     = x ^ 110
-    >> Product[2 ^ i, {i, 1, n}]
-     = 2 ^ (n / 2 + n ^ 2 / 2)
-    >> Product[f[i], {i, 1, 7}]
-     = f[1] f[2] f[3] f[4] f[5] f[6] f[7]
+    'Product[k, {k, i, n}]' is defined in terms of <url>
+    :Factorial:
+    /doc/reference-of-built-in-symbols/special-functions/gamma-and-related-functions/factorial/</url>:
+
+    >> Product[k, {k, i, n}]
+     = n! / (-1 + i)!
+
+    When $i$ is 1, we get the factorial function:
+    >> Product[k, {k, 1, n}]
+     = n!
+
+    Or more succinctly:
+    >> Product[k, {k, n}]
+     = n!
 
     Symbolic products involving the factorial are evaluated:
     >> Product[k, {k, 3, n}]
      = n! / 2
 
-    Evaluate the $n$th primorial:
-    >> primorial[0] = 1;
-    >> primorial[n_Integer] := Product[Prime[k], {k, 1, n}];
-    >> primorial[12]
+    Examples of numeric evaluation using more complex functions:
+    >> Product[x^k, {k, 2, 20, 2}]
+     = x ^ 110
+
+    >> Product[2 ^ i, {i, 1, n}]
+     = 2 ^ (n / 2 + n ^ 2 / 2)
+
+    >> Product[f[i], {i, 1, 7}]
+     = f[1] f[2] f[3] f[4] f[5] f[6] f[7]
+
+    Evaluate the $n$-th <url>:Primorial:https://en.wikipedia.org/wiki/Primorial</url>:
+    >> Primorial[0] = 1;
+    >> Primorial[n_Integer] := Product[Prime[k], {k, 1, n}];
+    >> Primorial[12]
      = 7420738134810
 
     """
 
-    summary_text = "discrete product"
-    throw_iterb = False
-
-    sympy_name = "Product"
-
+    # FIXME Product[k, {k, 3, n}] is rewritten using Factorial via
+    # Pochhammer rewrite rules. We want this for Product, but WMA
+    # does not rewrite using Factorial for Pochhammer alone, although it could.
+    # Nevertheless, if and when our Pochhammer is adjusted to remove
+    # this transformation to Factorial to match WMA behavior,
+    # we will need to add a rule that transforms to Factorial here.
     rules = IterationFunction.rules.copy()
     rules.update(
         {
@@ -751,9 +785,16 @@ class Product(IterationFunction, SympyFunction):
             ),
         }
     )
+    summary_text = "compute the direct product"
+    sympy_name = "Product"
+    throw_iterb = False
 
-    def get_result(self, items):
-        return Expression(SymbolTimes, *items)
+    def get_result(self, elements, is_uniform=False):
+        return Expression(
+            SymbolTimes,
+            *elements,
+            elements_properties=ElementsProperties(is_uniform=is_uniform),
+        )
 
     def to_sympy(self, expr, **kwargs):
         if expr.has_form("Product", 2) and expr.elements[1].has_form("List", 3):
@@ -761,8 +802,13 @@ class Product(IterationFunction, SympyFunction):
             try:
                 e_kwargs = kwargs.copy()
                 e_kwargs["convert_all_global_functions"] = True
+                e_kwargs["dummies"] = e_kwargs.get("dummies", set()).union((index,))
                 e = expr.elements[0].to_sympy(**e_kwargs)
-                i = index.elements[0].to_sympy(**kwargs)
+                e_kwargs["convert_all_global_functions"] = kwargs.get(
+                    "convert_all_global_functions", False
+                )
+
+                i = index.elements[0].to_sympy(**e_kwargs)
                 start = index.elements[1].to_sympy(**kwargs)
                 stop = index.elements[2].to_sympy(**kwargs)
 
@@ -778,7 +824,7 @@ class Rational_(Builtin):
     <dl>
       <dt>'Rational'
       <dd>is the head of rational numbers.
-      <dt>'Rational[$a$, $b$]'
+      <dt>'Rational'[$a$, $b$]
       <dd>constructs the rational number $a$ / $b$.
     </dl>
 
@@ -806,7 +852,7 @@ class Re(SympyFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Re.html</url>
 
     <dl>
-      <dt>'Re[$z$]'
+      <dt>'Re'[$z$]
       <dd>returns the real component of the complex number $z$.
     </dl>
 
@@ -817,9 +863,13 @@ class Re(SympyFunction):
      = -Graphics-
     """
 
-    summary_text = "real part"
+    summary_text = "real part of a complex number"
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     sympy_name = "re"
+
+    def eval(self, number, evaluation: Evaluation):
+        "Re[number_]"
+        return from_sympy(sympy.re(number.to_sympy().expand(complex=True)))
 
     def eval_complex(self, number, evaluation: Evaluation):
         "Re[number_Complex]"
@@ -830,10 +880,6 @@ class Re(SympyFunction):
         "Re[number_?NumberQ]"
 
         return number
-
-    def eval(self, number, evaluation: Evaluation):
-        "Re[number_]"
-        return from_sympy(sympy.re(number.to_sympy().expand(complex=True)))
 
 
 class Real_(Builtin):
@@ -847,7 +893,7 @@ class Real_(Builtin):
 
     >> x = 3. ^ -20;
     >> InputForm[x]
-     = 2.8679719907924413*^-10
+     = 2.867971990792441*^-10
     >> Head[x]
      = Real
 
@@ -862,7 +908,7 @@ class RealValuedNumberQ(Test):
     <url>:WMA link:https://reference.wolfram.com/language/ref/RealValuedNumberQ.html</url>
 
     <dl>
-      <dt>'RealValuedNumberQ[$expr$]'
+      <dt>'RealValuedNumberQ'[$expr$]
       <dd>returns 'True' if $expr$ is an explicit number with no imaginary component.
     </dl>
 
@@ -894,22 +940,24 @@ class RealValuedNumberQ(Test):
         )
 
 
-class Sum(IterationFunction, SympyFunction):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Sum.html</url>
+class Sum(IterationFunction, SympyFunction, PrefixOperator):
+    r"""
+    <url>:Summation:https://en.wikipedia.org/wiki/Summation</url> (<url>
+    :SymPy:https://docs.sympy.org/latest/modules/concrete.html#sympy.concrete.summations.Sum</url>, <url>
+    :WMA:https://reference.wolfram.com/language/ref/Sum.html</url>)
 
     <dl>
-      <dt>'Sum[$expr$, {$i$, $imin$, $imax$}]'
-      <dd>evaluates the discrete sum of $expr$ with $i$ ranging from $imin$ to $imax$.
+      <dt>'Sum['$f, \{i, i_{min}, i_{max}\}$']'
+      <dd>evaluates the discrete sum of $f$ with $i$ ranging from $i_{min}$ to $i_{max}$.
 
-      <dt>'Sum[$expr$, {$i$, $imax$}]'
-      <dd>same as 'Sum[$expr$, {$i$, 1, $imax$}]'.
+      <dt>'Sum['$f, \{i, i_{max}\}$']'
+      <dd>same as 'Sum['$f, \{i, 1, i_{max}\}$']'.
 
-      <dt>'Sum[$expr$, {$i$, $imin$, $imax$, $di$}]'
-      <dd>$i$ ranges from $imin$ to $imax$ in steps of $di$.
+      <dt>'Sum['$f, \{i, i_{min}, i_{max}, di\}$']'
+      <dd>$i$ ranges from $i_{min}$ to $i_{max}$ in steps of $di$.
 
-      <dt>'Sum[$expr$, {$i$, $imin$, $imax$}, {$j$, $jmin$, $jmax$}, ...]'
-      <dd>evaluates $expr$ as a multiple sum, with {$i$, ...}, {$j$, ...}, ... being \
+      <dt>'Sum['$f, \{i, i_{min}, i_{max}, \{j, j_{min}, j_{max}, ...$']'
+      <dd>evaluates $f$ as a multiple sum, with {$i, ...$}, {$j, ...$}, ... being \
           in outermost-to-innermost order.
     </dl>
 
@@ -969,12 +1017,6 @@ class Sum(IterationFunction, SympyFunction):
      = 1 + 2 I
     """
 
-    summary_text = "discrete sum"
-    # Do not throw warning message for symbolic iteration bounds
-    throw_iterb = False
-
-    sympy_name = "Sum"
-
     rules = IterationFunction.rules.copy()
     rules.update(
         {
@@ -987,8 +1029,18 @@ class Sum(IterationFunction, SympyFunction):
         }
     )
 
-    def get_result(self, items):
-        return Expression(SymbolPlus, *items)
+    summary_text = "compute a summation"
+    sympy_name = "Sum"
+
+    # Do not throw warning message for symbolic iteration bounds
+    throw_iterb = False
+
+    def get_result(self, elements, is_uniform=False) -> Expression:
+        return Expression(
+            SymbolPlus,
+            *elements,
+            elements_properties=ElementsProperties(is_uniform=is_uniform),
+        )
 
     def to_sympy(self, expr, **kwargs) -> Optional[SympyExpression]:
         """
@@ -998,6 +1050,7 @@ class Sum(IterationFunction, SympyFunction):
             index = expr.elements[1]
             arg_kwargs = kwargs.copy()
             arg_kwargs["convert_all_global_functions"] = True
+            arg_kwargs["dummies"] = kwargs.get("dummies", set()).union((index,))
             f_sympy = expr.elements[0].to_sympy(**arg_kwargs)
             if f_sympy is None:
                 return
@@ -1005,16 +1058,19 @@ class Sum(IterationFunction, SympyFunction):
             evaluation = kwargs.get("evaluation", None)
 
             # Handle summation parameters: variable, min, max
-            var_min_max = index.elements[:3]
-            bounds = [expr.to_sympy(**kwargs) for expr in var_min_max]
 
+            arg_kwargs["convert_all_global_functions"] = kwargs.get(
+                "convert_all_global_functions", False
+            )
+            var_min_max = index.elements[:3]
+            bounds = [expr.to_sympy(**arg_kwargs) for expr in var_min_max]
             if evaluation:
                 # Min and max might be Mathics expressions. If so, evaluate them.
                 for i in (1, 2):
                     min_max_expr = var_min_max[i]
                     if not isinstance(expr, Symbol):
                         min_max_expr_eval = min_max_expr.evaluate(evaluation)
-                        value = min_max_expr_eval.to_sympy(**kwargs)
+                        value = min_max_expr_eval.to_sympy(**arg_kwargs)
                         bounds[i] = value
 
             # FIXME: The below tests on SympyExpression, but really the
@@ -1028,7 +1084,7 @@ class Sum(IterationFunction, SympyFunction):
                 # If we have integer bounds, we'll use Mathics's iterator Sum
                 # (which is Plus)
 
-                if all(
+                if evaluation and all(
                     (hasattr(i, "is_integer") and i.is_integer)
                     or (hasattr(i, "is_finite") and i.is_finite and i.is_constant())
                     for i in bounds[1:]
