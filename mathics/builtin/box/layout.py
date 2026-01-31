@@ -131,6 +131,10 @@ class FormBox(BoxExpression):
         assert isinstance(expr, BoxElementMixin), f"{expr}"
         return FormBox(expr, form, **options)
 
+    @property
+    def is_multiline(self) -> bool:
+        return self.boxes.is_multiline
+
 
 class FractionBox(BoxExpression):
     """
@@ -319,6 +323,10 @@ class InterpretationBox(BoxExpression):
         """DisplayForm[boxexpr_InterpretationBox]"""
         return boxexpr.boxes
 
+    @property
+    def is_multiline(self) -> bool:
+        return self.boxes.is_multiline
+
 
 class PaneBox(BoxExpression):
     """
@@ -362,6 +370,10 @@ class PaneBox(BoxExpression):
     def eval_display(boxexpr, evaluation):
         """DisplayForm[boxexpr_PaneBox]"""
         return boxexpr.elements[0]
+
+    @property
+    def is_multiline(self) -> bool:
+        return self.boxes.is_multiline
 
 
 class RowBox(BoxExpression):
@@ -428,6 +440,10 @@ class RowBox(BoxExpression):
             return item
 
         self.items = tuple((check_item(item) for item in items))
+
+    @property
+    def is_multiline(self) -> bool:
+        return any(item.is_multiline for item in self.items)
 
 
 class ShowStringCharacters(Builtin):
@@ -570,6 +586,10 @@ class StyleBox(BoxExpression):
         assert isinstance(
             self.boxes, BoxElementMixin
         ), f"{type(self.boxes)},{self.boxes}"
+
+    @property
+    def is_multiline(self) -> bool:
+        return self.boxes.is_multiline
 
 
 class SubscriptBox(BoxExpression):
@@ -751,6 +771,10 @@ class TagBox(BoxExpression):
         expr = to_boxes(expr, evaluation, options)
         assert isinstance(expr, BoxElementMixin), f"{expr}"
         return TagBox(expr, form, **options)
+
+    @property
+    def is_multiline(self) -> bool:
+        return self.boxes.is_multiline
 
 
 class TemplateBox(BoxExpression):

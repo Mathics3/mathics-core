@@ -93,6 +93,10 @@ class String(Atom, BoxElementMixin):
         """
         return True
 
+    @property
+    def is_multiline(self) -> bool:
+        return "\n" in self.value
+
     def sameQ(self, rhs) -> bool:
         """Mathics SameQ"""
         return isinstance(rhs, String) and self.value == rhs.value

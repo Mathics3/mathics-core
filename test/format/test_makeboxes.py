@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-from test.helper import check_evaluation
+from test.helper import check_evaluation, session
 
 import pytest
 import yaml
@@ -478,3 +478,64 @@ def test_makeboxes_custom2(str_expr, str_expected, msg):
         to_python_expected=False,
         failure_message=msg,
     )
+
+
+@pytest.mark.parametrize(
+    ["expr", "expect"],
+    (
+        (
+            '"Hola"',
+            False,
+        ),
+        (
+            '"Hola\nqué tal?"',
+            True,
+        ),
+        (
+            "a/b//MakeBoxes",
+            True,
+        ),
+        (
+            "Sqrt[a]//MakeBoxes",
+            True,
+        ),
+        (
+            "a + b * c//MakeBoxes",
+            False,
+        ),
+        (
+            "a + b / c//MakeBoxes",
+            True,
+        ),
+        (
+            "a + b * c // InputForm//MakeBoxes",
+            False,
+        ),
+        (
+            "a + b / c //InputForm//MakeBoxes",
+            False,
+        ),
+        (
+            "a + b * c // OutputForm//MakeBoxes",
+            False,
+        ),
+        (
+            "a + b / c // OutputForm//MakeBoxes",
+            False,
+        ),
+        (
+            "a + b * c // FullForm//MakeBoxes",
+            False,
+        ),
+        (
+            "a + b / c // FullForm//MakeBoxes",
+            False,
+        ),
+    ),
+)
+def test_multiline(expr, expect):
+    boxexpr = session.evaluate(expr)
+    print(expr, "->", boxexpr, (expect))
+    assert (
+        boxexpr.is_multiline == expect
+    ), f"{boxexpr} must {'not ' if not expect else ''}be multiline. Got ({boxexpr.is_multiline})"
