@@ -5,10 +5,15 @@
 Here we have the base class and related function for element inside an Expression.
 """
 
-
-from typing import Any, Optional, Tuple
+from abc import ABC
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, Dict, Optional, Sequence, Tuple, Union
 
 from mathics.core.attributes import A_NO_ATTRIBUTES
+from mathics.core.keycomparable import KeyComparable
+
+if TYPE_CHECKING:
+    from mathics.core.evaluation import Evaluation
 
 
 def ensure_context(name: str, context="System`") -> str:
@@ -37,84 +42,43 @@ def fully_qualified_symbol_name(name) -> bool:
     )
 
 
-try:
-    from recordclass import RecordClass
+@dataclass
+class ElementsProperties:
+    """Properties of Expression elements that are useful in evaluation.
 
-    # Note: Something in cythonization barfs if we put this in
-    # Expression and you try to call this like
-    # ExpressionProperties(True, True, True). Cython reports:
-    # number of the arguments greater than the number of the items
-    class ElementsProperties(RecordClass):
-        """Properties of Expression elements that are useful in evaluation.
+    In general, if you have some set of properties that you know should
+    be set a particular way, but don't know about the others, it is safe
+    to set the unknown properties to False. Omitting that property is the
+    same as setting a property to False.
 
-        In general, if you have some set of properties that you know should
-        be set a particular way, but don't know about the others, it is safe
-        to set the unknown properties to False. Omitting that property is the
-        same as setting a property to False.
+    However, when *all* of the properties are unknown, use a `None` value in
+    the Expression.properties field instead of creating an
+    ElementsProperties object with everything set False.
+    By setting the field to None, the code will look over the elements before
+    evaluation and set the property values correctly.
+    """
 
-        However, when *all* of the properties are unknown, use a `None` value in
-        the Expression.properties field instead of creating an
-        ElementsProperties object with everything set False.
-        By setting the field to None, the code will look over the elements before
-        evaluation and set the property values correctly.
-        """
+    # True if none of the elements needs to be evaluated.
+    elements_fully_evaluated: bool = False
 
-        # True if none of the elements needs to be evaluated.
-        elements_fully_evaluated: bool = False
+    # is_flat: True if none of the elements is an Expression
+    # Some Mathics functions allow flattening of elements. Therefore
+    # it can be useful to know if the elements are already flat
+    is_flat: bool = False
 
-        # is_flat: True if none of the elements is an Expression
-        # Some Mathics functions allow flattening of elements. Therefore
-        # it can be useful to know if the elements are already flat
-        is_flat: bool = False
+    # is_ordered: True if all of the elements are ordered. Of course this is true,
+    # if there are less than 2 elements. Ordered is an Attribute of a
+    # Mathics function.
+    #
+    # In rewrite_eval_apply() if a function is not marked as Ordered this attribute
+    # has no effect which means it doesn't matter how it is set. So
+    # when it doubt, it is always safe to set is_ordered to False since at worst
+    # it will cause an ordering operation on elements sometimes. On the other hand, setting
+    # this True elements are not sorted can cause evaluation differences.
+    is_ordered: bool = False
 
-        # is_ordered: True if all of the elements are ordered. Of course this is true,
-        # if there are less than 2 elements. Ordered is an Attribute of a
-        # Mathics function.
-        #
-        # In rewrite_eval_apply() if a function is not marked as Ordered this attribute
-        # has no effect which means it doesn't matter how it is set. So
-        # when it doubt, it is always safe to set is_ordered to False since at worst
-        # it will cause an ordering operation on elements sometimes. On the other hand, setting
-        # this True elements are not sorted can cause evaluation differences.
-        is_ordered: bool = False
-
-except ImportError:
-    from dataclasses import dataclass
-
-    @dataclass
-    class ElementsProperties:
-        """Properties of Expression elements that are useful in evaluation.
-
-        In general, if you have some set of properties that you know should
-        be set a particular way, but don't know about the others, it is safe
-        to set the unknown properties to False. Omitting that property is the
-        same as setting a property to False.
-
-        However, when *all* of the properties are unknown, use a `None` value in
-        the Expression.properties field instead of creating an
-        ElementsProperties object with everything set False.
-        By setting the field to None, the code will look over the elements before
-        evaluation and set the property values correctly.
-        """
-
-        # True if none of the elements needs to be evaluated.
-        elements_fully_evaluated: bool = False
-
-        # is_flat: True if none of the elements is an Expression
-        # Some Mathics functions allow flattening of elements. Therefore
-        # it can be useful to know if the elements are already flat
-        is_flat: bool = False
-
-        # is_ordered: True if all of the elements are ordered. Of course this is true,
-        # if there are less than 2 elements. Ordered is an Attribute of a
-        # Mathics function.
-        #
-        # In rewrite_eval_apply() if a function is not marked as Ordered this attribute
-        # has no effect which means it doesn't matter how it is set. So
-        # when it doubt, it is always safe to set is_ordered to False since at worst
-        # it will cause an ordering operation on elements sometimes. On the other hand, setting
-        # this True elements are not sorted can cause evaluation differences.
-        is_ordered: bool = False
+    # Uniform expressions have all their elements with the same Head.
+    is_uniform: bool = False
 
 
 class ImmutableValueMixin:
@@ -126,74 +90,7 @@ class ImmutableValueMixin:
         return True
 
 
-class KeyComparable:
-    """
-
-    Some Mathics3/WL Symbols have an "OrderLess" attribute
-    which is used in the evaluation process to arrange items in a list.
-
-    To do that, we need a way to compare Symbols, and that is what
-    this class is for.
-
-    This class adds the boilerplate Python comparision operators that
-    you expect in Python programs for comparing Python objects.
-
-    This class is not complete in of itself, it is intended to be
-    mixed into other classes.
-
-    Each class should provide a `get_sort_key()` method which
-    is the primative from which all other comparisons are based on.
-    """
-
-    # FIXME: return type should be a specific kind of Tuple, not a list.
-    # FIXME: Describe sensible, and easy to follow rules by which one
-    #        can create the kind of tuple for some new kind of element.
-    def get_sort_key(self, pattern_sort: bool) -> tuple:
-        """
-        This returns a tuple in a way that
-        it can be used to compare in expressions.
-
-        Returns a particular encoded list (better though would be a tuple) that is used
-        in ``Sort[]`` comparisons and in the ordering that occurs
-        in an M-Expression which has the ``Orderless`` property.
-
-        The encoded tuple/list is selected to have the property: when
-        compared against element ``expr`` in a compound expression, if
-
-           `self.get_sort_key() <= expr.get_sort_key()`
-
-        then self comes before expr.
-
-        The values in the positions of the list/tuple are used to indicate how
-        comparison should be treated for specific element classes.
-        """
-        raise NotImplementedError
-
-    def __eq__(self, other) -> bool:
-        return (
-            hasattr(other, "get_sort_key")
-            and self.get_sort_key() == other.get_sort_key()
-        )
-
-    def __gt__(self, other) -> bool:
-        return self.get_sort_key() > other.get_sort_key()
-
-    def __ge__(self, other) -> bool:
-        return self.get_sort_key() >= other.get_sort_key()
-
-    def __le__(self, other) -> bool:
-        return self.get_sort_key() <= other.get_sort_key()
-
-    def __lt__(self, other) -> bool:
-        return self.get_sort_key() < other.get_sort_key()
-
-    def __ne__(self, other) -> bool:
-        return (
-            not hasattr(other, "get_sort_key")
-        ) or self.get_sort_key() != other.get_sort_key()
-
-
-class BaseElement(KeyComparable):
+class BaseElement(KeyComparable, ABC):
     """
     This is the base class from which all other Expressions are
     derived from.  If you think of an Expression as tree-like, then a
@@ -205,7 +102,9 @@ class BaseElement(KeyComparable):
     Some important subclasses: Atom and Expression.
     """
 
+    options: Optional[Dict[str, Any]]
     last_evaluated: Any
+    unevaluated: bool
     # this variable holds a function defined in mathics.core.expression that creates an expression
     create_expression: Any
 
@@ -247,9 +146,11 @@ class BaseElement(KeyComparable):
             return self == rhs
         return None
 
-    def format(self, evaluation, form, **kwargs) -> "BoxElementMixin":
+    def format(
+        self, evaluation, form, **kwargs
+    ) -> Optional[Union["BaseElement", "BoxElementMixin"]]:
         from mathics.core.symbols import Symbol
-        from mathics.eval.makeboxes import format_element
+        from mathics.format.box import format_element
 
         if isinstance(form, str):
             form = Symbol(form)
@@ -270,9 +171,18 @@ class BaseElement(KeyComparable):
     def get_attributes(self, definitions):
         return A_NO_ATTRIBUTES
 
-    def get_head_name(self):
+    def get_element(self, index: int) -> "BaseElement":
+        return self.get_elements()[index]
+
+    def get_elements(self) -> Sequence["BaseElement"]:
+        raise NotImplementedError
+
+    def get_head(self) -> "BaseElement":
+        raise NotImplementedError
+
+    def get_head_name(self) -> str:
         """
-        All elements have a "Head" whether or not the element is compount.
+        All elements have a "Head" whether or not the element is compound.
         The Head of an Atom is its type. The Head of an S-expression is
         its function name.
 
@@ -280,17 +190,21 @@ class BaseElement(KeyComparable):
         """
         raise NotImplementedError
 
-    # FIXME: this behavior of defining a specific default implementation
-    # that is basically saying it isn't implemented is wrong.
-    # However fixing this means not only removing but fixing up code
-    # in the callers.
-    def get_float_value(self, permit_complex=False):
+    # FIXME: this behavior -- defining a specific default implementation
+    # that is basically saying: "it isn't implemented" -- is wrong.
+    # To remove this method, we need to fix up calls that expect this behavior,
+    # that I am not certain how to do right now. - rocky
+    def get_float_value(self, permit_complex=False) -> Optional[complex]:
         return None
 
-    def get_int_value(self):
+    # FIXME: this behavior -- defining a specific default implementation
+    # that is basically saying: "it isn't implemented" -- is wrong.
+    # To remove this method, we need to fix up calls that expect this behavior,
+    # that I am not certain how to do right now. - rocky
+    def get_int_value(self) -> Optional[int]:
         return None
 
-    def get_lookup_name(self):
+    def get_lookup_name(self) -> str:
         """
         Returns symbol name of leftmost head. This method is used
         to determine which definition must be asked for rules
@@ -299,12 +213,14 @@ class BaseElement(KeyComparable):
 
         return self.get_name()
 
-    def get_name(self):
+    def get_name(self, short=False) -> str:
         "Returns symbol's name if Symbol instance"
 
         return ""
 
-    def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
+    def get_option_values(
+        self, evaluation: "Evaluation", allow_symbols=False, stop_on_error=True
+    ) -> Optional[dict]:
         pass
 
     def get_precision(self) -> Optional[int]:
@@ -320,7 +236,7 @@ class BaseElement(KeyComparable):
         """
         return None
 
-    def get_sequence(self) -> tuple:
+    def get_sequence(self) -> Sequence["BaseElement"]:
         """
         If ``self`` is a Mathics3 Sequence, return its elements.
         Otherwise, just return self wrapped in a tuple
@@ -339,11 +255,11 @@ class BaseElement(KeyComparable):
         # for the expression "F[{a,b}]" this function is expected to return:
         #   ListExpression[Symbol(a), Symbol(b)].
         if self.get_head() is SymbolSequence:
-            return self.elements
+            return self.get_elements()
         else:
             return tuple([self])
 
-    def get_string_value(self):
+    def get_string_value(self) -> Optional[str]:
         return None
 
     @property
@@ -376,7 +292,9 @@ class BaseElement(KeyComparable):
         # used by NumericQ and expression ordering
         return False
 
-    def has_form(self, heads, *element_counts):
+    def has_form(
+        self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
+    ) -> bool:
         """Check if the expression is of the form Head[l1,...,ln]
         with Head.name in `heads` and a number of elements according to the specification in
         element_counts.
@@ -413,19 +331,34 @@ class BaseElement(KeyComparable):
         raise NotImplementedError
 
     def to_python(self, *args, **kwargs):
-        # Returns a native builtin Python object
-        # something in (int, float, complex, str, tuple, list or dict.).
-        # (See discussions in
-        #  https://github.com/Mathics3/mathics-core/discussions/550
-        # and
-        # https://github.com/Mathics3/mathics-core/pull/551
-        #
+        """Returns a native builtin Python object
+        something in (int, float, complex, str, tuple, list or dict.).
+        (See discussions in
+        https://github.com/Mathics3/mathics-core/discussions/550
+        and
+        https://github.com/Mathics3/mathics-core/pull/551
+        """
         raise NotImplementedError
 
     def to_mpmath(self):
         raise NotImplementedError
 
     def to_sympy(self, **kwargs):
+        raise NotImplementedError
+
+    def copy(self, reevaluate=False) -> "BaseElement":
+        raise NotImplementedError
+
+    def default_format(self, evaluation, form) -> str:
+        raise NotImplementedError
+
+    def replace_vars(
+        self,
+        vars: Dict[str, "BaseElement"],
+        options=None,
+        in_scoping=True,
+        in_function=True,
+    ) -> "BaseElement":
         raise NotImplementedError
 
 
@@ -452,6 +385,9 @@ class EvalMixin:
         """
         raise NotImplementedError
 
+    def evaluate(self, evaluation: "Evaluation") -> Optional["BaseElement"]:
+        raise NotImplementedError
+
 
 class BoxElementMixin(ImmutableValueMixin):
     """
@@ -459,19 +395,23 @@ class BoxElementMixin(ImmutableValueMixin):
     elements
     """
 
-    def boxes_to_format(self, format: str, **options: dict) -> str:
+    @property
+    def is_multiline(self) -> bool:
+        return True
+
+    def boxes_to_format(self, format: str, **options) -> str:
         from mathics.core.formatter import boxes_to_format
 
         return boxes_to_format(self, format, **options)
 
-    def boxes_to_mathml(self, **options: dict) -> str:
+    def boxes_to_mathml(self, **options) -> str:
         """For compatibility deprecated"""
         return self.boxes_to_format("mathml", **options)
 
-    def boxes_to_tex(self, **options: dict) -> str:
+    def boxes_to_tex(self, **options) -> str:
         """For compatibility deprecated"""
         return self.boxes_to_format("latex", **options)
 
-    def boxes_to_text(self, **options: dict) -> str:
+    def boxes_to_text(self, **options) -> str:
         """For compatibility deprecated"""
         return self.boxes_to_format("text", **options)

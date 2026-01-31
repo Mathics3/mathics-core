@@ -9,6 +9,9 @@ Functions for manipulating colors and color images.
 import itertools
 from math import floor
 
+import numpy
+import PIL.ImageOps
+
 from mathics.builtin.colors.color_directives import ColorError, RGBColor, _ColorObject
 from mathics.builtin.colors.color_internals import convert_color
 from mathics.builtin.image.base import Image
@@ -23,9 +26,6 @@ from mathics.core.systemsymbols import SymbolRGBColor
 
 _image_requires = ("numpy", "PIL")
 
-import numpy
-import PIL.ImageOps
-
 
 class Blend(Builtin):
     """
@@ -33,15 +33,15 @@ class Blend(Builtin):
     https://reference.wolfram.com/language/ref/Blend.html</url>
 
     <dl>
-      <dt>'Blend[{$c1$, $c2$}]'
-      <dd>represents the color between $c1$ and $c2$.
+      <dt>'Blend'[{$c_1$, $c_2$}]
+      <dd>represents the color between $c_1$ and $c_2$.
 
-      <dt>'Blend[{$c1$, $c2$}, $x$]'
-      <dd>represents the color formed by blending $c1$ and $c2$ with
+      <dt>'Blend'[{$c_1$, $c_2$}, $x$]
+      <dd>represents the color formed by blending $c_1$ and $c_2$ with
           factors 1 - $x$ and $x$ respectively.
 
-      <dt>'Blend[{$c1$, $c2$, ..., $cn$}, $x$]'
-      <dd>blends between the colors $c1$ to $cn$ according to the
+      <dt>'Blend'[{$c_1$, $c_2$, ..., $c_n$}, $x$]
+      <dd>blends between the colors $c_1$ to $c_n$ according to the
           factor $x$.
     </dl>
 
@@ -79,15 +79,15 @@ class Blend(Builtin):
 
     def do_blend(self, colors, values):
         type = None
-        homogenous = True
+        homogeneous = True
         for color in colors:
             if type is None:
                 type = color.__class__
             else:
                 if color.__class__ != type:
-                    homogenous = False
+                    homogeneous = False
                     break
-        if not homogenous:
+        if not homogeneous:
             colors = [RGBColor(components=color.to_rgba()) for color in colors]
             type = RGBColor
         total = sum(values)
@@ -130,7 +130,9 @@ class Blend(Builtin):
                 values = 0.0
             use_list = False
         if values is None:
-            evaluation.message("Blend", "argl", u, ListExpression(colors_orig))
+            evaluation.message(
+                "Blend", "argl", u, ListExpression(*colors_orig.elements)
+            )
             return
 
         if use_list:
@@ -151,7 +153,7 @@ class ColorConvert(Builtin):
     https://reference.wolfram.com/language/ref/ColorConvert.html</url>
 
     <dl>
-      <dt>'ColorConvert[$c$, $colspace$]'
+      <dt>'ColorConvert'[$c$, $colspace$]
       <dd>returns the representation of $c$ in the color space $colspace$. $c$ \
           may be a color or an image.
     </dl>
@@ -209,11 +211,11 @@ class ColorNegate(Builtin):
     https://reference.wolfram.com/language/ref/ColorNegate.html</url>)
 
     <dl>
-      <dt>'ColorNegate[$color$]'
+      <dt>'ColorNegate'[$color$]
       <dd>returns the negative of a color, that is, the RGB color \
           subtracted from white.
 
-      <dt>'ColorNegate[$image$]'
+      <dt>'ColorNegate'[$image$]
       <dd>returns an image where each pixel has its color negated.
     </dl>
 
@@ -250,10 +252,10 @@ class Darker(Builtin):
     https://reference.wolfram.com/language/ref/Darker.html</url>
 
     <dl>
-    <dt>'Darker[$c$, $f$]'
-        <dd>is equivalent to 'Blend[{$c$, Black}, $f$]'.
-    <dt>'Darker[$c$]'
-        <dd>is equivalent to 'Darker[$c$, 1/3]'.
+    <dt>'Darker'[$c$, $f$]
+        <dd>is equivalent to 'Blend'[{$c$, 'Black'}, $f$].
+    <dt>'Darker'[$c$]
+        <dd>is equivalent to 'Darker'[$c$, '1/3'].
     </dl>
 
     >> Graphics[{Darker[Red], Disk[]}]
@@ -277,13 +279,13 @@ class DominantColors(Builtin):
     https://reference.wolfram.com/language/ref/DominantColors.html</url>
 
     <dl>
-      <dt>'DominantColors[$image$]'
+      <dt>'DominantColors'[$image$]
       <dd>gives a list of colors which are dominant in the given image.
 
-      <dt>'DominantColors[$image$, $n$]'
+      <dt>'DominantColors'[$image$, $n$]
       <dd>returns at most $n$ colors.
 
-      <dt>'DominantColors[$image$, $n$, $prop$]'
+      <dt>'DominantColors'[$image$, $n$, $prop$]
       <dd>returns the given property $prop$, which may be:
         <ul>
            <li>"Color": return RGB colors,
@@ -465,11 +467,11 @@ class Lighter(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Lighter.html</url>
 
     <dl>
-      <dt>'Lighter[$c$, $f$]'
-      <dd>is equivalent to 'Blend[{$c$, White}, $f$]'.
+      <dt>'Lighter'[$c$, $f$]
+      <dd>is equivalent to 'Blend'[{$c$, 'White'}, $f$].
 
-      <dt>'Lighter[$c$]'
-      <dd>is equivalent to 'Lighter[$c$, 1/3]'.
+      <dt>'Lighter'[$c$]
+      <dd>is equivalent to 'Lighter'[$c$, '1/3'].
     </dl>
 
     >> Lighter[Orange, 1/4]

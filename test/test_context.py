@@ -2,7 +2,7 @@
 import pytest
 from mathics_scanner.errors import IncompleteSyntaxError
 
-from .helper import check_evaluation, reset_session
+from .helper import check_evaluation
 
 str_test_context_1 = """
 BeginPackage["FeynCalc`"];

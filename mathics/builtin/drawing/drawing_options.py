@@ -34,7 +34,7 @@ class Automatic(Builtin):
     graphical options:
 
     >> Cases[Options[Plot], HoldPattern[_ :> Automatic]]
-     = {Background :> Automatic, Exclusions :> Automatic, ImageSize :> Automatic, MaxRecursion :> Automatic, PlotRange :> Automatic, PlotRangePadding :> Automatic}
+     = {AxesOrigin :> Automatic, Background :> Automatic, BaselinePosition :> Automatic, ContentSelectable :> Automatic, CoordinatesToolOptions :> Automatic, Exclusions :> Automatic, FrameTicks :> Automatic, ImageSize :> Automatic, Method :> Automatic, PlotRange :> Automatic, PlotRangePadding :> Automatic, PlotRegion :> Automatic, PreserveImageOptions :> Automatic, Ticks :> Automatic}
     """
 
     summary_text = "graph option value to choose parameters automatically"
@@ -146,6 +146,7 @@ class ChartLegends(Builtin):
       <dd>is an option for charting functions that specifies the legends to be used \
           for chart elements.
     </dl>
+
     """
 
     summary_text = "chart option for giving legends to a chart"
@@ -175,6 +176,7 @@ class Full(Builtin):
       <dt>'Full'
       <dd>is a possible value for the 'Mesh' and 'PlotRange' options.
     </dl>
+
     """
 
     summary_text = "graph option value for Mesh and PlotRange"
@@ -195,10 +197,15 @@ class ImageSize(Builtin):
       <dd>determined by location or other dimension (default)
       <dt>Tiny, Small, Medium, Large
       <dd>pre defined absolute sizes
+      <dt>{$w, h$}
+      <dd>explicit width and height
     </dl>
 
 
     >> Plot[Sin[x], {x, 0, 10}, ImageSize -> Small]
+     = -Graphics-
+
+    >> Plot[Sin[x], {x, 0, 10}, ImageSize -> {300, 300}]
      = -Graphics-
     """
 
@@ -255,6 +262,14 @@ class Mesh(Builtin):
           specifies the mesh to be drawn. The default is 'Mesh->None'.
      </dl>
 
+    Options include:
+
+    <ul>
+      <li>None: No mesh is drawn
+      <li>All: mesh divisions between elements
+      <li>Full: mesh divisions between regular datapoints
+    </ul>
+
     >> Plot[Sin[Cos[x^2]],{x,-4,4},Mesh->All]
      = -Graphics-
 
@@ -301,13 +316,14 @@ class PlotRange(Builtin):
       <dd>is a charting option, such as for 'Plot', 'BarChart', 'PieChart', \
           etc. that gives the range of coordinates to include in a plot.
     </dl>
+
     <ul>
       <li>All all points are included.
       <li>Automatic - outlying points are dropped.
       <li>$max$ - explicit limit for each function.
       <li>{$min$, $max$} - explicit limits for $y$ (2D), $z$ (3D), \
           or array values.
-      <li>{{$x$_$min$, $x$_$max$}, {{$y_min}, {$y_max}} - explicit limits for \
+      <li>{{$x_{min}$, $x_{max}$}, {{$y_{min}$}, {$y_{max}$}} - explicit limits for \
           $x$ and $y$.
     </ul>
 

@@ -37,6 +37,54 @@ def test_replace_all():
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
+        (
+            None,
+            None,
+            None,
+            None,
+        ),
+        (
+            "Dispatch[]",
+            ("Dispatch called with 0 arguments; 1 argument is expected.",),
+            "Dispatch[]",
+            "dispatch with 0 arguments",
+        ),
+        ("Dispatch[a]", None, "Dispatch[a]", "A symbol. Keep unevaluated."),
+        ("Dispatch[a -> b]", None, "Dispatch[<1>]", "single rule"),
+        ("Dispatch[{}]", None, "{}", "empty rule"),
+        ("Dispatch[{a -> 1}]", None, "Dispatch[<1>]", "single rule"),
+        ("Dispatch[{a -> 1, b -> c}]", None, "Dispatch[<2>]", "two rules"),
+        (
+            "Dispatch[{a -> 1, b -> c, p}]",
+            None,
+            "Dispatch[{a -> 1, b -> c, p}]",
+            "two rules and a symbol: keep unevaluated.",
+        ),
+        (
+            "Dispatch[{a -> 1, {b -> c, p -> t}}]",
+            None,
+            "Dispatch[<3>]",
+            "Flatten nested rules.",
+        ),
+        # TODO: handle 2 or more arguments.
+    ],
+)
+def test_private_doctests_dispatch(str_expr, msgs, str_expected, fail_msg):
+    """Test several cases for Dispatch"""
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=fail_msg,
+        expected_messages=msgs,
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    [
         ("a + b /. x_ + y_ -> {x, y}", None, "{a, b}", None),
         (
             'StringReplace["h1d9a f483", DigitCharacter | WhitespaceCharacter -> ""]',

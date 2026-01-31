@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
+import os.path as osp
+import re
 import time
-from typing import Optional
+from typing import List, Optional, Tuple
 
 from mathics.core.load_builtin import import_and_load_builtins
 from mathics.session import MathicsSession
@@ -12,10 +14,17 @@ import_and_load_builtins()
 # the lowest common denominator available on all systems.
 session = MathicsSession(character_encoding="ASCII")
 
+# Set up a data path that can be used in testing
+data_dir = osp.normpath(osp.join(osp.dirname(__file__), "data"))
+
 
 def reset_session(add_builtin=True, catch_interrupt=False):
+    """
+    reset the session cleaning all the definitions.
+    """
     global session
     session.reset()
+    session.evaluate("SetDirectory[$TemporaryDirectory];")
 
 
 def evaluate_value(str_expr: str):
@@ -29,35 +38,45 @@ def evaluate(str_expr: str):
 def check_evaluation(
     str_expr: Optional[str],
     str_expected: Optional[str] = None,
-    failure_message: str = "",
+    failure_message: Optional[str] = "",
     hold_expected: bool = False,
-    to_string_expr: bool = True,
+    to_string_expr: Optional[bool] = True,
     to_string_expected: bool = True,
     to_python_expected: bool = False,
     expected_messages: Optional[tuple] = None,
 ):
     """
     Helper function to test Mathics expression against
-    its results
+    its results.
 
     Compares the expressions represented by ``str_expr`` and  ``str_expected`` by
     evaluating the first, and optionally, the second. If omitted, `str_expected`
     is assumed to be `"Null"`.
+
+    str_expr: The expression to be tested. If its value is ``None``, the session is
+              reset.
+              At the beginning of each set of pytests, it is important to call
+              ``check_evaluation(None)`` to avoid that definitions introduced by
+              other tests affect the results.
+
+    str_expected: The expected result. The value ``None`` is equivalent to ``"Null"``.
+
+    failure_message: message shown in case of failure. Use "" for no failure message.
+
+    hold_expected:   If ``False`` (default value) the ``str_expected`` is evaluated.
+                     Otherwise, the expression is considered literally.
 
     to_string_expr: If ``True`` (default value) the result of the evaluation is
                     converted into a Python string. Otherwise, the expression is kept
                     as an Expression object.
                     If this argument is set to ``None``, the session is reset.
 
-    failure_message: message shown in case of failure. Use "" for no failure message.
-    hold_expected:   If ``False`` (default value) the ``str_expected`` is evaluated.
-                     Otherwise, the expression is considered literally.
-
     to_string_expected: If ``True`` (default value) the expected expression is
                         evaluated and then converted to a Python string. result of the
                         evaluation is converted into a Python string.
                         If ``False``, the expected expression is kept as an Expression
                         object.
+                        If ``None`` the result string is matched as is.
 
     to_python_expected: If ``True``, and ``to_string_expected`` is ``False``, the result
                         of evaluating ``str_expr``is compared against the result of the
@@ -79,6 +98,8 @@ def check_evaluation(
     if to_string_expr:
         str_expr = f"ToString[{str_expr}]"
         result = evaluate_value(str_expr)
+    elif to_string_expr is None:
+        result = str_expr
     else:
         result = evaluate(str_expr)
 
@@ -90,6 +111,8 @@ def check_evaluation(
         else:
             str_expected = f"ToString[{str_expected}]"
             expected = evaluate_value(str_expected)
+    elif to_string_expected is None:
+        expected = str_expected
     else:
         if hold_expected:
             if to_python_expected:
@@ -103,11 +126,14 @@ def check_evaluation(
 
     print(time.asctime())
     if failure_message:
-        print((result, expected))
+        print(f"got: \n{result}\nexpect:\n{expected}\n -- {failure_message}")
         assert result == expected, failure_message
     else:
-        print((result, expected))
-        assert result == expected
+        print(f"got: \n{result}\nexpect:\n{expected}\n --")
+        if isinstance(expected, re.Pattern):
+            assert expected.match(result)
+        else:
+            assert result == expected
 
     if expected_messages is not None:
         msgs = list(expected_messages)
@@ -117,7 +143,8 @@ def check_evaluation(
             expected_len == got_len
         ), f"expected {expected_len}; got {got_len}. Messages: {outs}"
         for out, msg in zip(outs, msgs):
-            if out != msg:
+            compare_ok = msg.match(out) if isinstance(msg, re.Pattern) else out == msg
+            if not compare_ok:
                 print(f"out:<<{out}>>")
                 print(" and ")
                 print(f"expected=<<{msg}>>")
@@ -149,3 +176,21 @@ def check_evaluation_as_in_cli(
     if failure_message:
         assert res.result == str_expected, failure_message
     assert res.result == str_expected
+
+
+# List below could be a Tuple, but List looks better in the tests
+def check_wrong_number_of_arguments(tests: List[Tuple[str, List[str], str]]):
+    """
+    Boilerplate code to check that for giving an error message when the wrong
+    number of arguments is provided.
+    """
+    for str_expr, msgs, assert_fail_msg in tests:
+        check_evaluation(
+            str_expr,
+            str_expr,
+            to_string_expr=True,
+            to_string_expected=True,
+            hold_expected=True,
+            failure_message=assert_fail_msg,
+            expected_messages=msgs,
+        )

@@ -24,11 +24,16 @@ from mathics.core.evaluation import Evaluation
 
 class Fibonacci(MPMathFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Fibonacci.html</url>
+    <url>
+    :Fibonacci Sequence:
+    https://en.wikipedia.org/wiki/Fibonacci_sequence</url>, <url>(
+    :WMA link:https://reference.wolfram.com/language/ref/Fibonacci.html</url>)
 
     <dl>
-      <dt>'Fibonacci[$n$]'
-      <dd>computes the $n$th Fibonacci number.
+      <dt>'Fibonacci'[$n$]
+      <dd>computes the $n$-th Fibonacci number.
+      <dt>'Fibonacci'[$n$, $x$]
+      <dd>computes the Fibonacci polynomial $F_n(x)$.
     </dl>
 
     >> Fibonacci[0]
@@ -39,6 +44,12 @@ class Fibonacci(MPMathFunction):
      = 55
     >> Fibonacci[200]
      = 280571172992510140037611932413038677189525
+    >> Fibonacci[7, x]
+     = 1 + 6 x ^ 2 + 5 x ^ 4 + x ^ 6
+
+    See also <url>
+    :LinearRecurrence:
+    /doc/reference-of-built-in-symbols/integer-functions/recurrence-and-sum-functions/linearrecurrence</url>.
     """
 
     nargs = {1}
@@ -46,6 +57,11 @@ class Fibonacci(MPMathFunction):
     sympy_name = "fibonacci"
     mpmath_name = "fibonacci"
     summary_text = "Fibonacci's numbers"
+
+    rules = {
+        "Fibonacci[0, x_]": "0",
+        "Fibonacci[n_Integer?Negative, x_]": "Fibonacci[-n, x]",
+    }
 
 
 class HarmonicNumber(MPMathFunction):
@@ -55,7 +71,7 @@ class HarmonicNumber(MPMathFunction):
 
     <dl>
       <dt>'HarmonicNumber[n]'
-      <dd>returns the $n$th harmonic number.
+      <dd>returns the $n$-th harmonic number.
     </dl>
 
     >> Table[HarmonicNumber[n], {n, 8}]
@@ -73,19 +89,62 @@ class HarmonicNumber(MPMathFunction):
     sympy_name = "harmonic"
 
 
+class LinearRecurrence(Builtin):
+    """
+    <url>:Linear recurrence with constant coefficients:
+      https://en.wikipedia.org/wiki/Linear_recurrence_with_constant_coefficients</url>, <url>
+      :WMA link:https://reference.wolfram.com/language/ref/LinearRecurrence.html</url>
+
+    <dl>
+      <dt>'LinearRecurrence'[$ker$, $init$, $n$]
+      <dd>computes $n$ terms of the linear recurrence with kernel $ker$ and initial values $init$.
+
+      <dt>'LinearRecurrence'[$ker$, $init$, {$n$}]
+      <dd>computes the $n$-th term.
+
+      <dt>'LinearRecurrence'[$ker$, $init$, {$n_{min}$, $n_{max}$}]
+      <dd>computes $n$ terms of the linear recurrence with kernel $ker$ and initial values $init$.
+    </dl>
+
+    Generate first 10 items of the Fibonacci Sequence, 'F'[0]=1, 'F'[1]=1:
+    >> LinearRecurrence[{1, 1}, {1, 1}, 10]
+     = {1, 1, 2, 3, 5, 8, 13, 21, 34, 55}
+
+    Extract the 3rd to 5th elements:
+    >> LinearRecurrence[{1, 1}, {1, 1}, {3, 5}]
+     = {2, 3, 5}
+
+    Now just the 6th element:
+    >> LinearRecurrence[{1, 1}, {1, 1}, {6}]
+     = 8
+
+    See also <url>
+    :Fibonacci:
+    /doc/reference-of-built-in-symbols/integer-functions/recurrence-and-sum-functions/fibonacci</url>.
+    """
+
+    attributes = A_PROTECTED | A_READ_PROTECTED
+    summary_text = "linear recurrence"
+
+    rules = {
+        "LinearRecurrence[ker_List, init_List, n_Integer]": "Nest[Append[#, Reverse[ker] . Take[#, -Length[ker]]] &, init, n - Length[init]]",
+        "LinearRecurrence[ker_List, init_List, {n_Integer?Positive}]": "LinearRecurrence[ker, init, n][[n]]",
+        "LinearRecurrence[ker_List, init_List, {nmin_Integer?Positive, nmax_Integer?Positive}]": "LinearRecurrence[ker, init, nmax][[nmin;;nmax]]",
+    }
+
+
 # Note: WL allows StirlingS1[{2, 4, 6}, 2], but we don't (yet).
 class StirlingS1(Builtin):
     """
     <url>
     :Stirling numbers of first kind:
-    https://en.wikipedia.org/wiki/Stirling_numbers_of_the_first_kind</url> \
-    (<url>
+    https://en.wikipedia.org/wiki/Stirling_numbers_of_the_first_kind</url> (<url>
     :WMA link:
     https://reference.wolfram.com/language/ref/StirlingS1.html</url>)
 
     <dl>
-      <dt>'StirlingS1[$n$, $m$]'
-      <dd>gives the Stirling number of the first kind $ _n^m$.
+      <dt>'StirlingS1'[$n$, $m$]
+      <dd>gives the Stirling number of the first kind.
     </dl>
 
     Integer mathematical function, suitable for both symbolic and numerical manipulation.
@@ -113,18 +172,16 @@ class StirlingS2(Builtin):
     """
     <url>
     :Stirling numbers of second kind:
-    https://en.wikipedia.org/wiki/Stirling_numbers_of_the_second_kind</url> \
-    (<url>
-    :WMA link
-    :https://reference.wolfram.com/language/ref/StirlingS2.html</url>)
+    https://en.wikipedia.org/wiki/Stirling_numbers_of_the_second_kind</url> (<url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/StirlingS2.html</url>)
 
     <dl>
-      <dt>'StirlingS2[$n$, $m$]'
-      <dd>gives the Stirling number of the second kind  _n^m.
+      <dt>'StirlingS2'[$n$, $m$]
+      <dd>gives the Stirling number of the second kind. Returns the number of ways \
+      of partitioning a set of $n$ elements into $m$ non empty subsets.
     </dl>
 
-    returns the number of ways of partitioning a set of $n$ elements into $m$ \
-    non empty subsets.
 
     >> Table[StirlingS2[10, m], {m, 10}]
     = {1, 511, 9330, 34105, 42525, 22827, 5880, 750, 45, 1}

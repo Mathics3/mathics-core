@@ -2,7 +2,7 @@
 """
 Characters in Strings
 """
-
+# FIXME: Redo: this is part of a Tech note, not a guide section.
 
 from mathics.core.atoms import String
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED, A_READ_PROTECTED
@@ -19,7 +19,7 @@ class Characters(Builtin):
     https://reference.wolfram.com/language/ref/Characters.html</url>
 
     <dl>
-      <dt>'Characters["$string$"]'
+      <dt>'Characters'["$string$"]
       <dd>returns a list of the characters in $string$.
     </dl>
 
@@ -43,7 +43,7 @@ class CharacterRange(Builtin):
     https://reference.wolfram.com/language/ref/CharacterRange.html</url>
 
     <dl>
-      <dt>'CharacterRange["$a$", "$b$"]'
+      <dt>'CharacterRange'["$a$", "$b$"]
       <dd>returns a list of the Unicode characters from $a$ to $b$ inclusive.
     </dl>
 
@@ -72,80 +72,12 @@ class CharacterRange(Builtin):
         return ListExpression(*[String(chr(code)) for code in range(start, stop + 1)])
 
 
-class DigitQ(Builtin):
-    """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/DigitQ.html</url>
-
-    <dl>
-      <dt>'DigitQ[$string$]'
-      <dd>yields 'True' if all the characters in the $string$ are \
-          digits, and yields 'False' otherwise.
-
-    </dl>
-
-    >> DigitQ["9"]
-     = True
-
-    >> DigitQ["a"]
-     = False
-
-    >> DigitQ["01001101011000010111010001101000011010010110001101110011"]
-     = True
-
-    >> DigitQ["-123456789"]
-     = False
-
-    """
-
-    rules = {
-        "DigitQ[string_]": (
-            "If[StringQ[string], StringMatchQ[string, DigitCharacter...], False, False]"
-        ),
-    }
-    summary_text = "test whether all the characters are digits"
-
-
-class LetterQ(Builtin):
-    """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/LetterQ.html</url>
-
-    <dl>
-      <dt>'LetterQ[$string$]'
-      <dd> yields 'True' if all the characters in the $string$ are \
-           letters, and yields 'False' otherwise.
-    </dl>
-
-    >> LetterQ["m"]
-     = True
-
-    >> LetterQ["9"]
-     = False
-
-    >> LetterQ["Mathics"]
-     = True
-
-    >> LetterQ["Welcome to Mathics"]
-     = False
-    """
-
-    rules = {
-        "LetterQ[string_]": (
-            "If[StringQ[string], StringMatchQ[string, LetterCharacter...], False, False]"
-        ),
-    }
-    summary_text = "test whether all the characters are letters"
-
-
 class LowerCaseQ(Test):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/LowerCaseQ.html</url>
 
     <dl>
-      <dt>'LowerCaseQ[$s$]'
+      <dt>'LowerCaseQ'[$s$]
       <dd>returns True if $s$ consists wholly of lower case characters.
     </dl>
 
@@ -157,10 +89,12 @@ class LowerCaseQ(Test):
      = True
     """
 
-    summary_text = "test wether all the characters are lower-case letters"
+    summary_text = "test whether all the characters are lower-case letters"
 
-    def test(self, s) -> bool:
-        return isinstance(s, String) and all(c.islower() for c in s.get_string_value())
+    def test(self, expr) -> bool:
+        return isinstance(expr, String) and all(
+            c.islower() for c in expr.get_string_value()
+        )
 
 
 class ToLowerCase(Builtin):
@@ -168,7 +102,7 @@ class ToLowerCase(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ToLowerCase.html</url>
 
     <dl>
-      <dt>'ToLowerCase[$s$]'
+      <dt>'ToLowerCase'[$s$]
       <dd>returns $s$ in all lower case.
     </dl>
 
@@ -189,7 +123,7 @@ class ToUpperCase(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ToUpperCase.html</url>
 
     <dl>
-      <dt>'ToUpperCase[$s$]'
+      <dt>'ToUpperCase'[$s$]
       <dd>returns $s$ in all upper case.
     </dl>
 
@@ -210,7 +144,7 @@ class UpperCaseQ(Test):
     <url>:WMA link:https://reference.wolfram.com/language/ref/UpperCaseQ.html</url>
 
     <dl>
-     <dt>'UpperCaseQ[$s$]'
+     <dt>'UpperCaseQ'[$s$]
      <dd>returns True if $s$ consists wholly of upper case characters.
     </dl>
 
@@ -224,5 +158,7 @@ class UpperCaseQ(Test):
 
     summary_text = "test whether all the characters are upper-case letters"
 
-    def test(self, s) -> bool:
-        return isinstance(s, String) and all(c.isupper() for c in s.get_string_value())
+    def test(self, expr) -> bool:
+        return isinstance(expr, String) and all(
+            c.isupper() for c in expr.get_string_value()
+        )

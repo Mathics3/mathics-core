@@ -83,7 +83,7 @@ def get_precision(
     """
     if value is SymbolMachinePrecision:
         return None
-    else:
+    elif hasattr(value, "round_to_float"):
         from mathics.core.atoms import MachineReal
 
         dmin = _get_float_inf(SymbolMinPrecision, evaluation)
@@ -106,6 +106,7 @@ def get_precision(
         else:
             return d
         raise PrecisionValueError()
+    return None
 
 
 def get_type(value) -> Optional[str]:

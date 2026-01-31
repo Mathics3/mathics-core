@@ -15,11 +15,11 @@ from typing import Optional
 
 import sympy
 
-from mathics.builtin.inference import evaluate_predicate
 from mathics.core.atoms import (
     Complex,
     Integer,
     Integer0,
+    Integer1,
     IntegerM1,
     Number,
     Rational,
@@ -29,11 +29,11 @@ from mathics.core.attributes import (
     A_HOLD_ALL,
     A_LISTABLE,
     A_NUMERIC_FUNCTION,
+    A_ORDERLESS,
     A_PROTECTED,
 )
 from mathics.core.builtin import Builtin, MPMathFunction, SympyFunction
 from mathics.core.convert.sympy import from_sympy
-from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.number import MACHINE_EPSILON
@@ -46,26 +46,29 @@ from mathics.core.symbols import (
     SymbolTrue,
 )
 from mathics.core.systemsymbols import SymbolPiecewise
-from mathics.eval.arithmetic import (
+from mathics.eval.inference import evaluate_predicate
+from mathics.eval.nevaluator import eval_NValues
+from mathics.eval.numeric import (
     eval_Abs,
     eval_negate_number,
     eval_RealSign,
     eval_Sign,
+    eval_UnitStep,
+    eval_UnitStep_multidimensional,
 )
-from mathics.eval.nevaluator import eval_NValues
 
 
 def chop(expr, delta=10.0 ** (-10.0)):
     if isinstance(expr, Real):
         if expr.is_nan(expr):
             return expr
-        if -delta < expr.get_float_value() < delta:
+        if -delta < expr.value < delta:
             return Integer0
     elif isinstance(expr, Complex) and expr.is_inexact():
         real, imag = expr.real, expr.imag
         if -delta < real.get_float_value() < delta:
             real = Integer0
-        if -delta < imag.get_float_value() < delta:
+        if -delta < imag.value < delta:
             imag = Integer0
         return Complex(real, imag)
     elif isinstance(expr, Expression):
@@ -86,7 +89,7 @@ class Abs(MPMathFunction):
     :WMA: https://reference.wolfram.com/language/ref/Abs</url>)
 
     <dl>
-      <dt>'Abs[$x$]'
+      <dt>'Abs'[$x$]
       <dd>returns the absolute value of $x$.
     </dl>
 
@@ -112,7 +115,7 @@ class Abs(MPMathFunction):
     rules = {
         "Abs[Undefined]": "Undefined",
     }
-    summary_text = "absolute value of a number"
+    summary_text = "get absolute value of a number"
     sympy_name = "Abs"
 
     def eval(self, x, evaluation: Evaluation):
@@ -128,10 +131,10 @@ class Chop(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Chop.html</url>
 
     <dl>
-      <dt>'Chop[$expr$]'
+      <dt>'Chop'[$expr$]
       <dd>replaces floating point numbers close to 0 by 0.
 
-      <dt>'Chop[$expr$, $delta$]'
+      <dt>'Chop'[$expr$, $delta$]
       <dd>uses a tolerance of $delta$. The default tolerance is '10^-10'.
     </dl>
 
@@ -172,9 +175,10 @@ class N(Builtin):
     https://reference.wolfram.com/language/ref/N.html</url>
 
     <dl>
-    <dt>'N[$expr$, $prec$]'
+    <dt>'N'[$expr$, $prec$]
         <dd>evaluates $expr$ numerically with a precision of $prec$ digits.
     </dl>
+
     >> N[Pi, 50]
      = 3.1415926535897932384626433832795028841971693993751
 
@@ -185,6 +189,7 @@ class N(Builtin):
      = 0.14286
 
     You can manually assign numerical values to symbols.
+
     When you do not specify a precision, 'MachinePrecision' is taken.
     >> N[a] = 10.9
      = 10.9
@@ -317,7 +322,10 @@ class N(Builtin):
 
 class Piecewise(SympyFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Piecewise.html</url>
+    <url>:SymPy:
+    https://docs.sympy.org/latest/modules/functions
+    /elementary.html#piecewise</url>, <url>
+    :WMA:https://reference.wolfram.com/language/ref/Piecewise.html</url>
 
     <dl>
       <dt>'Piecewise[{{expr1, cond1}, ...}]'
@@ -416,12 +424,12 @@ class Rationalize(Builtin):
     https://reference.wolfram.com/language/ref/Rationalize.html</url>
 
     <dl>
-      <dt>'Rationalize[$x$]'
+      <dt>'Rationalize'[$x$]
       <dd>converts a real number $x$ to a nearby rational number with \
           small denominator.
 
-      <dt>'Rationalize[$x$, $dx$]'
-      <dd>finds the rational number lies within $dx$ of $x$.
+      <dt>'Rationalize'[$x$, $d_x$]
+      <dd>finds the rational number lies within $d_x$ of $x$.
     </dl>
 
     >> Rationalize[2.2]
@@ -467,7 +475,7 @@ class Rationalize(Builtin):
         if py_x.is_positive:
             return from_sympy(self.find_approximant(py_x))
         else:
-            return -from_sympy(self.find_approximant(-py_x))
+            return from_sympy(-self.find_approximant(-py_x))
 
     @staticmethod
     def find_approximant(x):
@@ -549,9 +557,10 @@ class RealAbs(Builtin):
     https://reference.wolfram.com/language/ref/RealAbs.html</url>)
 
     <dl>
-      <dt>'RealAbs[$x$]'
+      <dt>'RealAbs'[$x$]
       <dd>returns the absolute value of a real number $x$.
     </dl>
+
     'RealAbs' is also known as modulus. It is evaluated if $x$ can be compared \
     with $0$.
 
@@ -570,9 +579,9 @@ class RealAbs(Builtin):
         "Integrate[RealAbs[x_],x_]": "1/2 x RealAbs[x]",
         "Integrate[RealAbs[u_],{u_,a_,b_}]": "1/2 b RealAbs[b]-1/2 a RealAbs[a]",
     }
-    summary_text = "real absolute value"
+    summary_text = "get absolute value of a real number"
 
-    def eval(self, x: BaseElement, evaluation: Evaluation):
+    def eval(self, x: Number, evaluation: Evaluation):
         """RealAbs[x_]"""
         real_sign = eval_RealSign(x)
         if real_sign is IntegerM1:
@@ -590,10 +599,11 @@ class RealSign(Builtin):
     https://reference.wolfram.com/language/ref/RealSign.html</url>)
 
     <dl>
-      <dt>'RealSign[$x$]'
+      <dt>'RealSign'[$x$]
       <dd>returns -1, 0 or 1 depending on whether $x$ is negative,
       zero or positive.
     </dl>
+
     'RealSign' is also known as $sgn$ or $signum$ function.
 
     >> RealSign[-3.]
@@ -623,7 +633,7 @@ class RealSign(Builtin):
 
 class RealValuedNumberQ(Builtin):
     # No docstring since this is internal and it will mess up documentation.
-    # FIXME: Perhaps in future we will have a more explicite way to indicate not
+    # FIXME: Perhaps in future we will have a more explicit way to indicate not
     # to add something to the docs.
     no_doc = True
     context = "Internal`"
@@ -638,7 +648,7 @@ class RealValuedNumberQ(Builtin):
 
 class RealValuedNumericQ(Builtin):
     # No docstring since this is internal and it will mess up documentation.
-    # FIXME: Perhaps in future we will have a more explicite way to indicate not
+    # FIXME: Perhaps in future we will have a more explicit way to indicate not
     # to add something to the docs.
     no_doc = True
     context = "Internal`"
@@ -653,10 +663,10 @@ class Round(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Round.html</url>
 
     <dl>
-      <dt>'Round[$expr$]'
+      <dt>'Round'[$expr$]
       <dd>rounds $expr$ to the nearest integer.
 
-      <dt>'Round[$expr$, $k$]'
+      <dt>'Round'[$expr$, $k$]
       <dd>rounds $expr$ to the closest multiple of $k$.
     </dl>
 
@@ -698,8 +708,14 @@ class Round(Builtin):
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
+    # Set checking that the number of arguments required is one or two.
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
+
+    # For now, we handle Rounding Complex numbers as rules.
+    # In the future consider folding this into the code.
     rules = {
-        "Round[expr_?NumericQ]": "Round[Re[expr], 1] + I * Round[Im[expr], 1]",
+        "Round[expr_Complex]": "Round[Re[expr], 1] + I * Round[Im[expr], 1]",
         "Round[expr_Complex, k_?RealValuedNumberQ]": (
             "Round[Re[expr], k] + I * Round[Im[expr], k]"
         ),
@@ -707,8 +723,16 @@ class Round(Builtin):
 
     summary_text = "find closest integer or multiple of"
 
-    def eval(self, expr, k, evaluation: Evaluation):
-        "Round[expr_?NumericQ, k_?NumericQ]"
+    def eval_one_arg(self, expr, evaluation: Evaluation):
+        "Round[expr_]"
+        return self.eval_two_args(expr, Integer1, evaluation)
+
+    def eval_two_args(self, expr, k, evaluation: Evaluation):
+        "Round[expr_, k_]"
+
+        if not expr.is_numeric(evaluation):
+            # We can't evaluate, so keep the symbolic representation.
+            return
 
         n = Expression(SymbolDivide, expr, k).round_to_float(
             evaluation, permit_complex=True
@@ -732,7 +756,7 @@ class Sign(SympyFunction):
     https://reference.wolfram.com/language/ref/Sign.html</url>)
 
     <dl>
-      <dt>'Sign[$x$]'
+      <dt>'Sign'[$x$]
       <dd>return -1, 0, or 1 depending on whether $x$ is negative, zero, or positive.
     </dl>
 
@@ -751,19 +775,19 @@ class Sign(SympyFunction):
 
     """
 
-    summary_text = "complex sign of a number"
-    sympy_name = "sign"
-    # mpmath_name = 'sign'
-
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
-    messages = {
-        "argx": "Sign called with `1` arguments; 1 argument is expected.",
-    }
+    # Set checking that the number of arguments required is one.
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
 
     rules = {
         "Sign[Power[a_, b_]]": "Power[Sign[a], b]",
     }
+
+    summary_text = "complex sign of a number"
+    sympy_name = "sign"
+    # mpmath_name = 'sign'
 
     def eval(self, x, evaluation: Evaluation):
         "Sign[x_]"
@@ -778,6 +802,50 @@ class Sign(SympyFunction):
         # Unhandled cases. Use sympy
         return super(Sign, self).eval(x, evaluation)
 
-    def eval_error(self, x, seqs, evaluation: Evaluation):
-        "Sign[x_, seqs__]"
-        evaluation.message("Sign", "argx", Integer(len(seqs.get_sequence()) + 1))
+
+class UnitStep(Builtin):
+    """
+    <url>
+    :Heaviside step function:
+    https://en.wikipedia.org/wiki/Heaviside_step_function</url> (<url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/UnitStep.html</url>)
+
+    <dl>
+      <dt>'UnitStep'[$x$]
+      <dd>return 0 if $x$ < 0, and 1 if $x$ >= 0.
+      <dt>'UnitStep'[$x_1$, $x_2$, ...]
+      <dd>return the multidimensional unit step function which is 1 only if none of the $xi$ are negative.
+    </dl>
+
+    Evaluation numerically:
+    >> UnitStep[0.7]
+     = 1
+
+    We can use 'UnitStep' on irrational numbers and infinities:
+    >> Map[UnitStep, {Pi, Infinity, -Infinity}]
+     = {1, 1, 0}
+
+    >> Table[UnitStep[x], {x, -3, 3}]
+     = {0, 0, 0, 1, 1, 1, 1}
+
+    Plot in one dimension:
+    >> Plot[UnitStep[x], {x, -4, 4}]
+     = -Graphics-
+
+    ## UnitStep is a piecewise function
+    ## PiecewiseExpand[UnitStep[x]]
+    ## = ...
+    """
+
+    summary_text = "unit step function of a number"
+
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_ORDERLESS | A_PROTECTED
+
+    def eval(self, x, evaluation: Evaluation):
+        "UnitStep[x_]"
+        return eval_UnitStep(x)
+
+    def eval_multidimenional(self, seqs, evaluation: Evaluation):
+        "UnitStep[seqs__]"
+        return eval_UnitStep_multidimensional(seqs)

@@ -6,25 +6,28 @@ Binary Reading and Writing
 import math
 import struct
 from itertools import chain
+from typing import Optional, Tuple
 
 import mpmath
 import sympy
 
 from mathics.core.atoms import Complex, Integer, MachineReal, Real, String
 from mathics.core.builtin import Builtin
-from mathics.core.convert.expression import to_expression, to_mathics_list
+from mathics.core.convert.expression import to_expression
 from mathics.core.convert.mpmath import from_mpmath
-from mathics.core.expression import Expression
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression_predefined import (
     MATHICS3_I_INFINITY,
     MATHICS3_I_NEG_INFINITY,
     MATHICS3_INFINITY,
     MATHICS3_NEG_INFINITY,
+    Expression,
 )
-from mathics.core.read import SymbolEndOfFile
-from mathics.core.streams import stream_manager
+from mathics.core.list import ListExpression
+from mathics.core.streams import Stream, stream_manager
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolIndeterminate
+from mathics.eval.binary.io import eval_BinaryReadList
 from mathics.eval.nevaluator import eval_N
 
 SymbolBinaryWrite = Symbol("BinaryWrite")
@@ -57,7 +60,7 @@ class _BinaryFormat:
         return Complex(MachineReal(real), MachineReal(imag))
 
     @classmethod
-    def get_readers(cls):
+    def get_readers(cls) -> dict:
         readers = {}
         for funcname in dir(cls):
             if funcname.startswith("_") and funcname.endswith("_reader"):
@@ -359,13 +362,13 @@ class BinaryRead(Builtin):
     https://reference.wolfram.com/language/ref/BinaryRead.html</url>
 
     <dl>
-      <dt>'BinaryRead[$stream$]'
+      <dt>'BinaryRead'[$stream$]
       <dd>reads one byte from the stream as an integer from 0 to 255.
 
-      <dt>'BinaryRead[$stream$, $type$]'
+      <dt>'BinaryRead'[$stream$, $type$]
       <dd>reads one object of specified type from the stream.
 
-      <dt>'BinaryRead[$stream$, {$type1$, $type2$, ...}]'
+      <dt>'BinaryRead'[$stream$, {$type_1$, $type_2$, ...}]
       <dd>reads a sequence of objects of specified types.
     </dl>
 
@@ -376,13 +379,18 @@ class BinaryRead(Builtin):
     >> Close[strm];
     >> strm = OpenRead[%, BinaryFormat -> True]
      = InputStream[...]
-    >> BinaryRead[strm, {"Character8", "Character8", "Character8"}]
-     = {a, b, c}
+    >> BinaryRead[strm]
+     = 97
+    >> BinaryRead[strm, {"Character8", "Character8"}]
+      = {b, c}
+
+    If you read past the end of the file, you will get 'EndOfFile' symbols:
+
+    >> BinaryRead[strm, {"Character8", "Character8"}]
+      = {EndOfFile, EndOfFile}
+
     >> DeleteFile[Close[strm]];
     """
-
-    summary_text = "read an object of the specified type"
-    readers = _BinaryFormat.get_readers()
 
     messages = {
         "format": "`1` is not a recognized binary format.",
@@ -390,56 +398,120 @@ class BinaryRead(Builtin):
         "bfmt": "The stream `1` has been opened with BinaryFormat -> False and cannot be used with binary data.",
     }
 
-    def eval_empty(self, name, n, evaluation):
-        "BinaryRead[InputStream[name_, n_Integer]]"
-        return self.eval(name, n, None, evaluation)
+    readers = _BinaryFormat.get_readers()
+    summary_text = "read an object of the specified type"
 
-    def eval(self, name, n, typ, evaluation):
-        "BinaryRead[InputStream[name_, n_Integer], typ_]"
-
+    def check_and_convert_parameters(
+        self, name, n: Integer, kind, evaluation: Evaluation
+    ) -> Tuple[bool, Expression, Optional[Stream], list]:
         channel = to_expression("InputStream", name, n)
 
-        # Check typ
-        if typ is None:
+        # Check kind
+        if kind is None:
             expr = to_expression("BinaryRead", channel)
-            typ = String("Byte")
+            kind = String("Byte")
         else:
-            expr = to_expression("BinaryRead", channel, typ)
+            expr = to_expression("BinaryRead", channel, kind)
+
+        if kind.has_form("List", None):
+            kinds = kind.elements
+        else:
+            kinds = [kind]
+
+        python_kinds = [t.get_string_value() for t in kinds]
 
         # Check channel
         stream = stream_manager.lookup_stream(n.value)
 
         if stream is None or stream.io.closed:
             evaluation.message("General", "openx", name)
-            return expr
+            return False, expr, None, python_kinds, []
 
         if stream.mode not in ["rb"]:
-            evaluation.message("BinaryRead", "bfmt", channel)
+            evaluation.message(self.__class__.__name__, "bfmt", channel)
+            return False, expr, None, python_kinds, []
+
+        if not all(t in self.readers for t in python_kinds):
+            evaluation.message("BinaryRead", "format", kind)
+            return (
+                False,
+                expr,
+                None,
+                python_kinds,
+            )
+
+        return True, expr, stream, python_kinds
+
+    def eval_empty(self, name, n: Integer, evaluation):
+        "BinaryRead[InputStream[name_, n_Integer]]"
+        return self.eval(name, n, None, evaluation)
+
+    def eval(self, name, n: Integer, kind, evaluation):
+        "BinaryRead[InputStream[name_, n_Integer], kind_]"
+
+        all_ok, expr, stream, python_kinds = self.check_and_convert_parameters(
+            name, n, kind, evaluation
+        )
+
+        if not all_ok or stream is None:
             return expr
 
-        if typ.has_form("List", None):
-            types = typ.elements
-        else:
-            types = [typ]
+        return eval_BinaryReadList(
+            stream, self.readers, python_kinds, isinstance(kind, ListExpression), 1
+        )
 
-        types = [t.get_string_value() for t in types]
-        if not all(t in self.readers for t in types):
-            evaluation.message("BinaryRead", "format", typ)
+
+class BinaryReadList(BinaryRead):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/BinaryReadList.html</url>
+
+    <dl>
+      <dt>'BinaryReadList'[$stream$]
+      <dd>reads all remaining bytes from the stream or file as an integer from 0 to 255.
+
+      <dt>'BinaryReadList'[$stream$, $type$]
+      <dd>reads objects of the specified type file a stream or file until the end of the file. \
+      The list of objects is returned.
+
+      <dt>'BinaryReadList'[$stream$, {$type_1$, $type_2$, ...}]
+      <dd>reads a sequence of types, until the end of the file.
+    </dl>
+
+    >> strm = OpenWrite[BinaryFormat -> True]
+     = OutputStream[...]
+    >> BinaryWrite[strm, {97, 98, 99}]
+     = OutputStream[...]
+    >> Close[strm];
+    >> strm = OpenRead[%, BinaryFormat -> True]
+     = InputStream[...]
+    >> BinaryReadList[strm]
+     = {97, 98, 99}
+    >> DeleteFile[Close[strm]];
+    """
+
+    messages = BinaryRead.messages
+    readers = _BinaryFormat.get_readers()
+    summary_text = "read a list of objects of the specified type"
+
+    def eval_empty(self, name, n, evaluation: Evaluation):
+        "BinaryReadList[InputStream[name_, n_Integer]]"
+        return self.eval(name, n, None, evaluation)
+
+    def eval(self, name, n: Integer, kind, evaluation: Evaluation):
+        "BinaryReadList[InputStream[name_, n_Integer], kind_]"
+
+        all_ok, expr, stream, python_kinds = self.check_and_convert_parameters(
+            name, n, kind, evaluation
+        )
+
+        if not all_ok or stream is None:
             return expr
 
-        # Read from stream
-        result = []
-        for t in types:
-            try:
-                result.append(self.readers[t](stream.io))
-            except struct.error:
-                result.append(SymbolEndOfFile)
-
-        if typ.has_form("List", None):
-            return to_mathics_list(*result)
-        else:
-            if len(result) == 1:
-                return result[0]
+        # TODO: improve speed when we are reading an entire binary file. Instead of read(1) we should be
+        # using read()
+        return eval_BinaryReadList(stream, self.readers, python_kinds, True, -1)
 
 
 class BinaryWrite(Builtin):
@@ -449,22 +521,22 @@ class BinaryWrite(Builtin):
     https://reference.wolfram.com/language/ref/BinaryWrite.html</url>
 
     <dl>
-      <dt>'BinaryWrite[$channel$, $b$]'
+      <dt>'BinaryWrite'[$channel$, $b$]
       <dd>writes a single byte given as an integer from 0 to 255.
 
-      <dt>'BinaryWrite[$channel$, {b1, b2, ...}]'
+      <dt>'BinaryWrite'[$channel$, {b1, b2, ...}]
       <dd>writes a sequence of byte.
 
-      <dt>'BinaryWrite[$channel$, "string"]'
+      <dt>'BinaryWrite'[$channel$, "string"]
       <dd>writes the raw characters in a string.
 
-      <dt>'BinaryWrite[$channel$, $x$, $type$]'
+      <dt>'BinaryWrite'[$channel$, $x$, $type$]
       <dd>writes $x$ as the specified type.
 
-      <dt>'BinaryWrite[$channel$, {$x1$, $x2$, ...}, $type$]'
+      <dt>'BinaryWrite'[$channel$, {$x_1$, $x_2$, ...}, $type$]
       <dd>writes a sequence of objects as the specified type.
 
-      <dt>'BinaryWrite[$channel$, {$x1$, $x2$, ...}, {$type1$, $type2$, ...}]'
+      <dt>'BinaryWrite'[$channel$, {$x_1$, $x_2$, ...}, {$type_1$, $type_2$, ...}]
       <dd>writes a sequence of objects using a sequence of specified types.
     </dl>
 
@@ -527,17 +599,17 @@ class BinaryWrite(Builtin):
         "BinaryWrite[OutputStream[name_, n_], b_]"
         return self.eval(name, n, b, None, evaluation)
 
-    def eval(self, name, n, b, typ, evaluation):
-        "BinaryWrite[OutputStream[name_, n_], b_, typ_]"
+    def eval(self, name, n, b, kind, evaluation):
+        "BinaryWrite[OutputStream[name_, n_], b_, kind_]"
 
         channel = to_expression("OutputStream", name, n)
 
-        # Check Empty Type
-        if typ is None:
+        # Check Empty kind
+        if kind is None:
             expr = Expression(SymbolBinaryWrite, channel, b)
-            typ = to_expression("List")
+            kind = to_expression("List")
         else:
-            expr = Expression(SymbolBinaryWrite, channel, b, typ)
+            expr = Expression(SymbolBinaryWrite, channel, b, kind)
 
         # Check channel
         stream = stream_manager.lookup_stream(n.get_int_value())
@@ -557,17 +629,17 @@ class BinaryWrite(Builtin):
             pyb = [b]
 
         # Check Type
-        if typ.has_form("List", None):
-            types = typ.elements
+        if kind.has_form("List", None):
+            kinds = kind.elements
         else:
-            types = [typ]
+            kinds = [kind]
 
-        if len(types) == 0:  # Default type is "Bytes"
-            types = [String("Byte")]
+        if len(kinds) == 0:  # Default type is "Bytes"
+            kinds = [String("Byte")]
 
-        types = [t.get_string_value() for t in types]
-        if not all(t in self.writers for t in types):
-            evaluation.message("BinaryRead", "format", typ)
+        kinds = [t.get_string_value() for t in kinds]
+        if not all(t in self.writers for t in kinds):
+            evaluation.message("BinaryRead", "format", kind)
             return expr
 
         # Write to stream
@@ -575,8 +647,8 @@ class BinaryWrite(Builtin):
         # TODO: please, modularize me.
         while i < len(pyb):
             x = pyb[i]
-            # Types are "repeated as many times as necessary"
-            t = types[i % len(types)]
+            # Kinds are "repeated as many times as necessary"
+            t = kinds[i % len(kinds)]
 
             # Coerce x
             if t == "TerminatedString":
@@ -655,4 +727,4 @@ class BinaryWrite(Builtin):
         return channel
 
 
-# TODO: BinaryReadList, BinaryWrite, BinaryReadList
+# TODO: BinaryWrite, BinaryWriteList

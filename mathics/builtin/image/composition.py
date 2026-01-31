@@ -66,7 +66,7 @@ class ImageAdd(_ImageArithmetic):
     https://reference.wolfram.com/language/ref/ImageAdd.html</url>
 
     <dl>
-      <dt>'ImageAdd[$image$, $expr_1$, $expr_2$, ...]'
+      <dt>'ImageAdd'[$image$, $expr_1$, $expr_2$, ...]
       <dd>adds all $expr_i$ to $image$ where each $expr_i$ must be an image \
           or a real number.
     </dl>
@@ -98,7 +98,7 @@ class ImageMultiply(_ImageArithmetic):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ImageMultiply.html</url>
 
     <dl>
-      <dt>'ImageMultiply[$image$, $expr_1$, $expr_2$, ...]'
+      <dt>'ImageMultiply'[$image$, $expr_1$, $expr_2$, ...]
       <dd>multiplies all $expr_i$ with $image$ where each $expr_i$ must be an image or a real number.
     </dl>
 
@@ -122,7 +122,7 @@ class ImageSubtract(_ImageArithmetic):
     https://reference.wolfram.com/language/ref/ImageSubtract.html</url>
 
     <dl>
-      <dt>'ImageSubtract[$image$, $expr_1$, $expr_2$, ...]'
+      <dt>'ImageSubtract'[$image$, $expr_1$, $expr_2$, ...]
       <dd>subtracts all $expr_i$ from $image$ where each $expr_i$ must be an \
           image or a real number.
     </dl>
@@ -136,7 +136,7 @@ class ImageSubtract(_ImageArithmetic):
      = -Image-
     """
 
-    summary_text = "build an image substracting pixel values of another image "
+    summary_text = "build an image subtracting pixel values of another image "
 
 
 class WordCloud(Builtin):
@@ -146,16 +146,16 @@ class WordCloud(Builtin):
     https://reference.wolfram.com/language/ref/WordCloud.html</url>
 
     <dl>
-      <dt>'WordCloud[{$word1$, $word2$, ...}]'
+      <dt>'WordCloud'[{$word_1$, $word_2$, ...}]
       <dd>Gives a word cloud with the given list of words.
 
-      <dt>'WordCloud[{$weight1$ -> $word1$, $weight2$ -> $word2$, ...}]'
+      <dt>'WordCloud'[{$weight_1$ -> $word_1$, $weight_2$ -> $word_2$, ...}]
       <dd>Gives a word cloud with the words weighted using the given weights.
 
-      <dt>'WordCloud[{$weight1$, $weight2$, ...} -> {$word1$, $word2$, ...}]'
+      <dt>'WordCloud'[{$weight_1$, $weight_2$, ...} -> {$word_1$, $word_2$, ...}]
       <dd>Also gives a word cloud with the words weighted using the given weights.
 
-      <dt>'WordCloud[{{$word1$, $weight1$}, {$word2$, $weight2$}, ...}]'
+      <dt>'WordCloud'[{{$word_1$, $weight_1$}, {$word_2$, $weight_2$}, ...}]
       <dd>Gives a word cloud with the words weighted using the given weights.
     </dl>
 

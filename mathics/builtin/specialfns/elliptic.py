@@ -8,19 +8,22 @@ originates from their originally arising in connection with the problem of \
 finding the arc length of an ellipse.
 
 These functions often are used in cryptography to encode and decode messages.
+
+See also <url>
+:Chapter 19 Elliptic Integrals in the Digital Library of Mathematical Functions:
+https://dlmf.nist.gov/19</url>.
 """
 
 import sympy
 
-from mathics.core.atoms import Integer
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
-from mathics.core.builtin import SympyFunction
+from mathics.core.builtin import Builtin, SympyFunction
 from mathics.core.convert.sympy import from_sympy, to_numeric_sympy_args
 from mathics.eval.numerify import numerify
 
 
 class EllipticE(SympyFunction):
-    """
+    r"""
     <url>
     :Elliptic complete elliptic integral of the second kind:
     https://en.wikipedia.org/wiki/Elliptic_integral#Complete_elliptic_integral_of_the_second_kind</url> (<url>:SymPy:
@@ -29,11 +32,11 @@ class EllipticE(SympyFunction):
     https://reference.wolfram.com/language/ref/EllipticE.html</url>)
 
     <dl>
-      <dt>'EllipticE[$m$]'
-      <dd>computes the complete elliptic integral $E$($m$).
+      <dt>'EllipticE'[$m$]
+      <dd>computes the complete elliptic integral $E(m)$.
 
-      <dt>'EllipticE[phi|$m$]'
-      <dd>computes the complete elliptic integral of the second kind $E$($m$|$phi$).
+      <dt>'EllipticE'[$\phi$|$m$]
+      <dd>computes the complete elliptic integral of the second kind $E(m|\phi)$.
     </dl>
 
     Elliptic curves give Pi / 2 when evaluated at zero:
@@ -49,15 +52,13 @@ class EllipticE(SympyFunction):
     """
 
     attributes = A_NUMERIC_FUNCTION | A_PROTECTED
-    messages = {
-        "argt": "EllipticE called with `` arguments; 1 or 2 arguments are expected.",
-    }
+
+    # Set checking that the number of arguments required is one or two.
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
+
     summary_text = "elliptic integral of the second kind E(ϕ|m)"
     sympy_name = "elliptic_e"
-
-    def eval_default(self, args, evaluation):
-        "%(name)s[args___]"
-        evaluation.message("EllipticE", "argt", Integer(len(args.elements)))
 
     def eval_m(self, m, evaluation):
         "%(name)s[m_]"
@@ -77,7 +78,7 @@ class EllipticE(SympyFunction):
 
 
 class EllipticF(SympyFunction):
-    """
+    r"""
     <url>
     :Complete elliptic integral of the first kind:
     https://en.wikipedia.org/wiki/\
@@ -89,8 +90,8 @@ special.html#sympy.functions.special.elliptic_integrals.elliptic_f</url>, <url>
     https://reference.wolfram.com/language/ref/EllipticF.html</url>)
 
     <dl>
-      <dt>'EllipticF[$phi$, $m$]'
-      <dd>computes the elliptic integral of the first kind $F$($ϕ$|$m$).
+      <dt>'EllipticF'[$\phi$, $m$]
+      <dd>computes the elliptic integral of the first kind $F(\phi|m)$.
     </dl>
 
     >> EllipticF[0.3, 0.8]
@@ -103,15 +104,13 @@ special.html#sympy.functions.special.elliptic_integrals.elliptic_f</url>, <url>
     """
 
     attributes = A_NUMERIC_FUNCTION | A_PROTECTED
-    messages = {
-        "argx": "EllipticF called with `` arguments; 1 argument is expected.",
-    }
+
+    # Set checking that the number of arguments required is two.
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
+
     summary_text = "elliptic integral F(ϕ|m)"
     sympy_name = "elliptic_f"
-
-    def eval_default(self, args, evaluation):
-        "%(name)s[args___]"
-        evaluation.message("EllipticE", "argx", Integer(len(args.elements)))
 
     def eval(self, phi, m, evaluation):
         "%(name)s[phi_, m_]"
@@ -132,8 +131,8 @@ class EllipticK(SympyFunction):
     https://reference.wolfram.com/language/ref/EllipticK.html</url>)
 
     <dl>
-      <dt>'EllipticK[$m$]'
-      <dd>computes the elliptic integral of the first kind $K$($m$).
+      <dt>'EllipticK'[$m$]
+      <dd>computes the elliptic integral of the first kind $K(m)$.
     </dl>
 
     >> EllipticK[0.5]
@@ -149,15 +148,13 @@ class EllipticK(SympyFunction):
     """
 
     attributes = A_NUMERIC_FUNCTION | A_LISTABLE | A_PROTECTED
-    messages = {
-        "argx": "EllipticK called with `` arguments; 1 argument is expected.",
-    }
+
+    # Set checking that the number of arguments required is one.
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
+
     summary_text = "elliptic integral of the first kind K(m)"
     sympy_name = "elliptic_k"
-
-    def eval_default(self, args, evaluation):
-        "%(name)s[args___]"
-        evaluation.message("EllipticK", "argx", Integer(len(args.elements)))
 
     def eval(self, m, evaluation):
         "%(name)s[m_]"
@@ -179,8 +176,8 @@ class EllipticPi(SympyFunction):
     https://reference.wolfram.com/language/ref/EllipticPi.html</url>)
 
     <dl>
-      <dt>'EllipticPi[$n$, $m$]'
-      <dd>computes the elliptic integral of the third kind $Pi$($m$).
+      <dt>'EllipticPi'[$n$, $m$]
+      <dd>computes the elliptic integral of the third kind $Pi(m)$.
     </dl>
 
     >> EllipticPi[0.4, 0.6]
@@ -193,15 +190,13 @@ class EllipticPi(SympyFunction):
     """
 
     attributes = A_NUMERIC_FUNCTION | A_PROTECTED
-    messages = {
-        "argt": "EllipticPi called with `` arguments; 2 or 3 arguments are expected.",
-    }
+
+    # Set checking that the number of arguments required is two or three.
+    eval_error = Builtin.generic_argument_error
+    expected_args = (2, 3)
+
     summary_text = "elliptic integral of the third kind P(n|m)"
     sympy_name = "elliptic_pi"
-
-    def eval_default(self, args, evaluation):
-        "%(name)s[args___]"
-        evaluation.message("EllipticPi", "argt", Integer(len(args.elements)))
 
     def eval_n_m(self, n, m, evaluation):
         "%(name)s[n_, m_]"

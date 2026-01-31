@@ -20,6 +20,7 @@ class ByteOrdering(Predefined):
       that specifies what ordering of bytes should be assumed for your \
       computer system..
     </dl>
+
     """
 
     name = "ByteOrdering"
@@ -28,12 +29,13 @@ class ByteOrdering(Predefined):
 
 
 class ByteOrdering_(Predefined):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$ByteOrdering.html</url>
+    r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$ByteOrdering.html</url>
         <dl>
-          <dt>'$ByteOrdering'
+          <dt>'\$ByteOrdering'
           <dd>returns the native ordering of bytes in binary data on your computer system.
         </dl>
+
     """
 
     name = "$ByteOrdering"

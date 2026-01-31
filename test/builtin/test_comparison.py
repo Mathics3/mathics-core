@@ -78,6 +78,14 @@ import pytest
         ("g[a]<g[a]", "g[a] < g[a]", "not comparable expressions (like in WMA)"),
         ("g[1]<g[1]", "g[1] < g[1]", "not comparable expressions (like in WMA)"),
         #
+        ('Wo["x"]>3', "Wo[x] > 3", "issue #797"),
+        ('Wo["x"]<3', "Wo[x] < 3", "issue #797"),
+        ('Wo["x"]==3', "Wo[x] == 3", "issue #797"),
+        ('3>Wo["x"]', "3 > Wo[x]", "issue #797"),
+        ('3<Wo["x"]', "3 < Wo[x]", "issue #797"),
+        ('3==Wo["x"]', "3 == Wo[x]", "issue #797"),
+        ('Wo[f["x"],2]>0', "Wo[f[x], 2] > 0", "issue #797"),
+        #
         # chained compare
         ("a != a != b", "False", "Strange MMA behavior"),
         ("a != b != a", "a != b != a", "incomparable values should be unchanged"),
@@ -172,8 +180,8 @@ def test_sameq(str_lhs, str_rhs, str_expected):
     [  # UnsameQ returns True with 0 or 1 arguments
         ("UnsameQ[]", "True"),
         ("UnsameQ[expr]", "True"),
-        # With 2 or more argments, UnsameQ returns True if all expressions are
-        # structurally distinct and False otherwise
+        # With 2 or more arguments, UnsameQ returns True if all
+        # expressions are structurally distinct and False otherwise
         ("x =!= x", "False"),
         ("x =!= y", "True"),
         ("1 =!= 2 =!= 3 =!= 4", "True"),
@@ -198,7 +206,7 @@ def test_unsameq(str_expr, str_expected):
 #
 # import subprocess
 # from time import sleep
-# exprss = ['2 + 3*a', 'Infinity', '-Infinity', 'Sqrt[I] Infinity', 'a', '"a"', '"1 / 4"', "I", "0", '1 / 4','.25',"Sqrt[2]", "BesselJ[0, 2]", "3+2 I", "2.+ Pi I", "3+I Pi", 'TestFunction["Tengo una vaca lechera"]', "Compile[{x}, Sqrt[x]]", "Graphics[{Disk[{0,0},1]}]"]
+# exprss = ['2 + 3*a', 'Infinity', '-Infinity', 'Sqrt[I] Infinity', 'a', '"a"', '"1 / 4"', "I", "0", '1 / 4','.25',"Sqrt[2]", "BesselJ[0, 2]", "3+2 I", "2.+ Pi I", "3+I Pi", 'TestFunction["Tengo una vaca lechera"]', "Compile[{x}, NonCompilableFunction[x]]", "Graphics[{Disk[{0,0},1]}]"]
 # pairs = sum([[(exprss[i], exprss[j]) for j in range(i+1)] for i in range(len(exprss))],[])
 # tests = []
 #
@@ -249,8 +257,8 @@ tests1 = [
     ),
     (
         "Graphics[{Disk[{0,0},1]}]",
-        "Compile[{x}, Sqrt[x]]",
-        '"-Graphics- == CompiledFunction[{x}, Sqrt[x], -PythonizedCode-]"',
+        "Compile[{x}, NonCompilableFunction[x]]",
+        '"-Graphics- == CompiledFunction[{x}, NonCompilableFunction[x], -PythonizedCode-]"',
     ),
     ('"1 / 4"', "2 + 3 a", '"1 / 4 == 2 + 3 a"'),
     ('"1 / 4"', "Infinity", '"1 / 4 == Infinity"'),
@@ -341,89 +349,89 @@ tests1 = [
         '"TestFunction[Tengo una vaca lechera] == 3 + I Pi"',
     ),
     (
-        "Compile[{x}, Sqrt[x]]",
+        "Compile[{x}, NonCompilableFunction[x]]",
         "2 + 3 a",
-        '"CompiledFunction[{x}, Sqrt[x], -PythonizedCode-] == 2 + 3 a"',
+        '"CompiledFunction[{x}, NonCompilableFunction[x], -PythonizedCode-] == 2 + 3 a"',
     ),
     (
-        "Compile[{x}, Sqrt[x]]",
+        "Compile[{x}, NonCompilableFunction[x]]",
         "Infinity",
-        '"CompiledFunction[{x}, Sqrt[x], -PythonizedCode-] == Infinity"',
+        '"CompiledFunction[{x}, NonCompilableFunction[x], -PythonizedCode-] == Infinity"',
     ),
     (
-        "Compile[{x}, Sqrt[x]]",
+        "Compile[{x}, NonCompilableFunction[x]]",
         "-Infinity",
-        '"CompiledFunction[{x}, Sqrt[x], -PythonizedCode-] == -Infinity"',
+        '"CompiledFunction[{x}, NonCompilableFunction[x], -PythonizedCode-] == -Infinity"',
     ),
     (
-        "Compile[{x}, Sqrt[x]]",
+        "Compile[{x}, NonCompilableFunction[x]]",
         "Sqrt[I] Infinity",
-        '"CompiledFunction[{x}, Sqrt[x], -PythonizedCode-] == (-1) ^ (1 / 4) Infinity"',
+        '"CompiledFunction[{x}, NonCompilableFunction[x], -PythonizedCode-] == (-1) ^ (1 / 4) Infinity"',
     ),
     (
-        "Compile[{x}, Sqrt[x]]",
+        "Compile[{x}, NonCompilableFunction[x]]",
         "a",
-        '"CompiledFunction[{x}, Sqrt[x], -PythonizedCode-] == a"',
+        '"CompiledFunction[{x}, NonCompilableFunction[x], -PythonizedCode-] == a"',
     ),
     (
-        "Compile[{x}, Sqrt[x]]",
+        "Compile[{x}, NonCompilableFunction[x]]",
         '"a"',
-        '"CompiledFunction[{x}, Sqrt[x], -PythonizedCode-] == a"',
+        '"CompiledFunction[{x}, NonCompilableFunction[x], -PythonizedCode-] == a"',
     ),
     (
-        "Compile[{x}, Sqrt[x]]",
+        "Compile[{x}, NonCompilableFunction[x]]",
         '"1 / 4"',
-        '"CompiledFunction[{x}, Sqrt[x], -PythonizedCode-] == 1 / 4"',
+        '"CompiledFunction[{x}, NonCompilableFunction[x], -PythonizedCode-] == 1 / 4"',
     ),
     (
-        "Compile[{x}, Sqrt[x]]",
+        "Compile[{x}, NonCompilableFunction[x]]",
         "I",
-        '"CompiledFunction[{x}, Sqrt[x], -PythonizedCode-] == I"',
+        '"CompiledFunction[{x}, NonCompilableFunction[x], -PythonizedCode-] == I"',
     ),
     (
-        "Compile[{x}, Sqrt[x]]",
+        "Compile[{x}, NonCompilableFunction[x]]",
         "0",
-        '"CompiledFunction[{x}, Sqrt[x], -PythonizedCode-] == 0"',
+        '"CompiledFunction[{x}, NonCompilableFunction[x], -PythonizedCode-] == 0"',
     ),
     (
-        "Compile[{x}, Sqrt[x]]",
+        "Compile[{x}, NonCompilableFunction[x]]",
         "1 / 4",
-        '"CompiledFunction[{x}, Sqrt[x], -PythonizedCode-] == 1 / 4"',
+        '"CompiledFunction[{x}, NonCompilableFunction[x], -PythonizedCode-] == 1 / 4"',
     ),
     (
-        "Compile[{x}, Sqrt[x]]",
+        "Compile[{x}, NonCompilableFunction[x]]",
         ".25",
-        '"CompiledFunction[{x}, Sqrt[x], -PythonizedCode-] == 0.25"',
+        '"CompiledFunction[{x}, NonCompilableFunction[x], -PythonizedCode-] == 0.25"',
     ),
     (
-        "Compile[{x}, Sqrt[x]]",
+        "Compile[{x}, NonCompilableFunction[x]]",
         "Sqrt[2]",
-        '"CompiledFunction[{x}, Sqrt[x], -PythonizedCode-] == Sqrt[2]"',
+        '"CompiledFunction[{x}, NonCompilableFunction[x], -PythonizedCode-] == Sqrt[2]"',
     ),
     (
-        "Compile[{x}, Sqrt[x]]",
+        "Compile[{x}, NonCompilableFunction[x]]",
         "BesselJ[0, 2]",
-        '"CompiledFunction[{x}, Sqrt[x], -PythonizedCode-] == BesselJ[0, 2]"',
+        '"CompiledFunction[{x}, NonCompilableFunction[x], -PythonizedCode-] == BesselJ[0, 2]"',
     ),
     (
-        "Compile[{x}, Sqrt[x]]",
+        "Compile[{x}, NonCompilableFunction[x]]",
         "3+2 I",
-        '"CompiledFunction[{x}, Sqrt[x], -PythonizedCode-] == 3 + 2 I"',
+        '"CompiledFunction[{x}, NonCompilableFunction[x], -PythonizedCode-] == 3 + 2 I"',
     ),
     (
-        "Compile[{x}, Sqrt[x]]",
+        "Compile[{x}, NonCompilableFunction[x]]",
         "2.+ Pi I",
-        '"CompiledFunction[{x}, Sqrt[x], -PythonizedCode-] == 2. + 3.14159 I"',
+        '"CompiledFunction[{x}, NonCompilableFunction[x], -PythonizedCode-] == 2. + 3.14159 I"',
     ),
     (
-        "Compile[{x}, Sqrt[x]]",
+        "Compile[{x}, NonCompilableFunction[x]]",
         "3+I Pi",
-        '"CompiledFunction[{x}, Sqrt[x], -PythonizedCode-] == 3 + I Pi"',
+        '"CompiledFunction[{x}, NonCompilableFunction[x], -PythonizedCode-] == 3 + I Pi"',
     ),
     (
-        "Compile[{x}, Sqrt[x]]",
+        "Compile[{x}, NonCompilableFunction[x]]",
         'TestFunction["Tengo una vaca lechera"]',
-        '"CompiledFunction[{x}, Sqrt[x], -PythonizedCode-] == TestFunction[Tengo una vaca lechera]"',
+        '"CompiledFunction[{x}, NonCompilableFunction[x], -PythonizedCode-] == TestFunction[Tengo una vaca lechera]"',
     ),
 ]
 
@@ -552,7 +560,11 @@ tests2 = [
         'TestFunction["Tengo una vaca lechera"]',
         "True",
     ),
-    ("Compile[{x}, Sqrt[x]]", "Compile[{x}, Sqrt[x]]", "True"),
+    (
+        "Compile[{x}, NonCompilableFunction[x]]",
+        "Compile[{x}, NonCompilableFunction[x]]",
+        "True",
+    ),
     ("Graphics[{Disk[{0,0},1]}]", "Graphics[{Disk[{0,0},1]}]", "True"),
     ("3+I Pi", '"a"', '3 + I Pi == "a"'),
     ("2.+ Pi I", "a", "2. + 3.14159265358979 I == a"),

@@ -15,10 +15,14 @@
 .vscode
 /.cache
 /.gdbinit
+/.pyodide-xbuildenv-*
 /.python-version
+/ChangeLog.spell-corrected
 /Mathics.egg-info
 /Mathics3.egg-info
 ChangeLog
+ChangeLog.orig
+ChangeLog.rej
 Documents/
 Homepage/
 Test/

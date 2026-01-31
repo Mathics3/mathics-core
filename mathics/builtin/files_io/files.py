@@ -4,18 +4,19 @@
 File and Stream Operations
 """
 
-import builtins
 import io
 import os.path as osp
 import tempfile
 from io import BytesIO
 
-import mathics.eval.files_io.files
+# We use the below import for access to variables that may change
+# at runtime.
+import mathics.eval.files_io.files as io_files
 from mathics.core.atoms import Integer, String, SymbolString
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import (
-    BinaryOperator,
     Builtin,
+    InfixOperator,
     MessageException,
     Predefined,
     PrefixOperator,
@@ -24,43 +25,39 @@ from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BoxError, Expression
-from mathics.core.read import (
-    READ_TYPES,
-    MathicsOpen,
-    SymbolEndOfFile,
-    channel_to_stream,
-    close_stream,
-    read_from_stream,
-    read_get_separators,
-    read_name_and_stream_from_channel,
-)
-from mathics.core.streams import path_search, stream_manager
+from mathics.core.list import ListExpression
+from mathics.core.streams import Stream, path_search, stream_manager
 from mathics.core.symbols import Symbol, SymbolFullForm, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
+    SymbolEndOfFile,
+    SymbolExpression,
     SymbolFailed,
     SymbolHold,
-    SymbolInputForm,
+    SymbolHoldExpression,
     SymbolInputStream,
     SymbolOutputForm,
     SymbolOutputStream,
-    SymbolReal,
 )
 from mathics.eval.directories import TMP_DIR
-from mathics.eval.files_io.files import eval_Get
-from mathics.eval.makeboxes import do_format, format_element
-
-# TODO: Improve docs for these Read[] arguments.
-
-# ## FIXME: All of this is related to Read[]
-# ## it can be moved somewhere else.
+from mathics.eval.files_io.files import eval_Close, eval_Get, eval_Open, eval_Read
+from mathics.eval.files_io.read import (
+    MathicsOpen,
+    channel_to_stream,
+    close_stream,
+    parse_read_options,
+    read_name_and_stream,
+)
+from mathics.eval.stackframe import get_eval_Expression
+from mathics.format.box import do_format, format_element
+from mathics.format.form import render_input_form
 
 
 class Input_(Predefined):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$Input.html</url>
+    r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$Input.html</url>
 
     <dl>
-      <dt>'$Input'
+      <dt>'\$Input'
       <dd>is the name of the stream from which input is currently being read.
     </dl>
 
@@ -73,7 +70,7 @@ class Input_(Predefined):
     summary_text = "the name of the current input stream"
 
     def evaluate(self, evaluation: Evaluation) -> String:
-        return String(mathics.eval.files_io.files.INPUT_VAR)
+        return String(io_files.INPUT_VAR)
 
 
 class _OpenAction(Builtin):
@@ -93,12 +90,10 @@ class _OpenAction(Builtin):
 
     messages = {
         "argx": "OpenRead called with 0 arguments; 1 argument is expected.",
-        "fstr": (
-            "File specification `1` is not a string of " "one or more characters."
-        ),
     }
 
     mode = "r"  # A default; this is changed in subclassing.
+    stream_type = "unknown"
 
     def eval_empty(self, evaluation: Evaluation, options: dict):
         "%(name)s[OptionsPattern[]]"
@@ -113,56 +108,33 @@ class _OpenAction(Builtin):
             tmpf = tempfile.NamedTemporaryFile(dir=TMP_DIR, delete=False)
             path = String(tmpf.name)
             tmpf.close()
-            return self.eval_path(path, evaluation, options)
+            return self.eval_name(path, evaluation, options)
         else:
             evaluation.message("OpenRead", "argx")
             return
 
-    def eval_path(self, path, evaluation: Evaluation, options: dict):
-        "%(name)s[path_?NotOptionQ, OptionsPattern[]]"
+    def eval_name(self, name, evaluation: Evaluation, options: dict):
+        "%(name)s[name_?NotOptionQ, OptionsPattern[]]"
 
         # Options
         # BinaryFormat
+        if not (isinstance(name, String) and len(name.to_python()) > 2):
+            evaluation.message(self.__class__.__name__, "fstr", name)
+            return
+
         mode = self.mode
-        if options["System`BinaryFormat"] is SymbolTrue:
-            if not self.mode.endswith("b"):
+
+        if options.get("System`BinaryFormat") is SymbolTrue:
+            if not mode.endswith("b"):
                 mode += "b"
 
-        if not (isinstance(path, String) and len(path.to_python()) > 2):
-            evaluation.message(self.__class__.__name__, "fstr", path)
+        stream_type = self.stream_type
+
+        encoding = self.get_option(options, "CharacterEncoding", evaluation)
+        if not isinstance(encoding, String):
             return
 
-        path_string = path.get_string_value()
-
-        tmp, is_temporary_file = path_search(path_string)
-        if tmp is None:
-            if mode in ["r", "rb"]:
-                evaluation.message("General", "noopen", path)
-                return
-        else:
-            path_string = tmp
-
-        try:
-            encoding = self.get_option(options, "CharacterEncoding", evaluation)
-            if not isinstance(encoding, String):
-                return
-
-            opener = MathicsOpen(
-                path_string,
-                mode=mode,
-                encoding=encoding.value,
-                is_temporary_file=is_temporary_file,
-            )
-            opener.__enter__(is_temporary_file=is_temporary_file)
-            n = opener.n
-        except IOError:
-            evaluation.message("General", "noopen", path)
-            return
-        except MessageException as e:
-            e.message(evaluation)
-            return
-
-        return Expression(Symbol(self.stream_type), path, Integer(n))
+        return eval_Open(name, mode, stream_type, encoding.value, evaluation)
 
 
 class Character(Builtin):
@@ -179,13 +151,19 @@ class Character(Builtin):
     summary_text = "single character, returned as a one‐character string"
 
 
+# Note: WMA documentation specifies that Close["name"] should be unique, but it appears it
+# as of 13.2.0 name does not have to be unique. We'll follow what WMA
+# does as opposed to what the documentation says.
 class Close(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Close.html</url>
 
     <dl>
-      <dt>'Close[$stream$]'
-      <dd>closes an input or output stream.
+      <dt>'Close'[$obj$]
+      <dd>Closes a stream or socket.
+
+      $obj$ can be an 'InputStream', or an 'OutputStream' object, or a 'String'. \
+      When $obj$ is a string file path, one of the channels associated with it is closed.
     </dl>
 
     >> Close[StringToStream["123abc"]]
@@ -194,10 +172,40 @@ class Close(Builtin):
     >> file=Close[OpenWrite[]]
      = ...
 
-    Closing a file doesn't delete it from the filesystem
+    Closing a file doesn't delete it from the filesystem.
     >> DeleteFile[file];
 
     #> Clear[file]
+
+    If two streams are open with the same file, then \
+    a 'Close' by file path closes only one of the streams:
+
+    >> stream1 = OpenRead["ExampleData/numbers.txt"]
+     = InputStream[ExampleData/numbers.txt, ...]
+
+    >> stream2 = OpenRead["ExampleData/numbers.txt"]
+     = InputStream[ExampleData/numbers.txt, ...]
+
+    >> Close["ExampleData/numbers.txt"]
+     = ExampleData/numbers.txt
+
+    Usually, the most-recent stream is closed, while the earlier-opened \
+    stream still persists:
+    >> Read[stream1]
+     = 8205.79
+
+
+    However, one of the streams <i>is</i> closed:
+    >> Read[stream2]
+     : ...
+     = $Failed
+
+    >> Close["ExampleData/numbers.txt"]
+     = ExampleData/numbers.txt
+
+    >> Read[stream1]
+     : ...
+     = $Failed
     """
 
     summary_text = "close a stream"
@@ -205,23 +213,10 @@ class Close(Builtin):
         "closex": "`1`.",
     }
 
-    def eval(self, channel, evaluation: Evaluation):
-        "Close[channel_]"
+    def eval(self, obj, evaluation: Evaluation):
+        "Close[obj_]"
 
-        n = name = None
-        if channel.has_form(("InputStream", "OutputStream"), 2):
-            [name, n] = channel.elements
-            py_n = n.get_int_value()
-            stream = stream_manager.lookup_stream(py_n)
-        else:
-            stream = None
-
-        if stream is None or stream.io is None or stream.io.closed:
-            evaluation.message("General", "openx", channel)
-            return
-
-        close_stream(stream, n.value)
-        return name
+        return eval_Close(obj, evaluation)
 
 
 class EndOfFile(Builtin):
@@ -263,16 +258,15 @@ class FilePrint(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/FilePrint.html</url>
 
     <dl>
-      <dt>'FilePrint[$file$]'
+      <dt>'FilePrint'[$file$]
       <dd>prints the raw contents of $file$.
     </dl>
 
     """
 
     messages = {
-        "fstr": (
-            "File specification `1` is not a string of " "one or more characters."
-        ),
+        "zstr": ("The file name cannot be an empty string."),
+        "badfile": ("The specified argument, `1`, should be a valid string."),
     }
 
     options = {
@@ -284,37 +278,43 @@ class FilePrint(Builtin):
 
     def eval(self, path, evaluation: Evaluation, options: dict):
         "FilePrint[path_, OptionsPattern[FilePrint]]"
+
+        if not isinstance(path, String):
+            evaluation.message("FilePrint", "badfile", path)
+            return
+
         pypath = path.to_python()
+
         if not (
             isinstance(pypath, str)
             and pypath[0] == pypath[-1] == '"'
             and len(pypath) > 2
         ):
-            evaluation.message("FilePrint", "fstr", path)
+            evaluation.message("FilePrint", "zstr", path)
             return
-        pypath, _ = path_search(pypath[1:-1])
+        resolved_pypath, _ = path_search(pypath[1:-1])
 
         # Options
         record_separators = options["System`RecordSeparators"].to_python()
-        assert isinstance(record_separators, list)
-        assert all(
-            isinstance(s, str) and s[0] == s[-1] == '"' for s in record_separators
-        )
-        record_separators = [s[1:-1] for s in record_separators]
+        assert isinstance(record_separators, tuple)
 
-        if pypath is None:
+        # Note: If we get a "noopen" message why we do not return SymbolFailed, I don't understand.
+        # But this is what WMA does.
+        # Also, this is error is tagged "General" instead of FilePrint, I also don't understand.
+        if resolved_pypath is None:
             evaluation.message("General", "noopen", path)
             return
 
-        if not osp.isfile(pypath):
+        if not osp.isfile(resolved_pypath):
             return SymbolFailed
 
         try:
-            with MathicsOpen(pypath, "r") as f:
+            with MathicsOpen(resolved_pypath, "r") as f:
                 result = f.read()
         except IOError:
             evaluation.message("General", "noopen", path)
-            return
+            return SymbolFailed
+
         except MessageException as e:
             e.message(evaluation)
             return
@@ -332,20 +332,6 @@ class FilePrint(Builtin):
         return SymbolNull
 
 
-class Number_(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Number.html</url>
-
-    <dl>
-    <dt>'Number'
-      <dd>is a data type for 'Read'.
-    </dl>
-    """
-
-    name = "Number"
-    summary_text = "exact or approximate number in Fortran‐like notation"
-
-
 class Get(PrefixOperator):
     r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/Get.html</url>
@@ -354,9 +340,12 @@ class Get(PrefixOperator):
       <dt>'<<$name$'
       <dd>reads a file and evaluates each expression, returning only the last one.
 
-      <dt>'Get[$name$, Trace->True]'
+      <dt>'Get'[$name$, Trace->True]
       <dd>Runs Get tracing each line before it is evaluated.
+
+     'Settings`\$TraceGet' can be also used to trace lines on all 'Get[]' calls.
     </dl>
+
 
     S> filename = $TemporaryDirectory <> "/example_file";
     S> Put[x + y, filename]
@@ -373,46 +362,43 @@ class Get(PrefixOperator):
     ## 'Get' can also load packages:
     ## >> << "VectorAnalysis`"
     """
-    operator = "<<"
+
     options = {
         "Trace": "False",
     }
-    precedence = 720
     summary_text = "read in a file and evaluate commands in it"
 
     def eval(self, path: String, evaluation: Evaluation, options: dict):
         "Get[path_String, OptionsPattern[Get]]"
 
-        trace_fn = None
+        # Make sure to pick up copy from module each time instead of using
+        # use "from ... import DEFAULT_TRACE_FN" which will not pick
+        # up run-time changes made to the module function.
+        trace_fn = io_files.DEFAULT_TRACE_FN
+
         trace_get = evaluation.parse("Settings`$TraceGet")
         if (
             options["System`Trace"].to_python()
             or trace_get.evaluate(evaluation) is SymbolTrue
         ):
-            trace_fn = builtins.print
+            trace_fn = io_files.GET_PRINT_FN
 
         # perform the actual evaluation
         return eval_Get(path.value, evaluation, trace_fn)
 
-    def eval_default(self, filename, evaluation: Evaluation):
-        "Get[filename_]"
-        expr = to_expression("Get", filename)
-        evaluation.message("General", "stream", filename)
-        return expr
-
 
 class InputFileName_(Predefined):
-    """
+    r"""
     <url>
     :WMA link:
-    https://reference.wolfram.com/language/ref/$InputFileName.html</url>
+    https://reference.wolfram.com/language/ref/\$InputFileName.html</url>
 
     <dl>
-      <dt>'$InputFileName'
+      <dt>'\$InputFileName'
       <dd>is the name of the file from which input is currently being read.
     </dl>
 
-    While in interactive mode, '$InputFileName' is "".
+    While in interactive mode, '\$InputFileName' is "".
     X> $InputFileName
     """
 
@@ -430,7 +416,7 @@ class InputStream(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/InputStream.html</url>
 
     <dl>
-      <dt>'InputStream[$name$, $n$]'
+      <dt>'InputStream'[$name$, $n$]
       <dd>represents an input stream for functions such as 'Read' or 'Find'.
     </dl>
 
@@ -442,7 +428,24 @@ class InputStream(Builtin):
      = String
     """
 
+    messages = {
+        "intpm": "Positive machine-sized integer expected at position 2 of `1`",
+    }
     summary_text = "an input stream"
+
+
+class Number_(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Number.html</url>
+
+    <dl>
+    <dt>'Number'
+      <dd>is a data type for 'Read'.
+    </dl>
+    """
+
+    name = "Number"
+    summary_text = "exact or approximate number in Fortran‐like notation"
 
 
 class OpenRead(_OpenAction):
@@ -461,8 +464,6 @@ class OpenRead(_OpenAction):
 
     The stream must be closed after using it to release the resource:
     >> Close[%];
-
-    S> Close[OpenRead["https://raw.githubusercontent.com/Mathics3/mathics-core/master/README.rst"]];
     """
 
     summary_text = "open a file for reading"
@@ -513,14 +514,14 @@ class OpenAppend(_OpenAction):
     )
 
 
-class Put(BinaryOperator):
+class Put(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Put.html</url>
 
     <dl>
       <dt>'$expr$ >> $filename$'
       <dd>write $expr$ to a file.
-    <dt>'Put[$expr1$, $expr2$, ..., $filename$]'
+    <dt>'Put'[$expr_1$, $expr_2$, ..., "$filename$"]
       <dd>write a sequence of expressions to a file.
     </dl>
 
@@ -566,11 +567,9 @@ class Put(BinaryOperator):
     S> DeleteFile[filename]
     """
 
-    operator = ">>"
-    precedence = 30
     summary_text = "write an expression to a file"
 
-    def eval(self, exprs, filename, evaluation):
+    def eval(self, exprs, filename, evaluation: Evaluation):
         "Put[exprs___, filename_String]"
         instream = to_expression("OpenWrite", filename).evaluate(evaluation)
         if len(instream.elements) == 2:
@@ -584,12 +583,12 @@ class Put(BinaryOperator):
         close_stream(py_instream, instream_number)
         return result
 
-    def eval_input(self, exprs, name, n, evaluation):
+    def eval_input(self, exprs, name, n, evaluation: Evaluation):
         "Put[exprs___, OutputStream[name_, n_]]"
         stream = stream_manager.lookup_stream(n.get_int_value())
 
         if stream is None or stream.io.closed:
-            evaluation.message("Put", "openx", to_expression("OutputSteam", name, n))
+            evaluation.message("Put", "openx", get_eval_Expression())
             return
 
         # In Mathics-server, evaluation.format_output is modified.
@@ -597,11 +596,11 @@ class Put(BinaryOperator):
         # Eventually, we are going to replace this by a `MakeBoxes` call.
         def do_format_output(expr, evaluation):
             try:
-                boxed_expr = format_element(expr, evaluation, SymbolInputForm)
+                # TODO: set character encoding?
+                return render_input_form(expr, evaluation)
             except BoxError:
                 boxed_expr = format_element(expr, evaluation, SymbolFullForm)
-
-            return boxed_expr.boxes_to_text()
+                return boxed_expr.boxes_to_text()
 
         text = [do_format_output(expr, evaluation) for expr in exprs.get_sequence()]
         text = "\n".join(text) + "\n"
@@ -611,14 +610,13 @@ class Put(BinaryOperator):
 
         return SymbolNull
 
-    def eval_default(self, exprs, filename, evaluation):
+    def eval_default(self, exprs, filename, evaluation: Evaluation):
         "Put[exprs___, filename_]"
-        expr = to_expression("Put", exprs, filename)
-        evaluation.message("General", "stream", filename)
-        return expr
+        evaluation.message("Put", "stream", filename)
+        return to_expression("Put", exprs, filename)
 
 
-class PutAppend(BinaryOperator):
+class PutAppend(InfixOperator):
     """
     <url>
     :WMA link:
@@ -628,7 +626,7 @@ class PutAppend(BinaryOperator):
       <dt>'$expr$ >>> $filename$'
       <dd>append $expr$ to a file.
 
-      <dt>'PutAppend[$expr1$, $expr2$, ..., $"filename"$]'
+      <dt>'PutAppend'[$expr_1$, $expr_2$, ..., "$filename$"]
       <dd>write a sequence of expressions to a file.
     </dl>
 
@@ -662,13 +660,18 @@ class PutAppend(BinaryOperator):
     >> DeleteFile["factorials"];
     """
 
-    operator = ">>>"
-    precedence = 30
     summary_text = "append an expression to a file"
 
     def eval(self, exprs, filename, evaluation):
-        "PutAppend[exprs___, filename_String]"
+        "PutAppend[exprs___, filename_]"
+
+        if not isinstance(filename, String):
+            evaluation.message("PutAppend", "stream", filename)
+            return
+
         instream = to_expression("OpenAppend", filename).evaluate(evaluation)
+        if instream is SymbolFailed:
+            return SymbolFailed
         if len(instream.elements) == 2:
             name, n = instream.elements
         else:
@@ -677,12 +680,12 @@ class PutAppend(BinaryOperator):
         to_expression("Close", instream).evaluate(evaluation)
         return result
 
-    def eval_input(self, exprs, name, n, evaluation):
+    def eval_input(self, exprs, name, n, evaluation: Evaluation):
         "PutAppend[exprs___, OutputStream[name_, n_]]"
         stream = stream_manager.lookup_stream(n.get_int_value())
 
         if stream is None or stream.io.closed:
-            evaluation.message("Put", "openx", to_expression("OutputSteam", name, n))
+            evaluation.message("Put", "openx", get_eval_Expression())
             return
 
         text = [
@@ -696,11 +699,45 @@ class PutAppend(BinaryOperator):
 
         return SymbolNull
 
-    def eval_default(self, exprs, filename, evaluation):
-        "PutAppend[exprs___, filename_]"
-        expr = to_expression("PutAppend", exprs, filename)
-        evaluation.message("General", "stream", filename)
-        return expr
+
+def validate_read_type(name: str, typ, evaluation: Evaluation):
+    """
+    Validate a Read option type, and give a message if
+    the type is invalid. For Expression[Hold], we convert it to
+    SymbolHoldExpression, String names are like "Byte" are
+    converted to Symbols in the return.
+    """
+    if hasattr(typ, "head") and typ.head == SymbolHold:
+        if not hasattr(typ, "elements"):
+            evaluation.message(name, "readf", typ)
+            return None
+
+        if typ.elements[0] != SymbolExpression:
+            evaluation.message(name, "readf", typ.elements[0])
+            return None
+
+        return SymbolHoldExpression
+
+    if isinstance(typ, String):
+        typ = Symbol(typ.value)
+    elif not isinstance(typ, Symbol):
+        evaluation.message(name, "readf", typ)
+        return None
+
+    if typ.short_name not in (
+        "Byte",
+        "Character",
+        "Expression",
+        "Number",
+        "Real",
+        "Record",
+        "String",
+        "Word",
+    ):
+        evaluation.message(name, "readf", typ)
+        return None
+
+    return typ
 
 
 class Read(Builtin):
@@ -708,19 +745,20 @@ class Read(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Read.html</url>
 
     <dl>
-      <dt>'Read[$stream$]'
+      <dt>'Read'[$stream$]
       <dd>reads the input stream and returns one expression.
 
-      <dt>'Read[$stream$, $type$]'
+      <dt>'Read'[$stream$, $type$]
       <dd>reads the input stream and returns an object of the given type.
 
-      <dt>'Read[$stream$, $type$]'
+      <dt>'Read'[$stream$, $type$]
       <dd>reads the input stream and returns an object of the given type.
 
       <dt>'Read[$stream$, Hold[Expression]]'
       <dd>reads the input stream for an Expression and puts it inside 'Hold'.
 
     </dl>
+
     $type$ is one of:
     <ul>
       <li>Byte
@@ -775,11 +813,11 @@ class Read(Builtin):
      = 5
     #> Close[stream];
 
-    Reading a comment however will return the empty list:
+    Reading a comment, a non-expression, will return 'Hold[Null]'
     >> stream = StringToStream["(* ::Package:: *)"];
 
     >> Read[stream, Hold[Expression]]
-     = {}
+     = Hold[Null]
 
     #> Close[stream];
 
@@ -799,13 +837,8 @@ class Read(Builtin):
     """
 
     messages = {
-        "openx": "`1` is not open.",
-        "readf": "`1` is not a valid format specification.",
         "readn": "Invalid real number found when reading from `1`.",
         "readt": "Invalid input found when reading `1` from `2`.",
-        "intnm": (
-            "Non-negative machine-sized integer expected at " "position 3 in `1`."
-        ),
     }
 
     rules = {
@@ -821,221 +854,56 @@ class Read(Builtin):
     }
     summary_text = "read an object of the specified type from a stream"
 
-    def check_options(self, options):
-        # Options
-        # TODO Proper error messages
+    def eval(self, stream, types, evaluation: Evaluation, options: dict):
+        "Read[stream_, types_, OptionsPattern[Read]]"
 
-        result = {}
-        keys = list(options.keys())
+        # FIXME: we don't handle SocketObjects yet?
+        if isinstance(stream, Expression) and stream.head is SymbolInputStream:
+            is_valid_stream = True
+        else:
+            is_valid_stream = isinstance(stream, (String, InputStream))
 
-        # AnchoredSearch
-        if "System`AnchoredSearch" in keys:
-            anchored_search = options["System`AnchoredSearch"].to_python()
-            assert anchored_search in [True, False]
-            result["AnchoredSearch"] = anchored_search
-
-        # IgnoreCase
-        if "System`IgnoreCase" in keys:
-            ignore_case = options["System`IgnoreCase"].to_python()
-            assert ignore_case in [True, False]
-            result["IgnoreCase"] = ignore_case
-
-        # WordSearch
-        if "System`WordSearch" in keys:
-            word_search = options["System`WordSearch"].to_python()
-            assert word_search in [True, False]
-            result["WordSearch"] = word_search
-
-        # RecordSeparators
-        if "System`RecordSeparators" in keys:
-            record_separators = options["System`RecordSeparators"].to_python()
-            assert isinstance(record_separators, list)
-            assert all(
-                isinstance(s, str) and s[0] == s[-1] == '"' for s in record_separators
-            )
-            record_separators = [s[1:-1] for s in record_separators]
-            result["RecordSeparators"] = record_separators
-
-        # WordSeparators
-        if "System`WordSeparators" in keys:
-            word_separators = options["System`WordSeparators"].to_python()
-            assert isinstance(word_separators, list)
-            assert all(
-                isinstance(s, str) and s[0] == s[-1] == '"' for s in word_separators
-            )
-            word_separators = [s[1:-1] for s in word_separators]
-            result["WordSeparators"] = word_separators
-
-        # NullRecords
-        if "System`NullRecords" in keys:
-            null_records = options["System`NullRecords"].to_python()
-            assert null_records in [True, False]
-            result["NullRecords"] = null_records
-
-        # NullWords
-        if "System`NullWords" in keys:
-            null_words = options["System`NullWords"].to_python()
-            assert null_words in [True, False]
-            result["NullWords"] = null_words
-
-        # TokenWords
-        if "System`TokenWords" in keys:
-            token_words = options["System`TokenWords"].to_python()
-            assert token_words == []
-            result["TokenWords"] = token_words
-
-        return result
-
-    def eval(self, channel, types, evaluation: Evaluation, options: dict):
-        "Read[channel_, types_, OptionsPattern[Read]]"
-
-        name, n, stream = read_name_and_stream_from_channel(channel, evaluation)
-        if name is None:
+        if not is_valid_stream:
+            evaluation.message("Read", "stream", stream)
             return
 
-        # Wrap types in a list (if it isn't already one)
-        if types.has_form("List", None):
-            types = types.elements
+        name, n, stream = read_name_and_stream(stream, evaluation)
+
+        if name is None:
+            return
+        elif name == SymbolFailed:
+            return SymbolFailed
+
+        # FIXME: DRY better with ReadList[].
+        # Validate types parameter and store the
+        # result into tuple checked_types.
+        if isinstance(types, ListExpression):
+            checked_types = []  # will be converted to tuple at the end
+            for typ in types:
+                new_type = validate_read_type("Read", typ, evaluation)
+                if new_type is None:
+                    return
+                checked_types.append(new_type)
+            checked_types = tuple(checked_types)
         else:
-            types = (types,)
+            new_type = validate_read_type("Read", types, evaluation)
+            if new_type is None:
+                return
+            checked_types = (new_type,)
 
-        # TODO: look for a better implementation handling "Hold[Expression]".
-        #
-        types = (
-            Symbol("HoldExpression")
-            if (
-                typ.get_head_name() == "System`Hold"
-                and typ.elements[0].get_name() == "System`Expression"
-            )
-            else typ
-            for typ in types
-        )
-        types = to_mathics_list(*types)
-
-        for typ in types.elements:
-            if typ not in READ_TYPES:
-                evaluation.message("Read", "readf", typ)
-                return SymbolFailed
-
-        record_separators, word_separators = read_get_separators(options)
-
-        name = name.to_python()
-
-        result = []
-
-        read_word = read_from_stream(stream, word_separators, evaluation.message)
-        read_record = read_from_stream(stream, record_separators, evaluation.message)
-        read_number = read_from_stream(
-            stream,
-            word_separators + record_separators,
-            evaluation.message,
-            ["+", "-", "."] + [str(i) for i in range(10)],
-        )
-        read_real = read_from_stream(
-            stream,
-            word_separators + record_separators,
-            evaluation.message,
-            ["+", "-", ".", "e", "E", "^", "*"] + [str(i) for i in range(10)],
-        )
-
-        from mathics_scanner.errors import IncompleteSyntaxError, InvalidSyntaxError
-
-        from mathics.core.expression import BaseElement
-        from mathics.core.parser import MathicsMultiLineFeeder, parse
-
-        for typ in types.elements:
-            try:
-                if typ is Symbol("Byte"):
-                    tmp = stream.io.read(1)
-                    if tmp == "":
-                        raise EOFError
-                    result.append(ord(tmp))
-                elif typ is Symbol("Character"):
-                    tmp = stream.io.read(1)
-                    if tmp == "":
-                        raise EOFError
-                    result.append(tmp)
-                elif typ is Symbol("Expression") or typ is Symbol("HoldExpression"):
-                    tmp = next(read_record)
-                    while True:
-                        try:
-                            feeder = MathicsMultiLineFeeder(tmp)
-                            expr = parse(evaluation.definitions, feeder)
-                            break
-                        except (IncompleteSyntaxError, InvalidSyntaxError):
-                            try:
-                                nextline = next(read_record)
-                                tmp = tmp + "\n" + nextline
-                            except EOFError:
-                                expr = SymbolEndOfFile
-                                break
-                        except Exception as e:
-                            print(e)
-
-                    if expr is SymbolEndOfFile:
-                        evaluation.message(
-                            "Read", "readt", tmp, to_expression("InputSteam", name, n)
-                        )
-                        return SymbolFailed
-                    elif isinstance(expr, BaseElement):
-                        if typ is Symbol("HoldExpression"):
-                            expr = Expression(SymbolHold, expr)
-                        result.append(expr)
-                    # else:
-                    #  TODO: Supposedly we can't get here
-                    # what code should we put here?
-
-                elif typ is Symbol("Number"):
-                    tmp = next(read_number)
-                    try:
-                        tmp = int(tmp)
-                    except ValueError:
-                        try:
-                            tmp = float(tmp)
-                        except ValueError:
-                            evaluation.message(
-                                "Read", "readn", to_expression("InputSteam", name, n)
-                            )
-                            return SymbolFailed
-                    result.append(tmp)
-
-                elif typ is SymbolReal:
-                    tmp = next(read_real)
-                    tmp = tmp.replace("*^", "E")
-                    try:
-                        tmp = float(tmp)
-                    except ValueError:
-                        evaluation.message(
-                            "Read", "readn", to_expression("InputSteam", name, n)
-                        )
-                        return SymbolFailed
-                    result.append(tmp)
-                elif typ is Symbol("Record"):
-                    result.append(next(read_record))
-                elif typ is Symbol("String"):
-                    tmp = stream.io.readline()
-                    if len(tmp) == 0:
-                        raise EOFError
-                    result.append(tmp.rstrip("\n"))
-                elif typ is Symbol("Word"):
-                    result.append(next(read_word))
-
-            except EOFError:
-                return SymbolEndOfFile
-            except UnicodeDecodeError:
-                evaluation.message("General", "ucdec")
-
-        if isinstance(result, Symbol):
-            return result
-        if len(result) == 1:
-            return from_python(*result)
+        result = eval_Read("Read", n, checked_types, stream, evaluation, options)
+        if isinstance(result, list):
+            if isinstance(types, ListExpression):
+                assert len(result) == len(
+                    types.elements
+                ), "internal error: eval_Read() should have a return for each type"
+            else:
+                assert (
+                    len(result) == 1
+                ), f"internal error: eval_Read() should return at most 1 element; got {result}"
+                return result[0]
 
         return from_python(result)
-
-    def eval_nostream(self, arg1, arg2, evaluation):
-        "Read[arg1_, arg2_]"
-        evaluation.message("General", "stream", arg1)
-        return
 
 
 class ReadList(Read):
@@ -1045,25 +913,81 @@ class ReadList(Read):
     https://reference.wolfram.com/language/ref/ReadList.html</url>
 
     <dl>
-      <dt>'ReadList["$file$"]'
+      <dt>'ReadList'["$file$"]
       <dd>Reads all the expressions until the end of file.
 
-      <dt>'ReadList["$file$", $type$]'
+      <dt>'ReadList'["$file$", $type$]
       <dd>Reads objects of a specified type until the end of file.
 
-      <dt>'ReadList["$file$", {$type1$, $type2$, ...}]'
+      <dt>'ReadList'["$file$", {$type_1$, $type_2$, ...}]
       <dd>Reads a sequence of specified types until the end of file.
     </dl>
 
-    >> ReadList[StringToStream["a 1 b 2"], {Word, Number}]
-     = {{a, 1}, {b, 2}}
+    To read all the numbers in a file and return a list of them:
+    >> ReadList["ExampleData/numbers.txt", Number]
+     = {11.1, 22.2, 33.3, 44.4, 55.5, 66.6}
 
-    >> stream = StringToStream["\\"abc123\\""];
-    >> ReadList[stream]
-     = {abc123}
-    >> InputForm[%]
-     = {"abc123"}
-    #> Close[stream];
+    (Use <url>:'FilePrint[]':
+    /doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/file-and-stream-operations/fileprint/</url>\
+    to get the raw data for the examples above and below.)
+
+    This does the same, but groups the numbers in to a pairs:
+    >> ReadList["ExampleData/numbers.txt", {Number, Number}]
+     = {{11.1, 22.2}, {33.3, 44.4}, {55.5, 66.6}}
+
+    Now let us read and put blocks of 3 numbers in its own list:
+    >> ReadList["ExampleData/numbers.txt", Table[Number, {3}]]
+     = {{11.1, 22.2, 33.3}, {44.4, 55.5, 66.6}}
+
+    ## 'ReadList' can handle number using Fortan-like "E" notation:
+    ## >> ReadList["ExampleData/bignum.txt", Number]
+    ## == {{0.000045, 78000, 250, -8.9}}
+
+    Like <url>:'Read[]':
+    /doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/file-and-stream-operations/read/</url>, \
+      'ReadList' handles types of objects other than numbers.
+    We can read a list of characters in a file putting each character as an item in a list:
+
+    >> ReadList["ExampleData/strings.txt", Character]
+     = ...
+
+    And now, here are the integer codes corresponding to each of the bytes in the file:
+    >> ReadList["ExampleData/strings.txt", Byte]
+     = {72, 101, 114, 101, 32, 105, 115, 32, 116, 101, 120, 116, 46, 10, 65, 110, 100, 32, 109, 111, 114, 101, 32, 116, 101, 120, 116, 46, 10}
+
+    But the data can also be read by "words":
+
+    >> ReadList["ExampleData/strings.txt", Word]
+     = {Here, is, text., And, more, text.}
+
+    The above uses the default value which is space of some sort., However you can \
+    set your own value:
+
+    >> ReadList["ExampleData/strings.txt", Word, WordSeparators -> {"e", "."}]
+     = {H, r,  is t, xt, And mor,  t, xt}
+
+    See <url>
+    :WordSeparators:
+    https://reference.wolfram.com/language/ref/WordSeprators.html</url> \
+    for more information.
+
+    Reading by records uses the separators found in
+    >> ReadList["ExampleData/strings.txt", Record]
+     = {Here is text., And more text.}
+
+    See <url>
+    :RecordSeparators:
+    https://reference.wolfram.com/language/ref/RecordSeprators.html</url> \
+    works analogously for records as 'WordSeparators' does for words.
+
+    To allow both periods and newlines as record separators:
+
+    >> ReadList["ExampleData/sentences.txt", Record, RecordSeparators -> {".", "\\n"}]
+    = {Here is text,  And more, And a second line}
+
+    See also <url>
+    :Reading Textual Data:
+      https://reference.wolfram.com/language/tutorial/FilesStreamsAndExternalOperations.html#3333</url>.
     """
 
     # TODO
@@ -1086,10 +1010,9 @@ class ReadList(Read):
     >> InputForm[%]
      = {123, abc}
     """
-    rules = {
-        "ReadList[stream_]": "ReadList[stream, Expression]",
+    messages = {
+        "opstl": "Value of option `1` should be a string or a list of strings.",
     }
-
     options = {
         "NullRecords": "False",
         "NullWords": "False",
@@ -1097,14 +1020,17 @@ class ReadList(Read):
         "TokenWords": "{}",
         "WordSeparators": '{" ", "\t"}',
     }
+    rules = {
+        "ReadList[stream_]": "ReadList[stream, Expression]",
+    }
     summary_text = "read a sequence of elements from a file, and put them in a WL list"
 
-    def eval(self, channel, types, evaluation: Evaluation, options: dict):
-        "ReadList[channel_, types_, OptionsPattern[ReadList]]"
+    def eval(self, file, types, evaluation: Evaluation, options: dict):
+        "ReadList[file_, types_, OptionsPattern[ReadList]]"
 
+        py_options = parse_read_options(options)
         # Options
         # TODO: Implement extra options
-        # py_options = self.check_options(options)
         # null_records = py_options['NullRecords']
         # null_words = py_options['NullWords']
         # record_separators = py_options['RecordSeparators']
@@ -1112,42 +1038,74 @@ class ReadList(Read):
         # word_separators = py_options['WordSeparators']
 
         result = []
+
+        # FIXME: DRY better with Read[].
+        # Validate types parameter and store the
+        # result into tuple checked_types.
+        if isinstance(types, ListExpression):
+            checked_types = []  # will be converted to tuple at the end
+            for typ in types:
+                new_type = validate_read_type("ReadList", typ, evaluation)
+                if new_type is None:
+                    return
+                checked_types.append(new_type)
+            checked_types = tuple(checked_types)
+        else:
+            new_type = validate_read_type("ReadList", types, evaluation)
+            if new_type is None:
+                return
+            checked_types = (new_type,)
+
+        name, n, stream = read_name_and_stream(file, evaluation)
+
+        if name is None:
+            return
+        elif name == SymbolFailed:
+            return SymbolFailed
+
         while True:
-            tmp = super(ReadList, self).eval(channel, types, evaluation, options)
+            next_elt = eval_Read(
+                "ReadList", n, checked_types, stream, evaluation, options
+            )
 
-            if tmp is None:
+            if next_elt is None:
                 return
 
-            if tmp is SymbolFailed:
+            if next_elt is SymbolFailed:
                 return
 
-            if tmp is SymbolEndOfFile:
+            if next_elt is SymbolEndOfFile:
                 break
-            result.append(tmp)
+
+            if isinstance(next_elt, list) and py_options["TokenWords"]:
+                # FIXME: This might not be correct in all cases.
+                # we probably need a more positive way to indicate whether next_elt
+                # was returned from TokenWord parsing or not.
+                result += next_elt
+            else:
+                result.append(next_elt)
         return from_python(result)
 
-    def eval_m(self, channel, types, m, evaluation: Evaluation, options: dict):
-        "ReadList[channel_, types_, m_, OptionsPattern[ReadList]]"
+    def eval_n(self, file, types, n: Integer, evaluation: Evaluation, options: dict):
+        "ReadList[file_, types_, n_Integer, OptionsPattern[ReadList]]"
 
         # Options
         # TODO: Implement extra options
-        # py_options = self.check_options(options)
+        # py_options = parse_read_options(options)
         # null_records = py_options['NullRecords']
         # null_words = py_options['NullWords']
         # record_separators = py_options['RecordSeparators']
         # token_words = py_options['TokenWords']
         # word_separators = py_options['WordSeparators']
 
-        py_m = m.get_int_value()
-        if py_m < 0:
-            evaluation.message(
-                "ReadList", "intnm", to_expression("ReadList", channel, types, m)
-            )
+        py_n = n.value
+        if py_n < 0:
+            evaluation.message("ReadList", "intnm", get_eval_Expression())
             return
 
         result = []
-        for i in range(py_m):
-            tmp = super(ReadList, self).eval(channel, types, evaluation, options)
+        for i in range(py_n):
+            tmp = super(ReadList, self).eval(file, types, evaluation, options)
 
             if tmp is SymbolFailed:
                 return
@@ -1165,7 +1123,7 @@ class StreamPosition(Builtin):
     https://reference.wolfram.com/language/ref/StreamPosition.html</url>
 
     <dl>
-      <dt>'StreamPosition[$stream$]'
+      <dt>'StreamPosition'[$stream$]
       <dd>returns the current position in a stream as an integer.
     </dl>
 
@@ -1208,7 +1166,7 @@ class SetStreamPosition(Builtin):
     https://reference.wolfram.com/language/ref/SetStreamPosition.html</url>
 
     <dl>
-    <dt>'SetStreamPosition[$stream$, $n$]'
+    <dt>'SetStreamPosition'[$stream$, $n$]
       <dd>sets the current position in a stream.
     </dl>
 
@@ -1253,9 +1211,7 @@ class SetStreamPosition(Builtin):
 
         seekpos = m.to_python()
         if not (isinstance(seekpos, int) or seekpos == float("inf")):
-            evaluation.message(
-                "SetStreamPosition", "stmrng", to_expression("InputStream", name, n), m
-            )
+            evaluation.message("SetStreamPosition", "stmrng", get_eval_Expression(), m)
             return
 
         try:
@@ -1288,10 +1244,10 @@ class Skip(Read):
     https://reference.wolfram.com/language/ref/Skip.html</url>
 
     <dl>
-      <dt>'Skip[$stream$, $type$]'
+      <dt>'Skip'[$stream$, $type$]
       <dd>skips ahead in an input steream by one object of the specified $type$.
 
-      <dt>'Skip[$stream$, $type$, $n$]'
+      <dt>'Skip'[$stream$, $type$, $n$]
       <dd>skips ahead in an input steream by $n$ objects of the specified $type$.
     </dl>
 
@@ -1331,14 +1287,14 @@ class Skip(Read):
     }
     summary_text = "skip over an object of the specified type in an input stream"
 
-    def eval(self, name, n, types, m, evaluation: Evaluation, options: dict):
-        "Skip[InputStream[name_, n_], types_, m_, OptionsPattern[Skip]]"
+    def eval(self, name, n, typ, m, evaluation: Evaluation, options: dict):
+        "Skip[InputStream[name_, n_], typ_, m_, OptionsPattern[Skip]]"
 
-        channel = to_expression("InputStream", name, n)
+        stream = to_expression("InputStream", name, n)
 
         # Options
         # TODO Implement extra options
-        # py_options = self.check_options(options)
+        # py_options = parse_read_options(options)
         # null_records = py_options['NullRecords']
         # null_words = py_options['NullWords']
         # record_separators = py_options['RecordSeparators']
@@ -1347,14 +1303,10 @@ class Skip(Read):
 
         py_m = m.to_python()
         if not (isinstance(py_m, int) and py_m > 0):
-            evaluation.message(
-                "Skip",
-                "intm",
-                to_expression("Skip", to_expression("InputStream", name, n), types, m),
-            )
+            evaluation.message("Skip", "intm", get_eval_Expression())
             return
         for i in range(py_m):
-            result = super(Skip, self).eval(channel, types, evaluation, options)
+            result = super(Skip, self).eval(stream, typ, evaluation, options)
             if result is SymbolEndOfFile:
                 return result
         return SymbolNull
@@ -1365,7 +1317,7 @@ class Find(Read):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Find.html</url>
 
     <dl>
-      <dt>'Find[$stream$, $text$]'
+      <dt>'Find'[$stream$, $text$]
       <dd>find the first line in $stream$ that contains $text$.
     </dl>
 
@@ -1386,6 +1338,8 @@ class Find(Read):
      = ...
     """
 
+    rules = {}
+
     options = {
         "AnchoredSearch": "False",
         "IgnoreCase": "False",
@@ -1400,7 +1354,7 @@ class Find(Read):
 
         # Options
         # TODO Implement extra options
-        # py_options = self.check_options(options)
+        # py_options = parse_read_options(options)
         # anchored_search = py_options['AnchoredSearch']
         # ignore_case = py_options['IgnoreCase']
         # word_search = py_options['WordSearch']
@@ -1409,24 +1363,32 @@ class Find(Read):
 
         py_text = text.to_python()
 
-        channel = to_expression("InputStream", name, n)
+        stream = to_expression("InputStream", name, n)
 
-        if not isinstance(py_text, list):
+        if not isinstance(py_text, (list, tuple)):
             py_text = [py_text]
 
-        if not all(isinstance(t, str) and t[0] == t[-1] == '"' for t in py_text):
-            evaluation.message("Find", "unknown", to_expression("Find", channel, text))
+        if not all(isinstance(t, str) for t in py_text):
+            evaluation.message("Find", "unknown", to_expression("Find", stream, text))
             return
 
-        py_text = [t[1:-1] for t in py_text]
+        # If py_text comes from a (literal) value, then there are no
+        # leading/trailing quotes around strings.  If it is still
+        # possible that py_text can be a list, then there could be
+        # leading/traling quotes.
+        if isinstance(py_text, list):
+            py_text = [t[1:-1] if t[0] == t[-1] == '"' else t for t in py_text]
 
         while True:
-            tmp = super(Find, self).eval(channel, Symbol("Record"), evaluation, options)
-            py_tmp = tmp.to_python()[1:-1]
+            tmp = super(Find, self).eval(stream, Symbol("Record"), evaluation, options)
+            if not isinstance(tmp, String):
+                return SymbolFailed
+
+            py_tmp = tmp.value
 
             if py_tmp == "System`EndOfFile":
                 evaluation.message(
-                    "Find", "notfound", to_expression("Find", channel, text)
+                    "Find", "notfound", to_expression("Find", stream, text)
                 )
                 return SymbolFailed
 
@@ -1442,7 +1404,7 @@ class OutputStream(Builtin):
     https://reference.wolfram.com/language/ref/OutputStream.html</url>
 
     <dl>
-      <dt>'OutputStream[$name$, $n$]'
+      <dt>'OutputStream'[$name$, $n$]
       <dd>represents an output stream.
     </dl>
 
@@ -1461,7 +1423,7 @@ class StringToStream(Builtin):
     https://reference.wolfram.com/language/ref/StringToStream.html</url>
 
     <dl>
-      <dt>'StringToStream[$string$]'
+      <dt>'StringToStream'[$string$]
       <dd>converts a $string$ to an open input stream.
     </dl>
 
@@ -1479,9 +1441,9 @@ class StringToStream(Builtin):
         pystring = string.to_python()[1:-1]
         fp = io.StringIO(str(pystring))
 
-        name = Symbol("String")
+        name_symbol = SymbolString
         stream = stream_manager.add(pystring, io=fp)
-        return to_expression("InputStream", name, Integer(stream.n))
+        return to_expression("InputStream", name_symbol, Integer(stream.n))
 
 
 class Streams(Builtin):
@@ -1506,7 +1468,7 @@ class Streams(Builtin):
         "Streams[]"
         return self.eval_name(None, evaluation)
 
-    def eval_name(self, name, evaluation):
+    def eval_name(self, name: String, evaluation):
         "Streams[name_String]"
         result = []
         for stream in stream_manager.STREAMS.values():
@@ -1561,7 +1523,7 @@ class Write(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Write.html</url>
 
     <dl>
-      <dt>'Write[$channel$, $expr1$, $expr2$, ...]'
+      <dt>'Write'[$channel$, $expr_1$, $expr_2$, ...]
       <dd>writes the expressions to the output channel followed by a newline.
     </dl>
 
@@ -1612,7 +1574,7 @@ class WriteString(Builtin):
     https://reference.wolfram.com/language/ref/WriteString.html</url>
 
     <dl>
-      <dt>'WriteString[$stream$, $str1, $str2$, ... ]'
+      <dt>'WriteString'[$stream$, $str_1$, $str_2$, ... ]
       <dd>writes the strings to the output stream.
     </dl>
 
@@ -1640,24 +1602,31 @@ class WriteString(Builtin):
 
     summary_text = "write a sequence of strings to a stream, with no extra newlines"
     messages = {
-        "strml": ("`1` is not a string, stream, " "or list of strings and streams."),
+        "strml": ("`1` is not a string, stream, or list of strings and streams."),
         "writex": "`1`.",
+        "noimp": ("List of strings and streams not implemented yet: `1`"),
     }
 
-    def eval(self, channel, expr, evaluation):
-        "WriteString[channel_, expr___]"
-        stream = None
-        if isinstance(channel, String):
-            if channel.value == "stdout":
-                stream = stream_manager.lookup_stream(1)
-            elif channel.value == "stderr":
-                stream = stream_manager.lookup_stream(2)
+    def eval(self, channel, expr, evaluation: Evaluation):
+        """WriteString[channel_, expr___]"""
 
-        if stream is None:
-            strm = channel_to_stream(channel, "w")
-            if strm is None:
+        if isinstance(channel, String):
+            stream = stream_manager.get_stream_by_name(channel.value)
+        elif isinstance(channel, Stream):
+            stream = channel
+        elif isinstance(channel, ListExpression):
+            evaluation.message("WriteString", "noimp", channel)
+            return
+        elif isinstance(channel, Expression) and channel.head == SymbolOutputStream:
+            stream_expr = channel_to_stream(channel, "w")
+            if stream_expr is None:
                 return
-            stream = stream_manager.lookup_stream(strm.elements[1].get_int_value())
+            stream = stream_manager.lookup_stream(
+                stream_expr.elements[1].get_int_value()
+            )
+        else:
+            evaluation.message("WriteString", "strml", channel)
+            return
 
         if stream is None or stream.io is None or stream.io.closed:
             return None

@@ -22,7 +22,7 @@ As with reading in data, final assembly to a LaTeX file or running
 documentation tests is done elsewhere.
 
 FIXME: This code should be replaced by Sphinx and autodoc.
-Things are such a mess, that it is too difficult to contemplate this right now. 
+Things are such a mess, that it is too difficult to contemplate this right now.
 Also there higher-priority flaws that are more more pressing.
 In the shorter, we might we move code for extracting printing to a
 separate package.

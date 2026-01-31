@@ -6,9 +6,9 @@ from mathics.core.symbols import SymbolPlus
 
 def test_expression_constructor():
     def attribute_check(e, varname: str):
-        assert e.elements_properties.elements_fully_evaluated == True, varname
-        assert e.elements_properties.is_flat == True, varname
-        assert e.elements_properties.is_ordered == True, varname
+        assert e.elements_properties.elements_fully_evaluated is True, varname
+        assert e.elements_properties.is_flat is True, varname
+        assert e.elements_properties.is_ordered is True, varname
 
     # The below will convert 1 Integer(1) multiple times
     # and discover that the arguments are flat, fully evaluated, and ordered.

@@ -3,7 +3,7 @@ Convert expressions to Python regular expressions
 """
 import re
 from binascii import hexlify
-from typing import Callable, Optional, Tuple
+from typing import Callable, Optional
 
 from mathics.core.atoms import String
 from mathics.core.expression import Expression
@@ -96,7 +96,7 @@ def to_regex_internal(
     (None, "") is returned if there is an error of some sort.
     """
 
-    def recurse(x: Expression, quantifiers=q) -> Tuple[Optional[str], str]:
+    def recurse(x: Expression, quantifiers=q) -> Optional[str]:
         """
         Shortened way to call to_regexp_internal -
         only the expr and quantifiers change here.
@@ -156,9 +156,9 @@ def to_regex_internal(
         return REGEXP_FOR_SYMBOLS.get(expr)
 
     if expr.has_form("CharacterRange", 2):
-        (start, stop) = (element.get_string_value() for element in expr.elements)
+        start, stop = (element.get_string_value() for element in expr.elements)
         if all(x is not None and len(x) == 1 for x in (start, stop)):
-            return "[{0}-{1}]".format(re.escape(start), re.escape(stop))
+            return f"[{re.escape(start)}-{re.escape(stop)}]"
 
     if expr.has_form("Blank", 0):
         return r"(.|\n)"
@@ -180,7 +180,7 @@ def to_regex_internal(
     if expr.has_form("Characters", 1):
         element = expr.elements[0].get_string_value()
         if element is not None:
-            return "[{0}]".format(re.escape(element))
+            return f"[{re.escape(element)}]"
     if expr.has_form("StringExpression", None):
         elements = [recurse(element) for element in expr.elements]
         if None in elements:
@@ -190,7 +190,7 @@ def to_regex_internal(
         element = recurse(expr.elements[0])
         if element is None:
             return None  # invalid regex
-        return "({0})".format(element) + q["+"]
+        return f"({element})" + q["+"]
     if expr.has_form("RepeatedNull", 1):
         element = recurse(expr.elements[0])
         if element is None:
@@ -216,7 +216,7 @@ def to_regex_internal(
                 show_message(
                     "StringExpression", "cond", expr.elements[0], expr, expr.elements[0]
                 )
-            return "(?P=%s)" % _encode_pname(name)
+            return f"(?P={_encode_pname(name)})"
         else:
             element = groups[name] = expr.elements[1]
             if element is None:
@@ -224,6 +224,6 @@ def to_regex_internal(
             result_regexp = recurse(element)
             if result_regexp is None:
                 return None
-            return "(?P<%s>%s)" % (_encode_pname(name), result_regexp)
+            return f"(?P<{_encode_pname(name)}>{result_regexp})"
 
     return None

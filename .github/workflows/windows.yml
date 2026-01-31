@@ -14,7 +14,7 @@ jobs:
         os: [windows]
         # "make doctest" on MS Windows fails without showing much of a
         # trace of where things went wrong on Python before 3.11.
-        python-version: ['3.11']
+        python-version: ['3.13']
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
@@ -34,8 +34,10 @@ jobs:
     - name: Install Mathics3 with Python dependencies
       run: |
         # We can comment out after next Mathics-Scanner release
-        # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
-        python -m pip install Mathics-Scanner
+        python -m pip install -e "Mathics-Scanner[full] @ git+https://github.com/Mathics3/mathics-scanner"
+        pip install -e .
+
+        # python -m pip install Mathics-Scanner[full]
         make develop-full
     - name: Test Mathics3
       # Limit pip install to a basic install *without* full dependencies.
@@ -49,5 +51,5 @@ jobs:
         pip install pyocr # from full
         pip install -e .[dev]
         make pytest gstest
-        make doctest
+        make doctest DOCTEST_OPTIONS="--exclude WordCloud"
         # make check

@@ -3,11 +3,12 @@ import os
 import os.path as osp
 import sys
 import tempfile
-from test.helper import check_evaluation, evaluate, session
+from test.helper import check_evaluation, check_evaluation_as_in_cli, evaluate, session
 
 import pytest
 
 from mathics.builtin.atomic.strings import to_python_encoding
+from mathics.core.systemsymbols import SymbolFailed
 
 # def test_import():
 #     eaccent = "\xe9"
@@ -153,6 +154,31 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
             "Null",
             None,
         ),
+        ## Import with format
+        (
+            'Import["ExampleData/Testosterone.svg"];',
+            ("SVG is not a supported Import format.",),
+            "Null",
+            None,
+        ),
+        (
+            'Import["ExampleData/Testosterone.svg", "XML"] // Head',
+            None,
+            "XMLObject[Document]",
+            None,
+        ),
+        (
+            'Import["ExampleData/Testosterone.svg", {"XML"}] // Head',
+            None,
+            "XMLObject[Document]",
+            None,
+        ),
+        (
+            'Import["ExampleData/Testosterone.svg", {"XML", "XML"}];',
+            ("The Import element XML is not present when importing as XML.",),
+            "Null",
+            None,
+        ),
         ## XML
         (
             'MatchQ[Import["ExampleData/InventionNo1.xml", "Tags"],{__String}]',
@@ -219,14 +245,6 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
             "$Failed",
             None,
         ),
-        ## Empty elems
-        ('Export["123.txt", 1+x, {}]', None, "123.txt", None),
-        (
-            'Export["123.jcp", 1+x, {}]',
-            ("Cannot infer format of file 123.jcp.",),
-            "$Failed",
-            None,
-        ),
         ## FORMATS
         ## ASCII text
         ('FileFormat["ExampleData/BloodToilTearsSweat.txt"]', None, "Text", None),
@@ -260,9 +278,43 @@ def test_private_doctests_importexport(str_expr, msgs, str_expected, fail_msg):
     )
 
 
-# TODO:
-# mmatera: please put in pytest conditionally
-# >> System`Convert`B64Dump`B64Encode["∫ f  x"]
-#  = 4oirIGYg752MIHg=
-# >> System`Convert`B64Dump`B64Decode[%]
-#  = ∫ f  x
+def test_inividually():
+    # Test Export where we cannot infer the export type from the file extension;
+    # here it is: ".jcp".
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".jcp") as tmp:
+        filename = tmp.name
+        expr = f'Export["{filename}", 1+x,' + "{}]"
+        result = evaluate(expr)
+        outs = [out.text for out in session.evaluation.out]
+        assert result == SymbolFailed
+        assert outs == [f"Cannot infer format of file {filename}."]
+
+    # Check that exporting with an empty list of elements is okay.
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt") as tmp:
+        filename = tmp.name
+        expr = f'Export["{filename}", 1+x' + "{}]"
+        result = evaluate(expr)
+        outs = [out.text for out in session.evaluation.out]
+        assert outs == []
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    [
+        (
+            r'System`Convert`B64Dump`B64Encode["∫ f  x"]',
+            None,
+            r"4oirIGYg752MIHg=",
+            None,
+        ),
+        (
+            r'System`Convert`B64Dump`B64Decode["4oirIGYg752MIHg="]',
+            None,
+            r"∫ f  x",
+            None,
+        ),
+    ],
+)
+def test_b64encode(str_expr, msgs, str_expected, fail_msg):
+    """special case"""
+    check_evaluation_as_in_cli(str_expr, str_expected, fail_msg, msgs)

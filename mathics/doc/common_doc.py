@@ -21,7 +21,6 @@ from mathics.doc.doc_entries import (
     DL_ITEM_RE,
     DL_RE,
     HYPERTEXT_RE,
-    IMG_PNG_RE,
     IMG_RE,
     LATEX_RE,
     LIST_ITEM_RE,
@@ -41,10 +40,6 @@ from mathics.doc.doc_entries import (
     post_sub,
     pre_sub,
 )
-
-gather_tests = parse_docstring_to_DocumentationEntry_items
-XMLDOC = DocumentationEntry
-
 from mathics.doc.structure import (
     MATHICS3_MODULES_TITLE,
     SUBSECTION_END_RE,
@@ -58,3 +53,44 @@ from mathics.doc.structure import (
     MathicsMainDocumentation,
     sorted_chapters,
 )
+
+gather_tests = parse_docstring_to_DocumentationEntry_items
+XMLDOC = DocumentationEntry
+
+__all__ = [
+    "ALLOWED_TAGS",
+    "ALLOWED_TAGS_RE",
+    "CONSOLE_RE",
+    "DL_ITEM_RE",
+    "DL_RE",
+    "DocChapter",
+    "DocGuideSection",
+    "DocPart",
+    "DocSection",
+    "DocSubsection",
+    "DocTest",
+    "DocTests",
+    "DocText",
+    "Documentation",
+    "DocumentationEntry",
+    "HYPERTEXT_RE",
+    "IMG_RE",
+    "LATEX_RE",
+    "LIST_ITEM_RE",
+    "LIST_RE",
+    "MATHICS3_MODULES_TITLE",
+    "MATHICS_RE",
+    "MathicsMainDocumentation",
+    "PYTHON_RE",
+    "QUOTATIONS_RE",
+    "REF_RE",
+    "SPECIAL_COMMANDS",
+    "SUBSECTION_END_RE",
+    "SUBSECTION_RE",
+    "Tests",
+    "get_results_by_test",
+    "parse_docstring_to_DocumentationEntry_items",
+    "post_sub",
+    "pre_sub",
+    "sorted_chapters",
+]

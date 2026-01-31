@@ -63,6 +63,11 @@ def test_range(str_expr, str_expected, failure_message):
             "{-0.2, 0.8, 1.8, 2.8, 3.8}",
             None,
         ),
+        (
+            "Table[i, {i, 1, 9, 0}]",
+            "Table[i, {i, 1, 9, 0}]",
+            "Table::iterb: Iterator does not have appropriate bounds.",
+        ),
     ],
 )
 def test_table(str_expr, str_expected, failure_message):

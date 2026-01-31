@@ -19,7 +19,7 @@ class PixelValue(Builtin):
     https://reference.wolfram.com/language/ref/PixelValue.html</url>
 
     <dl>
-      <dt>'PixelValue[$image$, {$x$, $y$}]'
+      <dt>'PixelValue'[$image$, {$x$, $y$}]
       <dd>gives the value of the pixel at position {$x$, $y$} in $image$.
     </dl>
 
@@ -53,7 +53,7 @@ class PixelValuePositions(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/PixelValuePositions.html</url>
 
     <dl>
-      <dt>'PixelValuePositions[$image$, $val$]'
+      <dt>'PixelValuePositions'[$image$, $val$]
       <dd>gives the positions of all pixels in $image$ that have value $val$.
     </dl>
 
@@ -86,7 +86,7 @@ class PixelValuePositions(Builtin):
         )
 
         # python indexes from 0 at top left -> indices from 1 starting at bottom left
-        # if single channel then ommit channel indices
+        # if single channel then omit channel indices
         height = image.pixels.shape[0]
         if image.pixels.shape[2] == 1:
             result = sorted((j + 1, height - i) for i, j, k in positions.tolist())

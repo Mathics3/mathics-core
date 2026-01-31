@@ -45,19 +45,19 @@ import pytest
         (
             "DSolve[f'[x] == f[x], f, x] /. {C[1] -> 1}",
             None,
-            "{{f -> (Function[{x}, 1 E ^ x])}}",
+            "{{f -> Function[{x}, 1 E ^ x]}}",
             None,
         ),
         (
             "DSolve[f'[x] == f[x], f, x] /. {C -> D}",
             None,
-            "{{f -> (Function[{x}, D[1] E ^ x])}}",
+            "{{f -> Function[{x}, D[1] E ^ x]}}",
             None,
         ),
         (
             "DSolve[f'[x] == f[x], f, x] /. {C[1] -> C[0]}",
             None,
-            "{{f -> (Function[{x}, C[0] E ^ x])}}",
+            "{{f -> Function[{x}, C[0] E ^ x]}}",
             None,
         ),
         (
@@ -66,11 +66,11 @@ import pytest
             "DSolve[f[x] == 0, f, {}]",
             None,
         ),
-        ## Order of arguments shoudn't matter
+        # Order of arguments should not matter
         (
             "DSolve[D[f[x, y], x] == D[f[x, y], y], f, {x, y}]",
             None,
-            "{{f -> (Function[{x, y}, C[1][-x - y]])}}",
+            "{{f -> Function[{x, y}, C[1][-x - y]]}}",
             None,
         ),
         (
@@ -88,7 +88,7 @@ import pytest
         (
             "DSolve[\\[Gamma]'[x] == 0, \\[Gamma], x]",
             None,
-            "{{γ -> (Function[{x}, C[1]])}}",
+            "{{γ -> Function[{x}, C[1]]}}",
             "sympy #11669 test",
         ),
     ],

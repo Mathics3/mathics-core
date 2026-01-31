@@ -5,13 +5,13 @@ Iteratively Applying Functions
 Functional iteration is an elegant way to represent repeated operations that is used a lot.
 """
 
-from mathics.core.atoms import Integer1
 from mathics.core.builtin import Builtin
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.symbols import Symbol, SymbolTrue
+from mathics.core.systemsymbols import SymbolAll
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.iteratively-applying-functions"
@@ -19,11 +19,14 @@ sort_order = "mathics.builtin.iteratively-applying-functions"
 
 class FixedPoint(Builtin):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/FixedPoint.html</url>
+
     <dl>
-      <dt>'FixedPoint[$f$, $expr$]'
+      <dt>'FixedPoint'[$f$, $expr$]
       <dd>starting with $expr$, iteratively applies $f$ until the result no longer changes.
 
-      <dt>'FixedPoint[$f$, $expr$, $n$]'
+      <dt>'FixedPoint'[$f$, $expr$, $n$]
       <dd>performs at most $n$ iterations. The same that using $MaxIterations->n$
     </dl>
 
@@ -84,11 +87,15 @@ class FixedPoint(Builtin):
 
 class FixedPointList(Builtin):
     """
-    <dl>
-      <dt>'FixedPointList[$f$, $expr$]'
-      <dd>starting with $expr$, iteratively applies $f$ until the result no longer changes, and returns a list of all intermediate results.
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/FixedPointList.html</url>
 
-      <dt>'FixedPointList[$f$, $expr$, $n$]'
+    <dl>
+      <dt>'FixedPointList'[$f$, $expr$]
+      <dd>starting with $expr$, iteratively applies $f$ until the result no longer changes, \
+          and returns a list of all intermediate results.
+
+      <dt>'FixedPointList'[$f$, $expr$, $n$]
       <dd>performs at most $n$ iterations.
     </dl>
 
@@ -100,12 +107,17 @@ class FixedPointList(Builtin):
     >> newton[9]
      = {1., 5., 3.4, 3.02353, 3.00009, 3., 3., 3.}
 
-    Plot the "hailstone" sequence of a number:
+    Compute the <url>:Hailstone Number:
+    https://mathworld.wolfram.com/HailstoneNumber.html</url>: for 14:
+
     >> collatz[1] := 1;
     >> collatz[x_ ? EvenQ] := x / 2;
     >> collatz[x_] := 3 x + 1;
     >> list = FixedPointList[collatz, 14]
      = {14, 7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1, 1}
+
+    Plot this:
+
     >> ListLinePlot[list]
      = -Graphics-
     """
@@ -143,11 +155,14 @@ class FixedPointList(Builtin):
 
 class Fold(Builtin):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/Fold.html</url>
+
     <dl>
-      <dt>'Fold[$f$, $x$, $list$]'
+      <dt>'Fold'[$f$, $x$, $list$]
       <dd>returns the result of iteratively applying the binary
         operator $f$ to each element of $list$, starting with $x$.
-      <dt>'Fold[$f$, $list$]'
+      <dt>'Fold'[$f$, $list$]
       <dd>is equivalent to 'Fold[$f$, First[$list$], Rest[$list$]]'.
     </dl>
 
@@ -166,12 +181,15 @@ class Fold(Builtin):
 
 class FoldList(Builtin):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/FoldList.html</url>
+
     <dl>
-      <dt>'FoldList[$f$, $x$, $list$]'
+      <dt>'FoldList'[$f$, $x$, $list$]
       <dd>returns a list starting with $x$, where each element is
         the result of applying the binary operator $f$ to the previous
         result and the next element of $list$.
-      <dt>'FoldList[$f$, $list$]'
+      <dt>'FoldList'[$f$, $list$]
       <dd>is equivalent to 'FoldList[$f$, First[$list$], Rest[$list$]]'.
     </dl>
 
@@ -185,13 +203,16 @@ class FoldList(Builtin):
         "FoldList[exp_, x_, head_]": "Module[{i = 1}, Head[head] @@ Prepend[Table[Fold[exp, x, Take[head, i]], {i, 1, Length[head]}], x]]",
         "FoldList[exp_, head_]": "If[Length[head] == 0, head, FoldList[exp, First[head], Rest[head]]]",
     }
-    summary_text = "list of the results of applying a binary operation interatively over elements of a list"
+    summary_text = "list of the results of applying a binary operation iteratively over elements of a list"
 
 
 class Nest(Builtin):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/Nest.html</url>
+
     <dl>
-      <dt>'Nest[$f$, $expr$, $n$]'
+      <dt>'Nest'[$f$, $expr$, $n$]
       <dd>starting with $expr$, iteratively applies $f$ $n$ times and returns the final result.
     </dl>
 
@@ -199,6 +220,8 @@ class Nest(Builtin):
      = f[f[f[x]]]
     >> Nest[(1+#) ^ 2 &, x, 2]
      = (1 + (1 + x) ^ 2) ^ 2
+    >> Nest[Subsuperscript[#,#,#]&,0,5]
+     = ...
     """
 
     summary_text = "give the result of nesting a function"
@@ -217,8 +240,11 @@ class Nest(Builtin):
 
 class NestList(Builtin):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/NestList.html</url>
+
     <dl>
-      <dt>'NestList[$f$, $expr$, $n$]'
+      <dt>'NestList'[$f$, $expr$, $n$]
       <dd>starting with $expr$, iteratively applies $f$ $n$ times and \
           returns a list of all intermediate results.
     </dl>
@@ -257,15 +283,18 @@ class NestList(Builtin):
 
 class NestWhile(Builtin):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/NestWhile.html</url>
+
     <dl>
-      <dt>'NestWhile[$f$, $expr$, $test$]'
+      <dt>'NestWhile'[$f$, $expr$, $test$]
       <dd>applies a function $f$ repeatedly on an expression $expr$, until \
           applying $test$ on the result no longer yields 'True'.
 
-      <dt>'NestWhile[$f$, $expr$, $test$, $m$]'
+      <dt>'NestWhile'[$f$, $expr$, $test$, $m$]
       <dd>supplies the last $m$ results to $test$ (default value: 1).
 
-      <dt>'NestWhile[$f$, $expr$, $test$, All]'
+      <dt>'NestWhile'[$f$, $expr$, $test$, All]
       <dd>supplies all results gained so far to $test$.
     </dl>
 
@@ -302,7 +331,7 @@ class NestWhile(Builtin):
 
         results = [expr]
         while True:
-            if m.get_name() == "System`All":
+            if m is SymbolAll:
                 test_elements = results
             else:
                 test_elements = results[-m.value :]

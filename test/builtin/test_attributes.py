@@ -4,7 +4,7 @@ Unit tests from mathics.builtin.attributes.
 """
 
 import os
-from test.helper import check_evaluation, check_evaluation_as_in_cli, session
+from test.helper import check_evaluation, check_evaluation_as_in_cli
 
 import pytest
 
@@ -229,7 +229,7 @@ def test_Attributes_wrong_args(str_expr, arg_count):
 
 
 @pytest.mark.parametrize(
-    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    ("str_expr", "msgs", "str_expected", "assert_failure_msg"),
     [
         ("CleanAll[u];CleanAll[v];", None, None, None),
         ("SetAttributes[{u, v}, Flat];u[x_] := {x};u[]", None, "u[]", None),
@@ -237,15 +237,15 @@ def test_Attributes_wrong_args(str_expr, arg_count):
         ("v[x_] := x;v[]", None, "v[]", None),
         ("v[a]", None, "a", None),
         (
-            "v[a, b]",
+            "Block[{$IterationLimit = 40}, v[a, b]]",
             None,
             "v[a, b]",
-            "in Mathematica: Iteration limit of 4096 exceeded.",
+            "Test $IterationLimit catches unbounded expansion",
         ),
         ("CleanAll[u];CleanAll[v];", None, None, None),
     ],
 )
-def test_private_doctests_attributes(str_expr, msgs, str_expected, fail_msg):
+def test_private_doctests_attributes(str_expr, msgs, str_expected, assert_failure_msg):
     """ """
     check_evaluation(
         str_expr,
@@ -253,33 +253,36 @@ def test_private_doctests_attributes(str_expr, msgs, str_expected, fail_msg):
         to_string_expr=True,
         to_string_expected=True,
         hold_expected=True,
-        failure_message=fail_msg,
+        failure_message=assert_failure_msg,
         expected_messages=msgs,
     )
 
 
 @pytest.mark.parametrize(
-    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    ("str_expr", "msgs", "str_expected", "assert_failure_msg"),
     [
         ("CleanAll[u];CleanAll[v];", None, None, None),
         (
-            "SetAttributes[{u, v}, Flat];u[x_] := {x};u[a, b]",
-            ("Iteration limit of 1000 exceeded.",),
+            "Block[{$IterationLimit=30}, SetAttributes[{u, v}, Flat];u[x_] := {x};u[a, b]]",
+            ("Iteration limit of 30 exceeded.",),
             "$Aborted",
-            None,
+            "Test $IterationLimit catches unbounded expansion using SetDelayed, test 1.",
         ),
-        ("u[a, b, c]", ("Iteration limit of 1000 exceeded.",), "$Aborted", None),
         (
-            "v[x_] := x;v[a,b,c]",
-            ("Iteration limit of 1000 exceeded.",),
+            "Block[{$IterationLimit=20}, u[a, b, c]]",
+            ("Iteration limit of 20 exceeded.",),
             "$Aborted",
-            "in Mathematica: Iteration limit of 4096 exceeded.",
+            "Test $IterationLimit catches unbounded expansion in function call.",
+        ),
+        (
+            "Block[{$IterationLimit=20}, v[x_] := x;v[a,b,c]]",
+            ("Iteration limit of 20 exceeded.",),
+            "$Aborted",
+            "Test $IterationLimit catches unbounded expansion using SetDelayed, test 2.",
         ),
         ("CleanAll[u];CleanAll[v];", None, None, None),
     ],
 )
-def test_private_doctests_attributes_with_exceptions(
-    str_expr, msgs, str_expected, fail_msg
-):
-    """These tests check the behavior of $RecursionLimit and $IterationLimit"""
-    check_evaluation_as_in_cli(str_expr, str_expected, fail_msg, msgs)
+def test_IterationLimit(str_expr, msgs, str_expected, assert_failure_msg):
+    """Check the behavior of $RecursionLimit and $IterationLimit"""
+    check_evaluation_as_in_cli(str_expr, str_expected, assert_failure_msg, msgs)

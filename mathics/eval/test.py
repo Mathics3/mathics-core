@@ -5,8 +5,8 @@ test evaluations over ``Expression``s.
 """
 
 
-from mathics.core.atoms import Atom
 from mathics.core.pattern import StopGenerator
+from mathics.core.symbols import Atom
 
 
 class _StopGeneratorBaseElementIsFree(StopGenerator):
@@ -20,7 +20,15 @@ def item_is_free(item, form, evaluation):
         # return False
 
     try:
-        form.match(yield_match, item, {}, evaluation, fully=False)
+        form.match(
+            item,
+            pattern_context={
+                "yield_func": yield_match,
+                "vars_dict": {},
+                "evaluation": evaluation,
+                "fully": False,
+            },
+        )
     except _StopGeneratorBaseElementIsFree as exc:
         return exc.value
 

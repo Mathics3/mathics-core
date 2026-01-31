@@ -21,6 +21,16 @@
 
 \documentclass[index=totoc,fleqn,10pt,oneside,toc=flat]{scrbook}
 
+% The number is sections and subsections can get high, for example:
+%  26.2.16 PolarPlot
+%  ^^^^^^^
+% So we need the below to automatically calculate the width numbers can take
+% See:
+% https://tex.stackexchange.com/questions/694088/koma-book-class-listoftables-increase-the-space-between-the-number-and-title-of
+\DeclareTOCStyleEntry[dynnumwidth]{default}{chapter}
+\DeclareTOCStyleEntry[dynnumwidth]{default}{section}
+\DeclareTOCStyleEntry[dynnumwidth]{default}{subsection}
+
 %\usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{gensymb} % For \degree. usepackage needs to be early.
@@ -31,8 +41,13 @@
 \usepackage{asymptote}
 \usepackage[hypertexnames=false]{hyperref} % make hyperref aware of chapter reset for built-in symbols
 % (http://tex.stackexchange.com/questions/6098/wrong-hyper-references-after-resetting-chapter-counter)
-\usepackage{amsmath}
-\usepackage{amssymb}
+
+% Use AMS fonts
+\usepackage{amsmath, amssymb}
+
+% Improved Palatino fonts - better unicode support?
+\usepackage{newpxtext,newpxmath}
+
 \usepackage{color}
 \usepackage{fullpage}
 \usepackage{graphics}
@@ -65,8 +80,7 @@
 \definecolor{pythonstring}{rgb}{0,0.5,0}
 
 \title{
-    \includegraphics[height=0.1\linewidth]{logo-heptatom.pdf}
-    \includegraphics[height=0.08125\linewidth]{logo-text-nodrop.pdf}
+    \includegraphics[height=0.1\linewidth]{mathics-title.pdf}
 \\[.5em]
   {\LARGE\color{subtitle}\textit{\textmd{A free, open-source alternative to Mathematica}}}
   \par\textmd{\Large Mathics3 Core Version \MathicsCoreVersion}
@@ -102,14 +116,17 @@
 \makeatletter\newenvironment{definitions}{
 
 	\vspace{0.5em}%
-	\begin{lrbox}{\@tempboxa}\begin{minipage}{0.95\columnwidth}%
-	\nobreak\vspace{0.3em}%
+	\begin{lrbox}{\@tempboxa}
+          \hspace*{0.6em}
+          \begin{minipage}{0.9\columnwidth}%
+	\nobreak\vspace{0.6em}%
 }{%
 	\nobreak%
-	\vspace{0.3em}%
-	\end{minipage}\end{lrbox}
+	\vspace{0.6em}%
+      \end{minipage}\hspace*{1em}
+       \end{lrbox}
 	\colorbox{definitions}{\usebox{\@tempboxa}}
-	\vspace{1em}%
+	\vspace{0.6em}%
 }\makeatother
 
 \newcommand{\dt}[1]{#1%
@@ -215,7 +232,7 @@
 }
 % Test case print output
 \newenvironment{testprint}{\item
-  \vspace{-0.5em}
+  \vspace{0.0em}
   \begin{minipage}{\codewidth}
     \begin{ttfamily}%
       \vspace{0.1em}%
@@ -294,16 +311,26 @@
 % Add this into table of contents
 % The page reference may come out wrong and refer to the index.
 % If so, adjust by hand, or diff file.
-\addcontentsline{toc}{chapter}{Colophon}
+  \addcontentsline{toc}{chapter}{Colophon}
+
 \begin{description}
-  \item[Mathics3 Core] \hfill \\ \MathicsCoreVersion
+  \item[Mathics3 Core] \hfill \MathicsCoreVersion
   \item[Python] \hfill \\ \PythonVersion
-  \item[mpmath] \hfill \\ \mpmathVersion
-  \item[NumpyPy] \hfill \\ \NumPyVersion
-  \item[SymPy] \hfill \\ \SymPyVersion
   \item[XeTeX] \hfill \\ \XeTeXVersion
   \item[Asymptote] \hfill \\ \AsymptoteVersion
-  \item[Ghostscript] \hfill \\ \GhostscriptVersion
+  \item[mpmath] \hfill  \mpmathVersion
+  \item[NumpyPy] \hfill  \NumPyVersion
+  \item[SymPy] \hfill  \SymPyVersion
+  \item[Ghostscript] \hfill  \GhostscriptVersion
+  \item[cython] \hfill  \cython
+  \item[lxml] \hfill  \lxml
+  \item[matplotlib] \hfill  \matplotlib
+  \item[networkx] \hfill  \networkx
+  \item[psutil] \hfill \psutil
+  \item[skimage] \hfill  \skimage
+  \item[scipy] \hfill  \scipy
+  \item[wordcloud] \hfill  \wordcloud
 \end{description}
+
 \end{colophon}
 \end{document}

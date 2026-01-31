@@ -8,11 +8,11 @@ from mathics.core.evaluation import Evaluation
 
 
 class Out(Builtin):
-    """
-    <url>:WMA: https://reference.wolfram.com/language/ref/$Out</url>
+    r"""
+    <url>:WMA: https://reference.wolfram.com/language/ref/Out</url>
     <dl>
-      <dt>'%$k$' or 'Out[$k$]'
-      <dd>gives the result of the $k$th input line.
+      <dt>'$\%k$' or 'Out'[$k$]
+      <dd>gives the result of the $k$-th input line.
 
       <dt>'%'
       <dd>gives the last result.
@@ -55,9 +55,9 @@ class Out(Builtin):
         "Out[k_Integer?Negative]": "Out[$Line + k]",
         "Out[]": "Out[$Line - 1]",
         "MakeBoxes[Out[k_Integer?((-10 <= # < 0)&)],"
-        "    f:StandardForm|TraditionalForm|InputForm|OutputForm]": r'StringJoin[ConstantArray["%%", -k]]',
+        "    f:StandardForm|TraditionalForm]": r'StringJoin[ConstantArray["%%", -k]]',
         "MakeBoxes[Out[k_Integer?Positive],"
-        "    f:StandardForm|TraditionalForm|InputForm|OutputForm]": r'"%%" <> ToString[k]',
+        "    f:StandardForm|TraditionalForm]": r'"%%" <> ToString[k]',
     }
     summary_text = "result of the Kth input line"
 
@@ -70,9 +70,10 @@ class Quit(Builtin):
       <dt>'Quit'[]
       <dd> Terminates the Mathics session.
 
-      <dt>'Quit[$n$]'
+      <dt>'Quit'[$n$]
       <dd> Terminates the mathics session with exit code $n$.
     </dl>
+
     'Quit' is the same thing as 'Exit'.
     """
 
@@ -94,8 +95,9 @@ class Exit(Quit):
       <dt>'Exit'[]
       <dd> Terminates the Mathics session.
 
-      <dt>'Exit[$n$]'
+      <dt>'Exit'[$n$]
       <dd> Terminates the mathics session with exit code $n$.
     </dl>
+
     'Exit' is the same thing as 'Quit'.
     """

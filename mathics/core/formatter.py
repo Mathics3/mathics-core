@@ -113,18 +113,21 @@ def add_conversion_fn(cls, module_fn_name=None) -> None:
     to a conversion method.
 
     The conversion type is determined form the module name.
-    For example, in module mathics.format.svg the conversion
+    For example, in module mathics.format.render.svg the conversion
     type is "svg".
 
     The conversion method is assumed to be a method in the caller's
     module, and is derived from lowercasing `cls`.
 
-    For example function arrowbox in module mathics.format.svg would be
+    For example function arrowbox in module mathics.format.render.svg would be
     the SVG conversion routine for class ArrowBox.
 
     We use frame introspection to get all of this done.
     """
-    fr = inspect.currentframe().f_back
+    fr = inspect.currentframe()
+    assert fr is not None
+    fr = fr.f_back
+    assert fr is not None
     module_dict = fr.f_globals
 
     # The last part of the module name is expected to be the conversion routine.

@@ -16,7 +16,7 @@ class NotRectangularException(Exception):
 
 class Rectangular(Builtin):
     """
-    A base class for statics builtin functions X that allow X[{a1, a2, ...}, {b1, b2, ...}, ...]
+    A base class for statistics builtin functions X that allow X[{a1, a2, ...}, {b1, b2, ...}, ...]
     to be evaluated as
     {X[{a1, b1, ...}, {a1, b2, ...}, ...]}.
     """

@@ -20,7 +20,7 @@ class DSolve(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/DSolve.html</url>
 
     <dl>
-    <dt>'DSolve[$eq$, $y$[$x$], $x$]'
+    <dt>'DSolve[$eq$, $y$'[$x$], $x$]
         <dd>solves a differential equation for the function $y$[$x$].
     </dl>
 
@@ -31,11 +31,11 @@ class DSolve(Builtin):
      = {{y[x] -> C[1] E ^ (-x) + C[2] E ^ x}}
 
     >> DSolve[y''[x] == y[x], y, x]
-     = {{y -> (Function[{x}, C[1] E ^ (-x) + C[2] E ^ x])}}
+     = {{y -> Function[{x}, C[1] E ^ (-x) + C[2] E ^ x]}}
 
     DSolve can also solve basic PDE
     >> DSolve[D[f[x, y], x] / f[x, y] + 3 D[f[x, y], y] / f[x, y] == 2, f, {x, y}]
-     = {{f -> (Function[{x, y}, E ^ (x / 5 + 3 y / 5) C[1][3 x - y]])}}
+     = {{f -> Function[{x, y}, E ^ (x / 5 + 3 y / 5) C[1][3 x - y]]}}
 
     >> DSolve[D[f[x, y], x] x + D[f[x, y], y] y == 2, f[x, y], {x, y}]
      = {{f[x, y] -> 2 Log[x] + C[1][y / x]}}
@@ -74,8 +74,8 @@ class DSolve(Builtin):
         "DSolve[eqn_, y_, x_]"
 
         if eqn.has_form("List", None):
-            # TODO: Try and solve BVPs using Solve or something analagous OR
-            # add this functonality to sympy.
+            # TODO: Try and solve BVPs using Solve or something analogous OR
+            # add this functionality to sympy.
             evaluation.message("DSolve", "symsys")
             return
 
@@ -91,7 +91,7 @@ class DSolve(Builtin):
             evaluation.message("DSolve", "dsvar", x)
             return
 
-        # Fixes pathalogical DSolve[y''[x] == y[x], y, x]
+        # Fixes pathological DSolve[y''[x] == y[x], y, x]
         try:
             y.elements
             function_form = None
@@ -178,7 +178,7 @@ class C(Builtin):
 
     <dl>
       <dt>'C'[$n$]
-      <dd>represents the $n$th constant in a solution to a differential equation.
+      <dd>represents the $n$-th constant in a solution to a differential equation.
     </dl>
     """
 

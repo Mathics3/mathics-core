@@ -1,0 +1,3711 @@
+Read json
+Found 34 expressions to test.
+Run the tests
+Association  msg:Association<<<|a -> x, b -> y, c -> <|d -> t|>|>>>
+    text
+    -----
+
+      * StandardForm(text)    [Failed]
+        result:<<DisplayForm[RowBox[{, RowBox[{RowBox[{a, , x}], ,, RowBox[{b, , y}], ,, RowBox[{c, , RowBox[{, RowBox[{d, , t}], }]}]}], }]]>>
+        expected: <<<|a->x,b->y,c-><|d->t|>|>>>
+
+      * TraditionalForm(text)    [Failed]
+        result:<<DisplayForm[FormBox[RowBox[{, RowBox[{RowBox[{a, , x}], ,, RowBox[{b, , y}], ,, RowBox[{c, , RowBox[{, RowBox[{d, , t}], }]}]}], }], TraditionalForm]]>>
+        expected: <<<|a->x,b->y,c-><|d->t|>|>>>
+
+      * InputForm(text)    [OK]
+      * OutputForm(text)    [OK]
+    latex
+    -----
+
+      * StandardForm(latex)    [Failed]
+        result:<<\unicode{f113}a\to x,b\to y,c\to \unicode{f113}d\to t\unicode{f114}\unicode{f114}>>
+        expected: <<\text{<$\vert$}a->x,b->y,c->\text{<$\vert$}d->t\text{$\vert$>}\text{$\vert$>}>>
+
+      * TraditionalForm(latex)    [Failed]
+        result:<<\unicode{f113}a\to x,b\to y,c\to \unicode{f113}d\to t\unicode{f114}\unicode{f114}>>
+        expected: <<\text{<$\vert$}a->x,b->y,c->\text{<$\vert$}d->t\text{$\vert$>}\text{$\vert$>}>>
+
+      * InputForm(latex)    [Failed]
+        result:<<\text{$<|$a -$>$ x, b -$>$ y, c -$>$ $<|$d -$>$ t$|>|>$}>>
+        expected: <<\text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{ -> }t\text{$\vert$>}\text{$\vert$>}>>
+
+      * OutputForm(latex)    [Failed]
+        result:<<\text{$<|$a -$>$ x, b -$>$ y, c -$>$ $<|$d -$>$ t$|>|>$}>>
+        expected: <<\text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{ -> }t\text{$\vert$>}\text{$\vert$>}>>
+
+    mathml
+    ------
+
+      * StandardForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mrow>
+   <mi>&#61715;</mi>
+   <mo>&#8290;</mo>
+   <mrow>
+    <mrow>
+     <mi>a</mi>
+     <mo>&#8594;</mo>
+     <mi>x</mi>
+    </mrow>
+    <mo>,</mo>
+    <mrow>
+     <mi>b</mi>
+     <mo>&#8594;</mo>
+     <mi>y</mi>
+    </mrow>
+    <mo>,</mo>
+    <mrow>
+     <mi>c</mi>
+     <mo>&#8594;</mo>
+     <mrow>
+      <mi>&#61715;</mi>
+      <mo>&#8290;</mo>
+      <mrow>
+       <mi>d</mi>
+       <mo>&#8594;</mo>
+       <mi>t</mi>
+      </mrow>
+      <mo>&#8290;</mo>
+      <mi>&#61716;</mi>
+     </mrow>
+    </mrow>
+   </mrow>
+   <mo>&#8290;</mo>
+   <mi>&#61716;</mi>
+  </mrow>
+  <annotation encoding='Mathematica'>TagBox[FormBox[RowBox[List[&quot;\[LeftAssociation]&quot;, RowBox[List[RowBox[List[&quot;a&quot;, &quot;\[Rule]&quot;, &quot;x&quot;]], &quot;,&quot;, RowBox[List[&quot;b&quot;, &quot;\[Rule]&quot;, &quot;y&quot;]], &quot;,&quot;, RowBox[List[&quot;c&quot;, &quot;\[Rule]&quot;, RowBox[List[&quot;\[LeftAssociation]&quot;, RowBox[List[&quot;d&quot;, &quot;\[Rule]&quot;, &quot;t&quot;]], &quot;\[RightAssociation]&quot;]]]]]], &quot;\[RightAssociation]&quot;]], StandardForm], StandardForm, Rule[Editable, True]]</annotation>
+ </semantics>
+</math>>>
+        expected: <<<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mn>-&gt;</mn> <mi>x</mi></mrow> <mo>,</mo> <mrow><mi>b</mi> <mn>-&gt;</mn> <mi>y</mi></mrow> <mo>,</mo> <mrow><mi>c</mi> <mn>-&gt;</mn> <mrow><mtext>&lt;|</mtext> <mrow><mi>d</mi> <mn>-&gt;</mn> <mi>t</mi></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>>>
+
+      * TraditionalForm(mathml)    [Failed]
+        result:<<<math>
+ <mrow>
+  <mi>&#61715;</mi>
+  <mo>&#8290;</mo>
+  <mrow>
+   <mrow>
+    <mi>a</mi>
+    <semantics>
+     <mo>&#8594;</mo>
+     <annotation encoding='Mathematica'>&quot;\[Rule]&quot;</annotation>
+    </semantics>
+    <mi>x</mi>
+   </mrow>
+   <mo>,</mo>
+   <mrow>
+    <mi>b</mi>
+    <semantics>
+     <mo>&#8594;</mo>
+     <annotation encoding='Mathematica'>&quot;\[Rule]&quot;</annotation>
+    </semantics>
+    <mi>y</mi>
+   </mrow>
+   <mo>,</mo>
+   <mrow>
+    <mi>c</mi>
+    <semantics>
+     <mo>&#8594;</mo>
+     <annotation encoding='Mathematica'>&quot;\[Rule]&quot;</annotation>
+    </semantics>
+    <mrow>
+     <mi>&#61715;</mi>
+     <mo>&#8290;</mo>
+     <mrow>
+      <mi>d</mi>
+      <semantics>
+       <mo>&#8594;</mo>
+       <annotation encoding='Mathematica'>&quot;\[Rule]&quot;</annotation>
+      </semantics>
+      <mi>t</mi>
+     </mrow>
+     <mo>&#8290;</mo>
+     <mi>&#61716;</mi>
+    </mrow>
+   </mrow>
+  </mrow>
+  <mo>&#8290;</mo>
+  <mi>&#61716;</mi>
+ </mrow>
+</math>>>
+        expected: <<<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mn>-&gt;</mn> <mi>x</mi></mrow> <mo>,</mo> <mrow><mi>b</mi> <mn>-&gt;</mn> <mi>y</mi></mrow> <mo>,</mo> <mrow><mi>c</mi> <mn>-&gt;</mn> <mrow><mtext>&lt;|</mtext> <mrow><mi>d</mi> <mn>-&gt;</mn> <mi>t</mi></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>>>
+
+      * InputForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mtext>&lt;|a -&gt; x, b -&gt; y, c -&gt; &lt;|d -&gt; t|&gt;|&gt;</mtext>
+  <annotation-xml encoding='MathML-Content'>
+   <apply>
+    <ci>Association</ci>
+    <apply>
+     <ci>Rule</ci>
+     <ci>a</ci>
+     <ci>x</ci>
+    </apply>
+    <apply>
+     <ci>Rule</ci>
+     <ci>b</ci>
+     <ci>y</ci>
+    </apply>
+    <apply>
+     <ci>Rule</ci>
+     <ci>c</ci>
+     <apply>
+      <ci>Association</ci>
+      <apply>
+       <ci>Rule</ci>
+       <ci>d</ci>
+       <ci>t</ci>
+      </apply>
+     </apply>
+    </apply>
+   </apply>
+  </annotation-xml>
+ </semantics>
+</math>>>
+        expected: <<<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>x</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>b</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>y</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>c</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mrow><mtext>&lt;|</mtext> <mrow><mi>d</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>t</mi></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>>>
+
+
+XML`MathML`BoxesToSymbolicMathML::notboxes: InterpretationBox[PaneBox["<|a -> x, b -> y, c -> <|d -> t|>|>"], <|a -> x, b -> y, c -> <|d -> t|>|>, Editable -> False] is not a valid box structure. The first argument in XML`MathML`BoxesToSymbolicMathML[InterpretationBox[PaneBox["<|a -> x, b -> y, c -> <|d -> t|>|>"], <|a -> x, b -> y, c -> <|d -> t|>|>, Editable -> False], Annotations -> {}, Formats -> {PresentationMathML}, IncludeMarkupAnnotations -> True, MathAttributes -> {}, UseUnicodePlane1Characters -> True] must be a valid box structure.
+
+XML`MathML`BoxesToSymbolicMathML::notboxes: InterpretationBox[PaneBox["<|a -> x, b -> y, c -> <|d -> t|>|>"], <|a -> x, b -> y, c -> <|d -> t|>|>, Editable -> False] is not a valid box structure. The first argument in XML`MathML`BoxesToSymbolicMathML[InterpretationBox[PaneBox["<|a -> x, b -> y, c -> <|d -> t|>|>"], <|a -> x, b -> y, c -> <|d -> t|>|>, Editable -> False], {}, Formats -> {PresentationMathML}, IncludeMarkupAnnotations -> True, MathAttributes -> {}, UseUnicodePlane1Characters -> True] must be a valid box structure.
+
+HeldPart::partw: Part 1 of {} does not exist.
+
+XML`MathML`BoxesToSymbolicMathML::optx: Unknown option HoldForm[Unevaluated[{}], 1] in {}.
+
+XML`MathML`BoxesToSymbolicMathML::notboxes: InterpretationBox[PaneBox["<|a -> x, b -> y, c -> <|d -> t|>|>"], <|a -> x, b -> y, c -> <|d -> t|>|>, Editable -> False] is not a valid box structure. The first argument in XML`MathML`BoxesToSymbolicMathML[InterpretationBox[PaneBox["<|a -> x, b -> y, c -> <|d -> t|>|>"], <|a -> x, b -> y, c -> <|d -> t|>|>, Editable -> False], Formats -> {PresentationMathML}, IncludeMarkupAnnotations -> True, MathAttributes -> {}, UseUnicodePlane1Characters -> True] must be a valid box structure.
+
+General::stop: Further output of XML`MathML`BoxesToSymbolicMathML::notboxes will be suppressed during this calculation.
+      * OutputForm(mathml)    [Failed]
+        result:<<<?xml version='1.0'?>
+<!DOCTYPE Expression SYSTEM 'http://www.wolfram.com/XML/notebookml1.dtd'>
+<Expression xmlns:mathematica='http://www.wolfram.com/XML/'
+    xmlns='http://www.wolfram.com/XML/'>
+ <Function>
+  <Symbol>XML`MathML`BoxesToSymbolicMathML</Symbol>
+  <Function>
+   <Symbol>InterpretationBox</Symbol>
+   <Function>
+    <Symbol>PaneBox</Symbol>
+    <String>&quot;&lt;|a -&gt; x, b -&gt; y, c -&gt; &lt;|d -&gt; t|&gt;|&gt;&quot;</String>
+   </Function>
+   <Function>
+    <Symbol>OutputForm</Symbol>
+    <Function>
+     <Symbol>Association</Symbol>
+     <Function>
+      <Symbol>Rule</Symbol>
+      <Symbol>a</Symbol>
+      <Symbol>x</Symbol>
+     </Function>
+     <Function>
+      <Symbol>Rule</Symbol>
+      <Symbol>b</Symbol>
+      <Symbol>y</Symbol>
+     </Function>
+     <Function>
+      <Symbol>Rule</Symbol>
+      <Symbol>c</Symbol>
+      <Function>
+       <Symbol>Association</Symbol>
+       <Function>
+        <Symbol>Rule</Symbol>
+        <Symbol>d</Symbol>
+        <Symbol>t</Symbol>
+       </Function>
+      </Function>
+     </Function>
+    </Function>
+   </Function>
+   <Function>
+    <Symbol>Rule</Symbol>
+    <Symbol>Editable</Symbol>
+    <Symbol>False</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>Formats</String>
+   <Function>
+    <Symbol>List</Symbol>
+    <String>PresentationMathML</String>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>IncludeMarkupAnnotations</String>
+   <Symbol>True</Symbol>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>MathAttributes</String>
+   <Function>
+    <Symbol>List</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>UseUnicodePlane1Characters</String>
+   <Symbol>True</Symbol>
+  </Function>
+ </Function>
+</Expression>>>
+        expected: <<<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>x</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>b</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>y</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>c</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mrow><mtext>&lt;|</mtext> <mrow><mi>d</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>t</mi></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>>>
+
+Association  msg:Nested Association<<<|a -> x, b -> y, c -> <|d -> t, e -> u|>|>>>
+    text
+    -----
+
+      * StandardForm(text)    [Failed]
+        result:<<DisplayForm[RowBox[{, RowBox[{RowBox[{a, , x}], ,, RowBox[{b, , y}], ,, RowBox[{c, , RowBox[{, RowBox[{RowBox[{d, , t}], ,, RowBox[{e, , u}]}], }]}]}], }]]>>
+        expected: <<<|a->x,b->y,c-><|d->t,e->u|>|>>>
+
+      * TraditionalForm(text)    [Failed]
+        result:<<DisplayForm[FormBox[RowBox[{, RowBox[{RowBox[{a, , x}], ,, RowBox[{b, , y}], ,, RowBox[{c, , RowBox[{, RowBox[{RowBox[{d, , t}], ,, RowBox[{e, , u}]}], }]}]}], }], TraditionalForm]]>>
+        expected: <<<|a->x,b->y,c-><|d->t,e->u|>|>>>
+
+      * InputForm(text)    [OK]
+      * OutputForm(text)    [OK]
+    latex
+    -----
+
+      * StandardForm(latex)    [Failed]
+        result:<<\unicode{f113}a\to x,b\to y,c\to \unicode{f113}d\to t,e\to u\unicode{f114}\unicode{f114}>>
+        expected: <<\text{<$\vert$}a->x,b->y,c->\text{<$\vert$}d->t,e->u\text{$\vert$>}\text{$\vert$>}>>
+
+      * TraditionalForm(latex)    [Failed]
+        result:<<\unicode{f113}a\to x,b\to y,c\to \unicode{f113}d\to t,e\to u\unicode{f114}\unicode{f114}>>
+        expected: <<\text{<$\vert$}a->x,b->y,c->\text{<$\vert$}d->t,e->u\text{$\vert$>}\text{$\vert$>}>>
+
+      * InputForm(latex)    [Failed]
+        result:<<\text{$<|$a -$>$ x, b -$>$ y, c -$>$ $<|$d -$>$ t, e -$>$ u$|>|>$}>>
+        expected: <<\text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{ -> }t, e\text{ -> }u\text{$\vert$>}\text{$\vert$>}>>
+
+      * OutputForm(latex)    [Failed]
+        result:<<\text{$<|$a -$>$ x, b -$>$ y, c -$>$ $<|$d -$>$ t, e -$>$ u$|>|>$}>>
+        expected: <<\text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{ -> }t, e\text{ -> }u\text{$\vert$>}\text{$\vert$>}>>
+
+    mathml
+    ------
+
+      * StandardForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mrow>
+   <mi>&#61715;</mi>
+   <mo>&#8290;</mo>
+   <mrow>
+    <mrow>
+     <mi>a</mi>
+     <mo>&#8594;</mo>
+     <mi>x</mi>
+    </mrow>
+    <mo>,</mo>
+    <mrow>
+     <mi>b</mi>
+     <mo>&#8594;</mo>
+     <mi>y</mi>
+    </mrow>
+    <mo>,</mo>
+    <mrow>
+     <mi>c</mi>
+     <mo>&#8594;</mo>
+     <mrow>
+      <mi>&#61715;</mi>
+      <mo>&#8290;</mo>
+      <mrow>
+       <mrow>
+        <mi>d</mi>
+        <mo>&#8594;</mo>
+        <mi>t</mi>
+       </mrow>
+       <mo>,</mo>
+       <mrow>
+        <mi>e</mi>
+        <mo>&#8594;</mo>
+        <mi>u</mi>
+       </mrow>
+      </mrow>
+      <mo>&#8290;</mo>
+      <mi>&#61716;</mi>
+     </mrow>
+    </mrow>
+   </mrow>
+   <mo>&#8290;</mo>
+   <mi>&#61716;</mi>
+  </mrow>
+  <annotation encoding='Mathematica'>TagBox[FormBox[RowBox[List[&quot;\[LeftAssociation]&quot;, RowBox[List[RowBox[List[&quot;a&quot;, &quot;\[Rule]&quot;, &quot;x&quot;]], &quot;,&quot;, RowBox[List[&quot;b&quot;, &quot;\[Rule]&quot;, &quot;y&quot;]], &quot;,&quot;, RowBox[List[&quot;c&quot;, &quot;\[Rule]&quot;, RowBox[List[&quot;\[LeftAssociation]&quot;, RowBox[List[RowBox[List[&quot;d&quot;, &quot;\[Rule]&quot;, &quot;t&quot;]], &quot;,&quot;, RowBox[List[&quot;e&quot;, &quot;\[Rule]&quot;, &quot;u&quot;]]]], &quot;\[RightAssociation]&quot;]]]]]], &quot;\[RightAssociation]&quot;]], StandardForm], StandardForm, Rule[Editable, True]]</annotation>
+ </semantics>
+</math>>>
+        expected: <<<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mn>-&gt;</mn> <mi>x</mi></mrow> <mo>,</mo> <mrow><mi>b</mi> <mn>-&gt;</mn> <mi>y</mi></mrow> <mo>,</mo> <mrow><mi>c</mi> <mn>-&gt;</mn> <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>d</mi> <mn>-&gt;</mn> <mi>t</mi></mrow> <mo>,</mo> <mrow><mi>e</mi> <mn>-&gt;</mn> <mi>u</mi></mrow></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>>>
+
+      * TraditionalForm(mathml)    [Failed]
+        result:<<<math>
+ <mrow>
+  <mi>&#61715;</mi>
+  <mo>&#8290;</mo>
+  <mrow>
+   <mrow>
+    <mi>a</mi>
+    <semantics>
+     <mo>&#8594;</mo>
+     <annotation encoding='Mathematica'>&quot;\[Rule]&quot;</annotation>
+    </semantics>
+    <mi>x</mi>
+   </mrow>
+   <mo>,</mo>
+   <mrow>
+    <mi>b</mi>
+    <semantics>
+     <mo>&#8594;</mo>
+     <annotation encoding='Mathematica'>&quot;\[Rule]&quot;</annotation>
+    </semantics>
+    <mi>y</mi>
+   </mrow>
+   <mo>,</mo>
+   <mrow>
+    <mi>c</mi>
+    <semantics>
+     <mo>&#8594;</mo>
+     <annotation encoding='Mathematica'>&quot;\[Rule]&quot;</annotation>
+    </semantics>
+    <mrow>
+     <mi>&#61715;</mi>
+     <mo>&#8290;</mo>
+     <mrow>
+      <mrow>
+       <mi>d</mi>
+       <semantics>
+        <mo>&#8594;</mo>
+        <annotation encoding='Mathematica'>&quot;\[Rule]&quot;</annotation>
+       </semantics>
+       <mi>t</mi>
+      </mrow>
+      <mo>,</mo>
+      <mrow>
+       <mi>e</mi>
+       <semantics>
+        <mo>&#8594;</mo>
+        <annotation encoding='Mathematica'>&quot;\[Rule]&quot;</annotation>
+       </semantics>
+       <mi>u</mi>
+      </mrow>
+     </mrow>
+     <mo>&#8290;</mo>
+     <mi>&#61716;</mi>
+    </mrow>
+   </mrow>
+  </mrow>
+  <mo>&#8290;</mo>
+  <mi>&#61716;</mi>
+ </mrow>
+</math>>>
+        expected: <<<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mn>-&gt;</mn> <mi>x</mi></mrow> <mo>,</mo> <mrow><mi>b</mi> <mn>-&gt;</mn> <mi>y</mi></mrow> <mo>,</mo> <mrow><mi>c</mi> <mn>-&gt;</mn> <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>d</mi> <mn>-&gt;</mn> <mi>t</mi></mrow> <mo>,</mo> <mrow><mi>e</mi> <mn>-&gt;</mn> <mi>u</mi></mrow></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>>>
+
+      * InputForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mtext>&lt;|a -&gt; x, b -&gt; y, c -&gt; &lt;|d -&gt; t, e -&gt; u|&gt;|&gt;</mtext>
+  <annotation-xml encoding='MathML-Content'>
+   <apply>
+    <ci>Association</ci>
+    <apply>
+     <ci>Rule</ci>
+     <ci>a</ci>
+     <ci>x</ci>
+    </apply>
+    <apply>
+     <ci>Rule</ci>
+     <ci>b</ci>
+     <ci>y</ci>
+    </apply>
+    <apply>
+     <ci>Rule</ci>
+     <ci>c</ci>
+     <apply>
+      <ci>Association</ci>
+      <apply>
+       <ci>Rule</ci>
+       <ci>d</ci>
+       <ci>t</ci>
+      </apply>
+      <apply>
+       <ci>Rule</ci>
+       <ci>e</ci>
+       <ci>u</ci>
+      </apply>
+     </apply>
+    </apply>
+   </apply>
+  </annotation-xml>
+ </semantics>
+</math>>>
+        expected: <<<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>x</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>b</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>y</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>c</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>d</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>t</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>e</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>u</mi></mrow></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>>>
+
+
+HeldPart::partw: Part 1 of {} does not exist.
+
+XML`MathML`BoxesToSymbolicMathML::optx: Unknown option HoldForm[Unevaluated[{}], 1] in {}.
+      * OutputForm(mathml)    [Failed]
+        result:<<<?xml version='1.0'?>
+<!DOCTYPE Expression SYSTEM 'http://www.wolfram.com/XML/notebookml1.dtd'>
+<Expression xmlns:mathematica='http://www.wolfram.com/XML/'
+    xmlns='http://www.wolfram.com/XML/'>
+ <Function>
+  <Symbol>XML`MathML`BoxesToSymbolicMathML</Symbol>
+  <Function>
+   <Symbol>InterpretationBox</Symbol>
+   <Function>
+    <Symbol>PaneBox</Symbol>
+    <String>&quot;&lt;|a -&gt; x, b -&gt; y, c -&gt; &lt;|d -&gt; t, e -&gt; u|&gt;|&gt;&quot;</String>
+   </Function>
+   <Function>
+    <Symbol>OutputForm</Symbol>
+    <Function>
+     <Symbol>Association</Symbol>
+     <Function>
+      <Symbol>Rule</Symbol>
+      <Symbol>a</Symbol>
+      <Symbol>x</Symbol>
+     </Function>
+     <Function>
+      <Symbol>Rule</Symbol>
+      <Symbol>b</Symbol>
+      <Symbol>y</Symbol>
+     </Function>
+     <Function>
+      <Symbol>Rule</Symbol>
+      <Symbol>c</Symbol>
+      <Function>
+       <Symbol>Association</Symbol>
+       <Function>
+        <Symbol>Rule</Symbol>
+        <Symbol>d</Symbol>
+        <Symbol>t</Symbol>
+       </Function>
+       <Function>
+        <Symbol>Rule</Symbol>
+        <Symbol>e</Symbol>
+        <Symbol>u</Symbol>
+       </Function>
+      </Function>
+     </Function>
+    </Function>
+   </Function>
+   <Function>
+    <Symbol>Rule</Symbol>
+    <Symbol>Editable</Symbol>
+    <Symbol>False</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>Formats</String>
+   <Function>
+    <Symbol>List</Symbol>
+    <String>PresentationMathML</String>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>IncludeMarkupAnnotations</String>
+   <Symbol>True</Symbol>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>MathAttributes</String>
+   <Function>
+    <Symbol>List</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>UseUnicodePlane1Characters</String>
+   <Symbol>True</Symbol>
+  </Function>
+ </Function>
+</Expression>>>
+        expected: <<<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>x</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>b</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>y</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>c</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>d</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>t</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>e</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>u</mi></mrow></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>>>
+
+Integer  msg:An Integer<<-4>>
+    text
+    -----
+
+      * StandardForm(text)    [Failed]
+        result:<<DisplayForm[RowBox[{-, 4}]]>>
+        expected: <<-4>>
+
+      * TraditionalForm(text)    [Failed]
+        result:<<DisplayForm[FormBox[RowBox[{-, 4}], TraditionalForm]]>>
+        expected: <<-4>>
+
+      * InputForm(text)    [OK]
+      * OutputForm(text)    [OK]
+    latex
+    -----
+
+      * StandardForm(latex)    [OK]
+      * TraditionalForm(latex)    [OK]
+      * InputForm(latex)    [OK]
+      * OutputForm(latex)    [OK]
+    mathml
+    ------
+
+      * StandardForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mrow>
+   <mo>-</mo>
+   <mn>4</mn>
+  </mrow>
+  <annotation encoding='Mathematica'>TagBox[FormBox[RowBox[List[&quot;-&quot;, &quot;4&quot;]], StandardForm], StandardForm, Rule[Editable, True]]</annotation>
+ </semantics>
+</math>>>
+        expected: <<<mn>-4</mn>>>
+
+      * TraditionalForm(mathml)    [Failed]
+        result:<<<math>
+ <mrow>
+  <mo>-</mo>
+  <mn>4</mn>
+ </mrow>
+</math>>>
+        expected: <<<mn>-4</mn>>>
+
+      * InputForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mtext>-4</mtext>
+  <annotation-xml encoding='MathML-Content'>
+   <cn type='integer'>-4</cn>
+  </annotation-xml>
+ </semantics>
+</math>>>
+        expected: <<<mtext>-4</mtext>>>
+
+
+HeldPart::partw: Part 1 of {} does not exist.
+
+General::stop: Further output of HeldPart::partw will be suppressed during this calculation.
+
+XML`MathML`BoxesToSymbolicMathML::optx: Unknown option HoldForm[Unevaluated[{}], 1] in {}.
+
+General::stop: Further output of XML`MathML`BoxesToSymbolicMathML::optx will be suppressed during this calculation.
+      * OutputForm(mathml)    [Failed]
+        result:<<<?xml version='1.0'?>
+<!DOCTYPE Expression SYSTEM 'http://www.wolfram.com/XML/notebookml1.dtd'>
+<Expression xmlns:mathematica='http://www.wolfram.com/XML/'
+    xmlns='http://www.wolfram.com/XML/'>
+ <Function>
+  <Symbol>XML`MathML`BoxesToSymbolicMathML</Symbol>
+  <Function>
+   <Symbol>InterpretationBox</Symbol>
+   <Function>
+    <Symbol>PaneBox</Symbol>
+    <String>&quot;-4&quot;</String>
+   </Function>
+   <Function>
+    <Symbol>OutputForm</Symbol>
+    <Number>-4</Number>
+   </Function>
+   <Function>
+    <Symbol>Rule</Symbol>
+    <Symbol>Editable</Symbol>
+    <Symbol>False</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>Formats</String>
+   <Function>
+    <Symbol>List</Symbol>
+    <String>PresentationMathML</String>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>IncludeMarkupAnnotations</String>
+   <Symbol>True</Symbol>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>MathAttributes</String>
+   <Function>
+    <Symbol>List</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>UseUnicodePlane1Characters</String>
+   <Symbol>True</Symbol>
+  </Function>
+ </Function>
+</Expression>>>
+        expected: <<<mn>-4</mn>>>
+
+Real  msg:A MachineReal number<<-4.32>>
+    text
+    -----
+
+      * StandardForm(text)    [Failed]
+        result:<<DisplayForm[RowBox[{-, 4.32`}]]>>
+        expected: <<-4.32`>>
+
+      * TraditionalForm(text)    [Failed]
+        result:<<DisplayForm[FormBox[RowBox[{-, 4.32`}], TraditionalForm]]>>
+        expected: <<-4.32`>>
+
+      * InputForm(text)    [OK]
+      * OutputForm(text)    [OK]
+    latex
+    -----
+
+      * StandardForm(latex)    [OK]
+      * TraditionalForm(latex)    [OK]
+      * InputForm(latex)    [OK]
+      * OutputForm(latex)    [OK]
+    mathml
+    ------
+
+      * StandardForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mrow>
+   <mo>-</mo>
+   <mn>4.32</mn>
+  </mrow>
+  <annotation encoding='Mathematica'>TagBox[FormBox[RowBox[List[&quot;-&quot;, &quot;4.32`&quot;]], StandardForm], StandardForm, Rule[Editable, True]]</annotation>
+ </semantics>
+</math>>>
+        expected: <<<mn>-4.32</mn>>>
+
+      * TraditionalForm(mathml)    [Failed]
+        result:<<<math>
+ <mrow>
+  <mo>-</mo>
+  <mn>4.32</mn>
+ </mrow>
+</math>>>
+        expected: <<<mn>-4.32</mn>>>
+
+      * InputForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mtext>-4.32</mtext>
+  <annotation-xml encoding='MathML-Content'>
+   <cn type='real'>-4.32</cn>
+  </annotation-xml>
+ </semantics>
+</math>>>
+        expected: <<<mn>-4.32</mn>>>
+
+      * OutputForm(mathml)    [Failed]
+        result:<<<?xml version='1.0'?>
+<!DOCTYPE Expression SYSTEM 'http://www.wolfram.com/XML/notebookml1.dtd'>
+<Expression xmlns:mathematica='http://www.wolfram.com/XML/'
+    xmlns='http://www.wolfram.com/XML/'>
+ <Function>
+  <Symbol>XML`MathML`BoxesToSymbolicMathML</Symbol>
+  <Function>
+   <Symbol>InterpretationBox</Symbol>
+   <Function>
+    <Symbol>PaneBox</Symbol>
+    <String>&quot;-4.32&quot;</String>
+   </Function>
+   <Function>
+    <Symbol>OutputForm</Symbol>
+    <Number Precision=''>-4.32</Number>
+   </Function>
+   <Function>
+    <Symbol>Rule</Symbol>
+    <Symbol>Editable</Symbol>
+    <Symbol>False</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>Formats</String>
+   <Function>
+    <Symbol>List</Symbol>
+    <String>PresentationMathML</String>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>IncludeMarkupAnnotations</String>
+   <Symbol>True</Symbol>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>MathAttributes</String>
+   <Function>
+    <Symbol>List</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>UseUnicodePlane1Characters</String>
+   <Symbol>True</Symbol>
+  </Function>
+ </Function>
+</Expression>>>
+        expected: <<<mn>-4.32</mn>>>
+
+Real  msg:A PrecisionReal number<<-4.32`4.>>
+    text
+    -----
+
+      * StandardForm(text)    [Failed]
+        result:<<DisplayForm[RowBox[{-, 4.32`4.}]]>>
+        expected: <<-4.32`4>>
+
+      * TraditionalForm(text)    [Failed]
+        result:<<DisplayForm[FormBox[RowBox[{-, 4.32`4.}], TraditionalForm]]>>
+        expected: <<-4.32`4>>
+
+      * InputForm(text)    [Failed]
+        result:<<-4.32`4.>>
+        expected: <<-4.32`4>>
+
+      * OutputForm(text)    [OK]
+    latex
+    -----
+
+      * StandardForm(latex)    [Failed]
+        result:<<-4.320>>
+        expected: <<-4.32>>
+
+      * TraditionalForm(latex)    [Failed]
+        result:<<-4.320>>
+        expected: <<-4.32>>
+
+      * InputForm(latex)    [Failed]
+        result:<<-4.320>>
+        expected: <<-4.32>>
+
+      * OutputForm(latex)    [OK]
+    mathml
+    ------
+
+      * StandardForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mrow>
+   <mo>-</mo>
+   <mn>4.32</mn>
+  </mrow>
+  <annotation encoding='Mathematica'>TagBox[FormBox[RowBox[List[&quot;-&quot;, &quot;4.32`4.&quot;]], StandardForm], StandardForm, Rule[Editable, True]]</annotation>
+ </semantics>
+</math>>>
+        expected: <<<mn>-4.32</mn>>>
+
+      * TraditionalForm(mathml)    [Failed]
+        result:<<<math>
+ <mrow>
+  <mo>-</mo>
+  <mn>4.32</mn>
+ </mrow>
+</math>>>
+        expected: <<<mn>-4.32</mn>>>
+
+      * InputForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mtext>-4.32`4.</mtext>
+  <annotation-xml encoding='MathML-Content'>
+   <cn type='real'>-4.320</cn>
+  </annotation-xml>
+ </semantics>
+</math>>>
+        expected: <<<mn>-4.32</mn>>>
+
+      * OutputForm(mathml)    [Failed]
+        result:<<<?xml version='1.0'?>
+<!DOCTYPE Expression SYSTEM 'http://www.wolfram.com/XML/notebookml1.dtd'>
+<Expression xmlns:mathematica='http://www.wolfram.com/XML/'
+    xmlns='http://www.wolfram.com/XML/'>
+ <Function>
+  <Symbol>XML`MathML`BoxesToSymbolicMathML</Symbol>
+  <Function>
+   <Symbol>InterpretationBox</Symbol>
+   <Function>
+    <Symbol>PaneBox</Symbol>
+    <String>&quot;-4.320&quot;</String>
+   </Function>
+   <Function>
+    <Symbol>OutputForm</Symbol>
+    <Number Precision='4.'>-4.32</Number>
+   </Function>
+   <Function>
+    <Symbol>Rule</Symbol>
+    <Symbol>Editable</Symbol>
+    <Symbol>False</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>Formats</String>
+   <Function>
+    <Symbol>List</Symbol>
+    <String>PresentationMathML</String>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>IncludeMarkupAnnotations</String>
+   <Symbol>True</Symbol>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>MathAttributes</String>
+   <Function>
+    <Symbol>List</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>UseUnicodePlane1Characters</String>
+   <Symbol>True</Symbol>
+  </Function>
+ </Function>
+</Expression>>>
+        expected: <<<mn>-4.320</mn>>>
+
+Real  msg:A Real number<<-4.326563712`2.>>
+    text
+    -----
+
+      * StandardForm(text)    [Failed]
+        result:<<DisplayForm[RowBox[{-, 4.326563712`2.}]]>>
+        expected: <<-4.33`2>>
+
+      * TraditionalForm(text)    [Failed]
+        result:<<DisplayForm[FormBox[RowBox[{-, 4.326563712`2.}], TraditionalForm]]>>
+        expected: <<-4.33`2>>
+
+      * InputForm(text)    [Failed]
+        result:<<-4.326563712`2.>>
+        expected: <<-4.33`2>>
+
+      * OutputForm(text)    [OK]
+    latex
+    -----
+
+      * StandardForm(latex)    [Failed]
+        result:<<-4.3>>
+        expected: <<-4.33>>
+
+      * TraditionalForm(latex)    [Failed]
+        result:<<-4.3>>
+        expected: <<-4.33>>
+
+      * InputForm(latex)    [Failed]
+        result:<<-4.3>>
+        expected: <<-4.33>>
+
+      * OutputForm(latex)    [OK]
+    mathml
+    ------
+
+      * StandardForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mrow>
+   <mo>-</mo>
+   <mn>4.3</mn>
+  </mrow>
+  <annotation encoding='Mathematica'>TagBox[FormBox[RowBox[List[&quot;-&quot;, &quot;4.326563712`2.&quot;]], StandardForm], StandardForm, Rule[Editable, True]]</annotation>
+ </semantics>
+</math>>>
+        expected: <<<mn>-4.33</mn>>>
+
+      * TraditionalForm(mathml)    [Failed]
+        result:<<<math>
+ <mrow>
+  <mo>-</mo>
+  <mn>4.3</mn>
+ </mrow>
+</math>>>
+        expected: <<<mn>-4.33</mn>>>
+
+      * InputForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mtext>-4.326563712`2.</mtext>
+  <annotation-xml encoding='MathML-Content'>
+   <cn type='real'>-4.3</cn>
+  </annotation-xml>
+ </semantics>
+</math>>>
+        expected: <<<mn>-4.33</mn>>>
+
+      * OutputForm(mathml)    [Failed]
+        result:<<<?xml version='1.0'?>
+<!DOCTYPE Expression SYSTEM 'http://www.wolfram.com/XML/notebookml1.dtd'>
+<Expression xmlns:mathematica='http://www.wolfram.com/XML/'
+    xmlns='http://www.wolfram.com/XML/'>
+ <Function>
+  <Symbol>XML`MathML`BoxesToSymbolicMathML</Symbol>
+  <Function>
+   <Symbol>InterpretationBox</Symbol>
+   <Function>
+    <Symbol>PaneBox</Symbol>
+    <String>&quot;-4.3&quot;</String>
+   </Function>
+   <Function>
+    <Symbol>OutputForm</Symbol>
+    <Number Precision='2.'>-4.326563712</Number>
+   </Function>
+   <Function>
+    <Symbol>Rule</Symbol>
+    <Symbol>Editable</Symbol>
+    <Symbol>False</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>Formats</String>
+   <Function>
+    <Symbol>List</Symbol>
+    <String>PresentationMathML</String>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>IncludeMarkupAnnotations</String>
+   <Symbol>True</Symbol>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>MathAttributes</String>
+   <Function>
+    <Symbol>List</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>UseUnicodePlane1Characters</String>
+   <Symbol>True</Symbol>
+  </Function>
+ </Function>
+</Expression>>>
+        expected: <<<mn>-4.3</mn>>>
+
+Real  msg:very large real number (>10^6)<<1.*^6>>
+    text
+    -----
+
+      * StandardForm(text)    [Failed]
+        result:<<DisplayForm[RowBox[{1.`*^6}]]>>
+        expected: <<1.0`*^6>>
+
+      * TraditionalForm(text)    [Failed]
+        result:<<DisplayForm[FormBox[1.`*^6, TraditionalForm]]>>
+        expected: <<1.0`\[cross]10^6>>
+
+      * InputForm(text)    [Failed]
+        result:<<1.*^6>>
+        expected: <<1.0*^6>>
+
+      * OutputForm(text)    [Failed]
+        result:<<     6
+1. 10>>
+        expected: <<1.\[cross]10^6>>
+
+    latex
+    -----
+
+      * StandardForm(latex)    [Failed]
+        result:<<1.\times 10^6>>
+        expected: <<1.0\text{*${}^{\wedge}$}6>>
+
+      * TraditionalForm(latex)    [Failed]
+        result:<<1.\times 10^6>>
+        expected: <<1.0\times 10^6>>
+
+      * InputForm(latex)    [Failed]
+        result:<<\text{1.*${}^{\wedge}$6}>>
+        expected: <<1.0\text{*${}^{\wedge}$}6>>
+
+      * OutputForm(latex)    [Failed]
+        result:<<\text{     6$\backslash $n1. 10}>>
+        expected: <<1.\times 10^6>>
+
+    mathml
+    ------
+
+Real  msg:large real number (<10^6)<<100000.>>
+    text
+    -----
+
+      * StandardForm(text)    [Failed]
+        result:<<DisplayForm[RowBox[{100000.`}]]>>
+        expected: <<100000.`>>
+
+      * TraditionalForm(text)    [Failed]
+        result:<<DisplayForm[FormBox[100000.`, TraditionalForm]]>>
+        expected: <<100000.`>>
+
+      * InputForm(text)    [OK]
+      * OutputForm(text)    [OK]
+    latex
+    -----
+
+      * StandardForm(latex)    [OK]
+      * TraditionalForm(latex)    [OK]
+      * InputForm(latex)    [OK]
+      * OutputForm(latex)    [OK]
+    mathml
+    ------
+
+Real  msg:large negative real number (>10^6)<<-1.*^6>>
+    text
+    -----
+
+      * StandardForm(text)    [Failed]
+        result:<<DisplayForm[RowBox[{-, 1.`*^6}]]>>
+        expected: <<-1.0`*^6>>
+
+      * TraditionalForm(text)    [Failed]
+        result:<<DisplayForm[FormBox[RowBox[{-, 1.`*^6}], TraditionalForm]]>>
+        expected: <<-1.0`\[cross]10^6>>
+
+      * InputForm(text)    [Failed]
+        result:<<-1.*^6>>
+        expected: <<-1.0*^6>>
+
+      * OutputForm(text)    [Failed]
+        result:<<      6
+-1. 10>>
+        expected: <<-1.\[cross]10^6>>
+
+    latex
+    -----
+
+      * StandardForm(latex)    [Failed]
+        result:<<-1.\times 10^6>>
+        expected: <<-1.0\text{*${}^{\wedge}$}6>>
+
+      * TraditionalForm(latex)    [Failed]
+        result:<<-1.\times 10^6>>
+        expected: <<-1.0\times 10^6>>
+
+      * InputForm(latex)    [Failed]
+        result:<<\text{-1.*${}^{\wedge}$6}>>
+        expected: <<-1.0\text{*${}^{\wedge}$}6>>
+
+      * OutputForm(latex)    [Failed]
+        result:<<\text{      6$\backslash $n-1. 10}>>
+        expected: <<-1.\times 10^6>>
+
+    mathml
+    ------
+
+Real  msg:large negative real number (<10^6)<<-100000.>>
+    text
+    -----
+
+      * InputForm(text)    [OK]
+      * OutputForm(text)    [OK]
+    latex
+    -----
+
+      * InputForm(latex)    [OK]
+      * OutputForm(latex)    [OK]
+    mathml
+    ------
+
+Real  msg:very small real number (<10^-6)<<1.*^-6>>
+    text
+    -----
+
+      * InputForm(text)    [OK]
+      * OutputForm(text)    [Failed]
+        result:<<     -6
+1. 10>>
+        expected: <<1.\[cross]10^-6>>
+
+    latex
+    -----
+
+      * InputForm(latex)    [Failed]
+        result:<<\text{1.*${}^{\wedge}$-6}>>
+        expected: <<1.\text{*${}^{\wedge}$}-6>>
+
+      * OutputForm(latex)    [Failed]
+        result:<<\text{     -6$\backslash $n1. 10}>>
+        expected: <<1.\times 10^{-6}>>
+
+    mathml
+    ------
+
+Real  msg:small real number (<10^-5)<<0.00001>>
+    text
+    -----
+
+      * InputForm(text)    [OK]
+      * OutputForm(text)    [OK]
+    latex
+    -----
+
+      * InputForm(latex)    [OK]
+      * OutputForm(latex)    [OK]
+    mathml
+    ------
+
+Real  msg:very small negative real number (<10^-6)<<-1.*^-6>>
+    text
+    -----
+
+      * InputForm(text)    [OK]
+      * OutputForm(text)    [Failed]
+        result:<<      -6
+-1. 10>>
+        expected: <<-1.\[cross]10^-6>>
+
+    latex
+    -----
+
+      * InputForm(latex)    [Failed]
+        result:<<\text{-1.*${}^{\wedge}$-6}>>
+        expected: <<-1.\text{*${}^{\wedge}$}-6>>
+
+      * OutputForm(latex)    [Failed]
+        result:<<\text{      -6$\backslash $n-1. 10}>>
+        expected: <<-1.\times 10^{-6}>>
+
+    mathml
+    ------
+
+Real  msg:small negative real number (>10^-5)<<-0.00001>>
+    text
+    -----
+
+      * InputForm(text)    [OK]
+      * OutputForm(text)    [OK]
+    latex
+    -----
+
+      * InputForm(latex)    [OK]
+      * OutputForm(latex)    [OK]
+    mathml
+    ------
+
+Complex  msg:Complex number<<1.09*^12 + 3.*I>>
+    text
+    -----
+
+      * StandardForm(text)    [Failed]
+        result:<<DisplayForm[RowBox[{1.09`*^12, +, RowBox[{3.`,  , }]}]]>>
+        expected: <<1.09`*^12+3.` I>>
+
+      * TraditionalForm(text)    [Failed]
+        result:<<DisplayForm[FormBox[RowBox[{1.09`*^12, +, RowBox[{3.`,  , }]}], TraditionalForm]]>>
+        expected: <<1.09`\[cross]10^12+3.`\[VeryThinSpace]I>>
+
+      * InputForm(text)    [OK]
+      * OutputForm(text)    [Failed]
+        result:<<       12
+1.09 10   + 3. I>>
+        expected: <<1.09\[cross]10^12 + 3. I>>
+
+    latex
+    -----
+
+      * StandardForm(latex)    [Failed]
+        result:<<1.09\times 10^{12}+3. i>>
+        expected: <<1.09\text{*${}^{\wedge}$}12+3. I>>
+
+      * TraditionalForm(latex)    [Failed]
+        result:<<1.09\times 10^{12}+3. i>>
+        expected: <<1.09\times 10^{12}+3. I>>
+
+      * InputForm(latex)    [Failed]
+        result:<<\text{1.09*${}^{\wedge}$12 + 3.*I}>>
+        expected: <<1.09\text{*${}^{\wedge}$}12\text{ + }3.*I>>
+
+      * OutputForm(latex)    [Failed]
+        result:<<\text{       12$\backslash $n1.09 10   + 3. I}>>
+        expected: <<1.09\times 10^{12}\text{ + }3. I>>
+
+    mathml
+    ------
+
+      * StandardForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mrow>
+   <mrow>
+    <mn>1.09</mn>
+    <mo>&#215;</mo>
+    <msup>
+     <mn>10</mn>
+     <mn>12</mn>
+    </msup>
+   </mrow>
+   <mo>+</mo>
+   <mrow>
+    <mn>3.</mn>
+    <mtext> </mtext>
+    <mi>&#8520;</mi>
+   </mrow>
+  </mrow>
+  <annotation encoding='Mathematica'>TagBox[FormBox[RowBox[List[&quot;1.09`*^12&quot;, &quot;+&quot;, RowBox[List[&quot;3.`&quot;, &quot; &quot;, &quot;\[ImaginaryI]&quot;]]]], StandardForm], StandardForm, Rule[Editable, True]]</annotation>
+ </semantics>
+</math>>>
+        expected: <<<mrow><mrow><mn>1.09</mn> <mtext>*^</mtext> <mn>12</mn></mrow> <mo>+</mo> <mrow><mn>3.</mn> <mo>&nbsp;</mo> <mi>I</mi></mrow></mrow>>>
+
+      * TraditionalForm(mathml)    [Failed]
+        result:<<<math>
+ <mrow>
+  <mrow>
+   <mn>1.09</mn>
+   <mo>&#215;</mo>
+   <msup>
+    <mn>10</mn>
+    <mn>12</mn>
+   </msup>
+  </mrow>
+  <mo>+</mo>
+  <mrow>
+   <mn>3.</mn>
+   <mtext> </mtext>
+   <mi>&#8520;</mi>
+  </mrow>
+ </mrow>
+</math>>>
+        expected: <<<mrow><mrow><mn>1.09</mn> <mo>\[cross]</mo> <msup><mn>10</mn> <mn>12</mn></msup></mrow> <mo>+</mo> <mrow><mn>3.</mn> <mo form="prefix" lspace="0" rspace="0.2em">[empty]</mo> <mi>I</mi></mrow></mrow>>>
+
+      * InputForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mn>1.09*^12 + 3.*I</mn>
+  <annotation-xml encoding='MathML-Content'>
+   <cn type='complex-cartesian'>1.090000000000000*10^12<sep />3.</cn>
+  </annotation-xml>
+ </semantics>
+</math>>>
+        expected: <<<mrow><mrow><mn>1.09</mn> <mtext>*^</mtext> <mn>12</mn></mrow> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>3.</mn> <mtext>*</mtext> <mi>I</mi></mrow></mrow>>>
+
+      * OutputForm(mathml)    [Failed]
+        result:<<<?xml version='1.0'?>
+<!DOCTYPE Expression SYSTEM 'http://www.wolfram.com/XML/notebookml1.dtd'>
+<Expression xmlns:mathematica='http://www.wolfram.com/XML/'
+    xmlns='http://www.wolfram.com/XML/'>
+ <Function>
+  <Symbol>XML`MathML`BoxesToSymbolicMathML</Symbol>
+  <Function>
+   <Symbol>InterpretationBox</Symbol>
+   <Function>
+    <Symbol>PaneBox</Symbol>
+    <String>&quot;       12\n1.09 10   + 3. I&quot;</String>
+   </Function>
+   <Function>
+    <Symbol>OutputForm</Symbol>
+    <Function>
+     <Symbol>Complex</Symbol>
+     <Number Precision=''>1.09e12</Number>
+     <Number Precision=''>3.</Number>
+    </Function>
+   </Function>
+   <Function>
+    <Symbol>Rule</Symbol>
+    <Symbol>Editable</Symbol>
+    <Symbol>False</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>Formats</String>
+   <Function>
+    <Symbol>List</Symbol>
+    <String>PresentationMathML</String>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>IncludeMarkupAnnotations</String>
+   <Symbol>True</Symbol>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>MathAttributes</String>
+   <Function>
+    <Symbol>List</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>UseUnicodePlane1Characters</String>
+   <Symbol>True</Symbol>
+  </Function>
+ </Function>
+</Expression>>>
+        expected: <<<mrow><mrow><mn>1.09</mn> <mo>\[cross]</mo> <msup><mn>10</mn> <mn>12</mn></msup></mrow> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>3.</mn> <mo>&nbsp;</mo> <mi>I</mi></mrow></mrow>>>
+
+String  msg:A String<<Hola!>>
+    text
+    -----
+
+      * StandardForm(text)    [Failed]
+        result:<<DisplayForm[RowBox[{"Hola!"}]]>>
+        expected: <<Hola!>>
+
+      * TraditionalForm(text)    [Failed]
+        result:<<DisplayForm[FormBox["Hola!", TraditionalForm]]>>
+        expected: <<Hola!>>
+
+      * InputForm(text)    [OK]
+      * OutputForm(text)    [OK]
+    latex
+    -----
+
+      * StandardForm(latex)    [OK]
+      * TraditionalForm(latex)    [OK]
+      * InputForm(latex)    [Failed]
+        result:<<\text{Hola!}>>
+        expected: <<\text{``Hola!''}>>
+
+      * OutputForm(latex)    [OK]
+    mathml
+    ------
+
+      * StandardForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <ms>Hola!</ms>
+  <annotation encoding='Mathematica'>TagBox[FormBox[&quot;\&quot;Hola!\&quot;&quot;, StandardForm], StandardForm, Rule[Editable, True]]</annotation>
+ </semantics>
+</math>>>
+        expected: <<<mtext>Hola!</mtext>>>
+
+      * TraditionalForm(mathml)    [Failed]
+        result:<<<math>
+ <ms>Hola!</ms>
+</math>>>
+        expected: <<<mtext>Hola!</mtext>>>
+
+      * InputForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <ms>Hola!</ms>
+  <annotation-xml encoding='MathML-Content'>
+   <ms>Hola!</ms>
+  </annotation-xml>
+ </semantics>
+</math>>>
+        expected: <<<ms>Hola!</ms>>>
+
+      * OutputForm(mathml)    [Failed]
+        result:<<<?xml version='1.0'?>
+<!DOCTYPE Expression SYSTEM 'http://www.wolfram.com/XML/notebookml1.dtd'>
+<Expression xmlns:mathematica='http://www.wolfram.com/XML/'
+    xmlns='http://www.wolfram.com/XML/'>
+ <Function>
+  <Symbol>XML`MathML`BoxesToSymbolicMathML</Symbol>
+  <Function>
+   <Symbol>InterpretationBox</Symbol>
+   <Function>
+    <Symbol>PaneBox</Symbol>
+    <String>&quot;Hola!&quot;</String>
+   </Function>
+   <Function>
+    <Symbol>OutputForm</Symbol>
+    <String>Hola!</String>
+   </Function>
+   <Function>
+    <Symbol>Rule</Symbol>
+    <Symbol>Editable</Symbol>
+    <Symbol>False</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>Formats</String>
+   <Function>
+    <Symbol>List</Symbol>
+    <String>PresentationMathML</String>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>IncludeMarkupAnnotations</String>
+   <Symbol>True</Symbol>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>MathAttributes</String>
+   <Function>
+    <Symbol>List</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>UseUnicodePlane1Characters</String>
+   <Symbol>True</Symbol>
+  </Function>
+ </Function>
+</Expression>>>
+        expected: <<<mtext>Hola!</mtext>>>
+
+String  msg:A String<<π is a trascendental number>>
+    text
+    -----
+
+      * StandardForm(text)    [Failed]
+        result:<<DisplayForm[RowBox[{"π is a trascendental number"}]]>>
+        expected: <<\[Pi] is a trascendental number>>
+
+      * TraditionalForm(text)    [Failed]
+        result:<<DisplayForm[FormBox["π is a trascendental number", TraditionalForm]]>>
+        expected: <<\[Pi] is a trascendental number>>
+
+      * InputForm(text)    [Failed]
+        result:<<"π is a trascendental number">>
+        expected: <<"\[Pi] is a trascendental number">>
+
+      * OutputForm(text)    [Failed]
+        result:<<π is a trascendental number>>
+        expected: <<\[Pi] is a trascendental number>>
+
+    latex
+    -----
+
+      * StandardForm(latex)    [Failed]
+        result:<<\text{$\pi $ is a trascendental number}>>
+        expected: <<\text{\[Pi] is a trascendental number}>>
+
+      * TraditionalForm(latex)    [Failed]
+        result:<<\text{$\pi $ is a trascendental number}>>
+        expected: <<\text{\[Pi] is a trascendental number}>>
+
+      * InputForm(latex)    [Failed]
+        result:<<\text{$\pi $ is a trascendental number}>>
+        expected: <<\text{``\[Pi] is a trascendental number''}>>
+
+      * OutputForm(latex)    [Failed]
+        result:<<\text{$\pi $ is a trascendental number}>>
+        expected: <<\text{\[Pi] is a trascendental number}>>
+
+    mathml
+    ------
+
+      * StandardForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <ms>&#960; is a trascendental number</ms>
+  <annotation encoding='Mathematica'>TagBox[FormBox[&quot;\&quot;\[Pi] is a trascendental number\&quot;&quot;, StandardForm], StandardForm, Rule[Editable, True]]</annotation>
+ </semantics>
+</math>>>
+        expected: <<<mtext>\[Pi]&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>>>
+
+      * TraditionalForm(mathml)    [Failed]
+        result:<<<math>
+ <ms>&#960; is a trascendental number</ms>
+</math>>>
+        expected: <<<mtext>\[Pi]&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>>>
+
+      * InputForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <ms>&#960; is a trascendental number</ms>
+  <annotation-xml encoding='MathML-Content'>
+   <ms>&#960; is a trascendental number</ms>
+  </annotation-xml>
+ </semantics>
+</math>>>
+        expected: <<<ms>\[Pi]&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</ms>>>
+
+      * OutputForm(mathml)    [Failed]
+        result:<<<?xml version='1.0'?>
+<!DOCTYPE Expression SYSTEM 'http://www.wolfram.com/XML/notebookml1.dtd'>
+<Expression xmlns:mathematica='http://www.wolfram.com/XML/'
+    xmlns='http://www.wolfram.com/XML/'>
+ <Function>
+  <Symbol>XML`MathML`BoxesToSymbolicMathML</Symbol>
+  <Function>
+   <Symbol>InterpretationBox</Symbol>
+   <Function>
+    <Symbol>PaneBox</Symbol>
+    <String>&quot;&#960; is a trascendental number&quot;</String>
+   </Function>
+   <Function>
+    <Symbol>OutputForm</Symbol>
+    <String>&#960; is a trascendental number</String>
+   </Function>
+   <Function>
+    <Symbol>Rule</Symbol>
+    <Symbol>Editable</Symbol>
+    <Symbol>False</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>Formats</String>
+   <Function>
+    <Symbol>List</Symbol>
+    <String>PresentationMathML</String>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>IncludeMarkupAnnotations</String>
+   <Symbol>True</Symbol>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>MathAttributes</String>
+   <Function>
+    <Symbol>List</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>UseUnicodePlane1Characters</String>
+   <Symbol>True</Symbol>
+  </Function>
+ </Function>
+</Expression>>>
+        expected: <<<mtext>\[Pi]&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>>>
+
+String  msg:A String with a number<<-4.32>>
+    text
+    -----
+
+      * StandardForm(text)    [Failed]
+        result:<<DisplayForm[RowBox[{"-4.32"}]]>>
+        expected: <<-4.32>>
+
+      * TraditionalForm(text)    [Failed]
+        result:<<DisplayForm[FormBox["-4.32", TraditionalForm]]>>
+        expected: <<-4.32>>
+
+      * InputForm(text)    [OK]
+      * OutputForm(text)    [OK]
+    latex
+    -----
+
+      * StandardForm(latex)    [Failed]
+        result:<<-4.32>>
+        expected: <<\text{-4.32}>>
+
+      * TraditionalForm(latex)    [Failed]
+        result:<<-4.32>>
+        expected: <<\text{-4.32}>>
+
+      * InputForm(latex)    [Failed]
+        result:<<-4.32>>
+        expected: <<\text{``-4.32''}>>
+
+      * OutputForm(latex)    [Failed]
+        result:<<-4.32>>
+        expected: <<\text{-4.32}>>
+
+    mathml
+    ------
+
+      * StandardForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <ms>-4.32</ms>
+  <annotation encoding='Mathematica'>TagBox[FormBox[&quot;\&quot;-4.32\&quot;&quot;, StandardForm], StandardForm, Rule[Editable, True]]</annotation>
+ </semantics>
+</math>>>
+        expected: <<<mtext>-4.32</mtext>>>
+
+      * TraditionalForm(mathml)    [Failed]
+        result:<<<math>
+ <ms>-4.32</ms>
+</math>>>
+        expected: <<<mtext>-4.32</mtext>>>
+
+      * InputForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <ms>-4.32</ms>
+  <annotation-xml encoding='MathML-Content'>
+   <ms>-4.32</ms>
+  </annotation-xml>
+ </semantics>
+</math>>>
+        expected: <<<ms>-4.32</ms>>>
+
+      * OutputForm(mathml)    [Failed]
+        result:<<<?xml version='1.0'?>
+<!DOCTYPE Expression SYSTEM 'http://www.wolfram.com/XML/notebookml1.dtd'>
+<Expression xmlns:mathematica='http://www.wolfram.com/XML/'
+    xmlns='http://www.wolfram.com/XML/'>
+ <Function>
+  <Symbol>XML`MathML`BoxesToSymbolicMathML</Symbol>
+  <Function>
+   <Symbol>InterpretationBox</Symbol>
+   <Function>
+    <Symbol>PaneBox</Symbol>
+    <String>&quot;-4.32&quot;</String>
+   </Function>
+   <Function>
+    <Symbol>OutputForm</Symbol>
+    <String>-4.32</String>
+   </Function>
+   <Function>
+    <Symbol>Rule</Symbol>
+    <Symbol>Editable</Symbol>
+    <Symbol>False</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>Formats</String>
+   <Function>
+    <Symbol>List</Symbol>
+    <String>PresentationMathML</String>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>IncludeMarkupAnnotations</String>
+   <Symbol>True</Symbol>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>MathAttributes</String>
+   <Function>
+    <Symbol>List</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>UseUnicodePlane1Characters</String>
+   <Symbol>True</Symbol>
+  </Function>
+ </Function>
+</Expression>>>
+        expected: <<<mtext>-4.32</mtext>>>
+
+Symbol  msg:A Symbol<<a>>
+    text
+    -----
+
+      * StandardForm(text)    [Failed]
+        result:<<DisplayForm[RowBox[{a}]]>>
+        expected: <<a>>
+
+      * TraditionalForm(text)    [Failed]
+        result:<<DisplayForm[FormBox[a, TraditionalForm]]>>
+        expected: <<a>>
+
+      * InputForm(text)    [OK]
+      * OutputForm(text)    [OK]
+    latex
+    -----
+
+      * StandardForm(latex)    [OK]
+      * TraditionalForm(latex)    [OK]
+      * InputForm(latex)    [OK]
+      * OutputForm(latex)    [Failed]
+        result:<<\text{a}>>
+        expected: <<a>>
+
+    mathml
+    ------
+
+      * StandardForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mi>a</mi>
+  <annotation encoding='Mathematica'>TagBox[FormBox[&quot;a&quot;, StandardForm], StandardForm, Rule[Editable, True]]</annotation>
+ </semantics>
+</math>>>
+        expected: <<<mi>a</mi>>>
+
+      * TraditionalForm(mathml)    [Failed]
+        result:<<<math>
+ <mi>a</mi>
+</math>>>
+        expected: <<<mi>a</mi>>>
+
+      * InputForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mi>a</mi>
+  <annotation-xml encoding='MathML-Content'>
+   <ci>a</ci>
+  </annotation-xml>
+ </semantics>
+</math>>>
+        expected: <<<mi>a</mi>>>
+
+      * OutputForm(mathml)    [Failed]
+        result:<<<?xml version='1.0'?>
+<!DOCTYPE Expression SYSTEM 'http://www.wolfram.com/XML/notebookml1.dtd'>
+<Expression xmlns:mathematica='http://www.wolfram.com/XML/'
+    xmlns='http://www.wolfram.com/XML/'>
+ <Function>
+  <Symbol>XML`MathML`BoxesToSymbolicMathML</Symbol>
+  <Function>
+   <Symbol>InterpretationBox</Symbol>
+   <Function>
+    <Symbol>PaneBox</Symbol>
+    <String>&quot;a&quot;</String>
+   </Function>
+   <Function>
+    <Symbol>OutputForm</Symbol>
+    <Symbol>a</Symbol>
+   </Function>
+   <Function>
+    <Symbol>Rule</Symbol>
+    <Symbol>Editable</Symbol>
+    <Symbol>False</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>Formats</String>
+   <Function>
+    <Symbol>List</Symbol>
+    <String>PresentationMathML</String>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>IncludeMarkupAnnotations</String>
+   <Symbol>True</Symbol>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>MathAttributes</String>
+   <Function>
+    <Symbol>List</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>UseUnicodePlane1Characters</String>
+   <Symbol>True</Symbol>
+  </Function>
+ </Function>
+</Expression>>>
+        expected: <<<mi>a</mi>>>
+
+Symbol  msg:A greek letter Symbol<<Pi>>
+    text
+    -----
+
+      * StandardForm(text)    [Failed]
+        result:<<DisplayForm[RowBox[{π}]]>>
+        expected: <<\[Pi]>>
+
+      * TraditionalForm(text)    [Failed]
+        result:<<DisplayForm[FormBox[π, TraditionalForm]]>>
+        expected: <<\[Pi]>>
+
+      * InputForm(text)    [OK]
+      * OutputForm(text)    [OK]
+    latex
+    -----
+
+      * StandardForm(latex)    [OK]
+      * TraditionalForm(latex)    [OK]
+      * InputForm(latex)    [OK]
+      * OutputForm(latex)    [OK]
+    mathml
+    ------
+
+      * StandardForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mi>&#960;</mi>
+  <annotation encoding='Mathematica'>TagBox[FormBox[&quot;\[Pi]&quot;, StandardForm], StandardForm, Rule[Editable, True]]</annotation>
+ </semantics>
+</math>>>
+        expected: <<<mi>\[Pi]</mi>>>
+
+      * TraditionalForm(mathml)    [Failed]
+        result:<<<math>
+ <mi>&#960;</mi>
+</math>>>
+        expected: <<<mi>\[Pi]</mi>>>
+
+      * InputForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mi>Pi</mi>
+  <annotation-xml encoding='MathML-Content'>
+   <pi />
+  </annotation-xml>
+ </semantics>
+</math>>>
+        expected: <<<mi>Pi</mi>>>
+
+      * OutputForm(mathml)    [Failed]
+        result:<<<?xml version='1.0'?>
+<!DOCTYPE Expression SYSTEM 'http://www.wolfram.com/XML/notebookml1.dtd'>
+<Expression xmlns:mathematica='http://www.wolfram.com/XML/'
+    xmlns='http://www.wolfram.com/XML/'>
+ <Function>
+  <Symbol>XML`MathML`BoxesToSymbolicMathML</Symbol>
+  <Function>
+   <Symbol>InterpretationBox</Symbol>
+   <Function>
+    <Symbol>PaneBox</Symbol>
+    <String>&quot;Pi&quot;</String>
+   </Function>
+   <Function>
+    <Symbol>OutputForm</Symbol>
+    <Symbol>Pi</Symbol>
+   </Function>
+   <Function>
+    <Symbol>Rule</Symbol>
+    <Symbol>Editable</Symbol>
+    <Symbol>False</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>Formats</String>
+   <Function>
+    <Symbol>List</Symbol>
+    <String>PresentationMathML</String>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>IncludeMarkupAnnotations</String>
+   <Symbol>True</Symbol>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>MathAttributes</String>
+   <Function>
+    <Symbol>List</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>UseUnicodePlane1Characters</String>
+   <Symbol>True</Symbol>
+  </Function>
+ </Function>
+</Expression>>>
+        expected: <<<mi>Pi</mi>>>
+
+Power  msg:SuperscriptBox<<a^4>>
+    text
+    -----
+
+      * StandardForm(text)    [Failed]
+        result:<<DisplayForm[SuperscriptBox[a, 4]]>>
+        expected: <<a^4>>
+
+      * TraditionalForm(text)    [Failed]
+        result:<<DisplayForm[FormBox[SuperscriptBox[a, 4], TraditionalForm]]>>
+        expected: <<a^4>>
+
+      * InputForm(text)    [OK]
+      * OutputForm(text)    [Failed]
+        result:<< 4
+a>>
+        expected: <<a ^ 4>>
+
+    latex
+    -----
+
+      * StandardForm(latex)    [OK]
+      * TraditionalForm(latex)    [OK]
+      * InputForm(latex)    [Failed]
+        result:<<\text{a${}^{\wedge}$4}>>
+        expected: <<a{}^{\wedge}4>>
+
+      * OutputForm(latex)    [Failed]
+        result:<<\text{ 4$\backslash $na}>>
+        expected: <<a\text{ ${}^{\wedge}$ }4>>
+
+    mathml
+    ------
+
+      * StandardForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <msup>
+   <mi>a</mi>
+   <mn>4</mn>
+  </msup>
+  <annotation encoding='Mathematica'>TagBox[FormBox[SuperscriptBox[&quot;a&quot;, &quot;4&quot;], StandardForm], StandardForm, Rule[Editable, True]]</annotation>
+ </semantics>
+</math>>>
+        expected: <<<msup><mi>a</mi> <mn>4</mn></msup>>>
+
+      * TraditionalForm(mathml)    [Failed]
+        result:<<<math>
+ <msup>
+  <mi>a</mi>
+  <mn>4</mn>
+ </msup>
+</math>>>
+        expected: <<<msup><mi>a</mi> <mn>4</mn></msup>>>
+
+      * InputForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mtext>a^4</mtext>
+  <annotation-xml encoding='MathML-Content'>
+   <apply>
+    <power />
+    <ci>a</ci>
+    <cn type='integer'>4</cn>
+   </apply>
+  </annotation-xml>
+ </semantics>
+</math>>>
+        expected: <<<mrow><mi>a</mi> <mo>^</mo> <mtext>4</mtext></mrow>>>
+
+      * OutputForm(mathml)    [Failed]
+        result:<<<?xml version='1.0'?>
+<!DOCTYPE Expression SYSTEM 'http://www.wolfram.com/XML/notebookml1.dtd'>
+<Expression xmlns:mathematica='http://www.wolfram.com/XML/'
+    xmlns='http://www.wolfram.com/XML/'>
+ <Function>
+  <Symbol>XML`MathML`BoxesToSymbolicMathML</Symbol>
+  <Function>
+   <Symbol>InterpretationBox</Symbol>
+   <Function>
+    <Symbol>PaneBox</Symbol>
+    <String>&quot; 4\na&quot;</String>
+   </Function>
+   <Function>
+    <Symbol>OutputForm</Symbol>
+    <Function>
+     <Symbol>Power</Symbol>
+     <Symbol>a</Symbol>
+     <Number>4</Number>
+    </Function>
+   </Function>
+   <Function>
+    <Symbol>Rule</Symbol>
+    <Symbol>Editable</Symbol>
+    <Symbol>False</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>Formats</String>
+   <Function>
+    <Symbol>List</Symbol>
+    <String>PresentationMathML</String>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>IncludeMarkupAnnotations</String>
+   <Symbol>True</Symbol>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>MathAttributes</String>
+   <Function>
+    <Symbol>List</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>UseUnicodePlane1Characters</String>
+   <Symbol>True</Symbol>
+  </Function>
+ </Function>
+</Expression>>>
+        expected: <<<mrow><mi>a</mi> <mtext>&nbsp;^&nbsp;</mtext> <mn>4</mn></mrow>>>
+
+Subscript  msg:SubscriptBox<<Subscript[a, 4]>>
+    text
+    -----
+
+      * InputForm(text)    [OK]
+      * OutputForm(text)    [Failed]
+        result:<<a
+ 4>>
+        expected: <<Subscript[a, 4]>>
+
+    latex
+    -----
+
+      * StandardForm(latex)    [OK]
+      * TraditionalForm(latex)    [OK]
+      * InputForm(latex)    [Failed]
+        result:<<\text{Subscript[a, 4]}>>
+        expected: <<\text{Subscript}\left[a, 4\right]>>
+
+      * OutputForm(latex)    [Failed]
+        result:<<\text{a$\backslash $n 4}>>
+        expected: <<\text{Subscript}\left[a, 4\right]>>
+
+    mathml
+    ------
+
+      * StandardForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <msub>
+   <mi>a</mi>
+   <mn>4</mn>
+  </msub>
+  <annotation encoding='Mathematica'>TagBox[FormBox[SubscriptBox[&quot;a&quot;, &quot;4&quot;], StandardForm], StandardForm, Rule[Editable, True]]</annotation>
+ </semantics>
+</math>>>
+        expected: <<<msub><mi>a</mi> <mn>4</mn></msub>>>
+
+      * TraditionalForm(mathml)    [Failed]
+        result:<<<math>
+ <msub>
+  <mi>a</mi>
+  <mn>4</mn>
+ </msub>
+</math>>>
+        expected: <<<msub><mi>a</mi> <mn>4</mn></msub>>>
+
+Grid  msg:Strings in a GridBox<<Grid[{{Spanish, Hola!}, {Portuguese, Olà!}, {English, Hi!}}]>>
+    text
+    -----
+
+      * StandardForm(text)    [Failed]
+        result:<<DisplayForm[TagBox[GridBox[{{"Spanish", "Hola!"}, {"Portuguese", "Olà!"}, {"English", "Hi!"}}, AutoDelete -> False, GridBoxItemSize -> {Columns -> {{Automatic}}, Rows -> {{Automatic}}}], Grid]]>>
+        expected: <<Spanish      Hola!
+
+Portuguese   Olà!
+
+English      Hi!
+>>
+
+      * TraditionalForm(text)    [Failed]
+        result:<<DisplayForm[FormBox[TagBox[GridBox[{{"Spanish", "Hola!"}, {"Portuguese", "Olà!"}, {"English", "Hi!"}}, AutoDelete -> False, GridBoxItemSize -> {Columns -> {{Automatic}}, Rows -> {{Automatic}}}], Grid], TraditionalForm]]>>
+        expected: <<Spanish      Hola!
+
+Portuguese   Olà!
+
+English      Hi!
+>>
+
+      * InputForm(text)    [OK]
+      * OutputForm(text)    [Failed]
+        result:<<Spanish      Hola!
+
+Portuguese   Olà!
+
+English      Hi!>>
+        expected: <<Spanish      Hola!
+
+Portuguese   Olà!
+
+English      Hi!
+>>
+
+    latex
+    -----
+
+      * StandardForm(latex)    [Failed]
+        result:<<\begin{array}{cc}
+ \text{Spanish} & \text{Hola!} \\
+ \text{Portuguese} & \text{Ol{\` a}!} \\
+ \text{English} & \text{Hi!} \\
+\end{array}>>
+        expected: <<\begin{array}{cc} \text{Spanish} & \text{Hola!}\\ \text{Portuguese} & \text{Olà!}\\ \text{English} & \text{Hi!}\end{array}>>
+
+      * TraditionalForm(latex)    [Failed]
+        result:<<\begin{array}{cc}
+ \text{Spanish} & \text{Hola!} \\
+ \text{Portuguese} & \text{Ol{\` a}!} \\
+ \text{English} & \text{Hi!} \\
+\end{array}>>
+        expected: <<\begin{array}{cc} \text{Spanish} & \text{Hola!}\\ \text{Portuguese} & \text{Olà!}\\ \text{English} & \text{Hi!}\end{array}>>
+
+      * InputForm(latex)    [Failed]
+        result:<<\text{Grid[$\{\{$Spanish, Hola!$\}$, $\{$Portuguese, Ol{\` a}!$\}$, $\{$English, Hi!$\}\}$]}>>
+        expected: <<\text{Grid}\left[\left\{\left\{\text{``Spanish''}, \text{``Hola!''}\right\}, \left\{\text{``Portuguese''}, \text{``Olà!''}\right\}, \left\{\text{``English''}, \text{``Hi!''}\right\}\right\}\right]>>
+
+      * OutputForm(latex)    [Failed]
+        result:<<\text{Spanish      Hola!$\backslash $n$\backslash $nPortuguese   Ol{\` a}!$\backslash $n$\backslash $nEnglish      Hi!}>>
+        expected: <<\begin{array}{cc} \text{Spanish} & \text{Hola!}\\ \text{Portuguese} & \text{Olà!}\\ \text{English} & \text{Hi!}\end{array}>>
+
+    mathml
+    ------
+
+      * StandardForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mtable>
+   <mtr>
+    <mtd>
+     <ms>Spanish</ms>
+    </mtd>
+    <mtd>
+     <ms>Hola!</ms>
+    </mtd>
+   </mtr>
+   <mtr>
+    <mtd>
+     <ms>Portuguese</ms>
+    </mtd>
+    <mtd>
+     <ms>Ol&#224;!</ms>
+    </mtd>
+   </mtr>
+   <mtr>
+    <mtd>
+     <ms>English</ms>
+    </mtd>
+    <mtd>
+     <ms>Hi!</ms>
+    </mtd>
+   </mtr>
+  </mtable>
+  <annotation encoding='Mathematica'>TagBox[FormBox[TagBox[GridBox[List[List[&quot;\&quot;Spanish\&quot;&quot;, &quot;\&quot;Hola!\&quot;&quot;], List[&quot;\&quot;Portuguese\&quot;&quot;, &quot;\&quot;Ol\[AGrave]!\&quot;&quot;], List[&quot;\&quot;English\&quot;&quot;, &quot;\&quot;Hi!\&quot;&quot;]], Rule[AutoDelete, False], Rule[GridBoxItemSize, List[Rule[&quot;Columns&quot;, List[List[Automatic]]], Rule[&quot;Rows&quot;, List[List[Automatic]]]]]], &quot;Grid&quot;], StandardForm], StandardForm, Rule[Editable, True]]</annotation>
+ </semantics>
+</math>>>
+        expected: <<<mtable columnalign="center">
+<mtr><mtd columnalign="center"><mtext>Spanish</mtext></mtd><mtd columnalign="center"><mtext>Hola!</mtext></mtd></mtr>
+<mtr><mtd columnalign="center"><mtext>Portuguese</mtext></mtd><mtd columnalign="center"><mtext>Olà!</mtext></mtd></mtr>
+<mtr><mtd columnalign="center"><mtext>English</mtext></mtd><mtd columnalign="center"><mtext>Hi!</mtext></mtd></mtr>
+</mtable>>>
+
+      * TraditionalForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mtable>
+   <mtr>
+    <mtd>
+     <ms>Spanish</ms>
+    </mtd>
+    <mtd>
+     <ms>Hola!</ms>
+    </mtd>
+   </mtr>
+   <mtr>
+    <mtd>
+     <ms>Portuguese</ms>
+    </mtd>
+    <mtd>
+     <ms>Ol&#224;!</ms>
+    </mtd>
+   </mtr>
+   <mtr>
+    <mtd>
+     <ms>English</ms>
+    </mtd>
+    <mtd>
+     <ms>Hi!</ms>
+    </mtd>
+   </mtr>
+  </mtable>
+  <annotation encoding='Mathematica'>TagBox[GridBox[List[List[&quot;\&quot;Spanish\&quot;&quot;, &quot;\&quot;Hola!\&quot;&quot;], List[&quot;\&quot;Portuguese\&quot;&quot;, &quot;\&quot;Ol\[AGrave]!\&quot;&quot;], List[&quot;\&quot;English\&quot;&quot;, &quot;\&quot;Hi!\&quot;&quot;]], Rule[AutoDelete, False], Rule[GridBoxItemSize, List[Rule[&quot;Columns&quot;, List[List[Automatic]]], Rule[&quot;Rows&quot;, List[List[Automatic]]]]]], &quot;Grid&quot;]</annotation>
+ </semantics>
+</math>>>
+        expected: <<<mtable columnalign="center">
+<mtr><mtd columnalign="center"><mtext>Spanish</mtext></mtd><mtd columnalign="center"><mtext>Hola!</mtext></mtd></mtr>
+<mtr><mtd columnalign="center"><mtext>Portuguese</mtext></mtd><mtd columnalign="center"><mtext>Olà!</mtext></mtd></mtr>
+<mtr><mtd columnalign="center"><mtext>English</mtext></mtd><mtd columnalign="center"><mtext>Hi!</mtext></mtd></mtr>
+</mtable>>>
+
+      * InputForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mtext>Grid[{{&quot;Spanish&quot;, &quot;Hola!&quot;}, {&quot;Portuguese&quot;, &quot;Ol&#224;!&quot;}, {&quot;English&quot;, &quot;Hi!&quot;}}]</mtext>
+  <annotation-xml encoding='MathML-Content'>
+   <apply>
+    <ci>Grid</ci>
+    <list>
+     <list>
+      <ms>Spanish</ms>
+      <ms>Hola!</ms>
+     </list>
+     <list>
+      <ms>Portuguese</ms>
+      <ms>Ol&#224;!</ms>
+     </list>
+     <list>
+      <ms>English</ms>
+      <ms>Hi!</ms>
+     </list>
+    </list>
+   </apply>
+  </annotation-xml>
+ </semantics>
+</math>>>
+        expected: <<<mrow><mi>Grid</mi> <mo>[</mo> <mrow><mo>{</mo> <mrow><mrow><mo>{</mo> <mrow><ms>Spanish</ms> <mtext>,&nbsp;</mtext> <ms>Hola!</ms></mrow> <mo>}</mo></mrow> <mtext>,&nbsp;</mtext> <mrow><mo>{</mo> <mrow><ms>Portuguese</ms> <mtext>,&nbsp;</mtext> <ms>Olà!</ms></mrow> <mo>}</mo></mrow> <mtext>,&nbsp;</mtext> <mrow><mo>{</mo> <mrow><ms>English</ms> <mtext>,&nbsp;</mtext> <ms>Hi!</ms></mrow> <mo>}</mo></mrow></mrow> <mo>}</mo></mrow> <mo>]</mo></mrow>>>
+
+      * OutputForm(mathml)    [Failed]
+        result:<<<?xml version='1.0'?>
+<!DOCTYPE Expression SYSTEM 'http://www.wolfram.com/XML/notebookml1.dtd'>
+<Expression xmlns:mathematica='http://www.wolfram.com/XML/'
+    xmlns='http://www.wolfram.com/XML/'>
+ <Function>
+  <Symbol>XML`MathML`BoxesToSymbolicMathML</Symbol>
+  <Function>
+   <Symbol>InterpretationBox</Symbol>
+   <Function>
+    <Symbol>PaneBox</Symbol>
+    <String>&quot;Spanish      Hola!\n\nPortuguese   Ol&#224;!\n\nEnglish      Hi!&quot;</String>
+   </Function>
+   <Function>
+    <Symbol>OutputForm</Symbol>
+    <Function>
+     <Symbol>Grid</Symbol>
+     <Function>
+      <Symbol>List</Symbol>
+      <Function>
+       <Symbol>List</Symbol>
+       <String>Spanish</String>
+       <String>Hola!</String>
+      </Function>
+      <Function>
+       <Symbol>List</Symbol>
+       <String>Portuguese</String>
+       <String>Ol&#224;!</String>
+      </Function>
+      <Function>
+       <Symbol>List</Symbol>
+       <String>English</String>
+       <String>Hi!</String>
+      </Function>
+     </Function>
+    </Function>
+   </Function>
+   <Function>
+    <Symbol>Rule</Symbol>
+    <Symbol>Editable</Symbol>
+    <Symbol>False</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>Formats</String>
+   <Function>
+    <Symbol>List</Symbol>
+    <String>PresentationMathML</String>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>IncludeMarkupAnnotations</String>
+   <Symbol>True</Symbol>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>MathAttributes</String>
+   <Function>
+    <Symbol>List</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>UseUnicodePlane1Characters</String>
+   <Symbol>True</Symbol>
+  </Function>
+ </Function>
+</Expression>>>
+        expected: <<<mtable columnalign="center">
+<mtr><mtd columnalign="center"><mtext>Spanish</mtext></mtd><mtd columnalign="center"><mtext>Hola!</mtext></mtd></mtr>
+<mtr><mtd columnalign="center"><mtext>Portuguese</mtext></mtd><mtd columnalign="center"><mtext>Olà!</mtext></mtd></mtr>
+<mtr><mtd columnalign="center"><mtext>English</mtext></mtd><mtd columnalign="center"><mtext>Hi!</mtext></mtd></mtr>
+</mtable>>>
+
+Subsuperscript  msg:SubsuperscriptBox<<Subsuperscript[a, p, q]>>
+    text
+    -----
+
+      * StandardForm(text)    [Failed]
+        result:<<DisplayForm[TemplateBox[{a, p, q}, Subsuperscript, SyntaxForm -> SubsuperscriptBox]]>>
+        expected: <<Subsuperscript[a, p, q]>>
+
+      * TraditionalForm(text)    [Failed]
+        result:<<DisplayForm[FormBox[TemplateBox[{a, p, q}, Subsuperscript, SyntaxForm -> SubsuperscriptBox], TraditionalForm]]>>
+        expected: <<Subsuperscript[a, p, q]>>
+
+      * InputForm(text)    [OK]
+      * OutputForm(text)    [Failed]
+        result:<< q
+a
+ p>>
+        expected: <<Subsuperscript[a, p, q]>>
+
+    latex
+    -----
+
+      * StandardForm(latex)    [OK]
+      * TraditionalForm(latex)    [OK]
+      * InputForm(latex)    [Failed]
+        result:<<\text{Subsuperscript[a, p, q]}>>
+        expected: <<\text{Subsuperscript}\left[a, p, q\right]>>
+
+      * OutputForm(latex)    [Failed]
+        result:<<\text{ q$\backslash $na$\backslash $n p}>>
+        expected: <<\text{Subsuperscript}\left[a, p, q\right]>>
+
+    mathml
+    ------
+
+      * StandardForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <msubsup>
+   <mi>a</mi>
+   <mi>p</mi>
+   <mi>q</mi>
+  </msubsup>
+  <annotation encoding='Mathematica'>TagBox[FormBox[TemplateBox[List[&quot;a&quot;, &quot;p&quot;, &quot;q&quot;], &quot;Subsuperscript&quot;, Rule[SyntaxForm, SubsuperscriptBox]], StandardForm], StandardForm, Rule[Editable, True]]</annotation>
+ </semantics>
+</math>>>
+        expected: <<<msubsup><mi>a</mi> <mi>p</mi> <mi>q</mi></msubsup>>>
+
+      * TraditionalForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <msubsup>
+   <mi>a</mi>
+   <mi>p</mi>
+   <mi>q</mi>
+  </msubsup>
+  <annotation encoding='Mathematica'>TemplateBox[List[&quot;a&quot;, &quot;p&quot;, &quot;q&quot;], &quot;Subsuperscript&quot;, Rule[SyntaxForm, SubsuperscriptBox]]</annotation>
+ </semantics>
+</math>>>
+        expected: <<<msubsup><mi>a</mi> <mi>p</mi> <mi>q</mi></msubsup>>>
+
+      * InputForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mtext>Subsuperscript[a, p, q]</mtext>
+  <annotation-xml encoding='MathML-Content'>
+   <apply>
+    <ci>Subsuperscript</ci>
+    <ci>a</ci>
+    <ci>p</ci>
+    <ci>q</ci>
+   </apply>
+  </annotation-xml>
+ </semantics>
+</math>>>
+        expected: <<<mrow><mi>Subsuperscript</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext> <mi>p</mi> <mtext>,&nbsp;</mtext> <mi>q</mi></mrow> <mo>]</mo></mrow>>>
+
+      * OutputForm(mathml)    [Failed]
+        result:<<<?xml version='1.0'?>
+<!DOCTYPE Expression SYSTEM 'http://www.wolfram.com/XML/notebookml1.dtd'>
+<Expression xmlns:mathematica='http://www.wolfram.com/XML/'
+    xmlns='http://www.wolfram.com/XML/'>
+ <Function>
+  <Symbol>XML`MathML`BoxesToSymbolicMathML</Symbol>
+  <Function>
+   <Symbol>InterpretationBox</Symbol>
+   <Function>
+    <Symbol>PaneBox</Symbol>
+    <String>&quot; q\na\n p&quot;</String>
+   </Function>
+   <Function>
+    <Symbol>OutputForm</Symbol>
+    <Function>
+     <Symbol>Subsuperscript</Symbol>
+     <Symbol>a</Symbol>
+     <Symbol>p</Symbol>
+     <Symbol>q</Symbol>
+    </Function>
+   </Function>
+   <Function>
+    <Symbol>Rule</Symbol>
+    <Symbol>Editable</Symbol>
+    <Symbol>False</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>Formats</String>
+   <Function>
+    <Symbol>List</Symbol>
+    <String>PresentationMathML</String>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>IncludeMarkupAnnotations</String>
+   <Symbol>True</Symbol>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>MathAttributes</String>
+   <Function>
+    <Symbol>List</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>UseUnicodePlane1Characters</String>
+   <Symbol>True</Symbol>
+  </Function>
+ </Function>
+</Expression>>>
+        expected: <<<mrow><mi>Subsuperscript</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext> <mi>p</mi> <mtext>,&nbsp;</mtext> <mi>q</mi></mrow> <mo>]</mo></mrow>>>
+
+Integrate  msg:Nontrivial SubsuperscriptBox<<Integrate[F[x], {x, a, g[b]}]>>
+    text
+    -----
+
+      * OutputForm(text)    [OK]
+    latex
+    -----
+
+      * StandardForm(latex)    [Failed]
+        result:<<\int_a^{g[b]} F[x] \, dx>>
+        expected: <<\int_a^{g\left[b\right]} F\left[x\right] \, dx>>
+
+      * TraditionalForm(latex)    [Failed]
+        result:<<\int_a^{g(b)} F(x) \, dx>>
+        expected: <<\int_a^{g\left(b\right)} F\left(x\right) \, dx>>
+
+      * InputForm(latex)    [Failed]
+        result:<<\text{Integrate[F[x], $\{$x, a, g[b]$\}$]}>>
+        expected: <<\text{Integrate}\left[F\left[x\right], \left\{x, a, g\left[b\right]\right\}\right]>>
+
+      * OutputForm(latex)    [Failed]
+        result:<<\text{Integrate[F[x], $\{$x, a, g[b]$\}$]}>>
+        expected: <<\text{Integrate}\left[F\left[x\right], \left\{x, a, g\left[b\right]\right\}\right]>>
+
+    mathml
+    ------
+
+      * InputForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mtext>Integrate[F[x], {x, a, g[b]}]</mtext>
+  <annotation-xml encoding='MathML-Content'>
+   <apply>
+    <int />
+    <bvar>
+     <ci>x</ci>
+    </bvar>
+    <lowlimit>
+     <ci>a</ci>
+    </lowlimit>
+    <uplimit>
+     <apply>
+      <ci>g</ci>
+      <ci>b</ci>
+     </apply>
+    </uplimit>
+    <apply>
+     <ci>F</ci>
+     <ci>x</ci>
+    </apply>
+   </apply>
+  </annotation-xml>
+ </semantics>
+</math>>>
+        expected: <<<mrow><mi>Integrate</mi> <mo>[</mo> <mrow><mrow><mi>F</mi> <mo>[</mo> <mi>x</mi> <mo>]</mo></mrow> <mtext>,&nbsp;</mtext> <mrow><mo>{</mo> <mrow><mi>x</mi> <mtext>,&nbsp;</mtext> <mi>a</mi> <mtext>,&nbsp;</mtext> <mrow><mi>g</mi> <mo>[</mo> <mi>b</mi> <mo>]</mo></mrow></mrow> <mo>}</mo></mrow></mrow> <mo>]</mo></mrow>>>
+
+      * OutputForm(mathml)    [Failed]
+        result:<<<?xml version='1.0'?>
+<!DOCTYPE Expression SYSTEM 'http://www.wolfram.com/XML/notebookml1.dtd'>
+<Expression xmlns:mathematica='http://www.wolfram.com/XML/'
+    xmlns='http://www.wolfram.com/XML/'>
+ <Function>
+  <Symbol>XML`MathML`BoxesToSymbolicMathML</Symbol>
+  <Function>
+   <Symbol>InterpretationBox</Symbol>
+   <Function>
+    <Symbol>PaneBox</Symbol>
+    <String>&quot;Integrate[F[x], {x, a, g[b]}]&quot;</String>
+   </Function>
+   <Function>
+    <Symbol>OutputForm</Symbol>
+    <Function>
+     <Symbol>Integrate</Symbol>
+     <Function>
+      <Symbol>F</Symbol>
+      <Symbol>x</Symbol>
+     </Function>
+     <Function>
+      <Symbol>List</Symbol>
+      <Symbol>x</Symbol>
+      <Symbol>a</Symbol>
+      <Function>
+       <Symbol>g</Symbol>
+       <Symbol>b</Symbol>
+      </Function>
+     </Function>
+    </Function>
+   </Function>
+   <Function>
+    <Symbol>Rule</Symbol>
+    <Symbol>Editable</Symbol>
+    <Symbol>False</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>Formats</String>
+   <Function>
+    <Symbol>List</Symbol>
+    <String>PresentationMathML</String>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>IncludeMarkupAnnotations</String>
+   <Symbol>True</Symbol>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>MathAttributes</String>
+   <Function>
+    <Symbol>List</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>UseUnicodePlane1Characters</String>
+   <Symbol>True</Symbol>
+  </Function>
+ </Function>
+</Expression>>>
+        expected: <<<mrow><mi>Integrate</mi> <mo>[</mo> <mrow><mrow><mi>F</mi> <mo>[</mo> <mi>x</mi> <mo>]</mo></mrow> <mtext>,&nbsp;</mtext> <mrow><mo>{</mo> <mrow><mi>x</mi> <mtext>,&nbsp;</mtext> <mi>a</mi> <mtext>,&nbsp;</mtext> <mrow><mi>g</mi> <mo>[</mo> <mi>b</mi> <mo>]</mo></mrow></mrow> <mo>}</mo></mrow></mrow> <mo>]</mo></mrow>>>
+
+Power  msg:SuperscriptBox with a nested expression.<<a^(b/c)>>
+    text
+    -----
+
+      * StandardForm(text)    [Failed]
+        result:<<DisplayForm[SuperscriptBox[a, RowBox[{b, /, c}]]]>>
+        expected: <<a^(b / c)>>
+
+      * TraditionalForm(text)    [Failed]
+        result:<<DisplayForm[FormBox[SuperscriptBox[a, RowBox[{b, /, c}]], TraditionalForm]]>>
+        expected: <<a^(b / c)>>
+
+      * InputForm(text)    [Failed]
+        result:<<a^(b/c)>>
+        expected: <<a^(b / c)>>
+
+      * OutputForm(text)    [Failed]
+        result:<< b/c
+a>>
+        expected: <<a ^ (b / c)>>
+
+    latex
+    -----
+
+      * StandardForm(latex)    [Failed]
+        result:<<a^{b/c}>>
+        expected: <<a^{\frac{b}{c}}>>
+
+      * TraditionalForm(latex)    [Failed]
+        result:<<a^{b/c}>>
+        expected: <<a^{\frac{b}{c}}>>
+
+      * InputForm(latex)    [Failed]
+        result:<<\text{a${}^{\wedge}$(b/c)}>>
+        expected: <<a{}^{\wedge}\left(b\text{ / }c\right)>>
+
+      * OutputForm(latex)    [Failed]
+        result:<<\text{ b/c$\backslash $na}>>
+        expected: <<a\text{ ${}^{\wedge}$ }\left(b\text{ / }c\right)>>
+
+    mathml
+    ------
+
+      * StandardForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <msup>
+   <mi>a</mi>
+   <mrow>
+    <mi>b</mi>
+    <mo>/</mo>
+    <mi>c</mi>
+   </mrow>
+  </msup>
+  <annotation encoding='Mathematica'>TagBox[FormBox[SuperscriptBox[&quot;a&quot;, RowBox[List[&quot;b&quot;, &quot;/&quot;, &quot;c&quot;]]], StandardForm], StandardForm, Rule[Editable, True]]</annotation>
+ </semantics>
+</math>>>
+        expected: <<<msup><mi>a</mi> <mfrac><mi>b</mi> <mi>c</mi></mfrac></msup>>>
+
+      * TraditionalForm(mathml)    [Failed]
+        result:<<<math>
+ <msup>
+  <mi>a</mi>
+  <mrow>
+   <mi>b</mi>
+   <mo>/</mo>
+   <mi>c</mi>
+  </mrow>
+ </msup>
+</math>>>
+        expected: <<<msup><mi>a</mi> <mfrac><mi>b</mi> <mi>c</mi></mfrac></msup>>>
+
+      * InputForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mtext>a^(b/c)</mtext>
+  <annotation-xml encoding='MathML-Content'>
+   <apply>
+    <power />
+    <ci>a</ci>
+    <apply>
+     <times />
+     <ci>b</ci>
+     <apply>
+      <power />
+      <ci>c</ci>
+      <cn type='integer'>-1</cn>
+     </apply>
+    </apply>
+   </apply>
+  </annotation-xml>
+ </semantics>
+</math>>>
+        expected: <<<mrow><mi>a</mi> <mo>^</mo> <mrow><mo>(</mo> <mrow><mi>b</mi> <mtext>&nbsp;/&nbsp;</mtext> <mi>c</mi></mrow> <mo>)</mo></mrow></mrow>>>
+
+      * OutputForm(mathml)    [Failed]
+        result:<<<?xml version='1.0'?>
+<!DOCTYPE Expression SYSTEM 'http://www.wolfram.com/XML/notebookml1.dtd'>
+<Expression xmlns:mathematica='http://www.wolfram.com/XML/'
+    xmlns='http://www.wolfram.com/XML/'>
+ <Function>
+  <Symbol>XML`MathML`BoxesToSymbolicMathML</Symbol>
+  <Function>
+   <Symbol>InterpretationBox</Symbol>
+   <Function>
+    <Symbol>PaneBox</Symbol>
+    <String>&quot; b/c\na&quot;</String>
+   </Function>
+   <Function>
+    <Symbol>OutputForm</Symbol>
+    <Function>
+     <Symbol>Power</Symbol>
+     <Symbol>a</Symbol>
+     <Function>
+      <Symbol>Times</Symbol>
+      <Symbol>b</Symbol>
+      <Function>
+       <Symbol>Power</Symbol>
+       <Symbol>c</Symbol>
+       <Number>-1</Number>
+      </Function>
+     </Function>
+    </Function>
+   </Function>
+   <Function>
+    <Symbol>Rule</Symbol>
+    <Symbol>Editable</Symbol>
+    <Symbol>False</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>Formats</String>
+   <Function>
+    <Symbol>List</Symbol>
+    <String>PresentationMathML</String>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>IncludeMarkupAnnotations</String>
+   <Symbol>True</Symbol>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>MathAttributes</String>
+   <Function>
+    <Symbol>List</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>UseUnicodePlane1Characters</String>
+   <Symbol>True</Symbol>
+  </Function>
+ </Function>
+</Expression>>>
+        expected: <<<mrow><mi>a</mi> <mtext>&nbsp;^&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mi>b</mi> <mtext>&nbsp;/&nbsp;</mtext> <mi>c</mi></mrow> <mo>)</mo></mrow></mrow>>>
+
+Power  msg:FractionBox<<(1 + (1 + a^(-1))^(-1))^(-1)>>
+    text
+    -----
+
+      * StandardForm(text)    [Failed]
+        result:<<DisplayForm[FractionBox[1, RowBox[{1, +, FractionBox[1, RowBox[{1, +, FractionBox[1, a]}]]}]]]>>
+        expected: <<1 / (1+1 / (1+1 / a))>>
+
+      * TraditionalForm(text)    [Failed]
+        result:<<DisplayForm[FormBox[FractionBox[1, RowBox[{FractionBox[1, RowBox[{FractionBox[1, a], +, 1}]], +, 1}]], TraditionalForm]]>>
+        expected: <<1 / (1+1 / (1+1 / a))>>
+
+      * InputForm(text)    [Failed]
+        result:<<(1 + (1 + a^(-1))^(-1))^(-1)>>
+        expected: <<1 / (1 + 1 / (1 + 1 / a))>>
+
+      * OutputForm(text)    [Failed]
+        result:<<    1
+---------
+      1
+1 + -----
+        1
+    1 + -
+        a>>
+        expected: <<1 / (1 + 1 / (1 + 1 / a))>>
+
+    latex
+    -----
+
+      * StandardForm(latex)    [OK]
+      * TraditionalForm(latex)    [Failed]
+        result:<<\frac{1}{\frac{1}{\frac{1}{a}+1}+1}>>
+        expected: <<\frac{1}{1+\frac{1}{1+\frac{1}{a}}}>>
+
+      * InputForm(latex)    [Failed]
+        result:<<\text{(1 + (1 + a${}^{\wedge}$(-1))${}^{\wedge}$(-1))${}^{\wedge}$(-1)}>>
+        expected: <<1\text{ / }\left(1\text{ + }1\text{ / }\left(1\text{ + }1\text{ / }a\right)\right)>>
+
+      * OutputForm(latex)    [Failed]
+        result:<<\text{    1$\backslash $n---------$\backslash $n      1$\backslash $n1 + -----$\backslash $n        1$\backslash $n    1 + -$\backslash $n        a}>>
+        expected: <<1\text{ / }\left(1\text{ + }1\text{ / }\left(1\text{ + }1\text{ / }a\right)\right)>>
+
+    mathml
+    ------
+
+Power  msg:SqrtBox<<Sqrt[(1 + (1 + a^(-1))^(-1))^(-1)]>>
+    text
+    -----
+
+      * StandardForm(text)    [Failed]
+        result:<<DisplayForm[SqrtBox[FractionBox[1, RowBox[{1, +, FractionBox[1, RowBox[{1, +, FractionBox[1, a]}]]}]]]]>>
+        expected: <<Sqrt[1 / (1+1 / (1+1 / a))]>>
+
+      * TraditionalForm(text)    [Failed]
+        result:<<DisplayForm[FormBox[SqrtBox[FractionBox[1, RowBox[{FractionBox[1, RowBox[{FractionBox[1, a], +, 1}]], +, 1}]]], TraditionalForm]]>>
+        expected: <<Sqrt[1 / (1+1 / (1+1 / a))]>>
+
+      * InputForm(text)    [Failed]
+        result:<<Sqrt[(1 + (1 + a^(-1))^(-1))^(-1)]>>
+        expected: <<Sqrt[1 / (1 + 1 / (1 + 1 / a))]>>
+
+      * OutputForm(text)    [Failed]
+        result:<<         1
+Sqrt[---------]
+           1
+     1 + -----
+             1
+         1 + -
+             a>>
+        expected: <<Sqrt[1 / (1 + 1 / (1 + 1 / a))]>>
+
+    latex
+    -----
+
+      * StandardForm(latex)    [OK]
+      * TraditionalForm(latex)    [Failed]
+        result:<<\sqrt{\frac{1}{\frac{1}{\frac{1}{a}+1}+1}}>>
+        expected: <<\sqrt{\frac{1}{1+\frac{1}{1+\frac{1}{a}}}}>>
+
+      * InputForm(latex)    [Failed]
+        result:<<\text{Sqrt[(1 + (1 + a${}^{\wedge}$(-1))${}^{\wedge}$(-1))${}^{\wedge}$(-1)]}>>
+        expected: <<\text{Sqrt}\left[1\text{ / }\left(1\text{ + }1\text{ / }\left(1\text{ + }1\text{ / }a\right)\right)\right]>>
+
+      * OutputForm(latex)    [Failed]
+        result:<<\text{         1$\backslash $nSqrt[---------]$\backslash $n           1$\backslash $n     1 + -----$\backslash $n             1$\backslash $n         1 + -$\backslash $n             a}>>
+        expected: <<\text{Sqrt}\left[1\text{ / }\left(1\text{ + }1\text{ / }\left(1\text{ + }1\text{ / }a\right)\right)\right]>>
+
+    mathml
+    ------
+
+Grid  msg:GridBox<<Grid[{{a, b}, {c, d}}]>>
+    text
+    -----
+
+      * StandardForm(text)    [Failed]
+        result:<<DisplayForm[TagBox[GridBox[{{a, b}, {c, d}}, AutoDelete -> False, GridBoxItemSize -> {Columns -> {{Automatic}}, Rows -> {{Automatic}}}], Grid]]>>
+        expected: <<a   b
+
+c   d
+>>
+
+      * TraditionalForm(text)    [Failed]
+        result:<<DisplayForm[FormBox[TagBox[GridBox[{{a, b}, {c, d}}, AutoDelete -> False, GridBoxItemSize -> {Columns -> {{Automatic}}, Rows -> {{Automatic}}}], Grid], TraditionalForm]]>>
+        expected: <<a   b
+
+c   d
+>>
+
+      * InputForm(text)    [OK]
+      * OutputForm(text)    [Failed]
+        result:<<a   b
+
+c   d>>
+        expected: <<a   b
+
+c   d
+>>
+
+    latex
+    -----
+
+      * StandardForm(latex)    [Failed]
+        result:<<\begin{array}{cc}
+ a & b \\
+ c & d \\
+\end{array}>>
+        expected: <<\begin{array}{cc} a & b\\ c & d\end{array}>>
+
+      * TraditionalForm(latex)    [Failed]
+        result:<<\begin{array}{cc}
+ a & b \\
+ c & d \\
+\end{array}>>
+        expected: <<\begin{array}{cc} a & b\\ c & d\end{array}>>
+
+      * InputForm(latex)    [Failed]
+        result:<<\text{Grid[$\{\{$a, b$\}$, $\{$c, d$\}\}$]}>>
+        expected: <<\text{Grid}\left[\left\{\left\{a, b\right\}, \left\{c, d\right\}\right\}\right]>>
+
+      * OutputForm(latex)    [Failed]
+        result:<<\text{a   b$\backslash $n$\backslash $nc   d}>>
+        expected: <<\begin{array}{cc} a & b\\ c & d\end{array}>>
+
+    mathml
+    ------
+
+      * StandardForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mtable>
+   <mtr>
+    <mtd>
+     <mi>a</mi>
+    </mtd>
+    <mtd>
+     <mi>b</mi>
+    </mtd>
+   </mtr>
+   <mtr>
+    <mtd>
+     <mi>c</mi>
+    </mtd>
+    <mtd>
+     <mi>d</mi>
+    </mtd>
+   </mtr>
+  </mtable>
+  <annotation encoding='Mathematica'>TagBox[FormBox[TagBox[GridBox[List[List[&quot;a&quot;, &quot;b&quot;], List[&quot;c&quot;, &quot;d&quot;]], Rule[AutoDelete, False], Rule[GridBoxItemSize, List[Rule[&quot;Columns&quot;, List[List[Automatic]]], Rule[&quot;Rows&quot;, List[List[Automatic]]]]]], &quot;Grid&quot;], StandardForm], StandardForm, Rule[Editable, True]]</annotation>
+ </semantics>
+</math>>>
+        expected: <<<mtable columnalign="center">
+<mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>
+<mtr><mtd columnalign="center"><mi>c</mi></mtd><mtd columnalign="center"><mi>d</mi></mtd></mtr>
+</mtable>>>
+
+      * TraditionalForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mtable>
+   <mtr>
+    <mtd>
+     <mi>a</mi>
+    </mtd>
+    <mtd>
+     <mi>b</mi>
+    </mtd>
+   </mtr>
+   <mtr>
+    <mtd>
+     <mi>c</mi>
+    </mtd>
+    <mtd>
+     <mi>d</mi>
+    </mtd>
+   </mtr>
+  </mtable>
+  <annotation encoding='Mathematica'>TagBox[GridBox[List[List[&quot;a&quot;, &quot;b&quot;], List[&quot;c&quot;, &quot;d&quot;]], Rule[AutoDelete, False], Rule[GridBoxItemSize, List[Rule[&quot;Columns&quot;, List[List[Automatic]]], Rule[&quot;Rows&quot;, List[List[Automatic]]]]]], &quot;Grid&quot;]</annotation>
+ </semantics>
+</math>>>
+        expected: <<<mtable columnalign="center">
+<mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>
+<mtr><mtd columnalign="center"><mi>c</mi></mtd><mtd columnalign="center"><mi>d</mi></mtd></mtr>
+</mtable>>>
+
+      * InputForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mtext>Grid[{{a, b}, {c, d}}]</mtext>
+  <annotation-xml encoding='MathML-Content'>
+   <apply>
+    <ci>Grid</ci>
+    <list>
+     <list>
+      <ci>a</ci>
+      <ci>b</ci>
+     </list>
+     <list>
+      <ci>c</ci>
+      <ci>d</ci>
+     </list>
+    </list>
+   </apply>
+  </annotation-xml>
+ </semantics>
+</math>>>
+        expected: <<<mrow><mi>Grid</mi> <mo>[</mo> <mrow><mo>{</mo> <mrow><mrow><mo>{</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext> <mi>b</mi></mrow> <mo>}</mo></mrow> <mtext>,&nbsp;</mtext> <mrow><mo>{</mo> <mrow><mi>c</mi> <mtext>,&nbsp;</mtext> <mi>d</mi></mrow> <mo>}</mo></mrow></mrow> <mo>}</mo></mrow> <mo>]</mo></mrow>>>
+
+      * OutputForm(mathml)    [Failed]
+        result:<<<?xml version='1.0'?>
+<!DOCTYPE Expression SYSTEM 'http://www.wolfram.com/XML/notebookml1.dtd'>
+<Expression xmlns:mathematica='http://www.wolfram.com/XML/'
+    xmlns='http://www.wolfram.com/XML/'>
+ <Function>
+  <Symbol>XML`MathML`BoxesToSymbolicMathML</Symbol>
+  <Function>
+   <Symbol>InterpretationBox</Symbol>
+   <Function>
+    <Symbol>PaneBox</Symbol>
+    <String>&quot;a   b\n\nc   d&quot;</String>
+   </Function>
+   <Function>
+    <Symbol>OutputForm</Symbol>
+    <Function>
+     <Symbol>Grid</Symbol>
+     <Function>
+      <Symbol>List</Symbol>
+      <Function>
+       <Symbol>List</Symbol>
+       <Symbol>a</Symbol>
+       <Symbol>b</Symbol>
+      </Function>
+      <Function>
+       <Symbol>List</Symbol>
+       <Symbol>c</Symbol>
+       <Symbol>d</Symbol>
+      </Function>
+     </Function>
+    </Function>
+   </Function>
+   <Function>
+    <Symbol>Rule</Symbol>
+    <Symbol>Editable</Symbol>
+    <Symbol>False</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>Formats</String>
+   <Function>
+    <Symbol>List</Symbol>
+    <String>PresentationMathML</String>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>IncludeMarkupAnnotations</String>
+   <Symbol>True</Symbol>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>MathAttributes</String>
+   <Function>
+    <Symbol>List</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>UseUnicodePlane1Characters</String>
+   <Symbol>True</Symbol>
+  </Function>
+ </Function>
+</Expression>>>
+        expected: <<<mtable columnalign="center">
+<mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>
+<mtr><mtd columnalign="center"><mi>c</mi></mtd><mtd columnalign="center"><mi>d</mi></mtd></mtr>
+</mtable>>>
+
+TableForm  msg:GridBox in a table<<TableForm[{{a, b}, {c, d}}]>>
+    text
+    -----
+
+      * StandardForm(text)    [Failed]
+        result:<<DisplayForm[TagBox[GridBox[{{a, b}, {c, d}}, RowSpacings -> 1, ColumnSpacings -> 3, RowAlignments -> Baseline, ColumnAlignments -> Left], Function[BoxForm`e$, TableForm[BoxForm`e$]]]]>>
+        expected: <<a   b
+
+c   d
+>>
+
+      * TraditionalForm(text)    [Failed]
+        result:<<DisplayForm[FormBox[TagBox[GridBox[{{a, b}, {c, d}}, RowSpacings -> 1, ColumnSpacings -> 3, RowAlignments -> Baseline, ColumnAlignments -> Left], Function[BoxForm`e$, TableForm[BoxForm`e$]]], TraditionalForm]]>>
+        expected: <<a   b
+
+c   d
+>>
+
+      * InputForm(text)    [OK]
+      * OutputForm(text)    [Failed]
+        result:<<a   b
+
+c   d>>
+        expected: <<a   b
+
+c   d
+>>
+
+    latex
+    -----
+
+      * StandardForm(latex)    [Failed]
+        result:<<\begin{array}{cc}
+ a & b \\
+ c & d \\
+\end{array}>>
+        expected: <<\begin{array}{cc} a & b\\ c & d\end{array}>>
+
+      * TraditionalForm(latex)    [Failed]
+        result:<<\begin{array}{cc}
+ a & b \\
+ c & d \\
+\end{array}>>
+        expected: <<\begin{array}{cc} a & b\\ c & d\end{array}>>
+
+      * InputForm(latex)    [Failed]
+        result:<<\text{TableForm[$\{\{$a, b$\}$, $\{$c, d$\}\}$]}>>
+        expected: <<\text{TableForm}\left[\left\{\left\{a, b\right\}, \left\{c, d\right\}\right\}\right]>>
+
+      * OutputForm(latex)    [Failed]
+        result:<<\text{a   b$\backslash $n$\backslash $nc   d}>>
+        expected: <<\begin{array}{cc} a & b\\ c & d\end{array}>>
+
+    mathml
+    ------
+
+      * StandardForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mtable rowspacing='1ex'
+      columnspacing='3em'
+      rowalign='baseline'
+      columnalign='left'>
+   <mtr>
+    <mtd>
+     <mi>a</mi>
+    </mtd>
+    <mtd>
+     <mi>b</mi>
+    </mtd>
+   </mtr>
+   <mtr>
+    <mtd>
+     <mi>c</mi>
+    </mtd>
+    <mtd>
+     <mi>d</mi>
+    </mtd>
+   </mtr>
+  </mtable>
+  <annotation encoding='Mathematica'>TagBox[FormBox[TagBox[GridBox[List[List[&quot;a&quot;, &quot;b&quot;], List[&quot;c&quot;, &quot;d&quot;]], Rule[RowSpacings, 1], Rule[ColumnSpacings, 3], Rule[RowAlignments, Baseline], Rule[ColumnAlignments, Left]], Function[BoxForm`e$, TableForm[BoxForm`e$]]], StandardForm], StandardForm, Rule[Editable, True]]</annotation>
+ </semantics>
+</math>>>
+        expected: <<<mtable columnalign="center">
+<mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>
+<mtr><mtd columnalign="center"><mi>c</mi></mtd><mtd columnalign="center"><mi>d</mi></mtd></mtr>
+</mtable>>>
+
+      * TraditionalForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mtable rowspacing='1ex'
+      columnspacing='3em'
+      rowalign='baseline'
+      columnalign='left'>
+   <mtr>
+    <mtd>
+     <mi>a</mi>
+    </mtd>
+    <mtd>
+     <mi>b</mi>
+    </mtd>
+   </mtr>
+   <mtr>
+    <mtd>
+     <mi>c</mi>
+    </mtd>
+    <mtd>
+     <mi>d</mi>
+    </mtd>
+   </mtr>
+  </mtable>
+  <annotation encoding='Mathematica'>TagBox[GridBox[List[List[&quot;a&quot;, &quot;b&quot;], List[&quot;c&quot;, &quot;d&quot;]], Rule[RowSpacings, 1], Rule[ColumnSpacings, 3], Rule[RowAlignments, Baseline], Rule[ColumnAlignments, Left]], Function[BoxForm`e$, TableForm[BoxForm`e$]]]</annotation>
+ </semantics>
+</math>>>
+        expected: <<<mtable columnalign="center">
+<mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>
+<mtr><mtd columnalign="center"><mi>c</mi></mtd><mtd columnalign="center"><mi>d</mi></mtd></mtr>
+</mtable>>>
+
+      * InputForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mtext>TableForm[{{a, b}, {c, d}}]</mtext>
+  <annotation-xml encoding='MathML-Content'>
+   <list>
+    <list>
+     <ci>a</ci>
+     <ci>b</ci>
+    </list>
+    <list>
+     <ci>c</ci>
+     <ci>d</ci>
+    </list>
+   </list>
+  </annotation-xml>
+ </semantics>
+</math>>>
+        expected: <<<mrow><mi>TableForm</mi> <mo>[</mo> <mrow><mo>{</mo> <mrow><mrow><mo>{</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext> <mi>b</mi></mrow> <mo>}</mo></mrow> <mtext>,&nbsp;</mtext> <mrow><mo>{</mo> <mrow><mi>c</mi> <mtext>,&nbsp;</mtext> <mi>d</mi></mrow> <mo>}</mo></mrow></mrow> <mo>}</mo></mrow> <mo>]</mo></mrow>>>
+
+      * OutputForm(mathml)    [Failed]
+        result:<<<?xml version='1.0'?>
+<!DOCTYPE Expression SYSTEM 'http://www.wolfram.com/XML/notebookml1.dtd'>
+<Expression xmlns:mathematica='http://www.wolfram.com/XML/'
+    xmlns='http://www.wolfram.com/XML/'>
+ <Function>
+  <Symbol>XML`MathML`BoxesToSymbolicMathML</Symbol>
+  <Function>
+   <Symbol>InterpretationBox</Symbol>
+   <Function>
+    <Symbol>PaneBox</Symbol>
+    <String>&quot;a   b\n\nc   d&quot;</String>
+   </Function>
+   <Function>
+    <Symbol>OutputForm</Symbol>
+    <Function>
+     <Symbol>TableForm</Symbol>
+     <Function>
+      <Symbol>List</Symbol>
+      <Function>
+       <Symbol>List</Symbol>
+       <Symbol>a</Symbol>
+       <Symbol>b</Symbol>
+      </Function>
+      <Function>
+       <Symbol>List</Symbol>
+       <Symbol>c</Symbol>
+       <Symbol>d</Symbol>
+      </Function>
+     </Function>
+    </Function>
+   </Function>
+   <Function>
+    <Symbol>Rule</Symbol>
+    <Symbol>Editable</Symbol>
+    <Symbol>False</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>Formats</String>
+   <Function>
+    <Symbol>List</Symbol>
+    <String>PresentationMathML</String>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>IncludeMarkupAnnotations</String>
+   <Symbol>True</Symbol>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>MathAttributes</String>
+   <Function>
+    <Symbol>List</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>UseUnicodePlane1Characters</String>
+   <Symbol>True</Symbol>
+  </Function>
+ </Function>
+</Expression>>>
+        expected: <<<mtable columnalign="center">
+<mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>
+<mtr><mtd columnalign="center"><mi>c</mi></mtd><mtd columnalign="center"><mi>d</mi></mtd></mtr>
+</mtable>>>
+
+MatrixForm  msg:GridBox in a matrix<<MatrixForm[{{a, b}, {c, d}}]>>
+    text
+    -----
+
+      * StandardForm(text)    [Failed]
+        result:<<DisplayForm[TagBox[RowBox[{(, ⁠, GridBox[{{a, b}, {c, d}}, RowSpacings -> 1, ColumnSpacings -> 1, RowAlignments -> Baseline, ColumnAlignments -> Center], ⁠, )}], Function[BoxForm`e$, MatrixForm[BoxForm`e$]]]]>>
+        expected: <<(a   b
+
+c   d
+)>>
+
+      * TraditionalForm(text)    [Failed]
+        result:<<DisplayForm[FormBox[TagBox[RowBox[{(, ⁠, GridBox[{{a, b}, {c, d}}, RowSpacings -> 1, ColumnSpacings -> 1, RowAlignments -> Baseline, ColumnAlignments -> Center], ⁠, )}], Function[BoxForm`e$, MatrixForm[BoxForm`e$]]], TraditionalForm]]>>
+        expected: <<(a   b
+
+c   d
+)>>
+
+      * InputForm(text)    [OK]
+      * OutputForm(text)    [Failed]
+        result:<<a   b
+
+c   d>>
+        expected: <<a   b
+
+c   d
+>>
+
+    latex
+    -----
+
+      * StandardForm(latex)    [Failed]
+        result:<<\left(
+\begin{array}{cc}
+ a & b \\
+ c & d \\
+\end{array}
+\right)>>
+        expected: <<\left(\begin{array}{cc} a & b\\ c & d\end{array}\right)>>
+
+      * TraditionalForm(latex)    [Failed]
+        result:<<\left(
+\begin{array}{cc}
+ a & b \\
+ c & d \\
+\end{array}
+\right)>>
+        expected: <<\left(\begin{array}{cc} a & b\\ c & d\end{array}\right)>>
+
+      * InputForm(latex)    [Failed]
+        result:<<\text{MatrixForm[$\{\{$a, b$\}$, $\{$c, d$\}\}$]}>>
+        expected: <<\text{MatrixForm}\left[\left\{\left\{a, b\right\}, \left\{c, d\right\}\right\}\right]>>
+
+      * OutputForm(latex)    [Failed]
+        result:<<\text{a   b$\backslash $n$\backslash $nc   d}>>
+        expected: <<\begin{array}{cc} a & b\\ c & d\end{array}>>
+
+    mathml
+    ------
+
+      * StandardForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mrow>
+   <mo>(</mo>
+   <mtable rowspacing='1ex'
+       columnspacing='1em'
+       rowalign='baseline'
+       columnalign='center'>
+    <mtr>
+     <mtd>
+      <mi>a</mi>
+     </mtd>
+     <mtd>
+      <mi>b</mi>
+     </mtd>
+    </mtr>
+    <mtr>
+     <mtd>
+      <mi>c</mi>
+     </mtd>
+     <mtd>
+      <mi>d</mi>
+     </mtd>
+    </mtr>
+   </mtable>
+   <mo>)</mo>
+  </mrow>
+  <annotation encoding='Mathematica'>TagBox[FormBox[TagBox[RowBox[List[&quot;(&quot;, &quot;\[NoBreak]&quot;, GridBox[List[List[&quot;a&quot;, &quot;b&quot;], List[&quot;c&quot;, &quot;d&quot;]], Rule[RowSpacings, 1], Rule[ColumnSpacings, 1], Rule[RowAlignments, Baseline], Rule[ColumnAlignments, Center]], &quot;\[NoBreak]&quot;, &quot;)&quot;]], Function[BoxForm`e$, MatrixForm[BoxForm`e$]]], StandardForm], StandardForm, Rule[Editable, True]]</annotation>
+ </semantics>
+</math>>>
+        expected: <<<mrow><mo>(</mo> <mtable columnalign="center">
+<mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>
+<mtr><mtd columnalign="center"><mi>c</mi></mtd><mtd columnalign="center"><mi>d</mi></mtd></mtr>
+</mtable> <mo>)</mo></mrow>>>
+
+      * TraditionalForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mrow>
+   <mo>(</mo>
+   <mtable rowspacing='1ex'
+       columnspacing='1em'
+       rowalign='baseline'
+       columnalign='center'>
+    <mtr>
+     <mtd>
+      <mi>a</mi>
+     </mtd>
+     <mtd>
+      <mi>b</mi>
+     </mtd>
+    </mtr>
+    <mtr>
+     <mtd>
+      <mi>c</mi>
+     </mtd>
+     <mtd>
+      <mi>d</mi>
+     </mtd>
+    </mtr>
+   </mtable>
+   <mo>)</mo>
+  </mrow>
+  <annotation encoding='Mathematica'>TagBox[RowBox[List[&quot;(&quot;, &quot;\[NoBreak]&quot;, GridBox[List[List[&quot;a&quot;, &quot;b&quot;], List[&quot;c&quot;, &quot;d&quot;]], Rule[RowSpacings, 1], Rule[ColumnSpacings, 1], Rule[RowAlignments, Baseline], Rule[ColumnAlignments, Center]], &quot;\[NoBreak]&quot;, &quot;)&quot;]], Function[BoxForm`e$, MatrixForm[BoxForm`e$]]]</annotation>
+ </semantics>
+</math>>>
+        expected: <<<mrow><mo>(</mo> <mtable columnalign="center">
+<mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>
+<mtr><mtd columnalign="center"><mi>c</mi></mtd><mtd columnalign="center"><mi>d</mi></mtd></mtr>
+</mtable> <mo>)</mo></mrow>>>
+
+      * InputForm(mathml)    [Failed]
+        result:<<<math>
+ <semantics>
+  <mtext>MatrixForm[{{a, b}, {c, d}}]</mtext>
+  <annotation-xml encoding='MathML-Content'>
+   <list>
+    <list>
+     <ci>a</ci>
+     <ci>b</ci>
+    </list>
+    <list>
+     <ci>c</ci>
+     <ci>d</ci>
+    </list>
+   </list>
+  </annotation-xml>
+ </semantics>
+</math>>>
+        expected: <<<mrow><mi>MatrixForm</mi> <mo>[</mo> <mrow><mo>{</mo> <mrow><mrow><mo>{</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext> <mi>b</mi></mrow> <mo>}</mo></mrow> <mtext>,&nbsp;</mtext> <mrow><mo>{</mo> <mrow><mi>c</mi> <mtext>,&nbsp;</mtext> <mi>d</mi></mrow> <mo>}</mo></mrow></mrow> <mo>}</mo></mrow> <mo>]</mo></mrow>>>
+
+      * OutputForm(mathml)    [Failed]
+        result:<<<?xml version='1.0'?>
+<!DOCTYPE Expression SYSTEM 'http://www.wolfram.com/XML/notebookml1.dtd'>
+<Expression xmlns:mathematica='http://www.wolfram.com/XML/'
+    xmlns='http://www.wolfram.com/XML/'>
+ <Function>
+  <Symbol>XML`MathML`BoxesToSymbolicMathML</Symbol>
+  <Function>
+   <Symbol>InterpretationBox</Symbol>
+   <Function>
+    <Symbol>PaneBox</Symbol>
+    <String>&quot;a   b\n\nc   d&quot;</String>
+   </Function>
+   <Function>
+    <Symbol>OutputForm</Symbol>
+    <Function>
+     <Symbol>MatrixForm</Symbol>
+     <Function>
+      <Symbol>List</Symbol>
+      <Function>
+       <Symbol>List</Symbol>
+       <Symbol>a</Symbol>
+       <Symbol>b</Symbol>
+      </Function>
+      <Function>
+       <Symbol>List</Symbol>
+       <Symbol>c</Symbol>
+       <Symbol>d</Symbol>
+      </Function>
+     </Function>
+    </Function>
+   </Function>
+   <Function>
+    <Symbol>Rule</Symbol>
+    <Symbol>Editable</Symbol>
+    <Symbol>False</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>Formats</String>
+   <Function>
+    <Symbol>List</Symbol>
+    <String>PresentationMathML</String>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>IncludeMarkupAnnotations</String>
+   <Symbol>True</Symbol>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>MathAttributes</String>
+   <Function>
+    <Symbol>List</Symbol>
+   </Function>
+  </Function>
+  <Function>
+   <Symbol>Rule</Symbol>
+   <String>UseUnicodePlane1Characters</String>
+   <Symbol>True</Symbol>
+  </Function>
+ </Function>
+</Expression>>>
+        expected: <<<mtable columnalign="center">
+<mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>
+<mtr><mtd columnalign="center"><mi>c</mi></mtd><mtd columnalign="center"><mi>d</mi></mtd></mtr>
+</mtable>>>
+
+Graphics  msg:GraphicsBox - Fragile!<<Graphics[{}]>>
+    text
+    -----
+
+      * StandardForm(text)    [Failed]
+        result:<<DisplayForm[GraphicsBox[{}]]>>
+        expected: <<-Graphics->>
+
+      * TraditionalForm(text)    [Failed]
+        result:<<DisplayForm[FormBox[GraphicsBox[{}], TraditionalForm]]>>
+        expected: <<-Graphics->>
+
+      * InputForm(text)    [OK]
+      * OutputForm(text)    [OK]
+    latex
+    -----
+
+
+TeXForm::unspt: TeXForm of GraphicsBox[{}] is not supported.
+      * StandardForm(latex)    [Failed]
+        result:<<>>
+        expected: <<
+\begin{asy}
+usepackage("amsmath");
+size(5.8333cm, 5.8333cm);
+
+
+clip(box((-1,-1), (1,1)));
+
+\end{asy}
+>>
+
+
+Convert`TeX`BoxesToTeX::notboxes: GraphicsBox[{}] is not a valid box structure. The first argument in Convert`TeX`BoxesToTeX must be a valid box structure.
+
+Convert`TeX`BoxesToTeX::argx: Convert`TeX`BoxesToTeX called with 2 arguments; 1 argument is expected.
+      * TraditionalForm(latex)    [Failed]
+        result:<<Convert`TeX`BoxesToTeX[GraphicsBox[{}], BoxRules -> {alpha :> System`Convert`TeXFormDump`MakeTeX[α], beta :> System`Convert`TeXFormDump`MakeTeX[β], gamma :> System`Convert`TeXFormDump`MakeTeX[γ], delta :> System`Convert`TeXFormDump`MakeTeX[δ], epsilon :> System`Convert`TeXFormDump`MakeTeX[ϵ], zeta :> System`Convert`TeXFormDump`MakeTeX[ζ], eta :> System`Convert`TeXFormDump`MakeTeX[η], theta :> System`Convert`TeXFormDump`MakeTeX[θ], iota :> System`Convert`TeXFormDump`MakeTeX[ι], kappa :> System`Convert`TeXFormDump`MakeTeX[κ], lambda :> System`Convert`TeXFormDump`MakeTeX[λ], mu :> System`Convert`TeXFormDump`MakeTeX[μ], nu :> System`Convert`TeXFormDump`MakeTeX[ν], xi :> System`Convert`TeXFormDump`MakeTeX[ξ], omicron :> System`Convert`TeXFormDump`MakeTeX[ο], pi :> System`Convert`TeXFormDump`MakeTeX[π], rho :> System`Convert`TeXFormDump`MakeTeX[ρ], sigma :> System`Convert`TeXFormDump`MakeTeX[σ], tau :> System`Convert`TeXFormDump`MakeTeX[τ], upsilon :> System`Convert`TeXFormDump`MakeTeX[υ], phi :> System`Convert`TeXFormDump`MakeTeX[ϕ], chi :> System`Convert`TeXFormDump`MakeTeX[χ], psi :> System`Convert`TeXFormDump`MakeTeX[ψ], omega :> System`Convert`TeXFormDump`MakeTeX[ω], digamma :> System`Convert`TeXFormDump`MakeTeX[ϝ], ALPHA :> System`Convert`TeXFormDump`MakeTeX[Α], BETA :> System`Convert`TeXFormDump`MakeTeX[Β], GAMMA :> System`Convert`TeXFormDump`MakeTeX[Γ], DELTA :> System`Convert`TeXFormDump`MakeTeX[Δ], EPSILON :> System`Convert`TeXFormDump`MakeTeX[Ε], ZETA :> System`Convert`TeXFormDump`MakeTeX[Ζ], ETA :> System`Convert`TeXFormDump`MakeTeX[Η], THETA :> System`Convert`TeXFormDump`MakeTeX[Θ], IOTA :> System`Convert`TeXFormDump`MakeTeX[Ι], KAPPA :> System`Convert`TeXFormDump`MakeTeX[Κ], LAMBDA :> System`Convert`TeXFormDump`MakeTeX[Λ], MU :> System`Convert`TeXFormDump`MakeTeX[Μ], NU :> System`Convert`TeXFormDump`MakeTeX[Ν], XI :> System`Convert`TeXFormDump`MakeTeX[Ξ], OMICRON :> System`Convert`TeXFormDump`MakeTeX[Ο], PI :> System`Convert`TeXFormDump`MakeTeX[Π], RHO :> System`Convert`TeXFormDump`MakeTeX[Ρ], SIGMA :> System`Convert`TeXFormDump`MakeTeX[Σ], TAU :> System`Convert`TeXFormDump`MakeTeX[Τ], UPSILON :> System`Convert`TeXFormDump`MakeTeX[Υ], PHI :> System`Convert`TeXFormDump`MakeTeX[Φ], CHI :> System`Convert`TeXFormDump`MakeTeX[Χ], PSI :> System`Convert`TeXFormDump`MakeTeX[Ψ], OMEGA :> System`Convert`TeXFormDump`MakeTeX[Ω], DIGAMMA :> System`Convert`TeXFormDump`MakeTeX[Ϝ]}]>>
+        expected: <<
+\begin{asy}
+usepackage("amsmath");
+size(5.8333cm, 5.8333cm);
+
+
+clip(box((-1,-1), (1,1)));
+
+\end{asy}
+>>
+
+      * InputForm(latex)    [Failed]
+        result:<<\text{Graphics[$\{\}$]}>>
+        expected: <<\text{Graphics}\left[\left\{\right\}\right]>>
+
+      * OutputForm(latex)    [Failed]
+        result:<<\text{-Graphics-}>>
+        expected: <<
+\begin{asy}
+usepackage("amsmath");
+size(5.8333cm, 5.8333cm);
+
+
+clip(box((-1,-1), (1,1)));
+
+\end{asy}
+>>
+
+    mathml
+    ------
+
+
+Do::iterb: Iterator {subtest, mathml} does not have appropriate bounds.
+Graphics  msg:Nontrivial Graphics - Fragile!<<Graphics[{Text[a^b, {0, 0}]}]>>
+    text
+    -----
+
+      * StandardForm(text)    [Failed]
+        result:<<DisplayForm[GraphicsBox[{InsetBox[FormBox[SuperscriptBox[a, b], TraditionalForm], {0, 0}]}]]>>
+        expected: <<-Graphics->>
+
+      * TraditionalForm(text)    [Failed]
+        result:<<DisplayForm[FormBox[GraphicsBox[{InsetBox[FormBox[SuperscriptBox[a, b], TraditionalForm], {0, 0}]}], TraditionalForm]]>>
+        expected: <<-Graphics->>
+
+      * InputForm(text)    [Failed]
+        result:<<Graphics[{Text[a^b, {0, 0}]}]>>
+        expected: <<Graphics[{Text[Power[a, b], {0, 0}]}]>>
+
+      * OutputForm(text)    [OK]
+    latex
+    -----
+
+
+TeXForm::unspt: TeXForm of GraphicsBox[{InsetBox[FormBox[SuperscriptBox[a, b], TraditionalForm], {0, 0}]}] is not supported.
+      * StandardForm(latex)    [Failed]
+        result:<<>>
+        expected: <<
+\begin{asy}
+usepackage("amsmath");
+size(4.9cm, 5.8333cm);
+
+// InsetBox
+label("$a^b$", (147.0,175.0), align=SW, rgb(0, 0, 0)+fontsize(3));
+
+clip(box((136.5,162.5), (157.5,187.5)));
+
+\end{asy}
+>>
+
+
+Convert`TeX`BoxesToTeX::notboxes: GraphicsBox[{InsetBox[FormBox[SuperscriptBox[a, b], TraditionalForm], {0, 0}]}] is not a valid box structure. The first argument in Convert`TeX`BoxesToTeX must be a valid box structure.
+
+Convert`TeX`BoxesToTeX::argx: Convert`TeX`BoxesToTeX called with 2 arguments; 1 argument is expected.
+      * TraditionalForm(latex)    [Failed]
+        result:<<Convert`TeX`BoxesToTeX[GraphicsBox[{InsetBox[FormBox[SuperscriptBox[a, b], TraditionalForm], {0, 0}]}], BoxRules -> {alpha :> System`Convert`TeXFormDump`MakeTeX[α], beta :> System`Convert`TeXFormDump`MakeTeX[β], gamma :> System`Convert`TeXFormDump`MakeTeX[γ], delta :> System`Convert`TeXFormDump`MakeTeX[δ], epsilon :> System`Convert`TeXFormDump`MakeTeX[ϵ], zeta :> System`Convert`TeXFormDump`MakeTeX[ζ], eta :> System`Convert`TeXFormDump`MakeTeX[η], theta :> System`Convert`TeXFormDump`MakeTeX[θ], iota :> System`Convert`TeXFormDump`MakeTeX[ι], kappa :> System`Convert`TeXFormDump`MakeTeX[κ], lambda :> System`Convert`TeXFormDump`MakeTeX[λ], mu :> System`Convert`TeXFormDump`MakeTeX[μ], nu :> System`Convert`TeXFormDump`MakeTeX[ν], xi :> System`Convert`TeXFormDump`MakeTeX[ξ], omicron :> System`Convert`TeXFormDump`MakeTeX[ο], pi :> System`Convert`TeXFormDump`MakeTeX[π], rho :> System`Convert`TeXFormDump`MakeTeX[ρ], sigma :> System`Convert`TeXFormDump`MakeTeX[σ], tau :> System`Convert`TeXFormDump`MakeTeX[τ], upsilon :> System`Convert`TeXFormDump`MakeTeX[υ], phi :> System`Convert`TeXFormDump`MakeTeX[ϕ], chi :> System`Convert`TeXFormDump`MakeTeX[χ], psi :> System`Convert`TeXFormDump`MakeTeX[ψ], omega :> System`Convert`TeXFormDump`MakeTeX[ω], digamma :> System`Convert`TeXFormDump`MakeTeX[ϝ], ALPHA :> System`Convert`TeXFormDump`MakeTeX[Α], BETA :> System`Convert`TeXFormDump`MakeTeX[Β], GAMMA :> System`Convert`TeXFormDump`MakeTeX[Γ], DELTA :> System`Convert`TeXFormDump`MakeTeX[Δ], EPSILON :> System`Convert`TeXFormDump`MakeTeX[Ε], ZETA :> System`Convert`TeXFormDump`MakeTeX[Ζ], ETA :> System`Convert`TeXFormDump`MakeTeX[Η], THETA :> System`Convert`TeXFormDump`MakeTeX[Θ], IOTA :> System`Convert`TeXFormDump`MakeTeX[Ι], KAPPA :> System`Convert`TeXFormDump`MakeTeX[Κ], LAMBDA :> System`Convert`TeXFormDump`MakeTeX[Λ], MU :> System`Convert`TeXFormDump`MakeTeX[Μ], NU :> System`Convert`TeXFormDump`MakeTeX[Ν], XI :> System`Convert`TeXFormDump`MakeTeX[Ξ], OMICRON :> System`Convert`TeXFormDump`MakeTeX[Ο], PI :> System`Convert`TeXFormDump`MakeTeX[Π], RHO :> System`Convert`TeXFormDump`MakeTeX[Ρ], SIGMA :> System`Convert`TeXFormDump`MakeTeX[Σ], TAU :> System`Convert`TeXFormDump`MakeTeX[Τ], UPSILON :> System`Convert`TeXFormDump`MakeTeX[Υ], PHI :> System`Convert`TeXFormDump`MakeTeX[Φ], CHI :> System`Convert`TeXFormDump`MakeTeX[Χ], PSI :> System`Convert`TeXFormDump`MakeTeX[Ψ], OMEGA :> System`Convert`TeXFormDump`MakeTeX[Ω], DIGAMMA :> System`Convert`TeXFormDump`MakeTeX[Ϝ]}]>>
+        expected: <<
+\begin{asy}
+usepackage("amsmath");
+size(4.9cm, 5.8333cm);
+
+// InsetBox
+label("$a^b$", (147.0,175.0), align=SW, rgb(0, 0, 0)+fontsize(3));
+
+clip(box((136.5,162.5), (157.5,187.5)));
+
+\end{asy}
+>>
+
+      * InputForm(latex)    [Failed]
+        result:<<\text{Graphics[$\{$Text[a${}^{\wedge}$b, $\{$0, 0$\}$]$\}$]}>>
+        expected: <<\text{Graphics}\left[\left\{\text{Text}\left[\text{Power}\left[a, b\right], \left\{0, 0\right\}\right]\right\}\right]>>
+
+      * OutputForm(latex)    [Failed]
+        result:<<\text{-Graphics-}>>
+        expected: <<
+\begin{asy}
+usepackage("amsmath");
+size(4.9cm, 5.8333cm);
+
+// InsetBox
+label("$a^b$", (147.0,175.0), align=SW, rgb(0, 0, 0)+fontsize(3));
+
+clip(box((136.5,162.5), (157.5,187.5)));
+
+\end{asy}
+>>
+
+    mathml
+    ------
+
+
+Do::iterb: Iterator {subtest, mathml} does not have appropriate bounds.
+TableForm  msg:A table of graphics - Fragile!<<TableForm[{Graphics[{Text[a^b, {0, 0}]}], Graphics[{Text[a^b, {0, 0}]}]}]>>
+    text
+    -----
+
+      * StandardForm(text)    [Failed]
+        result:<<DisplayForm[TagBox[TagBox[GridBox[{{GraphicsBox[{InsetBox[FormBox[SuperscriptBox[a, b], TraditionalForm], {0, 0}]}]}, {GraphicsBox[{InsetBox[FormBox[SuperscriptBox[a, b], TraditionalForm], {0, 0}]}]}}, RowSpacings -> 1, ColumnAlignments -> Left, ColumnAlignments -> Left], Column], Function[BoxForm`e$, TableForm[BoxForm`e$]]]]>>
+        expected: <<-Graphics-
+
+-Graphics-
+>>
+
+      * TraditionalForm(text)    [Failed]
+        result:<<DisplayForm[FormBox[TagBox[TagBox[GridBox[{{GraphicsBox[{InsetBox[FormBox[SuperscriptBox[a, b], TraditionalForm], {0, 0}]}]}, {GraphicsBox[{InsetBox[FormBox[SuperscriptBox[a, b], TraditionalForm], {0, 0}]}]}}, RowSpacings -> 1, ColumnAlignments -> Left, ColumnAlignments -> Left], Column], Function[BoxForm`e$, TableForm[BoxForm`e$]]], TraditionalForm]]>>
+        expected: <<-Graphics-
+
+-Graphics-
+>>
+
+      * InputForm(text)    [Failed]
+        result:<<TableForm[{Graphics[{Text[a^b, {0, 0}]}], Graphics[{Text[a^b, {0, 0}]}]}]>>
+        expected: <<TableForm[{Graphics[{Text[Power[a, b], {0, 0}]}], Graphics[{Text[Power[a, b], {0, 0}]}]}]>>
+
+      * OutputForm(text)    [Failed]
+        result:<<-Graphics-
+
+-Graphics->>
+        expected: <<-Graphics-
+
+-Graphics-
+>>
+
+    latex
+    -----
+
+
+TeXForm::unspt: TeXForm of GraphicsBox[{InsetBox[FormBox[SuperscriptBox[a, b], TraditionalForm], {0, 0}]}] is not supported.
+
+General::stop: Further output of TeXForm::unspt will be suppressed during this calculation.
+      * StandardForm(latex)    [Failed]
+        result:<<\begin{array}{c}
+  \\
+  \\
+\end{array}>>
+        expected: <<\begin{array}{c} 
+\begin{asy}
+usepackage("amsmath");
+size(2.45cm, 2.9167cm);
+
+// InsetBox
+label("$a^b$", (73.5,87.5), align=SW, rgb(0, 0, 0)+fontsize(3));
+
+clip(box((63,75), (84,100)));
+
+\end{asy}
+\\ 
+\begin{asy}
+usepackage("amsmath");
+size(2.45cm, 2.9167cm);
+
+// InsetBox
+label("$a^b$", (73.5,87.5), align=SW, rgb(0, 0, 0)+fontsize(3));
+
+clip(box((63,75), (84,100)));
+
+\end{asy}
+\end{array}>>
+
+      * TraditionalForm(latex)    [Failed]
+        result:<<\begin{array}{c}
+  \\
+  \\
+\end{array}>>
+        expected: <<\begin{array}{c} 
+\begin{asy}
+usepackage("amsmath");
+size(2.45cm, 2.9167cm);
+
+// InsetBox
+label("$a^b$", (73.5,87.5), align=SW, rgb(0, 0, 0)+fontsize(3));
+
+clip(box((63,75), (84,100)));
+
+\end{asy}
+\\ 
+\begin{asy}
+usepackage("amsmath");
+size(2.45cm, 2.9167cm);
+
+// InsetBox
+label("$a^b$", (73.5,87.5), align=SW, rgb(0, 0, 0)+fontsize(3));
+
+clip(box((63,75), (84,100)));
+
+\end{asy}
+\end{array}>>
+
+    mathml
+    ------
+
+
+Do::iterb: Iterator {subtest, mathml} does not have appropriate bounds.
+
+General::stop: Further output of Do::iterb will be suppressed during this calculation.

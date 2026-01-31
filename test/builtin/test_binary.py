@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from test.helper import check_evaluation, session
+from test.helper import check_evaluation
 
 import pytest
 
@@ -64,18 +64,18 @@ import pytest
         ),
         (
             'WbR[{195, 142, 38, 160, 238, 252, 85, 188}, "Complex64"] // InputForm',
-            "-1.4107982814807285*^-19 - 0.013060791417956352*I",
+            "-1.410798281480728*^-19 - 0.01306079141795635*I",
             None,
         ),
         ## Complex128
         (
             'WbR[{15,114,1,163,234,98,40,15,214,127,116,15,48,57,208,180},"Complex128"] // InputForm',
-            "1.1983977035653814*^-235 - 2.6465639149433955*^-54*I",
+            "1.198397703565381*^-235 - 2.646563914943395*^-54*I",
             None,
         ),
         (
             'z=WbR[{148,119,12,126,47,94,220,91,42,69,29,68,147,11,62,233},"Complex128"]; z // InputForm',
-            "3.2217026714156333*^134 - 8.98364297498066*^198*I",
+            "3.221702671415633*^134 - 8.98364297498066*^198*I",
             None,
         ),
         ("z // Precision", "MachinePrecision", None),
@@ -195,7 +195,7 @@ import pytest
         ## Real32
         (
             'WbR[{81, 72, 250, 79, 52, 227, 104, 90}, {"Real32", "Real32"}] // InputForm',
-            "{8.398086656*^9, 1.6388001768669184*^16}",
+            "{8.398086656*^9, 1.638800176866918*^16}",
             None,
         ),
         (
@@ -205,7 +205,7 @@ import pytest
         ),
         (
             'z=WbR[{126, 82, 143, 43}, "Real32"]; z // InputForm',
-            "1.0183657302847982*^-12",
+            "1.018365730284798*^-12",
             None,
         ),
         ("z // Precision", "MachinePrecision", None),
@@ -379,6 +379,24 @@ def test_private_doctests_io(str_expr, str_expected, fail_msg):
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "fail_msg"),
     [
+        ("Head[ByteArray[{1}]]", "ByteArray", None),
+    ],
+)
+def test_ByteArray(str_expr, str_expected, fail_msg):
+    """ """
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=fail_msg,
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "fail_msg"),
+    [
         ("ByteOrdering", "1" if sys.byteorder == "big" else "-1", None),
         ("ByteOrdering == -1 || ByteOrdering == 1", "True", None),
         (
@@ -393,7 +411,7 @@ def test_private_doctests_io(str_expr, str_expected, fail_msg):
         ),
     ],
 )
-def test_private_doctests_system(str_expr, str_expected, fail_msg):
+def test_ByteOrdering(str_expr, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,
@@ -403,3 +421,38 @@ def test_private_doctests_system(str_expr, str_expected, fail_msg):
         hold_expected=True,
         failure_message=fail_msg,
     )
+
+
+@pytest.mark.skip(reason="NumericArray[] builtin not written yet.")
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected"),
+    [
+        ("NumericArray[{{1,2},{3,4}}]", "<Integer64, 2×2>"),
+        ("ToString[NumericArray[{{1,2},{3,4}}]]", "<Integer64, 2×2>"),
+        ("Head[NumericArray[{1,2}]]", "NumericArray"),
+        ("AtomQ[NumericArray[{1,2}]]", "True"),
+        ("First[NumericArray[{1,2,3}]]", "1"),
+        ("First[NumericArray[{{1,2}, {3,4}}]]", "<Integer64, 2>"),
+        ("Last[NumericArray[{1,2,3}]]", "3"),
+        ("Last[NumericArray[{{1,2}, {3,4}}]]", "<Integer64, 2>"),
+        ("Normal[NumericArray[{{1,2}, {3,4}}]]", "{{1, 2}, {3, 4}}"),
+    ],
+)
+def test_basics(str_expr, str_expected):
+    check_evaluation(str_expr, str_expected, hold_expected=True)
+
+
+@pytest.mark.skip(reason="NumericArray[] builtin not written yet.")
+def test_type_conversion():
+    # Move below imports to the top when we've implementated NumericArray[]
+    from test.helper import evaluate
+
+    import numpy as np
+
+    from mathics.core.atoms import NumericArray
+
+    expr = evaluate("NumericArray[{1,2}]")
+    assert isinstance(expr, NumericArray)
+    assert expr.value.dtype == np.int64
+    expr = evaluate('NumericArray[{1,2}, "ComplexReal32"]')
+    assert expr.value.dtype == np.complex64

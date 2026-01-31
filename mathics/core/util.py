@@ -3,10 +3,15 @@
 Miscellaneous mathics.core utility functions.
 """
 
+import re
 import sys
 from itertools import chain
 from pathlib import PureWindowsPath
 from platform import python_implementation
+from typing import Optional
+
+from mathics.core.atoms import MachineReal, NumericArray
+from mathics.core.symbols import Symbol
 
 IS_PYPY = python_implementation() == "PyPy"
 
@@ -44,13 +49,20 @@ def permutations(items):
             # already_taken.add(item)
 
 
-def subsets(items, min, max, included=None, less_first=False):
+def strip_string_quotes(s: str) -> str:
+    """
+    Remove leading and trailing string quotes if they exist.
+    Note: we need this too often probably a bad design decision in String.
+    """
+    return s[1:-1] if len(s) >= 2 and s[0] == s[-1] == '"' else s
+
+
+def subsets(items, min: int, max: Optional[int], included=None, less_first=False):
     if max is None:
         max = len(items)
     lengths = list(range(min, max + 1))
     if not less_first:
-        lengths = reversed(lengths)
-    lengths = list(lengths)
+        lengths = list(reversed(lengths))
     if lengths and lengths[0] == 0:
         lengths = lengths[1:] + [0]
 
@@ -105,3 +117,55 @@ def subranges(
                 items[start : start + length],
                 (items[:start], items[start + length :]),
             )
+
+
+def print_expression_tree(
+    expr, indent="", marker=lambda expr: "", file=None, approximate=False
+):
+    """
+    Print a Mathics Expression as an indented tree.
+    Caller may supply a marker function that computes a marker
+    to be displayed in the tree for the given node.
+    The approximate flag causes numbers to be printed with fewer digits
+    and the number of bits of precision (i.e. Real32 vs Real64) to be
+    omitted from printing for numpy arrays, to faciliate comparisons
+    across systems.
+    """
+    if file is None:
+        file = sys.stdout
+
+    if isinstance(expr, Symbol):
+        print(f"{indent}{marker(expr)}{expr}", file=file)
+    elif not hasattr(expr, "elements"):
+        if isinstance(expr, MachineReal) and approximate:
+            # fewer digits
+            value = str(round(expr.value * 1e6) / 1e6)
+        elif isinstance(expr, NumericArray) and approximate:
+            # Real32/64->Real*, Integer32/64->Integer*
+            value = re.sub("[0-9]+,", "*,", str(expr))
+        else:
+            value = str(expr)
+        print(f"{indent}{marker(expr)}{expr.get_head()} {value}", file=file)
+        if isinstance(expr, NumericArray):
+            # numpy provides an abbreviated version of the array
+            # it is inherently approximated (i.e. limited precision) in its own way
+            na_str = str(expr.value)
+            i = indent + "  "
+            na_str = i + na_str.replace("\n", "\n" + i)
+            print(na_str, file=file)
+    else:
+        print(f"{indent}{marker(expr)}{expr.head}", file=file)
+        for elt in expr.elements:
+            print_expression_tree(
+                elt, indent + "  ", marker=marker, file=file, approximate=approximate
+            )
+
+
+def print_sympy_tree(expr, indent=""):
+    """Print a SymPy Expression as an indented tree"""
+    if expr.args:
+        print(f"{indent}{expr.func.__name__}")
+        for i, arg in enumerate(expr.args):
+            print_sympy_tree(arg, indent + "    ")
+    else:
+        print(f"{indent}{expr.func.__name__}({str(expr)})")

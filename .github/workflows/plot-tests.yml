@@ -1,0 +1,40 @@
+name: Mathics3 Plot Detailed Tests  (ubuntu)
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: '**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.13', '3.12', '3.11', '3.10']
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install OS dependencies
+      run: |
+        sudo apt-get update -qq && sudo apt-get install -qq liblapack-dev llvm-dev tesseract-ocr remake
+    - name: Install Mathics3 with full dependencies
+      run: |
+        python -m pip install --upgrade pip
+        # We can comment out after next Mathics-Scanner release
+        python -m pip install -e "Mathics-Scanner[full] @ git+https://github.com/Mathics3/mathics-scanner"
+        git clone --depth 1 https://github.com/Mathics3/mathics-scanner.git
+        cd mathics-scanner/
+        pip install -e .
+        cd ..
+        # We can comment out after next Mathics-Scanner release
+        # python -m pip install Mathics-Scanner[full]
+        # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
+        pip install -e .
+        remake -x develop-full
+    - name: Test Mathics
+      run: |
+        make plot-detailed-tests

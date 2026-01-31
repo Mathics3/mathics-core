@@ -18,16 +18,16 @@ Mathics3 represents tensors of vectors and matrices as lists; tensors \
 of any rank can be handled.
 """
 
-
 from mathics.core.atoms import Integer
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
-from mathics.core.builtin import BinaryOperator, Builtin
+from mathics.core.builtin import Builtin, InfixOperator
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
 from mathics.eval.tensors import (
     eval_Inner,
     eval_LeviCivitaTensor,
     eval_Outer,
+    eval_Transpose,
     get_dimensions,
 )
 
@@ -38,7 +38,7 @@ class ArrayDepth(Builtin):
     https://reference.wolfram.com/language/ref/ArrayDepth.html</url>
 
     <dl>
-      <dt>'ArrayDepth[$a$]'
+      <dt>'ArrayDepth'[$a$]
       <dd>returns the depth of the non-ragged array $a$, defined as \
       'Length[Dimensions[$a$]]'.
     </dl>
@@ -61,7 +61,7 @@ class Dimensions(Builtin):
     <url>:WMA: https://reference.wolfram.com/language/ref/Dimensions.html</url>
 
     <dl>
-    <dt>'Dimensions[$expr$]'
+    <dt>'Dimensions'[$expr$]
         <dd>returns a list of the dimensions of the expression $expr$.
     </dl>
 
@@ -90,13 +90,13 @@ class Dimensions(Builtin):
         return ListExpression(*[Integer(dim) for dim in get_dimensions(expr)])
 
 
-class Dot(BinaryOperator):
+class Dot(InfixOperator):
     """
     <url>:Dot product:https://en.wikipedia.org/wiki/Dot_product</url> \
     (<url>:WMA link: https://reference.wolfram.com/language/ref/Dot.html</url>)
 
     <dl>
-      <dt>'Dot[$x$, $y$]'
+      <dt>'Dot'[$x$, $y$]
       <dt>'$x$ . $y$'
       <dd>computes the vector dot product or matrix product $x$ . $y$.
     </dl>
@@ -114,8 +114,6 @@ class Dot(BinaryOperator):
      = a . b
     """
 
-    operator = "."
-    precedence = 490
     attributes = A_FLAT | A_ONE_IDENTITY | A_PROTECTED
 
     rules = {
@@ -130,7 +128,7 @@ class Inner(Builtin):
     <url>:WMA link: https://reference.wolfram.com/language/ref/Inner.html</url>
 
     <dl>
-    <dt>'Inner[$f$, $x$, $y$, $g$]'
+    <dt>'Inner'[$f$, $x$, $y$, $g$]
         <dd>computes a generalised inner product of $x$ and $y$, using
         a multiplication function $f$ and an addition function $g$.
     </dl>
@@ -176,7 +174,7 @@ class Outer(Builtin):
     (<url>:WMA link: https://reference.wolfram.com/language/ref/Outer.html</url>)
 
     <dl>
-      <dt>'Outer[$f$, $x$, $y$]'
+      <dt>'Outer'[$f$, $x$, $y$]
       <dd>computes a generalised outer product of $x$ and $y$, using the function $f$ in place of multiplication.
     </dl>
 
@@ -186,7 +184,7 @@ class Outer(Builtin):
     Outer product of two matrices:
     >> Outer[Times, {{a, b}, {c, d}}, {{1, 2}, {3, 4}}]
      = {{{{a, 2 a}, {3 a, 4 a}}, {{b, 2 b}, {3 b, 4 b}}}, {{{c, 2 c}, {3 c, 4 c}}, {{d, 2 d}, {3 d, 4 d}}}}
-    
+
     Outer product of two sparse arrays:
     >> Outer[Times, SparseArray[{{1, 2} -> a, {2, 1} -> b}], SparseArray[{{1, 2} -> c, {2, 1} -> d}]]
      = SparseArray[Automatic, {2, 2, 2, 2}, 0, {{1, 2, 1, 2} -> a c, {1, 2, 2, 1} -> a d, {2, 1, 1, 2} -> b c, {2, 1, 2, 1} -> b d}]
@@ -194,11 +192,11 @@ class Outer(Builtin):
     'Outer' of multiple lists:
     >> Outer[f, {a, b}, {x, y, z}, {1, 2}]
      = {{{f[a, x, 1], f[a, x, 2]}, {f[a, y, 1], f[a, y, 2]}, {f[a, z, 1], f[a, z, 2]}}, {{f[b, x, 1], f[b, x, 2]}, {f[b, y, 1], f[b, y, 2]}, {f[b, z, 1], f[b, z, 2]}}}
-    
+
     'Outer' converts input sparse arrays to lists if f=!=Times, or if the input is a mixture of sparse arrays and lists:
     >> Outer[f, SparseArray[{{1, 2} -> a, {2, 1} -> b}], SparseArray[{{1, 2} -> c, {2, 1} -> d}]]
      = {{{{f[0, 0], f[0, c]}, {f[0, d], f[0, 0]}}, {{f[a, 0], f[a, c]}, {f[a, d], f[a, 0]}}}, {{{f[b, 0], f[b, c]}, {f[b, d], f[b, 0]}}, {{f[0, 0], f[0, c]}, {f[0, d], f[0, 0]}}}}
-    
+
     >> Outer[Times, SparseArray[{{1, 2} -> a, {2, 1} -> b}], {c, d}]
      = {{{0, 0}, {a c, a d}}, {{b c, b d}, {0, 0}}}
 
@@ -231,10 +229,10 @@ class RotationTransform(Builtin):
     <url>:WMA link: https://reference.wolfram.com/language/ref/RotationTransform.html</url>
 
     <dl>
-      <dt>'RotationTransform[$phi$]'
+      <dt>'RotationTransform'[$phi$]
       <dd>gives a rotation by $phi$.
 
-      <dt>'RotationTransform[$phi$, $p$]'
+      <dt>'RotationTransform'[$phi$, $p$]
       <dd>gives a rotation by $phi$ around the point $p$.
     </dl>
     """
@@ -251,10 +249,10 @@ class ScalingTransform(Builtin):
     <url>:WMA link: https://reference.wolfram.com/language/ref/ScalingTransform.html</url>
 
     <dl>
-      <dt>'ScalingTransform[$v$]'
+      <dt>'ScalingTransform'[$v$]
       <dd>gives a scaling transform of $v$. $v$ may be a scalar or a vector.
 
-      <dt>'ScalingTransform[$phi$, $p$]'
+      <dt>'ScalingTransform'[$phi$, $p$]
       <dd>gives a scaling transform of $v$ that is centered at the point $p$.
     </dl>
     """
@@ -271,11 +269,11 @@ class ShearingTransform(Builtin):
     <url>:WMA link: https://reference.wolfram.com/language/ref/ShearingTransform.html</url>
 
     <dl>
-    <dt>'ShearingTransform[$phi$, {1, 0}, {0, 1}]'
+    <dt>'ShearingTransform'[$phi$, {1, 0}, {0, 1}]
         <dd>gives a horizontal shear by the angle $phi$.
-    <dt>'ShearingTransform[$phi$, {0, 1}, {1, 0}]'
+    <dt>'ShearingTransform'[$phi$, {0, 1}, {1, 0}]
         <dd>gives a vertical shear by the angle $phi$.
-    <dt>'ShearingTransform[$phi$, $u$, $u$, $p$]'
+    <dt>'ShearingTransform'[$phi$, $u$, $u$, $p$]
         <dd>gives a shear centered at the point $p$.
     </dl>
     """
@@ -293,7 +291,7 @@ class TransformationFunction(Builtin):
     <url>:WMA link: https://reference.wolfram.com/language/ref/TransformationFunction.html</url>
 
     <dl>
-      <dt>'TransformationFunction[$m$]'
+      <dt>'TransformationFunction'[$m$]
       <dd>represents a transformation.
     </dl>
 
@@ -318,7 +316,7 @@ class TranslationTransform(Builtin):
     https://reference.wolfram.com/language/ref/TranslationTransform.html</url>
 
     <dl>
-      <dt>'TranslationTransform[$v$]'
+      <dt>'TranslationTransform'[$v$]
       <dd>gives a 'TransformationFunction' that translates points by vector $v$.
     </dl>
 
@@ -346,11 +344,12 @@ class Transpose(Builtin):
     """
     <url>
     :Transpose: https://en.wikipedia.org/wiki/Transpose</url> (<url>
+    :SymPy:
+      https://docs.sympy.org/latest/modules/matrices/expressions.html#sympy.matrices.expressions.Transpose</url>, <url>
     :WMA: https://reference.wolfram.com/language/ref/Transpose.html</url>)
-
     <dl>
-      <dt>'Transpose[$m$]'
-      <dd>transposes rows and columns in the matrix $m$.
+      <dt>'Transpose'[$list$]
+      <dd>transposes the first two levels in $list$. The rank of $list$ should be less than 4.
     </dl>
 
     >> square = {{1, 2, 3}, {4, 5, 6}}; Transpose[square]
@@ -368,27 +367,48 @@ class Transpose(Builtin):
      .
      . 2   4   6
 
-    Transpose is its own inverse. Transposing a matrix twice will give you back the same thing you started out with:
+    >> matrix3D = {{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}}; Transpose[matrix3D]
+     = {{{1, 2}, {5, 6}}, {{3, 4}, {7, 8}}}
+
+    Transpose is its own inverse. Transposing a matrix twice will give you back the same \
+    thing you started out with:
 
     >> Transpose[Transpose[matrix]] == matrix
      = True
 
-    #> Clear[matrix, square]
+    >> Transpose[Transpose[matrix3D]] == matrix3D
+     = True
+
+    If the rank of the list is 0 or 1, you get the list back
+
+    >> Transpose[{}]
+     = {}
+
+    >> Transpose[{a, b, c}]
+     = {a, b, c}
+
+    #> Clear[matrix, matrix3D, square]
     """
 
     summary_text = "transpose to rearrange indices in any way"
 
     def eval(self, m, evaluation: Evaluation):
-        "Transpose[m_?MatrixQ]"
-
-        result = []
-        for row_index, row in enumerate(m.elements):
-            for col_index, item in enumerate(row.elements):
-                if row_index == 0:
-                    result.append([item])
-                else:
-                    result[col_index].append(item)
-        return ListExpression(*[ListExpression(*row) for row in result])
+        """Transpose[m_List]"""
+        dimensions = get_dimensions(m)
+        if dimensions is None:
+            return
+        n = len(dimensions)
+        if not (0 <= n <= 3):
+            return
+        if n < 2:
+            # Transpose of a 0 or 1-dimensional tensor is itself.
+            return m
+        if n == 3:
+            n_0 = dimensions[0]
+            if not all(sublist == n_0 for sublist in dimensions[1:]):
+                return
+        # FIXME: check 3D dimensions
+        return eval_Transpose(m, n)
 
 
 class ConjugateTranspose(Builtin):
@@ -398,7 +418,7 @@ class ConjugateTranspose(Builtin):
     :WMA: https://reference.wolfram.com/language/ref/ConjugateTranspose.html</url>)
 
     <dl>
-      <dt>'ConjugateTranspose[$m$]'
+      <dt>'ConjugateTranspose'[$m$]
       <dd>gives the conjugate transpose of $m$.
     </dl>
 
@@ -421,7 +441,7 @@ class LeviCivitaTensor(Builtin):
     (<url>:WMA link:https://reference.wolfram.com/language/ref/LeviCivitaTensor.html</url>)
 
     <dl>
-      <dt>'LeviCivitaTensor[$d$]'
+      <dt>'LeviCivitaTensor'[$d$]
       <dd>gives the $d$-dimensional Levi-Civita totally antisymmetric tensor.
     </dl>
 

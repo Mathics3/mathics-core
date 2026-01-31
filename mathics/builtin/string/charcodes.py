@@ -33,10 +33,10 @@ class ToCharacterCode(Builtin):
     https://reference.wolfram.com/language/ref/ToCharacterCode.html</url>
 
     <dl>
-    <dt>'ToCharacterCode["$string$"]'
+    <dt>'ToCharacterCode'["$string$"]
       <dd>converts the string to a list of character codes (Unicode
       codepoints).
-    <dt>'ToCharacterCode[{"$string1$", "$string2$", ...}]'
+    <dt>'ToCharacterCode'[{"$string_1$", "$string_2$", ...}]
       <dd>converts a list of strings to character codes.
     </dl>
 
@@ -65,9 +65,6 @@ class ToCharacterCode(Builtin):
      = -Graphics-
     """
 
-    messages = {
-        "strse": "String or list of strings expected at position `1` in `2`.",
-    }
     summary_text = "convert a string to a list of character codes"
 
     def _encode(self, string, encoding, evaluation: Evaluation):
@@ -127,13 +124,13 @@ class FromCharacterCode(Builtin):
     https://reference.wolfram.com/language/ref/FromCharacterCode.html</url>
 
     <dl>
-      <dt>'FromCharacterCode[$n$]'
+      <dt>'FromCharacterCode'[$n$]
       <dd>returns the character corresponding to Unicode codepoint $n$.
 
-      <dt>'FromCharacterCode[{$n1$, $n2$, ...}]'
+      <dt>'FromCharacterCode'[{$n_1$, $n_2$, ...}]
       <dd>returns a string with characters corresponding to $n_i$.
 
-      <dt>'FromCharacterCode[{{$n11$, $n12$, ...}, {$n21$, $n22$, ...}, ...}]'
+      <dt>'FromCharacterCode'[{{$n_{11}$, $n_{12}$, ...}, {$n_{21}$, $n_{22}$, ...}, ...}]
       <dd>returns a list of strings.
     </dl>
 
@@ -159,9 +156,6 @@ class FromCharacterCode(Builtin):
         "notunicode": (
             "A character code, which should be a non-negative integer less "
             "than 65536, is expected at position `2` in `1`."
-        ),
-        "intnm": (
-            "Non-negative machine-sized integer expected at " "position `2` in `1`."
         ),
         "utf8": "The given codes could not be decoded as utf-8.",
     }
@@ -215,7 +209,7 @@ class FromCharacterCode(Builtin):
             else:
                 pyn = n.get_int_value()
                 if not (isinstance(pyn, int) and pyn > 0 and pyn < sys.maxsize):
-                    evaluation.message("FromCharacterCode", "intnm", exp, Integer1)
+                    evaluation.message("FromCharacterCode", "intnm", Integer1, exp)
                     return
                 return String(convert_codepoint_list([n]))
         except _InvalidCodepointError:

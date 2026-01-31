@@ -16,6 +16,7 @@ Procedural functions are integrated into \\Mathics symbolic programming \
 environment.
 """
 
+import sympy
 
 from mathics.core.attributes import (
     A_HOLD_ALL,
@@ -23,7 +24,12 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
-from mathics.core.builtin import BinaryOperator, Builtin, IterationFunction
+from mathics.core.builtin import (
+    Builtin,
+    InfixOperator,
+    IterationFunction,
+    SympyFunction,
+)
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.interrupt import (
@@ -34,29 +40,35 @@ from mathics.core.interrupt import (
     WLThrowInterrupt,
 )
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolNull, SymbolTrue
-from mathics.core.systemsymbols import SymbolMatchQ
+from mathics.core.systemsymbols import SymbolMatchQ, SymbolPause
+from mathics.eval.datetime import eval_pause, valid_time_from_expression
 from mathics.eval.patterns import match
 
 SymbolWhich = Symbol("Which")
 
 
 class Abort(Builtin):
-    """
+    r"""
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/Abort.html</url>
 
     <dl>
       <dt>'Abort[]'
-      <dd>aborts an evaluation completely and returns '$Aborted'.
+      <dd>aborts an evaluation completely and returns '\$Aborted'.
     </dl>
+
     >> Print["a"]; Abort[]; Print["b"]
      | a
      = $Aborted
     """
 
+    # Set checking that the no arguments are allowed.
+    # eval_error = Builtin.generic_argument_error
+    # expected_args = 0
+
     summary_text = "generate an abort"
 
-    def eval(self, evaluation: Evaluation):
+    def eval(self, evaluation: Evaluation):  # pylint: disable=unused-argument
         "Abort[]"
 
         raise AbortInterrupt
@@ -70,11 +82,16 @@ class Break(Builtin):
       <dt>'Break[]'
       <dd>exits a 'For', 'While', or 'Do' loop.
     </dl>
+
     >> n = 0;
     >> While[True, If[n>10, Break[]]; n=n+1]
     >> n
      = 11
     """
+
+    # Set checking that the no arguments are allowed.
+    # eval_error = Builtin.generic_argument_error
+    # expected_args = 0
 
     messages = {
         "nofwd": "No enclosing For, While, or Do found for Break[].",
@@ -82,7 +99,7 @@ class Break(Builtin):
 
     summary_text = "exit a 'For', 'While', or 'Do' loop"
 
-    def eval(self, evaluation: Evaluation):
+    def eval(self, evaluation: Evaluation):  # pylint: disable=unused-argument
         "Break[]"
 
         raise BreakInterrupt
@@ -93,15 +110,15 @@ class Catch(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Catch.html</url>
 
     <dl>
-      <dt>'Catch[$expr$]'
+      <dt>'Catch'[$expr$]
       <dd> returns the argument of the first 'Throw' generated in the evaluation of
            $expr$.
 
-      <dt>'Catch[$expr$, $form$]'
+      <dt>'Catch'[$expr$, $form$]
       <dd> returns value from the first 'Throw[$value$, $tag$]' for which $form$ matches
            $tag$.
 
-      <dt>'Catch[$expr$, $form$, $f$]'
+      <dt>'Catch'[$expr$, $form$, $f$]
       <dd> returns $f$[$value$, $tag$].
     </dl>
 
@@ -122,6 +139,10 @@ class Catch(Builtin):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
+
+    # Set checking that the between one and three arguments are allowed.
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 4)
 
     summary_text = "handle an exception raised by a 'Throw'"
 
@@ -150,14 +171,44 @@ class Catch(Builtin):
         return ret
 
 
-class CompoundExpression(BinaryOperator):
+class CheckAbort(Builtin):
+    """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/CheckAbort.html</url>
+
+    <dl>
+      <dt>'CheckAbort'[$expr$, $failexpr$]
+        <dd>evaluates $expr$, returning $failexpr$ if an abort occurs.
+    </dl>
+
+    >> CheckAbort[Abort[]; 1, 2] + x
+     = 2 + x
+
+    >> CheckAbort[1, 2] + x
+     = 1 + x
+    """
+
+    attributes = A_HOLD_ALL | A_PROTECTED
+
+    summary_text = "catch an Abort[] exception"
+
+    def eval(self, expr, failexpr, evaluation):
+        "CheckAbort[expr_, failexpr_]"
+
+        try:
+            return expr.evaluate(evaluation)
+        except AbortInterrupt:
+            return failexpr
+
+
+class CompoundExpression(InfixOperator):
     """
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/CompoundExpression.html</url>
 
     <dl>
-      <dt>'CompoundExpression[$e1$, $e2$, ...]'
-      <dt>'$e1$; $e2$; ...'
+      <dt>'CompoundExpression'[$e_1$, $e_2$, ...]
+      <dt>$e_1$';' $e_2$';' ...
         <dd>evaluates its arguments in turn, returning the last result.
     </dl>
 
@@ -168,8 +219,6 @@ class CompoundExpression(BinaryOperator):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED | A_READ_PROTECTED
-    operator = ";"
-    precedence = 10
 
     summary_text = "execute expressions in sequence"
 
@@ -186,7 +235,7 @@ class CompoundExpression(BinaryOperator):
             # `expr1; expr2;` returns `Null` but assigns `expr2` to
             # `Out[n]`.  even stranger `CompoundExpression[expr1,
             # Null, Null]` assigns `expr1` to `Out[n]`.
-            if result is SymbolNull and prev_result != SymbolNull:
+            if result is SymbolNull and prev_result is not SymbolNull:
                 evaluation.predetermined_out = prev_result
 
         return result
@@ -225,26 +274,27 @@ class Do(IterationFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Do.html</url>
 
     <dl>
-      <dt>'Do[$expr$, {$max$}]'
+      <dt>'Do'[$expr$, {$max$}]
       <dd>evaluates $expr$ $max$ times.
 
-      <dt>'Do[$expr$, {$i$, $max$}]'
+      <dt>'Do'[$expr$, {$i$, $max$}]
       <dd>evaluates $expr$ $max$ times, substituting $i$ in $expr$ with values from 1 to
           $max$.
 
-      <dt>'Do[$expr$, {$i$, $min$, $max$}]'
+      <dt>'Do'[$expr$, {$i$, $min$, $max$}]
       <dd>starts with '$i$ = $max$'.
 
-      <dt>'Do[$expr$, {$i$, $min$, $max$, $step$}]'
+      <dt>'Do'[$expr$, {$i$, $min$, $max$, $step$}]
       <dd>uses a step size of $step$.
 
-      <dt>'Do[$expr$, {$i$, {$i1$, $i2$, ...}}]'
-      <dd>uses values $i1$, $i2$, ... for $i$.
+      <dt>'Do'[$expr$, {$i$, {$i_1$, $i_2$, ...}}]
+      <dd>uses values $i_1$, $i_2$, ... for $i$.
 
-      <dt>'Do[$expr$, {$i$, $imin$, $imax$}, {$j$, $jmin$, $jmax$}, ...]'
-      <dd>evaluates $expr$ for each $j$ from $jmin$ to $jmax$, for each $i$ from $imin$
-          to $imax$, etc.
+      <dt>'Do'[$expr$, {$i$, $i_{min}$, $i_{max}$}, {$j$, $j_{min}$, $j_{max}$}, ...]
+      <dd>evaluates $expr$ for each $j$ from $j_{min}$ to $j_{max}$, for each $i$ from $i_{min}$
+          to $i_{max}$, etc.
     </dl>
+
     >> Do[Print[i], {i, 2, 4}]
      | 2
      | 3
@@ -266,7 +316,7 @@ class Do(IterationFunction):
     allow_loopcontrol = True
     summary_text = "evaluate an expression looping over a variable"
 
-    def get_result(self, items):
+    def get_result(self, _items, is_uniform=False):
         return SymbolNull
 
 
@@ -275,14 +325,14 @@ class For(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/For.html</url>
 
     <dl>
-      <dt>'For[$start$, $test$, $incr$, $body$]'
+      <dt>'For'[$start$, $test$, $incr$, $body$]
       <dd>evaluates $start$, and then iteratively $body$ and $incr$ as long as $test$
           evaluates to 'True'.
 
-      <dt>'For[$start$, $test$, $incr$]'
+      <dt>'For'[$start$, $test$, $incr$]
       <dd>evaluates only $incr$ and no $body$.
 
-      <dt>'For[$start$, $test$]'
+      <dt>'For'[$start$, $test$]
       <dd>runs the loop without any body.
     </dl>
 
@@ -322,19 +372,19 @@ class For(Builtin):
         return SymbolNull
 
 
-class If(Builtin):
+class If(SympyFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/If.html</url>
 
     <dl>
-      <dt>'If[$cond$, $pos$, $neg$]'
+      <dt>'If'[$cond$, $pos$, $neg$]
       <dd>returns $pos$ if $cond$ evaluates to 'True', and $neg$ if it evaluates to
           'False'.
 
-      <dt>'If[$cond$, $pos$, $neg$, $other$]'
+      <dt>'If'[$cond$, $pos$, $neg$, $other$]
       <dd>returns $other$ if $cond$ evaluates to neither 'True' nor 'False'.
 
-      <dt>'If[$cond$, $pos$]'
+      <dt>'If'[$cond$, $pos$]
       <dd>returns 'Null' if $cond$ evaluates to 'False'.
     </dl>
 
@@ -343,18 +393,35 @@ class If(Builtin):
     If the second branch is not specified, 'Null' is taken:
     >> If[1<2, a]
      = a
-    >> If[False, a] //FullForm
+    >> If[False, a] // FullForm
      = Null
 
-    You might use comments (inside '(*' and '*)') to make the branches of 'If'
+    You might use comments inside '(*' and '*)' to make the branches of 'If'
     more readable:
     >> If[a, (*then*) b, (*else*) c];
+
+
+    Since one or more arguments to a boolean operation could be symbolic, it is\
+    possible that an 'If' cannot be evaluated. For example:
+
+    >> Clear[a, b]; If [a < b, a, b]
+     = If[a < b, a, b]
+
+    To handle this, 'If' takes an optional fourth parameter:
+
+    >> If [a < b, a, b, "I give up"]
+     = I give up
+
     """
 
-    summary_text = "if-then-else conditional expression"
     # This is the WR summary: "test if a condition is true, false, or
     # of unknown truth value"
     attributes = A_HOLD_REST | A_PROTECTED
+
+    # Set checking that the number of arguments required between 2 and 4.
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(2, 5)
+
     summary_text = "test if a condition is true, false, or of unknown truth value"
 
     def eval(self, condition, t, evaluation):
@@ -383,26 +450,88 @@ class If(Builtin):
         else:
             return u.evaluate(evaluation)
 
+    def to_sympy(self, expr, **kwargs):
+        if len(expr.elements) == 3:
+            sympy_cond = expr.elements[0].to_sympy(**kwargs)
+            if sympy_cond is None:
+                return
+            # sympy.Piecewise is is picky as to what type of conds it will accept,
+            # allowing Boolean, Relational, and Symbol (as an honorary Boolean,
+            # accompanied by a comment in the code that this isn't really correct).
+            # Seems an attempt at early typechecking, but maybe too restrictive -
+            # what about Exprs in general that might or might not evaluate to Boolean?
+            # See similar code in mathics.builtin.arithmetic.ConditionalExpression.
+            if not (
+                sympy_cond.is_Boolean
+                or sympy_cond.is_Relational
+                or sympy_cond.is_Symbol
+            ):
+                return
+            sympy_true = expr.elements[1].to_sympy(**kwargs)
+            sympy_false = expr.elements[2].to_sympy(**kwargs)
+
+            return sympy.Piecewise((sympy_true, sympy_cond), (sympy_false, True))
+
 
 class Interrupt(Builtin):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/Interrupt.html</url>
 
     <dl>
       <dt>'Interrupt[]'
-      <dd>Interrupt an evaluation and returns '$Aborted'.
+      <dd>Interrupt an evaluation and returns '\$Aborted'.
     </dl>
+
     >> Print["a"]; Interrupt[]; Print["b"]
      | a
      = $Aborted
     """
 
+    # Set checking that the no arguments are allowed.
+    # eval_error = Builtin.generic_argument_error
+    # expected_args = 0
+
     summary_text = "interrupt evaluation and return '$Aborted'"
 
-    def eval(self, evaluation: Evaluation):
+    def eval(self, evaluation: Evaluation):  # pylint: disable=unused-argument
         "Interrupt[]"
 
         raise AbortInterrupt
+
+
+class Pause(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Pause.html</url>
+
+    <dl>
+    <dt>'Pause[n]'
+      <dd>pauses for at least $n$ seconds.
+    </dl>
+
+    >> Pause[0.5]
+    """
+
+    messages = {
+        "numnm": (
+            "Non-negative machine-sized number expected at " "position 1 in `1`."
+        ),
+    }
+
+    summary_text = "pause for a number of seconds"
+
+    # Number of timeout polls per second that we perform in looking
+    # for a timeout.
+
+    def eval(self, n, evaluation: Evaluation):  # pylint: disable=unused-argument
+        "Pause[n_]"
+        try:
+            sleep_time = valid_time_from_expression(n, evaluation)
+        except ValueError:
+            evaluation.message("Pause", "numnm", Expression(SymbolPause, n))
+            return
+
+        eval_pause(sleep_time, evaluation)
+        return SymbolNull
 
 
 class Return(Builtin):
@@ -411,7 +540,7 @@ class Return(Builtin):
     https://reference.wolfram.com/language/ref/Return.html</url>
 
     <dl>
-      <dt>'Return[$expr$]'
+      <dt>'Return'[$expr$]
       <dd>aborts a function call and returns $expr$.
     </dl>
 
@@ -438,9 +567,8 @@ class Return(Builtin):
 
     summary_text = "return from a function"
 
-    def eval(self, expr, evaluation: Evaluation):
+    def eval(self, expr, evaluation: Evaluation):  # pylint: disable=unused-argument
         "Return[expr_]"
-
         raise ReturnInterrupt(expr)
 
 
@@ -450,7 +578,7 @@ class Switch(Builtin):
     https://reference.wolfram.com/language/ref/Switch.html</url>
 
     <dl>
-      <dt>'Switch[$expr$, $pattern1$, $value1$, $pattern2$, $value2$, ...]'
+      <dt>'Switch'[$expr$, $pattern_1$, $value_1$, $pattern_2$, $value_2$, ...]
       <dd>yields the first $value$ for which $expr$ matches the corresponding \
           $pattern$.
     </dl>
@@ -503,15 +631,62 @@ class Switch(Builtin):
         # return unevaluated Switch when no pattern matches
 
 
-class Which(Builtin):
+class Throw(Builtin):
+    """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Throw.html</url>
+
+    <dl>
+      <dt>'Throw[`value`]'
+      <dd> stops evaluation and returns `value` as the value of the nearest \
+           enclosing 'Catch'.
+
+      <dt>'Catch[`value`, `tag`]'
+      <dd> is caught only by `Catch[expr,form]`, where tag matches form.
+    </dl>
+
+    Using Throw can affect the structure of what is returned by a function:
+
+    >> NestList[#^2 + 1 &, 1, 7]
+     = ...
+    >> Catch[NestList[If[# > 1000, Throw[#], #^2 + 1] &, 1, 7]]
+     = 458330
+
+    >> Throw[1]
+     : Uncaught Throw[1] returned to top level.
+     = Hold[Throw[1]]
+    """
+
+    # Set checking that the number of arguments required is one or two. WMA uses 1..3.
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
+
+    messages = {
+        "nocatch": "Uncaught `1` returned to top level.",
+    }
+
+    summary_text = "throw an expression to be caught by a surrounding 'Catch'"
+
+    def eval(self, value, evaluation: Evaluation):  # pylint: disable=unused-argument
+        "Throw[value_]"
+        raise WLThrowInterrupt(value)
+
+    def eval_with_tag(
+        self, value, tag, evaluation: Evaluation
+    ):  # pylint: disable=unused-argument
+        "Throw[value_, tag_]"
+        raise WLThrowInterrupt(value, tag)
+
+
+class Which(SympyFunction):
     """
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/Which.html</url>
 
     <dl>
-      <dt>'Which[$cond1$, $expr1$, $cond2$, $expr2$, ...]'
-      <dd>yields $expr1$ if $cond1$ evaluates to 'True', $expr2$ if $cond2$ \
+      <dt>'Which'[$cond_1$, $expr_1$, $cond_2$, $expr_2$, ...]
+      <dd>yields $expr_1$ if $cond_1$ evaluates to 'True', $expr_2$ if $cond_2$ \
           evaluates to 'True', etc.
     </dl>
 
@@ -565,6 +740,15 @@ class Which(Builtin):
             items = items[2:]
         return SymbolNull
 
+    def to_sympy(self, expr, **kwargs):
+        if len(expr.elements) % 2 == 0:
+            args = []
+            for cond, value in zip(expr.elements[::2], expr.elements[1::2]):
+                sympy_cond = cond.to_sympy(**kwargs)
+                sympy_value = value.to_sympy(**kwargs)
+                args.append((sympy_value, sympy_cond))
+            return sympy.Piecewise(*args)
+
 
 class While(Builtin):
     """
@@ -572,10 +756,10 @@ class While(Builtin):
     https://reference.wolfram.com/language/ref/While.html</url>
 
     <dl>
-      <dt>'While[$test$, $body$]'
+      <dt>'While'[$test$, $body$]
       <dd>evaluates $body$ as long as $test$ evaluates to 'True'.
 
-      <dt>'While[$test$]'
+      <dt>'While'[$test$]
       <dd>runs the loop without any body.
     </dl>
 
@@ -586,11 +770,15 @@ class While(Builtin):
      = 3
     """
 
-    summary_text = "evaluate an expression while a criterion is true"
     attributes = A_HOLD_ALL | A_PROTECTED
+    # Set checking that the number of arguments required is one.
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
+
     rules = {
         "While[test_]": "While[test, Null]",
     }
+    summary_text = "evaluate an expression while a criterion is true"
 
     def eval(self, test, body, evaluation):
         "While[test_, body_]"
@@ -606,43 +794,3 @@ class While(Builtin):
             except ReturnInterrupt as e:
                 return e.expr
         return SymbolNull
-
-
-class Throw(Builtin):
-    """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/Throw.html</url>
-
-    <dl>
-      <dt>'Throw[`value`]'
-      <dd> stops evaluation and returns `value` as the value of the nearest \
-           enclosing 'Catch'.
-
-      <dt>'Catch[`value`, `tag`]'
-      <dd> is caught only by `Catch[expr,form]`, where tag matches form.
-    </dl>
-
-    Using Throw can affect the structure of what is returned by a function:
-
-    >> NestList[#^2 + 1 &, 1, 7]
-     = ...
-    >> Catch[NestList[If[# > 1000, Throw[#], #^2 + 1] &, 1, 7]]
-     = 458330
-
-    X> Throw[1]
-      = Null
-    """
-
-    messages = {
-        "nocatch": "Uncaught `1` returned to top level.",
-    }
-
-    summary_text = "throw an expression to be caught by a surrounding 'Catch'"
-
-    def eval(self, value, evaluation: Evaluation):
-        "Throw[value_]"
-        raise WLThrowInterrupt(value)
-
-    def eval_with_tag(self, value, tag, evaluation: Evaluation):
-        "Throw[value_, tag_]"
-        raise WLThrowInterrupt(value, tag)

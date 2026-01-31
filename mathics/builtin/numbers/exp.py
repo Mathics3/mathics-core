@@ -11,6 +11,7 @@ import math
 from collections import namedtuple
 from contextlib import contextmanager
 from itertools import chain
+from typing import Iterable
 
 import mpmath
 
@@ -163,7 +164,7 @@ class Exp(MPMathFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Exp.html</url>
 
     <dl>
-      <dt>'Exp[$z$]'
+      <dt>'Exp'[$z$]
       <dd>returns the exponential function of $z$.
     </dl>
 
@@ -171,7 +172,7 @@ class Exp(MPMathFunction):
      = E
     >> Exp[10.0]
      = 22026.5
-    >> Exp[x] //FullForm
+    >> Exp[x] // FullForm
      = Power[E, x]
 
     >> Plot[Exp[x], {x, 0, 3}]
@@ -184,7 +185,7 @@ class Exp(MPMathFunction):
     }
     summary_text = "exponential function"
 
-    def from_sympy(self, sympy_name, elements):
+    def from_sympy(self, elements: Iterable) -> Expression:
         return Expression(SymbolPower, SymbolE, elements[0])
 
 
@@ -193,7 +194,7 @@ class Log(MPMathFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Log.html</url>
 
     <dl>
-      <dt>'Log[$z$]'
+      <dt>'Log'[$z$]
       <dd>returns the natural logarithm of $z$.
     </dl>
 
@@ -236,7 +237,7 @@ class Log2(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Log2.html</url>
 
     <dl>
-      <dt>'Log2[$z$]'
+      <dt>'Log2'[$z$]
       <dd>returns the base-2 logarithm of $z$.
     </dl>
 
@@ -261,7 +262,7 @@ class Log10(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Log10.html</url>
 
     <dl>
-      <dt>'Log10[$z$]'
+      <dt>'Log10'[$z$]
       <dd>returns the base-10 logarithm of $z$.
     </dl>
 
@@ -286,7 +287,7 @@ class LogisticSigmoid(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/LogisticSigmoid.html</url>
 
     <dl>
-      <dt>'LogisticSigmoid[$z$]'
+      <dt>'LogisticSigmoid'[$z$]
       <dd>returns the logistic sigmoid of $z$.
     </dl>
 

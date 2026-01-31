@@ -2,13 +2,12 @@
 Message-related functions.
 """
 
-
 import typing
 from typing import Any
 
 from mathics.core.atoms import String
 from mathics.core.attributes import A_HOLD_ALL, A_HOLD_FIRST, A_LOCKED, A_PROTECTED
-from mathics.core.builtin import BinaryOperator, Builtin, Predefined
+from mathics.core.builtin import Builtin, InfixOperator, Predefined
 from mathics.core.evaluation import Evaluation, Message as EvaluationMessage
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -17,11 +16,11 @@ from mathics.core.systemsymbols import SymbolMessageName, SymbolQuiet
 
 
 class Aborted(Predefined):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/Aborted.html</url>
 
     <dl>
-    <dt>'$Aborted'
+    <dt>'\$Aborted'
         <dd>is returned by a calculation that has been aborted.
     </dl>
     """
@@ -38,10 +37,10 @@ class Check(Builtin):
     https://reference.wolfram.com/language/ref/Check.html</url>
 
     <dl>
-      <dt>'Check[$expr$, $failexpr$]'
+      <dt>'Check'[$expr$, $failexpr$]
       <dd>evaluates $expr$, and returns the result, unless messages were \
           generated, in which case it evaluates and $failexpr$ will be returned.
-      <dt>'Check[$expr$, $failexpr$, {s1::t1,s2::t2,...}]'
+      <dt>'Check'[$expr$, $failexpr$, {s1::t1,s2::t2,...}]
       <dd>checks only for the specified messages.
     </dl>
 
@@ -79,7 +78,7 @@ class Check(Builtin):
         "Check[expr_, failexpr_, params___]"
 
         # Todo: To implement the third form of this function , we need to implement the function $MessageGroups first
-        # <dt>'Check[$expr$, $failexpr$, "name"]'
+        # <dt>'Check'[$expr$, $failexpr$, "name"]
         # <dd>checks only for messages in the named message group.
 
         def get_msg_list(exprs):
@@ -125,10 +124,10 @@ class Check(Builtin):
 
 
 class Failed(Predefined):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$Failed.html</url>
+    r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$Failed.html</url>
     <dl>
-    <dt>'$Failed'
+    <dt>'\$Failed'
         <dd>is returned by some functions in the event of an error.
     </dl>
     """
@@ -188,29 +187,40 @@ class General(Builtin):
         "color": "`1` is not a valid color or gray-level specification.",
         "cxt": "`1` is not a valid context name.",
         "divz": "The argument `1` should be nonzero.",
+        "dgbgn": "Entering Dialog; enter Ctrl-D to exit.",
+        # "dgbgn": "Entering Dialog; use Return[] to exit.",
+        "dgend": "Exiting Dialog.",
         "digit": "Digit at position `1` in `2` is too large to be used in base `3`.",
+        "dis": "Execution of external commands is disabled.",
         "exact": "Argument `1` is not an exact number.",
         "fnsym": (
             "First argument in `1` is not a symbol " "or a string naming a symbol."
         ),
+        "fstr": (
+            "File specification `1` is not a string of " "one or more characters."
+        ),
+        "hdiv": "`1` does not exist. Arguments are not consistent.",
         "heads": "Heads `1` and `2` are expected to be the same.",
         "ilsnn": (
             "Single or list of non-negative integers expected at " "position `1`."
         ),
         "indet": "Indeterminate expression `1` encountered.",
-        "innf": "Non-negative integer or Infinity expected at position `1`.",
+        "innf": "Non-negative integer or Infinity expected at position `1` in `2`",
         "int": "Integer expected.",
         "intp": "Positive integer expected.",
         "intnn": "Non-negative integer expected.",
+        "intnm": "Non-negative machine-sized integer expected at position `1` in `2`.",
         "iterb": "Iterator does not have appropriate bounds.",
         "ivar": "`1` is not a valid variable.",
         "level": ("Level specification `1` is not of the form n, " "{n}, or {m, n}."),
+        "list": "Expected a list or a rule with equally sized lists at position 1 in ``.",
         "locked": "Symbol `1` is locked.",
         "matsq": "Argument `1` is not a non-empty square matrix.",
         "newpkg": "In WL, there is a new package for this.",
+        "nffil": "File not found during `1`.",
         "noopen": "Cannot open `1`.",
         "nord": "Invalid comparison with `1` attempted.",
-        "normal": "Nonatomic expression expected.",
+        "normal": "Nonatomic expression expected at position `1` in `2`.",
         "noval": ("Symbol `1` in part assignment does not have an immediate value."),
         "obspkg": "In WL, this package is obsolete.",
         "openx": "`1` is not open.",
@@ -223,6 +233,9 @@ class General(Builtin):
         "pspec": (
             "Part specification `1` is neither an integer nor " "a list of integer."
         ),
+        "psl": "Position specification `1` in `2` is not a machine-sized integer or a list of machine-sized integers.",
+        "readf": "`1` is not a valid format specification.",
+        "rvalue": "`1` is not a variable with a value, so its value cannot be changed.",
         "seqs": "Sequence specification expected, but got `1`.",
         "setp": "Part assignment to `1` could not be made",
         "setps": "`1` in the part assignment is not a symbol.",
@@ -230,6 +243,7 @@ class General(Builtin):
         "ssym": "`1` is not a symbol or a string.",
         "stream": "`1` is not string, InputStream[], or OutputStream[]",
         "string": "String expected.",
+        "strse": "String or list of strings expected at position `1` in `2`.",
         "sym": "Argument `1` at position `2` is expected to be a symbol.",
         "tag": "Rule for `1` can only be attached to `2`.",
         "take": "Cannot take positions `1` through `2` in `3`.",
@@ -259,7 +273,7 @@ class Message(Builtin):
     https://reference.wolfram.com/language/ref/Message.html</url>
 
     <dl>
-      <dt>'Message[$symbol$::$msg$, $expr1$, $expr2$, ...]'
+      <dt>'Message'[$symbol$::$msg$, $expr_1$, $expr_2$, ...]
       <dd>displays the specified message, replacing placeholders in
         the message text with the corresponding expressions.
     </dl>
@@ -297,12 +311,12 @@ def check_message(expr) -> bool:
     return False
 
 
-class MessageName(BinaryOperator):
+class MessageName(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/MessageName.html</url>
 
     <dl>
-      <dt>'MessageName[$symbol$, $tag$]'
+      <dt>'MessageName'[$symbol$, $tag$]
       <dt>'$symbol$::$tag$'
       <dd>identifies a message.
     </dl>
@@ -320,26 +334,24 @@ class MessageName(BinaryOperator):
     default_formats = False
     formats: typing.Dict[str, Any] = {}
     messages = {"messg": "Message cannot be set to `1`. It must be set to a string."}
-    summary_text = "message identifyier"
-    operator = "::"
-    precedence = 750
     rules = {
         "MakeBoxes[MessageName[symbol_Symbol, tag_String], "
-        "f:StandardForm|TraditionalForm|OutputForm]": (
+        "f:StandardForm|TraditionalForm]": (
             'RowBox[{MakeBoxes[symbol, f], "::", MakeBoxes[tag, f]}]'
         ),
-        "MakeBoxes[MessageName[symbol_Symbol, tag_String], InputForm]": (
-            'RowBox[{MakeBoxes[symbol, InputForm], "::", tag}]'
-        ),
     }
+    summary_text = "associate a message name with a tag"
 
     def eval(self, symbol: Symbol, tag: String, evaluation: Evaluation):
         "MessageName[symbol_Symbol, tag_String]"
 
         pattern = Expression(SymbolMessageName, symbol, tag)
-        return evaluation.definitions.get_value(
-            symbol.get_name(), "System`Messages", pattern, evaluation
-        )
+        try:
+            return evaluation.definitions.get_value(
+                symbol.get_name(), "System`Messages", pattern, evaluation
+            )
+        except ValueError:
+            return None
 
 
 class Off(Builtin):
@@ -347,7 +359,7 @@ class Off(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Off.html</url>
 
     <dl>
-      <dt>'Off[$symbol$::$tag$]'
+      <dt>'Off'[$symbol$::$tag$]
       <dd>turns a message off so it is no longer printed.
     </dl>
 
@@ -390,7 +402,7 @@ class On(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/On.html</url>
 
     <dl>
-      <dt>'On[$symbol$::$tag$]'
+      <dt>'On'[$symbol$::$tag$]
       <dd>turns a message on for printing.
     </dl>
 
@@ -434,13 +446,13 @@ class Quiet(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Quiet.html</url>
 
     <dl>
-      <dt>'Quiet[$expr$, {$s1$::$t1$, ...}]'
-      <dd>evaluates $expr$, without messages '{$s1$::$t1$, ...}' being displayed.
-      <dt>'Quiet[$expr$, All]'
+      <dt>'Quiet'[$expr$, {$s_1$::$t_1$, ...}]
+      <dd>evaluates $expr$, without messages '{$s_1$::$t_1$, ...}' being displayed.
+      <dt>'Quiet'[$expr$, All]
       <dd>evaluates $expr$, without any messages being displayed.
-      <dt>'Quiet[$expr$, None]'
+      <dt>'Quiet'[$expr$, None]
       <dd>evaluates $expr$, without all messages being displayed.
-      <dt>'Quiet[$expr$, $off$, $on$]'
+      <dt>'Quiet'[$expr$, $off$, $on$]
       <dd>evaluates $expr$, with messages $off$ being suppressed, but messages $on$ being displayed.
     </dl>
 
@@ -556,9 +568,11 @@ class Quiet(Builtin):
             evaluation.set_quiet_messages(old_quiet_messages)
 
 
+# Consider removing. If this was this added just to test some expressions,
+# this should be done in pytests instead.
 class Syntax(Builtin):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Syntax.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/guide/Syntax.html</url>
 
     <dl>
       <dt>'Syntax'
@@ -566,30 +580,31 @@ class Syntax(Builtin):
     </dl>
 
     >> 1 +
-     : Incomplete expression; more input is needed (line 1 of "<test>").
+     : Incomplete expression; more input is needed (line 1 of "<test-Syntax-1>").
 
     >> Sin[1)
-     : "Sin[1" cannot be followed by ")" (line 1 of "<test>").
+     : "Sin[1" cannot be followed by ")" (line 1 of "<test-Syntax-2>").
 
     >> ^ 2
-     : Expression cannot begin with "^ 2" (line 1 of "<test>").
+     : Expression cannot begin with "^ 2" (line 1 of "<test-Syntax-3>").
 
     >> 1.5``
-     : "1.5`" cannot be followed by "`" (line 1 of "<test>").
+     : "1.5`" cannot be followed by "`" (line 1 of "<test-Syntax-4>").
     """
 
     # Extension: WMA does not provide lineno and filename in its error messages
     messages = {
-        "snthex": r"4 hexadecimal digits are required after \: to construct a 16-bit character (line `4` of `5`).",
-        "sntoct1": r"3 octal digits are required after \ to construct an 8-bit character (line `4` of `5`).",
-        "sntoct2": r"2 hexadecimal digits are required after \. to construct an 8-bit character (line `4` of `5`).",
-        "sntxi": "Incomplete expression; more input is needed (line `4` of `5`).",
-        "sntxb": "Expression cannot begin with `1` (line `4` of `5`).",
-        "sntxf": "`1` cannot be followed by `2` (line `4` of `5`).",
-        "bktwrn": "`1` represents multiplication; use `2` to represent a function (line `4` of `5`).",  # TODO
         "bktmch": "`1` must be followed by `2`, not `3` (line `4` of `5`).",
+        "bktwrn": "`1` represents multiplication; use `2` to represent a function (line `4` of `5`).",  # TODO
+        "com": "Warning: comma encountered with no adjacent expression. The expression will be treated as Null (line `4` of `5`).",
+        "snthex": r"4 hexadecimal digits are required after \: to construct a 16-bit character (line `4` of `5`).",
+        "sntoct1": r"3 octal digits are required after \ to construct an 8-bit character.",
+        "sntoct2": r"2 hexadecimal digits are required after \. to construct an 8-bit character.",
         "sntue": "Unexpected end of file; probably unfinished expression (line `4` of `5`).",
         "sntufn": "Unknown unicode longname `1` (line `4` of `5`).",
-        "com": "Warning: comma encountered with no adjacent expression. The expression will be treated as Null (line `4` of `5`).",
+        "sntxb": "Expression cannot begin with `1` (line `4` of `5`).",
+        "sntxf": "`1` cannot be followed by `2` (line `4` of `5`).",
+        "sntxi": "Incomplete expression; more input is needed (line `4` of `5`).",
+        "stresc": "Unknown string escape `1`",
     }
     summary_text = "syntax messages"

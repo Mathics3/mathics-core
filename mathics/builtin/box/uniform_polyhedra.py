@@ -1,6 +1,3 @@
-# Docs are not yet ready for prime time. Maybe after release 6.0.0.
-no_doc = True
-
 import numbers
 
 from mathics.builtin.box.graphics3d import Coords3D
@@ -8,6 +5,9 @@ from mathics.builtin.colors.color_directives import Opacity, _ColorObject
 from mathics.builtin.drawing.graphics_internals import GLOBALS3D, _GraphicsElementBox
 from mathics.core.exceptions import BoxExpressionError
 from mathics.core.symbols import Symbol
+
+# No user docs here: Box primitives aren't documented.
+no_doc = True
 
 
 class UniformPolyhedron3DBox(_GraphicsElementBox):

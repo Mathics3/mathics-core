@@ -2,12 +2,12 @@ Mathics was originally created in 2011 by:
 
 - Jan Pöschko @poeschko
 
-Up until around  2017 was maintained by:
+Up until around 2017, it was maintained by:
 
 - Angus Griffith @sn6uv
 - Ben Jones @bnjones
 
-Currently it is maintained by the Mathics Team
+Currently, it is maintained by the Mathics3 Team
 
 Additional contributions were made by:
 

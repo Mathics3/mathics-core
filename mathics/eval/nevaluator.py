@@ -18,9 +18,10 @@ from mathics.core.attributes import A_N_HOLD_ALL, A_N_HOLD_FIRST, A_N_HOLD_REST
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
 from mathics.core.number import PrecisionValueError, get_precision
-from mathics.core.symbols import Atom
-from mathics.core.systemsymbols import SymbolMachinePrecision, SymbolN
+from mathics.core.symbols import Atom, SymbolList
+from mathics.core.systemsymbols import SymbolMachinePrecision, SymbolN, SymbolRule
 
 
 # FIXME: Add the two-argument form N[expr, n]
@@ -28,16 +29,21 @@ def eval_N(
     expression: BaseElement,
     evaluation: Evaluation,
     prec: BaseElement = SymbolMachinePrecision,
-) -> BaseElement:
+) -> Optional[BaseElement]:
     """
     Equivalent to Expression(SymbolN, expression).evaluate(evaluation)
     """
-    evaluated_expression = expression.evaluate(evaluation)
+    evaluated_expression = (
+        expression if expression.is_literal else expression.evaluate(evaluation)
+    )
+
     result = eval_NValues(evaluated_expression, prec, evaluation)
     if result is None:
         return expression
-    if isinstance(result, Number):
+
+    if result.is_literal:
         return result
+
     return result.evaluate(evaluation)
 
 
@@ -51,28 +57,18 @@ def eval_NValues(
     """
     from mathics.core.convert.sympy import from_sympy
 
-    # The first step is to determine the precision goal
-    try:
-        # Here ``get_precision`` is called with ``show_messages``
-        # set to ``False`` to avoid show the same warnings repeatedly.
-        d = get_precision(prec, evaluation, show_messages=False)
-    except PrecisionValueError:
-        # We can ensure that the function always return an expression if
-        # the exception was captured by the caller.
-        return
-    # If the expression is a number, just round it to the required
-    # precision
-    if isinstance(expr, Number):
-        return expr.round(d)
-
     # If expr is a List, or a Rule (or maybe expressions with heads for
     # which we are sure do not have NValues or special attributes)
     # just apply `eval_NValues` to each element and return the new list.
-    if expr.get_head_name() in ("System`List", "System`Rule"):
+    if hasattr(expr, "head") and expr.head in (SymbolList, SymbolRule):
         elements = expr.elements
 
         # FIXME: incorporate these lines into Expression call
-        result = Expression(expr.head)
+        result = (
+            ListExpression(expr.head)
+            if expr.head is SymbolList
+            else Expression(expr.head)
+        )
         new_elements = [
             eval_NValues(element, prec, evaluation) for element in expr.elements
         ]
@@ -83,9 +79,24 @@ def eval_NValues(
         result._build_elements_properties()
         return result
 
+    # Get the precision goal to use in non-integer numbers
+    try:
+        # Here ``get_precision`` is called with ``show_messages``
+        # set to ``False`` to avoid show the same warnings repeatedly.
+        d = get_precision(prec, evaluation, show_messages=False)
+    except PrecisionValueError:
+        # We can ensure that the function always return an expression if
+        # the exception was captured by the caller.
+        return
+
+    # If the expression is a number, just round it to the required
+    # precision
+    if isinstance(expr, Number):
+        return expr.round(d)
+
     # Special case for the Root builtin
     # This should be implemented as an NValue
-    if expr.has_form("Root", 2):
+    if expr.has_form("Root", 2) or expr.has_form("RootSum", 2):
         return from_sympy(sympy.N(expr.to_sympy(), d))
 
     # Here we look for the NValues associated to the
@@ -97,9 +108,12 @@ def eval_NValues(
     name = expr.get_lookup_name()
     if name != "":
         nexpr = Expression(SymbolN, expr, prec)
-        result = evaluation.definitions.get_value(
-            name, "System`NValues", nexpr, evaluation
-        )
+        try:
+            result: Optional[BaseElement] = evaluation.definitions.get_value(
+                name, "System`NValues", nexpr, evaluation
+            )
+        except ValueError:
+            result = None
         if result is not None:
             if not result.sameQ(nexpr):
                 result = result.evaluate(evaluation)

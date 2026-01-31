@@ -17,16 +17,19 @@ from mpmath import ceil as mpceil, floor as mpfloor
 
 from mathics.algorithm.introselect import introselect
 from mathics.builtin.list.math import _RankedTakeLargest, _RankedTakeSmallest
-from mathics.core.atoms import Atom, Integer, Symbol, SymbolTrue
+from mathics.core.atoms import Integer, Integer1
+from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import SymbolFloor, SymbolPlus, SymbolTimes
-from mathics.core.systemsymbols import SymbolSubtract
+from mathics.core.symbols import Atom, SymbolFloor, SymbolPlus, SymbolTimes, SymbolTrue
+from mathics.core.systemsymbols import (
+    SymbolRankedMax,
+    SymbolRankedMin,
+    SymbolSort,
+    SymbolSubtract,
+)
 from mathics.eval.numerify import numerify
-
-SymbolRankedMax = Symbol("RankedMax")
-SymbolRankedMin = Symbol("RankedMin")
 
 
 class Quantile(Builtin):
@@ -35,7 +38,7 @@ class Quantile(Builtin):
     <url>
     :Quantile:
     https://en.wikipedia.org/wiki/Quantile</url> (<url>
-    :WMA:
+    :WMA link:
     https://reference.wolfram.com/language/ref/Quantile.html</url>)
 
     In statistics and probability, quantiles are cut points dividing the \
@@ -44,18 +47,19 @@ class Quantile(Builtin):
 
     Quantile is also known as value at risk (VaR) or fractile.
     <dl>
-      <dt>'Quantile[$list$, $q$]'
+      <dt>'Quantile'[$list$, $q$]
       <dd>returns the $q$th quantile of $list$.
 
-      <dt>'Quantile[$list$, $q$, {{$a$,$b$}, {$c$,$d$}}]'
+      <dt>'Quantile'[$list$, $q$, {{$a,b$}, {$c,d$}}]
       <dd>uses the quantile definition specified by parameters $a$, $b$, $c$, $d$.
 
-      <dt>For a list of length $n$, 'Quantile[list, $q$, {{$a$,$b$}, {$c$,$d$}}]' depends on $x$=$a$+($n$+$b$)$q$.
+      For a list of length $n$, 'Quantile'[$list$, $q$, {{$a ,b$}, {$c, d$}}] depends \
+      on $x=a+(n+b)q$.
 
-      If $x$ is an integer, the result is '$s$[[$x$]]', where $s$='Sort[list,Less]'.
+      If $x$ is an integer, the result is $s[[x]]$, where $s$='Sort[list,Less]'.
 
-      Otherwise, the result is \
-      's[[Floor[x]]]+(s[[Ceiling[x]]]-s[[Floor[x]]])(c+dFractionalPart[x])', \
+      Otherwise, the result is:
+      's[[Floor[x]]] + (s[[Ceiling[x]]] - s[[Floor[x]]])(c + d FractionalPart[x])',
       with the indices taken to be 1 or n if they are out of range.
 
       The default choice of parameters is '{{0,0},{1,0}}'.
@@ -83,13 +87,23 @@ class Quantile(Builtin):
         "nquan": "The quantile `1` has to be between 0 and 1.",
     }
 
+    attributes = A_PROTECTED | A_READ_PROTECTED
     rules = {
         "Quantile[list_List, q_, abcd_]": "Quantile[list, {q}, abcd]",
         "Quantile[list_List, q_]": "Quantile[list, q, {{0, 0}, {1, 0}}]",
     }
     summary_text = "cut points dividing the range of a probability distribution into continuous intervals"
 
-    def eval(self, data, qs, a, b, c, d, evaluation: Evaluation):
+    def eval(
+        self,
+        data: ListExpression,
+        qs: ListExpression,
+        a,
+        b,
+        c,
+        d,
+        evaluation: Evaluation,
+    ):
         """Quantile[data_List, qs_List, {{a_, b_}, {c_, d_}}]"""
 
         n = len(data.elements)
@@ -98,7 +112,9 @@ class Quantile(Builtin):
         def ranked(i):
             return introselect(partially_sorted, min(max(0, i - 1), n - 1))
 
-        numeric_qs = numerify(qs.evaluate(evaluation), evaluation)
+        numeric_qs = qs.evaluate(evaluation)
+        if numeric_qs is not None:
+            numeric_qs = numerify(numeric_qs, evaluation)
         results = []
 
         for q in numeric_qs.elements:
@@ -157,10 +173,10 @@ class Quartiles(Builtin):
     """
     <url>:Quartile:
     https://en.wikipedia.org/wiki/Quartile</url> (<url>
-    :WMA:
+    :WMA link:
     https://reference.wolfram.com/language/ref/Quartiles.html</url>)
     <dl>
-      <dt>'Quartiles[$list$]'
+      <dt>'Quartiles'[$list$]
       <dd>returns the 1/4, 1/2, and 3/4 quantiles of $list$.
     </dl>
 
@@ -168,6 +184,7 @@ class Quartiles(Builtin):
      = {27 / 4, 13, 77 / 4}
     """
 
+    attributes = A_PROTECTED | A_READ_PROTECTED
     rules = {
         "Quartiles[list_List]": "Quantile[list, {1/4, 1/2, 3/4}, {{1/2, 0}, {0, 1}}]",
     }
@@ -179,7 +196,7 @@ class RankedMax(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/RankedMax.html</url>
 
     <dl>
-      <dt>'RankedMax[$list$, $n$]'
+      <dt>'RankedMax'[$list$, $n$]
       <dd>returns the $n$th largest element of $list$ (with $n$ = 1 yielding the largest element,
       $n$ = 2 yielding the second largest element, and so on).
     </dl>
@@ -192,6 +209,7 @@ class RankedMax(Builtin):
         "intpm": "Expected positive integer at position 2 in ``.",
         "rank": "The specified rank `1` is not between 1 and `2`.",
     }
+    attributes = A_PROTECTED | A_READ_PROTECTED
     summary_text = "the n-th largest item"
 
     def eval(self, element, n: Integer, evaluation: Evaluation):
@@ -215,7 +233,7 @@ class RankedMin(Builtin):
     https://reference.wolfram.com/language/ref/RankedMin.html</url>
 
     <dl>
-      <dt>'RankedMin[$list$, $n$]'
+      <dt>'RankedMin'[$list$, $n$]
       <dd>returns the $n$th smallest element of $list$ (with \
           $n$ = 1 yielding the smallest element, $n$ = 2 yielding \
           the second smallest element, and so on).
@@ -229,6 +247,7 @@ class RankedMin(Builtin):
         "intpm": "Expected positive integer at position 2 in ``.",
         "rank": "The specified rank `1` is not between 1 and `2`.",
     }
+    attributes = A_PROTECTED | A_READ_PROTECTED
     summary_text = "the n-th smallest item"
 
     def eval(self, element, n: Integer, evaluation: Evaluation):
@@ -244,23 +263,86 @@ class RankedMin(Builtin):
             return introselect(element.get_mutable_elements(), py_n - 1)
 
 
+class ReverseSort(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ReverseSort.html</url>
+
+    <dl>
+      <dt>'ReverseSort'[$list$]
+      <dd>sorts $list$ (or the elements of any other expression) according \
+          to reverse canonical ordering.
+
+      <dt>'ReverseSort'[$list$, $p$]
+      <dd>sorts using $p$ to determine the order of two elements.
+    </dl>
+
+    >> ReverseSort[{c, b, d, a}]
+     = {d, c, b, a}
+
+    You can specify a binary comparison function:
+    >> ReverseSort[{1, 2, 0, 3}, Less]
+     = {3, 2, 1, 0}
+
+    Using 'Greater' for the above, reverses the reverse sort:
+    >> ReverseSort[{1, 2, 0, 3}, Greater]
+     = {0, 1, 2, 3}
+
+    See also <url>:Sort:
+    /doc/reference-of-built-in-symbols/descriptive-statistics/order-statistics/sort/</url>.
+    """
+
+    attributes = A_PROTECTED
+    summary_text = "sort in reverse order"
+
+    rules = {
+        "ReverseSort[list_]": "Reverse[Sort[list]]",
+        "ReverseSort[list_, p_]": "Reverse[Sort[list, p]]",
+    }
+
+
+# FIXME: there might be a bug in sorting...
+#
+#    Sort[{
+#    "a","b", 1,
+#    ByteArray[{1,2,4,1}],
+#    2, 1.2, I, 2I-3, A,
+#    a+b, a*b, a+1, a*2, b^3, 2/3,
+#    A[x], F[2], F[x], F[x_], F[x___], F[x,t], F[x__],
+#    Condition[A,b>2], Pattern[expr, A]
+#    }]
+#
+# should be:
+#
+#     {-3 + 2*I, I, 2/3, 1, 1.2, 2,
+#     "a", "b", 2*a,
+#      1 + a, A, a*b, b^3, a + b,
+#      A[x], A /; b > 2,
+#      F[2], F[x], F[x_], F[x___], F[x__], F[x, t],
+#      ByteArray["AQIEAQ=="], expr:A}
+#
+# But this is too complicated a case to run as a test. It needs
+# to be isolated. Break this down to smaller pieces,
+# and also use Order[] to check smaller components.
+# The problem might also be in boxing-order output.
+
+
 class Sort(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Sort.html</url>
 
     <dl>
-      <dt>'Sort[$list$]'
+      <dt>'Sort'[$list$]
       <dd>sorts $list$ (or the elements of any other expression) according \
           to canonical ordering.
 
-      <dt>'Sort[$list$, $p$]'
+      <dt>'Sort'[$list$, $p$]
       <dd>sorts using $p$ to determine the order of two elements.
     </dl>
 
     >> Sort[{4, 1.0, a, 3+I}]
      = {1., 3 + I, 4, a}
 
-    Sort uses 'OrderedQ' to determine ordering by default.
+    Sort uses 'Order' to determine ordering by default.
     You can sort patterns according to their precedence using 'PatternsOrderedQ':
     >> Sort[{items___, item_, OptionsPattern[], item_symbol, item_?test}, PatternsOrderedQ]
      = {item_symbol, item_ ? test, item_, items___, OptionsPattern[]}
@@ -272,15 +354,19 @@ class Sort(Builtin):
      = {2 + c_, 1 + b__}
     >> Sort[{x_ + n_*y_, x_ + y_}, PatternsOrderedQ]
      = {x_ + n_ y_, x_ + y_}
+
+    See also <url>:ReverseSort:
+    /doc/reference-of-built-in-symbols/descriptive-statistics/order-statistics/reversesort/</url>.
     """
 
-    summary_text = "sort lexicographically or with any comparison function"
+    attributes = A_PROTECTED
+    summary_text = "sort lexicographically or with a comparison function"
 
     def eval(self, list, evaluation: Evaluation):
         "Sort[list_]"
 
         if isinstance(list, Atom):
-            evaluation.message("Sort", "normal")
+            evaluation.message("Sort", "normal", Integer1, Expression(SymbolSort, list))
         else:
             new_elements = sorted(list.elements)
             return list.restructure(list.head, new_elements, evaluation)
@@ -289,7 +375,7 @@ class Sort(Builtin):
         "Sort[list_, p_]"
 
         if isinstance(list, Atom):
-            evaluation.message("Sort", "normal")
+            evaluation.message("Sort", "normal", Integer1, Expression(SymbolSort, list))
         else:
 
             class Key:
@@ -298,10 +384,8 @@ class Sort(Builtin):
 
                 def __gt__(self, other):
                     return (
-                        not Expression(p, self.element, other.element).evaluate(
-                            evaluation
-                        )
-                        is SymbolTrue
+                        Expression(p, self.element, other.element).evaluate(evaluation)
+                        is not SymbolTrue
                     )
 
             new_elements = sorted(list.elements, key=Key)
@@ -315,23 +399,25 @@ class TakeLargest(_RankedTakeLargest):
     https://reference.wolfram.com/language/ref/TakeLargest.html</url>
 
     <dl>
-      <dt>'TakeLargest[$list$, $f$, $n$]'
+      <dt>'TakeLargest'[$list$, $f$, $n$]
       <dd>returns the a sorted list of the $n$ largest items in $list$.
     </dl>
 
+    List the largest two numbers of a list:
     >> TakeLargest[{100, -1, 50, 10}, 2]
      = {100, 50}
 
-    None, Null, Indeterminate and expressions with head Missing are ignored
+    None, Null, Indeterminate and expressions with head Missing are ignored \
     by default:
     >> TakeLargest[{-8, 150, Missing[abc]}, 2]
      = {150, -8}
 
-    You may specify which items are ignored using the option ExcludedForms:
+    You may specify which items are ignored using the option 'ExcludedForms':
     >> TakeLargest[{-8, 150, Missing[abc]}, 2, ExcludedForms -> {}]
      = {Missing[abc], 150}
     """
 
+    attributes = A_PROTECTED
     summary_text = "sublist of n largest elements"
 
     def eval(self, element, n, evaluation, options):
@@ -344,16 +430,20 @@ class TakeSmallest(_RankedTakeSmallest):
     <url>:WMA link:https://reference.wolfram.com/language/ref/TakeSmallest.html</url>
 
     <dl>
-      <dt>'TakeSmallest[$list$, $n$]'
+      <dt>'TakeSmallest'[$list$, $n$]
       <dd>returns the a sorted list of the $n$ smallest items in $list$.
     </dl>
 
-    For details on how to use the ExcludedForms option, see TakeLargest[].
-
+    List the smallest two numbers of a list:
     >> TakeSmallest[{100, -1, 50, 10}, 2]
      = {-1, 10}
+
+    For details on how to use the 'ExcludedForms' option, see <url>
+    :TakeLargest:
+    /doc/reference-of-built-in-symbols/descriptive-statistics/order-statistics/takelargest/</url>.
     """
 
+    attributes = A_PROTECTED
     summary_text = "sublist of n smallest elements"
 
     def eval(self, element, n, evaluation, options):

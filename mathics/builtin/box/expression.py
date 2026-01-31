@@ -1,5 +1,4 @@
-# This is never intended to go in Mathics3 docs
-no_doc = True
+from typing import Optional, Sequence, Union
 
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import BuiltinElement
@@ -7,6 +6,9 @@ from mathics.core.element import BoxElementMixin
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolHoldForm, ensure_context
+
+# This is never intended to go in Mathics3 docs
+no_doc = True
 
 
 def split_name(name: str) -> str:
@@ -76,7 +78,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         # There should be a better way to implement this
         # behaviour...
         if not hasattr(instance, "_elements"):
-            instance._elements = tuple(elements)
+            instance._elements = None
         return instance
 
     def do_format(self, evaluation, format):
@@ -84,6 +86,8 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
 
     @property
     def elements(self):
+        if self._elements is None:
+            self._elements = tuple()
         return self._elements
 
     @elements.setter
@@ -109,8 +113,22 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
     def get_lookup_name(self):
         return self.get_name()
 
-    def get_sort_key(self) -> tuple:
-        return self.to_expression().get_sort_key()
+    @property
+    def element_order(self) -> tuple:
+        """Return a tuple value that is used in ordering elements of
+        an expression. The tuple is ultimately compared
+        lexicographically.
+
+        """
+        return self.to_expression().element_order
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return self.to_expression().pattern_precedence
 
     def get_string_value(self):
         return "-@" + self.get_head_name() + "@-"
@@ -119,7 +137,13 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
     def head(self):
         return self.get_head()
 
-    def has_form(self, heads, *element_counts):
+    @head.setter
+    def head(self, value):
+        raise ValueError("BoxExpression.head is write protected.")
+
+    def has_form(
+        self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
+    ) -> bool:
         """
         element_counts:
             (,):        no elements allowed
@@ -133,13 +157,17 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         if isinstance(heads, (tuple, list, set)):
             if head_name not in [ensure_context(h) for h in heads]:
                 return False
-        else:
+        elif isinstance(heads, str):
             if head_name != ensure_context(heads):
                 return False
+        else:
+            raise TypeError(
+                f"Heads must be a string or a sequence of strings, not {type(heads)}"
+            )
         if not element_counts:
             return False
         if element_counts and element_counts[0] is not None:
-            count = len(self._elements)
+            count = len(self.elements)
             if count not in element_counts:
                 if (
                     len(element_counts) == 2
@@ -150,10 +178,6 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
                 else:
                     return False
         return True
-
-    @head.setter
-    def head(self, value):
-        raise ValueError("BoxExpression.head is write protected.")
 
     @property
     def is_literal(self) -> bool:
@@ -172,7 +196,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
 
     def sameQ(self, expr) -> bool:
         """Mathics SameQ"""
-        return expr.sameQ(self)
+        return expr.sameQ(self.to_expression())
 
     def tex_block(self, tex, only_subsup=False):
         if len(tex) == 1:
@@ -184,9 +208,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
                 return tex
 
     def to_expression(self) -> Expression:
-        # FIXME: All classes should store their symbol name.
-        # So there should be a self.head.
-        return Expression(Symbol(self.get_name()), *self._elements)
+        return Expression(Symbol(self.get_name()), *self.elements)
 
     def flatten_pattern_sequence(self, evaluation) -> "BoxExpression":
         return self

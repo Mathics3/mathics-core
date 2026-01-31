@@ -246,7 +246,7 @@ class XMLElement(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/XMLElement.html</url>
 
     <dl>
-    <dt>'XMLElement[$tag$, {$attr_1$, $val_1$, ...}, {$data$, ...}]'
+    <dt>'XMLElement'[$tag$, {$attr_1$, $val_1$, ...}, {$data$, ...}]
     <dd>   represents an element in symbolic XML.
     </dl>
     """
@@ -294,6 +294,7 @@ class XMLGetString(_Get):
     <dt>'XML`Parser`XMLGetString["string"]'
     <dd>parses "string" as XML code, and returns an XMLObject.
     </dl>
+
     >> Head[XML`Parser`XMLGetString["<a></a>"]]
      = XMLObject[Document]
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Unit tests for mathics.buitin.numbers.nintegrate
+Unit tests for mathics.builtin.numbers.nintegrate
 
 NIntegrate[] tests
 
@@ -13,7 +13,7 @@ import pytest
 from mathics.core.builtin import check_requires_list
 
 if check_requires_list(["scipy", "scipy.integrate"]):
-    methods = ["Automatic", "Romberg", "Internal", "NQuadrature"]
+    methods = ["Automatic", "Internal", "NQuadrature"]
 
     generic_tests_for_nintegrate = [
         (r"NIntegrate[x^2, {x,0,1}, {method} ]", r"1/3.", ""),
@@ -46,7 +46,7 @@ if check_requires_list(["scipy", "scipy.integrate"]):
                 "1.",
                 None,
                 [
-                    r"The Method option should be a built-in method name in {`Automatic`, `Internal`, `Simpson`, `NQuadrature`, `Quadrature`, `Romberg`}. Using `Automatic`"
+                    r"The Method option should be a built-in method name in {`Automatic`, `Internal`, `Simpson`, `NQuadrature`, `Quadrature`}. Using `Automatic`."
                 ],
             ),
         ],
@@ -62,7 +62,7 @@ else:
             "1.",
             None,
             [
-                r"The Method option should be a built-in method name in {`Automatic`, `Internal`, `Simpson`}. Using `Automatic`"
+                r"The Method option should be a built-in method name in {`Automatic`, `Internal`, `Simpson`}. Using `Automatic`."
             ],
         ),
     ]

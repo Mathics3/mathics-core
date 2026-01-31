@@ -32,6 +32,7 @@ import os
 import os.path as osp
 import platform
 import sys
+from typing import List
 
 from setuptools import Extension, setup
 from setuptools.command.build_py import build_py as setuptools_build_py
@@ -49,7 +50,7 @@ def get_srcdir():
     return osp.realpath(filename)
 
 
-DEPENDENCY_LINKS = []
+DEPENDENCY_LINKS: List[str] = []
 #     "http://github.com/Mathics3/mathics-scanner/tarball/master#egg=Mathics_Scanner-1.0.0.dev"
 # ]
 
@@ -60,7 +61,7 @@ CMDCLASS = {}
 try:
     if is_PyPy:
         raise ImportError
-    from Cython.Distutils import build_ext
+    from Cython.Distutils import build_ext  # type: ignore[import-not-found]
 except ImportError:
     pass
 else:
@@ -74,12 +75,20 @@ else:
                 "rules",
                 "pattern",
             ),
-            "builtin": ["arithmetic", "patterns", "graphics"],
-            "eval": ("nevaluator", "makeboxes", "test"),
+            "builtin": [
+                "arithmetic",
+                "patterns/basic",
+                "patterns/composite",
+                "patterns/defaults",
+                "patterns/restrictions",
+                "patterns/rules",
+                "graphics",
+            ],
+            "eval": ("nevaluator", "test"),
         }
         EXTENSIONS = [
             Extension(
-                "mathics.%s.%s" % (parent, module),
+                f"mathics.{parent}.{module}".replace("/", "."),
                 ["mathics/%s/%s.py" % (parent, module)],
             )
             for parent, modules in EXTENSIONS_DICT.items()
@@ -102,13 +111,17 @@ class build_py(setuptools_build_py):
     def run(self):
         if not os.path.exists("mathics/data/op-tables.json"):
             os.system(
-                "mathics-generate-json-table"
+                "mathics3-generate-json-table"
                 " --field=ascii-operator-to-symbol"
                 " --field=ascii-operator-to-unicode"
                 " --field=ascii-operator-to-wl-unicode"
                 " --field=operator-to-ascii"
                 " --field=operator-to-unicode"
                 " -o mathics/data/op-tables.json"
+            )
+        if not os.path.exists("mathics/data/operator-tables.json"):
+            os.system(
+                "mathics3-generate-operator-json-table" " -o operator-tables.json"
             )
         self.distribution.package_data["mathics"].append("data/op-tables.json")
         setuptools_build_py.run(self)

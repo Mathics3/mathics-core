@@ -1,0 +1,145 @@
+System`Graphics
+  System`List
+    System`RGBColor
+      System`Real 0.392157
+      System`Real 0.560784
+      System`Real 1.0
+    System`GraphicsComplex
+      System`NumericArray NumericArray[Real*, 22×2]
+        [[-4.         -0.81784699]
+         [-3.61904762  0.75929737]
+         [-3.23809524 -0.46925845]
+         [-2.85714286 -0.29969827]
+         [-2.47619048  0.83521341]
+         [-2.0952381  -0.31153867]
+         [-1.71428571 -0.83022043]
+         [-1.33333333 -0.20406324]
+         [-0.95238095  0.57784706]
+         [-0.57142857  0.81176076]
+         [-0.19047619  0.84111524]
+         [ 0.19047619  0.84111524]
+         [ 0.57142857  0.81176076]
+         [ 0.95238095  0.57784706]
+         [ 1.33333333 -0.20406324]
+         [ 1.71428571 -0.83022043]
+         [ 2.0952381  -0.31153867]
+         [ 2.47619048  0.83521341]
+         [ 2.85714286 -0.29969827]
+         [ 3.23809524 -0.46925845]
+         [ 3.61904762  0.75929737]
+         [ 4.         -0.81784699]]
+      System`Line
+        System`NumericArray NumericArray[Integer*, 22]
+          [ 1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22]
+  System`Rule
+    System`AlignmentPoint
+    System`Center
+  System`Rule
+    System`AspectRatio
+    System`Power
+      System`GoldenRatio
+      System`Integer -1
+  System`Rule
+    System`Axes
+    System`True
+  System`Rule
+    System`AxesLabel
+    System`None
+  System`Rule
+    System`AxesOrigin
+    System`Automatic
+  System`Rule
+    System`AxesStyle
+    System`List
+  System`Rule
+    System`Background
+    System`Automatic
+  System`Rule
+    System`BaseStyle
+    System`List
+  System`Rule
+    System`BaselinePosition
+    System`Automatic
+  System`Rule
+    System`ContentSelectable
+    System`Automatic
+  System`Rule
+    System`CoordinatesToolOptions
+    System`Automatic
+  System`Rule
+    System`Epilog
+    System`List
+  System`Rule
+    System`FormatType
+    System`TraditionalForm
+  System`Rule
+    System`Frame
+    System`False
+  System`Rule
+    System`FrameLabel
+    System`None
+  System`Rule
+    System`FrameStyle
+    System`List
+  System`Rule
+    System`FrameTicks
+    System`Automatic
+  System`Rule
+    System`FrameTicksStyle
+    System`List
+  System`Rule
+    System`GridLines
+    System`None
+  System`Rule
+    System`GridLinesStyle
+    System`List
+  System`Rule
+    System`ImageMargins
+    System`Real 0.0
+  System`Rule
+    System`ImagePadding
+    System`All
+  System`Rule
+    System`ImageSize
+    System`Automatic
+  System`Rule
+    System`LabelStyle
+    System`List
+  System`Rule
+    System`LogPlot
+    System`False
+  System`Rule
+    System`Method
+    System`Automatic
+  System`Rule
+    System`PlotLabel
+    System`None
+  System`Rule
+    System`PlotRange
+    System`List
+      System`Automatic
+      System`Automatic
+  System`Rule
+    System`PlotRangeClipping
+    System`False
+  System`Rule
+    System`PlotRangePadding
+    System`Automatic
+  System`Rule
+    System`PlotRegion
+    System`Automatic
+  System`Rule
+    System`PreserveImageOptions
+    System`Automatic
+  System`Rule
+    System`Prolog
+    System`List
+  System`Rule
+    System`RotateLabel
+    System`True
+  System`Rule
+    System`Ticks
+    System`Automatic
+  System`Rule
+    System`TicksStyle
+    System`List

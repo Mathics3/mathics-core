@@ -5,13 +5,13 @@ Symbol Handling
 Symbolic data. Every symbol has a unique name, exists in a certain context \
 or namespace, and can have a variety of type of values and attributes.
 """
-
 import re
+from typing import Callable, List, Optional
 
-from mathics_scanner import is_symbol_name
+from mathics_scanner.tokeniser import is_symbol_name
 
 from mathics.core.assignment import get_symbol_values
-from mathics.core.atoms import String
+from mathics.core.atoms import Integer1, String
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_FIRST,
@@ -24,6 +24,7 @@ from mathics.core.attributes import (
 from mathics.core.builtin import Builtin, PrefixOperator, Test
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.regex import to_regex
+from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -42,55 +43,135 @@ from mathics.core.systemsymbols import (
     SymbolDefinition,
     SymbolFormat,
     SymbolGrid,
-    SymbolInfix,
     SymbolInputForm,
     SymbolLeft,
     SymbolOptions,
     SymbolRule,
     SymbolSet,
 )
+from mathics.doc.online import online_doc_string
+from mathics.eval.stackframe import get_eval_Expression
+
+SymbolMissing = Symbol("System`Missing")
+SymbolUnknownSymbol = Symbol("System`UnknownSymbol")
 
 
-def _get_usage_string(symbol, evaluation, is_long_form: bool, htmlout=False):
-    """
-    Returns a python string with the documentation associated to a given symbol.
-    """
-    definition = evaluation.definitions.get_definition(symbol.name)
-    ruleusage = definition.get_values_list("messages")
-    usagetext = None
-    import re
+def gather_and_format_definition_rules(
+    symbol: Symbol, evaluation: Evaluation
+) -> Optional[List[Expression]]:
+    """Return a list of lines describing the definition of `symbol`"""
+    lines = []
 
-    # First look at user definitions:
-    for rulemsg in ruleusage:
-        if rulemsg.pattern.expr.elements[1].__str__() == '"usage"':
-            usagetext = rulemsg.replace.value
-    if usagetext is not None:
-        # Maybe, if htmltout is True, we should convert
-        # the value to a HTML form...
-        return usagetext
-    # Otherwise, look at the pymathics, and builtin docstrings:
-    builtins = evaluation.definitions.builtin
-    pymathics = evaluation.definitions.pymathics
-    bio = pymathics.get(definition.name)
-    if bio is None:
-        bio = builtins.get(definition.name)
+    def rhs_format(expr):
+        if expr.has_form("Infix", None):
+            expr = Expression(Expression(SymbolHoldForm, expr.head), *expr.elements)
+        return expr
 
-    if bio is not None:
-        if not is_long_form and hasattr(bio.builtin.__class__, "summary_text"):
-            return bio.builtin.__class__.summary_text
-        from mathics.doc.common_doc import XMLDoc
+    def format_rule(
+        rule: Rule,
+        up: bool = False,
+        lhs: Callable = lambda k: k,
+        rhs: Callable = lambda r: r,
+    ):
+        """
+        Add a line showing `rule`
+        """
+        evaluation.check_stopped()
+        if isinstance(rule, Rule):
+            lhs_pat = Expression(SymbolInputForm, lhs(rule.pattern.expr))
+            repl_expr = rhs(
+                rule.replace.replace_vars(
+                    {"System`Definition": Expression(SymbolHoldForm, SymbolDefinition)}
+                )
+            )
+            repl_expr = Expression(SymbolInputForm, repl_expr)
+            lines.append(
+                Expression(
+                    SymbolHoldForm,
+                    Expression(up and SymbolUpSet or SymbolSet, lhs_pat, repl_expr),
+                )
+            )
 
-        docstr = bio.builtin.__class__.__doc__
-        title = bio.builtin.__class__.__name__
-        if docstr is None:
-            return None
-        if htmlout:
-            usagetext = XMLDoc(docstr, title).html()
-        else:
-            usagetext = XMLDoc(docstr, title).text(0)
-        usagetext = re.sub(r"\$([0-9a-zA-Z]*)\$", r"\1", usagetext)
-        return usagetext
-    return None
+    def gather_rules(definition: Definition):
+        """
+        Add to the description all the rules associated
+        to a definition object
+        """
+        for rule in definition.ownvalues:
+            format_rule(rule)
+        for rule in definition.downvalues:
+            format_rule(rule)
+        for rule in definition.subvalues:
+            format_rule(rule)
+        for rule in definition.upvalues:
+            format_rule(rule, up=True)
+        for rule in definition.nvalues:
+            format_rule(rule)
+        formats = sorted(definition.formatvalues.items())
+        for form_name, rules in formats:
+            for rule in rules:
+
+                def lhs_format(expr):
+                    return Expression(SymbolFormat, expr, Symbol(form_name))
+
+                format_rule(rule, lhs=lhs_format, rhs=rhs_format)
+
+    name = symbol.get_name()
+    if not name:
+        evaluation.message("Definition", "sym", symbol, 1)
+        return
+
+    try:
+        all = evaluation.definitions.get_definition(name)
+        attributes = all.attributes
+        all_options = all.options
+        all_defaultvalues = all.defaultvalues
+
+        if attributes:
+            attributes_list = attributes_bitset_to_list(attributes)
+            lines.append(
+                Expression(
+                    SymbolHoldForm,
+                    Expression(
+                        SymbolSet,
+                        Expression(SymbolAttributes, symbol),
+                        to_mathics_list(
+                            *attributes_list, elements_conversion_fn=Symbol
+                        ),
+                    ),
+                )
+            )
+    except KeyError:
+        attributes = 0
+        all_options = {}
+        all_defaultvalues = []
+
+    if not A_READ_PROTECTED & attributes:
+        try:
+            gather_rules(evaluation.definitions.get_user_definition(name, create=False))
+        except KeyError:
+            pass
+
+    for rule in all_defaultvalues:
+        format_rule(rule)
+    if all_options:
+        options = sorted(all_options.items())
+        lines.append(
+            Expression(
+                SymbolHoldForm,
+                Expression(
+                    SymbolSet,
+                    Expression(SymbolOptions, symbol),
+                    ListExpression(
+                        *(
+                            Expression(SymbolRule, Symbol(name), value)
+                            for name, value in options
+                        )
+                    ),
+                ),
+            )
+        )
+    return lines
 
 
 class Context(Builtin):
@@ -98,7 +179,7 @@ class Context(Builtin):
     <url>:WMA link:
        https://reference.wolfram.com/language/ref/Context.html</url>
     <dl>
-      <dt>'Context[$symbol$]'
+      <dt>'Context'[$symbol$]
       <dd>yields the name of the context where $symbol$ is defined in.
 
       <dt>'Context[]'
@@ -125,7 +206,7 @@ class Context(Builtin):
 
         name = symbol.get_name()
         if not name:
-            evaluation.message("Context", "normal")
+            evaluation.message("Context", "normal", Integer1, get_eval_Expression())
             return
         assert "`" in name
         context = name[: name.rindex("`") + 1]
@@ -137,7 +218,7 @@ class Definition(Builtin):
     <url>:WMA link:
       https://reference.wolfram.com/language/ref/Definition.html</url>
     <dl>
-      <dt>'Definition[$symbol$]'
+      <dt>'Definition'[$symbol$]
       <dd>prints as the definitions given for $symbol$.
       This is in a form that can e stored in a package.
     </dl>
@@ -152,13 +233,13 @@ class Definition(Builtin):
     >> f[x_] := x ^ 2
     >> g[f] ^:= 2
     >> Definition[f]
-     = f[x_] = x ^ 2
+     = f[x_] = x^2
      .
      . g[f] ^= 2
 
     Definition of a rather evolved (though meaningless) symbol:
     >> Attributes[r] := {Orderless}
-    >> Format[r[args___]] := Infix[{args}, "~"]
+    >> Format[r[args___]] := Infix[{args}, "#"]
     >> N[r] := 3.5
     >> Default[r, 1] := 2
     >> r::msg := "My message"
@@ -167,7 +248,7 @@ class Definition(Builtin):
 
     Some usage:
     >> r[z, x, y]
-     = x ~ y ~ z
+     = x # y # z
     >> N[r]
      = 3.5
     >> r[]
@@ -179,23 +260,24 @@ class Definition(Builtin):
     >> Definition[r]
      = Attributes[r] = {Orderless}
      .
-     . arg_. ~ OptionsPattern[r] = {arg, OptionValue[Opt]}
+     . r[(arg_.), OptionsPattern[r]] = {arg, OptionValue[Opt]}
      .
      . N[r, MachinePrecision] = 3.5
      .
-     . Format[args___, MathMLForm] = Infix[{args}, "~"]
+     . Format[r[args___], MathMLForm] = Infix[{args}, "#"]
      .
-     . Format[args___, OutputForm] = Infix[{args}, "~"]
+     . Format[r[args___], OutputForm] = Infix[{args}, "#"]
      .
-     . Format[args___, StandardForm] = Infix[{args}, "~"]
+     . Format[r[args___], StandardForm] = Infix[{args}, "#"]
      .
-     . Format[args___, TeXForm] = Infix[{args}, "~"]
+     . Format[r[args___], TeXForm] = Infix[{args}, "#"]
      .
-     . Format[args___, TraditionalForm] = Infix[{args}, "~"]
+     . Format[r[args___], TraditionalForm] = Infix[{args}, "#"]
      .
      . Default[r, 1] = 2
      .
-     . Options[r] = {Opt -> 3}
+     .Options[r] = {Opt -> 3}
+     .
 
     For 'ReadProtected' symbols, 'Definition' just prints attributes, default values and options:
     >> SetAttributes[r, ReadProtected]
@@ -236,103 +318,14 @@ class Definition(Builtin):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
-    precedence = 670
     summary_text = "give values of a symbol in a form that can be stored in a package"
 
-    def format_definition(self, symbol, evaluation, grid=True):
-        "StandardForm,TraditionalForm,OutputForm: Definition[symbol_]"
+    def format_definition(
+        self, symbol: Symbol, evaluation: Evaluation, grid: bool = True
+    ) -> Symbol:
+        "(StandardForm,TraditionalForm,OutputForm,): Definition[symbol_]"
 
-        lines = []
-
-        def print_rule(rule, up=False, lhs=lambda k: k, rhs=lambda r: r):
-            evaluation.check_stopped()
-            if isinstance(rule, Rule):
-                r = rhs(
-                    rule.replace.replace_vars(
-                        {
-                            "System`Definition": Expression(
-                                SymbolHoldForm, SymbolDefinition
-                            )
-                        },
-                        evaluation,
-                    )
-                )
-                lines.append(
-                    Expression(
-                        SymbolHoldForm,
-                        Expression(
-                            SymbolUpSet if up else SymbolSet, lhs(rule.pattern.expr), r
-                        ),
-                    )
-                )
-
-        name = symbol.get_name()
-        if not name:
-            evaluation.message("Definition", "sym", symbol, 1)
-            return
-        attributes = evaluation.definitions.get_attributes(name)
-        definition = evaluation.definitions.get_user_definition(name, create=False)
-        all = evaluation.definitions.get_definition(name)
-        if attributes:
-            attributes_list = attributes_bitset_to_list(attributes)
-            lines.append(
-                Expression(
-                    SymbolHoldForm,
-                    Expression(
-                        SymbolSet,
-                        Expression(SymbolAttributes, symbol),
-                        to_mathics_list(
-                            *attributes_list, elements_conversion_fn=Symbol
-                        ),
-                    ),
-                )
-            )
-
-        if definition is not None and not A_READ_PROTECTED & attributes:
-            for rule in definition.ownvalues:
-                print_rule(rule)
-            for rule in definition.downvalues:
-                print_rule(rule)
-            for rule in definition.subvalues:
-                print_rule(rule)
-            for rule in definition.upvalues:
-                print_rule(rule, up=True)
-            for rule in definition.nvalues:
-                print_rule(rule)
-            formats = sorted(definition.formatvalues.items())
-            for format, rules in formats:
-                for rule in rules:
-
-                    def lhs(expr):
-                        return Expression(SymbolFormat, expr, Symbol(format))
-
-                    def rhs(expr):
-                        if expr.has_form("Infix", None):
-                            expr = Expression(
-                                Expression(SymbolHoldForm, expr.head), *expr.elements
-                            )
-                        return Expression(SymbolInputForm, expr)
-
-                    print_rule(rule, lhs=lhs, rhs=rhs)
-        for rule in all.defaultvalues:
-            print_rule(rule)
-        if all.options:
-            options = sorted(all.options.items())
-            lines.append(
-                Expression(
-                    SymbolHoldForm,
-                    Expression(
-                        SymbolSet,
-                        Expression(SymbolOptions, symbol),
-                        ListExpression(
-                            *(
-                                Expression(SymbolRule, Symbol(name), value)
-                                for name, value in options
-                            )
-                        ),
-                    ),
-                )
-            )
+        lines = gather_and_format_definition_rules(symbol, evaluation)
         if lines:
             if grid:
                 return Expression(
@@ -346,8 +339,8 @@ class Definition(Builtin):
 
         return SymbolNull
 
-    def format_definition_input(self, symbol, evaluation):
-        "InputForm: Definition[symbol_]"
+    def format_definition_input(self, symbol: Symbol, evaluation: Evaluation) -> Symbol:
+        "(InputForm,): Definition[symbol_]"
         return self.format_definition(symbol, evaluation, grid=False)
 
 
@@ -356,7 +349,7 @@ class DownValues(Builtin):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/DownValues.html</url>
     <dl>
-      <dt>'DownValues[$symbol$]'
+      <dt>'DownValues'[$symbol$]
       <dd>gives the list of downvalues associated with $symbol$.
     </dl>
 
@@ -405,7 +398,39 @@ class DownValues(Builtin):
     def eval(self, symbol, evaluation):
         "DownValues[symbol_]"
 
-        return get_symbol_values(symbol, "DownValues", "down", evaluation)
+        return get_symbol_values(symbol, "DownValues", "downvalues", evaluation)
+
+
+# In Mathematica 5, this appears under "Types of Values".
+class FormatValues(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/tutorial/PatternsAndTransformationRules.html#6025</url>
+    <dl>
+      <dt>'FormatValues'[$symbol$]
+      <dd>gives the list of format rules associated with $symbol$.
+    </dl>
+
+    First, use 'Format' to set a formatting rule for a form:
+
+    >> Format[F[x_], OutputForm]:= Subscript[x, F]
+
+    Now, to see the rules, we can use 'FormatValues':
+
+    >> FormatValues[F]
+     = {HoldPattern[Subscript[x_, F]] :> Subscript[x, F]}
+
+    The replacment pattern on the right in the delayed rule is formatted according to the top-level form. To see the rule input, we can use 'InputForm':
+    >> FormatValues[F]  //InputForm
+     = {HoldPattern[Format[F[x_], OutputForm]] :> Subscript[x, F]}
+    """
+
+    summary_text = (
+        "give a list of formatting transformation rules associated with a symbol."
+    )
+
+    def eval(self, symbol, evaluation):
+        """FormatValues[symbol_]"""
+        return get_symbol_values(symbol, "FormatValues", "formatvalues", evaluation)
 
 
 class Information(PrefixOperator):
@@ -413,9 +438,10 @@ class Information(PrefixOperator):
     <url>:WMA link:
       https://reference.wolfram.com/language/ref/Information.html</url>
     <dl>
-      <dt>'Information[$symbol$]'
+      <dt>'Information'[$symbol$]
       <dd>Prints information about a $symbol$
     </dl>
+
     'Information' does not print information for 'ReadProtected' symbols.
 
     'Information' uses 'InputForm' to format values.
@@ -423,144 +449,98 @@ class Information(PrefixOperator):
 
     attributes = A_HOLD_ALL | A_SEQUENCE_HOLD | A_PROTECTED | A_READ_PROTECTED
     messages = {"notfound": "Expression `1` is not a symbol"}
-    operator = "??"
     options = {
         "LongForm": "True",
     }
-    precedence = 0
     summary_text = "get information about all assignments for a symbol"
 
-    def format_definition(self, symbol, evaluation, options, grid=True):
-        "StandardForm,TraditionalForm,OutputForm: Information[symbol_, OptionsPattern[Information]]"
-        ret = SymbolNull
+    def build_missing(self, expression: BaseElement) -> Expression:
+        """Evaluate ?? F[x][y].. as -> Missing[UnknownSymbol, F][x][y]"""
+        if isinstance(expression, Expression):
+            return Expression(self.build_missing(expression.head), *expression.elements)
+        return Expression(SymbolMissing, SymbolUnknownSymbol, expression)
+
+    def build_list_of_matching_symbols(
+        self, symbol_pat: str, evaluation: Evaluation, options: dict, grid: bool = True
+    ):
+        """Return a list of symbols compatible with symbol_pat"""
+        definitions = evaluation.definitions
+        names = definitions.get_matching_names(symbol_pat)
+        rows = []
+        curr_row = []
+        for name in names:
+            curr_row.append(String(definitions.shorten_name(name)))
+            if len(curr_row) == 3:
+                rows.append(ListExpression(*curr_row))
+                curr_row = []
+        if curr_row:
+            curr_row = curr_row + (3 - len(curr_row)) * [String("")]
+            rows.append(ListExpression(*curr_row))
+
+        # TODO: Format using Grid?
+        result = Expression(Symbol("System`TableForm"), ListExpression(*rows))
+        return result
+
+    # This implementation mixes the current behavior of WMA >=12.0 with the old behavior
+    # (WMA 4.0).
+    # TODO: the formatting part of this must be moved to `InformationData`
+    # and `Information` should build this kind of expressions.
+
+    def format_information_generic(
+        self,
+        expr: BaseElement,
+        evaluation: Evaluation,
+        options: dict,
+        grid: bool = True,
+    ) -> Symbol:
+        "(StandardForm,TraditionalForm,InputForm,OutputForm,): Information[expr_, OptionsPattern[Information]]"
+        evaluation.message("Information", "notfound", expr)
+        return self.build_missing(expr)
+
+    def format_information_string(
+        self, strpat: String, evaluation: Evaluation, options: dict, grid: bool = True
+    ) -> Symbol:
+        "(StandardForm,TraditionalForm,InputForm,OutputForm,): Information[strpat_String, OptionsPattern[Information]]"
+        definitions = evaluation.definitions
+        string_str = strpat.value
+
+        if "*" in string_str:
+            return self.build_list_of_matching_symbols(
+                string_str, evaluation, options, grid
+            )
+        return self.eval_information_symbol(
+            Symbol(definitions.lookup_name(string_str)), evaluation, options
+        )
+
+    def format_information_symbol(
+        self, symbol: Symbol, evaluation: Evaluation, options: dict, grid: bool = True
+    ) -> Symbol:
+        "(StandardForm,TraditionalForm,InputForm,OutputForm,): Information[symbol_Symbol, OptionsPattern[Information]]"
+        definitions = evaluation.definitions
+        try:
+            definitions.get_definition(symbol.name, True)
+        except KeyError:
+            return self.build_missing(symbol)
+
         lines = []
-        if isinstance(symbol, String):
-            evaluation.print_out(symbol)
-            return ret
-        if not isinstance(symbol, Symbol):
-            evaluation.message("Information", "notfound", symbol)
-            return ret
         # Print the "usage" message if available.
-        is_long_form = self.get_option(options, "LongForm", evaluation).to_python()
-        usagetext = _get_usage_string(symbol, evaluation, is_long_form)
-        if usagetext is not None:
+        # is_long_form = self.get_option(options, "LongForm", evaluation).to_python()
+        is_long_form = True  # In WMA >=12.0 this option does not make much difference--
+        usagetext = online_doc_string(symbol, evaluation, is_long_form)
+        if usagetext:
             lines.append(usagetext)
+        else:
+            lines.append(symbol.get_name())
 
         if is_long_form:
-            self.show_definitions(symbol, evaluation, lines)
+            lines.extend(gather_and_format_definition_rules(symbol, evaluation))
 
-        if grid:
-            if lines:
-                infoshow = Expression(
-                    SymbolGrid,
-                    ListExpression(*(to_mathics_list(line) for line in lines)),
-                    Expression(SymbolRule, Symbol("ColumnAlignments"), SymbolLeft),
-                )
-                evaluation.print_out(infoshow)
-        else:
-            for line in lines:
-                evaluation.print_out(Expression(SymbolInputForm, line))
-        return ret
-
-        # It would be deserable to call here the routine inside Definition, but for some reason it fails...
-        # Instead, I just copy the code from Definition
-
-    def show_definitions(self, symbol, evaluation, lines):
-        def print_rule(rule, up=False, lhs=lambda k: k, rhs=lambda r: r):
-            evaluation.check_stopped()
-            if isinstance(rule, Rule):
-                r = rhs(
-                    rule.replace.replace_vars(
-                        {
-                            "System`Definition": Expression(
-                                SymbolHoldForm, SymbolDefinition
-                            )
-                        }
-                    )
-                )
-                lines.append(
-                    Expression(
-                        SymbolHoldForm,
-                        Expression(
-                            up and SymbolUpSet or SymbolSet, lhs(rule.pattern.expr), r
-                        ),
-                    )
-                )
-
-        name = symbol.get_name()
-        if not name:
-            evaluation.message("Definition", "sym", symbol, 1)
-            return
-        attributes = evaluation.definitions.get_attributes(name)
-        definition = evaluation.definitions.get_user_definition(name, create=False)
-        all = evaluation.definitions.get_definition(name)
-        if attributes:
-            attributes_list = attributes_bitset_to_list(attributes)
-            lines.append(
-                Expression(
-                    SymbolHoldForm,
-                    Expression(
-                        SymbolSet,
-                        Expression(SymbolAttributes, symbol),
-                        ListExpression(
-                            *(Symbol(attribute) for attribute in attributes_list)
-                        ),
-                    ),
-                )
-            )
-
-        if definition is not None and not A_READ_PROTECTED & attributes:
-            for rule in definition.ownvalues:
-                print_rule(rule)
-            for rule in definition.downvalues:
-                print_rule(rule)
-            for rule in definition.subvalues:
-                print_rule(rule)
-            for rule in definition.upvalues:
-                print_rule(rule, up=True)
-            for rule in definition.nvalues:
-                print_rule(rule)
-            formats = sorted(definition.formatvalues.items())
-            for format, rules in formats:
-                for rule in rules:
-
-                    def lhs(expr):
-                        return Expression(SymbolFormat, expr, Symbol(format))
-
-                    def rhs(expr):
-                        if expr.has_formf(SymbolInfix, None):
-                            expr = Expression(
-                                Expression(SymbolHoldForm, expr.head), *expr.elements
-                            )
-                        return Expression(SymbolInputForm, expr)
-
-                    print_rule(rule, lhs=lhs, rhs=rhs)
-        for rule in all.defaultvalues:
-            print_rule(rule)
-        if all.options:
-            options = sorted(all.options.items())
-            lines.append(
-                Expression(
-                    SymbolHoldForm,
-                    Expression(
-                        SymbolSet,
-                        Expression(SymbolOptions, symbol),
-                        ListExpression(
-                            *(
-                                Expression(SymbolRule, Symbol(name), value)
-                                for name, value in options
-                            )
-                        ),
-                    ),
-                )
-            )
-        return
-
-    def format_definition_input(self, symbol, evaluation: Evaluation, options: dict):
-        "InputForm: Information[symbol_, OptionsPattern[Information]]"
-        self.format_definition(symbol, evaluation, options, grid=False)
-        ret = SymbolNull
-        return ret
+        infoshow = Expression(
+            SymbolGrid,
+            ListExpression(*(to_mathics_list(line) for line in lines)),
+            Expression(SymbolRule, Symbol("ColumnAlignments"), SymbolLeft),
+        )
+        return infoshow
 
 
 class Names(Builtin):
@@ -568,7 +548,7 @@ class Names(Builtin):
     <url>:WMA link:
       https://reference.wolfram.com/language/ref/Names.html</url>
     <dl>
-      <dt>'Names["$pattern$"]'
+      <dt>'Names'["$pattern$"]
       <dd>returns the list of names matching $pattern$.
     </dl>
 
@@ -577,7 +557,7 @@ class Names(Builtin):
 
     The wildcard '*' matches any character:
     >> Names["List*"]
-     = {List, ListLinePlot, ListLogPlot, ListPlot, ListQ, Listable}
+     = {List, ListLinePlot, ListLogPlot, ListPlot, ListQ, ListStepPlot, Listable}
 
     The wildcard '@' matches only lowercase characters:
     >> Names["List@"]
@@ -594,11 +574,11 @@ class Names(Builtin):
 
     summary_text = "find a list of symbols with names matching a pattern"
 
-    def eval(self, pattern, evaluation):
+    def eval(self, pattern, evaluation: Evaluation):
         "Names[pattern_]"
         headname = pattern.get_head_name()
         if headname == "System`StringExpression":
-            pattern = re.compile(to_regex(pattern, show_message=evaluation.messages))
+            pattern = re.compile(to_regex(pattern, show_message=evaluation.message))
         else:
             pattern = pattern.get_string_value()
 
@@ -621,7 +601,7 @@ class OwnValues(Builtin):
     <url>:WMA link:
       https://reference.wolfram.com/language/ref/OwnValues.html</url>
     <dl>
-      <dt>'OwnValues[$symbol$]'
+      <dt>'OwnValues'[$symbol$]
       <dd>gives the list of ownvalue associated with $symbol$.
     </dl>
 
@@ -647,7 +627,7 @@ class OwnValues(Builtin):
     def eval(self, symbol, evaluation):
         "OwnValues[symbol_]"
 
-        return get_symbol_values(symbol, "OwnValues", "own", evaluation)
+        return get_symbol_values(symbol, "OwnValues", "ownvalues", evaluation)
 
 
 class Symbol_(Builtin):
@@ -695,7 +675,7 @@ class SymbolName(Builtin):
     <url>:WMA link:
       https://reference.wolfram.com/language/ref/SymbolName.html</url>
     <dl>
-      <dt>'SymbolName[$s$]'
+      <dt>'SymbolName'[$s$]
       <dd>returns the name of the symbol $s$ (without any leading \
         context name).
     </dl>
@@ -719,7 +699,7 @@ class SymbolQ(Test):
     <url>:WMA link:
       https://reference.wolfram.com/language/ref/SymbolName.html</url>
     <dl>
-      <dt>'SymbolQ[$x$]'
+      <dt>'SymbolQ'[$x$]
       <dd>is 'True' if $x$ is a symbol, or 'False' otherwise.
     </dl>
 
@@ -742,7 +722,7 @@ class ValueQ(Builtin):
     <url>:WMA link:
       https://reference.wolfram.com/language/ref/ValueQ.html</url>
     <dl>
-      <dt>'ValueQ[$expr$]'
+      <dt>'ValueQ'[$expr$]
       <dd>returns 'True' if and only if $expr$ is defined.
     </dl>
 

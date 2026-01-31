@@ -6,15 +6,13 @@ Mathematical Constants
 Numeric, Arithmetic, or Symbolic constants like Pi, E, or Infinity.
 """
 
-# This tells documentation how to sort this module
-sort_order = "mathics.builtin.mathematical-constants"
-
 import math
-from typing import Optional
+from typing import Dict, Optional
 
 import mpmath
 import numpy
 import sympy
+from sympy import Float as Sympy_Float
 
 from mathics.core.atoms import NUMERICAL_CONSTANTS, MachineReal, PrecisionReal
 from mathics.core.attributes import A_CONSTANT, A_PROTECTED, A_READ_PROTECTED
@@ -24,6 +22,9 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.number import MACHINE_DIGITS, PrecisionValueError, get_precision, prec
 from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.systemsymbols import SymbolIndeterminate
+
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.mathematical-constants"
 
 
 def mp_constant(fn: str, d=None) -> mpmath.mpf:
@@ -48,8 +49,8 @@ def mp_convert_constant(obj, **kwargs):
     if isinstance(obj, mpmath.ctx_mp_python._constant):
         prec = kwargs.get("prec", None)
         if prec is not None:
-            return sympy.Float(obj(prec=prec))
-        return sympy.Float(obj)
+            return Sympy_Float(obj(prec=prec))
+        return Sympy_Float(obj)
     return obj
 
 
@@ -71,7 +72,7 @@ def sympy_constant(fn, d=None):
 
 
 class _Constant_Common(Predefined):
-    is_numeric = True
+    _is_numeric = True
     attributes = A_CONSTANT | A_PROTECTED | A_READ_PROTECTED
     nargs = {0}
     options = {"Method": "Automatic"}
@@ -81,6 +82,7 @@ class _Constant_Common(Predefined):
         return self.get_constant(precision, evaluation)
 
     def is_constant(self) -> bool:
+        """The value and evaluation of this object can never change."""
         return True
 
     def get_constant(
@@ -145,7 +147,7 @@ class _Constant_Common(Predefined):
         if preference == "mpmath":
             value = mp_constant(self.mpmath_name, d * 2)
         if value:
-            return PrecisionReal(sympy.Float(str(value), d))
+            return PrecisionReal(Sympy_Float(str(value), d))
         # If the value is not available, return none
         # and keep it unevaluated.
         return
@@ -155,9 +157,9 @@ class _MPMathConstant(_Constant_Common):
     """Representation of a constant in mpmath, e.g. Pi, E, I, etc."""
 
     # Subclasses should define this.
-    mpmath_name = None
+    mpmath_name: Optional[str] = None
 
-    mathics_to_mpmath = {}
+    mathics_to_mpmath: Dict[str, str] = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -175,9 +177,9 @@ class _NumpyConstant(_Constant_Common):
     """Representation of a constant in numpy, e.g. Pi, E, etc."""
 
     # Subclasses should define this.
-    numpy_name = None
+    numpy_name: Optional[str] = None
 
-    mathics_to_numpy = {}
+    mathics_to_numpy: Dict[str, str] = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -190,7 +192,7 @@ class _NumpyConstant(_Constant_Common):
             value_float = self.to_numpy(self.symbol)
         NUMERICAL_CONSTANTS[self.symbol] = MachineReal(value_float)
 
-    def to_numpy(self, args):
+    def to_numpy(self, _):
         return NUMERICAL_CONSTANTS[self.symbol]
 
 
@@ -198,7 +200,7 @@ class _SympyConstant(_Constant_Common, SympyObject):
     """Representation of a constant in Sympy, e.g. Pi, E, I, Catalan, etc."""
 
     # Subclasses should define this.
-    sympy_name = None
+    sympy_name: Optional[str] = None
 
     def to_sympy(self, expr=None, **kwargs):
         if expr is None or isinstance(expr, Atom):
@@ -272,6 +274,10 @@ class ComplexInfinity(_SympyConstant):
     ComplexInfinity though is a special case of DirectedInfinity:
     >> FullForm[ComplexInfinity]
      = DirectedInfinity[]
+
+    See also <url>
+    :'DirectedInfinity':
+    /doc/reference-of-built-in-symbols/mathematical-functions/directedinfinity/</url>.
     """
 
     summary_text = "infinite complex quantity of undetermined direction"
@@ -294,6 +300,7 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
       <dt>'Degree'
       <dd>is the number of radians in one degree. It has a numerical value of \u03c0 / 180.
     </dl>
+
     >> Cos[60 Degree]
      = 1 / 2
 
@@ -329,7 +336,7 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
             return
 
         # FIXME: There are all sorts of interactions between in the trig functions,
-        # that are expected to work out right. Until we have convertion between
+        # that are expected to work out right. Until we have conversion between
         # mpmath and sympy worked out so that values can be made the to the same
         # precision and compared. we have to not use mpmath right now.
         # return self.get_constant(precision, evaluation, preference="mpmath")
@@ -493,14 +500,31 @@ class Infinity(_SympyConstant):
       <dd>a symbol that represents an infinite real quantity.
     </dl>
 
+    'Infinity' sometimes appears as the result of a calculation:
+    >> Precision[1]
+     = Infinity
+
+    But 'Infinity' it often used as a value in expressions:
     >> 1 / Infinity
      = 0
+
     >> Infinity + 100
      = Infinity
 
-    Use 'Infinity' in sum and limit calculations:
+    'Infinity' often appears in sum and limit calculations:
     >> Sum[1/x^2, {x, 1, Infinity}]
      = Pi ^ 2 / 6
+
+    >> Limit[1/x, x->0]
+     = -Infinity
+
+    However, 'Infinity' a shorthand for 'DirectedInfinity[1]':
+    >> FullForm[Infinity]
+     = DirectedInfinity[1]
+
+    See also <url>
+    :'DirectedInfinity':
+    /doc/reference-of-built-in-symbols/mathematical-functions/directedinfinity/</url>.
     """
 
     sympy_name = "oo"
@@ -549,7 +573,7 @@ class Overflow(Builtin):
 
     See also <url>
     :Integer Overflow:
-    <https://en.wikipedia.org/wiki/Integer_overflow></url>.
+    https://en.wikipedia.org/wiki/Integer_overflow</url>.
 
     <dl>
       <dt>'Overflow[]'
@@ -573,19 +597,19 @@ class Overflow(Builtin):
 
 
 class MaxMachineNumber(Predefined):
-    """
+    r"""
     Largest normalizable machine number (<url>
     :WMA:
-    https://reference.wolfram.com/language/ref/$MaxMachineNumber.html
+    https://reference.wolfram.com/language/ref/\$MaxMachineNumber.html
     </url>)
 
     <dl>
-      <dt>'$MaxMachineNumber'
+      <dt>'\$MaxMachineNumber'
       <dd>Represents the largest positive number that can be represented \
           as a normalized machine number in the system.
     </dl>
 
-    The product of '$MaxMachineNumber' and  '$MinMachineNumber' is a constant:
+    The product of '\$MaxMachineNumber' and  '\$MinMachineNumber' is a constant:
     >> $MaxMachineNumber * $MinMachineNumber
      = 4.
 
@@ -599,14 +623,14 @@ class MaxMachineNumber(Predefined):
 
 
 class MinMachineNumber(Predefined):
-    """
+    r"""
     Smallest normalizable machine number (<url>
     :WMA:
-    https://reference.wolfram.com/language/ref/$MinMachineNumber.html
+    https://reference.wolfram.com/language/ref/\$MinMachineNumber.html
     </url>)
 
     <dl>
-      <dt>'$MinMachineNumber'
+      <dt>'\$MinMachineNumber'
       <dd>Represents the smallest positive number that can be represented \
           as a normalized machine number in the system.
     </dl>
@@ -734,3 +758,8 @@ for cls in (Catalan, Degree, Glaisher, GoldenRatio, Khinchin):
     instance = cls(expression=False)
     val = instance.get_constant()
     NUMERICAL_CONSTANTS[instance.symbol] = MachineReal(val.value)
+
+# Remove these variables to prevent errors in the SYMBOL_MANIFEST check.
+del cls
+del instance
+del val

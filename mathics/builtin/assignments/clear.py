@@ -39,7 +39,7 @@ class Clear(Builtin):
     https://reference.wolfram.com/language/ref/Clear.html</url>
 
     <dl>
-      <dt>'Clear[$symb1$, $symb2$, ...]'
+      <dt>'Clear'[$symb_1$, $symb_2$, ...]
       <dd>clears all values of the given symbols. The arguments can also be given as strings containing symbol names.
     </dl>
 
@@ -138,7 +138,7 @@ class ClearAll(Clear):
     https://reference.wolfram.com/language/ref/ClearAll.html</url>
 
     <dl>
-      <dt>'ClearAll[$symb1$, $symb2$, ...]'
+      <dt>'ClearAll'[$symb_1$, $symb_2$, ...]
       <dd>clears all values, attributes, messages and options associated with the given symbols.
       The arguments can also be given as strings containing symbol names.
     </dl>
@@ -176,9 +176,10 @@ class Remove(Builtin):
     https://reference.wolfram.com/language/ref/Remove.html</url>
 
     <dl>
-      <dt>'Remove[$x$]'
+      <dt>'Remove'[$x$]
       <dd>removes the definition associated to $x$.
     </dl>
+
     >> a := 2
     >> Names["Global`a"]
      = {a}
@@ -189,7 +190,6 @@ class Remove(Builtin):
 
     attributes = A_HOLD_ALL | A_LOCKED | A_PROTECTED
 
-    precedence = 670
     summary_text = "remove the definition of a symbol"
 
     def eval(self, symb, evaluation):
@@ -210,10 +210,11 @@ class Unset(PostfixOperator):
     https://reference.wolfram.com/language/ref/Unset.html</url>
 
     <dl>
-      <dt>'Unset[$x$]'
+      <dt>'Unset'[$x$]
       <dt>'$x$=.'
       <dd>removes any value belonging to $x$.
     </dl>
+
     >> a = 2
      = 2
     >> a =.
@@ -248,13 +249,11 @@ class Unset(PostfixOperator):
     """
 
     attributes = A_HOLD_FIRST | A_LISTABLE | A_PROTECTED | A_READ_PROTECTED
-    operator = "=."
 
     messages = {
         "norep": "Assignment on `2` for `1` not found.",
         "usraw": "Cannot unset raw object `1`.",
     }
-    precedence = 670
     summary_text = "unset a value of the LHS"
 
     def eval(self, expr, evaluation):

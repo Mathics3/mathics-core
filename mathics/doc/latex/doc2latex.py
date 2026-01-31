@@ -10,7 +10,7 @@ The information for this comes from:
   on the command line
 
 * doctest tests and test result that have been stored in a Python
-  Pickle file, from a privious docpipeline.py run.  Ideally the
+  Pickle file, from a previous docpipeline.py run.  Ideally the
   Mathics3 Modules given to docpipeline.py are the same as
   given on the command line for this program
 """
@@ -27,7 +27,7 @@ from numpy import __version__ as NumPyVersion
 from sympy import __version__ as SymPyVersion
 
 import mathics
-from mathics import __version__, settings, version_string
+from mathics import __version__, settings, version_info, version_string
 from mathics.core.definitions import Definitions
 from mathics.core.load_builtin import import_and_load_builtins
 from mathics.doc.latex_doc import LaTeXMathicsDocumentation
@@ -63,7 +63,7 @@ def read_doctest_data(quiet=False) -> Optional[Dict[tuple, dict]]:
         )
     except KeyboardInterrupt:
         print("\nAborted.\n")
-        return
+        return None
 
 
 def get_versions():
@@ -89,6 +89,7 @@ def get_versions():
         ["GhostscriptVersion", ("gs", "--version"), "stdout"],
     ):
         versions[name] = try_cmd(cmd, field)
+    versions.update(version_info)
     return versions
 
 

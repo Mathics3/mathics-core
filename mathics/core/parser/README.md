@@ -2,61 +2,48 @@
 
 ## Introduction
 
-The Mathics parser is an operator precedence parser that implements
-the precedence climbing method. The AST (Abstract Syntax
-Tree) produced after parsing is a kind of [M-expression](https://en.wikipedia.org/wiki/M-expression) which is then used in
-evaluation.
+The Mathics- parser is an operator-precedence parser that implements the precedence climbing method. The code is written as a top-down or
+recursive-descent parser.
 
-The Wolfram language is surprisingly complex and has quite a few subtleties;
-this document attempts to cover the major ones. The language is documented on
-[the Wolfram website](https://reference.wolfram.com/language/tutorial/OperatorInputForms.html)
-although there are a few errors.
+The AST (Abstract Syntax Tree) produced after parsing is a kind of [M-expression](https://en.wikipedia.org/wiki/M-expression) is then
+used in evaluation.
 
-One primary feature of the Wolfram language is a large number of operators with
-precedences. It is this characteristic that makes operator precedence parsing
-well suited to the language. There are however a few special language features
-that cannot be parsed by the standard precedence climbing algorithm.
+The Wolfram language is complex and has quite a few subtleties; this document attempts to cover the major ones. The language is documented
+on [the Wolfram website](https://reference.wolfram.com/language/tutorial/OperatorInputForms.html) although there are a few errors.
+
+One primary feature of the Wolfram language is a large number of operators with operator precedences. This characteristic makes operator precedence parsing well suited to the language. There are however a few special language features that cannot be parsed by the standard precedence climbing algorithm.
 
 ## Precedence Climbing
 
-Instead of giving an introduction to  precedence climbing, here are two
-references that explain the algorithm better than I could:
+Here are two references that explain the algorithm:
 - [Wikipedia: Operator-precedence parser](https://en.wikipedia.org/wiki/Operator-precedence_parser#Precedence_climbing_method)
 - [Eli Bendersky's blog entry: Parsing expressions by precedence climbing](http://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing)
 
-### Precedence
+This algorithm has a natural application to the Wolfram language.
 
-This algorithm has a natural application to the Wolfram language. Every
-operator has an inbuilt precedence level which can be accessed with e.g.
-`Precedence[Plus]`.
+### Precedence Value
 
-### Grouping
+Every operator has a numeric precedence value which. This is user-visible via the built-in function `Precedence[]`.  For example. `Precedence[Plus]` is 310.  (This function is not documented though in the WMA docs). A higher value causes an operator to bind more tightly. For example, the Times precedence, 400, is higher than the Plus precedence 310 because a + b * c is a + (b * c), not
+(a + b) * c.
 
-In addition to precedences, operators in the Wolfram language have a grouping
-attribute. Consider trying to parse the code snippet `a + b + c`. There is
-some ambiguity in what order the operations should be applied. Should we use
-left associativity `Plus[Plus[a + b] + c]` or right associativity
-`Plus[a, Plus[b + c]]`?
+
+### Associativity
+
+In addition to precedences, operators in the Wolfram language have a associativity or grouping attribute. Consider parsing `a || b || c`. There is some ambiguity in what order the operations should be applied. Should we use left associativity `Or[Or[a, b], c]` or right associativity `Or[a, Or[b, c]]`?
 
 #### Flat associativity
 
-In fact the addition operator is usually considered fully associative, that is
-`Plus[a, b, c]`. In the Wolfram language this is referred to as 'flat'
-associativity because the expression tree is flat.
+There is an additional kind of associativity that treats _n_ repeated uses of a binary operator as that single operator applied to _n_ arguments. For example, `Plus[a, [Plus[b, c]]` is the same thing as `Plus[a, b, c]` (or `Plus[Plus[a, b], c]`). In the Wolfram language this is referred to as ['Flat'](https://reference.wolfram.com/language/ref/Flat.html) associativity. The expression tree for such a sequence flattened to the operator and its _n_ operands.
 
-Flat associativity is not a large issue in practice as the as flat operators
-can be first treated as left or right associative, whichever is more efficient,
-and flattened once the AST is constructed.
+Flat associativity is not an issue in parsing, since the flat operators can be first treated as left or right associative, whichever is more efficient, and flattened once the AST is constructed.
 
-One thing to be aware of is that parenthesis prevent the flattening of
-expressions at parse time, `a * (b * c)` parses as `Times[a, Times[b, c]]` but
-is flattened immediately afterwards.
+One thing to be aware of is that parenthesis prevent the flattening of expressions at parse time, `a * (b * c)` parses as `Times[a, Times[b, c]]` but is flattened immediately afterwards.
 
 #### Non-associativity
-In addition to left/right associativity some operators are non-associative.
-That is, an operator `?` is non-associative if `a ? b ? c` is not valid syntax.
+In addition to left/right associativity, some operators are non-associative. That is, an operator `?` is non-associative if `a ? b ? c` is not valid syntax.
 
-The only non associative operator in the Wolfram language is `PatternTest`.
+A non-associative operator in the Wolfram language is
+[`PatternTest`](https://reference.wolfram.com/language/ref/PatternTest.html?q=PatternTest).
 
 #### Implementation of binary operators
 
@@ -64,82 +51,105 @@ The relevant code snippet for binary operators is:
 
 
 ```python
-def parse_binary(self, expr1, token, p):    # called with expr1
-    'expr <- expr1 BINARY expr2'
+def parse_binary(self, expr1, token, expr1_precedence: int) -> Node:
+    """
+    Implements grammar rule:
+	   expr : expr1 BINARY expr2
+	when it is applicable.
+
+	When called, we have parsed expr1 and seen token BINARY. This routine will
+	may cause expr2 to get scanned and parsed if applicable based on expr1_precedence.
+
+	"expr1_precendence" is the precedence of expr1 and is used whether parsing
+	should be interpreted as:
+	   (expr1) BINARY expr2
+
+	or:
+	   (expr1 BINARY expr2)
+
+
+    In the former case, we will return None (no further tokens
+    added) and let a higher level of parsing parse:
+	  (expr1) BINARY expr2.
+
+	In the latter case, we will return a node for: (expr1 BINARY expr2).
+	"""
+
     tag = token.tag                         # name of BINARY token
 
-    q = binary_ops[tag]                     # lookup precedence of operator
-    if q < p:
+    operator_precedence = binary_ops[tag]   # lookup precedence of operator
+    if operator_precedence < top_precedence:
         return None
 
     self.consume()                          # consume BINARY token
 
     if tag not in right_binary_ops:         # left/right grouping
-        q += 1
+        operator_precedence += 1
 
-    expr2 = self.parse_exp(q)               # parse expr2
+    expr2 = self.parse_exp(operator_precedence)  # parse expr2
 
                                             # handle nonassoc operators
     if tag in nonassoc_binary_ops and expr1.get_head_name() == tag and not expr1.parenthesised:
-        self.tokeniser.sntx_message(token.pos)
-        raise InvalidSyntaxError()
+        tag, pre_error, post_error = self.tokeniser.sntx_message(token.pos)
+        raise InvalidSyntaxError(tag, pre_error, post_error)
 
     result = Node(tag, expr1, expr2)        # construct the result: `BINARY[expr1, expr2]`
 
-    if tag in flat_binary_ops:              # flatten the tree if required
+    if tag in flat_binary_operators:        # flatten the tree if required
         result.flatten()
 
     return result
 ```
 
 #### Special case: Implicit times
-In the Wolfram language the expression `a b` should parse as `Times[a b]`. This
-seemingly simple rule actually creates lots of headaches.
+In the Wolfram language the expression `a b` should parse as `Times[a b]`. This seemingly simple rule actually creates lots of headaches.
 
-In the context of precedence climbing we use the rule `E_n <- E_n E_n` where
-`n = 400` is the precedence of `Times`.
+In the context of precedence climbing we use the rule `E_n : E_n E_n` where `n = 400` is the precedence of `Times`.
 
 ### Unary operators
 
-The Wolfram language has two types of unary operators, prefix and postfix. As
-the names suggest, prefix operators come before the expression, e.g. `- 2` and
-postfix operators come after e.g. `10 !`.
+The Wolfram language has two types of unary operators, prefix and postfix. As the names suggest, prefix operators come before the expression, e.g. `- 2` and postfix operators come after e.g. `10 !`.
 
 #### Special case: unary minus
-Consider the code `- - a`.  One might expect that this parses as
-`Minus[Minus[a]]` but in fact the unary minus is handled at parse time as `-x`
-becomes `Times[-1, x]`. One might expect that the answer is
-`Times[-1, Times[-1, a]]` but in fact this `Times` is flattened at parse time
-and the answer is `Times[-1, -1, a]`. We can recover the expected answer by
-imposing parenthesis to prevent flattening, that is `-(-a)`.
+Consider the code `- - a`.  One might expect that this parses as `Minus[Minus[a]]` but in fact the unary minus is handled at parse time as `-x` becomes `Times[-1, x]`. One might expect that the answer is `Times[-1, Times[-1, a]]` but in fact this `Times` is flattened at parse time and the answer is `Times[-1, -1, a]`. We can recover the expected answer by imposing parenthesis to prevent flattening, that is `-(-a)`.
 
 #### Special case: unary plus
 Unary plus on the other hand is ignored. `+a` is the same syntactically as `a`.
 
 ### Ternary operators
 
-The last type of standard operator in the Wolfram language are ternary
-operators. There are two ternary operators, `Infix` and `Span` and both are
-special cases. In general, they are treated like binary operators.
+The last type of standard operator in the Wolfram language are ternary operators. There are two ternary operators, `Infix` and `Span` and both are special cases. In general, they are treated like binary operators.
 
 #### Special case: Infix
 
-The simplest ternary operator in the Wolfram language is `Infix`, for example,
-`a ~ b ~ c` becomes `b[a, c]`. We treat this like a binary operator but
-override the rule to consume an extra `~ E`. The relevant annotated code
-snippet is:
+The simplest ternary operator in the Wolfram language is `Infix`, for example, `a ~ b ~ c` becomes `b[a, c]`. We treat this like a binary operator but override the rule to consume an extra `~ E`. The relevant annotated code snippet is:
 
 
 ```python
-def e_Infix(self, expr1, token, p):     # called with expr1
-    'expr <- expr1 '~' expr2 '~' expr3'
-    q = ternary_ops['Infix']            # lookup precedence of Infix
-    if q < p:
+def e_Infix(self, expr1, token: Token, expr1_precedence: int) -> Optional[Node]:
+    """
+	Implements the rule:
+	   expr : expr1 '~' expr2 '~' expr3
+	when applicable.
+
+	When called, we have parsed expr1 and seen token "~". This routine will
+	may cause expr2 ~ expr3 to get scanned and parsed if applicable based on expr1_precedence.
+
+	"expr1_precendence" is the precedence of expr1 and is used whether parsing
+	should be interpreted as:
+	   (expr1) ~ expr2 ~ expr3
+
+	or:
+	   (expr1 ~ expr2) ~ expr3
+
+	"""
+    operator_precedence = ternary_operators['Infix']   # lookup precedence of Infix
+    if expr1_precedence > operator_precedence:
         return None
-    self.consume()                      # consume first '~'
-    expr2 = self.parse_exp(q + 1)       # consume expr2
-    self.expect('Infix')                # consume second '~'
-    expr3 = self.parse_exp(q + 1)       # consume expr3
+    self.consume()                                        # consume first '~'
+    expr2 = self.parse_exp(operator_precedence + 1)       # consume expr2
+    self.expect('Infix')                                  # consume second '~'
+    expr3 = self.parse_exp(operator_precedence + 1)       # consume expr3
     return Node(expr2, expr1, expr3)    # return expr2[expr1, expr3]
 ```
 
@@ -149,10 +159,8 @@ See the section on backtracking.
 
 ### Special case: Integrate
 
-The `Integrate` rule is `E <- Integrate expr1 DifferentialD expr2`. Similarly
-this can be handled by treating `Integrate` as a prefix operator that consumes
-an extra token and expression. Unlike `Infix`, the precedences for the inner
-(`expr1`) and outer (`expr2`) expressions differ.
+The `Integrate` rule is `E : Integrate expr1 DifferentialD expr2`. Similarly this can be handled by treating `Integrate` as a prefix operator that consumes
+an extra token and expression. Unlike `Infix`, the precedences for the inner (`expr1`) and outer (`expr2`) expressions differ.
 
 To quote the Wolfram docs:
 
@@ -166,11 +174,11 @@ This is simple to handle with precedence climbing:
 
 ```python
 def p_Integral(self, token):
-    `expr <- Integral expr1 DifferentialD expr2
+    `expr : Integral expr1 DifferentialD expr2
     self.consume()                          # consume 'Integral'
 
-    inner_prec = all_ops['Sum'] + 1         # lookup inner
-    outer_prec = all_ops['Power'] - 1       # and outer prec
+    inner_prec = all_operators['Sum'] + 1   # lookup inner
+    outer_prec = all_operators['Power'] - 1 # and outer prec
 
     expr1 = self.parse_exp(inner_prec)      # consume expr1
     self.expect('DifferentialD')            # consume 'DifferentialD'
@@ -178,27 +186,25 @@ def p_Integral(self, token):
     return Node('Integrate', expr1, expr2)
 ```
 
-## Mathics implementation
+## Mathics3 implementation
 
 ### Precedence Climbing
-All the Mathics operators are specified in `mathics/core/parser/operators.py`.
-The precedence climbing algorithm is implemented in
-`mathics/core/parser/parser.py`. All the special cases are implemented as
-additional rules.
+All the Mathics operators are specified in `mathics/core/parser/operators.py`. The precedence climbing algorithm is implemented in
+`mathics/core/parser/parser.py`. All the special cases are implemented as additional rules.
 
 #### P Rules
 
 Methods beginning with `p_TAG` declare what to do when the `TAG` token is
 encountered at the beginning of an expression. For example, the first token
-after an open parenthesis. These rules define all the atomics `E <- A`, prefix
-operators, `E <- PREFIX E` and also brackets `E <- ( E )`.
+after an open parenthesis. These rules define all the atomics `E : A`, prefix
+operators, `E : PREFIX E` and also brackets `E : ( E )`.
 
 #### E Rules
 
 Methods beginning with `e_TAG` are called when one expression is already
 present and we encounter the `TAG` token. This covers binary operators
-`E <- E BINARY E`, postfix operators `E <- E POSTFIX`, ternary operators,
-`E <- E TERNARY1 E TERNARY2 E`, and functions `E <- E [ SEQUENCE ]`.
+`E : E BINARY E`, postfix operators `E : E POSTFIX`, ternary operators,
+`E : E TERNARY1 E TERNARY2 E`, and functions `E : E [ SEQUENCE ]`.
 
 #### B Rules
 
@@ -206,41 +212,32 @@ Methods beginning with `b_TAG` are used for parsing boxes and can be ignored
 on first reading of the parser code.
 
 #### Backtracking
-Most of the Wolfram language can be parsed with precedence climbing but there
-are a few special language features that require something more. The `Span`
-operator is one example. Both `a ;; b` and `a ;;` are valid syntax, the latter
-is equivalent to `a ;; All`.
+Most of the Wolfram language can be parsed with precedence climbing but there are a few special language features that require something more. The `Span` operator is one example.
 
-Consider the example: `a;;!b`. There are four options for parsing this:
- - `Span[a, Not[b]]`
- - `Factorial[Span[a, Null]]`
- - `Times[Span[a, All], Not[b]]`
- - `Times[Factorial[Span[a, All]], b]`
+Both `a ;; b` and `a ;;` are valid syntax, the former is the infix form of `Span` while the latter is the postfix form of `Span`, equivalent to `a ;; All`.
 
-`a ! b` parses as `Times[Factorial[a], b]` which might suggest option 4 is
-correct but the precedence of `Span` is lower than that of `Times` so it is
-parsed first, top down. We might then think that option 1 is correct, but `Not`
-has a lower precedence than `Span` so the `E <- E ;; E` rule cannot be applied
-here and we must use the postfix form of `Span`. Since the precedence of
-`Factorial` is higher than that of `Span` we can apply the postfix rule for `!`
-and option 3 turns out to be correct.
+Now consider this example: `a;;!b`.
 
-The problem with `Span`, and also `CompoundExpression` is that they require
-arbitrary lookahead to see if the right hand side has lower precedence. It's
-not a large issue for `CompoundExpression` which has very low precedence but
-nevertheless this language quirk requires backtracking in the parser.
+Here are some ways to parse this:
+1. `Span[a, Not[b]]`
+2. `Times[Span[a, All], Not[b]]`
+3. `Times[Factorial[Span[a, All]], b]`
 
-## Recursive descent parsers in Python
+`x!b` parses as `Times[Factorial[x], b]` which might suggest option 3 is correct substituting `a;;` for `x`; However, the precedence of `Span` in `a;;`, 305 is lower than that of `Times`, 400. So here we must use the postfix form of `Span` and option 2 turns out to be correct.
 
-The lack of tail call optimisation (TCO) causes some problems when writing
-recursive descent (RD) parsers in python. It's possible to write RD parsers in
-an iterative style but it's not nice. One can use trampolining to mitigate this
-limitation. In practice Python provides 1000 recursions by default which should
-be enough for most parse trees. Try parsing `1 + 2 + ... 1000`!
+Note: Currently, Mathics3 has a bug and parses as 1. although the correct result is 2.
+
+The problem with `Span`, and also `CompoundExpression` is that they require arbitrary lookahead to see if the right hand side has lower precedence. It's not a large issue for `CompoundExpression` which has very low precedence but nevertheless this language quirk requires backtracking in the parser.
+
+## Recursive Descent parsing in Python
+
+Python does not detect tail recursion optimization. This can limit the maximum nesting level of an expression handled by a recursive descent parsers in Python. It's possible to write recursive descent parsers in an iterative style using Nicklaus Wirth's [Syntax diagrams](https://en.wikipedia.org/wiki/Syntax_diagram). The loopings in such diagrams become `while` loops in code. You will see some while loops in the code.
+
+Python can handle 1000 recursions, so it cal handle normal expressions seen, and can handle most parse trees. Try parsing `1 + 2 + ... 1000`!
 
 ## References
 
-1. http://www.antlr.org/papers/Clarke-expr-parsing-1986.pdf
+1. http://www.antlr.org/papers/Clarke-expr-parsing-1986.pdfs
 
    Clarke 1986, 'The top-down parsing of expressions'
 

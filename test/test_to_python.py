@@ -11,7 +11,7 @@ def test_to_infinity():
         ),
         (
             "PythonForm[{1, 2, 3, 4}]",
-            '"[1, 2, 3, 4]"',
+            '"(1, 2, 3, 4)"',
             "Simple List of integers",
         ),
         (

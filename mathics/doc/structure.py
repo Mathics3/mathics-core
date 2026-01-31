@@ -9,7 +9,7 @@ and extended regular expressions used to parse it.
 import logging
 import re
 from os import environ
-from typing import Iterator, List, Optional
+from typing import Dict, Iterator, List, Optional, Sequence
 
 from mathics import settings
 from mathics.core.builtin import check_requires_list
@@ -17,7 +17,13 @@ from mathics.core.load_builtin import (
     builtins_by_module as global_builtins_by_module,
     mathics3_builtins_modules,
 )
-from mathics.doc.doc_entries import DocumentationEntry, Tests, filter_comments
+from mathics.doc.doc_entries import (
+    BaseDocElement,
+    DocTest,
+    DocumentationEntry,
+    Tests,
+    filter_comments,
+)
 from mathics.doc.utils import slugify
 from mathics.eval.pymathics import pymathics_builtins_by_module, pymathics_modules
 
@@ -42,14 +48,14 @@ MATHICS3_MODULES_TITLE = "Mathics3 Modules"
 
 
 # DocSection has to appear before DocGuideSection which uses it.
-class DocSection:
+class DocSection(BaseDocElement):
     """An object for a Documented Section.
     A Section is part of a Chapter. It can contain subsections.
     """
 
     def __init__(
         self,
-        chapter,
+        chapter: "DocChapter",
         title: str,
         text: str,
         operator,
@@ -60,11 +66,12 @@ class DocSection:
         self.chapter = chapter
         self.in_guide = in_guide
         self.installed = installed
-        self.items = []  # tests in section when this is under a guide section
+        # tests in section when this is under a guide section
+        self.items: List[DocTest] = []
         self.operator = operator
         self.slug = slugify(title)
-        self.subsections = []
-        self.subsections_by_slug = {}
+        self.subsections: Sequence[DocSubsection] = []
+        self.subsections_by_slug: Dict[str, DocSubsection] = {}
         self.summary_text = summary_text
         self.tests = None  # tests in section when not under a guide section
         self.title = title
@@ -96,6 +103,16 @@ class DocSection:
     def __str__(self) -> str:
         return f"    == {self.title} ==\n{self.doc}"
 
+    def get_children(self) -> list:
+        """Get children"""
+        return list(self.subsections)
+
+    def get_tests(self):
+        """yield tests"""
+        if self.installed:
+            for test in self.doc.get_tests():
+                yield test
+
     @property
     def parent(self):
         "the container where the section is"
@@ -106,30 +123,30 @@ class DocSection:
         "the container where the section is"
         raise TypeError("parent is a read-only property")
 
-    def get_tests(self):
-        """yield tests"""
-        if self.installed:
-            for test in self.doc.get_tests():
-                yield test
-
 
 # DocChapter has to appear before DocGuideSection which uses it.
-class DocChapter:
+class DocChapter(BaseDocElement):
     """An object for a Documented Chapter.
     A Chapter is part of a Part[dChapter. It can contain (Guide or plain) Sections.
     """
 
-    def __init__(self, part, title, doc=None, chapter_order: Optional[int] = None):
+    def __init__(
+        self,
+        part: "DocPart",
+        title: str,
+        doc: Optional["DocumentationEntry"] = None,
+        chapter_order: Optional[int] = None,
+    ):
         self.chapter_order = chapter_order
         self.doc = doc
-        self.guide_sections = []
+        self.guide_sections: Sequence[DocGuideSection] = []
         self.part = part
         self.title = title
         self.slug = slugify(title)
-        self.sections = []
-        self.sections_by_slug = {}
+        self.sections: List[DocSection] = []
+        self.sections_by_slug: Dict[str, DocSection] = {}
         self.sort_order = None
-        if doc:
+        if self.doc:
             self.doc.set_parent_path(self)
 
         part.chapters_by_slug[self.slug] = self
@@ -155,6 +172,10 @@ class DocChapter:
     def all_sections(self):
         "guides and normal sections"
         return sorted(self.guide_sections) + sorted(self.sections)
+
+    def get_children(self) -> list:
+        """Get children"""
+        return self.all_sections
 
     @property
     def parent(self):
@@ -189,7 +210,7 @@ class DocGuideSection(DocSection):
             print("    DEBUG Creating Guide Section", title)
 
 
-class DocPart:
+class DocPart(BaseDocElement):
     """
     Represents one of the main parts of the document. Parts
     can be loaded from a mdoc file, generated automatically from
@@ -198,11 +219,11 @@ class DocPart:
 
     chapter_class = DocChapter
 
-    def __init__(self, documentation, title, is_reference=False):
+    def __init__(self, documentation: "Documentation", title: str, is_reference=False):
         self.documentation = documentation
         self.title = title
-        self.chapters = []
-        self.chapters_by_slug = {}
+        self.chapters: List[DocChapter] = []
+        self.chapters_by_slug: Dict[str, DocChapter] = {}
         self.is_reference = is_reference
         self.is_appendix = False
         self.slug = slugify(title)
@@ -215,8 +236,22 @@ class DocPart:
             str(chapter) for chapter in sorted_chapters(self.chapters)
         )
 
+    def get_children(self) -> list:
+        """Get children"""
+        return self.chapters
 
-class Documentation:
+    @property
+    def parent(self):
+        "the container where the element is"
+        return self.documentation
+
+    @parent.setter
+    def parent(self, value):
+        "the container where the section is"
+        raise TypeError("parent is a read-only property")
+
+
+class Documentation(BaseDocElement):
     """
     `Documentation` describes an object containing the whole documentation system.
     Documentation
@@ -255,10 +290,10 @@ class Documentation:
         # without defining these attributes as class
         # attributes.
         self._set_classes()
-        self.appendix = []
+        self.appendix: List[DocPart] = []
         self.doc_dir = doc_dir
-        self.parts = []
-        self.parts_by_slug = {}
+        self.parts: Sequence[DocPart] = []
+        self.parts_by_slug: Dict[str, DocPart] = {}
         self.title = title
 
     def _set_classes(self):
@@ -374,9 +409,8 @@ class Documentation:
         builtin_part = self.part_class(self, title, is_reference=start)
         self.parts.append(builtin_part)
 
-    def get_part(self, part_slug):
-        """return a section from part key"""
-        return self.parts_by_slug.get(part_slug)
+    def get_children(self):
+        return self.parts
 
     def get_chapter(self, part_slug, chapter_slug):
         """return a section from part and chapter keys"""
@@ -384,6 +418,10 @@ class Documentation:
         if part:
             return part.chapters_by_slug.get(chapter_slug)
         return None
+
+    def get_part(self, part_slug):
+        """return a section from part key"""
+        return self.parts_by_slug.get(part_slug)
 
     def get_section(self, part_slug, chapter_slug, section_slug):
         """return a section from part, chapter and section keys"""
@@ -419,7 +457,7 @@ class Documentation:
                 if MATHICS_DEBUG_TEST_CREATE:
                     print(f"DEBUG Gathering tests for Chapter {chapter.title}")
 
-                tests = chapter.doc.get_tests()
+                tests = chapter.doc.get_tests() if chapter.doc else []
                 if tests:
                     yield Tests(part.title, chapter.title, "", tests)
 
@@ -516,15 +554,7 @@ class Documentation:
                         chapter, title, text, operator=None, installed=True
                     )
                     chapter.sections.append(section)
-                    subsections = SUBSECTION_RE.findall(text)
-                    for subsection_title in subsections:
-                        subsection = self.subsection_class(
-                            chapter,
-                            section,
-                            subsection_title,
-                            text,
-                        )
-                        section.subsections.append(subsection)
+                    # Subsections are processed inside the Documentation entry.
                 else:
                     section = None
                 if not chapter.doc:
@@ -536,21 +566,32 @@ class Documentation:
             part.is_appendix = True
             self.appendix.append(part)
         else:
+            assert isinstance(self.parts, list)
             self.parts.append(part)
         return chapter_order
 
+    @property
+    def parent(self):
+        "the container where the element is"
+        return None
 
-class DocSubsection:
+    @parent.setter
+    def parent(self, value):
+        "the container where the section is"
+        raise TypeError("parent is a read-only property")
+
+
+class DocSubsection(BaseDocElement):
     """An object for a Documented Subsection.
     A Subsection is part of a Section.
     """
 
     def __init__(
         self,
-        chapter,
-        section,
-        title,
-        text,
+        chapter: DocChapter,
+        section: DocSection,
+        title: str,
+        text: str,
         operator=None,
         installed=True,
         in_guide=False,
@@ -585,7 +626,7 @@ class DocSubsection:
 
         self.section = section
         self.slug = slugify(title)
-        self.subsections = []
+        self.subsections: Sequence[DocSubsection] = []
         self.title = title
         self.doc.set_parent_path(self)
 
@@ -618,6 +659,16 @@ class DocSubsection:
     def __str__(self) -> str:
         return f"=== {self.title} ===\n{self.doc}"
 
+    def get_children(self) -> list:
+        """Get children"""
+        return list(self.subsections)
+
+    def get_tests(self):
+        """yield tests"""
+        if self.installed:
+            for test in self.doc.get_tests():
+                yield test
+
     @property
     def parent(self):
         """the chapter where the section is"""
@@ -625,13 +676,8 @@ class DocSubsection:
 
     @parent.setter
     def parent(self, value):
+        "the container where the section is"
         raise TypeError("parent is a read-only property")
-
-    def get_tests(self):
-        """yield tests"""
-        if self.installed:
-            for test in self.doc.get_tests():
-                yield test
 
 
 class MathicsMainDocumentation(Documentation):
@@ -677,7 +723,7 @@ class MathicsMainDocumentation(Documentation):
 
     def gather_doctest_data(self):
         """
-        Populates the documentatation.
+        Populates the documentation.
         (deprecated)
         """
         logging.warning(
@@ -690,9 +736,9 @@ def sorted_chapters(chapters: List[DocChapter]) -> List[DocChapter]:
     """Return chapters sorted by title"""
     return sorted(
         chapters,
-        key=lambda chapter: str(chapter.sort_order)
-        if chapter.sort_order is not None
-        else chapter.title,
+        key=lambda chapter: (
+            str(chapter.sort_order) if chapter.sort_order is not None else chapter.title
+        ),
     )
 
 
@@ -701,7 +747,7 @@ def sorted_modules(modules) -> list:
     exists, or the module's name if not."""
     return sorted(
         modules,
-        key=lambda module: module.sort_order
-        if hasattr(module, "sort_order")
-        else module.__name__,
+        key=lambda module: (
+            module.sort_order if hasattr(module, "sort_order") else module.__name__
+        ),
     )

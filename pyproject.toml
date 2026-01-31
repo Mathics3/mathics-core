@@ -1,34 +1,41 @@
 [build-system]
 requires = [
-    "setuptools>=70.0.0", # CVE-2024-38335 recommends this
+    "setuptools",
     "cython>=0.15.1; implementation_name!='pypy'",
     # For mathics-generate-json-table
-    "Mathics-Scanner >= 1.3.0",
+    "Mathics-Scanner >= 1.4.0",
+    # "packaging" is needed for testing the SymPy Version
+    # in PartionsP
+    "packaging",
 ]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "Mathics3"
 description = "A general-purpose computer algebra system."
 dependencies = [
-    "Mathics-Scanner >= 1.3.0",
-    "llvmlite",
+    "Mathics-Scanner > 1.4.1",
     "mpmath>=1.2.0",
-    "numpy<1.27",
+    "numpy",
     "palettable",
     # Pillow 9.1.0 supports BigTIFF with big-endian byte order.
     # ExampleData image hedy.tif is in this format.
     # Pillow 9.2 handles sunflowers.jpg
     "pillow >= 9.2",
-    "pint",
+    "pint >=0.24", # Earlier pint has problems with numpy 2.2.6
     "python-dateutil",
+    # Pympler is used in ByteCount[] and MemoryInUse[].
+    "Pympler",
     "requests",
+    "scipy",
     "setuptools",
-    "sympy>=1.11,<1.13",
+    # Timed-Threads is needed in TimeRemaining[]
+    "Timed-Threads",
+    "sympy>=1.13",
 ]
-requires-python = ">=3.8" # Sympy 1.11 is supported only down to 3.8
+license = "GPL-3.0-or-later"
+name = "Mathics3"
+requires-python = ">=3.10" # bisect.insort_left with key parameter starts in 3.10
 readme = "README.rst"
-license = {text = "GPL"}
 keywords = ["Mathematica", "Wolfram", "Interpreter", "Shell", "Math", "CAS"]
 maintainers = [
     {name = "Mathics Group", email = "mathics-devel@googlegroups.com"},
@@ -36,12 +43,11 @@ maintainers = [
 classifiers = [
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
     "Topic :: Scientific/Engineering",
@@ -62,6 +68,7 @@ dev = [
 ]
 full = [
     "ipywidgets",
+    "llvmlite",
     "lxml",
     "psutil",
     "pyocr",
@@ -74,7 +81,8 @@ cython = [
 ]
 
 [project.scripts]
-mathics = "mathics.main:main"
+mathics = "mathics.__main__:main"
+mathics3 = "mathics.__main__:main"
 
 [tool.setuptools]
 include-package-data = false
@@ -84,20 +92,23 @@ include = ["mathics*"]
 
 [tool.setuptools.package-data]
 "mathics" = [
+    "Packages/*/*.m",
+    "Packages/*/Kernel/init.m",
+    "autoload-cli/*.m",
+    "autoload/*.m",
+    "autoload/*/*.m",
+    "autoload/formats/*/Export.m",
+    "autoload/formats/*/Import.m",
     "data/*.csv",
     "data/*.json",
-    "data/*.yml",
-    "data/*.yaml",
     "data/*.pcl",
+    "data/*.yaml",
+    "data/*.yml",
     "data/ExampleData/*",
-    "doc/xml/data",
-    "doc/tex/data",
-    "autoload/*.m",
-    "autoload-cli/*.m",
-    "autoload/formats/*/Import.m",
-    "autoload/formats/*/Export.m",
-    "packages/*/*.m",
-    "packages/*/Kernel/init.m",
+    # Documentation stuff that will be removed in 9.0.0 or before
+    "doc/latex/mathics.pdf",
+    # End doc stuff
+    "test/data/*",
 ]
 "mathics.doc" = [
     "documentation/*.mdoc",
@@ -109,3 +120,14 @@ include = ["mathics*"]
 
 [tool.setuptools.dynamic]
 version = {attr = "mathics.version.__version__"}
+
+[tool.mypy]
+force_union_syntax = true
+
+[[tool.mypy.overrides]]
+module = ["mpmath", "llvmlite.*", "trepan.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["mathics.benchmark", "mathics.builtin.*", "mathics.eval.*", "test.*"]
+ignore_errors = true

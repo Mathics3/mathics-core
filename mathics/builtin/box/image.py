@@ -2,8 +2,6 @@
 """
 Boxing Symbol for Raster Images
 """
-# Docs are not yet ready for prime time. Maybe after release 6.0.0.
-no_doc = True
 
 import base64
 import tempfile
@@ -18,17 +16,28 @@ from mathics.builtin.box.expression import BoxExpression
 from mathics.core.element import BaseElement
 from mathics.eval.image import pixels_as_ubyte
 
+# No user docs here: Box primitives aren't documented.
+no_doc = True
 
-class ImageBox(BoxExpression):
+
+class RasterBox(BoxExpression):
     """
     <dl>
-      <dt>'ImageBox'
+      <dt>'RasterBox'
       <dd>is the symbol used in boxing 'Image' expressions.
     </dl>
 
     """
 
-    summary_text = "symbol used boxing Image expresssions"
+    summary_text = "symbol used boxing Image expressions"
+
+    def init(self, image, **kwargs):
+        self.image = image
+        self.options = kwargs
+
+    @property
+    def elements(self):
+        return self.image.elements
 
     def boxes_to_b64text(
         self, elements: Tuple[BaseElement] = None, **options
@@ -47,7 +56,7 @@ class ImageBox(BoxExpression):
         returns a tuple with the set of bytes with a png representation of the image
         and the scaled size.
         """
-        image = self.elements[0] if elements is None else elements[0]
+        image = self.image if elements is None else elements[0]
 
         pixels = pixels_as_ubyte(image.color_convert("RGB", True).pixels)
         shape = pixels.shape
@@ -102,14 +111,13 @@ class ImageBox(BoxExpression):
         Store the associated image as a png file and return
         a LaTeX command for including it.
         """
-
         data, size = self.boxes_to_png(elements, **options)
         res = 100  # pixels/cm
         width_str, height_str = (str(n / res).strip() for n in size)
         head = rf"\includegraphics[width={width_str}cm,height={height_str}cm]"
 
         # This produces a random name, where the png file is going to be stored.
-        # LaTeX does not have a native way to store an figure embeded in
+        # LaTeX does not have a native way to store an figure embedded in
         # the source.
         fp = tempfile.NamedTemporaryFile(delete=True, suffix=".png")
         path = fp.name

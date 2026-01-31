@@ -6,10 +6,12 @@ Number theoretic functions
 import mpmath
 import sympy
 from packaging.version import Version
+from sympy.utilities.iterables import ordered_partitions
 
 from mathics.core.atoms import Integer, Integer0, Integer10, Rational, Real
 from mathics.core.attributes import (
     A_LISTABLE,
+    A_N_HOLD_ALL,
     A_NUMERIC_FUNCTION,
     A_ORDERLESS,
     A_PROTECTED,
@@ -33,6 +35,7 @@ from mathics.core.systemsymbols import (
 from mathics.eval.nevaluator import eval_N
 
 SymbolFractionalPart = Symbol("System`FractionalPart")
+SymbolIntegerPart = Symbol("System`IntegerPart")
 SymbolMantissaExponent = Symbol("System`MantissaExponent")
 
 
@@ -43,11 +46,11 @@ class ContinuedFraction(SympyFunction):
     :SymPy: https://docs.sympy.org/latest/modules/ntheory.html#module-sympy.ntheory.continued_fraction</url>, <url>
     :WMA: https://reference.wolfram.com/language/ref/ContinuedFraction.html</url>)
     <dl>
-      <dt>'ContinuedFraction[$x$, $n$]'
+      <dt>'ContinuedFraction'[$x$, $n$]
       <dd>generate the first $n$ terms in the continued fraction representation of $x$.
 
-      <dt>'ContinuedFraction[$x$]'
-      <dd>the complete continued fraction representation for a rational or quadradic irrational number.
+      <dt>'ContinuedFraction'[$x$]
+      <dd>the complete continued fraction representation for a rational or quadratic irrational number.
     </dl>
 
     >> ContinuedFraction[Pi, 10]
@@ -61,7 +64,7 @@ class ContinuedFraction(SympyFunction):
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
-    summary_text = "continued fraction expansion"
+    summary_text = "get continued fraction expansion"
     sympy_name = "continued_fraction"
 
     def eval(self, x, evaluation: Evaluation):
@@ -76,27 +79,112 @@ class ContinuedFraction(SympyFunction):
         return from_sympy([next(it) for _ in range(py_n)])
 
 
+class DivisorSigma(SympyFunction):
+    r"""
+    <url>
+    :Divisor function: https://en.wikipedia.org/wiki/Divisor_function</url> (<url>
+    :SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.numbers.divisor_sigma</url>, <url>
+    :WMA: https://reference.wolfram.com/language/ref/DivisorSigma.html</url>)
+
+    <dl>
+      <dt>'DivisorSigma'[$k$, $n$]
+      <dd>returns $\sigma_k(n)$
+    </dl>
+
+    For reference, let us first get the integer divisors of 20:
+    >> Divisors[20]
+     = {1, 2, 4, 5, 10, 20}
+
+    The DivisorSigma function counts this sum:
+    >> DivisorSigma[1, 20]
+    = 42
+
+    This is the same thing as:
+    >> DivisorSum[20, # &]
+    = 42
+
+    To get a sum of the second power of the factors of 20:
+    >> DivisorSigma[2, 20]
+    = 546
+
+    Doing this with 'DivisorSum' instead:
+    >> DivisorSum[20, #^2 &]
+    = 546
+
+    See also <url>
+    :'DivisorSum':
+    /doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/number-theoretic-functions/divisorsum/</url> and <url>
+    :Divisors:
+    /doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/number-theoretic-functions/divisors/</url>.
+    """
+
+    attributes = A_LISTABLE | A_N_HOLD_ALL | A_PROTECTED
+    summary_text = "compute divisor function"
+    sympy_name = "divisor_sigma"
+
+    def eval(self, k: Integer, n: Integer, evaluation: Evaluation):  # type: ignore[override]
+        "DivisorSigma[k_Integer, n_Integer]"
+        # arguments are in reverse order
+        return from_sympy(sympy.divisor_sigma(n.to_sympy(), k.to_sympy()))
+
+
+class DivisorSum(Builtin):
+    """
+    <url>:WMA: https://reference.wolfram.com/language/ref/DivisorSum.html</url>
+
+    <dl>
+      <dt>'DivisorSum'[$n$, $form$]
+      <dd>transform the divisors of $n$ using $form$ and take their sum
+    </dl>
+
+    >> DivisorSum[20, # &]
+    = 42
+    >> DivisorSum[20, #^2 &]
+    = 546
+
+    See also <url>
+    :'DivisorSigma':
+    /doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/number-theoretic-functions/divisorsigma/</url> and <url>
+    :Divisors:
+    /doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/number-theoretic-functions/divisors/</url>.
+    """
+
+    attributes = A_N_HOLD_ALL | A_PROTECTED | A_READ_PROTECTED
+    summary_text = "compute divisor sum"
+
+    rules = {
+        "DivisorSum[n_Integer, form_]": "Sum[form[d], {d, Divisors[n]}]",
+        "DivisorSum[n_Integer, form_, cond_]": "Sum[If[cond[d], form[d], 0], {d, Divisors[n]}]",
+    }
+
+
 class Divisors(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Divisors.html</url>
 
     <dl>
-    <dt>'Divisors[$n$]'
+    <dt>'Divisors'[$n$]
         <dd>returns a list of the integers that divide $n$.
     </dl>
 
-    >> Divisors[96]
-     = {1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 96}
+    >> Divisors[20]
+     = {1, 2, 4, 5, 10, 20}
     >> Divisors[704]
      = {1, 2, 4, 8, 11, 16, 22, 32, 44, 64, 88, 176, 352, 704}
     >> Divisors[{87, 106, 202, 305}]
      = {{1, 3, 29, 87}, {1, 2, 53, 106}, {1, 2, 101, 202}, {1, 5, 61, 305}}
+
+    See also <url>
+    :'DivisorSigma':
+     /doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/number-theoretic-functions/divisorsigma/</url> and <url>
+    :DivisorSum:
+    /doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/number-theoretic-functions/divisorsum/</url>.
     """
 
     # TODO: support GaussianIntegers
     # e.g. Divisors[2, GaussianIntegers -> True]
     attributes = A_LISTABLE | A_PROTECTED
-    summary_text = "integer divisors"
+    summary_text = "get integer divisors"
 
     def eval(self, n: Integer, evaluation: Evaluation):
         "Divisors[n_Integer]"
@@ -115,7 +203,7 @@ class Divisors(Builtin):
 #    >> ExtendedGCD[10, 15, 7]
 #     = {1, {-3, 3, -2}}
 #
-#    Compute the greated common divisor and check the result:
+#    Compute the greatest common divisor and check the result:
 #    >> numbers = {10, 20, 14};
 #    >> {gcd, factors} = ExtendedGCD[Sequence @@ numbers]
 #     = {2, {3, 0, -2}}
@@ -150,7 +238,7 @@ class EulerPhi(SympyFunction):
     This function counts positive integers up to $n$ that are relatively prime to $n$.
     It is typically used in cryptography and in many applications in elementary number theory.
     <dl>
-      <dt>'EulerPhi[$n$]'
+      <dt>'EulerPhi'[$n$]
       <dd>returns the Euler totient function .
     </dl>
 
@@ -161,6 +249,8 @@ class EulerPhi(SympyFunction):
     'EulerPhi' of a negative integer is same as its positive counterpart:
     >> EulerPhi[-11] == EulerPhi[11]
     = True
+    >> EulerPhi[0]
+    = 0
 
     Large arguments are computed quickly:
     >> EulerPhi[40!]
@@ -177,12 +267,20 @@ class EulerPhi(SympyFunction):
     """
 
     attributes = A_LISTABLE | A_PROTECTED
-    summary_text = "Euler totient function"
+    summary_text = "get Euler totient function"
     sympy_name = "totient"
 
     def eval(self, n: Integer, evaluation: Evaluation):
         "EulerPhi[n_Integer]"
+        if n.is_zero:
+            return Integer0
         return super().eval(abs(n), evaluation)
+
+    def to_sympy(self, expr, **kwargs):
+        try:
+            return super().to_sympy(expr, **kwargs)
+        except ValueError:  # n must be a positive integer
+            return None
 
 
 class FactorInteger(Builtin):
@@ -190,7 +288,7 @@ class FactorInteger(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/FactorInteger.html</url>
 
     <dl>
-      <dt>'FactorInteger[$n$]'
+      <dt>'FactorInteger'[$n$]
       <dd>returns the factorization of $n$ as a list of factors and exponents.
     </dl>
 
@@ -205,7 +303,7 @@ class FactorInteger(Builtin):
     """
 
     attributes = A_LISTABLE | A_PROTECTED
-    summary_text = "list of prime factors and exponents"
+    summary_text = "list prime factors and exponents of a number"
 
     # TODO: GausianIntegers option
     # e.g. FactorInteger[5, GaussianIntegers -> True]
@@ -234,31 +332,30 @@ class FactorInteger(Builtin):
             evaluation.message("FactorInteger", "exact", n)
 
 
-def _fractional_part(self, n, expr, evaluation: Evaluation):
+def _integer_part(n, expr, evaluation: Evaluation):
     n_sympy = n.to_sympy()
     if n_sympy.is_constant():
         if n_sympy >= 0:
-            positive_integer_part = (
-                Expression(SymbolFloor, n).evaluate(evaluation).to_python()
-            )
-            result = n - Integer(positive_integer_part)
+            return Expression(SymbolFloor, n).evaluate(evaluation)
         else:
-            negative_integer_part = (
-                Expression(SymbolCeiling, n).evaluate(evaluation).to_python()
-            )
-            result = n - Integer(negative_integer_part)
+            return Expression(SymbolCeiling, n).evaluate(evaluation)
     else:
         return expr
 
-    return from_python(result)
+
+def _fractional_part(n, expr, evaluation: Evaluation):
+    if n.to_sympy().is_constant():
+        return n - _integer_part(n, expr, evaluation)
+    else:
+        return expr
 
 
-class FractionalPart(Builtin):
+class FractionalPart(SympyFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/FractionalPart.html</url>
 
     <dl>
-    <dt>'FractionalPart[$n$]'
+    <dt>'FractionalPart'[$n$]
         <dd>finds the fractional part of $n$.
     </dl>
 
@@ -270,12 +367,12 @@ class FractionalPart(Builtin):
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_READ_PROTECTED | A_PROTECTED
-    summary_text = "fractional part of a number"
+    summary_text = "get fractional part of a number"
 
     def eval(self, n, evaluation: Evaluation):
         "FractionalPart[n_]"
         expr = Expression(SymbolFractionalPart, n)
-        return _fractional_part(self.__class__.__name__, n, expr, evaluation)
+        return _fractional_part(n, expr, evaluation)
 
     def eval_complex_n(self, n, evaluation: Evaluation):
         "FractionalPart[n_Complex]"
@@ -283,13 +380,14 @@ class FractionalPart(Builtin):
         n_real = Expression(SymbolRe, n).evaluate(evaluation)
         n_image = Expression(SymbolIm, n).evaluate(evaluation)
 
-        real_fractional_part = _fractional_part(
-            self.__class__.__name__, n_real, expr, evaluation
-        )
-        image_fractional_part = _fractional_part(
-            self.__class__.__name__, n_image, expr, evaluation
-        )
+        real_fractional_part = _fractional_part(n_real, expr, evaluation)
+        image_fractional_part = _fractional_part(n_image, expr, evaluation)
         return Expression(SymbolComplex, real_fractional_part, image_fractional_part)
+
+    def to_sympy(self, expr, **kwargs):
+        if len(expr.elements) > 0:
+            x_sympy = expr.elements[0].to_sympy(**kwargs)
+            return sympy.sign(x_sympy) * sympy.frac(abs(x_sympy))
 
 
 class FromContinuedFraction(SympyFunction):
@@ -299,7 +397,7 @@ class FromContinuedFraction(SympyFunction):
     https://reference.wolfram.com/language/ref/FromContinuedFraction.html</url>
 
     <dl>
-      <dt>'FromContinuedFraction[$list$]'
+      <dt>'FromContinuedFraction'[$list$]
       <dd>reconstructs a number from the list of its continued fraction terms.
     </dl>
 
@@ -312,7 +410,7 @@ class FromContinuedFraction(SympyFunction):
 
     attributes = A_NUMERIC_FUNCTION | A_PROTECTED
 
-    summary_text = "reconstructs a number from its continued fraction representation"
+    summary_text = "reconstruct a number from its continued fraction representation"
     sympy_name = "continued_fraction_reduce"
 
     def eval(self, expr, evaluation: Evaluation):
@@ -322,6 +420,170 @@ class FromContinuedFraction(SympyFunction):
             return from_sympy(sympy.continued_fraction_reduce(nums))
 
 
+class IntegerPart(SympyFunction):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/IntegerPart.html</url>
+
+    <dl>
+      <dt>'IntegerPart'[$n$]
+      <dd>finds the integer part of $n$.
+    </dl>
+
+    >> IntegerPart[4.1]
+     = 4
+
+    >> IntegerPart[-5.25]
+     = -5
+    """
+
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+    summary_text = "get integer part of a number"
+
+    def eval(self, n, evaluation: Evaluation):
+        "IntegerPart[n_]"
+        expr = Expression(SymbolIntegerPart, n)
+        return _integer_part(n, expr, evaluation)
+
+    def eval_complex_n(self, n, evaluation: Evaluation):
+        "IntegerPart[n_Complex]"
+        expr = Expression(SymbolIntegerPart, n)
+        n_real = Expression(SymbolRe, n).evaluate(evaluation)
+        n_image = Expression(SymbolIm, n).evaluate(evaluation)
+
+        real_integer_part = _integer_part(n_real, expr, evaluation)
+        image_integer_part = _integer_part(n_image, expr, evaluation)
+        return Expression(SymbolComplex, real_integer_part, image_integer_part)
+
+    def to_sympy(self, expr, **kwargs):
+        if len(expr.elements) > 0:
+            x_sympy = expr.elements[0].to_sympy(**kwargs)
+            return sympy.sign(x_sympy) * sympy.floor(abs(x_sympy))
+
+
+class IntegerPartitions(Builtin):
+    """
+    <url>:Integer partition:
+    https://en.wikipedia.org/wiki/Integer_partition</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/utilities/iterables.html#sympy.utilities.iterables.ordered_partitions</url>, <url>
+    :WMA: https://reference.wolfram.com/language/ref/IntegerPartitions.html</url>)
+
+    <dl>
+      <dt>'IntegerPartitions'[$n$]
+      <dd>lists all possible ways to partition integer $n$ into smaller integers.
+
+      <dt>'IntegerPartitions'[$n$, $k$]
+      <dd>lists all partitions into at most $k$ integers.
+
+      <dt>'IntegerPartitions'[$n$, {$k$}]
+      <dd>lists all partitions with exactly $k$ integers.
+
+      <dt>'IntegerPartitions'[$n$, {$k_{min}$, $k_{max}$}]
+      <dd>lists partitions between $k_{min}$ and $k_{max}$ integers.
+
+      <dt>'IntegerPartitions'[$n$, $kspec$, {$s_1$, $s_2$, ...}]
+      <dd>lists partitions involving only the $s_i$.
+
+    </dl>
+
+    All partitions of positive integers that add to 5:
+    >> IntegerPartitions[5]
+    = {{5}, {4, 1}, {3, 2}, {3, 1, 1}, {2, 2, 1}, {2, 1, 1, 1}, {1, 1, 1, 1, 1}}
+
+    Limit the above to just the first 3 elements:
+    >> IntegerPartitions[5, All, All, 3]
+    = {{5}, {4, 1}, {3, 2}}
+
+    Partitions of 5 with at most 3 integers:
+    >> IntegerPartitions[5, 3]
+    = {{5}, {4, 1}, {3, 2}, {3, 1, 1}, {2, 2, 1}}
+
+    Partitions of 5 with exactly 3 integers; this is a subset of "at most 3" above:
+    >> IntegerPartitions[5, {3}]
+    = {{3, 1, 1}, {2, 2, 1}}
+
+    Partitions of 5 that involve only integers 1, and 2:
+    >> IntegerPartitions[5, All, {1, 2}]
+    = {{2, 2, 1}, {2, 1, 1, 1}, {1, 1, 1, 1, 1}}
+
+    Partitions of 4 with exactly 2 elements and involve only integers -1, 0, 1, 4, and 5:
+    >> IntegerPartitions[4, {2}, {-1, 0, 1, 4, 5}]
+    = {{5, -1}, {4, 0}}
+    """
+
+    attributes = A_PROTECTED
+    summary_text = "list integer partitions"
+
+    rules = {
+        "IntegerPartitions[n_Integer]": "IntegerPartitions[n, All]",
+        "IntegerPartitions[n_Integer, All]": "IntegerPartitions[n, n]",
+        "IntegerPartitions[n_Integer, k_Integer]": "IntegerPartitions[n, {1, k}]",
+        "IntegerPartitions[n_Integer, {k_Integer}]": "IntegerPartitions[n, {k, k}]",
+        "IntegerPartitions[n_Integer, kspec_, s_List] /; SubsetQ[Range[n], s] && s == Union[s]": "Select[IntegerPartitions[n, kspec], SubsetQ[s, #] &]",
+        "IntegerPartitions[n_Integer, kspec_, All]": "IntegerPartitions[n, kspec]",
+        "IntegerPartitions[n_Integer, kspec_, sspec_, m_]": "Take[IntegerPartitions[n, kspec, sspec], m]",
+        "IntegerPartitions[n_Integer, {k_Integer}, s_List]": "ReverseSort@Select[Union[ReverseSort /@ Tuples[s, k]], Total[#] == n &]",
+    }
+
+    def eval(self, n: Integer, kmin: Integer, kmax: Integer, evaluation: Evaluation):
+        "IntegerPartitions[n_Integer, {kmin_Integer, kmax_Integer}]"
+        partitions = []
+        for k in range(kmin.value, kmax.value + 1):
+            for p in ordered_partitions(n.value, k, sort=False):
+                partitions.append([Integer(i) for i in reversed(p)])
+        partitions.sort(reverse=True)
+        return ListExpression(*[ListExpression(*p) for p in partitions])
+
+
+class JacobiSymbol(Builtin):
+    """
+    <url>
+    :Jacobi symbol: https://en.wikipedia.org/wiki/Jacobi_symbol</url> (<url>
+    :WMA: https://reference.wolfram.com/language/ref/JacobiSymbol.html</url>)
+    <dl>
+      <dt>'JacobiSymbol'[$a$, $n$]
+      <dd>returns the Jacobi symbol ($a$/$n$).
+    </dl>
+
+    >> Table[JacobiSymbol[n, m], {n, 0, 10}, {m, 1, n, 2}]
+     = {{}, {1}, {1}, {1, 0}, {1, 1}, {1, -1, 0}, {1, 0, 1}, {1, 1, -1, 0}, {1, -1, -1, 1}, {1, 0, 1, 1, 0}, {1, 1, 0, -1, 1}}
+    """
+
+    attributes = A_LISTABLE | A_PROTECTED
+    summary_text = "get Jacobi symbol"
+
+    rules = {
+        "JacobiSymbol[a_, p_?PrimeQ]": "Which[Mod[a, p] == 0, 0, PowerMod[a, (p - 1)/2, p] == 1, 1, True, -1]",  # Legendre symbol
+        "JacobiSymbol[a_, n_]": "Times @@ (JacobiSymbol[a, #1]^#2 & @@@ FactorInteger[n])",
+    }
+
+
+class KroneckerSymbol(Builtin):
+    """
+    <url>
+    :Kronecker symbol: https://en.wikipedia.org/wiki/Kronecker_symbol</url> (<url>
+    :WMA: https://reference.wolfram.com/language/ref/KroneckerSymbol.html</url>)
+    <dl>
+      <dt>'KroneckerSymbol'[$a$, $n$]
+      <dd>returns the Kronecker symbol ($a$/$n$).
+    </dl>
+
+    >> Table[KroneckerSymbol[n, m], {n, 5}, {m, 5}]
+     = {{1, 1, 1, 1, 1}, {1, 0, -1, 0, -1}, {1, -1, 0, 1, -1}, {1, 0, 1, 0, 1}, {1, -1, -1, 1, 0}}
+    """
+
+    attributes = A_LISTABLE | A_PROTECTED | A_READ_PROTECTED
+    summary_text = "get Kronecker symbol"
+
+    rules = {
+        "KroneckerSymbol[a_, n_?(Positive[#] && OddQ[#] &)]": "JacobiSymbol[a, n]",
+        "KroneckerSymbol[a_, 0]": "If[Abs[a] == 1, 1, 0]",
+        "KroneckerSymbol[a_, -1]": "If[a < 0, -1, 1]",
+        "KroneckerSymbol[a_, 2]": "Which[EvenQ[a], 0, Mod[a, 8] == 1 || Mod[a, 8] == 7, 1, True, -1]",
+        "KroneckerSymbol[a_, n_]": "Times @@ (KroneckerSymbol[a, #1]^#2 & @@@ FactorInteger[n])",
+    }
+
+
 class MantissaExponent(Builtin):
     """
     <url>
@@ -329,10 +591,10 @@ class MantissaExponent(Builtin):
     https://reference.wolfram.com/language/ref/MantissaExponent.html</url>
 
     <dl>
-      <dt>'MantissaExponent[$n$]'
+      <dt>'MantissaExponent'[$n$]
       <dd>finds a list containing the mantissa and exponent of a given number $n$.
 
-      <dt>'MantissaExponent[$n$, $b$]'
+      <dt>'MantissaExponent'[$n$, $b$]
       <dd>finds the base b mantissa and exponent of $n$.
     </dl>
 
@@ -358,7 +620,7 @@ class MantissaExponent(Builtin):
         "MantissaExponent[0]": "{0, 0}",
         "MantissaExponent[0, n_]": "{0, 0}",
     }
-    summary_text = "decomposes numbers as mantissa and exponent"
+    summary_text = "decompose numbers as mantissa and exponent"
 
     def eval(self, n, evaluation: Evaluation):
         "MantissaExponent[n_]"
@@ -371,6 +633,8 @@ class MantissaExponent(Builtin):
         # Handle Input with special cases such as PI and E
         if n_sympy.is_constant():
             temp_n = eval_N(n, evaluation)
+            if temp_n is None:
+                return expr
             py_n = temp_n.to_python()
         else:
             return expr
@@ -393,12 +657,16 @@ class MantissaExponent(Builtin):
 
         if n_sympy.is_constant():
             temp_n = eval_N(n, evaluation)
+            if temp_n is None:
+                return expr
             py_n = temp_n.to_python()
         else:
             return expr
 
         if b_sympy.is_constant():
             temp_b = eval_N(b, evaluation)
+            if temp_b is None:
+                return expr
             py_b = temp_b.to_python()
         else:
             return expr
@@ -413,41 +681,94 @@ class MantissaExponent(Builtin):
         return ListExpression(Expression(SymbolDivide, n, b**exp), exp)
 
 
+class MersennePrimeExponent(SympyFunction):
+    """
+    <url>
+    :Mersenne Prime:
+    https://en.wikipedia.org/wiki/Mersenne_prime</url> exponent (<url>
+    :SymPy: https://docs.sympy.org/latest/modules/ntheory.html#sympy.ntheory.factor_.mersenne_prime_exponent</url>, <url>
+    :WMA: https://reference.wolfram.com/language/ref/MersennePrimeExponent.html</url>)
+
+    <dl>
+      <dt>'MersennePrimeExponent'[$n$]
+      <dd>returns the exponent of the $n$-th Mersenne prime.
+    </dl>
+
+    >> Table[MersennePrimeExponent[n], {n, 10}]
+    = {2, 3, 5, 7, 13, 17, 19, 31, 61, 89}
+
+    """
+
+    attributes = A_LISTABLE | A_PROTECTED | A_READ_PROTECTED
+    summary_text = "get Mersenne prime exponent"
+    sympy_name = "mersenne_prime_exponent"
+
+    def eval(self, n: Integer, evaluation: Evaluation):
+        "MersennePrimeExponent[n_Integer]"
+        return super().eval(n, evaluation)
+
+
+class MoebiusMu(SympyFunction):
+    """
+    <url>
+    :Mobius function: https://en.wikipedia.org/wiki/M%C3%B6bius_function</url> (<url>
+    :SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.numbers.mobius</url>, <url>
+    :WMA: https://reference.wolfram.com/language/ref/MoebiusMu.html</url>)
+
+    <dl>
+      <dt>'MoebiusMu'[$n$]
+      <dd>returns μ($n$).
+    </dl>
+
+    >> Array[MoebiusMu, 10]
+    = {1, -1, -1, 0, -1, 1, -1, 0, 0, 1}
+    """
+
+    attributes = A_LISTABLE | A_PROTECTED
+    summary_text = "get Mobius function"
+    sympy_name = "mobius"
+
+    def eval(self, n: Integer, evaluation: Evaluation):
+        "MoebiusMu[n_Integer]"
+        return super().eval(n, evaluation)
+
+
 class NextPrime(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/NextPrime.html</url>
 
     <dl>
-      <dt>'NextPrime[$n$]'
+      <dt>'NextPrime'[$n$]
       <dd>gives the next prime after $n$.
 
-      <dt>'NextPrime[$n$,$k$]'
+      <dt>'NextPrime'[$n$,$k$]
       <dd>gives the $k$th  prime after $n$.
     </dl>
 
-    >> NextPrime[10000]
-     = 10007
+    >> NextPrime[100]
+     = 101
 
-    >> NextPrime[100, -5]
-     = 73
+    The the first number does not have to be an integer:
+    >> NextPrime[100.5, 2]
+     = 103
 
-    >> NextPrime[10, -5]
+    However, when the second value, the step value is not an integer is given, we do nothing:
+    >> NextPrime[100, 2.5]
+     = NextPrime[100, 2.5]
+
+    With a negative number, we find a prime number <i>before</i> the given number:
+    >> NextPrime[100, -1]
+     = 97
+
+    And with negative counts, it is possible to get <i>negative</i> prime numbers:
+    >> NextPrime[2, -1]
     = -2
-
-    >> NextPrime[100, 5]
-     = 113
-
-    >> NextPrime[5.5, 100]
-     = 563
-
-    >> NextPrime[5, 10.5]
-     = NextPrime[5, 10.5]
     """
 
     rules = {
         "NextPrime[n_]": "NextPrime[n, 1]",
     }
-    summary_text = "closest, smallest prime number"
+    summary_text = 'get prime number "near" another number'
 
     def eval(self, n, k: Integer, evaluation: Evaluation):
         "NextPrime[n_?NumberQ, k_Integer]"
@@ -491,7 +812,7 @@ class PartitionsP(SympyFunction):
     https://reference.wolfram.com/language/ref/PartitionsP.html</url>
 
     <dl>
-      <dt>'PartitionsP[$n$]'
+      <dt>'PartitionsP'[$n$]
       <dd>return the number $p$($n$) of unrestricted partitions of the integer $n$.
     </dl>
 
@@ -508,8 +829,41 @@ class PartitionsP(SympyFunction):
     )
 
     def eval(self, n, evaluation: Evaluation):
-        "PartitionsP[n_Integer]"
+        """PartitionsP[n_Integer]"""
         return super().eval(n, evaluation)
+
+
+class PowersRepresentations(Builtin):
+    """
+    <url>:WMA: https://reference.wolfram.com/language/ref/PowersRepresentations.html</url>
+    <dl>
+      <dt>'PowersRepresentations'[$n$, $k$, $p$]
+      <dd>represent $n$ as a sum of $k$ non-negative integers raised to the power of $p$.
+    </dl>
+
+    Get the ways licence plate number 1729 can be represented as the sum of two cubes:
+    >> PowersRepresentations[1729, 2, 3]
+     = {{1, 12}, {9, 10}}
+
+    See <url>:1729:https://en.wikipedia.org/wiki/1729_(number)</url> for the full backstory.
+
+    Demonstrate the validity of the Pythagorian triple: 3^2 + 4^2 == 5^2
+    >> PowersRepresentations[25, 2, 2]
+     = {{0, 5}, {3, 4}}
+
+    Since 0 is allowed in the sum, 'PowersRepresentations[$n$, $k$+1, $p$]' is includes \
+   'PowersRepresentations[$n$, $k$, $p$]' with by inserting a zero element at the beginning:
+
+    >> PowersRepresentations[25, 3, 2]
+     = {{0, 0, 5}, {0, 3, 4}}
+    """
+
+    attributes = A_PROTECTED | A_READ_PROTECTED
+    summary_text = "represent a number as a sum of powers"
+
+    rules = {
+        "PowersRepresentations[n_,k_,p_]": "Sort /@ IntegerPartitions[n, {k}, Range[0, Floor[n^(1/p)]]^p]^(1/p) // Sort",
+    }
 
 
 class Prime(SympyFunction):
@@ -518,8 +872,8 @@ class Prime(SympyFunction):
     https://reference.wolfram.com/language/ref/Prime.html</url>
 
     <dl>
-      <dt>'Prime[$n$]'
-      <dt>'Prime'[{$n0$, $n1$, ...}]
+      <dt>'Prime'[$n$]
+      <dt>'Prime'[{$n_0$, $n_1$, ...}]
       <dd>returns the $n$th prime number where $n$ is an positive Integer.
       If given a list of integers, the return value is a list with 'Prime' applied to each.
     </dl>
@@ -545,7 +899,7 @@ class Prime(SympyFunction):
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
-    summary_text = "n-esim prime number"
+    summary_text = "get nth prime number"
 
     def eval(self, n, evaluation: Evaluation):
         "Prime[n_]"
@@ -561,7 +915,7 @@ class PrimePi(SympyFunction):
     <url>:Prime numbers:https://reference.wolfram.com/language/ref/PrimePi.html</url>
 
     <dl>
-    <dt>'PrimePi[$x$]'
+    <dt>'PrimePi'[$x$]
         <dd>gives the number of primes less than or equal to $x$.
     </dl>
 
@@ -584,15 +938,16 @@ class PrimePi(SympyFunction):
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     mpmath_name = "primepi"
-    summary_text = "amount of prime numbers less than or equal"
+    summary_text = "count the number of primes less than or equal to a number"
     sympy_name = "primepi"
 
     # TODO: Traditional Form
 
     def eval(self, n, evaluation: Evaluation):
         "PrimePi[n_?NumericQ]"
-        result = sympy.primepi(eval_N(n, evaluation).to_python())
-        return Integer(result)
+        result = eval_N(n, evaluation)
+        if result is not None:
+            return Integer(sympy.primepi(result.to_python()))
 
 
 class PrimePowerQ(Builtin):
@@ -600,7 +955,7 @@ class PrimePowerQ(Builtin):
     <url>:Prime numbers:https://reference.wolfram.com/language/ref/PrimePowerQ.html</url>
 
     <dl>
-    <dt>'PrimePowerQ[$n$]'
+    <dt>'PrimePowerQ'[$n$]
         <dd>returns 'True' if $n$ is a power of a prime number.
     </dl>
 
@@ -656,13 +1011,13 @@ class RandomPrime(Builtin):
     <url>:Prime numbers:https://reference.wolfram.com/language/ref/RandomPrime.html</url>
 
     <dl>
-      <dt>'RandomPrime[{$imin$, $imax}]'
-      <dd>gives a random prime between $imin$ and $imax$.
+      <dt>'RandomPrime'[{$i_{min}$, $i_{max}$}]
+      <dd>gives a random prime between $i_{min}$ and $i_{max}$.
 
-      <dt>'RandomPrime[$imax$]'
-      <dd>gives a random prime between 2 and $imax$.
+      <dt>'RandomPrime'[$i_{max}$]
+      <dd>gives a random prime between 2 and $i_{max}$.
 
-      <dt>'RandomPrime[$range$, $n$]'
+      <dt>'RandomPrime'[$range$, $n$]
       <dd>gives a list of $n$ random primes in $range$.
     </dl>
 
@@ -691,7 +1046,7 @@ class RandomPrime(Builtin):
             "of two positive integers."
         ),
         "posint": (
-            "The paramater `1` describing the interval is expected to "
+            "The parameter `1` describing the interval is expected to "
             "be a positive integer."
         ),
     }
@@ -704,7 +1059,7 @@ class RandomPrime(Builtin):
             "ConstantArray[RandomPrime[{1, imax}, 1], n]"
         ),
     }
-    summary_text = "picks a random prime in an interval"
+    summary_text = "pick a random prime in an interval"
 
     # TODO: Use random state as in other randomised methods within mathics
 
@@ -717,7 +1072,7 @@ class RandomPrime(Builtin):
         py_n = n.to_python()
 
         py_int = interval.to_python()
-        if not (isinstance(py_int, list) and len(py_int) == 2):
+        if not (isinstance(py_int, (list, tuple)) and len(py_int) == 2):
             evaluation.message("RandomPrime", "prmrng", interval)
 
         imin, imax = min(py_int), max(py_int)
@@ -733,8 +1088,43 @@ class RandomPrime(Builtin):
             if py_n == 1:
                 return Integer(sympy.ntheory.randprime(imin, imax + 1))
             return from_python(
-                [sympy.ntheory.randprime(imin, imax + 1) for i in range(py_n)]
+                [sympy.ntheory.randprime(imin, imax + 1) for _ in range(py_n)]
             )
         except ValueError:
             evaluation.message("RandomPrime", "noprime")
             return
+
+
+class SquaresR(Builtin):
+    """
+    <url>
+    :Sum of squares function: https://en.wikipedia.org/wiki/Sum_of_squares_function</url> (<url>
+    :WMA: https://reference.wolfram.com/language/ref/SquaresR.html</url>)
+
+    <dl>
+      <dt>'SquaresR'[$d$, $n$]
+      <dd>returns the number of ways to represent $n$ as a sum of $d$ squares.
+    </dl>
+
+    >> Table[SquaresR[2, n], {n, 10}]
+     = {4, 4, 0, 4, 8, 0, 0, 4, 4, 8}
+    >> Table[Sum[SquaresR[2, k], {k, 0, n^2}], {n, 5}]
+     = {5, 13, 29, 49, 81}
+    >> Table[SquaresR[4, n], {n, 10}]
+     = {8, 24, 32, 24, 48, 96, 64, 24, 104, 144}
+    >> Table[SquaresR[6, n], {n, 10}]
+     = {12, 60, 160, 252, 312, 544, 960, 1020, 876, 1560}
+    >> Table[SquaresR[8, n], {n, 10}]
+     = {16, 112, 448, 1136, 2016, 3136, 5504, 9328, 12112, 14112}
+    """
+
+    attributes = A_LISTABLE | A_PROTECTED | A_READ_PROTECTED
+
+    rules = {
+        "SquaresR[d_Integer, 0]": "1",
+        "SquaresR[2, n_Integer?Positive]": "4 Total[(-1)^((# - 1)/2) & /@ Select[Divisors[n], Mod[#, 4] == 1 || Mod[#, 4] == 3 &]]",
+        "SquaresR[4, n_Integer?Positive]": "8 Total[Select[Divisors[n], Mod[#, 4] != 0 &]]",
+        "SquaresR[6, n_Integer?Positive]": "4 Total[#^2 * (4 * KroneckerSymbol[-4, n/#] - KroneckerSymbol[-4, #]) & /@ Divisors[n]]",
+        "SquaresR[8, n_Integer?Positive]": "16 Total[(-1)^(n + #) #^3 & /@ Divisors[n]]",
+    }
+    summary_text = "compute the sum of squares"

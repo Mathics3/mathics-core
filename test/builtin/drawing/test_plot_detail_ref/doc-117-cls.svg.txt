@@ -1,0 +1,1227 @@
+svg
+  @height: 286.88px
+  @viewBox: -17.07 -14.01 434.13, 286.88
+  @width: 434.13px
+  polyline
+    @points:
+      - 24.68, -26.60
+      - 27.92, 66.82
+      - 31.17, 113.26
+      - 34.42, 140.92
+      - 36.04, 150.92
+      - 37.66, 159.21
+      - 39.29, 166.19
+      - 40.91, 172.14
+      - 41.72, 174.80
+      - 42.53, 177.28
+      - 43.34, 179.59
+      - 44.16, 181.75
+      - 45.78, 185.66
+      - 47.40, 189.13
+      - 48.21, 190.71
+      - 49.03, 192.21
+      - 49.84, 193.62
+      - 50.24, 194.30
+      - 50.65, 194.96
+      - 52.27, 197.44
+      - 53.08, 198.58
+      - 53.90, 199.67
+      - 54.71, 200.71
+      - 55.52, 201.70
+      - 56.33, 202.64
+      - 57.14, 203.54
+      - 57.95, 204.40
+      - 58.77, 205.22
+      - 59.17, 205.62
+      - 59.58, 206.01
+      - 60.39, 206.76
+      - 61.20, 207.49
+      - 61.61, 207.84
+      - 62.01, 208.18
+      - 62.82, 208.85
+      - 63.23, 209.17
+      - 63.64, 209.48
+      - 64.45, 210.10
+      - 65.26, 210.69
+      - 65.67, 210.98
+      - 66.07, 211.26
+      - 66.88, 211.80
+      - 67.69, 212.33
+      - 68.10, 212.58
+      - 68.51, 212.84
+      - 69.32, 213.32
+      - 69.72, 213.56
+      - 69.93, 213.68
+      - 70.13, 213.79
+      - 70.94, 214.25
+      - 71.75, 214.69
+      - 72.56, 215.11
+      - 73.38, 215.52
+      - 74.19, 215.91
+      - 74.59, 216.10
+      - 75.00, 216.29
+      - 75.81, 216.66
+      - 76.22, 216.84
+      - 76.42, 216.93
+      - 76.62, 217.02
+      - 77.44, 217.36
+      - 78.25, 217.70
+      - 79.06, 218.02
+      - 79.87, 218.33
+      - 80.68, 218.64
+      - 81.09, 218.78
+      - 81.49, 218.93
+      - 82.31, 219.21
+      - 82.71, 219.35
+      - 82.91, 219.42
+      - 83.12, 219.49
+      - 83.93, 219.75
+      - 84.74, 220.01
+      - 85.55, 220.26
+      - 86.36, 220.51
+      - 87.18, 220.74
+      - 87.58, 220.86
+      - 87.99, 220.97
+      - 88.80, 221.19
+      - 89.20, 221.30
+      - 89.41, 221.36
+      - 89.61, 221.41
+      - 90.42, 221.62
+      - 91.23, 221.82
+      - 92.05, 222.02
+      - 92.86, 222.21
+      - 93.67, 222.39
+      - 94.07, 222.48
+      - 94.48, 222.57
+      - 95.29, 222.75
+      - 95.70, 222.83
+      - 96.10, 222.92
+      - 96.92, 223.08
+      - 97.73, 223.24
+      - 98.13, 223.32
+      - 98.54, 223.40
+      - 99.35, 223.55
+      - 100.16, 223.70
+      - 100.57, 223.77
+      - 100.97, 223.84
+      - 101.79, 223.98
+      - 102.19, 224.04
+      - 102.60, 224.11
+      - 103.41, 224.24
+      - 104.22, 224.37
+      - 104.63, 224.43
+      - 105.03, 224.49
+      - 105.84, 224.61
+      - 106.66, 224.72
+      - 107.47, 224.84
+      - 108.28, 224.94
+      - 109.09, 225.05
+      - 110.71, 225.25
+      - 111.53, 225.35
+      - 112.34, 225.44
+      - 113.15, 225.53
+      - 113.96, 225.62
+      - 114.77, 225.70
+      - 115.58, 225.78
+      - 117.21, 225.94
+      - 118.02, 226.01
+      - 118.83, 226.09
+      - 119.64, 226.16
+      - 120.45, 226.22
+      - 121.27, 226.29
+      - 122.08, 226.35
+      - 123.70, 226.47
+      - 125.32, 226.58
+      - 126.95, 226.68
+      - 127.76, 226.73
+      - 128.57, 226.77
+      - 130.19, 226.86
+      - 131.82, 226.94
+      - 133.44, 227.01
+      - 134.25, 227.04
+      - 135.06, 227.07
+      - 136.69, 227.13
+      - 138.31, 227.18
+      - 139.94, 227.22
+      - 140.75, 227.24
+      - 141.56, 227.26
+      - 143.18, 227.29
+      - 144.81, 227.31
+      - 146.43, 227.33
+      - 147.24, 227.34
+      - 148.05, 227.34
+      - 149.68, 227.35
+      - 151.30, 227.35
+      - 152.92, 227.35
+      - 154.55, 227.34
+      - 157.79, 227.31
+      - 159.42, 227.28
+      - 161.04, 227.25
+      - 164.29, 227.18
+      - 165.91, 227.13
+      - 167.53, 227.08
+      - 170.78, 226.97
+      - 172.40, 226.90
+      - 174.03, 226.83
+      - 177.27, 226.68
+      - 178.90, 226.60
+      - 180.52, 226.51
+      - 183.77, 226.31
+      - 185.39, 226.21
+      - 187.01, 226.10
+      - 190.26, 225.87
+      - 191.88, 225.74
+      - 193.51, 225.62
+      - 196.75, 225.34
+      - 198.38, 225.20
+      - 200.00, 225.05
+      - 203.25, 224.73
+      - 204.87, 224.57
+      - 206.49, 224.40
+      - 209.74, 224.04
+      - 211.36, 223.85
+      - 212.99, 223.66
+      - 216.23, 223.25
+      - 217.86, 223.04
+      - 219.48, 222.82
+      - 222.73, 222.37
+      - 224.35, 222.13
+      - 225.97, 221.89
+      - 229.22, 221.38
+      - 230.84, 221.12
+      - 232.47, 220.85
+      - 235.71, 220.29
+      - 237.34, 219.99
+      - 238.15, 219.84
+      - 238.96, 219.69
+      - 240.58, 219.39
+      - 242.21, 219.07
+      - 243.83, 218.75
+      - 244.64, 218.58
+      - 245.45, 218.41
+      - 247.08, 218.07
+      - 248.70, 217.72
+      - 250.32, 217.37
+      - 251.14, 217.18
+      - 251.95, 217.00
+      - 253.57, 216.62
+      - 255.19, 216.24
+      - 256.82, 215.84
+      - 257.63, 215.64
+      - 258.44, 215.44
+      - 260.06, 215.02
+      - 261.69, 214.60
+      - 263.31, 214.16
+      - 264.12, 213.94
+      - 264.94, 213.72
+      - 266.56, 213.26
+      - 268.18, 212.79
+      - 269.81, 212.31
+      - 270.62, 212.07
+      - 271.43, 211.82
+      - 273.05, 211.32
+      - 274.68, 210.80
+      - 276.30, 210.27
+      - 277.11, 210.00
+      - 277.92, 209.73
+      - 279.55, 209.18
+      - 281.17, 208.61
+      - 282.79, 208.03
+      - 283.60, 207.73
+      - 284.42, 207.43
+      - 286.04, 206.82
+      - 287.66, 206.20
+      - 289.29, 205.56
+      - 290.91, 204.90
+      - 294.16, 203.54
+      - 295.78, 202.83
+      - 297.40, 202.11
+      - 300.65, 200.61
+      - 302.27, 199.84
+      - 303.90, 199.04
+      - 307.14, 197.39
+      - 308.77, 196.53
+      - 310.39, 195.65
+      - 313.64, 193.83
+      - 315.26, 192.89
+      - 316.88, 191.92
+      - 320.13, 189.91
+      - 321.75, 188.87
+      - 323.38, 187.80
+      - 326.62, 185.59
+      - 328.25, 184.44
+      - 329.87, 183.26
+      - 333.12, 180.81
+      - 334.74, 179.54
+      - 336.36, 178.24
+      - 339.61, 175.53
+      - 341.23, 174.12
+      - 342.86, 172.68
+      - 346.10, 169.69
+      - 347.73, 168.14
+      - 349.35, 166.54
+      - 352.60, 163.23
+      - 354.22, 161.51
+      - 355.84, 159.75
+      - 359.09, 156.08
+      - 362.34, 152.22
+      - 365.58, 148.15
+      - 368.83, 143.86
+      - 372.08, 139.35
+      - 375.32, 134.60
+      - 381.82, 124.30
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(24.72%, 24.00%, 60.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 18.18, 225.05
+      - 21.43, 225.44
+      - 24.68, 225.78
+      - 27.92, 226.09
+      - 29.55, 226.22
+      - 31.17, 226.35
+      - 34.42, 226.58
+      - 37.66, 226.77
+      - 40.91, 226.94
+      - 44.16, 227.07
+      - 47.40, 227.18
+      - 50.65, 227.26
+      - 57.14, 227.34
+      - 63.64, 227.34
+      - 70.13, 227.25
+      - 76.62, 227.08
+      - 83.12, 226.83
+      - 89.61, 226.51
+      - 96.10, 226.10
+      - 102.60, 225.62
+      - 109.09, 225.05
+      - 115.58, 224.40
+      - 122.08, 223.66
+      - 125.32, 223.25
+      - 128.57, 222.82
+      - 131.82, 222.37
+      - 135.06, 221.89
+      - 138.31, 221.38
+      - 141.56, 220.85
+      - 144.81, 220.29
+      - 148.05, 219.69
+      - 151.30, 219.07
+      - 154.55, 218.41
+      - 157.79, 217.72
+      - 159.42, 217.37
+      - 161.04, 217.00
+      - 164.29, 216.24
+      - 165.91, 215.84
+      - 167.53, 215.44
+      - 170.78, 214.60
+      - 172.40, 214.16
+      - 174.03, 213.72
+      - 177.27, 212.79
+      - 178.90, 212.31
+      - 180.52, 211.82
+      - 183.77, 210.80
+      - 185.39, 210.27
+      - 187.01, 209.73
+      - 190.26, 208.61
+      - 191.88, 208.03
+      - 193.51, 207.43
+      - 196.75, 206.20
+      - 198.38, 205.56
+      - 200.00, 204.90
+      - 203.25, 203.54
+      - 204.87, 202.83
+      - 206.49, 202.11
+      - 209.74, 200.61
+      - 211.36, 199.84
+      - 212.99, 199.04
+      - 216.23, 197.39
+      - 217.86, 196.53
+      - 219.48, 195.65
+      - 222.73, 193.83
+      - 224.35, 192.89
+      - 225.16, 192.41
+      - 225.97, 191.92
+      - 227.60, 190.93
+      - 229.22, 189.91
+      - 230.84, 188.87
+      - 231.66, 188.34
+      - 232.47, 187.80
+      - 234.09, 186.71
+      - 235.71, 185.59
+      - 237.34, 184.44
+      - 238.15, 183.85
+      - 238.96, 183.26
+      - 240.58, 182.05
+      - 242.21, 180.81
+      - 243.83, 179.54
+      - 244.64, 178.89
+      - 245.45, 178.24
+      - 247.08, 176.90
+      - 248.70, 175.53
+      - 250.32, 174.12
+      - 251.14, 173.41
+      - 251.95, 172.68
+      - 253.57, 171.21
+      - 255.19, 169.69
+      - 256.82, 168.14
+      - 257.63, 167.35
+      - 258.44, 166.54
+      - 260.06, 164.91
+      - 261.69, 163.23
+      - 263.31, 161.51
+      - 264.12, 160.63
+      - 264.94, 159.75
+      - 266.56, 157.94
+      - 268.18, 156.08
+      - 269.81, 154.17
+      - 270.62, 153.20
+      - 271.43, 152.22
+      - 273.05, 150.21
+      - 274.68, 148.15
+      - 276.30, 146.03
+      - 277.92, 143.86
+      - 281.17, 139.35
+      - 282.79, 137.00
+      - 284.42, 134.60
+      - 287.66, 129.58
+      - 289.29, 126.98
+      - 290.91, 124.30
+      - 294.16, 118.73
+      - 295.78, 115.83
+      - 297.40, 112.86
+      - 300.65, 106.66
+      - 302.27, 103.44
+      - 303.90, 100.13
+      - 307.14, 93.23
+      - 308.77, 89.64
+      - 310.39, 85.95
+      - 313.64, 78.26
+      - 315.26, 74.26
+      - 316.88, 70.14
+      - 320.13, 61.57
+      - 321.75, 57.10
+      - 323.38, 52.51
+      - 326.62, 42.94
+      - 328.25, 37.95
+      - 329.87, 32.83
+      - 333.12, 22.13
+      - 334.74, 16.56
+      - 336.36, 10.83
+      - 339.61, -1.13
+      - 342.86, -13.78
+      - 346.10, -27.16
+      - 349.35, -41.33
+      - 352.60, -56.32
+      - 355.84, -72.19
+      - 362.34, -106.81
+      - 368.83, -145.66
+      - 375.32, -189.31
+      - 381.82, -238.39
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(60.00%, 24.00%, 44.29%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - -16.00, 245.20
+      - 416.00, 245.20
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  text
+    @font-size: 10.00px
+    @ox: 0.00
+    @oy: 1.00
+    @style:
+      - color: rgb(0.00%, 0.00%, 0.00%)
+      - dominant-baseline: hanging
+      - fill: rgb(0.00%, 0.00%, 0.00%)
+      - fill-opacity: 1.00
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-opacity: 1.00
+      - stroke-width: 0.20px
+      - text-anchor: middle
+    @x: 109.09
+    @y: 247.87
+    #text: 1
+  text
+    @font-size: 10.00px
+    @ox: 0.00
+    @oy: 1.00
+    @style:
+      - color: rgb(0.00%, 0.00%, 0.00%)
+      - dominant-baseline: hanging
+      - fill: rgb(0.00%, 0.00%, 0.00%)
+      - fill-opacity: 1.00
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-opacity: 1.00
+      - stroke-width: 0.20px
+      - text-anchor: middle
+    @x: 200.00
+    @y: 247.87
+    #text: 2
+  text
+    @font-size: 10.00px
+    @ox: 0.00
+    @oy: 1.00
+    @style:
+      - color: rgb(0.00%, 0.00%, 0.00%)
+      - dominant-baseline: hanging
+      - fill: rgb(0.00%, 0.00%, 0.00%)
+      - fill-opacity: 1.00
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-opacity: 1.00
+      - stroke-width: 0.20px
+      - text-anchor: middle
+    @x: 290.91
+    @y: 247.87
+    #text: 3
+  text
+    @font-size: 10.00px
+    @ox: 0.00
+    @oy: 1.00
+    @style:
+      - color: rgb(0.00%, 0.00%, 0.00%)
+      - dominant-baseline: hanging
+      - fill: rgb(0.00%, 0.00%, 0.00%)
+      - fill-opacity: 1.00
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-opacity: 1.00
+      - stroke-width: 0.20px
+      - text-anchor: middle
+    @x: 381.82
+    @y: 247.87
+    #text: 4
+  polyline
+    @points:
+      - 109.09, 245.20
+      - 109.09, 238.53
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 200.00, 245.20
+      - 200.00, 238.53
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 290.91, 245.20
+      - 290.91, 238.53
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 381.82, 245.20
+      - 381.82, 238.53
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 0.00, 245.20
+      - 0.00, 241.20
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 36.36, 245.20
+      - 36.36, 241.20
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 54.55, 245.20
+      - 54.55, 241.20
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 72.73, 245.20
+      - 72.73, 241.20
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 90.91, 245.20
+      - 90.91, 241.20
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 127.27, 245.20
+      - 127.27, 241.20
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 145.45, 245.20
+      - 145.45, 241.20
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 163.64, 245.20
+      - 163.64, 241.20
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 181.82, 245.20
+      - 181.82, 241.20
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 218.18, 245.20
+      - 218.18, 241.20
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 236.36, 245.20
+      - 236.36, 241.20
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 254.55, 245.20
+      - 254.55, 241.20
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 272.73, 245.20
+      - 272.73, 241.20
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 309.09, 245.20
+      - 309.09, 241.20
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 327.27, 245.20
+      - 327.27, 241.20
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 345.45, 245.20
+      - 345.45, 241.20
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 363.64, 245.20
+      - 363.64, 241.20
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 400.00, 245.20
+      - 400.00, 241.20
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 18.18, 260.16
+      - 18.18, -12.94
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  text
+    @font-size: 10.00px
+    @ox: 1.00
+    @oy: 0.00
+    @style:
+      - color: rgb(0.00%, 0.00%, 0.00%)
+      - dominant-baseline: middle
+      - fill: rgb(0.00%, 0.00%, 0.00%)
+      - fill-opacity: 1.00
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-opacity: 1.00
+      - stroke-width: 0.20px
+      - text-anchor: end
+    @x: 15.52
+    @y: 204.90
+    #text: 2
+  text
+    @font-size: 10.00px
+    @ox: 1.00
+    @oy: 0.00
+    @style:
+      - color: rgb(0.00%, 0.00%, 0.00%)
+      - dominant-baseline: middle
+      - fill: rgb(0.00%, 0.00%, 0.00%)
+      - fill-opacity: 1.00
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-opacity: 1.00
+      - stroke-width: 0.20px
+      - text-anchor: end
+    @x: 15.52
+    @y: 164.60
+    #text: 4
+  text
+    @font-size: 10.00px
+    @ox: 1.00
+    @oy: 0.00
+    @style:
+      - color: rgb(0.00%, 0.00%, 0.00%)
+      - dominant-baseline: middle
+      - fill: rgb(0.00%, 0.00%, 0.00%)
+      - fill-opacity: 1.00
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-opacity: 1.00
+      - stroke-width: 0.20px
+      - text-anchor: end
+    @x: 15.52
+    @y: 124.30
+    #text: 6
+  text
+    @font-size: 10.00px
+    @ox: 1.00
+    @oy: 0.00
+    @style:
+      - color: rgb(0.00%, 0.00%, 0.00%)
+      - dominant-baseline: middle
+      - fill: rgb(0.00%, 0.00%, 0.00%)
+      - fill-opacity: 1.00
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-opacity: 1.00
+      - stroke-width: 0.20px
+      - text-anchor: end
+    @x: 15.52
+    @y: 84.00
+    #text: 8
+  text
+    @font-size: 10.00px
+    @ox: 1.00
+    @oy: 0.00
+    @style:
+      - color: rgb(0.00%, 0.00%, 0.00%)
+      - dominant-baseline: middle
+      - fill: rgb(0.00%, 0.00%, 0.00%)
+      - fill-opacity: 1.00
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-opacity: 1.00
+      - stroke-width: 0.20px
+      - text-anchor: end
+    @x: 15.52
+    @y: 43.70
+    #text: 10
+  text
+    @font-size: 10.00px
+    @ox: 1.00
+    @oy: 0.00
+    @style:
+      - color: rgb(0.00%, 0.00%, 0.00%)
+      - dominant-baseline: middle
+      - fill: rgb(0.00%, 0.00%, 0.00%)
+      - fill-opacity: 1.00
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-opacity: 1.00
+      - stroke-width: 0.20px
+      - text-anchor: end
+    @x: 15.52
+    @y: 3.41
+    #text: 12
+  polyline
+    @points:
+      - 18.18, 204.90
+      - 24.85, 204.90
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 18.18, 164.60
+      - 24.85, 164.60
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 18.18, 124.30
+      - 24.85, 124.30
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 18.18, 84.00
+      - 24.85, 84.00
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 18.18, 43.70
+      - 24.85, 43.70
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 18.18, 3.41
+      - 24.85, 3.41
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 18.18, 235.12
+      - 22.18, 235.12
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 18.18, 225.05
+      - 22.18, 225.05
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 18.18, 214.97
+      - 22.18, 214.97
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 18.18, 194.83
+      - 22.18, 194.83
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 18.18, 184.75
+      - 22.18, 184.75
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 18.18, 174.68
+      - 22.18, 174.68
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 18.18, 154.53
+      - 22.18, 154.53
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 18.18, 144.45
+      - 22.18, 144.45
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 18.18, 134.38
+      - 22.18, 134.38
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 18.18, 114.23
+      - 22.18, 114.23
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 18.18, 104.15
+      - 22.18, 104.15
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 18.18, 94.08
+      - 22.18, 94.08
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 18.18, 73.93
+      - 22.18, 73.93
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 18.18, 63.85
+      - 22.18, 63.85
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 18.18, 53.78
+      - 22.18, 53.78
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 18.18, 33.63
+      - 22.18, 33.63
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 18.18, 23.55
+      - 22.18, 23.55
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
+  polyline
+    @points:
+      - 18.18, 13.48
+      - 22.18, 13.48
+    @style:
+      - fill: none
+      - opacity: 1.00
+      - stroke: rgb(0.00%, 0.00%, 0.00%)
+      - stroke-linecap: square
+      - stroke-linejoin: miter
+      - stroke-miterlimit: 3.25
+      - stroke-opacity: 1.00
+      - stroke-width: 1.07px
