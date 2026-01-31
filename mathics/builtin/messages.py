@@ -191,6 +191,7 @@ class General(Builtin):
         # "dgbgn": "Entering Dialog; use Return[] to exit.",
         "dgend": "Exiting Dialog.",
         "digit": "Digit at position `1` in `2` is too large to be used in base `3`.",
+        "dis": "Execution of external commands is disabled.",
         "exact": "Argument `1` is not an exact number.",
         "fnsym": (
             "First argument in `1` is not a symbol " "or a string naming a symbol."
