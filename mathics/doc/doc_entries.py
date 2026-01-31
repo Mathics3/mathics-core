@@ -317,7 +317,7 @@ class DocTest:
            the documentation.
     * `X>` Shows the example in the docs, but disables testing the example.
     * `S>` Shows the example in the docs, but disables testing if environment
-           variable SANDBOX is set.
+           variable MATHICS3_SANDBOX is set.
     * `=`  Compares the result text.
     * `:`  Compares an (error) message.
       `|`  Prints output.
@@ -362,8 +362,11 @@ class DocTest:
         self.private = testcase[0] == "#"
 
         # Ignored test cases are NOT executed, but shown as part of the docs
-        # Sandboxed test cases are NOT executed if environment SANDBOX is set
-        if testcase[0] == "X" or (testcase[0] == "S" and getenv("SANDBOX", False)):
+        # Sandboxed test cases are NOT executed if environment MATHICS3_SANDBOX is set
+        from mathics import settings
+
+        is_sandbox = not settings.ENABLE_SYSTEM_COMMANDS
+        if testcase[0] == "X" or (testcase[0] == "S" and is_sandbox):
             self.ignore = True
             # substitute '>' again so we get the correct formatting
             testcase[0] = ">"

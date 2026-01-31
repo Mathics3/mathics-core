@@ -540,7 +540,7 @@ class LaTeXDocTest(DocTest):
            the documentation.
     * `X>` Shows the example in the docs, but disables testing the example.
     * `S>` Shows the example in the docs, but disables testing if environment
-           variable SANDBOX is set.
+           variable MATHICS3_SANDBOX is set.
     * `=`  Compares the result text.
     * `:`  Compares an (error) message.
       `|`  Prints output.
