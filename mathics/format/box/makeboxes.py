@@ -9,6 +9,7 @@ makeboxes rules.
 from typing import List
 
 from mathics.core.atoms import Complex, Rational, String
+from mathics.core.definitions import BOX_FORMS
 from mathics.core.element import BaseElement, BoxElementMixin, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -17,6 +18,7 @@ from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
     SymbolFullForm,
+    SymbolHoldForm,
     SymbolList,
     SymbolMakeBoxes,
     SymbolTrue,
@@ -24,6 +26,7 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (  # SymbolRule, SymbolRuleDelayed,
     SymbolAborted,
     SymbolComplex,
+    SymbolParentForm,
     SymbolRational,
     SymbolStandardForm,
     SymbolTraditionalForm,
@@ -32,7 +35,6 @@ from mathics.eval.lists import list_boxes
 from mathics.format.box.formatvalues import do_format
 from mathics.format.box.precedence import parenthesize
 
-BOX_FORMS = {SymbolStandardForm, SymbolTraditionalForm}
 PRINT_FORMS_CALLBACK = {}
 
 
@@ -82,7 +84,16 @@ def apply_makeboxes_rules(
 
     Basically: MakeBoxes[expr, form]
     """
-    assert form in BOX_FORMS, f"{form} not in BOX_FORMS"
+    parent_form = form
+
+    if form not in evaluation.definitions.boxforms:
+        expr = Expression(
+            SymbolFullForm,
+            Expression(SymbolHoldForm, Expression(SymbolMakeBoxes, expr, form)),
+        )
+        evaluation.message("MakeBoxes", "boxfmt", form, expr)
+    elif form not in BOX_FORMS:
+        parent_form = find_parent_form(form, evaluation)
 
     def yield_rules():
         # Look
@@ -108,6 +119,11 @@ def apply_makeboxes_rules(
             return boxed.evaluate(evaluation)
         if isinstance(boxed, BoxElementMixin):
             return boxed
+
+    # Try with the ParentForm
+    if parent_form is not form:
+        return apply_makeboxes_rules(expr, evaluation, parent_form)
+
     return eval_generic_makeboxes(expr, form, evaluation)
 
 
@@ -194,7 +210,6 @@ def eval_generic_makeboxes(expr, f, evaluation):
     f:TraditionalForm|StandardForm]"""
     from mathics.builtin.box.layout import RowBox
 
-    assert f in BOX_FORMS, f"{f} not in BOX_FORMS"
     if isinstance(expr, BoxElementMixin):
         expr = expr.to_expression()
     if isinstance(expr, Atom):
@@ -204,6 +219,9 @@ def eval_generic_makeboxes(expr, f, evaluation):
     else:
         head = expr.head
         elements = expr.elements
+        if head in evaluation.definitions.boxforms and len(elements) == 1:
+            return apply_makeboxes_rules(elements[0], evaluation, head)
+
         printform_callback = PRINT_FORMS_CALLBACK.get(head.get_name(), None)
         if printform_callback is not None:
             return printform_callback(elements[0], evaluation)
@@ -255,6 +273,18 @@ def eval_generic_makeboxes(expr, f, evaluation):
         return RowBox(*result)
 
 
+def find_parent_form(form, evaluation):
+    """Recursively find the ParentForm of the BoxForm `form`"""
+    parent_form = form
+    while parent_form not in BOX_FORMS:
+        parent_form_expr = Expression(SymbolParentForm, form)
+        parent_form = parent_form_expr.evaluate(evaluation)
+        if parent_form_expr.sameQ(parent_form):
+            evaluation.message("ParentForm", "deflt", parent_form_expr)
+            return SymbolStandardForm
+    return parent_form
+
+
 def format_element(
     element: BaseElement, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> BoxElementMixin:
@@ -263,7 +293,7 @@ def format_element(
     """
     evaluation.is_boxing = True
     formatted_expr = do_format(element, evaluation, form)
-    if form not in BOX_FORMS:
+    if form not in evaluation.definitions.boxforms:
         formatted_expr = Expression(form, formatted_expr)
         form = SymbolStandardForm
     result_box = apply_makeboxes_rules(formatted_expr, evaluation, form)

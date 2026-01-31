@@ -360,6 +360,8 @@ def rowbox(self, **options) -> str:
         lookup_conversion_method(element, "latex")(element, **options)
         for element in self.items
     ]
+    if len(parts_str) == 0:
+        return ""
     if len(parts_str) == 1:
         return parts_str[0]
     # This loop integrate all the row adding spaces after a ",", followed
