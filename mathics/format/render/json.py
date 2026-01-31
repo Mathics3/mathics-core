@@ -4,12 +4,14 @@ Lower-level formatter of Mathics objects as JSON data.
 
 Right now this happens mostly for graphics primitives.
 """
+import json
 
 from mathics.builtin.box.graphics3d import (
     Arrow3DBox,
     Cone3DBox,
     Cuboid3DBox,
     Cylinder3DBox,
+    Graphics3DBox,
     Line3DBox,
     Point3DBox,
     Polygon3DBox,
@@ -20,6 +22,7 @@ from mathics.builtin.box.uniform_polyhedra import UniformPolyhedron3DBox
 from mathics.builtin.drawing.graphics3d import Graphics3DElements
 from mathics.builtin.graphics import PointSize
 from mathics.core.formatter import add_conversion_fn, lookup_method
+from mathics.format.box.graphics3d import prepare_elements as prepare_elements3d
 
 # FIXME
 # Add 2D elements like DensityPlot
@@ -134,6 +137,70 @@ def cylinder_3d_box(self):
 
 
 add_conversion_fn(Cylinder3DBox, cylinder_3d_box)
+
+
+def graphics3d_boxes_to_json(self, content=None, **options):
+    """Turn the Graphics3DBox to into a something JSON like.
+    This can be used to embed in something else like MathML or Javascript.
+
+    In contrast to to javascript or MathML, no enclosing tags are included.
+    the caller will do that if it is needed.
+    """
+    assert content is None
+    (
+        elements,
+        axes,
+        ticks,
+        ticks_style,
+        calc_dimensions,
+        boxscale,
+    ) = prepare_elements3d(self, self.content, options)
+    background = "rgba(100.0%, 100.0%, 100.0%, 100.0%)"
+    if self.background_color:
+        components = self.background_color.to_rgba()
+        if len(components) == 3:
+            background = "rgb(" + ", ".join(f"{100*c}%" for c in components) + ")"
+        else:
+            background = "rgba(" + ", ".join(f"{100*c}%" for c in components) + ")"
+
+    tooltip_text = elements.tooltip_text if hasattr(elements, "tooltip_text") else ""
+
+    js_ticks_style = [s.to_js() for s in ticks_style]
+    elements._apply_boxscaling(boxscale)
+
+    xmin, xmax, ymin, ymax, zmin, zmax, boxscale, w, h = calc_dimensions()
+    elements.view_width = w
+    # FIXME: json is the only thing we can convert MathML into.
+    # Handle other graphics formats.
+    format_fn = lookup_method(elements, "json")
+
+    json_repr = json.dumps(
+        {
+            "elements": format_fn(elements, **options),
+            "background_color": background,
+            "tooltip_text": tooltip_text,
+            "axes": {
+                "hasaxes": axes,
+                "ticks": ticks,
+                "ticks_style": js_ticks_style,
+            },
+            "extent": {
+                "xmin": xmin,
+                "xmax": xmax,
+                "ymin": ymin,
+                "ymax": ymax,
+                "zmin": zmin,
+                "zmax": zmax,
+            },
+            "lighting": self.lighting,
+            "viewpoint": self.viewpoint,
+            "protocol": "1.1",
+        }
+    )
+    return json_repr
+
+
+add_conversion_fn(Graphics3DBox, graphics3d_boxes_to_json)
 
 
 def line_3d_box(self):

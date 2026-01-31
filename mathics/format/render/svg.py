@@ -17,13 +17,12 @@ from mathics.builtin.box.graphics import (
     _RoundBox,
 )
 from mathics.builtin.drawing.graphics3d import Graphics3DElements
-from mathics.builtin.graphics import (
-    DEFAULT_POINT_FACTOR,
-    GraphicsElements,
-    PointSize,
-    _svg_bezier,
-)
+from mathics.builtin.graphics import DEFAULT_POINT_FACTOR, PointSize, _svg_bezier
 from mathics.core.formatter import add_conversion_fn, lookup_method
+from mathics.format.box.graphics import (
+    GraphicsElements,
+    prepare_elements as prepare_elements2d,
+)
 
 
 class _SVGTransform:
@@ -266,10 +265,11 @@ def graphics_box(self, elements=None, **options: dict) -> str:
     ``evaluation``:  an ``Evaluation`` object that can be used when further evaluation is needed.
     """
 
-    if not elements:
-        elements = self._elements
+    assert elements is None
+    elements = self.content
 
     data = options.get("data", None)
+    assert data is None
     if data:
         (
             elements,
@@ -283,8 +283,8 @@ def graphics_box(self, elements=None, **options: dict) -> str:
             height,
         ) = data
     else:
-        elements, calc_dimensions = self._prepare_elements(
-            elements, options, neg_y=True
+        elements, calc_dimensions = prepare_elements2d(
+            self, elements, options, neg_y=True
         )
         (
             xmin,
@@ -308,7 +308,7 @@ def graphics_box(self, elements=None, **options: dict) -> str:
     self.boxwidth = options.get("width", self.boxwidth)
     self.boxheight = options.get("height", self.boxheight)
 
-    tooltip_text = self.tooltip_text if hasattr(self, "tooltip_text") else ""
+    tooltip_text = self.tooltip_text or ""
     if self.background_color is not None:
         # FIXME: tests don't seem to cover this section of code.
         # Wrap svg_elements in a rectangle

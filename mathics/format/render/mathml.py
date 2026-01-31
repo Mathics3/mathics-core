@@ -6,7 +6,6 @@ MathML formatting is usually initiated in Mathics via MathMLForm[].
 """
 
 import base64
-import html
 
 from mathics_scanner.tokeniser import is_symbol_name
 
@@ -338,7 +337,7 @@ add_conversion_fn(StyleBox, stylebox)
 def graphicsbox(self, elements=None, **options) -> str:
     # FIXME: SVG is the only thing we can convert MathML into.
     # Handle other graphics formats.
-    svg_body = self.boxes_to_svg(elements, **options)
+    svg_body = self.boxes_to_format("svg", **options)
 
     # mglyph, which is what we have been using, is bad because MathML standard changed.
     # metext does not work because the way in which we produce the svg images is also based on this outdated mglyph
@@ -350,8 +349,8 @@ def graphicsbox(self, elements=None, **options) -> str:
     )
     # print(svg_body)
     mathml = template % (
-        int(self.width),
-        int(self.height),
+        int(self.boxwidth),
+        int(self.boxheight),
         base64.b64encode(svg_body.encode("utf8")).decode("utf8"),
     )
     # print("boxes_to_mathml", mathml)
@@ -363,10 +362,9 @@ add_conversion_fn(GraphicsBox, graphicsbox)
 
 def graphics3dbox(self, elements=None, **options) -> str:
     """Turn the Graphics3DBox into a MathML string"""
-    json_repr = self.boxes_to_json(elements, **options)
-    mathml = f'<graphics3d data="{html.escape(json_repr)}" />'
-    mathml = f"<mtable><mtr><mtd>{mathml}</mtd></mtr></mtable>"
-    return mathml
+    result = self.boxes_to_js(**options)
+    result = f"<mtable><mtr><mtd>{result}</mtd></mtr></mtable>"
+    return result
 
 
 add_conversion_fn(Graphics3DBox, graphics3dbox)
