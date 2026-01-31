@@ -52,10 +52,10 @@ jobs:
           # Activate the virtual environment
           source .venv-pyodide/bin/activate
 
-          python -m pip install --upgrade pip
+          pip install "setuptools>=70.0.0" PyYAML click packaging pytest
 
           # We can comment out after next Mathics-Scanner release
-          python -m pip install -e "Mathics-Scanner[full] @ git+https://github.com/Mathics3/mathics-scanner"
+          python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner
 
           pip install --no-build-isolation -e .
           make mathics/data/op-tables.json mathics/data/operator-tables.json
