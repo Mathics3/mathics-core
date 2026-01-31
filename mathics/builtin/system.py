@@ -6,14 +6,16 @@ Global System Information
 
 import _thread
 import gc
+import inspect
 import os
 import platform
 import subprocess
 import sys
+from functools import wraps
 
 from pympler.asizeof import asizeof
 
-from mathics import version_string
+from mathics import settings, version_string
 from mathics.core.atoms import Integer, Integer0, IntegerM1, Real, String
 from mathics.core.attributes import A_CONSTANT
 from mathics.core.builtin import Builtin, Predefined
@@ -40,6 +42,40 @@ else:
 sort_order = "mathics.builtin.global-system-information"
 
 
+def not_in_sandboxed_environment(func):
+    """
+    A decorator for eval() and evaluate() methods which
+    checks that mathics.settings.ENABLE_SYSTEM_COMMANDS is set.
+    In other words, check to see if we are not in a sandboxed
+    environment.
+
+    If we are sandboxed, a "dis" message is printed and we return $Failed.
+    """
+
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        # Get the function signature once during decoration
+        sig = inspect.signature(func)
+
+        # Here is we check to see if we are in a sandoxed environment.
+        if not settings.ENABLE_SYSTEM_COMMANDS:
+            # Bind args/kwargs to the function's parameter names
+            bound_args = sig.bind(self, *args, **kwargs)
+            # Apply default values for any missing arguments
+            bound_args.apply_defaults()
+
+            # Access "evaluation" by name, regardless of its position
+            self = bound_args.arguments.get("self")
+            evaluation = bound_args.arguments.get("evaluation")
+
+            evaluation.message(self.__class__.__name__, "dis")
+            return SymbolFailed
+
+        return func(self, *args, **kwargs)
+
+    return wrapper
+
+
 class Breakpoint(Builtin):
     """<url>:Python breakpoint():https://docs.python.org/3/library/functions.html#breakpoint</url>
 
@@ -63,10 +99,9 @@ class Breakpoint(Builtin):
 
     Here is how to use 'mathics.disabled_breakpoint':
 
-    >> SetEnvironment["PYTHONBREAKPOINT" -> "mathics.disabled_breakpoint"];
+    X> SetEnvironment["PYTHONBREAKPOINT" -> "mathics.disabled_breakpoint"];
 
-    >> Breakpoint[]
-    = Hit disabled breakpoint.
+    X> Breakpoint[]
     = Breakpoint[]
 
     The environment variable 'PYTHONBREAKPOINT' can be changed at runtime to switch \
@@ -75,8 +110,10 @@ class Breakpoint(Builtin):
 
     summary_text = "invoke Python breakpoint()"
 
+    @not_in_sandboxed_environment
     def eval(self, evaluation: Evaluation):
         "Breakpoint[]"
+
         breakpoint()
 
 
@@ -88,7 +125,7 @@ class CommandLine(Predefined):
       <dd>is a list of strings passed on the command line to launch the Mathics3 session.
     </dl>
 
-    >> $CommandLine
+    S> $CommandLine
      = {...}
     """
 
@@ -98,6 +135,7 @@ class CommandLine(Predefined):
         "session was launched"
     )
 
+    @not_in_sandboxed_environment
     def evaluate(self, evaluation: Evaluation) -> Expression:
         return ListExpression(*(String(arg) for arg in sys.argv))
 
@@ -123,8 +161,10 @@ class Environment(Builtin):
 
     summary_text = "list the system environment variables"
 
+    @not_in_sandboxed_environment
     def eval(self, var, evaluation: Evaluation):
         "Environment[var_String]"
+
         env_var = var.get_string_value()
         if env_var not in os.environ:
             return SymbolFailed
@@ -168,11 +208,15 @@ class GetEnvironment(Builtin):
     /doc/reference-of-built-in-symbols/global-system-information/setenvironment/</url>.
     """
 
-    messages = {"name": "`1` is not ALL or a string or a list of strings."}
+    messages = {
+        "name": "`1` is not ALL or a string or a list of strings.",
+    }
     summary_text = "retrieve the value of a system environment variable"
 
+    @not_in_sandboxed_environment
     def eval(self, var, evaluation: Evaluation):
         "GetEnvironment[var___]"
+
         if isinstance(var, String):
             env_var = var.value
             tup = (
@@ -305,8 +349,12 @@ class MachineName(Predefined):
     name = "$MachineName"
     summary_text = "get the name of computer that Mathics3 is running"
 
+    @not_in_sandboxed_environment
     def evaluate(self, evaluation: Evaluation) -> String:
-        return String(platform.uname().node)
+        try:
+            return String(platform.uname().node)
+        except Exception:
+            return String("unknown")
 
 
 class MathicsVersion(Predefined):
@@ -477,14 +525,14 @@ class ParentProcessID(Predefined):
           system under which it is run.
     </dl>
 
-    >> $ParentProcessID
+    S> $ParentProcessID
      = ...
-
     """
 
     name = "$ParentProcessID"
     summary_text = "get process id of the process that invoked Mathics3"
 
+    @not_in_sandboxed_environment
     def evaluate(self, evaluation: Evaluation) -> Integer:
         return Integer(os.getppid())
 
@@ -499,13 +547,14 @@ class ProcessID(Predefined):
           which it is run.
     </dl>
 
-    >> $ProcessID
+    S> $ProcessID
      = ...
     """
 
     name = "$ProcessID"
     summary_text = "get process id of the Mathics process"
 
+    @not_in_sandboxed_environment
     def evaluate(self, evaluation: Evaluation) -> Integer:
         return Integer(os.getpid())
 
@@ -573,8 +622,10 @@ class Run(Builtin):
 
     summary_text = "run a system command"
 
+    @not_in_sandboxed_environment
     def eval(self, command, evaluation: Evaluation):
         "Run[command_String]"
+
         command_str = command.to_python()
         return Integer(subprocess.call(command_str, shell=True))
 
@@ -588,13 +639,14 @@ class ScriptCommandLine(Predefined):
       <dd>is a list of string arguments when running the kernel is script mode.
     </dl>
 
-    >> $ScriptCommandLine
+    S> $ScriptCommandLine
      = {...}
     """
 
     summary_text = "list of command line arguments"
     name = "$ScriptCommandLine"
 
+    @not_in_sandboxed_environment
     def evaluate(self, evaluation: Evaluation):
         try:
             dash_index = sys.argv.index("--")
@@ -681,11 +733,15 @@ class SetEnvironment(Builtin):
      /doc/reference-of-built-in-symbols/global-system-information/getenvironment/</url>.
     """
 
-    messages = {"value": "`1` must be a string or None."}
+    messages = {
+        "value": "`1` must be a string or None.",
+    }
     summary_text = "set system environment variable(s)"
 
+    @not_in_sandboxed_environment
     def eval(self, rule, evaluation):
         "SetEnvironment[rule_Rule]"
+
         env_var_name, env_var_value = rule.elements
         # WMA does not give an error message if env_var_name is not a String - weird.
         if not isinstance(env_var_name, String):
@@ -695,11 +751,13 @@ class SetEnvironment(Builtin):
             evaluation.message("SetEnvironment", "value", env_var_value)
             return SymbolFailed
 
-        os.environ[env_var_name.value] = (
-            None if None is SymbolNone else env_var_value.value
-        )
+        if env_var_value is SymbolNone:
+            os.environ.pop(env_var_name.value, None)
+        else:
+            os.environ[env_var_name.value] = env_var_value.value
         return SymbolNull
 
+    @not_in_sandboxed_environment
     def eval_list(self, rules: Expression, evaluation: Evaluation):
         "SetEnvironment[{rules__}]"
 
@@ -832,6 +890,7 @@ class UserName(Predefined):
     name = "$UserName"
     summary_text = "get login name of the user that invoked the current session"
 
+    @not_in_sandboxed_environment
     def evaluate(self, evaluation: Evaluation) -> String:
         try:
             user = os.getlogin()
@@ -896,13 +955,14 @@ if have_psutil:
           <dd>Returns the total amount of physical memory.
         </dl>
 
-        >> $SystemMemory
+        S> $SystemMemory
          = ...
         """
 
         name = "$SystemMemory"
         summary_text = "get the total amount of physical memory in the system"
 
+        @not_in_sandboxed_environment
         def evaluate(self, evaluation: Evaluation) -> Integer:
             totalmem = psutil.virtual_memory().total
             return Integer(totalmem)
@@ -916,22 +976,46 @@ if have_psutil:
           <dd>Returns the amount of the available physical memory.
         </dl>
 
-        >> MemoryAvailable[]
+        S> MemoryAvailable[]
          = ...
 
         The relationship between \\$SystemMemory, MemoryAvailable, and MemoryInUse:
-        >> $SystemMemory > MemoryAvailable[] > MemoryInUse[]
+        S> $SystemMemory > MemoryAvailable[] > MemoryInUse[]
          = True
         """
 
         summary_text = "get the available amount of physical memory in the system"
 
+        @not_in_sandboxed_environment
         def eval(self, evaluation: Evaluation) -> Integer:
             """MemoryAvailable[]"""
+
             totalmem = psutil.virtual_memory().available
             return Integer(totalmem)
 
 else:
+
+    class MemoryAvailable(Builtin):
+        """
+        <url>:WMA link:https://reference.wolfram.com/language/ref/MemoryAvailable.html</url>
+
+        <dl>
+          <dt>'MemoryAvailable'
+          <dd>Returns the amount of the available physical memory when Python module "psutil" is installed.
+          This system however doesn't have that installed, so -1 is returned instead.
+        </dl>
+
+        S> MemoryAvailable[]
+         = -1
+        """
+
+        summary_text = "get the available amount of physical memory in the system"
+
+        @not_in_sandboxed_environment
+        def eval(self, evaluation: Evaluation) -> Integer:
+            """MemoryAvailable[]"""
+
+            return IntegerM1
 
     class SystemMemory(Predefined):
         """
@@ -943,32 +1027,13 @@ else:
           This system however doesn't have that installed, so -1 is returned instead.
         </dl>
 
-        >> $SystemMemory
+        S> $SystemMemory
          = -1
         """
 
         summary_text = "the total amount of physical memory in the system"
         name = "$SystemMemory"
 
+        @not_in_sandboxed_environment
         def evaluate(self, evaluation: Evaluation) -> Integer:
-            return IntegerM1
-
-    class MemoryAvailable(Builtin):
-        """
-        <url>:WMA link:https://reference.wolfram.com/language/ref/MemoryAvailable.html</url>
-
-        <dl>
-          <dt>'MemoryAvailable'
-          <dd>Returns the amount of the available physical when Python module "psutil" is installed.
-          This system however doesn't have that installed, so -1 is returned instead.
-        </dl>
-
-        >> MemoryAvailable[]
-         = -1
-        """
-
-        summary_text = "get the available amount of physical memory in the system"
-
-        def eval(self, evaluation: Evaluation) -> Integer:
-            """MemoryAvailable[]"""
             return IntegerM1
