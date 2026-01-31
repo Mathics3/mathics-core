@@ -18,6 +18,7 @@ from mathics.core.assignment import (
 from mathics.core.atoms import Integer, Integer1
 from mathics.core.attributes import A_LOCKED, attribute_string_to_number
 from mathics.core.builtin import Builtin
+from mathics.core.definitions import BOX_FORMS
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import (
     MAX_RECURSION_DEPTH,
@@ -214,6 +215,30 @@ def eval_assign_attributes(
 
     evaluation.definitions.set_attributes(tag, attributes)
 
+    return True
+
+
+def eval_assign_boxforms(self, lhs, rhs, evaluation) -> bool:
+    if not rhs.has_form("List", None):
+        evaluation.message("$BoxForms", "formset", rhs)
+        return False
+    elements = rhs.elements
+    if not all(form in elements for form in BOX_FORMS):
+        evaluation.message("$BoxForms", "formset", rhs)
+        return False
+    if not all(isinstance(form, Symbol) for form in elements):
+        evaluation.message("$BoxForms", "formset", rhs)
+        return False
+
+    definitions = evaluation.definitions
+    # Add the new elements to printforms and outputforms
+    for element in elements:
+        if element not in definitions.printforms:
+            definitions.printforms.append(element)
+        if element not in definitions.outputforms:
+            definitions.outputforms.append(element)
+
+    definitions.boxforms = elements
     return True
 
 
@@ -1563,6 +1588,7 @@ ASSIGNMENT_FUNCTION_MAP = {
 
 
 EVAL_ASSIGN_SPECIAL_SYMBOLS = {
+    "System`$BoxForms": eval_assign_boxforms,
     "System`$Context": eval_assign_context,
     "System`$ContextPath": eval_assign_context_path,
     "System`$HistoryLength": eval_assign_line_number_and_history_length,

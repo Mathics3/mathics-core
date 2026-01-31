@@ -158,6 +158,9 @@ class OutputForm(FormBaseClass):
      = -Graphics-
     """
 
+    in_outputforms = True
+    in_printforms = True
+
     summary_text = "format expression in plain text"
 
 
@@ -182,6 +185,7 @@ class StandardForm(FormBaseClass):
 
     in_outputforms = True
     in_printforms = True
+    in_boxforms = True
     summary_text = "format expression the default way"
 
 
@@ -204,7 +208,7 @@ class TraditionalForm(FormBaseClass):
 
     in_outputforms = True
     in_printforms = True
-
+    in_boxforms = True
     summary_text = "format expression using traditional mathematical notation"
 
 
