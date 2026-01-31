@@ -181,6 +181,8 @@ def rowbox(self, elements=None, **options) -> str:
     _options.update(options)
     options = _options
     parts_str = [boxes_to_text(element, **options) for element in self.items]
+    if len(parts_str) == 0:
+        return ""
     if len(parts_str) == 1:
         return parts_str[0]
     # This loop integrate all the row adding spaces after a ",", followed
