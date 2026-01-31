@@ -52,7 +52,7 @@ jobs:
           # Activate the virtual environment
           source .venv-pyodide/bin/activate
 
-          pip install "setuptools>=70.0.0" PyYAML click packaging pytest
+          python -m pip install --upgrade pip
 
           # We can comment out after next Mathics-Scanner release
           python -m pip install -e "Mathics-Scanner[full] @ git+https://github.com/Mathics3/mathics-scanner"
