@@ -409,6 +409,16 @@ class RowBox(BoxExpression):
     def __repr__(self):
         return f"RowBox[{self.elements[0].__repr__()}]"
 
+    def __init__(self, *args, **kwargs):
+        # indent level nesting level used in rendering MathML boxes
+        self.indent_level: int = 0
+
+        # Consider adding.
+        # self.width: int = 0
+
+        # Pass all arguments to the parent class.
+        super().__init__(*args, **kwargs)
+
     @property
     def elements(self):
         if self._elements is None:
