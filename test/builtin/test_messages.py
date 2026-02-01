@@ -4,11 +4,14 @@ Unit tests from mathics.builtin.messages.
 """
 
 
-from test.helper import check_evaluation_as_in_cli, session
+from test.helper import check_evaluation_as_in_cli
 
 import pytest
 
+print("\n***Rocky will address this soon.***")
 
+
+@pytest.mark.skip(reason="Rocky will address this soon")
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [

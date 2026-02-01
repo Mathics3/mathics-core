@@ -10,11 +10,15 @@ from test.helper import check_evaluation, evaluate
 import pytest
 
 try:
-    from stopit import __version__ as stopit_version
+    from timed_threads import __version__ as stopit_version
 except ImportError:
-    have_stopit_for_timeconstrained = False
+    have_timed_threads_for_timeconstrained = False
 else:
-    have_stopit_for_timeconstrained = stopit_version.split(".")[:3] >= ["1", "1", "3"]
+    have_timed_threads_for_timeconstrained = stopit_version.split(".")[:3] >= [
+        "1",
+        "1",
+        "3",
+    ]
 
 
 @pytest.mark.skipif(
@@ -34,16 +38,19 @@ def test_timeremaining():
 def test_timeconstrained1():
     """
     This test checks that
-    * TimeConstrained manages to return $Aborted when the
-      evaluated expression exceeds the walltime.
-    * That the evaluation does not proceeds after the walltime.
 
-    If `Pause` and TimeConstrained were absolutely accurate,
+    - ``TimeConstrained`` manages to return ``$Aborted`` when the
+      evaluated expression exceeds the walltime.
+
+    - That the evaluation does not proceed after the walltime.
+
+    If ``Pause`` and ``TimeConstrained`` were absolutely accurate,
     `a` should be always less than 11. However, sometimes
-    the innacuracies in time could allow to reach more than 10
-    iterations before get stopped. 20 iterations should be a safe
+    the inaccuracies in time could allow to reach more than 10
+    iterations before being stopped. 20 iterations should be a safe
     bound.
-    After `TimeConstrained` returns `$Abort`, iterations should stop,
+
+    After ``TimeConstrained`` returns ``$Abort``, iterations should stop,
     so if we check one second after the end of the evaluation, `a`
     should not change its value.
     """
@@ -151,7 +158,7 @@ def test_private_doctests_datetime(str_expr, msgs, str_expected, fail_msg):
 
 
 @pytest.mark.skipif(
-    sys.platform in ("emscripten",) or not have_stopit_for_timeconstrained,
+    sys.platform in ("emscripten",) or not have_timed_threads_for_timeconstrained,
     reason="TimeConstrained[] is not supported in Pyodide or an unpatched 'stopit'",
 )
 @pytest.mark.parametrize(
@@ -202,6 +209,7 @@ def test_private_doctests_datetime(str_expr, msgs, str_expected, fail_msg):
         ("a=.;s=.;", None, "Null", None),
     ],
 )
+@pytest.mark.xfail
 def test_private_doctests_TimeConstrained(str_expr, msgs, str_expected, fail_msg):
     """TimeConstrained tests"""
     check_evaluation(

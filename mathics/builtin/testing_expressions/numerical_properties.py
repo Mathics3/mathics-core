@@ -24,7 +24,7 @@ class CoprimeQ(Builtin):
     https://reference.wolfram.com/language/ref/CoprimeQ.html</url>
 
     <dl>
-      <dt>'CoprimeQ[$x$, $y$]'
+      <dt>'CoprimeQ'[$x$, $y$]
       <dd>tests whether $x$ and $y$ are coprime by computing their greatest \
           common divisor.
     </dl>
@@ -68,7 +68,7 @@ class CoprimeQ(Builtin):
         if not all(isinstance(i, int) or isinstance(i, complex) for i in py_args):
             return SymbolFalse
 
-        if all(sympy.gcd(n, m) == 1 for (n, m) in combinations(py_args, 2)):
+        if all(sympy.gcd(n, m) == 1 for n, m in combinations(py_args, 2)):
             return SymbolTrue
         else:
             return SymbolFalse
@@ -81,7 +81,7 @@ class EvenQ(Test):
     https://reference.wolfram.com/language/ref/EvenQ.html</url>
 
     <dl>
-      <dt>'EvenQ[$x$]'
+      <dt>'EvenQ'[$x$]
       <dd>returns 'True' if $x$ is even, and 'False' otherwise.
     </dl>
 
@@ -107,7 +107,7 @@ class ExactNumberQ(Test):
     https://reference.wolfram.com/language/ref/ExactNumberQ.html</url>
 
     <dl>
-      <dt>'ExactNumberQ[$expr$]'
+      <dt>'ExactNumberQ'[$expr$]
       <dd>returns 'True' if $expr$ is an exact real or complex number, and returns
           'False' otherwise.
     </dl>
@@ -159,7 +159,7 @@ class InexactNumberQ(Test):
     https://reference.wolfram.com/language/ref/InexactNumberQ.html</url>
 
     <dl>
-      <dt>'InexactNumberQ[$expr$]'
+      <dt>'InexactNumberQ'[$expr$]
       <dd>returns 'True' if $expr$ is not an exact real or complex number
           number, and 'False' otherwise.
     </dl>
@@ -195,7 +195,7 @@ class IntegerQ(Test):
     https://reference.wolfram.com/language/ref/IntegerQ.html</url>
 
     <dl>
-      <dt>'IntegerQ[$expr$]'
+      <dt>'IntegerQ'[$expr$]
       <dd>returns 'True' if $expr$ is an integer, and 'False' otherwise.
     </dl>
 
@@ -218,7 +218,7 @@ class MachineNumberQ(Test):
     https://reference.wolfram.com/language/ref/MachineNumberQ.html</url>
 
     <dl>
-      <dt>'MachineNumberQ[$expr$]'
+      <dt>'MachineNumberQ'[$expr$]
       <dd>returns 'True' if $expr$ is a machine-precision real or complex number.
     </dl>
 
@@ -242,7 +242,7 @@ class Negative(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Negative.html</url>
 
     <dl>
-      <dt>'Negative[$x$]'
+      <dt>'Negative'[$x$]
       <dd>returns 'True' if $x$ is a negative real number.
     </dl>
 
@@ -271,7 +271,7 @@ class NonNegative(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/NonNegative.html</url>
 
     <dl>
-      <dt>'NonNegative[$x$]'
+      <dt>'NonNegative'[$x$]
       <dd>returns 'True' if $x$ is a positive real number or zero.
     </dl>
 
@@ -292,7 +292,7 @@ class NonPositive(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/NonPositive.html</url>
 
     <dl>
-      <dt>'NonPositive[$x$]'
+      <dt>'NonPositive'[$x$]
       <dd>returns 'True' if $x$ is a negative real number or zero.
     </dl>
 
@@ -315,7 +315,7 @@ class NumberQ(Test):
     https://reference.wolfram.com/language/ref/NumberQ.html</url>
 
     <dl>
-      <dt>'NumberQ[$expr$]'
+      <dt>'NumberQ'[$expr$]
       <dd>returns 'True' if $expr$ is an explicit number, and 'False' \
           otherwise.
     </dl>
@@ -340,7 +340,7 @@ class NumericQ(Builtin):
     https://reference.wolfram.com/language/ref/NumericQ.html</url>
 
     <dl>
-      <dt>'NumericQ[$expr$]'
+      <dt>'NumericQ'[$expr$]
       <dd>tests whether $expr$ represents a numeric quantity.
     </dl>
 
@@ -392,7 +392,7 @@ class OddQ(Test):
     https://reference.wolfram.com/language/ref/OddQ.html</url>
 
     <dl>
-      <dt>'OddQ[$x$]'
+      <dt>'OddQ'[$x$]
       <dd>returns 'True' if $x$ is odd, and 'False' otherwise.
     </dl>
 
@@ -417,7 +417,7 @@ class PossibleZeroQ(SympyFunction):
     https://reference.wolfram.com/language/ref/PossibleZeroQ.html</url>
 
     <dl>
-      <dt>'PossibleZeroQ[$expr$]'
+      <dt>'PossibleZeroQ'[$expr$]
       <dd>returns 'True' if basic symbolic and numerical methods suggest that \
           expr has value zero, and 'False' otherwise.
     </dl>
@@ -493,7 +493,7 @@ class Positive(Builtin):
     https://reference.wolfram.com/language/ref/Positive.html</url>
 
     <dl>
-      <dt>'Positive[$x$]'
+      <dt>'Positive'[$x$]
       <dd>returns 'True' if $x$ is a positive real number.
     </dl>
 
@@ -522,7 +522,7 @@ class PrimeQ(SympyFunction):
     https://reference.wolfram.com/language/ref/PrimeQ.html</url>
 
     <dl>
-      <dt>'PrimeQ[$n$]'
+      <dt>'PrimeQ'[$n$]
       <dd>returns 'True' if $n$ is a prime number.
     </dl>
 

@@ -18,17 +18,24 @@ from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.element import BaseElement, fully_qualified_symbol_name
-from mathics.core.load_builtin import definition_contribute, mathics3_builtins_modules
 from mathics.core.rules import BaseRule, Rule
 from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.util import canonic_filename
 from mathics.settings import ROOT_DIR
 
-# The contents of $OutputForms. FormMeta in mathics.base.forms adds to this.
-OutputForms: Set[Symbol] = set()
+# Collections of format symbols. Here we load some basic cases.
+# More symbols are populated from FormMeta classes (see `mathics.builtin.forms.base`)
 
-# The contents of $PrintForms. FormMeta in mathics.base.forms adds to this.
-PrintForms: Set[Symbol] = set()
+# The contents of $BoxForms.
+BOX_FORMS: Set[Symbol] = set()
+
+# The contents of $PrintForms.
+PRINT_FORMS: Set[Symbol] = set()
+# PRINT_FORMS.update(BOX_FORMS)
+
+# The contents of $OutputForms.
+OUTPUT_FORMS: Set[Symbol] = set()
+# OUTPUT_FORMS.update(PRINT_FORMS)
 
 
 class Definition:
@@ -162,23 +169,15 @@ class Definitions:
             "Global`",
         )
         self.inputfile = ""
-
+        # TraceEvaluation uses these to
+        # decided what information to show
         self.trace_evaluation = False
+        self.trace_show_rewrite = False
         self.timing_trace_evaluation = False
 
-        # Importing "mathics.format" populates the Symbol of the
-        # PrintForms and OutputForms sets.
-        #
-        # If "importlib" is used instead of "import", then we get:
-        #   TypeError: boxes_to_text() takes 1 positional argument but
-        #   2 were given
-        # Rocky: this smells of something not quite right in terms of
-        # modularity.
-
-        import mathics.format  # noqa
-
-        self.printforms = list(PrintForms)
-        self.outputforms = list(OutputForms)
+        self.boxforms = list(BOX_FORMS)
+        self.printforms = list(PRINT_FORMS)
+        self.outputforms = list(OUTPUT_FORMS)
 
         if add_builtin:
             load_builtin_definitions(self, builtin_filename, extension_modules)
@@ -413,7 +412,7 @@ class Definitions:
                 return ctx_name
         return with_context
 
-    def get_package_names(self) -> List[str]:
+    def get_package_names(self) -> List[Optional[str]]:
         """Return the list of names of the packages loaded in the system."""
         try:
             packages = self.get_ownvalue("System`$Packages")
@@ -421,7 +420,11 @@ class Definitions:
             return []
 
         assert packages.has_form("System`List", None)
-        return [c.get_string_value() for c in packages.get_elements()]
+        return [
+            c.get_string_value()
+            for c in packages.get_elements()
+            if c.get_string_value() is not None
+        ]
         # return sorted({name.split("`")[0] for name in self.get_names()})
 
     def shorten_name(self, name_with_ctx: str) -> str:
@@ -548,7 +551,7 @@ class Definitions:
         """
         formats = self.get_definition(name).formatvalues
         result = formats.get(format_name, []) + formats.get("", [])
-        result.sort()
+        result.sort(key=lambda x: x.pattern_precedence)
         return result
 
     def get_nvalues(self, name: str) -> List[BaseRule]:
@@ -782,6 +785,19 @@ class Definitions:
     def unset(self, name: str, expr: BaseElement) -> bool:
         """Remove the rule corresponding to the expression `expr` in
         the definition of Symbol `name`"""
+        # These special symbol names are stored
+        # as attributes of the `Definitions` object.
+        # If this grows, maybe we should split this code.
+        if name == "System`$BoxForms":
+            self.boxforms = list(BOX_FORMS)
+            return True
+        if name == "System`$PrintForms":
+            self.printforms = list(PRINT_FORMS)
+            return True
+        if name == "System`$OutputForms":
+            self.outputforms = list(OUTPUT_FORMS)
+            return True
+
         definition = self.get_user_definition(self.lookup_name(name))
         result = definition.remove_rule(expr)
         self.mark_changed(definition)
@@ -866,9 +882,10 @@ def get_tag_position(pattern: BaseElement, name: str) -> Optional[str]:
             # We have to use get_head_name() below because
             # pat can either SymbolCondition or <AtomPattern: System`Condition>.
             # In the latter case, comparing to SymbolCondition is not sufficient.
-            if pat.get_head_name() == "System`Condition":
-                if len(pat.elements) > 1:
-                    return strip_pattern_name_and_condition(pat.elements[0])
+            if pat.has_form(("System`Condition", "System`PatternTest"), 2):
+                return strip_pattern_name_and_condition(pat.elements[0])
+            if pat.has_form("System`HoldPattern", 1):
+                return strip_pattern_name_and_condition(pat.elements[0])
             # The same kind of get_head_name() check is needed here as well and
             # is not the same as testing against SymbolPattern.
             if pat.get_head_name() == "System`Pattern":
@@ -990,13 +1007,29 @@ def insert_rule(values: List[BaseRule], rule: BaseRule) -> None:
 
     """
 
-    for index, existing in enumerate(values):
-        if existing.pattern.sameQ(rule.pattern):
-            del values[index]
-            break
+    def is_conditional(x) -> bool:
+        """
+        Check if the replacement rule is a conditional replacement.
+        FunctionApplyRules are always considered "conditional", while
+        replacement rules are conditional if the replace attribute is
+        a conditional expression.
+        """
+        return not hasattr(x, "replace") or x.replace.has_form("System`Condition", 2)
+
+    # If the rule is not conditional, and there are
+    # equivalent rules which are not conditional either,
+    # remove them.
+    if not is_conditional(rule):
+        for index, existing in enumerate(values):
+            if is_conditional(existing):
+                continue
+            if existing.pattern.sameQ(rule.pattern):
+                del values[index]
+                break
+
     # use insort_left to guarantee that if equal rules exist, newer rules will
     # get higher precedence by being inserted before them. see DownValues[].
-    bisect.insort_left(values, rule)
+    bisect.insort_left(values, rule, key=lambda x: x.pattern_precedence)
 
 
 def merge_definitions(candidates: List[Definition]) -> Definition:
@@ -1066,8 +1099,12 @@ def load_builtin_definitions(
     """
     Load definitions from Builtin classes, autoload files and extension modules.
     """
+    from mathics.core.load_builtin import (
+        definition_contribute,
+        mathics3_builtins_modules,
+    )
     from mathics.eval.files_io.files import get_file_time
-    from mathics.eval.pymathics import PyMathicsLoadException, load_pymathics_module
+    from mathics.eval.pymathics import load_pymathics_module
     from mathics.session import autoload_files
 
     loaded = False

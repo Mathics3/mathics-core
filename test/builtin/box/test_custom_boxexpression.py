@@ -1,4 +1,4 @@
-from test.helper import evaluate, session
+from test.helper import session
 
 from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.graphics import GRAPHICS_OPTIONS
@@ -6,6 +6,7 @@ from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Predefined
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.rules import BaseRule, FunctionApplyRule, Rule
 from mathics.core.symbols import Symbol
 
 SymbolCustomGraphicsBox = Symbol("CustomGraphicsBox")
@@ -42,8 +43,28 @@ class CustomAtom(Predefined):
         "N[System`CustomAtom]": "37",
     }
 
-    def eval_to_boxes(self, evaluation):
-        "System`MakeBoxes[System`CustomAtom, StandardForm|TraditionalForm|OutputForm|InputForm]"
+    # Since this is a Mathics3 Module which is loaded after
+    # the core symbols are loaded, it is safe to assume that `MakeBoxes`
+    # definition was already loaded. We can add then rules to it.
+    # This modified `contribute` method do that, adding specific
+    # makeboxes rules for this kind of atoms.
+    def contribute(self, definitions, is_pymodule=True):
+        super().contribute(definitions, is_pymodule)
+        # Add specific MakeBoxes rules
+        name = self.get_name()
+
+        for pattern, function in self.get_functions("makeboxes_"):
+            mb_rule = FunctionApplyRule(
+                name, pattern, function, None, attributes=None, system=True
+            )
+            definitions.add_format("System`MakeBoxes", mb_rule, "_MakeBoxes")
+
+    def makeboxes_general(self, evaluation):
+        "System`MakeBoxes[System`CustomAtom, StandardForm|TraditionalForm]"
+        return CustomBoxExpression(evaluation=evaluation)
+
+    def makeboxes_inputform(self, evaluation):
+        "System`MakeBoxes[InputForm[System`CustomAtom], StandardForm|TraditionalForm]"
         return CustomBoxExpression(evaluation=evaluation)
 
 
@@ -53,6 +74,22 @@ class CustomGraphicsBox(BoxExpression):
     options = GRAPHICS_OPTIONS
     attributes = A_HOLD_ALL | A_PROTECTED | A_READ_PROTECTED
 
+    # Since this is a Mathics3 Module which is loaded after
+    # the core symbols are loaded, it is safe to assume that `MakeBoxes`
+    # definition was already loaded. We can add then rules to it.
+    # This modified `contribute` method do that, adding specific
+    # makeboxes rules for this kind of BoxExpression.
+    def contribute(self, definitions, is_pymodule=True):
+        super().contribute(definitions, is_pymodule)
+        # Add specific MakeBoxes rules
+        name = self.get_name()
+
+        for pattern, function in self.get_functions("makeboxes_"):
+            mb_rule = FunctionApplyRule(
+                name, pattern, function, None, attributes=None, system=True
+            )
+            definitions.add_format("System`MakeBoxes", mb_rule, "_MakeBoxes")
+
     def init(self, *elems, **options):
         self._elements = elems
         self.evaluation = options.pop("evaluation", None)
@@ -61,9 +98,15 @@ class CustomGraphicsBox(BoxExpression):
     def to_expression(self):
         return Expression(SymbolCustomGraphicsBox, *self.elements)
 
-    def eval_box(self, expr, evaluation: Evaluation, options: dict):
+    def makeboxes_graphics(self, expr, evaluation: Evaluation, options: dict):
         """System`MakeBoxes[System`Graphics[System`expr_, System`OptionsPattern[System`Graphics]],
-        System`StandardForm|System`TraditionalForm|System`OutputForm]"""
+        System`StandardForm|System`TraditionalForm]"""
+        instance = CustomGraphicsBox(*(expr.elements), evaluation=evaluation)
+        return instance
+
+    def makeboxes_outputForm(self, expr, evaluation: Evaluation, options: dict):
+        """System`MakeBoxes[System`OutputForm[System`Graphics[System`expr_, System`OptionsPattern[System`Graphics]]],
+        System`StandardForm|System`TraditionalForm]"""
         instance = CustomGraphicsBox(*(expr.elements), evaluation=evaluation)
         return instance
 
@@ -98,8 +141,7 @@ def test_custom_boxconstruct():
     defs = session.evaluation.definitions
     instance_custom_atom = CustomAtom(expression=False)
     instance_custom_atom.contribute(defs, is_pymodule=True)
-    evaluate("MakeBoxes[CustomAtom, InputForm]")
-    formatted = session.format_result().boxes_to_mathml()
+    formatted = session.evaluate("MakeBoxes[InputForm[CustomAtom]]").boxes_to_mathml()
     assert formatted == "CustomBoxExpression<<[1, 2, 3]>>"
 
 
@@ -109,8 +151,8 @@ def test_custom_graphicsbox_constructor():
         expression=False, evaluation=session.evaluation
     )
     instance_customgb_atom.contribute(defs, is_pymodule=True)
-    evaluate("MakeBoxes[Graphics[{Circle[{0,0},1]}], OutputForm]")
-    formatted = session.format_result().boxes_to_mathml()
+    result = session.evaluate("MakeBoxes[OutputForm[Graphics[{Circle[{0,0},1]}]]]")
+    formatted = result.boxes_to_mathml()
     assert (
         formatted
         == "--custom graphics--: I should plot (<Expression: <Symbol: System`Circle>[<ListExpression: (<Integer: 0>, <Integer: 0>)>, <Integer: 1>]>,) items"

@@ -4,6 +4,7 @@ Expression Tests
 from mathics.core.atoms import Integer0, Integer1, IntegerM1
 from mathics.core.builtin import Builtin, PatternError, Test
 from mathics.core.evaluation import Evaluation
+from mathics.core.pattern import BasePattern
 from mathics.core.symbols import SymbolFalse, SymbolTrue
 from mathics.eval.patterns import match
 
@@ -15,7 +16,7 @@ class ListQ(Test):
     https://reference.wolfram.com/language/ref/ListQ.html</url>
 
     <dl>
-      <dt>'ListQ[$expr$]'
+      <dt>'ListQ'[$expr$]
       <dd>tests whether $expr$ is a 'List'.
     </dl>
 
@@ -40,7 +41,7 @@ class MatchQ(Builtin):
     https://reference.wolfram.com/language/ref/MatchQ.html</url>
 
     <dl>
-      <dt>'MatchQ[$expr$, $form$]'
+      <dt>'MatchQ'[$expr$, $form$]
       <dd>tests whether $expr$ matches $form$.
     </dl>
 
@@ -53,6 +54,10 @@ class MatchQ(Builtin):
     >> MatchQ[3, Pattern[3]]
      : First element in pattern Pattern[3] is not a valid pattern name.
      = False
+
+    See also <url>
+    :'Cases':
+    /doc/reference-of-built-in-symbols/list-functions/elements-of-lists/cases/</url>.
     """
 
     rules = {"MatchQ[form_][expr_]": "MatchQ[expr, form]"}
@@ -75,7 +80,7 @@ class Order(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Order.html</url>
 
     <dl>
-      <dt>'Order[$x$, $y$]'
+      <dt>'Order'[$x$, $y$]
       <dd>returns a number indicating the canonical ordering of $x$ and $y$. \
          1 indicates that $x$ is before $y$, and -1 that $y$ is before $x$. \
          0 indicates that there is no specific ordering. Uses the same order \
@@ -114,7 +119,7 @@ class OrderedQ(Builtin):
     https://reference.wolfram.com/language/ref/OrderedQ.html</url>
 
     <dl>
-      <dt>'OrderedQ[{$a$, $b$}]'
+      <dt>'OrderedQ'[{$a$, $b$}]
       <dd>is 'True' if $a$ sorts before $b$ according to canonical
         ordering.
     </dl>
@@ -142,7 +147,7 @@ class OrderedQ(Builtin):
 class PatternsOrderedQ(Builtin):
     """
     <dl>
-      <dt>'PatternsOrderedQ[$patt1$, $patt2$]'
+      <dt>'PatternsOrderedQ'[$patt1$, $patt2$]
       <dd>returns 'True' if pattern $patt1$ would be applied before
         $patt2$ according to canonical pattern ordering.
     </dl>
@@ -159,8 +164,10 @@ class PatternsOrderedQ(Builtin):
 
     def eval(self, p1, p2, evaluation: Evaluation):
         "PatternsOrderedQ[p1_, p2_]"
+        p1_pat = BasePattern.create(p1)
+        p2_pat = BasePattern.create(p2)
 
-        if p1.get_sort_key(True) <= p2.get_sort_key(True):
+        if p1_pat.pattern_precedence <= p2_pat.pattern_precedence:
             return SymbolTrue
         else:
             return SymbolFalse

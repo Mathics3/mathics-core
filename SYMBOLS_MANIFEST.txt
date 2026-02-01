@@ -12,6 +12,7 @@ ImportExport`RegisterExport
 ImportExport`RegisterImport
 Internal`RealValuedNumberQ
 Internal`RealValuedNumericQ
+JSON`Import`JSONImport
 System`$Aborted
 System`$Assumptions
 System`$BaseDirectory
@@ -34,6 +35,7 @@ System`$Input
 System`$InputFileName
 System`$InstallationDirectory
 System`$IterationLimit
+System`$Language
 System`$Line
 System`$Machine
 System`$MachineEpsilon
@@ -63,6 +65,7 @@ System`$RandomState
 System`$RecursionLimit
 System`$RootDirectory
 System`$ScriptCommandLine
+System`$SessionID
 System`$SyntaxHandler
 System`$SystemCharacterEncoding
 System`$SystemID
@@ -73,6 +76,7 @@ System`$TemporaryDirectory
 System`$TimeZone
 System`$TraceBuiltins
 System`$TraceEvaluation
+System`$TrackLocations
 System`$UserBaseDirectory
 System`$UserName
 System`$Version
@@ -157,6 +161,7 @@ System`BezierFunction
 System`Binarize
 System`BinaryImageQ
 System`BinaryRead
+System`BinaryReadList
 System`BinaryWrite
 System`Binomial
 System`BitLength
@@ -242,6 +247,8 @@ System`Complement
 System`Complex
 System`ComplexExpand
 System`ComplexInfinity
+System`ComplexPlot
+System`ComplexPlot3D
 System`Complexes
 System`CompositeQ
 System`Composition
@@ -261,6 +268,7 @@ System`Context
 System`Contexts
 System`Continue
 System`ContinuedFraction
+System`ContourPlot
 System`Convert`B64Dump`B64Decode
 System`Convert`B64Dump`B64Encode
 System`ConvertersDump`$ExtensionMappings
@@ -282,6 +290,7 @@ System`CreateFile
 System`CreateTemporary
 System`Cross
 System`Csc
+System`Cube
 System`CubeRoot
 System`Cuboid
 System`Cuboid3DBox
@@ -478,6 +487,7 @@ System`FoldList
 System`FontColor
 System`For
 System`Format
+System`FormatType
 System`FormatValues
 System`FractionBox
 System`FractionalPart
@@ -541,6 +551,9 @@ System`HoldRest
 System`Hue
 System`HumpDownHump
 System`HumpEqual
+System`Hypergeometric1F1
+System`Hypergeometric2F1
+System`HypergeometricPFQ
 System`HypergeometricU
 System`I
 System`Icosahedron
@@ -552,7 +565,6 @@ System`Image
 System`ImageAdd
 System`ImageAdjust
 System`ImageAspectRatio
-System`ImageBox
 System`ImageChannels
 System`ImageColorSpace
 System`ImageConvolve
@@ -746,6 +758,7 @@ System`Mean
 System`Median
 System`MedianFilter
 System`Medium
+System`MeijerG
 System`MemberQ
 System`MemoryAvailable
 System`MemoryInUse
@@ -875,6 +888,8 @@ System`Overflow
 System`OwnValues
 System`PadLeft
 System`PadRight
+System`Pane
+System`PaneBox
 System`ParametricPlot
 System`ParentDirectory
 System`Part
@@ -978,6 +993,7 @@ System`RandomSample
 System`Range
 System`RankedMax
 System`RankedMin
+System`RasterBox
 System`Rational
 System`Rationalize
 System`Re

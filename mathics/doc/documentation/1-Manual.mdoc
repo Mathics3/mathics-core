@@ -7,22 +7,20 @@
 
 The programming language and built-in functions of \Mathics try to match the \Wolfram Language, which is continually evolving.
 
-\Mathics is in no way affiliated or supported by \Wolfram. \Mathics will probably never have the power to compete with \Mathematica in industrial applications; it is a free alternative though. It also invites community development at all levels.
+\Mathics is in no way affiliated or supported by \Wolfram. \Mathics will probably never have the power to compete with \Mathematica in industrial applications; it is a free alternative, though. It also invites community development at all levels.
 
 See the <url>:installation instructions:https://mathics-development-guide.readthedocs.io/en/latest/installing.html</url> for the most recent instructions for installing from PyPI, or the source.
 
 For implementation details, please refer to the <url>:Developers Guide:https://mathics-development-guide.readthedocs.io/en/latest</url>.
 
-<section title="Why try to recreate Wolfram Language?">
-\Mathematica is great, but it has a couple of disadvantages.
+<section title="Why recreate Wolfram Language?">
+\Mathematica is great, but it might have some disadvantages, depending on your point of view.
 
 <ul>
   <li>It is not open source.
-  <li>Its development is tightly controlled and centralized and as such
+  <li>Its development is tightly controlled and centralized, and as such
   <li>It can't hook into different kinds of open-source packages that have independently developed algorithms and methods
 </ul>
-
-The second point some may find an advantage.
 
 However, even if you are willing to pay hundreds of dollars for the software, you would not be able to see what\'s going on "inside" the program if that is your interest. That\'s what free, open-source, and community-supported software is for!
 
@@ -35,7 +33,7 @@ However, even if you are willing to pay hundreds of dollars for the software, yo
   <li><url>:SciPy: https://www.scipy.org/</url> for Scientific calculations.
 </ul>
 
-Performance of \Mathics is not, right now, practical in large-scale projects and calculations. However, it can be used as a tool for exploration and education. There is promise that it can provide better debugging.
+Performance of \Mathics is not, right now, fast in large-scale projects and calculations. However, it can be used as a tool for exploration and education and non-computationally intensive use. And \Mathics provides better debugging and tracing, since we can be completely transparent about every aspect of its operation.
 
 </section>
 
@@ -45,45 +43,62 @@ Because \Mathics is compatible with the Wolfram-Language kernel within the
 confines of the Python ecosystem, it is a powerful functional
 programming language, driven by pattern matching and rule application.
 
-Primitive types include rationals, complex numbers, and arbitrary-precision numbers. Other primitive types such as images or graphs, or NLP come from the various Python libraries that \Mathics uses.
+Primitive types include rationals, complex numbers, and arbitrary-precision numbers. Other primitive types, such as images or graphs, or NLP, come from the various Python libraries that \Mathics uses.
 
 Outside of the "core" \Mathics kernel (which has only a primitive command-line interface), in separate GitHub projects, as add-ons, there are:
 
 <ul>
   <li>a <url>:command-line interface:https://pypi.org/project/mathicsscript/</url> using either <url>:prompt-toolkit:https://python-prompt-toolkit.readthedocs.io/en/master/</url>, or GNU Readline
   <li>a <url>:Django-based web server:https://pypi.org/project/Mathics-Django/</url>
+  <li>a <url>:A browser-based no-install online front-end:https://mathics3.github.io/Mathics3-live/</url>
   <li>a <url>:Mathics3 module for Graphs:https://pypi.org/project/pymathics-graph/</url> (via <url>:NetworkX:https://networkx.org/</url>),
   <li>a <url>:Mathics3 module for NLP:https://pypi.org/project/pymathics-natlang/</url> (via <url>:nltk:https://www.nltk.org/</url>, <url>:spacy:https://spacy.io/</url>, and others)
+  <li>a <url>:Mathics3 Debugger Module:https://pypi.org/project/Mathics3-trepan/</url> (experimental)
   <li>a <url>:A docker container:https://hub.docker.com/r/mathicsorg/mathics</url> which bundles all of the above
 </ul>
+
+In the future, we might provide better interaction with other Open-source projects and tools. For example, we might be able someday to read and write Jupyter notebooks, or translate into pure SymPy and \Mathics.
+
+
+A couple of the notable Mathematica packages that work on \Mathics3 are  <url>:Combinatorica :https://github.com/Mathics3/Mathics3-Combinatorica</url>,and <url>:Rubi:https://github.com/Mathics3/Mathics3-Package-Rubi/</url>.
+
 
 </section>
 
 <section title="History">
-The first alpha versions of \Mathics were done in 2011 by Jan Pöschko. He worked on it for a couple of years to about the v0.5 release in 2012. By then, it had 386 built-in symbols. Currently there are over a 1,000, and even more when \Mathics modules are included.
+The first alpha versions of \Mathics were done in 2011 by Jan Pöschko. He worked on it for a couple of years until the v0.5 release in 2012. By then, it had 386 built-in symbols. Currently, there are over 1,000, and even more when \Mathics modules are included.
 
-After that, Angus Griffith took over primary leadership and rewrote the parser to pretty much the stage it is in now. He and later Ben Jones worked on it from 2013 to about 2017 to the v1.0 release. Towards the end of this period, Bernhard Liebl worked on this, mostly focused on graphics.
+After that, Angus Griffith took over primary leadership and rewrote the parser to pretty much the stage it is in now. He and, later, Ben Jones worked on it from 2013 to about 2017 for the v1.0 release. Towards the end of this period, Bernhard Liebl worked on this, mostly focusing on graphics.
 
 A <url>:docker image of the v.9 release: https://hub.docker.com/r/arkadi/mathics</url> can be found on dockerhub.
 
 Around 2017, the project was largely abandoned in its largely Python 2.7 state, with some support for Python 3.2-3.5 via six.
 
-Subsequently, around mid 2020, it was picked up by the current developers. A list of authors and contributors can be found in the <url>
-:<con>AUTHORS.txt</con>:
-https://github.com/Mathics3/mathics-core/blob/master/AUTHORS.txt</url> file.
+Subsequently, around mid-2020, it was picked up by the current developers. A list of authors and contributors can be found in the <url>:AUTHORS.txt:https://github.com/Mathics3/mathics-core/blob/master/AUTHORS.txt</url> file.
 </section>
 
 <section title="What is missing?">
-There are lots of ways in which \Mathics could still be improved. <url>:<con>FUTURE.rst</con>: https://github.com/Mathics3/mathics-core/blob/master/FUTURE.rst</url> has the current roadmap.
+There are lots of ways in which \Mathics could still be improved. <url>:FUTURE.rst: https://github.com/Mathics3/mathics-core/blob/master/FUTURE.rst</url> has the current roadmap.
 
-We always could use help in Python programming and improving the documentation. But there are other ways to help. For example:
+However, many WMA Built-in functions have not been implemented. To get a list run:
+
+<console>   git grep -n "# TODO: " mathics/builtin</console>
+
+from the Mathics3 core <url>:github repository: https://github.com/Mathics3/mathics-core/blob/master/AUTHORS.txt</url>.
+
+We have a tutorial for <url>:adding new Mathics3 functions: https://mathics-development-guide.readthedocs.io/en/latest/extending/developing-code/extending/tutorial.html</url>.
+
+Many of the existing Mathics3 Built-in functions are incomplete or work differently, such as checking for different error conditions.
+
+Although we can always use help in Python programming, there are other ways to help. For example:
 
 <ul>
-<li>Ensure this document is complete and accurate. We could use help to ensure all of the Builtin functions are described properly and fully, and that they have a link to corresponding Wiki, SymPy, WMA and/or mpath links.
-Make sure the builtin summaries and examples are clear and useful.</li>
-<li>We could use help in LaTeX styling, and going over this document to remove overfull boxes and things of that nature. We could also use help and our use of Asymptote. The are some graphics primitives such as for polyhedra that haven't been implemented. Similar graphics options are sometimes missing in Asymptote that we have available in other graphics backends.</li>
+<li>Ensure this document is complete and accurate. We could use help to ensure all of the Built-in functions are described properly and fully, and that they have a link to the corresponding Wiki, SymPy, WMA, and/or mpath links.</li>
+<li>Work on making a comprehensive list of missing or incomplete built-in functions.</li>
+Make sure the built-in summaries and examples are clear and useful.</li>
+<li>We could use help in LaTeX styling, and going over this document to remove overfull boxes and things of that nature. We could also use help and our use of Asymptote. The are some graphics primitives, such as for polyhedra, that haven't been implemented. Similar graphics options are sometimes missing in Asymptote that we have available in other graphics backends.</li>
 
-<li>add another graphics backend: it could be a javascript library like jsfiddle</li>
+<li>Add another graphics backend: it could be a JavaScript library like <url>:jsfiddle: https://jsfiddle.net/.</li>
 
 <li>Consider donating via <url>:Github Sponsors: https://github.com/sponsors</url> or some other mechanism.</li>
 </ul>
@@ -98,9 +113,14 @@ See <url>:The Mathics3 Developer Guide:https://mathics-development-guide.readthe
 
 The following sections are introductions to the basic principles of the language of \Mathics. A few examples and functions are presented. Only their most common usages are listed; for a full description of a Symbol's possible arguments, options, etc., see its entry in the Reference of Built-in Symbols.
 
-However, if you google for "Mathematica Tutorials" you will find easily dozens of other tutorials that are applicable. For example, see <url>:An Elementary Introduction to the Wolfram Language:https://www.wolfram.com/language/elementary-introduction/</url>. In the <url>:docker image that we supply:https://hub.docker.com/r/mathicsorg/mathics</url>, you can load "workspaces" containing the examples described in the chapters of this introduction.
+If you google for "Mathematica Tutorials", you will find dozens of other tutorials.
 
-Be warned though that \Mathics does not yet offer the full range and features and capabilities of \Mathematica.
+I (Rocky Bernstein) like <i>"Power Programming with the \Mathematica: the Kernel"</i> by David Wagner. Even though this is old, and the book covers \Mathematica 3, it has a lot of useful information that is still relevant. A PDF of this is available <url>:here:https://www.dropbox.com/s/j2dsyvptnxjd369/Wagner%20All%20Parts-RC.pdf</url>. Wolfram's "The \Mathematica Book, Fifth Edition" is useful. If you google for this book, you can probably find a PDF of it for free.
+
+
+Online, there is <url>:An Elementary Introduction to the Wolfram Language:https://www.wolfram.com/language/elementary-introduction/</url>. In the <url>:docker image:https://hub.docker.com/r/mathicsorg/mathics</url> that we supply, you can load "workspaces" containing the examples described in the chapters of this introduction.
+
+Be warned, though, that \Mathics does not yet offer the full range and features and capabilities of \Mathematica.
 
 <section title="Basic calculations">
 \Mathics can be used to calculate basic stuff:
@@ -109,6 +129,11 @@ Be warned though that \Mathics does not yet offer the full range and features an
   = 3
 
 To submit a command to \Mathics, press 'Shift+Return' in the Web interface or 'Return' in the console interface. The result will be printed in a new line below your query.
+
+The result of the previous query to \Mathics can be accessed by '%':
+
+  >> % ^ 2
+  = 9
 
 \Mathics understands all basic arithmetic operators and applies the usual operator precedence. Use parentheses when needed:
 
@@ -133,7 +158,7 @@ Integer divisions yield rational numbers:
   >> 6 / 4
   = 3 / 2
 
-To convert the result to a floating point number, apply the function 'N':
+To convert the result to a floating-point number, apply the function 'N':
   >> N[6 / 4]
   = 1.5
 
@@ -195,7 +220,7 @@ But zero division returns value <url>:'ComplexInfinity':/doc/reference-of-built-
   >> Cos[ComplexInfinity]
    = Indeterminate
 
-'ComplexInfinity' is a shorthand though for 'DirectedInfinty[]'.
+'ComplexInfinity' is a shorthand though for 'DirectedInfinity[]'.
 
 Similarly, expressions using <url>:'Infinity':/doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/mathematical-constants/complexinfinity</url>  as a value are allowed and are evaluated:
   >> Infinity + 2 Infinity
@@ -207,25 +232,11 @@ There is also the value, <url>:'Indeterminate':/doc/reference-of-built-in-symbol
  : Indeterminate expression 0 ^ 0 encountered.
    = Indeterminate
 
-<!--
-TODO: Find some suitable place for the below. It does not belong here.
-
-The result of the previous query to \Mathics can be accessed by '%':
-
-  >> 3 + 4
-  = 7
-
-  >> % ^ 2
-  = 49
-
-  ##
--->
-
 </section>
 
 <section title="Precision and Accuracy">
 
-\Mathics handles relative and absolute uncertainty in numerical quantities. The <em>precision</em> or relative accuracy, is set by adding a RawBackquote character ('`') and the number of digits of precision in the mantissa. For example:
+\Mathics handles relative and absolute uncertainty in numerical quantities. The <em>precision</em> or relative accuracy is set by adding a RawBackquote character ('`') and the number of digits of precision in the mantissa. For example:
 
   >> 3.1416`3
    = 3.14
@@ -478,7 +489,7 @@ It is an error to combine lists with unequal lengths:
 </section>
 
 <section title="The Structure of \Mathics Objects">
-Every expression in \Mathics is built upon the same principle: it consists of a <em>head</em> and an arbitrary number of <em>children</em>, unless it is an <em>atom</em>, i.e. it can not be subdivided any further. To put it another way: everything is a function call. This can be best seen when displaying expressions in their "full form":
+Every expression in \Mathics is built upon the same principle: it consists of a <em>head</em> and an arbitrary number of <em>children</em>, unless it is an <em>atom</em>, i.e., it can not be subdivided any further. To put it another way: everything is a function call. This can be best seen when displaying expressions in their "full form":
 
   >> FullForm[a + b + c]
   = Plus[a, b, c]
@@ -491,9 +502,9 @@ Even lists are function calls of the function 'List':
   >> Head[{1, 2, 3}]
   = List
 
-However, its full form is presented with ${\ldots}$
+However, its full form is presented with '{...}'
   >> FullForm[{1, 2, 3}]
-   = {1,2,3}
+   = {1, 2, 3}
 
  The head of an expression can be determined with 'Head':
   >> Head[a + b + c]
@@ -595,25 +606,25 @@ In fact, <em>functions</em> in \Mathics are just one aspect of <em>patterns</em>
 <dl>
   <dt>'_' or 'Blank[]'
   <dd>matches one expression.
-  <dt>'Pattern[$x$, $p$]'
-  <dd>matches the pattern $p$ and stores the value in $x$.
-  <dt>'$x$_' or 'Pattern[$x$, Blank[]]'
+  <dt>'Pattern'[$x$, $p$]
+  <dd>matches the pattern $p$ and stores the matching sub-expression into $x$.
+  <dt>$x$'_' or 'Pattern['$x$, 'Blank[]]'
   <dd>matches one expression and stores it in $x$.
   <dt>'__' or 'BlankSequence[]'
   <dd>matches a sequence of one or more expressions.
   <dt>'___' or 'BlankNullSequence[]'
   <dd>matches a sequence of zero or more expressions.
-  <dt>'_$h$' or 'Blank[$h$]'
+  <dt>'_'$h$ or 'Blank'[$h$]
   <dd>matches one expression with head $h$.
-  <dt>'$x$_$h$' or 'Pattern[$x$, Blank[$h$]]'
+  <dt>$x$'_'$h$ or 'Pattern['$x$, 'Blank['$h$']]'
   <dd>matches one expression with head $h$ and stores it in $x$.
-  <dt>'$p$ | $q$' or 'Alternatives[$p$, $q$]'
+  <dt>$p$ | $q$ or 'Alternatives['$p$, $q$']'
   <dd>matches either pattern $p$ or $q$.
-  <dt>'$p$ ? $t$' or 'PatternTest[$p$, $t$]'
-  <dd>matches $p$ if the test '$t$[$p$]' yields 'True'.
-  <dt>'$p$ /; $c$' or 'Condition[$p$, $c$]'
+  <dt>$p$ '?' $t$ or 'PatternTest['$p$, $t$']'
+  <dd>matches $p$ if the test $t[p]$ yields 'True'.
+  <dt>$p$ '/;' $c$ or 'Condition['$p$, $c$']'
   <dd>matches $p$ if condition $c$ holds.
-  <dt>'Verbatim[$p$]'
+  <dt>'Verbatim'[$p$]
   <dd>matches an expression that equals $p$, without regarding patterns inside $p$.
 </dl>
 
@@ -654,12 +665,12 @@ This is useful when the right side of a rule should not be evaluated immediately
   >> {1, 2} /. x_Integer -> N[x]
   = {1, 2}
 
-Here, 'N' is applied to 'x' before the actual matching, simply yielding 'x'. With a delayed rule this can be avoided:
+Here, 'N' is applied to 'x' before the actual matching, simply yielding 'x'. With a delayed rule, this can be avoided:
   >> {1, 2} /. x_Integer :> N[x]
   = {1., 2.}
 
 'ReplaceAll' and 'ReplaceRepeated' take the first possible match.
-However 'ReplaceList' returns a list of all possible matches.
+However, 'ReplaceList' returns a list of all possible matches.
 This can be used to get all subsequences of a list, for instance:
 
   >> ReplaceList[{a, b, c}, {___, x__, ___} -> {x}]
@@ -668,7 +679,7 @@ This can be used to get all subsequences of a list, for instance:
   >> ReplaceAll[{a, b, c}, {___, x__, ___} -> {x}]
    = {a}
 
-In addition to defining functions as rules for certain patterns, there are <em>pure</em> functions that can be defined using the '&' postfix operator, where everything before it is treated as the function body, and '#' can be used as argument placeholder:
+In addition to defining functions as rules for certain patterns, there are <em>pure</em> functions that can be defined using the '&' postfix operator, where everything before it is treated as the function body, and '#' can be used as an argument placeholder:
 
   >> h = # ^ 2 &;
   >> h[3]
@@ -705,22 +716,22 @@ Functions can be applied using prefix or postfix notation, in addition to using 
 <section title="Program-Flow Control Statements">
 Like most programming languages, \Mathics has common program-flow control statements for conditions, loops, etc.:
 <dl>
-<dt>'If[$cond$, $pos$, $neg$]'
+<dt>'If'[$cond$, $pos$, $neg$]
   <dd>returns $pos$ if $cond$ evaluates to 'True', and $neg$ if it evaluates to 'False'.
-<dt>'Which[$cond1$, $expr1$, $cond2$, $expr2$, ...]'
-        <dd>yields $expr1$ if $cond1$ evaluates to 'True', $expr2$ if $cond2$ evaluates to 'True', etc.
-<dt>'Do[$expr$, {$i$, $max$}]'
+<dt>'Which'[$cond_1$, $expr_1$, $cond_2$, $expr_2$, ...]
+        <dd>yields $expr_1$ if $cond_1$ evaluates to 'True', $expr_2$ if $cond_2$ evaluates to 'True', etc.
+<dt>'Do'[$expr$, {$i$, $max$}]
   <dd>evaluates $expr$ $max$ times, substituting $i$ in $expr$ with values from 1 to $max$.
-<dt>'For[$start$, $test$, $incr$, $body$]'
+<dt>'For'[$start$, $test$, $incr$, $body$]
         <dd>evaluates $start$, and then iteratively $body$ and $incr$ as long as $test$ evaluates to 'True'.
-<dt>'While[$test$, $body$]'
+<dt>'While'[$test$, $body$]
         <dd>evaluates $body$ as long as $test$ evaluates to 'True'.
-<dt>'Nest[$f$, $expr$, $n$]'
+<dt>'Nest'[$f$, $expr$, $n$]
         <dd>returns an expression with $f$ applied $n$ times to $expr$.
-<dt>'NestWhile[$f$, $expr$, $test$]'
+<dt>'NestWhile'[$f$, $expr$, $test$]
         <dd>applies a function $f$ repeatedly on an expression $expr$, until
         applying $test$ on the result no longer yields 'True'.
-<dt>'FixedPoint[$f$, $expr$]'
+<dt>'FixedPoint'[$f$, $expr$]
         <dd>starting with $expr$, repeatedly applies $f$ until the result no longer changes.
 </dl>
 
@@ -746,21 +757,21 @@ Inside 'For', 'While', and 'Do' loops, 'Break[]' exits the loop, and 'Continue[]
 </section>
 
 <section title="Scoping">
-By default, all symbols are "global" in \Mathics, i.e. they can be read and written in any part of your program.
+By default, all symbols are "global" in \Mathics, i.e., they can be read and written in any part of your program.
 However, sometimes "local" variables are needed in order not to disturb the global namespace. \Mathics provides two ways to support this:
 <ul>
 <li><em>lexical scoping</em> by 'Module', and
 <li><em>dynamic scoping</em> by 'Block'.
 </ul>
 <dl>
-  <dt>'Module[{$vars$}, $expr$]'
+  <dt>'Module'[{$vars$}, $expr$]
   <dd>localizes variables by giving them a temporary name of the form
-      'name$number', where number is the current value of '$ModuleNumber'. Each time a module
-      is evaluated, '$ModuleNumber' is incremented.
+      'name\$number', where number is the current value of '\$ModuleNumber'. Each time a module
+      is evaluated, '\$ModuleNumber' is incremented.
 
-  <dt>'Block[{$vars$}, $expr$]'
+  <dt>'Block'[{$vars$}, $expr$]
   <dd>temporarily stores the definitions of certain variables, evaluates
-      $expr$ with reset values and restores the original definitions afterward.
+      $expr$ with reset values, and restores the original definitions afterward.
 </dl>
 
 Both scoping constructs shield inner variables from affecting outer ones:
@@ -814,7 +825,7 @@ It is common to use scoping constructs for function definitions with local varia
 </section>
 
 <section title="Formatting Output">
-The way results are formatted for output in \Mathics is rather sophisticated, compatibility with \Mathematica is one of the design goals. It can be summed up in the following procedure:
+The way results are formatted for output in \Mathics is rather sophisticated; compatibility with \Mathematica is one of the design goals. It can be summed up in the following procedure:
 <ol>
 <li>The result of the query is calculated.
 <li>The result is stored in 'Out' (which '%' is a shortcut for).
@@ -843,13 +854,13 @@ Special formats might not be very relevant for individual symbols, but rather fo
   = <an r object>
 You can use several helper functions to format expressions:
 <dl>
-<dt>'Infix[$expr$, $op$]'
+<dt>'Infix'[$expr$, $op$]
   <dd>formats the arguments of $expr$ with infix operator $op$.
-<dt>'Prefix[$expr$, $op$]'
+<dt>'Prefix'[$expr$, $op$]
   <dd>formats the argument of $expr$ with prefix operator $op$.
-<dt>'Postfix[$expr$, $op$]'
+<dt>'Postfix'[$expr$, $op$]
   <dd>formats the argument of $expr$ with postfix operator $op$.
-<dt>'StringForm[$form$, $arg1$, $arg2$, ...]'
+<dt>'StringForm'[$form$, $arg1$, $arg2$, ...]
   <dd>formats arguments using a format string.
 </dl>
 
@@ -865,9 +876,9 @@ There are several methods to display expressions in 2-D:
   <dd>displays expressions in a row.
 <dt>'Grid[{{...}}]'
   <dd>displays a matrix in two-dimensional form.
-<dt>'Subscript[$expr$, $i1$, $i2$, ...]'
-  <dd>displays $expr$ with subscript indices $i1$, $i2$, ...
-<dt>'Superscript[$expr$, $exp$]'
+<dt>'Subscript'[$expr$, $i_1$, $i_2$, ...]
+  <dd>displays $expr$ with subscript indices $i_1$, $i_2$, ...
+<dt>'Superscript'[$expr$, $exp$]
   <dd>displays $expr$ with superscript (exponent) $exp$.
 </dl>
 
@@ -877,31 +888,38 @@ There are several methods to display expressions in 2-D:
   . c   d
 
   >> Subscript[a, 1, 2] // TeXForm
-  = a_{1,2}
+  = a_{1, 2}
 
-If you want even more low-level control over expression display, override 'MakeBoxes':
 
-  >> MakeBoxes[b, StandardForm] = "c";
+  >> MakeBoxes[b, TraditionalForm] = "c";
   >> b
   = b
 
 ## This will be displayed as c in the browser and LaTeX documentation.
-This will even apply to 'TeXForm', because 'TeXForm' implies 'StandardForm':
+In the browser, this will even apply to 'TeXForm', because 'TeXForm' implies 'TraditionalForm':
   >> b // TeXForm
+  = ...
+
+Notice however that in the CLI, default output formatted in 'OutputForm',
+which do not take into account 'MakeBoxes' rules. The same happens if we 
+ask explicitly for this form:
+
+  >> b // OutputForm // TeXForm
+  = \text{b}
+
+In a similar way, in the CLI, we can ask for TraditionalForm explicitly
+  >> b // TraditionalForm // TeXForm
   = c
 
-Except some other form is applied first:
-  >> b // OutputForm // TeXForm
-  = b
 'MakeBoxes' for another form:
-
-  >> MakeBoxes[b, TeXForm] = "d";
+  >> MakeBoxes[TeXForm[b], form_] = "d";
   >> b // TeXForm
-  = d
+  = ...
+
 You can cause a much bigger mess by overriding 'MakeBoxes' than by sticking to 'Format', e.g. generate invalid XML:
 
-  >> MakeBoxes[c, MathMLForm] = "<not closed";
-  >> c // MathMLForm
+  >> MakeBoxes[MathMLForm[c], form_] := "<not closed";
+  >> c // MathMLForm //StandardForm
   = <not closed
 
 However, this will not affect formatting of expressions involving 'c':
@@ -919,16 +937,16 @@ That\'s because 'MathMLForm' will, when not overridden for a special case, call 
   = ...
 
 For instance, you can override 'MakeBoxes' to format lists in a different way:
-  >> MakeBoxes[{items___}, StandardForm] := RowBox[{"[", Sequence @@ Riffle[MakeBoxes /@ {items}, " "], "]"}]
+  >> MakeBoxes[{items___}, TraditionalForm] := RowBox[{"[", Sequence @@ Riffle[MakeBoxes /@ {items}, " "], "]"}]
   >> {1, 2, 3}
    = {1, 2, 3}
 
-  #> {1, 2, 3} // TeXForm
+  >> {1, 2, 3} // TeXForm
    = \left[1 2 3\right]
 
 However, this will not be accepted as input to \Mathics anymore:
   >> [1 2 3]
-  : Expression cannot begin with "[1 2 3]" (line 1 of "<test>").
+  : ...
 
   >> Clear[MakeBoxes]
 
@@ -937,7 +955,7 @@ By the way, 'MakeBoxes' is the only built-in symbol that is not protected by def
   = {HoldAllComplete}
 
 'MakeBoxes' must return a valid box construct:
-  >> MakeBoxes[squared[args___], StandardForm] := squared[args] ^ 2
+  >> MakeBoxes[squared[args___], TraditionalForm] := squared[args] ^ 2
   >> squared[1, 2]
    = squared[1, 2]
 
@@ -947,12 +965,12 @@ By the way, 'MakeBoxes' is the only built-in symbol that is not protected by def
   =
 
 The desired effect can be achieved in the following way:
-  >> MakeBoxes[squared[args___], StandardForm] := SuperscriptBox[RowBox[{MakeBoxes[squared], "[", RowBox[Riffle[MakeBoxes[#]& /@ {args}, ","]], "]"}], 2]
+  >> MakeBoxes[squared[args___], TraditionalForm] := SuperscriptBox[RowBox[{MakeBoxes[squared], "[", RowBox[Riffle[MakeBoxes[#]& /@ {args}, ","]], "]"}], 2]
   >> squared[1, 2]
   = squared[1, 2]
 
   #> squared[1, 2] // TeXForm
-   = \text{squared}\left[1,2\right]^2
+   = \text{squared}\left[1, 2\right]^2
 
 You can view the box structure of a formatted expression using 'ToBoxes':
 
@@ -970,21 +988,21 @@ The list elements in this 'RowBox' are strings, though string delimiters are not
 <section title="Graphics Introduction Examples">
 Two-dimensional graphics can be created using the function 'Graphics' and a list of graphics primitives. For three-dimensional graphics see the following section. The following primitives are available:
 <dl>
-<dt>'Circle[{$x$, $y$}, $r$]'
+<dt>'Circle'[{$x$, $y$}, $r$]
   <dd>draws a circle.
-  <dt>'Disk[{$x$, $y$}, $r$]'
+  <dt>'Disk'[{$x$, $y$}, $r$]
 
   <dd>draws a filled disk.
-  <dt>'Rectangle[{$x1$, $y1$}, {$x2$, $y2$}]'
+  <dt>'Rectangle'[{$x_1$, $y_1$}, {$x_2$, $y_2$}]
 
   <dd>draws a filled rectangle.
-  <dt>'Polygon[{{$x1$, $y1$}, {$x2$, $y2$}, ...}]'
+  <dt>'Polygon'[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]
 
   <dd>draws a filled polygon.
-  <dt>'Line[{{$x1$, $y1$}, {$x2$, $y2$}, ...}]'
+  <dt>'Line'[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]
 
   <dd>draws a line.
-  <dt>'Text[$text$, {$x$, $y$}]'
+  <dt>'Text'[$text$, {$x$, $y$}]
   <dd>draws text in a graphics.
 </dl>
 
@@ -996,16 +1014,16 @@ Two-dimensional graphics can be created using the function 'Graphics' and a list
 
 Colors can be added in the list of graphics primitives to change the drawing color. The following ways to specify colors are supported:
 <dl>
-  <dt>'RGBColor[$r$, $g$, $b$]'
+  <dt>'RGBColor'[$r$, $g$, $b$]
   <dd>specifies a color using red, green, and blue.
 
-  <dt>'CMYKColor[$c$, $m$, $y$, $k$]'
+  <dt>'CMYKColor'[$c$, $m$, $y$, $k$]
   <dd>specifies a color using cyan, magenta, yellow, and black.
 
-  <dt>'Hue[$h$, $s$, $b$]'
+  <dt>'Hue'[$h$, $s$, $b$]
   <dd>specifies a color using hue, saturation, and brightness.
 
-  <dt>'GrayLevel[$l$]'
+  <dt>'GrayLevel'[$l$]
   <dd>specifies a color using a gray level.
 </dl>
 
@@ -1023,11 +1041,11 @@ Table of hues:
 
 Colors can be mixed and altered using the following functions:
 <dl>
-<dt>'Blend[{$color1$, $color2$}, $ratio$]'
+<dt>'Blend'[{$color1$, $color2$}, $ratio$]
   <dd>mixes $color1$ and $color2$ with $ratio$, where a ratio of 0 returns $color1$ and a ratio of 1 returns $color2$.
-<dt>'Lighter[$color$]'
+<dt>'Lighter'[$color$]
   <dd>makes $color$ lighter (mixes it with 'White').
-<dt>'Darker[$color$]'
+<dt>'Darker'[$color$]
   <dd>makes $color$ darker (mixes it with 'Black').
 </dl>
 
@@ -1044,11 +1062,11 @@ Colors can be mixed and altered using the following functions:
 <section title="3D Graphics">
 Three-dimensional graphics are created using the function 'Graphics3D' and a list of 3D primitives. The following primitives are supported so far:
 <dl>
-<dt>'Polygon[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z3$}, ...}]'
+<dt>'Polygon'[{{$x_1$, $y_1$, $z_1$}, {$x_2$, $y_2$, $z_3$}, ...}]
   <dd>draws a filled polygon.
-<dt>'Line[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z3$}, ...}]'
+<dt>'Line'[{{$x_1$, $y_1$, $z_1$}, {$x_2$, $y_2$, $z_3$}, ...}]
   <dd>draws a line.
-<dt>'Point[{$x1$, $y1$, $z1$}]'
+<dt>'Point'[{$x_1$, $y_1$, $z_1$}]
   <dd>draws a point.
 </dl>
 
@@ -1094,6 +1112,8 @@ Three-dimensional plots are supported as well:
 
 <chapter title="Further Tutorial Examples">
 
+Here are some examples written by Jan Pöschko that come from the very first version.
+
 <section title="Curve Sketching">
 Let\'s sketch the function
   >> f[x_] := 4 x / (x ^ 2 + 3 x + 5)
@@ -1124,7 +1144,7 @@ Being different from 0, all three points are actual inflection points.
   >> Solve[Denominator[f[x]] == 0, x]
    = {{x -> -3 / 2 - I / 2 Sqrt[11]}, {x -> -3 / 2 + I / 2 Sqrt[11]}}
 
-These are non-real numbers, consequently 'f' is defined on all real numbers.
+These are non-real numbers; consequently, 'f' is defined on all real numbers.
 The behaviour of 'f' at the boundaries of its definition:
   >> Limit[f[x], x -> Infinity]
    = 0
@@ -1211,16 +1231,16 @@ A dice object shall be displayed as a rectangle with the given number of points 
 
   #> Definition[Dice]
     = Attributes[Dice] = {Orderless}
-   .
-   . Format[Dice[n_Integer ? (1 <= #1 <= 6&)], MathMLForm] = Block[{p = 0.2, r = 0.05}, Graphics[{EdgeForm[Black], White, Rectangle[], Black, EdgeForm[], If[OddQ[n], Disk[{0.5, 0.5}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{p, p}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{Plus[1, Times[-1, p]], Plus[1, Times[-1, p]]}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{p, Plus[1, Times[-1, p]]}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{Plus[1, Times[-1, p]], p}, r]], If[n === 6, {Disk[{p, 0.5}, r], Disk[{Plus[1, Times[-1, p]], 0.5}, r]}]}, ImageSize -> Tiny]]
-   .
-   . Format[Dice[n_Integer ? (1 <= #1 <= 6&)], OutputForm] = Block[{p = 0.2, r = 0.05}, Graphics[{EdgeForm[Black], White, Rectangle[], Black, EdgeForm[], If[OddQ[n], Disk[{0.5, 0.5}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{p, p}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{Plus[1, Times[-1, p]], Plus[1, Times[-1, p]]}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{p, Plus[1, Times[-1, p]]}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{Plus[1, Times[-1, p]], p}, r]], If[n === 6, {Disk[{p, 0.5}, r], Disk[{Plus[1, Times[-1, p]], 0.5}, r]}]}, ImageSize -> Tiny]]
-   .
-   . Format[Dice[n_Integer ? (1 <= #1 <= 6&)], StandardForm] = Block[{p = 0.2, r = 0.05}, Graphics[{EdgeForm[Black], White, Rectangle[], Black, EdgeForm[], If[OddQ[n], Disk[{0.5, 0.5}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{p, p}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{Plus[1, Times[-1, p]], Plus[1, Times[-1, p]]}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{p, Plus[1, Times[-1, p]]}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{Plus[1, Times[-1, p]], p}, r]], If[n === 6, {Disk[{p, 0.5}, r], Disk[{Plus[1, Times[-1, p]], 0.5}, r]}]}, ImageSize -> Tiny]]
-   .
-   . Format[Dice[n_Integer ? (1 <= #1 <= 6&)], TeXForm] = Block[{p = 0.2, r = 0.05}, Graphics[{EdgeForm[Black], White, Rectangle[], Black, EdgeForm[], If[OddQ[n], Disk[{0.5, 0.5}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{p, p}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{Plus[1, Times[-1, p]], Plus[1, Times[-1, p]]}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{p, Plus[1, Times[-1, p]]}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{Plus[1, Times[-1, p]], p}, r]], If[n === 6, {Disk[{p, 0.5}, r], Disk[{Plus[1, Times[-1, p]], 0.5}, r]}]}, ImageSize -> Tiny]]
-   .
-   . Format[Dice[n_Integer ? (1 <= #1 <= 6&)], TraditionalForm] = Block[{p = 0.2, r = 0.05}, Graphics[{EdgeForm[Black], White, Rectangle[], Black, EdgeForm[], If[OddQ[n], Disk[{0.5, 0.5}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{p, p}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{Plus[1, Times[-1, p]], Plus[1, Times[-1, p]]}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{p, Plus[1, Times[-1, p]]}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{Plus[1, Times[-1, p]], p}, r]], If[n === 6, {Disk[{p, 0.5}, r], Disk[{Plus[1, Times[-1, p]], 0.5}, r]}]}, ImageSize -> Tiny]]
+    .
+    . Format[Dice[n_Integer ? (1 <= #1 <= 6&)], MathMLForm] = Block[{p = 0.2, r = 0.05}, Graphics[{EdgeForm[Black], White, Rectangle[], Black, EdgeForm[], If[OddQ[n], Disk[{0.5, 0.5}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{p, p}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{1 - p, 1 - p}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{p, 1 - p}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{1 - p, p}, r]], If[n === 6, {Disk[{p, 0.5}, r], Disk[{1 - p, 0.5}, r]}]}, ImageSize -> Tiny]]
+    .
+    . Format[Dice[n_Integer ? (1 <= #1 <= 6&)], OutputForm] = Block[{p = 0.2, r = 0.05}, Graphics[{EdgeForm[Black], White, Rectangle[], Black, EdgeForm[], If[OddQ[n], Disk[{0.5, 0.5}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{p, p}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{1 - p, 1 - p}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{p, 1 - p}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{1 - p, p}, r]], If[n === 6, {Disk[{p, 0.5}, r], Disk[{1 - p, 0.5}, r]}]}, ImageSize -> Tiny]]
+    .
+    . Format[Dice[n_Integer ? (1 <= #1 <= 6&)], StandardForm] = Block[{p = 0.2, r = 0.05}, Graphics[{EdgeForm[Black], White, Rectangle[], Black, EdgeForm[], If[OddQ[n], Disk[{0.5, 0.5}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{p, p}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{1 - p, 1 - p}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{p, 1 - p}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{1 - p, p}, r]], If[n === 6, {Disk[{p, 0.5}, r], Disk[{1 - p, 0.5}, r]}]}, ImageSize -> Tiny]]
+    .
+    . Format[Dice[n_Integer ? (1 <= #1 <= 6&)], TeXForm] = Block[{p = 0.2, r = 0.05}, Graphics[{EdgeForm[Black], White, Rectangle[], Black, EdgeForm[], If[OddQ[n], Disk[{0.5, 0.5}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{p, p}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{1 - p, 1 - p}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{p, 1 - p}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{1 - p, p}, r]], If[n === 6, {Disk[{p, 0.5}, r], Disk[{1 - p, 0.5}, r]}]}, ImageSize -> Tiny]]
+    .
+    . Format[Dice[n_Integer ? (1 <= #1 <= 6&)], TraditionalForm] = Block[{p = 0.2, r = 0.05}, Graphics[{EdgeForm[Black], White, Rectangle[], Black, EdgeForm[], If[OddQ[n], Disk[{0.5, 0.5}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{p, p}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{1 - p, 1 - p}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{p, 1 - p}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{1 - p, p}, r]], If[n === 6, {Disk[{p, 0.5}, r], Disk[{1 - p, 0.5}, r]}]}, ImageSize -> Tiny]]
 
 The empty series of dice shall be displayed as an empty dice:
   >> Format[Dice[]] := Graphics[{EdgeForm[Black], White, Rectangle[]}, ImageSize -> Tiny]
@@ -1282,15 +1302,15 @@ It is not very sophisticated from a mathematical point of view, but it\'s beauti
 
 In the future, we plan on providing an interface to Jupyter as a separate package.
 
-However currently as part \Mathics, we distribute a browser-based interface using long-term-release (LTS) Django 4.
+However, as part \Mathics, we currently distribute a browser-based interface using long-term-release (LTS) Django 4.
 
-Since a Jupyter-based interface seems preferable to the home-grown interface described here, it is doubtful whether there will be future improvements to the this interface.
+Since a Jupyter-based interface seems preferable to the home-grown interface described here, it is doubtful whether there will be future improvements to this interface.
 
 When you enter Mathics in the top after the Mathics logo and the word "Mathics" you'll see a <i>menubar</i>.
 
 It looks like this:
 
-<imgpng src="menubar.png" title="Mathics Menu Bar" label="menubar">
+<img src="menubar.png" title="Mathics Menu Bar" label="menubar">
 
 These save and load worksheets, share sessions, run a gallery of examples, go to the GitHub organization page, and provide information about the particular Mathics3 installation.
 
@@ -1299,7 +1319,7 @@ These are explained in the sections below.
 <section title="URIs">
 
 For the most part, the application is a single-page application.
-Assuming your are running locally or on a host called 'localhost' using the default port, 8000, here are some URLs and what they do:
+Assuming you are running locally or on a host called 'localhost' using the default port, 8000, here are some URLs and what they do:
 
 <dl>
   <dt><url>http://localhost:8000</url>
@@ -1307,35 +1327,35 @@ Assuming your are running locally or on a host called 'localhost' using the defa
   <dt><url>http://localhost:8000/about</url>
   <dd>A page giving:
   <ul>
-    <li>the software versions of this package and version information of important software this uses.
+    <li>the software versions of this package and the version information of important software this uses.
     <li>directory path information for the current setup
     <li>machine information
     <li>system information
     <li>customizable system settings
   </ul>
   <dt><url>http://localhost:8000/doc</url>
-  <dd>An on-line formatted version of the documentation, which include this text. You can see this as a right side frame of the main page, when clicking "?" on the right-hand upper corner.
+  <dd>An online formatted version of the documentation, which includes this text. You can see this as a right-side frame of the main page, when clicking "?" on the right-hand upper corner.
 </dl>
 </section>
 <section title="Saving, Loading, and Deleting Worksheets">
 
 <subsection title="Saving Worksheets">
 
-Worksheets exist in the browser window only and are not stored on the server, by default. To save all your queries and results, use the <em>Save</em> button which is the middle graphic of the menu bar. It looks like this:
+Worksheets exist in the browser window only and are not stored on the server by default. To save all your queries and results, use the <em>Save</em> button, which is the middle graphic of the menu bar. It looks like this:
 
-<imgpng src="save-button.png" title="Mathics Save Button" label="save-button">
+<img src="save-button.png" title="Mathics Save Button" label="save-button">
 
-Depending on browser, desktop, and OS-settings, the "Ctrl+S" key combination may do the same thing.
+Depending on browser, desktop, and OS settings, the "Ctrl+S" key combination may do the same thing.
 
 <subsection title="Loading and Deleting Worksheets">
 
-Saved worksheets can be loaded or deleted using the <em>File Open</em> button which is the left-most button in the menu bar. It looks like this:
+Saved worksheets can be loaded or deleted using the <em>File Open</em> button, which is the left-most button in the menu bar. It looks like this:
 
-<imgpng src="file-open-button.png" title="Mathics File Open Button" label="file-open-button">
+<img src="file-open-button.png" title="Mathics File Open Button" label="file-open-button">
 
-Depending on browser, desktop, and OS-settings, the "Ctrl+O" key combination may do the same thing.
+Depending on browser, desktop, and OS settings, the "Ctrl+O" key combination may do the same thing.
 
-A pop-up menu should appear with the list of saved worksheets with an option to either load or delete the worksheet.
+A pop-up menu should appear with the list of saved worksheets, with an option to either load or delete the worksheet.
 
 </section>
 
@@ -1343,7 +1363,7 @@ A pop-up menu should appear with the list of saved worksheets with an option to 
 
 We have a number of examples showing off briefly some of the capabilities of the system. These are run when you hit the button that looks like this:
 
-<imgpng src="gallery.png" title="Run Gallery Demo examples Button" label="gallery-button">
+<img src="gallery.png" title="Run Gallery Demo examples Button" label="gallery-button">
 
 It is also shown in the pop-up text that appears when Mathics3 is first run.
 
@@ -1351,23 +1371,23 @@ It is also shown in the pop-up text that appears when Mathics3 is first run.
 
 <section title="Persistence of Mathics Definitions in a Session">
 
-When you use the Django-based Web interface of \Mathics, a browser session is created. Cookies have to be enabled to allow this. Your session holds a key that is used to access your definitions that are stored in a database on the server. As long as you don\'t clear the cookies in your browser, your definitions will remain even when you close and re-open the browser.
+When you use the Django-based Web interface of \Mathics, a browser session is created. Cookies have to be enabled to allow this. Your session holds a key that is used to access your definitions that are stored in a database on the server. As long as you do not clear the cookies in your browser, your definitions will remain even when you close and re-open the browser.
 
 This implies that you should not store sensitive, private information in \Mathics variables when using the online Web interface. In addition to their values being stored in a database on the server, your queries might be saved for debugging purposes. However, the fact that they are transmitted over plain HTTP should make you aware that you should not transmit any sensitive information. When you want to do calculations with that kind of stuff, simply install \Mathics locally!
 
-If you are using a public terminal, to erase all your definitions and close the browser window. When you use \Mathics in a browser, use the command <con>Quit[]</con> or its alias, <con>Exit[]</con>.
+If you are using a public terminal, to erase all your definitions and close the browser window. When you use \Mathics in a browser, use the command 'Quit[]' or its alias, 'Exit[]'.
 
-When you reload the current page in a browser using the default URL, e.g., <con>http:localhost:8000</con>, all of the previous input and output disappears.
+When you reload the current page in a browser using the default URL, e.g., <console>http:localhost:8000</console>, all of the previous input and output disappears.
 
-On the other hand, Definitions as described above do not, unless <con>Quit[]</con> or <con>Exit[]</con> is entered as described above.
+On the other hand, Definitions as described above do not, unless 'Quit[]' or 'Exit[]' is entered as described above.
 
 If you want a URL that records the input entered, the <em>Generate Input Hash</em> button does this. The button looks like this:
 
-<imgpng src="generate-hash-button.png" title="Mathics Generate Input Hash Button" label="generate-input-hash-button">
+<img src="generate-hash-button.png" title="Mathics Generate Input Hash Button" label="generate-input-hash-button">
 
-For example, assuming you have a \Mathics server running at port 8000 on <con>localhost</con>, and you enter the URL <con>http://localhost:8000/#cXVlcmllcz14</con>, you should see a single line of input containing <con>x</con> entered.
+For example, assuming you have a \Mathics server running at port 8000 on <console>localhost</console>, and you enter the URL <console>http://localhost:8000/#cXVlcmllcz14</console>, you should see a single line of input containing 'x' entered.
 
-Of course, what the value of this is when evaluated depends on whether <con>x</con> has been previously defined.
+Of course, what the value of this is when evaluated depends on whether 'x' has been previously defined.
 
 </section>
 
@@ -1377,10 +1397,10 @@ There are some keyboard commands you can use in the Django-based Web interface o
 
 <dl>
   <dt>'Shift+Return'</dt>
-  <dd>This evaluates the current cell (the most important one, for sure). On the right-hand side, you may also see an "=" button which can be clicked to do the same thing.</dd>
+  <dd>This evaluates the current cell (the most important one, for sure). On the right-hand side, you may also see an "=" button, which can be clicked to do the same thing.</dd>
 
   <dt>'Ctrl+D'</dt>
-  <dd>This moves the cursor over to the documentation pane on the right-hand side. From here you can perform a search for a pre-defined \Mathics function, or symbol. Clicking on the "?" symbol on the right-hand side does the same thing.</dd>
+  <dd>This moves the cursor over to the documentation pane on the right-hand side. From here you can perform a search for a pre-defined \Mathics function or symbol. Clicking on the "?" symbol on the right-hand side does the same thing.</dd>
 
   <dt>'Ctrl+C'</dt>
   <dd>This moves the cursor back to the document code pane area where you type \Mathics expressions    </dd>
@@ -1399,7 +1419,7 @@ Of special note is the last item on the list: right-click to open the MathJax me
 
 Keyboard command behavior depends on the browser used, the operating system, desktop settings, and customization. We hook into the desktop "Open the current document" and "Save the current document" functions that many desktops provide. For example see: <url>:Finding keyboard shortcuts: https://help.ubuntu.com/community/KeyboardShortcuts#Finding_keyboard_shortcuts</url>
 
-Often, these shortcut keyboard commands are only recognized when a text field has focus; otherwise, the browser might do some browser-specific actions, like setting a bookmark etc.
+Often, these shortcut keyboard commands are only recognized when a text field has focus; otherwise, the browser might do some browser-specific actions, like setting a bookmark, etc.
 
 </section>
 

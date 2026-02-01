@@ -6,6 +6,8 @@ import sys
 
 import pytest
 
+from mathics import version_string
+
 
 def get_testdir():
     filename = osp.normcase(osp.dirname(osp.abspath(__file__)))
@@ -21,7 +23,7 @@ def test_cli():
 
     # asserts output contains 'Hello' and '2'
     result = subprocess.run(
-        ["mathics", "-e", "Print[1+1];", "-script", script_file],
+        ["mathics", "-c", "Print[1+1];", "-f", script_file],
         capture_output=True,
     )
 
@@ -29,9 +31,26 @@ def test_cli():
     assert result.returncode == 0
 
     result = subprocess.run(
-        ["mathics", "--execute", "2+3", "---trace-builtins"],
+        ["mathics", "-ecode", "2+3", "---trace-builtins"],
         capture_output=False,
     )
+    assert result.returncode == 0
+
+
+@pytest.mark.skipif(
+    sys.platform in ("emscripten",),
+    reason="Pyodide does not support processes",
+)
+def test_version_option():
+    """
+    Check that --version works and returns
+    software version information.
+    """
+    result = subprocess.run(
+        ["mathics", "--version"],
+        capture_output=True,
+    )
+    assert result.stdout.decode("utf-8").index(version_string) == 0
     assert result.returncode == 0
 
 

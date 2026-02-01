@@ -166,10 +166,7 @@ import pytest
         ## 1st is not a list
         (
             'StringRiffle["abcdef"]',
-            (
-                "List expected at position 1 in StringRiffle[abcdef].",
-                "StringRiffle called with 1 argument; 2 or more arguments are expected.",
-            ),
+            ("List expected at position 1 in StringRiffle[abcdef].",),
             "StringRiffle[abcdef]",
             None,
         ),
@@ -323,8 +320,8 @@ def test_private_doctests_operations(str_expr, msgs, str_expected, fail_msg):
             "StringFreeQ[{A, Galaxy, Far, Far, Away}, {F ~~ __ ~~ r, aw ~~ ___}]",
             None,
         ),
-        ## Mathematica can detemine correct invalid element in the pattern, it reports error:
-        ## Element F is not a valid string or pattern element in {F ~~ __ ~~ r, aw ~~ ___}.
+        # Mathematica can determine correct invalid element in the pattern, it reports error:
+        # Element F is not a valid string or pattern element in {F ~~ __ ~~ r, aw ~~ ___}.
         ('StringMatchQ["abc1", LetterCharacter]', None, "False", None),
         ('StringMatchQ["abc", "ABC"]', None, "False", None),
         ('StringMatchQ["abc", "ABC", IgnoreCase -> True]', None, "True", None),
@@ -515,7 +512,7 @@ def test_private_doctests_characters(str_expr, msgs, str_expected, fail_msg):
         ),
     ],
 )
-def test_private_doctests_characters(str_expr, str_expected, fail_msg):
+def test_private_doctests_characters2(str_expr, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,

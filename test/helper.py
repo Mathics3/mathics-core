@@ -2,7 +2,7 @@
 import os.path as osp
 import re
 import time
-from typing import Optional
+from typing import List, Optional, Tuple
 
 from mathics.core.load_builtin import import_and_load_builtins
 from mathics.session import MathicsSession
@@ -126,10 +126,10 @@ def check_evaluation(
 
     print(time.asctime())
     if failure_message:
-        print((result, expected))
+        print(f"got: \n{result}\nexpect:\n{expected}\n -- {failure_message}")
         assert result == expected, failure_message
     else:
-        print((result, expected))
+        print(f"got: \n{result}\nexpect:\n{expected}\n --")
         if isinstance(expected, re.Pattern):
             assert expected.match(result)
         else:
@@ -176,3 +176,21 @@ def check_evaluation_as_in_cli(
     if failure_message:
         assert res.result == str_expected, failure_message
     assert res.result == str_expected
+
+
+# List below could be a Tuple, but List looks better in the tests
+def check_wrong_number_of_arguments(tests: List[Tuple[str, List[str], str]]):
+    """
+    Boilerplate code to check that for giving an error message when the wrong
+    number of arguments is provided.
+    """
+    for str_expr, msgs, assert_fail_msg in tests:
+        check_evaluation(
+            str_expr,
+            str_expr,
+            to_string_expr=True,
+            to_string_expected=True,
+            hold_expected=True,
+            failure_message=assert_fail_msg,
+            expected_messages=msgs,
+        )

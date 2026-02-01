@@ -22,7 +22,7 @@ class DefaultValues(Builtin):
     https://reference.wolfram.com/language/ref/DefaultValues.html</url>
 
     <dl>
-      <dt>'DefaultValues[$symbol$]'
+      <dt>'DefaultValues'[$symbol$]
       <dd>gives the list of default values associated with $symbol$.
 
       <i>Note: this function is in Mathematica 5 but has been removed from \
@@ -64,7 +64,7 @@ class Messages(Builtin):
     https://reference.wolfram.com/language/ref/Messages.html</url>
 
     <dl>
-      <dt>'Messages[$symbol$]'
+      <dt>'Messages'[$symbol$]
       <dd>gives the list of messages associated with $symbol$.
     </dl>
 
@@ -94,7 +94,7 @@ class NValues(Builtin):
     ## <url>:WMA link:https://reference.wolfram.com/language/ref/NValues.html</url>
 
     <dl>
-       <dt>'NValues[$symbol$]'
+       <dt>'NValues'[$symbol$]
        <dd>gives the list of numerical values associated with $symbol$.
 
        <i>Note: this function is in Mathematica 5 but has been removed from \
@@ -144,7 +144,7 @@ class SubValues(Builtin):
     https://reference.wolfram.com/language/ref/SubValues.html</url>
 
     <dl>
-      <dt>'SubValues[$symbol$]'
+      <dt>'SubValues'[$symbol$]
       <dd>gives the list of subvalues associated with $symbol$.
 
       <i>Note: this function is not in current Mathematica.</i>
@@ -155,7 +155,7 @@ class SubValues(Builtin):
     >> SubValues[f]
      = {HoldPattern[f[2][x_]] :> x ^ 2, HoldPattern[f[1][x_]] :> x}
     >> Definition[f]
-     = f[2][x_] = x ^ 2
+     = f[2][x_] = x^2
      .
      . f[1][x_] = x
     """

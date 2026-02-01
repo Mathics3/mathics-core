@@ -134,13 +134,13 @@ import pytest
             "Union[{1, -1, 2}, {-2, 3}, SameTest -> (Abs[#1] == Abs[#2] &)]",
             None,
             "{-2, 1, 3}",
-            "Union",
+            "Union with SameTest option",
         ),
         (
             "Intersection[{1, -1, -2, 2, -3}, {1, -2, 2, 3}, SameTest -> (Abs[#1] == Abs[#2] &)]",
             None,
             "{-3, -2, 1}",
-            "Intersection",
+            "Intersection with SameTest option",
         ),
     ],
 )
@@ -172,10 +172,7 @@ def test_rearrange_private_doctests(
         ),
         (
             "ContainsOnly[{c, a}, {a, b, c}, IgnoreCase -> True]",
-            (
-                "Unknown option IgnoreCase -> True in ContainsOnly.",
-                "Unknown option IgnoreCase in .",
-            ),
+            ("Unknown option IgnoreCase -> True in ContainsOnly.",),
             "True",
             None,
         ),

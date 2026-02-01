@@ -23,7 +23,7 @@ class CreateDirectory(Builtin):
     https://reference.wolfram.com/language/ref/CreateDirectory.html</url>
 
     <dl>
-      <dt>'CreateDirectory["$dir$"]'
+      <dt>'CreateDirectory'["$dir$"]
       <dd>creates a directory called $dir$.
 
       <dt>'CreateDirectory[]'
@@ -47,7 +47,6 @@ class CreateDirectory(Builtin):
         "fstr": (
             "File specification `1` is not a string of " "one or more characters."
         ),
-        "nffil": "File not found during `1`.",
         "filex": "`1` already exists.",
     }
     summary_text = "create a directory"
@@ -88,7 +87,7 @@ class DeleteDirectory(Builtin):
     https://reference.wolfram.com/language/ref/DeleteDirectory.html</url>
 
     <dl>
-      <dt>'DeleteDirectory["$dir$"]'
+      <dt>'DeleteDirectory'["$dir$"]
       <dd>deletes a directory called $dir$.
     </dl>
 
@@ -152,8 +151,8 @@ class RenameDirectory(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/RenameDirectory.html</url>
 
     <dl>
-      <dt>'RenameDirectory["$dir1$", "$dir2$"]'
-      <dd>renames directory $dir1$ to $dir2$.
+      <dt>'RenameDirectory'["$dir_1$", "$dir_2$"]
+      <dd>renames directory $dir_1$ to $dir_2$.
     </dl>
     """
 
@@ -173,7 +172,7 @@ class RenameDirectory(Builtin):
         if len(seq) != 2:
             evaluation.message("RenameDirectory", "argr", "RenameDirectory", 2)
             return
-        (dir1, dir2) = (s.to_python() for s in seq)
+        dir1, dir2 = (s.to_python() for s in seq)
 
         if not (isinstance(dir1, str) and dir1[0] == dir1[-1] == '"'):
             evaluation.message("RenameDirectory", "fstr", seq[0])

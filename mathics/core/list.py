@@ -4,7 +4,7 @@ Module containing ListExpression
 """
 
 import reprlib
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 
 from mathics.core.element import ElementsProperties
 from mathics.core.evaluation import Evaluation
@@ -19,14 +19,17 @@ class ListExpression(Expression):
     A Mathics3 List is a specialization of Expression where the head is SymbolList.
 
     positional Arguments:
-        - *elements - optional: the remaining elements
+
+    - ``*elements`` - optional: the remaining elements
 
     Keyword Arguments:
-        - elements_properties -- properties of the collection of elements
-        - literal_values -- if this is not None, then it is a tuple of Python values
+
+    - ``elements_properties`` -- properties of the collection of elements
+    - ``literal_values`` -- if this is not ``None``, then it is a tuple of Python values and the expression is a literal.
     """
 
     _is_literal: bool
+    _sympy: Optional[Any]
 
     def __init__(
         self,
@@ -37,6 +40,7 @@ class ListExpression(Expression):
         self.options = None
         self.pattern_sequence = False
         self._head = SymbolList
+        self._sympy = None
 
         # For debugging:
 
@@ -47,16 +51,16 @@ class ListExpression(Expression):
         #     call_frame = inspect.getouterframes(curframe, 2)
         #     print("caller name:", call_frame[1][3])
 
-        # from mathics.core.element import BaseElement
-        # for element in elements:
-        #     if not isinstance(element, BaseElement):
-        #          from trepan.api import debug; debug()
-
         self._elements = elements
-        self.value = literal_values
+
+        # When self.value is not None it a Python tuple (not Python
+        # list) sort that is the Python equivalent value for the Mathics3 list.
 
         # Check for literalness if it is not known
-        if literal_values is None:
+        if literal_values is not None:
+            self._is_literal = True
+            self.value = literal_values
+        else:
             self._is_literal = True
             values = []
             for element in elements:

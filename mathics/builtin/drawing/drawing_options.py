@@ -34,7 +34,7 @@ class Automatic(Builtin):
     graphical options:
 
     >> Cases[Options[Plot], HoldPattern[_ :> Automatic]]
-     = {Background :> Automatic, Exclusions :> Automatic, ImageSize :> Automatic, MaxRecursion :> Automatic, PlotRange :> Automatic, PlotRangePadding :> Automatic}
+     = {AxesOrigin :> Automatic, Background :> Automatic, BaselinePosition :> Automatic, ContentSelectable :> Automatic, CoordinatesToolOptions :> Automatic, Exclusions :> Automatic, FrameTicks :> Automatic, ImageSize :> Automatic, Method :> Automatic, PlotRange :> Automatic, PlotRangePadding :> Automatic, PlotRegion :> Automatic, PreserveImageOptions :> Automatic, Ticks :> Automatic}
     """
 
     summary_text = "graph option value to choose parameters automatically"
@@ -197,10 +197,15 @@ class ImageSize(Builtin):
       <dd>determined by location or other dimension (default)
       <dt>Tiny, Small, Medium, Large
       <dd>pre defined absolute sizes
+      <dt>{$w, h$}
+      <dd>explicit width and height
     </dl>
 
 
     >> Plot[Sin[x], {x, 0, 10}, ImageSize -> Small]
+     = -Graphics-
+
+    >> Plot[Sin[x], {x, 0, 10}, ImageSize -> {300, 300}]
      = -Graphics-
     """
 
@@ -318,7 +323,7 @@ class PlotRange(Builtin):
       <li>$max$ - explicit limit for each function.
       <li>{$min$, $max$} - explicit limits for $y$ (2D), $z$ (3D), \
           or array values.
-      <li>{{$x$_$min$, $x$_$max$}, {{$y_min}, {$y_max}} - explicit limits for \
+      <li>{{$x_{min}$, $x_{max}$}, {{$y_{min}$}, {$y_{max}$}} - explicit limits for \
           $x$ and $y$.
     </ul>
 

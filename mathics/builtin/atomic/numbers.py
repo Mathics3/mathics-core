@@ -20,6 +20,7 @@ However, things like 'N[Pi, 100]' should work as expected.
 import mpmath
 
 from mathics.core.atoms import (
+    Complex,
     Integer,
     Integer0,
     Integer3,
@@ -73,7 +74,7 @@ class Accuracy(Builtin):
     https://reference.wolfram.com/language/ref/Accuracy.html</url>)
 
     <dl>
-      <dt>'Accuracy[$x$]'
+      <dt>'Accuracy'[$x$]
       <dd>examines the number of significant digits of $expr$ after the \
       decimal point in the number x.
     </dl>
@@ -89,7 +90,7 @@ class Accuracy(Builtin):
     Notice that the value is not exactly equal to the obtained in WMA: \
     This is due to the different way in which 'Precision' is handled in SymPy.
 
-    Accuracy for exact atoms is $Infinity$:
+    Accuracy for exact atoms is 'Infinity':
     >> Accuracy[1]
      = Infinity
     >> Accuracy[A]
@@ -145,7 +146,7 @@ class IntegerExponent(Builtin):
     https://reference.wolfram.com/language/ref/IntegerExponent.html</url>
 
     <dl>
-      <dt>'IntegerExponent[$n$, $b$]'
+      <dt>'IntegerExponent'[$n$, $b$]
       <dd>gives the highest exponent of $b$ that divides $n$.
     </dl>
 
@@ -170,7 +171,7 @@ class IntegerExponent(Builtin):
         "IntegerExponent[n_]": "IntegerExponent[n, 10]",
     }
 
-    summary_text = "number of trailing 0s in a given base"
+    summary_text = "get the number of trailing 0s in a given base"
 
     def eval_two_arg_integers(self, n: Integer, b: Integer, evaluation: Evaluation):
         """IntegerExponent[n_Integer, b_Integer]"""
@@ -218,10 +219,10 @@ class IntegerLength(Builtin):
     https://reference.wolfram.com/language/ref/IntegerLength.html</url>
 
     <dl>
-      <dt>'IntegerLength[$x$]'
+      <dt>'IntegerLength'[$x$]
       <dd>gives the number of digits in the base-10 representation of $x$.
 
-      <dt>'IntegerLength[$x$, $b$]'
+      <dt>'IntegerLength'[$x$, $b$]
       <dd>gives the number of base-$b$ digits in $x$.
     </dl>
 
@@ -257,7 +258,7 @@ class IntegerLength(Builtin):
         "IntegerLength[n_]": "IntegerLength[n, 10]",
     }
 
-    summary_text = "total number of digits in any base"
+    summary_text = "get total number of digits in any base"
 
     def eval(self, n, b, evaluation):
         """IntegerLength[n_, b_]"""
@@ -301,10 +302,10 @@ class NumberDigit(Builtin):
     https://reference.wolfram.com/language/ref/NumberDigit.html</url>
 
     <dl>
-      <dt>'NumberDigit[$x$, $n$]'
+      <dt>'NumberDigit'[$x$, $n$]
       <dd>returns the digit coefficient of 10^$n$ for the real-valued number $x$.
 
-      <dt>'NumberDigit[$x$, $n$, $b$]'
+      <dt>'NumberDigit'[$x$, $n$, $b$]
       <dd>returns the coefficient of $b$^$n$ in the base-$b$ representation of $x$.
     </dl>
 
@@ -339,19 +340,19 @@ class RealDigits(Builtin):
     https://reference.wolfram.com/language/ref/RealDigits.html</url>
 
     <dl>
-      <dt>'RealDigits[$n$]'
-      <dd>returns the decimal representation of the real number $n$ as list \
+      <dt>'RealDigits'[$n$]
+      <dd>returns the decimal representation for the real number $n$ as list \
       of digits, together with the number of digits that are to the left of \
       the decimal point.
 
-      <dt>'RealDigits[$n$, $b$]'
-      <dd>returns a list of base_$b$ representation of the real number $n$.
+      <dt>'RealDigits'[$n$, $b$]
+      <dd>returns a list of the "digits" in base-b representation for the real number $n$.
 
-      <dt>'RealDigits[$n$, $b$, $len$]'
+      <dt>'RealDigits'[$n$, $b$, $len$]
       <dd>returns a list of $len$ digits.
 
-      <dt>'RealDigits[$n$, $b$, $len$, $p$]'
-      <dd>return $len$ digits starting with the coefficient of $b$^$p$
+      <dt>'RealDigits'[$n$, $b$, $len$, $p$]
+      <dd>return $len$ digits starting with the coefficient of $b^p$.
     </dl>
 
     Return the list of digits and exponent:
@@ -391,11 +392,7 @@ class RealDigits(Builtin):
         "intm": "Machine-sized integer expected at position 4 in `1`.",
     }
 
-    summary_text = "digits of a real number"
-
-    def eval_complex(self, n, var, evaluation):
-        "%(name)s[n_Complex, var___]"
-        evaluation.message("RealDigits", "realx", n)
+    summary_text = "get digits of a real number"
 
     def eval_rational_with_base(self, n, b, evaluation):
         "%(name)s[n_Rational, b_Integer]"
@@ -406,14 +403,12 @@ class RealDigits(Builtin):
             return self.eval_with_base(n, b, evaluation)
         else:
             exp = log_n_b(py_n, py_b)
-            (head, tails) = convert_repeating_decimal(
+            head, tails = convert_repeating_decimal(
                 py_n.as_numer_denom()[0], py_n.as_numer_denom()[1], py_b
             )
 
-            elements = []
-            for x in head:
-                if x != "0":
-                    elements.append(Integer(int(x)))
+            elements = [Integer(int(x)) for x in head if x != "0"]
+
             elements.append(from_python(tails))
             list_expr = ListExpression(*elements)
         return ListExpression(list_expr, Integer(exp))
@@ -438,6 +433,10 @@ class RealDigits(Builtin):
     def eval_with_base(self, n, b, evaluation, nr_elements=None, pos=None):
         """%(name)s[n_?NumericQ, b_Integer]"""
 
+        if isinstance(n, Complex):
+            evaluation.message("RealDigits", "realx", n)
+            return
+
         expr = Expression(SymbolRealDigits, n)
         rational_no = (
             True if isinstance(n, Rational) else False
@@ -446,7 +445,7 @@ class RealDigits(Builtin):
         if isinstance(n, (Expression, Symbol, Rational)):
             pos_len = abs(pos) + 1 if pos is not None and pos < 0 else 1
             if nr_elements is not None:
-                # we can't use eval_n here because we have the two-arguemnt form
+                # we can't use eval_n here because we have the two-argument form
                 n = Expression(
                     SymbolN,
                     n,
@@ -458,6 +457,7 @@ class RealDigits(Builtin):
                 else:
                     evaluation.message("RealDigits", "ndig", expr)
                     return
+
         py_n = abs(n.value)
 
         if not py_b > 1:
@@ -580,11 +580,11 @@ class RealDigits(Builtin):
 
 
 class MaxPrecision(Predefined):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$MaxPrecision.html</url>
+    r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$MaxPrecision.html</url>
 
     <dl>
-      <dt>'$MaxPrecision'
+      <dt>'\$MaxPrecision'
       <dd>represents the maximum number of digits of precision permitted \
           in abitrary-precision numbers.
     </dl>
@@ -611,16 +611,16 @@ class MaxPrecision(Predefined):
         "$MaxPrecision": "Infinity",
     }
 
-    summary_text = "settable global maximum precision bound"
+    summary_text = "settable global maximum precision bound variable"
 
 
 class MachineEpsilon_(Predefined):
-    """
+    r"""
     <url>:WMA link:
-    https://reference.wolfram.com/language/ref/$MachineEpsilon.html</url>
+    https://reference.wolfram.com/language/ref/\$MachineEpsilon.html</url>
 
     <dl>
-      <dt>'$MachineEpsilon'
+      <dt>'\$MachineEpsilon'
       <dd>is the distance between '1.0' and the next \
           nearest representable machine-precision number.
     </dl>
@@ -636,18 +636,18 @@ class MachineEpsilon_(Predefined):
     _is_numeric = True
     name = "$MachineEpsilon"
 
-    summary_text = "the difference between 1.0 and the next-nearest number representable as a machine-precision number"
+    summary_text = "get the difference between 1.0 and the next-nearest number representable as a machine-precision number"
 
     def evaluate(self, evaluation):
         return MachineReal(MACHINE_EPSILON)
 
 
 class MachinePrecision_(Predefined):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$MachinePrecision.html</url>
+    r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$MachinePrecision.html</url>
 
     <dl>
-      <dt>'$MachinePrecision'
+      <dt>'\$MachinePrecision'
       <dd>is the number of decimal digits of precision for machine-precision numbers.
     </dl>
 
@@ -658,7 +658,7 @@ class MachinePrecision_(Predefined):
     name = "$MachinePrecision"
 
     summary_text = (
-        "the number of decimal digits of precision for machine-precision numbers"
+        "get the number of decimal digits of precision for machine-precision numbers"
     )
     _is_numeric = True
     rules = {
@@ -691,12 +691,12 @@ class MachinePrecision(Predefined):
 
 
 class MinPrecision(Builtin):
-    """
+    r"""
     <url>
-    :WMA link:https://reference.wolfram.com/language/ref/$MinPrecision.html</url>
+    :WMA link:https://reference.wolfram.com/language/ref/\$MinPrecision.html</url>
 
     <dl>
-      <dt>'$MinPrecision'
+      <dt>'\$MinPrecision'
       <dd>represents the minimum number of digits of precision permitted in \
           abitrary-precision numbers.
     </dl>
@@ -734,7 +734,7 @@ class Precision(Builtin):
     https://reference.wolfram.com/language/ref/Precision.html</url>
 
     <dl>
-      <dt>'Precision[$expr$]'
+      <dt>'Precision'[$expr$]
       <dd>examines the number of significant digits of $expr$.
     </dl>
 

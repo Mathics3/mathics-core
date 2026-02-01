@@ -2,26 +2,32 @@ import random
 import sys
 import unittest
 
-from mathics_scanner import (
+from mathics_scanner import SingleLineFeeder
+from mathics_scanner.errors import (
     IncompleteSyntaxError,
     InvalidSyntaxError,
-    ScanError,
-    SingleLineFeeder,
+    SyntaxError,
 )
+from mathics_scanner.location import ContainerKind
 
 from mathics.core.atoms import Integer, Integer0, Integer1, Rational, Real, String
 from mathics.core.definitions import Definitions
 from mathics.core.expression import Expression
-from mathics.core.parser import parse
+from mathics.core.load_builtin import import_and_load_builtins
+from mathics.core.parser import parse as core_parse
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolDerivative
 
+import_and_load_builtins()
 definitions = Definitions(add_builtin=True)
 
 
 class ConvertTests(unittest.TestCase):
-    def parse(self, code):
-        return parse(definitions, SingleLineFeeder(code))
+    def parse(self, source_text):
+        return core_parse(
+            definitions,
+            SingleLineFeeder(source_text, "<test_convert>", ContainerKind.STRING),
+        )
 
     def check(self, expr1, expr2):
         if isinstance(expr1, str):
@@ -35,7 +41,7 @@ class ConvertTests(unittest.TestCase):
             assert expr1.sameQ(expr2)
 
     def scan_error(self, string):
-        self.assertRaises(ScanError, self.parse, string)
+        self.assertRaises(SyntaxError, self.parse, string)
 
     def incomplete_error(self, string):
         self.assertRaises(IncompleteSyntaxError, self.parse, string)

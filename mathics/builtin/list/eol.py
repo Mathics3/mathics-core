@@ -10,7 +10,16 @@ patterns of criteria.
 from itertools import chain
 
 from mathics.builtin.box.layout import RowBox
-from mathics.core.atoms import Integer, Integer0, Integer1, Integer3, Integer4, String
+from mathics.core.atoms import (
+    ByteArray,
+    Integer,
+    Integer0,
+    Integer1,
+    Integer2,
+    Integer3,
+    Integer4,
+    String,
+)
 from mathics.core.attributes import (
     A_HOLD_FIRST,
     A_HOLD_REST,
@@ -30,6 +39,7 @@ from mathics.core.exceptions import (
     PartRangeError,
 )
 from mathics.core.expression import Expression, ExpressionInfinity
+from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
 from mathics.core.rules import Rule
 from mathics.core.symbols import Atom, Symbol, SymbolNull, SymbolTrue
@@ -39,8 +49,10 @@ from mathics.core.systemsymbols import (
     SymbolByteArray,
     SymbolDrop,
     SymbolFailed,
+    SymbolFirst,
     SymbolInfinity,
     SymbolKey,
+    SymbolLast,
     SymbolMakeBoxes,
     SymbolMissing,
     SymbolSelect,
@@ -61,7 +73,7 @@ from mathics.eval.parts import (
     set_part,
     walk_levels,
 )
-from mathics.eval.patterns import Matcher
+from mathics.eval.patterns import Matcher, param_and_option_from_optional_place
 
 SymbolDeleteCases = Symbol("System`DeleteCases")
 SymbolPrepend = Symbol("System`Prepend")
@@ -73,7 +85,7 @@ class Append(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Append.html</url>
 
     <dl>
-      <dt>'Append[$expr$, $elem$]'
+      <dt>'Append'[$expr$, $elem$]
       <dd>returns $expr$ with $elem$ appended.
     </dl>
 
@@ -114,7 +126,7 @@ class AppendTo(Builtin):
     https://reference.wolfram.com/language/ref/AppendTo.html</url>
 
     <dl>
-      <dt>'AppendTo[$s$, $elem$]'
+      <dt>'AppendTo'[$s$, $elem$]
       <dd>append $elem$ to value of $s$ and sets $s$ to the result.
     </dl>
 
@@ -159,13 +171,13 @@ class Cases(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Cases.html</url>
 
     <dl>
-      <dt>'Cases[$list$, $pattern$]'
+      <dt>'Cases'[$list$, $pattern$]
       <dd>returns the elements of $list$ that match $pattern$.
 
-      <dt>'Cases[$list$, $pattern$, $ls$]'
+      <dt>'Cases'[$list$, $pattern$, $ls$]
       <dd>returns the elements matching at levelspec $ls$.
 
-      <dt>'Cases[$list$, $pattern$, Heads->$bool$]'
+      <dt>'Cases'[$list$, $pattern$, Heads->$bool$]
       <dd>Match including the head of the expression in the search.
     </dl>
 
@@ -181,6 +193,10 @@ class Cases(Builtin):
     Also include the head of the expression in the previous search:
     >> Cases[{b, 6, \[Pi]}, _Symbol, Heads -> True]
      = {List, b, Pi}
+
+    See also <url>
+    :'MatchQ':
+    /doc/reference-of-built-in-symbols/testing-expressions/expression-tests/matchq/</url>.
     """
 
     rules = {
@@ -193,25 +209,25 @@ class Cases(Builtin):
 
     summary_text = "list elements matching a pattern"
 
-    def eval(self, items, pattern, ls, evaluation, options):
-        "Cases[items_, pattern_, ls_:{1}, OptionsPattern[]]"
+    def eval(self, items, pattern, levelspec, evaluation, options):
+        "Cases[items_, pattern_, levelspec_:{1}, OptionsPattern[]]"
         if isinstance(items, Atom):
             return ListExpression()
 
-        if ls.has_form("Rule", 2):
-            if ls.elements[0].get_name() == "System`Heads":
-                heads = ls.elements[1] is SymbolTrue
-                ls = ListExpression(Integer1)
+        if levelspec.has_form("Rule", 2):
+            if levelspec.elements[0].get_name() == "System`Heads":
+                heads = levelspec.elements[1] is SymbolTrue
+                levelspec = ListExpression(Integer1)
             else:
-                evaluation.message("Position", "level", ls)
+                evaluation.message("Position", "level", levelspec)
                 return
         else:
             heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
 
         try:
-            start, stop = python_levelspec(ls)
+            start, stop = python_levelspec(levelspec)
         except InvalidLevelspecError:
-            evaluation.message("Position", "level", ls)
+            evaluation.message("Position", "level", levelspec)
             return
 
         results = []
@@ -245,10 +261,10 @@ class Count(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Count.html</url>
 
     <dl>
-      <dt>'Count[$list$, $pattern$]'
+      <dt>'Count'[$list$, $pattern$]
       <dd>returns the number of times $pattern$ appears in $list$.
 
-      <dt>'Count[$list$, $pattern$, $ls$]'
+      <dt>'Count'[$list$, $pattern$, $ls$]
       <dd>counts the elements matching at levelspec $ls$.
     </dl>
 
@@ -273,11 +289,11 @@ class Delete(Builtin):
     https://reference.wolfram.com/language/ref/Delete.html</url>
 
     <dl>
-      <dt>'Delete[$expr$, $i$]'
+      <dt>'Delete'[$expr$, $i$]
       <dd>deletes the element at position $i$ in $expr$. The position is counted from the end if $i$ is negative.
-      <dt>'Delete[$expr$, {$m$, $n$, ...}]'
+      <dt>'Delete'[$expr$, {$m$, $n$, ...}]
       <dd>deletes the element at position {$m$, $n$, ...}.
-      <dt>'Delete[$expr$, {{$m1$, $n1$, ...}, {$m2$, $n2$, ...}, ...}]'
+      <dt>'Delete'[$expr$, {{$m_1$, $n_1$, ...}, {$m_2$, $n_2$, ...}, ...}]
       <dd>deletes the elements at several positions.
     </dl>
 
@@ -358,7 +374,9 @@ class Delete(Builtin):
 
     def eval(self, expr, positions, evaluation):
         "Delete[expr_, positions___]"
+
         positions = positions.get_sequence()
+
         if len(positions) > 1:
             evaluation.message("Delete", "argt", Integer(len(positions) + 1))
             return
@@ -384,9 +402,10 @@ class Delete(Builtin):
             if isinstance(elements[0], ListExpression)
             else [positions]
         )
-        positions.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
+        # Sort the positions in ascending order
+        positions.sort()
         newexpr = expr
-        for position in positions:
+        for position in positions[::-1]:
             pos = [p.get_int_value() for p in position.get_elements()]
             if None in pos:
                 evaluation.message(
@@ -420,13 +439,13 @@ class DeleteCases(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/DeleteCases.html</url>
 
     <dl>
-      <dt>'DeleteCases[$list$, $pattern$]'
+      <dt>'DeleteCases'[$list$, $pattern$]
       <dd>returns the elements of $list$ that do not match $pattern$.
 
-      <dt>'DeleteCases[$list$, $pattern$, $levelspec$]'
-      <dd> removes all parts of $list on levels specified by $levelspec$ that match pattern (not fully implemented).
+      <dt>'DeleteCases'[$list$, $pattern$, $levelspec$]
+      <dd> removes all parts of $list$ on levels specified by $levelspec$ that match pattern (not fully implemented).
 
-      <dt>'DeleteCases[$list$, $pattern$, $levelspec$, $n$]'
+      <dt>'DeleteCases'[$list$, $pattern$, $levelspec$, $n$]
       <dd> removes the first $n$ parts of $list$ that match $pattern$.
     </dl>
 
@@ -524,11 +543,11 @@ class Drop(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Drop.html</url>
 
     <dl>
-      <dt>'Drop[$list$, $n$]'
+      <dt>'Drop'[$list$, $n$]
       <dd>returns $list$ with the first $n$ elements removed.
-      <dt>'Drop[$list$, -$n$]'
+      <dt>'Drop'[$list$, -$n$]
       <dd>returns $list$ with its last $n$ elements removed.
-      <dt>'Drop[$list$, {$m$, $n$}]'
+      <dt>'Drop'[$list$, {$m$, $n$}]
       <dd>returns $list$ with elements $m$ though $n$ removed.
     </dl>
 
@@ -598,10 +617,10 @@ class Extract(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Extract.html</url>
 
     <dl>
-      <dt>'Extract[$expr$, $list$]'
+      <dt>'Extract'[$expr$, $list$]
       <dd>extracts parts of $expr$ specified by $list$.
 
-      <dt>'Extract[$expr$, {$list1$, $list2$, ...}]'
+      <dt>'Extract'[$expr$, {$list_1$, $list_2$, ...}]
       <dd>extracts a list of parts.
     </dl>
 
@@ -628,10 +647,10 @@ class First(Builtin):
          https://reference.wolfram.com/language/ref/First.html</url>
 
     <dl>
-      <dt>'First[$expr$]'
+      <dt>'First'[$expr$]
       <dd>returns the first element in $expr$.
 
-      <dt>'First[$expr$, $def$]'
+      <dt>'First'[$expr$, $def$]
       <dd>returns the first element in $expr$ if it exists or $def$ otherwise.
     </dl>
 
@@ -667,7 +686,6 @@ class First(Builtin):
 
     attributes = A_HOLD_REST | A_PROTECTED
     messages = {
-        "argt": "First called with `1` arguments; 1 or 2 arguments are expected.",
         "nofirst": "`1` has zero length and no first element.",
     }
     summary_text = "first element of a list or expression"
@@ -677,14 +695,23 @@ class First(Builtin):
         "expression: First[expr__]"
 
         if isinstance(expr, Atom):
-            evaluation.message("First", "normal", Integer1, expression)
-            return
-        expr_len = len(expr.elements)
+            if not hasattr(expr, "items"):
+                evaluation.message("First", "normal", Integer1, expression)
+                return
+            expr_len = len(expr.items)
+        else:
+            expr_len = len(expr.elements)
         if expr_len == 0:
             evaluation.message("First", "nofirst", expr)
             return
+
+        if isinstance(expr, ByteArray):
+            return expr.items[0]
+
         if expr_len > 2 and expr.head is SymbolSequence:
-            evaluation.message("First", "argt", expr_len)
+            evaluation.message(
+                "First", "argt", SymbolFirst, Integer(expr_len), Integer1, Integer2
+            )
             return
 
         first_elem = expr.elements[0]
@@ -705,10 +732,10 @@ class FirstCase(Builtin):
          https://reference.wolfram.com/language/ref/FirstCase.html</url>
 
     <dl>
-      <dt> FirstCase[{$e1$, $e2$, ...}, $pattern$]
+      <dt> FirstCase[{$e_1$, $e_2$, ...}, $pattern$]
       <dd>gives the first $ei$ to match $pattern$, or $Missing[\"NotFound\"]$ if none matching pattern is found.
 
-      <dt> FirstCase[{$e1$,$e2$, ...}, $pattern$ -> $rhs$]
+      <dt> FirstCase[{$e_1$,$e_2$, ...}, $pattern$ -> $rhs$]
       <dd> gives the value of $rhs$ corresponding to the first $ei$ to match pattern.
       <dt> FirstCase[$expr$, $pattern$, $default$]
       <dd> gives $default$ if no element matching $pattern$ is found.
@@ -738,13 +765,13 @@ class FirstPosition(Builtin):
          https://reference.wolfram.com/language/ref/FirstPosition.html</url>
 
     <dl>
-      <dt>'FirstPosition[$expr$, $pattern$]'
+      <dt>'FirstPosition'[$expr$, $pattern$]
       <dd>gives the position of the first element in $expr$ that matches $pattern$, or Missing["NotFound"] if no such element is found.
 
-      <dt>'FirstPosition[$expr$, $pattern$, $default$]'
+      <dt>'FirstPosition'[$expr$, $pattern$, $default$]
       <dd>gives default if no element matching $pattern$ is found.
 
-      <dt>'FirstPosition[$expr$, $pattern$, $default$, $levelspec$]'
+      <dt>'FirstPosition'[$expr$, $pattern$, $default$, $levelspec$]
       <dd>finds only objects that appear on levels specified by $levelspec$.
     </dl>
 
@@ -871,7 +898,7 @@ class Insert(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Insert.html</url>
 
     <dl>
-      <dt>'Insert[$list$, $elem$, $n$]'
+      <dt>'Insert'[$list$, $elem$, $n$]
       <dd>inserts $elem$ at position $n$ in $list$. When $n$ is negative, \
           the position is counted from the end.
     </dl>
@@ -901,10 +928,10 @@ class Last(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Last.html</url>
 
     <dl>
-      <dt>'Last[$expr$]'
+      <dt>'Last'[$expr$]
       <dd>returns the last element in $expr$.
 
-      <dt>'Last[$expr$, $def$]'
+      <dt>'Last'[$expr$, $def$]
       <dd>returns the last element in $expr$ if it exists or $def$ otherwise.
     </dl>
 
@@ -941,7 +968,6 @@ class Last(Builtin):
 
     attributes = A_HOLD_REST | A_PROTECTED
     messages = {
-        "argt": "Last called with `1` arguments; 1 or 2 arguments are expected.",
         "nolast": "`1` has zero length and no last element.",
     }
     summary_text = "last element of a list or expression"
@@ -951,14 +977,24 @@ class Last(Builtin):
         "expression: Last[expr__]"
 
         if isinstance(expr, Atom):
-            evaluation.message("Last", "normal", Integer1, expression)
-            return
-        expr_len = len(expr.elements)
+            if not hasattr(expr, "items"):
+                evaluation.message("First", "normal", Integer1, expression)
+                return
+            expr_len = len(expr.items)
+        else:
+            expr_len = len(expr.elements)
         if expr_len == 0:
             evaluation.message("Last", "nolast", expr)
             return
+
+        if isinstance(expr, ByteArray):
+            # ByteArray or NumericArray, ...
+            return expr.items[-1]
+
         if expr_len > 2 and expr.head is SymbolSequence:
-            evaluation.message("Last", "argt", expr_len)
+            evaluation.message(
+                "Last", "argt", SymbolLast, Integer(expr_len), Integer1, Integer2
+            )
             return
 
         return expr.elements[-1]
@@ -969,7 +1005,7 @@ class Length(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Length.html</url>
 
     <dl>
-      <dt>'Length[$expr$]'
+      <dt>'Length'[$expr$]
       <dd>returns the number of elements in $expr$.
     </dl>
 
@@ -1013,7 +1049,7 @@ class Most(Builtin):
     https://reference.wolfram.com/language/ref/Most.html</url>
 
     <dl>
-      <dt>'Most[$expr$]'
+      <dt>'Most'[$expr$]
       <dd>returns $expr$ with the last element removed.
     </dl>
 
@@ -1044,7 +1080,7 @@ class Part(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Part.html</url>
 
     <dl>
-      <dt>'Part[$expr$, $i$]'
+      <dt>'Part'[$expr$, $i$]
       <dd>returns part $i$ of $expr$.
     </dl>
 
@@ -1132,14 +1168,12 @@ class Part(Builtin):
 
     def eval_makeboxes(self, list, i, f, evaluation):
         """MakeBoxes[Part[list_, i___],
-        f:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+        (f:StandardForm|TraditionalForm)]"""
 
         i = i.get_sequence()
         list = Expression(SymbolMakeBoxes, list, f).evaluate(evaluation)
-        if f.get_name() in ("System`OutputForm", "System`InputForm"):
-            open, close = "[[", "]]"
-        else:
-            open, close = "\u301a", "\u301b"
+        # FIXME: pick up values LeftDoubleBracket and RightDoubleBracket from named-characters.yaml
+        open, close = "\u301a", "\u301b"
         indices = list_boxes(i, f, evaluation, open, close)
         result = RowBox(list, *indices)
         return result
@@ -1152,7 +1186,6 @@ class Part(Builtin):
         indices = i.get_sequence()
         # How to deal with ByteArrays
         if list.get_head() is SymbolByteArray:
-            list = list.evaluate(evaluation)
             if len(indices) > 1:
                 print(
                     "Part::partd1: Depth of object ByteArray[<3>] "
@@ -1164,19 +1197,18 @@ class Part(Builtin):
                 idx = idx.value
                 if idx == 0:
                     return SymbolByteArray
-                data = list.elements[0].value
-                lendata = len(data)
+                n = len(list.value)
                 if idx < 0:
-                    idx = data - idx
+                    idx = n - idx
                     if idx < 0:
                         evaluation.message("Part", "partw", i, list)
                         return
                 else:
                     idx = idx - 1
-                    if idx > lendata:
+                    if idx > n:
                         evaluation.message("Part", "partw", i, list)
                         return
-                return Integer(data[idx])
+                return Integer(list[idx])
             if idx is Symbol("System`All"):
                 return list
             # TODO: handling ranges and lists...
@@ -1194,10 +1226,10 @@ class Pick(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Pick.html</url>
 
     <dl>
-      <dt>'Pick[$list$, $sel$]'
+      <dt>'Pick'[$list$, $sel$]
       <dd>returns those items in $list$ that are True in $sel$.
 
-      <dt>'Pick[$list$, $sel$, $patt$]'
+      <dt>'Pick'[$list$, $sel$, $patt$]
       <dd>returns those items in $list$ that match $patt$ in $sel$.
     </dl>
 
@@ -1245,10 +1277,10 @@ class Position(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Position.html</url>
 
     <dl>
-      <dt>'Position[$expr$, $patt$]'
+      <dt>'Position'[$expr$, $patt$]
       <dd>returns the list of positions for which $expr$ matches $patt$.
 
-      <dt>'Position[$expr$, $patt$, $ls$]'
+      <dt>'Position'[$expr$, $patt$, $ls$]
       <dd>returns the positions on levels specified by levelspec $ls$.
     </dl>
 
@@ -1278,20 +1310,16 @@ class Position(Builtin):
     }
     summary_text = "positions of matching elements"
 
-    def eval_invalidlevel(self, patt, expr, ls, evaluation, options={}):
-        "Position[expr_, patt_, ls_, OptionsPattern[Position]]"
-
-        evaluation.message("Position", "level", ls)
-        return
-
-    def eval_level(self, expr, patt, ls, evaluation, options={}):
-        """Position[expr_, patt_, Optional[Pattern[ls, _?LevelQ], {0, DirectedInfinity[1]}],
+    def eval_level(self, expr, patt, levelspec, evaluation, options={}):
+        """Position[expr_, patt_, Optional[levelspec_, {0, DirectedInfinity[1]}],
         OptionsPattern[Position]]"""
-
+        levelspec = param_and_option_from_optional_place(
+            levelspec, options, "System`Position", evaluation
+        ) or ListExpression(Integer0, MATHICS3_INFINITY)
         try:
-            start, stop = python_levelspec(ls)
+            start, stop = python_levelspec(levelspec)
         except InvalidLevelspecError:
-            evaluation.message("Position", "level", ls)
+            evaluation.message("Position", "level", levelspec)
             return
 
         match = Matcher(patt, evaluation).match
@@ -1314,10 +1342,10 @@ class Prepend(Builtin):
     https://reference.wolfram.com/language/ref/Prepend.html</url>
 
     <dl>
-      <dt>'Prepend[$expr$, $item$]'
+      <dt>'Prepend'[$expr$, $item$]
       <dd>returns $expr$ with $item$ prepended to its elements.
 
-      <dt>'Prepend[$expr$]'
+      <dt>'Prepend'[$expr$]
       <dd>'Prepend[$elem$][$expr$]' is equivalent to 'Prepend[$expr$,$elem$]'.
     </dl>
 
@@ -1359,7 +1387,7 @@ class PrependTo(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/PrependTo.html</url>
 
     <dl>
-      <dt>'PrependTo[$s$, $item$]'
+      <dt>'PrependTo'[$s$, $item$]
       <dd>prepends $item$ to value of $s$ and sets $s$ to the result.
     </dl>
 
@@ -1410,11 +1438,11 @@ class ReplacePart(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ReplacePart.html</url>
 
     <dl>
-      <dt>'ReplacePart[$expr$, $i$ -> $new$]'
+      <dt>'ReplacePart'[$expr$, $i$ -> $new$]
       <dd>replaces part $i$ in $expr$ with $new$.
 
-      <dt>'ReplacePart[$expr$, {{$i$, $j$} -> $e1$, {$k$, $l$} -> $e2$}]'
-      <dd>replaces parts $i$ and $j$ with $e1$, and parts $k$ and $l$ with $e2$.
+      <dt>'ReplacePart'[$expr$, {{$i$, $j$} -> $e_1$, {$k$, $l$} -> $e_2$}]
+      <dd>replaces parts $i$ and $j$ with $e_1$, and parts $k$ and $l$ with $e_2$.
     </dl>
 
     >> ReplacePart[{a, b, c}, 1 -> t]
@@ -1502,7 +1530,7 @@ class Rest(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Rest.html</url>
 
     <dl>
-      <dt>'Rest[$expr$]'
+      <dt>'Rest'[$expr$]
       <dd>returns $expr$ with the first element removed.
     </dl>
 
@@ -1543,9 +1571,9 @@ class Select(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Select.html</url>
 
     <dl>
-      <dt>'Select[{$e1$, $e2$, ...}, $crit$]'
+      <dt>'Select'[{$e_1$, $e_2$, ...}, $crit$]
       <dd>returns a list of the elements $ei$ for which $crit$[$ei$] is 'True'.
-      <dt>'Select[{$e1$, $e2$, ...}, $crit$, n]'
+      <dt>'Select'[{$e_1$, $e_2$, ...}, $crit$, n]
       <dd>returns a list of the first $n$ elements $ei$ for which $crit$[$ei$] is 'True'.
     </dl>
 
@@ -1632,11 +1660,11 @@ class Take(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Take.html</url>
 
     <dl>
-      <dt>'Take[$expr$, $n$]'
+      <dt>'Take'[$expr$, $n$]
       <dd>returns $expr$ with all but the first $n$ elements removed.
-      <dt>'Take[$list$, -$n$]'
+      <dt>'Take'[$list$, -$n$]
       <dd>returns last $n$ elements of $list$.
-      <dt>'Take[$list$, {$m$, $n$}]'
+      <dt>'Take'[$list$, {$m$, $n$}]
       <dd>returns elements $m$ through $n$ of $list$.
     </dl>
 

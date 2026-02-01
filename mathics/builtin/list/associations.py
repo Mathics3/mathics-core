@@ -28,8 +28,8 @@ class Association(Builtin):
     https://reference.wolfram.com/language/ref/Association.html</url>
 
     <dl>
-      <dt>'Association[$key1$ -> $val1$, $key2$ -> $val2$, ...]'
-      <dt>'<|$key1$ -> $val1$, $key2$ -> $val2$, ...|>'
+      <dt>'Association'[$key_1$ -> $val_1$, $key_2$ -> $val_2$, ...]
+      <dt>'<|$key_1$ -> $val_1$, $key_2$ -> $val_2$, ...|>'
       <dd> represents an association between keys and values.
     </dl>
 
@@ -56,7 +56,7 @@ class Association(Builtin):
 
     def eval_makeboxes(self, rules, f, evaluation: Evaluation):
         """MakeBoxes[<|rules___|>,
-        f:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+        (f:StandardForm|TraditionalForm)]"""
 
         def validate(exprs):
             for expr in exprs:
@@ -134,7 +134,7 @@ class AssociationQ(Test):
     <url>:WMA link:https://reference.wolfram.com/language/ref/AssociationQ.html</url>
 
     <dl>
-      <dt>'AssociationQ[$expr$]'
+      <dt>'AssociationQ'[$expr$]
       <dd>return True if $expr$ is a valid Association object, and False otherwise.
     </dl>
 
@@ -167,9 +167,9 @@ class Key(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Key.html</url>
 
     <dl>
-      <dt>Key[$key$]
+      <dt>'Key'[$key$]
       <dd> represents a key used to access a value in an association.
-      <dt>Key[$key$][$assoc$]
+      <dt>'Key'[$key$][$assoc$]
       <dd>
     </dl>
     """
@@ -185,11 +185,11 @@ class Keys(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Keys.html</url>
 
     <dl>
-      <dt>'Keys[<|$key1$ -> $val1$, $key2$ -> $val2$, ...|>]'
+      <dt>'Keys'['<|' $key_1$ '->' $val_1$, $key_2$ '->' $val_2$, ...'|>']
       <dd>return a list of the keys $keyi$ in an association.
 
-      <dt>'Keys[{$key1$ -> $val1$, $key2$ -> $val2$, ...}]'
-      <dd>return a list of the $keyi$ in a list of rules.
+      <dt>'Keys'[{$key_1$ '->' $val_1$, $key_2$ '->' $val_2$, ...}]
+      <dd>return a list of the $key_i$ in a list of rules.
     </dl>
 
     >> Keys[<|a -> x, b -> y|>]
@@ -285,11 +285,11 @@ class Values(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Values.html</url>
 
     <dl>
-      <dt>'Values[<|$key1$ -> $val1$, $key2$ -> $val2$, ...|>]'
-      <dd>return a list of the values $vali$ in an association.
+      <dt>'Values'['<|'$key_1$ '->' $val_1$, $key_2$ -> $val_2$, ...'|>']
+      <dd>return a list of the values $val_i$ in an association.
 
-      <dt>'Values[{$key1$ -> $val1$, $key2$ -> $val2$, ...}]'
-      <dd>return a list of the $vali$ in a list of rules.
+      <dt>'Values'[{$key_1$ '->' $val_1$, $key_2$ '->' $val_2$, ...}]
+      <dd>return a list of the $val_i$ in a list of rules.
     </dl>
 
     >> Values[<|a -> x, b -> y|>]

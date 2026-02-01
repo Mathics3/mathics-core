@@ -1,0 +1,222 @@
+System`Graphics
+  System`List
+    System`RGBColor
+      System`Real 0.392157
+      System`Real 0.560784
+      System`Real 1.0
+    System`GraphicsComplex
+      System`NumericArray NumericArray[Real*, 26×2]
+        [[ 0.  0.]
+         [ 1.  1.]
+         [ 2.  2.]
+         [ 3.  3.]
+         [ 4.  4.]
+         [ 5.  5.]
+         [ 6.  6.]
+         [ 7.  7.]
+         [ 8.  8.]
+         [ 9.  9.]
+         [10. 10.]
+         [11. 11.]
+         [12. 12.]
+         [13. 13.]
+         [14. 14.]
+         [15. 15.]
+         [16. 16.]
+         [17. 17.]
+         [18. 18.]
+         [19. 19.]
+         [20. 20.]
+         [21. 21.]
+         [22. 22.]
+         [23. 23.]
+         [24. 24.]
+         [25. 25.]]
+      System`Line
+        System`NumericArray NumericArray[Integer*, 26]
+          [ 1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
+           25 26]
+    System`RGBColor
+      System`Real 1.0
+      System`Real 0.690196
+      System`Real 0.0
+    System`GraphicsComplex
+      System`NumericArray NumericArray[Real*, 26×2]
+        [[ 0.          0.        ]
+         [ 1.          0.        ]
+         [ 2.          0.30103   ]
+         [ 3.          0.77815125]
+         [ 4.          1.38021124]
+         [ 5.          2.07918125]
+         [ 6.          2.8573325 ]
+         [ 7.          3.70243054]
+         [ 8.          4.60552052]
+         [ 9.          5.55976303]
+         [10.          6.55976303]
+         [11.          7.60115572]
+         [12.          8.68033696]
+         [13.          9.79428032]
+         [14.         10.94040835]
+         [15.         12.11649961]
+         [16.         13.32061959]
+         [17.         14.55106852]
+         [18.         15.80634102]
+         [19.         17.08509462]
+         [20.         18.38612462]
+         [21.         19.70834391]
+         [22.         21.05076659]
+         [23.         22.41249443]
+         [24.         23.79270567]
+         [25.         25.19064568]]
+      System`Line
+        System`NumericArray NumericArray[Integer*, 26]
+          [ 1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
+           25 26]
+    System`RGBColor
+      System`Real 0.196078
+      System`Real 0.588235
+      System`Real 0.54902
+    System`GraphicsComplex
+      System`NumericArray NumericArray[Real*, 26×2]
+        [[ 0. nan]
+         [ 1. nan]
+         [ 2. nan]
+         [ 3. nan]
+         [ 4. nan]
+         [ 5. nan]
+         [ 6. nan]
+         [ 7. nan]
+         [ 8. nan]
+         [ 9. nan]
+         [10. nan]
+         [11. nan]
+         [12. nan]
+         [13. nan]
+         [14. nan]
+         [15. nan]
+         [16. nan]
+         [17. nan]
+         [18. nan]
+         [19. nan]
+         [20. nan]
+         [21. nan]
+         [22. nan]
+         [23. nan]
+         [24. nan]
+         [25. nan]]
+      System`Line
+        System`NumericArray NumericArray[Integer*, 26]
+          [ 1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
+           25 26]
+  System`Rule
+    System`AlignmentPoint
+    System`Center
+  System`Rule
+    System`AspectRatio
+    System`Power
+      System`GoldenRatio
+      System`Integer -1
+  System`Rule
+    System`Axes
+    System`True
+  System`Rule
+    System`AxesLabel
+    System`None
+  System`Rule
+    System`AxesOrigin
+    System`Automatic
+  System`Rule
+    System`AxesStyle
+    System`List
+  System`Rule
+    System`Background
+    System`Automatic
+  System`Rule
+    System`BaseStyle
+    System`List
+  System`Rule
+    System`BaselinePosition
+    System`Automatic
+  System`Rule
+    System`ContentSelectable
+    System`Automatic
+  System`Rule
+    System`CoordinatesToolOptions
+    System`Automatic
+  System`Rule
+    System`Epilog
+    System`List
+  System`Rule
+    System`FormatType
+    System`TraditionalForm
+  System`Rule
+    System`Frame
+    System`False
+  System`Rule
+    System`FrameLabel
+    System`None
+  System`Rule
+    System`FrameStyle
+    System`List
+  System`Rule
+    System`FrameTicks
+    System`Automatic
+  System`Rule
+    System`FrameTicksStyle
+    System`List
+  System`Rule
+    System`GridLines
+    System`None
+  System`Rule
+    System`GridLinesStyle
+    System`List
+  System`Rule
+    System`ImageMargins
+    System`Real 0.0
+  System`Rule
+    System`ImagePadding
+    System`All
+  System`Rule
+    System`ImageSize
+    System`Automatic
+  System`Rule
+    System`LabelStyle
+    System`List
+  System`Rule
+    System`LogPlot
+    System`True
+  System`Rule
+    System`Method
+    System`Automatic
+  System`Rule
+    System`PlotLabel
+    System`None
+  System`Rule
+    System`PlotRange
+    System`List
+      System`Automatic
+      System`Automatic
+  System`Rule
+    System`PlotRangeClipping
+    System`False
+  System`Rule
+    System`PlotRangePadding
+    System`Automatic
+  System`Rule
+    System`PlotRegion
+    System`Automatic
+  System`Rule
+    System`PreserveImageOptions
+    System`Automatic
+  System`Rule
+    System`Prolog
+    System`List
+  System`Rule
+    System`RotateLabel
+    System`True
+  System`Rule
+    System`Ticks
+    System`Automatic
+  System`Rule
+    System`TicksStyle
+    System`List

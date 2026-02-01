@@ -23,7 +23,7 @@ def test_collect():
 
 def test_coefficient():
     for str_expr, str_expected in (
-        # Form 1: Coefficent[expr, form]
+        # Form 1: Coefficient[expr, form]
         (
             "Coefficient[(x + 2)/(y - 3) + (x + 3)/(y - 2), z, 0]",
             "(2 + x) / (-3 + y) + (3 + x) / (-2 + y)",
@@ -50,7 +50,7 @@ def test_coefficient():
             "Coefficient[x^3 - 2 x/y + 3 x z, y]",
             "0",
         ),
-        # Form 2: Coefficent[expr, form, n]
+        # Form 2: Coefficient[expr, form, n]
         (
             "Coefficient[x^2 + axy^2 - bSin[c], c]",
             "0",
@@ -61,7 +61,7 @@ def test_coefficient():
 
 def test_coefficient_list():
     for str_expr, str_expected in (
-        # Form 1: Coefficent[expr, form]
+        # Form 1: Coefficient[expr, form]
         (
             "CoefficientList[x^2 + a x y^2 - b Sin[c], y]",
             "{-b Sin[c] + x ^ 2, 0, a x}",
@@ -325,7 +325,7 @@ try:
     from packaging import version
 
     skip_fullsimplify_test = version.parse(sympy.__version__) < version.parse("1.10.0")
-except:
+except ImportError:
     pass
 
 
@@ -359,10 +359,10 @@ def test_fullsimplify():
             "Coefficient[3 + x + y, 5]",
             None,
         ),
-        ## This is known bug of Sympy 1.0, next Sympy version will fix it by this commit
-        ## https://github.com/sympy/sympy/commit/25bf64b64d4d9a2dc563022818d29d06bc740d47
-        ("Coefficient[x * y, z, 0]", None, "x y", "Sympy 1.0 retuns 0"),
-        ## TODO: Support Modulus
+        # This is known bug of Sympy 1.0, next Sympy version will fix it by this commit
+        # https://github.com/sympy/sympy/commit/25bf64b64d4d9a2dc563022818d29d06bc740d47
+        ("Coefficient[x * y, z, 0]", None, "x y", "Sympy 1.0 returns 0"),
+        # TODO: Support Modulus
         # ("Coefficient[(x + 2)^3 + (x + 3)^2, x, 0, {Modulus -> 3, Modulus -> 2, Modulus -> 10}]",
         # None,"{2, 1, 7}", None),
         (

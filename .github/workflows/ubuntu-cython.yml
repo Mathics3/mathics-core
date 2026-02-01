@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.12']
+        python-version: ['3.13']
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
@@ -24,16 +24,8 @@ jobs:
       run: |
         sudo apt-get update -qq && sudo apt-get install -qq liblapack-dev llvm-dev tesseract-ocr
         python -m pip install --upgrade pip
-        # First install our patched version of stopit
-        git clone --depth 1 https://github.com/Mathics3/stopit.git
-        cd stopit/
-        pip install -e .
-        cd ..
         # We can comment out after next Mathics-Scanner release
-        python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
-        git clone --depth 1 https://github.com/Mathics3/mathics-scanner.git
-        # git clone --single-branch --branch operator-refactor-part1.5 https://github.com/Mathics3/mathics-scanner.git
-        cd mathics-scanner/
+        python -m pip install -e "Mathics-Scanner[full] @ git+https://github.com/Mathics3/mathics-scanner"
         pip install -e .
         cd ..
 

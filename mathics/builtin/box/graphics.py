@@ -35,11 +35,11 @@ from mathics.core.exceptions import BoxExpressionError
 from mathics.core.expression import Expression
 from mathics.core.formatter import lookup_method
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolTrue
+from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolTraditionalForm
-from mathics.eval.makeboxes import format_element
+from mathics.format.box import format_element
 
-# Docs are not yet ready for prime time. Maybe after release 6.0.0.
+# No user docs here: Box primitives aren't documented.
 no_doc = True
 
 SymbolRegularPolygonBox = Symbol("RegularPolygonBox")
@@ -603,7 +603,6 @@ class GraphicsBox(BoxExpression):
             if width > base_width:
                 width = base_width
                 height = width * aspect
-            height = height
 
             width *= size_multiplier
             height *= size_multiplier
@@ -709,7 +708,9 @@ class GraphicsBox(BoxExpression):
         # "yaxis", "xtick" "labelx", "labely". Extend our language
         # here and use those in render-like routines.
 
-        use_log_for_y_axis = graphics_options.get("System`LogPlot", False)
+        use_log_for_y_axis = graphics_options.get(
+            "System`LogPlot", SymbolFalse
+        ).to_python()
         axes_option = graphics_options.get("System`Axes")
 
         if axes_option is SymbolTrue:

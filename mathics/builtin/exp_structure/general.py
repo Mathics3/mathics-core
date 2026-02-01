@@ -3,15 +3,16 @@
 Structural Expression Functions
 """
 
-from mathics.core.atoms import Integer, Integer1
+from mathics.core.atoms import Integer, Integer1, Integer2
 from mathics.core.builtin import Builtin, InfixOperator, Predefined
 from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import BasePattern
 from mathics.core.symbols import Atom, SymbolFalse, SymbolTrue
-from mathics.core.systemsymbols import SymbolMap, SymbolSortBy
+from mathics.core.systemsymbols import SymbolMap
 from mathics.eval.parts import python_levelspec, walk_levels
+from mathics.eval.stackframe import get_eval_Expression
 
 
 class MapApply(InfixOperator):
@@ -21,7 +22,7 @@ class MapApply(InfixOperator):
     https://reference.wolfram.com/language/ref/MapApply.html</url>
 
     <dl>
-      <dt>'MapApply[$f$, $expr$]'
+      <dt>'MapApply'[$f$, $expr$]
 
       <dt>'$f$ @@@ $expr$'
       <dd>is equivalent to 'Apply[$f$, $expr$, {1}]'.
@@ -45,7 +46,7 @@ class Depth(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Depth.html</url>
 
     <dl>
-      <dt>'Depth[$expr$]'
+      <dt>'Depth'[$expr$]
       <dd>gives the depth of $expr$.
     </dl>
 
@@ -84,7 +85,7 @@ class FreeQ(Builtin):
     https://reference.wolfram.com/language/ref/FreeQ.html</url>
 
     <dl>
-      <dt>'FreeQ[$expr$, $x$]'
+      <dt>'FreeQ'[$expr$, $x$]
       <dd>returns 'True' if $expr$ does not contain the expression $x$.
     </dl>
 
@@ -127,7 +128,7 @@ class Level(Builtin):
     https://reference.wolfram.com/language/ref/Level.html</url>
 
     <dl>
-      <dt>'Level[$expr$, $levelspec$]'
+      <dt>'Level'[$expr$, $levelspec$]
       <dd>gives a list of all subexpressions of $expr$ at the
         level(s) specified by $levelspec$.
     </dl>
@@ -232,14 +233,14 @@ class SortBy(Builtin):
     https://reference.wolfram.com/language/ref/SortBy.html</url>
 
     <dl>
-      <dt>'SortBy[$list$, $f$]'
+      <dt>'SortBy'[$list$, $f$]
       <dd>sorts $list$ (or the elements of any other expression) according to \
          canonical ordering of the keys that are extracted from the $list$'s \
-         elements using $f. Chunks of elements that appear the same under $f \
-         are sorted according to their natural order (without applying $f).
+         elements using $f$. Chunks of elements that appear the same under $f$ \
+         are sorted according to their natural order (without applying $f$).
 
-      <dt>'SortBy[$f$]'
-      <dd>creates an operator function that, when applied, sorts by $f.
+      <dt>'SortBy'[$f$]
+      <dd>creates an operator function that, when applied, sorts by $f$.
     </dl>
 
     >> SortBy[{{5, 1}, {10, -1}}, Last]
@@ -264,13 +265,10 @@ class SortBy(Builtin):
         "SortBy[li_, f_]"
 
         if isinstance(li, Atom):
-            evaluation.message(
-                "Sort", "normal", Integer1, Expression(SymbolSortBy, li, f)
-            )
+            evaluation.message("Sort", "normal", Integer1, get_eval_Expression())
             return
         elif li.get_head_name() != "System`List":
-            expr = Expression(SymbolSortBy, li, f)
-            evaluation.message(self.get_name(), "list", expr, 1)
+            evaluation.message(self.get_name(), "list", get_eval_Expression(), Integer1)
             return
         else:
             keys_expr = Expression(SymbolMap, f, li).evaluate(evaluation)  # precompute:
@@ -282,8 +280,7 @@ class SortBy(Builtin):
                 or keys_expr.get_head_name() != "System`List"
                 or len(keys_expr.elements) != len(li.elements)
             ):
-                expr = Expression(SymbolSortBy, li, f)
-                evaluation.message("SortBy", "func", expr, 2)
+                evaluation.message("SortBy", "func", get_eval_Expression(), Integer2)
                 return
 
             keys = keys_expr.elements

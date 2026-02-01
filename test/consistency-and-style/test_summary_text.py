@@ -12,6 +12,7 @@ from mathics import __file__ as mathics_initfile_path
 from mathics.core.builtin import Builtin
 from mathics.core.load_builtin import name_is_builtin_symbol
 from mathics.doc.gather import skip_doc
+from mathics.doc.latex_doc import LATEX_INLINE_EQUATION_RE
 
 # Get file system path name for mathics.builtin
 mathics_path = osp.dirname(mathics_initfile_path)
@@ -171,6 +172,39 @@ def check_well_formatted_docstring(docstr: str, instance: Builtin, module_name: 
     assert docstr.count("<url>") == docstr.lower().count(
         "</url>"
     ), f"unbalanced <url> </url> tags in {instance.get_name()} from {module_name}"
+
+    check_code_and_latex(docstr, instance, module_name)
+
+
+def check_code_and_latex(docstr: str, instance: Builtin, module_name: str):
+    """
+    Check that code blocks does not contains LaTeX equations
+    """
+    equations = []
+    docstr = docstr.replace(r"\$", "_dolar_")
+    docstr = docstr.replace(r"\'", "_quotation_")
+
+    def latex_inline_eq_repl(match):
+        equations.append(match.group(1))
+        return "$equation$"
+
+    docstr = LATEX_INLINE_EQUATION_RE.sub(latex_inline_eq_repl, docstr)
+
+    def mathics_core_repl(match):
+        assert "$" not in match.group(1), f"'{match.group(1)}' contains equations"
+        return "<code>"
+
+    for eq in equations:
+        if eq[-1] in "0123456789" and len(eq) > 1:
+            assert (
+                "_" in eq
+            ), f"indiced vars must be subindex in {module_name}:{Builtin}"
+        assert eq[-4:] not in (
+            "_min",
+            "_max",
+        ), f"subindex with multi characters must be inside brackets, in {module_name}:{Builtin}"
+
+    return
 
 
 @pytest.mark.skipif(

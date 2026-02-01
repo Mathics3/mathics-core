@@ -15,7 +15,7 @@ from mathics.core.builtin import Builtin, InfixOperator
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolNull
+from mathics.core.symbols import Atom, Symbol, SymbolNull
 from mathics.core.systemsymbols import SymbolFailed
 from mathics.eval.assignments import eval_assign
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
@@ -28,7 +28,7 @@ class LoadModule(Builtin):
     ## <url>:mathics native for pymathics:</url>
 
     <dl>
-      <dt>'LoadModule[$module$]'
+      <dt>'LoadModule'[$module$]
       <dd>'Load Mathics definitions from the python module $module$
     </dl>
 
@@ -65,14 +65,14 @@ class Set(InfixOperator):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Set.html</url>
 
     <dl>
-      <dt>'Set[$expr$, $value$]'
+      <dt>'Set'[$expr$, $value$]
 
       <dt>$expr$ = $value$
       <dd>evaluates $value$ and assigns it to $expr$.
 
-      <dt>{$s1$, $s2$, $s3$} = {$v1$, $v2$, $v3$}
-      <dd>sets multiple symbols ($s1$, $s2$, ...) to the corresponding \
-          values ($v1$, $v2$, ...).
+      <dt>{$s_1$, $s_2$, $s_3$} = {$v_1$, $v_2$, $v_3$}
+      <dd>sets multiple symbols ($s_1$, $s_2$, ...) to the corresponding \
+          values ($v_1$, $v_2$, ...).
     </dl>
 
     'Set' can be used to give a symbol a value:
@@ -150,7 +150,7 @@ class SetDelayed(Set):
     https://reference.wolfram.com/language/ref/SetDelayed.html</url>
 
     <dl>
-      <dt>'SetDelayed[$expr$, $value$]'
+      <dt>'SetDelayed'[$expr$, $value$]
 
       <dt>$expr$ := $value$
       <dd>assigns $value$ to $expr$, without evaluating $value$.
@@ -233,9 +233,9 @@ class TagSet(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/TagSet.html</url>
 
     <dl>
-      <dt>'TagSet[$f$, $expr$, $value$]'
+      <dt>'TagSet'[$f$, $expr$, $value$]
 
-      <dt>'$f$ /: $expr$ = $value$'
+      <dt>$f$ '/:' $expr$ '=' $value$
       <dd>assigns $value$ to $expr$, associating the corresponding assignment \
           with the symbol $f$.
     </dl>
@@ -292,7 +292,7 @@ class TagSetDelayed(TagSet):
          https://reference.wolfram.com/language/ref/TagSetDelayed.html</url>
 
     <dl>
-      <dt>'TagSetDelayed[$f$, $expr$, $value$]'
+      <dt>'TagSetDelayed'[$f$, $expr$, $value$]
 
       <dt>'$f$ /: $expr$ := $value$'
       <dd>is the delayed version of 'TagSet'.
@@ -331,7 +331,7 @@ class UpSet(InfixOperator):
          https://reference.wolfram.com/language/ref/UpSet.html</url>
 
     <dl>
-      <dt>$f$[$x$] ^= $expression$
+      <dt>$f$[$x$] '^=' $expression$
       <dd>evaluates $expression$ and assigns it to the value of $f$[$x$], \
           associating the value with $x$.
     </dl>
@@ -363,7 +363,9 @@ class UpSet(InfixOperator):
         self, lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
     ) -> Optional[BaseElement]:
         "lhs_ ^= rhs_"
-
+        if isinstance(lhs, Atom):
+            evaluation.message("UpSet", "normal", 1, evaluation.current_expression)
+            return None
         eval_assign(self, lhs, rhs, evaluation, upset=True)
         return rhs
 
@@ -374,9 +376,9 @@ class UpSetDelayed(UpSet):
          https://reference.wolfram.com/language/ref/UpSetDelayed.html</url>
 
     <dl>
-       <dt>'UpSetDelayed[$expression$, $value$]'
+       <dt>'UpSetDelayed'[$expression$, $value$]
 
-       <dt>'$expression$ ^:= $value$'
+       <dt>$expression$ '^:=' $value$
        <dd>assigns $expression$ to the value of $f$[$x$] \
            (without evaluating $expression$), associating the value with $x$.
     </dl>
@@ -399,6 +401,20 @@ class UpSetDelayed(UpSet):
         self, lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
     ) -> Symbol:
         "lhs_ ^:= rhs_"
+        if isinstance(lhs, Atom):
+            evaluation.message(
+                "UpSetDelayed",
+                "normal",
+                1,
+                Expression(Symbol(self.get_name()), lhs, rhs),
+            )
+            return
+
+        if isinstance(lhs, Atom):
+            evaluation.message(
+                "UpSetDelayed", "normal", 1, evaluation.current_expression
+            )
+            return None
 
         if eval_assign(self, lhs, rhs, evaluation, upset=True):
             return SymbolNull

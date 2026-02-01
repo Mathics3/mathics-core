@@ -15,7 +15,7 @@ class Stack(Builtin):
 
     <dl>
       <dt>'Stack[]'
-      <dd>Print Mathics3 stack trace of evalutations leading to this point.
+      <dd>Print Mathics3 stack trace of evaluations leading to this point.
     </dl>
 
     >> f[g[1, Print[Stack[]] ; 2]]
@@ -44,7 +44,7 @@ class Trace(Builtin):
     https://reference.wolfram.com/language/ref/Trace.html</url>
 
     <dl>
-      <dt>'Trace[$expr$]'
+      <dt>'Trace'[$expr$]
       <dd>generate a list of all expressions used in the evaluation of $expr$.
     </dl>
 

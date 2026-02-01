@@ -14,7 +14,7 @@ jobs:
         os: [windows]
         # "make doctest" on MS Windows fails without showing much of a
         # trace of where things went wrong on Python before 3.11.
-        python-version: ['3.12']
+        python-version: ['3.13']
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
@@ -33,19 +33,9 @@ jobs:
         set LLVM_DIR="C:\Program Files\LLVM"
     - name: Install Mathics3 with Python dependencies
       run: |
-        # First install our patched version of stopit
-        git clone --depth 1 https://github.com/Mathics3/stopit.git
-        cd stopit/
-        pip install -e .
-        cd ..
         # We can comment out after next Mathics-Scanner release
-        python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
-        git clone --depth 1 https://github.com/Mathics3/mathics-scanner.git
-        # git clone --single-branch --branch operator-refactor-part1.5 https://github.com/Mathics3/mathics-scanner.git
-        cd mathics-scanner
+        python -m pip install -e "Mathics-Scanner[full] @ git+https://github.com/Mathics3/mathics-scanner"
         pip install -e .
-        python -m mathics_scanner.generate.build_tables
-        cd ..
 
         # python -m pip install Mathics-Scanner[full]
         make develop-full

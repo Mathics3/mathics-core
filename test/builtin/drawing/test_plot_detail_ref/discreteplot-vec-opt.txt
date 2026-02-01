@@ -1,0 +1,24 @@
+System`DiscretePlot
+  System`Power
+    Global`n
+    System`Integer 2
+  System`List
+    Global`n
+    System`Integer 1
+    System`Integer 10
+    System`Integer 1
+    System`Rule
+      System`AspectRatio
+      System`Integer 2
+    System`Rule
+      System`Axes
+      System`False
+    System`Rule
+      System`Frame
+      System`False
+    System`Rule
+      System`Mesh
+      System`Full
+    System`Rule
+      System`PlotPoints
+      System`Integer 10

@@ -69,9 +69,10 @@ from mathics.core.list import ListExpression
 from mathics.core.number import PrecisionValueError, dps, get_precision, min_prec
 from mathics.core.parser.operators import OPERATOR_DATA
 from mathics.core.parser.util import PyMathicsDefinitions, SystemDefinitions
-from mathics.core.pattern import BasePattern
+from mathics.core.pattern import BasePattern, build_pattern_sort_key
 from mathics.core.rules import BaseRule, FunctionApplyRule, Rule
 from mathics.core.symbols import (
+    Atom,
     BaseElement,
     BooleanType,
     Symbol,
@@ -118,9 +119,9 @@ class PatternArgumentError(PatternError):
 
 class Builtin:
     """
-    A base class for a Built-in function symbols, like List, or
-    variables, like $SystemID, and Built-in Objects, like
-    DateTimeObject.
+    A base class for a Built-in function symbols, like ``List``, or
+    variables, like ``$SystemID``, and Built-in Objects, like
+    ``DateTimeObject``.
 
     Some of the class variables of the Builtin object are used to
     create a definition object for that built-in symbol.  In particular,
@@ -136,11 +137,11 @@ class Builtin:
 
     For example:
 
-    ```
+    .. code-block:: python
+
         def eval(x, evaluation):
              "F[x_Real]"
              return Expression(Symbol("G"), x*2)
-    ```
 
     adds a ``FunctionApplyRule`` to the symbol's definition object that implements
     ``F[x_]->G[x*2]``.
@@ -197,15 +198,19 @@ class Builtin:
 
     """
 
-    name: Optional[str] = None
-    context: str = ""
-    attributes: int = A_PROTECTED
     _is_numeric: bool = False
-    rules: Dict[str, Any] = {}
+    attributes: int = A_PROTECTED
+    context: str = ""
+    defaults: Dict[Optional[int], str] = {}
+
+    # Number of arguments expected. -1 is used for arbitrary number.
+    expected_args: Union[int, Tuple[int, int], range] = -1
+
     formats: Dict[str, Any] = {}
     messages: Dict[str, Any] = {}
+    name: Optional[str] = None
     options: Dict[str, Any] = {}
-    defaults: Dict[Optional[int], str] = {}
+    rules: Dict[str, Any] = {}
 
     def __getnewargs_ex__(self):
         return tuple(), {
@@ -305,18 +310,6 @@ class Builtin:
                     system=True,
                 )
             )
-        for pattern, function in self.get_functions(is_pymodule=is_pymodule):
-            pat_attr = attributes if pattern.get_head_name() == name else None
-            rules.append(
-                FunctionApplyRule(
-                    name,
-                    pattern,
-                    function,
-                    check_options,
-                    attributes=pat_attr,
-                    system=True,
-                )
-            )
         for pattern_str, replace_str in self.rules.items():
             pattern_str = pattern_str % {"name": name}
             pattern = parse_builtin_rule(pattern_str, definition_class)
@@ -354,7 +347,7 @@ class Builtin:
                 """Handle adding 'System`' to a form name, unless it's ""
                 (meaning the rule applies to all forms).
                 """
-                return "" if f == "" else ensure_context(f)
+                return f if f in ("", "_MakeBoxes") else ensure_context(f)
 
             if isinstance(pattern, tuple):
                 forms, pattern = pattern
@@ -390,8 +383,11 @@ class Builtin:
                 formatvalues[form].append(
                     Rule(pattern, parse_builtin_rule(replace), system=True)
                 )
+
+        formatvalues.setdefault("_MakeBoxes", []).extend(box_rules)
+
         for form, formatrules in formatvalues.items():
-            formatrules.sort()
+            formatrules.sort(key=lambda x: x.pattern_precedence)
 
         if hasattr(self, "summary_text"):
             self.messages["usage"] = self.summary_text
@@ -441,9 +437,65 @@ class Builtin:
         else:
             definitions.builtin[name] = definition
 
-        makeboxes_def = definitions.builtin["System`MakeBoxes"]
-        for rule in box_rules:
-            makeboxes_def.add_rule(rule)
+    # This method is used to produce generic argument mismatch errors
+    # (tags: "argx", "argr", "argrx", "argt", or "argtu") for builtin
+    # functions that define this as an eval method. e.g.  For example
+    # for Sqrt[a, b] (one argument expected) or Subtract[a] (two
+    # arguments expected) It assumes each builtin defines
+    # "expected_args" for the correct number of arguments to give.
+    # See class mathics.builtin.arithfns.basic.Sqrt for how to set up.
+    def generic_argument_error(self, invalid, evaluation: Evaluation):
+        "%(name)s[invalid___]"
+
+        name = self.get_name(short=True)
+        if isinstance(invalid, Atom):
+            got_arg_count = 1
+        else:
+            got_arg_count = len(invalid.elements)
+
+        if isinstance(self.expected_args, tuple):
+            expected_args1, expected_args2 = self.expected_args
+            if got_arg_count == 1:
+                evaluation.message(
+                    name,
+                    "argtu",
+                    Symbol(name),
+                    Integer(expected_args1),
+                    Integer(expected_args2),
+                )
+            else:
+                evaluation.message(
+                    name,
+                    "argt",
+                    Symbol(name),
+                    Integer(got_arg_count),
+                    Integer(expected_args1),
+                    Integer(expected_args2),
+                )
+        elif isinstance(self.expected_args, range):
+            evaluation.message(
+                name,
+                "argb",
+                Symbol(name),
+                Integer(got_arg_count),
+                Integer(self.expected_args.start),
+                Integer(self.expected_args.stop - 1),
+            )
+        else:
+            if self.expected_args == 1:
+                evaluation.message(name, "argx", Symbol(name), Integer(got_arg_count))
+            elif got_arg_count == 1:
+                evaluation.message(
+                    name, "argr", Symbol(name), Integer(self.expected_args)
+                )
+            else:
+                evaluation.message(
+                    name,
+                    "argrx",
+                    Symbol(name),
+                    Integer(got_arg_count),
+                    Integer(self.expected_args),
+                )
 
     @classmethod
     def get_name(cls, short=False) -> str:
@@ -468,16 +520,23 @@ class Builtin:
         for name in dir(self):
             if name.startswith(prefix):
                 function = getattr(self, name)
+                if not hasattr(function, "__call__"):
+                    continue
                 pattern = function.__doc__
                 if pattern is None:  # Fixes PyPy bug
                     continue
                 else:
-                    # TODO: consider to use a more sophisticated
+                    # TODO 1: consider to use a more sophisticated
                     # regular expression, which handles breaklines
                     # more properly, that supports format names
                     # with contexts (context`name) and be less
                     # fragile against leaving spaces between the
                     # elements.
+                    #
+                    # TODO 2: allow
+                    # expr: pat
+                    # to allow passing the whole expression instead their elements.
+                    # This requires to change how Format rules are stored...
                     m = re.match(
                         r"[(]([\w,]+),[ ]*[)]\:\s*(.*)", pattern.replace("\n", " ")
                     )
@@ -494,7 +553,15 @@ class Builtin:
                 definition_class = (
                     PyMathicsDefinitions() if is_pymodule else SystemDefinitions()
                 )
-                pattern = parse_builtin_rule(pattern, definition_class)
+
+                # Passing the function parameter is in a way
+                # redundant, because creating FunctionApplyRule has
+                # access to the function and sets the postion this
+                # way. But revised afte the dust has settled and
+                # we have a very good idea of what is desirable and useful.
+                pattern = parse_builtin_rule(
+                    pattern, definition_class, location=function
+                )
                 if unavailable_function:
                     function = unavailable_function
                 if attrs:
@@ -583,18 +650,21 @@ class SympyObject(Builtin):
             self.sympy_name = strip_context(self.get_name()).lower()
         self.mathics_to_sympy[self.__class__.__name__] = self.sympy_name
 
-    def is_constant(self) -> bool:
-        return False
-
     def get_sympy_names(self) -> List[str]:
         if self.sympy_name:
             return [self.sympy_name]
         return []
 
-    def to_sympy(self, expr=None, **kwargs):
-        raise NotImplementedError
+    def is_constant(self) -> bool:
+        """Returns true if the value of evaluation of this object can
+        never change.
+        """
+        return False
 
     def from_sympy(self, elements: Tuple[BaseElement, ...]) -> Expression:
+        raise NotImplementedError
+
+    def to_sympy(self, expr=None, **kwargs):
         raise NotImplementedError
 
 
@@ -642,8 +712,11 @@ class SympyFunction(SympyObject):
                 sympy_function = self.get_sympy_function(elements)
                 if sympy_function is not None:
                     return tracing.run_sympy(sympy_function, *sympy_args)
-        except TypeError:
-            pass
+            elif exc := kwargs.get("raise_on_error", None):
+                raise exc(f"{self.get_name()}.sympy_name is {repr(self.sympy_name)}")
+        except TypeError as oops:
+            if exc := kwargs.get("raise_on_error", None):
+                raise exc(f"TypeError: {oops}")
 
     def from_sympy(self, elements: Tuple[BaseElement, ...]) -> Expression:
         return Expression(Symbol(self.get_name()), *elements)
@@ -778,12 +851,14 @@ class UnavailableFunction:
 
     def __init__(self, builtin):
         self.name = builtin.get_name()
+        self.requires = builtin.requires
 
     def __call__(self, **kwargs):
         kwargs["evaluation"].message(
             "General",
             "pyimport",  # see messages.py for error message definition
             strip_context(self.name),
+            ", ".join(self.requires),
         )
 
 
@@ -952,7 +1027,7 @@ class IterationFunction(Builtin, ABC):
     allow_loopcontrol = False
     throw_iterb = True
 
-    def get_result(self, elements) -> Expression:
+    def get_result(self, elements, is_uniform=False) -> Expression:
         raise NotImplementedError
 
     def eval_symbol(self, expr, iterator, evaluation):
@@ -1088,6 +1163,8 @@ class IterationFunction(Builtin, ABC):
         ).evaluate(evaluation)
 
         result = []
+        last_head = None
+        is_uniform = True
         while True:
             cont = Expression(SymbolLessEqual, index, normalised_range).evaluate(
                 evaluation
@@ -1115,6 +1192,10 @@ class IterationFunction(Builtin, ABC):
                     evaluation,
                 )
                 result.append(item)
+                if last_head is None:
+                    last_head = item.get_head()
+                elif is_uniform and last_head is not item.get_head():
+                    is_uniform = False
             except ContinueInterrupt:
                 if self.allow_loopcontrol:
                     pass
@@ -1131,7 +1212,7 @@ class IterationFunction(Builtin, ABC):
                 else:
                     raise
             index = Expression(SymbolPlus, index, Integer1).evaluate(evaluation)
-        return self.get_result(result)
+        return self.get_result(result, is_uniform=is_uniform)
 
     def eval_list(self, expr, i, items, evaluation):
         "%(name)s[expr_, {i_Symbol, {items___}}]"
@@ -1271,7 +1352,6 @@ class InfixOperator(Operator):
                 "MakeBoxes[{0}, form:StandardForm|TraditionalForm]".format(
                     op_pattern
                 ): formatted,
-                f"MakeBoxes[{op_pattern}, form:InputForm|OutputForm]": formatted,
             }
             default_rules.update(self.rules)
             self.rules = default_rules
@@ -1289,7 +1369,7 @@ class NoMeaningInfixOperator(InfixOperator):
     https://reference.wolfram.com/language/ref/{operator_name}.html</url>
 
     <dl>
-      <dt>'{operator_name}[$x$, $y$, ...]'
+      <dt>'{operator_name}['$x$, $y$, ...']'
       <dd>displays $x$ {operator_string} $y$ {operator_string} ...
     </dl>
 
@@ -1389,7 +1469,7 @@ class NoMeaningPostfixOperator(PostfixOperator):
     https://reference.wolfram.com/language/ref/{operator_name}.html</url>
 
     <dl>
-      <dt>'{operator_name}[$x$]'
+      <dt>'{operator_name}['$x$']'
       <dd>displays $x$ {operator_string}
     </dl>
 
@@ -1431,7 +1511,7 @@ class NoMeaningPrefixOperator(PrefixOperator):
     https://reference.wolfram.com/language/ref/{operator_name}.html</url>
 
     <dl>
-      <dt>'{operator_name}[$x$]'
+      <dt>'{operator_name}['$x$']'
       <dd>displays {operator_string} $x$
     </dl>
 
@@ -1542,8 +1622,21 @@ class PatternObject(BuiltinElement, BasePattern):
     def get_match_count(self, vars_dict: Optional[dict] = None):
         return (1, 1)
 
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        return self.expr.get_sort_key(pattern_sort=pattern_sort)
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_order
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return build_pattern_sort_key(self)
 
 
 class Test(Builtin, ABC):

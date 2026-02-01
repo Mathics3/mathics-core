@@ -3,11 +3,42 @@
 Unit tests from mathics.builtin.drawing.plot
 """
 
-import sys
-import time
-from test.helper import check_evaluation, evaluate
+from test.helper import check_evaluation, session
 
 import pytest
+
+from mathics.core.expression import Expression
+from mathics.core.symbols import Symbol
+from mathics.core.util import print_expression_tree
+
+
+def test__listplot():
+    """tests for module builtin.drawing.plot._ListPlot"""
+    for str_expr, msgs, str_expected, fail_msg in (
+        (
+            "ListPlot[5]",
+            ("5 is not a list of numbers or pairs of numbers.",),
+            "ListPlot[5]",
+            "ListPlot with invalid list of point",
+        ),
+        (
+            "ListLinePlot[{{}, {{1., 1.}}, {{1., 2.}}, {}}]",
+            (
+                "{{}, {{1., 1.}}, {{1., 2.}}, {}} is not a list of numbers or pairs of numbers.",
+            ),
+            "ListLinePlot[{{}, {{1., 1.}}, {{1., 2.}}, {}}]",
+            "ListLinePlot with invalid list of point",
+        ),
+    ):
+        check_evaluation(
+            str_expr,
+            str_expected,
+            to_string_expr=True,
+            to_string_expected=True,
+            hold_expected=True,
+            failure_message=fail_msg,
+            expected_messages=msgs,
+        )
 
 
 @pytest.mark.parametrize(
@@ -29,6 +60,51 @@ import pytest
         ),
         ("Plot[x*y, {x, -1, 1}]", None, "-Graphics-", None),
         ("Plot3D[z, {x, 1, 20}, {y, 1, 10}]", None, "-Graphics3D-", None),
+        (
+            "Plot3D[Exp[x] Cos[y], {x, -2, 1}, {y, -Pi, 2 Pi}]",
+            None,
+            "-Graphics3D-",
+            None,
+        ),
+        ("Plot3D[1, {x,-1,1}, {y,-1,1}]", None, "-Graphics3D-", None),
+        (
+            "Plot3D[]",
+            ("Plot3D called with 0 arguments; 3 arguments are expected.",),
+            "Plot3D[]",
+            None,
+        ),
+        (
+            "Plot3D[1, 2, 3]",
+            (
+                "Plot range 2 must be of the form {variable, min, max}, where max > min.",
+            ),
+            "Plot3D[1, 2, 3]",
+            None,
+        ),
+        (
+            "Plot3D[1, {2, 3}, {3, 4}]",
+            (
+                "Plot range {2, 3} must be of the form {variable, min, max}, where max > min.",
+            ),
+            "Plot3D[1, {2, 3}, {3, 4}]",
+            None,
+        ),
+        (
+            "Plot3D[1, {1, 2, 3}, {1, 3, 4}]",
+            (
+                "Plot range {1, 2, 3} must be of the form {variable, min, max}, where max > min.",
+            ),
+            "Plot3D[1, {1, 2, 3}, {1, 3, 4}]",
+            None,
+        ),
+        (
+            "Plot3D[1, {x, 3, 2}, {1, 3, 4}]",
+            (
+                "Plot range {x, 3, 2} must be of the form {variable, min, max}, where max > min.",
+            ),
+            "Plot3D[1, {x, 3, 2}, {1, 3, 4}]",
+            None,
+        ),
         (
             "Graphics[{Disk[]}, Background->RGBColor[1,.1,.1]]//TeXForm//ToString",
             None,
@@ -107,7 +183,7 @@ import pytest
                 "import tube;\n"
                 "size(6.6667cm, 6.6667cm);\n"
                 "currentprojection=perspective(2.6,-4.8,4.0);\n"
-                "currentlight=light(rgb(0.5,0.5,1), background=rgb(1, 0.1, 0.1), specular=red, (2,0,2), (2,2,2), (0,2,2));\n"
+                "currentlight=light(rgb(0.5,0.5,0.5), background=rgb(1, 0.1, 0.1), specular=red, (2,0,2), (2,2,2), (0,2,2));\n"
                 "// Sphere3DBox\n"
                 "draw(surface(sphere((0, 0, 0), 1)), rgb(1,1,1)+opacity(1));\n"
                 "draw(((-1,-1,-1)--(1,-1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));\n"
@@ -135,7 +211,7 @@ import pytest
                 "import tube;\n"
                 "size(6.6667cm, 6.6667cm);\n"
                 "currentprojection=perspective(2.6,-4.8,4.0);\n"
-                "currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));\n"
+                "currentlight=light(rgb(0.5,0.5,0.5), specular=red, (2,0,2), (2,2,2), (0,2,2));\n"
                 "// Point3DBox\npath3 g=(0,1,0)--(0.20791,0.97815,0)--(0.40674,0.91355,0)--"
                 "(0.58779,0.80902,0)--(0.74314,0.66913,0)--(0.86603,0.5,0)--(0.95106,0.30902,0)--"
                 "(0.99452,0.10453,0)--(0.99452,-0.10453,0)--(0.95106,-0.30902,0)--(0.86603,-0.5,0)"
@@ -163,8 +239,8 @@ import pytest
         ),
     ],
 )
-def test_private_doctests_plot(str_expr, msgs, str_expected, fail_msg):
-    """builtin.drawing.plot"""
+def test_plot(str_expr, msgs, str_expected, fail_msg):
+    """tests for module builtin.drawing.plot"""
     check_evaluation(
         str_expr,
         str_expected,
@@ -173,4 +249,201 @@ def test_private_doctests_plot(str_expr, msgs, str_expected, fail_msg):
         hold_expected=True,
         failure_message=fail_msg,
         expected_messages=msgs,
+    )
+
+
+#
+# NOTE: I think the following tests have been superseded by test_plot_detail.py which
+# does similar (actually, more stringent) tests much less laboriously. Keeping these
+# for now just in case, but probably better to add new tests to test_plot_detail.py
+#
+# Call plotting functions and examine the structure of the output
+# In case of error trees are printed with an embedded >>> marker showing location of error
+#
+
+
+def print_expression_tree_with_marker(expr):
+    print_expression_tree(expr, marker=lambda expr: getattr(expr, "_marker", ""))
+
+
+def check_structure(
+    result, expected, parent_result=None, parent_expected=None, parent_i=None
+):
+    """Check that expected is a prefix of result at every node"""
+
+    def error(msg):
+        if parent_result and parent_expected:
+
+            def mark(parent_expr, marker):
+                parent_expr._elements = list(parent_expr.elements)
+                parent_expr.elements[parent_i] = Expression(
+                    Symbol(marker), parent_expr.elements[parent_i]
+                )
+                # parent_expr.elements[parent_i]._marker = marker
+
+            mark(parent_result, "RESULT >>> ")
+            mark(parent_expected, "EXPECTED >>> ")
+        raise AssertionError(msg)
+
+    # do the heads match?
+    if result.get_head() != expected.get_head():
+        error(f"heads {result.get_head()} and {expected.get_head()} don't match")
+
+    # does the structure match?
+    if hasattr(expected, "elements"):
+        if not hasattr(result, "elements"):
+            error("expected elements but result has none")
+        for i, e in enumerate(expected.elements):
+            if len(result.elements) <= i:
+                error("result has too few elements")
+            check_structure(result.elements[i], e, result, expected, i)
+    else:
+        if str(result) != str(expected):
+            error("leaves don't match")
+
+
+def eval_and_check_structure(str_expr, str_expected):
+    expr = session.parse(str_expr)
+    result = expr.evaluate(session.evaluation)
+    expected = session.parse(str_expected)
+    try:
+        check_structure(result, expected)
+    except AssertionError as oops:
+        print(f"\nERROR: {oops} (error is marked with >>> below)")
+        print("=== result:")
+        print_expression_tree_with_marker(result)
+        print("=== expected:")
+        print_expression_tree_with_marker(expected)
+        raise
+
+
+def test_plot3d_default():
+    eval_and_check_structure(
+        """
+        Plot3D[
+            x+y,
+            {x,0,1}, {y,0,1},
+            PlotPoints->{2,2},
+            MaxRecursion->0
+        ]
+        """,
+        """
+        Graphics3D[
+            {
+                Polygon[{{0.0,0.0,0.0}, {0.0,0.5,0.5}, {0.5,0.0,0.5}}],
+                Polygon[{{}}], Polygon[{{}}], Polygon[{{}}],  Polygon[{{}}], Polygon[{{}}], Polygon[{{}}], Polygon[{{}}],
+                (* mesh lines for default Mesh->Full *)
+                Line[{{0.0,0.0,0.0},{0.0,0.5,0.5},{0.0,1.0,1.0}}],
+                Line[{{}}], Line[{{}}], Line[{{}}], Line[{{}}], Line[{{}}]
+            },
+            System`AlignmentPoint -> Center,
+            AspectRatio -> 1,
+            Axes -> True
+        ]
+        """,
+    )
+
+
+def test_plot3d_nondefault():
+    eval_and_check_structure(
+        """
+        Plot3D[
+            x+y,
+            {x,0,1}, {y,0,1},
+            PlotPoints->{2,2},
+            AspectRatio -> 0.5,
+            Axes -> False
+        ]
+        """,
+        """
+        Graphics3D[
+            {
+                Polygon[{{0.0,0.0,0.0}, {0.0,0.5,0.5}, {0.5,0.0,0.5}}],
+                Polygon[{{}}]
+            },
+            AlignmentPoint -> Center,
+            AspectRatio -> 0.5,
+            Axes -> False
+        ]
+        """,
+    )
+
+
+def test_densityplot_default():
+    eval_and_check_structure(
+        """
+        DensityPlot[
+            x+y, {x,0,1}, {y,0,1},
+            PlotPoints-> {2,2},
+            MaxRecursion->0
+        ]
+        """,
+        """
+        Graphics[
+            {
+                Polygon[
+                    {
+                        {{0.0,0.0},{0.0,0.5},{0.5,0.0}},
+                        {{0.0,0.5},{0.5,0.0},{0.5,0.5}}
+                    },
+                    VertexColors -> {
+                        {
+                            RGBColor[0.293416, 0.0574044, 0.529412],
+                            RGBColor[0.49621975000000007, 0.41002484999999994, 0.8144772499999999],
+                            RGBColor[0.49621975000000007, 0.41002484999999994, 0.8144772499999999]
+                        },
+                        {
+                            RGBColor[0.49621975000000007, 0.41002484999999994, 0.8144772499999999],
+                            RGBColor[0.49621975000000007, 0.41002484999999994, 0.8144772499999999],
+                            RGBColor[0.663226, 0.6872815, 0.9117649999999999]
+                        }
+                    }
+                ]
+            },
+            AlignmentPoint -> Center,
+            AspectRatio -> 1,
+            Axes -> False
+        ]
+        """,
+    )
+
+
+def test_densityplot_nondefault():
+    eval_and_check_structure(
+        """
+        DensityPlot[
+            x+y, {x,0,1}, {y,0,1},
+            PlotPoints-> {2,2},
+            MaxRecursion->0
+            AspectRatio -> 0.5,
+            Axes -> True
+        ]
+        """,
+        """
+        Graphics[
+            {
+                Polygon[
+                    {
+                        {{0.0,0.0},{0.0,0.5},{0.5,0.0}},
+                        {{0.0,0.5},{0.5,0.0},{0.5,0.5}}
+                    },
+                    VertexColors -> {
+                        {
+                            RGBColor[0.293416, 0.0574044, 0.529412],
+                            RGBColor[0.49621975000000007, 0.41002484999999994, 0.8144772499999999],
+                            RGBColor[0.49621975000000007, 0.41002484999999994, 0.8144772499999999]
+                        },
+                        {
+                            RGBColor[0.49621975000000007, 0.41002484999999994, 0.8144772499999999],
+                            RGBColor[0.49621975000000007, 0.41002484999999994, 0.8144772499999999],
+                            RGBColor[0.663226, 0.6872815, 0.9117649999999999]
+                        }
+                    }
+                ]
+            },
+            System`AlignmentPoint -> Center,
+            AspectRatio -> 1, (* TODO: why not passed through? *)
+            Axes -> True
+        ]
+        """,
     )

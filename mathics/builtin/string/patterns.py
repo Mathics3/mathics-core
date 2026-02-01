@@ -155,20 +155,20 @@ class StringCases(_StringFind):
     https://reference.wolfram.com/language/ref/StringCases.html</url>
 
     <dl>
-      <dt>'StringCases["$string$", $pattern$]'
+      <dt>'StringCases'["$string$", $pattern$]
       <dd>gives all occurrences of $pattern$ in $string$.
 
-      <dt>'StringReplace["$string$", $pattern$ -> $form$]'
+      <dt>'StringReplace'["$string$", $pattern$ -> $form$]
       <dd>gives all instances of $form$ that stem from occurrences of $pattern$ in $string$.
 
-      <dt>'StringCases["$string$", {$pattern1$, $pattern2$, ...}]'
-      <dd>gives all occurrences of $pattern1$, $pattern2$, ....
+      <dt>'StringCases'["$string$", {$pattern_1$, $pattern_2$, ...}]
+      <dd>gives all occurrences of $pattern_1$, $pattern_2$, ....
 
-      <dt>'StringReplace["$string$", $pattern$, $n$]'
+      <dt>'StringReplace'["$string$", $pattern$, $n$]
       <dd>gives only the first $n$ occurrences.
 
-      <dt>'StringReplace[{"$string1$", "$string2$", ...}, $pattern$]'
-      <dd>gives occurrences in $string1$, $string2$, ...
+      <dt>'StringReplace'[{"$string_1$", "$string_2$", ...}, $pattern$]
+      <dd>gives occurrences in $string_1$, $string_2$, ...
     </dl>
 
     >> StringCases["axbaxxb", "a" ~~ x_ ~~ "b"]

@@ -14,18 +14,18 @@ from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_li
 
 
 class RecursionLimit(Predefined):
-    """
+    r"""
     <url>
     :WMA link:
-    https://reference.wolfram.com/language/ref/$RecursionLimit.html</url>
+    https://reference.wolfram.com/language/ref/\$RecursionLimit.html</url>
 
     <dl>
-      <dt>'$RecursionLimit'
+      <dt>'\$RecursionLimit'
       <dd>specifies the maximum allowable recursion depth after which a \
           calculation is terminated.
     </dl>
 
-    Calculations terminated by '$RecursionLimit' return '$Aborted':
+    Calculations terminated by '\$RecursionLimit' return '\$Aborted':
     >> a = a + a
      : Recursion depth of 200 exceeded.
      = $Aborted
@@ -71,24 +71,31 @@ class RecursionLimit(Predefined):
 
 
 class IterationLimit(Predefined):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$IterationLimit.html</url>
+    r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$IterationLimit.html</url>
 
     <dl>
-        <dt>'$IterationLimit'
+        <dt>'\$IterationLimit'
 
         <dd>specifies the maximum number of times a reevaluation of an expression may happen.
 
     </dl>
 
-    Calculations terminated by '$IterationLimit' return '$Aborted':
+    Calculations terminated by '\$IterationLimit' return '\$Aborted':
 
     >> $IterationLimit
-     = 1000
+     = 4096
+
+    The iteration limit protects against runaway definitions:
+
+    >> Block[{$IterationLimit = 20}, yin := yang; yang := yin; yin]
+     : Iteration limit of 20 exceeded.
+     = $Aborted
+
     """
 
     name = "$IterationLimit"
-    value = 1000
+    value = 4096
 
     rules = {
         "$IterationLimit": str(value),
@@ -116,7 +123,7 @@ class Hold(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Hold.html</url>
 
     <dl>
-      <dt>'Hold[$expr$]'
+      <dt>'Hold'[$expr$]
       <dd>prevents $expr$ from being evaluated.
     </dl>
 
@@ -133,7 +140,7 @@ class HoldComplete(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/HoldComplete.html</url>
 
     <dl>
-      <dt>'HoldComplete[$expr$]'
+      <dt>'HoldComplete'[$expr$]
       <dd>prevents $expr$ from being evaluated, and also prevents \
          'Sequence' objects from being spliced into argument lists.
     </dl>
@@ -151,7 +158,7 @@ class HoldForm(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/HoldForm.html</url>
 
     <dl>
-    <dt>'HoldForm[$expr$]'
+    <dt>'HoldForm'[$expr$]
         <dd>is equivalent to 'Hold[$expr$]', but prints as $expr$.
     </dl>
 
@@ -176,7 +183,7 @@ class Evaluate(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Evaluate.html</url>
 
     <dl>
-    <dt>'Evaluate[$expr$]'
+    <dt>'Evaluate'[$expr$]
         <dd>forces evaluation of $expr$, even if it occurs inside a
         held argument or a 'Hold' form.
     </dl>
@@ -186,7 +193,7 @@ class Evaluate(Builtin):
     >> f[1 + 2]
      = f[1 + 2]
 
-    'Evaluate' forces evaluation of the argument, even though $f$ has
+    'Evaluate' forces evaluation of the argument, even though $f$ has \
     the 'HoldAll' attribute:
     >> f[Evaluate[1 + 2]]
      = f[3]
@@ -211,9 +218,9 @@ class Unevaluated(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Unevaluated.html</url>
 
     <dl>
-    <dt>'Unevaluated[$expr$]'
-        <dd>temporarily leaves $expr$ in an unevaluated form when it
-        appears as a function argument.
+      <dt>'Unevaluated'[$expr$]
+      <dd>temporarily leaves $expr$ in an unevaluated form when it \
+          appears as a function argument.
     </dl>
 
     'Unevaluated' is automatically removed when function arguments are
@@ -251,7 +258,7 @@ class ReleaseHold(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ReleaseHold.html</url>
 
     <dl>
-    <dt>'ReleaseHold[$expr$]'
+    <dt>'ReleaseHold'[$expr$]
         <dd>removes any 'Hold', 'HoldForm', 'HoldPattern' or
         'HoldComplete' head from $expr$.
     </dl>
@@ -277,7 +284,7 @@ class Sequence(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Sequence.html</url>
 
     <dl>
-    <dt>'Sequence[$x1$, $x2$, ...]'
+    <dt>'Sequence'[$x_1$, $x_2$, ...]
         <dd>represents a sequence of arguments to a function.
     </dl>
 

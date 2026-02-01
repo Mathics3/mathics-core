@@ -17,14 +17,14 @@ class FindList(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/FindList.html</url>
 
     <dl>
-      <dt>'FindList[$file$, $text$]'
+      <dt>'FindList'[$file$, $text$]
       <dd>returns a list of all lines in $file$ that contain $text$.
 
-      <dt>'FindList[$file$, {$text1$, $text2$, ...}]'
+      <dt>'FindList'[$file$, {$text_1$, $text_2$, ...}]
       <dd>returns a list of all lines in $file$ that contain any of the specified \
           string.
 
-      <dt>'FindList[{$file1$, $file2$, ...}, ...]'
+      <dt>'FindList'[{$file_1$, $file_2$, ...}, ...]
       <dd>returns a list of all lines in any of the $filei$ that contain the specified \
           strings.
     </dl>
@@ -99,7 +99,7 @@ class FindList(Builtin):
                     lines = f.readlines()
             except IOError:
                 evaluation.message("General", "noopen", path)
-                return
+                return SymbolFailed
             except MessageException as e:
                 e.message(evaluation)
                 return

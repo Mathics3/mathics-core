@@ -7,19 +7,14 @@ on a calculator.
 
 """
 
-from mathics.builtin.arithmetic import create_infix
 from mathics.core.atoms import (
     Complex,
     Integer,
     Integer1,
     Integer3,
-    Integer310,
     IntegerM1,
     Number,
-    Rational,
     RationalOneHalf,
-    Real,
-    String,
 )
 from mathics.core.attributes import (
     A_FLAT,
@@ -37,31 +32,20 @@ from mathics.core.builtin import (
     PrefixOperator,
     SympyFunction,
 )
-from mathics.core.convert.expression import to_expression
-from mathics.core.convert.sympy import from_sympy
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.list import ListExpression
-from mathics.core.symbols import (
-    Symbol,
-    SymbolDivide,
-    SymbolHoldForm,
-    SymbolNull,
-    SymbolPower,
-    SymbolTimes,
-)
+from mathics.core.symbols import Symbol, SymbolNull, SymbolPower, SymbolTimes
 from mathics.core.systemsymbols import (
     SymbolBlank,
     SymbolComplexInfinity,
     SymbolIndeterminate,
-    SymbolInfix,
-    SymbolLeft,
-    SymbolMinus,
     SymbolPattern,
     SymbolSequence,
 )
 from mathics.eval.arithfns.basic import eval_Plus, eval_Times
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
+from mathics.format.form_rule.arithfns import format_plus, format_times
 
 
 class CubeRoot(Builtin):
@@ -72,7 +56,7 @@ class CubeRoot(Builtin):
     https://reference.wolfram.com/language/ref/CubeRoot.html</url>)
 
     <dl>
-      <dt>'CubeRoot[$n$]'
+      <dt>'CubeRoot'[$n$]
       <dd>finds the real-valued cube root of the given $n$.
     </dl>
 
@@ -81,6 +65,10 @@ class CubeRoot(Builtin):
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
+
+    # Set checking that the number of arguments required is one.
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
 
     messages = {
         "preal": "The parameter `1` should be real valued.",
@@ -96,7 +84,7 @@ class CubeRoot(Builtin):
 
     summary_text = "compute cube root of a number"
 
-    def eval(self, n, evaluation):
+    def eval(self, n, evaluation: Evaluation):
         "CubeRoot[n_Complex]"
 
         evaluation.message("CubeRoot", "preal", n)
@@ -116,8 +104,8 @@ class Divide(InfixOperator):
     https://reference.wolfram.com/language/ref/Divide.html</url>)
 
     <dl>
-      <dt>'Divide[$a$, $b$]'
-      <dt>'$a$ / $b$'
+      <dt>'Divide'[$a$, $b$]
+      <dt> $a$ '/' $b$
       <dd>represents the division of $a$ by $b$.
     </dl>
 
@@ -151,6 +139,10 @@ class Divide(InfixOperator):
 
     default_formats = False
 
+    # Set checking that the number of arguments required is two.
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
+
     formats = {
         (("InputForm", "OutputForm"), "Divide[x_, y_]"): (
             'Infix[{HoldForm[x], HoldForm[y]}, "/", 400, Left]'
@@ -178,11 +170,11 @@ class Minus(PrefixOperator):
     https://reference.wolfram.com/language/ref/Minus.html</url>)
 
     <dl>
-      <dt>'Minus[$expr$]'
+      <dt>'Minus'[$expr$]
       <dd> is the negation of $expr$.
     </dl>
 
-    >> -a //FullForm
+    >> -a // FullForm
      = Times[-1, a]
 
     'Minus' automatically distributes:
@@ -195,6 +187,10 @@ class Minus(PrefixOperator):
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+
+    # Set checking that the number of arguments required is two.
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
 
     formats = {
         "Minus[x_]": 'Prefix[{HoldForm[x]}, "-", 480]',
@@ -227,7 +223,7 @@ class Plus(InfixOperator, SympyFunction):
     https://reference.wolfram.com/language/ref/Plus.html</url>)
 
     <dl>
-      <dt>'Plus[$a$, $b$, ...]'
+      <dt>'Plus'[$a$, $b$, ...]
       <dt>$a$ + $b$ + ...
       <dd>represents the sum of the terms $a$, $b$, ...
     </dl>
@@ -283,61 +279,14 @@ class Plus(InfixOperator, SympyFunction):
     # Remember to up sympy doc link when this is corrected
     sympy_name = "Add"
 
-    def format_plus(self, items, evaluation):
+    def eval(self, elements, evaluation: Evaluation):
+        "Plus[elements___]"
+        elements_tuple = numerify(elements, evaluation).get_sequence()
+        return eval_Plus(*elements_tuple)
+
+    def format_plus(self, items, evaluation: Evaluation):
         "Plus[items__]"
-
-        def negate(item):  # -> Expression (see FIXME below)
-            if item.has_form("Times", 2, None):
-                if isinstance(item.elements[0], Number):
-                    first, *rest = item.elements
-                    first = -first
-                    if first.sameQ(Integer1):
-                        if len(rest) == 1:
-                            return rest[0]
-                        return Expression(SymbolTimes, *rest)
-
-                    return Expression(SymbolTimes, first, *rest)
-                else:
-                    return Expression(SymbolTimes, IntegerM1, *item.elements)
-            elif isinstance(item, Number):
-                return from_sympy(-item.to_sympy())
-            else:
-                return Expression(SymbolTimes, IntegerM1, item)
-
-        def is_negative(value) -> bool:
-            if isinstance(value, Complex):
-                real, imag = value.to_sympy().as_real_imag()
-                if real <= 0 and imag <= 0:
-                    return True
-            elif isinstance(value, Number) and value.to_sympy() < 0:
-                return True
-            return False
-
-        elements = items.get_sequence()
-        values = [to_expression(SymbolHoldForm, element) for element in elements[:1]]
-        ops = []
-        for element in elements[1:]:
-            if (
-                element.has_form("Times", 1, None) and is_negative(element.elements[0])
-            ) or is_negative(element):
-                element = negate(element)
-                op = "-"
-            else:
-                op = "+"
-            values.append(Expression(SymbolHoldForm, element))
-            ops.append(String(op))
-        return Expression(
-            SymbolInfix,
-            ListExpression(*values),
-            ListExpression(*ops),
-            Integer310,
-            SymbolLeft,
-        )
-
-    def eval(self, items, evaluation):
-        "Plus[items___]"
-        items_tuple = numerify(items, evaluation).get_sequence()
-        return eval_Plus(*items_tuple)
+        return format_plus(items, evaluation)
 
 
 class Power(InfixOperator, MPMathFunction):
@@ -351,8 +300,8 @@ class Power(InfixOperator, MPMathFunction):
     https://reference.wolfram.com/language/ref/Power.html</url>)
 
     <dl>
-      <dt>'Power[$a$, $b$]'
-      <dt>'$a$ ^ $b$'
+      <dt>'Power'[$a$, $b$]
+      <dt>$a$ '^' $b$
       <dd>represents $a$ raised to the power of $b$.
     </dl>
 
@@ -437,7 +386,7 @@ class Power(InfixOperator, MPMathFunction):
     # Remember to up sympy doc link when this is corrected
     sympy_name = "Pow"
 
-    def eval_check(self, x, y, evaluation):
+    def eval_check(self, x, y, evaluation: Evaluation):
         "Power[x_, y_]"
 
         # Power uses MPMathFunction but does some error checking first
@@ -468,7 +417,7 @@ class Power(InfixOperator, MPMathFunction):
             )
 
         result = self.eval(Expression(SymbolSequence, x, y), evaluation)
-        if result is None or result != SymbolNull:
+        if result is None or result is not SymbolNull:
             return result
 
 
@@ -483,7 +432,7 @@ class Sqrt(SympyFunction):
     https://reference.wolfram.com/language/ref/Sqrt.html</url>)
 
     <dl>
-      <dt>'Sqrt[$expr$]'
+      <dt>'Sqrt'[$expr$]
       <dd>returns the square root of $expr$.
     </dl>
 
@@ -508,6 +457,10 @@ class Sqrt(SympyFunction):
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
+    # Set checking that the number of arguments required is one.
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
+
     rules = {
         "Sqrt[x_]": "x ^ (1/2)",
         "MakeBoxes[Sqrt[x_], f:StandardForm|TraditionalForm]": (
@@ -526,8 +479,8 @@ class Subtract(InfixOperator):
     https://reference.wolfram.com/language/ref/Subtract.html</url>)
 
     <dl>
-      <dt>'Subtract[$a$, $b$]'
-      <dt>$a$ - $b$
+      <dt>'Subtract'[$a$, $b$]
+      <dt>$a$ '-' $b$
       <dd>represents the subtraction of $b$ from $a$.
     </dl>
 
@@ -542,6 +495,11 @@ class Subtract(InfixOperator):
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+
+    # Set checking that the number of arguments required is two.
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
+
     grouping = "Left"
 
     rules = {
@@ -561,9 +519,9 @@ class Times(InfixOperator, SympyFunction):
     :WMA:https://reference.wolfram.com/language/ref/Times.html</url>)
 
     <dl>
-      <dt>'Times[$a$, $b$, ...]'
-      <dt>'$a$ * $b$ * ...'
-      <dt>'$a$ $b$ ...'
+      <dt>'Times'[$a$, $b$, ...]
+      <dt>$a$ '*' $b$ '*' ...
+      <dt>$a$ $b$ ...
       <dd>represents the product of the terms $a$, $b$, ...
     </dl>
 
@@ -614,82 +572,25 @@ class Times(InfixOperator, SympyFunction):
     # Remember to up sympy doc link when this is corrected
     sympy_name = "Mul"
 
-    summary_text = "multiply a number"
+    summary_text = "multiply numbers"
 
-    def format_times(self, items, evaluation, op="\u2062"):
+    def eval(self, elements, evaluation: Evaluation):
+        "Times[elements___]"
+        numeric_elements = numerify(elements, evaluation).get_sequence()
+        return eval_Times(*numeric_elements)
+
+    def format_times(self, items, evaluation: Evaluation, op="\u2062"):
         "Times[items__]"
-
-        def inverse(item):
-            if item.has_form("Power", 2) and isinstance(  # noqa
-                item.elements[1], (Integer, Rational, Real)
-            ):
-                neg = -item.elements[1]
-                if neg.sameQ(Integer1):
-                    return item.elements[0]
-                else:
-                    return Expression(SymbolPower, item.elements[0], neg)
-            else:
-                return item
-
-        items = items.get_sequence()
-        if len(items) < 2:
-            return
-        positive = []
-        negative = []
-        for item in items:
-            if (
-                item.has_form("Power", 2)
-                and isinstance(item.elements[1], (Integer, Rational, Real))
-                and item.elements[1].to_sympy() < 0
-            ):  # nopep8
-                negative.append(inverse(item))
-            elif isinstance(item, Rational):
-                numerator = item.numerator()
-                if not numerator.sameQ(Integer1):
-                    positive.append(numerator)
-                negative.append(item.denominator())
-            else:
-                positive.append(item)
-        if positive and positive[0].get_int_value() == -1:
-            del positive[0]
-            minus = True
-        else:
-            minus = False
-        positive = [Expression(SymbolHoldForm, item) for item in positive]
-        negative = [Expression(SymbolHoldForm, item) for item in negative]
-        if positive:
-            positive = create_infix(positive, op, 400, "None")
-        else:
-            positive = Integer1
-        if negative:
-            negative = create_infix(negative, op, 400, "None")
-            result = Expression(
-                SymbolDivide,
-                Expression(SymbolHoldForm, positive),
-                Expression(SymbolHoldForm, negative),
-            )
-        else:
-            result = positive
-        if minus:
-            result = Expression(
-                SymbolMinus, result
-            )  # Expression('PrecedenceForm', result, 481))
-        result = Expression(SymbolHoldForm, result)
-        return result
+        return format_times(items, evaluation, op)
 
     def format_inputform(self, items, evaluation):
         "(InputForm,): Times[items__]"
-        return self.format_times(items, evaluation, op="*")
+        return format_times(items, evaluation, op="*")
 
     def format_standardform(self, items, evaluation):
         "(StandardForm,): Times[items__]"
-        return self.format_times(items, evaluation, op=" ")
+        return format_times(items, evaluation, op=" ")
 
     def format_outputform(self, items, evaluation):
         "(OutputForm,): Times[items__]"
-        return self.format_times(items, evaluation, op=" ")
-
-    def eval(self, items, evaluation):
-        "Times[items___]"
-        items = numerify(items, evaluation).get_sequence()
-        return eval_Times(*items)
+        return format_times(items, evaluation, op=" ")

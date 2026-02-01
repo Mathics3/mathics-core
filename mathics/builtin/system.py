@@ -4,15 +4,18 @@
 Global System Information
 """
 
+import _thread
 import gc
+import inspect
 import os
 import platform
 import subprocess
 import sys
+from functools import wraps
 
 from pympler.asizeof import asizeof
 
-from mathics import version_string
+from mathics import settings, version_string
 from mathics.core.atoms import Integer, Integer0, IntegerM1, Real, String
 from mathics.core.attributes import A_CONSTANT
 from mathics.core.builtin import Builtin, Predefined
@@ -39,6 +42,40 @@ else:
 sort_order = "mathics.builtin.global-system-information"
 
 
+def not_in_sandboxed_environment(func):
+    """
+    A decorator for eval() and evaluate() methods which
+    checks that mathics.settings.ENABLE_SYSTEM_COMMANDS is set.
+    In other words, check to see if we are not in a sandboxed
+    environment.
+
+    If we are sandboxed, a "dis" message is printed and we return $Failed.
+    """
+
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        # Get the function signature once during decoration
+        sig = inspect.signature(func)
+
+        # Here is we check to see if we are in a sandoxed environment.
+        if not settings.ENABLE_SYSTEM_COMMANDS:
+            # Bind args/kwargs to the function's parameter names
+            bound_args = sig.bind(self, *args, **kwargs)
+            # Apply default values for any missing arguments
+            bound_args.apply_defaults()
+
+            # Access "evaluation" by name, regardless of its position
+            self = bound_args.arguments.get("self")
+            evaluation = bound_args.arguments.get("evaluation")
+
+            evaluation.message(self.__class__.__name__, "dis")
+            return SymbolFailed
+
+        return func(self, *args, **kwargs)
+
+    return wrapper
+
+
 class Breakpoint(Builtin):
     """<url>:Python breakpoint():https://docs.python.org/3/library/functions.html#breakpoint</url>
 
@@ -62,10 +99,9 @@ class Breakpoint(Builtin):
 
     Here is how to use 'mathics.disabled_breakpoint':
 
-    >> SetEnvironment["PYTHONBREAKPOINT" -> "mathics.disabled_breakpoint"];
+    X> SetEnvironment["PYTHONBREAKPOINT" -> "mathics.disabled_breakpoint"];
 
-    >> Breakpoint[]
-    = Hit disabled breakpoint.
+    X> Breakpoint[]
     = Breakpoint[]
 
     The environment variable 'PYTHONBREAKPOINT' can be changed at runtime to switch \
@@ -74,6 +110,7 @@ class Breakpoint(Builtin):
 
     summary_text = "invoke Python breakpoint()"
 
+    @not_in_sandboxed_environment
     def eval(self, evaluation: Evaluation):
         "Breakpoint[]"
 
@@ -82,22 +119,23 @@ class Breakpoint(Builtin):
 
 class CommandLine(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$CommandLine.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\\$CommandLine.html</url>
     <dl>
-    <dt>'$CommandLine'
+    <dt>'\\$CommandLine'
       <dd>is a list of strings passed on the command line to launch the Mathics3 session.
     </dl>
 
-    >> $CommandLine
+    S> $CommandLine
      = {...}
     """
 
+    name = "$CommandLine"
     summary_text = (
-        "the command line arguments passed when the current Mathics3 "
+        "get the command line arguments passed when the current Mathics3 "
         "session was launched"
     )
-    name = "$CommandLine"
 
+    @not_in_sandboxed_environment
     def evaluate(self, evaluation: Evaluation) -> Expression:
         return ListExpression(*(String(arg) for arg in sys.argv))
 
@@ -107,7 +145,7 @@ class Environment(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Environment.html</url>
 
     <dl>
-      <dt>'Environment[$var$]'
+      <dt>'Environment'[$var$]
       <dd>gives the value of an operating system environment variable.
     </dl>
 
@@ -123,8 +161,10 @@ class Environment(Builtin):
 
     summary_text = "list the system environment variables"
 
+    @not_in_sandboxed_environment
     def eval(self, var, evaluation: Evaluation):
         "Environment[var_String]"
+
         env_var = var.get_string_value()
         if env_var not in os.environ:
             return SymbolFailed
@@ -137,11 +177,11 @@ class GetEnvironment(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/GetEnvironment.html</url>
 
     <dl>
-      <dt>'GetEnvironment["$var$"]'
+      <dt>'GetEnvironment'["$var$"]
       <dd>gives the setting corresponding to the variable "var" in the operating \
       system environment.
 
-      <dt>'GetEnvironment[{"$var1$", "$var2$", ...}]'
+      <dt>'GetEnvironment'[{"$var_1$", "$var_2$", ...}]
       <dd>gives a list rules for each of the environment variables listed.
 
       <dt>'GetEnvironment[]'
@@ -168,11 +208,15 @@ class GetEnvironment(Builtin):
     /doc/reference-of-built-in-symbols/global-system-information/setenvironment/</url>.
     """
 
-    messages = {"name": "`1` is not ALL or a string or a list of strings."}
+    messages = {
+        "name": "`1` is not ALL or a string or a list of strings.",
+    }
     summary_text = "retrieve the value of a system environment variable"
 
+    @not_in_sandboxed_environment
     def eval(self, var, evaluation: Evaluation):
         "GetEnvironment[var___]"
+
         if isinstance(var, String):
             env_var = var.value
             tup = (
@@ -215,12 +259,64 @@ class GetEnvironment(Builtin):
             evaluation.message("GetEnvironment", "name", var)
 
 
-class Machine(Predefined):
+# The current value of $Language
+LANGUAGE = "English"
+
+
+class Language(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$Machine.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/\\$Language.html</url>
 
     <dl>
-    <dt>'$Machine'
+      <dt>'\\$Language'
+      <dd>is a settable global variable for the default language used in Mathics3.
+    </dl>
+
+    See the language in effect used for functions like 'Alphabet[]':
+
+    By setting its value, The letters of 'Alphabet[]' are changed:
+
+    >> $Language = "German"; Alphabet[]
+     = ...
+
+    #> $Language = "English"
+     = English
+
+    See also <url>
+    :Alphabet:
+     /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/string-manipulation/alphabet/
+      </url>.
+    """
+
+    name = "$Language"
+    messages = {
+        "notstr": "`1` is not a string. Only strings can be set as the value of $Language.",
+    }
+
+    summary_text = "settable global variable giving the default language"
+    value = f'"{LANGUAGE}"'
+    # Rules has to come after "value"
+    rules = {
+        "$Language": value,
+    }
+
+    def eval_set(self, value, evaluation: Evaluation):
+        """Set[$Language, value_]"""
+        if isinstance(value, String):
+            evaluation.definitions.set_ownvalue("$Language", value)
+        else:
+            evaluation.message("$Language", "notstr", value)
+        return value
+
+
+class Machine(Predefined):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\\$Machine.html</url>
+
+    <dl>
+    <dt>'\\$Machine'
         <dd>returns a string describing the type of computer system on which the \
             Mathics3 is being run.
     </dl>
@@ -238,10 +334,10 @@ class Machine(Predefined):
 
 class MachineName(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/MachineName.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\\$MachineName.html</url>
 
     <dl>
-      <dt>'$MachineName'
+      <dt>'\\$MachineName'
       <dd>is a string that gives the assigned name of the computer on which Mathics3 \
           is being run, if such a name is defined.
     </dl>
@@ -250,11 +346,15 @@ class MachineName(Predefined):
      = ...
     """
 
-    summary_text = "the name of computer over with Mathics is running"
     name = "$MachineName"
+    summary_text = "get the name of computer that Mathics3 is running"
 
+    @not_in_sandboxed_environment
     def evaluate(self, evaluation: Evaluation) -> String:
-        return String(platform.uname().node)
+        try:
+            return String(platform.uname().node)
+        except Exception:
+            return String("unknown")
 
 
 class MathicsVersion(Predefined):
@@ -270,7 +370,7 @@ class MathicsVersion(Predefined):
     = ...
     """
 
-    summary_text = "the version of the mathics core"
+    summary_text = "get the version of the Mathics3 kernel"
 
     def evaluate(self, evaluation: Evaluation) -> String:
         return String(__version__)
@@ -287,7 +387,7 @@ class MaxLengthIntStringConversion(Predefined):
           string value is too large, then the middle of the integer contains \
           an indication of the number of digits elided inside << >>.
 
-          If '$MaxLengthIntStringConversion' is set to 0, there is no \
+          If '\\$MaxLengthIntStringConversion' is set to 0, there is no \
           bound. Aside from 0, 640 is the smallest value allowed.
 
           The initial value can be set via environment variable \
@@ -303,7 +403,7 @@ class MaxLengthIntStringConversion(Predefined):
     the number of digits allows when converting a large integer into \
     a string.
 
-    Show the default value of '$MaxLengthIntStringConversion':
+    Show the default value of '\\$MaxLengthIntStringConversion':
     >> $MaxLengthIntStringConversion
      = ...
 
@@ -311,14 +411,14 @@ class MaxLengthIntStringConversion(Predefined):
     >> 500! //ToString//StringLength
      = ...
 
-    We first set '$MaxLengthIntStringConversion' to the smallest value allowed, \
+    We first set '\\$MaxLengthIntStringConversion' to the smallest value allowed, \
     so that we can see the truncation of digits in the middle:
     >> $MaxLengthIntStringConversion = 640
     ## Pyston 2.3.5 returns 0 while CPython returns 640
     ## Therefore output testing below is generic.
      = ...
 
-    Note that setting '$MaxLengthIntStringConversion' has an effect only on Python 3.11 and later;
+    Note that setting '\\$MaxLengthIntStringConversion' has an effect only on Python 3.11 and later;
     Pyston 2.x however ignores this.
 
     Now when we print the string value of 500! and Pyston 2.x is not used, \
@@ -342,7 +442,9 @@ class MaxLengthIntStringConversion(Predefined):
     attributes = A_CONSTANT
     messages = {"inv": "`1` is not 0 or an Integer value greater than 640."}
     name = "$MaxLengthIntStringConversion"
-    summary_text = "the maximum length for which an integer is converted to a String"
+    summary_text = (
+        "get the maximum length for which an integer is converted to a String"
+    )
 
     def evaluate(self, evaluation: Evaluation) -> Integer:
         try:
@@ -384,7 +486,7 @@ class MemoryInUse(Builtin):
      = ...
     """
 
-    summary_text = "number of bytes of memory currently being used by Mathics3"
+    summary_text = "get the number of bytes of memory currently being used by Mathics3"
 
     def eval(self, evaluation: Evaluation) -> Integer:
         """MemoryInUse[]"""
@@ -397,7 +499,7 @@ class Packages(Predefined):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Packages.html</url>
 
     <dl>
-      <dt>'$Packages'
+      <dt>'\\$Packages'
       <dd>returns a list of the contexts corresponding to all packages which have \
           been loaded into Mathics.
     </dl>
@@ -415,22 +517,22 @@ class Packages(Predefined):
 
 class ParentProcessID(Predefined):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$ParentProcessID.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$ParentProcessID.html</url>
 
     <dl>
-      <dt>'$ParentProcesID'
+      <dt>'\$ParentProcesID'
       <dd>gives the ID assigned to the process which invokes Mathics3 by the operating \
           system under which it is run.
     </dl>
 
-    >> $ParentProcessID
+    S> $ParentProcessID
      = ...
-
     """
 
     name = "$ParentProcessID"
     summary_text = "get process id of the process that invoked Mathics3"
 
+    @not_in_sandboxed_environment
     def evaluate(self, evaluation: Evaluation) -> Integer:
         return Integer(os.getppid())
 
@@ -440,18 +542,19 @@ class ProcessID(Predefined):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ProcessID.html</url>
 
     <dl>
-      <dt>'$ProcessID'
+      <dt>'\$ProcessID'
       <dd>gives the ID assigned to the Mathics3 process by the operating system under \
           which it is run.
     </dl>
 
-    >> $ProcessID
+    S> $ProcessID
      = ...
     """
 
     name = "$ProcessID"
     summary_text = "get process id of the Mathics process"
 
+    @not_in_sandboxed_environment
     def evaluate(self, evaluation: Evaluation) -> Integer:
         return Integer(os.getpid())
 
@@ -463,7 +566,7 @@ class ProcessorType(Predefined):
     https://reference.wolfram.com/language/ref/ProcessorType.html</url>
 
     <dl>
-      <dt>'$ProcessorType'
+      <dt>'\\$ProcessorType'
       <dd>gives a string giving the architecture of the processor on which \
           Mathics3 is being run.
     </dl>
@@ -474,9 +577,7 @@ class ProcessorType(Predefined):
 
     name = "$ProcessorType"
 
-    summary_text = (
-        "name of the architecture of the processor over which Mathics3 is running"
-    )
+    summary_text = "get the name of the architecture of the processor over which Mathics3 is running"
 
     def evaluate(self, evaluation):
         return String(platform.machine())
@@ -487,7 +588,7 @@ class PythonImplementation(Predefined):
     ## <url>:PythonImplementation native symbol:</url>
 
     <dl>
-    <dt>'$PythonImplementation'
+    <dt>'\$PythonImplementation'
         <dd>gives a string indication the Python implementation used to run Mathics3.
     </dl>
 
@@ -497,7 +598,7 @@ class PythonImplementation(Predefined):
 
     name = "$PythonImplementation"
 
-    summary_text = "name of the Python implementation running Mathics3"
+    summary_text = "get the name of the Python implementation running Mathics3"
 
     def evaluate(self, evaluation: Evaluation):
         from mathics.system_info import python_implementation
@@ -510,7 +611,7 @@ class Run(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Run.html</url>
 
     <dl>
-      <dt>'Run[$command$]'
+      <dt>'Run'[$command$]
       <dd>runs command as an external operating system command, returning the exit \
          code returned from running the system command.
     </dl>
@@ -521,8 +622,10 @@ class Run(Builtin):
 
     summary_text = "run a system command"
 
+    @not_in_sandboxed_environment
     def eval(self, command, evaluation: Evaluation):
         "Run[command_String]"
+
         command_str = command.to_python()
         return Integer(subprocess.call(command_str, shell=True))
 
@@ -532,17 +635,18 @@ class ScriptCommandLine(Predefined):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ScriptCommandLine.html</url>
 
     <dl>
-      <dt>'$ScriptCommandLine'
+      <dt>'\\$ScriptCommandLine'
       <dd>is a list of string arguments when running the kernel is script mode.
     </dl>
 
-    >> $ScriptCommandLine
+    S> $ScriptCommandLine
      = {...}
     """
 
     summary_text = "list of command line arguments"
     name = "$ScriptCommandLine"
 
+    @not_in_sandboxed_environment
     def evaluate(self, evaluation: Evaluation):
         try:
             dash_index = sys.argv.index("--")
@@ -554,15 +658,43 @@ class ScriptCommandLine(Predefined):
         return to_mathics_list(*params, elements_conversion_fn=String)
 
 
+class SessionID(Predefined):
+    r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SessionID.html</url>
+
+    <dl>
+       <dt>'\$SessionID'
+       <dd>is a number which is unique to a particular \Mathics System session.
+    </dl>
+
+    X> $SessionID
+     = ...
+    """
+
+    name = "$SessionID"
+    summary_text = "get a unique session id"
+
+    def evaluate(self, evaluation: Evaluation) -> Integer:
+        # In theory, it is possible for two different sessions to have
+        # the same id since threading ID's are recycled. Also in
+        # theory, on different processes the thread numbers might be
+        # the same.  In practice, however, this is unlikely.  What we
+        # want here is something that is likely to be available on all
+        # platforms and OS's including enscripten. I had considered
+        # folding in the os.getpid() value, but this is not available
+        # on the enscripten platform.
+        return Integer(_thread.get_ident())
+
+
 class SetEnvironment(Builtin):
     """
      <url>:WMA link:https://reference.wolfram.com/language/ref/SetEnvironment.html</url>
 
      <dl>
-       <dt>'SetEnvironment["$var$" -> $value"]'
+       <dt>'SetEnvironment'["$var$" -> "$value$"]
        <dd>sets the value of an operating system environment variable.
 
-       <dt>'SetEnvironment[{"$var$" -> $value", ...}]'
+       <dt>'SetEnvironment'[{"$var$" -> "$value$", ...}]
        <dd>sets more than one environment variable.
      </dl>
 
@@ -575,7 +707,6 @@ class SetEnvironment(Builtin):
 
      Set two environment variables:
      S> SetEnvironment[{"FOO" -> "baz", "A" -> "B"}]
-      = SetEnvironment[{FOO -> baz, A -> B}]
 
      See that the environment variable has changed:
      S> GetEnvironment["FOO"]
@@ -593,6 +724,7 @@ class SetEnvironment(Builtin):
     If the environment name is not a string, the evaluation fails without a message.
 
      S> SetEnvironment[1 -> "bar"]
+      = SetEnvironment[1 -> bar]
 
      See also <url>
      :'Environment':
@@ -601,28 +733,45 @@ class SetEnvironment(Builtin):
      /doc/reference-of-built-in-symbols/global-system-information/getenvironment/</url>.
     """
 
-    messages = {"value": "`1` must be a string or None."}
+    messages = {
+        "value": "`1` must be a string or None.",
+    }
     summary_text = "set system environment variable(s)"
 
+    @not_in_sandboxed_environment
     def eval(self, rule, evaluation):
-        "SetEnvironment[rule_]"
+        "SetEnvironment[rule_Rule]"
+
         env_var_name, env_var_value = rule.elements
+        # WMA does not give an error message if env_var_name is not a String - weird.
+        if not isinstance(env_var_name, String):
+            return None
+
         if not (env_var_value is SymbolNone or isinstance(env_var_value, String)):
             evaluation.message("SetEnvironment", "value", env_var_value)
             return SymbolFailed
 
-        if isinstance(env_var_name, String):
-            # WMA does not give an error message if env_var_name is not a String - weird.
-            os.environ[env_var_name.value] = (
-                None if None is SymbolNone else env_var_value.value
-            )
+        if env_var_value is SymbolNone:
+            os.environ.pop(env_var_name.value, None)
+        else:
+            os.environ[env_var_name.value] = env_var_value.value
         return SymbolNull
 
+    @not_in_sandboxed_environment
     def eval_list(self, rules: Expression, evaluation: Evaluation):
         "SetEnvironment[{rules__}]"
+
+        # All the rules must be of the form
+        for rule in rules.elements:
+            if not rule.has_form("System`Rule", 2):
+                return None
+            if not isinstance(rule.elements[0], String):
+                return None
+
         for rule in rules.elements:
             self.eval(rule, evaluation)
-        return None
+
+        return SymbolNull
 
 
 class Share(Builtin):
@@ -682,7 +831,7 @@ class SystemID(Predefined):
     <url>:WMA link:https://reference.wolfram.com/language/ref/SystemID.html</url>
 
     <dl>
-       <dt>'$SystemID'
+       <dt>'\$SystemID'
        <dd>is a short string that identifies the type of computer system on which the \Mathics is being run.
     </dl>
 
@@ -690,8 +839,8 @@ class SystemID(Predefined):
      = linux
     """
 
-    summary_text = "id for the type of computer system"
     name = "$SystemID"
+    summary_text = "get id for the type of computer system"
 
     def evaluate(self, evaluation: Evaluation) -> String:
         return String(sys.platform)
@@ -702,7 +851,7 @@ class SystemWordLength(Predefined):
     <url>:WMA link:https://reference.wolfram.com/language/ref/SystemWordLength.html</url>
 
     <dl>
-      <dt>'$SystemWordLength'
+      <dt>'\$SystemWordLength'
       <dd>gives the effective number of bits in raw machine words on the computer \
           system where Mathics3 is running.
     </dl>
@@ -711,8 +860,8 @@ class SystemWordLength(Predefined):
     = 64
     """
 
-    summary_text = "word length of computer system"
     name = "$SystemWordLength"
+    summary_text = "get word length of computer system"
 
     def evaluate(self, evaluation: Evaluation) -> Integer:
         # https://docs.python.org/3/library/platform.html#module-platform
@@ -729,7 +878,7 @@ class UserName(Predefined):
     <url>:WMA link:https://reference.wolfram.com/language/ref/UserName.html</url>
 
     <dl>
-      <dt>$UserName
+      <dt>\$UserName
       <dd>returns the login name, according to the operative system, of the user that started the current
       \Mathics session.
     </dl>
@@ -738,9 +887,10 @@ class UserName(Predefined):
      = ...
     """
 
-    summary_text = "login name of the user that invoked the current session"
     name = "$UserName"
+    summary_text = "get login name of the user that invoked the current session"
 
+    @not_in_sandboxed_environment
     def evaluate(self, evaluation: Evaluation) -> String:
         try:
             user = os.getlogin()
@@ -764,10 +914,10 @@ class Version(Predefined):
      = Mathics3 ...
     """
 
-    summary_text = "the current Mathics version"
     name = "$Version"
+    summary_text = "get the current Mathics3 version"
 
-    def evaluate(self, evaluation) -> String:
+    def evaluate(self, evaluation: Evaluation) -> String:
         return String(version_string.replace("\n", " "))
 
 
@@ -776,7 +926,7 @@ class VersionNumber(Predefined):
     <url>:WMA link:https://reference.wolfram.com/language/ref/VersionNumber.html</url>
 
     <dl>
-      <dt>'$VersionNumber'
+      <dt>'\$VersionNumber'
       <dd>is a real number which gives the current Wolfram Language version that \Mathics tries to be compatible with.
     </dl>
 
@@ -784,9 +934,9 @@ class VersionNumber(Predefined):
     = ...
     """
 
-    summary_text = "the version number of the current Mathics core"
     name = "$VersionNumber"
     value = 10.0
+    summary_text = "get the version number of the current Mathics3 Kernel"
 
     def evaluate(self, evaluation: Evaluation) -> Real:
         # Make this be whatever the latest Mathematica release is,
@@ -801,17 +951,18 @@ if have_psutil:
         <url>:WMA link:https://reference.wolfram.com/language/ref/SystemMemory.html</url>
 
         <dl>
-          <dt>'$SystemMemory'
+          <dt>'\\$SystemMemory'
           <dd>Returns the total amount of physical memory.
         </dl>
 
-        >> $SystemMemory
+        S> $SystemMemory
          = ...
         """
 
-        summary_text = "the total amount of physical memory in the system"
         name = "$SystemMemory"
+        summary_text = "get the total amount of physical memory in the system"
 
+        @not_in_sandboxed_environment
         def evaluate(self, evaluation: Evaluation) -> Integer:
             totalmem = psutil.virtual_memory().total
             return Integer(totalmem)
@@ -825,22 +976,46 @@ if have_psutil:
           <dd>Returns the amount of the available physical memory.
         </dl>
 
-        >> MemoryAvailable[]
+        S> MemoryAvailable[]
          = ...
 
-        The relationship between $SystemMemory, MemoryAvailable, and MemoryInUse:
-        >> $SystemMemory > MemoryAvailable[] > MemoryInUse[]
+        The relationship between \\$SystemMemory, MemoryAvailable, and MemoryInUse:
+        S> $SystemMemory > MemoryAvailable[] > MemoryInUse[]
          = True
         """
 
-        summary_text = "the available amount of physical memory in the system"
+        summary_text = "get the available amount of physical memory in the system"
 
+        @not_in_sandboxed_environment
         def eval(self, evaluation: Evaluation) -> Integer:
             """MemoryAvailable[]"""
+
             totalmem = psutil.virtual_memory().available
             return Integer(totalmem)
 
 else:
+
+    class MemoryAvailable(Builtin):
+        """
+        <url>:WMA link:https://reference.wolfram.com/language/ref/MemoryAvailable.html</url>
+
+        <dl>
+          <dt>'MemoryAvailable'
+          <dd>Returns the amount of the available physical memory when Python module "psutil" is installed.
+          This system however doesn't have that installed, so -1 is returned instead.
+        </dl>
+
+        S> MemoryAvailable[]
+         = -1
+        """
+
+        summary_text = "get the available amount of physical memory in the system"
+
+        @not_in_sandboxed_environment
+        def eval(self, evaluation: Evaluation) -> Integer:
+            """MemoryAvailable[]"""
+
+            return IntegerM1
 
     class SystemMemory(Predefined):
         """
@@ -852,32 +1027,13 @@ else:
           This system however doesn't have that installed, so -1 is returned instead.
         </dl>
 
-        >> $SystemMemory
+        S> $SystemMemory
          = -1
         """
 
         summary_text = "the total amount of physical memory in the system"
         name = "$SystemMemory"
 
+        @not_in_sandboxed_environment
         def evaluate(self, evaluation: Evaluation) -> Integer:
-            return IntegerM1
-
-    class MemoryAvailable(Builtin):
-        """
-        <url>:WMA link:https://reference.wolfram.com/language/ref/MemoryAvailable.html</url>
-
-        <dl>
-          <dt>'MemoryAvailable'
-          <dd>Returns the amount of the available physical when Python module "psutil" is installed.
-          This system however doesn't have that installed, so -1 is returned instead.
-        </dl>
-
-        >> MemoryAvailable[]
-         = -1
-        """
-
-        summary_text = "the available amount of physical memory in the system"
-
-        def eval(self, evaluation: Evaluation) -> Integer:
-            """MemoryAvailable[]"""
             return IntegerM1

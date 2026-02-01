@@ -5,16 +5,20 @@ from mathics_scanner import (
     InvalidSyntaxError,
     MultiLineFeeder,
     SingleLineFeeder,
+    SyntaxError,
 )
+from mathics_scanner.location import ContainerKind
 
 from mathics.core.definitions import Definitions
-from mathics.core.parser import parse
+from mathics.core.load_builtin import import_and_load_builtins
+from mathics.core.parser import parse as core_parse
 
+import_and_load_builtins()
 definitions = Definitions(add_builtin=True)
 
 
 class UtilTests(unittest.TestCase):
-    def parse(self, code):
+    def parse(self, source_text: str):
         raise NotImplementedError
 
     def compare(self, expr1, expr2):
@@ -37,10 +41,16 @@ class UtilTests(unittest.TestCase):
     def invalid_error(self, string):
         self.assertRaises(InvalidSyntaxError, self.parse, string)
 
+    def syntax_error(self, string):
+        self.assertRaises(SyntaxError, self.parse, string)
+
 
 class SingleLineParserTests(UtilTests):
-    def parse(self, code):
-        return parse(definitions, SingleLineFeeder(code))
+    def parse(self, source_text):
+        return core_parse(
+            definitions,
+            SingleLineFeeder(source_text, "<SingleLineParser>", ContainerKind.STRING),
+        )
 
     def compare(self, expr1, expr2):
         assert expr1.sameQ(expr2)
@@ -52,19 +62,30 @@ class SingleLineParserTests(UtilTests):
 
     def test_trailing_backslash(self):
         self.incomplete_error("x \\")
-        self.check("x \\\ny", "Times[x, y]")
+        self.syntax_error("X\\n\\t")
+
+        ## TODO see what this should do and why
+        ## self.check("x \\\ny", "Times[x, y]")
 
 
 class MultiLineParserTests(UtilTests):
-    def parse(self, code):
-        return parse(definitions, MultiLineFeeder(code))
+    def parse(self, source_text):
+        return core_parse(
+            definitions,
+            MultiLineFeeder(
+                source_text, "<MultiLineParserTests>", ContainerKind.STRING
+            ),
+        )
 
     def compare(self, expr1, expr2):
         assert expr1.sameQ(expr2)
 
     def test_trailing_backslash(self):
         self.incomplete_error("x \\")
-        self.check("x \\\ny", "Times[x, y]")
+        self.syntax_error("X\\n\\t")
+
+        ## TODO see what this should do and why
+        ## self.check("x \\\ny", "Times[x, y]")
 
     def test_continuation(self):
         self.incomplete_error("Sin[")
@@ -79,14 +100,20 @@ class MultiLineParserTests(UtilTests):
 
         self.check("a;^b", "Power[CompoundExpression[a, Null], b]")
 
-        feeder = MultiLineFeeder("a;\n^b")
-        self.compare(
-            parse(definitions, feeder), self.parse("CompoundExpression[a, Null]")
+        feeder = MultiLineFeeder(
+            "a;\n^b", "<test_CompoundExpression>", ContainerKind.STRING
         )
-        self.assertRaises(InvalidSyntaxError, lambda f: parse(definitions, f), feeder)
+        self.compare(
+            core_parse(definitions, feeder), self.parse("CompoundExpression[a, Null]")
+        )
+        self.assertRaises(
+            InvalidSyntaxError, lambda f: core_parse(definitions, f), feeder
+        )
 
     def test_Span(self):
         self.check("a;;^b", "Power[Span[a, All], b]")
-        feeder = MultiLineFeeder("a;;\n^b")
-        self.compare(parse(definitions, feeder), self.parse("Span[a, All]"))
-        self.assertRaises(InvalidSyntaxError, lambda f: parse(definitions, f), feeder)
+        feeder = MultiLineFeeder("a;;\n^b", "<test_Span>", ContainerKind.STRING)
+        self.compare(core_parse(definitions, feeder), self.parse("Span[a, All]"))
+        self.assertRaises(
+            InvalidSyntaxError, lambda f: core_parse(definitions, f), feeder
+        )

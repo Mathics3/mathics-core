@@ -50,7 +50,7 @@ import pytest
             "x=.;a=.;b=.;c=.;f=.; g=.;d=.;m=.;n=.;Delete[1 + x ^ (a + b + c), {2, 2, 3}]",
             None,
             "1 + x ^ (a + b)",
-            "Faiing?",
+            "Failing?",
         ),
         ("Delete[f[a, g[b, c], d], {{2}, {2, 1}}]", None, "f[a, d]", None),
         (
@@ -85,12 +85,6 @@ import pytest
             "Drop[Range[6], {-5, -2, -2}]",
             ("Cannot drop positions -5 through -2 in {1, 2, 3, 4, 5, 6}.",),
             "Drop[{1, 2, 3, 4, 5, 6}, {-5, -2, -2}]",
-            None,
-        ),
-        (
-            "First[a, b, c]",
-            ("First called with 3 arguments; 1 or 2 arguments are expected.",),
-            "First[a, b, c]",
             None,
         ),
         ('FirstPosition[{1, 2, 3}, _?StringQ, "NoStrings"]', None, "NoStrings", None),
@@ -167,12 +161,6 @@ import pytest
         ## Negative step
         ("{1,2,3,4,5}[[3;;1;;-1]]", None, "{3, 2, 1}", None),
         ("ClearAll[a]", None, "Null", None),
-        (
-            "Last[a, b, c]",
-            ("Last called with 3 arguments; 1 or 2 arguments are expected.",),
-            "Last[a, b, c]",
-            None,
-        ),
         ("Range[11][[-3 ;; 2 ;; -2]]", None, "{9, 7, 5, 3}", None),
         ("Range[11][[-3 ;; -7 ;; -3]]", None, "{9, 6}", None),
         ("Range[11][[7 ;; -7;; -2]]", None, "{7, 5}", None),
@@ -269,9 +257,46 @@ import pytest
         ),
     ],
 )
-def test_eol_edicates_private_doctests(
-    str_expr, expected_messages, str_expected, assert_message
-):
+def test_eol_edicates(str_expr, expected_messages, str_expected, assert_message):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        failure_message=assert_message,
+        expected_messages=expected_messages,
+        hold_expected=True,
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "expected_messages", "str_expected", "assert_message"),
+    [
+        (
+            "First[a, b, c]",
+            ("First called with 3 arguments; 1 or 2 arguments are expected.",),
+            "First[a, b, c]",
+            None,
+        ),
+        (
+            "First[ByteArray[{5}]]",
+            None,
+            "5",
+            None,
+        ),
+        (
+            "Last[c, d, e]",
+            ("Last called with 3 arguments; 1 or 2 arguments are expected.",),
+            "Last[c, d, e]",
+            None,
+        ),
+        (
+            "Last[ByteArray[{6}]]",
+            None,
+            "6",
+            None,
+        ),
+    ],
+)
+def test_First_and_Last(str_expr, expected_messages, str_expected, assert_message):
     check_evaluation(
         str_expr,
         str_expected,

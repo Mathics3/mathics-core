@@ -34,7 +34,7 @@ class Composition(Builtin):
     https://reference.wolfram.com/language/ref/Composition.html</url>
 
     <dl>
-      <dt>'Composition[$f$, $g$]'
+      <dt>'Composition'[$f$, $g$]
       <dd>returns the composition of two functions $f$ and $g$.
     </dl>
 
@@ -76,7 +76,7 @@ class Identity(Builtin):
     :WMA link:
     https://reference.wolfram.com/language/ref/Identity.html</url>
     <dl>
-      <dt>'Identity[$x$]'
+      <dt>'Identity'[$x$]
       <dd>is the identity function, which returns $x$ unchanged.
     </dl>
 

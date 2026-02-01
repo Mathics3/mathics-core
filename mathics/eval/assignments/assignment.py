@@ -10,17 +10,15 @@ from functools import reduce
 from typing import List, Optional, Tuple
 
 from mathics.core.assignment import (
-    build_rulopc,
     get_symbol_list,
     is_protected,
-    normalize_lhs,
+    pop_reference_head,
     rejected_because_protected,
-    unroll_conditions,
-    unroll_patterns,
 )
-from mathics.core.atoms import Atom, Integer, Integer1
+from mathics.core.atoms import Integer, Integer1
 from mathics.core.attributes import A_LOCKED, attribute_string_to_number
 from mathics.core.builtin import Builtin
+from mathics.core.definitions import BOX_FORMS
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import (
     MAX_RECURSION_DEPTH,
@@ -30,6 +28,7 @@ from mathics.core.evaluation import (
 from mathics.core.expression import Expression
 from mathics.core.rules import Rule
 from mathics.core.symbols import (
+    Atom,
     Symbol,
     SymbolFalse,
     SymbolMaxPrecision,
@@ -41,7 +40,9 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolCondition,
     SymbolDefault,
+    SymbolHoldPattern,
     SymbolMachinePrecision,
+    SymbolPatternTest,
 )
 from mathics.eval.list.eol import eval_Part
 
@@ -86,15 +87,46 @@ def eval_assign(
         True if the assignment was successful.
 
     """
-    lhs, lookup_name = normalize_lhs(lhs, evaluation)
+    # An expression can be wrapped inside structures like `Condition[...]`
+    # or HoldPattern[...]. The `lhs_reference` is the head of the expression once
+    # we strip out all these wrappings.
+    lhs_reference_expr = get_reference_expression(lhs)
+    lhs_reference = (
+        lhs_reference_expr
+        if isinstance(lhs_reference_expr, Symbol)
+        else lhs_reference_expr.get_head()
+    )
+    if isinstance(lhs_reference_expr, Symbol):
+        if upset:
+            evaluation.message(self.get_name(), "nosym", lhs)
+        if tags and lhs_reference_expr.get_name() not in tags:
+            evaluation.message("tagnf", lhs_reference_expr, lhs)
+
+        try:
+            return eval_assign_to_symbol(self, lhs, lhs_reference_expr, rhs, evaluation)
+        except AssignmentException:
+            return False
+
     try:
-        # Using a builtin name, find which assignment procedure to perform,
-        # and then call that function.
+        # Handle special cases using the lookup name associated to the lhs_reference
+        lookup_name = lhs_reference_expr.get_lookup_name()
         assignment_func = ASSIGNMENT_FUNCTION_MAP.get(lookup_name, None)
         if assignment_func:
-            return assignment_func(self, lhs, rhs, evaluation, tags, upset)
+            return assignment_func(
+                self, lhs, lhs_reference, rhs, evaluation, tags, upset
+            )
+        if isinstance(lhs, Expression) and not lhs.has_form("System`HoldPattern", 1):
+            lhs = lhs.evaluate_elements(evaluation)
+            lhs_reference_expr = get_reference_expression(lhs)
+            lhs_reference = (
+                lhs_reference_expr
+                if isinstance(lhs_reference_expr, Symbol)
+                else lhs_reference_expr.get_head()
+            )
 
-        return eval_assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset)
+        return eval_assign_store_rules_by_tag(
+            self, lhs, lhs_reference, rhs, evaluation, tags, upset
+        )
     except AssignmentException:
         return False
 
@@ -102,6 +134,7 @@ def eval_assign(
 def eval_assign_attributes(
     self: Builtin,
     lhs: BaseElement,
+    lhs_reference: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
     tags: list,
@@ -117,6 +150,10 @@ def eval_assign_attributes(
         The builtin assignment operator
     lhs : BaseElement
         The pattern of the rule to be assigned.
+    lhs_reference: BaseElement
+        The head of the expression after `Condition`,
+        `PatternTest` and `HoldPattern` wrappers are
+        stripped out.
     rhs : BaseElement
         the expression representing the replacement.
     evaluation : Evaluation
@@ -136,11 +173,18 @@ def eval_assign_attributes(
         True if the assignment was successful.
 
     """
-    name = lhs.get_head_name()
+    # UpSet and TagSet for this symbol are handled in
+    # the standard way. The same if the expression is wrapped:
+    if lhs.get_head() is not lhs_reference:
+        return eval_assign_store_rules_by_tag(self, lhs, lhs_reference, rhs, evaluation)
+
+    name = lhs_reference.get_head_name()
     if len(lhs.elements) != 1:
         evaluation.message_args(name, len(lhs.elements), 1)
         raise AssignmentException(lhs, rhs)
-    tag = lhs.elements[0].get_name()
+
+    tag_expr = get_reference_expression(lhs.elements[0])
+    tag = tag_expr.get_lookup_name()
     if not tag:
         evaluation.message(name, "sym", lhs.elements[0], 1)
         raise AssignmentException(lhs, rhs)
@@ -174,13 +218,35 @@ def eval_assign_attributes(
     return True
 
 
+def eval_assign_boxforms(self, lhs, rhs, evaluation) -> bool:
+    if not rhs.has_form("List", None):
+        evaluation.message("$BoxForms", "formset", rhs)
+        return False
+    elements = rhs.elements
+    if not all(form in elements for form in BOX_FORMS):
+        evaluation.message("$BoxForms", "formset", rhs)
+        return False
+    if not all(isinstance(form, Symbol) for form in elements):
+        evaluation.message("$BoxForms", "formset", rhs)
+        return False
+
+    definitions = evaluation.definitions
+    # Add the new elements to printforms and outputforms
+    for element in elements:
+        if element not in definitions.printforms:
+            definitions.printforms.append(element)
+        if element not in definitions.outputforms:
+            definitions.outputforms.append(element)
+
+    definitions.boxforms = elements
+    return True
+
+
 def eval_assign_context(
     self: Builtin,
     lhs: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
-    tags: List,
-    upset: bool,
 ) -> bool:
     """
     Process the case where lhs is ``$Context``
@@ -195,10 +261,6 @@ def eval_assign_context(
         the expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
-    tags : list
-        the list of symbols to be associated to the rule.
-    upset : bool
-        `True` if the rule is an Up value.
 
     Raises
     ------
@@ -242,8 +304,6 @@ def eval_assign_context_path(
     lhs: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
-    tags: list,
-    upset: bool,
 ) -> bool:
     """
     Assignment to the `$ContextPath` variable.
@@ -258,10 +318,6 @@ def eval_assign_context_path(
         the expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
-    tags : list
-        the list of symbols to be associated to the rule.
-    upset : bool
-        `True` if the rule is an Up value.
 
     Raises
     ------
@@ -290,6 +346,7 @@ def eval_assign_context_path(
 def eval_assign_default(
     self: Builtin,
     lhs: BaseElement,
+    lhs_reference: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
     tags: list,
@@ -304,6 +361,9 @@ def eval_assign_default(
         The builtin assignment operator
     lhs : BaseElement
         The pattern of the rule to be assigned.
+    lhs_reference: BaseElement
+        The lhs expression stripped from conditions and
+        wrappers.
     rhs : BaseElement
         the expression representing the replacement.
     evaluation : Evaluation
@@ -323,19 +383,24 @@ def eval_assign_default(
         True if the assignment was successful.
 
     """
-    lhs, condition = unroll_conditions(lhs)
-    lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
+    # UpSet and TagSet for this symbol are handled in
+    # the standard way. The same if the expression is wrapped:
+    if lhs.get_head() is not lhs_reference:
+        return eval_assign_store_rules_by_tag(self, lhs, lhs_reference, rhs, evaluation)
+
     count = 0
     defs = evaluation.definitions
 
     if len(lhs.elements) not in (1, 2, 3):
         evaluation.message_args(SymbolDefault, len(lhs.elements), 1, 2, 3)
         raise AssignmentException(lhs, None)
-    focus = lhs.elements[0]
-    tags = process_tags_and_upset_dont_allow_custom(
-        tags, upset, self, lhs, focus, evaluation
+    lhs_reference = get_reference_expression(lhs.elements[0])
+    lhs_reference = (
+        lhs_reference if isinstance(lhs_reference, Symbol) else lhs_reference.get_head()
     )
-    lhs, rhs = process_rhs_conditions(lhs, rhs, condition, evaluation)
+    tags = process_tags_and_upset_dont_allow_custom(
+        tags, upset, self, lhs, lhs_reference, evaluation
+    )
     rule = Rule(lhs, rhs)
     for tag in tags:
         if rejected_because_protected(self, lhs, tag, evaluation):
@@ -348,6 +413,7 @@ def eval_assign_default(
 def eval_assign_definition_values(
     self: Builtin,
     lhs: BaseElement,
+    lhs_reference: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
     tags: list,
@@ -382,6 +448,9 @@ def eval_assign_definition_values(
         True if the assignment was successful.
 
     """
+    if lhs.get_head() is not lhs_reference:
+        return eval_assign_store_rules_by_tag(self, lhs, lhs_reference, rhs, evaluation)
+
     name = lhs.get_head_name()
     tag = find_tag_and_check(lhs, tags, evaluation)
     rules = rhs.get_rules_list()
@@ -395,6 +464,7 @@ def eval_assign_definition_values(
 def eval_assign_format(
     self: Builtin,
     lhs: BaseElement,
+    lhs_reference: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
     tags: list,
@@ -429,8 +499,8 @@ def eval_assign_format(
         True if the assignment was successful.
 
     """
-    lhs, condition = unroll_conditions(lhs)
-    lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
+    lhs = pop_reference_head(lhs, lhs_reference)
+    lhs = lhs.evaluate_elements(evaluation)
     count = 0
     defs = evaluation.definitions
 
@@ -456,11 +526,16 @@ def eval_assign_format(
             "System`TeXForm",
             "System`MathMLForm",
         ]
-    lhs = focus = lhs.elements[0]
-    tags = process_tags_and_upset_dont_allow_custom(
-        tags, upset, self, lhs, focus, evaluation
+    lhs = lhs.elements[0]
+    lhs_reference = get_reference_expression(lhs)
+    lhs_reference = (
+        lhs_reference.get_head()
+        if not isinstance(lhs_reference, Symbol)
+        else lhs_reference
     )
-    lhs, rhs = process_rhs_conditions(lhs, rhs, condition, evaluation)
+    tags = process_tags_and_upset_dont_allow_custom(
+        tags, upset, self, lhs, lhs_reference, evaluation
+    )
     rule = Rule(lhs, rhs)
     for tag in tags:
         if rejected_because_protected(self, lhs, tag, evaluation):
@@ -471,7 +546,7 @@ def eval_assign_format(
 
 
 def eval_assign_iteration_limit(
-    lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
+    self, lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
 ) -> bool:
     """
     Set ownvalue for the $IterationLimit symbol.
@@ -491,8 +566,6 @@ def eval_assign_line_number_and_history_length(
     lhs: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
-    tags: list,
-    upset: bool,
 ) -> bool:
     """
     Set ownvalue for the $Line and $HistoryLength symbols.
@@ -507,10 +580,6 @@ def eval_assign_line_number_and_history_length(
         the expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
-    tags : list
-        the list of symbols to be associated to the rule.
-    upset : bool
-        `True` if the rule is an Up value.
 
     Raises
     ------
@@ -534,6 +603,7 @@ def eval_assign_line_number_and_history_length(
 def eval_assign_list(
     self: Builtin,
     lhs: BaseElement,
+    lhs_reference: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
     tags: list,
@@ -582,6 +652,7 @@ def eval_assign_list(
 def eval_assign_makeboxes(
     self: Builtin,
     lhs: BaseElement,
+    lhs_reference: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
     tags: list,
@@ -615,19 +686,26 @@ def eval_assign_makeboxes(
         True if the assignment was successful.
 
     """
-    # FIXME: the below is a big hack.
-    # Currently MakeBoxes boxing is implemented as a bunch of rules.
-    # See mathics.core.builtin contribute().
-    # I think we want to change this so it works like normal SetDelayed
-    # That is:
-    #   MakeBoxes[CubeRoot, StandardForm] := RadicalBox[3, StandardForm]
-    # rather than:
-    #   MakeBoxes[CubeRoot, StandardForm] -> RadicalBox[3, StandardForm]
+    if not lhs.has_form("MakeBoxes", 2):
+        evaluation.message("MakeBoxes", "argrx", Integer(len(lhs.elements)))
+        raise AssignmentException(lhs, None)
+    target, form = lhs.elements
+    # Check second argument
+
     makeboxes_rule = Rule(lhs, rhs, system=False)
+    tags = [] if tags is None else tags
+    if upset:
+        tags = tags + [target.get_lookup_name()]
+    else:
+        if not tags:
+            tags = ["System`MakeBoxes"]
+
     definitions = evaluation.definitions
-    definitions.add_rule("System`MakeBoxes", makeboxes_rule, "downvalues")
-    #    makeboxes_defs = evaluation.definitions.builtin["System`MakeBoxes"]
-    #    makeboxes_defs.add_rule(makeboxes_rule)
+    for tag in tags:
+        if is_protected(tag, definitions):
+            evaluation.message(self.get_name(), "wrsym", Symbol(tag))
+            return False
+        definitions.add_format(tag, makeboxes_rule, "_MakeBoxes")
     return True
 
 
@@ -636,8 +714,6 @@ def eval_assign_minprecision(
     lhs: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
-    tags: list,
-    upset: bool,
 ) -> bool:
     """
     Implement the assignment to the `$MinPrecision` symbol.
@@ -652,10 +728,6 @@ def eval_assign_minprecision(
         the expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
-    tags : list
-        the list of symbols to be associated to the rule.
-    upset : bool
-        `True` if the rule is an Up value.
 
     Raises
     ------
@@ -686,8 +758,6 @@ def eval_assign_maxprecision(
     lhs: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
-    tags: list,
-    upset: bool,
 ) -> bool:
     """
     Implement the assignment to the `$MaxPrecision` symbol.
@@ -702,10 +772,6 @@ def eval_assign_maxprecision(
         the expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
-    tags : list
-        the list of symbols to be associated to the rule.
-    upset : bool
-        `True` if the rule is an Up value.
 
     Raises
     ------
@@ -735,6 +801,7 @@ def eval_assign_maxprecision(
 def eval_assign_messagename(
     self: Builtin,
     lhs: BaseElement,
+    lhs_reference: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
     tags: list,
@@ -769,18 +836,20 @@ def eval_assign_messagename(
         True if the assignment was successful.
 
     """
-    lhs, condition = unroll_conditions(lhs)
-    lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
+    if lhs.get_head() is not lhs_reference:
+        return eval_assign_store_rules_by_tag(self, lhs, lhs_reference, rhs, evaluation)
+
+    lhs = pop_reference_head(lhs, lhs_reference)
+
     count = 0
     defs = evaluation.definitions
     if len(lhs.elements) != 2:
         evaluation.message_args("MessageName", len(lhs.elements), 2)
         raise AssignmentException(lhs, None)
-    focus = lhs.elements[0]
+    lhs_reference = lhs.elements[0]
     tags = process_tags_and_upset_dont_allow_custom(
-        tags, upset, self, lhs, focus, evaluation
+        tags, upset, self, lhs, lhs_reference, evaluation
     )
-    lhs, rhs = process_rhs_conditions(lhs, rhs, condition, evaluation)
     rule = Rule(lhs, rhs)
     for tag in tags:
         # Messages can be assigned even if the symbol is protected...
@@ -792,7 +861,7 @@ def eval_assign_messagename(
 
 
 def eval_assign_module_number(
-    lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
+    self, lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
 ) -> bool:
     """
     Set ownvalue for the $ModuleNumber symbol.
@@ -807,6 +876,7 @@ def eval_assign_module_number(
 def eval_assign_options(
     self: Builtin,
     lhs: BaseElement,
+    lhs_reference: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
     tags: list,
@@ -840,6 +910,9 @@ def eval_assign_options(
         True if the assignment was successful.
 
     """
+    if lhs.get_head() is not lhs_reference:
+        return eval_assign_store_rules_by_tag(self, lhs, lhs_reference, rhs, evaluation)
+
     lhs_elements = lhs.elements
     name = lhs.get_head_name()
     if len(lhs_elements) != 1:
@@ -866,6 +939,7 @@ def eval_assign_options(
 def eval_assign_numericq(
     self: Builtin,
     lhs: BaseElement,
+    lhs_reference: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
     tags: list,
@@ -899,8 +973,8 @@ def eval_assign_numericq(
         True if the assignment was successful.
 
     """
-    # lhs, condition = unroll_conditions(lhs)
-    lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
+    lhs = pop_reference_head(lhs, lhs_reference)
+
     if rhs not in (SymbolTrue, SymbolFalse):
         evaluation.message("NumericQ", "set", lhs, rhs)
         # raise AssignmentException(lhs, rhs)
@@ -927,6 +1001,7 @@ def eval_assign_numericq(
 def eval_assign_n(
     self: Builtin,
     lhs: BaseElement,
+    lhs_reference: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
     tags: list,
@@ -941,6 +1016,8 @@ def eval_assign_n(
         The builtin assignment operator
     lhs : BaseElement
         The pattern of the rule to be assigned.
+    lhs_reference: BaseElement
+        Expression of the form N[___]
     rhs : BaseElement
         the expression representing the replacement.
     evaluation : Evaluation
@@ -960,27 +1037,28 @@ def eval_assign_n(
         True if the assignment was successful.
 
     """
-    lhs, condition = unroll_conditions(lhs)
-    lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
+    if isinstance(lhs, Expression):
+        lhs = lhs.evaluate_elements(evaluation)
+
+    lhs = pop_reference_head(lhs, lhs_reference)
     defs = evaluation.definitions
-    # If we try to set `N=4`, (issue #210) just deal with it as with a generic expression:
-    if lhs is SymbolN:
-        return eval_assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset)
 
     if len(lhs.elements) not in (1, 2):
         evaluation.message_args("N", len(lhs.elements), 1, 2)
         raise AssignmentException(lhs, None)
+
     if len(lhs.elements) == 1:
         nprec = SymbolMachinePrecision
+        lhs = Expression(SymbolN, lhs.elements[0], nprec)
     else:
         nprec = lhs.elements[1]
-    focus = lhs.elements[0]
-    lhs = Expression(SymbolN, focus, nprec)
+
+    lhs_reference = get_reference_expression(lhs.elements[0])
+
     tags = process_tags_and_upset_dont_allow_custom(
-        tags, upset, self, lhs, focus, evaluation
+        tags, upset, self, lhs, lhs_reference, evaluation
     )
     count = 0
-    lhs, rhs = process_rhs_conditions(lhs, rhs, condition, evaluation)
     rule = Rule(lhs, rhs)
     for tag in tags:
         if rejected_because_protected(self, lhs, tag, evaluation):
@@ -990,76 +1068,10 @@ def eval_assign_n(
     return count > 0
 
 
-def eval_assign_other(
-    self: Builtin,
-    lhs: BaseElement,
-    rhs: BaseElement,
-    evaluation: Evaluation,
-    tags: Optional[list] = None,
-    upset: bool = False,
-) -> Tuple[bool, list]:
-    """
-    Process special cases, performing certain side effects, like modifying
-    the value of internal variables that are not stored as rules.
-
-    The function returns a tuple of a bool value and a list of tags.
-    If lhs is one of the special cases, then the bool variable is
-    True, meaning that the `Protected` attribute should not be taken
-    into account.
-    Otherwise, the value is False.
-
-
-    Parameters
-    ----------
-    self : Builtin
-        The builtin assignment operator
-    lhs : BaseElement
-        The pattern of the rule to be assigned.
-    rhs : BaseElement
-        the expression representing the replacement.
-    evaluation : Evaluation
-        DESCRIPTION.
-    tags : list
-        the list of symbols to be associated to the rule.
-    upset : bool
-        `True` if the rule is an Up value.
-
-    Raises
-    ------
-    AssignmentException
-
-    Returns
-    -------
-    bool
-        True if the assignment was successful.
-
-    """
-    tags, _ = process_tags_and_upset_allow_custom(
-        tags, upset, self, lhs, rhs, evaluation
-    )
-    lhs_name = lhs.get_name()
-    if lhs_name == "System`$RecursionLimit":
-        eval_assign_recursion_limit(lhs, rhs, evaluation)
-    elif lhs_name in ("System`$Line", "System`$HistoryLength"):
-        eval_assign_line_number_and_history_length(
-            self, lhs, rhs, evaluation, tags, upset
-        )
-    elif lhs_name == "System`$IterationLimit":
-        eval_assign_iteration_limit(lhs, rhs, evaluation)
-    elif lhs_name == "System`$ModuleNumber":
-        eval_assign_module_number(lhs, rhs, evaluation)
-    elif lhs_name == "System`$MinPrecision":
-        eval_assign_minprecision(self, lhs, rhs, evaluation, tags, upset)
-    elif lhs_name == "System`$MaxPrecision":
-        eval_assign_maxprecision(self, lhs, rhs, evaluation, tags, upset)
-    else:
-        return False, tags
-    return True, tags
-
-
 def eval_assign_part(
     self: Builtin,
     lhs: BaseElement,
+    lhs_reference: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
     tags: Optional[List],
@@ -1119,8 +1131,6 @@ def eval_assign_random_state(
     lhs: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
-    tags: list,
-    upset: bool,
 ) -> bool:
     """
     Assign to expressions of the form `$RandomState`.
@@ -1135,10 +1145,6 @@ def eval_assign_random_state(
         the expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
-    tags : list
-        the list of symbols to be associated to the rule.
-    upset : bool
-        `True` if the rule is an Up value.
 
     Raises
     ------
@@ -1170,7 +1176,7 @@ def eval_assign_random_state(
     return False
 
 
-def eval_assign_recursion_limit(lhs, rhs, evaluation):
+def eval_assign_recursion_limit(self, lhs, rhs, evaluation):
     """
     Set ownvalue for the $RecursionLimit symbol.
     """
@@ -1191,7 +1197,7 @@ def eval_assign_recursion_limit(lhs, rhs, evaluation):
 
 
 def eval_assign_store_rules_by_tag(
-    self, lhs, rhs, evaluation, tags, upset=False
+    self, lhs, lhs_reference, rhs, evaluation, tags, upset=False
 ) -> bool:
     """
     This is the default assignment. Stores a rule of the form lhs->rhs
@@ -1226,23 +1232,60 @@ def eval_assign_store_rules_by_tag(
         True if the assignment was successful.
 
     """
-    lhs, condition = unroll_conditions(lhs)
-    lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
     defs = evaluation.definitions
-    ignore_protection, tags = eval_assign_other(self, lhs, rhs, evaluation, tags, upset)
+    tags, lhs_reference_expr = process_tags_and_upset_allow_custom(
+        tags, upset, self, lhs, rhs, evaluation
+    )
     # In WMA, this does not happens. However, if we remove this,
     # some combinatorica tests fail.
     # Also, should not be at the beginning?
-    lhs, rhs = process_rhs_conditions(lhs, rhs, condition, evaluation)
     count = 0
     rule = Rule(lhs, rhs)
     position = "upvalues" if upset else None
     for tag in tags:
-        if rejected_because_protected(self, lhs, tag, evaluation, ignore_protection):
+        if rejected_because_protected(self, lhs, tag, evaluation, False):
             continue
         count += 1
         defs.add_rule(tag, rule, position=position)
     return count > 0
+
+
+def eval_assign_to_symbol(
+    self,
+    lhs: BaseElement,
+    lhs_reference: BaseElement,
+    rhs: BaseElement,
+    evaluation: Evaluation,
+) -> bool:
+    """
+    self:
+        The builtin class.
+    lhs : BaseElement
+        The pattern of the rule to be included.
+    lhs_reference:
+        The symbol to be assigned
+    rhs : BaseElement.
+        the RHS.
+    evaluation : Evaluation
+        The evaluation object.
+
+    """
+    # This is how WMA works: if the LHS is a symbol, do the special
+    # evaluation. So, HoldPattern[$RecursionLimit]:=10 set the
+    # ownvalue of $RecursionLimit to 10, but in evaluations, $RecursionLimit
+    # is not modified.
+    special_fn = EVAL_ASSIGN_SPECIAL_SYMBOLS.get(lhs.get_name(), None)
+    if special_fn:
+        ignore_protection = True
+        special_fn(self, lhs, rhs, evaluation)
+    else:
+        ignore_protection = False
+
+    tag = lhs_reference.get_name()
+    if rejected_because_protected(self, lhs, tag, evaluation, ignore_protection):
+        return False
+    evaluation.definitions.add_rule(tag, Rule(lhs, rhs), position="ownvalues")
+    return True
 
 
 def find_tag_and_check(
@@ -1288,95 +1331,72 @@ def find_tag_and_check(
     return tag
 
 
-def process_rhs_conditions(
-    lhs: BaseElement, rhs: BaseElement, condition: Expression, evaluation: Evaluation
-) -> Tuple[BaseElement, Optional[BaseElement]]:
+def get_lookup_reference_name(expr: BaseElement) -> str:
     """
-    lhs = Condition[rhs, test] -> Condition[lhs, test]  = rhs
+    Find the lookup name of the reference expression associated to
+    `expr`, or None if there is no such a reference.
+
+    In general, the lookup reference name coincides with the lookup_name
+    of the expression. However, there are some exceptions:
+
+    * Expressions with heads `HoldPattern`, Condition`, or `PatternTest`
+      are not considered *reference* expressions. The reference expression
+      is the reference expression of its first element.
+    * (named) `Pattern` expressions takes its lookup_reference_name from the
+      pattern their hold.
+    * `Verbatim` expressions pick the lookup_reference_name from
+       the lookup_name of the expression they hold.
+    * Blanks pick the lookup_reference_name from the pattern head
+      (its unique element if they has one). If the Blank expression does not
+      have elements (generic blank) then there is no lookup_reference_name,
+      and returns an empty string.
     """
-    # To Handle `OptionValue` in `Condition`
-    rulopc = build_rulopc(lhs.get_head())
-    rhs_name = rhs.get_head_name()
-    while rhs_name == "System`Condition":
-        if len(rhs.elements) != 2:
-            evaluation.message_args("Condition", len(rhs.elements), 2)
-            raise AssignmentException(lhs, None)
-        lhs = Expression(
-            SymbolCondition,
-            lhs,
-            rhs.elements[1].do_apply_rules([rulopc], evaluation)[0],
-        )
-        rhs = rhs.elements[0]
-        rhs_name = rhs.get_head_name()
-
-    # Now, let's add the conditions on the LHS
-    if condition:
-        lhs = Expression(
-            SymbolCondition,
-            lhs,
-            condition.elements[1].do_apply_rules([rulopc], evaluation)[0],
-        )
-    return lhs, rhs
+    expr = get_reference_expression(expr)
+    if expr.has_form("System`Pattern", 2):
+        return get_lookup_reference_name(expr.elements[1])
+    if expr.has_form("System`Verbatim", 1):
+        # For Verbatim pick the lookup name directly from the expression.
+        return expr.elements[0].get_lookup_name()
+    if expr.has_form(
+        ("System`Blank", "System`BlankSequence", "System`BlankNullSequence"), None
+    ):
+        if len(expr.elements) == 1:
+            return get_lookup_reference_name(expr.elements[0])
+        return ""
+    return expr.get_lookup_name()
 
 
-def process_tags_and_upset_dont_allow_custom(
-    tags: Optional[list],
-    upset: bool,
-    self: Builtin,
-    lhs: BaseElement,
-    focus: BaseElement,
-    evaluation: Evaluation,
-) -> list:
+def get_reference_expression(lhs: BaseElement) -> BaseElement:
     """
-    If `upset` is `True`,  collect a list of tag candidates from the elements of
-    the lhs.
-    If `upset` is `False`, and `tags` is given, check if the elements
-    in `tags` are all names of symbols in the `lhs` elements. If `tags` is
-    `None`, the list of tags contains just the `lookup_name` of the LHS.
-
-    Parameters
-    ----------
-    tags : Optional[List]
-        The list of symbols to which the rule must be associated.
-    upset : bool
-        If `True`, assign as an UpValue.
-    self : Builtin
-        The Assignment operator object that started the call.
-    lhs : BaseElement
-        The LHS of the assignment.
-    rhs : BaseElement
-        The RHS of the assignment.
-    evaluation : Evaluation
-        The evaluation object.
-
-    Raises
-    ------
-    AssignmentException
-
-    Returns
-    -------
-    tags: list
-        the list of allowed tags.
-
+    Strip `Condition`, `PatternTest` and `HoldPattern` from an expression.
     """
-    if isinstance(focus, Expression):
-        focus = focus.evaluate_elements(evaluation)
-    name = lhs.get_head_name()
-    if upset:
-        tags = [focus.get_lookup_name()]
-    elif tags is None:
-        name = focus.get_lookup_name()
-        if not name:
-            evaluation.message(self.get_name(), "setraw", focus)
-            raise AssignmentException(lhs, None)
-        tags = [name]
-    else:
-        allowed_names = [focus.get_lookup_name()]
-        for name in tags:
-            if name not in allowed_names:
-                evaluation.message(self.get_name(), "tagnfd", Symbol(name))
-                raise AssignmentException(lhs, None)
-    return tags
+    strip_headers = (
+        SymbolHoldPattern,
+        SymbolCondition,
+        SymbolPatternTest,
+    )
+    # If atom, just return
+    if not hasattr(lhs, "elements"):
+        return lhs
+
+    lhs_head = lhs.get_head()
+    # If the head is wrapped, strip it
+
+    if lhs_head.get_head() in strip_headers:
+        lhs = Expression(get_reference_expression(lhs_head), *lhs.elements)
+        lhs_head = lhs.get_head()
+
+    while lhs_head in strip_headers:
+        lhs = lhs.elements[0]
+        if not hasattr(lhs, "elements"):
+            return lhs
+        lhs_head = lhs.get_head()
+        if lhs_head.get_head() in strip_headers:
+            lhs = Expression(get_reference_expression(lhs_head), *lhs.elements)
+
+        lhs_head = lhs.get_head()
+
+    return lhs
 
 
 def process_tags_and_upset_allow_custom(
@@ -1415,19 +1435,17 @@ def process_tags_and_upset_allow_custom(
 
     Returns
     -------
-    (tags, focus,): Tuple[list, BaseElement]
+    (tags, lhs_reference,): Tuple[list, BaseElement]
         tags: the list of symbols to which the rule must be associated.
-        focus: the lhs
+        lhs_reference: the lhs
 
     """
     name = lhs.get_head_name()
-    focus = lhs
-    if isinstance(focus, Expression):
-        focus = focus.evaluate_elements(evaluation)
+    lhs_reference_expr = get_reference_expression(lhs)
 
     if upset:
-        tags = []
-        if isinstance(focus, Atom):
+        tags_set = set()
+        if isinstance(lhs_reference_expr, Atom):
             symbol_name = self.get_name()
             evaluation.message(
                 symbol_name,
@@ -1436,50 +1454,119 @@ def process_tags_and_upset_allow_custom(
                 Expression(Symbol(symbol_name), lhs, rhs),
             )
             raise AssignmentException(lhs, None)
-        for element in focus.get_elements():
-            name = element.get_lookup_name()
-            tags.append(name)
-        return tags, focus
+        for element in lhs_reference_expr.get_elements():
+            # elements of the expression can also be wrapped in `HoldPattern`
+            # or `Condition`. Tag candidates are obtained by stripping out
+            # these wrappers.
+            # Still, if the element is a `Blank*`, the reference is
+            # set to its argument. If it does not have arguments (or have many)
+            # skip it.
+            name = get_lookup_reference_name(element)
+            if name is not None:
+                tags_set.add(name)
+        return list(tags_set), lhs_reference_expr
 
     if tags is None:
-        name = focus.get_lookup_name()
+        name = get_lookup_reference_name(lhs_reference_expr)
         if not name:
-            evaluation.message(self.get_name(), "setraw", focus)
+            evaluation.message(self.get_name(), "setraw", lhs_reference_expr)
             raise AssignmentException(lhs, None)
         tags = [name]
     else:
-        allowed_names = [focus.get_lookup_name()]
-        for element in focus.get_elements():
-            if not isinstance(element, Symbol) and element.get_head_name() in (
-                "System`HoldPattern",
-            ):
-                element = element.get_element(0)
-            if not isinstance(element, Symbol) and element.get_head_name() in (
-                "System`Pattern",
-            ):
-                element = element.get_element(1)
-            if not isinstance(element, Symbol) and element.get_head_name() in (
-                "System`Blank",
-                "System`BlankSequence",
-                "System`BlankNullSequence",
-            ):
-                if len(element.get_elements()) == 1:
-                    element = element.get_element(0)
+        allowed_names = set()
+        name = get_lookup_reference_name(lhs_reference_expr)
+        if name:
+            allowed_names.add(name)
 
-            allowed_names.append(element.get_lookup_name())
+        for element in lhs_reference_expr.get_elements():
+            name = get_lookup_reference_name(element)
+            if name:
+                allowed_names.add(name)
         for name in tags:
             if name not in allowed_names:
                 evaluation.message(self.get_name(), "tagnfd", Symbol(name))
                 raise AssignmentException(lhs, None)
 
-    return tags, focus
+    return tags, lhs_reference_expr
+
+
+def process_tags_and_upset_dont_allow_custom(
+    tags: Optional[list],
+    upset: bool,
+    self: Builtin,
+    lhs: BaseElement,
+    lhs_reference: BaseElement,
+    evaluation: Evaluation,
+) -> list:
+    """
+    If `upset` is `True`,  collect a list of tag candidates from the elements of
+    the lhs.
+    If `upset` is `False`, and `tags` is given, check if the elements
+    in `tags` are all names of symbols in the `lhs` elements. If `tags` is
+    `None`, the list of tags contains just the `lookup_name` of the LHS.
+
+    Parameters
+    ----------
+    tags : Optional[List]
+        The list of symbols to which the rule must be associated.
+    upset : bool
+        If `True`, assign as an UpValue.
+    self : Builtin
+        The Assignment operator object that started the call.
+    lhs : BaseElement
+        The LHS of the assignment.
+    rhs : BaseElement
+        The RHS of the assignment.
+    evaluation : Evaluation
+        The evaluation object.
+
+    Raises
+    ------
+    AssignmentException
+
+    Returns
+    -------
+    tags: list
+        the list of allowed tags.
+
+    """
+
+    def get_lookup_name(expr):
+        expr = get_reference_expression(expr)
+        if expr.has_form("System`Pattern", 2):
+            return get_lookup_name(expr.elements[1])
+        if expr.has_form(
+            ("System`Blank", "System`BlankSequence", "System`BlankNullSequence"), None
+        ):
+            if len(expr.elements) == 1:
+                return get_lookup_name(expr.elements[0])
+            return None
+        return expr.get_lookup_name()
+
+    if isinstance(lhs_reference, Expression):
+        lhs_reference = lhs_reference.evaluate_elements(evaluation)
+    name = lhs.get_head_name()
+    if upset:
+        name = get_lookup_name(lhs_reference)
+        tags = [name] if name is not None else None
+    elif tags is None:
+        name = get_lookup_name(lhs_reference)
+        if not name:
+            evaluation.message(self.get_name(), "setraw", lhs_reference)
+            raise AssignmentException(lhs, None)
+        tags = [name]
+    else:
+        name = get_lookup_name(lhs_reference)
+        allowed_names = [name] if name else []
+        for name in tags:
+            if name not in allowed_names:
+                evaluation.message(self.get_name(), "tagnfd", Symbol(name))
+                raise AssignmentException(lhs, None)
+    return tags
 
 
 # Below is a mapping from Symbol name (as a string) into an assignment eval function.
 ASSIGNMENT_FUNCTION_MAP = {
-    "System`$Context": eval_assign_context,
-    "System`$ContextPath": eval_assign_context_path,
-    "System`$RandomState": eval_assign_random_state,
     "System`Attributes": eval_assign_attributes,
     "System`Default": eval_assign_default,
     "System`DefaultValues": eval_assign_definition_values,
@@ -1497,4 +1584,19 @@ ASSIGNMENT_FUNCTION_MAP = {
     "System`Part": eval_assign_part,
     "System`SubValues": eval_assign_definition_values,
     "System`UpValues": eval_assign_definition_values,
+}
+
+
+EVAL_ASSIGN_SPECIAL_SYMBOLS = {
+    "System`$BoxForms": eval_assign_boxforms,
+    "System`$Context": eval_assign_context,
+    "System`$ContextPath": eval_assign_context_path,
+    "System`$HistoryLength": eval_assign_line_number_and_history_length,
+    "System`$IterationLimit": eval_assign_iteration_limit,
+    "System`$Line": eval_assign_line_number_and_history_length,
+    "System`$MaxPrecision": eval_assign_maxprecision,
+    "System`$MinPrecision": eval_assign_minprecision,
+    "System`$ModuleNumber": eval_assign_module_number,
+    "System`$RandomState": eval_assign_random_state,
+    "System`$RecursionLimit": eval_assign_recursion_limit,
 }

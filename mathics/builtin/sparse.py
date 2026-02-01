@@ -10,7 +10,7 @@ from mathics.core.builtin import Builtin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Atom, Symbol
+from mathics.core.symbols import Atom
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
     SymbolRule,
@@ -27,13 +27,13 @@ class SparseArray(Builtin):
     https://reference.wolfram.com/language/ref/SparseArray.html</url>
 
     <dl>
-      <dt>'SparseArray[$rules$]'
+      <dt>'SparseArray'[$rules$]
       <dd>Builds a sparse array according to the list of $rules$.
 
-      <dt>'SparseArray[$rules$, $dims$]'
+      <dt>'SparseArray'[$rules$, $dims$]
       <dd>Builds a sparse array of dimensions $dims$ according to the $rules$.
 
-      <dt>'SparseArray[$list$]'
+      <dt>'SparseArray'[$list$]
       <dd>Builds a sparse representation of $list$.
     </dl>
 
@@ -156,9 +156,8 @@ class SparseArray(Builtin):
     def eval_with_rules(self, rules, evaluation: Evaluation):
         """SparseArray[rules_List]"""
         if not (rules.has_form("List", None) and len(rules.elements) > 0):
-            if rules is Symbol("Automatic"):
+            if rules is SymbolAutomatic:
                 return
-            print(rules.has_form("List", (1,)))
             evaluation.message("SparseArray", "list", rules)
             return
 

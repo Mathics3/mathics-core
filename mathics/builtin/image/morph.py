@@ -42,7 +42,7 @@ class Closing(_MorphologyFilter):
     :https://reference.wolfram.com/language/ref/Closing.html</url>
 
     <dl>
-      <dt>'Closing[$image$, $ker$]'
+      <dt>'Closing'[$image$, $ker$]
       <dd>Gives the morphological closing of $image$ with respect to structuring element $ker$.
     </dl>
 
@@ -61,7 +61,7 @@ class Dilation(_MorphologyFilter):
     https://reference.wolfram.com/language/ref/Dilation.html</url>
 
     <dl>
-      <dt>'Dilation[$image$, $ker$]'
+      <dt>'Dilation'[$image$, $ker$]
       <dd>Gives the morphological dilation of $image$ with respect to structuring element $ker$.
     </dl>
 
@@ -80,7 +80,7 @@ class Erosion(_MorphologyFilter):
     https://reference.wolfram.com/language/ref/Erosion.html</url>
 
     <dl>
-      <dt>'Erosion[$image$, $ker$]'
+      <dt>'Erosion'[$image$, $ker$]
       <dd>Gives the morphological erosion of $image$ with respect to structuring element $ker$.
     </dl>
 
@@ -99,12 +99,12 @@ class MorphologicalComponents(Builtin):
     https://reference.wolfram.com/language/ref/MorphologicalComponents.html</url>
 
     <dl>
-      <dt>'MorphologicalComponents[$image$]'
+      <dt>'MorphologicalComponents'[$image$]
       <dd> Builds a 2-D array in which each pixel of $image$ is replaced \
            by an integer index representing the connected foreground image \
            component in which the pixel lies.
 
-      <dt>'MorphologicalComponents[$image$, $threshold$]'
+      <dt>'MorphologicalComponents'[$image$, $threshold$]
       <dd> consider any pixel with a value above $threshold$ as the foreground.
     </dl>
     """
@@ -132,7 +132,7 @@ class Opening(_MorphologyFilter):
     https://reference.wolfram.com/language/ref/Opening.html</url>
 
     <dl>
-      <dt>'Opening[$image$, $ker$]'
+      <dt>'Opening'[$image$, $ker$]
       <dd>Gives the morphological opening of $image$ with respect to structuring element $ker$.
     </dl>
 

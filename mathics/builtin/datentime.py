@@ -13,7 +13,7 @@ import re
 import sys
 import time
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Union
 
 import dateutil.parser
 
@@ -97,16 +97,7 @@ DATE_STRING_FORMATS = {
 
 EPOCH_START = datetime(1900, 1, 1)
 
-if not hasattr(timedelta, "total_seconds"):
-
-    def total_seconds(td):
-        return (
-            float(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6)
-            / 10**6
-        )
-
-else:
-    total_seconds = timedelta.total_seconds
+total_seconds = timedelta.total_seconds
 
 SymbolDateObject = Symbol("DateObject")
 SymbolDateString = Symbol("DateString")
@@ -114,8 +105,10 @@ SymbolGregorian = Symbol("Gregorian")
 
 
 class _Date:
-    def __init__(self, datelist=[], absolute=None, datestr=None):
-        datelist += [1900, 1, 1, 0, 0, 0.0][len(datelist) :]
+    def __init__(
+        self, datelist_arg: Union[list, tuple] = [], absolute=None, datestr=None
+    ):
+        datelist = list(datelist_arg) + [1900, 1, 1, 0, 0, 0.0][len(datelist_arg) :]
         self.date = datetime(
             datelist[0],
             datelist[1],
@@ -249,7 +242,7 @@ class _DateFormat(Builtin):
             ]
             return datelist
 
-        if not isinstance(etime, list):
+        if not isinstance(etime, (list, tuple)):
             evaluation.message(form_name, "arg", etime)
             return
 
@@ -258,7 +251,7 @@ class _DateFormat(Builtin):
             for i, val in enumerate(etime)
         ):
             default_date = [1900, 1, 1, 0, 0, 0.0]
-            datelist = etime + default_date[len(etime) :]
+            datelist = list(etime) + default_date[len(etime) :]
             prec_part, imprec_part = datelist[:2], datelist[2:]
 
             try:
@@ -289,12 +282,16 @@ class _DateFormat(Builtin):
         if len(etime) == 2:
             if (
                 isinstance(etime[0], str)
-                and isinstance(etime[1], list)  # noqa
+                and isinstance(etime[1], (list, tuple))  # noqa
                 and all(isinstance(s, str) for s in etime[1])
             ):
                 is_spec = [
                     str(s).strip('"') in DATE_STRING_FORMATS.keys() for s in etime[1]
                 ]
+
+                if isinstance(etime, tuple):
+                    etime = list(etime)
+
                 etime[1] = [str(s).strip('"') for s in etime[1]]
 
                 if sum(is_spec) == len(is_spec):
@@ -348,13 +345,13 @@ class AbsoluteTime(_DateFormat):
       <dd>gives the local time in seconds since epoch January 1, 1900, in your \
           time zone.
 
-      <dt>'AbsoluteTime[{$y$, $m$, $d$, $h$, $m$, $s$}]'
+      <dt>'AbsoluteTime'[{$y$, $m$, $d$, $h$, $m$, $s$}]
       <dd>gives the absolute time specification corresponding to a date list.
 
-      <dt>'AbsoluteTime["$string$"]'
+      <dt>'AbsoluteTime'["$string$"]
       <dd>gives the absolute time specification for a given date string.
 
-      <dt>'AbsoluteTime[{"$string$",{$e1$, $e2$, ...}}]'
+      <dt>'AbsoluteTime'[{"$string$",{$e_1$, $e_2$, ...}}]
       <dd>takgs the date string to contain the elements "$ei$".
     </dl>
 
@@ -389,7 +386,7 @@ class AbsoluteTime(_DateFormat):
         if datelist is None:
             return
 
-        date = _Date(datelist=datelist)
+        date = _Date(datelist_arg=datelist)
         tdelta = date.date - EPOCH_START
         if tdelta.microseconds == 0:
             return Integer(int(total_seconds(tdelta)))
@@ -401,7 +398,7 @@ class AbsoluteTiming(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/AbsoluteTiming.html</url>
 
     <dl>
-      <dt>'AbsoluteTiming[$expr$]'
+      <dt>'AbsoluteTiming'[$expr$]
       <dd>evaluates $expr$, returning a list of the absolute number of seconds in \
           real time that have elapsed, together with the result obtained.
     </dl>
@@ -430,13 +427,13 @@ class DateDifference(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/DateDifference.html</url>
 
     <dl>
-      <dt>'DateDifference[$date1$, $date2$]'
-      <dd>returns the difference between $date1$ and $date2$ in days.
+      <dt>'DateDifference'[$date_1$, $date_2$]
+      <dd>returns the difference between $date_1$ and $date_2$ in days.
 
-      <dt>'DateDifference[$date1$, $date2$, $unit$]'
+      <dt>'DateDifference'[$date_1$, $date_2$, $unit$]
       <dd>returns the difference in the specified $unit$.
 
-      <dt>'DateDifference[$date1$, $date2$, {$unit1$, $unit2$, ...}]'
+      <dt>'DateDifference'[$date_1$, $date_2$, {$unit_1$, $unit_2$, ...}]
       <dd>represents the difference as a list of integer multiples of each $unit$, with any remainder expressed in the smallest unit.
     </dl>
 
@@ -454,7 +451,7 @@ class DateDifference(Builtin):
     """
 
     # FIXME: Since timedelta does not use large time units (years, months etc)
-    # this method can be innacuarate. The example below gives fractional Days
+    # this method can be inaccurate. The example below gives fractional Days
     # (20.1666666667 not 20).
 
     """
@@ -487,8 +484,8 @@ class DateDifference(Builtin):
         # Process dates
         pydate1, pydate2 = date1.to_python(), date2.to_python()
 
-        if isinstance(pydate1, list):  # Date List
-            idate = _Date(datelist=pydate1)
+        if isinstance(pydate1, (list, tuple)):  # Date List
+            idate = _Date(datelist_arg=pydate1)
         elif isinstance(pydate1, (float, int)):  # Absolute Time
             idate = _Date(absolute=pydate1)
         elif isinstance(pydate1, str):  # Date string
@@ -497,8 +494,8 @@ class DateDifference(Builtin):
             evaluation.message("DateDifference", "date", date1)
             return
 
-        if isinstance(pydate2, list):  # Date List
-            fdate = _Date(datelist=pydate2)
+        if isinstance(pydate2, (list, tuple)):  # Date List
+            fdate = _Date(datelist_arg=pydate2)
         elif isinstance(pydate2, (int, float)):  # Absolute Time
             fdate = _Date(absolute=pydate2)
         elif isinstance(pydate1, str):  # Date string
@@ -517,7 +514,9 @@ class DateDifference(Builtin):
         pyunits = units.to_python()
         if isinstance(pyunits, str):
             pyunits = [str(pyunits.strip('"'))]
-        elif isinstance(pyunits, list) and all(isinstance(p, str) for p in pyunits):
+        elif isinstance(pyunits, (list, tuple)) and all(
+            isinstance(p, str) for p in pyunits
+        ):
             pyunits = [p.strip('"') for p in pyunits]
 
         if not all(p in TIME_INCREMENTS.keys() for p in pyunits):
@@ -590,11 +589,11 @@ class DateObject(_DateFormat, ImmutableValueMixin):
 
     <dl>
       <dt>'DateObject[...]'
-      <dd> Returns an object codifiyng DateList....
+      <dd> Returns an object codifying DateList....
     </dl>
 
     >> DateObject[{2020, 4, 15}]
-     = [...]
+     = ...
     """
 
     fmt_keywords = {
@@ -698,7 +697,7 @@ class DateObject(_DateFormat, ImmutableValueMixin):
         fmt: BaseElement,
         evaluation: Evaluation,
     ) -> Optional[Expression]:
-        "MakeBoxes[DateObject[datetime_List, gran_, cal_, tz_, fmt_], StandardForm|TraditionalForm|OutputForm]"
+        "MakeBoxes[DateObject[datetime_List, gran_, cal_, tz_, fmt_], StandardForm|TraditionalForm]"
         # TODO:
         if fmt.sameQ(SymbolAutomatic):
             fmt = ListExpression(String("DateTimeShort"))
@@ -717,19 +716,19 @@ class DatePlus(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/DatePlus.html</url>
 
     <dl>
-      <dt>'DatePlus[$date$, $n$]'
+      <dt>'DatePlus'[$date$, $n$]
       <dd>finds the date $n$ days after $date$.
 
-      <dt>'DatePlus[$date$, {$n$, "$unit$"}]'
+      <dt>'DatePlus'[$date$, {$n$, "$unit$"}]
       <dd>finds the date $n$ units after $date$.
 
-      <dt>'DatePlus[$date$, {{$n1$, "$unit1$"}, {$n2$, "$unit2$"}, ...}]'
+      <dt>'DatePlus'[$date$, {{$n_1$, "$unit_1$"}, {$n_2$, "$unit_2$"}, ...}]
       <dd>finds the date which is $n_i$ specified units after $date$.
 
-      <dt>'DatePlus[$n$]'
+      <dt>'DatePlus'[$n$]
       <dd>finds the date $n$ days after the current date.
 
-      <dt>'DatePlus[$offset$]'
+      <dt>'DatePlus'[$offset$]
       <dd>finds the date which is offset from the current date.
     </dl>
 
@@ -762,9 +761,9 @@ class DatePlus(Builtin):
 
         # Process date
         pydate = date.to_python()
-        if isinstance(pydate, list):
+        if isinstance(pydate, (list, tuple)):
             date_prec = len(pydate)
-            idate = _Date(datelist=pydate)
+            idate = _Date(datelist_arg=pydate)
         elif isinstance(pydate, float) or isinstance(pydate, int):
             date_prec = "absolute"
             idate = _Date(absolute=pydate)
@@ -779,13 +778,17 @@ class DatePlus(Builtin):
         pyoff = off.to_python()
         if isinstance(pyoff, float) or isinstance(pyoff, int):
             pyoff = [[pyoff, '"Day"']]
-        elif isinstance(pyoff, list) and len(pyoff) == 2 and isinstance(pyoff[1], str):
+        elif (
+            isinstance(pyoff, (list, tuple))
+            and len(pyoff) == 2
+            and isinstance(pyoff[1], str)
+        ):
             pyoff = [pyoff]
 
         # Strip " marks
         pyoff = [[x[0], x[1].strip('"')] for x in pyoff]
 
-        if isinstance(pyoff, list) and all(  # noqa
+        if isinstance(pyoff, (list, tuple)) and all(  # noqa
             len(o) == 2
             and o[1] in TIME_INCREMENTS.keys()
             and isinstance(o[0], (float, int))
@@ -820,10 +823,10 @@ class DateList(_DateFormat):
       <dt>'DateList[]'
       <dd>returns the current local time in the form {$year$, $month$, $day$, $hour$, $minute$, $second$}.
 
-      <dt>'DateList[$time$]'
+      <dt>'DateList'[$time$]
       <dd>returns a formatted date for the number of seconds $time$ since epoch Jan 1 1900.
 
-      <dt>'DateList[{$y$, $m$, $d$, $h$, $m$, $s$}]'
+      <dt>'DateList'[{$y$, $m$, $d$, $h$, $m$, $s$}]
       <dd>converts an incomplete date list to the standard representation.
     </dl>
 
@@ -888,22 +891,22 @@ class DateString(_DateFormat):
       <dt>'DateString[]'
       <dd>returns the current local time and date as a string.
 
-      <dt>'DateString[$elem$]'
+      <dt>'DateString'[$elem$]
       <dd>returns the time formatted according to $elems$.
 
-      <dt>'DateString[{$e1$, $e2$, ...}]'
+      <dt>'DateString'[{$e_1$, $e_2$, ...}]
       <dd>concatenates the time formatted according to elements $ei$.
 
-      <dt>'DateString[$time$]'
+      <dt>'DateString'[$time$]
       <dd>returns the date string of an AbsoluteTime.
 
-      <dt>'DateString[{$y$, $m$, $d$, $h$, $m$, $s$}]'
+      <dt>'DateString'[{$y$, $m$, $d$, $h$, $m$, $s$}]
       <dd>returns the date string of a date list specification.
 
-      <dt>'DateString[$string$]'
+      <dt>'DateString'[$string$]
       <dd>returns the formatted date string of a date string specification.
 
-      <dt>'DateString[$spec$, $elems$]'
+      <dt>'DateString'[$spec$, $elems$]
       <dd>formats the time in turns of $elems$. Both $spec$ and $elems$ can take any of the above formats.
     </dl>
 
@@ -940,15 +943,16 @@ class DateString(_DateFormat):
         self, epochtime: BaseElement, form: BaseElement, evaluation: Evaluation
     ) -> Optional[String]:
         "DateString[epochtime_, form_]"
+
         datelist = self.to_datelist(epochtime, evaluation)
 
         if datelist is None:
             return
 
-        date = _Date(datelist=datelist)
+        date = _Date(datelist_arg=datelist)
 
         pyform = form.to_python()
-        if not isinstance(pyform, list):
+        if not isinstance(pyform, (list, tuple)):
             pyform = [pyform]
 
         pyform = [x.strip('"') for x in pyform]
@@ -977,11 +981,11 @@ class DateString(_DateFormat):
 
 
 class DateStringFormat(Predefined):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$DateStringFormat.html</url>
+    r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$DateStringFormat.html</url>
 
     <dl>
-      <dt>'$DateStringFormat'
+      <dt>'\$DateStringFormat'
       <dd>gives the format used for dates generated by 'DateString'.
     </dl>
 
@@ -1009,7 +1013,7 @@ class EasterSunday(Builtin):  # Calendar`EasterSunday
     https://reference.wolfram.com/language/Calendar/ref/EasterSunday.html</url>)
 
     <dl>
-      <dt>'EasterSunday[$year$]'
+      <dt>'EasterSunday'[$year$]
       <dd>returns the date of the Gregorian Easter Sunday as {year, month, day}.
     </dl>
 
@@ -1046,13 +1050,13 @@ class EasterSunday(Builtin):  # Calendar`EasterSunday
 
 
 class SystemTimeZone(Predefined):
-    """
+    r"""
     <url>
     :WMA link:
-    https://reference.wolfram.com/language/ref/$SystemTimeZone.html</url>
+    https://reference.wolfram.com/language/ref/\$SystemTimeZone.html</url>
 
     <dl>
-      <dt>'$SystemTimeZone'
+      <dt>'\$SystemTimeZone'
       <dd> gives the current time zone for the computer system on which Mathics is \
            being run.
     </dl>
@@ -1090,24 +1094,24 @@ class Now(Predefined):
 
 
 class TimeConstrained(Builtin):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/TimeConstrained.html</url>
 
     <dl>
-      <dt>'TimeConstrained[$expr$, $t$]'
+      <dt>'TimeConstrained'[$expr$, $t$]
       <dd>'evaluates $expr$, stopping after $t$ seconds.'
 
-      <dt>'TimeConstrained[$expr$, $t$, $failexpr$]'
+      <dt>'TimeConstrained'[$expr$, $t$, $failexpr$]
       <dd>'returns $failexpr$ if the time constraint is not met.'
     </dl>
 
     Possible issues: for certain time-consuming functions (like simplify)
     which are based on sympy or other libraries, it is possible that
     the evaluation continues after the timeout. However, at the end of the \
-    evaluation, the function will return '$Aborted' and the results will not affect
+    evaluation, the function will return '\$Aborted' and the results will not affect
     the state of the Mathics3 kernel.
 
-    
+
     ## >> TimeConstrained[Pause[5]; a, 1]
     ##  = $Aborted
 
@@ -1155,13 +1159,13 @@ class TimeConstrained(Builtin):
 
 
 class TimeZone(Predefined):
-    """
+    r"""
     <url>:Time Zone:https://en.wikipedia.org/wiki/Time_zone</url> (<url>
     :WMA:
-    https://reference.wolfram.com/language/ref/$TimeZone.html</url>)
+    https://reference.wolfram.com/language/ref/\$TimeZone.html</url>)
 
     <dl>
-      <dt>'$TimeZone'
+      <dt>'\$TimeZone'
       <dd> gives the current time zone to assume for dates and times.
     </dl>
 
@@ -1212,7 +1216,7 @@ class Timing(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Timing.html</url>
 
     <dl>
-      <dt>'Timing[$expr$]'
+      <dt>'Timing'[$expr$]
       <dd>measures the processor time taken to evaluate $expr$.
           It returns a list containing the measured time in seconds and \
           the result of the evaluation.
@@ -1272,11 +1276,11 @@ class TimeRemaining(Builtin):
       <dd>Gives the number of seconds remaining until the earliest enclosing \
           'TimeConstrained' will request the current computation to stop.
 
-      <dt>'TimeConstrained[$expr$, $t$, $failexpr$]'
+      <dt>'TimeConstrained'[$expr$, $t$, $failexpr$]
       <dd>returns $failexpr$ if the time constraint is not met.
     </dl>
 
-    If TimeConstrained is called out of a TimeConstrained expression, returns `Infinity`
+    If TimeConstrained is called out of a TimeConstrained expression, returns 'Infinity':
     >> TimeRemaining[]
      = Infinity
 
