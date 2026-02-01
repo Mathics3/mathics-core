@@ -50,8 +50,6 @@ def load_tests(key):
     of the final formats ("text", "latex", "mathml") and produce two list:
     the first with the mandatory tests, and the other with "fragile" tests
     """
-    global all_tests
-    global MATHML_STRICT
 
     def is_fragile(assert_msg: str) -> bool:
         """
