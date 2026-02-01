@@ -205,10 +205,6 @@ class Use2DOutputForm_(Predefined):
      .  b
      . a 
 
-    Notice that without the 'OutputForm' wrapper, we fall back to the normal
-    behavior:
-    >> a ^ b
-     = Superscript[a, b]
     Setting the variable back to False go back to the normal behavior:
     >> $Use2DOutputForm = False; OutputForm[a ^ b]
      = a ^ b

@@ -266,9 +266,7 @@ def eval_makeboxes_outputform(expr: BaseElement, evaluation: Evaluation, **kwarg
         evaluation.definitions.get_ownvalues("System`$Use2DOutputForm")[0].replace
         is SymbolTrue
     ):
-        text_outputform = str(
-            render_2d_text(expr, evaluation, SymbolOutputForm, **{"2d": True})
-        )
+        text_outputform = str(render_2d_text(expr, evaluation, **{"2d": True}))
 
         if "\n" in text_outputform:
             text_outputform = "\n" + text_outputform
