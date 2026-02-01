@@ -79,7 +79,22 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         # behaviour...
         if not hasattr(instance, "_elements"):
             instance._elements = None
+
         return instance
+
+    def __init__(self, *elements, **kwargs):
+        # Box attributes
+        # Consider adding height and width
+
+        # Consider using a typed dataclass rather dictionary
+        # A value -1 means the property has not been set
+        self.box_properties = {
+            "depth": 0,  # nesting level. For demo purposes
+            "width": -1,
+            "height": -1,
+        }
+
+        self.box_properties
 
     def do_format(self, evaluation, format):
         return self
