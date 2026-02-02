@@ -21,7 +21,7 @@ class CompiledCodeBox(BoxExpression):
 
     def init(self, *args, **kwargs):
         self._elements = args
-        self.box_options = kwargs
+        self.box_attributes = kwargs
 
     def boxes_to_text(self, elements=None, **options):
         if elements is None:

@@ -61,7 +61,7 @@ add_conversion_fn(PaneBox, pane_box)
 
 
 def fractionbox(self, **options) -> str:
-    _options = self.box_options.copy()
+    _options = self.box_attributes.copy()
     _options.update(options)
     options = _options
     num_text = boxes_to_text(self.num, **options)
@@ -77,13 +77,13 @@ def fractionbox(self, **options) -> str:
 add_conversion_fn(FractionBox, fractionbox)
 
 
-def gridbox(self, elements=None, **box_options) -> str:
+def gridbox(self, elements=None, **box_attributes) -> str:
     if not elements:
         elements = self.items
-    evaluation = box_options.get("evaluation", None)
+    evaluation = box_attributes.get("evaluation", None)
     items, options = self.get_array(elements, evaluation)
 
-    box_options.update(self.options)
+    box_attributes.update(self.options)
 
     if not items:
         return ""
@@ -92,11 +92,11 @@ def gridbox(self, elements=None, **box_options) -> str:
         (
             [
                 # TODO: check if this evaluation is necessary.
-                boxes_to_text(item, **box_options)
+                boxes_to_text(item, **box_attributes)
                 for item in row
             ]
             if isinstance(row, tuple)
-            else boxes_to_text(row, **box_options)
+            else boxes_to_text(row, **box_attributes)
         )
         for row in items
     ]
@@ -111,7 +111,7 @@ add_conversion_fn(GridBox, gridbox)
 
 
 def sqrtbox(self, **options) -> str:
-    _options = self.box_options.copy()
+    _options = self.box_attributes.copy()
     _options.update(options)
     options = _options
     if self.index:
@@ -126,7 +126,7 @@ add_conversion_fn(SqrtBox, sqrtbox)
 
 
 def superscriptbox(self, **options) -> str:
-    _options = self.box_options.copy()
+    _options = self.box_attributes.copy()
     _options.update(options)
     options = _options
     no_parenthesize = True
@@ -150,7 +150,7 @@ add_conversion_fn(SuperscriptBox, superscriptbox)
 
 
 def subscriptbox(self, **options) -> str:
-    _options = self.box_options.copy()
+    _options = self.box_attributes.copy()
     _options.update(options)
     options = _options
     return "Subscript[%s, %s]" % (
@@ -163,7 +163,7 @@ add_conversion_fn(SubscriptBox, subscriptbox)
 
 
 def subsuperscriptbox(self, **options) -> str:
-    _options = self.box_options.copy()
+    _options = self.box_attributes.copy()
     _options.update(options)
     options = _options
     return "Subsuperscript[%s, %s, %s]" % (
@@ -177,7 +177,7 @@ add_conversion_fn(SubsuperscriptBox, subsuperscriptbox)
 
 
 def rowbox(self, elements=None, **options) -> str:
-    _options = self.box_options.copy()
+    _options = self.box_attributes.copy()
     _options.update(options)
     options = _options
     parts_str = [boxes_to_text(element, **options) for element in self.items]
@@ -209,7 +209,7 @@ add_conversion_fn(RowBox, rowbox)
 
 def stylebox(self, **options) -> str:
     options.pop("evaluation", None)
-    _options = self.box_options.copy()
+    _options = self.box_attributes.copy()
     _options.update(options)
     options = _options
     return boxes_to_text(self.boxes, **options)

@@ -122,7 +122,7 @@ class FormBox(BoxExpression):
     summary_text = "wrap boxes with an association to a particular form"
 
     def init(self, *elems, **kwargs):
-        self.box_options = kwargs
+        self.box_attributes = kwargs
         self.form = elems[1]
         self.boxes = elems[0]
         assert isinstance(self.boxes, BoxElementMixin), f"{type(self.boxes)}"
@@ -136,7 +136,7 @@ class FormBox(BoxExpression):
                     self.boxes,
                     self.form,
                 ),
-                self.box_options,
+                self.box_attributes,
             )
         return self._elements
 
@@ -178,7 +178,7 @@ class FractionBox(BoxExpression):
                     self.num,
                     self.den,
                 ),
-                self.box_options,
+                self.box_attributes,
             )
         return self._elements
 
@@ -193,7 +193,7 @@ class FractionBox(BoxExpression):
     def init(self, num, den, **options):
         self.num = num
         self.den = den
-        self.box_options = options
+        self.box_attributes = options
 
 
 class GridBox(BoxExpression):
@@ -228,11 +228,13 @@ class GridBox(BoxExpression):
     @property
     def elements(self):
         if self._elements is None:
-            self._elements = elements_to_expressions(self, self.items, self.box_options)
+            self._elements = elements_to_expressions(
+                self, self.items, self.box_attributes
+            )
         return self._elements
 
     def init(self, *elems, **kwargs):
-        self.box_options = kwargs
+        self.box_attributes = kwargs
         self.items = elems
         self._elements = elems
 
@@ -240,7 +242,7 @@ class GridBox(BoxExpression):
         if not elements:
             raise BoxConstructError
 
-        options = self.box_options
+        options = self.box_attributes
 
         expr = elements[0]
         if not expr.has_form("List", None):
@@ -293,13 +295,13 @@ class InterpretationBox(BoxExpression):
 
     def __repr__(self):
         result = "InterpretationBox\n  " + repr(self.boxes)
-        result += f"\n  {self.box_options}"
+        result += f"\n  {self.box_attributes}"
         return result
 
     def init(self, *expr, **options):
         self.boxes = expr[0]
         self.expr = expr[1]
-        self.box_options = options
+        self.box_attributes = options
 
     @property
     def elements(self):
@@ -310,7 +312,7 @@ class InterpretationBox(BoxExpression):
                     self.boxes,
                     self.expr,
                 ),
-                self.box_options,
+                self.box_attributes,
             )
         return self._elements
 
@@ -365,13 +367,13 @@ class PaneBox(BoxExpression):
     def elements(self):
         if self._elements is None:
             self._elements = elements_to_expressions(
-                self, (self.boxes,), self.box_options
+                self, (self.boxes,), self.box_attributes
             )
         return self._elements
 
     def init(self, expr, **options):
         self.boxes = expr
-        self.box_options = options
+        self.box_attributes = options
 
     def eval_panebox1(self, expr, evaluation, options):
         "PaneBox[expr_String, OptionsPattern[]]"
@@ -443,7 +445,7 @@ class RowBox(BoxExpression):
 
     def init(self, *items, **kwargs):
         # TODO: check that each element is an string or a BoxElementMixin
-        self.box_options = {}
+        self.box_attributes = {}
         if len(items) == 0:
             self.items = tuple()
             return
@@ -519,13 +521,13 @@ class SqrtBox(BoxExpression):
         if self._elements is None:
             index = self.index
             if index is None:
-                # self.box_options
+                # self.box_attributes
                 self._elements = elements_to_expressions(
-                    self, (self.radicand,), self.box_options
+                    self, (self.radicand,), self.box_attributes
                 )
             else:
                 self._elements = elements_to_expressions(
-                    self, (self.radicand, index), self.box_options
+                    self, (self.radicand, index), self.box_attributes
                 )
         return self._elements
 
@@ -545,7 +547,7 @@ class SqrtBox(BoxExpression):
     def init(self, radicand, index=None, **options):
         self.radicand = radicand
         self.index = index
-        self.box_options = options
+        self.box_attributes = options
 
 
 class StyleBox(BoxExpression):
@@ -577,11 +579,11 @@ class StyleBox(BoxExpression):
             boxes = self.boxes
             if style:
                 self._elements = elements_to_expressions(
-                    self, (boxes, style), self.box_options
+                    self, (boxes, style), self.box_attributes
                 )
             else:
                 self._elements = elements_to_expressions(
-                    self, (boxes,), self.box_options
+                    self, (boxes,), self.box_attributes
                 )
         return self._elements
 
@@ -606,10 +608,10 @@ class StyleBox(BoxExpression):
     def init(self, boxes, style=None, **options):
         # This implementation supersedes Expression.process_style_box
         if isinstance(boxes, StyleBox):
-            options.update(boxes.box_options)
+            options.update(boxes.box_attributes)
             boxes = boxes.boxes
         self.style = style
-        self.box_options = options
+        self.box_attributes = options
         assert options is not None
         self.boxes = boxes
         assert isinstance(
@@ -645,7 +647,7 @@ class SubscriptBox(BoxExpression):
     def elements(self):
         if self._elements is None:
             self._elements = elements_to_expressions(
-                self, (self.base, self.subindex), self.box_options
+                self, (self.base, self.subindex), self.box_attributes
             )
         return self._elements
 
@@ -658,7 +660,7 @@ class SubscriptBox(BoxExpression):
         return SubscriptBox(a_box, b_box, **options)
 
     def init(self, a, b, **options):
-        self.box_options = options.copy()
+        self.box_attributes = options.copy()
         if not (isinstance(a, BoxElementMixin) and isinstance(b, BoxElementMixin)):
             raise Exception((a, b), "are not boxes")
         self.base = a
@@ -684,7 +686,7 @@ class SubsuperscriptBox(BoxExpression):
     @property
     def elements(self):
         if self._elements is None:
-            # self.box_options
+            # self.box_attributes
             self._elements = elements_to_expressions(
                 (
                     self,
@@ -692,7 +694,7 @@ class SubsuperscriptBox(BoxExpression):
                     self.subindex,
                     self.superindex,
                 ),
-                self.box_options,
+                self.box_attributes,
             )
         return self._elements
 
@@ -706,7 +708,7 @@ class SubsuperscriptBox(BoxExpression):
         return SubsuperscriptBox(a_box, b_box, c_box, **options)
 
     def init(self, a, b, c, **options):
-        self.box_options = options.copy()
+        self.box_attributes = options.copy()
         if not all(isinstance(x, BoxElementMixin) for x in (a, b, c)):
             raise Exception((a, b, c), "are not boxes")
         self.base = a
@@ -739,7 +741,7 @@ class SuperscriptBox(BoxExpression):
                     self.base,
                     self.superindex,
                 ),
-                self.box_options,
+                self.box_attributes,
             )
         return self._elements
 
@@ -752,7 +754,7 @@ class SuperscriptBox(BoxExpression):
         return SuperscriptBox(a_box, b_box, **options)
 
     def init(self, a, b, **options):
-        self.box_options = options.copy()
+        self.box_attributes = options.copy()
         if not all(isinstance(x, BoxElementMixin) for x in (a, b)):
             raise Exception((a, b), "are not boxes")
         self.base = a
@@ -776,7 +778,7 @@ class TagBox(BoxExpression):
     summary_text = "box tag with a head"
 
     def init(self, *elems, **kwargs):
-        self.box_options = kwargs
+        self.box_attributes = kwargs
         self.form = elems[1]
         self.boxes = elems[0]
         assert isinstance(self.boxes, BoxElementMixin), f"{type(self.boxes)}"
@@ -790,7 +792,7 @@ class TagBox(BoxExpression):
                     self.boxes,
                     self.form,
                 ),
-                self.box_options,
+                self.box_attributes,
             )
         return self._elements
 

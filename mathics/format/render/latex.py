@@ -174,7 +174,7 @@ add_conversion_fn(InterpretationBox, interpretation_box)
 
 def pane_box(self, **options):
     content = lookup_conversion_method(self.boxes, "latex")(self.boxes, **options)
-    options = self.box_options
+    options = self.box_attributes
     size = options.get("System`ImageSize", SymbolAutomatic).to_python()
 
     if size == "System`Automatic":
@@ -211,7 +211,7 @@ add_conversion_fn(PaneBox, pane_box)
 
 
 def fractionbox(self, **options) -> str:
-    _options = self.box_options.copy()
+    _options = self.box_attributes.copy()
     _options.update(options)
     options = _options
     return "\\frac{%s}{%s}" % (
@@ -223,17 +223,17 @@ def fractionbox(self, **options) -> str:
 add_conversion_fn(FractionBox, fractionbox)
 
 
-def gridbox(self, elements=None, **box_options) -> str:
+def gridbox(self, elements=None, **box_attributes) -> str:
     def boxes_to_tex(box, **options):
         return lookup_conversion_method(box, "latex")(box, **options)
 
     if not elements:
         elements = self._elements
-    evaluation = box_options.get("evaluation")
+    evaluation = box_attributes.get("evaluation")
     items, options = self.get_array(elements, evaluation)
-    box_options.update(options)
-    box_options["inside_list"] = True
-    column_alignments = box_options["System`ColumnAlignments"].get_name()
+    box_attributes.update(options)
+    box_attributes["inside_list"] = True
+    column_alignments = box_attributes["System`ColumnAlignments"].get_name()
     try:
         column_alignments = {
             "System`Center": "c",
@@ -251,12 +251,12 @@ def gridbox(self, elements=None, **box_options) -> str:
     result = r"\begin{array}{%s} " % (column_alignments * column_count)
     for index, row in enumerate(items):
         if isinstance(row, tuple):
-            result += " & ".join(boxes_to_tex(item, **box_options) for item in row)
+            result += " & ".join(boxes_to_tex(item, **box_attributes) for item in row)
         else:
             result += r"\multicolumn{%s}{%s}{%s}" % (
                 str(column_count),
                 column_alignments,
-                boxes_to_tex(row, **box_options),
+                boxes_to_tex(row, **box_attributes),
             )
         if index != len(items) - 1:
             result += "\\\\ "
@@ -268,7 +268,7 @@ add_conversion_fn(GridBox, gridbox)
 
 
 def sqrtbox(self, **options):
-    _options = self.box_options.copy()
+    _options = self.box_attributes.copy()
     _options.update(options)
     options = _options
     if self.index:
@@ -285,7 +285,7 @@ add_conversion_fn(SqrtBox, sqrtbox)
 
 
 def superscriptbox(self, **options):
-    _options = self.box_options.copy()
+    _options = self.box_attributes.copy()
     _options.update(options)
     options = _options
     base_to_tex = lookup_conversion_method(self.base, "latex")
@@ -315,7 +315,7 @@ add_conversion_fn(SuperscriptBox, superscriptbox)
 
 
 def subscriptbox(self, **options):
-    _options = self.box_options.copy()
+    _options = self.box_attributes.copy()
     _options.update(options)
     options = _options
     base_to_tex = lookup_conversion_method(self.base, "latex")
@@ -330,7 +330,7 @@ add_conversion_fn(SubscriptBox, subscriptbox)
 
 
 def subsuperscriptbox(self, **options):
-    _options = self.box_options.copy()
+    _options = self.box_attributes.copy()
     _options.update(options)
     options = _options
     base_to_tex = lookup_conversion_method(self.base, "latex")
@@ -348,7 +348,7 @@ add_conversion_fn(SubsuperscriptBox, subsuperscriptbox)
 
 
 def rowbox(self, **options) -> str:
-    _options = self.box_options.copy()
+    _options = self.box_attributes.copy()
     _options.update(options)
     options = _options
     parts_str = [
@@ -382,7 +382,7 @@ add_conversion_fn(RowBox, rowbox)
 
 
 def stylebox(self, **options) -> str:
-    _options = self.box_options.copy()
+    _options = self.box_attributes.copy()
     _options.update(options)
     options = _options
     return lookup_conversion_method(self.boxes, "latex")(self.boxes, **options)
