@@ -17,6 +17,9 @@ from mathics.core.expression import Expression
         # In the examples, also use only expressions in their fully evaluated
         # forms. For example, do not use `Color->Red` but
         # `Color->RGBColor[1, 0, 0]`.
+        (
+            'StyleBox[FractionBox[StyleBox["3", Color->RGBColor[1, 0, 0], ShowStringCharacters->True], "2"], Alignment->Left]',
+        ),
         ('StyleBox["Hola", Color->RGBColor[1, 0, 0], ShowStringCharacters->True]',),
         (
             'InterpretationBox[StyleBox["Hola", Color->RGBColor[1, 0, 0], ShowStringCharacters->True], AutoDelete->True, Editable->True]',
