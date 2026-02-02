@@ -106,7 +106,7 @@ def string(s, **options) -> str:
     if hasattr(s, "box_options"):
         indent_level = s.box_options.get("indent_level", 0)
     else:
-        indent_level = options.get("_indent_level", 0)
+        indent_level = options.get("indent_level", 0)
 
     indent_spaces = " " * indent_level
 
@@ -180,9 +180,9 @@ add_conversion_fn(InterpretationBox, interpretation_box)
 
 
 def pane_box(box, **options):
-    indent_level = options.get("_indent_level", 0)
+    indent_level = options.get("indent_level", 0)
     indent_spaces = " " * indent_level
-    options["_indent_level"] = indent_level + 1
+    options["indent_level"] = indent_level + 1
 
     content = lookup_conversion_method(box.boxes, "mathml")(box.boxes, **options)
     options = box.box_options
@@ -222,21 +222,21 @@ add_conversion_fn(PaneBox, pane_box)
 
 
 def fractionbox(box: FractionBox, **options) -> str:
-    indent_level = box.box_options.get("_indent_level", options.get("_indent_level", 0))
+    indent_level = box.box_options.get("indent_level", options.get("indent_level", 0))
     indent_spaces = " " * indent_level
     indent_level += 1
     has_nonbox_children = False
 
     for child_box in (box.num, box.den):
         if hasattr(child_box, "box_options"):
-            child_box.box_options["_indent_level"] = indent_level
+            child_box.box_options["indent_level"] = indent_level
         else:
             has_nonbox_children = True
 
     if has_nonbox_children:
         # non_boxed children have to get indent_level information passed down
         # via a parameter. Here it is the "options" variable. (Which is a bad name).
-        child_options = {**options, "_indent_level": indent_level}
+        child_options = {**options, "indent_level": indent_level}
 
     return f"{indent_spaces}<mfrac>\n%s\n%s\n{indent_spaces}</mfrac>" % (
         lookup_conversion_method(box.num, "mathml")(box.num, **child_options),
@@ -269,18 +269,18 @@ def gridbox(box: GridBox, elements=None, **box_options) -> str:
         # invalid column alignment
         raise BoxConstructError
     joined_attrs = " ".join(f'{name}="{value}"' for name, value in attrs.items())
-    indent_level = options.get("_indent_level", 0)
+    indent_level = options.get("indent_level", 0)
     indent_spaces = " " * indent_level
     result = f"{indent_spaces}<mtable {joined_attrs}>\n"
     new_box_options = box_options.copy()
     new_box_options["inside_list"] = True
-    new_box_options["_indent_level"] = indent_level + 3
+    new_box_options["indent_level"] = indent_level + 3
 
     for row in items:
         result += f"{indent_spaces} <mtr>"
         if isinstance(row, tuple):
             for item in row:
-                new_box_options["_indent_level"] = indent_level + 4
+                new_box_options["indent_level"] = indent_level + 4
                 result += f"\n{indent_spaces}  <mtd {joined_attrs}>\n{boxes_to_mathml(item, **new_box_options)}\n{indent_spaces}  </mtd>"
         else:
             result += f"\n{indent_spaces}  <mtd {joined_attrs} columnspan={num_fields}>\n{boxes_to_mathml(row, **new_box_options)}\n{indent_spaces}  </mtd>"
@@ -297,9 +297,9 @@ def sqrtbox(box: SqrtBox, **options):
     _options = box.box_options.copy()
     _options.update(options)
     options = _options
-    indent_level = options.get("_indent_level", 0)
+    indent_level = options.get("indent_level", 0)
     indent_spaces = " " * indent_level
-    options["_indent_level"] = indent_level + 1
+    options["indent_level"] = indent_level + 1
 
     if box.index:
         return f"{indent_spaces}<mroot>\n%s\n%s\n{indent_spaces}</mroot>" % (
@@ -320,9 +320,9 @@ def subscriptbox(box: SqrtBox, **options):
     _options = box.box_options.copy()
     _options.update(options)
     options = _options
-    indent_level = options.get("_indent_level", 0)
+    indent_level = options.get("indent_level", 0)
     indent_spaces = " " * indent_level
-    options["_indent_level"] = indent_level + 1
+    options["indent_level"] = indent_level + 1
     return f"{indent_spaces}<msub>\n%s\n%s\n{indent_spaces}</msub>" % (
         lookup_conversion_method(box.base, "mathml")(box.base, **options),
         lookup_conversion_method(box.subindex, "mathml")(box.subindex, **options),
@@ -336,9 +336,9 @@ def superscriptbox(box: SuperscriptBox, **options):
     _options = box.box_options.copy()
     _options.update(options)
     options = _options
-    indent_level = options.get("_indent_level", 0)
+    indent_level = options.get("indent_level", 0)
     indent_spaces = " " * indent_level
-    options["_indent_level"] = indent_level + 1
+    options["indent_level"] = indent_level + 1
 
     return f"{indent_spaces}<msup>\n%s\n%s\n{indent_spaces}</msup>" % (
         lookup_conversion_method(box.base, "mathml")(box.base, **options),
@@ -355,9 +355,9 @@ def subsuperscriptbox(box: SubscriptBox, **options):
     options = _options
     options["inside_row"] = True
 
-    indent_level = options.get("_indent_level", 0)
+    indent_level = options.get("indent_level", 0)
     indent_spaces = " " * indent_level
-    options["_indent_level"] = indent_level + 1
+    options["indent_level"] = indent_level + 1
 
     return f"{indent_spaces}<msubsup>\n%s\n%s\n%s\n{indent_spaces}</msubsup>" % (
         lookup_conversion_method(box.base, "mathml")(box.base, **options),
@@ -402,9 +402,9 @@ def rowbox(box: RowBox, **options) -> str:
     else:
         options["inside_row"] = True
 
-    indent_level = options.get("_indent_level", 0)
+    indent_level = options.get("indent_level", 0)
     indent_spaces = " " * indent_level
-    options["_indent_level"] = indent_level + 1
+    options["indent_level"] = indent_level + 1
 
     for element in box.items:
         # Propagate properties down to box children.
@@ -447,7 +447,7 @@ def graphicsbox(box: GraphicsBox, elements=None, **options) -> str:
         int(box.height),
         base64.b64encode(svg_body.encode("utf8")).decode("utf8"),
     )
-    indent_level = options.get("_indent_level", 0)
+    indent_level = options.get("indent_level", 0)
     if indent_level:
         mathml = " " * indent_level + mathml
 
@@ -463,7 +463,7 @@ def graphics3dbox(box: Graphics3DBox, elements=None, **options) -> str:
     json_repr = box.boxes_to_json(elements, **options)
     mathml = f'<graphics3d data="{html.escape(json_repr)}" />'
     mathml = f"<mtable>\n<mtr>\n<mtd>\n{mathml}\n</mtd>\n</mtr>\n</mtable>"
-    indent_level = options.get("_indent_level", 0)
+    indent_level = options.get("indent_level", 0)
     if indent_level:
         mathml = " " * indent_level + mathml
     return mathml
