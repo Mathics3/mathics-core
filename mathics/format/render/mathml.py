@@ -91,23 +91,17 @@ extra_operators = {
 }
 
 
-# "s" is a String or What?
-def string(s, **options) -> str:
+def string(s: String, **options) -> str:
     text = s.value
 
     number_as_text = options.get("number_as_text", None)
     show_string_characters = (
         options.get("System`ShowStringCharacters", None) is SymbolTrue
     )
-    if isinstance(s, BoxElementMixin):
-        if number_as_text is None:
-            number_as_text = SymbolFalse
+    if number_as_text is None:
+        number_as_text = SymbolFalse
 
-    if hasattr(s, "box_attributes"):
-        indent_level = s.box_attributes.get("indent_level", 0)
-    else:
-        indent_level = options.get("indent_level", 0)
-
+    indent_level = options.get("indent_level", 0)
     indent_spaces = " " * indent_level
 
     def render(format, s):
