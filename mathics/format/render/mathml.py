@@ -91,22 +91,27 @@ extra_operators = {
 }
 
 
-def string(string: String, **options) -> str:
-    text = string.value
+# "s" is a String or What?
+def string(s, **options) -> str:
+    text = s.value
 
     number_as_text = options.get("number_as_text", None)
     show_string_characters = (
         options.get("System`ShowStringCharacters", None) is SymbolTrue
     )
-    if isinstance(string, BoxElementMixin):
+    if isinstance(s, BoxElementMixin):
         if number_as_text is None:
             number_as_text = SymbolFalse
 
-    indent_level = options.get("_indent_level", 0)
+    if hasattr(s, "box_options"):
+        indent_level = s.box_options.get("indent_level", 0)
+    else:
+        indent_level = options.get("_indent_level", 0)
+
     indent_spaces = " " * indent_level
 
-    def render(format, string):
-        encoded_text = encode_mathml(string)
+    def render(format, s):
+        encoded_text = encode_mathml(s)
         return indent_spaces + format % encoded_text
 
     if text.startswith('"') and text.endswith('"'):
@@ -217,15 +222,25 @@ add_conversion_fn(PaneBox, pane_box)
 
 
 def fractionbox(box: FractionBox, **options) -> str:
-    _options = box.box_options.copy()
-    _options.update(options)
-    options = _options
-    indent_level = options.get("_indent_level", 0)
+    indent_level = box.box_options.get("_indent_level", options.get("_indent_level", 0))
     indent_spaces = " " * indent_level
-    options["_indent_level"] = indent_level + 1
+    indent_level += 1
+    has_nonbox_children = False
+
+    for child_box in (box.num, box.den):
+        if hasattr(child_box, "box_options"):
+            child_box.box_options["_indent_level"] = indent_level
+        else:
+            has_nonbox_children = True
+
+    if has_nonbox_children:
+        # non_boxed children have to get indent_level information passed down
+        # via a parameter. Here it is the "options" variable. (Which is a bad name).
+        child_options = {**options, "_indent_level": indent_level}
+
     return f"{indent_spaces}<mfrac>\n%s\n%s\n{indent_spaces}</mfrac>" % (
-        lookup_conversion_method(box.num, "mathml")(box.num, **options),
-        lookup_conversion_method(box.den, "mathml")(box.den, **options),
+        lookup_conversion_method(box.num, "mathml")(box.num, **child_options),
+        lookup_conversion_method(box.den, "mathml")(box.den, **child_options),
     )
 
 
