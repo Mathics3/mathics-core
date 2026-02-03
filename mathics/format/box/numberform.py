@@ -314,7 +314,7 @@ def get_baseform_elements(
         raise ValueError
 
     if isinstance(expr, PrecisionReal):
-        x = expr.to_sympy()
+        x = float(expr.to_sympy())
         p = int(ceil(expr.get_precision() / LOG2_10) + 1)
     elif isinstance(expr, MachineReal):
         x = expr.value

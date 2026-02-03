@@ -305,8 +305,17 @@ def graphics_box(box: GraphicsBox, elements=None, **options: dict) -> str:
     else:
         svg_body = elements.to_svg(**options)
 
-    box.boxwidth = options.get("width", box.boxwidth)
-    box.boxheight = options.get("height", box.boxheight)
+    boxwidth = options.get("width", box.boxwidth)
+    boxheight = options.get("height", box.boxheight)
+
+    assert isinstance(
+        boxwidth, int
+    ), f"boxwidth {boxwidth} should be 'int'. is {type(boxwidth)}"
+    assert isinstance(
+        boxheight, int
+    ), f"boxwidth {boxheight} should be 'int'. is {type(boxheight)}"
+    box.boxwidth = boxwidth
+    box.boxheight = boxheight
 
     tooltip_text = box.tooltip_text or ""
     if box.background_color is not None:

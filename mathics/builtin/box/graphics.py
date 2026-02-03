@@ -471,6 +471,9 @@ class GraphicsBox(BoxExpression):
         self.background_color = None
         self.tooltip_text: Optional[str] = None
         self.evaluation = kwargs.pop("_evaluation", None)
+        self.boxwidth: int = -1
+        self.boxheight: int = -1
+        self.boxes: list = []
 
     @property
     def elements(self):

@@ -361,7 +361,7 @@ def graphicsbox(box: GraphicsBox, elements=None, **options) -> str:
 add_conversion_fn(GraphicsBox, graphicsbox)
 
 
-def graphics3dbox(box: GraphicsBox, elements=None, **options) -> str:
+def graphics3dbox(box, elements=None, **options) -> str:
     """Turn the Graphics3DBox into a MathML string"""
     result = box.boxes_to_js(**options)
     result = f"<mtable><mtr><mtd>{result}</mtd></mtr></mtable>"
