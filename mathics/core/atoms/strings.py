@@ -9,7 +9,7 @@ import sympy
 
 from mathics.core.element import BoxElementMixin
 from mathics.core.keycomparable import BASIC_ATOM_STRING_ELT_ORDER
-from mathics.core.symbols import Atom, Symbol, SymbolTrue, symbol_set
+from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue, symbol_set
 from mathics.core.systemsymbols import SymbolFullForm, SymbolInputForm
 
 SymbolString = Symbol("String")
@@ -41,8 +41,17 @@ class String(Atom, BoxElementMixin):
 
         inner = str(self.value)
         if f in SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM:
-            inner = '"' + inner.replace("\\", "\\\\") + '"'
-            return _boxed_string(inner, **{"System`ShowStringCharacters": SymbolTrue})
+            inner = inner.replace("\\", "\\\\")
+            inner = inner.replace('"', '\\"')
+            inner = f'"{inner}"'
+            return _boxed_string(
+                inner,
+                **{
+                    "System`NumberMarks": SymbolTrue,
+                    "System`ShowSpecialCharacters": SymbolFalse,
+                    "System`ShowStringCharacters": SymbolTrue,
+                },
+            )
         return String('"' + inner + '"')
 
     def do_copy(self) -> "String":
@@ -83,6 +92,10 @@ class String(Atom, BoxElementMixin):
         bindings. So we say it is a literal.
         """
         return True
+
+    @property
+    def is_multiline(self) -> bool:
+        return "\n" in self.value
 
     def sameQ(self, rhs) -> bool:
         """Mathics SameQ"""

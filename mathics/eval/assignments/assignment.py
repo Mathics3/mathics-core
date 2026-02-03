@@ -18,6 +18,7 @@ from mathics.core.assignment import (
 from mathics.core.atoms import Integer, Integer1
 from mathics.core.attributes import A_LOCKED, attribute_string_to_number
 from mathics.core.builtin import Builtin
+from mathics.core.definitions import BOX_FORMS
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import (
     MAX_RECURSION_DEPTH,
@@ -214,6 +215,30 @@ def eval_assign_attributes(
 
     evaluation.definitions.set_attributes(tag, attributes)
 
+    return True
+
+
+def eval_assign_boxforms(self, lhs, rhs, evaluation) -> bool:
+    if not rhs.has_form("List", None):
+        evaluation.message("$BoxForms", "formset", rhs)
+        return False
+    elements = rhs.elements
+    if not all(form in elements for form in BOX_FORMS):
+        evaluation.message("$BoxForms", "formset", rhs)
+        return False
+    if not all(isinstance(form, Symbol) for form in elements):
+        evaluation.message("$BoxForms", "formset", rhs)
+        return False
+
+    definitions = evaluation.definitions
+    # Add the new elements to printforms and outputforms
+    for element in elements:
+        if element not in definitions.printforms:
+            definitions.printforms.append(element)
+        if element not in definitions.outputforms:
+            definitions.outputforms.append(element)
+
+    definitions.boxforms = elements
     return True
 
 
@@ -661,19 +686,26 @@ def eval_assign_makeboxes(
         True if the assignment was successful.
 
     """
-    # FIXME: the below is a big hack.
-    # Currently MakeBoxes boxing is implemented as a bunch of rules.
-    # See mathics.core.builtin contribute().
-    # I think we want to change this so it works like normal SetDelayed
-    # That is:
-    #   MakeBoxes[CubeRoot, StandardForm] := RadicalBox[3, StandardForm]
-    # rather than:
-    #   MakeBoxes[CubeRoot, StandardForm] -> RadicalBox[3, StandardForm]
+    if not lhs.has_form("MakeBoxes", 2):
+        evaluation.message("MakeBoxes", "argrx", Integer(len(lhs.elements)))
+        raise AssignmentException(lhs, None)
+    target, form = lhs.elements
+    # Check second argument
+
     makeboxes_rule = Rule(lhs, rhs, system=False)
+    tags = [] if tags is None else tags
+    if upset:
+        tags = tags + [target.get_lookup_name()]
+    else:
+        if not tags:
+            tags = ["System`MakeBoxes"]
+
     definitions = evaluation.definitions
-    definitions.add_rule("System`MakeBoxes", makeboxes_rule, "downvalues")
-    #    makeboxes_defs = evaluation.definitions.builtin["System`MakeBoxes"]
-    #    makeboxes_defs.add_rule(makeboxes_rule)
+    for tag in tags:
+        if is_protected(tag, definitions):
+            evaluation.message(self.get_name(), "wrsym", Symbol(tag))
+            return False
+        definitions.add_format(tag, makeboxes_rule, "_MakeBoxes")
     return True
 
 
@@ -1556,6 +1588,7 @@ ASSIGNMENT_FUNCTION_MAP = {
 
 
 EVAL_ASSIGN_SPECIAL_SYMBOLS = {
+    "System`$BoxForms": eval_assign_boxforms,
     "System`$Context": eval_assign_context,
     "System`$ContextPath": eval_assign_context_path,
     "System`$HistoryLength": eval_assign_line_number_and_history_length,

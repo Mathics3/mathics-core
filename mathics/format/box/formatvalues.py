@@ -64,7 +64,7 @@ def do_format_element(
     Applies formats associated to the expression and removes
     superfluous enclosing formats.
     """
-    from mathics.core.definitions import OutputForms
+    from mathics.core.definitions import OUTPUT_FORMS
 
     head: BaseElement
 
@@ -77,7 +77,7 @@ def do_format_element(
         # If the expression is enclosed by a Format
         # takes the form from the expression and
         # removes the format from the expression.
-        if head in OutputForms and len(elements) == 1 and isinstance(head, Symbol):
+        if head in OUTPUT_FORMS and len(elements) == 1 and isinstance(head, Symbol):
             expr = elements[0]
             if not form.sameQ(head):
                 form = head
@@ -145,7 +145,7 @@ def do_format_element(
         # If the expression is not atomic or of certain
         # specific cases, iterate over the elements.
         head = expr.get_head()
-        if head in OutputForms:
+        if head in OUTPUT_FORMS:
             # If the expression was of the form
             # Form[expr, opts]
             # then the format was not stripped. Then,

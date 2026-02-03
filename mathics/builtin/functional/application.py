@@ -198,9 +198,7 @@ class Slot(SympyFunction, PrefixOperator):
     rules = {
         "Slot[]": "Slot[1]",
         "MakeBoxes[Slot[n_Integer?NonNegative],"
-        "  f:StandardForm|TraditionalForm|InputForm|OutputForm]": (
-            '"#" <> ToString[n]'
-        ),
+        "  (f:StandardForm|TraditionalForm)]": ('"#" <> ToString[n]'),
     }
     summary_text = "one argument of a pure function"
 
@@ -237,6 +235,6 @@ class SlotSequence(PrefixOperator, Builtin):
     rules = {
         "SlotSequence[]": "SlotSequence[1]",
         "MakeBoxes[SlotSequence[n_Integer?Positive],"
-        "f:StandardForm|TraditionalForm|InputForm|OutputForm]": ('"##" <> ToString[n]'),
+        "(f:StandardForm|TraditionalForm)]": ('"##" <> ToString[n]'),
     }
     summary_text = "the full sequence of arguments of a pure function"

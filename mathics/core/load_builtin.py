@@ -133,11 +133,8 @@ def definition_contribute(definitions):
     Load the Definition objects associated to all the builtins
     on `Definitions`
     """
-    # let MakeBoxes contribute first
-    _builtins["System`MakeBoxes"].contribute(definitions)
     for name, item in _builtins.items():
-        if name != "System`MakeBoxes":
-            item.contribute(definitions)
+        item.contribute(definitions)
 
     from mathics.core.definitions import Definition
     from mathics.core.expression import ensure_context
@@ -203,9 +200,13 @@ def import_and_load_builtins():
     """
     # TODO: Check if this is the expected behavior, or it the structures
     # must be cleaned.
+
     if len(mathics3_builtins_modules) > 0:
         logging.warning("``import_and_load_builtins`` should be called just once...")
         return
+
+    # Load render the routines
+    importlib.import_module("mathics.format.render")
 
     builtin_path = osp.join(
         osp.dirname(
