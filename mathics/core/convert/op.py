@@ -15,7 +15,7 @@ except ImportError:
 
 
 # Load the conversion tables from disk
-characters_path = osp.join(ROOT_DIR, "data", "op-tables.json")
+characters_path = osp.join(ROOT_DIR, "data", "character-tables.json")
 assert osp.exists(
     characters_path
 ), f"ASCII operator to Unicode tables are missing from {characters_path}"
@@ -24,15 +24,18 @@ with open(characters_path, "r") as f:
 
 ascii_operator_to_symbol = OPERATOR_CONVERSION_TABLES["ascii-operator-to-symbol"]
 builtin_constants = OPERATOR_CONVERSION_TABLES["builtin-constants"]
+named_characters = OPERATOR_CONVERSION_TABLES["named-characters"]
 operator_to_unicode = OPERATOR_CONVERSION_TABLES["operator-to-unicode"]
 operator_to_ascii = OPERATOR_CONVERSION_TABLES["operator-to-ascii"]
 unicode_operator_to_ascii = {
     val: operator_to_ascii[key] for key, val in operator_to_unicode.items()
 }
-unicode_to_amslatex = OPERATOR_CONVERSION_TABLES["unicode-to-amslatex"]
+
+UNICODE_TO_AMSLATEX = OPERATOR_CONVERSION_TABLES.get("unicode-to-amslatex", {})
+UNICODE_TO_LATEX = OPERATOR_CONVERSION_TABLES.get("unicode-to-latex", {})
 
 
-amstex_operators = {
+AMSTEX_OPERATORS = {
     "\u2032": "'",
     "\u2032\u2032": "''",
     "\u2062": " ",
@@ -92,7 +95,7 @@ def get_latex_operator(unicode_op: str) -> str:
         return hex(ord(char_str))[2:]
 
     for candidate_dict in (
-        unicode_to_amslatex,
+        UNICODE_TO_AMSLATEX,
         # amstex_operators,
         unicode_operator_to_ascii,
     ):
@@ -106,10 +109,12 @@ def get_latex_operator(unicode_op: str) -> str:
     # if it is already an ascii, return without changes.
     if unicode_op.isascii():
         return unicode_op
-
-    # the `unicode_op` cannot be converted into an ascii string. Show a
-    # warning and return a `\symbol{code}` expression.
-    logging.warning(
-        "Unicode op" + unicode_op + "(" + hex_form_code(unicode_op) + ") not found."
-    )
-    return '\\symbol{"' + hex_form_code(unicode_op) + "}"
+    try:
+        return r"\text{" + UNICODE_TO_LATEX[unicode_op] + "}"
+    except KeyError:
+        # the `unicode_op` cannot be converted into an ascii string. Show a
+        # warning and return a `\symbol{code}` expression.
+        logging.warning(
+            "Unicode op" + unicode_op + "(" + hex_form_code(unicode_op) + ") not found."
+        )
+        return '\\symbol{"' + hex_form_code(unicode_op) + "}"

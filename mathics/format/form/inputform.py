@@ -35,9 +35,7 @@ from mathics.core.expression import Expression
 from mathics.core.symbols import Atom
 from mathics.core.systemsymbols import (
     SymbolInputForm,
-    SymbolLeft,
     SymbolNonAssociative,
-    SymbolNone,
     SymbolRight,
 )
 from mathics.format.box.formatvalues import do_format  # , format_element
@@ -46,6 +44,8 @@ from mathics.settings import SYSTEM_CHARACTER_ENCODING
 from .util import (
     ARITHMETIC_OPERATOR_STRINGS,
     BLANKS_TO_STRINGS,
+    PARENTHESIZED_FIRST,
+    PARENTHESIZED_REST,
     _WrongFormattedExpression,
     collect_in_pre_post_arguments,
     get_operator_str,
@@ -91,7 +91,7 @@ def render_input_form(expr: BaseElement, evaluation: Evaluation, **kwargs) -> st
 @register_inputform("System`Association")
 def _association_expression_to_inputform_text(
     expr: Expression, evaluation: Evaluation, **kwargs
-):
+) -> str:
     elements = expr.elements
     result = ", ".join(
         [render_input_form(elem, evaluation, **kwargs) for elem in elements]
@@ -163,15 +163,13 @@ def _infix_expression_to_inputform_text(
         raise _WrongFormattedExpression
 
     # Process the first operand:
-    parenthesized = group in (SymbolNone, SymbolRight, SymbolNonAssociative)
+    parenthesized = group in PARENTHESIZED_FIRST
     operand = operands[0]
     result = str(render_input_form(operand, evaluation, **kwargs))
     result = parenthesize(precedence, operand, result, parenthesized)
 
-    if group in (SymbolLeft, SymbolRight):
-        parenthesized = not parenthesized
-
     # Process the rest of operands
+    parenthesized = group in PARENTHESIZED_REST
     num_ops = len(ops_lst)
     for index, operand in enumerate(operands[1:]):
         curr_op = ops_lst[index % num_ops]
@@ -210,7 +208,8 @@ def _prefix_expression_to_inputform_text(
     operand = operands[0]
     kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     target_txt = render_input_form(operand, evaluation, **kwargs)
-    target_txt = parenthesize(precedence, operand, target_txt, True)
+    parenthesized = group in (None, SymbolRight, SymbolNonAssociative)
+    target_txt = parenthesize(precedence, operand, target_txt, parenthesized)
     return str(op_head) + target_txt
 
 
@@ -229,15 +228,16 @@ def _postfix_expression_to_inputform_text(
     if len(operands) != 1 or not isinstance(op_head, str):
         raise _WrongFormattedExpression
     operand = operands[0]
+    parenthesized = group in (None, SymbolRight, SymbolNonAssociative)
     inputform_txt = render_input_form(operand, evaluation, **kwargs)
-    target_txt = parenthesize(precedence, operand, inputform_txt, True)
+    target_txt = parenthesize(precedence, operand, inputform_txt, parenthesized)
     return target_txt + op_head
 
 
 @register_inputform("System`Blank")
 @register_inputform("System`BlankSequence")
 @register_inputform("System`BlankNullSequence")
-def _blanks(expr: Expression, evaluation: Evaluation, **kwargs):
+def _blanks(expr: Expression, evaluation: Evaluation, **kwargs) -> str:
     elements = expr.elements
     if len(elements) > 1:
         return _generic_to_inputform_text(expr, evaluation, **kwargs)
@@ -252,8 +252,36 @@ def _blanks(expr: Expression, evaluation: Evaluation, **kwargs):
         return _generic_to_inputform_text(expr, evaluation, **kwargs)
 
 
+@register_inputform("System`Optional")
+def _optional(expr: Expression, evaluation: Evaluation, **kwargs) -> str:
+    name: str = ""
+    post: str = ""
+    elements = expr.elements
+    if not expr.has_form("Optional", 1, 2):
+        raise _WrongFormattedExpression
+    if len(elements) == 2:
+        post = ":" + render_input_form(elements[1], evaluation, **kwargs)
+    else:
+        post = "."
+
+    operand = elements[0]
+    if operand.has_form("Pattern", 2):
+        name = render_input_form(operand.elements[0], evaluation, **kwargs)
+        operand = operand.elements[1]
+
+    if not operand.has_form(("Blank", "BlankNullSequence", "BlankSequence"), 0):
+        raise _WrongFormattedExpression
+
+    blank_kind = operand.head
+    result = name + BLANKS_TO_STRINGS[blank_kind] + post
+    # `name__.` cannot be reentered if it is not wrapped in parenthesis:
+    if post == ".":
+        result = f"({result})"
+    return result
+
+
 @register_inputform("System`Pattern")
-def _pattern(expr: Expression, evaluation: Evaluation, **kwargs):
+def _pattern(expr: Expression, evaluation: Evaluation, **kwargs) -> str:
     elements = expr.elements
     if len(elements) != 2:
         return _generic_to_inputform_text(expr, evaluation, **kwargs)
@@ -263,7 +291,7 @@ def _pattern(expr: Expression, evaluation: Evaluation, **kwargs):
 
 @register_inputform("System`Rule")
 @register_inputform("System`RuleDelayed")
-def _rule_to_inputform_text(expr, evaluation: Evaluation, **kwargs):
+def _rule_to_inputform_text(expr, evaluation: Evaluation, **kwargs) -> str:
     """Rule|RuleDelayed[{...}]"""
     head = expr.head
     elements = expr.elements
@@ -280,7 +308,7 @@ def _rule_to_inputform_text(expr, evaluation: Evaluation, **kwargs):
 @register_inputform("System`Slot")
 def _slot_expression_to_inputform_text(
     expr: Expression, evaluation: Evaluation, **kwargs
-):
+) -> str:
     elements = expr.elements
     if len(elements) != 1:
         raise _WrongFormattedExpression
@@ -298,7 +326,7 @@ def _slot_expression_to_inputform_text(
 @register_inputform("System`SlotSequence")
 def _slotsequence_expression_to_inputform_text(
     expr: Expression, evaluation: Evaluation, **kwargs
-):
+) -> str:
     elements = expr.elements
     if len(elements) != 1:
         raise _WrongFormattedExpression

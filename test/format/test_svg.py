@@ -57,19 +57,12 @@ def extract_svg_body(svg):
 
 
 def get_svg(expression):
+    from mathics.format.box.graphics import prepare_elements as prepare_elements2d
+
     options = {}
     boxes = MakeBoxes(expression).evaluate(evaluation)
-
-    # Would be nice to DRY this boilerplate from boxes_to_mathml
-    elements = boxes._elements
-    elements, calc_dimensions = boxes._prepare_elements(
-        elements, options=options, neg_y=True
-    )
-    xmin, xmax, ymin, ymax, w, h, width, height = calc_dimensions()
-    data = (elements, xmin, xmax, ymin, ymax, w, h, width, height)
-
     format_fn = lookup_method(boxes, "svg")
-    return format_fn(boxes, elements, data=data, options=options)
+    return format_fn(boxes, options=options)
 
 
 def test_svg_circle():

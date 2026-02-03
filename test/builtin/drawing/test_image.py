@@ -56,8 +56,8 @@ image_tests = [
     reason="Test doesn't work in a when scikit-image is not installed",
 )
 @pytest.mark.skipif(
-    os.getenv("SANDBOX", False),
-    reason="Test doesn't work in a sandboxed environment with access to local files",
+    os.getenv("MATHICS3_SANDBOX"),
+    reason="Files module is disabled in sandbox mode",
 )
 @pytest.mark.parametrize(("str_expr, str_expected, msg"), image_tests)
 def test_image(str_expr: str, str_expected: str, msg: str, message=""):
