@@ -7,7 +7,7 @@ we may make use of via the mathics-scanner tables.
 LaTeX formatting is usually initiated in Mathics via TeXForm[].
 
 TeXForm in WMA is slightly vague or misleading since the output is
-typically LaTeX rather than Plain TeX. In Mathics, we also assume AMS
+typically LaTeX rather than Plain TeX. In Mathics3, we also assume AMS
 LaTeX or more specifically that we the additional AMS Mathematical
 Symbols exist.
 """
@@ -37,6 +37,7 @@ from mathics.core.convert.op import (
     UNICODE_TO_AMSLATEX,
     UNICODE_TO_LATEX,
     get_latex_operator,
+    named_characters,
 )
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import (
@@ -79,8 +80,8 @@ BRACKET_INFO = {
         "latex_closing_large": r"\right]",
     },
     (
-        String("\u301A"),
-        String("\u301B"),
+        String(named_characters["LeftDoubleBracket"]),
+        String(named_characters["RightDoubleBracket"]),
     ): {
         "latex_open": r"[[",
         "latex_closing": "]]",
@@ -88,8 +89,8 @@ BRACKET_INFO = {
         "latex_closing_large": r"\right]\right]",
     },
     (
-        String("\u2329"),
-        String("\u232A"),
+        String(named_characters["LeftAngleBracket"]),
+        String(named_characters["RightAngleBracket"]),
     ): {
         "latex_open": "\\langle",
         "latex_closing": "\\rangle",
@@ -97,8 +98,8 @@ BRACKET_INFO = {
         "latex_closing_large": r"\right\rangle ",
     },
     (
-        String("\u2016"),
-        String("\u2016"),
+        String(named_characters["LeftDoubleBracketingBar"]),
+        String(named_characters["RightDoubleBracketingBar"]),
     ): {
         "latex_open": r"\|",
         "latex_closing": r"\|",
@@ -358,9 +359,9 @@ def superscriptbox(self, **options):
 
     sup_string = self.superindex.get_string_value()
     # Handle derivatives
-    if sup_string == "\u2032":
+    if sup_string == named_characters["LeftDoubleBracket"]:
         return "%s'" % tex1
-    if sup_string == "\u2032\u2032":
+    if sup_string == named_characters["LeftDoubleBracket"] * 2:
         return "%s''" % tex1
     base = self.tex_block(tex1, True)
     superidx_to_tex = lookup_conversion_method(self.superindex, "latex")
