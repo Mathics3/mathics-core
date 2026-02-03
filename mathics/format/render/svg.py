@@ -309,11 +309,11 @@ def graphics_box(box: GraphicsBox, elements=None, **options: dict) -> str:
     boxheight = options.get("height", box.boxheight)
 
     assert isinstance(
-        boxwidth, int
-    ), f"boxwidth {boxwidth} should be 'int'. is {type(boxwidth)}"
+        boxwidth, (int, float)
+    ), f"boxwidth {boxwidth} should be 'int' or 'float'. is {type(boxwidth)}"
     assert isinstance(
-        boxheight, int
-    ), f"boxwidth {boxheight} should be 'int'. is {type(boxheight)}"
+        boxheight, (int, float)
+    ), f"boxwidth {boxheight} should be 'int' or 'float'. is {type(boxheight)}"
     box.boxwidth = boxwidth
     box.boxheight = boxheight
 
