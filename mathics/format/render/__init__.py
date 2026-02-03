@@ -1,27 +1,22 @@
-"""
-Lower-level formatting routines.
+"""Rendering routines.
 
-Built-in Lower-level formatting includes Asymptote, MathML, SVG,
-threejs, and plain text.  We hope and expect other formatting to other
-kinds backend renderers like matplotlib, can be done by following the
-pattern used here.
+Mathics3 Built-in rendering includes renderers to Asymptote, MathML,
+SVG, threejs, and plain text.  We hope and expect other formatting to
+other kinds backend renderers, like matplotlib, can be done by
+following the pattern used here.
 
-These routines typically get called in formatting Mathics3 Box objects.
+Input to the renders come from some sort of Mathics3 Box.
 
-The higher level *Forms* (e.g. TeXForm, MathMLForm) typically cause
-specific formatters to get called, (e.g. latex, mathml). However, the
-two concepts and levels are a little bit different. A given From can
-cause invoke of several formatters, which the front-end can influence
-based on its capabilities and back-end renders available to it.
+The higher level Forms (e.g. TeXForm, MathMLForm) typically cause
+specific boxing routines to get invoked. From this and the capabilites
+and desires of a front end, different rendering routines will invoked
+for each kind boxes created. This, in turn, produces strings in
+(AMS)LaTeX, MathML, SVG, asymptote, or plain text.
 
-For example, in graphics there may be several different kinds of
-renderers, SVG, or Asymptote for a particular kind of graphics Box.
-The front-end needs to decides which format it better suited for it.
-The Box, however, is created via a particular high-level Form.
-
-As another example, front-end may decide to use MathJaX to render
-TeXForm if the front-end supports this and the user so desires that.
-
+For example, to process the Mathics3 builtin BezierCurve, a
+BezierCurveBox will get created.  Mathics3 has SVG and an Asymptote
+renderers for BezierCurveBoxes.  Which one is used is decided on by
+the front-end's needs.
 """
 
 import glob
