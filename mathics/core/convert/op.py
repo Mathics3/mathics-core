@@ -15,7 +15,7 @@ except ImportError:
 
 
 # Load the conversion tables from disk
-characters_path = osp.join(ROOT_DIR, "data", "op-tables.json")
+characters_path = osp.join(ROOT_DIR, "data", "character-tables.json")
 assert osp.exists(
     characters_path
 ), f"ASCII operator to Unicode tables are missing from {characters_path}"
@@ -24,6 +24,7 @@ with open(characters_path, "r") as f:
 
 ascii_operator_to_symbol = OPERATOR_CONVERSION_TABLES["ascii-operator-to-symbol"]
 builtin_constants = OPERATOR_CONVERSION_TABLES["builtin-constants"]
+named_characters = OPERATOR_CONVERSION_TABLES["named-characters"]
 operator_to_unicode = OPERATOR_CONVERSION_TABLES["operator-to-unicode"]
 operator_to_ascii = OPERATOR_CONVERSION_TABLES["operator-to-ascii"]
 unicode_operator_to_ascii = {
