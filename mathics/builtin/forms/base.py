@@ -1,3 +1,5 @@
+from typing import Final, List
+
 import mathics.core.definitions as definitions
 from mathics.core.builtin import Builtin
 from mathics.core.symbols import Symbol
@@ -44,8 +46,7 @@ class FormBaseClass(Builtin):
         return instance
 
 
-# FormBaseClass is a public Builtin class that
-# should not get added as a definition (and therefore not added to
-# to external documentation.
+# FormBaseClass is a Builtin class that should not get added as a
+# definition, and therefore not added to to external documentation.
 
-DOES_NOT_ADD_BUILTIN_DEFINITION = [FormBaseClass]
+DOES_NOT_ADD_BUILTIN_DEFINITION: Final[List[Builtin]] = [FormBaseClass]

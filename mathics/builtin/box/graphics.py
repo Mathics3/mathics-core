@@ -4,7 +4,7 @@ Boxing Symbols for 2D Graphics
 """
 from abc import ABC
 from math import atan2, cos, degrees, pi, sin
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Final, List, Optional, Tuple
 
 from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.colors.color_directives import (
@@ -43,7 +43,7 @@ no_doc = True
 SymbolRegularPolygonBox = Symbol("RegularPolygonBox")
 
 
-class _GraphicsElementBox(BoxExpression, ABC):
+class GraphicsElementBox(BoxExpression, ABC):
     def init(self, graphics, item=None, style={}, opacity=1.0):
         if item is not None and not item.has_form(self.get_name(), None):
             raise BoxExpressionError
@@ -53,7 +53,13 @@ class _GraphicsElementBox(BoxExpression, ABC):
         self.is_completely_visible = False  # True for axis elements
 
 
-class _Polyline(_GraphicsElementBox):
+# GraphicsElementBox Builtin class that should not get added as a definition,
+# and therefore not added to to external documentation.
+
+DOES_NOT_ADD_BUILTIN_DEFINITION: Final[List[BoxExpression]] = [GraphicsElementBox]
+
+
+class _Polyline(GraphicsElementBox):
     """
     A structure containing a list of line segments
     stored in ``self.lines`` created from
@@ -109,12 +115,12 @@ class _Polyline(_GraphicsElementBox):
         return result
 
 
-# Note: has to come before _ArcBox
-class _RoundBox(_GraphicsElementBox):
+# Note: has to come before ArcBox
+class RoundBox(GraphicsElementBox):
     face_element: Optional[bool] = None
 
     def init(self, graphics, style, item):
-        super(_RoundBox, self).init(graphics, item, style)
+        super().init(graphics, item, style)
         if len(item.elements) not in (1, 2):
             raise BoxExpressionError
         self.edge_color, self.face_color = style.get_style(
@@ -137,7 +143,7 @@ class _RoundBox(_GraphicsElementBox):
 
     def extent(self) -> list:
         """
-        Compute the bounding box for _RoundBox. Note that
+        Compute the bounding box for RoundBox. Note that
         We handle ellipses here too.
         """
         line_width = self.style.get_line_width(face_element=self.face_element) / 2
@@ -150,7 +156,7 @@ class _RoundBox(_GraphicsElementBox):
         return [(x - rx, y - ry), (x - rx, y + ry), (x + rx, y - ry), (x + rx, y + ry)]
 
 
-class _ArcBox(_RoundBox):
+class ArcBox(RoundBox):
     def init(self, graphics, style, item):
         if len(item.elements) == 3:
             arc_expr = item.elements[2]
@@ -175,7 +181,7 @@ class _ArcBox(_RoundBox):
             item = Expression(Symbol(item.get_head_name()), *item.elements[:2])
         else:
             self.arc = None
-        super(_ArcBox, self).init(graphics, style, item)
+        super().init(graphics, style, item)
 
     def _arc_params(self):
         x, y = self.c.pos()
@@ -214,7 +220,7 @@ class ArrowBox(_Polyline):
         if not item:
             raise BoxExpressionError
 
-        super(ArrowBox, self).init(graphics, item, style)
+        super().init(graphics, item, style)
 
         elements = item.elements
         if len(elements) == 2:
@@ -428,7 +434,7 @@ class BezierCurveBox(_Polyline):
         self.spline_degree = spline_degree.get_int_value()
 
 
-class CircleBox(_ArcBox):
+class CircleBox(ArcBox):
     """
     <dl>
       <dt>'CircleBox'
@@ -440,7 +446,7 @@ class CircleBox(_ArcBox):
     summary_text = "is the symbol used in boxing 'Circle' expressions"
 
 
-class DiskBox(_ArcBox):
+class DiskBox(ArcBox):
     """
     <dl>
       <dt>'DiskBox'
@@ -471,6 +477,9 @@ class GraphicsBox(BoxExpression):
         self.background_color = None
         self.tooltip_text: Optional[str] = None
         self.evaluation = kwargs.pop("_evaluation", None)
+        self.boxwidth: int = -1
+        self.boxheight: int = -1
+        self.boxes: list = []
 
     @property
     def elements(self):
@@ -500,7 +509,7 @@ class GraphicsBox(BoxExpression):
         return svg_body
 
 
-class FilledCurveBox(_GraphicsElementBox):
+class FilledCurveBox(GraphicsElementBox):
     """
     <dl>
       <dt>'FilledCurveBox'
@@ -580,7 +589,7 @@ class FilledCurveBox(_GraphicsElementBox):
         return result
 
 
-class InsetBox(_GraphicsElementBox):
+class InsetBox(GraphicsElementBox):
     # We have no documentation for this (yet).
     no_doc = True
 
@@ -791,7 +800,7 @@ class PolygonBox(_Polyline):
             raise BoxExpressionError
 
 
-class RectangleBox(_GraphicsElementBox):
+class RectangleBox(GraphicsElementBox):
     # We have no documentation for this (yet).
     no_doc = True
 
