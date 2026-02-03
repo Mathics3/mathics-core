@@ -46,6 +46,11 @@ from mathics.core.formatter import (
 )
 from mathics.core.symbols import SymbolTrue
 from mathics.core.systemsymbols import SymbolAutomatic
+from mathics.format.box.graphics import prepare_elements as prepare_elements2d
+from mathics.format.box.graphics3d import (
+    get_boundbox_lines as get_boundbox_lines3D,
+    prepare_elements as prepare_elements3d,
+)
 from mathics.format.render.asy_fns import asy_color, asy_create_pens, asy_number
 
 # mathics_scanner does not generates this table in a way that we can load it here.
@@ -501,15 +506,15 @@ def graphicsbox(self, elements=None, **options) -> str:
     However right now the only LaTeX support for graphics is via Asymptote and
     that seems to be the package of choice in general for LaTeX.
     """
+    assert elements is None
 
     if not elements:
-        elements = self._elements
-
-    fields = self._prepare_elements(elements, options, max_width=450)
-    if len(fields) == 2:
-        elements, calc_dimensions = fields
-    else:
-        elements, calc_dimensions = fields[0], fields[-2]
+        content = self.content
+        fields = prepare_elements2d(self, content, options, max_width=450)
+        if len(fields) == 2:
+            elements, calc_dimensions = fields
+        else:
+            elements, calc_dimensions = fields[0], fields[-2]
 
     fields = calc_dimensions()
     if len(fields) == 8:
@@ -572,8 +577,8 @@ add_conversion_fn(GraphicsBox, graphicsbox)
 
 
 def graphics3dbox(self, elements=None, **options) -> str:
-    if not elements:
-        elements = self._elements
+    assert elements is None
+    elements = self.content
 
     (
         elements,
@@ -582,7 +587,7 @@ def graphics3dbox(self, elements=None, **options) -> str:
         ticks_style,
         calc_dimensions,
         boxscale,
-    ) = self._prepare_elements(elements, options, max_width=450)
+    ) = prepare_elements3d(self, elements, options, max_width=450)
 
     elements._apply_boxscaling(boxscale)
 
@@ -609,7 +614,7 @@ def graphics3dbox(self, elements=None, **options) -> str:
 
     # Draw boundbox and axes
     boundbox_asy = ""
-    boundbox_lines = self.get_boundbox_lines(xmin, xmax, ymin, ymax, zmin, zmax)
+    boundbox_lines = get_boundbox_lines3D(self, xmin, xmax, ymin, ymax, zmin, zmax)
 
     for i, line in enumerate(boundbox_lines):
         if i in axes_indices:
