@@ -359,9 +359,9 @@ def superscriptbox(self, **options):
 
     sup_string = self.superindex.get_string_value()
     # Handle derivatives
-    if sup_string == named_characters["LeftDoubleBracket"]:
+    if sup_string == named_characters["Prime"]:
         return "%s'" % tex1
-    if sup_string == named_characters["LeftDoubleBracket"] * 2:
+    if sup_string == named_characters["Prime"] * 2:
         return "%s''" % tex1
     base = self.tex_block(tex1, True)
     superidx_to_tex = lookup_conversion_method(self.superindex, "latex")
