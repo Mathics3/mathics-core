@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Lower-level formatter of Mathics objects as MathML strings.
+Mathics3 Graphics3D box rendering to MathML strings.
 
 MathML formatting is usually initiated in Mathics via MathMLForm[].
 
@@ -17,7 +17,7 @@ produces
 <mi>a</mi>
 <mo>+</mo>
 <msup>
-<mi>b</mi> 
+<mi>b</mi>
 <mi>c</mi>
 </msup>
 </mrow>
@@ -33,6 +33,7 @@ import base64
 
 from mathics_scanner.tokeniser import is_symbol_name
 
+from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
@@ -89,14 +90,14 @@ extra_operators = {
 }
 
 
-def string(self, **options) -> str:
-    text = self.value
+def string(s: String, **options) -> str:
+    text = s.value
 
     number_as_text = options.get("number_as_text", None)
     show_string_characters = (
         options.get("System`ShowStringCharacters", None) is SymbolTrue
     )
-    if isinstance(self, BoxElementMixin):
+    if isinstance(s, BoxElementMixin):
         if number_as_text is None:
             number_as_text = SymbolFalse
 
@@ -143,9 +144,9 @@ def string(self, **options) -> str:
 add_conversion_fn(String, string)
 
 
-def interpretation_box(self, **options):
-    boxes = self.boxes
-    origin = self.expr
+def interpretation_box(box: InterpretationBox, **options):
+    boxes = box.boxes
+    origin = box.expr
     if origin.has_form("InputForm", None):
         # InputForm produce outputs of the form
         # InterpretationBox[Style[_String, ...], origin_InputForm, opts___]
@@ -169,9 +170,9 @@ def interpretation_box(self, **options):
 add_conversion_fn(InterpretationBox, interpretation_box)
 
 
-def pane_box(self, **options):
-    content = lookup_conversion_method(self.boxes, "mathml")(self.boxes, **options)
-    options = self.box_options
+def pane_box(box: PaneBox, **options):
+    content = lookup_conversion_method(box.boxes, "mathml")(box.boxes, **options)
+    options = box.box_options
     size = options.get("System`ImageSize", SymbolAutomatic).to_python()
     if size is SymbolAutomatic:
         width = ""
@@ -207,27 +208,27 @@ def pane_box(self, **options):
 add_conversion_fn(PaneBox, pane_box)
 
 
-def fractionbox(self, **options) -> str:
-    _options = self.box_options.copy()
+def fractionbox(box: FractionBox, **options) -> str:
+    _options = box.box_options.copy()
     _options.update(options)
     options = _options
     return "<mfrac>\n%s\n%s\n</mfrac>" % (
-        lookup_conversion_method(self.num, "mathml")(self.num, **options),
-        lookup_conversion_method(self.den, "mathml")(self.den, **options),
+        lookup_conversion_method(box.num, "mathml")(box.num, **options),
+        lookup_conversion_method(box.den, "mathml")(box.den, **options),
     )
 
 
 add_conversion_fn(FractionBox, fractionbox)
 
 
-def gridbox(self, elements=None, **box_options) -> str:
+def gridbox(box: GridBox, elements=None, **box_options) -> str:
     def boxes_to_mathml(box, **options):
         return lookup_conversion_method(box, "mathml")(box, **options)
 
     if not elements:
-        elements = self._elements
+        elements = box._elements
     evaluation = box_options.get("evaluation")
-    items, options = self.get_array(elements, evaluation)
+    items, options = box.get_array(elements, evaluation)
     num_fields = max(len(item) if isinstance(item, tuple) else 1 for item in items)
 
     attrs = {}
@@ -261,67 +262,67 @@ def gridbox(self, elements=None, **box_options) -> str:
 add_conversion_fn(GridBox, gridbox)
 
 
-def sqrtbox(self, **options):
-    _options = self.box_options.copy()
+def sqrtbox(box: SqrtBox, **options):
+    _options = box.box_options.copy()
     _options.update(options)
     options = _options
-    if self.index:
+    if box.index:
         return "<mroot> %s %s </mroot>" % (
-            lookup_conversion_method(self.radicand, "mathml")(self.radicand, **options),
-            lookup_conversion_method(self.index, "mathml")(self.index, **options),
+            lookup_conversion_method(box.radicand, "mathml")(box.radicand, **options),
+            lookup_conversion_method(box.index, "mathml")(box.index, **options),
         )
 
-    return "<msqrt>\n%s\n</msqrt>" % lookup_conversion_method(self.radicand, "mathml")(
-        self.radicand, **options
+    return "<msqrt>\n%s\n</msqrt>" % lookup_conversion_method(box.radicand, "mathml")(
+        box.radicand, **options
     )
 
 
 add_conversion_fn(SqrtBox, sqrtbox)
 
 
-def subscriptbox(self, **options):
-    _options = self.box_options.copy()
+def subscriptbox(box: SubscriptBox, **options):
+    _options = box.box_options.copy()
     _options.update(options)
     options = _options
     return "<msub>\n%s\n%s\n</msub>" % (
-        lookup_conversion_method(self.base, "mathml")(self.base, **options),
-        lookup_conversion_method(self.subindex, "mathml")(self.subindex, **options),
+        lookup_conversion_method(box.base, "mathml")(box.base, **options),
+        lookup_conversion_method(box.subindex, "mathml")(box.subindex, **options),
     )
 
 
 add_conversion_fn(SubscriptBox, subscriptbox)
 
 
-def superscriptbox(self, **options):
-    _options = self.box_options.copy()
+def superscriptbox(box: SuperscriptBox, **options):
+    _options = box.box_options.copy()
     _options.update(options)
     options = _options
     return "<msup>\n%s\n%s\n</msup>" % (
-        lookup_conversion_method(self.base, "mathml")(self.base, **options),
-        lookup_conversion_method(self.superindex, "mathml")(self.superindex, **options),
+        lookup_conversion_method(box.base, "mathml")(box.base, **options),
+        lookup_conversion_method(box.superindex, "mathml")(box.superindex, **options),
     )
 
 
 add_conversion_fn(SuperscriptBox, superscriptbox)
 
 
-def subsuperscriptbox(self, **options):
-    _options = self.box_options.copy()
+def subsuperscriptbox(box: SubsuperscriptBox, **options):
+    _options = box.box_options.copy()
     _options.update(options)
     options = _options
     options["inside_row"] = True
     return "<msubsup>\n%s\n%s\n%s\n</msubsup>" % (
-        lookup_conversion_method(self.base, "mathml")(self.base, **options),
-        lookup_conversion_method(self.subindex, "mathml")(self.subindex, **options),
-        lookup_conversion_method(self.superindex, "mathml")(self.superindex, **options),
+        lookup_conversion_method(box.base, "mathml")(box.base, **options),
+        lookup_conversion_method(box.subindex, "mathml")(box.subindex, **options),
+        lookup_conversion_method(box.superindex, "mathml")(box.superindex, **options),
     )
 
 
 add_conversion_fn(SubsuperscriptBox, subsuperscriptbox)
 
 
-def rowbox(self, **options) -> str:
-    _options = self.box_options.copy()
+def rowbox(box: RowBox, **options) -> str:
+    _options = box.box_options.copy()
     _options.update(options)
     options = _options
     result = []
@@ -336,16 +337,16 @@ def rowbox(self, **options) -> str:
 
     is_list_row = False
     if (
-        len(self.items) >= 3
-        and self.items[0].get_string_value() == "{"
-        and self.items[2].get_string_value() == "}"
-        and self.items[1].has_form("RowBox", 1, None)
+        len(box.items) >= 3
+        and box.items[0].get_string_value() == "{"
+        and box.items[2].get_string_value() == "}"
+        and box.items[1].has_form("RowBox", 1, None)
     ):
-        content = self.items[1].items
+        content = box.items[1].items
         if is_list_interior(content):
             is_list_row = True
 
-    if not inside_row and is_list_interior(self.items):
+    if not inside_row and is_list_interior(box.items):
         is_list_row = True
 
     if is_list_row:
@@ -353,7 +354,7 @@ def rowbox(self, **options) -> str:
     else:
         options["inside_row"] = True
 
-    for element in self.items:
+    for element in box.items:
         result.append(lookup_conversion_method(element, "mathml")(element, **options))
 
     # print(f"mrow: {result}")
@@ -364,20 +365,20 @@ def rowbox(self, **options) -> str:
 add_conversion_fn(RowBox, rowbox)
 
 
-def stylebox(self, **options) -> str:
-    _options = self.box_options.copy()
+def stylebox(box: StyleBox, **options) -> str:
+    _options = box.box_options.copy()
     _options.update(options)
     options = _options
-    return lookup_conversion_method(self.boxes, "mathml")(self.boxes, **options)
+    return lookup_conversion_method(box.boxes, "mathml")(box.boxes, **options)
 
 
 add_conversion_fn(StyleBox, stylebox)
 
 
-def graphicsbox(self, elements=None, **options) -> str:
+def graphicsbox(box: GraphicsBox, elements=None, **options) -> str:
     # FIXME: SVG is the only thing we can convert MathML into.
     # Handle other graphics formats.
-    svg_body = self.boxes_to_format("svg", **options)
+    svg_body = box.boxes_to_format("svg", **options)
 
     # mglyph, which is what we have been using, is bad because MathML standard changed.
     # metext does not work because the way in which we produce the svg images is also based on this outdated mglyph
@@ -389,8 +390,8 @@ def graphicsbox(self, elements=None, **options) -> str:
     )
     # print(svg_body)
     mathml = template % (
-        int(self.boxwidth),
-        int(self.boxheight),
+        int(box.boxwidth),
+        int(box.boxheight),
         base64.b64encode(svg_body.encode("utf8")).decode("utf8"),
     )
     # print("boxes_to_mathml", mathml)
@@ -400,9 +401,9 @@ def graphicsbox(self, elements=None, **options) -> str:
 add_conversion_fn(GraphicsBox, graphicsbox)
 
 
-def graphics3dbox(self, elements=None, **options) -> str:
+def graphics3dbox(box, elements=None, **options) -> str:
     """Turn the Graphics3DBox into a MathML string"""
-    result = self.boxes_to_js(**options)
+    result = box.boxes_to_js(**options)
     result = f"<mtable><mtr><mtd>{result}</mtd></mtr></mtable>"
     return result
 
@@ -410,8 +411,8 @@ def graphics3dbox(self, elements=None, **options) -> str:
 add_conversion_fn(Graphics3DBox, graphics3dbox)
 
 
-def tag_and_form_box(self, **options):
-    return lookup_conversion_method(self.boxes, "mathml")(self.boxes, **options)
+def tag_and_form_box(box: BoxExpression, **options):
+    return lookup_conversion_method(box.boxes, "mathml")(box.boxes, **options)
 
 
 add_conversion_fn(FormBox, tag_and_form_box)

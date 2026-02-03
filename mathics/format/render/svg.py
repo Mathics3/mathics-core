@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Lower-level formatter of Mathics objects as SVG strings.
+Mathics3 Graphics box rendering to SVG strings.
 """
 
 from mathics.builtin.box.graphics import (
+    ArcBox,
     ArrowBox,
     BezierCurveBox,
     FilledCurveBox,
@@ -13,8 +14,7 @@ from mathics.builtin.box.graphics import (
     PointBox,
     PolygonBox,
     RectangleBox,
-    _ArcBox,
-    _RoundBox,
+    RoundBox,
 )
 from mathics.builtin.drawing.graphics3d import Graphics3DElements
 from mathics.builtin.graphics import DEFAULT_POINT_FACTOR, PointSize, _svg_bezier
@@ -92,16 +92,16 @@ def create_css(
     return "; ".join(css)
 
 
-def arcbox(self, **options) -> str:
+def arcbox(box: ArcBox, **options) -> str:
     """
     SVG formatting for arc of a circle.
     """
-    if self.arc is None:
+    if box.arc is None:
         # We have a doughnut graph and this is the inner blank hole of that.
         # It is an empty circle
-        return _roundbox(self)
+        return roundbox(box)
 
-    x, y, rx, ry, sx, sy, ex, ey, large_arc = self._arc_params()
+    x, y, rx, ry, sx, sy, ex, ey, large_arc = box._arc_params()
 
     def path(closed):
         if closed:
@@ -115,40 +115,40 @@ def arcbox(self, **options) -> str:
         if closed:
             yield "Z"
 
-    line_width = self.style.get_line_width(face_element=self.face_element)
+    line_width = box.style.get_line_width(face_element=box.face_element)
     style = create_css(
-        self.edge_color,
-        self.face_color,
+        box.edge_color,
+        box.face_color,
         stroke_width=line_width,
-        edge_opacity=self.edge_opacity,
-        face_opacity=self.face_opacity,
+        edge_opacity=box.edge_opacity,
+        face_opacity=box.face_opacity,
     )
-    svg = f"<path d=\"{' '.join(path(self.face_element))}\" style=\"{style}\" />"
+    svg = f"<path d=\"{' '.join(path(box.face_element))}\" style=\"{style}\" />"
     # print("_Arcbox: ", svg)
     return svg
 
 
-add_conversion_fn(_ArcBox, arcbox)
+add_conversion_fn(ArcBox, arcbox)
 
 
-def arrow_box(self, **options) -> str:
-    width = self.style.get_line_width(face_element=False)
+def arrow_box(box: ArrowBox, **options) -> str:
+    width = box.style.get_line_width(face_element=False)
     style = create_css(
-        self.edge_color, stroke_width=width, edge_opacity=self.edge_opacity
+        box.edge_color, stroke_width=width, edge_opacity=box.edge_opacity
     )
-    polyline = self.curve.make_draw_svg(style)
+    polyline = box.curve.make_draw_svg(style)
 
-    arrow_style = create_css(face_color=self.edge_color, stroke_width=width)
+    arrow_style = create_css(face_color=box.edge_color, stroke_width=width)
 
     def polygon(points):
         yield '<polygon points="'
         yield " ".join("%f,%f" % xy for xy in points)
         yield f'" style="{arrow_style}" />'
 
-    extent = self.graphics.view_width or 0
-    default_arrow = self._default_arrow(polygon)
-    custom_arrow = self._custom_arrow("svg", _SVGTransform)
-    svg = "\n".join(self._draw(polyline, default_arrow, custom_arrow, extent))
+    extent = box.graphics.view_width or 0
+    default_arrow = box._default_arrow(polygon)
+    custom_arrow = box._custom_arrow("svg", _SVGTransform)
+    svg = "\n".join(box._draw(polyline, default_arrow, custom_arrow, extent))
     # print("ArrowBox: ", svg)
     return svg
 
@@ -156,19 +156,19 @@ def arrow_box(self, **options) -> str:
 add_conversion_fn(ArrowBox, arrow_box)
 
 
-def bezier_curve_box(self, **options) -> str:
+def bezier_curve_box(box: BezierCurveBox, **options) -> str:
     """
     SVG formatter for BezierCurveBox.
     """
-    line_width = self.style.get_line_width(face_element=False)
+    line_width = box.style.get_line_width(face_element=False)
     style = create_css(
-        edge_color=self.edge_color,
+        edge_color=box.edge_color,
         stroke_width=line_width,
-        edge_opacity=self.edge_opacity,
+        edge_opacity=box.edge_opacity,
     )
     svg = "<!--BezierCurveBox-->\n"
-    for line in self.lines:
-        s = "\n".join(_svg_bezier((self.spline_degree, [xy.pos() for xy in line])))
+    for line in box.lines:
+        s = "\n".join(_svg_bezier((box.spline_degree, [xy.pos() for xy in line])))
         svg += f'<path d="{s}" style="{style}"/>'
     # print("BezierCurveBox: ", svg)
     return svg
@@ -177,7 +177,7 @@ def bezier_curve_box(self, **options) -> str:
 add_conversion_fn(BezierCurveBox, bezier_curve_box)
 
 
-def density_plot_box(self, **options):
+def density_plot_box(box, **options):
     """
     SVG formatter for DensityPlotBox.
     """
@@ -202,9 +202,9 @@ def density_plot_box(self, **options):
     # to go from the center to each of the (square) sides.
 
     svg_data = ["<!--DensityPlot-->"]
-    for index, triangle_coords in enumerate(self.lines):
+    for index, triangle_coords in enumerate(box.lines):
         triangle = [coords.pos() for coords in triangle_coords]
-        colors = [rgb.to_js() for rgb in self.vertex_colors[index]]
+        colors = [rgb.to_js() for rgb in box.vertex_colors[index]]
         r = (colors[0][0] + colors[1][0] + colors[2][0]) / 3
         g = (colors[0][1] + colors[1][1] + colors[2][1]) / 3
         b = (colors[0][2] + colors[1][2] + colors[2][1]) / 3
@@ -221,21 +221,21 @@ def density_plot_box(self, **options):
 # No add_conversion_fn since this is a hacken-on polygonbox
 
 
-def filled_curve_box(self, **options):
-    line_width = self.style.get_line_width(face_element=False)
+def filled_curve_box(box: FilledCurveBox, **options):
+    line_width = box.style.get_line_width(face_element=False)
     style = create_css(
-        edge_color=self.edge_color, face_color=self.face_color, stroke_width=line_width
+        edge_color=box.edge_color, face_color=box.face_color, stroke_width=line_width
     )
     style = create_css(
-        edge_color=self.edge_color,
-        face_color=self.face_color,
+        edge_color=box.edge_color,
+        face_color=box.face_color,
         stroke_width=line_width,
-        edge_opacity=self.edge_opacity,
-        face_opacity=self.edge_opacity,
+        edge_opacity=box.edge_opacity,
+        face_opacity=box.edge_opacity,
     )
 
     def components():
-        for component in self.components:
+        for component in box.components:
             transformed = [(k, [xy.pos() for xy in p]) for k, p in component]
             yield " ".join(_svg_bezier(*transformed)) + " Z"
 
@@ -249,7 +249,7 @@ def filled_curve_box(self, **options):
 add_conversion_fn(FilledCurveBox, filled_curve_box)
 
 
-def graphics_box(self, elements=None, **options: dict) -> str:
+def graphics_box(box: GraphicsBox, elements=None, **options: dict) -> str:
     """
     Top-level SVG routine takes ``elements`` and ``options`` and turns
     this into a SVG string, including the <svg>..</svg> tag.
@@ -266,7 +266,7 @@ def graphics_box(self, elements=None, **options: dict) -> str:
     """
 
     assert elements is None
-    elements = self.content
+    elements = box.content
 
     data = options.get("data", None)
     assert data is None
@@ -277,27 +277,27 @@ def graphics_box(self, elements=None, **options: dict) -> str:
             xmax,
             ymin,
             ymax,
-            self.boxwidth,
-            self.boxheight,
+            box.boxwidth,
+            box.boxheight,
             width,
             height,
         ) = data
     else:
         elements, calc_dimensions = prepare_elements2d(
-            self, elements, options, neg_y=True
+            box, elements, options, neg_y=True
         )
         (
             xmin,
             xmax,
             ymin,
             ymax,
-            self.boxwidth,
-            self.boxheight,
+            box.boxwidth,
+            box.boxheight,
             width,
             height,
         ) = calc_dimensions()
 
-    elements.view_width = self.boxwidth
+    elements.view_width = box.boxwidth
 
     format_fn = lookup_method(elements, "svg")
     if format_fn is not None:
@@ -305,17 +305,26 @@ def graphics_box(self, elements=None, **options: dict) -> str:
     else:
         svg_body = elements.to_svg(**options)
 
-    self.boxwidth = options.get("width", self.boxwidth)
-    self.boxheight = options.get("height", self.boxheight)
+    boxwidth = options.get("width", box.boxwidth)
+    boxheight = options.get("height", box.boxheight)
 
-    tooltip_text = self.tooltip_text or ""
-    if self.background_color is not None:
+    assert isinstance(
+        boxwidth, (int, float)
+    ), f"boxwidth {boxwidth} should be 'int' or 'float'. is {type(boxwidth)}"
+    assert isinstance(
+        boxheight, (int, float)
+    ), f"boxwidth {boxheight} should be 'int' or 'float'. is {type(boxheight)}"
+    box.boxwidth = boxwidth
+    box.boxheight = boxheight
+
+    tooltip_text = box.tooltip_text or ""
+    if box.background_color is not None:
         # FIXME: tests don't seem to cover this section of code.
         # Wrap svg_elements in a rectangle
 
         background = "rgba(100%,100%,100%,100%)"
-        if self.background_color:
-            components = self.background_color.to_rgba()
+        if box.background_color:
+            components = box.background_color.to_rgba()
             if len(components) == 3:
                 background = "rgb(" + ", ".join(f"{100*c}%" for c in components) + ")"
             else:
@@ -324,8 +333,8 @@ def graphics_box(self, elements=None, **options: dict) -> str:
         svg_body = f"""
             <rect
                  x="{xmin:f}" y="{ymin:f}"
-                 width="{self.boxwidth:f}"
-                 height="{self.boxheight:f}"
+                 width="{box.boxwidth:f}"
+                 height="{box.boxheight:f}"
                  style="fill:{background}"><title>{tooltip_text}</title></rect>
             {svg_body}
            """
@@ -333,7 +342,7 @@ def graphics_box(self, elements=None, **options: dict) -> str:
     if options.get("noheader", False):
         return svg_body
 
-    svg_main = wrap_svg_body(self.boxwidth, self.boxheight, xmin, ymin, svg_body)
+    svg_main = wrap_svg_body(box.boxwidth, box.boxheight, xmin, ymin, svg_body)
     # print("svg_main", svg_main)
     return svg_main  # , width, height
 
@@ -341,12 +350,12 @@ def graphics_box(self, elements=None, **options: dict) -> str:
 add_conversion_fn(GraphicsBox, graphics_box)
 
 
-def graphics_elements(self, **options) -> str:
+def graphics_elements(box: GraphicsElements, **options) -> str:
     """
-    SVG formatting on a list of graphics elements.
+    SVG formatting on a GraphicsElementBox which may contain other GraphicsElementBox's.
     """
     result = ["<!--GraphicsElements-->"]
-    for element in self.elements:
+    for element in box.elements:
         try:
             format_fn = lookup_method(element, "svg")
         except Exception:
@@ -370,45 +379,45 @@ graphics3delements = graphics_elements
 add_conversion_fn(Graphics3DElements)
 
 
-def inset_box(self, **options) -> str:
+def inset_box(box: InsetBox, **options) -> str:
     """
     SVG formatting for boxing an Inset in a graphic.
     """
-    x, y = self.pos.pos()
+    x, y = box.pos.pos()
     offset = options.get("offset", None)
     if offset is not None:
         x = x + offset[0]
         y = y + offset[1]
-    if hasattr(self.content, "to_svg"):
-        content = self.content.to_svg(noheader=True, offset=(x, y))
+    if hasattr(box.content, "to_svg"):
+        content = box.content.to_svg(noheader=True, offset=(x, y))
         svg = "\n" + content + "\n"
     else:
         css_style = create_css(
-            font_color=self.color,
-            edge_color=self.color,
-            face_color=self.color,
+            font_color=box.color,
+            edge_color=box.color,
+            face_color=box.color,
             stroke_width=0.2,
-            opacity=self.opacity.opacity,
+            opacity=box.opacity.opacity,
         )
-        text_pos_opts = f'x="{x}" y="{y}" ox="{self.opos[0]}" oy="{self.opos[1]}"'
+        text_pos_opts = f'x="{x}" y="{y}" ox="{box.opos[0]}" oy="{box.opos[1]}"'
 
         alignment = " dominant-baseline:hanging;"
-        if hasattr(self, "alignment"):
-            if self.alignment == "bottom":
+        if hasattr(box, "alignment"):
+            if box.alignment == "bottom":
                 # This is typically done for labels under the x axis.
                 alignment = " dominant-baseline:hanging; text-anchor:middle;"
-            elif self.alignment == "left":
+            elif box.alignment == "left":
                 # This is typically done for labels to the left of the y axis.
                 alignment = " dominant-baseline:middle; text-anchor:end;"
 
         # FIXME: don't hard code text_style_opts, but allow these to be adjustable.
         text_style_opts = alignment
-        content = self.content.boxes_to_text(evaluation=self.graphics.evaluation)
+        content = box.content.boxes_to_text(evaluation=box.graphics.evaluation)
         font_size = f'''font-size="{options.get("point_size", "10px")}"'''
         svg = f'<text {text_pos_opts} {font_size} style="{text_style_opts} {css_style}">{content}</text>'
 
-    # content = self.content.boxes_to_mathml(evaluation=self.graphics.evaluation)
-    # style = create_css(font_color=self.color)
+    # content = box.content.boxes_to_mathml(evaluation=box.graphics.evaluation)
+    # style = create_css(font_color=box.color)
     # svg = (
     #    '<foreignObject x="%f" y="%f" ox="%f" oy="%f" style="%s">'
     #    "<math>%s</math></foreignObject>")
@@ -420,12 +429,12 @@ def inset_box(self, **options) -> str:
 add_conversion_fn(InsetBox, inset_box)
 
 
-def line_box(self, **options) -> str:
-    line_width = self.style.get_line_width(face_element=False)
+def line_box(box: LineBox, **options) -> str:
+    line_width = box.style.get_line_width(face_element=False)
     style = create_css(
-        edge_color=self.edge_color,
+        edge_color=box.edge_color,
         stroke_width=line_width,
-        edge_opacity=self.edge_opacity,
+        edge_opacity=box.edge_opacity,
     )
 
     # The following line options come from looking at SVG produced from WMA.
@@ -434,7 +443,7 @@ def line_box(self, **options) -> str:
     style += "; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25"
 
     svg = "<!--LineBox-->\n"
-    for line in self.lines:
+    for line in box.lines:
         svg += '<polyline points="%s" style="%s" />' % (
             " ".join(["%f,%f" % coords.pos() for coords in line]),
             style,
@@ -446,18 +455,18 @@ def line_box(self, **options) -> str:
 add_conversion_fn(LineBox, line_box)
 
 
-def pointbox(self, **options) -> str:
-    point_size, _ = self.style.get_style(PointSize, face_element=False)
+def pointbox(box: PointBox, **options) -> str:
+    point_size, _ = box.style.get_style(PointSize, face_element=False)
     if point_size is None:
-        point_size = PointSize(self.graphics, value=DEFAULT_POINT_FACTOR)
+        point_size = PointSize(box.graphics, value=DEFAULT_POINT_FACTOR)
     size = point_size.get_absolute_size()
 
     style = create_css(
-        edge_color=self.edge_color,
+        edge_color=box.edge_color,
         stroke_width=0,
-        face_color=self.face_color,
-        edge_opacity=self.edge_opacity,
-        face_opacity=self.face_opacity,
+        face_color=box.face_color,
+        edge_opacity=box.edge_opacity,
+        face_opacity=box.face_opacity,
     )
 
     # The following line options come from looking at SVG produced from WMA.
@@ -465,7 +474,7 @@ def pointbox(self, **options) -> str:
     style += "; fill-rule:even-odd"
 
     svg = "<!--PointBox-->"
-    for line in self.lines:
+    for line in box.lines:
         for coords in line:
             svg += f"""
   <circle cx="{coords.pos()[0]:f}" cy="{coords.pos()[1]:f}"
@@ -477,24 +486,24 @@ def pointbox(self, **options) -> str:
 add_conversion_fn(PointBox)
 
 
-def polygonbox(self, **options):
+def polygonbox(box: PolygonBox, **options):
     """
     SVG formatter for PolygonBox
     """
-    line_width = self.style.get_line_width(face_element=True)
+    line_width = box.style.get_line_width(face_element=True)
 
     # Hack alert. Currently we encode density plots as a polygon box where
     # each polygon is a triangle with a color. We know we have this case because
-    # self.vertex_colors is not empty here.
-    if self.vertex_colors:
-        return density_plot_box(self, **options)
+    # box.vertex_colors is not empty here.
+    if box.vertex_colors:
+        return density_plot_box(box, **options)
 
     style = create_css(
-        edge_color=self.edge_color,
-        face_color=self.face_color,
+        edge_color=box.edge_color,
+        face_color=box.face_color,
         stroke_width=line_width,
-        edge_opacity=self.edge_opacity,
-        face_opacity=self.face_opacity,
+        edge_opacity=box.edge_opacity,
+        face_opacity=box.face_opacity,
     )
 
     svg = "<!--PolygonBox-->\n"
@@ -505,7 +514,7 @@ def polygonbox(self, **options):
     # Perhaps one day we will find it useful to have other fill_rules specified as an option.
     fill_rule = "evenodd"
 
-    for line in self.lines:
+    for line in box.lines:
         svg += f"""
   <polygon points="{" ".join("%f,%f" % coords.pos() for coords in line)}"
            fill-rule="{fill_rule}"
@@ -517,10 +526,10 @@ def polygonbox(self, **options):
 add_conversion_fn(PolygonBox)
 
 
-def rectanglebox(self, **options):
-    line_width = self.style.get_line_width(face_element=True)
-    x1, y1 = self.p1.pos()
-    x2, y2 = self.p2.pos()
+def rectanglebox(box: RectangleBox, **options):
+    line_width = box.style.get_line_width(face_element=True)
+    x1, y1 = box.p1.pos()
+    x2, y2 = box.p2.pos()
     xmin = min(x1, x2)
     ymin = min(y1, y2)
     w = max(x1, x2) - xmin
@@ -530,11 +539,11 @@ def rectanglebox(self, **options):
         x1, x2 = x1 + offset[0], x2 + offset[0]
         y1, y2 = y1 + offset[1], y2 + offset[1]
     style = create_css(
-        self.edge_color,
-        self.face_color,
+        box.edge_color,
+        box.face_color,
         line_width,
-        edge_opacity=self.edge_opacity,
-        face_opacity=self.face_opacity,
+        edge_opacity=box.edge_opacity,
+        face_opacity=box.face_opacity,
     )
     svg = '<rect x="%f" y="%f" width="%f" height="%f" style="%s" />' % (
         xmin,
@@ -550,25 +559,25 @@ def rectanglebox(self, **options):
 add_conversion_fn(RectangleBox)
 
 
-def _roundbox(self):
-    x, y = self.c.pos()
-    rx, ry = self.r.pos()
+def roundbox(box: RoundBox):
+    x, y = box.c.pos()
+    rx, ry = box.r.pos()
     rx -= x
     ry = y - ry
-    line_width = self.style.get_line_width(face_element=self.face_element)
+    line_width = box.style.get_line_width(face_element=box.face_element)
     style = create_css(
-        self.edge_color,
-        self.face_color,
+        box.edge_color,
+        box.face_color,
         stroke_width=line_width,
-        edge_opacity=self.edge_opacity,
-        face_opacity=self.face_opacity,
+        edge_opacity=box.edge_opacity,
+        face_opacity=box.face_opacity,
     )
     svg = f'<ellipse cx="{x:f}" cy="{y:f}" rx="{rx:f}" ry="{ry:f}" style="{style}" />'
-    # print("_RoundBox: ", svg)
+    # print("RoundBox: ", svg)
     return svg
 
 
-add_conversion_fn(_RoundBox)
+add_conversion_fn(RoundBox)
 
 
 def wrap_svg_body(

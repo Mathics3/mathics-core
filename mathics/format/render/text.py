@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Lower-level formatter Mathics objects as plain text.
+Mathics3 box rendering to plain text.
 """
 
 
@@ -33,8 +33,8 @@ def boxes_to_text(boxes, **options) -> str:
     return lookup_method(boxes, "text")(boxes, **options)
 
 
-def string(self, **options) -> str:
-    value = self.value
+def string(s: String, **options) -> str:
+    value = s.value
     show_string_characters = (
         options.get("System`ShowStringCharacters", None) is SymbolTrue
     )

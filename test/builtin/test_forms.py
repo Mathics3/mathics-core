@@ -403,7 +403,7 @@ def test_makeboxes_form(expr, form, head, subhead):
         ),
     ],
 )
-def test_private_doctests_output(str_expr, msgs, str_expected, fail_msg):
+def test_output(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,
