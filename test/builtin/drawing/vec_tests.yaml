@@ -24,6 +24,40 @@ vec-contourplot-two-equations:
 vec-contourplot-one-equation-two-branches:
     expr: ContourPlot[{a b + Sqrt[a^2 + b^2] == a+b}, {a,-10,10}, {b,-10,10}]
 #
+# ContourPlot3D
+#
+vec-contourplot3d-sphere:
+    expr: '
+        ContourPlot3D[
+            x^2 + y^2 == 1 - z^2,
+            {x,-1.5,1.5}, {y,-1.5,1.5}, {z,-1.5,1.5}
+        ]
+    '
+vec-contourplot3d-sphere-multi:
+    expr: '
+        ContourPlot3D[
+            x^2 + y^2 + z^2,
+            {x,-1.5,0.5}, {y,-1.5,1.5}, {z,-1.5,1.5},
+            PlotRange->{{-1.5,1.5},Automatic,Automatic},
+            Contours->10
+        ]
+    '
+vec-contourplot3d-hyperboloids:
+    expr: '
+        ContourPlot3D[
+            x^2 + y^2 - z^2,
+            {x,-1,1}, {y,-1,1}, {z,-1,1}
+        ]
+    '
+vec-contourplot3d-mesh:
+    expr: '
+        ContourPlot3D[
+            x^2 + y^2 + z^2 == 1,
+            {x,-1,1}, {y,-1,1}, {z,-1,1},
+            PlotPoints->20, Mesh->Full
+        ]
+    '
+#
 # ComplexPlot
 #
 vec-complexplot-poles-zeros:
