@@ -7,7 +7,7 @@ symbolic "boxes".
 
 The routines here assist in boxing at the bottom of the hierarchy, typically found when used via a notebook.
 
-Boxing is recursively performed using on the <url>:Head:/doc/reference-of-built-in-symbols/atomic-elements-of-expressions/atomic-primitives/head/</url> of a \Mathics expression
+Boxing is recursively performed using on the <url>:Head:/doc/reference-of-built-in-symbols/atomic-elements-of-expressions/atomic-primitives/head/</url> of a \Mathics expression.
 """
 
 # The Box objects are `BoxElementMixin` objects. These objects are literal
@@ -16,37 +16,21 @@ Boxing is recursively performed using on the <url>:Head:/doc/reference-of-built-
 # output.
 
 
-from typing import Tuple
-
 from mathics.builtin.box.expression import BoxExpression
-from mathics.builtin.options import filter_non_default_values, options_to_rules
 from mathics.core.atoms import String
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
-from mathics.core.element import BaseElement, BoxElementMixin, EvalMixin
+from mathics.core.element import BoxElementMixin, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.format.box import to_boxes
+from mathics.format.box.common import elements_to_expressions
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.low-level-notebook-structure"
-
-
-def elements_to_expressions(
-    self: BoxExpression, elements: Tuple[BaseElement], options: dict
-) -> Tuple[BaseElement]:
-    """
-    Return a tuple of Mathics3 normal atoms or expressions.
-    """
-    opts = sorted(options_to_rules(options, filter_non_default_values(self)))
-    expr_elements = [
-        elem.to_expression() if isinstance(elem, BoxExpression) else elem
-        for elem in elements
-    ]
-    return tuple(expr_elements + opts)
 
 
 class BoxData(Builtin):

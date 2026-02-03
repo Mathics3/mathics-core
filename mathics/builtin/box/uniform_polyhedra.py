@@ -1,8 +1,9 @@
 import numbers
 
-from mathics.builtin.box.graphics3d import Coords3D
+from mathics.builtin.box.graphics import _GraphicsElementBox
 from mathics.builtin.colors.color_directives import Opacity, _ColorObject
-from mathics.builtin.drawing.graphics_internals import GLOBALS3D, _GraphicsElementBox
+from mathics.builtin.drawing.graphics3d import Coords3D
+from mathics.builtin.drawing.graphics_internals import GLOBALS3D
 from mathics.core.exceptions import BoxExpressionError
 from mathics.core.symbols import Symbol
 
