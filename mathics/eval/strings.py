@@ -3,7 +3,8 @@ String-related evaluation functions.
 """
 import re
 
-from mathics.core.atoms import Integer1, Integer3, String
+from mathics.builtin.box.layout import RowBox
+from mathics.core.atoms import Integer, Integer0, Integer1, Integer3, String
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_bool
 from mathics.core.convert.regex import to_regex
@@ -13,10 +14,9 @@ from mathics.core.expression import Expression
 from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolTrue
-from mathics.eval.makeboxes import format_element
+from mathics.format.box import format_element
 
 
-# A better thing to do would be to write a pymathics module that
 def eval_ToString(
     expr: BaseElement, form: Symbol, encoding: String, evaluation: Evaluation
 ) -> String:
@@ -139,3 +139,91 @@ def eval_StringFind(self, string, rule, n, evaluation, options, cases):
         )
     else:
         return self._find(py_strings, py_rules, py_n, flags, evaluation)
+
+
+def safe_backquotes(string: str):
+    """Handle escaped backquotes."""
+    # TODO: Fix in the scanner how escaped backslashes
+    # are parsed.
+    # "\\`" must be parsed as "\\`" in order this
+    # works properly, but the parser converts `\\`
+    # into `\`.
+    string = string.replace(r"\\", r"\[RawBackslash]")
+    string = string.replace(r"\`", r"\[RawBackquote]")
+    string = string.replace(r"\[RawBackslash]", r"\\")
+    return string
+
+
+def eval_StringForm_MakeBoxes(strform, items, form, evaluation):
+    """MakeBoxes[StringForm[s_String, items___], form_]"""
+
+    if not isinstance(strform, String):
+        raise ValueError
+
+    items = [format_element(item, evaluation, form) for item in items]
+
+    curr_indx = 0
+    strform_str = safe_backquotes(strform.value)
+
+    parts = strform_str.split("`")
+    parts = [part.replace("\\[RawBackquote]", "`") for part in parts]
+    result = [String(parts[0])]
+    if len(parts) <= 1:
+        return result[0]
+
+    quote_open = True
+    remaining = len(parts) - 1
+    num_items = len(items)
+    for part in parts[1:]:
+        remaining -= 1
+        # If quote_open, the part must be a placeholder
+        if quote_open:
+            # If not remaining, there is a not closed '`'
+            # character:
+            if not remaining:
+                evaluation.message("StringForm", "sfq", strform)
+                return strform.value
+
+            # part must be an index or an empty string.
+            # If is an empty string, pick the next element:
+            if part == "":
+                if curr_indx >= num_items:
+                    evaluation.message(
+                        "StringForm",
+                        "sfr",
+                        Integer(num_items + 1),
+                        Integer(num_items),
+                        strform,
+                    )
+                    return strform.value
+
+                result.append(items[curr_indx])
+                curr_indx += 1
+                quote_open = False
+                continue
+            # Otherwise, must be a positive integer:
+            try:
+                indx = int(part)
+            except ValueError:
+                evaluation.message(
+                    "StringForm", "sfr", Integer0, Integer(num_items), strform
+                )
+                return strform.value
+
+            # indx must be greater than 0, and not greater than
+            # the number of items
+            if indx <= 0 or indx > len(items):
+                evaluation.message(
+                    "StringForm", "sfr", Integer(indx), Integer(len(items)), strform
+                )
+                return strform.value
+
+            result.append(items[indx - 1])
+            curr_indx = indx
+            quote_open = False
+            continue
+
+        result.append(String(part))
+        quote_open = True
+
+    return RowBox(ListExpression(*result))

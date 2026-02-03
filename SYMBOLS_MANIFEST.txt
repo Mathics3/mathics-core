@@ -12,6 +12,7 @@ ImportExport`RegisterExport
 ImportExport`RegisterImport
 Internal`RealValuedNumberQ
 Internal`RealValuedNumericQ
+JSON`Import`JSONImport
 System`$Aborted
 System`$Assumptions
 System`$BaseDirectory
@@ -486,6 +487,7 @@ System`FoldList
 System`FontColor
 System`For
 System`Format
+System`FormatType
 System`FormatValues
 System`FractionBox
 System`FractionalPart
@@ -563,7 +565,6 @@ System`Image
 System`ImageAdd
 System`ImageAdjust
 System`ImageAspectRatio
-System`ImageBox
 System`ImageChannels
 System`ImageColorSpace
 System`ImageConvolve
@@ -992,6 +993,7 @@ System`RandomSample
 System`Range
 System`RankedMax
 System`RankedMin
+System`RasterBox
 System`Rational
 System`Rationalize
 System`Re

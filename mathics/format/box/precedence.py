@@ -19,20 +19,24 @@ def compare_precedence(
     first element is higher, return 1, otherwise -1.
     If precedences cannot be compared, return None.
     """
-    while element.has_form("HoldForm", 1):
-        element = element.elements[0]
-
+    element_prec: Optional[int] = None
     if precedence is None:
         return None
-    if element.has_form(("Infix", "Prefix", "Postfix"), 3, None):
-        element_prec = element.elements[2].value
-    elif element.has_form("PrecedenceForm", 2):
-        element_prec = element.elements[1].value
+
+    while element.has_form("HoldForm", 1):
+        element = element.get_element(0)
+
+    if isinstance(element, Expression):
+        if element.has_form(("Infix", "Prefix", "Postfix"), 3, None):
+            element_prec = element.elements[2].value
+        elif element.has_form("PrecedenceForm", 2):
+            element_prec = element.elements[1].value
+        else:
+            # element_prec = builtins_precedence.get(element.get_head_name())
+            pass
     # For negative values, ensure that the element_order is at least the precedence. (Fixes #332)
     elif isinstance(element, (Integer, Real)) and element.value < 0:
         element_prec = precedence
-    else:
-        element_prec = builtins_precedence.get(element.get_head_name())
 
     if element_prec is None:
         return None

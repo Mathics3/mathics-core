@@ -32,7 +32,10 @@ def eval_Plot_vectorized(plot_options, options, evaluation: Evaluation):
     def compile_maybe_list(evaluation, function, names):
         if isinstance(function, Expression) and function.head == SymbolList:
             fs = [lambdify_compile(evaluation, f, names) for f in function.elements]
-            compiled = lambda vs: [f(vs) for f in fs]
+
+            def compiled(vs):
+                return [f(vs) for f in fs]
+
         else:
             compiled = lambdify_compile(evaluation, function, names)
         return compiled

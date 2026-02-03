@@ -12,7 +12,6 @@ import typing
 from itertools import permutations
 from typing import Optional, Tuple
 
-from mathics.builtin.box.layout import RowBox
 from mathics.core.atoms import ByteArray, Integer, Integer1, is_integer_rational_or_real
 from mathics.core.attributes import A_HOLD_FIRST, A_LISTABLE, A_LOCKED, A_PROTECTED
 from mathics.core.builtin import BasePattern, Builtin, IterationFunction
@@ -24,7 +23,7 @@ from mathics.core.expression import Expression, structure
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol
 from mathics.core.systemsymbols import SymbolNormal, SymbolTuples
-from mathics.eval.lists import get_tuples, list_boxes
+from mathics.eval.lists import get_tuples
 
 
 class Array(Builtin):
@@ -165,13 +164,6 @@ class List(Builtin):
         elements_part_of_elements__ = elements.get_sequence()
         return ListExpression(*elements_part_of_elements__)
 
-    def eval_makeboxes(self, items, f, evaluation):
-        """MakeBoxes[{items___},
-        f:StandardForm|TraditionalForm|OutputForm|InputForm|FullForm]"""
-
-        items = items.get_sequence()
-        return RowBox(*list_boxes(items, f, evaluation, "{", "}"))
-
 
 class Normal(Builtin):
     """
@@ -188,7 +180,8 @@ class Normal(Builtin):
     >> Normal[Pi]
      = Pi
     >> Series[Exp[x], {x, 0, 5}]
-     = 1 + x + 1 / 2 x ^ 2 + 1 / 6 x ^ 3 + 1 / 24 x ^ 4 + 1 / 120 x ^ 5 + O[x] ^ 6
+     = 1 + x + x ^ 2 / 2 + x ^ 3 / 6 + x ^ 4 / 24 + x ^ 5 / 120 + O[x] ^ 6
+
     >> Normal[%]
      = 1 + x + x ^ 2 / 2 + x ^ 3 / 6 + x ^ 4 / 24 + x ^ 5 / 120
     """

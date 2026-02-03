@@ -10,7 +10,7 @@ from typing import Any, Callable, Dict, List, Optional, Type
 
 from mathics.core.atoms import Complex, Integer, Rational, String, SymbolI
 from mathics.core.convert.expression import to_expression_with_specialization
-from mathics.core.element import BaseElement, BoxElementMixin, EvalMixin
+from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -49,9 +49,12 @@ _element_formatters: Dict[
 
 def do_format(
     element: BaseElement, evaluation: Evaluation, form: Symbol
-) -> Optional[BaseElement]:
+) -> BaseElement:
     do_format_method = _element_formatters.get(type(element), do_format_element)
-    return do_format_method(element, evaluation, form)
+    result = do_format_method(element, evaluation, form)
+    if result is None:
+        return element
+    return result
 
 
 def do_format_element(
@@ -61,7 +64,9 @@ def do_format_element(
     Applies formats associated to the expression and removes
     superfluous enclosing formats.
     """
-    from mathics.core.definitions import OutputForms
+    from mathics.core.definitions import OUTPUT_FORMS
+
+    head: BaseElement
 
     evaluation.inc_recursion_depth()
     try:
@@ -72,7 +77,7 @@ def do_format_element(
         # If the expression is enclosed by a Format
         # takes the form from the expression and
         # removes the format from the expression.
-        if head in OutputForms and len(elements) == 1:
+        if head in OUTPUT_FORMS and len(elements) == 1 and isinstance(head, Symbol):
             expr = elements[0]
             if not form.sameQ(head):
                 form = head
@@ -140,7 +145,7 @@ def do_format_element(
         # If the expression is not atomic or of certain
         # specific cases, iterate over the elements.
         head = expr.get_head()
-        if head in OutputForms:
+        if head in OUTPUT_FORMS:
             # If the expression was of the form
             # Form[expr, opts]
             # then the format was not stripped. Then,
@@ -154,7 +159,7 @@ def do_format_element(
 
         elif (
             head is not SymbolNumberForm
-            and not isinstance(expr, (Atom, BoxElementMixin))
+            and isinstance(expr, Expression)
             and head not in (SymbolGraphics, SymbolGraphics3D)
         ):
             new_elements = tuple(
@@ -167,7 +172,7 @@ def do_format_element(
             )
             expr_head = expr.head
             do_format = _element_formatters.get(type(expr_head), do_format_element)
-            head = do_format(expr_head, evaluation, form)
+            head = do_format(expr_head, evaluation, form) or expr_head
             expr = to_expression_with_specialization(head, *new_elements)
 
         if include_form:
@@ -183,6 +188,7 @@ def do_format_rational(
     if not isinstance(element, Rational):
         return None
 
+    result: BaseElement
     numerator = element.numerator()
     minus = numerator.value < 0
     if minus:
@@ -191,7 +197,7 @@ def do_format_rational(
     if minus:
         result = Expression(SymbolMinus, result)
     result = Expression(SymbolHoldForm, result)
-    result = do_format_expression(result, evaluation, form)
+    result = do_format_expression(result, evaluation, form) or result
     return result
 
 
@@ -219,7 +225,7 @@ def do_format_complex(
 
 def do_format_expression(
     element: BaseElement, evaluation: Evaluation, form: Symbol
-) -> Optional[BaseElement]:
+) -> BaseElement:
     # # not sure how much useful is this format_cache
     # if element._format_cache is None:
     #    element._format_cache = {}
@@ -233,7 +239,7 @@ def do_format_expression(
     #            last_evaluated_time, set((symbolname,))
     #        ):
     #            return expr
-    expr = do_format_element(element, evaluation, form)
+    expr = do_format_element(element, evaluation, form) or element
     # element._format_cache[form] = (evaluation.definitions.now, expr)
     return expr
 

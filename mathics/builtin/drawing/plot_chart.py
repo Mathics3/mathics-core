@@ -20,8 +20,10 @@ from mathics.core.systemsymbols import (
     SymbolEdgeForm,
     SymbolGraphics,
     SymbolStyle,
+    SymbolText,
 )
 from mathics.eval.drawing.charts import draw_bar_chart, eval_chart
+from mathics.eval.drawing.plot import TwoTenths
 from mathics.eval.nevaluator import eval_N
 
 # This tells documentation how to sort this module
@@ -29,9 +31,7 @@ sort_order = "mathics.builtin.chart"
 
 SymbolDisk = Symbol("Disk")
 SymbolFaceForm = Symbol("FaceForm")
-SymbolText = Symbol("Text")
 
-TwoTenths = Real(0.2)
 MTwoTenths = -TwoTenths
 
 

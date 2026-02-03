@@ -890,29 +890,36 @@ There are several methods to display expressions in 2-D:
   >> Subscript[a, 1, 2] // TeXForm
   = a_{1, 2}
 
-If you want even more low-level control over expression display, override 'MakeBoxes':
 
-  >> MakeBoxes[b, StandardForm] = "c";
+  >> MakeBoxes[b, TraditionalForm] = "c";
   >> b
   = b
 
 ## This will be displayed as c in the browser and LaTeX documentation.
-This will even apply to 'TeXForm', because 'TeXForm' implies 'StandardForm':
+In the browser, this will even apply to 'TeXForm', because 'TeXForm' implies 'TraditionalForm':
   >> b // TeXForm
+  = ...
+
+Notice however that in the CLI, default output formatted in 'OutputForm',
+which do not take into account 'MakeBoxes' rules. The same happens if we 
+ask explicitly for this form:
+
+  >> b // OutputForm // TeXForm
+  = \text{b}
+
+In a similar way, in the CLI, we can ask for TraditionalForm explicitly
+  >> b // TraditionalForm // TeXForm
   = c
 
-Except some other form is applied first:
-  >> b // OutputForm // TeXForm
-  = b
 'MakeBoxes' for another form:
-
-  >> MakeBoxes[b, TeXForm] = "d";
+  >> MakeBoxes[TeXForm[b], form_] = "d";
   >> b // TeXForm
-  = d
+  = ...
+
 You can cause a much bigger mess by overriding 'MakeBoxes' than by sticking to 'Format', e.g. generate invalid XML:
 
-  >> MakeBoxes[c, MathMLForm] = "<not closed";
-  >> c // MathMLForm
+  >> MakeBoxes[MathMLForm[c], form_] := "<not closed";
+  >> c // MathMLForm //StandardForm
   = <not closed
 
 However, this will not affect formatting of expressions involving 'c':
@@ -930,16 +937,16 @@ That\'s because 'MathMLForm' will, when not overridden for a special case, call 
   = ...
 
 For instance, you can override 'MakeBoxes' to format lists in a different way:
-  >> MakeBoxes[{items___}, StandardForm] := RowBox[{"[", Sequence @@ Riffle[MakeBoxes /@ {items}, " "], "]"}]
+  >> MakeBoxes[{items___}, TraditionalForm] := RowBox[{"[", Sequence @@ Riffle[MakeBoxes /@ {items}, " "], "]"}]
   >> {1, 2, 3}
    = {1, 2, 3}
 
-  #> {1, 2, 3} // TeXForm
-   = \left[1 2 3\right]
+  >> {1, 2, 3} // TeXForm
+   = [1 2 3]
 
 However, this will not be accepted as input to \Mathics anymore:
   >> [1 2 3]
-  : Expression cannot begin with "[1 2 3]" (line 1 of "<test-Formatting Output-28>").
+  : ...
 
   >> Clear[MakeBoxes]
 
@@ -948,7 +955,7 @@ By the way, 'MakeBoxes' is the only built-in symbol that is not protected by def
   = {HoldAllComplete}
 
 'MakeBoxes' must return a valid box construct:
-  >> MakeBoxes[squared[args___], StandardForm] := squared[args] ^ 2
+  >> MakeBoxes[squared[args___], TraditionalForm] := squared[args] ^ 2
   >> squared[1, 2]
    = squared[1, 2]
 
@@ -958,12 +965,12 @@ By the way, 'MakeBoxes' is the only built-in symbol that is not protected by def
   =
 
 The desired effect can be achieved in the following way:
-  >> MakeBoxes[squared[args___], StandardForm] := SuperscriptBox[RowBox[{MakeBoxes[squared], "[", RowBox[Riffle[MakeBoxes[#]& /@ {args}, ","]], "]"}], 2]
+  >> MakeBoxes[squared[args___], TraditionalForm] := SuperscriptBox[RowBox[{MakeBoxes[squared], "[", RowBox[Riffle[MakeBoxes[#]& /@ {args}, ","]], "]"}], 2]
   >> squared[1, 2]
   = squared[1, 2]
 
   #> squared[1, 2] // TeXForm
-   = \text{squared}\left[1, 2\right]^2
+   = \text{squared}[1, 2]^2
 
 You can view the box structure of a formatted expression using 'ToBoxes':
 
@@ -1108,7 +1115,7 @@ Three-dimensional plots are supported as well:
 Here are some examples written by Jan Pöschko that come from the very first version.
 
 <section title="Curve Sketching">
-Let\'s sketch the function
+Let's sketch the function
   >> f[x_] := 4 x / (x ^ 2 + 3 x + 5)
 
 The derivatives are:

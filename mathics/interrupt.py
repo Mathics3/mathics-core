@@ -41,7 +41,10 @@ def inspect_eval_loop(evaluation: Evaluation):
             query, source_code = evaluation.parse_feeder_returning_code(shell)
             # show_echo(source_code, evaluation)
             if len(source_code) and source_code[0] == "!" and shell is not None:
-                subprocess.run(source_code[1:], shell=True)
+                if not settings.ENABLE_SYSTEM_COMMANDS:
+                    evaluation.message("Run", "dis")
+                else:
+                    subprocess.run(source_code[1:], shell=True)
                 if shell.definitions is not None:
                     shell.definitions.increment_line_no(1)
                 continue
@@ -90,7 +93,10 @@ def Mathics3_interrupt_handler(
                 print_fn("continuing")
                 break
             elif user_input in ("debugger", "d"):
-                breakpoint()
+                if not settings.ENABLE_SYSTEM_COMMANDS:
+                    print_fn("Execution of external commands is disabled.")
+                else:
+                    breakpoint()
             elif user_input in ("exit", "quit"):
                 print_fn("Mathics3 exited because of an interrupt.")
                 sys.exit(3)

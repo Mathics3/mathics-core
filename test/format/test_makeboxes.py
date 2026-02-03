@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-from test.helper import check_evaluation
+from test.helper import check_evaluation, session
 
 import pytest
 import yaml
@@ -28,8 +28,8 @@ def makeboxes_basic_forms_iterator(block):
     for key, tests in MAKEBOXES_TESTS[block].items():
         for form, entry in tests.items():
             msg = f"{key}, {form}"
-            expr = entry["expr"]
-            expect = entry["expect"]
+            expr = entry["expr"] + "//InputForm"
+            expect = entry["expect"] + "//InputForm"
             yield expr, expect, msg
 
 
@@ -44,7 +44,7 @@ def test_makeboxes_basic_forms(str_expr, str_expected, fail_msg):
         str_expected,
         to_string_expr=True,
         to_string_expected=True,
-        hold_expected=True,
+        hold_expected=False,
         failure_message=fail_msg,
     )
 
@@ -62,7 +62,7 @@ def test_makeboxes_real(str_expr, str_expected, msg):
         str_expected,
         to_string_expr=True,
         to_string_expected=True,
-        hold_expected=True,
+        hold_expected=False,
         failure_message=msg,
     )
 
@@ -478,3 +478,64 @@ def test_makeboxes_custom2(str_expr, str_expected, msg):
         to_python_expected=False,
         failure_message=msg,
     )
+
+
+@pytest.mark.parametrize(
+    ["expr", "expect"],
+    (
+        (
+            '"Hola"',
+            False,
+        ),
+        (
+            '"Hola\nqué tal?"',
+            True,
+        ),
+        (
+            "a/b//MakeBoxes",
+            True,
+        ),
+        (
+            "Sqrt[a]//MakeBoxes",
+            True,
+        ),
+        (
+            "a + b * c//MakeBoxes",
+            False,
+        ),
+        (
+            "a + b / c//MakeBoxes",
+            True,
+        ),
+        (
+            "a + b * c // InputForm//MakeBoxes",
+            False,
+        ),
+        (
+            "a + b / c //InputForm//MakeBoxes",
+            False,
+        ),
+        (
+            "a + b * c // OutputForm//MakeBoxes",
+            False,
+        ),
+        (
+            "a + b / c // OutputForm//MakeBoxes",
+            False,
+        ),
+        (
+            "a + b * c // FullForm//MakeBoxes",
+            False,
+        ),
+        (
+            "a + b / c // FullForm//MakeBoxes",
+            False,
+        ),
+    ),
+)
+def test_multiline(expr, expect):
+    boxexpr = session.evaluate(expr)
+    print(expr, "->", boxexpr, (expect))
+    assert (
+        boxexpr.is_multiline == expect
+    ), f"{boxexpr} must {'not ' if not expect else ''}be multiline. Got ({boxexpr.is_multiline})"

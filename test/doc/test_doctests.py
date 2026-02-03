@@ -2,6 +2,8 @@
 Pytests for the documentation system. Basic functions and classes.
 """
 
+from unittest.mock import patch
+
 from mathics.core.evaluation import Message, Print
 from mathics.core.load_builtin import import_and_load_builtins
 from mathics.doc.common_doc import MathicsMainDocumentation
@@ -92,10 +94,11 @@ def test_create_doctest():
             },
         },
     ]
-    for index, test_case in enumerate(test_cases):
-        doctest = DocTest(1, test_case["test"], key)
-        for property_key, value in test_case["properties"].items():
-            if property_key == "result" and value is None:
-                assert getattr(doctest, property_key) == ""
-            else:
-                assert getattr(doctest, property_key) == value
+    with patch("mathics.settings.ENABLE_SYSTEM_COMMANDS", True):
+        for index, test_case in enumerate(test_cases):
+            doctest = DocTest(1, test_case["test"], key)
+            for property_key, value in test_case["properties"].items():
+                if property_key == "result" and value is None:
+                    assert getattr(doctest, property_key) == ""
+                else:
+                    assert getattr(doctest, property_key) == value
