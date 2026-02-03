@@ -4,7 +4,7 @@ Boxing Symbols for 2D Graphics
 """
 from abc import ABC
 from math import atan2, cos, degrees, pi, sin
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Final, List, Optional, Tuple
 
 from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.colors.color_directives import (
@@ -51,6 +51,12 @@ class GraphicsElementBox(BoxExpression, ABC):
         self.style = style
         self.opacity = opacity
         self.is_completely_visible = False  # True for axis elements
+
+
+# GraphicsElementBox Builtin class that should not get added as a definition,
+# and therefore not added to to external documentation.
+
+DOES_NOT_ADD_BUILTIN_DEFINITION: Final[List[BoxExpression]] = [GraphicsElementBox]
 
 
 class _Polyline(GraphicsElementBox):
