@@ -7,7 +7,7 @@ we may make use of via the mathics-scanner tables.
 LaTeX formatting is usually initiated in Mathics via TeXForm[].
 
 TeXForm in WMA is slightly vague or misleading since the output is
-typically LaTeX rather than Plain TeX. In Mathics, we also assume AMS
+typically LaTeX rather than Plain TeX. In Mathics3, we also assume AMS
 LaTeX or more specifically that we the additional AMS Mathematical
 Symbols exist.
 """
@@ -37,6 +37,7 @@ from mathics.core.convert.op import (
     UNICODE_TO_AMSLATEX,
     UNICODE_TO_LATEX,
     get_latex_operator,
+    named_characters,
 )
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import (
@@ -55,6 +56,71 @@ from mathics.format.render.asy_fns import asy_color, asy_create_pens, asy_number
 # mathics_scanner does not generates this table in a way that we can load it here.
 # When it get fixed, we can use that table instead of this one:
 
+BRACKET_INFO = {
+    (
+        String("("),
+        String(")"),
+    ): {
+        "latex_open": "(",
+        "latex_closing": ")",
+        "latex_open_large": r"\left(",
+        "latex_closing_large": r"\right)",
+    },
+    (
+        String("{"),
+        String("}"),
+    ): {
+        "latex_open": r"\{",
+        "latex_closing": r"\}",
+        "latex_open_large": r"\left\{",
+        "latex_closing_large": r"\right\}",
+    },
+    (
+        String("["),
+        String("]"),
+    ): {
+        "latex_open": "[",
+        "latex_closing": "]",
+        "latex_open_large": r"\left[",
+        "latex_closing_large": r"\right]",
+    },
+    (
+        String(named_characters["LeftDoubleBracket"]),
+        String(named_characters["RightDoubleBracket"]),
+    ): {
+        "latex_open": r"[[",
+        "latex_closing": "]]",
+        "latex_open_large": r"\left[\left[",
+        "latex_closing_large": r"\right]\right]",
+    },
+    (
+        String(named_characters["LeftAngleBracket"]),
+        String(named_characters["RightAngleBracket"]),
+    ): {
+        "latex_open": "\\langle",
+        "latex_closing": "\\rangle",
+        "latex_open_large": r"\left\langle ",
+        "latex_closing_large": r"\right\rangle ",
+    },
+    (
+        String(named_characters["LeftDoubleBracketingBar"]),
+        String(named_characters["RightDoubleBracketingBar"]),
+    ): {
+        "latex_open": r"\|",
+        "latex_closing": r"\|",
+        "latex_open_large": r"\left\|",
+        "latex_closing_large": r"\right\| ",
+    },
+    (
+        String("<|"),
+        String("|>"),
+    ): {
+        "latex_open": r"\langle\vert ",
+        "latex_closing": r"\vert\rangle ",
+        "latex_open_large": r"\left\langle\left\vert ",
+        "latex_closing_large": r"\right\vert\right\rangle ",
+    },
+}
 
 TEX_REPLACE = {
     "{": r"\{",
@@ -298,9 +364,9 @@ def superscriptbox(self, **options):
 
     sup_string = self.superindex.get_string_value()
     # Handle derivatives
-    if sup_string == "\u2032":
+    if sup_string == named_characters["Prime"]:
         return "%s'" % tex1
-    if sup_string == "\u2032\u2032":
+    if sup_string == named_characters["Prime"] * 2:
         return "%s''" % tex1
     base = self.tex_block(tex1, True)
     superidx_to_tex = lookup_conversion_method(self.superindex, "latex")
@@ -352,13 +418,10 @@ def subsuperscriptbox(self, **options):
 add_conversion_fn(SubsuperscriptBox, subsuperscriptbox)
 
 
-def rowbox(self, **options) -> str:
-    _options = self.box_options.copy()
-    _options.update(options)
-    options = _options
+def rowbox_sequence(items, **options):
     parts_str = [
         lookup_conversion_method(element, "latex")(element, **options)
-        for element in self.items
+        for element in items
     ]
     if len(parts_str) == 0:
         return ""
@@ -381,6 +444,46 @@ def rowbox(self, **options) -> str:
 
         result += elem
     return result
+
+
+def rowbox_parenthesized(items, **options):
+    if len(items) < 2:
+        return None
+    key = (
+        items[0],
+        items[-1],
+    )
+    items = items[1:-1]
+    try:
+        bracket_data = BRACKET_INFO[key]
+    except KeyError:
+        return None
+
+    contain = rowbox_sequence(items, **options) if len(items) > 0 else ""
+
+    if any(item.is_multiline for item in items):
+        return f'{bracket_data["latex_open_large"]}{contain}{bracket_data["latex_closing_large"]}'
+    return f'{bracket_data["latex_open"]}{contain}{bracket_data["latex_closing"]}'
+
+
+def rowbox(self, **options) -> str:
+    _options = self.box_options.copy()
+    _options.update(options)
+    options = _options
+    items = self.items
+    # Handle special cases
+    if len(items) >= 3:
+        head, *rest = items
+        rest_latex = rowbox_parenthesized(rest, **options)
+        if rest_latex is not None:
+            # Must be a function-like expression f[]
+            head_latex = lookup_conversion_method(head, "latex")(head, **options)
+            return head_latex + rest_latex
+    if len(items) >= 2:
+        parenthesized_latex = rowbox_parenthesized(items, **options)
+        if parenthesized_latex is not None:
+            return parenthesized_latex
+    return rowbox_sequence(items, **options)
 
 
 add_conversion_fn(RowBox, rowbox)
