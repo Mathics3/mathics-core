@@ -172,10 +172,7 @@ def test_rearrange_private_doctests(
         ),
         (
             "ContainsOnly[{c, a}, {a, b, c}, IgnoreCase -> True]",
-            (
-                "Unknown option IgnoreCase -> True in ContainsOnly.",
-                "Unknown option IgnoreCase in .",
-            ),
+            ("Unknown option IgnoreCase -> True in ContainsOnly.",),
             "True",
             None,
         ),

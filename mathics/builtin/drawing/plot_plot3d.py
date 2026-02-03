@@ -165,7 +165,7 @@ class ComplexPlot3D(_Plot3D):
           $z_{max}$ with surface colored according to phase
 
           See <url>:Drawing Option and Option Values:
-    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    /doc/reference-of-built-in-symbols/plotting-graphing-and-drawing/drawing-options-and-option-values
     </url> for a list of Plot options.
     </dl>
 
@@ -193,7 +193,7 @@ class ComplexPlot(_Plot3D):
           $z_{max}$ colored according to phase
 
           See <url>:Drawing Option and Option Values:
-    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    /doc/reference-of-built-in-symbols/plotting-graphing-and-drawing/drawing-options-and-option-values
     </url> for a list of Plot options.
     </dl>
 
@@ -221,7 +221,7 @@ class ContourPlot(_Plot3D):
           $x$ ranging from $x_{min}$ to $x_{max}$ and $y$ ranging from $y_{min}$ to $y_{max}$.
 
           See <url>:Drawing Option and Option Values:
-    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    /doc/reference-of-built-in-symbols/plotting-graphing-and-drawing/drawing-options-and-option-values
     </url> for a list of Plot options.
     </dl>
 
@@ -352,7 +352,7 @@ class Plot3D(_Plot3D):
           $x_{max}$ and $y$ ranging from $y_{min}$ to $y_{max}$.
 
           See <url>:Drawing Option and Option Values:
-    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    /doc/reference-of-built-in-symbols/plotting-graphing-and-drawing/drawing-options-and-option-values
     </url> for a list of Plot options.
     </dl>
 

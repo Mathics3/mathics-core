@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-Lower-level formatter Mathics objects as plain text.
+Mathics3 box rendering to plain text.
 """
 
 
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
+    FormBox,
     FractionBox,
     GridBox,
     InterpretationBox,
@@ -23,14 +24,17 @@ from mathics.core.atoms import String
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import add_conversion_fn, lookup_method
 from mathics.core.symbols import Atom, SymbolTrue
+from mathics.format.box.graphics import prepare_elements as prepare_elements2d
+from mathics.format.box.graphics3d import prepare_elements as prepare_elements3d
+from mathics.format.form.util import _WrongFormattedExpression, text_cells_to_grid
 
 
 def boxes_to_text(boxes, **options) -> str:
     return lookup_method(boxes, "text")(boxes, **options)
 
 
-def string(self, **options) -> str:
-    value = self.value
+def string(s: String, **options) -> str:
+    value = s.value
     show_string_characters = (
         options.get("System`ShowStringCharacters", None) is SymbolTrue
     )
@@ -44,14 +48,14 @@ add_conversion_fn(String, string)
 
 
 def interpretation_box(self, **options):
-    return boxes_to_text(self.boxed, **options)
+    return boxes_to_text(self.boxes, **options)
 
 
 add_conversion_fn(InterpretationBox, interpretation_box)
 
 
 def pane_box(self, **options):
-    result = boxes_to_text(self.boxed, **options)
+    result = boxes_to_text(self.boxes, **options)
     return result
 
 
@@ -81,68 +85,28 @@ def gridbox(self, elements=None, **box_options) -> str:
     evaluation = box_options.get("evaluation", None)
     items, options = self.get_array(elements, evaluation)
 
-    result = ""
+    box_options.update(self.options)
+
     if not items:
         return ""
-    try:
-        widths = [0] * max(1, max(len(row) for row in items if isinstance(row, tuple)))
-    except ValueError:
-        widths = [0]
 
     cells = [
         (
             [
                 # TODO: check if this evaluation is necessary.
-                boxes_to_text(item, **box_options).splitlines()
+                boxes_to_text(item, **box_options)
                 for item in row
             ]
             if isinstance(row, tuple)
-            else [boxes_to_text(row, **box_options).splitlines()]
+            else boxes_to_text(row, **box_options)
         )
         for row in items
     ]
 
-    # compute widths
-    full_width = 0
-    for i, row in enumerate(cells):
-        for index, cell in enumerate(row):
-            if index >= len(widths):
-                raise BoxConstructError
-            if not isinstance(items[i], tuple):
-                for line in cell:
-                    full_width = max(full_width, len(line))
-            else:
-                for line in cell:
-                    widths[index] = max(widths[index], len(line))
-
-    full_width = max(sum(widths), full_width)
-
-    for row_index, row in enumerate(cells):
-        if row_index > 0:
-            result += "\n"
-        k = 0
-        while True:
-            line_exists = False
-            line = ""
-            for cell_index, cell in enumerate(row):
-                if len(cell) > k:
-                    line_exists = True
-                    text = cell[k]
-                else:
-                    text = ""
-                line += text
-                if isinstance(items[row_index], tuple):
-                    if cell_index < len(row) - 1:
-                        line += " " * (widths[cell_index] - len(text))
-                        # if cell_index < len(row) - 1:
-                        line += "   "
-
-            if line_exists:
-                result += line + "\n"
-            else:
-                break
-            k += 1
-    return result
+    try:
+        return text_cells_to_grid(cells)
+    except _WrongFormattedExpression:
+        raise BoxConstructError
 
 
 add_conversion_fn(GridBox, gridbox)
@@ -219,6 +183,8 @@ def rowbox(self, elements=None, **options) -> str:
     _options.update(options)
     options = _options
     parts_str = [boxes_to_text(element, **options) for element in self.items]
+    if len(parts_str) == 0:
+        return ""
     if len(parts_str) == 1:
         return parts_str[0]
     # This loop integrate all the row adding spaces after a ",", followed
@@ -255,10 +221,9 @@ add_conversion_fn(StyleBox, stylebox)
 
 
 def graphicsbox(self, elements=None, **options) -> str:
-    if not elements:
-        elements = self._elements
+    assert elements is None
 
-    self._prepare_elements(elements, options)  # to test for Box errors
+    prepare_elements2d(self, self.content, options)  # to test for Box errors
     return "-Graphics-"
 
 
@@ -266,16 +231,18 @@ add_conversion_fn(GraphicsBox, graphicsbox)
 
 
 def graphics3dbox(self, elements=None, **options) -> str:
-    if not elements:
-        elements = self._elements
+    assert elements is None
+
+    prepare_elements3d(self, self.content, options)  # to test for Box errors
     return "-Graphics3D-"
 
 
 add_conversion_fn(Graphics3DBox, graphics3dbox)
 
 
-def tag_box(self, **options):
-    return boxes_to_text(self.boxed, **options)
+def tag_and_form_box(self, **options):
+    return boxes_to_text(self.boxes, **options)
 
 
-add_conversion_fn(TagBox, tag_box)
+add_conversion_fn(FormBox, tag_and_form_box)
+add_conversion_fn(TagBox, tag_and_form_box)

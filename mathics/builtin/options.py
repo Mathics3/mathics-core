@@ -58,10 +58,10 @@ class All(Predefined):
 
     In <url>
     :Plot:
-    /doc/reference-of-built-in-symbols/graphics-and-drawing/plotting-data/plot</url>, \
+    /doc/reference-of-built-in-symbols/plotting-graphing-and-drawing/general-graphical-plots/plot</url>, \
     setting the <url>
     :Mesh:
-/doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values/mesh</url> \
+/doc/reference-of-built-in-symbols/plotting-graphing-and-drawing/drawing-options-and-option-values/mesh</url> \
     option to 'All' will show the specific plot points:
 
     >> Plot[x^2, {x, -1, 1}, MaxRecursion->5, Mesh->All]
@@ -171,6 +171,20 @@ class FilterRules(Builtin):
         return ListExpression(*list(matched()))
 
 
+class FormatType(Predefined):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FormatType.html</url>
+    <dl>
+      <dt>'FormatType'
+      <dd>is an option for output streams, graphics and functions like 'Text' \
+          that specifies the default format.
+    </dl>
+    """
+
+    messages = {"ftype": "Value of option FormatType -> `` is not valid."}
+    summary_text = "specify the request format"
+
+
 class None_(Predefined):
     """
         <url>:WMA link:https://reference.wolfram.com/language/ref/None.html</url>
@@ -182,7 +196,7 @@ class None_(Predefined):
 
         Plot3D shows the mesh grid between computed points by default. This the <url>
         :Mesh:
-/doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values/mesh</url> \
+/doc/reference-of-built-in-symbols/plotting-graphing-and-drawing/drawing-options-and-option-values/mesh</url> \
 
         However, you hide the mesh by setting the 'Mesh' option value to 'None':
 

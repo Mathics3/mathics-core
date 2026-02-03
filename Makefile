@@ -36,6 +36,7 @@ MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang
    djangotest \
    gstest \
    latexdoc \
+   mypy \
    plot-detailed-tests\
    pytest \
    pytest-x \
@@ -43,13 +44,13 @@ MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang
    test \
    texdoc
 
-SANDBOX	?=
+MATHICS3_SANDBOX	?=
 ifeq ($(OS),Windows_NT)
-	SANDBOX = t
+	MATHICS3_SANDBOX = t
 else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Darwin)
-		SANDBOX = t
+		MATHICS3_SANDBOX = t
 	endif
 endif
 
@@ -68,17 +69,17 @@ build:
 # because pip install doesn't handle
 # INSTALL_REQUIRES properly
 #: Set up to run from the source tree
-develop:  mathics/data/op-tables.json mathics/data/operator-tables.json
+develop:  mathics/data/character-tables.json mathics/data/operator-tables.json
 	$(PIP) install -e .[dev]
 
 # See note above on ./setup.py
 #: Set up to run from the source tree with full dependencies
-develop-full:  mathics/data/op-tables.json mathics/data/operators.json
+develop-full:  mathics/data/character-tables.json mathics/data/operators.json
 	$(PIP) install -e .[dev,full]
 
 # See note above on ./setup.py
 #: Set up to run from the source tree with full dependencies and Cython
-develop-full-cython: mathics/data/op-tables.json mathics/data/operators.json
+develop-full-cython: mathics/data/character-tables.json mathics/data/operators.json
 	$(PIP) install -e .[dev,full,cython]
 
 
@@ -125,8 +126,11 @@ clean: clean-cython clean-cache
 	   ($(MAKE) -C "$$dir" clean); \
 	done; \
 	rm -f factorials || true; \
-	rm -f mathics/data/op-tables || true; \
+	rm -f mathics/data/character-tables.json || true; \
 	rm -rf build || true
+
+mypy:
+	mypy --install-types --ignore-missing-imports --non-interactive mathics
 
 plot-detailed-tests:
 	MATHICS_CHARACTER_ENCODING="ASCII" MATHICS_PLOT_DETAILED_TESTS="1" $(PYTHON) -m pytest -x $(PYTEST_OPTIONS) test/builtin/drawing/test_plot_detail.py
@@ -151,7 +155,7 @@ doctest-data: mathics/builtin/*.py mathics/doc/documentation/*.mdoc mathics/doc/
 
 #: Run tests that appear in docstring in the code. Use environment variable "DOCTEST_OPTIONS" for doctest options
 doctest:
-	MATHICS_CHARACTER_ENCODING="ASCII" SANDBOX=$(SANDBOX) $(PYTHON) mathics/docpipeline.py $(DOCTEST_OPTIONS)
+	MATHICS_CHARACTER_ENCODING="ASCII" MATHICS3_SANDBOX=$(MATHICS3_SANDBOX) $(PYTHON) mathics/docpipeline.py $(DOCTEST_OPTIONS)
 
 #: Run tests that appear in docstring in the code, stopping on the first error.
 doctest-x:
@@ -162,7 +166,7 @@ latexdoc texdoc doc:
 	(cd mathics/doc/latex && $(MAKE) doc)
 
 #: Build JSON ASCII to unicode opcode table and operator table
-mathics/data/operator-tables.json mathics/data/op-tables.json mathics/data/operators.json:
+mathics/data/operator-tables.json mathics/data/character-tables.json mathics/data/operators.json:
 	$(BASH) ./admin-tools/make-JSON-tables.sh
 
 #: Remove ChangeLog

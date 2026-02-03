@@ -1,3 +1,5 @@
+from typing import Final, List
+
 import mathics.core.definitions as definitions
 from mathics.core.builtin import Builtin
 from mathics.core.symbols import Symbol
@@ -30,17 +32,21 @@ class FormBaseClass(Builtin):
         name = cls.__name__
 
         if hasattr(cls, "in_printforms") and cls.in_printforms:
-            definitions.PrintForms.add(Symbol(name))
+            definitions.PRINT_FORMS.add(Symbol(name))
         if hasattr(cls, "in_outputforms") and cls.in_outputforms:
-            if name in definitions.OutputForms:
+            if name in definitions.OUTPUT_FORMS:
                 raise RuntimeError(f"{name} already added to $OutputsForms")
-            definitions.OutputForms.add(Symbol(name))
+            definitions.OUTPUT_FORMS.add(Symbol(name))
+        if hasattr(cls, "in_boxforms") and cls.in_boxforms:
+            if name in definitions.BOX_FORMS:
+                raise RuntimeError(f"{name} already added to $BoxForms")
+            definitions.BOX_FORMS.add(Symbol(name))
+
         form_symbol_to_class[Symbol(name)] = cls
         return instance
 
 
-# FormBaseClass is a public Builtin class that
-# should not get added as a definition (and therefore not added to
-# to external documentation.
+# FormBaseClass is a Builtin class that should not get added as a
+# definition, and therefore not added to to external documentation.
 
-DOES_NOT_ADD_BUILTIN_DEFINITION = [FormBaseClass]
+DOES_NOT_ADD_BUILTIN_DEFINITION: Final[List[Builtin]] = [FormBaseClass]

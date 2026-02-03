@@ -1,28 +1,28 @@
 # -*- coding: utf-8 -*-
 """
-Lower-level format of Mathics objects as Asymptote Vector graphics strings.
+Mathics3 Graphics box rendering to Asymptote Vector graphics strings.
 """
 
 import re
 
 from mathics.builtin.box.graphics import (
+    ArcBox,
     ArrowBox,
     BezierCurveBox,
     FilledCurveBox,
+    GraphicsElementBox,
     InsetBox,
     LineBox,
     PointBox,
     PolygonBox,
     RectangleBox,
-    _ArcBox,
-    _RoundBox,
+    RoundBox,
 )
 from mathics.builtin.box.graphics3d import (
     Arrow3DBox,
     Cone3DBox,
     Cuboid3DBox,
     Cylinder3DBox,
-    Graphics3DElements,
     Line3DBox,
     Point3DBox,
     Polygon3DBox,
@@ -30,14 +30,11 @@ from mathics.builtin.box.graphics3d import (
     Tube3DBox,
 )
 from mathics.builtin.box.uniform_polyhedra import UniformPolyhedron3DBox
-from mathics.builtin.graphics import (
-    DEFAULT_POINT_FACTOR,
-    GraphicsElements,
-    PointSize,
-    RGBColor,
-)
+from mathics.builtin.drawing.graphics3d import Graphics3DElements
+from mathics.builtin.graphics import DEFAULT_POINT_FACTOR, PointSize, RGBColor
 from mathics.core.formatter import add_conversion_fn, lookup_method
-from mathics.format.asy_fns import (
+from mathics.format.box.graphics import GraphicsElements
+from mathics.format.render.asy_fns import (
     asy_add_bezier_fn,
     asy_add_graph_import,
     asy_bezier,
@@ -45,7 +42,7 @@ from mathics.format.asy_fns import (
     asy_create_pens,
     asy_number,
 )
-from mathics.format.asy_polyhedra import HEDRON_NAME_MAP, unimplimented_polygon
+from mathics.format.render.asy_polyhedra import HEDRON_NAME_MAP, unimplimented_polygon
 
 INVERSE_POINT_FACTOR = 1 / DEFAULT_POINT_FACTOR
 
@@ -87,16 +84,16 @@ class _ASYTransform:
         return self._template % (" * ".join(self.transforms), asy)
 
 
-def arcbox(self: _ArcBox, **options) -> str:
+def arcbox(box: ArcBox, **options) -> str:
     """
-    Aymptote formatting for an arc of a circle or an ellipse.
+    Aysmptote formatting for an arc of a circle or an ellipse.
     """
-    if self.arc is None:
+    if box.arc is None:
         # We have a doughnut graph and this is the inner blank hole of that.
         # It is an empty circle
-        return _roundbox(self)
+        return roundbox(box)
 
-    x, y, rx, ry, sx, sy, ex, ey, _ = self._arc_params()
+    x, y, rx, ry, sx, sy, ex, ey, _ = box._arc_params()
 
     ry = max(ry, 0.1)  # Avoid division by 0
     yscale = ry / rx
@@ -126,39 +123,39 @@ def arcbox(self: _ArcBox, **options) -> str:
 
         return arc_path
 
-    stroke_width = self.style.get_line_width(face_element=self.face_element)
-    edge_opacity_value = self.edge_opacity.opacity if self.edge_opacity else None
-    face_opacity_value = self.face_opacity.opacity if self.face_opacity else None
+    stroke_width = box.style.get_line_width(face_element=box.face_element)
+    edge_opacity_value = box.edge_opacity.opacity if box.edge_opacity else None
+    face_opacity_value = box.face_opacity.opacity if box.face_opacity else None
 
     pen = asy_create_pens(
-        edge_color=self.edge_color,
-        face_color=self.face_color,
+        edge_color=box.edge_color,
+        face_color=box.face_color,
         edge_opacity=edge_opacity_value,
         face_opacity=face_opacity_value,
         stroke_width=stroke_width,
-        is_face_element=bool(self.face_element),
+        is_face_element=bool(box.face_element),
     )
-    command = "filldraw" if self.face_element else "draw"
-    arc_path = create_arc_path(self.face_element or False, yscale)
+    command = "filldraw" if box.face_element else "draw"
+    arc_path = create_arc_path(box.face_element or False, yscale)
     asy = f"""// ArcBox
 {command}({arc_path}, {pen});"""
     # print("### arcbox", asy)
     return asy
 
 
-add_conversion_fn(_ArcBox, arcbox)
+add_conversion_fn(ArcBox, arcbox)
 
 
-def arrow_box(self: ArrowBox, **options) -> str:
-    width = self.style.get_line_width(face_element=False)
-    edge_opacity_value = self.edge_opacity.opacity if self.edge_opacity else None
+def arrow_box(box: ArrowBox, **options) -> str:
+    width = box.style.get_line_width(face_element=False)
+    edge_opacity_value = box.edge_opacity.opacity if box.edge_opacity else None
     pen = asy_create_pens(
-        edge_color=self.edge_color, stroke_width=width, edge_opacity=edge_opacity_value
+        edge_color=box.edge_color, stroke_width=width, edge_opacity=edge_opacity_value
     )
-    polyline = self.curve.make_draw_asy(pen)
+    polyline = box.curve.make_draw_asy(pen)
 
     arrow_pen = asy_create_pens(
-        face_color=self.edge_color, stroke_width=width, face_opacity=edge_opacity_value
+        face_color=box.edge_color, stroke_width=width, face_opacity=edge_opacity_value
     )
 
     def polygon(points):
@@ -166,10 +163,10 @@ def arrow_box(self: ArrowBox, **options) -> str:
         yield "--".join(["(%.5g,%5g)" % xy for xy in points])
         yield "--cycle, % s);" % arrow_pen
 
-    extent = self.graphics.view_width or 0
-    default_arrow = self._default_arrow(polygon)
-    custom_arrow = self._custom_arrow("asy", _ASYTransform)
-    asy = "".join(self._draw(polyline, default_arrow, custom_arrow, extent))
+    extent = box.graphics.view_width or 0
+    default_arrow = box._default_arrow(polygon)
+    custom_arrow = box._custom_arrow("asy", _ASYTransform)
+    asy = "".join(box._draw(polyline, default_arrow, custom_arrow, extent))
     # print("### arrowbox", asy)
     return asy
 
@@ -189,26 +186,26 @@ def build_3d_pen_color(color, opacity=None):
     return color_str
 
 
-def arrow3dbox(self, **options) -> str:
+def arrow3dbox(box, **options) -> str:
     """
-    Aymptote 3D formatter for Arrow3DBox
+    Asymptote 3D formatter for Arrow3DBox
     """
 
     # Set style parameters.
-    edge_opacity_value = self.edge_opacity.opacity if self.edge_opacity else None
+    edge_opacity_value = box.edge_opacity.opacity if box.edge_opacity else None
     pen = asy_create_pens(
-        edge_color=self.edge_color, stroke_width=1, edge_opacity=edge_opacity_value
+        edge_color=box.edge_color, stroke_width=1, edge_opacity=edge_opacity_value
     )
 
     # Draw lines between all points except the last.
     lines_str = "--".join(
-        ["({0},{1},{2})".format(*(coords.pos()[0])) for coords in self.lines[0][:-1]]
+        ["({0},{1},{2})".format(*(coords.pos()[0])) for coords in box.lines[0][:-1]]
     )
     asy = f"draw({lines_str}, {pen});\n"
 
     # Draw an arrow between the penultimate and the last point.
     last_line_str = "--".join(
-        ["({0},{1},{2})".format(*(coords.pos()[0])) for coords in self.lines[0][-2:]]
+        ["({0},{1},{2})".format(*(coords.pos()[0])) for coords in box.lines[0][-2:]]
     )
     asy += f"draw(({last_line_str}), {pen}, Arrow3);\n"
 
@@ -219,22 +216,22 @@ def arrow3dbox(self, **options) -> str:
 add_conversion_fn(Arrow3DBox)
 
 
-def bezier_curve_box(self: BezierCurveBox, **options) -> str:
+def bezier_curve_box(box: BezierCurveBox, **options) -> str:
     """
     Asymptote formatter for BezierCurveBox.
     """
-    line_width = self.style.get_line_width(face_element=False)
-    edge_opacity_value = self.edge_opacity.opacity if self.edge_opacity else None
+    line_width = box.style.get_line_width(face_element=False)
+    edge_opacity_value = box.edge_opacity.opacity if box.edge_opacity else None
     pen = asy_create_pens(
-        edge_color=self.edge_color,
+        edge_color=box.edge_color,
         stroke_width=line_width,
         edge_opacity=edge_opacity_value,
     )
 
     asy = "// BezierCurveBox\n"
-    asy += asy_add_graph_import(self)
-    asy += asy_add_bezier_fn(self)
-    for i, line in enumerate(self.lines):
+    asy += asy_add_graph_import(box)
+    asy += asy_add_bezier_fn(box)
+    for i, line in enumerate(box.lines):
         pts = [str(xy.pos()) for xy in line]
         for j in range(1, len(pts) - 1, 3):
             triple = ", ".join(pts[j - 1 : j + 3])
@@ -248,18 +245,18 @@ def bezier_curve_box(self: BezierCurveBox, **options) -> str:
 add_conversion_fn(BezierCurveBox, bezier_curve_box)
 
 
-def cone3dbox(self: Cone3DBox, **options) -> str:
-    face_color = self.face_color.to_js() if self.face_color else (1, 1, 1)
-    opacity = self.face_opacity
+def cone3dbox(box: Cone3DBox, **options) -> str:
+    face_color = box.face_color.to_js() if box.face_color else (1, 1, 1)
+    opacity = box.face_opacity
     color_str = build_3d_pen_color(face_color, opacity)
 
     asy = "// Cone3DBox\n"
     i = 0
-    while i < len(self.points) / 2:
+    while i < len(box.points) / 2:
         try:
             # See https://tex.stackexchange.com/questions/736116/how-to-draw-the-base-geometrical-face-of-a-cone-surface-by-asymptote/736120#736120
-            cone_center = self.points[i * 2].pos()[0]
-            cone_tip = self.points[i * 2 + 1].pos()[0]
+            cone_center = box.points[i * 2].pos()[0]
+            cone_tip = box.points[i * 2 + 1].pos()[0]
             if cone_center is None or cone_tip is None:
                 continue
 
@@ -274,7 +271,7 @@ def cone3dbox(self: Cone3DBox, **options) -> str:
             asy += f"""
                    triple cone_center = {tuple(cone_center)};
                    triple cone_tip = {tuple(cone_tip)};
-                   real cone_radius = {self.radius};
+                   real cone_radius = {box.radius};
                    real cone_height = {cone_height};
 
                    path3 cone_circle = circle(cone_center, cone_radius, cone_tip);
@@ -293,17 +290,17 @@ def cone3dbox(self: Cone3DBox, **options) -> str:
 add_conversion_fn(Cone3DBox)
 
 
-def cuboid3dbox(self: Cuboid3DBox, **options) -> str:
-    face_color = self.face_color.to_js() if self.face_color else (1, 1, 1)
-    opacity = self.face_opacity
+def cuboid3dbox(box: Cuboid3DBox, **options) -> str:
+    face_color = box.face_color.to_js() if box.face_color else (1, 1, 1)
+    opacity = box.face_opacity
     color_str = build_3d_pen_color(face_color, opacity)
     asy = "// Cuboid3DBox\n"
 
     i = 0
-    while i < len(self.points) / 2:
+    while i < len(box.points) / 2:
         try:
-            point1 = self.points[i * 2].pos()[0]
-            point2 = self.points[i * 2 + 1].pos()[0]
+            point1 = box.points[i * 2].pos()[0]
+            point2 = box.points[i * 2 + 1].pos()[0]
 
             if point1 is None or point2 is None:
                 continue
@@ -331,23 +328,23 @@ def cuboid3dbox(self: Cuboid3DBox, **options) -> str:
 add_conversion_fn(Cuboid3DBox)
 
 
-def cylinder3dbox(self: Cylinder3DBox, **options) -> str:
-    face_color = self.face_color.to_js() if self.face_color else (1, 1, 1)
-    opacity = self.face_opacity
+def cylinder3dbox(box: Cylinder3DBox, **options) -> str:
+    face_color = box.face_color.to_js() if box.face_color else (1, 1, 1)
+    opacity = box.face_opacity
     color_str = build_3d_pen_color(face_color, opacity)
 
     asy = "// Cylinder3DBox\n"
     # asy += "currentprojection=orthographic(3,1,4,center=true,zoom=.9);\n"
     i = 0
-    while i < len(self.points) / 2:
+    while i < len(box.points) / 2:
         try:
-            point1 = self.points[i * 2].pos()[0]
-            point2 = self.points[i * 2 + 1].pos()[0]
+            point1 = box.points[i * 2].pos()[0]
+            point2 = box.points[i * 2 + 1].pos()[0]
 
             if point1 is None or point2 is None:
                 continue
 
-            asy += f"real r={self.radius};\n"
+            asy += f"real r={box.radius};\n"
             asy += f"triple A={tuple(point1)}, B={tuple(point2)};\n"
             asy += "real h=abs(A-B);\n"
             asy += "revolution cyl=cylinder(A,r,h,B-A);\n"
@@ -368,11 +365,11 @@ def cylinder3dbox(self: Cylinder3DBox, **options) -> str:
 add_conversion_fn(Cylinder3DBox)
 
 
-def filled_curve_box(self, **options) -> str:
-    line_width = self.style.get_line_width(face_element=False)
-    edge_opacity_value = self.edge_opacity.opacity if self.edge_opacity else None
+def filled_curve_box(box, **options) -> str:
+    line_width = box.style.get_line_width(face_element=False)
+    edge_opacity_value = box.edge_opacity.opacity if box.edge_opacity else None
     pen = asy_create_pens(
-        edge_color=self.edge_color,
+        edge_color=box.edge_color,
         stroke_width=line_width,
         edge_opacity=edge_opacity_value,
     )
@@ -381,7 +378,7 @@ def filled_curve_box(self, **options) -> str:
         pen = "currentpen"
 
     def components():
-        for component in self.components:
+        for component in box.components:
             transformed = [(k, [xy.pos() for xy in p]) for k, p in component]
             yield "fill(%s--cycle, %s);" % ("".join(asy_bezier(*transformed)), pen)
 
@@ -391,12 +388,12 @@ def filled_curve_box(self, **options) -> str:
 add_conversion_fn(FilledCurveBox, filled_curve_box)
 
 
-def graphics_elements(self, **options) -> str:
+def graphics_elements(box: GraphicsElementBox, **options) -> str:
     """
-    Asymptote formatting on a list of graphics elements.
+    Asymptote formatting on a GraphicsElementBox which may contain other GraphicsElementBox's.
     """
     result = []
-    for element in self.elements:
+    for element in box.elements:
         try:
             format_fn = lookup_method(element, "asy")
         except Exception:
@@ -420,25 +417,25 @@ graphics3delements = graphics_elements
 add_conversion_fn(Graphics3DElements)
 
 
-def inset_box(self, **options) -> str:
+def inset_box(box: InsetBox, **options) -> str:
     """Asymptote formatting for boxing an Inset in a graphic."""
-    x, y = self.pos.pos()
+    x, y = box.pos.pos()
 
     alignment = "SW"
-    if hasattr(self, "alignment"):
-        if self.alignment == "bottom":
+    if hasattr(box, "alignment"):
+        if box.alignment == "bottom":
             # This is typically done for labels under the x axis.
             alignment = "S"
-        elif self.alignment == "left":
+        elif box.alignment == "left":
             # This is typically done for labels to the left of the y axis.
             alignment = "W"
 
-    opacity_value = self.opacity.opacity if self.opacity else None
-    content = self.content.boxes_to_tex(evaluation=self.graphics.evaluation)
+    opacity_value = box.opacity.opacity if box.opacity else None
+    content = box.content.boxes_to_tex(evaluation=box.graphics.evaluation)
     # FIXME: don't hard code text_style_opts, but allow these to be adjustable.
     font_size = 3
     pen = asy_create_pens(
-        edge_color=self.color, edge_opacity=opacity_value, fontsize=font_size
+        edge_color=box.color, edge_opacity=opacity_value, fontsize=font_size
     )
     asy = f"""// InsetBox
 label("${content}$", ({x},{y}), align={alignment}, {pen});\n"""
@@ -448,11 +445,11 @@ label("${content}$", ({x},{y}), align={alignment}, {pen});\n"""
 add_conversion_fn(InsetBox, inset_box)
 
 
-def line3dbox(self, **options) -> str:
-    # l = self.style.get_line_width(face_element=False)
-    edge_opacity_value = self.edge_opacity.opacity if self.edge_opacity else None
+def line3dbox(box: Line3DBox, **options) -> str:
+    # l = box.style.get_line_width(face_element=False)
+    edge_opacity_value = box.edge_opacity.opacity if box.edge_opacity else None
     pen = asy_create_pens(
-        edge_color=self.edge_color, stroke_width=1, edge_opacity=edge_opacity_value
+        edge_color=box.edge_color, stroke_width=1, edge_opacity=edge_opacity_value
     )
 
     return "".join(
@@ -460,23 +457,23 @@ def line3dbox(self, **options) -> str:
             "--".join("({0},{1},{2})".format(*coords.pos()[0]) for coords in line),
             pen,
         )
-        for line in self.lines
+        for line in box.lines
     )
 
 
 add_conversion_fn(Line3DBox)
 
 
-def line_box(self: LineBox) -> str:
-    line_width = self.style.get_line_width(face_element=False)
-    edge_opacity_value = self.edge_opacity.opacity if self.edge_opacity else None
+def line_box(box: LineBox) -> str:
+    line_width = box.style.get_line_width(face_element=False)
+    edge_opacity_value = box.edge_opacity.opacity if box.edge_opacity else None
     pen = asy_create_pens(
-        edge_color=self.edge_color,
+        edge_color=box.edge_color,
         stroke_width=line_width,
         edge_opacity=edge_opacity_value,
     )
     asy = "// LineBox\n"
-    for line in self.lines:
+    for line in box.lines:
         path = "--".join(["(%.5g,%5g)" % coords.pos() for coords in line])
         asy += "draw(%s, %s);" % (path, pen)
     # print("### linebox", asy)
@@ -486,15 +483,15 @@ def line_box(self: LineBox) -> str:
 add_conversion_fn(LineBox, line_box)
 
 
-def point3dbox(self: Point3DBox, **options) -> str:
+def point3dbox(box: Point3DBox, **options) -> str:
     """
-    Aymptote 3D formatter for Point3DBox
+    Asymptote 3D formatter for Point3DBox
     """
 
-    face_color = self.face_color
+    face_color = box.face_color
     face_opacity_value = face_color.to_rgba()[3]
     if face_opacity_value is None:
-        face_opacity_value = self.face_opacity.opacity
+        face_opacity_value = box.face_opacity.opacity
 
     # Tempoary bug fix: default Point color should be black not white
     if list(face_color.to_rgba()[:3]) == [1, 1, 1]:
@@ -504,7 +501,7 @@ def point3dbox(self: Point3DBox, **options) -> str:
         face_color=face_color, is_face_element=False, face_opacity=face_opacity_value
     )
     points = []
-    for line in self.lines:
+    for line in box.lines:
         point_coords = "--".join(
             "(%.5g,%.5g,%.5g)" % coords.pos()[0] for coords in line
         )
@@ -519,24 +516,24 @@ def point3dbox(self: Point3DBox, **options) -> str:
 add_conversion_fn(Point3DBox)
 
 
-def pointbox(self: PointBox, **options) -> str:
-    point_size, _ = self.style.get_style(PointSize, face_element=False)
+def pointbox(box: PointBox, **options) -> str:
+    point_size, _ = box.style.get_style(PointSize, face_element=False)
     if point_size is None:
-        point_size = PointSize(self.graphics, value=DEFAULT_POINT_FACTOR)
+        point_size = PointSize(box.graphics, value=DEFAULT_POINT_FACTOR)
 
     # We'll use the heuristic that the default line width is 1 should correspond
     # to the DEFAULT_POINT_FACTOR
     dotfactor = INVERSE_POINT_FACTOR * point_size.value
-    face_opacity_value = self.face_opacity.opacity if self.face_opacity else None
+    face_opacity_value = box.face_opacity.opacity if box.face_opacity else None
     pen = asy_create_pens(
-        face_color=self.face_color,
+        face_color=box.face_color,
         is_face_element=False,
         dotfactor=dotfactor,
         face_opacity=face_opacity_value,
     )
 
     asy = "// PointBox\n"
-    for line in self.lines:
+    for line in box.lines:
         for coords in line:
             asy += "dot(%s, %s);" % (coords.pos(), pen)
 
@@ -547,21 +544,21 @@ def pointbox(self: PointBox, **options) -> str:
 add_conversion_fn(PointBox)
 
 
-def polygon_3d_box(self: Polygon3DBox, **options) -> str:
+def polygon_3d_box(box: Polygon3DBox, **options) -> str:
     """
     Asymptote formatting of a Polygon3DBox.
     """
-    stroke_width = self.style.get_line_width(face_element=True)
-    if self.vertex_colors is None:
-        face_color = self.face_color
-        face_opacity_value = self.face_opacity.opacity if self.face_opacity else None
+    stroke_width = box.style.get_line_width(face_element=True)
+    if box.vertex_colors is None:
+        face_color = box.face_color
+        face_opacity_value = box.face_opacity.opacity if box.face_opacity else None
     else:
         face_color = None
         face_opacity_value = None
 
-    edge_opacity_value = self.edge_opacity.opacity if self.edge_opacity else None
+    edge_opacity_value = box.edge_opacity.opacity if box.edge_opacity else None
     pen = asy_create_pens(
-        edge_color=self.edge_color,
+        edge_color=box.edge_color,
         face_color=face_color,
         edge_opacity=edge_opacity_value,
         face_opacity=face_opacity_value,
@@ -570,7 +567,7 @@ def polygon_3d_box(self: Polygon3DBox, **options) -> str:
     )
 
     asy = "// Polygon3DBox\n"
-    for line in self.lines:
+    for line in box.lines:
         asy += (
             "path3 g="
             + "--".join(["(%.5g,%.5g,%.5g)" % coords.pos()[0] for coords in line])
@@ -585,18 +582,18 @@ def polygon_3d_box(self: Polygon3DBox, **options) -> str:
 add_conversion_fn(Polygon3DBox, polygon_3d_box)
 
 
-def polygonbox(self: PolygonBox, **options) -> str:
-    line_width = self.style.get_line_width(face_element=True)
-    if self.vertex_colors is None:
-        face_color = self.face_color
-        face_opacity_value = self.face_opacity.opacity if self.face_opacity else None
+def polygonbox(box: PolygonBox, **options) -> str:
+    line_width = box.style.get_line_width(face_element=True)
+    if box.vertex_colors is None:
+        face_color = box.face_color
+        face_opacity_value = box.face_opacity.opacity if box.face_opacity else None
     else:
         face_color = None
         face_opacity_value = None
 
-    edge_opacity_value = self.edge_opacity.opacity if self.edge_opacity else None
+    edge_opacity_value = box.edge_opacity.opacity if box.edge_opacity else None
     pens = asy_create_pens(
-        edge_color=self.edge_color,
+        edge_color=box.edge_color,
         face_color=face_color,
         edge_opacity=edge_opacity_value,
         face_opacity=face_opacity_value,
@@ -604,21 +601,21 @@ def polygonbox(self: PolygonBox, **options) -> str:
         is_face_element=True,
     )
     asy = "// PolygonBox\n"
-    if self.vertex_colors is not None:
+    if box.vertex_colors is not None:
         paths = []
         colors = []
         edges = []
-        for index, line in enumerate(self.lines):
+        for index, line in enumerate(box.lines):
             paths.append(
                 "--".join(["(%.5g,%.5g)" % coords.pos() for coords in line]) + "--cycle"
             )
 
             # ignore opacity
             colors.append(
-                ",".join([asy_color(color)[0] for color in self.vertex_colors[index]])
+                ",".join([asy_color(color)[0] for color in box.vertex_colors[index]])
             )
 
-            edges.append(",".join(["0"] + ["1"] * (len(self.vertex_colors[index]) - 1)))
+            edges.append(",".join(["0"] + ["1"] * (len(box.vertex_colors[index]) - 1)))
 
         asy += "gouraudshade(%s, new pen[] {%s}, new int[] {%s});" % (
             "^^".join(paths),
@@ -626,7 +623,7 @@ def polygonbox(self: PolygonBox, **options) -> str:
             ",".join(edges),
         )
     if pens and pens != "nullpen":
-        for line in self.lines:
+        for line in box.lines:
             path = (
                 "--".join(["(%.5g,%.5g)" % coords.pos() for coords in line]) + "--cycle"
             )
@@ -639,15 +636,15 @@ def polygonbox(self: PolygonBox, **options) -> str:
 add_conversion_fn(PolygonBox)
 
 
-def rectanglebox(self: RectangleBox, **options) -> str:
-    line_width = self.style.get_line_width(face_element=True)
-    x1, y1 = self.p1.pos()
-    x2, y2 = self.p2.pos()
-    edge_opacity_value = self.edge_opacity.opacity if self.edge_opacity else None
-    face_opacity_value = self.face_opacity.opacity if self.face_opacity else None
+def rectanglebox(box: RectangleBox, **options) -> str:
+    line_width = box.style.get_line_width(face_element=True)
+    x1, y1 = box.p1.pos()
+    x2, y2 = box.p2.pos()
+    edge_opacity_value = box.edge_opacity.opacity if box.edge_opacity else None
+    face_opacity_value = box.face_opacity.opacity if box.face_opacity else None
     pens = asy_create_pens(
-        self.edge_color,
-        self.face_color,
+        box.edge_color,
+        box.face_color,
         edge_opacity=edge_opacity_value,
         face_opacity=face_opacity_value,
         stroke_width=line_width,
@@ -673,23 +670,23 @@ def rectanglebox(self: RectangleBox, **options) -> str:
 add_conversion_fn(RectangleBox)
 
 
-def _roundbox(self: _RoundBox):
-    x, y = self.c.pos()
-    rx, ry = self.r.pos()
+def roundbox(box: RoundBox):
+    x, y = box.c.pos()
+    rx, ry = box.r.pos()
     rx -= x
     ry -= y
-    line_width = self.style.get_line_width(face_element=self.face_element)
-    edge_opacity_value = self.edge_opacity.opacity if self.edge_opacity else None
-    face_opacity_value = self.face_opacity.opacity if self.face_opacity else None
+    line_width = box.style.get_line_width(face_element=box.face_element)
+    edge_opacity_value = box.edge_opacity.opacity if box.edge_opacity else None
+    face_opacity_value = box.face_opacity.opacity if box.face_opacity else None
     pen = asy_create_pens(
-        edge_color=self.edge_color,
-        face_color=self.face_color,
+        edge_color=box.edge_color,
+        face_color=box.face_color,
         edge_opacity=edge_opacity_value,
         face_opacity=face_opacity_value,
         stroke_width=line_width,
-        is_face_element=self.face_element,
+        is_face_element=box.face_element,
     )
-    cmd = "filldraw" if self.face_element else "draw"
+    cmd = "filldraw" if box.face_element else "draw"
     return "%s(ellipse((%s,%s),%s,%s), %s);" % (
         cmd,
         asy_number(x),
@@ -700,44 +697,44 @@ def _roundbox(self: _RoundBox):
     )
 
 
-add_conversion_fn(_RoundBox)
+add_conversion_fn(RoundBox)
 
 
-def sphere3dbox(self: Sphere3DBox, **options) -> str:
-    # l = self.style.get_line_width(face_element=True)
+def sphere3dbox(box: Sphere3DBox, **options) -> str:
+    # l = box.style.get_line_width(face_element=True)
 
-    face_color = self.face_color.to_js() if self.face_color else (1, 1, 1)
-    opacity = self.face_opacity
+    face_color = box.face_color.to_js() if box.face_color else (1, 1, 1)
+    opacity = box.face_opacity
     color_str = build_3d_pen_color(face_color, opacity)
 
     return "// Sphere3DBox\n" + "\n".join(
         "draw(surface(sphere({0}, {1})), {2});".format(
-            tuple(coord.pos()[0]), self.radius, color_str
+            tuple(coord.pos()[0]), box.radius, color_str
         )
-        for coord in self.points
+        for coord in box.points
     )
 
 
 add_conversion_fn(Sphere3DBox)
 
 
-def tube_3d_box(self: Tube3DBox, **options) -> str:
-    # if not (hasattr(self.graphics, "tube_import_added") and self.tube_import_added):
-    #     self.graphics.tube_import_added = True
+def tube_3d_box(box: Tube3DBox, **options) -> str:
+    # if not (hasattr(box.graphics, "tube_import_added") and box.tube_import_added):
+    #     box.graphics.tube_import_added = True
     #     asy_head = "import tube;\n\n"
     # else:
     #     asy_head = ""
-    face_color = self.face_color.to_js() if self.face_color else (1, 1, 1)
-    opacity = self.face_opacity
+    face_color = box.face_color.to_js() if box.face_color else (1, 1, 1)
+    opacity = box.face_opacity
     color_str = build_3d_pen_color(face_color, opacity)
 
     asy = (
         # asy_head +
         "// Tube3DBox\n draw(tube({0}, scale({1})*unitcircle), {2});".format(
             "--".join(
-                "({0},{1},{2})".format(*coords.pos()[0]) for coords in self.points
+                "({0},{1},{2})".format(*coords.pos()[0]) for coords in box.points
             ),
-            self.radius,
+            box.radius,
             color_str,
         )
     )
@@ -747,16 +744,16 @@ def tube_3d_box(self: Tube3DBox, **options) -> str:
 add_conversion_fn(Tube3DBox, tube_3d_box)
 
 
-def uniform_polyhedron_3d_box(self: UniformPolyhedron3DBox, **options) -> str:
-    # l = self.style.get_line_width(face_element=True)
+def uniform_polyhedron_3d_box(box: UniformPolyhedron3DBox, **options) -> str:
+    # l = box.style.get_line_width(face_element=True)
 
-    face_color = self.face_color.to_js() if self.face_color else (1, 1, 1)
-    opacity = self.face_opacity
+    face_color = box.face_color.to_js() if box.face_color else (1, 1, 1)
+    opacity = box.face_opacity
     color_str = build_3d_pen_color(face_color, opacity)
-    render_fn = HEDRON_NAME_MAP.get(self.sub_type, unimplimented_polygon)
-    return f"// {self.sub_type}\n" + "\n".join(
-        render_fn(tuple(coord.pos()[0]), self.edge_length, color_str)
-        for coord in self.points
+    render_fn = HEDRON_NAME_MAP.get(box.sub_type, unimplimented_polygon)
+    return f"// {box.sub_type}\n" + "\n".join(
+        render_fn(tuple(coord.pos()[0]), box.edge_length, color_str)
+        for coord in box.points
     )
 
 

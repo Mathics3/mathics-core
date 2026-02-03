@@ -12,6 +12,7 @@ from typing import Dict, Optional
 import mpmath
 import numpy
 import sympy
+from sympy import Float as Sympy_Float
 
 from mathics.core.atoms import NUMERICAL_CONSTANTS, MachineReal, PrecisionReal
 from mathics.core.attributes import A_CONSTANT, A_PROTECTED, A_READ_PROTECTED
@@ -48,8 +49,8 @@ def mp_convert_constant(obj, **kwargs):
     if isinstance(obj, mpmath.ctx_mp_python._constant):
         prec = kwargs.get("prec", None)
         if prec is not None:
-            return sympy.Float(obj(prec=prec))
-        return sympy.Float(obj)
+            return Sympy_Float(obj(prec=prec))
+        return Sympy_Float(obj)
     return obj
 
 
@@ -146,7 +147,7 @@ class _Constant_Common(Predefined):
         if preference == "mpmath":
             value = mp_constant(self.mpmath_name, d * 2)
         if value:
-            return PrecisionReal(sympy.Float(str(value), d))
+            return PrecisionReal(Sympy_Float(str(value), d))
         # If the value is not available, return none
         # and keep it unevaluated.
         return
@@ -286,10 +287,6 @@ class ComplexInfinity(_SympyConstant):
         "ComplexInfinity": "DirectedInfinity[]",
     }
 
-    @property
-    def sympy(self) -> sympy.core.numbers.ComplexInfinity:
-        return zoo
-
 
 class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
@@ -380,10 +377,6 @@ class E(_MPMathConstant, _NumpyConstant, _SympyConstant):
         "N[E, precision_]"
         return self.get_constant(precision, evaluation)
 
-    @property
-    def sympy(self) -> sympy.core.numbers.Exp1:
-        return SymPyE
-
 
 class EulerGamma(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
@@ -409,10 +402,6 @@ class EulerGamma(_MPMathConstant, _NumpyConstant, _SympyConstant):
     mpmath_name = "euler"
     numpy_name = "euler_gamma"
     sympy_name = "EulerGamma"
-
-    @property
-    def sympy(self) -> sympy.core.numbers.EulerGamma:
-        return S.EulerGamma
 
 
 class Glaisher(_MPMathConstant):
