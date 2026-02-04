@@ -169,9 +169,11 @@ add_conversion_fn(PaneBox, pane_box)
 
 
 def fractionbox(box: FractionBox, **options) -> str:
+    # Note: values set in `options` take precedence over `box_options`
+    child_options = {**options, **box.box_options}
     return "<mfrac>%s %s</mfrac>" % (
-        lookup_conversion_method(box.num, "mathml")(box.num, **options),
-        lookup_conversion_method(box.den, "mathml")(box.den, **options),
+        lookup_conversion_method(box.num, "mathml")(box.num, **child_options),
+        lookup_conversion_method(box.den, "mathml")(box.den, **child_options),
     )
 
 
@@ -222,10 +224,14 @@ add_conversion_fn(GridBox, gridbox)
 
 
 def sqrtbox(box: SqrtBox, **options):
+    # Note: values set in `options` take precedence over `box_options`
+    child_options = {**options, **box.box_options}
     if box.index:
         return "<mroot> %s %s </mroot>" % (
-            lookup_conversion_method(box.radicand, "mathml")(box.radicand, **options),
-            lookup_conversion_method(box.index, "mathml")(box.index, **options),
+            lookup_conversion_method(box.radicand, "mathml")(
+                box.radicand, **child_options
+            ),
+            lookup_conversion_method(box.index, "mathml")(box.index, **child_options),
         )
 
     return "<msqrt> %s </msqrt>" % lookup_conversion_method(box.radicand, "mathml")(
@@ -237,9 +243,11 @@ add_conversion_fn(SqrtBox, sqrtbox)
 
 
 def subscriptbox(box: SubscriptBox, **options):
+    # Note: values set in `options` take precedence over `box_options`
+    child_options = {**options, **box.box_options}
     return "<msub>%s %s</msub>" % (
-        lookup_conversion_method(box.base, "mathml")(box.base, **options),
-        lookup_conversion_method(box.subindex, "mathml")(box.subindex, **options),
+        lookup_conversion_method(box.base, "mathml")(box.base, **child_options),
+        lookup_conversion_method(box.subindex, "mathml")(box.subindex, **child_options),
     )
 
 
@@ -247,9 +255,13 @@ add_conversion_fn(SubscriptBox, subscriptbox)
 
 
 def superscriptbox(box: SuperscriptBox, **options):
+    # Note: values set in `options` take precedence over `box_options`
+    child_options = {**options, **box.box_options}
     return "<msup>%s %s</msup>" % (
-        lookup_conversion_method(box.base, "mathml")(box.base, **options),
-        lookup_conversion_method(box.superindex, "mathml")(box.superindex, **options),
+        lookup_conversion_method(box.base, "mathml")(box.base, **child_options),
+        lookup_conversion_method(box.superindex, "mathml")(
+            box.superindex, **child_options
+        ),
     )
 
 
@@ -257,11 +269,15 @@ add_conversion_fn(SuperscriptBox, superscriptbox)
 
 
 def subsuperscriptbox(box: SubsuperscriptBox, **options):
+    # Note: values set in `options` take precedence over `box_options`
+    child_options = {**box.box_options, **options}
     box.base.inside_row = box.subindex.inside_row = box.superindex.inside_row = True
     return "<msubsup>%s %s %s</msubsup>" % (
-        lookup_conversion_method(box.base, "mathml")(box.base, **options),
-        lookup_conversion_method(box.subindex, "mathml")(box.subindex, **options),
-        lookup_conversion_method(box.superindex, "mathml")(box.superindex, **options),
+        lookup_conversion_method(box.base, "mathml")(box.base, **child_options),
+        lookup_conversion_method(box.subindex, "mathml")(box.subindex, **child_options),
+        lookup_conversion_method(box.superindex, "mathml")(
+            box.superindex, **child_options
+        ),
     )
 
 
@@ -269,6 +285,8 @@ add_conversion_fn(SubsuperscriptBox, subsuperscriptbox)
 
 
 def rowbox(box: RowBox, **options) -> str:
+    # Note: values set in `options` take precedence over `box_options`
+    child_options = {**box.box_options, **options}
     result = []
     inside_row = box.inside_row
 
@@ -296,7 +314,9 @@ def rowbox(box: RowBox, **options) -> str:
     for element in box.items:
         if hasattr(element, nest_field):
             setattr(element, nest_field, True)
-        result.append(lookup_conversion_method(element, "mathml")(element, **options))
+        result.append(
+            lookup_conversion_method(element, "mathml")(element, **child_options)
+        )
 
     # print(f"mrow: {result}")
 
@@ -307,7 +327,8 @@ add_conversion_fn(RowBox, rowbox)
 
 
 def stylebox(box: StyleBox, **options) -> str:
-    return lookup_conversion_method(box.boxes, "mathml")(box.boxes, **options)
+    child_options = {**options, **box.box_options}
+    return lookup_conversion_method(box.boxes, "mathml")(box.boxes, **child_options)
 
 
 add_conversion_fn(StyleBox, stylebox)
