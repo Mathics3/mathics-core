@@ -287,8 +287,8 @@
   latex:
     System`InputForm: '\text{$<$$\vert$a -$>$ x, b -$>$ y, c -$>$ $<$$\vert$d -$>$ t$\vert$$>$$\vert$$>$}'
     System`OutputForm: '\text{$<$$\vert$a -$>$ x, b -$>$ y, c -$>$ $<$$\vert$d -$>$ t$\vert$$>$$\vert$$>$}'
-    System`StandardForm: '\text{$<$$\vert$}a->x, b->y, c->\text{$<$$\vert$}d->t\text{$\vert$$>$}\text{$\vert$$>$}'
-    System`TraditionalForm: '\text{$<$$\vert$}a->x, b->y, c->\text{$<$$\vert$}d->t\text{$\vert$$>$}\text{$\vert$$>$}'
+    System`StandardForm: '\langle\vert a->x, b->y, c->\langle\vert d->t\vert\rangle \vert\rangle'
+    System`TraditionalForm: '\langle\vert a->x, b->y, c->\langle\vert d->t\vert\rangle \vert\rangle'
   mathml:
     System`InputForm: <mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t|&gt;|&gt;</mtext>
     System`OutputForm: '<mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t|&gt;|&gt;</mtext>'
@@ -306,8 +306,8 @@ Association[a -> x, b -> y, c -> Association[d -> t, Association[e -> u]]]:
   latex:
     System`InputForm: '\text{$<$$\vert$a -$>$ x, b -$>$ y, c -$>$ $<$$\vert$d -$>$ t, e -$>$ u$\vert$$>$$\vert$$>$}'
     System`OutputForm: '\text{$<$$\vert$a -$>$ x, b -$>$ y, c -$>$ $<$$\vert$d -$>$ t, e -$>$ u$\vert$$>$$\vert$$>$}'
-    System`StandardForm: '\text{$<$$\vert$}a->x, b->y, c->\text{$<$$\vert$}d->t, e->u\text{$\vert$$>$}\text{$\vert$$>$}'
-    System`TraditionalForm: '\text{$<$$\vert$}a->x, b->y, c->\text{$<$$\vert$}d->t, e->u\text{$\vert$$>$}\text{$\vert$$>$}'
+    System`StandardForm: '\langle\vert a->x, b->y, c->\langle\vert d->t, e->u\vert\rangle \vert\rangle'
+    System`TraditionalForm: '\langle\vert a->x, b->y, c->\langle\vert d->t, e->u\vert\rangle \vert\rangle'
   mathml:
     System`InputForm: "<mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t,&nbsp;e&nbsp;-&gt;&nbsp;u|&gt;|&gt;</mtext>"
     System`OutputForm: '<mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t,&nbsp;e&nbsp;-&gt;&nbsp;u|&gt;|&gt;</mtext>'
@@ -538,8 +538,8 @@ Integrate[F[x], {x, a, g[b]}]:
   latex:
     System`InputForm: \text{Integrate[F[x], \{x, a, g[b]\}]}
     System`OutputForm: '\text{Integrate[F[x], \{x, a, g[b]\}]}'
-    System`StandardForm: \int_a^{g\left[b\right]} F\left[x\right] \, dx
-    System`TraditionalForm: \int_a^{g\left(b\right)} F\left(x\right) \, dx
+    System`StandardForm: \int_a^{g[b]} F[x] \, dx
+    System`TraditionalForm: \int_a^{g(b)} F(x) \, dx
   mathml:
     System`InputForm: '<mtext>Integrate[F[x],&nbsp;{x,&nbsp;a,&nbsp;g[b]}]</mtext>'
     System`OutputForm: '<mtext>Integrate[F[x],&nbsp;{x,&nbsp;a,&nbsp;g[b]}]</mtext>'
@@ -802,8 +802,8 @@ a^(g[b]/c):
   latex:
     System`InputForm: \text{a${}^{\wedge}$(g[b]/c)}
     System`OutputForm: '\text{a ${}^{\wedge}$ (g[b] / c)}'
-    System`StandardForm: a^{\frac{g\left[b\right]}{c}}
-    System`TraditionalForm: a^{\frac{g\left(b\right)}{c}}
+    System`StandardForm: a^{\frac{g[b]}{c}}
+    System`TraditionalForm: a^{\frac{g(b)}{c}}
   mathml:
     System`InputForm:  <mtext>a^(g[b]/c)</mtext>
     System`OutputForm: '<mtext>a&nbsp;^&nbsp;(g[b]&nbsp;/&nbsp;c)</mtext>'
@@ -867,7 +867,7 @@ a+PrecedenceForm[b+c,10]:
   msg: "PrecedenceForm"
   latex:
     System`OutputForm: '\text{a + (b + c)}'
-    System`StandardForm: 'a+\left(b+c\right)'
+    System`StandardForm: 'a+(b+c)'
   mathml:
     System`OutputForm: '<mtext>a&nbsp;+&nbsp;(b&nbsp;+&nbsp;c)</mtext>'
     System`StandardForm: "<mrow>\n<mi>a</mi>\n<mo>+</mo>\n<mrow>\n<mo>(</mo>\n<mrow>\n<mi>b</mi>\n<mo>+</mo>\n<mi>c</mi>\n</mrow>\n<mo>)</mo>\n</mrow>\n</mrow>"
