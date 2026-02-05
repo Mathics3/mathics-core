@@ -284,6 +284,7 @@ add_conversion_fn(PaneBox, pane_box)
 
 
 def fractionbox(box: FractionBox, **options) -> str:
+    # Note: values set in `options` take precedence over `box_options`
     child_options = {**options, **box.box_options}
     return "\\frac{%s}{%s}" % (
         lookup_conversion_method(box.num, "latex")(box.num, **child_options),
