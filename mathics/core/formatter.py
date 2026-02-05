@@ -72,7 +72,7 @@ def convert_box_to_format(box, **options) -> str:
     return lookup_method(box, options["format_type"])(box, **options)
 
 
-def convert_inner_box_field(box, field: str, **options):
+def convert_inner_box_field(box, field: str = "inner_box", **options):
     # Note: values set in `options` take precedence over `box_options`
     inner_box = getattr(box, field)
     child_options = (
