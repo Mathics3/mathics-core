@@ -54,34 +54,22 @@ def encode_tex(text: str, in_text=False) -> str:
     return text
 
 
-extra_operators = set(
-    (
-        ",",
-        "(",
-        ")",
-        "[",
-        "]",
-        "{",
-        "}",
-        "\u301a",
-        "\u301b",
-        "\u00d7",
-        "\u2032",
-        "\u2032\u2032",
-        " ",
-        "\u2062",
-        "\u222b",
-        "\u2146",
-    )
-)
-
-
-def boxes_to_format(boxes, format, **options) -> str:  # Maybe Union[str, bytearray]
+def box_to_format(box, format: str, **options) -> str:  # Maybe Union[str, bytearray]
     """
-    Translates a box structure ``boxes`` to a file format ``format``.
-
+    Translates a box structure ``box`` to a file format ``format``.
+    This is used only at the root Box of a boxed expression.
     """
-    return lookup_method(boxes, format)(boxes, **options)
+    options["format_type"] = format
+    return convert_box_to_format(box, **options)
+
+
+def convert_box_to_format(box, **options) -> str:
+    """
+    Translates a box structure ``box`` to a file format ``format``.
+    This is used at either non-root-level boxes or from the
+    initial call from box_to_format.
+    """
+    return lookup_method(box, options["format_type"])(box, **options)
 
 
 def lookup_method(self, format: str) -> Callable:

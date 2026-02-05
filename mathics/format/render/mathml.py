@@ -337,7 +337,7 @@ add_conversion_fn(StyleBox, stylebox)
 def graphicsbox(box: GraphicsBox, elements=None, **options) -> str:
     # FIXME: SVG is the only thing we can convert MathML into.
     # Handle other graphics formats.
-    svg_body = box.boxes_to_format("svg", **options)
+    svg_body = box.box_to_format("svg", **options)
 
     # mglyph, which is what we have been using, is bad because MathML standard changed.
     # metext does not work because the way in which we produce the svg images is also based on this outdated mglyph
