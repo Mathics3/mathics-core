@@ -44,14 +44,14 @@ add_conversion_fn(String, string)
 
 
 def interpretation_box(box: InterpretationBox, **options):
-    return convert_box_to_format(box.boxes, **options)
+    return convert_box_to_format(box.inner_box, **options)
 
 
 add_conversion_fn(InterpretationBox, interpretation_box)
 
 
 def pane_box(box: PaneBox, **options):
-    return convert_box_to_format(box.boxes, **options)
+    return convert_box_to_format(box.inner_box, **options)
 
 
 add_conversion_fn(PaneBox, pane_box)
@@ -127,7 +127,7 @@ def superscriptbox(box: SuperscriptBox, **options) -> str:
     index = box.superindex
     while not isinstance(index, Atom):
         if isinstance(index, StyleBox):
-            index = index.boxes
+            index = index.inner_box
         else:
             break
     if isinstance(index, FractionBox):
@@ -203,7 +203,7 @@ add_conversion_fn(RowBox, rowbox)
 def stylebox(box: StyleBox, **options) -> str:
     # Note: values set in `options` take precedence over `box_options`
     child_options = {**box.box_options, **options}
-    return convert_box_to_format(box.boxes, **child_options)
+    return convert_box_to_format(box.inner_box, **child_options)
 
 
 add_conversion_fn(StyleBox, stylebox)
@@ -230,7 +230,7 @@ add_conversion_fn(Graphics3DBox, graphics3dbox)
 
 
 def tag_and_form_box(box: BoxExpression, **options):
-    return convert_box_to_format(box.boxes, **options)
+    return convert_box_to_format(box.inner_box, **options)
 
 
 add_conversion_fn(FormBox, tag_and_form_box)

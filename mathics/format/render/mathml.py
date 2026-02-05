@@ -124,14 +124,16 @@ add_conversion_fn(String, string)
 
 
 def interpretation_box(box: InterpretationBox, **options):
-    return lookup_conversion_method(box.boxes, "mathml")(box.boxes, **options)
+    return lookup_conversion_method(box.inner_box, "mathml")(box.inner_box, **options)
 
 
 add_conversion_fn(InterpretationBox, interpretation_box)
 
 
 def pane_box(box: PaneBox, **options):
-    content = lookup_conversion_method(box.boxes, "mathml")(box.boxes, **options)
+    content = lookup_conversion_method(box.inner_box, "mathml")(
+        box.inner_box, **options
+    )
     options = box.box_options
     size = options.get("System`ImageSize", SymbolAutomatic).to_python()
     if size is SymbolAutomatic:
@@ -328,7 +330,9 @@ add_conversion_fn(RowBox, rowbox)
 
 def stylebox(box: StyleBox, **options) -> str:
     child_options = {**options, **box.box_options}
-    return lookup_conversion_method(box.boxes, "mathml")(box.boxes, **child_options)
+    return lookup_conversion_method(box.inner_box, "mathml")(
+        box.inner_box, **child_options
+    )
 
 
 add_conversion_fn(StyleBox, stylebox)
@@ -371,7 +375,7 @@ add_conversion_fn(Graphics3DBox, graphics3dbox)
 
 
 def tag_and_form_box(box: BoxExpression, **options):
-    return lookup_conversion_method(box.boxes, "mathml")(box.boxes, **options)
+    return lookup_conversion_method(box.inner_box, "mathml")(box.inner_box, **options)
 
 
 add_conversion_fn(FormBox, tag_and_form_box)
