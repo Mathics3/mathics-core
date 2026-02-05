@@ -3,7 +3,6 @@
 Mathics3 box rendering to plain text.
 """
 
-
 from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
@@ -23,18 +22,11 @@ from mathics.builtin.box.layout import (
 )
 from mathics.core.atoms import String
 from mathics.core.exceptions import BoxConstructError
-from mathics.core.formatter import (
-    add_conversion_fn,
-    lookup_method as lookup_conversion_method,
-)
+from mathics.core.formatter import add_conversion_fn, convert_box_to_format
 from mathics.core.symbols import Atom, SymbolTrue
 from mathics.format.box.graphics import prepare_elements as prepare_elements2d
 from mathics.format.box.graphics3d import prepare_elements as prepare_elements3d
 from mathics.format.form.util import _WrongFormattedExpression, text_cells_to_grid
-
-
-def boxes_to_text(boxes, **options) -> str:
-    return lookup_conversion_method(boxes, "text")(boxes, **options)
 
 
 def string(s: String, **options) -> str:
@@ -52,14 +44,14 @@ add_conversion_fn(String, string)
 
 
 def interpretation_box(box: InterpretationBox, **options):
-    return boxes_to_text(box.boxes, **options)
+    return convert_box_to_format(box.inner_box, **options)
 
 
 add_conversion_fn(InterpretationBox, interpretation_box)
 
 
 def pane_box(box: PaneBox, **options):
-    return boxes_to_text(box.boxes, **options)
+    return convert_box_to_format(box.inner_box, **options)
 
 
 add_conversion_fn(PaneBox, pane_box)
@@ -68,8 +60,8 @@ add_conversion_fn(PaneBox, pane_box)
 def fractionbox(box: FractionBox, **options) -> str:
     # Note: values set in `options` take precedence over `box_options`
     child_options = {**options, **box.box_options}
-    num_text = boxes_to_text(box.num, **child_options)
-    den_text = boxes_to_text(box.den, **child_options)
+    num_text = convert_box_to_format(box.num, **child_options)
+    den_text = convert_box_to_format(box.den, **child_options)
     if isinstance(box.num, RowBox):
         num_text = f"({num_text})"
     if isinstance(box.den, RowBox):
@@ -96,11 +88,11 @@ def gridbox(box: GridBox, elements=None, **box_options) -> str:
         (
             [
                 # TODO: check if this evaluation is necessary.
-                boxes_to_text(item, **box_options)
+                convert_box_to_format(item, **box_options)
                 for item in row
             ]
             if isinstance(row, tuple)
-            else boxes_to_text(row, **box_options)
+            else convert_box_to_format(row, **box_options)
         )
         for row in items
     ]
@@ -119,10 +111,10 @@ def sqrtbox(box: SqrtBox, **options) -> str:
     child_options = {**options, **box.box_options}
     if box.index:
         return "Sqrt[%s,%s]" % (
-            boxes_to_text(box.radicand, **child_options),
-            boxes_to_text(box.index, **child_options),
+            convert_box_to_format(box.radicand, **child_options),
+            convert_box_to_format(box.index, **child_options),
         )
-    return "Sqrt[%s]" % (boxes_to_text(box.radicand, **child_options))
+    return "Sqrt[%s]" % (convert_box_to_format(box.radicand, **child_options))
 
 
 add_conversion_fn(SqrtBox, sqrtbox)
@@ -135,7 +127,7 @@ def superscriptbox(box: SuperscriptBox, **options) -> str:
     index = box.superindex
     while not isinstance(index, Atom):
         if isinstance(index, StyleBox):
-            index = index.boxes
+            index = index.inner_box
         else:
             break
     if isinstance(index, FractionBox):
@@ -143,8 +135,8 @@ def superscriptbox(box: SuperscriptBox, **options) -> str:
 
     fmt_str = "%s^%s" if no_parenthesize else "%s^(%s)"
     return fmt_str % (
-        boxes_to_text(box.base, **child_options),
-        boxes_to_text(box.superindex, **child_options),
+        convert_box_to_format(box.base, **child_options),
+        convert_box_to_format(box.superindex, **child_options),
     )
 
 
@@ -155,8 +147,8 @@ def subscriptbox(box: SubscriptBox, **options) -> str:
     # Note: values set in `options` take precedence over `box_options`
     child_options = {**box.box_options, **options}
     return "Subscript[%s, %s]" % (
-        boxes_to_text(box.base, **child_options),
-        boxes_to_text(box.subindex, **child_options),
+        convert_box_to_format(box.base, **child_options),
+        convert_box_to_format(box.subindex, **child_options),
     )
 
 
@@ -167,9 +159,9 @@ def subsuperscriptbox(box: SubsuperscriptBox, **options) -> str:
     # Note: values set in `options` take precedence over `box_options`
     child_options = {**box.box_options, **options}
     return "Subsuperscript[%s, %s, %s]" % (
-        boxes_to_text(box.base, **child_options),
-        boxes_to_text(box.subindex, **child_options),
-        boxes_to_text(box.superindex, **child_options),
+        convert_box_to_format(box.base, **child_options),
+        convert_box_to_format(box.subindex, **child_options),
+        convert_box_to_format(box.superindex, **child_options),
     )
 
 
@@ -179,7 +171,9 @@ add_conversion_fn(SubsuperscriptBox, subsuperscriptbox)
 def rowbox(box: RowBox, elements=None, **options) -> str:
     # Note: values set in `options` take precedence over `box_options`
     child_options = {**box.box_options, **options}
-    parts_str = [boxes_to_text(element, **child_options) for element in box.items]
+    parts_str = [
+        convert_box_to_format(element, **child_options) for element in box.items
+    ]
     if len(parts_str) == 0:
         return ""
     if len(parts_str) == 1:
@@ -209,7 +203,7 @@ add_conversion_fn(RowBox, rowbox)
 def stylebox(box: StyleBox, **options) -> str:
     # Note: values set in `options` take precedence over `box_options`
     child_options = {**box.box_options, **options}
-    return boxes_to_text(box.boxes, **child_options)
+    return convert_box_to_format(box.inner_box, **child_options)
 
 
 add_conversion_fn(StyleBox, stylebox)
@@ -236,7 +230,7 @@ add_conversion_fn(Graphics3DBox, graphics3dbox)
 
 
 def tag_and_form_box(box: BoxExpression, **options):
-    return boxes_to_text(box.boxes, **options)
+    return convert_box_to_format(box.inner_box, **options)
 
 
 add_conversion_fn(FormBox, tag_and_form_box)
