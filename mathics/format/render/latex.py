@@ -284,12 +284,11 @@ add_conversion_fn(PaneBox, pane_box)
 
 
 def fractionbox(box: FractionBox, **options) -> str:
-    _options = box.box_options.copy()
-    _options.update(options)
-    options = _options
+    # Note: values set in `options` take precedence over `box_options`
+    child_options = {**options, **box.box_options}
     return "\\frac{%s}{%s}" % (
-        lookup_conversion_method(box.num, "latex")(box.num, **options),
-        lookup_conversion_method(box.den, "latex")(box.den, **options),
+        lookup_conversion_method(box.num, "latex")(box.num, **child_options),
+        lookup_conversion_method(box.den, "latex")(box.den, **child_options),
     )
 
 
@@ -341,16 +340,15 @@ add_conversion_fn(GridBox, gridbox)
 
 
 def sqrtbox(box: SqrtBox, **options):
-    _options = box.box_options.copy()
-    _options.update(options)
-    options = _options
+    # Note: values set in `options` take precedence over `box_options`
+    child_options = {**options, **box.box_options}
     if box.index:
         return "\\sqrt[%s]{%s}" % (
             lookup_conversion_method(box.radicand, "latex")(box.radicand, **options),
             lookup_conversion_method(box.index, "latex")(box.index, **options),
         )
     return "\\sqrt{%s}" % lookup_conversion_method(box.radicand, "latex")(
-        box.radicand, **options
+        box.radicand, **child_options
     )
 
 
@@ -358,9 +356,7 @@ add_conversion_fn(SqrtBox, sqrtbox)
 
 
 def superscriptbox(box: SuperscriptBox, **options):
-    _options = box.box_options.copy()
-    _options.update(options)
-    options = _options
+    child_options = {**options, **box.box_options}
     base_to_tex = lookup_conversion_method(box.base, "latex")
     tex1 = base_to_tex(box.base, **options)
 
@@ -372,7 +368,7 @@ def superscriptbox(box: SuperscriptBox, **options):
         return "%s''" % tex1
     base = box.tex_block(tex1, True)
     superidx_to_tex = lookup_conversion_method(box.superindex, "latex")
-    superindx = box.tex_block(superidx_to_tex(box.superindex, **options), True)
+    superindx = box.tex_block(superidx_to_tex(box.superindex, **child_options), True)
     if len(superindx) == 1 and isinstance(box.superindex, (String, StyleBox)):
         return "%s^%s" % (
             base,
@@ -388,14 +384,13 @@ add_conversion_fn(SuperscriptBox, superscriptbox)
 
 
 def subscriptbox(box: SubscriptBox, **options):
-    _options = box.box_options.copy()
-    _options.update(options)
-    options = _options
+    # Note: values set in `options` take precedence over `box_options`
+    child_options = {**options, **box.box_options}
     base_to_tex = lookup_conversion_method(box.base, "latex")
     subidx_to_tex = lookup_conversion_method(box.subindex, "latex")
     return "%s_%s" % (
-        box.tex_block(base_to_tex(box.base, **options), True),
-        box.tex_block(subidx_to_tex(box.subindex, **options)),
+        box.tex_block(base_to_tex(box.base, **child_options), True),
+        box.tex_block(subidx_to_tex(box.subindex, **child_options)),
     )
 
 
@@ -403,17 +398,16 @@ add_conversion_fn(SubscriptBox, subscriptbox)
 
 
 def subsuperscriptbox(box: SubsuperscriptBox, **options):
-    _options = box.box_options.copy()
-    _options.update(options)
-    options = _options
+    # Note: values set in `options` take precedence over `box_options`
+    child_options = {**box.box_options, **options}
     base_to_tex = lookup_conversion_method(box.base, "latex")
     subidx_to_tex = lookup_conversion_method(box.subindex, "latex")
     superidx_to_tex = lookup_conversion_method(box.superindex, "latex")
 
     return "%s_%s^%s" % (
-        box.tex_block(base_to_tex(box.base, **options), True),
-        box.tex_block(subidx_to_tex(box.subindex, **options)),
-        box.tex_block(superidx_to_tex(box.superindex, **options)),
+        box.tex_block(base_to_tex(box.base, **child_options), True),
+        box.tex_block(subidx_to_tex(box.subindex, **child_options)),
+        box.tex_block(superidx_to_tex(box.superindex, **child_options)),
     )
 
 
@@ -469,9 +463,8 @@ def rowbox_parenthesized(items, **options):
 
 
 def rowbox(box: RowBox, **options) -> str:
-    _options = box.box_options.copy()
-    _options.update(options)
-    options = _options
+    # Note: values set in `options` take precedence over `box_options`
+    child_options = {**box.box_options, **options}
     items = box.items
     # Handle special cases
     if len(items) >= 3:
@@ -479,23 +472,22 @@ def rowbox(box: RowBox, **options) -> str:
         rest_latex = rowbox_parenthesized(rest, **options)
         if rest_latex is not None:
             # Must be a function-like expression f[]
-            head_latex = lookup_conversion_method(head, "latex")(head, **options)
+            head_latex = lookup_conversion_method(head, "latex")(head, **child_options)
             return head_latex + rest_latex
     if len(items) >= 2:
-        parenthesized_latex = rowbox_parenthesized(items, **options)
+        parenthesized_latex = rowbox_parenthesized(items, **child_options)
         if parenthesized_latex is not None:
             return parenthesized_latex
-    return rowbox_sequence(items, **options)
+    return rowbox_sequence(items, **child_options)
 
 
 add_conversion_fn(RowBox, rowbox)
 
 
 def stylebox(box: StyleBox, **options) -> str:
-    _options = box.box_options.copy()
-    _options.update(options)
-    options = _options
-    return lookup_conversion_method(box.boxes, "latex")(box.boxes, **options)
+    # Note: values set in `options` take precedence over `box_options`
+    child_options = {**box.box_options, **options}
+    return lookup_conversion_method(box.boxes, "latex")(box.boxes, **child_options)
 
 
 add_conversion_fn(StyleBox, stylebox)
