@@ -1434,7 +1434,12 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     def sameQ(self, other: BaseElement) -> bool:
         """Mathics3 SameQ"""
         if not isinstance(other, Expression):
-            return False
+            # TODO: consider the alternative
+            # if not hasattr(other, "to_expression"):
+            #    return False
+            # other = other.to_expression()
+            #
+            return other.sameQ(self)
         if self is other:
             return True
 

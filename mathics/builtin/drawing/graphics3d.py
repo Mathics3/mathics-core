@@ -6,17 +6,13 @@ Functions for working with 3D graphics.
 """
 
 from mathics.builtin.colors.color_directives import RGBColor
-from mathics.builtin.graphics import (
-    CoordinatesError,
-    Graphics,
-    Style,
-    _GraphicsElements,
-)
+from mathics.builtin.graphics import Graphics
 from mathics.core.atoms import Integer, Rational, Real
 from mathics.core.builtin import Builtin
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.symbols import SymbolN
 from mathics.eval.nevaluator import eval_N
+from mathics.format.box.graphics import CoordinatesError, Style, _GraphicsElements
 
 # This tells documentation how to sort this module
 # Here we are also hiding "drawing" since this erroneously appears at the top level.
@@ -107,6 +103,7 @@ class Graphics3D(Graphics):
          . draw(((1,1,-1)--(1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
          . \end{asy}
     """
+
     summary_text = "a three-dimensional graphics image wrapper"
     options = Graphics.options.copy()
     options.update(

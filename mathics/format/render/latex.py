@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
-"""Lower-level formatter of Mathics objects as (AMS)LaTeX strings.
+"""
+Mathics3 box rendering to (AMS)LaTeX strings.
+
+Formatting is usually initiated in Mathics via TeXForm[].
 
 AMS LaTeX is LaTeX with addition mathematical symbols, which
 we may make use of via the mathics-scanner tables.
 
-LaTeX formatting is usually initiated in Mathics via TeXForm[].
-
 TeXForm in WMA is slightly vague or misleading since the output is
-typically LaTeX rather than Plain TeX. In Mathics, we also assume AMS
+typically LaTeX rather than Plain TeX. In Mathics3, we also assume AMS
 LaTeX or more specifically that we the additional AMS Mathematical
 Symbols exist.
 """
 
 import re
 
+from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
@@ -37,6 +39,7 @@ from mathics.core.convert.op import (
     UNICODE_TO_AMSLATEX,
     UNICODE_TO_LATEX,
     get_latex_operator,
+    named_characters,
 )
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import (
@@ -45,11 +48,81 @@ from mathics.core.formatter import (
 )
 from mathics.core.symbols import SymbolTrue
 from mathics.core.systemsymbols import SymbolAutomatic
+from mathics.format.box.graphics import prepare_elements as prepare_elements2d
+from mathics.format.box.graphics3d import (
+    get_boundbox_lines as get_boundbox_lines3D,
+    prepare_elements as prepare_elements3d,
+)
 from mathics.format.render.asy_fns import asy_color, asy_create_pens, asy_number
 
 # mathics_scanner does not generates this table in a way that we can load it here.
 # When it get fixed, we can use that table instead of this one:
 
+BRACKET_INFO = {
+    (
+        String("("),
+        String(")"),
+    ): {
+        "latex_open": "(",
+        "latex_closing": ")",
+        "latex_open_large": r"\left(",
+        "latex_closing_large": r"\right)",
+    },
+    (
+        String("{"),
+        String("}"),
+    ): {
+        "latex_open": r"\{",
+        "latex_closing": r"\}",
+        "latex_open_large": r"\left\{",
+        "latex_closing_large": r"\right\}",
+    },
+    (
+        String("["),
+        String("]"),
+    ): {
+        "latex_open": "[",
+        "latex_closing": "]",
+        "latex_open_large": r"\left[",
+        "latex_closing_large": r"\right]",
+    },
+    (
+        String(named_characters["LeftDoubleBracket"]),
+        String(named_characters["RightDoubleBracket"]),
+    ): {
+        "latex_open": r"[[",
+        "latex_closing": "]]",
+        "latex_open_large": r"\left[\left[",
+        "latex_closing_large": r"\right]\right]",
+    },
+    (
+        String(named_characters["LeftAngleBracket"]),
+        String(named_characters["RightAngleBracket"]),
+    ): {
+        "latex_open": "\\langle",
+        "latex_closing": "\\rangle",
+        "latex_open_large": r"\left\langle ",
+        "latex_closing_large": r"\right\rangle ",
+    },
+    (
+        String(named_characters["LeftDoubleBracketingBar"]),
+        String(named_characters["RightDoubleBracketingBar"]),
+    ): {
+        "latex_open": r"\|",
+        "latex_closing": r"\|",
+        "latex_open_large": r"\left\|",
+        "latex_closing_large": r"\right\| ",
+    },
+    (
+        String("<|"),
+        String("|>"),
+    ): {
+        "latex_open": r"\langle\vert ",
+        "latex_closing": r"\vert\rangle ",
+        "latex_open_large": r"\left\langle\left\vert ",
+        "latex_closing_large": r"\right\vert\right\rangle ",
+    },
+}
 
 TEX_REPLACE = {
     "{": r"\{",
@@ -118,9 +191,9 @@ def encode_tex(text: str, in_text=False) -> str:
     return text
 
 
-def string(self, **options) -> str:
+def string(s: String, **options) -> str:
     """String to LaTeX form"""
-    text = self.value
+    text = s.value
 
     def render(format, string_, in_text=False):
         return format % encode_tex(string_, in_text)
@@ -165,16 +238,16 @@ def string(self, **options) -> str:
 add_conversion_fn(String, string)
 
 
-def interpretation_box(self, **options):
-    return lookup_conversion_method(self.boxes, "latex")(self.boxes, **options)
+def interpretation_box(box: InterpretationBox, **options):
+    return lookup_conversion_method(box.boxes, "latex")(box.boxes, **options)
 
 
 add_conversion_fn(InterpretationBox, interpretation_box)
 
 
-def pane_box(self, **options):
-    content = lookup_conversion_method(self.boxes, "latex")(self.boxes, **options)
-    options = self.box_options
+def pane_box(box: PaneBox, **options):
+    content = lookup_conversion_method(box.boxes, "latex")(box.boxes, **options)
+    options = box.box_options
     size = options.get("System`ImageSize", SymbolAutomatic).to_python()
 
     if size == "System`Automatic":
@@ -210,27 +283,27 @@ def pane_box(self, **options):
 add_conversion_fn(PaneBox, pane_box)
 
 
-def fractionbox(self, **options) -> str:
-    _options = self.box_options.copy()
+def fractionbox(box: FractionBox, **options) -> str:
+    _options = box.box_options.copy()
     _options.update(options)
     options = _options
     return "\\frac{%s}{%s}" % (
-        lookup_conversion_method(self.num, "latex")(self.num, **options),
-        lookup_conversion_method(self.den, "latex")(self.den, **options),
+        lookup_conversion_method(box.num, "latex")(box.num, **options),
+        lookup_conversion_method(box.den, "latex")(box.den, **options),
     )
 
 
 add_conversion_fn(FractionBox, fractionbox)
 
 
-def gridbox(self, elements=None, **box_options) -> str:
+def gridbox(box: GridBox, elements=None, **box_options) -> str:
     def boxes_to_tex(box, **options):
         return lookup_conversion_method(box, "latex")(box, **options)
 
     if not elements:
-        elements = self._elements
+        elements = box._elements
     evaluation = box_options.get("evaluation")
-    items, options = self.get_array(elements, evaluation)
+    items, options = box.get_array(elements, evaluation)
     box_options.update(options)
     box_options["inside_list"] = True
     column_alignments = box_options["System`ColumnAlignments"].get_name()
@@ -267,40 +340,40 @@ def gridbox(self, elements=None, **box_options) -> str:
 add_conversion_fn(GridBox, gridbox)
 
 
-def sqrtbox(self, **options):
-    _options = self.box_options.copy()
+def sqrtbox(box: SqrtBox, **options):
+    _options = box.box_options.copy()
     _options.update(options)
     options = _options
-    if self.index:
+    if box.index:
         return "\\sqrt[%s]{%s}" % (
-            lookup_conversion_method(self.radicand, "latex")(self.radicand, **options),
-            lookup_conversion_method(self.index, "latex")(self.index, **options),
+            lookup_conversion_method(box.radicand, "latex")(box.radicand, **options),
+            lookup_conversion_method(box.index, "latex")(box.index, **options),
         )
-    return "\\sqrt{%s}" % lookup_conversion_method(self.radicand, "latex")(
-        self.radicand, **options
+    return "\\sqrt{%s}" % lookup_conversion_method(box.radicand, "latex")(
+        box.radicand, **options
     )
 
 
 add_conversion_fn(SqrtBox, sqrtbox)
 
 
-def superscriptbox(self, **options):
-    _options = self.box_options.copy()
+def superscriptbox(box: SuperscriptBox, **options):
+    _options = box.box_options.copy()
     _options.update(options)
     options = _options
-    base_to_tex = lookup_conversion_method(self.base, "latex")
-    tex1 = base_to_tex(self.base, **options)
+    base_to_tex = lookup_conversion_method(box.base, "latex")
+    tex1 = base_to_tex(box.base, **options)
 
-    sup_string = self.superindex.get_string_value()
+    sup_string = box.superindex.get_string_value()
     # Handle derivatives
-    if sup_string == "\u2032":
+    if sup_string == named_characters["Prime"]:
         return "%s'" % tex1
-    if sup_string == "\u2032\u2032":
+    if sup_string == named_characters["Prime"] * 2:
         return "%s''" % tex1
-    base = self.tex_block(tex1, True)
-    superidx_to_tex = lookup_conversion_method(self.superindex, "latex")
-    superindx = self.tex_block(superidx_to_tex(self.superindex, **options), True)
-    if len(superindx) == 1 and isinstance(self.superindex, (String, StyleBox)):
+    base = box.tex_block(tex1, True)
+    superidx_to_tex = lookup_conversion_method(box.superindex, "latex")
+    superindx = box.tex_block(superidx_to_tex(box.superindex, **options), True)
+    if len(superindx) == 1 and isinstance(box.superindex, (String, StyleBox)):
         return "%s^%s" % (
             base,
             superindx,
@@ -314,47 +387,46 @@ def superscriptbox(self, **options):
 add_conversion_fn(SuperscriptBox, superscriptbox)
 
 
-def subscriptbox(self, **options):
-    _options = self.box_options.copy()
+def subscriptbox(box: SubscriptBox, **options):
+    _options = box.box_options.copy()
     _options.update(options)
     options = _options
-    base_to_tex = lookup_conversion_method(self.base, "latex")
-    subidx_to_tex = lookup_conversion_method(self.subindex, "latex")
+    base_to_tex = lookup_conversion_method(box.base, "latex")
+    subidx_to_tex = lookup_conversion_method(box.subindex, "latex")
     return "%s_%s" % (
-        self.tex_block(base_to_tex(self.base, **options), True),
-        self.tex_block(subidx_to_tex(self.subindex, **options)),
+        box.tex_block(base_to_tex(box.base, **options), True),
+        box.tex_block(subidx_to_tex(box.subindex, **options)),
     )
 
 
 add_conversion_fn(SubscriptBox, subscriptbox)
 
 
-def subsuperscriptbox(self, **options):
-    _options = self.box_options.copy()
+def subsuperscriptbox(box: SubsuperscriptBox, **options):
+    _options = box.box_options.copy()
     _options.update(options)
     options = _options
-    base_to_tex = lookup_conversion_method(self.base, "latex")
-    subidx_to_tex = lookup_conversion_method(self.subindex, "latex")
-    superidx_to_tex = lookup_conversion_method(self.superindex, "latex")
+    base_to_tex = lookup_conversion_method(box.base, "latex")
+    subidx_to_tex = lookup_conversion_method(box.subindex, "latex")
+    superidx_to_tex = lookup_conversion_method(box.superindex, "latex")
 
     return "%s_%s^%s" % (
-        self.tex_block(base_to_tex(self.base, **options), True),
-        self.tex_block(subidx_to_tex(self.subindex, **options)),
-        self.tex_block(superidx_to_tex(self.superindex, **options)),
+        box.tex_block(base_to_tex(box.base, **options), True),
+        box.tex_block(subidx_to_tex(box.subindex, **options)),
+        box.tex_block(superidx_to_tex(box.superindex, **options)),
     )
 
 
 add_conversion_fn(SubsuperscriptBox, subsuperscriptbox)
 
 
-def rowbox(self, **options) -> str:
-    _options = self.box_options.copy()
-    _options.update(options)
-    options = _options
+def rowbox_sequence(items, **options):
     parts_str = [
         lookup_conversion_method(element, "latex")(element, **options)
-        for element in self.items
+        for element in items
     ]
+    if len(parts_str) == 0:
+        return ""
     if len(parts_str) == 1:
         return parts_str[0]
     # This loop integrate all the row adding spaces after a ",", followed
@@ -376,35 +448,75 @@ def rowbox(self, **options) -> str:
     return result
 
 
+def rowbox_parenthesized(items, **options):
+    if len(items) < 2:
+        return None
+    key = (
+        items[0],
+        items[-1],
+    )
+    items = items[1:-1]
+    try:
+        bracket_data = BRACKET_INFO[key]
+    except KeyError:
+        return None
+
+    contain = rowbox_sequence(items, **options) if len(items) > 0 else ""
+
+    if any(item.is_multiline for item in items):
+        return f'{bracket_data["latex_open_large"]}{contain}{bracket_data["latex_closing_large"]}'
+    return f'{bracket_data["latex_open"]}{contain}{bracket_data["latex_closing"]}'
+
+
+def rowbox(box: RowBox, **options) -> str:
+    _options = box.box_options.copy()
+    _options.update(options)
+    options = _options
+    items = box.items
+    # Handle special cases
+    if len(items) >= 3:
+        head, *rest = items
+        rest_latex = rowbox_parenthesized(rest, **options)
+        if rest_latex is not None:
+            # Must be a function-like expression f[]
+            head_latex = lookup_conversion_method(head, "latex")(head, **options)
+            return head_latex + rest_latex
+    if len(items) >= 2:
+        parenthesized_latex = rowbox_parenthesized(items, **options)
+        if parenthesized_latex is not None:
+            return parenthesized_latex
+    return rowbox_sequence(items, **options)
+
+
 add_conversion_fn(RowBox, rowbox)
 
 
-def stylebox(self, **options) -> str:
-    _options = self.box_options.copy()
+def stylebox(box: StyleBox, **options) -> str:
+    _options = box.box_options.copy()
     _options.update(options)
     options = _options
-    return lookup_conversion_method(self.boxes, "latex")(self.boxes, **options)
+    return lookup_conversion_method(box.boxes, "latex")(box.boxes, **options)
 
 
 add_conversion_fn(StyleBox, stylebox)
 
 
-def graphicsbox(self, elements=None, **options) -> str:
+def graphicsbox(box: GraphicsBox, elements=None, **options) -> str:
     """This is the top-level function that converts a Mathics Expression
     in to something suitable for AMSLaTeX.
 
     However right now the only LaTeX support for graphics is via Asymptote and
     that seems to be the package of choice in general for LaTeX.
     """
+    assert elements is None
 
     if not elements:
-        elements = self._elements
-
-    fields = self._prepare_elements(elements, options, max_width=450)
-    if len(fields) == 2:
-        elements, calc_dimensions = fields
-    else:
-        elements, calc_dimensions = fields[0], fields[-2]
+        content = box.content
+        fields = prepare_elements2d(box, content, options, max_width=450)
+        if len(fields) == 2:
+            elements, calc_dimensions = fields
+        else:
+            elements, calc_dimensions = fields[0], fields[-2]
 
     fields = calc_dimensions()
     if len(fields) == 8:
@@ -435,8 +547,8 @@ def graphicsbox(self, elements=None, **options) -> str:
         asy_number(ymax),
     )
 
-    if self.background_color is not None:
-        color, opacity = asy_color(self.background_color)
+    if box.background_color is not None:
+        color, opacity = asy_color(box.background_color)
         if opacity is not None:
             color = color + f"+opacity({opacity})"
         asy_background = "filldraw(%s, %s);" % (asy_box, color)
@@ -466,9 +578,9 @@ clip(%s);
 add_conversion_fn(GraphicsBox, graphicsbox)
 
 
-def graphics3dbox(self, elements=None, **options) -> str:
-    if not elements:
-        elements = self._elements
+def graphics3dbox(box: Graphics3DBox, elements=None, **options) -> str:
+    assert elements is None
+    elements = box.content
 
     (
         elements,
@@ -477,7 +589,7 @@ def graphics3dbox(self, elements=None, **options) -> str:
         ticks_style,
         calc_dimensions,
         boxscale,
-    ) = self._prepare_elements(elements, options, max_width=450)
+    ) = prepare_elements3d(box, elements, options, max_width=450)
 
     elements._apply_boxscaling(boxscale)
 
@@ -504,7 +616,7 @@ def graphics3dbox(self, elements=None, **options) -> str:
 
     # Draw boundbox and axes
     boundbox_asy = ""
-    boundbox_lines = self.get_boundbox_lines(xmin, xmax, ymin, ymax, zmin, zmax)
+    boundbox_lines = get_boundbox_lines3D(box, xmin, xmax, ymin, ymax, zmin, zmax)
 
     for i, line in enumerate(boundbox_lines):
         if i in axes_indices:
@@ -638,8 +750,8 @@ def graphics3dbox(self, elements=None, **options) -> str:
     height, width = (400, 400)  # TODO: Proper size
 
     # Background color
-    if self.background_color:
-        bg_color, opacity = asy_color(self.background_color)
+    if box.background_color:
+        bg_color, opacity = asy_color(box.background_color)
         background_directive = "background=" + bg_color + ", "
     else:
         background_directive = ""
@@ -659,7 +771,7 @@ currentlight=light(rgb(0.5,0.5,0.5), {5}specular=red, (2,0,2), (2,2,2), (0,2,2))
         asy_number(width / 60),
         asy_number(height / 60),
         # Rescale viewpoint
-        [vp * max([xmax - xmin, ymax - ymin, zmax - zmin]) for vp in self.viewpoint],
+        [vp * max([xmax - xmin, ymax - ymin, zmax - zmin]) for vp in box.viewpoint],
         asy,
         boundbox_asy,
         background_directive,
@@ -670,8 +782,8 @@ currentlight=light(rgb(0.5,0.5,0.5), {5}specular=red, (2,0,2), (2,2,2), (0,2,2))
 add_conversion_fn(Graphics3DBox, graphics3dbox)
 
 
-def tag_and_form_box(self, **options):
-    return lookup_conversion_method(self.boxes, "latex")(self.boxes, **options)
+def tag_and_form_box(box: BoxExpression, **options):
+    return lookup_conversion_method(box.boxes, "latex")(box.boxes, **options)
 
 
 add_conversion_fn(FormBox, tag_and_form_box)

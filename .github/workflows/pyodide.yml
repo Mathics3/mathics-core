@@ -58,5 +58,5 @@ jobs:
           python -m pip install --no-build-isolation -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner
 
           pip install --no-build-isolation -e .
-          make mathics/data/op-tables.json mathics/data/operator-tables.json
+          make mathics/data/character-tables.json mathics/data/operator-tables.json
           make -j3 check

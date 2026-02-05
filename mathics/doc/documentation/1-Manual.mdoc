@@ -942,7 +942,7 @@ For instance, you can override 'MakeBoxes' to format lists in a different way:
    = {1, 2, 3}
 
   >> {1, 2, 3} // TeXForm
-   = \left[1 2 3\right]
+   = [1 2 3]
 
 However, this will not be accepted as input to \Mathics anymore:
   >> [1 2 3]
@@ -970,7 +970,7 @@ The desired effect can be achieved in the following way:
   = squared[1, 2]
 
   #> squared[1, 2] // TeXForm
-   = \text{squared}\left[1, 2\right]^2
+   = \text{squared}[1, 2]^2
 
 You can view the box structure of a formatted expression using 'ToBoxes':
 
@@ -1115,7 +1115,7 @@ Three-dimensional plots are supported as well:
 Here are some examples written by Jan Pöschko that come from the very first version.
 
 <section title="Curve Sketching">
-Let\'s sketch the function
+Let's sketch the function
   >> f[x_] := 4 x / (x ^ 2 + 3 x + 5)
 
 The derivatives are:
