@@ -390,6 +390,13 @@ class RowBox(BoxExpression):
 
     summary_text = "horizontal arrange of boxes"
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+
+        # TODO Describe why inside row and inside list are needed.
+        self.inside_row = False
+        self.inside_list = False
+
     def __repr__(self):
         return f"RowBox[{self.elements[0].__repr__()}]"
 
