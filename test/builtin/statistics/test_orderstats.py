@@ -12,6 +12,10 @@ def test_canonical_sort():
         hold_expected=True,
     )
     check_evaluation(
+        "Sort[{Mathics,Math,ics,mathics}]",
+        "{ics, Math, mathics, Mathics}",
+    )
+    check_evaluation(
         r"Sort[Table[IntegerDigits[2^n], {n, 10}]]",
         r"{{2}, {4}, {8}, {1, 6}, {3, 2}, {6, 4}, {1, 2, 8}, {2, 5, 6}, {5, 1, 2}, {1, 0, 2, 4}}",
     )
