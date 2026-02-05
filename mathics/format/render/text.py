@@ -43,18 +43,12 @@ def string(s: String, **options) -> str:
 add_conversion_fn(String, string)
 
 
-def interpretation_box(box: InterpretationBox, **options):
+def generic_convert_inner_box(box, **options):
     return convert_box_to_format(box.inner_box, **options)
 
 
-add_conversion_fn(InterpretationBox, interpretation_box)
-
-
-def pane_box(box: PaneBox, **options):
-    return convert_box_to_format(box.inner_box, **options)
-
-
-add_conversion_fn(PaneBox, pane_box)
+add_conversion_fn(InterpretationBox, generic_convert_inner_box)
+add_conversion_fn(PaneBox, generic_convert_inner_box)
 
 
 def fractionbox(box: FractionBox, **options) -> str:
