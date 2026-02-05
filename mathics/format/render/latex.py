@@ -763,7 +763,5 @@ def superscriptbox(box: SuperscriptBox, **options):
 
 
 add_conversion_fn(SuperscriptBox, superscriptbox)
-
-
 add_conversion_fn(StyleBox, convert_inner_box)
 add_conversion_fn(TagBox, convert_inner_box)
