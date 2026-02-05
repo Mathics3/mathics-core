@@ -29,20 +29,6 @@ from mathics.format.box.graphics3d import prepare_elements as prepare_elements3d
 from mathics.format.form.util import _WrongFormattedExpression, text_cells_to_grid
 
 
-def string(s: String, **options) -> str:
-    value = s.value
-    show_string_characters = (
-        options.get("System`ShowStringCharacters", None) is SymbolTrue
-    )
-    if value.startswith('"') and value.endswith('"'):  # nopep8
-        if not show_string_characters:
-            value = value[1:-1]
-    return value
-
-
-add_conversion_fn(String, string)
-
-
 def generic_convert_inner_box(box, **options):
     return convert_box_to_format(box.inner_box, **options)
 
@@ -112,6 +98,20 @@ def sqrtbox(box: SqrtBox, **options) -> str:
 
 
 add_conversion_fn(SqrtBox, sqrtbox)
+
+
+def string(s: String, **options) -> str:
+    value = s.value
+    show_string_characters = (
+        options.get("System`ShowStringCharacters", None) is SymbolTrue
+    )
+    if value.startswith('"') and value.endswith('"'):  # nopep8
+        if not show_string_characters:
+            value = value[1:-1]
+    return value
+
+
+add_conversion_fn(String, string)
 
 
 def superscriptbox(box: SuperscriptBox, **options) -> str:
