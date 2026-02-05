@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Mathics3 Graphics3D box rendering to MathML strings.
+Mathics3 Box rendering to MathML strings.
 
 MathML rendering is usually initiated via MathMLForm[].
 """
