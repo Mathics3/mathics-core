@@ -576,11 +576,28 @@ def pane_box(box: PaneBox, **options):
 add_conversion_fn(PaneBox, pane_box)
 
 
+def rowbox_parenthesized(items, **options):
+    if len(items) < 2:
+        return None
+    key = (
+        items[0],
+        items[-1],
+    )
+    items = items[1:-1]
+    try:
+        bracket_data = BRACKET_INFO[key]
+    except KeyError:
+        return None
+
+    contain = rowbox_sequence(items, **options) if len(items) > 0 else ""
+
+    if any(item.is_multiline for item in items):
+        return f'{bracket_data["latex_open_large"]}{contain}{bracket_data["latex_closing_large"]}'
+    return f'{bracket_data["latex_open"]}{contain}{bracket_data["latex_closing"]}'
+
+
 def rowbox_sequence(items, **options):
-    parts_str = [
-        lookup_conversion_method(element, "latex")(element, **options)
-        for element in items
-    ]
+    parts_str = [convert_box_to_format(element, **options) for element in items]
     if len(parts_str) == 0:
         return ""
     if len(parts_str) == 1:
@@ -602,26 +619,6 @@ def rowbox_sequence(items, **options):
 
         result += elem
     return result
-
-
-def rowbox_parenthesized(items, **options):
-    if len(items) < 2:
-        return None
-    key = (
-        items[0],
-        items[-1],
-    )
-    items = items[1:-1]
-    try:
-        bracket_data = BRACKET_INFO[key]
-    except KeyError:
-        return None
-
-    contain = rowbox_sequence(items, **options) if len(items) > 0 else ""
-
-    if any(item.is_multiline for item in items):
-        return f'{bracket_data["latex_open_large"]}{contain}{bracket_data["latex_closing_large"]}'
-    return f'{bracket_data["latex_open"]}{contain}{bracket_data["latex_closing"]}'
 
 
 def rowbox(box: RowBox, **options) -> str:

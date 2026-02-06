@@ -35,7 +35,6 @@ from mathics.core.formatter import (
     add_conversion_fn,
     convert_box_to_format,
     convert_inner_box_field,
-    lookup_method as lookup_conversion_method,
 )
 from mathics.core.load_builtin import display_operators_set as operators
 from mathics.core.symbols import SymbolFalse, SymbolTrue
@@ -317,11 +316,9 @@ add_conversion_fn(String, string)
 
 
 def subscriptbox(box: SubscriptBox, **options):
-    # Note: values set in `options` take precedence over `box_options`
-    child_options = {**options, **box.box_options}
     return "<msub>%s %s</msub>" % (
-        lookup_conversion_method(box.base, "mathml")(box.base, **child_options),
-        lookup_conversion_method(box.subindex, "mathml")(box.subindex, **child_options),
+        convert_inner_box_field(box, "base", **options),
+        convert_inner_box_field(box, "subindex", **options),
     )
 
 
@@ -330,14 +327,11 @@ add_conversion_fn(SubscriptBox, subscriptbox)
 
 def subsuperscriptbox(box: SubsuperscriptBox, **options):
     # Note: values set in `options` take precedence over `box_options`
-    child_options = {**box.box_options, **options}
     box.base.inside_row = box.subindex.inside_row = box.superindex.inside_row = True
     return "<msubsup>%s %s %s</msubsup>" % (
-        lookup_conversion_method(box.base, "mathml")(box.base, **child_options),
-        lookup_conversion_method(box.subindex, "mathml")(box.subindex, **child_options),
-        lookup_conversion_method(box.superindex, "mathml")(
-            box.superindex, **child_options
-        ),
+        convert_inner_box_field(box, "base", **options),
+        convert_inner_box_field(box, "subindex", **options),
+        convert_inner_box_field(box, "superindex", **options),
     )
 
 
@@ -346,12 +340,9 @@ add_conversion_fn(SubsuperscriptBox, subsuperscriptbox)
 
 def superscriptbox(box: SuperscriptBox, **options):
     # Note: values set in `options` take precedence over `box_options`
-    child_options = {**options, **box.box_options}
     return "<msup>%s %s</msup>" % (
-        lookup_conversion_method(box.base, "mathml")(box.base, **child_options),
-        lookup_conversion_method(box.superindex, "mathml")(
-            box.superindex, **child_options
-        ),
+        convert_inner_box_field(box, "base", **options),
+        convert_inner_box_field(box, "superindex", **options),
     )
 
 

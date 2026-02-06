@@ -1,5 +1,4 @@
 import inspect
-import re
 from typing import Callable
 
 from mathics.core.element import BoxElementMixin
@@ -15,43 +14,40 @@ def encode_mathml(text: str) -> str:
     return text
 
 
-TEX_REPLACE = {
-    "{": r"\{",
-    "}": r"\}",
-    "_": r"\_",
-    "$": r"\$",
-    "%": r"\%",
-    "#": r"\#",
-    "&": r"\&",
-    "\\": r"\backslash{}",
-    "^": r"{}^{\wedge}",
-    "~": r"\sim{}",
-    "|": r"\vert{}",
-}
-TEX_TEXT_REPLACE = TEX_REPLACE.copy()
-TEX_TEXT_REPLACE.update(
-    {
-        "<": r"$<$",
-        ">": r"$>$",
-        "~": r"$\sim$",
-        "|": r"$\vert$",
-        "\\": r"$\backslash$",
-        "^": r"${}^{\wedge}$",
-    }
-)
-TEX_REPLACE_RE = re.compile("([" + "".join([re.escape(c) for c in TEX_REPLACE]) + "])")
+def add_conversion_fn(cls, module_fn_name=None) -> None:
+    """Add to `format2fn` a mapping from a conversion type and builtin-class
+    to a conversion method.
 
+    The conversion type is determined form the module name.
+    For example, in module mathics.format.render.svg the conversion
+    type is "svg".
 
-def encode_tex(text: str, in_text=False) -> str:
-    def replace(match):
-        c = match.group(1)
-        repl = TEX_TEXT_REPLACE if in_text else TEX_REPLACE
-        # return TEX_REPLACE[c]
-        return repl.get(c, c)
+    The conversion method is assumed to be a method in the caller's
+    module, and is derived from lowercasing `cls`.
 
-    text = TEX_REPLACE_RE.sub(replace, text)
-    text = text.replace("\n", "\\newline\n")
-    return text
+    For example function arrowbox in module mathics.format.render.svg would be
+    the SVG conversion routine for class ArrowBox.
+
+    We use frame introspection to get all of this done.
+    """
+    fr = inspect.currentframe()
+    assert fr is not None
+    fr = fr.f_back
+    assert fr is not None
+    module_dict = fr.f_globals
+
+    # The last part of the module name is expected to be the conversion routine.
+    conversion_type = module_dict["__name__"].split(".")[-1]
+
+    # Derive the conversion function from the passed-in class argument,
+    # unless it is already set.
+    if module_fn_name is None:
+        module_fn_name = cls.__name__.lower()
+    elif hasattr(module_fn_name, "__name__"):
+        module_fn_name = module_fn_name.__name__
+
+    # Finally register the mapping: (Builtin-class, conversion name) -> conversion_function.
+    format2fn[(conversion_type, cls)] = module_dict[module_fn_name]
 
 
 def box_to_format(box, format: str, **options) -> str:  # Maybe Union[str, bytearray]
@@ -103,39 +99,3 @@ def lookup_method(self, format: str) -> Callable:
 
     error_msg = f"Can't find formatter {format} for {type(self).__name__} ({self})"
     raise RuntimeError(error_msg)
-
-
-def add_conversion_fn(cls, module_fn_name=None) -> None:
-    """Add to `format2fn` a mapping from a conversion type and builtin-class
-    to a conversion method.
-
-    The conversion type is determined form the module name.
-    For example, in module mathics.format.render.svg the conversion
-    type is "svg".
-
-    The conversion method is assumed to be a method in the caller's
-    module, and is derived from lowercasing `cls`.
-
-    For example function arrowbox in module mathics.format.render.svg would be
-    the SVG conversion routine for class ArrowBox.
-
-    We use frame introspection to get all of this done.
-    """
-    fr = inspect.currentframe()
-    assert fr is not None
-    fr = fr.f_back
-    assert fr is not None
-    module_dict = fr.f_globals
-
-    # The last part of the module name is expected to be the conversion routine.
-    conversion_type = module_dict["__name__"].split(".")[-1]
-
-    # Derive the conversion function from the passed-in class argument,
-    # unless it is already set.
-    if module_fn_name is None:
-        module_fn_name = cls.__name__.lower()
-    elif hasattr(module_fn_name, "__name__"):
-        module_fn_name = module_fn_name.__name__
-
-    # Finally register the mapping: (Builtin-class, conversion name) -> conversion_function.
-    format2fn[(conversion_type, cls)] = module_dict[module_fn_name]
