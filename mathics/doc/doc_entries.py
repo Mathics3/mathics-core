@@ -10,7 +10,6 @@ system, and the functions used to parse docstrings into these objects.
 import logging
 import re
 from abc import ABC
-from os import getenv
 from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Sequence, Tuple
 
 from mathics.core.evaluation import Message, Print, _Out
