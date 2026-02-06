@@ -102,6 +102,16 @@ def fractionbox(box: FractionBox, **options) -> str:
 add_conversion_fn(FractionBox, fractionbox)
 
 
+def graphics3dbox(box, elements=None, **options) -> str:
+    """Turn the Graphics3DBox into a MathML string"""
+    result = box.boxes_to_js(**options)
+    result = f"<mtable>\n<mtr>\n<mtd>\n{result}\n</mtd>\n</mtr>\n</mtable>"
+    return result
+
+
+add_conversion_fn(Graphics3DBox, graphics3dbox)
+
+
 def graphicsbox(box: GraphicsBox, elements=None, **options) -> str:
     # FIXME: SVG is the only thing we can convert MathML into.
     # Handle other graphics formats.
@@ -126,16 +136,6 @@ def graphicsbox(box: GraphicsBox, elements=None, **options) -> str:
 
 
 add_conversion_fn(GraphicsBox, graphicsbox)
-
-
-def graphics3dbox(box, elements=None, **options) -> str:
-    """Turn the Graphics3DBox into a MathML string"""
-    result = box.boxes_to_js(**options)
-    result = f"<mtable>\n<mtr>\n<mtd>\n{result}\n</mtd>\n</mtr>\n</mtable>"
-    return result
-
-
-add_conversion_fn(Graphics3DBox, graphics3dbox)
 
 
 def gridbox(box: GridBox, elements=None, **box_options) -> str:
@@ -308,48 +308,6 @@ def sqrtbox(box: SqrtBox, **options):
 add_conversion_fn(SqrtBox, sqrtbox)
 
 
-def subscriptbox(box: SubscriptBox, **options):
-    # Note: values set in `options` take precedence over `box_options`
-    child_options = {**options, **box.box_options}
-    return "<msub>\n%s\n%s\n</msub>" % (
-        lookup_conversion_method(box.base, "mathml")(box.base, **child_options),
-        lookup_conversion_method(box.subindex, "mathml")(box.subindex, **child_options),
-    )
-
-
-add_conversion_fn(SubscriptBox, subscriptbox)
-
-
-def subsuperscriptbox(box: SubsuperscriptBox, **options):
-    # Note: values set in `options` take precedence over `box_options`
-    child_options = {**box.box_options, **options}
-    box.base.inside_row = box.subindex.inside_row = box.superindex.inside_row = True
-    return "<msubsup>\n%s\n%s\n%s\n</msubsup>" % (
-        lookup_conversion_method(box.base, "mathml")(box.base, **child_options),
-        lookup_conversion_method(box.subindex, "mathml")(box.subindex, **child_options),
-        lookup_conversion_method(box.superindex, "mathml")(
-            box.superindex, **child_options
-        ),
-    )
-
-
-add_conversion_fn(SubsuperscriptBox, subsuperscriptbox)
-
-
-def superscriptbox(box: SuperscriptBox, **options):
-    # Note: values set in `options` take precedence over `box_options`
-    child_options = {**options, **box.box_options}
-    return "<msup>\n%s\n%s\n</msup>" % (
-        lookup_conversion_method(box.base, "mathml")(box.base, **child_options),
-        lookup_conversion_method(box.superindex, "mathml")(
-            box.superindex, **child_options
-        ),
-    )
-
-
-add_conversion_fn(SuperscriptBox, superscriptbox)
-
-
 def string(s: String, **options) -> str:
     text = s.value
 
@@ -404,14 +362,46 @@ def string(s: String, **options) -> str:
 add_conversion_fn(String, string)
 
 
-def stylebox(box: StyleBox, **options) -> str:
+def subscriptbox(box: SubscriptBox, **options):
+    # Note: values set in `options` take precedence over `box_options`
     child_options = {**options, **box.box_options}
-    return lookup_conversion_method(box.inner_box, "mathml")(
-        box.inner_box, **child_options
+    return "<msub>\n%s\n%s\n</msub>" % (
+        lookup_conversion_method(box.base, "mathml")(box.base, **child_options),
+        lookup_conversion_method(box.subindex, "mathml")(box.subindex, **child_options),
     )
 
 
-add_conversion_fn(StyleBox, stylebox)
+add_conversion_fn(SubscriptBox, subscriptbox)
+
+
+def subsuperscriptbox(box: SubsuperscriptBox, **options):
+    # Note: values set in `options` take precedence over `box_options`
+    child_options = {**box.box_options, **options}
+    box.base.inside_row = box.subindex.inside_row = box.superindex.inside_row = True
+    return "<msubsup>\n%s\n%s\n%s\n</msubsup>" % (
+        lookup_conversion_method(box.base, "mathml")(box.base, **child_options),
+        lookup_conversion_method(box.subindex, "mathml")(box.subindex, **child_options),
+        lookup_conversion_method(box.superindex, "mathml")(
+            box.superindex, **child_options
+        ),
+    )
+
+
+add_conversion_fn(SubsuperscriptBox, subsuperscriptbox)
+
+
+def superscriptbox(box: SuperscriptBox, **options):
+    # Note: values set in `options` take precedence over `box_options`
+    child_options = {**options, **box.box_options}
+    return "<msup>\n%s\n%s\n</msup>" % (
+        lookup_conversion_method(box.base, "mathml")(box.base, **child_options),
+        lookup_conversion_method(box.superindex, "mathml")(
+            box.superindex, **child_options
+        ),
+    )
+
+
+add_conversion_fn(SuperscriptBox, superscriptbox)
 
 
 def tag_and_form_box(box: BoxExpression, **options):
@@ -420,3 +410,13 @@ def tag_and_form_box(box: BoxExpression, **options):
 
 add_conversion_fn(FormBox, tag_and_form_box)
 add_conversion_fn(TagBox, tag_and_form_box)
+
+
+def stylebox(box: StyleBox, **options) -> str:
+    child_options = {**options, **box.box_options}
+    return lookup_conversion_method(box.inner_box, "mathml")(
+        box.inner_box, **child_options
+    )
+
+
+add_conversion_fn(StyleBox, stylebox)
