@@ -130,6 +130,25 @@ def fractionbox(box: FractionBox, **options) -> str:
 add_conversion_fn(FractionBox, fractionbox)
 
 
+def graphics3dbox(box, elements=None, **options) -> str:
+    """Turn the Graphics3DBox into a MathML string"""
+    indent_level = options.get("_indent_level", 0)
+    indent_spaces = " " * indent_level
+    result = box.box_to_js(**options)
+    result = (
+        f"{indent_spaces}<mtable>\n"
+        f"<mtr>\n"
+        f"{indent_spaces} <mtd>\n"
+        f"{indent_spaces}  {result}\n"
+        f"{indent_spaces} </mtd>\n</mtr>\n"
+        f"{indent_spaces}</mtable>"
+    )
+    return result
+
+
+add_conversion_fn(Graphics3DBox, graphics3dbox)
+
+
 def graphicsbox(box: GraphicsBox, elements=None, **options) -> str:
     # FIXME: SVG is the only thing we can convert MathML into.
     # Handle other graphics formats.
@@ -158,25 +177,6 @@ def graphicsbox(box: GraphicsBox, elements=None, **options) -> str:
 
 
 add_conversion_fn(GraphicsBox, graphicsbox)
-
-
-def graphics3dbox(box, elements=None, **options) -> str:
-    """Turn the Graphics3DBox into a MathML string"""
-    indent_level = options.get("_indent_level", 0)
-    indent_spaces = " " * indent_level
-    result = box.box_to_js(**options)
-    result = (
-        f"{indent_spaces}<mtable>\n"
-        f"<mtr>\n"
-        f"{indent_spaces} <mtd>\n"
-        f"{indent_spaces}  {result}\n"
-        f"{indent_spaces} </mtd>\n</mtr>\n"
-        f"{indent_spaces}</mtable>"
-    )
-    return result
-
-
-add_conversion_fn(Graphics3DBox, graphics3dbox)
 
 
 def gridbox(box: GridBox, elements=None, **options) -> str:
