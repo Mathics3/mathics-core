@@ -163,9 +163,6 @@ add_conversion_fn(GraphicsBox, graphicsbox)
 
 
 def gridbox(box: GridBox, elements=None, **super_options) -> str:
-    def __box_to_mathml(box, **options):
-        return lookup_conversion_method(box, "mathml")(box, **options)
-
     if not elements:
         elements = box._elements
     evaluation = super_options.get("evaluation")
