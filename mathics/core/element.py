@@ -417,13 +417,10 @@ class BoxElementMixin(ImmutableValueMixin):
         return box_to_format(self, format, **options)
 
     def boxes_to_mathml(self, **options) -> str:
-        """For compatibility deprecated"""
         return self.box_to_format("mathml", **options)
 
     def boxes_to_tex(self, **options) -> str:
-        """For compatibility deprecated"""
         return self.box_to_format("latex", **options)
 
     def boxes_to_text(self, **options) -> str:
-        """For compatibility deprecated"""
         return self.box_to_format("text", **options)

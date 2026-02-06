@@ -13,6 +13,9 @@ LaTeX or more specifically that we the additional AMS Mathematical
 Symbols exist.
 """
 
+# Please see the developer note in __init__ about the use of "%s" in
+# format strings.
+
 import re
 
 from mathics.builtin.box.graphics import GraphicsBox
@@ -573,11 +576,28 @@ def pane_box(box: PaneBox, **options):
 add_conversion_fn(PaneBox, pane_box)
 
 
+def rowbox_parenthesized(items, **options):
+    if len(items) < 2:
+        return None
+    key = (
+        items[0],
+        items[-1],
+    )
+    items = items[1:-1]
+    try:
+        bracket_data = BRACKET_INFO[key]
+    except KeyError:
+        return None
+
+    contain = rowbox_sequence(items, **options) if len(items) > 0 else ""
+
+    if any(item.is_multiline for item in items):
+        return f'{bracket_data["latex_open_large"]}{contain}{bracket_data["latex_closing_large"]}'
+    return f'{bracket_data["latex_open"]}{contain}{bracket_data["latex_closing"]}'
+
+
 def rowbox_sequence(items, **options):
-    parts_str = [
-        lookup_conversion_method(element, "latex")(element, **options)
-        for element in items
-    ]
+    parts_str = [convert_box_to_format(element, **options) for element in items]
     if len(parts_str) == 0:
         return ""
     if len(parts_str) == 1:
@@ -599,26 +619,6 @@ def rowbox_sequence(items, **options):
 
         result += elem
     return result
-
-
-def rowbox_parenthesized(items, **options):
-    if len(items) < 2:
-        return None
-    key = (
-        items[0],
-        items[-1],
-    )
-    items = items[1:-1]
-    try:
-        bracket_data = BRACKET_INFO[key]
-    except KeyError:
-        return None
-
-    contain = rowbox_sequence(items, **options) if len(items) > 0 else ""
-
-    if any(item.is_multiline for item in items):
-        return f'{bracket_data["latex_open_large"]}{contain}{bracket_data["latex_closing_large"]}'
-    return f'{bracket_data["latex_open"]}{contain}{bracket_data["latex_closing"]}'
 
 
 def rowbox(box: RowBox, **options) -> str:
@@ -644,16 +644,12 @@ add_conversion_fn(RowBox, rowbox)
 
 
 def sqrtbox(box: SqrtBox, **options):
-    # Note: values set in `options` take precedence over `box_options`
-    child_options = {**options, **box.box_options}
     if box.index:
         return "\\sqrt[%s]{%s}" % (
-            lookup_conversion_method(box.radicand, "latex")(box.radicand, **options),
-            lookup_conversion_method(box.index, "latex")(box.index, **options),
+            convert_inner_box_field(box, "radicand", **options),
+            convert_inner_box_field(box, "index", **options),
         )
-    return "\\sqrt{%s}" % lookup_conversion_method(box.radicand, "latex")(
-        box.radicand, **child_options
-    )
+    return "\\sqrt{%s}" % convert_inner_box_field(box, "radicand", **options)
 
 
 add_conversion_fn(SqrtBox, sqrtbox)

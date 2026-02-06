@@ -19,6 +19,24 @@ renderers for BezierCurveBoxes.  Which one is used is decided on by
 the front-end's needs.
 """
 
+# Developer note about the use of %s in formatting.  While current Python
+# convention tends to eschew C-style format specifiers in formatting
+# strings, here using %s is *preferred*.
+# A lot of the render code involves trees and we want to show how
+# the children are used inside a node.
+# For example:
+#   "<mroot> %s %s </mroot>" % (
+#       convert_inner_box_field(box, "radicand", **options),
+#       convert_inner_box_field(box, "index", **options),
+#   )
+#
+# is preferable to:
+#   "<mroot> convert_inner_box_field(box, "radicand", **options) convert_inner_box_field(box, "index", **options) </mroot>"
+#
+# Since it shows the template pattern: <mroot> %s %s </mroot> clearly separated from the
+# child node pieces: convert_inner_box_field(box, "radicand", **options), and
+# convert_inner_box_field(box, "index", **options),
+
 import glob
 import importlib
 import os.path as osp
