@@ -411,19 +411,19 @@ class BoxElementMixin(ImmutableValueMixin):
     def is_multiline(self) -> bool:
         return True
 
-    def boxes_to_format(self, format: str, **options) -> str:
-        from mathics.core.formatter import boxes_to_format
+    def box_to_format(self, format: str, **options) -> str:
+        from mathics.core.formatter import box_to_format
 
-        return boxes_to_format(self, format, **options)
+        return box_to_format(self, format, **options)
 
     def boxes_to_mathml(self, **options) -> str:
         """For compatibility deprecated"""
-        return self.boxes_to_format("mathml", **options)
+        return self.box_to_format("mathml", **options)
 
     def boxes_to_tex(self, **options) -> str:
         """For compatibility deprecated"""
-        return self.boxes_to_format("latex", **options)
+        return self.box_to_format("latex", **options)
 
     def boxes_to_text(self, **options) -> str:
         """For compatibility deprecated"""
-        return self.boxes_to_format("text", **options)
+        return self.box_to_format("text", **options)
