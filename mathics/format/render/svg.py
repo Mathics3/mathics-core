@@ -3,6 +3,9 @@
 Mathics3 Graphics box rendering to SVG strings.
 """
 
+# Please see the developer note in __init__ about the use of "%s" in
+# format strings.
+
 from mathics.builtin.box.graphics import (
     ArcBox,
     ArrowBox,
