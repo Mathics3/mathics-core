@@ -4,6 +4,9 @@
 Asymptote-related functions
 """
 
+# Please see the developer note in __init__ about the use of "%s" in
+# format strings.
+
 from itertools import chain
 from typing import Optional, Union
 

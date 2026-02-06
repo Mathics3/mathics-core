@@ -189,6 +189,9 @@ def subsuperscriptbox(box: SubsuperscriptBox, **options) -> str:
 
 add_conversion_fn(SubsuperscriptBox, subsuperscriptbox)
 
+# Please see the developer note in __init__ about the use of "%s" in
+# format strings.
+
 
 def superscriptbox(box: SuperscriptBox, **options) -> str:
     # Note: values set in `options` take precedence over `box_options`

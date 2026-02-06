@@ -5,6 +5,9 @@ Mathics3 Box rendering to MathML strings.
 MathML rendering is usually initiated via MathMLForm[].
 """
 
+# Please see the developer note in __init__ about the use of "%s" in
+# format strings.
+
 import base64
 
 from mathics_scanner.tokeniser import is_symbol_name
@@ -120,9 +123,6 @@ add_conversion_fn(GraphicsBox, graphicsbox)
 
 
 def gridbox(box: GridBox, elements=None, **box_options) -> str:
-    def boxes_to_mathml(box, **options):
-        return lookup_conversion_method(box, "mathml")(box, **options)
-
     if not elements:
         elements = box._elements
     evaluation = box_options.get("evaluation")
@@ -147,12 +147,16 @@ def gridbox(box: GridBox, elements=None, **box_options) -> str:
         if isinstance(row, tuple):
             for item in row:
                 item.inside_list = True
-                result += (
-                    f"<mtd {joined_attrs}>{boxes_to_mathml(item, **options)}</mtd>"
+                result += f"<mtd {joined_attrs}>%s</mtd>" % convert_box_to_format(
+                    item, **box_options
                 )
         else:
             row.inside_list = True
-            result += f"<mtd {joined_attrs} columnspan={num_fields}>{boxes_to_mathml(row, **options)}</mtd>"
+            result += (
+                f"<mtd {joined_attrs} columnspan={num_fields}>%s</mtd>"
+                % convert_box_to_format(item, **box_options)
+            )
+
         result += "</mtr>\n"
     result += "</mtable>"
     # print(f"gridbox: {result}")
@@ -164,9 +168,7 @@ add_conversion_fn(InterpretationBox, convert_inner_box)
 
 
 def pane_box(box: PaneBox, **options):
-    content = lookup_conversion_method(box.inner_box, "mathml")(
-        box.inner_box, **options
-    )
+    content = convert_inner_box_field(box, **options)
     options = box.box_options
     size = options.get("System`ImageSize", SymbolAutomatic).to_python()
     if size is SymbolAutomatic:
@@ -233,9 +235,7 @@ def rowbox(box: RowBox, **options) -> str:
     for element in box.items:
         if hasattr(element, nest_field):
             setattr(element, nest_field, True)
-        result.append(
-            lookup_conversion_method(element, "mathml")(element, **child_options)
-        )
+        result.append(convert_box_to_format(element, **child_options))
 
     # print(f"mrow: {result}")
 
@@ -246,19 +246,13 @@ add_conversion_fn(RowBox, rowbox)
 
 
 def sqrtbox(box: SqrtBox, **options):
-    # Note: values set in `options` take precedence over `box_options`
-    child_options = {**options, **box.box_options}
     if box.index:
         return "<mroot> %s %s </mroot>" % (
-            lookup_conversion_method(box.radicand, "mathml")(
-                box.radicand, **child_options
-            ),
-            lookup_conversion_method(box.index, "mathml")(box.index, **child_options),
+            convert_inner_box_field(box, "radicand", **options),
+            convert_inner_box_field(box, "index", **options),
         )
 
-    return "<msqrt> %s </msqrt>" % lookup_conversion_method(box.radicand, "mathml")(
-        box.radicand, **options
-    )
+    return "<msqrt> %s </msqrt>" % convert_inner_box_field(box, "radicand", **options)
 
 
 add_conversion_fn(SqrtBox, sqrtbox)

@@ -13,6 +13,9 @@ LaTeX or more specifically that we the additional AMS Mathematical
 Symbols exist.
 """
 
+# Please see the developer note in __init__ about the use of "%s" in
+# format strings.
+
 import re
 
 from mathics.builtin.box.graphics import GraphicsBox
@@ -644,16 +647,12 @@ add_conversion_fn(RowBox, rowbox)
 
 
 def sqrtbox(box: SqrtBox, **options):
-    # Note: values set in `options` take precedence over `box_options`
-    child_options = {**options, **box.box_options}
     if box.index:
         return "\\sqrt[%s]{%s}" % (
-            lookup_conversion_method(box.radicand, "latex")(box.radicand, **options),
-            lookup_conversion_method(box.index, "latex")(box.index, **options),
+            convert_inner_box_field(box, "radicand", **options),
+            convert_inner_box_field(box, "index", **options),
         )
-    return "\\sqrt{%s}" % lookup_conversion_method(box.radicand, "latex")(
-        box.radicand, **child_options
-    )
+    return "\\sqrt{%s}" % convert_inner_box_field(box, "radicand", **options)
 
 
 add_conversion_fn(SqrtBox, sqrtbox)
