@@ -207,8 +207,9 @@ def cancel(expr):
     else:
         try:
             result = expr.to_sympy()
+            # If the expression cannot be handled by Sympy, just return it.
             if result is None:
-                return None
+                return expr
 
             # result = sympy.powsimp(result, deep=True)
             result = tracing.run_sympy(sympy.cancel, result)
