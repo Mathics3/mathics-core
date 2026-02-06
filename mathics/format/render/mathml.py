@@ -33,7 +33,6 @@ import base64
 
 from mathics_scanner.tokeniser import is_symbol_name
 
-from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
@@ -197,7 +196,7 @@ def interpretation_box(box: InterpretationBox, **options):
     if origin.has_form("InputForm", None):
         # InputForm produce outputs of the form
         # InterpretationBox[Style[_String, ...], origin_InputForm, opts___]
-        assert isinstance(box, StyleBox), f"boxes={boxes} are not a StyleBox"
+        assert isinstance(box, StyleBox), f"boxes={box} is not a StyleBox."
         box = box.inner_box
         child_options["System`ShowStringCharacters"] = SymbolTrue
         assert isinstance(box, String)
