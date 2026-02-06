@@ -83,7 +83,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
 
     def __init(self, *args, **kwargs):
         super().__init(args, kwargs)
-        self.boxes = []
+        self.inner_box = None
 
     def do_format(self, evaluation, format):
         return self

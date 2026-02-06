@@ -54,34 +54,31 @@ def encode_tex(text: str, in_text=False) -> str:
     return text
 
 
-extra_operators = set(
-    (
-        ",",
-        "(",
-        ")",
-        "[",
-        "]",
-        "{",
-        "}",
-        "\u301a",
-        "\u301b",
-        "\u00d7",
-        "\u2032",
-        "\u2032\u2032",
-        " ",
-        "\u2062",
-        "\u222b",
-        "\u2146",
+def box_to_format(box, format: str, **options) -> str:  # Maybe Union[str, bytearray]
+    """
+    Translates a box structure ``box`` to a file format ``format``.
+    This is used only at the root Box of a boxed expression.
+    """
+    options["format_type"] = format
+    return convert_box_to_format(box, **options)
+
+
+def convert_box_to_format(box, **options) -> str:
+    """
+    Translates a box structure ``box`` to a file format ``format``.
+    This is used at either non-root-level boxes or from the
+    initial call from box_to_format.
+    """
+    return lookup_method(box, options["format_type"])(box, **options)
+
+
+def convert_inner_box_field(box, field: str = "inner_box", **options):
+    # Note: values set in `options` take precedence over `box_options`
+    inner_box = getattr(box, field)
+    child_options = (
+        {**box.box_options, **options} if hasattr(box, "box_options") else options
     )
-)
-
-
-def boxes_to_format(boxes, format, **options) -> str:  # Maybe Union[str, bytearray]
-    """
-    Translates a box structure ``boxes`` to a file format ``format``.
-
-    """
-    return lookup_method(boxes, format)(boxes, **options)
+    return convert_box_to_format(inner_box, **child_options)
 
 
 def lookup_method(self, format: str) -> Callable:

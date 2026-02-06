@@ -15,7 +15,6 @@ Symbols exist.
 
 import re
 
-from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
@@ -44,6 +43,8 @@ from mathics.core.convert.op import (
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import (
     add_conversion_fn,
+    convert_box_to_format,
+    convert_inner_box_field,
     lookup_method as lookup_conversion_method,
 )
 from mathics.core.symbols import SymbolTrue
@@ -179,6 +180,10 @@ TEX_TEXT_REPLACE.update(
 TEX_REPLACE_RE = re.compile("([" + "".join([re.escape(c) for c in TEX_REPLACE]) + "])")
 
 
+def convert_inner_box(box, **options):
+    return convert_inner_box_field(box, "inner_box", **options)
+
+
 def encode_tex(text: str, in_text=False) -> str:
     def replace(match):
         c = match.group(1)
@@ -191,391 +196,18 @@ def encode_tex(text: str, in_text=False) -> str:
     return text
 
 
-def string(s: String, **options) -> str:
-    """String to LaTeX form"""
-    text = s.value
-
-    def render(format, string_, in_text=False):
-        return format % encode_tex(string_, in_text)
-
-    if text.startswith('"') and text.endswith('"'):
-        show_string_characters = (
-            options.get("System`ShowStringCharacters", None) is SymbolTrue
-        )
-        # In WMA, ``TeXForm`` never adds quotes to
-        # strings, even if ``InputForm`` or ``FullForm``
-        # is required, to so get the standard WMA behaviour,
-        # this option is set to False:
-        # show_string_characters = False
-        if show_string_characters:
-            return render(r"\text{``%s''}", text[1:-1], in_text=True)
-        return render(r"\text{%s}", text[1:-1], in_text=True)
-    if text and text[0] in "0123456789-.":
-        text = text.split("`")[0]
-        return render("%s", text)
-
-    # First consider the special cases
-    op_string = AMSTEX_OPERATORS.get(text, None)
-    if op_string:
-        return op_string
-
-    # Regular text:
-    if len(text) > 1:
-        return render(r"\text{%s}", text, in_text=True)
-
-    # Unicode operator or variable?
-    op_string = get_latex_operator(text)
-    if len(op_string) > 7 and op_string[:7] == r"\symbol":
-        op_string = r"\text{" + op_string + "}"
-
-    if op_string != text:
-        return f" {op_string} "
-
-    # must be a variable...
-    return render("%s", text)
-
-
-add_conversion_fn(String, string)
-
-
-def interpretation_box(box: InterpretationBox, **options):
-    return lookup_conversion_method(box.boxes, "latex")(box.boxes, **options)
-
-
-add_conversion_fn(InterpretationBox, interpretation_box)
-
-
-def pane_box(box: PaneBox, **options):
-    content = lookup_conversion_method(box.boxes, "latex")(box.boxes, **options)
-    options = box.box_options
-    size = options.get("System`ImageSize", SymbolAutomatic).to_python()
-
-    if size == "System`Automatic":
-        return content
-    if isinstance(size, int):
-        width = f"{size}pt"
-        height = ""
-    elif isinstance(size, tuple) and len(size) == 2:
-        width_val, height_val = size[0], size[1]
-        if isinstance(width_val, int):
-            width = f"{width_val}pt"
-        else:
-            width = "\\textwidth"
-        if isinstance(height_val, int):
-            height = f"[{height_val}pt]"
-        else:
-            height = ""
-    else:
-        width = "\\textwidth"
-        height = ""
-
-    return (
-        "\\begin{minipage}{"
-        + width
-        + "}"
-        + height
-        + "\n"
-        + content
-        + "\n\\end{minipage}"
-    )
-
-
-add_conversion_fn(PaneBox, pane_box)
+add_conversion_fn(FormBox, convert_inner_box)
 
 
 def fractionbox(box: FractionBox, **options) -> str:
-    _options = box.box_options.copy()
-    _options.update(options)
-    options = _options
-    return "\\frac{%s}{%s}" % (
-        lookup_conversion_method(box.num, "latex")(box.num, **options),
-        lookup_conversion_method(box.den, "latex")(box.den, **options),
-    )
+    # Note: values set in `options` take precedence over `box_options`
+    child_options = {**options, **box.box_options}
+    num_text = convert_box_to_format(box.num, **child_options)
+    den_text = convert_box_to_format(box.den, **child_options)
+    return "\\frac{%s}{%s}" % (num_text, den_text)
 
 
 add_conversion_fn(FractionBox, fractionbox)
-
-
-def gridbox(box: GridBox, elements=None, **box_options) -> str:
-    def boxes_to_tex(box, **options):
-        return lookup_conversion_method(box, "latex")(box, **options)
-
-    if not elements:
-        elements = box._elements
-    evaluation = box_options.get("evaluation")
-    items, options = box.get_array(elements, evaluation)
-    box_options.update(options)
-    box_options["inside_list"] = True
-    column_alignments = box_options["System`ColumnAlignments"].get_name()
-    try:
-        column_alignments = {
-            "System`Center": "c",
-            "System`Left": "l",
-            "System`Right": "r",
-        }[column_alignments]
-    except KeyError as exc:
-        # invalid column alignment
-        raise BoxConstructError from exc
-    column_count = 1
-    for row in items:
-        if isinstance(row, tuple):
-            column_count = max(column_count, len(row))
-
-    result = r"\begin{array}{%s} " % (column_alignments * column_count)
-    for index, row in enumerate(items):
-        if isinstance(row, tuple):
-            result += " & ".join(boxes_to_tex(item, **box_options) for item in row)
-        else:
-            result += r"\multicolumn{%s}{%s}{%s}" % (
-                str(column_count),
-                column_alignments,
-                boxes_to_tex(row, **box_options),
-            )
-        if index != len(items) - 1:
-            result += "\\\\ "
-    result += r"\end{array}"
-    return result
-
-
-add_conversion_fn(GridBox, gridbox)
-
-
-def sqrtbox(box: SqrtBox, **options):
-    _options = box.box_options.copy()
-    _options.update(options)
-    options = _options
-    if box.index:
-        return "\\sqrt[%s]{%s}" % (
-            lookup_conversion_method(box.radicand, "latex")(box.radicand, **options),
-            lookup_conversion_method(box.index, "latex")(box.index, **options),
-        )
-    return "\\sqrt{%s}" % lookup_conversion_method(box.radicand, "latex")(
-        box.radicand, **options
-    )
-
-
-add_conversion_fn(SqrtBox, sqrtbox)
-
-
-def superscriptbox(box: SuperscriptBox, **options):
-    _options = box.box_options.copy()
-    _options.update(options)
-    options = _options
-    base_to_tex = lookup_conversion_method(box.base, "latex")
-    tex1 = base_to_tex(box.base, **options)
-
-    sup_string = box.superindex.get_string_value()
-    # Handle derivatives
-    if sup_string == named_characters["Prime"]:
-        return "%s'" % tex1
-    if sup_string == named_characters["Prime"] * 2:
-        return "%s''" % tex1
-    base = box.tex_block(tex1, True)
-    superidx_to_tex = lookup_conversion_method(box.superindex, "latex")
-    superindx = box.tex_block(superidx_to_tex(box.superindex, **options), True)
-    if len(superindx) == 1 and isinstance(box.superindex, (String, StyleBox)):
-        return "%s^%s" % (
-            base,
-            superindx,
-        )
-    return "%s^{%s}" % (
-        base,
-        superindx,
-    )
-
-
-add_conversion_fn(SuperscriptBox, superscriptbox)
-
-
-def subscriptbox(box: SubscriptBox, **options):
-    _options = box.box_options.copy()
-    _options.update(options)
-    options = _options
-    base_to_tex = lookup_conversion_method(box.base, "latex")
-    subidx_to_tex = lookup_conversion_method(box.subindex, "latex")
-    return "%s_%s" % (
-        box.tex_block(base_to_tex(box.base, **options), True),
-        box.tex_block(subidx_to_tex(box.subindex, **options)),
-    )
-
-
-add_conversion_fn(SubscriptBox, subscriptbox)
-
-
-def subsuperscriptbox(box: SubsuperscriptBox, **options):
-    _options = box.box_options.copy()
-    _options.update(options)
-    options = _options
-    base_to_tex = lookup_conversion_method(box.base, "latex")
-    subidx_to_tex = lookup_conversion_method(box.subindex, "latex")
-    superidx_to_tex = lookup_conversion_method(box.superindex, "latex")
-
-    return "%s_%s^%s" % (
-        box.tex_block(base_to_tex(box.base, **options), True),
-        box.tex_block(subidx_to_tex(box.subindex, **options)),
-        box.tex_block(superidx_to_tex(box.superindex, **options)),
-    )
-
-
-add_conversion_fn(SubsuperscriptBox, subsuperscriptbox)
-
-
-def rowbox_sequence(items, **options):
-    parts_str = [
-        lookup_conversion_method(element, "latex")(element, **options)
-        for element in items
-    ]
-    if len(parts_str) == 0:
-        return ""
-    if len(parts_str) == 1:
-        return parts_str[0]
-    # This loop integrate all the row adding spaces after a ",", followed
-    # by something which is not a comma. For example,
-    # >> ToString[RowBox[{",",",","p"}]//DisplayForm]
-    #  = ",, p"
-    result = parts_str[0]
-    comma = result == ","
-    for elem in parts_str[1:]:
-        if elem == ",":
-            result += elem
-            comma = True
-            continue
-        if comma:
-            result += " "
-            comma = False
-
-        result += elem
-    return result
-
-
-def rowbox_parenthesized(items, **options):
-    if len(items) < 2:
-        return None
-    key = (
-        items[0],
-        items[-1],
-    )
-    items = items[1:-1]
-    try:
-        bracket_data = BRACKET_INFO[key]
-    except KeyError:
-        return None
-
-    contain = rowbox_sequence(items, **options) if len(items) > 0 else ""
-
-    if any(item.is_multiline for item in items):
-        return f'{bracket_data["latex_open_large"]}{contain}{bracket_data["latex_closing_large"]}'
-    return f'{bracket_data["latex_open"]}{contain}{bracket_data["latex_closing"]}'
-
-
-def rowbox(box: RowBox, **options) -> str:
-    _options = box.box_options.copy()
-    _options.update(options)
-    options = _options
-    items = box.items
-    # Handle special cases
-    if len(items) >= 3:
-        head, *rest = items
-        rest_latex = rowbox_parenthesized(rest, **options)
-        if rest_latex is not None:
-            # Must be a function-like expression f[]
-            head_latex = lookup_conversion_method(head, "latex")(head, **options)
-            return head_latex + rest_latex
-    if len(items) >= 2:
-        parenthesized_latex = rowbox_parenthesized(items, **options)
-        if parenthesized_latex is not None:
-            return parenthesized_latex
-    return rowbox_sequence(items, **options)
-
-
-add_conversion_fn(RowBox, rowbox)
-
-
-def stylebox(box: StyleBox, **options) -> str:
-    _options = box.box_options.copy()
-    _options.update(options)
-    options = _options
-    return lookup_conversion_method(box.boxes, "latex")(box.boxes, **options)
-
-
-add_conversion_fn(StyleBox, stylebox)
-
-
-def graphicsbox(box: GraphicsBox, elements=None, **options) -> str:
-    """This is the top-level function that converts a Mathics Expression
-    in to something suitable for AMSLaTeX.
-
-    However right now the only LaTeX support for graphics is via Asymptote and
-    that seems to be the package of choice in general for LaTeX.
-    """
-    assert elements is None
-
-    if not elements:
-        content = box.content
-        fields = prepare_elements2d(box, content, options, max_width=450)
-        if len(fields) == 2:
-            elements, calc_dimensions = fields
-        else:
-            elements, calc_dimensions = fields[0], fields[-2]
-
-    fields = calc_dimensions()
-    if len(fields) == 8:
-        xmin, xmax, ymin, ymax, w, h, width, height = fields
-        elements.view_width = w
-
-    else:
-        assert len(fields) == 9
-        xmin, xmax, ymin, ymax, _, _, _, width, height = fields
-        elements.view_width = width
-
-    asy_completely_visible = "\n".join(
-        lookup_conversion_method(element, "asy")(element)
-        for element in elements.elements
-        if element.is_completely_visible
-    )
-
-    asy_regular = "\n".join(
-        lookup_conversion_method(element, "asy")(element)
-        for element in elements.elements
-        if not element.is_completely_visible
-    )
-
-    asy_box = "box((%s,%s), (%s,%s))" % (
-        asy_number(xmin),
-        asy_number(ymin),
-        asy_number(xmax),
-        asy_number(ymax),
-    )
-
-    if box.background_color is not None:
-        color, opacity = asy_color(box.background_color)
-        if opacity is not None:
-            color = color + f"+opacity({opacity})"
-        asy_background = "filldraw(%s, %s);" % (asy_box, color)
-    else:
-        asy_background = ""
-
-    tex = r"""
-\begin{asy}
-usepackage("amsmath");
-size(%scm, %scm);
-%s
-%s
-clip(%s);
-%s
-\end{asy}
-""" % (
-        asy_number(width / 60),
-        asy_number(height / 60),
-        asy_background,
-        asy_regular,
-        asy_box,
-        asy_completely_visible,
-    )
-    return tex
-
-
-add_conversion_fn(GraphicsBox, graphicsbox)
 
 
 def graphics3dbox(box: Graphics3DBox, elements=None, **options) -> str:
@@ -782,9 +414,354 @@ currentlight=light(rgb(0.5,0.5,0.5), {5}specular=red, (2,0,2), (2,2,2), (0,2,2))
 add_conversion_fn(Graphics3DBox, graphics3dbox)
 
 
-def tag_and_form_box(box: BoxExpression, **options):
-    return lookup_conversion_method(box.boxes, "latex")(box.boxes, **options)
+def graphicsbox(box: GraphicsBox, elements=None, **options) -> str:
+    """This is the top-level function that converts a Mathics Expression
+    in to something suitable for AMSLaTeX.
+
+    However right now the only LaTeX support for graphics is via Asymptote and
+    that seems to be the package of choice in general for LaTeX.
+    """
+    assert elements is None
+
+    if not elements:
+        content = box.content
+        fields = prepare_elements2d(box, content, options, max_width=450)
+        if len(fields) == 2:
+            elements, calc_dimensions = fields
+        else:
+            elements, calc_dimensions = fields[0], fields[-2]
+
+    fields = calc_dimensions()
+    if len(fields) == 8:
+        xmin, xmax, ymin, ymax, w, h, width, height = fields
+        elements.view_width = w
+
+    else:
+        assert len(fields) == 9
+        xmin, xmax, ymin, ymax, _, _, _, width, height = fields
+        elements.view_width = width
+
+    asy_completely_visible = "\n".join(
+        lookup_conversion_method(element, "asy")(element)
+        for element in elements.elements
+        if element.is_completely_visible
+    )
+
+    asy_regular = "\n".join(
+        lookup_conversion_method(element, "asy")(element)
+        for element in elements.elements
+        if not element.is_completely_visible
+    )
+
+    asy_box = "box((%s,%s), (%s,%s))" % (
+        asy_number(xmin),
+        asy_number(ymin),
+        asy_number(xmax),
+        asy_number(ymax),
+    )
+
+    if box.background_color is not None:
+        color, opacity = asy_color(box.background_color)
+        if opacity is not None:
+            color = color + f"+opacity({opacity})"
+        asy_background = "filldraw(%s, %s);" % (asy_box, color)
+    else:
+        asy_background = ""
+
+    tex = r"""
+\begin{asy}
+usepackage("amsmath");
+size(%scm, %scm);
+%s
+%s
+clip(%s);
+%s
+\end{asy}
+""" % (
+        asy_number(width / 60),
+        asy_number(height / 60),
+        asy_background,
+        asy_regular,
+        asy_box,
+        asy_completely_visible,
+    )
+    return tex
 
 
-add_conversion_fn(FormBox, tag_and_form_box)
-add_conversion_fn(TagBox, tag_and_form_box)
+add_conversion_fn(GraphicsBox, graphicsbox)
+
+
+def gridbox(box: GridBox, elements=None, **box_options) -> str:
+    if not elements:
+        elements = box._elements
+    evaluation = box_options.get("evaluation")
+    items, options = box.get_array(elements, evaluation)
+    box_options.update(options)
+    box_options["inside_list"] = True
+    column_alignments = box_options["System`ColumnAlignments"].get_name()
+    try:
+        column_alignments = {
+            "System`Center": "c",
+            "System`Left": "l",
+            "System`Right": "r",
+        }[column_alignments]
+    except KeyError as exc:
+        # invalid column alignment
+        raise BoxConstructError from exc
+    column_count = 1
+    for row in items:
+        if isinstance(row, tuple):
+            column_count = max(column_count, len(row))
+
+    result = r"\begin{array}{%s} " % (column_alignments * column_count)
+    for index, row in enumerate(items):
+        if isinstance(row, tuple):
+            result += " & ".join(
+                convert_box_to_format(item, **box_options) for item in row
+            )
+        else:
+            result += r"\multicolumn{%s}{%s}{%s}" % (
+                str(column_count),
+                column_alignments,
+                convert_box_to_format(row, **box_options),
+            )
+        if index != len(items) - 1:
+            result += "\\\\ "
+    result += r"\end{array}"
+    return result
+
+
+add_conversion_fn(GridBox, gridbox)
+add_conversion_fn(InterpretationBox, convert_inner_box)
+
+
+def pane_box(box: PaneBox, **options):
+    content = convert_inner_box_field(box, **options)
+    options = box.box_options
+    size = options.get("System`ImageSize", SymbolAutomatic).to_python()
+
+    if size == "System`Automatic":
+        return content
+    if isinstance(size, int):
+        width = f"{size}pt"
+        height = ""
+    elif isinstance(size, tuple) and len(size) == 2:
+        width_val, height_val = size[0], size[1]
+        if isinstance(width_val, int):
+            width = f"{width_val}pt"
+        else:
+            width = "\\textwidth"
+        if isinstance(height_val, int):
+            height = f"[{height_val}pt]"
+        else:
+            height = ""
+    else:
+        width = "\\textwidth"
+        height = ""
+
+    return (
+        "\\begin{minipage}{"
+        + width
+        + "}"
+        + height
+        + "\n"
+        + content
+        + "\n\\end{minipage}"
+    )
+
+
+add_conversion_fn(PaneBox, pane_box)
+
+
+def rowbox_sequence(items, **options):
+    parts_str = [
+        lookup_conversion_method(element, "latex")(element, **options)
+        for element in items
+    ]
+    if len(parts_str) == 0:
+        return ""
+    if len(parts_str) == 1:
+        return parts_str[0]
+    # This loop integrate all the row adding spaces after a ",", followed
+    # by something which is not a comma. For example,
+    # >> ToString[RowBox[{",",",","p"}]//DisplayForm]
+    #  = ",, p"
+    result = parts_str[0]
+    comma = result == ","
+    for elem in parts_str[1:]:
+        if elem == ",":
+            result += elem
+            comma = True
+            continue
+        if comma:
+            result += " "
+            comma = False
+
+        result += elem
+    return result
+
+
+def rowbox_parenthesized(items, **options):
+    if len(items) < 2:
+        return None
+    key = (
+        items[0],
+        items[-1],
+    )
+    items = items[1:-1]
+    try:
+        bracket_data = BRACKET_INFO[key]
+    except KeyError:
+        return None
+
+    contain = rowbox_sequence(items, **options) if len(items) > 0 else ""
+
+    if any(item.is_multiline for item in items):
+        return f'{bracket_data["latex_open_large"]}{contain}{bracket_data["latex_closing_large"]}'
+    return f'{bracket_data["latex_open"]}{contain}{bracket_data["latex_closing"]}'
+
+
+def rowbox(box: RowBox, **options) -> str:
+    # Note: values set in `options` take precedence over `box_options`
+    child_options = {**box.box_options, **options}
+    items = box.items
+    # Handle special cases
+    if len(items) >= 3:
+        head, *rest = items
+        rest_latex = rowbox_parenthesized(rest, **options)
+        if rest_latex is not None:
+            # Must be a function-like expression f[]
+            head_latex = lookup_conversion_method(head, "latex")(head, **child_options)
+            return head_latex + rest_latex
+    if len(items) >= 2:
+        parenthesized_latex = rowbox_parenthesized(items, **child_options)
+        if parenthesized_latex is not None:
+            return parenthesized_latex
+    return rowbox_sequence(items, **child_options)
+
+
+add_conversion_fn(RowBox, rowbox)
+
+
+def sqrtbox(box: SqrtBox, **options):
+    # Note: values set in `options` take precedence over `box_options`
+    child_options = {**options, **box.box_options}
+    if box.index:
+        return "\\sqrt[%s]{%s}" % (
+            lookup_conversion_method(box.radicand, "latex")(box.radicand, **options),
+            lookup_conversion_method(box.index, "latex")(box.index, **options),
+        )
+    return "\\sqrt{%s}" % lookup_conversion_method(box.radicand, "latex")(
+        box.radicand, **child_options
+    )
+
+
+add_conversion_fn(SqrtBox, sqrtbox)
+
+
+def string(s: String, **options) -> str:
+    """String to LaTeX form"""
+    text = s.value
+
+    def render(format, string_, in_text=False):
+        return format % encode_tex(string_, in_text)
+
+    if text.startswith('"') and text.endswith('"'):
+        show_string_characters = (
+            options.get("System`ShowStringCharacters", None) is SymbolTrue
+        )
+        # In WMA, ``TeXForm`` never adds quotes to
+        # strings, even if ``InputForm`` or ``FullForm``
+        # is required, to so get the standard WMA behaviour,
+        # this option is set to False:
+        # show_string_characters = False
+        if show_string_characters:
+            return render(r"\text{``%s''}", text[1:-1], in_text=True)
+        return render(r"\text{%s}", text[1:-1], in_text=True)
+    if text and text[0] in "0123456789-.":
+        text = text.split("`")[0]
+        return render("%s", text)
+
+    # First consider the special cases
+    op_string = AMSTEX_OPERATORS.get(text, None)
+    if op_string:
+        return op_string
+
+    # Regular text:
+    if len(text) > 1:
+        return render(r"\text{%s}", text, in_text=True)
+
+    # Unicode operator or variable?
+    op_string = get_latex_operator(text)
+    if len(op_string) > 7 and op_string[:7] == r"\symbol":
+        op_string = r"\text{" + op_string + "}"
+
+    if op_string != text:
+        return f" {op_string} "
+
+    # must be a variable...
+    return render("%s", text)
+
+
+add_conversion_fn(String, string)
+
+
+def subscriptbox(box: SubscriptBox, **options):
+    # Note: values set in `options` take precedence over `box_options`
+    child_options = {**options, **box.box_options}
+    base_to_tex = lookup_conversion_method(box.base, "latex")
+    subidx_to_tex = lookup_conversion_method(box.subindex, "latex")
+    return "%s_%s" % (
+        box.tex_block(base_to_tex(box.base, **child_options), True),
+        box.tex_block(subidx_to_tex(box.subindex, **child_options)),
+    )
+
+
+add_conversion_fn(SubscriptBox, subscriptbox)
+
+
+def subsuperscriptbox(box: SubsuperscriptBox, **options):
+    # Note: values set in `options` take precedence over `box_options`
+    child_options = {**box.box_options, **options}
+    base_to_tex = lookup_conversion_method(box.base, "latex")
+    subidx_to_tex = lookup_conversion_method(box.subindex, "latex")
+    superidx_to_tex = lookup_conversion_method(box.superindex, "latex")
+
+    return "%s_%s^%s" % (
+        box.tex_block(base_to_tex(box.base, **child_options), True),
+        box.tex_block(subidx_to_tex(box.subindex, **child_options)),
+        box.tex_block(superidx_to_tex(box.superindex, **child_options)),
+    )
+
+
+add_conversion_fn(SubsuperscriptBox, subsuperscriptbox)
+
+
+def superscriptbox(box: SuperscriptBox, **options):
+    child_options = {**options, **box.box_options}
+    base_to_tex = lookup_conversion_method(box.base, "latex")
+    tex1 = base_to_tex(box.base, **options)
+
+    sup_string = box.superindex.get_string_value()
+    # Handle derivatives
+    if sup_string == named_characters["Prime"]:
+        return "%s'" % tex1
+    if sup_string == named_characters["Prime"] * 2:
+        return "%s''" % tex1
+    base = box.tex_block(tex1, True)
+    superidx_to_tex = lookup_conversion_method(box.superindex, "latex")
+    superindx = box.tex_block(superidx_to_tex(box.superindex, **child_options), True)
+    if len(superindx) == 1 and isinstance(box.superindex, (String, StyleBox)):
+        return "%s^%s" % (
+            base,
+            superindx,
+        )
+    return "%s^{%s}" % (
+        base,
+        superindx,
+    )
+
+
+add_conversion_fn(SuperscriptBox, superscriptbox)
+add_conversion_fn(StyleBox, convert_inner_box)
+add_conversion_fn(TagBox, convert_inner_box)
