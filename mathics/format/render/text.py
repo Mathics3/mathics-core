@@ -3,7 +3,6 @@
 Mathics3 box rendering to plain text.
 """
 
-from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
@@ -22,39 +21,17 @@ from mathics.builtin.box.layout import (
 )
 from mathics.core.atoms import String
 from mathics.core.exceptions import BoxConstructError
-from mathics.core.formatter import add_conversion_fn, convert_box_to_format
+from mathics.core.formatter import (
+    add_conversion_fn,
+    convert_box_to_format,
+    convert_inner_box_field,
+)
 from mathics.core.symbols import Atom, SymbolTrue
 from mathics.format.box.graphics import prepare_elements as prepare_elements2d
 from mathics.format.box.graphics3d import prepare_elements as prepare_elements3d
 from mathics.format.form.util import _WrongFormattedExpression, text_cells_to_grid
 
-
-def string(s: String, **options) -> str:
-    value = s.value
-    show_string_characters = (
-        options.get("System`ShowStringCharacters", None) is SymbolTrue
-    )
-    if value.startswith('"') and value.endswith('"'):  # nopep8
-        if not show_string_characters:
-            value = value[1:-1]
-    return value
-
-
-add_conversion_fn(String, string)
-
-
-def interpretation_box(box: InterpretationBox, **options):
-    return convert_box_to_format(box.inner_box, **options)
-
-
-add_conversion_fn(InterpretationBox, interpretation_box)
-
-
-def pane_box(box: PaneBox, **options):
-    return convert_box_to_format(box.inner_box, **options)
-
-
-add_conversion_fn(PaneBox, pane_box)
+add_conversion_fn(FormBox, convert_inner_box_field)
 
 
 def fractionbox(box: FractionBox, **options) -> str:
@@ -71,6 +48,26 @@ def fractionbox(box: FractionBox, **options) -> str:
 
 
 add_conversion_fn(FractionBox, fractionbox)
+
+
+def graphics3dbox(box: Graphics3DBox, elements=None, **options) -> str:
+    assert elements is None
+
+    prepare_elements3d(box, box.content, options)  # to test for Box errors
+    return "-Graphics3D-"
+
+
+add_conversion_fn(Graphics3DBox, graphics3dbox)
+
+
+def graphicsbox(box: GraphicsBox, elements=None, **options) -> str:
+    assert elements is None
+
+    prepare_elements2d(box, box.content, options)  # to test for Box errors
+    return "-Graphics-"
+
+
+add_conversion_fn(GraphicsBox, graphicsbox)
 
 
 def gridbox(box: GridBox, elements=None, **box_options) -> str:
@@ -104,68 +101,8 @@ def gridbox(box: GridBox, elements=None, **box_options) -> str:
 
 
 add_conversion_fn(GridBox, gridbox)
-
-
-def sqrtbox(box: SqrtBox, **options) -> str:
-    # Note: values set in `options` take precedence over `box_options`
-    child_options = {**options, **box.box_options}
-    if box.index:
-        return "Sqrt[%s,%s]" % (
-            convert_box_to_format(box.radicand, **child_options),
-            convert_box_to_format(box.index, **child_options),
-        )
-    return "Sqrt[%s]" % (convert_box_to_format(box.radicand, **child_options))
-
-
-add_conversion_fn(SqrtBox, sqrtbox)
-
-
-def superscriptbox(box: SuperscriptBox, **options) -> str:
-    # Note: values set in `options` take precedence over `box_options`
-    child_options = {**options, **box.box_options}
-    no_parenthesize = True
-    index = box.superindex
-    while not isinstance(index, Atom):
-        if isinstance(index, StyleBox):
-            index = index.inner_box
-        else:
-            break
-    if isinstance(index, FractionBox):
-        no_parenthesize = False
-
-    fmt_str = "%s^%s" if no_parenthesize else "%s^(%s)"
-    return fmt_str % (
-        convert_box_to_format(box.base, **child_options),
-        convert_box_to_format(box.superindex, **child_options),
-    )
-
-
-add_conversion_fn(SuperscriptBox, superscriptbox)
-
-
-def subscriptbox(box: SubscriptBox, **options) -> str:
-    # Note: values set in `options` take precedence over `box_options`
-    child_options = {**box.box_options, **options}
-    return "Subscript[%s, %s]" % (
-        convert_box_to_format(box.base, **child_options),
-        convert_box_to_format(box.subindex, **child_options),
-    )
-
-
-add_conversion_fn(SubscriptBox, subscriptbox)
-
-
-def subsuperscriptbox(box: SubsuperscriptBox, **options) -> str:
-    # Note: values set in `options` take precedence over `box_options`
-    child_options = {**box.box_options, **options}
-    return "Subsuperscript[%s, %s, %s]" % (
-        convert_box_to_format(box.base, **child_options),
-        convert_box_to_format(box.subindex, **child_options),
-        convert_box_to_format(box.superindex, **child_options),
-    )
-
-
-add_conversion_fn(SubsuperscriptBox, subsuperscriptbox)
+add_conversion_fn(InterpretationBox, convert_inner_box_field)
+add_conversion_fn(PaneBox, convert_inner_box_field)
 
 
 def rowbox(box: RowBox, elements=None, **options) -> str:
@@ -200,6 +137,82 @@ def rowbox(box: RowBox, elements=None, **options) -> str:
 add_conversion_fn(RowBox, rowbox)
 
 
+def sqrtbox(box: SqrtBox, **options) -> str:
+    # Note: values set in `options` take precedence over `box_options`
+    child_options = {**options, **box.box_options}
+    if box.index:
+        return "Sqrt[%s,%s]" % (
+            convert_box_to_format(box.radicand, **child_options),
+            convert_box_to_format(box.index, **child_options),
+        )
+    return "Sqrt[%s]" % (convert_box_to_format(box.radicand, **child_options))
+
+
+add_conversion_fn(SqrtBox, sqrtbox)
+
+
+def string(s: String, **options) -> str:
+    value = s.value
+    show_string_characters = (
+        options.get("System`ShowStringCharacters", None) is SymbolTrue
+    )
+    if value.startswith('"') and value.endswith('"'):  # nopep8
+        if not show_string_characters:
+            value = value[1:-1]
+    return value
+
+
+add_conversion_fn(String, string)
+
+
+def subscriptbox(box: SubscriptBox, **options) -> str:
+    # Note: values set in `options` take precedence over `box_options`
+    child_options = {**box.box_options, **options}
+    return "Subscript[%s, %s]" % (
+        convert_box_to_format(box.base, **child_options),
+        convert_box_to_format(box.subindex, **child_options),
+    )
+
+
+add_conversion_fn(SubscriptBox, subscriptbox)
+
+
+def subsuperscriptbox(box: SubsuperscriptBox, **options) -> str:
+    # Note: values set in `options` take precedence over `box_options`
+    child_options = {**box.box_options, **options}
+    return "Subsuperscript[%s, %s, %s]" % (
+        convert_box_to_format(box.base, **child_options),
+        convert_box_to_format(box.subindex, **child_options),
+        convert_box_to_format(box.superindex, **child_options),
+    )
+
+
+add_conversion_fn(SubsuperscriptBox, subsuperscriptbox)
+
+
+def superscriptbox(box: SuperscriptBox, **options) -> str:
+    # Note: values set in `options` take precedence over `box_options`
+    child_options = {**options, **box.box_options}
+    no_parenthesize = True
+    index = box.superindex
+    while not isinstance(index, Atom):
+        if isinstance(index, StyleBox):
+            index = index.inner_box
+        else:
+            break
+    if isinstance(index, FractionBox):
+        no_parenthesize = False
+
+    fmt_str = "%s^%s" if no_parenthesize else "%s^(%s)"
+    return fmt_str % (
+        convert_box_to_format(box.base, **child_options),
+        convert_box_to_format(box.superindex, **child_options),
+    )
+
+
+add_conversion_fn(SuperscriptBox, superscriptbox)
+
+
 def stylebox(box: StyleBox, **options) -> str:
     # Note: values set in `options` take precedence over `box_options`
     child_options = {**box.box_options, **options}
@@ -207,31 +220,4 @@ def stylebox(box: StyleBox, **options) -> str:
 
 
 add_conversion_fn(StyleBox, stylebox)
-
-
-def graphicsbox(box: GraphicsBox, elements=None, **options) -> str:
-    assert elements is None
-
-    prepare_elements2d(box, box.content, options)  # to test for Box errors
-    return "-Graphics-"
-
-
-add_conversion_fn(GraphicsBox, graphicsbox)
-
-
-def graphics3dbox(box: Graphics3DBox, elements=None, **options) -> str:
-    assert elements is None
-
-    prepare_elements3d(box, box.content, options)  # to test for Box errors
-    return "-Graphics3D-"
-
-
-add_conversion_fn(Graphics3DBox, graphics3dbox)
-
-
-def tag_and_form_box(box: BoxExpression, **options):
-    return convert_box_to_format(box.inner_box, **options)
-
-
-add_conversion_fn(FormBox, tag_and_form_box)
-add_conversion_fn(TagBox, tag_and_form_box)
+add_conversion_fn(TagBox, convert_inner_box_field)

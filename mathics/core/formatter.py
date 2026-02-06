@@ -72,6 +72,15 @@ def convert_box_to_format(box, **options) -> str:
     return lookup_method(box, options["format_type"])(box, **options)
 
 
+def convert_inner_box_field(box, field: str = "inner_box", **options):
+    # Note: values set in `options` take precedence over `box_options`
+    inner_box = getattr(box, field)
+    child_options = (
+        {**box.box_options, **options} if hasattr(box, "box_options") else options
+    )
+    return convert_box_to_format(inner_box, **child_options)
+
+
 def lookup_method(self, format: str) -> Callable:
     """
     Find a conversion method for `format` in self's class method resolution order.

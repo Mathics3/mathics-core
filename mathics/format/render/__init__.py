@@ -8,7 +8,7 @@ following the pattern used here.
 Input to the renders come from some sort of Mathics3 Box.
 
 The higher level Forms (e.g. TeXForm, MathMLForm) typically cause
-specific boxing routines to get invoked. From this and the capabilites
+specific boxing routines to get invoked. From this and the capabilities
 and desires of a front end, different rendering routines will invoked
 for each kind boxes created. This, in turn, produces strings in
 (AMS)LaTeX, MathML, SVG, asymptote, or plain text.
