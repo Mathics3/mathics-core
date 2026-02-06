@@ -717,31 +717,21 @@ def string(s: String, **options) -> str:
 add_conversion_fn(String, string)
 
 
-def subscriptbox(box: SubscriptBox, **options):
-    # Note: values set in `options` take precedence over `box_options`
-    child_options = {**options, **box.box_options}
-    base_to_tex = lookup_conversion_method(box.base, "latex")
-    subidx_to_tex = lookup_conversion_method(box.subindex, "latex")
+def subscriptbox(box: SubscriptBox, **options) -> str:
     return "%s_%s" % (
-        box.tex_block(base_to_tex(box.base, **child_options), True),
-        box.tex_block(subidx_to_tex(box.subindex, **child_options)),
+        box.tex_block(convert_inner_box_field(box, "base", **options), True),
+        box.tex_block(convert_inner_box_field(box, "subindex", **options)),
     )
 
 
 add_conversion_fn(SubscriptBox, subscriptbox)
 
 
-def subsuperscriptbox(box: SubsuperscriptBox, **options):
-    # Note: values set in `options` take precedence over `box_options`
-    child_options = {**box.box_options, **options}
-    base_to_tex = lookup_conversion_method(box.base, "latex")
-    subidx_to_tex = lookup_conversion_method(box.subindex, "latex")
-    superidx_to_tex = lookup_conversion_method(box.superindex, "latex")
-
+def subsuperscriptbox(box: SubsuperscriptBox, **options) -> str:
     return "%s_%s^%s" % (
-        box.tex_block(base_to_tex(box.base, **child_options), True),
-        box.tex_block(subidx_to_tex(box.subindex, **child_options)),
-        box.tex_block(superidx_to_tex(box.superindex, **child_options)),
+        box.tex_block(convert_inner_box_field(box, "base", **options), True),
+        box.tex_block(convert_inner_box_field(box, "subindex", **options)),
+        box.tex_block(convert_inner_box_field(box, "superindex", **options)),
     )
 
 
