@@ -58,7 +58,6 @@ from mathics.core.formatter import (
     add_conversion_fn,
     convert_box_to_format,
     convert_inner_box_field,
-    lookup_method as lookup_conversion_method,
 )
 from mathics.core.load_builtin import display_operators_set as operators
 from mathics.core.symbols import SymbolFalse, SymbolTrue
@@ -119,7 +118,7 @@ def graphics3dbox(box: Graphics3DBox, elements=None, **options) -> str:
     """Turn the Graphics3DBox into a MathML string"""
     indent_level = options.get("_indent_level", 0)
     indent_spaces = " " * indent_level
-    result = box.boxes_to_js(**options)
+    result = box.box_to_js(**options)
     result = (
         f"{indent_spaces}<mtable>\n"
         f"<mtr>\n"
@@ -156,7 +155,7 @@ def graphicsbox(box: GraphicsBox, elements=None, **options) -> str:
     indent_level = options.get("_indent_level", 0)
     if indent_level:
         mathml = " " * indent_level + mathml
-    # print("boxes_to_mathml", mathml)
+    # print("box_to_mathml", mathml)
     return mathml
 
 
@@ -164,7 +163,7 @@ add_conversion_fn(GraphicsBox, graphicsbox)
 
 
 def gridbox(box: GridBox, elements=None, **super_options) -> str:
-    def boxes_to_mathml(box, **options):
+    def __box_to_mathml(box, **options):
         return lookup_conversion_method(box, "mathml")(box, **options)
 
     if not elements:
@@ -216,27 +215,26 @@ add_conversion_fn(GridBox, gridbox)
 
 
 def interpretation_box(box: InterpretationBox, **options):
-    boxes = box.inner_box
     origin = box.expr
-    child_options = options
+    child_options = {**options, **box.box_options}
+    box = box.inner_box
     if origin.has_form("InputForm", None):
         # InputForm produce outputs of the form
         # InterpretationBox[Style[_String, ...], origin_InputForm, opts___]
-        assert isinstance(boxes, StyleBox), f"boxes={boxes} are not a StyleBox"
-        boxes = boxes.inner_box
-        child_options = {**options}
+        assert isinstance(box, StyleBox), f"box={box} are not a StyleBox"
+        box = box.inner_box
         child_options["System`ShowStringCharacters"] = SymbolTrue
-        assert isinstance(boxes, String)
+        assert isinstance(box, String)
     elif origin.has_form("OutputForm", None):
         # OutputForm produce outputs of the form
         # InterpretationBox[PaneBox[_String, ...], origin_OutputForm, opts___]
-        assert boxes.has_form("PaneBox", 1, None)
-        boxes = boxes.inner_box
-        assert isinstance(boxes, String)
+        assert box.has_form("PaneBox", 1, None)
+        box = box.inner_box
+        assert isinstance(box, String)
         # Remove the outer quotes
-        boxes = String(boxes.value)
+        box = String(box.value)
 
-    return lookup_conversion_method(boxes, "mathml")(boxes, **child_options)
+    return convert_box_to_format(box, **child_options)
 
 
 add_conversion_fn(InterpretationBox, interpretation_box)
@@ -405,8 +403,6 @@ def string(s: String, **options) -> str:
 
 add_conversion_fn(String, string)
 
-add_conversion_fn(StyleBox, convert_inner_box)
-
 
 def subscriptbox(box: SubscriptBox, **options):
     # Note: values set in `options` take precedence over `box_options`
@@ -415,8 +411,8 @@ def subscriptbox(box: SubscriptBox, **options):
     child_options = {**options, **box.box_options}
     child_options["_indent_level"] = indent_level + 1
     return f"{indent_spaces}<msub>\n%s\n%s\n{indent_spaces}</msub>" % (
-        lookup_conversion_method(box.base, "mathml")(box.base, **child_options),
-        lookup_conversion_method(box.subindex, "mathml")(box.subindex, **child_options),
+        convert_inner_box_field(box, "base", **child_options),
+        convert_inner_box_field(box, "subindex", **child_options),
     )
 
 
@@ -431,11 +427,9 @@ def subsuperscriptbox(box: SubsuperscriptBox, **options):
     child_options["_indent_level"] = indent_level + 1
     box.base.inside_row = box.subindex.inside_row = box.superindex.inside_row = True
     return f"{indent_spaces}<msubsup>\n%s\n%s\n%s\n{indent_spaces}</msubsup>" % (
-        lookup_conversion_method(box.base, "mathml")(box.base, **child_options),
-        lookup_conversion_method(box.subindex, "mathml")(box.subindex, **child_options),
-        lookup_conversion_method(box.superindex, "mathml")(
-            box.superindex, **child_options
-        ),
+        convert_inner_box_field(box, "base", **child_options),
+        convert_inner_box_field(box, "subindex", **child_options),
+        convert_inner_box_field(box, "superindex", **child_options),
     )
 
 
@@ -449,12 +443,11 @@ def superscriptbox(box: SuperscriptBox, **options):
     child_options = {**options, **box.box_options}
     child_options["_indent_level"] = indent_level + 1
     return f"{indent_spaces}<msup>\n%s\n%s\n{indent_spaces}</msup>" % (
-        lookup_conversion_method(box.base, "mathml")(box.base, **child_options),
-        lookup_conversion_method(box.superindex, "mathml")(
-            box.superindex, **child_options
-        ),
+        convert_inner_box_field(box, "base", **child_options),
+        convert_inner_box_field(box, "superindex", **child_options),
     )
 
 
 add_conversion_fn(SuperscriptBox, superscriptbox)
+add_conversion_fn(StyleBox, convert_inner_box)
 add_conversion_fn(TagBox, convert_inner_box)
