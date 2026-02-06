@@ -30,6 +30,7 @@ from mathics.core.element import BoxElementMixin
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import (
     add_conversion_fn,
+    convert_box_to_format,
     convert_inner_box_field,
     lookup_method as lookup_conversion_method,
 )
@@ -74,17 +75,15 @@ add_conversion_fn(FormBox, convert_inner_box)
 def fractionbox(box: FractionBox, **options) -> str:
     # Note: values set in `options` take precedence over `box_options`
     child_options = {**options, **box.box_options}
-    return "<mfrac>%s %s</mfrac>" % (
-        lookup_conversion_method(box.num, "mathml")(box.num, **child_options),
-        lookup_conversion_method(box.den, "mathml")(box.den, **child_options),
-    )
+    num_text = convert_box_to_format(box.num, **child_options)
+    den_text = convert_box_to_format(box.den, **child_options)
+    return "<mfrac>%s %s</mfrac>" % (num_text, den_text)
 
 
 add_conversion_fn(FractionBox, fractionbox)
-add_conversion_fn(InterpretationBox, convert_inner_box)
 
 
-def graphics3dbox(box, elements=None, **options) -> str:
+def graphics3dbox(box: Graphics3DBox, elements=None, **options) -> str:
     """Turn the Graphics3DBox into a MathML string"""
     result = box.boxes_to_js(**options)
     result = f"<mtable><mtr><mtd>{result}</mtd></mtr></mtable>"
@@ -363,16 +362,5 @@ def superscriptbox(box: SuperscriptBox, **options):
 
 
 add_conversion_fn(SuperscriptBox, superscriptbox)
-
-
-def stylebox(box: StyleBox, **options) -> str:
-    child_options = {**options, **box.box_options}
-    return lookup_conversion_method(box.inner_box, "mathml")(
-        box.inner_box, **child_options
-    )
-
-
-add_conversion_fn(StyleBox, stylebox)
-
 add_conversion_fn(StyleBox, convert_inner_box)
 add_conversion_fn(TagBox, convert_inner_box)
