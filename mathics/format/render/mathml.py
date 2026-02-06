@@ -9,7 +9,6 @@ import base64
 
 from mathics_scanner.tokeniser import is_symbol_name
 
-from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
@@ -31,11 +30,16 @@ from mathics.core.element import BoxElementMixin
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import (
     add_conversion_fn,
+    convert_inner_box_field,
     lookup_method as lookup_conversion_method,
 )
 from mathics.core.load_builtin import display_operators_set as operators
 from mathics.core.symbols import SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolAutomatic
+
+
+def convert_inner_box(box, **options):
+    return convert_inner_box_field(box, "inner_box", **options)
 
 
 def encode_mathml(text: str) -> str:
@@ -63,6 +67,8 @@ extra_operators = {
     "\u222b",
     "\u2146",
 }
+
+add_conversion_fn(FormBox, convert_inner_box)
 
 
 def string(s: String, **options) -> str:
@@ -373,10 +379,5 @@ def graphics3dbox(box, elements=None, **options) -> str:
 
 add_conversion_fn(Graphics3DBox, graphics3dbox)
 
-
-def tag_and_form_box(box: BoxExpression, **options):
-    return lookup_conversion_method(box.inner_box, "mathml")(box.inner_box, **options)
-
-
-add_conversion_fn(FormBox, tag_and_form_box)
-add_conversion_fn(TagBox, tag_and_form_box)
+add_conversion_fn(StyleBox, convert_inner_box)
+add_conversion_fn(TagBox, convert_inner_box)
