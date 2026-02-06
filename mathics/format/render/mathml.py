@@ -28,9 +28,6 @@ produces
 
 """
 
-# Please see the developer note in __init__ about the use of "%s" in
-# format strings.
-
 import base64
 
 from mathics_scanner.tokeniser import is_symbol_name
@@ -93,6 +90,7 @@ extra_operators = {
     "\u222b",  # \[Integral]
     "\u2146",  # \[DifferentialD]
 }
+
 
 add_conversion_fn(FormBox, convert_inner_box)
 
@@ -334,7 +332,6 @@ def sqrtbox(box: SqrtBox, **options):
             convert_inner_box_field(box, "radicand", **child_options),
             convert_inner_box_field(box, "index", **child_options),
         )
-
     return (
         f"{indent_spaces}<msqrt>\n%s\n{indent_spaces}</msqrt>"
         % convert_inner_box_field(box, "radicand", **child_options)
