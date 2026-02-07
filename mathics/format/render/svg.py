@@ -415,11 +415,11 @@ def inset_box(box: InsetBox, **options) -> str:
 
         # FIXME: don't hard code text_style_opts, but allow these to be adjustable.
         text_style_opts = alignment
-        content = box.content.boxes_to_text(evaluation=box.graphics.evaluation)
+        content = box.content.to_text(evaluation=box.graphics.evaluation)
         font_size = f'''font-size="{options.get("point_size", "10px")}"'''
         svg = f'<text {text_pos_opts} {font_size} style="{text_style_opts} {css_style}">{content}</text>'
 
-    # content = box.content.boxes_to_mathml(evaluation=box.graphics.evaluation)
+    # content = box.content.to_mathml(evaluation=box.graphics.evaluation)
     # style = create_css(font_color=box.color)
     # svg = (
     #    '<foreignObject x="%f" y="%f" ox="%f" oy="%f" style="%s">'

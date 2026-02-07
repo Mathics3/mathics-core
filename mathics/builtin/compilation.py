@@ -135,7 +135,7 @@ class CompiledCode(Atom, ImmutableValueMixin):
             return "-PythonizedCode-"
         return "-CompiledCode-"
 
-    def boxes_to_text(self, elements=None, **options):
+    def to_text(self, elements=None, **options):
         if not elements:
             elements = self._elements
         return "-CompiledCode-"

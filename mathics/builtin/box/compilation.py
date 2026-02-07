@@ -26,17 +26,17 @@ class CompiledCodeBox(BoxExpression):
     # FIXME "boxes_to..." should be renamed "box_to..."
     # since there is only one box element
 
-    def boxes_to_text(self, elements=None, **options):
+    def to_text(self, elements=None, **options):
         if elements is None:
             elements = self.elements
         return elements[0].value
 
-    def boxes_to_mathml(self, elements=None, **options):
+    def to_mathml(self, elements=None, **options):
         if elements is None:
             elements = self.elements
         return elements[0].value
 
-    def boxes_to_tex(self, elements=None, **options):
+    def to_tex(self, elements=None, **options):
         if elements is None:
             elements = self.elements
         return elements[0].value

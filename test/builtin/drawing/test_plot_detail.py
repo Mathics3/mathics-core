@@ -253,7 +253,7 @@ def one_test(name: str, str_expr: str, vec: bool, svg: bool, opts: str):
             boxed_expr = Expression(Symbol("System`ToBoxes"), act_expr).evaluate(
                 session.evaluation
             )
-            act_svg = boxed_expr.box_to_format("svg")
+            act_svg = boxed_expr.to_format("svg")
             act_svg = outline_svg(
                 act_svg, precision=2, include_text=True, include_tail=True
             )

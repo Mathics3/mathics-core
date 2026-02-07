@@ -496,7 +496,7 @@ class GraphicsBox(BoxExpression):
         self._elements = value
         return self._elements
 
-    def boxes_to_svg(self, elements=None, **options) -> str:
+    def to_svg(self, elements=None, **options) -> str:
         """This is the top-level function that converts a Mathics Expression
         in to something suitable for SVG rendering.
         """
@@ -645,9 +645,7 @@ class InsetBox(GraphicsElementBox):
         #    self.content = self.content.atom_to_boxes(
         #        SymbolStandardForm, evaluation=self.graphics.evaluation
         #    )
-        self.content_text = self.content.boxes_to_text(
-            evaluation=self.graphics.evaluation
-        )
+        self.content_text = self.content.to_text(evaluation=self.graphics.evaluation)
 
     def extent(self):
         p = self.pos.pos()

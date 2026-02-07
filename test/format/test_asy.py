@@ -44,7 +44,7 @@ def extract_asy_body(asy):
 
 def get_asy(expression):
     boxes = MakeBoxes(expression).evaluate(evaluation)
-    return boxes.boxes_to_tex()
+    return boxes.to_tex()
 
 
 def test_asy_circle():
