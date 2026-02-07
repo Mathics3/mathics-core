@@ -562,9 +562,11 @@ class Symbol(Atom, NumericOperators, EvalMixin):
                 if self.is_numeric()
                 else BASIC_EXPRESSION_ELT_ORDER
             ),
-            Monomial({self.name: 1}),
+            Monomial({str.lower(self.name): 1}),
+            # The canonical in for WL is to sort by lowercase first. Hence we must swap the case.
+            Monomial({str.swapcase(self.name): 1}),
             0,
-            self.name,
+            str.lower(self.name),
             1,
         )
 
