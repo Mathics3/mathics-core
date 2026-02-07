@@ -17,17 +17,17 @@ class CustomBoxExpression(BoxExpression):
         super().__init__(evaluation=evaluation)
         self._elements = [1, 2, 3]
 
-    def to_text(self, elements=None, **options):
+    def to_text(self, elements=None, **options) -> str:
         if not elements:
             elements = self.elements
         return "CustomBoxExpression<<" + self.elements.__str__() + ">>"
 
-    def to_mathml(self, elements=None, **options):
+    def to_mathml(self, elements=None, **options) -> str:
         if not elements:
             elements = self.elements
         return "CustomBoxExpression<<" + self.elements.__str__() + ">>"
 
-    def to_tex(self, elements=None, **options):
+    def to_tex(self, elements=None, **options) -> str:
         if not elements:
             elements = self.elements
         return "CustomBoxExpression<<" + str(int(self.elements)) + ">>"
@@ -110,24 +110,24 @@ class CustomGraphicsBox(BoxExpression):
         instance = CustomGraphicsBox(*(expr.elements), evaluation=evaluation)
         return instance
 
-    def to_text(self, elements=None, **options):
+    def to_text(self, elements=None, **options) -> str:
         if elements:
             self._elements = elements
         return (
             "--custom graphics--: I should plot " + self.elements.__str__() + " items"
         )
 
-    def to_tex(self, elements=None, **options):
+    def to_tex(self, elements=None, **options) -> str:
         return (
             "--custom graphics--: I should plot " + self.elements.__str__() + " items"
         )
 
-    def to_mathml(self, elements=None, **options):
+    def to_mathml(self, elements=None, **options) -> str:
         return (
             "--custom graphics--: I should plot " + self.elements.__str__() + " items"
         )
 
-    def to_svg(self, evaluation):
+    def to_svg(self, evaluation) -> str:
         return (
             "--custom graphics--: I should plot " + self.elements.__str__() + " items"
         )

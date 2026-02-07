@@ -97,9 +97,6 @@ class RasterBox(BoxExpression):
 
         return (contents, (scaled_width, scaled_height))
 
-    # FIXME "boxes_to..." should be renamed "box_to..."
-    # since there is only one box element
-
     def to_text(self, elements=None, **options) -> str:
         return "-Image-"
 

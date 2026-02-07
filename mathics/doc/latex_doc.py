@@ -87,7 +87,7 @@ NUMBER_RE = re.compile(r"([ -])(\d*(?<!\.)\.\d+|\d+\.(?!\.)\d*|\d+)")
 OUTSIDE_ASY_RE = re.compile(r"(?s)((?:^|\\end\{asy\}).*?(?:$|\\begin\{asy\}))")
 
 
-def to_latex(elem, **kwargs):
+def to_latex(elem, **kwargs) -> str:
     if hasattr(elem, "latex"):
         return elem.latex(**kwargs)
     return escape_latex(elem.text(**kwargs))
