@@ -23,6 +23,9 @@ class CompiledCodeBox(BoxExpression):
         self._elements = args
         self.box_options = kwargs
 
+    # FIXME "boxes_to..." should be renamed "box_to..."
+    # since there is only one box element
+
     def boxes_to_text(self, elements=None, **options):
         if elements is None:
             elements = self.elements

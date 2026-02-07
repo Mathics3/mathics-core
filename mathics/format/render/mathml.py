@@ -49,6 +49,7 @@ from mathics.builtin.box.layout import (
     TagBox,
 )
 from mathics.core.atoms import String
+from mathics.core.convert.op import named_characters, operator_to_unicode
 from mathics.core.element import BoxElementMixin
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import (
@@ -80,15 +81,15 @@ extra_operators = {
     "]",
     "{",
     "}",
-    # TODO: check why the following characters are not in `operators`:
-    "\u301a",  # [[
-    "\u301b",  # ]]
-    "\u00d7",  # \[Times]
-    "\u2032",  # \[RawComma]
-    "\u2032\u2032",  # \[RawComma]\[RawComma]
-    "\u2062",  # \[InvisibleTimes]
-    "\u222b",  # \[Integral]
-    "\u2146",  # \[DifferentialD]
+    named_characters["LeftDoubleBracket"],
+    named_characters["RightDoubleBracket"],
+    operator_to_unicode["Times"],
+    named_characters["Prime"],
+    named_characters["Prime"] * 2,
+    " ",
+    named_characters["InvisibleTimes"],
+    named_characters["Integral"],
+    named_characters["DifferentialD"],
 }
 
 

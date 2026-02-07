@@ -416,6 +416,9 @@ class BoxElementMixin(ImmutableValueMixin):
 
         return box_to_format(self, format, **options)
 
+    # FIXME "boxes_to..." should be renamed "box_to..."
+    # since there is only one box element
+
     def boxes_to_mathml(self, **options) -> str:
         return self.box_to_format("mathml", **options)
 
