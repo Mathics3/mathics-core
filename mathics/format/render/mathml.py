@@ -117,7 +117,7 @@ def graphics3dbox(box: Graphics3DBox, elements=None, **options) -> str:
     """Turn the Graphics3DBox into a MathML string"""
     indent_level = options.get("_indent_level", 0)
     indent_spaces = " " * indent_level
-    result = box.box_to_js(**options)
+    result = box.boxes_to_js(**options)
     result = (
         f"{indent_spaces}<mtable>\n"
         f"<mtr>\n"
