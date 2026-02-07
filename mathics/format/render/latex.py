@@ -91,7 +91,7 @@ BRACKET_INFO = {
         "latex_open_large": r"\left[",
         "latex_closing_large": r"\right]",
     },
-    (
+    (  # BracketingBar[] operator without built-in meaning
         String(named_characters["LeftDoubleBracket"]),
         String(named_characters["RightDoubleBracket"]),
     ): {
@@ -100,7 +100,7 @@ BRACKET_INFO = {
         "latex_open_large": r"\left[\left[",
         "latex_closing_large": r"\right]\right]",
     },
-    (
+    (  # AngleBracket[] operator without built-in meaning
         String(named_characters["LeftAngleBracket"]),
         String(named_characters["RightAngleBracket"]),
     ): {
@@ -109,7 +109,7 @@ BRACKET_INFO = {
         "latex_open_large": r"\left\langle ",
         "latex_closing_large": r"\right\rangle ",
     },
-    (
+    (  # DoubleBracketingBar[] operator without built-in meaning
         String(named_characters["LeftDoubleBracketingBar"]),
         String(named_characters["RightDoubleBracketingBar"]),
     ): {
@@ -118,7 +118,7 @@ BRACKET_INFO = {
         "latex_open_large": r"\left\|",
         "latex_closing_large": r"\right\| ",
     },
-    (
+    (  # Association[] operator
         String("<|"),
         String("|>"),
     ): {
@@ -129,6 +129,7 @@ BRACKET_INFO = {
     },
 }
 
+# FIXME: this kind of low-level unstructured text replace get removed.
 TEX_REPLACE = {
     "{": r"\{",
     "}": r"\}",
