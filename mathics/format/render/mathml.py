@@ -345,10 +345,6 @@ def string(s: String, **options) -> str:
             # Mathics-Django:
             if text == "":
                 return ""
-            if text == named_characters["DifferentialD"]:
-                return render(
-                    '<mo form="prefix" lspace="0.2em" rspace="0">%s</mo>', text
-                )
             if text == named_characters["InvisibleTimes"]:
                 return render(
                     '<mo form="prefix" lspace="0" rspace="0.2em">%s</mo>', text
