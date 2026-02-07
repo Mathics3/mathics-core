@@ -349,7 +349,7 @@ def string(s: String, **options) -> str:
                 return render(
                     '<mo form="prefix" lspace="0.2em" rspace="0">%s</mo>', text
                 )
-            if text == "\u2062":  # InvisibleTimes
+            if text == named_characters["InvisibleTimes"]
                 return render(
                     '<mo form="prefix" lspace="0" rspace="0.2em">%s</mo>', text
                 )
