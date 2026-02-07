@@ -217,7 +217,7 @@ def interpretation_box(box: InterpretationBox, **options):
     if origin.has_form("InputForm", None):
         # InputForm produce outputs of the form
         # InterpretationBox[Style[_String, ...], origin_InputForm, opts___]
-        assert isinstance(box, StyleBox), f"box={box} are not a StyleBox"
+        assert isinstance(box, StyleBox), f"box={box} is not a StyleBox"
         box = box.inner_box
         child_options["System`ShowStringCharacters"] = SymbolTrue
         assert isinstance(box, String)
