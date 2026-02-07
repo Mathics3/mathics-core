@@ -307,7 +307,7 @@ def to_numeric_sympy_args(mathics_args: BaseElement, evaluation) -> list:
 
 
 def from_sympy_matrix(
-    expr: Union[sympy.Matrix, sympy.ImmutableMatrix, sympy.Array]
+    expr: Union[sympy.Matrix, sympy.ImmutableMatrix, sympy.Array],
 ) -> ListExpression:
     """
     Convert `expr` of the type sympy.Matrix or sympy.ImmutableMatrix to
