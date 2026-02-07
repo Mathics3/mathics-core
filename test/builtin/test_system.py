@@ -4,7 +4,6 @@ Unit tests from mathics.builtin.system.
 """
 
 
-import os
 from test.helper import check_evaluation
 
 import pytest
