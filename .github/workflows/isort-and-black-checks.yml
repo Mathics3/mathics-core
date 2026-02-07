@@ -15,7 +15,7 @@ jobs:
         with:
           python-version: 3.13
       - name: Install click, black and isort
-        run: pip install 'click==8.0.4' 'black==23.12.1' 'isort==5.13.2'
+        run: pip install 'click==8.0.4' 'black==25.11.0' 'isort==5.13.2'
       - name: Run isort --check .
         run: isort --check .
       - name: Run black --check .
