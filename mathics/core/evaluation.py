@@ -372,14 +372,14 @@ class Evaluation:
         self.stopped = True
 
     @overload
-    def format_output(self, expr: BaseElement, format: Optional[dict] = None) -> dict:
-        ...
+    def format_output(
+        self, expr: BaseElement, format: Optional[dict] = None
+    ) -> dict: ...
 
     @overload
     def format_output(
         self, expr: BaseElement, format: Optional[str] = None
-    ) -> Union[BaseElement, str, None]:
-        ...
+    ) -> Union[BaseElement, str, None]: ...
 
     def format_output(self, expr, format=None):
         """

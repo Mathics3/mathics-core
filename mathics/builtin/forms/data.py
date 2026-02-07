@@ -9,6 +9,7 @@ or <url>:StandardForm:
 /doc/reference-of-built-in-symbols/forms-of-input-and-output/general-purpose-forms/standardform/</url>, \
 which are intended to work over all kinds of data.
 """
+
 from typing import Any, Callable, Dict, List, Optional
 
 from mathics.builtin.box.layout import RowBox, StyleBox, SuperscriptBox

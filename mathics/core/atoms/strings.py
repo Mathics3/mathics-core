@@ -1,6 +1,7 @@
 """
 Mathics3 String
 """
+
 # Note: Python warns of ambiguity Python's module string if we name this file this string.py
 
 import math
