@@ -28,12 +28,12 @@ class CompiledCodeBox(BoxExpression):
             elements = self.elements
         return elements[0].value
 
-    def to_mathml(self, elements=None, **options):
+    def to_mathml(self, elements=None, **options) -> str:
         if elements is None:
             elements = self.elements
         return elements[0].value
 
-    def to_tex(self, elements=None, **options):
+    def to_tex(self, elements=None, **options) -> str:
         if elements is None:
             elements = self.elements
         return elements[0].value
