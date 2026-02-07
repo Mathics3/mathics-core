@@ -36,27 +36,27 @@ UNICODE_TO_LATEX = OPERATOR_CONVERSION_TABLES.get("unicode-to-latex", {})
 
 
 AMSTEX_OPERATORS = {
-    "\u2032": "'",
-    "\u2032\u2032": "''",
-    "\u2062": " ",
-    "\u221e": r"\infty ",
-    "\u00d7": r"\times ",
+    named_characters["Prime"]: "'",
+    named_characters["Prime"] * 2: "''",
+    named_characters["InvisibleTimes"]: " ",
+    named_characters["Infinity"]: r"\infty ",
+    operator_to_unicode["Times"]: r"\times ",
     "(": r"\left(",
     "[": r"\left[",
     "{": r"\left\{",
     ")": r"\right)",
     "]": r"\right]",
     "}": r"\right\}",
-    "\u301a": r"\left[\left[",
-    "\u301b": r"\right]\right]",
+    named_characters["LeftDoubleBracket"]: r"\left[\left[",
+    named_characters["RightDoubleBracket"]: r"\right]\right]",
     ",": ",",
     ", ": ", ",
-    "\u222b": r"\int",
+    named_characters["Integral"]: r"\int",
     "\u2146": r"\, d",
     "\uF74C": r"\, d",
-    "\U0001D451": r"\, d",
-    "\u2211": r"\sum",
-    "\u220f": r"\prod",
+    named_characters["DifferentialD"]: r"\, d",
+    named_characters["Sum"]: r"\sum",
+    named_characters["Product"]: r"\prod",
 }
 
 

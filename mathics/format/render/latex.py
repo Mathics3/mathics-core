@@ -578,9 +578,7 @@ def pane_box(box: PaneBox, **options):
 add_conversion_fn(PaneBox, pane_box)
 
 
-def rowbox_parenthesized(
-    items: Iterable, is_multiline: bool, **options
-) -> Optional[str]:
+def rowbox_parenthesized(items, is_multiline: bool, **options) -> Optional[str]:
     """
     Renders to AMSLaTeX the items in a RowBox but including any possible outer
     grouping or parenthesis. The rendered string is returned.
