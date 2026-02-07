@@ -6,7 +6,7 @@ from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Predefined
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.rules import BaseRule, FunctionApplyRule, Rule
+from mathics.core.rules import FunctionApplyRule
 from mathics.core.symbols import Symbol
 
 SymbolCustomGraphicsBox = Symbol("CustomGraphicsBox")
