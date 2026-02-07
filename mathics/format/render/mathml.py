@@ -29,6 +29,7 @@ produces
 """
 
 import base64
+from typing import Any, Dict
 
 from mathics_scanner.tokeniser import is_symbol_name
 
@@ -50,7 +51,7 @@ from mathics.builtin.box.layout import (
 )
 from mathics.core.atoms import String
 from mathics.core.convert.op import named_characters, operator_to_unicode
-from mathics.core.element import BoxElementMixin
+from mathics.core.element import BaseElement, BoxElementMixin
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import (
     add_conversion_fn,
@@ -117,7 +118,7 @@ def graphics3dbox(box: Graphics3DBox, elements=None, **options) -> str:
     """Turn the Graphics3DBox into a MathML string"""
     indent_level = options.get("_indent_level", 0)
     indent_spaces = " " * indent_level
-    result = box.boxes_to_js(**options)
+    result = box.to_js(**options)
     result = (
         f"{indent_spaces}<mtable>\n"
         f"<mtr>\n"
@@ -135,7 +136,7 @@ add_conversion_fn(Graphics3DBox, graphics3dbox)
 def graphicsbox(box: GraphicsBox, elements=None, **options) -> str:
     # FIXME: SVG is the only thing we can convert MathML into.
     # Handle other graphics formats.
-    svg_body = box.box_to_format("svg", **options)
+    svg_body = box.to_format("svg", **options)
 
     # mglyph, which is what we have been using, is bad because MathML standard changed.
     # metext does not work because the way in which we produce the svg images is also based on this outdated mglyph
@@ -211,26 +212,27 @@ add_conversion_fn(GridBox, gridbox)
 
 
 def interpretation_box(box: InterpretationBox, **options):
-    origin = box.expr
-    child_options = {**options, **box.box_options}
+    origin: BaseElement = box.expr
+    child_options: Dict[str, Any] = {**options, **box.box_options}
     box = box.inner_box
+    target: BoxElementMixin = box
     if origin.has_form("InputForm", None):
         # InputForm produce outputs of the form
         # InterpretationBox[Style[_String, ...], origin_InputForm, opts___]
         assert isinstance(box, StyleBox), f"box={box} is not a StyleBox"
-        box = box.inner_box
+        target = box.inner_box
         child_options["System`ShowStringCharacters"] = SymbolTrue
-        assert isinstance(box, String)
+        assert isinstance(target, String)
     elif origin.has_form("OutputForm", None):
         # OutputForm produce outputs of the form
         # InterpretationBox[PaneBox[_String, ...], origin_OutputForm, opts___]
         assert box.has_form("PaneBox", 1, None)
-        box = box.inner_box
-        assert isinstance(box, String)
+        target = box.inner_box
+        assert isinstance(target, String)
         # Remove the outer quotes
-        box = String(box.value)
+        target = String(target.value)
 
-    return convert_box_to_format(box, **child_options)
+    return convert_box_to_format(target, **child_options)
 
 
 add_conversion_fn(InterpretationBox, interpretation_box)

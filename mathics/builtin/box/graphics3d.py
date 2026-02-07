@@ -44,7 +44,7 @@ class Graphics3DBox(GraphicsBox):
 
         return prepare_elements(self, elements, options, max_width)
 
-    def boxes_to_js(self, elements=None, **options):
+    def to_js(self, elements=None, **options):
         """Turn the Graphics3DBox to into a something javascript-ish
         We include enclosing script tagging.
         """

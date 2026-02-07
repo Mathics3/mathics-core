@@ -386,8 +386,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             else:
                 # FIXME: uncommenting this out messes up formatting.
                 # File "mathics-core/mathics/core/formatter.py", line 135, in ret_fn
-                # return boxes_to_method(elements, **opts)
-                # TypeError: boxes_to_text() takes 1 positional argument but 2 were given
+                # return to_method(elements, **opts)
+                # TypeError: to_text() takes 1 positional argument but 2 were given
                 # Why?
                 self.elements_properties.elements_fully_evaluated = False
 
@@ -1110,11 +1110,11 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # Note: self._head can be not just a symbol, but some arbitrary expression.
         # This is what makes expressions in Mathics3 be M-expressions rather than
         # S-expressions.
-        head = self._head
+        result: BaseElement
+        head: BaseElement = self._head
+
         if isinstance(head, EvalMixin):
-            result = head.evaluate(evaluation)
-            if result is not None:
-                head = result
+            head = head.evaluate(evaluation) or head
 
         attributes = head.get_attributes(evaluation.definitions)
 

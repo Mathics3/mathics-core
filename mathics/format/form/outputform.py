@@ -87,7 +87,7 @@ def _default_render_output_form(
         result = expr.atom_to_boxes(SymbolOutputForm, evaluation)
         if isinstance(result, String):
             return result.value
-        return result.boxes_to_text()
+        return result.to_text()
 
     expr_head = expr.head
     head = render_output_form(expr_head, evaluation, **kwargs)
@@ -336,7 +336,7 @@ def other_forms(expr, evaluation, **kwargs):
         raise _WrongFormattedExpression
 
     result = format_element(expr, evaluation, SymbolStandardForm, **kwargs)
-    return result.boxes_to_text()
+    return result.to_text()
 
 
 @register_outputform("System`Integer")
@@ -355,7 +355,7 @@ def integer_outputform(n, evaluation, **kwargs):
     result = numberform_to_boxes(n, digits, padding, evaluation, py_options)
     if isinstance(result, String):
         return result.value
-    return result.boxes_to_text()
+    return result.to_text()
 
 
 @register_outputform("System`Image")
@@ -448,7 +448,7 @@ def mathmlform_render_output_form(
 
     #  boxes = format_element(expr.elements[0], evaluation)
     boxes = format_element(expr.elements[0], evaluation, SymbolTraditionalForm)
-    return boxes.boxes_to_mathml()  # type: ignore[union-attr]
+    return boxes.to_mathml()  # type: ignore[union-attr]
 
 
 @register_outputform("System`MatrixForm")
@@ -686,6 +686,8 @@ def _prefix_output_text(expr: Expression, evaluation: Evaluation, **kwargs) -> s
     # Prefix works with just one operand:
     if len(operands) != 1:
         raise _WrongFormattedExpression
+    if not isinstance(op_head, str):
+        raise _WrongFormattedExpression
     operand = operands[0]
     kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     target_txt = render_output_form(operand, evaluation, **kwargs)
@@ -708,6 +710,8 @@ def _postfix_output_text(expr: Expression, evaluation: Evaluation, **kwargs) -> 
     )
     # Prefix works with just one operand:
     if len(operands) != 1:
+        raise _WrongFormattedExpression
+    if not isinstance(op_head, str):
         raise _WrongFormattedExpression
     operand = operands[0]
     target_txt = render_output_form(operand, evaluation, **kwargs)
@@ -748,7 +752,7 @@ def real_render_output_form(n: Real, evaluation: Evaluation, **kwargs):
     result = numberform_to_boxes(n, digits, padding, evaluation, py_options)
     if isinstance(result, String):
         return result.value
-    return result.boxes_to_text()
+    return result.to_text()
 
 
 @register_outputform("System`Row")
@@ -996,7 +1000,7 @@ def _texform_outputform(expr, evaluation, **kwargs):
 
     boxes = format_element(expr.elements[0], evaluation, SymbolTraditionalForm)
     try:
-        tex = boxes.boxes_to_tex(evaluation=evaluation)  # type: ignore[union-attr]
+        tex = boxes.to_tex(evaluation=evaluation)  # type: ignore[union-attr]
         tex = MULTI_NEWLINE_RE.sub("\n", tex)
         tex = tex.replace(" \uF74c", " \\, d")  # tmp hack for Integrate
         return tex

@@ -19,7 +19,7 @@ no_doc = "no doc"
 def debug_logical_expr(pref, expr, evaluation: Evaluation):
     print(
         pref, expr
-    )  # expr.format(evaluation,"OutputForm").boxes_to_text(evaluation=evaluation))
+    )  # expr.format(evaluation,"OutputForm").to_text(evaluation=evaluation))
 
 
 def null_debug_logical_expr(pref, expr, evaluation: Evaluation):
