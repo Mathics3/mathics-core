@@ -17,6 +17,7 @@ Symbols exist.
 # format strings.
 
 import re
+from typing import Iterable, Optional
 
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
@@ -90,7 +91,7 @@ BRACKET_INFO = {
         "latex_open_large": r"\left[",
         "latex_closing_large": r"\right]",
     },
-    (
+    (  # BracketingBar[] operator without built-in meaning
         String(named_characters["LeftDoubleBracket"]),
         String(named_characters["RightDoubleBracket"]),
     ): {
@@ -99,7 +100,7 @@ BRACKET_INFO = {
         "latex_open_large": r"\left[\left[",
         "latex_closing_large": r"\right]\right]",
     },
-    (
+    (  # AngleBracket[] operator without built-in meaning
         String(named_characters["LeftAngleBracket"]),
         String(named_characters["RightAngleBracket"]),
     ): {
@@ -108,7 +109,7 @@ BRACKET_INFO = {
         "latex_open_large": r"\left\langle ",
         "latex_closing_large": r"\right\rangle ",
     },
-    (
+    (  # DoubleBracketingBar[] operator without built-in meaning
         String(named_characters["LeftDoubleBracketingBar"]),
         String(named_characters["RightDoubleBracketingBar"]),
     ): {
@@ -117,7 +118,7 @@ BRACKET_INFO = {
         "latex_open_large": r"\left\|",
         "latex_closing_large": r"\right\| ",
     },
-    (
+    (  # Association[] operator
         String("<|"),
         String("|>"),
     ): {
@@ -128,6 +129,7 @@ BRACKET_INFO = {
     },
 }
 
+# FIXME: this kind of low-level unstructured text replace get removed.
 TEX_REPLACE = {
     "{": r"\{",
     "}": r"\}",
@@ -576,7 +578,11 @@ def pane_box(box: PaneBox, **options):
 add_conversion_fn(PaneBox, pane_box)
 
 
-def rowbox_parenthesized(items, **options):
+def rowbox_parenthesized(items, is_multiline: bool, **options) -> Optional[str]:
+    """
+    Renders to AMSLaTeX the items in a RowBox but including any possible outer
+    grouping or parenthesis. The rendered string is returned.
+    """
     if len(items) < 2:
         return None
     key = (
@@ -591,12 +597,16 @@ def rowbox_parenthesized(items, **options):
 
     contain = rowbox_sequence(items, **options) if len(items) > 0 else ""
 
-    if any(item.is_multiline for item in items):
+    if is_multiline:
         return f'{bracket_data["latex_open_large"]}{contain}{bracket_data["latex_closing_large"]}'
     return f'{bracket_data["latex_open"]}{contain}{bracket_data["latex_closing"]}'
 
 
-def rowbox_sequence(items, **options):
+def rowbox_sequence(items: Iterable, **options) -> str:
+    """
+    Renders to AMSLaTeX the items in a RowBox but does not include any outer
+    grouping or parenthesis. The rendered string is returned.
+    """
     parts_str = [convert_box_to_format(element, **options) for element in items]
     if len(parts_str) == 0:
         return ""
@@ -622,19 +632,23 @@ def rowbox_sequence(items, **options):
 
 
 def rowbox(box: RowBox, **options) -> str:
+    """
+    Renders to AMSLaTeX RowBox `box`. The rendered string is returned.
+    """
     # Note: values set in `options` take precedence over `box_options`
     child_options = {**box.box_options, **options}
     items = box.items
     # Handle special cases
+    is_multiline = box.is_multiline
     if len(items) >= 3:
         head, *rest = items
-        rest_latex = rowbox_parenthesized(rest, **options)
+        rest_latex = rowbox_parenthesized(rest, is_multiline, **options)
         if rest_latex is not None:
             # Must be a function-like expression f[]
-            head_latex = lookup_conversion_method(head, "latex")(head, **child_options)
+            head_latex = convert_box_to_format(head, **child_options)
             return head_latex + rest_latex
     if len(items) >= 2:
-        parenthesized_latex = rowbox_parenthesized(items, **child_options)
+        parenthesized_latex = rowbox_parenthesized(items, is_multiline, **child_options)
         if parenthesized_latex is not None:
             return parenthesized_latex
     return rowbox_sequence(items, **child_options)
@@ -643,7 +657,7 @@ def rowbox(box: RowBox, **options) -> str:
 add_conversion_fn(RowBox, rowbox)
 
 
-def sqrtbox(box: SqrtBox, **options):
+def sqrtbox(box: SqrtBox, **options) -> str:
     if box.index:
         return "\\sqrt[%s]{%s}" % (
             convert_inner_box_field(box, "radicand", **options),
@@ -656,7 +670,7 @@ add_conversion_fn(SqrtBox, sqrtbox)
 
 
 def string(s: String, **options) -> str:
-    """String to LaTeX form"""
+    """Render a String to an AMSLaTeX string"""
     text = s.value
 
     def render(format, string_, in_text=False):
@@ -702,31 +716,21 @@ def string(s: String, **options) -> str:
 add_conversion_fn(String, string)
 
 
-def subscriptbox(box: SubscriptBox, **options):
-    # Note: values set in `options` take precedence over `box_options`
-    child_options = {**options, **box.box_options}
-    base_to_tex = lookup_conversion_method(box.base, "latex")
-    subidx_to_tex = lookup_conversion_method(box.subindex, "latex")
+def subscriptbox(box: SubscriptBox, **options) -> str:
     return "%s_%s" % (
-        box.tex_block(base_to_tex(box.base, **child_options), True),
-        box.tex_block(subidx_to_tex(box.subindex, **child_options)),
+        box.tex_block(convert_inner_box_field(box, "base", **options), True),
+        box.tex_block(convert_inner_box_field(box, "subindex", **options)),
     )
 
 
 add_conversion_fn(SubscriptBox, subscriptbox)
 
 
-def subsuperscriptbox(box: SubsuperscriptBox, **options):
-    # Note: values set in `options` take precedence over `box_options`
-    child_options = {**box.box_options, **options}
-    base_to_tex = lookup_conversion_method(box.base, "latex")
-    subidx_to_tex = lookup_conversion_method(box.subindex, "latex")
-    superidx_to_tex = lookup_conversion_method(box.superindex, "latex")
-
+def subsuperscriptbox(box: SubsuperscriptBox, **options) -> str:
     return "%s_%s^%s" % (
-        box.tex_block(base_to_tex(box.base, **child_options), True),
-        box.tex_block(subidx_to_tex(box.subindex, **child_options)),
-        box.tex_block(superidx_to_tex(box.superindex, **child_options)),
+        box.tex_block(convert_inner_box_field(box, "base", **options), True),
+        box.tex_block(convert_inner_box_field(box, "subindex", **options)),
+        box.tex_block(convert_inner_box_field(box, "superindex", **options)),
     )
 
 
