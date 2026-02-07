@@ -21,7 +21,7 @@ def eval_ToString(
     expr: BaseElement, form: Symbol, encoding: String, evaluation: Evaluation
 ) -> String:
     boxes = format_element(expr, evaluation, form, encoding=encoding)
-    text = boxes.boxes_to_text(evaluation=evaluation)
+    text = boxes.to_text(evaluation=evaluation)
     return String(text)
 
 

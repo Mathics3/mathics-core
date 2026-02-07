@@ -385,8 +385,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             else:
                 # FIXME: uncommenting this out messes up formatting.
                 # File "mathics-core/mathics/core/formatter.py", line 135, in ret_fn
-                # return boxes_to_method(elements, **opts)
-                # TypeError: boxes_to_text() takes 1 positional argument but 2 were given
+                # return to_method(elements, **opts)
+                # TypeError: to_text() takes 1 positional argument but 2 were given
                 # Why?
                 self.elements_properties.elements_fully_evaluated = False
 

@@ -30,7 +30,7 @@ def eval_mathmlform(expr: BaseElement, evaluation: Evaluation) -> BoxElementMixi
 
     boxes = format_element(expr, evaluation, SymbolTraditionalForm)
     try:
-        mathml = boxes.boxes_to_mathml(evaluation=evaluation, _indent_level=1)
+        mathml = boxes.to_mathml(evaluation=evaluation, _indent_level=1)
     except BoxError:
         evaluation.message(
             "General",
@@ -132,9 +132,7 @@ def eval_texform(expr: BaseElement, evaluation: Evaluation) -> BoxElementMixin:
         # Here we set ``show_string_characters`` to False, to reproduce
         # the standard behaviour in WMA. Remove this parameter to recover the
         # quotes in InputForm and FullForm
-        tex = boxes.boxes_to_tex(
-            evaluation=evaluation, show_string_characters=SymbolFalse
-        )
+        tex = boxes.to_tex(evaluation=evaluation, show_string_characters=SymbolFalse)
 
         # Replace multiple newlines by a single one e.g. between asy-blocks
         tex = MULTI_NEWLINE_RE.sub("\n", tex)

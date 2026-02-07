@@ -220,7 +220,7 @@ class StringInsert(Builtin):
                         boxed_expr = format_element(expr, evaluation, SymbolOutputForm)
                     except BoxError:
                         boxed_expr = format_element(expr, evaluation, SymbolFullForm)
-                    return boxed_expr.boxes_to_text()
+                    return boxed_expr.to_text()
 
                 return do_format_output(
                     Expression(
@@ -688,7 +688,7 @@ class StringRiffle(Builtin):
         for i in range(len(liststr.elements)):
             text = format_element(
                 liststr.elements[i], evaluation, SymbolOutputForm
-            ).boxes_to_text(evaluation=evaluation)
+            ).to_text(evaluation=evaluation)
             if i == len(liststr.elements) - 1:
                 result += text + right
             else:

@@ -118,7 +118,7 @@ def graphics3dbox(box: Graphics3DBox, elements=None, **options) -> str:
     """Turn the Graphics3DBox into a MathML string"""
     indent_level = options.get("_indent_level", 0)
     indent_spaces = " " * indent_level
-    result = box.boxes_to_js(**options)
+    result = box.to_js(**options)
     result = (
         f"{indent_spaces}<mtable>\n"
         f"<mtr>\n"
@@ -136,7 +136,7 @@ add_conversion_fn(Graphics3DBox, graphics3dbox)
 def graphicsbox(box: GraphicsBox, elements=None, **options) -> str:
     # FIXME: SVG is the only thing we can convert MathML into.
     # Handle other graphics formats.
-    svg_body = box.box_to_format("svg", **options)
+    svg_body = box.to_format("svg", **options)
 
     # mglyph, which is what we have been using, is bad because MathML standard changed.
     # metext does not work because the way in which we produce the svg images is also based on this outdated mglyph

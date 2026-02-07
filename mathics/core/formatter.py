@@ -87,10 +87,8 @@ def lookup_method(self, format: str) -> Callable:
             # print(f"format function: {format_fn.__name__} for {type(self).__name__}")
             return format_fn
 
-    # FIXME: "boxes_to_" should be called "box_to_" because there is
-    # only one box here.
-    box_to_method = getattr(self, f"boxes_to_{format}", None)
-    if getattr(BoxElementMixin, f"boxes_to_{format}") is box_to_method:
+    box_to_method = getattr(self, f"to_{format}", None)
+    if getattr(BoxElementMixin, f"to_{format}") is box_to_method:
         box_to_method = None
     if box_to_method:
 

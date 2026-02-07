@@ -17,17 +17,17 @@ class CustomBoxExpression(BoxExpression):
         super().__init__(evaluation=evaluation)
         self._elements = [1, 2, 3]
 
-    def boxes_to_text(self, elements=None, **options):
+    def to_text(self, elements=None, **options) -> str:
         if not elements:
             elements = self.elements
         return "CustomBoxExpression<<" + self.elements.__str__() + ">>"
 
-    def boxes_to_mathml(self, elements=None, **options):
+    def to_mathml(self, elements=None, **options) -> str:
         if not elements:
             elements = self.elements
         return "CustomBoxExpression<<" + self.elements.__str__() + ">>"
 
-    def boxes_to_tex(self, elements=None, **options):
+    def to_tex(self, elements=None, **options) -> str:
         if not elements:
             elements = self.elements
         return "CustomBoxExpression<<" + str(int(self.elements)) + ">>"
@@ -110,24 +110,24 @@ class CustomGraphicsBox(BoxExpression):
         instance = CustomGraphicsBox(*(expr.elements), evaluation=evaluation)
         return instance
 
-    def boxes_to_text(self, elements=None, **options):
+    def to_text(self, elements=None, **options) -> str:
         if elements:
             self._elements = elements
         return (
             "--custom graphics--: I should plot " + self.elements.__str__() + " items"
         )
 
-    def boxes_to_tex(self, elements=None, **options):
+    def to_tex(self, elements=None, **options) -> str:
         return (
             "--custom graphics--: I should plot " + self.elements.__str__() + " items"
         )
 
-    def boxes_to_mathml(self, elements=None, **options):
+    def to_mathml(self, elements=None, **options) -> str:
         return (
             "--custom graphics--: I should plot " + self.elements.__str__() + " items"
         )
 
-    def boxes_to_svg(self, evaluation):
+    def to_svg(self, evaluation) -> str:
         return (
             "--custom graphics--: I should plot " + self.elements.__str__() + " items"
         )
@@ -141,7 +141,7 @@ def test_custom_boxconstruct():
     defs = session.evaluation.definitions
     instance_custom_atom = CustomAtom(expression=False)
     instance_custom_atom.contribute(defs, is_pymodule=True)
-    formatted = session.evaluate("MakeBoxes[InputForm[CustomAtom]]").boxes_to_mathml()
+    formatted = session.evaluate("MakeBoxes[InputForm[CustomAtom]]").to_mathml()
     assert formatted == "CustomBoxExpression<<[1, 2, 3]>>"
 
 
@@ -152,7 +152,7 @@ def test_custom_graphicsbox_constructor():
     )
     instance_customgb_atom.contribute(defs, is_pymodule=True)
     result = session.evaluate("MakeBoxes[OutputForm[Graphics[{Circle[{0,0},1]}]]]")
-    formatted = result.boxes_to_mathml()
+    formatted = result.to_mathml()
     assert (
         formatted
         == "--custom graphics--: I should plot (<Expression: <Symbol: System`Circle>[<ListExpression: (<Integer: 0>, <Integer: 0>)>, <Integer: 1>]>,) items"
