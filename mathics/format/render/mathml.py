@@ -345,7 +345,7 @@ def string(s: String, **options) -> str:
             # Mathics-Django:
             if text == "":
                 return ""
-            if text == "\u2146":  # DifferentialD
+            if text == named_characters["DifferentialD"]
                 return render(
                     '<mo form="prefix" lspace="0.2em" rspace="0">%s</mo>', text
                 )
