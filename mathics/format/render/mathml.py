@@ -29,6 +29,7 @@ from mathics.builtin.box.layout import (
     TagBox,
 )
 from mathics.core.atoms import String
+from mathics.core.convert.op import named_characters, operator_to_unicode
 from mathics.core.element import BoxElementMixin
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import (
@@ -60,15 +61,15 @@ extra_operators = {
     "]",
     "{",
     "}",
-    "\u301a",
-    "\u301b",
-    "\u00d7",
-    "\u2032",
-    "\u2032\u2032",
+    named_characters["LeftDoubleBracket"],
+    named_characters["RightDoubleBracket"],
+    operator_to_unicode["Times"],
+    named_characters["Prime"],
+    named_characters["Prime"] * 2,
     " ",
-    "\u2062",
-    "\u222b",
-    "\u2146",
+    named_characters["InvisibleTimes"],
+    named_characters["Integral"],
+    named_characters["DifferentialD"],
 }
 
 add_conversion_fn(FormBox, convert_inner_box)
