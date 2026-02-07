@@ -2,6 +2,7 @@
 Base classes for canonical order.
 
 """
+from typing import Tuple
 
 
 class KeyComparable:
@@ -287,3 +288,21 @@ IMAGE_EXPRESSION_ELT_ORDER = 0x13
 
 BASIC_EXPRESSION_ELT_ORDER = 0x22
 GENERAL_EXPRESSION_ELT_ORDER = 0x23
+
+
+def wma_str_sort_key(s: str) -> Tuple[str, str]:
+    """
+    Return a Tuple providing the sort key
+    reproduce the order of strings and symbols
+    in WMA.
+    For example, the following is a list of sorted
+    strings in the WMA order:
+    `{Abeja, ABEJA, ave de paso, Ave de paso, Ave de Paso, AVe}`
+    The order criteria is: first sort case insensitive, then
+    for the first different character in the original string,
+    lower case comes before upper case.
+    """
+    return (
+        s.lower(),
+        s.swapcase(),
+    )
