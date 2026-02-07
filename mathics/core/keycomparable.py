@@ -302,6 +302,23 @@ def wma_str_sort_key(s: str) -> Tuple[str, str]:
     for the first different character in the original string,
     lower case comes before upper case.
     """
+    # An alternative to this implementation would be to map the
+    # characters in a way that
+    # a -> A
+    # A -> B
+    # b -> C
+    # B -> D
+    #  ...
+    # m -> Z
+    # M -> a
+    # n -> b
+    # N -> c
+    #  ...
+    # z -> y
+    # Z -> z
+    # so the result is again a string. Another possibility would be
+    # to return a wrapper class that implement this special comparison
+    # on the fly through the method `__lt__`.
     return (
         s.lower(),
         s.swapcase(),
