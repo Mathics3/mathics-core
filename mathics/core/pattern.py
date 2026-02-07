@@ -658,10 +658,10 @@ class ExpressionPattern(BasePattern):
 
             sets = subranges(
                 candidates,
-                flexible_start=first and not fully,
+                *set_lengths,
+                flexible_start=(first and not fully),
                 included=element_candidates,
                 less_first=less_first,
-                *set_lengths,
             )
 
         parms = pattern_context.copy()

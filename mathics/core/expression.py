@@ -1105,11 +1105,11 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # Note: self._head can be not just a symbol, but some arbitrary expression.
         # This is what makes expressions in Mathics3 be M-expressions rather than
         # S-expressions.
-        head = self._head
+        result: BaseElement
+        head: BaseElement = self._head
+
         if isinstance(head, EvalMixin):
-            result = head.evaluate(evaluation)
-            if result is not None:
-                head = result
+            head = head.evaluate(evaluation) or head
 
         attributes = head.get_attributes(evaluation.definitions)
 

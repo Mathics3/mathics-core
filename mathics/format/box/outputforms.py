@@ -76,7 +76,7 @@ def eval_tableform(
     depth = self.get_option(options, "TableDepth", evaluation, pop=True)
     options["System`TableDepth"] = depth
     depth = expr_min((Integer(dims), depth))
-    depth = depth.value
+    depth = depth.value if isinstance(depth, Integer) else None
     if depth is None:
         evaluation.message(self.get_name(), "int")
         return

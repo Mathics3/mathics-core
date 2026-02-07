@@ -686,6 +686,8 @@ def _prefix_output_text(expr: Expression, evaluation: Evaluation, **kwargs) -> s
     # Prefix works with just one operand:
     if len(operands) != 1:
         raise _WrongFormattedExpression
+    if not isinstance(op_head, str):
+        raise _WrongFormattedExpression
     operand = operands[0]
     kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     target_txt = render_output_form(operand, evaluation, **kwargs)
@@ -708,6 +710,8 @@ def _postfix_output_text(expr: Expression, evaluation: Evaluation, **kwargs) -> 
     )
     # Prefix works with just one operand:
     if len(operands) != 1:
+        raise _WrongFormattedExpression
+    if not isinstance(op_head, str):
         raise _WrongFormattedExpression
     operand = operands[0]
     target_txt = render_output_form(operand, evaluation, **kwargs)
