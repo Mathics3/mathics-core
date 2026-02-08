@@ -15,11 +15,11 @@ jobs:
         with:
           python-version: 3.13
       - name: Install click, black and isort
-        run: pip install 'click==8.0.4' 'black==25.11.0' 'isort==5.13.2'
+        run: pip install 'click==8.2.1' 'black==25.11.0' 'isort==5.13.2'
       - name: Run isort --check .
         run: isort --check .
-      - name: Run black --check .
-        run: black --check .
+      - name: Run black --check --diff .
+        run: black --check --diff .
       # - name: If needed, commit black changes to the pull request
       #   if: failure()
       #   run: |
