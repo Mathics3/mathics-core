@@ -1553,17 +1553,17 @@ def add_no_meaning_builtin_classes(
         )
 
         if affix == "infix":
-            mathics.core.parser.operators.flat_binary_operators[
-                operator_name
-            ] = operator_tuple[1]
+            mathics.core.parser.operators.flat_binary_operators[operator_name] = (
+                operator_tuple[1]
+            )
         elif affix == "postfix":
-            mathics.core.parser.operators.postfix_operators[
-                operator_name
-            ] = operator_tuple[1]
+            mathics.core.parser.operators.postfix_operators[operator_name] = (
+                operator_tuple[1]
+            )
         elif affix == "prefix":
-            mathics.core.parser.operators.prefix_operators[
-                operator_name
-            ] = operator_tuple[1]
+            mathics.core.parser.operators.prefix_operators[operator_name] = (
+                operator_tuple[1]
+            )
 
         # Put the newly-created Builtin class inside the module under
         # mathics.builtin.no_meaning.xxx.

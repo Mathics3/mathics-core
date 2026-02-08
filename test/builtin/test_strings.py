@@ -474,7 +474,7 @@ def test_private_doctests_patterns(str_expr, msgs, str_expected, fail_msg):
         # (r"\.78\.79\.7A=37; xyz", None, '37', "Octal characters. check me."),
         # (r"\:0078\:0079\:007A=38;xyz", None, '38', "Hexadecimal characters. Check me."),
         # (r"\101\102\103\061\062\063=39;ABC123", None, "39", None),
-        (r"xyz=.;ABC123=.;\[Alpha]\[Beta]\[Gamma]", None, "\u03B1\u03B2\u03B3", None),
+        (r"xyz=.;ABC123=.;\[Alpha]\[Beta]\[Gamma]", None, "\u03b1\u03b2\u03b3", None),
         ('LetterQ[""]', None, "True", None),
         (
             'LetterQ["\\[Alpha]\\[Beta]\\[Gamma]\\[Delta]\\[Epsilon]\\[Zeta]\\[Eta]\\[Theta]"]',

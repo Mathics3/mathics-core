@@ -1,4 +1,5 @@
 "test latex formatter"
+
 from test.helper import reset_session, session
 
 import pytest

@@ -53,7 +53,7 @@ AMSTEX_OPERATORS = {
     ", ": ", ",
     named_characters["Integral"]: r"\int",
     "\u2146": r"\, d",
-    "\uF74C": r"\, d",
+    "\uf74c": r"\, d",
     named_characters["DifferentialD"]: r"\, d",
     named_characters["Sum"]: r"\sum",
     named_characters["Product"]: r"\prod",

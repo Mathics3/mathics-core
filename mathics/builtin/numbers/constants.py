@@ -441,7 +441,7 @@ class GoldenRatio(_MPMathConstant, _SympyConstant):
 
     <dl>
       <dt>'GoldenRatio'
-      <dd>is the golden ratio, \u03D5 = (1+Sqrt[5])/2.
+      <dd>is the golden ratio, \u03d5 = (1+Sqrt[5])/2.
     </dl>
 
     >> GoldenRatio // N

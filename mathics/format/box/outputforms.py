@@ -137,7 +137,7 @@ def eval_texform(expr: BaseElement, evaluation: Evaluation) -> BoxElementMixin:
         # Replace multiple newlines by a single one e.g. between asy-blocks
         tex = MULTI_NEWLINE_RE.sub("\n", tex)
 
-        tex = tex.replace(" \uF74c", " \\, d")  # tmp hack for Integrate
+        tex = tex.replace(" \uf74c", " \\, d")  # tmp hack for Integrate
     except BoxError:
         evaluation.message(
             "General",

@@ -1002,7 +1002,7 @@ def _texform_outputform(expr, evaluation, **kwargs):
     try:
         tex = boxes.to_tex(evaluation=evaluation)  # type: ignore[union-attr]
         tex = MULTI_NEWLINE_RE.sub("\n", tex)
-        tex = tex.replace(" \uF74c", " \\, d")  # tmp hack for Integrate
+        tex = tex.replace(" \uf74c", " \\, d")  # tmp hack for Integrate
         return tex
     except BoxError:
         evaluation.message(
@@ -1052,9 +1052,7 @@ def times_render_output_form(expr: Expression, evaluation: Evaluation, **kwargs)
         num_expr = (
             Expression(SymbolTimes, *num)
             if len(num) > 1
-            else num[0]
-            if len(num) == 1
-            else Integer1
+            else num[0] if len(num) == 1 else Integer1
         )
         return _divide(num_expr, den_expr, evaluation, **kwargs)
 
