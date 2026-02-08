@@ -1,6 +1,7 @@
 """
 Evaluation module corresponding to builtin functions in mathics.builtins.scoping.
 """
+
 import re
 
 from mathics.core.atoms import String

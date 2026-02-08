@@ -407,9 +407,11 @@ class RowBox(BoxExpression):
             self._elements = (
                 ListExpression(
                     *(
-                        item.to_expression()
-                        if isinstance(item, BoxExpression)
-                        else item
+                        (
+                            item.to_expression()
+                            if isinstance(item, BoxExpression)
+                            else item
+                        )
                         for item in self.items
                     )
                 ),

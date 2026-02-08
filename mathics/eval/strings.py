@@ -1,6 +1,7 @@
 """
 String-related evaluation functions.
 """
+
 import re
 
 from mathics.builtin.box.layout import RowBox
