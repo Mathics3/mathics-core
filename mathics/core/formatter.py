@@ -91,8 +91,6 @@ def lookup_method(self, format: str) -> Callable:
     if getattr(BoxElementMixin, f"to_{format}") is box_to_method:
         box_to_method = None
     if box_to_method:
-        print("using", box_to_method)
-
         # The elements is not used anywhere.
         def ret_fn(box, elements=None, **opts):
             assert elements is None, "elements parameter is not used anymore."
