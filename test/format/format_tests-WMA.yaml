@@ -23,7 +23,6 @@
 #  because we use both in documentation and in the web interface.
 #
 
-
 '"-7.32"':
   msg: A String with a number
   latex:
@@ -402,36 +401,15 @@ Graphics[{}]:
 Grid[{{a,b},{c,d}}]:
   msg: GridBox
   latex:
-    InputForm: \text{Grid[\{\{a, b\}, \{c, d\}\}]}
+    InputForm: '\text{Grid[$\{\{$a, b$\}$, $\{$c, d$\}\}$]}'
     OutputForm: \begin{array}{cc} a & b\\ c & d\end{array}
-    StandardForm: \begin{array}{cc} a & b\\ c & d\end{array}
-    TraditionalForm: \begin{array}{cc} a & b\\ c & d\end{array}
+    StandardForm: "\\begin{array}{cc}\n a & b\\\\\n c & d\n\\end{array}"
+    TraditionalForm: "\\begin{array}{cc}\n a & b\\\\\n c & d\n\\end{array}"
   mathml:
-    InputForm: <mrow><mi>Grid</mi> <mo>[</mo> <mrow><mo>{</mo> <mrow><mrow><mo>{</mo>
-      <mrow><mi>a</mi> <mtext>,&nbsp;</mtext> <mi>b</mi></mrow> <mo>}</mo></mrow>
-      <mtext>,&nbsp;</mtext> <mrow><mo>{</mo> <mrow><mi>c</mi> <mtext>,&nbsp;</mtext>
-      <mi>d</mi></mrow> <mo>}</mo></mrow></mrow> <mo>}</mo></mrow> <mo>]</mo></mrow>
-    OutputForm: '<mtable columnalign="center">
-
-      <mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>
-
-      <mtr><mtd columnalign="center"><mi>c</mi></mtd><mtd columnalign="center"><mi>d</mi></mtd></mtr>
-
-      </mtable>'
-    StandardForm: '<mtable columnalign="center">
-
-      <mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>
-
-      <mtr><mtd columnalign="center"><mi>c</mi></mtd><mtd columnalign="center"><mi>d</mi></mtd></mtr>
-
-      </mtable>'
-    TraditionalForm: '<mtable columnalign="center">
-
-      <mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>
-
-      <mtr><mtd columnalign="center"><mi>c</mi></mtd><mtd columnalign="center"><mi>d</mi></mtd></mtr>
-
-      </mtable>'
+    InputForm: '<mrow><mi>Grid</mi> <mo>[</mo> <mrow><mo>{</mo> <mrow><mrow><mo>{</mo>      <mrow><mi>a</mi> <mtext>,&nbsp;</mtext> <mi>b</mi></mrow> <mo>}</mo></mrow>      <mtext>,&nbsp;</mtext> <mrow><mo>{</mo> <mrow><mi>c</mi> <mtext>,&nbsp;</mtext>      <mi>d</mi></mrow> <mo>}</mo></mrow></mrow> <mo>}</mo></mrow> <mo>]</mo></mrow>'
+    StandardForm: "<mtable columnalign=\"center\">\n  <mtr>\n   <mtd columnalign=\"center\">\n    <mi>a</mi>\n   </mtd>\n   <mtd columnalign=\"center\">\n    <mi>b</mi>\n   </mtd>\n  </mtr>\n  <mtr>\n   <mtd columnalign=\"center\">\n    <mi>c</mi>\n   </mtd>\n   <mtd columnalign=\"center\">\n    <mi>d</mi>\n   </mtd>\n  </mtr>\n </mtable>"
+    TraditionalForm: "<mtable columnalign=\"center\">\n      <mtr><mtd columnalign=\"center\"><mi>a</mi></mtd><mtd columnalign=\"center\"><mi>b</mi></mtd></mtr>\n
+      <mtr><mtd columnalign=\"center\"><mi>c</mi></mtd><mtd columnalign=\"center\"><mi>d</mi></mtd></mtr>\n      </mtable>"
   text:
     InputForm: Grid[{{a, b}, {c, d}}]
     OutputForm: 'a   b
@@ -556,12 +534,8 @@ Subscript[a, 4]:
     - <mrow><mi>Subscript</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext>
       <mtext>4</mtext></mrow> <mo>]</mo></mrow>
     - Fragile!
-    OutputForm:
-    - <mrow><mi>Subscript</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext>
-      <mn>4</mn></mrow> <mo>]</mo></mrow>
-    - Fragile!
-    StandardForm: <msub><mi>a</mi> <mn>4</mn></msub>
-    TraditionalForm: <msub><mi>a</mi> <mn>4</mn></msub>
+    StandardForm: "<msub>\n   <mi>a</mi>\n   <mn>4</mn>\n  </msub>"
+    TraditionalForm: "<msub>\n  <mi>a</mi>\n  <mn>4</mn>\n </msub>"
   text:
     InputForm: Subscript[a, 4]
     OutputForm: "a\n 4"
@@ -583,8 +557,8 @@ Subsuperscript[a, p, q]:
       <mi>p</mi> <mtext>,&nbsp;</mtext> <mi>q</mi></mrow> <mo>]</mo></mrow>
     OutputForm: <mrow><mi>Subsuperscript</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext>
       <mi>p</mi> <mtext>,&nbsp;</mtext> <mi>q</mi></mrow> <mo>]</mo></mrow>
-    StandardForm: <msubsup><mi>a</mi> <mi>p</mi> <mi>q</mi></msubsup>
-    TraditionalForm: <msubsup><mi>a</mi> <mi>p</mi> <mi>q</mi></msubsup>
+    StandardForm: "<msubsup>\n   <mi>a</mi>\n   <mi>p</mi>\n   <mi>q</mi>\n  </msubsup>"
+    TraditionalForm: "<msubsup>\n   <mi>a</mi>\n   <mi>p</mi>\n   <mi>q</mi>\n  </msubsup>"
   text:
     InputForm: Subsuperscript[a, p, q]
     OutputForm: " q\na\n p"
@@ -703,15 +677,13 @@ a^(g[b]/c):
   latex:
     InputForm: \text{a${}^{\wedge}$(g[b]/c)}
     OutputForm: a\text{ ${}^{\wedge}$ }\left(g(b)\text{ / }c\right)
-    StandardForm: a^{\frac{g(b)}{c}}
+    StandardForm: a^{\frac{g[b]}{c}}
     TraditionalForm: a^{\frac{g(b)}{c}}
   mathml:
-    InputForm: <mrow><mi>a</mi> <mo>^</mo> <mrow><mo>(</mo> <mrow><mi>b</mi>
-      <mtext>&nbsp;/&nbsp;</mtext> <mi>c</mi></mrow> <mo>)</mo></mrow></mrow>
-    OutputForm: <mrow><mi>a</mi> <mtext>&nbsp;^&nbsp;</mtext> <mrow><mo>(</mo>
-      <mrow><mi>b</mi> <mtext>&nbsp;/&nbsp;</mtext> <mi>c</mi></mrow> <mo>)</mo></mrow></mrow>
-    StandardForm: <msup><mi>a</mi> <mfrac><mi>b</mi> <mi>c</mi></mfrac></msup>
-    TraditionalForm: <msup><mi>a</mi> <mfrac><mrow><mi>g</mi> <mo>(</mo> <mi>b</mi> <mo>)</mo></mrow> <mi>c</mi></mfrac></msup>
+    InputForm: '<mtext>a^(g[b]/c)</mtext>'
+    OutputForm: '<><>'
+    StandardForm: "<msup>\n   <mi>a</mi>\n   <mfrac>\n    <mrow>\n     <mi>g</mi>\n     <mo>[</mo>\n     <mi>b</mi>\n     <mo>]</mo>\n    </mrow>\n    <mi>c</mi>\n   </mfrac>\n  </msup>"
+    TraditionalForm: "<msup>\n  <mi>a</mi>\n  <mfrac>\n   <mrow>\n    <mi>g</mi>\n    <mo>&#8289;</mo>\n    <mo>(</mo>\n    <mi>b</mi>\n    <mo>)</mo>\n   </mrow>\n   <mi>c</mi>\n  </mfrac>\n </msup>"
   text:
     InputForm: a^(g[b]/c)
     OutputForm: " g[b]/c\na"
@@ -727,12 +699,55 @@ a^4:
     StandardForm: a^4
     TraditionalForm: a^4
   mathml:
-    InputForm: <mrow><mi>a</mi> <mo>^</mo> <mtext>4</mtext></mrow>
-    OutputForm: <mrow><mi>a</mi> <mtext>&nbsp;^&nbsp;</mtext> <mn>4</mn></mrow>
-    StandardForm: <msup><mi>a</mi> <mn>4</mn></msup>
-    TraditionalForm: <msup><mi>a</mi> <mn>4</mn></msup>
+    InputForm: <mtext>a^4</mtext>
+    StandardForm: "<msup>\n   <mi>a</mi>\n   <mn>4</mn>\n  </msup>"
+    TraditionalForm: "<msup>\n  <mi>a</mi>\n  <mn>4</mn>\n </msup>"
   text:
     InputForm: a^4
     OutputForm: " 4\na"
     StandardForm: "\\!\\(\\*SuperscriptBox[\"a\", \"4\"]\\)"
     TraditionalForm: "\\!\\(\\*FormBox[SuperscriptBox[\"a\", \"4\"], TraditionalForm]\\)"
+
+
+Optional[x__]:
+   msg: Optional with one argument
+   latex:
+     System`OutputForm: '\text{x$\_\_$.}'
+     System`StandardForm: '\text{x$\_\_$.}'
+   mathml:
+     System`OutputForm: '<mtext>x__.</mtext>'
+     System`StandardForm: '<mtext>x__.</mtext>'
+   text:
+     System`InputForm: 'x__.'
+     System`OutputForm: 'x__.'
+     System`StandardForm: '\!\(\*RowBox[{"Optional", "[", "x__", "]"}]\)'
+     System`TraditionalForm: '\!\(\*FormBox[RowBox[{"Optional", "[", "x__", "]"}], TraditionalForm]\)'
+
+
+Optional[x__, a+b]:
+   msg: Optional with two arguments
+   latex:
+     System`OutputForm: '\text{x$\_\_$:a + b}'
+     System`StandardForm: '\text{x$\_\_$}:a+b'
+   mathml:
+     System`OutputForm: '<mtext>x__&nbsp;:&nbsp;a&nbsp;+&nbsp;b</mtext>'
+   text:
+     System`InputForm: 'x__:a + b'
+     System`OutputForm: 'x__:a + b'
+     System`StandardForm: '\!\(\*RowBox[{"x__", ":", RowBox[{"a", "+", "b"}]}]\)'
+     System`TraditionalForm: '\!\(\*FormBox[RowBox[{"x__", ":", RowBox[{"a", "+", "b"}]}], TraditionalForm]\)'
+
+
+a+PrecedenceForm[b+c,10]:
+  msg: "PrecedenceForm"
+  latex:
+    System`OutputForm: '\text{a + (b + c)}'
+    System`StandardForm: 'a+(b+c)'
+  mathml:
+    System`OutputForm: '<mtext>a&nbsp;+&nbsp;(b&nbsp;+&nbsp;c)</mtext>'
+    System`StandardForm: "<mrow>\n   <mi>a</mi>\n   <mo>+</mo>\n   <mrow>\n    <mo>(</mo>\n    <mrow>\n     <mi>b</mi>\n     <mo>+</mo>\n     <mi>c</mi>\n    </mrow>\n    <mo>)</mo>\n   </mrow>\n  </mrow>"
+  text:
+    System`InputForm: 'a + PrecedenceForm[b + c, 10]'
+    System`OutputForm: 'a + (b + c)'
+    System`StandardForm: '\!\(\*RowBox[{"a", "+", RowBox[{"(", TagBox[RowBox[{"b", "+", "c"}], Function[PrecedenceForm[Slot[1], 10]]], ")"}]}]\)'
+    System`TraditionalForm: '\!\(\*FormBox[RowBox[{"a", "+", RowBox[{"(", TagBox[RowBox[{"b", "+", "c"}], Function[PrecedenceForm[Slot[1], 10]]], ")"}]}], TraditionalForm]\)'

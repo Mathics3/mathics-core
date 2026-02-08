@@ -372,14 +372,14 @@ class Evaluation:
         self.stopped = True
 
     @overload
-    def format_output(self, expr: BaseElement, format: Optional[dict] = None) -> dict:
-        ...
+    def format_output(
+        self, expr: BaseElement, format: Optional[dict] = None
+    ) -> dict: ...
 
     @overload
     def format_output(
         self, expr: BaseElement, format: Optional[str] = None
-    ) -> Union[BaseElement, str, None]:
-        ...
+    ) -> Union[BaseElement, str, None]: ...
 
     def format_output(self, expr, format=None):
         """
@@ -422,7 +422,7 @@ class Evaluation:
         try:
             # With the new implementation, if result is not a ``BoxExpression``
             # then we should raise a BoxError here.
-            boxes = result.boxes_to_text(evaluation=self)
+            boxes = result.to_text(evaluation=self)
         except BoxError:
             self.message(
                 "General", "notboxes", Expression(SymbolFullForm, result).evaluate(self)

@@ -190,7 +190,7 @@ class Equivalent(InfixOperator):
 
     <dl>
       <dt>'Equivalent'[$expr_1$, $expr_2$, ...]
-      <dt>$expr_1$ \u29E6 $expr_2$ \u29E6 ...
+      <dt>$expr_1$ \u29e6 $expr_2$ \u29e6 ...
 
       <dd>is equivalent to
         ($expr_1$ && $expr_2$ && ...) || (!$expr_1$ && !$expr_2$ && ...)
@@ -257,7 +257,7 @@ class Implies(InfixOperator):
 
     <dl>
       <dt>'Implies'[$expr_1$, $expr_2$]
-      <dt>$expr_1$ \u21D2 $expr_2$
+      <dt>$expr_1$ \u21d2 $expr_2$
         <dd>evaluates each expression in turn, returning 'True' \
         as soon as the first expression evaluates to 'False'. If the \
         first expression evaluates to 'True', 'Implies' returns the \
@@ -383,7 +383,7 @@ class Nand(InfixOperator):
     <dl>
       <dt>'Nand'[$expr_1$, $expr_2$, ...]
 
-      <dt>$expr_1$ \u22BC $expr_2$ \u22BC ...
+      <dt>$expr_1$ \u22bc $expr_2$ \u22bc ...
       <dd> Implements the logical NAND function.  The same as 'Not[And['$expr_1$, $expr_2$, ...']]'
     </dl>
 
@@ -404,7 +404,7 @@ class Nor(InfixOperator):
     <dl>
       <dt>'Nor'[$expr_1$, $expr_2$, ...]
 
-      <dt>$expr_1$ \u22BD $expr_2$ \u22BD ...
+      <dt>$expr_1$ \u22bd $expr_2$ \u22bd ...
       <dd>Implements the logical NOR function.  The same as 'Not[Or['$expr_1$, $expr_2$, ...']]'
     </dl>
 
@@ -469,7 +469,7 @@ class Xor(InfixOperator):
 
     <dl>
       <dt>'Xor'[$expr_1$, $expr_2$, ...]
-      <dt>$expr_1$ \u22BB $expr_2$ \u22BB ...
+      <dt>$expr_1$ \u22bb $expr_2$ \u22bb ...
 
       <dd>evaluates each expression in turn, returning 'True'
         as soon as not all expressions evaluate to the same value. If all

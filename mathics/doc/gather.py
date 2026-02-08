@@ -355,7 +355,7 @@ def sorted_modules(modules) -> list:
     exists, or the module's name if not."""
     return sorted(
         modules,
-        key=lambda module: module.sort_order
-        if hasattr(module, "sort_order")
-        else module.__name__,
+        key=lambda module: (
+            module.sort_order if hasattr(module, "sort_order") else module.__name__
+        ),
     )

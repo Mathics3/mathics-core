@@ -98,6 +98,7 @@ class BoxForms_(Predefined):
     >> {MemberQ[$PrintForms, MyBoxForm], MemberQ[$OutputForms, MyBoxForm]}
      = {False, False}
     """
+
     attributes = A_READ_PROTECTED
     messages = {
         "formset": "Cannot set $BoxForms to ``; value must be a list that includes TraditionalForm and StandardForm."

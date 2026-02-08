@@ -398,7 +398,7 @@ class InterpretedBox(PrefixOperator):
         # handle these expressions.
         # In the first place, this should handle different kind
         # of boxes in different ways.
-        reinput = boxes.boxes_to_text()
+        reinput = boxes.to_text()
         return Expression(SymbolToExpression, String(reinput)).evaluate(evaluation)
 
 

@@ -7,10 +7,10 @@ Boxing Symbols for 3D Graphics
 from mathics.builtin.box.graphics import (
     ArrowBox,
     GraphicsBox,
+    GraphicsElementBox,
     LineBox,
     PointBox,
     PolygonBox,
-    _GraphicsElementBox,
 )
 from mathics.builtin.colors.color_directives import Opacity, RGBColor, _ColorObject
 from mathics.builtin.drawing.graphics3d import Graphics3D, Style3D
@@ -44,7 +44,7 @@ class Graphics3DBox(GraphicsBox):
 
         return prepare_elements(self, elements, options, max_width)
 
-    def boxes_to_js(self, elements=None, **options):
+    def to_js(self, elements=None, **options):
         """Turn the Graphics3DBox to into a something javascript-ish
         We include enclosing script tagging.
         """
@@ -75,7 +75,7 @@ class Arrow3DBox(ArrowBox):
                 coords.scale(boxscale)
 
 
-class Cone3DBox(_GraphicsElementBox):
+class Cone3DBox(GraphicsElementBox):
     # """
     # Internal Python class used when Boxing a 'Cone' object.
     # """
@@ -119,7 +119,7 @@ class Cone3DBox(_GraphicsElementBox):
         pass
 
 
-class Cuboid3DBox(_GraphicsElementBox):
+class Cuboid3DBox(GraphicsElementBox):
     # """
     # Internal Python class used when Boxing a 'Cuboid' object.
     # """
@@ -147,7 +147,7 @@ class Cuboid3DBox(_GraphicsElementBox):
         pass
 
 
-class Cylinder3DBox(_GraphicsElementBox):
+class Cylinder3DBox(GraphicsElementBox):
     # """
     # Internal Python class used when Boxing a 'Cylinder' object.
     # """
@@ -271,7 +271,7 @@ class Polygon3DBox(PolygonBox):
                 coords.scale(boxscale)
 
 
-class Sphere3DBox(_GraphicsElementBox):
+class Sphere3DBox(GraphicsElementBox):
     # summary_text = "box representation for a sphere"
 
     # We have no documentation for this (yet).
@@ -311,7 +311,7 @@ class Sphere3DBox(_GraphicsElementBox):
         pass
 
 
-class Tube3DBox(_GraphicsElementBox):
+class Tube3DBox(GraphicsElementBox):
     # summary_text = "box representation for a tube"
 
     # We have no documentation for this (yet).
