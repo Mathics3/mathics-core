@@ -2,6 +2,7 @@
 Base classes for canonical order.
 
 """
+
 from typing import Tuple
 
 
