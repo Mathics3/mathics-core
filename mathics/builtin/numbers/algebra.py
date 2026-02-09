@@ -386,6 +386,9 @@ class Apart(Builtin):
     But it does not touch other expressions:
     >> Sin[1 / (x ^ 2 - y ^ 2)] // Apart
      = Sin[1 / (x ^ 2 - y ^ 2)]
+
+    >> a == "A" // Apart // InputForm
+     = a == "A"
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -432,6 +435,10 @@ class Cancel(Builtin):
 
     >> Cancel[f[x] / x + x * f[x] / x ^ 2]
      = 2 f[x] / x
+
+    But it does not touch other expressions:
+    >> a == "A" // Cancel // InputForm
+     = a == "A"
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -1385,6 +1392,10 @@ class Factor(Builtin):
     You can use Factor to find when a polynomial is zero:
     >> x^2 - x == 0 // Factor
      = x (-1 + x) == 0
+
+    But it does not touch other expressions:
+    >> a == "A" // Factor // InputForm
+     = a == "A"
     """
 
     attributes = A_LISTABLE | A_PROTECTED
