@@ -386,6 +386,9 @@ class Apart(Builtin):
     But it does not touch other expressions:
     >> Sin[1 / (x ^ 2 - y ^ 2)] // Apart
      = Sin[1 / (x ^ 2 - y ^ 2)]
+
+    >> a == "A" // Apart // InputForm
+     = a == "A"
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -402,8 +405,9 @@ class Apart(Builtin):
 
         expr_sympy = expr.to_sympy()
         var_sympy = var.to_sympy()
+        # If the expression cannot be handled by Sympy, just return it.
         if expr_sympy is None or var_sympy is None:
-            return None
+            return expr
 
         try:
             result = sympy.apart(expr_sympy, var_sympy)
@@ -431,6 +435,10 @@ class Cancel(Builtin):
 
     >> Cancel[f[x] / x + x * f[x] / x ^ 2]
      = 2 f[x] / x
+
+    But it does not touch other expressions:
+    >> a == "A" // Cancel // InputForm
+     = a == "A"
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -1384,6 +1392,10 @@ class Factor(Builtin):
     You can use Factor to find when a polynomial is zero:
     >> x^2 - x == 0 // Factor
      = x (-1 + x) == 0
+
+    But it does not touch other expressions:
+    >> a == "A" // Factor // InputForm
+     = a == "A"
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -1393,8 +1405,9 @@ class Factor(Builtin):
         "Factor[expr_]"
 
         expr_sympy = expr.to_sympy()
+        # If the expression cannot be handled by Sympy, just return it.
         if expr_sympy is None:
-            return None
+            return expr
 
         try:
             return from_sympy(sympy_factor(expr_sympy))
