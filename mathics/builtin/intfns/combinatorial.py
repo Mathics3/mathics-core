@@ -152,6 +152,7 @@ class Binomial(MPMathFunction):
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
+    expected_args = 2
     nargs = {2}
     sympy_name = "binomial"
     mpmath_name = "binomial"

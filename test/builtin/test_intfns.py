@@ -14,7 +14,7 @@ import pytest
         ("HarmonicNumber[-1.5]", None, "0.613706", None),
     ],
 )
-def test_private_doctests_recurrence(str_expr, msgs, str_expected, fail_msg):
+def test_recurrence(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,
@@ -32,6 +32,12 @@ def test_private_doctests_recurrence(str_expr, msgs, str_expected, fail_msg):
     [
         ## TODO should be ComplexInfinity but mpmath returns +inf
         ("Binomial[-10, -3.5]", None, "Infinity", None),
+        (
+            "Binomial[]",
+            ["Binomial called with 0 arguments; 2 arguments are expected."],
+            "Binomial[]",
+            "Binomial argument number error",
+        ),
         ("Subsets[{}]", None, "{{}}", None),
         ("Subsets[]", None, "Subsets[]", None),
         (
@@ -160,7 +166,7 @@ def test_private_doctests_recurrence(str_expr, msgs, str_expected, fail_msg):
         ("Subsets[{a, b, c}, {3, Infinity, -1}]", None, "{}", None),
     ],
 )
-def test_private_doctests_combinatorial(str_expr, msgs, str_expected, fail_msg):
+def test_combinatorial(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,
@@ -200,7 +206,7 @@ def test_private_doctests_combinatorial(str_expr, msgs, str_expected, fail_msg):
         ("QuotientRemainder[5, 2.]", None, "{2, 1.}", None),
     ],
 )
-def test_private_doctests_divlike(str_expr, msgs, str_expected, fail_msg):
+def test_divlike(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,

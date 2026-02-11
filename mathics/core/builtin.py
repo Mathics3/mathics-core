@@ -737,6 +737,9 @@ class MPMathFunction(SympyFunction):
     # So those classes should expclicitly set/override this.
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
+    # Set checking that the number of arguments required to exactly one.
+    eval_error = Builtin.generic_argument_error
+
     mpmath_name: Optional[str] = None
     nargs = {1}
 
