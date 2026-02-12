@@ -214,7 +214,7 @@ def test_associations_private_doctests(
             "Map[F, Association[a->1, b:>Association[p->3,q->4]], {0}]",
             None,
             "F[Association[a->1, b:>Association[p->3, q->4]]]",
-            "Special behavior happends at the first level.",
+            "Special behavior occurs at the first level.",
         ),
         (
             "Map[F, Association[a->1, b:>2]]",
@@ -232,7 +232,7 @@ def test_associations_private_doctests(
             "Map[F, Association[a->1, b:>Association[p->3,q->4]], {1}]",
             None,
             "Association[a->F[1], b:>F[Association[p->3, q->4]]]",
-            "Special behavior happends at the first level.",
+            "Special behavior occurs at the first level.",
         ),
         # FIXME
         (
@@ -245,13 +245,13 @@ def test_associations_private_doctests(
             "Map[F, Association[a->1, b:>Association[p->3,q->4]], {2}]",
             None,
             "Association[a->1, b:>Association[F[p->3],F[q->4]]]",
-            "Special behavior happends at the first level.",
+            "Special behavior occurs at the first level.",
         ),
         (
             "Map[F, Association[a->1, b:>Q[p->3, q->4]], {2}]",
             None,
             "Association[a->1, b:>Q[F[p->3],F[q->4]]]",
-            "Special behavior happends at the first level.",
+            "Special behavior occurs at the first level.",
         ),
     ],
 )
