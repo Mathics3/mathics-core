@@ -36,6 +36,28 @@ import pytest
             ["EulerE called with 0 arguments; 1 or 2 arguments are expected."],
             "Euler argument number error",
         ),
+        (
+            "JaccardDissimilarity[]",
+            ["JaccardDissimilarity called with 0 arguments; 2 arguments are expected."],
+            "JaccardDissimilarity argument number error",
+        ),
+        (
+            "LucasL[]",
+            ["LucasL called with 0 arguments; 1 or 2 arguments are expected."],
+            "LucasL argument number error",
+        ),
+        (
+            "PolygonalNumber[]",
+            ["PolygonalNumber called with 0 arguments; 1 or 2 arguments are expected."],
+            "PolygonalNumber argument number error",
+        ),
+        (
+            "Subsets[]",
+            [
+                "Subsets called with 0 arguments; between 1 and 3 arguments are expected."
+            ],
+            "Subsets argument number error",
+        ),
     ],
 )
 def test_combinatorial_arg_errors(str_expr, msgs, fail_msg):
