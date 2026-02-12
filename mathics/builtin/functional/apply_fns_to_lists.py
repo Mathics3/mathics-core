@@ -191,8 +191,7 @@ class Map(InfixOperator):
             #
             # Fixing this would require a different implementation of this eval_ method.
             #
-
-            if is_association and level.has_form(("Rule", "RuleDeyaled"), 2):
+            if is_association and level.has_form(("Rule", "RuleDelayed"), 2):
                 return Expression(
                     level.get_head(),
                     level.elements[0],
