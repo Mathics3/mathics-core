@@ -63,6 +63,8 @@ class BellB(SympyFunction):
     """
 
     attributes = A_LISTABLE | A_N_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
     summary_text = "Bell numbers"
     sympy_name = "bell"
 
@@ -152,6 +154,7 @@ class Binomial(MPMathFunction):
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
+    eval_error = Builtin.generic_argument_error
     expected_args = 2
     nargs = {2}
     sympy_name = "binomial"
@@ -182,12 +185,14 @@ class CatalanNumber(SympyFunction):
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
     summary_text = "catalan number"
     sympy_name = "catalan"
 
     # We (and sympy) do not handle fractions or other non-integers
     # right now.
-    def eval_integer(self, n: Integer, evaluation):
+    def eval_integer(self, n: Integer, evaluation: Evaluation):
         "CatalanNumber[n_Integer]"
         return self.eval(n, evaluation)
 
@@ -212,6 +217,8 @@ class DiceDissimilarity(_BooleanDissimilarity):
      = 1 / 2
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
     summary_text = "Dice dissimilarity"
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt) -> Expression:
@@ -247,6 +254,8 @@ class EulerE(SympyFunction):
     """
 
     attributes = A_LISTABLE | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
     summary_text = "Euler numbers"
     sympy_name = "euler"
 
