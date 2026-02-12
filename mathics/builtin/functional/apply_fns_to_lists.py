@@ -130,7 +130,15 @@ class Map(InfixOperator):
     Include heads:
     >> Map[f, a + b + c, Heads->True]
      = f[Plus][f[a], f[b], f[c]]
+    
+    Same as above, but use the operator form of 'Map':
+    >> Map[f][{a, b, c}]
+     = {f[a], f[b], f[c]}
     """
+
+    rules = {
+        "Map[f_][expr_]": "Map[f, expr]",
+    }
 
     summary_text = "map a function over a list, at specified levels"
     grouping = "Right"
