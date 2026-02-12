@@ -19,7 +19,7 @@ from mathics.core.exceptions import InvalidLevelspecError, MessageException
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, SymbolNull, SymbolTrue
-from mathics.core.systemsymbols import SymbolMapThread
+from mathics.core.systemsymbols import SymbolMapThread, SymbolRule
 from mathics.eval.functional.apply_fns_to_lists import eval_MapAt
 from mathics.eval.parts import python_levelspec, walk_levels
 from mathics.eval.patterns import param_and_option_from_optional_place
@@ -126,6 +126,10 @@ class Map(InfixOperator):
     Map $f$ on the second level:
     >> Map[f, {{a, b}, {c, d, e}}, {2}]
      = {{f[a], f[b]}, {f[c], f[d], f[e]}}
+    
+    Map $f$ onto an association:
+    >> Map[f, <|"a" -> 1, "b" -> 2, "c" -> 3, "d" -> 4|>]
+     = {a -> f[1], b -> f[2], c -> f[3], d -> f[4]}
 
     Include heads:
     >> Map[f, a + b + c, Heads->True]
@@ -159,8 +163,20 @@ class Map(InfixOperator):
         except InvalidLevelspecError:
             evaluation.message("Map", "level", levelspec)
             return
+        
+        is_association = expr.has_form("Association", None)
 
         def callback(level):
+            """
+            Map $f$ onto each element (denoted by 'level' here) at this level.
+            With exception for expr as Association, which is mapped on values only.
+            """
+            if is_association and level.has_form("Rule", 2):
+                return Expression(
+                    SymbolRule,
+                    level.elements[0],
+                    Expression(f, level.elements[1]),
+                )
             return Expression(f, level)
 
         heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
