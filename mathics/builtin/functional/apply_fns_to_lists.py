@@ -134,15 +134,15 @@ class Map(InfixOperator):
     Map $f$ on the second level:
     >> Map[f, {{a, b}, {c, d, e}}, {2}]
      = {{f[a], f[b]}, {f[c], f[d], f[e]}}
-    
+
     Map $f$ onto an association:
     >> Map[f, <|"a" -> 1, "b" -> 2, "c" -> 3, "d" -> 4|>]
-     = {a -> f[1], b -> f[2], c -> f[3], d -> f[4]}
+     = <|a -> f[1], b -> f[2], c -> f[3], d -> f[4]|>
 
     Include heads:
     >> Map[f, a + b + c, Heads->True]
      = f[Plus][f[a], f[b], f[c]]
-    
+
     Use the operator form of 'Map':
     >> Map[f][{a, b, c}]
      = {f[a], f[b], f[c]}
@@ -171,7 +171,7 @@ class Map(InfixOperator):
         except InvalidLevelspecError:
             evaluation.message("Map", "level", levelspec)
             return
-        
+
         is_association = expr.has_form("Association", None)
 
         def callback(level):
