@@ -53,6 +53,10 @@ class Apply(InfixOperator):
     >> f @@ (a + b + c)
      = f[a, b, c]
 
+    Use the operator form of 'Apply':
+    >> Apply[f][a + b + c]
+     = f[a, b, c]
+
     Apply on level 1:
     >> Apply[f, {a + b, g[c, d, e * f], 3}, {1}]
      = {f[a, b], f[c, d, e f], 3}
@@ -68,6 +72,10 @@ class Apply(InfixOperator):
     >> Apply[List, a + b * c ^ e * f[g], {0, Infinity}]
      = {a, {b, {g}, {c, e}}}
     """
+
+    rules = {
+        "Apply[f_][expr_]": "Apply[f, expr]",
+    }
 
     summary_text = "apply a function to a list, at specified levels"
     grouping = "Right"
@@ -135,7 +143,7 @@ class Map(InfixOperator):
     >> Map[f, a + b + c, Heads->True]
      = f[Plus][f[a], f[b], f[c]]
     
-    Same as above, but use the operator form of 'Map':
+    Use the operator form of 'Map':
     >> Map[f][{a, b, c}]
      = {f[a], f[b], f[c]}
     """
@@ -270,6 +278,10 @@ class MapIndexed(Builtin):
     >> MapIndexed[f, {a, b, c}]
      = {f[a, {1}], f[b, {2}], f[c, {3}]}
 
+    Use the operator form of 'MapIndexed':
+    >> MapIndexed[f][{a, b, c}]
+     = {f[a, {1}], f[b, {2}], f[c, {3}]}
+
     Include heads (index 0):
     >> MapIndexed[f, {a, b, c}, Heads->True]
      = f[List, {0}][f[a, {1}], f[b, {2}], f[c, {3}]]
@@ -292,6 +304,10 @@ class MapIndexed(Builtin):
     >> MapIndexed[Extract[expr, #2] &, listified, {-1}, Heads -> True]
      = a + b f[g] c ^ e
     """
+
+    rules = {
+        "MapIndexed[f_][expr_]": "MapIndexed[f, expr]",
+    }
 
     summary_text = "map a function, including index information"
     options = {
@@ -344,7 +360,15 @@ class MapThread(Builtin):
 
     >> MapThread[f, {{{a, b}, {c, d}}, {{e, f}, {g, h}}}, 2]
      = {{f[a, e], f[b, f]}, {f[c, g], f[d, h]}}
+
+    Use the operator form of 'MapThread':
+    >> MapThread[f][{{a, b, c}, {1, 2, 3}}]
+     = {f[a, 1], f[b, 2], f[c, 3]}
     """
+
+    rules = {
+        "MapThread[f_][expr_]": "MapThread[f, expr]",
+    }
 
     summary_text = "map a function across corresponding elements in multiple lists"
     messages = {
