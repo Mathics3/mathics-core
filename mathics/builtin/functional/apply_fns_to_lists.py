@@ -179,9 +179,21 @@ class Map(InfixOperator):
             Map $f$ onto each element (denoted by 'level' here) at this level.
             With exception for expr as Association, which is mapped on values only.
             """
-            if is_association and level.has_form("Rule", 2):
+            # TODO: This special behavior applies when the whole expression
+            # is of the form Association[__(Rule|RuleDelayed)], i.e., when
+            # the expression is a well-formatted Association expression.
+            # For example,
+            # `Map[F, Association[a->1,b->2, NotARule]`
+            # produces in WMA
+            # `Association[F[a->1], F[b->2], F[NotARule]`
+            # instead of
+            # `Association[a->F[1], b->F[2], F[NotARule]`]
+            #
+            # Fixing this would require a different implementation of this eval_ method.
+            #
+            if is_association and level.has_form(("Rule", "RuleDelayed"), 2):
                 return Expression(
-                    SymbolRule,
+                    level.get_head(),
                     level.elements[0],
                     Expression(f, level.elements[1]),
                 )

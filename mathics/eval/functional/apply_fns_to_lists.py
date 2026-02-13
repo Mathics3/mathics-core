@@ -38,9 +38,9 @@ def eval_MapAt(
             raise PartRangeError
         new_elements = list(elements)
         replace_element = elements[j]
-        if hasattr(replace_element, "head") and replace_element.head is SymbolRule:
+        if replace_element.has_form(("Rule", "RuleDelayed"), 2):
             new_elements[j] = Expression(
-                SymbolRule,
+                replace_element.get_head(),
                 replace_element.elements[0],
                 Expression(f, replace_element.elements[1]),
             )
