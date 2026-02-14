@@ -46,3 +46,48 @@ def test_divlike(str_expr, msgs, str_expected, fail_msg):
         failure_message=fail_msg,
         expected_messages=msgs,
     )
+
+
+@pytest.mark.parametrize(
+    ("function_name", "msg_fragment"),
+    [
+        (
+            "CompositeQ",
+            "1 argument is",
+        ),
+        (
+            "Divisible",
+            "2 or more arguments are",
+        ),
+        (
+            "LCM",
+            "1 or more arguments are",
+        ),
+        (
+            "ModularInverse",
+            "2 arguments are",
+        ),
+        (
+            "PowerMod",
+            "3 arguments are",
+        ),
+        (
+            "Quotient",
+            "2 or 3 arguments are",
+        ),
+    ],
+)
+def test_divlike_arg_errors(function_name, msg_fragment):
+    """ """
+
+    str_expr = f"{function_name}[]"
+    expected_msgs = [
+        f"{function_name} called with 0 arguments; {msg_fragment} expected."
+    ]
+    failure_message = f"{function_name} argument number error"
+    check_evaluation(
+        str_expr,
+        str_expr,
+        failure_message=failure_message,
+        expected_messages=expected_msgs,
+    )

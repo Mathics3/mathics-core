@@ -64,7 +64,6 @@ class Check(Builtin):
     attributes = A_HOLD_ALL | A_PROTECTED
 
     messages = {
-        "argmu": "Check called with 1 argument; 2 or more arguments are expected.",
         "name": "Message name `1` is not of the form symbol::name or symbol::name::language.",
     }
 
@@ -175,6 +174,8 @@ class General(Builtin):
         "argct": "`1` called with `2` arguments.",
         "argctu": "`1` called with 1 argument.",
         "argr": "`1` called with 1 argument; `2` arguments are expected.",
+        "argm": "`1` called with `2` arguments; `3` or more arguments are expected.",
+        "argmu": "`1` called with 1 argument; `2` or more arguments are expected.",
         "argrx": "`1` called with `2` arguments; `3` arguments are expected.",
         "argx": "`1` called with `2` arguments; 1 argument is expected.",
         "argt": (

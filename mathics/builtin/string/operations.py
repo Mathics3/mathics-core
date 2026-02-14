@@ -630,8 +630,6 @@ class StringRiffle(Builtin):
 
     messages = {
         "list": "List expected at position `1` in `2`.",
-        "argmu": "StringRiffle called with 1 argument; 2 or more arguments are expected.",
-        "argm": "StringRiffle called with 0 arguments; 2 or more arguments are expected.",
         "string": "String expected at position `1` in `2`.",
         "sublist": "Sublist form in position 1 is is not implemented yet.",
         "mulsep": "Multiple separators form is not implemented yet.",

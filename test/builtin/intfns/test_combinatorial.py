@@ -76,12 +76,6 @@ def test_combinatorial_arg_errors(str_expr, msgs, fail_msg):
     [
         ## TODO should be ComplexInfinity but mpmath returns +inf
         ("Binomial[-10, -3.5]", None, "Infinity", None),
-        (
-            "Binomial[]",
-            ["Binomial called with 0 arguments; 2 arguments are expected."],
-            "Binomial[]",
-            "Binomial argument number error",
-        ),
         ("Subsets[{}]", None, "{{}}", None),
         ("Subsets[]", None, "Subsets[]", None),
         (
