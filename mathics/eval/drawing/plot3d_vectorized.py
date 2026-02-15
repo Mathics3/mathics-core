@@ -14,6 +14,7 @@ from mathics.core.symbols import strip_context
 from mathics.core.systemsymbols import (
     SymbolAbsoluteThickness,
     SymbolEqual,
+    SymbolFull,
     SymbolNone,
     SymbolRGBColor,
     SymbolSubtract,
@@ -222,6 +223,33 @@ def eval_DensityPlot(
     return make_surfaces(plot_options, evaluation, dim=2, is_complex=False, emit=emit)
 
 
+def equations_to_contours(plot_options):
+    """
+    For contour plots, convert functions of the form f==g to f-g,
+    and adjust contours to [0] and disable background
+    """
+    for i, f in enumerate(plot_options.functions):
+        if hasattr(f, "head") and f.head == SymbolEqual:
+            f = Expression(SymbolSubtract, *f.elements[0:2])
+            plot_options.functions[i] = f
+            plot_options.contours = [0]
+            plot_options.background = False
+
+
+def choose_contour_levels(plot_options, vmin, vmax, default):
+    levels = plot_options.contours
+    if isinstance(levels, str):
+        # TODO: need to pick "nice" number so levels have few digits
+        # an odd number ensures there is a contour at 0 if range is balanced
+        levels = default
+    if isinstance(levels, int):
+        # computed contour levels have equal distance between them,
+        # and half that between first/last contours and vmin/vmax
+        dv = (vmax - vmin) / levels
+        levels = vmin + np.arange(levels) * dv + dv / 2
+    return levels
+
+
 @Timer("eval_ContourPlot")
 def eval_ContourPlot(
     plot_options,
@@ -230,21 +258,14 @@ def eval_ContourPlot(
     import skimage.measure
 
     # whether to show a background similar to density plot, except quantized
-    background = len(plot_options.functions) == 1
-    contour_levels = plot_options.contours
+    plot_options.background = len(plot_options.functions) == 1
 
-    # convert fs of the form a==b to a-b, inplicit contour level 0
-    plot_options.functions = list(plot_options.functions)  # so we can modify it
-    for i, f in enumerate(plot_options.functions):
-        if hasattr(f, "head") and f.head == SymbolEqual:
-            f = Expression(SymbolSubtract, *f.elements[0:2])
-            plot_options.functions[i] = f
-            contour_levels = [0]
-            background = False
+    # adjust functions, contours, and background for functions of the form f==g
+    equations_to_contours(plot_options)
 
     def emit(graphics, i, xyzs, _, quads):
         # set line color
-        if background:
+        if plot_options.background:
             # showing a background, so just black lines
             color_directive = [SymbolRGBColor, 0, 0, 0]
         else:
@@ -259,17 +280,8 @@ def eval_ContourPlot(
         zs = xyzs[:, 2]  # this is a linear list matching with quads
 
         # process contour_levels
-        levels = contour_levels
         zmin, zmax = np.min(zs), np.max(zs)
-        if isinstance(levels, str):
-            # TODO: need to pick "nice" number so levels have few digits
-            # an odd number ensures there is a contour at 0 if range is balanced
-            levels = 9
-        if isinstance(levels, int):
-            # computed contour levels have equal distance between them,
-            # and half that between first/last contours and zmin/zmax
-            dz = (zmax - zmin) / levels
-            levels = zmin + np.arange(levels) * dz + dz / 2
+        levels = choose_contour_levels(plot_options, zmin, zmax, default=9)
 
         # one contour line per contour level
         for level in levels:
@@ -285,7 +297,7 @@ def eval_ContourPlot(
                 graphics.add_linexyzs(segment)
 
         # background is solid colors between contour lines
-        if background:
+        if plot_options.background:
             with Timer("contour background"):
                 # use masks and fancy indexing to assign (lo+hi)/2 to all zs between lo and hi
                 zs[zs <= levels[0]] = zmin
@@ -299,6 +311,81 @@ def eval_ContourPlot(
 
     # plot_options.plot_points = [n * 10 for n in plot_options.plot_points]
     return make_surfaces(plot_options, evaluation, dim=2, is_complex=False, emit=emit)
+
+
+@Timer("eval_ContourPlot3D")
+def eval_ContourPlot3D(
+    plot_options,
+    evaluation: Evaluation,
+):
+    import skimage.measure
+
+    # adjust functions, contours, and background for functions of the form f==g
+    equations_to_contours(plot_options)
+
+    # pull out options
+    _, xmin, xmax = plot_options.ranges[0]
+    _, ymin, ymax = plot_options.ranges[1]
+    _, zmin, zmax = plot_options.ranges[2]
+    nx, ny, nz = plot_options.plot_points
+    names = [strip_context(str(r[0])) for r in plot_options.ranges]
+
+    # compile the functions
+    with Timer("compile"):
+        compiled_functions = compile_exprs(evaluation, plot_options.functions, names)
+
+    # construct (nx,ny,nz) grid
+    xs = np.linspace(xmin, xmax, nx)
+    ys = np.linspace(ymin, ymax, ny)
+    zs = np.linspace(zmin, zmax, nz)
+    xs, ys, zs = np.meshgrid(xs, ys, zs)
+
+    # just one function
+    function = compiled_functions[0]
+
+    # compute function values fs over the grid
+    with Timer("compute fs"):
+        fs = function(**{n: v for n, v in zip(names, [xs, ys, zs])})
+
+    # process contour_levels
+    fmin, fmax = np.min(fs), np.max(fs)
+    levels = choose_contour_levels(plot_options, fmin, fmax, default=7)
+
+    # find contour for each level and emit it
+    graphics = GraphicsGenerator(dim=3)
+    for i, level in enumerate(levels):
+        color_directive = palette_color_directive(palette3, i)
+        graphics.add_directives(color_directive)
+
+        # find contour for this level
+        with Timer("3d contours"):
+            verts, faces, normals, values = skimage.measure.marching_cubes(fs, level)
+            verts[:, (0, 1)] = verts[:, (1, 0)]  # skimage bug?
+
+        # marching_cubes gives back coordinates relative to grid unit, so rescale to x, y, z
+        offset = [xmin, ymin, zmin]
+        scale = [
+            (xmax - xmin) / (nx - 1),
+            (ymax - ymin) / (ny - 1),
+            (zmax - zmin) / (nz - 1),
+        ]
+        verts = np.array(offset) + verts * np.array(scale)
+
+        # WL is 1-based
+        faces += 1
+
+        # emit faces as GraphicsComplex
+        graphics.add_complex(verts, lines=None, polys=faces, colors=None)
+
+        # emit mesh as GraphicsComplex
+        # TODO: this should share vertices with previous GraphicsComplex
+        if plot_options.mesh is SymbolFull:
+            # TODO: each segment emitted twice - is there reasonable way to fix?
+            lines = np.array([faces[:, [0, 1]], faces[:, [1, 2]], faces[:, [2, 0]]])
+            graphics.add_directives([SymbolRGBColor, 0, 0, 0])
+            graphics.add_complex(verts, lines=lines, polys=None, colors=None)
+
+    return graphics
 
 
 @Timer("complex colors")

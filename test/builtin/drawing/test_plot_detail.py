@@ -253,7 +253,7 @@ def one_test(name: str, str_expr: str, vec: bool, svg: bool, opts: str):
             boxed_expr = Expression(Symbol("System`ToBoxes"), act_expr).evaluate(
                 session.evaluation
             )
-            act_svg = boxed_expr.boxes_to_svg()
+            act_svg = boxed_expr.boxes_to_format("svg")
             act_svg = outline_svg(
                 act_svg, precision=2, include_text=True, include_tail=True
             )
@@ -271,7 +271,7 @@ def one_test(name: str, str_expr: str, vec: bool, svg: bool, opts: str):
             boxed_expr = Expression(Symbol("System`ToBoxes"), act_expr).evaluate(
                 session.evaluation
             )
-            act_svg = boxed_expr.boxes_to_svg()
+            act_svg = boxed_expr.boxes_to_format("svg")
             act_svg = inject_font_style(act_svg)
             cairosvg.svg2png(
                 bytestring=act_svg.encode("utf-8"),
@@ -370,7 +370,7 @@ def test_yaml(parms):
     one_test(**parms)
 
 
-def do_test_all(fns):
+def do_test_all(fns, names=None):
     # several of these tests failed on pyodide due to apparent differences
     # in numpy (and/or the blas library backing it) between pyodide and other platforms
     # including numerical instability, different data types (integer vs real)
@@ -378,7 +378,8 @@ def do_test_all(fns):
     # simpler than these doc_tests
     if not pyodide:
         for parms in all_yaml_tests_generator(fns):
-            one_test(**parms)
+            if not names or parms["name"] in names:
+                one_test(**parms)
 
 
 if __name__ == "__main__":
@@ -391,7 +392,14 @@ if __name__ == "__main__":
     UPDATE_MODE = args.update
 
     try:
-        do_test_all(args.files)
+        if args.files:
+            for fn in args.files:
+                split = fn.split(":")
+                fn = split[0]
+                names = split[1].split(",") if len(split) > 1 else None
+                do_test_all([fn], names)
+        else:
+            do_test_all(YAML_TESTS)
     except AssertionError as oops:
         print(oops)
         print("FAIL")

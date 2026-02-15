@@ -407,6 +407,10 @@ class BoxElementMixin(ImmutableValueMixin):
     elements
     """
 
+    @property
+    def is_multiline(self) -> bool:
+        return True
+
     def boxes_to_format(self, format: str, **options) -> str:
         from mathics.core.formatter import boxes_to_format
 

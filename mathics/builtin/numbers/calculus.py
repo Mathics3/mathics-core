@@ -417,13 +417,12 @@ class Derivative(PostfixOperator, SympyFunction):
             r'  "\[Prime]\[Prime]", If[{n} === {1}, "\[Prime]", '
             r'    RowBox[{"(", Sequence @@ Riffle[{n}, ","], ")"}]]]]'
         ),
-        "MakeBoxes[Derivative[n:1|2][f_], form:OutputForm]": """RowBox[{MakeBoxes[f, form], If[n==1, "'", "''"]}]""",
         # The following rules should be applied in the eval method, instead of relying on the pattern matching
         # mechanism.
         "Derivative[0...][f_]": "f",
         "Derivative[n__Integer][Derivative[m__Integer][f_]] /; Length[{m}] "
         "== Length[{n}]": "Derivative[Sequence @@ ({n} + {m})][f]",
-        "Derivative[n__Integer][Alternatives[_Integer|_Rational|_Real|_Complex]]": "0 &",
+        "Derivative[n__Integer][_Integer|_Rational|_Real|_Complex]": "0 &",
         # The following rule tries to evaluate a derivative of a pure function by applying it to a list
         # of symbolic elements and use the rules in `D`.
         # The rule just applies if f is not a locked symbol, and it does not have a previous definition
@@ -492,7 +491,7 @@ class Derivative(PostfixOperator, SympyFunction):
         super(Derivative, self).__init__(*args, **kwargs)
 
     def eval_locked_symbols(self, n, **kwargs):
-        """Derivative[n__Integer][Alternatives[True|False|Symbol|TooBig|$Aborted|Removed|Locked|$PrintLiteral|$Off]]/; True"""
+        """Derivative[n__Integer][True|False|Symbol|TooBig|$Aborted|Removed|Locked|$PrintLiteral|$Off]/; True"""
         # Conditionals always come first...
         # Prevents the evaluation for True, False, and other Locked symbols
         # as function names. This produces a recursion error in the evaluation rule for Derivative.
@@ -1008,8 +1007,8 @@ class Integrate(SympyFunction):
      = Integrate[1, {x, Infinity, 0}]
 
     Here how is an example of converting integral equation to TeX:
-    >> Integrate[f[x], {x, a, b}] // TeXForm
-     = \int_a^b f\left(x\right) \, dx
+    >> Integrate[f[x^2], {x, a, b}] // TeXForm
+     = \int_a^b f\left(x^2\right) \, dx
 
     Sometimes there is a loss of precision during integration.
     You can check the precision of your result with the following sequence \
@@ -1087,10 +1086,11 @@ class Integrate(SympyFunction):
     def eval(self, f, xs, evaluation: Evaluation, options: dict):  # type: ignore[override]
         "Integrate[f_, xs__, OptionsPattern[]]"
         f_sympy = f.to_sympy()
-        if f_sympy.is_infinite:
-            return Expression(SymbolIntegrate, Integer1, xs).evaluate(evaluation) * f
         if f_sympy is None or isinstance(f_sympy, SympyExpression):
             return
+
+        if f_sympy.is_infinite:
+            return Expression(SymbolIntegrate, Integer1, xs).evaluate(evaluation) * f
         xs = xs.get_sequence()
         vars = []
         prec = None

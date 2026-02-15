@@ -23,11 +23,19 @@ from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.util import canonic_filename
 from mathics.settings import ROOT_DIR
 
-# The contents of $OutputForms. FormMeta in mathics.base.forms adds to this.
-OutputForms: Set[Symbol] = set()
+# Collections of format symbols. Here we load some basic cases.
+# More symbols are populated from FormMeta classes (see `mathics.builtin.forms.base`)
 
-# The contents of $PrintForms. FormMeta in mathics.base.forms adds to this.
-PrintForms: Set[Symbol] = set()
+# The contents of $BoxForms.
+BOX_FORMS: Set[Symbol] = set()
+
+# The contents of $PrintForms.
+PRINT_FORMS: Set[Symbol] = set()
+# PRINT_FORMS.update(BOX_FORMS)
+
+# The contents of $OutputForms.
+OUTPUT_FORMS: Set[Symbol] = set()
+# OUTPUT_FORMS.update(PRINT_FORMS)
 
 
 class Definition:
@@ -167,19 +175,9 @@ class Definitions:
         self.trace_show_rewrite = False
         self.timing_trace_evaluation = False
 
-        # Importing "mathics.format.render" populates the Symbol of the
-        # PrintForms and OutputForms sets.
-        #
-        # If "importlib" is used instead of "import", then we get:
-        #   TypeError: boxes_to_text() takes 1 positional argument but
-        #   2 were given
-        # Rocky: this smells of something not quite right in terms of
-        # modularity.
-
-        import mathics.format.render  # noqa
-
-        self.printforms = list(PrintForms)
-        self.outputforms = list(OutputForms)
+        self.boxforms = list(BOX_FORMS)
+        self.printforms = list(PRINT_FORMS)
+        self.outputforms = list(OUTPUT_FORMS)
 
         if add_builtin:
             load_builtin_definitions(self, builtin_filename, extension_modules)
@@ -787,6 +785,19 @@ class Definitions:
     def unset(self, name: str, expr: BaseElement) -> bool:
         """Remove the rule corresponding to the expression `expr` in
         the definition of Symbol `name`"""
+        # These special symbol names are stored
+        # as attributes of the `Definitions` object.
+        # If this grows, maybe we should split this code.
+        if name == "System`$BoxForms":
+            self.boxforms = list(BOX_FORMS)
+            return True
+        if name == "System`$PrintForms":
+            self.printforms = list(PRINT_FORMS)
+            return True
+        if name == "System`$OutputForms":
+            self.outputforms = list(OUTPUT_FORMS)
+            return True
+
         definition = self.get_user_definition(self.lookup_name(name))
         result = definition.remove_rule(expr)
         self.mark_changed(definition)
