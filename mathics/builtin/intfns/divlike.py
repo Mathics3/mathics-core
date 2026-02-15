@@ -10,6 +10,7 @@ from typing import List
 import sympy
 from sympy import Q, ask
 
+import mathics.eval.tracing as tracing
 from mathics.core.atoms import Integer
 from mathics.core.attributes import (
     A_FLAT,
@@ -130,7 +131,7 @@ class GCD(Builtin):
             value = n.value
             if value is None:
                 return
-            result = sympy.gcd(result, value)
+            result = tracing.run_sympy(sympy.gcd, result, value)
         return Integer(result)
 
 
@@ -169,7 +170,7 @@ class LCM(Builtin):
             value = n.value
             if value is None:
                 return
-            result = sympy.lcm(result, value)
+            result = tracing.run_sympy(sympy.lcm, result, value)
         return Integer(result)
 
 

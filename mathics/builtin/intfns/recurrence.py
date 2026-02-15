@@ -8,9 +8,9 @@ terms are given; each further term of the sequence or array is defined \
 as a function of the preceding terms.
 """
 
-
 from sympy.functions.combinatorial.numbers import stirling
 
+import mathics.eval.tracing as tracing
 from mathics.core.atoms import Integer
 from mathics.core.attributes import (
     A_LISTABLE,
@@ -22,46 +22,91 @@ from mathics.core.builtin import Builtin, MPMathFunction
 from mathics.core.evaluation import Evaluation
 
 
+class BernoulliB(MPMathFunction):
+    """
+    <url>:Bernoulli number:
+    https://en.wikipedia.org/wiki/Bernoulli_number</url> (<url>:WMA link:https://reference.wolfram.com/language/ref/BernoulliB.html</url>)
+
+     <dl>
+       <dt>'BernoulliB'[$n$]
+       <dd>represents the Bernoulli number $B_n$.
+
+       <dt>'BernouilliB'[$n$, $x$]
+       <dd>represents the Bernoulli polynomial $B_n(x)$.
+     </dl>
+
+     >> BernoulliB[42]
+      = 1520097643918070802691 / 1806
+
+     First five Bernoulli numbers:
+
+     >> Table[BernoulliB[k], {k, 0, 5}]
+      = ...
+
+     ## This must be (according to WMA)
+     ## = {1, -1 / 2, 1 / 6, 0, -1 / 30, 0}
+     ## but for some reason, in the CI the previous test produces
+     ## the output:
+     ## {1, 1 / 2, 1 / 6, 0, -1 / 30, 0}
+
+     First five Bernoulli polynomials:
+
+     >> Table[BernoulliB[k, z], {k, 0, 3}]
+      = {1, -1 / 2 + z, 1 / 6 - z + z ^ 2, z / 2 - 3 z ^ 2 / 2 + z ^ 3}
+    """
+
+    attributes = A_LISTABLE | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
+    mpmath_name = "bernoulli"
+    nargs = {1, 2}
+    summary_text = "Bernoulli numbers and polynomials"
+    sympy_name = "bernoulli"
+
+
 class Fibonacci(MPMathFunction):
     """
-    <url>
-    :Fibonacci Sequence:
-    https://en.wikipedia.org/wiki/Fibonacci_sequence</url>, <url>(
-    :WMA link:https://reference.wolfram.com/language/ref/Fibonacci.html</url>)
+     <url>
+     :Fibonacci Sequence:
+     https://en.wikipedia.org/wiki/Fibonacci_sequence</url> and <url>
+    :Fibonacci polynomials:
+     https://en.wikipedia.org/wiki/Fibonacci_polynomials</url> (<url>
+     :WMA link:https://reference.wolfram.com/language/ref/Fibonacci.html</url>)
 
-    <dl>
-      <dt>'Fibonacci'[$n$]
-      <dd>computes the $n$-th Fibonacci number.
-      <dt>'Fibonacci'[$n$, $x$]
-      <dd>computes the Fibonacci polynomial $F_n(x)$.
-    </dl>
+     <dl>
+       <dt>'Fibonacci'[$n$]
+       <dd>computes the $n$-th Fibonacci number.
+       <dt>'Fibonacci'[$n$, $x$]
+       <dd>computes the Fibonacci polynomial $F_n(x)$.
+     </dl>
 
-    >> Fibonacci[0]
-     = 0
-    >> Fibonacci[1]
-     = 1
-    >> Fibonacci[10]
-     = 55
-    >> Fibonacci[200]
-     = 280571172992510140037611932413038677189525
-    >> Fibonacci[7, x]
-     = 1 + 6 x ^ 2 + 5 x ^ 4 + x ^ 6
+     >> Fibonacci[0]
+      = 0
+     >> Fibonacci[1]
+      = 1
+     >> Fibonacci[10]
+      = 55
+     >> Fibonacci[200]
+      = 280571172992510140037611932413038677189525
+     >> Fibonacci[7, x]
+      = 1 + 6 x ^ 2 + 5 x ^ 4 + x ^ 6
 
-    See also <url>
-    :LinearRecurrence:
-    /doc/reference-of-built-in-symbols/integer-functions/recurrence-and-sum-functions/linearrecurrence</url>.
+     See also <url>
+     :LinearRecurrence:
+     /doc/reference-of-built-in-symbols/integer-functions/recurrence-and-sum-functions/linearrecurrence</url>.
     """
 
-    nargs = {1}
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
-    sympy_name = "fibonacci"
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
     mpmath_name = "fibonacci"
-    summary_text = "Fibonacci's numbers"
-
+    nargs = {1}
     rules = {
         "Fibonacci[0, x_]": "0",
         "Fibonacci[n_Integer?Negative, x_]": "Fibonacci[-n, x]",
     }
+    summary_text = "Fibonacci sequences and polynomials"
+    sympy_name = "fibonacci"
 
 
 class HarmonicNumber(MPMathFunction):
@@ -81,19 +126,22 @@ class HarmonicNumber(MPMathFunction):
      = 2.03806
     """
 
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_READ_PROTECTED | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
+    mpmath_name = "harmonic"
     rules = {
         "HarmonicNumber[-1]": "ComplexInfinity",
     }
     summary_text = "Harmonic numbers"
-    mpmath_name = "harmonic"
     sympy_name = "harmonic"
 
 
 class LinearRecurrence(Builtin):
     """
     <url>:Linear recurrence with constant coefficients:
-      https://en.wikipedia.org/wiki/Linear_recurrence_with_constant_coefficients</url>, <url>
-      :WMA link:https://reference.wolfram.com/language/ref/LinearRecurrence.html</url>
+      https://en.wikipedia.org/wiki/Linear_recurrence_with_constant_coefficients</url> (<url>
+      :WMA link:https://reference.wolfram.com/language/ref/LinearRecurrence.html</url>)
 
     <dl>
       <dt>'LinearRecurrence'[$ker$, $init$, $n$]
@@ -124,13 +172,15 @@ class LinearRecurrence(Builtin):
     """
 
     attributes = A_PROTECTED | A_READ_PROTECTED
-    summary_text = "linear recurrence"
+    eval_error = Builtin.generic_argument_error
+    expected_args = 3
 
     rules = {
         "LinearRecurrence[ker_List, init_List, n_Integer]": "Nest[Append[#, Reverse[ker] . Take[#, -Length[ker]]] &, init, n - Length[init]]",
         "LinearRecurrence[ker_List, init_List, {n_Integer?Positive}]": "LinearRecurrence[ker, init, n][[n]]",
         "LinearRecurrence[ker_List, init_List, {nmin_Integer?Positive, nmax_Integer?Positive}]": "LinearRecurrence[ker, init, nmax][[nmin;;nmax]]",
     }
+    summary_text = "linear recurrence"
 
 
 # Note: WL allows StirlingS1[{2, 4, 6}, 2], but we don't (yet).
@@ -155,17 +205,18 @@ class StirlingS1(Builtin):
     """
 
     attributes = A_LISTABLE | A_PROTECTED
-
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
+    mpmath_name = "stirling1"
     nargs = {2}
     summary_text = "Stirling numbers of the first kind"
     sympy_name = "functions.combinatorial.stirling"
-    mpmath_name = "stirling1"
 
     def eval(self, n: Integer, m: Integer, evaluation: Evaluation):
-        "%(name)s[n_Integer, m_Integer]"
-        n_value = n.value
-        m_value = m.value
-        return Integer(stirling(n_value, m_value, kind=1, signed=True))
+        "StirlingS1[n_Integer, m_Integer]"
+        return Integer(
+            tracing.run_sympy(stirling, n.value, m.value, kind=1, signed=True)
+        )
 
 
 class StirlingS2(Builtin):
@@ -188,13 +239,13 @@ class StirlingS2(Builtin):
     """
 
     attributes = A_LISTABLE | A_PROTECTED
-    nargs = {2}
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
     sympy_name = "functions.combinatorial.numbers.stirling"
     mpmath_name = "stirling2"
+    nargs = {2}
     summary_text = "Stirling numbers of the second kind"
 
     def eval(self, m: Integer, n: Integer, evaluation: Evaluation):
-        "%(name)s[n_Integer, m_Integer]"
-        n_value = n.value
-        m_value = m.value
-        return Integer(stirling(n_value, m_value, kind=2))
+        "StirlingS2[n_Integer, m_Integer]"
+        return Integer(tracing.run_sympy(stirling, n.value, m.value, kind=2))
