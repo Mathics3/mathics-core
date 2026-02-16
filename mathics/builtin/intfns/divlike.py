@@ -5,7 +5,7 @@ Division-Related Functions
 """
 
 import sys
-from typing import List
+from typing import List, Optional
 
 import sympy
 from sympy import Q, ask
@@ -30,6 +30,7 @@ from mathics.core.systemsymbols import (
     SymbolQuotient,
     SymbolQuotientRemainder,
 )
+from mathics.eval.intfns.divlike import eval_GCD, eval_LCM, eval_ModularInverse
 
 
 class CompositeQ(Builtin):
@@ -121,17 +122,10 @@ class GCD(Builtin):
     attributes = A_FLAT | A_LISTABLE | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
     summary_text = "greatest common divisor"
 
-    def eval(self, ns, evaluation: Evaluation):
+    def eval(self, ns, evaluation: Evaluation) -> Optional[Integer]:
         "GCD[ns___Integer]"
 
-        ns = ns.get_sequence()
-        result = 0
-        for n in ns:
-            value = n.value
-            if value is None:
-                return
-            result = sympy.gcd(result, value)
-        return Integer(result)
+        return eval_GCD(ns.get_sequence())
 
 
 class LCM(Builtin):
@@ -157,20 +151,14 @@ class LCM(Builtin):
     }
     summary_text = "least common multiple"
 
-    def eval(self, ns: List[Integer], evaluation: Evaluation):
+    def eval(self, ns: List[Integer], evaluation: Evaluation) -> Optional[Integer]:
         "LCM[ns___Integer]"
 
-        ns = ns.get_sequence()
-        if len(ns) == 0:
+        ns_tuple = ns.get_sequence()
+        if len(ns_tuple) == 0:
             evaluation.message("LCM", "argm")
             return
-        result = 1
-        for n in ns:
-            value = n.value
-            if value is None:
-                return
-            result = sympy.lcm(result, value)
-        return Integer(result)
+        return eval_LCM(ns_tuple)
 
 
 class Mod(SympyFunction):
@@ -247,13 +235,9 @@ class ModularInverse(SympyFunction):
     summary_text = "returns the modular inverse $k^(-1)$ mod $n$"
     sympy_name = "mod_inverse"
 
-    def eval_k_n(self, k: Integer, n: Integer, evaluation: Evaluation):
+    def eval(self, k: Integer, n: Integer, evaluation: Evaluation) -> Optional[Integer]:
         "ModularInverse[k_Integer, n_Integer]"
-        try:
-            r = sympy.mod_inverse(k.value, n.value)
-        except ValueError:
-            return
-        return Integer(r)
+        return eval_ModularInverse(k.value, n.value)
 
 
 class PowerMod(Builtin):
