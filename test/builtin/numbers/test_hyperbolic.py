@@ -1,6 +1,6 @@
 ## -*- coding: utf-8 -*-
 """
-Unit tests for mathics.builtins.numbers.hyperbolic and 
+Unit tests for mathics.builtins.numbers.hyperbolic and
 mathics.builtins.numbers.exp
 
 These simple verify various rules from

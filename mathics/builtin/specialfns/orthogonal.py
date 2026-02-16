@@ -6,7 +6,6 @@ See also <url>
 https://dlmf.nist.gov/18.3</url>.
 """
 
-
 from mathics.core.atoms import Integer0
 from mathics.core.builtin import MPMathFunction
 

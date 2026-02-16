@@ -115,11 +115,10 @@ if fragile_tests:
         format_result = result.format(session.evaluation, form)
         if msg:
             assert (
-                format_result.boxes_to_text(evaluation=session.evaluation)
-                == str_expected
+                format_result.to_text(evaluation=session.evaluation) == str_expected
             ), msg
         else:
-            strresult = format_result.boxes_to_text(evaluation=session.evaluation)
+            strresult = format_result.to_text(evaluation=session.evaluation)
             assert strresult == str_expected
 
 
@@ -131,11 +130,9 @@ def test_makeboxes_text(str_expr, str_expected, form, msg):
     result = session.evaluate(str_expr)
     format_result = result.format(session.evaluation, form)
     if msg:
-        assert (
-            format_result.boxes_to_text(evaluation=session.evaluation) == str_expected
-        ), msg
+        assert format_result.to_text(evaluation=session.evaluation) == str_expected, msg
     else:
-        strresult = format_result.boxes_to_text(evaluation=session.evaluation)
+        strresult = format_result.to_text(evaluation=session.evaluation)
         assert strresult == str_expected
 
 
@@ -153,13 +150,13 @@ if fragile_tests:
         format_result = result.format(session.evaluation, form)
         if msg:
             assert (
-                format_result.boxes_to_tex(
+                format_result.to_tex(
                     show_string_characters=False, evaluation=session.evaluation
                 ).strip()
                 == str_expected.strip()
             ), msg
         else:
-            strresult = format_result.boxes_to_tex(evaluation=session.evaluation)
+            strresult = format_result.to_tex(evaluation=session.evaluation)
             assert strresult.strip() == str_expected.strip()
 
 
@@ -172,13 +169,13 @@ def test_makeboxes_tex(str_expr, str_expected, form, msg):
     format_result = result.format(session.evaluation, form)
     if msg:
         assert (
-            format_result.boxes_to_tex(
+            format_result.to_tex(
                 show_string_characters=False, evaluation=session.evaluation
             ).strip()
             == str_expected.strip()
         ), msg
     else:
-        strresult = format_result.boxes_to_text(evaluation=session.evaluation).strip()
+        strresult = format_result.to_text(evaluation=session.evaluation).strip()
         assert strresult == str_expected
 
 
@@ -196,11 +193,10 @@ if fragile_tests:
         format_result = result.format(session.evaluation, form)
         if msg:
             assert (
-                format_result.boxes_to_mathml(evaluation=session.evaluation)
-                == str_expected
+                format_result.to_mathml(evaluation=session.evaluation) == str_expected
             ), msg
         else:
-            strresult = format_result.boxes_to_mathml(evaluation=session.evaluation)
+            strresult = format_result.to_mathml(evaluation=session.evaluation)
             assert strresult == str_expected
 
 
@@ -213,10 +209,10 @@ def test_makeboxes_mathml(str_expr, str_expected, form, msg):
     format_result = result.format(session.evaluation, form)
     if msg:
         assert (
-            format_result.boxes_to_mathml(evaluation=session.evaluation) == str_expected
+            format_result.to_mathml(evaluation=session.evaluation) == str_expected
         ), msg
     else:
-        strresult = format_result.boxes_to_mathml(evaluation=session.evaluation)
+        strresult = format_result.to_mathml(evaluation=session.evaluation)
         assert strresult == str_expected
 
 
