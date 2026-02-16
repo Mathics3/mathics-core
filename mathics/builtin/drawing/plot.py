@@ -51,10 +51,16 @@ if os.getenv("MATHICS3_USE_VECTORIZED_PLOT", True):
 else:
     from mathics.eval.drawing.plot3d import eval_DensityPlot, eval_Plot3D
 
-
 # can be set via environment variable at startup time,
 # or changed dynamically by setting the use_vectorized_plot flag
-use_vectorized_plot = os.getenv("MATHICS3_USE_VECTORIZED_PLOT", False)
+use_vectorized_plot = os.getenv("MATHICS3_USE_VECTORIZED_PLOT", True)
+
+if use_vectorized_plot:
+    print("WOOT")
+    from mathics.eval.drawing.plot3d_vectorized import eval_DensityPlot, eval_Plot3D
+else:
+    from mathics.eval.drawing.plot3d import eval_DensityPlot, eval_Plot3D
+
 
 
 # get the plot eval function for the given class,
