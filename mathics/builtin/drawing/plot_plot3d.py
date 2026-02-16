@@ -220,7 +220,7 @@ class ContourPlot(_Plot3D):
     </dl>
 
     Colorize the regions where a function takes values close to different \
-    integer values
+   numeric values
     >> ContourPlot[x - y^3, {x, -2, 2}, {y, -1, 1}, AspectRatio->Automatic]
      = ...
 
