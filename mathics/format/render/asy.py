@@ -550,13 +550,8 @@ def polygon_3d_box(box: Polygon3DBox, **options) -> str:
     Asymptote formatting of a Polygon3DBox.
     """
 
-<<<<<<< HEAD:mathics/format/render/asy.py
-    breakpoint()
     if os.getenv("MATHICS3_USE_VECTORIZED_PLOT", True):
-=======
-    if os.getenv("MATHICS3_USE_VECTORIZED_PLOT", False):
->>>>>>> d7726751d (Merge stuff):mathics/format/asy.py
-        import mathics.format.asy_numpy.polyhedron_3d_box as polyhedron_3d_box_numpy
+        import mathics.format.render.asy_numpy.polyhedron_3d_box as polyhedron_3d_box_numpy
 
         return polyhedron_3d_box_numpy(box, **options)
 
@@ -762,7 +757,6 @@ def uniform_polyhedron_3d_box(box: UniformPolyhedron3DBox, **options) -> str:
     if os.environ.get("MATHICS3_USE_VECTORIZED_PLOT", False):
         import mathics.format.asy_numpy.uniform_polyhedron_3d_box as uniform_polyhedron_3d_box_numpy
 
-        breakpoint()
         return uniform_polyhedron_3d_box_numpy(box, **options)
     else:
         face_color = box.face_color.to_js() if box.face_color else (1, 1, 1)

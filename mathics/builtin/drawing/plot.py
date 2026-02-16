@@ -45,22 +45,10 @@ from mathics.eval.nevaluator import eval_N
 # Set option such as $UseVectorizedPlot, and maybe a non-standard Plot3D option.
 # For now an env variable is simplest.
 # TODO: work out exactly how to deploy.
-if os.getenv("MATHICS3_USE_VECTORIZED_PLOT", True):
-    print("WOOT")
-    from mathics.eval.drawing.plot3d_vectorized import eval_DensityPlot, eval_Plot3D
-else:
-    from mathics.eval.drawing.plot3d import eval_DensityPlot, eval_Plot3D
 
 # can be set via environment variable at startup time,
 # or changed dynamically by setting the use_vectorized_plot flag
 use_vectorized_plot = os.getenv("MATHICS3_USE_VECTORIZED_PLOT", True)
-
-if use_vectorized_plot:
-    print("WOOT")
-    from mathics.eval.drawing.plot3d_vectorized import eval_DensityPlot, eval_Plot3D
-else:
-    from mathics.eval.drawing.plot3d import eval_DensityPlot, eval_Plot3D
-
 
 
 # get the plot eval function for the given class,

@@ -30,10 +30,7 @@ from mathics.core.symbols import (
     SymbolRepeatedNull,
     SymbolTimes,
 )
-from mathics.core.systemsymbols import (
-    SymbolGraphicsComplex,
-    SymbolMinus,
-)
+from mathics.core.systemsymbols import SymbolMinus
 
 # These Strings are used in Boxing output
 StringElipsis = String("...")
@@ -162,8 +159,8 @@ def do_format_element(
 
         elif (
             head is not SymbolNumberForm
-            and not isinstance(expr, Expression)
-            and head not in (SymbolGraphics, SymbolGraphics3D, SymbolGraphicsComplex)
+            and isinstance(expr, Expression)
+            and head not in (SymbolGraphics, SymbolGraphics3D)
         ):
             new_elements = tuple(
                 (
