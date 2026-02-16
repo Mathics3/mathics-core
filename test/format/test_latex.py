@@ -1,4 +1,5 @@
 "test latex formatter"
+
 from test.helper import reset_session, session
 
 import pytest
@@ -14,9 +15,7 @@ def get_latex(wl_expression):
     wl_expression = session.evaluate(wl_expression)
     print(wl_expression)
     boxes = format_element(wl_expression, evaluation, SymbolStandardForm)
-    return boxes.boxes_to_tex(
-        show_string_characters=False, evaluation=evaluation
-    ).strip()
+    return boxes.to_tex(show_string_characters=False, evaluation=evaluation).strip()
 
 
 @pytest.mark.parametrize(

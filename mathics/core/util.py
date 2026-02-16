@@ -88,7 +88,7 @@ def subsets(items, min: int, max: Optional[int], included=None, less_first=False
 
 
 def subranges(
-    items, min_count, max, flexible_start=False, included=None, less_first=False
+    items, min_count, max, *, flexible_start=False, included=None, less_first=False
 ):
     """
     generator that yields possible divisions of items as

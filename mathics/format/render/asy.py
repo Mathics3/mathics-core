@@ -431,7 +431,7 @@ def inset_box(box: InsetBox, **options) -> str:
             alignment = "W"
 
     opacity_value = box.opacity.opacity if box.opacity else None
-    content = box.content.boxes_to_tex(evaluation=box.graphics.evaluation)
+    content = box.content.to_tex(evaluation=box.graphics.evaluation)
     # FIXME: don't hard code text_style_opts, but allow these to be adjustable.
     font_size = 3
     pen = asy_create_pens(

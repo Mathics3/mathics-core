@@ -109,7 +109,7 @@ def _generic_to_inputform_text(
         result = expr.atom_to_boxes(SymbolInputForm, evaluation)
         if isinstance(result, String):
             return result.value
-        return result.boxes_to_text(**kwargs)
+        return result.to_text(**kwargs)
     if isinstance(expr, BoxExpression):
         expr = expr.to_expression()
     elif not isinstance(expr, Expression):

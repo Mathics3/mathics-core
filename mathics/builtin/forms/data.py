@@ -9,6 +9,7 @@ or <url>:StandardForm:
 /doc/reference-of-built-in-symbols/forms-of-input-and-output/general-purpose-forms/standardform/</url>, \
 which are intended to work over all kinds of data.
 """
+
 from typing import Any, Callable, Dict, List, Optional
 
 from mathics.builtin.box.layout import RowBox, StyleBox, SuperscriptBox
@@ -104,7 +105,6 @@ class _NumberForm(Builtin):
     default_NumberFormat = None
     in_outputforms = True
     messages = {
-        "argm": ("`` called with `` arguments; 1 or more " "arguments are expected."),
         "argct": "`` called with `` arguments.",
         "npad": (
             "Value for option NumberPadding -> `1` should be a string or "

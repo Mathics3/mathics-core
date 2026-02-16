@@ -1,6 +1,7 @@
 """
 Base classes for Image Manipulation
 """
+
 from typing import Tuple
 
 import numpy
