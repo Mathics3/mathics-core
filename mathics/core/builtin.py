@@ -9,6 +9,7 @@ SympyFunction, MPMathFunction, etc.
 import importlib
 import importlib.util
 import re
+import sys
 from abc import ABC
 from functools import total_ordering
 from itertools import chain
@@ -473,14 +474,31 @@ class Builtin:
                     Integer(expected_args2),
                 )
         elif isinstance(self.expected_args, range):
-            evaluation.message(
-                name,
-                "argb",
-                Symbol(name),
-                Integer(got_arg_count),
-                Integer(self.expected_args.start),
-                Integer(self.expected_args.stop - 1),
-            )
+            if self.expected_args.stop == sys.maxsize:
+                if got_arg_count == 1:
+                    evaluation.message(
+                        name,
+                        "argmu",
+                        Symbol(name),
+                        Integer(self.expected_args.start),
+                    )
+                else:
+                    evaluation.message(
+                        name,
+                        "argm",
+                        Symbol(name),
+                        Integer(got_arg_count),
+                        Integer(self.expected_args.start),
+                    )
+            else:
+                evaluation.message(
+                    name,
+                    "argb",
+                    Symbol(name),
+                    Integer(got_arg_count),
+                    Integer(self.expected_args.start),
+                    Integer(self.expected_args.stop - 1),
+                )
         else:
             if self.expected_args == 1:
                 evaluation.message(name, "argx", Symbol(name), Integer(got_arg_count))

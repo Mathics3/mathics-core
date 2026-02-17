@@ -105,7 +105,6 @@ class _NumberForm(Builtin):
     default_NumberFormat = None
     in_outputforms = True
     messages = {
-        "argm": ("`` called with `` arguments; 1 or more " "arguments are expected."),
         "argct": "`` called with `` arguments.",
         "npad": (
             "Value for option NumberPadding -> `1` should be a string or "
