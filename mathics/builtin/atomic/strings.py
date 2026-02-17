@@ -398,8 +398,7 @@ class InterpretedBox(PrefixOperator):
         # handle these expressions.
         # In the first place, this should handle different kind
         # of boxes in different ways.
-        reinput = boxes.to_text()
-        return Expression(SymbolToExpression, String(reinput)).evaluate(evaluation)
+        return Expression(SymbolToExpression, boxes).evaluate(evaluation)
 
 
 class LetterNumber(Builtin):
