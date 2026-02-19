@@ -679,7 +679,7 @@ class StringForm(FormBaseClass):
      = `` is Global`a
 
     To use a 'Backquote' as a character, escape it with a backslash:
-    >> StringForm["`` is Global\`a", a]
+    >> StringForm["`` is Global\\`a", a]
      = a is Global`a
 
     Elements are formatted according the enclosing context:

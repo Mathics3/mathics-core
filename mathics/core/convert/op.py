@@ -15,7 +15,7 @@ except ImportError:
 
 
 # Load the conversion tables from disk
-characters_path = osp.join(ROOT_DIR, "data", "character-tables.json")
+characters_path = osp.join(ROOT_DIR, "data", "named-characters.json")
 assert osp.exists(
     characters_path
 ), f"ASCII operator to Unicode tables are missing from {characters_path}"

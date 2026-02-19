@@ -419,6 +419,8 @@ def test_output(str_expr, msgs, str_expected, fail_msg):
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "fail_msg", "msgs"),
     [
+        # FIXME: need to decide what to do here. In WMA you get:
+        # StringForm::sfq: Unmatched backquote in This is symbol \`..
         (
             'StringForm["This is symbol ``.", A]',
             '"This is symbol A."',
