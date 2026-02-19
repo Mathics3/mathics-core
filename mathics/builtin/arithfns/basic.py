@@ -15,6 +15,7 @@ from mathics.core.atoms import (
     IntegerM1,
     Number,
     RationalOneHalf,
+    String,
 )
 from mathics.core.attributes import (
     A_FLAT,
@@ -34,11 +35,21 @@ from mathics.core.builtin import (
 )
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolNull, SymbolPower, SymbolTimes
+from mathics.core.list import ListExpression
+from mathics.core.symbols import (
+    Symbol,
+    SymbolHoldForm,
+    SymbolNull,
+    SymbolPower,
+    SymbolTimes,
+    SymbolTrue,
+)
 from mathics.core.systemsymbols import (
     SymbolBlank,
     SymbolComplexInfinity,
     SymbolIndeterminate,
+    SymbolInfix,
+    SymbolLeft,
     SymbolPattern,
     SymbolSequence,
 )
@@ -144,7 +155,7 @@ class Divide(InfixOperator):
     expected_args = 2
 
     formats = {
-        (("InputForm", "OutputForm"), "Divide[x_, y_]"): (
+        ("InputForm", "Divide[x_, y_]"): (
             'Infix[{HoldForm[x], HoldForm[y]}, "/", 400, Left]'
         ),
     }
@@ -159,6 +170,24 @@ class Divide(InfixOperator):
     }
 
     summary_text = "divide a number"
+
+    def format_outputform(self, x, y, evaluation):
+        "(OutputForm,): Divide[x_, y_]"
+        use_2d = (
+            evaluation.definitions.get_ownvalues("System`$Use2DOutputForm")[0].replace
+            is SymbolTrue
+        )
+        if not use_2d:
+            return Expression(
+                SymbolInfix,
+                ListExpression(
+                    Expression(SymbolHoldForm, x), Expression(SymbolHoldForm, y)
+                ),
+                String("/"),
+                Integer(400),
+                SymbolLeft,
+            )
+        return None
 
 
 class Minus(PrefixOperator):
@@ -350,10 +379,21 @@ class Power(InfixOperator, MPMathFunction):
             Expression(SymbolPattern, Symbol("x"), Expression(SymbolBlank)),
             RationalOneHalf,
         ): "HoldForm[Sqrt[x]]",
-        (("InputForm", "OutputForm"), "x_ ^ y_"): (
+        (("InputForm",), "x_ ^ y_"): (
             'Infix[{HoldForm[x], HoldForm[y]}, "^", 590, Right]'
         ),
-        ("", "x_ ^ y_"): (
+        (("OutputForm",), "x_ ^ y_"): (
+            "If[$Use2DOutputForm, "
+            "Superscript[HoldForm[x], HoldForm[y]], "
+            'Infix[{HoldForm[x], HoldForm[y]}, "^", 590, Right]]'
+        ),
+        (
+            (
+                "StandardForm",
+                "TraditionalForm",
+            ),
+            "x_ ^ y_",
+        ): (
             "PrecedenceForm[Superscript[PrecedenceForm[HoldForm[x], 590],"
             "  HoldForm[y]], 590]"
         ),

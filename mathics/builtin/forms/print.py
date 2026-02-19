@@ -20,7 +20,7 @@ from mathics.core.expression import Expression
 from mathics.core.symbols import SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolInputForm, SymbolOutputForm
 from mathics.format.box.makeboxes import is_print_form_callback
-from mathics.format.form import render_input_form, render_output_form
+from mathics.format.form import render_input_form
 
 sort_order = "mathics.builtin.forms.general-purpose-forms"
 
@@ -257,7 +257,21 @@ def eval_makeboxes_outputform(expr: BaseElement, evaluation: Evaluation, **kwarg
     Build a 2D representation of the expression using only keyboard characters.
     """
 
-    text_outputform = str(render_output_form(expr, evaluation, **kwargs))
+    from mathics.builtin.box.layout import InterpretationBox
+    from mathics.format.form.outputform import render_output_form
+    from mathics.format.render.prettyprint import render_2d_text
+
+    if (
+        evaluation.definitions.get_ownvalues("System`$Use2DOutputForm")[0].replace
+        is SymbolTrue
+    ):
+        text_outputform = str(render_2d_text(expr, evaluation, **{"2d": True}))
+
+        if "\n" in text_outputform:
+            text_outputform = "\n" + text_outputform
+    else:  # 1D
+        text_outputform = str(render_output_form(expr, evaluation, **kwargs))
+
     pane = PaneBox(String('"' + text_outputform + '"'))
     return InterpretationBox(
         pane, Expression(SymbolOutputForm, expr), **{"System`Editable": SymbolFalse}
