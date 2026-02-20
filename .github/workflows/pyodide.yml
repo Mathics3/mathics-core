@@ -36,7 +36,9 @@ jobs:
           actions-cache-folder: emsdk-cache
 
       - name: Install pyodide-build
-        run: pip install pyodide-build
+        run: |
+          pip install -U setuptools
+          pip install pyodide-build
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -54,9 +56,17 @@ jobs:
 
           pip install "setuptools>=70.0.0" PyYAML click packaging pytest
 
+      - name: Install dependent Mathics3 programs
+        run: |
           # We can comment out after next Mathics-Scanner release
-          python -m pip install --no-build-isolation -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner
-
+          git clone --depth 1 https://github.com/Mathics3/mathics-scanner.git
+          cd mathics-scanner/
+          pip install -e .
+          bash -x admin-tools/make-JSON-tables.sh
+          cd ..
+      - name: Install Mathics3
+        run: |
           pip install --no-build-isolation -e .
-          bash ./admin-tools/make-JSON-tables.sh
+          bash -x admin-tools/make-JSON-tables.sh
+          python -m pip install pytest
           make -j3 check
