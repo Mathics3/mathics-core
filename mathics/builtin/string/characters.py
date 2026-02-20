@@ -28,6 +28,8 @@ class Characters(Builtin):
     """
 
     attributes = A_LISTABLE | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
     summary_text = "list the characters in a string"
 
     def eval(self, string: String, evaluation: Evaluation) -> ListExpression:

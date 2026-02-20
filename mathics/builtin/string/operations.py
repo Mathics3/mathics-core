@@ -360,6 +360,8 @@ class StringLength(Builtin):
     """
 
     attributes = A_LISTABLE | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
 
     summary_text = "length of a string (in Unicode characters)"
 

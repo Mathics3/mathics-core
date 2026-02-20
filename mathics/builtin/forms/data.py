@@ -699,7 +699,7 @@ class StringForm(FormBaseClass):
     }
     summary_text = "format a string from a template and a list of parameters"
 
-    def eval_makeboxes(self, s, args, form, evaluation):
+    def eval_makeboxes(self, s: String, args, form, evaluation: Evaluation):
         """MakeBoxes[StringForm[s_String, args___],
         form:StandardForm|TraditionalForm]"""
         try:
