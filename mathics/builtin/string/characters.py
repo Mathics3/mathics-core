@@ -7,9 +7,9 @@ Characters in Strings
 from mathics.core.atoms import String
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Test
-from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
+from mathics.eval.string.characters import eval_Characters
 
 
 class Characters(Builtin):
@@ -30,10 +30,10 @@ class Characters(Builtin):
     attributes = A_LISTABLE | A_PROTECTED
     summary_text = "list the characters in a string"
 
-    def eval(self, string, evaluation: Evaluation):
+    def eval(self, string: String, evaluation: Evaluation) -> ListExpression:
         "Characters[string_String]"
 
-        return to_mathics_list(*string.value, elements_conversion_fn=String)
+        return eval_Characters(string.value)
 
 
 class CharacterRange(Builtin):
