@@ -865,6 +865,8 @@ class StringTake(Builtin):
         "take": 'Cannot take positions `1` through `2` in "`3`".',
     }
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
     summary_text = "sub-string from a range of positions"
 
     def eval(self, string: String, seqspec, evaluation: Evaluation):
@@ -896,7 +898,7 @@ class StringTake(Builtin):
 
         return String(result[py_slice])
 
-    def eval_strings(self, strings, spec, evaluation):
+    def eval_strings(self, strings, spec, evaluation: Evaluation):
         "StringTake[strings__, spec_]"
         result_list = []
         for string in strings.elements:

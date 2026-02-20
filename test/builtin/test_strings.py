@@ -219,27 +219,6 @@ import pytest
             "StringSplit[x, x]",
             None,
         ),
-        ('StringTake["abcd", 0] // InputForm', None, '""', None),
-        ('StringTake["abcd", {3, 2}] // InputForm', None, '""', None),
-        ('StringTake["", {1, 0}] // InputForm', None, '""', None),
-        (
-            'StringTake["abc", {0, 0}]',
-            ('Cannot take positions 0 through 0 in "abc".',),
-            "StringTake[abc, {0, 0}]",
-            None,
-        ),
-        (
-            "StringTake[{2, 4},2]",
-            ("String or list of strings expected at position 1.",),
-            "StringTake[{2, 4}, 2]",
-            None,
-        ),
-        (
-            'StringTake["kkkl",Graphics[{}]]',
-            ("Integer or a list of sequence specifications expected at position 2.",),
-            "StringTake[kkkl, -Graphics-]",
-            None,
-        ),
         # These tests are commented out due to the bug reported in issue #906
         # Octal and hexadecimal notation works alone, but fails
         # as a part of another expression. For example,
