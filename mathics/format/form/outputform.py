@@ -8,6 +8,8 @@ and text terminals.
 import re
 from typing import Callable, Dict, List, Union
 
+from mathics_scanner.characters import replace_box_unicode_with_ascii
+
 from mathics.core.atoms import (
     Integer,
     Integer0,
@@ -861,8 +863,9 @@ def stringform_render_output_form(
     items = [render_output_form(item, evaluation, **kwargs) for item in items]
 
     curr_indx = 0
-    strform_str = safe_backquotes(strform.value)
+    strform_str = safe_backquotes(replace_box_unicode_with_ascii(strform.value))
     parts = strform_str.split("`")
+    # Rocky: This looks like a hack to me: is it needed?
     parts = [part.replace("\\[RawBackquote]", "`") for part in parts]
     result = [parts[0]]
     if len(parts) <= 1:

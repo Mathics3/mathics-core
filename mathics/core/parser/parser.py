@@ -137,7 +137,7 @@ class Parser:
         self.backtrack(pos)
 
     @property
-    def is_inside_rowbox(self) -> bool:
+    def is_inside_box_expression(self) -> bool:
         r"""
         Return True iff we parsing inside a RowBox, i.e. RowBox[...]
         or \( ... \)
@@ -264,7 +264,7 @@ class Parser:
         result = None
         new_result = None
         while True:
-            if self.is_inside_rowbox:
+            if self.is_inside_box_expression:
                 token = self.next_noend()
             else:
                 token = self.next()
@@ -430,15 +430,15 @@ class Parser:
 
         # Note: Number and String below are the mathics.core.parser's Number, String and Symbol,
         # not mathics.core.atom's Number and String, and Symbol.
-        if self.is_inside_rowbox and isinstance(result, Number):
+        if self.is_inside_box_expression and isinstance(result, Number):
             tag, pre_error, post_error = self.tokeniser.sntx_message(token.pos)
             raise InvalidSyntaxError(tag, pre_error, post_error)
 
         while True:
-            if self.bracket_depth > 0 or self.is_inside_rowbox:
+            if self.bracket_depth > 0 or self.is_inside_box_expression:
                 token = self.next_noend()
                 if token.tag in ("OtherscriptBox", "RightRowBox"):
-                    if self.is_inside_rowbox:
+                    if self.is_inside_box_expression:
                         break
                     else:
                         tag, pre_error, post_error = self.tokeniser.sntx_message(
@@ -511,14 +511,14 @@ class Parser:
 
         # Note: Number and String below are the mathics.core.parser's Number, String and Symbol,
         # not mathics.core.atom's Number and String, and Symbol.
-        if self.is_inside_rowbox and isinstance(result, (Number, Symbol)):
+        if self.is_inside_box_expression and isinstance(result, (Number, Symbol)):
             result = String(result.value)
 
         while True:
-            if self.bracket_depth > 0 or self.is_inside_rowbox:
+            if self.bracket_depth > 0 or self.is_inside_box_expression:
                 token = self.next_noend()
                 if token.tag in ("OtherscriptBox", "RightRowBox"):
-                    if self.is_inside_rowbox:
+                    if self.is_inside_box_expression:
                         break
                     else:
                         tag, pre_error, post_error = self.tokeniser.sntx_message(
@@ -550,7 +550,7 @@ class Parser:
                 tag not in self.halt_tags
                 and flat_binary_operators["Times"] >= precedence
             ):
-                if self.is_inside_rowbox:
+                if self.is_inside_box_expression:
                     if tag in box_operators:
                         new_result = self.parse_box_operator(result, token, precedence)
                     else:
@@ -589,7 +589,7 @@ class Parser:
             operator_precedence = prefix_operators[tag]
             child = self.parse_expr(operator_precedence)
             return Node(tag, child)
-        elif self.is_inside_rowbox:
+        elif self.is_inside_box_expression:
             return None
         else:
             tag, pre_error, post_error = self.tokeniser.sntx_message(token.pos)
@@ -1005,7 +1005,7 @@ class Parser:
             self.expect("RawRightBracket")
             self.bracket_depth -= 1
 
-            if self.is_inside_rowbox:
+            if self.is_inside_box_expression:
                 # Handle function calls inside a RowBox.
                 result = Node("List", expr, String("["), *seq, String("]"))
             else:

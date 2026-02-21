@@ -1,5 +1,6 @@
 /.python-version
 /doc_latex_data.pcl
 /doctest_latex_data.pcl
-/character-tables.json
+/boxing-characters.json
+/named-characters.json
 /operator-tables.json

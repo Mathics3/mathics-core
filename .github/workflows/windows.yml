@@ -33,11 +33,17 @@ jobs:
         set LLVM_DIR="C:\Program Files\LLVM"
     - name: Install Mathics3 with Python dependencies
       run: |
+        pip install pyocr # from full
         # We can comment out after next Mathics-Scanner release
         python -m pip install -e "Mathics-Scanner[full] @ git+https://github.com/Mathics3/mathics-scanner"
         pip install -e .
-
-        # python -m pip install Mathics-Scanner[full]
+        git clone --depth 1 https://github.com/Mathics3/mathics-scanner.git
+        cd mathics-scanner/
+        pip install -e .
+        bash -x admin-tools/make-JSON-tables.sh
+        cd ..
+    - name: Install Mathics with full dependencies
+      run: |
         make develop-full
     - name: Test Mathics3
       # Limit pip install to a basic install *without* full dependencies.
@@ -48,7 +54,6 @@ jobs:
       #     we needs some CI that tests running when packages aren't available
       # So "dev" only below, not "dev,full".
       run: |
-        pip install pyocr # from full
         pip install -e .[dev]
         make pytest gstest
         make doctest DOCTEST_OPTIONS="--exclude WordCloud"

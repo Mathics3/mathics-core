@@ -1,3 +1,5 @@
+from typing import List
+
 from mathics.core.atoms import Integer
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import MessageException
@@ -63,7 +65,9 @@ def drop_take_selector(name, seq, sliced):
     return select
 
 
-def eval_Part(list_of_list, indices, evaluation: Evaluation, assign_rhs=None):
+def eval_Part(
+    list_of_list: list, indices: List[Integer], evaluation: Evaluation, assign_rhs=None
+):
     """
     eval_part takes the first element of `list_of_list`, and builds
     a subexpression composed of the expressions at the index positions

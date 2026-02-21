@@ -679,7 +679,7 @@ class StringForm(FormBaseClass):
      = `` is Global`a
 
     To use a 'Backquote' as a character, escape it with a backslash:
-    >> StringForm["`` is Global\`a", a]
+    >> StringForm["`` is Global\\`a", a]
      = a is Global`a
 
     Elements are formatted according the enclosing context:
@@ -699,7 +699,7 @@ class StringForm(FormBaseClass):
     }
     summary_text = "format a string from a template and a list of parameters"
 
-    def eval_makeboxes(self, s, args, form, evaluation):
+    def eval_makeboxes(self, s: String, args, form, evaluation: Evaluation):
         """MakeBoxes[StringForm[s_String, args___],
         form:StandardForm|TraditionalForm]"""
         try:
