@@ -1,6 +1,7 @@
 """
 Mathics3 Atoms from which compound Mathics3 compound Expressions are made of.
 """
+
 from mathics.core.atoms.arrays import ByteArray, NumericArray
 from mathics.core.atoms.numerics import (
     COMPARE_PREC,

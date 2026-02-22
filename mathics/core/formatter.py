@@ -1,5 +1,4 @@
 import inspect
-import re
 from typing import Callable
 
 from mathics.core.element import BoxElementMixin
@@ -13,99 +12,6 @@ def encode_mathml(text: str) -> str:
     text = text.replace('"', "&quot;").replace(" ", "&nbsp;")
     text = text.replace("\n", '<mspace linebreak="newline" />')
     return text
-
-
-TEX_REPLACE = {
-    "{": r"\{",
-    "}": r"\}",
-    "_": r"\_",
-    "$": r"\$",
-    "%": r"\%",
-    "#": r"\#",
-    "&": r"\&",
-    "\\": r"\backslash{}",
-    "^": r"{}^{\wedge}",
-    "~": r"\sim{}",
-    "|": r"\vert{}",
-}
-TEX_TEXT_REPLACE = TEX_REPLACE.copy()
-TEX_TEXT_REPLACE.update(
-    {
-        "<": r"$<$",
-        ">": r"$>$",
-        "~": r"$\sim$",
-        "|": r"$\vert$",
-        "\\": r"$\backslash$",
-        "^": r"${}^{\wedge}$",
-    }
-)
-TEX_REPLACE_RE = re.compile("([" + "".join([re.escape(c) for c in TEX_REPLACE]) + "])")
-
-
-def encode_tex(text: str, in_text=False) -> str:
-    def replace(match):
-        c = match.group(1)
-        repl = TEX_TEXT_REPLACE if in_text else TEX_REPLACE
-        # return TEX_REPLACE[c]
-        return repl.get(c, c)
-
-    text = TEX_REPLACE_RE.sub(replace, text)
-    text = text.replace("\n", "\\newline\n")
-    return text
-
-
-extra_operators = set(
-    (
-        ",",
-        "(",
-        ")",
-        "[",
-        "]",
-        "{",
-        "}",
-        "\u301a",
-        "\u301b",
-        "\u00d7",
-        "\u2032",
-        "\u2032\u2032",
-        " ",
-        "\u2062",
-        "\u222b",
-        "\u2146",
-    )
-)
-
-
-def boxes_to_format(boxes, format, **options) -> str:  # Maybe Union[str, bytearray]
-    """
-    Translates a box structure ``boxes`` to a file format ``format``.
-
-    """
-    return lookup_method(boxes, format)(boxes, **options)
-
-
-def lookup_method(self, format: str) -> Callable:
-    """
-    Find a conversion method for `format` in self's class method resolution order.
-    """
-    for cls in inspect.getmro(type(self)):
-        format_fn = format2fn.get((format, cls), None)
-        if format_fn is not None:
-            # print(f"format function: {format_fn.__name__} for {type(self).__name__}")
-            return format_fn
-    # backward compatibility
-    boxes_to_method = getattr(self, f"boxes_to_{format}", None)
-    if getattr(BoxElementMixin, f"boxes_to_{format}") is boxes_to_method:
-        boxes_to_method = None
-    if boxes_to_method:
-
-        def ret_fn(box, elements=None, **opts):
-            return boxes_to_method(elements, **opts)
-
-        return ret_fn
-
-    error_msg = f"Can't find formatter {format} for {type(self).__name__} ({self})"
-    raise RuntimeError(error_msg)
 
 
 def add_conversion_fn(cls, module_fn_name=None) -> None:
@@ -142,3 +48,55 @@ def add_conversion_fn(cls, module_fn_name=None) -> None:
 
     # Finally register the mapping: (Builtin-class, conversion name) -> conversion_function.
     format2fn[(conversion_type, cls)] = module_dict[module_fn_name]
+
+
+def box_to_format(box, format: str, **options) -> str:  # Maybe Union[str, bytearray]
+    """
+    Translates a box structure ``box`` to a file format ``format``.
+    This is used only at the root Box of a boxed expression.
+    """
+    options["format_type"] = format
+    return convert_box_to_format(box, **options)
+
+
+def convert_box_to_format(box, **options) -> str:
+    """
+    Translates a box structure ``box`` to a file format ``format``.
+    This is used at either non-root-level boxes or from the
+    initial call from box_to_format.
+    """
+    return lookup_method(box, options["format_type"])(box, **options)
+
+
+def convert_inner_box_field(box, field: str = "inner_box", **options):
+    # Note: values set in `options` take precedence over `box_options`
+    inner_box = getattr(box, field)
+    child_options = (
+        {**box.box_options, **options} if hasattr(box, "box_options") else options
+    )
+    return convert_box_to_format(inner_box, **child_options)
+
+
+def lookup_method(self, format: str) -> Callable:
+    """
+    Find a conversion method for `format` in self's class method resolution order.
+    """
+    for cls in inspect.getmro(type(self)):
+        format_fn = format2fn.get((format, cls), None)
+        if format_fn is not None:
+            # print(f"format function: {format_fn.__name__} for {type(self).__name__}")
+            return format_fn
+
+    box_to_method = getattr(self, f"to_{format}", None)
+    if getattr(BoxElementMixin, f"to_{format}") is box_to_method:
+        box_to_method = None
+    if box_to_method:
+        # The elements is not used anywhere.
+        def ret_fn(box, elements=None, **opts):
+            assert elements is None, "elements parameter is not used anymore."
+            return box_to_method(**opts)
+
+        return ret_fn
+
+    error_msg = f"Can't find formatter {format} for {type(self).__name__} ({self})"
+    raise RuntimeError(error_msg)

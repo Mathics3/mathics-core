@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Unit tests from mathics.builtin.intfns
+Unit tests from mathics.builtin.intfns.combinatorial
 """
 
 from test.helper import check_evaluation
@@ -9,19 +9,63 @@ import pytest
 
 
 @pytest.mark.parametrize(
-    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    ("str_expr", "msgs", "fail_msg"),
     [
-        ("HarmonicNumber[-1.5]", None, "0.613706", None),
+        (
+            "BellB[]",
+            ["BellB called with 0 arguments; 1 or 2 arguments are expected."],
+            "BellB argument number error",
+        ),
+        (
+            "Binomial[]",
+            ["Binomial called with 0 arguments; 2 arguments are expected."],
+            "Binomial argument number error",
+        ),
+        (
+            "CatalanNumber[1, 2]",
+            ["CatalanNumber called with 2 arguments; 1 argument is expected."],
+            "CatalanNumber argument number error",
+        ),
+        (
+            "DiceDissimilarity[1, 2, 3]",
+            ["DiceDissimilarity called with 3 arguments; 2 arguments are expected."],
+            "Binomial argument number error",
+        ),
+        (
+            "EulerE[]",
+            ["EulerE called with 0 arguments; 1 or 2 arguments are expected."],
+            "Euler argument number error",
+        ),
+        (
+            "JaccardDissimilarity[]",
+            ["JaccardDissimilarity called with 0 arguments; 2 arguments are expected."],
+            "JaccardDissimilarity argument number error",
+        ),
+        (
+            "LucasL[]",
+            ["LucasL called with 0 arguments; 1 or 2 arguments are expected."],
+            "LucasL argument number error",
+        ),
+        (
+            "PolygonalNumber[]",
+            ["PolygonalNumber called with 0 arguments; 1 or 2 arguments are expected."],
+            "PolygonalNumber argument number error",
+        ),
+        (
+            "Subsets[]",
+            [
+                "Subsets called with 0 arguments; between 1 and 3 arguments are expected."
+            ],
+            "Subsets argument number error",
+        ),
     ],
 )
-def test_private_doctests_recurrence(str_expr, msgs, str_expected, fail_msg):
+def test_combinatorial_arg_errors(str_expr, msgs, fail_msg):
     """ """
+
     check_evaluation(
         str_expr,
-        str_expected,
-        to_string_expr=True,
-        to_string_expected=True,
-        hold_expected=True,
+        str_expr,
         failure_message=fail_msg,
         expected_messages=msgs,
     )
@@ -160,47 +204,7 @@ def test_private_doctests_recurrence(str_expr, msgs, str_expected, fail_msg):
         ("Subsets[{a, b, c}, {3, Infinity, -1}]", None, "{}", None),
     ],
 )
-def test_private_doctests_combinatorial(str_expr, msgs, str_expected, fail_msg):
-    """ """
-    check_evaluation(
-        str_expr,
-        str_expected,
-        to_string_expr=True,
-        to_string_expected=True,
-        hold_expected=True,
-        failure_message=fail_msg,
-        expected_messages=msgs,
-    )
-
-
-@pytest.mark.parametrize(
-    ("str_expr", "msgs", "str_expected", "fail_msg"),
-    [
-        (
-            "Quotient[13, 0]",
-            ("Infinite expression Quotient[13, 0] encountered.",),
-            "ComplexInfinity",
-            None,
-        ),
-        ("Quotient[-17, 7]", None, "-3", None),
-        ("Quotient[-17, -4]", None, "4", None),
-        ("Quotient[19, -4]", None, "-5", None),
-        (
-            "QuotientRemainder[13, 0]",
-            ("The argument 0 in QuotientRemainder[13, 0] should be nonzero.",),
-            "QuotientRemainder[13, 0]",
-            None,
-        ),
-        ("QuotientRemainder[-17, 7]", None, "{-3, 4}", None),
-        ("QuotientRemainder[-17, -4]", None, "{4, -1}", None),
-        ("QuotientRemainder[19, -4]", None, "{-5, -1}", None),
-        ("QuotientRemainder[a, 0]", None, "QuotientRemainder[a, 0]", None),
-        ("QuotientRemainder[a, b]", None, "QuotientRemainder[a, b]", None),
-        ("QuotientRemainder[5.2,2.5]", None, "{2, 0.2}", None),
-        ("QuotientRemainder[5, 2.]", None, "{2, 1.}", None),
-    ],
-)
-def test_private_doctests_divlike(str_expr, msgs, str_expected, fail_msg):
+def test_subsets(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,

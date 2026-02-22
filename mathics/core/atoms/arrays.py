@@ -1,6 +1,7 @@
 """
 Mathics3 Array collections - ByteArray and NumericArray
 """
+
 # Note: Python warns of ambiguity if we name this file this array.py
 import base64
 from typing import Optional, Tuple, Union

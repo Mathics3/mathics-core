@@ -2,7 +2,6 @@
 Vectorized evaluation routines for Plot and related subclasses of _Plot
 """
 
-
 import numpy as np
 
 from mathics.builtin.graphics import Graphics

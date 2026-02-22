@@ -3,6 +3,8 @@ Base classes for canonical order.
 
 """
 
+from typing import Tuple
+
 
 class KeyComparable:
     """Mathics3/WL defines a "canonical ordering" between elements,
@@ -287,3 +289,38 @@ IMAGE_EXPRESSION_ELT_ORDER = 0x13
 
 BASIC_EXPRESSION_ELT_ORDER = 0x22
 GENERAL_EXPRESSION_ELT_ORDER = 0x23
+
+
+def wma_str_sort_key(s: str) -> Tuple[str, str]:
+    """
+    Return a Tuple providing the sort key
+    reproduce the order of strings and symbols
+    in WMA.
+    For example, the following is a list of sorted
+    strings in the WMA order:
+    `{Abeja, ABEJA, ave de paso, Ave de paso, Ave de Paso, AVe}`
+    The order criteria is: first sort case insensitive, then
+    for the first different character in the original string,
+    lower case comes before upper case.
+    """
+    # An alternative to this implementation would be to map the
+    # characters in a way that
+    # a -> A
+    # A -> B
+    # b -> C
+    # B -> D
+    #  ...
+    # m -> Z
+    # M -> a
+    # n -> b
+    # N -> c
+    #  ...
+    # z -> y
+    # Z -> z
+    # so the result is again a string. Another possibility would be
+    # to return a wrapper class that implement this special comparison
+    # on the fly through the method `__lt__`.
+    return (
+        s.lower(),
+        s.swapcase(),
+    )

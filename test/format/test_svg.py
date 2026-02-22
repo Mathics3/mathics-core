@@ -57,8 +57,6 @@ def extract_svg_body(svg):
 
 
 def get_svg(expression):
-    from mathics.format.box.graphics import prepare_elements as prepare_elements2d
-
     options = {}
     boxes = MakeBoxes(expression).evaluate(evaluation)
     format_fn = lookup_method(boxes, "svg")

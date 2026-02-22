@@ -44,13 +44,13 @@ class Graphics3DBox(GraphicsBox):
 
         return prepare_elements(self, elements, options, max_width)
 
-    def boxes_to_js(self, elements=None, **options):
+    def to_js(self, elements=None, **options):
         """Turn the Graphics3DBox to into a something javascript-ish
         We include enclosing script tagging.
         """
-        from mathics.format.render.json import graphics3d_boxes_to_json
+        from mathics.format.render.json import graphics3d_box_to_json
 
-        json_repr = graphics3d_boxes_to_json(self, elements, **options)
+        json_repr = graphics3d_box_to_json(self, elements, **options)
         js = f"<graphics3d data='{json_repr}'/>"
         return js
 

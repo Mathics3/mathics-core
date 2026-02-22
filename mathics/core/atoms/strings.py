@@ -1,6 +1,7 @@
 """
 Mathics3 String
 """
+
 # Note: Python warns of ambiguity Python's module string if we name this file this string.py
 
 import math
@@ -8,7 +9,7 @@ import math
 import sympy
 
 from mathics.core.element import BoxElementMixin
-from mathics.core.keycomparable import BASIC_ATOM_STRING_ELT_ORDER
+from mathics.core.keycomparable import BASIC_ATOM_STRING_ELT_ORDER, wma_str_sort_key
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue, symbol_set
 from mathics.core.systemsymbols import SymbolFullForm, SymbolInputForm
 
@@ -69,7 +70,7 @@ class String(Atom, BoxElementMixin):
         """
         return (
             BASIC_ATOM_STRING_ELT_ORDER,
-            self.value,
+            wma_str_sort_key(self.value),
             0,
             1,
         )

@@ -139,7 +139,7 @@ def cylinder_3d_box(box: Cylinder3DBox):
 add_conversion_fn(Cylinder3DBox, cylinder_3d_box)
 
 
-def graphics3d_boxes_to_json(box: Graphics3DBox, content=None, **options):
+def graphics3d_box_to_json(box: Graphics3DBox, content=None, **options) -> str:
     """Turn the Graphics3DBox to into a something JSON like.
     This can be used to embed in something else like MathML or Javascript.
 
@@ -200,7 +200,7 @@ def graphics3d_boxes_to_json(box: Graphics3DBox, content=None, **options):
     return json_repr
 
 
-add_conversion_fn(Graphics3DBox, graphics3d_boxes_to_json)
+add_conversion_fn(Graphics3DBox, graphics3d_box_to_json)
 
 
 def line_3d_box(box: Line3DBox):
