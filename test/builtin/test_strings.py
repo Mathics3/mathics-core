@@ -219,14 +219,9 @@ import pytest
             "StringSplit[x, x]",
             None,
         ),
-        # These tests are commented out due to the bug reported in issue #906
-        # Octal and hexadecimal notation works alone, but fails
-        # as a part of another expression. For example,
-        # F[\.78\.79\.7A]   or "\.78\.79\.7A" produces a syntax error in Mathics.
-        # Here, this is put inside a ToString[...] and hence, it does not work.
-        # (r"\.78\.79\.7A=37; xyz", None, '37', "Octal characters. check me."),
-        # (r"\:0078\:0079\:007A=38;xyz", None, '38', "Hexadecimal characters. Check me."),
-        # (r"\101\102\103\061\062\063=39;ABC123", None, "39", None),
+        (r"\.78\.79\.7A=37; xyz", None, "37", "Octal characters. check me."),
+        (r"\:0078\:0079\:007A=38;xyz", None, "38", "Hexadecimal characters. Check me."),
+        (r"\101\102\103\061\062\063=39;ABC123", None, "39", None),
         (r"xyz=.;ABC123=.;\[Alpha]\[Beta]\[Gamma]", None, "\u03b1\u03b2\u03b3", None),
         ('LetterQ[""]', None, "True", None),
         (
