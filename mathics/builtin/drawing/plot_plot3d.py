@@ -368,7 +368,6 @@ class Plot3D(_Plot3D):
     many_functions = True
     options = _Plot3D.options3d
     summary_text = "plots 3D surfaces of one or more functions"
-    
 
 
 class SphericalPlot3D(_Plot3D):
