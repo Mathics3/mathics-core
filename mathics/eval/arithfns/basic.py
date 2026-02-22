@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-evaluation function for builtins in mathics.builtin.arithfns.basic
+Evaluation function for builtins in mathics.builtin.arithfns.basic.
 
 Many of these depend on the evaluation context. Conversions to SymPy are
 used just as a last resource.

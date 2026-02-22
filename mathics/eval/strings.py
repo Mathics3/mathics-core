@@ -4,6 +4,8 @@ String-related evaluation functions.
 
 import re
 
+from mathics_scanner.characters import replace_box_unicode_with_ascii
+
 from mathics.builtin.box.layout import RowBox
 from mathics.core.atoms import Integer, Integer0, Integer1, Integer3, String
 from mathics.core.convert.expression import to_mathics_list
@@ -155,7 +157,7 @@ def safe_backquotes(string: str):
     return string
 
 
-def eval_StringForm_MakeBoxes(strform, items, form, evaluation):
+def eval_StringForm_MakeBoxes(strform: String, items, form, evaluation: Evaluation):
     """MakeBoxes[StringForm[s_String, items___], form_]"""
 
     if not isinstance(strform, String):
@@ -164,10 +166,9 @@ def eval_StringForm_MakeBoxes(strform, items, form, evaluation):
     items = [format_element(item, evaluation, form) for item in items]
 
     curr_indx = 0
-    strform_str = safe_backquotes(strform.value)
+    strform_str = safe_backquotes(replace_box_unicode_with_ascii(strform.value))
 
     parts = strform_str.split("`")
-    parts = [part.replace("\\[RawBackquote]", "`") for part in parts]
     result = [String(parts[0])]
     if len(parts) <= 1:
         return result[0]
