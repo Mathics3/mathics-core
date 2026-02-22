@@ -4,7 +4,8 @@
 Division-Related Functions
 """
 
-from typing import List
+import sys
+from typing import List, Optional
 
 import sympy
 from sympy import Q, ask
@@ -29,6 +30,7 @@ from mathics.core.systemsymbols import (
     SymbolQuotient,
     SymbolQuotientRemainder,
 )
+from mathics.eval.intfns.divlike import eval_GCD, eval_LCM, eval_ModularInverse
 
 
 class CompositeQ(Builtin):
@@ -54,6 +56,8 @@ class CompositeQ(Builtin):
     """
 
     attributes = A_LISTABLE | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
     summary_text = "test whether a number is composite"
 
     def eval(self, n: Integer, evaluation: Evaluation):
@@ -84,6 +88,8 @@ class Divisible(Builtin):
     """
 
     attributes = A_LISTABLE | A_PROTECTED | A_READ_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(2, sys.maxsize)
     rules = {
         "Divisible[n_, m_]": "Mod[n, m] == 0",
     }
@@ -116,17 +122,10 @@ class GCD(Builtin):
     attributes = A_FLAT | A_LISTABLE | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
     summary_text = "greatest common divisor"
 
-    def eval(self, ns, evaluation: Evaluation):
+    def eval(self, ns, evaluation: Evaluation) -> Optional[Integer]:
         "GCD[ns___Integer]"
 
-        ns = ns.get_sequence()
-        result = 0
-        for n in ns:
-            value = n.value
-            if value is None:
-                return
-            result = sympy.gcd(result, value)
-        return Integer(result)
+        return eval_GCD(ns.get_sequence())
 
 
 class LCM(Builtin):
@@ -145,19 +144,21 @@ class LCM(Builtin):
     """
 
     attributes = A_FLAT | A_LISTABLE | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, sys.maxsize)
+    messages = {
+        "argm": "LCM called with 0 arguments; 1 or more arguments are expected.",
+    }
     summary_text = "least common multiple"
 
-    def eval(self, ns: List[Integer], evaluation: Evaluation):
+    def eval(self, ns: List[Integer], evaluation: Evaluation) -> Optional[Integer]:
         "LCM[ns___Integer]"
 
-        ns = ns.get_sequence()
-        result = 1
-        for n in ns:
-            value = n.value
-            if value is None:
-                return
-            result = sympy.lcm(result, value)
-        return Integer(result)
+        ns_tuple = ns.get_sequence()
+        if len(ns_tuple) == 0:
+            evaluation.message("LCM", "argm")
+            return
+        return eval_LCM(ns_tuple)
 
 
 class Mod(SympyFunction):
@@ -181,6 +182,8 @@ class Mod(SympyFunction):
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = (2, 3)
     summary_text = "the remainder in an integer division"
 
     sympy_name = "Mod"
@@ -227,16 +230,14 @@ class ModularInverse(SympyFunction):
     """
 
     attributes = A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
     summary_text = "returns the modular inverse $k^(-1)$ mod $n$"
     sympy_name = "mod_inverse"
 
-    def eval_k_n(self, k: Integer, n: Integer, evaluation: Evaluation):
+    def eval(self, k: Integer, n: Integer, evaluation: Evaluation) -> Optional[Integer]:
         "ModularInverse[k_Integer, n_Integer]"
-        try:
-            r = sympy.mod_inverse(k.value, n.value)
-        except ValueError:
-            return
-        return Integer(r)
+        return eval_ModularInverse(k.value, n.value)
 
 
 class PowerMod(Builtin):
@@ -264,6 +265,8 @@ class PowerMod(Builtin):
     """
 
     attributes = A_LISTABLE | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = 3
 
     messages = {
         "ninv": "`1` is not invertible modulo `2`.",
@@ -303,6 +306,8 @@ class Quotient(Builtin):
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = (2, 3)
 
     messages = {
         "infy": "Infinite expression `1` encountered.",
@@ -333,6 +338,8 @@ class QuotientRemainder(Builtin):
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
 
     messages = {
         "divz": "The argument 0 in `1` should be nonzero.",

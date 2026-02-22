@@ -3,23 +3,24 @@ General-purpose Forms
 
 A number of forms are suitable for formatting any kind of \Mathics expression.
 
-The variable <url>:$PrintForms:
-/doc/reference-of-built-in-symbols/forms-of-input-and-output/form-variables/$printforms/</url> \
+The variable <url>:\$PrintForms:/doc/reference-of-built-in-symbols/forms-of-input-and-output/form-variables/\$printforms</url> \
 contains a list of Forms \
 that are in this category. After formatting the \Mathics expression, these removing mention of the form.
 
-While Forms that appear in '$PrintForms' can be altered at run time, \
-below are the functions that appear in '$PrintForms' at startup.
+While Forms that appear in '\$PrintForms' can be altered at run time, \
+below are the functions that appear in '\$PrintForms' at startup.
 """
 
-from mathics.builtin.box.layout import InterpretationBox, StyleBox, TagBox
+from mathics.builtin.box.layout import InterpretationBox, PaneBox, StyleBox
 from mathics.builtin.forms.base import FormBaseClass
 from mathics.core.atoms import String
+from mathics.core.element import BaseElement
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.symbols import SymbolFalse, SymbolFullForm, SymbolTrue
-from mathics.core.systemsymbols import SymbolInputForm
-from mathics.format.box import eval_makeboxes_fullform, eval_mathmlform, eval_texform
-from mathics.format.form import render_input_form
+from mathics.core.symbols import SymbolFalse, SymbolTrue
+from mathics.core.systemsymbols import SymbolInputForm, SymbolOutputForm
+from mathics.format.box.makeboxes import is_print_form_callback
+from mathics.format.form import render_input_form, render_output_form
 
 sort_order = "mathics.builtin.forms.general-purpose-forms"
 
@@ -46,19 +47,6 @@ class FullForm(FormBaseClass):
     in_outputforms = True
     in_printforms = False
     summary_text = "format expression in underlying M-Expression representation"
-
-    def eval_makeboxes(self, expr, fmt, evaluation):
-        """MakeBoxes[FullForm[expr_], fmt_]"""
-        fullform_box = eval_makeboxes_fullform(expr, evaluation)
-        style_box = StyleBox(
-            fullform_box,
-            **{
-                "System`ShowSpecialCharacters": SymbolFalse,
-                "System`ShowStringCharacters": SymbolTrue,
-                "System`NumberMarks": SymbolTrue,
-            },
-        )
-        return TagBox(style_box, SymbolFullForm)
 
 
 class InputForm(FormBaseClass):
@@ -111,26 +99,6 @@ class InputForm(FormBaseClass):
     in_printforms = True
     summary_text = "format expression suitable for Mathics3 input"
 
-    # TODO: eventually, remove OutputForm in the second argument.
-    def eval_makeboxes(self, expr, evaluation):
-        """MakeBoxes[InputForm[expr_], Alternatives[StandardForm,TraditionalForm,OutputForm]]"""
-
-        inputform = String(render_input_form(expr, evaluation))
-        inputform = StyleBox(
-            inputform,
-            **{
-                "System`ShowSpecialCharacters": SymbolFalse,
-                "System`ShowStringCharacters": SymbolTrue,
-                "System`NumberMarks": SymbolTrue,
-            },
-        )
-        expr = Expression(SymbolInputForm, expr)
-        return InterpretationBox(
-            inputform,
-            expr,
-            **{"System`Editable": SymbolTrue, "System`AutoDelete": SymbolTrue},
-        )
-
 
 class MathMLForm(FormBaseClass):
     """
@@ -164,10 +132,6 @@ class MathMLForm(FormBaseClass):
 
     summary_text = "format expression as MathML commands"
 
-    def eval_mathml(self, expr, evaluation) -> Expression:
-        "MakeBoxes[MathMLForm[expr_], (OutputForm|StandardForm|TraditionalForm)]"
-        return eval_mathmlform(expr, evaluation)
-
 
 class OutputForm(FormBaseClass):
     """
@@ -194,9 +158,10 @@ class OutputForm(FormBaseClass):
      = -Graphics-
     """
 
+    in_outputforms = True
+    in_printforms = True
+
     summary_text = "format expression in plain text"
-    # Remove me at the end of the refactor
-    rules = {"MakeBoxes[OutputForm[expr_], form_]": "MakeBoxes[expr, OutputForm]"}
 
 
 class StandardForm(FormBaseClass):
@@ -220,6 +185,7 @@ class StandardForm(FormBaseClass):
 
     in_outputforms = True
     in_printforms = True
+    in_boxforms = True
     summary_text = "format expression the default way"
 
 
@@ -242,7 +208,7 @@ class TraditionalForm(FormBaseClass):
 
     in_outputforms = True
     in_printforms = True
-
+    in_boxforms = True
     summary_text = "format expression using traditional mathematical notation"
 
 
@@ -265,6 +231,34 @@ class TeXForm(FormBaseClass):
     in_printforms = True
     summary_text = "format expression as LaTeX commands"
 
-    def eval_tex(self, expr, evaluation) -> Expression:
-        "MakeBoxes[TeXForm[expr_], (OutputForm|StandardForm|TraditionalForm)]"
-        return eval_texform(expr, evaluation)
+
+@is_print_form_callback("System`InputForm")
+def eval_makeboxes_inputform(expr: BaseElement, evaluation: Evaluation):
+    """MakeBoxes[InputForm[expr_], StandardForm|TraditionalForm]"""
+    inputform = String(render_input_form(expr, evaluation))
+    inputform = StyleBox(
+        inputform,
+        **{
+            "System`ShowStringCharacters": SymbolTrue,
+            "System`NumberMarks": SymbolTrue,
+        },
+    )
+    expr = Expression(SymbolInputForm, expr)
+    return InterpretationBox(
+        inputform,
+        expr,
+        **{"System`Editable": SymbolTrue, "System`AutoDelete": SymbolTrue},
+    )
+
+
+@is_print_form_callback("System`OutputForm")
+def eval_makeboxes_outputform(expr: BaseElement, evaluation: Evaluation, **kwargs):
+    """
+    Build a 2D representation of the expression using only keyboard characters.
+    """
+
+    text_outputform = str(render_output_form(expr, evaluation, **kwargs))
+    pane = PaneBox(String('"' + text_outputform + '"'))
+    return InterpretationBox(
+        pane, Expression(SymbolOutputForm, expr), **{"System`Editable": SymbolFalse}
+    )

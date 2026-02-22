@@ -63,6 +63,8 @@ class BellB(SympyFunction):
     """
 
     attributes = A_LISTABLE | A_N_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
     summary_text = "Bell numbers"
     sympy_name = "bell"
 
@@ -115,6 +117,9 @@ class _BooleanDissimilarity(Builtin, ABC):
             counts[(a << 1) + b] += 1
         return self._compute(len(py_u), *counts)
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
+
 
 class _NoBoolVector(Exception):
     pass
@@ -152,6 +157,8 @@ class Binomial(MPMathFunction):
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
     nargs = {2}
     sympy_name = "binomial"
     mpmath_name = "binomial"
@@ -181,12 +188,14 @@ class CatalanNumber(SympyFunction):
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
     summary_text = "catalan number"
     sympy_name = "catalan"
 
     # We (and sympy) do not handle fractions or other non-integers
     # right now.
-    def eval_integer(self, n: Integer, evaluation):
+    def eval_integer(self, n: Integer, evaluation: Evaluation):
         "CatalanNumber[n_Integer]"
         return self.eval(n, evaluation)
 
@@ -246,6 +255,8 @@ class EulerE(SympyFunction):
     """
 
     attributes = A_LISTABLE | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
     summary_text = "Euler numbers"
     sympy_name = "euler"
 
@@ -315,6 +326,8 @@ class LucasL(SympyFunction):
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
 
     sympy_name = "lucas"
     summary_text = "get a Lucas number or polynomial"
@@ -429,6 +442,8 @@ class PolygonalNumber(Builtin):
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
     rules = {
         "PolygonalNumber[n_Integer]": "PolygonalNumber[3, n]",
         "PolygonalNumber[r_Integer, n_Integer]": "(1/2) n (n (r - 2) - r + 4)",
@@ -582,6 +597,8 @@ class Subsets(Builtin):
         "Subsets[list_ , Pattern[n,_List|All|DirectedInfinity[1]], spec_]": "Take[Subsets[list, n], spec]",
     }
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 4)
     summary_text = "list all the subsets"
 
     def eval_list(self, list, evaluation):

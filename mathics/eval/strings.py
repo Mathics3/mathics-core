@@ -1,7 +1,10 @@
 """
 String-related evaluation functions.
 """
+
 import re
+
+from mathics_scanner.characters import replace_box_unicode_with_ascii
 
 from mathics.builtin.box.layout import RowBox
 from mathics.core.atoms import Integer, Integer0, Integer1, Integer3, String
@@ -21,7 +24,7 @@ def eval_ToString(
     expr: BaseElement, form: Symbol, encoding: String, evaluation: Evaluation
 ) -> String:
     boxes = format_element(expr, evaluation, form, encoding=encoding)
-    text = boxes.boxes_to_text(evaluation=evaluation)
+    text = boxes.to_text(evaluation=evaluation)
     return String(text)
 
 
@@ -154,7 +157,7 @@ def safe_backquotes(string: str):
     return string
 
 
-def eval_StringForm_MakeBoxes(strform, items, form, evaluation):
+def eval_StringForm_MakeBoxes(strform: String, items, form, evaluation: Evaluation):
     """MakeBoxes[StringForm[s_String, items___], form_]"""
 
     if not isinstance(strform, String):
@@ -163,10 +166,9 @@ def eval_StringForm_MakeBoxes(strform, items, form, evaluation):
     items = [format_element(item, evaluation, form) for item in items]
 
     curr_indx = 0
-    strform_str = safe_backquotes(strform.value)
+    strform_str = safe_backquotes(replace_box_unicode_with_ascii(strform.value))
 
     parts = strform_str.split("`")
-    parts = [part.replace("\\[RawBackquote]", "`") for part in parts]
     result = [String(parts[0])]
     if len(parts) <= 1:
         return result[0]
@@ -182,7 +184,8 @@ def eval_StringForm_MakeBoxes(strform, items, form, evaluation):
             # character:
             if not remaining:
                 evaluation.message("StringForm", "sfq", strform)
-                raise ValueError
+                return strform.value
+
             # part must be an index or an empty string.
             # If is an empty string, pick the next element:
             if part == "":
@@ -194,7 +197,8 @@ def eval_StringForm_MakeBoxes(strform, items, form, evaluation):
                         Integer(num_items),
                         strform,
                     )
-                    return ValueError
+                    return strform.value
+
                 result.append(items[curr_indx])
                 curr_indx += 1
                 quote_open = False
@@ -206,14 +210,16 @@ def eval_StringForm_MakeBoxes(strform, items, form, evaluation):
                 evaluation.message(
                     "StringForm", "sfr", Integer0, Integer(num_items), strform
                 )
-                raise
+                return strform.value
+
             # indx must be greater than 0, and not greater than
             # the number of items
             if indx <= 0 or indx > len(items):
                 evaluation.message(
                     "StringForm", "sfr", Integer(indx), Integer(len(items)), strform
                 )
-                raise ValueError
+                return strform.value
+
             result.append(items[indx - 1])
             curr_indx = indx
             quote_open = False

@@ -600,7 +600,7 @@ class Put(InfixOperator):
                 return render_input_form(expr, evaluation)
             except BoxError:
                 boxed_expr = format_element(expr, evaluation, SymbolFullForm)
-                return boxed_expr.boxes_to_text()
+                return boxed_expr.to_text()
 
         text = [do_format_output(expr, evaluation) for expr in exprs.get_sequence()]
         text = "\n".join(text) + "\n"
@@ -1635,7 +1635,7 @@ class WriteString(Builtin):
         for expri in expr.get_sequence():
             result = format_element(expri, evaluation, SymbolOutputForm)
             try:
-                result = result.boxes_to_text(evaluation=evaluation)
+                result = result.to_text(evaluation=evaluation)
             except BoxError:
                 evaluation.message(
                     "General",

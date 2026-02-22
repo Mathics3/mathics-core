@@ -26,11 +26,17 @@ jobs:
       run: |
         brew install llvm@14 tesseract remake
         python -m pip install --upgrade pip
-    - name: Install Mathics3 with full Python dependencies
+    - name: Install Mathics3 dependencies
       run: |
         # We can comment out after next Mathics-Scanner release
-        # python -m pip install Mathics-Scanner[full]
-        python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
+        # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
+        git clone --depth 1 https://github.com/Mathics3/mathics-scanner.git
+        cd mathics-scanner/
+        pip install -e .
+        bash -x admin-tools/make-JSON-tables.sh
+        cd ..
+    - name: Install Mathics3
+      run: |
         pip install -e .
         remake -x develop-full
     - name: Test Mathics3

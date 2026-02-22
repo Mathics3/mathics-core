@@ -5,6 +5,7 @@
 Here we have the base class and related function for element inside an Expression.
 """
 
+import warnings
 from abc import ABC
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Dict, Optional, Sequence, Tuple, Union
@@ -407,19 +408,96 @@ class BoxElementMixin(ImmutableValueMixin):
     elements
     """
 
-    def boxes_to_format(self, format: str, **options) -> str:
-        from mathics.core.formatter import boxes_to_format
+    @property
+    def is_multiline(self) -> bool:
+        return True
 
-        return boxes_to_format(self, format, **options)
+    def to_format(self, format: str, **options) -> str:
+        from mathics.core.formatter import box_to_format
+
+        return box_to_format(self, format, **options)
+
+    def to_mathml(self, **options) -> str:
+        return self.to_format("mathml", **options)
+
+    def to_tex(self, **options) -> str:
+        return self.to_format("latex", **options)
+
+    def to_text(self, **options) -> str:
+        return self.to_format("text", **options)
+
+    # Deprecated
+
+    def boxes_to_format(self, format: str, **options) -> str:
+        from mathics.core.formatter import box_to_format
+
+        warnings.warn(
+            "boxes_to_format() is deprecated and will be removed in a future "
+            "version; use to_format() instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return box_to_format(self, format, **options)
+
+    def boxes_to_js(self, **options) -> str:
+        warnings.warn(
+            "boxes_to_js() is deprecated and will be removed in a future "
+            "version; use to_js() instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.to_format("js", **options)
+
+    def boxes_to_json(self, **options) -> str:
+        warnings.warn(
+            "boxes_to_json() is deprecated and will be removed in a future "
+            "version; use to_json() instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.to_format("json", **options)
 
     def boxes_to_mathml(self, **options) -> str:
-        """For compatibility deprecated"""
-        return self.boxes_to_format("mathml", **options)
+        warnings.warn(
+            "boxes_to_mathml() is deprecated and will be removed in a future "
+            "version; use to_mathml() instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.to_format("mathml", **options)
+
+    def boxes_to_png(self, **options) -> str:
+        warnings.warn(
+            "boxes_to_png() is deprecated and will be removed in a future "
+            "version; use to_png() instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.to_format("png", **options)
+
+    def boxes_to_svg(self, **options) -> str:
+        warnings.warn(
+            "boxes_to_svg() is deprecated and will be removed in a future "
+            "version; use to_svg() instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.to_format("svg", **options)
 
     def boxes_to_tex(self, **options) -> str:
-        """For compatibility deprecated"""
-        return self.boxes_to_format("latex", **options)
+        warnings.warn(
+            "boxes_to_tex() is deprecated and will be removed in a future "
+            "version; use to_tex() instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.to_format("latex", **options)
 
     def boxes_to_text(self, **options) -> str:
-        """For compatibility deprecated"""
-        return self.boxes_to_format("text", **options)
+        warnings.warn(
+            "boxes_to_text() is deprecated and will be removed in a future "
+            "version; use to_text() instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.to_format("text", **options)

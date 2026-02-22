@@ -4,30 +4,24 @@ Data-Specific Forms
 Some forms are specific to formatting certain kinds of data, like numbers, strings, or matrices.
 
 These are in contrast to the Forms like <url>:OutputForm:
-/doc/reference-of-built-in-symbols/forms-of-input-and-output/printforms/outputform/</url> \
+/doc/reference-of-built-in-symbols/forms-of-input-and-output/general-purpose-forms/outputform/</url> \
 or <url>:StandardForm:
-/doc/reference-of-built-in-symbols/forms-of-input-and-output/printforms/standardform/</url>, \
+/doc/reference-of-built-in-symbols/forms-of-input-and-output/general-purpose-forms/standardform/</url>, \
 which are intended to work over all kinds of data.
 """
+
 from typing import Any, Callable, Dict, List, Optional
 
-from mathics.builtin.box.layout import RowBox, StyleBox
+from mathics.builtin.box.layout import RowBox, StyleBox, SuperscriptBox
 from mathics.builtin.forms.base import FormBaseClass
 from mathics.core.atoms import Integer, Real, String
 from mathics.core.builtin import Builtin
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.list import ListExpression
 from mathics.core.number import dps
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolNull, SymbolTrue
-from mathics.core.systemsymbols import (
-    SymbolAutomatic,
-    SymbolInfinity,
-    SymbolMakeBoxes,
-    SymbolRowBox,
-    SymbolSuperscriptBox,
-)
+from mathics.core.systemsymbols import SymbolAutomatic, SymbolInfinity, SymbolMakeBoxes
 from mathics.eval.strings import eval_StringForm_MakeBoxes, eval_ToString
 from mathics.format.box import (
     StringLParen,
@@ -95,7 +89,7 @@ class BaseForm(FormBaseClass):
 
     def eval_makeboxes(self, expr, n, f, evaluation: Evaluation):
         """MakeBoxes[BaseForm[expr_, n_],
-        f:StandardForm|TraditionalForm|OutputForm]"""
+        (f:StandardForm|TraditionalForm)]"""
         try:
             return eval_baseform(expr, n, f, evaluation)
         except ValueError:
@@ -111,7 +105,6 @@ class _NumberForm(Builtin):
     default_NumberFormat = None
     in_outputforms = True
     messages = {
-        "argm": ("`` called with `` arguments; 1 or more " "arguments are expected."),
         "argct": "`` called with `` arguments.",
         "npad": (
             "Value for option NumberPadding -> `1` should be a string or "
@@ -564,16 +557,13 @@ class NumberForm(_NumberForm):
         py_exp = exp.get_string_value()
         if py_exp:
             mul = String(options["NumberMultiplier"])
-            return Expression(
-                SymbolRowBox,
-                ListExpression(man, mul, Expression(SymbolSuperscriptBox, base, exp)),
-            )
+            return RowBox(man, mul, SuperscriptBox(base, exp))
 
         return man
 
     def eval_makeboxes(self, fexpr, form, evaluation):
         """MakeBoxes[fexpr:NumberForm[_?AtomQ, ___],
-        form:StandardForm|TraditionalForm|OutputForm]"""
+        form:StandardForm|TraditionalForm]"""
         try:
             target, prec_parms, py_options = get_numberform_parameters(
                 fexpr, evaluation
@@ -603,7 +593,6 @@ class NumberForm(_NumberForm):
 
         if py_n is not None:
             py_options["_Form"] = form.get_name()
-
             return numberform_to_boxes(target, py_n, py_f, evaluation, py_options)
         return Expression(SymbolMakeBoxes, target, form)
 
@@ -637,7 +626,7 @@ class SequenceForm(FormBaseClass):
 
     def eval_makeboxes(self, args, form, evaluation, options: dict):
         """MakeBoxes[SequenceForm[args___, OptionsPattern[SequenceForm]],
-        form:StandardForm|TraditionalForm|OutputForm]"""
+        form:StandardForm|TraditionalForm]"""
         encoding = options["System`CharacterEncoding"]
         return RowBox(
             *[
@@ -690,7 +679,7 @@ class StringForm(FormBaseClass):
      = `` is Global`a
 
     To use a 'Backquote' as a character, escape it with a backslash:
-    >> StringForm["`` is Global\`a", a]
+    >> StringForm["`` is Global\\`a", a]
      = a is Global`a
 
     Elements are formatted according the enclosing context:
@@ -710,9 +699,9 @@ class StringForm(FormBaseClass):
     }
     summary_text = "format a string from a template and a list of parameters"
 
-    def eval_makeboxes(self, s, args, form, evaluation):
+    def eval_makeboxes(self, s: String, args, form, evaluation: Evaluation):
         """MakeBoxes[StringForm[s_String, args___],
-        form:StandardForm|TraditionalForm|OutputForm]"""
+        form:StandardForm|TraditionalForm]"""
         try:
             result = eval_StringForm_MakeBoxes(s, args.get_sequence(), form, evaluation)
         except ValueError:
@@ -771,8 +760,8 @@ class TableForm(FormBaseClass):
     summary_text = "format as a table"
 
     def eval_makeboxes(self, table, f, evaluation, options):
-        """MakeBoxes[%(name)s[table_, OptionsPattern[%(name)s]],
-        f:StandardForm|TraditionalForm|OutputForm]"""
+        """MakeBoxes[%(name)s[table_, OptionsPattern[]],
+        f:StandardForm|TraditionalForm]"""
         return eval_tableform(self, table, f, evaluation, options)
 
 
@@ -802,10 +791,9 @@ class MatrixForm(TableForm):
     in_printforms = False
     summary_text = "format as a matrix"
 
-    def eval_makeboxes_matrix(self, table, form, evaluation, options):
-        """MakeBoxes[%(name)s[table_, OptionsPattern[%(name)s]],
-        form:StandardForm|TraditionalForm]"""
-
+    def eval_makeboxes(self, table, form, evaluation, options):
+        """MakeBoxes[MatrixForm[table_, OptionsPattern[]],
+        (form:StandardForm|TraditionalForm)]"""
         result = super().eval_makeboxes(table, form, evaluation, options)
         if result.get_head_name() == "System`GridBox":
             return RowBox(StringLParen, result, StringRParen)

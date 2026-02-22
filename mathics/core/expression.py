@@ -45,6 +45,7 @@ from mathics.core.keycomparable import (
     GENERAL_EXPRESSION_ELT_ORDER,
     GENERAL_NUMERIC_EXPRESSION_ELT_ORDER,
     Monomial,
+    wma_str_sort_key,
 )
 from mathics.core.structure import LinkedStructure
 from mathics.core.symbols import (
@@ -385,8 +386,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             else:
                 # FIXME: uncommenting this out messes up formatting.
                 # File "mathics-core/mathics/core/formatter.py", line 135, in ret_fn
-                # return boxes_to_method(elements, **opts)
-                # TypeError: boxes_to_text() takes 1 positional argument but 2 were given
+                # return to_method(elements, **opts)
+                # TypeError: to_text() takes 1 positional argument but 2 were given
                 # Why?
                 self.elements_properties.elements_fully_evaluated = False
 
@@ -893,8 +894,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         3: tuple:        list of Elements
         4: 1:        No clue...
         """
-        exps: Dict[str, Union[float, complex]] = {}
+        exps: Dict[Tuple[str, str], Union[float, complex]] = {}
         head = self._head
+
         if head is SymbolTimes:
             for element in self.elements:
                 name = element.get_name()
@@ -904,8 +906,10 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     assert isinstance(expr, (Expression, NumericOperators))
                     exp = expr.round_to_float()
                     if var and exp is not None:
+                        var = wma_str_sort_key(var)
                         exps[var] = exps.get(var, 0) + exp
                 elif name:
+                    name = wma_str_sort_key(name)
                     exps[name] = exps.get(name, 0) + 1
         elif self.has_form("Power", 2):
             var = self.elements[0].get_name()
@@ -917,6 +921,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             except AttributeError:
                 exp = None
             if var and exp is not None:
+                var = wma_str_sort_key(var)
                 exps[var] = exps.get(var, 0) + exp
         if exps:
             return (
@@ -1105,11 +1110,11 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # Note: self._head can be not just a symbol, but some arbitrary expression.
         # This is what makes expressions in Mathics3 be M-expressions rather than
         # S-expressions.
-        head = self._head
+        result: BaseElement
+        head: BaseElement = self._head
+
         if isinstance(head, EvalMixin):
-            result = head.evaluate(evaluation)
-            if result is not None:
-                head = result
+            head = head.evaluate(evaluation) or head
 
         attributes = head.get_attributes(evaluation.definitions)
 
@@ -1434,7 +1439,12 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     def sameQ(self, other: BaseElement) -> bool:
         """Mathics3 SameQ"""
         if not isinstance(other, Expression):
-            return False
+            # TODO: consider the alternative
+            # if not hasattr(other, "to_expression"):
+            #    return False
+            # other = other.to_expression()
+            #
+            return other.sameQ(self)
         if self is other:
             return True
 

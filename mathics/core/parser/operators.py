@@ -21,7 +21,7 @@ except ImportError:
 
 # Load Mathics3 operator information from JSON. This file is derived from a
 # Mathics3 Operator Data YAML file in MathicsScanner.
-operator_tables_path = osp.join(ROOT_DIR, "data", "operator-tables.json")
+operator_tables_path = osp.join(ROOT_DIR, "data", "operators.json")
 assert osp.exists(
     operator_tables_path
 ), f"Internal error: Mathics3 Operator information are missing; expected to be in {operator_tables_path}"
@@ -35,7 +35,9 @@ misc_operators = OPERATOR_DATA["miscellaneous-operators"]
 nonassoc_binary_operators = OPERATOR_DATA["non-associative-binary-operators"]
 operator_precedences = OPERATOR_DATA["operator-precedences"]
 operator_to_amslatex = OPERATOR_DATA["operator-to-amslatex"]
-operator_to_string = OPERATOR_DATA["operator-to-string"]
+operator_to_string = OPERATOR_DATA.get(
+    "operator-to-string", OPERATOR_DATA.get("operator-to_string", {})
+)
 postfix_operators = OPERATOR_DATA["postfix-operators"]
 prefix_operators = OPERATOR_DATA["prefix-operators"]
 right_binary_operators = OPERATOR_DATA["right-binary-operators"]

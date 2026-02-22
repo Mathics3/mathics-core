@@ -12,6 +12,7 @@ A <url>:Surface plot:https://en.wikipedia.org/wiki/Plot_(graphics)#Surface_plot<
 
 import numpy as np
 
+from mathics.builtin.drawing import plot
 from mathics.builtin.drawing.graphics3d import Graphics3D
 from mathics.builtin.graphics import Graphics
 from mathics.builtin.options import filter_from_iterable, options_to_rules
@@ -20,8 +21,6 @@ from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.systemsymbols import Symbol, SymbolPlotRange, SymbolSequence
-
-from . import plot
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.custom-plots"
@@ -156,26 +155,34 @@ class _Plot3D(Builtin):
 
 class ComplexPlot3D(_Plot3D):
     """
-    <url>:WMA link: https://reference.wolfram.com/language/ref/ComplexPlot3D.html</url>
+    <url>:Domain coloring:https://en.wikipedia.org/wiki/Domain_coloring</url> (<url>
+    :WMA link: https://reference.wolfram.com/language/ref/ComplexPlot3D.html</url>)
     <dl>
-      <dt>'Plot3D'[$f$, {$z$, $z_{min}$, $z_{max}$}]
+      <dt>'ComplexPlot3D'[$f$, {$z$, $z_{min}$, $z_{max}$}]
       <dd>creates a three-dimensional plot of the magnitude of $f$ with $z$ ranging from $z_{min}$ to \
           $z_{max}$ with surface colored according to phase
 
           See <url>:Drawing Option and Option Values:
-    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    /doc/reference-of-built-in-symbols/plotting-graphing-and-drawing/drawing-options-and-option-values
     </url> for a list of Plot options.
     </dl>
 
+    'ComplexPlot' allows to visualize the changes both in the phase and \
+    the module  of a complex function:
+
+    In the neighborhood of the poles, the module of a rational function \
+    grows without limit, and the phase varies between $-\\Pi$ to $\\Pi$, \
+    an integer number of times:
+    >> ComplexPlot3D[(z^2 + 1)/(z^2 - 1), {z, -2 - 2 I, 2 + 2 I}]
+     = ...
     """
 
-    summary_text = "plots one or more complex functions as a 3D surface"
+    graphics_class = Graphics3D
     expected_args = 2
-    options = _Plot3D.options3d | {"Mesh": "None"}
-
     many_functions = True
     num_plot_points = 2  # different from number of ranges
-    graphics_class = Graphics3D
+    options = _Plot3D.options3d | {"Mesh": "None"}
+    summary_text = "plot one or more complex functions as a 3D surface"
 
     def apply_function(self, function, names, us, vs):
         parms = {str(names[0]): us + vs * 1j}
@@ -184,26 +191,32 @@ class ComplexPlot3D(_Plot3D):
 
 class ComplexPlot(_Plot3D):
     """
+    <url>:Domain coloring:https://en.wikipedia.org/wiki/Domain_coloring</url>
     <url>:WMA link: https://reference.wolfram.com/language/ref/ComplexPlot.html</url>
     <dl>
-      <dt>'Plot3D'[$f$, {$z$, $z_{min}$, $z_{max}$}]
+      <dt>'ComplexPlot'[$f$, {$z$, $z_{min}$, $z_{max}$}]
       <dd>creates two-dimensional plot of $f$ with $z$ ranging from $z_{min}$ to \
           $z_{max}$ colored according to phase
 
           See <url>:Drawing Option and Option Values:
-    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    /doc/reference-of-built-in-symbols/plotting-graphing-and-drawing/drawing-options-and-option-values
     </url> for a list of Plot options.
     </dl>
 
+    'ComplexPlot' allows to visualize the changes in the phase of a \
+    complex function.
+    In the neighborhood of the poles, the module of a rational function \
+    the phase varies between $-\\Pi$ to $\\Pi$ an integer number of times.
+    >> ComplexPlot[(z^2 + 1)/(z^2 - 1), {z, -2 - 2 I, 2 + 2 I}]
+     = ...
     """
 
-    summary_text = "plots a complex function showing phase using colors"
     expected_args = 2
-    options = _Plot3D.options2d
-
-    many_functions = False
-    num_plot_points = 2  # different from number of ranges
     graphics_class = Graphics
+    many_functions = False
+    num_plot_points = 2  # different from number of ranges    
+    options = _Plot3D.options2d
+    summary_text = "plots a complex function showing phase using colors"
 
     def apply_function(self, function, names, us, vs):
         parms = {str(names[0]): us + vs * 1j}
@@ -212,27 +225,41 @@ class ComplexPlot(_Plot3D):
 
 class ContourPlot(_Plot3D):
     """
-    <url>:WMA link: https://reference.wolfram.com/language/ref/ContourPlot.html</url>
+    <url>:heat map:https://en.wikipedia.org/wiki/Heat_map</url>, <url>
+    :contour map:https://en.wikipedia.org/wiki/Contour_line</url> (<url>
+    :WMA link: https://reference.wolfram.com/language/ref/ContourPlot.html</url>)
     <dl>
       <dt>'Contour'[$f$, {$x$, $x_{min}$, $x_{max}$}, {$y$, $y_{min}$, $y_{max}$}]
-      <dd>creates a two-dimensional contour plot ofh $f$ over the region
+      <dd>creates a two-dimensional contour plot ofh $f$ over the region \
           $x$ ranging from $x_{min}$ to $x_{max}$ and $y$ ranging from $y_{min}$ to $y_{max}$.
 
           See <url>:Drawing Option and Option Values:
-    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    /doc/reference-of-built-in-symbols/plotting-graphing-and-drawing/drawing-options-and-option-values
     </url> for a list of Plot options.
     </dl>
 
+    Colorize the regions where a function takes values close to different \
+   numeric values
+    >> ContourPlot[x - y^3, {x, -2, 2}, {y, -1, 1}, AspectRatio->Automatic]
+     = ...
+
+    The same, but with a finer division:
+    >> ContourPlot[x^2 - y^2, {x, -2, 2}, {y, -1, 1}, Contours->10]
+     = ...
+
+    Plot curves where the real and the imaginary part of a function take
+    specific values:
+    >> ContourPlot[{Re[Sin[x + I y]] == 5, Im[Sin[x + I y]] == 0}, {x, -10, 10}, {y, -10, 10}]
+     = ...
     """
 
-    requires = ["skimage"]
-    summary_text = "creates a contour plot"
     expected_args = 3
+    graphics_class = Graphics
+    many_functions = True
     options = _Plot3D.options2d | {"Contours": "Automatic"}
     # TODO: other options?
-
-    many_functions = True
-    graphics_class = Graphics
+    requires = ["skimage"]
+    summary_text = "creates a contour plot"
 
 
 class DensityPlot(_Plot3D):
@@ -259,12 +286,11 @@ class DensityPlot(_Plot3D):
      = -Graphics-
     """
 
-    summary_text = "density plot for a function"
     expected_args = 3
-    options = _Plot3D.options2d
-
-    many_functions = False
     graphics_class = Graphics
+    many_functions = False
+    options = _Plot3D.options2d
+    summary_text = "density plot for a function"
 
 
 class ParametricPlot3D(_Plot3D):
@@ -317,7 +343,7 @@ class Plot3D(_Plot3D):
           $x_{max}$ and $y$ ranging from $y_{min}$ to $y_{max}$.
 
           See <url>:Drawing Option and Option Values:
-    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    /doc/reference-of-built-in-symbols/plotting-graphing-and-drawing/drawing-options-and-option-values
     </url> for a list of Plot options.
     </dl>
 
@@ -337,12 +363,12 @@ class Plot3D(_Plot3D):
      = -Graphics3D-
     """
 
-    summary_text = "plots 3D surfaces of one or more functions"
     expected_args = 3
-    options = _Plot3D.options3d
-
-    many_functions = True
     graphics_class = Graphics3D
+    many_functions = True
+    options = _Plot3D.options3d
+    summary_text = "plots 3D surfaces of one or more functions"
+    
 
 
 class SphericalPlot3D(_Plot3D):

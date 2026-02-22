@@ -8,6 +8,8 @@ and text terminals.
 import re
 from typing import Callable, Dict, List, Union
 
+from mathics_scanner.characters import replace_box_unicode_with_ascii
+
 from mathics.core.atoms import (
     Integer,
     Integer0,
@@ -30,7 +32,6 @@ from mathics.core.systemsymbols import (
     SymbolInfix,
     SymbolLeft,
     SymbolNonAssociative,
-    SymbolNone,
     SymbolOutputForm,
     SymbolPower,
     SymbolRight,
@@ -51,6 +52,8 @@ from mathics.settings import SYSTEM_CHARACTER_ENCODING
 from .inputform import render_input_form
 from .util import (
     BLANKS_TO_STRINGS,
+    PARENTHESIZED_FIRST,
+    PARENTHESIZED_REST,
     PRECEDENCE_FUNCTION_APPLY,
     PRECEDENCE_PLUS,
     PRECEDENCE_POWER,
@@ -86,7 +89,7 @@ def _default_render_output_form(
         result = expr.atom_to_boxes(SymbolOutputForm, evaluation)
         if isinstance(result, String):
             return result.value
-        return result.boxes_to_text()
+        return result.to_text()
 
     expr_head = expr.head
     head = render_output_form(expr_head, evaluation, **kwargs)
@@ -244,6 +247,7 @@ def render_output_form(expr: BaseElement, evaluation: Evaluation, **kwargs):
 
     if format_expr is None:
         return ""
+
     head = format_expr.get_head()
     lookup_name: str = head.get_name() or head.get_lookup_name()
     callback = EXPR_TO_OUTPUTFORM_TEXT_MAP.get(lookup_name, None)
@@ -260,6 +264,21 @@ def render_output_form(expr: BaseElement, evaluation: Evaluation, **kwargs):
         # the default
         pass
     return _default_render_output_form(format_expr, evaluation, **kwargs)
+
+
+@register_outputform("System`Format")
+def format_format(expr, evaluation, **kwargs):
+    """Format[expr_, form___]"""
+    elements = expr.elements
+    if len(elements) == 1:
+        return render_output_form(elements[0], evaluation, **kwargs)
+    if len(elements) == 2:
+        expr, form = elements
+        if form not in evaluation.definitions.printforms:
+            evaluation.message("FormatType", "ftype", form)
+            return render_output_form(expr, evaluation, **kwargs)
+        return other_forms(Expression(form, expr), evaluation, **kwargs)
+    raise _WrongFormattedExpression
 
 
 @register_outputform("System`Graphics")
@@ -318,9 +337,8 @@ def other_forms(expr, evaluation, **kwargs):
     if not isinstance(expr.head, Symbol):
         raise _WrongFormattedExpression
 
-    print("format", expr)
     result = format_element(expr, evaluation, SymbolStandardForm, **kwargs)
-    return result.boxes_to_text()
+    return result.to_text()
 
 
 @register_outputform("System`Integer")
@@ -339,7 +357,7 @@ def integer_outputform(n, evaluation, **kwargs):
     result = numberform_to_boxes(n, digits, padding, evaluation, py_options)
     if isinstance(result, String):
         return result.value
-    return result.boxes_to_text()
+    return result.to_text()
 
 
 @register_outputform("System`Image")
@@ -373,15 +391,13 @@ def _infix_outputform_text(expr: Expression, evaluation: Evaluation, **kwargs) -
     #    raise _WrongFormattedExpression
 
     # Process the first operand:
-    parenthesized = group in (SymbolNone, SymbolRight, SymbolNonAssociative)
+    parenthesized = group in PARENTHESIZED_FIRST
     operand = operands[0]
     result = str(render_output_form(operand, evaluation, **kwargs))
     result = parenthesize(precedence, operand, result, parenthesized)
 
-    if group in (SymbolLeft, SymbolRight):
-        parenthesized = not parenthesized
-
     # Process the rest of operands
+    parenthesized = group in PARENTHESIZED_REST
     num_ops = len(ops_lst)
     for index, operand in enumerate(operands[1:]):
         curr_op = ops_lst[index % num_ops]
@@ -434,7 +450,7 @@ def mathmlform_render_output_form(
 
     #  boxes = format_element(expr.elements[0], evaluation)
     boxes = format_element(expr.elements[0], evaluation, SymbolTraditionalForm)
-    return boxes.boxes_to_mathml()  # type: ignore[union-attr]
+    return boxes.to_mathml()  # type: ignore[union-attr]
 
 
 @register_outputform("System`MatrixForm")
@@ -487,6 +503,32 @@ def _numberform_outputform(expr, evaluation, **kwargs):
         py_options,
     )
     return render_output_form(target, evaluation, **kwargs)
+
+
+# TODO: DRY ME with input form
+@register_outputform("System`Optional")
+def _optional(expr: Expression, evaluation: Evaluation, **kwargs) -> str:
+    name: str = ""
+    post: str = ""
+    elements = expr.elements
+    if not expr.has_form("Optional", 1, 2):
+        raise _WrongFormattedExpression
+    if len(elements) == 2:
+        post = ":" + render_output_form(elements[1], evaluation, **kwargs)
+    else:
+        post = "."
+
+    operand = elements[0]
+    if operand.has_form("Pattern", 2):
+        name = render_output_form(operand.elements[0], evaluation, **kwargs)
+        operand = operand.elements[1]
+
+    if not operand.has_form(("Blank", "BlankNullSequence", "BlankSequence"), 0):
+        raise _WrongFormattedExpression
+
+    blank_kind = operand.head
+    result = name + BLANKS_TO_STRINGS[blank_kind] + post
+    return result
 
 
 @register_outputform("System`Out")
@@ -618,13 +660,16 @@ def power_render_output_form(
 
 @register_outputform("System`PrecedenceForm")
 def precedenceform_render_output_form(
-    expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
+    expr: Expression, evaluation: Evaluation, **kwargs
 ) -> str:
     if not isinstance(expr.head, Symbol):
         raise _WrongFormattedExpression
 
     if len(expr.elements) == 2:
-        return render_output_form(expr.elements[0], evaluation, **kwargs)
+        arg_1, arg_2 = expr.elements
+        if not isinstance(arg_2, (Integer, Real)):
+            raise _WrongFormattedExpression
+        return render_output_form(arg_1, evaluation, **kwargs)
     raise _WrongFormattedExpression
 
 
@@ -642,6 +687,8 @@ def _prefix_output_text(expr: Expression, evaluation: Evaluation, **kwargs) -> s
     )
     # Prefix works with just one operand:
     if len(operands) != 1:
+        raise _WrongFormattedExpression
+    if not isinstance(op_head, str):
         raise _WrongFormattedExpression
     operand = operands[0]
     kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
@@ -665,6 +712,8 @@ def _postfix_output_text(expr: Expression, evaluation: Evaluation, **kwargs) -> 
     )
     # Prefix works with just one operand:
     if len(operands) != 1:
+        raise _WrongFormattedExpression
+    if not isinstance(op_head, str):
         raise _WrongFormattedExpression
     operand = operands[0]
     target_txt = render_output_form(operand, evaluation, **kwargs)
@@ -705,7 +754,7 @@ def real_render_output_form(n: Real, evaluation: Evaluation, **kwargs):
     result = numberform_to_boxes(n, digits, padding, evaluation, py_options)
     if isinstance(result, String):
         return result.value
-    return result.boxes_to_text()
+    return result.to_text()
 
 
 @register_outputform("System`Row")
@@ -814,9 +863,17 @@ def stringform_render_output_form(
     items = [render_output_form(item, evaluation, **kwargs) for item in items]
 
     curr_indx = 0
-    strform_str = safe_backquotes(strform.value)
+    strform_str = safe_backquotes(replace_box_unicode_with_ascii(strform.value))
     parts = strform_str.split("`")
+
+    # Rocky: This looks like a hack to me. It is used right now
+    # to use allow 'Backquote' to be to escaped with a backslash:
+    # >> StringForm["`` is Global\\`a", a]
+    #  = a is Global`a
+    # There is probably needs to be another change to the scanner, and/or
+    # there is something deeper going on and a change to StringForm.
     parts = [part.replace("\\[RawBackquote]", "`") for part in parts]
+
     result = [parts[0]]
     if len(parts) <= 1:
         return result[0]
@@ -953,9 +1010,9 @@ def _texform_outputform(expr, evaluation, **kwargs):
 
     boxes = format_element(expr.elements[0], evaluation, SymbolTraditionalForm)
     try:
-        tex = boxes.boxes_to_tex(evaluation=evaluation)  # type: ignore[union-attr]
+        tex = boxes.to_tex(evaluation=evaluation)  # type: ignore[union-attr]
         tex = MULTI_NEWLINE_RE.sub("\n", tex)
-        tex = tex.replace(" \uF74c", " \\, d")  # tmp hack for Integrate
+        tex = tex.replace(" \uf74c", " \\, d")  # tmp hack for Integrate
         return tex
     except BoxError:
         evaluation.message(
@@ -1005,9 +1062,7 @@ def times_render_output_form(expr: Expression, evaluation: Evaluation, **kwargs)
         num_expr = (
             Expression(SymbolTimes, *num)
             if len(num) > 1
-            else num[0]
-            if len(num) == 1
-            else Integer1
+            else num[0] if len(num) == 1 else Integer1
         )
         return _divide(num_expr, den_expr, evaluation, **kwargs)
 

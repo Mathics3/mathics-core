@@ -220,7 +220,7 @@ class StringInsert(Builtin):
                         boxed_expr = format_element(expr, evaluation, SymbolOutputForm)
                     except BoxError:
                         boxed_expr = format_element(expr, evaluation, SymbolFullForm)
-                    return boxed_expr.boxes_to_text()
+                    return boxed_expr.to_text()
 
                 return do_format_output(
                     Expression(
@@ -360,6 +360,8 @@ class StringLength(Builtin):
     """
 
     attributes = A_LISTABLE | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
 
     summary_text = "length of a string (in Unicode characters)"
 
@@ -630,8 +632,6 @@ class StringRiffle(Builtin):
 
     messages = {
         "list": "List expected at position `1` in `2`.",
-        "argmu": "StringRiffle called with 1 argument; 2 or more arguments are expected.",
-        "argm": "StringRiffle called with 0 arguments; 2 or more arguments are expected.",
         "string": "String expected at position `1` in `2`.",
         "sublist": "Sublist form in position 1 is is not implemented yet.",
         "mulsep": "Multiple separators form is not implemented yet.",
@@ -688,7 +688,7 @@ class StringRiffle(Builtin):
         for i in range(len(liststr.elements)):
             text = format_element(
                 liststr.elements[i], evaluation, SymbolOutputForm
-            ).boxes_to_text(evaluation=evaluation)
+            ).to_text(evaluation=evaluation)
             if i == len(liststr.elements) - 1:
                 result += text + right
             else:
@@ -865,6 +865,8 @@ class StringTake(Builtin):
         "take": 'Cannot take positions `1` through `2` in "`3`".',
     }
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
     summary_text = "sub-string from a range of positions"
 
     def eval(self, string: String, seqspec, evaluation: Evaluation):
@@ -896,7 +898,7 @@ class StringTake(Builtin):
 
         return String(result[py_slice])
 
-    def eval_strings(self, strings, spec, evaluation):
+    def eval_strings(self, strings, spec, evaluation: Evaluation):
         "StringTake[strings__, spec_]"
         result_list = []
         for string in strings.elements:

@@ -2,7 +2,6 @@
 Pytests for the documentation system. Basic functions and classes.
 """
 
-
 from mathics.core.load_builtin import import_and_load_builtins
 from mathics.doc.latex_doc import (
     LaTeXDocChapter,
@@ -83,8 +82,8 @@ def test_load_latex_documentation():
         r"\begin{testresult}o\end{testresult}\end{testcase}"
     )
     assert (
-        doc_in_section.latex(doc_data)[:40]
-    ).strip() == "Let\\'s sketch the function\n\\begin{tests}"
+        doc_in_section.latex(doc_data)[:39]
+    ).strip() == "Let's sketch the function\n\\begin{tests}"
     assert (
         first_section.latex(doc_data)[:30]
     ).strip() == "\\section{Curve Sketching}{}"

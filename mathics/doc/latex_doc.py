@@ -87,6 +87,12 @@ NUMBER_RE = re.compile(r"([ -])(\d*(?<!\.)\.\d+|\d+\.(?!\.)\d*|\d+)")
 OUTSIDE_ASY_RE = re.compile(r"(?s)((?:^|\\end\{asy\}).*?(?:$|\\begin\{asy\}))")
 
 
+def to_latex(elem, **kwargs) -> str:
+    if hasattr(elem, "latex"):
+        return elem.latex(**kwargs)
+    return escape_latex(elem.text(**kwargs))
+
+
 def escape_latex_code(text) -> str:
     """Escape verbatim Mathics input"""
 
@@ -540,7 +546,7 @@ class LaTeXDocTest(DocTest):
            the documentation.
     * `X>` Shows the example in the docs, but disables testing the example.
     * `S>` Shows the example in the docs, but disables testing if environment
-           variable SANDBOX is set.
+           variable MATHICS3_SANDBOX is set.
     * `=`  Compares the result text.
     * `:`  Compares an (error) message.
       `|`  Prints output.
@@ -661,7 +667,7 @@ class LaTeXMathicsDocumentation(MathicsMainDocumentation):
     def latex(
         self,
         doc_data: dict,
-        quiet=False,
+        quiet: bool = False,
         filter_parts: Optional[str] = None,
         filter_chapters: Optional[str] = None,
         filter_sections: Optional[str] = None,
@@ -705,7 +711,7 @@ class LaTeXDocChapter(DocChapter):
     guide_sections: Sequence["LaTeXDocGuideSection"]
 
     def latex(
-        self, doc_data: dict, quiet=False, filter_sections: Optional[str] = None
+        self, doc_data: dict, quiet: bool = False, filter_sections: Optional[str] = None
     ) -> str:
         """Render this Chapter object as LaTeX string and return that.
 
@@ -737,7 +743,7 @@ class LaTeXDocChapter(DocChapter):
             "\\chaptersections\n",
             # ####################
             "\n\n".join(
-                section.latex(doc_data, quiet)
+                to_latex(section, doc_data=doc_data, quiet=quiet)
                 # Here we should use self.all_sections, but for some reason
                 # guidesections are not properly loaded, duplicating
                 # the load of subsections.
@@ -746,7 +752,7 @@ class LaTeXDocChapter(DocChapter):
             ),
             # ###################
             "\n\n".join(
-                section.latex(doc_data, quiet)
+                to_latex(section, doc_data=doc_data, quiet=quiet)
                 # Here we should use self.all_sections, but for some reason
                 # guidesections are not properly loaded, duplicating
                 # the load of subsections.
@@ -764,7 +770,11 @@ class LaTeXDocPart(DocPart):
         super().__init__(doc, title, is_reference)
 
     def latex(
-        self, doc_data: dict, quiet=False, filter_chapters=None, filter_sections=None
+        self,
+        doc_data: dict,
+        quiet: bool = False,
+        filter_chapters=None,
+        filter_sections=None,
     ) -> str:
         """Render this Part object as LaTeX string and return that.
 
@@ -781,7 +791,12 @@ class LaTeXDocPart(DocPart):
 
         result = "\n\n\\part{%s}\n\n" % escape_latex(self.title) + (
             "\n\n".join(
-                chapter.latex(doc_data, quiet, filter_sections=filter_sections)
+                to_latex(
+                    chapter,
+                    doc_data=doc_data,
+                    quiet=quiet,
+                    filter_sections=filter_sections,
+                )
                 for chapter in chapter_fn(self.chapters)
                 if not filter_chapters or chapter.title in filter_chapters
             )

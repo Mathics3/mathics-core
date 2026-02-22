@@ -9,6 +9,7 @@ SympyFunction, MPMathFunction, etc.
 import importlib
 import importlib.util
 import re
+import sys
 from abc import ABC
 from functools import total_ordering
 from itertools import chain
@@ -347,7 +348,7 @@ class Builtin:
                 """Handle adding 'System`' to a form name, unless it's ""
                 (meaning the rule applies to all forms).
                 """
-                return "" if f == "" else ensure_context(f)
+                return f if f in ("", "_MakeBoxes") else ensure_context(f)
 
             if isinstance(pattern, tuple):
                 forms, pattern = pattern
@@ -383,6 +384,9 @@ class Builtin:
                 formatvalues[form].append(
                     Rule(pattern, parse_builtin_rule(replace), system=True)
                 )
+
+        formatvalues.setdefault("_MakeBoxes", []).extend(box_rules)
+
         for form, formatrules in formatvalues.items():
             formatrules.sort(key=lambda x: x.pattern_precedence)
 
@@ -434,10 +438,6 @@ class Builtin:
         else:
             definitions.builtin[name] = definition
 
-        makeboxes_def = definitions.builtin["System`MakeBoxes"]
-        for rule in box_rules:
-            makeboxes_def.add_rule(rule)
-
     # This method is used to produce generic argument mismatch errors
     # (tags: "argx", "argr", "argrx", "argt", or "argtu") for builtin
     # functions that define this as an eval method. e.g.  For example
@@ -474,14 +474,31 @@ class Builtin:
                     Integer(expected_args2),
                 )
         elif isinstance(self.expected_args, range):
-            evaluation.message(
-                name,
-                "argb",
-                Symbol(name),
-                Integer(got_arg_count),
-                Integer(self.expected_args.start),
-                Integer(self.expected_args.stop - 1),
-            )
+            if self.expected_args.stop == sys.maxsize:
+                if got_arg_count == 1:
+                    evaluation.message(
+                        name,
+                        "argmu",
+                        Symbol(name),
+                        Integer(self.expected_args.start),
+                    )
+                else:
+                    evaluation.message(
+                        name,
+                        "argm",
+                        Symbol(name),
+                        Integer(got_arg_count),
+                        Integer(self.expected_args.start),
+                    )
+            else:
+                evaluation.message(
+                    name,
+                    "argb",
+                    Symbol(name),
+                    Integer(got_arg_count),
+                    Integer(self.expected_args.start),
+                    Integer(self.expected_args.stop - 1),
+                )
         else:
             if self.expected_args == 1:
                 evaluation.message(name, "argx", Symbol(name), Integer(got_arg_count))
@@ -1353,7 +1370,6 @@ class InfixOperator(Operator):
                 "MakeBoxes[{0}, form:StandardForm|TraditionalForm]".format(
                     op_pattern
                 ): formatted,
-                f"MakeBoxes[{op_pattern}, form:InputForm|OutputForm]": formatted,
             }
             default_rules.update(self.rules)
             self.rules = default_rules
@@ -1555,17 +1571,17 @@ def add_no_meaning_builtin_classes(
         )
 
         if affix == "infix":
-            mathics.core.parser.operators.flat_binary_operators[
-                operator_name
-            ] = operator_tuple[1]
+            mathics.core.parser.operators.flat_binary_operators[operator_name] = (
+                operator_tuple[1]
+            )
         elif affix == "postfix":
-            mathics.core.parser.operators.postfix_operators[
-                operator_name
-            ] = operator_tuple[1]
+            mathics.core.parser.operators.postfix_operators[operator_name] = (
+                operator_tuple[1]
+            )
         elif affix == "prefix":
-            mathics.core.parser.operators.prefix_operators[
-                operator_name
-            ] = operator_tuple[1]
+            mathics.core.parser.operators.prefix_operators[operator_name] = (
+                operator_tuple[1]
+            )
 
         # Put the newly-created Builtin class inside the module under
         # mathics.builtin.no_meaning.xxx.

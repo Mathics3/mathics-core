@@ -6,7 +6,6 @@ from mathics.format.box.formatvalues import StringLParen, StringRParen, do_forma
 from mathics.format.box.makeboxes import (
     _boxed_string,
     eval_generic_makeboxes,
-    eval_makeboxes,
     eval_makeboxes_fullform,
     format_element,
     to_boxes,
@@ -35,7 +34,6 @@ __all__ = [
     "eval_baseform",
     "eval_generic_makeboxes",
     "eval_infix",
-    "eval_makeboxes",
     "eval_makeboxes_fullform",
     "eval_mathmlform",
     "eval_postprefix",

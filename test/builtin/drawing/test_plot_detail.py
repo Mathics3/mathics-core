@@ -253,7 +253,7 @@ def one_test(name: str, str_expr: str, vec: bool, svg: bool, opts: str):
             boxed_expr = Expression(Symbol("System`ToBoxes"), act_expr).evaluate(
                 session.evaluation
             )
-            act_svg = boxed_expr.boxes_to_svg()
+            act_svg = boxed_expr.to_format("svg")
             act_svg = outline_svg(
                 act_svg, precision=2, include_text=True, include_tail=True
             )
@@ -271,7 +271,7 @@ def one_test(name: str, str_expr: str, vec: bool, svg: bool, opts: str):
             boxed_expr = Expression(Symbol("System`ToBoxes"), act_expr).evaluate(
                 session.evaluation
             )
-            act_svg = boxed_expr.boxes_to_svg()
+            act_svg = boxed_expr.box_to_format("svg")
             act_svg = inject_font_style(act_svg)
             cairosvg.svg2png(
                 bytestring=act_svg.encode("utf-8"),

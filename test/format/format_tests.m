@@ -9,6 +9,31 @@ in the Notebook interface, the CLI (math) and wolframscript are not fully consis
 
 ISMATHICSINTERPRETER=(StringTake[$Version, 8]==="Mathics3");
 
+If[ISMATHICSINTERPRETER,
+  (*Mathics Interpreter*)
+  STRIPMATHML[strg_]:= Module[
+     {start=(StringPosition[strg,"<math display=\"block\">"][[1]][[2]]+1),
+     end=(StringPosition[strg,"</math>"][[1]][[1]]-1)
+     },
+     StringTrim[StringTake[strg, {start, end}]]
+     ],
+  (*WMA interpreter*)
+  STRIPMATHML[strg_]:= Module[
+     {semanticpos, start, end},
+      semanticpos = StringPosition[strg,"<semantics>"];
+      (*If have a field <semantics> use it as a reference.*)
+      If[Length[semanticpos]>0,
+         start=(semanticpos[[1]][[2]]+1);
+	 end=(StringPosition[strg,"<annotation"][[1]][[1]]-1);,
+	 (*Otherwise, strip <math>...</math>*)
+	 start=StringPosition[strg,"<math>"][[1]][[2]]+1;
+	 end=StringPosition[strg,"</math>"][[1]][[1]]-1;
+      ];
+      StringTrim[StringTake[strg, {start, end}]]
+   ]
+]
+
+
 
 Print["Read json"];
 data = Import["format_tests-WMA.json"];
@@ -36,7 +61,7 @@ Do[key = ToExpression[tests[[1]]];
  {subtest, text}]
  ];
  (*LaTeX*)
- If[And[ISMATHICSINTERPRETER, Head[latex]===List],
+ If[Head[latex]===List,
    Print["    latex", "\n    -----", "\n"];
    Do[form = ToExpression[subtest[[1]]]; expr = form[key];
       result = ToString[expr, TeXForm, CharacterEncoding->"ASCII"];
@@ -49,10 +74,10 @@ Do[key = ToExpression[tests[[1]]];
    {subtest, latex}]
    ];
 (*MathML*)
- If[And[ISMATHICSINTERPRETER, Head[mathml]===List],
+ If[Head[mathml]===List,
  Print["    mathml", "\n    ------", "\n"];
  Do[form = ToExpression[subtest[[1]]]; expr = form[key];
-  result = ToString[expr, MathMLForm, CharacterEncoding->"ASCII"];
+  result = STRIPMATHML[ToString[expr, MathMLForm, CharacterEncoding->"ASCII"]];
   expected = subtest[[2]];
   If[result != subtest[[2]],
    Print["      * ", key, " //",  form, "(mathml)    [Failed]\n        result:",
