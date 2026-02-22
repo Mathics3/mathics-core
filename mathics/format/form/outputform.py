@@ -865,8 +865,15 @@ def stringform_render_output_form(
     curr_indx = 0
     strform_str = safe_backquotes(replace_box_unicode_with_ascii(strform.value))
     parts = strform_str.split("`")
-    # Rocky: This looks like a hack to me: is it needed?
+
+    # Rocky: This looks like a hack to me. It is used right now
+    # to use allow 'Backquote' to be to escaped with a backslash:
+    # >> StringForm["`` is Global\\`a", a]
+    #  = a is Global`a
+    # There is probably needs to be another change to the scanner, and/or
+    # there is something deeper going on and a change to StringForm.
     parts = [part.replace("\\[RawBackquote]", "`") for part in parts]
+
     result = [parts[0]]
     if len(parts) <= 1:
         return result[0]

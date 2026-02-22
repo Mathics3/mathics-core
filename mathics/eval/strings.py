@@ -169,10 +169,6 @@ def eval_StringForm_MakeBoxes(strform: String, items, form, evaluation: Evaluati
     strform_str = safe_backquotes(replace_box_unicode_with_ascii(strform.value))
 
     parts = strform_str.split("`")
-
-    # Rocky: This looks like a hack to me: is it needed?
-    parts = [part.replace(r"\[RawBackquote]", "`") for part in parts]
-
     result = [String(parts[0])]
     if len(parts) <= 1:
         return result[0]
