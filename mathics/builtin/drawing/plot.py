@@ -22,7 +22,7 @@ from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolList
 from mathics.core.systemsymbols import (
     SymbolAll,
     SymbolAutomatic,
@@ -413,14 +413,27 @@ class PlotOptions:
     plot_points: list
     maxdepth: int
 
-    def __init__(self, builtin, range_exprs, options, dim, evaluation):
+    def __init__(self, builtin, functions, range_exprs, options, dim, evaluation):
         def error(*args, **kwargs):
             evaluation.message(builtin.get_name(), *args, **kwargs)
             raise ValueError()
 
+        # convert functions to list of lists of exprs
+        def to_list(expr):
+            if isinstance(expr, Expression) and expr.head is SymbolList:
+                return [to_list(e) for e in expr.elements]
+            else:
+                return expr
+
+        functions = to_list(functions)
+        self.functions = functions if isinstance(functions, list) else [functions]
+
         # plot ranges of the form {x,xmin,xmax} etc. (returns Symbol)
         self.ranges = []
-        for range_expr in range_exprs:
+        for i, range_expr in enumerate(range_exprs):
+            if isinstance(range_expr, Symbol) and hasattr(builtin, "default_ranges"):
+                self.ranges.append([range_expr, *builtin.default_ranges[i]])
+                continue
             if not range_expr.has_form("List", 3):
                 error("invrange", range_expr)
             if not isinstance(range_expr.elements[0], Symbol):
@@ -471,18 +484,25 @@ class PlotOptions:
         self.exclusions = exclusions
 
         # Mesh option (returns Symbol)
-        mesh = builtin.get_option(options, "Mesh", evaluation)
-        if mesh not in (SymbolNone, SymbolFull, SymbolAll):
+        mesh = builtin.get_option(options, "Mesh", evaluation).to_python(
+            preserve_symbols=True
+        )
+        if isinstance(mesh, (list, tuple)) and all(isinstance(m, int) for m in mesh):
+            self.mesh = mesh
+        elif mesh not in (SymbolNone, SymbolFull, SymbolAll):
             evaluation.message("Mesh", "ilevels", mesh)
-            mesh = SymbolFull
-        self.mesh = mesh
+            self.mesh = SymbolFull
+        else:
+            self.mesh = mesh
 
         # PlotPoints option (returns Symbol)
         plot_points_option = builtin.get_option(options, "PlotPoints", evaluation)
         pp = plot_points_option.to_python(preserve_symbols=True)
-        npp = len(self.ranges)
-        if builtin.get_name() in ("System`ComplexPlot3D", "System`ComplexPlot"):
-            npp = 2
+        npp = (
+            builtin.num_plot_points
+            if hasattr(builtin, "num_plot_points")
+            else len(self.ranges)
+        )
         if pp == SymbolNone:
             pp = None
         else:

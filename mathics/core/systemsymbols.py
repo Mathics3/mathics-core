@@ -26,6 +26,7 @@ from mathics.core.symbols import Symbol
 SymbolAborted = Symbol("System`$Aborted")
 SymbolAbs = Symbol("System`Abs")
 SymbolAbsoluteTime = Symbol("AbsoluteTime")
+SymbolAbsoluteThickness = Symbol("System`AbsoluteThickness")
 SymbolAccuracy = Symbol("System`Accuracy")
 SymbolAlignmentPoint = Symbol("System`AlignmentPoint")
 SymbolAll = Symbol("System`All")

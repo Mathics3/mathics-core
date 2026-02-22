@@ -34,6 +34,7 @@ class _Plot3D(Builtin):
     # Check for correct number of args
     eval_error = Builtin.generic_argument_error
     expected_args = 3
+    is_cartesian = True
 
     messages = {
         "invmaxrec": (
@@ -98,21 +99,26 @@ class _Plot3D(Builtin):
         try:
             dim = 3 if self.graphics_class is Graphics3D else 2
             ranges = ranges.elements if ranges.head is SymbolSequence else [ranges]
-            plot_options = plot.PlotOptions(self, ranges, options, dim, evaluation)
+            plot_options = plot.PlotOptions(
+                self, functions, ranges, options, dim, evaluation
+            )
         except ValueError:
             return None
 
-        # TODO: consult many_functions variable set by subclass and error
-        # if many_functions is False but multiple are supplied
-        if functions.has_form("List", None):
-            plot_options.functions = functions.elements
-        else:
-            plot_options.functions = [functions]
-
-        # supply default value
+        # supply default value for PlotPoints
         if plot_options.plot_points is None:
-            default_plot_points = (200, 200) if plot.use_vectorized_plot else (7, 7)
+            if isinstance(self, ParametricPlot3D) and len(plot_options.ranges) == 1:
+                # ParametricPlot3D with one independent variable generating a curve
+                default_plot_points = (1000,)
+            elif plot.use_vectorized_plot:
+                default_plot_points = (200, 200)
+            else:
+                default_plot_points = (7, 7)
             plot_options.plot_points = default_plot_points
+
+        # supply apply_function which knows how to take the plot parameters
+        # and produce xs, ys, and zs
+        plot_options.apply_function = self.apply_function
 
         # subclass must set eval_function and graphics_class
         eval_function = plot.get_plot_eval_function(self.__class__)
@@ -122,13 +128,16 @@ class _Plot3D(Builtin):
             return
 
         # now we have a list of length dim
-        # handle Automatic ~ {xmin,xmax} etc.
+        # handle Automatic ~ {xmin,xmax} etc., but only if is_cartesion: the independent variables are x and y
         # TODO: dowstream consumers might be happier if we used data range where applicable
-        for i, (pr, r) in enumerate(zip(plot_options.plot_range, plot_options.ranges)):
-            # TODO: this treats Automatic and Full as the same, which isn't quite right
-            if isinstance(pr, (str, Symbol)) and not isinstance(r[1], complex):
-                # extract {xmin,xmax} from {x,xmin,xmax}
-                plot_options.plot_range[i] = r[1:]
+        if self.is_cartesian:
+            for i, (pr, r) in enumerate(
+                zip(plot_options.plot_range, plot_options.ranges)
+            ):
+                # TODO: this treats Automatic and Full as the same, which isn't quite right
+                if isinstance(pr, (str, Symbol)) and not isinstance(r[1], complex):
+                    # extract {xmin,xmax} from {x,xmin,xmax}
+                    plot_options.plot_range[i] = r[1:]
 
         # unpythonize and update PlotRange option
         options[str(SymbolPlotRange)] = to_mathics_list(*plot_options.plot_range)
@@ -138,6 +147,10 @@ class _Plot3D(Builtin):
             options_to_rules(options, filter_from_iterable(self.graphics_class.options))
         )
         return graphics_expr
+
+    def apply_function(self, function, names, us, vs):
+        parms = {str(names[0]): us, str(names[1]): vs}
+        return us, vs, function(**parms)
 
 
 class ComplexPlot3D(_Plot3D):
@@ -167,8 +180,13 @@ class ComplexPlot3D(_Plot3D):
     graphics_class = Graphics3D
     expected_args = 2
     many_functions = True
+    num_plot_points = 2  # different from number of ranges
     options = _Plot3D.options3d | {"Mesh": "None"}
     summary_text = "plot one or more complex functions as a 3D surface"
+
+    def apply_function(self, function, names, us, vs):
+        parms = {str(names[0]): us + vs * 1j}
+        return us, vs, function(**parms)
 
 
 class ComplexPlot(_Plot3D):
@@ -196,8 +214,13 @@ class ComplexPlot(_Plot3D):
     expected_args = 2
     graphics_class = Graphics
     many_functions = False
+    num_plot_points = 2  # different from number of ranges
     options = _Plot3D.options2d
     summary_text = "plots a complex function showing phase using colors"
+
+    def apply_function(self, function, names, us, vs):
+        parms = {str(names[0]): us + vs * 1j}
+        return us, vs, function(**parms)
 
 
 class ContourPlot(_Plot3D):
@@ -270,6 +293,47 @@ class DensityPlot(_Plot3D):
     summary_text = "density plot for a function"
 
 
+class ParametricPlot3D(_Plot3D):
+    """
+    <url>:Parametric equation: https://en.wikipedia.org/wiki/Parametric_equation</url>
+    <url>:WMA link: https://reference.wolfram.com/language/ref/ParametricPlot3D.html</url>
+    <dl>
+      <dt>'ParametricPlot3D'[${x(u,v), y(u,v), z(u,v)}$, {$u$, $u_{min}$, $u_{max}$}, {$v$, $v_{min}$, $v_{max}$}]
+      <dd>creates a three-dimensional surface using the functions $x$, $y$, $z$ over the specified ranges for parameters $u$ and $v$.
+
+      <dt>'ParametricPlot3D'[${x(u), y(u), z(u)}$, {$u$, $u_{min}$, $u_{max}$}]
+      <dd>creates a three-dimensional space curve using the functions $x$, $y$, $z$ over the specified range for parameter $u$.
+
+          See <url>:Drawing Option and Option Values:
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    </url> for a list of Plot options.
+    </dl>
+
+    >> ParametricPlot3D[{Sin[t] + 2 Sin[2 t], Cos[t] - 2 Cos[2 t], -Sin[3 t]}, {t, 0, 2 Pi}]
+     = ...
+
+    A function of a single parameter $t$ generates a trefoil knot.
+
+    >> ParametricPlot3D[{(2 + Cos[v]) Cos[u], (2 + Cos[v]) Sin[u], Sin[v]}, {u, 0, 2 Pi}, {v, 0, 2 Pi}]
+     = ...
+
+    A function of two parameters $u$ and $v$ generates a torus.
+
+    """
+
+    summary_text = "plot a parametric surface or curve in three dimensions"
+    expected_args = 3
+    options = _Plot3D.options3d
+
+    is_cartesian = False
+    many_functions = True
+    graphics_class = Graphics3D
+
+    def apply_function(self, functions, names, *parms):
+        parms = {str(n): p for n, p in zip(names, parms)}
+        return [f(**parms) for f in functions]
+
+
 class Plot3D(_Plot3D):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/Plot3D.html</url>
@@ -304,3 +368,44 @@ class Plot3D(_Plot3D):
     many_functions = True
     options = _Plot3D.options3d
     summary_text = "plots 3D surfaces of one or more functions"
+
+
+class SphericalPlot3D(_Plot3D):
+    """
+    <url>:Spherical coordinate system: https://en.wikipedia.org/wiki/Spherical_coordinate_system</url>
+    <url>:WMA link: https://reference.wolfram.com/language/ref/SphericalPlot3D.html</url>
+    <dl>
+      <dt>'SphericalPlot3D'[$r(theta, phi)$, {$theta$, $theta_{min}$, $theta_{max}$}, {$phi$, $phi_{min}$, $phi_{max}$}]
+      <dd>creates a three-dimensional surface at radius $r(theta, phi)$ for spherical angles $theta$ and $phi$ over the specified ranges
+
+      <dt>'SphericalPlot3D'[$r(theta, phi)$, $theta$, $phi$]
+      <dd>creates a three-dimensional surface at radius $r(theta, phi)$ for spherical angles $theta$ and $phi$
+          in the ranges $0 < theta < pi$ and $0 < phi < 2pi$ covering the entire sphere
+
+          See <url>:Drawing Option and Option Values:
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    </url> for a list of Plot options.
+    </dl>
+
+    >> SphericalPlot3D[1 + 0.4 Abs[SphericalHarmonicY[10, 4, theta, phi]], theta, phi]
+     = ...
+
+    Spherical harmonics are the canonical use case for spherical plots.
+
+
+    """
+
+    summary_text = "produce a surface plot functions spherical angles theta and phi"
+    expected_args = 3
+    options = _Plot3D.options3d | {"BoxRatios": "{1,1,1}"}
+
+    is_cartesian = False
+    many_functions = True
+    graphics_class = Graphics3D
+    default_ranges = [[0, np.pi], [0, 2 * np.pi]]
+
+    def apply_function(self, function, names, θ, φ):
+        parms = {names[0]: θ, names[1]: φ}
+        r = function(**parms)
+        x, y, z = r * np.sin(θ) * np.cos(φ), r * np.sin(θ) * np.sin(φ), r * np.cos(θ)
+        return x, y, z
