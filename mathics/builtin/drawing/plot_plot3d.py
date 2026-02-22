@@ -214,7 +214,7 @@ class ComplexPlot(_Plot3D):
     expected_args = 2
     graphics_class = Graphics
     many_functions = False
-    num_plot_points = 2  # different from number of ranges    
+    num_plot_points = 2  # different from number of ranges
     options = _Plot3D.options2d
     summary_text = "plots a complex function showing phase using colors"
 
