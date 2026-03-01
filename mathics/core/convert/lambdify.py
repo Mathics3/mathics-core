@@ -18,6 +18,7 @@ import inspect
 import scipy
 import sympy
 
+from mathics.core.convert.function import evaluate_without_side_effects
 from mathics.core.convert.sympy import SympyExpression
 from mathics.core.symbols import strip_context, sympy_strip_context
 from mathics.core.util import print_expression_tree, print_sympy_tree
@@ -73,7 +74,7 @@ def lambdify_compile(evaluation, expr, names, debug=0):
     # or `*Set*`.
     #
     try:
-        new_expr = expr.evaluate(evaluation)
+        new_expr = evaluate_without_side_effects(expr, evaluation)
         if new_expr:
             expr = new_expr
     except Exception:
