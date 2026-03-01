@@ -39,18 +39,20 @@ from mathics.core.systemsymbols import (
 )
 
 
-def expand_polynomial(expr, numer=True, denom=False, deep=False, **kwargs):
+def expand_polynomial(expr, numerator=True, denominator=False, deep=False, **kwargs):
     """expands out products and positive integer powers in expr.  If
     "option pattern" is supplied, we leave unexpanded any parts of expr
     that are free of the pattern patt.
     """
 
     # FIXME: the below is not the right way to supply the default arguments
-    # numer, demom, deep and **kwargs.
+    # numerator, demom, deep and **kwargs.
     def _expand_polynomial(expr):
-        return expand_polynomial(expr, numer=numer, denom=denom, deep=deep, **kwargs)
+        return expand_polynomial(
+            expr, numerator=numerator, denominator=denominator, deep=deep, **kwargs
+        )
 
-    # Polymonmial expansion expects a nonnegative modules. When
+    # Polymonoial expansion expects a nonnegative modules. When
     # given a negative value, give back the "canonic" value: 0.
     # Note: SymPy will give back an error, so we have to do this
     # soonish.
@@ -211,10 +213,10 @@ def expand_polynomial(expr, numer=True, denom=False, deep=False, **kwargs):
             if expr.is_free(target_pat, evaluation):
                 return store_sub_expr(expr)
         if expr.has_form("Power", 2):
-            # sympy won't expand `(a + b) / x` to `a / x + b / x` if denom is False
-            # if denom is False we store negative powers to prevent this.
+            # sympy won't expand `(a + b) / x` to `a / x + b / x` if denominator is False
+            # if denominator is False we store negative powers to prevent this.
             n1 = elements[1].get_int_value()
-            if not denom and n1 is not None and n1 < 0:
+            if not denominator and n1 is not None and n1 < 0:
                 return store_sub_expr(expr)
             return sympy.Pow(*[convert_sympy(element) for element in elements])
         elif expr.has_form("Times", 2, None):
@@ -289,14 +291,14 @@ def expand_polynomial(expr, numer=True, denom=False, deep=False, **kwargs):
 
     hints.update(kwargs)
 
-    if numer and denom:
+    if numerator and denominator:
         # don't expand fractions when modulus is True
         if hints["modulus"] is not None:
             hints["frac"] = True
     else:
-        # setting both True doesn't expand denom
-        hints["numer"] = numer
-        hints["denom"] = denom
+        # setting both True doesn't expand denominator
+        hints["numer"] = numerator
+        hints["denom"] = denominator
 
     sympy_expr = sympy_expr.expand(**hints)
     result = from_sympy(sympy_expr)

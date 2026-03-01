@@ -962,29 +962,35 @@ class ExpandAll(_Expand):
 
     summary_text = "expand products and powers, including negative integer powers"
 
-    def eval_patt(self, expr, target, evaluation: Evaluation, options: dict):
-        "ExpandAll[expr_, target_, OptionsPattern[Expand]]"
-        if target.get_head_name() in ("System`Rule", "System`DelayedRule"):
-            optname = target.elements[0].get_name()
-            options[optname] = target.elements[1]
-            target = None
+    def eval_expr_with_pattern(
+        self, expr, pattern, evaluation: Evaluation, options: dict
+    ):
+        "ExpandAll[expr_, pattern_, OptionsPattern[Expand]]"
+        if pattern.get_head_name() in ("System`Rule", "System`DelayedRule"):
+            optname = pattern.elements[0].get_name()
+            options[optname] = pattern.elements[1]
+            pattern = None
 
         kwargs = self.convert_options(options, evaluation)
         if kwargs is None:
             return
 
-        if target:
-            kwargs["pattern"] = BasePattern.create(target)
+        if pattern:
+            kwargs["pattern"] = BasePattern.create(pattern)
         kwargs["evaluation"] = evaluation
-        return expand_polynomial(expr, numer=True, denom=True, deep=True, **kwargs)
+        return expand_polynomial(
+            expr, numerator=True, denominator=True, deep=True, **kwargs
+        )
 
-    def eval(self, expr, evaluation: Evaluation, options: dict):
+    def eval_expr(self, expr, evaluation: Evaluation, options: dict):
         "ExpandAll[expr_, OptionsPattern[ExpandAll]]"
 
         kwargs = self.convert_options(options, evaluation)
         if kwargs is None:
             return
-        return expand_polynomial(expr, numer=True, denom=True, deep=True, **kwargs)
+        return expand_polynomial(
+            expr, numerator=True, denominator=True, deep=True, **kwargs
+        )
 
 
 class ExpandDenominator(_Expand):
