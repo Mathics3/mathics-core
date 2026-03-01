@@ -252,7 +252,7 @@ class False_(Predefined):
 
 
 class Implies(InfixOperator):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/Implies.html</url>
 
     <dl>
@@ -272,7 +272,7 @@ class Implies(InfixOperator):
     If an expression does not evaluate to 'True' or 'False', 'Implies'
     returns a result in symbolic form:
     >> Implies[a, Implies[b, Implies[True, c]]]
-     = a Implies b Implies c
+     = a \[Implies] b \[Implies] c
     """
 
     grouping = "Right"
