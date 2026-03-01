@@ -65,6 +65,8 @@ class ToCharacterCode(Builtin):
      = -Graphics-
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
     summary_text = "convert a string to a list of character codes"
 
     def _encode(self, string, encoding, evaluation: Evaluation):

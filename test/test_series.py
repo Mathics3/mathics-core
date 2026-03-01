@@ -8,6 +8,24 @@ import pytest
 from .helper import check_evaluation
 
 
+@pytest.mark.parametrize(
+    (
+        "str_expr",
+        "str_expected",
+        "message",
+    ),
+    [
+        (
+            "Series[F[x,z],{x, g[y], 2}, {z, a, 2}]//FullForm",
+            '"SeriesData[x, g[y], {SeriesData[z, a, {F[g[y], a], Derivative[0, 1][F][g[y], a], Times[Rational[1, 2], Derivative[0, 2][F][g[y], a]]}, 0, 3, 1], SeriesData[z, a, {Derivative[1, 0][F][g[y], a], Derivative[1, 1][F][g[y], a], Times[Rational[1, 2], Derivative[1, 2][F][g[y], a]]}, 0, 3, 1], SeriesData[z, a, {Times[Rational[1, 2], Derivative[2, 0][F][g[y], a]], Times[Rational[1, 2], Derivative[2, 1][F][g[y], a]], Times[Rational[1, 4], Derivative[2, 2][F][g[y], a]]}, 0, 3, 1]}, 0, 3, 1]"',
+            "Iterated Series",
+        ),
+    ],
+)
+def test_series_iterated(str_expr, str_expected, message):
+    check_evaluation(str_expr, str_expected, message)
+
+
 def test_seriesdata_product():
     for str_expr, str_expected, message in (
         (
@@ -19,6 +37,11 @@ def test_seriesdata_product():
             "g[u] Series[F[x],{x,a,2}]//FullForm",
             "SeriesData[x, a, {g[u]* F[a], g[u]* F'[a], g[u]/2 F''[a]}, 0, 3,1]//FullForm",
             "Product of an expression free of x",
+        ),
+        (
+            "Series[Exp[x],{x,0,4}]Series[Exp[-x],{x,0,6}]",
+            '"1 + O[x] ^ 5"',
+            "Product of two series in the same variable.",
         ),
         (
             "Series[Exp[x], {x, 0, 5}] * Series[Exp[-x], {x, 0, 3}]//FullForm",
@@ -85,7 +108,7 @@ def test_series_show():
     for str_expr, str_expected, message in (
         (
             "Series[Exp[x],{x,0,2}]",
-            '"1 + x + 1 / 2 x ^ 2 + O[x] ^ 3"',
+            '"1 + x + x ^ 2 / 2 + O[x] ^ 3"',
             "Series in one variable, around 0",
         ),
         (
@@ -102,6 +125,16 @@ def test_series_show():
             "Series[F[x, y],{x, b, 2},{y, a, 1}]//FullForm",
             "SeriesData[x, b, {SeriesData[y, a, {F[b, a], Derivative[0, 1][F][b, a]}, 0, 2, 1], SeriesData[y, a, {Derivative[1, 0][F][b, a], Derivative[1, 1][F][b, a]}, 0, 2, 1], SeriesData[y, a, {Derivative[2, 0][F][b, a]/2, Derivative[2, 1][F][b, a]/2}, 0, 2, 1]}, 0, 3, 1]//FullForm",
             "Series in two variable, around a",
+        ),
+        (
+            "Series[Exp[x-y],{x, 0, 3},{y, 0 , 3}]//FullForm",
+            """SeriesData[x, 0, {
+        SeriesData[y, 0, {1, -1, 1/2, -1/6}, 0, 4, 1], 
+        SeriesData[y, 0, {1, -1, 1/2, -1/6}, 0, 4, 1], 
+        SeriesData[y, 0, {1/2, -1/2, 1/4, -1/12}, 0, 4, 1], 
+        SeriesData[y, 0, {1/6, -1/6, 1/12, -1/36}, 0, 4, 1]}, 0, 4, 1]//FullForm
+        """,
+            "Series in two variables",
         ),
     ):
         check_evaluation(str_expr, str_expected, message)
@@ -121,14 +154,13 @@ def test_seriesdata_operations():
 # To fix:
 
 
-@pytest.mark.xfail
-def test_todo_seriesdata():
-    for str_expr, str_expected, message in (
-        (
-            "Series[F[x,z],{x, g[y], 2}, {z, a, 2}]//FullForm",
-            "",
-            "Iterated Series",
-        ),
+@pytest.mark.parametrize(
+    (
+        "str_expr",
+        "str_expected",
+        "message",
+    ),
+    [
         (
             "D[Series[F[x,z],{x, g[y], 2}, {z, a, 2}], y]//FullForm",
             "SeriesData[x, g[y], {SeriesData[z, a, {}, 3, 3, 1], SeriesData[z, a, {}, 3, 3, 1]}, 0, 2, 1]//FullForm",
@@ -136,13 +168,8 @@ def test_todo_seriesdata():
         ),
         (
             "Series[Exp[x], {x, 0, 2}] * (x ^ (1 / 3))",
-            '"x ^ (1 / 3) + x ^ (2 / 3) + 1 / 2 x + O[x] ^ (10 / 3)"',
+            '"x ^ (1 / 3) + x ^ (4 / 3) + O[x] ^ (7 / 3)"',
             "Product of a Series with a power of the variable",
-        ),
-        (
-            "Series[Exp[x],{x,0,4}]Series[Exp[-x],{x,0,6}]",
-            '"1 + O[x] ^ 5"',
-            "Product of two series in the same variable.",
         ),
         (
             "Series[Exp[x],{x, 0, 2}]Series[Exp[-y],{y, 0,2}]",
@@ -155,16 +182,6 @@ def test_todo_seriesdata():
             "Product of series in two different variables, normal",
         ),
         (
-            "Series[Exp[x-y],{x, 0, 3},{y, 0 , 3}]//FullForm",
-            """SeriesData[x, 0, {
-                  SeriesData[y, 0, {1, -1, 1/2, -1/6}, 0, 4, 1], 
-                  SeriesData[y, 0, {1, -1, 1/2, -1/6}, 0, 4, 1], 
-                  SeriesData[y, 0, {1/2, -1/2, 1/4, -1/12}, 0, 4, 1], 
-                  SeriesData[y, 0, {1/6, -1/6, 1/12, -1/36}, 0, 4, 1]}, 0, 4, 1]//FullForm
-            """,
-            "Series in two variables",
-        ),
-        (
             "Series[Exp[x],{x,0,3}]-1-x-x^2",
             '"(-1 / 2) x ^ 2 + 1 / 6 x ^ 3 + O[x] ^ 4"',
             "Sum and difference of series",
@@ -174,5 +191,8 @@ def test_todo_seriesdata():
             "1 + (x - y) + (x-y)^2 / 2 //ExpandAll",
             "Series in two variables, normal",
         ),
-    ):
-        check_evaluation(str_expr, str_expected, message)
+    ],
+)
+@pytest.mark.xfail
+def test_todo_seriesdata(str_expr, str_expected, message):
+    check_evaluation(str_expr, str_expected, message)

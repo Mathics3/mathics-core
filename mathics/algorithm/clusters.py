@@ -1074,10 +1074,10 @@ class _KMeans:
 
         a = [0] * len(x)
         u = [0] * len(x)
-        l = [0] * len(x)
+        li = [0] * len(x)
 
         for i, xi in enumerate(x):
-            ai, u[i], _, l[i] = _smallest2(d(xi, cj) for cj in c)
+            ai, u[i], _, li[i] = _smallest2(d(xi, cj) for cj in c)
             q[ai] += 1
             cc[ai] = _pairwise_sum(cc[ai], xi)
             a[i] = ai
@@ -1093,14 +1093,14 @@ class _KMeans:
 
             # find new assignments
             for i, ai in enumerate(a):
-                m = max(s[ai] / 2.0, l[i])
+                m = max(s[ai] / 2.0, li[i])
 
                 if u[i] > m:
                     xi = x[i]
                     u[i] = d(xi, c[ai])
 
                     if u[i] > m:
-                        new_ai, u[i], _, l[i] = _smallest2(d(xi, cj) for cj in c)
+                        new_ai, u[i], _, li[i] = _smallest2(d(xi, cj) for cj in c)
 
                         if new_ai != ai:
                             q[ai] -= 1
@@ -1132,9 +1132,9 @@ class _KMeans:
             for i, ai in enumerate(a):
                 u[i] += p[ai]
                 if r1 == ai:
-                    l[i] -= p2
+                    li[i] -= p2
                 else:
-                    l[i] -= p1
+                    li[i] -= p1
 
             change = sum(p)
 

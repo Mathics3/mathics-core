@@ -197,10 +197,15 @@ class ImageSize(Builtin):
       <dd>determined by location or other dimension (default)
       <dt>Tiny, Small, Medium, Large
       <dd>pre defined absolute sizes
+      <dt>{$w, h$}
+      <dd>explicit width and height
     </dl>
 
 
     >> Plot[Sin[x], {x, 0, 10}, ImageSize -> Small]
+     = -Graphics-
+
+    >> Plot[Sin[x], {x, 0, 10}, ImageSize -> {300, 300}]
      = -Graphics-
     """
 

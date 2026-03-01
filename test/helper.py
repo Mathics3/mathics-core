@@ -9,7 +9,7 @@ from mathics.session import MathicsSession
 
 import_and_load_builtins()
 
-# Set up a Mathics session with definitions.
+# Set up a Mathics3 session with definitions.
 # For consistency set the character encoding ASCII which is
 # the lowest common denominator available on all systems.
 session = MathicsSession(character_encoding="ASCII")
@@ -22,17 +22,16 @@ def reset_session(add_builtin=True, catch_interrupt=False):
     """
     reset the session cleaning all the definitions.
     """
-    global session
     session.reset()
     session.evaluate("SetDirectory[$TemporaryDirectory];")
 
 
-def evaluate_value(str_expr: str):
-    return session.evaluate(str_expr).value
+def evaluate_value(str_expr: str, form=None):
+    return session.evaluate(str_expr, form=form).value
 
 
-def evaluate(str_expr: str):
-    return session.evaluate(str_expr)
+def evaluate(str_expr: str, form=None):
+    return session.evaluate(str_expr, form=form)
 
 
 def check_evaluation(
@@ -126,10 +125,10 @@ def check_evaluation(
 
     print(time.asctime())
     if failure_message:
-        print(f"got: {result}, expect: {expected} -- {failure_message}")
+        print(f"got: \n{result}\nexpect:\n{expected}\n -- {failure_message}")
         assert result == expected, failure_message
     else:
-        print(f"got: {result}, expect: {expected}")
+        print(f"got: \n{result}\nexpect:\n{expected}\n --")
         if isinstance(expected, re.Pattern):
             assert expected.match(result)
         else:

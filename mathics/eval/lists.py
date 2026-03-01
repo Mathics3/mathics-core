@@ -1,4 +1,3 @@
-from mathics.builtin.box.layout import RowBox
 from mathics.core.atoms import String
 from mathics.core.convert.expression import to_expression
 from mathics.core.exceptions import PartDepthError, PartRangeError
@@ -61,6 +60,8 @@ def get_tuples(items):
 
 
 def list_boxes(items, f, evaluation, open=None, close=None):
+    from mathics.builtin.box.layout import RowBox
+
     result = [
         Expression(SymbolMakeBoxes, item, f).evaluate(evaluation) for item in items
     ]

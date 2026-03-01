@@ -5,7 +5,7 @@ Boxing Symbols for compiled code
 
 from mathics.builtin.box.expression import BoxExpression
 
-# Docs are not yet ready for prime time. Maybe after release 6.0.0.
+# No user docs here: Box primitives aren't documented.
 no_doc = True
 
 
@@ -23,17 +23,17 @@ class CompiledCodeBox(BoxExpression):
         self._elements = args
         self.box_options = kwargs
 
-    def boxes_to_text(self, elements=None, **options):
+    def to_text(self, elements=None, **options) -> str:
         if elements is None:
             elements = self.elements
         return elements[0].value
 
-    def boxes_to_mathml(self, elements=None, **options):
+    def to_mathml(self, elements=None, **options) -> str:
         if elements is None:
             elements = self.elements
         return elements[0].value
 
-    def boxes_to_tex(self, elements=None, **options):
+    def to_tex(self, elements=None, **options) -> str:
         if elements is None:
             elements = self.elements
         return elements[0].value

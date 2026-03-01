@@ -90,13 +90,9 @@ class Blank(_Blank):
     """
 
     rules = {
+        ("MakeBoxes[Verbatim[Blank][], " "f:StandardForm|TraditionalForm]"): '"_"',
         (
-            "MakeBoxes[Verbatim[Blank][], "
-            "f:StandardForm|TraditionalForm|OutputForm|InputForm]"
-        ): '"_"',
-        (
-            "MakeBoxes[Verbatim[Blank][head_Symbol], "
-            "f:StandardForm|TraditionalForm|OutputForm|InputForm]"
+            "MakeBoxes[Verbatim[Blank][head_Symbol], " "f:StandardForm|TraditionalForm]"
         ): ('"_" <> MakeBoxes[head, f]'),
     }
     summary_text = "match to any single expression"
@@ -154,8 +150,8 @@ class BlankNullSequence(_Blank):
     """
 
     rules = {
-        "MakeBoxes[Verbatim[BlankNullSequence][], f:StandardForm|TraditionalForm|OutputForm|InputForm]": '"___"',
-        "MakeBoxes[Verbatim[BlankNullSequence][head_Symbol], f:StandardForm|TraditionalForm|OutputForm|InputForm]": '"___" <> MakeBoxes[head, f]',
+        "MakeBoxes[Verbatim[BlankNullSequence][], f:StandardForm|TraditionalForm]": '"___"',
+        "MakeBoxes[Verbatim[BlankNullSequence][head_Symbol], f:StandardForm|TraditionalForm]": '"___" <> MakeBoxes[head, f]',
     }
     summary_text = "match to a sequence of zero or more elements"
 
@@ -245,8 +241,8 @@ class BlankSequence(_Blank):
     """
 
     rules = {
-        "MakeBoxes[Verbatim[BlankSequence][], f:StandardForm|TraditionalForm|OutputForm|InputForm]": '"__"',
-        "MakeBoxes[Verbatim[BlankSequence][head_Symbol], f:StandardForm|TraditionalForm|OutputForm|InputForm]": '"__" <> MakeBoxes[head, f]',
+        "MakeBoxes[Verbatim[BlankSequence][], f:StandardForm|TraditionalForm]": '"__"',
+        "MakeBoxes[Verbatim[BlankSequence][head_Symbol], f:StandardForm|TraditionalForm]": '"__" <> MakeBoxes[head, f]',
     }
     summary_text = "match to a non-empty sequence of elements"
 

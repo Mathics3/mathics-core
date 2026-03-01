@@ -441,7 +441,7 @@ class Pattern(PatternObject):
         (
             "MakeBoxes[Verbatim[Pattern][symbol_Symbol, blank_Blank|"
             "blank_BlankSequence|blank_BlankNullSequence], "
-            "f:StandardForm|TraditionalForm|InputForm|OutputForm]"
+            "(f:StandardForm|TraditionalForm)]"
         ): "MakeBoxes[symbol, f] <> MakeBoxes[blank, f]",
         # 'StringForm["`1``2`", HoldForm[symbol], blank]',
     }

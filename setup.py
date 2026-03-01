@@ -109,21 +109,12 @@ else:
 
 class build_py(setuptools_build_py):
     def run(self):
-        if not os.path.exists("mathics/data/op-tables.json"):
-            os.system(
-                "mathics3-generate-json-table"
-                " --field=ascii-operator-to-symbol"
-                " --field=ascii-operator-to-unicode"
-                " --field=ascii-operator-to-wl-unicode"
-                " --field=operator-to-ascii"
-                " --field=operator-to-unicode"
-                " -o mathics/data/op-tables.json"
-            )
-        if not os.path.exists("mathics/data/operator-tables.json"):
-            os.system(
-                "mathics3-generate-operator-json-table" " -o operator-tables.json"
-            )
-        self.distribution.package_data["mathics"].append("data/op-tables.json")
+        for table_type in ("boxing-character", "named-character", "operator"):
+            json_data_file = osp.join("data", f"{table_type}.json")
+            json_path = osp.join("mathics-scanner", json_data_file)
+            if not osp.exists(json_path):
+                os.system(f"mathics3-make-{table_type}-json" " -o {json-path}")
+            self.distribution.package_data["Mathics-Scanner"].append(json_data_file)
         setuptools_build_py.run(self)
 
 

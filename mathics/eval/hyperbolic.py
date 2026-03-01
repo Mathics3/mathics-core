@@ -1,5 +1,5 @@
 """
-Mathics3 builtins from mathics.core.numbers.hyperbolic
+Mathics3 builtins from mathics.builtin.numbers.hyperbolic
 """
 
 from sympy import Symbol as SympySymbol

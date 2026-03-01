@@ -95,6 +95,7 @@ def doc_chapter(module, part, builtins_by_module):
     doc_class = documentation.doc_class if documentation else DocumentationEntry
     title, text = get_module_doc(module)
     chapter = chapter_class(part, title, doc_class(text, title, None))
+    visited = set()
     part.chapters.append(chapter)
 
     assert len(chapter.sections) == 0
@@ -354,7 +355,7 @@ def sorted_modules(modules) -> list:
     exists, or the module's name if not."""
     return sorted(
         modules,
-        key=lambda module: module.sort_order
-        if hasattr(module, "sort_order")
-        else module.__name__,
+        key=lambda module: (
+            module.sort_order if hasattr(module, "sort_order") else module.__name__
+        ),
     )

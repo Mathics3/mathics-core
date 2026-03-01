@@ -2,7 +2,6 @@
 Common utilities for plotting
 """
 
-
 from mathics.core.atoms import NumericArray
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.expression import Expression
@@ -23,7 +22,6 @@ from mathics.core.systemsymbols import (
 # TODO: this will be extended with support for GraphicsComplex in a
 # subsequent PR, which may involve a little more refactoring
 class GraphicsGenerator:
-
     """
     Support for generating Graphics and Graphics3D expressions
     """

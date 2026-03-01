@@ -1,6 +1,7 @@
 """
 Image Compositions
 """
+
 import os.path as osp
 from collections import defaultdict
 

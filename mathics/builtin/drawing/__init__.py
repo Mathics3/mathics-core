@@ -10,15 +10,15 @@ Showing something visually can be done in a number of ways:
   :'Circle':
   /doc/reference-of-built-in-symbols/drawing-graphics/circle</url> and <url>
   :'Cuboid':
-/doc/reference-of-built-in-symbols/graphics-and-drawing/three-dimensional-graphics/cuboid/</url> \
+/doc/reference-of-built-in-symbols/plotting-graphing-and-drawing/three-dimensional-graphics/cuboid/</url> \
   and place them in a coordinate space.
   <li>Compute the points of the space using a function. This is done using functions \
   like <url>
   :'Plot':
-  /doc/reference-of-built-in-symbols/graphics-and-drawing/plotting-data/plot</url> \
+  /doc/reference-of-built-in-symbols/plotting-graphing-and-drawing/general-graphical-plots/plot</url> \
   and <url>
   :'ListPlot':
-  /doc/reference-of-built-in-symbols/graphics-and-drawing/plotting-data/listplot</url>.
+  /doc/reference-of-built-in-symbols/plotting-graphing-and-drawing/list-plots/listplot</url>.
 </ul>
 """
 

@@ -593,7 +593,7 @@ class DateObject(_DateFormat, ImmutableValueMixin):
     </dl>
 
     >> DateObject[{2020, 4, 15}]
-     = [...]
+     = ...
     """
 
     fmt_keywords = {
@@ -697,7 +697,7 @@ class DateObject(_DateFormat, ImmutableValueMixin):
         fmt: BaseElement,
         evaluation: Evaluation,
     ) -> Optional[Expression]:
-        "MakeBoxes[DateObject[datetime_List, gran_, cal_, tz_, fmt_], StandardForm|TraditionalForm|OutputForm]"
+        "MakeBoxes[DateObject[datetime_List, gran_, cal_, tz_, fmt_], StandardForm|TraditionalForm]"
         # TODO:
         if fmt.sameQ(SymbolAutomatic):
             fmt = ListExpression(String("DateTimeShort"))

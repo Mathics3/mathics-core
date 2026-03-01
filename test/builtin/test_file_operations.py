@@ -100,8 +100,8 @@ import pytest
     ],
 )
 @pytest.mark.skipif(
-    os.getenv("SANDBOX", False),
-    reason="Test doesn't work in a sandboxed environment with access to local files",
+    os.getenv("MATHICS3_SANDBOX"),
+    reason="Files module is disabled in sandbox mode",
 )
 def test_private_doctests_file_properties(str_expr, msgs, str_expected, fail_msg):
     """file_opertions.file_properties"""

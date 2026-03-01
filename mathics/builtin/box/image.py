@@ -2,8 +2,6 @@
 """
 Boxing Symbol for Raster Images
 """
-# Docs are not yet ready for prime time. Maybe after release 6.0.0.
-no_doc = True
 
 import base64
 import tempfile
@@ -18,11 +16,14 @@ from mathics.builtin.box.expression import BoxExpression
 from mathics.core.element import BaseElement
 from mathics.eval.image import pixels_as_ubyte
 
+# No user docs here: Box primitives aren't documented.
+no_doc = True
 
-class ImageBox(BoxExpression):
+
+class RasterBox(BoxExpression):
     """
     <dl>
-      <dt>'ImageBox'
+      <dt>'RasterBox'
       <dd>is the symbol used in boxing 'Image' expressions.
     </dl>
 
@@ -30,24 +31,32 @@ class ImageBox(BoxExpression):
 
     summary_text = "symbol used boxing Image expressions"
 
-    def boxes_to_b64text(
+    def init(self, image, **kwargs):
+        self.image = image
+        self.options = kwargs
+
+    @property
+    def elements(self):
+        return self.image.elements
+
+    def to_b64text(
         self, elements: Tuple[BaseElement] = None, **options
     ) -> Tuple[bytes, Tuple[int, int]]:
         """
         Produces a base64 png representation and a tuple with the size of the pillow image
         associated to the object.
         """
-        contents, size = self.boxes_to_png(elements, **options)
+        contents, size = self.to_png(elements, **options)
         encoded = base64.b64encode(contents)
         encoded = b"data:image/png;base64," + encoded
         return (encoded, size)
 
-    def boxes_to_png(self, elements=None, **options) -> Tuple[bytes, Tuple[int, int]]:
+    def to_png(self, elements=None, **options) -> Tuple[bytes, Tuple[int, int]]:
         """
         returns a tuple with the set of bytes with a png representation of the image
         and the scaled size.
         """
-        image = self.elements[0] if elements is None else elements[0]
+        image = self.image if elements is None else elements[0]
 
         pixels = pixels_as_ubyte(image.color_convert("RGB", True).pixels)
         shape = pixels.shape
@@ -88,22 +97,21 @@ class ImageBox(BoxExpression):
 
         return (contents, (scaled_width, scaled_height))
 
-    def boxes_to_text(self, elements=None, **options) -> str:
+    def to_text(self, elements=None, **options) -> str:
         return "-Image-"
 
-    def boxes_to_mathml(self, elements=None, **options) -> str:
-        encoded, size = self.boxes_to_b64text(elements, **options)
+    def to_mathml(self, elements=None, **options) -> str:
+        encoded, size = self.to_b64text(elements, **options)
         decoded = encoded.decode("utf8")
         # see https://tools.ietf.org/html/rfc2397
         return f'<mglyph src="{decoded}" width="{size[0]}px" height="{size[1]}px" />'
 
-    def boxes_to_tex(self, elements=None, **options) -> str:
+    def to_tex(self, elements=None, **options) -> str:
         """
         Store the associated image as a png file and return
         a LaTeX command for including it.
         """
-
-        data, size = self.boxes_to_png(elements, **options)
+        data, size = self.to_png(elements, **options)
         res = 100  # pixels/cm
         width_str, height_str = (str(n / res).strip() for n in size)
         head = rf"\includegraphics[width={width_str}cm,height={height_str}cm]"

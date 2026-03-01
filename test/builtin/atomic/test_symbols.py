@@ -47,7 +47,7 @@ def test_downvalues():
         (
             "Information[f]",
             tuple(),
-            "f[x] returns the square of x\n\nf[x_] = x ^ 2\n\ng[f] ^= 2\n",
+            "f[x] returns the square of x\n\nf[x_] = x^2\n\ng[f] ^= 2\n",
             None,
         ),
         ('Length[Names["System`*"]] > 350', None, "True", None),

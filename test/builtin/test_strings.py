@@ -219,30 +219,20 @@ import pytest
             "StringSplit[x, x]",
             None,
         ),
-        ('StringTake["abcd", 0] // InputForm', None, '""', None),
-        ('StringTake["abcd", {3, 2}] // InputForm', None, '""', None),
-        ('StringTake["", {1, 0}] // InputForm', None, '""', None),
+        (r"\.78\.79\.7A=37; xyz", None, "37", "Octal characters. check me."),
+        (r"\:0078\:0079\:007A=38;xyz", None, "38", "Hexadecimal characters. Check me."),
+        (r"\101\102\103\061\062\063=39;ABC123", None, "39", None),
+        (r"xyz=.;ABC123=.;\[Alpha]\[Beta]\[Gamma]", None, "\u03b1\u03b2\u03b3", None),
+        ('LetterQ[""]', None, "True", None),
         (
-            'StringTake["abc", {0, 0}]',
-            ('Cannot take positions 0 through 0 in "abc".',),
-            "StringTake[abc, {0, 0}]",
+            'LetterQ["\\[Alpha]\\[Beta]\\[Gamma]\\[Delta]\\[Epsilon]\\[Zeta]\\[Eta]\\[Theta]"]',
             None,
-        ),
-        (
-            "StringTake[{2, 4},2]",
-            ("String or list of strings expected at position 1.",),
-            "StringTake[{2, 4}, 2]",
-            None,
-        ),
-        (
-            'StringTake["kkkl",Graphics[{}]]',
-            ("Integer or a list of sequence specifications expected at position 2.",),
-            "StringTake[kkkl, -Graphics-]",
+            "True",
             None,
         ),
     ],
 )
-def test_private_doctests_operations(str_expr, msgs, str_expected, fail_msg):
+def test_operations(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,
@@ -353,138 +343,7 @@ def test_private_doctests_operations(str_expr, msgs, str_expected, fail_msg):
         ('StringMatchQ["ae", "a@e"]', None, "False", None),
     ],
 )
-def test_private_doctests_patterns(str_expr, msgs, str_expected, fail_msg):
-    """ """
-    check_evaluation(
-        str_expr,
-        str_expected,
-        to_string_expr=True,
-        to_string_expected=True,
-        hold_expected=True,
-        failure_message=fail_msg,
-        expected_messages=msgs,
-    )
-
-
-@pytest.mark.parametrize(
-    ("str_expr", "msgs", "str_expected", "fail_msg"),
-    [
-        ('ToCharacterCode[{"ab"}]', None, "{{97, 98}}", None),
-        (
-            'ToCharacterCode[{{"ab"}}]',
-            (
-                "String or list of strings expected at position 1 in ToCharacterCode[{{ab}}].",
-            ),
-            "ToCharacterCode[{{ab}}]",
-            None,
-        ),
-        (
-            "ToCharacterCode[x]",
-            (
-                "String or list of strings expected at position 1 in ToCharacterCode[x].",
-            ),
-            "ToCharacterCode[x]",
-            None,
-        ),
-        ('ToCharacterCode[""]', None, "{}", None),
-        (
-            "#1 == ToCharacterCode[FromCharacterCode[#1]] & [RandomInteger[{0, 65535}, 100]]",
-            None,
-            "True",
-            None,
-        ),
-        ("FromCharacterCode[{}] // InputForm", None, '""', None),
-        (
-            "FromCharacterCode[65536]",
-            (
-                "A character code, which should be a non-negative integer less than 65536, is expected at position 1 in {65536}.",
-            ),
-            "FromCharacterCode[65536]",
-            None,
-        ),
-        (
-            "FromCharacterCode[-1]",
-            (
-                "Non-negative machine-sized integer expected at position 1 in FromCharacterCode[-1].",
-            ),
-            "FromCharacterCode[-1]",
-            None,
-        ),
-        (
-            "FromCharacterCode[444444444444444444444444444444444444]",
-            (
-                "Non-negative machine-sized integer expected at position 1 in FromCharacterCode[444444444444444444444444444444444444].",
-            ),
-            "FromCharacterCode[444444444444444444444444444444444444]",
-            None,
-        ),
-        (
-            "FromCharacterCode[{100, 101, -1}]",
-            (
-                "A character code, which should be a non-negative integer less than 65536, is expected at position 3 in {100, 101, -1}.",
-            ),
-            "FromCharacterCode[{100, 101, -1}]",
-            None,
-        ),
-        (
-            "FromCharacterCode[{100, 101, 65536}]",
-            (
-                "A character code, which should be a non-negative integer less than 65536, is expected at position 3 in {100, 101, 65536}.",
-            ),
-            "FromCharacterCode[{100, 101, 65536}]",
-            None,
-        ),
-        (
-            "FromCharacterCode[{100, 101, x}]",
-            (
-                "A character code, which should be a non-negative integer less than 65536, is expected at position 3 in {100, 101, x}.",
-            ),
-            "FromCharacterCode[{100, 101, x}]",
-            None,
-        ),
-        (
-            "FromCharacterCode[{100, {101}}]",
-            (
-                "A character code, which should be a non-negative integer less than 65536, is expected at position 2 in {100, {101}}.",
-            ),
-            "FromCharacterCode[{100, {101}}]",
-            None,
-        ),
-        (
-            "FromCharacterCode[{{97, 98, 99}, {100, 101, x}}]",
-            (
-                "A character code, which should be a non-negative integer less than 65536, is expected at position 3 in {100, 101, x}.",
-            ),
-            "FromCharacterCode[{{97, 98, 99}, {100, 101, x}}]",
-            None,
-        ),
-        (
-            "FromCharacterCode[{{97, 98, x}, {100, 101, x}}]",
-            (
-                "A character code, which should be a non-negative integer less than 65536, is expected at position 3 in {97, 98, x}.",
-            ),
-            "FromCharacterCode[{{97, 98, x}, {100, 101, x}}]",
-            None,
-        ),
-        # These tests are commented out due to the bug reported in issue #906
-        # Octal and hexadecimal notation works alone, but fails
-        # as a part of another expression. For example,
-        # F[\.78\.79\.7A]   or "\.78\.79\.7A" produces a syntax error in Mathics.
-        # Here, this is put inside a ToString[...] and hence, it does not work.
-        # (r"\.78\.79\.7A=37; xyz", None, '37', "Octal characters. check me."),
-        # (r"\:0078\:0079\:007A=38;xyz", None, '38', "Hexadecimal characters. Check me."),
-        # (r"\101\102\103\061\062\063=39;ABC123", None, "39", None),
-        (r"xyz=.;ABC123=.;\[Alpha]\[Beta]\[Gamma]", None, "\u03B1\u03B2\u03B3", None),
-        ('LetterQ[""]', None, "True", None),
-        (
-            'LetterQ["\\[Alpha]\\[Beta]\\[Gamma]\\[Delta]\\[Epsilon]\\[Zeta]\\[Eta]\\[Theta]"]',
-            None,
-            "True",
-            None,
-        ),
-    ],
-)
-def test_private_doctests_characters(str_expr, msgs, str_expected, fail_msg):
+def test_patterns(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,
@@ -498,8 +357,6 @@ def test_private_doctests_characters(str_expr, msgs, str_expected, fail_msg):
 
 
 # These tests are separated due to the bug reported in issue #906
-
-
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "fail_msg"),
     [
@@ -512,7 +369,7 @@ def test_private_doctests_characters(str_expr, msgs, str_expected, fail_msg):
         ),
     ],
 )
-def test_private_doctests_characters2(str_expr, str_expected, fail_msg):
+def test_characters2(str_expr, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,

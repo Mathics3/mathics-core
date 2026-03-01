@@ -64,7 +64,6 @@ class Check(Builtin):
     attributes = A_HOLD_ALL | A_PROTECTED
 
     messages = {
-        "argmu": "Check called with 1 argument; 2 or more arguments are expected.",
         "name": "Message name `1` is not of the form symbol::name or symbol::name::language.",
     }
 
@@ -175,6 +174,8 @@ class General(Builtin):
         "argct": "`1` called with `2` arguments.",
         "argctu": "`1` called with 1 argument.",
         "argr": "`1` called with 1 argument; `2` arguments are expected.",
+        "argm": "`1` called with `2` arguments; `3` or more arguments are expected.",
+        "argmu": "`1` called with 1 argument; `2` or more arguments are expected.",
         "argrx": "`1` called with `2` arguments; `3` arguments are expected.",
         "argx": "`1` called with `2` arguments; 1 argument is expected.",
         "argt": (
@@ -191,6 +192,7 @@ class General(Builtin):
         # "dgbgn": "Entering Dialog; use Return[] to exit.",
         "dgend": "Exiting Dialog.",
         "digit": "Digit at position `1` in `2` is too large to be used in base `3`.",
+        "dis": "Execution of external commands is disabled.",
         "exact": "Argument `1` is not an exact number.",
         "fnsym": (
             "First argument in `1` is not a symbol " "or a string naming a symbol."
@@ -335,11 +337,8 @@ class MessageName(InfixOperator):
     messages = {"messg": "Message cannot be set to `1`. It must be set to a string."}
     rules = {
         "MakeBoxes[MessageName[symbol_Symbol, tag_String], "
-        "f:StandardForm|TraditionalForm|OutputForm]": (
+        "f:StandardForm|TraditionalForm]": (
             'RowBox[{MakeBoxes[symbol, f], "::", MakeBoxes[tag, f]}]'
-        ),
-        "MakeBoxes[MessageName[symbol_Symbol, tag_String], InputForm]": (
-            'RowBox[{MakeBoxes[symbol, InputForm], "::", tag}]'
         ),
     }
     summary_text = "associate a message name with a tag"

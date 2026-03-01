@@ -344,12 +344,10 @@ class BasePattern(ABC):
         return len(self.get_match_candidates(elements, pattern_context))
 
     @overload
-    def sameQ(self, other: "BasePattern") -> bool:
-        ...
+    def sameQ(self, other: "BasePattern") -> bool: ...
 
     @overload
-    def sameQ(self, other: BaseElement) -> bool:
-        ...
+    def sameQ(self, other: BaseElement) -> bool: ...
 
     def sameQ(self, other) -> bool:
         """Mathics SameQ"""
@@ -658,10 +656,10 @@ class ExpressionPattern(BasePattern):
 
             sets = subranges(
                 candidates,
-                flexible_start=first and not fully,
+                *set_lengths,
+                flexible_start=(first and not fully),
                 included=element_candidates,
                 less_first=less_first,
-                *set_lengths,
             )
 
         parms = pattern_context.copy()

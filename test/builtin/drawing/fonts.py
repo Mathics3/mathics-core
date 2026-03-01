@@ -8,13 +8,13 @@ import xml.etree.ElementTree as ET
 SVG_NS = "http://www.w3.org/2000/svg"
 ET.register_namespace("", SVG_NS)
 
-css = f"""
-text, tspan, * {{
+css = """
+text, tspan, * {
     font-family: "Noto Sans" !important;
     font-size: 10px !important;
     font-style: normal !important;
     font-weight: regular !important;
-}}
+}
 """.strip()
 
 

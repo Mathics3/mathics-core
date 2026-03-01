@@ -4,6 +4,7 @@ Mathics3 global system settings.
 
 Some of the values can be adjusted via Environment Variables.
 """
+
 import os
 import os.path as osp
 import sys
@@ -93,6 +94,23 @@ TIME_12HOUR = False
 # Leave this True unless you have specific reason for not permitting
 # users to access local files.
 ENABLE_FILES_MODULE = True
+
+# Leave this True unless you have specific reason for not permitting
+# users to execute system commands.
+# If MATHICS3_SANDBOX environment variable is set, this defaults to False.
+ENABLE_SYSTEM_COMMANDS = (
+    os.environ.get(
+        "MATHICS3_ENABLE_SYSTEM_COMMANDS",
+        str(
+            not (
+                os.environ.get("MATHICS3_SANDBOX")
+                or sys.platform in ("emscripten", "wasi")
+            )
+        ),
+    ).lower()
+    == "true"
+)
+
 
 # Rocky: this is probably a hack. LoadModule[] needs to handle
 # whatever it is that setting this thing did.

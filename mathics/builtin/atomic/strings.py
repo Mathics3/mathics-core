@@ -398,7 +398,7 @@ class InterpretedBox(PrefixOperator):
         # handle these expressions.
         # In the first place, this should handle different kind
         # of boxes in different ways.
-        reinput = boxes.boxes_to_text()
+        reinput = boxes.to_text()
         return Expression(SymbolToExpression, String(reinput)).evaluate(evaluation)
 
 
@@ -876,7 +876,7 @@ class ToString(Builtin):
     >> "U" <> ToString[2]
      = U2
     >> ToString[Integrate[f[x],x], TeXForm]
-     = \\int f\\left[x\\right] \\, dx
+     = \\int f(x) \\, dx
 
     """
 
@@ -897,7 +897,7 @@ class ToString(Builtin):
         return self.eval_form(value, SymbolOutputForm, evaluation, options)
 
     def eval_form(self, expr, form, evaluation: Evaluation, options: dict):
-        "ToString[expr_, form_, OptionsPattern[ToString]]"
+        "ToString[expr_, form_Symbol, OptionsPattern[ToString]]"
         encoding = options["System`CharacterEncoding"]
         return eval_ToString(expr, form, encoding.value, evaluation)
 

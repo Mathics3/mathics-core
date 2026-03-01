@@ -357,7 +357,10 @@ def interactive_eval_loop(shell, full_form: bool, strict_wl_output: bool):
 
             show_echo(source_code, evaluation)
             if len(source_code) and source_code[0] == "!":
-                subprocess.run(source_code[1:], shell=True)
+                if not settings.ENABLE_SYSTEM_COMMANDS:
+                    evaluation.message("Run", "dis")
+                else:
+                    subprocess.run(source_code[1:], shell=True)
                 shell.definitions.increment_line_no(1)
                 continue
             if query is None:

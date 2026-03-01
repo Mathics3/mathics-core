@@ -61,8 +61,8 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
         with tempfile.TemporaryDirectory(prefix="mtest-") as temp_dirname:
             # Check exporting text files (file extension ".txt")
             check_data(temp_dirname, "add_expr.txt", "1 + x + y")
-            check_data(temp_dirname, "AAcute.txt", "\u00C1", "ISOLatin1")
-            check_data(temp_dirname, "AAcuteUTF.txt", "\u00C1", "UTF-8")
+            check_data(temp_dirname, "AAcute.txt", "\u00c1", "ISOLatin1")
+            check_data(temp_dirname, "AAcuteUTF.txt", "\u00c1", "UTF-8")
 
             # Check exporting CSV files (file extension ".csv")
             file_path = run_export(

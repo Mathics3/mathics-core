@@ -40,8 +40,8 @@ class Association(Builtin):
     >> <|a -> x, b -> y|>
      = <|a -> x, b -> y|>
 
-    >> Association[{a -> x, b -> y}]
-     = <|a -> x, b -> y|>
+    >> Association[{a -> x^2, b -> y}]
+     = <|a -> x ^ 2, b -> y|>
 
     Associations can be nested:
     >> <|a -> x, b -> y, <|a -> z, d -> t|>|>
@@ -56,7 +56,7 @@ class Association(Builtin):
 
     def eval_makeboxes(self, rules, f, evaluation: Evaluation):
         """MakeBoxes[<|rules___|>,
-        f:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+        (f:StandardForm|TraditionalForm)]"""
 
         def validate(exprs):
             for expr in exprs:

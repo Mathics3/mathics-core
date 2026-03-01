@@ -28,8 +28,8 @@ Print["\n",title, "\n",StringJoin[Table["=",{StringLength[title]}]]];
       result = ToExpression[expr];
       expect = ToExpression["expect"/.rul];
       If[SameQ[result, expect],
-        Print["    ", form, "   [OK]"],
-        Print["    ", form, "   [Failed]"];
+        Print["    ", expr, " //", form, "   [OK]"],
+        Print["    ", expr, " //", form, "   [Failed]"];
         Print["      expr    = ", expr ];
         Print["      result  = ", result];
         Print["      expected= ",expect];
