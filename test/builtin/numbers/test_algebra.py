@@ -383,6 +383,18 @@ def test_fullsimplify():
             "CoefficientList[x / y, {x, y}]",
             None,
         ),
+        (
+            "Expand[(x - 1)(x + 1) == 0]",
+            None,
+            "-1 + x ^ 2 ⩵ 0",
+            "Expand using a relation. Issue #1390",
+        ),
+        (
+            "Expand[(x + y)^5 - (x^5 + y^5) > y]",
+            None,
+            "5 x ^ 4 y + 10 x ^ 3 y ^ 2 + 10 x ^ 2 y ^ 3 + 5 x y ^ 4 > y",
+            "Expand in several variables. Related to Issue #1390",
+        ),
         ("Expand[x, Modulus -> -1]  (* copy odd MMA behaviour *)", None, "0", None),
         (
             "Expand[x, Modulus -> x]",
@@ -484,7 +496,7 @@ def test_fullsimplify():
         ("Variables[E^x]", None, "{}", None),
     ],
 )
-def test_private_doctests_algebra(str_expr, msgs, str_expected, fail_msg):
+def test_algebra(str_expr, msgs, str_expected, fail_msg):
     """doctests for algebra"""
     check_evaluation(
         str_expr,
@@ -508,7 +520,7 @@ def test_private_doctests_algebra(str_expr, msgs, str_expected, fail_msg):
         ),
     ],
 )
-def test_private_doctests_integer(str_expr, msgs, str_expected, fail_msg):
+def test_integer(str_expr, msgs, str_expected, fail_msg):
     """doctests for integer"""
     check_evaluation(
         str_expr,
