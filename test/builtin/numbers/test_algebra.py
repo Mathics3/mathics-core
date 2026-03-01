@@ -344,6 +344,12 @@ def test_fullsimplify():
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
+        (
+            "Apart[]",
+            ("Apart called with 0 arguments; 1 or 2 arguments are expected.",),
+            "Apart[]",
+            "Apart argument checking",
+        ),
         ("Attributes[f] = {HoldAll}; Apart[f[x + x]]", None, "f[x + x]", None),
         ("Attributes[f] = {}; Apart[f[x + x]]", None, "f[2 x]", None),
         ## Errors:
@@ -386,7 +392,7 @@ def test_fullsimplify():
         (
             "Expand[(x - 1)(x + 1) == 0]",
             None,
-            "-1 + x ^ 2 ⩵ 0",
+            "-1 + x ^ 2 == 0",
             "Expand using a relation. Issue #1390",
         ),
         (

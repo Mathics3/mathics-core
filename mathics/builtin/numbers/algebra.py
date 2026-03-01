@@ -100,6 +100,8 @@ class Apart(Builtin):
     """
 
     attributes = A_LISTABLE | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
     rules = {
         "Apart[expr_]": (
             "Block[{vars = Cases[Level[expr, {-1}], _Symbol]},"
