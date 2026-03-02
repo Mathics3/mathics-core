@@ -21,7 +21,7 @@ from mathics.builtin.box.graphics import (
 )
 from mathics.builtin.drawing.graphics3d import Graphics3DElements
 from mathics.builtin.graphics import DEFAULT_POINT_FACTOR, PointSize, _svg_bezier
-from mathics.core.formatter import add_conversion_fn, lookup_method
+from mathics.core.formatter import add_render_function, lookup_method
 from mathics.format.box.graphics import (
     GraphicsElements,
     prepare_elements as prepare_elements2d,
@@ -131,7 +131,7 @@ def arcbox(box: ArcBox, **options) -> str:
     return svg
 
 
-add_conversion_fn(ArcBox, arcbox)
+add_render_function(ArcBox, arcbox)
 
 
 def arrow_box(box: ArrowBox, **options) -> str:
@@ -156,7 +156,7 @@ def arrow_box(box: ArrowBox, **options) -> str:
     return svg
 
 
-add_conversion_fn(ArrowBox, arrow_box)
+add_render_function(ArrowBox, arrow_box)
 
 
 def bezier_curve_box(box: BezierCurveBox, **options) -> str:
@@ -177,7 +177,7 @@ def bezier_curve_box(box: BezierCurveBox, **options) -> str:
     return svg
 
 
-add_conversion_fn(BezierCurveBox, bezier_curve_box)
+add_render_function(BezierCurveBox, bezier_curve_box)
 
 
 def density_plot_box(box, **options):
@@ -221,7 +221,7 @@ def density_plot_box(box, **options):
     return svg
 
 
-# No add_conversion_fn since this is a hacken-on polygonbox
+# No add_render_function since this is a hacken-on polygonbox
 
 
 def filled_curve_box(box: FilledCurveBox, **options):
@@ -249,7 +249,7 @@ def filled_curve_box(box: FilledCurveBox, **options):
     )
 
 
-add_conversion_fn(FilledCurveBox, filled_curve_box)
+add_render_function(FilledCurveBox, filled_curve_box)
 
 
 def graphics_box(box: GraphicsBox, elements=None, **options: dict) -> str:
@@ -350,7 +350,7 @@ def graphics_box(box: GraphicsBox, elements=None, **options: dict) -> str:
     return svg_main  # , width, height
 
 
-add_conversion_fn(GraphicsBox, graphics_box)
+add_render_function(GraphicsBox, graphics_box)
 
 
 def graphics_elements(box: GraphicsElements, **options) -> str:
@@ -376,10 +376,10 @@ def graphics_elements(box: GraphicsElements, **options) -> str:
     return svg
 
 
-add_conversion_fn(GraphicsElements, graphics_elements)
+add_render_function(GraphicsElements, graphics_elements)
 graphics3delements = graphics_elements
 
-add_conversion_fn(Graphics3DElements)
+add_render_function(Graphics3DElements)
 
 
 def inset_box(box: InsetBox, **options) -> str:
@@ -429,7 +429,7 @@ def inset_box(box: InsetBox, **options) -> str:
     return svg
 
 
-add_conversion_fn(InsetBox, inset_box)
+add_render_function(InsetBox, inset_box)
 
 
 def line_box(box: LineBox, **options) -> str:
@@ -455,7 +455,7 @@ def line_box(box: LineBox, **options) -> str:
     return svg
 
 
-add_conversion_fn(LineBox, line_box)
+add_render_function(LineBox, line_box)
 
 
 def pointbox(box: PointBox, **options) -> str:
@@ -486,7 +486,7 @@ def pointbox(box: PointBox, **options) -> str:
     return svg
 
 
-add_conversion_fn(PointBox)
+add_render_function(PointBox)
 
 
 def polygonbox(box: PolygonBox, **options):
@@ -526,7 +526,7 @@ def polygonbox(box: PolygonBox, **options):
     return svg
 
 
-add_conversion_fn(PolygonBox)
+add_render_function(PolygonBox)
 
 
 def rectanglebox(box: RectangleBox, **options):
@@ -559,7 +559,7 @@ def rectanglebox(box: RectangleBox, **options):
     return svg
 
 
-add_conversion_fn(RectangleBox)
+add_render_function(RectangleBox)
 
 
 def roundbox(box: RoundBox):
@@ -580,7 +580,7 @@ def roundbox(box: RoundBox):
     return svg
 
 
-add_conversion_fn(RoundBox)
+add_render_function(RoundBox)
 
 
 def wrap_svg_body(

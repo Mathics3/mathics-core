@@ -22,7 +22,7 @@ from mathics.builtin.box.layout import (
 from mathics.core.atoms import String
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import (
-    add_conversion_fn,
+    add_render_function,
     convert_box_to_format,
     convert_inner_box_field,
 )
@@ -31,7 +31,7 @@ from mathics.format.box.graphics import prepare_elements as prepare_elements2d
 from mathics.format.box.graphics3d import prepare_elements as prepare_elements3d
 from mathics.format.form.util import _WrongFormattedExpression, text_cells_to_grid
 
-add_conversion_fn(FormBox, convert_inner_box_field)
+add_render_function(FormBox, convert_inner_box_field)
 
 
 def fractionbox(box: FractionBox, **options) -> str:
@@ -47,7 +47,7 @@ def fractionbox(box: FractionBox, **options) -> str:
     return " / ".join([num_text, den_text])
 
 
-add_conversion_fn(FractionBox, fractionbox)
+add_render_function(FractionBox, fractionbox)
 
 
 def graphics3dbox(box: Graphics3DBox, elements=None, **options) -> str:
@@ -57,7 +57,7 @@ def graphics3dbox(box: Graphics3DBox, elements=None, **options) -> str:
     return "-Graphics3D-"
 
 
-add_conversion_fn(Graphics3DBox, graphics3dbox)
+add_render_function(Graphics3DBox, graphics3dbox)
 
 
 def graphicsbox(box: GraphicsBox, elements=None, **options) -> str:
@@ -67,7 +67,7 @@ def graphicsbox(box: GraphicsBox, elements=None, **options) -> str:
     return "-Graphics-"
 
 
-add_conversion_fn(GraphicsBox, graphicsbox)
+add_render_function(GraphicsBox, graphicsbox)
 
 
 def gridbox(box: GridBox, elements=None, **box_options) -> str:
@@ -100,9 +100,9 @@ def gridbox(box: GridBox, elements=None, **box_options) -> str:
         raise BoxConstructError
 
 
-add_conversion_fn(GridBox, gridbox)
-add_conversion_fn(InterpretationBox, convert_inner_box_field)
-add_conversion_fn(PaneBox, convert_inner_box_field)
+add_render_function(GridBox, gridbox)
+add_render_function(InterpretationBox, convert_inner_box_field)
+add_render_function(PaneBox, convert_inner_box_field)
 
 
 def rowbox(box: RowBox, elements=None, **options) -> str:
@@ -134,7 +134,7 @@ def rowbox(box: RowBox, elements=None, **options) -> str:
     return result
 
 
-add_conversion_fn(RowBox, rowbox)
+add_render_function(RowBox, rowbox)
 
 
 def sqrtbox(box: SqrtBox, **options) -> str:
@@ -148,7 +148,7 @@ def sqrtbox(box: SqrtBox, **options) -> str:
     return "Sqrt[%s]" % (convert_box_to_format(box.radicand, **child_options))
 
 
-add_conversion_fn(SqrtBox, sqrtbox)
+add_render_function(SqrtBox, sqrtbox)
 
 
 def string(s: String, **options) -> str:
@@ -162,7 +162,7 @@ def string(s: String, **options) -> str:
     return value
 
 
-add_conversion_fn(String, string)
+add_render_function(String, string)
 
 
 def subscriptbox(box: SubscriptBox, **options) -> str:
@@ -174,7 +174,7 @@ def subscriptbox(box: SubscriptBox, **options) -> str:
     )
 
 
-add_conversion_fn(SubscriptBox, subscriptbox)
+add_render_function(SubscriptBox, subscriptbox)
 
 
 def subsuperscriptbox(box: SubsuperscriptBox, **options) -> str:
@@ -187,7 +187,7 @@ def subsuperscriptbox(box: SubsuperscriptBox, **options) -> str:
     )
 
 
-add_conversion_fn(SubsuperscriptBox, subsuperscriptbox)
+add_render_function(SubsuperscriptBox, subsuperscriptbox)
 
 # Please see the developer note in __init__ about the use of "%s" in
 # format strings.
@@ -213,7 +213,7 @@ def superscriptbox(box: SuperscriptBox, **options) -> str:
     )
 
 
-add_conversion_fn(SuperscriptBox, superscriptbox)
+add_render_function(SuperscriptBox, superscriptbox)
 
 
 def stylebox(box: StyleBox, **options) -> str:
@@ -222,5 +222,5 @@ def stylebox(box: StyleBox, **options) -> str:
     return convert_box_to_format(box.inner_box, **child_options)
 
 
-add_conversion_fn(StyleBox, stylebox)
-add_conversion_fn(TagBox, convert_inner_box_field)
+add_render_function(StyleBox, stylebox)
+add_render_function(TagBox, convert_inner_box_field)
