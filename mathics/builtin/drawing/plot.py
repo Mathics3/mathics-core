@@ -48,7 +48,7 @@ from mathics.eval.nevaluator import eval_N
 
 # can be set via environment variable at startup time,
 # or changed dynamically by setting the use_vectorized_plot flag
-use_vectorized_plot = os.getenv("MATHICS3_USE_VECTORIZED_PLOT", True)
+use_vectorized_plot = os.getenv("MATHICS3_USE_VECTORIZED_PLOT", False)
 
 
 # get the plot eval function for the given class,

@@ -396,6 +396,28 @@ class FilledCurve(Builtin):
     summary_text = "a filled area with curve segment boundary in 2D"
 
 
+class GraphicsComplex(Builtin):
+    """
+
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/GraphicsComplex.html</url>
+
+    <dl>
+      <dt>'GraphicsComplex'[{$point_1$, $point_2$ ...}, $data$]
+      <dd>represents a graphics object where indices, $i$, in the graphics primitives of $data$ \
+      represent the corresponding $point_i$ of the first list.
+    </dl>
+
+    >> GraphicsComplex[{1, 0}, {0, 1}, Line[1, 2]]
+     = GraphicsComplex[{1, 0}, {0, 1}, Line[1, 2]]
+    """
+
+    summary_text = (
+        "graphics primitive for separating coordinate data from graphics objects"
+    )
+
+
 class Polygon(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Polygon.html</url>

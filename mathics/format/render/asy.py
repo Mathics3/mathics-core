@@ -550,10 +550,10 @@ def polygon_3d_box(box: Polygon3DBox, **options) -> str:
     Asymptote formatting of a Polygon3DBox.
     """
 
-    if os.getenv("MATHICS3_USE_VECTORIZED_PLOT", True):
-        import mathics.format.render.asy_numpy.polyhedron_3d_box as polyhedron_3d_box_numpy
+    if os.getenv("MATHICS3_USE_VECTORIZED_PLOT", False):
+        from mathics.format.render.asy_numpy import polygon_3d_box_numpy
 
-        return polyhedron_3d_box_numpy(box, **options)
+        return polygon_3d_box_numpy(box, **options)
 
     stroke_width = box.style.get_line_width(face_element=True)
     if box.vertex_colors is None:
