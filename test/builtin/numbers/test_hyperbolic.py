@@ -51,7 +51,7 @@ def test_complexexpand():
         ),
     ],
 )
-def test_private_doctests_hyperbolic(str_expr, msgs, str_expected, fail_msg):
+def test_hyperbolic(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,
@@ -76,7 +76,7 @@ def test_private_doctests_hyperbolic(str_expr, msgs, str_expected, fail_msg):
         ("LogisticSigmoid[I Pi]", None, "LogisticSigmoid[I Pi]", None),
     ],
 )
-def test_private_doctests_exp(str_expr, msgs, str_expected, fail_msg):
+def test_exp(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,

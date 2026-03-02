@@ -18,7 +18,7 @@ import pytest
         ("Clear[g];", None, "Null", None),
     ],
 )
-def test_private_doctests_application(str_expr, msgs, str_expected, fail_msg):
+def test_application(str_expr, msgs, str_expected, fail_msg):
     """functional.application"""
     check_evaluation(
         str_expr,

@@ -107,7 +107,7 @@ import pytest
         ),
     ],
 )
-def test_private_doctests_vectoranalysis(str_expr, msgs, str_expected, fail_msg):
+def test_vectoranalysis(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,

@@ -65,7 +65,7 @@ from mathics.compile import has_llvmlite
         ("ClearAll[cf];", None, None, None),
     ],
 )
-def test_private_doctests_compilation(str_expr, msgs, str_expected, fail_msg):
+def test_compilation(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,

@@ -429,7 +429,7 @@ def test_change_prec(str_expr, str_expected, msg):
         ("$MaxPrecision = Infinity;", None, "Null", None),
     ],
 )
-def test_private_doctests_string(str_expr, warnings, str_expected, fail_msg):
+def test_string(str_expr, warnings, str_expected, fail_msg):
     check_evaluation(
         str_expr,
         str_expected,

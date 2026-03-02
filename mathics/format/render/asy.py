@@ -32,7 +32,7 @@ from mathics.builtin.box.graphics3d import (
 from mathics.builtin.box.uniform_polyhedra import UniformPolyhedron3DBox
 from mathics.builtin.drawing.graphics3d import Graphics3DElements
 from mathics.builtin.graphics import DEFAULT_POINT_FACTOR, PointSize, RGBColor
-from mathics.core.formatter import add_conversion_fn, lookup_method
+from mathics.core.formatter import add_render_function, lookup_method
 from mathics.format.box.graphics import GraphicsElements
 from mathics.format.render.asy_fns import (
     asy_add_bezier_fn,
@@ -143,7 +143,7 @@ def arcbox(box: ArcBox, **options) -> str:
     return asy
 
 
-add_conversion_fn(ArcBox, arcbox)
+add_render_function(ArcBox, arcbox)
 
 
 def arrow_box(box: ArrowBox, **options) -> str:
@@ -171,7 +171,7 @@ def arrow_box(box: ArrowBox, **options) -> str:
     return asy
 
 
-add_conversion_fn(ArrowBox, arrow_box)
+add_render_function(ArrowBox, arrow_box)
 
 
 def build_3d_pen_color(color, opacity=None):
@@ -213,7 +213,7 @@ def arrow3dbox(box, **options) -> str:
     return asy
 
 
-add_conversion_fn(Arrow3DBox)
+add_render_function(Arrow3DBox)
 
 
 def bezier_curve_box(box: BezierCurveBox, **options) -> str:
@@ -242,7 +242,7 @@ def bezier_curve_box(box: BezierCurveBox, **options) -> str:
     return asy
 
 
-add_conversion_fn(BezierCurveBox, bezier_curve_box)
+add_render_function(BezierCurveBox, bezier_curve_box)
 
 
 def cone3dbox(box: Cone3DBox, **options) -> str:
@@ -287,7 +287,7 @@ def cone3dbox(box: Cone3DBox, **options) -> str:
     return asy
 
 
-add_conversion_fn(Cone3DBox)
+add_render_function(Cone3DBox)
 
 
 def cuboid3dbox(box: Cuboid3DBox, **options) -> str:
@@ -325,7 +325,7 @@ def cuboid3dbox(box: Cuboid3DBox, **options) -> str:
     return asy
 
 
-add_conversion_fn(Cuboid3DBox)
+add_render_function(Cuboid3DBox)
 
 
 def cylinder3dbox(box: Cylinder3DBox, **options) -> str:
@@ -362,7 +362,7 @@ def cylinder3dbox(box: Cylinder3DBox, **options) -> str:
     return asy
 
 
-add_conversion_fn(Cylinder3DBox)
+add_render_function(Cylinder3DBox)
 
 
 def filled_curve_box(box, **options) -> str:
@@ -385,7 +385,7 @@ def filled_curve_box(box, **options) -> str:
     return "".join(components())
 
 
-add_conversion_fn(FilledCurveBox, filled_curve_box)
+add_render_function(FilledCurveBox, filled_curve_box)
 
 
 def graphics_elements(box: GraphicsElementBox, **options) -> str:
@@ -410,11 +410,11 @@ def graphics_elements(box: GraphicsElementBox, **options) -> str:
     return "\n".join(result)
 
 
-add_conversion_fn(GraphicsElements, graphics_elements)
+add_render_function(GraphicsElements, graphics_elements)
 graphics3delements = graphics_elements
 
 
-add_conversion_fn(Graphics3DElements)
+add_render_function(Graphics3DElements)
 
 
 def inset_box(box: InsetBox, **options) -> str:
@@ -442,7 +442,7 @@ label("${content}$", ({x},{y}), align={alignment}, {pen});\n"""
     return asy
 
 
-add_conversion_fn(InsetBox, inset_box)
+add_render_function(InsetBox, inset_box)
 
 
 def line3dbox(box: Line3DBox, **options) -> str:
@@ -461,7 +461,7 @@ def line3dbox(box: Line3DBox, **options) -> str:
     )
 
 
-add_conversion_fn(Line3DBox)
+add_render_function(Line3DBox)
 
 
 def line_box(box: LineBox) -> str:
@@ -480,7 +480,7 @@ def line_box(box: LineBox) -> str:
     return asy
 
 
-add_conversion_fn(LineBox, line_box)
+add_render_function(LineBox, line_box)
 
 
 def point3dbox(box: Point3DBox, **options) -> str:
@@ -513,7 +513,7 @@ def point3dbox(box: Point3DBox, **options) -> str:
     return asy
 
 
-add_conversion_fn(Point3DBox)
+add_render_function(Point3DBox)
 
 
 def pointbox(box: PointBox, **options) -> str:
@@ -541,7 +541,7 @@ def pointbox(box: PointBox, **options) -> str:
     return asy
 
 
-add_conversion_fn(PointBox)
+add_render_function(PointBox)
 
 
 def polygon_3d_box(box: Polygon3DBox, **options) -> str:
@@ -579,7 +579,7 @@ def polygon_3d_box(box: Polygon3DBox, **options) -> str:
     return asy
 
 
-add_conversion_fn(Polygon3DBox, polygon_3d_box)
+add_render_function(Polygon3DBox, polygon_3d_box)
 
 
 def polygonbox(box: PolygonBox, **options) -> str:
@@ -633,7 +633,7 @@ def polygonbox(box: PolygonBox, **options) -> str:
     return asy
 
 
-add_conversion_fn(PolygonBox)
+add_render_function(PolygonBox)
 
 
 def rectanglebox(box: RectangleBox, **options) -> str:
@@ -667,7 +667,7 @@ def rectanglebox(box: RectangleBox, **options) -> str:
     return asy
 
 
-add_conversion_fn(RectangleBox)
+add_render_function(RectangleBox)
 
 
 def roundbox(box: RoundBox):
@@ -697,7 +697,7 @@ def roundbox(box: RoundBox):
     )
 
 
-add_conversion_fn(RoundBox)
+add_render_function(RoundBox)
 
 
 def sphere3dbox(box: Sphere3DBox, **options) -> str:
@@ -715,7 +715,7 @@ def sphere3dbox(box: Sphere3DBox, **options) -> str:
     )
 
 
-add_conversion_fn(Sphere3DBox)
+add_render_function(Sphere3DBox)
 
 
 def tube_3d_box(box: Tube3DBox, **options) -> str:
@@ -741,7 +741,7 @@ def tube_3d_box(box: Tube3DBox, **options) -> str:
     return asy
 
 
-add_conversion_fn(Tube3DBox, tube_3d_box)
+add_render_function(Tube3DBox, tube_3d_box)
 
 
 def uniform_polyhedron_3d_box(box: UniformPolyhedron3DBox, **options) -> str:
@@ -757,4 +757,4 @@ def uniform_polyhedron_3d_box(box: UniformPolyhedron3DBox, **options) -> str:
     )
 
 
-add_conversion_fn(UniformPolyhedron3DBox, uniform_polyhedron_3d_box)
+add_render_function(UniformPolyhedron3DBox, uniform_polyhedron_3d_box)

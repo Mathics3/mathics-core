@@ -458,7 +458,7 @@ def test_process_assign_other():
         (" g[a+b]", "g[a + b]", None, None),
     ],
 )
-def test_private_doctests(str_expr, str_expected, msgs, failure_msg):
+def test_upvalues_ownvalues(str_expr, str_expected, msgs, failure_msg):
     check_evaluation(
         str_expr, str_expected, expected_messages=msgs, failure_message=failure_msg
     )

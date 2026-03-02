@@ -353,7 +353,7 @@ def test_close():
         ("DeleteFile[tmpfilename]", None, "Null", ""),
     ],
 )
-def test_private_doctests_files(str_expr, msgs, str_expected, fail_msg):
+def test_files(str_expr, msgs, str_expected, fail_msg):
     """Grab-bag tests from mathics.builtin.files_io.files. These need to be split out."""
     check_evaluation(
         str_expr,

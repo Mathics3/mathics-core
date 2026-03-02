@@ -265,7 +265,7 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
         ('FileFormat["ExampleData/InventionNo1.xml"]', None, "XML", None),
     ],
 )
-def test_private_doctests_importexport(str_expr, msgs, str_expected, fail_msg):
+def test_importexport(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,

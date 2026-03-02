@@ -480,7 +480,7 @@ def test_cuberoot(str_expr, str_expected, msgs, failmsg):
         ),
     ],
 )
-def test_private_doctests_arithmetic(str_expr, msgs, str_expected, fail_msg):
+def test_arithmetic(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,

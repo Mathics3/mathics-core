@@ -14,7 +14,7 @@ def encode_mathml(text: str) -> str:
     return text
 
 
-def add_conversion_fn(cls, module_fn_name=None) -> None:
+def add_render_function(cls, module_fn_name=None) -> None:
     """Add to `format2fn` a mapping from a conversion type and builtin-class
     to a conversion method.
 

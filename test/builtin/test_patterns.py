@@ -69,7 +69,7 @@ def test_replace_all():
         # TODO: handle 2 or more arguments.
     ],
 )
-def test_private_doctests_dispatch(str_expr, msgs, str_expected, fail_msg):
+def test_dispatch(str_expr, msgs, str_expected, fail_msg):
     """Test several cases for Dispatch"""
     check_evaluation(
         str_expr,
@@ -170,7 +170,7 @@ def test_private_doctests_dispatch(str_expr, msgs, str_expected, fail_msg):
         ("Clear[f]", None, None, None),
     ],
 )
-def test_private_doctests_pattern(str_expr, msgs, str_expected, fail_msg):
+def test_pattern(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,

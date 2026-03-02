@@ -258,7 +258,7 @@ def test_format_private_doctests(str_expr, str_expected, msg):
         (None, None, None, None),
     ],
 )
-def test_private_doctests_layout(str_expr, msgs, str_expected, fail_msg):
+def test_layout(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,

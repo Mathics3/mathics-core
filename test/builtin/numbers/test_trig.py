@@ -47,7 +47,7 @@ def test_ArcCos():
         ("Tan[0.5 Pi]", None, "1.63312×10^16", None),
     ],
 )
-def test_private_doctests_trig(str_expr, msgs, str_expected, fail_msg):
+def test_trig(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,

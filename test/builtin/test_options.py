@@ -37,7 +37,7 @@ import pytest
         ),
     ],
 )
-def test_private_doctests_options(str_expr, msgs, str_expected, fail_msg):
+def test_options(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,
