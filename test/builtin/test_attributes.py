@@ -245,7 +245,7 @@ def test_Attributes_wrong_args(str_expr, arg_count):
         ("CleanAll[u];CleanAll[v];", None, None, None),
     ],
 )
-def test_private_doctests_attributes(str_expr, msgs, str_expected, assert_failure_msg):
+def test_attributes(str_expr, msgs, str_expected, assert_failure_msg):
     """ """
     check_evaluation(
         str_expr,

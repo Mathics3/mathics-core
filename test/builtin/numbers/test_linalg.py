@@ -257,7 +257,7 @@ def test_inverse(str_expr, str_expected, fail_msg, warnings):
         ),
     ],
 )
-def test_private_doctests_linalg(str_expr, msgs, str_expected, fail_msg):
+def test_linalg(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,

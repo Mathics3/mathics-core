@@ -49,7 +49,7 @@ import pytest
         ),
     ],
 )
-def test_private_doctests_directory_names(str_expr, msgs, str_expected, fail_msg):
+def test_directory_names(str_expr, msgs, str_expected, fail_msg):
     """private doctests in builtin.directories"""
     check_evaluation(
         str_expr,

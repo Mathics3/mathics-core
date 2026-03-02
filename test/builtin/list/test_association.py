@@ -184,9 +184,7 @@ import pytest
         ("assoc=.;subassoc=.;", None, "Null", None),
     ],
 )
-def test_associations_private_doctests(
-    str_expr, expected_messages, str_expected, assert_message
-):
+def test_associations(str_expr, expected_messages, str_expected, assert_message):
     check_evaluation(
         str_expr,
         str_expected,

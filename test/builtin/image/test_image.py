@@ -188,7 +188,7 @@ import pytest
         ),
     ],
 )
-def test_private_doctest(str_expr, str_expected, msgs, assert_failure_msg):
+def test_incorrect_parameters(str_expr, str_expected, msgs, assert_failure_msg):
     check_evaluation(
         str_expr,
         str_expected,

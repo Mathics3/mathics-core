@@ -57,7 +57,7 @@ def test_add(str_expr, str_expected, assert_failure_msg):
         ("BesselJ[2.5, 1]", None, "0.0494968", None),
     ],
 )
-def test_private_doctests_bessel(str_expr, msgs, str_expected, fail_msg):
+def test_bessel(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,
@@ -81,7 +81,7 @@ def test_private_doctests_bessel(str_expr, msgs, str_expected, fail_msg):
         ),
     ],
 )
-def test_private_doctests_orthogonal(str_expr, msgs, str_expected, fail_msg):
+def test_orthogonal(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,

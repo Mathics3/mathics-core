@@ -61,7 +61,7 @@ def test_downvalues():
         ("ValueQ[True]", None, "False", None),
     ],
 )
-def test_private_doctests_symbol(str_expr, warnings, str_expected, fail_msg):
+def test_symbol(str_expr, warnings, str_expected, fail_msg):
     check_evaluation(
         str_expr,
         str_expected,
