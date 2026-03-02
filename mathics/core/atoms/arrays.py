@@ -180,6 +180,93 @@ NUMERIC_ARRAY_DTYPE_TO_NAME = {
 }
 
 
+class GraphicsComplexAtom(Atom, ImmutableValueMixin):
+    """
+    GraphicsComplexAtom is the underlying implementation for GraphicsComplex.
+    Right now it is backed by NumPy arrays.
+    """
+
+    class_head_name = "GraphicsComplex"
+
+    def __init__(self, value, dtype=None):
+        # compute value
+        if not isinstance(value, numpy.ndarray):
+            value = numpy.asarray(value, dtype=dtype)
+        elif dtype is not None:
+            value = value.astype(dtype)
+        self.value = value
+
+        # check type
+        self._type_name = NUMERIC_ARRAY_DTYPE_TO_NAME.get(self.value.dtype, None)
+        if not self._type_name:
+            allowed = ", ".join(str(dtype) for dtype in NUMERIC_ARRAY_TYPE_MAP.values())
+            message = f"Argument 'value' must be one of {allowed}; is {str(self.value.dtype)}."
+            raise ValueError(message)
+
+        # summary and hash
+        shape_string = "×".join(str(dim) for dim in self.value.shape) or "0"
+        self._summary_string = f"{self._type_name}, {shape_string}"
+        self._hash = None
+
+    def __hash__(self):
+        if not self._hash:
+            self._hash = hash(("NumericArray", self.value.shape, id(self.value)))
+        return self._hash
+
+    def __str__(self) -> str:
+        return f"NumericArray[{self._summary_string}]"
+
+    def atom_to_boxes(self, f, evaluation):
+        return String(f"<{self._summary_string}>")
+
+    def do_copy(self) -> "NumericArray":
+        return NumericArray(self.value.copy())
+
+    def default_format(self, evaluation, form) -> str:
+        return f"NumericArray[<{self._summary_string}>]"
+
+    @property
+    def items(self) -> tuple:
+        from mathics.core.convert.python import from_python
+
+        if len(self.value.shape) == 1:
+            return tuple(from_python(item.item()) for item in self.value)
+        else:
+            return tuple(NumericArray(array) for array in self.value)
+
+    @property
+    def element_order(self) -> tuple:
+        return (
+            BASIC_ATOM_NUMERICARRAY_ELT_ORDER,
+            self.value.shape,
+            self.value.dtype,
+            id(self.value),
+        )
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        return super().pattern_precedence
+
+    def sameQ(self, rhs) -> bool:
+        return isinstance(rhs, NumericArray) and numpy.array_equal(
+            self.value, rhs.value
+        )
+
+    def to_sympy(self, **kwargs) -> None:
+        return None
+
+    # TODO: this returns a list instead of np.ndarray in keeping with
+    # idea that to_python should return only "native" Python types.
+    # Keep an eye on this because there is a slight risk that code may
+    # naively call to_python and cause a performance issue due to
+    # the cost of converting to a nested list structure for a large array.
+    def to_python(self, *args, **kwargs) -> list:
+        return self.value.tolist()
+
+    def user_hash(self, update) -> None:
+        update(self.value.tobytes())
+
+
 class NumericArray(Atom, ImmutableValueMixin):
     """
     NumericArray provides compact storage and efficient access for machine-precision numeric arrays,
