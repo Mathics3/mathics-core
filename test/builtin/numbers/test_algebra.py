@@ -9,16 +9,9 @@ import pytest
 
 
 def test_apart():
-    for str_expr, msgs, str_expected, fail_msg in [
-        (
-            "Apart[]",
-            ("Apart called with 0 arguments; 1 or 2 arguments are expected.",),
-            "Apart[]",
-            "Apart argument checking",
-        ),
+    for str_expr, str_expected, fail_msg in [
         (
             "Apart[1 / (x^2 + 5x + 6)] > y",
-            None,
             "1 / (2 + x) - 1 / (3 + x) > y",
             "Apart in a relational expression",
         ),
@@ -26,22 +19,35 @@ def test_apart():
         check_evaluation(
             str_expr,
             str_expected,
-            expected_messages=msgs,
             failure_message=fail_msg,
         )
 
 
 def test_collect():
-    for str_expr, str_expected in [
-        ("Collect[q[x] + q[x] q[y],q[x]]", "q[x] (1 + q[y])"),
-        ("Collect[ 1+ a x + b x^3 + Cos[t] x, x]", "1 + (a + Cos[t]) x + b x^3"),
-        ("Collect[ q[0, x] q[0, y] + 1, q[0, x]]", "1 + q[0, x] q[0, y]"),  # Issue #285
+    for str_expr, str_expected, fail_msg in [
+        ("Collect[q[x] + q[x] q[y],q[x]]", "q[x] (1 + q[y])", None),
+        (
+            "Collect[ 1+ a x + b x^3 + Cos[t] x, x]",
+            "1 + (a + Cos[t]) x + b x^3",
+            None,
+        ),
+        (
+            "Collect[a x + b y + c x + d y, y] < 3",
+            "a x + c x + y (b + d) < 3",
+            "Collect in relational expression",
+        ),
+        (
+            "Collect[ q[0, x] q[0, y] + 1, q[0, x]]",
+            "1 + q[0, x] q[0, y]",
+            "Issue #285",
+        ),
         (
             "Collect[a x + b y + c x y^2 + p y x^2 + d x^2 y, {x, y}]",
             "a x + b y + c x y ^ 2 + x ^ 2 y (d + p)",
+            None,
         ),
     ]:
-        check_evaluation(str_expr, str_expected)
+        check_evaluation(str_expr, str_expected, failure_message=fail_msg)
 
 
 def test_coefficient():
@@ -553,4 +559,41 @@ def test_integer(str_expr, msgs, str_expected, fail_msg):
         hold_expected=True,
         failure_message=fail_msg,
         expected_messages=msgs,
+    )
+
+
+@pytest.mark.parametrize(
+    ("function_name", "msg_fragment"),
+    [
+        (
+            "Apart",
+            "1 or 2 arguments are",
+        ),
+        (
+            "Collect",
+            "between 2 and 4 arguments are",
+        ),
+        (
+            "ExpandDenominator",
+            "1 or 2 arguments are",
+        ),
+        (
+            "Exponent",
+            "2 or 3 arguments are",
+        ),
+    ],
+)
+def test_arg_count_errors(function_name, msg_fragment):
+    """ """
+
+    str_expr = f"{function_name}[]"
+    expected_msgs = [
+        f"{function_name} called with 0 arguments; {msg_fragment} expected."
+    ]
+    failure_message = f"{function_name} argument number error"
+    check_evaluation(
+        str_expr,
+        str_expr,
+        failure_message=failure_message,
+        expected_messages=expected_msgs,
     )

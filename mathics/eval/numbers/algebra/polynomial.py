@@ -24,6 +24,7 @@ from mathics.core.symbols import (
     SYMPY_SYMBOL_PREFIX,
     Atom,
     Symbol,
+    SymbolNull,
     SymbolPlus,
     SymbolPower,
     SymbolTimes,
@@ -87,6 +88,30 @@ RELATIONAL_OPERATORS: Final[FrozenSet] = frozenset(
         SymbolXor,
     ]
 )
+
+
+# Get a coefficient of form in an expression
+def coefficient(
+    name: str, expr: Expression, form, n: Integer, evaluation: Evaluation
+) -> Optional[BaseElement]:
+    if expr is SymbolNull or form is SymbolNull or n is SymbolNull:
+        return Integer0
+
+    if not (isinstance(form, Symbol)) and not (isinstance(form, Expression)):
+        evaluation.message(name, "ivar", form)
+        return
+
+    sympy_exprs = expr.to_sympy().as_ordered_terms()
+    sympy_var = form.to_sympy()
+    sympy_n = n.to_sympy()
+
+    # expand sub expressions if they contain variables
+    sympy_expr: sympy.Expr = sum(
+        sympy.expand(e) if sympy_var.free_symbols.issubset(e.free_symbols) else e
+        for e in sympy_exprs
+    )
+    sympy_result = sympy_expr.coeff(sympy_var, sympy_n)
+    return from_sympy(sympy_result)
 
 
 def coeff_power(

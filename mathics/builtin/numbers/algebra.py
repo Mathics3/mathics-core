@@ -13,8 +13,6 @@ There are a number of built-in functions that perform:
 </ul>
 """
 
-from typing import Optional
-
 import sympy
 
 import mathics.eval.tracing as tracing
@@ -25,7 +23,6 @@ from mathics.core.attributes import A_LISTABLE, A_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.convert.python import from_bool
 from mathics.core.convert.sympy import SympyExpression, from_sympy
-from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.expression_predefined import (
@@ -56,6 +53,7 @@ from mathics.core.systemsymbols import (
 from mathics.eval.list.eol import eval_Part
 from mathics.eval.numbers.algebra.polynomial import (
     coeff_power,
+    coefficient,
     eval_Apart,
     expand_polynomial,
     find_all_vars,
@@ -147,30 +145,6 @@ class Cancel(Builtin):
         return cancel(expr)
 
 
-# Get a coefficient of form in an expression
-def _coefficient(
-    name: str, expr: Expression, form, n: Integer, evaluation: Evaluation
-) -> Optional[BaseElement]:
-    if expr is SymbolNull or form is SymbolNull or n is SymbolNull:
-        return Integer0
-
-    if not (isinstance(form, Symbol)) and not (isinstance(form, Expression)):
-        evaluation.message(name, "ivar", form)
-        return
-
-    sympy_exprs = expr.to_sympy().as_ordered_terms()
-    sympy_var = form.to_sympy()
-    sympy_n = n.to_sympy()
-
-    # expand sub expressions if they contain variables
-    sympy_expr: sympy.Expr = sum(
-        sympy.expand(e) if sympy_var.free_symbols.issubset(e.free_symbols) else e
-        for e in sympy_exprs
-    )
-    sympy_result = sympy_expr.coeff(sympy_var, sympy_n)
-    return from_sympy(sympy_result)
-
-
 class Coefficient(Builtin):
     """
 
@@ -230,13 +204,13 @@ class Coefficient(Builtin):
 
     def eval(self, expr: Expression, form: Expression, evaluation: Evaluation):
         "Coefficient[expr_, form_]"
-        return _coefficient(self.__class__.__name__, expr, form, Integer1, evaluation)
+        return coefficient(self.__class__.__name__, expr, form, Integer1, evaluation)
 
     def eval_n(
         self, expr: Expression, form: Expression, n: Integer, evaluation: Evaluation
     ):
         "Coefficient[expr_, form_, n_Integer]"
-        return _coefficient(self.__class__.__name__, expr, form, n, evaluation)
+        return coefficient(self.__class__.__name__, expr, form, n, evaluation)
 
 
 class CoefficientArrays(Builtin):
@@ -443,7 +417,7 @@ class CoefficientList(Builtin):
             if not form.has_form("List", None):
                 return ListExpression(
                     *[
-                        _coefficient(
+                        coefficient(
                             self.__class__.__name__, expr, form, Integer(n), evaluation
                         )
                         for n in range(dimensions[0] + 1)
@@ -453,7 +427,7 @@ class CoefficientList(Builtin):
                 form = form.elements[0]
                 return ListExpression(
                     *[
-                        _coefficient(
+                        coefficient(
                             self.__class__.__name__, expr, form, Integer(n), evaluation
                         )
                         for n in range(dimensions[0] + 1)
@@ -499,18 +473,34 @@ class Collect(Builtin):
 
     >> Collect[(x+y)^3, y]
      =  x ^ 3 + 3 x ^ 2 y + 3 x y ^ 2 + y ^ 3
+
     >> Collect[2 Sin[x z] (x+2 y^2 + Sin[y] x), y]
      = 2 x Sin[x z] + 2 x Sin[x z] Sin[y] + 4 y ^ 2 Sin[x z]
+
     >> Collect[3 x y+2 Sin[x z] (x+2 y^2 + x) + (x+y)^3, y]
      = 4 x Sin[x z] + x ^ 3 + y (3 x + 3 x ^ 2) + y ^ 2 (3 x + 4 Sin[x z]) + y ^ 3
+
     >> Collect[3 x y+2 Sin[x z] (x+2 y^2 + x) + (x+y)^3, {x,y}]
      = 4 x Sin[x z] + x ^ 3 + 3 x y + 3 x ^ 2 y + 4 y ^ 2 Sin[x z] + 3 x y ^ 2 + y ^ 3
+
     >> Collect[3 x y+2 Sin[x z] (x+2 y^2 + x) + (x+y)^3, {x,y}, h]
      = x h[4 Sin[x z]] + x ^ 3 h[1] + x y h[3] + x ^ 2 y h[3] + y ^ 2 h[4 Sin[x z]] + x y ^ 2 h[3] + y ^ 3 h[1]
+
+    Collect each power of x:
+    >> Collect[(1 + a + x)^3, x]
+     = 1 + 3 a + 3 a ^ 2 + a ^ 3 + x (3 + 6 a + 3 a ^ 2) + x ^ 2 (3 + 3 a) + x ^ 3
+
+    Collect terms involving y:
+    >> Collect[a x + b y + c x + d y, y]
+     = a x + c x + y (b + d)
+
+    Simplify each coefficient:
+    >> Collect[(1 + a + x)^3, x, Simplify]
+     = 1 + 3 a + 3 a ^ 2 + a ^ 3 + x (3 + 6 a + 3 a ^ 2) + x ^ 2 (3 + 3 a) + x ^ 3
     """
 
     eval_error = Builtin.generic_argument_error
-    expected_args = (1, 2)
+    expected_args = range(2, 5)
 
     rules = {
         "Collect[expr_, varlist_]": "Collect[expr, varlist, Identity]",
@@ -761,6 +751,9 @@ class ExpandDenominator(_Expand):
      = (a + b) ^ 2 / (c ^ 2 e + c ^ 2 f + 2 c d e + 2 c d f + d ^ 2 e + d ^ 2 f)
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
+
     summary_text = "expand just the denominator of a rational expression"
 
     def eval(self, expr, evaluation: Evaluation, options: dict):
@@ -806,7 +799,7 @@ class Exponent(Builtin):
     attributes = A_LISTABLE | A_PROTECTED
 
     eval_error = Builtin.generic_argument_error
-    expected_args = range(2, 5)
+    expected_args = (2, 3)
 
     messages = {
         "argtu": "Exponent called with `1` argument; 2 or 3 arguments are expected.",
