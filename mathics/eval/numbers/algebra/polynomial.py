@@ -2,20 +2,35 @@
 Polynomial-like Routines.
 """
 
+from typing import Final, FrozenSet, Optional, Tuple, Union
+
 import sympy
 
-from mathics.core.atoms import Integer, Integer0, IntegerM1, Number
+import mathics.eval.tracing as tracing
+from mathics.core.atoms import (
+    Integer,
+    Integer0,
+    Integer1,
+    IntegerM1,
+    Number,
+    RationalOneHalf,
+)
 from mathics.core.convert.sympy import from_sympy
+from mathics.core.element import BaseElement
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.rules import BasePattern
 from mathics.core.symbols import (
     SYMPY_SYMBOL_PREFIX,
     Atom,
     Symbol,
+    SymbolNull,
     SymbolPlus,
     SymbolPower,
     SymbolTimes,
 )
 from mathics.core.systemsymbols import (
+    SymbolAlternatives,
     SymbolAnd,
     SymbolCos,
     SymbolCosh,
@@ -37,34 +52,28 @@ from mathics.core.systemsymbols import (
     SymbolUnequal,
     SymbolXor,
 )
+from mathics.eval.patterns import match
 
+# Trigonomic and hypergeometric function symbols
+TRIG_OPERATORS: Final[FrozenSet] = frozenset(
+    [
+        SymbolSin,
+        SymbolCos,
+        SymbolTan,
+        SymbolCot,
+        SymbolSinh,
+        SymbolCosh,
+        SymbolTanh,
+        SymbolCoth,
+    ]
+)
 
-def expand_polynomial(expr, numerator=True, denominator=False, deep=False, **kwargs):
-    """expands out products and positive integer powers in expr.  If
-    "option pattern" is supplied, we leave unexpanded any parts of expr
-    that are free of the pattern patt.
-    """
-
-    # FIXME: the below is not the right way to supply the default arguments
-    # numerator, demom, deep and **kwargs.
-    def _expand_polynomial(expr):
-        return expand_polynomial(
-            expr, numerator=numerator, denominator=denominator, deep=deep, **kwargs
-        )
-
-    # Polymonoial expansion expects a nonnegative modules. When
-    # given a negative value, give back the "canonic" value: 0.
-    # Note: SymPy will give back an error, so we have to do this
-    # soonish.
-    if kwargs["modulus"] is not None and kwargs["modulus"] <= 0:
-        return Integer0
-
-    target_pat = kwargs.get("pattern", None)
-    if target_pat:
-        evaluation = kwargs["evaluation"]
-
-    operator = expr.get_head()
-    if (expr.get_head()) in (
+# Infix relational operators. As of SymPy 1.14, SymPy's
+# polymonial-like operations do not support relational operators.
+# Therefore, in Mathics3 operations like Expand or Apart, we have to
+# split this out.
+RELATIONAL_OPERATORS: Final[FrozenSet] = frozenset(
+    [
         SymbolAnd,
         SymbolEqual,
         SymbolEquivalent,
@@ -77,233 +86,558 @@ def expand_polynomial(expr, numerator=True, denominator=False, deep=False, **kwa
         SymbolOr,
         SymbolUnequal,
         SymbolXor,
+    ]
+)
+
+
+# Get a coefficient of form in an expression
+def coefficient(
+    name: str, expr: Expression, form, n: Integer, evaluation: Evaluation
+) -> Optional[BaseElement]:
+    if expr is SymbolNull or form is SymbolNull or n is SymbolNull:
+        return Integer0
+
+    if not (isinstance(form, Symbol)) and not (isinstance(form, Expression)):
+        evaluation.message(name, "ivar", form)
+        return
+
+    sympy_exprs = expr.to_sympy().as_ordered_terms()
+    sympy_var = form.to_sympy()
+    sympy_n = n.to_sympy()
+
+    # expand sub expressions if they contain variables
+    sympy_expr: sympy.Expr = sum(
+        sympy.expand(e) if sympy_var.free_symbols.issubset(e.free_symbols) else e
+        for e in sympy_exprs
+    )
+    sympy_result = sympy_expr.coeff(sympy_var, sympy_n)
+    return from_sympy(sympy_result)
+
+
+def coeff_power(
+    expr: BaseElement,
+    var_exprs: list,
+    filt: BaseElement,
+    evaluation: Evaluation,
+    form: str = "expr",
+) -> list:
+    """
+    This method returns a list of terms grouped by different powers of the expressions in var_expr.
+    """
+
+    if len(var_exprs) == 0:
+        if form == "expr":
+            return expr
+        else:
+            return [([], expr)]
+    if len(var_exprs) == 1:
+        target_pat = BasePattern.create(var_exprs[0])
+        var_pats = [target_pat]
+    else:
+        target_pat = BasePattern.create(Expression(SymbolAlternatives, *var_exprs))
+        var_pats = [BasePattern.create(var) for var in var_exprs]
+
+    # ###### Auxiliary functions #########
+    def key_powers(lst: list) -> Union[int, float]:
+        key = Expression(SymbolPlus, *lst).evaluate(evaluation)
+        if key is not None and key.is_numeric(evaluation):
+            return key.to_python()
+        return 0
+
+    def powers_list(pf: Optional[Expression]) -> list:
+        """
+        Build a list of exponents associated to each indeterminate.
+        """
+        powers = [Integer0 for i, p in enumerate(var_pats)]
+        if pf is None:
+            return powers
+        if isinstance(pf, Symbol):
+            for i, pat in enumerate(var_pats):
+                if match(pf, pat, evaluation):
+                    powers[i] = Integer1
+                    return powers
+        if pf.has_form("Sqrt", 1):
+            for i, pat in enumerate(var_pats):
+                if match(pf.elements[0], pat, evaluation):
+                    powers[i] = RationalOneHalf
+                    return powers
+        if pf.has_form("Power", 2):
+            for i, pat in enumerate(var_pats):
+                matchval = match(pf.elements[0], pat, evaluation)
+                if matchval:
+                    powers[i] = pf.elements[1]
+                    return powers
+        if pf.has_form("Times", None):
+            contrib = [powers_list(factor) for factor in pf.elements]
+            for i in range(len(var_pats)):
+                powers[i] = Expression(SymbolPlus, *[c[i] for c in contrib]).evaluate(
+                    evaluation
+                )
+            return powers
+        else:
+            for i, pat in enumerate(var_pats):
+                if match(pf, pat, evaluation):
+                    powers[i] = Integer1
+                    return powers
+        return powers
+
+    def split_coeff_pow(term) -> Tuple[Optional[list], Optional[list]]:
+        """
+        This function factorizes term in a coefficient free
+        of powers of the target variables, and a factor with
+        that powers.
+        """
+        coeffs = []
+        powers = []
+        # First, split factors on those which are powers of the variables
+        # and the rest.
+        if term.is_free(target_pat, evaluation):
+            coeffs.append(term)
+        elif match(term, target_pat, evaluation):
+            return None, term
+        elif (
+            isinstance(term, Symbol)
+            or term.has_form("Power", 2)
+            or term.has_form("Sqrt", 1)
+        ):
+            powers.append(term)
+        elif term.has_form("Times", None):
+            for factor in term.elements:
+                if factor.is_free(target_pat, evaluation):
+                    coeffs.append(factor)
+                elif match(factor, target_pat, evaluation):
+                    powers.append(factor)
+                elif (
+                    factor.has_form("Power", 2) or factor.has_form("Sqrt", 1)
+                ) and match(factor.elements[0], target_pat, evaluation):
+                    powers.append(factor)
+                else:
+                    coeffs.append(factor)
+        else:
+            coeffs.append(term)
+        # Now, rebuild both factors
+        if len(coeffs) == 0:
+            coeffs = None
+        elif len(coeffs) == 1:
+            coeffs = coeffs[0]
+        else:
+            coeffs = Expression(SymbolTimes, *coeffs)
+        if len(powers) == 0:
+            powers = None
+        elif len(powers) == 1:
+            powers = powers[0]
+        else:
+            powers = Expression(SymbolTimes, *sorted(powers))
+        return coeffs, powers
+
+    # ################  The actual begin ####################
+    expr = expand_polynomial(
+        expr,
+        numer=True,
+        denom=False,
+        deep=False,
+        trig=False,
+        modulus=None,
+        target_pat=target_pat,
+    )
+
+    if expr.is_free(target_pat, evaluation):
+        if filt:
+            expr = Expression(filt, expr).evaluate(evaluation)
+        if form == "expr":
+            return expr
+        else:
+            return [(powers_list(None), expr)]
+    elif (
+        isinstance(expr, Symbol)
+        or match(expr, target_pat, evaluation)
+        or expr.has_form("Power", 2)
+        or expr.has_form("Sqrt", 1)
     ):
-        # Thanks to ad-si (Woxi) for the code suggestion below and axkr (Symja) for the
-        # the list of operators above.
-        expanded_operands = [_expand_polynomial(operand) for operand in expr.elements]
+        coeff = Expression(filt, Integer1).evaluate(evaluation) if filt else Integer1
+        if form == "expr":
+            if coeff is Integer1:
+                return expr
+            else:
+                return Expression(SymbolTimes, coeff, expr)
+        else:
+            if not coeff.is_free(target_pat, evaluation):
+                return []
+            return [(powers_list(expr), coeff)]
+    elif expr.has_form("Times", None):
+        coeff, powers = split_coeff_pow(expr)
+        if coeff is None:
+            coeff = Integer1
+        else:
+            if form != "expr" and not coeff.is_free(target_pat, evaluation):
+                return []
+        if filt:
+            coeff = Expression(filt, coeff).evaluate(evaluation)
+
+        if form == "expr":
+            if powers is None:
+                return coeff
+            else:
+                if coeff is Integer1:
+                    return powers
+                else:
+                    return Expression(SymbolTimes, coeff, powers)
+        else:
+            pl = powers_list(powers)
+            return [(pl, coeff)]
+    elif expr.has_form("Plus", None):
+        coeff_dict = {}
+        powers_dict = {}
+        powers_order = {}
+        for term in expr.elements:
+            coeff, powers = split_coeff_pow(term)
+            if (
+                form != "expr"
+                and coeff is not None
+                and not coeff.is_free(target_pat, evaluation)
+            ):
+                return []
+            pl = powers_list(powers)
+            key = str(pl)
+            if key not in powers_dict:
+                if form == "expr":
+                    powers_dict[key] = powers
+                else:
+                    # TODO: check if pl is a monomial...
+                    powers_dict[key] = pl
+                coeff_dict[key] = []
+                powers_order[key] = key_powers(pl)
+
+            coeff_dict[key].append(Integer1 if coeff is None else coeff)
+
+        terms = []
+        for key in sorted(coeff_dict, key=lambda kv: powers_order[kv], reverse=False):
+            val = coeff_dict[key]
+            if len(val) == 0:
+                continue
+            elif len(val) == 1:
+                coeff = val[0]
+            else:
+                coeff = Expression(SymbolPlus, *val)
+            if filt:
+                coeff = Expression(filt, coeff).evaluate(evaluation)
+
+            powerfactor = powers_dict[key]
+            if form == "expr":
+                if powerfactor:
+                    terms.append(Expression(SymbolTimes, coeff, powerfactor))
+                else:
+                    terms.append(coeff)
+            else:
+                terms.append([powerfactor, coeff])
+        if form == "expr":
+            return Expression(SymbolPlus, *terms)
+        else:
+            return terms
+    else:
+        # expr is not a polynomial.
+        if form == "expr":
+            if filt:
+                expr = Expression(filt, expr).evaluate(evaluation)
+            return expr
+        else:
+            return []
+
+
+def eval_Apart(expr: BaseElement, var: Symbol):
+    """
+    Evaluation routine for:
+    Apart[expr_, var_Symbol]
+    """
+
+    operator = expr.get_head()
+    if (expr.get_head()) in RELATIONAL_OPERATORS:
+        expanded_operands = [eval_Apart(operand, var) for operand in expr.elements]
         return Expression(operator, *expanded_operands)
 
-    # A special case for trigonometric functions
-    if kwargs.get("trig", False):
-        if operator in (
-            SymbolSin,
-            SymbolCos,
-            SymbolTan,
-            SymbolCot,
-            SymbolSinh,
-            SymbolCosh,
-            SymbolTanh,
-            SymbolCoth,
-        ):
-            theta = expr.elements[0]
-            if (target_pat is not None) and theta.is_free(target_pat, evaluation):
-                return expr
-            if deep:
-                theta = _expand_polynomial(theta)
+    expr_sympy = expr.to_sympy()
+    var_sympy = var.to_sympy()
+    # If the expression cannot be handled by SymPy, just return it.
+    if expr_sympy is None or var_sympy is None:
+        return expr
 
-            if theta.has_form("Plus", 2, None):
-                x, y = theta.elements[0], Expression(SymbolPlus, *theta.elements[1:])
-                if operator is SymbolSin:
-                    a = Expression(
-                        SymbolTimes,
-                        _expand_polynomial(Expression(SymbolSin, x)),
-                        _expand_polynomial(Expression(SymbolCos, y)),
+    try:
+        result_sympy = tracing.run_sympy(sympy.apart, expr_sympy, var_sympy)
+        return from_sympy(result_sympy)
+    except sympy.PolynomialError:
+        # raised e.g. for apart(sin(1/(x**2-y**2)))
+        return expr
+
+
+def expand_polynomial(
+    expr: BaseElement, numerator=True, denominator=False, deep=False, **kwargs
+):
+    """expands out products and positive integer powers in expr.  If
+    "option pattern" is supplied, we leave unexpanded any parts of expr
+    that are free of the pattern patt.
+    """
+
+    # Polynomial expansion expects a nonnegative modules. When
+    # given a negative value, give back the "canonic" value: 0.
+    # Note: SymPy will give back an error, so we have to do this
+    # soonish.
+    if (modulus := kwargs["modulus"]) is not None and modulus <= 0:
+        return Integer0
+
+    target_pat = kwargs.get("pattern", None)
+    if target_pat:
+        evaluation = kwargs["evaluation"]
+
+    trig_expand = kwargs.get("trig", False)
+
+    def expand_polynomial_inner(expr: BaseElement):
+        """Recursive expand_polymomial. We make use of closure
+        variables trig_expand, target_pat, numerator, and denominator
+        below without having to pass these explicitly as parameters.
+        """
+
+        operator = expr.get_head()
+        if (expr.get_head()) in RELATIONAL_OPERATORS:
+            # Thanks to ad-si (Woxi) for the code suggestion below and axkr (Symja) for the
+            # the list of operators above.
+            expanded_operands = [
+                expand_polynomial_inner(operand) for operand in expr.elements
+            ]
+            return Expression(operator, *expanded_operands)
+
+        # A special case for trigonometric functions
+        if trig_expand:
+            if operator in TRIG_OPERATORS:
+                theta = expr.elements[0]
+                if (target_pat is not None) and theta.is_free(target_pat, evaluation):
+                    return expr
+                if deep:
+                    theta = expand_polynomial_inner(theta)
+
+                if theta.has_form("Plus", 2, None):
+                    x, y = theta.elements[0], Expression(
+                        SymbolPlus, *theta.elements[1:]
                     )
-
-                    b = Expression(
-                        SymbolTimes,
-                        _expand_polynomial(Expression(SymbolCos, x)),
-                        _expand_polynomial(Expression(SymbolSin, y)),
-                    )
-                    return _expand_polynomial(Expression(SymbolPlus, a, b))
-                elif operator is SymbolCos:
-                    a = Expression(
-                        SymbolTimes,
-                        _expand_polynomial(Expression(SymbolCos, x)),
-                        _expand_polynomial(Expression(SymbolCos, y)),
-                    )
-
-                    b = Expression(
-                        SymbolTimes,
-                        _expand_polynomial(Expression(SymbolSin, x)),
-                        _expand_polynomial(Expression(SymbolSin, y)),
-                    )
-
-                    return _expand_polynomial(Expression(SymbolPlus, a, -b))
-                elif operator is SymbolSinh:
-                    a = Expression(
-                        SymbolTimes,
-                        _expand_polynomial(Expression(SymbolSinh, x)),
-                        _expand_polynomial(Expression(SymbolCosh, y)),
-                    )
-
-                    b = Expression(
-                        SymbolTimes,
-                        _expand_polynomial(Expression(SymbolCosh, x)),
-                        _expand_polynomial(Expression(SymbolSinh, y)),
-                    )
-
-                    return _expand_polynomial(Expression(SymbolPlus, a, b))
-                elif operator is SymbolCosh:
-                    a = Expression(
-                        SymbolTimes,
-                        _expand_polynomial(Expression(SymbolCosh, x)),
-                        _expand_polynomial(Expression(SymbolCosh, y)),
-                    )
-
-                    b = Expression(
-                        SymbolTimes,
-                        _expand_polynomial(Expression(SymbolSinh, x)),
-                        _expand_polynomial(Expression(SymbolSinh, y)),
-                    )
-
-                    return _expand_polynomial(Expression(SymbolPlus, a, b))
-                elif operator is Symbol("Tan"):
-                    a = _expand_polynomial(Expression(SymbolSin, theta))
-                    b = Expression(
-                        SymbolPower,
-                        _expand_polynomial(Expression(SymbolCos, theta)),
-                        IntegerM1,
-                    )
-                    return _expand_polynomial(Expression(SymbolTimes, a, b))
-                elif operator is SymbolCot:
-                    a = _expand_polynomial(Expression(SymbolCos, theta))
-                    b = Expression(
-                        SymbolPower,
-                        _expand_polynomial(Expression(SymbolSin, theta)),
-                        IntegerM1,
-                    )
-                    return _expand_polynomial(Expression(SymbolTimes, a, b))
-                elif operator is SymbolTanh:
-                    a = _expand_polynomial(Expression(SymbolSinh, theta))
-                    b = Expression(
-                        SymbolPower,
-                        _expand_polynomial(Expression(SymbolCosh, theta)),
-                        IntegerM1,
-                    )
-                    return _expand_polynomial(Expression(SymbolTimes, a, b))
-                elif operator is SymbolCoth:
-                    a = _expand_polynomial(Expression(SymbolTimes, SymbolCosh, theta))
-                    b = Expression(
-                        SymbolPower,
-                        _expand_polynomial(Expression(SymbolSinh, theta)),
-                        IntegerM1,
-                    )
-                    return _expand_polynomial(Expression(a, b))
-
-    sub_exprs = []
-
-    def store_sub_expr(expr):
-        sub_exprs.append(expr)
-        result = sympy.Symbol(SYMPY_SYMBOL_PREFIX + str(len(sub_exprs) - 1))
-        return result
-
-    def get_sub_expr(expr):
-        name = expr.get_name()
-        assert isinstance(expr, Symbol) and name.startswith("System`")
-        i = int(name[len("System`") :])
-        return sub_exprs[i]
-
-    def convert_sympy(expr):
-        "converts top-level to sympy"
-        elements = expr.get_elements()
-        if isinstance(expr, Integer):
-            return sympy.Integer(expr.get_int_value())
-        if target_pat is not None and not isinstance(expr, Number):
-            if expr.is_free(target_pat, evaluation):
-                return store_sub_expr(expr)
-        if expr.has_form("Power", 2):
-            # sympy won't expand `(a + b) / x` to `a / x + b / x` if denominator is False
-            # if denominator is False we store negative powers to prevent this.
-            n1 = elements[1].get_int_value()
-            if not denominator and n1 is not None and n1 < 0:
-                return store_sub_expr(expr)
-            return sympy.Pow(*[convert_sympy(element) for element in elements])
-        elif expr.has_form("Times", 2, None):
-            return sympy.Mul(*[convert_sympy(element) for element in elements])
-        elif expr.has_form("Plus", 2, None):
-            return sympy.Add(*[convert_sympy(element) for element in elements])
-        else:
-            return store_sub_expr(expr)
-
-    def unconvert_subexprs(expr):
-        if isinstance(expr, Atom):
-            if isinstance(expr, Symbol):
-                return get_sub_expr(expr)
-            else:
-                return expr
-        else:
-            return Expression(
-                expr.head, *[unconvert_subexprs(element) for element in expr.elements]
-            )
-
-    sympy_expr = convert_sympy(expr)
-    if deep:
-        # thread over everything
-        for (
-            i,
-            sub_expr,
-        ) in enumerate(sub_exprs):
-            if not isinstance(sub_expr, Atom):
-                head = _expand_polynomial(sub_expr.head)  # also expand head
-                elements = sub_expr.elements
-                if target_pat:
-                    elements = [
-                        (
-                            element
-                            if element.is_free(target_pat, evaluation)
-                            else _expand_polynomial(element)
+                    if operator is SymbolSin:
+                        a = Expression(
+                            SymbolTimes,
+                            expand_polynomial_inner(Expression(SymbolSin, x)),
+                            expand_polynomial_inner(Expression(SymbolCos, y)),
                         )
-                        for element in elements
-                    ]
+
+                        b = Expression(
+                            SymbolTimes,
+                            expand_polynomial_inner(Expression(SymbolCos, x)),
+                            expand_polynomial_inner(Expression(SymbolSin, y)),
+                        )
+                        return expand_polynomial_inner(Expression(SymbolPlus, a, b))
+                    elif operator is SymbolCos:
+                        a = Expression(
+                            SymbolTimes,
+                            expand_polynomial_inner(Expression(SymbolCos, x)),
+                            expand_polynomial_inner(Expression(SymbolCos, y)),
+                        )
+
+                        b = Expression(
+                            SymbolTimes,
+                            expand_polynomial_inner(Expression(SymbolSin, x)),
+                            expand_polynomial_inner(Expression(SymbolSin, y)),
+                        )
+
+                        return expand_polynomial_inner(Expression(SymbolPlus, a, -b))
+                    elif operator is SymbolSinh:
+                        a = Expression(
+                            SymbolTimes,
+                            expand_polynomial_inner(Expression(SymbolSinh, x)),
+                            expand_polynomial_inner(Expression(SymbolCosh, y)),
+                        )
+
+                        b = Expression(
+                            SymbolTimes,
+                            expand_polynomial_inner(Expression(SymbolCosh, x)),
+                            expand_polynomial_inner(Expression(SymbolSinh, y)),
+                        )
+
+                        return expand_polynomial_inner(Expression(SymbolPlus, a, b))
+                    elif operator is SymbolCosh:
+                        a = Expression(
+                            SymbolTimes,
+                            expand_polynomial_inner(Expression(SymbolCosh, x)),
+                            expand_polynomial_inner(Expression(SymbolCosh, y)),
+                        )
+
+                        b = Expression(
+                            SymbolTimes,
+                            expand_polynomial_inner(Expression(SymbolSinh, x)),
+                            expand_polynomial_inner(Expression(SymbolSinh, y)),
+                        )
+
+                        return expand_polynomial_inner(Expression(SymbolPlus, a, b))
+                    elif operator is Symbol("Tan"):
+                        a = expand_polynomial_inner(Expression(SymbolSin, theta))
+                        b = Expression(
+                            SymbolPower,
+                            expand_polynomial_inner(Expression(SymbolCos, theta)),
+                            IntegerM1,
+                        )
+                        return expand_polynomial_inner(Expression(SymbolTimes, a, b))
+                    elif operator is SymbolCot:
+                        a = expand_polynomial_inner(Expression(SymbolCos, theta))
+                        b = Expression(
+                            SymbolPower,
+                            expand_polynomial_inner(Expression(SymbolSin, theta)),
+                            IntegerM1,
+                        )
+                        return expand_polynomial_inner(Expression(SymbolTimes, a, b))
+                    elif operator is SymbolTanh:
+                        a = expand_polynomial_inner(Expression(SymbolSinh, theta))
+                        b = Expression(
+                            SymbolPower,
+                            expand_polynomial_inner(Expression(SymbolCosh, theta)),
+                            IntegerM1,
+                        )
+                        return expand_polynomial_inner(Expression(SymbolTimes, a, b))
+                    elif operator is SymbolCoth:
+                        a = expand_polynomial_inner(
+                            Expression(SymbolTimes, SymbolCosh, theta)
+                        )
+                        b = Expression(
+                            SymbolPower,
+                            expand_polynomial_inner(Expression(SymbolSinh, theta)),
+                            IntegerM1,
+                        )
+                        return expand_polynomial_inner(Expression(a, b))
+
+        sub_exprs = []
+
+        def store_sub_expr(expr):
+            sub_exprs.append(expr)
+            result = sympy.Symbol(SYMPY_SYMBOL_PREFIX + str(len(sub_exprs) - 1))
+            return result
+
+        def get_sub_expr(expr):
+            name = expr.get_name()
+            assert isinstance(expr, Symbol) and name.startswith("System`")
+            i = int(name[len("System`") :])
+            return sub_exprs[i]
+
+        def convert_sympy(expr):
+            "converts top-level to sympy"
+            elements = expr.get_elements()
+            if isinstance(expr, Integer):
+                return sympy.Integer(expr.get_int_value())
+            if target_pat is not None and not isinstance(expr, Number):
+                if expr.is_free(target_pat, evaluation):
+                    return store_sub_expr(expr)
+            operator = expr.get_head()
+
+            if operator is SymbolPower:
+                # sympy won't expand `(a + b) / x` to `a / x + b / x` if denominator is False
+                # if denominator is False we store negative powers to prevent this.
+                n1 = elements[1].get_int_value()
+                if not denominator and n1 is not None and n1 < 0:
+                    return store_sub_expr(expr)
+                return tracing.run_sympy(
+                    sympy.Pow, *[convert_sympy(element) for element in elements]
+                )
+            elif operator is SymbolTimes:
+                return tracing.run_sympy(
+                    sympy.Mul, *[convert_sympy(element) for element in elements]
+                )
+            elif operator is SymbolPlus:
+                return tracing.run_sympy(
+                    sympy.Add, *[convert_sympy(element) for element in elements]
+                )
+            else:
+                return store_sub_expr(expr)
+
+        def unconvert_subexprs(expr):
+            if isinstance(expr, Atom):
+                if isinstance(expr, Symbol):
+                    return get_sub_expr(expr)
                 else:
-                    elements = [_expand_polynomial(element) for element in elements]
-                sub_exprs[i] = Expression(head, *elements)
-    else:
-        # thread over Lists etc.
-        threaded_heads = ("List", "Rule")
-        for i, sub_expr in enumerate(sub_exprs):
-            for head in threaded_heads:
-                if sub_expr.has_form(head, None):
+                    return expr
+            else:
+                return Expression(
+                    expr.head,
+                    *[unconvert_subexprs(element) for element in expr.elements],
+                )
+
+        sympy_expr = convert_sympy(expr)
+        if deep:
+            # thread over everything
+            for (
+                i,
+                sub_expr,
+            ) in enumerate(sub_exprs):
+                if not isinstance(sub_expr, Atom):
+                    head = expand_polynomial_inner(sub_expr.head)  # also expand head
                     elements = sub_expr.elements
                     if target_pat:
                         elements = [
                             (
                                 element
                                 if element.is_free(target_pat, evaluation)
-                                else _expand_polynomial(element)
+                                else expand_polynomial_inner(element)
                             )
                             for element in elements
                         ]
                     else:
-                        elements = [_expand_polynomial(element) for element in elements]
-                    sub_exprs[i] = Expression(Symbol(head), *elements)
-                    break
+                        elements = [
+                            expand_polynomial_inner(element) for element in elements
+                        ]
+                    sub_exprs[i] = Expression(head, *elements)
+        else:
+            # thread over Lists etc.
+            threaded_heads = ("List", "Rule")
+            for i, sub_expr in enumerate(sub_exprs):
+                for head in threaded_heads:
+                    if sub_expr.has_form(head, None):
+                        elements = sub_expr.elements
+                        if target_pat:
+                            elements = [
+                                (
+                                    element
+                                    if element.is_free(target_pat, evaluation)
+                                    else expand_polynomial_inner(element)
+                                )
+                                for element in elements
+                            ]
+                        else:
+                            elements = [
+                                expand_polynomial_inner(element) for element in elements
+                            ]
+                        sub_exprs[i] = Expression(Symbol(head), *elements)
+                        break
 
-    hints = {
-        "mul": True,
-        "multinomial": True,
-        "power_exp": False,
-        "power_base": False,
-        "basic": False,
-        "log": False,
-    }
+        hints = {
+            "mul": True,
+            "multinomial": True,
+            "power_exp": False,
+            "power_base": False,
+            "basic": False,
+            "log": False,
+        }
 
-    hints.update(kwargs)
+        hints.update(kwargs)
 
-    if numerator and denominator:
-        # don't expand fractions when modulus is True
-        if hints["modulus"] is not None:
-            hints["frac"] = True
-    else:
-        # setting both True doesn't expand denominator
-        hints["numer"] = numerator
-        hints["denom"] = denominator
+        if numerator and denominator:
+            # don't expand fractions when modulus is True
+            if hints["modulus"] is not None:
+                hints["frac"] = True
+        else:
+            # setting both True doesn't expand denominator
+            hints["numer"] = numerator
+            hints["denom"] = denominator
 
-    sympy_expr = sympy_expr.expand(**hints)
-    result = from_sympy(sympy_expr)
-    result = unconvert_subexprs(result)
-    return result
+        sympy_expr = sympy_expr.expand(**hints)
+        result = from_sympy(sympy_expr)
+        result = unconvert_subexprs(result)
+        return result
+
+        return expand_polynomial_inner(expr)
+
+    return expand_polynomial_inner(expr)
 
 
 def find_all_vars(expr):
@@ -311,16 +645,17 @@ def find_all_vars(expr):
 
     def find_vars(e, e_sympy):
         assert e_sympy is not None
+        operator = e.get_head()
         if e_sympy.is_constant():
             return
         elif isinstance(e, Symbol):
             variables.add(e)
-        elif e.has_form(("Plus", "Times"), None):
+        elif operator in (SymbolPlus, SymbolTimes):
             for lv in e.elements:
                 lv_sympy = lv.to_sympy()
                 if lv_sympy is not None:
                     find_vars(lv, lv_sympy)
-        elif e.has_form("Power", 2):
+        elif operator is SymbolPower:
             a, b = e.elements  # a^b
             a_sympy, b_sympy = a.to_sympy(), b.to_sympy()
             if a_sympy is None or b_sympy is None:
@@ -365,5 +700,5 @@ def get_exponents_sorted(expr, var) -> list:
                 for term in coeff.as_ordered_terms()
             ]
             expos = [term.as_coeff_exponent(x)[1] for mul in muls for term in mul]
-            result.add(from_sympy(sympy.Max(*[e for e in expos])))
+            result.add(from_sympy(tracing.run_sympy(sympy.Max, *[e for e in expos])))
     return sorted(result)
