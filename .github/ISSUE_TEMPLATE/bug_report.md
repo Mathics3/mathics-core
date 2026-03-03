@@ -16,7 +16,7 @@ assignees: ''
       If the expression can be written in SymPy, does SymPy also exhibit the problem?
 -->
 
-## How to Reproduce
+## How to Reproduce and Output Given
 
 <!--
 Steps to reproduce the behavior.
@@ -32,17 +32,10 @@ For a command-line environment:
 
 $mathics -c 'E ^ (Pi I)'  # adjust expression E ^ (Pi I) for the specific bug
 
--->
-
-## Output Given
-
-<!--
 Please include not just the error message but all output leading to the message, which includes echoing input and messages up to the error.
 For a command-line environment, include the command invocation and all the output produced.
 
-If this is too long, then try narrowing the problem to something short.
 -->
-
 
 ## Expected behavior
 
