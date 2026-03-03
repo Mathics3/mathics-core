@@ -8,6 +8,29 @@ from test.helper import check_evaluation
 import pytest
 
 
+def test_apart():
+    for str_expr, msgs, str_expected, fail_msg in [
+        (
+            "Apart[]",
+            ("Apart called with 0 arguments; 1 or 2 arguments are expected.",),
+            "Apart[]",
+            "Apart argument checking",
+        ),
+        (
+            "Apart[1 / (x^2 + 5x + 6)] > y",
+            None,
+            "1 / (2 + x) - 1 / (3 + x) > y",
+            "Apart in a relational expression",
+        ),
+    ]:
+        check_evaluation(
+            str_expr,
+            str_expected,
+            expected_messages=msgs,
+            failure_message=fail_msg,
+        )
+
+
 def test_collect():
     for str_expr, str_expected in [
         ("Collect[q[x] + q[x] q[y],q[x]]", "q[x] (1 + q[y])"),
@@ -344,12 +367,6 @@ def test_fullsimplify():
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
-        (
-            "Apart[]",
-            ("Apart called with 0 arguments; 1 or 2 arguments are expected.",),
-            "Apart[]",
-            "Apart argument checking",
-        ),
         ("Attributes[f] = {HoldAll}; Apart[f[x + x]]", None, "f[x + x]", None),
         ("Attributes[f] = {}; Apart[f[x + x]]", None, "f[2 x]", None),
         ## Errors:

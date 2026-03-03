@@ -77,6 +77,31 @@ RELATIONAL_OPERATORS: Final[FrozenSet] = frozenset(
 )
 
 
+def eval_Apart(expr, var: Symbol):
+    """
+    Evaluation routine for:
+    Apart[expr_, var_Symbol]
+    """
+
+    operator = expr.get_head()
+    if (expr.get_head()) in RELATIONAL_OPERATORS:
+        expanded_operands = [eval_Apart(operand, var) for operand in expr.elements]
+        return Expression(operator, *expanded_operands)
+
+    expr_sympy = expr.to_sympy()
+    var_sympy = var.to_sympy()
+    # If the expression cannot be handled by SymPy, just return it.
+    if expr_sympy is None or var_sympy is None:
+        return expr
+
+    try:
+        result_sympy = tracing.run_sympy(sympy.apart, expr_sympy, var_sympy)
+        return from_sympy(result_sympy)
+    except sympy.PolynomialError:
+        # raised e.g. for apart(sin(1/(x**2-y**2)))
+        return expr
+
+
 def expand_polynomial(expr, numerator=True, denominator=False, deep=False, **kwargs):
     """expands out products and positive integer powers in expr.  If
     "option pattern" is supplied, we leave unexpanded any parts of expr

@@ -57,6 +57,7 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.list.eol import eval_Part
 from mathics.eval.numbers.algebra.polynomial import (
+    eval_Apart,
     expand_polynomial,
     find_all_vars,
     get_exponents_sorted,
@@ -110,22 +111,10 @@ class Apart(Builtin):
     }
     summary_text = "partial fraction decomposition"
 
-    def eval(self, expr, var, evaluation: Evaluation):
+    def eval(self, expr, var: Symbol, evaluation: Evaluation):
         "Apart[expr_, var_Symbol]"
 
-        expr_sympy = expr.to_sympy()
-        var_sympy = var.to_sympy()
-        # If the expression cannot be handled by Sympy, just return it.
-        if expr_sympy is None or var_sympy is None:
-            return expr
-
-        try:
-            result = sympy.apart(expr_sympy, var_sympy)
-            result = from_sympy(result)
-            return result
-        except sympy.PolynomialError:
-            # raised e.g. for apart(sin(1/(x**2-y**2)))
-            return expr
+        return eval_Apart(expr, var)
 
 
 class Cancel(Builtin):
