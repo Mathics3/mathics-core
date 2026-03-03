@@ -1,4 +1,4 @@
-Welcome to Mathics Core!
+Welcome to Mathics3 Core!
 ========================
 
 |PyPI Installs| |Latest Version| |Supported Python Versions|
@@ -13,7 +13,7 @@ modules for WL Built-in functions, variables, core primitives,
 e.g., Symbol, a parser to create Expressions, and an evaluator to
 execute them.
 
-The home page for Mathics is https://mathics.org, where you will find a list of screenshots and components making up the system.
+The home page for Mathics3 is https://mathics.org, where you will find a list of screenshots and components making up the system.
 
 Installing
 ----------
