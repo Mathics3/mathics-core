@@ -25,9 +25,9 @@ See the `Installing Mathics3 <https://mathics-development-guide.readthedocs.io/e
 Running:
 --------
 
-Mathics3 Kernel comes with a very simple command-line program called ``mathics``::
+Mathics3 Kernel comes with a very simple command-line program called ``mathics3``::
 
-  $ mathics
+  $ mathics3
 
   Mathics3 9.0.0
   on CPython 3.13.5 (main, Jun 20 2025, 16:57:22) [GCC 13.3.0]
@@ -43,7 +43,7 @@ Mathics3 Kernel comes with a very simple command-line program called ``mathics``
 
   In[1]:=
 
-Type ``mathics --help`` for options that can be provided.
+Type ``mathics3 --help`` for options that can be provided.
 
 For a more featureful frontend, see `mathicsscript
 <https://pypi.org/project/mathicsscript/>`_.
@@ -55,13 +55,13 @@ For a Django front-end based web front-end see `<https://pypi.org/project/Mathic
 Contributing
 ------------
 
-Please feel encouraged to contribute to Mathics3! Create your own fork, make the desired changes, commit, and make a pull request.
+Please feel encouraged to contribute to Mathics3! Create your own fork, make the desired changes, commit, and put in a pull request (PR).
 
 
 License
 -------
 
-Mathics is released under the GNU General Public License Version 3 (GPL3).
+Mathics3 is released under the GNU General Public License Version 3 (GPL3).
 
 .. _PyPI: https://pypi.org/project/Mathics/
 .. |mathicsscript| image:: https://github.com/Mathics3/mathicsscript/blob/master/screenshots/mathicsscript1.gif
