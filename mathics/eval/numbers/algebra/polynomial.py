@@ -6,6 +6,7 @@ from typing import Final, FrozenSet
 
 import sympy
 
+import mathics.eval.tracing as tracing
 from mathics.core.atoms import Integer, Integer0, IntegerM1, Number
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.expression import Expression
@@ -234,17 +235,25 @@ def expand_polynomial(expr, numerator=True, denominator=False, deep=False, **kwa
             if target_pat is not None and not isinstance(expr, Number):
                 if expr.is_free(target_pat, evaluation):
                     return store_sub_expr(expr)
-            if expr.has_form("Power", 2):
+            operator = expr.get_head()
+
+            if operator is SymbolPower:
                 # sympy won't expand `(a + b) / x` to `a / x + b / x` if denominator is False
                 # if denominator is False we store negative powers to prevent this.
                 n1 = elements[1].get_int_value()
                 if not denominator and n1 is not None and n1 < 0:
                     return store_sub_expr(expr)
-                return sympy.Pow(*[convert_sympy(element) for element in elements])
-            elif expr.has_form("Times", 2, None):
-                return sympy.Mul(*[convert_sympy(element) for element in elements])
-            elif expr.has_form("Plus", 2, None):
-                return sympy.Add(*[convert_sympy(element) for element in elements])
+                return tracing.run_sympy(
+                    sympy.Pow, *[convert_sympy(element) for element in elements]
+                )
+            elif operator is SymbolTimes:
+                return tracing.run_sympy(
+                    sympy.Mul, *[convert_sympy(element) for element in elements]
+                )
+            elif operator is SymbolPlus:
+                return tracing.run_sympy(
+                    sympy.Add, *[convert_sympy(element) for element in elements]
+                )
             else:
                 return store_sub_expr(expr)
 
@@ -342,16 +351,17 @@ def find_all_vars(expr):
 
     def find_vars(e, e_sympy):
         assert e_sympy is not None
+        operator = e.get_head()
         if e_sympy.is_constant():
             return
         elif isinstance(e, Symbol):
             variables.add(e)
-        elif e.has_form(("Plus", "Times"), None):
+        elif operator in (SymbolPlus, SymbolTimes):
             for lv in e.elements:
                 lv_sympy = lv.to_sympy()
                 if lv_sympy is not None:
                     find_vars(lv, lv_sympy)
-        elif e.has_form("Power", 2):
+        elif operator is SymbolPower:
             a, b = e.elements  # a^b
             a_sympy, b_sympy = a.to_sympy(), b.to_sympy()
             if a_sympy is None or b_sympy is None:
@@ -396,5 +406,5 @@ def get_exponents_sorted(expr, var) -> list:
                 for term in coeff.as_ordered_terms()
             ]
             expos = [term.as_coeff_exponent(x)[1] for mul in muls for term in mul]
-            result.add(from_sympy(sympy.Max(*[e for e in expos])))
+            result.add(from_sympy(tracing.run_sympy(sympy.Max, *[e for e in expos])))
     return sorted(result)
