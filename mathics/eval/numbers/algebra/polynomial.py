@@ -2,14 +2,24 @@
 Polynomial-like Routines.
 """
 
-from typing import Final, FrozenSet
+from typing import Final, FrozenSet, Optional, Tuple, Union
 
 import sympy
 
 import mathics.eval.tracing as tracing
-from mathics.core.atoms import Integer, Integer0, IntegerM1, Number
+from mathics.core.atoms import (
+    Integer,
+    Integer0,
+    Integer1,
+    IntegerM1,
+    Number,
+    RationalOneHalf,
+)
 from mathics.core.convert.sympy import from_sympy
+from mathics.core.element import BaseElement
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.rules import BasePattern
 from mathics.core.symbols import (
     SYMPY_SYMBOL_PREFIX,
     Atom,
@@ -19,6 +29,7 @@ from mathics.core.symbols import (
     SymbolTimes,
 )
 from mathics.core.systemsymbols import (
+    SymbolAlternatives,
     SymbolAnd,
     SymbolCos,
     SymbolCosh,
@@ -40,6 +51,7 @@ from mathics.core.systemsymbols import (
     SymbolUnequal,
     SymbolXor,
 )
+from mathics.eval.patterns import match
 
 # Trigonomic and hypergeometric function symbols
 TRIG_OPERATORS: Final[FrozenSet] = frozenset(
@@ -77,7 +89,237 @@ RELATIONAL_OPERATORS: Final[FrozenSet] = frozenset(
 )
 
 
-def eval_Apart(expr, var: Symbol):
+def coeff_power(
+    expr: BaseElement,
+    var_exprs: list,
+    filt: BaseElement,
+    evaluation: Evaluation,
+    form: str = "expr",
+) -> list:
+    """
+    This method returns a list of terms grouped by different powers of the expressions in var_expr.
+    """
+
+    if len(var_exprs) == 0:
+        if form == "expr":
+            return expr
+        else:
+            return [([], expr)]
+    if len(var_exprs) == 1:
+        target_pat = BasePattern.create(var_exprs[0])
+        var_pats = [target_pat]
+    else:
+        target_pat = BasePattern.create(Expression(SymbolAlternatives, *var_exprs))
+        var_pats = [BasePattern.create(var) for var in var_exprs]
+
+    # ###### Auxiliary functions #########
+    def key_powers(lst: list) -> Union[int, float]:
+        key = Expression(SymbolPlus, *lst).evaluate(evaluation)
+        if key is not None and key.is_numeric(evaluation):
+            return key.to_python()
+        return 0
+
+    def powers_list(pf: Optional[Expression]) -> list:
+        """
+        Build a list of exponents associated to each indeterminate.
+        """
+        powers = [Integer0 for i, p in enumerate(var_pats)]
+        if pf is None:
+            return powers
+        if isinstance(pf, Symbol):
+            for i, pat in enumerate(var_pats):
+                if match(pf, pat, evaluation):
+                    powers[i] = Integer1
+                    return powers
+        if pf.has_form("Sqrt", 1):
+            for i, pat in enumerate(var_pats):
+                if match(pf.elements[0], pat, evaluation):
+                    powers[i] = RationalOneHalf
+                    return powers
+        if pf.has_form("Power", 2):
+            for i, pat in enumerate(var_pats):
+                matchval = match(pf.elements[0], pat, evaluation)
+                if matchval:
+                    powers[i] = pf.elements[1]
+                    return powers
+        if pf.has_form("Times", None):
+            contrib = [powers_list(factor) for factor in pf.elements]
+            for i in range(len(var_pats)):
+                powers[i] = Expression(SymbolPlus, *[c[i] for c in contrib]).evaluate(
+                    evaluation
+                )
+            return powers
+        else:
+            for i, pat in enumerate(var_pats):
+                if match(pf, pat, evaluation):
+                    powers[i] = Integer1
+                    return powers
+        return powers
+
+    def split_coeff_pow(term) -> Tuple[Optional[list], Optional[list]]:
+        """
+        This function factorizes term in a coefficient free
+        of powers of the target variables, and a factor with
+        that powers.
+        """
+        coeffs = []
+        powers = []
+        # First, split factors on those which are powers of the variables
+        # and the rest.
+        if term.is_free(target_pat, evaluation):
+            coeffs.append(term)
+        elif match(term, target_pat, evaluation):
+            return None, term
+        elif (
+            isinstance(term, Symbol)
+            or term.has_form("Power", 2)
+            or term.has_form("Sqrt", 1)
+        ):
+            powers.append(term)
+        elif term.has_form("Times", None):
+            for factor in term.elements:
+                if factor.is_free(target_pat, evaluation):
+                    coeffs.append(factor)
+                elif match(factor, target_pat, evaluation):
+                    powers.append(factor)
+                elif (
+                    factor.has_form("Power", 2) or factor.has_form("Sqrt", 1)
+                ) and match(factor.elements[0], target_pat, evaluation):
+                    powers.append(factor)
+                else:
+                    coeffs.append(factor)
+        else:
+            coeffs.append(term)
+        # Now, rebuild both factors
+        if len(coeffs) == 0:
+            coeffs = None
+        elif len(coeffs) == 1:
+            coeffs = coeffs[0]
+        else:
+            coeffs = Expression(SymbolTimes, *coeffs)
+        if len(powers) == 0:
+            powers = None
+        elif len(powers) == 1:
+            powers = powers[0]
+        else:
+            powers = Expression(SymbolTimes, *sorted(powers))
+        return coeffs, powers
+
+    # ################  The actual begin ####################
+    expr = expand_polynomial(
+        expr,
+        numer=True,
+        denom=False,
+        deep=False,
+        trig=False,
+        modulus=None,
+        target_pat=target_pat,
+    )
+
+    if expr.is_free(target_pat, evaluation):
+        if filt:
+            expr = Expression(filt, expr).evaluate(evaluation)
+        if form == "expr":
+            return expr
+        else:
+            return [(powers_list(None), expr)]
+    elif (
+        isinstance(expr, Symbol)
+        or match(expr, target_pat, evaluation)
+        or expr.has_form("Power", 2)
+        or expr.has_form("Sqrt", 1)
+    ):
+        coeff = Expression(filt, Integer1).evaluate(evaluation) if filt else Integer1
+        if form == "expr":
+            if coeff is Integer1:
+                return expr
+            else:
+                return Expression(SymbolTimes, coeff, expr)
+        else:
+            if not coeff.is_free(target_pat, evaluation):
+                return []
+            return [(powers_list(expr), coeff)]
+    elif expr.has_form("Times", None):
+        coeff, powers = split_coeff_pow(expr)
+        if coeff is None:
+            coeff = Integer1
+        else:
+            if form != "expr" and not coeff.is_free(target_pat, evaluation):
+                return []
+        if filt:
+            coeff = Expression(filt, coeff).evaluate(evaluation)
+
+        if form == "expr":
+            if powers is None:
+                return coeff
+            else:
+                if coeff is Integer1:
+                    return powers
+                else:
+                    return Expression(SymbolTimes, coeff, powers)
+        else:
+            pl = powers_list(powers)
+            return [(pl, coeff)]
+    elif expr.has_form("Plus", None):
+        coeff_dict = {}
+        powers_dict = {}
+        powers_order = {}
+        for term in expr.elements:
+            coeff, powers = split_coeff_pow(term)
+            if (
+                form != "expr"
+                and coeff is not None
+                and not coeff.is_free(target_pat, evaluation)
+            ):
+                return []
+            pl = powers_list(powers)
+            key = str(pl)
+            if key not in powers_dict:
+                if form == "expr":
+                    powers_dict[key] = powers
+                else:
+                    # TODO: check if pl is a monomial...
+                    powers_dict[key] = pl
+                coeff_dict[key] = []
+                powers_order[key] = key_powers(pl)
+
+            coeff_dict[key].append(Integer1 if coeff is None else coeff)
+
+        terms = []
+        for key in sorted(coeff_dict, key=lambda kv: powers_order[kv], reverse=False):
+            val = coeff_dict[key]
+            if len(val) == 0:
+                continue
+            elif len(val) == 1:
+                coeff = val[0]
+            else:
+                coeff = Expression(SymbolPlus, *val)
+            if filt:
+                coeff = Expression(filt, coeff).evaluate(evaluation)
+
+            powerfactor = powers_dict[key]
+            if form == "expr":
+                if powerfactor:
+                    terms.append(Expression(SymbolTimes, coeff, powerfactor))
+                else:
+                    terms.append(coeff)
+            else:
+                terms.append([powerfactor, coeff])
+        if form == "expr":
+            return Expression(SymbolPlus, *terms)
+        else:
+            return terms
+    else:
+        # expr is not a polynomial.
+        if form == "expr":
+            if filt:
+                expr = Expression(filt, expr).evaluate(evaluation)
+            return expr
+        else:
+            return []
+
+
+def eval_Apart(expr: BaseElement, var: Symbol):
     """
     Evaluation routine for:
     Apart[expr_, var_Symbol]
@@ -102,7 +344,9 @@ def eval_Apart(expr, var: Symbol):
         return expr
 
 
-def expand_polynomial(expr, numerator=True, denominator=False, deep=False, **kwargs):
+def expand_polynomial(
+    expr: BaseElement, numerator=True, denominator=False, deep=False, **kwargs
+):
     """expands out products and positive integer powers in expr.  If
     "option pattern" is supplied, we leave unexpanded any parts of expr
     that are free of the pattern patt.
@@ -121,7 +365,7 @@ def expand_polynomial(expr, numerator=True, denominator=False, deep=False, **kwa
 
     trig_expand = kwargs.get("trig", False)
 
-    def expand_polynomial_inner(expr):
+    def expand_polynomial_inner(expr: BaseElement):
         """Recursive expand_polymomial. We make use of closure
         variables trig_expand, target_pat, numerator, and denominator
         below without having to pass these explicitly as parameters.
