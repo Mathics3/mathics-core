@@ -19,6 +19,8 @@ Symbols exist.
 import re
 from typing import Iterable, Optional
 
+from mathics_scanner.characters import NAMED_CHARACTERS
+
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
@@ -42,7 +44,6 @@ from mathics.core.convert.op import (
     UNICODE_TO_AMSLATEX,
     UNICODE_TO_LATEX,
     get_latex_operator,
-    named_characters,
 )
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import (
@@ -92,8 +93,8 @@ BRACKET_INFO = {
         "latex_closing_large": r"\right]",
     },
     (  # BracketingBar[] operator without built-in meaning
-        String(named_characters["LeftDoubleBracket"]),
-        String(named_characters["RightDoubleBracket"]),
+        String(NAMED_CHARACTERS["LeftDoubleBracket"]),
+        String(NAMED_CHARACTERS["RightDoubleBracket"]),
     ): {
         "latex_open": r"[[",
         "latex_closing": "]]",
@@ -101,8 +102,8 @@ BRACKET_INFO = {
         "latex_closing_large": r"\right]\right]",
     },
     (  # AngleBracket[] operator without built-in meaning
-        String(named_characters["LeftAngleBracket"]),
-        String(named_characters["RightAngleBracket"]),
+        String(NAMED_CHARACTERS["LeftAngleBracket"]),
+        String(NAMED_CHARACTERS["RightAngleBracket"]),
     ): {
         "latex_open": "\\langle",
         "latex_closing": "\\rangle",
@@ -110,8 +111,8 @@ BRACKET_INFO = {
         "latex_closing_large": r"\right\rangle ",
     },
     (  # DoubleBracketingBar[] operator without built-in meaning
-        String(named_characters["LeftDoubleBracketingBar"]),
-        String(named_characters["RightDoubleBracketingBar"]),
+        String(NAMED_CHARACTERS["LeftDoubleBracketingBar"]),
+        String(NAMED_CHARACTERS["RightDoubleBracketingBar"]),
     ): {
         "latex_open": r"\|",
         "latex_closing": r"\|",
@@ -744,9 +745,9 @@ def superscriptbox(box: SuperscriptBox, **options):
 
     sup_string = box.superindex.get_string_value()
     # Handle derivatives
-    if sup_string == named_characters["Prime"]:
+    if sup_string == NAMED_CHARACTERS["Prime"]:
         return "%s'" % tex1
-    if sup_string == named_characters["Prime"] * 2:
+    if sup_string == NAMED_CHARACTERS["Prime"] * 2:
         return "%s''" % tex1
     base = box.tex_block(tex1, True)
     superidx_to_tex = lookup_conversion_method(box.superindex, "latex")

@@ -1,45 +1,33 @@
 """
-Conversions from the ASCII representation of Mathics operators to their Unicode equivalent
+Conversions from the ASCII representation of Mathics3 operators to their Unicode equivalent
 """
 
 import logging
-import os.path as osp
 from functools import lru_cache
 
-from mathics.settings import ROOT_DIR
+from mathics_scanner.characters import (
+    NAME_TO_WL_UNICODE,
+    NAMED_CHARACTERS,
+    NAMED_CHARACTERS_COLLECTION,
+)
 
-try:
-    import ujson
-except ImportError:
-    import json as ujson  # type: ignore[no-redef]
-
-
-# Load the conversion tables from disk
-characters_path = osp.join(ROOT_DIR, "data", "named-characters.json")
-assert osp.exists(
-    characters_path
-), f"ASCII operator to Unicode tables are missing from {characters_path}"
-with open(characters_path, "r") as f:
-    OPERATOR_CONVERSION_TABLES = ujson.load(f)
-
-ascii_operator_to_symbol = OPERATOR_CONVERSION_TABLES["ascii-operator-to-symbol"]
-builtin_constants = OPERATOR_CONVERSION_TABLES["builtin-constants"]
-named_characters = OPERATOR_CONVERSION_TABLES["named-characters"]
-operator_to_unicode = OPERATOR_CONVERSION_TABLES["operator-to-unicode"]
-operator_to_ascii = OPERATOR_CONVERSION_TABLES["operator-to-ascii"]
+ascii_operator_to_symbol = NAMED_CHARACTERS_COLLECTION["ascii-operator-to-symbol"]
+builtin_constants = NAMED_CHARACTERS_COLLECTION["builtin-constants"]
+operator_to_unicode = NAMED_CHARACTERS_COLLECTION["operator-to-unicode"]
+operator_to_ascii = NAMED_CHARACTERS_COLLECTION["operator-to-ascii"]
 unicode_operator_to_ascii = {
     val: operator_to_ascii[key] for key, val in operator_to_unicode.items()
 }
 
-UNICODE_TO_AMSLATEX = OPERATOR_CONVERSION_TABLES.get("unicode-to-amslatex", {})
-UNICODE_TO_LATEX = OPERATOR_CONVERSION_TABLES.get("unicode-to-latex", {})
+UNICODE_TO_AMSLATEX = NAMED_CHARACTERS_COLLECTION.get("unicode-to-amslatex", {})
+UNICODE_TO_LATEX = NAMED_CHARACTERS_COLLECTION.get("unicode-to-latex", {})
 
 
 AMSTEX_OPERATORS = {
-    named_characters["Prime"]: "'",
-    named_characters["Prime"] * 2: "''",
-    named_characters["InvisibleTimes"]: " ",
-    named_characters["Infinity"]: r"\infty ",
+    NAMED_CHARACTERS["Prime"]: "'",
+    NAMED_CHARACTERS["Prime"] * 2: "''",
+    NAMED_CHARACTERS["InvisibleTimes"]: " ",
+    NAMED_CHARACTERS["Infinity"]: r"\infty ",
     operator_to_unicode["Times"]: r"\times ",
     "(": r"\left(",
     "[": r"\left[",
@@ -47,16 +35,16 @@ AMSTEX_OPERATORS = {
     ")": r"\right)",
     "]": r"\right]",
     "}": r"\right\}",
-    named_characters["LeftDoubleBracket"]: r"\left[\left[",
-    named_characters["RightDoubleBracket"]: r"\right]\right]",
+    NAMED_CHARACTERS["LeftDoubleBracket"]: r"\left[\left[",
+    NAMED_CHARACTERS["RightDoubleBracket"]: r"\right]\right]",
     ",": ",",
     ", ": ", ",
-    named_characters["Integral"]: r"\int",
+    NAMED_CHARACTERS["Integral"]: r"\int",
     "\u2146": r"\, d",
-    "\uf74c": r"\, d",
-    named_characters["DifferentialD"]: r"\, d",
-    named_characters["Sum"]: r"\sum",
-    named_characters["Product"]: r"\prod",
+    NAME_TO_WL_UNICODE["DifferentialD"]: r"\, d",
+    NAMED_CHARACTERS["DifferentialD"]: r"\, d",
+    NAMED_CHARACTERS["Sum"]: r"\sum",
+    NAMED_CHARACTERS["Product"]: r"\prod",
 }
 
 
@@ -76,11 +64,11 @@ def ascii_op_to_unicode(ascii_op: str, encoding: str) -> str:
     If we can't come up with a unicode equivalent, just return "ascii_op".
     """
     if encoding in ("UTF-8", "utf-8", "Unicode"):
-        return OPERATOR_CONVERSION_TABLES["ascii-operator-to-unicode"].get(
+        return NAMED_CHARACTERS_COLLECTION["ascii-operator-to-unicode"].get(
             ascii_op, ascii_op
         )
     if encoding in ("WMA",):
-        return OPERATOR_CONVERSION_TABLES["ascii-operator-to-wl-unicode"].get(
+        return NAMED_CHARACTERS_COLLECTION["ascii-operator-to-wl-unicode"].get(
             ascii_op, ascii_op
         )
     return ascii_op

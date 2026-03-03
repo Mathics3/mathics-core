@@ -31,6 +31,7 @@ produces
 import base64
 from typing import Any, Dict
 
+from mathics_scanner.characters import NAMED_CHARACTERS
 from mathics_scanner.tokeniser import is_symbol_name
 
 from mathics.builtin.box.graphics import GraphicsBox
@@ -50,7 +51,7 @@ from mathics.builtin.box.layout import (
     TagBox,
 )
 from mathics.core.atoms import String
-from mathics.core.convert.op import named_characters, operator_to_unicode
+from mathics.core.convert.op import operator_to_unicode
 from mathics.core.element import BaseElement, BoxElementMixin
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import (
@@ -82,15 +83,15 @@ extra_operators = {
     "]",
     "{",
     "}",
-    named_characters["LeftDoubleBracket"],
-    named_characters["RightDoubleBracket"],
+    NAMED_CHARACTERS["LeftDoubleBracket"],
+    NAMED_CHARACTERS["RightDoubleBracket"],
     operator_to_unicode["Times"],
-    named_characters["Prime"],
-    named_characters["Prime"] * 2,
+    NAMED_CHARACTERS["Prime"],
+    NAMED_CHARACTERS["Prime"] * 2,
     " ",
-    named_characters["InvisibleTimes"],
-    named_characters["Integral"],
-    named_characters["DifferentialD"],
+    NAMED_CHARACTERS["InvisibleTimes"],
+    NAMED_CHARACTERS["Integral"],
+    NAMED_CHARACTERS["DifferentialD"],
 }
 
 
@@ -381,7 +382,7 @@ def string(s: String, **options) -> str:
             # Mathics-Django:
             if text == "":
                 return ""
-            if text == named_characters["InvisibleTimes"]:
+            if text == NAMED_CHARACTERS["InvisibleTimes"]:
                 return render(
                     '<mo form="prefix" lspace="0" rspace="0.2em">%s</mo>', text
                 )
