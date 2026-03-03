@@ -9,6 +9,8 @@ patterns of criteria.
 
 from itertools import chain
 
+from mathics_scanner.characters import NAME_TO_WL_UNICODE
+
 from mathics.builtin.box.layout import RowBox
 from mathics.core.atoms import (
     ByteArray,
@@ -1172,9 +1174,11 @@ class Part(Builtin):
 
         i = i.get_sequence()
         list = Expression(SymbolMakeBoxes, list, f).evaluate(evaluation)
-        # FIXME: pick up values LeftDoubleBracket and RightDoubleBracket from named-characters.yaml
-        open, close = "\u301a", "\u301b"
-        indices = list_boxes(i, f, evaluation, open, close)
+        open_bracket, close_bracket = (
+            NAME_TO_WL_UNICODE["LeftDoubleBracket"],
+            NAME_TO_WL_UNICODE["RightDoubleBracket"],
+        )
+        indices = list_boxes(i, f, evaluation, open_bracket, close_bracket)
         result = RowBox(list, *indices)
         return result
 
