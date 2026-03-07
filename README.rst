@@ -6,7 +6,7 @@ Welcome to Mathics3 Core!
 |Packaging status|
 
 
-Mathics3 is a general-purpose computer algebra system (CAS).
+Mathics3 is an open-source Mathematica, a general-purpose CAS (Computer Algebra System).
 
 However, this repository contains just the Mathics3 Kernel: Python
 modules for WL Built-in functions, variables, core primitives,
