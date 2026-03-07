@@ -109,6 +109,7 @@ System`Apart
 System`Append
 System`AppendTo
 System`Apply
+System`ArcBox
 System`ArcCos
 System`ArcCosh
 System`ArcCot
@@ -486,6 +487,7 @@ System`Fold
 System`FoldList
 System`FontColor
 System`For
+System`FormBox
 System`Format
 System`FormatType
 System`FormatValues
@@ -892,6 +894,7 @@ System`Pane
 System`PaneBox
 System`ParametricPlot
 System`ParentDirectory
+System`ParentForm
 System`Part
 System`Partition
 System`PartitionsP
@@ -1062,6 +1065,7 @@ System`RotateLeft
 System`RotateRight
 System`RotationTransform
 System`Round
+System`RoundBox
 System`RoundImplies
 System`Row
 System`RowBox
