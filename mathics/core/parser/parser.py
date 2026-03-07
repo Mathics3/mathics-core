@@ -89,7 +89,7 @@ class Parser:
         self.halt_tags = set(
             [
                 "END",
-                "RawRightAssociation",
+                "BarGreater",
                 "CloseCurly",
                 "CloseParen",
                 "RawComma",
@@ -633,7 +633,7 @@ class Parser:
                 self.tokeniser.feeder.message("Syntax", "com")
                 result.append(NullSymbol)
                 self.consume()
-            elif tag in ("CloseCurly", "RawRightAssociation", "RawRightBracket"):
+            elif tag in ("CloseCurly", "BarGreater", "RawRightBracket"):
                 if result:
                     self.tokeniser.feeder.message("Syntax", "com")
                     result.append(NullSymbol)
@@ -645,7 +645,7 @@ class Parser:
                 if tag == "RawComma":
                     self.consume()
                     continue
-                elif tag in ("CloseCurly", "RawRightAssociation", "RawRightBracket"):
+                elif tag in ("CloseCurly", "BarGreater", "RawRightBracket"):
                     break
         return result
 
@@ -1202,6 +1202,14 @@ class Parser:
         result.parenthesised = True
         return result
 
+    def p_LessBar(self, token: Token) -> Node:
+        self.consume()
+        self.bracket_depth += 1
+        seq = self.parse_seq()
+        self.expect("BarGreater")
+        self.bracket_depth -= 1
+        return Node("Association", *seq)
+
     @track_token_location
     def p_Minus(self, _: Token) -> Optional[Node]:
         """
@@ -1388,14 +1396,6 @@ class Parser:
         self.consume()
         operator_precedence = operator_precedences["UnaryPlusMinus"]
         return Node("PlusMinus", self.parse_expr(operator_precedence))
-
-    def p_RawLeftAssociation(self, token: Token) -> Node:
-        self.consume()
-        self.bracket_depth += 1
-        seq = self.parse_seq()
-        self.expect("RawRightAssociation")
-        self.bracket_depth -= 1
-        return Node("Association", *seq)
 
     def p_Slot(self, token: Token) -> Node:
         self.consume()
