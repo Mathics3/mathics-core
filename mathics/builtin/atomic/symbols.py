@@ -508,7 +508,7 @@ class Information(PrefixOperator):
             return self.build_list_of_matching_symbols(
                 string_str, evaluation, options, grid
             )
-        return self.eval_information_symbol(
+        return self.format_information_symbol(
             Symbol(definitions.lookup_name(string_str)), evaluation, options
         )
 

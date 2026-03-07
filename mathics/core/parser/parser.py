@@ -1151,8 +1151,19 @@ class Parser:
     def p_Information(self, _: Token) -> Node:
         self.consume()
         q = prefix_operators["Information"]
+
+        # This is not completely right:
+        # this token should consume any alphanumeric character
+        # sequence which could match with a symbol, but also character-like,
+        # spaces, `@`, `$` or `*`.
+        #
+        # See issue #1713
+
         child = self.parse_expr(q)
-        if child.__class__ is not Symbol:
+        # If child matched with a symbol name, convert it into a string:
+        if child.__class__ is Symbol:
+            child = String(value=child.value, location=child.location)
+        if child.__class__ is not String:
             return Node("Missing", String("UnknownSymbol"), child)
         return Node(
             "Information", child, Node("Rule", Symbol("LongForm"), Symbol("True"))
