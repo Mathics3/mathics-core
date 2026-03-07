@@ -90,9 +90,9 @@ class Parser:
             [
                 "END",
                 "RawRightAssociation",
+                "CloseCurly",
                 "CloseParen",
                 "RawComma",
-                "RawRightBrace",
                 "RawRightBracket",
                 "RawColon",
                 "DifferentialD",
@@ -633,7 +633,7 @@ class Parser:
                 self.tokeniser.feeder.message("Syntax", "com")
                 result.append(NullSymbol)
                 self.consume()
-            elif tag in ("RawRightAssociation", "RawRightBrace", "RawRightBracket"):
+            elif tag in ("CloseCurly", "RawRightAssociation", "RawRightBracket"):
                 if result:
                     self.tokeniser.feeder.message("Syntax", "com")
                     result.append(NullSymbol)
@@ -645,7 +645,7 @@ class Parser:
                 if tag == "RawComma":
                     self.consume()
                     continue
-                elif tag in ("RawRightAssociation", "RawRightBrace", "RawRightBracket"):
+                elif tag in ("CloseCurly", "RawRightAssociation", "RawRightBracket"):
                     break
         return result
 
@@ -1295,6 +1295,24 @@ class Parser:
         self.consume()
         return result
 
+    def p_OpenCurly(self, token: Token) -> Node:
+        self.consume()
+        self.bracket_depth += 1
+        seq = self.parse_seq()
+        self.expect("CloseCurly")
+        self.bracket_depth -= 1
+        return Node("List", *seq)
+
+    def p_OpenParen(self, token: Token) -> Node:
+        self.consume()
+        self.bracket_depth += 1
+        result = self.parse_expr(NEVER_ADD_PARENTHESIS)
+        self.expect("CloseParen")
+        self.bracket_depth -= 1
+        assert result is not None
+        result.parenthesised = True
+        return result
+
     def p_Out(self, token: Token) -> Node:
         self.consume()
         text = token.text
@@ -1378,24 +1396,6 @@ class Parser:
         self.expect("RawRightAssociation")
         self.bracket_depth -= 1
         return Node("Association", *seq)
-
-    def p_RawLeftBrace(self, token: Token) -> Node:
-        self.consume()
-        self.bracket_depth += 1
-        seq = self.parse_seq()
-        self.expect("RawRightBrace")
-        self.bracket_depth -= 1
-        return Node("List", *seq)
-
-    def p_OpenParen(self, token: Token) -> Node:
-        self.consume()
-        self.bracket_depth += 1
-        result = self.parse_expr(NEVER_ADD_PARENTHESIS)
-        self.expect("CloseParen")
-        self.bracket_depth -= 1
-        assert result is not None
-        result.parenthesised = True
-        return result
 
     def p_Slot(self, token: Token) -> Node:
         self.consume()
