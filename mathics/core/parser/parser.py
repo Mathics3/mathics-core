@@ -90,7 +90,7 @@ class Parser:
             [
                 "END",
                 "RawRightAssociation",
-                "RawRightParenthesis",
+                "CloseParen",
                 "RawComma",
                 "RawRightBrace",
                 "RawRightBracket",
@@ -1387,11 +1387,11 @@ class Parser:
         self.bracket_depth -= 1
         return Node("List", *seq)
 
-    def p_RawLeftParenthesis(self, token: Token) -> Node:
+    def p_OpenParen(self, token: Token) -> Node:
         self.consume()
         self.bracket_depth += 1
         result = self.parse_expr(NEVER_ADD_PARENTHESIS)
-        self.expect("RawRightParenthesis")
+        self.expect("CloseParen")
         self.bracket_depth -= 1
         assert result is not None
         result.parenthesised = True
