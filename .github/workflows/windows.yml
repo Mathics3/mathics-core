@@ -37,7 +37,7 @@ jobs:
         # We can comment out after next Mathics-Scanner release
         python -m pip install -e "Mathics-Scanner[full] @ git+https://github.com/Mathics3/mathics-scanner"
         pip install -e .
-        git clone --depth 1 -b sync-token-names-with-CodeTokenize https://github.com/Mathics3/mathics-scanner.git
+        git clone --depth 1 https://github.com/Mathics3/mathics-scanner.git
         cd mathics-scanner/
         pip install -e .
         bash -x admin-tools/make-JSON-tables.sh
