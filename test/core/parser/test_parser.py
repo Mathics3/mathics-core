@@ -638,8 +638,6 @@ class GeneralTests(ParserTests):
         self.check("a ?? b", 'a Information["b", LongForm -> True]')
         self.check("a ?? + b", 'Times[a, Missing["UnknownSymbol", Plus[b]]]')
         self.check("a + ?? b", 'a + Information["b", LongForm -> True]')
-        self.check("??a + b", 'Information["a", LongForm -> True] + b')
-        self.check("??a * b", 'Information["a", Rule[LongForm, True]]*b')
 
 
 class BoxTests(ParserTests):

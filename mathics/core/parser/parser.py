@@ -176,6 +176,14 @@ class Parser:
         """
         Parse the single top-level or "start" expression.
         This is called right after doing parse setup.
+
+        In scanning tokens, the scanning mode might get altered on
+        seeing specific tokens inside the tokenizer.
+
+        In particular, in:
+           << symbol
+        the tokenizer in tokenizing "<<" changes the scanning mode for how
+        symbol gets parsed.
         """
         result = []
         while self.next().tag != "END":
@@ -573,11 +581,34 @@ class Parser:
         return result
 
     @track_location
+    def parse_name_pattern(self) -> Token:
+        """Parse a string pattern of the kind found in ?? (Information)
+        and Names[]
+
+        Coming into this, routine we should be in name_pattern mode.
+        """
+
+        assert self.tokeniser.mode == "name-pattern"
+        token = self.next_noend()
+        tag = token.tag
+        self.consume()
+        assert tag == "NamePattern"
+        return token
+
+    @track_location
     def parse_p(self):
         """Parse a "p_"-tagged expression.
         "p_" tags include prefix operators, left-bracketed expressions
         and tokens that can be identified by some prefix, like a number
         or a string.
+
+        In scanning tokens, the scanning mode might get altered on
+        seeing specific tokens inside the tokenizer.
+
+        In particular, in:
+           ?? symbol
+        the tokenizer in tokenizing "??" changes the scanning mode for how
+        symbol gets parsed.
         """
         token = self.next_noend()
         tag = token.tag
@@ -1148,9 +1179,8 @@ class Parser:
         q = prefix_operators["PreIncrement"]
         return Node("PreIncrement", self.parse_expr(q))
 
-    def p_Information(self, _: Token) -> Node:
+    def p_Information(self, token: Token) -> Node:
         self.consume()
-        q = prefix_operators["Information"]
 
         # This is not completely right:
         # this token should consume any alphanumeric character
@@ -1159,14 +1189,21 @@ class Parser:
         #
         # See issue #1713
 
-        child = self.parse_expr(q)
-        # If child matched with a symbol name, convert it into a string:
-        if child.__class__ is Symbol:
-            child = String(value=child.value, location=child.location)
-        if child.__class__ is not String:
-            return Node("Missing", String("UnknownSymbol"), child)
+        pattern_token = self.parse_name_pattern()
+        assert pattern_token.tag == "NamePattern"
+
+        pattern_str = pattern_token.text
+        if pattern_str.startswith('"'):
+            if len(pattern_str) > 2 and pattern_str.value.endswith('"'):
+                pattern_str = pattern_str[1:-1]
+            else:
+                return Node("Missing", String("UnknownSymbol"), pattern_token)
+
+        pattern_arg = String(value=pattern_str, location=pattern_token.pos)
         return Node(
-            "Information", child, Node("Rule", Symbol("LongForm"), Symbol("True"))
+            "Information",
+            pattern_arg,
+            Node("Rule", Symbol("LongForm"), Symbol("True")),
         )
 
     def p_Integral(self, _: Token) -> Node:
