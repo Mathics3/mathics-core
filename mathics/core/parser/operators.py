@@ -9,24 +9,9 @@ Mathics3 parser.
 """
 
 
-import os.path as osp
 from collections import defaultdict
 
-from mathics.settings import ROOT_DIR
-
-try:
-    import ujson
-except ImportError:
-    import json as ujson  # type: ignore[no-redef]
-
-# Load Mathics3 operator information from JSON. This file is derived from a
-# Mathics3 Operator Data YAML file in MathicsScanner.
-operator_tables_path = osp.join(ROOT_DIR, "data", "operators.json")
-assert osp.exists(
-    operator_tables_path
-), f"Internal error: Mathics3 Operator information are missing; expected to be in {operator_tables_path}"
-with open(operator_tables_path, "r") as f:
-    OPERATOR_DATA = ujson.load(f)
+from mathics_scanner.characters import OPERATOR_DATA
 
 box_operators = OPERATOR_DATA["box-operators"]
 flat_binary_operators = OPERATOR_DATA["flat-binary-operators"]
