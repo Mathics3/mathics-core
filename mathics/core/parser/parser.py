@@ -1182,13 +1182,6 @@ class Parser:
     def p_Information(self, token: Token) -> Node:
         self.consume()
 
-        # This is not completely right:
-        # this token should consume any alphanumeric character
-        # sequence which could match with a symbol, but also character-like,
-        # spaces, `@`, `$` or `*`.
-        #
-        # See issue #1713
-
         pattern_token = self.parse_name_pattern()
         assert pattern_token.tag == "NamePattern"
 
