@@ -592,6 +592,7 @@ class Parser:
         token = self.next_noend()
         tag = token.tag
         self.consume()
+        self.tokeniser._change_token_scanning_mode("expr")
         assert tag == "NamePattern"
         return token
 
