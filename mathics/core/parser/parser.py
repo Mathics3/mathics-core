@@ -618,14 +618,6 @@ class Parser:
         "p_" tags include prefix operators, left-bracketed expressions
         and tokens that can be identified by some prefix, like a number
         or a string.
-
-        In scanning tokens, the scanning mode might get altered on
-        seeing specific tokens inside the tokenizer.
-
-        In particular, in:
-           ?? symbol
-        the tokenizer in tokenizing "??" changes the scanning mode for how
-        symbol gets parsed.
         """
         token = self.next_noend()
         tag = token.tag
