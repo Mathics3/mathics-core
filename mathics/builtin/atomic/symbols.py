@@ -651,6 +651,8 @@ class Symbol_(Builtin):
     """
 
     attributes = A_LOCKED | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
 
     messages = {
         "symname": (
@@ -688,6 +690,8 @@ class SymbolName(Builtin):
      = "x"
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
     summary_text = "give the name of a symbol as a string"
 
     def eval(self, symbol, evaluation):
@@ -701,7 +705,7 @@ class SymbolName(Builtin):
 class SymbolQ(Test):
     """
     <url>:WMA link:
-      https://reference.wolfram.com/language/ref/SymbolName.html</url>
+      https://resources.wolframcloud.com/FunctionRepository/resources/SymbolQ</url>
     <dl>
       <dt>'SymbolQ'[$x$]
       <dd>is 'True' if $x$ is a symbol, or 'False' otherwise.
@@ -738,6 +742,8 @@ class ValueQ(Builtin):
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
     summary_text = "test whether a symbol can be considered to have a value"
 
     def eval(self, expr, evaluation):
