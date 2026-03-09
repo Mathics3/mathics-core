@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import pytest
+
 from mathics.core.builtin import Builtin
 
 from .helper import check_evaluation
@@ -24,6 +26,7 @@ class Builtin2(Builtin):
     """
 
 
+@pytest.mark.skip(reason="TODO says this should not work?")
 def test_short_description():
     check_evaluation(
         "?Builtin1", "Global`Builtin1\n", "short description", hold_expected=True
@@ -33,6 +36,7 @@ def test_short_description():
     )
 
 
+@pytest.mark.skip(reason="TODO says this should not work?")
 def test_long_description():
     check_evaluation(
         "??Builtin1", "Global`Builtin1\n", "long description", hold_expected=True

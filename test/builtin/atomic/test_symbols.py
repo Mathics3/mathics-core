@@ -69,3 +69,34 @@ def test_symbol(str_expr, warnings, str_expected, fail_msg):
         expected_messages=warnings,
         hold_expected=True,
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "fail_msg"),
+    [
+        (
+            "Symbol[]",
+            ["Symbol called with 0 arguments; 1 argument is expected."],
+            "Symbol argument number error",
+        ),
+        (
+            "SymbolName[]",
+            ["SymbolName called with 0 arguments; 1 argument is expected."],
+            "SymbolName[] argument number error",
+        ),
+        (
+            "ValueQ[]",
+            ["ValueQ called with 0 arguments; 1 argument is expected."],
+            "ValueQ[] argument number error",
+        ),
+    ],
+)
+def test_symbols_arg_errors(str_expr, msgs, fail_msg):
+    """ """
+
+    check_evaluation(
+        str_expr,
+        str_expr,
+        failure_message=fail_msg,
+        expected_messages=msgs,
+    )

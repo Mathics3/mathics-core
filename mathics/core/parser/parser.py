@@ -176,6 +176,14 @@ class Parser:
         """
         Parse the single top-level or "start" expression.
         This is called right after doing parse setup.
+
+        In scanning tokens, the scanning mode might get altered on
+        seeing specific tokens inside the tokenizer.
+
+        In particular, in:
+           << symbol
+        the tokenizer in tokenizing "<<" changes the scanning mode for how
+        symbol gets parsed.
         """
         result = []
         while self.next().tag != "END":
@@ -571,6 +579,38 @@ class Parser:
             else:
                 result = new_result
         return result
+
+    def parse_information_common(self, token: Token, want_long_form: bool) -> Node:
+        self.consume()
+
+        pattern_token = self.parse_name_pattern()
+        assert pattern_token.tag == "NamePattern"
+
+        pattern_str = pattern_token.text
+        if pattern_str.startswith('"'):
+            if len(pattern_str) > 2 and pattern_str.value.endswith('"'):
+                pattern_str = pattern_str[1:-1]
+            else:
+                return Node("Missing", String("UnknownSymbol"), pattern_token)
+
+        pattern_arg = String(value=pattern_str, location=pattern_token.pos)
+        long_form = Symbol("True" if want_long_form else "False")
+        return Node(
+            "Information",
+            pattern_arg,
+            Node("Rule", Symbol("LongForm"), long_form),
+        )
+
+    @track_location
+    def parse_name_pattern(self) -> Token:
+        """Parse a string pattern of the kind found in Information
+        LongForm->True, (??) or LongForm->False (?).
+        """
+        self.tokeniser.change_token_scanning_mode("name-pattern")
+        token = self.next_noend()
+        self.consume()
+        self.tokeniser.change_token_scanning_mode("expr")
+        return token
 
     @track_location
     def parse_p(self):
@@ -1148,27 +1188,6 @@ class Parser:
         q = prefix_operators["PreIncrement"]
         return Node("PreIncrement", self.parse_expr(q))
 
-    def p_Information(self, _: Token) -> Node:
-        self.consume()
-        q = prefix_operators["Information"]
-
-        # This is not completely right:
-        # this token should consume any alphanumeric character
-        # sequence which could match with a symbol, but also character-like,
-        # spaces, `@`, `$` or `*`.
-        #
-        # See issue #1713
-
-        child = self.parse_expr(q)
-        # If child matched with a symbol name, convert it into a string:
-        if child.__class__ is Symbol:
-            child = String(value=child.value, location=child.location)
-        if child.__class__ is not String:
-            return Node("Missing", String("UnknownSymbol"), child)
-        return Node(
-            "Information", child, Node("Rule", Symbol("LongForm"), Symbol("True"))
-        )
-
     def p_Integral(self, _: Token) -> Node:
         self.consume()
         inner_prec, outer_prec = all_operators["Sum"] + 1, all_operators["Power"] - 1
@@ -1373,12 +1392,14 @@ class Parser:
             return blank
 
     def p_PatternTest(self, token: Token) -> Node:
-        self.consume()
-        q = prefix_operators["Definition"]
-        child = self.parse_expr(q)
-        return Node(
-            "Information", child, Node("Rule", Symbol("LongForm"), Symbol("False"))
-        )
+        """Called when parsing *unary* postfix "?". In other words,
+        despite the name, this is called for:
+           Information[xxx, LongForm->False).
+
+        binary_expr(), which uses precendence tables, handles binary "?"
+        or PatternTest[].
+        """
+        return self.parse_information_common(token, False)
 
     @track_token_location
     def p_Plus(self, _: Token):
@@ -1407,6 +1428,9 @@ class Parser:
         self.consume()
         operator_precedence = operator_precedences["UnaryPlusMinus"]
         return Node("PlusMinus", self.parse_expr(operator_precedence))
+
+    def p_QuestionQuestion(self, token: Token) -> Node:
+        return self.parse_information_common(token, True)
 
     def p_Slot(self, token: Token) -> Node:
         self.consume()

@@ -109,7 +109,7 @@ else:
 
 class build_py(setuptools_build_py):
     def run(self):
-        for table_type in ("boxing-character", "named-character", "operator"):
+        for table_type in ("boxing-character",):
             json_data_file = osp.join("data", f"{table_type}.json")
             json_path = osp.join("mathics-scanner", json_data_file)
             if not osp.exists(json_path):

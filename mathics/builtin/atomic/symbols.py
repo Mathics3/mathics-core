@@ -8,7 +8,7 @@ or namespace, and can have a variety of type of values and attributes.
 import re
 from typing import Callable, List, Optional
 
-from mathics_scanner.tokeniser import is_symbol_name
+from mathics_scanner.tokeniser import NAMES_WILDCARDS, is_symbol_name
 
 from mathics.core.assignment import get_symbol_values
 from mathics.core.atoms import Integer1, String
@@ -466,6 +466,10 @@ class Information(PrefixOperator):
         """Return a list of symbols compatible with symbol_pat"""
         definitions = evaluation.definitions
         names = definitions.get_matching_names(symbol_pat)
+        if len(names) == 1:
+            return self.format_information_symbol(
+                Symbol(definitions.lookup_name(names[0])), evaluation, options
+            )
         rows = []
         curr_row = []
         for name in names:
@@ -504,7 +508,7 @@ class Information(PrefixOperator):
         definitions = evaluation.definitions
         string_str = strpat.value
 
-        if "*" in string_str:
+        if any(char in string_str for char in NAMES_WILDCARDS):
             return self.build_list_of_matching_symbols(
                 string_str, evaluation, options, grid
             )
@@ -647,6 +651,8 @@ class Symbol_(Builtin):
     """
 
     attributes = A_LOCKED | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
 
     messages = {
         "symname": (
@@ -684,6 +690,8 @@ class SymbolName(Builtin):
      = "x"
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
     summary_text = "give the name of a symbol as a string"
 
     def eval(self, symbol, evaluation):
@@ -697,7 +705,7 @@ class SymbolName(Builtin):
 class SymbolQ(Test):
     """
     <url>:WMA link:
-      https://reference.wolfram.com/language/ref/SymbolName.html</url>
+      https://resources.wolframcloud.com/FunctionRepository/resources/SymbolQ</url>
     <dl>
       <dt>'SymbolQ'[$x$]
       <dd>is 'True' if $x$ is a symbol, or 'False' otherwise.
@@ -734,6 +742,8 @@ class ValueQ(Builtin):
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
     summary_text = "test whether a symbol can be considered to have a value"
 
     def eval(self, expr, evaluation):
