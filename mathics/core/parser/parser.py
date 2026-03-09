@@ -606,10 +606,10 @@ class Parser:
         """Parse a string pattern of the kind found in Information
         LongForm->True, (??) or LongForm->False (?).
         """
-        self.tokeniser._change_token_scanning_mode("name-pattern")
+        self.tokeniser.change_token_scanning_mode("name-pattern")
         token = self.next_noend()
         self.consume()
-        self.tokeniser._change_token_scanning_mode("expr")
+        self.tokeniser.change_token_scanning_mode("expr")
         return token
 
     @track_location
@@ -1404,7 +1404,7 @@ class Parser:
         despite the name, this is called for:
            Information[xxx, LongForm->False).
 
-        binary_expr() which uses precendence tables handles binary "?"
+        binary_expr(), which uses precendence tables, handles binary "?"
         or PatternTest[].
         """
         return self.parse_information_common(token, False)
