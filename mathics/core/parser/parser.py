@@ -603,18 +603,13 @@ class Parser:
 
     @track_location
     def parse_name_pattern(self) -> Token:
-        """Parse a string pattern of the kind found in ?? (Information)
-        and Names[]
-
-        Coming into this, routine we should be in name_pattern mode.
+        """Parse a string pattern of the kind found in Information
+        LongForm->True, (??) or LongForm->False (?).
         """
-
-        assert self.tokeniser.mode == "name-pattern"
+        self.tokeniser._change_token_scanning_mode("name-pattern")
         token = self.next_noend()
-        tag = token.tag
         self.consume()
         self.tokeniser._change_token_scanning_mode("expr")
-        assert tag == "NamePattern"
         return token
 
     @track_location
@@ -1405,12 +1400,14 @@ class Parser:
             return blank
 
     def p_PatternTest(self, token: Token) -> Node:
-        self.consume()
-        q = prefix_operators["Definition"]
-        child = self.parse_expr(q)
-        return Node(
-            "Information", child, Node("Rule", Symbol("LongForm"), Symbol("False"))
-        )
+        """Called when parsing *unary* postfix "?". In other words,
+        despite the name, this is called for:
+           Information[xxx, LongForm->False).
+
+        binary_expr() which uses precendence tables handles binary "?"
+        or PatternTest[].
+        """
+        return self.parse_information_common(token, False)
 
     @track_token_location
     def p_Plus(self, _: Token):
