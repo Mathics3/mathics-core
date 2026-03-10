@@ -24,6 +24,40 @@ vec-contourplot-two-equations:
 vec-contourplot-one-equation-two-branches:
     expr: ContourPlot[{a b + Sqrt[a^2 + b^2] == a+b}, {a,-10,10}, {b,-10,10}]
 #
+# ContourPlot3D
+#
+vec-contourplot3d-sphere:
+    expr: '
+        ContourPlot3D[
+            x^2 + y^2 == 1 - z^2,
+            {x,-1.5,1.5}, {y,-1.5,1.5}, {z,-1.5,1.5}
+        ]
+    '
+vec-contourplot3d-sphere-multi:
+    expr: '
+        ContourPlot3D[
+            x^2 + y^2 + z^2,
+            {x,-1.5,0.5}, {y,-1.5,1.5}, {z,-1.5,1.5},
+            PlotRange->{{-1.5,1.5},Automatic,Automatic},
+            Contours->10
+        ]
+    '
+vec-contourplot3d-hyperboloids:
+    expr: '
+        ContourPlot3D[
+            x^2 + y^2 - z^2,
+            {x,-1,1}, {y,-1,1}, {z,-1,1}
+        ]
+    '
+vec-contourplot3d-mesh:
+    expr: '
+        ContourPlot3D[
+            x^2 + y^2 + z^2 == 1,
+            {x,-1,1}, {y,-1,1}, {z,-1,1},
+            PlotPoints->20, Mesh->Full
+        ]
+    '
+#
 # ComplexPlot
 #
 vec-complexplot-poles-zeros:
@@ -156,6 +190,19 @@ vec-plot3d-stack:
 #
 vec-polarplot-theataxxx-8:
     expr: PolarPlot[1+0.5 Cos[3 θ],{θ,0,2 Pi}]
+#
+# SphericalPlot3D
+#
+vec-sphericalplot3d-harmonics:
+    expr: SphericalPlot3D[1 + 0.4 Abs[SphericalHarmonicY[10, 4, θ, φ]], θ, φ]
+vec-sphericalplot3d-spiral:
+    expr: SphericalPlot3D[1 + 0.3 Sin[6 θ + 4 φ], {θ, 0, Pi}, {φ, 0, 2 Pi},  Mesh -> None]
+vec-sphericalplot3d-orbital:
+    expr: SphericalPlot3D[1 + 2 Cos[2 θ], θ, φ, BoxRatios->{1,1,1.5}, ViewPoint->{10,-20,5}]
+vec-sphericalplot3d-shells:
+    expr: SphericalPlot3D[{3, 2, 1}, {θ, 0,  π}, {φ, 0, 3π/2}]
+vec-sphericalplot3d-onion:
+    expr: SphericalPlot3D[1 + Sin[5φ] / 5, {θ, π/2, π}, φ, PlotRange->{Automatic,Automatic,{-1.2,1}}, Mesh->{10,20}]
 #
 # Following is a curated subset of doc_tests.yaml that have vectorized implementation.
 # Culled to remove repetitive tests.

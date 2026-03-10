@@ -34,6 +34,7 @@ class _Plot3D(Builtin):
     # Check for correct number of args
     eval_error = Builtin.generic_argument_error
     expected_args = 3
+    is_cartesian = True
 
     messages = {
         "invmaxrec": (
@@ -104,11 +105,13 @@ class _Plot3D(Builtin):
         except ValueError:
             return None
 
-        # supply default value
+        # supply default value for PlotPoints
         if plot_options.plot_points is None:
             if isinstance(self, ParametricPlot3D) and len(plot_options.ranges) == 1:
                 # ParametricPlot3D with one independent variable generating a curve
                 default_plot_points = (1000,)
+            elif isinstance(self, ContourPlot3D):
+                default_plot_points = (50, 50, 50)
             elif plot.use_vectorized_plot:
                 default_plot_points = (200, 200)
             else:
@@ -127,9 +130,9 @@ class _Plot3D(Builtin):
             return
 
         # now we have a list of length dim
-        # handle Automatic ~ {xmin,xmax} etc.
+        # handle Automatic ~ {xmin,xmax} etc., but only if is_cartesion: the independent variables are x and y
         # TODO: dowstream consumers might be happier if we used data range where applicable
-        if not isinstance(self, ParametricPlot3D):
+        if self.is_cartesian:
             for i, (pr, r) in enumerate(
                 zip(plot_options.plot_range, plot_options.ranges)
             ):
@@ -176,9 +179,10 @@ class ComplexPlot3D(_Plot3D):
      = ...
     """
 
-    graphics_class = Graphics3D
     expected_args = 2
+    graphics_class = Graphics3D
     many_functions = True
+    num_plot_points = 2  # different from number of ranges
     options = _Plot3D.options3d | {"Mesh": "None"}
     summary_text = "plot one or more complex functions as a 3D surface"
 
@@ -212,6 +216,7 @@ class ComplexPlot(_Plot3D):
     expected_args = 2
     graphics_class = Graphics
     many_functions = False
+    num_plot_points = 2  # different from number of ranges
     options = _Plot3D.options2d
     summary_text = "plots a complex function showing phase using colors"
 
@@ -257,6 +262,39 @@ class ContourPlot(_Plot3D):
     # TODO: other options?
     requires = ["skimage"]
     summary_text = "creates a contour plot"
+
+
+class ContourPlot3D(_Plot3D):
+    """
+    <url>:Isosurface: https://en.wikipedia.org/wiki/Isosurface</url> (
+    <url>:WMA link: https://reference.wolfram.com/language/ref/ContourPlot3D.html</url>)
+    <dl>
+      <dt>'ContourPlot3D'[$f(x,y,z)$, {$x$, $x_{min}$, $x_{max}$}, {$y$, $y_{min}$, $y_{max}$, {$y$, $y_{min}$, $y_{max}$}]
+      <dd>creates a three-dimensional contour plot of $f(x,y,z)$ over the specified region on $x$, $y$, and $z$.
+
+          See <url>:Drawing Option and Option Values:
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    </url> for a list of Plot options.
+    </dl>
+
+    >> ContourPlot3D[x ^ 2 + y ^ 2 - z ^ 2, {x, -1, 1}, {y, -1, 1}, {z, -1, 1}]
+     = ContourPlot3D[x ^ 2 + y ^ 2 - z ^ 2, {x, -1, 1}, {y, -1, 1}, {z, -1, 1}]
+
+    Multiple isosurfaces (3d contours) of a second degree equation form conical suraces, hyperboloids in this case.
+    """
+
+    requires = ["skimage"]
+    summary_text = "creates a 3d contour plot"
+    expected_args = 4
+    options = _Plot3D.options3d | {
+        "Contours": "Automatic",
+        "BoxRatios": "{1,1,1}",
+        "Mesh": "None",
+    }
+    # TODO: other options?
+
+    many_functions = False
+    graphics_class = Graphics3D
 
 
 class DensityPlot(_Plot3D):
@@ -322,6 +360,7 @@ class ParametricPlot3D(_Plot3D):
     expected_args = 3
     options = _Plot3D.options3d
 
+    is_cartesian = False
     many_functions = True
     graphics_class = Graphics3D
 
@@ -364,3 +403,44 @@ class Plot3D(_Plot3D):
     many_functions = True
     options = _Plot3D.options3d
     summary_text = "plots 3D surfaces of one or more functions"
+
+
+class SphericalPlot3D(_Plot3D):
+    """
+    <url>:Spherical coordinate system: https://en.wikipedia.org/wiki/Spherical_coordinate_system</url>
+    <url>:WMA link: https://reference.wolfram.com/language/ref/SphericalPlot3D.html</url>
+    <dl>
+      <dt>'SphericalPlot3D'[$r(theta, phi)$, {$theta$, $theta_{min}$, $theta_{max}$}, {$phi$, $phi_{min}$, $phi_{max}$}]
+      <dd>creates a three-dimensional surface at radius $r(theta, phi)$ for spherical angles $theta$ and $phi$ over the specified ranges
+
+      <dt>'SphericalPlot3D'[$r(theta, phi)$, $theta$, $phi$]
+      <dd>creates a three-dimensional surface at radius $r(theta, phi)$ for spherical angles $theta$ and $phi$
+          in the ranges $0 < theta < pi$ and $0 < phi < 2pi$ covering the entire sphere
+
+          See <url>:Drawing Option and Option Values:
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    </url> for a list of Plot options.
+    </dl>
+
+    >> SphericalPlot3D[1 + 0.4 Abs[SphericalHarmonicY[10, 4, theta, phi]], theta, phi]
+     = ...
+
+    Spherical harmonics are the canonical use case for spherical plots.
+
+
+    """
+
+    summary_text = "produce a surface plot functions spherical angles theta and phi"
+    expected_args = 3
+    options = _Plot3D.options3d | {"BoxRatios": "{1,1,1}"}
+
+    is_cartesian = False
+    many_functions = True
+    graphics_class = Graphics3D
+    default_ranges = [[0, np.pi], [0, 2 * np.pi]]
+
+    def apply_function(self, function, names, θ, φ):
+        parms = {names[0]: θ, names[1]: φ}
+        r = function(**parms)
+        x, y, z = r * np.sin(θ) * np.cos(φ), r * np.sin(θ) * np.sin(φ), r * np.cos(θ)
+        return x, y, z
