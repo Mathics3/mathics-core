@@ -137,11 +137,11 @@ class BeginPackage(Builtin):
         "BeginPackage[context_String, needs_List]": """
              Unprotect[System`Private`$ContextPathStack, System`$Packages];
              Begin[context];
-             (*Load the needs*)
-             Needs/@needs;
              System`Private`$ContextPathStack =
                  Append[System`Private`$ContextPathStack, $ContextPath];
              $ContextPath = {context, "System`"};
+             (*Load the needs. Do this after setting $ContextPath.*)
+             Needs/@needs;
              $Packages = If[MemberQ[System`$Packages,$Context],
                             $Packages,
                             System`$Packages=Join[{$Context}, System`$Packages]];
