@@ -132,8 +132,8 @@ class BeginPackage(Builtin):
     messages = {"unimpl": "The second argument to BeginPackage is not yet implemented."}
 
     rules = {
-        "BeginPackage[context_String]": "BeginPackage[context_String,{}]",
-        "BeginPackage[context_String, pkg_String]": "BeginPackage[context_String,{pkg}]",
+        "BeginPackage[context_String]": "BeginPackage[context, {}]",
+        "BeginPackage[context_String, pkg_String]": "BeginPackage[context,{pkg}]",
         "BeginPackage[context_String, needs_List]": """
              Unprotect[System`Private`$ContextPathStack, System`$Packages];
              Begin[context];
