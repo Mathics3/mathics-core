@@ -507,14 +507,17 @@ class Information(PrefixOperator):
         "(StandardForm,TraditionalForm,InputForm,OutputForm,): Information[strpat_String, OptionsPattern[Information]]"
         definitions = evaluation.definitions
         string_str = strpat.value
-
         if any(char in string_str for char in NAMES_WILDCARDS):
             return self.build_list_of_matching_symbols(
                 string_str, evaluation, options, grid
             )
-        return self.format_information_symbol(
-            Symbol(definitions.lookup_name(string_str)), evaluation, options
-        )
+        try:
+            symbol_name = definitions.get_definition(
+                string_str, only_if_exists=True
+            ).name
+        except KeyError:
+            return self.build_missing(strpat)
+        return self.format_information_symbol(Symbol(symbol_name), evaluation, options)
 
     def format_information_symbol(
         self, symbol: Symbol, evaluation: Evaluation, options: dict, grid: bool = True
