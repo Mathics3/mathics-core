@@ -41,6 +41,18 @@ def test_downvalues():
         ("FullForm[a`b_]", None, "Pattern[a`b, Blank[]]", None),
         ("a = 2;", None, "Null", None),
         ("Information[a]", tuple(), "Global`a\n\na = 2\n", None),
+        (
+            "{?? q, ?? q}",
+            tuple(),
+            "{Missing[UnknownSymbol, q], Missing[UnknownSymbol, q]}",
+            "q does not exist, and Information does not create it.",
+        ),
+        (
+            '{Information[s], Information["s"]}',
+            tuple(),
+            "{Global`s\n, Global`s\n}",
+            "When s is passed as a symbol, it creates the definition.",
+        ),
         ("f[x_] := x ^ 2;", None, "Null", None),
         ("g[f] ^:= 2;", None, "Null", None),
         ('f::usage = "f[x] returns the square of x";', None, "Null", None),
