@@ -11,7 +11,7 @@ from mathics.core.exceptions import PartRangeError
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import SymbolTrue
-from mathics.core.systemsymbols import SymbolMapAt, SymbolRule
+from mathics.core.systemsymbols import SymbolMapAt
 from mathics.eval.testing_expressions import eval_ArrayQ
 
 
