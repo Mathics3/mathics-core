@@ -19,7 +19,7 @@ from mathics.core.exceptions import InvalidLevelspecError, MessageException
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, SymbolNull, SymbolTrue
-from mathics.core.systemsymbols import SymbolMapThread, SymbolRule
+from mathics.core.systemsymbols import SymbolMapThread
 from mathics.eval.functional.apply_fns_to_lists import eval_MapAt
 from mathics.eval.parts import python_levelspec, walk_levels
 from mathics.eval.patterns import param_and_option_from_optional_place
