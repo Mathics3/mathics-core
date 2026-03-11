@@ -106,6 +106,7 @@ class Begin(Builtin):
     rules = {
         "expr:Begin[context_String]": """
              (*TODO: check that the string is a valid symbol name (no spaces or operators)*)
+             (*TODO: In WMA there is a function Internal`SymbolNameQ that checks this.*)
              If[Or[StringLength[context]<1, StringTake[context,-1]!="`"], Message[Begin::"ctx", context];Return[expr]];
              Unprotect[System`Private`$ContextStack];
              System`Private`$ContextStack = Append[System`Private`$ContextStack, $Context];
