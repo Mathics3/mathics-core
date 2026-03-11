@@ -20,7 +20,7 @@ import pytest
         (
             "N[Quotient[n, 5]]",
             None,
-            "Quotient[n, 5.0]",
+            "Quotient[n, 5.]",
             (
                 "Check that argument checking does not trigger an error "
                 "in symbolic calculations. #Issue 1722"
