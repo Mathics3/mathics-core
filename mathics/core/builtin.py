@@ -445,6 +445,11 @@ class Builtin:
     # arguments expected) It assumes each builtin defines
     # "expected_args" for the correct number of arguments to give.
     # See class mathics.builtin.arithfns.basic.Sqrt for how to set up.
+    #
+    # The way this gets called is kind of weird. It is pattern matched
+    # along with other function call patterns. As a result, it might
+    # get called when there is no error. Therefore we need to
+    # make sure the specified counts are mismatched.
     def generic_argument_error(self, invalid, evaluation: Evaluation):
         "%(name)s[invalid___]"
 
@@ -453,6 +458,10 @@ class Builtin:
             got_arg_count = 1
         else:
             got_arg_count = len(invalid.elements)
+
+        if isinstance(self.expected_args, (tuple, range)):
+            if got_arg_count in self.expected_args:
+                return None
 
         if isinstance(self.expected_args, tuple):
             expected_args1, expected_args2 = self.expected_args
@@ -500,6 +509,8 @@ class Builtin:
                     Integer(self.expected_args.stop - 1),
                 )
         else:
+            if self.expected_args == got_arg_count:
+                return None
             if self.expected_args == 1:
                 evaluation.message(name, "argx", Symbol(name), Integer(got_arg_count))
             elif got_arg_count == 1:
