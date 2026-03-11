@@ -276,3 +276,75 @@ def test_context2(expr, expected, lst_messages, msg):
         expected_messages=lst_messages,
         hold_expected=True,
     )
+
+
+@pytest.mark.parametrize(
+    ("expr", "expected", "lst_messages", "msg"),
+    [
+        (None, None, None, None),
+        (
+            "$Packages",
+            '{"ImportExport`","XML`","Internal`","System`","Global`"}',
+            None,
+            "initial value of $Packages",
+        ),
+        ("$ContextPath", '{"System`","Global`"}', None, "Default context path"),
+        ('BeginPackage["MyPackage`", {"VectorAnalysis`"}]', '"MyPackage`"', None, None),
+        (
+            "$Packages",
+            '{"MyPackage`","VectorAnalysis`","ImportExport`","XML`","Internal`","System`","Global`"}',
+            None,
+            "Now, $Package is stored as available.",
+        ),
+        ("$Context", '"MyPackage`"', None, None),
+        (
+            "$ContextPath",
+            ' {"MyPackage`", "VectorAnalysis`", "System`"}',
+            None,
+            "Context path now include MyPackage` and it needs...",
+        ),
+        ('Begin["`Private`"]', '"MyPackage`Private`"', None, None),
+        ("$Context", '"MyPackage`Private`"', None, None),
+        ("$ContextPath", '{"MyPackage`", "VectorAnalysis`", "System`"}', None, None),
+        ("End[]", '"MyPackage`Private`"', None, None),
+        ("$Context", '"MyPackage`"', None, None),
+        ("$ContextPath", '{"MyPackage`", "VectorAnalysis`", "System`"}', None, None),
+        ("EndPackage[]", "System`Null", None, None),
+        ("$Context", '"Global`"', None, None),
+        (
+            "$ContextPath",
+            '{"MyPackage`", "VectorAnalysis`", "System`", "Global`"}',
+            None,
+            None,
+        ),
+        ("End[]", '"Global`"', ["No previous context defined."], None),
+        ("EndPackage[]", "System`Null", ["No previous context defined."], None),
+        (
+            "$Packages",
+            '{"MyPackage`","VectorAnalysis`","ImportExport`","XML`","Internal`","System`","Global`"}',
+            None,
+            "Now, the package name is stored.",
+        ),
+        (None, None, None, None),
+        (
+            "$Packages",
+            '{"ImportExport`","XML`","Internal`","System`","Global`"}',
+            None,
+            "After reset, the package are not there anymore.",
+        ),
+    ],
+)
+def test_context3(expr, expected, lst_messages, msg):
+    if expr is not None and expected is None:
+        expected = "System`Null"
+    if lst_messages is None:
+        lst_messages = tuple([])
+    check_evaluation(
+        expr,
+        expected,
+        failure_message=msg,
+        to_string_expr=False,
+        to_string_expected=False,
+        expected_messages=lst_messages,
+        hold_expected=True,
+    )

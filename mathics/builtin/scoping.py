@@ -91,20 +91,30 @@ class Begin(Builtin):
      : No previous context defined.
      = Global`
 
-    ## #> Begin["`test`"]
-    ##  = Global`test`
-    ## #> Context[]
-    ##  = Global`test`
-    ## #> End[]
-    ##  = Global`test`
+    >> Begin["`test`"]
+     = Global`test`
+    >> $Context
+     = Global`test`
+    >> End[]
+     = Global`test`
     """
 
+    messages = {
+        "ctx": "Invalid context specified at position 1 in \\`Begin[`1`]\\`. A context must consist of valid symbol names separated by and ending with \\`.",
+    }
+
     rules = {
-        "Begin[context_String]": """
+        "expr:Begin[context_String]": """
+             (*TODO: check that the string is a valid symbol name (no spaces or operators)*)
+             If[Or[StringLength[context]<1, StringTake[context,-1]!="`"], Message[Begin::"ctx", context];Return[expr]];
              Unprotect[System`Private`$ContextStack];
              System`Private`$ContextStack = Append[System`Private`$ContextStack, $Context];
              Protect[System`Private`$ContextStack];
-             $Context = context;
+             (*Special case: context begins with a context mark <<`>>*)
+             $Context = If[StringTake[context, 1]=="`", 
+                           $Context<>StringTake[context,{2,-1}], 
+                           context
+             ];
              $Context
         """,
     }
@@ -129,19 +139,36 @@ class BeginPackage(Builtin):
     ##  = test`
     """
 
-    messages = {"unimpl": "The second argument to BeginPackage is not yet implemented."}
+    messages = {
+        "ctx": "Invalid context specified at position 1 in \\`BeginPackage[`1`,...]\\`. A context must consist of valid symbol names separated by and ending with \\`.",
+        "cxls": "Context or non-empty list of contexts expected at position 2 in \\`BeginPackage[`1`, `2`]\\`.",
+    }
 
     rules = {
-        "BeginPackage[context_String]": """
-             Unprotect[System`Private`$ContextPathStack, System`$Packages];
+        "expr:BeginPackage[context_String, pks_]": "Message[BeginPackage::cxls, context, pks]; expr",
+        "expr:BeginPackage[context_String]": """
+        If[Or[StringLength[context]<1, StringTake[context,-1]!="`"], 
+           Message[BeginPackage::"ctx", context];Return[expr], 
+           BeginPackage[context, {}]
+        ]""",
+        "expr:BeginPackage[context_String, pkg_String]": "BeginPackage[context,{pkg}]",
+        "expr:BeginPackage[context_String, needs_List]": """
+             (*TODO: check that the string is a valid symbol name (no spaces or operators)*)
+             If[Or[StringLength[context]<1, StringTake[context,-1]!="`"], Message[BeginPackage::"ctx", context];Return[expr]];
+             Unprotect[System`Private`$ContextPathStack];
              Begin[context];
              System`Private`$ContextPathStack =
                  Append[System`Private`$ContextPathStack, $ContextPath];
-             $ContextPath = {context, "System`"};
-             $Packages = If[MemberQ[System`$Packages,$Context],
-                            $Packages,
-                            System`$Packages=Join[{$Context}, System`$Packages]];
-             Protect[System`Private`$ContextPathStack, System`$Packages];
+             Protect[System`Private`$ContextPathStack];
+             $ContextPath = {"System`"};
+             Needs/@needs;
+             $ContextPath = Join[{context}, $ContextPath];
+             (*Load the needs. Do this after setting $ContextPath.*)
+             Unprotect[System`$Packages];
+             System`$Packages = If[MemberQ[System`$Packages, $Context],
+                                   System`$Packages,
+                                   Join[{$Context}, System`$Packages]];
+             Protect[System`$Packages];
              context
         """,
     }
@@ -220,7 +247,7 @@ class Context_(Predefined):
     = Global`
     """
 
-    messages = {"cxset": "`1` is not a valid context name ending in `."}
+    messages = {"cxset": "`1` is not a valid context name ending in \\`."}
     name = "$Context"
     rules = {
         "$Context": '"Global`"',
@@ -397,9 +424,10 @@ class EndPackage(Builtin):
                       (* then *) Message[EndPackage::noctx],
                       (* else *) Unprotect[System`Private`$ContextPathStack];
                                  {$ContextPath, System`Private`$ContextPathStack} =
-                                     {Prepend[Last[System`Private`$ContextPathStack],
-                                              System`Private`newctx],
-                                      Most[System`Private`$ContextPathStack]};
+                                 {
+                                  Join[Most[$ContextPath], Last[System`Private`$ContextPathStack]],
+                                  Most[System`Private`$ContextPathStack]
+                                 };
                                  Protect[System`Private`$ContextPathStack];
                                  Null]]
         """,
