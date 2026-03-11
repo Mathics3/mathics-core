@@ -28,6 +28,7 @@ from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
     SymbolComplexInfinity,
+    SymbolIndeterminate,
     SymbolQuotient,
     SymbolQuotientRemainder,
 )
@@ -361,8 +362,14 @@ class Quotient(Builtin):
         py_m = m.value
         py_n = n.value
         if py_n == 0:
-            evaluation.message("Quotient", "infy", Expression(SymbolQuotient, m, n))
-            return SymbolComplexInfinity
+            if py_m == 0:
+                tag = "indet"
+                result = SymbolIndeterminate
+            else:
+                tag = "infy"
+                result = SymbolComplexInfinity
+            evaluation.message("Quotient", tag, Expression(SymbolQuotient, m, n))
+            return result
         return eval_Quotient(py_m, py_n, 0)
 
     def eval_with_offset(
@@ -373,8 +380,14 @@ class Quotient(Builtin):
         py_n = n.value
         py_d = d.value
         if py_n == 0:
-            evaluation.message("Quotient", "infy", Expression(SymbolQuotient, m, n))
-            return SymbolComplexInfinity
+            if py_m - py_d == 0:
+                tag = "indet"
+                result = SymbolIndeterminate
+            else:
+                tag = "infy"
+                result = SymbolComplexInfinity
+            evaluation.message("Quotient", tag, Expression(SymbolQuotient, m, n, d))
+            return result
         return eval_Quotient(py_m, py_n, py_d)
 
 
