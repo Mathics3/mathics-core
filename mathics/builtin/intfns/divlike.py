@@ -5,7 +5,7 @@ Division-Related Functions
 """
 
 import sys
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import sympy
 from sympy import Q, ask
@@ -25,12 +25,18 @@ from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_bool
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
     SymbolComplexInfinity,
     SymbolQuotient,
     SymbolQuotientRemainder,
 )
-from mathics.eval.intfns.divlike import eval_GCD, eval_LCM, eval_ModularInverse
+from mathics.eval.intfns.divlike import (
+    eval_GCD,
+    eval_LCM,
+    eval_ModularInverse,
+    eval_Quotient,
+)
 
 
 class CompositeQ(Builtin):
@@ -294,34 +300,82 @@ class PowerMod(Builtin):
 
 class Quotient(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Quotient.html</url>
+    <url>:Quotient:https://en.wikipedia.org/wiki/Quotient</url> (<url>
+    :WMA link:https://reference.wolfram.com/language/ref/Quotient.html</url>)
 
     <dl>
       <dt>'Quotient[m, n]'
-      <dd>computes the integer quotient of $m$ and $n$.
+      <dd>computes the integer quotient of $m$ and $n$. For non-complex numbers, this \
+      equivalent to 'Floor[m/n]'. When a complex number is involved, it is 'Round[m/n]'.
+      <dt>'Quotient[m, n, d]'
+      <dd>computes the integer quotient of $m-d$ and $n$. For non-complex numbers, this \
+      is equivalent to 'Floor[(m-d)/n]'. When a complex number is involved, it is \
+      'Round[(m-d)/n]'.
     </dl>
 
+    ## Plot showing the step-like 'Floor' behavior of 'Quotient':
+    ##
+    ## >> DiscretePlot[Quotient[n, 5], {n, 30}]
+    ##  = -Graphics-
+
+    Integer-argument 'Quotient':
     >> Quotient[23, 7]
      = 3
+
+    Rational-argument 'Quotient':
+    >> Quotient[19/3, 5/2]
+     = 2
+
+    'Quotient' with inexact numbers:
+    >> Quotient[4.56, 2.5]
+     = 1
+
+    'Quotient' with two complex numbers is same as 'Round[m/n]':
+    >> Quotient[10.4 + 8 I, 4. + 5 I]
+     = 2
+
+    'Quotient' for large integers:
+    >> Quotient[10^90, NextPrime[10^80]]
+     = 9999999999
+
+   'Quotient' threads elementwise over lists:
+    >> Quotient[{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, 3]
+     = {0, 0, 1, 1, 1, 2, 2, 2, 3, 3}
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     eval_error = Builtin.generic_argument_error
     expected_args = (2, 3)
 
-    messages = {
-        "infy": "Infinite expression `1` encountered.",
+    rules = {
+        "Quotient[m_Complex, n_?NumberQ]": "Round[m / n]",
+        "Quotient[m_?NumberQ, n_Complex]": "Round[m / n]",
+        "Quotient[l_List, n_?NumberQ]": "Map[Quotient[#, m] &, l]",
+        "Quotient[l_List, n_?NumberQ, d_?NumberQ]": "Map[Quotient[#, m, d] &, l]",
     }
-    summary_text = "integer quotient"
 
-    def eval(self, m: Integer, n: Integer, evaluation: Evaluation):
-        "Quotient[m_Integer, n_Integer]"
+    summary_text = "compute integer quotient"
+
+    def eval(self, m, n, evaluation: Evaluation) -> Union[Symbol, Integer]:
+        "Quotient[m_?NumberQ, n_?NumberQ]"
         py_m = m.value
         py_n = n.value
         if py_n == 0:
             evaluation.message("Quotient", "infy", Expression(SymbolQuotient, m, n))
             return SymbolComplexInfinity
-        return Integer(py_m // py_n)
+        return eval_Quotient(py_m, py_n, 0)
+
+    def eval_with_offset(
+        self, m, n, d, evaluation: Evaluation
+    ) -> Union[Symbol, Integer]:
+        "Quotient[m_?NumberQ, n_?NumberQ, d_?NumberQ]"
+        py_m = m.value
+        py_n = n.value
+        py_d = d.value
+        if py_n == 0:
+            evaluation.message("Quotient", "infy", Expression(SymbolQuotient, m, n))
+            return SymbolComplexInfinity
+        return eval_Quotient(py_m, py_n, py_d)
 
 
 class QuotientRemainder(Builtin):
