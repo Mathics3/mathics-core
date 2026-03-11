@@ -4,6 +4,8 @@ from mathics_scanner.errors import IncompleteSyntaxError
 
 from .helper import check_evaluation
 
+DEFAULT_CONTEXT_PATH = '{"System`", "Global`"}'
+
 str_test_context_1 = """
 BeginPackage["FeynCalc`"];
 
@@ -288,7 +290,7 @@ def test_context2(expr, expected, lst_messages, msg):
             None,
             "initial value of $Packages",
         ),
-        ("$ContextPath", '{"System`","Global`"}', None, "Default context path"),
+        ("$ContextPath", DEFAULT_CONTEXT_PATH, None, "Default context path"),
         ('BeginPackage["MyPackage`", {"VectorAnalysis`"}]', '"MyPackage`"', None, None),
         (
             "$Packages",
@@ -334,7 +336,122 @@ def test_context2(expr, expected, lst_messages, msg):
         ),
     ],
 )
-def test_context3(expr, expected, lst_messages, msg):
+def test_context_with_need(expr, expected, lst_messages, msg):
+    if expr is not None and expected is None:
+        expected = "System`Null"
+    if lst_messages is None:
+        lst_messages = tuple([])
+    check_evaluation(
+        expr,
+        expected,
+        failure_message=msg,
+        to_string_expr=False,
+        to_string_expected=False,
+        expected_messages=lst_messages,
+        hold_expected=True,
+    )
+
+
+@pytest.mark.xfail
+@pytest.mark.parametrize(
+    ("expr", "expected", "lst_messages", "msg"),
+    [
+        (None, None, None, None),
+        # The following two tests fail because we are not producing the message yet.
+        (
+            "BeginPackage[3]",
+            "BeginPackage[3]",
+            [
+                "Invalid context specified at position 1 in `BeginPackage[3,...]`. A context must consist of valid symbol names separated by and ending with `."
+            ],
+            "numbers are not context names",
+        ),
+        (
+            "BeginPackage[symb]",
+            "BeginPackage[symb]",
+            [
+                "Invalid context specified at position 1 in `BeginPackage[symb,...]`. A context must consist of valid symbol names separated by and ending with `."
+            ],
+            "symbols are not context names",
+        ),
+        (
+            'BeginPackage["P"]',
+            'BeginPackage["P"]',
+            [
+                "Invalid context specified at position 1 in `BeginPackage[P,...]`. A context must consist of valid symbol names separated by and ending with `."
+            ],
+            "invalid name",
+        ),
+        # This test fails, because Mathics3 implementation does not check for valid context names.
+        # TODO: Implement Internal`SymbolNameQ to check if a string is a valid symbol name.
+        # ('BeginPackage["a+b`", "nocontext"]', 'BeginPackage["a+b`", {"nocontext"}]', ['Invalid context specified at position 1 in `BeginPackage[a+b`,...]`. A context must consist of valid symbol names separated by and ending with `.'],  "a valid context name should not have operators inside."),
+        (
+            'BeginPackage["P", "nocontext`"]',
+            'BeginPackage["P", "nocontext`"]',
+            [
+                "Invalid context specified at position 1 in `BeginPackage[P,...]`. A context must consist of valid symbol names separated by and ending with `."
+            ],
+            "invalid name",
+        ),
+        (
+            'BeginPackage["P`", 3]',
+            'BeginPackage["P`", 3]',
+            [
+                "Context or non-empty list of contexts expected at position 2 in `BeginPackage[P`, 3]`"
+            ],
+            "numbers are not valid arguments for Needs",
+        ),
+        (
+            'BeginPackage["P`", symb]',
+            'BeginPackage["P`", symb]',
+            [
+                "Context or non-empty list of contexts expected at position 2 in `BeginPackage[P`, symb]`"
+            ],
+            "numbers are not needs",
+        ),
+        # The following test fails because with the current implementation, Mathics3 still
+        # set the context, even if the needs field is not a valid name
+        # ('BeginPackage["P`", "nocontext"]', 'BeginPackage["P`", {"nocontext"}]', ['Context or non-empty list of contexts expected at position 2 in `BeginPackage[P`, nocontext]`'], "not a valid context name in needs."),
+        # The following two tests fail because we are not producing the message yet.
+        (
+            "Begin[3]",
+            "Begin[3]",
+            [
+                "Invalid context specified at position 1 in `Begin[3]`. A context must consist of valid symbol names separated by and ending with `."
+            ],
+            "numbers are not context names",
+        ),
+        (
+            "Begin[symb]",
+            "Begin[symb]",
+            [
+                "Invalid context specified at position 1 in `Begin[symb,...]`. A context must consist of valid symbol names separated by and ending with `."
+            ],
+            "symbols are not context names",
+        ),
+        (
+            'Begin["P"]',
+            'Begin["P"]',
+            [
+                "Invalid context specified at position 1 in `Begin[P,...]`. A context must consist of valid symbol names separated by and ending with `."
+            ],
+            "invalid name",
+        ),
+        (
+            "$Context",
+            '"Global`"',
+            None,
+            "Any of the previous calls change the context.",
+        ),
+        (
+            "$ContextPath",
+            DEFAULT_CONTEXT_PATH,
+            None,
+            "Any of the previous calls change the context.",
+        ),
+    ],
+)
+def test_context_messages(expr, expected, lst_messages, msg):
     if expr is not None and expected is None:
         expected = "System`Null"
     if lst_messages is None:
