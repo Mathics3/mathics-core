@@ -193,6 +193,11 @@ class Mod(SympyFunction):
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     eval_error = Builtin.generic_argument_error
     expected_args = (2, 3)
+
+    messages = {
+        "divz": "The argument 0 in `1` should be nonzero.",
+    }
+
     summary_text = "get the remainder in an integer division"
     sympy_name = "Mod"
 
@@ -318,6 +323,7 @@ class PowerMod(Builtin):
 
     messages = {
         "ninv": "`1` is not invertible modulo `2`.",
+        "divz": "The argument 0 in `1` should be nonzero.",
     }
 
     rules = {
