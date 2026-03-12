@@ -193,9 +193,7 @@ class Mod(SympyFunction):
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     eval_error = Builtin.generic_argument_error
     expected_args = (2, 3)
-
     summary_text = "get the remainder in an integer division"
-
     sympy_name = "Mod"
 
     def eval(self, n: Integer, m: Integer, evaluation: Evaluation):
@@ -451,7 +449,6 @@ class QuotientRemainder(Builtin):
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     eval_error = Builtin.generic_argument_error
     expected_args = 2
-
     summary_text = "get the integer quotient and remainder"
 
     def eval(self, m, n, evaluation: Evaluation):
