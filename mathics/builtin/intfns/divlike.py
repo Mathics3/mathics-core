@@ -314,10 +314,9 @@ class Quotient(Builtin):
       'Round[(m-d)/n]'.
     </dl>
 
-    ## Plot showing the step-like 'Floor' behavior of 'Quotient':
-    ##
-    ## >> DiscretePlot[Quotient[n, 5], {n, 30}]
-    ##  = -Graphics-
+    Plot showing the step-like 'Floor' behavior of 'Quotient':
+     >> DiscretePlot[Quotient[n, 5], {n, 30}]
+      = -Graphics-
 
     Integer-argument 'Quotient':
     >> Quotient[23, 7]
