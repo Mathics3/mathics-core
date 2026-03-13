@@ -9,6 +9,38 @@ import pytest
 
 
 @pytest.mark.parametrize(
+    ("function_name", "msg_fragment"),
+    [
+        (
+            "Between",
+            "1 or 2 arguments are",
+        ),
+        (
+            "BooleanQ",
+            "1 argument is",
+        ),
+        (
+            "TrueQ",
+            "1 argument is",
+        ),
+    ],
+)
+def test_arg_errors(function_name, msg_fragment):
+    """ """
+    str_expr = f"{function_name}[]"
+    expected_msgs = [
+        f"{function_name} called with 0 arguments; {msg_fragment} expected."
+    ]
+    failure_message = f"{function_name} argument number error"
+    check_evaluation(
+        str_expr,
+        str_expr,
+        failure_message=failure_message,
+        expected_messages=expected_msgs,
+    )
+
+
+@pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
         ("AnyTrue[{}, EvenQ]", None, "False", None),
