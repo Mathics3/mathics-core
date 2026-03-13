@@ -7,7 +7,6 @@ Division-Related Functions
 import sys
 from typing import List, Optional, Union
 
-import sympy
 from sympy import Q, ask
 
 from mathics.core.atoms import Integer
@@ -36,6 +35,7 @@ from mathics.eval.intfns.divlike import (
     eval_GCD,
     eval_LCM,
     eval_ModularInverse,
+    eval_PowerMod,
     eval_Quotient,
 )
 
@@ -127,7 +127,8 @@ class GCD(Builtin):
     """
 
     attributes = A_FLAT | A_LISTABLE | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
-    summary_text = "greatest common divisor"
+    summary_text = "compute the Greatest Common Divisor"
+    sympy_name = "gcd"
 
     def eval(self, ns, evaluation: Evaluation) -> Optional[Integer]:
         "GCD[ns___Integer]"
@@ -156,7 +157,8 @@ class LCM(Builtin):
     messages = {
         "argm": "LCM called with 0 arguments; 1 or more arguments are expected.",
     }
-    summary_text = "least common multiple"
+    summary_text = "compute the Least Common Multiple"
+    sympy_name = "lcm"
 
     def eval(self, ns: List[Integer], evaluation: Evaluation) -> Optional[Integer]:
         "LCM[ns___Integer]"
@@ -184,15 +186,15 @@ class Mod(SympyFunction):
     >> Mod[-3, -4]
      = -3
     >> Mod[5, 0]
-     : The argument 0 should be nonzero.
+     : The argument 0 in Mod[5, 0] should be nonzero.
      = Mod[5, 0]
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     eval_error = Builtin.generic_argument_error
     expected_args = (2, 3)
-    summary_text = "the remainder in an integer division"
 
+    summary_text = "get the remainder in an integer division"
     sympy_name = "Mod"
 
     def eval(self, n: Integer, m: Integer, evaluation: Evaluation):
@@ -200,7 +202,11 @@ class Mod(SympyFunction):
 
         n, m = n.value, m.value
         if m == 0:
-            evaluation.message("Mod", "divz", m)
+            evaluation.message(
+                "Mod",
+                "divz",
+                evaluation.current_expression,
+            )
             return
         return Integer(n % m)
 
@@ -239,7 +245,7 @@ class ModularInverse(SympyFunction):
     attributes = A_PROTECTED
     eval_error = Builtin.generic_argument_error
     expected_args = 2
-    summary_text = "returns the modular inverse $k^(-1)$ mod $n$"
+    summary_text = "get the modular inverse $k^(-1)$ mod $n$"
     sympy_name = "mod_inverse"
 
     def eval(self, k: Integer, n: Integer, evaluation: Evaluation) -> Optional[Integer]:
@@ -249,26 +255,62 @@ class ModularInverse(SympyFunction):
 
 class PowerMod(Builtin):
     """
-    Modular exponentiation.
-    See <url>https://en.wikipedia.org/wiki/Modular_exponentiation</url>.
+    <url>:Modular exponentiation:
+    https://en.wikipedia.org/wiki/Modular_exponentiation</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/PowerMod.html</url>).
 
     <dl>
       <dt>'PowerMod'[$x$, $y$, $m$]
       <dd>computes $x$^$y$ modulo $m$.
     </dl>
 
+    'PowerMod' can handle large integers:
     >> PowerMod[2, 10000000, 3]
      = 1
     >> PowerMod[3, -2, 10]
      = 9
+
+    'PowerMod' works on square roots:
+    >> PowerMod[3, 1/2, 2]
+    = 1
+
+    'PowerMod' works on nth roots other than a square root:
+    >> PowerMod[11, 1/3, 19]
+    = 5
+
+    When $y$ is a root $1/r$, there may be more than one solution for 'PowerMod'.
+    However, the result must satisfy $x^y = r$ mod $m$:
+
+    > x=11; r=3; m=19; Mod[(PowerMod[x, 1/r, m] ^ r), m] == x
+    = True
+
+    #> Clear[x, r, m]
+
+    Note the inverse relationship 'PowerMod' has when $y$ is negative one:
+    >> PowerMod[3, -1, 11]
+     = 4
+
+    >> PowerMod[4, -1, 11]
+     = 3
+
+    Also, 'PowerMod' with $-y$, is inverse of 'PowerMod' with $y$:
+    >> PowerMod[3, -10, 11]  == PowerMod[PowerMod[3, 10, 11], 10, 11]
+     = True
+
+    The first parameter, $x$ should be invertible for modulus $m$:
     >> PowerMod[0, -1, 2]
      : 0 is not invertible modulo 2.
      = PowerMod[0, -1, 2]
+
+    Also, you should not use zero as a modulus for $y$:
     >> PowerMod[5, 2, 0]
-     : The argument 0 should be nonzero.
+     : The argument 0 in PowerMod[5, 2, 0] should be nonzero.
      = PowerMod[5, 2, 0]
 
-    'PowerMod' does not support rational coefficients (roots) yet.
+    'PowerMod' threads over lists
+    >> PowerMod[2, {10, 11, 12, 13, 14}, 5]
+     = {4, 3, 1, 2, 4}
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -278,25 +320,25 @@ class PowerMod(Builtin):
     messages = {
         "ninv": "`1` is not invertible modulo `2`.",
     }
-    summary_text = "modular exponentiation"
 
-    def eval(self, a: Integer, b: Integer, m: Integer, evaluation: Evaluation):
-        "PowerMod[a_Integer, b_Integer, m_Integer]"
+    rules = {
+        "PowerMod[a, l_List, m_?NumberQ]": "Map[PowerMod[a, #, m] &, l]",
+    }
 
-        a_int = a
-        m_int = m
-        a, b, m = a.value, b.value, m.value
-        if m == 0:
-            evaluation.message("PowerMod", "divz", m)
-            return
-        if b < 0:
-            b = -b
-            try:
-                a = int(sympy.invert(a, m))
-            except sympy.polys.polyerrors.NotInvertible:
-                evaluation.message("PowerMod", "ninv", a_int, m_int)
-                return
-        return Integer(pow(a, b, m))
+    summary_text = "compute modular exponentiation"
+
+    sympy_names = {
+        -1: "mod_inverse",  # b = -1
+        0: "nth_root_mod",  # 0 < b < 1 and is an inverse
+        0.5: "sqrt_mod",  # b = 1/2
+        3: "core.power.Pow",  # Handles complex numbers. Use builtin pow for integers
+    }
+
+    def eval(self, a: Integer, b, m: Integer, evaluation: Evaluation):
+        "PowerMod[a_?NumberQ, b_?NumberQ, m_Integer]"
+
+        a_py, b_py, m_py = a.value, b.value, m.value
+        return eval_PowerMod(a_py, b_py, m_py, evaluation)
 
 
 class Quotient(Builtin):
@@ -315,8 +357,9 @@ class Quotient(Builtin):
     </dl>
 
     Plot showing the step-like 'Floor' behavior of 'Quotient':
-     >> DiscretePlot[Quotient[n, 5], {n, 30}]
-      = -Graphics-
+
+    >> DiscretePlot[Quotient[n, 5], {n, 30}]
+     = -Graphics-
 
     Integer-argument 'Quotient':
     >> Quotient[23, 7]
@@ -359,6 +402,7 @@ class Quotient(Builtin):
     def eval(self, m, n, evaluation: Evaluation) -> Union[Symbol, Integer]:
         "Quotient[m_?NumberQ, n_?NumberQ]"
         py_m = m.value
+
         py_n = n.value
         if py_n == 0:
             if py_m == 0:
@@ -406,11 +450,7 @@ class QuotientRemainder(Builtin):
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     eval_error = Builtin.generic_argument_error
     expected_args = 2
-
-    messages = {
-        "divz": "The argument 0 in `1` should be nonzero.",
-    }
-    summary_text = "integer quotient and remainder"
+    summary_text = "get the integer quotient and remainder"
 
     def eval(self, m, n, evaluation: Evaluation):
         "QuotientRemainder[m_, n_]"
@@ -421,7 +461,7 @@ class QuotientRemainder(Builtin):
                 evaluation.message(
                     "QuotientRemainder",
                     "divz",
-                    Expression(SymbolQuotientRemainder, m, n),
+                    evaluation.current_expression,
                 )
                 return
             # Note: py_m % py_n can be a float or an int.
