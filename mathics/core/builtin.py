@@ -163,7 +163,7 @@ class Builtin:
              ...
     ```
 
-    the options are stored as a dictionary in the last parameter. For
+    The options are stored as a dictionary in the last parameter. For
     example, if the rule is applied to ``F[x, Method->Automatic]`` the
     expression is replaced by the output of ``eval_with_options(x,
     evaluation, {"System`Method": Symbol("Automatic")})
@@ -181,7 +181,7 @@ class Builtin:
 
     Notice that for creating a Builtin, we must pass to the
     constructor the option ``expression=False``. Otherwise, an
-    Expression object is created, with the ``Symbol`` associated to
+    Expression object is created, with the ``Symbol`` associated with
     the definition as the ``Head``.  For example,
 
     ```
@@ -204,7 +204,7 @@ class Builtin:
     context: str = ""
     defaults: Dict[Optional[int], str] = {}
 
-    # Number of arguments expected. -1 is used for arbitrary number.
+    # Number of arguments expected. -1 is used for an arbitrary number.
     expected_args: Union[int, Tuple[int, int], range] = -1
 
     formats: Dict[str, Any] = {}
@@ -253,7 +253,7 @@ class Builtin:
             self.context = "Pymathics`" if is_pymodule else "System`"
             # get_name takes the context from the class, not from the
             # instance, so even if we set the context here,
-            # self.get_name() does not includes the context.
+            # self.get_name() does not include the context.
             name = self.context + name
 
         # - 'Strict': warn and fail with unsupported options
@@ -445,6 +445,12 @@ class Builtin:
     # arguments expected) It assumes each builtin defines
     # "expected_args" for the correct number of arguments to give.
     # See class mathics.builtin.arithfns.basic.Sqrt for how to set up.
+    #
+    # The way this gets called is weird. It is pattern-matched
+    # along with other function call patterns. As a result, it might
+    # get called when there is no error. Therefore, we need to
+    # determine whether the expected arguments count matches the actual
+    # argument counts of the arguments provided.
     def generic_argument_error(self, invalid, evaluation: Evaluation):
         "%(name)s[invalid___]"
 
@@ -453,6 +459,10 @@ class Builtin:
             got_arg_count = 1
         else:
             got_arg_count = len(invalid.elements)
+
+        if isinstance(self.expected_args, (tuple, range)):
+            if got_arg_count in self.expected_args:
+                return None
 
         if isinstance(self.expected_args, tuple):
             expected_args1, expected_args2 = self.expected_args
@@ -500,6 +510,8 @@ class Builtin:
                     Integer(self.expected_args.stop - 1),
                 )
         else:
+            if self.expected_args == got_arg_count:
+                return None
             if self.expected_args == 1:
                 evaluation.message(name, "argx", Symbol(name), Integer(got_arg_count))
             elif got_arg_count == 1:
@@ -642,8 +654,8 @@ class BuiltinElement(Builtin, BaseElement):
             try:
                 instance.init(*args, **kwargs)
             except TypeError:
-                # TypeError occurs when unpickling instance, e.g. PatternObject,
-                # because parameter expr is not given. This should no be a
+                # TypeError occurs when unpickling instance, e.g., PatternObject,
+                # because parameter expr is not given. This should not be a
                 # problem, as pickled objects need their init-method not
                 # being called.
                 pass

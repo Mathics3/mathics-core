@@ -17,6 +17,15 @@ import pytest
             "ComplexInfinity",
             None,
         ),
+        (
+            "N[Quotient[n, 5]]",
+            None,
+            "Quotient[n, 5.]",
+            (
+                "Check that argument checking does not trigger an error "
+                "in symbolic calculations. #Issue 1722"
+            ),
+        ),
         ("Quotient[-17, 7]", None, "-3", None),
         ("Quotient[-17, -4]", None, "4", None),
         ("Quotient[19, -4]", None, "-5", None),
