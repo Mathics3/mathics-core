@@ -64,7 +64,7 @@ for opt_package in ("cython", "scipy", "skimage"):
         version_string += f", {opt_package} {version_info[opt_package]}"
 
 license_string = """\
-Copyright (C) 2011-2025 The Mathics3 Team.
+Copyright (C) 2011-2026 The Mathics3 Team.
 This program comes with ABSOLUTELY NO WARRANTY.
 This is free software, and you are welcome to redistribute it
 under certain conditions.
