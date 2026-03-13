@@ -38,7 +38,7 @@ requires-python = ">=3.10" # bisect.insort_left with key parameter starts in 3.1
 readme = "README.rst"
 keywords = ["Mathematica", "Wolfram", "Interpreter", "Shell", "Math", "CAS"]
 maintainers = [
-    {name = "Mathics Group", email = "mathics-devel@googlegroups.com"},
+    {name = "Mathics3 Group", email = "mathics-devel@googlegroups.com"},
 ]
 classifiers = [
     "Intended Audience :: Developers",

@@ -33,7 +33,7 @@ Mathics3 Kernel comes with a very simple command-line program called ``mathics3`
   on CPython 3.13.5 (main, Jun 20 2025, 16:57:22) [GCC 13.3.0]
   using SymPy 1.13.3, mpmath 1.3.0, numpy 2.3.2, cython Not installed
 
-  Copyright (C) 2011-2025 The Mathics3 Team.
+  Copyright (C) 2011-2026 The Mathics3 Team.
   This program comes with ABSOLUTELY NO WARRANTY.
   This is free software, and you are welcome to redistribute it
   under certain conditions.
