@@ -34,6 +34,21 @@ def evaluate(str_expr: str, form=None):
     return session.evaluate(str_expr, form=form)
 
 
+def check_arg_counts(function_name, msg_fragment):
+    """ """
+    str_expr = f"{function_name}[]"
+    expected_msgs = [
+        f"{function_name} called with 0 arguments; {msg_fragment} expected."
+    ]
+    failure_message = f"{function_name} argument number error"
+    check_evaluation(
+        str_expr,
+        str_expr,
+        failure_message=failure_message,
+        expected_messages=expected_msgs,
+    )
+
+
 def check_evaluation(
     str_expr: Optional[str],
     str_expected: Optional[str] = None,
