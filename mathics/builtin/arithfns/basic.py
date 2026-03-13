@@ -369,11 +369,6 @@ class Power(InfixOperator, MPMathFunction):
 
     mpmath_name = "power"
 
-    messages = {
-        "infy": "Infinite expression `1` encountered.",
-        "indet": "Indeterminate expression `1` encountered.",
-    }
-
     nargs = {2}
     rules = {
         "Power[]": "1",

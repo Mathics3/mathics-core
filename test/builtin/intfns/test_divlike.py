@@ -15,7 +15,19 @@ import pytest
             "Quotient[13, 0]",
             ("Infinite expression Quotient[13, 0] encountered.",),
             "ComplexInfinity",
-            None,
+            "Check Quotient two-argument divide by 0 error result",
+        ),
+        (
+            "Quotient[1, 0, 1]",
+            ("Indeterminate expression Quotient[1, 0, 1] encountered.",),
+            "Indeterminate",
+            "Check Quotient three-argument 0/0 error result",
+        ),
+        (
+            "Quotient[0, 0]",
+            ("Indeterminate expression Quotient[0, 0] encountered.",),
+            "Indeterminate",
+            "Check Quotient two-argument 0/0 error",
         ),
         (
             "N[Quotient[n, 5]]",

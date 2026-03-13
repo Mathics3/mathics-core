@@ -42,3 +42,7 @@ def eval_ModularInverse(k: int, n: int) -> Optional[Integer]:
     except ValueError:
         return
     return Integer(r)
+
+
+def eval_Quotient(m, n, d) -> Integer:
+    return Integer((m - d) // n)
