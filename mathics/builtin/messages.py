@@ -187,7 +187,7 @@ class General(Builtin):
         "charcode": "The character encoding `1` is not supported. Use $CharacterEncodings to list supported encodings.",
         "color": "`1` is not a valid color or gray-level specification.",
         "cxt": "`1` is not a valid context name.",
-        "divz": "The argument `1` should be nonzero.",
+        "divz": "The argument 0 in `1` should be nonzero.",
         "dgbgn": "Entering Dialog; enter Ctrl-D to exit.",
         # "dgbgn": "Entering Dialog; use Return[] to exit.",
         "dgend": "Exiting Dialog.",
