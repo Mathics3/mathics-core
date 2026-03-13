@@ -1,0 +1,252 @@
+System`Graphics3D
+  System`List
+    System`RGBColor
+      System`Real 1.0
+      System`Real 0.690196
+      System`Real 0.0
+    System`GraphicsComplex
+      System`NumericArray NumericArray[Real*, 40000×3]
+        [[ 1.00000000e+00  0.00000000e+00  6.12323400e-17]
+         [ 9.99968847e-01  0.00000000e+00 -7.89336691e-03]
+         [ 9.99875390e-01  0.00000000e+00 -1.57862420e-02]
+         ...
+         [ 1.57862420e-02 -3.86651415e-18 -9.99875390e-01]
+         [ 7.89336691e-03 -1.93331730e-18 -9.99968847e-01]
+         [ 1.22464680e-16 -2.99951957e-32 -1.00000000e+00]]
+      System`Polygon
+        System`NumericArray NumericArray[Integer*, 39601×4]
+          [[    1     2   202   201]
+           [  201   202   402   401]
+           [  401   402   602   601]
+           ...
+           [39399 39400 39600 39599]
+           [39599 39600 39800 39799]
+           [39799 39800 40000 39999]]
+    System`RGBColor
+      System`Integer 0
+      System`Integer 0
+      System`Integer 0
+    System`GraphicsComplex
+      System`NumericArray NumericArray[Real*, 4000×3]
+        [[ 1.00000000e+00  0.00000000e+00  6.12323400e-17]
+         [ 9.99968847e-01  0.00000000e+00 -7.89336691e-03]
+         [ 9.99875390e-01  0.00000000e+00 -1.57862420e-02]
+         ...
+         [ 1.57862420e-02 -3.86651415e-18 -9.99875390e-01]
+         [ 7.89336691e-03 -1.93331730e-18 -9.99968847e-01]
+         [ 1.22464680e-16 -2.99951957e-32 -1.00000000e+00]]
+      System`Line
+        System`NumericArray NumericArray[Integer*, 20×200]
+          [[   1    2    3 ...  198  199  200]
+           [ 201  202  203 ...  398  399  400]
+           [ 401  402  403 ...  598  599  600]
+           ...
+           [3401 3402 3403 ... 3598 3599 3600]
+           [3601 3602 3603 ... 3798 3799 3800]
+           [3801 3802 3803 ... 3998 3999 4000]]
+    System`GraphicsComplex
+      System`NumericArray NumericArray[Real*, 2000×3]
+        [[ 1.00000000e+00  0.00000000e+00  6.12323400e-17]
+         [ 9.84807753e-01  0.00000000e+00 -1.73648178e-01]
+         [ 9.39692621e-01  0.00000000e+00 -3.42020143e-01]
+         ...
+         [ 3.42020143e-01 -8.37707748e-17 -9.39692621e-01]
+         [ 1.73648178e-01 -4.25315370e-17 -9.84807753e-01]
+         [ 1.22464680e-16 -2.99951957e-32 -1.00000000e+00]]
+      System`Line
+        System`NumericArray NumericArray[Integer*, 10×200]
+          [[   1   11   21 ... 1971 1981 1991]
+           [   2   12   22 ... 1972 1982 1992]
+           [   3   13   23 ... 1973 1983 1993]
+           ...
+           [   8   18   28 ... 1978 1988 1998]
+           [   9   19   29 ... 1979 1989 1999]
+           [  10   20   30 ... 1980 1990 2000]]
+  System`Rule
+    System`AlignmentPoint
+    System`Center
+  System`Rule
+    System`AspectRatio
+    System`Integer 1
+  System`Rule
+    System`Axes
+    System`True
+  System`Rule
+    System`AxesEdge
+    System`Automatic
+  System`Rule
+    System`AxesLabel
+    System`None
+  System`Rule
+    System`AxesOrigin
+    System`Automatic
+  System`Rule
+    System`AxesStyle
+    System`List
+  System`Rule
+    System`Background
+    System`Automatic
+  System`Rule
+    System`BaseStyle
+    System`List
+  System`Rule
+    System`BaselinePosition
+    System`Automatic
+  System`Rule
+    System`BoxRatios
+    System`List
+      System`Integer 1
+      System`Integer 1
+      System`Integer 1
+  System`Rule
+    System`BoxStyle
+    System`List
+  System`Rule
+    System`Boxed
+    System`True
+  System`Rule
+    System`ClipPlanes
+    System`None
+  System`Rule
+    System`ClipPlanesStyle
+    System`Automatic
+  System`Rule
+    System`ContentSelectable
+    System`Automatic
+  System`Rule
+    System`ControllerLinking
+    System`False
+  System`Rule
+    System`ControllerPath
+    System`Automatic
+  System`Rule
+    System`CoordinatesToolOptions
+    System`Automatic
+  System`Rule
+    System`Epilog
+    System`List
+  System`Rule
+    System`FaceGrids
+    System`None
+  System`Rule
+    System`FaceGridsStyle
+    System`List
+  System`Rule
+    System`FormatType
+    System`TraditionalForm
+  System`Rule
+    System`Frame
+    System`False
+  System`Rule
+    System`FrameLabel
+    System`None
+  System`Rule
+    System`FrameStyle
+    System`List
+  System`Rule
+    System`FrameTicks
+    System`Automatic
+  System`Rule
+    System`FrameTicksStyle
+    System`List
+  System`Rule
+    System`GridLines
+    System`None
+  System`Rule
+    System`GridLinesStyle
+    System`List
+  System`Rule
+    System`ImageMargins
+    System`Real 0.0
+  System`Rule
+    System`ImagePadding
+    System`All
+  System`Rule
+    System`ImageSize
+    System`Automatic
+  System`Rule
+    System`LabelStyle
+    System`List
+  System`Rule
+    System`Lighting
+    System`Automatic
+  System`Rule
+    System`LogPlot
+    System`False
+  System`Rule
+    System`Method
+    System`Automatic
+  System`Rule
+    System`PlotLabel
+    System`None
+  System`Rule
+    System`PlotRange
+    System`List
+      System`Automatic
+      System`Automatic
+      System`List
+        System`Real -1.2
+        System`Real 1.0
+  System`Rule
+    System`PlotRangeClipping
+    System`False
+  System`Rule
+    System`PlotRangePadding
+    System`Automatic
+  System`Rule
+    System`PlotRegion
+    System`Automatic
+  System`Rule
+    System`PreserveImageOptions
+    System`Automatic
+  System`Rule
+    System`Prolog
+    System`List
+  System`Rule
+    System`RotateLabel
+    System`True
+  System`Rule
+    System`RotationAction
+    System`Fit
+  System`Rule
+    System`SphericalRegion
+    System`Automatic
+  System`Rule
+    System`Ticks
+    System`Automatic
+  System`Rule
+    System`TicksStyle
+    System`List
+  System`Rule
+    System`TouchscreenAutoZoom
+    System`False
+  System`Rule
+    System`ViewAngle
+    System`Automatic
+  System`Rule
+    System`ViewCenter
+    System`Automatic
+  System`Rule
+    System`ViewMatrix
+    System`Automatic
+  System`Rule
+    System`ViewPoint
+    System`List
+      System`Real 1.3
+      System`Real -2.4
+      System`Real 2.0
+  System`Rule
+    System`ViewProjection
+    System`Automatic
+  System`Rule
+    System`ViewRange
+    System`All
+  System`Rule
+    System`ViewVector
+    System`Automatic
+  System`Rule
+    System`ViewVertical
+    System`List
+      System`Integer 0
+      System`Integer 0
+      System`Integer 1
