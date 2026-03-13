@@ -8,11 +8,11 @@ import math
 import numpy as np
 
 from mathics.builtin.colors.color_internals import convert_color
-from mathics.core.convert.lambdify import lambdify_compile
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import strip_context
 from mathics.core.systemsymbols import (
+    SymbolAbsoluteThickness,
     SymbolEqual,
     SymbolNone,
     SymbolRGBColor,
@@ -21,36 +21,40 @@ from mathics.core.systemsymbols import (
 from mathics.timing import Timer
 
 from .colors import palette2, palette3, palette_color_directive
-from .util import GraphicsGenerator
+from .util import GraphicsGenerator, compile_exprs
 
 
-def make_plot(plot_options, evaluation: Evaluation, dim: int, is_complex: bool, emit):
+def make_surfaces(
+    plot_options, evaluation: Evaluation, dim: int, is_complex: bool, emit
+):
     graphics = GraphicsGenerator(dim)
 
     # pull out plot options
     if not is_complex:
-        _, xmin, xmax = plot_options.ranges[0]
-        _, ymin, ymax = plot_options.ranges[1]
+        _, umin, umax = plot_options.ranges[0]
+        _, vmin, vmax = plot_options.ranges[1]
     else:
         # will generate xs and ys as for real, then combine to form complex cs
         _, cmin, cmax = plot_options.ranges[0]
-        xmin, xmax = cmin.real, cmax.real
-        ymin, ymax = cmin.imag, cmax.imag
+        umin, umax = cmin.real, cmax.real
+        vmin, vmax = cmin.imag, cmax.imag
     names = [strip_context(str(range[0])) for range in plot_options.ranges]
 
     # Mesh option
-    nmesh = 20
-    if plot_options.mesh is SymbolNone:
-        nmesh = 0
+    mesh = plot_options.mesh
+    nmeshx = nmeshy = 20
+    if mesh is SymbolNone:
+        nmeshx = nmeshy = 0
+    elif isinstance(plot_options.mesh, int):
+        nmeshx = nmeshy = plot_options.mesh
+    elif isinstance(mesh, (list, tuple)) and all(isinstance(m, int) for m in mesh):
+        nmeshx, nmeshy = mesh
 
     # compile the functions
     with Timer("compile"):
-        compiled_functions = [
-            lambdify_compile(evaluation, function, names)
-            for function in plot_options.functions
-        ]
+        compiled_functions = compile_exprs(evaluation, plot_options.functions, names)
 
-    def compute_over_grid(nx, ny):
+    def compute_over_grid(nu, nv):
         """
         For each function, computes an (nx*ny, 3) array of coordinates (xyzs),
         and an (nx, ny) array of indices (inxs) into xyzs representing
@@ -62,24 +66,24 @@ def make_plot(plot_options, evaluation: Evaluation, dim: int, is_complex: bool, 
         grid used to display a mesh of lines on the surface.
         """
 
-        # compute (nx, ny) grids of xs and ys for corresponding vertexes
-        xs = np.linspace(xmin, xmax, nx)
-        ys = np.linspace(ymin, ymax, ny)
-        xs, ys = np.meshgrid(xs, ys)
+        # Note on naming: we use u,v to refer to the independent variable initially.
+        # For Plot3D etc. those will be x and y, but for ParametricPlot3D and
+        # and for SpericalPlot3D the xs, ys, and zs will all be computed.
+        # compute (nu, nv) grids of us and vs for corresponding vertexes
+        us = np.linspace(umin, umax, nu)
+        vs = np.linspace(vmin, vmax, nv)
+        us, vs = np.meshgrid(us, vs)
 
-        # (nx,ny) array of numbers from 0 to n-1 that are
+        # (nu,nv) array of numbers from 0 to n-1 that are
         # indexes into xyzs array for corresponding vertex
         # +1 because these will be used as WL indexes, which are 1-based
-        inxs = np.arange(math.prod(xs.shape)).reshape(xs.shape) + 1
+        inxs = np.arange(math.prod(us.shape)).reshape(us.shape) + 1
 
         for function in compiled_functions:
             # compute zs from xs and ys using compiled function
-            with Timer("compute zs"):
-                if not is_complex:
-                    zs = function(**{str(names[0]): xs, str(names[1]): ys})
-                else:
-                    cs = xs + ys * 1j  # TODO: fast enough?
-                    zs = function(**{str(names[0]): cs})
+            with Timer("compute xs, ys, zs"):
+                # xs, ys, zs = function(**{str(names[0]): us, str(names[1]): vs})
+                xs, ys, zs = plot_options.apply_function(function, names, us, vs)
 
             # sometimes expr gets compiled into something that returns a complex
             # even though the imaginary part is 0
@@ -87,15 +91,16 @@ def make_plot(plot_options, evaluation: Evaluation, dim: int, is_complex: bool, 
             # TODO: needed this for Hypergeometric - look into that
             # assert np.all(np.isreal(zs)), "array contains complex values"
             if not is_complex:
+                xs = np.real(xs)
+                ys = np.real(ys)
                 zs = np.real(zs)
 
             # if it's a constant, make it a full array
             if isinstance(zs, (float, int, complex)):
                 zs = np.full(xs.shape, zs)
 
-            # (nx*ny, 3) array of points, to be indexed by quads
+            # (nu*nv, 3) array of points, to be indexed by quads
             xyzs = np.stack([xs, ys, zs]).transpose(1, 2, 0).reshape(-1, 3)
-
             yield xyzs, inxs
 
     # generate the quads and emit a GraphicsComplex containing them
@@ -108,12 +113,12 @@ def make_plot(plot_options, evaluation: Evaluation, dim: int, is_complex: bool, 
         quads = quads.T.reshape(-1, 4)
 
         # pass the xyzs and quads back to the caller to add colors and emit quads as appropriate
-        emit(graphics, i, xyzs, quads)
+        emit(graphics, i, xyzs, None, quads)
 
     # If requested by the Mesh attribute create a mesh of lines covering the surfaces
     # For now only for Plot3D
     # TODO: mesh for DensityPlot?
-    if nmesh and dim == 3:
+    if nmeshx and nmeshy and dim == 3:
         # meshes are black for now
         graphics.add_directives([SymbolRGBColor, 0, 0, 0])
 
@@ -123,10 +128,49 @@ def make_plot(plot_options, evaluation: Evaluation, dim: int, is_complex: bool, 
             # from one row or one column of the inxs array.
             # Each mesh line has high res (nx or ny) so it follows
             # the contours of the surface.
-            for xyzs, inxs in compute_over_grid(nx, nmesh):
+            for xyzs, inxs in compute_over_grid(nx, nmeshy):
                 graphics.add_complex(xyzs.real, lines=inxs, polys=None)
-            for xyzs, inxs in compute_over_grid(nmesh, ny):
+            for xyzs, inxs in compute_over_grid(nmeshx, ny):
                 graphics.add_complex(xyzs.real, lines=inxs.T, polys=None)
+
+    return graphics
+
+
+# For ParametricPlot3D with just one independent variable we generate a curve
+# TODO: consider whether we can DRY this with similar code in ParmetricPlot
+def make_curves(plot_options, evaluation: Evaluation, dim: int, emit):
+    graphics = GraphicsGenerator(dim)
+
+    # pull out plot options
+    _, tmin, tmax = plot_options.ranges[0]
+    nt = plot_options.plot_points[0]
+
+    # compile
+    names = [strip_context(str(range[0])) for range in plot_options.ranges]
+    with Timer("compile"):
+        compiled_functions = compile_exprs(evaluation, plot_options.functions, names)
+
+    # sample points and indexes for making line
+    ts = np.linspace(tmin, tmax, nt)
+    line = np.arange(nt) + 1
+
+    # compute curve for each function
+    for i, function in enumerate(compiled_functions):
+        # compute xs, ys, zs from ts
+        with Timer("compute xs, ys, zs"):
+            xs, ys, zs = plot_options.apply_function(function, names, ts)
+
+        # if it's a constant, make it a full array
+        def full_array(a):
+            return np.full(ts.shape, a) if isinstance(a, (float, int, complex)) else a
+
+        xs = full_array(xs)
+        ys = full_array(ys)
+        zs = full_array(zs)
+
+        # stack 'em
+        xyzs = np.stack([xs, ys, zs]).T
+        emit(graphics, i, xyzs, [line], None)
 
     return graphics
 
@@ -151,7 +195,7 @@ def eval_Plot3D(
     plot_options,
     evaluation: Evaluation,
 ):
-    def emit(graphics, i, xyzs, quads):
+    def emit(graphics, i, xyzs, _, quads):
         # choose a color
         color_directive = palette_color_directive(palette3, i)
         graphics.add_directives(color_directive)
@@ -159,7 +203,7 @@ def eval_Plot3D(
         # add a GraphicsComplex displaying a surface for this function
         graphics.add_complex(xyzs, lines=None, polys=quads)
 
-    return make_plot(plot_options, evaluation, dim=3, is_complex=False, emit=emit)
+    return make_surfaces(plot_options, evaluation, dim=3, is_complex=False, emit=emit)
 
 
 @Timer("eval_DensityPlot")
@@ -167,7 +211,7 @@ def eval_DensityPlot(
     plot_options,
     evaluation: Evaluation,
 ):
-    def emit(graphics, i, xyzs, quads):
+    def emit(graphics, i, xyzs, _, quads):
         # Fixed palette for now
         # TODO: accept color options
         colors = density_colors(xyzs[:, 2])
@@ -175,7 +219,7 @@ def eval_DensityPlot(
         # flatten the points and add the quads
         graphics.add_complex(xyzs[:, 0:2], lines=None, polys=quads, colors=colors)
 
-    return make_plot(plot_options, evaluation, dim=2, is_complex=False, emit=emit)
+    return make_surfaces(plot_options, evaluation, dim=2, is_complex=False, emit=emit)
 
 
 @Timer("eval_ContourPlot")
@@ -198,7 +242,7 @@ def eval_ContourPlot(
             contour_levels = [0]
             background = False
 
-    def emit(graphics, i, xyzs, quads):
+    def emit(graphics, i, xyzs, _, quads):
         # set line color
         if background:
             # showing a background, so just black lines
@@ -254,7 +298,7 @@ def eval_ContourPlot(
                 )
 
     # plot_options.plot_points = [n * 10 for n in plot_options.plot_points]
-    return make_plot(plot_options, evaluation, dim=2, is_complex=False, emit=emit)
+    return make_surfaces(plot_options, evaluation, dim=2, is_complex=False, emit=emit)
 
 
 @Timer("complex colors")
@@ -286,13 +330,13 @@ def eval_ComplexPlot3D(
     plot_options,
     evaluation: Evaluation,
 ):
-    def emit(graphics, i, xyzs, quads):
+    def emit(graphics, i, xyzs, _, quads):
         zs = xyzs[:, 2]
         rgb = complex_colors(zs, s=0.8)
         xyzs[:, 2] = abs(zs)
         graphics.add_complex(xyzs.real, lines=None, polys=quads, colors=rgb)
 
-    return make_plot(plot_options, evaluation, dim=3, is_complex=True, emit=emit)
+    return make_surfaces(plot_options, evaluation, dim=3, is_complex=True, emit=emit)
 
 
 @Timer("eval_ComplexPlot")
@@ -300,10 +344,42 @@ def eval_ComplexPlot(
     plot_options,
     evaluation: Evaluation,
 ):
-    def emit(graphics, i, xyzs, quads):
+    def emit(graphics, i, xyzs, _, quads):
         # flatten the points and add the quads
         rgb = complex_colors(xyzs[:, 2])
         xyzs_re = xyzs[:, 0:2].real
         graphics.add_complex(xyzs_re, lines=None, polys=quads, colors=rgb)
 
-    return make_plot(plot_options, evaluation, dim=2, is_complex=True, emit=emit)
+    return make_surfaces(plot_options, evaluation, dim=2, is_complex=True, emit=emit)
+
+
+@Timer("eval_ParametricPlot3D")
+def eval_ParametricPlot3D(
+    plot_options,
+    evaluation: Evaluation,
+):
+    # ParametericPlot3D can make curves or surfaces depending on number of independent variables
+    is_surface = len(plot_options.ranges) > 1
+
+    def emit(graphics, i, xyzs, lines, polys):
+        # choose a color
+        palette = palette3 if is_surface else palette2
+        color_directive = palette_color_directive(palette, i)
+        graphics.add_directives(color_directive)
+        if not is_surface:
+            graphics.add_directives([SymbolAbsoluteThickness, 4])
+
+        # add a GraphicsComplex displaying a surface for this function
+        graphics.add_complex(xyzs, lines=lines, polys=polys)
+
+    # we want a list, each element of which is a list of 2 or 3 functions
+    # to compute the coordinates of the lines or surface
+    if not isinstance(plot_options.functions[0], (list, tuple)):
+        plot_options.functions = [plot_options.functions]
+
+    if is_surface:
+        return make_surfaces(
+            plot_options, evaluation, dim=3, is_complex=False, emit=emit
+        )
+    else:
+        return make_curves(plot_options, evaluation, dim=3, emit=emit)
