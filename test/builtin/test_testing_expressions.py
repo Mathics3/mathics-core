@@ -3,9 +3,31 @@
 Unit tests for mathics.builtin.testing_expressions
 """
 
-from test.helper import check_evaluation
+from test.helper import check_arg_counts, check_evaluation
 
 import pytest
+
+
+@pytest.mark.parametrize(
+    ("function_name", "msg_fragment"),
+    [
+        (
+            "Between",
+            "1 or 2 arguments are",
+        ),
+        (
+            "BooleanQ",
+            "1 argument is",
+        ),
+        (
+            "TrueQ",
+            "1 argument is",
+        ),
+    ],
+)
+def test_arg_errors(function_name, msg_fragment):
+    """ """
+    check_arg_counts(function_name, msg_fragment)
 
 
 @pytest.mark.parametrize(
