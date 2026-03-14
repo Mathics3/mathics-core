@@ -175,7 +175,7 @@ class StringMatchQ(Builtin):
 
     options = {
         "IgnoreCase": "False",
-        "SpellingCorrections": "None",
+        "SpellingCorrection": "False",
     }
 
     rules = {
