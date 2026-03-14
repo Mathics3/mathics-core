@@ -765,6 +765,34 @@ class ExpandDenominator(_Expand):
         return expand_polynomial(expr, False, True, **kwargs)
 
 
+class ExpandNumerator(_Expand):
+    """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/ExpandNumerator.html</url>
+
+    <dl>
+      <dt>'ExpandNumerator'[$expr$]
+      <dd>expands out products and powers appearing in the numerator in $expr$.
+    </dl>
+
+    >> ExpandNumerator[ ( x - 1 ) ( x - 2 ) / x ]
+     = -3 + 2 / x + x
+    """
+
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
+
+    summary_text = "expand just the numerator of a rational expression"
+
+    def eval(self, expr, evaluation: Evaluation, options: dict):
+        "ExpandNumerator[expr_, OptionsPattern[ExpandNumerator]]"
+
+        kwargs = self.convert_options(options, evaluation)
+        if kwargs is None:
+            return
+        return expand_polynomial(expr, True, False, **kwargs)
+
+
 class Exponent(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Exponent.html</url>

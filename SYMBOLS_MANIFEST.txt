@@ -431,6 +431,7 @@ System`ExpIntegralEi
 System`Expand
 System`ExpandAll
 System`ExpandDenominator
+System`ExpandNumerator
 System`ExpandFileName
 System`Exponent
 System`Export
