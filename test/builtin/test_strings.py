@@ -20,10 +20,6 @@ import pytest
             "1 argument is",
         ),
         (
-            "StringFreeQ",
-            "1 or 2 arguments are",
-        ),
-        (
             "StringMatchQ",
             "1 or 2 arguments are",
         ),

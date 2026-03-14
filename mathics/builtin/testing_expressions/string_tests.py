@@ -134,8 +134,6 @@ class StringFreeQ(Builtin):
 
     """
 
-    eval_error = Builtin.generic_argument_error
-    expected_args = (1, 2)
     options = {
         "IgnoreCase": "False",
     }
