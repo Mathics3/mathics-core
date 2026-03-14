@@ -4,7 +4,7 @@ List-Oriented Tests
 
 from typing import Optional
 
-from mathics.core.atoms import Integer, Integer1, Integer2
+from mathics.core.atoms import Integer1, Integer2
 from mathics.core.builtin import Builtin, Test
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import InvalidLevelspecError
