@@ -88,7 +88,8 @@ except ImportError:
 
 from test.helper import session
 
-from mathics.builtin.drawing import plot
+from pymathics.vectorizedplot import plot
+
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
 from mathics.core.util import print_expression_tree
@@ -377,6 +378,7 @@ def do_test_all():
     # the tests above seem so far to be ok on pyodide, but generally they are
     # simpler than these doc_tests
     if not pyodide:
+        session.evaluate('LoadModule["pymathics.vectorizedplot"]')
         for parms in all_yaml_tests_generator():
             one_test(**parms)
 

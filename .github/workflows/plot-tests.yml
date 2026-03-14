@@ -39,6 +39,11 @@ jobs:
         pip install -e .
         bash -x ./admin-tools/make-JSON-tables.sh
         remake -x develop-full
+    - name: Install vectorizedplot
+        git clone --depth 1 https://github.com/Mathics3/Mathics3-Module-vectorizedplot.git
+        cd Mathics3-Module-vectorizedplot/
+        pip install -e .
+        cd ..
     - name: Test Mathics
       run: |
         make plot-detailed-tests
