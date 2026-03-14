@@ -3,7 +3,7 @@
 Unit tests for mathics.builtins.numbers.algebra and
 mathics.builtins.numbers.integer
 """
-from test.helper import check_evaluation
+from test.helper import check_arg_counts, check_evaluation
 
 import pytest
 
@@ -590,15 +590,4 @@ def test_integer(str_expr, msgs, str_expected, fail_msg):
 )
 def test_arg_count_errors(function_name, msg_fragment):
     """ """
-
-    str_expr = f"{function_name}[]"
-    expected_msgs = [
-        f"{function_name} called with 0 arguments; {msg_fragment} expected."
-    ]
-    failure_message = f"{function_name} argument number error"
-    check_evaluation(
-        str_expr,
-        str_expr,
-        failure_message=failure_message,
-        expected_messages=expected_msgs,
-    )
+    check_arg_counts(function_name, msg_fragment)
