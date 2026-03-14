@@ -47,6 +47,8 @@ class DigitQ(Builtin):
 
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
     rules = {
         "DigitQ[string_]": (
             "If[StringQ[string], StringMatchQ[string, DigitCharacter...], False, False]"
@@ -73,13 +75,15 @@ class LetterQ(Builtin):
     >> LetterQ["9"]
      = False
 
-    >> LetterQ["Mathics"]
+    >> LetterQ["Mathematics"]
      = True
 
-    >> LetterQ["Welcome to Mathics"]
+    >> LetterQ["Welcome to Mathics3"]
      = False
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
     rules = {
         "LetterQ[string_]": (
             "If[StringQ[string], StringMatchQ[string, LetterCharacter...], False, False]"
@@ -109,13 +113,13 @@ class StringFreeQ(Builtin):
         to an expression.
     </dl>
 
-    >> StringFreeQ["mathics", "m" ~~ __ ~~ "s"]
+    >> StringFreeQ["mathics3", "m" ~~ __ ~~ "s"]
      = False
 
-    >> StringFreeQ["mathics", "a" ~~ __ ~~ "m"]
+    >> StringFreeQ["mathics3", "a" ~~ __ ~~ "m"]
      = True
 
-    >> StringFreeQ["Mathics", "MA" , IgnoreCase -> True]
+    >> StringFreeQ["Mathics3", "MA" , IgnoreCase -> True]
      = False
 
     >> StringFreeQ[{"g", "a", "laxy", "universe", "sun"}, "u"]
@@ -172,10 +176,11 @@ class StringMatchQ(Builtin):
     """
 
     attributes = A_LISTABLE | A_PROTECTED
-
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
     options = {
         "IgnoreCase": "False",
-        "SpellingCorrections": "None",
+        "SpellingCorrection": "False",
     }
 
     rules = {
@@ -237,6 +242,8 @@ class StringQ(Test):
      = {12, yz}
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
     summary_text = "test whether an expression is a string"
 
     def test(self, expr) -> bool:
@@ -244,13 +251,14 @@ class StringQ(Test):
 
 
 class SyntaxQ(Builtin):
-    """
+    r"""
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/SyntaxQ.html</url>
     <dl>
       <dt>'SyntaxQ["string"]'
-      <dd>returns 'True' if "string" corresponds to a syntactically correct input for a Mathics3 expression, or 'False' otherwise.
+      <dd>returns 'True' if "string" corresponds to a syntactically correct input for a \
+      Mathics3 expression, or 'False' otherwise.
     </dl>
 
     >> SyntaxQ["a[b"]
@@ -260,10 +268,13 @@ class SyntaxQ(Builtin):
      = True
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
+
     # FIXME:
     # replace messages[string] with the below.
     # Better is to have this kind of thing done a function for doing this.
-    # Same things for "noopt" message which does not exist yet.
+    # Same thing for "noopt" message which does not exist yet.
     messages = {"string": "String expected at position `1` in `2`."}
 
     summary_text = (

@@ -282,11 +282,9 @@ class SubsetQ(Builtin):
      = True
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
     messages = {
-        # FIXME: This message doesn't exist in more modern WMA, and
-        # Subset *can* take more than 2 arguments.
-        "argr": "SubsetQ called with 1 argument; 2 arguments are expected.",
-        "argrx": "SubsetQ called with `1` arguments; 2 arguments are expected.",
         "heads": "Heads `1` and `2` at positions 1 and 2 are expected to be the same.",
     }
     summary_text = "test if a list is a subset of another list"
@@ -301,12 +299,6 @@ class SubsetQ(Builtin):
             return
 
         subset = subset.get_sequence()
-        if len(subset) > 1:
-            evaluation.message("SubsetQ", "argrx", Integer(len(subset) + 1))
-            return
-        elif len(subset) == 0:
-            evaluation.message("SubsetQ", "argr")
-            return
 
         subset = subset[0]
         if isinstance(subset, Atom):
