@@ -1032,8 +1032,7 @@ class Parser:
 
     @track_location
     def e_RawLeftBracket(self, expr, token: Token, p: int) -> Optional[Node]:
-        q = PART_PRECEDENCE
-        if q < p:
+        if PART_PRECEDENCE < p:
             return None
         self.consume()
         self.bracket_depth += 1
