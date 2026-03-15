@@ -35,10 +35,10 @@ jobs:
       run: |
         pip install pyocr # from full
         # We can comment out after next Mathics-Scanner release
-        python -m pip install -e "Mathics-Scanner[full] @ git+https://github.com/Mathics3/mathics-scanner"
+        python -m pip install -e "Mathics-Scanner[full] @ git+https://github.com/Mathics3/Mathics3-scanner"
         pip install -e .
-        git clone --depth 1 https://github.com/Mathics3/mathics-scanner.git
-        cd mathics-scanner/
+        git clone --depth 1 https://github.com/Mathics3/Mathics3-scanner.git
+        cd Mathics3-scanner/
         pip install -e .
         bash -x admin-tools/make-JSON-tables.sh
         cd ..
