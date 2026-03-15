@@ -42,7 +42,7 @@ jobs:
     - name: install Mathic3 vectorizedplot Module
       run: |
         git clone --depth 1 https://github.com/Mathics3/Mathics3-Module-vectorizedplot.git
-        cd Mathics3-Moduke-vectorizedplot
+        cd Mathics3-Module-vectorizedplot
         python -m pip install --no-build-isolation -e .
         cd ..
     - name: Test Mathics
