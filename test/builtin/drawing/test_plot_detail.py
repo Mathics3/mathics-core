@@ -89,9 +89,11 @@ except ImportError:
 from test.helper import session
 
 from mathics.builtin.drawing import plot
+from mathics.core.atoms import String
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
 from mathics.core.util import print_expression_tree
+from mathics.session import MathicsSession
 
 from .svg_outline import outline_svg
 
@@ -108,6 +110,14 @@ print(f"REF_DIR {REF_DIR}, ACT_DIR {ACT_DIR}")
 # determines action to take if actual and reference files differ:
 # either raise assertion error, or update reference file
 UPDATE_MODE = False
+
+# Store two sessions. One is the regular, in the other, the `pymathics.vectorizedplot`
+# is loaded:
+SESSIONS = {True: MathicsSession(character_encoding="ASCII"), False: session}
+
+result = SESSIONS[True].evaluate('LoadModule["pymathics.vectorizedplot"]')
+assert isinstance(result, String), f"{result}"
+assert result.value == "pymathics.vectorizedplot"
 
 
 def copy_file(dst_fn, src_fn):
@@ -213,6 +223,7 @@ def one_test(name: str, str_expr: str, vec: bool, svg: bool, opts: str):
     """
     # update name and set use_vectorized_plot depending on
     # whether vectorized test
+    current_session = SESSIONS[vec]
     if vec:
         name += "-vec"
         plot.use_vectorized_plot = vec
@@ -229,12 +240,12 @@ def one_test(name: str, str_expr: str, vec: bool, svg: bool, opts: str):
 
     try:
         # evaluate the expression to be tested
-        act_expr = session.evaluate(str_expr)
-        if session.evaluation.out:
+        act_expr = current_session.evaluate(str_expr)
+        if current_session.evaluation.out:
             print("=== messages:")
-            for message in session.evaluation.out:
+            for message in current_session.evaluation.out:
                 print(message.text)
-        assert not session.evaluation.out, "no output messages expected"
+        assert not current_session.evaluation.out, "no output messages expected"
 
         # write the results to act_fn in ACT_DIR
         act_fn = os.path.join(ACT_DIR, f"{name}.txt")
@@ -251,7 +262,7 @@ def one_test(name: str, str_expr: str, vec: bool, svg: bool, opts: str):
             act_svg_fn = os.path.join(ACT_DIR, f"{name}.svg.txt")
             ref_svg_fn = os.path.join(REF_DIR, f"{name}.svg.txt")
             boxed_expr = Expression(Symbol("System`ToBoxes"), act_expr).evaluate(
-                session.evaluation
+                current_session.evaluation
             )
             act_svg = boxed_expr.to_format("svg")
             act_svg = outline_svg(
@@ -269,7 +280,7 @@ def one_test(name: str, str_expr: str, vec: bool, svg: bool, opts: str):
             act_png_fn = os.path.join(ACT_DIR, f"{name}.png")
             ref_png_fn = os.path.join(REF_DIR, f"{name}.png")
             boxed_expr = Expression(Symbol("System`ToBoxes"), act_expr).evaluate(
-                session.evaluation
+                current_session.evaluation
             )
             act_svg = boxed_expr.box_to_format("svg")
             act_svg = inject_font_style(act_svg)

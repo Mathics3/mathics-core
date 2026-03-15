@@ -11,7 +11,6 @@ import os
 import palettable
 
 import mathics.eval.drawing.plot3d
-import mathics.eval.drawing.plot3d_vectorized
 from mathics.builtin.graphics import Graphics
 from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Integer, Integer0, MachineReal, String
@@ -39,29 +38,11 @@ from mathics.eval.drawing.colors import COLOR_PALETTES, get_color_palette
 from mathics.eval.drawing.plot import get_plot_range
 from mathics.eval.nevaluator import eval_N
 
-# The vectorized plot function generates GraphicsComplex using NumericArray,
-# which no consumer will currently understand. So lets make it opt-in for now.
-# If it remains opt-in we'll probably want some combination of env variables,
-# Set option such as $UseVectorizedPlot, and maybe a non-standard Plot3D option.
-# For now an env variable is simplest.
-# TODO: work out exactly how to deploy.
 
-
-# can be set via environment variable at startup time,
-# or changed dynamically by setting the use_vectorized_plot flag
-use_vectorized_plot = os.getenv("MATHICS3_USE_VECTORIZED_PLOT", False)
-
-
-# get the plot eval function for the given class,
-# depending on whether vectorized plot functions are enabled
+# get the plot eval function for the given class
 def get_plot_eval_function(cls):
     function_name = "eval_" + cls.__name__
-    plot_module = (
-        mathics.eval.drawing.plot3d_vectorized
-        if use_vectorized_plot
-        else mathics.eval.drawing.plot3d
-    )
-    fun = getattr(plot_module, function_name)
+    fun = getattr(mathics.eval.drawing.plot3d, function_name)
     return fun
 
 
@@ -519,17 +500,9 @@ class PlotOptions:
             evaluation.message(builtin.get_name(), "invmaxrec", max_depth, 15)
         self.max_depth = max_depth
 
-        # PlotRange option
-        # Normalize to always return a list of either numeric,
-        # Symbol (for vectorized plots), or str (for classic plogs)
-        # TODO: convert classic plots to use Symbol instead of str also
-        if use_vectorized_plot:
-            preserve_symbols = True
-            symbol_type = Symbol
-        else:
-            # TODO: get rid of these
-            preserve_symbols = False
-            symbol_type = str
+        # TODO: get rid of these
+        preserve_symbols = False
+        symbol_type = str
         plot_range = builtin.get_option(options, str(SymbolPlotRange), evaluation)
         plot_range = eval_N(plot_range, evaluation).to_python(
             preserve_symbols=preserve_symbols
