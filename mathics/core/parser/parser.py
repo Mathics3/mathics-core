@@ -8,7 +8,7 @@ https://mathics-development-guide.readthedocs.io/en/latest/extending/code-overvi
 
 
 import string
-from typing import Literal, Optional, Union
+from typing import Final, Literal, Optional, Union
 
 from mathics_scanner.errors import (
     EscapeSyntaxError,
@@ -32,7 +32,7 @@ from mathics.core.parser.ast import (
 )
 from mathics.core.parser.location import track_location, track_token_location
 from mathics.core.parser.operators import (
-    all_operators,
+    all_operators as OPERATOR_PRECEDENCE,
     binary_operators,
     box_operators,
     flat_binary_operators,
@@ -64,6 +64,17 @@ NEVER_ADD_PARENTHESIS: Literal[0] = 0
 
 permitted_digits = {c: i for i, c in enumerate(string.digits + string.ascii_lowercase)}
 permitted_digits["."] = 0
+
+FORMBOX_PRECEDENCE: Final[int] = OPERATOR_PRECEDENCE["Formbox"]
+FRACTIONBOX_PRECEDENCE: Final[int] = OPERATOR_PRECEDENCE["FractionBox"]
+OVERSCRIPTBOX_PRECEDENCE: Final[int] = OPERATOR_PRECEDENCE["OverscriptBox"]
+PART_PRECEDENCE: Final[int] = OPERATOR_PRECEDENCE["Part"]
+PATTERN_PRECEDENCE: Final[int] = OPERATOR_PRECEDENCE["Pattern"]
+POWER_PRECEDENCE: Final[int] = OPERATOR_PRECEDENCE["Power"]
+SET_PRECEDENCE: Final[int] = OPERATOR_PRECEDENCE["Set"]
+SQRTBOX_PRECEDENCE: Final[int] = OPERATOR_PRECEDENCE["SqrtBox"]
+SUBSCRIPTBOX_PRECEDENCE: Final[int] = OPERATOR_PRECEDENCE["SubscriptBox"]
+SUM_PRECEDENCE: Final[int] = OPERATOR_PRECEDENCE["Sum"]
 
 
 def unescape_string(s: str) -> str:
@@ -704,8 +715,7 @@ class Parser:
     def b_FormBox(
         self, box_expr1, token: Token, box_expr1_precedence: int
     ) -> Optional[Node]:
-        operator_precedence = all_operators["FormBox"]
-        if box_expr1_precedence > operator_precedence:
+        if box_expr1_precedence > FORMBOX_PRECEDENCE:
             return None
         if box_expr1 is None:
             box_expr1 = Symbol("StandardForm")  # RawForm
@@ -714,34 +724,32 @@ class Parser:
         else:
             box_expr1 = Node("Removed", String("$$Failure"))
         self.consume()
-        box2 = self.parse_box_expr(operator_precedence)
+        box2 = self.parse_box_expr(FORMBOX_PRECEDENCE)
         return Node("FormBox", box2, box_expr1)
 
     def b_FractionBox(
         self, box_expr1, token: Token, box_expr1_precendence: int
     ) -> Optional[Node]:
-        operator_precedence = all_operators["FractionBox"]
-        if box_expr1_precendence > operator_precedence:
+        if box_expr1_precendence > FRACTIONBOX_PRECEDENCE:
             return None
         if box_expr1 is None:
             box_expr1 = NullString
         self.consume()
-        box_expr2 = self.parse_box_expr(operator_precedence + 1)
+        box_expr2 = self.parse_box_expr(FRACTIONBOX_PRECEDENCE + 1)
         return Node("FractionBox", box_expr1, box_expr2)
 
     def b_OverscriptBox(
         self, box_expr1, token: Token, box_expr1_precedence: int
     ) -> Optional[Node]:
-        operator_precedence = all_operators["OverscriptBox"]
-        if box_expr1_precedence > operator_precedence:
+        if box_expr1_precedence > OVERSCRIPTBOX_PRECEDENCE:
             return None
         if box_expr1 is None:
             box_expr1 = NullString
         self.consume()
-        box_expr2 = self.parse_box_expr(operator_precedence)
+        box_expr2 = self.parse_box_expr(OVERSCRIPTBOX_PRECEDENCE)
         if self.next().tag == "OtherscriptBox":
             self.consume()
-            box_expr3 = self.parse_box_expr(all_operators["UnderoverscriptBox"])
+            box_expr3 = self.parse_box_expr(OPERATOR_PRECEDENCE["UnderoverscriptBox"])
             return Node("UnderoverscriptBox", box_expr1, box_expr3, box_expr2)
         else:
             return Node("OverscriptBox", box_expr1, box_expr2)
@@ -750,11 +758,10 @@ class Parser:
         if box0 is not None:
             return None
         self.consume()
-        operator_precedence = all_operators["SqrtBox"]
-        box_expr1 = self.parse_box_expr(operator_precedence)
+        box_expr1 = self.parse_box_expr(SQRTBOX_PRECEDENCE)
         if self.next().tag == "OtherscriptBox":
             self.consume()
-            box2 = self.parse_box_expr(operator_precedence)
+            box2 = self.parse_box_expr(SQRTBOX_PRECEDENCE)
             return Node("RadicalBox", box_expr1, box2)
         else:
             return Node("SqrtBox", box_expr1)
@@ -762,16 +769,15 @@ class Parser:
     def b_SubscriptBox(
         self, box_expr1, token: Token, box_expr1_precedence: int
     ) -> Optional[Node]:
-        operator_precedence = all_operators["SubscriptBox"]
-        if box_expr1_precedence > operator_precedence:
+        if box_expr1_precedence > SUBSCRIPTBOX_PRECEDENCE:
             return None
         if box_expr1 is None:
             box_expr1 = NullString
         self.consume()
-        box_expr2 = self.parse_box_expr(operator_precedence)
+        box_expr2 = self.parse_box_expr(SUBSCRIPTBOX_PRECEDENCE)
         if self.next().tag == "OtherscriptBox":
             self.consume()
-            box_expr3 = self.parse_box_expr(all_operators["SubsuperscriptBox"])
+            box_expr3 = self.parse_box_expr(OPERATOR_PRECEDENCE["SubsuperscriptBox"])
             return Node("SubsuperscriptBox", box_expr1, box_expr2, box_expr3)
         else:
             return Node("SubscriptBox", box_expr1, box_expr2)
@@ -779,7 +785,7 @@ class Parser:
     def b_SuperscriptBox(
         self, box_expr1, token: Token, box_expr1_precedence: int
     ) -> Optional[Node]:
-        operator_precedence = all_operators["SuperscriptBox"]
+        operator_precedence = OPERATOR_PRECEDENCE["SuperscriptBox"]
         if box_expr1_precedence > operator_precedence:
             return None
         if box_expr1 is None:
@@ -788,7 +794,7 @@ class Parser:
         box2 = self.parse_box_expr(operator_precedence)
         if self.next().tag == "OtherscriptBox":
             self.consume()
-            box3 = self.parse_box_expr(all_operators["SubsuperscriptBox"])
+            box3 = self.parse_box_expr(OPERATOR_PRECEDENCE["SubsuperscriptBox"])
             return Node("SubsuperscriptBox", box_expr1, box3, box2)
         else:
             return Node("SuperscriptBox", box_expr1, box2)
@@ -796,7 +802,7 @@ class Parser:
     def b_UnderscriptBox(
         self, box_expr1, token: Token, box_expr1_precedence: int
     ) -> Optional[Node]:
-        operator_precedence = all_operators["UnderscriptBox"]
+        operator_precedence = OPERATOR_PRECEDENCE["UnderscriptBox"]
         if box_expr1_precedence > operator_precedence:
             return None
         if box_expr1 is None:
@@ -805,7 +811,7 @@ class Parser:
         box_expr2 = self.parse_box_expr(operator_precedence)
         if self.next().tag == "OtherscriptBox":
             self.consume()
-            box_expr3 = self.parse_box_expr(all_operators["UnderoverscriptBox"])
+            box_expr3 = self.parse_box_expr(OPERATOR_PRECEDENCE["UnderoverscriptBox"])
             return Node("UnderoverscriptBox", box_expr1, box_expr2, box_expr3)
         else:
             return Node("UnderscriptBox", box_expr1, box_expr2)
@@ -1018,16 +1024,15 @@ class Parser:
             head = "Optional"
         else:
             return None
-        q = all_operators[head]
-        if p == 151:
+        if p == PATTERN_PRECEDENCE + 1:
             return None
         self.consume()
-        expr2 = self.parse_expr(q + 1)
+        expr2 = self.parse_expr(OPERATOR_PRECEDENCE[head] + 1)
         return Node(head, expr1, expr2)
 
     @track_location
     def e_RawLeftBracket(self, expr, token: Token, p: int) -> Optional[Node]:
-        q = all_operators["Part"]
+        q = PART_PRECEDENCE
         if q < p:
             return None
         self.consume()
@@ -1139,7 +1144,7 @@ class Parser:
         return Node("Span", expr1, expr2)
 
     def e_TagSet(self, expr1, token: Token, p: int) -> Optional[Node]:
-        q = all_operators["Set"]
+        q = SET_PRECEDENCE
         if q < p:
             return None
         self.consume()
@@ -1164,8 +1169,7 @@ class Parser:
 
     @track_location
     def e_Unset(self, expr1, _: Token, p: int) -> Optional[Node]:
-        q = all_operators["Set"]
-        if q < p:
+        if p > SET_PRECEDENCE:
             return None
         self.consume()
         return Node("Unset", expr1)
@@ -1190,7 +1194,7 @@ class Parser:
 
     def p_Integral(self, _: Token) -> Node:
         self.consume()
-        inner_prec, outer_prec = all_operators["Sum"] + 1, all_operators["Power"] - 1
+        inner_prec, outer_prec = SUM_PRECEDENCE + 1, POWER_PRECEDENCE - 1
         expr1 = self.parse_expr(inner_prec)
         self.expect("DifferentialD")
         expr2 = self.parse_expr(outer_prec)
