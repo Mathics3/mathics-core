@@ -103,8 +103,8 @@ class Parser:
                 "BarGreater",
                 "CloseCurly",
                 "CloseParen",
+                "CloseSquare",
                 "Comma",
-                "RawRightBracket",
                 "RawColon",
                 "DifferentialD",
             ]
@@ -684,7 +684,7 @@ class Parser:
                 self.tokeniser.feeder.message("Syntax", "com")
                 result.append(NullSymbol)
                 self.consume()
-            elif tag in ("CloseCurly", "BarGreater", "RawRightBracket"):
+            elif tag in ("CloseCurly", "BarGreater", "CloseSquare"):
                 if result:
                     self.tokeniser.feeder.message("Syntax", "com")
                     result.append(NullSymbol)
@@ -696,7 +696,7 @@ class Parser:
                 if tag == "Comma":
                     self.consume()
                     continue
-                elif tag in ("CloseCurly", "BarGreater", "RawRightBracket"):
+                elif tag in ("CloseCurly", "BarGreater", "CloseSquare"):
                     break
         return result
 
@@ -1040,13 +1040,13 @@ class Parser:
         if token.tag == "OpenSquare":
             self.consume()
             seq = self.parse_seq()
-            self.expect("RawRightBracket")
-            self.expect("RawRightBracket")
+            self.expect("CloseSquare")
+            self.expect("CloseSquare")
             self.bracket_depth -= 1
             return Node("Part", expr, *seq)
         else:
             seq = self.parse_seq()
-            self.expect("RawRightBracket")
+            self.expect("CloseSquare")
             self.bracket_depth -= 1
 
             if self.is_inside_box_expression:
