@@ -22,10 +22,10 @@ jobs:
       NODE_VERSION: 20
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -58,9 +58,9 @@ jobs:
 
       - name: Install dependent Mathics3 programs
         run: |
-          # We can comment out after next Mathics-Scanner release
-          git clone --depth 1 https://github.com/Mathics3/mathics-scanner.git
-          cd mathics-scanner/
+          # We can comment out after next Mathics3-Scanner release
+          git clone --depth 1 https://github.com/Mathics3/Mathics3-scanner.git
+          cd Mathics3-scanner/
           pip install -e .
           bash -x admin-tools/make-JSON-tables.sh
           cd ..

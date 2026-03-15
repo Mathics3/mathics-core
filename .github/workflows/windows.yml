@@ -16,9 +16,9 @@ jobs:
         # trace of where things went wrong on Python before 3.11.
         python-version: ['3.13']
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install OS dependencies
@@ -34,8 +34,8 @@ jobs:
     - name: Install Mathics3 with Python dependencies
       run: |
         pip install pyocr # from full
-        # We can comment out after next Mathics-Scanner release
-        python -m pip install -e "Mathics-Scanner[full] @ git+https://github.com/Mathics3/Mathics3-scanner"
+        # We can comment out after next Mathics3-Scanner release
+        python -m pip install -e "Mathics3-Scanner[full] @ git+https://github.com/Mathics3/Mathics3-scanner"
         pip install -e .
         git clone --depth 1 https://github.com/Mathics3/Mathics3-scanner.git
         cd Mathics3-scanner/

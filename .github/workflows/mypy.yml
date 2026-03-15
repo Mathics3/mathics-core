@@ -13,9 +13,9 @@ jobs:
       matrix:
         python-version: ['3.13']
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
@@ -27,12 +27,12 @@ jobs:
       run: |
         pip install mypy==1.13 sympy==1.12
         # Adjust below for right branch
-        git clone --depth 1 https://github.com/Mathics3/mathics-scanner.git
-        cd mathics-scanner/
+        git clone --depth 1 https://github.com/Mathics3/Mathics3-scanner.git
+        cd Mathics3-scanner/
         pip install -e .
         bash ./admin-tools/make-JSON-tables.sh
         pip install -e .
         cd ..
-        touch ./mathics-scanner/mathics_scanner/py.typed
+        touch ./Mathics3-scanner/mathics_scanner/py.typed
         make develop
         mypy --install-types --ignore-missing-imports --non-interactive mathics
