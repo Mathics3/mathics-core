@@ -1031,13 +1031,13 @@ class Parser:
         return Node(head, expr1, expr2)
 
     @track_location
-    def e_RawLeftBracket(self, expr, token: Token, p: int) -> Optional[Node]:
+    def e_OpenSquare(self, expr, token: Token, p: int) -> Optional[Node]:
         if PART_PRECEDENCE < p:
             return None
         self.consume()
         self.bracket_depth += 1
         token = self.next_noend()
-        if token.tag == "RawLeftBracket":
+        if token.tag == "OpenSquare":
             self.consume()
             seq = self.parse_seq()
             self.expect("RawRightBracket")
