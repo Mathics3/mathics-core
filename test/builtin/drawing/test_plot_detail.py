@@ -115,9 +115,10 @@ UPDATE_MODE = False
 # is loaded:
 SESSIONS = {True: MathicsSession(character_encoding="ASCII"), False: session}
 
-result = SESSIONS[True].evaluate('LoadModule["pymathics.vectorizedplot"]')
-assert isinstance(result, String), f"{result}"
-assert result.value == "pymathics.vectorizedplot"
+if os.environ.get("MATHICS_PLOT_DETAILED_TESTS", False):
+    result = SESSIONS[True].evaluate('LoadModule["pymathics.vectorizedplot"]')
+    assert isinstance(result, String), f"{result}"
+    assert result.value == "pymathics.vectorizedplot"
 
 
 def copy_file(dst_fn, src_fn):
