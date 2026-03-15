@@ -3,7 +3,7 @@
 Unit tests for mathics.builtins.numbers.algebra and
 mathics.builtins.numbers.integer
 """
-from test.helper import check_evaluation
+from test.helper import check_arg_counts, check_evaluation
 
 import pytest
 
@@ -458,14 +458,19 @@ def test_fullsimplify():
             "2 (3 + 2 x) ^ 2 / (125 + 225 x + 210 x ^ 2 + 117 x ^ 3 + 42 x ^ 4 + 9 x ^ 5 + x ^ 6)",
             None,
         ),
-        ## errors:
-        (
-            "Exponent[x^2]",
-            ("Exponent called with 1 argument; 2 or 3 arguments are expected.",),
-            "Exponent[x ^ 2]",
-            None,
-        ),
-        ## Issue659
+        # # Note: we can't put ExpandEnumerator arg count tests in test_arg_count_errors
+        # # because we (helpfully?) report an error with ExpandNumerator[],
+        # # while WMA does not!
+        # # ExpandNumerator may be tricky to get right. Skip it for now, until there's
+        # # good reason to add it.
+        # (
+        #     "ExpandNumerator[x, y, z]",
+        #     (
+        #         "ExpandNumerator called with 3 arguments; 1 or 2 arguments are expected.",
+        #     ),
+        #     "ExpandNumerator[x, y, z]",
+        #     "Check ExpandNumerator argument counts",
+        # ),
         ("Factor[{x+x^2}]", None, "{x (1 + x)}", None),
         ("FactorTermsList[2 x^2 - 2, x]", None, "{2, 1, -1 + x ^ 2}", None),
         (
@@ -585,15 +590,4 @@ def test_integer(str_expr, msgs, str_expected, fail_msg):
 )
 def test_arg_count_errors(function_name, msg_fragment):
     """ """
-
-    str_expr = f"{function_name}[]"
-    expected_msgs = [
-        f"{function_name} called with 0 arguments; {msg_fragment} expected."
-    ]
-    failure_message = f"{function_name} argument number error"
-    check_evaluation(
-        str_expr,
-        str_expr,
-        failure_message=failure_message,
-        expected_messages=expected_msgs,
-    )
+    check_arg_counts(function_name, msg_fragment)

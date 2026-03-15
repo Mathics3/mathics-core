@@ -381,6 +381,8 @@ class Between(Builtin):
         "Between[range_List][x_]": "Between[x, range]",  # operator form
     }
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
     summary_text = "test if value or values are in range"
 
 
@@ -408,6 +410,8 @@ class BooleanQ(Builtin):
      = True
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
     rules = {
         "BooleanQ[expr_]": "If[expr, True, True, False]",
     }
@@ -850,6 +854,8 @@ class TrueQ(Builtin):
      = False
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
     rules = {
         "TrueQ[expr_]": "If[expr, True, False, False]",
     }

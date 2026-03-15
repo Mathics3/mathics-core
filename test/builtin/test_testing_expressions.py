@@ -3,9 +3,31 @@
 Unit tests for mathics.builtin.testing_expressions
 """
 
-from test.helper import check_evaluation
+from test.helper import check_arg_counts, check_evaluation
 
 import pytest
+
+
+@pytest.mark.parametrize(
+    ("function_name", "msg_fragment"),
+    [
+        (
+            "Between",
+            "1 or 2 arguments are",
+        ),
+        (
+            "BooleanQ",
+            "1 argument is",
+        ),
+        (
+            "TrueQ",
+            "1 argument is",
+        ),
+    ],
+)
+def test_arg_errors(function_name, msg_fragment):
+    """ """
+    check_arg_counts(function_name, msg_fragment)
 
 
 @pytest.mark.parametrize(
@@ -41,18 +63,6 @@ def test_logic(str_expr, msgs, str_expected, fail_msg):
     [
         ("SubsetQ[{1, 2, 3}, {0, 1}]", None, "False", None),
         ("SubsetQ[{1, 2, 3}, {1, 2, 3, 4}]", None, "False", None),
-        (
-            "SubsetQ[{1, 2, 3}]",
-            ("SubsetQ called with 1 argument; 2 arguments are expected.",),
-            "SubsetQ[{1, 2, 3}]",
-            None,
-        ),
-        (
-            "SubsetQ[{1, 2, 3}, {1, 2}, {3}]",
-            ("SubsetQ called with 3 arguments; 2 arguments are expected.",),
-            "SubsetQ[{1, 2, 3}, {1, 2}, {3}]",
-            None,
-        ),
         (
             "SubsetQ[a + b + c, {1}]",
             ("Heads Plus and List at positions 1 and 2 are expected to be the same.",),

@@ -448,6 +448,8 @@ class Information(PrefixOperator):
     """
 
     attributes = A_HOLD_ALL | A_SEQUENCE_HOLD | A_PROTECTED | A_READ_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
     messages = {"notfound": "Expression `1` is not a symbol"}
     options = {
         "LongForm": "True",

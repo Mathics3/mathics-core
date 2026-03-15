@@ -3,9 +3,43 @@
 Unit tests from mathics.builtin.string.
 """
 
-from test.helper import check_evaluation
+from test.helper import check_arg_counts, check_evaluation
 
 import pytest
+
+
+@pytest.mark.parametrize(
+    ("function_name", "msg_fragment"),
+    [
+        (
+            "DigitQ",
+            "1 argument is",
+        ),
+        (
+            "LetterQ",
+            "1 argument is",
+        ),
+        (
+            "StringMatchQ",
+            "1 or 2 arguments are",
+        ),
+        (
+            "StringQ",
+            "1 argument is",
+        ),
+        (
+            "SubsetQ",
+            "2 arguments are",
+        ),
+        (
+            "SyntaxQ",
+            "1 or 2 arguments are",
+        ),
+    ],
+)
+def test_arg_errors(function_name, msg_fragment):
+    """ """
+    check_arg_counts(function_name, msg_fragment)
 
 
 @pytest.mark.parametrize(

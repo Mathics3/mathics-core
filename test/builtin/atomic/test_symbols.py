@@ -2,7 +2,7 @@
 """
 Unit tests from mathics.builtin.atomic.symbols.
 """
-from test.helper import check_evaluation
+from test.helper import check_arg_counts, check_evaluation
 
 import pytest
 
@@ -84,31 +84,26 @@ def test_symbol(str_expr, warnings, str_expected, fail_msg):
 
 
 @pytest.mark.parametrize(
-    ("str_expr", "msgs", "fail_msg"),
+    ("function_name", "msg_fragment"),
     [
         (
-            "Symbol[]",
-            ["Symbol called with 0 arguments; 1 argument is expected."],
-            "Symbol argument number error",
+            "Information",
+            "1 or 2 arguments are",
         ),
         (
-            "SymbolName[]",
-            ["SymbolName called with 0 arguments; 1 argument is expected."],
-            "SymbolName[] argument number error",
+            "Symbol",
+            "1 argument is",
         ),
         (
-            "ValueQ[]",
-            ["ValueQ called with 0 arguments; 1 argument is expected."],
-            "ValueQ[] argument number error",
+            "SymbolName",
+            "1 argument is",
+        ),
+        (
+            "ValueQ",
+            "1 argument is",
         ),
     ],
 )
-def test_symbols_arg_errors(str_expr, msgs, fail_msg):
+def test_symbols_arg_errors(function_name, msg_fragment):
     """ """
-
-    check_evaluation(
-        str_expr,
-        str_expr,
-        failure_message=fail_msg,
-        expected_messages=msgs,
-    )
+    check_arg_counts(function_name, msg_fragment)
