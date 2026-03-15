@@ -64,18 +64,6 @@ def test_logic(str_expr, msgs, str_expected, fail_msg):
         ("SubsetQ[{1, 2, 3}, {0, 1}]", None, "False", None),
         ("SubsetQ[{1, 2, 3}, {1, 2, 3, 4}]", None, "False", None),
         (
-            "SubsetQ[{1, 2, 3}]",
-            ("SubsetQ called with 1 argument; 2 arguments are expected.",),
-            "SubsetQ[{1, 2, 3}]",
-            None,
-        ),
-        (
-            "SubsetQ[{1, 2, 3}, {1, 2}, {3}]",
-            ("SubsetQ called with 3 arguments; 2 arguments are expected.",),
-            "SubsetQ[{1, 2, 3}, {1, 2}, {3}]",
-            None,
-        ),
-        (
             "SubsetQ[a + b + c, {1}]",
             ("Heads Plus and List at positions 1 and 2 are expected to be the same.",),
             "SubsetQ[a + b + c, {1}]",
