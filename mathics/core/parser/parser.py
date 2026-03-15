@@ -104,8 +104,8 @@ class Parser:
                 "CloseCurly",
                 "CloseParen",
                 "CloseSquare",
-                "Comma",
                 "RawColon",
+                "RawComma",
                 "DifferentialD",
             ]
         )
@@ -680,7 +680,7 @@ class Parser:
         while True:
             token = self.next_noend()
             tag = token.tag
-            if tag == "Comma":
+            if tag == "RawComma":
                 self.tokeniser.feeder.message("Syntax", "com")
                 result.append(NullSymbol)
                 self.consume()
@@ -693,7 +693,7 @@ class Parser:
                 result.append(self.parse_expr(NEVER_ADD_PARENTHESIS))
                 token = self.next_noend()
                 tag = token.tag
-                if tag == "Comma":
+                if tag == "RawComma":
                     self.consume()
                     continue
                 elif tag in ("CloseCurly", "BarGreater", "CloseSquare"):
