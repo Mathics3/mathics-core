@@ -18,7 +18,6 @@ from mathics.core.element import ImmutableValueMixin
 from mathics.core.keycomparable import BASIC_ATOM_NUMBER_ELT_ORDER
 from mathics.core.number import (
     FP_MANTISA_BINARY_DIGITS,
-    MACHINE_PRECISION_VALUE,
     MAX_MACHINE_NUMBER,
     MIN_MACHINE_NUMBER,
     dps,
@@ -26,14 +25,17 @@ from mathics.core.number import (
     prec,
 )
 from mathics.core.symbols import Atom, NumericOperators, Symbol, SymbolNull, symbol_set
-from mathics.core.systemsymbols import SymbolFullForm, SymbolInfinity, SymbolInputForm
+from mathics.core.systemsymbols import (
+    SymbolFullForm,
+    SymbolI,
+    SymbolInfinity,
+    SymbolInputForm,
+)
 
 # The below value is an empirical number for comparison precedence
 # that seems to work.  We have to be able to match mpmath values with
 # sympy values
 COMPARE_PREC = 50
-
-SymbolI = Symbol("I")
 
 SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM = symbol_set(SymbolInputForm, SymbolFullForm)
 
@@ -310,16 +312,19 @@ class Integer(Number[int]):
     def round(self, d: Optional[int] = None) -> Union["MachineReal", "PrecisionReal"]:
         """
         Produce a Real approximation of ``self`` with decimal precision ``d``.
-        If ``d`` is  ``None``, and self.value fits in a float,
-        returns a ``MachineReal`` number.
+        If ``d`` is  ``None`` returns a ``MachineReal`` number.
+        If d doesn't fit in a ``float``, use a mpmath.mpf value
+        with the mantissa adjusted to hold the number.
         Is the low-level equivalent to ``N[self, d]``.
         """
         if d is None:
             d = self.value.bit_length()
+
             if d <= FP_MANTISA_BINARY_DIGITS:
                 return MachineReal(float(self.value))
-            else:
-                d = MACHINE_PRECISION_VALUE
+
+            with mpmath.workdps(d):
+                return MachineReal(mpmath.mpf(self.value))
         return PrecisionReal(sympy.Float(self.value, d))
 
     @property
