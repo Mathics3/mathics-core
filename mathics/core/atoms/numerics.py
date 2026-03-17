@@ -18,7 +18,6 @@ from mathics.core.element import ImmutableValueMixin
 from mathics.core.keycomparable import BASIC_ATOM_NUMBER_ELT_ORDER
 from mathics.core.number import (
     FP_MANTISA_BINARY_DIGITS,
-    MACHINE_PRECISION_VALUE,
     MAX_MACHINE_NUMBER,
     MIN_MACHINE_NUMBER,
     dps,
@@ -26,14 +25,17 @@ from mathics.core.number import (
     prec,
 )
 from mathics.core.symbols import Atom, NumericOperators, Symbol, SymbolNull, symbol_set
-from mathics.core.systemsymbols import SymbolFullForm, SymbolInfinity, SymbolInputForm
+from mathics.core.systemsymbols import (
+    SymbolFullForm,
+    SymbolI,
+    SymbolInfinity,
+    SymbolInputForm,
+)
 
 # The below value is an empirical number for comparison precedence
 # that seems to work.  We have to be able to match mpmath values with
 # sympy values
 COMPARE_PREC = 50
-
-SymbolI = Symbol("I")
 
 SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM = symbol_set(SymbolInputForm, SymbolFullForm)
 
@@ -308,18 +310,31 @@ class Integer(Number[int]):
         return self._value == 0
 
     def round(self, d: Optional[int] = None) -> Union["MachineReal", "PrecisionReal"]:
-        """
-        Produce a Real approximation of ``self`` with decimal precision ``d``.
-        If ``d`` is  ``None``, and self.value fits in a float,
-        returns a ``MachineReal`` number.
-        Is the low-level equivalent to ``N[self, d]``.
+        """Produce a Real approximation rounding value of ``Integer`` with
+        decimal precision ``d``.
+
+        If ``d`` is ``None`` we force the mantissa to fit the entire
+        integer value, provided it is less than magical number
+        1024. 1024 is a common internal Mathematica implementation limit where
+        it switches from using MachineReal to PrecisionReal.
+
+        If a decimal precision ``d`` is not None, then we convert to
+        a PrecisionReal using that value d.
+
+        When ``d`` is ``None`` but the mantissa does not fit into a
+        Python float, we implement the value as a mpmath.mpf value.
         """
         if d is None:
             d = self.value.bit_length()
-            if d <= FP_MANTISA_BINARY_DIGITS:
-                return MachineReal(float(self.value))
+            # Many WMA implementations seem to change behavior of the integer
+            # represetation that have more than 1024 digits. In theory this is
+            # number can vary depending on hardware characteristics.
+            # In practice, a reasonable
+            if d <= 1024:
+                return MachineReal(self.value)
             else:
-                d = MACHINE_PRECISION_VALUE
+                d = 16  # MACHINE_PRECISION_VALUE rounded up
+
         return PrecisionReal(sympy.Float(self.value, d))
 
     @property
@@ -420,12 +435,16 @@ class Real(Number[T]):
         update(b"System`Real>" + str(self.to_sympy().n(_prec)).encode("utf8"))
 
 
-# This has to come before PrecisionReal which uses MachineReal.
+# This has to come before PrecisionReal, which uses MachineReal.
+# FIXME: rocky: float is not right. It should be Union[float, mpmath.mpf]
+# but I don't understand how to get the type annotation system to handle his.
 class MachineReal(Real[float]):
     """
     Machine precision real number.
 
-    Stored internally as a python float.
+    Stored internally as a Python float or a mpmath.mpf
+
+    Precision for these numbers is `MachinePrecision`.
     """
 
     # Dictionary of MachineReal constant values defined so far.
@@ -433,11 +452,24 @@ class MachineReal(Real[float]):
     # The key is the MachineReal's Python `float` value, and the
     # dictionary's value is the corresponding Mathics MachineReal object.
     _machine_reals: Dict[Any, "MachineReal"] = {}
-    _value: float
+    _value: Union[float, mpmath.mpf]
 
     def __new__(cls, value) -> "MachineReal":
-        n = float(value)
-        if math.isinf(n) or math.isnan(n):
+
+        if isinstance(value, int):
+            d = value.bit_length()
+
+            if d <= FP_MANTISA_BINARY_DIGITS:
+                n = float(value)
+
+            else:
+                with mpmath.workdps(d):
+                    n = mpmath.mpf(value)
+        else:
+            n = float(value)
+
+        if isinstance(n, float) and math.isinf(n) or math.isnan(n):
+            # FIXME: can we do better here using mpmath.mpf?
             raise OverflowError
 
         self = cls._machine_reals.get(n)

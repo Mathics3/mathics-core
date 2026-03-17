@@ -74,6 +74,30 @@ def test_realvalued():
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
         (
+            "N[3^200]",
+            None,
+            "2.65614×10^95",
+            "Numeric converts a large integer to a MachineReal without losing precision",
+        ),
+        (
+            "N[2^1023]",
+            None,
+            "8.98847×10^307",
+            "Numeric display digits for value under 2^1024 is DefaultPrintDisplay value 6",
+        ),
+        (
+            "N[2^1024]",
+            None,
+            "1.797693134862316×10^308",
+            "Numeric display digits for value on or orver= 2^1024 is $MachineDigits",
+        ),
+        (
+            "N[3^200]",
+            None,
+            "2.65614×10^95",
+            "Numeric converts a large integer to a MachineReal without losing precision",
+        ),
+        (
             "p=N[Pi,100]",
             None,
             "3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117068",
