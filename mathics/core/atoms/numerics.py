@@ -425,7 +425,9 @@ class MachineReal(Real[float]):
     """
     Machine precision real number.
 
-    Stored internally as a python float.
+    Stored internally as a Python float.
+    MachineReal numbers are floating-point numbers that are
+    handled natively by the underlying CPU hardware.
     """
 
     # Dictionary of MachineReal constant values defined so far.
@@ -435,7 +437,7 @@ class MachineReal(Real[float]):
     _machine_reals: Dict[Any, "MachineReal"] = {}
     _value: float
 
-    def __new__(cls, value) -> "MachineReal":
+    def __new__(cls, value:float) -> "MachineReal":
         n = float(value)
         if math.isinf(n) or math.isnan(n):
             raise OverflowError
