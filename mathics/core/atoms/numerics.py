@@ -310,12 +310,16 @@ class Integer(Number[int]):
         return self._value == 0
 
     def round(self, d: Optional[int] = None) -> Union["MachineReal", "PrecisionReal"]:
-        """
-        Produce a Real approximation of ``self`` with decimal precision ``d``.
-        If ``d`` is  ``None`` returns a ``MachineReal`` number.
-        If d doesn't fit in a ``float``, use a mpmath.mpf value
-        with the mantissa adjusted to hold the number.
-        Is the low-level equivalent to ``N[self, d]``.
+        """Produce a Real approximation value of ``Integer`` with
+        decimal precision ``d``.  If ``d`` is ``None`` we force the
+        mantissa to fit the entire integer value. This value is
+        created from a Python ``float`` if the number fits in a float
+        mantissa. Otherwise, we use a mpmath.mpf value with
+        (mpmath.mp.dps) adjusted to hold the integer.  In either case
+        a ``MachineReal`` value is returned.
+
+        If ``d`` is given, we return a ``PrecisionReal`` value from a
+        sympy.Float.
         """
         if d is None:
             d = self.value.bit_length()
