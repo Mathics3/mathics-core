@@ -77,7 +77,7 @@ def test_realvalued():
             "N[3^200]",
             None,
             "2.65614×10^95",
-            None,
+            "Numeric converts a large integer to a MachineReal without losing precision",
         ),
         (
             "p=N[Pi,100]",

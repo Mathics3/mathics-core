@@ -431,7 +431,7 @@ class MachineReal(Real[float]):
     """
     Machine precision real number.
 
-    Stored internally as a sympy.Float or a mpmath.mpf
+    Stored internally as a Python float or a mpmath.mpf
     """
 
     # Dictionary of MachineReal constant values defined so far.
