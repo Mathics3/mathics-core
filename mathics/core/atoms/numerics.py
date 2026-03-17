@@ -310,19 +310,30 @@ class Integer(Number[int]):
         return self._value == 0
 
     def round(self, d: Optional[int] = None) -> Union["MachineReal", "PrecisionReal"]:
-        """Produce a Real approximation value of ``Integer`` with
-        decimal precision ``d``.  If ``d`` is ``None`` we force the
-        mantissa to fit the entire integer value. This value is
-        created from a Python ``float`` if the number fits in a float
-        mantissa. Otherwise, we use a mpmath.mpf value with
-        (mpmath.mp.dps) adjusted to hold the integer.  In either case
-        a ``MachineReal`` value is returned.
+        """Produce a Real approximation rounding value of ``Integer`` with
+        decimal precision ``d``.
 
-        If ``d`` is given, we return a ``PrecisionReal`` value from a
-        sympy.Float.
+        If ``d`` is ``None`` we force the mantissa to fit the entire
+        integer value, provided it is less than magical number
+        1024. 1024 is a common internal Mathematica implementation limit where
+        it switches from using MachineReal to PrecisionReal.
+
+        If a decimal precision ``d`` is not None, then we convert to
+        a PrecisionReal using that value d.
+
+        When ``d`` is ``None`` but the mantissa does not fit into a
+        Python float, we implement the value as a mpmath.mpf value.
         """
         if d is None:
-            return MachineReal(self.value)
+            d = self.value.bit_length()
+            # Many WMA implementations seem to change behavior of the integer
+            # represetation that have more than 1024 digits. In theory this is
+            # number can vary depending on hardware characteristics.
+            # In practice, a reasonable
+            if d <= 1024:
+                return MachineReal(self.value)
+            else:
+                d = 16  # MACHINE_PRECISION_VALUE rounded up
 
         return PrecisionReal(sympy.Float(self.value, d))
 
@@ -424,7 +435,7 @@ class Real(Number[T]):
         update(b"System`Real>" + str(self.to_sympy().n(_prec)).encode("utf8"))
 
 
-# This has to come before PrecisionReal which uses MachineReal.
+# This has to come before PrecisionReal, which uses MachineReal.
 # FIXME: rocky: float is not right. It should be Union[float, mpmath.mpf]
 # but I don't understand how to get the type annotation system to handle his.
 class MachineReal(Real[float]):
@@ -432,6 +443,8 @@ class MachineReal(Real[float]):
     Machine precision real number.
 
     Stored internally as a Python float or a mpmath.mpf
+
+    Precision for these numbers is `MachinePrecision`.
     """
 
     # Dictionary of MachineReal constant values defined so far.
