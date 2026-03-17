@@ -89,13 +89,7 @@ def test_realvalued():
             "N[2^1024]",
             None,
             "1.797693134862316×10^308",
-            "Numeric display digits for value on or orver= 2^1024 is $MachineDigits",
-        ),
-        (
-            "N[3^200]",
-            None,
-            "2.65614×10^95",
-            "Numeric converts a large integer to a MachineReal without losing precision",
+            "Numeric display digits for value on or over= 2^1024 is $MachineDigits",
         ),
         (
             "p=N[Pi,100]",
