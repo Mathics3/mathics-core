@@ -322,13 +322,8 @@ class Integer(Number[int]):
         sympy.Float.
         """
         if d is None:
-            d = self.value.bit_length()
+            return MachineReal(self.value)
 
-            if d <= FP_MANTISA_BINARY_DIGITS:
-                return MachineReal(float(self.value))
-
-            with mpmath.workdps(d):
-                return MachineReal(mpmath.mpf(self.value))
         return PrecisionReal(sympy.Float(self.value, d))
 
     @property
@@ -430,11 +425,13 @@ class Real(Number[T]):
 
 
 # This has to come before PrecisionReal which uses MachineReal.
+# FIXME: rocky: float is not right. It should be Union[float, mpmath.mpf]
+# but I don't understand how to get the type annotation system to handle his.
 class MachineReal(Real[float]):
     """
     Machine precision real number.
 
-    Stored internally as a python float.
+    Stored internally as a sympy.Float or a mpmath.mpf
     """
 
     # Dictionary of MachineReal constant values defined so far.
@@ -442,11 +439,24 @@ class MachineReal(Real[float]):
     # The key is the MachineReal's Python `float` value, and the
     # dictionary's value is the corresponding Mathics MachineReal object.
     _machine_reals: Dict[Any, "MachineReal"] = {}
-    _value: float
+    _value: Union[float, mpmath.mpf]
 
     def __new__(cls, value) -> "MachineReal":
-        n = float(value)
-        if math.isinf(n) or math.isnan(n):
+
+        if isinstance(value, int):
+            d = value.bit_length()
+
+            if d <= FP_MANTISA_BINARY_DIGITS:
+                n = float(value)
+
+            else:
+                with mpmath.workdps(d):
+                    n = mpmath.mpf(value)
+        else:
+            n = float(value)
+
+        if isinstance(n, float) and math.isinf(n) or math.isnan(n):
+            # FIXME: can we do better here using mpmath.mpf?
             raise OverflowError
 
         self = cls._machine_reals.get(n)
