@@ -420,7 +420,7 @@ class Real(Number[T]):
         update(b"System`Real>" + str(self.to_sympy().n(_prec)).encode("utf8"))
 
 
-# This has to come before PrecisionReal which uses MachineReal.
+# This has to come before PrecisionReal, which uses MachineReal.
 class MachineReal(Real[float]):
     """
     Machine precision real number.
@@ -428,6 +428,8 @@ class MachineReal(Real[float]):
     Stored internally as a Python float.
     MachineReal numbers are floating-point numbers that are
     handled natively by the underlying CPU hardware.
+
+    Precision for these numbers is `MachinePrecision`.
     """
 
     # Dictionary of MachineReal constant values defined so far.
@@ -437,7 +439,7 @@ class MachineReal(Real[float]):
     _machine_reals: Dict[Any, "MachineReal"] = {}
     _value: float
 
-    def __new__(cls, value:float) -> "MachineReal":
+    def __new__(cls, value: float) -> "MachineReal":
         n = float(value)
         if math.isinf(n) or math.isnan(n):
             raise OverflowError
