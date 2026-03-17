@@ -196,6 +196,12 @@ class N(Builtin):
     >> a
      = a
 
+    For large integer numbers that does not fit in a Python float number,
+    a PrecisionReal number is used with precision 'Round'['MachinePrecision']$\approx 15.$ is used:
+    >> {N[3^646]//Precision, N[3^647]//Precision}
+     = {MachinePrecision, 15.}
+
+
     'N' automatically threads over expressions, except when a symbol has
      attributes 'NHoldAll', 'NHoldFirst', or 'NHoldRest'.
     >> N[a + b]

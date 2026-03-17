@@ -315,10 +315,9 @@ class Integer(Number[int]):
         Is the low-level equivalent to ``N[self, d]``.
         """
         if d is None:
-            d = self.value.bit_length()
-            if d <= FP_MANTISA_BINARY_DIGITS:
+            try:
                 return MachineReal(float(self.value))
-            else:
+            except OverflowError:
                 d = MACHINE_PRECISION_VALUE
         return PrecisionReal(sympy.Float(self.value, d))
 
