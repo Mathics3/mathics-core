@@ -297,7 +297,7 @@ class Parser:
                 break
             elif tag == "END":
                 self.get_more_input(token.pos)
-            elif tag == "BoxInputEscape":
+            elif tag == "LinearSyntaxStar":
                 self.consume()
                 new_result = self.parse_box_escape(token, precedence)
             elif result is None and tag != "END":
@@ -831,8 +831,8 @@ class Parser:
         expr2 = self.parse_expr(q + 1)
         return Node("Alternatives", expr1, expr2).flatten()
 
-    def e_ApplyList(self, expr1, _: Token, p: int) -> Optional[Node]:
-        operator_precedence = right_binary_operators["Apply"]
+    def e_MapApply(self, expr1, _: Token, p: int) -> Optional[Node]:
+        operator_precedence = right_binary_operators["MapApply"]
         if operator_precedence < p:
             return None
         self.consume()
