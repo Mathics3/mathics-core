@@ -2,7 +2,6 @@
 """
 Mathics3 box rendering to plain text.
 """
-
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
@@ -32,6 +31,43 @@ from mathics.format.box.graphics3d import prepare_elements as prepare_elements3d
 from mathics.format.form.util import _WrongFormattedExpression, text_cells_to_grid
 
 add_render_function(FormBox, convert_inner_box_field)
+
+
+# Map WMA encoding names to Python encoding names
+ENCODING_WMA_TO_PYTHON = {
+    "WindowsEastEurope": "cp1250",
+    "WindowsCyrillic": "cp1251",
+    "WindowsANSI": "cp1252",
+    "WindowsGreek": "cp1252",
+    "WindowsTurkish": "cp1254",
+}
+
+
+def encode_string_value(value: str, encoding: str):
+    """Convert an Unicode string `value` to the required `encoding`"""
+    if encoding == "ASCII":
+        # TODO: replace from a table from MathicsScanner
+        ascii_map = {
+            "⇒": "=>",
+            "↔": "<->",
+            "→": "->",
+            "⇾": "->",
+            "⇾": "->",
+            "⇴": "->",
+            "∫": r"\[Integral]",
+            "𝑑": r"\[DifferentialD]",
+            "⧦": r"\[Equivalent]",
+            "×": r" x ",
+        }
+        result = ""
+        for ch in value:
+            ch = ascii_map.get(ch, ch)
+            result += ch
+        return result
+
+    encoding = ENCODING_WMA_TO_PYTHON.get(encoding, encoding)
+    result = value.encode("utf-8").decode(encoding)
+    return result
 
 
 def fractionbox(box: FractionBox, **options) -> str:
@@ -159,6 +195,9 @@ def string(s: String, **options) -> str:
     if value.startswith('"') and value.endswith('"'):  # nopep8
         if not show_string_characters:
             value = value[1:-1]
+
+    if "encoding" in options and options["encoding"] != "Unicode":
+        value = encode_string_value(value, options["encoding"])
     return value
 
 
