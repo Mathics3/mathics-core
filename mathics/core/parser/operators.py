@@ -42,7 +42,7 @@ inequality_operators = [
 binary_operators = {}
 
 # all ops - check they're disjoint
-all_operators = defaultdict(lambda: 670)
+OPERATOR_PRECEDENCE = defaultdict(lambda: 670)
 
 # Set below
 all_operator_names = []
@@ -75,9 +75,9 @@ def calculate_operator_information():
 
     for ops in all_op_collections:
         for op, prec in ops.items():
-            all_operators[op] = prec
+            OPERATOR_PRECEDENCE[op] = prec
 
-    all_operator_names = list(all_operators.keys())
+    all_operator_names = list(OPERATOR_PRECEDENCE.keys())
 
 
 # Calculating operator information is also done

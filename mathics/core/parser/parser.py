@@ -32,7 +32,7 @@ from mathics.core.parser.ast import (
 )
 from mathics.core.parser.location import track_location, track_token_location
 from mathics.core.parser.operators import (
-    all_operators as OPERATOR_PRECEDENCE,
+    OPERATOR_PRECEDENCE,
     binary_operators,
     box_operators,
     flat_binary_operators,
