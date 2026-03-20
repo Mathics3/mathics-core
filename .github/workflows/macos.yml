@@ -30,7 +30,7 @@ jobs:
       run: |
         # We can comment out after next Mathics3-Scanner release
         # python -m pip install -e git+https://github.com/Mathics3/Mathics3-scanner#egg=Mathics3-Scanner[full]
-        git clone --depth 1 -b misc-tweaks https://github.com/Mathics3/Mathics3-scanner.git
+        git clone --depth 1 https://github.com/Mathics3/Mathics3-scanner.git
         cd Mathics3-scanner/
         pip install -e .
         bash -x admin-tools/make-JSON-tables.sh
