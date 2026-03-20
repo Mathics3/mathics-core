@@ -76,7 +76,10 @@ def eval_makeboxes_traditional_form(expr, evaluation):
 
 
 def apply_makeboxes_rules(
-    expr: BaseElement, evaluation: Evaluation, form: Symbol = SymbolStandardForm
+    expr: BaseElement,
+    evaluation: Evaluation,
+    form: Symbol = SymbolStandardForm,
+    **kwargs,
 ) -> BoxElementMixin:
     """
     This function takes the definitions provided by the evaluation
@@ -124,7 +127,7 @@ def apply_makeboxes_rules(
     if parent_form is not form:
         return apply_makeboxes_rules(expr, evaluation, parent_form)
 
-    return eval_generic_makeboxes(expr, form, evaluation)
+    return eval_generic_makeboxes(expr, form, evaluation, **kwargs)
 
 
 # TODO: evaluation is needed because `atom_to_boxes` uses it. Can we remove this
@@ -205,7 +208,7 @@ def eval_makeboxes_fullform_recursive(
     return RowBox(*result_elements)
 
 
-def eval_generic_makeboxes(expr, f, evaluation):
+def eval_generic_makeboxes(expr, f, evaluation, **kwargs):
     """MakeBoxes[expr_,
     f:TraditionalForm|StandardForm]"""
     from mathics.builtin.box.layout import RowBox
@@ -224,7 +227,7 @@ def eval_generic_makeboxes(expr, f, evaluation):
 
         printform_callback = PRINT_FORMS_CALLBACK.get(head.get_name(), None)
         if printform_callback is not None:
-            return printform_callback(elements[0], evaluation)
+            return printform_callback(elements[0], evaluation, **kwargs)
 
         f_name = f.get_name()
         if f_name == "System`TraditionalForm":
@@ -296,7 +299,7 @@ def format_element(
     if form not in evaluation.definitions.boxforms:
         formatted_expr = Expression(form, formatted_expr)
         form = SymbolStandardForm
-    result_box = apply_makeboxes_rules(formatted_expr, evaluation, form)
+    result_box = apply_makeboxes_rules(formatted_expr, evaluation, form, **kwargs)
     if isinstance(result_box, BoxElementMixin):
         return result_box
     return eval_makeboxes_fullform_recursive(element, evaluation)

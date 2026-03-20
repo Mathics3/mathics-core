@@ -8,7 +8,7 @@ with WMA.
 """
 # TODO: consider to split this module in sub-modules.
 
-from test.helper import check_evaluation, session
+from test.helper import check_evaluation
 
 import pytest
 from mathics_scanner.errors import IncompleteSyntaxError
