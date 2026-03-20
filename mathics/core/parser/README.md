@@ -177,8 +177,8 @@ def p_Integral(self, token):
     `expr : Integral expr1 DifferentialD expr2
     self.consume()                          # consume 'Integral'
 
-    inner_prec = all_operators['Sum'] + 1   # lookup inner
-    outer_prec = all_operators['Power'] - 1 # and outer prec
+    inner_prec = OPERATOR_PRECEDENCE['Sum'] + 1   # lookup inner
+    outer_prec = OPERATOR_PRECEDENCE['Power'] - 1 # and outer prec
 
     expr1 = self.parse_exp(inner_prec)      # consume expr1
     self.expect('DifferentialD')            # consume 'DifferentialD'
