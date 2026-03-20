@@ -1,0 +1,504 @@
+System`Graphics3D
+  System`List
+    System`RGBColor
+      System`Real 1.0
+      System`Real 0.690196
+      System`Real 0.0
+    System`GraphicsComplex
+      System`NumericArray NumericArray[Real*, 2156×3]
+        [[ 0.01020408 -0.58166669 -0.03061224]
+         [ 0.00816283 -0.58163265 -0.03061224]
+         [ 0.01020408 -0.58163265 -0.03095241]
+         ...
+         [ 0.25510204  0.52271356  0.03061224]
+         [ 0.01020408  0.58166675 -0.03061224]
+         [ 0.01020408  0.58166675  0.03061224]]
+      System`Polygon
+        System`NumericArray NumericArray[Integer*, 4270×3]
+          [[   3    2    1]
+           [   5    4    1]
+           [   5    1    2]
+           ...
+           [2155 2120 2122]
+           [2155 2122 2156]
+           [2156 2122 2114]]
+    System`RGBColor
+      System`Real 0.392157
+      System`Real 0.560784
+      System`Real 1.0
+    System`GraphicsComplex
+      System`NumericArray NumericArray[Real*, 5168×3]
+        [[-0.31632653 -0.95159439 -0.09183673]
+         [-0.32393319 -0.94897959 -0.09183673]
+         [-0.31632653 -0.94897959 -0.11275513]
+         ...
+         [ 0.29591837  0.96179838  0.03061224]
+         [ 0.29591837  0.95797185  0.09183673]
+         [ 0.29591837  0.95031878  0.15306122]]
+      System`Polygon
+        System`NumericArray NumericArray[Integer*, 10222×3]
+          [[   3    2    1]
+           [   5    4    1]
+           [   5    1    2]
+           ...
+           [5167 4999 5001]
+           [5167 5001 5168]
+           [5168 5001 4985]]
+    System`RGBColor
+      System`Real 0.862745
+      System`Real 0.14902
+      System`Real 0.498039
+    System`GraphicsComplex
+      System`NumericArray NumericArray[Real*, 7952×3]
+        [[-0.31632653 -1.25712667 -0.09183673]
+         [-0.3240569  -1.25510204 -0.09183673]
+         [-0.31632653 -1.25510204 -0.1130953 ]
+         ...
+         [ 0.29591837  1.26490122  0.03061224]
+         [ 0.29591837  1.26198578  0.09183673]
+         [ 0.29591837  1.2561549   0.15306122]]
+      System`Polygon
+        System`NumericArray NumericArray[Integer*, 15742×3]
+          [[   3    2    1]
+           [   5    4    1]
+           [   5    1    2]
+           ...
+           [7951 7770 7772]
+           [7951 7772 7952]
+           [7952 7772 7754]]
+    System`RGBColor
+      System`Real 0.196078
+      System`Real 0.588235
+      System`Real 0.54902
+    System`GraphicsComplex
+      System`NumericArray NumericArray[Real*, 9972×3]
+        [[-0.52040816 -1.44369333 -0.09183673]
+         [-0.53376972 -1.43877551 -0.09183673]
+         [-0.52040816 -1.43877551 -0.15085006]
+         ...
+         [ 0.5         1.45333053  0.03061224]
+         [ 0.5         1.45077943  0.09183673]
+         [ 0.5         1.44567747  0.15306122]]
+      System`Polygon
+        System`NumericArray NumericArray[Integer*, 19496×3]
+          [[   3    2    1]
+           [   5    4    1]
+           [   5    1    2]
+           ...
+           [9965 9685 9686]
+           [9965 9686 9966]
+           [9966 9686 9671]]
+    System`RGBColor
+      System`Real 0.470588
+      System`Real 0.368627
+      System`Real 0.941176
+    System`GraphicsComplex
+      System`NumericArray NumericArray[Real*, 7796×3]
+        [[-0.96938776 -1.44060375 -0.15306122]
+         [-0.97210183 -1.43877551 -0.15306122]
+         [-0.96938776 -1.43877551 -0.16768712]
+         ...
+         [ 0.5         1.48397103  0.76530612]
+         [ 0.5         1.5         0.73324842]
+         [ 0.5         1.45080792  0.82653061]]
+      System`Polygon
+        System`NumericArray NumericArray[Integer*, 14968×3]
+          [[   3    2    1]
+           [   5    4    1]
+           [   5    1    2]
+           ...
+           [7787 7794 7796]
+           [7796 7524 7518]
+           [7796 7518 7790]]
+    System`RGBColor
+      System`Real 0.996078
+      System`Real 0.380392
+      System`Real 0.0
+    System`GraphicsComplex
+      System`NumericArray NumericArray[Real*, 5436×3]
+        [[-1.25510204 -1.44630104 -0.21428571]
+         [-1.26377145 -1.43877551 -0.21428571]
+         [-1.25510204 -1.43877551 -0.25943885]
+         ...
+         [ 0.5         1.5        -1.10111487]
+         [ 0.5         1.47634646  1.13265306]
+         [ 0.5         1.5         1.10111478]]
+      System`Polygon
+        System`NumericArray NumericArray[Integer*, 10152×3]
+          [[   3    2    1]
+           [   5    4    1]
+           [   5    1    2]
+           ...
+           [5432 5435 5168]
+           [5429 5435 5432]
+           [5432 5168 5162]]
+    System`RGBColor
+      System`Real 0.0
+      System`Real 0.447059
+      System`Real 0.698039
+    System`GraphicsComplex
+      System`NumericArray NumericArray[Real*, 2952×3]
+        [[-1.45918367 -1.44916378 -0.39795918]
+         [-1.46950031 -1.43877551 -0.39795918]
+         [-1.45918367 -1.43877551 -0.43357635]
+         ...
+         [ 0.5         1.49678281  1.37755102]
+         [ 0.5         1.5         1.37404142]
+         [ 0.49014313  1.5         1.37755102]]
+      System`Polygon
+        System`NumericArray NumericArray[Integer*, 5096×3]
+          [[   3    2    1]
+           [   5    4    1]
+           [   5    1    2]
+           ...
+           [2950 2659 2945]
+           [2659 2660 2945]
+           [2945 2660 2654]]
+    System`RGBColor
+      System`Real 1.0
+      System`Real 0.690196
+      System`Real 0.0
+    System`GraphicsComplex
+      System`NumericArray NumericArray[Real*, 1112×3]
+        [[-1.45918367 -1.46449833 -0.8877551 ]
+         [-1.48472912 -1.43877551 -0.8877551 ]
+         [-1.45918367 -1.43877551 -0.92891168]
+         ...
+         [-0.76530612  1.5         1.49227617]
+         [-0.75006991  1.5        -1.5       ]
+         [-0.75006991  1.5         1.5       ]]
+      System`Polygon
+        System`NumericArray NumericArray[Integer*, 1868×3]
+          [[   3    2    1]
+           [   1    2    4]
+           [   1    4    5]
+           ...
+           [1109 1106 1110]
+           [1108 1111 1107]
+           [1110 1112 1109]]
+    System`RGBColor
+      System`Real 0.392157
+      System`Real 0.560784
+      System`Real 1.0
+    System`GraphicsComplex
+      System`NumericArray NumericArray[Real*, 380×3]
+        [[-1.45918367 -1.47728172 -1.19387755]
+         [-1.49742435 -1.43877551 -1.19387755]
+         [-1.45918367 -1.43877551 -1.24008494]
+         ...
+         [-1.13265306  1.5         1.48465137]
+         [-1.11237584  1.5        -1.5       ]
+         [-1.11237584  1.5         1.5       ]]
+      System`Polygon
+        System`NumericArray NumericArray[Integer*, 572×3]
+          [[  3   2   1]
+           [  1   2   4]
+           [  1   4   5]
+           ...
+           [377 374 378]
+           [376 379 375]
+           [378 380 377]]
+    System`RGBColor
+      System`Real 0.862745
+      System`Real 0.14902
+      System`Real 0.498039
+    System`GraphicsComplex
+      System`NumericArray NumericArray[Real*, 52×3]
+        [[-1.45918367 -1.48751413 -1.43877551]
+         [-1.5        -1.44641436 -1.43877551]
+         [-1.5        -1.43877551 -1.44641436]
+         [-1.45918367 -1.43877551 -1.48751413]
+         [-1.5        -1.5        -1.38286007]
+         [-1.45918367 -1.5        -1.42574678]
+         [-1.5        -1.44641436  1.43877551]
+         [-1.45918367 -1.5         1.42574676]
+         [-1.45918367 -1.48751413  1.43877551]
+         [-1.5        -1.5         1.38286014]
+         [-1.45918367 -1.43877551  1.48751403]
+         [-1.5        -1.43877551  1.44641432]
+         [-1.44643213 -1.43877551 -1.5       ]
+         [-1.41836735 -1.46625565 -1.5       ]
+         [-1.41836735 -1.5        -1.46625565]
+         [-1.44643213 -1.5        -1.43877551]
+         [-1.44643213 -1.5         1.43877551]
+         [-1.41836735 -1.5         1.46625558]
+         [-1.41836735 -1.46625565  1.5       ]
+         [-1.44643213 -1.43877551  1.5       ]
+         [-1.38289883 -1.5        -1.5       ]
+         [-1.38289883 -1.5         1.5       ]
+         [-1.45918367 -1.42574678 -1.5       ]
+         [-1.5        -1.38286007 -1.5       ]
+         [-1.5        -1.38286007  1.5       ]
+         [-1.45918367 -1.42574678  1.5       ]
+         [-1.45918367  1.43877551 -1.48751413]
+         [-1.5         1.38286014 -1.5       ]
+         [-1.5         1.43877551 -1.44641436]
+         [-1.45918367  1.42574676 -1.5       ]
+         [-1.45918367  1.42574676  1.5       ]
+         [-1.5         1.43877551  1.44641432]
+         [-1.5         1.38286014  1.5       ]
+         [-1.45918367  1.43877551  1.48751403]
+         [-1.44643213  1.43877551 -1.5       ]
+         [-1.44643213  1.43877551  1.5       ]
+         [-1.5         1.44641432 -1.43877551]
+         [-1.45918367  1.48751403 -1.43877551]
+         [-1.45918367  1.5        -1.42574678]
+         [-1.5         1.5        -1.38286007]
+         [-1.45918367  1.48751403  1.43877551]
+         [-1.5         1.5         1.38286014]
+         [-1.5         1.44641432  1.43877551]
+         [-1.45918367  1.5         1.42574676]
+         [-1.41836735  1.5        -1.46625565]
+         [-1.41836735  1.46625558 -1.5       ]
+         [-1.44643213  1.5        -1.43877551]
+         [-1.44643213  1.5         1.43877551]
+         [-1.41836735  1.46625558  1.5       ]
+         [-1.41836735  1.5         1.46625558]
+         [-1.38289883  1.5        -1.5       ]
+         [-1.38289883  1.5         1.5       ]]
+      System`Polygon
+        System`NumericArray NumericArray[Integer*, 52×3]
+          [[ 3  2  1]
+           [ 3  1  4]
+           [ 6  1  5]
+           [ 5  1  2]
+           [ 9  8  7]
+           [ 7  8 10]
+           [ 7 12 11]
+           [ 7 11  9]
+           [14 13  4]
+           [14  4  1]
+           [15 14  1]
+           [16 15  1]
+           [16  1  6]
+           [ 9 17  8]
+           [20 19 18]
+           [20 18 17]
+           [11 20 17]
+           [ 9 11 17]
+           [21 14 15]
+           [19 22 18]
+           [ 4 23  3]
+           [ 3 23 24]
+           [26 11 25]
+           [25 11 12]
+           [13 23  4]
+           [26 20 11]
+           [29 28 27]
+           [27 28 30]
+           [33 32 31]
+           [31 32 34]
+           [30 35 27]
+           [34 36 31]
+           [27 38 37]
+           [27 37 29]
+           [40 37 39]
+           [39 37 38]
+           [43 42 41]
+           [41 42 44]
+           [41 34 32]
+           [41 32 43]
+           [46 45 35]
+           [35 45 27]
+           [45 47 27]
+           [47 38 27]
+           [38 47 39]
+           [44 48 41]
+           [48 50 49]
+           [48 49 36]
+           [41 48 36]
+           [34 41 36]
+           [46 51 45]
+           [50 52 49]]
+  System`Rule
+    System`AlignmentPoint
+    System`Center
+  System`Rule
+    System`AspectRatio
+    System`Integer 1
+  System`Rule
+    System`Axes
+    System`True
+  System`Rule
+    System`AxesEdge
+    System`Automatic
+  System`Rule
+    System`AxesLabel
+    System`None
+  System`Rule
+    System`AxesOrigin
+    System`Automatic
+  System`Rule
+    System`AxesStyle
+    System`List
+  System`Rule
+    System`Background
+    System`Automatic
+  System`Rule
+    System`BaseStyle
+    System`List
+  System`Rule
+    System`BaselinePosition
+    System`Automatic
+  System`Rule
+    System`BoxRatios
+    System`List
+      System`Integer 1
+      System`Integer 1
+      System`Integer 1
+  System`Rule
+    System`BoxStyle
+    System`List
+  System`Rule
+    System`Boxed
+    System`True
+  System`Rule
+    System`ClipPlanes
+    System`None
+  System`Rule
+    System`ClipPlanesStyle
+    System`Automatic
+  System`Rule
+    System`ContentSelectable
+    System`Automatic
+  System`Rule
+    System`ControllerLinking
+    System`False
+  System`Rule
+    System`ControllerPath
+    System`Automatic
+  System`Rule
+    System`CoordinatesToolOptions
+    System`Automatic
+  System`Rule
+    System`Epilog
+    System`List
+  System`Rule
+    System`FaceGrids
+    System`None
+  System`Rule
+    System`FaceGridsStyle
+    System`List
+  System`Rule
+    System`FormatType
+    System`TraditionalForm
+  System`Rule
+    System`Frame
+    System`False
+  System`Rule
+    System`FrameLabel
+    System`None
+  System`Rule
+    System`FrameStyle
+    System`List
+  System`Rule
+    System`FrameTicks
+    System`Automatic
+  System`Rule
+    System`FrameTicksStyle
+    System`List
+  System`Rule
+    System`GridLines
+    System`None
+  System`Rule
+    System`GridLinesStyle
+    System`List
+  System`Rule
+    System`ImageMargins
+    System`Real 0.0
+  System`Rule
+    System`ImagePadding
+    System`All
+  System`Rule
+    System`ImageSize
+    System`Automatic
+  System`Rule
+    System`LabelStyle
+    System`List
+  System`Rule
+    System`Lighting
+    System`Automatic
+  System`Rule
+    System`LogPlot
+    System`False
+  System`Rule
+    System`Method
+    System`Automatic
+  System`Rule
+    System`PlotLabel
+    System`None
+  System`Rule
+    System`PlotRange
+    System`List
+      System`List
+        System`Real -1.5
+        System`Real 1.5
+      System`List
+        System`Real -1.5
+        System`Real 1.5
+      System`List
+        System`Real -1.5
+        System`Real 1.5
+  System`Rule
+    System`PlotRangeClipping
+    System`False
+  System`Rule
+    System`PlotRangePadding
+    System`Automatic
+  System`Rule
+    System`PlotRegion
+    System`Automatic
+  System`Rule
+    System`PreserveImageOptions
+    System`Automatic
+  System`Rule
+    System`Prolog
+    System`List
+  System`Rule
+    System`RotateLabel
+    System`True
+  System`Rule
+    System`RotationAction
+    System`Fit
+  System`Rule
+    System`SphericalRegion
+    System`Automatic
+  System`Rule
+    System`Ticks
+    System`Automatic
+  System`Rule
+    System`TicksStyle
+    System`List
+  System`Rule
+    System`TouchscreenAutoZoom
+    System`False
+  System`Rule
+    System`ViewAngle
+    System`Automatic
+  System`Rule
+    System`ViewCenter
+    System`Automatic
+  System`Rule
+    System`ViewMatrix
+    System`Automatic
+  System`Rule
+    System`ViewPoint
+    System`List
+      System`Real 1.3
+      System`Real -2.4
+      System`Real 2.0
+  System`Rule
+    System`ViewProjection
+    System`Automatic
+  System`Rule
+    System`ViewRange
+    System`All
+  System`Rule
+    System`ViewVector
+    System`Automatic
+  System`Rule
+    System`ViewVertical
+    System`List
+      System`Integer 0
+      System`Integer 0
+      System`Integer 1
