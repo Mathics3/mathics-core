@@ -14,7 +14,7 @@ from mathics.core.builtin import InfixOperator
 class DirectedEdge(InfixOperator):
     r"""
     <url>
-    :WML link:
+    :WMA link:
     https://reference.wolfram.com/language/ref/DirectedEdge.html</url>
 
     <dl>
@@ -49,7 +49,7 @@ class DirectedEdge(InfixOperator):
 class UndirectedEdge(InfixOperator):
     r"""
     <url>
-    :WML link:
+    :WMA link:
     https://reference.wolfram.com/language/ref/UndirectedEdge.html</url>
 
     <dl>
