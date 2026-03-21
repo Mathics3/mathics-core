@@ -1395,7 +1395,7 @@ class NoMeaningInfixOperator(InfixOperator):
     # This will be used to create a docstring
     __doc_pattern__ = r"""
     <url>
-    :WML link:
+    :WMA link:
     https://reference.wolfram.com/language/ref/{operator_name}.html</url>
 
     <dl>
@@ -1495,7 +1495,7 @@ class NoMeaningPostfixOperator(PostfixOperator):
     # This will be used to create a docstring
     __doc_pattern__ = r"""
     <url>
-    :WML link:
+    :WMA link:
     https://reference.wolfram.com/language/ref/{operator_name}.html</url>
 
     <dl>
@@ -1537,7 +1537,7 @@ class NoMeaningPrefixOperator(PrefixOperator):
     # This will be used to create a docstring
     __doc_pattern__ = r"""
     <url>
-    :WML link:
+    :WMA link:
     https://reference.wolfram.com/language/ref/{operator_name}.html</url>
 
     <dl>
