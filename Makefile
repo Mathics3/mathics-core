@@ -13,7 +13,7 @@ PYTEST_OPTIONS ?=
 DOCTEST_OPTIONS ?=
 
 # Variable indicating Mathics3 Modules you have available on your system, in latex2doc option format
-MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang
+MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang,pymathics.icu
 
 .PHONY: \
    all \
