@@ -66,7 +66,7 @@ def read_doctest_data(quiet=False) -> Optional[Dict[tuple, dict]]:
         return None
 
 
-def get_versions() -> dict:
+def get_versions():
     def try_cmd(cmd_list: tuple, stdout_or_stderr: str) -> str:
         status = subprocess.run(cmd_list, capture_output=True)
         if status.returncode == 0:
