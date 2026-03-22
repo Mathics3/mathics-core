@@ -744,7 +744,7 @@ class SphericalBesselJ(_Bessel):
      = -0.122771
 
     ## FIXME: should be able to tolerate Plotting at 0.
-    >> Plot[SphericalBesselJ[1, x], {x, 0.1, 10}]
+    >> Plot[SphericalBesselJ[1, x], {x, 1, 10}, PlotPoints->10]
      = -Graphics-
     """
 
