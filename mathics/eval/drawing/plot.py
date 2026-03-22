@@ -9,7 +9,7 @@ That is done as another pass after M-expression evaluation finishes.
 import numbers
 from enum import Enum
 from math import cos, isinf, isnan, pi, sqrt
-from typing import Callable, Iterable, List, Optional, Tuple, Type, Union
+from typing import Callable, Iterable, List, Optional, Tuple, Union
 
 from mathics.builtin.graphics import Graphics
 from mathics.builtin.numeric import chop
@@ -19,11 +19,10 @@ from mathics.core.atoms import Integer, Integer0, Real
 from mathics.core.builtin import get_option
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
-from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import SymbolN, SymbolTrue
+from mathics.core.symbols import SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAll,
     SymbolAutomatic,
@@ -191,7 +190,6 @@ def compile_quiet_function(expr, arg_names, evaluation, expect_list: bool):
                 return None
 
             return quiet_cf
-    expr: Optional[Type[BaseElement]] = Expression(SymbolN, expr).evaluate(evaluation)
 
     def quiet_f(*args):
         old_quiet_all = evaluation.quiet_all
