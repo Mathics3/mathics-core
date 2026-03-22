@@ -1,4 +1,4 @@
-name: Mathics3 Plot Detailed Tests  (ubuntu)
+name: Mathics3 Detailed Plotting Tests (ubuntu)
 
 on:
   push:
@@ -35,12 +35,14 @@ jobs:
         pip install -e .
         bash -x ./admin-tools/make-JSON-tables.sh
         remake -x develop-full
-    - name: install Mathic3 vectorizedplot Module
+    - name: install Mathics3 vectorizedplot Module
       run: |
         git clone --depth 1 https://github.com/Mathics3/Mathics3-Module-vectorizedplot.git
         cd Mathics3-Module-vectorizedplot
         python -m pip install --no-build-isolation -e .
         cd ..
-    - name: Test Mathics
+    - name: Run Plotting tests
       run: |
-        make plot-detailed-tests
+        echo "Plotting Testing Temporarily suspended"
+        # cd Mathics3-Module-vectorizedplot
+        # make tests

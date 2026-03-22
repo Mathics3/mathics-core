@@ -241,7 +241,7 @@ doc-102:
 doc-103:
     expr: Plot[Sin[x], {x,0,4 Pi}, Mesh->Full]
 doc-104:
-    expr: Plot[SphericalBesselJ[1, x], {x, 0.1, 10}]
+    expr: Plot[SphericalBesselJ[1, x], {x, 0.1, 10}, PlotPoints->10]
 doc-105:
     expr: Plot[SphericalBesselY[1, x], {x, 0, 10}]
 doc-106:

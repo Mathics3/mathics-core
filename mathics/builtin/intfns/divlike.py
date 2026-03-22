@@ -443,6 +443,14 @@ class QuotientRemainder(Builtin):
       <dd>computes a list of the quotient and remainder from division of $m$ by $n$.
     </dl>
 
+    Plot showing the repeated step-like nature of 'QuotientRemainder':
+
+    >> DiscretePlot[First[QuotientRemainder[n, 5]], {n, 0, 30}]
+     = -Graphics-
+
+    >> DiscretePlot[Last[QuotientRemainder[n, 5]], {n, 0, 30}]
+     = -Graphics-
+
     >> QuotientRemainder[23, 7]
      = {3, 2}
     """
