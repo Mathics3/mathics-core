@@ -721,6 +721,7 @@ class LaTeXDocChapter(DocChapter):
         if not quiet:
             print(f"Formatting Chapter {self.title}")
         intro = self.doc.latex(doc_data).strip()
+        slug = f"{self.part.slug}/{self.slug}"
         if intro:
             short = "short" if len(intro) < 300 else ""
             intro = "\\begin{chapterintro%s}\n%s\n\n\\end{chapterintro%s}" % (
@@ -738,8 +739,12 @@ class LaTeXDocChapter(DocChapter):
                 return x
 
         chapter_sections = [
-            ("\n\n\\chapter{%(title)s}\n\\chapterstart\n\n%(intro)s")
-            % {"title": escape_latex(self.title), "intro": intro},
+            ("\n\n\\chapter{%(title)s}\n\\label{%(label)s}\nchapterstart\n\n%(intro)s")
+            % {
+                "title": escape_latex(self.title),
+                "label": latex_label_safe(slug),
+                "intro": intro,
+            },
             "\\chaptersections\n",
             # ####################
             "\n\n".join(

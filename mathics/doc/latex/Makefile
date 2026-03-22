@@ -31,7 +31,7 @@ doc-data $(DOCTEST_LATEX_DATA_PCL):
 	(cd ../.. && MATHICS_CHARACTER_ENCODING="UTF-8" $(PYTHON) docpipeline.py --output --keep-going $(MATHICS3_MODULE_OPTION))
 
 mathics3-title.pdf:
-	cp mathics-title.pdf-src mathics-title.pdf
+	cp mathics3-title.pdf-src mathics3-title.pdf
 
 #: Build somewhat incomplete mathics DVI
 mathics3.dvi: mathics3.tex documentation.tex
@@ -45,7 +45,7 @@ mathics3.pdf: mathics3.tex documentation.tex mathics3-title.pdf logo-text-nodrop
 mathics3-asy-pdf: $(ASY_PDF_FILES)
 
 #: Use this if latexmk des not work. It runx
-mathics3-xetex.pdf: mathics.tex documentation.tex mathics-title.pdf logo-text-nodrop.pdf logo-heptatom.pdf version-info.tex $(DOCTEST_LATEX_DATA_PCL)
+mathics3-xetex.pdf: mathics3.tex documentation.tex mathics3-title.pdf logo-text-nodrop.pdf logo-heptatom.pdf version-info.tex $(DOCTEST_LATEX_DATA_PCL)
 	xelatex -halt-on-error -recorder "mathics3.tex"
 
 #: File containing version information
@@ -57,7 +57,7 @@ mathics3-test.pdf: mathics-test.tex testing.tex
 	$(LATEXMK) --verbose -f -pdf -pdflatex="$(XETEX) -halt-on-error" mathics3-test
 
 #: Build main Mathcis3 PDF
-mathics3-???.pdf: mathics.tex documentation.tex mathics-title.pdf logo-text-nodrop.pdf logo-heptatom.pdf version-info.tex $(DOCTEST_LATEX_DATA_PCL)
+mathics3-???.pdf: mathics.tex documentation.tex mathics3-title.pdf logo-text-nodrop.pdf logo-heptatom.pdf version-info.tex $(DOCTEST_LATEX_DATA_PCL)
 	$(LATEXMK) --verbose -f -pdf -pdflatex="$(XETEX) -halt-on-error" mathics
 
 
