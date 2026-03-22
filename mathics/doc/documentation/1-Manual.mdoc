@@ -1,7 +1,7 @@
 
 <chapter title="Introduction">
 
-\Mathics3 is a <url>:computer algebra system:https://en.wikipedia.org/wiki/Computer_algebra_system</url>. It is a free, open-source alternative to \Mathematica or the \Wolfram Language. However, \Mathics3 builds around and on top of the Python ecosystem of libraries and tools. So in a sense, you can think of it as a WMA front-end to the Python ecosystem of tools.
+\Mathics3 is a <url>:computer algebra system:https://en.wikipedia.org/wiki/Computer_algebra_system</url>. It is a free, open-source alternative to \Mathematica or the \Wolfram Language. However, \Mathics3 builds on the Python ecosystem of libraries and tools. So, in a sense, you can think of it as a WMA front end to the Python ecosystem of tools.
 
 \Mathics3 is free both as in "free beer", but more importantly, as in "freedom". \Mathics3 can be run locally. To facilitate installation of the vast amount of software needed to run this, there is a <url>:docker image available on dockerhub: https://hub.docker.com/r/mathicsorg/mathics</url>.
 
@@ -113,14 +113,14 @@ See <url>:The Mathics3 Developer Guide:https://mathics-development-guide.readthe
 
 The following sections are introductions to the basic principles of the language of \Mathics3. A few examples and functions are presented. Only their most common usages are listed; for a full description of a Symbol's possible arguments, options, etc., see its entry in the Reference of Built-in Symbols.
 
-If you google for "Mathematica Tutorials", you will find dozens of other tutorials.
+If you Google for "Mathematica Tutorials", you will find dozens of other tutorials.
 
 I (Rocky Bernstein) like <i>"Power Programming with the \Mathematica: the Kernel"</i> by David Wagner. Even though this is old, and the book covers \Mathematica 3, it has a lot of useful information that is still relevant. A PDF of this is available <url>:here:https://www.dropbox.com/s/j2dsyvptnxjd369/Wagner%20All%20Parts-RC.pdf</url>. Wolfram's "The \Mathematica Book, Fifth Edition" is useful. If you google for this book, you can probably find a PDF of it for free.
 
 
 Online, there is <url>:An Elementary Introduction to the Wolfram Language:https://www.wolfram.com/language/elementary-introduction/</url>. In the <url>:docker image:https://hub.docker.com/r/mathicsorg/mathics</url> that we supply, you can load "workspaces" containing the examples described in the chapters of this introduction.
 
-Be warned, though, that \Mathics3 does not yet offer the full range and features and capabilities of \Mathematica.
+Be warned, though, that \Mathics3 does not yet offer the full range of features and capabilities of \Mathematica.
 
 <section title="Basic calculations">
 \Mathics3 can be used to calculate basic stuff:
@@ -986,7 +986,7 @@ The list elements in this 'RowBox' are strings, though string delimiters are not
 </section>
 
 <section title="Graphics Introduction Examples">
-Two-dimensional graphics can be created using the function 'Graphics' and a list of graphics primitives. For three-dimensional graphics see the following section. The following primitives are available:
+Two-dimensional graphics can be created using the function 'Graphics' and a list of graphics primitives. For three-dimensional graphics, see the following section. The following primitives are available:
 <dl>
 <dt>'Circle'[{$x$, $y$}, $r$]
   <dd>draws a circle.
@@ -1361,7 +1361,7 @@ A pop-up menu should appear with the list of saved worksheets, with an option to
 
 <section title="Gallery Examples">
 
-We have a number of examples showing off briefly some of the capabilities of the system. These are run when you hit the button that looks like this:
+We have several examples showing off briefly some of the capabilities of the system. These are run when you hit the button that looks like this:
 
 <img src="gallery.png" title="Run Gallery Demo examples Button" label="gallery-button">
 
@@ -1375,9 +1375,9 @@ When you use the Django-based Web interface of \Mathics3, a browser session is c
 
 This implies that you should not store sensitive, private information in \Mathics3 variables when using the online Web interface. In addition to their values being stored in a database on the server, your queries might be saved for debugging purposes. However, the fact that they are transmitted over plain HTTP should make you aware that you should not transmit any sensitive information. When you want to do calculations with that kind of stuff, simply install \Mathics3 locally!
 
-If you are using a public terminal, to erase all your definitions and close the browser window. When you use \Mathics3 in a browser, use the command 'Quit[]' or its alias, 'Exit[]'.
+If you are using a public terminal, erase all your definitions and close the browser window. When you use \Mathics3 in a browser, use the command 'Quit[]' or its alias, 'Exit[]'.
 
-When you reload the current page in a browser using the default URL, e.g., <console>http:localhost:8000</console>, all of the previous input and output disappears.
+When you reload the current page in a browser using the default URL, e.g., <console>http:localhost:8000</console>, all of the previous input and output disappear.
 
 On the other hand, Definitions as described above do not, unless 'Quit[]' or 'Exit[]' is entered as described above.
 
@@ -1387,7 +1387,7 @@ If you want a URL that records the input entered, the <em>Generate Input Hash</e
 
 For example, assuming you have a \Mathics3 server running at port 8000 on <console>localhost</console>, and you enter the URL <console>http://localhost:8000/#cXVlcmllcz14</console>, you should see a single line of input containing 'x' entered.
 
-Of course, what the value of this is when evaluated depends on whether 'x' has been previously defined.
+Of course, the value of this when evaluated depends on whether 'x' has been previously defined.
 
 </section>
 
