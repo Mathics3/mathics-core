@@ -6,12 +6,9 @@ JSON
 Basic implementation for an JSON importer.
 """
 
-import json
-
-from mathics.core.atoms import String
 from mathics.core.builtin import Builtin
-from mathics.core.convert.python import from_python
 from mathics.core.expression import Evaluation
+from mathics.eval.fileformats.jsonformat import eval_JSONImport
 
 
 class JSONImport(Builtin):
@@ -20,7 +17,7 @@ class JSONImport(Builtin):
 
     <dl>
       <dt>'JSON`Import`JSONImport["file"]'
-      <dd>parses "string" as a JSON file, and returns the data as a nested
+      <dd>parses "string" as a JSON file, and returns the data as a nested \
           list of rules.
     </dl>
 
@@ -32,11 +29,4 @@ class JSONImport(Builtin):
 
     def eval(self, filename, evaluation: Evaluation):
         """%(name)s[filename_String]"""
-        source = filename.value
-        with open(source, "r") as f:
-            try:
-                json_dict = json.load(f)
-            except json.decoder.JSONDecodeError as exc:
-                evaluation.message("JSON`Import`JSONImport", "dec", String(exc.msg))
-                return None
-        return from_python(json_dict)
+        return eval_JSONImport(filename.value, evaluation)
