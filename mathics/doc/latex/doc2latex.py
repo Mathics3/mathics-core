@@ -41,7 +41,7 @@ logfile = None
 # tests and test results.
 #
 # This information is stitched in with information comes from
-# docstrings that are loaded from load Mathics builtins and external modules.
+# docstrings that are loaded from load Mathics3 builtins and external modules.
 
 DOCTEST_LATEX_DATA_PCL = settings.DOCTEST_LATEX_DATA_PCL
 
@@ -66,7 +66,7 @@ def read_doctest_data(quiet=False) -> Optional[Dict[tuple, dict]]:
         return None
 
 
-def get_versions():
+def get_versions() -> dict:
     def try_cmd(cmd_list: tuple, stdout_or_stderr: str) -> str:
         status = subprocess.run(cmd_list, capture_output=True)
         if status.returncode == 0:
@@ -111,17 +111,15 @@ def write_latex(
         doc.write(content)
     DOC_VERSION_FILE = osp.join(DOC_LATEX_DIR, "version-info.tex")
     if not quiet:
-        print(f"Writing Mathics Core Version Information to {DOC_VERSION_FILE}")
+        print(f"Writing Mathics3 Core Version Information to {DOC_VERSION_FILE}")
     with open(DOC_VERSION_FILE, "w") as doc:
-        doc.write("%% Mathics core version number created via doc2latex.py\n\n")
-        for name, version_info in get_versions().items():
-            doc.write("""\\newcommand{\\%s}{%s}\n""" % (name, version_info))
+        doc.write("%% Mathics3 core version number created via doc2latex.py\n\n")
+        for name, version_str in get_versions().items():
+            doc.write("""\\newcommand{\\%s}{%s}\n""" % (name, version_str))
 
 
 def main():
-    global logfile
-
-    parser = ArgumentParser(description="Mathics test suite.", add_help=False)
+    parser = ArgumentParser(description="Mathics3 test suite.", add_help=False)
     parser.add_argument(
         "--help", "-h", help="show this help message and exit", action="help"
     )
