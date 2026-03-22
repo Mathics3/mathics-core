@@ -107,15 +107,29 @@ System`Graphics
             System`Real -0.267857
             System`Real 0.87727
           System`List
+            System`Real -0.223214
+            System`Real 0.896254
+          System`List
             System`Real -0.178571
             System`Real 0.9158
-        System`List
+          System`List
+            System`Real -0.089286
+            System`Real 0.956657
+          System`List
+            System`Real -0.044643
+            System`Real 0.978007
+          System`List
+            System`Real 0.0
+            System`Real 1.0
+          System`List
+            System`Real 0.089286
+            System`Real 1.046002
+          System`List
+            System`Real 0.133929
+            System`Real 1.070057
           System`List
             System`Real 0.178571
             System`Real 1.094846
-          System`List
-            System`Real 0.223214
-            System`Real 1.120396
           System`List
             System`Real 0.267857
             System`Real 1.146732
