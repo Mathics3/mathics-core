@@ -5,7 +5,6 @@ with an ``Evaluation`` objects to produce ``BoxExpressions``, following
 formatting rules.
 """
 
-
 from typing import Any, Callable, Dict, List, Optional, Type
 
 from mathics.core.atoms import Complex, Integer, Rational, String, SymbolI
@@ -48,17 +47,23 @@ _element_formatters: Dict[
 
 
 def do_format(
-    element: BaseElement, evaluation: Evaluation, form: Symbol
+    element: BaseElement,
+    evaluation: Evaluation,
+    form: Symbol,
+    encoding: Optional[str] = None,
 ) -> BaseElement:
     do_format_method = _element_formatters.get(type(element), do_format_element)
-    result = do_format_method(element, evaluation, form)
+    result = do_format_method(element, evaluation, form, encoding)
     if result is None:
         return element
     return result
 
 
 def do_format_element(
-    element: BaseElement, evaluation: Evaluation, form: Symbol
+    element: BaseElement,
+    evaluation: Evaluation,
+    form: Symbol,
+    encoding: Optional[str] = None,
 ) -> Optional[BaseElement]:
     """
     Applies formats associated to the expression and removes
@@ -135,7 +140,7 @@ def do_format_element(
         formatted = format_expr(expr) if isinstance(expr, EvalMixin) else None
         if formatted is not None:
             do_format_fn = _element_formatters.get(type(formatted), do_format_element)
-            result = do_format_fn(formatted, evaluation, form)
+            result = do_format_fn(formatted, evaluation, form, encoding)
             if include_form and result is not None:
                 result = Expression(form, result)
             return result
@@ -153,7 +158,7 @@ def do_format_element(
             if len(expr.get_elements()) != 1:
                 return expr
             do_format_fn = _element_formatters.get(type(element), do_format_element)
-            result = do_format_fn(expr, evaluation, form)
+            result = do_format_fn(expr, evaluation, form, encoding)
             if isinstance(result, Expression):
                 expr = result
 
@@ -172,7 +177,7 @@ def do_format_element(
             )
             expr_head = expr.head
             do_format = _element_formatters.get(type(expr_head), do_format_element)
-            head = do_format(expr_head, evaluation, form) or expr_head
+            head = do_format(expr_head, evaluation, form, encoding) or expr_head
             expr = to_expression_with_specialization(head, *new_elements)
 
         if include_form:
@@ -183,7 +188,10 @@ def do_format_element(
 
 
 def do_format_rational(
-    element: BaseElement, evaluation: Evaluation, form: Symbol
+    element: BaseElement,
+    evaluation: Evaluation,
+    form: Symbol,
+    encoding: Optional[str] = None,
 ) -> Optional[BaseElement]:
     if not isinstance(element, Rational):
         return None
@@ -197,12 +205,15 @@ def do_format_rational(
     if minus:
         result = Expression(SymbolMinus, result)
     result = Expression(SymbolHoldForm, result)
-    result = do_format_expression(result, evaluation, form) or result
+    result = do_format_expression(result, evaluation, form, encoding) or result
     return result
 
 
 def do_format_complex(
-    element: BaseElement, evaluation: Evaluation, form: Symbol
+    element: BaseElement,
+    evaluation: Evaluation,
+    form: Symbol,
+    encoding: Optional[str] = None,
 ) -> Optional[BaseElement]:
     if not isinstance(element, Complex):
         return None
@@ -220,27 +231,18 @@ def do_format_complex(
     else:
         result = Expression(SymbolPlus, *parts)
 
-    return do_format_expression(Expression(SymbolHoldForm, result), evaluation, form)
+    return do_format_expression(
+        Expression(SymbolHoldForm, result), evaluation, form, encoding
+    )
 
 
 def do_format_expression(
-    element: BaseElement, evaluation: Evaluation, form: Symbol
+    element: BaseElement,
+    evaluation: Evaluation,
+    form: Symbol,
+    encoding: Optional[str] = None,
 ) -> BaseElement:
-    # # not sure how much useful is this format_cache
-    # if element._format_cache is None:
-    #    element._format_cache = {}
-
-    # last_evaluated_time, expr = element._format_cache.get(form, (None, None))
-    # if last_evaluated_time is not None and expr is not None:
-    # if True
-    #    symbolname = expr.get_name()
-    #    if symbolname != "":
-    #        if not evaluation.definitions.is_uncertain_final_value(
-    #            last_evaluated_time, set((symbolname,))
-    #        ):
-    #            return expr
-    expr = do_format_element(element, evaluation, form) or element
-    # element._format_cache[form] = (evaluation.definitions.now, expr)
+    expr = do_format_element(element, evaluation, form, encoding) or element
     return expr
 
 

@@ -113,7 +113,7 @@ def test_compare_many_members(
 ):
     #    if str_expr is None:
     #        reset_session()
-    result = session.evaluate(f"ToString[{str_expr}]").value
+    result = session.evaluate(f'ToString[{str_expr}, CharacterEncoding->"ASCII"]').value
     print("result:", result)
     if assert_fail_message:
         assert result == str_expected, assert_fail_message

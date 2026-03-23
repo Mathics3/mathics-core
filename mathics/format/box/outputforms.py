@@ -1,4 +1,5 @@
 import re
+from typing import Optional
 
 from mathics.core.atoms import Integer, String
 from mathics.core.element import BaseElement, BoxElementMixin
@@ -24,7 +25,9 @@ MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 
 
 @is_print_form_callback("System`MathMLForm")
-def eval_mathmlform(expr: BaseElement, evaluation: Evaluation) -> BoxElementMixin:
+def eval_mathmlform(
+    expr: BaseElement, evaluation: Evaluation, encoding: Optional[str] = None
+) -> BoxElementMixin:
     "MakeBoxes[MathMLForm[expr_], form_]"
     from mathics.builtin.box.layout import InterpretationBox
 
@@ -63,7 +66,12 @@ def eval_mathmlform(expr: BaseElement, evaluation: Evaluation) -> BoxElementMixi
 
 
 def eval_tableform(
-    self, table: BaseElement, f: Symbol, evaluation: Evaluation, options
+    self,
+    table: BaseElement,
+    f: Symbol,
+    evaluation: Evaluation,
+    options,
+    encoding: Optional[str] = None,
 ):
     """MakeBoxes[TableForm[table_], f_]"""
     from mathics.builtin.box.layout import GridBox
@@ -124,7 +132,9 @@ def eval_tableform(
 
 
 @is_print_form_callback("System`TeXForm")
-def eval_texform(expr: BaseElement, evaluation: Evaluation) -> BoxElementMixin:
+def eval_texform(
+    expr: BaseElement, evaluation: Evaluation, encoding: Optional[str] = None
+) -> BoxElementMixin:
     from mathics.builtin.box.layout import InterpretationBox
 
     boxes = format_element(expr, evaluation, SymbolTraditionalForm)

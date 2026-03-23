@@ -295,7 +295,7 @@ def format_element(
     Applies formats associated to the expression, and then calls Makeboxes
     """
     evaluation.is_boxing = True
-    formatted_expr = do_format(element, evaluation, form)
+    formatted_expr = do_format(element, evaluation, form, **kwargs)
     if form not in evaluation.definitions.boxforms:
         formatted_expr = Expression(form, formatted_expr)
         form = SymbolStandardForm

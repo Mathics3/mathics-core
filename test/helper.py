@@ -110,7 +110,7 @@ def check_evaluation(
         str_expected = "Null"
 
     if to_string_expr:
-        str_expr = f"ToString[{str_expr}]"
+        str_expr = f'ToString[{str_expr}, CharacterEncoding->"ASCII"]'
         result = evaluate_value(str_expr)
     elif to_string_expr is None:
         result = str_expr
@@ -123,7 +123,7 @@ def check_evaluation(
         if hold_expected:
             expected = str_expected
         else:
-            str_expected = f"ToString[{str_expected}]"
+            str_expected = f'ToString[{str_expected}, CharacterEncoding->"ASCII"]'
             expected = evaluate_value(str_expected)
     elif to_string_expected is None:
         expected = str_expected
