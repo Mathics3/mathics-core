@@ -42,7 +42,7 @@ StringRepeated = String("..")
 
 _element_formatters: Dict[
     Type[BaseElement],
-    Callable[[BaseElement, Evaluation, Symbol], Optional[BaseElement]],
+    Callable[[BaseElement, Evaluation, Symbol, Optional[str]], Optional[BaseElement]],
 ] = {}
 
 
@@ -170,7 +170,7 @@ def do_format_element(
             new_elements = tuple(
                 (
                     _element_formatters.get(type(element), do_format_element)(
-                        element, evaluation, form
+                        element, evaluation, form, encoding
                     )
                     for element in expr.elements
                 )
