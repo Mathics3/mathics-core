@@ -1,7 +1,7 @@
 r"""Expression Boxing
 
-Boxes are central to <url>:Form:/doc/reference-of-built-in-symbols/forms-of-input-and-output/</url> \
-processing of \Mathics expressions.
+Boxes are central to <url>:Form processing:/doc/reference-of-built-in-symbols/forms-of-input-and-output/</url> \
+of \Mathics expressions.
 
 Boxing information, like the class of expression to be worked on and \
 its size, allow formatters, like <url>:StandardForm:

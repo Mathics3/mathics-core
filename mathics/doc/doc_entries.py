@@ -85,7 +85,7 @@ SPECIAL_COMMANDS = {
         r"<em>Mathematica</em>&reg;",
         r"\emph{Mathematica}\textregistered{}",
     ),
-    "Mathics": (r"<em>Mathics3</em>", r"\emph{Mathics3}"),
+    "Mathics": (r"<em>Mathics</em>", r"\emph{Mathics}"),
     "Mathics3": (r"<em>Mathics3</em>", r"\emph{Mathics3}"),
     "Sage": (r"<em>Sage</em>", r"\emph{Sage}"),
     "Wolfram": (r"<em>Wolfram</em>", r"\emph{Wolfram}"),

@@ -1,10 +1,10 @@
 % -*- latex -*-
 %
 % This is the top-level LaTeX file to build the Mathics3 Book (Tutorial + Reference)
-% which is stored in mathic.pdf
+% which is stored in mathics3.pdf
 %
 % To build this:
-%    make mathics.pdf
+%    make mathics3.pdf
 %
 % The bulk of this LaTeX is in file documentation.tex which is
 % automatically generated via ./doc2latex.py from:
@@ -17,7 +17,7 @@
 % Since this file is rather bulky, to troubleshoot, put stripped down
 % text such as from documentation.tex in a file called testing.tex
 % and build that using:
-%  make mathics-test.pdf
+%  make mathics3-test.pdf
 
 \documentclass[index=totoc,fleqn,10pt,oneside,toc=flat]{scrbook}
 
@@ -80,7 +80,7 @@
 \definecolor{pythonstring}{rgb}{0,0.5,0}
 
 \title{
-    \includegraphics[height=0.1\linewidth]{mathics-title.pdf}
+    \includegraphics[height=0.1\linewidth]{mathics3-title.pdf}
 \\[.5em]
   {\LARGE\color{subtitle}\textit{\textmd{A free, open-source alternative to Mathematica}}}
   \par\textmd{\Large Mathics3 Core Version \MathicsCoreVersion}
@@ -318,14 +318,15 @@
   \item[Python] \hfill \\ \PythonVersion
   \item[XeTeX] \hfill \\ \XeTeXVersion
   \item[Asymptote] \hfill \\ \AsymptoteVersion
+  \item[cython] \hfill  \cython
   \item[mpmath] \hfill  \mpmathVersion
   \item[NumpyPy] \hfill  \NumPyVersion
   \item[SymPy] \hfill  \SymPyVersion
   \item[Ghostscript] \hfill  \GhostscriptVersion
-  \item[cython] \hfill  \cython
   \item[lxml] \hfill  \lxml
   \item[matplotlib] \hfill  \matplotlib
   \item[networkx] \hfill  \networkx
+  \item[nltk] \hfill  \nltk
   \item[psutil] \hfill \psutil
   \item[skimage] \hfill  \skimage
   \item[scipy] \hfill  \scipy
