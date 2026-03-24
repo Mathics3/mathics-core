@@ -52,7 +52,7 @@ jobs:
       #     we needs some CI that tests running when packages aren't available
       # So "dev" only below, not "dev,full".
       run: |
-        pip install -e .[dev]
+        python -m pip install --no-build-isolation -e .[dev]
         make pytest gstest
         make doctest DOCTEST_OPTIONS="--exclude WordCloud"
         # make check

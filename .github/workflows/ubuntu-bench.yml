@@ -33,8 +33,7 @@ jobs:
         cd ..
     - name: Install Mathics3 with full dependencies
       run: |
-        # python -m pip install Mathics3-Scanner[full]
-        pip install -e .
+        pip install --no-build-isolation -e .
         remake -x develop
     - name: Test Mathics
       run: |

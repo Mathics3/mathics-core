@@ -37,7 +37,7 @@ jobs:
         cd ..
     - name: Install Mathics3
       run: |
-        pip install -e .
+        python -m pip install --no-build-isoloation -e .
         remake -x develop-full
     - name: Test Mathics3
       run: |

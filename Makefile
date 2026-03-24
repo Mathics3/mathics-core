@@ -70,17 +70,17 @@ build:
 # INSTALL_REQUIRES properly
 #: Set up to run from the source tree
 develop: mathics_scanner/data/boxing-characters.json mathics_scanner/data/named-characters.json mathics_scanner/data/operators.json
-	$(PIP) install -e .[dev]
+	$(PIP) install --no-build-isolation -e .[dev]
 
 # See note above on ./setup.py
 #: Set up to run from the source tree with full dependencies
 develop-full: mathics_scanner/data/boxing-characters.json mathics_scanner/data/named-characters.json mathics_scanner/data/operators.json
-	$(PIP) install -e .[dev,full]
+	$(PIP) install --no-build-isolation -e .[dev,full]
 
 # See note above on ./setup.py
 #: Set up to run from the source tree with full dependencies and Cython
 develop-full-cython: mathics_scanner/data/boxing-characters.json mathics_scanner/data/named-characters.json mathics_scanner/data/operators.json
-	$(PIP) install -e .[dev,full,cython]
+	$(PIP) install --no-build-isolation -e .[dev,full,cython]
 
 
 #: Make distribution: wheels, eggs, tarball
