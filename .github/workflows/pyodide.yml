@@ -66,6 +66,7 @@ jobs:
           cd ..
       - name: Install Mathics3
         run: |
+        python -m pip install setuptools wheel
           pip install --no-build-isolation -e .
           bash -x admin-tools/make-JSON-tables.sh
           python -m pip install pytest

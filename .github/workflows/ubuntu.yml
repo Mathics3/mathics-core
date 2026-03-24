@@ -33,6 +33,7 @@ jobs:
         cd ..
     - name: Install Mathics3
       run: |
+        python -m pip install setuptools wheel
         python -m pip install --no-build-isolation -e .[dev]
         remake -x develop-full
     - name: Test Mathics

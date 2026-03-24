@@ -33,8 +33,9 @@ jobs:
         cd ..
     - name: Install Mathics3 with full dependencies
       run: |
-        pip install --no-build-isolation -e .
+        python -m pip install setuptools wheel
+        python -m pip install --no-build-isolation -e .
         remake -x develop
-    - name: Test Mathics
+    - name: Test Mathics3
       run: |
         remake benchmarks

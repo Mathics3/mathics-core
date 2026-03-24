@@ -36,5 +36,6 @@ jobs:
         make develop
     - name: Test Mathics3 Consistency and Style
       run: |
+        python -m pip install setuptools wheel
         make check-consistency-and-style
         make check-builtin-manifest

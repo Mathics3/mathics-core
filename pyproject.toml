@@ -1,19 +1,24 @@
 [build-system]
 requires = [
+    # setuptools and wheel are needed for pip install --no-build-isolation
+    # --no-build-isoolation is used when the API breaks and we need to
+    # build from a GitHub repository
     "setuptools",
+    "wheel",
     "cython>=0.15.1; implementation_name!='pypy'",
     # For mathics-generate-json-table
-    "Mathics-Scanner > 9.0",
+    "Mathics_Scanner>9.0",
     # "packaging" is needed for testing the SymPy Version
     # in PartionsP
     "packaging",
+
 ]
 build-backend = "setuptools.build_meta"
 
 [project]
 description = "A general-purpose computer algebra system."
 dependencies = [
-    "Mathics-Scanner > 9.0",
+    "Mathics_Scanner>9.0",
     "mpmath>=1.2.0",
     "numpy",
     "palettable",
