@@ -1,5 +1,5 @@
 """
-A command-line routine to see how Mathics3 parse parses text.
+A command-line routine to see how Mathics3 parser parses text.
 This is analogous (but not exactly the same as) the CodeParse[]
 function in the WMA CoderParser package.
 """
