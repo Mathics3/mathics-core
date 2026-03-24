@@ -7,6 +7,7 @@ from math import ceil
 from typing import Any, Dict, Optional, Tuple, Union
 
 import mpmath
+import sympy
 
 from mathics.core.atoms import (
     Integer,
@@ -313,6 +314,7 @@ def get_baseform_elements(
         evaluation.message("BaseForm", "intpm", expr, n)
         raise ValueError
 
+    x: Union[int, float, sympy.Float]
     if isinstance(expr, PrecisionReal):
         x = expr.to_sympy()
         p = int(ceil(expr.get_precision() / LOG2_10) + 1)
