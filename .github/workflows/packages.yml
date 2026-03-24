@@ -41,5 +41,5 @@ jobs:
         # If Combinatorica repo changes, we may need the below altered
         # with a branch name, (not HEAD) for testing.
         git pull origin HEAD
-        pip install --no-build-isoloation -e .[dev]
+        pip install --no-build-isolation -e .[dev]
         remake -x check
