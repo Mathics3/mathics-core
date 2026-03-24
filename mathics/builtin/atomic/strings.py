@@ -866,8 +866,24 @@ class ToString(Builtin):
 
     >> ToString[2]
      = 2
+
+    Notice how the output changes when we switch formatting from 'StandardForm', the default, to \
+    'InputForm':
+
     >> ToString[2] // InputForm
      = "2"
+
+    'ToString' can act a translator of expressions to one expression format to another:
+    >> ToString[Integrate[f[x],x], TeXForm]
+     = \\int f(x) \\, dx
+
+    'ToString' also handles character encoding changes, when passed the 'CharacterEncoding' option:
+    >> ToString[a >= b, CharacterEncoding-> "UTF-8"]
+     = a ≥ b
+
+    >> ToString[a ≥ b, CharacterEncoding-> "ASCII"]
+     = a >= b
+
     >> ToString[a+b]
      = a + b
     >> "U" <> 2
@@ -875,8 +891,6 @@ class ToString(Builtin):
      = U <> 2
     >> "U" <> ToString[2]
      = U2
-    >> ToString[Integrate[f[x],x], TeXForm]
-     = \\int f(x) \\, dx
 
     """
 
