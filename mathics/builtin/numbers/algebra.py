@@ -523,8 +523,10 @@ class Collect(Builtin):
 
 class Denominator(Builtin):
     """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/Denominator.html</url>
+    <url>:Denominator:
+    https://en.wikipedia.org/wiki/Fraction</url> (<url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Denominator.html</url>)
 
     <dl>
       <dt>'Denominator'[$expr$]
@@ -537,6 +539,10 @@ class Denominator(Builtin):
      = 3
     >> Denominator[a + b]
      = 1
+
+    See also <url>
+     :'Numerator':
+     /doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/algebraic-transformations/numerator/</url>.
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -1225,8 +1231,10 @@ class MinimalPolynomial(Builtin):
 
 class Numerator(Builtin):
     """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/Numerator.html</url>
+    <url>:Numerator:
+    https://en.wikipedia.org/wiki/Fraction</url> (<url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Numerator.html</url>)
 
     <dl>
       <dt>'Numerator'[$expr$]
@@ -1239,6 +1247,10 @@ class Numerator(Builtin):
      = 2
     >> Numerator[a + b]
      = a + b
+
+    See also <url>
+     :'Denominator':
+     /doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/algebraic-transformations/denominator/</url>.
     """
 
     attributes = A_LISTABLE | A_PROTECTED

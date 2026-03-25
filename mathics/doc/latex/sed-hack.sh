@@ -13,14 +13,6 @@ if [[ -f documentation.tex ]] ; then
     cp documentation.tex{,-before-sed}
 fi
 
-sed -i -e 's/ⅅ/$\\mathbb{D}$/' documentation.tex
-# Greek
+# Greek Symbols
 sed -i -e 's/Φ/$\\\\Phi$/g' documentation.tex
 sed -i -e s/μ/$\\\\mu$/g documentation.tex
-
-
-# TODO: find the right LaTeX representation for these characters
-sed -i -e 's/ç/\\c{c}/g' documentation.tex
-sed -i -e 's/ñ/\\~n/g' documentation.tex
-sed -i -e 's/ê/\\^e/g' documentation.tex
-sed -i -e "s/é/\\\'e/g" documentation.tex

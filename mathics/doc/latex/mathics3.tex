@@ -31,6 +31,13 @@
 \DeclareTOCStyleEntry[dynnumwidth]{default}{section}
 \DeclareTOCStyleEntry[dynnumwidth]{default}{subsection}
 
+% The following is to remove messages of the form:
+% Package scrkbase Info: You've told me to use the font selection of the element
+% (scrkbase)             `partprefix' that is an alias of element `partnumber'
+% (scrkbase)              on input line ...
+\setkomafont{partprefix}{\LARGE\bfseries}
+\setkomafont{partnumber}{\LARGE\bfseries}
+
 %\usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{gensymb} % For \degree. usepackage needs to be early.
@@ -60,6 +67,27 @@
 \usepackage{multicol}
 \usepackage[]{colophon}
 \usepackage[k-tight]{minitoc}
+
+\usepackage{newunicodechar}
+% Define a font that has symbol ′
+\newfontfamily{\fallbackfont}{DejaVu Sans}
+
+% Tell LaTeX how to substitute some Unicode characters
+\newunicodechar{′}{{\fallbackfont ′}}
+\newunicodechar{≥}{\ensuremath{\ge}}  % Greater-than or eaual
+\newunicodechar{ç}{\c{c}}
+\newunicodechar{ñ}{\~n}
+\newunicodechar{ê}{\^e}
+\newunicodechar{é}{\'e}
+\newunicodechar{μ}{{\greekfallback μ}}
+\newunicodechar{Φ}{{\greekfallback Φ}}
+\newunicodechar{∖}{\ensuremath{\setminus}} % Set Minus / Backslash Operator (U+2216)
+\newunicodechar{ⅅ}{\ensuremath{\mathbb{D}}}
+\newunicodechar{″}{\ensuremath{''}}  % Double Prime
+\newunicodechar{≃}{\ensuremath{\simeq}} % Asymptotically Equal (U+2243)
+\newunicodechar{ℇ}{\ensuremath{\mathrm{e}}} % Euler Constant (U+2107)
+
+
 \setlength{\mtcindent}{0pt}
 \mtcsetformat{minitoc}{tocrightmargin}{2.55em plus 1fil}
 \newcommand{\multicolumnmtc}{2}
