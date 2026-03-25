@@ -20,32 +20,19 @@ UNICODE_CHARACTER_TO_ASCII = {
     for name, ch in operator_to_unicode.items()
 }
 
+# These characters are used in encoding
+# in WMA, and differs from what we have
+# in Mathics3-scanner tables:
+UNICODE_CHARACTER_TO_ASCII.update(
+    {
+        "×": r" x ",
+        "": r"\[DifferentialD]",
+    }
+)
+
 
 class EncodingNameError(Exception):
     pass
-
-
-r"""
-           {
-                "⧴": ":>",
-                "⇒": "=>",
-                "↔": "<->",
-                "⩵": "==",
-                "∧": "&&",
-                "∨": "||",
-                "⊻": r"\[Xor]",
-                "≠": "!=",
-                "≤": "<=",
-                "→": "->",
-                "⇾": "->",
-                "⇴": "->",
-                "∫": r"\[Integral]",
-                "": r"\[DifferentialD]",
-                "𝑑": r"\[DifferentialD]",
-                "⧦": r"\[Equivalent]",
-                "×": r" x ",
-            },
-"""
 
 
 def get_encoding_table(encoding: str) -> Dict[str, str]:
