@@ -224,7 +224,9 @@ def test_case(
         return False
 
     time_start = datetime.now()
-    comparison_result = test.compare_result(result)
+    comparison_result = test.compare_result(
+        result, encoding=settings.SYSTEM_CHARACTER_ENCODING
+    )
 
     if test_parameters.check_partial_elapsed_time:
         test_pipeline.print_and_log(
@@ -232,7 +234,6 @@ def test_case(
         )
     if not comparison_result:
         print("result != wanted")
-        print(test_pipeline.session.evaluate("$CharacterEncoding"))
         fail_msg = f"Result: {result}\nWanted: {test.result}"
         if out:
             fail_msg += "\nAdditional output:\n"

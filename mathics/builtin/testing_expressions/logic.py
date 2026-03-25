@@ -272,7 +272,7 @@ class Implies(InfixOperator):
     If an expression does not evaluate to 'True' or 'False', 'Implies'
     returns a result in symbolic form:
     >> Implies[a, Implies[b, Implies[True, c]]]
-     = a \[Implies] b \[Implies] c
+     = a => b => c
     """
 
     grouping = "Right"
