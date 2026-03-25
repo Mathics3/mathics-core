@@ -4,6 +4,8 @@ Functions to format strings in a given encoding.
 
 from typing import Dict
 
+from mathics.core.convert.op import operator_to_ascii, operator_to_unicode
+
 # Map WMA encoding names to Python encoding names
 ENCODING_WMA_TO_PYTHON = {
     "WindowsEastEurope": "cp1250",
@@ -13,27 +15,18 @@ ENCODING_WMA_TO_PYTHON = {
     "WindowsTurkish": "cp1254",
 }
 
+UNICODE_CHARACTER_TO_ASCII = {
+    ch: operator_to_ascii.get(name, rf"\[{name}]")
+    for name, ch in operator_to_unicode.items()
+}
+
 
 class EncodingNameError(Exception):
     pass
 
 
-def get_encoding_table(encoding: str) -> Dict[str, str]:
-    """
-    Return a dictionary with a map from
-    character codes in the internal (Unicode)
-    representation to the request encoding.
-    """
-    if encoding == "Unicode":
-        return {}
-
-    # In the final implementation, this should load the corresponding
-    # json table or an encoding file as  in WMA
-    # SystemFiles/CharacterEncodings/*.m
-    # If the encoding is not available, raise an EncodingError
-    try:
-        return {
-            "ASCII": {
+r"""
+           {
                 "⧴": ":>",
                 "⇒": "=>",
                 "↔": "<->",
@@ -52,6 +45,25 @@ def get_encoding_table(encoding: str) -> Dict[str, str]:
                 "⧦": r"\[Equivalent]",
                 "×": r" x ",
             },
+"""
+
+
+def get_encoding_table(encoding: str) -> Dict[str, str]:
+    """
+    Return a dictionary with a map from
+    character codes in the internal (Unicode)
+    representation to the request encoding.
+    """
+    if encoding == "Unicode":
+        return {}
+
+    # In the final implementation, this should load the corresponding
+    # json table or an encoding file as  in WMA
+    # SystemFiles/CharacterEncodings/*.m
+    # If the encoding is not available, raise an EncodingError
+    try:
+        return {
+            "ASCII": UNICODE_CHARACTER_TO_ASCII,
             "UTF-8": {},
         }[encoding]
     except KeyError:

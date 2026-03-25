@@ -13,7 +13,7 @@ from abc import ABC
 from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Sequence, Tuple
 
 from mathics.core.evaluation import Message, Print, _Out
-from mathics.format.render.encoding import encode_string_value
+from mathics.eval.encoding import encode_string_value
 
 if TYPE_CHECKING:
     from mathics.doc.structure import DocSection

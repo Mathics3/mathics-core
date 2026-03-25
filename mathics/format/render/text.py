@@ -26,10 +26,10 @@ from mathics.core.formatter import (
     convert_inner_box_field,
 )
 from mathics.core.symbols import Atom, SymbolTrue
+from mathics.eval.encoding import encode_string_value
 from mathics.format.box.graphics import prepare_elements as prepare_elements2d
 from mathics.format.box.graphics3d import prepare_elements as prepare_elements3d
 from mathics.format.form.util import _WrongFormattedExpression, text_cells_to_grid
-from mathics.format.render.encoding import encode_string_value
 
 add_render_function(FormBox, convert_inner_box_field)
 
