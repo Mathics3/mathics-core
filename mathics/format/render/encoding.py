@@ -45,7 +45,6 @@ def get_encoding_table(encoding: str) -> Dict[str, str]:
                 "≤": "<=",
                 "→": "->",
                 "⇾": "->",
-                "⇾": "->",
                 "⇴": "->",
                 "∫": r"\[Integral]",
                 "": r"\[DifferentialD]",

@@ -18,12 +18,12 @@ from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.format.box import format_element
-from mathics.format.render.encoding import EncodingNameError
 
 
 def eval_ToString(
     expr: BaseElement, form: Symbol, encoding: String, evaluation: Evaluation
 ) -> String:
+    from mathics.format.render.encoding import EncodingNameError
 
     boxes = format_element(expr, evaluation, form)
     try:
