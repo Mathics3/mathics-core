@@ -232,6 +232,7 @@ def test_case(
         )
     if not comparison_result:
         print("result != wanted")
+        print(test_pipeline.session.evaluate("$CharacterEncoding"))
         fail_msg = f"Result: {result}\nWanted: {test.result}"
         if out:
             fail_msg += "\nAdditional output:\n"

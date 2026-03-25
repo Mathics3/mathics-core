@@ -46,8 +46,8 @@ def test_makeboxes_form(expr, form, head, subhead):
         ("NumberForm[14310983091809]", None, "14310983091809", None),
         ## Zero case
         ("z0 = 0.0;z1 = 0.0000000000000000000000000000;", None, "Null", None),
-        ("NumberForm[{z0, z1}, 10]", None, "{0., 0.×10^-28}", None),
-        ("NumberForm[{z0, z1}, {10, 4}]", None, "{0.0000, 0.0000×10^-28}", None),
+        ("NumberForm[{z0, z1}, 10]", None, "{0., 0. x 10^-28}", None),
+        ("NumberForm[{z0, z1}, {10, 4}]", None, "{0.0000, 0.0000 x 10^-28}", None),
         ("z0=.;z1=.;", None, "Null", None),
         ## Trailing zeros
         ("NumberForm[1.0, 10]", None, "1.", None),
@@ -67,7 +67,7 @@ def test_makeboxes_form(expr, form, head, subhead):
         (
             "NumberForm[{2^123, 2^123.}, 4, ExponentFunction -> ((#1) &)]",
             None,
-            "{10633823966279326983230456482242756608, 1.063×10^37}",
+            "{10633823966279326983230456482242756608, 1.063 x 10^37}",
             None,
         ),
         ("NumberForm[{0, 10, -512}, {10, 3}]", None, "{0.000, 10.000, -512.000}", None),
@@ -178,7 +178,7 @@ def test_makeboxes_form(expr, form, head, subhead):
         (
             "NumberForm[12345.123456789, 14, ExponentFunction -> ((#) &)]",
             None,
-            "1.2345123456789×10^4",
+            "1.2345123456789 x 10^4",
             None,
         ),
         (
@@ -191,7 +191,7 @@ def test_makeboxes_form(expr, form, head, subhead):
         (
             "NumberForm[y, 10, ExponentFunction -> (3 Quotient[#, 3] &)]",
             None,
-            "{114.0256472×10^-12, 3.267763643×10^-3, 93.64804748×10^3, 2.683779414×10^12, 76.91214221×10^18}",
+            "{114.0256472 x 10^-12, 3.267763643 x 10^-3, 93.64804748 x 10^3, 2.683779414 x 10^12, 76.91214221 x 10^18}",
             None,
         ),
         (
@@ -207,7 +207,7 @@ def test_makeboxes_form(expr, form, head, subhead):
         (
             "NumberForm[10^8 N[Pi], 10, ExponentStep -> 3]",
             None,
-            "314.1592654×10^6",
+            "314.1592654 x 10^6",
             None,
         ),
         (
@@ -225,7 +225,7 @@ def test_makeboxes_form(expr, form, head, subhead):
         (
             "NumberForm[y, 10, ExponentStep -> 6]",
             None,
-            "{114.0256472×10^-12, 3267.763643×10^-6, 93648.04748, 2.683779414×10^12, 76.91214221×10^18}",
+            "{114.0256472 x 10^-12, 3267.763643 x 10^-6, 93648.04748, 2.683779414 x 10^12, 76.91214221 x 10^18}",
             None,
         ),
         ## NumberFormat
@@ -318,7 +318,7 @@ def test_makeboxes_form(expr, form, head, subhead):
         (
             'NumberForm[N[10^ 7 Pi], 15, DigitBlock -> 3, NumberSeparator -> {",", " "}]',
             None,
-            "3.141 592 653 589 79×10^7",
+            "3.141 592 653 589 79 x 10^7",
             None,
         ),
         (

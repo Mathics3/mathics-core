@@ -242,6 +242,7 @@ def render_output_form(expr: BaseElement, evaluation: Evaluation, **kwargs):
     """
     format_expr: Expression = do_format(expr, evaluation, SymbolOutputForm)  # type: ignore
 
+    kwargs.setdefault("encoding", "Unicode")
     while format_expr.has_form("HoldForm", 1):  # type: ignore
         format_expr = format_expr.elements[0]
 
@@ -338,7 +339,7 @@ def other_forms(expr, evaluation, **kwargs):
         raise _WrongFormattedExpression
 
     result = format_element(expr, evaluation, SymbolStandardForm, **kwargs)
-    return result.to_text()
+    return result.to_text(evaluation=evaluation, **kwargs)
 
 
 @register_outputform("System`Integer")
@@ -357,7 +358,7 @@ def integer_outputform(n, evaluation, **kwargs):
     result = numberform_to_boxes(n, digits, padding, evaluation, py_options)
     if isinstance(result, String):
         return result.value
-    return result.to_text()
+    return result.to_text(**kwargs)
 
 
 @register_outputform("System`Image")

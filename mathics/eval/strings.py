@@ -23,9 +23,17 @@ from mathics.format.box import format_element
 def eval_ToString(
     expr: BaseElement, form: Symbol, encoding: String, evaluation: Evaluation
 ) -> String:
+    from mathics.format.render.text import EncodingNameError
+
     boxes = format_element(expr, evaluation, form)
-    text = boxes.to_text(evaluation=evaluation, encoding=encoding)
-    return String(text)
+    try:
+        return String(boxes.to_text(evaluation=evaluation, encoding=encoding))
+    except EncodingNameError:
+        # Mimic the WMA behavior. In the future, we can implement the mechanism
+        # with encodings stored in .m files, and give a chance with it.
+        evaluation.message("Get", "noopen", String("encodings/" + encoding + "." + "m"))
+
+    return String(boxes.to_text(evaluation=evaluation, encoding="Unicode"))
 
 
 def eval_StringContainsQ(name, string, patt, evaluation, options, matched):

@@ -115,10 +115,13 @@ if fragile_tests:
         format_result = result.format(session.evaluation, form)
         if msg:
             assert (
-                format_result.to_text(evaluation=session.evaluation) == str_expected
+                format_result.to_text(evaluation=session.evaluation, encoding="ASCII")
+                == str_expected
             ), msg
         else:
-            strresult = format_result.to_text(evaluation=session.evaluation)
+            strresult = format_result.to_text(
+                evaluation=session.evaluation, encoding="ASCII"
+            )
             assert strresult == str_expected
 
 
@@ -130,9 +133,14 @@ def test_makeboxes_text(str_expr, str_expected, form, msg):
     result = session.evaluate(str_expr)
     format_result = result.format(session.evaluation, form)
     if msg:
-        assert format_result.to_text(evaluation=session.evaluation) == str_expected, msg
+        assert (
+            format_result.to_text(evaluation=session.evaluation, encoding="ASCII")
+            == str_expected
+        ), msg
     else:
-        strresult = format_result.to_text(evaluation=session.evaluation)
+        strresult = format_result.to_text(
+            evaluation=session.evaluation, encoding="ASCII"
+        )
         assert strresult == str_expected
 
 
@@ -175,7 +183,9 @@ def test_makeboxes_tex(str_expr, str_expected, form, msg):
             == str_expected.strip()
         ), msg
     else:
-        strresult = format_result.to_text(evaluation=session.evaluation).strip()
+        strresult = format_result.to_text(
+            evaluation=session.evaluation, encoding="ASCII"
+        ).strip()
         assert strresult == str_expected
 
 
@@ -209,7 +219,8 @@ def test_makeboxes_mathml(str_expr, str_expected, form, msg):
     format_result = result.format(session.evaluation, form)
     if msg:
         assert (
-            format_result.to_mathml(evaluation=session.evaluation) == str_expected
+            format_result.to_mathml(evaluation=session.evaluation, encoding="ASCII")
+            == str_expected
         ), msg
     else:
         strresult = format_result.to_mathml(evaluation=session.evaluation)
@@ -221,7 +232,7 @@ def test_makeboxes_mathml(str_expr, str_expected, form, msg):
     [
         (
             "OutputForm[Complex[2.0 ^ 40, 3]]",
-            "1.09951×10^12 + 3. I",
+            "1.09951 x 10^12 + 3. I",
             "OutputForm Complex",
         ),
         (

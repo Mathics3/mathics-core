@@ -189,7 +189,7 @@ def check_evaluation_as_in_cli(
 
     if failure_message:
         assert res.result == str_expected, failure_message
-    assert res.result == str_expected
+    assert res.result == str_expected, f"'{res.result}'!='{str_expected}'"
 
 
 # List below could be a Tuple, but List looks better in the tests

@@ -420,9 +420,14 @@ class Evaluation:
             return None
 
         try:
+            encoding = self.definitions.get_ownvalue("System`$CharacterEncoding").value
+        except AttributeError:
+            encoding = "Unicode"
+
+        try:
             # With the new implementation, if result is not a ``BoxExpression``
             # then we should raise a BoxError here.
-            boxes = result.to_text(evaluation=self)
+            boxes = result.to_text(evaluation=self, encoding=encoding)
         except BoxError:
             self.message(
                 "General", "notboxes", Expression(SymbolFullForm, result).evaluate(self)

@@ -42,9 +42,9 @@ def test_ArcCos():
         ("ArcTan[-1, 0]", None, "Pi", None),
         ("ArcTan[0, 1]", None, "Pi / 2", None),
         ("ArcTan[0, -1]", None, "-Pi / 2", None),
-        ("Cos[1.5 Pi]", None, "-1.83697×10^-16", None),
+        ("Cos[1.5 Pi]", None, "-1.83697 x 10^-16", None),
         ("N[Sin[1], 40]", None, "0.8414709848078965066525023216302989996226", None),
-        ("Tan[0.5 Pi]", None, "1.63312×10^16", None),
+        ("Tan[0.5 Pi]", None, "1.63312 x 10^16", None),
     ],
 )
 def test_trig(str_expr, msgs, str_expected, fail_msg):

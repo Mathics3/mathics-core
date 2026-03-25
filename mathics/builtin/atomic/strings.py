@@ -881,7 +881,7 @@ class ToString(Builtin):
     """
 
     options = {
-        "CharacterEncoding": '"Unicode"',
+        "CharacterEncoding": "$CharacterEncoding",
         "FormatType": "OutputForm",
         "NumberMarks": "$NumberMarks",
         "PageHeight": "Infinity",
@@ -898,7 +898,7 @@ class ToString(Builtin):
 
     def eval_form(self, expr, form, evaluation: Evaluation, options: dict):
         "ToString[expr_, form_Symbol, OptionsPattern[ToString]]"
-        encoding = options["System`CharacterEncoding"]
+        encoding = options["System`CharacterEncoding"].evaluate(evaluation)
         if isinstance(encoding, String):
             encoding_str = encoding.value
             if encoding_str not in _encodings:

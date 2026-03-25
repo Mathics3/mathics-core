@@ -49,6 +49,7 @@ DEFAULT_NUMBERFORM_OPTIONS = {
     "ExponentFunction": lambda x: (SymbolNull if abs(x.value) <= 5 else x),
     "ExponentStep": 1,
     "NumberFormat": default_numberformat_outputform,
+    # TODO: Pick from MathicsScanner tables...
     "NumberMultiplier": "×",
     "NumberPadding": ["", "0"],
     "NumberPoint": ".",

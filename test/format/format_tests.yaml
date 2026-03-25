@@ -100,7 +100,7 @@
   mathml: {}
   text:
     System`InputForm: -1.*^-6
-    System`OutputForm: "-1.\xD710^-6"
+    System`OutputForm: "-1. x 10^-6"
 
 
 -1. 10^5:
@@ -124,9 +124,9 @@
   mathml: {}
   text:
     System`InputForm: -1.*^6
-    System`OutputForm: "-1.\xD710^6"
+    System`OutputForm: "-1. x 10^6"
     System`StandardForm: -1.`*^6
-    System`TraditionalForm: "-1.`\xD710^6"
+    System`TraditionalForm: "-1.` x 10^6"
 
 
 '-4':
@@ -224,7 +224,7 @@
   mathml: {}
   text:
     System`InputForm: 1.*^-6
-    System`OutputForm: "1.\xD710^-6"
+    System`OutputForm: "1. x 10^-6"
 
 
 1. 10^5:
@@ -252,9 +252,9 @@
   mathml: {}
   text:
     System`InputForm: 1.*^6
-    System`OutputForm: "1.\xD710^6"
+    System`OutputForm: "1. x 10^6"
     System`StandardForm: 1.`*^6
-    System`TraditionalForm: "1.`\xD710^6"
+    System`TraditionalForm: "1.` x 10^6"
 
 
 1/(1+1/(1+1/a)):
@@ -287,8 +287,8 @@
 <|a -> x, b -> y, c -> <|d -> t|>|>:
   msg: Association
   latex:
-    System`InputForm: '\text{$<$$\vert$a -$>$ x, b -$>$ y, c -$>$ $<$$\vert$d -$>$ t$\vert$$>$$\vert$$>$}'
-    System`OutputForm: '\text{$<$$\vert$a -$>$ x, b -$>$ y, c -$>$ $<$$\vert$d -$>$ t$\vert$$>$$\vert$$>$}'
+    System`InputForm: '\text{$<$$\vert$a $\to$ x, b $\to$ y, c $\to$ $<$$\vert$d $\to$ t$\vert$$>$$\vert$$>$}'
+    System`OutputForm: '\text{$<$$\vert$a $\to$ x, b $\to$ y, c $\to$ $<$$\vert$d $\to$ t$\vert$$>$$\vert$$>$}'
     System`StandardForm: '\langle\vert a->x, b->y, c->\langle\vert d->t\vert\rangle \vert\rangle'
     System`TraditionalForm: '\langle\vert a->x, b->y, c->\langle\vert d->t\vert\rangle \vert\rangle'
   mathml:
@@ -306,8 +306,8 @@
 Association[a -> x, b -> y, c -> Association[d -> t, Association[e -> u]]]:
   msg: Nested Association
   latex:
-    System`InputForm: '\text{$<$$\vert$a -$>$ x, b -$>$ y, c -$>$ $<$$\vert$d -$>$ t, e -$>$ u$\vert$$>$$\vert$$>$}'
-    System`OutputForm: '\text{$<$$\vert$a -$>$ x, b -$>$ y, c -$>$ $<$$\vert$d -$>$ t, e -$>$ u$\vert$$>$$\vert$$>$}'
+    System`InputForm: '\text{$<$$\vert$a $\to$ x, b $\to$ y, c $\to$ $<$$\vert$d $\to$ t, e $\to$ u$\vert$$>$$\vert$$>$}'
+    System`OutputForm: '\text{$<$$\vert$a $\to$ x, b $\to$ y, c $\to$ $<$$\vert$d $\to$ t, e $\to$ u$\vert$$>$$\vert$$>$}'
     System`StandardForm: '\langle\vert a->x, b->y, c->\langle\vert d->t, e->u\vert\rangle \vert\rangle'
     System`TraditionalForm: '\langle\vert a->x, b->y, c->\langle\vert d->t, e->u\vert\rangle \vert\rangle'
   mathml:
@@ -336,9 +336,9 @@ Complex[1.09*^12, 3.]:
     System`TraditionalForm: "<mrow>\n <mrow>\n  <mn>1.09</mn>\n  <mo>×</mo>\n  <msup>\n   <mn>10</mn>\n   <mn>12</mn>\n  </msup>\n </mrow>\n <mo>+</mo>\n <mrow>\n  <mn>3.</mn>\n  <mo form=\"prefix\" lspace=\"0\" rspace=\"0.2em\">⁢</mo>\n  <mi>I</mi>\n </mrow>\n</mrow>"
   text:
     System`InputForm: 1.09*^12 + 3.*I
-    System`OutputForm: "1.09\xD710^12 + 3. I"
+    System`OutputForm: "1.09 x 10^12 + 3. I"
     System`StandardForm: 1.09`*^12+3.` I
-    System`TraditionalForm: "1.09`\xD710^12+3.`\u2062I"
+    System`TraditionalForm: "1.09` x 10^12+3.`\u2062I"
 
 
 Graphics[{Text[a^b,{0,0}]}]:
@@ -528,8 +528,8 @@ Integrate[F[x], {x, a, g[b]}]:
   text:
     System`InputForm: Integrate[F[x], {x, a, g[b]}]
     System`OutputForm: Integrate[F[x], {x, a, g[b]}]
-    System`StandardForm: 'Subsuperscript[∫, a, g[b]]⁢F[x]⁢𝑑x'
-    System`TraditionalForm: 'Subsuperscript[∫, a, g(b)]⁢F(x)⁢𝑑x'
+    System`StandardForm: 'Subsuperscript[\[Integral], a, g[b]]⁢F[x]⁢\[DifferentialD]x'
+    System`TraditionalForm: 'Subsuperscript[\[Integral], a, g(b)]⁢F(x)⁢\[DifferentialD]x'
 
 MatrixForm[{{a,b},{c,d}}]:
   msg: GridBox in a matrix
