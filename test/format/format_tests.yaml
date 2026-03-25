@@ -287,13 +287,13 @@
 <|a -> x, b -> y, c -> <|d -> t|>|>:
   msg: Association
   latex:
-    System`InputForm: '\text{$<$$\vert$a $\to$ x, b $\to$ y, c $\to$ $<$$\vert$d $\to$ t$\vert$$>$$\vert$$>$}'
+    System`InputForm: '\text{$<$$\vert$a -$>$ x, b -$>$ y, c -$>$ $<$$\vert$d -$>$ t$\vert$$>$$\vert$$>$}'
     System`OutputForm: '\text{$<$$\vert$a $\to$ x, b $\to$ y, c $\to$ $<$$\vert$d $\to$ t$\vert$$>$$\vert$$>$}'
     System`StandardForm: '\langle\vert a->x, b->y, c->\langle\vert d->t\vert\rangle \vert\rangle'
     System`TraditionalForm: '\langle\vert a->x, b->y, c->\langle\vert d->t\vert\rangle \vert\rangle'
   mathml:
     System`InputForm: <mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t|&gt;|&gt;</mtext>
-    System`OutputForm: '<mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t|&gt;|&gt;</mtext>'
+    System`OutputForm: '<mtext>&lt;|a&nbsp;⇾&nbsp;x,&nbsp;b&nbsp;⇾&nbsp;y,&nbsp;c&nbsp;⇾&nbsp;&lt;|d&nbsp;⇾&nbsp;t|&gt;|&gt;</mtext>'
     System`StandardForm: "<mrow>\n <mtext>&lt;|</mtext>\n <mrow>\n  <mrow>\n   <mi>a</mi>\n   <mn>-&gt;</mn>\n   <mi>x</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>b</mi>\n   <mn>-&gt;</mn>\n   <mi>y</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>c</mi>\n   <mn>-&gt;</mn>\n   <mrow>\n    <mtext>&lt;|</mtext>\n    <mrow>\n     <mi>d</mi>\n     <mn>-&gt;</mn>\n     <mi>t</mi>\n    </mrow>\n    <mtext>|&gt;</mtext>\n   </mrow>\n  </mrow>\n </mrow>\n <mtext>|&gt;</mtext>\n</mrow>"
     System`TraditionalForm: "<mrow>\n <mtext>&lt;|</mtext>\n <mrow>\n  <mrow>\n   <mi>a</mi>\n   <mn>-&gt;</mn>\n   <mi>x</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>b</mi>\n   <mn>-&gt;</mn>\n   <mi>y</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>c</mi>\n   <mn>-&gt;</mn>\n   <mrow>\n    <mtext>&lt;|</mtext>\n    <mrow>\n     <mi>d</mi>\n     <mn>-&gt;</mn>\n     <mi>t</mi>\n    </mrow>\n    <mtext>|&gt;</mtext>\n   </mrow>\n  </mrow>\n </mrow>\n <mtext>|&gt;</mtext>\n</mrow>"
   text:
@@ -306,13 +306,13 @@
 Association[a -> x, b -> y, c -> Association[d -> t, Association[e -> u]]]:
   msg: Nested Association
   latex:
-    System`InputForm: '\text{$<$$\vert$a $\to$ x, b $\to$ y, c $\to$ $<$$\vert$d $\to$ t, e $\to$ u$\vert$$>$$\vert$$>$}'
+    System`InputForm: '\text{$<$$\vert$a -$>$ x, b -$>$ y, c -$>$ $<$$\vert$d -$>$ t, e -$>$ u$\vert$$>$$\vert$$>$}'
     System`OutputForm: '\text{$<$$\vert$a $\to$ x, b $\to$ y, c $\to$ $<$$\vert$d $\to$ t, e $\to$ u$\vert$$>$$\vert$$>$}'
     System`StandardForm: '\langle\vert a->x, b->y, c->\langle\vert d->t, e->u\vert\rangle \vert\rangle'
     System`TraditionalForm: '\langle\vert a->x, b->y, c->\langle\vert d->t, e->u\vert\rangle \vert\rangle'
   mathml:
     System`InputForm: "<mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t,&nbsp;e&nbsp;-&gt;&nbsp;u|&gt;|&gt;</mtext>"
-    System`OutputForm: '<mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t,&nbsp;e&nbsp;-&gt;&nbsp;u|&gt;|&gt;</mtext>'
+    System`OutputForm: '<mtext>&lt;|a&nbsp;⇾&nbsp;x,&nbsp;b&nbsp;⇾&nbsp;y,&nbsp;c&nbsp;⇾&nbsp;&lt;|d&nbsp;⇾&nbsp;t,&nbsp;e&nbsp;⇾&nbsp;u|&gt;|&gt;</mtext>'
     System`StandardForm: "<mrow>\n <mtext>&lt;|</mtext>\n <mrow>\n  <mrow>\n   <mi>a</mi>\n   <mn>-&gt;</mn>\n   <mi>x</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>b</mi>\n   <mn>-&gt;</mn>\n   <mi>y</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>c</mi>\n   <mn>-&gt;</mn>\n   <mrow>\n    <mtext>&lt;|</mtext>\n    <mrow>\n     <mrow>\n      <mi>d</mi>\n      <mn>-&gt;</mn>\n      <mi>t</mi>\n     </mrow>\n     <mo>,</mo>\n     <mrow>\n      <mi>e</mi>\n      <mn>-&gt;</mn>\n      <mi>u</mi>\n     </mrow>\n    </mrow>\n    <mtext>|&gt;</mtext>\n   </mrow>\n  </mrow>\n </mrow>\n <mtext>|&gt;</mtext>\n</mrow>"
     System`TraditionalForm: "<mrow>\n <mtext>&lt;|</mtext>\n <mrow>\n  <mrow>\n   <mi>a</mi>\n   <mn>-&gt;</mn>\n   <mi>x</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>b</mi>\n   <mn>-&gt;</mn>\n   <mi>y</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>c</mi>\n   <mn>-&gt;</mn>\n   <mrow>\n    <mtext>&lt;|</mtext>\n    <mrow>\n     <mrow>\n      <mi>d</mi>\n      <mn>-&gt;</mn>\n      <mi>t</mi>\n     </mrow>\n     <mo>,</mo>\n     <mrow>\n      <mi>e</mi>\n      <mn>-&gt;</mn>\n      <mi>u</mi>\n     </mrow>\n    </mrow>\n    <mtext>|&gt;</mtext>\n   </mrow>\n  </mrow>\n </mrow>\n <mtext>|&gt;</mtext>\n</mrow>"
   text:
