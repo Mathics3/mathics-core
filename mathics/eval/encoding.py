@@ -25,7 +25,7 @@ UNICODE_CHARACTER_TO_ASCII = {
 # in Mathics3-scanner tables:
 UNICODE_CHARACTER_TO_ASCII.update(
     {
-        "×": r" x ",
+        operator_to_unicode["Times"]: r" x ",
         "": r"\[DifferentialD]",
     }
 )

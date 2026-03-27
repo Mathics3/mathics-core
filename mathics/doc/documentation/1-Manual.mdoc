@@ -656,10 +656,10 @@ You can also specify a list of rules:
 There is a "delayed" version of 'Rule' which can be specified by ':>' (similar to the relation of ':=' to '='):
 
   >> a :> 1 + 2
-  = a :> 1 + 2
+  = a ⧴ 1 + 2
 
   >> a -> 1 + 2
-  = a -> 3
+  = a ⇾ 3
 
 This is useful when the right side of a rule should not be evaluated immediately (before matching):
   >> {1, 2} /. x_Integer -> N[x]

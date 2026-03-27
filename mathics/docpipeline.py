@@ -45,6 +45,8 @@ MAX_TESTS = 100000  # A number greater than the total number of tests.
 # When 3.8 is base, the below can be a Literal type.
 INVALID_TEST_GROUP_SETUP = (None, None)
 
+CHARACTER_ENCODING = settings.SYSTEM_CHARACTER_ENCODING
+
 TestParameters = namedtuple(
     "TestParameters",
     [
@@ -138,10 +140,6 @@ class DocTestPipeline:
         else:
             self.output_data = {}
 
-        # For consistency set the character encoding ASCII which is
-        # the lowest common denominator available on all systems.
-        settings.SYSTEM_CHARACTER_ENCODING = "ASCII"
-
         if self.session.definitions is None:
             self.print_and_log("Definitions are not initialized.")
             return INVALID_TEST_GROUP_SETUP
@@ -224,9 +222,7 @@ def test_case(
         return False
 
     time_start = datetime.now()
-    comparison_result = test.compare_result(
-        result, encoding=settings.SYSTEM_CHARACTER_ENCODING
-    )
+    comparison_result = test.compare_result(result, encoding=CHARACTER_ENCODING)
 
     if test_parameters.check_partial_elapsed_time:
         test_pipeline.print_and_log(
@@ -500,10 +496,7 @@ def test_tests(
     """
     test_status: TestStatus = test_pipeline.status
     test_parameters: TestParameters = test_pipeline.parameters
-    # For consistency set the character encoding ASCII which is
-    # the lowest common denominator available on all systems.
 
-    settings.SYSTEM_CHARACTER_ENCODING = "ASCII"
     test_pipeline.reset_user_definitions()
 
     output_data, names = test_pipeline.validate_group_setup(

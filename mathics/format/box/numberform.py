@@ -17,6 +17,7 @@ from mathics.core.atoms import (
     Real,
     String,
 )
+from mathics.core.convert.op import operator_to_unicode
 from mathics.core.element import BaseElement, BoxElementMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -49,8 +50,7 @@ DEFAULT_NUMBERFORM_OPTIONS = {
     "ExponentFunction": lambda x: (SymbolNull if abs(x.value) <= 5 else x),
     "ExponentStep": 1,
     "NumberFormat": default_numberformat_outputform,
-    # TODO: Pick from MathicsScanner tables...
-    "NumberMultiplier": "×",
+    "NumberMultiplier": operator_to_unicode["Times"],
     "NumberPadding": ["", "0"],
     "NumberPoint": ".",
     "NumberSeparator": [",", ""],
