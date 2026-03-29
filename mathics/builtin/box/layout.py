@@ -466,7 +466,7 @@ class ShowSpecialCharacters(Builtin):
     https://reference.wolfram.com/language/ref/ShowSpecialCharacters.html</url>
     <dl>
       <dt>'ShowSpecialCharacters'
-      <dd>is an option for 'Style' and 'Cell' that directs whether non-ANSI characters must be shown as special characters or by escaped sequences.
+      <dd>is an option for 'Style' and 'Cell' that directs whether non-ASCII characters must be shown as special characters or by escaped sequences.
     </dl>
 
     <ul>
@@ -474,7 +474,7 @@ class ShowSpecialCharacters(Builtin):
     </ul>
     """
 
-    summary_text = "cell option directing whether show special characters in a reversible ANSI format."
+    summary_text = "cell option directing whether show special characters in a reversible ASCII format."
 
 
 class ShowStringCharacters(Builtin):
