@@ -34,28 +34,6 @@ unicode_operator_to_ascii = {
     val: operator_to_ascii[key] for key, val in operator_to_unicode.items()
 }
 
-
-# This dictionary is used for the default encoding from Unicode/UTF-8 to ASCII
-
-UNICODE_CHARACTER_TO_ASCII = CHARACTER_TO_NAME.copy()
-UNICODE_CHARACTER_TO_ASCII.update(
-    {
-        ch: operator_to_ascii[name]
-        for name, ch in operator_to_unicode.items()
-        if name in operator_to_ascii
-    }
-)
-# These characters are used in encoding
-# in WMA, and differs from what we have
-# in Mathics3-scanner tables:
-UNICODE_CHARACTER_TO_ASCII.update(
-    {
-        operator_to_unicode["Times"]: r" x ",
-        "": r"\[DifferentialD]",
-    }
-)
-
-
 UNICODE_TO_AMSLATEX = NAMED_CHARACTERS_COLLECTION.get("unicode-to-amslatex", {})
 UNICODE_TO_LATEX = NAMED_CHARACTERS_COLLECTION.get("unicode-to-latex", {})
 
