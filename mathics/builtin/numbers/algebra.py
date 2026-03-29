@@ -135,7 +135,7 @@ class Apart(Builtin):
      = Sin[1 / (x ^ 2 - y ^ 2)]
 
     >> a == "A" // Apart // InputForm
-     = a == "A"
+     = a ⩵ "A"
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -175,7 +175,7 @@ class Cancel(Builtin):
 
     But it does not touch other expressions:
     >> a == "A" // Cancel // InputForm
-     = a == "A"
+     = a ⩵ "A"
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -696,7 +696,7 @@ class Expand(_Expand):
 
     'Expand' expands items in lists and rules:
     >> Expand[{4 (x + y), 2 (x + y) -> 4 (x + y)}]
-     = {4 x + 4 y, 2 x + 2 y -> 4 x + 4 y}
+     = {4 x + 4 y, 2 x + 2 y ⇾ 4 x + 4 y}
 
     'Expand' expands trigonometric identities
     >> Expand[Sin[x + y], Trig -> True]
@@ -961,7 +961,7 @@ class Factor(Builtin):
 
     Factor can also be used with equations:
     >> Factor[x a == x b + x c]
-     = a x == x (b + c)
+     = a x ⩵ x (b + c)
 
     And lists:
     >> Factor[{x + x^2, 2 x + 2 y + 2}]
@@ -973,11 +973,11 @@ class Factor(Builtin):
 
     You can use Factor to find when a polynomial is zero:
     >> x^2 - x == 0 // Factor
-     = x (-1 + x) == 0
+     = x (-1 + x) ⩵ 0
 
     But it does not touch other expressions:
     >> a == "A" // Factor // InputForm
-     = a == "A"
+     = a ⩵ "A"
     """
 
     attributes = A_LISTABLE | A_PROTECTED

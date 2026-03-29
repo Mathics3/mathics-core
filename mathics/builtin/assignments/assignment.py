@@ -83,7 +83,7 @@ class Set(InfixOperator):
 
     An assignment like this creates an ownvalue:
     >> OwnValues[a]
-     = {HoldPattern[a] :> 3}
+     = {HoldPattern[a] ⧴ 3}
 
     You can set multiple values at once using lists:
     >> {a, b, c} = {10, 2, 3}
@@ -246,7 +246,7 @@ class TagSet(Builtin):
      = {}
 
     >> UpValues[square]
-     = {HoldPattern[area[square[s_]]] :> s ^ 2}
+     = {HoldPattern[area[square[s_]]] ⧴ s ^ 2}
 
     The symbol $f$ must appear as the ultimate head of $lhs$ or as the head \
         of an element in $lhs$:
@@ -341,7 +341,7 @@ class UpSet(InfixOperator):
     >> DownValues[a]
      = {}
     >> UpValues[b]
-     = {HoldPattern[a[b]] :> 3}
+     = {HoldPattern[a[b]] ⧴ 3}
 
     You can use 'UpSet' to specify special values like format values.
     However, these values will not be saved in 'UpValues':
@@ -388,7 +388,7 @@ class UpSetDelayed(UpSet):
     >> a[b]
      = 2
     >> UpValues[b]
-     = {HoldPattern[a[b]] :> x}
+     = {HoldPattern[a[b]] ⧴ x}
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED | A_SEQUENCE_HOLD

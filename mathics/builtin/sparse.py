@@ -38,11 +38,11 @@ class SparseArray(Builtin):
     </dl>
 
     >> SparseArray[{{1, 2} -> 1, {2, 1} -> 1}]
-     = SparseArray[Automatic, {2, 2}, 0, {{1, 2} -> 1, {2, 1} -> 1}]
+     = SparseArray[Automatic, {2, 2}, 0, {{1, 2} ⇾ 1, {2, 1} ⇾ 1}]
     >> SparseArray[{{1, 2} -> 1, {2, 1} -> 1}, {3, 3}]
-     = SparseArray[Automatic, {3, 3}, 0, {{1, 2} -> 1, {2, 1} -> 1}]
+     = SparseArray[Automatic, {3, 3}, 0, {{1, 2} ⇾ 1, {2, 1} ⇾ 1}]
     >> M=SparseArray[{{0, a}, {b, 0}}]
-     = SparseArray[Automatic, {2, 2}, 0, {{1, 2} -> a, {2, 1} -> b}]
+     = SparseArray[Automatic, {2, 2}, 0, {{1, 2} ⇾ a, {2, 1} ⇾ b}]
     >> M //Normal
      = {{0, a}, {b, 0}}
 

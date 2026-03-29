@@ -496,7 +496,7 @@ class Equal(_EqualityOperator, _SympyComparison):
     only if the symbols are equal:
 
     >> Clear[a, b]; a == b
-     = a == b
+     = a ⩵ b
 
     >> a == a
      = True
@@ -520,15 +520,15 @@ class Equal(_EqualityOperator, _SympyComparison):
 
     >> g[1] == g[1] == g[1]
      = True
-    >> g[1] == g[1] == g[r]
-     = g[1] == g[1] == g[r]
+    >> g[1] ⩵ g[1] ⩵ g[r]
+     = g[1] ⩵ g[1] ⩵ g[r]
 
     Equality can also be combined with other inequality expressions, like:
     >> g[1] == g[2] != g[3]
-     = g[1] == g[2] && g[2] != g[3]
+     = g[1] ⩵ g[2] ∧ g[2] ≠ g[3]
 
     >> g[1] == g[2] <= g[3]
-     = g[1] == g[2] && g[2] <= g[3]
+     = g[1] ⩵ g[2] ∧ g[2] ≤ g[3]
 
     'Equal' with no parameter or an empty list is 'True':
     >> Equal[] == True
@@ -611,9 +611,9 @@ class Inequality(Builtin):
     </dl>
 
     >> a < b <= c
-     = a < b && b <= c
+     = a < b ∧ b ≤ c
     >> Inequality[a, Greater, b, LessEqual, c]
-     = a > b && b <= c
+     = a > b ∧ b ≤ c
     >> 1 < 2 <= 3
      = True
     >> 1 < 2 > 0
@@ -886,7 +886,7 @@ class Unequal(_EqualityOperator, _SympyComparison):
      = True
 
     >> 1 != 2 != x
-     = 1 != 2 != x
+     = 1 ≠ 2 ≠ x
 
     Strings are allowed:
     >> Unequal["11", "11"]
