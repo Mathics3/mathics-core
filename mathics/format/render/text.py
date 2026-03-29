@@ -20,7 +20,7 @@ from mathics.builtin.box.layout import (
     TagBox,
 )
 from mathics.core.atoms import String
-from mathics.core.convert.op import string_to_invertible_ansi
+from mathics.core.convert.op import string_to_invertible_ascii
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import (
     add_render_function,
@@ -162,7 +162,7 @@ def string(s: String, **options) -> str:
     )
 
     if not show_special_characters:
-        value = string_to_invertible_ansi(value)
+        value = string_to_invertible_ascii(value)
 
     if value.startswith('"') and value.endswith('"'):  # nopep8
         if not show_string_characters:
