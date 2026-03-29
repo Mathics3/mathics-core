@@ -40,7 +40,7 @@ MATHML_STRICT = (
 
 PATH = os.path.dirname(__file__) + os.path.sep
 
-with open(PATH + "format_tests.yaml", "r") as src:
+with open(PATH + "format_tests.yaml", "r", encoding="utf-8") as src:
     all_test = yaml.safe_load(src)
 
 

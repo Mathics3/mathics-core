@@ -21,6 +21,7 @@ from typing import Callable, Dict, Generator, List, Optional, Set, Union
 
 import mathics
 from mathics import settings, version_string
+from mathics.core.convert.op import string_to_invertible_ascii
 from mathics.core.evaluation import Output
 from mathics.core.load_builtin import _builtins, import_and_load_builtins
 from mathics.doc.doc_entries import DocTest, DocumentationEntry
@@ -44,6 +45,8 @@ STARS: str = "*" * 10
 MAX_TESTS = 100000  # A number greater than the total number of tests.
 # When 3.8 is base, the below can be a Literal type.
 INVALID_TEST_GROUP_SETUP = (None, None)
+
+CHARACTER_ENCODING = settings.SYSTEM_CHARACTER_ENCODING
 
 TestParameters = namedtuple(
     "TestParameters",
@@ -138,10 +141,6 @@ class DocTestPipeline:
         else:
             self.output_data = {}
 
-        # For consistency set the character encoding ASCII which is
-        # the lowest common denominator available on all systems.
-        settings.SYSTEM_CHARACTER_ENCODING = "ASCII"
-
         if self.session.definitions is None:
             self.print_and_log("Definitions are not initialized.")
             return INVALID_TEST_GROUP_SETUP
@@ -195,7 +194,9 @@ class TestStatus:
         """Show the current test"""
         test_str = test.test
         if not self.quiet:
-            print(f"{index:4d} ({subindex:2d}): TEST {test_str}")
+            print(
+                f"{index:4d} ({subindex:2d}): TEST {string_to_invertible_ascii(test_str)}"
+            )
 
 
 def test_case(
@@ -224,7 +225,7 @@ def test_case(
         return False
 
     time_start = datetime.now()
-    comparison_result = test.compare_result(result)
+    comparison_result = test.compare_result(result, encoding=CHARACTER_ENCODING)
 
     if test_parameters.check_partial_elapsed_time:
         test_pipeline.print_and_log(
@@ -498,10 +499,7 @@ def test_tests(
     """
     test_status: TestStatus = test_pipeline.status
     test_parameters: TestParameters = test_pipeline.parameters
-    # For consistency set the character encoding ASCII which is
-    # the lowest common denominator available on all systems.
 
-    settings.SYSTEM_CHARACTER_ENCODING = "ASCII"
     test_pipeline.reset_user_definitions()
 
     output_data, names = test_pipeline.validate_group_setup(
