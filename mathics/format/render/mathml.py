@@ -79,7 +79,7 @@ def encode_mathml(text: str) -> str:
     text = text.replace("\n", '<mspace linebreak="newline" />')
     # Now, handle non-ASCII characters using the
     # the form '&#{code};'
-    # Notice that this should happend after escaping special characters:
+    # This must happen after escaping special characters:
     result = ""
     for c in text:
         code = ord(c)
