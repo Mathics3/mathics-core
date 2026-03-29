@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Structural elements of Mathics Documentation
+Structural elements of Mathics3 Documentation
 
 This module contains the classes representing the Mathics documentation structure,
 and extended regular expressions used to parse it.
