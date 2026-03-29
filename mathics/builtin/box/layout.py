@@ -470,11 +470,11 @@ class ShowSpecialCharacters(Builtin):
     </dl>
 
     <ul>
-    <li>With 'ShowSpecialCharacters' is set to 'False', special characters are always displayed by name when possible.
+    <li>With 'ShowSpecialCharacters' set to 'False', special characters are always displayed by name when possible.
     </ul>
     """
 
-    summary_text = "cell option directing whether show special characters in a reversible ASCII format."
+    summary_text = "cell and style option directing whether show special characters in a reversible ASCII format."
 
 
 class ShowStringCharacters(Builtin):
