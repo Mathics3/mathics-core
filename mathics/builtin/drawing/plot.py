@@ -6,8 +6,6 @@ Plotting functions take a function as a parameter and data, often a range of \
 points, as another parameter, and plot or show the function applied to the data.
 """
 
-import os
-
 import palettable
 
 import mathics.eval.drawing.plot3d
