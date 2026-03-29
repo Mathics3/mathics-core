@@ -103,7 +103,7 @@ def test_alphabet(str_expr, str_expected, fail_msg, warnings):
         (
             'ToExpression["1+"]',
             (
-                "Incomplete expression; more input is needed (line 1 of ToExpression['1+']).",
+                "Incomplete expression; more input is needed (line 1 of \"ToExpression['1+']\").",
             ),
             "$Failed",
         ),

@@ -25,7 +25,14 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BoxError, Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import dps
-from mathics.core.symbols import Atom, Symbol, SymbolFullForm, SymbolList, SymbolTimes
+from mathics.core.symbols import (
+    Atom,
+    Symbol,
+    SymbolFullForm,
+    SymbolList,
+    SymbolTimes,
+    SymbolTrue,
+)
 from mathics.core.systemsymbols import (
     SymbolDerivative,
     SymbolInfinity,
@@ -843,6 +850,7 @@ def string_render_output_form(expr: String, evaluation: Evaluation, **kwargs) ->
     # return "\n".join(lines)
     # value = expr.value
     # return value
+    kwargs["System`ShowStringCharacters"] = SymbolTrue
     return render_string(expr, **kwargs)
 
 

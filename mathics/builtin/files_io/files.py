@@ -327,6 +327,7 @@ class FilePrint(Builtin):
             result = result[:-1]
 
         for res in result:
+            print("show", String(res).value)
             evaluation.print_out(String(res))
 
         return SymbolNull
