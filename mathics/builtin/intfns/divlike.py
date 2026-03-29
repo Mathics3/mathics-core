@@ -172,7 +172,9 @@ class LCM(Builtin):
 
 class Mod(SympyFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Mod.html</url>
+    <url>:Congruence:https://en.wikipedia.org/wiki/Modular_arithmetic#Congruence</url> (<url>
+    :SymPy:https://docs.sympy.org/latest/modules/core.html#sympy.core.mod.Mod</url>, <url>
+    :WMA:https://reference.wolfram.com/language/ref/Mod.html</url>)
 
     <dl>
       <dt>'Mod'[$x$, $m$]
@@ -185,9 +187,31 @@ class Mod(SympyFunction):
      = 1
     >> Mod[-3, -4]
      = -3
+
+    Plot a sequence with fixed modulus:
+    >> DiscretePlot[Mod[n, 8], {n, 50}]
+     = -Graphics-
+
+    Plot a sequence with increasing modulus:
+    >> DiscretePlot[Mod[100, m], {m, 30}]
+     = -Graphics-
+
+    Fermat's "little" theorem states that for a prime number $p$, and another number $a$ which is \
+    relatively prime to that $a^{(p-1)} = 1_{mod\\:p}$:
+
+    >> p=Prime[4]; Table[Mod[a^(p-1), p], {a, 1, p-1}]
+     = {1, 1, 1, 1, 1, 1}
+
+    #> Clear[p]
+
+    Zero is not allowed as a modulus:
     >> Mod[5, 0]
      : The argument 0 in Mod[5, 0] should be nonzero.
      = Mod[5, 0]
+
+    See also <url>
+    :'PowerMod':
+    /doc/reference-of-built-in-symbols/integer-functions/division-related-functions/powermod/</url>.
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
@@ -216,7 +240,7 @@ class ModularInverse(SympyFunction):
     <url>
     :Modular multiplicative inverse:
     https://en.wikipedia.org/wiki/Modular_multiplicative_inverse</url> (<url>
-    :SymPy: https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.mod_inverse</url>, <url>
+    :SymPy:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.mod_inverse</url>, <url>
     :WMA: https://reference.wolfram.com/language/ref/ModularInverse.html
     </url>)
 
@@ -256,18 +280,38 @@ class ModularInverse(SympyFunction):
 class PowerMod(Builtin):
     """
     <url>:Modular exponentiation:
-    https://en.wikipedia.org/wiki/Modular_exponentiation</url> (<url>
-    :WMA:
+    https://en.wikipedia.org/wiki/Modular_exponentiation</url> (SymPy: <url>
+    :mod_inverse:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.mod_inverse</url>, <url>
+    :nth_root_mod:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.nth_root</url>, <url>
+    :sqrt_mod:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.sqrt_mod</url>, <url>
+    :WMA link:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.Pow</url> <url>
     https://reference.wolfram.com/language/ref/PowerMod.html</url>).
 
     <dl>
       <dt>'PowerMod'[$x$, $y$, $m$]
       <dd>computes $x$^$y$ modulo $m$.
+      <dt>'PowerMod'[$x$, -1, $m$]
+      <dd>computes modular inverse of $x$ modulo $m$.
+      <dt>'PowerMod'[$x$, 1/$r$, $m$]
+      <dd>computes a module $r$-th root of $x$.
     </dl>
+
+    Compute 7 squared mod 5:
+    >> PowerMod[7, 2, 5]
+     = 4
+
+    'PowerMod' is periodic:
+    >> PowerMod[7 + 5, 2, 5]
+    = 4
+
+    Plot the sequence of 'PowerMod' using varying powers:
+    >> DiscretePlot[PowerMod[m, 2, 11], {m, 1, 40}]
+     = -Graphics-
 
     'PowerMod' can handle large integers:
     >> PowerMod[2, 10000000, 3]
      = 1
+
     >> PowerMod[3, -2, 10]
      = 9
 
