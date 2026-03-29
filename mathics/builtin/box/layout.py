@@ -459,6 +459,24 @@ class RowBox(BoxExpression):
         return any(item.is_multiline for item in self.items)
 
 
+class ShowSpecialCharacters(Builtin):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ShowSpecialCharacters.html</url>
+    <dl>
+      <dt>'ShowSpecialCharacters'
+      <dd>is an option for 'Style' and 'Cell' that directs whether non-ANSI characters must be shown as special characters or by escaped sequences.
+    </dl>
+
+    <ul>
+    <li>With 'ShowSpecialCharacters' is set to 'False', special characters are always displayed by name when possible.
+    </ul>
+    """
+
+    summary_text = "cell option directing whether show special characters in a reversible ANSI format."
+
+
 class ShowStringCharacters(Builtin):
     """
     <url>

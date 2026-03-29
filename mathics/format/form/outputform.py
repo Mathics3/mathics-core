@@ -88,8 +88,8 @@ def _default_render_output_form(
     if isinstance(expr, Atom):
         result = expr.atom_to_boxes(SymbolOutputForm, evaluation)
         if isinstance(result, String):
-            return result.value
-        return result.to_text()
+            return result.to_text(**kwargs)
+        return result.to_text(**kwargs)
 
     expr_head = expr.head
     head = render_output_form(expr_head, evaluation, **kwargs)
@@ -835,12 +835,15 @@ def _slotsequence_outputform_text(expr: Expression, evaluation: Evaluation, **kw
 
 @register_outputform("System`String")
 def string_render_output_form(expr: String, evaluation: Evaluation, **kwargs) -> str:
+    from mathics.format.render.text import string as render_string
+
     # lines = expr.value.split("\n")
     # max_len = max([len(line) for line in lines])
     # lines = [line + (max_len - len(line)) * " " for line in lines]
     # return "\n".join(lines)
-    value = expr.value
-    return value
+    # value = expr.value
+    # return value
+    return render_string(expr, **kwargs)
 
 
 @register_outputform("System`StringForm")
@@ -940,7 +943,23 @@ def style_to_outputform_text(expr: Expression, evaluation: Evaluation, **kwargs)
     elements = expr.elements
     if not elements:
         raise _WrongFormattedExpression
-    return render_output_form(elements[0], evaluation, **kwargs)
+    elem, *style_and_options = elements
+    options = {}
+    if style_and_options:
+        style, *style_and_options = style_and_options
+        option = style.get_option_values(evaluation)
+        if option is not None:
+            options.update(option)
+
+    for opt_arg in style_and_options:
+        option = opt_arg.get_option_values(evaluation)
+        if option is None:
+            raise _WrongFormattedExpression
+        for opt, val in option.items():
+            options[opt] = val
+
+    kwargs.update(options)
+    return render_output_form(elem, evaluation, **kwargs)
 
 
 @register_outputform("System`Symbol")

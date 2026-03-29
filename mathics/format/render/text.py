@@ -20,13 +20,14 @@ from mathics.builtin.box.layout import (
     TagBox,
 )
 from mathics.core.atoms import String
+from mathics.core.convert.op import string_to_invertible_ansi
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import (
     add_render_function,
     convert_box_to_format,
     convert_inner_box_field,
 )
-from mathics.core.symbols import Atom, SymbolTrue
+from mathics.core.symbols import Atom, SymbolFalse, SymbolTrue
 from mathics.format.box.graphics import prepare_elements as prepare_elements2d
 from mathics.format.box.graphics3d import prepare_elements as prepare_elements3d
 from mathics.format.form.util import _WrongFormattedExpression, text_cells_to_grid
@@ -156,6 +157,13 @@ def string(s: String, **options) -> str:
     show_string_characters = (
         options.get("System`ShowStringCharacters", None) is SymbolTrue
     )
+    show_special_characters = (not show_string_characters) or (
+        not (options.get("System`ShowSpecialCharacters", None) is SymbolFalse)
+    )
+
+    if not show_special_characters:
+        value = string_to_invertible_ansi(value)
+
     if value.startswith('"') and value.endswith('"'):  # nopep8
         if not show_string_characters:
             value = value[1:-1]

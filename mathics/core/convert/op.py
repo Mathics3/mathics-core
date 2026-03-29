@@ -12,6 +12,21 @@ from mathics_scanner.characters import (
 )
 
 ascii_operator_to_symbol = NAMED_CHARACTERS_COLLECTION["ascii-operator-to-symbol"]
+CHARACTER_TO_NAME = {
+    char: rf"\[{name}]"
+    for name, char in NAMED_CHARACTERS_COLLECTION["named-characters"].items()
+}
+
+
+ESCAPE_CODE_BY_DIGITS = {
+    1: r"\.0",
+    2: r"\.",
+    3: r"\:0",
+    4: r"\:",
+    5: r"\|0",
+    6: r"\|",
+}
+
 builtin_constants = NAMED_CHARACTERS_COLLECTION["builtin-constants"]
 operator_to_unicode = NAMED_CHARACTERS_COLLECTION["operator-to-unicode"]
 operator_to_ascii = NAMED_CHARACTERS_COLLECTION["operator-to-ascii"]
@@ -19,9 +34,30 @@ unicode_operator_to_ascii = {
     val: operator_to_ascii[key] for key, val in operator_to_unicode.items()
 }
 
+
+# This dictionary is used for the default encoding from Unicode/UTF-8 to ASCII
+
+UNICODE_CHARACTER_TO_ASCII = CHARACTER_TO_NAME.copy()
+UNICODE_CHARACTER_TO_ASCII.update(
+    {
+        ch: operator_to_ascii[name]
+        for name, ch in operator_to_unicode.items()
+        if name in operator_to_ascii
+    }
+)
+# These characters are used in encoding
+# in WMA, and differs from what we have
+# in Mathics3-scanner tables:
+UNICODE_CHARACTER_TO_ASCII.update(
+    {
+        operator_to_unicode["Times"]: r" x ",
+        "": r"\[DifferentialD]",
+    }
+)
+
+
 UNICODE_TO_AMSLATEX = NAMED_CHARACTERS_COLLECTION.get("unicode-to-amslatex", {})
 UNICODE_TO_LATEX = NAMED_CHARACTERS_COLLECTION.get("unicode-to-latex", {})
-
 
 AMSTEX_OPERATORS = {
     NAMED_CHARACTERS["Prime"]: "'",
@@ -46,6 +82,30 @@ AMSTEX_OPERATORS = {
     NAMED_CHARACTERS["Sum"]: r"\sum",
     NAMED_CHARACTERS["Product"]: r"\prod",
 }
+
+
+def string_to_invertible_ansi(string: str):
+    """
+    Replace non-ANSI characters by their names. If the character
+    does not have a name, use the WMA hex character code form.
+    Passing the string through `evaluation.parse` brings back
+    the original string.
+    This is used in particular for rendering `FullForm` expressions,
+    and when `Style` is called with both the options
+    `ShowStringCharacters->True` and `ShowSpecialCharacters->False`.
+    """
+    result = ""
+    for c in string:
+        ord_c = ord(c)
+        if ord_c < 128:
+            result += c
+        else:
+            named = CHARACTER_TO_NAME.get(c, None)
+            if named is None:
+                named = hex(ord_c)[2:]
+                named = ESCAPE_CODE_BY_DIGITS[len(named)] + named
+            result += named
+    return result
 
 
 def is_named_operator(str_op):
