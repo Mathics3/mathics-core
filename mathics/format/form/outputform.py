@@ -844,13 +844,21 @@ def _slotsequence_outputform_text(expr: Expression, evaluation: Evaluation, **kw
 def string_render_output_form(expr: String, evaluation: Evaluation, **kwargs) -> str:
     from mathics.format.render.text import string as render_string
 
-    # lines = expr.value.split("\n")
-    # max_len = max([len(line) for line in lines])
-    # lines = [line + (max_len - len(line)) * " " for line in lines]
-    # return "\n".join(lines)
-    # value = expr.value
-    # return value
-    kwargs["System`ShowStringCharacters"] = SymbolTrue
+    # To render a string in OutputForm, we use the
+    # function that render strings from Boxed expressions.
+    # When a String object is converted into Boxes,
+    # MakeBoxes enclose the original string with quotes.
+    # Then, depending on the value of the option
+    # `System`ShowStringCharacters`, these quotes are render or not.
+    # If this option is set to `False`, the added quotes are removed.
+    # Here we are not going through that route: if
+    # `System`ShowStringCharacters` is set to True, add the quotes:
+    if kwargs.get("System`ShowStringCharacters", None) is SymbolTrue:
+        expr = String(f'"{expr.value}"')
+    else:
+        # if not, set  "System`ShowStringCharacters" to True,
+        # to avoid remove quotes that was there before formatting:
+        kwargs["System`ShowStringCharacters"] = SymbolTrue
     return render_string(expr, **kwargs)
 
 
