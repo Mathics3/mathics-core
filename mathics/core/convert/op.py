@@ -84,9 +84,9 @@ AMSTEX_OPERATORS = {
 }
 
 
-def string_to_invertible_ansi(string: str):
+def string_to_invertible_ascii(string: str):
     """
-    Replace non-ANSI characters by their names. If the character
+    Replace non-ANSI characters with their names. If the character
     does not have a name, use the WMA hex character code form.
     Passing the string through `evaluation.parse` brings back
     the original string.
