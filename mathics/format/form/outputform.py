@@ -25,7 +25,14 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BoxError, Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import dps
-from mathics.core.symbols import Atom, Symbol, SymbolFullForm, SymbolList, SymbolTimes
+from mathics.core.symbols import (
+    Atom,
+    Symbol,
+    SymbolFullForm,
+    SymbolList,
+    SymbolTimes,
+    SymbolTrue,
+)
 from mathics.core.systemsymbols import (
     SymbolDerivative,
     SymbolInfinity,
@@ -87,8 +94,8 @@ def _default_render_output_form(
     if isinstance(expr, Atom):
         result = expr.atom_to_boxes(SymbolOutputForm, evaluation)
         if isinstance(result, String):
-            return result.value
-        return result.to_text()
+            return result.to_text(**kwargs)
+        return result.to_text(**kwargs)
 
     expr_head = expr.head
     head = render_output_form(expr_head, evaluation, **kwargs)
@@ -829,12 +836,24 @@ def _slotsequence_outputform_text(expr: Expression, evaluation: Evaluation, **kw
 
 @register_outputform("System`String")
 def string_render_output_form(expr: String, evaluation: Evaluation, **kwargs) -> str:
-    # lines = expr.value.split("\n")
-    # max_len = max([len(line) for line in lines])
-    # lines = [line + (max_len - len(line)) * " " for line in lines]
-    # return "\n".join(lines)
-    value = expr.value
-    return value
+    from mathics.format.render.text import string as render_string
+
+    # To render a string in OutputForm, we use the
+    # function that render strings from Boxed expressions.
+    # When a String object is converted into Boxes,
+    # MakeBoxes enclose the original string with quotes.
+    # Then, depending on the value of the option
+    # `System`ShowStringCharacters`, these quotes are render or not.
+    # If this option is set to `False`, the added quotes are removed.
+    # Here we are not going through that route: if
+    # `System`ShowStringCharacters` is set to True, add the quotes:
+    if kwargs.get("System`ShowStringCharacters", None) is SymbolTrue:
+        expr = String(f'"{expr.value}"')
+    else:
+        # if not, set  "System`ShowStringCharacters" to True,
+        # to avoid remove quotes that was there before formatting:
+        kwargs["System`ShowStringCharacters"] = SymbolTrue
+    return render_string(expr, **kwargs)
 
 
 @register_outputform("System`StringForm")
@@ -934,7 +953,23 @@ def style_to_outputform_text(expr: Expression, evaluation: Evaluation, **kwargs)
     elements = expr.elements
     if not elements:
         raise _WrongFormattedExpression
-    return render_output_form(elements[0], evaluation, **kwargs)
+    elem, *style_and_options = elements
+    options = {}
+    if style_and_options:
+        style, *style_and_options = style_and_options
+        option = style.get_option_values(evaluation)
+        if option is not None:
+            options.update(option)
+
+    for opt_arg in style_and_options:
+        option = opt_arg.get_option_values(evaluation)
+        if option is None:
+            raise _WrongFormattedExpression
+        for opt, val in option.items():
+            options[opt] = val
+
+    kwargs.update(options)
+    return render_output_form(elem, evaluation, **kwargs)
 
 
 @register_outputform("System`Symbol")

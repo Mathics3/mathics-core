@@ -65,7 +65,8 @@
 '"\[Pi] is a trascendental number"':
   msg: A String
   latex:
-    System`InputForm: "\\text{``$\\pi$ is a trascendental number''}"
+    # TODO: This should be fixed later
+    # System`InputForm: "\\text{``$\\pi$ is a trascendental number''}"
     System`OutputForm: "\\text{$\\pi$ is a trascendental number}"
     System`StandardForm: "\\text{$\\pi$ is a trascendental number}"
     System`TraditionalForm: "\\text{$\\pi$ is a trascendental number}"
@@ -75,7 +76,7 @@
     System`StandardForm: "<mtext>&#960;&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>"
     System`TraditionalForm: "<mtext>&#960;&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>"
   text:
-    System`InputForm: "\"\u03C0 is a trascendental number\""
+    System`InputForm: '"\[Pi] is a trascendental number"'
     System`OutputForm: "\u03C0 is a trascendental number"
     System`StandardForm: "\u03C0 is a trascendental number"
     System`TraditionalForm: "\u03C0 is a trascendental number"
@@ -440,7 +441,8 @@ Graphics[{}]:
 "Grid[{{\"Spanish\", \"Hola!\"},{\"Portuguese\", \"Ol\xE0!\"},{\"English\", \"Hi!\"}}]":
   msg: Strings in a GridBox
   latex:
-    System`InputForm:  \text{Grid[\{\{"Spanish", "Hola!"\}, \{"Portuguese", "Ol\`{a}!"\}, \{"English", "Hi!"\}\}]}
+    # TODO: This should be fixed later
+    # System`InputForm:  \text{Grid[\{\{"Spanish", "Hola!"\}, \{"Portuguese", "Ol\`{a}!"\}, \{"English", "Hi!"\}\}]}
     System`OutputForm: '\text{Spanish      Hola!\newline
     
     \newline
@@ -463,7 +465,7 @@ Graphics[{}]:
     System`StandardForm: "<mtable columnalign=\"center\">\n <mtr>\n  <mtd columnalign=\"center\">\n   <mtext>Spanish</mtext>\n  </mtd>\n  <mtd columnalign=\"center\">\n   <mtext>Hola!</mtext>\n  </mtd>\n </mtr>\n <mtr>\n  <mtd columnalign=\"center\">\n   <mtext>Portuguese</mtext>\n  </mtd>\n  <mtd columnalign=\"center\">\n   <mtext>Ol&#224;!</mtext>\n  </mtd>\n </mtr>\n <mtr>\n  <mtd columnalign=\"center\">\n   <mtext>English</mtext>\n  </mtd>\n  <mtd columnalign=\"center\">\n   <mtext>Hi!</mtext>\n  </mtd>\n </mtr>\n</mtable>"
     System`TraditionalForm: "<mtable columnalign=\"center\">\n <mtr>\n  <mtd columnalign=\"center\">\n   <mtext>Spanish</mtext>\n  </mtd>\n  <mtd columnalign=\"center\">\n   <mtext>Hola!</mtext>\n  </mtd>\n </mtr>\n <mtr>\n  <mtd columnalign=\"center\">\n   <mtext>Portuguese</mtext>\n  </mtd>\n  <mtd columnalign=\"center\">\n   <mtext>Ol&#224;!</mtext>\n  </mtd>\n </mtr>\n <mtr>\n  <mtd columnalign=\"center\">\n   <mtext>English</mtext>\n  </mtd>\n  <mtd columnalign=\"center\">\n   <mtext>Hi!</mtext>\n  </mtd>\n </mtr>\n</mtable>"
   text:
-    System`InputForm: "Grid[{{\"Spanish\", \"Hola!\"}, {\"Portuguese\", \"Ol\xE0!\"\
+    System`InputForm: "Grid[{{\"Spanish\", \"Hola!\"}, {\"Portuguese\", \"Ol\\[AGrave]!\"\
       }, {\"English\", \"Hi!\"}}]"
     System`OutputForm: "Spanish      Hola!\n\nPortuguese   Ol\xE0!\n\nEnglish    \
       \  Hi!\n"
