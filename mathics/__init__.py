@@ -7,6 +7,7 @@ from typing import Dict, Tuple
 
 from mpmath import __version__ as mpmath_version
 from numpy import __version__ as numpy_version
+from PIL import __version__ as PIL_version
 from sympy import __version__ as sympy_version
 
 from mathics.version import __version__
@@ -22,6 +23,7 @@ version_info: Dict[str, str] = {
     "numpy": numpy_version,
     "python": platform.python_implementation() + " " + sys.version.split("\n")[0],
     "sympy": sympy_version,
+    "PIL": PIL_version,
 }
 
 
