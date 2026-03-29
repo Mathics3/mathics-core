@@ -24,6 +24,7 @@ from typing import Dict, Optional
 
 from mpmath import __version__ as mpmathVersion
 from numpy import __version__ as NumPyVersion
+from PIL import __version__ as PILVersion
 from sympy import __version__ as SymPyVersion
 
 import mathics
@@ -81,6 +82,7 @@ def get_versions():
         "NumPyVersion": NumPyVersion,
         "SymPyVersion": SymPyVersion,
         "mpmathVersion": mpmathVersion,
+        "PILVersion": PILVersion,
     }
 
     for name, cmd, field in (
