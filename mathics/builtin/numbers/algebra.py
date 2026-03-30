@@ -533,12 +533,33 @@ class Denominator(Builtin):
       <dd>gives the denominator in $expr$.
     </dl>
 
-    >> Denominator[a / b]
-     = b
+    The denominator of a fraction:
     >> Denominator[2 / 3]
      = 3
-    >> Denominator[a + b]
+
+     The denominator of a fraction with symbols:
+
+    >> Denominator[a / b]
+     = b
+
+     >> Denominator[a + b]
      = 1
+
+     The denominator can be used to extract the negative exponents of an expression:
+     >> Denominator[a x^n y^-m]
+      = y ^ m
+
+     The denominator of a rational expression:
+     >> Denominator[Sin[x]^a (Sin[x] - 2)^-b]
+      = (-2 + Sin[x]) ^ b
+
+     The denominator of a Gaussian rational expression:
+     >> Denominator[3/7 + I/11]
+      = 77
+
+     'Denominator' threads over lists:
+     >> Denominator[{1, 2, 3, 4, 5, 6}/3]
+      = {3, 3, 1, 3, 3, 1}
 
     See also <url>
      :'Numerator':
