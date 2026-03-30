@@ -24,7 +24,7 @@ DOCTEST_LATEX_DATA_PCL ?= $(HOME)/.local/var/Mathics3/doctest_latex_data.pcl
 MATHICS3_MODULE_OPTION ?=--load-module pymathics.graph,pymathics.natlang
 
 #: Default target: Make everything
-all doc texdoc: mathics.pdf
+all doc texdoc: mathics3.pdf
 
 #: Create internal Document Data from .mdoc and Python builtin module docstrings
 doc-data $(DOCTEST_LATEX_DATA_PCL):
