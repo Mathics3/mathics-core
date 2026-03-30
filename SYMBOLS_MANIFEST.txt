@@ -291,6 +291,7 @@ System`CreateFile
 System`CreateTemporary
 System`Cross
 System`Csc
+System`Csch
 System`Cube
 System`CubeRoot
 System`Cuboid
