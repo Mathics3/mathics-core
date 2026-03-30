@@ -72,18 +72,20 @@ def encode_mathml(text: str) -> str:
     """
     Convert a string into a MathML code.
     * Escape special characters
-    * Replace non-ANSI characters by character codes.
+    * Replace non-ASCII characters by character codes.
     """
     text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
     text = text.replace('"', "&quot;").replace(" ", "&nbsp;")
     text = text.replace("\n", '<mspace linebreak="newline" />')
-    # Now, handle non-ansi characters using the
+    # Now, handle non-ASCII characters using the
     # the form '&#{code};'
-    # Notice that this should happend after escaping special characters:
+    # This must happen after escaping special characters:
     result = ""
     for c in text:
         code = ord(c)
         if code > 127:
+            # Notice that MathML seems to use
+            # decimal codes.
             result += f"&#{code};"
         else:
             result += c
