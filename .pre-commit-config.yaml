@@ -11,6 +11,8 @@ repos:
     - id: end-of-file-fixer
       stages: [pre-commit]
       exclude: ChangeLog-spell-corrected.diff
+    - id: trailing-whitespace
+      exclude: ChangeLog-spell-corrected.diff
 -   repo: https://github.com/pycqa/isort
     rev: 5.13.2
     hooks:

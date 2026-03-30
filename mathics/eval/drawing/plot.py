@@ -194,8 +194,14 @@ def compile_quiet_function(expr, arg_names, evaluation, expect_list: bool):
     def quiet_f(*args):
         old_quiet_all = evaluation.quiet_all
         evaluation.quiet_all = True
-        vars = {arg_name: Real(arg) for arg_name, arg in zip(arg_names, args)}
+        vars = {
+            arg_name: Integer(arg) if isinstance(arg, int) else Real(arg)
+            for arg_name, arg in zip(arg_names, args)
+        }
         value = dynamic_scoping(expr.evaluate, vars, evaluation)
+        if isinstance(value, Expression):
+            # Rationals can appear like this.
+            value = eval_N(value, evaluation)
         evaluation.quiet_all = old_quiet_all
         if expect_list:
             if value.has_form("List", None):
@@ -206,10 +212,10 @@ def compile_quiet_function(expr, arg_names, evaluation, expect_list: bool):
             else:
                 return None
         else:
-            value = extract_pyreal(value)
-            if value is None or isinf(value) or isnan(value):
+            float_value = extract_pyreal(value)
+            if float_value is None or isinf(float_value) or isnan(float_value):
                 return None
-            return value
+            return float_value
 
     return quiet_f
 
