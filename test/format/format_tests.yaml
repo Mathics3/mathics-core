@@ -71,7 +71,7 @@
     System`StandardForm: "\\text{$\\pi$ is a trascendental number}"
     System`TraditionalForm: "\\text{$\\pi$ is a trascendental number}"
   mathml:
-    System`InputForm: "<ms>&#960;&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</ms>"
+    System`InputForm: '<ms>\[Pi]&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</ms>'
     System`OutputForm: "<mtext>&#960;&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>"
     System`StandardForm: "<mtext>&#960;&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>"
     System`TraditionalForm: "<mtext>&#960;&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>"
@@ -460,7 +460,7 @@ Graphics[{}]:
     System`TraditionalForm: "\\begin{array}{cc} \\text{Spanish} & \\text{Hola!}\\\\\
       \ \\text{Portuguese} & \\text{Ol\\`{a}!}\\\\ \\text{English} & \\text{Hi!}\\end{array}"
   mathml:
-    System`InputForm: "<mtext>Grid[{{&quot;Spanish&quot;,&nbsp;&quot;Hola!&quot;},&nbsp;{&quot;Portuguese&quot;,&nbsp;&quot;Ol&#224;!&quot;},&nbsp;{&quot;English&quot;,&nbsp;&quot;Hi!&quot;}}]</mtext>"
+    System`InputForm: '<mtext>Grid[{{&quot;Spanish&quot;,&nbsp;&quot;Hola!&quot;},&nbsp;{&quot;Portuguese&quot;,&nbsp;&quot;Ol\[AGrave]!&quot;},&nbsp;{&quot;English&quot;,&nbsp;&quot;Hi!&quot;}}]</mtext>'
     System`OutputForm: '<mtext>Spanish&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Hola!<mspace linebreak="newline" /><mspace linebreak="newline" />Portuguese&nbsp;&nbsp;&nbsp;Ol&#224;!<mspace linebreak="newline" /><mspace linebreak="newline" />English&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Hi!<mspace linebreak="newline" /></mtext>'
     System`StandardForm: "<mtable columnalign=\"center\">\n <mtr>\n  <mtd columnalign=\"center\">\n   <mtext>Spanish</mtext>\n  </mtd>\n  <mtd columnalign=\"center\">\n   <mtext>Hola!</mtext>\n  </mtd>\n </mtr>\n <mtr>\n  <mtd columnalign=\"center\">\n   <mtext>Portuguese</mtext>\n  </mtd>\n  <mtd columnalign=\"center\">\n   <mtext>Ol&#224;!</mtext>\n  </mtd>\n </mtr>\n <mtr>\n  <mtd columnalign=\"center\">\n   <mtext>English</mtext>\n  </mtd>\n  <mtd columnalign=\"center\">\n   <mtext>Hi!</mtext>\n  </mtd>\n </mtr>\n</mtable>"
     System`TraditionalForm: "<mtable columnalign=\"center\">\n <mtr>\n  <mtd columnalign=\"center\">\n   <mtext>Spanish</mtext>\n  </mtd>\n  <mtd columnalign=\"center\">\n   <mtext>Hola!</mtext>\n  </mtd>\n </mtr>\n <mtr>\n  <mtd columnalign=\"center\">\n   <mtext>Portuguese</mtext>\n  </mtd>\n  <mtd columnalign=\"center\">\n   <mtext>Ol&#224;!</mtext>\n  </mtd>\n </mtr>\n <mtr>\n  <mtd columnalign=\"center\">\n   <mtext>English</mtext>\n  </mtd>\n  <mtd columnalign=\"center\">\n   <mtext>Hi!</mtext>\n  </mtd>\n </mtr>\n</mtable>"
