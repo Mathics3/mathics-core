@@ -330,6 +330,10 @@ class BesselI(_Bessel):
         The special case of half-integer index is expanded using Rayleigh's formulas:
         >> BesselI[3/2, x]
          = Sqrt[2] Sqrt[x] (-Sinh[x] / x ^ 2 + Cosh[x] / x) / Sqrt[Pi]
+
+        Integer orders are not expanded and remain symbolic:
+        >> BesselI[1, z]
+         = BesselI[1, z]
     """
 
     mpmath_name = "besseli"
@@ -376,6 +380,10 @@ class BesselJ(_Bessel):
     >> BesselJ[1/2, x]
      = Sqrt[2] Sin[x] / (Sqrt[x] Sqrt[Pi])
 
+    Integer orders are not expanded and remain symbolic:
+    >> BesselJ[2, z]
+     = BesselJ[2, z]
+
     Some integrals can be expressed in terms of Bessel functions:
     >> Integrate[Cos[3 Sin[w]], {w, 0, Pi}]
      = Pi BesselJ[0, 3]
@@ -418,6 +426,10 @@ class BesselK(_Bessel):
     >> BesselK[-3/2, x]
      = Sqrt[2] Sqrt[x] Sqrt[Pi] (E ^ (-x) / x ^ 2 + E ^ (-x) / x) / 2
 
+    Integer orders are not expanded and remain symbolic:
+    >> BesselK[1, z]
+     = BesselK[1, z]
+
     """
 
     mpmath_name = "besselk"
@@ -459,6 +471,10 @@ class BesselY(_Bessel):
     The special case of half-integer index is expanded using Rayleigh's formulas:
     >> BesselY[-3/2, x]
      =  Sqrt[2] Sqrt[x] (-Sin[x] / x ^ 2 + Cos[x] / x) / Sqrt[Pi]
+
+    Integer orders are not expanded and remain symbolic:
+    >> BesselY[1, z]
+     = BesselY[1, z]
 
     >> BesselY[0, 0]
      = -Infinity
