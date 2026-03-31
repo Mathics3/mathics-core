@@ -13,6 +13,8 @@ There are a number of built-in functions that perform:
 </ul>
 """
 
+from typing import Optional
+
 import sympy
 
 import mathics.eval.tracing as tracing
@@ -51,6 +53,8 @@ from mathics.core.systemsymbols import (
     SymbolTable,
 )
 from mathics.eval.list.eol import eval_Part
+from mathics.eval.numbers.algebra.fraction import eval_Denominator, eval_Numerator
+from mathics.eval.numbers.algebra.options import AlgebraicOptions
 from mathics.eval.numbers.algebra.polynomial import (
     coeff_power,
     coefficient,
@@ -61,6 +65,44 @@ from mathics.eval.numbers.algebra.polynomial import (
 )
 from mathics.eval.numbers.algebra.simplify import eval_Simplify
 from mathics.eval.numbers.numbers import cancel, sympy_factor
+
+
+class _Algebraic(Builtin):
+    options = {
+        "Trig": "False",
+        "Modulus": "0",
+    }
+
+    messages = {
+        "modn": "Value of option `1` -> `2` should be an integer.",
+        "opttf": "Value of option `1` -> `2` should be True or False.",
+        "modulus": "Modulus option not supported yet.",
+    }
+
+    def convert_options(
+        self, options: dict, evaluation: Evaluation, supports_modulus: bool = False
+    ) -> Optional[AlgebraicOptions]:
+        modulus = options["System`Modulus"]
+        py_modulus = modulus.get_int_value()
+        if py_modulus is None:
+            evaluation.message(self.get_name(), "modn", Symbol("Modulus"), modulus)
+            return
+        if py_modulus == 0:
+            py_modulus = None
+        elif py_modulus > 0 and not supports_modulus:
+            evaluation.message(self.get_name(), "modulus")
+            return
+
+        trig = options["System`Trig"]
+        if trig is SymbolTrue:
+            py_trig = True
+        elif trig is SymbolFalse:
+            py_trig = False
+        else:
+            evaluation.message(self.get_name(), "opttf", Symbol("Trig"), trig)
+            return None
+
+        return AlgebraicOptions(modulus=py_modulus, trig=py_trig)
 
 
 class Apart(Builtin):
@@ -521,7 +563,7 @@ class Collect(Builtin):
         return coeff_power(expr, var_exprs, filt, evaluation, "expr")
 
 
-class Denominator(Builtin):
+class Denominator(_Algebraic):
     """
     <url>:Denominator:
     https://en.wikipedia.org/wiki/Fraction</url> (<url>
@@ -561,24 +603,37 @@ class Denominator(Builtin):
      >> Denominator[{1, 2, 3, 4, 5, 6}/3]
       = {3, 3, 1, 3, 3, 1}
 
+     Denominators of common trigonometric functions:
+     >> Denominator[{Sin[x], Cos[x], Tan[x], Csc[x], Sec[x], Cot[x]}, Trig -> True]
+      = {1, 1, Cos[x], Sin[x], Cos[x], Sin[x]}
+
+     Denominators of common hyperbolic functions:
+     >> Denominator[{Sinh[x], Cosh[x], Tanh[x], Csch[x] , Sech[x], Coth[x]}, Trig -> True]
+      = {1, 1, Cosh[x], Sinh[x], Cosh[x], Sinh[x]}
+
     See also <url>
      :'Numerator':
      /doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/algebraic-transformations/numerator/</url>.
     """
 
     attributes = A_LISTABLE | A_PROTECTED
+    options = {
+        "Trig": "False",
+        "Modulus": "0",  # Modulus > 0 not supported yet.
+    }
     summary_text = "denominator of an expression"
 
-    def eval(self, expr, evaluation):
-        "Denominator[expr_]"
+    def eval(self, expr, evaluation: Evaluation, options: dict):
+        "Denominator[expr_, OptionsPattern[Denominator]]"
 
-        sympy_expr = expr.to_sympy()
-        if sympy_expr is None:
-            return None
-        numer, denom = sympy_expr.as_numer_denom()
-        return from_sympy(denom)
+        algebraic_options = self.convert_options(options, evaluation)
+        if algebraic_options is None:
+            return
+
+        return eval_Denominator(expr, algebraic_options)
 
 
+# TODO: Phase this out and replace with _Algebraic
 class _Expand(Builtin):
     options = {
         "Trig": "False",
@@ -1250,7 +1305,7 @@ class MinimalPolynomial(Builtin):
         return from_sympy(sympy_result)
 
 
-class Numerator(Builtin):
+class Numerator(_Algebraic):
     """
     <url>:Numerator:
     https://en.wikipedia.org/wiki/Fraction</url> (<url>
@@ -1262,12 +1317,44 @@ class Numerator(Builtin):
       <dd>gives the numerator in $expr$.
     </dl>
 
-    >> Numerator[a / b]
-     = a
+    Numerator of a fraction:
     >> Numerator[2 / 3]
      = 2
-    >> Numerator[a + b]
-     = a + b
+
+    Numerator of a symbolic fraction:
+    >> Numerator[a / b]
+     = a
+
+    Numerator of a symbolic rational expression:
+    >> Numerator[(x - 1) (x - 2)/(x - 3)^2]
+     = (-2 + x) (-1 + x)
+
+    Numerator of a Gaussian rational:
+    >> Numerator[3/7 + I/11]
+     = 33 + 7 I
+
+    Numerators for the common trigonometric functions:
+    >> Numerator[{Sin[x], Cos[x], Tan[x], Csc[x], Sec[x], Cot[x]}, Trig -> True]
+     = {Sin[x], Cos[x], Sin[x], 1, 1, Cos[x]}
+
+    Numerators for the common hyperbolic functions:
+    >> Numerator[{Sinh[x], Cosh[x], Tanh[x], Csch[x], Sech[x], Coth[x]}, Trig -> True]
+     = {Sinh[x], Cosh[x], Sinh[x], 1, 1, Cosh[x]}
+
+    An expression is the quotient of its numerator and denominator:
+    >> expr = 5/7 (x - 1)^2/(x - 2)^3 a^b c^-d
+     = 5 a ^ b c ^ (-d) (-1 + x) ^ 2 / (7 (-2 + x) ^ 3)
+
+    >> num = Numerator[expr]
+     = 5 a ^ b (-1 + x) ^ 2
+
+    >> den = Denominator[expr]
+     = 7 c ^ d (-2 + x) ^ 3
+
+    >> expr === num / den
+     = True
+
+    #> Clear[expr, num, den]
 
     See also <url>
      :'Denominator':
@@ -1277,14 +1364,14 @@ class Numerator(Builtin):
     attributes = A_LISTABLE | A_PROTECTED
     summary_text = "numerator of an expression"
 
-    def eval(self, expr, evaluation: Evaluation):
-        "Numerator[expr_]"
+    def eval(self, expr, evaluation: Evaluation, options: dict):
+        "Numerator[expr_, OptionsPattern[Numerator]]"
 
-        sympy_expr = expr.to_sympy()
-        if sympy_expr is None:
-            return None
-        numer, _ = sympy_expr.as_numer_denom()
-        return from_sympy(numer)
+        algebraic_options = self.convert_options(options, evaluation)
+        if algebraic_options is None:
+            return
+
+        return eval_Numerator(expr, algebraic_options)
 
 
 class PolynomialQ(Builtin):
