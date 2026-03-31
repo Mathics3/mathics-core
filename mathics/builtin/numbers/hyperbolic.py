@@ -319,6 +319,7 @@ class Cosh(MPMathFunction):
     """
 
     mpmath_name = "cosh"
+    sympy_name = "cosh"
 
     rules = {
         "Cosh[Undefined]": "Undefined",
@@ -342,6 +343,7 @@ class Coth(MPMathFunction):
     """
 
     mpmath_name = "coth"
+    sympy_name = "coth"
 
     rules = {
         "Coth[Undefined]": "Undefined",
@@ -351,6 +353,27 @@ class Coth(MPMathFunction):
     }
 
     summary_text = "hyperbolic cotangent function"
+
+
+class Csch(MPMathFunction):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Csch.html</url>
+
+    <dl>
+      <dt>'Csch'[$z$]
+      <dd>returns the hyperbolic of cosecant of $z$.
+    </dl>
+
+    >> Csch[1.8]
+     = 0.339885
+
+    >> Plot[Csch[x], {x, -5, 5}]
+     = -Graphics-
+    """
+
+    mpmath_name = "csch"
+    summary_text = "hyperbolic cosecant function"
+    sympy_name = "csch"
 
 
 class Gudermannian(Builtin):
@@ -452,7 +475,7 @@ class Sech(MPMathFunction):
         "Sech[Undefined]": "Undefined",
     }
     summary_text = "hyperbolic secant function"
-    sympy_name = ""
+    sympy_name = "sech"
 
     def to_sympy(self, expr, **kwargs) -> Optional[SympyExpression]:
         if len(expr.elements) == 1:
@@ -474,13 +497,14 @@ class Sinh(MPMathFunction):
      = 0
     """
 
-    summary_text = "hyperbolic sine function"
     mpmath_name = "sinh"
 
     rules = {
         "Derivative[1][Sinh]": "Cosh[#]&",
         "Sinh[Undefined]": "Undefined",
     }
+    summary_text = "hyperbolic sine function"
+    sympy_name = "sinh"
 
 
 class Tanh(MPMathFunction):
@@ -496,10 +520,11 @@ class Tanh(MPMathFunction):
      = 0
     """
 
-    summary_text = "hyperbolic tangent function"
     mpmath_name = "tanh"
 
     rules = {
         "Derivative[1][Tanh]": "Sech[#1]^2&",
         "Tanh[Undefined]": "Undefined",
     }
+    summary_text = "hyperbolic tangent function"
+    sympy = "tanh"
