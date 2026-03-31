@@ -1,6 +1,50 @@
 CHANGES
 =======
 
+10.0.0
+------
+
+Some foundational work done to overhaul plotting using vectors with numpy was started. Alas, work on it was not complete by release time to have finished this. Expect a future release to have revamped graphics.
+
+
+New Builtins
+++++++++++++
+
+#. ``$Language`` variable
+#. ``ArcBox`` boxing function
+#. ``Csch`` function
+#. ``JSON`Import`JSONImport``
+#. ``RasterBox`` boxing function
+#. ``RoundBox`` boxing function
+#. ``ShowSpecialCharacters`` option
+
+
+Bugs Fixed
+++++++++++
+
+#. #1741 Implement ``MachinePrecision`` option for large numbers that fall outside of Python's builtin ``float`` mantissa
+#. #1740 ``N[3^200]`` in formats as ``PrecisionReal`` instead of ``MachinePrecision``
+#. #1723 ``DiscretePlot`` gives wrong results nested function in ``First`` or ``Last``
+#. #1713 ``?`` *symbol* and ``??`` *symbol* should be parsed as ``Information["symbol"]`` and ``Information["symbol"#. #1699 Character sequences used for string representation of boxes should be treated as single characters in string character-wise manipulation operations.
+#. #1692 ``Map`` does not automatically map a function over ``Association`` values (vasdommes)
+#. #1639 Map does not automatically map a function over Association values
+#. #1519 ``Order`` for Numerics, e.g. ``Order[1.0, 1] == -1``, but is 0
+#. #1492 ``UpSet`` not giving a "Tag Integer is Protected." message
+#. #1487 ``FindMinimum``, ``FindMaximim`` do not give approximate results when ``$IterationLimit`` has been exceeded
+#. #1481 $TraceBuiltins=False does not work after more than one $TraceBuiltins=True use.
+
+
+   API incompatibility
++++++++++++++++++++
+
+* Front ends must now issue an explicit call to
+  ``import_and_load_builtins()``. Previously this was handled simpy by
+  ``import`` of ``MathicsSession``. Loading modules loaded via
+  ``import`` was unpredictable in how and when things got loaded. The
+  change was make do address this and to be able to give more
+  flexibility in loading.
+
+
 9.0.0
 -----
 
@@ -92,7 +136,7 @@ Bugs Fixed
 #. #1465 Crash in running ``Trace[Sin[Log[2.5, 7]]]``
 #. #1473 Doctest for ``Quantity``, ``KnownUnitQ``, and others fail when the documentation is generated
 #. #1474 Document typo: "is a valid Association object" should be "is a valid Quantity object"
-#. #1476 ``$IterationLimit`` is not limiting evalation expansion
+#. #1476 ``$IterationLimit`` is not limiting evaluation expansion
 
 WMA Compatibility
 -----------------
