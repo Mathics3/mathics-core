@@ -32,7 +32,8 @@ jobs:
         cd ..
     - name: Install Mathics3 with full dependencies
       run: |
-        pip install -e .
+        python -m pip install setuptools wheel
+        python -m pip install --no-build-isolation -e .
         bash -x ./admin-tools/make-JSON-tables.sh
         remake -x develop-full
     - name: install Mathics3 vectorizedplot Module

@@ -7,6 +7,7 @@ from abc import ABC
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, overload
 
 from mathics_scanner.errors import SyntaxError
+from mathics_scanner.feed import LineFeeder
 
 from mathics import settings
 from mathics.core.atoms import Integer, String
@@ -150,7 +151,7 @@ class Evaluation:
 
         # Interrupt handlers may need access to the shell
         # that invoked the evaluation.
-        self.shell = None
+        self.shell: Optional[LineFeeder] = None
 
         self.stopped = False
         self.timeout = False
