@@ -31,8 +31,9 @@ jobs:
         bash -x admin-tools/make-JSON-tables.sh
         cd ..
 
-    - name: Install Mathics with full dependencies
+    - name: Install Mathics3 with full dependencies
       run: |
+        python -m pip install setuptools wheel
         make develop-full-cython
     - name: Test Mathics
       run: |

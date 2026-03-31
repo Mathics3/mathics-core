@@ -34,5 +34,6 @@ jobs:
         pip install -e .
         cd ..
         touch ./Mathics3-scanner/mathics_scanner/py.typed
+        python -m pip install setuptools wheel
         make develop
         mypy --install-types --ignore-missing-imports --non-interactive mathics

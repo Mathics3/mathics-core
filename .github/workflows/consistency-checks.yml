@@ -29,7 +29,8 @@ jobs:
         pip install -e .
         bash -x admin-tools/make-JSON-tables.sh
         cd ..
-        pip install -e .
+        python -m pip install setuptools wheel
+        pip install --no-build-isolation -e .
 
     - name: Install Mathics3 with minimum dependencies
       run: |
