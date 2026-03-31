@@ -619,7 +619,7 @@ class Denominator(_Algebraic):
     attributes = A_LISTABLE | A_PROTECTED
     options = {
         "Trig": "False",
-        "Modulus": "0",  # Modulus > 0 supported yet.
+        "Modulus": "0",  # Modulus > 0 not supported yet.
     }
     summary_text = "denominator of an expression"
 
