@@ -15,18 +15,19 @@ New Builtins
 
 #. ``$Language`` variable
 #. ``ArcBox`` boxing function
-#. ``Csch`` function
+#. ``Csch`` function [PR # #1768]
 #. ``JSON`Import`JSONImport``
 #. ``RasterBox`` boxing function
 #. ``RoundBox`` boxing function
 #. ``ShowSpecialCharacters`` option
+#. ``ShowStringCharacters`` option
 
 
 Enhancements
 ------------
 
 * Many Builtin functions now report argument mismatch errors
-*
+* ``Trig`` option added to ``Numerator`` and ``Denominator``
 
 Bugs Fixed
 ----------
@@ -54,13 +55,17 @@ Command-line program ``mathics3-code-parse`` was added to show how expressions a
 Internals
 ---------
 
-* A major revision and reorganization was begun to improve Form handling, leading to the new module ``mathics.forms.render``. Existing functions from ``mathics.format`` have been moved here.
+* A major revision and reorganization was begun to improve Form handling, leading to the new modules ``mathics.forms.format`` and ``mathics.forms.render``. Existing render functions from ``mathics.format`` have been moved under ``mathics.form.render``. (mmatera)
+  Corrections were made to variables ``$PrintForms`` and ``$OutputForms``. (mmatera)
+* A major revision and reorganization was begun to improve Boxing.
   Corrections were made to variables ``$PrintForms`` and ``$OutputForms``.
 * Primitive datatype ``NumericArray``, which is essentially a NumPy array was added to support vector operations, such as plotting. (Bruce Lucas) In support of this the module ``mathics.core.atoms`` was split up.
 * Internals for handling Graphics have been revised to be able to accept a more complete list.
 * Parsing now uses more data from YAML tables insead of hard-coding values inside code.
 * Revise representation for ``Complex`` Numbers; both the real and imaginary parts can now be arbitrary non-complex Real numbers. The precsion, a derived value, is also saved.
-* Numerous internal changes were made to improve performance
+* Numerous internal changes were made to improve performance.
+* ``mpmath`` is used to store large integer mantissas in ``N[x_Integer]``.
+* Token names where changed to align better with the names reported in ``CodeParser`Tokenize``. Note however Mathics3 parsing  is a bit different from ``CodeParser`Parse``.
 
 Package updates
 ---------------
