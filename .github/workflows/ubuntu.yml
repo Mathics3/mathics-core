@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.13', '3.12', '3.11', '3.10']
+        python-version: ['3.10', '3.13', '3.12', '3.11']
     steps:
     - uses: actions/checkout@v6
     - name: Set up Python ${{ matrix.python-version }}
@@ -27,6 +27,7 @@ jobs:
         # We can comment out after next Mathics3-Scanner release
         # python -m pip install -e git+https://github.com/Mathics3/Mathics3-scanner#egg=Mathics3-Scanner[full]
         git clone --depth 1 https://github.com/Mathics3/Mathics3-scanner.git
+        git checkout doctest_workflow
         cd Mathics3-scanner/
         pip install -e .
         bash -x admin-tools/make-JSON-tables.sh
