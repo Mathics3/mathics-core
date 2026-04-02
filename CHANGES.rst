@@ -65,7 +65,7 @@ Internals
 * Revise representation for ``Complex`` Numbers; both the real and imaginary parts can now be arbitrary non-complex Real numbers. The precsion, a derived value, is also saved.
 * Numerous internal changes were made to improve performance.
 * ``mpmath`` is used to store large integer mantissas in ``N[x_Integer]``.
-* Token names where changed to align better with the names reported in ``CodeParser`Tokenize``. Note however Mathics3 parsing  is a bit different from ``CodeParser`Parse``.
+* Token names were changed to align better with the names reported in ``CodeParser`Tokenize``. Note however Mathics3 parsing is a bit different from ``CodeParser`Parse``.
 
 Package updates
 ---------------
@@ -82,6 +82,7 @@ API incompatibility
   ``import`` was unpredictable in how and when things got loaded. The
   change was make do address this and to be able to give more
   flexibility in loading.
+* Token names have changed to align better with ``CodeParser`CodeTokenize``
 
 
 9.0.0
