@@ -17,6 +17,7 @@
 /.gdbinit
 /.pyodide-xbuildenv-*
 /.python-version
+/ChangeLog-spell-corrected
 /ChangeLog.spell-corrected
 /Mathics3.egg-info
 ChangeLog
