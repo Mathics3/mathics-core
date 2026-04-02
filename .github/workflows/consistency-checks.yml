@@ -26,6 +26,7 @@ jobs:
         # python -m pip install -e git+https://github.com/Mathics3/Mathics3-scanner#egg=Mathics3-Scanner[full]
         git clone --depth 1 https://github.com/Mathics3/Mathics3-scanner.git
         cd Mathics3-scanner/
+        git fetch
         git checkout doctest_workflow
         pip install -e .
         bash -x admin-tools/make-JSON-tables.sh
