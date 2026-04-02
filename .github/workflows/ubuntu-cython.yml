@@ -25,7 +25,7 @@ jobs:
         sudo apt-get update -qq && sudo apt-get install -qq liblapack-dev llvm-dev tesseract-ocr
         python -m pip install --upgrade pip
         # We can comment out after next Mathics3-Scanner release
-        git clone --depth 1 --branch doctest_workflow https://github.com/Mathics3/Mathics3-scanner.git
+        git clone --depth 1 https://github.com/Mathics3/Mathics3-scanner.git
         cd Mathics3-scanner/
         pip install -e .
         bash -x admin-tools/make-JSON-tables.sh
