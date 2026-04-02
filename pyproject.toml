@@ -18,7 +18,7 @@ build-backend = "setuptools.build_meta"
 [project]
 description = "A general-purpose computer algebra system."
 dependencies = [
-    "Mathics_Scanner>9.0",
+    "Mathics3_Scanner>9.0",
     "mpmath>=1.2.0",
     "numpy",
     "palettable",
