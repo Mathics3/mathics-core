@@ -7,7 +7,7 @@ requires = [
     "wheel",
     "cython>=0.15.1; implementation_name!='pypy'",
     # For mathics-generate-json-table
-    "Mathics_Scanner>9.0",
+    "Mathics3_scanner>9.0",
     # "packaging" is needed for testing the SymPy Version
     # in PartionsP
     "packaging",
@@ -18,7 +18,7 @@ build-backend = "setuptools.build_meta"
 [project]
 description = "A general-purpose computer algebra system."
 dependencies = [
-    "Mathics_Scanner>9.0",
+    "Mathics3_scanner>9.0",
     "mpmath>=1.2.0",
     "numpy",
     "palettable",
