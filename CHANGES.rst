@@ -43,6 +43,7 @@ Bugs Fixed
 #. #1492 ``UpSet`` not giving a "Tag Integer is Protected." message
 #. #1487 ``FindMinimum``, ``FindMaximim`` do not give approximate results when ``$IterationLimit`` has been exceeded and convergence fails
 #. #1481 $TraceBuiltins=False does not work after more than one $TraceBuiltins=True use.
+#. Reset ``evaluation.iteration__count`` on each new evaluation. This caused problems in long-running sessions, such as the Mathics3-django gallery examples.
 
 
 Command-line Utilites
