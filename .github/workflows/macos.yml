@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [macOS]
-        python-version: ['3.13', '3.12']
+        python-version: ['3.14', '3.13']
     steps:
     - uses: actions/checkout@v6
     - name: Set up Python ${{ matrix.python-version }}
