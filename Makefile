@@ -17,6 +17,7 @@ MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang
 
 .PHONY: \
    all \
+   ChangeLog-without-corrections \
    benchmarks \
    build \
    check \
@@ -70,17 +71,17 @@ build:
 # INSTALL_REQUIRES properly
 #: Set up to run from the source tree
 develop: mathics_scanner/data/boxing-characters.json mathics_scanner/data/named-characters.json mathics_scanner/data/operators.json
-	$(PIP) install -e .[dev]
+	$(PIP) install --no-build-isolation -e .[dev]
 
 # See note above on ./setup.py
 #: Set up to run from the source tree with full dependencies
 develop-full: mathics_scanner/data/boxing-characters.json mathics_scanner/data/named-characters.json mathics_scanner/data/operators.json
-	$(PIP) install -e .[dev,full]
+	$(PIP) install --no-build-isolation -e .[dev,full]
 
 # See note above on ./setup.py
 #: Set up to run from the source tree with full dependencies and Cython
 develop-full-cython: mathics_scanner/data/boxing-characters.json mathics_scanner/data/named-characters.json mathics_scanner/data/operators.json
-	$(PIP) install -e .[dev,full,cython]
+	$(PIP) install --no-build-isolation -e .[dev,full,cython]
 
 
 #: Make distribution: wheels, eggs, tarball
@@ -173,7 +174,10 @@ mathics_scanner/data/boxing-characters.json mathics_scanner/data/named-character
 rmChangeLog:
 	$(RM) ChangeLog || true
 
+#: Create ChangeLog from version control without corrections
+ChangeLog-without-corrections:
+	git log --pretty --numstat --summary | $(GIT2CL) >ChangeLog
+
 #: Create a ChangeLog from git via git log and git2cl
-ChangeLog: rmChangeLog
-	git log --pretty --numstat --summary | $(GIT2CL) >$@
+ChangeLog: rmChangeLog ChangeLog-without-corrections
 	patch ChangeLog < ChangeLog-spell-corrected.diff

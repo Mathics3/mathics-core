@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.13']
+        python-version: ['3.14']
     steps:
     - uses: actions/checkout@v6
     - name: Set up Python ${{ matrix.python-version }}
@@ -21,7 +21,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update -qq && sudo apt install llvm-dev remake
-        python -m pip install --upgrade pip
+        python -m pip install --upgrade pip setuptools wheel
         # We can comment out after next Mathics3-Scanner release
         # python -m pip install -e git+https://github.com/Mathics3/Mathics3-scanner#egg=Mathics3-Scanner[full]
         git clone --depth 1 https://github.com/Mathics3/Mathics3-scanner.git
@@ -29,7 +29,8 @@ jobs:
         pip install -e .
         bash -x admin-tools/make-JSON-tables.sh
         cd ..
-        pip install -e .
+        python -m pip install setuptools wheel
+        pip install --no-build-isolation -e .
 
     - name: Install Mathics3 with minimum dependencies
       run: |

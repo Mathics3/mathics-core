@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.13']
+        python-version: ['3.14']
     steps:
     - uses: actions/checkout@v6
     - name: Set up Python ${{ matrix.python-version }}
@@ -21,7 +21,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update -qq && sudo apt install llvm-dev remake
-        python -m pip install --upgrade pip
+        python -m pip install --upgrade pip setuptools wheel
 
     - name: Run mypy
       run: |
@@ -34,5 +34,6 @@ jobs:
         pip install -e .
         cd ..
         touch ./Mathics3-scanner/mathics_scanner/py.typed
+        python -m pip install setuptools wheel
         make develop
         mypy --install-types --ignore-missing-imports --non-interactive mathics
