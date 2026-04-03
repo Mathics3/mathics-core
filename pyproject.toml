@@ -39,7 +39,7 @@ dependencies = [
 ]
 license = "GPL-3.0-or-later"
 name = "Mathics3"
-requires-python = ">=3.10" # bisect.insort_left with key parameter starts in 3.10
+requires-python = ">=3.11"
 readme = "README.rst"
 keywords = ["Mathematica", "Wolfram", "Interpreter", "Shell", "Math", "CAS"]
 maintainers = [

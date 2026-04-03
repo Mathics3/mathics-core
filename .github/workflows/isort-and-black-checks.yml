@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Set up Python 3.11
+      - name: Set up Python 3.14
         uses: actions/setup-python@v6
         with:
-          python-version: 3.13
+          python-version: 3.14
       - name: Install click, black and isort
         run: pip install 'click==8.2.1' 'black==25.11.0' 'isort==5.13.2'
       - name: Run isort --check .
