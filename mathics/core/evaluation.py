@@ -217,6 +217,7 @@ class Evaluation:
         from mathics.core.rules import Rule
 
         self.start_time = time.time()
+        self.iteration_count = 0
         self.recursion_depth = 0
         self.timeout = False
         self.stopped = False
