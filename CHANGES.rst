@@ -7,7 +7,10 @@
 
 Some foundational work done to overhaul plotting using vectors with NumPy was started. Alas, work on it was not complete by release time to have finished this. Expect a future release to have revamped graphics.
 
-Note: There are incompatible changes. Use with Mathics-scanner 10.0.0 or greater.
+Notes:
+
+#. There are incompatible changes. Use with Mathics-scanner 10.0.0 or greater.
+#. We are in the process of renaming ``Mathics`` to ``Mathics3``. ``Mathics`` was monolithic Python 2-ish code. Mathics3 has rewritten a number of major subcomponents, and spit off a number of subcomponents. There are still several that still need to be revised or rewritten. The name change reflects this distinction between the two efforts, and emphasizes that ``Mathics3`` uses modern Python 3 idioms. While right now the repository name and import refer to ``mathics``, several repositories that use the Mathics3 core, or that Mathics3 uses have been renamed. In particular, ``Mathics_Scanner`` is now ``Mathics3_Scanner``.
 
 
 New Builtins
@@ -15,7 +18,7 @@ New Builtins
 
 #. ``$Language`` variable
 #. ``ArcBox`` boxing function
-#. ``Csch`` function [PR # #1768]
+#. ``Csch`` function `PR #1768 <https://github.com/Mathics3/mathics-core/pull/1768>`_
 #. ``JSON`Import`JSONImport``
 #. ``RasterBox`` boxing function
 #. ``RoundBox`` boxing function
@@ -32,24 +35,24 @@ Enhancements
 Bugs Fixed
 ----------
 
-#. PR #1762 Fix Rayleigh expansion rules to only match half-integer orders. (Chenxin Zhong)
-#. #1741 Implement ``MachinePrecision`` option for large numbers that fall outside of Python's builtin ``float`` mantissa
-#. #1740 ``N[3^200]`` in formats as ``PrecisionReal`` instead of ``MachinePrecision``
-#. #1723 ``DiscretePlot`` gives wrong results nested function in ``First`` or ``Last``
-#. #1713 ``?`` *symbol* and ``??`` *symbol* should be parsed as ``Information["symbol"]`` and ``Information["symbol"#. #1699 Character sequences used for string representation of boxes should be treated as single characters in string character-wise manipulation operations.
-#. #1692 ``Map`` does not automatically map a function over ``Association`` values (vasdommes)
-#. #1639 Map does not automatically map a function over Association values
-#. #1519 ``Order`` for Numerics, e.g. ``Order[1.0, 1] == -1``, but is 0
-#. #1492 ``UpSet`` not giving a "Tag Integer is Protected." message
-#. #1487 ``FindMinimum``, ``FindMaximim`` do not give approximate results when ``$IterationLimit`` has been exceeded and convergence fails
-#. #1481 $TraceBuiltins=False does not work after more than one $TraceBuiltins=True use.
+#. `PR #1762 <https://github.com/Mathics3/mathics-core/pull/1762>`_ Fix Rayleigh expansion rules to only match half-integer orders. (Chenxin Zhong)
+#. `#1741 <https://github.com/Mathics3/mathics-core/issues/1741>`_ Implement ``MachinePrecision`` option for large numbers that fall outside of Python's builtin ``float`` mantissa
+#. `#1740 <https://github.com/Mathics3/mathics-core/issues/1740>`_ ``N[3^200]`` in formats as ``PrecisionReal`` instead of ``MachinePrecision``
+#. `#1723 <https://github.com/Mathics3/mathics-core/issues/1723>`_ ``DiscretePlot`` gives wrong results nested function in ``First`` or ``Last``
+#. `#1713 <https://github.com/Mathics3/mathics-core/issues/1713>`_ ``?`` *symbol* and ``??`` *symbol* should be parsed as ``Information["symbol"]`` and ``Information["symbol"#. #1699 Character sequences used for string representation of boxes should be treated as single characters in string character-wise manipulation operations.
+#. `#1692 <https://github.com/Mathics3/mathics-core/issues/1692>`_ ``Map`` does not automatically map a function over ``Association`` values (vasdommes)
+#. `#1639 <https://github.com/Mathics3/mathics-core/issues/1639>`_ Map does not automatically map a function over Association values
+#. `#1519 <https://github.com/Mathics3/mathics-core/issues/1519>`_ ``Order`` for Numerics, e.g. ``Order[1.0, 1] == -1``, but is 0
+#. `#1492 <https://github.com/Mathics3/mathics-core/issues/1492>`_ ``UpSet`` not giving a "Tag Integer is Protected." message
+#. `#1487 <https://github.com/Mathics3/mathics-core/issues/1487>`_ ``FindMinimum``, ``FindMaximim`` do not give approximate results when ``$IterationLimit`` has been exceeded and convergence fails
+#. `#1481 <https://github.com/Mathics3/mathics-core/issues/1481>`_ $TraceBuiltins=False does not work after more than one $TraceBuiltins=True use.
 #. Reset ``evaluation.iteration__count`` on each new evaluation. This caused problems in long-running sessions, such as the Mathics3-django gallery examples.
 
 
-Command-line Utilites
----------------------
+Command-line Utilities
+----------------------
 
-Command-line program ``mathics`` was renamed to ``mathics3``; the old name will be available for a while. This appearently facilitates uv packaging.
+Command-line program ``mathics`` was renamed to ``mathics3``; the old name will be available for a while. This apparently facilitates uv packaging.
 
 Command-line program ``mathics3-code-parse`` was added to show how expressions are parsed. This is roughly analogous to the ``CodeParse`` function of the ``CodeParser`` WMA package.
 
@@ -62,8 +65,8 @@ Internals
   Corrections were made to variables ``$PrintForms`` and ``$OutputForms``.
 * Primitive datatype ``NumericArray``, which is essentially a NumPy array was added to support vector operations, such as plotting. (Bruce Lucas) In support of this the module ``mathics.core.atoms`` was split up.
 * Internals for handling Graphics have been revised to be able to accept a more complete list.
-* Parsing now uses more data from YAML tables insead of hard-coding values inside code.
-* Revise representation for ``Complex`` Numbers; both the real and imaginary parts can now be arbitrary non-complex Real numbers. The precsion, a derived value, is also saved.
+* Parsing now uses more data from YAML tables instead of hard-coding values inside code.
+* Revise representation for ``Complex`` Numbers; both the real and imaginary parts can now be arbitrary non-complex Real numbers. The precision, a derived value, is also saved.
 * Numerous internal changes were made to improve performance.
 * ``mpmath`` is used to store large integer mantissas in ``N[x_Integer]``.
 * Token names were changed to align better with the names reported in ``CodeParser`Tokenize``. Note however Mathics3 parsing is a bit different from ``CodeParser`Parse``.
@@ -71,14 +74,15 @@ Internals
 Package updates
 ---------------
 
+#. Python 3.14 supported. Support for Python 3.10 dropped; it may still work, but is not supported.
 #. Sympy 1.14 supported
-#. llvm 15+ now supported
+#. llvm 18+ now supported
 
 API incompatibility
 -------------------
 
 * Front ends must now issue an explicit call to
-  ``import_and_load_builtins()``. Previously this was handled simpy by
+  ``import_and_load_builtins()``. Previously this was handled simply by
   ``import`` of ``MathicsSession``. Loading modules loaded via
   ``import`` was unpredictable in how and when things got loaded. The
   change was make do address this and to be able to give more
@@ -1512,7 +1516,7 @@ Other changes
 #. blacken (format) a number of Python files and remove blanks at the end of lines
 #. Adding several CI tests
 #. Remove various deprecation warnings
-#. Change shbang from ``python`` to ``python3``
+#. Change ``#!`` from ``python`` to ``python3``
 #. Update docs
 
 Backward incompatibilities
