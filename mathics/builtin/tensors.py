@@ -187,7 +187,7 @@ class Outer(Builtin):
 
     Outer product of two sparse arrays:
     >> Outer[Times, SparseArray[{{1, 2} -> a, {2, 1} -> b}], SparseArray[{{1, 2} -> c, {2, 1} -> d}]]
-     = SparseArray[Automatic, {2, 2, 2, 2}, 0, {{1, 2, 1, 2} -> a c, {1, 2, 2, 1} -> a d, {2, 1, 1, 2} -> b c, {2, 1, 2, 1} -> b d}]
+     = SparseArray[Automatic, {2, 2, 2, 2}, 0, {{1, 2, 1, 2} ⇾ a c, {1, 2, 2, 1} ⇾ a d, {2, 1, 1, 2} ⇾ b c, {2, 1, 2, 1} ⇾ b d}]
 
     'Outer' of multiple lists:
     >> Outer[f, {a, b}, {x, y, z}, {1, 2}]
@@ -446,7 +446,7 @@ class LeviCivitaTensor(Builtin):
     </dl>
 
     >> LeviCivitaTensor[3]
-     = SparseArray[Automatic, {3, 3, 3}, 0, {{1, 2, 3} -> 1, {1, 3, 2} -> -1, {2, 1, 3} -> -1, {2, 3, 1} -> 1, {3, 1, 2} -> 1, {3, 2, 1} -> -1}]
+     = SparseArray[Automatic, {3, 3, 3}, 0, {{1, 2, 3} ⇾ 1, {1, 3, 2} ⇾ -1, {2, 1, 3} ⇾ -1, {2, 3, 1} ⇾ 1, {3, 1, 2} ⇾ 1, {3, 2, 1} ⇾ -1}]
 
     >> LeviCivitaTensor[3, List]
      = {{{0, 0, 0}, {0, 0, 1}, {0, -1, 0}}, {{0, 0, -1}, {0, 0, 0}, {1, 0, 0}}, {{0, 1, 0}, {-1, 0, 0}, {0, 0, 0}}}

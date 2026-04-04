@@ -276,7 +276,7 @@ class Definition(Builtin):
      .
      . Default[r, 1] = 2
      .
-     .Options[r] = {Opt -> 3}
+     .Options[r] = {Opt ⇾ 3}
      .
 
     For 'ReadProtected' symbols, 'Definition' just prints attributes, default values and options:
@@ -286,7 +286,7 @@ class Definition(Builtin):
      .
      . Default[r, 1] = 2
      .
-     . Options[r] = {Opt -> 3}
+     . Options[r] = {Opt ⇾ 3}
     This is the same for built-in symbols:
     >> Definition[Plus]
      = Attributes[Plus] = {Flat, Listable, NumericFunction, OneIdentity, Orderless, Protected}
@@ -295,7 +295,7 @@ class Definition(Builtin):
     >> Definition[Level]
      = Attributes[Level] = {Protected}
      .
-     . Options[Level] = {Heads -> False}
+     . Options[Level] = {Heads ⇾ False}
 
     'ReadProtected' can be removed, unless the symbol is locked:
     >> ClearAttributes[r, ReadProtected]
@@ -306,7 +306,7 @@ class Definition(Builtin):
      .
      . Default[r, 1] = 2
      .
-     . Options[r] = {Opt -> 3}
+     . Options[r] = {Opt ⇾ 3}
     'ClearAll' clears everything:
     >> ClearAll[r]
     >> Definition[r]
@@ -359,7 +359,7 @@ class DownValues(Builtin):
 
     >> f[x_] := x ^ 2
     >> DownValues[f]
-     = {HoldPattern[f[x_]] :> x ^ 2}
+     = {HoldPattern[f[x_]] ⧴ x ^ 2}
 
     Mathics will sort the rules you assign to a symbol according to \
     their specificity. If it cannot decide which rule is more special, \
@@ -367,7 +367,7 @@ class DownValues(Builtin):
     >> f[x_Integer] := 2
     >> f[x_Real] := 3
     >> DownValues[f]
-     = {HoldPattern[f[x_Real]] :> 3, HoldPattern[f[x_Integer]] :> 2, HoldPattern[f[x_]] :> x ^ 2}
+     = {HoldPattern[f[x_Real]] ⧴ 3, HoldPattern[f[x_Integer]] ⧴ 2, HoldPattern[f[x_]] ⧴ x ^ 2}
     >> f[3]
      = 2
     >> f[3.]
@@ -417,11 +417,11 @@ class FormatValues(Builtin):
     Now, to see the rules, we can use 'FormatValues':
 
     >> FormatValues[F]
-     = {HoldPattern[Subscript[x_, F]] :> Subscript[x, F]}
+     = {HoldPattern[Subscript[x_, F]] ⧴ Subscript[x, F]}
 
     The replacment pattern on the right in the delayed rule is formatted according to the top-level form. To see the rule input, we can use 'InputForm':
     >> FormatValues[F]  //InputForm
-     = {HoldPattern[Format[F[x_], OutputForm]] :> Subscript[x, F]}
+     = {HoldPattern[Format[F[x_], OutputForm]] ⧴ Subscript[x, F]}
     """
 
     summary_text = (
@@ -617,13 +617,13 @@ class OwnValues(Builtin):
     >> x = 3;
     >> x = 2;
     >> OwnValues[x]
-     = {HoldPattern[x] :> 2}
+     = {HoldPattern[x] ⧴ 2}
     >> x := y
     >> OwnValues[x]
-     = {HoldPattern[x] :> y}
+     = {HoldPattern[x] ⧴ y}
     >> y = 5;
     >> OwnValues[x]
-     = {HoldPattern[x] :> y}
+     = {HoldPattern[x] ⧴ y}
     >> Hold[x] /. OwnValues[x]
      = Hold[y]
     >> Hold[x] /. OwnValues[x] // ReleaseHold

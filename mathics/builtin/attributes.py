@@ -173,9 +173,9 @@ class Constant(Predefined):
 
     Constant symbols cannot be used as variables in 'Solve' and
     related functions:
-    >> Solve[x + E == 0, E]
+    >> Solve[x + E ⩵ 0, E]
      : E is not a valid variable.
-     = Solve[x + E == 0, E]
+     = Solve[x + E ⩵ 0, E]
     """
 
     summary_text = "treat as a constant in differentiation, etc"

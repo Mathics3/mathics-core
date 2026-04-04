@@ -249,7 +249,7 @@ class Plus(InfixOperator, SympyFunction):
 
     'Plus' has default value 0:
     >> DefaultValues[Plus]
-     = {HoldPattern[Default[Plus]] :> 0}
+     = {HoldPattern[Default[Plus]] ⧴ 0}
     >> a /. n_. + x_ :> {n, x}
      = {0, a}
 
@@ -326,7 +326,7 @@ class Power(InfixOperator, MPMathFunction):
 
     'Power' has default value 1 for its second argument:
     >> DefaultValues[Power]
-     = {HoldPattern[Default[Power, 2]] :> 1}
+     = {HoldPattern[Default[Power, 2]] ⧴ 1}
     >> a /. x_ ^ n_. :> {x, n}
      = {a, 1}
 
@@ -537,7 +537,7 @@ class Times(InfixOperator, SympyFunction):
 
     'Times' has default value 1:
     >> DefaultValues[Times]
-     = {HoldPattern[Default[Times]] :> 1}
+     = {HoldPattern[Default[Times]] ⧴ 1}
     >> a /. n_. * x_ :> {n, x}
      = {1, a}
     """

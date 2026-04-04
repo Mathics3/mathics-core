@@ -1267,7 +1267,7 @@ class Split(Builtin):
 
     Split based on first element
     >> Split[{x -> a, x -> y, 2 -> a, z -> c, z -> a}, First[#1] === First[#2] &]
-     = {{x -> a, x -> y}, {2 -> a}, {z -> c, z -> a}}
+     = {{x ⇾ a, x ⇾ y}, {2 ⇾ a}, {z ⇾ c, z ⇾ a}}
     """
 
     rules = {
@@ -1410,7 +1410,7 @@ class Union(_SetOperation):
 
     A union of two associations:
     >> Union[{a -> b}, {c -> d}]
-     = {a -> b, c -> d}
+     = {a ⇾ b, c ⇾ d}
 
     A union of one item is the item. Note that the list is sorted:
     >> Union[{c, b, a}]

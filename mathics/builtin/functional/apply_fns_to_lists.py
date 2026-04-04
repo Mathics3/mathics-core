@@ -137,7 +137,7 @@ class Map(InfixOperator):
 
     Map $f$ onto an association:
     >> Map[f, <|"a" -> 1, "b" -> 2, "c" -> 3, "d" -> 4|>]
-     = <|a -> f[1], b -> f[2], c -> f[3], d -> f[4]|>
+     = <|a ⇾ f[1], b ⇾ f[2], c ⇾ f[3], d ⇾ f[4]|>
 
     Include heads:
     >> Map[f, a + b + c, Heads->True]
@@ -256,11 +256,11 @@ class MapAt(Builtin):
 
     Map $f$ onto at the second position of an association:
     >> MapAt[f, <|"a" -> 1, "b" -> 2, "c" -> 3, "d" -> 4|>, 2]
-     = {a -> 1, b -> f[2], c -> 3, d -> 4}
+     = {a ⇾ 1, b ⇾ f[2], c ⇾ 3, d ⇾ 4}
 
     Same as above, but select the second-from-the-end position:
     >> MapAt[f, <|"a" -> 1, "b" -> 2, "c" -> 3, "d" -> 4|>, -2]
-     = {a -> 1, b -> 2, c -> f[3], d -> 4}
+     = {a ⇾ 1, b ⇾ 2, c ⇾ f[3], d ⇾ 4}
 
     """
 

@@ -99,7 +99,7 @@ class Default(Builtin):
 
     Default values are stored in 'DefaultValues':
     >> DefaultValues[f]
-     = {HoldPattern[Default[f]] :> 1}
+     = {HoldPattern[Default[f]] ⧴ 1}
 
     You can use patterns for $k$ and $n$:
     >> Default[h, k_, n_] := {k, n}
@@ -145,10 +145,10 @@ class FilterRules(Builtin):
     </dl>
 
     >> FilterRules[{x -> 100, y -> 1000}, x]
-     = {x -> 100}
+     = {x ⇾ 100}
 
     >> FilterRules[{x -> 100, y -> 1000, z -> 10000}, {a, b, x, z}]
-     = {x -> 100, z -> 10000}
+     = {x ⇾ 100, z ⇾ 10000}
     """
 
     rules = {
@@ -313,9 +313,9 @@ class Options(Builtin):
 
     You can assign values to 'Options' to specify options.
     >> Options[f] = {n -> 2}
-     = {n -> 2}
+     = {n ⇾ 2}
     >> Options[f]
-     = {n :> 2}
+     = {n ⧴ 2}
     >> f[x_, OptionsPattern[f]] := x ^ OptionValue[n]
     >> f[x]
      = x ^ 2
@@ -338,13 +338,13 @@ class Options(Builtin):
      = {a}
     A single rule need not be given inside a list:
     >> Options[f] = a -> b
-     = a -> b
+     = a ⇾ b
     >> Options[f]
-     = {a :> b}
+     = {a ⧴ b}
     Options can only be assigned to symbols:
     >> Options[a + b] = {a -> b}
      : Argument a + b at position 1 is expected to be a symbol.
-     = {a -> b}
+     = {a ⇾ b}
 
     See also <url>
     :'OptionValue':
@@ -399,7 +399,7 @@ class OptionValue(Builtin):
 
     First, set up a symbol with some options using 'Options':
     >> Options[MySetting] = {"foo" -> 5, "bar" -> 6}
-     = {foo -> 5, bar -> 6}
+     = {foo ⇾ 5, bar ⇾ 6}
 
     Now get a value previously set:
 

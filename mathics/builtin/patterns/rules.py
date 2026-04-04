@@ -25,7 +25,7 @@ that name are replaced by the (sub) match in the final expression.
 Let us consider, for example, the 'Rule':
 
     >> rule = F[u_]->g[u]
-     = F[u_] -> g[u]
+     = F[u_] ⇾ g[u]
 
 This rule associates the pattern 'F[u_]' with the expression 'g[u]'.
 
@@ -279,8 +279,8 @@ class ReplaceAll(InfixOperator):
     >> {a, b} /. {{{a->x, b->y}, {a->w, b->z}}, {a->u, b->v}}
      = {{{x, y}, {w, z}}, {u, v}}
     >> {a, b} /. {{{a->x, b->y}, a->w, b->z}, {a->u, b->v}}
-     : Elements of {{a -> x, b -> y}, a -> w, b -> z} are a mixture of lists and nonlists.
-     = {{a, b} /. {{a -> x, b -> y}, a -> w, b -> z}, {u, v}}
+     : Elements of {{a ⇾ x, b -> y}, a ⇾ w, b ⇾ z} are a mixture of lists and nonlists.
+     = {{a, b} /. {{a ⇾ x, b ⇾ y}, a ⇾ w, b ⇾ z}, {u, v}}
 
     ReplaceAll also can be used as an operator:
     >> ReplaceAll[{a -> 1}][{a, b}]
