@@ -470,6 +470,7 @@ class DocTest:
         for res, want in zip(result_list, wanted_list):
             # TODO: Be more careful with special characters used in
             # pattern matching.
+            res = res.strip()
             want = encode_string_value(want.strip(), encoding=encoding)
             wanted_re = re.escape(want)
             wanted_re = wanted_re.replace("\\.\\.\\.", ".*?")
