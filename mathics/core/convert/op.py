@@ -62,6 +62,7 @@ AMSTEX_OPERATORS = {
 }
 
 
+@lru_cache(maxsize=1024)
 def string_to_invertible_ascii(string: str):
     """
     Replace non-ANSI characters with their names. If the character
