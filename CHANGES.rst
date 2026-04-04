@@ -5,12 +5,12 @@
 10.0.0
 ======
 
-Some foundational work done to overhaul plotting using vectors with NumPy was started. Alas, work on it was not complete by release time to have finished this. Expect a future release to have revamped graphics.
+Some foundational work on overhauling plotting with NumPy vectors was started. Alas, work on it was not complete by release time, so this could not be finished. Expect a future release to have revamped graphics.
 
 Notes:
 
 #. There are incompatible changes. Use with Mathics-scanner 10.0.0 or greater.
-#. We are in the process of renaming ``Mathics`` to ``Mathics3``. ``Mathics`` was monolithic Python 2-ish code. Mathics3 has rewritten a number of major subcomponents, and spit off a number of subcomponents. There are still several that still need to be revised or rewritten. The name change reflects this distinction between the two efforts, and emphasizes that ``Mathics3`` uses modern Python 3 idioms. While right now the repository name and import refer to ``mathics``, several repositories that use the Mathics3 core, or that Mathics3 uses have been renamed. In particular, ``Mathics_Scanner`` is now ``Mathics3_Scanner``.
+#. We are in the process of renaming ``Mathics`` to ``Mathics3``. You will notice a new Mathics3 logo in the documentation. ``Mathics`` was monolithic Python 2-ish code. Mathics3 has rewritten a number of major subcomponents and split off a number of subcomponents. There are still several that need to be revised or rewritten. The name change reflects this distinction between the two efforts, and emphasizes that ``Mathics3`` uses modern Python 3 idioms. While right now the repository name and import refer to ``mathics``, several repositories that use the Mathics3 core, or that Mathics3 uses, have been renamed. In particular, ``Mathics_Scanner`` is now ``Mathics3_Scanner``.
 
 
 New Builtins
@@ -29,7 +29,7 @@ New Builtins
 Enhancements
 ------------
 
-* Many Builtin functions now report argument mismatch errors
+* Many Builtin functions now report argument-mismatch errors
 * ``Trig`` option added to ``Numerator`` and ``Denominator``
 
 Bugs Fixed
@@ -63,7 +63,7 @@ Internals
   Corrections were made to variables ``$PrintForms`` and ``$OutputForms``. (mmatera)
 * A major revision and reorganization was begun to improve Boxing.
   Corrections were made to variables ``$PrintForms`` and ``$OutputForms``.
-* Primitive datatype ``NumericArray``, which is essentially a NumPy array was added to support vector operations, such as plotting. (Bruce Lucas) In support of this the module ``mathics.core.atoms`` was split up.
+* Primitive datatype ``NumericArray``, which is essentially a NumPy array, was added to support vector operations, such as plotting. (Bruce Lucas) In support of this, the module ``mathics.core.atoms`` was split up.
 * Internals for handling Graphics have been revised to be able to accept a more complete list.
 * Parsing now uses more data from YAML tables instead of hard-coding values inside code.
 * Revise representation for ``Complex`` Numbers; both the real and imaginary parts can now be arbitrary non-complex Real numbers. The precision, a derived value, is also saved.
@@ -82,10 +82,10 @@ API incompatibility
 -------------------
 
 * Front ends must now issue an explicit call to
-  ``import_and_load_builtins()``. Previously this was handled simply by
+  ``import_and_load_builtins()``. Previously, this was handled simply by
   ``import`` of ``MathicsSession``. Loading modules loaded via
   ``import`` was unpredictable in how and when things got loaded. The
-  change was make do address this and to be able to give more
+  change was made to address this and to be able to give more
   flexibility in loading.
 * Token names have changed to align better with ``CodeParser`CodeTokenize``
 
@@ -104,11 +104,11 @@ which happens a lot in plotting graphics. Also, Python 3.13 is a bit
 faster than previous versions. Previously, rendering via ``asymptote`` was
 slow. This is no longer the situation.
 
-Preliminary work to track locations has started. This is useful in debugging and error reporting, and is controlled via Boolean System variable ``$TrackLocations``.
+Preliminary work to track locations has started. This is useful in debugging and error reporting, and is controlled via the Boolean System variable ``$TrackLocations``.
 
 Boxing operators have been added. The full range of escape sequences is supported.  A limited form of boxing escape ``\*`` that handles a single Boxing function has been added.
 
-A basic interrupt handler was added that loosely follows wolframscript's interrupt handler. Interrupt commands "abort", "exit", "continue", "debugger", "show", and "inspect" are available; "trace" will be added later.
+A basic interrupt handler was added that loosely follows WolframScript's interrupt handler. Interrupt commands "abort", "exit", "continue", "debugger", "show", and "inspect" are available; "trace" will be added later.
 
 ``main.py`` has been moved to ``__main__.py`` following Python conventions for main routines. This makes ``python -m mathics`` work.
 GNU Readline history is enabled for ``mathics`` when it is available. It shares history files with ``mathicsscript``.
@@ -153,13 +153,13 @@ Enhancements
 ------------
 
 #. Set-related code reworked for better WMA conformance. There is better WMA conformance in rule selection when several rules match.
-#. ``mathics`` CLI options are more like wolframscript
+#. ``mathics`` CLI options are more like WolframScript
 #. The debugging interface has been improved. ``TraceEvaluation[]`` and ``TraceDebug[]`` filter and colorize output for Mathics3 constructs much better. Single-dash long options like
-   ``-help``, ``-file`` are now accepted. Short option ``-f`` is associated with ``-file`` rather than ``--fullform``; ``-F`` is is now used for
+   ``-help``, ``-file`` are now accepted. Short option ``-f`` is associated with ``-file`` rather than ``--fullform``; ``-F`` is now used for
    ``FullForm``. Option ``--read`` with alias ``-r`` is now ``-code`` and short option ``-c``.
-#. Boolean Options ``ShowRewrites`` and ``ShowEvaluation`` were added to ``TraceEvalation[]``. These filtering for either rewrite rules or evaluation expressions. Presumably, you don't want to filter both.
-#. We check argument counts on more Builtin Functions and give error messages (tags ``argb``, ``argx``, ``argr``, ``argrx``) for invalid parameter combinations.
-#. ``$TraceBuiltins`` output uses standard Mathics3 I/O mechanisms rather than Python's builtin ``print``. Therefore it will be seen in more front-ends like Django or pyoxide.
+#. Boolean Options ``ShowRewrites`` and ``ShowEvaluation`` were added to ``TraceEvalation[]``. These filter either rewrite rules or evaluation expressions. Presumably, you don't want to filter both.
+#. We check argument counts on more built-in functions and give error messages (tags ``argb``, ``argx``, ``argr``, ``argrx``) for invalid parameter combinations.
+#. ``$TraceBuiltins`` output uses standard Mathics3 I/O mechanisms rather than Python's builtin ``print``. Therefore, it will be seen in more front-ends like Django or PyOxide.
 
 Bugs Fixed
 ----------
@@ -168,13 +168,13 @@ Bugs Fixed
 #. #1213 ``Condition[]`` expressions as second element in ``RuleDelayed`` behaviour not compatible with WMA
 #. #1187 Add ``Hypergeometric2F1`` Builtin Function
 #. #1198 Blanks in ``Set`` operations are not properly handled in tag positions.
-#. #1245 Add "lpn" error message checking in _ListPlot
-#. #1383 Support for hypergeometric functions
-#. #1384 Option management tweaks
+#. #1245 Add "lpn" error message checking in _ListPlot.
+#. #1383 Support for hypergeometric functions.
+#. #1384 Option management tweaks.
 #. #1388 In WMA, ``Pochhammer[0,-2]`` returns 1/2
 #. #1395 Match WMA for ``Gamma[1+x]`` and ``Product[...]``
 #. #1405 structure_cache in ``mathics.core.expression.structure`` is ``None`` but we try to set it in ``_is_neutral_symbol()``
-#. #1412 ``Transpose[]`` does not work on three-dimensional array
+#. #1412 ``Transpose[]`` does not work on three-dimensional array.
 #. #1425 `Erroneous Protected message in SetDelayed
 #. #1432 URL links with $ in them are getting messed up
 #. #1461 "noopen" errors sometimes return ``$Failed``
@@ -464,23 +464,23 @@ Internals
 ---------
 
 * ``eval_abs`` and ``eval_sign`` extracted from ``Abs`` and ``Sign`` and added to ``mathics.eval.arithmetic``.
-* Maximum number of digits allowed in a string set to 7000 and can be adjusted using environment variable
+* The maximum number of digits allowed in a string is set to 7000 and can be adjusted using an environment variable
   ``MATHICS_MAX_STR_DIGITS`` on Python versions that don't adjust automatically (like pyston).
-* Real number comparisons implemented is based now in the internal implementation of ``RealSign``.
+* Real number comparisons implemented now use the internal implementation of ``RealSign``.
 * For Python 3.11, the variable ``$MaxLengthIntStringConversion`` controls the maximum size of
   the literal conversion between large integers and Strings.
 * Older style non-appearing and non-pedagogical doctests have been converted to pytest
 * Built-in code is directed explicitly rather than implicitly. This facilitates the ability to lazy load
   builtins or "autoload" them a la GNU Emacs autoload.
 * Add mpmath LRU cache
-* Some work was done to make it possible so that in the future we can speed up initial loading and reduce the initial memory footprint
+* Some work was done to make it possible so that in the future, we can speed up initial loading and reduce the initial memory footprint
 
 
 Bugs Fixed
 ----------
 
 * ``Definitions`` is compatible with ``pickle``.
-* Improved support for ``Quantity`` expressions, including conversions, formatting and arithmetic operations.
+* Improved support for ``Quantity`` expressions, including conversions, formatting, and arithmetic operations.
 * ``Background`` option for ``Graphics`` and ``Graphics3D`` is operative again.
 * Numeric comparisons against expressions involving ``String``; Issue #797)
 * ``Switch[]`` involving ``Infinity``. Issue #956
@@ -498,7 +498,7 @@ API
 We now require an explicit call to a new function
 ``import_and_load_builtins()``. Previously, loading was implicit and
 indeterminate as to when this occurred, as it was based on import
-order. We need this so that we can add support in the future for lazy loading built-in modules.
+order. We need this so that we can add support in the future for lazy-loading built-in modules.
 
 Package updates
 ---------------
