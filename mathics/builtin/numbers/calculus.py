@@ -766,15 +766,15 @@ class FindMaximum(_BaseFinder):
 
     >> FindMaximum[-(x-3)^2+2., {x, 1}]
      : Encountered a gradient that is effectively zero. The result returned may not be a maximum; it may be a minimum or a saddle point.
-     = {2., {x -> 3.}}
+     = {2., {x ⇾ 3.}}
     >> FindMaximum[-10*^-30 *(x-3)^2+2., {x, 1}]
      : Encountered a gradient that is effectively zero. The result returned may not be a maximum; it may be a minimum or a saddle point.
-     = {2., {x -> 3.}}
+     = {2., {x ⇾ 3.}}
     >> FindMaximum[Sin[x], {x, 1}]
-     = {1., {x -> 1.5708}}
+     = {1., {x ⇾ 1.5708}}
     >> phi[x_?NumberQ]:=NIntegrate[u, {u, 0., x}, Method->"Internal"];
     >> Quiet[FindMaximum[-phi[x] + x, {x, 1.2}, Method->"Newton"]]
-     = {0.5, {x -> 1.00001}}
+     = {0.5, {x ⇾ 1.00001}}
     >> Clear[phi];
     For a not so well behaving function, the result can be less accurate:
     >> FindMaximum[-Exp[-1/x^2]+1., {x,1.2}, MaxIterations->2]
@@ -817,15 +817,15 @@ class FindMinimum(_BaseFinder):
 
     >> FindMinimum[(x-3)^2+2., {x, 1}]
      : Encountered a gradient that is effectively zero. The result returned may not be a minimum; it may be a maximum or a saddle point.
-     = {2., {x -> 3.}}
+     = {2., {x ⇾ 3.}}
     >> FindMinimum[10*^-30 *(x-3)^2+2., {x, 1}]
      : Encountered a gradient that is effectively zero. The result returned may not be a minimum; it may be a maximum or a saddle point.
-     = {2., {x -> 3.}}
+     = {2., {x ⇾ 3.}}
     >> FindMinimum[Sin[x], {x, 1}]
-     = {-1., {x -> -1.5708}}
+     = {-1., {x ⇾ -1.5708}}
     >> phi[x_?NumberQ]:=NIntegrate[u,{u,0,x}, Method->"Internal"];
     >> Quiet[FindMinimum[phi[x]-x,{x, 1.2}, Method->"Newton"]]
-     = {-0.5, {x -> 1.00001}}
+     = {-0.5, {x ⇾ 1.00001}}
     >> Clear[phi];
     For a not so well behaving function, the result can be less accurate:
     >> FindMinimum[Exp[-1/x^2]+1., {x,1.2}, MaxIterations->2]
@@ -870,28 +870,28 @@ class FindRoot(_BaseFinder):
     should have a first derivative.
 
     >> FindRoot[Cos[x], {x, 1}]
-     = {x -> 1.5708}
+     = {x ⇾ 1.5708}
     >> FindRoot[Sin[x] + Exp[x],{x, 0}]
-     = {x -> -0.588533}
+     = {x ⇾ -0.588533}
 
     >> FindRoot[Sin[x] + Exp[x] == Pi,{x, 0}]
-     = {x -> 0.866815}
+     = {x ⇾ 0.866815}
 
     'FindRoot' has attribute 'HoldAll' and effectively uses 'Block' to localize $x$.
     However, in the result $x$ will eventually still be replaced by its value.
     >> x = "I am the result!";
     >> FindRoot[Tan[x] + Sin[x] == Pi, {x, 1}]
-     = {I am the result! -> 1.14911}
+     = {I am the result! ⇾ 1.14911}
     >> Clear[x]
 
     'FindRoot' stops after 100 iterations:
     >> FindRoot[x^2 + x + 1, {x, 1}]
      : The maximum number of iterations was exceeded. The result might be inaccurate.
-     = {x -> -1.}
+     = {x ⇾ -1.}
 
     Find complex roots:
     >> FindRoot[x ^ 2 + x + 1, {x, -I}]
-     = {x -> -0.5 - 0.866025 I}
+     = {x ⇾ -0.5 - 0.866025 I}
 
     The function has to return numerical values:
     >> FindRoot[f[x] == 0, {x, 0}]
@@ -905,7 +905,7 @@ class FindRoot(_BaseFinder):
 
 
     >> FindRoot[x^2 - 2, {x, 1,3}, Method->"Secant"]
-     = {x -> 1.41421}
+     = {x ⇾ 1.41421}
     """
 
     rules = {
@@ -954,7 +954,7 @@ class Integers(Builtin):
 
     Limit a solution to integer numbers:
     >> Solve[-4 - 4 x + x^4 + x^5 == 0, x, Integers]
-     = {{x -> -1}}
+     = {{x ⇾ -1}}
     >> Solve[x^4 == 4, x, Integers]
      = {}
     """
@@ -1629,7 +1629,7 @@ class Reals(Builtin):
 
     Limit a solution to real numbers:
     >> Solve[x^3 == 1, x, Reals]
-     = {{x -> 1}}
+     = {{x ⇾ 1}}
     """
 
     summary_text = "the domain of the Real numbers"
@@ -2260,13 +2260,13 @@ class Solve(Builtin):
     </dl>
 
     >> Solve[x ^ 2 - 3 x == 4, x]
-     = {{x -> -1}, {x -> 4}}
+     = {{x ⇾ -1}, {x ⇾ 4}}
     >> Solve[4 y - 8 == 0, y]
-     = {{y -> 2}}
+     = {{y ⇾ 2}}
 
     Apply the solution:
     >> sol = Solve[2 x^2 - 10 x - 12 == 0, x]
-     = {{x -> -1}, {x -> 6}}
+     = {{x ⇾ -1}, {x ⇾ 6}}
     >> x /. sol
      = {-1, 6}
 
@@ -2280,21 +2280,21 @@ class Solve(Builtin):
 
     Rational equations:
     >> Solve[x / (x ^ 2 + 1) == 1, x]
-     = {{x -> 1 / 2 - I / 2 Sqrt[3]}, {x -> 1 / 2 + I / 2 Sqrt[3]}}
+     = {{x ⇾ 1 / 2 - I / 2 Sqrt[3]}, {x ⇾ 1 / 2 + I / 2 Sqrt[3]}}
     >> Solve[(x^2 + 3 x + 2)/(4 x - 2) == 0, x]
-     = {{x -> -2}, {x -> -1}}
+     = {{x ⇾ -2}, {x ⇾ -1}}
 
     Transcendental equations:
     >> Solve[Cos[x] == 0, x]
-     = {{x -> Pi / 2}, {x -> 3 Pi / 2}}
+     = {{x ⇾ Pi / 2}, {x ⇾ 3 Pi / 2}}
 
     Solve can only solve equations with respect to symbols or functions:
 
     >> Solve[f[x + y] == 3, f[x + y]]
-     = {{f[x + y] -> 3}}
+     = {{f[x + y] ⇾ 3}}
     >> Solve[a + b == 2, a + b]
      : a + b is not a valid variable.
-     = Solve[a + b == 2, a + b]
+     = Solve[a + b ⩵ 2, a + b]
 
     This happens when solving with respect to an assigned symbol:
     >> x = 3;
@@ -2309,24 +2309,24 @@ class Solve(Builtin):
     Solve a system of equations:
     >> eqs = {3 x ^ 2 - 3 y == 0, 3 y ^ 2 - 3 x == 0};
     >> sol = Solve[eqs, {x, y}] // Simplify
-     = {{x -> 0, y -> 0}, {x -> 1, y -> 1}, {x -> -1 / 2 + I / 2 Sqrt[3], y -> -1 / 2 - I / 2 Sqrt[3]}, {x -> -1 / 2 - I / 2 Sqrt[3], y -> -1 / 2 + I / 2 Sqrt[3]}}
+     = {{x ⇾ 0, y ⇾ 0}, {x ⇾ 1, y ⇾ 1}, {x ⇾ -1 / 2 + I / 2 Sqrt[3], y ⇾ -1 / 2 - I / 2 Sqrt[3]}, {x ⇾ -1 / 2 - I / 2 Sqrt[3], y ⇾ -1 / 2 + I / 2 Sqrt[3]}}
     >> eqs /. sol // Simplify
      = {{True, True}, {True, True}, {True, True}, {True, True}}
 
     Solve when given an underdetermined system:
     >> Solve[x^2 == 1 && z^2 == -1, {x, y, z}]
      : Equations may not give solutions for all "solve" variables.
-     = {{x -> -1, z -> -I}, {x -> -1, z -> I}, {x -> 1, z -> -I}, {x -> 1, z -> I}}
+     = {{x ⇾ -1, z ⇾ -I}, {x ⇾ -1, z ⇾ I}, {x ⇾ 1, z ⇾ -I}, {x ⇾ 1, z ⇾ I}}
 
     Examples using specifying the Domain in solutions:
     >> Solve[x^2 == -1, x, Reals]
      = {}
     >> Solve[x^2 == 1, x, Reals]
-     = {{x -> -1}, {x -> 1}}
+     = {{x ⇾ -1}, {x ⇾ 1}}
     >> Solve[x^2 == -1, x, Complexes]
-     = {{x -> -I}, {x -> I}}
+     = {{x ⇾ -I}, {x ⇾ I}}
     >> Solve[4 - 4 * x^2 - x^4 + x^6 == 0, x, Integers]
-     = {{x -> -1}, {x -> 1}}
+     = {{x ⇾ -1}, {x ⇾ 1}}
     """
 
     messages = {

@@ -703,14 +703,14 @@ class SetEnvironment(Builtin):
 
      See that the environment variable has changed:
      S> GetEnvironment["FOO"]
-      = FOO -> bar
+      = FOO ⇾ bar
 
      Set two environment variables:
      S> SetEnvironment[{"FOO" -> "baz", "A" -> "B"}]
 
      See that the environment variable has changed:
      S> GetEnvironment["FOO"]
-      = FOO -> baz
+      = FOO ⇾ baz
 
      Environment values must be strings:
 
@@ -719,12 +719,12 @@ class SetEnvironment(Builtin):
       = $Failed
 
      S> GetEnvironment["FOO"]
-      = FOO -> baz
+      = FOO ⇾ baz
 
     If the environment name is not a string, the evaluation fails without a message.
 
      S> SetEnvironment[1 -> "bar"]
-      = SetEnvironment[1 -> bar]
+      = SetEnvironment[1 ⇾ bar]
 
      See also <url>
      :'Environment':

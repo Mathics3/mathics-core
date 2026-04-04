@@ -408,7 +408,7 @@ class DocTest:
         return self.test
 
     def compare(
-        self, result: Optional[str], out: tuple = tuple(), encoding="ASCII"
+        self, result: Optional[str], out: tuple = tuple(), encoding: str = "ASCII"
     ) -> bool:
         """
         Performs a doctest comparison between ``result`` and ``wanted`` and returns
@@ -418,7 +418,7 @@ class DocTest:
             out, encoding=encoding
         )
 
-    def compare_out(self, outs: tuple = tuple(), encoding="ASCII") -> bool:
+    def compare_out(self, outs: tuple = tuple(), encoding: str = "ASCII") -> bool:
         """Compare messages and warnings produced during the evaluation of
         the test with the expected messages and warnings."""
         # Check out
@@ -439,14 +439,17 @@ class DocTest:
         for got, wanted in zip(outs, wanted_outs):
             if wanted.text == "...":
                 return True
-            if not tabs_to_spaces(got) == encode_string_value(
-                tabs_to_spaces(wanted), encoding=encoding
-            ):
+            # TODO: remove the encoding wrapper in the LHS
+            # once we finish fixing the Evaluation.format function
+            # to handle the encoding.
+            if not encode_string_value(
+                tabs_to_spaces(got), encoding=encoding
+            ) == encode_string_value(tabs_to_spaces(wanted), encoding=encoding):
                 return False
 
         return True
 
-    def compare_result(self, result: Optional[str], encoding="ASCII"):
+    def compare_result(self, result: Optional[str], encoding: str = "ASCII") -> bool:
         """Compare a result with the expected result"""
         wanted = self.result
         # Check result
@@ -465,13 +468,14 @@ class DocTest:
             return False
 
         for res, want in zip(result_list, wanted_list):
-            # TODO_ Be more careful with special characters used in
+            # TODO: Be more careful with special characters used in
             # pattern matching.
-            want = encode_string_value(want, encoding=encoding)
-            wanted_re = re.escape(want.strip())
+            res = res.strip()
+            want = encode_string_value(want.strip(), encoding=encoding)
+            wanted_re = re.escape(want)
             wanted_re = wanted_re.replace("\\.\\.\\.", ".*?")
             wanted_re = f"^{wanted_re}$"
-            if not re.match(wanted_re, res.strip()):
+            if not re.match(wanted_re, res):
                 return False
         return True
 

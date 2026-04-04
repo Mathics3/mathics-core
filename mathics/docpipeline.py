@@ -21,6 +21,7 @@ from typing import Callable, Dict, Generator, List, Optional, Set, Union
 
 import mathics
 from mathics import settings, version_string
+from mathics.core.convert.op import string_to_invertible_ascii
 from mathics.core.evaluation import Output
 from mathics.core.load_builtin import _builtins, import_and_load_builtins
 from mathics.doc.doc_entries import DocTest, DocumentationEntry
@@ -193,7 +194,9 @@ class TestStatus:
         """Show the current test"""
         test_str = test.test
         if not self.quiet:
-            print(f"{index:4d} ({subindex:2d}): TEST {test_str}")
+            print(
+                f"{index:4d} ({subindex:2d}): TEST {string_to_invertible_ascii(test_str)}"
+            )
 
 
 def test_case(

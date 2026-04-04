@@ -32,7 +32,7 @@ class DefaultValues(Builtin):
     >> Default[f, 1] = 4
      = 4
     >> DefaultValues[f]
-     = {HoldPattern[Default[f, 1]] :> 4}
+     = {HoldPattern[Default[f, 1]] ⧴ 4}
 
     You can assign values to 'DefaultValues':
     >> DefaultValues[g] = {Default[g] -> 3};
@@ -71,7 +71,7 @@ class Messages(Builtin):
     >> a::b = "foo"
      = foo
     >> Messages[a]
-     = {HoldPattern[a::b] :> foo}
+     = {HoldPattern[a::b] ⧴ foo}
     >> Messages[a] = {a::c :> "bar"};
     >> a::c // InputForm
      = "bar"
@@ -105,7 +105,7 @@ class NValues(Builtin):
      = {}
     >> N[a] = 3;
     >> NValues[a]
-     = {HoldPattern[N[a, MachinePrecision]] :> 3}
+     = {HoldPattern[N[a, MachinePrecision]] ⧴ 3}
 
     You can assign values to 'NValues':
     >> NValues[b] := {N[b, MachinePrecision] :> 2}
@@ -124,7 +124,7 @@ class NValues(Builtin):
     inappropriate rules will never be used:
     >> NValues[d] = {foo -> bar};
     >> NValues[d]
-     = {HoldPattern[foo] :> bar}
+     = {HoldPattern[foo] ⧴ bar}
     >> N[d]
      = d
     """
@@ -153,7 +153,7 @@ class SubValues(Builtin):
     >> f[1][x_] := x
     >> f[2][x_] := x ^ 2
     >> SubValues[f]
-     = {HoldPattern[f[2][x_]] :> x ^ 2, HoldPattern[f[1][x_]] :> x}
+     = {HoldPattern[f[2][x_]] ⧴ x ^ 2, HoldPattern[f[1][x_]] ⧴ x}
     >> Definition[f]
      = f[2][x_] = x^2
      .

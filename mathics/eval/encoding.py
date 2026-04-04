@@ -4,6 +4,8 @@ Functions to format strings in a given encoding.
 
 from typing import Dict
 
+from mathics_scanner.characters import UNICODE_CHARACTER_TO_ASCII
+
 from mathics.core.convert.op import operator_to_ascii, operator_to_unicode
 
 # Map WMA encoding names to Python encoding names
@@ -15,10 +17,6 @@ ENCODING_WMA_TO_PYTHON = {
     "WindowsTurkish": "cp1254",
 }
 
-UNICODE_CHARACTER_TO_ASCII = {
-    ch: operator_to_ascii.get(name, rf"\[{name}]")
-    for name, ch in operator_to_unicode.items()
-}
 
 # These characters are used in encoding
 # in WMA, and differs from what we have
@@ -29,6 +27,12 @@ UNICODE_CHARACTER_TO_ASCII.update(
         "": r"\[DifferentialD]",
     }
 )
+# Some printable ASCII characters appears in the name
+# table. We should remove them:
+for raw_char_code in range(32, 127):
+    char = chr(raw_char_code)
+    if char in UNICODE_CHARACTER_TO_ASCII:
+        del UNICODE_CHARACTER_TO_ASCII[char]
 
 
 class EncodingNameError(Exception):
