@@ -249,7 +249,7 @@ class Boole(Builtin):
     >> Boole[7 < 5]
      = 0
     >> Boole[a == 7]
-     = Boole[a == 7]
+     = Boole[a ⩵ 7]
     """
 
     attributes = A_LISTABLE | A_PROTECTED

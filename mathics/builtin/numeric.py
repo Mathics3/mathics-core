@@ -225,7 +225,7 @@ class N(Builtin):
     >> UpValues[d]
      = {}
     >> NValues[d]
-     = {HoldPattern[N[d, MachinePrecision]] :> 5}
+     = {HoldPattern[N[d, MachinePrecision]] ⧴ 5}
     >> e /: N[e] = 6;
     >> N[e]
      = 6.
@@ -337,13 +337,13 @@ class Piecewise(SympyFunction):
 
     Heaviside function
     >> Piecewise[{{0, x <= 0}}, 1]
-     = Piecewise[{{0, x <= 0}}, 1]
+     = Piecewise[{{0, x ≤ 0}}, 1]
 
     ## D[%, x]
     ## Piecewise({{0, Or[x < 0, x > 0]}}, Indeterminate).
 
     >> Integrate[Piecewise[{{1, x <= 0}, {-1, x > 0}}], x]
-     = Piecewise[{{x, x <= 0}}, -x]
+     = Piecewise[{{x, x ≤ 0}}, -x]
 
     >> Integrate[Piecewise[{{1, x <= 0}, {-1, x > 0}}], {x, -1, 2}]
      = -1
@@ -613,7 +613,7 @@ class RealSign(Builtin):
      = RealSign[2. + 3. I]
 
     >> D[RealSign[x^2],x]
-     = 2 x Piecewise[{{0, x ^ 2 != 0}}, Indeterminate]
+     = 2 x Piecewise[{{0, x ^ 2 ≠ 0}}, Indeterminate]
     >> Integrate[RealSign[u],{u,0,x}]
      = RealAbs[x]
     """

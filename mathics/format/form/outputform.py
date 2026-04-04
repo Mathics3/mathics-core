@@ -54,7 +54,6 @@ from mathics.format.box.numberform import (
     get_numberform_parameters,
     numberform_to_boxes,
 )
-from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
 from .inputform import render_input_form
 from .util import (
@@ -345,7 +344,7 @@ def other_forms(expr, evaluation, **kwargs):
         raise _WrongFormattedExpression
 
     result = format_element(expr, evaluation, SymbolStandardForm, **kwargs)
-    return result.to_text()
+    return result.to_text(evaluation=evaluation, **kwargs)
 
 
 @register_outputform("System`Integer")
@@ -364,7 +363,7 @@ def integer_outputform(n, evaluation, **kwargs):
     result = numberform_to_boxes(n, digits, padding, evaluation, py_options)
     if isinstance(result, String):
         return result.value
-    return result.to_text()
+    return result.to_text(**kwargs)
 
 
 @register_outputform("System`Image")
@@ -388,7 +387,6 @@ def _infix_outputform_text(expr: Expression, evaluation: Evaluation, **kwargs) -
     # has a head that matches with a symbol associated to an infix
     # operator, WMA builds its inputform without passing through
     # its "Infix" form.
-    kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     operands, ops_lst, precedence, group = collect_in_pre_post_arguments(
         expr, evaluation, **kwargs
     )
@@ -688,7 +686,6 @@ def _prefix_output_text(expr: Expression, evaluation: Evaluation, **kwargs) -> s
     if not isinstance(expr.head, Symbol):
         raise _WrongFormattedExpression
 
-    kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     operands, op_head, precedence, group = collect_in_pre_post_arguments(
         expr, evaluation, **kwargs
     )
@@ -698,7 +695,6 @@ def _prefix_output_text(expr: Expression, evaluation: Evaluation, **kwargs) -> s
     if not isinstance(op_head, str):
         raise _WrongFormattedExpression
     operand = operands[0]
-    kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     target_txt = render_output_form(operand, evaluation, **kwargs)
     parenthesized = group in (None, SymbolRight, SymbolNonAssociative)
     target_txt = parenthesize(precedence, operand, target_txt, parenthesized)
@@ -713,7 +709,6 @@ def _postfix_output_text(expr: Expression, evaluation: Evaluation, **kwargs) -> 
     if not isinstance(expr.head, Symbol):
         raise _WrongFormattedExpression
 
-    kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     operands, op_head, precedence, group = collect_in_pre_post_arguments(
         expr, evaluation, **kwargs
     )
@@ -783,7 +778,6 @@ def rule_to_outputform_text(expr, evaluation: Evaluation, **kwargs):
         raise _WrongFormattedExpression
 
     elements = expr.elements
-    kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     if len(elements) != 2:
         return _default_render_output_form(expr, evaluation, **kwargs)
     pat, rule = (render_output_form(elem, evaluation, **kwargs) for elem in elements)

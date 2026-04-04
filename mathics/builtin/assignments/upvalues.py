@@ -27,9 +27,9 @@ class UpValues(Builtin):
     >> a + b ^= 2
      = 2
     >> UpValues[a]
-     = {HoldPattern[a + b] :> 2}
+     = {HoldPattern[a + b] ⧴ 2}
     >> UpValues[b]
-     = {HoldPattern[a + b] :> 2}
+     = {HoldPattern[a + b] ⧴ 2}
 
     You can assign values to 'UpValues':
     >> UpValues[pi] := {Sin[pi] :> 0}

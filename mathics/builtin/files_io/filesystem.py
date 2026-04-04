@@ -561,7 +561,7 @@ class FileInformation(Builtin):
     This function is totally undocumented in MMA!
 
     >> FileInformation["ExampleData/sunflowers.jpg"]
-     = {File -> ..., FileType -> File, ByteCount -> 142286, Date -> ...}
+     = {File ⇾ ..., FileType ⇾ File, ByteCount ⇾ 142286, Date ⇾ ...}
     """
 
     rules = {
