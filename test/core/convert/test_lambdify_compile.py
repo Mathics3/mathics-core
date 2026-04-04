@@ -13,6 +13,7 @@ The tests that are uncommented pass; the commented ones need more work.
 """
 
 import inspect
+import warnings
 from test.helper import session
 
 import numpy as np
@@ -67,7 +68,10 @@ tests = [
     dict(name="ArcTanh", args=[0]),
     dict(name="Arg", args=[0]),
     dict(name="BellB", args=[0], fail="'bell' is not defined"),
-    dict(name="BernoulliB", args=[0], scipy=True),
+
+    dict(name="BernoulliB", args=[0], scipy=True,
+         expected_messages=['invalid value encountered in scalar multiply']),
+
     dict(name="BesselI", args=[0, 0], scipy=True),
     dict(name="BesselJ", args=[0, 0], scipy=True),
     dict(name="BesselJZero", args=[1,1], fail="sympy_name is ''"),
@@ -382,7 +386,7 @@ check_failing = False
 # Testing is showing multiple small numerical deviations
 # between platforms, so instead of chasing them down one
 # by one, let's just make all the tests "close-enough" tests.
-def one(name, args, scipy=False, expected=None, fail=False):
+def one(name, args, scipy=False, expected=None, fail=False, expected_messages=[]):
     if fail and not check_failing:
         return
 
@@ -427,7 +431,17 @@ def one(name, args, scipy=False, expected=None, fail=False):
 
     # run compiled function to get result
     try:
-        result = fun(*args)
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            result = fun(*args)
+            for warning in w:
+                got_messages = [str(m.message) for m in w]
+                if got_messages != expected_messages:
+                    failure(
+                        name,
+                        f"got messages: {got_messages} expected {expected_messages}",
+                    )
+
     except Exception as oops:
         src = inspect.getsource(fun)
         failure(name, f"{oops} while executing:\n{src}")
