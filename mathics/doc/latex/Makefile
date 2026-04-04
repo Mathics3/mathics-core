@@ -62,7 +62,7 @@ mathics3-???.pdf: mathics.tex documentation.tex mathics3-title.pdf images/logo-h
 
 
 #: Generate logos used in the titlepage
-logo-heptatom-Mathics3.pdf:
+images/logo-heptatom-Mathics3.pdf:
 	(cd .. && $(BASH) ./images.sh)
 
 #: The build of the documentation which is derived from docstrings in the Python code and doctest data
