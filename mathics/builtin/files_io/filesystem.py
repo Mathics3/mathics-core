@@ -11,7 +11,7 @@ import re
 import shutil
 from typing import List
 
-from mathics.builtin.files_io.files import MathicsOpen
+from mathics.builtin.files_io.files import Mathics3Open
 from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_LISTABLE, A_LOCKED, A_PROTECTED
 from mathics.core.builtin import Builtin, MessageException, Predefined
@@ -465,7 +465,7 @@ class FileByteCount(Builtin):
         py_filename = py_filename[1:-1]
 
         try:
-            with MathicsOpen(py_filename, "rb") as f:
+            with Mathics3Open(py_filename, "rb") as f:
                 count = 0
                 tmp = f.read(1)
                 while tmp != b"":

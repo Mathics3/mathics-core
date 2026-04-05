@@ -39,13 +39,13 @@ READ_TYPES = [
 ] + [SymbolHoldExpression, SymbolReal]
 
 
-class MathicsOpen(Stream):
+class Mathics3Open(Stream):
     """
     Context manager for reading files.
 
     Use like this::
 
-        with MathicsOpen(path, "r") as f:
+        with Mathics3Open(path, "r") as f:
             # read from f
             ...
 
@@ -115,7 +115,7 @@ class MathicsOpen(Stream):
 def channel_to_stream(channel, mode="r"):
     if isinstance(channel, String):
         name = channel.get_string_value()
-        opener = MathicsOpen(name, mode)
+        opener = Mathics3Open(name, mode)
         opener.__enter__()
         n = opener.n
         if mode in ["r", "rb"]:

@@ -41,7 +41,7 @@ from mathics.core.systemsymbols import (
 from mathics.eval.directories import TMP_DIR
 from mathics.eval.files_io.files import eval_Close, eval_Get, eval_Open, eval_Read
 from mathics.eval.files_io.read import (
-    MathicsOpen,
+    Mathics3Open,
     channel_to_stream,
     close_stream,
     parse_read_options,
@@ -311,7 +311,7 @@ class FilePrint(Builtin):
             return SymbolFailed
 
         try:
-            with MathicsOpen(resolved_pypath, "r") as f:
+            with Mathics3Open(resolved_pypath, "r") as f:
                 result = f.read()
         except IOError:
             evaluation.message("General", "noopen", path)
@@ -367,8 +367,12 @@ class Get(PrefixOperator):
 
     eval_error = Builtin.generic_argument_error
     expected_args = range(1, 4)
+    messages = {
+        "path": "`1` in $Path is not a string",
+    }
     options = {
         "Trace": "False",
+        "Path": "Null",
     }
     summary_text = "read in a file and evaluate commands in it"
 
@@ -387,8 +391,29 @@ class Get(PrefixOperator):
         ):
             trace_fn = io_files.GET_PRINT_FN
 
+        # Process "Path" option.
+        # The result will be put in py_path_directories
+        path_directories = options["System`Path"]
+        py_path_directories = None
+        if (
+            path_directories is not SymbolNull
+            and (py_path_directories := path_directories.to_python(string_quotes=False))
+            is not None
+        ):
+            if isinstance(py_path_directories, tuple):
+                for dir in py_path_directories:
+                    if not isinstance(dir, str):
+                        evaluation.message("Put", "path", dir)
+                        py_path_directories = None
+                        break
+            elif isinstance(py_path_directories, str):
+                py_path_directories = [py_path_directories]
+            else:
+                evaluation.message("Get", "path", path_directories)
+                py_path_directories = None
+
         # perform the actual evaluation
-        return eval_Get(path.value, evaluation, trace_fn)
+        return eval_Get(path.value, evaluation, trace_fn, py_path_directories)
 
 
 class InputFileName_(Predefined):
@@ -426,7 +451,7 @@ class InputStream(Builtin):
 
     'StringToStream' opens an input stream:
 
-    >> stream = StringToStream["Mathics is cool!"]
+    >> stream = StringToStream["Mathics3 is cool!"]
      = ...
     >> Close[stream]
      = String
@@ -595,7 +620,7 @@ class Put(InfixOperator):
             evaluation.message("Put", "openx", get_eval_Expression())
             return
 
-        # In Mathics-server, evaluation.format_output is modified.
+        # In Mathics3-server, evaluation.format_output is modified.
         # Let's avoid to use it if we want a front-end independent result.
         # Eventually, we are going to replace this by a `MakeBoxes` call.
         def do_format_output(expr, evaluation):
@@ -1131,14 +1156,14 @@ class StreamPosition(Builtin):
       <dd>returns the current position in a stream as an integer.
     </dl>
 
-    >> stream = StringToStream["Mathics is cool!"]
+    >> stream = StringToStream["Mathics3 is cool!"]
      = ...
 
     >> Read[stream, Word]
-     = Mathics
+     = Mathics3
 
     >> StreamPosition[stream]
-     = 7
+     = 8
     """
 
     summary_text = "find the position of the current point in an open stream"
@@ -1174,7 +1199,7 @@ class SetStreamPosition(Builtin):
       <dd>sets the current position in a stream.
     </dl>
 
-    >> stream = StringToStream["Mathics is cool!"]
+    >> stream = StringToStream["Mathics3 is cool!"]
      = ...
 
     >> SetStreamPosition[stream, 8]
@@ -1184,7 +1209,7 @@ class SetStreamPosition(Builtin):
      = is
 
     >> SetStreamPosition[stream, Infinity]
-     = 16
+     = 17
     """
 
     # TODO: Seeks beyond stream should return stmrng message

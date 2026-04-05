@@ -4,7 +4,7 @@ File related evaluation functions.
 """
 
 import os
-from typing import Callable, Literal, Optional
+from typing import Callable, Literal, Optional, Sequence
 
 from mathics_scanner.errors import (
     IncompleteSyntaxError,
@@ -15,7 +15,7 @@ from mathics_scanner.location import ContainerKind
 
 import mathics
 import mathics.core.parser
-import mathics.core.streams
+import mathics.core.streams as streams
 from mathics.core.atoms import Integer, String
 from mathics.core.builtin import MessageException
 from mathics.core.convert.expression import to_expression, to_mathics_list
@@ -39,14 +39,14 @@ from mathics.core.systemsymbols import (
 from mathics.core.util import canonic_filename
 from mathics.eval.files_io.read import (
     READ_TYPES,
-    MathicsOpen,
+    Mathics3Open,
     close_stream,
     read_from_stream,
     read_get_separators,
 )
 
 # Python representation of $InputFileName.  On Windows platforms, we
-# canonicalize this to its Posix equivalent name.
+# canonicalize this to its POSIX equivalent name.
 # FIXME: Remove this as a module-level variable and instead
 #        define it in a session definitions object.
 #        With this, multiple sessions will have separate
@@ -118,14 +118,21 @@ def eval_Close(obj, evaluation: Evaluation):
 
 
 def eval_Get(
-    path: str, evaluation: Evaluation, trace_fn: Optional[Callable] = DEFAULT_TRACE_FN
+    path: str,
+    evaluation: Evaluation,
+    trace_fn: Optional[Callable] = DEFAULT_TRACE_FN,
+    path_directories: Optional[Sequence[str]] = None,
 ):
     """
     Reads a file and evaluates each expression, returning only the last one.
     """
 
-    path = canonic_filename(path)
     result = None
+    if path_directories is None:
+        path_directories = tuple(streams.PATH_VAR)
+    resolved_path, _ = path_search(path, path_directories)
+    if resolved_path is None:
+        resolved_path = path
     definitions = evaluation.definitions
 
     # Wrap actual evaluation to handle setting $Input
@@ -137,16 +144,19 @@ def eval_Get(
     outer_inputfile = definitions.get_inputfile()
 
     # Set a new input path.
-    INPUT_VAR = path
+    INPUT_VAR = resolved_path
     definitions.set_inputfile(INPUT_VAR)
 
-    mathics.core.streams.PATH_VAR = SymbolPath.evaluate(evaluation).to_python(
-        string_quotes=False
-    )
+    # Save old PATH_VAR in case it gets changed in running Get?
+    # This seems to be needed, but not 100% sure there isn't
+    # a better and more robust way.
+    old_streams_path_var = streams.PATH_VAR
+    streams.PATH_VAR = SymbolPath.evaluate(evaluation).to_python(string_quotes=False)
+
     if trace_fn is not None:
-        trace_fn(0, path + "\n")
+        trace_fn(0, resolved_path + "\n")
     try:
-        with MathicsOpen(path, "r") as f:
+        with Mathics3Open(resolved_path, "r") as f:
             feeder = MathicsFileLineFeeder(f, trace_fn)
             while not feeder.empty():
                 try:
@@ -171,6 +181,7 @@ def eval_Get(
         # and the state of definitions prior to calling Get.
         INPUT_VAR = outer_input_var
         definitions.set_inputfile(outer_inputfile)
+        streams.PATH_VAR = old_streams_path_var
     return result
 
 
@@ -191,7 +202,7 @@ def eval_Open(
         path = tmp
 
     try:
-        opener = MathicsOpen(
+        opener = Mathics3Open(
             path,
             mode=mode,
             name=name.value,

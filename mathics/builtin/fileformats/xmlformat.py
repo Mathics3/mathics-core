@@ -10,7 +10,7 @@ Basic implementation for an XML importer.
 import re
 from io import BytesIO
 
-from mathics.builtin.files_io.files import MathicsOpen
+from mathics.builtin.files_io.files import Mathics3Open
 from mathics.core.atoms import String
 from mathics.core.builtin import Builtin, MessageException
 from mathics.core.convert.expression import to_expression, to_mathics_list
@@ -206,7 +206,7 @@ def parse_xml_stream(f):
 
 
 def parse_xml_file(filename):
-    with MathicsOpen(filename, "rb") as f:
+    with Mathics3Open(filename, "rb") as f:
         root = parse_xml_stream(f)
     return root
 
