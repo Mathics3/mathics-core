@@ -144,6 +144,36 @@ def test_coefficient_list():
         check_evaluation(str_expr, str_expected)
 
 
+def test_denominator():
+    for str_expr, str_expected in (
+        (
+            "Denominator[1/3^-1]",
+            "1",
+        ),
+        (
+            "Denominator[1/3^1]",
+            "3",
+        ),
+        (
+            "Denominator[Tan[x]^2, Trig->True]",
+            "Cos[x]^2",
+        ),
+        (
+            "Denominator[Tan[x]^1., Trig->True]",
+            "1",
+        ),
+        (
+            "Denominator[Tan[x]^0, Trig->True]",
+            "1",
+        ),
+        (
+            "Denominator[Tan[x]^2., Trig->True]",
+            "1",
+        ),
+    ):
+        check_evaluation(str_expr, str_expected)
+
+
 def test_exponent():
     for str_expr, str_expected in (
         (

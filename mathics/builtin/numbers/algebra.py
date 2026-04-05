@@ -630,7 +630,7 @@ class Denominator(_Algebraic):
         if algebraic_options is None:
             return
 
-        return eval_Denominator(expr, algebraic_options)
+        return eval_Denominator(expr, evaluation, algebraic_options)
 
 
 # TODO: Phase this out and replace with _Algebraic
@@ -1371,7 +1371,7 @@ class Numerator(_Algebraic):
         if algebraic_options is None:
             return
 
-        return eval_Numerator(expr, algebraic_options)
+        return eval_Numerator(expr, evaluation, algebraic_options)
 
 
 class PolynomialQ(Builtin):
