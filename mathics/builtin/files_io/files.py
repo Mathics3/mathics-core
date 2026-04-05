@@ -264,6 +264,8 @@ class FilePrint(Builtin):
 
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
     messages = {
         "zstr": ("The file name cannot be an empty string."),
         "badfile": ("The specified argument, `1`, should be a valid string."),
@@ -363,6 +365,8 @@ class Get(PrefixOperator):
     ## >> << "VectorAnalysis`"
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 4)
     options = {
         "Trace": "False",
     }

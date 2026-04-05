@@ -108,7 +108,7 @@ class Arg(MPMathFunction):
     :WMA link:https://reference.wolfram.com/language/ref/Arg.html</url>)
 
     <dl>
-      <dt>'Arg'[$z$, 'Method ->' "$option$"]
+      <dt>'Arg'[$z$]
       <dd>returns the argument of a complex value $z$.
     </dl>
 
@@ -122,10 +122,6 @@ class Arg(MPMathFunction):
     </ul>
 
      >> Arg[-3]
-      = Pi
-
-     Same as above, but using SymPy's method:
-     >> Arg[-3, Method->"sympy"]
       = Pi
 
     >> Arg[1-I]
@@ -150,28 +146,18 @@ class Arg(MPMathFunction):
     }
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
-    options = {"Method": "Automatic"}
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
 
     numpy_name = "angle"  # for later
     mpmath_name = "arg"
     sympy_name = "arg"
 
     def eval(self, z, evaluation, options={}):
-        "Arg[z_, OptionsPattern[Arg]]"
+        "Arg[z_]"
         if Expression(SymbolPossibleZeroQ, z).evaluate(evaluation) is SymbolTrue:
             return Integer0
-        preference = self.get_option(options, "Method", evaluation).get_string_value()
-        if preference is None or preference == "Automatic":
-            return super(Arg, self).eval(z, evaluation)
-        elif preference == "mpmath":
-            return MPMathFunction.eval(self, z, evaluation)
-        elif preference == "sympy":
-            return SympyFunction.eval(self, z, evaluation)
-        # TODO: add NumpyFunction
-        evaluation.message(
-            "meth", f'Arg Method {preference} not in ("sympy", "mpmath")'
-        )
-        return
+        return SympyFunction.eval(self, z, evaluation)
 
 
 class Assuming(Builtin):
@@ -195,6 +181,8 @@ class Assuming(Builtin):
 
     summary_text = "set assumptions during the evaluation"
     attributes = A_HOLD_REST | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
 
     def eval_assuming(self, assumptions, expr, evaluation: Evaluation):
         "Assuming[assumptions_, expr_]"
@@ -253,6 +241,8 @@ class Boole(Builtin):
     """
 
     attributes = A_LISTABLE | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
     summary_text = "translate 'True' to 1, and 'False' to 0"
 
     def eval(self, expr, evaluation: Evaluation):
@@ -284,8 +274,10 @@ class Complex_(Builtin):
      = 5
     """
 
-    summary_text = "head for complex numbers"
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
     name = "Complex"
+    summary_text = "head for complex numbers"
 
     def eval(self, r, i, evaluation: Evaluation):
         "Complex[r_?NumberQ, i_?NumberQ]"
