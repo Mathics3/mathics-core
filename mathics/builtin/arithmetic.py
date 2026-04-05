@@ -416,6 +416,7 @@ class Conjugate(MPMathFunction):
         "Conjugate[Undefined]": "Undefined",
     }
     summary_text = "compute complex conjugation"
+    sympy_name = "conjugate"
 
 
 class DirectedInfinity(SympyFunction):
@@ -691,6 +692,7 @@ class Im(SympyFunction):
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     eval_error = Builtin.generic_argument_error
     expected_args = 1
+    mpmath_name = "im"
     summary_text = "imaginary part of a complex number"
     sympy_name = "im"
 
@@ -859,6 +861,7 @@ class Rational_(Builtin):
     expected_args = 2
     name = "Rational"
     summary_text = "head for rational numbers"
+    sympy_name = "Rational"
 
     def eval(self, n: Integer, m: Integer, evaluation: Evaluation):
         "Rational[n_Integer, m_Integer]"
@@ -888,6 +891,7 @@ class Re(SympyFunction):
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     eval_error = Builtin.generic_argument_error
     expected_args = 1
+    mpmath_name = "re"
     summary_text = "real part of a complex number"
     sympy_name = "re"
 
@@ -1043,6 +1047,7 @@ class Sum(IterationFunction, SympyFunction, PrefixOperator):
 
     eval_error = Builtin.generic_argument_error
     expected_args = range(2, sys.maxsize)
+    mpmath_name = "fsum"
 
     rules = IterationFunction.rules.copy()
     rules.update(
