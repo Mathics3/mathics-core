@@ -42,7 +42,7 @@ def test_arg_errors(function_name, msg_fragment):
         ("Xor[a]", None, "a", None),
         ("Xor[False]", None, "False", None),
         ("Xor[True]", None, "True", None),
-        ("Xor[a, b]", None, "a \\[Xor] b", None),
+        ("Xor[a, b]", None, "a xor b", None),
     ],
 )
 def test_logic(str_expr, msgs, str_expected, fail_msg):
