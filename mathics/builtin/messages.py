@@ -220,6 +220,7 @@ class General(Builtin):
         "matsq": "Argument `1` is not a non-empty square matrix.",
         "newpkg": "In WL, there is a new package for this.",
         "nffil": "File not found during `1`.",
+        "nonopt": "Options expected (instead of `1`) beyond position `2` in `3`. An option must be a rule or a list of rules.",
         "noopen": "Cannot open `1`.",
         "nord": "Invalid comparison with `1` attempted.",
         "normal": "Nonatomic expression expected at position `1` in `2`.",

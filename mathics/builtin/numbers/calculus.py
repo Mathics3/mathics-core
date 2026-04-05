@@ -1240,7 +1240,9 @@ class Integrate(SympyFunction):
 class Limit(Builtin):
     """
 
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Limit.html</url>
+    <url>:Limit:
+    https://en.wikipedia.org/wiki/Limit_(mathematics)</url> (<url>
+    :WMA link:https://reference.wolfram.com/language/ref/Limit.html</url>)
 
     <dl>
       <dt>'Limit'[$expr$, $x$->$x_0$]
@@ -1255,15 +1257,36 @@ class Limit(Builtin):
 
     >> Limit[x, x->2]
      = 2
+
     >> Limit[Sin[x] / x, x->0]
      = 1
+
+    The limit value can change depending on which direction the \
+    limit is approached from.
+
+    Consider this inverse $x$ function:
+
+    >> Plot[1/x, {x, -10, +10}]
+     = -Graphics-
+
+    When coming to zero from positive values:
     >> Limit[1/x, x->0, Direction->-1]
      = Infinity
+
+    But when coming to zero from negative values:
     >> Limit[1/x, x->0, Direction->1]
      = -Infinity
+
+    A limit can be <url>:Indeterminate:
+    /doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/mathematical-constants/indeterminate/</url>:
+    >> Limit[Tan[x], x->Infinity]
+     = Indeterminate
     """
 
     attributes = A_LISTABLE | A_PROTECTED
+
+    eval_error = Builtin.generic_argument_error
+    expected_args = (2, 3)
 
     messages = {
         "ldir": "Value of Direction -> `1` should be -1 or 1.",
