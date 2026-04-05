@@ -101,7 +101,7 @@
   mathml: {}
   text:
     System`InputForm: -1.*^-6
-    System`OutputForm: "-1.\xD710^-6"
+    System`OutputForm: "-1. x 10^-6"
 
 
 -1. 10^5:
@@ -125,9 +125,9 @@
   mathml: {}
   text:
     System`InputForm: -1.*^6
-    System`OutputForm: "-1.\xD710^6"
+    System`OutputForm: "-1. x 10^6"
     System`StandardForm: -1.`*^6
-    System`TraditionalForm: "-1.`\xD710^6"
+    System`TraditionalForm: "-1.` x 10^6"
 
 
 '-4':
@@ -225,7 +225,7 @@
   mathml: {}
   text:
     System`InputForm: 1.*^-6
-    System`OutputForm: "1.\xD710^-6"
+    System`OutputForm: "1. x 10^-6"
 
 
 1. 10^5:
@@ -253,9 +253,9 @@
   mathml: {}
   text:
     System`InputForm: 1.*^6
-    System`OutputForm: "1.\xD710^6"
+    System`OutputForm: "1. x 10^6"
     System`StandardForm: 1.`*^6
-    System`TraditionalForm: "1.`\xD710^6"
+    System`TraditionalForm: "1.` x 10^6"
 
 
 1/(1+1/(1+1/a)):
@@ -288,13 +288,13 @@
 <|a -> x, b -> y, c -> <|d -> t|>|>:
   msg: Association
   latex:
-    System`InputForm: '\text{$<$$\vert$a -$>$ x, b -$>$ y, c -$>$ $<$$\vert$d -$>$ t$\vert$$>$$\vert$$>$}'
-    System`OutputForm: '\text{$<$$\vert$a -$>$ x, b -$>$ y, c -$>$ $<$$\vert$d -$>$ t$\vert$$>$$\vert$$>$}'
+    System`InputForm: '\text{$<$$\vert$a $\to$ x, b $\to$ y, c $\to$ $<$$\vert$d $\to$ t$\vert$$>$$\vert$$>$}'
+    System`OutputForm: '\text{$<$$\vert$a $\to$ x, b $\to$ y, c $\to$ $<$$\vert$d $\to$ t$\vert$$>$$\vert$$>$}'
     System`StandardForm: '\langle\vert a->x, b->y, c->\langle\vert d->t\vert\rangle \vert\rangle'
     System`TraditionalForm: '\langle\vert a->x, b->y, c->\langle\vert d->t\vert\rangle \vert\rangle'
   mathml:
-    System`InputForm: <mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t|&gt;|&gt;</mtext>
-    System`OutputForm: '<mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t|&gt;|&gt;</mtext>'
+    System`InputForm: <mtext>&lt;|a&nbsp;&#8702;&nbsp;x,&nbsp;b&nbsp;&#8702;&nbsp;y,&nbsp;c&nbsp;&#8702;&nbsp;&lt;|d&nbsp;&#8702;&nbsp;t|&gt;|&gt;</mtext>
+    System`OutputForm: '<mtext>&lt;|a&nbsp;&#8702;&nbsp;x,&nbsp;b&nbsp;&#8702;&nbsp;y,&nbsp;c&nbsp;&#8702;&nbsp;&lt;|d&nbsp;&#8702;&nbsp;t|&gt;|&gt;</mtext>'
     System`StandardForm: "<mrow>\n <mtext>&lt;|</mtext>\n <mrow>\n  <mrow>\n   <mi>a</mi>\n   <mn>-&gt;</mn>\n   <mi>x</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>b</mi>\n   <mn>-&gt;</mn>\n   <mi>y</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>c</mi>\n   <mn>-&gt;</mn>\n   <mrow>\n    <mtext>&lt;|</mtext>\n    <mrow>\n     <mi>d</mi>\n     <mn>-&gt;</mn>\n     <mi>t</mi>\n    </mrow>\n    <mtext>|&gt;</mtext>\n   </mrow>\n  </mrow>\n </mrow>\n <mtext>|&gt;</mtext>\n</mrow>"
     System`TraditionalForm: "<mrow>\n <mtext>&lt;|</mtext>\n <mrow>\n  <mrow>\n   <mi>a</mi>\n   <mn>-&gt;</mn>\n   <mi>x</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>b</mi>\n   <mn>-&gt;</mn>\n   <mi>y</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>c</mi>\n   <mn>-&gt;</mn>\n   <mrow>\n    <mtext>&lt;|</mtext>\n    <mrow>\n     <mi>d</mi>\n     <mn>-&gt;</mn>\n     <mi>t</mi>\n    </mrow>\n    <mtext>|&gt;</mtext>\n   </mrow>\n  </mrow>\n </mrow>\n <mtext>|&gt;</mtext>\n</mrow>"
   text:
@@ -307,13 +307,13 @@
 Association[a -> x, b -> y, c -> Association[d -> t, Association[e -> u]]]:
   msg: Nested Association
   latex:
-    System`InputForm: '\text{$<$$\vert$a -$>$ x, b -$>$ y, c -$>$ $<$$\vert$d -$>$ t, e -$>$ u$\vert$$>$$\vert$$>$}'
-    System`OutputForm: '\text{$<$$\vert$a -$>$ x, b -$>$ y, c -$>$ $<$$\vert$d -$>$ t, e -$>$ u$\vert$$>$$\vert$$>$}'
+    System`InputForm: '\text{$<$$\vert$a $\to$ x, b $\to$ y, c $\to$ $<$$\vert$d $\to$ t, e $\to$ u$\vert$$>$$\vert$$>$}'
+    System`OutputForm: '\text{$<$$\vert$a $\to$ x, b $\to$ y, c $\to$ $<$$\vert$d $\to$ t, e $\to$ u$\vert$$>$$\vert$$>$}'
     System`StandardForm: '\langle\vert a->x, b->y, c->\langle\vert d->t, e->u\vert\rangle \vert\rangle'
     System`TraditionalForm: '\langle\vert a->x, b->y, c->\langle\vert d->t, e->u\vert\rangle \vert\rangle'
   mathml:
-    System`InputForm: "<mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t,&nbsp;e&nbsp;-&gt;&nbsp;u|&gt;|&gt;</mtext>"
-    System`OutputForm: '<mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t,&nbsp;e&nbsp;-&gt;&nbsp;u|&gt;|&gt;</mtext>'
+    System`InputForm: "<mtext>&lt;|a&nbsp;&#8702;&nbsp;x,&nbsp;b&nbsp;&#8702;&nbsp;y,&nbsp;c&nbsp;&#8702;&nbsp;&lt;|d&nbsp;&#8702;&nbsp;t,&nbsp;e&nbsp;&#8702;&nbsp;u|&gt;|&gt;</mtext>"
+    System`OutputForm: '<mtext>&lt;|a&nbsp;&#8702;&nbsp;x,&nbsp;b&nbsp;&#8702;&nbsp;y,&nbsp;c&nbsp;&#8702;&nbsp;&lt;|d&nbsp;&#8702;&nbsp;t,&nbsp;e&nbsp;&#8702;&nbsp;u|&gt;|&gt;</mtext>'
     System`StandardForm: "<mrow>\n <mtext>&lt;|</mtext>\n <mrow>\n  <mrow>\n   <mi>a</mi>\n   <mn>-&gt;</mn>\n   <mi>x</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>b</mi>\n   <mn>-&gt;</mn>\n   <mi>y</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>c</mi>\n   <mn>-&gt;</mn>\n   <mrow>\n    <mtext>&lt;|</mtext>\n    <mrow>\n     <mrow>\n      <mi>d</mi>\n      <mn>-&gt;</mn>\n      <mi>t</mi>\n     </mrow>\n     <mo>,</mo>\n     <mrow>\n      <mi>e</mi>\n      <mn>-&gt;</mn>\n      <mi>u</mi>\n     </mrow>\n    </mrow>\n    <mtext>|&gt;</mtext>\n   </mrow>\n  </mrow>\n </mrow>\n <mtext>|&gt;</mtext>\n</mrow>"
     System`TraditionalForm: "<mrow>\n <mtext>&lt;|</mtext>\n <mrow>\n  <mrow>\n   <mi>a</mi>\n   <mn>-&gt;</mn>\n   <mi>x</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>b</mi>\n   <mn>-&gt;</mn>\n   <mi>y</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>c</mi>\n   <mn>-&gt;</mn>\n   <mrow>\n    <mtext>&lt;|</mtext>\n    <mrow>\n     <mrow>\n      <mi>d</mi>\n      <mn>-&gt;</mn>\n      <mi>t</mi>\n     </mrow>\n     <mo>,</mo>\n     <mrow>\n      <mi>e</mi>\n      <mn>-&gt;</mn>\n      <mi>u</mi>\n     </mrow>\n    </mrow>\n    <mtext>|&gt;</mtext>\n   </mrow>\n  </mrow>\n </mrow>\n <mtext>|&gt;</mtext>\n</mrow>"
   text:
@@ -337,9 +337,9 @@ Complex[1.09*^12, 3.]:
     System`TraditionalForm: "<mrow>\n <mrow>\n  <mn>1.09</mn>\n  <mo>&#215;</mo>\n  <msup>\n   <mn>10</mn>\n   <mn>12</mn>\n  </msup>\n </mrow>\n <mo>+</mo>\n <mrow>\n  <mn>3.</mn>\n  <mo form=\"prefix\" lspace=\"0\" rspace=\"0.2em\">&#8290;</mo>\n  <mi>I</mi>\n </mrow>\n</mrow>"
   text:
     System`InputForm: 1.09*^12 + 3.*I
-    System`OutputForm: "1.09\xD710^12 + 3. I"
+    System`OutputForm: "1.09 x 10^12 + 3. I"
     System`StandardForm: 1.09`*^12+3.` I
-    System`TraditionalForm: "1.09`\xD710^12+3.`\u2062I"
+    System`TraditionalForm: "1.09` x 10^12+3.`\u2062I"
 
 
 Graphics[{Text[a^b,{0,0}]}]:
@@ -530,8 +530,8 @@ Integrate[F[x], {x, a, g[b]}]:
   text:
     System`InputForm: Integrate[F[x], {x, a, g[b]}]
     System`OutputForm: Integrate[F[x], {x, a, g[b]}]
-    System`StandardForm: 'Subsuperscript[∫, a, g[b]]⁢F[x]⁢𝑑x'
-    System`TraditionalForm: 'Subsuperscript[∫, a, g(b)]⁢F(x)⁢𝑑x'
+    System`StandardForm: 'Subsuperscript[\[Integral], a, g[b]]⁢F[x]⁢\[DifferentialD]x'
+    System`TraditionalForm: 'Subsuperscript[\[Integral], a, g(b)]⁢F(x)⁢\[DifferentialD]x'
 
 MatrixForm[{{a,b},{c,d}}]:
   msg: GridBox in a matrix

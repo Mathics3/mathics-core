@@ -424,6 +424,7 @@ class BoxElementMixin(ImmutableValueMixin):
         return self.to_format("latex", **options)
 
     def to_text(self, **options) -> str:
+        options.setdefault("encoding", "Unicode")
         return self.to_format("text", **options)
 
     # Deprecated

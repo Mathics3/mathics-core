@@ -881,7 +881,7 @@ class ToString(Builtin):
     """
 
     options = {
-        "CharacterEncoding": '"Unicode"',
+        "CharacterEncoding": "$CharacterEncoding",
         "FormatType": "OutputForm",
         "NumberMarks": "$NumberMarks",
         "PageHeight": "Infinity",
@@ -898,8 +898,21 @@ class ToString(Builtin):
 
     def eval_form(self, expr, form, evaluation: Evaluation, options: dict):
         "ToString[expr_, form_Symbol, OptionsPattern[ToString]]"
-        encoding = options["System`CharacterEncoding"]
-        return eval_ToString(expr, form, encoding.value, evaluation)
+        encoding = options["System`CharacterEncoding"].evaluate(evaluation)
+        if isinstance(encoding, String):
+            encoding_str = encoding.value
+            if encoding_str not in _encodings:
+                evaluation.message("$CharacterEncoding", "charcode", encoding)
+                encoding_str = evaluation.definitions.get_ownvalue(
+                    "System`$SystemCharacterEncoding"
+                ).value
+        else:
+            evaluation.message("$CharacterEncoding", "charcode", encoding)
+            encoding_str = evaluation.definitions.get_ownvalue(
+                "System`$SystemCharacterEncoding"
+            ).value
+
+        return eval_ToString(expr, form, encoding_str, evaluation)
 
 
 class Transliterate(Builtin):
