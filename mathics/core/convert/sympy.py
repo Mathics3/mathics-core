@@ -599,6 +599,9 @@ def old_from_sympy(expr) -> BaseElement:
         else:
             return Expression(SymbolO, from_sympy(expr.args[0]))
 
+    # FIXME: this should be an Interval, but we currently do
+    # not have intervals. The primary place this appears is in
+    # Limit, so check that as well for adjusting.
     if isinstance(expr, AccumulationBounds):
         return SymbolIndeterminate
 

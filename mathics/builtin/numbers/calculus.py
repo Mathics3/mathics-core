@@ -1237,6 +1237,9 @@ class Integrate(SympyFunction):
         )
 
 
+# FIXME: Limit has changes a bit so that it now can return
+# Intervals which we do not support. See also SymPy conversion
+# of SymPy's AccumulationBounds in mathics.core.convert.sympy
 class Limit(Builtin):
     """
 
