@@ -520,6 +520,22 @@ class Builtin:
                         Integer(self.expected_args.start),
                     )
             else:
+                if (
+                    (expected_args_start := self.expected_args.start) <= got_arg_count
+                    and hasattr(self, "options")
+                    and self.options
+                ):
+                    if got_arg_count > expected_args_start:
+                        expected_args_end = self.expected_args.stop - 1
+                        evaluation.message(
+                            name,
+                            "nonopt",
+                            invalid.elements[expected_args_end],
+                            Integer(expected_args_end),
+                            evaluation.current_expression,
+                        )
+                        return
+
                 evaluation.message(
                     name,
                     "argb",

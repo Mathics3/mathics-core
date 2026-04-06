@@ -2,7 +2,7 @@
 File Utilities
 """
 
-from mathics.builtin.files_io.files import MathicsOpen
+from mathics.builtin.files_io.files import Mathics3Open
 from mathics.core.builtin import Builtin, MessageException
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.python import from_python
@@ -95,7 +95,7 @@ class FindList(Builtin):
         results = []
         for path in py_name:
             try:
-                with MathicsOpen(path, "r") as f:
+                with Mathics3Open(path, "r") as f:
                     lines = f.readlines()
             except IOError:
                 evaluation.message("General", "noopen", path)

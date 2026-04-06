@@ -3,6 +3,7 @@ String-related evaluation functions.
 """
 
 import re
+from typing import Dict, Final, Optional
 
 from mathics_scanner.characters import replace_box_unicode_with_ascii
 
