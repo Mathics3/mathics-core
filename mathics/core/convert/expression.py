@@ -24,7 +24,7 @@ def to_expression(
     elements_conversion_fn: Callable = from_python,
 ) -> Expression:
     """
-    This is an expression constructor that can be used when the Head and elements are not Mathics
+    This is an expression constructor that can be used when the Head and elements are not Mathics3
     objects. For example to_expression("Plus", 1, 2, 3)
     """
     if isinstance(head, str):

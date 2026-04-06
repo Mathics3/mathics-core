@@ -51,8 +51,12 @@ class Condition(InfixOperator, PatternObject):
     """
 
     arg_counts = [2]
-    # Don't know why this has attribute HoldAll in Mathematica
+
+    # We use HOLD_REST because the condition *pattern* evaluated,
+    # but not the *expr*.  Evaluation of *expr* is controlled by
+    # whether *pattern* is true or not.
     attributes = A_HOLD_REST | A_PROTECTED
+
     summary_text = "conditional definition"
 
     def init(
