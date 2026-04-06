@@ -7,8 +7,8 @@ from test.helper import check_evaluation, check_evaluation_as_in_cli, evaluate, 
 
 import pytest
 
-from mathics.builtin.atomic.strings import to_python_encoding
 from mathics.core.systemsymbols import SymbolFailed
+from mathics.eval.strings import to_python_encoding
 
 # def test_import():
 #     eaccent = "\xe9"

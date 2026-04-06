@@ -5,7 +5,6 @@ Functions to support Read[]
 import io
 from typing import Callable, Optional, Tuple
 
-from mathics.builtin.atomic.strings import to_python_encoding
 from mathics.core.atoms import Integer, String
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import MessageException
@@ -21,6 +20,7 @@ from mathics.core.systemsymbols import (
     SymbolOutputStream,
     SymbolReal,
 )
+from mathics.eval.strings import to_python_encoding
 
 # TODO: Improve docs for these Read[] arguments.
 
@@ -45,12 +45,14 @@ class Mathics3Open(Stream):
 
     Use like this::
 
-        with Mathics3Open(path, "r") as f:
+        with Mathics3Open(path, "r", encoding="UTF-8") as f:
             # read from f
             ...
 
     The ``file``, ``mode``, and ``encoding`` fields are the same as those
     in the Python builtin ``open()`` function.
+
+    The "encoding" field is optional.
     """
 
     def __init__(

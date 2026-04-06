@@ -122,6 +122,7 @@ def eval_Get(
     evaluation: Evaluation,
     trace_fn: Optional[Callable] = DEFAULT_TRACE_FN,
     path_directories: Optional[Sequence[str]] = None,
+    encoding="UTF-8",
 ):
     """
     Reads a file and evaluates each expression, returning only the last one.
@@ -156,7 +157,7 @@ def eval_Get(
     if trace_fn is not None:
         trace_fn(0, resolved_path + "\n")
     try:
-        with Mathics3Open(resolved_path, "r") as f:
+        with Mathics3Open(resolved_path, "r", encoding=encoding) as f:
             feeder = MathicsFileLineFeeder(f, trace_fn)
             while not feeder.empty():
                 try:

@@ -30,7 +30,11 @@ from mathics.core.systemsymbols import (
     SymbolOutputForm,
     SymbolToExpression,
 )
-from mathics.eval.strings import eval_StringContainsQ, eval_ToString
+from mathics.eval.strings import (
+    CHARACTER_ENCODING_MAP,
+    eval_StringContainsQ,
+    eval_ToString,
+)
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
 # covers all of the variations. Here we just give some minimal basics
@@ -168,55 +172,6 @@ def mathics_split(patt, string, flags):
     return [string[start:stop] for start, stop in indices]
 
 
-_encodings = {
-    # see https://docs.python.org/2/library/codecs.html#standard-encodings
-    "ASCII": "ascii",
-    "CP949": "cp949",
-    "CP950": "cp950",
-    "EUC-JP": "euc_jp",
-    "IBM-850": "cp850",
-    "ISOLatin1": "iso8859_1",
-    "ISOLatin2": "iso8859_2",
-    "ISOLatin3": "iso8859_3",
-    "ISOLatin4": "iso8859_4",
-    "ISOLatinCyrillic": "iso8859_5",
-    "ISO8859-1": "iso8859_1",
-    "ISO8859-2": "iso8859_2",
-    "ISO8859-3": "iso8859_3",
-    "ISO8859-4": "iso8859_4",
-    "ISO8859-5": "iso8859_5",
-    "ISO8859-6": "iso8859_6",
-    "ISO8859-7": "iso8859_7",
-    "ISO8859-8": "iso8859_8",
-    "ISO8859-9": "iso8859_9",
-    "ISO8859-10": "iso8859_10",
-    "ISO8859-13": "iso8859_13",
-    "ISO8859-14": "iso8859_14",
-    "ISO8859-15": "iso8859_15",
-    "ISO8859-16": "iso8859_16",
-    "koi8-r": "koi8_r",
-    "MacintoshCyrillic": "mac_cyrillic",
-    "MacintoshGreek": "mac_greek",
-    "MacintoshIcelandic": "mac_iceland",
-    "MacintoshRoman": "mac_roman",
-    "MacintoshTurkish": "mac_turkish",
-    "ShiftJIS": "shift_jis",
-    "Unicode": "utf_16",
-    "UTF-8": "utf_8",
-    "UTF8": "utf_8",
-    "WindowsANSI": "cp1252",
-    "WindowsBaltic": "cp1257",
-    "WindowsCyrillic": "cp1251",
-    "WindowsEastEurope": "cp1250",
-    "WindowsGreek": "cp1253",
-    "WindowsTurkish": "cp1254",
-}
-
-
-def to_python_encoding(encoding):
-    return _encodings.get(encoding)
-
-
 class Alphabet(Builtin):
     """
     <url>
@@ -323,7 +278,7 @@ class CharacterEncoding(Predefined):
         """Set[$CharacterEncoding, value_]"""
         if value is SymbolNone:
             value = String(SYSTEM_CHARACTER_ENCODING)
-        if isinstance(value, String) and value.value in _encodings.keys():
+        if isinstance(value, String) and value.value in CHARACTER_ENCODING_MAP.keys():
             evaluation.definitions.set_ownvalue("System`$CharacterEncoding", value)
         else:
             evaluation.message("$CharacterEncoding", "charcode", value)
@@ -346,7 +301,7 @@ class CharacterEncodings(Predefined):
     """
 
     name = "$CharacterEncodings"
-    value = "{%s}" % ",".join(map(lambda s: '"%s"' % s, _encodings.keys()))
+    value = "{%s}" % ",".join(map(lambda s: '"%s"' % s, CHARACTER_ENCODING_MAP.keys()))
     rules = {
         "$CharacterEncodings": value,
     }

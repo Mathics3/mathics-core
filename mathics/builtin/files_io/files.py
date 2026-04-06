@@ -48,6 +48,7 @@ from mathics.eval.files_io.read import (
     read_name_and_stream,
 )
 from mathics.eval.stackframe import get_eval_Expression
+from mathics.eval.strings import CHARACTER_ENCODING_MAP, to_python_encoding
 from mathics.format.box import do_format, format_element
 from mathics.format.form import render_input_form
 
@@ -342,10 +343,23 @@ class Get(PrefixOperator):
       <dt>'<<$name$'
       <dd>reads a file and evaluates each expression, returning only the last one.
 
-      <dt>'Get'[$name$, Trace->True]
+      <dt>'Get'[$name$, $Options$]
       <dd>Runs Get tracing each line before it is evaluated.
 
      'Settings`\$TraceGet' can be also used to trace lines on all 'Get[]' calls.
+    </dl>
+
+    Options:
+
+    <dl>
+      <dt>'Trace'->{True,False}
+      <dd>Print line numbers and source text we read input.
+      <dt>'Path'->$dir$
+      <dd>Set the search path to the single directory $dir$ in the 'Get'.
+      <dt>'Path'->{"$dir_1$", "$dir_2$", ...}
+      <dd>Set the search path, '$PATH' to the list of directories.
+      <dt>'Character_Encoding'->"{$name}"
+      <dd>Set the file input encoding to $name$.
     </dl>
 
 
@@ -373,6 +387,7 @@ class Get(PrefixOperator):
     options = {
         "Trace": "False",
         "Path": "Null",
+        "CharacterEncoding": '"UTF-8"',
     }
     summary_text = "read in a file and evaluate commands in it"
 
@@ -391,7 +406,7 @@ class Get(PrefixOperator):
         ):
             trace_fn = io_files.GET_PRINT_FN
 
-        # Process "Path" option.
+        # Process the "Path" option.
         # The result will be put in py_path_directories
         path_directories = options["System`Path"]
         py_path_directories = None
@@ -412,8 +427,22 @@ class Get(PrefixOperator):
                 evaluation.message("Get", "path", path_directories)
                 py_path_directories = None
 
+        # Process the "CharacterEncoding" option.
+        encoding = options["System`CharacterEncoding"]
+        if isinstance(encoding, String):
+            py_encoding = encoding.to_python(string_quotes=False)
+            if py_encoding not in CHARACTER_ENCODING_MAP:
+                # "noopen" matches WMA. This is nonsensical.
+                evaluation.message("Get", "noopen", encoding)
+                py_encoding = "UTF-8"
+        else:
+            evaluation.message("$CharacterEncoding", "charcode", encoding)
+            py_encoding = "UTF-8"
+
         # perform the actual evaluation
-        return eval_Get(path.value, evaluation, trace_fn, py_path_directories)
+        return eval_Get(
+            path.value, evaluation, trace_fn, py_path_directories, encoding=py_encoding
+        )
 
 
 class InputFileName_(Predefined):
