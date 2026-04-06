@@ -18,7 +18,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import InvalidLevelspecError, MessageException
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Atom, SymbolNull, SymbolTrue
+from mathics.core.symbols import Atom, Symbol, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import SymbolMapThread
 from mathics.eval.functional.apply_fns_to_lists import eval_MapAt
 from mathics.eval.parts import python_levelspec, walk_levels
@@ -201,6 +201,8 @@ class Map(InfixOperator):
 
         heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
         result, _ = walk_levels(expr, start, stop, heads=heads, callback=callback)
+        if isinstance(result, Symbol):
+            return result
         elem_prop = result.elements_properties
         if elem_prop is not None:
             elem_prop.elements_fully_evaluated = False
