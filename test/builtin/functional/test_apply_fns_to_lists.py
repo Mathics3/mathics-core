@@ -28,7 +28,7 @@ import pytest
             "Map[f, c]",
             None,
             "c",
-            "Issue #xxx",
+            "Issue #1788",
         ),
         (
             "MapIndexed[f, {1, 2}, a+b]",
