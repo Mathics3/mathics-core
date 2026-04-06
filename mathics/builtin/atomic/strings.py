@@ -30,7 +30,7 @@ from mathics.core.systemsymbols import (
     SymbolOutputForm,
     SymbolToExpression,
 )
-from mathics.eval.encoding import _encodings, to_python_encoding
+from mathics.eval.encoding import CHARACTER_ENCODING_MAP, to_python_encoding
 from mathics.eval.strings import eval_StringContainsQ, eval_ToString
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
@@ -275,7 +275,7 @@ class CharacterEncoding(Predefined):
         """Set[$CharacterEncoding, value_]"""
         if value is SymbolNone:
             value = String(SYSTEM_CHARACTER_ENCODING)
-        if isinstance(value, String) and value.value in _encodings.keys():
+        if isinstance(value, String) and value.value in CHARACTER_ENCODING_MAP.keys():
             evaluation.definitions.set_ownvalue("System`$CharacterEncoding", value)
         else:
             evaluation.message("$CharacterEncoding", "charcode", value)
@@ -298,7 +298,7 @@ class CharacterEncodings(Predefined):
     """
 
     name = "$CharacterEncodings"
-    value = "{%s}" % ",".join(map(lambda s: '"%s"' % s, _encodings.keys()))
+    value = "{%s}" % ",".join(map(lambda s: '"%s"' % s, CHARACTER_ENCODING_MAP.keys()))
     rules = {
         "$CharacterEncodings": value,
     }

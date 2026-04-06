@@ -10,7 +10,7 @@ from mathics.core.convert.op import operator_to_ascii, operator_to_unicode
 
 # Map WMA encoding names to Python encoding names
 
-_encodings = {
+CHARACTER_ENCODING_MAP = {
     # see https://docs.python.org/2/library/codecs.html#standard-encodings
     "ASCII": "ascii",
     "CP949": "cp949",
@@ -54,7 +54,7 @@ _encodings = {
     "WindowsTurkish": "cp1254",
 }
 
-_wl_encodings = {py: wl for wl, py in _encodings.items()}
+REVERSE_CHARACTER_ENCODING_MAP = {py: wl for wl, py in CHARACTER_ENCODING_MAP.items()}
 
 
 # These characters are used in encoding
@@ -72,11 +72,11 @@ class EncodingNameError(Exception):
 
 
 def to_python_encoding(encoding):
-    return _encodings.get(encoding)
+    return CHARACTER_ENCODING_MAP.get(encoding)
 
 
 def from_python_encoding(encoding):
-    return _wl_encodings.get(encoding)
+    return REVERSE_CHARACTER_ENCODING_MAP.get(encoding)
 
 
 def get_encoding_table(encoding: str) -> Dict[str, str]:
