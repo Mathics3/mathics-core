@@ -30,6 +30,7 @@ from mathics.core.systemsymbols import (
     SymbolOutputForm,
     SymbolToExpression,
 )
+from mathics.eval.encoding import _encodings, to_python_encoding
 from mathics.eval.strings import eval_StringContainsQ, eval_ToString
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
@@ -166,55 +167,6 @@ def mathics_split(patt, string, flags):
 
     # slice up the string
     return [string[start:stop] for start, stop in indices]
-
-
-_encodings = {
-    # see https://docs.python.org/2/library/codecs.html#standard-encodings
-    "ASCII": "ascii",
-    "CP949": "cp949",
-    "CP950": "cp950",
-    "EUC-JP": "euc_jp",
-    "IBM-850": "cp850",
-    "ISOLatin1": "iso8859_1",
-    "ISOLatin2": "iso8859_2",
-    "ISOLatin3": "iso8859_3",
-    "ISOLatin4": "iso8859_4",
-    "ISOLatinCyrillic": "iso8859_5",
-    "ISO8859-1": "iso8859_1",
-    "ISO8859-2": "iso8859_2",
-    "ISO8859-3": "iso8859_3",
-    "ISO8859-4": "iso8859_4",
-    "ISO8859-5": "iso8859_5",
-    "ISO8859-6": "iso8859_6",
-    "ISO8859-7": "iso8859_7",
-    "ISO8859-8": "iso8859_8",
-    "ISO8859-9": "iso8859_9",
-    "ISO8859-10": "iso8859_10",
-    "ISO8859-13": "iso8859_13",
-    "ISO8859-14": "iso8859_14",
-    "ISO8859-15": "iso8859_15",
-    "ISO8859-16": "iso8859_16",
-    "koi8-r": "koi8_r",
-    "MacintoshCyrillic": "mac_cyrillic",
-    "MacintoshGreek": "mac_greek",
-    "MacintoshIcelandic": "mac_iceland",
-    "MacintoshRoman": "mac_roman",
-    "MacintoshTurkish": "mac_turkish",
-    "ShiftJIS": "shift_jis",
-    "Unicode": "utf_16",
-    "UTF-8": "utf_8",
-    "UTF8": "utf_8",
-    "WindowsANSI": "cp1252",
-    "WindowsBaltic": "cp1257",
-    "WindowsCyrillic": "cp1251",
-    "WindowsEastEurope": "cp1250",
-    "WindowsGreek": "cp1253",
-    "WindowsTurkish": "cp1254",
-}
-
-
-def to_python_encoding(encoding):
-    return _encodings.get(encoding)
 
 
 class Alphabet(Builtin):

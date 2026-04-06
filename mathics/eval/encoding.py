@@ -9,13 +9,52 @@ from mathics_scanner.characters import UNICODE_CHARACTER_TO_ASCII
 from mathics.core.convert.op import operator_to_ascii, operator_to_unicode
 
 # Map WMA encoding names to Python encoding names
-ENCODING_WMA_TO_PYTHON = {
-    "WindowsEastEurope": "cp1250",
-    "WindowsCyrillic": "cp1251",
+
+_encodings = {
+    # see https://docs.python.org/2/library/codecs.html#standard-encodings
+    "ASCII": "ascii",
+    "CP949": "cp949",
+    "CP950": "cp950",
+    "EUC-JP": "euc_jp",
+    "IBM-850": "cp850",
+    "ISOLatin1": "iso8859_1",
+    "ISOLatin2": "iso8859_2",
+    "ISOLatin3": "iso8859_3",
+    "ISOLatin4": "iso8859_4",
+    "ISOLatinCyrillic": "iso8859_5",
+    "ISO8859-1": "iso8859_1",
+    "ISO8859-2": "iso8859_2",
+    "ISO8859-3": "iso8859_3",
+    "ISO8859-4": "iso8859_4",
+    "ISO8859-5": "iso8859_5",
+    "ISO8859-6": "iso8859_6",
+    "ISO8859-7": "iso8859_7",
+    "ISO8859-8": "iso8859_8",
+    "ISO8859-9": "iso8859_9",
+    "ISO8859-10": "iso8859_10",
+    "ISO8859-13": "iso8859_13",
+    "ISO8859-14": "iso8859_14",
+    "ISO8859-15": "iso8859_15",
+    "ISO8859-16": "iso8859_16",
+    "koi8-r": "koi8_r",
+    "MacintoshCyrillic": "mac_cyrillic",
+    "MacintoshGreek": "mac_greek",
+    "MacintoshIcelandic": "mac_iceland",
+    "MacintoshRoman": "mac_roman",
+    "MacintoshTurkish": "mac_turkish",
+    "ShiftJIS": "shift_jis",
+    "Unicode": "utf_16",
+    "UTF-8": "utf_8",
+    "UTF8": "utf_8",
     "WindowsANSI": "cp1252",
-    "WindowsGreek": "cp1252",
+    "WindowsBaltic": "cp1257",
+    "WindowsCyrillic": "cp1251",
+    "WindowsEastEurope": "cp1250",
+    "WindowsGreek": "cp1253",
     "WindowsTurkish": "cp1254",
 }
+
+_wl_encodings = {py: wl for wl, py in _encodings.items()}
 
 
 # These characters are used in encoding
@@ -24,19 +63,20 @@ ENCODING_WMA_TO_PYTHON = {
 UNICODE_CHARACTER_TO_ASCII.update(
     {
         operator_to_unicode["Times"]: r" x ",
-        "": r"\[DifferentialD]",
     }
 )
-# Some printable ASCII characters appears in the name
-# table. We should remove them:
-for raw_char_code in range(32, 127):
-    char = chr(raw_char_code)
-    if char in UNICODE_CHARACTER_TO_ASCII:
-        del UNICODE_CHARACTER_TO_ASCII[char]
 
 
 class EncodingNameError(Exception):
     pass
+
+
+def to_python_encoding(encoding):
+    return _encodings.get(encoding)
+
+
+def from_python_encoding(encoding):
+    return _wl_encodings.get(encoding)
 
 
 def get_encoding_table(encoding: str) -> Dict[str, str]:

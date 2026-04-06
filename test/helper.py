@@ -5,7 +5,9 @@ import time
 from typing import List, Optional, Tuple
 
 from mathics.core.load_builtin import import_and_load_builtins
+from mathics.eval.encoding import encode_string_value, to_python_encoding
 from mathics.session import MathicsSession
+from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
 import_and_load_builtins()
 
@@ -58,6 +60,7 @@ def check_evaluation(
     to_string_expected: bool = True,
     to_python_expected: bool = False,
     expected_messages: Optional[tuple] = None,
+    encoding: str = SYSTEM_CHARACTER_ENCODING,
 ):
     """
     Helper function to test Mathics expression against
@@ -112,6 +115,9 @@ def check_evaluation(
     if to_string_expr:
         str_expr = f"ToString[{str_expr}]"
         result = evaluate_value(str_expr)
+        # TODO: We can remove this when ToString handle CharacterEncoding
+        # in a proper way.
+        result = encode_string_value(result, encoding)
     elif to_string_expr is None:
         result = str_expr
     else:
@@ -122,9 +128,11 @@ def check_evaluation(
     if to_string_expected:
         if hold_expected:
             expected = str_expected
+            expected = encode_string_value(expected, encoding)
         else:
             str_expected = f"ToString[{str_expected}]"
             expected = evaluate_value(str_expected)
+            expected = encode_string_value(expected, encoding)
     elif to_string_expected is None:
         expected = str_expected
     else:
@@ -139,6 +147,7 @@ def check_evaluation(
                 expected = expected.to_python(string_quotes=False)
 
     print(time.asctime())
+
     if failure_message:
         print(f"got: \n{result}\nexpect:\n{expected}\n -- {failure_message}")
         assert result == expected, failure_message
