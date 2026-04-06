@@ -38,7 +38,7 @@ def autoload_files(
             # Autoload definitions should be go in the System context
             # by default, rather than the Global context.
             defs.set_current_context("System`")
-            eval_Get(path, Evaluation(defs))
+            eval_Get(path, Evaluation(defs), "UTF-8")
             # Restore default context to Global
             defs.set_current_context("Global`")
 

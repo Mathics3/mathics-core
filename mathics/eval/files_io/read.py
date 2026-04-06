@@ -20,7 +20,7 @@ from mathics.core.systemsymbols import (
     SymbolOutputStream,
     SymbolReal,
 )
-from mathics.eval.strings import to_python_encoding
+from mathics.eval.encoding import to_python_encoding
 
 # TODO: Improve docs for these Read[] arguments.
 

@@ -12,7 +12,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
-from mathics.eval.strings import to_python_encoding
+from mathics.eval.encoding import to_python_encoding
 
 SymbolFromCharacterCode = Symbol("System`FromCharacterCode")
 SymbolToCharacterCode = Symbol("System`ToCharacterCode")

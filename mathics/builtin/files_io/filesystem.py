@@ -863,7 +863,10 @@ class Needs(Builtin):
         if test_loaded is SymbolTrue:
             # Already loaded
             return SymbolNull
-        result = eval_Get(context_str, evaluation)
+        py_encoding = evaluation.definitions.get_ownvalue(
+            "System`$CharacterEncoding"
+        ).value
+        result = eval_Get(context_str, evaluation, py_encoding)
 
         if result is SymbolFailed:
             evaluation.message("Needs", "nocont", context)

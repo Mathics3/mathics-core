@@ -39,6 +39,7 @@ from mathics.core.systemsymbols import (
     SymbolOutputStream,
 )
 from mathics.eval.directories import TMP_DIR
+from mathics.eval.encoding import CHARACTER_ENCODING_MAP
 from mathics.eval.files_io.files import eval_Close, eval_Get, eval_Open, eval_Read
 from mathics.eval.files_io.read import (
     Mathics3Open,
@@ -48,7 +49,6 @@ from mathics.eval.files_io.read import (
     read_name_and_stream,
 )
 from mathics.eval.stackframe import get_eval_Expression
-from mathics.eval.strings import CHARACTER_ENCODING_MAP, to_python_encoding
 from mathics.format.box import do_format, format_element
 from mathics.format.form import render_input_form
 
@@ -385,9 +385,9 @@ class Get(PrefixOperator):
         "path": "`1` in $Path is not a string",
     }
     options = {
-        "Trace": "False",
+        "CharacterEncoding": "Null",
         "Path": "Null",
-        "CharacterEncoding": '"UTF-8"',
+        "Trace": "False",
     }
     summary_text = "read in a file and evaluate commands in it"
 
@@ -429,19 +429,27 @@ class Get(PrefixOperator):
 
         # Process the "CharacterEncoding" option.
         encoding = options["System`CharacterEncoding"]
+        py_current_encoding = evaluation.definitions.get_ownvalue(
+            "System`$CharacterEncoding"
+        ).value
         if isinstance(encoding, String):
             py_encoding = encoding.to_python(string_quotes=False)
             if py_encoding not in CHARACTER_ENCODING_MAP:
                 # "noopen" matches WMA. This is nonsensical.
                 evaluation.message("Get", "noopen", encoding)
-                py_encoding = "UTF-8"
+                py_encoding = py_current_encoding
         else:
-            evaluation.message("$CharacterEncoding", "charcode", encoding)
-            py_encoding = "UTF-8"
+            if encoding is not SymbolNull:
+                evaluation.message("$CharacterEncoding", "charcode", encoding)
+            py_encoding = py_current_encoding
 
         # perform the actual evaluation
         return eval_Get(
-            path.value, evaluation, trace_fn, py_path_directories, encoding=py_encoding
+            path.value,
+            evaluation,
+            py_encoding,
+            trace_fn,
+            py_path_directories,
         )
 
 

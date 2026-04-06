@@ -120,9 +120,9 @@ def eval_Close(obj, evaluation: Evaluation):
 def eval_Get(
     path: str,
     evaluation: Evaluation,
+    encoding: str,
     trace_fn: Optional[Callable] = DEFAULT_TRACE_FN,
     path_directories: Optional[Sequence[str]] = None,
-    encoding="UTF-8",
 ):
     """
     Reads a file and evaluates each expression, returning only the last one.
