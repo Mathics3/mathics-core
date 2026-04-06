@@ -30,7 +30,7 @@ from mathics.core.systemsymbols import (
     SymbolOutputForm,
     SymbolToExpression,
 )
-from mathics.eval.encoding import CHARACTER_ENCODING_MAP
+from mathics.eval.encoding import CHARACTER_ENCODING_MAP, to_python_encoding
 from mathics.eval.strings import eval_StringContainsQ, eval_ToString
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
