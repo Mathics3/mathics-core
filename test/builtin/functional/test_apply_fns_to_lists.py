@@ -25,6 +25,12 @@ import pytest
             None,
         ),
         (
+            "Map[f, c]",
+            None,
+            "c",
+            "Issue #xxx",
+        ),
+        (
             "MapIndexed[f, {1, 2}, a+b]",
             ("Level specification a + b is not of the form n, {n}, or {m, n}.",),
             "MapIndexed[f, {1, 2}, a + b]",
