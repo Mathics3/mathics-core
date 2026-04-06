@@ -158,8 +158,8 @@ class HoldForm(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/HoldForm.html</url>
 
     <dl>
-    <dt>'HoldForm'[$expr$]
-        <dd>is equivalent to 'Hold[$expr$]', but prints as $expr$.
+      <dt>'HoldForm'[$expr$]
+      <dd>is equivalent to 'Hold'[$expr$], but prints as $expr$.
     </dl>
 
     >> HoldForm[1 + 2 + 3]

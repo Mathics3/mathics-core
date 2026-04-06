@@ -10,7 +10,7 @@ import platform
 import re
 from io import BytesIO
 
-from mathics.builtin.files_io.files import MathicsOpen
+from mathics.builtin.files_io.files import Mathics3Open
 from mathics.core.atoms import String
 from mathics.core.builtin import Builtin, MessageException
 from mathics.core.convert.expression import to_expression, to_mathics_list
@@ -101,7 +101,7 @@ else:
 
 
 def parse_html_file(filename):
-    with MathicsOpen(filename, "rb") as f:
+    with Mathics3Open(filename, "rb") as f:
         return parse_html_stream(f)
 
 
@@ -405,7 +405,7 @@ class SourceImport(_HTMLBuiltin):
         """%(name)s[text_String]"""
 
         def source(filename):
-            with MathicsOpen(filename, "r", encoding="UTF-8") as f:
+            with Mathics3Open(filename, "r", encoding="UTF-8") as f:
                 return ListExpression(
                     Expression(SymbolRule, String("Source"), String(f.read()))
                 )

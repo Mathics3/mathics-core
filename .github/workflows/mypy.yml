@@ -23,7 +23,7 @@ jobs:
         sudo apt update -qq && sudo apt install llvm-dev remake
         python -m pip install --upgrade pip setuptools wheel
 
-    - name: Run mypy
+    - name: Install mathics-core
       run: |
         pip install mypy==1.13 sympy==1.12
         # Adjust below for right branch
@@ -36,4 +36,6 @@ jobs:
         touch ./Mathics3-scanner/mathics_scanner/py.typed
         python -m pip install setuptools wheel
         make develop
+    - name: Run mypy on mathics-core
+      run: |
         mypy --install-types --ignore-missing-imports --non-interactive mathics
