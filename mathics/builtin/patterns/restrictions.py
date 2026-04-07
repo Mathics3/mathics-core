@@ -7,7 +7,7 @@ Restrictions on Patterns
 from typing import Optional as OptionalType, Tuple
 
 from mathics.core.atoms import Integer, Number, Rational, Real, String
-from mathics.core.attributes import A_HOLD_REST, A_PROTECTED
+from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 from mathics.core.builtin import InfixOperator, PatternObject, Test
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -51,11 +51,7 @@ class Condition(InfixOperator, PatternObject):
     """
 
     arg_counts = [2]
-
-    # We use HOLD_REST because the condition *pattern* evaluated,
-    # but not the *expr*.  Evaluation of *expr* is controlled by
-    # whether *pattern* is true or not.
-    attributes = A_HOLD_REST | A_PROTECTED
+    attributes = A_HOLD_ALL | A_PROTECTED
 
     summary_text = "conditional definition"
 
