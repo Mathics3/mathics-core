@@ -3,6 +3,8 @@ Format functions for arithmetic expressions.
 
 """
 
+from mathics_scanner.characters import NAMED_CHARACTERS
+
 from mathics.builtin.arithmetic import create_infix
 from mathics.core.atoms import (
     Complex,
@@ -23,8 +25,10 @@ from mathics.core.symbols import SymbolDivide, SymbolHoldForm, SymbolPower, Symb
 from mathics.core.systemsymbols import SymbolInfix, SymbolLeft, SymbolMinus
 from mathics.format.form.util import PRECEDENCE_PLUS, PRECEDENCE_TIMES
 
+INVISIBLE_TIMES: str = NAMED_CHARACTERS["InvisibleTimes"]
 
-def format_plus(items, evaluation: Evaluation):
+
+def format_plus(items, evaluation: Evaluation) -> Expression:
     """format Times[___] using `op` as operator"""
 
     def negate(item):  # -> Expression (see FIXME below)
@@ -76,7 +80,9 @@ def format_plus(items, evaluation: Evaluation):
     )
 
 
-def format_times(items, evaluation, op="\u2062"):
+def format_times(
+    items, evaluation: Evaluation, op: str = INVISIBLE_TIMES
+) -> Expression:
     """format Times[___] using `op` as operator"""
 
     def inverse(item):

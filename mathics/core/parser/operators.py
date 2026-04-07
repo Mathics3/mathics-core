@@ -8,19 +8,21 @@ The dictionary from these which are read in here, are used by the
 Mathics3 parser.
 """
 
-
 from collections import defaultdict
+from typing import Dict, Final
 
 from mathics_scanner.characters import OPERATOR_DATA
 
-box_operators = OPERATOR_DATA["box-operators"]
-flat_binary_operators = OPERATOR_DATA["flat-binary-operators"]
+box_operators: Final[Dict[str, str]] = OPERATOR_DATA["box-operators"]
+flat_binary_operators: Final[Dict[str, int]] = OPERATOR_DATA["flat-binary-operators"]
 left_binary_operators = OPERATOR_DATA["left-binary-operators"]
-misc_operators = OPERATOR_DATA["miscellaneous-operators"]
-nonassoc_binary_operators = OPERATOR_DATA["non-associative-binary-operators"]
-operator_precedences = OPERATOR_DATA["operator-precedences"]
-operator_to_amslatex = OPERATOR_DATA["operator-to-amslatex"]
-operator_to_string = OPERATOR_DATA.get(
+misc_operators: Final[Dict[str, int]] = OPERATOR_DATA["miscellaneous-operators"]
+nonassoc_binary_operators: Final[Dict[str, int]] = OPERATOR_DATA[
+    "non-associative-binary-operators"
+]
+operator_precedences: Final[Dict[str, int]] = OPERATOR_DATA["operator-precedences"]
+operator_to_amslatex: Final[Dict[str, str]] = OPERATOR_DATA["operator-to-amslatex"]
+operator_to_string: Final[dict] = OPERATOR_DATA.get(
     "operator-to-string", OPERATOR_DATA.get("operator-to_string", {})
 )
 postfix_operators = OPERATOR_DATA["postfix-operators"]
@@ -29,23 +31,25 @@ right_binary_operators = OPERATOR_DATA["right-binary-operators"]
 ternary_operators = OPERATOR_DATA["ternary-operators"]
 
 # FIXME: get from JSON
-inequality_operators = [
+inequality_operators: Final[tuple] = (
     "Less",
     "LessEqual",
     "Greater",
     "GreaterEqual",
     "Equal",
     "Unequal",
-]
+)
 
 # binary_operators = left_binary_operators V right_binary_operators V flat_binary_operators V nonassoc_binary_operators
-binary_operators = {}
+binary_operators: Dict[str, int] = {}
 
 # all ops - check they're disjoint
-OPERATOR_PRECEDENCE = defaultdict(lambda: 670)
+OPERATOR_PRECEDENCE = defaultdict(lambda: operator_precedences["FunctionApply"])
+BOX_OPERATOR_PRECEDENCE: Final[int] = operator_precedences["BoxGroup"]
+PLUS_PRECEDENCE: Final[int] = operator_precedences["Plus"]
 
-# Set below
-all_operator_names = []
+# Values are set below in calculate_operator_information
+all_operator_names: tuple = tuple()
 
 
 def calculate_operator_information():
@@ -77,7 +81,8 @@ def calculate_operator_information():
         for op, prec in ops.items():
             OPERATOR_PRECEDENCE[op] = prec
 
-    all_operator_names = list(OPERATOR_PRECEDENCE.keys())
+    all_operator_names = tuple(OPERATOR_PRECEDENCE.keys())
+    pass
 
 
 # Calculating operator information is also done
