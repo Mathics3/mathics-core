@@ -5,7 +5,7 @@ import time
 from typing import List, Optional, Tuple
 
 from mathics.core.load_builtin import import_and_load_builtins
-from mathics.eval.encoding import encode_string_value, to_python_encoding
+from mathics.eval.encoding import encode_string_value
 from mathics.session import MathicsSession
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
