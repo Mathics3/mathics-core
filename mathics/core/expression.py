@@ -621,8 +621,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
     def evaluate_elements(self, evaluation) -> "Expression":
         """
-        return a new expression with the head and the
-        evaluable elements evaluated, according to the attributes.
+        Return a new expression with the head and the
+        evaluable elements evaluated, taking into account the
+        the expression's head attribute and its HOLD properties.
         """
         head = self._head
         if isinstance(head, EvalMixin):
