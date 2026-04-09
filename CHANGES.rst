@@ -7,6 +7,8 @@
 
 Some foundational work on overhauling plotting with NumPy vectors was started. Alas, work on it was not complete by release time, so this could not be finished. Expect a future release to have revamped graphics.
 
+A major revision of Form handling and character encoding ``$CharacterEncoding`` was started with a focus on ``TeXForm``, ``MLForm``, and ``OutputForm``.
+
 Notes:
 
 #. There are incompatible changes. Use with Mathics-scanner 10.0.0 or greater.
@@ -21,7 +23,8 @@ New Builtins
 #. ``Csch`` function `PR #1768 <https://github.com/Mathics3/mathics-core/pull/1768>`_
 #. ``JSON`Import`JSONImport``
 #. ``RasterBox`` boxing function
-#. ``RoundBox`` boxing function
+#. ``Format``
+#. ``FormBox``, and ``RoundBox`` boxing functions
 #. ``ShowSpecialCharacters`` option
 #. ``ShowStringCharacters`` option
 
@@ -29,8 +32,14 @@ New Builtins
 Enhancements
 ------------
 
-* Many Builtin functions now report argument-mismatch errors
-* ``Trig`` option added to ``Numerator`` and ``Denominator``
+#. Many Builtin functions now report argument-mismatch errors
+#. ``Trig`` option added to ``Numerator`` and ``Denominator``
+#. ``PowerMod`` and ``Quotient`` handle the 3-argument form, roots of exponents (``PowerMod``) lists of exponents, and numbers other than Integers.
+#. ``N[integer, MachinePrecision]`` added
+#. ``PrintPrecision`` for ``N[integer]`` matches WMA; so does largest mantissa before converting to MachinePrecision Integer (for display) matches WMA.
+#. ``BeginPackage`` with ``Needs`` parameter added. This should allow more packages to load properly
+#. ``Expand`` works with relations
+
 
 Bugs Fixed
 ----------
@@ -52,7 +61,7 @@ Bugs Fixed
 Command-line Utilities
 ----------------------
 
-Command-line program ``mathics`` was renamed to ``mathics3``; the old name will be available for a while. This apparently facilitates uv packaging.
+Command-line program ``mathics`` was renamed to ``mathics3``; the old name will be available for a while. This apparently facilitates ``uv`` packaging.
 
 Command-line program ``mathics3-code-parse`` was added to show how expressions are parsed. This is roughly analogous to the ``CodeParse`` function of the ``CodeParser`` WMA package.
 
@@ -61,8 +70,6 @@ Internals
 
 * A major revision and reorganization was begun to improve Form handling, leading to the new modules ``mathics.forms.format`` and ``mathics.forms.render``. Existing render functions from ``mathics.format`` have been moved under ``mathics.form.render``. (mmatera)
   Corrections were made to variables ``$PrintForms`` and ``$OutputForms``. (mmatera)
-* A major revision and reorganization was begun to improve Boxing.
-  Corrections were made to variables ``$PrintForms`` and ``$OutputForms``.
 * Primitive datatype ``NumericArray``, which is essentially a NumPy array, was added to support vector operations, such as plotting. (Bruce Lucas) In support of this, the module ``mathics.core.atoms`` was split up.
 * Internals for handling Graphics have been revised to be able to accept a more complete list.
 * Parsing now uses more data from YAML tables instead of hard-coding values inside code.
