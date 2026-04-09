@@ -6,6 +6,7 @@ Mathematical Functions
 Basic arithmetic functions, including complex number arithmetic.
 """
 
+import sys
 from typing import Optional
 
 import sympy
@@ -108,7 +109,7 @@ class Arg(MPMathFunction):
     :WMA link:https://reference.wolfram.com/language/ref/Arg.html</url>)
 
     <dl>
-      <dt>'Arg'[$z$, 'Method ->' "$option$"]
+      <dt>'Arg'[$z$]
       <dd>returns the argument of a complex value $z$.
     </dl>
 
@@ -122,10 +123,6 @@ class Arg(MPMathFunction):
     </ul>
 
      >> Arg[-3]
-      = Pi
-
-     Same as above, but using SymPy's method:
-     >> Arg[-3, Method->"sympy"]
       = Pi
 
     >> Arg[1-I]
@@ -142,36 +139,25 @@ class Arg(MPMathFunction):
      = 0
     """
 
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
+
+    numpy_name = "angle"  # for later
+    mpmath_name = "arg"
     summary_text = "phase of a complex number"
     rules = {
         "Arg[0]": "0",
         "Arg[DirectedInfinity[]]": "1",
         "Arg[DirectedInfinity[a_]]": "Arg[a]",
     }
-
-    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
-    options = {"Method": "Automatic"}
-
-    numpy_name = "angle"  # for later
-    mpmath_name = "arg"
     sympy_name = "arg"
 
     def eval(self, z, evaluation, options={}):
-        "Arg[z_, OptionsPattern[Arg]]"
+        "Arg[z_]"
         if Expression(SymbolPossibleZeroQ, z).evaluate(evaluation) is SymbolTrue:
             return Integer0
-        preference = self.get_option(options, "Method", evaluation).get_string_value()
-        if preference is None or preference == "Automatic":
-            return super(Arg, self).eval(z, evaluation)
-        elif preference == "mpmath":
-            return MPMathFunction.eval(self, z, evaluation)
-        elif preference == "sympy":
-            return SympyFunction.eval(self, z, evaluation)
-        # TODO: add NumpyFunction
-        evaluation.message(
-            "meth", f'Arg Method {preference} not in ("sympy", "mpmath")'
-        )
-        return
+        return SympyFunction.eval(self, z, evaluation)
 
 
 class Assuming(Builtin):
@@ -195,6 +181,8 @@ class Assuming(Builtin):
 
     summary_text = "set assumptions during the evaluation"
     attributes = A_HOLD_REST | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
 
     def eval_assuming(self, assumptions, expr, evaluation: Evaluation):
         "Assuming[assumptions_, expr_]"
@@ -253,6 +241,8 @@ class Boole(Builtin):
     """
 
     attributes = A_LISTABLE | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
     summary_text = "translate 'True' to 1, and 'False' to 0"
 
     def eval(self, expr, evaluation: Evaluation):
@@ -284,8 +274,10 @@ class Complex_(Builtin):
      = 5
     """
 
-    summary_text = "head for complex numbers"
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
     name = "Complex"
+    summary_text = "head for complex numbers"
 
     def eval(self, r, i, evaluation: Evaluation):
         "Complex[r_?NumberQ, i_?NumberQ]"
@@ -329,6 +321,8 @@ language/ref/ConditionalExpression.html</url>
     # = ConditionalExpression[s, And[x>a, x<b]]
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = (2, 3)
     summary_text = "expression defined under condition"
     sympy_name = "Piecewise"
 
@@ -415,11 +409,14 @@ class Conjugate(MPMathFunction):
      = 1.5 - 2.5 I
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
     mpmath_name = "conj"
     rules = {
         "Conjugate[Undefined]": "Undefined",
     }
     summary_text = "compute complex conjugation"
+    sympy_name = "conjugate"
 
 
 class DirectedInfinity(SympyFunction):
@@ -452,7 +449,13 @@ class DirectedInfinity(SympyFunction):
 
     """
 
-    summary_text = "infinite quantity with a defined direction in the complex plane"
+    formats = {
+        "DirectedInfinity[1]": "HoldForm[Infinity]",
+        "DirectedInfinity[-1]": "HoldForm[-Infinity]",
+        "DirectedInfinity[]": "HoldForm[ComplexInfinity]",
+        "DirectedInfinity[DirectedInfinity[z_]]": "DirectedInfinity[z]",
+        "DirectedInfinity[z_?NumericQ]": "HoldForm[z Infinity]",
+    }
     rules = {
         "DirectedInfinity[args___] ^ -1": "0",
         # Special arguments:
@@ -482,13 +485,10 @@ class DirectedInfinity(SympyFunction):
         "DirectedInfinity[a_] * DirectedInfinity[b_]": "DirectedInfinity[a * b]",
     }
 
-    formats = {
-        "DirectedInfinity[1]": "HoldForm[Infinity]",
-        "DirectedInfinity[-1]": "HoldForm[-Infinity]",
-        "DirectedInfinity[]": "HoldForm[ComplexInfinity]",
-        "DirectedInfinity[DirectedInfinity[z_]]": "DirectedInfinity[z]",
-        "DirectedInfinity[z_?NumericQ]": "HoldForm[z Infinity]",
-    }
+    # We can't use expected_args = (0, 1) because the error message
+    # says that 1 argument is expected, even though 0 args is allowed.
+    # This is a WMA irregularity.
+    summary_text = "infinite quantity with a defined direction in the complex plane"
 
     def eval_complex_infinity(self, evaluation: Evaluation):
         """DirectedInfinity[]"""
@@ -530,6 +530,19 @@ class DirectedInfinity(SympyFunction):
             SymbolDirectedInfinity,
             normalized_direction.evaluate(evaluation),
         )
+
+    # We can't use generic_argument_error because 0 arguments are allowed
+    # but the error message suggests there needs to be 1 argument.
+    # This is a WMA irregularity.
+    def eval_argument_error(self, invalid, evaluation: Evaluation):
+        "DirectedInfinity[invalid___]"
+        if (got_arg_count := len(invalid.elements)) > 1:
+            evaluation.message(
+                "DirectedInfinity",
+                "argx",
+                SymbolDirectedInfinity,
+                Integer(got_arg_count),
+            )
 
     def to_sympy(self, expr, **kwargs):
         if len(expr.elements) == 1:
@@ -574,6 +587,8 @@ Rationals, Algebraics, Reals, Complexes, or Booleans.
 
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
     messages = {
         "bset": (
             "The second argument `1` of Element should be one of: "
@@ -674,8 +689,12 @@ class Im(SympyFunction):
      = -Graphics-
     """
 
-    summary_text = "imaginary part of a complex number"
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
+    mpmath_name = "im"
+    summary_text = "imaginary part of a complex number"
+    sympy_name = "im"
 
     def eval_complex(self, number, evaluation: Evaluation):
         "Im[number_Complex]"
@@ -706,8 +725,8 @@ class Integer_(Builtin):
      = Integer
     """
 
-    summary_text = "head for integer numbers"
     name = "Integer"
+    summary_text = "head for integer numbers"
 
 
 class Product(IterationFunction, SympyFunction, PrefixOperator):
@@ -767,6 +786,9 @@ class Product(IterationFunction, SympyFunction, PrefixOperator):
      = 7420738134810
 
     """
+
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(2, sys.maxsize)
 
     # FIXME Product[k, {k, 3, n}] is rewritten using Factorial via
     # Pochhammer rewrite rules. We want this for Product, but WMA
@@ -835,8 +857,11 @@ class Rational_(Builtin):
      = 1 / 2
     """
 
-    summary_text = "head for rational numbers"
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
     name = "Rational"
+    summary_text = "head for rational numbers"
+    sympy_name = "Rational"
 
     def eval(self, n: Integer, m: Integer, evaluation: Evaluation):
         "Rational[n_Integer, m_Integer]"
@@ -863,8 +888,11 @@ class Re(SympyFunction):
      = -Graphics-
     """
 
-    summary_text = "real part of a complex number"
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
+    mpmath_name = "re"
+    summary_text = "real part of a complex number"
     sympy_name = "re"
 
     def eval(self, number, evaluation: Evaluation):
@@ -1016,6 +1044,10 @@ class Sum(IterationFunction, SympyFunction, PrefixOperator):
     >> Sum[k, {k, I, I + 1.5}]
      = 1 + 2 I
     """
+
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(2, sys.maxsize)
+    mpmath_name = "fsum"
 
     rules = IterationFunction.rules.copy()
     rules.update(

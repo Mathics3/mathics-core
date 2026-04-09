@@ -86,7 +86,10 @@ from mathics.core.symbols import (
     strip_context,
 )
 from mathics.core.systemsymbols import (
+    SymbolComplexInfinity,
     SymbolDefault,
+    SymbolDirectedInfinity,
+    SymbolInfinity,
     SymbolLessEqual,
     SymbolMessageName,
     SymbolRule,
@@ -455,7 +458,11 @@ class Builtin:
         "%(name)s[invalid___]"
 
         name = self.get_name(short=True)
-        if isinstance(invalid, Atom):
+        if isinstance(invalid, Atom) or invalid.head in (
+            SymbolComplexInfinity,
+            SymbolDirectedInfinity,
+            SymbolInfinity,
+        ):
             got_arg_count = 1
         else:
             got_arg_count = len(invalid.elements)
@@ -464,15 +471,27 @@ class Builtin:
             if got_arg_count in self.expected_args:
                 return None
 
+        # invalid.elements is not in bounds.
+        # Figure out the right message to report
         if isinstance(self.expected_args, tuple):
-            expected_args1, expected_args2 = self.expected_args
+            expected_args_start, expected_args_end = self.expected_args
+            if hasattr(self, "options") and self.options:
+                if got_arg_count > expected_args_end:
+                    evaluation.message(
+                        name,
+                        "nonopt",
+                        invalid.elements[expected_args_end],
+                        Integer(expected_args_end),
+                        evaluation.current_expression,
+                    )
+                    return
             if got_arg_count == 1:
                 evaluation.message(
                     name,
                     "argtu",
                     Symbol(name),
-                    Integer(expected_args1),
-                    Integer(expected_args2),
+                    Integer(expected_args_start),
+                    Integer(expected_args_end),
                 )
             else:
                 evaluation.message(
@@ -480,8 +499,8 @@ class Builtin:
                     "argt",
                     Symbol(name),
                     Integer(got_arg_count),
-                    Integer(expected_args1),
-                    Integer(expected_args2),
+                    Integer(expected_args_start),
+                    Integer(expected_args_end),
                 )
         elif isinstance(self.expected_args, range):
             if self.expected_args.stop == sys.maxsize:
@@ -501,6 +520,22 @@ class Builtin:
                         Integer(self.expected_args.start),
                     )
             else:
+                if (
+                    (expected_args_start := self.expected_args.start) <= got_arg_count
+                    and hasattr(self, "options")
+                    and self.options
+                ):
+                    if got_arg_count > expected_args_start:
+                        expected_args_end = self.expected_args.stop - 1
+                        evaluation.message(
+                            name,
+                            "nonopt",
+                            invalid.elements[expected_args_end],
+                            Integer(expected_args_end),
+                            evaluation.current_expression,
+                        )
+                        return
+
                 evaluation.message(
                     name,
                     "argb",

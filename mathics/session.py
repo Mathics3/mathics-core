@@ -16,6 +16,7 @@ from typing import Optional
 
 from mathics_scanner.location import ContainerKind
 
+from mathics.core.atoms import String
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Result
 from mathics.core.parser import MathicsSingleLineFeeder, parse
@@ -33,12 +34,15 @@ def autoload_files(
     """
     from mathics.eval.files_io.files import eval_Get
 
+    encoding = defs.get_ownvalue("System`$CharacterEncoding")
+    py_encoding = encoding.value if isinstance(encoding, String) else "UTF-8"
+
     for root, _, files in os.walk(osp_join(root_dir_path, autoload_dir)):
         for path in [osp_join(root, f) for f in files if f.endswith(".m")]:
             # Autoload definitions should be go in the System context
             # by default, rather than the Global context.
             defs.set_current_context("System`")
-            eval_Get(path, Evaluation(defs))
+            eval_Get(path, Evaluation(defs), py_encoding)
             # Restore default context to Global
             defs.set_current_context("Global`")
 

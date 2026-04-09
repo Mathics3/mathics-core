@@ -13,6 +13,7 @@ from sympy import (
     false as SympyFalse,
     true as SympyTrue,
 )
+from sympy.calculus.accumulationbounds import AccumulationBounds
 from sympy.core.singleton import S
 
 from mathics.core.atoms import (
@@ -597,6 +598,12 @@ def old_from_sympy(expr) -> BaseElement:
             return Expression(SymbolPower, o_expr, power)
         else:
             return Expression(SymbolO, from_sympy(expr.args[0]))
+
+    # FIXME: this should be an Interval, but we currently do
+    # not have intervals. The primary place this appears is in
+    # Limit, so check that as well for adjusting.
+    if isinstance(expr, AccumulationBounds):
+        return SymbolIndeterminate
 
     raise ValueError(
         "Unknown SymPy expression: {} (instance of {})".format(

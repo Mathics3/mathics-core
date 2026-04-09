@@ -8,7 +8,7 @@ import os.path as osp
 import sys
 import tempfile
 from io import open as io_open
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple
 
 import requests
 
@@ -55,21 +55,25 @@ def urlsave_tmp(url, location=None, **kwargs):
     return None
 
 
-def path_search(filename: str) -> Tuple[Optional[str], bool]:
+def path_search(
+    filename: str, path_directories: Optional[Sequence[str]] = None
+) -> Tuple[Optional[str], bool]:
     """
-    Search for a Mathics `filename` possibly adding extensions ".mx", ".m", or ".wl"
+    Search for a Mathics3 `filename` possibly adding extensions ".mx", ".m", or ".wl"
     or as a file under directory PATH_VAR or as an Internet address.
 
     Return the resolved file name and True if this is a file in the
     a temporary file created, which happens for Internet addresses,
     or False if the file is a file in the filesystem.
     """
+    if path_directories is None:
+        path_directories = tuple(PATH_VAR)
     # For names of the form "name`", search for name.mx and name.m
     is_temporary_file = False
     if filename[-1] == "`":
         filename = filename[:-1].replace("`", osp.sep)
         for ext in [".mx", ".m", ".wl"]:
-            result, is_temporary_file = path_search(filename + ext)
+            result, is_temporary_file = path_search(filename + ext, path_directories)
             if result is not None:
                 return result, is_temporary_file
     if filename is not None:
@@ -85,7 +89,7 @@ def path_search(filename: str) -> Tuple[Optional[str], bool]:
             result = urlsave_tmp(filename)
             is_temporary_file = True
         else:
-            for p in list(PATH_VAR) + [""]:
+            for p in list(path_directories) + [""]:
                 path = canonic_filename(osp.join(p, filename))
                 if osp.exists(path):
                     result = path
@@ -109,7 +113,7 @@ class Stream:
     with Stream(pypath, "r") as f:
          ...
 
-    However see StreamManager and MathicsOpen which wraps this.
+    However see StreamManager and Mathics3Open which wraps this.
     """
 
     def __init__(

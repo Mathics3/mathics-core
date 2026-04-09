@@ -7,7 +7,7 @@ import os.path as osp
 from datetime import datetime
 
 from mathics.builtin.exp_structure.size_and_sig import Hash
-from mathics.builtin.files_io.files import MathicsOpen
+from mathics.builtin.files_io.files import Mathics3Open
 from mathics.core.atoms import String
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, MessageException
@@ -159,7 +159,7 @@ class FileHash(Builtin):
         py_filename = filename.get_string_value()
 
         try:
-            with MathicsOpen(py_filename, "rb") as f:
+            with Mathics3Open(py_filename, "rb") as f:
                 dump = f.read()
         except IOError:
             evaluation.message("General", "noopen", filename)

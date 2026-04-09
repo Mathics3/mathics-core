@@ -30,7 +30,7 @@ def test_upset():
         failure_message="UpSet on a protected value should fail",
         expected_messages=("Tag Plus in f[g, a + b, h] is Protected.",),
     )
-    check_evaluation("UpValues[h]", "{HoldPattern[f[g, a + b, h]] :> 2}")
+    check_evaluation("UpValues[h]", "{HoldPattern[f[g, a + b, h]] ⧴ 2}")
 
 
 def test_order():
@@ -89,15 +89,15 @@ def test_setdelayed_oneidentity():
         ("Unprotect[Pi]; Pi=.; Attributes[Pi]", "{Constant, ReadProtected}", None),
         ("Unprotect[Pi];Clear[Pi]; Attributes[Pi]", "{Constant, ReadProtected}", None),
         ("Unprotect[Pi];ClearAll[Pi]; Attributes[Pi]", "{}", None),
-        ("Options[Expand]", "{Modulus :> 0, Trig :> False}", None),
+        ("Options[Expand]", "{Modulus ⧴ 0, Trig ⧴ False}", None),
         (
             "Unprotect[Expand]; Expand=.; Options[Expand]",
-            "{Modulus :> 0, Trig :> False}",
+            "{Modulus ⧴ 0, Trig ⧴ False}",
             None,
         ),
         (
             "Clear[Expand];Options[Expand]=Join[Options[Expand], {MyOption:>Automatic}]; Options[Expand]",
-            "{MyOption :> Automatic, Modulus :> 0, Trig :> False}",
+            "{MyOption ⧴ Automatic, Modulus ⧴ 0, Trig ⧴ False}",
             "Mathics stores options in a dictionary. This is why ``MyOption`` appears first.",
         ),
         # (
@@ -735,7 +735,7 @@ def test_assignment(expr, expect, fail_msg, expected_msgs):
         ),
         (
             "ClearAll[F, Q];F[_Q,_]^:=1;{DownValues[F],UpValues[Q]}",
-            "{{}, {HoldPattern[F[_Q, _]]:>1}}",
+            "{{}, {HoldPattern[F[_Q, _]]⧴1}}",
             "Issue 1198 - Blanks are not tags.",
             False,
             [],
