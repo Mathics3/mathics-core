@@ -84,7 +84,7 @@ def load_default_settings_files(
 
 
 def get_settings_value(definitions: Definitions, setting_name: str):
-    """Get a Mathics Settings` value with name "setting_name" from
+    """Get a Mathics3 Settings` value with name "setting_name" from
     definitions. If setting_name is not defined return None.
     """
     try:
