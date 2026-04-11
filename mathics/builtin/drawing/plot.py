@@ -55,9 +55,19 @@ class ColorData(Builtin):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/ColorData.html</url>
     <dl>
+      <dt>'ColorData'[]
+      <dd>returns a list of named collections of color schemes.
       <dt>'ColorData'["$name$"]
       <dd>returns a color function with the given $name$.
     </dl>
+
+    List all color schemes:
+    >> ColorData[]
+     = ...
+
+    List color schemes in the "Gradients" collection:
+    >> ColorData["Gradients"]
+     = ...
 
     Define a user-defined color function:
     >> Unprotect[ColorData]; ColorData["test"] := ColorDataFunction["test", "Gradients", {0, 1}, Blend[{Red, Green, Blue}, #1] &]; Protect[ColorData]
