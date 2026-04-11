@@ -386,7 +386,7 @@ class DiscretePlot(_ListPlot):
       <dd>plots $expr$ with $x$ ranging from $n_{min}$ to $n_{max}$ usings steps $dn$.
 
       <dt>'DiscretePlot'[{$expr_1$, $expr_2$, ...}, ...]
-      <dd>plots the values of all $expri$.
+      <dd>plots the values of all $expr_{i}$.
     </dl>
 
     The number of primes for a number $k$:
