@@ -4,9 +4,9 @@ This module contains routines to simplify front-end use.
 
 In particular we provide:
 
-* a class to create a Mathics session,
-* load the Mathics core settings files (written in  WL),
-* read and set Mathics Settings.
+* a class to create a Mathics3 session,
+* load the Mathics core settings files (written in WL),
+* read and set Mathics3 Settings.
 """
 
 import os
@@ -84,7 +84,7 @@ def load_default_settings_files(
 
 
 def get_settings_value(definitions: Definitions, setting_name: str):
-    """Get a Mathics Settings` value with name "setting_name" from
+    """Get a Mathics3 Settings` value with name "setting_name" from
     definitions. If setting_name is not defined return None.
     """
     try:
