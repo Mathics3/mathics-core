@@ -34,6 +34,7 @@ Enhancements
 
 #. Many Builtin functions now report argument-mismatch errors
 #. ``Trig`` option added to ``Numerator`` and ``Denominator``
+#. ``CharacterEncoding``, and ``Path`` options option added to ``Get``
 #. ``PowerMod`` and ``Quotient`` handle the 3-argument form, roots of exponents (``PowerMod``) lists of exponents, and numbers other than Integers.
 #. ``N[integer, MachinePrecision]`` added
 #. ``PrintPrecision`` for ``N[integer]`` matches WMA; so does largest mantissa before converting to MachinePrecision Integer (for display) matches WMA.

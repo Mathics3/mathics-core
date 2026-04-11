@@ -358,7 +358,7 @@ class Get(PrefixOperator):
       <dd>Set the search path to the single directory $dir$ in the 'Get'.
       <dt>'Path'->{"$dir_1$", "$dir_2$", ...}
       <dd>Set the search path, '$PATH' to the list of directories.
-      <dt>'Character_Encoding'->"{$name}"
+      <dt>'CharacterEncoding'->"{$name}"
       <dd>Set the file input encoding to $name$.
     </dl>
 
