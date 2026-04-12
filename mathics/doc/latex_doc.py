@@ -1007,7 +1007,7 @@ class LaTeXDocSubsection(DocSubsection):
             "\n\n\\subsection{%(title)s"
             + label_string
             + "}%"
-            + "\n%(index)s\n"
+            + ("\n%s\n") % index
             + "\n\\subsectionstart\n\n%(content)s"
             #  "\\addcontentsline{toc}{subsection}{%(title)s}"
             "%(sections)s"
