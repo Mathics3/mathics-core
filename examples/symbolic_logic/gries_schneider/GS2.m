@@ -243,7 +243,7 @@ nand, neqv, neq, nsnd, nimplies, nfst, nbecause, nor, fconst}
 
 *)
 
-(*  Mathics has an open bug preventing evaluation of the binary truth table
+(*  Mathics had an open bug preventing evaluation of the binary truth table
     when the input is a variable.
 
     https://github.com/mathics/Mathics/issues/960

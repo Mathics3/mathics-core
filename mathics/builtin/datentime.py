@@ -420,7 +420,7 @@ class AbsoluteTiming(Builtin):
 
     attributes = A_HOLD_ALL | A_PROTECTED
 
-    summary_text = "get total wall-clock time to run a Mathics command"
+    summary_text = "get total wall-clock time to run a Mathics3 command"
 
     def eval(self, expr: BaseElement, evaluation: Evaluation) -> ListExpression:
         "AbsoluteTiming[expr_]"

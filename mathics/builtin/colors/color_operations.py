@@ -298,10 +298,10 @@ class DominantColors(Builtin):
         </ul>
     </dl>
 
-    The option "ColorCoverage" specifies the minimum amount of coverage needed to \
+    The option 'ColorCoverage' specifies the minimum amount of coverage needed to \
     include a dominant color in the result.
 
-    The option "MinColorDistance" specifies the distance (in LAB color space) up \
+    The option 'MinColorDistance' specifies the distance (in LAB color space) up \
     to which colors are merged and thus regarded as belonging to the same dominant color.
 
     >> img = Import["ExampleData/hedy.tif"]

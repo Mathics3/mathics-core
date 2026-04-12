@@ -36,7 +36,7 @@
   | |/ -_) \ /  _| || / _` | | \__ \ || | '_ (_-<  _| |  _| || |  _| / _ \ ' \
   |_|\___/_\_\\__|\_,_\__,_|_| |___/\_,_|_.__/__/\__|_|\__|\_,_|\__|_\___/_||_|
 
-    Mathics gives us direct syntax for Gries & Schneider's (G&S)'s "textual
+    Mathics3 gives us direct syntax for Gries & Schneider's (G&S)'s "textual
     substitution:"
 
     Gries & Schneider         Us                        Expected Output
@@ -57,17 +57,16 @@
     "~/some/directory/GS1.m". Then, run mathics at the terminal and load the
     file; you should see approximately the following:
 
-        $ mathics
+        $ mathics3
 
-        Mathics 1.1.dev0
-        on CPython 3.7.6 (default, Jan  8 2020, 19:59:22)
-        using SymPy 1.6.2, mpmath 1.1.0
+        Mathics3 10.0.0
+	Running on linux CPython 3.14.3 (main, Mar 30 2026, 06:42:16) [GCC 13.3.0]
+	using SymPy 1.13.3, mpmath 1.3.0, numpy 2.4.4, cython 3.2.4, scipy 1.17.1, skimage 0.26.0
 
-        Copyright (C) 2011-2020 The Mathics Team.
+        Copyright (C) 2011-2026 The Mathics3 Team.
         This program comes with ABSOLUTELY NO WARRANTY.
         This is free software, and you are welcome to redistribute it
         under certain conditions.
-        See the documentation for the full license.
 
         Quit by pressing CONTROL-D
 
@@ -193,7 +192,7 @@ ClearAll[Q, x]
 
 (* At this point, Q and x have no values. In most programming languages, a
    variable with no value is an error. In mathics, however, a variable with no
-   value is just itself: a symbolic constant. Mathics keeps rewriting
+   value is just itself: a symbolic constant. Mathics3 keeps rewriting
    expressions until they don't change any more. Integers evaluate to
    themselves, strings evaluate to themselves, and symbols that don't have
    values (or rules) attached to them evaluate to themselves. What does it mean
@@ -368,7 +367,7 @@ expect[ 2 (j + 5) / 2 === j + 5,
     An "evaluation leak" is an inadvertent early evaluation. Evaluation leaks
     might not affect the truth value of a theorem, say as when we know on the
     side that some divisor is non-zero. But evaluation leaks always affect
-    display of steps of a proof. Mathics applies built-in rules as soon as it
+    display of steps of a proof. Mathics3 applies built-in rules as soon as it
     can, interrupting our flow of human reasoning. We must control evaluation
     ourselves, watching our rules at work and putting them to work explicitly.
 
@@ -383,7 +382,7 @@ expect[ 2 (j + 5) / 2 === j + 5,
 
     On the other hand, if we avoid built-ins, we must write, for example, the
     inert expression div[2 (j+5), 2] instead of 2 (j + 5) / 2 to prevent early
-    cancellation. Mathics doesn't have a definition for "div", so can't reduce
+    cancellation. Mathics3 doesn't have a definition for "div", so can't reduce
     the expression. The expression just evaluates to itself, and that's what we
     mean by "inert." We lose pretty syntax, at least until we do something like
     the following:
@@ -396,7 +395,7 @@ expect[ j + 5,
 (* ****************************************************************************
 
     The mathics rule to the right of "/." has pattern variables "a_" and "b_".
-    Mathics replaces them with "2 (j+5)" and "2", respectively, by matching the
+    Mathics3 replaces them with "2 (j+5)" and "2", respectively, by matching the
     pattern expression
 
         div[a_, b_]
@@ -418,7 +417,7 @@ expect[ j + 5,
 
         W H E N   I N   D O U B T ,   U S E   F U L L F O R M
 
-        Mathics has a lot of syntax and it can take a while to learn it. If in
+        Mathics3 has a lot of syntax and it can take a while to learn it. If in
         any doubt about the meaning of any syntax, just pop it into a FullForm
         expression and get more info. FullForm always works, and syntax is never
         necessary. You can always replace any syntax you don't like with the
@@ -632,7 +631,7 @@ expect[ sameq[ x+y, 7 ],
     aggressively evaluates the right-hand side of the rule, namely a / b,
     producing just a / b, itself, an expression in terms of symbolic constants
     that mathics cannot further reduce. The whole "ReplaceAll" expression
-    produces the expected "42". Mathics replaces the pattern variables "a_" and
+    produces the expected "42". Mathics3 replaces the pattern variables "a_" and
     "b_" with actual arguments "1764" and "42", respectively, then evaluates the
     right-hand side "a / b" again.
 
@@ -718,7 +717,7 @@ expect[ sameq[ x+y, 7 ],
         neqv[p_, q_] := not[eqv[p, q]]
         eqv[p_, q_] := not[neqv[p, q]]
 
-    Mathics will rewrite an occurrence of neqv as not[eqv[...]], then rewrite
+    Mathics3 will rewrite an occurrence of neqv as not[eqv[...]], then rewrite
     the internal occurrence of eqv, producing not[not[neqv[...]]], and so on,
     forever:
 
@@ -1015,7 +1014,7 @@ WITH MATHICS EVALUATION
 {sameq[e / c ^ 2, m],
   sameq[div[e, c ^ 2], m]}
 
-    Mathics takes away all our fun, proving the theorem right away in the second
+    Mathics3 takes away all our fun, proving the theorem right away in the second
     step. That's ok, we already knew that would happen, and we won't let it
     interfere with our pedantic, detailed proofs.
 
@@ -1232,7 +1231,7 @@ expect[ 3 (y + 2) + 6,
 (* ****************************************************************************
 
     To write the functional version of Leibiz's law / rule, we don't need to
-    delete (ClearAll) the old, substitution version. Mathics can distinguish the
+    delete (ClearAll) the old, substitution version. Mathics3 can distinguish the
     old version, which has three arguments, from the new version, which has two
     arguments, when the rule is invoked.
 
@@ -1244,7 +1243,7 @@ expect[ 3 (y + 2) + 6,
     rewriting. All rules we've define so far are unconditional, with one
     exception. In defining "substitutionInferenceRule", we stipulated that the
     terms "f" and "v" must have type "List" (review the definition). We make
-    greater use of conditions below. Mathics's conditional facility is very
+    greater use of conditions below. Mathics3's conditional facility is very
     powerful, encompassing things like "dependent types," which are only
     recently being researched in statically typed languages like Agda. Because
     mathics checks types at run-time, it can apply arbitrary conditions: just
@@ -1269,7 +1268,7 @@ expect[ 3 (y + 2) + 6,
 
   g applied to X (g.X) is E[z := X] if g.z : E defines g of z.
 
-  This is a one-shot application of the rule z :> x. Mathics rewrites g once,
+  This is a one-shot application of the rule z :> x. Mathics3 rewrites g once,
   not repeatedly until nothing changes.
 
  *)
@@ -1300,7 +1299,7 @@ expect[
 
    Two-term leibniz overload.
 
-   This is a multi-shot rule. Mathics will rewrite until nothing changes any
+   This is a multi-shot rule. Mathics3 will rewrite until nothing changes any
    more.
 
 *)
@@ -1549,7 +1548,7 @@ expect[
         isValid [ hoareTriple [p_, s_, q_] ] := blahblah
         isValid [ somethingElse [ x_, y_, z_ ] := yaketyyak
 
-    Mathics stores these as separate overloads of "isValid" because they have
+    Mathics3 stores these as separate overloads of "isValid" because they have
     different patterns, each requiring the evident literal head.
 
     The following is "multiple assignments" on page 19. We treat single

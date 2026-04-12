@@ -2,7 +2,7 @@ This file is about the copyright on Mathics3 and all included components.
 
 * ORIGINAL MATHICS CODE:
 
-  All original Mathics code is distributed under the terms of the
+  All original Mathics3 code is distributed under the terms of the
   GNU General Public License, version 3.
 
      This code is distributed in the hope that it will be useful,
@@ -11,7 +11,7 @@ This file is about the copyright on Mathics3 and all included components.
      General Public License for more details.
 
 The full text of the GPL is available below in this file. Details of
-the licenses of the components of Mathics are included below as well.
+the licenses of the components of Mathics3 are included below as well.
 
 * LICENSES OF INCLUDED DATA:
 

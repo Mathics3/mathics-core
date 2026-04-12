@@ -195,7 +195,7 @@ class Image(Atom):
         )
 
     def sameQ(self, other) -> bool:
-        """Mathics SameQ"""
+        """Mathics3 SameQ"""
         if not isinstance(other, Image):
             return False
         if self.color_space != other.color_space or self.metadata != other.metadata:

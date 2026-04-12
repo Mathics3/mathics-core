@@ -361,7 +361,7 @@ class DownValues(Builtin):
     >> DownValues[f]
      = {HoldPattern[f[x_]] ⧴ x ^ 2}
 
-    Mathics will sort the rules you assign to a symbol according to \
+    Mathics3 will sort the rules you assign to a symbol according to \
     their specificity. If it cannot decide which rule is more special, \
     the newer one will get higher precedence.
     >> f[x_Integer] := 2

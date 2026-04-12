@@ -46,7 +46,7 @@ class InitialDirectory(Predefined):
     """
 
     name = "$InitialDirectory"
-    summary_text = "initial directory when Mathics was started"
+    summary_text = "initial directory when Mathics3 was started"
 
     def evaluate(self, evaluation: Evaluation):
         return String(INITIAL_DIR)
@@ -68,7 +68,7 @@ class InstallationDirectory(Predefined):
 
     attributes = A_NO_ATTRIBUTES
     name = "$InstallationDirectory"
-    summary_text = "Mathics installation directory"
+    summary_text = "Mathics3 installation directory"
 
     def evaluate(self, evaluation):
         global ROOT_DIR

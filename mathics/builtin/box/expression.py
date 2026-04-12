@@ -199,7 +199,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         return result
 
     def sameQ(self, expr) -> bool:
-        """Mathics SameQ"""
+        """Mathics3 SameQ"""
         return expr.sameQ(self.to_expression())
 
     def tex_block(self, tex, only_subsup=False):

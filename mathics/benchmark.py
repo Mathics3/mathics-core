@@ -25,7 +25,7 @@ from mathics.core.parser import MathicsMultiLineFeeder, MathicsSingleLineFeeder,
 TESTS_PER_BENCHMARK = None
 
 
-# Mathics expressions to benchmark
+# Mathics3 expressions to benchmark
 BENCHMARKS = {
     "NumericQ": [
         "NumericQ[Sqrt[2]]",
@@ -227,7 +227,7 @@ def benchmark_all_sections():
 
 def main():
     global evaluation, TESTS_PER_BENCHMARK
-    parser = ArgumentParser(description="Mathics benchmark suite.", add_help=False)
+    parser = ArgumentParser(description="Mathics3 benchmark suite.", add_help=False)
 
     parser.add_argument(
         "--help", "-h", help="show this help message and exit", action="help"
@@ -248,7 +248,7 @@ def main():
         "-e",
         dest="expression",
         metavar="EXPRESSION",
-        help="benchmark a valid Mathics expression",
+        help="benchmark a valid Mathics3 expression",
     )
 
     parser.add_argument(
