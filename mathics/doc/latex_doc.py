@@ -94,7 +94,7 @@ def to_latex(elem, **kwargs) -> str:
 
 
 def escape_latex_code(text) -> str:
-    """Escape verbatim Mathics input"""
+    """Escape verbatim Mathics3 input"""
 
     text = escape_latex_output(text)
     escape_char = get_latex_escape_char(text)
@@ -363,7 +363,7 @@ def escape_latex(text):
 
 
 def escape_latex_output(text) -> str:
-    """Escape Mathics output"""
+    """Escape Mathics3 output"""
 
     text = replace_all(
         text,
@@ -608,7 +608,7 @@ class LaTeXDocumentationEntry(DocumentationEntry):
     """A class to hold our custom XML-like format.
     The `latex()` method can turn this into LaTeX.
 
-    Mathics core also uses this in getting usage strings (`??`).
+    Mathics3 core also uses this in getting usage strings (`??`).
     """
 
     items: Sequence["LaTeXDocumentationEntry"]
@@ -857,9 +857,10 @@ class LaTeXDocSection(DocSection):
 
         sections = "\n\n".join(section.latex(doc_data) for section in self.subsections)
         slug = f"{self.chapter.part.slug}/{self.chapter.slug}/{self.slug}"
+        label_string = r"\label{%s}" % latex_label_safe(slug)
         section_string = (
-            "\n\n\\section{%s}{%s}\n" % (title, index)
-            + "\n\\label{%s}" % latex_label_safe(slug)
+            (("\n\n\\section{%s" % title) + label_string + "}%")
+            + ("\n%s\n" % index)
             + "\n\\sectionstart\n\n"
             + f"{content}"
             # + ("\\addcontentsline{toc}{section}{%s}" % title)
@@ -1001,9 +1002,12 @@ class LaTeXDocSubsection(DocSubsection):
 
         slug = f"{self.chapter.part.slug}/{self.chapter.slug}/{self.section.slug}/{self.slug}"
 
+        label_string = r"\label{%s}" % latex_label_safe(slug)
         section_string = (
-            "\n\n\\subsection{%(title)s}%(index)s\n"
-            + "\n\\label{%s}" % latex_label_safe(slug)
+            "\n\n\\subsection{%(title)s"
+            + label_string
+            + "}%"
+            + "\n%(index)s\n"
             + "\n\\subsectionstart\n\n%(content)s"
             #  "\\addcontentsline{toc}{subsection}{%(title)s}"
             "%(sections)s"
