@@ -70,7 +70,7 @@ def to_mathics_list(
 ) -> ListExpression:
     """
     This is an expression constructor for list that can be used when
-    the elements are not Mathics objects.
+    the elements are not Mathics3 objects.
 
     For example::
 
@@ -90,7 +90,7 @@ def to_mathics_list(
 
 def to_numeric_args(mathics_args: BaseElement, evaluation) -> tuple:
     """
-    Convert Mathics arguments, such as the arguments in an evaluation
+    Convert Mathics3 arguments, such as the arguments in an evaluation
     method a Python list that is suitable for feeding as arguments
     into SymPy, NumPy, or mpmath.
 
