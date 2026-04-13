@@ -857,10 +857,9 @@ class LaTeXDocSection(DocSection):
 
         sections = "\n\n".join(section.latex(doc_data) for section in self.subsections)
         slug = f"{self.chapter.part.slug}/{self.chapter.slug}/{self.slug}"
-        label_string = r"\label{%s}" % latex_label_safe(slug)
         section_string = (
-            (("\n\n\\section{%s" % title) + label_string + "}%")
-            + ("\n%s\n" % index)
+            "\n\n\\section{%s}{%s}\n" % (title, index)
+            + "\n\\label{%s}" % latex_label_safe(slug)
             + "\n\\sectionstart\n\n"
             + f"{content}"
             # + ("\\addcontentsline{toc}{section}{%s}" % title)
@@ -1002,25 +1001,22 @@ class LaTeXDocSubsection(DocSubsection):
 
         slug = f"{self.chapter.part.slug}/{self.chapter.slug}/{self.section.slug}/{self.slug}"
 
-        label_string = r"\label{%s}" % latex_label_safe(slug)
-        section_string = (
-            "\n\n\\subsection{%(title)s"
-            + label_string
-            + "}%"
-            + ("\n%s\n") % index
+        subsection_string = (
+            "\n\n\\subsection{%(title)s}%(index)s\n"
+            + "\n\\label{%s}" % latex_label_safe(slug)
             + "\n\\subsectionstart\n\n%(content)s"
             #  "\\addcontentsline{toc}{subsection}{%(title)s}"
-            "%(sections)s"
+            "%(subsections)s"
             "\\subsectionend"
         ) % {
             "title": title,
             "index": index,
             "content": content,
-            "sections": "\n\n".join(
-                section.latex(doc_data, quiet) for section in self.subsections
+            "subsections": "\n\n".join(
+                subsection.latex(doc_data, quiet) for subsection in self.subsections
             ),
         }
-        return section_string
+        return subsection_string
 
 
 class LaTeXDocTests(DocTests):
