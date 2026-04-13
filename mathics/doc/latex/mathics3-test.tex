@@ -1,24 +1,26 @@
 % -*- latex -*-
 %
-% This is the top-level LaTeX file to build the Mathics3 Book (Tutorial + Reference)
-% which is stored in mathics3.pdf
+% This is the top-level LaTeX file that can be used to debug problems in
+% Mathics3 Book (Tutorial + Reference), which is quite large and unwieldy.
 %
-% To build this:
-%    make mathics3.pdf
+% Instead do this. First:
+%  cp testing-sample.tex testing.tex
+%  make documentation.tex
+%
+% Then take extract problem LaTeX from documentation.tex and put it in testing.tex
+%
+% Finally build test-mathics3.pdf:
+%    make test-mathics3.pdf
 %
 % The bulk of this LaTeX is in file documentation.tex which is
 % automatically generated via ./doc2latex.py from:
 %
 %  * static files in ../documentation/*.mdoc (Tutorial and
 %  * SVG images in ./images/*.svg  (Mostly logos right now)
-%  * Information pulled out of the Python docstrings for built-in Functions. These
-%    are stored in
 %
-% Since this file is rather bulky, to troubleshoot, put stripped down
-% text such as from documentation.tex in a file called testing.tex
-% and build that using:
-%  make mathics3-test.pdf
 
+% NOTE: most of this file is a duplicate of mathics3.tex.
+% Changes here should be coordinated with mathics3.tex.
 \documentclass[index=totoc,fleqn,10pt,oneside,toc=flat]{scrbook}
 
 % The number is sections and subsections can get high, for example:
@@ -333,6 +335,9 @@
 
 \lstdefinestyle{python}{language=Python,tabsize=2,basicstyle=\scriptsize\ttfamily,showstringspaces=false,stringstyle=\color{pythonstring},commentstyle=\ttfamily\color{pythonstring},frame=lines}
 
+%%%
+%%% THIS SHOULD BE THE ONLY LINE THAT DIFFERS BETWEEN HERE AND mathics3.tex
+%%%
 \input{testing.tex}
 
 \part*{Appendices}
