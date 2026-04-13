@@ -520,7 +520,7 @@ class Equal(_EqualityOperator, _SympyComparison):
 
     >> g[1] == g[1] == g[1]
      = True
-    >> g[1] ⩵ g[1] ⩵ g[r]
+    >> g[1] == g[1] == g[r]
      = g[1] ⩵ g[1] ⩵ g[r]
 
     Equality can also be combined with other inequality expressions, like:
