@@ -53,7 +53,7 @@ version-info.tex: doc2latex.py
 	$(PYTHON) doc2latex.py $(MATHICS3_MODULE_OPTION) && $(BASH) ./sed-hack.sh
 
 #: Build test PDF
-mathics3-test.pdf: mathics-test.tex testing.tex
+mathics3-test.pdf: mathics3-test.tex testing.tex
 	$(LATEXMK) --verbose -f -pdf -pdflatex="$(XETEX) -halt-on-error" mathics3-test
 
 #: Build main Mathcis3 PDF

@@ -31,10 +31,6 @@
 \DeclareTOCStyleEntry[dynnumwidth]{default}{section}
 \DeclareTOCStyleEntry[dynnumwidth]{default}{subsection}
 
-% Without the below, the default space 7.644pt between "Part" numbers (like I, II, III)
-% in the Table of Contents is too narrow, causing the numbers to potentially overlap with the titles.
-\DeclareTOCStyleEntry[numwidth=15pt]{part}{part}
-
 % The following is to remove messages of the form:
 % Package scrkbase Info: You've told me to use the font selection of the element
 % (scrkbase)             `partprefix' that is an alias of element `partnumber'
@@ -135,6 +131,7 @@
     {ö}{{\"o}}1
     {~}{{\textasciitilde}}1
     {⧦}{{===}}1
+    {⩵}{{==}}1
     {}{{=>}}1
     {⇒}{{$\Rightarrow$}}1
     {⇾}{{$\Rightarrow$}}1
@@ -336,7 +333,7 @@
 
 \lstdefinestyle{python}{language=Python,tabsize=2,basicstyle=\scriptsize\ttfamily,showstringspaces=false,stringstyle=\color{pythonstring},commentstyle=\ttfamily\color{pythonstring},frame=lines}
 
-\input{documentation.tex}
+\input{testing.tex}
 
 \part*{Appendices}
 \printindex
