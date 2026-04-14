@@ -29,7 +29,7 @@ class LoadModule(Builtin):
 
     <dl>
       <dt>'LoadModule'[$module$]
-      <dd>'Load Mathics definitions from the python module $module$
+      <dd>'Load Mathics3 definitions from the python module $module$
     </dl>
 
     >> LoadModule["nomodule"]

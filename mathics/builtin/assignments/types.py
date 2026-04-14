@@ -120,7 +120,7 @@ class NValues(Builtin):
     >> N[c]
      = c
 
-    Mathics will assign any list of rules to 'NValues'; however, \
+    Mathics3 will assign any list of rules to 'NValues'; however, \
     inappropriate rules will never be used:
     >> NValues[d] = {foo -> bar};
     >> NValues[d]

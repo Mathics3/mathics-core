@@ -122,7 +122,7 @@ Interactive Manipulation
 #         self._widgets = []  # the ipywidget widgets to control the manipulated variables
 #         self._parsers = (
 #             {}
-#         )  # lambdas to decode the widget values into Mathics expressions
+#         )  # lambdas to decode the widget values into Mathics3 expressions
 
 #     def add(self, expression, evaluation):
 #         expr = Expression("System`Private`ManipulateParameter", expression).evaluate(

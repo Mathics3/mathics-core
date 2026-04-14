@@ -1097,7 +1097,7 @@ class Sum(IterationFunction, SympyFunction, PrefixOperator):
             var_min_max = index.elements[:3]
             bounds = [expr.to_sympy(**arg_kwargs) for expr in var_min_max]
             if evaluation:
-                # Min and max might be Mathics expressions. If so, evaluate them.
+                # Min and max might be Mathics3 expressions. If so, evaluate them.
                 for i in (1, 2):
                     min_max_expr = var_min_max[i]
                     if not isinstance(expr, Symbol):
@@ -1108,12 +1108,12 @@ class Sum(IterationFunction, SympyFunction, PrefixOperator):
             # FIXME: The below tests on SympyExpression, but really the
             # test should be broader.
             if isinstance(f_sympy, sympy.core.basic.Basic):
-                # sympy.summation() won't be able to handle Mathics functions in
+                # sympy.summation() won't be able to handle Mathics3 functions in
                 # in its first argument, the function parameter.
                 # For example in Sum[Identity[x], {x, 3}], sympy.summation can't
                 # evaluate Identity[x].
                 # In general we want to avoid using Sympy if we can.
-                # If we have integer bounds, we'll use Mathics's iterator Sum
+                # If we have integer bounds, we'll use Mathics3's iterator Sum
                 # (which is Plus)
 
                 if evaluation and all(
@@ -1122,7 +1122,7 @@ class Sum(IterationFunction, SympyFunction, PrefixOperator):
                     for i in bounds[1:]
                 ):
                     # When we have integer bounds, it is better to not use Sympy but
-                    # use Mathics evaluation. We turn:
+                    # use Mathics3 evaluation. We turn:
                     # Sum[f[x], {<limits>}] into
                     #   MathicsSum[Table[f[x], {<limits>}]]
                     # where MathicsSum is self.get_result() our Iteration iterator.

@@ -194,7 +194,7 @@ Incompatible changes
 Scanner API has changed. Options on ``mathics`` CLI have changed. See above for the changes.
 Location of ``mathics`` in ``mathics.__main__``, the more usual location, rather than ``mathics.main``.
 
-* Mathics scanner exceptions of class TranslateError are incompatible
+* Mathics3 scanner exceptions of class TranslateError are incompatible
 with previous versions, and now store error parameters, "name", "tag", and
 "args".
 * The method ``get_sort_key()`` was replaced by two different properties:
@@ -223,7 +223,7 @@ This is needed for the PacletManager code to work better.
 Compatibility
 -------------
 
-#. When the result of an evaluation is ``Symbol`Null``, Mathics CLI
+#. When the result of an evaluation is ``Symbol`Null``, Mathics3 CLI
   now does not show an ``Out[...]=`` line, following the behavior of
   the WMA CLI.
 #. Asymptote rendering of Platonic solids added.

@@ -77,7 +77,7 @@ class _FastEquivalence:
         return self._hashes[hash(elem)]
 
     def sameQ(self, a, b) -> bool:
-        """Mathics SameQ"""
+        """Mathics3 SameQ"""
         return a.sameQ(b)
 
 
@@ -284,7 +284,7 @@ class _SlowEquivalence:
         return self._groups
 
     def sameQ(self, a, b) -> bool:
-        """Mathics SameQ"""
+        """Mathics3 SameQ"""
         return _test_pair(self._test, a, b, self._evaluation, self._name)
 
 
@@ -781,7 +781,7 @@ class Flatten(Builtin):
             n_int = -1  # a negative number indicates an unbounded level
         else:
             n_int = n.get_int_value()
-            # Here we test for negative since in Mathics Flatten[] as opposed to flatten_with_respect_to_head()
+            # Here we test for negative since in Mathics3 Flatten[] as opposed to flatten_with_respect_to_head()
             # negative numbers (and None) are not allowed.
             if n_int is None or n_int < 0:
                 evaluation.message("Flatten", "flpi", n)

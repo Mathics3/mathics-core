@@ -132,7 +132,7 @@ This is done largely outside of Mathics-core, although it heavily relies on Math
 Operator Precedence Tables
 --------------------------
 
-This pulls out of Mathics Core any knowledge of Operator Precedence and instead uses tables found in mathics-scanner.
+This pulls out of Mathics3 Core any knowledge of Operator Precedence and instead uses tables found in mathics-scanner.
 This would be based on Robert Jacobson's work.
 
 Miscellaneous Small Things
@@ -150,7 +150,7 @@ Rocky
 - Debugger
 - Compilation
 - Literal Expressions for performance (e.g., data processing and graphics rendering)
-- Mathics Autoloading (with mmatera)
+- Mathics3 Autoloading (with mmatera)
 - Operator Precedence (with mmatera)
 - Releases (with mmatera)
 
@@ -398,7 +398,7 @@ Documentation
 -------------
 
 Sometime around release 4.0.0, all of the code related to producing
-documentation in LaTeX and in Mathics Django, and running doctests
+documentation in LaTeX and in Mathics3 Django, and running doctests
 will be split off and put into its own git repository.
 
 I've spent a lot of time banging on this to try to get to be
@@ -427,7 +427,7 @@ Support for External Packages
 -----------------------------
 
 I would have liked to have seen this going earlier. However right now
-Mathics is still at too primitive a level for any serious package to
+Mathics3 is still at too primitive a level for any serious package to
 be run on it. This will change at some point though.
 
 Support for Mathematica Language Levels

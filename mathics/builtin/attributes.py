@@ -13,10 +13,6 @@ are described below.
 However in contrast to \\Mathematica, you can set any symbol as an attribute.
 """
 
-# This tells documentation how to sort this module
-sort_order = "mathics.builtin.definition-attributes"
-
-
 from mathics.core.assignment import get_symbol_list
 from mathics.core.atoms import String
 from mathics.core.attributes import (
@@ -32,6 +28,9 @@ from mathics.core.builtin import Builtin, Predefined
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolNull
+
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.definition-attributes"
 
 SymbolClearAttributes = Symbol("ClearAttributes")
 SymbolSetAttributes = Symbol("SetAttributes")
