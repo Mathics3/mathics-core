@@ -5,9 +5,14 @@
 10.0.0
 ======
 
-Some foundational work done to overhaul plotting using vectors with NumPy was started. Alas, work on it was not complete by release time to have finished this. Expect a future release to have revamped graphics.
+Some foundational work on overhauling plotting with NumPy vectors was started. Alas, work on it was not complete by release time, so this could not be finished. Expect a future release to have revamped graphics.
 
-Note: There are incompatible changes. Use with Mathics-scanner 10.0.0 or greater.
+A major revision of Form handling and character encoding ``$CharacterEncoding`` was started with a focus on ``TeXForm``, ``MLForm``, and ``OutputForm``.
+
+Notes:
+
+#. There are incompatible changes. Use with Mathics-scanner 10.0.0 or greater.
+#. We are in the process of renaming ``Mathics`` to ``Mathics3``. You will notice a new Mathics3 logo in the documentation. ``Mathics`` was monolithic Python 2-ish code. Mathics3 has rewritten a number of major subcomponents and split off a number of subcomponents. There are still several that need to be revised or rewritten. The name change reflects this distinction between the two efforts, and emphasizes that ``Mathics3`` uses modern Python 3 idioms. While right now the repository name and import refer to ``mathics``, several repositories that use the Mathics3 core, or that Mathics3 uses, have been renamed. In particular, ``Mathics_Scanner`` is now ``Mathics3_Scanner``.
 
 
 New Builtins
@@ -15,10 +20,11 @@ New Builtins
 
 #. ``$Language`` variable
 #. ``ArcBox`` boxing function
-#. ``Csch`` function [PR # #1768]
+#. ``Csch`` function `PR #1768 <https://github.com/Mathics3/mathics-core/pull/1768>`_
 #. ``JSON`Import`JSONImport``
 #. ``RasterBox`` boxing function
-#. ``RoundBox`` boxing function
+#. ``Format``
+#. ``FormBox``, and ``RoundBox`` boxing functions
 #. ``ShowSpecialCharacters`` option
 #. ``ShowStringCharacters`` option
 
@@ -26,29 +32,37 @@ New Builtins
 Enhancements
 ------------
 
-* Many Builtin functions now report argument mismatch errors
-* ``Trig`` option added to ``Numerator`` and ``Denominator``
+#. Many Builtin functions now report argument-mismatch errors
+#. ``Trig`` option added to ``Numerator`` and ``Denominator``
+#. ``CharacterEncoding``, and ``Path`` options option added to ``Get``
+#. ``PowerMod`` and ``Quotient`` handle the 3-argument form, roots of exponents (``PowerMod``) lists of exponents, and numbers other than Integers.
+#. ``N[integer, MachinePrecision]`` added
+#. ``PrintPrecision`` for ``N[integer]`` matches WMA; so does largest mantissa before converting to MachinePrecision Integer (for display) matches WMA.
+#. ``BeginPackage`` with ``Needs`` parameter added. This should allow more packages to load properly
+#. ``Expand`` works with relations
+
 
 Bugs Fixed
 ----------
 
-#. PR #1762 Fix Rayleigh expansion rules to only match half-integer orders. (Chenxin Zhong)
-#. #1741 Implement ``MachinePrecision`` option for large numbers that fall outside of Python's builtin ``float`` mantissa
-#. #1740 ``N[3^200]`` in formats as ``PrecisionReal`` instead of ``MachinePrecision``
-#. #1723 ``DiscretePlot`` gives wrong results nested function in ``First`` or ``Last``
-#. #1713 ``?`` *symbol* and ``??`` *symbol* should be parsed as ``Information["symbol"]`` and ``Information["symbol"#. #1699 Character sequences used for string representation of boxes should be treated as single characters in string character-wise manipulation operations.
-#. #1692 ``Map`` does not automatically map a function over ``Association`` values (vasdommes)
-#. #1639 Map does not automatically map a function over Association values
-#. #1519 ``Order`` for Numerics, e.g. ``Order[1.0, 1] == -1``, but is 0
-#. #1492 ``UpSet`` not giving a "Tag Integer is Protected." message
-#. #1487 ``FindMinimum``, ``FindMaximim`` do not give approximate results when ``$IterationLimit`` has been exceeded and convergence fails
-#. #1481 $TraceBuiltins=False does not work after more than one $TraceBuiltins=True use.
+#. `PR #1762 <https://github.com/Mathics3/mathics-core/pull/1762>`_ Fix Rayleigh expansion rules to only match half-integer orders. (Chenxin Zhong)
+#. `#1741 <https://github.com/Mathics3/mathics-core/issues/1741>`_ Implement ``MachinePrecision`` option for large numbers that fall outside of Python's builtin ``float`` mantissa
+#. `#1740 <https://github.com/Mathics3/mathics-core/issues/1740>`_ ``N[3^200]`` in formats as ``PrecisionReal`` instead of ``MachinePrecision``
+#. `#1723 <https://github.com/Mathics3/mathics-core/issues/1723>`_ ``DiscretePlot`` gives wrong results nested function in ``First`` or ``Last``
+#. `#1713 <https://github.com/Mathics3/mathics-core/issues/1713>`_ ``?`` *symbol* and ``??`` *symbol* should be parsed as ``Information["symbol"]`` and ``Information["symbol"#. #1699 Character sequences used for string representation of boxes should be treated as single characters in string character-wise manipulation operations.
+#. `#1692 <https://github.com/Mathics3/mathics-core/issues/1692>`_ ``Map`` does not automatically map a function over ``Association`` values (vasdommes)
+#. `#1639 <https://github.com/Mathics3/mathics-core/issues/1639>`_ Map does not automatically map a function over Association values
+#. `#1519 <https://github.com/Mathics3/mathics-core/issues/1519>`_ ``Order`` for Numerics, e.g. ``Order[1.0, 1] == -1``, but is 0
+#. `#1492 <https://github.com/Mathics3/mathics-core/issues/1492>`_ ``UpSet`` not giving a "Tag Integer is Protected." message
+#. `#1487 <https://github.com/Mathics3/mathics-core/issues/1487>`_ ``FindMinimum``, ``FindMaximim`` do not give approximate results when ``$IterationLimit`` has been exceeded and convergence fails
+#. `#1481 <https://github.com/Mathics3/mathics-core/issues/1481>`_ $TraceBuiltins=False does not work after more than one $TraceBuiltins=True use.
+#. Reset ``evaluation.iteration__count`` on each new evaluation. This caused problems in long-running sessions, such as the Mathics3-django gallery examples.
 
 
-Command-line Utilites
----------------------
+Command-line Utilities
+----------------------
 
-Command-line program ``mathics`` was renamed to ``mathics3``; the old name will be available for a while. This appearently facilitates uv packaging.
+Command-line program ``mathics`` was renamed to ``mathics3``; the old name will be available for a while. This apparently facilitates ``uv`` packaging.
 
 Command-line program ``mathics3-code-parse`` was added to show how expressions are parsed. This is roughly analogous to the ``CodeParse`` function of the ``CodeParser`` WMA package.
 
@@ -57,12 +71,10 @@ Internals
 
 * A major revision and reorganization was begun to improve Form handling, leading to the new modules ``mathics.forms.format`` and ``mathics.forms.render``. Existing render functions from ``mathics.format`` have been moved under ``mathics.form.render``. (mmatera)
   Corrections were made to variables ``$PrintForms`` and ``$OutputForms``. (mmatera)
-* A major revision and reorganization was begun to improve Boxing.
-  Corrections were made to variables ``$PrintForms`` and ``$OutputForms``.
-* Primitive datatype ``NumericArray``, which is essentially a NumPy array was added to support vector operations, such as plotting. (Bruce Lucas) In support of this the module ``mathics.core.atoms`` was split up.
+* Primitive datatype ``NumericArray``, which is essentially a NumPy array, was added to support vector operations, such as plotting. (Bruce Lucas) In support of this, the module ``mathics.core.atoms`` was split up.
 * Internals for handling Graphics have been revised to be able to accept a more complete list.
-* Parsing now uses more data from YAML tables insead of hard-coding values inside code.
-* Revise representation for ``Complex`` Numbers; both the real and imaginary parts can now be arbitrary non-complex Real numbers. The precsion, a derived value, is also saved.
+* Parsing now uses more data from YAML tables instead of hard-coding values inside code.
+* Revise representation for ``Complex`` Numbers; both the real and imaginary parts can now be arbitrary non-complex Real numbers. The precision, a derived value, is also saved.
 * Numerous internal changes were made to improve performance.
 * ``mpmath`` is used to store large integer mantissas in ``N[x_Integer]``.
 * Token names were changed to align better with the names reported in ``CodeParser`Tokenize``. Note however Mathics3 parsing is a bit different from ``CodeParser`Parse``.
@@ -70,17 +82,18 @@ Internals
 Package updates
 ---------------
 
+#. Python 3.14 supported. Support for Python 3.10 dropped; it may still work, but is not supported.
 #. Sympy 1.14 supported
-#. llvm 15+ now supported
+#. llvm 18+ now supported
 
 API incompatibility
 -------------------
 
 * Front ends must now issue an explicit call to
-  ``import_and_load_builtins()``. Previously this was handled simpy by
+  ``import_and_load_builtins()``. Previously, this was handled simply by
   ``import`` of ``MathicsSession``. Loading modules loaded via
   ``import`` was unpredictable in how and when things got loaded. The
-  change was make do address this and to be able to give more
+  change was made to address this and to be able to give more
   flexibility in loading.
 * Token names have changed to align better with ``CodeParser`CodeTokenize``
 
@@ -99,11 +112,11 @@ which happens a lot in plotting graphics. Also, Python 3.13 is a bit
 faster than previous versions. Previously, rendering via ``asymptote`` was
 slow. This is no longer the situation.
 
-Preliminary work to track locations has started. This is useful in debugging and error reporting, and is controlled via Boolean System variable ``$TrackLocations``.
+Preliminary work to track locations has started. This is useful in debugging and error reporting, and is controlled via the Boolean System variable ``$TrackLocations``.
 
 Boxing operators have been added. The full range of escape sequences is supported.  A limited form of boxing escape ``\*`` that handles a single Boxing function has been added.
 
-A basic interrupt handler was added that loosely follows wolframscript's interrupt handler. Interrupt commands "abort", "exit", "continue", "debugger", "show", and "inspect" are available; "trace" will be added later.
+A basic interrupt handler was added that loosely follows WolframScript's interrupt handler. Interrupt commands "abort", "exit", "continue", "debugger", "show", and "inspect" are available; "trace" will be added later.
 
 ``main.py`` has been moved to ``__main__.py`` following Python conventions for main routines. This makes ``python -m mathics`` work.
 GNU Readline history is enabled for ``mathics`` when it is available. It shares history files with ``mathicsscript``.
@@ -148,13 +161,13 @@ Enhancements
 ------------
 
 #. Set-related code reworked for better WMA conformance. There is better WMA conformance in rule selection when several rules match.
-#. ``mathics`` CLI options are more like wolframscript
+#. ``mathics`` CLI options are more like WolframScript
 #. The debugging interface has been improved. ``TraceEvaluation[]`` and ``TraceDebug[]`` filter and colorize output for Mathics3 constructs much better. Single-dash long options like
-   ``-help``, ``-file`` are now accepted. Short option ``-f`` is associated with ``-file`` rather than ``--fullform``; ``-F`` is is now used for
+   ``-help``, ``-file`` are now accepted. Short option ``-f`` is associated with ``-file`` rather than ``--fullform``; ``-F`` is now used for
    ``FullForm``. Option ``--read`` with alias ``-r`` is now ``-code`` and short option ``-c``.
-#. Boolean Options ``ShowRewrites`` and ``ShowEvaluation`` were added to ``TraceEvalation[]``. These filtering for either rewrite rules or evaluation expressions. Presumably, you don't want to filter both.
-#. We check argument counts on more Builtin Functions and give error messages (tags ``argb``, ``argx``, ``argr``, ``argrx``) for invalid parameter combinations.
-#. ``$TraceBuiltins`` output uses standard Mathics3 I/O mechanisms rather than Python's builtin ``print``. Therefore it will be seen in more front-ends like Django or pyoxide.
+#. Boolean Options ``ShowRewrites`` and ``ShowEvaluation`` were added to ``TraceEvalation[]``. These filter either rewrite rules or evaluation expressions. Presumably, you don't want to filter both.
+#. We check argument counts on more built-in functions and give error messages (tags ``argb``, ``argx``, ``argr``, ``argrx``) for invalid parameter combinations.
+#. ``$TraceBuiltins`` output uses standard Mathics3 I/O mechanisms rather than Python's builtin ``print``. Therefore, it will be seen in more front-ends like Django or PyOxide.
 
 Bugs Fixed
 ----------
@@ -163,13 +176,13 @@ Bugs Fixed
 #. #1213 ``Condition[]`` expressions as second element in ``RuleDelayed`` behaviour not compatible with WMA
 #. #1187 Add ``Hypergeometric2F1`` Builtin Function
 #. #1198 Blanks in ``Set`` operations are not properly handled in tag positions.
-#. #1245 Add "lpn" error message checking in _ListPlot
-#. #1383 Support for hypergeometric functions
-#. #1384 Option management tweaks
+#. #1245 Add "lpn" error message checking in _ListPlot.
+#. #1383 Support for hypergeometric functions.
+#. #1384 Option management tweaks.
 #. #1388 In WMA, ``Pochhammer[0,-2]`` returns 1/2
 #. #1395 Match WMA for ``Gamma[1+x]`` and ``Product[...]``
 #. #1405 structure_cache in ``mathics.core.expression.structure`` is ``None`` but we try to set it in ``_is_neutral_symbol()``
-#. #1412 ``Transpose[]`` does not work on three-dimensional array
+#. #1412 ``Transpose[]`` does not work on three-dimensional array.
 #. #1425 `Erroneous Protected message in SetDelayed
 #. #1432 URL links with $ in them are getting messed up
 #. #1461 "noopen" errors sometimes return ``$Failed``
@@ -459,23 +472,23 @@ Internals
 ---------
 
 * ``eval_abs`` and ``eval_sign`` extracted from ``Abs`` and ``Sign`` and added to ``mathics.eval.arithmetic``.
-* Maximum number of digits allowed in a string set to 7000 and can be adjusted using environment variable
+* The maximum number of digits allowed in a string is set to 7000 and can be adjusted using an environment variable
   ``MATHICS_MAX_STR_DIGITS`` on Python versions that don't adjust automatically (like pyston).
-* Real number comparisons implemented is based now in the internal implementation of ``RealSign``.
+* Real number comparisons implemented now use the internal implementation of ``RealSign``.
 * For Python 3.11, the variable ``$MaxLengthIntStringConversion`` controls the maximum size of
   the literal conversion between large integers and Strings.
 * Older style non-appearing and non-pedagogical doctests have been converted to pytest
 * Built-in code is directed explicitly rather than implicitly. This facilitates the ability to lazy load
   builtins or "autoload" them a la GNU Emacs autoload.
 * Add mpmath LRU cache
-* Some work was done to make it possible so that in the future we can speed up initial loading and reduce the initial memory footprint
+* Some work was done to make it possible so that in the future, we can speed up initial loading and reduce the initial memory footprint
 
 
 Bugs Fixed
 ----------
 
 * ``Definitions`` is compatible with ``pickle``.
-* Improved support for ``Quantity`` expressions, including conversions, formatting and arithmetic operations.
+* Improved support for ``Quantity`` expressions, including conversions, formatting, and arithmetic operations.
 * ``Background`` option for ``Graphics`` and ``Graphics3D`` is operative again.
 * Numeric comparisons against expressions involving ``String``; Issue #797)
 * ``Switch[]`` involving ``Infinity``. Issue #956
@@ -493,7 +506,7 @@ API
 We now require an explicit call to a new function
 ``import_and_load_builtins()``. Previously, loading was implicit and
 indeterminate as to when this occurred, as it was based on import
-order. We need this so that we can add support in the future for lazy loading built-in modules.
+order. We need this so that we can add support in the future for lazy-loading built-in modules.
 
 Package updates
 ---------------
@@ -1511,7 +1524,7 @@ Other changes
 #. blacken (format) a number of Python files and remove blanks at the end of lines
 #. Adding several CI tests
 #. Remove various deprecation warnings
-#. Change shbang from ``python`` to ``python3``
+#. Change ``#!`` from ``python`` to ``python3``
 #. Update docs
 
 Backward incompatibilities

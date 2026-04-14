@@ -1,7 +1,20 @@
 *One can always dream...*
 
-2025-2026 Roadmap
+2026-2027 Roadmap
 =================
+
+
+2026 Achievements
+-----------------
+
+Support Python 3.14 and Poetry packaging.
+
+Major foundational work was done in revising Form and ``MakeBox`` handling.
+
+How Mathics3 handles ``CharacterEncoding`` was revised.
+
+Introduction of NumPy vectors using ``NumericArray`` was started. Some foundational work was done to revise Plotting and speed it up using vectorization.
+
 
 2025 Achievements
 -----------------
@@ -19,22 +32,33 @@ Some preliminary debugging support was added. Position information is starting t
 Upcoming work
 -------------
 
-MakeBoxes
-++++++++++
+Support for NumPy Vectors and Arrays
+++++++++++++++++++++++++++++++++++++
 
-We hope to improve conformance of ``MakeBoxes`` and this will:
+While ``NumericArray`` exists as atomic element, it is not accessible as a user function. Evaluation routines for built-in function needs to be expanded to accomodate ``NumericArray`` type. (Bruce Lucas)
 
+Compilation
++++++++++++
+
+A Compiler for pure functions to SymPy expressions was started to speed up Plotting. (Bruce Lucas).
+
+This needs to be expanded to handle Mathics3 evaluation routines that do not have exact SymPy functions. The compiler also needs to be expanded to handle introduction of variables and procedural or statement kinds of expressions.
+
+
+More Forms and MakeBoxes
+++++++++++++++++++++++++
+
+* Implement ``DisplayForm``, ``ScientificForm``, ``EngineeringForm``,  and ``DecimalForm``
+* Improve``TraditionalForm``
 * Improve conformance to WMA for expressions such as polynomial expressions
-* Make 2-D Character-oriented printing easy
 * Improve data returned by ``Information[]``
-* Allow better integration into Jupyter cells.
 
 Improving MakeBoxes is also needed for improving formatting and rendering.
 
 Evaluation
 ++++++++++
 
-Some fundamental flaws have been detected around our main evaluation loop. This is appareent in the handling of ``Unevaluated[]``, ``Evaluate[]``, and ``With[]`` and ``Condition``. These need to be addressed. See for example: `Issue #1206 <https://github.com/Mathics3/mathics-core/issues/1206>`_.
+Some fundamental flaws have been detected around our main evaluation loop. We probably need to split function application from rule rewrite. ``Hold`` attributes, like ``HoldAll`` prevent function application, but not rule rewriting. This is apparent in the handling of ``Unevaluated[]``, ``Evaluate[]``, and ``With[]`` and ``Condition``. These need to be addressed. See for example: `Issue #1206 <https://github.com/Mathics3/mathics-core/issues/1206>`_ and `Issue #1789 <https://github.com/Mathics3/mathics-core/issues/1789>`_.
 
 Debugging
 +++++++++
@@ -51,14 +75,13 @@ Major components that still need revision/rewrite
 * Efficient pattern matching
 * Documentation
 * Start a real instruction-driven interpreter
-* Compile system
 * Rewrite how Graphics Routines are implemented and implement a robust API for extending
+* Notebook Integration
 
 Smaller things:
 
-* Redo/rethink Complex representation
-* Better and more back-end formatting and rendering
 * Basic Object system. Some of our BaseElement objects don't feel right.
+* Improve Complex conversion to SymPy (via SymPy.Add?)
 * Remove home-grown Expression Cache.
 
 
