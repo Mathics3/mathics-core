@@ -583,6 +583,9 @@ class LaTeXDocTest(DocTest):
 
         results = output_for_key.get("results", [])
         for result in results:
+            if not result:
+                continue
+
             for out in result["out"]:
                 kind = "message" if out["message"] else "print"
                 text += "\\begin{test%s}%s\\end{test%s}" % (
@@ -857,6 +860,7 @@ class LaTeXDocSection(DocSection):
 
         sections = "\n\n".join(section.latex(doc_data) for section in self.subsections)
         slug = f"{self.chapter.part.slug}/{self.chapter.slug}/{self.slug}"
+
         section_string = (
             "\n\n\\section{%s}{%s}\n" % (title, index)
             + "\n\\label{%s}" % latex_label_safe(slug)
