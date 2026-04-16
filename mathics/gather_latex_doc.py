@@ -17,7 +17,6 @@ from mathics.docpipeline import (
     test_all,
     test_chapters,
     test_sections,
-    write_doctest_data,
 )
 from mathics.settings import get_doctest_latex_data_path
 

@@ -280,12 +280,11 @@ class ModularInverse(SympyFunction):
 class PowerMod(Builtin):
     """
     <url>:Modular exponentiation:
-    https://en.wikipedia.org/wiki/Modular_exponentiation</url> (SymPy: <url>
-    :mod_inverse:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.mod_inverse</url>, <url>
+    https://en.wikipedia.org/wiki/Modular_exponentiation</url> SymPy: <url>:mod_inverse:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.mod_inverse</url>, <url>
     :nth_root_mod:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.nth_root</url>, <url>
-    :sqrt_mod:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.sqrt_mod</url>, <url>
-    :WMA link:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.Pow</url> <url>
-    https://reference.wolfram.com/language/ref/PowerMod.html</url>).
+    :sqrt_mod:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.sqrt_mod</url>, and <url>
+    :Pow:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.Pow</url>; <url>:WMA link:
+    https://reference.wolfram.com/language/ref/PowerMod.html</url>.
 
     <dl>
       <dt>'PowerMod'[$x$, $y$, $m$]
