@@ -26,9 +26,10 @@ MATHICS3_MODULE_OPTION ?=--load-module pymathics.graph,pymathics.natlang
 #: Default target: Make everything
 all doc texdoc: mathics3.pdf
 
-#: Create internal Document Data from .mdoc and Python builtin module docstrings
-doc-data $(DOCTEST_LATEX_DATA_PCL):
-	(cd ../.. && MATHICS_CHARACTER_ENCODING="UTF-8" $(PYTHON) docpipeline.py --output --keep-going $(MATHICS3_MODULE_OPTION))
+#: Create LaTeX doctest test data and test results that is used to build LaTeX PDF
+# For LaTeX docs we assume Unicode
+latex-doctest-data:
+	MATHICS_CHARACTER_ENCODING="UTF-8" $(PYTHON) ../../gather_latex_doc.py --output --keep-going $(MATHICS3_MODULE_OPTION) --doc-only
 
 mathics3-title.pdf:
 	cp mathics3-title.pdf-src mathics3-title.pdf

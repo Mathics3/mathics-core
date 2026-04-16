@@ -236,6 +236,9 @@ def test_case(
         sys.excepthook(*info)
         return False
 
+    if doc_only:
+        return True
+
     time_start = datetime.now()
     comparison_result = test.compare_result(result, encoding=CHARACTER_ENCODING)
 
@@ -243,8 +246,6 @@ def test_case(
         test_pipeline.print_and_log(
             f"   comparison took {datetime.now() - time_start} seconds"
         )
-    if doc_only:
-        return True
     if not comparison_result:
         print("result != wanted")
         fail_msg = f"Result: {result}\nWanted: {test.result}"
@@ -372,7 +373,7 @@ def load_pymathics_modules(module_names: set, definitions):
     return set(loaded_modules)
 
 
-def show_test_summary(
+def summarize_and_write_pcl(
     test_pipeline: DocTestPipeline,
     entity_name: str,
     entities_searched: str,
@@ -558,7 +559,7 @@ def test_tests(
                     continue
 
                 if test_status.total >= test_parameters.max_tests:
-                    show_test_summary(
+                    summarize_and_write_pcl(
                         test_pipeline,
                         "chapters",
                         "",
@@ -572,7 +573,7 @@ def test_tests(
                 )
                 if test_status.failed_sections:
                     if not test_parameters.keep_going:
-                        show_test_summary(
+                        summarize_and_write_pcl(
                             test_pipeline,
                             "chapters",
                             "",
@@ -588,7 +589,7 @@ def test_tests(
                                 exclude_sections=excludes,
                             ),
                         )
-    show_test_summary(
+    summarize_and_write_pcl(
         test_pipeline,
         "chapters",
         "",
@@ -632,10 +633,14 @@ def test_chapters(
                 if test_parameters.data_path is not None and test_status.failed == 0:
                     create_output(
                         test_pipeline,
-                        section.doc.get_tests(),
+                        section_tests_iterator(
+                            section,
+                            test_pipeline,
+                            exclude_sections=exclude_sections,
+                        ),
                     )
 
-    show_test_summary(
+    summarize_and_write_pcl(
         test_pipeline,
         "chapters",
         chapter_names,
@@ -676,10 +681,11 @@ def test_sections(
     for part in test_pipeline.documentation.parts:
         for chapter in part.chapters:
             for section in chapter.all_sections:
+                if include_sections and section.title not in include_sections:
+                    continue
                 test_section_in_chapter(
                     test_pipeline,
                     section=section,
-                    include_sections=include_sections,
                     exclude_sections=exclude_subsections,
                     output_format=output_format,
                 )
@@ -687,7 +693,11 @@ def test_sections(
                 if test_parameters.data_path is not None and test_status.failed == 0:
                     create_output(
                         test_pipeline,
-                        section.doc.get_tests(),
+                        section_tests_iterator(
+                            section,
+                            test_pipeline,
+                            exclude_sections=exclude_subsections,
+                        ),
                     )
 
                 # if last_section_name != section_name_for_finish:
@@ -699,11 +709,11 @@ def test_sections(
                 #     last_section_name = section_name_for_finish
 
                 # if seen_last_section:
-                #     show_test_summary(test_pipeline, "sections", section_names)
+                #     summarize_and_write_pcl(test_pipeline, "sections", section_names)
                 #     return
 
     assert section_names is not None
-    show_test_summary(test_pipeline, "sections", section_names)
+    summarize_and_write_pcl(test_pipeline, "sections", section_names)
     return
 
 
