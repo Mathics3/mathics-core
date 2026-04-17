@@ -45,7 +45,7 @@ Enhancements
 
 Bugs Fixed
 ----------
-#. `PR #1755 <https://github.com/Mathics3/mathics-core/issues/1775>`_ Ensure date formats have a year in them. This is needed for future Python versions.
+#. `PR #1755 <https://github.com/Mathics3/mathics-core/pull/1775>`_ Ensure date formats have a year in them. This is needed for future Python versions.
 #. `PR #1762 <https://github.com/Mathics3/mathics-core/pull/1762>`_ Fix Rayleigh expansion rules to only match half-integer orders. (Chenxin Zhong)
 #. `#1741 <https://github.com/Mathics3/mathics-core/issues/1741>`_ Implement ``MachinePrecision`` option for large numbers that fall outside of Python's builtin ``float`` mantissa
 #. `#1740 <https://github.com/Mathics3/mathics-core/issues/1740>`_ ``N[3^200]`` in formats as ``PrecisionReal`` instead of ``MachinePrecision``
