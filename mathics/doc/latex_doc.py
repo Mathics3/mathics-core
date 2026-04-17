@@ -94,7 +94,7 @@ def to_latex(elem, **kwargs) -> str:
 
 
 def escape_latex_code(text) -> str:
-    """Escape verbatim Mathics input"""
+    """Escape verbatim Mathics3 input"""
 
     text = escape_latex_output(text)
     escape_char = get_latex_escape_char(text)
@@ -152,7 +152,7 @@ def escape_latex(text):
             text = text.replace("$", r"\$")
             return text
 
-    def repl_python(match):
+    def repl_python(match: re.Match):
         return (
             r"""\begin{lstlisting}[style=python]
 %s
@@ -160,14 +160,14 @@ def escape_latex(text):
             % match.group(1).strip()
         )
 
-    def repl_eq(match):
+    def repl_eq(match: re.Match):
         return "$" + match.group(1) + "$"
 
     # Protect Python code from further replacements.
     text, post_substitutions = pre_sub(PYTHON_RE, text, repl_python)
 
     # Process pictures
-    def repl_img(match):
+    def repl_img(match: re.Match):
         src = match.group("src")
         return r"\includegraphics[scale=1.0]{images/%(src)s}" % {"src": src}
 
@@ -184,7 +184,7 @@ def escape_latex(text):
     )
 
     # Process quotations
-    def repl_quotation(match):
+    def repl_quotation(match: re.Match):
         return r"``%s''" % match.group(1)
 
     text, post_substitutions = pre_sub(
@@ -197,7 +197,7 @@ def escape_latex(text):
         content = content.replace(" ", "").replace("\n", "")
         return content.replace("#", r"\#").replace(r"\\#", r"\#")
 
-    def repl_hypertext(match) -> str:
+    def repl_hypertext(match: re.Match) -> str:
         tag = match.group("tag")
         content = match.group("content")
         content = ensure_sharp_escape_and_remove_escape_dollar_in_url(content)
@@ -232,13 +232,13 @@ def escape_latex(text):
                     return "\\href{%s}{%s}" % (content, text)
         return "\\href{%s}{%s}" % (content, text)
 
-    def repl_href(match) -> str:
+    def repl_href(match: re.Match) -> str:
         content = ensure_sharp_escape_and_remove_escape_dollar_in_url(
             match.group("content")
         )
         return r"\href{%s}{%s}" % (content, match.group("text"))
 
-    def repl_url(match) -> str:
+    def repl_url(match: re.Match) -> str:
         content = ensure_sharp_escape_and_remove_escape_dollar_in_url(
             match.group("content")
         )
@@ -266,8 +266,8 @@ def escape_latex(text):
         ],
     )
 
-    def repl(match):
-        text = match.group(1)
+    def repl(re_match: re.Match):
+        text = re_match.group(1)
         if text:
             text = replace_all(text, [(r"\'", "'"), ("^", r"\^")])
             escape_char = get_latex_escape_char(text)
@@ -289,67 +289,67 @@ def escape_latex(text):
 
     text = text.replace("\\\\'", "'")
 
-    def repl_dl(match):
-        text = match.group(1)
+    def repl_dl(re_match):
+        text = re_match.group(1)
 
-        def repl_dd_dt(match):
-            match_dict = match.groupdict()
-            return "\\%(tag)s{%(content)s}\n" % match_dict
+        def repl_dd_dt(re_match):
+            re_match_dict = re_match.groupdict()
+            return "\\%(tag)s{%(content)s}\n" % re_match_dict
 
         text = DL_ITEM_RE.sub(repl_dd_dt, text)
         return "\\begin{definitions}%s\\end{definitions}" % text
 
     text = DL_RE.sub(repl_dl, text)
 
-    def repl_list(match):
-        tag = match.group("tag")
-        content = match.group("content")
+    def repl_list(re_match):
+        tag = re_match.group("tag")
+        content = re_match.group("content")
         content = LIST_ITEM_RE.sub(lambda m: "\\item %s\n" % m.group(1), content)
         env = "itemize" if tag == "ul" else "enumerate"
         return "\\begin{%s}%s\\end{%s}" % (env, content, env)
 
     text = LIST_RE.sub(repl_list, text)
 
-    def repl_char(match):
-        char = match.group(1)
+    def repl_char(re_match):
+        char = re_match.group(1)
         return {
             "^": "$^\\wedge$",
         }[char]
 
     text = LATEX_CHAR_RE.sub(repl_char, text)
 
-    def repl_ref(match):
-        return r"figure \ref{%s}" % match.group("label")
+    def repl_ref(re_match):
+        return r"figure \ref{%s}" % re_match.group("label")
 
     text = REF_RE.sub(repl_ref, text)
 
-    def repl_console(match):
-        content = match.group("content")
+    def repl_console(re_match: re.Match):
+        content = re_match.group("content")
         content = content.strip()
         content = content.replace(r"\$", "$")
         return "\\begin{lstlisting}\n%s\n\\end{lstlisting}" % content
 
     text = CONSOLE_RE.sub(repl_console, text)
 
-    def repl_italic(match):
-        content = match.group("content")
+    def repl_italic(re_match):
+        content = re_match.group("content")
         return "\\emph{%s}" % content
 
     text = ITALIC_RE.sub(repl_italic, text)
 
-    # def repl_asy(match):
+    # def repl_asy(re_match):
     #     """
     #     Ensure \begin{asy} and \end{asy} are on their own line,
     #     but there shall be no extra empty lines
     #     """
-    #     #tag = match.group(1)
+    #     #tag = re_match.group(1)
     #     #return '\n%s\n' % tag
     #     #print "replace"
     #     return '\\end{asy}\n\\begin{asy}'
     # text = LATEX_BETWEEN_ASY_RE.sub(repl_asy, text)
 
-    def repl_subsection(match):
-        return "\n\\subsection{%s}\n" % match.group(1)
+    def repl_subsection(re_match):
+        return "\n\\subsection{%s}\n" % re_match.group(1)
 
     text = SUBSECTION_RE.sub(repl_subsection, text)
     text = SUBSECTION_END_RE.sub("", text)
@@ -363,7 +363,7 @@ def escape_latex(text):
 
 
 def escape_latex_output(text) -> str:
-    """Escape Mathics output"""
+    """Escape Mathics3 output"""
 
     text = replace_all(
         text,
@@ -427,8 +427,8 @@ def post_process_latex(result):
             return word
         return r"\text{%s}" % word
 
-    def repl_text(match):
-        text = match.group(1)
+    def repl_text(re_match: re.Match) -> str:
+        text = re_match.group(1)
         if not text:
             return r"\text{}"
         words = WORD_SPLIT_RE.split(text)
@@ -450,14 +450,14 @@ def post_process_latex(result):
         text = text.replace("><", r">}\allowbreak\text{<")
         return text
 
-    def repl_out_delim(match):
+    def repl_out_delim(re_match: re.Match) -> str:
         return ",\\allowbreak{} "
 
-    def repl_number(match):
+    def repl_number(re_match):
         guard = r"\allowbreak{}"
         inter_groups_pre = r"\,\discretionary{\~{}}{\~{}}{}"
         inter_groups_post = r"\discretionary{\~{}}{\~{}}{}"
-        number = match.group(1) + match.group(2)
+        number = re_match.group(1) + re_match.group(2)
         parts = number.split(".")
         if len(number) <= 3:
             return number
@@ -480,37 +480,39 @@ def post_process_latex(result):
             result = pre_dec
         return guard + result + guard
 
-    def repl_array(match):
-        content = match.group(1)
+    def repl_array(re_match):
+        content = re_match.group(1)
         lines = content.split("\\\\")
         content = "".join(
             r"\begin{dmath*}%s\end{dmath*}" % line for line in lines if line.strip()
         )
         return r"\begin{testresultlist}%s\end{testresultlist}" % content
 
-    def repl_out(match):
-        tag = match.group("tag")
-        content = match.group("content")
+    def repl_out(re_match):
+        tag = re_match.group("tag")
+        content = re_match.group("content")
         content = LATEX_TESTOUT_DELIM_RE.sub(repl_out_delim, content)
         content = NUMBER_RE.sub(repl_number, content)
         content = content.replace(r"\left[", r"\left[\allowbreak{}")
         return "\\begin{%s}%s\\end{%s}" % (tag, content, tag)
 
-    def repl_inline_end(match):
+    def repl_inline_end(re_match):
         """Prevent linebreaks between inline code and sentence delimiters"""
 
-        code = match.group("all")
+        code = re_match.group("all")
         if code[-2] == "}":
             code = code[:-2] + code[-1] + code[-2]
         return r"\mbox{%s}" % code
 
-    def repl_console(match):
-        code = match.group(1)
+    def repl_console(re_match: re.Match) -> str:
+        code = re_match.group(1)
         code = code.replace("/", r"/\allowbreak{}")
         return r"\console{%s}" % code
 
-    def repl_nonasy(match):
-        result = match.group(1)
+    def repl_nonasy(re_match: re.Match) -> str:
+        result = re_match.group(1)
+        if not result:
+            return result
         result = LATEX_TEXT_RE.sub(repl_text, result)
         result = LATEX_TESTOUT_RE.sub(repl_out, result)
         result = LATEX_ARRAY_RE.sub(repl_array, result)
@@ -583,6 +585,9 @@ class LaTeXDocTest(DocTest):
 
         results = output_for_key.get("results", [])
         for result in results:
+            if not result:
+                continue
+
             for out in result["out"]:
                 kind = "message" if out["message"] else "print"
                 text += "\\begin{test%s}%s\\end{test%s}" % (
@@ -608,7 +613,7 @@ class LaTeXDocumentationEntry(DocumentationEntry):
     """A class to hold our custom XML-like format.
     The `latex()` method can turn this into LaTeX.
 
-    Mathics core also uses this in getting usage strings (`??`).
+    Mathics3 core also uses this in getting usage strings (`??`).
     """
 
     items: Sequence["LaTeXDocumentationEntry"]
@@ -739,7 +744,9 @@ class LaTeXDocChapter(DocChapter):
                 return x
 
         chapter_sections = [
-            ("\n\n\\chapter{%(title)s}\n\\label{%(label)s}\nchapterstart\n\n%(intro)s")
+            (
+                "\n\n\\chapter{%(title)s}\n\\label{%(label)s}\n\\chapterstart\n\n%(intro)s"
+            )
             % {
                 "title": escape_latex(self.title),
                 "label": latex_label_safe(slug),
@@ -857,6 +864,7 @@ class LaTeXDocSection(DocSection):
 
         sections = "\n\n".join(section.latex(doc_data) for section in self.subsections)
         slug = f"{self.chapter.part.slug}/{self.chapter.slug}/{self.slug}"
+
         section_string = (
             "\n\n\\section{%s}{%s}\n" % (title, index)
             + "\n\\label{%s}" % latex_label_safe(slug)
@@ -1001,22 +1009,22 @@ class LaTeXDocSubsection(DocSubsection):
 
         slug = f"{self.chapter.part.slug}/{self.chapter.slug}/{self.section.slug}/{self.slug}"
 
-        section_string = (
+        subsection_string = (
             "\n\n\\subsection{%(title)s}%(index)s\n"
             + "\n\\label{%s}" % latex_label_safe(slug)
             + "\n\\subsectionstart\n\n%(content)s"
             #  "\\addcontentsline{toc}{subsection}{%(title)s}"
-            "%(sections)s"
+            "%(subsections)s"
             "\\subsectionend"
         ) % {
             "title": title,
             "index": index,
             "content": content,
-            "sections": "\n\n".join(
-                section.latex(doc_data, quiet) for section in self.subsections
+            "subsections": "\n\n".join(
+                subsection.latex(doc_data, quiet) for subsection in self.subsections
             ),
         }
-        return section_string
+        return subsection_string
 
 
 class LaTeXDocTests(DocTests):

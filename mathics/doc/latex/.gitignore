@@ -14,7 +14,6 @@
 /mathics3-*.fls
 /mathics3-*.pdf
 /mathics3-*.ps
-/mathics3-*.tex
 /mathics3-test.aux
 /mathics3-test.dvi
 /mathics3-test.fdb_latexmk
@@ -29,6 +28,7 @@
 /mathics3-test.pdf
 /mathics3-test.pre
 /mathics3-test.toc
+/mathics3-test.tex
 /mathics3.aux
 /mathics3.dvi
 /mathics3.fdb_latexmk

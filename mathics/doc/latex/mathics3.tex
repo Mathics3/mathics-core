@@ -11,14 +11,16 @@
 %
 %  * static files in ../documentation/*.mdoc (Tutorial and
 %  * SVG images in ./images/*.svg  (Mostly logos right now)
-%  * Information pulled out of the Python docstrings for built-in Functions. These
-%    are stored in
+%  * Information pulled out of the Python docstrings for built-in Functions.
 %
 % Since this file is rather bulky, to troubleshoot, put stripped down
-% text such as from documentation.tex in a file called testing.tex
-% and build that using:
-%  make mathics3-test.pdf
+% text such as from documentation.tex in a file called testing.tex.
+%
+% See the comments at the top of mathics3-test.tex for more
+% information.
 
+% NOTE: most of this file can is also duplicated in mathics3.tex.
+% Changes here should be coordinated or copied over to with mathics3-test.tex.
 \documentclass[index=totoc,fleqn,10pt,oneside,toc=flat]{scrbook}
 
 % The number is sections and subsections can get high, for example:
@@ -30,6 +32,10 @@
 \DeclareTOCStyleEntry[dynnumwidth]{default}{chapter}
 \DeclareTOCStyleEntry[dynnumwidth]{default}{section}
 \DeclareTOCStyleEntry[dynnumwidth]{default}{subsection}
+
+% Without the below, the default space 7.644pt between "Part" numbers (like I, II, III)
+% in the Table of Contents is too narrow, causing the numbers to potentially overlap with the titles.
+\DeclareTOCStyleEntry[numwidth=15pt]{part}{part}
 
 % The following is to remove messages of the form:
 % Package scrkbase Info: You've told me to use the font selection of the element
@@ -110,7 +116,7 @@
 \title{
     \includegraphics[height=0.1\linewidth]{images/logo-heptatom-Mathics3.pdf}
 \\[.5em]
-  {\LARGE\color{subtitle}\textit{\textmd{A free, open-source alternative to Mathematica}}\/}{Large \textregistered{}}
+  {\LARGE\color{subtitle}\textit{\textmd{A free, open-source alternative to Mathematica}}\/} {\Large \textregistered{}}
   \par\textmd{\Large Mathics\emph{3} Core Version \MathicsCoreVersion}
 }
 \author{The Mathics\emph{3} Team}
@@ -133,6 +139,7 @@
     {⧦}{{===}}1
     {}{{=>}}1
     {⇒}{{$\Rightarrow$}}1
+    {⇾}{{$\Rightarrow$}}1
     {⊻}{{$\oplus$}}1
     {…}{{...}}1
     {∫}{{S}}1
@@ -350,6 +357,7 @@
   \item[mpmath] \hfill  \mpmathVersion
   \item[NumpyPy] \hfill  \NumPyVersion
   \item[SymPy] \hfill  \SymPyVersion
+  \item[PIL] \hfill  \PILVersion
   \item[Ghostscript] \hfill  \GhostscriptVersion
   \item[lxml] \hfill  \lxml
   \item[matplotlib] \hfill  \matplotlib
