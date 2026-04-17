@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# FIXME: combine with same thing in Mathics Django
+# FIXME: combine with same thing in Mathics3 Django
 """
 Does 2 things which can either be done independently or
 as a pipeline:

@@ -67,7 +67,7 @@ def from_mpmath(
 
 def to_mpmath_matrix(data, **kwargs):
     """
-    Convert a Mathics matrix to one that can be used by mpmath.
+    Convert a Mathics3 matrix to one that can be used by mpmath.
     None is returned if we can't convert to a mpmath matrix.
     """
 

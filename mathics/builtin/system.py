@@ -552,7 +552,7 @@ class ProcessID(Predefined):
     """
 
     name = "$ProcessID"
-    summary_text = "get process id of the Mathics process"
+    summary_text = "get process id of the Mathics3 process"
 
     @not_in_sandboxed_environment
     def evaluate(self, evaluation: Evaluation) -> Integer:
@@ -907,7 +907,7 @@ class Version(Predefined):
 
     <dl>
       <dt>'$Version'
-      <dd>returns a string with the current Mathics version and the versions of relevant libraries.
+      <dd>returns a string with the current Mathics3 version and the versions of relevant libraries.
     </dl>
 
     >> $Version

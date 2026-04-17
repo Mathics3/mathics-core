@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Converts expressions from SymPy to Mathics expressions.
+Converts expressions from SymPy to Mathics3 expressions.
 Conversion to SymPy is handled directly in BaseElement descendants.
 """
 from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Tuple, Union, cast
@@ -116,7 +116,7 @@ mathics_to_sympy_singleton = {
 
 def sympy_decode_mathics_symbol_name(name: str) -> str:
     """
-    Remove the Prefix for Mathics symbols
+    Remove the Prefix for Mathics3 symbols
     and restore the context separator character.
     """
     if name.startswith(SYMPY_SYMBOL_PREFIX):
@@ -135,7 +135,7 @@ def is_Cn_expr(name: str) -> bool:
 
 
 def to_sympy_matrix(data, **kwargs) -> Optional[sympy.MutableDenseMatrix]:
-    """Convert a Mathics matrix to one that can be used by Sympy.
+    """Convert a Mathics3 matrix to one that can be used by Sympy.
     None is returned if we can't convert to a Sympy matrix.
     """
     if not isinstance(data, list):
@@ -147,7 +147,7 @@ def to_sympy_matrix(data, **kwargs) -> Optional[sympy.MutableDenseMatrix]:
 
 
 class SympyExpression(sympy.Expr):
-    """A Sympy expression with an associated Mathics expression"""
+    """A Sympy expression with an associated Mathics3 expression"""
 
     is_Function = True
     nargs = None
@@ -162,7 +162,7 @@ class SympyExpression(sympy.Expr):
             obj = super().__new__(cls, *exprs)
             obj.expr = None
         elif len(exprs) == 1 and isinstance(exprs[0], Expression):
-            # called with Mathics argument
+            # called with Mathics3 argument
             expr = exprs[0]
             sympy_head = expr.head.to_sympy()
             if kwargs.get("convert_functions_for_polynomialq", False):
@@ -289,7 +289,7 @@ def symbol_to_sympy(symbol: Symbol, **kwargs) -> Sympy_Symbol:
 
 def to_numeric_sympy_args(mathics_args: BaseElement, evaluation) -> list:
     """
-    Convert Mathics arguments, such as the arguments in an evaluation
+    Convert Mathics3 arguments, such as the arguments in an evaluation
     method a Python list that is sutiable for feeding as arguments
     into SymPy.
 
@@ -312,7 +312,7 @@ def from_sympy_matrix(
 ) -> ListExpression:
     """
     Convert `expr` of the type sympy.Matrix or sympy.ImmutableMatrix to
-    a Mathics list.
+    a Mathics3 list.
     """
     if len(expr.shape) == 2 and (expr.shape[1] == 1):
         # This is a vector (only one column)
@@ -345,7 +345,7 @@ sympy_conversion_by_type = {
 
 # def new_from_sympy(expr)->BaseElement:
 #    """
-#    converts a SymPy object to a Mathics element.
+#    converts a SymPy object to a Mathics3 element.
 #    """
 #    try:
 #        return sympy_singleton_to_mathics[expr]

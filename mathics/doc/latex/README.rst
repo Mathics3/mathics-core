@@ -1,7 +1,7 @@
 Overview
 --------
 
-Here we have document data and scripts for generating the Mathics Reference manual in PDF form.
+Here we have document data and scripts for generating the Mathics3 Reference manual in PDF form.
 
 The document is a LaTeX file run through XeTeX with Asymptote graphics.
 
@@ -10,12 +10,12 @@ process the graphics. Earlier version may have bugs in them which
 prevent some images from getting processed. Notable here are the
 "Filling" ande "Bottom" examples which need opacity to work on various kinds of plots.
 
-inkscape is needed for the Mathics logos if you need to generate these from source.
+inkscape is needed for the Mathics3 logos if you need to generate these from source.
 
 Workflow
 --------
 
-The overall top-level LaTeX document is ``mathic.tex``. The pulls in
+The overall top-level LaTeX document is ``mathics3.tex``. The pulls in
 ``documentation.tex`` which is automatically generated from the Python
 program ``doc2latex.py`` and that in turn gets its data from
 ``doc_latex_data.pcl`` which in turn gets its data from ``../documentation/*.mdoc``.

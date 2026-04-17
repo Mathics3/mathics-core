@@ -63,13 +63,13 @@ class ElementsProperties:
     elements_fully_evaluated: bool = False
 
     # is_flat: True if none of the elements is an Expression
-    # Some Mathics functions allow flattening of elements. Therefore
+    # Some Mathics3 functions allow flattening of elements. Therefore
     # it can be useful to know if the elements are already flat
     is_flat: bool = False
 
     # is_ordered: True if all of the elements are ordered. Of course this is true,
     # if there are less than 2 elements. Ordered is an Attribute of a
-    # Mathics function.
+    # Mathics3 function.
     #
     # In rewrite_eval_apply() if a function is not marked as Ordered this attribute
     # has no effect which means it doesn't matter how it is set. So
@@ -132,7 +132,7 @@ class BaseElement(KeyComparable, ABC):
 
     def equal2(self, rhs: Any) -> Optional[bool]:
         """
-        Mathics two-argument Equal (==)
+        Mathics3 two-argument Equal (==)
         returns True if self and rhs are identical.
         """
         if self.sameQ(rhs):
@@ -318,14 +318,14 @@ class BaseElement(KeyComparable, ABC):
         return self.get_precision() is not None
 
     def sameQ(self, rhs) -> bool:
-        """Mathics SameQ"""
+        """Mathics3 SameQ"""
         return id(self) == id(rhs)
 
     def sequences(self):
         return None
 
     def user_hash(self, update) -> None:
-        # whereas __hash__ is for internal Mathics purposes like using Expressions as dictionary keys and fast
+        # whereas __hash__ is for internal Mathics3 purposes like using Expressions as dictionary keys and fast
         # comparison of elements, user_hash is called for Hash[]. user_hash should strive to give stable results
         # across versions, whereas __hash__ must not. user_hash should try to hash all the data available, whereas
         # __hash__ might only hash a sample of the data available.
@@ -393,7 +393,7 @@ class EvalMixin:
         return self.evaluate(evaluation), False
 
     def sameQ(self, other) -> bool:
-        """Mathics SameQ
+        """Mathics3 SameQ
         Each class should decide what is right here.
         """
         raise NotImplementedError

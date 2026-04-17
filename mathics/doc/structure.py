@@ -2,7 +2,7 @@
 """
 Structural elements of Mathics3 Documentation
 
-This module contains the classes representing the Mathics documentation structure,
+This module contains the classes representing the Mathics3 documentation structure,
 and extended regular expressions used to parse it.
 
 """
@@ -682,7 +682,7 @@ class DocSubsection(BaseDocElement):
 
 class MathicsMainDocumentation(Documentation):
     """MathicsMainDocumentation specializes ``Documentation`` by providing the attributes
-    and methods needed to generate the documentation from the Mathics library.
+    and methods needed to generate the documentation from the Mathics3 library.
 
     The parts of the documentation are loaded from the Markdown files contained
     in the path specified by ``self.doc_dir``. Files with names starting in numbers

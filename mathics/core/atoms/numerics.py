@@ -44,7 +44,7 @@ T = TypeVar("T")
 
 class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
     """
-    Different kinds of Mathics Numbers, the main built-in subclasses
+    Different kinds of Mathics3 Numbers, the main built-in subclasses
     being: Integer, Rational, Real, Complex.
     """
 
@@ -198,7 +198,7 @@ class Integer(Number[int]):
     # Dictionary of Integer constant values defined so far.
     # We use this for object uniqueness.
     # The key is the Integer's Python `int` value, and the
-    # dictionary's value is the corresponding Mathics Integer object.
+    # dictionary's value is the corresponding Mathics3 Integer object.
     _integers: Dict[Any, "Integer"] = {}
     _value: int
 
@@ -345,7 +345,7 @@ class Integer(Number[int]):
         return self.sympy
 
     def sameQ(self, rhs) -> bool:
-        """Mathics SameQ"""
+        """Mathics3 SameQ"""
         return isinstance(rhs, Integer) and self._value == rhs._value
 
     def do_copy(self) -> "Integer":
@@ -450,7 +450,7 @@ class MachineReal(Real[float]):
     # Dictionary of MachineReal constant values defined so far.
     # We use this for object uniqueness.
     # The key is the MachineReal's Python `float` value, and the
-    # dictionary's value is the corresponding Mathics MachineReal object.
+    # dictionary's value is the corresponding Mathics3 MachineReal object.
     _machine_reals: Dict[Any, "MachineReal"] = {}
     _value: Union[float, mpmath.mpf]
 
@@ -545,7 +545,7 @@ class MachineReal(Real[float]):
         return self._value == 0.0
 
     def sameQ(self, rhs) -> bool:
-        """Mathics SameQ for MachineReal.
+        """Mathics3 SameQ for MachineReal.
         If the rhs comparison value is a MachineReal, the values
         have to be equal.  If the rhs value is a PrecisionReal though, then
         the two values have to be within 1/2 ** (precision) of
@@ -590,7 +590,7 @@ class PrecisionReal(Real[sympy.Float]):
     # Dictionary of PrecisionReal constant values defined so far.
     # We use this for object uniqueness.
     # The key is the PrecisionReal's sympy.Float, and the
-    # dictionary's value is the corresponding Mathics PrecisionReal object.
+    # dictionary's value is the corresponding Mathics3 PrecisionReal object.
     _precision_reals: Dict[Any, "PrecisionReal"] = {}
     _sympy: sympy.Float
 
@@ -666,7 +666,7 @@ class PrecisionReal(Real[sympy.Float]):
         return PrecisionReal(sympy.Float(self.value, precision=_prec))
 
     def sameQ(self, rhs) -> bool:
-        """Mathics SameQ for PrecisionReal"""
+        """Mathics3 SameQ for PrecisionReal"""
         if isinstance(rhs, PrecisionReal):
             other_value = rhs.value
         elif isinstance(rhs, MachineReal):
@@ -710,7 +710,7 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
     # Dictionary of Complex constant values defined so far.
     # We use this for object uniqueness.
     # The key is the Complex value's real and imaginary parts as a tuple,
-    # dictionary's value is the corresponding Mathics Complex object.
+    # dictionary's value is the corresponding Mathics3 Complex object.
     _complex_numbers: Dict[Any, "Complex"] = {}
 
     # The precise value: a real number, an imaginary number, and a
@@ -892,7 +892,7 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         return Complex(real, imag)
 
     def sameQ(self, rhs) -> bool:
-        """Mathics SameQ"""
+        """Mathics3 SameQ"""
         return (
             isinstance(rhs, Complex) and self.real == rhs.real and self.imag == rhs.imag
         )
@@ -993,7 +993,7 @@ class Rational(Number[sympy.Rational]):
             return PrecisionReal(self.value.n(d))
 
     def sameQ(self, rhs) -> bool:
-        """Mathics SameQ"""
+        """Mathics3 SameQ"""
         return isinstance(rhs, Rational) and self.value == rhs.value
 
     @cache
