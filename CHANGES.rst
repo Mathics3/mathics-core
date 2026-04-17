@@ -11,7 +11,7 @@ A major revision of Form handling and character encoding ``$CharacterEncoding`` 
 
 Notes:
 
-#. There are incompatible changes. Use with Mathics-scanner 10.0.0 or greater.
+#. There are numerous incompatible changes. Use with Mathics-scanner 10.0.0 or greater.
 #. We are in the process of renaming ``Mathics`` to ``Mathics3``. You will notice a new Mathics3 logo in the documentation. ``Mathics`` was monolithic Python 2-ish code. Mathics3 has rewritten a number of major subcomponents and split off a number of subcomponents. There are still several that need to be revised or rewritten. The name change reflects this distinction between the two efforts, and emphasizes that ``Mathics3`` uses modern Python 3 idioms. While right now the repository name and import refer to ``mathics``, several repositories that use the Mathics3 core, or that Mathics3 uses, have been renamed. In particular, ``Mathics_Scanner`` is now ``Mathics3_Scanner``.
 
 
@@ -39,24 +39,27 @@ Enhancements
 #. ``N[integer, MachinePrecision]`` added
 #. ``PrintPrecision`` for ``N[integer]`` matches WMA; so does largest mantissa before converting to MachinePrecision Integer (for display) matches WMA.
 #. ``BeginPackage`` with ``Needs`` parameter added. This should allow more packages to load properly
-#. ``Expand`` works with relations
+#. ``Expand``, and ``Apart`` work with relations
+#. `#1596 <https://github.com/Mathics3/mathics-core/issues/1481>`_ Improve ``FullForm`` compatibility
 
 
 Bugs Fixed
 ----------
-
+#. `PR #1755 <https://github.com/Mathics3/mathics-core/issues/1775>`_ Ensure date formats have a year in them. This is needed for future Python versions.
 #. `PR #1762 <https://github.com/Mathics3/mathics-core/pull/1762>`_ Fix Rayleigh expansion rules to only match half-integer orders. (Chenxin Zhong)
 #. `#1741 <https://github.com/Mathics3/mathics-core/issues/1741>`_ Implement ``MachinePrecision`` option for large numbers that fall outside of Python's builtin ``float`` mantissa
 #. `#1740 <https://github.com/Mathics3/mathics-core/issues/1740>`_ ``N[3^200]`` in formats as ``PrecisionReal`` instead of ``MachinePrecision``
-#. `#1723 <https://github.com/Mathics3/mathics-core/issues/1723>`_ ``DiscretePlot`` gives wrong results nested function in ``First`` or ``Last``
-#. `#1713 <https://github.com/Mathics3/mathics-core/issues/1713>`_ ``?`` *symbol* and ``??`` *symbol* should be parsed as ``Information["symbol"]`` and ``Information["symbol"#. #1699 Character sequences used for string representation of boxes should be treated as single characters in string character-wise manipulation operations.
-#. `#1692 <https://github.com/Mathics3/mathics-core/issues/1692>`_ ``Map`` does not automatically map a function over ``Association`` values (vasdommes)
+#. `#1723 <https://github.com/Mathics3/mathics-core/issues/1723>`_ Plotting nested functions
+#. `#1713 <https://github.com/Mathics3/mathics-core/issues/1713>`_ ``?`` *symbol* and ``??`` *symbol* should be parsed as ``Information["symbol"]`` and ``Information["symbol"]``
+#. `#1699 <https://github.com/Mathics3/mathics-core/issues/1699>`_ Character sequences used for string representation of boxes should be treated as single characters in string character-wise manipulation operations.
+#. `#1692 <https://github.com/Mathics3/mathics-core/issues/1692>`_ ``Map`` does not automatically map a function over ``Association`` values (Li-Xiang-Ideal)
 #. `#1639 <https://github.com/Mathics3/mathics-core/issues/1639>`_ Map does not automatically map a function over Association values
+#. `#1622 <https://github.com/Mathics3/mathics-core/issues/1622>`_ Handling escape sequences inside string literals
 #. `#1519 <https://github.com/Mathics3/mathics-core/issues/1519>`_ ``Order`` for Numerics, e.g. ``Order[1.0, 1] == -1``, but is 0
 #. `#1492 <https://github.com/Mathics3/mathics-core/issues/1492>`_ ``UpSet`` not giving a "Tag Integer is Protected." message
 #. `#1487 <https://github.com/Mathics3/mathics-core/issues/1487>`_ ``FindMinimum``, ``FindMaximim`` do not give approximate results when ``$IterationLimit`` has been exceeded and convergence fails
 #. `#1481 <https://github.com/Mathics3/mathics-core/issues/1481>`_ $TraceBuiltins=False does not work after more than one $TraceBuiltins=True use.
-#. Reset ``evaluation.iteration__count`` on each new evaluation. This caused problems in long-running sessions, such as the Mathics3-django gallery examples.
+#. Reset ``evaluation.iteration_count`` on each new evaluation. This caused problems in long-running sessions, such as the Mathics3-django gallery examples.
 
 
 Command-line Utilities
@@ -97,6 +100,10 @@ API incompatibility
   flexibility in loading.
 * Token names have changed to align better with ``CodeParser`CodeTokenize``
 
+Documentation
+-------------
+
+Go over documentation for ``PowerMod[]``, ``Denominator[]``, ``Numerator[]``, ``Limit``, and ``ColorData``, among other things.
 
 9.0.0
 =====
