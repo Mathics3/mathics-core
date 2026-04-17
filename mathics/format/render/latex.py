@@ -2,7 +2,7 @@
 """
 Mathics3 box rendering to (AMS)LaTeX strings.
 
-Formatting is usually initiated in Mathics via TeXForm[].
+Formatting is usually initiated in Mathics3 via TeXForm[].
 
 AMS LaTeX is LaTeX with addition mathematical symbols, which
 we may make use of via the mathics-scanner tables.
@@ -421,7 +421,7 @@ add_render_function(Graphics3DBox, graphics3dbox)
 
 
 def graphicsbox(box: GraphicsBox, elements=None, **options) -> str:
-    """This is the top-level function that converts a Mathics Expression
+    """This is the top-level function that converts a Mathics3 Expression
     in to something suitable for AMSLaTeX.
 
     However right now the only LaTeX support for graphics is via Asymptote and

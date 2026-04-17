@@ -1,7 +1,7 @@
 """
 Evaluation routines for Plot3D and DensityPlot, which share a good bit of code.
 
-These routines build Mathics M-Expressions that describe plots.
+These routines build Mathics3 M-Expressions that describe plots.
 Note that this is distinct from boxing, formatting and rendering e.g. to SVG.
 That is done as another pass after M-expression evaluation finishes.
 """

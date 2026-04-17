@@ -253,7 +253,7 @@ def read_name_and_stream(stream_designator, evaluation: Evaluation) -> tuple:
 
 
 def read_list_from_types(read_types):
-    """Return a Mathics List from a list of read_type names or a single read_type"""
+    """Return a Mathics3 List from a list of read_type names or a single read_type"""
 
     # Trun read_types into a list if it isn't already one.
     if read_types.has_form("List", None):

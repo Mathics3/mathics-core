@@ -1,5 +1,5 @@
 """
-Mathics Evaluation Functions
+Mathics3 Evaluation Functions
 
 Routines here are core operations or functions that implement
 evaluation. If there were an instruction interpreter, these functions

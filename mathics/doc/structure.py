@@ -714,7 +714,7 @@ class MathicsMainDocumentation(Documentation):
     """
 
     def __init__(self):
-        super().__init__(title="Mathics Main Documentation", doc_dir=settings.DOC_DIR)
+        super().__init__(title="Mathics3 Main Documentation", doc_dir=settings.DOC_DIR)
         self.doctest_latex_pcl_path = settings.DOCTEST_LATEX_DATA_PCL
         self.pymathics_doc_loaded = False
         self.doc_data_file = settings.get_doctest_latex_data_path(

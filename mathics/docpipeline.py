@@ -841,7 +841,7 @@ def write_doctest_data(doctest_pipeline: DocTestPipeline, output_format=None):
 
 def build_arg_parser():
     """Build the argument parser"""
-    parser = ArgumentParser(description="Mathics test suite.", add_help=False)
+    parser = ArgumentParser(description="Mathics3 test suite.", add_help=False)
     parser.add_argument(
         "--help", "-h", help="show this help message and exit", action="help"
     )

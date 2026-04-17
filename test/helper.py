@@ -63,7 +63,7 @@ def check_evaluation(
     encoding: str = SYSTEM_CHARACTER_ENCODING,
 ):
     """
-    Helper function to test Mathics expression against
+    Helper function to test Mathics3 expression against
     its results.
 
     Compares the expressions represented by ``str_expr`` and  ``str_expected`` by

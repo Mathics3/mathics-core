@@ -2,7 +2,7 @@
 """
 Mathics3 Box rendering to MathML strings.
 
-MathML formatting is usually initiated in Mathics via MathMLForm[].
+MathML formatting is usually initiated in Mathics3 via MathMLForm[].
 
 For readability, and following WMA MathML generated code,  tags \
 containing sub-tags are split on several lines, one by

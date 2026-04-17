@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""Python Setuptools for Mathics core
+"""Python Setuptools for Mathics3 core
 
 For the easiest installation:
 
@@ -125,6 +125,6 @@ setup(
     cmdclass=CMDCLASS,
     ext_modules=EXTENSIONS,
     dependency_links=DEPENDENCY_LINKS,
-    # don't pack Mathics in egg because of media files, etc.
+    # don't pack Mathics3 in egg because of media files, etc.
     zip_safe=False,
 )

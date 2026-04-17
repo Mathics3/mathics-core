@@ -363,7 +363,7 @@ class MathicsVersion(Predefined):
 
     <dl>
       <dt>'MathicsVersion'
-      <dd>this string is the version of Mathics we are running.
+      <dd>this string is the version of Mathics3 we are running.
     </dl>
 
     >> MathicsVersion

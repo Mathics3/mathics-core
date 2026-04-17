@@ -112,8 +112,8 @@ class Begin(Builtin):
              System`Private`$ContextStack = Append[System`Private`$ContextStack, $Context];
              Protect[System`Private`$ContextStack];
              (*Special case: context begins with a context mark <<`>>*)
-             $Context = If[StringTake[context, 1]=="`", 
-                           $Context<>StringTake[context,{2,-1}], 
+             $Context = If[StringTake[context, 1]=="`",
+                           $Context<>StringTake[context,{2,-1}],
                            context
              ];
              $Context
@@ -148,8 +148,8 @@ class BeginPackage(Builtin):
     rules = {
         "expr:BeginPackage[context_String, pks_]": "Message[BeginPackage::cxls, context, pks]; expr",
         "expr:BeginPackage[context_String]": """
-        If[Or[StringLength[context]<1, StringTake[context,-1]!="`"], 
-           Message[BeginPackage::"ctx", context];Return[expr], 
+        If[Or[StringLength[context]<1, StringTake[context,-1]!="`"],
+           Message[BeginPackage::"ctx", context];Return[expr],
            BeginPackage[context, {}]
         ]""",
         "expr:BeginPackage[context_String, pkg_String]": "BeginPackage[context,{pkg}]",
@@ -524,7 +524,7 @@ class ModuleNumber_(Predefined):
 
     <ul>
       <li>'\$ModuleNumber' is incremented every time 'Module' or 'Unique' is called.
-      <li> a Mathics session starts with '\$ModuleNumber' set to 1.
+      <li> a Mathics3 session starts with '\$ModuleNumber' set to 1.
       <li> You can reset '\$ModuleNumber' to a positive machine integer, but if \
       you do so, naming conflicts may lead to inefficiencies.
     </li>

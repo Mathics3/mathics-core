@@ -497,7 +497,7 @@ class GraphicsBox(BoxExpression):
         return self._elements
 
     def to_svg(self, elements=None, **options) -> str:
-        """This is the top-level function that converts a Mathics Expression
+        """This is the top-level function that converts a Mathics3 Expression
         in to something suitable for SVG rendering.
         """
         assert elements is None

@@ -356,7 +356,7 @@ def eval_mpmath_function(
     working with precision `prec`. If `prec` is `None`, work with machine
     precision.
 
-    Return a Mathics Number or None if the evaluation failed.
+    Return a Mathics3 Number or None if the evaluation failed.
     """
     if prec is None:
         # if any argument has machine precision then the entire calculation

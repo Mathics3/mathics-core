@@ -164,7 +164,7 @@ class CompiledCode(Atom, ImmutableValueMixin):
         return super().pattern_precedence
 
     def sameQ(self, rhs) -> bool:
-        """Mathics SameQ"""
+        """Mathics3 SameQ"""
         return self is rhs
 
     def to_python(self, *args, **kwargs):

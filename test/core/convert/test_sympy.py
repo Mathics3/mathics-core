@@ -111,7 +111,7 @@ def test_from_to_sympy_change(expr, result, msg):
 def test_convert_sympy_singletons():
     """
     Check conversions between singleton symbols in
-    SymPy and Mathics Symbols.
+    SymPy and Mathics3 Symbols.
     """
     for key, val in sympy_singleton_to_mathics.items():
         print("equivalence", key, "<->", val)
