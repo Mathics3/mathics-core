@@ -39,14 +39,14 @@ mathics3.dvi: mathics3.tex documentation.tex
 	$(LATEXMK) -dvi -f --verbose mathics3
 
 #: Build main Mathics3 PDF
-mathics3.pdf: mathics3.tex documentation.tex images/logo-heptatom-Mathics3.pdf version-info.tex $(DOCTEST_LATEX_DATA_PCL) $(ASY_FILES)
+mathics3.pdf: mathics3.tex documentation.tex static-images/logo-heptatom-Mathics3.pdf version-info.tex $(DOCTEST_LATEX_DATA_PCL) $(ASY_FILES)
 	$(LATEXMK) --verbose -f -pdf -pdflatex="$(XETEX) -halt-on-error" mathics3
 
 #: Rebuild all Aymptote PDF figures from .asy files
 mathics3-asy-pdf: $(ASY_PDF_FILES)
 
 #: Use this if latexmk des not work. It runx
-mathics3-xetex.pdf: mathics3.tex documentation.tex images/logo-heptatom-Mathics3.pdf logo-heptatom.pdf version-info.tex $(DOCTEST_LATEX_DATA_PCL)
+mathics3-xetex.pdf: mathics3.tex documentation.tex static-images/logo-heptatom-Mathics3.pdf logo-heptatom.pdf version-info.tex $(DOCTEST_LATEX_DATA_PCL)
 	xelatex -halt-on-error -recorder "mathics3.tex"
 
 #: File containing version information
@@ -58,13 +58,13 @@ mathics3-test.pdf: mathics3-test.tex testing.tex
 	$(LATEXMK) --verbose -f -pdf -pdflatex="$(XETEX) -halt-on-error" mathics3-test
 
 #: Build main Mathcis3 PDF
-mathics3-???.pdf: mathics.tex documentation.tex mathics3-title.pdf images/logo-heptatom-Mathics3.pdf version-info.tex $(DOCTEST_LATEX_DATA_PCL)
+mathics3-???.pdf: mathics.tex documentation.tex mathics3-title.pdf static-images/logo-heptatom-Mathics3.pdf version-info.tex $(DOCTEST_LATEX_DATA_PCL)
 	$(LATEXMK) --verbose -f -pdf -pdflatex="$(XETEX) -halt-on-error" mathics
 
 
 #: Generate logos used in the titlepage
-images/logo-heptatom-Mathics3.pdf:
-	(cd .. && $(BASH) ./images.sh)
+static-images/logo-heptatom-Mathics3.pdf:
+	(cd .. && $(BASH) ./make-static-images.sh)
 
 #: The build of the documentation which is derived from docstrings in the Python code and doctest data
 documentation.tex: $(DOCTEST_LATEX_DATA_PCL) ../documentation/1-Manual.mdoc
@@ -75,9 +75,10 @@ pdf latex: mathics.pdf
 
 #: Remove all auto-generated files
 clean:
-	rm -f mathics3.asy mathics3.aux mathics3.idx mathics3.log mathics3.mtc mathics3.mtc* mathics3.out mathics3.toc || true
-	rm -f test-mathics3.aux test-mathics3.idx test-mathics3.log test-mathics3.mtc test-mathics3.mtc* test-mathics3.out test-mathics3.toc || true
-	rm -f mathics3.fdb_latexmk mathics3.ilg mathics3.ind mathics3.maf mathics3.pre || true
+	rm -f mathics3.asy mathics3.aux mathics3.fls mathics3.idx mathics3.log mathics3.mtc mathics3.mtc* mathics3.out mathics3.toc || true
+	rm -f test-mathics3.aux test-mathics3.idx test-mathics3.log test-mathics3.mtc test-mathics3.mtc* *.ps test-mathics3.out test-mathics3.toc || true
+	rm -f mathics3-test.fls mathics3.fdb_latexmk mathics3.ilg mathics3.ind mathics3.maf mathics3.pre mathics3-test.mtc* || true
+	rm -f mathics3-test.fdb_latexmk mathics3-test.ilg mathics3-test.ind mathics3-test.maf mathics3-test.pre || true
 	rm -f $(ASY_FILES) $(ASY_PDF_FILES) || true
 	rm -f mathics3-test.asy mathics3-test.aux mathics3-test.idx mathics3-test.log mathics3-test.mtc mathics3est.mtc* mathics3-test.out mathics3-test.toc || true
 	rm -f documentation.tex $(DOCTEST_LATEX_DATA_PCL) || true
