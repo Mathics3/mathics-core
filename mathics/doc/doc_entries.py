@@ -647,7 +647,7 @@ class DocumentationEntry(BaseDocElement):
             # For backward compatibility, we need
             # to reduce this to three fields.
             # TODO: remove me and ensure that this
-            # works here and in Mathics Django
+            # works here and in Mathics3 Django
             if len(path) > 3:
                 path = path[:2] + [path[-1]]
             test.key = tuple(path) + (test.index,)

@@ -98,7 +98,7 @@ def is_named_operator(str_op):
 @lru_cache(maxsize=1024)
 def ascii_op_to_unicode(ascii_op: str, encoding: str) -> str:
     """
-    Convert an ASCII representation of a Mathics operator into its
+    Convert an ASCII representation of a Mathics3 operator into its
     Unicode equivalent based on encoding (in Mathics, $CharacterEncoding).
     If we can't come up with a unicode equivalent, just return "ascii_op".
     """

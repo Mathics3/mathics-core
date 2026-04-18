@@ -2,7 +2,7 @@
 InputForm-formatted strings.
 
 `InputForm` produces textual output suitable for being parsed and
-evaluated in Mathics CLI.
+evaluated in Mathics3 CLI.
 
 `InputForm` is not affected by MakeBox assignment.
 

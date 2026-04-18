@@ -77,7 +77,7 @@ def from_complex(arg: complex) -> Complex:
 
 
 def from_python(arg: Any) -> BaseElement:
-    """Converts a Python expression into a Mathics expression."""
+    """Converts a Python expression into a Mathics3 expression."""
     from mathics.core.convert.expression import to_mathics_list
     from mathics.core.expression import Expression
     from mathics.core.list import ListExpression

@@ -335,7 +335,7 @@ This work will continue after the 5.0.0 release. We expect plotting will be fast
 Being able to run existing WMA packages
 ----------------------------------------
 
-Sadly, Mathics cannot run most of the open-source WMA packages.
+Sadly, Mathics3 cannot run most of the open-source WMA packages.
 
 In particular we would like to see the following run:
 

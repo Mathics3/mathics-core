@@ -90,7 +90,7 @@ class AssocTests(ParserTests):
 
 class AtomTests(ParserTests):
     def has_unicode_setup_in_scanner(self) -> bool:
-        """Return True if the Mathics scanner is set up to
+        """Return True if the Mathics3 scanner is set up to
         return standard Unicode symbols for various custom WL characters"""
         return repr(self.parse("\\[ExponentialE]")) != "E"
 

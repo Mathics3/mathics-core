@@ -99,7 +99,7 @@ class String(Atom, BoxElementMixin):
         return "\n" in self.value
 
     def sameQ(self, rhs) -> bool:
-        """Mathics SameQ"""
+        """Mathics3 SameQ"""
         return isinstance(rhs, String) and self.value == rhs.value
 
     def to_expression(self):

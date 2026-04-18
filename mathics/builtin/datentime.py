@@ -1066,7 +1066,7 @@ class SystemTimeZone(Predefined):
 
     <dl>
       <dt>'\$SystemTimeZone'
-      <dd> gives the current time zone for the computer system on which Mathics is \
+      <dd> gives the current time zone for the computer system on which Mathics3 is \
            being run.
     </dl>
 

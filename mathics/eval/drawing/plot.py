@@ -1,7 +1,7 @@
 """
 Evaluation routines for 2D plotting.
 
-These routines build Mathics M-Expressions that describe plots.
+These routines build Mathics3 M-Expressions that describe plots.
 Note that this is distinct from boxing, formatting and rendering e.g. to SVG.
 That is done as another pass after M-expression evaluation finishes.
 """
@@ -476,7 +476,7 @@ def eval_Plot(plot_options, options: dict, evaluation: Evaluation) -> Expression
 
     Note: (?) indicates somewhat vague guesses.
 
-    functions: is a list of Mathics M-Expressions to be evaluated
+    functions: is a list of Mathics3 M-Expressions to be evaluated
     start: minimum x-axis value
     stop:  maximum t x-axis value
     x_name; the name of the function parameter name used by ``functions``

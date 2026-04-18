@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Symbols for some (but not all) Mathics primitive names
+Symbols for some (but not all) Mathics3 primitive names
 
 We put all of this in one place to make it easy to find most of them.
 

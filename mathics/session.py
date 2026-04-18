@@ -5,7 +5,7 @@ This module contains routines to simplify front-end use.
 In particular we provide:
 
 * a class to create a Mathics3 session,
-* load the Mathics core settings files (written in WL),
+* load the Mathics3 core settings files (written in WL),
 * read and set Mathics3 Settings.
 """
 
@@ -30,7 +30,7 @@ def autoload_files(
     block_global_definitions: bool = True,
 ):
     """
-    Load Mathics code from the autoload-folder files.
+    Load Mathics3 code from the autoload-folder files.
     """
     from mathics.eval.files_io.files import eval_Get
 
@@ -71,7 +71,7 @@ def load_default_settings_files(
     definitions: Definitions, load_cli_settings: bool = True
 ):
     """
-    Loads the system default settings for Mathics core.
+    Loads the system default settings for Mathics3 core.
 
     Other settings files may get loaded later and override these
     defaults.
@@ -95,7 +95,7 @@ def get_settings_value(definitions: Definitions, setting_name: str):
 
 
 def set_settings_value(definitions: Definitions, setting_name: str, value):
-    """Set a Mathics Settings` with name "setting_name" from definitions to value
+    """Set a Mathics3 Settings` with name "setting_name" from definitions to value
     "value".
     """
     return definitions.set_ownvalue(setting_name, value)

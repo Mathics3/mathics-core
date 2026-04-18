@@ -123,7 +123,7 @@ def print_expression_tree(
     expr, indent="", marker=lambda expr: "", file=None, approximate=False
 ):
     """
-    Print a Mathics Expression as an indented tree.
+    Print a Mathics3 Expression as an indented tree.
     Caller may supply a marker function that computes a marker
     to be displayed in the tree for the given node.
     The approximate flag causes numbers to be printed with fewer digits

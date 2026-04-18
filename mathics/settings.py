@@ -59,7 +59,7 @@ else:
 USER_PACKAGE_DIR = osp.join(DATA_DIR, "Packages")
 
 # In contrast to ROOT_DIR, LOCAL_ROOT_DIR is used in building
-# LaTeX documentation. When Mathics is installed, we don't want LaTeX file documentation.tex
+# LaTeX documentation. When Mathics3 is installed, we don't want LaTeX file documentation.tex
 # to get put in the installation directory, but instead we build documentation
 # from checked-out source and that is where this should be put.
 LOCAL_ROOT_DIR = get_srcdir()

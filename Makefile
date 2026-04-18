@@ -162,7 +162,7 @@ doctest:
 doctest-x:
 	DOCTEST_OPTIONS="-x" $(MAKE) doctest
 
-#: Make Mathics PDF manual via Asymptote and LaTeX
+#: Make Mathics3 PDF manual via Asymptote and LaTeX
 latexdoc texdoc doc:
 	(cd mathics/doc/latex && $(MAKE) doc)
 

@@ -307,7 +307,7 @@ def test_close():
             "{Hold[1 + 2]}",
             "",
         ),
-        ('stream = StringToStream["Mathics is cool!"];', None, "Null", ""),
+        ('stream = StringToStream["Mathics3 is cool!"];', None, "Null", ""),
         ("SetStreamPosition[stream, -5]", ("Invalid I/O Seek.",), "0", ""),
         (
             '(strm = StringToStream["abc 123"])//{#1[[0]],#1[[1]]}&',

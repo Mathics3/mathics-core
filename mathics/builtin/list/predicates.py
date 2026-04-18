@@ -62,7 +62,7 @@ class ContainsOnly(Builtin):
         same_test = self.get_option(options, "SameTest", evaluation)
 
         def sameQ(a, b) -> bool:
-            """Mathics SameQ"""
+            """Mathics3 SameQ"""
             result = Expression(same_test, a, b).evaluate(evaluation)
             return result is SymbolTrue
 

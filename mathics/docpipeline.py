@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# FIXME: combine with same thing in Mathics Django
+# FIXME: combine with same thing in Mathics3 Django
 """
 Does 2 things which can either be done independently or
 as a pipeline:
@@ -841,7 +841,7 @@ def write_doctest_data(doctest_pipeline: DocTestPipeline, output_format=None):
 
 def build_arg_parser():
     """Build the argument parser"""
-    parser = ArgumentParser(description="Mathics test suite.", add_help=False)
+    parser = ArgumentParser(description="Mathics3 test suite.", add_help=False)
     parser.add_argument(
         "--help", "-h", help="show this help message and exit", action="help"
     )

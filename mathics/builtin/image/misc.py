@@ -23,7 +23,7 @@ from mathics.eval.image import extract_exif
 # are available. They do this by setting the `requires` class variable.
 
 
-# Code related to Mathics Functions that import and export.
+# Code related to Mathics3 Functions that import and export.
 
 
 class ImageExport(Builtin):

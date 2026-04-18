@@ -98,7 +98,7 @@ def test_setdelayed_oneidentity():
         (
             "Clear[Expand];Options[Expand]=Join[Options[Expand], {MyOption:>Automatic}]; Options[Expand]",
             "{MyOption ⧴ Automatic, Modulus ⧴ 0, Trig ⧴ False}",
-            "Mathics stores options in a dictionary. This is why ``MyOption`` appears first.",
+            "Mathics3 stores options in a dictionary. This is why ``MyOption`` appears first.",
         ),
         # (
         #    "ClearAll[Expand]; Options[Expand]",

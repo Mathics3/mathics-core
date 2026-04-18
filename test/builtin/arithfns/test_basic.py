@@ -302,7 +302,7 @@ def test_power(str_expr, str_expected, expected_message, fail_msg):
         ("Complex[10, 0.]", "10. + 0. I", "build complex"),
         ("Complex[10, 0]", "10", "build complex"),
         ("1 + 0. I", "1. + 0. I", None),
-        # Mathics produces "0."
+        # Mathics3 produces "0."
         # For some weird reason, the following tests
         # pass if we run this unit test alone, but not
         # if we run it together all the tests

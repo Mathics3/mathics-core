@@ -28,13 +28,13 @@ Out[2]= True
 because it ignores that the attribute is clean at the time in which the rule is applied.
 
 
-In Mathics, on the other hand, attributes are taken into account just
+In Mathics3, on the other hand, attributes are taken into account just
 at the moment of the replacement, so the output of both expressions
 are the opposite.
 
 
 This set of tests are proposed to drive the behaviour of Rules in
-Mathics closer to the one in WMA.  In particular, the way in which
+Mathics3 closer to the one in WMA.  In particular, the way in which
 `Orderless` and `Flat` attributes affects evaluation are currently
 tested.
 

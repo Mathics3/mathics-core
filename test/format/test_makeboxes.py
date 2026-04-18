@@ -198,7 +198,7 @@ def test_makeboxes_others_fail(str_expr, str_expected, msg):
             r'RowBox[{"G","[",RowBox[{"{",RowBox[{"\"Formatted f\"",",", RowBox[{"{","3.002","}"}],"," ,"\"Standard\""}],"}"}],"]"}]',
             "Checking again, with the defined StandardForm format",
         ),
-        # InterpretationBox is not used in Mathics  = InterpretationBox[PaneBox["\"G[{Formatted f, {3.002}, Standard}]\""], OutputForm[G[F[3.002`]]], Rule[Editable, False]]
+        # InterpretationBox is not used in Mathics3  = InterpretationBox[PaneBox["\"G[{Formatted f, {3.002}, Standard}]\""], OutputForm[G[F[3.002`]]], Rule[Editable, False]]
         (
             r"MakeBoxes[OutputForm[G[F[3.002]]], StandardForm]",
             r'RowBox[{"G","[",RowBox[{"{",RowBox[{"\"Formatted f\"",", ", RowBox[{"{","3.002","}"}],", ","\"Standard\""}],"}"}],"]"}]',

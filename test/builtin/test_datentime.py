@@ -111,7 +111,12 @@ def test_datestring():
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
-        ("AbsoluteTime[1000]", None, "1000", "Mathematica Bug - Mathics gets it right"),
+        (
+            "AbsoluteTime[1000]",
+            None,
+            "1000",
+            "Mathematica Bug - Mathics3 gets it right",
+        ),
         (
             'DateList["7/8/9"]',
             ("The interpretation of 7/8/9 is ambiguous.",),

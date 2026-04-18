@@ -650,7 +650,7 @@ class Builtin:
     def get_option_string(self, *params) -> Tuple[Optional[str], Optional[BaseElement]]:
         """
         Return a tuple of a `str` representing the option name,
-        and the proper Mathics value of the option.
+        and the proper Mathics3 value of the option.
         If the value does not have a name, the name is None.
         """
         s = self.get_option(*params)

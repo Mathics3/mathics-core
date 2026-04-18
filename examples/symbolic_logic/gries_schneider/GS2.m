@@ -40,7 +40,7 @@
 |___/\___/\___/_\___\__,_|_||_| |___/_\_\ .__/_| \___/__/__/_\___/_||_/__/
                                         |_|
 
-    Mathics has a full range of Boolean operators.
+    Mathics3 has a full range of Boolean operators.
 
     Look at the example at the bottom of page 28. Code This directly using ||
     for \/ ('or') and && for /\ ('and'). Generate a table will all combinations
@@ -81,7 +81,7 @@ __   __    _ _    _ _ _                         _
 |___/ \_,_\__,_|_|_|\__|\_, |
                         |__/
 
-    We must make up prefix forms for Boolean operations. Mathics does not have
+    We must make up prefix forms for Boolean operations. Mathics3 does not have
     "Symbolize", Mathematica's way to define new notation.
 
     TODO: would be nice to add "Symbolize" to mathics.
@@ -243,7 +243,7 @@ nand, neqv, neq, nsnd, nimplies, nfst, nbecause, nor, fconst}
 
 *)
 
-(*  Mathics had an open bug preventing evaluation of the binary truth table
+(*  Mathics3 had an open bug preventing evaluation of the binary truth table
     when the input is a variable.
 
     https://github.com/mathics/Mathics/issues/960
@@ -436,7 +436,7 @@ Module[{expressions = Table[randomBooleanExpression[], {20}]},
   Module[{dduals = dual /@ dual /@ expressions},
     MapThread[expect, {expressions, dduals}]]]
 
-(* The Superman example, page 37; we'll consider all 64 states. Mathics has a
+(* The Superman example, page 37; we'll consider all 64 states. Mathics3 has a
    nice, rendered 'implication' arrow. The ASCII input syntax for it is
    "\[Implies]". This might render well on your screen if you have a good
    Unicode font and UTF-8 encoding. Also, we're using mathics logical operators
