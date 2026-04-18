@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Code Compilation
 
-Code compilation allows Mathics functions to be run faster.
+Code compilation allows Mathics3 functions to be run faster.
 
 When LLVM and Python libraries are available, compilation \
 produces LLVM code.

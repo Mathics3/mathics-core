@@ -40,7 +40,7 @@ class NumericOperators:
     It adds or "mixes in" numeric functions for these objects like ``round_to_float()``.
 
     It also adds methods to the class to facilite building
-    ``Expression`` s in the Mathics Python code using Python syntax.
+    ``Expression`` s in the Mathics3 Python code using Python syntax.
 
     So for example, instead of writing in Python::
 
@@ -151,7 +151,7 @@ class Atom(BaseElement):
     In other words, they are the expression's elements (leaves of the
     expression) which we cannot dig down deeper structurally.
 
-    Of note is the fact that the Mathics ``Part[]`` function of an
+    Of note is the fact that the Mathics3 ``Part[]`` function of an
     Atom object does not exist.
 
     Atom is not a directly-mentioned WL entity, although conceptually
@@ -183,7 +183,7 @@ class Atom(BaseElement):
         return result
 
     def equal2(self, rhs: Any) -> Optional[bool]:
-        """Mathics two-argument Equal (==)
+        """Mathics3 two-argument Equal (==)
         returns True if self and rhs are identical.
         """
         if self.sameQ(rhs):
@@ -348,7 +348,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     # Dictionary of Symbols defined so far.
     # We use this for object uniqueness.
     # The key is the Symbol object's string name, and the
-    # diectionary's value is the Mathics object for the Symbol.
+    # diectionary's value is the Mathics3 object for the Symbol.
     _symbols: Dict[str, "Symbol"] = {}
 
     class_head_name = "System`Symbol"
@@ -418,7 +418,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         return Symbol(self.name)
 
     def equal2(self, rhs: Any) -> Optional[bool]:
-        """Mathics two-argument Equal (==)"""
+        """Mathics3 two-argument Equal (==)"""
 
         if self is rhs:
             return True
@@ -588,7 +588,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             return var
 
     def sameQ(self, rhs: Any) -> bool:
-        """Mathics SameQ"""
+        """Mathics3 SameQ"""
         return self is rhs
 
     @property
@@ -643,7 +643,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
 
 class SymbolConstant(Symbol):
     """
-    A Symbol Constant is Symbol of the Mathics system whose value can't
+    A Symbol Constant is Symbol of the Mathics3 system whose value can't
     be changed and has a corresponding Python representation.
 
     Therefore, like an ``Integer`` constant such as ``Integer0``, we don't
@@ -669,7 +669,7 @@ class SymbolConstant(Symbol):
     # Dictionary of SymbolConstants defined so far.
     # We use this for object uniqueness.
     # The key is the SymbolConstant's value, and the
-    # diectionary's value is the Mathics object representing that Python value.
+    # diectionary's value is the Mathics3 object representing that Python value.
     _symbol_constants: Dict[str, "SymbolConstant"] = {}
 
     # We use __new__ here to unsure that two Integer's that have the same value

@@ -350,7 +350,7 @@ class BasePattern(ABC):
     def sameQ(self, other: BaseElement) -> bool: ...
 
     def sameQ(self, other) -> bool:
-        """Mathics SameQ"""
+        """Mathics3 SameQ"""
         if isinstance(other, BasePattern):
             return self.expr.sameQ(other.expr)
         return self.expr.sameQ(other)

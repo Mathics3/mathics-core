@@ -334,7 +334,7 @@ class Rule(BaseRule):
 class FunctionApplyRule(BaseRule):
     """
     A FunctionApplyRule is a rule that has a replacement term that
-    is associated a Python function rather than a Mathics Expression
+    is associated a Python function rather than a Mathics3 Expression
     as happens in a transformation Rule.
 
     Each time the Pattern part of the Rule matches an Expression, the
