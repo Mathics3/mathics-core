@@ -125,7 +125,7 @@ def get_type(value) -> Optional[str]:
 
 
 def sameQ(v1, v2) -> bool:
-    """Mathics SameQ"""
+    """Mathics3 SameQ"""
     return get_type(v1) == get_type(v2) and v1 == v2
 
 

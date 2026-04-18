@@ -2,6 +2,8 @@
  CHANGES
 =========
 
+April 19, 2026
+
 10.0.0
 ======
 
@@ -107,6 +109,9 @@ Go over documentation for ``PowerMod[]``, ``Denominator[]``, ``Numerator[]``, ``
 
 9.0.0
 =====
+
+Aug 28, 2025
+
 
 Added support for Python 3.13. Dropped support for Python 3.8 and 3.9.
 
@@ -275,7 +280,7 @@ Code now supports the Emscripten platform, so this code can be installed
 in pyodide using ``micropip.install``.
 
 Operators are now controlled from a new operators YAML table from the
-``mathics-scanner`` repository. A pass was made over the Mathics parser
+``mathics-scanner`` repository. A pass was made over the Mathics3 parser
 to handle box operators more properly. More work is needed here.
 
 We started adding more debugging capabilities:
@@ -400,7 +405,7 @@ API incompatibility
   ``Symbol: Expr`` as ``Pattern[Symbol, Expr]``.
   To specify the associated format in ``format_`` methods, the docstring, and the list of formats must be wrapped in parentheses, like
   ``(InputForm,): Definitions[...]`` instead of just ``InputForm: Definitions[...]``.
-* Character and Operator information that has been gone over in the Mathics Scanner project. The information in JSON tables, the keys, and values have thus changed. Here, we read this information in and use that instead of previously hard-coded values.
+* Character and Operator information that has been gone over in the Mathics3 Scanner project. The information in JSON tables, the keys, and values have thus changed. Here, we read this information in and use that instead of previously hard-coded values.
 
 
 Bugs Fixed
@@ -631,7 +636,7 @@ Internals
 #. ``from_mpmath`` conversion supports a new parameter ``acc`` to set the accuracy of the number.
 #. ``mathics.builtin.inout`` was split in several modules (``inout``, ``messages``, ``layout``, ``makeboxes``) in order to improve the documentation.
 #. ``mathics.eval`` was created to have code that might be put in an instruction interpreter. The opcodes-like functions start ``eval_``, other functions are helper functions for those.
-#. A map from operator name to Unicode or ASCII comes from Mathics scanner character tables.
+#. A map from operator name to Unicode or ASCII comes from Mathics3 scanner character tables.
 #. Built-in instance methods that start ``eval`` are considered rule matching and function application; the use of the name ``apply``is deprecated, when ``eval`` is intended.
 #. Modularize and improve the way in which ``Builtin`` classes are selected to have an associated ``Definition``.
 #. ``_SetOperator.assign_elementary`` was renamed as ``_SetOperator.assign``. All the special cases are not handled by the ``_SetOperator.special_cases`` dict.
@@ -684,6 +689,9 @@ Enhancements
 5.0.2
 =====
 
+August 6, 2022
+
+
 Get in `requirements-cython.txt`` into tarball. Issue #483
 
 New Symbols
@@ -695,6 +703,8 @@ New Symbols
 
 5.0.1
 =====
+
+August 6, 2022
 
 Mostly a release to fix a Python packaging problem.
 
@@ -723,6 +733,7 @@ Bugs Fixed
 5.0.0
 =====
 
+July 31, 2022
 
 This release starts to address some of the performance problems and terminology confusion that goes back to the very beginning.
 As a result, this release is not API compatible with prior releases.
@@ -858,7 +869,7 @@ Bugs Fixed
 #. Fix the comparison between ``Image`` and other expressions.
 #. Fix an issue that prevented that `Collect` handles properly polynomials on expressions (issue #285).
 #. Fix a bug in formatting expressions of the form ``(-1)^a`` without the parenthesis (issue #332).
-#. Fix a but in failure in the order in which ``mathics.core.definitions`` stores the rules.
+n#. Fix a but in failure in the order in which ``mathics.core.definitions`` stores the rules.
 #. Numeric overflows now do not affect the full evaluation, but instead just the element that produces it.
 #. Compatibility with the way expressions are ordered more closely follows WMA: Now, expressions with fewer elements come first (issue #458).
 #. The order of the context name resolution (and ``$ContextPath``) was switched; ``"System`` comes before ``"Global``.
@@ -935,7 +946,9 @@ Bugs Fixed
 #. stream processing was redone. ``InputStream``, ``OutputStream`` and ``StringToStream`` should all open, close, and assign stream numbers now
 
 4.0.0
-#.----
+=====
+
+August 31, 2021
 
 The main thrust behind this API-breaking release is to be able to support a protocol for Graphics3D.
 
@@ -946,7 +959,7 @@ to implement this. Tiago Cavalcante Trindade is responsible for this
 code.
 
 The other main API-breaking change is more decentralization of the
-Mathics Documentation. A lot more work needs to go on here, and so
+Mathics3 Documentation. A lot more work needs to go on here, and so
 there will be one or two more API breaking releases. After this
 release, the documentation code will be split off into its own git
 repository.
@@ -956,7 +969,7 @@ Enhancements
 
 #. a Graphics3D protocol, mentioned above, has been started
 #. ``mathics.setting`` have been gone over to simplify.
-#. A rudimentary and crude SVG Density Plot was added. The prior method relied on mysterious secret handshakes in JSON between Mathics Core and Mathics Django. While the density plot output was nicer in Mathics Django, from an overall API perspective this was untenable. A future version may improve SVG handling of Density plots using elliptic density gratings in SVG. And/or we may define this in the JSON API.
+#. A rudimentary and crude SVG Density Plot was added. The prior method relied on mysterious secret handshakes in JSON between Mathics3 Core and Mathics Django. While the density plot output was nicer in Mathics Django, from an overall API perspective this was untenable. A future version may improve SVG handling of Density plots using elliptic density gratings in SVG. And/or we may define this in the JSON API.
 #. SVG and Asymptote drawing now includes inline comments indicating which Box Structures are being implemented in code
 
 Documentation
@@ -964,7 +977,7 @@ Documentation
 
 #. Document data used in producing PDFs and HTML-rendered documents is now stored in both the user space, where it can be extended, and in the package install space -- which is useful when there is no user-space data.
 #. The documentation pipeline has been gone over. Turning the internal data into a LaTeX file is now a separate own program. See ``mathics/doc/test/README.rst`` for an overview of the dataflow needed to create a PDF.
-#. Summary text for various built-in functions has been started. These  summaries are visible in Mathics Django when lists links are given in Chapters, Guide Sections, or Sections.
+#. Summary text for various built-in functions has been started. These  summaries are visible in Mathics3 Django when lists links are given in Chapters, Guide Sections, or Sections.
 #. A Sections for Lists has been started and grouping for these have been added. So code and sections have moved around here.
 #. Regexp detection of tests versus document text has been improved.
 #. Documentation improved
@@ -982,11 +995,13 @@ Regressions
 -----------
 
 #. Some of the test output for builtins inside a guide sections is not automatically rendered
-#. Density plot rendered in Mathics Django do not render as nice since we no longer use the secret protocol handshake hack. We may fix this in a future release
+#. Density plot rendered in Mathics3 Django do not render as nice since we no longer use the secret protocol handshake hack. We may fix this in a future release
 #. Some of the Asymptote graphs look different. Graphic3D mesh lines are not as prominent or don't appear. This is due to using a newer version of Asymptote, and we will address this in a future release.
 
 3.1.0
 =====
+
+August 3, 2021
 
 New variables and builtins
 --------------------------
@@ -1010,7 +1025,7 @@ have been reformatted for non-fixed-width displays. #1474
 
 PolarPlot documentation was improved. #1475.
 
-A getter/setter method for Mathics settings was added #1472.
+A getter/setter method for Mathics3 settings was added #1472.
 
 
 Bugs Fixed
@@ -1027,12 +1042,14 @@ Bugs Fixed
 3.0.0
 =====
 
+June 26, 2021
+
 Overall there is a major refactoring underway of how formatting works
 and its interaction with graphics.  More work will come in later releases.
 
 Some of the improvements are visible not here but in the front-ends
 mathicsscript and mathics-django. In mathicsscript, we can now show
-SVG images (via matplotlib).  In Mathics Django, images and threejs
+SVG images (via matplotlib).  In Mathics3 Django, images and threejs
 graphs are no longer embedded in MathML.
 
 A lot of the improvements in this release were done or made possible with the help of
@@ -1085,10 +1102,10 @@ Documentation specific builtins like ``PolarPlot`` or
 ``BernsteinBasis`` have been added improved, and document examples
 have been revised such as for ``PieChart``, ``Pi`` and others.
 
-The Mathics Gallery examples have been updated.
+The Mathics3 Gallery examples have been updated.
 
 Some slight improvements were made to producing the PDF and more kinds
-of non-ASCII symbols are tolerated. Expect more work on this in the future via tables from the `Mathics Scanner <https://pypi.org/project/Mathics-Scanner/1.2.1/>`_ project.
+of non-ASCII symbols are tolerated. Expect more work on this in the future via tables from the `Mathics3 Scanner <https://pypi.org/project/Mathics-Scanner/1.2.1/>`_ project.
 
 Chapters are no longer in Roman Numerals.
 
@@ -1105,6 +1122,8 @@ Internal changes
 
 2.2.0
 =====
+
+May 5, 2021
 
 Package update
 --------------
@@ -1142,7 +1161,7 @@ Enhancements
 #. ``FileNames`` returns a sorted list. Issue #1250.
 #. ``FindRoot`` now accepts several optional parameters like ``Method`` and ``MaxIterations``. See Issue #1235.
 #. ``FixedPoint`` now supports the ``SameTest`` option.
-#. ``mathics`` CLI now uses its own Mathics ``settings.m`` file
+#. ``mathics`` CLI now uses its own Mathics3 ``settings.m`` file
 #. ``Prepend`` works with ``DownValues`` Issue #1251
 #. ``Prime`` and ``PrimePi`` now accept a list parameter and have the ``NumericFunction`` attribute.
 #. ``Read`` with ``Hold[Expression]`` now supported. (#1242)
@@ -1187,6 +1206,8 @@ Internal changes
 2.1.0
 =====
 
+
+
 New builtins
 ------------
 
@@ -1203,10 +1224,10 @@ New builtins
 Enhancements
 ------------
 
-#. The Mathics version is checked for builtin modules at load time. A message is given when a builtin doesn't load.
+#. The Mathics3 version is checked for builtin modules at load time. A message is given when a builtin doesn't load.
 #. Automatic detection for the best strategy to numeric evaluation of constants.
 #. ``FileNameJoin`` now implements ``OperatingSystem`` option
-#. Mathics functions are accepted by ``Compile[]``. The return value or type will be ``Compile[] and CompiledFunction[]``.  Every Mathics Expression can have a compiled form, which may be implemented as a Python function.
+#. Mathics3 functions are accepted by ``Compile[]``. The return value or type will be ``Compile[] and CompiledFunction[]``.  Every Mathics3 Expression can have a compiled form, which may be implemented as a Python function.
 #. ``Equal[]`` now compares complex against other numbers properly.
 #. Improvements in handling products with infinite factors: ``0 Infinity``-> ``Indeterminate``, and ``expr Infinity``-> ``DirectedInfinite[expr]``
 #. ``$Path`` is now ``Unprotected`` by default
@@ -1247,7 +1268,7 @@ What's to expect in a Future Release
 ------------------------------------
 
 #. Improved ``Equal`` See `PR #1209 <https://github.com/mathics/Mathics/pull/1209/>`_
-#. Better Unicode support, especially for Mathics operators
+#. Better Unicode support, especially for Mathics3 operators
 #. Improved ``D[]`` and ``Derivative[]`` See `PR #1220 <https://github.com/mathics/Mathics/pull/1209/>`_.
 #. Improved performance
 #. ``Collect[]`` See `Issue #1194 <https://github.com/mathics/Mathics/issues/1194>`_.
@@ -1257,7 +1278,9 @@ What's to expect in a Future Release
 2.0.0
 =====
 
-To accommodate growth and increased use of pieces of Mathics inside other packages, parts of Mathics have been split off and moved to separate packages. In particular:
+Feb 14, 2021
+
+To accommodate growth and increased use of pieces of Mathics3 inside other packages, parts of Mathics3 have been split off and moved to separate packages. In particular:
 
 #. The Django front-end is now a PyPI installable package called `Mathics-Django <https://pypi.org/project/Mathics-Django/>`_.
 #. Scanner routines, character translation tables to/from Unicode, and character properties are now `mathics-scanner <https://github.com/Mathics3/mathics-scanner>`_.
@@ -1326,7 +1349,7 @@ Bug fixes
 
 Numerous bugs were fixed while working on Combinatorica V0.9 and CellsToTeX.
 
-#. ``Sum`` involving numeric integer bounds involving Mathics functions fixed.
+#. ``Sum`` involving numeric integer bounds involving Mathics3 functions fixed.
 #. ``Equal`` ``UnEqual`` testing on Strings (#1128).
 
 Document updates
@@ -1338,7 +1361,7 @@ Enhancements and bug fixes:
 ---------------------------
 
 #. Fix evaluation timeouts
-#. ``Sum``'s lower and upper bounds can now be Mathics expressions
+#. ``Sum``'s lower and upper bounds can now be Mathics3 expressions
 
 Miscellanea
 -----------
@@ -1362,7 +1385,7 @@ Future
 
 This may be the last update before some major refactoring and interface changes occur.
 
-In a future 2.0.0 release, Django will no longer be bundled here. See `mathics-django <https://github.com/Mathics3/mathics-django>` for the unbundled replacement.
+In a future 2.0.0 release, Django will no longer be bundled here. See `mathics-django <https://github.com/Mathics3/mathics-django>`_ for the unbundled replacement.
 
 Some changes were made to support `Pymathics Graph <https://github.com/Mathics3/pymathics-graph>`_, a new graph package bundled separately, and to support the ability for front-ends to handle rendering on their own. Note that currently this doesn't integrate well into the Django interface, although it works well in ``mathicsscript``.
 
@@ -1371,7 +1394,7 @@ Package updates
 
 #. SymPy 1.7.1
 
-Mathics Packages added:
+Mathics3 Packages added:
 
 #. ``DiscreteMath`CombinatoricaV0.9`` (preferred) and ``DiscreteMath`CombinatoricaV0.6``.
 
@@ -1429,7 +1452,7 @@ Enhancements and bug fixes
 #. Tokenization of ``\.`` without a following space (``ReplaceAll``). Issue #992.
 #. Support for assignments to named ```Pattern```
 #. Improve support for ```Names``. PR #1003
-#. Add a ``MathicsSession`` class to simplify running Mathics from Python. PR #1001
+#. Add a ``MathicsSession`` class to simplify running Mathics3 from Python. PR #1001
 #. Improve support for ```Protect``` and ```Unprotect``` list of symbols and regular expressions. PR #1003
 
 ----
@@ -1440,7 +1463,7 @@ Enhancements and bug fixes
 Package updates
 ---------------
 
-All major packages that Mathics needs have been updated for more recent
+All major packages that Mathics3 needs have been updated for more recent
 releases. Specifically these include:
 
 #. Python: Python 3.6-3.9 are now supported
@@ -1538,8 +1561,8 @@ Backward incompatibilities
 --------------------------
 
 #. Support for Python 3.5 and earlier, and in particular Python 2.7, was dropped.
-#. The ``graphs`` module (for Graphs) has been pulled until Mathics   supports  pymathics and graphics using ``networkx`` better. It will reappear as a pymathics module.
-#. The ``natlang`` (for Natural Language processing) has also been pulled.  The problem here, too, is that the pymathics mechanism needs a small amount of work to make it scalable, and in 1.0 these were hard-coded. Also, both this module and ``graphs`` pulled in some potentially hard-to-satisfy non-Python dependencies such as matplotlib, or NLP libraries, and word lists. All of this made installation of Mathics harder, and the import of these libraries,   ``natlang`` in particular, took some time. All of these point to having these live in their repositories and get imported lazily on demand.
+#. The ``graphs`` module (for Graphs) has been pulled until Mathics3 supports  pymathics and graphics using ``networkx`` better. It will reappear as a pymathics module.
+#. The ``natlang`` (for Natural Language processing) has also been pulled.  The problem here, too, is that the pymathics mechanism needs a small amount of work to make it scalable, and in 1.0 these were hard-coded. Also, both this module and ``graphs`` pulled in some potentially hard-to-satisfy non-Python dependencies such as matplotlib, or NLP libraries, and word lists. All of this made installation of Mathics3 harder, and the import of these libraries,   ``natlang`` in particular, took some time. All of these point to having these live in their repositories and get imported lazily on demand.
 
 
 -----

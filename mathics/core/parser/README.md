@@ -1,4 +1,4 @@
-# Notes on the Mathics parser
+# Notes on the Mathics3 parser
 
 ## Introduction
 
@@ -189,7 +189,7 @@ def p_Integral(self, token):
 ## Mathics3 implementation
 
 ### Precedence Climbing
-All the Mathics operators are specified in `mathics/core/parser/operators.py`. The precedence climbing algorithm is implemented in
+All the Mathics3 operators are specified in `mathics/core/parser/operators.py`. The precedence climbing algorithm is implemented in
 `mathics/core/parser/parser.py`. All the special cases are implemented as additional rules.
 
 #### P Rules

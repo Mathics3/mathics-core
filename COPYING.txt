@@ -15,7 +15,7 @@ the licenses of the components of Mathics3 are included below as well.
 
 * LICENSES OF INCLUDED DATA:
 
-Mathics includes data from Wikipedia that is published under the Creative
+Mathics3 includes data from Wikipedia that is published under the Creative
 Commons Attribution-Sharealike 3.0 Unported License and the GNU Free
 Documentation License contributed by the respective authors that are listed
 on the websites specified in "data/elements.txt".
@@ -835,7 +835,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ================================================================================
 
-Portions of Mathics are adapted from SciPy:
+Portions of Mathics3 are adapted from SciPy:
 
 SciPy
 Copyright © 2001, 2002 Enthought, Inc.

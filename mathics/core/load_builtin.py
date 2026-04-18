@@ -223,7 +223,7 @@ def import_and_load_builtins():
     # modules that contain Mathics3 Builtin class definitions.
 
     # The files_io module handles local file access, reading and writing..
-    # In some sandboxed settings, such as running Mathics from as a remote
+    # In some sandboxed settings, such as running Mathics3 from as a remote
     # server, we disallow local file access.
     disable_file_module_names = set() if ENABLE_FILES_MODULE else {"files_io"}
 

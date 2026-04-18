@@ -569,7 +569,7 @@ class DocumentationEntry(BaseDocElement):
     Specialized classes like LaTeXDoc or and DjangoDoc provide methods for
     getting formatted output. For LaTeXDoc ``latex()`` is added while for
     DjangoDoc ``html()`` is added
-    Mathics core also uses this in getting usage strings (`??`).
+    Mathics3 core also uses this in getting usage strings (`??`).
 
     """
 
