@@ -391,7 +391,7 @@ class Multinomial(Builtin):
     /doc/reference-of-built-in-symbols/integer-functions/combinatorial-functions/binomial/</url>.
     """
 
-    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_ORDERLESS | A_PROTECTED
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     summary_text = "multinomial coefficients"
 
     def eval(self, values, evaluation):
