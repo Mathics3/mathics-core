@@ -19,7 +19,6 @@ from mathics.core.attributes import (
     A_LISTABLE,
     A_N_HOLD_FIRST,
     A_NUMERIC_FUNCTION,
-    A_ORDERLESS,
     A_PROTECTED,
     A_READ_PROTECTED,
 )
