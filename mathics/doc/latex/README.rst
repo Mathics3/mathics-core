@@ -27,10 +27,10 @@ Here is a flow of the data::
     bultins/*.py  -------------+--> doc_latex_data.pcl -> documentation.tex -+
                    docpipeline.py                  doc2latex.py              |
                                                                              |
-    doc/images/*.svg -------------> doc/tex/log*.pdf ------------------------+------------------------------> mathics.pdf
-                     images.sh                                               |  latexmk,xetex,asyptote,gv
+    doc/images/*.svg -------------> doc/latex/static-images/* ---------------+------------------------------> mathics3.pdf
+                     make-static-images.sh                                   |  latexmk,xetex,asyptote,gv
                                                                              |
-    doc/tex/mathics.tex -----------------------------------------------------+
+    doc/tex/mathics3.tex ----------------------------------------------------+
 
 A GNU Makefile in this directory has been created to manage the complicated workflow above.
 

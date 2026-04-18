@@ -169,7 +169,7 @@ def escape_latex(text):
     # Process pictures
     def repl_img(match: re.Match):
         src = match.group("src")
-        return r"\includegraphics[scale=1.0]{images/%(src)s}" % {"src": src}
+        return r"\includegraphics[scale=1.0]{static-images/%(src)s}" % {"src": src}
 
     text, post_substitutions = pre_sub(
         IMG_RE, text, repl_img, tuple(post_substitutions)

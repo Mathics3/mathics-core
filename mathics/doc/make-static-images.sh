@@ -29,5 +29,5 @@ for filename in $(find documentation/images/ -name "*.eps"); do
 done
 
 for filename in ${mydir}/images/logo-{heptatom,heptatom-Mathics3,Mathics3-nodrop}.svg; do
-    inkscape $filename --export-filename="latex/images/$(basename "$filename" .svg).pdf" --batch-process
+    inkscape $filename --export-filename="latex/static-images/$(basename "$filename" .svg).pdf" --batch-process
 done

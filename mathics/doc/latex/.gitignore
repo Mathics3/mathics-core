@@ -1,3 +1,5 @@
+/Mathics3-logo-nodrop.pdf
+/Mathics3-logo.pdf
 /core-version.tex
 /doc_latex_data.pcl
 /documentation.log
@@ -5,8 +7,6 @@
 /documentation.tex-before-sed
 /images/
 /logo-heptatom.pdf
-/Mathics3-logo.pdf
-/Mathics3-logo-nodrop.pdf
 /mathics3-*.asy
 /mathics3-*.dvi
 /mathics3-*.dvi
@@ -27,8 +27,8 @@
 /mathics3-test.out
 /mathics3-test.pdf
 /mathics3-test.pre
-/mathics3-test.toc
 /mathics3-test.tex
+/mathics3-test.toc
 /mathics3.aux
 /mathics3.dvi
 /mathics3.fdb_latexmk
@@ -43,6 +43,7 @@
 /mathics3.pdf
 /mathics3.pre
 /mathics3.toc
+/static-images
 /testing.aux
 /testing.tex
 /version-info.tex
