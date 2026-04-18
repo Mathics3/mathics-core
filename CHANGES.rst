@@ -869,7 +869,7 @@ Bugs Fixed
 #. Fix the comparison between ``Image`` and other expressions.
 #. Fix an issue that prevented that `Collect` handles properly polynomials on expressions (issue #285).
 #. Fix a bug in formatting expressions of the form ``(-1)^a`` without the parenthesis (issue #332).
-n#. Fix a but in failure in the order in which ``mathics.core.definitions`` stores the rules.
+#. Fix a but in failure in the order in which ``mathics.core.definitions`` stores the rules.
 #. Numeric overflows now do not affect the full evaluation, but instead just the element that produces it.
 #. Compatibility with the way expressions are ordered more closely follows WMA: Now, expressions with fewer elements come first (issue #458).
 #. The order of the context name resolution (and ``$ContextPath``) was switched; ``"System`` comes before ``"Global``.
