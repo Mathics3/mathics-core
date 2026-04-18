@@ -70,17 +70,17 @@ build:
 # because pip install doesn't handle
 # INSTALL_REQUIRES properly
 #: Set up to run from the source tree
-develop: mathics_scanner/data/boxing-characters.json mathics_scanner/data/named-characters.json mathics_scanner/data/operators.json
+develop:
 	$(PIP) install --no-build-isolation -e .[dev]
 
 # See note above on ./setup.py
 #: Set up to run from the source tree with full dependencies
-develop-full: mathics_scanner/data/boxing-characters.json mathics_scanner/data/named-characters.json mathics_scanner/data/operators.json
+develop-full:
 	$(PIP) install --no-build-isolation -e .[dev,full]
 
 # See note above on ./setup.py
 #: Set up to run from the source tree with full dependencies and Cython
-develop-full-cython: mathics_scanner/data/boxing-characters.json mathics_scanner/data/named-characters.json mathics_scanner/data/operators.json
+develop-full-cython:
 	$(PIP) install --no-build-isolation -e .[dev,full,cython]
 
 
@@ -165,10 +165,6 @@ doctest-x:
 #: Make Mathics3 PDF manual via Asymptote and LaTeX
 latexdoc texdoc doc:
 	(cd mathics/doc/latex && $(MAKE) doc)
-
-#: Build JSON ASCII to unicode opcode table and operator table
-mathics_scanner/data/boxing-characters.json mathics_scanner/data/named-characters.json mathics_scanner/data/operators.json:
-	$(BASH) ./admin-tools/make-JSON-tables.sh
 
 #: Remove ChangeLog
 rmChangeLog:

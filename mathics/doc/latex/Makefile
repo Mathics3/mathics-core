@@ -26,6 +26,9 @@ MATHICS3_MODULE_OPTION ?=--load-module pymathics.graph,pymathics.natlang
 #: Default target: Make everything
 all doc texdoc: mathics3.pdf
 
+$(DOCTEST_LATEX_DATA_PCL):
+	$(MAKE) -C ../../.. latex-doctest-data
+
 #: Create LaTeX doctest test data and test results that is used to build LaTeX PDF
 # For LaTeX docs we assume Unicode
 latex-doctest-data:

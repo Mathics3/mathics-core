@@ -9,7 +9,7 @@ April 19, 2026
 
 Some foundational work on overhauling plotting with NumPy vectors was started. Alas, work on it was not complete by release time, so this could not be finished. Expect a future release to have revamped graphics.
 
-A major revision of Form handling and character encoding ``$CharacterEncoding`` was started with a focus on ``TeXForm``, ``MLForm``, and ``OutputForm``.
+A major revision of Form handling and character encoding ``$CharacterEncoding`` was started with a focus on ``TeXForm``, ``MathMLForm``, and ``OutputForm``.
 
 Notes:
 
@@ -62,6 +62,7 @@ Bugs Fixed
 #. `#1487 <https://github.com/Mathics3/mathics-core/issues/1487>`_ ``FindMinimum``, ``FindMaximim`` do not give approximate results when ``$IterationLimit`` has been exceeded and convergence fails
 #. `#1481 <https://github.com/Mathics3/mathics-core/issues/1481>`_ $TraceBuiltins=False does not work after more than one $TraceBuiltins=True use.
 #. Reset ``evaluation.iteration_count`` on each new evaluation. This caused problems in long-running sessions, such as the Mathics3-django gallery examples.
+#. ``Binomial`` attributes corrected
 
 
 Command-line Utilities
