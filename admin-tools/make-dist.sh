@@ -25,5 +25,6 @@ if ! pyenv local $pyversion ; then
     exit $?
 fi
 rm -fr build
-python -m build
+python -m build --wheel
+python ./setup.py sdist
 finish

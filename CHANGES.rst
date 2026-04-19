@@ -2,7 +2,7 @@
  CHANGES
 =========
 
-April 19, 2026
+April 18, 2026
 
 10.0.0
 ======
@@ -70,7 +70,7 @@ Command-line Utilities
 
 Command-line program ``mathics`` was renamed to ``mathics3``; the old name will be available for a while. This apparently facilitates ``uv`` packaging.
 
-Command-line program ``mathics3-code-parse`` was added to show how expressions are parsed. This is roughly analogous to the ``CodeParse`` function of the ``CodeParser`` WMA package.
+Command-line program ``mathics3-codeparser-parse`` was added to show how expressions are parsed. This is roughly analogous to the ``CodeParse`` function of the ``CodeParser`` WMA package.
 
 Internals
 ---------
