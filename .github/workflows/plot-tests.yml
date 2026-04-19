@@ -25,16 +25,16 @@ jobs:
       run: |
         python -m pip install --upgrade pip setuptools wheel
         # We can comment out after next Mathics3-Scanner release
-        git clone --depth 1 https://github.com/Mathics3/Mathics3-scanner.git
-        cd Mathics3-scanner/
-        pip install -e .
-        bash -x ./admin-tools/make-JSON-tables.sh
-        cd ..
+        # git clone --depth 1 https://github.com/Mathics3/Mathics3-scanner.git
+        # cd Mathics3-scanner/
+        # pip install -e .
+        # bash -x ./admin-tools/make-JSON-tables.sh
+        # cd ..
     - name: Install Mathics3 with full dependencies
       run: |
         python -m pip install setuptools wheel
         python -m pip install --no-build-isolation -e .
-        bash -x ./admin-tools/make-JSON-tables.sh
+        # bash -x ./admin-tools/make-JSON-tables.sh
         remake -x develop-full
     - name: install Mathics3 vectorizedplot Module
       run: |
