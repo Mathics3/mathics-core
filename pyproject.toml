@@ -7,7 +7,7 @@ requires = [
     "wheel",
     "cython>=0.15.1; implementation_name!='pypy'",
     # For mathics-generate-json-table
-    "Mathics3_Scanner>9.0",
+    "Mathics3_Scanner>=10.0",
     # "packaging" is needed for testing the SymPy Version
     # in PartionsP
     "packaging",
@@ -18,7 +18,7 @@ build-backend = "setuptools.build_meta"
 [project]
 description = "A general-purpose computer algebra system."
 dependencies = [
-    "Mathics3_Scanner>9.0",
+    "Mathics3_Scanner>=10.0",
     "mpmath>=1.2.0",
     "numpy",
     "palettable",
@@ -49,12 +49,11 @@ classifiers = [
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: Implementation :: CPython",
-    "Programming Language :: Python :: Implementation :: PyPy",
     "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: Mathematics",
     "Topic :: Scientific/Engineering :: Physics",
@@ -88,7 +87,7 @@ cython = [
 [project.scripts]
 mathics = "mathics.__main__:main"
 mathics3 = "mathics.__main__:main"
-mathics3-code-parse = "mathics.mathics3_code_parse:main"
+mathics3-codeparser-parse = "mathics.mathics3_code_parse:main"
 
 [tool.setuptools]
 include-package-data = false

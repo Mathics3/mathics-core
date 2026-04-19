@@ -56,7 +56,7 @@ def interactive_eval_loop(shell: TerminalShell):
 
 def main():
     argparser = argparse.ArgumentParser(
-        prog="mathics3-code-parse",
+        prog="mathics3-codeparser-parse",
         usage="%(prog)s [options] [FILE]",
         add_help=False,
         description="A command-line utility to show how Mathics3 parses. Similar to CodeParser`Codeparse",
