@@ -48,7 +48,7 @@ Type ``mathics3 --help`` for options that can be provided.
 For a more featureful frontend, see `mathicsscript
 <https://pypi.org/project/mathicsscript/>`_.
 
-For a Django front-end based web front-end see `<https://pypi.org/project/Mathics-Django/>`_.
+For a Django front-end based web front-end see `<https://pypi.org/project/Mathics3-django/>`_.
 
 
 
