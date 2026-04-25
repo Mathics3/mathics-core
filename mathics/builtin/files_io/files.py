@@ -40,7 +40,14 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.directories import TMP_DIR
 from mathics.eval.encoding import CHARACTER_ENCODING_MAP
-from mathics.eval.files_io.files import eval_Close, eval_Get, eval_Open, eval_Read
+from mathics.eval.files_io.files import (
+    eval_Close,
+    eval_DumpParse,
+    eval_Get,
+    eval_Get_from_PCL,
+    eval_Open,
+    eval_Read,
+)
 from mathics.eval.files_io.read import (
     Mathics3Open,
     channel_to_stream,
@@ -218,6 +225,93 @@ class Close(Builtin):
         "Close[obj_]"
 
         return eval_Close(obj, evaluation)
+
+
+class DumpParse(Builtin):
+    """
+    ## <url>:trace native symbol:</url>
+
+    <dl>
+      <dt>'DumpParse'[$input$, $output$, $Options$]
+      <dd>Reads Mathics3 source text  $input$, parses it and write the the M-expressions \
+      a Pickle file $output$. $True$ is returned if everthing want okay.
+    </dl>
+
+    >> DumpParse["BoolEval/BoolEval.m", "/tmp/BoolEval.mx3"]
+     = ...
+    """
+
+    options = {
+        "CharacterEncoding": "Null",
+        "Path": "Null",
+        "Trace": "False",
+    }
+    summary_text = (
+        "Read and parse Mathics3 source text, and then write the parse to a PCL file"
+    )
+
+    def eval(
+        self, input: String, output: String, evaluation: Evaluation, options: dict
+    ):
+        "DumpParse[input_String, output_String, OptionsPattern[DumpParse]]"
+
+        # Make sure to pick up copy from module each time instead of using
+        # use "from ... import DEFAULT_TRACE_FN" which will not pick
+        # up run-time changes made to the module function.
+        trace_fn = io_files.DEFAULT_TRACE_FN
+
+        trace_get = evaluation.parse("Settings`$TraceGet")
+        if (
+            options["System`Trace"].to_python()
+            or trace_get.evaluate(evaluation) is SymbolTrue
+        ):
+            trace_fn = io_files.GET_PRINT_FN
+        # Process the "Path" option.
+        # The result will be put in py_path_directories
+        path_directories = options["System`Path"]
+        py_path_directories = None
+        if (
+            path_directories is not SymbolNull
+            and (py_path_directories := path_directories.to_python(string_quotes=False))
+            is not None
+        ):
+            if isinstance(py_path_directories, tuple):
+                for dir in py_path_directories:
+                    if not isinstance(dir, str):
+                        evaluation.message("DumpParse", "path", dir)
+                        py_path_directories = None
+                        break
+            elif isinstance(py_path_directories, str):
+                py_path_directories = [py_path_directories]
+            else:
+                evaluation.message("DumpParse", "path", path_directories)
+                py_path_directories = None
+
+        # Process the "CharacterEncoding" option.
+        encoding = options["System`CharacterEncoding"]
+        py_current_encoding = evaluation.definitions.get_ownvalue(
+            "System`$CharacterEncoding"
+        ).value
+        if isinstance(encoding, String):
+            py_encoding = encoding.to_python(string_quotes=False)
+            if py_encoding not in CHARACTER_ENCODING_MAP:
+                # "noopen" matches WMA. This is nonsensical.
+                evaluation.message("Get", "noopen", encoding)
+                py_encoding = py_current_encoding
+        else:
+            if encoding is not SymbolNull:
+                evaluation.message("$CharacterEncoding", "charcode", encoding)
+            py_encoding = py_current_encoding
+
+        # Dump perform the actual evaluation
+        return eval_DumpParse(
+            input.value,
+            output.value,
+            evaluation,
+            py_encoding,
+            trace_fn,
+            py_path_directories,
+        )
 
 
 class EndOfFile(Builtin):
@@ -418,7 +512,7 @@ class Get(PrefixOperator):
             if isinstance(py_path_directories, tuple):
                 for dir in py_path_directories:
                     if not isinstance(dir, str):
-                        evaluation.message("Put", "path", dir)
+                        evaluation.message("Get", "path", dir)
                         py_path_directories = None
                         break
             elif isinstance(py_path_directories, str):
@@ -444,6 +538,15 @@ class Get(PrefixOperator):
             py_encoding = py_current_encoding
 
         # perform the actual evaluation
+        if path.value.endswith("mx3"):
+            return eval_Get_from_PCL(
+                path.value,
+                evaluation,
+                py_encoding,
+                trace_fn,
+                py_path_directories,
+            )
+
         return eval_Get(
             path.value,
             evaluation,

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import pickle
 from typing import FrozenSet, Optional, Tuple
 
 import mathics_scanner.location
@@ -8,12 +9,25 @@ from mathics_scanner.location import ContainerKind
 
 from mathics.core.definitions import Definitions
 from mathics.core.element import BaseElement
+from mathics.core.parser.ast import Node as ASTNode
 from mathics.core.parser.convert import convert
 from mathics.core.parser.feed import MathicsSingleLineFeeder
 from mathics.core.parser.parser import Parser
 from mathics.core.symbols import Symbol, ensure_context
 
 parser = Parser()
+
+
+def dump_exprs_to_pcl_file(exprs, pickle_file: str) -> Optional[str]:
+    """
+    Parse input from `feeder` and pickle serialize the parsed M-expression Python written
+    to pickle_file.
+    Serializes a Mathics3 AST Node to a file `pickle_file` using Python pickle.
+    """
+    # Open the file in binary write mode
+    with open(pickle_file, "wb") as f:
+        # Protocol -1 uses the highest available binary protocol for efficiency
+        pickle.dump(exprs, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 def parse(definitions, feeder: LineFeeder) -> Optional[BaseElement]:
@@ -83,6 +97,35 @@ def parse_returning_code(
     if hasattr(converted, "location") and ast.location:
         converted.location = ast.location
     return converted, source_text
+
+
+def parse_dump_to_pcl_file(feeder: LineFeeder, pickle_file: str) -> Optional[str]:
+    """
+    Parse input from `feeder` and pickle serialize the parsed M-expression Python written
+    to pickle_file.
+    Serializes a Mathics3 AST Node to a file `pickle_file` using Python pickle.
+    """
+    ast = parser.parse(feeder)
+
+    if ast is None:
+        return None
+    # Ensure the input is actually a Node (optional safety check)
+    if not isinstance(ast, ASTNode):
+        raise TypeError(f"Expected mathics.core.parser.ast.Node, got {type(ast)}")
+
+    # Open the file in binary write mode
+    with open(pickle_file, "wb") as f:
+        # Protocol -1 uses the highest available binary protocol for efficiency
+        pickle.dump(ast, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+def parse_from_pcl_file(definitions, pickle_file: str):
+
+    with open(pickle_file, "rb") as f:
+        # Load the object from the binary file.
+        result = pickle.load(f)
+
+    return result
 
 
 class SystemDefinitions:
