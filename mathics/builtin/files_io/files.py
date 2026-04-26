@@ -237,8 +237,9 @@ class DumpParse(Builtin):
       a Pickle file $output$. $True$ is returned if everthing want okay.
     </dl>
 
-    >S dumpParsedFile = FileNameJoin[{$TemporaryDirectory, "BoolEval.mx3"}]
-    >S DumpParse["BoolEval/BoolEval.m", dumpParsedFile]
+    S> dumpParsedFile = FileNameJoin[{$TemporaryDirectory, "BoolEval.mx3"}]
+     = ...
+    S> DumpParse["BoolEval/BoolEval.m", dumpParsedFile]
      = True
     #> Clear[dumpParsedFile]
     """
