@@ -19,7 +19,7 @@ jobs:
       # https://github.com/pyodide/pyodide/blob/main/Makefile.envs#L2
       PYTHON_VERSION: 3.14
       EMSCRIPTEN_VERSION: 4.0.9
-      NODE_VERSION: 22
+      NODE_VERSION: 24
     steps:
       - name: Checkout
         uses: actions/checkout@v6
