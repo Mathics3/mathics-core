@@ -12,12 +12,12 @@ jobs:
   pyodide-test:
     runs-on: ubuntu-latest
     env:
-      PYODIDE_VERSION: 0.28.2
-      # PYTHON_VERSION and EMSCRIPTEN_VERSION are determined by PYODIDE_VERSION.
+      PYODIDE_BUILD_VERSION: ">=314.0.0"
+      # PYTHON_VERSION and EMSCRIPTEN_VERSION are determined by PYODIDE_BUILD_VERSION.
       # The appropriate versions can be found in the Pyodide repodata.json
       # "info" field, or in Makefile.envs:
       # https://github.com/pyodide/pyodide/blob/main/Makefile.envs#L2
-      PYTHON_VERSION: 3.13.2
+      PYTHON_VERSION: 3.14
       EMSCRIPTEN_VERSION: 4.0.9
       NODE_VERSION: 22
     steps:
@@ -48,13 +48,13 @@ jobs:
       - name: Set up Pyodide virtual environment and run tests
         run: |
           # Set up Pyodide virtual environment
-          pyodide xbuildenv install ${{ env.PYODIDE_VERSION }}
+          pyodide xbuildenv install ${{ env.PYODIDE_BUILD_VERSION }}
           pyodide venv .venv-pyodide
 
           # Activate the virtual environment
           source .venv-pyodide/bin/activate
 
-          pip install "setuptools>=70.0.0" PyYAML click packaging pytest
+          pip install setuptools PyYAML click packaging pytest
 
       - name: Install dependent Mathics3 programs
         run: |
@@ -68,6 +68,5 @@ jobs:
       - name: Install Mathics3
         run: |
           pip install --no-build-isolation -e .
-          bash -x admin-tools/make-JSON-tables.sh
           python -m pip install pytest
           make -j3 check
