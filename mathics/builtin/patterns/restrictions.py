@@ -7,7 +7,7 @@ Restrictions on Patterns
 from typing import Optional as OptionalType, Tuple
 
 from mathics.core.atoms import Integer, Number, Rational, Real, String
-from mathics.core.attributes import A_HOLD_REST, A_PROTECTED
+from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 from mathics.core.builtin import InfixOperator, PatternObject, Test
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -51,8 +51,8 @@ class Condition(InfixOperator, PatternObject):
     """
 
     arg_counts = [2]
-    # Don't know why this has attribute HoldAll in Mathematica
-    attributes = A_HOLD_REST | A_PROTECTED
+    attributes = A_HOLD_ALL | A_PROTECTED
+
     summary_text = "conditional definition"
 
     def init(
