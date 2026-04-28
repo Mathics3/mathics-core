@@ -74,8 +74,7 @@ def test_combinatorial_arg_errors(str_expr, msgs, fail_msg):
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
-        ## TODO should be ComplexInfinity but mpmath returns +inf
-        ("Binomial[-10, -3.5]", None, "Infinity", None),
+        ("Binomial[-10, -3.5]", None, "ComplexInfinity", None),
         ("Subsets[{}]", None, "{{}}", None),
         ("Subsets[]", None, "Subsets[]", None),
         (
