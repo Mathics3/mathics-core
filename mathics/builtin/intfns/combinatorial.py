@@ -156,12 +156,23 @@ class Binomial(MPMathFunction):
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
-    eval_error = Builtin.generic_argument_error
     expected_args = 2
     nargs = {2}
     sympy_name = "binomial"
     mpmath_name = "binomial"
     summary_text = "binomial coefficients"
+
+    # Something about MPMathFunction in certain cases avoids
+    # generic_argument_error from getting called.
+    # So we will define an eval function and call the internal routine
+    # explicitly.
+    def eval(self, args, evaluation: Evaluation):
+        "Binomial[args___]"
+        if len(args.elements) == 2:
+            # super().eval(invalid, evaluation) gives error message:
+            # RuntimeError: super(): no arguments
+            return super(Binomial, self).eval(args, evaluation)
+        return Builtin.generic_argument_error(self, args, evaluation)
 
 
 class CatalanNumber(SympyFunction):
