@@ -39,9 +39,9 @@ def evaluate(str_expr: str, form=None):
 def check_arg_counts(function_name, msg_fragment):
     """ """
     str_expr = f"{function_name}[]"
-    expected_msgs = [
-        f"{function_name} called with 0 arguments; {msg_fragment} expected."
-    ]
+    expected_msgs = (
+        f"{function_name} called with 0 arguments; {msg_fragment} expected.",
+    )
     failure_message = f"{function_name} argument number error"
     check_evaluation(
         str_expr,
