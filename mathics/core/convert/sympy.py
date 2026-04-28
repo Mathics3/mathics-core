@@ -134,7 +134,7 @@ def is_Cn_expr(name: str) -> bool:
     return number != "" and number.isdigit()
 
 
-def to_sympy_matrix(data, **kwargs) -> Optional[sympy.MutableDenseMatrix]:
+def to_sympy_matrix(data, **__) -> Optional[sympy.MutableDenseMatrix]:
     """Convert a Mathics3 matrix to one that can be used by Sympy.
     None is returned if we can't convert to a Sympy matrix.
     """
@@ -184,7 +184,7 @@ class SympyExpression(sympy.Expr):
         class SympyExpressionFunc:
             """A class to mimic the behavior of sympy.Function"""
 
-            def __new__(cls, *args):
+            def __new__(cls, *_):
                 return SympyExpression(self.expr)
                 # return SympyExpression(expression.Expression(self.expr.head,
                 # *(from_sympy(arg) for arg in args[1:])))

@@ -328,7 +328,7 @@ class Integer(Number[int]):
         if d is None:
             d = self.value.bit_length()
             # Many WMA implementations seem to change behavior of the integer
-            # represetation that have more than 1024 digits. In theory this is
+            # representation that have more than 1024 digits. In theory this is
             # number can vary depending on hardware characteristics.
             # In practice, a reasonable
             if d <= 1024:
@@ -485,10 +485,10 @@ class MachineReal(Real[float]):
             # it is used this is fast. Note that in contrast to the
             # cached object key, the hash key needs to be unique across all
             # Python objects, so we include the class in the
-            # event that different objects have the same Python value
+            # event that different objects have the same Python value.
             self.hash = hash((cls, n))
 
-            # We will set sympy lazialy
+            # We will set the sympy value lazily.
             self._sympy = None
 
         return self
