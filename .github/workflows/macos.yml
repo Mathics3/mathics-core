@@ -1,8 +1,9 @@
+---
 name: Mathics3 (macOS)
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
     branches: '**'
 

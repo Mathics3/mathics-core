@@ -371,8 +371,10 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         self = cls._symbols.get(name)
 
         if self is None:
+
             self = super().__new__(cls)
             self.name = name
+            self.sympy = None
 
             # Cache object so we don't allocate again.
             cls._symbols[name] = self
@@ -599,7 +601,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     def user_hash(self, update) -> None:
         update(b"System`Symbol>" + self.name.encode("utf8"))
 
-    def to_python(self, *args, python_form: bool = False, **kwargs):
+    def to_python(self, *_, __: bool = False, **kwargs):
         if self is SymbolTrue:
             return True
         if self is SymbolFalse:
@@ -638,7 +640,10 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     def to_sympy(self, **kwargs):
         from mathics.core.convert.sympy import symbol_to_sympy
 
-        return symbol_to_sympy(self, **kwargs)
+        if self.sympy is not None:
+            return self.sympy
+        self.sympy = symbol_to_sympy(self, **kwargs)
+        return self.sympy
 
 
 class SymbolConstant(Symbol):
