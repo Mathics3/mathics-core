@@ -11,6 +11,7 @@ from typing import Any, Dict, Generic, Optional, Tuple, TypeVar, Union
 
 import mpmath
 import sympy
+from sympy import Float as sympy_Float
 from sympy.core import numbers as sympy_numbers
 
 from mathics.core.atoms.strings import String
@@ -327,7 +328,7 @@ class Integer(Number[int]):
         if d is None:
             d = self.value.bit_length()
             # Many WMA implementations seem to change behavior of the integer
-            # represetation that have more than 1024 digits. In theory this is
+            # representation that have more than 1024 digits. In theory this is
             # number can vary depending on hardware characteristics.
             # In practice, a reasonable
             if d <= 1024:
@@ -335,7 +336,7 @@ class Integer(Number[int]):
             else:
                 d = 16  # MACHINE_PRECISION_VALUE rounded up
 
-        return PrecisionReal(sympy.Float(self.value, d))
+        return PrecisionReal(sympy_Float(self.value, d))
 
     @property
     def sympy(self) -> sympy_numbers.Integer:
@@ -387,7 +388,7 @@ class Real(Number[T]):
                     )
                 else:
                     p = prec(len(digits.zfill(dps(FP_MANTISA_BINARY_DIGITS))))
-        elif isinstance(value, sympy.Float):
+        elif isinstance(value, sympy_Float):
             if p is None:
                 p = value._prec + 1
         elif isinstance(value, (Integer, sympy.Number, mpmath.mpf, float, int)):
@@ -484,8 +485,11 @@ class MachineReal(Real[float]):
             # it is used this is fast. Note that in contrast to the
             # cached object key, the hash key needs to be unique across all
             # Python objects, so we include the class in the
-            # event that different objects have the same Python value
+            # event that different objects have the same Python value.
             self.hash = hash((cls, n))
+
+            # We will set the sympy value lazily.
+            self._sympy = None
 
         return self
 
@@ -567,18 +571,24 @@ class MachineReal(Real[float]):
         else:
             return False
 
-    def to_python(self, *args, **kwargs) -> float:
+    @property
+    def sympy(self):
+        if self._sympy is None:
+            self._sympy = sympy_Float(self.value)
+        return self._sympy
+
+    def to_python(self, *_, **__) -> float:
         return self.value
 
-    def to_sympy(self, *args, **kwargs):
-        return sympy.Float(self.value)
+    def to_sympy(self, *_, **__):
+        return self.sympy
 
 
 MachineReal0 = MachineReal(0)
 MachineReal1 = MachineReal(1)
 
 
-class PrecisionReal(Real[sympy.Float]):
+class PrecisionReal(Real[sympy_Float]):
     """
     Arbitrary precision real number.
 
@@ -592,7 +602,6 @@ class PrecisionReal(Real[sympy.Float]):
     # The key is the PrecisionReal's sympy.Float, and the
     # dictionary's value is the corresponding Mathics3 PrecisionReal object.
     _precision_reals: Dict[Any, "PrecisionReal"] = {}
-    _sympy: sympy.Float
 
     # Note: We have no _value attribute or value property .
     # value attribute comes from Number.value
@@ -602,7 +611,7 @@ class PrecisionReal(Real[sympy.Float]):
         self = cls._precision_reals.get(n)
         if self is None:
             self = Number.__new__(cls)
-            self._sympy = self._value = n
+            self._value = n
 
             # Cache object so we don't allocate again.
             self._precision_reals[n] = self
@@ -663,7 +672,7 @@ class PrecisionReal(Real[sympy.Float]):
         if d is None:
             return MachineReal(float(self.value))
         _prec = min(prec(d), self.value._prec)
-        return PrecisionReal(sympy.Float(self.value, precision=_prec))
+        return PrecisionReal(sympy_Float(self.value, precision=_prec))
 
     def sameQ(self, rhs) -> bool:
         """Mathics3 SameQ for PrecisionReal"""
@@ -684,11 +693,19 @@ class PrecisionReal(Real[sympy.Float]):
         diff = abs(value - other_value)
         return diff < 0.5**prec
 
-    def to_python(self, *args, **kwargs) -> float:
-        return float(self.value)
+    @property
+    def sympy(self):
+        return self._value
 
-    def to_sympy(self, *args, **kwargs) -> sympy.Float:
-        return self.value
+    def to_python(self, *_, **__) -> float:
+        return float(self._value)
+
+    def to_sympy(self, *_, **__) -> sympy_Float:
+        return self._value
+
+    @property
+    def value(self) -> sympy_Float:
+        return self._value
 
 
 class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
@@ -768,6 +785,7 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
             self.precision = precision
 
             self._exact_value = exact_value
+            self._sympy = None  # lazy evaluation for sympy
             self._value = complex(real.value, imag.value)
 
             # Cache object so we don't allocate again.
@@ -810,7 +828,7 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
             if hasattr(self.imag, "is_approx_zero")
             else self.imag.is_zero
         )
-        return real_zero and imag_zero
+        return bool(real_zero) and bool(imag_zero)
 
     @property
     def is_zero(self) -> bool:
@@ -897,6 +915,10 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
             isinstance(rhs, Complex) and self.real == rhs.real and self.imag == rhs.imag
         )
 
+    @property
+    def sympy(self):
+        return self.to_sympy()
+
     def user_hash(self, update) -> None:
         update(b"System`Complex>")
         update(self.real)
@@ -912,8 +934,10 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
             self.real.to_mpmath(precision), self.imag.to_mpmath(precision)
         )
 
-    def to_sympy(self, **kwargs):
-        return self.real.to_sympy() + sympy.I * self.imag.to_sympy()
+    def to_sympy(self, **_):
+        if self._sympy is None:
+            self._sympy = self.real.to_sympy() + sympy.I * self.imag.to_sympy()
+        return self._sympy
 
 
 class Rational(Number[sympy.Rational]):
@@ -980,10 +1004,10 @@ class Rational(Number[sympy.Rational]):
             self.numerator().is_zero
         )  # (implicit) and not (self.denominator().is_zero)
 
-    def to_sympy(self, **kwargs):
+    def to_sympy(self, **__):
         return self.value
 
-    def to_python(self, *args, **kwargs) -> float:
+    def to_python(self, *_, **__kwargs) -> float:
         return float(self.value)
 
     def round(self, d=None) -> Union["MachineReal", "PrecisionReal"]:
