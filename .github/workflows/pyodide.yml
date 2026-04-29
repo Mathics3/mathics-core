@@ -1,12 +1,12 @@
 # Copied from SymPy https://github.com/sympy/sympy/pull/27183
-
+---
 name: Mathics3 (Pyodide)
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
   pyodide-test:
@@ -72,7 +72,7 @@ jobs:
           # Activate the virtual environment
           source .venv-pyodide/bin/activate
 
-          pip install "setuptools>=70.0.0" PyYAML click packaging pytest
+          pip install PyYAML click packaging pytest
 
       - name: Install dependent Mathics3 programs
         run: |
@@ -86,6 +86,5 @@ jobs:
       - name: Install Mathics3
         run: |
           pip install --no-build-isolation -e .
-          bash -x admin-tools/make-JSON-tables.sh
           python -m pip install pytest
           make -j3 check
