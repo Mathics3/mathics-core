@@ -29,11 +29,29 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Set up Emscripten toolchain
-        uses: mymindstorm/setup-emsdk@v14
-        with:
-          version: ${{ env.EMSCRIPTEN_VERSION }}
-          actions-cache-folder: emsdk-cache
+      - name: Set up Emscripten toolchain (Manually)
+        run: |
+          # Clone the emsdk repository
+          git clone https://github.com/emscripten-core/emsdk.git
+          cd emsdk
+
+          # Install and activate the specified version
+          ./emsdk install ${{ env.EMSCRIPTEN_VERSION }}
+          ./emsdk activate ${{ env.EMSCRIPTEN_VERSION }}
+
+          # Add to PATH for subsequent steps
+          echo "$(pwd)" >> $GITHUB_PATH
+          echo "$(pwd)/upstream/emscripten" >> $GITHUB_PATH
+          source ./emsdk_env.sh
+
+          # Verify installation
+          emcc --version
+
+      # - name: Set up Emscripten toolchain (Cached)
+      #   uses: mymindstorm/setup-emsdk@v14
+      #   with:
+      #     version: ${{ env.EMSCRIPTEN_VERSION }}
+      #     actions-cache-folder: emsdk-cache
 
       - name: Install pyodide-build
         run: |
