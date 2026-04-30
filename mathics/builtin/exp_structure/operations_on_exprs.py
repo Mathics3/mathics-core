@@ -3,6 +3,8 @@ Structural Operations on Expressions
 """
 
 from mathics.core.builtin import Builtin
+from mathics.core.convert.sympy import expression_to_sympy, symbol_to_sympy
+from mathics.core.evaluation import Evaluation
 
 
 class Distribute(Builtin):
@@ -12,7 +14,7 @@ class Distribute(Builtin):
     https://reference.wolfram.com/language/ref/Distribute.html</url>
 
     <dl>
-      <dt>'Distribute'[$f[x_1, x_2, ...]
+      <dt>'Distribute'[$f$[$x_1$, $x_2$, ...]]
       <dd>distribute $f$ over 'Plus' appearing in any of the $x_i$.
 
       <dt>'Distribute'[$expr$, $g$]
@@ -42,6 +44,7 @@ class Distribute(Builtin):
     }
 
     summary_text = "apply a function to a list, at the top level"
+    sympy_name = "expand"
 
 
 class FlattenAt(Builtin):
@@ -60,11 +63,5 @@ class FlattenAt(Builtin):
     >> f @@@ {{a, b}, {c, d}}
      = {f[a, b], f[c, d]}
     """
-
-    grouping = "Right"
-
-    rules = {
-        "MapApply[f_, expr_]": "Apply[f, expr, {1}]",
-    }
 
     summary_text = "apply a function to a list, at the top level"
