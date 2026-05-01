@@ -25,6 +25,8 @@ import urllib.request as request
 from itertools import chain
 from urllib.error import HTTPError, URLError
 
+import magic as python_magic
+
 from mathics.builtin.pymimesniffer import magic
 from mathics.core.atoms import ByteArray
 from mathics.core.attributes import A_NO_ATTRIBUTES, A_PROTECTED, A_READ_PROTECTED
@@ -106,6 +108,7 @@ mimetype_dict = {
     "application/x-tex": "TeX",  # Also TeX
     "application/xhtml+xml": "XHTML",
     "application/xml": "XML",
+    "application/zip": "ZIP",
     "audio/aiff": "AIFF",
     "audio/basic": "AU",  # Also SND
     "audio/midi": "MIDI",
@@ -2080,20 +2083,39 @@ class FileFormat(Builtin):
             return findfile
 
         path = findfile.value
-        if not FileFormat.detector:
-            loader = magic.MagicLoader()
-            loader.load()
-            FileFormat.detector = magic.MagicDetector(loader.mimetypes)
 
-        mime = set(FileFormat.detector.match(path))
+        # FileFormat classifies by getting a mime type `path`, even
+        # though the path doesn't have to be something received or
+        # transmitted over HTTP.
 
-        # If match fails match on extension only
-        if mime == set():
-            mime, encoding = mimetypes.guess_type(path)
-            if mime is None:
-                mime = set()
-            else:
-                mime = set([mime])
+        if os.path.exists(path):
+            try:
+                # Use python_magic to determine the file type.
+                # This is the most accurate method since it looks inside the file
+                # for magic numbers. Therefore, if a JPEG file has been renamed with the
+                # file extension .txt, this will still figure out what's up.
+                mimetype = python_magic.from_file(path, mime=True)
+                if mimetype in mimetype_dict:
+                    return String(mimetype_dict[mimetype])
+
+            except Exception:
+                pass
+        else:
+            if not FileFormat.detector:
+                loader = magic.MagicLoader()
+                loader.load()
+                FileFormat.detector = magic.MagicDetector(loader.mimetypes)
+
+            mime = set(FileFormat.detector.match(path))
+
+            # If match fails match on extension only
+            if mime == set():
+                mime, _ = mimetypes.guess_type(path)
+                if mime is None:
+                    mime = set()
+                else:
+                    mime = set([mime])
+
         result = []
         for key in mimetype_dict.keys():
             if key in mime:
