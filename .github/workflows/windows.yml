@@ -30,6 +30,7 @@ jobs:
           # so we will be safe here. Another possibility would be check and install
           # conditionally.
           choco install --force llvm
+          choco install libmagic
           # choco install tesseract
           set LLVM_DIR="C:\Program Files\LLVM"
       - name: Install Mathics3 with Python dependencies
