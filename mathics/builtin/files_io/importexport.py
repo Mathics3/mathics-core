@@ -1636,21 +1636,23 @@ class ImportString(Import):
     rules = {}
     summary_text = "import elements from a string"
 
-    def eval(self, data, evaluation, options={}):
-        "ImportString[data_, OptionsPattern[]]"
-        return self.eval_elements(data, ListExpression(), evaluation, options)
+    def eval(self, filename, evaluation, options={}):
+        "ImportString[filename_, OptionsPattern[]]"
+        return self.eval_elements(filename, ListExpression(), evaluation, options)
 
-    def eval_element(self, data, element: String, evaluation, options={}):
-        "ImportString[data_, element_String, OptionsPattern[]]"
+    def eval_element(self, filename, element: String, evaluation, options={}):
+        "ImportString[filename_, element_String, OptionsPattern[]]"
 
-        return self.eval_elements(data, ListExpression(element), evaluation, options)
+        return self.eval_elements(
+            filename, ListExpression(element), evaluation, options
+        )
 
-    def eval_elements(self, data, elements, evaluation, options={}):
-        "ImportString[data_, elements_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
-        if not (isinstance(data, String)):
-            evaluation.message("ImportString", "string", data)
+    def eval_elements(self, filename, elements, evaluation, options={}):
+        "ImportString[filename_, elements_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
+        if not (isinstance(filename, String)):
+            evaluation.message("ImportString", "string", filename)
             return SymbolFailed
-        path = data.value
+        path = filename.value
 
         def determine_filetype():
             if not FileFormat.detector:
@@ -2087,6 +2089,8 @@ class FileFormat(Builtin):
         # FileFormat classifies by getting a mime type `path`, even
         # though the path doesn't have to be something received or
         # transmitted over HTTP.
+        # mime types are standardized and do not change, while file
+        # descriptions or WL's codes are not and can change.
 
         if os.path.exists(path):
             try:
