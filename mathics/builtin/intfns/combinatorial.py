@@ -22,7 +22,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
-from mathics.core.builtin import Builtin, MPMathFunction, SympyFunction
+from mathics.core.builtin import Builtin, SympyFunction
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -124,7 +124,7 @@ class _NoBoolVector(Exception):
     pass
 
 
-class Binomial(MPMathFunction):
+class Binomial(SympyFunction):
     """
 
     <url>
@@ -151,17 +151,28 @@ class Binomial(MPMathFunction):
     >> Binomial[10, -2]
      = 0
     >> Binomial[-10.5, -3.5]
-     = 0.
+     = 0
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
-    eval_error = Builtin.generic_argument_error
     expected_args = 2
-    nargs = {2}
-    sympy_name = "binomial"
     mpmath_name = "binomial"
+    nargs = {2}
     summary_text = "binomial coefficients"
+    sympy_name = "binomial"
+
+    def eval(self, args, evaluation: Evaluation):
+        "Binomial[args___]"
+
+        # Note: sympy.stats.Binomial(name, n, p): can be used creating a random variable representing a binomial distribution
+        # for statistical modeling within SymPy. Perhaps in the future we'll have a way to determine when that should be used.
+
+        if len(args.elements) == 2:
+            # super().eval(invalid, evaluation) gives error message:
+            # RuntimeError: super(): no arguments
+            return super(Binomial, self).eval(args, evaluation)
+        return Builtin.generic_argument_error(self, args, evaluation)
 
 
 class CatalanNumber(SympyFunction):
