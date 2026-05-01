@@ -3,7 +3,7 @@
 r"""
 Importing and Exporting
 
-Many kinds data formats can be read into \\Mathics. Variable <url>
+Many kinds data formats can be read into \Mathics. Variable <url>
 :\$ExportFormats:
 /doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/\$exportformats</url> \
 contains a list of file formats that are supported by <url>
@@ -25,37 +25,31 @@ import urllib.request as request
 from itertools import chain
 from urllib.error import HTTPError, URLError
 
-from mathics.builtin.pymimesniffer import magic
 from mathics.core.atoms import ByteArray
 from mathics.core.attributes import A_NO_ATTRIBUTES, A_PROTECTED, A_READ_PROTECTED
-from mathics.core.builtin import Builtin, Integer, Predefined, String, get_option
+from mathics.core.builtin import Builtin, Integer, Predefined, String
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.streams import stream_manager
-from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue, strip_context
-from mathics.core.systemsymbols import (
-    SymbolByteArray,
-    SymbolFailed,
-    SymbolRule,
-    SymbolToString,
+from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue
+from mathics.core.systemsymbols import SymbolByteArray, SymbolFailed, SymbolToString
+from mathics.eval.files_io.files import eval_Close
+from mathics.eval.files_io.importexport import (
+    IMPORTERS,
+    MIMETYPE_TO_SHORTNAME,
+    eval_Import,
+    filetype_from_MIME_content,
+    filetype_from_path,
+    importer_exporter_options,
 )
-from mathics.eval.files_io.files import eval_Close, eval_Open
 
 # This tells documentation how to sort this module
 # Here we are also hiding "file_io" since this can erroneously appear at the top level.
 sort_order = "mathics.builtin.importing-and-exporting"
 
-mimetypes.add_type("application/vnd.wolfram.mathematica.package", ".m")
-
-SymbolDeleteFile = Symbol("DeleteFile")
-SymbolFileExtension = Symbol("FileExtension")
-SymbolFileFormat = Symbol("FileFormat")
-SymbolFindFile = Symbol("FindFile")
-SymbolOpenWrite = Symbol("OpenWrite")
-SymbolOutputStream = Symbol("OutputStream")
 SymbolStringToStream = Symbol("StringToStream")
 SymbolWriteString = Symbol("WriteString")
 
@@ -65,126 +59,6 @@ mimetypes.add_type("application/json", ".json")
 
 # TODO: Add more file formats
 
-mimetype_dict = {
-    "application/dbase": "DBF",
-    "application/dbf": "DBF",
-    "application/dicom": "DICOM",
-    "application/eps": "EPS",
-    "application/fits": "FITS",
-    "application/json": "JSON",
-    "application/mathematica": "NB",
-    "application/mbox": "MBOX",
-    "application/mdb": "MDB",
-    "application/msaccess": "MDB",
-    "application/octet-stream": "OBJ",
-    "application/pcx": "PCX",
-    "application/pdf": "PDF",
-    "application/postscript": "EPS",
-    "application/rss+xml": "RSS",
-    "application/rtf": "RTF",
-    "application/sla": "STL",
-    "application/tga": "TGA",
-    "application/vnd.google-earth.kml+xml": "KML",
-    "application/vnd.ms-excel": "XLS",
-    "application/vnd.ms-pki.stl": "STL",
-    "application/vnd.msaccess": "MDB",
-    "application/vnd.oasis.opendocument.spreadsheet": "ODS",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "XLSX",  # nopep8
-    "application/vnd.sun.xml.calc": "SXC",
-    "application/vnd.wolfram.cdf": "CDF",
-    "application/vnd.wolfram.cdf.text": "CDF",
-    "application/vnd.wolfram.mathematica.package": "Package",
-    "application/x-3ds": "3DS",
-    "application/x-cdf": "NASACDF",
-    "application/x-eps": "EPS",
-    "application/x-flac": "FLAC",
-    "application/x-font-bdf": "BDF",
-    "application/x-hdf": "HDF",
-    "application/x-msaccess": "MDB",
-    "application/x-netcdf": "NetCDF",
-    "application/x-shockwave-flash": "SWF",
-    "application/x-tex": "TeX",  # Also TeX
-    "application/xhtml+xml": "XHTML",
-    "application/xml": "XML",
-    "audio/aiff": "AIFF",
-    "audio/basic": "AU",  # Also SND
-    "audio/midi": "MIDI",
-    "audio/x-aifc": "AIFF",
-    "audio/x-aiff": "AIFF",
-    "audio/x-flac": "FLAC",
-    "audio/x-wav": "WAV",
-    "chemical/seq-aa-fasta": "FASTA",
-    "chemical/seq-na-fasta": "FASTA",
-    "chemical/seq-na-fastq": "FASTQ",
-    "chemical/seq-na-genbank": "GenBank",
-    "chemical/seq-na-sff": "SFF",
-    "chemical/x-cif": "CIF",
-    "chemical/x-daylight-smiles": "SMILES",
-    "chemical/x-hin": "HIN",
-    "chemical/x-jcamp-dx": "JCAMP-DX",
-    "chemical/x-mdl-molfile": "MOL",
-    "chemical/x-mdl-sdf": "SDF",
-    "chemical/x-mdl-sdfile": "SDF",
-    "chemical/x-mdl-tgf": "TGF",
-    "chemical/x-mmcif": "CIF",
-    "chemical/x-mol2": "MOL2",
-    "chemical/x-mopac-input": "Table",
-    "chemical/x-pdb": "PDB",
-    "chemical/x-xyz": "XYZ",
-    "image/bmp": "BMP",
-    "image/eps": "EPS",
-    "image/fits": "FITS",
-    "image/gif": "GIF",
-    "image/jp2": "JPEG2000",
-    "image/jpeg": "JPEG",
-    "image/pbm": "PNM",
-    "image/pcx": "PCX",
-    "image/pict": "PICT",
-    "image/png": "PNG",
-    "image/svg+xml": "SVG",
-    "image/tga": "TGA",
-    "image/tiff": "TIFF",
-    "image/vnd.dxf": "DXF",
-    "image/vnd.microsoft.icon": "ICO",
-    "image/x-3ds": "3DS",
-    "image/x-dxf": "DXF",
-    "image/x-exr": "OpenEXR",
-    "image/x-icon": "ICO",
-    "image/x-ms-bmp": "BMP",
-    "image/x-pcx": "PCX",
-    "image/x-portable-anymap": "PNM",
-    "image/x-portable-bitmap": "PBM",
-    "image/x-portable-graymap": "PGM",
-    "image/x-portable-pixmap": "PPM",
-    "image/x-xbitmap": "XBM",
-    "model/vrml": "VRML",
-    "model/x-lwo": "LWO",
-    "model/x-pov": "POV",
-    "model/x3d+xml": "X3D",
-    "text/calendar": "ICS",
-    "text/comma-separated-values": "CSV",
-    "text/csv": "CSV",
-    "text/html": "HTML",
-    "text/mathml": "MathML",
-    "text/plain": "Text",
-    "text/rtf": "RTF",
-    "text/scriptlet": "SCT",
-    "text/tab-separated-values": "TSV",
-    "text/texmacs": "Text",
-    "text/vnd.graphviz": "DOT",
-    "text/x-comma-separated-values": "CSV",
-    "text/x-csrc": "C",
-    "text/x-tex": "TeX",
-    "text/x-vcalendar": "VCS",
-    "text/x-vcard": "VCF",
-    "text/xml": "XML",
-    "video/avi": "AVI",
-    "video/quicktime": "QuickTime",
-    "video/x-flv": "FLV",
-    # None: 'Binary',
-}
-
-IMPORTERS = {}
 EXPORTERS = {}
 EXTENSIONMAPPINGS = {
     "*.3ds": "3DS",
@@ -902,45 +776,6 @@ FORMATMAPPINGS = {
 }
 
 
-def _importer_exporter_options(
-    available_options, options, builtin_name: str, evaluation
-):
-    stream_options = []
-    custom_options = []
-    remaining_options = options.copy()
-
-    if available_options and available_options.has_form("List", None):
-        for name in available_options.elements:
-            if isinstance(name, String):
-                py_name = name.get_string_value()
-            elif isinstance(name, Symbol):
-                py_name = strip_context(name.get_name())
-            else:
-                py_name = None
-
-            if py_name:
-                option = get_option(remaining_options, py_name, evaluation, pop=True)
-                if option is not None:
-                    expr = Expression(SymbolRule, String(py_name), option)
-                    if py_name == "CharacterEncoding":
-                        stream_options.append(expr)
-                    else:
-                        custom_options.append(expr)
-
-    syntax_option = remaining_options.get("System`$OptionSyntax", None)
-    if syntax_option and syntax_option != Symbol("System`Ignore"):
-        # warn about unsupported options.
-        for name, value in remaining_options.items():
-            evaluation.message(
-                builtin_name,
-                "optx",
-                Expression(SymbolRule, strip_context(name), value),
-                strip_context(builtin_name),
-            )
-
-    return stream_options, custom_options
-
-
 class ConverterDumpsExtensionMappings(Predefined):
     r"""
     ## <url>:internal native symbol:</url>
@@ -1269,13 +1104,13 @@ class URLFetch(Builtin):
                 f.close()
 
                 # on some OS (e.g. Windows) all writers need to be closed before another
-                # reader (e.g. Import._import) can access it. so close the file here.
+                # reader (e.g. Import) can access it. so close the file here.
                 os.close(temp_handle)
 
             def determine_filetype():
-                return mimetype_dict.get(content_type)
+                return MIMETYPE_TO_SHORTNAME.get(content_type)
 
-            result = Import._import(
+            result = eval_Import(
                 temp_path, determine_filetype, elements, evaluation, options
             )
         except HTTPError as e:
@@ -1313,16 +1148,16 @@ class Import(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Import.html</url>
 
     <dl>
-      <dt>'Import'["$file$"]
-      <dd>imports data from a file.
+      <dt>'Import'["$source$"]
+      <dd>imports data from a $source$.
 
-      <dt>'Import'["$file$", "$fmt$"]
+      <dt>'Import'["$source$", "$fmt$"]
       <dd>imports file assuming the specified file format.
 
-      <dt>'Import'["$file$", $elements$]
+      <dt>'Import'["$source$", $elements$]
       <dd>imports the specified elements from a file.
 
-      <dt>'Import'["$file$", {"$fmt$", $elements$}]
+      <dt>'Import'["$source$", {"$fmt$", $elements$}]
       <dd>imports the specified elements from a file assuming the specified file format.
 
       <dt>'Import'["http://$url$", ...] and 'Import'["ftp://$url$", ...]
@@ -1362,26 +1197,24 @@ class Import(Builtin):
 
     summary_text = "import elements from a file"
 
-    def eval(self, filename, evaluation, options={}):
-        "Import[filename_, OptionsPattern[]]"
-        return self.eval_elements(filename, ListExpression(), evaluation, options)
+    def eval(self, source, evaluation, options={}):
+        "Import[source_, OptionsPattern[]]"
+        return self.eval_elements(source, ListExpression(), evaluation, options)
 
-    def eval_element(self, filename, element: String, evaluation, options={}):
+    def eval_element(self, source, element: String, evaluation, options={}):
         "Import[filename_, element_String, OptionsPattern[]]"
-        return self.eval_elements(
-            filename, ListExpression(element), evaluation, options
-        )
+        return self.eval_elements(source, ListExpression(element), evaluation, options)
 
-    def eval_elements(self, filename, elements, evaluation, options={}):
+    def eval_elements(self, source, elements, evaluation, options={}):
         "Import[filename_, elements_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
         # Check filename
-        path = filename.to_python()
+        path = source.to_python()
         if not (isinstance(path, str) and path[0] == path[-1] == '"'):
-            evaluation.message("Import", "chtype", filename)
+            evaluation.message("Import", "chtype", source)
             return SymbolFailed
 
         # Load local file
-        findfile = Expression(SymbolFindFile, filename).evaluate(evaluation)
+        findfile = Expression(SymbolFindFile, source).evaluate(evaluation)
 
         if findfile is SymbolFailed:
             evaluation.message("Import", "nffil")
@@ -1394,210 +1227,10 @@ class Import(Builtin):
                 .get_string_value()
             )
 
-        return self._import(findfile, determine_filetype, elements, evaluation, options)
-
-    @staticmethod
-    def _import(findfile, determine_filetype, elements, evaluation, options, data=None):
-        current_predetermined_out = evaluation.predetermined_out
-        # Check elements
-        if elements.has_form("List", None):
-            elements = elements.get_elements()
-        else:
-            elements = [elements]
-
-        for el in elements:
-            if not isinstance(el, String):
-                evaluation.message("Import", "noelem", el)
-                evaluation.predetermined_out = current_predetermined_out
-                return SymbolFailed
-
-        elements = [el.get_string_value() for el in elements]
-
-        # Determine file type
-        for el in elements:
-            if el in IMPORTERS.keys():
-                filetype = el
-                elements.remove(el)
-                break
-        else:
-            filetype = determine_filetype()
-
-        if filetype not in IMPORTERS.keys():
-            evaluation.message("Import", "fmtnosup", filetype)
-            evaluation.predetermined_out = current_predetermined_out
-            return SymbolFailed
-
-        # Load the importer
-        conditionals, default_function, posts, importer_options = IMPORTERS[filetype]
-
-        stream_options, custom_options = _importer_exporter_options(
-            importer_options.get("System`Options"), options, "System`Import", evaluation
-        )
-
-        function_channels = importer_options.get("System`FunctionChannels")
-
-        if function_channels is None:
-            # TODO message
-            if data is None:
-                evaluation.message("Import", "emptyfch")
-            else:
-                evaluation.message("ImportString", "emptyfch")
-            evaluation.predetermined_out = current_predetermined_out
-            return SymbolFailed
-
-        default_element = importer_options.get("System`DefaultElement")
-        if default_element is None:
-            # TODO message
-            evaluation.predetermined_out = current_predetermined_out
-            return SymbolFailed
-
-        def get_results(tmp_function, findfile):
-            if function_channels == ListExpression(String("FileNames")):
-                joined_options = list(chain(stream_options, custom_options))
-                tmpfile = False
-                if findfile is None:
-                    tmpfile = True
-                    stream = Expression(SymbolOpenWrite).evaluate(evaluation)
-                    findfile = stream.elements[0]
-                    if data is not None:
-                        Expression(SymbolWriteString, data).evaluate(evaluation)
-                    else:
-                        Expression(SymbolWriteString, String("")).evaluate(evaluation)
-                    eval_Close(stream, evaluation)
-                    stream = None
-                import_expression = Expression(tmp_function, findfile, *joined_options)
-                tmp = import_expression.evaluate(evaluation)
-                if tmp is SymbolFailed:
-                    return SymbolFailed
-                if tmpfile:
-                    Expression(SymbolDeleteFile, findfile).evaluate(evaluation)
-            elif function_channels == ListExpression(String("Streams")):
-                if findfile is None:
-                    stream = Expression(SymbolStringToStream, data).evaluate(evaluation)
-                else:
-                    mode = "r"
-                    if options.get("System`BinaryFormat") is SymbolTrue:
-                        if not mode.endswith("b"):
-                            mode += "b"
-
-                    encoding_option = options.get("System`CharacterEncoding")
-                    encoding = (
-                        encoding_option.value
-                        if isinstance(encoding_option, String)
-                        else None
-                    )
-
-                    stream = eval_Open(
-                        name=findfile,
-                        mode=mode,
-                        stream_type="InputStream",
-                        encoding=encoding,
-                        evaluation=evaluation,
-                    )
-                if stream is None:
-                    return
-                if stream.get_head_name() != "System`InputStream":
-                    evaluation.message("Import", "nffil")
-                    evaluation.predetermined_out = current_predetermined_out
-                    return None
-                tmp = Expression(tmp_function, stream, *custom_options).evaluate(
-                    evaluation
-                )
-                eval_Close(stream, evaluation)
-            else:
-                # TODO message
-                evaluation.predetermined_out = current_predetermined_out
-                return SymbolFailed
-            tmp = tmp.get_elements()
-            if not all(expr.has_form("Rule", None) for expr in tmp):
-                evaluation.predetermined_out = current_predetermined_out
-                return None
-
-            # return {a.get_string_value() : b for a,b in map(lambda x:
-            # x.get_elements(), tmp)}
-            evaluation.predetermined_out = current_predetermined_out
-            return {a.get_string_value(): b for a, b in (x.get_elements() for x in tmp)}
-
-        # Perform the import
-        defaults = None
-
-        if not elements:
-            defaults = get_results(default_function, findfile)
-            if defaults is None:
-                evaluation.predetermined_out = current_predetermined_out
-                return SymbolFailed
-            elif defaults is SymbolFailed:
-                return SymbolFailed
-            if default_element is Symbol("Automatic"):
-                evaluation.predetermined_out = current_predetermined_out
-                return ListExpression(
-                    *(
-                        Expression(SymbolRule, String(key), defaults[key])
-                        for key in defaults.keys()
-                    )
-                )
-            else:
-                result = defaults.get(default_element.get_string_value())
-                if result is None:
-                    evaluation.message(
-                        "Import", "noelem", default_element, String(filetype)
-                    )
-                    evaluation.predetermined_out = current_predetermined_out
-                    return SymbolFailed
-                evaluation.predetermined_out = current_predetermined_out
-                return result
-        else:
-            assert len(elements) >= 1
-            el = elements[0]
-            if el == "Elements":
-                defaults = get_results(default_function, findfile)
-                if defaults is None:
-                    evaluation.predetermined_out = current_predetermined_out
-                    return SymbolFailed
-                # Use set() to remove duplicates
-                evaluation.predetermined_out = current_predetermined_out
-                return from_python(
-                    sorted(
-                        set(
-                            list(conditionals.keys())
-                            + list(defaults.keys())
-                            + list(posts.keys())
-                        )
-                    )
-                )
-            else:
-                if el in conditionals.keys():
-                    result = get_results(conditionals[el], findfile)
-                    if result is None:
-                        evaluation.predetermined_out = current_predetermined_out
-                        return SymbolFailed
-                    if len(list(result.keys())) == 1 and list(result.keys())[0] == el:
-                        evaluation.predetermined_out = current_predetermined_out
-                        return list(result.values())[0]
-                elif el in posts.keys():
-                    # TODO: allow use of conditionals
-                    result = get_results(posts[el])
-                    if result is None:
-                        evaluation.predetermined_out = current_predetermined_out
-                        return SymbolFailed
-                else:
-                    if defaults is None:
-                        defaults = get_results(default_function, findfile)
-                        if defaults is None:
-                            evaluation.predetermined_out = current_predetermined_out
-                            return SymbolFailed
-                    if el in defaults.keys():
-                        evaluation.predetermined_out = current_predetermined_out
-                        return defaults[el]
-                    else:
-                        evaluation.message(
-                            "Import", "noelem", from_python(el), String(filetype)
-                        )
-                        evaluation.predetermined_out = current_predetermined_out
-                        return SymbolFailed
+        return eval_Import(findfile, determine_filetype, elements, evaluation, options)
 
 
-class ImportString(Import):
+class ImportString(Builtin):
     """
     <url>
     :WMA link:
@@ -1608,7 +1241,7 @@ class ImportString(Import):
       <dd>imports data in the specified format from a string.
 
       <dt>'ImportString'["$file$", $elements$]
-      <dd>imports the specified elements from a string.
+      <dd>imports the specified elements from a file $file$.
 
       <dt>'ImportString'["$data$"]
       <dd>attempts to determine the format of the string from its content.
@@ -1637,50 +1270,24 @@ class ImportString(Import):
         "ImportString[data_, OptionsPattern[]]"
         return self.eval_elements(data, ListExpression(), evaluation, options)
 
-    def eval_element(self, data, element: String, evaluation, options={}):
-        "ImportString[data_, element_String, OptionsPattern[]]"
+    def eval_element(self, source: str, element: String, evaluation, options={}):
+        "ImportString[source_, element_String, OptionsPattern[]]"
 
-        return self.eval_elements(data, ListExpression(element), evaluation, options)
+        return self.eval_elements(source, ListExpression(element), evaluation, options)
 
-    def eval_elements(self, data, elements, evaluation, options={}):
-        "ImportString[data_, elements_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
-        if not (isinstance(data, String)):
-            evaluation.message("ImportString", "string", data)
+    def eval_elements(self, source, elements, evaluation, options={}):
+        "ImportString[source_, elements_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
+        if not (isinstance(source, String)):
+            evaluation.message("ImportString", "string", source)
             return SymbolFailed
-        path = data.value
+
+        py_source = source.value
 
         def determine_filetype():
-            if not FileFormat.detector:
-                loader = magic.MagicLoader()
-                loader.load()
-                FileFormat.detector = magic.MagicDetector(loader.mimetypes)
-            mime = set(FileFormat.detector.match("", data=data.to_python()))
+            return filetype_from_MIME_content(py_source)
 
-            result = []
-            for key in mimetype_dict.keys():
-                if key in mime:
-                    result.append(mimetype_dict[key])
-
-            # The following fixes an extremely annoying behaviour on some (not all)
-            # installations of Windows, where we end up classifying .csv files als XLS.
-            if (
-                len(result) == 1
-                and result[0] == "XLS"
-                and path.lower().endswith(".csv")
-            ):
-                return String("CSV")
-
-            if len(result) == 0:
-                result = "Binary"
-            elif len(result) == 1:
-                result = result[0]
-            else:
-                return None
-
-            return result
-
-        return self._import(
-            None, determine_filetype, elements, evaluation, options, data=data
+        return eval_Import(
+            None, determine_filetype, elements, evaluation, options, data=source
         )
 
 
@@ -1824,7 +1431,7 @@ class Export(Builtin):
         # Load the exporter
         exporter_symbol, exporter_options = EXPORTERS[format_spec[0]]
         function_channels = exporter_options.get("System`FunctionChannels")
-        stream_options, custom_options = _importer_exporter_options(
+        stream_options, custom_options = importer_exporter_options(
             exporter_options.get("System`Options"), options, "System`Export", evaluation
         )
 
@@ -1928,12 +1535,6 @@ class ExportString(Builtin):
         # Just to be sure that the following evaluations do not change the value of this property
         current_predetermined_out = evaluation.predetermined_out
 
-        # Infer format if not present
-        if format_spec is None:
-            # evaluation.message("ExportString", "infer", filename)
-            evaluation.predetermined_out = current_predetermined_out
-            return SymbolFailed
-
         # First item in format_spec is the explicit format.
         # The other elements (if present) are compression formats
 
@@ -1951,7 +1552,7 @@ class ExportString(Builtin):
         exporter_symbol, exporter_options = EXPORTERS[format_spec[0]]
         function_channels = exporter_options.get("System`FunctionChannels")
 
-        stream_options, custom_options = _importer_exporter_options(
+        stream_options, custom_options = importer_exporter_options(
             exporter_options.get("System`Options"),
             options,
             "System Options",
@@ -1994,7 +1595,7 @@ class ExportString(Builtin):
                     res = tmpstream.read()
                     tmpstream.close()
                     if sys.platform not in ("win32",):
-                        # On Windows unlink make the second NamedTemporaryFIle
+                        # On Windows unlink make the second NamedTemporaryFile
                         # fail giving something like:
                         #   [WinError 32] The process cannot access the file because it is being used by another process: ...
                         #    \\AppData\\Local\\Temp\\Mathics3-ExportString35eo_rih.svg'
@@ -2067,8 +1668,6 @@ class FileFormat(Builtin):
 
     summary_text = "determine the file format of a file"
 
-    detector = None
-
     def eval(self, filename: String, evaluation: Evaluation):
         "FileFormat[filename_String]"
 
@@ -2079,39 +1678,7 @@ class FileFormat(Builtin):
             )
             return findfile
 
-        path = findfile.value
-        if not FileFormat.detector:
-            loader = magic.MagicLoader()
-            loader.load()
-            FileFormat.detector = magic.MagicDetector(loader.mimetypes)
-
-        mime = set(FileFormat.detector.match(path))
-
-        # If match fails match on extension only
-        if mime == set():
-            mime, encoding = mimetypes.guess_type(path)
-            if mime is None:
-                mime = set()
-            else:
-                mime = set([mime])
-        result = []
-        for key in mimetype_dict.keys():
-            if key in mime:
-                result.append(mimetype_dict[key])
-
-        # the following fixes an extremely annoying behaviour on some (not all)
-        # installations of Windows, where we end up classifying .csv files as XLS.
-        if len(result) == 1 and result[0] == "XLS" and path.lower().endswith(".csv"):
-            return String("CSV")
-
-        if len(result) == 0:
-            result = "Binary"
-        elif len(result) == 1:
-            result = result[0]
-        else:
-            return None
-
-        return from_python(result)
+        return filetype_from_path(findfile.value)
 
 
 class B64Decode(Builtin):

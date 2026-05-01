@@ -25,7 +25,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install OS dependencies
       run: |
-        brew install llvm@14 tesseract remake
+        brew install llvm@14 tesseract remake libmagic
     - name: Install Mathics3 dependencies
       run: |
         # We can comment out after next Mathics3-Scanner release
