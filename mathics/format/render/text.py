@@ -158,7 +158,7 @@ def string(s: String, **options) -> str:
         options.get("System`ShowStringCharacters", None) is SymbolTrue
     )
     show_special_characters = (not show_string_characters) or (
-        not (options.get("System`ShowSpecialCharacters", None) is SymbolFalse)
+        options.get("System`ShowSpecialCharacters", None) is not SymbolFalse
     )
 
     if not show_special_characters:

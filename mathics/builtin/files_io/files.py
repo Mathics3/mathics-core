@@ -12,7 +12,7 @@ from io import BytesIO
 # We use the below import for access to variables that may change
 # at runtime.
 import mathics.eval.files_io.files as io_files
-from mathics.core.atoms import Integer, String, SymbolString
+from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import (
     Builtin,
@@ -37,6 +37,7 @@ from mathics.core.systemsymbols import (
     SymbolInputStream,
     SymbolOutputForm,
     SymbolOutputStream,
+    SymbolString,
 )
 from mathics.eval.directories import TMP_DIR
 from mathics.eval.encoding import CHARACTER_ENCODING_MAP
