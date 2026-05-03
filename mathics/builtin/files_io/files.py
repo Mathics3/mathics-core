@@ -375,9 +375,28 @@ class Get(PrefixOperator):
      = Cos[x] + I Sin[x]
     S> DeleteFile[filename]
 
+    If the 'Path' is not fully qualified built-in variable <url>
+    :\$Path:
+    /doc/reference-of-built-in-symbols/directories-and-directory-operations/user-file-directories/$path/</url> is consulted.
+
+    'Get' can also load packages:
+    >> $ContextPath
+     = ...
+    S> << "VectorAnalysis`"
+     = ...
+
+    If a package is loaded variable <url>
+    :\$ContextPath:
+    /doc/reference-of-built-in-symbols/scoping-constructs/$contextpath/</url> is updated with the new package context name:
+    >> $ContextPath
+     = ...
+
+    See also <url>
+    :Needs:
+    /doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/filesystem-operations/needs/</url>.
+
+
     ## TODO: Requires EndPackage implemented
-    ## 'Get' can also load packages:
-    ## >> << "VectorAnalysis`"
     """
 
     eval_error = Builtin.generic_argument_error
