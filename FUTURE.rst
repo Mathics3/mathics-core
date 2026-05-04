@@ -3,6 +3,19 @@
 2026-2027 Roadmap
 =================
 
+WMA's ``Hold`` attributes limit function application, not rule rewrite. However in Mathics3, that distinction is not made. We need to make another foray into ``Expression.rewrite_apply_eval_step()`` to address this. We will probably need to add a boolean field ``rule.apply()`` to indicate whether HOLD is in effect or not.
+
+Bruce Lucas' vectorization to NumPy arrays needs to be filled out across the code base. The user interface to NumericArray needs to be added, and we can probably do something similar for SparseArray implemented in NumPy.  Bruce's "compilation" for SymPy functions should be expanded to any mathics.core_eval routine that handles vectors.
+
+With this code in ``Mathics3-Module-vectorizedplot`` can be moved into mathics-core.
+
+With this ``ComplexPlot``, ``ContourPlot`` (for vectors), ``ContourPlot3D``, ``DensityPlot``, ``ParametgricPlot3d``, ``SphericalPlot3D`` among others will be included.
+
+A middleware Render library should be added. One involving ``drawsvg`` in on my (rocky) radar.
+
+GNU Emacs-style Autoloading.
+
+Finish Boxing, e.g. ``DisplayForm``.
 
 2026 Achievements
 -----------------
