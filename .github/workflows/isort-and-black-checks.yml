@@ -3,6 +3,7 @@
 # Othewrwise, Black is run and its changes are committed back to the incoming pull request.
 # https://github.com/cclauss/autoblack
 
+---
 name: isort and black check
 on: [pull_request]
 jobs:
