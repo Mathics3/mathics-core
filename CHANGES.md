@@ -1,10 +1,12 @@
 # CHANGES
 
-April 18, 2026
-
 ## 10.0.1
 
 April 18, 2026
+
+Fix packaging to add some test YAML files.
+
+Thanks, yet again, to @vic74p.
 
 ## 10.0.0
 
