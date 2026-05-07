@@ -17,6 +17,12 @@ GNU Emacs-style Autoloading.
 
 Finish Boxing, e.g. ``DisplayForm``.
 
+Get rid of ``mathics.core.expression.ExpressionCache``. While at one point this sped up the older ``Mathics``, it was a little bit misguided. The Pythonic way of handling this is to use ``@cache`` (or the older Python 2 ``@lrcache`` decorators.
+
+Streamline ``BaseEement``. It has some very specific and non-generic element methods like ``get_sequence``, ``get_precision``, ``get_elements``, and ``replace_vars``. These should be attached to subclassed "base" classes for which this the methods make sense.
+
+Add custom ``evaluate`` method for Pattern and friends. Having this be a part of (compound), ``Expression`` evaluation makes that evaluation more complex, harder to understand (and possibly slower too).
+
 2026 Achievements
 -----------------
 
