@@ -37,9 +37,9 @@ Enhancements
 #. Many Builtin functions now report argument-mismatch errors
 #. ``Trig`` option added to ``Numerator`` and ``Denominator``
 #. ``CharacterEncoding``, and ``Path`` options option added to ``Get``
-#. ``PowerMod`` and ``Quotient`` handle the 3-argument form, roots of exponents (``PowerMod``) lists of exponents, and numbers other than Integers.
+#. ``PowerMod`` and ``Quotient`` handle the 3-argument form, roots of exponents (``PowerMod``), lists of exponents, and numbers other than Integers.
 #. ``N[integer, MachinePrecision]`` added
-#. ``PrintPrecision`` for ``N[integer]`` matches WMA; so does largest mantissa before converting to MachinePrecision Integer (for display) matches WMA.
+#. ``PrintPrecision`` for ``N[integer]`` matches WMA; so does the largest mantissa before converting to MachinePrecision Integer (for display) matches WMA.
 #. ``BeginPackage`` with ``Needs`` parameter added. This should allow more packages to load properly
 #. ``Expand``, and ``Apart`` work with relations
 #. `#1596 <https://github.com/Mathics3/mathics-core/issues/1481>`_ Improve ``FullForm`` compatibility
@@ -1071,8 +1071,8 @@ Bugs Fixed
 
 #. Tick marks and the placement of numbers on charts have been corrected. PR #1437
 #. Asymptote now respects the ``PointSize`` setting.
-#. In graphs rendered in SVG, the ``PointSize`` has been made more closely match Mathematica.
-#. Polygons rendered in Asymptote now respects the even/odd rule for filling areas.
+#. In graphs rendered in SVG, the ``PointSize`` has been made to more closely match Mathematica.
+#. Polygons rendered in Asymptote now respect the even/odd rule for filling areas.
 
 Density Plots rendered in SVG broke with this release. They will be reinstated in the future.
 
@@ -1082,30 +1082,29 @@ Documentation
 Go over settings file to ensure usage names are full sentences.
 
 We have started to put more builtins in the sections or subsections
-following the organization in Mathematics 5 or as found in the online
-Wolfram Language Reference. As a result, long lists in previous topics
-are a bit shorter and there are now more sections. This work was
+following the organization in Mathematica 5 or so, as found in the onlineWolfram Language Reference. As a result, long lists in previous topics
+are a bit shorter, and there are now more sections. This work was
 started in 2.2.0.
 
-More work is needed on formatting and showing this information, with
-the additional breakout we now have subsections. More reorganization
-and sectioning is needed.
+More work is needed on formatting and showing this information. With
+the additional breakout, we now have subsections. More reorganization
+and sectioning are needed.
 
 These cleanups will happen in a future version.
 
-Chapters without introductory text like ``Structural Operations``, or ``Tensors`` have had descriptions added.
+Chapters without introductory text, like ``Structural Operations``, or ``Tensors`` have had descriptions added.
 
 Sections that were empty have either been expanded or removed because
-the underlying name was never a user-level built in, e.g. the various
+the underlying name was never a user-level built-in, e.g., the various
 internal Boxing functions like ``DiskBox``, or ``CompiledCodeBox``
 
-Documentation specific builtins like ``PolarPlot`` or
-``BernsteinBasis`` have been added improved, and document examples
+Documentation-specific builtins like ``PolarPlot`` or
+``BernsteinBasis``has been added, improved, and document examples
 have been revised such as for ``PieChart``, ``Pi`` and others.
 
 The Mathics3 Gallery examples have been updated.
 
-Some slight improvements were made to producing the PDF and more kinds
+Some slight improvements were made to produce the PDF and more kinds
 of non-ASCII symbols are tolerated. Expect more work on this in the future via tables from the `Mathics3 Scanner <https://pypi.org/project/Mathics-Scanner/1.2.1/>`_ project.
 
 Chapters are no longer in Roman Numerals.
