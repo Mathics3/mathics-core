@@ -69,7 +69,8 @@ Better handling of CharacterEncoding
 
 The current implementation of ``ToString`` and text-render functions does not handle the option `CharacterEncoding` in WMA-compatible way. In the future, we
 should implement an extensible way to handle different character encodings. Also, the internal encoding of strings should always be ``Unicode``. Special encodings should
-be applied just when required by ``ToString`` or when the final output is rendered in the front-end or by an export function. 
+be applied just when required by ``ToString`` or when the final output is rendered in the front-end or by an export function. Pytests should also be agnostic regarding
+the system encoding.
 
 
 More Forms and MakeBoxes
