@@ -64,6 +64,14 @@ A Compiler for pure functions to SymPy expressions was started to speed up Plott
 This needs to be expanded to handle Mathics3 evaluation routines that do not have exact SymPy functions. The compiler also needs to be expanded to handle introduction of variables and procedural or statement kinds of expressions.
 
 
+Better handling of CharacterEncoding
+++++++++++++++++++++++++++++++++++++
+
+The current implementation of ``ToString`` and text-render functions does not handle the option `CharacterEncoding` in WMA-compatible way. In the future, we
+should implement an extensible way to handle different character encodings. Also, the internal encoding of strings should always be ``Unicode``. Special encodings should
+be applied just when required by ``ToString`` or when the final output is rendered in the front-end or by an export function. 
+
+
 More Forms and MakeBoxes
 ++++++++++++++++++++++++
 
