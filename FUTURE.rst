@@ -3,9 +3,9 @@
 2026-2027 Roadmap
 =================
 
-WMA's ``Hold`` attributes limit function application, not rule rewrite. However in Mathics3, that distinction is not made. We need to make another foray into ``Expression.rewrite_apply_eval_step()`` to address this. We will probably need to add a boolean field ``rule.apply()`` to indicate whether HOLD is in effect or not.
+WMA's ``Hold`` attributes limit function application, not rule rewrite. However, in Mathics3, that distinction is not made. We need to make another foray into ``Expression.rewrite_apply_eval_step()`` to address this. We will probably need to add a boolean field ``rule.apply()`` to indicate whether HOLD is in effect or not.
 
-Bruce Lucas' vectorization to NumPy arrays needs to be filled out across the code base. The user interface to NumericArray needs to be added, and we can probably do something similar for SparseArray implemented in NumPy.  Bruce's "compilation" for SymPy functions should be expanded to any mathics.core_eval routine that handles vectors.
+Bruce Lucas' vectorization to NumPy arrays needs to be completed across the codebase. The user interface for NumericArray needs to be added, and we can probably do something similar for the SparseArray implementation in NumPy.  Bruce's "compilation" for SymPy functions should be expanded to any mathics.core_eval routine that handles vectors.
 
 With this code in ``Mathics3-Module-vectorizedplot`` can be moved into mathics-core.
 
@@ -13,15 +13,15 @@ With this ``ComplexPlot``, ``ContourPlot`` (for vectors), ``ContourPlot3D``, ``D
 
 A middleware Render library should be added. One involving ``drawsvg`` in on my (rocky) radar.
 
-GNU Emacs-style Autoloading.
+GNU Emacs-style Autoloading, possibly via [lazy-load](https://pypi.org/project/lazy-load/) or what is in SAGE/passagemath.
 
 Finish Boxing, e.g. ``DisplayForm``.
 
 Get rid of ``mathics.core.expression.ExpressionCache``. While at one point this sped up the older ``Mathics``, it was a little bit misguided. The Pythonic way of handling this is to use ``@cache`` (or the older Python 2 ``@lrcache`` decorators.
 
-Streamline ``BaseEement``. It has some very specific and non-generic element methods like ``get_sequence``, ``get_precision``, ``get_elements``, and ``replace_vars``. These should be attached to subclassed "base" classes for which this the methods make sense.
+Streamline ``BaseEement``. It has some very specific and non-generic element methods like ``get_sequence``, ``get_precision``, ``get_elements``, and ``replace_vars``. These should be attached to subclassed "base" classes for which these methods make sense.
 
-Add custom ``evaluate`` method for Pattern and friends. Having this be a part of (compound), ``Expression`` evaluation makes that evaluation more complex, harder to understand (and possibly slower too).
+Add a custom ``evaluate`` method for Pattern and friends. Having this be a part of (compound), ``Expression`` evaluation makes that evaluation more complex, harder to understand (and possibly slower too).
 
 2026 Achievements
 -----------------
@@ -42,11 +42,11 @@ Support Python 3.13.
 
 Major foundational work was done in scanning boxing operators and getting rule selection for functions closer to WMA. Additionally, work was done to correct assignment functions, such as ``Upset``, ``Downset``, and ``SetDelayed``, so that they conform more closely to WMA behavior.
 
-With these changes, it should be more straightforward to adjust ``MakeBox`` rules so that these conform. This is the top priority.
+With these changes, it should be more straightforward to adjust ``MakeBox`` rules so that they conform. This is the top priority.
 
 A preliminary version of the Rule-Based Integration Package ``Rubi``, was started. We will continue to improve the kernel to make this work faster and better.
 
-Some preliminary debugging support was added. Position information is starting to be captured, but much more work is needed to capture more of it and proliferate this information throughout evaluation.
+Some preliminary debugging support was added. Position information is starting to be captured, but much more work is needed to capture more of it and proliferate this information throughout the evaluation.
 
 Upcoming work
 -------------
