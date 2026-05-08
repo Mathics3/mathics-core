@@ -7,7 +7,7 @@ requires = [
     "wheel",
     "cython>=0.15.1; implementation_name!='pypy'",
     # For mathics-generate-json-table
-    "Mathics3_Scanner>=10.0",
+    "Mathics3_Scanner>=10.0.1",
     # "packaging" is needed for testing the SymPy Version
     # in PartionsP
     "packaging",
@@ -89,6 +89,13 @@ mathics = "mathics.__main__:main"
 mathics3 = "mathics.__main__:main"
 mathics3-codeparser-parse = "mathics.mathics3_code_parse:main"
 
+[tool.codespell]
+# Point to your custom ignore file
+ignore-words = "codespell-ignore.txt"
+
+# Exclude directories or files that often trigger false positives
+skip = "*.pyd,*.pyc,./.git,./.venv,./build"
+
 [tool.setuptools]
 include-package-data = false
 
@@ -110,6 +117,8 @@ include = ["mathics*"]
     "data/*.yaml",
     "data/*.yml",
     "data/ExampleData/*",
+    # YAML files in test/format
+    "test/format/*.yaml",
     # Documentation stuff that will be removed in 9.0.0 or before
     "doc/latex/mathics.pdf",
     # End doc stuff

@@ -1,5 +1,5 @@
 Welcome to Mathics3 Core!
-========================
+=========================
 
 |PyPI Installs| |Latest Version| |Supported Python Versions|
 
