@@ -3,6 +3,25 @@
 2026-2027 Roadmap
 =================
 
+WMA's ``Hold`` attributes limit function application, not rule rewrite. However in Mathics3, that distinction is not made. We need to make another foray into ``Expression.rewrite_apply_eval_step()`` to address this. We will probably need to add a boolean field ``rule.apply()`` to indicate whether HOLD is in effect or not.
+
+Bruce Lucas' vectorization to NumPy arrays needs to be filled out across the code base. The user interface to NumericArray needs to be added, and we can probably do something similar for SparseArray implemented in NumPy.  Bruce's "compilation" for SymPy functions should be expanded to any mathics.core_eval routine that handles vectors.
+
+With this code in ``Mathics3-Module-vectorizedplot`` can be moved into mathics-core.
+
+With this ``ComplexPlot``, ``ContourPlot`` (for vectors), ``ContourPlot3D``, ``DensityPlot``, ``ParametgricPlot3d``, ``SphericalPlot3D`` among others will be included.
+
+A middleware Render library should be added. One involving ``drawsvg`` in on my (rocky) radar.
+
+GNU Emacs-style Autoloading.
+
+Finish Boxing, e.g. ``DisplayForm``.
+
+Get rid of ``mathics.core.expression.ExpressionCache``. While at one point this sped up the older ``Mathics``, it was a little bit misguided. The Pythonic way of handling this is to use ``@cache`` (or the older Python 2 ``@lrcache`` decorators.
+
+Streamline ``BaseEement``. It has some very specific and non-generic element methods like ``get_sequence``, ``get_precision``, ``get_elements``, and ``replace_vars``. These should be attached to subclassed "base" classes for which this the methods make sense.
+
+Add custom ``evaluate`` method for Pattern and friends. Having this be a part of (compound), ``Expression`` evaluation makes that evaluation more complex, harder to understand (and possibly slower too).
 
 2026 Achievements
 -----------------
@@ -43,6 +62,15 @@ Compilation
 A Compiler for pure functions to SymPy expressions was started to speed up Plotting. (Bruce Lucas).
 
 This needs to be expanded to handle Mathics3 evaluation routines that do not have exact SymPy functions. The compiler also needs to be expanded to handle introduction of variables and procedural or statement kinds of expressions.
+
+
+Better handling of CharacterEncoding
+++++++++++++++++++++++++++++++++++++
+
+The current implementation of ``ToString`` and text-render functions does not handle the option `CharacterEncoding` in WMA-compatible way. In the future, we
+should implement an extensible way to handle different character encodings. Also, the internal encoding of strings should always be ``Unicode``. Special encodings should
+be applied just when required by ``ToString`` or when the final output is rendered in the front-end or by an export function. Pytests should also be agnostic regarding
+the system encoding.
 
 
 More Forms and MakeBoxes
