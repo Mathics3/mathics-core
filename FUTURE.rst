@@ -13,7 +13,7 @@ With this ``ComplexPlot``, ``ContourPlot`` (for vectors), ``ContourPlot3D``, ``D
 
 A middleware Render library should be added. One involving ``drawsvg`` in on my (rocky) radar.
 
-GNU Emacs-style Autoloading, possibly via [lazy-load](https://pypi.org/project/lazy-load/) or what is in SAGE/passagemath.
+GNU Emacs-style Autoloading, possibly via `lazy-load <https://pypi.org/project/lazy-load/>`_, or what is in SAGE/passagemath.
 
 Finish Boxing, e.g. ``DisplayForm``.
 
