@@ -109,7 +109,6 @@ Major components that still need revision/rewrite
 Smaller things:
 
 * Basic Object system. Some of our BaseElement objects don't feel right.
-* Improve Complex conversion to SymPy (via SymPy.Add?)
 * Remove home-grown Expression Cache.
 
 
