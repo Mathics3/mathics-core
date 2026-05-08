@@ -166,9 +166,11 @@ This is important, but probably less important than performance, boxing & format
 
 And in the interim, we will probably be making more smaller fixes. Sigh. I am optimistic that the smaller fixes can work in the direction of making moving out easier. Modularity here.
 
-# New Work
+New Work
+=========
 
-## Sparse Array Implementation
+Sparse Array Implementation
+---------------------------
 
 Li-Xiang-Ideal mentioned this. Perhaps he can elaborate.
 
