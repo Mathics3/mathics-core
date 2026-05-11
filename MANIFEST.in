@@ -11,4 +11,4 @@ include mathics/doc/latex/mathics.pdf
 recursive-include mathics *.py
 recursive-include mathics/autoload *
 recursive-include mathics/data *
-recursive-include test *.py *.m *.wl
+recursive-include test *.py *.yaml *.m *.wl
