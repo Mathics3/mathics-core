@@ -35,7 +35,16 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.streams import stream_manager
 from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue
-from mathics.core.systemsymbols import SymbolByteArray, SymbolFailed, SymbolToString
+from mathics.core.systemsymbols import (
+    SymbolByteArray,
+    SymbolFailed,
+    SymbolFileExtension,
+    SymbolFileFormat,
+    SymbolFindFile,
+    SymbolOpenWrite,
+    SymbolOutputStream,
+    SymbolToString,
+)
 from mathics.eval.files_io.files import eval_Close
 from mathics.eval.files_io.importexport import (
     IMPORTERS,
@@ -1107,11 +1116,16 @@ class URLFetch(Builtin):
                 # reader (e.g. Import) can access it. so close the file here.
                 os.close(temp_handle)
 
-            def determine_filetype():
-                return MIMETYPE_TO_SHORTNAME.get(content_type)
+            def determine_filetype(content_type: str) -> str:
+                return MIMETYPE_TO_SHORTNAME.get(content_type, "Text")
 
             result = eval_Import(
-                temp_path, determine_filetype, elements, evaluation, options
+                temp_path,
+                determine_filetype,
+                elements,
+                evaluation,
+                options,
+                data=content_type,
             )
         except HTTPError as e:
             evaluation.message(
@@ -1202,11 +1216,11 @@ class Import(Builtin):
         return self.eval_elements(source, ListExpression(), evaluation, options)
 
     def eval_element(self, source, element: String, evaluation, options={}):
-        "Import[filename_, element_String, OptionsPattern[]]"
+        "Import[source_, element_String, OptionsPattern[]]"
         return self.eval_elements(source, ListExpression(element), evaluation, options)
 
     def eval_elements(self, source, elements, evaluation, options={}):
-        "Import[filename_, elements_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
+        "Import[source_, elements_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
         # Check filename
         path = source.to_python()
         if not (isinstance(path, str) and path[0] == path[-1] == '"'):
@@ -1220,14 +1234,18 @@ class Import(Builtin):
             evaluation.message("Import", "nffil")
             return findfile
 
-        def determine_filetype():
-            return (
-                Expression(SymbolFileFormat, findfile)
-                .evaluate(evaluation=evaluation)
-                .get_string_value()
-            )
+        data = (
+            Expression(SymbolFileFormat, findfile)
+            .evaluate(evaluation=evaluation)
+            .get_string_value()
+        )
 
-        return eval_Import(findfile, determine_filetype, elements, evaluation, options)
+        def determine_filetype(data: str) -> str:
+            return data
+
+        return eval_Import(
+            findfile, determine_filetype, elements, evaluation, options, data=data
+        )
 
 
 class ImportString(Builtin):
@@ -1270,24 +1288,22 @@ class ImportString(Builtin):
         "ImportString[data_, OptionsPattern[]]"
         return self.eval_elements(data, ListExpression(), evaluation, options)
 
-    def eval_element(self, source: str, element: String, evaluation, options={}):
-        "ImportString[source_, element_String, OptionsPattern[]]"
+    def eval_element(self, data, element: String, evaluation, options={}):
+        "ImportString[data_, element_String, OptionsPattern[]]"
 
-        return self.eval_elements(source, ListExpression(element), evaluation, options)
+        return self.eval_elements(data, ListExpression(element), evaluation, options)
 
-    def eval_elements(self, source, elements, evaluation, options={}):
-        "ImportString[source_, elements_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
-        if not (isinstance(source, String)):
-            evaluation.message("ImportString", "string", source)
+    def eval_elements(self, data, elements, evaluation, options={}):
+        "ImportString[data_, elements_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
+        if not (isinstance(data, String)):
+            evaluation.message("ImportString", "string", data)
             return SymbolFailed
 
-        py_source = source.value
-
-        def determine_filetype():
-            return filetype_from_MIME_content(py_source)
+        def determine_filetype(py_data: str) -> str:
+            return filetype_from_MIME_content(py_data)
 
         return eval_Import(
-            None, determine_filetype, elements, evaluation, options, data=source
+            None, determine_filetype, elements, evaluation, options, data=data.value
         )
 
 
@@ -1296,11 +1312,11 @@ class Export(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Export.html</url>
 
     <dl>
-      <dt>'Export'["$file$.$ext$", $expr$]
+      <dt>'Export'["$dest.ext$", $expr$]
       <dd>exports $expr$ to a file, using the extension $ext$ to determine the format.
 
-      <dt>'Export'["$file$", $expr$, "$format$"]
-      <dd>exports $expr$ to a file in the specified format.
+      <dt>'Export'["$dest$", $expr$, "$fmt$"]
+      <dd>exports data $expr$ to a file in the specified format, $fmt$.
 
       <dt>'Export'["$file$", $exprs$, $elems$]
       <dd>exports $exprs$ to a file as elements specified by $elems$.
@@ -1361,33 +1377,33 @@ class Export(Builtin):
         # to allow defining specific converters
         return self._extdict.get(ext)
 
-    def eval(self, filename, expr, evaluation, options={}):
-        "Export[filename_, expr_, OptionsPattern[Export]]"
+    def eval(self, dest, expr, evaluation, options={}):
+        "Export[dest_, expr_, OptionsPattern[Export]]"
 
-        # Check filename
-        if not self._check_filename(filename, evaluation):
+        # Check dest
+        if not self._check_filename(dest, evaluation):
             return SymbolFailed
 
         # Determine Format
-        form = self._infer_form(filename, evaluation)
+        form = self._infer_form(dest, evaluation)
 
         if form is None:
-            evaluation.message("Export", "infer", filename)
+            evaluation.message("Export", "infer", dest)
             return SymbolFailed
         else:
-            return self.eval_elements(filename, expr, String(form), evaluation, options)
+            return self.eval_elements(dest, expr, String(form), evaluation, options)
 
-    def eval_element(self, filename, expr, element: String, evaluation, options={}):
-        "Export[filename_, expr_, element_String, OptionsPattern[]]"
+    def eval_element(self, dest, expr, element: String, evaluation, options={}):
+        "Export[dest_, expr_, element_String, OptionsPattern[]]"
         return self.eval_elements(
-            filename, expr, ListExpression(element), evaluation, options
+            dest, expr, ListExpression(element), evaluation, options
         )
 
-    def eval_elements(self, filename, expr, elems, evaluation, options={}):
-        "Export[filename_, expr_, elems_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
+    def eval_elements(self, dest, expr, elems, evaluation, options={}):
+        "Export[dest_, expr_, elems_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
 
         # Check filename
-        if not self._check_filename(filename, evaluation):
+        if not self._check_filename(dest, evaluation):
             return SymbolFailed
 
         # Process elems {comp* format?, elem1*}
@@ -1411,9 +1427,9 @@ class Export(Builtin):
         # Infer format if not present
         if not found_form:
             assert format_spec == []
-            format_spec = self._infer_form(filename, evaluation)
+            format_spec = self._infer_form(dest, evaluation)
             if format_spec is None:
-                evaluation.message("Export", "infer", filename)
+                evaluation.message("Export", "infer", dest)
                 evaluation.predetermined_out = current_predetermined_out
                 return SymbolFailed
             format_spec = [format_spec]
@@ -1442,16 +1458,16 @@ class Export(Builtin):
         elif function_channels == ListExpression(String("FileNames")):
             exporter_function = Expression(
                 exporter_symbol,
-                filename,
+                dest,
                 expr,
                 *list(chain(stream_options, custom_options)),
             )
             res = exporter_function.evaluate(evaluation)
         elif function_channels == ListExpression(String("Streams")):
-            stream = Expression(SymbolOpenWrite, filename, *stream_options).evaluate(
+            stream = Expression(SymbolOpenWrite, dest, *stream_options).evaluate(
                 evaluation
             )
-            if stream.get_head_name() != "System`OutputStream":
+            if stream.head not in (SymbolOutputStream, SymbolOpenWrite):
                 evaluation.message("Export", "nffil")
                 evaluation.predetermined_out = current_predetermined_out
                 return SymbolFailed
@@ -1465,7 +1481,7 @@ class Export(Builtin):
             eval_Close(stream, evaluation)
         if res is SymbolNull:
             evaluation.predetermined_out = current_predetermined_out
-            return filename
+            return dest
         evaluation.predetermined_out = current_predetermined_out
         return SymbolFailed
 
@@ -1678,7 +1694,7 @@ class FileFormat(Builtin):
             )
             return findfile
 
-        return filetype_from_path(findfile.value)
+        return String(filetype_from_path(findfile.value))
 
 
 class B64Decode(Builtin):

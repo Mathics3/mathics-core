@@ -5,6 +5,7 @@ file path.
 
 import mimetypes
 import os.path as osp
+from itertools import chain
 from typing import Dict, Final, Optional
 
 from mathics.core.builtin import String, get_option
@@ -12,7 +13,15 @@ from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolTrue, strip_context
-from mathics.core.systemsymbols import SymbolFailed, SymbolRule
+from mathics.core.systemsymbols import (
+    SymbolDeleteFile,
+    SymbolFailed,
+    SymbolInputStream,
+    SymbolOpenWrite,
+    SymbolRule,
+    SymbolStringToStream,
+    SymbolWriteString,
+)
 from mathics.eval.files_io.files import eval_Close, eval_Open
 
 IMPORTERS = {}
@@ -222,7 +231,7 @@ def filetype_from_path(path: str) -> Optional[String]:
         return None
 
 
-def filetype_from_MIME_content(mime_content_name: str) -> Optional[String]:
+def filetype_from_MIME_content(mime_content_name: str) -> str:
 
     if mime_content_name in MIMETYPE_TO_SHORTNAME:
         short_name = MIMETYPE_TO_SHORTNAME[mime_content_name]
@@ -234,8 +243,10 @@ def filetype_from_MIME_content(mime_content_name: str) -> Optional[String]:
         if file_extension:
             # Clean up the extension (remove trailing dot and uppercase)
             short_name = file_extension.rstrip(".").upper()
+        else:
+            return "Text"
 
-    return String(short_name)
+    return short_name
 
 
 def importer_exporter_options(
@@ -277,7 +288,14 @@ def importer_exporter_options(
     return stream_options, custom_options
 
 
-def eval_Import(findfile, determine_filetype, elements, evaluation, options, data=None):
+def eval_Import(
+    findfile: Optional[String],
+    determine_filetype,
+    elements,
+    evaluation,
+    options,
+    data: Optional[str],
+):
     current_predetermined_out = evaluation.predetermined_out
     # Check elements
     if elements.has_form("List", None):
@@ -300,7 +318,7 @@ def eval_Import(findfile, determine_filetype, elements, evaluation, options, dat
             elements.remove(el)
             break
     else:
-        filetype = determine_filetype()
+        filetype = determine_filetype(data)
 
     if filetype not in IMPORTERS.keys():
         evaluation.message("Import", "fmtnosup", filetype)
@@ -342,6 +360,8 @@ def eval_Import(findfile, determine_filetype, elements, evaluation, options, dat
             stream_options,
             custom_options,
             evaluation,
+            options,
+            data=data,
         )
         if defaults is None:
             evaluation.predetermined_out = current_predetermined_out
@@ -377,6 +397,8 @@ def eval_Import(findfile, determine_filetype, elements, evaluation, options, dat
                 stream_options,
                 custom_options,
                 evaluation,
+                options,
+                data=data,
             )
             if defaults is None:
                 evaluation.predetermined_out = current_predetermined_out
@@ -401,6 +423,8 @@ def eval_Import(findfile, determine_filetype, elements, evaluation, options, dat
                     stream_options,
                     custom_options,
                     evaluation,
+                    options,
+                    data=data,
                 )
                 if result is None:
                     evaluation.predetermined_out = current_predetermined_out
@@ -417,6 +441,8 @@ def eval_Import(findfile, determine_filetype, elements, evaluation, options, dat
                     stream_options,
                     custom_options,
                     evaluation,
+                    options,
+                    data=data,
                 )
                 if result is None:
                     evaluation.predetermined_out = current_predetermined_out
@@ -429,6 +455,9 @@ def eval_Import(findfile, determine_filetype, elements, evaluation, options, dat
                         function_channels,
                         stream_options,
                         custom_options,
+                        evaluation,
+                        options,
+                        data=data,
                     )
                     if defaults is None:
                         evaluation.predetermined_out = current_predetermined_out
@@ -446,12 +475,15 @@ def eval_Import(findfile, determine_filetype, elements, evaluation, options, dat
 
 def get_results(
     tmp_function,
-    findfile,
+    findfile: Optional[String],
     function_channels,
     stream_options,
     custom_options,
     evaluation,
+    options,
+    data: Optional[str],
 ):
+    current_predetermined_out = evaluation.predetermined_out
     if function_channels == ListExpression(String("FileNames")):
         joined_options = list(chain(stream_options, custom_options))
         tmpfile = False
@@ -460,7 +492,7 @@ def get_results(
             stream = Expression(SymbolOpenWrite).evaluate(evaluation)
             findfile = stream.elements[0]
             if data is not None:
-                Expression(SymbolWriteString, data).evaluate(evaluation)
+                Expression(SymbolWriteString, String(data)).evaluate(evaluation)
             else:
                 Expression(SymbolWriteString, String("")).evaluate(evaluation)
             eval_Close(stream, evaluation)
@@ -472,7 +504,7 @@ def get_results(
             Expression(SymbolDeleteFile, findfile).evaluate(evaluation)
     elif function_channels == ListExpression(String("Streams")):
         if findfile is None:
-            stream = Expression(SymbolStringToStream, data).evaluate(evaluation)
+            stream = Expression(SymbolStringToStream, String(data)).evaluate(evaluation)
         else:
             mode = "r"
             if options.get("System`BinaryFormat") is SymbolTrue:
@@ -493,7 +525,7 @@ def get_results(
             )
         if stream is None:
             return
-        if stream.get_head_name() != "System`InputStream":
+        if stream.head is not SymbolInputStream:
             evaluation.message("Import", "nffil")
             evaluation.predetermined_out = current_predetermined_out
             return None
