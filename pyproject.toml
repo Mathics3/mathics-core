@@ -28,6 +28,7 @@ dependencies = [
     "pillow >= 9.2",
     "pint >=0.24", # Earlier pint has problems with numpy 2.2.6
     "python-dateutil",
+    "python-magic",
     # Pympler is used in ByteCount[] and MemoryInUse[].
     "Pympler",
     "requests",
