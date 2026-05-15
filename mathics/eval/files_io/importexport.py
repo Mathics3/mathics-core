@@ -6,7 +6,7 @@ file path.
 import mimetypes
 import os.path as osp
 from itertools import chain
-from typing import Dict, Final, Optional, Union
+from typing import Dict, Final, Optional
 
 from mathics.core.atoms import ByteArray
 from mathics.core.builtin import String, get_option
@@ -19,7 +19,6 @@ from mathics.core.systemsymbols import (
     SymbolDeleteFile,
     SymbolFailed,
     SymbolInputStream,
-    SymbolNone,
     SymbolOpenWrite,
     SymbolRule,
     SymbolStringToStream,
@@ -31,7 +30,7 @@ from mathics.eval.files_io.files import eval_Close, eval_Open
 # match what the mimetypes (and thereofre MIME) extensions
 # that would be reported. So we have this table to
 # convert these mismatches
-MIME_FILE_EXTENSION_TO_WMA: Final[Dict[str, str]] = {"JPG": "JPEG", "TXT": "Text"}
+MIME_SHORTNAME_TO_WMA: Final[Dict[str, str]] = {"JPG": "JPEG", "TXT": "Text"}
 
 IMPORTERS = {}
 
@@ -68,33 +67,39 @@ except ImportError:
         return f"{description} data"
 
 
-# Note Matlab and Objective C also use the ".m" extension!
 mimetypes.init()
 
 # As of 2026, file extension ".wl" is not known to be Mathematica or anything else.
 # but ".m" is associated with Mathematica rather than Objective C.
 # So we add ".wl" (which probably will be added in the future of MIME mappings),
-# and will make explicit our choice of ".m" for "mathematica package", even though
+# and we will make explicit our choice of ".m" for "mathematica package", even though
 # that is currently the default.
 mimetypes.add_type("application/vnd.wolfram.mathematica.package", ".wl")
+# Note Matlab and Objective C also use the ".m" extension!
 mimetypes.add_type("application/vnd.wolfram.mathematica.package", ".m")
 
-# MIMETYPE_TO_SHORTNAME is a mapping form MIME type name to a short common name.
-# The short common names are typically used as a file extension.
-# Some MIME types like application/octet-stream are associated with more than one
+# MIMETYPE_TO_SHORTNAME is a mapping from a MIME type to a short common
+# name.  The short common names are similar, but not quite the same as the
+# name of a file extension, uppercased and without a leading dot.
+
+# Also, note that the short name derived from a MIME type is not always the same
+# name that WMA uses in builtin FileFormat. In particular, the shortname "JPG" is noted
+# in WMA as "JPEG"; "TXT" in WMA is "Text". See MIME_SHORTNAME_TO_WMA for the full list of
+# mismatch mappings.
+
+# Some MIME types, like "application/octet-stream", are associated with more than one
 # extension. For example "video/mpeg" can have file extensions ".mpeg", ".m1v", ".mpa",
 # ".mpe", or "mpg".
 #
-# Given this, we might want to rethink the use of MIMETYPE_TO_SHORTNAME.
-#
-# The table we use strips off the "." extension and uppercases the extension.
+# The MIME short names given by FileFormat, strips off the "." extension
+# and uppercases the extension.
 #
 # For example in mimetypes.types_map , you may find:
-#   "application/epub+zip" -> ".epub"
-# while we use "EPUB"
+#   "image/png" -> ".png"
+# We and WMA use "PNG" as the short name for MIME type "image/png".
 #
 # Also note that /etc/mimetypes also strips the leading ".",
-# and can list multiple extensions for a mime type. For example:
+# and can list multiple extensions for a MIME type. For example:
 #   application/postscript	ps ai eps epsi epsf eps2 eps3
 
 MIMETYPE_TO_SHORTNAME: Final[Dict[str, str]] = {
@@ -123,7 +128,7 @@ def filetype_from_path(path: str) -> Optional[str]:
     except Exception:
         return None
     mime_file_extension = filetype_from_mime_content(mime_content_type).lstrip(".")
-    return MIME_FILE_EXTENSION_TO_WMA.get(mime_file_extension, mime_file_extension)
+    return MIME_SHORTNAME_TO_WMA.get(mime_file_extension, mime_file_extension)
 
 
 def eval_ImageExport(expr, path: Optional[str] = None) -> Expression:
@@ -220,7 +225,7 @@ def eval_Import(
             break
     else:
         filetype = determine_filetype(data)
-        filetype = MIME_FILE_EXTENSION_TO_WMA.get(filetype, filetype)
+        filetype = MIME_SHORTNAME_TO_WMA.get(filetype, filetype)
 
     if filetype not in IMPORTERS.keys():
         evaluation.message("Import", "fmtnosup", filetype)

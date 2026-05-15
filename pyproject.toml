@@ -73,7 +73,6 @@ dev = [
 ]
 full = [
     "ipywidgets",
-    "gmp2",  # Faster long integers, and ratios. This is *optional* in SymPy
     "llvmlite",
     "lxml",
     "psutil",
@@ -85,6 +84,10 @@ full = [
 cython = [
     "cython",
 ]
+gmp2 = [
+    "gmp2", # Faster long integers, and ratios. This is *optional* in SymPy
+]
+
 
 [project.scripts]
 mathics = "mathics.__main__:main"
