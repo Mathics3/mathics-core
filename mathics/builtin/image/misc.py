@@ -14,8 +14,9 @@ from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolNull
+from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolFailed, SymbolRule
+from mathics.eval.files_io.importexport import eval_ImageExport
 from mathics.eval.image import extract_exif
 
 # The following classes are used to allow inclusion of
@@ -41,8 +42,7 @@ class ImageExport(Builtin):
     def eval(self, path: String, expr, opts, evaluation: Evaluation):
         """ImageExport[path_String, expr_, opts___]"""
         if isinstance(expr, Image):
-            expr.pil().save(path.value)
-            return SymbolNull
+            return eval_ImageExport(expr, path.value)
         else:
             evaluation.message("ImageExport", "noimage")
             return

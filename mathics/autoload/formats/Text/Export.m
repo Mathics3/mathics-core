@@ -1,4 +1,5 @@
 (* Text Exporter *)
+(* FIXME: There is no RegisterImageImport builtin in WMA. Rewrite in Python. *)
 
 Begin["System`Convert`TextDump`"]
 
@@ -7,12 +8,12 @@ Options[TextExport] = {
 };
 
 TextExport[filename_, expr_, OptionsPattern[]] :=
-  Module[{strm, data},
-    strm = OpenWrite[filename, CharacterEncoding -> OptionValue["CharacterEncoding"]];
-    If[strm === $Failed, Return[$Failed]];
-    data = ToString[expr];
-    WriteString[strm, data];
-    Close[strm];
+    Module[{strm, data},
+        strm = OpenWrite[filename, CharacterEncoding -> OptionValue["CharacterEncoding"]];
+        If[strm === $Failed, Return[$Failed]];
+        data = ToString[expr];
+        WriteString[strm, data];
+        Close[strm];
   ]
 
 ImportExport`RegisterExport[

@@ -73,6 +73,7 @@ dev = [
 ]
 full = [
     "ipywidgets",
+    "gmp2",  # Faster long integers, and ratios. This is *optional* in SymPy
     "llvmlite",
     "lxml",
     "psutil",

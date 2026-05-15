@@ -27,7 +27,7 @@ StringImport[stream_]:=
         {"String" -> string}
     ]
 
-WordsImport[stream_]:= 
+WordsImport[stream_]:=
     Module[{words},
         words = ReadList[stream, Word];
         {"Words" -> words}
@@ -47,7 +47,7 @@ ImportExport`RegisterImport[
 	AvailableElements -> {"Data", "Lines", "Plaintext", "String", "Words"},
 	BinaryFormat -> True,
 	DefaultElement -> "Plaintext",
-    FunctionChannels -> {"Streams"},
+        FunctionChannels -> {"Streams"},
 	Options -> {"CharacterEncoding"}
 ]
 
