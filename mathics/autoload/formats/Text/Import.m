@@ -44,11 +44,11 @@ ImportExport`RegisterImport[
         System`Convert`TextDump`PlaintextImport
     },
     {},
-	AvailableElements -> {"Data", "Lines", "Plaintext", "String", "Words"},
-	BinaryFormat -> True,
-	DefaultElement -> "Plaintext",
-        FunctionChannels -> {"Streams"},
-	Options -> {"CharacterEncoding"}
+    AvailableElements -> {"Data", "Lines", "Plaintext", "String", "Words"},
+    BinaryFormat -> True,
+    DefaultElement -> "Plaintext",
+    FunctionChannels -> {"Streams"},
+    Options -> {"CharacterEncoding"}
 ]
 
 
