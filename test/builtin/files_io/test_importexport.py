@@ -263,6 +263,18 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
         ('FileFormat["ExampleData/Testosterone.svg"]', None, "SVG", None),
         ('FileFormat["ExampleData/colors.json"]', None, "JSON", None),
         ('FileFormat["ExampleData/InventionNo1.xml"]', None, "XML", None),
+        (
+            'FileFormat["ExampleData/PacletServer-Install.mx"]',
+            None,
+            "ZIP",
+            "Detect ZIP files",
+        ),
+        (
+            'FileFormat["ExampleData/Einstein.txt"]',
+            None,
+            "JPEG",
+            "JPEG stored as with .txt exension",
+        ),
     ],
 )
 def test_importexport(str_expr, msgs, str_expected, fail_msg):

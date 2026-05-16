@@ -834,6 +834,21 @@ class Needs(Builtin):
     </dl>
 
     >> Needs["VectorAnalysis`"]
+
+    In contrast to <url>
+    :Get:
+    /doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/file-and-stream-operations/get/</url>, \
+    'Needs' only loads a package if it has not already been loaded.
+
+    Like 'Get',  <url>
+    :\$ContextPath:
+    /doc/reference-of-built-in-symbols/scoping-constructs/$contextpath/</url> is updated \
+    when a new package context is added.
+
+    Builtin variable <url>
+    :\$Path:
+    /doc/reference-of-built-in-symbols/directories-and-directory-operations/user-file-directories/$path/</url> is used resolve the context to a file name.
+
     """
 
     messages = {

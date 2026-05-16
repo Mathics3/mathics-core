@@ -13,7 +13,7 @@ from mathics.core.streams import HOME_DIR, PATH_VAR
 
 
 class Path(Predefined):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/Path.html</url>
 
     <dl>
@@ -23,6 +23,13 @@ class Path(Predefined):
 
     >> $Path
      = ...
+
+    '\$Path' used consulted in builtin functions  <url>
+    :\$Get:
+    /doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/file-and-stream-operations/get/</url>, \
+    and <url>
+    :Needs:
+    /doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/filesystem-operations/needs/</url> to resolve filenames, and to resolve contexts to file names.
     """
 
     attributes = A_NO_ATTRIBUTES
