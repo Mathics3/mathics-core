@@ -273,7 +273,7 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
             'FileFormat["ExampleData/Einstein.txt"]',
             None,
             "JPEG",
-            "JPEG stored as with .txt exension",
+            "Detect JPEG which we stored with a .txt exension",
         ),
     ],
 )

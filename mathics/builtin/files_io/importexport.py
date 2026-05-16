@@ -18,11 +18,11 @@ does the corresponding thing for <url>
 """
 
 import base64
-import mimetypes
 import os
 import sys
 import urllib.request as request
 from itertools import chain
+from typing import Dict, Final
 from urllib.error import HTTPError, URLError
 
 from mathics.core.atoms import ByteArray
@@ -50,7 +50,7 @@ from mathics.eval.files_io.importexport import (
     IMPORTERS,
     MIMETYPE_TO_SHORTNAME,
     eval_Import,
-    filetype_from_MIME_content,
+    filetype_from_mime_content,
     filetype_from_path,
     importer_exporter_options,
 )
@@ -59,16 +59,10 @@ from mathics.eval.files_io.importexport import (
 # Here we are also hiding "file_io" since this can erroneously appear at the top level.
 sort_order = "mathics.builtin.importing-and-exporting"
 
-SymbolStringToStream = Symbol("StringToStream")
-SymbolWriteString = Symbol("WriteString")
-
-# Seems that JSON is not registered on the mathics.net server, so we do it manually here.
-# Keep in mind that mimetypes has system-dependent aspects (it inspects "/etc/mime.types" and other files).
-mimetypes.add_type("application/json", ".json")
-
-# TODO: Add more file formats
-
 EXPORTERS = {}
+
+# TODO: Remove EXTENSIONMAPPINGS. Instead make better
+# use of mimetypes package.
 EXTENSIONMAPPINGS = {
     "*.3ds": "3DS",
     "*.3fr": "Raw",
@@ -335,6 +329,8 @@ EXTENSIONMAPPINGS = {
 }
 
 
+# TODO: Remove FORMATMAPPINGS. Instead make better
+# use of mimetypes package.
 FORMATMAPPINGS = {
     "3DS": "3DS",
     "ACO": "ACO",
@@ -785,6 +781,7 @@ FORMATMAPPINGS = {
 }
 
 
+# FIXME: remove this.
 class ConverterDumpsExtensionMappings(Predefined):
     r"""
     ## <url>:internal native symbol:</url>
@@ -809,6 +806,7 @@ class ConverterDumpsExtensionMappings(Predefined):
         return from_python(EXTENSIONMAPPINGS)
 
 
+# FIXME: remove this.
 class ConverterDumpsFormatMappings(Predefined):
     r"""
     ## <url>:internal native symbol:</url>
@@ -1120,7 +1118,7 @@ class URLFetch(Builtin):
                 return MIMETYPE_TO_SHORTNAME.get(content_type, "Text")
 
             result = eval_Import(
-                temp_path,
+                String(temp_path),
                 determine_filetype,
                 elements,
                 evaluation,
@@ -1300,7 +1298,7 @@ class ImportString(Builtin):
             return SymbolFailed
 
         def determine_filetype(py_data: str) -> str:
-            return filetype_from_MIME_content(py_data)
+            return filetype_from_mime_content(py_data)
 
         return eval_Import(
             None, determine_filetype, elements, evaluation, options, data=data.value
@@ -1363,6 +1361,7 @@ class Export(Builtin):
 
     summary_text = "export elements to a file"
 
+    # FIXME: move to mathics.eval
     def _check_filename(self, filename, evaluation: Evaluation):
         path = filename.to_python()
         if isinstance(path, str) and path[0] == path[-1] == '"':
@@ -1370,6 +1369,7 @@ class Export(Builtin):
         evaluation.message("Export", "chtype", filename)
         return False
 
+    # FIXME: move to mathics.eval
     def _infer_form(self, filename, evaluation: Evaluation):
         ext = Expression(SymbolFileExtension, filename).evaluate(evaluation)
         ext = ext.get_string_value().lower()

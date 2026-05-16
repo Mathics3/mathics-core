@@ -8,12 +8,14 @@ import os.path as osp
 from itertools import chain
 from typing import Dict, Final, Optional
 
+from mathics.core.atoms import ByteArray
 from mathics.core.builtin import String, get_option
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolTrue, strip_context
 from mathics.core.systemsymbols import (
+    SymbolByteArray,
     SymbolDeleteFile,
     SymbolFailed,
     SymbolInputStream,
@@ -23,6 +25,12 @@ from mathics.core.systemsymbols import (
     SymbolWriteString,
 )
 from mathics.eval.files_io.files import eval_Close, eval_Open
+
+# Some WMA file types reported by FileFormat do not
+# match what the mimetypes (and thereofre MIME) extensions
+# that would be reported. So we have this table to
+# convert these mismatches
+MIME_SHORTNAME_TO_WMA: Final[Dict[str, str]] = {"JPG": "JPEG", "TXT": "Text"}
 
 IMPORTERS = {}
 
@@ -59,142 +67,48 @@ except ImportError:
         return f"{description} data"
 
 
+mimetypes.init()
+
+# As of 2026, file extension ".wl" is not known to be Mathematica or anything else.
+# but ".m" is associated with Mathematica rather than Objective C.
+# So we add ".wl" (which probably will be added in the future of MIME mappings),
+# and we will make explicit our choice of ".m" for "mathematica package", even though
+# that is currently the default.
+mimetypes.add_type("application/vnd.wolfram.mathematica.package", ".wl")
 # Note Matlab and Objective C also use the ".m" extension!
 mimetypes.add_type("application/vnd.wolfram.mathematica.package", ".m")
 
-# Do we need the below?
-# mimetypes.add_type("application/vnd.wolfram.mathematica.package", ".wl")
+# MIMETYPE_TO_SHORTNAME is a mapping from a MIME type to a short common
+# name.  The short common names are similar, but not quite the same as the
+# name of a file extension, uppercased and without a leading dot.
 
-# MIMETYPE_TO_SHORTNAME is a mapping form MIME type names to short common names.
-# The short common names are typically used as a file extension.
+# Also, note that the short name derived from a MIME type is not always the same
+# name that WMA uses in builtin FileFormat. In particular, the shortname "JPG" is noted
+# in WMA as "JPEG"; "TXT" in WMA is "Text". See MIME_SHORTNAME_TO_WMA for the full list of
+# mismatch mappings.
 
-# Here we should have *only* the names used when the name differs
-# from mimetypes.guess_extension(mimetype).upper() gives a name different
-# from what we have here. This happens for lowercase or mixed-case names.
+# Some MIME types, like "application/octet-stream", are associated with more than one
+# extension. For example "video/mpeg" can have file extensions ".mpeg", ".m1v", ".mpa",
+# ".mpe", or "mpg".
+#
+# The MIME short names given by FileFormat, strips off the "." extension
+# and uppercases the extension.
+#
+# For example in mimetypes.types_map , you may find:
+#   "image/png" -> ".png"
+# We and WMA use "PNG" as the short name for MIME type "image/png".
+#
+# Also note that /etc/mimetypes also strips the leading ".",
+# and can list multiple extensions for a MIME type. For example:
+#   application/postscript	ps ai eps epsi epsf eps2 eps3
 
-# TODO: go over to remove names that do not need to be on this list.
 MIMETYPE_TO_SHORTNAME: Final[Dict[str, str]] = {
-    "application/dbase": "DBF",
-    "application/dbf": "DBF",
-    "application/dicom": "DICOM",
-    "application/eps": "EPS",
-    "application/fits": "FITS",
-    "application/json": "JSON",
-    "application/mathematica": "NB",
-    "application/mbox": "MBOX",
-    "application/mdb": "MDB",
-    "application/msaccess": "MDB",
-    "application/octet-stream": "OBJ",
-    "application/pcx": "PCX",
-    "application/pdf": "PDF",
-    "application/postscript": "EPS",
-    "application/rss+xml": "RSS",
-    "application/rtf": "RTF",
-    "application/sla": "STL",
-    "application/tga": "TGA",
-    "application/vnd.google-earth.kml+xml": "KML",
-    "application/vnd.ms-excel": "XLS",
-    "application/vnd.ms-pki.stl": "STL",
-    "application/vnd.msaccess": "MDB",
-    "application/vnd.oasis.opendocument.spreadsheet": "ODS",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "XLSX",  # nopep8
-    "application/vnd.sun.xml.calc": "SXC",
-    "application/vnd.wolfram.cdf": "CDF",
-    "application/vnd.wolfram.cdf.text": "CDF",
-    "application/vnd.wolfram.mathematica.package": "Package",
-    "application/x-3ds": "3DS",
-    "application/x-cdf": "NASACDF",
-    "application/x-eps": "EPS",
-    "application/x-flac": "FLAC",
-    "application/x-font-bdf": "BDF",
-    "application/x-hdf": "HDF",
-    "application/x-msaccess": "MDB",
-    "application/x-netcdf": "NetCDF",
-    "application/x-shockwave-flash": "SWF",
-    "application/x-tex": "TeX",  # Also TeX
-    "application/xhtml+xml": "XHTML",
-    "application/xml": "XML",
-    "application/zip": "ZIP",
-    "audio/aiff": "AIFF",
-    "audio/basic": "AU",  # Also SND
-    "audio/midi": "MIDI",
-    "audio/x-aifc": "AIFF",
-    "audio/x-aiff": "AIFF",
-    "audio/x-flac": "FLAC",
-    "audio/x-wav": "WAV",
-    "chemical/seq-aa-fasta": "FASTA",
-    "chemical/seq-na-fasta": "FASTA",
-    "chemical/seq-na-fastq": "FASTQ",
-    "chemical/seq-na-genbank": "GenBank",
-    "chemical/seq-na-sff": "SFF",
-    "chemical/x-cif": "CIF",
-    "chemical/x-daylight-smiles": "SMILES",
-    "chemical/x-hin": "HIN",
-    "chemical/x-jcamp-dx": "JCAMP-DX",
-    "chemical/x-mdl-molfile": "MOL",
-    "chemical/x-mdl-sdf": "SDF",
-    "chemical/x-mdl-sdfile": "SDF",
-    "chemical/x-mdl-tgf": "TGF",
-    "chemical/x-mmcif": "CIF",
-    "chemical/x-mol2": "MOL2",
-    "chemical/x-mopac-input": "Table",
-    "chemical/x-pdb": "PDB",
-    "chemical/x-xyz": "XYZ",
-    "image/bmp": "BMP",
-    "image/eps": "EPS",
-    "image/fits": "FITS",
-    "image/gif": "GIF",
-    "image/jp2": "JPEG2000",
-    "image/jpeg": "JPEG",
-    "image/pbm": "PNM",
-    "image/pcx": "PCX",
-    "image/pict": "PICT",
-    "image/png": "PNG",
-    "image/svg+xml": "SVG",
-    "image/tga": "TGA",
-    "image/tiff": "TIFF",
-    "image/vnd.dxf": "DXF",
-    "image/vnd.microsoft.icon": "ICO",
-    "image/x-3ds": "3DS",
-    "image/x-dxf": "DXF",
-    "image/x-exr": "OpenEXR",
-    "image/x-icon": "ICO",
-    "image/x-ms-bmp": "BMP",
-    "image/x-pcx": "PCX",
-    "image/x-portable-anymap": "PNM",
-    "image/x-portable-bitmap": "PBM",
-    "image/x-portable-graymap": "PGM",
-    "image/x-portable-pixmap": "PPM",
-    "image/x-xbitmap": "XBM",
-    "model/vrml": "VRML",
-    "model/x-lwo": "LWO",
-    "model/x-pov": "POV",
-    "model/x3d+xml": "X3D",
-    "text/calendar": "ICS",
-    "text/comma-separated-values": "CSV",
-    "text/csv": "CSV",
-    "text/html": "HTML",
-    "text/mathml": "MathML",
-    "text/plain": "Text",
-    "text/rtf": "RTF",
-    "text/scriptlet": "SCT",
-    "text/tab-separated-values": "TSV",
-    "text/texmacs": "Text",
-    "text/vnd.graphviz": "DOT",
-    "text/x-comma-separated-values": "CSV",
-    "text/x-csrc": "C",
-    "text/x-tex": "TeX",
-    "text/x-vcalendar": "VCS",
-    "text/x-vcard": "VCF",
-    "text/xml": "XML",
-    "video/avi": "AVI",
-    "video/quicktime": "QuickTime",
-    "video/x-flv": "FLV",
-    # None: 'Binary',
+    file_extension.upper().lstrip("."): mime_type
+    for mime_type, file_extension in mimetypes.types_map.items()
 }
 
 
-def filetype_from_path(path: str) -> Optional[String]:
+def filetype_from_path(path: str) -> Optional[str]:
     """Classifies what kind of file `path` is.
     A Mathics3 String is return if we can do this and None, if
     there was some sort of error, e.g., `path` is not found.
@@ -210,28 +124,20 @@ def filetype_from_path(path: str) -> Optional[String]:
         return None
 
     try:
-        MIME_content_type = from_file(path, mime=True)
-        return filetype_from_MIME_content(MIME_content_type)
-        if MIME_content_type in MIMETYPE_TO_SHORTNAME:
-            short_name = MIMETYPE_TO_SHORTNAME[MIME_content_type]
-        else:
-            # Map MIME type to a standard extension using the stdlib
-            # mimetypes.guess_extension returns things like '.zip' or '.py'
-            ext = mimetypes.guess_extension(MIME_content_type)
-
-            if ext:
-                # Clean up the extension (remove trailing dot and uppercase)
-                short_name = ext.rstrip(".").upper()
-            else:
-                short_name = MIME_content_type
-
-        return String(short_name)
-
+        mime_content_type = from_file(path, mime=True)
     except Exception:
         return None
+    mime_file_extension = filetype_from_mime_content(mime_content_type).lstrip(".")
+    return MIME_SHORTNAME_TO_WMA.get(mime_file_extension, mime_file_extension)
 
 
-def filetype_from_MIME_content(mime_content_name: str) -> str:
+def eval_ImageExport(expr, path: Optional[str] = None) -> Expression:
+    expr_pil = expr.pil()
+    expr_pil.save(path)
+    return Expression(SymbolByteArray, ByteArray(expr_pil.tobytes()))
+
+
+def filetype_from_mime_content(mime_content_name: str) -> str:
 
     if mime_content_name in MIMETYPE_TO_SHORTNAME:
         short_name = MIMETYPE_TO_SHORTNAME[mime_content_name]
@@ -319,6 +225,7 @@ def eval_Import(
             break
     else:
         filetype = determine_filetype(data)
+        filetype = MIME_SHORTNAME_TO_WMA.get(filetype, filetype)
 
     if filetype not in IMPORTERS.keys():
         evaluation.message("Import", "fmtnosup", filetype)

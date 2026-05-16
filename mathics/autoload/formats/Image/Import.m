@@ -1,4 +1,5 @@
 (* Image Importer *)
+(* FIXME: There is no RegisterImageImport builtin in WMA. Rewrite in Python. *)
 
 Begin["System`Convert`Image`"]
 
@@ -11,6 +12,7 @@ RegisterImageImport[type_] := ImportExport`RegisterImport[
     FunctionChannels -> {"FileNames"}
 ];
 
-RegisterImageImport[#]& /@ {"BMP", "GIF", "JPEG2000", "JPEG", "PCX", "PNG", "PPM", "PBM", "PGM", "TIFF", "ICO", "TGA"};
+(* FIXME: RegisterImageImport shoudl work with MIME types, not psuedo-canonicalized file extensions. *)
+RegisterImageImport[#]& /@ {"BMP", "GIF", "JPEG2000", "JPEG", "JPG", "PCX", "PNG", "PPM", "PBM", "PGM", "TIFF", "ICO", "TGA"};
 
 End[]

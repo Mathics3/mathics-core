@@ -203,7 +203,7 @@ class StreamsManager:
         io=None,
         num: Optional[int] = None,
         is_temporary_file: bool = False,
-    ) -> Optional["Stream"]:
+    ) -> "Stream":
         if num is None:
             num = self.next
             assert isinstance(num, int)
@@ -270,7 +270,7 @@ class StreamsManager:
         return self.STREAMS.get(n, None)
 
     @property
-    def next(self):
+    def next(self) -> int:
         numbers = [stream.n for stream in self.STREAMS.values()] + [2]
         return max(numbers) + 1
 
