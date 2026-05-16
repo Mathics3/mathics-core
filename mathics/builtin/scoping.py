@@ -316,6 +316,17 @@ class ContextPath_(Predefined):
     ## #> System`$ContextPath
     ##  = {x`}
     ## #> $ContextPath = {"System`", "Global`"};
+
+    Functions <url>
+    :Needs:
+    /doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/filesystem-operations/needs/</url> and <url>
+    :Get:
+    /doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/file-and-stream-operations/get/</url>, \
+    add to '\$ContextPath' when a new context is added.
+
+    See also Builtin variable <url>
+    :\$Path:
+    /doc/reference-of-built-in-symbols/directories-and-directory-operations/user-file-directories/$path/</url>.
     """
 
     messages = {"cxlist": "`1` is not a list of valid context names ending in `."}
