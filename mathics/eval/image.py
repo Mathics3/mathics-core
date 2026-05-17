@@ -6,11 +6,15 @@ helper functions for images
 
 import functools
 from operator import itemgetter
-from typing import List, Optional, Tuple, Union
+from typing import Any, List, Optional, Tuple, Union
 
 import numpy
+import numpy.typing as npt
 import PIL
 import PIL.Image
+
+# TAGS has been in PIL since Pillow 8.2.0
+from PIL.ExifTags import TAGS as ExifTags
 
 from mathics.core.atoms import Rational
 from mathics.core.builtin import String
@@ -21,13 +25,9 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolRule, SymbolSimplify
 
-try:
-    from PIL.ExifTags import TAGS as ExifTags
-except ImportError:
-    ExifTags = {}
-
 # Exif: Exchangeable image file format for digital still cameras.
 # See http://www.exiv2.org/tags.html
+
 
 # names overriding the ones given by Pillow
 Exif_names = {
@@ -85,11 +85,24 @@ def convolve(in1, in2, fixed=True):
     return ret[tuple(slice(p, -p) for p in excess)]
 
 
+def eval_ImageImport(path: str, evaluation: Evaluation):
+    """Called from ImageImport[path_String]"""
+
+    # PIL.Image.open can raise an error. The caller will handle that.
+    pillow = PIL.Image.open(path)
+
+    pixels = numpy.asarray(pillow)
+    is_rgb = len(pixels.shape) >= 3 and pixels.shape[2] >= 3
+    options_from_exif = extract_exif(pillow, evaluation)
+
+    return pillow, pixels, is_rgb, options_from_exif
+
+
 def extract_exif(image, evaluation: Evaluation) -> Optional[Expression]:
     """
-    Convert Exif information from image into options
-    that can be passed to Image[].
-    Return None if there is no Exif information.
+    Extract and convert EXIF (Exchangeable Image File Format)
+    metadata from `image` into options that can be passed to
+    Image[].  Return None if there is no EXIF information.
     """
     if hasattr(image, "getexif"):
         # PIL seems to have a bug in getting v2_tags,
@@ -112,9 +125,11 @@ def extract_exif(image, evaluation: Evaluation) -> Optional[Expression]:
             if not name:
                 continue
 
-            # EXIF has the following types: Short, Long, Rational, Ascii, Byte
-            # (see http://www.exiv2.org/tags.html). we detect the type from the
-            # Python type Pillow gives us and do the appropriate MMA handling.
+            # EXIF has the following types: Short, Long, Rational, Ascii
+            # (note the capital first letter only), and Byte. See
+            # http://www.exiv2.org/tags.html. We detect the type from
+            # the Python type Pillow gives us and do the appropriate WMA
+            # handling.
 
             if isinstance(v, tuple) and len(v) == 2:  # Rational
                 value = Rational(v[0], v[1])
@@ -124,7 +139,7 @@ def extract_exif(image, evaluation: Evaluation) -> Optional[Expression]:
                     value = Expression(SymbolSimplify, value).evaluate(evaluation)
             elif isinstance(v, bytes):  # Byte
                 value = String(" ".join([str(x) for x in v]))
-            elif isinstance(v, (int, str)):  # Short, Long, ASCII
+            elif isinstance(v, (int, str)):  # Short, Long, Ascii
                 value = from_python(v)
             else:
                 continue
@@ -176,7 +191,7 @@ def image_pixels(matrix):
         return None
 
 
-def linearize_numpy_array(a: numpy.array) -> Tuple[numpy.array, int]:
+def linearize_numpy_array(a: npt.NDArray[Any]) -> Tuple[npt.NDArray[Any], int]:
     """
     Transforms a numpy array numpy array and return the array and the number
     of dimensions in the array

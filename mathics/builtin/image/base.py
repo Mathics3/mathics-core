@@ -32,7 +32,7 @@ class Image(Atom):
     class_head_name = "System`Image"
 
     # FIXME: pixels should be optional if pillow is provided.
-    def __init__(self, pixels, color_space, pillow=None, metadata={}, **kwargs):
+    def __init__(self, pixels, color_space: str, pillow=None, metadata={}, **kwargs):
         super(Image, self).__init__(**kwargs)
 
         if pillow is not None:
@@ -79,7 +79,7 @@ class Image(Atom):
     def __str__(self):
         return "-Image-"
 
-    def color_convert(self, to_color_space, preserve_alpha=True):
+    def color_convert(self, to_color_space: str, preserve_alpha=True):
         if to_color_space == self.color_space and preserve_alpha:
             return self
         else:
@@ -94,7 +94,7 @@ class Image(Atom):
     def channels(self):
         return self.pixels.shape[2]
 
-    def default_format(self, evaluation, form):
+    def default_format(self, evaluation, form) -> str:
         return "-Image-"
 
     def dimensions(self) -> Tuple[int, int]:

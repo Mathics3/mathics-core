@@ -17,7 +17,7 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolFailed, SymbolRule
 from mathics.eval.files_io.importexport import eval_ImageExport
-from mathics.eval.image import extract_exif
+from mathics.eval.image import eval_ImageImport
 
 # The following classes are used to allow inclusion of
 # Builtin Functions only when certain Python packages
@@ -78,17 +78,15 @@ class ImageImport(Builtin):
     def eval(self, path: String, evaluation: Evaluation):
         """ImageImport[path_String]"""
         try:
-            pillow = PIL.Image.open(path.value)
+            pillow, pixels, is_rgb, options_from_exif = eval_ImageImport(
+                path.value, evaluation
+            )
         except PIL.UnidentifiedImageError:
             evaluation.message("ImageImport", "infer", path)
             return SymbolFailed
         except Exception as e:
             evaluation.message("ImageImport", "imgmisc", str(e))
             return SymbolFailed
-
-        pixels = numpy.asarray(pillow)
-        is_rgb = len(pixels.shape) >= 3 and pixels.shape[2] >= 3
-        options_from_exif = extract_exif(pillow, evaluation)
 
         image = Image(pixels, "RGB" if is_rgb else "Grayscale", pillow=pillow)
         image_list_expression = [
