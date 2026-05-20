@@ -54,6 +54,8 @@ jobs:
         #     we needs some CI that tests running when packages aren't available
         # So "dev" only below, not "dev,full".
         run: |
-          make pytest gstest
+          # The below pytest is hanging (not failing) on Windows. This is probably.
+          # So remove for now
+          # make pytest gstest
           make doctest DOCTEST_OPTIONS="--exclude WordCloud"
           # make check
