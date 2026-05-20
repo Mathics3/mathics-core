@@ -344,10 +344,8 @@ class Get(PrefixOperator):
       <dt>'<<$name$'
       <dd>reads a file and evaluates each expression, returning only the last one.
 
-      <dt>'Get'[$name$, $Options$]
-      <dd>Runs Get tracing each line before it is evaluated.
-
-     'Settings`\$TraceGet' can be also used to trace lines on all 'Get[]' calls.
+      <dt>'Get'[$name$, $options$]
+      <dd>Runs Get supplying $options$. See below for a descripton of the options.
     </dl>
 
     Options:
@@ -355,6 +353,9 @@ class Get(PrefixOperator):
     <dl>
       <dt>'Trace'->{True,False}
       <dd>Print line numbers and source text we read input.
+
+      Boolean variable 'Settings`\$TraceGet' can be also used to enable or disable \
+      showing line numbers of source input in 'Get[]' calls.
       <dt>'Path'->$dir$
       <dd>Set the search path to the single directory $dir$ in the 'Get'.
       <dt>'Path'->{"$dir_1$", "$dir_2$", ...}
