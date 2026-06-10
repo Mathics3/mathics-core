@@ -229,6 +229,7 @@ class General(Builtin):
         "obspkg": "In WL, this package is obsolete.",
         "openx": "`1` is not open.",
         "optb": "Optional object `1` in `2` is not a single blank.",
+        "opttf": "Value of option `1` -> `2` should be True or False.",
         "ovfl": "Overflow occurred in computation.",
         "partd": "Part specification is longer than depth of object.",
         "partw": "Part `1` of `2` does not exist.",
