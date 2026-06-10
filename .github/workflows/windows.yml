@@ -16,6 +16,11 @@ jobs:
         # "make doctest" on MS Windows fails without showing much of a
         # trace of where things went wrong on Python before 3.11.
         python-version: ['3.13']
+
+    # Setting the environment variable globally for all steps in this job
+    env:
+      MATHICS_CHARACTER_ENCODING: "ASCII"
+
     steps:
       - uses: actions/checkout@v6
       - name: Set up Python ${{ matrix.python-version }}
@@ -57,5 +62,6 @@ jobs:
           # The below pytest is hanging (not failing) on Windows.
           # So remove for now
           # make pytest gstest
-          python3 mathics/docpipeline.py --exclude WordCloud
+          python3 -m pytest test
+          # python3 mathics/docpipeline.py --exclude WordCloud
           # make check
