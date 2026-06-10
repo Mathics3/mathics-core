@@ -44,7 +44,7 @@ jobs:
           python -m pip install setuptools wheel
       - name: Install Mathics3 with full dependencies
         run: |
-          make develop-full
+          make develop
       - name: Test Mathics3
         # Limit pip install to a basic install *without* full dependencies.
         # Here is why:
