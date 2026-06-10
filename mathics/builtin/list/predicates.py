@@ -40,7 +40,6 @@ class ContainsOnly(Builtin):
 
     messages = {
         "lsa": "List or association expected instead of `1`.",
-        "nodef": "Unknown option `1` for ContainsOnly.",
         "optx": "Unknown option `1` in `2`.",
     }
 
