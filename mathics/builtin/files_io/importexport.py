@@ -49,6 +49,7 @@ from mathics.eval.files_io.importexport import (
     IMPORTERS,
     MIMETYPE_TO_SHORTNAME,
     eval_Import,
+    eval_ZIPImport,
     filetype_from_mime_content,
     filetype_from_path,
     importer_exporter_options,
@@ -1243,6 +1244,24 @@ class Import(Builtin):
         return eval_Import(
             findfile, determine_filetype, elements, evaluation, options, data=data
         )
+
+
+class ImportZip(Builtin):
+    """
+    ## <url>:trace native symbol:</url>
+
+    <dl>
+      <dt>'ImportZip[path]'
+      <dd>Return file archived under $path$
+    </dl>
+
+    """
+
+    summary_text = "import ZIP file"
+
+    def eval(self, path: String, evaluation: Evaluation):
+        "%(name)s[path_String]"
+        return eval_ZIPImport(path)
 
 
 class ImportString(Builtin):

@@ -5,11 +5,13 @@ file path.
 
 import mimetypes
 import os.path as osp
+import zipfile
 from itertools import chain
 from typing import Dict, Final, Optional
 
-from mathics.core.atoms import ByteArray
-from mathics.core.builtin import String, get_option
+from mathics.core.atoms import ByteArray, String
+from mathics.core.builtin import get_option
+from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -378,6 +380,12 @@ def eval_Import(
                     )
                     evaluation.predetermined_out = current_predetermined_out
                     return SymbolFailed
+
+
+def eval_ZIPImport(zip_path: String) -> ListExpression:
+    """Takes a ZIP file path and returns a list of file names/paths contained inside."""
+    with zipfile.ZipFile(zip_path.value, "r") as archive:
+        return to_mathics_list(*archive.namelist())
 
 
 def get_results(
