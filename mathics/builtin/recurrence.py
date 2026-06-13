@@ -5,6 +5,7 @@ Solving Recurrence Equations
 """
 import sympy
 
+import mathics.eval.tracing as tracing
 from mathics.core.atoms import IntegerM1
 from mathics.core.attributes import A_CONSTANT
 from mathics.core.builtin import Builtin
@@ -153,9 +154,11 @@ class RSolve(Builtin):
             # Sympy raises error when given empty conditions. Fixed in
             # upcoming sympy release.
             if sym_conds != {}:
-                sym_result = sympy.rsolve(sym_eq, sym_func, sym_conds)
+                sym_result = tracing.run_sympy(
+                    sympy.rsolve, sym_eq, sym_func, sym_conds
+                )
             else:
-                sym_result = sympy.rsolve(sym_eq, sym_func)
+                sym_result = tracing.run_sympy(sympy.rsolve, sym_eq, sym_func)
 
             if not isinstance(sym_result, list):
                 sym_result = [sym_result]

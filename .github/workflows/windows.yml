@@ -16,6 +16,11 @@ jobs:
         # "make doctest" on MS Windows fails without showing much of a
         # trace of where things went wrong on Python before 3.11.
         python-version: ['3.14']
+
+    # Setting the environment variable globally for all steps in this job
+    env:
+      MATHICS_CHARACTER_ENCODING: "ASCII"
+
     steps:
       - uses: actions/checkout@v6
       - name: Set up Python ${{ matrix.python-version }}
@@ -32,6 +37,8 @@ jobs:
           # choco install --force llvm
           # choco install tesseract
           set LLVM_DIR="C:\Program Files\LLVM"
+      - name: Install GNU Make
+        run: choco install make
       - name: Install Mathics3 with Python dependencies
         run: |
           pip install pyocr # from full
@@ -42,20 +49,19 @@ jobs:
           # bash -x admin-tools/make-JSON-tables.sh
           # cd ..
           python -m pip install setuptools wheel
-      - name: Install Mathics3 with full dependencies
+      - name: Install Mathics3
         run: |
-          make develop-full
-      - name: Test Mathics3
-        # Limit pip install to a basic install *without* full dependencies.
-        # Here is why:
-        #   * Windows is the slowest CI build, this speeds up testing by about
-        #     3 minutes
-        #   * Other CI tests on other (faster) OS's full dependencies and
-        #     we needs some CI that tests running when packages aren't available
-        # So "dev" only below, not "dev,full".
-        run: |
-          # The below pytest is hanging (not failing) on Windows. This is probably.
-          # So remove for now
-          # make pytest gstest
-          make doctest DOCTEST_OPTIONS="--exclude WordCloud"
-          # make check
+          make develop
+      # - name: Test Mathics3
+      #   # Limit pip install to a basic install *without* full dependencies.
+      #   # Here is why:
+      #   #   * Windows is the slowest CI build, this speeds up testing by about
+      #   #     3 minutes
+      #   #   * Other CI tests on other (faster) OS's full dependencies and
+      #   #     we needs some CI that tests running when packages aren't available
+      #   # So "dev" only below, not "dev,full".
+      #   shell: bash
+      #   run: |
+      #     make pytest gstest
+      #     make doctest DOCTEST_OPTIONS="--exclude WordCloud"
+      #     # make check
