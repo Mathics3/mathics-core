@@ -75,7 +75,6 @@ class _Algebraic(Builtin):
 
     messages = {
         "modn": "Value of option `1` -> `2` should be an integer.",
-        "opttf": "Value of option `1` -> `2` should be True or False.",
         "modulus": "Modulus option not supported yet.",
     }
 
@@ -642,7 +641,6 @@ class _Expand(Builtin):
 
     messages = {
         "modn": "Value of option `1` -> `2` should be an integer.",
-        "opttf": "Value of option `1` -> `2` should be True or False.",
     }
 
     def convert_options(self, options: dict, evaluation: Evaluation):

@@ -128,7 +128,6 @@ class _NumberForm(Builtin):
             "Value for option NumberSeparator -> `1` should be a string "
             "or a pair of strings."
         ),
-        "opttf": "Value of option `1` -> `2` should be True or False.",
         "sigz": (
             "In addition to the number of digits requested, one or more "
             "zeros will appear as placeholders."

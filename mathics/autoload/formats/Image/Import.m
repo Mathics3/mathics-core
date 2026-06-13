@@ -12,7 +12,7 @@ RegisterImageImport[type_] := ImportExport`RegisterImport[
     FunctionChannels -> {"FileNames"}
 ];
 
-(* FIXME: RegisterImageImport shoudl work with MIME types, not psuedo-canonicalized file extensions. *)
+(* FIXME: RegisterImageImport should work with MIME types, not psuedo-canonicalized file extensions. *)
 RegisterImageImport[#]& /@ {"BMP", "GIF", "JPEG2000", "JPEG", "JPG", "PCX", "PNG", "PPM", "PBM", "PGM", "TIFF", "ICO", "TGA"};
 
 End[]

@@ -22,7 +22,6 @@ import os
 import sys
 import urllib.request as request
 from itertools import chain
-from typing import Dict, Final
 from urllib.error import HTTPError, URLError
 
 from mathics.core.atoms import ByteArray
