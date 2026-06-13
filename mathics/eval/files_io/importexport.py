@@ -3,6 +3,7 @@ Functions for figuring out a filetype or MIME type a given
 file path.
 """
 
+import json
 import mimetypes
 import os.path as osp
 import zipfile
@@ -382,10 +383,62 @@ def eval_Import(
                     return SymbolFailed
 
 
+# FIXME:
+# We should not be extracting everything and returning a list of rules.
+# provide a better interface.
+def eval_JSONImport(json_path: str) -> ListExpression:
+    """Takes a ZIP file path and returns a list of file names/paths contained inside."""
+    with open(json_path, "r") as json_file:
+        json_data = json.load(json_file)
+        mathics_json = from_python(json_data)
+        exprs = [
+            Expression(
+                SymbolRule,
+                String("Data"),
+                mathics_json,
+            ),
+            Expression(
+                SymbolRule,
+                String("Dataset"),
+                mathics_json,
+            ),
+        ]
+        return ListExpression(*exprs)
+
+
+# FIXME:
+# We should not be extracting everything and returning a list of rules.
+# provide a better interface.
 def eval_ZIPImport(zip_path: String) -> ListExpression:
     """Takes a ZIP file path and returns a list of file names/paths contained inside."""
     with zipfile.ZipFile(zip_path.value, "r") as archive:
-        return to_mathics_list(*archive.namelist())
+        # FIXME: Using "filenames" for "Summary" items is not quite right.
+        filenames = archive.namelist()
+        mathics_filenames = to_mathics_list(*filenames)
+        exprs = [
+            Expression(
+                SymbolRule,
+                String("FileNames"),
+                mathics_filenames,
+            ),
+            Expression(
+                SymbolRule,
+                String("Summary"),
+                mathics_filenames,
+            ),
+        ]
+
+        if filenames:
+            for filename in filenames:
+                exprs.append(
+                    Expression(
+                        SymbolRule,
+                        String(filename),
+                        String(archive.read(filename).decode("utf-8")),
+                    )
+                )
+
+        return ListExpression(*exprs)
 
 
 def get_results(

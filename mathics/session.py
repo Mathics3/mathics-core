@@ -44,7 +44,9 @@ def autoload_files(
         py_encoding = encoding.value if isinstance(encoding, String) else "UTF-8"
 
     for root, _, files in os.walk(osp_join(root_dir_path, autoload_dir)):
-        for path in [osp_join(root, f) for f in files if f.endswith(".m")]:
+        for path in [
+            osp_join(root, f) for f in files if f.endswith(".m") or f.endswith(".wl")
+        ]:
             # Autoload definitions should be go in the System context
             # by default, rather than the Global context.
             defs.set_current_context("System`")

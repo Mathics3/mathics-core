@@ -49,6 +49,7 @@ from mathics.eval.files_io.importexport import (
     IMPORTERS,
     MIMETYPE_TO_SHORTNAME,
     eval_Import,
+    eval_JSONImport,
     eval_ZIPImport,
     filetype_from_mime_content,
     filetype_from_path,
@@ -1219,6 +1220,7 @@ class Import(Builtin):
 
     def eval_elements(self, source, elements, evaluation, options={}):
         "Import[source_, elements_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
+
         # Check filename
         path = source.to_python()
         if not (isinstance(path, str) and path[0] == path[-1] == '"'):
@@ -1246,13 +1248,16 @@ class Import(Builtin):
         )
 
 
-class ImportZip(Builtin):
+class ImportJSON(Builtin):
     """
     ## <url>:trace native symbol:</url>
 
     <dl>
-      <dt>'ImportZip[path]'
+      <dt>'ImportJSON[path]'
       <dd>Return file archived under $path$
+
+      <dt>'ImportJSON[path, "Elements"]'
+      <dd>Returns elements of ZIP file {"FileName", "Summary"}.
     </dl>
 
     """
@@ -1261,7 +1266,36 @@ class ImportZip(Builtin):
 
     def eval(self, path: String, evaluation: Evaluation):
         "%(name)s[path_String]"
-        return eval_ZIPImport(path)
+        return eval_JSONImport(path.value)
+
+    def eval_elements(self, path: String, evaluation: Evaluation):
+        """%(name)s[path_String]["Elements"]"""
+        return eval_JSONImport(path.value)
+
+
+class ImportZip(Builtin):
+    """
+    ## <url>:trace native symbol:</url>
+
+    <dl>
+      <dt>'ImportZip[path]'
+      <dd>Return file archived under $path$
+
+      <dt>'ImportZip[path, "Elements"]'
+      <dd>Returns elements of ZIP file {"FileName", "Summary"}.
+    </dl>
+
+    """
+
+    summary_text = "import ZIP file"
+
+    def eval(self, path: String, evaluation: Evaluation):
+        "%(name)s[path_String]"
+        return eval_ZIPImport(path.value)
+
+    def eval_elements(self, path: String, evaluation: Evaluation):
+        """%(name)s[path_String]["Elements"]"""
+        return eval_ZIPImport(path.value)
 
 
 class ImportString(Builtin):
