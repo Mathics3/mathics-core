@@ -7,7 +7,7 @@ Here we have the base class and related function for element inside an Expressio
 
 from abc import ABC
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Dict, Optional, Sequence, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, Final, Optional, Sequence, Tuple, Union
 
 from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.keycomparable import KeyComparable
@@ -79,6 +79,11 @@ class ElementsProperties:
 
     # Uniform expressions have all their elements with the same Head.
     is_uniform: bool = False
+
+
+ELEMENTS_FULLY_EVALUATED: Final[ElementsProperties] = ElementsProperties(
+    elements_fully_evaluated=True
+)
 
 
 class ImmutableValueMixin:

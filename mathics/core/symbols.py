@@ -785,7 +785,7 @@ def sympy_name(mathics_symbol: Symbol):
 # show that this does not change the output in any way.
 #
 # That said, for now we will proceed very conservatively and
-# cautiously. However we may decide in the future to
+# cautiously. However, we may decide in the future to
 # more of the below and in systemsymbols
 # PredefineSymbol.
 
@@ -793,7 +793,7 @@ def sympy_name(mathics_symbol: Symbol):
 # Without that cast, some checkers complain in the *use* of SymbolFalse, that
 # there is a type mismatch because the Boolean __new__ seems to produce
 # BooleanType | Symbol | SymbolConstant rather that Boolean type.
-# But then without the '# type: ignore' addition, other checkers complain
+# But then without the ignore "# type", other checkers complain
 # that the cast is unnecessary!
 
 SymbolFalse = cast(BooleanType, BooleanType("System`False", value=False))  # type: ignore

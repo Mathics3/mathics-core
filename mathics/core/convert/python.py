@@ -3,6 +3,7 @@
 Conversions between Python and Mathics3
 """
 
+import math
 from dataclasses import dataclass
 from typing import Any, Final, Optional
 
@@ -17,6 +18,7 @@ from mathics.core.atoms import (
     Real,
     String,
 )
+from mathics.core.element import ELEMENTS_FULLY_EVALUATED
 from mathics.core.number import get_type
 from mathics.core.symbols import (
     BaseElement,
@@ -150,26 +152,43 @@ def from_python(arg: Any, options=DEFAULT_PYTHON_OPTIONS) -> BaseElement:
     elif isinstance(arg, dict):
         if options.use_associations:
             return association_from_dict(arg, options)
+        # List of Rules was used before Associations came
+        # into use in Wolfram Language. List of Rules
+        # is still used a bit.
+        # Note that Python dictionaries from the standpoint of
+        # evaluation are fully evaluated
         entries = [
             Expression(
                 SymbolRule,
                 from_python(key),
                 from_python(value),
+                elements_properties=ELEMENTS_FULLY_EVALUATED,
             )
             for key, value in arg.items()
         ]
-        return ListExpression(*entries)
+        return ListExpression(*entries, elements_properties=ELEMENTS_FULLY_EVALUATED)
     elif isinstance(arg, list) or isinstance(arg, tuple):
         return to_mathics_list(*arg, elements_conversion_fn=from_python)
     elif isinstance(arg, bytearray) or isinstance(arg, bytes):
         return ByteArray(arg)
     elif isinstance(arg, numpy.ndarray):
         return NumericArray(arg)
+    elif arg == math.inf:
+        from mathics.core.expression_predefined import MATHICS3_INFINITY
+
+        return MATHICS3_INFINITY
+    elif arg == -math.inf:
+        from mathics.core.expression_predefined import MATHICS3_NEG_INFINITY
+
+        return MATHICS3_NEG_INFINITY
     else:
         raise NotImplementedError
 
 
 def association_from_dict(arg: dict, options: ToPythonOptions) -> BaseElement:
+    """
+    Convert a Python dictionary into a Mathics3 Association.
+    """
     from mathics.core.expression import Expression
 
     entries = [
@@ -180,4 +199,9 @@ def association_from_dict(arg: dict, options: ToPythonOptions) -> BaseElement:
         )
         for key, value in arg.items()
     ]
-    return Expression(SymbolAssociation, *entries)
+    result = Expression(
+        SymbolAssociation,
+        *entries,
+        elements_properties=ELEMENTS_FULLY_EVALUATED,
+    )
+    return result

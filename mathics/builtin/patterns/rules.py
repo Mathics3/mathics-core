@@ -75,7 +75,8 @@ from mathics.core.builtin import AtomBuiltin, Builtin, InfixOperator, PatternErr
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import InvalidLevelspecError
-from mathics.core.expression import Expression, ExpressionInfinity
+from mathics.core.expression import Expression
+from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
 from mathics.core.symbols import SymbolTrue
 from mathics.core.systemsymbols import (
@@ -370,7 +371,7 @@ class ReplaceList(Builtin):
         # default argument, when it is passed explicitly, e.g.
         # ReplaceList[expr, {}, Infinity], then Infinity
         # comes in as DirectedInfinity[1].
-        if maxidx == SymbolInfinity or ExpressionInfinity == maxidx:
+        if maxidx == SymbolInfinity or MATHICS3_INFINITY == maxidx:
             max_count = None
         else:
             max_count = maxidx.get_int_value()
