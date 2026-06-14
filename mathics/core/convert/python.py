@@ -3,7 +3,8 @@
 Conversions between Python and Mathics3
 """
 
-from typing import Any
+from dataclasses import dataclass
+from typing import Any, Final, Optional
 
 import numpy
 
@@ -24,7 +25,7 @@ from mathics.core.symbols import (
     SymbolNull,
     SymbolTrue,
 )
-from mathics.core.systemsymbols import SymbolRule
+from mathics.core.systemsymbols import SymbolAssociation, SymbolRule
 
 
 def from_bool(arg: bool) -> BooleanType:
@@ -48,6 +49,46 @@ def from_complex(arg: complex) -> Complex:
     return Complex(real_value, imag_value)
 
 
+@dataclass(frozen=True)
+class ToPythonOptions:
+    """
+    Stores options associated with the to_python[] builtin.
+
+    One initialized, this structure is immutable or frozen.
+    """
+
+    use_associations: Optional[bool] = None
+    """'True" if ordering should be lowercase first, 'False" if should uppercase first,
+      and 'None' if we should use the natural alphabet ordering case."""
+
+    @classmethod
+    def from_dict(cls, options: dict[str, Any]) -> "ToPythonOptions":
+        """Factory method that normalizes, type-checks, and builds the frozen structure
+        from a raw dict[str, str].
+        """
+
+        # This will hold our cleaned, type-converted parameters
+        processed_args: dict[str, Any] = {
+            "use_associations": False,
+        }
+
+        # Iterate through the user-provided options dictionary
+        for key, option_value in options.items():
+
+            if not key:
+                raise TypeError(f"ToPythonOptions: bad key: {key}")
+
+            # Type parsing and validation based on the target field name
+            processed_args[key] = option_value
+
+        # Initialize and return the frozen dataclass using our verified arguments
+        return cls(**processed_args)
+
+
+DEFAULT_PYTHON_OPTIONS: Final[ToPythonOptions] = ToPythonOptions.from_dict(
+    {"use_associations": False}
+)
+
 # Historically, from_python() was identified as a bottleneck.
 
 # A large part of this was due to the inefficient monolithic
@@ -63,7 +104,6 @@ def from_complex(arg: complex) -> Complex:
 # of a bottleneck. So care may be warranted to make
 # sure from_python() isn't too slow.
 
-
 # TODO:
 #  I think there are number of subtleties to be explained here.
 #  In particular, the expression might been the result of evaluation
@@ -76,7 +116,7 @@ def from_complex(arg: complex) -> Complex:
 #  symbol like underscore.
 
 
-def from_python(arg: Any) -> BaseElement:
+def from_python(arg: Any, options=DEFAULT_PYTHON_OPTIONS) -> BaseElement:
     """Converts a Python expression into a Mathics3 expression."""
     from mathics.core.convert.expression import to_mathics_list
     from mathics.core.expression import Expression
@@ -108,13 +148,15 @@ def from_python(arg: Any) -> BaseElement:
         # else:
         #     return Symbol(arg)
     elif isinstance(arg, dict):
+        if options.use_associations:
+            return association_from_dict(arg, options)
         entries = [
             Expression(
                 SymbolRule,
                 from_python(key),
-                from_python(arg[key]),
+                from_python(value),
             )
-            for key in arg
+            for key, value in arg.items()
         ]
         return ListExpression(*entries)
     elif isinstance(arg, list) or isinstance(arg, tuple):
@@ -125,3 +167,17 @@ def from_python(arg: Any) -> BaseElement:
         return NumericArray(arg)
     else:
         raise NotImplementedError
+
+
+def association_from_dict(arg: dict, options: ToPythonOptions) -> BaseElement:
+    from mathics.core.expression import Expression
+
+    entries = [
+        Expression(
+            SymbolRule,
+            from_python(key, options),
+            from_python(value, options),
+        )
+        for key, value in arg.items()
+    ]
+    return Expression(SymbolAssociation, *entries)

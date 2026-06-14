@@ -2,7 +2,17 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from typing import TYPE_CHECKING, Any, Dict, FrozenSet, List, Optional, Sequence, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    FrozenSet,
+    List,
+    Optional,
+    Sequence,
+    Union,
+    cast,
+)
 
 from mathics.core.element import (
     BaseElement,
@@ -779,9 +789,16 @@ def sympy_name(mathics_symbol: Symbol):
 # more of the below and in systemsymbols
 # PredefineSymbol.
 
-SymbolFalse = BooleanType("System`False", value=False)
+# Note getting all checkers to agree is a nightmare.
+# Without that cast, some checkers complain in the *use* of SymbolFalse, that
+# there is a type mismatch because the Boolean __new__ seems to produce
+# BooleanType | Symbol | SymbolConstant rather that Boolean type.
+# But then without the '# type: ignore' addition, other checkers complain
+# that the cast is unnecessary!
+
+SymbolFalse = cast(BooleanType, BooleanType("System`False", value=False))  # type: ignore
 SymbolList = SymbolConstant("System`List", value=list)
-SymbolTrue = BooleanType("System`True", value=True)
+SymbolTrue = cast(BooleanType, BooleanType("System`True", value=True))  # type: ignore
 
 SymbolAbs = Symbol("Abs")
 SymbolDivide = Symbol("Divide")

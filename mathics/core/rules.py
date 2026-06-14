@@ -232,7 +232,9 @@ class BaseRule(KeyComparable, ABC):
         return tuple((self.system, self.pattern.pattern_precedence))
 
 
-# FIXME: the class name would be better called RewriteRule.
+# FIXME: Given what is stated in the docstring below,
+# the class name would be better called RewriteRule, instead of the
+# more generic term Rule.
 class Rule(BaseRule):
     """There are two kinds of Rules.  This kind of is a rewrite rule
     and transforms an Expression into another Expression based on the
