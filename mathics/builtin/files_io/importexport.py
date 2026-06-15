@@ -49,6 +49,7 @@ from mathics.eval.files_io.importexport import (
     MIMETYPE_TO_SHORTNAME,
     eval_FileFormat,
     eval_Import,
+    eval_Import_Elements,
     eval_JSONImport,
     eval_ZIPImport,
     filetype_from_mime_content,
@@ -1209,22 +1210,12 @@ class Import(Builtin):
 
     summary_text = "import elements from a file"
 
-    def eval(self, source, evaluation, options={}):
-        "Import[source_, OptionsPattern[]]"
-        return self.eval_elements(source, ListExpression(), evaluation, options)
-
-    def eval_element(self, source, element: String, evaluation, options={}):
-        "Import[source_, element_String, OptionsPattern[]]"
-        return self.eval_elements(source, ListExpression(element), evaluation, options)
-
-    def eval_elements(self, source, elements, evaluation, options={}):
-        "Import[source_, elements_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
-
+    def import_setup(self, source, evaluation) -> tuple:
         # Check filename
         path = source.to_python()
         if not (isinstance(path, str) and path[0] == path[-1] == '"'):
             evaluation.message("Import", "chtype", source)
-            return SymbolFailed
+            return SymbolFailed, None
 
         # Load local file
         if path[0] == path[-1] == '"':
@@ -1233,9 +1224,32 @@ class Import(Builtin):
 
         if findfile is None:
             evaluation.message("Import", "nffil")
-            return SymbolFailed
+            return SymbolFailed, None
 
-        data = eval_FileFormat(findfile.value).value
+        return findfile, eval_FileFormat(findfile.value).value
+
+    def eval(self, source, evaluation, options={}):
+        "Import[source_, OptionsPattern[]]"
+        return self.eval_element_list(source, ListExpression(), evaluation, options)
+
+    def eval_elements_query(self, source, evaluation, options={}):
+        """Import[source_, "Elements", OptionsPattern[]]"""
+        _, format = self.import_setup(source, evaluation)
+        return self.eval_element_list(
+            source, ListExpression(String("Elements")), evaluation, options
+        )
+        # return eval_Import_Elements(source, format, evaluation, options)
+
+    def eval_fmt(self, source, fmt: String, evaluation, options={}):
+        "Import[source_, fmt_String, OptionsPattern[]]"
+        return self.eval_element_list(source, ListExpression(fmt), evaluation, options)
+
+    def eval_element_list(self, source, elements, evaluation, options={}):
+        "Import[source_, elements_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
+
+        findfile, data = self.import_setup(source, evaluation)
+        if findfile is SymbolFailed:
+            return SymbolFailed
 
         def determine_filetype(data: str) -> str:
             return data
