@@ -980,7 +980,9 @@ class RegisterImport(Builtin):
     }
     summary_text = "register an importer for a file format"
 
-    def eval(self, formatname, function, posts, evaluation: Evaluation, options):
+    def eval(
+        self, formatname: String, function, posts, evaluation: Evaluation, options
+    ):
         """ImportExport`RegisterImport[formatname_String, function_, posts_,
         OptionsPattern[ImportExport`RegisterImport]]"""
 
@@ -1234,11 +1236,8 @@ class Import(Builtin):
 
     def eval_elements_query(self, source, evaluation, options={}):
         """Import[source_, "Elements", OptionsPattern[]]"""
-        _, format = self.import_setup(source, evaluation)
-        return self.eval_element_list(
-            source, ListExpression(String("Elements")), evaluation, options
-        )
-        # return eval_Import_Elements(source, format, evaluation, options)
+        _, file_format = self.import_setup(source, evaluation)
+        return eval_Import_Elements(file_format, evaluation)
 
     def eval_fmt(self, source, fmt: String, evaluation, options={}):
         "Import[source_, fmt_String, OptionsPattern[]]"

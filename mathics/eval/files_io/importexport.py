@@ -393,37 +393,21 @@ def eval_Import(
                     return SymbolFailed
 
 
-def eval_Import_Elements(findfile: String, format: str, evaluation, options):
+def eval_Import_Elements(file_format: str, evaluation):
     """
-    Basic implemenation beind Import[xxx, Eelements].
+    Basic implemenation beind Import[xxx, Elements].
     """
-    filetype = MIME_SHORTNAME_TO_WMA.get(format, format)
+    filetype = MIME_SHORTNAME_TO_WMA.get(file_format, file_format)
 
     if filetype not in IMPORTERS.keys():
         evaluation.message("Import", "fmtnosup", String(filetype))
         return SymbolFailed
 
-    # Load the importer
-    _, import_function, _, importer_options = IMPORTERS[filetype]
-
-    _, custom_options = importer_exporter_options(
-        importer_options.get("System`Options"), options, "System`Import", evaluation
-    )
-
-    # Perform the import
-
-    results = get_elements_names(
-        import_function,
-        findfile,
-        custom_options,
-        evaluation,
-        options,
-    )
-    if results is None:
-        return SymbolFailed
-    elif results is SymbolFailed:
-        return SymbolFailed
-    return to_mathics_list(*results)
+    # Get information from the registered Importer.
+    # In this we've registered, the field names that can be asked for
+    # under the option "Elements".
+    _, _, _, options = IMPORTERS[filetype]
+    return options.get("System`AvailableElements")
 
 
 # FIXME:
@@ -482,47 +466,6 @@ def eval_ZIPImport(zip_path: String) -> ListExpression:
                 )
 
         return ListExpression(*exprs)
-
-
-def get_elements_names(
-    import_function,
-    findfile: String,
-    custom_options,
-    evaluation,
-    options,
-):
-    """
-    Retrieves field names in Import[xxx, Elements]
-    """
-    mode = "r"
-    if options.get("System`BinaryFormat") is SymbolTrue:
-        if not mode.endswith("b"):
-            mode += "b"
-
-    encoding_option = options.get("System`CharacterEncoding")
-    encoding = encoding_option.value if isinstance(encoding_option, String) else None
-
-    stream = eval_Open(
-        name=findfile,
-        mode=mode,
-        stream_type="InputStream",
-        encoding=encoding,
-        evaluation=evaluation,
-    )
-    if stream is None:
-        return
-
-    # FIXME: do this in a better way without having to call Expression, or even having
-    # to read the entire file!
-    tmp = Expression(import_function, stream, *custom_options).evaluate(evaluation)
-    eval_Close(stream, evaluation)
-    tmp = tmp.get_elements()
-    if not all(expr.has_form("Rule", None) for expr in tmp):
-        return None
-
-    # Return just the column names. a is a tuple and has  has the actual
-    # value.
-    return [a[0].value for a in (x.get_elements() for x in tmp)]
 
 
 def get_results(

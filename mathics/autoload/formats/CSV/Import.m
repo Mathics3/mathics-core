@@ -23,7 +23,7 @@ ImportExport`RegisterImport[
     System`Convert`TableDump`ImportCSV,
     {
         "Data" :> GetData,
-	    "Grid" :> GetGrid
+        "Grid" :> GetGrid
     },
     (* Sources -> ImportExport`DefaultSources["Table"], *)
     FunctionChannels -> {"Streams"},
