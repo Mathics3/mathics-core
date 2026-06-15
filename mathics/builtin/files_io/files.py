@@ -270,7 +270,6 @@ class FilePrint(Builtin):
     expected_args = (1, 2)
     messages = {
         "zstr": ("The file name cannot be an empty string."),
-        "badfile": ("The specified argument, `1`, should be a valid string."),
     }
 
     options = {
@@ -283,6 +282,7 @@ class FilePrint(Builtin):
     def eval(self, path, evaluation: Evaluation, options: dict):
         "FilePrint[path_, OptionsPattern[FilePrint]]"
 
+        # TODO also check for File.
         if not isinstance(path, String):
             evaluation.message("FilePrint", "badfile", path)
             return
@@ -675,7 +675,7 @@ class Put(InfixOperator):
         stream = stream_manager.lookup_stream(n.get_int_value())
 
         if stream is None or stream.io.closed:
-            evaluation.message("Put", "openx", get_eval_Expression())
+            evaluation.message("Put", "openx", evaluation.current_expression)
             return
 
         # In Mathics3-server, evaluation.format_output is modified.
@@ -772,7 +772,7 @@ class PutAppend(InfixOperator):
         stream = stream_manager.lookup_stream(n.get_int_value())
 
         if stream is None or stream.io.closed:
-            evaluation.message("Put", "openx", get_eval_Expression())
+            evaluation.message("Put", "openx", evaluation.current_expression)
             return
 
         text = [
@@ -1187,7 +1187,7 @@ class ReadList(Read):
 
         py_n = n.value
         if py_n < 0:
-            evaluation.message("ReadList", "intnm", get_eval_Expression())
+            evaluation.message("ReadList", "intnm", evaluation.current_expression)
             return
 
         result = []
@@ -1298,7 +1298,9 @@ class SetStreamPosition(Builtin):
 
         seekpos = m.to_python()
         if not (isinstance(seekpos, int) or seekpos == float("inf")):
-            evaluation.message("SetStreamPosition", "stmrng", get_eval_Expression(), m)
+            evaluation.message(
+                "SetStreamPosition", "stmrng", evaluation.current_expression, m
+            )
             return
 
         try:

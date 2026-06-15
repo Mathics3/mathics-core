@@ -38,21 +38,20 @@ from mathics.core.systemsymbols import (
     SymbolByteArray,
     SymbolFailed,
     SymbolFileExtension,
-    SymbolFileFormat,
-    SymbolFindFile,
     SymbolOpenWrite,
     SymbolOutputStream,
     SymbolToString,
 )
 from mathics.eval.files_io.files import eval_Close
+from mathics.eval.files_io.filesystem import eval_FindFile
 from mathics.eval.files_io.importexport import (
     IMPORTERS,
     MIMETYPE_TO_SHORTNAME,
+    eval_FileFormat,
     eval_Import,
     eval_JSONImport,
     eval_ZIPImport,
     filetype_from_mime_content,
-    filetype_from_path,
     importer_exporter_options,
 )
 
@@ -1228,23 +1227,21 @@ class Import(Builtin):
             return SymbolFailed
 
         # Load local file
-        findfile = Expression(SymbolFindFile, source).evaluate(evaluation)
+        if path[0] == path[-1] == '"':
+            path = path[1:-1]
+        findfile = eval_FindFile(path)
 
-        if findfile is SymbolFailed:
+        if findfile is None:
             evaluation.message("Import", "nffil")
-            return findfile
+            return SymbolFailed
 
-        data = (
-            Expression(SymbolFileFormat, findfile)
-            .evaluate(evaluation=evaluation)
-            .get_string_value()
-        )
+        data = eval_FileFormat(findfile.value).value
 
         def determine_filetype(data: str) -> str:
             return data
 
         return eval_Import(
-            findfile, determine_filetype, elements, evaluation, options, data=data
+            findfile, determine_filetype, elements, evaluation, options, data
         )
 
 
@@ -1739,14 +1736,17 @@ class FileFormat(Builtin):
     def eval(self, filename: String, evaluation: Evaluation):
         "FileFormat[filename_String]"
 
-        findfile = Expression(SymbolFindFile, filename).evaluate(evaluation)
-        if findfile is SymbolFailed:
-            evaluation.message(
-                "FileFormat", "nffil", Expression(SymbolFileFormat, filename)
-            )
-            return findfile
+        py_name = filename.value
+        if py_name[0] == filename.value[-1] == '"':
+            py_name = py_name[1:-1]
 
-        return String(filetype_from_path(findfile.value))
+        resolved_path = eval_FindFile(py_name)
+
+        if resolved_path is None:
+            evaluation.message("FileFormat", "nffil", evaluation.current_expression)
+            return SymbolFailed
+
+        return eval_FileFormat(resolved_path.value)
 
 
 class B64Decode(Builtin):

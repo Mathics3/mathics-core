@@ -111,7 +111,7 @@ def test_close():
         ('Close["abc"]', ("abc is not open.",), "Close[abc]", ""),
         (
             "exp = Sin[1]; FilePrint[exp]",
-            ("The specified argument, Sin[1], should be a valid string.",),
+            ("The specified argument, Sin[1], should be a valid string or File.",),
             "FilePrint[Sin[1]]",
             "",
         ),

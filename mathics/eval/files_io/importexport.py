@@ -197,6 +197,13 @@ def importer_exporter_options(
     return stream_options, custom_options
 
 
+def eval_FileFormat(path: str) -> String:
+    """
+    Basic implemenation beind FileFormat[filename].
+    """
+    return String(filetype_from_path(path))
+
+
 def eval_Import(
     findfile: Optional[String],
     determine_filetype,
@@ -205,6 +212,9 @@ def eval_Import(
     options,
     data: Optional[str],
 ):
+    """
+    Basic implemenation beind Import[].
+    """
     current_predetermined_out = evaluation.predetermined_out
     # Check elements
     if elements.has_form("List", None):
