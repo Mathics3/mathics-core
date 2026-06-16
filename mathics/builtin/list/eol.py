@@ -40,7 +40,7 @@ from mathics.core.exceptions import (
     PartError,
     PartRangeError,
 )
-from mathics.core.expression import Expression, ExpressionInfinity
+from mathics.core.expression import Expression
 from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
 from mathics.core.rules import Rule
@@ -482,7 +482,7 @@ class DeleteCases(Builtin):
 
         levelspec = python_levelspec(levelspec)
 
-        if n is SymbolInfinity or ExpressionInfinity == n:
+        if n is SymbolInfinity or n == MATHICS3_INFINITY:
             n = -1
         elif isinstance(n, Integer):
             n = n.value
@@ -1609,7 +1609,7 @@ class Select(Builtin):
         "Select[items_, expr_, n_]"
 
         count_is_valid = True
-        if n is SymbolInfinity or ExpressionInfinity == n:
+        if n is SymbolInfinity or MATHICS3_INFINITY == n:
             count = None
         elif isinstance(n, Integer):
             count = n.value

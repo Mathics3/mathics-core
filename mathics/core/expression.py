@@ -21,7 +21,7 @@ from typing import (
 import sympy
 from mathics_scanner.location import SourceRange, SourceRange2
 
-from mathics.core.atoms import Integer1, String
+from mathics.core.atoms import String
 from mathics.core.attributes import (
     A_FLAT,
     A_HOLD_ALL,
@@ -2025,6 +2025,3 @@ def convert_expression_elements(
 
 def string_list(head, elements, evaluation):
     return atom_list_constructor(evaluation, head, "String")(elements)
-
-
-ExpressionInfinity = Expression(SymbolDirectedInfinity, Integer1)
