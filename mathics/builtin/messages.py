@@ -182,6 +182,7 @@ class General(Builtin):
             "`1` called with `2` arguments; " "`3` or `4` arguments are expected."
         ),
         "argtu": ("`1` called with 1 argument; `2` or `3` arguments are expected."),
+        "badfile": ("The specified argument, `1`, should be a valid string or File."),
         "base": "Requested base `1` in `2` should be between 2 and `3`.",
         "boxfmt": "`1` is not a box formatting type.",
         "charcode": "The character encoding `1` is not supported. Use $CharacterEncodings to list supported encodings.",

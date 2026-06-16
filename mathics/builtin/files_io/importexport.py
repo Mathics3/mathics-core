@@ -38,19 +38,21 @@ from mathics.core.systemsymbols import (
     SymbolByteArray,
     SymbolFailed,
     SymbolFileExtension,
-    SymbolFileFormat,
-    SymbolFindFile,
     SymbolOpenWrite,
     SymbolOutputStream,
     SymbolToString,
 )
 from mathics.eval.files_io.files import eval_Close
+from mathics.eval.files_io.filesystem import eval_FindFile
 from mathics.eval.files_io.importexport import (
     IMPORTERS,
     MIMETYPE_TO_SHORTNAME,
+    eval_FileFormat,
     eval_Import,
+    eval_Import_Elements,
+    eval_JSONImport,
+    eval_ZIPImport,
     filetype_from_mime_content,
-    filetype_from_path,
     importer_exporter_options,
 )
 
@@ -874,7 +876,7 @@ class ImportFormats(Predefined):
 
 class RegisterImport(Builtin):
     """
-    ## <url>:internal native symbol:</url>
+    <url>:WMA link:https://reference.wolfram.com/language/tutorial/ImportingAndExporting.html#138898786</url>
 
     <dl>
       <dt>'RegisterImport'["$format$", $defaultFunction$]
@@ -978,7 +980,9 @@ class RegisterImport(Builtin):
     }
     summary_text = "register an importer for a file format"
 
-    def eval(self, formatname, function, posts, evaluation: Evaluation, options):
+    def eval(
+        self, formatname: String, function, posts, evaluation: Evaluation, options
+    ):
         """ImportExport`RegisterImport[formatname_String, function_, posts_,
         OptionsPattern[ImportExport`RegisterImport]]"""
 
@@ -1208,41 +1212,100 @@ class Import(Builtin):
 
     summary_text = "import elements from a file"
 
-    def eval(self, source, evaluation, options={}):
-        "Import[source_, OptionsPattern[]]"
-        return self.eval_elements(source, ListExpression(), evaluation, options)
-
-    def eval_element(self, source, element: String, evaluation, options={}):
-        "Import[source_, element_String, OptionsPattern[]]"
-        return self.eval_elements(source, ListExpression(element), evaluation, options)
-
-    def eval_elements(self, source, elements, evaluation, options={}):
-        "Import[source_, elements_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
+    def import_setup(self, source, evaluation) -> tuple:
         # Check filename
         path = source.to_python()
         if not (isinstance(path, str) and path[0] == path[-1] == '"'):
             evaluation.message("Import", "chtype", source)
-            return SymbolFailed
+            return SymbolFailed, None
 
         # Load local file
-        findfile = Expression(SymbolFindFile, source).evaluate(evaluation)
+        if path[0] == path[-1] == '"':
+            path = path[1:-1]
+        findfile = eval_FindFile(path)
 
-        if findfile is SymbolFailed:
+        if findfile is None:
             evaluation.message("Import", "nffil")
-            return findfile
+            return SymbolFailed, None
 
-        data = (
-            Expression(SymbolFileFormat, findfile)
-            .evaluate(evaluation=evaluation)
-            .get_string_value()
-        )
+        return findfile, eval_FileFormat(findfile.value).value
+
+    def eval(self, source, evaluation, options={}):
+        "Import[source_, OptionsPattern[]]"
+        return self.eval_element_list(source, ListExpression(), evaluation, options)
+
+    def eval_elements_query(self, source, evaluation, options={}):
+        """Import[source_, "Elements", OptionsPattern[]]"""
+        _, file_format = self.import_setup(source, evaluation)
+        return eval_Import_Elements(file_format, evaluation)
+
+    def eval_fmt(self, source, fmt: String, evaluation, options={}):
+        "Import[source_, fmt_String, OptionsPattern[]]"
+        return self.eval_element_list(source, ListExpression(fmt), evaluation, options)
+
+    def eval_element_list(self, source, elements, evaluation, options={}):
+        "Import[source_, elements_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
+
+        findfile, data = self.import_setup(source, evaluation)
+        if findfile is SymbolFailed:
+            return SymbolFailed
 
         def determine_filetype(data: str) -> str:
             return data
 
         return eval_Import(
-            findfile, determine_filetype, elements, evaluation, options, data=data
+            findfile, determine_filetype, elements, evaluation, options, data
         )
+
+
+class ImportJSON(Builtin):
+    """
+    ## <url>:trace native symbol:</url>
+
+    <dl>
+      <dt>'ImportJSON[path]'
+      <dd>Return file archived under $path$
+
+      <dt>'ImportJSON[path, "Elements"]'
+      <dd>Returns elements of ZIP file {"FileName", "Summary"}.
+    </dl>
+
+    """
+
+    summary_text = "import ZIP file"
+
+    def eval(self, path: String, evaluation: Evaluation):
+        "%(name)s[path_String]"
+        return eval_JSONImport(path.value)
+
+    def eval_elements(self, path: String, evaluation: Evaluation):
+        """%(name)s[path_String, "Elements"]"""
+        return eval_JSONImport(path.value)
+
+
+class ImportZip(Builtin):
+    """
+    ## <url>:trace native symbol:</url>
+
+    <dl>
+      <dt>'ImportZip[path]'
+      <dd>Return file archived under $path$
+
+      <dt>'ImportZip[path, "Elements"]'
+      <dd>Returns elements of ZIP file {"FileName", "Summary"}.
+    </dl>
+
+    """
+
+    summary_text = "import ZIP file"
+
+    def eval(self, path: String, evaluation: Evaluation):
+        "%(name)s[path_String]"
+        return eval_ZIPImport(path.value)
+
+    def eval_elements(self, path: String, evaluation: Evaluation):
+        """%(name)s[path_String, "Elements"]"""
+        return eval_Import_Elements("ZIP", evaluation)
 
 
 class ImportString(Builtin):
@@ -1686,14 +1749,17 @@ class FileFormat(Builtin):
     def eval(self, filename: String, evaluation: Evaluation):
         "FileFormat[filename_String]"
 
-        findfile = Expression(SymbolFindFile, filename).evaluate(evaluation)
-        if findfile is SymbolFailed:
-            evaluation.message(
-                "FileFormat", "nffil", Expression(SymbolFileFormat, filename)
-            )
-            return findfile
+        py_name = filename.value
+        if py_name[0] == filename.value[-1] == '"':
+            py_name = py_name[1:-1]
 
-        return String(filetype_from_path(findfile.value))
+        resolved_path = eval_FindFile(py_name)
+
+        if resolved_path is None:
+            evaluation.message("FileFormat", "nffil", evaluation.current_expression)
+            return SymbolFailed
+
+        return eval_FileFormat(resolved_path.value)
 
 
 class B64Decode(Builtin):

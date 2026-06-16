@@ -1,3 +1,5 @@
+(* ::Package:: *)
+
 (* CSV Importer *)
 
 Begin["System`Convert`TableDump`"]
@@ -23,12 +25,13 @@ ImportExport`RegisterImport[
     System`Convert`TableDump`ImportCSV,
     {
         "Data" :> GetData,
-	    "Grid" :> GetGrid
+        "Grid" :> GetGrid
     },
     (* Sources -> ImportExport`DefaultSources["Table"], *)
     FunctionChannels -> {"Streams"},
     AvailableElements -> {"Data", "Grid"},
     DefaultElement -> "Data",
+    BinaryFormat -> False,
     Options -> {
         "CharacterEncoding",
         "FieldSeparators"

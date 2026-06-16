@@ -1,3 +1,4 @@
+(* ::Package:: *)
 
 Begin["System`Convert`B64Dump`"]
 
@@ -21,6 +22,7 @@ ImportExport`RegisterExport[
 	FunctionChannels -> {"FileNames"},
 	Options -> {"CharacterEncoding", "ByteOrderMark"},
 	DefaultElement -> "Plaintext",
+	Encoding -> True
 	BinaryFormat -> False
 ]
 

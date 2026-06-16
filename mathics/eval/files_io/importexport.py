@@ -3,13 +3,16 @@ Functions for figuring out a filetype or MIME type a given
 file path.
 """
 
+import json
 import mimetypes
 import os.path as osp
+import zipfile
 from itertools import chain
 from typing import Dict, Final, Optional
 
-from mathics.core.atoms import ByteArray
-from mathics.core.builtin import String, get_option
+from mathics.core.atoms import ByteArray, String
+from mathics.core.builtin import get_option
+from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -194,6 +197,13 @@ def importer_exporter_options(
     return stream_options, custom_options
 
 
+def eval_FileFormat(path: str) -> String:
+    """
+    Basic implemenation beind FileFormat[filename].
+    """
+    return String(filetype_from_path(path))
+
+
 def eval_Import(
     findfile: Optional[String],
     determine_filetype,
@@ -202,6 +212,9 @@ def eval_Import(
     options,
     data: Optional[str],
 ):
+    """
+    Basic implemenation beind Import[].
+    """
     current_predetermined_out = evaluation.predetermined_out
     # Check elements
     if elements.has_form("List", None):
@@ -378,6 +391,81 @@ def eval_Import(
                     )
                     evaluation.predetermined_out = current_predetermined_out
                     return SymbolFailed
+
+
+def eval_Import_Elements(file_format: str, evaluation):
+    """
+    Basic implemenation beind Import[xxx, Elements].
+    """
+    filetype = MIME_SHORTNAME_TO_WMA.get(file_format, file_format)
+
+    if filetype not in IMPORTERS.keys():
+        evaluation.message("Import", "fmtnosup", String(filetype))
+        return SymbolFailed
+
+    # Get information from the registered Importer.
+    # In this we've registered, the field names that can be asked for
+    # under the option "Elements".
+    _, _, _, options = IMPORTERS[filetype]
+    return options.get("System`AvailableElements")
+
+
+# FIXME:
+# We should not be extracting everything and returning a list of rules.
+# provide a better interface.
+def eval_JSONImport(json_path: str) -> ListExpression:
+    """Takes a ZIP file path and returns a list of file names/paths contained inside."""
+    with open(json_path, "r") as json_file:
+        json_data = json.load(json_file)
+        mathics_json = from_python(json_data)
+        exprs = [
+            Expression(
+                SymbolRule,
+                String("Data"),
+                mathics_json,
+            ),
+            Expression(
+                SymbolRule,
+                String("Dataset"),
+                mathics_json,
+            ),
+        ]
+        return ListExpression(*exprs)
+
+
+# FIXME:
+# We should not be extracting everything and returning a list of rules.
+# provide a better interface.
+def eval_ZIPImport(zip_path: str) -> ListExpression:
+    """Takes a ZIP file path and returns a list of file names/paths contained inside."""
+    with zipfile.ZipFile(zip_path, "r") as archive:
+        # FIXME: Using "filenames" for "Summary" items is not quite right.
+        filenames = archive.namelist()
+        mathics_filenames = to_mathics_list(*filenames)
+        exprs = [
+            Expression(
+                SymbolRule,
+                String("FileNames"),
+                mathics_filenames,
+            ),
+            Expression(
+                SymbolRule,
+                String("Summary"),
+                mathics_filenames,
+            ),
+        ]
+
+        if filenames:
+            for filename in filenames:
+                exprs.append(
+                    Expression(
+                        SymbolRule,
+                        String(filename),
+                        String(archive.read(filename).decode("utf-8")),
+                    )
+                )
+
+        return ListExpression(*exprs)
 
 
 def get_results(

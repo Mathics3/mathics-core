@@ -9,7 +9,7 @@ import os.path as osp
 import pathlib
 import re
 import shutil
-from typing import List
+from typing import List, Optional
 
 from mathics.builtin.files_io.files import Mathics3Open
 from mathics.core.atoms import Integer, String
@@ -20,7 +20,7 @@ from mathics.core.convert.python import from_python
 from mathics.core.convert.regex import to_regex
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.streams import create_temporary_file, path_search, urlsave_tmp
+from mathics.core.streams import create_temporary_file, urlsave_tmp
 from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
@@ -36,6 +36,7 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.directories import DIRECTORY_STACK
 from mathics.eval.files_io.files import eval_Get
+from mathics.eval.files_io.filesystem import eval_FindFile
 from mathics.eval.stackframe import get_eval_Expression
 
 
@@ -62,21 +63,20 @@ class AbsoluteFileName(Builtin):
         py_name = name.to_python()
 
         if not isinstance(py_name, str):
-            evaluation.message("AbsoluteFileName", "fstr", name)
+            evaluation.message("AbsoluteFileName", "badfile", name)
             return
 
         if py_name[0] == py_name[-1] == '"':
             py_name = py_name[1:-1]
 
-        result, _ = path_search(py_name)
-
+        result = eval_FindFile(py_name)
         if result is None:
             evaluation.message(
                 "AbsoluteFileName", "nffil", to_expression("AbsoluteFileName", name)
             )
             return SymbolFailed
 
-        return String(osp.abspath(result))
+        return result
 
 
 class CopyDirectory(Builtin):
@@ -173,7 +173,7 @@ class CopyFile(Builtin):
         if py_dest[0] == py_dest[-1] == '"':
             py_dest = py_dest[1:-1]
 
-        py_source, _ = path_search(py_source)
+        py_source = eval_FindFile(py_source)
 
         if py_source is None:
             evaluation.message("CopyFile", "filex", source)
@@ -184,7 +184,7 @@ class CopyFile(Builtin):
             return SymbolFailed
 
         try:
-            shutil.copy(py_source, py_dest)
+            shutil.copy(py_source.value, py_dest)
         except IOError:
             evaluation.message("CopyFile", "nffil", get_eval_Expression())
             return SymbolFailed
@@ -300,12 +300,12 @@ class DeleteFile(Builtin):
 
             if path[0] == path[-1] == '"':
                 path = path[1:-1]
-            path, _ = path_search(path)
+            resolved_path = eval_FindFile(path)
 
-            if path is None:
+            if resolved_path is None:
                 evaluation.message("DeleteFile", "nffil", get_eval_Expression())
                 return SymbolFailed
-            py_paths.append(path)
+            py_paths.append(resolved_path.value)
 
         for path in py_paths:
             try:
@@ -355,7 +355,6 @@ class DirectoryStack(Builtin):
 
     def eval(self, evaluation):
         "DirectoryStack[]"
-        global DIRECTORY_STACK
         return from_python(DIRECTORY_STACK)
 
 
@@ -504,7 +503,7 @@ class FileExistsQ(Builtin):
     }
     summary_text = "test whether a file exists"
 
-    def eval(self, filename, evaluation):
+    def eval(self, filename, evaluation) -> Optional[Symbol]:
         "FileExistsQ[filename_]"
         path = filename.to_python()
         if not (isinstance(path, str) and path[0] == path[-1] == '"'):
@@ -512,11 +511,8 @@ class FileExistsQ(Builtin):
             return
         path = path[1:-1]
 
-        path, is_temporary_file = path_search(path)
-
-        if path is None:
-            return SymbolFalse
-        return SymbolTrue
+        resolved_path = eval_FindFile(path)
+        return SymbolFalse if resolved_path is None else SymbolTrue
 
 
 class FileExtension(Builtin):
@@ -606,12 +602,10 @@ class FindFile(Builtin):
             return
         py_name = py_name[1:-1]
 
-        result, is_temporary_file = path_search(py_name)
-
+        result = eval_FindFile(py_name)
         if result is None:
             return SymbolFailed
-
-        return String(osp.abspath(result))
+        return result
 
 
 class FileNames(Builtin):
@@ -983,9 +977,9 @@ class RenameFile(Builtin):
         py_source = py_source[1:-1]
         py_dest = py_dest[1:-1]
 
-        py_source, _ = path_search(py_source)
+        resolved_source = eval_FindFile(py_source)
 
-        if py_source is None:
+        if resolved_source is None:
             evaluation.message("RenameFile", "filex", source)
             return SymbolFailed
 
@@ -994,7 +988,7 @@ class RenameFile(Builtin):
             return SymbolFailed
 
         try:
-            shutil.move(py_source, py_dest)
+            shutil.move(resolved_source.value, py_dest)
         except IOError:
             evaluation.message("RenameFile", "nffil", dest)
             return SymbolFailed
