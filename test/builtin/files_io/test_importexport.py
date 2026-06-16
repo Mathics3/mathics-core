@@ -108,37 +108,6 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
-        (
-            'Import["ExampleData/numberdata.csv", "Elements"]',
-            None,
-            "{Data, Grid}",
-            None,
-        ),
-        (
-            'datastring = "0.88, 0.60, 0.94\\n.076, 0.19, .51\\n0.97, 0.04, .26";ImportString[datastring, "Elements"]',
-            None,
-            "{Data, Lines, Plaintext, String, Words}",
-            None,
-        ),
-        ('ImportString[datastring, {"CSV","Elements"}]', None, "{Data, Grid}", None),
-    ],
-)
-def test_import_elements(str_expr, msgs, str_expected, fail_msg):
-    """ """
-    check_evaluation(
-        str_expr,
-        str_expected,
-        to_string_expr=True,
-        to_string_expected=True,
-        hold_expected=True,
-        failure_message=fail_msg,
-        expected_messages=msgs,
-    )
-
-
-@pytest.mark.parametrize(
-    ("str_expr", "msgs", "str_expected", "fail_msg"),
-    [
         (r'Quiet[URLFetch["https://", {}]]', None, "$Failed", None),
         # (r'Quiet[URLFetch["https://www.example.com", {}]]', None,
         #  "...", None),
@@ -155,6 +124,18 @@ def test_import_elements(str_expr, msgs, str_expected, fail_msg):
             None,
         ),
         ## CSV
+        (
+            'Import["ExampleData/numberdata.csv", "Elements"]',
+            None,
+            "{Data, Grid}",
+            None,
+        ),
+        (
+            'Import["ExampleData/numberdata.csv", "Data"]',
+            None,
+            "{{0.88, 0.60, 0.94}, {0.76, 0.19, 0.51}, {0.97, 0.04, 0.26}, {0.33, 0.74, 0.79}, {0.42, 0.64, 0.56}}",
+            None,
+        ),
         (
             'Import["ExampleData/numberdata.csv"]',
             None,
@@ -207,6 +188,13 @@ def test_import_elements(str_expr, msgs, str_expected, fail_msg):
         ),
         ("ImportString[x]", ("First argument x is not a string.",), "$Failed", None),
         ## CSV
+        (
+            'datastring = "0.88, 0.60, 0.94\\n.076, 0.19, .51\\n0.97, 0.04, .26";ImportString[datastring, "Elements"]',
+            None,
+            "{Data, Lines, Plaintext, String, Words}",
+            None,
+        ),
+        ('ImportString[datastring, {"CSV","Elements"}]', None, "{Data, Grid}", None),
         (
             'ImportString[datastring, {"CSV", "Data"}]',
             None,

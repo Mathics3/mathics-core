@@ -16,8 +16,8 @@ ImportExport`RegisterImport[
         HTML`PlaintextImport
     },
     {},
-    Elements -> {"Data", "FullData", "Hyperlinks", "ImageLinks", "Plaintext", "Source", "Title", "XMLObject"},
-    DefaultElement -> "Plaintext",
+	AvailableElements -> {"Data", "FullData", "Hyperlinks", "ImageLinks", "Plaintext", "Source", "Title", "XMLObject"},
+	DefaultElement -> "Plaintext",
     FunctionChannels -> {"FileNames"}
 ]
 

@@ -407,7 +407,7 @@ def eval_Import_Elements(file_format: str, evaluation):
     # In this we've registered, the field names that can be asked for
     # under the option "Elements".
     _, _, _, options = IMPORTERS[filetype]
-    return options.get("System`Elements")
+    return options.get("System`AvailableElements")
 
 
 # FIXME:

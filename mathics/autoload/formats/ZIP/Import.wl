@@ -5,7 +5,7 @@ ImportExport`RegisterImport[
     "ZIP",
     ImportZip,
     FunctionChannels -> {"Streams"},
-    Elements -> {"FileNames", "Summary"},
+    AvailableElements -> {"FileNames", "Summary"},
     DefaultElement -> "FileNames"
 ]
 

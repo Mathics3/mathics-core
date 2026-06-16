@@ -963,7 +963,7 @@ class RegisterImport(Builtin):
     # XXX OptionsIssue
     options = {
         "AlphaChannel": "False",
-        "Elements": "None",
+        "AvailableElements": "None",
         "BinaryFormat": "False",
         "DefaultElement": "Automatic",
         "Encoding": "False",
@@ -1056,7 +1056,7 @@ class RegisterExport(Builtin):
 
     options = {
         "AlphaChannel": "False",
-        "Elements": "None",
+        "AvailableElements": "None",
         "BinaryFormat": "False",
         "DefaultElement": "None",
         "Encoding": "False",

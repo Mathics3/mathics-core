@@ -19,7 +19,7 @@ ImportExport`RegisterImport[
     B64Import,
     (* Sources -> ImportExport`DefaultSources["Table"], *)
     FunctionChannels -> {"FileNames"},
-    Elements -> {"Data"},
+    AvailableElements -> {"Data"},
     DefaultElement -> "Data",
     Options -> {
         "CharacterEncoding"
