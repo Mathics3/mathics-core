@@ -1,5 +1,5 @@
 include README.rst
-include CHANGES.rst
+include CHANGES.md
 include ChangeLog
 include COPYING.txt
 include FUTURE.rst

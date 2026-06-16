@@ -876,7 +876,7 @@ class ImportFormats(Predefined):
 
 class RegisterImport(Builtin):
     """
-    ## <url>:internal native symbol:</url>
+    <url>:WMA link:https://reference.wolfram.com/language/tutorial/ImportingAndExporting.html#138898786</url>
 
     <dl>
       <dt>'RegisterImport'["$format$", $defaultFunction$]

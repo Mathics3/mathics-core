@@ -3,8 +3,8 @@
 Begin["System`Convert`TextDump`"]
 
 
-SVGExport[filename_, expr_, opts___] := 
-  Module[{strm, data, p, q, expr2}, 
+SVGExport[filename_, expr_, opts___] :=
+  Module[{strm, data, p, q, expr2},
     strm = OpenWrite[filename];
     If[strm === $Failed, Return[$Failed]];
     expr2 = If[Head[expr]=!=System`Graphics, System`Graphics[{System`Inset[ToString[expr]]}], expr];

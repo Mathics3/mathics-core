@@ -1,3 +1,5 @@
+(* ::Package:: *)
+
 Begin["System`Convert`B64Dump`"]
 
 
@@ -21,6 +23,7 @@ ImportExport`RegisterImport[
     FunctionChannels -> {"FileNames"},
     AvailableElements -> {"Data"},
     DefaultElement -> "Data",
+    Encoding -> True
     Options -> {
         "CharacterEncoding"
     }

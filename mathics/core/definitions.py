@@ -1127,3 +1127,4 @@ def load_builtin_definitions(
                 pickle.dump(self.builtin, builtin_file, -1)
 
     autoload_files(self, ROOT_DIR, "autoload")
+    autoload_files(self, osp.join(ROOT_DIR, "SystemFiles"), "Formats")
