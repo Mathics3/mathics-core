@@ -7,7 +7,7 @@ RegisterImageImport[type_] := ImportExport`RegisterImport[
     type,
     System`ImageImport,
     {},
-    AvailableElements -> {"Image"},
+    Elements -> {"Image"},
     DefaultElement -> "Image",
     FunctionChannels -> {"FileNames"}
 ];

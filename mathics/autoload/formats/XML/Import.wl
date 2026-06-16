@@ -13,8 +13,8 @@ ImportExport`RegisterImport[
         XML`XMLObjectImport
     },
     {},
-	AvailableElements -> {"Plaintext", "Tags", "XMLObject"},
-	DefaultElement -> "XMLObject",
+    Elements -> {"Plaintext", "Tags", "XMLObject"},
+    DefaultElement -> "XMLObject",
     FunctionChannels -> {"FileNames"}
 ]
 

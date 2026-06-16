@@ -44,7 +44,7 @@ ImportExport`RegisterImport[
         System`Convert`TextDump`PlaintextImport
     },
     {},
-    AvailableElements -> {"Data", "Lines", "Plaintext", "String", "Words"},
+    Elements -> {"Data", "Lines", "Plaintext", "String", "Words"},
     BinaryFormat -> True,
     DefaultElement -> "Plaintext",
     FunctionChannels -> {"Streams"},

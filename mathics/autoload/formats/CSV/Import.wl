@@ -27,7 +27,7 @@ ImportExport`RegisterImport[
     },
     (* Sources -> ImportExport`DefaultSources["Table"], *)
     FunctionChannels -> {"Streams"},
-    AvailableElements -> {"Data", "Grid"},
+    Elements -> {"Data", "Grid"},
     DefaultElement -> "Data",
     Options -> {
         "CharacterEncoding",
