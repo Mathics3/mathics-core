@@ -1279,7 +1279,7 @@ class ImportJSON(Builtin):
         return eval_JSONImport(path.value)
 
     def eval_elements(self, path: String, evaluation: Evaluation):
-        """%(name)s[path_String]["Elements"]"""
+        """%(name)s[path_String, "Elements"]"""
         return eval_JSONImport(path.value)
 
 
@@ -1304,8 +1304,8 @@ class ImportZip(Builtin):
         return eval_ZIPImport(path.value)
 
     def eval_elements(self, path: String, evaluation: Evaluation):
-        """%(name)s[path_String]["Elements"]"""
-        return eval_ZIPImport(path.value)
+        """%(name)s[path_String, "Elements"]"""
+        return eval_Import_Elements("ZIP", evaluation)
 
 
 class ImportString(Builtin):
