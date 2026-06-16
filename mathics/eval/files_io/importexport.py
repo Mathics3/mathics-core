@@ -436,9 +436,9 @@ def eval_JSONImport(json_path: str) -> ListExpression:
 # FIXME:
 # We should not be extracting everything and returning a list of rules.
 # provide a better interface.
-def eval_ZIPImport(zip_path: String) -> ListExpression:
+def eval_ZIPImport(zip_path: str) -> ListExpression:
     """Takes a ZIP file path and returns a list of file names/paths contained inside."""
-    with zipfile.ZipFile(zip_path.value, "r") as archive:
+    with zipfile.ZipFile(zip_path, "r") as archive:
         # FIXME: Using "filenames" for "Summary" items is not quite right.
         filenames = archive.namelist()
         mathics_filenames = to_mathics_list(*filenames)
