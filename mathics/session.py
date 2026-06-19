@@ -86,7 +86,7 @@ def load_default_settings_files(
     """
     root_dir = osp.realpath(osp.dirname(__file__))
 
-    autoload_files(definitions, root_dir, "autoload", False)
+    autoload_files(definitions, root_dir, "Autoload", False)
     if load_cli_settings:
         autoload_files(definitions, root_dir, "autoload-cli", False)
 

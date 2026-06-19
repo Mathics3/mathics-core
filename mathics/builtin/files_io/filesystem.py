@@ -634,7 +634,7 @@ class FileNames(Builtin):
       <dd>Look for files up to the level $n$.
     </dl>
 
-    >> SetDirectory[$InstallationDirectory <> "/autoload"];
+    >> SetDirectory[$InstallationDirectory <> "/Autoload"];
     >> FileNames["*.m", "formats"]//Length
      = ...
     >> FileNames["*.m", "formats", 3]//Length
