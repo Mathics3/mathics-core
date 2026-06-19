@@ -111,19 +111,19 @@ include = ["mathics*"]
 
 [tool.setuptools.package-data]
 "mathics" = [
+    "Autoload/*.m",
     "Packages/*/*.m",
     "Packages/*/Kernel/init.m",
     "SystemFiles/Dictionaries/*/*.txt",
     "SystemFiles/Formats/*/*.wl",
+    "Data/*.csv",
+    "Data/*.json",
+    "Data/*.pcl",
+    "Data/*.yaml",
+    "Data/*.yml",
+    "Data/ExampleData/*",
     "autoload-cli/*.m",
-    "autoload/*.m",
     "autoload/*/*.m",
-    "data/*.csv",
-    "data/*.json",
-    "data/*.pcl",
-    "data/*.yaml",
-    "data/*.yml",
-    "data/ExampleData/*",
     # YAML files in test/format
     "test/format/*.yaml",
     # Documentation stuff that will be removed in 9.0.0 or before
