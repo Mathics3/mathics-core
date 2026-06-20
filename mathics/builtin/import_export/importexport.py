@@ -1,20 +1,8 @@
 # -*- coding: utf-8 -*-
 
-r"""
-Importing and Exporting
+"""
+Base Import and Export Functions and Variables
 
-Many kinds data formats can be read into \Mathics. Variable <url>
-:\$ExportFormats:
-/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/\$exportformats</url> \
-contains a list of file formats that are supported by <url>
-:Export:
-/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/export</url>, \
-while <url>
-:\$ImportFormats:
-/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/\$importformats</url> \
-does the corresponding thing for <url>
-:Import:
-/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/import</url>.
 """
 
 import base64
@@ -24,6 +12,7 @@ import urllib.request as request
 from itertools import chain
 from urllib.error import HTTPError, URLError
 
+from mathics.builtin.import_export.checking import import_setup_check
 from mathics.core.atoms import ByteArray
 from mathics.core.attributes import A_NO_ATTRIBUTES, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Integer, Predefined, String
@@ -50,15 +39,13 @@ from mathics.eval.files_io.importexport import (
     eval_FileFormat,
     eval_Import,
     eval_Import_Elements,
-    eval_JSONImport,
-    eval_ZIPImport,
     filetype_from_mime_content,
     importer_exporter_options,
 )
 
 # This tells documentation how to sort this module
 # Here we are also hiding "file_io" since this can erroneously appear at the top level.
-sort_order = "mathics.builtin.importing-and-exporting"
+sort_order = "mathics.builtin.importing-and-exporting.base"
 
 EXPORTERS = {}
 
@@ -969,9 +956,11 @@ class RegisterImport(Builtin):
         "Encoding": "False",
         "Extensions": "{}",
         "FunctionChannels": '{"FileNames"}',
+        "HiddenNames": "None",
         "Options": "{}",
         "OriginalChannel": "False",
         "Path": "Automatic",
+        "SkipPostImport": "None",
         "Sources": "None",
     }
 
@@ -1004,6 +993,8 @@ class RegisterImport(Builtin):
             for elem, expr in (x.get_elements() for x in elements[:-1])
         }
         default = elements[-1]
+
+        # ??? This is wrong. Why match on posts if we are going to ignore it?
         posts = {}
 
         IMPORTERS[formatname.get_string_value()] = (
@@ -1018,7 +1009,7 @@ class RegisterImport(Builtin):
 
 class RegisterExport(Builtin):
     """
-    ## <url>:internal native symbol:</url>
+    <url>:WMA Link:https://reference.wolfram.com/language/tutorial/ImportingAndExporting.html#373283445</url>
 
     <dl>
       <dt>'RegisterExport'["$format$", $func$]
@@ -1192,7 +1183,7 @@ class Import(Builtin):
     """
 
     messages = {
-        "nffil": "File not found during Import.",
+        "nffil": "File `1` not found during Import.",
         "chtype": (
             "First argument `1` is not a valid file, directory, "
             "or URL specification."
@@ -1212,31 +1203,13 @@ class Import(Builtin):
 
     summary_text = "import elements from a file"
 
-    def import_setup(self, source, evaluation) -> tuple:
-        # Check filename
-        path = source.to_python()
-        if not (isinstance(path, str) and path[0] == path[-1] == '"'):
-            evaluation.message("Import", "chtype", source)
-            return SymbolFailed, None
-
-        # Load local file
-        if path[0] == path[-1] == '"':
-            path = path[1:-1]
-        findfile = eval_FindFile(path)
-
-        if findfile is None:
-            evaluation.message("Import", "nffil")
-            return SymbolFailed, None
-
-        return findfile, eval_FileFormat(findfile.value).value
-
     def eval(self, source, evaluation, options={}):
         "Import[source_, OptionsPattern[]]"
         return self.eval_element_list(source, ListExpression(), evaluation, options)
 
     def eval_elements_query(self, source, evaluation, options={}):
         """Import[source_, "Elements", OptionsPattern[]]"""
-        _, file_format = self.import_setup(source, evaluation)
+        _, file_format = import_setup_check(source, evaluation)
         return eval_Import_Elements(file_format, evaluation)
 
     def eval_fmt(self, source, fmt: String, evaluation, options={}):
@@ -1246,7 +1219,7 @@ class Import(Builtin):
     def eval_element_list(self, source, elements, evaluation, options={}):
         "Import[source_, elements_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
 
-        findfile, data = self.import_setup(source, evaluation)
+        findfile, data = import_setup_check(source, evaluation)
         if findfile is SymbolFailed:
             return SymbolFailed
 
@@ -1256,56 +1229,6 @@ class Import(Builtin):
         return eval_Import(
             findfile, determine_filetype, elements, evaluation, options, data
         )
-
-
-class ImportJSON(Builtin):
-    """
-    ## <url>:trace native symbol:</url>
-
-    <dl>
-      <dt>'ImportJSON[path]'
-      <dd>Return file archived under $path$
-
-      <dt>'ImportJSON[path, "Elements"]'
-      <dd>Returns elements of ZIP file {"FileName", "Summary"}.
-    </dl>
-
-    """
-
-    summary_text = "import ZIP file"
-
-    def eval(self, path: String, evaluation: Evaluation):
-        "%(name)s[path_String]"
-        return eval_JSONImport(path.value)
-
-    def eval_elements(self, path: String, evaluation: Evaluation):
-        """%(name)s[path_String, "Elements"]"""
-        return eval_JSONImport(path.value)
-
-
-class ImportZip(Builtin):
-    """
-    ## <url>:trace native symbol:</url>
-
-    <dl>
-      <dt>'ImportZip[path]'
-      <dd>Return file archived under $path$
-
-      <dt>'ImportZip[path, "Elements"]'
-      <dd>Returns elements of ZIP file {"FileName", "Summary"}.
-    </dl>
-
-    """
-
-    summary_text = "import ZIP file"
-
-    def eval(self, path: String, evaluation: Evaluation):
-        "%(name)s[path_String]"
-        return eval_ZIPImport(path.value)
-
-    def eval_elements(self, path: String, evaluation: Evaluation):
-        """%(name)s[path_String, "Elements"]"""
-        return eval_Import_Elements("ZIP", evaluation)
 
 
 class ImportString(Builtin):
