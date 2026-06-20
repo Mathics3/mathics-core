@@ -43,8 +43,8 @@ from mathics.eval.files_io.importexport import (
     importer_exporter_options,
 )
 
-# This tells documentation how to sort this module
-# Here we are also hiding "file_io" since this can erroneously appear at the top level.
+# This tells documentation how to sort this module.
+# We want, this to come before specific converters.
 sort_order = "mathics.builtin.importing-and-exporting.base"
 
 EXPORTERS = {}
