@@ -1,3 +1,7 @@
+"""
+Compression & Archive Formats
+"""
+
 from mathics.core.builtin import Builtin, String
 from mathics.core.evaluation import Evaluation
 from mathics.eval.import_export.compression import eval_ImportZIP
