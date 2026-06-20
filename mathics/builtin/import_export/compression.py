@@ -47,5 +47,4 @@ class ImportZIPPost(Builtin):
 
     def eval(self, data: String, evaluation: Evaluation):
         "ImportZIPPost[data_String]"
-        print("WOOT")
         return

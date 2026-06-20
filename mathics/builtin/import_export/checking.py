@@ -1,7 +1,11 @@
 from mathics.core.evaluation import Evaluation
 from mathics.core.systemsymbols import SymbolFailed
 from mathics.eval.files_io.filesystem import eval_FindFile
+<<<<<<< HEAD
 from mathics.eval.import_export.importexport import eval_FileFormat
+=======
+from mathics.eval.files_io.importexport import eval_FileFormat
+>>>>>>> 5554cc9f0 (Split out Import/Export functions...)
 
 
 def filename_check(source, evaluation: Evaluation):
