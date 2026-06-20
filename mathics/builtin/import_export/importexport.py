@@ -14,10 +14,9 @@ from urllib.error import HTTPError, URLError
 
 from mathics.builtin.import_export.checking import import_setup_check
 from mathics.core.atoms import ByteArray
-from mathics.core.attributes import A_NO_ATTRIBUTES, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Integer, Predefined, String
 from mathics.core.convert.expression import to_mathics_list
-from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -33,7 +32,7 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.files_io.files import eval_Close
 from mathics.eval.files_io.filesystem import eval_FindFile
-from mathics.eval.files_io.importexport import (
+from mathics.eval.import_export.importexport import (
     IMPORTERS,
     MIMETYPE_TO_SHORTNAME,
     eval_FileFormat,

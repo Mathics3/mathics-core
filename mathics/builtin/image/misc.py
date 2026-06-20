@@ -16,8 +16,8 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolFailed, SymbolRule
-from mathics.eval.files_io.importexport import eval_ImageExport
 from mathics.eval.image import eval_ImageImport
+from mathics.eval.import_export.importexport import eval_ImageExport
 
 # The following classes are used to allow inclusion of
 # Builtin Functions only when certain Python packages
