@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-<<<<<<< HEAD
 Import and Export Functions and Variables
-=======
-Base Import and Export Functions and Variables
->>>>>>> 5554cc9f0 (Split out Import/Export functions...)
 
 """
 
@@ -46,13 +42,8 @@ from mathics.eval.import_export.importexport import (
     importer_exporter_options,
 )
 
-<<<<<<< HEAD
 # This tells documentation how to sort this module.
 # We want, this to come before specific converters.
-=======
-# This tells documentation how to sort this module
-# Here we are also hiding "file_io" since this can erroneously appear at the top level.
->>>>>>> 5554cc9f0 (Split out Import/Export functions...)
 sort_order = "mathics.builtin.importing-and-exporting.base"
 
 EXPORTERS = {}

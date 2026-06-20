@@ -1,10 +1,7 @@
-<<<<<<< HEAD
 """
 JSON-Related Formats
 """
 
-=======
->>>>>>> 5554cc9f0 (Split out Import/Export functions...)
 from mathics.core.builtin import Builtin, String
 from mathics.core.evaluation import Evaluation
 from mathics.eval.import_export.json import eval_JSONImport
