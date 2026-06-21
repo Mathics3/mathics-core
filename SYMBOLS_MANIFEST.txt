@@ -269,8 +269,6 @@ System`Continue
 System`ContinuedFraction
 System`Convert`B64Dump`B64Decode
 System`Convert`B64Dump`B64Encode
-System`ConvertersDump`$ExtensionMappings
-System`ConvertersDump`$FormatMappings
 System`CoprimeQ
 System`Coproduct
 System`CopyDirectory
@@ -584,7 +582,10 @@ System`ImageTake
 System`ImageType
 System`Implies
 System`Import
+System`ImportJSON
 System`ImportString
+System`ImportZIP
+System`ImportZIPPost
 System`In
 System`Increment
 System`Indeterminate
