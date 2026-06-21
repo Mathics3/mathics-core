@@ -81,7 +81,7 @@ DOCTEST_LATEX_DATA_PCL = os.environ.get(
 
 DOCTEST_SYSTEM_LATEX_DATA_PCL = os.environ.get(
     "DOCTEST_SYSTEM_LATEX_DATA_PCL",
-    osp.join(LOCAL_ROOT_DIR, "data", "doctest_latex_data.pcl"),
+    osp.join(LOCAL_ROOT_DIR, "Data", "doctest_latex_data.pcl"),
 )
 
 DOC_DIR = osp.join(LOCAL_ROOT_DIR, "doc", "documentation")

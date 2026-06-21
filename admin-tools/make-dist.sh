@@ -16,7 +16,7 @@ fi
 
 cd ..
 source mathics/version.py
-cp -v ${HOME}/.local/var/Mathics3/doctest_latex_data.pcl mathics/data/
+cp -v ${HOME}/.local/var/Mathics3/doctest_latex_data.pcl mathics/Data/
 
 echo $__version__
 
