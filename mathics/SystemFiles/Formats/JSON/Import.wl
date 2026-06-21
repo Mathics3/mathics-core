@@ -1,13 +1,17 @@
-(* JSON Importer *)
+(* ::Package:: *)
 
-Begin["JSON`Import`"]
+Begin["System`Convert`JSONDump`"]
+
+(* JSON legacy element is Data even if Expression would be better. *)
+$AvailableElements = {"Data", "Dataset"};
 
 ImportExport`RegisterImport[
-    "JSON", {
-    JSON`Import`JSONImport
-    },
+    "JSON",
+    ImportJSON,
     {},
-    FunctionChannels -> {"FileNames"}
+    "AvailableElements" -> $AvailableElements,
+    "FunctionChannels" -> {"FileNames"},
+    "DefaultElement" -> "Data"
 ]
 
 End[]

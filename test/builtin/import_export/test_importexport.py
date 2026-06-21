@@ -113,7 +113,7 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
         #  "...", None),
         (
             'Import["ExampleData/ExampleData.tx"]',
-            ("File not found during Import.",),
+            ("File ExampleData/ExampleData.tx not found during Import.",),
             "$Failed",
             None,
         ),
@@ -123,7 +123,7 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
             "$Failed",
             None,
         ),
-        ## CSV
+        # CSV
         (
             'Import["ExampleData/numberdata.csv", "Elements"]',
             None,
@@ -154,7 +154,7 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
             "Null",
             None,
         ),
-        ## Import with format
+        # Import with format
         (
             'Import["ExampleData/Testosterone.svg"];',
             ("SVG is not a supported Import format.",),
@@ -179,7 +179,7 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
             "Null",
             None,
         ),
-        ## XML
+        # XML
         (
             'MatchQ[Import["ExampleData/InventionNo1.xml", "Tags"],{__String}]',
             None,
@@ -187,7 +187,7 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
             None,
         ),
         ("ImportString[x]", ("First argument x is not a string.",), "$Failed", None),
-        ## CSV
+        # CSV
         (
             'datastring = "0.88, 0.60, 0.94\\n.076, 0.19, .51\\n0.97, 0.04, .26";ImportString[datastring, "Elements"]',
             None,
@@ -213,7 +213,7 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
             "{{0, 88, 0, 60, 0, 94}, {076, 0, 19, , 51}, {0, 97, 0, 04, , 26}}",
             None,
         ),
-        ## Invalid Filename
+        # Invalid Filename
         (
             'Export["abc.", 1+2]',
             ("Cannot infer format of file abc..",),
@@ -232,7 +232,7 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
             "$Failed",
             None,
         ),
-        ## Explicit Format
+        # Explicit Format
         (
             'Export["abc.txt", 1+x, "JPF"]',
             ("{JPF} is not a valid set of export elements for the Text format.",),
@@ -245,8 +245,8 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
             "$Failed",
             None,
         ),
-        ## FORMATS
-        ## ASCII text
+        # FORMATS
+        # ASCII text
         ('FileFormat["ExampleData/BloodToilTearsSweat.txt"]', None, "Text", None),
         ('FileFormat["ExampleData/MadTeaParty.gif"]', None, "GIF", None),
         ('FileFormat["ExampleData/moon.tif"]', None, "TIFF", None),
