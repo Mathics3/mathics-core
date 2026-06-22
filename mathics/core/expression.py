@@ -1505,7 +1505,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     def to_python(self, *args, **kwargs) -> Any:
         """
         Convert the Expression to a Python object:
-        List[...]  -> Python list
+        List[RuleDelayed,...]  -> Python dictionary (if all elements are rules)
+        List[...]  -> Python list (if not all elements are rules)
         DirectedInfinity[1] -> inf
         DirectedInfinity[-1] -> -inf
         True/False -> True/False
@@ -1548,7 +1549,17 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             if direction == -1:
                 return -math.inf
         elif head is SymbolList:
-            return [element.to_python(*args, **kwargs) for element in self._elements]
+            if all(element.has_form("RuleDelayed", 2) for element in self._elements):
+                return {
+                    element._elements[0]
+                    .to_python(string_quotes=False): element._elements[1]
+                    .to_python(string_quotes=False)
+                    for element in self._elements
+                }
+            else:
+                return [
+                    element.to_python(*args, **kwargs) for element in self._elements
+                ]
 
         head_name = head.get_name()
         if head_name in mathics_to_python:
