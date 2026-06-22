@@ -13,7 +13,11 @@ import urllib.request as request
 from itertools import chain
 from urllib.error import HTTPError, URLError
 
-from mathics.builtin.import_export.checking import check_filename, import_setup_check
+from mathics.builtin.import_export.checking import (
+    check_filename,
+    import_setup_check,
+    infer_file_format,
+)
 from mathics.core.atoms import ByteArray
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Integer, Predefined, String
@@ -541,26 +545,6 @@ class Export(Builtin):
         "nffil": "File `1` could not be opened",
     }
 
-    # TODO: This hard-linked dictionary should be
-    # replaced by a definition accessible from inside
-    # WL
-    _extdict = {
-        "bmp": "BMP",
-        "gif": "GIF",
-        "jp2": "JPEG2000",
-        "jpg": "JPEG",
-        "pcx": "PCX",
-        "png": "PNG",
-        "ppm": "PPM",
-        "pbm": "PBM",
-        "pgm": "PGM",
-        "tif": "TIFF",
-        "txt": "Text",
-        "csv": "CSV",
-        "svg": "SVG",
-        "asy": "asy",
-    }
-
     rules = {
         "Export[filename_, expr_, elems_?NotListQ]": (
             "Export[filename, expr, {elems}]"
@@ -581,7 +565,7 @@ class Export(Builtin):
             return SymbolFailed
 
         # Determine Format
-        form = self._infer_form(dest, evaluation)
+        form = infer_file_format(dest, evaluation)
 
         if form is None:
             evaluation.message("Export", "infer", dest)
@@ -623,7 +607,7 @@ class Export(Builtin):
         # Infer format if not present
         if not found_form:
             assert format_spec == []
-            format_spec = self._infer_form(dest, evaluation)
+            format_spec = infer_file_format(dest, evaluation)
             if format_spec is None:
                 evaluation.message("Export", "infer", dest)
                 evaluation.predetermined_out = current_predetermined_out

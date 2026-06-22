@@ -1,9 +1,34 @@
+"""
+Miscellaneous checking routines using in Import/Export.
+"""
+
+from typing import Optional
+
 from mathics.core.builtin import String
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.systemsymbols import SymbolFailed, SymbolFileExtension
 from mathics.eval.files_io.filesystem import eval_FindFile
 from mathics.eval.import_export.importexport import eval_FileFormat
+
+# TODO: This hard-coded dictionary should be
+# accessile from the WL API, and be user modifiable.
+FILE_EXTENSION_MAP: dict[str, str] = {
+    "bmp": "BMP",
+    "gif": "GIF",
+    "jp2": "JPEG2000",
+    "jpg": "JPEG",
+    "pcx": "PCX",
+    "png": "PNG",
+    "ppm": "PPM",
+    "pbm": "PBM",
+    "pgm": "PGM",
+    "tif": "TIFF",
+    "txt": "Text",
+    "csv": "CSV",
+    "svg": "SVG",
+    "asy": "asy",
+}
 
 
 def check_filename(tag: str, filename: String, evaluation: Evaluation):
@@ -12,10 +37,12 @@ def check_filename(tag: str, filename: String, evaluation: Evaluation):
     If it isn't a string we use 'tag" in a 'chtype' error message.
     Otherwise, we strip the quotes off the tring and return that.
     """
-    path = filename.value
-    if not (isinstance(path, str) and path[0] == path[-1] == '"'):
+    if not isinstance(filename, String):
         evaluation.message(tag, "chtype", filename)
-    path = path[1:-1]
+        return
+    path = filename.value
+    if path[0] == path[-1] == '"':
+        path = path[1:-1]
     return path
 
 
@@ -52,9 +79,11 @@ def import_setup_check(source, evaluation: Evaluation) -> tuple:
     return findfile, eval_FileFormat(findfile.value).value
 
 
-def infer_form(self, filename, evaluation: Evaluation):
-    ext = Expression(SymbolFileExtension, filename).evaluate(evaluation)
-    ext = ext.get_string_value().lower()
-    # TODO: This dictionary should be accessible from the WL API
-    # to allow defining specific converters
-    return self._extdict.get(ext)
+def infer_file_format(filename: String, evaluation: Evaluation) -> Optional[str]:
+    """
+    Infer what kind of format filename is in. None is returned if we can't infer
+    a format.
+    """
+    file_extension = Expression(SymbolFileExtension, filename).evaluate(evaluation)
+    file_extension_lc = file_extension.get_string_value().lower()
+    return FILE_EXTENSION_MAP.get(file_extension_lc)
