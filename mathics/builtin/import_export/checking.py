@@ -4,7 +4,8 @@ Miscellaneous checking routines using in Import/Export.
 
 from mathics.core.builtin import String
 from mathics.core.evaluation import Evaluation
-from mathics.core.systemsymbols import SymbolFailed
+from mathics.core.expression import Expression
+from mathics.core.systemsymbols import SymbolFailed, SymbolFileExtension
 from mathics.eval.files_io.filesystem import eval_FindFile
 from mathics.eval.import_export.importexport import eval_FileFormat
 
@@ -74,3 +75,11 @@ def import_setup_check(source, evaluation: Evaluation) -> tuple:
         return SymbolFailed, None
 
     return findfile, eval_FileFormat(findfile.value).value
+
+
+def infer_form(self, filename, evaluation: Evaluation):
+    ext = Expression(SymbolFileExtension, filename).evaluate(evaluation)
+    ext = ext.get_string_value().lower()
+    # TODO: This dictionary should be accessible from the WL API
+    # to allow defining specific converters
+    return self._extdict.get(ext)
