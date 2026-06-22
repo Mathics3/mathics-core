@@ -2,6 +2,8 @@
 Miscellaneous checking routines using in Import/Export.
 """
 
+from typing import Optional
+
 from mathics.core.builtin import String
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -77,9 +79,11 @@ def import_setup_check(source, evaluation: Evaluation) -> tuple:
     return findfile, eval_FileFormat(findfile.value).value
 
 
-def infer_form(self, filename, evaluation: Evaluation):
-    ext = Expression(SymbolFileExtension, filename).evaluate(evaluation)
-    ext = ext.get_string_value().lower()
-    # TODO: This dictionary should be accessible from the WL API
-    # to allow defining specific converters
-    return self._extdict.get(ext)
+def infer_file_format(filename: String, evaluation: Evaluation) -> Optional[str]:
+    """
+    Infer what kind of format filename is in. None is returned if we can't infer
+    a format.
+    """
+    file_extension = Expression(SymbolFileExtension, filename).evaluate(evaluation)
+    file_extension_lc = file_extension.get_string_value().lower()
+    return FILE_EXTENSION_MAP.get(file_extension_lc)
