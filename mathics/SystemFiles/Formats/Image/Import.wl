@@ -1,12 +1,13 @@
+(* ::Package:: *)
+
 (* Image Importer *)
-(* FIXME: There is no RegisterImageImport builtin in WMA. Rewrite in Python. *)
 
 Begin["System`Convert`Image`"]
 
 RegisterImageImport[type_] := ImportExport`RegisterImport[
     type,
     System`ImageImport,
-    {},
+    {}, (* post *)
     AvailableElements -> {"Image"},
     DefaultElement -> "Image",
     FunctionChannels -> {"FileNames"}

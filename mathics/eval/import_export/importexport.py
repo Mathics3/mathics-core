@@ -226,7 +226,7 @@ def eval_Import(
             evaluation.predetermined_out = current_predetermined_out
             return SymbolFailed
 
-    elements = [el.get_string_value() for el in elements]
+    elements = [el.value for el in elements]
 
     # Determine file type
     for el in elements:
@@ -328,7 +328,7 @@ def eval_Import(
                     set(
                         list(conditionals.keys())
                         + list(defaults.keys())
-                        + list(posts.keys())
+                        # + list(posts.keys())
                     )
                 )
             )
@@ -350,21 +350,21 @@ def eval_Import(
                 if len(list(result.keys())) == 1 and list(result.keys())[0] == el:
                     evaluation.predetermined_out = current_predetermined_out
                     return list(result.values())[0]
-            elif el in posts.keys():
-                # TODO: allow use of conditionals
-                result = get_results(
-                    posts[el],
-                    findfile,
-                    function_channels,
-                    stream_options,
-                    custom_options,
-                    evaluation,
-                    options,
-                    data=data,
-                )
-                if result is None:
-                    evaluation.predetermined_out = current_predetermined_out
-                    return SymbolFailed
+            # elif el in posts.keys():
+            #     # TODO: allow use of conditionals
+            #     result = get_results(
+            #         posts[el],
+            #         findfile,
+            #         function_channels,
+            #         stream_options,
+            #         custom_options,
+            #         evaluation,
+            #         options,
+            #         data=data,
+            #     )
+            #     if result is None:
+            #         evaluation.predetermined_out = current_predetermined_out
+            #         return SymbolFailed
             else:
                 if defaults is None:
                     defaults = get_results(

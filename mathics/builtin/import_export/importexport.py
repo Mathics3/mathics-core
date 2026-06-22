@@ -8,6 +8,7 @@ Import and Export Functions and Variables
 import base64
 import os
 import sys
+import tempfile
 import urllib.request as request
 from itertools import chain
 from urllib.error import HTTPError, URLError
@@ -198,9 +199,14 @@ class RegisterImport(Builtin):
     summary_text = "register an importer for a file format"
 
     def eval(
-        self, formatname: String, function, posts, evaluation: Evaluation, options
+        self,
+        formatname: String,
+        function,
+        posts: ListExpression,
+        evaluation: Evaluation,
+        options,
     ):
-        """ImportExport`RegisterImport[formatname_String, function_, posts_,
+        """ImportExport`RegisterImport[formatname_String, function_, posts_List,
         OptionsPattern[ImportExport`RegisterImport]]"""
 
         if function.has_form("List", None):
@@ -222,10 +228,7 @@ class RegisterImport(Builtin):
         }
         default = elements[-1]
 
-        # ??? This is wrong. Why match on posts if we are going to ignore it?
-        posts = {}
-
-        IMPORTERS[formatname.get_string_value()] = (
+        IMPORTERS[formatname.value] = (
             conditionals,
             default,
             posts,
@@ -315,10 +318,7 @@ class URLFetch(Builtin):
     def eval(self, url: String, elements, evaluation: Evaluation, options={}):
         "URLFetch[url_String, elements_, OptionsPattern[]]"
 
-        import os
-        import tempfile
-
-        py_url = url.get_string_value()
+        py_url = url.value
 
         temp_handle, temp_path = tempfile.mkstemp(suffix="")
         try:
@@ -751,7 +751,7 @@ class ExportString(Builtin):
         format_spec, elems_spec = [], []
         found_form = False
         for element in elements[::-1]:
-            element_str = element.get_string_value()
+            element_str = element.value
 
             if not found_form and element_str in EXPORTERS:
                 found_form = True
@@ -979,9 +979,7 @@ class B64Encode(Builtin):
         elif expr.get_head_name() == "System`ByteArray":
             return String(expr._elements[0].__str__())
         else:
-            stringtocodify = (
-                Expression(SymbolToString, expr).evaluate(evaluation).get_string_value()
-            )
+            stringtocodify = Expression(SymbolToString, expr).evaluate(evaluation).value
         return String(
             base64.b64encode(bytearray(stringtocodify, "utf8")).decode("utf8")
         )

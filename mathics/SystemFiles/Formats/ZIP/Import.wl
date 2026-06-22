@@ -1,4 +1,5 @@
 (* ::Package:: *)
+
 (* ZIP compressed file and file archive Importer.
    This is used by Import[].
  *)
@@ -23,7 +24,7 @@ ImportExport`RegisterImport[
     "ZIP",
     ImportZIP,
     {}, (* Post importer function(s) *)
-    FunctionChannels -> {"Streams"},
+    FunctionChannels -> {"FileNames"},
     AvailableElements -> $ZIPAvailableElements,
     BinaryFormat -> True,
     DefaultElement -> "FileNames",
