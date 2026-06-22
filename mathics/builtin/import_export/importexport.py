@@ -13,7 +13,7 @@ import urllib.request as request
 from itertools import chain
 from urllib.error import HTTPError, URLError
 
-from mathics.builtin.import_export.checking import import_setup_check
+from mathics.builtin.import_export.checking import check_filename, import_setup_check
 from mathics.core.atoms import ByteArray
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Integer, Predefined, String
@@ -26,7 +26,6 @@ from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolByteArray,
     SymbolFailed,
-    SymbolFileExtension,
     SymbolOpenWrite,
     SymbolOutputStream,
     SymbolToString,
@@ -574,27 +573,11 @@ class Export(Builtin):
 
     summary_text = "export elements to a file"
 
-    # FIXME: move to mathics.eval
-    def _check_filename(self, filename, evaluation: Evaluation):
-        path = filename.to_python()
-        if isinstance(path, str) and path[0] == path[-1] == '"':
-            return True
-        evaluation.message("Export", "chtype", filename)
-        return False
-
-    # FIXME: move to mathics.eval
-    def _infer_form(self, filename, evaluation: Evaluation):
-        ext = Expression(SymbolFileExtension, filename).evaluate(evaluation)
-        ext = ext.get_string_value().lower()
-        # TODO: This dictionary should be accessible from the WL API
-        # to allow defining specific converters
-        return self._extdict.get(ext)
-
     def eval(self, dest, expr, evaluation, options={}):
         "Export[dest_, expr_, OptionsPattern[Export]]"
 
         # Check dest
-        if not self._check_filename(dest, evaluation):
+        if not check_filename("Export", dest, evaluation):
             return SymbolFailed
 
         # Determine Format
@@ -616,7 +599,7 @@ class Export(Builtin):
         "Export[dest_, expr_, elems_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
 
         # Check filename
-        if not self._check_filename(dest, evaluation):
+        if not check_filename("Export", dest, evaluation):
             return SymbolFailed
 
         # Process elems {comp* format?, elem1*}
