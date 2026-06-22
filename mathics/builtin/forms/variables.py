@@ -5,7 +5,12 @@ Below are are Built-in variables that contain lists of the forms available accor
 
 """
 
-from mathics.core.attributes import A_LOCKED, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.attributes import (
+    A_LOCKED,
+    A_NO_ATTRIBUTES,
+    A_PROTECTED,
+    A_READ_PROTECTED,
+)
 from mathics.core.builtin import Builtin, Predefined
 from mathics.core.list import ListExpression
 
@@ -180,3 +185,35 @@ class PrintForms_(Predefined):
 
     def evaluate(self, evaluation):
         return ListExpression(*evaluation.definitions.printforms)
+
+
+class Use2DOutputForm_(Predefined):
+    r"""
+    <dl>
+      <dt>'$Use2DOutputForm'
+      <dd>internal variable that controls if 'OutputForm[expr]' is shown \
+          in one line (standard Mathics behavior) or \
+          or in a prettyform-like multiline output (the standard way in WMA).
+          The default value is 'False', keeping the standard Mathics behavior.
+    </dl>
+
+    >> $Use2DOutputForm
+     = False
+    >> OutputForm[a^b]
+     = a ^ b
+    >> $Use2DOutputForm = True; OutputForm[a ^ b]
+     =  
+     .  b
+     . a 
+
+    Setting the variable back to False go back to the normal behavior:
+    >> $Use2DOutputForm = False; OutputForm[a ^ b]
+     = a ^ b
+    """
+
+    attributes = A_NO_ATTRIBUTES
+    name = "$Use2DOutputForm"
+    rules = {
+        "$Use2DOutputForm": "False",
+    }
+    summary_text = "use the 2D OutputForm"
