@@ -2,12 +2,9 @@
 Miscellaneous checking routines using in Import/Export.
 """
 
-from typing import Optional
-
 from mathics.core.builtin import String
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression
-from mathics.core.systemsymbols import SymbolFailed, SymbolFileExtension
+from mathics.core.systemsymbols import SymbolFailed
 from mathics.eval.files_io.filesystem import eval_FindFile
 from mathics.eval.import_export.importexport import eval_FileFormat
 
@@ -77,13 +74,3 @@ def import_setup_check(source, evaluation: Evaluation) -> tuple:
         return SymbolFailed, None
 
     return findfile, eval_FileFormat(findfile.value).value
-
-
-def infer_file_format(filename: String, evaluation: Evaluation) -> Optional[str]:
-    """
-    Infer what kind of format filename is in. None is returned if we can't infer
-    a format.
-    """
-    file_extension = Expression(SymbolFileExtension, filename).evaluate(evaluation)
-    file_extension_lc = file_extension.get_string_value().lower()
-    return FILE_EXTENSION_MAP.get(file_extension_lc)

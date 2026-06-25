@@ -615,7 +615,7 @@ class Export(Builtin):
             return SymbolFailed
 
         # Determine Format
-        form = infer_file_format(dest)
+        form = infer_file_format(dest.value)
 
         if form is None:
             evaluation.message("Export", "infer", dest)
@@ -657,7 +657,7 @@ class Export(Builtin):
         # Infer format if not present
         if not found_form:
             assert format_spec == []
-            format_spec = infer_file_format(dest)
+            format_spec = infer_file_format(dest.value)
             if format_spec is None:
                 evaluation.message("Export", "infer", dest)
                 evaluation.predetermined_out = current_predetermined_out
