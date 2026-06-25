@@ -11,12 +11,12 @@ from typing import Dict, Final, Optional
 from mathics.core.atoms import ByteArray, String
 from mathics.core.builtin import get_option
 from mathics.core.convert.python import from_python
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolTrue, strip_context
 from mathics.core.systemsymbols import (
     SymbolByteArray,
-    SymbolDeleteFile,
     SymbolFailed,
     SymbolInputStream,
     SymbolOpenWrite,
@@ -25,14 +25,36 @@ from mathics.core.systemsymbols import (
     SymbolWriteString,
 )
 from mathics.eval.files_io.files import eval_Close, eval_Open
+from mathics.eval.files_io.filesystem import eval_DeleteFile, eval_FileExtension
 
 # Some WMA file types reported by FileFormat do not
-# match what the mimetypes (and thereofre MIME) extensions
+# match what the mimetypes (and therefore MIME) extensions
 # that would be reported. So we have this table to
 # convert these mismatches
 MIME_SHORTNAME_TO_WMA: Final[Dict[str, str]] = {"JPG": "JPEG", "TXT": "Text"}
 
 IMPORTERS = {}
+
+# TODO: This hard-coded dictionary should be
+# accessile from the WL API, and be user modifiable.
+FILE_EXTENSION_MAP: dict[str, str] = {
+    "bmp": "BMP",
+    "gif": "GIF",
+    "jp2": "JPEG2000",
+    "jpg": "JPEG",
+    "json": "JSON",
+    "pcx": "PCX",
+    "png": "PNG",
+    "ppm": "PPM",
+    "pbm": "PBM",
+    "pgm": "PGM",
+    "tif": "TIFF",
+    "txt": "Text",
+    "csv": "CSV",
+    "svg": "SVG",
+    "asy": "asy",
+}
+
 
 try:
     from magic import from_file
@@ -205,7 +227,7 @@ def eval_Import(
     findfile: Optional[String],
     determine_filetype,
     elements,
-    evaluation,
+    evaluation: Evaluation,
     options,
     data: Optional[str],
 ):
@@ -351,7 +373,6 @@ def eval_Import(
                     evaluation.predetermined_out = current_predetermined_out
                     return list(result.values())[0]
             # elif el in posts.keys():
-            #     # TODO: allow use of conditionals
             #     result = get_results(
             #         posts[el],
             #         findfile,
@@ -393,7 +414,7 @@ def eval_Import(
 
 def eval_Import_Elements(file_format: str, evaluation):
     """
-    Basic implemenation beind Import[xxx, Elements].
+    Basic implementation behind Import[xxx, Elements].
     """
     filetype = MIME_SHORTNAME_TO_WMA.get(file_format, file_format)
 
@@ -436,7 +457,7 @@ def get_results(
         if tmp is SymbolFailed:
             return SymbolFailed
         if tmpfile:
-            Expression(SymbolDeleteFile, findfile).evaluate(evaluation)
+            eval_DeleteFile([findfile.value])
     elif function_channels == ListExpression(String("Streams")):
         if findfile is None:
             stream = Expression(SymbolStringToStream, String(data)).evaluate(evaluation)
@@ -479,3 +500,12 @@ def get_results(
     # x.get_elements(), tmp)}
     evaluation.predetermined_out = current_predetermined_out
     return {a.get_string_value(): b for a, b in (x.get_elements() for x in tmp)}
+
+
+def infer_file_format(filename: str) -> Optional[str]:
+    """
+    Infer what kind of format filename is in. None is returned if we can't infer
+    a format.
+    """
+    file_extension = eval_FileExtension(filename).lower()
+    return FILE_EXTENSION_MAP.get(file_extension)

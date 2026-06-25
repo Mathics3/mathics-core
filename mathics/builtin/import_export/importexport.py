@@ -13,11 +13,7 @@ import urllib.request as request
 from itertools import chain
 from urllib.error import HTTPError, URLError
 
-from mathics.builtin.import_export.checking import (
-    check_filename,
-    import_setup_check,
-    infer_file_format,
-)
+from mathics.builtin.import_export.checking import check_filename, import_setup_check
 from mathics.core.atoms import ByteArray
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Integer, Predefined, String
@@ -44,6 +40,7 @@ from mathics.eval.import_export.importexport import (
     eval_Import_Elements,
     filetype_from_mime_content,
     importer_exporter_options,
+    infer_file_format,
 )
 
 # This tells documentation how to sort this module.
@@ -565,7 +562,7 @@ class Export(Builtin):
             return SymbolFailed
 
         # Determine Format
-        form = infer_file_format(dest, evaluation)
+        form = infer_file_format(dest.value)
 
         if form is None:
             evaluation.message("Export", "infer", dest)
@@ -607,7 +604,7 @@ class Export(Builtin):
         # Infer format if not present
         if not found_form:
             assert format_spec == []
-            format_spec = infer_file_format(dest, evaluation)
+            format_spec = infer_file_format(dest.value)
             if format_spec is None:
                 evaluation.message("Export", "infer", dest)
                 evaluation.predetermined_out = current_predetermined_out
