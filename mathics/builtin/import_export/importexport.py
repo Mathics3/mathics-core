@@ -36,8 +36,9 @@ from mathics.eval.import_export.importexport import (
     IMPORTERS,
     MIMETYPE_TO_SHORTNAME,
     eval_FileFormat,
-    eval_Import,
     eval_Import_Elements,
+    eval_Import_general,
+    eval_Import_source_only,
     filetype_from_mime_content,
     importer_exporter_options,
     infer_file_format,
@@ -339,7 +340,7 @@ class URLFetch(Builtin):
             def determine_filetype(content_type: str) -> str:
                 return MIMETYPE_TO_SHORTNAME.get(content_type, "Text")
 
-            result = eval_Import(
+            result = eval_Import_general(
                 String(temp_path),
                 determine_filetype,
                 elements,
@@ -431,8 +432,19 @@ class Import(Builtin):
 
     summary_text = "import elements from a file"
 
-    def eval(self, source, evaluation, options={}):
+    def eval_source_only(self, source, evaluation, options={}):
         "Import[source_, OptionsPattern[]]"
+        findfile, data = import_setup_check(source, evaluation)
+        if findfile is SymbolFailed:
+            return SymbolFailed
+
+        def determine_filetype(data: str) -> str:
+            return data
+
+        return eval_Import_source_only(
+            findfile, determine_filetype, evaluation, options, data
+        )
+
         return self.eval_element_list(source, ListExpression(), evaluation, options)
 
     def eval_elements_query(self, source, evaluation, options={}):
@@ -454,7 +466,7 @@ class Import(Builtin):
         def determine_filetype(data: str) -> str:
             return data
 
-        return eval_Import(
+        return eval_Import_general(
             findfile, determine_filetype, elements, evaluation, options, data
         )
 
@@ -513,7 +525,7 @@ class ImportString(Builtin):
         def determine_filetype(py_data: str) -> str:
             return filetype_from_mime_content(py_data)
 
-        return eval_Import(
+        return eval_Import_general(
             None, determine_filetype, elements, evaluation, options, data=data.value
         )
 
