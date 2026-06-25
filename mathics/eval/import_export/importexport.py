@@ -725,23 +725,6 @@ def get_results_for_element_args(
     return {a.get_string_value(): b for a, b in (x.get_elements() for x in tmp)}
 
 
-def eval_import_stream(
-    data: bytes,
-    file_format: str,
-):
-    """
-    Implementation of import of bytes having a particular file format
-    """
-
-    # START FIXING HERE
-    # Load the importer
-    conditionals, import_function, posts, importer_options = IMPORTERS[
-        file_format.upper()
-    ]
-    import_expression = Expression(import_function, data).evaluate()
-    return import_expression
-
-
 def infer_file_format(filename: str) -> Optional[str]:
     """
     Infer what kind of format filename is in. None is returned if we can't infer
