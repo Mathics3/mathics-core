@@ -25,7 +25,9 @@ ImportExport`RegisterImport[
     ImportZIP,
     {}, (* Post importer function(s) *)
     FunctionChannels -> {"FileNames"},
-    AvailableElements -> $ZIPAvailableElements,
+    (* WMA has this, but I (rocky) am not sure why or what it means:
+    AvailableElements -> $ZIPAvailableElements, *)
+    AvailableElements -> {"Filenames", "Summary"},
     BinaryFormat -> True,
     DefaultElement -> "FileNames",
     HiddenElements -> $ZIPHiddenElements,

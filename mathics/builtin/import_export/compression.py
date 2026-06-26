@@ -29,22 +29,4 @@ class ImportZIP(Builtin):
 
     def eval(self, path: String, evaluation: Evaluation):
         "ImportZIP[path_String]"
-        return eval_ImportZIP(path.value)
-
-
-class ImportZIPPost(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/format/ZIP.html</url>
-
-    <dl>
-      <dt>'ImportZIPPost[data]'
-      <dd>ZIP import post processing for $data$
-    </dl>
-
-    """
-
-    summary_text = "import ZIP file post importer"
-
-    def eval(self, data: String, evaluation: Evaluation):
-        "ImportZIPPost[data_String]"
-        return
+        return eval_ImportZIP(path.value, evaluation)
