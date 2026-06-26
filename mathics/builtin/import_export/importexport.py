@@ -36,6 +36,7 @@ from mathics.eval.import_export.importexport import (
     IMPORTERS,
     MIMETYPE_TO_SHORTNAME,
     eval_FileFormat,
+    eval_Import_data_only,
     eval_Import_Elements,
     eval_Import_general,
     eval_Import_source_only,
@@ -383,6 +384,7 @@ class URLFetch(Builtin):
         return result
 
 
+# Note the similarity to ImportString in eval structure.
 class Import(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Import.html</url>
@@ -422,22 +424,32 @@ class Import(Builtin):
             "First argument `1` is not a valid file, directory, "
             "or URL specification."
         ),
-        "noelem": ("The Import element `1` is not present when importing as `2`."),
-        "fmtnosup": "`1` is not a supported Import format.",
-        "emptyfch": "Function Channel not defined.",
     }
 
     options = {
         "$OptionSyntax": "System`Ignore",
     }
 
-    rules = {
-        "Import[filename_]": "Import[filename, {}]",
-    }
-
     summary_text = "import elements from a file"
 
-    def eval_element_list(self, source, elements, evaluation, options={}):
+    def eval_elements_query(self, source, evaluation, options={}):
+        """Import[source_String, "Elements", OptionsPattern[]]"""
+        _, file_format = import_setup_check(source, evaluation)
+        return eval_Import_Elements(file_format, evaluation)
+
+    def eval_source_only(self, source, evaluation, options={}):
+        "Import[source_, OptionsPattern[]]"
+        findfile, filetype = import_setup_check(source, evaluation)
+        if findfile is SymbolFailed:
+            return SymbolFailed
+
+        return eval_Import_source_only(findfile, filetype, evaluation, options)
+
+        return self.eval_with_element_list(
+            source, ListExpression(), evaluation, options
+        )
+
+    def eval_with_element_list(self, source, elements, evaluation, options={}):
         "Import[source_, elements_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
 
         findfile, data = import_setup_check(source, evaluation)
@@ -451,44 +463,32 @@ class Import(Builtin):
             findfile, determine_filetype, elements, evaluation, options, data
         )
 
-    def eval_elements_query(self, source, evaluation, options={}):
-        """Import[source_, "Elements", OptionsPattern[]]"""
-        _, file_format = import_setup_check(source, evaluation)
-        return eval_Import_Elements(file_format, evaluation)
-
     # In contrast to Import[source_], we allow an explicit format type
     # like "CSV", to be specified. See also comment below.
-    def eval_fmt(self, source, fmt: String, evaluation, options={}):
-        "Import[source_, fmt_String, OptionsPattern[]]"
+    def eval_with_single_element(self, source, elt: String, evaluation, options={}):
+        "Import[source_, elt_String, OptionsPattern[]]"
 
         findfile, filetype = import_setup_check(source, evaluation)
         if findfile is SymbolFailed:
             return SymbolFailed
 
-        # Note: there is ambiguity in whether "fmt" is a really format string name like
+        # Note: there is ambiguity in whether "elt" is a really format string name like
         # "CSV" in Import["foo.csv", CSV"], or a single element argument like
-        # "Elements" in "Import["foo.csv", "Elements"].
+        # "Header" in "Import["foo.csv", "Header"].
         # The code below tests for the first case, and if that fails assumes the
         # second case.
-        file_format = fmt.value.upper()
+        file_format = elt.value.upper()
         if file_format in IMPORTERS.keys():
             # A file format was specified: use the custom routine
             return eval_Import_source_only(findfile, file_format, evaluation, options)
 
         # Assume we have Import with a single non-format element.
-        return self.eval_element_list(source, ListExpression(fmt), evaluation, options)
-
-    def eval_source_only(self, source, evaluation, options={}):
-        "Import[source_, OptionsPattern[]]"
-        findfile, filetype = import_setup_check(source, evaluation)
-        if findfile is SymbolFailed:
-            return SymbolFailed
-
-        return eval_Import_source_only(findfile, filetype, evaluation, options)
-
-        return self.eval_element_list(source, ListExpression(), evaluation, options)
+        return self.eval_with_element_list(
+            source, ListExpression(elt), evaluation, options
+        )
 
 
+# Note the similarity to Import in eval structure.
 class ImportString(Builtin):
     """
     <url>
@@ -516,35 +516,56 @@ class ImportString(Builtin):
 
     messages = {
         "string": "First argument `1` is not a string.",
-        "noelem": ("The Import element `1` is not present when importing as `2`."),
-        "fmtnosup": "`1` is not a supported Import format.",
     }
     options = {
         "$OptionSyntax": "System`Ignore",
     }
-    rules = {}
-    summary_text = "import elements from a string"
 
-    def eval(self, data, evaluation, options={}):
+    summary_text = "import data or elements of data from a string"
+
+    def eval_data_only(self, data, evaluation, options={}):
         "ImportString[data_, OptionsPattern[]]"
-        return self.eval_elements(data, ListExpression(), evaluation, options)
+        if not (isinstance(data, String)):
+            evaluation.message("ImportString", "string", data)
+            return SymbolFailed
+        return eval_Import_data_only(data.value, None, evaluation, options)
 
-    def eval_element(self, data, element: String, evaluation, options={}):
-        "ImportString[data_, element_String, OptionsPattern[]]"
+    def eval_elements_query(self, data, evaluation, options={}):
+        """ImportString[data_String, "Elements", OptionsPattern[]]"""
 
-        return self.eval_elements(data, ListExpression(element), evaluation, options)
+        file_format = filetype_from_mime_content(data.value)
+        return eval_Import_Elements(file_format, evaluation)
 
-    def eval_elements(self, data, elements, evaluation, options={}):
+    def eval_with_elements_list(self, data, elements, evaluation, options={}):
         "ImportString[data_, elements_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
         if not (isinstance(data, String)):
             evaluation.message("ImportString", "string", data)
             return SymbolFailed
 
-        def determine_filetype(py_data: str) -> str:
-            return filetype_from_mime_content(py_data)
+        def determine_filetype(data: str) -> str:
+            return filetype_from_mime_content(data)
 
         return eval_Import_general(
             None, determine_filetype, elements, evaluation, options, data=data.value
+        )
+
+    # In contrast to ImportString[data_], we allow an explicit format type
+    # like "CSV", to be specified. See also comment below.
+    def eval_with_single_element(self, data, elt: String, evaluation, options={}):
+        "ImportString[data_, elt_String, OptionsPattern[]]"
+
+        # Note: there is ambiguity in whether "elt" is a really format string name like
+        # "CSV" in Import["foo.csv", CSV"], or a single element argument like
+        # "Header" in "Import["foo.csv", "Header"].
+        # The code below tests for the first case, and if that fails assumes the
+        # second case.
+        file_format = elt.value.upper()
+        if file_format in IMPORTERS.keys():
+            # A file format was specified: use the custom routine
+            return eval_Import_data_only(data.value, file_format, evaluation, options)
+
+        return self.eval_with_elements_list(
+            data, ListExpression(elt), evaluation, options
         )
 
 
@@ -568,7 +589,6 @@ class Export(Builtin):
         "chtype": "First argument `1` is not a valid file specification.",
         "infer": "Cannot infer format of file `1`.",
         "noelem": "`1` is not a valid set of export elements for the `2` format.",
-        "emptyfch": "Function Channel not defined.",
         "nffil": "File `1` could not be opened",
     }
 
@@ -722,7 +742,6 @@ class ExportString(Builtin):
 
     messages = {
         "noelem": "`1` is not a valid set of export elements for the `2` format.",
-        "emptyfch": "Function Channel not defined.",
     }
 
     options = {

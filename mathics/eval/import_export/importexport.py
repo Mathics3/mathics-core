@@ -492,8 +492,84 @@ def get_results(
     return {a.get_string_value(): b for a, b in (x.get_elements() for x in tmp)}
 
 
+def eval_Import_data_only(
+    data: str,
+    file_format: Optional[str],
+    evaluation: Evaluation,
+    options,
+):
+    """
+    Basic implementation beind Import_String[data].
+    Here, no elements were given, just a import data string.
+    """
+
+    current_predetermined_out = evaluation.predetermined_out
+
+    if file_format is None:
+        filetype = filetype_from_mime_content(data)
+        file_format = MIME_SHORTNAME_TO_WMA.get(filetype, filetype).upper()
+
+    if file_format not in IMPORTERS.keys():
+        evaluation.message("Import", "fmtnosup", filetype)
+        evaluation.predetermined_out = current_predetermined_out
+        return SymbolFailed
+
+    # Load the importer
+    conditionals, default_function, posts, importer_options = IMPORTERS[file_format]
+
+    stream_options, custom_options = importer_exporter_options(
+        importer_options.get("System`Options"), options, "System`Import", evaluation
+    )
+
+    function_channels = importer_options.get("System`FunctionChannels")
+
+    if function_channels is None:
+        evaluation.message("ImportString", "emptyfch")
+        evaluation.predetermined_out = current_predetermined_out
+        return SymbolFailed
+
+    default_element = importer_options.get("System`DefaultElement")
+    if default_element is None:
+        # TODO message
+        evaluation.predetermined_out = current_predetermined_out
+        return SymbolFailed
+
+    # Perform the import
+    defaults = get_results(
+        default_function,
+        None,
+        function_channels,
+        stream_options,
+        custom_options,
+        evaluation,
+        options,
+        data=data,
+    )
+    if defaults is None:
+        evaluation.predetermined_out = current_predetermined_out
+        return SymbolFailed
+    elif defaults is SymbolFailed:
+        return SymbolFailed
+    if default_element is Symbol("Automatic"):
+        evaluation.predetermined_out = current_predetermined_out
+        return ListExpression(
+            *(
+                Expression(SymbolRule, String(key), defaults[key])
+                for key in defaults.keys()
+            )
+        )
+    else:
+        result = defaults.get(default_element.get_string_value())
+        if result is None:
+            evaluation.message("Import", "noelem", default_element, String(filetype))
+            evaluation.predetermined_out = current_predetermined_out
+            return SymbolFailed
+        evaluation.predetermined_out = current_predetermined_out
+        return result
+
+
 def eval_Import_source_only(
-    findfile: Optional[String],
+    findfile: String,
     filetype: str,
     evaluation: Evaluation,
     options,

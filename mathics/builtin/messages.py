@@ -194,7 +194,9 @@ class General(Builtin):
         "dgend": "Exiting Dialog.",
         "digit": "Digit at position `1` in `2` is too large to be used in base `3`.",
         "dis": "Execution of external commands is disabled.",
+        "emptyfch": "Function Channel not defined.",
         "exact": "Argument `1` is not an exact number.",
+        "fmtnosup": "`1` is not a supported Import format.",
         "fnsym": (
             "First argument in `1` is not a symbol " "or a string naming a symbol."
         ),
@@ -222,6 +224,7 @@ class General(Builtin):
         "newpkg": "In WL, there is a new package for this.",
         "nffil": "File not found during `1`.",
         "nodef": "Unknown option `1` for `2`.",
+        "noelem": ("The Import element `1` is not present when importing as `2`."),
         "nonopt": "Options expected (instead of `1`) beyond position `2` in `3`. An option must be a rule or a list of rules.",
         "noopen": "Cannot open `1`.",
         "nord": "Invalid comparison with `1` attempted.",
