@@ -331,30 +331,7 @@ def eval_Import_general(
         assert len(elements) >= 1
         el = elements[0]
         if el == "Elements":
-            defaults = get_results(
-                default_function,
-                findfile,
-                function_channels,
-                stream_options,
-                custom_options,
-                evaluation,
-                options,
-                data=data,
-            )
-            if defaults is None:
-                evaluation.predetermined_out = current_predetermined_out
-                return SymbolFailed
-            # Use set() to remove duplicates
-            evaluation.predetermined_out = current_predetermined_out
-            return from_python(
-                sorted(
-                    set(
-                        list(conditionals.keys())
-                        + list(defaults.keys())
-                        # + list(posts.keys())
-                    )
-                )
-            )
+            return eval_Import_Elements(file_format, evaluation)
         else:
             if el in conditionals.keys():
                 result = get_results(
@@ -366,6 +343,7 @@ def eval_Import_general(
                     evaluation,
                     options,
                     data=data,
+                    elements=elements,
                 )
                 if result is None:
                     evaluation.predetermined_out = current_predetermined_out
@@ -384,6 +362,7 @@ def eval_Import_general(
                         evaluation,
                         options,
                         data=data,
+                        elements=elements,
                     )
                     if defaults is None:
                         evaluation.predetermined_out = current_predetermined_out
@@ -399,7 +378,7 @@ def eval_Import_general(
                     return SymbolFailed
 
 
-def eval_Import_Elements(file_format: str, evaluation):
+def eval_Import_Elements(file_format: str, evaluation: Evaluation):
     """
     Basic implementation behind Import[fileformat, Elements].
     This returns the element names that can be used for a specific
@@ -428,6 +407,7 @@ def get_results(
     evaluation,
     options,
     data: Optional[str],
+    elements: Optional[list] = None,
 ):
     current_predetermined_out = evaluation.predetermined_out
     if function_channels == ListExpression(String("FileNames")):
@@ -442,7 +422,12 @@ def get_results(
             else:
                 Expression(SymbolWriteString, String("")).evaluate(evaluation)
             eval_Close(stream, evaluation)
-        import_expression = Expression(tmp_function, findfile, *joined_options)
+        if elements is None:
+            import_expression = Expression(tmp_function, findfile, *joined_options)
+        else:
+            import_expression = Expression(
+                tmp_function, findfile, *to_mathics_list(*elements), *joined_options
+            )
         tmp = import_expression.evaluate(evaluation)
         if tmp is SymbolFailed:
             return SymbolFailed

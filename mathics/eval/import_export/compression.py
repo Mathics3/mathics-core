@@ -9,7 +9,7 @@ from mathics.core.list import ListExpression
 from mathics.core.systemsymbols import SymbolFailed, SymbolRule
 from mathics.eval.import_export.importexport import (
     IMPORTERS,
-    eval_import_stream,
+    eval_Import_data_only,
     infer_file_format,
 )
 
@@ -48,12 +48,11 @@ def eval_ImportZIP(
             return ListExpression(*exprs)
 
         for member in members:
-            file_format = infer_file_format(member)
-            if file_format.upper() not in IMPORTERS.keys():
+            file_format = infer_file_format(member).upper()
+            if file_format not in IMPORTERS.keys():
                 evaluation.message("Import", "fmtnosup", file_format)
                 return SymbolFailed
 
             file_data = archive.read(member)
-            # FIX HERE
-            converted_file_data = eval_import_stream(file_data, file_format)
-            return converted_file_data
+            # FIXME: this handles one member. What do we do if we have more?
+            return eval_Import_data_only(file_data.value, file_format, evaluation, {})
