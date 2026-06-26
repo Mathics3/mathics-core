@@ -23,9 +23,13 @@ from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BaseElement, Expression
 from mathics.core.parser import MathicsFileLineFeeder, MathicsMultiLineFeeder
-from mathics.core.parser.util import parse_incrementally_by_line
+from mathics.core.parser.util import (
+    dump_exprs_to_pcl_file,
+    parse_from_pcl_file,
+    parse_incrementally_by_line,
+)
 from mathics.core.streams import path_search, stream_manager
-from mathics.core.symbols import Symbol, SymbolNull
+from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolEndOfFile,
     SymbolExpression,
@@ -117,6 +121,84 @@ def eval_Close(obj, evaluation: Evaluation):
     return name
 
 
+def eval_DumpParse(
+    input_path: str,
+    output_path: str,
+    evaluation: Evaluation,
+    encoding: str,
+    trace_fn: Optional[Callable] = DEFAULT_TRACE_FN,
+    path_directories: Optional[Sequence[str]] = None,
+) -> Symbol:
+    """
+    Reads file `input_path`, parses each expression in the file
+    accumulating them in a list. This list is Python Pickled and
+    written to `output_path`. True is returned if everything succeeded.
+    """
+
+    if path_directories is None:
+        path_directories = tuple(streams.PATH_VAR)
+    resolved_path, _ = path_search(input_path, path_directories)
+    if resolved_path is None:
+        resolved_path = input_path
+    definitions = evaluation.definitions
+
+    # Wrap actual evaluation to handle setting $Input
+    # and $InputFileName
+    # store input paths of calling context
+
+    global INPUT_VAR
+    outer_input_var = INPUT_VAR
+    outer_inputfile = definitions.get_inputfile()
+
+    # Set a new input path.
+    INPUT_VAR = resolved_path
+    definitions.set_inputfile(INPUT_VAR)
+
+    # Save old PATH_VAR in case it gets changed in running Get?
+    # This seems to be needed, but not 100% sure there isn't
+    # a better and more robust way.
+    old_streams_path_var = streams.PATH_VAR
+    streams.PATH_VAR = SymbolPath.evaluate(evaluation).to_python(string_quotes=False)
+
+    queries = []
+
+    if trace_fn is not None:
+        trace_fn(0, resolved_path + "\n")
+    try:
+        with Mathics3Open(resolved_path, "r", encoding=encoding) as f:
+            feeder = MathicsFileLineFeeder(f, trace_fn)
+            while not feeder.empty():
+                try:
+                    # Note: we use mathics.core.parser.parse
+                    # so that tracing/debugging can intercept parse()
+                    query = mathics.core.parser.parse(definitions, feeder)
+                except SyntaxError:
+                    return SymbolNull
+                finally:
+                    feeder.send_messages(evaluation)
+                if query is None:  # blank line / comment
+                    continue
+                else:
+                    queries.append(query)
+
+                # result = query.evaluate(evaluation)
+    except IOError:
+        evaluation.message("DumpParse", "noopen", input_path)
+        return SymbolFailed
+    except MessageException as e:
+        e.message(evaluation)
+        return SymbolFailed
+    finally:
+        # Whether we had an exception or not, restore the input path
+        # and the state of definitions prior to calling Get.
+        INPUT_VAR = outer_input_var
+        definitions.set_inputfile(outer_inputfile)
+        streams.PATH_VAR = old_streams_path_var
+
+    dump_exprs_to_pcl_file(queries, output_path)
+    return SymbolTrue
+
+
 def eval_Get(
     path: str,
     evaluation: Evaluation,
@@ -183,6 +265,32 @@ def eval_Get(
         INPUT_VAR = outer_input_var
         definitions.set_inputfile(outer_inputfile)
         streams.PATH_VAR = old_streams_path_var
+    return result
+
+
+def eval_Get_from_PCL(
+    path: str,
+    evaluation: Evaluation,
+    encoding: str,
+    trace_fn: Optional[Callable] = DEFAULT_TRACE_FN,
+    path_directories: Optional[Sequence[str]] = None,
+):
+    """
+    Reads a file and evaluates each expression, returning only the last one.
+    """
+
+    result = None
+    if path_directories is None:
+        path_directories = tuple(streams.PATH_VAR)
+    resolved_path, _ = path_search(path, path_directories)
+    if resolved_path is None:
+        resolved_path = path
+
+    parse_list = parse_from_pcl_file(evaluation.definitions, resolved_path)
+    if not isinstance(parse_list, list):
+        return None
+    for query in parse_list:
+        result = query.evaluate(evaluation)
     return result
 
 
