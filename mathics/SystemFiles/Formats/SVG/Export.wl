@@ -1,9 +1,11 @@
+(* ::Package:: *)
+
 (* Text Exporter *)
 
-Begin["System`Convert`TextDump`"]
+Begin["System`Convert`SVGDump`"]
 
 
-SVGExport[filename_, expr_, opts___] :=
+ExportSVG[filename_, expr_, opts___] :=
   Module[{strm, data, p, q, expr2},
     strm = OpenWrite[filename];
     If[strm === $Failed, Return[$Failed]];
@@ -20,11 +22,12 @@ SVGExport[filename_, expr_, opts___] :=
 
 ImportExport`RegisterExport[
     "SVG",
-	System`Convert`TextDump`SVGExport,
-	FunctionChannels -> {"FileNames"},
-	Options -> {"ByteOrderMark"},
-	DefaultElement -> "Plaintext",
-	BinaryFormat -> False
+    System`Convert`SVGDump`ExportSVG,
+    {}, (* post evaluations *)
+    FunctionChannels -> {"FileNames"},
+    Options -> {"ByteOrderMark"},
+    DefaultElement -> "Plaintext",
+    BinaryFormat -> False
 ]
 
 

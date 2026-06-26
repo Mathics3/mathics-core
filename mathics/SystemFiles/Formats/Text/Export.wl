@@ -1,5 +1,6 @@
+(* ::Package:: *)
+
 (* Text Exporter *)
-(* FIXME: There is no RegisterImageImport builtin in WMA. Rewrite in Python. *)
 
 Begin["System`Convert`TextDump`"]
 

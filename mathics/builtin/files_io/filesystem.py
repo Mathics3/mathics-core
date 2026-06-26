@@ -36,7 +36,11 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.directories import DIRECTORY_STACK
 from mathics.eval.files_io.files import eval_Get
-from mathics.eval.files_io.filesystem import eval_FindFile
+from mathics.eval.files_io.filesystem import (
+    eval_DeleteFile,
+    eval_FileExtension,
+    eval_FindFile,
+)
 from mathics.eval.stackframe import get_eval_Expression
 
 
@@ -307,13 +311,7 @@ class DeleteFile(Builtin):
                 return SymbolFailed
             py_paths.append(resolved_path.value)
 
-        for path in py_paths:
-            try:
-                os.remove(path)
-            except OSError:
-                return SymbolFailed
-
-        return SymbolNull
+        return eval_DeleteFile(py_paths)
 
 
 class Directory(Builtin):
@@ -537,12 +535,10 @@ class FileExtension(Builtin):
     }
     summary_text = "file extension"
 
-    def eval(self, filename, evaluation: Evaluation, options: dict):
+    def eval(self, filename, evaluation: Evaluation, options: dict) -> String:
         "FileExtension[filename_String, OptionsPattern[FileExtension]]"
         path = filename.to_python()[1:-1]
-        filename_base, filename_ext = osp.splitext(path)
-        filename_ext = filename_ext.lstrip(".")
-        return String(filename_ext)
+        return String(eval_FileExtension(path))
 
 
 class FileInformation(Builtin):

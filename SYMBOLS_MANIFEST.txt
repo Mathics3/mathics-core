@@ -585,7 +585,6 @@ System`Import
 System`ImportJSON
 System`ImportString
 System`ImportZIP
-System`ImportZIPPost
 System`In
 System`Increment
 System`Indeterminate

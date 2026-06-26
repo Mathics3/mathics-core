@@ -168,6 +168,18 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
             None,
         ),
         (
+            'Import["ExampleData/Testosterone.svg", "xml"] // Head',
+            None,
+            "XMLObject[Document]",
+            "Case use in explicit format name should not be significant",
+        ),
+        (
+            'Import["ExampleData/Testosterone.svg", "Xml"] // Head',
+            None,
+            "XMLObject[Document]",
+            "Case use in explicit format name should not be significant",
+        ),
+        (
             'Import["ExampleData/Testosterone.svg", {"XML"}] // Head',
             None,
             "XMLObject[Document]",
@@ -207,12 +219,33 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
             "0.88, 0.60, 0.94\n.076, 0.19, .51\n0.97, 0.04, .26",
             None,
         ),
+        # FIXME: the below out is incorrect and does not match WMA,
+        # due to a lame homegrown implementation of
+        # CSV. The data below will change when we use Python's CSV library.
         (
             'ImportString[datastring, "CSV","FieldSeparators" -> "."]',
             None,
             "{{0, 88, 0, 60, 0, 94}, {076, 0, 19, , 51}, {0, 97, 0, 04, , 26}}",
             None,
         ),
+    ],
+)
+def test_Import(str_expr, msgs, str_expected, fail_msg):
+    """ """
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=fail_msg,
+        expected_messages=msgs,
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    [
         # Invalid Filename
         (
             'Export["abc.", 1+2]',
@@ -245,7 +278,24 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
             "$Failed",
             None,
         ),
-        # FORMATS
+    ],
+)
+def test_Export(str_expr, msgs, str_expected, fail_msg):
+    """ """
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=fail_msg,
+        expected_messages=msgs,
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    [
         # ASCII text
         ('FileFormat["ExampleData/BloodToilTearsSweat.txt"]', None, "Text", None),
         ('FileFormat["ExampleData/MadTeaParty.gif"]', None, "GIF", None),
@@ -277,7 +327,7 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
         ),
     ],
 )
-def test_importexport(str_expr, msgs, str_expected, fail_msg):
+def test_FileFormat(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,

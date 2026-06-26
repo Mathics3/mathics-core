@@ -1,8 +1,10 @@
+(* ::Package:: *)
+
 (* XML Importer *)
 
 (* "CDATA", "Comments", "EmbeddedDTD", "Plaintext", "Tags", "XMLObject", "XMLElement" *)
 
-Begin["System`Convert`XML`"]
+Begin["System`Convert`XMLDump`"]
 
 ImportExport`RegisterImport[
     "XML",
@@ -12,9 +14,9 @@ ImportExport`RegisterImport[
         "Tags" :> XML`TagsImport,
         XML`XMLObjectImport
     },
-    {},
-	AvailableElements -> {"Plaintext", "Tags", "XMLObject"},
-	DefaultElement -> "XMLObject",
+    {},  (* post importer functions *)
+    AvailableElements -> {"Plaintext", "Tags", "XMLObject"},
+    DefaultElement -> "XMLObject",
     FunctionChannels -> {"FileNames"}
 ]
 

@@ -23,10 +23,7 @@ ImportCSV[stream_InputStream, OptionsPattern[]]:=
 ImportExport`RegisterImport[
     "CSV",
     System`Convert`TableDump`ImportCSV,
-    {
-        "Data" :> GetData,
-        "Grid" :> GetGrid
-    },
+    {}, (* post evaluation *)
     (* Sources -> ImportExport`DefaultSources["Table"], *)
     FunctionChannels -> {"Streams"},
     AvailableElements -> {"Data", "Grid"},

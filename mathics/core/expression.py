@@ -1523,6 +1523,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # If self.value is legitimately None, we'll
         # catch further down.
         if hasattr(self, "value") and self.value is not None:
+            if self.value == tuple() and kwargs.get("prefer_dictionary"):
+                return {}
             return self.value
 
         n_evaluation = kwargs.get("n_evaluation", None)

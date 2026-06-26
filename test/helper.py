@@ -149,14 +149,14 @@ def check_evaluation(
     print(time.asctime())
 
     if failure_message:
-        print(f"got: \n{result}\nexpect:\n{expected}\n -- {failure_message}")
         assert result == expected, failure_message
     else:
-        print(f"got: \n{result}\nexpect:\n{expected}\n --")
+        fail_mess = f"got: \n{result}\nexpect:\n{expected}\n"
         if isinstance(expected, re.Pattern):
-            assert expected.match(result)
+            assert expected.match(result), fail_mess
         else:
-            assert result == expected
+            assert result == expected, fail_mess
+    print(f"got: \n{result}")
 
     if expected_messages is not None:
         msgs = list(expected_messages)

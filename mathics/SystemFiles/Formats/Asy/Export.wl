@@ -1,3 +1,5 @@
+(* ::Package:: *)
+
 (* Asymptote Exporter *)
 
 Begin["System`Convert`Asy`"]
@@ -19,6 +21,8 @@ AsyExport[strm_OutputStream, expr_, OptionsPattern[]]:=
 
 ImportExport`RegisterExport[
     "asy",
+    {},
+    {},
     System`Convert`Asy`AsyExport,
     FunctionChannels -> {"Streams"},
     Options -> {"ByteOrderMark"},

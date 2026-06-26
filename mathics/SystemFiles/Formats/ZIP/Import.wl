@@ -1,4 +1,5 @@
 (* ::Package:: *)
+
 (* ZIP compressed file and file archive Importer.
    This is used by Import[].
  *)
@@ -23,8 +24,10 @@ ImportExport`RegisterImport[
     "ZIP",
     ImportZIP,
     {}, (* Post importer function(s) *)
-    FunctionChannels -> {"Streams"},
-    AvailableElements -> $ZIPAvailableElements,
+    FunctionChannels -> {"FileNames"},
+    (* WMA has this, but I (rocky) am not sure why or what it means:
+    AvailableElements -> $ZIPAvailableElements, *)
+    AvailableElements -> {"Filenames", "Summary"},
     BinaryFormat -> True,
     DefaultElement -> "FileNames",
     HiddenElements -> $ZIPHiddenElements,

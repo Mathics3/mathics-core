@@ -52,7 +52,7 @@ def from_complex(arg: complex) -> Complex:
 
 
 @dataclass(frozen=True)
-class ToPythonOptions:
+class FromPythonOptions:
     """
     Stores options associated with the to_python[] builtin.
 
@@ -64,7 +64,7 @@ class ToPythonOptions:
       and 'None' if we should use the natural alphabet ordering case."""
 
     @classmethod
-    def from_dict(cls, options: dict[str, Any]) -> "ToPythonOptions":
+    def from_dict(cls, options: dict[str, Any]) -> "FromPythonOptions":
         """Factory method that normalizes, type-checks, and builds the frozen structure
         from a raw dict[str, str].
         """
@@ -78,7 +78,7 @@ class ToPythonOptions:
         for key, option_value in options.items():
 
             if not key:
-                raise TypeError(f"ToPythonOptions: bad key: {key}")
+                raise TypeError(f"FromPythonOptions: bad key: {key}")
 
             # Type parsing and validation based on the target field name
             processed_args[key] = option_value
@@ -87,7 +87,7 @@ class ToPythonOptions:
         return cls(**processed_args)
 
 
-DEFAULT_PYTHON_OPTIONS: Final[ToPythonOptions] = ToPythonOptions.from_dict(
+DEFAULT_PYTHON_OPTIONS: Final[FromPythonOptions] = FromPythonOptions.from_dict(
     {"use_associations": False}
 )
 
@@ -185,7 +185,7 @@ def from_python(arg: Any, options=DEFAULT_PYTHON_OPTIONS) -> BaseElement:
         raise NotImplementedError
 
 
-def association_from_dict(arg: dict, options: ToPythonOptions) -> BaseElement:
+def association_from_dict(arg: dict, options: FromPythonOptions) -> BaseElement:
     """
     Convert a Python dictionary into a Mathics3 Association.
     """

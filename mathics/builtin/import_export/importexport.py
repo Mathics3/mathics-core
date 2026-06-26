@@ -8,11 +8,12 @@ Import and Export Functions and Variables
 import base64
 import os
 import sys
+import tempfile
 import urllib.request as request
 from itertools import chain
 from urllib.error import HTTPError, URLError
 
-from mathics.builtin.import_export.checking import import_setup_check
+from mathics.builtin.import_export.checking import check_filename, import_setup_check
 from mathics.core.atoms import ByteArray
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Integer, Predefined, String
@@ -25,7 +26,6 @@ from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolByteArray,
     SymbolFailed,
-    SymbolFileExtension,
     SymbolOpenWrite,
     SymbolOutputStream,
     SymbolToString,
@@ -36,10 +36,13 @@ from mathics.eval.import_export.importexport import (
     IMPORTERS,
     MIMETYPE_TO_SHORTNAME,
     eval_FileFormat,
-    eval_Import,
+    eval_Import_data_only,
     eval_Import_Elements,
+    eval_Import_general,
+    eval_Import_source_only,
     filetype_from_mime_content,
     importer_exporter_options,
+    infer_file_format,
 )
 
 # This tells documentation how to sort this module.
@@ -79,7 +82,7 @@ class ImportFormats(Predefined):
     </dl>
 
     >> $ImportFormats
-     = {...CSV,...JSON,...Text...}
+     = {...CSV,...JSON,...TEXT...}
     """
 
     name = "$ImportFormats"
@@ -198,9 +201,14 @@ class RegisterImport(Builtin):
     summary_text = "register an importer for a file format"
 
     def eval(
-        self, formatname: String, function, posts, evaluation: Evaluation, options
+        self,
+        formatname: String,
+        function,
+        posts: ListExpression,
+        evaluation: Evaluation,
+        options,
     ):
-        """ImportExport`RegisterImport[formatname_String, function_, posts_,
+        """ImportExport`RegisterImport[formatname_String, function_, posts_List,
         OptionsPattern[ImportExport`RegisterImport]]"""
 
         if function.has_form("List", None):
@@ -222,10 +230,12 @@ class RegisterImport(Builtin):
         }
         default = elements[-1]
 
-        # ??? This is wrong. Why match on posts if we are going to ignore it?
-        posts = {}
-
-        IMPORTERS[formatname.get_string_value()] = (
+        # Canonicalize IMPORTERS key to uppercase, e.g., Text -> TEXT.
+        # When we do a lookup, we canonicalize lookup value to uppercase
+        # as well.
+        # By doing this, we accept "text, "Text", "TEXT", and other combinations,
+        # which what WMA seems to do.
+        IMPORTERS[formatname.value.upper()] = (
             conditionals,
             default,
             posts,
@@ -315,10 +325,7 @@ class URLFetch(Builtin):
     def eval(self, url: String, elements, evaluation: Evaluation, options={}):
         "URLFetch[url_String, elements_, OptionsPattern[]]"
 
-        import os
-        import tempfile
-
-        py_url = url.get_string_value()
+        py_url = url.value
 
         temp_handle, temp_path = tempfile.mkstemp(suffix="")
         try:
@@ -339,7 +346,7 @@ class URLFetch(Builtin):
             def determine_filetype(content_type: str) -> str:
                 return MIMETYPE_TO_SHORTNAME.get(content_type, "Text")
 
-            result = eval_Import(
+            result = eval_Import_general(
                 String(temp_path),
                 determine_filetype,
                 elements,
@@ -377,6 +384,7 @@ class URLFetch(Builtin):
         return result
 
 
+# Note the similarity to ImportString in eval structure.
 class Import(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Import.html</url>
@@ -416,35 +424,32 @@ class Import(Builtin):
             "First argument `1` is not a valid file, directory, "
             "or URL specification."
         ),
-        "noelem": ("The Import element `1` is not present when importing as `2`."),
-        "fmtnosup": "`1` is not a supported Import format.",
-        "emptyfch": "Function Channel not defined.",
     }
 
     options = {
         "$OptionSyntax": "System`Ignore",
     }
 
-    rules = {
-        "Import[filename_]": "Import[filename, {}]",
-    }
-
     summary_text = "import elements from a file"
 
-    def eval(self, source, evaluation, options={}):
-        "Import[source_, OptionsPattern[]]"
-        return self.eval_element_list(source, ListExpression(), evaluation, options)
-
     def eval_elements_query(self, source, evaluation, options={}):
-        """Import[source_, "Elements", OptionsPattern[]]"""
+        """Import[source_String, "Elements", OptionsPattern[]]"""
         _, file_format = import_setup_check(source, evaluation)
         return eval_Import_Elements(file_format, evaluation)
 
-    def eval_fmt(self, source, fmt: String, evaluation, options={}):
-        "Import[source_, fmt_String, OptionsPattern[]]"
-        return self.eval_element_list(source, ListExpression(fmt), evaluation, options)
+    def eval_source_only(self, source, evaluation, options={}):
+        "Import[source_, OptionsPattern[]]"
+        findfile, filetype = import_setup_check(source, evaluation)
+        if findfile is SymbolFailed:
+            return SymbolFailed
 
-    def eval_element_list(self, source, elements, evaluation, options={}):
+        return eval_Import_source_only(findfile, filetype, evaluation, options)
+
+        return self.eval_with_element_list(
+            source, ListExpression(), evaluation, options
+        )
+
+    def eval_with_element_list(self, source, elements, evaluation, options={}):
         "Import[source_, elements_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
 
         findfile, data = import_setup_check(source, evaluation)
@@ -454,11 +459,36 @@ class Import(Builtin):
         def determine_filetype(data: str) -> str:
             return data
 
-        return eval_Import(
+        return eval_Import_general(
             findfile, determine_filetype, elements, evaluation, options, data
         )
 
+    # In contrast to Import[source_], we allow an explicit format type
+    # like "CSV", to be specified. See also comment below.
+    def eval_with_single_element(self, source, elt: String, evaluation, options={}):
+        "Import[source_, elt_String, OptionsPattern[]]"
 
+        findfile, filetype = import_setup_check(source, evaluation)
+        if findfile is SymbolFailed:
+            return SymbolFailed
+
+        # Note: there is ambiguity in whether "elt" is a really format string name like
+        # "CSV" in Import["foo.csv", CSV"], or a single element argument like
+        # "Header" in "Import["foo.csv", "Header"].
+        # The code below tests for the first case, and if that fails assumes the
+        # second case.
+        file_format = elt.value.upper()
+        if file_format in IMPORTERS.keys():
+            # A file format was specified: use the custom routine
+            return eval_Import_source_only(findfile, file_format, evaluation, options)
+
+        # Assume we have Import with a single non-format element.
+        return self.eval_with_element_list(
+            source, ListExpression(elt), evaluation, options
+        )
+
+
+# Note the similarity to Import in eval structure.
 class ImportString(Builtin):
     """
     <url>
@@ -486,35 +516,56 @@ class ImportString(Builtin):
 
     messages = {
         "string": "First argument `1` is not a string.",
-        "noelem": ("The Import element `1` is not present when importing as `2`."),
-        "fmtnosup": "`1` is not a supported Import format.",
     }
     options = {
         "$OptionSyntax": "System`Ignore",
     }
-    rules = {}
-    summary_text = "import elements from a string"
 
-    def eval(self, data, evaluation, options={}):
+    summary_text = "import data or elements of data from a string"
+
+    def eval_data_only(self, data, evaluation, options={}):
         "ImportString[data_, OptionsPattern[]]"
-        return self.eval_elements(data, ListExpression(), evaluation, options)
+        if not (isinstance(data, String)):
+            evaluation.message("ImportString", "string", data)
+            return SymbolFailed
+        return eval_Import_data_only(data.value, None, evaluation, options)
 
-    def eval_element(self, data, element: String, evaluation, options={}):
-        "ImportString[data_, element_String, OptionsPattern[]]"
+    def eval_elements_query(self, data, evaluation, options={}):
+        """ImportString[data_String, "Elements", OptionsPattern[]]"""
 
-        return self.eval_elements(data, ListExpression(element), evaluation, options)
+        file_format = filetype_from_mime_content(data.value)
+        return eval_Import_Elements(file_format, evaluation)
 
-    def eval_elements(self, data, elements, evaluation, options={}):
+    def eval_with_elements_list(self, data, elements, evaluation, options={}):
         "ImportString[data_, elements_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
         if not (isinstance(data, String)):
             evaluation.message("ImportString", "string", data)
             return SymbolFailed
 
-        def determine_filetype(py_data: str) -> str:
-            return filetype_from_mime_content(py_data)
+        def determine_filetype(data: str) -> str:
+            return filetype_from_mime_content(data)
 
-        return eval_Import(
+        return eval_Import_general(
             None, determine_filetype, elements, evaluation, options, data=data.value
+        )
+
+    # In contrast to ImportString[data_], we allow an explicit format type
+    # like "CSV", to be specified. See also comment below.
+    def eval_with_single_element(self, data, elt: String, evaluation, options={}):
+        "ImportString[data_, elt_String, OptionsPattern[]]"
+
+        # Note: there is ambiguity in whether "elt" is a really format string name like
+        # "CSV" in Import["foo.csv", CSV"], or a single element argument like
+        # "Header" in "Import["foo.csv", "Header"].
+        # The code below tests for the first case, and if that fails assumes the
+        # second case.
+        file_format = elt.value.upper()
+        if file_format in IMPORTERS.keys():
+            # A file format was specified: use the custom routine
+            return eval_Import_data_only(data.value, file_format, evaluation, options)
+
+        return self.eval_with_elements_list(
+            data, ListExpression(elt), evaluation, options
         )
 
 
@@ -538,28 +589,7 @@ class Export(Builtin):
         "chtype": "First argument `1` is not a valid file specification.",
         "infer": "Cannot infer format of file `1`.",
         "noelem": "`1` is not a valid set of export elements for the `2` format.",
-        "emptyfch": "Function Channel not defined.",
         "nffil": "File `1` could not be opened",
-    }
-
-    # TODO: This hard-linked dictionary should be
-    # replaced by a definition accessible from inside
-    # WL
-    _extdict = {
-        "bmp": "BMP",
-        "gif": "GIF",
-        "jp2": "JPEG2000",
-        "jpg": "JPEG",
-        "pcx": "PCX",
-        "png": "PNG",
-        "ppm": "PPM",
-        "pbm": "PBM",
-        "pgm": "PGM",
-        "tif": "TIFF",
-        "txt": "Text",
-        "csv": "CSV",
-        "svg": "SVG",
-        "asy": "asy",
     }
 
     rules = {
@@ -574,31 +604,15 @@ class Export(Builtin):
 
     summary_text = "export elements to a file"
 
-    # FIXME: move to mathics.eval
-    def _check_filename(self, filename, evaluation: Evaluation):
-        path = filename.to_python()
-        if isinstance(path, str) and path[0] == path[-1] == '"':
-            return True
-        evaluation.message("Export", "chtype", filename)
-        return False
-
-    # FIXME: move to mathics.eval
-    def _infer_form(self, filename, evaluation: Evaluation):
-        ext = Expression(SymbolFileExtension, filename).evaluate(evaluation)
-        ext = ext.get_string_value().lower()
-        # TODO: This dictionary should be accessible from the WL API
-        # to allow defining specific converters
-        return self._extdict.get(ext)
-
     def eval(self, dest, expr, evaluation, options={}):
         "Export[dest_, expr_, OptionsPattern[Export]]"
 
         # Check dest
-        if not self._check_filename(dest, evaluation):
+        if not check_filename("Export", dest, evaluation):
             return SymbolFailed
 
         # Determine Format
-        form = self._infer_form(dest, evaluation)
+        form = infer_file_format(dest.value)
 
         if form is None:
             evaluation.message("Export", "infer", dest)
@@ -616,7 +630,7 @@ class Export(Builtin):
         "Export[dest_, expr_, elems_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
 
         # Check filename
-        if not self._check_filename(dest, evaluation):
+        if not check_filename("Export", dest, evaluation):
             return SymbolFailed
 
         # Process elems {comp* format?, elem1*}
@@ -640,7 +654,7 @@ class Export(Builtin):
         # Infer format if not present
         if not found_form:
             assert format_spec == []
-            format_spec = self._infer_form(dest, evaluation)
+            format_spec = infer_file_format(dest.value)
             if format_spec is None:
                 evaluation.message("Export", "infer", dest)
                 evaluation.predetermined_out = current_predetermined_out
@@ -728,7 +742,6 @@ class ExportString(Builtin):
 
     messages = {
         "noelem": "`1` is not a valid set of export elements for the `2` format.",
-        "emptyfch": "Function Channel not defined.",
     }
 
     options = {
@@ -751,7 +764,7 @@ class ExportString(Builtin):
         format_spec, elems_spec = [], []
         found_form = False
         for element in elements[::-1]:
-            element_str = element.get_string_value()
+            element_str = element.value
 
             if not found_form and element_str in EXPORTERS:
                 found_form = True
@@ -979,9 +992,7 @@ class B64Encode(Builtin):
         elif expr.get_head_name() == "System`ByteArray":
             return String(expr._elements[0].__str__())
         else:
-            stringtocodify = (
-                Expression(SymbolToString, expr).evaluate(evaluation).get_string_value()
-            )
+            stringtocodify = Expression(SymbolToString, expr).evaluate(evaluation).value
         return String(
             base64.b64encode(bytearray(stringtocodify, "utf8")).decode("utf8")
         )
