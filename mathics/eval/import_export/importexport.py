@@ -251,23 +251,23 @@ def eval_Import_general(
 
     elements = [el.value for el in elements]
 
-    # Determine file type
+    # Determine file format
     for el in elements:
-        if el in IMPORTERS.keys():
-            filetype = el
+        if el.upper() in IMPORTERS.keys():
+            file_format = el.upper()
             elements.remove(el)
             break
     else:
         filetype = determine_filetype(data)
-        filetype = MIME_SHORTNAME_TO_WMA.get(filetype, filetype)
+        file_format = MIME_SHORTNAME_TO_WMA.get(filetype, filetype).upper()
 
-    if filetype not in IMPORTERS.keys():
+    if file_format not in IMPORTERS.keys():
         evaluation.message("Import", "fmtnosup", filetype)
         evaluation.predetermined_out = current_predetermined_out
         return SymbolFailed
 
     # Load the importer
-    conditionals, default_function, posts, importer_options = IMPORTERS[filetype]
+    conditionals, default_function, posts, importer_options = IMPORTERS[file_format]
 
     stream_options, custom_options = importer_exporter_options(
         importer_options.get("System`Options"), options, "System`Import", evaluation
@@ -393,7 +393,7 @@ def eval_Import_general(
                     return defaults[el]
                 else:
                     evaluation.message(
-                        "Import", "noelem", from_python(el), String(filetype)
+                        "Import", "noelem", from_python(el), String(file_format)
                     )
                     evaluation.predetermined_out = current_predetermined_out
                     return SymbolFailed
@@ -401,9 +401,12 @@ def eval_Import_general(
 
 def eval_Import_Elements(file_format: str, evaluation):
     """
-    Basic implementation behind Import[xxx, Elements].
+    Basic implementation behind Import[fileformat, Elements].
+    This returns the element names that can be used for a specific
+    file_format type. We get this from the AvailableElements field
+    mentioned when registering an importer.
     """
-    filetype = MIME_SHORTNAME_TO_WMA.get(file_format, file_format)
+    filetype = MIME_SHORTNAME_TO_WMA.get(file_format, file_format).upper()
 
     if filetype not in IMPORTERS.keys():
         evaluation.message("Import", "fmtnosup", String(filetype))
@@ -491,10 +494,9 @@ def get_results(
 
 def eval_Import_source_only(
     findfile: Optional[String],
-    determine_filetype,
+    filetype: str,
     evaluation: Evaluation,
     options,
-    data: Optional[str],
 ):
     """
     Basic implementation beind Import[source].
@@ -502,8 +504,7 @@ def eval_Import_source_only(
     """
 
     current_predetermined_out = evaluation.predetermined_out
-    filetype = determine_filetype(data)
-    file_format = MIME_SHORTNAME_TO_WMA.get(filetype, filetype)
+    file_format = MIME_SHORTNAME_TO_WMA.get(filetype, filetype).upper()
 
     if file_format not in IMPORTERS.keys():
         evaluation.message("Import", "fmtnosup", filetype)
@@ -511,7 +512,7 @@ def eval_Import_source_only(
         return SymbolFailed
 
     # Load the importer
-    conditionals, default_function, posts, importer_options = IMPORTERS[filetype]
+    conditionals, default_function, posts, importer_options = IMPORTERS[file_format]
 
     stream_options, custom_options = importer_exporter_options(
         importer_options.get("System`Options"), options, "System`Import", evaluation
@@ -520,11 +521,7 @@ def eval_Import_source_only(
     function_channels = importer_options.get("System`FunctionChannels")
 
     if function_channels is None:
-        # TODO message
-        if data is None:
-            evaluation.message("Import", "emptyfch")
-        else:
-            evaluation.message("ImportString", "emptyfch")
+        evaluation.message("ImportString", "emptyfch")
         evaluation.predetermined_out = current_predetermined_out
         return SymbolFailed
 
@@ -543,7 +540,7 @@ def eval_Import_source_only(
         custom_options,
         evaluation,
         options,
-        data=data,
+        data=None,
     )
     if defaults is None:
         evaluation.predetermined_out = current_predetermined_out
@@ -662,7 +659,9 @@ def eval_import_stream(
 
     # START FIXING HERE
     # Load the importer
-    conditionals, import_function, posts, importer_options = IMPORTERS[file_format]
+    conditionals, import_function, posts, importer_options = IMPORTERS[
+        file_format.upper()
+    ]
     import_expression = Expression(import_function, data).evaluate()
     return import_expression
 

@@ -49,7 +49,7 @@ def eval_ImportZIP(
 
         for member in members:
             file_format = infer_file_format(member)
-            if file_format not in IMPORTERS.keys():
+            if file_format.upper() not in IMPORTERS.keys():
                 evaluation.message("Import", "fmtnosup", file_format)
                 return SymbolFailed
 

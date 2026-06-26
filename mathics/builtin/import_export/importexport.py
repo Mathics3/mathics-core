@@ -81,7 +81,7 @@ class ImportFormats(Predefined):
     </dl>
 
     >> $ImportFormats
-     = {...CSV,...JSON,...Text...}
+     = {...CSV,...JSON,...TEXT...}
     """
 
     name = "$ImportFormats"
@@ -229,7 +229,12 @@ class RegisterImport(Builtin):
         }
         default = elements[-1]
 
-        IMPORTERS[formatname.value] = (
+        # Canonicalize IMPORTERS key to uppercase, e.g., Text -> TEXT.
+        # When we do a lookup, we canonicalize lookup value to uppercase
+        # as well.
+        # By doing this, we accept "text, "Text", "TEXT", and other combinations,
+        # which what WMA seems to do.
+        IMPORTERS[formatname.value.upper()] = (
             conditionals,
             default,
             posts,
@@ -432,30 +437,6 @@ class Import(Builtin):
 
     summary_text = "import elements from a file"
 
-    def eval_source_only(self, source, evaluation, options={}):
-        "Import[source_, OptionsPattern[]]"
-        findfile, data = import_setup_check(source, evaluation)
-        if findfile is SymbolFailed:
-            return SymbolFailed
-
-        def determine_filetype(data: str) -> str:
-            return data
-
-        return eval_Import_source_only(
-            findfile, determine_filetype, evaluation, options, data
-        )
-
-        return self.eval_element_list(source, ListExpression(), evaluation, options)
-
-    def eval_elements_query(self, source, evaluation, options={}):
-        """Import[source_, "Elements", OptionsPattern[]]"""
-        _, file_format = import_setup_check(source, evaluation)
-        return eval_Import_Elements(file_format, evaluation)
-
-    def eval_fmt(self, source, fmt: String, evaluation, options={}):
-        "Import[source_, fmt_String, OptionsPattern[]]"
-        return self.eval_element_list(source, ListExpression(fmt), evaluation, options)
-
     def eval_element_list(self, source, elements, evaluation, options={}):
         "Import[source_, elements_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
 
@@ -469,6 +450,43 @@ class Import(Builtin):
         return eval_Import_general(
             findfile, determine_filetype, elements, evaluation, options, data
         )
+
+    def eval_elements_query(self, source, evaluation, options={}):
+        """Import[source_, "Elements", OptionsPattern[]]"""
+        _, file_format = import_setup_check(source, evaluation)
+        return eval_Import_Elements(file_format, evaluation)
+
+    # In contrast to Import[source_], we allow an explicit format type
+    # like "CSV", to be specified. See also comment below.
+    def eval_fmt(self, source, fmt: String, evaluation, options={}):
+        "Import[source_, fmt_String, OptionsPattern[]]"
+
+        findfile, filetype = import_setup_check(source, evaluation)
+        if findfile is SymbolFailed:
+            return SymbolFailed
+
+        # Note: there is ambiguity in whether "fmt" is a really format string name like
+        # "CSV" in Import["foo.csv", CSV"], or a single element argument like
+        # "Elements" in "Import["foo.csv", "Elements"].
+        # The code below tests for the first case, and if that fails assumes the
+        # second case.
+        file_format = fmt.value.upper()
+        if file_format in IMPORTERS.keys():
+            # A file format was specified: use the custom routine
+            return eval_Import_source_only(findfile, file_format, evaluation, options)
+
+        # Assume we have Import with a single non-format element.
+        return self.eval_element_list(source, ListExpression(fmt), evaluation, options)
+
+    def eval_source_only(self, source, evaluation, options={}):
+        "Import[source_, OptionsPattern[]]"
+        findfile, filetype = import_setup_check(source, evaluation)
+        if findfile is SymbolFailed:
+            return SymbolFailed
+
+        return eval_Import_source_only(findfile, filetype, evaluation, options)
+
+        return self.eval_element_list(source, ListExpression(), evaluation, options)
 
 
 class ImportString(Builtin):
