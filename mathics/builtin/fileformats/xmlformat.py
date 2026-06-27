@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 """
-XML
+XML File Format
 
-Basic implementation for an XML importer.
+XML importer (via lxml).
 """
 
 

@@ -529,7 +529,7 @@ def perform_import(
         # TODO message
         evaluation.predetermined_out = current_predetermined_out
         return SymbolFailed
-    result_elts = tmp.elements
+    result_elts = tmp.get_elements()
     if not all(expr.has_form("Rule", None) for expr in result_elts):
         evaluation.predetermined_out = current_predetermined_out
         return None

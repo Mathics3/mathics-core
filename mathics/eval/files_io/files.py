@@ -235,14 +235,9 @@ def eval_Open(
     encoding: Optional[str],
     evaluation: Evaluation,
 ):
-    path = name.value
-    tmp, is_temporary_file = path_search(path)
-    if tmp is None:
-        if mode in ["r", "rb"]:
-            evaluation.message("General", "noopen", name)
-            return SymbolFailed
-    else:
-        path = tmp
+    path, is_temporary_file = resolve_file(name, mode, evaluation)
+    if path is None:
+        return SymbolFailed
 
     try:
         opener = Mathics3Open(
@@ -426,3 +421,25 @@ def eval_Read(
                     return Expression(SymbolHold, from_python(result))
 
     return from_python(result)
+
+
+def resolve_file(name: String, mode: str, evaluation: Evaluation) -> Optional[str]:
+    """Resolve 'name' using `path_search` and returned the resolved name as the first
+    item of a tuple.
+
+    If "mode" a write mode, then the file does not have to exist beforehand.
+    In some cases `path_search()` will decide that a temporary file is to be
+    created. In this case that fact will be reflected by returning True as the
+    second item of the tuple.
+
+    If we can't open the file, we emit a "noopen" message.
+    """
+    path = name.value
+    resolved_path, is_temporary_file = path_search(path)
+    if resolved_path is None:
+        if mode in ["r", "rb"]:
+            evaluation.message("General", "noopen", name)
+            return None, False
+        resolved_path = path
+
+    return resolved_path, is_temporary_file

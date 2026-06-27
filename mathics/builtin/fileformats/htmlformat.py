@@ -2,7 +2,7 @@
 """
 HTML
 
-Basic implementation for a HTML importer.
+HTML importer.
 """
 
 

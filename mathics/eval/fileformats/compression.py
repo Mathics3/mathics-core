@@ -8,6 +8,7 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import SymbolNull
 from mathics.core.systemsymbols import SymbolFailed, SymbolRule
+from mathics.eval.files_io.files import resolve_file
 from mathics.eval.import_export.importexport import (
     IMPORTERS,
     eval_Import_data_only,
@@ -16,13 +17,20 @@ from mathics.eval.import_export.importexport import (
 
 
 def eval_ImportZIP(
-    zip_path: str, evaluation: Evaluation, members: Optional[list[str]] = None
+    zip_name: String, evaluation: Evaluation, members: Optional[list[str]] = None
 ) -> ListExpression:
     """If `members` is empty, this function takes a ZIP file path and returns a
     list of file names/paths contained inside.
 
     "If `members` is given, then extract those members from the ZIP file.
     """
+
+    zip_path, is_temporary_file = resolve_file(zip_name, "r", evaluation)
+    if zip_path is None:
+        return SymbolFailed
+
+    # The below "try:" is probably unnecessary since resolve_file should
+    # catch errors.
     try:
         with zipfile.ZipFile(zip_path, "r") as archive:
             if members is None:
