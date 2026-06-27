@@ -408,7 +408,7 @@ class SourceImport(_HTMLBuiltin):
 
     summary_text = "import source code from a HTML file"
 
-    def eval(self, text, evaluation):
+    def eval(self, text, evaluation: Evaluation):
         """%(name)s[text_String]"""
 
         def source(filename):
@@ -450,7 +450,7 @@ class TitleImport(_TagImport):
 
 class XMLObjectImport(_HTMLBuiltin):
     """
-    ## <url>:native internal:</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/XMLObject.html</url>
 
     <dl>
     <dt>'HTML`XMLObjectImport["filename"]'
@@ -463,7 +463,13 @@ class XMLObjectImport(_HTMLBuiltin):
 
     summary_text = "import XML objects from a HTML file"
 
-    def eval(self, text, evaluation):
+    def eval(self, text, evaluation: Evaluation):
         """%(name)s[text_String]"""
         xml = to_expression("HTML`Parser`HTMLGet", text).evaluate(evaluation)
         return ListExpression(Expression(SymbolRule, String("XMLObject"), xml))
+
+    def eval_with_element(self, text, element, evaluation: Evaluation):
+        """%(name)s[text_String, element_]"""
+        # FIXME?: right now we aren't using element. Things might be
+        # more efficient if we used element?
+        return self.eval(text, evaluation)

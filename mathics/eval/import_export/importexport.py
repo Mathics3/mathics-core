@@ -454,13 +454,32 @@ def get_results(
             else:
                 Expression(SymbolWriteString, String("")).evaluate(evaluation)
             eval_Close(stream, evaluation)
+
+        # FIXME: Some import functions do not support element
+        # selection of a collection, just collection retrieval. Here,
+        # when a selection is desired, the entire collection is
+        # returned, and *then* the element is selected. This is
+        # potentially very slow for large collections and selection
+        # items that can be retrieved quickly. Until we can come up
+        # with a better solution for these kinds import functions, to
+        # address this when element selection is requested and doesn't
+        # return a different result, we retry without the element
+        # selection.
+        import_collection_expression = Expression(
+            tmp_function, findfile, *joined_options
+        )
         if elements is None:
-            import_expression = Expression(tmp_function, findfile, *joined_options)
+            tmp = import_collection_expression.evaluate(evaluation)
         else:
-            import_expression = Expression(
+            import_select_expression = Expression(
                 tmp_function, findfile, *to_mathics_list(*elements), *joined_options
             )
-        tmp = import_expression.evaluate(evaluation)
+            tmp = import_select_expression.evaluate(evaluation)
+            if tmp == import_select_expression:
+                # Retry by retieving the entire collection.
+                # Element selection is done afterwards.
+                tmp = import_collection_expression.evaluate(evaluation)
+
         if tmp is SymbolFailed:
             return SymbolFailed
         if tmpfile:
