@@ -460,7 +460,10 @@ class Import(Builtin):
         if findfile is SymbolFailed:
             return SymbolFailed
 
-        # FIXME remove the need for determine_filetype
+        # FIXME remove the need for determine_filetype.
+
+        # The "data" parameter is just for non-file or string situations
+        # where we need to pick out the type from the file contents.
         def determine_filetype(data: str) -> str:
             return file_format
 
@@ -483,13 +486,21 @@ class Import(Builtin):
         # The code below tests for the first case, and if that fails assumes the
         # second case.
         file_format = elt.value.upper()
+
         if file_format in importexport.IMPORTERS.keys():
             # A file format was specified: use the custom routine
             return eval_Import_source_only(findfile, file_format, evaluation, options)
 
         # Assume we have Import with a single non-format element.
-        return self.eval_with_element_list(
-            source, ListExpression(elt), evaluation, options
+
+        # FIXME remove the need for determine_filetype.
+        # The "data" parameter is just for non-file or string situations
+        # where we need to pick out the type from the file contents.
+        def determine_filetype(data: str) -> str:
+            return filetype
+
+        return eval_Import_general(
+            findfile, determine_filetype, ListExpression(elt), evaluation, options
         )
 
 
