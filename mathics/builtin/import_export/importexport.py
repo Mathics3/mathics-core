@@ -13,10 +13,10 @@ import urllib.request as request
 from itertools import chain
 from urllib.error import HTTPError, URLError
 
-from mathics.builtin.import_export.checking import (
-    check_filename,
-    import_setup_check,
-)
+# Use this when accessing IMPORTERS to get changes
+# since initializiation.
+import mathics.eval.import_export.importexport as importexport
+from mathics.builtin.import_export.checking import check_filename, import_setup_check
 from mathics.core.atoms import ByteArray
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Integer, Predefined, String
@@ -36,7 +36,6 @@ from mathics.core.systemsymbols import (
 from mathics.eval.files_io.files import eval_Close
 from mathics.eval.files_io.filesystem import eval_FindFile
 from mathics.eval.import_export.importexport import (
-    IMPORTERS,
     MIMETYPE_TO_SHORTNAME,
     eval_FileFormat,
     eval_Import_data_only,
@@ -92,7 +91,9 @@ class ImportFormats(Predefined):
     summary_text = "list supported import formats"
 
     def evaluate(self, evaluation: Evaluation):
-        return to_mathics_list(*sorted(IMPORTERS.keys()), elements_conversion_fn=String)
+        return to_mathics_list(
+            *sorted(importexport.IMPORTERS.keys()), elements_conversion_fn=String
+        )
 
 
 class RegisterImport(Builtin):
@@ -238,7 +239,7 @@ class RegisterImport(Builtin):
         # as well.
         # By doing this, we accept "text, "Text", "TEXT", and other combinations,
         # which what WMA seems to do.
-        IMPORTERS[formatname.value.upper()] = (
+        importexport.IMPORTERS[formatname.value.upper()] = (
             conditionals,
             default,
             posts,
@@ -455,15 +456,16 @@ class Import(Builtin):
     def eval_with_element_list(self, source, elements, evaluation, options={}):
         "Import[source_, elements_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
 
-        findfile, data = import_setup_check(source, evaluation)
+        findfile, file_format = import_setup_check(source, evaluation)
         if findfile is SymbolFailed:
             return SymbolFailed
 
+        # FIXME remove the need for determine_filetype
         def determine_filetype(data: str) -> str:
-            return data
+            return file_format
 
         return eval_Import_general(
-            findfile, determine_filetype, elements, evaluation, options, data
+            findfile, determine_filetype, elements, evaluation, options
         )
 
     # In contrast to Import[source_], we allow an explicit format type
@@ -481,7 +483,7 @@ class Import(Builtin):
         # The code below tests for the first case, and if that fails assumes the
         # second case.
         file_format = elt.value.upper()
-        if file_format in IMPORTERS.keys():
+        if file_format in importexport.IMPORTERS.keys():
             # A file format was specified: use the custom routine
             return eval_Import_source_only(findfile, file_format, evaluation, options)
 
@@ -563,7 +565,7 @@ class ImportString(Builtin):
         # The code below tests for the first case, and if that fails assumes the
         # second case.
         file_format = elt.value.upper()
-        if file_format in IMPORTERS.keys():
+        if file_format in importexport.IMPORTERS.keys():
             # A file format was specified: use the custom routine
             return eval_Import_data_only(data.value, file_format, evaluation, options)
 

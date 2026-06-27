@@ -30,3 +30,7 @@ class ImportZIP(Builtin):
     def eval(self, path: String, evaluation: Evaluation):
         "ImportZIP[path_String]"
         return eval_ImportZIP(path.value, evaluation)
+
+    def eval_with_elements(self, path: String, elements, evaluation: Evaluation):
+        "ImportZIP[path_String, elements_]"
+        return eval_ImportZIP(path.value, evaluation, elements)

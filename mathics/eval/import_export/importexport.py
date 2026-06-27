@@ -20,6 +20,7 @@ from mathics.core.systemsymbols import (
     SymbolByteArray,
     SymbolFailed,
     SymbolInputStream,
+    SymbolNone,
     SymbolOpenWrite,
     SymbolRule,
     SymbolStringToStream,
@@ -37,7 +38,7 @@ MIME_SHORTNAME_TO_WMA: Final[Dict[str, str]] = {"JPG": "JPEG", "TXT": "Text"}
 IMPORTERS = {}
 
 # TODO: This hard-coded dictionary should be
-# accessile from the WL API, and be user modifiable.
+# accessible from the WL API, and be user modifiable.
 FILE_EXTENSION_MAP: dict[str, str] = {
     "bmp": "BMP",
     "gif": "GIF",
@@ -219,7 +220,7 @@ def importer_exporter_options(
 
 def eval_FileFormat(path: str) -> String:
     """
-    Basic implemenation beind FileFormat[filename].
+    Basic implementation behind FileFormat[filename].
     """
     return String(filetype_from_path(path))
 
@@ -230,10 +231,10 @@ def eval_Import_general(
     elements,
     evaluation: Evaluation,
     options,
-    data: Optional[str],
+    data: Optional[str] = None,
 ):
     """
-    Basic implementation beind most general kind of Import[source, elements, options].
+    Basic implementation behind most general kind of Import[source, elements, options].
     """
 
     current_predetermined_out = evaluation.predetermined_out
@@ -252,12 +253,13 @@ def eval_Import_general(
     elements = [el.value for el in elements]
 
     # Determine file format
-    for el in elements:
+    file_format = None
+    for el in elements.copy():
         if el.upper() in IMPORTERS.keys():
             file_format = el.upper()
             elements.remove(el)
-            break
-    else:
+
+    if file_format is None:
         filetype = determine_filetype(data)
         file_format = MIME_SHORTNAME_TO_WMA.get(filetype, filetype).upper()
 
@@ -331,7 +333,37 @@ def eval_Import_general(
         assert len(elements) >= 1
         el = elements[0]
         if el == "Elements":
-            return eval_Import_Elements(file_format, evaluation)
+            if (
+                result := eval_Import_Elements(file_format, evaluation)
+            ) is not SymbolNone:
+                return result
+            # A list of "Elements" is not obtainable via AvailableElements listed when
+            # ImportExport`RegisterImport was used. Get a list of the field names via
+            # the the "defaults" and "conditional" keys.
+            defaults = get_results(
+                default_function,
+                findfile,
+                function_channels,
+                stream_options,
+                custom_options,
+                evaluation,
+                options,
+                data=data,
+            )
+            if defaults is None:
+                evaluation.predetermined_out = current_predetermined_out
+                return SymbolFailed
+            # Use set() to remove duplicates
+            evaluation.predetermined_out = current_predetermined_out
+            return from_python(
+                sorted(
+                    set(
+                        list(conditionals.keys())
+                        + list(defaults.keys())
+                        # + list(posts.keys())
+                    )
+                )
+            )
         else:
             if el in conditionals.keys():
                 result = get_results(
@@ -342,8 +374,8 @@ def eval_Import_general(
                     custom_options,
                     evaluation,
                     options,
-                    data=data,
                     elements=elements,
+                    data=data,
                 )
                 if result is None:
                     evaluation.predetermined_out = current_predetermined_out
@@ -378,7 +410,7 @@ def eval_Import_general(
                     return SymbolFailed
 
 
-def eval_Import_Elements(file_format: str, evaluation: Evaluation):
+def eval_Import_Elements(file_format: str, evaluation):
     """
     Basic implementation behind Import[fileformat, Elements].
     This returns the element names that can be used for a specific
@@ -484,7 +516,7 @@ def eval_Import_data_only(
     options,
 ):
     """
-    Basic implementation beind Import_String[data].
+    Basic implementation behind Import_String[data].
     Here, no elements were given, just a import data string.
     """
 
@@ -560,7 +592,7 @@ def eval_Import_source_only(
     options,
 ):
     """
-    Basic implementation beind Import[source].
+    Basic implementation behind Import[source].
     Here, no elements were given, just a import source.
     """
 
@@ -638,7 +670,7 @@ def get_results_for_element_args(
     elements: list,
 ):
     """
-    Return Import results when elemnet args are given.
+    Return Import results when element args are given.
     For example:
       Import["ExampleData/ExampleData.txt", "Lines"]
                                             ^^^^^^^
