@@ -138,8 +138,8 @@ class _TagImport(_HTMLBuiltin):
 
     def eval_with_element(self, text, element, evaluation: Evaluation):
         """%(name)s[text_String, element_]"""
-        # FIXME?: right now we aren't using element. Things might be
-        # more efficient if we used element?
+        # FIXME: right now we aren't using element, and should use this to more
+        # efficiently extract part of the XML file that we want.
         return self.eval(text, evaluation)
 
 
@@ -421,8 +421,8 @@ class SourceImport(_HTMLBuiltin):
 
     def eval_with_element(self, text, element, evaluation: Evaluation):
         """%(name)s[text_String, element_]"""
-        # FIXME?: right now we aren't using element. Things might be
-        # more efficient if we used element?
+        # FIXME: right now we aren't using element, and should use this to more
+        # efficiently extract part of the XML file that we want.
         return self.eval(text, evaluation)
 
 
@@ -470,6 +470,6 @@ class XMLObjectImport(_HTMLBuiltin):
 
     def eval_with_element(self, text, element, evaluation: Evaluation):
         """%(name)s[text_String, element_]"""
-        # FIXME?: right now we aren't using element. Things might be
-        # more efficient if we used element?
+        # FIXME: right now we aren't using element, and should use this to more
+        # efficiently extract part of the HTML file that we want.
         return self.eval(text, evaluation)
