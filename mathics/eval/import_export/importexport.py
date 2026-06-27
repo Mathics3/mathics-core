@@ -529,13 +529,14 @@ def perform_import(
         # TODO message
         evaluation.predetermined_out = current_predetermined_out
         return SymbolFailed
+
+    # .get_elements() is more tolerant of the type of "tmp" than
+    # ._elements which assumes a Expression type.
     result_elts = tmp.get_elements()
     if not all(expr.has_form("Rule", None) for expr in result_elts):
         evaluation.predetermined_out = current_predetermined_out
         return None
 
-    # return {a.get_string_value() : b for a,b in map(lambda x:
-    # x.get_elements(), tmp)}
     evaluation.predetermined_out = current_predetermined_out
     return {a.get_string_value(): b for a, b in (x.get_elements() for x in tmp)}
 
