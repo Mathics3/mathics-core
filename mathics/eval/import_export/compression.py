@@ -65,9 +65,15 @@ def eval_ImportZIP(
                     evaluation.message("Import", "fmtnosup", file_format)
                     return SymbolFailed
 
-                file_data = archive.read(member).decode("utf-8")
-                # FIXME: this handles one member. What do we do if we have more?
-                return eval_Import_data_only(file_data, file_format, evaluation, {})
+                unzipped_file_data = archive.read(member).decode("utf-8")
+                converted_member_data = eval_Import_data_only(
+                    unzipped_file_data, file_format, evaluation, {"raw": True}
+                )
+                result = ListExpression(
+                    Expression(SymbolRule, element, converted_member_data)
+                )
+                return result
+
     except FileNotFoundError:
         evaluation.message("Import", "nffil", String(zip_path))
         return SymbolFailed
