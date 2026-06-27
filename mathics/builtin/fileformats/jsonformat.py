@@ -6,7 +6,7 @@ JSON importer (via Python's "json" module).
 
 from mathics.core.builtin import Builtin, String
 from mathics.core.evaluation import Evaluation
-from mathics.eval.fileformats.json import eval_JSONImport
+from mathics.eval.fileformats.jsonformat import eval_JSONImport
 
 
 class ImportJSON(Builtin):
