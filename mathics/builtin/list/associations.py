@@ -15,10 +15,9 @@ from mathics.core.builtin import Builtin, Test
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.systemsymbols import SymbolAssociation, SymbolMakeBoxes, SymbolMissing
-from mathics.eval.list.associations import eval_Lookup
+from mathics.eval.list.associations import eval_Lookup, eval_Lookup_multiple_keys
 from mathics.eval.lists import list_boxes
 
 
@@ -298,23 +297,11 @@ class Lookup(Builtin):
 
     def eval_assoc_keys(self, assoc, keys, evaluation: Evaluation):
         """Lookup[assoc_Association, keys_List]"""
-        # Thread over multiple keys.
-        key_list = keys.elements
-        results = []
-        for k in key_list:
-            result = eval_Lookup(assoc, k, None, evaluation)
-            results.append(result)
-        return Expression(Symbol("List"), *results)
+        return eval_Lookup_multiple_keys(assoc, keys, None, evaluation)
 
     def eval_assoc_keys_default(self, assoc, keys, default, evaluation: Evaluation):
         """Lookup[assoc_Association, keys_List, default_]"""
-        # Thread over multiple keys with default.
-        key_list = keys.elements
-        results = []
-        for k in key_list:
-            result = eval_Lookup(assoc, k, default, evaluation)
-            results.append(result)
-        return ListExpression(*results)
+        return eval_Lookup_multiple_keys(assoc, keys, default, evaluation)
 
 
 class Missing(Builtin):

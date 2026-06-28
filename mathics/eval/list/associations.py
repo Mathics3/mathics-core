@@ -41,3 +41,9 @@ def eval_Lookup(assoc, key, default, evaluation: Evaluation):
         evaluation.message("Lookup", "invrl", assoc)
         # Should we return SymbolFailed?
         return None
+
+
+def eval_Lookup_multiple_keys(assoc, keys, default, evaluation: Evaluation):
+    """Evaluation method for Lookup with multiple keys, threading over the key list."""
+    results = [eval_Lookup(assoc, key, default, evaluation) for key in keys.elements]
+    return ListExpression(*results)
