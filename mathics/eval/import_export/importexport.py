@@ -696,10 +696,10 @@ def eval_Import_source_only(
         return result
 
 
-def infer_file_format(filename: str) -> Optional[str]:
+def infer_file_format(filename: str, default_extension: str = None) -> Optional[str]:
     """
     Infer what kind of format filename is in. None is returned if we can't infer
     a format.
     """
     file_extension = eval_FileExtension(filename).lower()
-    return FILE_EXTENSION_MAP.get(file_extension, "Text")
+    return FILE_EXTENSION_MAP.get(file_extension, default_extension)

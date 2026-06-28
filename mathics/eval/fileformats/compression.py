@@ -68,7 +68,7 @@ def eval_ImportZIP(
 
             for element in elements:
                 member = element.value
-                file_format = infer_file_format(member).upper()
+                file_format = infer_file_format(member, "Text").upper()
                 if file_format not in IMPORTERS.keys():
                     evaluation.message("Import", "fmtnosup", file_format)
                     return SymbolFailed
