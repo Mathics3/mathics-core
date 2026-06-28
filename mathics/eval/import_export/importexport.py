@@ -702,4 +702,4 @@ def infer_file_format(filename: str) -> Optional[str]:
     a format.
     """
     file_extension = eval_FileExtension(filename).lower()
-    return FILE_EXTENSION_MAP.get(file_extension)
+    return FILE_EXTENSION_MAP.get(file_extension, "Text")
