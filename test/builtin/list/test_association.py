@@ -263,3 +263,24 @@ def test_map_over_associations(
         failure_message=assert_message,
         expected_messages=expected_messages,
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "expected_messages", "str_expected", "assert_message"),
+    [
+        (
+            'a=Association[{"F":>1,"G":>2}]; Lookup[a, "H"]',
+            None,
+            "Missing[KeyAbsent, H]",
+            "Lookup test on an association variable where the key is not found.",
+        ),
+        ("ClearAll[a];", None, "Null", None),
+    ],
+)
+def test_lookup(str_expr, expected_messages, str_expected, assert_message):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        failure_message=assert_message,
+        expected_messages=expected_messages,
+    )

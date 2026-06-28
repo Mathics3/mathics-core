@@ -8,16 +8,16 @@ it is often sparse in that their key space is much larger than the number of \
 actual keys found in the collection.
 """
 
-
 from mathics.builtin.box.layout import RowBox
 from mathics.core.atoms import Integer
-from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_PROTECTED
+from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Test
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.systemsymbols import SymbolAssociation, SymbolMakeBoxes, SymbolMissing
+from mathics.eval.list.associations import eval_Lookup, eval_Lookup_multiple_keys
 from mathics.eval.lists import list_boxes
 
 
@@ -249,17 +249,59 @@ class Lookup(Builtin):
     <dl>
       <dt>Lookup[$assoc$, $key$]
       <dd>looks up the value associated with $key$ in the association $assoc$, \
-          or Missing[$KeyAbsent$].
+          returning Missing[$KeyAbsent$, $key$] if the key is not found.
+      <dt>Lookup[$assoc$, $key$, $default$]
+      <dd>looks up the value associated with $key$ in the association $assoc$, \
+          returning $default$ if the key is not found.
+      <dt>Lookup[$assoc$, {$key_1$, $key_2$, ...}]
+      <dd>looks up multiple keys and returns a list of values.
     </dl>
+
+    Look up the value associagted with key a:
+    >> Lookup[<|a -> 1, b -> 2|>, a]
+     = 1
+
+    When a key is not found, a Missing object is returned by default:
+    >> Lookup[<|a -> 1, b -> 2|>, c]
+     = Missing[KeyAbsent, c]
+
+    Provide a default value to be used when the key is not found:
+    >> Lookup[<|a -> 1, b -> 2|>, c, -1]
+     = -1
+
+    Use the operator form of Lookup:
+    >> Lookup[<|a -> 1, b -> 2|>, {a, b}]
+     = {1, 2}
+
+    Look up multiple keys at once:
+    >> Lookup[<|a -> 1, b -> 2|>, {a, b, c}]
+     = {1, 2, Missing[KeyAbsent, c]}
+
     """
 
-    attributes = A_HOLD_ALL_COMPLETE
-    rules = {
-        "Lookup[assoc_?AssociationQ, key_, default_]": "FirstCase[assoc, _[Verbatim[key], val_] :> val, default]",
-        "Lookup[assoc_?AssociationQ, key_]": 'Lookup[assoc, key, Missing["KeyAbsent", key]]',
+    attributes = A_PROTECTED | A_READ_PROTECTED
+
+    messages = {
+        "invrl": "The argument `1` is not a valid Association or a list of rules.",
     }
 
     summary_text = "perform lookup of a value by key, returning a specified default if it is not found"
+
+    def eval_assoc_key(self, assoc, key, evaluation: Evaluation):
+        """Lookup[assoc_Association, key_]"""
+        return eval_Lookup(assoc, key, None, evaluation)
+
+    def eval_assoc_key_default(self, assoc, key, default, evaluation: Evaluation):
+        """Lookup[assoc_Association, key_, default_]"""
+        return eval_Lookup(assoc, key, default, evaluation)
+
+    def eval_assoc_keys(self, assoc, keys, evaluation: Evaluation):
+        """Lookup[assoc_Association, keys_List]"""
+        return eval_Lookup_multiple_keys(assoc, keys, None, evaluation)
+
+    def eval_assoc_keys_default(self, assoc, keys, default, evaluation: Evaluation):
+        """Lookup[assoc_Association, keys_List, default_]"""
+        return eval_Lookup_multiple_keys(assoc, keys, default, evaluation)
 
 
 class Missing(Builtin):
