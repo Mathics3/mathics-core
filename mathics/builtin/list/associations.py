@@ -10,7 +10,7 @@ actual keys found in the collection.
 
 from mathics.builtin.box.layout import RowBox
 from mathics.core.atoms import Integer
-from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_PROTECTED
+from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Test
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
@@ -279,7 +279,7 @@ class Lookup(Builtin):
 
     """
 
-    attributes = A_HOLD_ALL_COMPLETE | A_PROTECTED
+    attributes = A_PROTECTED | A_READ_PROTECTED
 
     messages = {
         "invrl": "The argument `1` is not a valid Association or a list of rules.",

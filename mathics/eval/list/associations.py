@@ -6,6 +6,7 @@ from mathics.core.systemsymbols import SymbolKeyAbsent, SymbolMissing
 
 def eval_Lookup(assoc, key, default, evaluation: Evaluation):
     """Evaluation method for Lookup."""
+
     if assoc.has_form("Association", None):
         # Search through association elements (rules)
         for element in assoc.elements:
