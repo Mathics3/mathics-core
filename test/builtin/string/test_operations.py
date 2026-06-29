@@ -43,6 +43,13 @@ import pytest
             "StringTake[]",
             "StringTake argument checking",
         ),
+        (
+            'xx = "a string"; StringTake[xx[0]]',
+            ("StringTake called with 1 argument; 2 arguments are expected.",),
+            "StringTake[a string[0]]",
+            "StringTake bug in formatting",
+        ),
+        ("Clear[xx]", None, None, None),
     ],
 )
 def test_string_take(str_expr, msgs, str_expected, fail_msg):

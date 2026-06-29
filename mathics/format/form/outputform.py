@@ -265,12 +265,12 @@ def render_output_form(expr: BaseElement, evaluation: Evaluation, **kwargs):
             callback = _default_render_output_form
     try:
         result = callback(format_expr, evaluation, **kwargs)
-        return result
-    except _WrongFormattedExpression:
+    except Exception:
         # If the key is not present, or the execution fails for any reason, use
         # the default
-        pass
-    return _default_render_output_form(format_expr, evaluation, **kwargs)
+        return _default_render_output_form(format_expr, evaluation, **kwargs)
+    else:
+        return result
 
 
 @register_outputform("System`Format")
