@@ -3,6 +3,7 @@ Evaluation routines for Distribute[]
 """
 
 from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 
 
@@ -13,6 +14,17 @@ def eval_Distribute(expr, operator_symbol, evaluation):
     """
     if not isinstance(expr, Expression):
         return None
+
+    # Handle ListExpression: apply distribution to each element.
+    if isinstance(expr, ListExpression):
+        distributed_elements = []
+        for element in expr.elements:
+            distributed = eval_Distribute(element, operator_symbol, evaluation)
+            if distributed is not None:
+                distributed_elements.append(distributed)
+            else:
+                distributed_elements.append(element)
+        return ListExpression(*distributed_elements)
 
     head = expr.get_head()
     elements = expr.elements
@@ -25,7 +37,7 @@ def eval_Distribute(expr, operator_symbol, evaluation):
             break
 
     if operator_position is None:
-        # No element contains operator_symbol, but check if head itself needs distribution.
+        # No element contains operator_symbol.
         return None
 
     # Get the element at the target position
@@ -62,7 +74,7 @@ def eval_Distribute(expr, operator_symbol, evaluation):
             new_elements[operator_position] = recursive_result
             new_expr = Expression(head, *new_elements)
 
-            # Try to distribute the modified Expression again
+            # Try to distribute the modified Expression again.
             second_result = eval_Distribute(new_expr, operator_symbol, evaluation)
             if second_result is not None:
                 return second_result

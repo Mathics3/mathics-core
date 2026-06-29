@@ -689,9 +689,9 @@ class Distribute(Builtin):
     >> Distribute[f[a + b, c], Plus]
      = f[a, c] + f[b, c]
 
-    # Distribute can also work with lists:
-    # >> Distribute[{a(b + c), d(e + f)}]
-    #  = {a b + a c, d e + d f}
+    Distribute can also work with lists:
+    >> Distribute[{a(b + c), d(e + f)}]
+     = {a b + a c, d e + d f}
 
     # Applying a function to results:
     # >> Distribute[a(b + c), Plus, Square]
