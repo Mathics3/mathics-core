@@ -348,6 +348,7 @@ System`Disk
 System`DiskBox
 System`DiskMatrix
 System`Dispatch
+System`Distribute
 System`Divide
 System`DivideBy
 System`Divisible

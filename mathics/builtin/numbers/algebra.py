@@ -46,6 +46,7 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolAssumptions,
     SymbolEqual,
+    SymbolIdentity,
     SymbolIndeterminate,
     SymbolLess,
     SymbolRule,
@@ -53,6 +54,7 @@ from mathics.core.systemsymbols import (
     SymbolTable,
 )
 from mathics.eval.list.eol import eval_Part
+from mathics.eval.numbers.algebra.distribute import eval_Distribute
 from mathics.eval.numbers.algebra.fraction import eval_Denominator, eval_Numerator
 from mathics.eval.numbers.algebra.options import AlgebraicOptions
 from mathics.eval.numbers.algebra.polynomial import (
@@ -550,7 +552,7 @@ class Collect(Builtin):
 
     def eval_var_filter(self, expr, varlist, filt, evaluation):
         """Collect[expr_, varlist_, filt_]"""
-        if filt is Symbol("Identity"):
+        if filt is SymbolIdentity:
             filt = None
         if isinstance(varlist, Symbol):
             var_exprs = [varlist]
@@ -662,6 +664,72 @@ class _Expand(Builtin):
             return
 
         return {"modulus": py_modulus, "trig": py_trig}
+
+
+class Distribute(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Distribute.html</url>
+
+    <dl>
+      <dt>'Distribute'[$expr$]
+      <dd>distributes $expr$ over 'Plus' (addition).
+      <dt>'Distribute'[$expr$, $targetHead$]
+      <dd>distributes $expr$ over the specified $targetHead$.
+      <dt>'Distribute'[$expr$, $targetHead$, $f$]
+      <dd>applies $f$ to each component of the result.
+    </dl>
+
+    Distribute multiplication over addition:
+    >> Distribute[a(b + c)]
+     = a b + a c
+    >> Distribute[(a + b)(c + d)]
+     = a c + a d + b c + b d
+
+    Using a custom target head:
+    >> Distribute[f[a + b, c], Plus]
+     = f[a, c] + f[b, c]
+
+    # Distribute can also work with lists:
+    # >> Distribute[{a(b + c), d(e + f)}]
+    #  = {a b + a c, d e + d f}
+
+    # Applying a function to results:
+    # >> Distribute[a(b + c), Plus, Square]
+    #  = Square[a b] + Square[a c]
+
+    Special forms:
+    >> Distribute[f[g[a + b]]]
+     = f[g[a]] + f[g[b]]
+    """
+
+    attributes = A_PROTECTED
+
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 6)
+
+    rules = {
+        "Distribute[expr_]": "Distribute[expr, Plus]",
+        "Distribute[expr_, operator_]": "Distribute[expr, operator, Identity]",
+    }
+
+    summary_text = "distribute functions over a head"
+
+    def eval(self, expr, operator, filter, evaluation: Evaluation):
+        "Distribute[expr_, operator_, filter_]"
+
+        # Handle Identity filter
+        if filter is SymbolIdentity:
+            filter = None
+
+        result = eval_Distribute(expr, operator, evaluation)
+
+        if result is None:
+            return expr
+
+        if filter:
+            return Expression(filter, result)
+
+        return result
 
 
 class Expand(_Expand):
