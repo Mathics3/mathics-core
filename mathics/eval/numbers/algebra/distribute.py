@@ -43,7 +43,8 @@ def eval_Distribute(expr, operator_symbol, evaluation):
     # Get the element at the target position
     target_elem = elements[operator_position]
 
-    # If the element is the operator symbol (e.g., Plus), distribute over it.
+    # If the element is the operator symbol (e.g., g in f[g[...], g[...]]),
+    # distribute over it by distributing the outer function's arguments.
     if is_operator_symbol(target_elem, operator_symbol):
         # Get all components of the operator symbol
         target_components = target_elem.elements
@@ -63,6 +64,21 @@ def eval_Distribute(expr, operator_symbol, evaluation):
             else:
                 result_parts.append(new_expr)
 
+        # If we have multiple arguments containing the operator symbol at different positions,
+        # we need to create a cartesian product. Check if there are more positions with operator_symbol.
+        other_operator_positions = []
+        for i, elem in enumerate(elements):
+            if i != operator_position and contains_operator_symbol(
+                elem, operator_symbol
+            ):
+                other_operator_positions.append(i)
+
+        # If there are other arguments with the operator symbol, we need to distribute across all of them.
+        if other_operator_positions:
+            return distribute_across_multiple_positions(
+                head, elements, operator_symbol, evaluation
+            )
+
         # Return the combination using the operator symbol.
         return Expression(operator_symbol, *result_parts)
 
@@ -81,6 +97,49 @@ def eval_Distribute(expr, operator_symbol, evaluation):
             return new_expr
 
     return None
+
+
+def distribute_across_multiple_positions(head, elements, operator_symbol, evaluation):
+    """
+    When multiple arguments contain the operator_symbol, distribute across all of them.
+    This creates a cartesian product of the components.
+    """
+    # Find all positions with the operator_symbol
+    operator_positions = []
+    for i, elem in enumerate(elements):
+        if contains_operator_symbol(elem, operator_symbol):
+            operator_positions.append(i)
+
+    # Extract the components for each position
+    position_components = []
+    for pos in operator_positions:
+        elem = elements[pos]
+        if is_operator_symbol(elem, operator_symbol):
+            position_components.append((pos, elem.elements))
+        else:
+            # Should not happen, but handle gracefully
+            position_components.append((pos, [elem]))
+
+    # Generate cartesian product of all components
+    result_parts = []
+
+    def cartesian_product_helper(index, current_elements):
+        if index == len(position_components):
+            # We've filled all positions, create the expression
+            new_expr = Expression(head, *current_elements)
+            result_parts.append(new_expr)
+            return
+
+        pos, components = position_components[index]
+        for component in components:
+            new_elements = list(current_elements)
+            new_elements[pos] = component
+            cartesian_product_helper(index + 1, new_elements)
+
+    cartesian_product_helper(0, list(elements))
+
+    # Return the result wrapped in the operator_symbol
+    return Expression(operator_symbol, *result_parts)
 
 
 def is_operator_symbol(expr, operator_symbol):

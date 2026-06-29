@@ -700,6 +700,10 @@ class Distribute(Builtin):
     Special forms:
     >> Distribute[f[g[a + b]]]
      = f[g[a]] + f[g[b]]
+
+    Distribute $f$ over $g$:
+    >> Distribute[f[g[a, b], g[c, d, e]], g]
+     = g[f[a, c], f[a, d], f[a, e], f[b, c], f[b, d], f[b, e]]
     """
 
     attributes = A_PROTECTED
