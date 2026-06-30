@@ -54,9 +54,6 @@ from mathics.core.systemsymbols import (
     SymbolTable,
 )
 from mathics.eval.list.eol import eval_Part
-from mathics.eval.numbers.algebra.distribute import (  # eval_Distribute_with_replacement,
-    eval_Distribute,
-)
 from mathics.eval.numbers.algebra.fraction import eval_Denominator, eval_Numerator
 from mathics.eval.numbers.algebra.options import AlgebraicOptions
 from mathics.eval.numbers.algebra.polynomial import (
@@ -666,96 +663,6 @@ class _Expand(Builtin):
             return
 
         return {"modulus": py_modulus, "trig": py_trig}
-
-
-class Distribute(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Distribute.html</url>
-
-    <dl>
-      <dt>'Distribute'[$expr$]
-      <dd>distributes $expr$ over 'Plus' (addition).
-      <dt>'Distribute'[$expr$, $operator$]
-      <dd>distributes $expr$ over the specified $operator$.
-      <dt>'Distribute'[$expr$, $operator$, $f$]
-      <dd>applies $f$ to each component of the result.
-
-      ## <dt>'Distribute'[$expr$, $operator$, $f$, $gp$, $fp$]
-      ## <dd>distributes $expr$ over $operator$, replacing outer function with $gp$ and inner function with $fp$.
-    </dl>
-
-    Distribute multiplication over addition:
-    >> Distribute[a(b + c)]
-     = a b + a c
-
-    >> Distribute[(a + b)(c + d)]
-     = a c + a d + b c + b d
-
-    Using a custom target head:
-    >> Distribute[f[a + b, c], Plus]
-     = f[a, c] + f[b, c]
-
-    Distribute can also work with lists:
-    >> Distribute[{a(b + c), d(e + f)}]
-     = {a b + a c, d e + d f}
-
-    ## Applying a function to results:
-    ## >> Distribute[a(b + c), Plus, Square]
-    ##  = Square[a b] + Square[a c]
-
-    Special forms:
-    >> Distribute[f[g[a + b]]]
-     = f[g[a]] + f[g[b]]
-
-    Distribute $f$ over $g$:
-    >> Distribute[f[g[a, b], g[c, d, e]], g]
-     = g[f[a, c], f[a, d], f[a, e], f[b, c], f[b, d], f[b, e]]
-
-    ## Using a custom operator and functions:
-    ## >> Distribute[f[g[a, b], g[c, d, e]], g, f, gp, fp]
-    ##  = gp[fp[a, c], fp[a, d], fp[a, e], fp[b, c], fp[b, d], fp[b, e]]
-    """
-
-    attributes = A_PROTECTED
-
-    eval_error = Builtin.generic_argument_error
-    expected_args = range(1, 6)
-
-    rules = {
-        "Distribute[expr_]": "Distribute[expr, Plus]",
-        "Distribute[expr_, operator_]": "Distribute[expr, operator, Identity]",
-    }
-
-    summary_text = "distribute functions over a head"
-
-    def eval(self, expr, operator, filt, evaluation: Evaluation):
-        "Distribute[expr_, operator_, filt_]"
-
-        # Handle Identity filter
-        if filt is SymbolIdentity:
-            filt = None
-
-        result = eval_Distribute(expr, operator, evaluation)
-
-        if result is None:
-            return expr
-
-        if filt:
-            return Expression(filt, result)
-
-        return result
-
-    # def eval_with_function_replacement(
-    #         self, expr, operator, f, g, gp, fp, evaluation: Evaluation
-    # ):
-    #     "Distribute[expr_, f_, g_, gp_, fp_]"
-
-    #     result = eval_Distribute_with_replacement(expr, f, g, gp, fp, evaluation)
-
-    #     if result is None:
-    #         return expr
-
-    #     return result
 
 
 class Expand(_Expand):

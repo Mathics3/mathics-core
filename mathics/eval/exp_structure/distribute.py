@@ -1,5 +1,10 @@
 """
-Evaluation routines for Distribute[]
+Evaluation routines and helper functions for Distribute[].
+
+Implementation note: Distribute can be handles purely within the confines of
+Expression manipulation.
+
+SymPy or numeric functions are not need here.
 """
 
 from mathics.core.expression import Expression
