@@ -1,7 +1,7 @@
 (* ::Package:: *)
 
-(* ZIP compressed file and file archive Importer.
-   This is used by Import[].
+(* Windows ZIP archive, ZIP compressed file and file archive Importer.
+   This is used by Import[] and, ImportString[].
  *)
 
 Begin["System`Convert`CommonArchiveDump`"]
@@ -21,13 +21,13 @@ GetElements[___] :=
 		];
 
 ImportExport`RegisterImport[
-    "ZIP",
-    ImportZIP,
+    "ZIP", (* WMA mime-type name *)
+    Compress`ImportZIP,  (* Default Function name that handles this. *)
     {}, (* Post importer function(s) *)
     FunctionChannels -> {"FileNames"},
     (* WMA has this, but I (rocky) am not sure why or what it means:
     AvailableElements -> $ZIPAvailableElements, *)
-    AvailableElements -> {"Filenames", "Summary"},
+    AvailableElements -> {"Filenames", "Summary"},  (* names retuned by "Elements" query *)
     BinaryFormat -> True,
     DefaultElement -> "FileNames",
     HiddenElements -> $ZIPHiddenElements,

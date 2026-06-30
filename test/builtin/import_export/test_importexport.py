@@ -171,13 +171,13 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
             'Import["ExampleData/Testosterone.svg", "xml"] // Head',
             None,
             "XMLObject[Document]",
-            "Case use in explicit format name should not be significant",
+            "format case (xml) is not significant",
         ),
         (
             'Import["ExampleData/Testosterone.svg", "Xml"] // Head',
             None,
             "XMLObject[Document]",
-            "Case use in explicit format name should not be significant",
+            "format case (Xml) is not significant",
         ),
         (
             'Import["ExampleData/Testosterone.svg", {"XML"}] // Head',
@@ -185,19 +185,27 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
             "XMLObject[Document]",
             None,
         ),
-        (
-            'Import["ExampleData/Testosterone.svg", {"XML", "XML"}];',
-            ("The Import element XML is not present when importing as XML.",),
-            "Null",
-            None,
-        ),
+        # This test does not match WMA. We are supposed to treat
+        # {"XML", "XML"} like, "XML" and not give an error.
+        # (
+        #     'Import["ExampleData/Testosterone.svg", {"XML", "XML"}];',
+        #     ("The Import element XML is not present when importing as XML.",),
+        #     "Null",
+        #     None,
+        # ),
         # XML
-        (
-            'MatchQ[Import["ExampleData/InventionNo1.xml", "Tags"],{__String}]',
-            None,
-            "True",
-            None,
-        ),
+        # This test does not match WMA. WMA gives:
+        # XML`Parser`XMLGet::prserr:
+        # NetAccessorException: Could not open file:
+        # http://www.musicxml.org/dtds/partwise.dtd at Line: 2 Character: 123 in
+        # InventionNo1.xml.
+        # Import::fmterr: Cannot import data as XML format.
+        # (
+        #     'MatchQ[Import["ExampleData/InventionNo1.xml", "Tags"],{__String}]',
+        #     None,
+        #     "True",
+        #     None,
+        # ),
         ("ImportString[x]", ("First argument x is not a string.",), "$Failed", None),
         # CSV
         (

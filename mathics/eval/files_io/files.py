@@ -3,7 +3,9 @@
 File related evaluation functions.
 """
 
+import atexit
 import os
+import tempfile
 from typing import Callable, Literal, Optional, Sequence
 
 from mathics_scanner.errors import (
@@ -54,6 +56,46 @@ from mathics.eval.files_io.read import (
 INPUT_VAR: str = ""
 
 DEFAULT_TRACE_FN: Literal[None] = None
+
+
+def create_temp_file_with_extension(data: str, file_extension: str) -> str:
+    """
+    Writes data to a temporary file with a specific extension.
+    The file is closed immediately so it can be read by other processes.
+    It is automatically deleted when the program exits.
+
+    Parameters:
+        data (str): The text content to write into the file.
+        file_extension (str): The extension (e.g., 'json', 'html', 'md').
+                              The file extension will have "." added to
+                              the beginning.
+    Returns:
+        str: The absolute file path to the created temporary file.
+    """
+    # Ensure the extension starts with a dot
+    file_extension = "." + file_extension
+
+    # Create a secure temporary file with the desired extension.
+    # delete=False prevents Python from destroying it the moment we close the handle.
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=file_extension, delete=False, encoding="utf-8"
+    ) as temp_file:
+        temp_file.write(data)
+        temp_path = temp_file.name
+
+    # Register a cleanup hook to delete the file when the Python process terminates
+    def cleanup_temp_file():
+        try:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+        except OSError:
+            # Handle cases where the file was already deleted or is locked
+            pass
+
+    atexit.register(cleanup_temp_file)
+
+    # Return the path so your program can use or read it
+    return temp_path
 
 
 def print_line_number_and_text(line_number: int, text: str):
@@ -193,14 +235,9 @@ def eval_Open(
     encoding: Optional[str],
     evaluation: Evaluation,
 ):
-    path = name.value
-    tmp, is_temporary_file = path_search(path)
-    if tmp is None:
-        if mode in ["r", "rb"]:
-            evaluation.message("General", "noopen", name)
-            return SymbolFailed
-    else:
-        path = tmp
+    path, is_temporary_file = resolve_file(name, mode, evaluation)
+    if path is None:
+        return SymbolFailed
 
     try:
         opener = Mathics3Open(
@@ -384,3 +421,25 @@ def eval_Read(
                     return Expression(SymbolHold, from_python(result))
 
     return from_python(result)
+
+
+def resolve_file(name: String, mode: str, evaluation: Evaluation) -> Optional[str]:
+    """Resolve 'name' using `path_search` and returned the resolved name as the first
+    item of a tuple.
+
+    If "mode" a write mode, then the file does not have to exist beforehand.
+    In some cases `path_search()` will decide that a temporary file is to be
+    created. In this case that fact will be reflected by returning True as the
+    second item of the tuple.
+
+    If we can't open the file, we emit a "noopen" message.
+    """
+    path = name.value
+    resolved_path, is_temporary_file = path_search(path)
+    if resolved_path is None:
+        if mode in ["r", "rb"]:
+            evaluation.message("General", "noopen", name)
+            return None, False
+        resolved_path = path
+
+    return resolved_path, is_temporary_file
