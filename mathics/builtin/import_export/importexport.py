@@ -1,8 +1,33 @@
 # -*- coding: utf-8 -*-
 
-"""
+r"""
 Import and Export Functions and Variables
 
+Many kinds data formats can be read into or written from \Mathics3.
+
+In contrast to reading or writing a file, <i>importing</i> and <i>exporting</i> imply some sort of \
+data restructuring into \Mathics3 and structuring into a filesystem that is not \
+just a stream of bytes, but instead also contains additional metadata and requires data reorganization \
+when stored in a filesystem.
+
+See <url>
+:Import/Export File Formats:
+/doc/reference-of-built-in-symbols/fileformats/</url> for documentation \
+on the specific kinds of File Formats \Mathics3 supports.
+
+
+Variable <url>
+:\$ExportFormats:
+/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/\$exportformats</url> \
+contains a list of file formats that are supported by <url>
+:Export:
+/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/export</url>, \
+while <url>
+:\$ImportFormats:
+/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/\$importformats</url> \
+does the corresponding thing for <url>
+:Import:
+/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/import</url>.
 """
 
 import base64
@@ -434,7 +459,13 @@ class Import(Builtin):
         "$OptionSyntax": "System`Ignore",
     }
 
-    summary_text = "import elements from a file"
+    rules = {
+        "Import[filename_]": "Import[filename, {}]",
+    }
+
+    summary_text = (
+        r"read and convert to \Mathics3 some or all elements of structured file"
+    )
 
     def eval_elements_query(self, source, evaluation, options={}):
         """Import[source_String, "Elements", OptionsPattern[]]"""
@@ -537,7 +568,9 @@ class ImportString(Builtin):
         "$OptionSyntax": "System`Ignore",
     }
 
-    summary_text = "import data or elements of data from a string"
+    summary_text = (
+        r"read and convert to \Mathics3 some or all elements of structured string"
+    )
 
     def eval_data_only(self, data, evaluation, options={}):
         "ImportString[data_, OptionsPattern[]]"
@@ -618,7 +651,9 @@ class Export(Builtin):
         "$OptionSyntax": "System`Ignore",
     }
 
-    summary_text = "export elements to a file"
+    summary_text = (
+        r"write and convert to \Mathics3 some or all elements of structured file"
+    )
 
     def eval(self, dest, expr, evaluation, options={}):
         "Export[dest_, expr_, OptionsPattern[Export]]"
@@ -767,7 +802,9 @@ class ExportString(Builtin):
     rules = {
         "ExportString[expr_, elems_?NotListQ]": ("ExportString[expr, {elems}]"),
     }
-    summary_text = "export elements to a string"
+    summary_text = (
+        r"write and convert to \Mathics3 some or all elements of structured string"
+    )
 
     def eval_element(self, expr, element: String, evaluation: Evaluation, **options):
         "ExportString[expr_, element_String, OptionsPattern[ExportString]]"

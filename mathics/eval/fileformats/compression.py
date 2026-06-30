@@ -1,3 +1,8 @@
+"""
+Evaluation routines for handling data in some sort of archive format,
+e.g. ZIP, TAR, etc.
+"""
+
 import zipfile
 from typing import Optional
 
@@ -22,7 +27,7 @@ def eval_ImportZIP(
     """If `members` is empty, this function takes a ZIP file path and returns a
     list of file names/paths contained inside.
 
-    "If `members` is given, then extract those members from the ZIP file.
+    "If `members` is given, then extract those members (or files) from the ZIP file.
     """
 
     zip_path, is_temporary_file = resolve_file(zip_name, "r", evaluation)
@@ -36,6 +41,10 @@ def eval_ImportZIP(
             if members is None:
                 filenames = archive.namelist()
                 mathics_filenames = to_mathics_list(*filenames)
+
+                # Wrap metadata or "elements" of of the zip file into
+                # list of Rule. The caller can then use
+                # rules to pick out specific elements desired.
                 exprs = [
                     Expression(
                         SymbolRule,

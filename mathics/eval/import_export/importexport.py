@@ -1,6 +1,8 @@
 """
 Functions for figuring out a filetype or MIME type a given
 file path.
+
+Following WMA, we use WMA's custom short name for a mime type.
 """
 
 import mimetypes
@@ -37,6 +39,7 @@ from mathics.eval.files_io.filesystem import eval_FileExtension
 # convert these mismatches
 MIME_SHORTNAME_TO_WMA: Final[Dict[str, str]] = {"JPG": "JPEG", "TXT": "Text"}
 
+# FIXME: elements of the below dict should be a dataclass.
 IMPORTERS = {}
 
 # TODO: This hard-coded dictionary should be
@@ -254,7 +257,7 @@ def eval_Import_general(
 
     elements = [el.value for el in elements]
 
-    # Determine file format
+    # Determine WMA version of the mime type.
     file_format = None
     for el in elements.copy():
         if el.upper() in IMPORTERS.keys():
@@ -270,7 +273,8 @@ def eval_Import_general(
         evaluation.predetermined_out = current_predetermined_out
         return SymbolFailed
 
-    # Load the importer
+    # Extract information about the loader used for this MIME type.
+    # FIXME: turn into dataclass
     conditionals, import_function_symbol, posts, importer_options = IMPORTERS[
         file_format
     ]
@@ -419,11 +423,11 @@ def eval_Import_general(
 
 
 def eval_Import_Elements(file_format: str, evaluation):
-    """
-    Basic implementation behind Import[fileformat, Elements].
+    """Basic implementation behind Import[fileformat, Elements].
+
     This returns the element names that can be used for a specific
-    file_format type. We get this from the AvailableElements field
-    mentioned when registering an importer.
+    file_format type. We get this from the
+    AvailableElements field mentioned when registering an importer.
     """
     filetype = MIME_SHORTNAME_TO_WMA.get(file_format, file_format).upper()
 
@@ -450,14 +454,23 @@ def perform_import(
     data: Optional[str],
     elements: Optional[list] = None,
 ):
-    """
-    This routine does the data import.
+    """ This routine does the import. "import" here means reading a  \
+    file or string which has been structured according to a format belonging to a mime type.
+
     "findfile", if not "None", is the path of a file where the unimported data resides.
-    If findfile is empty, then "data" will have the string data for that file, and
+    If "findfile" is empty, then "data" will have the string data for that file, and
     this routine will create a temporary file containing the data. The actual importer
     then uses this file.
 
-    "elements" when given contains the parts or kinds of things that should be extracted.
+    "elements", when given, contains the parts or kinds of things that should be extracted.
+    Usually, there are custom routines for retrieving an element.
+
+    It is also possible that when a custom element extraction does not
+    exist, that the caller will do the filtering after retrieving all of the information.
+
+    This is not advisable when the information inside an element is small compared
+    to the information of the entire importable file. For example consider asking
+    about the member names or contents of tar file compared to the entire tar file.
     """
     current_predetermined_out = evaluation.predetermined_out
     if function_channels == ListExpression(String("FileNames")):
