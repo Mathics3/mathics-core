@@ -11,18 +11,19 @@ to assist in command-line behavior.
 import argparse
 import atexit
 import cProfile
-import os.path as osp
 import sys
 from typing import Optional
 
+import mathics.session
 from mathics import __version__, license_string, settings, version_string
 from mathics.builtin.tuning_debug.trace import TraceBuiltins, traced_apply_function
-from mathics.core.definitions import Definitions, Symbol
+from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.core.load_builtin import import_and_load_builtins
 from mathics.core.parser import MathicsFileLineFeeder
 from mathics.core.rules import FunctionApplyRule
 from mathics.core.symbols import SymbolNull
+from mathics.core.systemsymbols import SymbolAborted, SymbolOverflow
 from mathics.eval.files_io.files import set_input_var
 from mathics.repl import TerminalOutput, TerminalShell, eval_loop, interactive_eval_loop
 from mathics.settings import DATA_DIR, USER_PACKAGE_DIR, ensure_directory
@@ -209,7 +210,7 @@ Please contribute to Mathics!""",
     )
     definitions.set_line_no(0)
 
-    shell = TerminalShell(
+    shell = mathics.session.shell_session = TerminalShell(
         definitions,
         args.colors,
         want_readline=not (args.no_readline),
@@ -263,9 +264,9 @@ Please contribute to Mathics!""",
             )
             if evaluation.exc_result is SymbolNull:
                 exit_rc = 0
-            elif evaluation.exc_result is Symbol("$Aborted"):
+            elif evaluation.exc_result is SymbolAborted:
                 exit_rc = -1
-            elif evaluation.exc_result is Symbol("Overflow"):
+            elif evaluation.exc_result is SymbolOverflow:
                 exit_rc = -2
             else:
                 exit_rc = -3
