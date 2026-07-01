@@ -313,6 +313,7 @@ def interactive_eval_loop(
     full_form: bool,
     strict_wl_output: bool,
     init_signal_handler: bool = True,
+    evaluation: Evaluation | None = None,
 ) -> Any:
     """
     A read eval/loop for an interactive session.
@@ -325,11 +326,12 @@ def interactive_eval_loop(
     result = None
     while True:
         try:
-            evaluation = Evaluation(shell.definitions, output=TerminalOutput(shell))
+            if evaluation is None:
+                evaluation = Evaluation(shell.definitions, output=TerminalOutput(shell))
 
-            # Store shell into the evaluation so that an interrupt handler
-            # has access to this
-            evaluation.shell = shell
+                # Store shell into the evaluation so that an interrupt handler
+                # has access to this
+                evaluation.shell = shell
 
             query, source_code = evaluation.parse_feeder_returning_code(shell)
             if mathics_core.PRE_EVALUATION_HOOK is not None:

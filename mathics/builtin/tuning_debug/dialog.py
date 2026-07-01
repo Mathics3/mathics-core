@@ -23,4 +23,4 @@ class Dialog(Builtin):
 
     def eval(self, evaluation: Evaluation):
         "Dialog[]"
-        return eval_Dialog()
+        return eval_Dialog(evaluation)
