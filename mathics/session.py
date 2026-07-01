@@ -11,8 +11,8 @@ In particular we provide:
 
 import os
 import os.path as osp
+from abc import ABC, abstractmethod
 from os.path import join as osp_join
-from typing import Optional
 
 from mathics_scanner.location import ContainerKind
 
@@ -21,6 +21,53 @@ from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Result
 from mathics.core.parser import MathicsSingleLineFeeder, parse
 from mathics.core.symbols import SymbolNull
+
+
+class SessionShell(ABC):
+    @abstractmethod
+    def get_in_prompt(self) -> str:
+        """
+        Return the prompt string to be shown before reading input.
+        """
+        pass
+
+    @abstractmethod
+    def get_last_line_number(self) -> int:
+        """
+        Return the line number associated with the next input to be read.
+        """
+        pass
+
+    @abstractmethod
+    def get_out_prompt(self, form=None) -> str:
+        """
+        Return a prompt string to be shown before showing output.
+        """
+        line_number = self.get_last_line_number()
+        if form:
+            return "{3}{0}[{4}{1}{5}]//{2}= {6}".format(
+                self.out_prefix, line_number, form, *self.outcolors
+            )
+        return "{2}{0}[{3}{1}{4}]= {5}".format(
+            self.out_prefix, line_number, *self.outcolors
+        )
+
+    @abstractmethod
+    def read_line(self, prompt: str) -> str:
+        """
+        Method that reads a line of input from the user, prompting with `prompt`.
+        The line input from the user returned.
+
+        And example like EOF might get raised indicating the input stream has been closed or
+        finished.
+        """
+        pass
+
+
+# A common place for front-ends to store a session.
+# This is picked up and used by the Mathics3 builtin function
+# Dialog, and related functions.
+shell_session: SessionShell | None = None
 
 
 def autoload_files(
@@ -120,7 +167,7 @@ class MathicsSession:
         add_builtin=True,
         catch_interrupt=False,
         form="InputForm",
-        character_encoding: Optional[str] = None,
+        character_encoding: str | None = None,
     ):
         # FIXME: This import is needed because
         # the first time we call self.reset,
