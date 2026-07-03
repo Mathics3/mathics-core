@@ -57,6 +57,13 @@ class SessionShell(ABC):
         """
         pass
 
+    @abstractmethod
+    def print_result(self, result, no_out_prompt=False, strict_wl_output=False):
+        """
+        Show result. Usually this is prefaced by "Out" if no_output_prompt is True.
+        """
+        pass
+
 
 # A common place for front-ends to store a session.
 # This is picked up and used by the Mathics3 builtin function

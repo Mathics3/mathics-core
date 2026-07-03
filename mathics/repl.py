@@ -198,7 +198,7 @@ class TerminalShell(MathicsLineFeeder, SessionShell):
         Return the prompt string to be shown before reading input.
         """
         next_line_number = self.get_last_line_number() + 1
-        return "{2}{0}[{3}{1}{4}]= {5}".format(
+        return "{2}{0}[{3}{1}{4}]:= {5}".format(
             self.in_prefix, next_line_number, *self.incolors
         )
 
