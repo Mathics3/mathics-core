@@ -24,6 +24,7 @@ from mathics.core.symbols import SymbolNull
 
 
 class SessionShell(ABC):
+
     @abstractmethod
     def get_in_prompt(self) -> str:
         """
@@ -43,14 +44,7 @@ class SessionShell(ABC):
         """
         Return a prompt string to be shown before showing output.
         """
-        line_number = self.get_last_line_number()
-        if form:
-            return "{3}{0}[{4}{1}{5}]//{2}= {6}".format(
-                self.out_prefix, line_number, form, *self.outcolors
-            )
-        return "{2}{0}[{3}{1}{4}]= {5}".format(
-            self.out_prefix, line_number, *self.outcolors
-        )
+        pass
 
     @abstractmethod
     def read_line(self, prompt: str) -> str:

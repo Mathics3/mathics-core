@@ -57,6 +57,7 @@ def get_srcdir():
 
 
 class TerminalShell(MathicsLineFeeder, SessionShell):
+
     def __init__(
         self,
         definitions,
