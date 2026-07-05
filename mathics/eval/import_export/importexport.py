@@ -1,6 +1,8 @@
 """
 Functions for figuring out a filetype or MIME type a given
 file path.
+
+Following WMA, we use WMA's custom short name for a mime type.
 """
 
 import mimetypes
@@ -10,7 +12,7 @@ from typing import Dict, Final, Optional
 
 from mathics.core.atoms import ByteArray, String
 from mathics.core.builtin import get_option
-from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.expression import to_expression
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -20,13 +22,16 @@ from mathics.core.systemsymbols import (
     SymbolByteArray,
     SymbolFailed,
     SymbolInputStream,
-    SymbolOpenWrite,
+    SymbolNone,
     SymbolRule,
     SymbolStringToStream,
-    SymbolWriteString,
 )
-from mathics.eval.files_io.files import eval_Close, eval_Open
-from mathics.eval.files_io.filesystem import eval_DeleteFile, eval_FileExtension
+from mathics.eval.files_io.files import (
+    create_temp_file_with_extension,
+    eval_Close,
+    eval_Open,
+)
+from mathics.eval.files_io.filesystem import eval_FileExtension
 
 # Some WMA file types reported by FileFormat do not
 # match what the mimetypes (and therefore MIME) extensions
@@ -34,10 +39,11 @@ from mathics.eval.files_io.filesystem import eval_DeleteFile, eval_FileExtension
 # convert these mismatches
 MIME_SHORTNAME_TO_WMA: Final[Dict[str, str]] = {"JPG": "JPEG", "TXT": "Text"}
 
+# FIXME: elements of the below dict should be a dataclass.
 IMPORTERS = {}
 
 # TODO: This hard-coded dictionary should be
-# accessile from the WL API, and be user modifiable.
+# accessible from the WL API, and be user modifiable.
 FILE_EXTENSION_MAP: dict[str, str] = {
     "bmp": "BMP",
     "gif": "GIF",
@@ -219,7 +225,7 @@ def importer_exporter_options(
 
 def eval_FileFormat(path: str) -> String:
     """
-    Basic implemenation beind FileFormat[filename].
+    Basic implementation behind FileFormat[filename].
     """
     return String(filetype_from_path(path))
 
@@ -230,10 +236,10 @@ def eval_Import_general(
     elements,
     evaluation: Evaluation,
     options,
-    data: Optional[str],
+    data: Optional[str] = None,
 ):
     """
-    Basic implementation beind most general kind of Import[source, elements, options].
+    Basic implementation behind most general kind of Import[source, elements, options].
     """
 
     current_predetermined_out = evaluation.predetermined_out
@@ -251,13 +257,14 @@ def eval_Import_general(
 
     elements = [el.value for el in elements]
 
-    # Determine file format
-    for el in elements:
+    # Determine WMA version of the mime type.
+    file_format = None
+    for el in elements.copy():
         if el.upper() in IMPORTERS.keys():
             file_format = el.upper()
             elements.remove(el)
-            break
-    else:
+
+    if file_format is None:
         filetype = determine_filetype(data)
         file_format = MIME_SHORTNAME_TO_WMA.get(filetype, filetype).upper()
 
@@ -266,8 +273,11 @@ def eval_Import_general(
         evaluation.predetermined_out = current_predetermined_out
         return SymbolFailed
 
-    # Load the importer
-    conditionals, default_function, posts, importer_options = IMPORTERS[file_format]
+    # Extract information about the loader used for this MIME type.
+    # FIXME: turn into dataclass
+    conditionals, import_function_symbol, posts, importer_options = IMPORTERS[
+        file_format
+    ]
 
     stream_options, custom_options = importer_exporter_options(
         importer_options.get("System`Options"), options, "System`Import", evaluation
@@ -290,13 +300,14 @@ def eval_Import_general(
         evaluation.predetermined_out = current_predetermined_out
         return SymbolFailed
 
-    # Perform the import
     defaults = None
 
+    # Perform the import
     if not elements:
-        defaults = get_results(
-            default_function,
+        defaults = perform_import(
+            import_function_symbol,
             findfile,
+            file_format,
             function_channels,
             stream_options,
             custom_options,
@@ -318,7 +329,7 @@ def eval_Import_general(
                 )
             )
         else:
-            result = defaults.get(default_element.get_string_value())
+            result = defaults.get(default_element.value)
             if result is None:
                 evaluation.message(
                     "Import", "noelem", default_element, String(filetype)
@@ -331,9 +342,17 @@ def eval_Import_general(
         assert len(elements) >= 1
         el = elements[0]
         if el == "Elements":
-            defaults = get_results(
-                default_function,
+            if (
+                result := eval_Import_Elements(file_format, evaluation)
+            ) is not SymbolNone:
+                return result
+            # A list of "Elements" is not obtainable via AvailableElements listed when
+            # ImportExport`RegisterImport was used. Get a list of the field names via
+            # the the "defaults" and "conditional" keys.
+            defaults = perform_import(
+                import_function_symbol,
                 findfile,
+                file_format,
                 function_channels,
                 stream_options,
                 custom_options,
@@ -357,14 +376,16 @@ def eval_Import_general(
             )
         else:
             if el in conditionals.keys():
-                result = get_results(
+                result = perform_import(
                     conditionals[el],
                     findfile,
+                    file_format,
                     function_channels,
                     stream_options,
                     custom_options,
                     evaluation,
                     options,
+                    elements=elements,
                     data=data,
                 )
                 if result is None:
@@ -375,15 +396,17 @@ def eval_Import_general(
                     return list(result.values())[0]
             else:
                 if defaults is None:
-                    defaults = get_results(
-                        default_function,
+                    defaults = perform_import(
+                        import_function_symbol,
                         findfile,
+                        file_format,
                         function_channels,
                         stream_options,
                         custom_options,
                         evaluation,
                         options,
                         data=data,
+                        elements=elements,
                     )
                     if defaults is None:
                         evaluation.predetermined_out = current_predetermined_out
@@ -400,11 +423,11 @@ def eval_Import_general(
 
 
 def eval_Import_Elements(file_format: str, evaluation):
-    """
-    Basic implementation behind Import[fileformat, Elements].
+    """Basic implementation behind Import[fileformat, Elements].
+
     This returns the element names that can be used for a specific
-    file_format type. We get this from the AvailableElements field
-    mentioned when registering an importer.
+    file_format type. We get this from the
+    AvailableElements field mentioned when registering an importer.
     """
     filetype = MIME_SHORTNAME_TO_WMA.get(file_format, file_format).upper()
 
@@ -419,35 +442,71 @@ def eval_Import_Elements(file_format: str, evaluation):
     return options.get("System`AvailableElements")
 
 
-def get_results(
-    tmp_function,
+def perform_import(
+    import_function_symbol: Symbol,
     findfile: Optional[String],
+    file_format: str,
     function_channels,
     stream_options,
     custom_options,
     evaluation,
     options,
     data: Optional[str],
+    elements: Optional[list] = None,
 ):
+    """ This routine does the import. "import" here means reading a  \
+    file or string which has been structured according to a format belonging to a mime type.
+
+    "findfile", if not "None", is the path of a file where the unimported data resides.
+    If "findfile" is empty, then "data" will have the string data for that file, and
+    this routine will create a temporary file containing the data. The actual importer
+    then uses this file.
+
+    "elements", when given, contains the parts or kinds of things that should be extracted.
+    Usually, there are custom routines for retrieving an element.
+
+    It is also possible that when a custom element extraction does not
+    exist, that the caller will do the filtering after retrieving all of the information.
+
+    This is not advisable when the information inside an element is small compared
+    to the information of the entire importable file. For example consider asking
+    about the member names or contents of tar file compared to the entire tar file.
+    """
     current_predetermined_out = evaluation.predetermined_out
     if function_channels == ListExpression(String("FileNames")):
         joined_options = list(chain(stream_options, custom_options))
-        tmpfile = False
         if findfile is None:
-            tmpfile = True
-            stream = Expression(SymbolOpenWrite).evaluate(evaluation)
-            findfile = stream.elements[0]
-            if data is not None:
-                Expression(SymbolWriteString, String(data)).evaluate(evaluation)
-            else:
-                Expression(SymbolWriteString, String("")).evaluate(evaluation)
-            eval_Close(stream, evaluation)
-        import_expression = Expression(tmp_function, findfile, *joined_options)
-        tmp = import_expression.evaluate(evaluation)
+            findfile = String(
+                create_temp_file_with_extension(data, file_format.lower())
+            )
+
+        # FIXME: Some import functions do not support element
+        # selection of a collection, just collection retrieval. Here,
+        # when a selection is desired, the entire collection is
+        # returned, and *then* the element is selected. This is
+        # potentially very slow for large collections and selection
+        # items that can be retrieved quickly. Until we can come up
+        # with a better solution for these kinds import functions, to
+        # address this when element selection is requested and doesn't
+        # return a different result, we retry without the element
+        # selection.
+        import_collection_expression = to_expression(
+            import_function_symbol, findfile, *joined_options
+        )
+        if elements is None:
+            tmp = import_collection_expression.evaluate(evaluation)
+        else:
+            import_select_expression = to_expression(
+                import_function_symbol, findfile, *elements, *joined_options
+            )
+            tmp = import_select_expression.evaluate(evaluation)
+            if tmp == import_select_expression:
+                # Retry by retieving the entire collection.
+                # Element selection is done afterwards.
+                tmp = import_collection_expression.evaluate(evaluation)
+
         if tmp is SymbolFailed:
             return SymbolFailed
-        if tmpfile:
-            eval_DeleteFile([findfile.value])
     elif function_channels == ListExpression(String("Streams")):
         if findfile is None:
             stream = Expression(SymbolStringToStream, String(data)).evaluate(evaluation)
@@ -475,19 +534,22 @@ def get_results(
             evaluation.message("Import", "nffil")
             evaluation.predetermined_out = current_predetermined_out
             return None
-        tmp = Expression(tmp_function, stream, *custom_options).evaluate(evaluation)
+        tmp = Expression(import_function_symbol, stream, *custom_options).evaluate(
+            evaluation
+        )
         eval_Close(stream, evaluation)
     else:
         # TODO message
         evaluation.predetermined_out = current_predetermined_out
         return SymbolFailed
-    tmp = tmp.get_elements()
-    if not all(expr.has_form("Rule", None) for expr in tmp):
+
+    # .get_elements() is more tolerant of the type of "tmp" than
+    # ._elements which assumes a Expression type.
+    result_elts = tmp.get_elements()
+    if not all(expr.has_form("Rule", None) for expr in result_elts):
         evaluation.predetermined_out = current_predetermined_out
         return None
 
-    # return {a.get_string_value() : b for a,b in map(lambda x:
-    # x.get_elements(), tmp)}
     evaluation.predetermined_out = current_predetermined_out
     return {a.get_string_value(): b for a, b in (x.get_elements() for x in tmp)}
 
@@ -499,7 +561,7 @@ def eval_Import_data_only(
     options,
 ):
     """
-    Basic implementation beind Import_String[data].
+    Basic implementation behind Import_String[data].
     Here, no elements were given, just a import data string.
     """
 
@@ -515,7 +577,9 @@ def eval_Import_data_only(
         return SymbolFailed
 
     # Load the importer
-    conditionals, default_function, posts, importer_options = IMPORTERS[file_format]
+    conditionals, import_function_symbol, posts, importer_options = IMPORTERS[
+        file_format
+    ]
 
     stream_options, custom_options = importer_exporter_options(
         importer_options.get("System`Options"), options, "System`Import", evaluation
@@ -535,9 +599,10 @@ def eval_Import_data_only(
         return SymbolFailed
 
     # Perform the import
-    defaults = get_results(
-        default_function,
+    defaults = perform_import(
+        import_function_symbol,
         None,
+        file_format,
         function_channels,
         stream_options,
         custom_options,
@@ -559,7 +624,7 @@ def eval_Import_data_only(
             )
         )
     else:
-        result = defaults.get(default_element.get_string_value())
+        result = defaults.get(default_element.value)
         if result is None:
             evaluation.message("Import", "noelem", default_element, String(filetype))
             evaluation.predetermined_out = current_predetermined_out
@@ -575,7 +640,7 @@ def eval_Import_source_only(
     options,
 ):
     """
-    Basic implementation beind Import[source].
+    Basic implementation behind Import[source].
     Here, no elements were given, just a import source.
     """
 
@@ -588,7 +653,9 @@ def eval_Import_source_only(
         return SymbolFailed
 
     # Load the importer
-    conditionals, default_function, posts, importer_options = IMPORTERS[file_format]
+    conditionals, import_function_symbol, posts, importer_options = IMPORTERS[
+        file_format
+    ]
 
     stream_options, custom_options = importer_exporter_options(
         importer_options.get("System`Options"), options, "System`Import", evaluation
@@ -607,10 +674,11 @@ def eval_Import_source_only(
         evaluation.predetermined_out = current_predetermined_out
         return SymbolFailed
 
-    # Perform the import
-    defaults = get_results(
-        default_function,
+    # Perform the import.
+    defaults = perform_import(
+        import_function_symbol,
         findfile,
+        file_format,
         function_channels,
         stream_options,
         custom_options,
@@ -641,111 +709,10 @@ def eval_Import_source_only(
         return result
 
 
-def get_results_for_element_args(
-    tmp_function,
-    findfile: Optional[String],
-    function_channels,
-    stream_options,
-    custom_options,
-    evaluation,
-    options,
-    file_format: Optional[str],
-    elements: list,
-):
-    """
-    Return Import results when elemnet args are given.
-    For example:
-      Import["ExampleData/ExampleData.txt", "Lines"]
-                                            ^^^^^^^
-    """
-    current_predetermined_out = evaluation.predetermined_out
-    if function_channels == ListExpression(String("FileNames")):
-        joined_options = list(chain(stream_options, custom_options))
-        tmpfile = False
-        if findfile is None:
-            tmpfile = True
-            stream = Expression(SymbolOpenWrite).evaluate(evaluation)
-            findfile = stream.elements[0]
-            if file_format is not None:
-                Expression(SymbolWriteString, String(file_format)).evaluate(evaluation)
-            else:
-                Expression(SymbolWriteString, String("")).evaluate(evaluation)
-            eval_Close(stream, evaluation)
-        import_expression = Expression(
-            tmp_function, findfile, *to_mathics_list(elements), *joined_options
-        )
-        tmp = import_expression.evaluate(evaluation)
-        if tmp is SymbolFailed:
-            return SymbolFailed
-        if tmpfile:
-            eval_DeleteFile([findfile.value])
-    elif function_channels == ListExpression(String("Streams")):
-        if findfile is None:
-            stream = Expression(SymbolStringToStream, String(file_format)).evaluate(
-                evaluation
-            )
-        else:
-            mode = "r"
-            if options.get("System`BinaryFormat") is SymbolTrue:
-                if not mode.endswith("b"):
-                    mode += "b"
-
-            encoding_option = options.get("System`CharacterEncoding")
-            encoding = (
-                encoding_option.value if isinstance(encoding_option, String) else None
-            )
-
-            stream = eval_Open(
-                name=findfile,
-                mode=mode,
-                stream_type="InputStream",
-                encoding=encoding,
-                evaluation=evaluation,
-            )
-        if stream is None:
-            return
-        if stream.head is not SymbolInputStream:
-            evaluation.message("Import", "nffil")
-            evaluation.predetermined_out = current_predetermined_out
-            return None
-        tmp = Expression(tmp_function, stream, *custom_options).evaluate(evaluation)
-        eval_Close(stream, evaluation)
-    else:
-        # TODO message
-        evaluation.predetermined_out = current_predetermined_out
-        return SymbolFailed
-    tmp = tmp.get_elements()
-    if not all(expr.has_form("Rule", None) for expr in tmp):
-        evaluation.predetermined_out = current_predetermined_out
-        return None
-
-    # return {a.get_string_value() : b for a,b in map(lambda x:
-    # x.get_elements(), tmp)}
-    evaluation.predetermined_out = current_predetermined_out
-    return {a.get_string_value(): b for a, b in (x.get_elements() for x in tmp)}
-
-
-def eval_import_stream(
-    data: bytes,
-    file_format: str,
-):
-    """
-    Implementation of import of bytes having a particular file format
-    """
-
-    # START FIXING HERE
-    # Load the importer
-    conditionals, import_function, posts, importer_options = IMPORTERS[
-        file_format.upper()
-    ]
-    import_expression = Expression(import_function, data).evaluate()
-    return import_expression
-
-
-def infer_file_format(filename: str) -> Optional[str]:
+def infer_file_format(filename: str, default_extension: str = None) -> Optional[str]:
     """
     Infer what kind of format filename is in. None is returned if we can't infer
     a format.
     """
     file_extension = eval_FileExtension(filename).lower()
-    return FILE_EXTENSION_MAP.get(file_extension)
+    return FILE_EXTENSION_MAP.get(file_extension, default_extension)

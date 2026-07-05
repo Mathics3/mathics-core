@@ -1,3 +1,4 @@
+Compress`ImportZIP
 HTML`DataImport
 HTML`FullDataImport
 HTML`HyperlinksImport
@@ -12,7 +13,7 @@ ImportExport`RegisterExport
 ImportExport`RegisterImport
 Internal`RealValuedNumberQ
 Internal`RealValuedNumericQ
-JSON`Import`JSONImport
+JSON`ImportJSON
 System`$Aborted
 System`$Assumptions
 System`$BaseDirectory
@@ -583,9 +584,7 @@ System`ImageTake
 System`ImageType
 System`Implies
 System`Import
-System`ImportJSON
 System`ImportString
-System`ImportZIP
 System`In
 System`Increment
 System`Indeterminate

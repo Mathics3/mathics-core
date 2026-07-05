@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 """
-XML
+XML File Format
 
-Basic implementation for an XML importer.
+XML importer (via lxml).
 """
 
 
@@ -345,6 +345,12 @@ class PlaintextImport(Builtin):
         plaintext = String("\n".join(lines()))
         return to_mathics_list(to_expression("Rule", "Plaintext", plaintext))
 
+    def eval_with_element(self, text, element, evaluation: Evaluation):
+        """%(name)s[text_String, element_]"""
+        # FIXME: right now we aren't using element, and should use this to more
+        # efficiently extract part of the XML file that we want.
+        return self.eval(text, evaluation)
+
 
 class TagsImport(Builtin):
     """
@@ -381,6 +387,12 @@ class TagsImport(Builtin):
             return root
         return to_mathics_list(to_expression("Rule", "Tags", self._tags(root)))
 
+    def eval_with_element(self, text, element, evaluation: Evaluation):
+        """%(name)s[text_String, element_]"""
+        # FIXME: right now we aren't using element, and should use this to more
+        # efficiently extract part of the XML file that we want.
+        return self.eval(text, evaluation)
+
 
 class XMLObjectImport(Builtin):
     """
@@ -405,3 +417,9 @@ class XMLObjectImport(Builtin):
         """%(name)s[text_String]"""
         xml = to_expression("XML`Parser`XMLGet", text).evaluate(evaluation)
         return to_mathics_list(to_expression("Rule", "XMLObject", xml))
+
+    def eval_with_element(self, text, element, evaluation: Evaluation):
+        """%(name)s[text_String, element_]"""
+        # FIXME: right now we aren't using element, and should use this to more
+        # efficiently extract part of the XML file that we want.
+        return self.eval(text, evaluation)

@@ -1,8 +1,33 @@
 # -*- coding: utf-8 -*-
 
-"""
+r"""
 Import and Export Functions and Variables
 
+Many kinds data formats can be read into or written from \Mathics3.
+
+In contrast to reading or writing a file, <i>importing</i> and <i>exporting</i> imply some sort of \
+data restructuring into \Mathics3 and structuring into a filesystem that is not \
+just a stream of bytes, but instead also contains additional metadata and requires data reorganization \
+when stored in a filesystem.
+
+See <url>
+:Import/Export File Formats:
+/doc/reference-of-built-in-symbols/fileformats/</url> for documentation \
+on the specific kinds of File Formats \Mathics3 supports.
+
+
+Variable <url>
+:\$ExportFormats:
+/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/\$exportformats</url> \
+contains a list of file formats that are supported by <url>
+:Export:
+/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/export</url>, \
+while <url>
+:\$ImportFormats:
+/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/\$importformats</url> \
+does the corresponding thing for <url>
+:Import:
+/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/import</url>.
 """
 
 import base64
@@ -13,6 +38,9 @@ import urllib.request as request
 from itertools import chain
 from urllib.error import HTTPError, URLError
 
+# Use this when accessing IMPORTERS to get changes
+# since initializiation.
+import mathics.eval.import_export.importexport as importexport
 from mathics.builtin.import_export.checking import check_filename, import_setup_check
 from mathics.core.atoms import ByteArray
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
@@ -33,7 +61,6 @@ from mathics.core.systemsymbols import (
 from mathics.eval.files_io.files import eval_Close
 from mathics.eval.files_io.filesystem import eval_FindFile
 from mathics.eval.import_export.importexport import (
-    IMPORTERS,
     MIMETYPE_TO_SHORTNAME,
     eval_FileFormat,
     eval_Import_data_only,
@@ -89,7 +116,9 @@ class ImportFormats(Predefined):
     summary_text = "list supported import formats"
 
     def evaluate(self, evaluation: Evaluation):
-        return to_mathics_list(*sorted(IMPORTERS.keys()), elements_conversion_fn=String)
+        return to_mathics_list(
+            *sorted(importexport.IMPORTERS.keys()), elements_conversion_fn=String
+        )
 
 
 class RegisterImport(Builtin):
@@ -235,7 +264,7 @@ class RegisterImport(Builtin):
         # as well.
         # By doing this, we accept "text, "Text", "TEXT", and other combinations,
         # which what WMA seems to do.
-        IMPORTERS[formatname.value.upper()] = (
+        importexport.IMPORTERS[formatname.value.upper()] = (
             conditionals,
             default,
             posts,
@@ -430,7 +459,13 @@ class Import(Builtin):
         "$OptionSyntax": "System`Ignore",
     }
 
-    summary_text = "import elements from a file"
+    rules = {
+        "Import[filename_]": "Import[filename, {}]",
+    }
+
+    summary_text = (
+        r"read and convert to \Mathics3 some or all elements of structured file"
+    )
 
     def eval_elements_query(self, source, evaluation, options={}):
         """Import[source_String, "Elements", OptionsPattern[]]"""
@@ -452,15 +487,19 @@ class Import(Builtin):
     def eval_with_element_list(self, source, elements, evaluation, options={}):
         "Import[source_, elements_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
 
-        findfile, data = import_setup_check(source, evaluation)
+        findfile, file_format = import_setup_check(source, evaluation)
         if findfile is SymbolFailed:
             return SymbolFailed
 
+        # FIXME remove the need for determine_filetype.
+
+        # The "data" parameter is just for non-file or string situations
+        # where we need to pick out the type from the file contents.
         def determine_filetype(data: str) -> str:
-            return data
+            return file_format
 
         return eval_Import_general(
-            findfile, determine_filetype, elements, evaluation, options, data
+            findfile, determine_filetype, elements, evaluation, options
         )
 
     # In contrast to Import[source_], we allow an explicit format type
@@ -478,13 +517,21 @@ class Import(Builtin):
         # The code below tests for the first case, and if that fails assumes the
         # second case.
         file_format = elt.value.upper()
-        if file_format in IMPORTERS.keys():
+
+        if file_format in importexport.IMPORTERS.keys():
             # A file format was specified: use the custom routine
             return eval_Import_source_only(findfile, file_format, evaluation, options)
 
         # Assume we have Import with a single non-format element.
-        return self.eval_with_element_list(
-            source, ListExpression(elt), evaluation, options
+
+        # FIXME remove the need for determine_filetype.
+        # The "data" parameter is just for non-file or string situations
+        # where we need to pick out the type from the file contents.
+        def determine_filetype(data: str) -> str:
+            return filetype
+
+        return eval_Import_general(
+            findfile, determine_filetype, ListExpression(elt), evaluation, options
         )
 
 
@@ -521,7 +568,9 @@ class ImportString(Builtin):
         "$OptionSyntax": "System`Ignore",
     }
 
-    summary_text = "import data or elements of data from a string"
+    summary_text = (
+        r"read and convert to \Mathics3 some or all elements of structured string"
+    )
 
     def eval_data_only(self, data, evaluation, options={}):
         "ImportString[data_, OptionsPattern[]]"
@@ -560,7 +609,7 @@ class ImportString(Builtin):
         # The code below tests for the first case, and if that fails assumes the
         # second case.
         file_format = elt.value.upper()
-        if file_format in IMPORTERS.keys():
+        if file_format in importexport.IMPORTERS.keys():
             # A file format was specified: use the custom routine
             return eval_Import_data_only(data.value, file_format, evaluation, options)
 
@@ -602,7 +651,9 @@ class Export(Builtin):
         "$OptionSyntax": "System`Ignore",
     }
 
-    summary_text = "export elements to a file"
+    summary_text = (
+        r"write and convert to \Mathics3 some or all elements of structured file"
+    )
 
     def eval(self, dest, expr, evaluation, options={}):
         "Export[dest_, expr_, OptionsPattern[Export]]"
@@ -751,7 +802,9 @@ class ExportString(Builtin):
     rules = {
         "ExportString[expr_, elems_?NotListQ]": ("ExportString[expr, {elems}]"),
     }
-    summary_text = "export elements to a string"
+    summary_text = (
+        r"write and convert to \Mathics3 some or all elements of structured string"
+    )
 
     def eval_element(self, expr, element: String, evaluation: Evaluation, **options):
         "ExportString[expr_, element_String, OptionsPattern[ExportString]]"
