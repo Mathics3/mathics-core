@@ -326,6 +326,7 @@ System`DesignMatrix
 System`Det
 System`Diagonal
 System`DiagonalMatrix
+System`Dialog
 System`Diamond
 System`DiamondMatrix
 System`DiceDissimilarity
