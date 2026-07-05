@@ -46,6 +46,7 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolAssumptions,
     SymbolEqual,
+    SymbolIdentity,
     SymbolIndeterminate,
     SymbolLess,
     SymbolRule,
@@ -550,7 +551,7 @@ class Collect(Builtin):
 
     def eval_var_filter(self, expr, varlist, filt, evaluation):
         """Collect[expr_, varlist_, filt_]"""
-        if filt is Symbol("Identity"):
+        if filt is SymbolIdentity:
             filt = None
         if isinstance(varlist, Symbol):
             var_exprs = [varlist]
@@ -845,9 +846,9 @@ class ExpandDenominator(_Expand):
         return expand_polynomial(expr, False, True, **kwargs)
 
 
-## Our expand_polynomial routine and SymPy's do not match
-## what WMA is doing. Failing a good reason to get this working,
-## I, rocky, do not thing it is worth the effort.
+# Our expand_polynomial routine and SymPy's do not match
+# what WMA is doing. Failing a good reason to get this working,
+# I, rocky, do not thing it is worth the effort.
 #
 # class ExpandNumerator(_Expand):
 #     """
