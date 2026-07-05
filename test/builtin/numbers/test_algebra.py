@@ -405,7 +405,7 @@ def test_fullsimplify():
     [
         ("Attributes[f] = {HoldAll}; Apart[f[x + x]]", None, "f[x + x]", None),
         ("Attributes[f] = {}; Apart[f[x + x]]", None, "f[2 x]", None),
-        ## Errors:
+        # Errors:
         (
             "Coefficient[x + y + 3]",
             ("Coefficient called with 1 argument; 2 or 3 arguments are expected.",),
@@ -469,7 +469,7 @@ def test_fullsimplify():
             "24 x / (5 + 3 x + x ^ 2) ^ 3 + 8 x ^ 2 / (5 + 3 x + x ^ 2) ^ 3 + 18 / (5 + 3 x + x ^ 2) ^ 3",
             None,
         ),
-        ## Modulus option
+        # Modulus option
         (
             "ExpandDenominator[1 / (x + y)^3, Modulus -> 3]",
             None,
@@ -542,21 +542,21 @@ def test_fullsimplify():
             "True",
             None,
         ),
-        ## TODO: MMA and Sympy handle these cases differently
-        ## #> PolynomialQ[x^(1/2) + 6xyz]
-        ##  : No variable is not supported in PolynomialQ.
-        ##  = True
-        ## #> PolynomialQ[x^(1/2) + 6xyz, {}]
-        ##  : No variable is not supported in PolynomialQ.
-        ##  = True
-        ## #> PolynomialQ[x^3 - 2 x/y + 3xz]
-        ##  : No variable is not supported in PolynomialQ.
-        ##  = False
-        ## #> PolynomialQ[x^3 - 2 x/y + 3xz, {}]
-        ##  : No variable is not supported in PolynomialQ.
-        ##  = False
+        # TODO: MMA and Sympy handle these cases differently
+        # #> PolynomialQ[x^(1/2) + 6xyz]
+        #  : No variable is not supported in PolynomialQ.
+        #  = True
+        # #> PolynomialQ[x^(1/2) + 6xyz, {}]
+        #  : No variable is not supported in PolynomialQ.
+        #  = True
+        # #> PolynomialQ[x^3 - 2 x/y + 3xz]
+        #  : No variable is not supported in PolynomialQ.
+        #  = False
+        # #> PolynomialQ[x^3 - 2 x/y + 3xz, {}]
+        #  : No variable is not supported in PolynomialQ.
+        #  = False
         ("f[x]/x+f[x]/x^2//Together", None, "f[x] (1 + x) / x ^ 2", None),
-        ## failing test case from MMA docs
+        # failing test case from MMA docs
         ("Variables[E^x]", None, "{}", None),
     ],
 )
@@ -615,6 +615,10 @@ def test_integer(str_expr, msgs, str_expected, fail_msg):
         (
             "Exponent",
             "2 or 3 arguments are",
+        ),
+        (
+            "Distribute",
+            "between 1 and 5 arguments are",
         ),
     ],
 )
