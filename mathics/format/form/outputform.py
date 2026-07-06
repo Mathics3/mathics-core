@@ -851,7 +851,9 @@ def _slotsequence_outputform_text(expr: Expression, evaluation: Evaluation, **kw
 
 
 @register_outputform("System`String")
-def string_render_output_form(expr: BaseElement, evaluation: Evaluation, **kwargs) -> str:
+def string_render_output_form(
+    expr: BaseElement, evaluation: Evaluation, **kwargs
+) -> str:
     from mathics.format.render.text import string as render_string
 
     if not isinstance(expr, String):
