@@ -247,6 +247,7 @@ def render_output_form(expr: BaseElement, evaluation: Evaluation, **kwargs):
     """
     Build a pretty-print text from an `Expression`
     """
+    lookup_name: str
     format_expr: Expression = do_format(expr, evaluation, SymbolOutputForm)  # type: ignore
 
     while format_expr.has_form("HoldForm", 1):  # type: ignore
@@ -256,7 +257,7 @@ def render_output_form(expr: BaseElement, evaluation: Evaluation, **kwargs):
         return ""
 
     head = format_expr.get_head()
-    lookup_name: str = head.get_name() or head.get_lookup_name()
+    lookup_name = head.get_name() or head.get_lookup_name()
     callback = EXPR_TO_OUTPUTFORM_TEXT_MAP.get(lookup_name, None)
     if callback is None:
         if head in evaluation.definitions.outputforms:
@@ -843,6 +844,9 @@ def _slotsequence_outputform_text(expr: Expression, evaluation: Evaluation, **kw
 @register_outputform("System`String")
 def string_render_output_form(expr: String, evaluation: Evaluation, **kwargs) -> str:
     from mathics.format.render.text import string as render_string
+
+    if not isinstance(expr, String):
+        raise _WrongFormattedExpression
 
     # To render a string in OutputForm, we use the
     # function that render strings from Boxed expressions.
