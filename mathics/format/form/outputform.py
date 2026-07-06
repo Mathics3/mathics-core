@@ -3,6 +3,15 @@ This module implements the "OutputForm" textual representation of expressions.
 
 OutputForm is two-dimensional keyboard-character-only output, suitable for CLI
 and text terminals.
+
+The entry point of this module is the function `render_output_form`. This function takes an expression and an evaluation object as parameters, and returns a string representing the expression in its OutputForm.
+
+To do this, `render_output_form` looks for the head of the expression, and uses its name to lookup one of the registered functions
+to process specific kind of expressions. Callback functions are registered using the decorator `@register_outputform([lookupname])`.
+
+If the callback function cannot process its argument, it raises a `_WrongFormattedExpression`, to make it know `render_output_form`
+it must use the default callback function. This default function is also called when an specific callback function is not available.
+
 """
 
 import re
