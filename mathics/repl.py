@@ -31,12 +31,10 @@ from mathics.session import SessionShell, autoload_files
 try:
     import readline
 except ImportError:
-
-    def user_write_history_file():
-        return
-
-    pass
+    have_readline = False
 else:
+    have_readline = True
+
     # Set up mathics3 configuration directory
     CONFIGHOME = os.environ.get("XDG_CONFIG_HOME", osp.expanduser("~/.config"))
     CONFIGDIR = osp.join(CONFIGHOME, "Mathics3")
@@ -78,6 +76,12 @@ class TerminalShell(MathicsLineFeeder, SessionShell):
         self.lineno = 0
         self.in_prefix = in_prefix
         self.out_prefix = out_prefix
+
+        if want_readline:
+            want_readline = have_readline
+
+        if want_completion:
+            want_completion = have_readline
 
         # Try importing readline to enable arrow keys support etc.
         self.using_readline = False
