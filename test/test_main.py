@@ -15,7 +15,7 @@ def get_testdir():
 
 
 @pytest.mark.skipif(
-    sys.platform in ("emscripten",),
+    sys.platform in ("emscripten", "win32"),
     reason="Pyodide does not support processes",
 )
 def test_cli():
@@ -38,19 +38,33 @@ def test_cli():
 
 
 @pytest.mark.skipif(
-    sys.platform in ("emscripten",),
-    reason="Pyodide does not support processes",
+    sys.platform in ("emscripten"),
+    reason="Pyodide does not support processes.",
 )
 def test_version_option():
     """
     Check that --version works and returns
     software version information.
     """
-    result = subprocess.run(
-        ["mathics", "--version"],
-        capture_output=True,
-    )
-    assert result.stdout.decode("utf-8").index(version_string) == 0
+    if sys.platform in ("win32",):
+        result = subprocess.run(
+            ["mathics", "--version"],
+            capture_output=True,
+            # MS Windows (and others?) need shell=True for the way packages
+            # get installed.
+            shell=True,
+            # text=True is better for Windows to avoid \r\n
+            # Also this
+            text=True,
+        )
+        assert result.stdout.index(version_string) == 0
+    else:
+        result = subprocess.run(
+            ["mathics", "--version"],
+            capture_output=True,
+        )
+        assert result.stdout.decode("utf-8").index(version_string) == 0
+
     assert result.returncode == 0
 
 

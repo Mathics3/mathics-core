@@ -52,16 +52,14 @@ jobs:
       - name: Install Mathics3
         run: |
           make develop
-      # - name: Test Mathics3
-      #   # Limit pip install to a basic install *without* full dependencies.
-      #   # Here is why:
-      #   #   * Windows is the slowest CI build, this speeds up testing by about
-      #   #     3 minutes
-      #   #   * Other CI tests on other (faster) OS's full dependencies and
-      #   #     we needs some CI that tests running when packages aren't available
-      #   # So "dev" only below, not "dev,full".
-      #   shell: bash
-      #   run: |
-      #     make pytest gstest
-      #     make doctest DOCTEST_OPTIONS="--exclude WordCloud"
-      #     # make check
+      - name: Test Mathics3
+        # Limit pip install to a basic install *without* full dependencies.
+        # Here is why:
+        #   * Windows is the slowest CI build, this speeds up testing by about
+        #     3 minutes
+        #   * Other CI tests on other (faster) OS's full dependencies and
+        #     we needs some CI that tests running when packages aren't available
+        # So "dev" only below, not "dev,full".
+        run: pytest test
+        # make pytest gstest
+        # make doctest DOCTEST_OPTIONS="--exclude WordCloud"

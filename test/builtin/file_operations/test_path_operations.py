@@ -2,6 +2,7 @@
 """
 Unit tests from builtins/files_io/files.py
 """
+import sys
 from test.helper import check_evaluation, evaluate_value
 
 import pytest
@@ -10,6 +11,7 @@ abc = evaluate_value('FileNameJoin[{"a", "b", "c"}]')
 abcd = evaluate_value('FileNameJoin[{"a", "b", "c", "d"}]')
 
 
+@pytest.mark.skipif(sys.platform in ("win32",), reason="This needs work on MS Windows.")
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [

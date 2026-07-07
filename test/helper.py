@@ -18,6 +18,8 @@ session = MathicsSession(character_encoding="ASCII")
 
 # Set up a data path that can be used in testing
 data_dir = osp.normpath(osp.join(osp.dirname(__file__), "data"))
+if osp.sep == "\\":
+    data_dir = data_dir.replace("\\", "/")
 
 
 def reset_session(add_builtin=True, catch_interrupt=False):

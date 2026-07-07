@@ -95,6 +95,8 @@ def create_temp_file_with_extension(data: str, file_extension: str) -> str:
     atexit.register(cleanup_temp_file)
 
     # Return the path so your program can use or read it
+    if os.path.sep == "\\":
+        return temp_path.replace("\\", "/")
     return temp_path
 
 
