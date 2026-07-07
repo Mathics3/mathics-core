@@ -15,7 +15,7 @@ jobs:
         os: [windows]
         # "make doctest" on MS Windows fails without showing much of a
         # trace of where things went wrong on Python before 3.11.
-        python-version: ['3.14']
+        python-version: ['3.12']
 
     # Setting the environment variable globally for all steps in this job
     env:
