@@ -408,6 +408,8 @@ def test_open_read():
     # to delete the file.
     new_temp_file = NamedTemporaryFile(mode="r", delete=False)
     name = canonic_filename(new_temp_file.name)
+    if osp.sep == "\\":
+        name = name.replace("\\", "/")
     try:
         os.unlink(name)
     except PermissionError:
@@ -475,6 +477,8 @@ def test_write_string():
     # 1. Create temporary file name
     tempfile = NamedTemporaryFile(mode="r", delete=False)
     tempfile_path = tempfile.name
+    if osp.sep == "\\":
+        tempfile_path = tempfile_path.replace("\\", "/")
 
     # 2. Open that for writing in Mathics3 using OpenWrite[].
     check_evaluation(

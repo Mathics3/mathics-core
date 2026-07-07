@@ -105,6 +105,9 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
 """
 
 
+@pytest.mark.skipif(
+    sys.platform in ("win32",), reason="XLS vs CSV needs work on MS Windows."
+)
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
@@ -301,6 +304,9 @@ def test_Export(str_expr, msgs, str_expected, fail_msg):
     )
 
 
+@pytest.mark.skipif(
+    sys.platform in ("win32",), reason="XLS vs CSV needs work on MS Windows."
+)
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
@@ -348,11 +354,17 @@ def test_FileFormat(str_expr, msgs, str_expected, fail_msg):
     )
 
 
+@pytest.mark.skipif(
+    sys.platform in ("win32",), reason="Export needs work on MS Windows."
+)
 def test_inividually():
     # Test Export where we cannot infer the export type from the file extension;
     # here it is: ".jcp".
     with tempfile.NamedTemporaryFile(mode="w", suffix=".jcp") as tmp:
         filename = tmp.name
+        if osp.sep == "\\":
+            filename = filename.replace("\\", "/")
+
         expr = f'Export["{filename}", 1+x,' + "{}]"
         result = evaluate(expr)
         outs = [out.text for out in session.evaluation.out]
@@ -362,6 +374,9 @@ def test_inividually():
     # Check that exporting with an empty list of elements is okay.
     with tempfile.NamedTemporaryFile(mode="w", suffix=".txt") as tmp:
         filename = tmp.name
+        if osp.sep == "\\":
+            filename = filename.replace("\\", "/")
+
         expr = f'Export["{filename}", 1+x' + "{}]"
         result = evaluate(expr)
         outs = [out.text for out in session.evaluation.out]

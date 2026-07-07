@@ -32,6 +32,8 @@ def create_temporary_file(prefix="Mathics3-", suffix=None, delete=True):
     fp = tempfile.NamedTemporaryFile(delete=delete, suffix=suffix)
     result = fp.name
     fp.close()
+    if osp.sep == "\\":
+        return result.replace("\\", "/")
     return result
 
 
