@@ -22,7 +22,7 @@ def eval_DeleteFile(paths: list[str]) -> String:
     return SymbolNull
 
 
-def eval_FileExtension(path: str) -> String:
+def eval_FileExtension(path: str) -> str:
     """Underlying implementation for FindExtension[filenamename_String]."""
 
     filename_base, filename_ext = osp.splitext(path)

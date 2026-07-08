@@ -77,19 +77,22 @@ def eval_ImportZIP(
 
             for element in elements:
                 member = element.value
-                file_format = infer_file_format(member, "Text").upper()
-                if file_format not in IMPORTERS.keys():
-                    evaluation.message("Import", "fmtnosup", file_format)
-                    return SymbolFailed
+                file_format = infer_file_format(member, None).upper()
+                if file_format is not None:
+                    if file_format not in IMPORTERS.keys():
+                        evaluation.message("Import", "fmtnosup", file_format)
+                        return SymbolFailed
 
-                unzipped_file_data = archive.read(member).decode("utf-8")
-                converted_member_data = eval_Import_data_only(
-                    unzipped_file_data, file_format, evaluation, {"raw": True}
-                )
-                result = ListExpression(
-                    Expression(SymbolRule, element, converted_member_data)
-                )
-                return result
+                    unzipped_file_data = archive.read(member).decode("utf-8")
+                    converted_member_data = eval_Import_data_only(
+                        unzipped_file_data, file_format, evaluation, {"raw": True}
+                    )
+                    result = ListExpression(
+                        Expression(SymbolRule, element, converted_member_data)
+                    )
+                    return result
+                else:
+                    pass
 
     except FileNotFoundError:
         evaluation.message("Import", "nffil", String(zip_path))

@@ -20,17 +20,14 @@ from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.parser import MathicsFileLineFeeder
-from mathics.core.parser.convert import convert
-from mathics.core.parser.util import parser
 from mathics.core.systemsymbols import (
-    SymbolFailed,
     SymbolInputForm,
     SymbolNone,
     SymbolOutputForm,
     SymbolToExpression,
 )
-from mathics.eval.encoding import CHARACTER_ENCODING_MAP, to_python_encoding
+from mathics.eval.atomic.strings import eval_ToExpression_from_string
+from mathics.eval.encoding import CHARACTER_ENCODING_MAP
 from mathics.eval.strings import eval_StringContainsQ, eval_ToString
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
@@ -772,24 +769,8 @@ class ToExpression(Builtin):
         # Apply the different forms
         if form is SymbolInputForm:
             if isinstance(inp, String):
-                # TODO: turn the below up into a function and call that.
                 s = inp.value
-                short_s = s[:15] + "..." if len(s) > 16 else s
-                with io.StringIO(s) as f:
-                    f.name = """ToExpression['%s']""" % short_s
-                    feeder = MathicsFileLineFeeder(f)
-                    while not feeder.empty():
-                        try:
-                            ast = parser.parse(feeder)
-                        except SyntaxError:
-                            return SymbolFailed
-                        finally:
-                            feeder.send_messages(evaluation)
-                        if ast is None:  # blank line / comment
-                            continue
-                        query = convert(ast, evaluation.definitions)
-                        result = query.evaluate(evaluation)
-
+                result = eval_ToExpression_from_string(inp.value, evaluation)
             else:
                 result = inp
         else:
