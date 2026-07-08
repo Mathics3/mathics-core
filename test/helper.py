@@ -5,6 +5,7 @@ import time
 from typing import List, Optional, Tuple
 
 from mathics.core.load_builtin import import_and_load_builtins
+from mathics.core.streams import canonic_os_path
 from mathics.eval.encoding import encode_string_value
 from mathics.session import MathicsSession
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
@@ -17,9 +18,7 @@ import_and_load_builtins()
 session = MathicsSession(character_encoding="ASCII")
 
 # Set up a data path that can be used in testing
-data_dir = osp.normpath(osp.join(osp.dirname(__file__), "data"))
-if osp.sep == "\\":
-    data_dir = data_dir.replace("\\", "/")
+data_dir = canonic_os_path(osp.normpath(osp.join(osp.dirname(__file__), "data")))
 
 
 def reset_session(add_builtin=True, catch_interrupt=False):

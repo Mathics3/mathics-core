@@ -7,6 +7,7 @@ from test.helper import check_evaluation, check_evaluation_as_in_cli, evaluate, 
 
 import pytest
 
+from mathics.core.streams import canonic_os_path
 from mathics.core.systemsymbols import SymbolFailed
 from mathics.eval.encoding import to_python_encoding
 
@@ -361,9 +362,7 @@ def test_inividually():
     # Test Export where we cannot infer the export type from the file extension;
     # here it is: ".jcp".
     with tempfile.NamedTemporaryFile(mode="w", suffix=".jcp") as tmp:
-        filename = tmp.name
-        if osp.sep == "\\":
-            filename = filename.replace("\\", "/")
+        filename = canonic_os_path(tmp.name)
 
         expr = f'Export["{filename}", 1+x,' + "{}]"
         result = evaluate(expr)
@@ -373,9 +372,7 @@ def test_inividually():
 
     # Check that exporting with an empty list of elements is okay.
     with tempfile.NamedTemporaryFile(mode="w", suffix=".txt") as tmp:
-        filename = tmp.name
-        if osp.sep == "\\":
-            filename = filename.replace("\\", "/")
+        filename = canonic_os_path(tmp.name)
 
         expr = f'Export["{filename}", 1+x' + "{}]"
         result = evaluate(expr)

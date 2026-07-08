@@ -183,7 +183,7 @@ class TerminalShell(MathicsLineFeeder, SessionShell):
         return False
 
     def feed(self):
-        result = self.read_line(self.get_in_prompt()) + "\n"
+        result = self.read_line(self.in_prompt) + "\n"
         if mathics_scanner.location.TRACK_LOCATIONS:
             self.container.append(self.source_text)
         if result == "\n":
@@ -197,16 +197,18 @@ class TerminalShell(MathicsLineFeeder, SessionShell):
             matches = [strip_context(m) for m in matches]
         return matches
 
-    def get_in_prompt(self) -> str:
+    @property
+    def in_prompt(self) -> str:
         """
         Return the prompt string to be shown before reading input.
         """
-        next_line_number = self.get_last_line_number() + 1
+        next_line_number = self.last_line_number + 1
         return "{2}{0}[{3}{1}{4}]:= {5}".format(
             self.in_prefix, next_line_number, *self.incolors
         )
 
-    def get_last_line_number(self):
+    @property
+    def last_line_number(self):
         """
         Return the line number associated with the next input to be read.
         """
@@ -216,7 +218,7 @@ class TerminalShell(MathicsLineFeeder, SessionShell):
         """
         Return a prompt string to be shown before showing output.
         """
-        line_number = self.get_last_line_number()
+        line_number = self.last_line_number
         if form:
             return "{3}{0}[{4}{1}{5}]//{2}= {6}".format(
                 self.out_prefix, line_number, form, *self.outcolors
@@ -274,7 +276,7 @@ class TerminalShell(MathicsLineFeeder, SessionShell):
         return input(prompt)
 
     def to_output(self, text, form=None):
-        line_number = self.get_last_line_number()
+        line_number = self.last_line_number
         newline = "\n" + " " * len("Out[{0}]= ".format(line_number))
         if form:
             newline += (len(form) + 2) * " "

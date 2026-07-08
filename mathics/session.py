@@ -25,15 +25,17 @@ from mathics.core.symbols import SymbolNull
 
 class SessionShell(ABC):
 
+    @property
     @abstractmethod
-    def get_in_prompt(self) -> str:
+    def in_prompt(self) -> str:
         """
         Return the prompt string to be shown before reading input.
         """
         pass
 
+    @property
     @abstractmethod
-    def get_last_line_number(self) -> int:
+    def last_line_number(self) -> int:
         """
         Return the line number associated with the next input to be read.
         """

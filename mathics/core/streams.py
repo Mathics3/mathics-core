@@ -25,16 +25,26 @@ PATH_VAR: List[str] = [
 ]
 
 
+def canonic_os_path(path: str) -> str:
+    r"""
+    canonicalize `path` for Mathics3 String use.
+    In particular, on MSWindows, path names with backslash ("\") are converted to the
+    equivalent using forward slash ("/") and shown that way.
+
+    Currently MSWindows is the only OS that has this feature. However, it is possible,
+    Other kinds of things can arise.
+    """
+    if osp.sep == "\\":
+        return path.replace("\\", "/")
+    return path
+
+
 def create_temporary_file(prefix="Mathics3-", suffix=None, delete=True):
     if suffix == "":
         suffix = None
 
     fp = tempfile.NamedTemporaryFile(delete=delete, suffix=suffix)
-    result = fp.name
-    fp.close()
-    if osp.sep == "\\":
-        return result.replace("\\", "/")
-    return result
+    return canonic_os_path(fp.name)
 
 
 def urlsave_tmp(url, location=None, **kwargs):
