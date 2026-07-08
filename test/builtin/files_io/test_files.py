@@ -11,6 +11,7 @@ from test.helper import check_evaluation, evaluate
 import pytest
 
 from mathics.core.parser.convert import canonic_filename
+from mathics.core.streams import canonic_os_path
 
 
 def test_compress():
@@ -407,9 +408,7 @@ def test_open_read():
     # Below, we set "delete=False" because `os.unlink()` is used
     # to delete the file.
     new_temp_file = NamedTemporaryFile(mode="r", delete=False)
-    name = canonic_filename(new_temp_file.name)
-    if osp.sep == "\\":
-        name = name.replace("\\", "/")
+    name = canonic_os_path(canonic_filename(new_temp_file.name))
     try:
         os.unlink(name)
     except PermissionError:
@@ -476,9 +475,7 @@ def test_write_string():
 
     # 1. Create temporary file name
     tempfile = NamedTemporaryFile(mode="r", delete=False)
-    tempfile_path = tempfile.name
-    if osp.sep == "\\":
-        tempfile_path = tempfile_path.replace("\\", "/")
+    tempfile_path = canonic_os_path(tempfile.name)
 
     # 2. Open that for writing in Mathics3 using OpenWrite[].
     check_evaluation(
