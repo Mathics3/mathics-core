@@ -137,7 +137,7 @@ MIMETYPE_TO_SHORTNAME: Final[Dict[str, str]] = {
 }
 
 
-def filetype_from_path(path: str) -> Optional[str]:
+def filetype_from_path(path: str, check_exists: bool = True) -> Optional[str]:
     """Classifies what kind of file `path` is.
     A Mathics3 String is return if we can do this and None, if
     there was some sort of error, e.g., `path` is not found.
@@ -149,7 +149,7 @@ def filetype_from_path(path: str) -> Optional[str]:
     descriptions or WL's codes are not, and can change.
     """
 
-    if not osp.exists(path):
+    if check_exists and not osp.exists(path):
         return None
 
     # Special case for ".m" files and ".wl' files. Although ".m" could be Objective C,
