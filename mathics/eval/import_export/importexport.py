@@ -17,7 +17,7 @@ from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolTrue, strip_context
+from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue, strip_context
 from mathics.core.systemsymbols import (
     SymbolByteArray,
     SymbolFailed,
@@ -137,7 +137,7 @@ MIMETYPE_TO_SHORTNAME: Final[Dict[str, str]] = {
 }
 
 
-def filetype_from_path(path: str) -> Optional[str]:
+def filetype_from_path(path: str, check_exists: bool = True) -> Optional[str]:
     """Classifies what kind of file `path` is.
     A Mathics3 String is return if we can do this and None, if
     there was some sort of error, e.g., `path` is not found.
@@ -149,7 +149,7 @@ def filetype_from_path(path: str) -> Optional[str]:
     descriptions or WL's codes are not, and can change.
     """
 
-    if not osp.exists(path):
+    if check_exists and not osp.exists(path):
         return None
 
     # Special case for ".m" files and ".wl' files. Although ".m" could be Objective C,
@@ -416,7 +416,7 @@ def eval_Import_general(
                         data=data,
                         elements=elements,
                     )
-                    if defaults is None:
+                    if defaults in (None, SymbolFailed):
                         evaluation.predetermined_out = current_predetermined_out
                         return SymbolFailed
                 if el in defaults.keys():
@@ -509,11 +509,14 @@ def perform_import(
             )
             tmp = import_select_expression.evaluate(evaluation)
             if tmp == import_select_expression:
-                # Retry by retieving the entire collection.
+                # Retry by retrieving the entire collection.
                 # Element selection is done afterwards.
                 tmp = import_collection_expression.evaluate(evaluation)
+            else:
+                # Return as key value pair so eval_Import_xxx can find the value.
+                return {elements[0]: tmp}
 
-        if tmp is SymbolFailed:
+        if tmp in (SymbolFailed, SymbolNull):
             return SymbolFailed
     elif function_channels == ListExpression(String("Streams")):
         if findfile is None:
@@ -713,14 +716,3 @@ def eval_Import_source_only(
             return SymbolFailed
         evaluation.predetermined_out = current_predetermined_out
         return result
-
-
-def infer_file_format(
-    filename: str, default_extension: Optional[str] = None
-) -> Optional[str]:
-    """
-    Infer what kind of format filename is in. None is returned if we can't infer
-    a format.
-    """
-    file_extension = eval_FileExtension(filename).lower()
-    return FILE_EXTENSION_MAP.get(file_extension, default_extension)
