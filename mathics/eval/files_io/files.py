@@ -171,7 +171,6 @@ def eval_Get(
     """
     Reads a file and evaluates each expression, returning only the last one.
     """
-
     result = None
     if path_directories is None:
         path_directories = tuple(streams.PATH_VAR)
