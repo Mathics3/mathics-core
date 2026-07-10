@@ -44,7 +44,32 @@ def eval_Lookup(assoc, key, default, evaluation: Evaluation):
         return None
 
 
+def eval_Lookup_assocs_list_key(assocs, key, default, evaluation: Evaluation):
+    """Evaluation method for Lookup with a list of associations and a single key.
+
+    Looks up the key in each association and returns a list of values.
+    """
+    if not isinstance(assocs, ListExpression):
+        evaluation.message("Lookup", "invrl", assocs)
+        return None
+
+    results = [
+        eval_Lookup(assoc, key, default, evaluation) for assoc in assocs.elements
+    ]
+    return ListExpression(*results)
+
+
 def eval_Lookup_multiple_keys(assoc, keys, default, evaluation: Evaluation):
     """Evaluation method for Lookup with multiple keys, threading over the key list."""
     results = [eval_Lookup(assoc, key, default, evaluation) for key in keys.elements]
     return ListExpression(*results)
+
+
+def eval_assocs_list_key(self, assocs, key, evaluation: Evaluation):
+    """Lookup[assocs_List, key_]"""
+    return eval_Lookup_assocs_list_key(assocs, key, None, evaluation)
+
+
+def eval_assocs_list_key_default(self, assocs, key, default, evaluation: Evaluation):
+    """Lookup[assocs_List, key_, default_]"""
+    return eval_Lookup_assocs_list_key(assocs, key, default, evaluation)
