@@ -29,6 +29,10 @@ def eval_ImportZIP(
     list of file names/paths contained inside.
 
     "If `members` is given, then extract those members (or files) from the ZIP file.
+
+    If there is no problem, the format for the extraction is a ListExpression of Rules.
+    The LHS of the Rule is the member name, and the RHS of the Rule is content value.
+    Otherwise, we return SymbolFailed or SymbolNull.
     """
 
     resolved = resolve_file(zip_name, "r", evaluation)
@@ -73,20 +77,9 @@ def eval_ImportZIP(
 
                 return ListExpression(*exprs)
 
-            if isinstance(members, String):
-                member = members.value
-                file_format = filetype_from_path(member, check_exists=False)
-                if file_format not in IMPORTERS.keys():
-                    evaluation.message("Import", "fmtnosup", file_format)
-                    return SymbolFailed
-
-                unzipped_file_data = archive.read(member).decode("utf-8")
-                converted_member_data = eval_Import_data_only(
-                    unzipped_file_data, file_format, evaluation, {"raw": True}
-                )
-                return converted_member_data
-
-            for element in members[1:]:
+            elements = [members] if isinstance(members, String) else members[1:]
+            rules = []
+            for element in elements:
                 member = element.value
                 file_format = filetype_from_path(member, check_exists=False)
                 if file_format not in IMPORTERS.keys():
@@ -97,10 +90,9 @@ def eval_ImportZIP(
                 converted_member_data = eval_Import_data_only(
                     unzipped_file_data, file_format, evaluation, {"raw": True}
                 )
-                result = ListExpression(
-                    Expression(SymbolRule, element, converted_member_data)
-                )
-                return result
+                rule = Expression(SymbolRule, element, converted_member_data)
+                rules.append(rule)
+            return ListExpression(*rules)
 
     except FileNotFoundError:
         evaluation.message("Import", "nffil", String(zip_path))

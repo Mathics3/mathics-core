@@ -70,6 +70,7 @@ from mathics.eval.import_export.importexport import (
     filetype_from_mime_content,
     filetype_from_path,
     importer_exporter_options,
+    infer_file_format,
 )
 
 # This tells documentation how to sort this module.
@@ -663,7 +664,7 @@ class Export(Builtin):
             return SymbolFailed
 
         # Determine Format
-        form = filetype_from_path(dest.value)
+        form = infer_file_format(dest.value)
 
         if form is None:
             evaluation.message("Export", "infer", dest)
@@ -705,7 +706,7 @@ class Export(Builtin):
         # Infer format if not present
         if not found_form:
             assert format_spec == []
-            format_spec = filetype_from_path(dest.value)
+            format_spec = infer_file_format(dest.value)
             if format_spec is None:
                 evaluation.message("Export", "infer", dest)
                 evaluation.predetermined_out = current_predetermined_out

@@ -10,7 +10,14 @@ from mathics.eval.files_io.files import resolve_file
 
 
 def eval_JSONImport(json_name: String, evaluation: Evaluation) -> BaseElement:
-    """Takes a JSON file path and returns a list of file names/paths contained inside."""
+    """Takes a JSON file path and returns a information from it
+    formatted for Mathics3.
+
+    When there is no error, the information returned is a ListExpression
+    containing a Rule for each of WL format Elements, currently "Data", and "Dataset".
+
+    When there is an error, SymbolFailed can be returned.
+    """
     resolve_info = resolve_file(json_name, "r", evaluation)
     if resolve_info is None:
         return SymbolFailed

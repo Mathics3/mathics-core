@@ -12,7 +12,14 @@ from mathics.eval.files_io.files import resolve_file
 
 
 def eval_TextImport(path: String, evaluation: Evaluation) -> BaseElement:
-    """Takes a Text file path and returns information in it."""
+    """Takes a Text file path and returns the Text data formatted for
+    Mathics3.
+
+    When there is no error, the information returned is a ListExpression
+    containing a Rule for each of Text format Elements, currently "Data", and "String".
+
+    When there is an error, SymbolFailed can be returned.
+    """
     resolve_info = resolve_file(path, "r", evaluation)
     if resolve_info is None:
         return SymbolFailed
