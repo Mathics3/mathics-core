@@ -68,6 +68,7 @@ from mathics.eval.import_export.importexport import (
     eval_Import_general,
     eval_Import_source_only,
     filetype_from_mime_content,
+    filetype_from_path,
     importer_exporter_options,
     infer_file_format,
 )

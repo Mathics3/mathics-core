@@ -4,11 +4,11 @@ from typing import Optional
 
 from mathics.core.atoms import String
 from mathics.core.streams import path_search
-from mathics.core.symbols import SymbolNull
+from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.systemsymbols import SymbolFailed
 
 
-def eval_DeleteFile(paths: list[str]) -> String:
+def eval_DeleteFile(paths: list[str]) -> String | Symbol:
     """Underlying DeleteFile[filename_] after checking filename_ and
     converting this to a Python list (even if it is just a single filename).
     """
@@ -22,10 +22,10 @@ def eval_DeleteFile(paths: list[str]) -> String:
     return SymbolNull
 
 
-def eval_FileExtension(path: str) -> String:
+def eval_FileExtension(path: str) -> str:
     """Underlying implementation for FindExtension[filenamename_String]."""
 
-    filename_base, filename_ext = osp.splitext(path)
+    _, filename_ext = osp.splitext(path)
     filename_ext = filename_ext.lstrip(".")
     return filename_ext
 

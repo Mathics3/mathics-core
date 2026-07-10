@@ -17,7 +17,7 @@ from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolTrue, strip_context
+from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue, strip_context
 from mathics.core.systemsymbols import (
     SymbolByteArray,
     SymbolFailed,
@@ -137,7 +137,7 @@ MIMETYPE_TO_SHORTNAME: Final[Dict[str, str]] = {
 }
 
 
-def filetype_from_path(path: str) -> Optional[str]:
+def filetype_from_path(path: str, check_exists: bool = True) -> Optional[str]:
     """Classifies what kind of file `path` is.
     A Mathics3 String is return if we can do this and None, if
     there was some sort of error, e.g., `path` is not found.
@@ -146,11 +146,19 @@ def filetype_from_path(path: str) -> Optional[str]:
     be something received or transmitted over HTTP.
 
     MIME types are standardized and do not change, while file
-    descriptions or WL's codes are not and can change.
+    descriptions or WL's codes are not, and can change.
     """
 
-    if not osp.exists(path):
+    if check_exists and not osp.exists(path):
         return None
+
+    # Special case for ".m" files and ".wl' files. Although ".m" could be Objective C,
+    # we need it to be Mathematica, for Import and Get.
+    # Also ".wl" might not currently be known in libmagic as Wolfram language.
+    # So check extension first before relying on libmagic's content analysis.
+    file_extension = osp.splitext(path)[1].lower()
+    if file_extension in (".m", ".wl"):
+        return "WL"
 
     try:
         mime_content_type = from_file(path, mime=True)
@@ -501,11 +509,11 @@ def perform_import(
             )
             tmp = import_select_expression.evaluate(evaluation)
             if tmp == import_select_expression:
-                # Retry by retieving the entire collection.
+                # Retry by retrieving the entire collection.
                 # Element selection is done afterwards.
                 tmp = import_collection_expression.evaluate(evaluation)
 
-        if tmp is SymbolFailed:
+        if tmp in (SymbolFailed, SymbolNull):
             return SymbolFailed
     elif function_channels == ListExpression(String("Streams")):
         if findfile is None:
@@ -572,14 +580,12 @@ def eval_Import_data_only(
         file_format = MIME_SHORTNAME_TO_WMA.get(filetype, filetype).upper()
 
     if file_format not in IMPORTERS.keys():
-        evaluation.message("Import", "fmtnosup", filetype)
+        evaluation.message("Import", "fmtnosup", String(file_format))
         evaluation.predetermined_out = current_predetermined_out
         return SymbolFailed
 
     # Load the importer
-    conditionals, import_function_symbol, posts, importer_options = IMPORTERS[
-        file_format
-    ]
+    _, import_function_symbol, _posts, importer_options = IMPORTERS[file_format]
 
     stream_options, custom_options = importer_exporter_options(
         importer_options.get("System`Options"), options, "System`Import", evaluation
@@ -626,7 +632,7 @@ def eval_Import_data_only(
     else:
         result = defaults.get(default_element.value)
         if result is None:
-            evaluation.message("Import", "noelem", default_element, String(filetype))
+            evaluation.message("Import", "noelem", default_element, String(file_format))
             evaluation.predetermined_out = current_predetermined_out
             return SymbolFailed
         evaluation.predetermined_out = current_predetermined_out
@@ -709,7 +715,9 @@ def eval_Import_source_only(
         return result
 
 
-def infer_file_format(filename: str, default_extension: str = None) -> Optional[str]:
+def infer_file_format(
+    filename: str, default_extension: Optional[str] = None
+) -> Optional[str]:
     """
     Infer what kind of format filename is in. None is returned if we can't infer
     a format.
