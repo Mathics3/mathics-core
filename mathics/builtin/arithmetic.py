@@ -73,6 +73,7 @@ from mathics.core.systemsymbols import (
     SymbolTable,
     SymbolUndefined,
 )
+from mathics.eval.arithmetic import eval_RealValuedNumberQ
 from mathics.eval.inference import get_assumptions_list
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numeric import eval_Sign
@@ -961,11 +962,7 @@ class RealValuedNumberQ(Test):
     summary_text = "test whether an expression is a real number"
 
     def test(self, expr) -> bool:
-        return (
-            isinstance(expr, (Integer, Rational, Real))
-            or expr.has_form("Underflow", 0)
-            or expr.has_form("Overflow", 0)
-        )
+        return eval_RealValuedNumberQ(expr)
 
 
 class Sum(IterationFunction, SympyFunction, PrefixOperator):
