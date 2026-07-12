@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from test.helper import check_evaluation
+from test.helper import check_arg_counts, check_evaluation
 
 import pytest
 
@@ -456,3 +456,23 @@ def test_type_conversion():
     assert expr.value.dtype == np.int64
     expr = evaluate('NumericArray[{1,2}, "ComplexReal32"]')
     assert expr.value.dtype == np.complex64
+
+
+@pytest.mark.parametrize(
+    ("function_name", "msg_fragment"),
+    [
+        # FIXME: ToString in check_arg_counts() is giving a traceback
+        # for ByteArray[].
+        # (
+        #     "ByteArray",
+        #     "1 argument is",
+        # ),
+        (
+            "ByteArrayQ",
+            "1 argument is",
+        ),
+    ],
+)
+def test_arg_count_errors(function_name, msg_fragment):
+    """ """
+    check_arg_counts(function_name, msg_fragment)

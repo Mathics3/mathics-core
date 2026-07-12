@@ -14,18 +14,7 @@ from abc import ABC
 from functools import total_ordering
 from itertools import chain
 from types import ModuleType
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    Union,
-    cast,
-)
+from typing import Any, Callable, Iterable, List, Optional, Sequence, Tuple, Union, cast
 
 import mpmath
 import sympy
@@ -205,16 +194,16 @@ class Builtin:
     _is_numeric: bool = False
     attributes: int = A_PROTECTED
     context: str = ""
-    defaults: Dict[Optional[int], str] = {}
+    defaults: dict[Optional[int], str] = {}
 
     # Number of arguments expected. -1 is used for an arbitrary number.
     expected_args: Union[int, Tuple[int, int], range] = -1
 
-    formats: Dict[str, Any] = {}
-    messages: Dict[str, Any] = {}
+    formats: dict[str, Any] = {}
+    messages: dict[str, Any] = {}
     name: Optional[str] = None
-    options: Dict[str, Any] = {}
-    rules: Dict[str, Any] = {}
+    options: dict[str, Any] = {}
+    rules: dict[str, Any] = {}
 
     def __getnewargs_ex__(self):
         return tuple(), {
@@ -363,7 +352,7 @@ class Builtin:
                 forms = [""]
             return forms, pattern
 
-        formatvalues: Dict[str, List[BaseRule]] = {"": []}
+        formatvalues: dict[str, List[BaseRule]] = {"": []}
         for pattern, function in self.get_functions("format_"):
             forms, pattern = extract_forms(pattern)
             pat_attr = attributes if pattern.get_head_name() == name else None
@@ -676,7 +665,7 @@ class Builtin:
 
 
 class BuiltinElement(Builtin, BaseElement):
-    options: Dict[str, Any]
+    options: dict[str, Any]
 
     def __new__(cls, *args, **kwargs):
         new_kwargs = kwargs.copy()
@@ -707,7 +696,7 @@ class BuiltinElement(Builtin, BaseElement):
 class SympyObject(Builtin):
     sympy_name: Optional[str] = None
 
-    mathics_to_sympy: Dict[str, str] = {}
+    mathics_to_sympy: dict[str, str] = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -715,7 +704,7 @@ class SympyObject(Builtin):
             self.sympy_name = strip_context(self.get_name()).lower()
         self.mathics_to_sympy[self.__class__.__name__] = self.sympy_name
 
-    def get_sympy_names(self) -> List[str]:
+    def get_sympy_names(self) -> list[str]:
         if self.sympy_name:
             return [self.sympy_name]
         return []
@@ -848,8 +837,8 @@ class MPMathFunction(SympyFunction):
 
 
 class MPMathMultiFunction(MPMathFunction):
-    sympy_names: Optional[Dict[int, str]] = None
-    mpmath_names: Optional[Dict[int, str]] = None
+    sympy_names: Optional[dict[int, str]] = None
+    mpmath_names: Optional[dict[int, str]] = None
 
     def get_sympy_names(self):
         if self.sympy_names is None:
@@ -972,7 +961,7 @@ def has_option(options, name, evaluation):
     return get_option(options, name, evaluation, evaluate=False) is not None
 
 
-mathics_to_python: Dict[str, Any] = {}  # here we have: name -> string
+mathics_to_python: dict[str, Any] = {}  # here we have: name -> string
 
 
 @total_ordering
@@ -1638,8 +1627,8 @@ def add_no_meaning_builtin_classes(
 class PatternObject(BuiltinElement, BasePattern):
     needs_verbatim = True
 
-    arg_counts: List[int] = []
-    options: Dict[str, Any]
+    arg_counts: list[int] = []
+    options: dict[str, Any]
 
     def init(self, expr: Expression, evaluation: Optional[Evaluation] = None):
         super().init(expr, evaluation=evaluation)
@@ -1705,6 +1694,9 @@ class PatternObject(BuiltinElement, BasePattern):
 
 
 class Test(Builtin, ABC):
+    expected_args = 1
+    eval_error = Builtin.generic_argument_error
+
     def eval(self, expr, evaluation: Evaluation) -> Optional[BooleanType]:
         # Note: in the docstring below, we need to use %(name)s for
         # subclasses like ExactNumberQ to work with function-application
