@@ -2,7 +2,7 @@
 """
 Unit tests for mathics.builtins.list.constructing
 """
-from test.helper import check_evaluation
+from test.helper import check_arg_counts, check_evaluation
 
 import pytest
 
@@ -112,12 +112,12 @@ import pytest
             "Keys[{a -> x, {a -> y, b}}]",
             None,
         ),
-        (
-            "Keys[a -> x, b -> y]",
-            ("Keys called with 2 arguments; 1 argument is expected.",),
-            "Keys[a -> x, b -> y]",
-            None,
-        ),
+        # (
+        #     "Keys[a -> x, b -> y]",
+        #     None
+        #     "(b -> y)[a]",
+        #     None,
+        # ),
         ("Values[a -> x]", None, "x", None),
         (
             "Values[{a -> x, a -> y, {a -> z, <|b -> t|>, <||>, {}}}]",
@@ -175,12 +175,11 @@ import pytest
             "Values[{a -> x, {a -> y, b}}]",
             None,
         ),
-        (
-            "Values[a -> x, b -> y]",
-            ("Values called with 2 arguments; 1 argument is expected.",),
-            "Values[a -> x, b -> y]",
-            None,
-        ),
+        # (
+        #     "Values[a -> x, b -> y]",
+        #     "(b -> y)[x]",
+        #     None,
+        # ),
         ("assoc=.;subassoc=.;", None, "Null", None),
     ],
 )
@@ -284,3 +283,25 @@ def test_lookup(str_expr, expected_messages, str_expected, assert_message):
         failure_message=assert_message,
         expected_messages=expected_messages,
     )
+
+
+@pytest.mark.parametrize(
+    ("function_name", "msg_fragment"),
+    [
+        (
+            "Keys",
+            "1 or 2 arguments are",
+        ),
+        (
+            "Lookup",
+            "between 2 and 4 arguments are",
+        ),
+        (
+            "Values",
+            "1 or 2 arguments are",
+        ),
+    ],
+)
+def test_arg_count_errors(function_name, msg_fragment):
+    """ """
+    check_arg_counts(function_name, msg_fragment)

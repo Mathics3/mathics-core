@@ -4,7 +4,7 @@
 Associations
 
 An Association maps keys to values and is similar to a dictionary in Python; \
-it is often sparse in that their key space is much larger than the number of \
+it is often sparse in that its key space is much larger than the number of \
 actual keys found in the collection.
 """
 
@@ -17,7 +17,11 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.systemsymbols import SymbolAssociation, SymbolMakeBoxes, SymbolMissing
-from mathics.eval.list.associations import eval_Lookup, eval_Lookup_multiple_keys
+from mathics.eval.list.associations import (
+    eval_Lookup,
+    eval_Lookup_assocs_list_key,
+    eval_Lookup_multiple_keys,
+)
 from mathics.eval.lists import list_boxes
 
 
@@ -46,6 +50,10 @@ class Association(Builtin):
     Associations can be nested:
     >> <|a -> x, b -> y, <|a -> z, d -> t|>|>
      = <|a ⇾ z, b ⇾ y, d ⇾ t|>
+
+    Look up a key in multiple associations:
+    >> Lookup[{<|a -> 1, b -> 2|>, <|a -> 3, c -> 4|>}, a]
+     = {1, 3}
     """
 
     error_idx = 0
@@ -190,6 +198,9 @@ class Keys(Builtin):
 
       <dt>'Keys'[{$key_1$ '->' $val_1$, $key_2$ '->' $val_2$, ...}]
       <dd>return a list of the $key_i$ in a list of rules.
+
+      <dt>'Keys'[$expr$, $h$]
+      <dd>applies the head $h$ to each key.
     </dl>
 
     >> Keys[<|a -> x, b -> y|>]
@@ -205,19 +216,21 @@ class Keys(Builtin):
     Keys are listed in the order of their appearance:
     >> Keys[{c -> z, b -> y, a -> x}]
      = {c, b, a}
+
+    Apply a head to each key:
+    >> Keys[<|a -> x, b -> y|>, f]
+     = {f[a], f[b]}
     """
 
     attributes = A_PROTECTED
 
-    messages = {
-        "argx": "Keys called with `1` arguments; 1 argument is expected.",
-        "invrl": "The argument `1` is not a valid Association or a list of rules.",
-    }
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
 
     summary_text = "list association keys"
 
     def eval(self, rules, evaluation: Evaluation):
-        "Keys[rules___]"
+        "Keys[rules_]"
 
         def get_keys(expr):
             if expr.has_form(("Rule", "RuleDelayed"), 2):
@@ -241,6 +254,30 @@ class Keys(Builtin):
         except TypeError:
             return None
 
+    def eval_with_head(self, rules, head, evaluation: Evaluation):
+        "Keys[rules_, head_]"
+
+        def get_keys_with_head(expr, h):
+            if expr.has_form(("Rule", "RuleDelayed"), 2):
+                key = expr.elements[0]
+                return Expression(h, key)
+            elif expr.has_form("List", None) or (
+                expr.has_form("Association", None)
+                and AssociationQ(expr).evaluate(evaluation) is SymbolTrue
+            ):
+                return to_mathics_list(
+                    *expr.elements,
+                    elements_conversion_fn=lambda e: get_keys_with_head(e, h),
+                )
+            else:
+                evaluation.message("Keys", "invrl", expr)
+                raise TypeError
+
+        try:
+            return get_keys_with_head(rules, head)
+        except TypeError:
+            return None
+
 
 class Lookup(Builtin):
     """
@@ -255,9 +292,11 @@ class Lookup(Builtin):
           returning $default$ if the key is not found.
       <dt>Lookup[$assoc$, {$key_1$, $key_2$, ...}]
       <dd>looks up multiple keys and returns a list of values.
+      <dt>Lookup[{$assoc_1$, $assoc_2$, ...}, $key$]
+      <dd>looks up $key$ in each association and returns a list of values.
     </dl>
 
-    Look up the value associagted with key a:
+    Look up the value associated with key $a$:
     >> Lookup[<|a -> 1, b -> 2|>, a]
      = 1
 
@@ -277,13 +316,16 @@ class Lookup(Builtin):
     >> Lookup[<|a -> 1, b -> 2|>, {a, b, c}]
      = {1, 2, Missing[KeyAbsent, c]}
 
+    Provide a default value to be used when the key is not found:
+    >> Lookup[<|a -> 1, b -> 2|>, c, 3]
+     = 3
+
     """
 
     attributes = A_PROTECTED | A_READ_PROTECTED
 
-    messages = {
-        "invrl": "The argument `1` is not a valid Association or a list of rules.",
-    }
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(2, 5)
 
     summary_text = "perform lookup of a value by key, returning a specified default if it is not found"
 
@@ -302,6 +344,16 @@ class Lookup(Builtin):
     def eval_assoc_keys_default(self, assoc, keys, default, evaluation: Evaluation):
         """Lookup[assoc_Association, keys_List, default_]"""
         return eval_Lookup_multiple_keys(assoc, keys, default, evaluation)
+
+    def eval_assocs_list_key(self, assocs, key, evaluation: Evaluation):
+        """Lookup[assocs_List, key_]"""
+        return eval_Lookup_assocs_list_key(assocs, key, None, evaluation)
+
+    def eval_assocs_list_key_default(
+        self, assocs, key, default, evaluation: Evaluation
+    ):
+        """Lookup[assocs_List, key_, default_]"""
+        return eval_Lookup_assocs_list_key(assocs, key, default, evaluation)
 
 
 class Missing(Builtin):
@@ -332,6 +384,9 @@ class Values(Builtin):
 
       <dt>'Values'[{$key_1$ '->' $val_1$, $key_2$ '->' $val_2$, ...}]
       <dd>return a list of the $val_i$ in a list of rules.
+
+      <dt>'Values'[$expr$, $h$]
+      <dd>applies the head $h$ to each value.
     </dl>
 
     >> Values[<|a -> x, b -> y|>]
@@ -348,19 +403,20 @@ class Values(Builtin):
     >> Values[{c -> z, b -> y, a -> x}]
      = {z, y, x}
 
+    Apply a head to each value:
+    >> Values[<|a -> x, b -> y|>, f]
+     = {f[x], f[y]}
     """
 
     attributes = A_PROTECTED
 
-    messages = {
-        "argx": "Values called with `1` arguments; 1 argument is expected.",
-        "invrl": "The argument `1` is not a valid Association or a list of rules.",
-    }
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
 
     summary_text = "list association values"
 
     def eval(self, rules, evaluation: Evaluation):
-        "Values[rules___]"
+        "Values[rules_]"
 
         def get_values(expr):
             if expr.has_form(("Rule", "RuleDelayed"), 2):
@@ -384,3 +440,27 @@ class Values(Builtin):
             return get_values(rules[0])
         except TypeError:
             evaluation.message("Values", "invrl", rules[0])
+
+    def eval_with_head(self, rules, head, evaluation: Evaluation):
+        "Values[rules_, head_]"
+
+        def get_values_with_head(expr, h):
+            if expr.has_form(("Rule", "RuleDelayed"), 2):
+                value = expr.elements[1]
+                return Expression(h, value)
+            elif expr.has_form("List", None) or (
+                expr.has_form("Association", None)
+                and AssociationQ(expr).evaluate(evaluation) is SymbolTrue
+            ):
+                return to_mathics_list(
+                    *expr.elements,
+                    elements_conversion_fn=lambda e: get_values_with_head(e, h),
+                )
+            else:
+                evaluation.message("Values", "invrl", expr)
+                raise TypeError
+
+        try:
+            return get_values_with_head(rules, head)
+        except TypeError:
+            return None

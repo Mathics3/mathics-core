@@ -215,6 +215,7 @@ class General(Builtin):
         "intp": "Positive integer expected.",
         "intnn": "Non-negative integer expected.",
         "intnm": "Non-negative machine-sized integer expected at position `1` in `2`.",
+        "invrl": "The argument `1` is not a valid Association or a list of rules.",
         "iterb": "Iterator does not have appropriate bounds.",
         "ivar": "`1` is not a valid variable.",
         "level": ("Level specification `1` is not of the form n, " "{n}, or {m, n}."),
