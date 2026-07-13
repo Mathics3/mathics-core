@@ -208,7 +208,7 @@ Please contribute to Mathics!""",
     definitions = Definitions(
         add_builtin=True, extension_modules=tuple(extension_modules)
     )
-    definitions.set_line_no(0)
+    definitions.set_line_no(1)
 
     shell = mathics.session.shell_session = TerminalShell(
         definitions,
