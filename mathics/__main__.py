@@ -221,7 +221,7 @@ Please contribute to Mathics!""",
     if args.initfile:
         feeder = MathicsFileLineFeeder(args.initfile)
         eval_loop(feeder, shell)
-        definitions.set_line_no(0)
+        definitions.set_line_no(1)
 
     if args.post_mortem:
         try:
@@ -241,7 +241,7 @@ Please contribute to Mathics!""",
         eval_loop(feeder, shell)
 
         if args.persist:
-            definitions.set_line_no(0)
+            definitions.set_line_no(1)
         elif not args.code:
             return exit_rc
 

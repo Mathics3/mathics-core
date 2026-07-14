@@ -208,6 +208,19 @@ class TerminalShell(MathicsLineFeeder, SessionShell):
             matches = [strip_context(m) for m in matches]
         return matches
 
+    def get_out_prompt(self, form=None) -> str:
+        """
+        Return a prompt string to be shown before showing output.
+        """
+        line_number = self.last_line_number
+        if form:
+            return "{3}{0}[{4}{1}{5}]//{2}= {6}".format(
+                self.out_prefix, line_number, form, *self.outcolors
+            )
+        return "{2}{0}[{3}{1}{4}]= {5}".format(
+            self.out_prefix, line_number, *self.outcolors
+        )
+
     @property
     def in_prompt(self) -> str:
         """
@@ -230,19 +243,6 @@ class TerminalShell(MathicsLineFeeder, SessionShell):
         Return the line number associated with the next input to be read.
         """
         return self.definitions.get_line_no()
-
-    def get_out_prompt(self, form=None) -> str:
-        """
-        Return a prompt string to be shown before showing output.
-        """
-        line_number = self.last_line_number
-        if form:
-            return "{3}{0}[{4}{1}{5}]//{2}= {6}".format(
-                self.out_prefix, line_number, form, *self.outcolors
-            )
-        return "{2}{0}[{3}{1}{4}]= {5}".format(
-            self.out_prefix, line_number, *self.outcolors
-        )
 
     def out_callback(self, out, fmt=None):
         print(self.to_output(str(out), fmt))
@@ -324,6 +324,7 @@ def eval_loop(feeder: MathicsFileLineFeeder, shell: TerminalShell):
                 catch_interrupt=False,
             )
 
+            shell.multiline_input = False
             query = evaluation.parse_feeder(feeder)
             if query is None:
                 continue
