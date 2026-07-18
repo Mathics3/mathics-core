@@ -59,9 +59,9 @@ class TerminalShell(MathicsLineFeeder, SessionShell):
     def __init__(
         self,
         definitions,
-        colors,
-        want_readline,
-        want_completion,
+        colors: str,
+        want_readline: bool,
+        want_completion: bool,
         autoload=False,
         in_prefix: str = "In",
         out_prefix: str = "Out",
@@ -76,6 +76,10 @@ class TerminalShell(MathicsLineFeeder, SessionShell):
         self.lineno = 0
         self.in_prefix = in_prefix
         self.out_prefix = out_prefix
+
+        # Keep track of whether input of a command spans more than one line.
+        # In prompting we omit "In[x]:= after the first line.
+        self.multiline_input = False
 
         if want_readline:
             want_readline = have_readline
@@ -183,7 +187,14 @@ class TerminalShell(MathicsLineFeeder, SessionShell):
         return False
 
     def feed(self):
+        """
+        Prompt for and read another line of input.
+        Keep track of the line number and note, after reading,
+        in self.multiline_input that if we need to read again, we have already prompted
+        for the input.
+        """
         result = self.read_line(self.in_prompt) + "\n"
+        self.multiline_input = True
         if mathics_scanner.location.TRACK_LOCATIONS:
             self.container.append(self.source_text)
         if result == "\n":
@@ -197,23 +208,6 @@ class TerminalShell(MathicsLineFeeder, SessionShell):
             matches = [strip_context(m) for m in matches]
         return matches
 
-    @property
-    def in_prompt(self) -> str:
-        """
-        Return the prompt string to be shown before reading input.
-        """
-        next_line_number = self.last_line_number + 1
-        return "{2}{0}[{3}{1}{4}]:= {5}".format(
-            self.in_prefix, next_line_number, *self.incolors
-        )
-
-    @property
-    def last_line_number(self):
-        """
-        Return the line number associated with the next input to be read.
-        """
-        return self.definitions.get_line_no()
-
     def get_out_prompt(self, form=None) -> str:
         """
         Return a prompt string to be shown before showing output.
@@ -226,6 +220,29 @@ class TerminalShell(MathicsLineFeeder, SessionShell):
         return "{2}{0}[{3}{1}{4}]= {5}".format(
             self.out_prefix, line_number, *self.outcolors
         )
+
+    @property
+    def in_prompt(self) -> str:
+        """
+        Return the prompt string to be shown before reading input.
+        If this is a continuation line for some logical input,
+        the prefix returned contains spaces only.
+        """
+        line_number = self.last_line_number
+        if self.multiline_input:
+            indent = len(f"In[{line_number}]:= ")
+            return " " * indent
+        else:
+            return "{2}{0}[{3}{1}{4}]:= {5}".format(
+                self.in_prefix, line_number, *self.incolors
+            )
+
+    @property
+    def last_line_number(self):
+        """
+        Return the line number associated with the next input to be read.
+        """
+        return self.definitions.get_line_no()
 
     def out_callback(self, out, fmt=None):
         print(self.to_output(str(out), fmt))
@@ -307,6 +324,7 @@ def eval_loop(feeder: MathicsFileLineFeeder, shell: TerminalShell):
                 catch_interrupt=False,
             )
 
+            shell.multiline_input = False
             query = evaluation.parse_feeder(feeder)
             if query is None:
                 continue
@@ -340,6 +358,7 @@ def interactive_eval_loop(
                 # has access to this
                 evaluation.shell = shell
 
+            shell.multiline_input = False
             query, source_code = evaluation.parse_feeder_returning_code(shell)
             if mathics_core.PRE_EVALUATION_HOOK is not None:
                 mathics_core.PRE_EVALUATION_HOOK(query, evaluation)
