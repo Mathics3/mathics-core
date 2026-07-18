@@ -763,7 +763,7 @@ class PolygonBox(_Polyline):
             self.do_init(graphics, points)
             self.vertex_colors = None
             for element in item.elements[1:]:
-                if not element.has_form("Rule", 2):
+                if not element.has_form(("RewriteRule" "Rule"), 2):
                     raise BoxExpressionError
                 name = element.elements[0].get_name()
                 self.process_option(name, element.elements[1])

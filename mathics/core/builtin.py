@@ -71,7 +71,7 @@ from mathics.core.number import PrecisionValueError, dps, get_precision, min_pre
 from mathics.core.parser.operators import OPERATOR_DATA
 from mathics.core.parser.util import PyMathicsDefinitions, SystemDefinitions
 from mathics.core.pattern import BasePattern, build_pattern_sort_key
-from mathics.core.rules import BaseRule, FunctionApplyRule, Rule
+from mathics.core.rules import BaseRule, FunctionApplyRule, RewriteRule
 from mathics.core.symbols import (
     Atom,
     BaseElement,
@@ -320,7 +320,7 @@ class Builtin:
             replace_str = replace_str % {"name": name}
             pat_attr = attributes if pattern.get_head_name() == name else None
             rules.append(
-                Rule(
+                RewriteRule(
                     pattern,
                     parse_builtin_rule(replace_str),
                     attributes=pat_attr,
@@ -385,7 +385,7 @@ class Builtin:
                     pattern = parse_builtin_rule(pattern)
                 replace = replace % {"name": name}
                 formatvalues[form].append(
-                    Rule(pattern, parse_builtin_rule(replace), system=True)
+                    RewriteRule(pattern, parse_builtin_rule(replace), system=True)
                 )
 
         formatvalues.setdefault("_MakeBoxes", []).extend(box_rules)
@@ -396,7 +396,7 @@ class Builtin:
         if hasattr(self, "summary_text"):
             self.messages["usage"] = self.summary_text
         messages = [
-            Rule(
+            RewriteRule(
                 Expression(SymbolMessageName, Symbol(name), String(msg)),
                 String(value),
                 system=True,
@@ -405,7 +405,7 @@ class Builtin:
         ]
 
         messages.append(
-            Rule(
+            RewriteRule(
                 Expression(SymbolMessageName, Symbol(name), String("optx")),
                 String("`1` is not a supported option for `2`[]."),
                 system=True,
@@ -421,7 +421,7 @@ class Builtin:
             elif isinstance(spec, int):
                 pattern = Expression(SymbolDefault, Symbol(name), Integer(spec))
             if pattern is not None:
-                defaults.append(Rule(pattern, value, system=True))
+                defaults.append(RewriteRule(pattern, value, system=True))
 
         definition = Definition(
             name=name,
@@ -1400,7 +1400,7 @@ class InfixOperator(Operator):
         operator = ascii_operator_to_symbol.get(self.operator, self.__class__.__name__)
 
         if self.default_formats:
-            if name not in ("Rule", "RuleDelayed"):
+            if name not in ("RewriteRule", "Rule", "RuleDelayed"):
                 formats = {
                     op_pattern: "HoldForm[Infix[{%s}, %s, %d, %s]]"
                     % (replace_items, operator, self.precedence, self.grouping)

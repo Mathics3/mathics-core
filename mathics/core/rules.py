@@ -235,7 +235,7 @@ class BaseRule(KeyComparable, ABC):
 # FIXME: Given what is stated in the docstring below,
 # the class name would be better called RewriteRule, instead of the
 # more generic term Rule.
-class Rule(BaseRule):
+class RewriteRule(BaseRule):
     """There are two kinds of Rules.  This kind of is a rewrite rule
     and transforms an Expression into another Expression based on the
     pattern and a replacement term and doesn't involve function
@@ -266,7 +266,7 @@ class Rule(BaseRule):
         evaluation: Optional[Evaluation] = None,
         attributes: Optional[int] = None,
     ) -> None:
-        super(Rule, self).__init__(
+        super(RewriteRule, self).__init__(
             pattern, system=system, evaluation=evaluation, attributes=attributes
         )
         self.replace = replace

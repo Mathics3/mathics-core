@@ -43,7 +43,7 @@ from mathics.core.exceptions import (
 from mathics.core.expression import Expression
 from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
-from mathics.core.rules import Rule
+from mathics.core.rules import RewriteRule
 from mathics.core.symbols import Atom, Symbol, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAppend,
@@ -216,7 +216,7 @@ class Cases(Builtin):
         if isinstance(items, Atom):
             return ListExpression()
 
-        if levelspec.has_form("Rule", 2):
+        if levelspec.has_form(("RewriteRule", "Rule"), 2):
             if levelspec.elements[0].get_name() == "System`Heads":
                 heads = levelspec.elements[1] is SymbolTrue
                 levelspec = ListExpression(Integer1)
@@ -234,9 +234,9 @@ class Cases(Builtin):
 
         results = []
 
-        if pattern.has_form("Rule", 2) or pattern.has_form("RuleDelayed", 2):
+        if pattern.has_form(("RewriteRule", "Rule", "RuleDelayed"), 2):
             match = Matcher(pattern.elements[0], evaluation).match
-            rule = Rule(pattern.elements[0], pattern.elements[1])
+            rule = RewriteRule(pattern.elements[0], pattern.elements[1])
 
             def callback(level):
                 if match(level, evaluation):
@@ -1497,9 +1497,7 @@ class ReplacePart(Builtin):
         new_expr = expr.copy()
         replacements = replacements.get_sequence()
         for replacement in replacements:
-            if not replacement.has_form("Rule", 2) and not replacement.has_form(  # noqa
-                "RuleDelayed", 2
-            ):
+            if not replacement.has_form(("RewriteRule", "Rule", "RuleDelayed"), 2):
                 evaluation.message("ReplacePart", "reps", ListExpression(*replacements))
                 return
             position = replacement.elements[0]

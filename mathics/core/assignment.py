@@ -14,7 +14,7 @@ from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.rules import Rule
+from mathics.core.rules import RewriteRule
 from mathics.core.symbols import Atom, Symbol, SymbolList
 from mathics.core.systemsymbols import (
     SymbolAnd,
@@ -29,9 +29,9 @@ from mathics.core.systemsymbols import (
 )
 
 
-def build_rulopc(optval: BaseElement) -> Rule:
+def build_rulopc(optval: BaseElement) -> RewriteRule:
     """Build an option value rule for optval"""
-    return Rule(
+    return RewriteRule(
         Expression(
             SymbolOptionValue,
             Expression(SymbolPattern, Symbol("$cond$"), SymbolBlank),
@@ -157,7 +157,7 @@ def get_symbol_values(
         return ListExpression(*elements)
 
     for rule in definition.get_values_list(position):
-        if isinstance(rule, Rule):
+        if isinstance(rule, RewriteRule):
             pattern = rule.pattern
             if pattern.has_form("HoldPattern", 1):
                 expr_pattern = pattern.expr
@@ -350,7 +350,7 @@ def unroll_patterns(
         # like
         # rhs = Expression(Symbol("System`Replace"), Rule(*rulerepl))
         # TODO: check if this is the correct behavior.
-        rhs, _ = rhs.do_apply_rules([Rule(*rulerepl)], evaluation)
+        rhs, _ = rhs.do_apply_rules([RewriteRule(*rulerepl)], evaluation)
         name = lhs.get_head_name()
     elif name == "System`HoldPattern":
         lhs = lhs_elements[0]

@@ -214,7 +214,7 @@ class Evaluation:
         """
         from mathics.core.convert.expression import to_expression
         from mathics.core.expression import Expression
-        from mathics.core.rules import Rule
+        from mathics.core.rules import RewriteRule
 
         self.start_time = time.time()
         self.iteration_count = 0
@@ -242,7 +242,7 @@ class Evaluation:
         def evaluate():
             if history_length > 0:
                 self.definitions.add_rule(
-                    "In", Rule(to_expression("In", line_no), query)
+                    "In", RewriteRule(to_expression("In", line_no), query)
                 )
             if check_io_hook("System`$Pre"):
                 self.last_eval = Expression(SymbolPre, query).evaluate(self)
@@ -260,7 +260,8 @@ class Evaluation:
 
                 stored_result = self.get_stored_result(out_result, output_forms)
                 self.definitions.add_rule(
-                    "Out", Rule(Expression(SymbolOut, Integer(line_no)), stored_result)
+                    "Out",
+                    RewriteRule(Expression(SymbolOut, Integer(line_no)), stored_result),
                 )
             if self.last_eval != self.SymbolNull:
                 if check_io_hook("System`$PrePrint"):

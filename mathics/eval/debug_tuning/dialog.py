@@ -1,9 +1,9 @@
 from mathics import settings
 from mathics.core.atoms import Integer
 from mathics.core.element import BaseElement
-from mathics.core.evaluation import Evaluation, Result
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.rules import Rule
+from mathics.core.rules import RewriteRule
 from mathics.core.systemsymbols import SymbolOut
 from mathics.repl import interactive_eval_loop
 
@@ -29,7 +29,9 @@ def eval_Dialog(expr: BaseElement | None, evaluation: Evaluation):
         definitions = evaluation.definitions
         definitions.add_rule(
             "Out",
-            Rule(Expression(SymbolOut, Integer(saved_line_number)), result.last_eval),
+            RewriteRule(
+                Expression(SymbolOut, Integer(saved_line_number)), result.last_eval
+            ),
         )
         shell.print_result(result)
 
