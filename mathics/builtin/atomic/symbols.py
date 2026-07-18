@@ -28,7 +28,7 @@ from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.rules import Rule
+from mathics.core.rules import RewriteRule
 from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
@@ -69,7 +69,7 @@ def gather_and_format_definition_rules(
         return expr
 
     def format_rule(
-        rule: Rule,
+        rule: RewriteRule,
         up: bool = False,
         lhs: Callable = lambda k: k,
         rhs: Callable = lambda r: r,
@@ -78,7 +78,7 @@ def gather_and_format_definition_rules(
         Add a line showing `rule`
         """
         evaluation.check_stopped()
-        if isinstance(rule, Rule):
+        if isinstance(rule, RewriteRule):
             lhs_pat = Expression(SymbolInputForm, lhs(rule.pattern.expr))
             repl_expr = rhs(
                 rule.replace.replace_vars(
