@@ -18,6 +18,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import InvalidLevelspecError, MessageException
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.rules import is_rule
 from mathics.core.symbols import Atom, Symbol, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import SymbolMapThread
 from mathics.eval.functional.apply_fns_to_lists import eval_MapAt
@@ -191,9 +192,7 @@ class Map(InfixOperator):
             #
             # Fixing this would require a different implementation of this eval_ method.
             #
-            if is_association and level.has_form(
-                ("Rule", "RewriteRule", "RuleDelayed"), 2
-            ):
+            if is_association and is_rule(level):
                 return Expression(
                     level.get_head(),
                     level.elements[0],

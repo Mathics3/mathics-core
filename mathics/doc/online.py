@@ -24,7 +24,7 @@ def online_doc_string(
     # First look at user definitions:
     for rulemsg in ruleusage:
         if rulemsg.pattern.expr.get_elements()[1].__str__() == '"usage"':
-            usagetext = rulemsg.get_replace_value().to_python(string_quotes=False)
+            usagetext = rulemsg.rhs.to_python(string_quotes=False)
 
     if not is_long_form and usagetext:
         return usagetext

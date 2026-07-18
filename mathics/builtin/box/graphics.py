@@ -4,7 +4,7 @@ Boxing Symbols for 2D Graphics
 """
 from abc import ABC
 from math import atan2, cos, degrees, pi, sin
-from typing import Any, Dict, Final, List, Optional, Tuple
+from typing import Any, Final, Optional
 
 from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.colors.color_directives import (
@@ -31,6 +31,7 @@ from mathics.core.exceptions import BoxExpressionError
 from mathics.core.expression import Expression
 from mathics.core.formatter import lookup_method
 from mathics.core.list import ListExpression
+from mathics.core.rules import is_rule
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolInsetBox, SymbolTraditionalForm
 from mathics.format.box import format_element
@@ -56,7 +57,7 @@ class GraphicsElementBox(BoxExpression, ABC):
 # GraphicsElementBox Builtin class that should not get added as a definition,
 # and therefore not added to to external documentation.
 
-DOES_NOT_ADD_BUILTIN_DEFINITION: Final[List[BoxExpression]] = [GraphicsElementBox]
+DOES_NOT_ADD_BUILTIN_DEFINITION: Final[list[BoxExpression]] = [GraphicsElementBox]
 
 
 class _Polyline(GraphicsElementBox):
@@ -471,9 +472,9 @@ class GraphicsBox(BoxExpression):
     summary_text = "symbol used in boxing 'Graphics'"
 
     def init(self, *items, **kwargs):
-        self._elements: Optional[Tuple[BaseElement], ...] = None
+        self._elements: Optional[tuple[BaseElement], ...] = None
         self.content = items[0]
-        self.box_options: Dict[str, Any] = kwargs
+        self.box_options: dict[str, Any] = kwargs
         self.background_color = None
         self.tooltip_text: Optional[str] = None
         self.evaluation = kwargs.pop("_evaluation", None)
@@ -763,7 +764,7 @@ class PolygonBox(_Polyline):
             self.do_init(graphics, points)
             self.vertex_colors = None
             for element in item.elements[1:]:
-                if not element.has_form(("RewriteRule" "Rule"), 2):
+                if not is_rule(element):
                     raise BoxExpressionError
                 name = element.elements[0].get_name()
                 self.process_option(name, element.elements[1])

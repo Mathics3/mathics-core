@@ -15,6 +15,7 @@ from mathics.core.builtin import Builtin, Test
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.rules import is_rule
 from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.systemsymbols import SymbolAssociation, SymbolMakeBoxes, SymbolMissing
 from mathics.eval.list.associations import (
@@ -68,7 +69,7 @@ class Association(Builtin):
 
         def validate(exprs):
             for expr in exprs:
-                if expr.has_form(("Rule", "RuleDelayed"), 2):
+                if is_rule(expr):
                     pass
                 elif expr.has_form(("List", "Association"), None):
                     if not validate(expr.elements):
@@ -96,7 +97,7 @@ class Association(Builtin):
 
         def make_flatten(exprs, rules_dictionary: dict = {}):
             for expr in exprs:
-                if expr.has_form(("Rule", "RuleDelayed"), 2):
+                if is_rule(expr):
                     elements = expr.elements
                     key = elements[0].evaluate(evaluation)
                     value = elements[1].evaluate(evaluation)
@@ -117,7 +118,7 @@ class Association(Builtin):
 
         def find_key(exprs, rules_dictionary: dict = {}):
             for expr in exprs:
-                if expr.has_form(("Rule", "RuleDelayed"), 2):
+                if is_rule(expr):
                     if expr.elements[0] == key:
                         rules_dictionary[key] = expr.elements[1]
                 elif expr.has_form(("List", "Association"), None):
@@ -158,7 +159,7 @@ class AssociationQ(Test):
     def test(self, expr) -> bool:
         def validate(elements):
             for element in elements:
-                if element.has_form(("Rule", "RuleDelayed"), 2):
+                if is_rule(element):
                     pass
                 elif element.has_form(("List", "Association"), None):
                     if not validate(element.elements):
@@ -233,7 +234,7 @@ class Keys(Builtin):
         "Keys[rules_]"
 
         def get_keys(expr):
-            if expr.has_form(("Rule", "RuleDelayed"), 2):
+            if is_rule(expr):
                 return expr.elements[0]
             elif expr.has_form("List", None) or (
                 expr.has_form("Association", None)
@@ -258,7 +259,7 @@ class Keys(Builtin):
         "Keys[rules_, head_]"
 
         def get_keys_with_head(expr, h):
-            if expr.has_form(("Rule", "RuleDelayed"), 2):
+            if is_rule(expr):
                 key = expr.elements[0]
                 return Expression(h, key)
             elif expr.has_form("List", None) or (
@@ -419,7 +420,7 @@ class Values(Builtin):
         "Values[rules_]"
 
         def get_values(expr):
-            if expr.has_form(("Rule", "RuleDelayed"), 2):
+            if is_rule(expr):
                 return expr.elements[1]
             elif expr.has_form("List", None) or (
                 expr.has_form("Association", None)
@@ -445,7 +446,7 @@ class Values(Builtin):
         "Values[rules_, head_]"
 
         def get_values_with_head(expr, h):
-            if expr.has_form(("Rule", "RuleDelayed"), 2):
+            if is_rule(expr):
                 value = expr.elements[1]
                 return Expression(h, value)
             elif expr.has_form("List", None) or (

@@ -34,6 +34,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BoxError, Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import dps
+from mathics.core.rules import is_rule
 from mathics.core.symbols import (
     Atom,
     Symbol,
@@ -162,7 +163,7 @@ def _association_outputform(expr: Expression, evaluation: Evaluation, **kwargs):
     elements = expr.elements
     parts = []
     for element in elements:
-        if not element.has_form(("Rule", "RuleDelayed"), 2):
+        if not is_rule(element):
             raise _WrongFormattedExpression
         parts.append(rule_to_outputform_text(element, evaluation, **kwargs))
     return "<|" + ", ".join(parts) + "|>"
