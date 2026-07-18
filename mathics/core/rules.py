@@ -238,7 +238,7 @@ class BaseRule(KeyComparable, ABC):
         raise ValueError
 
     @property
-    def lhs(self) -> BaseElement:
+    def lhs(self) -> BasePattern:
         """
         Lefthand side of a rule. Also known as its "pattern".
         """
@@ -253,6 +253,13 @@ class BaseRule(KeyComparable, ABC):
         # FIXME: check if this makes sense:
         # True used to be self.system. Can we remove True?
         return tuple((True, self.pattern.pattern_precedence))
+
+    @property
+    def rhs(self):
+        """
+        Lefthand side of a rule. Also known as its "pattern".
+        """
+        raise NotImplementedError
 
 
 class RewriteRule(BaseRule):
@@ -368,7 +375,7 @@ class RewriteRule(BaseRule):
         )
 
     @property
-    def rhs(self) -> BaseElement:
+    def rhs(self):
         return self.replace
 
 
@@ -466,3 +473,7 @@ class FunctionApplyRule(BaseRule):
 
     def __setstate__(self, dict):
         self.__dict__.update(dict)  # update attributes
+
+    @property
+    def rhs(self):
+        return self.function
