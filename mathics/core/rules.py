@@ -47,11 +47,10 @@ plotting functions, or evaluating derivatives and integrals.
 
 """
 
-
 from abc import ABC
 from inspect import signature
 from itertools import chain
-from typing import Callable, Optional
+from typing import Any, Callable, Optional
 
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
@@ -67,6 +66,24 @@ def _python_function_arguments(f):
 
 def function_arguments(f):
     return _python_function_arguments(f)
+
+
+def is_rule(element: Any, include_delayed: bool = True) -> bool:
+    """
+    Return True if element is a RewriteRule, typically called a "Rule" in WMA.
+    In Mathics3, a hard-coded FunctionApplyRule can invoke a Python function.
+    This kind of rule is not detected here.
+
+    The parameter "included_delayed" indicates whether we allow Delayed Rules,
+    the default is True.
+    """
+    # FIXME: remove the the test on has_form("Rule") when by fixing up
+    # class Rule_ in mathics.core.builtins.
+    return (
+        isinstance(element, RewriteRule) or element.has_form(("Rule", "RuleDelayed"), 2)
+        if include_delayed
+        else isinstance(element, RewriteRule)
+    )
 
 
 class StopGenerator_BaseRule(StopGenerator):
@@ -88,7 +105,7 @@ class RuleApplicationFailed(Exception):
 
 class BaseRule(KeyComparable, ABC):
     """This is the base class from which the FunctionApplyRule and
-    Rule classes are derived from.
+    RewriteRule classes are derived from.
 
     Rules are part of the rewriting system of Mathics3. See
     https://en.wikipedia.org/wiki/Rewriting
@@ -105,12 +122,11 @@ class BaseRule(KeyComparable, ABC):
         self,
         pattern: BaseElement,
         system: bool = False,
-        evaluation: Optional[Evaluation] = None,
         attributes: Optional[int] = None,
     ) -> None:
         self.location: Optional[Callable] = None
         self.pattern = BasePattern.create(
-            pattern, attributes=attributes, evaluation=evaluation
+            pattern, attributes=attributes, evaluation=None
         )
         self.system = system
 
@@ -210,9 +226,6 @@ class BaseRule(KeyComparable, ABC):
     ):
         raise NotImplementedError
 
-    def get_replace_value(self) -> BaseElement:
-        raise ValueError
-
     @property
     def element_order(self) -> tuple:
         """
@@ -221,6 +234,16 @@ class BaseRule(KeyComparable, ABC):
         """
         # FIXME: check if this makes sense:
         return tuple((self.system, self.pattern.element_order))
+
+    def get_replace_value(self) -> BaseElement:
+        raise ValueError
+
+    @property
+    def lhs(self) -> BaseElement:
+        """
+        Lefthand side of a rule. Also known as its "pattern".
+        """
+        return self.pattern
 
     @property
     def pattern_precedence(self) -> tuple:
@@ -232,14 +255,15 @@ class BaseRule(KeyComparable, ABC):
         return tuple((self.system, self.pattern.pattern_precedence))
 
 
-# FIXME: Given what is stated in the docstring below,
-# the class name would be better called RewriteRule, instead of the
-# more generic term Rule.
 class RewriteRule(BaseRule):
-    """There are two kinds of Rules.  This kind of is a rewrite rule
-    and transforms an Expression into another Expression based on the
-    pattern and a replacement term and doesn't involve function
-    application.
+    """A RewriteRule in WMA is called simply a "Rule".
+
+    Rules that are user-visible. In Mathics3, we also have rules to
+    perform function application, FunctionApplyRule.
+
+    A RewriteRule transforms an Expression into another Expression
+    based on the pattern and a replacement term; "pattern" and "
+    replacement" are somtimes called the lhs, and rhs respectively.
 
     In contrast to FunctionApplyRule[], rule application cannot force
     a reevaluation of the expression when the rewrite/apply/eval step
@@ -247,28 +271,29 @@ class RewriteRule(BaseRule):
 
     Here is an example of a Rule::
 
-        F[x_] -> x^2   (* The same thing as: Rule[x_, x^2] *)
+    F[x_] -> x^2   (* The same thing as: Rule[x_, x^2] *)
 
     ``F[x_]`` is a pattern and ``x^2`` is the replacement term. When
-    applied to the expression ``G[F[1.], F[a]]`` the result is
-    ``G[1.^2, a^2]``
+    applied to the expression ``G[F[1.], F[a]]`` the result is ``G[1.^
+    2, a^2]``
+
+    Rewrite rules can also be mapping objects when the lhs is a
+    constant. These are individual key-value pairs that form an
+    Association Association-like data such as InformationData.
 
     Note: we want Rules to be serializable so that we can dump and
-    restore Rules in order to make startup time faster.
-
+    restore Rules of classes of builtin function to be loaded via
+    lazy loading.
     """
 
     def __init__(
         self,
-        pattern: BaseElement,
+        pattern: BaseElement,  # Note: a constant value is also a "pattern".
         replace: BaseElement,
         system=False,
-        evaluation: Optional[Evaluation] = None,
         attributes: Optional[int] = None,
     ) -> None:
-        super(RewriteRule, self).__init__(
-            pattern, system=system, evaluation=evaluation, attributes=attributes
-        )
+        super(RewriteRule, self).__init__(pattern, system=system, attributes=None)
         self.replace = replace
 
     def apply_rule(
@@ -332,6 +357,10 @@ class RewriteRule(BaseRule):
             )
         )
 
+    @property
+    def rhs(self) -> BaseElement:
+        return self.replace
+
 
 class FunctionApplyRule(BaseRule):
     """
@@ -383,11 +412,10 @@ class FunctionApplyRule(BaseRule):
         function: Callable,
         check_options: Optional[Callable],
         system: bool = False,
-        evaluation: Optional[Evaluation] = None,
         attributes: Optional[int] = None,
     ) -> None:
         super(FunctionApplyRule, self).__init__(
-            pattern, system=system, attributes=attributes, evaluation=evaluation
+            pattern, system=system, attributes=attributes
         )
         self.name = name
         self.location = self.function = function
