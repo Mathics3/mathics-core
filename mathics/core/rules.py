@@ -3,7 +3,7 @@
 program.
 
 Expressions which are transformed by rewrite rules (AKA transformation
-rules) are handed by the `Rule` class.
+rules) are handled by the `Rule` class.
 
 There are also rules for how to match, assign function parameter
 arguments, and then apply a Python "evaluation" function to a Mathics3 Expression.
@@ -15,7 +15,7 @@ In a `FunctionApplyRule` rule, the match status of a rule depends on the evaluat
 
 For example, suppose that we try to apply rule `F[x_]->x^2` to the expression `F[2]`. The pattern part of the rule,`F[x_]` matches
 the expression, `Blank[x]` (or `x_`) is replaced by `2`, giving the substitution expression `2^2`. Evaluation then stops
-looking for other rules to be applied over `F[2]`.
+looking for other rules to be applied to `F[2]`.
 
 On the other hand, suppose that we define a `FunctionApplyRule` that associates `F[x_]` with the function:
 
@@ -29,7 +29,7 @@ On the other hand, suppose that we define a `FunctionApplyRule` that associates 
                 return Expression(SymbolPower, x, Integer2)
             return None
 
-Then, if we apply the rule to `F[2]`, the function is evaluated returning `None`. Then, in the evaluation loop, we get the same
+Then, if we apply the rule to `F[2]`, the function is evaluated, returning `None`. Then, in the evaluation loop, we get the same
 effect as if the pattern didn't match with the expression. The loop continues then with the next rule associated with `F`.
 
 Why do things this way?
@@ -39,10 +39,10 @@ Sometimes, the cost of deciding if the rule match is similar to the cost of eval
    F[x_/;(G[x]>0)]:=G[x]
 
 with G[x] a computationally expensive function. To decide if G[x] is larger than 0, we need to evaluate it,
-and once we have evaluated it, just need to return its value.
+and once we have evaluated it, we just need to return its value.
 
 Also, this allows us to handle several rules in the same function, without relying on our very slow pattern-matching routines.
-In particular, this is used for for some critical low-level tasks like building lists in iterators, processing arithmetic expressions,
+In particular, this is used for some critical low-level tasks like building lists in iterators, processing arithmetic expressions,
 plotting functions, or evaluating derivatives and integrals.
 
 """
@@ -97,7 +97,7 @@ class StopGenerator_BaseRule(StopGenerator):
 class RuleApplicationFailed(Exception):
     """
     Exception raised when a condition fails
-    in the RHS, indicating that the match have failed.
+    in the RHS, indicating that the match has failed.
     """
 
     pass
@@ -112,7 +112,7 @@ class BaseRule(KeyComparable, ABC):
 
     This class is not complete in of itself; subclasses must adapt or
     fill in what is needed. In particular either ``apply_rule()`` or
-    ``apply_function()`` need to be implemented.
+    ``apply_function()`` needs to be implemented.
 
     Note: we want Rules to be serializable so that we can dump and
     restore Rules in order to make startup time faster.
@@ -257,7 +257,7 @@ class BaseRule(KeyComparable, ABC):
     @property
     def rhs(self):
         """
-        Lefthand side of a rule. Also known as its "pattern".
+        Right-hand side of a rule. Also known as its "replacement".
         """
         raise NotImplementedError
 
@@ -270,7 +270,8 @@ class RewriteRule(BaseRule):
 
     A RewriteRule transforms an Expression into another Expression
     based on the pattern and a replacement term; "pattern" and "
-    replacement" are somtimes called the lhs, and rhs respectively.
+    replacement" are sometimes called the "lhs" and "rhs",
+    respectively.
 
     In contrast to FunctionApplyRule[], rule application cannot force
     a reevaluation of the expression when the rewrite/apply/eval step
@@ -281,12 +282,12 @@ class RewriteRule(BaseRule):
     F[x_] -> x^2   (* The same thing as: Rule[x_, x^2] *)
 
     ``F[x_]`` is a pattern and ``x^2`` is the replacement term. When
-    applied to the expression ``G[F[1.], F[a]]`` the result is ``G[1.^
-    2, a^2]``
+    applied to the expression ``G[F[1.], F[a]]`` the result is
+    ``G[1.^2, a^2]``
 
     Rewrite rules can also be mapping objects when the lhs is a
-    constant. These are individual key-value pairs that form an
-    Association Association-like data such as InformationData.
+    constant. These are individual key-value pairs that form in
+    Association-like data such as InformationData.
 
     Note: we want Rules to be serializable so that we can dump and
     restore Rules of classes of builtin function to be loaded via
