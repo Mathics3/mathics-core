@@ -121,14 +121,12 @@ class BaseRule(KeyComparable, ABC):
     def __init__(
         self,
         pattern: BaseElement,
-        system: bool = False,
         attributes: Optional[int] = None,
     ) -> None:
         self.location: Optional[Callable] = None
         self.pattern = BasePattern.create(
             pattern, attributes=attributes, evaluation=None
         )
-        self.system = system
 
     def apply(
         self,
@@ -233,7 +231,8 @@ class BaseRule(KeyComparable, ABC):
         of an expression. The tuple is ultimately compared lexicographically.
         """
         # FIXME: check if this makes sense:
-        return tuple((self.system, self.pattern.element_order))
+        # True used to be self.system. Can we remove True?
+        return tuple((True, self.pattern.element_order))
 
     def get_replace_value(self) -> BaseElement:
         raise ValueError
@@ -252,7 +251,8 @@ class BaseRule(KeyComparable, ABC):
         which pattern to select when several match.
         """
         # FIXME: check if this makes sense:
-        return tuple((self.system, self.pattern.pattern_precedence))
+        # True used to be self.system. Can we remove True?
+        return tuple((True, self.pattern.pattern_precedence))
 
 
 class RewriteRule(BaseRule):
@@ -290,11 +290,13 @@ class RewriteRule(BaseRule):
         self,
         pattern: BaseElement,  # Note: a constant value is also a "pattern".
         replace: BaseElement,
-        system=False,
         attributes: Optional[int] = None,
     ) -> None:
-        super(RewriteRule, self).__init__(pattern, system=system, attributes=None)
+        super(RewriteRule, self).__init__(pattern, attributes=None)
         self.replace = replace
+
+    def __repr__(self) -> str:
+        return "<Rule: %s -> %s>" % (self.pattern, self.replace)
 
     def apply_rule(
         self, expression: BaseElement, vars: dict, options: dict, evaluation: Evaluation
@@ -336,8 +338,14 @@ class RewriteRule(BaseRule):
         """return the replace value"""
         return self.replace
 
-    def __repr__(self) -> str:
-        return "<Rule: %s -> %s>" % (self.pattern, self.replace)
+    # This will probably be needed when we use with builtin Rule_
+    # @property
+    # def is_literal(self):
+    #     """
+    #     Mathics3 FunctionApply Rules are literal do not need to be revaluated.
+    #     """
+    #     print("ReplaceRule WOOT")
+    #     return self.pattern.is_literal and self.replace.is_literal
 
     @property
     def pattern_precedence(self) -> tuple:
@@ -350,9 +358,11 @@ class RewriteRule(BaseRule):
             sort_key_list = list(sort_key)
             sort_key_list[0] = sort_key_list[0] & PATTERN_SORT_KEY_CONDITIONAL
             sort_key = tuple(sort_key_list)
+
+        # True used to be self.system. Can we remove True?
         return tuple(
             (
-                self.system,
+                True,
                 sort_key,
             )
         )
@@ -411,12 +421,9 @@ class FunctionApplyRule(BaseRule):
         pattern: Expression,
         function: Callable,
         check_options: Optional[Callable],
-        system: bool = False,
         attributes: Optional[int] = None,
     ) -> None:
-        super(FunctionApplyRule, self).__init__(
-            pattern, system=system, attributes=attributes
-        )
+        super(FunctionApplyRule, self).__init__(pattern, attributes=attributes)
         self.name = name
         self.location = self.function = function
         self.check_options = check_options

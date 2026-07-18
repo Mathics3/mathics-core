@@ -692,7 +692,7 @@ def eval_assign_makeboxes(
     target, form = lhs.elements
     # Check second argument
 
-    makeboxes_rule = RewriteRule(lhs, rhs, system=False)
+    makeboxes_rule = RewriteRule(lhs, rhs)
     tags = [] if tags is None else tags
     if upset:
         tags = tags + [target.get_lookup_name()]
