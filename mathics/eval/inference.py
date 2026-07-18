@@ -98,14 +98,12 @@ def ensure_logical_algebraic_rules():
         for pattern, replace in logical_algebraic_rules_spec.items():
             pattern = parse_builtin_rule(pattern, SystemDefinitions())
             logical_algebraic_rules.append(
-                RewriteRule(pattern, parse_builtin_rule(replace), system=True)
+                RewriteRule(pattern, parse_builtin_rule(replace))
             )
         remove_not_rules = []
         for pattern, replace in remove_not_rules_spec.items():
             pattern = parse_builtin_rule(pattern, SystemDefinitions())
-            remove_not_rules.append(
-                RewriteRule(pattern, parse_builtin_rule(replace), system=True)
-            )
+            remove_not_rules.append(RewriteRule(pattern, parse_builtin_rule(replace)))
     return
 
 

@@ -311,7 +311,6 @@ class Builtin:
                     function,
                     check_options,
                     attributes=pat_attr,
-                    system=True,
                 )
             )
         for pattern_str, replace_str in self.rules.items():
@@ -324,7 +323,6 @@ class Builtin:
                     pattern,
                     parse_builtin_rule(replace_str),
                     attributes=pat_attr,
-                    system=not is_pymodule,
                 )
             )
 
@@ -372,7 +370,7 @@ class Builtin:
                     formatvalues[form] = []
                 formatvalues[form].append(
                     FunctionApplyRule(
-                        name, pattern, function, None, attributes=pat_attr, system=True
+                        name, pattern, function, None, attributes=pat_attr
                     )
                 )
         for pattern, replace in self.formats.items():
@@ -385,7 +383,7 @@ class Builtin:
                     pattern = parse_builtin_rule(pattern)
                 replace = replace % {"name": name}
                 formatvalues[form].append(
-                    RewriteRule(pattern, parse_builtin_rule(replace), system=True)
+                    RewriteRule(pattern, parse_builtin_rule(replace))
                 )
 
         formatvalues.setdefault("_MakeBoxes", []).extend(box_rules)
@@ -399,7 +397,6 @@ class Builtin:
             RewriteRule(
                 Expression(SymbolMessageName, Symbol(name), String(msg)),
                 String(value),
-                system=True,
             )
             for msg, value in self.messages.items()
         ]
@@ -408,7 +405,6 @@ class Builtin:
             RewriteRule(
                 Expression(SymbolMessageName, Symbol(name), String("optx")),
                 String("`1` is not a supported option for `2`[]."),
-                system=True,
             )
         )
 
@@ -421,7 +417,7 @@ class Builtin:
             elif isinstance(spec, int):
                 pattern = Expression(SymbolDefault, Symbol(name), Integer(spec))
             if pattern is not None:
-                defaults.append(RewriteRule(pattern, value, system=True))
+                defaults.append(RewriteRule(pattern, value))
 
         definition = Definition(
             name=name,
