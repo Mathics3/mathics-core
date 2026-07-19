@@ -19,7 +19,7 @@ build-backend = "setuptools.build_meta"
 description = "A general-purpose computer algebra system."
 dependencies = [
     "Mathics3_Scanner>=10.0",
-    "mpmath>=1.2.0",
+    "mpmath>=1.4.0",
     "numpy",
     "palettable",
     # Pillow 9.1.0 supports BigTIFF with big-endian byte order.
