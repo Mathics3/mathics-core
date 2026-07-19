@@ -184,6 +184,14 @@ def eval_negate_number(n: Number) -> Number:
     return eval_multiply_numbers(IntegerM1, n)
 
 
+def eval_RealValuedNumberQ(expr) -> bool:
+    return (
+        isinstance(expr, (Integer, Rational, Real))
+        or expr.has_form("Underflow", 0)
+        or expr.has_form("Overflow", 0)
+    )
+
+
 def segregate_numbers(
     *elements: BaseElement,
 ) -> Tuple[List[Number], List[BaseElement]]:
