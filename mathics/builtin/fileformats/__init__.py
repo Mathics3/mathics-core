@@ -38,3 +38,7 @@ For example, HTML` or Compress`.  This is done to not pollute the System` namesp
 # This tells documentation how to sort this module
 # Here we are also hiding "file_io" since this can erroneously appear at the top level.
 sort_order = "mathics.builtin.importing-export-file-formats"
+
+# The Built-in Functions are defined in a separate context under the
+# System`. For example System`HTML` and System`XML.  This is done to not
+# pollute the System` namespace.

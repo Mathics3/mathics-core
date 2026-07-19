@@ -28,6 +28,7 @@ while <url>
 does the corresponding thing for <url>
 :Import:
 /doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/import</url>.
+
 """
 
 import base64
@@ -467,6 +468,28 @@ class Import(Builtin):
     summary_text = (
         r"read and convert to \Mathics3 some or all elements of structured file"
     )
+
+    def import_setup(self, source, evaluation) -> tuple:
+        # Check filename
+        path = source.to_python()
+        if not (isinstance(path, str) and path[0] == path[-1] == '"'):
+            evaluation.message("Import", "chtype", source)
+            return SymbolFailed, None
+
+        # Load local file
+        if path[0] == path[-1] == '"':
+            path = path[1:-1]
+        findfile = eval_FindFile(path)
+
+        if findfile is None:
+            evaluation.message("Import", "nffil")
+            return SymbolFailed, None
+
+        return findfile, eval_FileFormat(findfile.value).value
+
+    def eval(self, source, evaluation, options={}):
+        "Import[source_, OptionsPattern[]]"
+        return self.eval_element_list(source, ListExpression(), evaluation, options)
 
     def eval_elements_query(self, source, evaluation, options={}):
         """Import[source_String, "Elements", OptionsPattern[]]"""

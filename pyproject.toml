@@ -114,6 +114,7 @@ include = ["mathics*"]
     "Autoload/*.m",
     "Packages/*/*.m",
     "Packages/*/Kernel/init.m",
+    "SystemFiles/CharacterEncodings/*",
     "SystemFiles/Dictionaries/*/*.txt",
     "SystemFiles/Formats/*/*.wl",
     "Data/*.csv",

@@ -11,6 +11,9 @@ import re
 import shutil
 from typing import List, Optional
 
+# We use the below import for access to variables that may change
+# at runtime.
+import mathics.eval.files_io.files as io_files
 from mathics.builtin.files_io.files import Mathics3Open
 from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_LISTABLE, A_LOCKED, A_PROTECTED
@@ -849,10 +852,13 @@ class Needs(Builtin):
         ),
         "nocont": "Context `1` was not created when Needs was evaluated.",
     }
+    options = {
+        "Trace": "False",
+    }
     summary_text = "load a package if it is not already loaded"
 
-    def eval(self, context, evaluation):
-        "Needs[context_String]"
+    def eval(self, context, evaluation, options: dict):
+        "Needs[context_String, OptionsPattern[Needs]]"
         context_str = context.value
         if context_str == "":
             return SymbolNull
@@ -871,7 +877,20 @@ class Needs(Builtin):
         py_encoding = evaluation.definitions.get_ownvalue(
             "System`$CharacterEncoding"
         ).value
-        result = eval_Get(context_str, evaluation, py_encoding)
+
+        # Make sure to pick up copy from module each time instead of using
+        # use "from ... import DEFAULT_TRACE_FN" which will not pick
+        # up run-time changes made to the module function.
+        trace_fn = io_files.DEFAULT_TRACE_FN
+
+        trace_get = evaluation.parse("Settings`$TraceGet")
+        if (
+            options["System`Trace"].to_python()
+            or trace_get.evaluate(evaluation) is SymbolTrue
+        ):
+            trace_fn = io_files.GET_PRINT_FN
+
+        result = eval_Get(context_str, evaluation, py_encoding, trace_fn)
 
         if result is SymbolFailed:
             evaluation.message("Needs", "nocont", context)

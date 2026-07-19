@@ -2,13 +2,13 @@
 Functions to format strings in a given encoding.
 """
 
-from typing import Dict, Final, Optional
+from typing import Final
 
 from mathics_scanner.characters import UNICODE_CHARACTER_TO_ASCII
 
 from mathics.core.convert.op import operator_to_unicode
 
-CHARACTER_ENCODING_MAP: Final[Dict[str, str]] = {
+CHARACTER_ENCODING_MAP: Final[dict[str, str]] = {
     # see https://docs.python.org/2/library/codecs.html#standard-encodings
     "ASCII": "ascii",
     "CP949": "cp949",
@@ -51,10 +51,6 @@ CHARACTER_ENCODING_MAP: Final[Dict[str, str]] = {
     "WindowsGreek": "cp1253",
     "WindowsTurkish": "cp1254",
 }
-
-
-def to_python_encoding(encoding) -> Optional[str]:
-    return CHARACTER_ENCODING_MAP.get(encoding)
 
 
 # Map WMA encoding names to Python encoding names
@@ -120,15 +116,26 @@ class EncodingNameError(Exception):
     pass
 
 
-def to_python_encoding(encoding):
-    return CHARACTER_ENCODING_MAP.get(encoding)
+def encode_string_value(value: str, encoding: str) -> str:
+    """Convert an Unicode string `value` to the required `encoding`"""
+
+    # In WMA, encodings are read from SystemFiles/CharacterEncodings/*.m
+    # on the fly.
+    encoding_table = get_encoding_table(encoding)
+    if not encoding_table:
+        return value
+    result = ""
+    for ch in value:
+        ch = encoding_table.get(ch, ch)
+        result += ch
+    return result
 
 
 def from_python_encoding(encoding):
     return REVERSE_CHARACTER_ENCODING_MAP.get(encoding)
 
 
-def get_encoding_table(encoding: str) -> Dict[str, str]:
+def get_encoding_table(encoding: str) -> dict[str, str]:
     """
     Return a dictionary with a map from
     character codes in the internal (Unicode)
@@ -150,16 +157,5 @@ def get_encoding_table(encoding: str) -> Dict[str, str]:
         raise EncodingNameError
 
 
-def encode_string_value(value: str, encoding: str) -> str:
-    """Convert an Unicode string `value` to the required `encoding`"""
-
-    # In WMA, encodings are readed from SystemFiles/CharacterEncodings/*.m
-    # on the fly. We should load them from Mathics3-Scanner tables.
-    encoding_table = get_encoding_table(encoding)
-    if not encoding_table:
-        return value
-    result = ""
-    for ch in value:
-        ch = encoding_table.get(ch, ch)
-        result += ch
-    return result
+def to_python_encoding(encoding):
+    return CHARACTER_ENCODING_MAP.get(encoding)
