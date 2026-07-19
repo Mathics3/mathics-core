@@ -77,7 +77,7 @@ def is_rule(element: Any, include_delayed: bool = True) -> bool:
     The parameter "included_delayed" indicates whether we allow Delayed Rules,
     the default is True.
     """
-    # FIXME: remove the the test on has_form("Rule") when by fixing up
+    # FIXME: remove the test on has_form("Rule") when by fixing up
     # class Rule_ in mathics.core.builtins.
     return (
         isinstance(element, RewriteRule) or element.has_form(("Rule", "RuleDelayed"), 2)
