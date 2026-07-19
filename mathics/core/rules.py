@@ -121,11 +121,13 @@ class BaseRule(KeyComparable, ABC):
     def __init__(
         self,
         pattern: BaseElement,
+        system: bool = False,
+        evaluation: Optional[Evaluation] = None,
         attributes: Optional[int] = None,
     ) -> None:
         self.location: Optional[Callable] = None
         self.pattern = BasePattern.create(
-            pattern, attributes=attributes, evaluation=None
+            pattern, attributes=attributes, evaluation=evaluation
         )
 
     def apply(
@@ -279,7 +281,7 @@ class RewriteRule(BaseRule):
 
     Here is an example of a Rule::
 
-    F[x_] -> x^2   (* The same thing as: Rule[x_, x^2] *)
+        F[x_] -> x^2   (* The same thing as: Rule[x_, x^2] *)
 
     ``F[x_]`` is a pattern and ``x^2`` is the replacement term. When
     applied to the expression ``G[F[1.], F[a]]`` the result is
@@ -298,9 +300,12 @@ class RewriteRule(BaseRule):
         self,
         pattern: BaseElement,  # Note: a constant value is also a "pattern".
         replace: BaseElement,
+        evaluation: Optional[Evaluation] = None,
         attributes: Optional[int] = None,
     ) -> None:
-        super(RewriteRule, self).__init__(pattern, attributes=None)
+        super(RewriteRule, self).__init__(
+            pattern, evaluation=evaluation, attributes=attributes
+        )
         self.replace = replace
 
     def __repr__(self) -> str:
@@ -429,6 +434,7 @@ class FunctionApplyRule(BaseRule):
         pattern: Expression,
         function: Callable,
         check_options: Optional[Callable],
+        evaluation: Optional[Evaluation] = None,
         attributes: Optional[int] = None,
     ) -> None:
         super(FunctionApplyRule, self).__init__(pattern, attributes=attributes)
