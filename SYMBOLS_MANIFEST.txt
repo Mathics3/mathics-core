@@ -187,6 +187,7 @@ System`Brown
 System`ButtonBox
 System`Byte
 System`ByteArray
+System`ByteArrayQ
 System`ByteCount
 System`ByteOrdering
 System`C
