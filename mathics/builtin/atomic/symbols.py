@@ -6,7 +6,7 @@ Symbolic data. Every symbol has a unique name, exists in a certain context \
 or namespace, and can have a variety of type of values and attributes.
 """
 import re
-from typing import Callable, List, Optional
+from typing import Callable, Optional
 
 from mathics_scanner.tokeniser import NAMES_WILDCARDS, is_symbol_name
 
@@ -45,20 +45,21 @@ from mathics.core.systemsymbols import (
     SymbolGrid,
     SymbolInputForm,
     SymbolLeft,
+    SymbolMissing,
     SymbolOptions,
     SymbolRule,
     SymbolSet,
 )
 from mathics.doc.online import online_doc_string
+from mathics.eval.atomic.symbols import eval_SymbolQ
 from mathics.eval.stackframe import get_eval_Expression
 
-SymbolMissing = Symbol("System`Missing")
 SymbolUnknownSymbol = Symbol("System`UnknownSymbol")
 
 
 def gather_and_format_definition_rules(
     symbol: Symbol, evaluation: Evaluation
-) -> Optional[List[Expression]]:
+) -> Optional[list[Expression]]:
     """Return a list of lines describing the definition of `symbol`"""
     lines = []
 
@@ -727,7 +728,7 @@ class SymbolQ(Test):
     summary_text = "test whether is a symbol"
 
     def test(self, expr) -> bool:
-        return isinstance(expr, Symbol)
+        return eval_SymbolQ(expr)
 
 
 class ValueQ(Builtin):
