@@ -7,7 +7,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.parser import parse_builtin_rule
 from mathics.core.parser.util import SystemDefinitions
-from mathics.core.rules import Rule
+from mathics.core.rules import RewriteRule
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolAnd, SymbolEqual, SymbolNot, SymbolOr
 
@@ -98,14 +98,12 @@ def ensure_logical_algebraic_rules():
         for pattern, replace in logical_algebraic_rules_spec.items():
             pattern = parse_builtin_rule(pattern, SystemDefinitions())
             logical_algebraic_rules.append(
-                Rule(pattern, parse_builtin_rule(replace), system=True)
+                RewriteRule(pattern, parse_builtin_rule(replace))
             )
         remove_not_rules = []
         for pattern, replace in remove_not_rules_spec.items():
             pattern = parse_builtin_rule(pattern, SystemDefinitions())
-            remove_not_rules.append(
-                Rule(pattern, parse_builtin_rule(replace), system=True)
-            )
+            remove_not_rules.append(RewriteRule(pattern, parse_builtin_rule(replace)))
     return
 
 
@@ -308,43 +306,43 @@ def get_assumption_rules_dispatch(evaluation):
             if value:
                 lhs, rhs = pat.elements
                 if lhs.is_numeric(evaluation):
-                    assumption_rules.append(Rule(rhs, lhs))
+                    assumption_rules.append(RewriteRule(rhs, lhs))
                 else:
-                    assumption_rules.append(Rule(lhs, rhs))
+                    assumption_rules.append(RewriteRule(lhs, rhs))
             else:
-                assumption_rules.append(Rule(pat, SymbolFalse))
+                assumption_rules.append(RewriteRule(pat, SymbolFalse))
                 symm_pat = Expression(pat._head, pat.elements[1], pat.elements[0])
-                assumption_rules.append(Rule(symm_pat, SymbolFalse))
+                assumption_rules.append(RewriteRule(symm_pat, SymbolFalse))
         elif pat.has_form("Equivalent", 2):
-            assumption_rules.append(Rule(pat, symbol_value))
+            assumption_rules.append(RewriteRule(pat, symbol_value))
             symm_pat = Expression(pat._head, pat.elements[1], pat.elements[0])
-            assumption_rules.append(Rule(symm_pat, symbol_value))
+            assumption_rules.append(RewriteRule(symm_pat, symbol_value))
         elif pat.has_form("Less", 2):
             if value:
-                assumption_rules.append(Rule(pat, SymbolTrue))
+                assumption_rules.append(RewriteRule(pat, SymbolTrue))
                 assumption_rules.append(
-                    Rule(
+                    RewriteRule(
                         Expression(pat._head, pat.elements[1], pat.elements[0]),
                         SymbolFalse,
                     )
                 )
                 for head in (SymbolEqual, Symbol("Equivalent")):
                     assumption_rules.append(
-                        Rule(
+                        RewriteRule(
                             Expression(head, pat.elements[0], pat.elements[1]),
                             SymbolFalse,
                         )
                     )
                     assumption_rules.append(
-                        Rule(
+                        RewriteRule(
                             Expression(head, pat.elements[1], pat.elements[0]),
                             SymbolFalse,
                         )
                     )
             else:
-                assumption_rules.append(Rule(pat, SymbolFalse))
+                assumption_rules.append(RewriteRule(pat, SymbolFalse))
         else:
-            assumption_rules.append(Rule(pat, symbol_value))
+            assumption_rules.append(RewriteRule(pat, symbol_value))
     # TODO: expand the pred and assumptions into an standard,
     # atomized form, and then apply the rules...
     if len(assumption_rules) == 0:

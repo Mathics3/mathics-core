@@ -5,7 +5,7 @@ from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.rules import Rule
+from mathics.core.rules import RewriteRule, is_rule
 from mathics.core.symbols import Atom, Symbol, SymbolList
 from mathics.core.systemsymbols import SymbolDispatch, SymbolRule, SymbolRuleDelayed
 from mathics.eval.parts import python_levelspec
@@ -18,7 +18,7 @@ def create_rules(
     name: str,
     evaluation: Evaluation,
     extra_args: OptionalType[List] = None,
-) -> Union[Tuple[Union[List[Rule], BaseElement, None], bool], "Dispatch"]:
+) -> Union[Tuple[Union[List[RewriteRule], BaseElement, None], bool], "Dispatch"]:
     """
     This function implements  `Replace`, `ReplaceAll`, `ReplaceRepeated`
     and `ReplaceList` eval methods.
@@ -91,7 +91,7 @@ def create_rules(
             )
             return None, True
 
-        result.append(Rule(rule.elements[0], rule.elements[1]))
+        result.append(RewriteRule(rule.elements[0], rule.elements[1]))
     return result, False
 
 
@@ -118,7 +118,7 @@ def eval_dispatch_atom(
             rule = rule.evaluate(evaluation)
         if rule.has_form("List", None):
             flatten_list.extend(rule.elements)
-        elif rule.has_form(("Rule", "RuleDelayed"), 2):
+        elif is_rule(rule):
             flatten_list.append(rule)
         elif isinstance(rule, Dispatch):
             flatten_list.extend(rule.src.elements)
@@ -150,7 +150,7 @@ class Dispatch(Atom):
     class_head_name = "System`Dispatch"
 
     src: ListExpression
-    rules: List[Rule]
+    rules: List[RewriteRule]
 
     def __init__(
         self, rule_tuple: Tuple[Expression, ...], evaluation: Evaluation
@@ -159,7 +159,7 @@ class Dispatch(Atom):
         self.src = ListExpression(*rule_tuple)
         try:
             self.rules = [
-                Rule(rule.elements[0], rule.elements[1]) for rule in rule_tuple
+                RewriteRule(rule.elements[0], rule.elements[1]) for rule in rule_tuple
             ]
         except:
             raise

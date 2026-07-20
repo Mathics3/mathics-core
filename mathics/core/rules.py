@@ -3,7 +3,7 @@
 program.
 
 Expressions which are transformed by rewrite rules (AKA transformation
-rules) are handed by the `Rule` class.
+rules) are handled by the `Rule` class.
 
 There are also rules for how to match, assign function parameter
 arguments, and then apply a Python "evaluation" function to a Mathics3 Expression.
@@ -15,7 +15,7 @@ In a `FunctionApplyRule` rule, the match status of a rule depends on the evaluat
 
 For example, suppose that we try to apply rule `F[x_]->x^2` to the expression `F[2]`. The pattern part of the rule,`F[x_]` matches
 the expression, `Blank[x]` (or `x_`) is replaced by `2`, giving the substitution expression `2^2`. Evaluation then stops
-looking for other rules to be applied over `F[2]`.
+looking for other rules to be applied to `F[2]`.
 
 On the other hand, suppose that we define a `FunctionApplyRule` that associates `F[x_]` with the function:
 
@@ -29,7 +29,7 @@ On the other hand, suppose that we define a `FunctionApplyRule` that associates 
                 return Expression(SymbolPower, x, Integer2)
             return None
 
-Then, if we apply the rule to `F[2]`, the function is evaluated returning `None`. Then, in the evaluation loop, we get the same
+Then, if we apply the rule to `F[2]`, the function is evaluated, returning `None`. Then, in the evaluation loop, we get the same
 effect as if the pattern didn't match with the expression. The loop continues then with the next rule associated with `F`.
 
 Why do things this way?
@@ -39,19 +39,18 @@ Sometimes, the cost of deciding if the rule match is similar to the cost of eval
    F[x_/;(G[x]>0)]:=G[x]
 
 with G[x] a computationally expensive function. To decide if G[x] is larger than 0, we need to evaluate it,
-and once we have evaluated it, just need to return its value.
+and once we have evaluated it, we just need to return its value.
 
 Also, this allows us to handle several rules in the same function, without relying on our very slow pattern-matching routines.
-In particular, this is used for for some critical low-level tasks like building lists in iterators, processing arithmetic expressions,
+In particular, this is used for some critical low-level tasks like building lists in iterators, processing arithmetic expressions,
 plotting functions, or evaluating derivatives and integrals.
 
 """
 
-
 from abc import ABC
 from inspect import signature
 from itertools import chain
-from typing import Callable, Optional
+from typing import Any, Callable, Optional
 
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
@@ -69,6 +68,24 @@ def function_arguments(f):
     return _python_function_arguments(f)
 
 
+def is_rule(element: Any, include_delayed: bool = True) -> bool:
+    """
+    Return True if element is a RewriteRule, typically called a "Rule" in WMA.
+    In Mathics3, a hard-coded FunctionApplyRule can invoke a Python function.
+    This kind of rule is not detected here.
+
+    The parameter "included_delayed" indicates whether we allow Delayed Rules,
+    the default is True.
+    """
+    # FIXME: remove the test on has_form("Rule") when by fixing up
+    # class Rule_ in mathics.core.builtins.
+    return (
+        isinstance(element, RewriteRule) or element.has_form(("Rule", "RuleDelayed"), 2)
+        if include_delayed
+        else isinstance(element, RewriteRule)
+    )
+
+
 class StopGenerator_BaseRule(StopGenerator):
     """
     Signals that there are no more rules to check for pattern matching
@@ -80,7 +97,7 @@ class StopGenerator_BaseRule(StopGenerator):
 class RuleApplicationFailed(Exception):
     """
     Exception raised when a condition fails
-    in the RHS, indicating that the match have failed.
+    in the RHS, indicating that the match has failed.
     """
 
     pass
@@ -88,14 +105,14 @@ class RuleApplicationFailed(Exception):
 
 class BaseRule(KeyComparable, ABC):
     """This is the base class from which the FunctionApplyRule and
-    Rule classes are derived from.
+    RewriteRule classes are derived from.
 
     Rules are part of the rewriting system of Mathics3. See
     https://en.wikipedia.org/wiki/Rewriting
 
     This class is not complete in of itself; subclasses must adapt or
     fill in what is needed. In particular either ``apply_rule()`` or
-    ``apply_function()`` need to be implemented.
+    ``apply_function()`` needs to be implemented.
 
     Note: we want Rules to be serializable so that we can dump and
     restore Rules in order to make startup time faster.
@@ -112,7 +129,6 @@ class BaseRule(KeyComparable, ABC):
         self.pattern = BasePattern.create(
             pattern, attributes=attributes, evaluation=evaluation
         )
-        self.system = system
 
     def apply(
         self,
@@ -210,9 +226,6 @@ class BaseRule(KeyComparable, ABC):
     ):
         raise NotImplementedError
 
-    def get_replace_value(self) -> BaseElement:
-        raise ValueError
-
     @property
     def element_order(self) -> tuple:
         """
@@ -220,7 +233,18 @@ class BaseRule(KeyComparable, ABC):
         of an expression. The tuple is ultimately compared lexicographically.
         """
         # FIXME: check if this makes sense:
-        return tuple((self.system, self.pattern.element_order))
+        # True used to be self.system. Can we remove True?
+        return tuple((True, self.pattern.element_order))
+
+    def get_replace_value(self) -> BaseElement:
+        raise ValueError
+
+    @property
+    def lhs(self) -> BasePattern:
+        """
+        Lefthand side of a rule. Also known as its "pattern".
+        """
+        return self.pattern
 
     @property
     def pattern_precedence(self) -> tuple:
@@ -229,17 +253,27 @@ class BaseRule(KeyComparable, ABC):
         which pattern to select when several match.
         """
         # FIXME: check if this makes sense:
-        return tuple((self.system, self.pattern.pattern_precedence))
+        # True used to be self.system. Can we remove True?
+        return tuple((True, self.pattern.pattern_precedence))
+
+    @property
+    def rhs(self):
+        """
+        Right-hand side of a rule. Also known as its "replacement".
+        """
+        raise NotImplementedError
 
 
-# FIXME: Given what is stated in the docstring below,
-# the class name would be better called RewriteRule, instead of the
-# more generic term Rule.
-class Rule(BaseRule):
-    """There are two kinds of Rules.  This kind of is a rewrite rule
-    and transforms an Expression into another Expression based on the
-    pattern and a replacement term and doesn't involve function
-    application.
+class RewriteRule(BaseRule):
+    """A RewriteRule in WMA is called simply a "Rule".
+
+    Rules that are user-visible. In Mathics3, we also have rules to
+    perform function application, FunctionApplyRule.
+
+    A RewriteRule transforms an Expression into another Expression
+    based on the pattern and a replacement term; "pattern" and "
+    replacement" are sometimes called the "lhs" and "rhs",
+    respectively.
 
     In contrast to FunctionApplyRule[], rule application cannot force
     a reevaluation of the expression when the rewrite/apply/eval step
@@ -253,23 +287,29 @@ class Rule(BaseRule):
     applied to the expression ``G[F[1.], F[a]]`` the result is
     ``G[1.^2, a^2]``
 
-    Note: we want Rules to be serializable so that we can dump and
-    restore Rules in order to make startup time faster.
+    Rewrite rules can also be mapping objects when the lhs is a
+    constant. These are individual key-value pairs that form in
+    Association-like data such as InformationData.
 
+    Note: we want Rules to be serializable so that we can dump and
+    restore Rules of classes of builtin function to be loaded via
+    lazy loading.
     """
 
     def __init__(
         self,
-        pattern: BaseElement,
+        pattern: BaseElement,  # Note: a constant value is also a "pattern".
         replace: BaseElement,
-        system=False,
         evaluation: Optional[Evaluation] = None,
         attributes: Optional[int] = None,
     ) -> None:
-        super(Rule, self).__init__(
-            pattern, system=system, evaluation=evaluation, attributes=attributes
+        super(RewriteRule, self).__init__(
+            pattern, evaluation=evaluation, attributes=attributes
         )
         self.replace = replace
+
+    def __repr__(self) -> str:
+        return "<Rule: %s -> %s>" % (self.pattern, self.replace)
 
     def apply_rule(
         self, expression: BaseElement, vars: dict, options: dict, evaluation: Evaluation
@@ -311,8 +351,14 @@ class Rule(BaseRule):
         """return the replace value"""
         return self.replace
 
-    def __repr__(self) -> str:
-        return "<Rule: %s -> %s>" % (self.pattern, self.replace)
+    # This will probably be needed when we use with builtin Rule_
+    # @property
+    # def is_literal(self):
+    #     """
+    #     Mathics3 FunctionApply Rules are literal do not need to be revaluated.
+    #     """
+    #     print("ReplaceRule WOOT")
+    #     return self.pattern.is_literal and self.replace.is_literal
 
     @property
     def pattern_precedence(self) -> tuple:
@@ -325,12 +371,18 @@ class Rule(BaseRule):
             sort_key_list = list(sort_key)
             sort_key_list[0] = sort_key_list[0] & PATTERN_SORT_KEY_CONDITIONAL
             sort_key = tuple(sort_key_list)
+
+        # True used to be self.system. Can we remove True?
         return tuple(
             (
-                self.system,
+                True,
                 sort_key,
             )
         )
+
+    @property
+    def rhs(self):
+        return self.replace
 
 
 class FunctionApplyRule(BaseRule):
@@ -382,13 +434,10 @@ class FunctionApplyRule(BaseRule):
         pattern: Expression,
         function: Callable,
         check_options: Optional[Callable],
-        system: bool = False,
         evaluation: Optional[Evaluation] = None,
         attributes: Optional[int] = None,
     ) -> None:
-        super(FunctionApplyRule, self).__init__(
-            pattern, system=system, attributes=attributes, evaluation=evaluation
-        )
+        super(FunctionApplyRule, self).__init__(pattern, attributes=attributes)
         self.name = name
         self.location = self.function = function
         self.check_options = check_options
@@ -431,3 +480,7 @@ class FunctionApplyRule(BaseRule):
 
     def __setstate__(self, dict):
         self.__dict__.update(dict)  # update attributes
+
+    @property
+    def rhs(self):
+        return self.function
