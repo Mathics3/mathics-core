@@ -492,7 +492,7 @@ class ReplaceRepeated(InfixOperator):
 class Rule_(InfixOperator):
     """
 
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Rule_.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Rule.html</url>
 
     <dl>
       <dt>'Rule'[$x$, $y$]

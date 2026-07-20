@@ -27,6 +27,7 @@ from mathics.core.number import (
     convert_base,
     dps,
 )
+from mathics.core.rules import is_rule
 from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.systemsymbols import (
     SymbolFullForm,
@@ -373,7 +374,7 @@ def get_numberform_parameters(
     options.update(default_options)
     for elem in elements[::-1]:
         pos = pos - 1
-        if elem.has_form(("Rule", "RuleDelayed"), 2):
+        if is_rule(elem):
             key, val = elem.elements
             if isinstance(key, Symbol):
                 key_name = key.get_name()

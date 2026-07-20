@@ -838,7 +838,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             if allow_symbols and symbol_name:
                 option_values.update(evaluation.definitions.get_options(symbol_name))
             else:
-                if not option.has_form(("Rule", "RuleDelayed"), 2):
+                from mathics.core.rules import is_rule
+
+                if not is_rule(option):
                     if stop_on_error:
                         return None
                     else:
@@ -864,7 +866,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         If the expression is of the form {pat1->expr1,... {pat_2,expr2},...}
         return a (python) list of rules.
         """
-        from mathics.core.rules import Rule
+        from mathics.core.rules import RewriteRule, is_rule
         from mathics.core.symbols import SymbolList
 
         list_expr = self.flatten_with_respect_to_head(SymbolList)
@@ -875,9 +877,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             list.append(list_expr)
         rules = []
         for item in list:
-            if not item.has_form(("Rule", "RuleDelayed"), 2):
+            if not is_rule(item):
                 return None
-            rule = Rule(item.elements[0], item.elements[1])
+            rule = RewriteRule(item.elements[0], item.elements[1])
             rules.append(rule)
         return rules
 
@@ -1573,10 +1575,12 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         return expression_to_sympy(self, **kwargs)
 
     def process_style_box(self, options):
+        from mathics.core.rules import RewriteRule
+
         if self.has_form("StyleBox", 1, None):
             rules = self._elements[1:]
             for rule in rules:
-                if rule.has_form("Rule", 2):
+                if isinstance(rule, RewriteRule):
                     name = rule._elements[0].get_name()
                     value = rule._elements[1]
                     if name == "System`ShowStringCharacters":

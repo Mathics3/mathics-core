@@ -3,7 +3,7 @@
 Symbol Handling
 
 Symbolic data. Every symbol has a unique name, exists in a certain context \
-or namespace, and can have a variety of type of values and attributes.
+or namespace, and can have a variety of types of values and attributes.
 """
 import re
 from typing import Callable, Optional
@@ -28,7 +28,7 @@ from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.rules import Rule
+from mathics.core.rules import RewriteRule
 from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
@@ -69,7 +69,7 @@ def gather_and_format_definition_rules(
         return expr
 
     def format_rule(
-        rule: Rule,
+        rule: RewriteRule,
         up: bool = False,
         lhs: Callable = lambda k: k,
         rhs: Callable = lambda r: r,
@@ -78,7 +78,7 @@ def gather_and_format_definition_rules(
         Add a line showing `rule`
         """
         evaluation.check_stopped()
-        if isinstance(rule, Rule):
+        if isinstance(rule, RewriteRule):
             lhs_pat = Expression(SymbolInputForm, lhs(rule.pattern.expr))
             repl_expr = rhs(
                 rule.replace.replace_vars(
@@ -363,7 +363,7 @@ class DownValues(Builtin):
      = {HoldPattern[f[x_]] ⧴ x ^ 2}
 
     Mathics3 will sort the rules you assign to a symbol according to \
-    their specificity. If it cannot decide which rule is more special, \
+    their specificity. If it cannot decide which rule is more specific, \
     the newer one will get higher precedence.
     >> f[x_Integer] := 2
     >> f[x_Real] := 3
@@ -420,7 +420,7 @@ class FormatValues(Builtin):
     >> FormatValues[F]
      = {HoldPattern[Subscript[x_, F]] ⧴ Subscript[x, F]}
 
-    The replacment pattern on the right in the delayed rule is formatted according to the top-level form. To see the rule input, we can use 'InputForm':
+    The replacement pattern on the right in the delayed rule is formatted according to the top-level form. To see the rule input, we can use 'InputForm':
     >> FormatValues[F]  //InputForm
      = {HoldPattern[Format[F[x_], OutputForm]] ⧴ Subscript[x, F]}
     """

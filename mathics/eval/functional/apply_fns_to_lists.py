@@ -10,6 +10,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import PartRangeError
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.rules import is_rule
 from mathics.core.symbols import SymbolTrue
 from mathics.core.systemsymbols import SymbolMapAt
 from mathics.eval.testing_expressions import eval_ArrayQ
@@ -38,7 +39,7 @@ def eval_MapAt(
             raise PartRangeError
         new_elements = list(elements)
         replace_element = elements[j]
-        if replace_element.has_form(("Rule", "RuleDelayed"), 2):
+        if is_rule(replace_element):
             new_elements[j] = Expression(
                 replace_element.get_head(),
                 replace_element.elements[0],

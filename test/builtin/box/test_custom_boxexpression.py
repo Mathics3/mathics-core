@@ -55,7 +55,11 @@ class CustomAtom(Predefined):
 
         for pattern, function in self.get_functions("makeboxes_"):
             mb_rule = FunctionApplyRule(
-                name, pattern, function, None, attributes=None, system=True
+                name,
+                pattern,
+                function,
+                None,
+                attributes=None,
             )
             definitions.add_format("System`MakeBoxes", mb_rule, "_MakeBoxes")
 
@@ -85,9 +89,7 @@ class CustomGraphicsBox(BoxExpression):
         name = self.get_name()
 
         for pattern, function in self.get_functions("makeboxes_"):
-            mb_rule = FunctionApplyRule(
-                name, pattern, function, None, attributes=None, system=True
-            )
+            mb_rule = FunctionApplyRule(name, pattern, function, None, attributes=None)
             definitions.add_format("System`MakeBoxes", mb_rule, "_MakeBoxes")
 
     def init(self, *elems, **options):
