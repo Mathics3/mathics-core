@@ -140,7 +140,7 @@ class DispatchAtom(AtomBuiltin):
         return result
 
     def eval(
-        self, rules: Expression, evaluation: Evaluation
+        self, rules: BaseElement, evaluation: Evaluation
     ) -> OptionalType[BaseElement]:
         """Dispatch[rules_]"""
         if not isinstance(rules, Expression):
@@ -489,6 +489,8 @@ class ReplaceRepeated(InfixOperator):
         return result
 
 
+# rocky: I don't know why, but this class seems to need a lot of
+# things that handled differently from normal practice.
 class Rule_(InfixOperator):
     """
 
@@ -510,20 +512,39 @@ class Rule_(InfixOperator):
     """
 
     attributes = A_SEQUENCE_HOLD | A_PROTECTED
+
+    # For some mysterious reason, the below does not work and
+    # we have to do argument checking as code in eval().
+    # eval_error = Builtin.generic_argument_error
+    # expected_args = 2
+
     grouping = "Right"
     name = "Rule"
     needs_verbatim = True
 
-    # FIXME: if we remove this we have problems.
-    # We should be able to get this from JSON.
+    # FIXME: We should be able to get the operator from the JSON operator tables.
+    # However, if we remove the operator class variable assignment, is we have problems.
+    # Run test/format/test_format.py::test_makeboxes_text for details.
     operator = "->"
+
     summary_text = "a replacement rule"
 
-    def eval_rule(self, elems, evaluation):
+    def eval(self, elems, evaluation: Evaluation):
         """Rule[elems___]"""
+
         num_parms = len(elems.get_sequence())
         if num_parms != 2:
             evaluation.message("Rule", "argrx", "Rule", Integer(num_parms), Integer2)
+
+        # "Rule" is a somewhat generic term in WMA and thus Mathics3.
+        # Rule semantics and its implementation change depending on the context that the Rule appears in.
+        # Inside a Set, RuleDelayed, or ReplaceAll expression, the left-hand side of a Rule is a pattern.
+        # But inside an Association or an Option, it is a key-value pair, with no pattern matching applied
+        # to the left-hand side.
+        # As a result, at this point we don't know which context Rule[] might appear, so we have to return
+        # "None" which keeps the Expression the same. Returning "elems" which you might think would be the
+        # same thing, is not correct, since the Head symbol "Rule" can get replaced with "Sequence" symbol
+        # coming into this code.
         return None
 
 

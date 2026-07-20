@@ -26,7 +26,7 @@ from mathics.eval.list.associations import (
 from mathics.eval.lists import list_boxes
 
 
-class Association(Builtin):
+class Association_(Builtin):
     """
     <url>
     :WMA link:
@@ -57,10 +57,11 @@ class Association(Builtin):
      = {1, 3}
     """
 
-    error_idx = 0
-
     attributes = A_HOLD_ALL_COMPLETE | A_PROTECTED
 
+    error_idx = 0
+
+    name = "Association"
     summary_text = "make an association between keys and values"
 
     def eval_makeboxes(self, rules, f, evaluation: Evaluation):
