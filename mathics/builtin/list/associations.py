@@ -3,13 +3,14 @@
 """
 Associations
 
-An Association maps keys to values and is similar to a dictionary in Python; \
-it is often sparse in that its key space is much larger than the number of \
+An Association maps keys to values and is similar to a dictionary in Python.
+It is often sparse in that its key space is much larger than the number of \
 actual keys found in the collection.
 """
 
 from mathics.builtin.box.layout import RowBox
 from mathics.core.atoms import Integer
+from mathics.core.atoms.associations import Association
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Test
 from mathics.core.convert.expression import to_mathics_list
@@ -110,7 +111,8 @@ class Association_(Builtin):
             return rules_dictionary.values()
 
         try:
-            return Expression(SymbolAssociation, *make_flatten(rules.get_sequence()))
+            # return Expression(SymbolAssociation, *make_flatten(rules.get_sequence()))
+            return Association(make_flatten(rules.get_sequence()))
         except TypeError:
             return None
 
