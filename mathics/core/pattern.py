@@ -203,6 +203,7 @@ class BasePattern(ABC):
         Otherwise, if ``expr`` is an ``Atom``, create and return  ``AtomPattern`` for ``expr``.
         Otherwise, create and return and ``ExpressionPattern`` for ``expr``.
         """
+
         name = expr.get_head_name()
         pattern_object = pattern_objects.get(name)
         if pattern_object is not None:

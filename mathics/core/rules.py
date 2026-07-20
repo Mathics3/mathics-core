@@ -9,7 +9,10 @@ There are also rules for how to match, assign function parameter
 arguments, and then apply a Python "evaluation" function to a Mathics3 Expression.
 These kinds of rules are handled by objects in the `FunctionApplyRule` class.
 
-This module contains the classes for these two types of rules.
+Finally, Rules are used as KeyValue pairs in an Association or an Options list.
+Here, no pattern matching is applied to the left-hand side.
+
+This module contains the classes for the first two non-KeyValue types of rules.
 
 In a `FunctionApplyRule` rule, the match status of a rule depends on the evaluation return.
 
@@ -236,13 +239,24 @@ class BaseRule(KeyComparable, ABC):
         # True used to be self.system. Can we remove True?
         return tuple((True, self.pattern.element_order))
 
+    # The below routines might be needed in the future, if BaseRule becomes
+    # more BaseElement-like. Right now that's not the situation, probably
+    # due to the nature of the generality of Rule which causes
+    # special casing lots of places in the Expression code.
+
+    # def get_head_name(self, short=False) -> str:
+    #     return "Rule" if short else "System`Rule"
+
+    # def get_lookup_name(self) -> str:
+    #     return "System`Rule"
+
     def get_replace_value(self) -> BaseElement:
         raise ValueError
 
     @property
-    def lhs(self) -> BasePattern:
+    def lhs(self) -> BasePattern | Expression:
         """
-        Lefthand side of a rule. Also known as its "pattern".
+        Left-hand side of a rule. Also known, in this context, as its "pattern".
         """
         return self.pattern
 
@@ -351,7 +365,7 @@ class RewriteRule(BaseRule):
         """return the replace value"""
         return self.replace
 
-    # This will probably be needed when we use with builtin Rule_
+    # # This might be needed in the future.
     # @property
     # def is_literal(self):
     #     """
