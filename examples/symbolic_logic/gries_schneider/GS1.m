@@ -61,7 +61,7 @@
 
         Mathics3 10.0.0
 	Running on linux CPython 3.14.3 (main, Mar 30 2026, 06:42:16) [GCC 13.3.0]
-	using SymPy 1.14.0, mpmath 1.4.0, numpy 2.4.4, cython 3.2.4, scipy 1.17.1, skimage 0.26.0
+	using SymPy 1.13.3, mpmath 1.3.0, numpy 2.4.4, cython 3.2.4, scipy 1.17.1, skimage 0.26.0
 
         Copyright (C) 2011-2026 The Mathics3 Team.
         This program comes with ABSOLUTELY NO WARRANTY.
