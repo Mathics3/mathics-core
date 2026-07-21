@@ -177,6 +177,9 @@ class AssociationQ(Test):
                     return False
             return True
 
+        if isinstance(expr, Association):
+            return True
+        # Handle where we still have Expression[SymbolRule, ... ]
         return expr.get_head_name() == "System`Association" and validate(expr.elements)
 
 

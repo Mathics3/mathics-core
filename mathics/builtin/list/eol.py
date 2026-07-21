@@ -22,6 +22,7 @@ from mathics.core.atoms import (
     Integer4,
     String,
 )
+from mathics.core.atoms.associations import Association
 from mathics.core.attributes import (
     A_HOLD_FIRST,
     A_HOLD_REST,
@@ -1182,14 +1183,22 @@ class Part(Builtin):
         result = RowBox(list, *indices)
         return result
 
-    def eval(self, list, i, evaluation):
-        "Part[list_, i___]"
+    def eval(self, expr, i, evaluation):
+        "Part[expr_, i___]"
 
-        if list is SymbolFailed:
+        if expr is SymbolFailed:
             return
         indices = i.get_sequence()
-        # How to deal with ByteArrays
-        if list.get_head() is SymbolByteArray:
+        if isinstance(expr, Association):
+            # FIXME: Go over
+            try:
+                return expr[i]
+            except:
+                evaluation.message("Part", "partw", i, expr)
+                return
+
+        if expr.get_head() is SymbolByteArray:
+            # Handle ByteArrays
             if len(indices) > 1:
                 print(
                     "Part::partd1: Depth of object ByteArray[<3>] "
@@ -1201,27 +1210,27 @@ class Part(Builtin):
                 idx = idx.value
                 if idx == 0:
                     return SymbolByteArray
-                n = len(list.value)
+                n = len(expr.value)
                 if idx < 0:
                     idx = n - idx
                     if idx < 0:
-                        evaluation.message("Part", "partw", i, list)
+                        evaluation.message("Part", "partw", i, expr)
                         return
                 else:
                     idx = idx - 1
                     if idx > n:
-                        evaluation.message("Part", "partw", i, list)
+                        evaluation.message("Part", "partw", i, expr)
                         return
-                return Integer(list[idx])
+                return Integer(expr[idx])
             if idx is Symbol("System`All"):
-                return list
+                return expr
             # TODO: handling ranges and lists...
             evaluation.message("Part", "notimplemented")
             return
 
-        # Otherwise...
-        result = eval_Part([list], indices, evaluation)
-        if result:
+        # Not an Association, or ByteArray, or some custom Atom,
+        # but instead is proabably an M-expression Expression.
+        if result := eval_Part([expr], indices, evaluation):
             return result
 
 
