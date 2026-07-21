@@ -222,6 +222,11 @@ def test_matchq(str_expr, msgs, str_expected, fail_msg):
             "-1",
             "Function ordering in function with mixed-length parameters",
         ),
+        (
+            'Order[<|1->2|>, "a"]',
+            "1",
+            "Associations come before Strings",
+        ),
     ],
 )
 def test_order(str_expr: str, str_expected: str, assert_fail_msg: str):

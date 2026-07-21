@@ -111,8 +111,10 @@ class Association_(Builtin):
             return rules_dictionary.values()
 
         try:
-            # return Expression(SymbolAssociation, *make_flatten(rules.get_sequence()))
-            return Association(make_flatten(rules.get_sequence()))
+            # return
+            elements = make_flatten(rules.get_sequence())
+            expr = Expression(SymbolAssociation, *elements)
+            return Association(elements, expr=expr)
         except TypeError:
             return None
 
@@ -139,6 +141,10 @@ class Association_(Builtin):
             )
         except TypeError:
             return None
+
+    # Define some sort of pattern that matches an association
+    # def eval_key(self, rules, key, evaluation: Evaluation):
+    #     "Association[rules__][key_]"
 
 
 class AssociationQ(Test):

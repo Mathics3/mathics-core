@@ -276,6 +276,7 @@ END_OF_LIST_PATTERN_SORT_KEY = (
 
 ###  _ELT_ORDER suffixes are used in element ordering and
 ###  Expression.element_order().
+###  Inside Mathics3, you can use builtin function Order[x, y] to check things.
 
 BASIC_ATOM_NUMBER_ELT_ORDER = 0x00
 BASIC_ATOM_ASSOCIATION_ELT_ORDER = 0x01

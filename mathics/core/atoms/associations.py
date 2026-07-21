@@ -5,11 +5,14 @@ Mathics3 Association
 from typing import Any, Iterable, Optional
 
 from mathics.core.atoms import String
+from mathics.core.convert.op import operator_to_ascii, operator_to_unicode
 from mathics.core.element import BaseElement, BoxElementMixin
+from mathics.core.expression import Expression
 from mathics.core.keycomparable import BASIC_ATOM_ASSOCIATION_ELT_ORDER
 from mathics.core.rules import is_rule
 from mathics.core.symbols import Atom, Symbol
-from mathics.core.systemsymbols import SymbolRule
+from mathics.core.systemsymbols import SymbolAssociation, SymbolRule
+from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
 
 class Association(Atom, BoxElementMixin):
@@ -24,7 +27,13 @@ class Association(Atom, BoxElementMixin):
 
     class_head_name = "System`Association"
 
-    def __init__(self, elements: Optional[Iterable]):
+    def __init__(self, elements: Optional[Iterable], expr: Optional[Expression] = None):
+
+        if expr is None:
+            expr = Expression(SymbolAssociation, *elements)
+
+        # Save the Expression form rewrite rule or pattern matching.
+        self.expr = expr
 
         # When self._value is not {} and is_literal is False, then
         # value when what can be represented in Python without resorting
@@ -77,9 +86,16 @@ class Association(Atom, BoxElementMixin):
 
     def __str__(self) -> str:
         """Return string representation of the Association."""
-        if not self._value:
-            return "<||>"
-        items = [f"{k} ⇾ {v}" for k, (_, v) in self._value.items()]
+
+        if SYSTEM_CHARACTER_ENCODING == "ASCII":
+            operator = operator_to_ascii.get("Rule", "->")
+        else:
+            operator = operator_to_unicode.get("Rule", "⇾")
+
+        if self._value:
+            items = [f"{k} {operator} {v}" for k, v in self._value.items()]
+        else:
+            items = [f"{k} {operator} {v}" for k, v in self.collection.items()]
         return f"<|{', '.join(items)}|>"
 
     def atom_to_boxes(self, f, evaluation) -> "BaseElement":
@@ -118,7 +134,6 @@ class Association(Atom, BoxElementMixin):
         For an Association, it is considered a literal if all its keys and values
         are literals and the structure is fixed. W
         """
-        print("XXX1 Association is_literal called")
         return self._is_literal
 
     def sameQ(self, other: Any) -> bool:

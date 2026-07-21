@@ -489,6 +489,8 @@ class ExpressionPattern(BasePattern):
 
     def match(self, expression: BaseElement, pattern_context: dict):
         """Try to match the pattern against an Expression"""
+        from mathics.core.atoms.associations import Association
+
         evaluation = pattern_context["evaluation"]
         yield_func = pattern_context["yield_func"]
         vars_dict = pattern_context["vars_dict"]
@@ -517,6 +519,15 @@ class ExpressionPattern(BasePattern):
         parms.setdefault("head", None)
         parms.setdefault("element_index", None)
         parms.setdefault("element_count", None)
+
+        if isinstance(expression, Association):
+
+            # FIXME: Provide something like this?
+            # try:
+            #     basic_match_association(self, expression, parms)
+            # except (StopGenerator_ExpressionPattern_match, TimeoutInterrupt):
+            #     return
+            expression = expression.expr
 
         if isinstance(expression, Expression):
             try:
