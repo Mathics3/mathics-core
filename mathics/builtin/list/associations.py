@@ -20,6 +20,9 @@ from mathics.core.rules import is_rule
 from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.systemsymbols import SymbolAssociation, SymbolMakeBoxes, SymbolMissing
 from mathics.eval.list.associations import (
+    eval_AssociationQ,
+    eval_Keys,
+    eval_Keys_with_Head,
     eval_Lookup,
     eval_Lookup_assocs_list_key,
     eval_Lookup_multiple_keys,
@@ -165,21 +168,7 @@ class AssociationQ(Test):
     summary_text = "test if an expression is a valid association"
 
     def test(self, expr) -> bool:
-        def validate(elements):
-            for element in elements:
-                if is_rule(element):
-                    pass
-                elif element.has_form(("List", "Association"), None):
-                    if not validate(element.elements):
-                        return False
-                else:
-                    return False
-            return True
-
-        if isinstance(expr, Association):
-            return True
-        # Handle where we still have Expression[SymbolRule, ... ]
-        return expr.get_head_name() == "System`Association" and validate(expr.elements)
+        return eval_AssociationQ(expr)
 
 
 class Key(Builtin):
@@ -250,54 +239,13 @@ class Keys(Builtin):
 
     summary_text = "list association keys"
 
-    def eval(self, rules, evaluation: Evaluation):
-        "Keys[rules_]"
+    def eval(self, expr, evaluation: Evaluation):
+        "Keys[expr_]"
+        return eval_Keys(expr, evaluation)
 
-        def get_keys(expr):
-            if is_rule(expr):
-                return expr.elements[0]
-            elif expr.has_form("List", None) or (
-                expr.has_form("Association", None)
-                and AssociationQ(expr).evaluate(evaluation) is SymbolTrue
-            ):
-                return to_mathics_list(*expr.elements, elements_conversion_fn=get_keys)
-            else:
-                evaluation.message("Keys", "invrl", expr)
-                raise TypeError
-
-        rules = rules.get_sequence()
-        if len(rules) != 1:
-            evaluation.message("Keys", "argx", Integer(len(rules)))
-            return
-
-        try:
-            return get_keys(rules[0])
-        except TypeError:
-            return None
-
-    def eval_with_head(self, rules, head, evaluation: Evaluation):
-        "Keys[rules_, head_]"
-
-        def get_keys_with_head(expr, h):
-            if is_rule(expr):
-                key = expr.elements[0]
-                return Expression(h, key)
-            elif expr.has_form("List", None) or (
-                expr.has_form("Association", None)
-                and AssociationQ(expr).evaluate(evaluation) is SymbolTrue
-            ):
-                return to_mathics_list(
-                    *expr.elements,
-                    elements_conversion_fn=lambda e: get_keys_with_head(e, h),
-                )
-            else:
-                evaluation.message("Keys", "invrl", expr)
-                raise TypeError
-
-        try:
-            return get_keys_with_head(rules, head)
-        except TypeError:
-            return None
+    def eval_with_head(self, expr, head, evaluation: Evaluation):
+        "Keys[expr_, head_]"
+        return eval_Keys_with_Head(expr, head, evaluation)
 
 
 class Lookup(Builtin):

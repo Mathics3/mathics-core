@@ -200,7 +200,20 @@ class Association(Atom, BoxElementMixin):
         # Perform adds, deletes and updates.
         return self._expr
 
+    def get(self, key: BaseElement, default: BaseElement = None) -> Any:
+        """Return the value for key if key is in the association, else default.
+
+        Behaves like dict.get().
+        """
+        return self.collection.get(key, default)
+
     get_string_value = __str__
+
+    def keys(self) -> Any:
+        """Return the keys of an the association.
+        Behaves like dict.keys().
+        """
+        return self.collection.keys()
 
     @property
     def head(self) -> Symbol:
