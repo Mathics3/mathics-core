@@ -292,3 +292,9 @@ class Association(Atom, BoxElementMixin):
 
         self._hash = hash(("Association", tuple(hash_elements)))
         self._is_literal = is_literal
+
+    def values(self) -> Any:
+        """Return the values of an the association.
+        Behaves like dict.values().
+        """
+        return self.collection.values()

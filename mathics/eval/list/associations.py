@@ -150,6 +150,60 @@ def eval_Lookup_multiple_keys(assoc, keys, default, evaluation: Evaluation):
     return ListExpression(*results)
 
 
+def eval_Values(rules_or_association, evaluation: Evaluation):
+
+    def get_values(expr):
+        if isinstance(expr, Association):
+            return ListExpression(*expr.values())
+        if is_rule(expr):
+            return expr.elements[1]
+        if expr.has_form("List", None) or (
+            expr.has_form("Association", None) and eval_AssociationQ(expr)
+        ):
+            return to_mathics_list(*expr.elements, elements_conversion_fn=get_values)
+        else:
+            raise TypeError
+
+    rules = rules_or_association.get_sequence()
+    if len(rules) != 1:
+        evaluation.message("Values", "argx", Integer(len(rules)))
+        return
+
+    try:
+        return get_values(rules[0])
+    except TypeError:
+        evaluation.message("Values", "invrl", rules[0])
+
+
+def eval_Values_with_Head(
+    rules_or_association, head: BaseElement, evaluation: Evaluation
+):
+
+    def get_values_with_head(expr, h: BaseElement) -> BaseElement:
+        if isinstance(expr, Association):
+            return ListExpression(
+                *(Expression(h, key) for key in expr.collection.values())
+            )
+        if is_rule(expr):
+            value = expr.elements[1]
+            return Expression(h, value)
+        if expr.has_form("List", None) or (
+            expr.has_form("Association", None) and eval_AssociationQ(expr)
+        ):
+            return to_mathics_list(
+                *expr.elements,
+                elements_conversion_fn=lambda e: get_values_with_head(e, h),
+            )
+        else:
+            evaluation.message("Values", "invrl", expr)
+            raise TypeError
+
+    try:
+        return get_values_with_head(rules_or_association, head)
+    except TypeError:
+        return None
+
+
 def eval_assocs_list_key(self, assocs, key, evaluation: Evaluation):
     """Lookup[assocs_List, key_]"""
     return eval_Lookup_assocs_list_key(assocs, key, None, evaluation)
