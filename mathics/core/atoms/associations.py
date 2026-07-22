@@ -33,10 +33,15 @@ class Association(Atom, BoxElementMixin):
             expr = Expression(SymbolAssociation, *elements)
 
         # Save the Expression form rewrite rule or pattern matching.
-        self.expr = expr
+        self._expr = expr
+        # Note that Association and Expression are in synchronization by
+        # noting there haven't been any adds, deletes or updates yet.
+        self.adds = {}
+        self.deletes = []
+        self.updates = {}
 
         # When self._value is not {} and is_literal is False, then
-        # value when what can be represented in Python without resorting
+        # self.value when what can be represented in Python without resorting
         # to M-expressions that need to be evaluated. This typically happens when
         # the entire association is a literal value.
         self._value: dict = {}
@@ -51,8 +56,29 @@ class Association(Atom, BoxElementMixin):
         self.update_for_change()
         return
 
-    def __hash__(self) -> int:
-        return self._hash
+    # Add some dictionary like methods so that we can treat an Association object
+    # as we would a dictionary.
+
+    def __delitem__(self, key: BaseElement) -> None:
+        """Remove a key-value pair from the association.
+
+        Args:
+            key: The key to remove.
+
+        Raises:
+            KeyError: If the key is not found in the association.
+
+        Side effects:
+            Updates self.collection, self._value, self._is_literal, and the hash.
+        """
+        if key not in self.collection:
+            raise KeyError(key)
+
+        if self._value:
+            del self._value[key.value]
+
+        self.deletes.append[key]
+        del self.collection[key]
 
     def __eq__(self, other: Any) -> bool:
         """Check equality with another Association."""
@@ -83,6 +109,46 @@ class Association(Atom, BoxElementMixin):
 
         # We can't disprove a difference, so they are the same.
         # return True
+
+    def __getitem__(self, key: Any) -> Any:
+        """Retrieve a value from the association by key.
+
+        Args:
+            key: The key to look up in the association.
+
+        Returns:
+            The value associated with the given key.
+
+        Raises:
+            KeyError: If the key is not found in the association.
+        """
+        if key in self.collection:
+            return self.collection[key]
+        raise KeyError(key)
+
+    def __hash__(self) -> int:
+        return self._hash
+
+    def __setitem__(self, key: BaseElement, value: BaseElement) -> None:
+        """Set or update a key-value pair in the association.
+
+        Args:
+            key: The key to set or update.
+            value: The value to associate with the key.
+
+        Side effects:
+            Updates self.collection, self._value, self._is_literal, and the hash.
+        """
+        self.collection[key] = value
+        if self._value and key.is_literal and value.is_literal:
+            self._value[key.value] = value.value
+        else:
+            self._value = {}
+            self._is_literal = None
+
+        # Note that the Expression form of the Association needs
+        # to be updated.
+        self.updates[key] = value
 
     def __str__(self) -> str:
         """Return string representation of the Association."""
@@ -121,6 +187,18 @@ class Association(Atom, BoxElementMixin):
             len(self.collection),
             self.collection,
         )
+
+    @property
+    def expr(self) -> Expression:
+        """
+        Convert internal form to M-expression Expression.
+        This is useful, for example, in Form handling.
+        """
+        if not (self.adds or self.deletes or self.updates):
+            return self._expr
+        print("Warning: internal expression not right after adds, deletes, and updates")
+        # Perform adds, deletes and updates.
+        return self._expr
 
     get_string_value = __str__
 

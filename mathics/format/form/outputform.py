@@ -30,6 +30,7 @@ from mathics.core.atoms import (
     String,
 )
 from mathics.core.atoms.associations import Association
+from mathics.core.convert.op import operator_to_ascii, operator_to_unicode
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BoxError, Expression
@@ -160,18 +161,17 @@ def _association_outputform(expr: Expression, evaluation: Evaluation, **kwargs):
     head = expr.head
 
     if isinstance(expr, Association):
-        return str(expr)
-
+        expr = expr.expr
     else:
         if not isinstance(head, Symbol):
             raise _WrongFormattedExpression
 
-        elements = expr.elements
-        parts = []
-        for element in elements:
-            if not is_rule(element):
-                raise _WrongFormattedExpression
-            parts.append(rule_to_outputform_text(element, evaluation, **kwargs))
+    elements = expr.elements
+    parts = []
+    for element in elements:
+        if not is_rule(element):
+            raise _WrongFormattedExpression
+        parts.append(rule_to_outputform_text(element, evaluation, **kwargs))
     return "<|" + ", ".join(parts) + "|>"
 
 

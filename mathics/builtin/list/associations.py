@@ -111,7 +111,6 @@ class Association_(Builtin):
             return rules_dictionary.values()
 
         try:
-            # return
             elements = make_flatten(rules.get_sequence())
             expr = Expression(SymbolAssociation, *elements)
             return Association(elements, expr=expr)
@@ -193,6 +192,15 @@ class Key(Builtin):
       <dt>'Key'[$key$][$assoc$]
       <dd>
     </dl>
+
+    Get a value from an association as using part:
+    >> <|w -> x, y -> z|>[[Key[w]]]
+     = x
+
+    Same thing using function application:
+    >> <|w -> x, y -> z|>[w]
+     = x
+
     """
 
     rules = {

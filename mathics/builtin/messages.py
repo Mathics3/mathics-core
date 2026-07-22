@@ -240,9 +240,10 @@ class General(Builtin):
         "partw": "Part `1` of `2` does not exist.",
         "plld": "Endpoints in `1` must be distinct machine-size real numbers.",
         "plln": "Limiting value `1` in `2` is not a machine-size real number.",
-        "pspec": (
-            "Part specification `1` is neither an integer nor " "a list of integer."
+        "pkspec": (
+            "Part specification `1` is neither an integer nor a list of integer."
         ),
+        "pkspec1": ("The expression `1` cannot be used as a part specification."),
         "psl": "Position specification `1` in `2` is not a machine-sized integer or a list of machine-sized integers.",
         "readf": "`1` is not a valid format specification.",
         "rvalue": "`1` is not a variable with a value, so its value cannot be changed.",
