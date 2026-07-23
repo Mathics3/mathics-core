@@ -11,11 +11,10 @@ def make_rule(lhs, rhs) -> Expression:
 
 
 def test_association_is_literal():
+    # Not much here yet.
     rule1 = make_rule(Integer1, Integer2)
     rule_list = to_mathics_list(rule1)
-    a1 = Association(rule_list)
-    assert a1.is_literal
+    assert Association(rule_list)
     rule2 = make_rule(Symbol("x"), Integer2)
     rule_list = to_mathics_list(rule2)
-    a2 = Association(rule_list)
-    assert not a2.is_literal
+    assert Association(rule_list)

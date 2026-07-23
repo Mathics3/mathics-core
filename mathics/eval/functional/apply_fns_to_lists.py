@@ -75,7 +75,7 @@ def eval_Map_level(f, expr, levelspec, evaluation, wrap_in_head: bool):
 
 
 def eval_MapAt(
-    f: BaseElement, expr: ListExpression, args, evaluation: Evaluation
+    f: BaseElement, expr: BaseElement, args, evaluation: Evaluation
 ) -> Optional[ListExpression]:
     """
     evaluation routine for MapAt[]
@@ -172,6 +172,16 @@ def eval_MapAt(
             )
             return elements
 
+    if isinstance(expr, Association):
+        if isinstance(args, Integer):
+            i = args.value
+            if i > 0:
+                i -= 1
+            key, value = tuple(expr.items())[i]
+            new_value = Expression(f, value)
+            update_value = [(key, new_value)]
+            expr.update(update_value)
+            return expr
     try:
         if isinstance(args, Integer):
             new_list_expr = map_at_replace_one(

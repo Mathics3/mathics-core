@@ -14,6 +14,9 @@ from mathics.core.symbols import Atom, Symbol
 from mathics.core.systemsymbols import SymbolAssociation, SymbolRule
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
+DictKeysType = type({}.keys())
+DictValuesType = type({}.values())
+
 
 class Association(Atom, BoxElementMixin):
     """An Association is an Atom collection that maps keys to values,
@@ -34,17 +37,6 @@ class Association(Atom, BoxElementMixin):
 
         # Save the Expression form rewrite rule or pattern matching.
         self._expr = expr
-        # Note that Association and Expression are in synchronization by
-        # noting there haven't been any adds, deletes or updates yet.
-        self.adds = {}
-        self.deletes = []
-        self.updates = {}
-
-        # When self._value is not {} and is_literal is False, then
-        # self.value when what can be represented in Python without resorting
-        # to M-expressions that need to be evaluated. This typically happens when
-        # the entire association is a literal value.
-        self._value: dict = {}
 
         self.collection = {}
         if elements:
@@ -69,13 +61,10 @@ class Association(Atom, BoxElementMixin):
             KeyError: If the key is not found in the association.
 
         Side effects:
-            Updates self.collection, self._value, self._is_literal, and the hash.
+            Updates self.collection
         """
         if key not in self.collection:
             raise KeyError(key)
-
-        if self._value:
-            del self._value[key.value]
 
         self.deletes.append[key]
         del self.collection[key]
@@ -87,12 +76,6 @@ class Association(Atom, BoxElementMixin):
 
         if len(self.collection) != len(other.collection):
             return False
-
-        if self._is_literal != other._is_literal:
-            return False
-
-        if self.is_literal:
-            return self._value == other._value
 
         # "other" is an Association that is not literal like us,
         # and has the same number items in its collection.
@@ -140,15 +123,6 @@ class Association(Atom, BoxElementMixin):
             Updates self.collection, self._value, self._is_literal, and the hash.
         """
         self.collection[key] = value
-        if self._value and key.is_literal and value.is_literal:
-            self._value[key.value] = value.value
-        else:
-            self._value = {}
-            self._is_literal = None
-
-        # Note that the Expression form of the Association needs
-        # to be updated.
-        self.updates[key] = value
 
     def __str__(self) -> str:
         """Return string representation of the Association."""
@@ -158,10 +132,7 @@ class Association(Atom, BoxElementMixin):
         else:
             operator = operator_to_unicode.get("Rule", "⇾")
 
-        if self._value:
-            items = [f"{k} {operator} {v}" for k, v in self._value.items()]
-        else:
-            items = [f"{k} {operator} {v}" for k, v in self.collection.items()]
+        items = [f"{k} {operator} {v}" for k, v in self.collection.items()]
         return f"<|{', '.join(items)}|>"
 
     def atom_to_boxes(self, f, evaluation) -> "BaseElement":
@@ -194,22 +165,27 @@ class Association(Atom, BoxElementMixin):
         Convert internal form to M-expression Expression.
         This is useful, for example, in Form handling.
         """
-        if not (self.adds or self.deletes or self.updates):
-            return self._expr
-        print("Warning: internal expression not right after adds, deletes, and updates")
-        # Perform adds, deletes and updates.
+        if self._expr is None:
+            elements = []
+            for key, value in self.collection.items():
+                elements.append(Expression(SymbolRule, key, value))
+            return Expression(SymbolAssociation, *elements)
+
         return self._expr
 
-    def get(self, key: BaseElement, default: BaseElement = None) -> Any:
+    def get(self, key: BaseElement, default: BaseElement = None) -> BaseElement:
         """Return the value for key if key is in the association, else default.
 
         Behaves like dict.get().
         """
         return self.collection.get(key, default)
 
+    def get_elements(self) -> Any:
+        return tuple(self.collection.items())
+
     get_string_value = __str__
 
-    def keys(self) -> Any:
+    def keys(self) -> DictKeysType:
         """Return the keys of an the association.
         Behaves like dict.keys().
         """
@@ -222,10 +198,18 @@ class Association(Atom, BoxElementMixin):
     @property
     def is_literal(self) -> bool:
         """
-        For an Association, it is considered a literal if all its keys and values
-        are literals and the structure is fixed. W
+        For now, we'll say an Association is not a literal.
+        Someday we may decide to distinguish the special case (possibly common)
+        situation when the entire Association can be converted to a Python dictionary,
+        or when the assocation is a literal value.
         """
-        return self._is_literal
+        return False
+
+    def items(self) -> tuple:
+        """Return the values of an the association.
+        Behaves like dict.items().
+        """
+        return self.collection.items()
 
     def sameQ(self, other: Any) -> bool:
         """
@@ -236,9 +220,6 @@ class Association(Atom, BoxElementMixin):
             return False
 
         if len(self.collection) != len(other.collection):
-            return False
-
-        if self._is_literal != other._is_literal:
             return False
 
         if len(self._value) != len(other._value):
@@ -258,43 +239,34 @@ class Association(Atom, BoxElementMixin):
         return True
 
     def to_python(self, *args, **kwargs) -> Optional[dict]:
-        return self._value if self._is_literal else None
+        # FIXME
+        return None
 
     def to_sympy(self, **kwargs):
         return None
 
-    @property
-    def value(self) -> dict:
-        """A Python-friendly replacement value."""
-        return self._value
+    def values(self) -> DictValuesType:
+        """Return the values of an the association.
+        Behaves like dict.values().
+        """
+        return self.collection.values()
+
+    def update(self, e: Iterable):
+        """Return the values of an the association.
+        Behaves like dict.update() except we return the update object
+        value
+        """
+        self.collection.update(e)
+        self.update_for_change()
+        self._expr = None
 
     def update_for_change(self):
         """
         Things we have to do when the Association is changed.
         """
         hash_elements = []
-        is_literal: bool = True
         for key, value in self.collection.items():
-            if is_literal:
-                # Update is_literal, and possibly self._value.
-                if (
-                    key.is_literal
-                    and value.is_literal
-                    and (hasattr(key, "value") and hasattr(value, "value"))
-                ):
-                    self._value[key.value] = value.value
-                else:
-                    is_literal = False
-                    self._value = {}
-
             # Update hash component
             hash_elements.append((hash(key), hash(value)))
 
         self._hash = hash(("Association", tuple(hash_elements)))
-        self._is_literal = is_literal
-
-    def values(self) -> Any:
-        """Return the values of an the association.
-        Behaves like dict.values().
-        """
-        return self.collection.values()
