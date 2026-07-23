@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# FIXME go over expected args.
 """
 Applying Functions to Lists
 
@@ -113,6 +114,7 @@ class Apply(InfixOperator):
         return result
 
 
+# FIXME: go over expected args
 class Map(InfixOperator):
     """
     <url>:WMA link:
@@ -171,6 +173,8 @@ class Map(InfixOperator):
         return eval_Map_level(f, expr, levelspec, evaluation, wrap_in_head)
 
 
+# FIXME: go over expected args
+# Start Association revision here.
 class MapAt(Builtin):
     """
     <url>:WMA link:
