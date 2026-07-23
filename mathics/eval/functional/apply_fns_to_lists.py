@@ -7,13 +7,58 @@ from typing import Iterable, Optional, Union
 from mathics.core.atoms import Integer, Integer1
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
-from mathics.core.exceptions import PartRangeError
+from mathics.core.exceptions import InvalidLevelspecError, PartRangeError
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import is_rule
-from mathics.core.symbols import SymbolTrue
+from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.systemsymbols import SymbolMapAt
+from mathics.eval.parts import python_levelspec, walk_levels
 from mathics.eval.testing_expressions import eval_ArrayQ
+
+
+def eval_Map_level(f, expr, levelspec, evaluation, heads):
+    try:
+        start, stop = python_levelspec(levelspec)
+    except InvalidLevelspecError:
+        evaluation.message("Map", "level", levelspec)
+        return
+
+    is_association = expr.has_form("Association", None)
+
+    def callback(level):
+        """
+        Map $f$ onto each element (denoted by 'level' here) at this level.
+        With exception for expr as Association, which is mapped on values only.
+        """
+        # TODO: This special behavior applies when the whole expression
+        # is of the form Association[__(Rule|RuleDelayed)], i.e., when
+        # the expression is a well-formatted Association expression.
+        # For example,
+        # `Map[F, Association[a->1,b->2, NotARule]`
+        # produces in WMA
+        # `Association[F[a->1], F[b->2], F[NotARule]`
+        # instead of
+        # `Association[a->F[1], b->F[2], F[NotARule]`]
+        #
+        # Fixing this would require a different implementation of this eval_ method.
+        #
+        if is_association and is_rule(level):
+            return Expression(
+                level.get_head(),
+                level.elements[0],
+                Expression(f, level.elements[1]),
+            )
+        return Expression(f, level)
+
+    result, _ = walk_levels(expr, start, stop, heads=heads, callback=callback)
+    if isinstance(result, Symbol):
+        return result
+    elem_prop = result.elements_properties
+    if elem_prop is not None:
+        elem_prop.elements_fully_evaluated = False
+
+    return result
 
 
 def eval_MapAt(
