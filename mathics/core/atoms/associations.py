@@ -1,5 +1,5 @@
 """
-Mathics3 Association
+Mathics3 implementation of an Association atom.
 """
 
 from typing import Any, Iterable, Optional
@@ -120,7 +120,7 @@ class Association(Atom, BoxElementMixin):
             value: The value to associate with the key.
 
         Side effects:
-            Updates self.collection, self._value, self._is_literal, and the hash.
+            Updates self.collection
         """
         self.collection[key] = value
 
@@ -194,16 +194,6 @@ class Association(Atom, BoxElementMixin):
     @property
     def head(self) -> Symbol:
         return SymbolRule
-
-    @property
-    def is_literal(self) -> bool:
-        """
-        For now, we'll say an Association is not a literal.
-        Someday we may decide to distinguish the special case (possibly common)
-        situation when the entire Association can be converted to a Python dictionary,
-        or when the assocation is a literal value.
-        """
-        return False
 
     def items(self) -> tuple:
         """Return the values of an the association.
