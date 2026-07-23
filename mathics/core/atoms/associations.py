@@ -1,6 +1,6 @@
 """
-Mathics3 implementation of an Association atom.
-"""
+Mathics3 implementation of an Association atom
+6"""
 
 from typing import Any, Iterable, Optional
 
@@ -13,9 +13,6 @@ from mathics.core.rules import is_rule
 from mathics.core.symbols import Atom, Symbol
 from mathics.core.systemsymbols import SymbolAssociation, SymbolRule
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
-
-DictKeysType = type({}.keys())
-DictValuesType = type({}.values())
 
 
 class Association(Atom, BoxElementMixin):
@@ -30,13 +27,13 @@ class Association(Atom, BoxElementMixin):
 
     class_head_name = "System`Association"
 
-    def __init__(self, elements: Optional[Iterable], expr: Optional[Expression] = None):
+    def __init__(self, elements: Iterable, expr: Optional[Expression] = None):
 
         if expr is None:
             expr = Expression(SymbolAssociation, *elements)
 
         # Save the Expression form rewrite rule or pattern matching.
-        self._expr = expr
+        self._expr: Optional[Expression] = expr
 
         self.collection = {}
         if elements:
@@ -66,7 +63,6 @@ class Association(Atom, BoxElementMixin):
         if key not in self.collection:
             raise KeyError(key)
 
-        self.deletes.append[key]
         del self.collection[key]
 
     def __eq__(self, other: Any) -> bool:
@@ -143,7 +139,7 @@ class Association(Atom, BoxElementMixin):
         return String(str(self))
 
     @property
-    def elements(self) -> dict:
+    def elements(self):
         return self.collection.items()
 
     @property
@@ -173,7 +169,9 @@ class Association(Atom, BoxElementMixin):
 
         return self._expr
 
-    def get(self, key: BaseElement, default: BaseElement = None) -> BaseElement:
+    def get(
+        self, key: BaseElement, default: Optional[BaseElement] = None
+    ) -> Optional[BaseElement]:
         """Return the value for key if key is in the association, else default.
 
         Behaves like dict.get().
@@ -185,7 +183,7 @@ class Association(Atom, BoxElementMixin):
 
     get_string_value = __str__
 
-    def keys(self) -> DictKeysType:
+    def keys(self):
         """Return the keys of an the association.
         Behaves like dict.keys().
         """
@@ -195,7 +193,7 @@ class Association(Atom, BoxElementMixin):
     def head(self) -> Symbol:
         return SymbolRule
 
-    def items(self) -> tuple:
+    def items(self):
         """Return the values of an the association.
         Behaves like dict.items().
         """
@@ -212,16 +210,10 @@ class Association(Atom, BoxElementMixin):
         if len(self.collection) != len(other.collection):
             return False
 
-        if len(self._value) != len(other._value):
-            return False
-
-        # Compare all key-value pairs. We can't use == because
-        # the keys have to be in the same order
-
-        for key_repr, (key, value) in self.collection.items():
-            if key_repr not in other._value:
-                return False
-            other_key, other_value = other._value[key_repr]
+        # Compare all key-value pairs directly
+        for (key, value), (other_key, other_value) in zip(
+            self.collection.items(), other.collection.items()
+        ):
             if key != other_key or value != other_value:
                 return False
 
@@ -235,7 +227,7 @@ class Association(Atom, BoxElementMixin):
     def to_sympy(self, **kwargs):
         return None
 
-    def values(self) -> DictValuesType:
+    def values(self):
         """Return the values of an the association.
         Behaves like dict.values().
         """
