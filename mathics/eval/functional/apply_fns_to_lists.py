@@ -5,6 +5,7 @@ Evaluation routines for mathics.builtin.functional.appy_fns_to_lists
 from typing import Iterable, Optional, Union
 
 from mathics.core.atoms import Integer, Integer1
+from mathics.core.atoms.associations import Association
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import InvalidLevelspecError, PartRangeError
@@ -12,17 +13,28 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import is_rule
 from mathics.core.symbols import Symbol, SymbolTrue
-from mathics.core.systemsymbols import SymbolMapAt
+from mathics.core.systemsymbols import SymbolMapAt, SymbolRule
 from mathics.eval.parts import python_levelspec, walk_levels
 from mathics.eval.testing_expressions import eval_ArrayQ
 
 
-def eval_Map_level(f, expr, levelspec, evaluation, heads):
+def eval_Map_level(f, expr, levelspec, evaluation, wrap_in_head: bool):
     try:
         start, stop = python_levelspec(levelspec)
     except InvalidLevelspecError:
         evaluation.message("Map", "level", levelspec)
         return
+
+    if isinstance(expr, Association):
+        # For Association atoms, create a new association.
+        # FIXME: handle wrap_in_head = True
+        # FIXME we probably should add another Association constructor that doesn't have to
+        # go through Expression(SymbolRule ...).
+        rule_list = [
+            Expression(SymbolRule, lhs, Expression(f, rhs))
+            for lhs, rhs in expr.elements
+        ]
+        return Association(rule_list)
 
     is_association = expr.has_form("Association", None)
 
@@ -37,7 +49,7 @@ def eval_Map_level(f, expr, levelspec, evaluation, heads):
         # For example,
         # `Map[F, Association[a->1,b->2, NotARule]`
         # produces in WMA
-        # `Association[F[a->1], F[b->2], F[NotARule]`
+        # `Association[F[a->1], F[b->2], F[NotARule]]`
         # instead of
         # `Association[a->F[1], b->F[2], F[NotARule]`]
         #
@@ -51,7 +63,8 @@ def eval_Map_level(f, expr, levelspec, evaluation, heads):
             )
         return Expression(f, level)
 
-    result, _ = walk_levels(expr, start, stop, heads=heads, callback=callback)
+    result, _ = walk_levels(expr, start, stop, heads=wrap_in_head, callback=callback)
+
     if isinstance(result, Symbol):
         return result
     elem_prop = result.elements_properties

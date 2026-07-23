@@ -162,11 +162,13 @@ class Map(InfixOperator):
     def eval_level(self, f, expr, levelspec, evaluation, options={}):
         """Map[f_, expr_, Optional[levelspec_, {1}],
         OptionsPattern[Map]]"""
-        heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
         levelspec = param_and_option_from_optional_place(
             levelspec, options, "System`Map", evaluation
         ) or ListExpression(Integer1)
-        return eval_Map_level(f, expr, levelspec, evaluation, heads)
+
+        # Note: this has to come *after* param_option_from_optional_place() above.
+        wrap_in_head = self.get_option(options, "Heads", evaluation) is SymbolTrue
+        return eval_Map_level(f, expr, levelspec, evaluation, wrap_in_head)
 
 
 class MapAt(Builtin):
