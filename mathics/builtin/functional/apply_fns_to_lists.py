@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# FIXME go over expected args.
 """
 Applying Functions to Lists
 
@@ -74,16 +73,19 @@ class Apply(InfixOperator):
      = {a, {b, {g}, {c, e}}}
     """
 
-    rules = {
-        "Apply[f_][expr_]": "Apply[f, expr]",
-    }
-
-    summary_text = "apply a function to a list, at specified levels"
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 4)
     grouping = "Right"
 
     options = {
         "Heads": "False",
     }
+
+    rules = {
+        "Apply[f_][expr_]": "Apply[f, expr]",
+    }
+
+    summary_text = "apply a function to a list, at specified levels"
 
     def eval(self, f, expr, levelspec, evaluation, options={}):
         """Apply[f_, expr_, Optional[levelspec_, {0}],
@@ -114,7 +116,6 @@ class Apply(InfixOperator):
         return result
 
 
-# FIXME: go over expected args
 class Map(InfixOperator):
     """
     <url>:WMA link:
@@ -150,16 +151,19 @@ class Map(InfixOperator):
      = {f[a], f[b], f[c]}
     """
 
-    rules = {
-        "Map[f_][expr_]": "Map[f, expr]",
-    }
-
-    summary_text = "map a function over a list, at specified levels"
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 4)
     grouping = "Right"
 
     options = {
         "Heads": "False",
     }
+
+    rules = {
+        "Map[f_][expr_]": "Map[f, expr]",
+    }
+
+    summary_text = "map a function over a list, at specified levels"
 
     def eval_level(self, f, expr, levelspec, evaluation, options={}):
         """Map[f_, expr_, Optional[levelspec_, {1}],
@@ -173,8 +177,6 @@ class Map(InfixOperator):
         return eval_Map_level(f, expr, levelspec, evaluation, wrap_in_head)
 
 
-# FIXME: go over expected args
-# Start Association revision here.
 class MapAt(Builtin):
     """
     <url>:WMA link:
@@ -230,6 +232,11 @@ class MapAt(Builtin):
 
     """
 
+    # FIXME:
+    # Note in "rules" below that MapAt has a 2-arg form.
+    # eval_error = Builtin.generic_argument_error
+    # expected_args = 3
+
     rules = {
         "MapAt[f_, pos_][expr_]": "MapAt[f, expr, pos]",
     }
@@ -283,14 +290,17 @@ class MapIndexed(Builtin):
      = a + b f[g] c ^ e
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 4)
+    options = {
+        "Heads": "False",
+    }
+
     rules = {
         "MapIndexed[f_][expr_]": "MapIndexed[f, expr]",
     }
 
     summary_text = "map a function, including index information"
-    options = {
-        "Heads": "False",
-    }
 
     def eval_level(self, f, expr, levelspec, evaluation, options={}):
         """MapIndexed[f_, expr_, Optional[levelspec_, {1}],
@@ -344,16 +354,22 @@ class MapThread(Builtin):
      = {f[a, 1], f[b, 2], f[c, 3]}
     """
 
-    rules = {
-        "MapThread[f_][expr_]": "MapThread[f, expr]",
-    }
+    # FIXME:
+    # Note in "rules" below that MapThread has a one-argument-arg form.
+    # We do not have precise arg checking here.
+    # eval_error = Builtin.generic_argument_error
+    # expected_args = range(2, 4)
 
-    summary_text = "map a function across corresponding elements in multiple lists"
     messages = {
         "mptc": "Incompatible dimensions of objects at positions {2, `1`} and {2, `2`} of `3`; dimensions are `4` and `5`.",
         "mptd": "Object `1` at position {2, `2`} in `3` has only `4` of required `5` dimensions.",
         "list": "List expected at position `2` in `1`.",
     }
+    rules = {
+        "MapThread[f_][expr_]": "MapThread[f, expr]",
+    }
+
+    summary_text = "map a function across corresponding elements in multiple lists"
 
     def eval(self, f, expr, evaluation):
         "MapThread[f_, expr_]"
@@ -437,11 +453,14 @@ class Scan(Builtin):
      | 3
     """
 
-    summary_text = "scan over every element of a list, applying a function"
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 4)
+
     options = {
         "Heads": "False",
     }
 
+    summary_text = "scan over every element of a list, applying a function"
     rules = {
         "Scan[f_][expr_]": "Scan[f, expr]",
     }
@@ -492,6 +511,9 @@ class Thread(Builtin):
     >> {a, b, c} + {d, e, f} + g
      = {a + d + g, b + e + g, c + f + g}
     """
+
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 4)
 
     messages = {
         "tdlen": "Objects of unequal length cannot be combined.",

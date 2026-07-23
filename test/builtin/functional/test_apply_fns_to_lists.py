@@ -3,7 +3,7 @@
 Unit tests for mathics.builtin.functional.apply_fns_to_lists
 """
 
-from test.helper import check_evaluation_as_in_cli
+from test.helper import check_arg_counts, check_evaluation_as_in_cli
 
 import pytest
 
@@ -125,3 +125,45 @@ def test_map_at():
         ),
     ):
         check_evaluation_as_in_cli(str_expr, str_expected, fail_msg, msgs)
+
+
+@pytest.mark.parametrize(
+    ("function_name", "msg_fragment"),
+    [
+        (
+            "Apply",
+            "between 1 and 3 arguments are",
+        ),
+        (
+            "Map",
+            "between 1 and 3 arguments are",
+        ),
+        # In some contexts 2 arguments are allowed.
+        # We do not have precise arg checking here.
+        # (
+        #     "MapAt",
+        #     "3 arguments are",
+        # ),
+        (
+            "MapIndexed",
+            "between 1 and 3 arguments are",
+        ),
+        # In some context 1 argument is allowed.
+        # We do not have precise arg checking here.
+        # (
+        #     "MapThread",
+        #     "between 2 and 3 arguments are",
+        # ),
+        (
+            "Scan",
+            "between 1 and 3 arguments are",
+        ),
+        (
+            "Thread",
+            "between 1 and 3 arguments are",
+        ),
+    ],
+)
+def test_symbols_arg_errors(function_name, msg_fragment):
+    """ """
+    check_arg_counts(function_name, msg_fragment)
