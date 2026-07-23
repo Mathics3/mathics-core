@@ -29,7 +29,7 @@ def eval_Map_level(f, expr, levelspec, evaluation, heads):
     def callback(level):
         """
         Map $f$ onto each element (denoted by 'level' here) at this level.
-        With exception for expr as Association, which is mapped on values only.
+        Except for expr as Association, which is mapped on values only.
         """
         # TODO: This special behavior applies when the whole expression
         # is of the form Association[__(Rule|RuleDelayed)], i.e., when
@@ -99,14 +99,14 @@ def eval_MapAt(
         remaining_indices: Union[tuple, Integer],
         orig_index: ListExpression,
     ) -> list:
-        """Recursive routine to replace remaining indices inside elements which is a portion at some level of
+        """Recursive routine to replace remaining indices inside elements, which is a portion at some level of
           expr.elements.
 
         ``elements`` holds the ListExpression list for the portion of the
-         top-level ListExpression where we need to still index into.
+         top-level ListExpression where we still need to index into.
 
         Some part of the original ListExpression may have already been traversed.
-        ``remaining_indices`` gives the list of indices we still have to index into,
+        ``remaining_indices`` gives the list of indices we still have to index into;
         these will be a suffix ``orig_index``.
 
         ``orig_index`` is used for error reporting.
