@@ -7,28 +7,72 @@ Expression manipulation.
 SymPy or numeric functions are not need here.
 """
 
+from typing import Iterable, Optional
+
+from mathics.core.element import BaseElement
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 
 
-def contains_operator_symbol(expr, operator_symbol):
+def contains_operator_symbol(expr: BaseElement, operator_symbol) -> bool:
     """
     Check if expr contains operator_symbol anywhere.
     """
     if not isinstance(expr, Expression):
         return False
 
-    # Check if this expression's head is the target
-    if is_operator_symbol(expr, operator_symbol):
+    # Check if this expression's head is the target.
+    if is_operator(expr, operator_symbol):
         return True
 
-    # Recursively check sub-expressions
+    # Recursively check sub-expressions.
     for elem in expr.elements:
         if contains_operator_symbol(elem, operator_symbol):
             return True
 
     return False
+
+
+def distribute_across_list_elements(
+    elements_list: Iterable, operator_symbol, evaluation: Evaluation
+):
+    """
+    When we have a list of lists (or list of operators), compute the cartesian product.
+    For example:
+      Distribute[Table[{1, 2}, {2}], List]
+    should give:
+      {{1, 1}, {1, 2}, {2, 1}, {2, 2}}
+    """
+
+    # Collect components from each element.
+    components_per_element = []
+
+    for elem in elements_list:
+        if is_operator(elem, operator_symbol):
+            # This element is a list/operator, extract its components.
+            components_per_element.append(elem.elements)
+        else:
+            # Atomic element, treat as single component.
+            components_per_element.append([elem])
+
+    # Generate cartesian product.
+    result_parts = []
+
+    def cartesian_product_helper(index: int, current_combo) -> Optional[ListExpression]:
+        if index == len(components_per_element):
+            # We've built a complete combination.
+            result_parts.append(ListExpression(*current_combo))
+            return
+
+        for component in components_per_element[index]:
+            cartesian_product_helper(index + 1, current_combo + [component])
+
+    cartesian_product_helper(0, [])
+
+    # Wrap the result in a List.
+    return ListExpression(*result_parts)
 
 
 def eval_Distribute(expr, operator_symbol, evaluation):
@@ -41,6 +85,23 @@ def eval_Distribute(expr, operator_symbol, evaluation):
 
     # Handle ListExpression: apply distribution to each element.
     if isinstance(expr, ListExpression):
+        # Check if we should distribute over List itself
+        if is_operator(expr, operator_symbol):
+            # The operator is List and we have a list of lists
+            # We need to compute cartesian product of the elements
+            elements_list = expr.elements
+
+            # Check if any elements contain the operator (are themselves lists/operators)
+            has_operator_elements = any(
+                is_operator(elem, operator_symbol) for elem in elements_list
+            )
+
+            if has_operator_elements:
+                return distribute_across_list_elements(
+                    elements_list, operator_symbol, evaluation
+                )
+
+        # Otherwise, distribute each element individually
         distributed_elements = []
         for element in expr.elements:
             distributed = eval_Distribute(element, operator_symbol, evaluation)
@@ -69,7 +130,7 @@ def eval_Distribute(expr, operator_symbol, evaluation):
 
     # If the element is the operator symbol (e.g., g in f[g[...], g[...]]),
     # distribute over it by distributing the outer function's arguments.
-    if is_operator_symbol(target_elem, operator_symbol):
+    if is_operator(target_elem, operator_symbol):
         # Get all components of the operator symbol
         target_components = target_elem.elements
 
@@ -175,7 +236,7 @@ def eval_Distribute(expr, operator_symbol, evaluation):
 
 #     # If the element is the operator symbol (e.g., g in f[g[...], g[...]]),
 #     # distribute over it by distributing the outer function's arguments.
-#     if is_operator_symbol(target_elem, f_symbol):
+#     if is_operator(target_elem, f_symbol):
 #         # Get all components of the operator symbol
 #         target_components = target_elem.elements
 
@@ -244,7 +305,7 @@ def eval_Distribute(expr, operator_symbol, evaluation):
 #     position_components = []
 #     for pos in operator_positions:
 #         elem = elements[pos]
-#         if is_operator_symbol(elem, f_symbol):
+#         if is_operator(elem, f_symbol):
 #             position_components.append((pos, elem.elements))
 #         else:
 #             position_components.append((pos, [elem]))
@@ -271,7 +332,7 @@ def distribute_across_multiple_positions(head, elements, operator_symbol, evalua
     position_components = []
     for pos in operator_positions:
         elem = elements[pos]
-        if is_operator_symbol(elem, operator_symbol):
+        if is_operator(elem, operator_symbol):
             position_components.append((pos, elem.elements))
         else:
             # Should not happen, but handle gracefully
@@ -280,7 +341,7 @@ def distribute_across_multiple_positions(head, elements, operator_symbol, evalua
     # Generate cartesian product of all components.
     result_parts = []
 
-    def cartesian_product_helper(index, current_elements):
+    def cartesian_product_helper(index: int, current_elements: list[BaseElement]):
         if index == len(position_components):
             # We've filled all positions, create the expression
             new_expr = Expression(head, *current_elements)
@@ -299,19 +360,19 @@ def distribute_across_multiple_positions(head, elements, operator_symbol, evalua
     return Expression(operator_symbol, *result_parts)
 
 
-def is_operator_symbol(expr, operator_symbol):
+def is_operator(expr: BaseElement, operator) -> bool:
     """
-    Check if expr's head is exactly the operator_symbol.
+    Check if expr's head is exactly the operator.
     """
     if not isinstance(expr, Expression):
         return False
 
     expr_head = expr.get_head()
 
-    if isinstance(operator_symbol, Symbol):
+    if isinstance(operator, Symbol):
         return (
             isinstance(expr_head, Symbol)
-            and expr_head.get_name() == operator_symbol.get_name()
+            and expr_head.get_name() == operator.get_name()
         )
 
-    return expr_head == operator_symbol
+    return expr_head == operator

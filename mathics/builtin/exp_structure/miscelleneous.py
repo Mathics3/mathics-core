@@ -42,6 +42,9 @@ class Distribute(Builtin):
     >> Distribute[{a(b + c), d(e + f)}]
      = {a b + a c, d e + d f}
 
+    >> Distribute[Table[{1, 2}, {2}], List]
+     = {{1, 1}, {1, 2}, {2, 1}, {2, 2}}
+
     ## Applying a function to results:
     ## >> Distribute[a(b + c), Plus, Square]
     ##  = Square[a b] + Square[a c]
