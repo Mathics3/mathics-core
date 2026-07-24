@@ -1,0 +1,140 @@
+# -*- coding: utf-8 -*-
+"""
+Unit tests for mathics.builtins.associations.associations
+"""
+from test.helper import check_evaluation
+
+import pytest
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "expected_messages", "str_expected", "assert_message"),
+    [
+        (
+            "assoc=<|a -> x, b -> y, c -> <|d -> t|>|>",
+            None,
+            "<|a -> x, b -> y, c -> <|d -> t|>|>",
+            None,
+        ),
+        ('assoc["s"]', None, "Missing[KeyAbsent, s]", None),
+        (
+            "assoc=<|a -> x, b + c -> y, {<|{}|>, a -> {z}}|>",
+            None,
+            "<|a -> {z}, b + c -> y|>",
+            None,
+        ),
+        ("assoc[a]", None, "{z}", None),
+        ('assoc=<|"x" -> 1, {y} -> 1|>', None, "<|x -> 1, {y} -> 1|>", None),
+        ('assoc["x"]', None, "1", None),
+        (
+            "<|<|a -> v|> -> x, <|b -> y, a -> <|c -> z|>, {}, <||>|>, {d}|>[c]",
+            None,
+            "Association[Association[a -> v] -> x, Association[b -> y, a -> Association[c -> z], {}, Association[]], {d}][c]",
+            None,
+        ),
+        (
+            "<|<|a -> v|> -> x, <|b -> y, a -> <|c -> z|>, {d}|>, {}, <||>|>[a]",
+            None,
+            "Association[Association[a -> v] -> x, Association[b -> y, a -> Association[c -> z], {d}], {}, Association[]][a]",
+            None,
+        ),
+        (
+            "assoc=<|<|a -> v|> -> x, <|b -> y, a -> <|c -> z, {d}|>, {}, <||>|>, {}, <||>|>",
+            None,
+            "<|<|a -> v|> -> x, b -> y, a -> Association[c -> z, {d}]|>",
+            None,
+        ),
+        ("assoc[a]", None, "Association[c -> z, {d}]", None),
+        #        (
+        #            "<|a -> x, b -> y, c -> <|d -> t|>|> // ToBoxes",
+        #            None,
+        #            "RowBox[{<|, RowBox[{RowBox[{a, ->, x}], ,, RowBox[{b, ->, y}], ,, RowBox[{c, ->, RowBox[{<|, RowBox[{d, ->, t}], |>}]}]}], |>}]",
+        #            None,
+        #        ),
+        #        (
+        #            "Association[a -> x, b -> y, c -> Association[d -> t, Association[e -> u]]] // ToBoxes",
+        #            None,
+        #            "RowBox[{<|, RowBox[{RowBox[{a, ->, x}], ,, RowBox[{b, ->, y}], ,, RowBox[{c, ->, RowBox[{<|, RowBox[{RowBox[{d, ->, t}], ,, RowBox[{e, ->, u}]}], |>}]}]}], |>}]",
+        #            None,
+        #        ),
+    ],
+)
+def test_associations(str_expr, expected_messages, str_expected, assert_message):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        failure_message=assert_message,
+        expected_messages=expected_messages,
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "expected_messages", "str_expected", "assert_message"),
+    [
+        (
+            "Map[F, Q[a->1, b:>Association[p->3,q->4]]]",
+            None,
+            "Q[F[a->1], F[b:>Association[p->3, q->4]]]",
+            "Acting on a nested association, the inner association is treated as normal.",
+        ),
+        (
+            "Map[F, Q[a->1, b:>Association[p->3,q->4]],{2}]",
+            None,
+            "Q[F[a]->F[1], F[b]:>F[Association[p->3, q->4]]]",
+            "Acting on a nested association, the inner association is treated as normal.",
+        ),
+        (
+            "Map[F, Association[a->1, b:>Association[p->3,q->4]], {0}]",
+            None,
+            "F[Association[a->1, b:>Association[p->3, q->4]]]",
+            "Special behavior occurs at the first level.",
+        ),
+        (
+            "Map[F, Association[a->1, b:>2]]",
+            None,
+            "Association[a->F[1], b:>F[2]]",
+            "Over associations, Map acts on the values",
+        ),
+        (
+            "Map[F, Association[a->1, b:>Association[p->3,q->4]]]",
+            None,
+            "Association[a->F[1], b:>F[Association[p->3, q->4]]]",
+            "Acting on a nested association, the inner association is treated as normal.",
+        ),
+        (
+            "Map[F, Association[a->1, b:>Association[p->3,q->4]], {1}]",
+            None,
+            "Association[a->F[1], b:>F[Association[p->3, q->4]]]",
+            "Special behavior occurs at the first level.",
+        ),
+        # FIXME
+        (
+            "Map[F, Association[a->1,b:>2,q]]",
+            None,
+            "Association[F[a->1], F[b:>2], F[q]]",
+            "Acting on an invalid association expression, works as in a normal expression.",
+        ),
+        (
+            "Map[F, Association[a->1, b:>Association[p->3,q->4]], {2}]",
+            None,
+            "Association[a->1, b:>Association[F[p->3],F[q->4]]]",
+            "Special behavior occurs at the first level.",
+        ),
+        (
+            "Map[F, Association[a->1, b:>Q[p->3, q->4]], {2}]",
+            None,
+            "Association[a->1, b:>Q[F[p->3],F[q->4]]]",
+            "Special behavior occurs at the first level.",
+        ),
+    ],
+)
+@pytest.mark.xfail
+def test_map_over_associations(
+    str_expr, expected_messages, str_expected, assert_message
+):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        failure_message=assert_message,
+        expected_messages=expected_messages,
+    )
