@@ -13,7 +13,7 @@ from mathics.core.expression import Expression
 from mathics.core.rules import is_rule
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolAssociation, SymbolMakeBoxes, SymbolMissing
-from mathics.eval.list.associations import eval_AssociationQ
+from mathics.eval.associations.associations import eval_AssociationQ
 from mathics.eval.lists import list_boxes
 
 

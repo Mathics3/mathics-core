@@ -6,8 +6,10 @@ Elements of Associations
 
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
+from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
-from mathics.eval.list.associations import (
+from mathics.eval.associations.elements import (
+    eval_KeyExistsQ,
     eval_Keys,
     eval_Keys_with_Head,
     eval_Lookup,
@@ -66,6 +68,33 @@ class Keys(Builtin):
     def eval_with_head(self, expr, head, evaluation: Evaluation):
         "Keys[expr_, head_]"
         return eval_Keys_with_Head(expr, head, evaluation)
+
+
+class KeyExistsQ(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/KeyExistsQ.html</url>
+
+    <dl>
+      <dt>'KeyExistsQ'[$assoc$, $key$]
+      <dd>returns True if $key$ exists in $assoc$ (an Association or association-like expression), and False otherwise.
+    </dl>
+
+    >> KeyExistsQ[<|a -> x, b -> y, c -> z|>, a]
+     = True
+
+    >> KeyExistsQ[<|a -> x, b -> y, c -> z|>, d]
+     = False
+    """
+
+    attributes = A_PROTECTED
+
+    summary_text = "test whether a key exists in an association"
+
+    # Patterns implemented as method names:
+    def eval_assoc_key(self, assoc, key: BaseElement, evaluation: Evaluation):
+        "KeyExistsQ[assoc_Association, key_]"
+
+        return eval_KeyExistsQ(assoc, key, evaluation)
 
 
 class Lookup(Builtin):
