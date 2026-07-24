@@ -1,3 +1,5 @@
+from typing import Optional
+
 from mathics.core.atoms import Integer
 from mathics.core.atoms.associations import Association
 from mathics.core.convert.expression import to_mathics_list
@@ -6,27 +8,39 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import is_rule
-from mathics.core.symbols import SymbolTrue
+from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolKeyAbsent, SymbolMissing
+from mathics.eval.associations.associations import eval_AssociationQ
 
 
-def eval_AssociationQ(expr) -> bool:
-    def validate(elements: list[BaseElement]) -> bool:
-        for element in elements:
-            if is_rule(element):
-                pass
-            elif element.has_form(("List", "Association"), None):
-                if not validate(element.elements):
-                    return False
-            else:
-                return False
-        return True
+def eval_KeyExistsQ(
+    assoc, key: BaseElement, evaluation: Evaluation
+) -> Optional[Symbol]:
+    # Handle exact Association object.
+    if isinstance(assoc, Association):
+        return SymbolTrue if key in assoc.keys() else SymbolFalse
 
-    if isinstance(expr, Association):
-        return True
+    # Handle Association-like Expression: search rules in its elements.
+    if assoc.has_form("Association", None):
+        for element in assoc.elements:
+            if is_rule(element) and element.elements[0] == key:
+                return SymbolTrue
+        return SymbolFalse
 
-    # Handle where we still have Expression[SymbolRule, ... ]
-    return expr.get_head_name() == "System`Association" and validate(expr.elements)
+    # Handle list of rules (association expressed as a List).
+    if assoc.has_form("List", None):
+        for element in assoc.elements:
+            if is_rule(element) and element.elements[0] == key:
+                return SymbolTrue
+        return SymbolFalse
+
+    # Handle a single rule.
+    if is_rule(assoc):
+        return SymbolTrue if assoc.elements[0] == key else SymbolFalse
+
+    # Handle Invalid argument form.
+    evaluation.message("KeyExistsQ", "invrl", assoc)
+    return None
 
 
 def eval_Keys(rules_or_association, evaluation: Evaluation):
