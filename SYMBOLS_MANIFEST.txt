@@ -636,6 +636,7 @@ System`KelvinKei
 System`KelvinKer
 System`Key
 System`KeyDropFrom
+System`Key
 System`KeyExistsQ
 System`Keys
 System`Khinchin

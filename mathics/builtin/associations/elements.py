@@ -109,33 +109,6 @@ class Keys(Builtin):
         return eval_Keys_with_Head(expr, head, evaluation)
 
 
-class KeyExistsQ(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/KeyExistsQ.html</url>
-
-    <dl>
-      <dt>'KeyExistsQ'[$assoc$, $key$]
-      <dd>returns True if $key$ exists in $assoc$ (an Association or association-like expression), and False otherwise.
-    </dl>
-
-    >> KeyExistsQ[<|a -> x, b -> y, c -> z|>, a]
-     = True
-
-    >> KeyExistsQ[<|a -> x, b -> y, c -> z|>, d]
-     = False
-    """
-
-    attributes = A_PROTECTED
-
-    summary_text = "test whether a key exists in an association"
-
-    # Patterns implemented as method names:
-    def eval_assoc_key(self, assoc, key: BaseElement, evaluation: Evaluation):
-        "KeyExistsQ[assoc_Association, key_]"
-
-        return eval_KeyExistsQ(assoc, key, evaluation)
-
-
 class Lookup(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Lookup.html</url>
