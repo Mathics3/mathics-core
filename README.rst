@@ -72,3 +72,4 @@ Mathics3 is released under the GNU General Public License Version 3 (GPL3).
 .. |Supported Python Versions| image:: https://img.shields.io/pypi/pyversions/Mathics3.svg
 .. |Packaging status| image:: https://repology.org/badge/vertical-allrepos/mathics3.svg
 			    :target: https://repology.org/project/mathics3/versions
+.. |Anaconda| image:: https://anaconda.org/conda-forge/mathics3/badges/latest_release_date.svg
