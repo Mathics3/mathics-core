@@ -20,6 +20,45 @@ from mathics.eval.associations.elements import (
 )
 
 
+class KeyExistsQ(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/KeyExistsQ.html</url>
+
+    <dl>
+      <dt>'KeyExistsQ'[$assoc$, $key$]
+      <dd>returns True if $key$ exists in $assoc$ (an Association or association-like expression), and False otherwise.
+     <dt>'KeyExistsQ'[$key$]
+     <dd>represents an operator form of KeyExistsQ that can be applied to an expression.
+    </dl>
+
+    >> KeyExistsQ[<|a -> x, b -> y, c -> z|>, a]
+     = True
+
+    >> KeyExistsQ[<|a -> x, b -> y, c -> z|>, d]
+     = False
+
+    >> KeyExistsQ[d][<|a -> x, b -> y, c -> z|>]
+     = False
+
+    Use the operator form of KeyExistsQ:
+    >> KeyExistsQ[a][<|a -> x, b -> y, c -> z|>]
+     = True
+    """
+
+    attributes = A_PROTECTED
+
+    rules = {
+        "KeyExistsQ[key_][assoc_]": "KeyExistsQ[assoc, key]",
+    }
+
+    summary_text = "test whether a key exists in an association"
+
+    def eval_assoc_key(self, assoc, key: BaseElement, evaluation: Evaluation):
+        "KeyExistsQ[assoc_Association, key_]"
+
+        return eval_KeyExistsQ(assoc, key, evaluation)
+
+
 class Keys(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Keys.html</url>
@@ -68,33 +107,6 @@ class Keys(Builtin):
     def eval_with_head(self, expr, head, evaluation: Evaluation):
         "Keys[expr_, head_]"
         return eval_Keys_with_Head(expr, head, evaluation)
-
-
-class KeyExistsQ(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/KeyExistsQ.html</url>
-
-    <dl>
-      <dt>'KeyExistsQ'[$assoc$, $key$]
-      <dd>returns True if $key$ exists in $assoc$ (an Association or association-like expression), and False otherwise.
-    </dl>
-
-    >> KeyExistsQ[<|a -> x, b -> y, c -> z|>, a]
-     = True
-
-    >> KeyExistsQ[<|a -> x, b -> y, c -> z|>, d]
-     = False
-    """
-
-    attributes = A_PROTECTED
-
-    summary_text = "test whether a key exists in an association"
-
-    # Patterns implemented as method names:
-    def eval_assoc_key(self, assoc, key: BaseElement, evaluation: Evaluation):
-        "KeyExistsQ[assoc_Association, key_]"
-
-        return eval_KeyExistsQ(assoc, key, evaluation)
 
 
 class Lookup(Builtin):

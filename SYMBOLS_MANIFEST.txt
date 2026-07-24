@@ -634,7 +634,7 @@ System`KelvinBer
 System`KelvinKei
 System`KelvinKer
 System`Key
-System`KeyExists
+System`KeyExistsQ
 System`Keys
 System`Khinchin
 System`KnownUnitQ
