@@ -169,7 +169,7 @@ class Key(Builtin):
       <dd>
     </dl>
 
-    Get a value from an association as using part:
+    Get a value from an association using 'Part':
     >> <|w -> x, y -> z|>[[Key[w]]]
      = x
 
@@ -193,7 +193,7 @@ class Missing(Builtin):
 
     <dl>
       <dd>'Missing[]'
-      <dt> represents a data that is missing.
+      <dt> represents data that is missing.
     </dl>
 
     >> ElementData["Meitnerium","MeltingPoint"]
