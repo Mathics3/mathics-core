@@ -22,6 +22,7 @@ from mathics.core.atoms import (
     Integer4,
     String,
 )
+from mathics.core.atoms.associations import Association
 from mathics.core.attributes import (
     A_HOLD_FIRST,
     A_HOLD_REST,
@@ -65,6 +66,8 @@ from mathics.core.systemsymbols import (
 from mathics.eval.list.eol import (
     drop_span_selector,
     eval_Part,
+    eval_Part_for_Association,
+    eval_Part_for_ByteArray,
     parts,
     take_span_selector,
 )
@@ -1082,8 +1085,12 @@ class Part(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Part.html</url>
 
     <dl>
-      <dt>'Part'[$expr$, $i$]
-      <dd>returns part $i$ of $expr$.
+      <dt>$expr$[[$i$]] or 'Part'[$expr$, $i$]
+      <dd>returns the $i^{th}$ part of $expr$.
+      <dt>$expr$[[$-i$]]
+      <dd>returns part $i^{th}$ part from the end of $expr$.
+      <dt>$a$[['Key'[$k$]]]
+      <dd>returns the value associated with an arbitrary key $k$ in the association $a$.
     </dl>
 
     Extract an element from a list:
@@ -1182,46 +1189,22 @@ class Part(Builtin):
         result = RowBox(list, *indices)
         return result
 
-    def eval(self, list, i, evaluation):
-        "Part[list_, i___]"
+    def eval(self, expr, i, evaluation):
+        "Part[expr_, i___]"
 
-        if list is SymbolFailed:
+        if expr is SymbolFailed:
             return
+
+        if isinstance(expr, Association):
+            return eval_Part_for_Association(expr, i, evaluation)
+
         indices = i.get_sequence()
-        # How to deal with ByteArrays
-        if list.get_head() is SymbolByteArray:
-            if len(indices) > 1:
-                print(
-                    "Part::partd1: Depth of object ByteArray[<3>] "
-                    + "is not sufficient for the given part specification."
-                )
-                return
-            idx = indices[0]
-            if isinstance(idx, Integer):
-                idx = idx.value
-                if idx == 0:
-                    return SymbolByteArray
-                n = len(list.value)
-                if idx < 0:
-                    idx = n - idx
-                    if idx < 0:
-                        evaluation.message("Part", "partw", i, list)
-                        return
-                else:
-                    idx = idx - 1
-                    if idx > n:
-                        evaluation.message("Part", "partw", i, list)
-                        return
-                return Integer(list[idx])
-            if idx is Symbol("System`All"):
-                return list
-            # TODO: handling ranges and lists...
-            evaluation.message("Part", "notimplemented")
-            return
+        if expr.get_head() is SymbolByteArray:
+            return eval_Part_for_ByteArray(expr, i, indices, evaluation)
 
-        # Otherwise...
-        result = eval_Part([list], indices, evaluation)
-        if result:
+        # Not an Association, or ByteArray, or some custom Atom,
+        # but instead is proabably an M-expression Expression.
+        if result := eval_Part([expr], indices, evaluation):
             return result
 
 

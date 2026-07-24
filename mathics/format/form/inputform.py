@@ -29,6 +29,7 @@ from typing import Callable, Dict
 
 from mathics.builtin.box.expression import BoxExpression
 from mathics.core.atoms import Integer, String
+from mathics.core.atoms.associations import Association
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -92,6 +93,8 @@ def render_input_form(expr: BaseElement, evaluation: Evaluation, **kwargs) -> st
 def _association_expression_to_inputform_text(
     expr: Expression, evaluation: Evaluation, **kwargs
 ) -> str:
+    if isinstance(expr, Association):
+        expr = expr.expr
     elements = expr.elements
     result = ", ".join(
         [render_input_form(elem, evaluation, **kwargs) for elem in elements]

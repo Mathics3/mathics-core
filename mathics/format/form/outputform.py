@@ -29,6 +29,7 @@ from mathics.core.atoms import (
     Real,
     String,
 )
+from mathics.core.atoms.associations import Association
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BoxError, Expression
@@ -156,9 +157,12 @@ def register_outputform(head_name):
 
 @register_outputform("System`Association")
 def _association_outputform(expr: Expression, evaluation: Evaluation, **kwargs):
-    head = expr.head
-    if not isinstance(head, Symbol):
-        raise _WrongFormattedExpression
+    if isinstance(expr, Association):
+        expr = expr.expr
+    else:
+        head = expr.head
+        if not isinstance(head, Symbol):
+            raise _WrongFormattedExpression
 
     elements = expr.elements
     parts = []

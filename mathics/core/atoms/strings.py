@@ -36,6 +36,9 @@ class String(Atom, BoxElementMixin):
         return '"%s"' % self.value
 
     def atom_to_boxes(self, f, evaluation):
+        """
+        Produces a Box expression that represents how the String should be formatted.
+        """
         from mathics.format.box import _boxed_string
 
         inner = str(self.value)

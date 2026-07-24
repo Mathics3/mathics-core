@@ -321,9 +321,9 @@ class BaseElement(KeyComparable, ABC):
     def is_inexact(self) -> bool:
         return self.get_precision() is not None
 
-    def sameQ(self, rhs) -> bool:
+    def sameQ(self, other: Any) -> bool:
         """Mathics3 SameQ"""
-        return id(self) == id(rhs)
+        return id(self) == id(other)
 
     def sequences(self):
         return None

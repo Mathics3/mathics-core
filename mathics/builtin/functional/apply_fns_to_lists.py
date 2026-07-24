@@ -18,10 +18,9 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import InvalidLevelspecError, MessageException
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.rules import is_rule
-from mathics.core.symbols import Atom, Symbol, SymbolNull, SymbolTrue
+from mathics.core.symbols import Atom, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import SymbolMapThread
-from mathics.eval.functional.apply_fns_to_lists import eval_MapAt
+from mathics.eval.functional.apply_fns_to_lists import eval_Map_level, eval_MapAt
 from mathics.eval.parts import python_levelspec, walk_levels
 from mathics.eval.patterns import param_and_option_from_optional_place
 
@@ -74,16 +73,19 @@ class Apply(InfixOperator):
      = {a, {b, {g}, {c, e}}}
     """
 
-    rules = {
-        "Apply[f_][expr_]": "Apply[f, expr]",
-    }
-
-    summary_text = "apply a function to a list, at specified levels"
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 4)
     grouping = "Right"
 
     options = {
         "Heads": "False",
     }
+
+    rules = {
+        "Apply[f_][expr_]": "Apply[f, expr]",
+    }
+
+    summary_text = "apply a function to a list, at specified levels"
 
     def eval(self, f, expr, levelspec, evaluation, options={}):
         """Apply[f_, expr_, Optional[levelspec_, {0}],
@@ -149,67 +151,30 @@ class Map(InfixOperator):
      = {f[a], f[b], f[c]}
     """
 
-    rules = {
-        "Map[f_][expr_]": "Map[f, expr]",
-    }
-
-    summary_text = "map a function over a list, at specified levels"
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 4)
     grouping = "Right"
 
     options = {
         "Heads": "False",
     }
 
+    rules = {
+        "Map[f_][expr_]": "Map[f, expr]",
+    }
+
+    summary_text = "map a function over a list, at specified levels"
+
     def eval_level(self, f, expr, levelspec, evaluation, options={}):
         """Map[f_, expr_, Optional[levelspec_, {1}],
         OptionsPattern[Map]]"""
-
         levelspec = param_and_option_from_optional_place(
             levelspec, options, "System`Map", evaluation
         ) or ListExpression(Integer1)
-        try:
-            start, stop = python_levelspec(levelspec)
-        except InvalidLevelspecError:
-            evaluation.message("Map", "level", levelspec)
-            return
 
-        is_association = expr.has_form("Association", None)
-
-        def callback(level):
-            """
-            Map $f$ onto each element (denoted by 'level' here) at this level.
-            With exception for expr as Association, which is mapped on values only.
-            """
-            # TODO: This special behavior applies when the whole expression
-            # is of the form Association[__(Rule|RuleDelayed)], i.e., when
-            # the expression is a well-formatted Association expression.
-            # For example,
-            # `Map[F, Association[a->1,b->2, NotARule]`
-            # produces in WMA
-            # `Association[F[a->1], F[b->2], F[NotARule]`
-            # instead of
-            # `Association[a->F[1], b->F[2], F[NotARule]`]
-            #
-            # Fixing this would require a different implementation of this eval_ method.
-            #
-            if is_association and is_rule(level):
-                return Expression(
-                    level.get_head(),
-                    level.elements[0],
-                    Expression(f, level.elements[1]),
-                )
-            return Expression(f, level)
-
-        heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
-        result, _ = walk_levels(expr, start, stop, heads=heads, callback=callback)
-        if isinstance(result, Symbol):
-            return result
-        elem_prop = result.elements_properties
-        if elem_prop is not None:
-            elem_prop.elements_fully_evaluated = False
-        result.elements_properties
-
-        return result
+        # Note: this has to come *after* param_option_from_optional_place() above.
+        wrap_in_head = self.get_option(options, "Heads", evaluation) is SymbolTrue
+        return eval_Map_level(f, expr, levelspec, evaluation, wrap_in_head)
 
 
 class MapAt(Builtin):
@@ -259,13 +224,18 @@ class MapAt(Builtin):
 
     Map $f$ onto at the second position of an association:
     >> MapAt[f, <|"a" -> 1, "b" -> 2, "c" -> 3, "d" -> 4|>, 2]
-     = {a ⇾ 1, b ⇾ f[2], c ⇾ 3, d ⇾ 4}
+     = <|a -> 1, b -> f[2], c -> 3, d -> 4|>
 
     Same as above, but select the second-from-the-end position:
     >> MapAt[f, <|"a" -> 1, "b" -> 2, "c" -> 3, "d" -> 4|>, -2]
-     = {a ⇾ 1, b ⇾ 2, c ⇾ f[3], d ⇾ 4}
+     = <|a -> 1, b -> 2, c -> f[3], d -> 4|>
 
     """
+
+    # FIXME:
+    # Note in "rules" below that MapAt has a 2-arg form.
+    # eval_error = Builtin.generic_argument_error
+    # expected_args = 3
 
     rules = {
         "MapAt[f_, pos_][expr_]": "MapAt[f, expr, pos]",
@@ -320,14 +290,17 @@ class MapIndexed(Builtin):
      = a + b f[g] c ^ e
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 4)
+    options = {
+        "Heads": "False",
+    }
+
     rules = {
         "MapIndexed[f_][expr_]": "MapIndexed[f, expr]",
     }
 
     summary_text = "map a function, including index information"
-    options = {
-        "Heads": "False",
-    }
 
     def eval_level(self, f, expr, levelspec, evaluation, options={}):
         """MapIndexed[f_, expr_, Optional[levelspec_, {1}],
@@ -381,16 +354,22 @@ class MapThread(Builtin):
      = {f[a, 1], f[b, 2], f[c, 3]}
     """
 
-    rules = {
-        "MapThread[f_][expr_]": "MapThread[f, expr]",
-    }
+    # FIXME:
+    # Note in "rules" below that MapThread has a one-argument-arg form.
+    # We do not have precise arg checking here.
+    # eval_error = Builtin.generic_argument_error
+    # expected_args = range(2, 4)
 
-    summary_text = "map a function across corresponding elements in multiple lists"
     messages = {
         "mptc": "Incompatible dimensions of objects at positions {2, `1`} and {2, `2`} of `3`; dimensions are `4` and `5`.",
         "mptd": "Object `1` at position {2, `2`} in `3` has only `4` of required `5` dimensions.",
         "list": "List expected at position `2` in `1`.",
     }
+    rules = {
+        "MapThread[f_][expr_]": "MapThread[f, expr]",
+    }
+
+    summary_text = "map a function across corresponding elements in multiple lists"
 
     def eval(self, f, expr, evaluation):
         "MapThread[f_, expr_]"
@@ -474,11 +453,14 @@ class Scan(Builtin):
      | 3
     """
 
-    summary_text = "scan over every element of a list, applying a function"
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 4)
+
     options = {
         "Heads": "False",
     }
 
+    summary_text = "scan over every element of a list, applying a function"
     rules = {
         "Scan[f_][expr_]": "Scan[f, expr]",
     }
@@ -529,6 +511,9 @@ class Thread(Builtin):
     >> {a, b, c} + {d, e, f} + g
      = {a + d + g, b + e + g, c + f + g}
     """
+
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 4)
 
     messages = {
         "tdlen": "Objects of unequal length cannot be combined.",
