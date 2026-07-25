@@ -384,10 +384,11 @@ def from_sympy(sympy_expr) -> BaseElement:
         return Expression(
             SymbolMatrixPower, from_sympy(sympy_expr.base), from_sympy(sympy_expr.exp)
         )
-    if gmpy2 and isinstance(sympy_expr, gmpy2.mpz):
-        if sympy_expr.is_integer():
+    if gmpy2:
+        if isinstance(sympy_expr, gmpy2.mpz):
             return Integer(int(sympy_expr))
-        return Rational(*sympy_expr.as_integer_ratio())
+        elif isinstance(sympy_expr, gmpy2.mpq):
+            return Rational(*sympy_expr.as_integer_ratio())
 
     if sympy_expr.is_Atom:
         name = None

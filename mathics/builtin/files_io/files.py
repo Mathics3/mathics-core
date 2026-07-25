@@ -9,9 +9,10 @@ import os.path as osp
 import tempfile
 from io import BytesIO
 
+import mathics.eval.files_io.files as io_files
+
 # We use the below import for access to variables that may change
 # at runtime.
-import mathics.eval.files_io.files as io_files
 from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import (
@@ -40,7 +41,12 @@ from mathics.core.systemsymbols import (
     SymbolString,
 )
 from mathics.eval.directories import TMP_DIR
-from mathics.eval.encoding import CHARACTER_ENCODING_MAP
+from mathics.eval.encoding import (
+    CHARACTER_ENCODING_MAP,
+    EncodingNameError,
+    from_python_encoding,
+    get_encoding_table,
+)
 from mathics.eval.files_io.files import eval_Close, eval_Get, eval_Open, eval_Read
 from mathics.eval.files_io.read import (
     Mathics3Open,
@@ -1721,10 +1727,17 @@ class WriteString(Builtin):
             return None
 
         exprs = []
+        encoding = from_python_encoding(stream.encoding) or "UTF-8"
+        try:
+            get_encoding_table(encoding)
+        except EncodingNameError:
+            evaluation.message("$CharacterEncoding", "charcode", String(encoding))
+            encoding = "UTF-8"
+
         for expri in expr.get_sequence():
             result = format_element(expri, evaluation, SymbolOutputForm)
             try:
-                result = result.to_text(evaluation=evaluation)
+                result = result.to_text(evaluation=evaluation, encoding=encoding)
             except BoxError:
                 evaluation.message(
                     "General",
@@ -1735,7 +1748,8 @@ class WriteString(Builtin):
             exprs.append(result)
         line = "".join(exprs)
         if type(stream) is BytesIO:
-            line = line.encode("utf8")
+            line = line.encode(encoding)
+        print(stream)
         stream.io.write(line)
         try:
             stream.io.flush()

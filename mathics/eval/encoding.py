@@ -132,6 +132,7 @@ def encode_string_value(value: str, encoding: str) -> str:
 
 
 def from_python_encoding(encoding):
+    print("look for", encoding)
     return REVERSE_CHARACTER_ENCODING_MAP.get(encoding)
 
 
@@ -152,6 +153,7 @@ def get_encoding_table(encoding: str) -> dict[str, str]:
         return {
             "ASCII": UNICODE_CHARACTER_TO_ASCII,
             "UTF-8": {},
+            "UTF8": {},
         }[encoding]
     except KeyError:
         raise EncodingNameError

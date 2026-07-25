@@ -40,7 +40,6 @@ from mathics.core.systemsymbols import (
     SymbolRight,
 )
 from mathics.format.box.formatvalues import do_format  # , format_element
-from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
 from .util import (
     ARITHMETIC_OPERATOR_STRINGS,
@@ -157,7 +156,6 @@ def _infix_expression_to_inputform_text(
     # has a head that matches with a symbol associated to an infix
     # operator, WMA builds its inputform without passing through
     # its "Infix" form.
-    kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     operands, ops_lst, precedence, group = collect_in_pre_post_arguments(
         expr, evaluation, **kwargs
     )
@@ -201,7 +199,6 @@ def _prefix_expression_to_inputform_text(
     """
     Convert Prefix[...] into a OutputForm string.
     """
-    kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     operands, op_head, precedence, group = collect_in_pre_post_arguments(
         expr, evaluation, **kwargs
     )
@@ -209,7 +206,6 @@ def _prefix_expression_to_inputform_text(
     if len(operands) != 1:
         raise _WrongFormattedExpression
     operand = operands[0]
-    kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     target_txt = render_input_form(operand, evaluation, **kwargs)
     parenthesized = group in (None, SymbolRight, SymbolNonAssociative)
     target_txt = parenthesize(precedence, operand, target_txt, parenthesized)
@@ -223,7 +219,6 @@ def _postfix_expression_to_inputform_text(
     """
     Convert Postfix[...] into a OutputForm string.
     """
-    kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     operands, op_head, precedence, group = collect_in_pre_post_arguments(
         expr, evaluation, **kwargs
     )
@@ -298,7 +293,6 @@ def _rule_to_inputform_text(expr, evaluation: Evaluation, **kwargs) -> str:
     """Rule|RuleDelayed[{...}]"""
     head = expr.head
     elements = expr.elements
-    kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     if len(elements) != 2:
         return _generic_to_inputform_text(expr, evaluation, **kwargs)
     pat, rule = (render_input_form(elem, evaluation, **kwargs) for elem in elements)

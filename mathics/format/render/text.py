@@ -2,7 +2,6 @@
 """
 Mathics3 box rendering to plain text.
 """
-
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
@@ -28,6 +27,7 @@ from mathics.core.formatter import (
     convert_inner_box_field,
 )
 from mathics.core.symbols import Atom, SymbolFalse, SymbolTrue
+from mathics.eval.encoding import encode_string_value
 from mathics.format.box.graphics import prepare_elements as prepare_elements2d
 from mathics.format.box.graphics3d import prepare_elements as prepare_elements3d
 from mathics.format.form.util import _WrongFormattedExpression, text_cells_to_grid
@@ -167,6 +167,9 @@ def string(s: String, **options) -> str:
     if value.startswith('"') and value.endswith('"'):  # nopep8
         if not show_string_characters:
             value = value[1:-1]
+    if "encoding" in options:
+        value = encode_string_value(value, options["encoding"])
+
     return value
 
 
