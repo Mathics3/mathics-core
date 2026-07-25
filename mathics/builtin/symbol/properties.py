@@ -1,22 +1,16 @@
-# -*- coding: utf-8 -*-
 """
-Symbol Handling
-
-Symbolic data. Every symbol has a unique name, exists in a certain context \
-or namespace, and can have a variety of types of values and attributes.
+Symbol properties
 """
-import re
 
-from mathics_scanner.tokeniser import NAMES_WILDCARDS, is_symbol_name
+from typing import Callable, Optional
 
-# FIXME: the below may move to mathics.eval
-from mathics.builtin.symbol.properties import gather_and_format_definition_rules
+from mathics_scanner.tokeniser import NAMES_WILDCARDS
+
 from mathics.core.assignment import get_symbol_values
 from mathics.core.atoms import String
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_FIRST,
-    A_LOCKED,
     A_PROTECTED,
     A_READ_PROTECTED,
     A_SEQUENCE_HOLD,
@@ -24,28 +18,154 @@ from mathics.core.attributes import (
 )
 from mathics.core.builtin import Builtin, PrefixOperator, Test
 from mathics.core.convert.expression import to_mathics_list
-from mathics.core.convert.regex import to_regex
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.rules import RewriteRule
 from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
+    SymbolHoldForm,
     SymbolNull,
     SymbolTrue,
-    strip_context,
+    SymbolUpSet,
 )
 from mathics.core.systemsymbols import (
     SymbolAssociation,
+    SymbolAttributes,
+    SymbolDefinition,
+    SymbolFormat,
     SymbolGrid,
     SymbolInputForm,
     SymbolLeft,
     SymbolMissing,
+    SymbolOptions,
     SymbolRule,
+    SymbolSet,
+    SymbolUnknownSymbol,
 )
 from mathics.doc.online import online_doc_string
 from mathics.eval.atomic.symbols import eval_SymbolQ
+
+
+# FIXME Move to eval?
+def gather_and_format_definition_rules(
+    symbol: Symbol, evaluation: Evaluation
+) -> Optional[list[Expression]]:
+    """Return a list of lines describing the definition of `symbol`"""
+    lines = []
+
+    def rhs_format(expr):
+        if expr.has_form("Infix", None):
+            expr = Expression(Expression(SymbolHoldForm, expr.head), *expr.elements)
+        return expr
+
+    def format_rule(
+        rule: RewriteRule,
+        up: bool = False,
+        lhs: Callable = lambda k: k,
+        rhs: Callable = lambda r: r,
+    ):
+        """
+        Add a line showing `rule`
+        """
+        evaluation.check_stopped()
+        if isinstance(rule, RewriteRule):
+            lhs_pat = Expression(SymbolInputForm, lhs(rule.pattern.expr))
+            repl_expr = rhs(
+                rule.replace.replace_vars(
+                    {"System`Definition": Expression(SymbolHoldForm, SymbolDefinition)}
+                )
+            )
+            repl_expr = Expression(SymbolInputForm, repl_expr)
+            lines.append(
+                Expression(
+                    SymbolHoldForm,
+                    Expression(up and SymbolUpSet or SymbolSet, lhs_pat, repl_expr),
+                )
+            )
+
+    def gather_rules(definition: Definition):
+        """
+        Add to the description all the rules associated
+        to a definition object
+        """
+        for rule in definition.ownvalues:
+            format_rule(rule)
+        for rule in definition.downvalues:
+            format_rule(rule)
+        for rule in definition.subvalues:
+            format_rule(rule)
+        for rule in definition.upvalues:
+            format_rule(rule, up=True)
+        for rule in definition.nvalues:
+            format_rule(rule)
+        formats = sorted(definition.formatvalues.items())
+        for form_name, rules in formats:
+            for rule in rules:
+
+                def lhs_format(expr):
+                    return Expression(SymbolFormat, expr, Symbol(form_name))
+
+                format_rule(rule, lhs=lhs_format, rhs=rhs_format)
+
+    name = symbol.get_name()
+    if not name:
+        evaluation.message("Definition", "sym", symbol, 1)
+        return
+
+    try:
+        all = evaluation.definitions.get_definition(name)
+        attributes = all.attributes
+        all_options = all.options
+        all_defaultvalues = all.defaultvalues
+
+        if attributes:
+            attributes_list = attributes_bitset_to_list(attributes)
+            lines.append(
+                Expression(
+                    SymbolHoldForm,
+                    Expression(
+                        SymbolSet,
+                        Expression(SymbolAttributes, symbol),
+                        to_mathics_list(
+                            *attributes_list, elements_conversion_fn=Symbol
+                        ),
+                    ),
+                )
+            )
+    except KeyError:
+        attributes = 0
+        all_options = {}
+        all_defaultvalues = []
+
+    if not A_READ_PROTECTED & attributes:
+        try:
+            gather_rules(evaluation.definitions.get_user_definition(name, create=False))
+        except KeyError:
+            pass
+
+    for rule in all_defaultvalues:
+        format_rule(rule)
+    if all_options:
+        options = sorted(all_options.items())
+        lines.append(
+            Expression(
+                SymbolHoldForm,
+                Expression(
+                    SymbolSet,
+                    Expression(SymbolOptions, symbol),
+                    ListExpression(
+                        *(
+                            Expression(SymbolRule, Symbol(name), value)
+                            for name, value in options
+                        )
+                    ),
+                ),
+            )
+        )
+    return lines
 
 
 class Definition(Builtin):
@@ -236,36 +356,27 @@ class DownValues(Builtin):
         return get_symbol_values(symbol, "DownValues", "downvalues", evaluation)
 
 
-# In Mathematica 5, this appears under "Types of Values".
-class FormatValues(Builtin):
+class SymbolQ(Test):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/tutorial/PatternsAndTransformationRules.html#6025</url>
+    <url>:WMA link:
+      https://resources.wolframcloud.com/FunctionRepository/resources/SymbolQ</url>
     <dl>
-      <dt>'FormatValues'[$symbol$]
-      <dd>gives the list of format rules associated with $symbol$.
+      <dt>'SymbolQ'[$x$]
+      <dd>is 'True' if $x$ is a symbol, or 'False' otherwise.
     </dl>
 
-    First, use 'Format' to set a formatting rule for a form:
-
-    >> Format[F[x_], OutputForm]:= Subscript[x, F]
-
-    Now, to see the rules, we can use 'FormatValues':
-
-    >> FormatValues[F]
-     = {HoldPattern[Subscript[x_, F]] ⧴ Subscript[x, F]}
-
-    The replacement pattern on the right in the delayed rule is formatted according to the top-level form. To see the rule input, we can use 'InputForm':
-    >> FormatValues[F]  //InputForm
-     = {HoldPattern[Format[F[x_], OutputForm]] :> Subscript[x, F]}
+    >> SymbolQ[a]
+     = True
+    >> SymbolQ[1]
+     = False
+    >> SymbolQ[a + b]
+     = False
     """
 
-    summary_text = (
-        "give a list of formatting transformation rules associated with a symbol."
-    )
+    summary_text = "test whether is a symbol"
 
-    def eval(self, symbol, evaluation):
-        """FormatValues[symbol_]"""
-        return get_symbol_values(symbol, "FormatValues", "formatvalues", evaluation)
+    def test(self, expr) -> bool:
+        return eval_SymbolQ(expr)
 
 
 class Information(PrefixOperator):
@@ -442,184 +553,6 @@ class Information(PrefixOperator):
             Expression(SymbolRule, Symbol("ColumnAlignments"), SymbolLeft),
         )
         return infoshow
-
-
-class Names(Builtin):
-    """
-    <url>:WMA link:
-      https://reference.wolfram.com/language/ref/Names.html</url>
-    <dl>
-      <dt>'Names'["$pattern$"]
-      <dd>returns the list of names matching $pattern$.
-    </dl>
-
-    >> Names["List"]
-     = {List}
-
-    The wildcard '*' matches any character:
-    >> Names["List*"]
-     = {List, ListLinePlot, ListLogPlot, ListPlot, ListQ, ListStepPlot, Listable}
-
-    The wildcard '@' matches only lowercase characters:
-    >> Names["List@"]
-     = {Listable}
-
-    >> x = 5;
-    >> Names["Global`*"]
-     = {x}
-
-    The number of built-in symbols:
-    >> Length[Names["System`*"]]
-     = ...
-    """
-
-    summary_text = "find a list of symbols with names matching a pattern"
-
-    def eval(self, pattern, evaluation: Evaluation):
-        "Names[pattern_]"
-        headname = pattern.get_head_name()
-        if headname == "System`StringExpression":
-            pattern = re.compile(to_regex(pattern, show_message=evaluation.message))
-        else:
-            pattern = pattern.get_string_value()
-
-        if pattern is None:
-            return
-
-        names = set()
-        for full_name in evaluation.definitions.get_matching_names(pattern):
-            short_name = strip_context(full_name)
-            names.add(short_name if short_name not in names else full_name)
-
-        # TODO: Mathematica ignores contexts when it sorts the list of
-        # names.
-        return to_mathics_list(*sorted(names), elements_conversion_fn=String)
-
-
-# In Mathematica 5, this appears under "Types of Values".
-class OwnValues(Builtin):
-    """
-    <url>:WMA link:
-      https://reference.wolfram.com/language/ref/OwnValues.html</url>
-    <dl>
-      <dt>'OwnValues'[$symbol$]
-      <dd>gives the list of ownvalue associated with $symbol$.
-    </dl>
-
-    >> x = 3;
-    >> x = 2;
-    >> OwnValues[x]
-     = {HoldPattern[x] ⧴ 2}
-    >> x := y
-    >> OwnValues[x]
-     = {HoldPattern[x] ⧴ y}
-    >> y = 5;
-    >> OwnValues[x]
-     = {HoldPattern[x] ⧴ y}
-    >> Hold[x] /. OwnValues[x]
-     = Hold[y]
-    >> Hold[x] /. OwnValues[x] // ReleaseHold
-     = 5
-    """
-
-    attributes = A_HOLD_ALL | A_PROTECTED
-    summary_text = "give the rule corresponding to any ownvalue defined for a symbol"
-
-    def eval(self, symbol, evaluation):
-        "OwnValues[symbol_]"
-
-        return get_symbol_values(symbol, "OwnValues", "ownvalues", evaluation)
-
-
-class Symbol_(Builtin):
-    """
-    <url>:WMA link:
-      https://reference.wolfram.com/language/ref/Symbol.html</url>
-    <dl>
-      <dt>'Symbol'
-      <dd>is the head of symbols.
-    </dl>
-
-    >> Head[x]
-     = Symbol
-    You can use 'Symbol' to create symbols from strings:
-    >> Symbol["x"] + Symbol["x"]
-     = 2 x
-    """
-
-    attributes = A_LOCKED | A_PROTECTED
-    eval_error = Builtin.generic_argument_error
-    expected_args = 1
-
-    messages = {
-        "symname": (
-            "The string `1` cannot be used for a symbol name. "
-            "A symbol name must start with a letter "
-            "followed by letters and numbers."
-        ),
-    }
-
-    name = "Symbol"
-
-    summary_text = "the head of a symbol; create a symbol from a name"
-
-    def eval(self, string, evaluation):
-        "Symbol[string_String]"
-
-        text = string.value
-        if is_symbol_name(text):
-            return Symbol(evaluation.definitions.lookup_name(string.value))
-        else:
-            evaluation.message("Symbol", "symname", string)
-
-
-class SymbolName(Builtin):
-    """
-    <url>:WMA link:
-      https://reference.wolfram.com/language/ref/SymbolName.html</url>
-    <dl>
-      <dt>'SymbolName'[$s$]
-      <dd>returns the name of the symbol $s$ (without any leading \
-        context name).
-    </dl>
-
-    >> SymbolName[x] // InputForm
-     = "x"
-    """
-
-    eval_error = Builtin.generic_argument_error
-    expected_args = 1
-    summary_text = "give the name of a symbol as a string"
-
-    def eval(self, symbol, evaluation):
-        "SymbolName[symbol_Symbol]"
-
-        # MMA docs say "SymbolName always give the short name,
-        # without any context"
-        return String(strip_context(symbol.get_name()))
-
-
-class SymbolQ(Test):
-    """
-    <url>:WMA link:
-      https://resources.wolframcloud.com/FunctionRepository/resources/SymbolQ</url>
-    <dl>
-      <dt>'SymbolQ'[$x$]
-      <dd>is 'True' if $x$ is a symbol, or 'False' otherwise.
-    </dl>
-
-    >> SymbolQ[a]
-     = True
-    >> SymbolQ[1]
-     = False
-    >> SymbolQ[a + b]
-     = False
-    """
-
-    summary_text = "test whether is a symbol"
-
-    def test(self, expr) -> bool:
-        return eval_SymbolQ(expr)
 
 
 class ValueQ(Builtin):
