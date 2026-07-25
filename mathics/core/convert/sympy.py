@@ -387,7 +387,7 @@ def from_sympy(sympy_expr) -> BaseElement:
     if gmpy2:
         if isinstance(sympy_expr, gmpy2.mpz):
             return Integer(int(sympy_expr))
-        elif isinstance(sympy_expr, gmpy2.mpq):
+        if isinstance(sympy_expr, gmpy2.mpq):
             return Rational(*sympy_expr.as_integer_ratio())
 
     if sympy_expr.is_Atom:
