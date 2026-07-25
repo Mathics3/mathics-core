@@ -22,7 +22,7 @@ from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.rules import RewriteRule
+from mathics.core.rules import RewriteRule, is_rule
 from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
@@ -399,6 +399,9 @@ class Information(PrefixOperator):
     eval_error = Builtin.generic_argument_error
     expected_args = (1, 2)
     messages = {"notfound": "Expression `1` is not a symbol"}
+
+    # FIXME: the only valid option is ResolveContextAliases.
+    # LongForm is *not* an option.
     options = {
         "LongForm": "True",
     }
@@ -436,8 +439,11 @@ class Information(PrefixOperator):
         result = Expression(Symbol("System`TableForm"), ListExpression(*rows))
         return result
 
-    def eval_with_property(self, expr, prop, evaluation: Evaluation):
-        "Information[expr_, prop_]"
+    def eval_with_property(self, expr, prop, evaluation: Evaluation, options: dict):
+        "Information[expr_, prop_, OptionsPattern[Information]]"
+        if is_rule(prop):
+            # FIXME we have a on option here.
+            return
         if not isinstance(prop, String):
             return Expression(SymbolMissing, SymbolUnknownSymbol, prop)
 
