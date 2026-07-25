@@ -490,6 +490,12 @@ class Information(PrefixOperator):
         result = ListExpression(*associations)
         return result
 
+    def eval_with_property(self, expr, prop, evaluation: Evaluation):
+        "Information[expr_, prop_]"
+        if not isinstance(prop, String):
+            return Expression(SymbolMissing, Symbol("KeyAbsent"), prop)
+        return eval_Information_with_property(expr, prop, evaluation)
+
     # This implementation mixes the current behavior of WMA >=12.0 with the old behavior
     # (WMA 4.0).
     # TODO: the formatting part of this must be moved to `InformationData`
