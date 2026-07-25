@@ -49,7 +49,7 @@ class KeyExistsQ(Builtin):
 
     rules = {
         "KeyExistsQ[key_][assoc_]": "KeyExistsQ[assoc, key]",
-    }
+        }
 
     summary_text = "test whether a key exists in an association"
 

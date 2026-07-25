@@ -13,7 +13,11 @@ from mathics.core.expression import Expression
 from mathics.core.rules import is_rule
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolAssociation, SymbolMakeBoxes, SymbolMissing
+<<<<<<< HEAD
 from mathics.eval.associations.associations import eval_AssociationQ
+=======
+from mathics.eval.list.associations import eval_AssociationQ
+>>>>>>> 0e39288f2 (Split out Associations into its own section for scaling later)
 from mathics.eval.lists import list_boxes
 
 
@@ -169,7 +173,11 @@ class Key(Builtin):
       <dd>
     </dl>
 
+<<<<<<< HEAD
     Get a value from an association using 'Part':
+=======
+    Get a value from an association as using part:
+>>>>>>> 0e39288f2 (Split out Associations into its own section for scaling later)
     >> <|w -> x, y -> z|>[[Key[w]]]
      = x
 
@@ -193,7 +201,11 @@ class Missing(Builtin):
 
     <dl>
       <dd>'Missing[]'
+<<<<<<< HEAD
       <dt> represents data that is missing.
+=======
+      <dt> represents a data that is missing.
+>>>>>>> 0e39288f2 (Split out Associations into its own section for scaling later)
     </dl>
 
     >> ElementData["Meitnerium","MeltingPoint"]
