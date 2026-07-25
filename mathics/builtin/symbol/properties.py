@@ -47,9 +47,11 @@ from mathics.core.systemsymbols import (
 )
 from mathics.doc.online import online_doc_string
 from mathics.eval.atomic.symbols import eval_SymbolQ
+from mathics.eval.symbol.properties import eval_Information_with_property
 
 
-# FIXME Move to eval?
+# FIXME: gather_and_format_definition_rules is crap and needs to be revised, rewritten and put in
+# mathics.eval.symbols.properties
 def gather_and_format_definition_rules(
     symbol: Symbol, evaluation: Evaluation
 ) -> Optional[list[Expression]]:
@@ -408,6 +410,7 @@ class Information(PrefixOperator):
             return Expression(self.build_missing(expression.head), *expression.elements)
         return Expression(SymbolMissing, SymbolUnknownSymbol, expression)
 
+    # FIXME: this is crap and needs to be moved to eval and rewritten.
     def build_list_of_matching_symbols(
         self, symbol_pat: str, evaluation: Evaluation, options: dict, grid: bool = True
     ):
@@ -429,72 +432,16 @@ class Information(PrefixOperator):
             curr_row = curr_row + (3 - len(curr_row)) * [String("")]
             rows.append(ListExpression(*curr_row))
 
-        # Build Association with Information fields for each matching symbol
-        associations = []
-        for name in names:
-            symbol = Symbol(definitions.lookup_name(name))
-
-            # Get symbol definition to extract attributes and values
-            try:
-                definition = definitions.get_definition(name)
-            except KeyError:
-                definition = None
-
-            # Extract components for Association
-            assoc_items = [
-                Expression(SymbolRule, String("FullName"), String(name)),
-            ]
-
-            # Add Attributes
-            if definition and definition.attributes:
-                attributes_list = attributes_bitset_to_list(definition.attributes)
-                assoc_items.append(
-                    Expression(
-                        SymbolRule,
-                        String("Attributes"),
-                        to_mathics_list(
-                            *attributes_list, elements_conversion_fn=Symbol
-                        ),
-                    )
-                )
-
-            # Add Definitions (downvalues, ownvalues, upvalues)
-            definition_rules = gather_and_format_definition_rules(symbol, evaluation)
-            if definition_rules:
-                assoc_items.append(
-                    Expression(
-                        SymbolRule,
-                        String("Definitions"),
-                        ListExpression(*definition_rules),
-                    )
-                )
-
-            # Add OwnValues
-            ownvalues = get_symbol_values(symbol, "OwnValues", "ownvalues", evaluation)
-            if ownvalues:
-                assoc_items.append(
-                    Expression(SymbolRule, String("OwnValues"), ownvalues)
-                )
-
-            # Add DownValues
-            downvalues = get_symbol_values(
-                symbol, "DownValues", "downvalues", evaluation
-            )
-            if downvalues:
-                assoc_items.append(
-                    Expression(SymbolRule, String("DownValues"), downvalues)
-                )
-
-            associations.append(Expression(SymbolAssociation, *assoc_items))
-
-        result = ListExpression(*associations)
+        # TODO: Format using Grid?
+        result = Expression(Symbol("System`TableForm"), ListExpression(*rows))
         return result
 
     def eval_with_property(self, expr, prop, evaluation: Evaluation):
         "Information[expr_, prop_]"
         if not isinstance(prop, String):
-            return Expression(SymbolMissing, Symbol("KeyAbsent"), prop)
-        return eval_Information_with_property(expr, prop, evaluation)
+            return Expression(SymbolMissing, SymbolUnknownSymbol, prop)
+
+        return eval_Information_with_property(expr, prop.value, evaluation)
 
     # This implementation mixes the current behavior of WMA >=12.0 with the old behavior
     # (WMA 4.0).
