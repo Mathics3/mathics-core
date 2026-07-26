@@ -123,7 +123,7 @@ class TerminalShell(MathicsLineFeeder, SessionShell):
         except ImportError:
             pass
 
-        # Try importing colorama to escape ansi sequences for cross platform
+        # Try importing colorama to escape ANSI sequences for cross-platform
         # colors
         try:
             from colorama import init as colorama_init
