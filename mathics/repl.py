@@ -212,7 +212,7 @@ class TerminalShell(MathicsLineFeeder, SessionShell):
         """
         Return a prompt string to be shown before showing output.
         """
-        line_number = self.last_line_number
+        line_number = self.last_line_number - 1
         if form:
             return "{3}{0}[{4}{1}{5}]//{2}= {6}".format(
                 self.out_prefix, line_number, form, *self.outcolors

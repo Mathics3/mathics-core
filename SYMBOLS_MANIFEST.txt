@@ -131,6 +131,7 @@ System`Arrow
 System`Arrow3DBox
 System`ArrowBox
 System`Arrowheads
+System`AssociateTo
 System`Association
 System`AssociationQ
 System`Assuming
