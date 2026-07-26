@@ -19,7 +19,7 @@ class Association(Atom, BoxElementMixin):
     """An Association is an Atom collection that maps keys to values,
     similar to a Python dictionary.
 
-    Each Key-Value mappings of an Association is called a Rule; but
+    Each key-value mapping of an Association is called a Rule; but
     this kind of Rule is distinct from (or a degenerate form of) the
     pattern-matching RewriteRules found in DelayedRule and Set
     builtins.
@@ -44,7 +44,7 @@ class Association(Atom, BoxElementMixin):
 
         return
 
-    # Add some dictionary like methods so that we can treat an Association object
+    # Add some dictionary-like methods so that we can treat an Association object
     # as we would a dictionary.
 
     def __delitem__(self, key: BaseElement) -> None:
@@ -71,8 +71,8 @@ class Association(Atom, BoxElementMixin):
             return False
 
         # "other" is an Association that is not literal like us,
-        # and has the same number items in its collection.
-        # Here, we have compare key-value pairs
+        # and has the same number of items in its collection.
+        # Here, we have to compare key-value pairs.
         return self.collection == other.collection
 
         # If for some reason the above does not work:
@@ -255,13 +255,13 @@ class Association(Atom, BoxElementMixin):
         return None
 
     def values(self):
-        """Return the values of an the association.
+        """Return the values of the association.
         Behaves like dict.values().
         """
         return self.collection.values()
 
     def update(self, e: Iterable):
-        """Return the values of an the association.
+        """Return the values of the association.
         Behaves like dict.update() except we return the update object
         value
         """
