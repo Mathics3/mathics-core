@@ -60,10 +60,8 @@ class Association(Atom, BoxElementMixin):
         Side effects:
             Updates self.collection
         """
-        if key not in self.collection:
-            raise KeyError(key)
-
         del self.collection[key]
+        self._expr = None
 
     def __eq__(self, other: Any) -> bool:
         """Check equality with another Association."""
@@ -198,6 +196,23 @@ class Association(Atom, BoxElementMixin):
         Behaves like dict.items().
         """
         return self.collection.items()
+
+    def pop(self, key: BaseElement) -> BaseElement:
+        """pops a key-value pair from the association.
+
+        Args:
+            key: The key to remove.
+
+        Raises:
+            KeyError: If the key is not found in the association.
+
+        Side effects:
+            Updates self.collection
+        """
+        popped = self.collection.pop(key, None)
+        if popped:
+            self._expr = None
+        return popped
 
     def sameQ(self, other: Any) -> bool:
         """
