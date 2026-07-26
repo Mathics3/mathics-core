@@ -1,6 +1,6 @@
 """
-Mathics3 implementation of an Association atom
-6"""
+Mathics3 implementation of an Association atom.
+"""
 
 from typing import Any, Iterable, Optional
 
@@ -102,7 +102,7 @@ class Association(Atom, BoxElementMixin):
             return self.collection[key]
         raise KeyError(key)
 
-    # FIXME: We probably shoudn't have this.
+    # FIXME: We probably shouldn't have this.
     # Find out what needs it and adjust that.
     def __hash__(self) -> int:
         hash_elements = []
