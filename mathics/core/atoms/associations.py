@@ -199,7 +199,7 @@ class Association(Atom, BoxElementMixin):
         return SymbolRule
 
     def items(self):
-        """Return the values of an the association.
+        """Return the values of the association.
         Behaves like dict.items().
         """
         return self.collection.items()
