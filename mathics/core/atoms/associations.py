@@ -42,7 +42,6 @@ class Association(Atom, BoxElementMixin):
                     raise TypeError(f"Association keys must be Rules, got {rule_expr}")
                 self.collection[rule_expr.elements[0]] = rule_expr.elements[1]
 
-        self.update_for_change()
         return
 
     # Add some dictionary like methods so that we can treat an Association object
@@ -103,7 +102,15 @@ class Association(Atom, BoxElementMixin):
             return self.collection[key]
         raise KeyError(key)
 
+    # FIXME: We probably shoudn't have this.
+    # Find out what needs it and adjust that.
     def __hash__(self) -> int:
+        hash_elements = []
+        for key, value in self.collection.items():
+            # Update hash component
+            hash_elements.append((hash(key), hash(value)))
+
+        self._hash = hash(("Association", tuple(hash_elements)))
         return self._hash
 
     def __setitem__(self, key: BaseElement, value: BaseElement) -> None:
@@ -236,8 +243,13 @@ class Association(Atom, BoxElementMixin):
         return True
 
     def to_python(self, *args, **kwargs) -> Optional[dict]:
-        # FIXME
-        return None
+        result = {}
+        for key, value in self.collection.items():
+            if hasattr(key, "to_python") and hasattr(value, "to_python"):
+                result[key.to_python()] = value.to_python()
+            else:
+                return None
+        return result
 
     def to_sympy(self, **kwargs):
         return None
@@ -254,16 +266,4 @@ class Association(Atom, BoxElementMixin):
         value
         """
         self.collection.update(e)
-        self.update_for_change()
         self._expr = None
-
-    def update_for_change(self):
-        """
-        Things we have to do when the Association is changed.
-        """
-        hash_elements = []
-        for key, value in self.collection.items():
-            # Update hash component
-            hash_elements.append((hash(key), hash(value)))
-
-        self._hash = hash(("Association", tuple(hash_elements)))
