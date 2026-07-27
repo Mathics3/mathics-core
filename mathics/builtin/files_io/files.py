@@ -1748,7 +1748,7 @@ class WriteString(Builtin):
             exprs.append(result)
         line = "".join(exprs)
         if type(stream) is BytesIO:
-            line = line.encode(encoding)
+            line = line.encode("utf8")
         stream.io.write(line)
         try:
             stream.io.flush()
