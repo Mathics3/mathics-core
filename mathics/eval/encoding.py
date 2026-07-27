@@ -132,7 +132,6 @@ def encode_string_value(value: str, encoding: str) -> str:
 
 
 def from_python_encoding(encoding):
-    print("look for", encoding)
     return REVERSE_CHARACTER_ENCODING_MAP.get(encoding)
 
 
