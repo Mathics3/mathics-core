@@ -170,7 +170,7 @@ def test_rearrange(str_expr, expected_messages, str_expected, assert_message):
         ),
         (
             "ContainsOnly[{c, a}, {a, b, c}, IgnoreCase -> True]",
-            ("Unknown option IgnoreCase -> True in ContainsOnly.",),
+            ("Unknown option IgnoreCase ⇾ True in ContainsOnly.",),
             "True",
             None,
         ),

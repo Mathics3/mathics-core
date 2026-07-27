@@ -27,6 +27,8 @@ both cases, underneath the `InterpretationBox` or `Tagbox` is a
 
 from typing import Callable, Dict
 
+from mathics_scanner.characters import UNICODE_CHARACTER_TO_ASCII
+
 from mathics.builtin.box.expression import BoxExpression
 from mathics.core.atoms import Integer, String
 from mathics.core.atoms.associations import Association
@@ -174,6 +176,8 @@ def _infix_expression_to_inputform_text(
     num_ops = len(ops_lst)
     for index, operand in enumerate(operands[1:]):
         curr_op = ops_lst[index % num_ops]
+        # In InputForm, operators are encoded as ascii strings:
+        curr_op = UNICODE_CHARACTER_TO_ASCII.get(curr_op, curr_op)
         # In OutputForm we always add the spaces, except for
         # " "
         if curr_op not in ARITHMETIC_OPERATOR_STRINGS:
@@ -297,7 +301,7 @@ def _rule_to_inputform_text(expr, evaluation: Evaluation, **kwargs) -> str:
         return _generic_to_inputform_text(expr, evaluation, **kwargs)
     pat, rule = (render_input_form(elem, evaluation, **kwargs) for elem in elements)
     kwargs["_render_function"] = render_input_form
-    op_str = get_operator_str(head, evaluation, **kwargs)
+    op_str = UNICODE_CHARACTER_TO_ASCII[get_operator_str(head, evaluation, **kwargs)]
     # In WMA there are spaces between operators.
     return pat + f" {op_str} " + rule
 

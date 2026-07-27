@@ -47,15 +47,15 @@ def test__listplot():
         ("Plot[1 / x, {x, -1, 1}]", None, "-Graphics-", None),
         ("Plot[x, {y, 0, 2}]", None, "-Graphics-", None),
         (
-            "Plot[{f[x],-49x/12+433/108},{x,-6,6}, PlotRange->{-10,10}, AspectRatio->{1}]",
+            "Plot[{f[x],-49x/12+433/108},{x,-6,6}, PlotRange⇾{-10,10}, AspectRatio⇾{1}]",
             None,
             "-Graphics-",
             None,
         ),
         (
-            "Plot[Sin[t],  {t, 0, 2 Pi}, PlotPoints -> 1]",
+            "Plot[Sin[t],  {t, 0, 2 Pi}, PlotPoints ⇾ 1]",
             ("Value of option PlotPoints -> 1 is not an integer >= 2.",),
-            "Plot[Sin[t], {t, 0, 2 Pi}, PlotPoints -> 1]",
+            "Plot[Sin[t], {t, 0, 2 Pi}, PlotPoints ⇾ 1]",
             None,
         ),
         ("Plot[x*y, {x, -1, 1}]", None, "-Graphics-", None),
@@ -106,7 +106,7 @@ def test__listplot():
             None,
         ),
         (
-            "Graphics[{Disk[]}, Background->RGBColor[1,.1,.1]]//TeXForm//ToString",
+            "Graphics[{Disk[]}, Background⇾RGBColor[1,.1,.1]]//TeXForm//ToString",
             None,
             (
                 '\n\\begin{asy}\nusepackage("amsmath");\nsize(5.8333cm, 5.8333cm);\n'
@@ -118,19 +118,19 @@ def test__listplot():
         ),
         ## MaxRecursion Option
         (
-            "Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion -> 0]",
+            "Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion ⇾ 0]",
             None,
             "-Graphics3D-",
             None,
         ),
         (
-            "Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion -> 15]",
+            "Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion ⇾ 15]",
             None,
             "-Graphics3D-",
             None,
         ),
         (
-            "Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion -> 16]",
+            "Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion ⇾ 16]",
             (
                 "MaxRecursion must be a non-negative integer; the recursion value is limited to 15. Using MaxRecursion -> 15.",
             ),
@@ -138,7 +138,7 @@ def test__listplot():
             None,
         ),
         (
-            "Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion -> -1]",
+            "Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion ⇾ -1]",
             (
                 "MaxRecursion must be a non-negative integer; the recursion value is limited to 15. Using MaxRecursion -> 0.",
             ),
@@ -146,7 +146,7 @@ def test__listplot():
             None,
         ),
         (
-            "Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion -> a]",
+            "Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion ⇾ a]",
             (
                 "MaxRecursion must be a non-negative integer; the recursion value is limited to 15. Using MaxRecursion -> 0.",
             ),
@@ -154,7 +154,7 @@ def test__listplot():
             None,
         ),
         (
-            "Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion -> Infinity]",
+            "Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion ⇾ Infinity]",
             (
                 "MaxRecursion must be a non-negative integer; the recursion value is limited to 15. Using MaxRecursion -> 15.",
             ),
@@ -174,7 +174,7 @@ def test__listplot():
             None,
         ),
         (
-            "Graphics3D[{Sphere[]}, Background->RGBColor[1,.1,.1]]//TeXForm//ToString",
+            "Graphics3D[{Sphere[]}, Background⇾RGBColor[1,.1,.1]]//TeXForm//ToString",
             None,
             (
                 "\n\\begin{asy}\n"
@@ -323,8 +323,8 @@ def test_plot3d_default():
         Plot3D[
             x+y,
             {x,0,1}, {y,0,1},
-            PlotPoints->{2,2},
-            MaxRecursion->0
+            PlotPoints⇾{2,2},
+            MaxRecursion⇾0
         ]
         """,
         """
@@ -332,13 +332,13 @@ def test_plot3d_default():
             {
                 Polygon[{{0.0,0.0,0.0}, {0.0,0.5,0.5}, {0.5,0.0,0.5}}],
                 Polygon[{{}}], Polygon[{{}}], Polygon[{{}}],  Polygon[{{}}], Polygon[{{}}], Polygon[{{}}], Polygon[{{}}],
-                (* mesh lines for default Mesh->Full *)
+                (* mesh lines for default Mesh⇾Full *)
                 Line[{{0.0,0.0,0.0},{0.0,0.5,0.5},{0.0,1.0,1.0}}],
                 Line[{{}}], Line[{{}}], Line[{{}}], Line[{{}}], Line[{{}}]
             },
-            System`AlignmentPoint -> Center,
-            AspectRatio -> 1,
-            Axes -> True
+            System`AlignmentPoint ⇾ Center,
+            AspectRatio ⇾ 1,
+            Axes ⇾ True
         ]
         """,
     )
@@ -350,9 +350,9 @@ def test_plot3d_nondefault():
         Plot3D[
             x+y,
             {x,0,1}, {y,0,1},
-            PlotPoints->{2,2},
-            AspectRatio -> 0.5,
-            Axes -> False
+            PlotPoints⇾{2,2},
+            AspectRatio ⇾ 0.5,
+            Axes ⇾ False
         ]
         """,
         """
@@ -361,9 +361,9 @@ def test_plot3d_nondefault():
                 Polygon[{{0.0,0.0,0.0}, {0.0,0.5,0.5}, {0.5,0.0,0.5}}],
                 Polygon[{{}}]
             },
-            AlignmentPoint -> Center,
-            AspectRatio -> 0.5,
-            Axes -> False
+            AlignmentPoint ⇾ Center,
+            AspectRatio ⇾ 0.5,
+            Axes ⇾ False
         ]
         """,
     )
@@ -374,8 +374,8 @@ def test_densityplot_default():
         """
         DensityPlot[
             x+y, {x,0,1}, {y,0,1},
-            PlotPoints-> {2,2},
-            MaxRecursion->0
+            PlotPoints⇾ {2,2},
+            MaxRecursion⇾0
         ]
         """,
         """
@@ -386,7 +386,7 @@ def test_densityplot_default():
                         {{0.0,0.0},{0.0,0.5},{0.5,0.0}},
                         {{0.0,0.5},{0.5,0.0},{0.5,0.5}}
                     },
-                    VertexColors -> {
+                    VertexColors ⇾ {
                         {
                             RGBColor[0.293416, 0.0574044, 0.529412],
                             RGBColor[0.49621975000000007, 0.41002484999999994, 0.8144772499999999],
@@ -400,9 +400,9 @@ def test_densityplot_default():
                     }
                 ]
             },
-            AlignmentPoint -> Center,
-            AspectRatio -> 1,
-            Axes -> False
+            AlignmentPoint ⇾ Center,
+            AspectRatio ⇾ 1,
+            Axes ⇾ False
         ]
         """,
     )
@@ -413,10 +413,10 @@ def test_densityplot_nondefault():
         """
         DensityPlot[
             x+y, {x,0,1}, {y,0,1},
-            PlotPoints-> {2,2},
-            MaxRecursion->0
-            AspectRatio -> 0.5,
-            Axes -> True
+            PlotPoints⇾ {2,2},
+            MaxRecursion⇾0
+            AspectRatio ⇾ 0.5,
+            Axes ⇾ True
         ]
         """,
         """
@@ -427,7 +427,7 @@ def test_densityplot_nondefault():
                         {{0.0,0.0},{0.0,0.5},{0.5,0.0}},
                         {{0.0,0.5},{0.5,0.0},{0.5,0.5}}
                     },
-                    VertexColors -> {
+                    VertexColors ⇾ {
                         {
                             RGBColor[0.293416, 0.0574044, 0.529412],
                             RGBColor[0.49621975000000007, 0.41002484999999994, 0.8144772499999999],
@@ -441,9 +441,9 @@ def test_densityplot_nondefault():
                     }
                 ]
             },
-            System`AlignmentPoint -> Center,
-            AspectRatio -> 1, (* TODO: why not passed through? *)
-            Axes -> True
+            System`AlignmentPoint ⇾ Center,
+            AspectRatio ⇾ 1, (* TODO: why not passed through? *)
+            Axes ⇾ True
         ]
         """,
     )

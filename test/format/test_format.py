@@ -130,7 +130,10 @@ def test_makeboxes_text(str_expr, str_expected, form, msg):
     result = session.evaluate(str_expr)
     format_result = result.format(session.evaluation, form)
     if msg:
-        assert format_result.to_text(evaluation=session.evaluation) == str_expected, msg
+        assert (
+            format_result.to_text(evaluation=session.evaluation, encoding="UTF-8")
+            == str_expected
+        ), msg
     else:
         strresult = format_result.to_text(evaluation=session.evaluation)
         assert strresult == str_expected

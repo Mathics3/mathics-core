@@ -174,8 +174,8 @@ import pytest
         ),
         (
             "ImageReflect[ein, x -> Top]",
-            "ImageReflect[-Image-, x -> Top]",
-            ("x -> Top is not a valid 2D reflection specification.",),
+            "ImageReflect[-Image-, x ⇾ Top]",
+            ("x ⇾ Top is not a valid 2D reflection specification.",),
             None,
         ),
         (
