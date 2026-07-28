@@ -48,14 +48,6 @@ def check_data(
     if expected_data is None:
         expected_data = file_data
 
-    print(
-        "file_data=",
-        file_data,
-        " expected_data",
-        expected_data,
-        "encoding=",
-        character_encoding,
-    )
     assert (
         open(file_path, "r", encoding=to_python_encoding(character_encoding)).read()
         == expected_data
