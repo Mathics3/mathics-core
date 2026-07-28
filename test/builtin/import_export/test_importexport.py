@@ -401,7 +401,7 @@ def test_inividually():
         (
             r'System`Convert`B64Dump`B64Decode["4oirIGYg752MIHg="]',
             None,
-            r"\[Integral] f \:f74c x",
+            r"∫ f  x",
             None,
         ),
     ],
