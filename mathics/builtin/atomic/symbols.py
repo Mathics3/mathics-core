@@ -422,7 +422,7 @@ class FormatValues(Builtin):
 
     The replacement pattern on the right in the delayed rule is formatted according to the top-level form. To see the rule input, we can use 'InputForm':
     >> FormatValues[F]  //InputForm
-     = {HoldPattern[Format[F[x_], OutputForm]] ⧴ Subscript[x, F]}
+     = {HoldPattern[Format[F[x_], OutputForm]] :> Subscript[x, F]}
     """
 
     summary_text = (

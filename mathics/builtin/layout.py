@@ -100,7 +100,7 @@ class Format(Builtin):
     Mathics3 input:
 
     >> Format[{a -> Integrate[F[x], x]}, StandardForm] //InputForm
-     = Format[{a ⇾ Integrate[F[x], x]}, StandardForm]
+     = Format[{a -> Integrate[F[x], x]}, StandardForm]
 
     In WMA, you might not get something that can be used as input.
 
