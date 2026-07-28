@@ -7,11 +7,11 @@ Options[B64Export] = {
     "CharacterEncoding" :> $CharacterEncoding
 };
 
-B64Export[filename_, expr_, OptionsPattern[]] :=
+B64Export[filename_, expr_, opt:OptionsPattern[]] :=
   Module[{strm, data},
     strm = OpenWrite[filename];
     If[strm === $Failed, Return[$Failed]];
-    data = B64Encode[expr];
+    data = B64Encode[expr, opt];
     WriteString[strm, data];
     Close[strm];
   ]

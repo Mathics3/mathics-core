@@ -715,7 +715,6 @@ class PointBox(_Polyline):
 
         if item is not None:
             if len(item.elements) != 1:
-                print("item:", item)
                 raise BoxExpressionError
             points = item.elements[0]
             if points.has_form("List", None) and len(points.elements) != 0:

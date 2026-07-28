@@ -8,11 +8,11 @@ Options[TextExport] = {
     "CharacterEncoding" :> $CharacterEncoding
 };
 
-TextExport[filename_, expr_, OptionsPattern[]] :=
+TextExport[filename_, expr_, opt:OptionsPattern[]] :=
     Module[{strm, data},
         strm = OpenWrite[filename, CharacterEncoding -> OptionValue["CharacterEncoding"]];
         If[strm === $Failed, Return[$Failed]];
-        data = ToString[expr];
+        data = ToString[expr, opt];
         WriteString[strm, data];
         Close[strm];
   ]

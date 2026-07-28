@@ -134,11 +134,11 @@ mypy:
 	mypy --install-types --ignore-missing-imports --non-interactive mathics
 
 plot-detailed-tests:
-	MATHICS_CHARACTER_ENCODING="ASCII" MATHICS_PLOT_DETAILED_TESTS="1" $(PYTHON) -m pytest -x $(PYTEST_OPTIONS) test/builtin/drawing/test_plot_detail.py
+	MATHICS_PLOT_DETAILED_TESTS="1" $(PYTHON) -m pytest -x $(PYTEST_OPTIONS) test/builtin/drawing/test_plot_detail.py
 
 #: Run pytest tests. Use environment variable "PYTEST_OPTIONS" for pytest options
 pytest:
-	MATHICS_CHARACTER_ENCODING="ASCII" $(PYTHON) -m pytest $(PYTEST_OPTIONS) $(PYTEST_WORKERS) test
+	$(PYTHON) -m pytest $(PYTEST_OPTIONS) $(PYTEST_WORKERS) test
 
 #: Run pytest tests stopping at first failure.
 pytest-x :
@@ -156,7 +156,7 @@ latex-doctest-data: mathics/builtin/*.py mathics/doc/documentation/*.mdoc mathic
 
 #: Run tests that appear in docstring in the code. Use environment variable "DOCTEST_OPTIONS" for doctest options
 doctest:
-	MATHICS_CHARACTER_ENCODING="ASCII" MATHICS3_SANDBOX=$(MATHICS3_SANDBOX) $(PYTHON) mathics/docpipeline.py $(DOCTEST_OPTIONS)
+	MATHICS3_SANDBOX=$(MATHICS3_SANDBOX) $(PYTHON) mathics/docpipeline.py $(DOCTEST_OPTIONS)
 
 #: Run tests that appear in docstring in the code, stopping on the first error.
 doctest-x:

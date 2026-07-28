@@ -8,7 +8,7 @@
 #  as the result of evaluating
 #   ```ToString[form_[expr_], CharacterEncoding->"ASCII"]```
 #  so when `WMAINTERPRETER` == `wolframscript` CLI, all these tests pass.
-#  
+#
 #  Running the same code against `mathics` CLI, most of these tests fails because
 #  - `ToString` with `CharacterEncoding->"ASCII"` does not produce string
 #  representations of Boxes.
@@ -289,38 +289,38 @@
   msg: Association
   latex:
     System`InputForm: '\text{$<$$\vert$a -$>$ x, b -$>$ y, c -$>$ $<$$\vert$d -$>$ t$\vert$$>$$\vert$$>$}'
-    System`OutputForm: '\text{$<$$\vert$a -$>$ x, b -$>$ y, c -$>$ $<$$\vert$d -$>$ t$\vert$$>$$\vert$$>$}'
-    System`StandardForm: '\langle\vert a->x, b->y, c->\langle\vert d->t\vert\rangle \vert\rangle'
-    System`TraditionalForm: '\langle\vert a->x, b->y, c->\langle\vert d->t\vert\rangle \vert\rangle'
+    System`OutputForm: '\text{$<$$\vert$a $\to$ x, b $\to$ y, c $\to$ $<$$\vert$d $\to$ t$\vert$$>$$\vert$$>$}'
+    System`StandardForm: '\langle\vert a \to x, b \to y, c \to \langle\vert d \to t\vert\rangle \vert\rangle'
+    System`TraditionalForm: '\langle\vert a \to x, b \to y, c \to \langle\vert d \to t\vert\rangle \vert\rangle'
   mathml:
     System`InputForm: <mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t|&gt;|&gt;</mtext>
-    System`OutputForm: '<mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t|&gt;|&gt;</mtext>'
-    System`StandardForm: "<mrow>\n <mtext>&lt;|</mtext>\n <mrow>\n  <mrow>\n   <mi>a</mi>\n   <mn>-&gt;</mn>\n   <mi>x</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>b</mi>\n   <mn>-&gt;</mn>\n   <mi>y</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>c</mi>\n   <mn>-&gt;</mn>\n   <mrow>\n    <mtext>&lt;|</mtext>\n    <mrow>\n     <mi>d</mi>\n     <mn>-&gt;</mn>\n     <mi>t</mi>\n    </mrow>\n    <mtext>|&gt;</mtext>\n   </mrow>\n  </mrow>\n </mrow>\n <mtext>|&gt;</mtext>\n</mrow>"
-    System`TraditionalForm: "<mrow>\n <mtext>&lt;|</mtext>\n <mrow>\n  <mrow>\n   <mi>a</mi>\n   <mn>-&gt;</mn>\n   <mi>x</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>b</mi>\n   <mn>-&gt;</mn>\n   <mi>y</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>c</mi>\n   <mn>-&gt;</mn>\n   <mrow>\n    <mtext>&lt;|</mtext>\n    <mrow>\n     <mi>d</mi>\n     <mn>-&gt;</mn>\n     <mi>t</mi>\n    </mrow>\n    <mtext>|&gt;</mtext>\n   </mrow>\n  </mrow>\n </mrow>\n <mtext>|&gt;</mtext>\n</mrow>"
+    System`OutputForm: '<mtext>&lt;|a&nbsp;&#8702;&nbsp;x,&nbsp;b&nbsp;&#8702;&nbsp;y,&nbsp;c&nbsp;&#8702;&nbsp;&lt;|d&nbsp;&#8702;&nbsp;t|&gt;|&gt;</mtext>'
+    System`StandardForm: "<mrow>\n <mtext>&lt;|</mtext>\n <mrow>\n  <mrow>\n   <mi>a</mi>\n   <mtext>&#8702;</mtext>\n   <mi>x</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>b</mi>\n   <mtext>&#8702;</mtext>\n   <mi>y</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>c</mi>\n   <mtext>&#8702;</mtext>\n   <mrow>\n    <mtext>&lt;|</mtext>\n    <mrow>\n     <mi>d</mi>\n     <mtext>&#8702;</mtext>\n     <mi>t</mi>\n    </mrow>\n    <mtext>|&gt;</mtext>\n   </mrow>\n  </mrow>\n </mrow>\n <mtext>|&gt;</mtext>\n</mrow>"
+    System`TraditionalForm: "<mrow>\n <mtext>&lt;|</mtext>\n <mrow>\n  <mrow>\n   <mi>a</mi>\n   <mtext>&#8702;</mtext>\n   <mi>x</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>b</mi>\n   <mtext>&#8702;</mtext>\n   <mi>y</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>c</mi>\n   <mtext>&#8702;</mtext>\n   <mrow>\n    <mtext>&lt;|</mtext>\n    <mrow>\n     <mi>d</mi>\n     <mtext>&#8702;</mtext>\n     <mi>t</mi>\n    </mrow>\n    <mtext>|&gt;</mtext>\n   </mrow>\n  </mrow>\n </mrow>\n <mtext>|&gt;</mtext>\n</mrow>"
   text:
     System`InputForm: <|a -> x, b -> y, c -> <|d -> t|>|>
-    System`OutputForm: <|a -> x, b -> y, c -> <|d -> t|>|>
-    System`StandardForm: <|a->x, b->y, c-><|d->t|>|>
-    System`TraditionalForm: <|a->x, b->y, c-><|d->t|>|>
+    System`OutputForm: <|a ⇾ x, b ⇾ y, c ⇾ <|d ⇾ t|>|>
+    System`StandardForm: <|a⇾x, b⇾y, c⇾<|d⇾t|>|>
+    System`TraditionalForm: <|a⇾x, b⇾y, c⇾<|d⇾t|>|>
 
 
 Association[a -> x, b -> y, c -> Association[d -> t, Association[e -> u]]]:
   msg: Nested Association
   latex:
     System`InputForm: '\text{$<$$\vert$a -$>$ x, b -$>$ y, c -$>$ $<$$\vert$d -$>$ t, e -$>$ u$\vert$$>$$\vert$$>$}'
-    System`OutputForm: '\text{$<$$\vert$a -$>$ x, b -$>$ y, c -$>$ $<$$\vert$d -$>$ t, e -$>$ u$\vert$$>$$\vert$$>$}'
-    System`StandardForm: '\langle\vert a->x, b->y, c->\langle\vert d->t, e->u\vert\rangle \vert\rangle'
-    System`TraditionalForm: '\langle\vert a->x, b->y, c->\langle\vert d->t, e->u\vert\rangle \vert\rangle'
+    System`OutputForm: '\text{$<$$\vert$a $\to$ x, b $\to$ y, c $\to$ $<$$\vert$d $\to$ t, e $\to$ u$\vert$$>$$\vert$$>$}'
+    System`StandardForm: '\langle\vert a \to x, b \to y, c \to \langle\vert d \to t, e \to u\vert\rangle \vert\rangle'
+    System`TraditionalForm: '\langle\vert a \to x, b \to y, c \to \langle\vert d \to t, e \to u\vert\rangle \vert\rangle'
   mathml:
     System`InputForm: "<mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t,&nbsp;e&nbsp;-&gt;&nbsp;u|&gt;|&gt;</mtext>"
-    System`OutputForm: '<mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t,&nbsp;e&nbsp;-&gt;&nbsp;u|&gt;|&gt;</mtext>'
-    System`StandardForm: "<mrow>\n <mtext>&lt;|</mtext>\n <mrow>\n  <mrow>\n   <mi>a</mi>\n   <mn>-&gt;</mn>\n   <mi>x</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>b</mi>\n   <mn>-&gt;</mn>\n   <mi>y</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>c</mi>\n   <mn>-&gt;</mn>\n   <mrow>\n    <mtext>&lt;|</mtext>\n    <mrow>\n     <mrow>\n      <mi>d</mi>\n      <mn>-&gt;</mn>\n      <mi>t</mi>\n     </mrow>\n     <mo>,</mo>\n     <mrow>\n      <mi>e</mi>\n      <mn>-&gt;</mn>\n      <mi>u</mi>\n     </mrow>\n    </mrow>\n    <mtext>|&gt;</mtext>\n   </mrow>\n  </mrow>\n </mrow>\n <mtext>|&gt;</mtext>\n</mrow>"
-    System`TraditionalForm: "<mrow>\n <mtext>&lt;|</mtext>\n <mrow>\n  <mrow>\n   <mi>a</mi>\n   <mn>-&gt;</mn>\n   <mi>x</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>b</mi>\n   <mn>-&gt;</mn>\n   <mi>y</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>c</mi>\n   <mn>-&gt;</mn>\n   <mrow>\n    <mtext>&lt;|</mtext>\n    <mrow>\n     <mrow>\n      <mi>d</mi>\n      <mn>-&gt;</mn>\n      <mi>t</mi>\n     </mrow>\n     <mo>,</mo>\n     <mrow>\n      <mi>e</mi>\n      <mn>-&gt;</mn>\n      <mi>u</mi>\n     </mrow>\n    </mrow>\n    <mtext>|&gt;</mtext>\n   </mrow>\n  </mrow>\n </mrow>\n <mtext>|&gt;</mtext>\n</mrow>"
+    System`OutputForm: '<mtext>&lt;|a&nbsp;&#8702;&nbsp;x,&nbsp;b&nbsp;&#8702;&nbsp;y,&nbsp;c&nbsp;&#8702;&nbsp;&lt;|d&nbsp;&#8702;&nbsp;t,&nbsp;e&nbsp;&#8702;&nbsp;u|&gt;|&gt;</mtext>'
+    System`StandardForm: "<mrow>\n <mtext>&lt;|</mtext>\n <mrow>\n  <mrow>\n   <mi>a</mi>\n   <mtext>&#8702;</mtext>\n   <mi>x</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>b</mi>\n   <mtext>&#8702;</mtext>\n   <mi>y</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>c</mi>\n   <mtext>&#8702;</mtext>\n   <mrow>\n    <mtext>&lt;|</mtext>\n    <mrow>\n     <mrow>\n      <mi>d</mi>\n      <mtext>&#8702;</mtext>\n      <mi>t</mi>\n     </mrow>\n     <mo>,</mo>\n     <mrow>\n      <mi>e</mi>\n      <mtext>&#8702;</mtext>\n      <mi>u</mi>\n     </mrow>\n    </mrow>\n    <mtext>|&gt;</mtext>\n   </mrow>\n  </mrow>\n </mrow>\n <mtext>|&gt;</mtext>\n</mrow>"
+    System`TraditionalForm: "<mrow>\n <mtext>&lt;|</mtext>\n <mrow>\n  <mrow>\n   <mi>a</mi>\n   <mtext>&#8702;</mtext>\n   <mi>x</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>b</mi>\n   <mtext>&#8702;</mtext>\n   <mi>y</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>c</mi>\n   <mtext>&#8702;</mtext>\n   <mrow>\n    <mtext>&lt;|</mtext>\n    <mrow>\n     <mrow>\n      <mi>d</mi>\n      <mtext>&#8702;</mtext>\n      <mi>t</mi>\n     </mrow>\n     <mo>,</mo>\n     <mrow>\n      <mi>e</mi>\n      <mtext>&#8702;</mtext>\n      <mi>u</mi>\n     </mrow>\n    </mrow>\n    <mtext>|&gt;</mtext>\n   </mrow>\n  </mrow>\n </mrow>\n <mtext>|&gt;</mtext>\n</mrow>"
   text:
     System`InputForm: <|a -> x, b -> y, c -> <|d -> t, e -> u|>|>
-    System`OutputForm: <|a -> x, b -> y, c -> <|d -> t, e -> u|>|>
-    System`StandardForm: <|a->x, b->y, c-><|d->t, e->u|>|>
-    System`TraditionalForm: <|a->x, b->y, c-><|d->t, e->u|>|>
+    System`OutputForm: <|a ⇾ x, b ⇾ y, c ⇾ <|d ⇾ t, e ⇾ u|>|>
+    System`StandardForm: <|a⇾x, b⇾y, c⇾<|d⇾t, e⇾u|>|>
+    System`TraditionalForm: <|a⇾x, b⇾y, c⇾<|d⇾t, e⇾u|>|>
 
 
 Complex[1.09*^12, 3.]:
@@ -444,15 +444,15 @@ Graphics[{}]:
     # TODO: This should be fixed later
     # System`InputForm:  \text{Grid[\{\{"Spanish", "Hola!"\}, \{"Portuguese", "Ol\`{a}!"\}, \{"English", "Hi!"\}\}]}
     System`OutputForm: '\text{Spanish      Hola!\newline
-    
+
     \newline
-    
+
     Portuguese   Ol\`{a}!\newline
-    
+
     \newline
-    
+
     English      Hi!\newline
-    
+
     }
 '
     System`StandardForm: "\\begin{array}{cc} \\text{Spanish} & \\text{Hola!}\\\\ \\\
@@ -481,11 +481,11 @@ Grid[{{a,b},{c,d}}]:
     System`InputForm: \text{Grid[\{\{a, b\}, \{c, d\}\}]}
     System`OutputForm: '
         \text{a   b\newline
-    
+
         \newline
-	     
+
         c   d\newline
-	     
+
         }
         '
   mathml:
@@ -538,11 +538,11 @@ MatrixForm[{{a,b},{c,d}}]:
   latex:
     System`InputForm: \text{MatrixForm[\{\{a, b\}, \{c, d\}\}]}
     System`OutputForm: '\text{a   b\newline
-    
+
     \newline
-    
+
     c   d\newline
-    
+
     }
 '
     System`StandardForm: \left(\begin{array}{cc} a & b\\ c & d\end{array}\right)
@@ -591,9 +591,9 @@ Sqrt[1/(1+1/(1+1/a))]:
     System`StandardForm:
     - "<msqrt>\n <mfrac>\n  <mn>1</mn>\n  <mrow>\n   <mn>1</mn>\n   <mo>+</mo>\n   <mfrac>\n    <mn>1</mn>\n    <mrow>\n     <mn>1</mn>\n     <mo>+</mo>\n     <mfrac>\n      <mn>1</mn>\n      <mi>a</mi>\n     </mfrac>\n    </mrow>\n   </mfrac>\n  </mrow>\n </mfrac>\n</msqrt>"
     - Fragile!
-    System`TraditionalForm: 
+    System`TraditionalForm:
     - "<msqrt>\n <mfrac>\n  <mn>1</mn>\n  <mrow>\n   <mn>1</mn>\n   <mo>+</mo>\n   <mfrac>\n    <mn>1</mn>\n    <mrow>\n     <mn>1</mn>\n     <mo>+</mo>\n     <mfrac>\n      <mn>1</mn>\n      <mi>a</mi>\n     </mfrac>\n    </mrow>\n   </mfrac>\n  </mrow>\n </mfrac>\n</msqrt>"
-    - Fragile!    
+    - Fragile!
   text:
     System`InputForm: Sqrt[1/(1 + 1/(1 + 1/a))]
     System`OutputForm: Sqrt[1 / (1 + 1 / (1 + 1 / a))]
@@ -689,7 +689,7 @@ TableForm[{{a,b},{c,d}}]:
     System`OutputForm: '\text{a   b\newline
 
     \newline
-    
+
     c   d\newline
 
     }'

@@ -42,7 +42,7 @@ def test_arg_errors(function_name, msg_fragment):
         ("Xor[a]", None, "a", None),
         ("Xor[False]", None, "False", None),
         ("Xor[True]", None, "True", None),
-        ("Xor[a, b]", None, "a xor b", None),
+        ("Xor[a, b]", None, "a ⊻ b", None),
     ],
 )
 def test_logic(str_expr, msgs, str_expected, fail_msg):
@@ -99,10 +99,10 @@ def test_list_oriented(str_expr, msgs, str_expected, fail_msg):
         ("Max[x]", None, "x", None),
         ("Min[x]", None, "x", None),
         ("Pi != N[Pi]", None, "False", None),
-        ("a_ != b_", None, "a_ != b_", None),
+        ("a_ != b_", None, "a_ ≠ b_", None),
         ("Clear[a, b];a != a != a", None, "False", None),
         ('"abc" != "def" != "abc"', None, "False", None),
-        ("a != b != a", None, "a != b != a", "Reproduce strange MMA behaviour"),
+        ("a != b != a", None, "a ≠ b ≠ a", "Reproduce strange MMA behaviour"),
     ],
 )
 def test_equality_inequality(str_expr, msgs, str_expected, fail_msg):

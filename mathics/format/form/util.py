@@ -145,7 +145,6 @@ def collect_in_pre_post_arguments(
 
 
 def get_operator_str(head, evaluation, **kwargs) -> str:
-    encoding = kwargs["encoding"]
     if isinstance(head, String):
         op_str = head.value
     elif isinstance(head, Symbol):
@@ -154,10 +153,7 @@ def get_operator_str(head, evaluation, **kwargs) -> str:
         render_function = kwargs["_render_function"]
         return render_function(head, evaluation, **kwargs)
 
-    if encoding == "ASCII":
-        operator = operator_to_ascii.get(op_str, op_str)
-    else:
-        operator = operator_to_unicode.get(op_str, op_str)
+    operator = operator_to_unicode.get(op_str, op_str)
     return operator
 
 

@@ -57,7 +57,7 @@ def test_replace_all():
         (
             "Dispatch[{a -> 1, b -> c, p}]",
             None,
-            "Dispatch[{a -> 1, b -> c, p}]",
+            "Dispatch[{a ⇾ 1, b ⇾ c, p}]",
             "two rules and a symbol: keep unevaluated.",
         ),
         (

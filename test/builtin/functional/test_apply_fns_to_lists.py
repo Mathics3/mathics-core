@@ -21,7 +21,7 @@ import pytest
         (
             "Map[f, expr, a+b, Heads->True]",
             ("Level specification a + b is not of the form n, {n}, or {m, n}.",),
-            "Map[f, expr, a + b, Heads -> True]",
+            "Map[f, expr, a + b, Heads ⇾ True]",
             None,
         ),
         (

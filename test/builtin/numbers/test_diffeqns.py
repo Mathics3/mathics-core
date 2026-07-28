@@ -63,7 +63,7 @@ import pytest
         (
             "DSolve[f[x] == 0, f, {}]",
             ("{} cannot be used as a variable.",),
-            "DSolve[f[x] == 0, f, {}]",
+            "DSolve[f[x] ⩵ 0, f, {}]",
             None,
         ),
         # Order of arguments should not matter
