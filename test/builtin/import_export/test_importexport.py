@@ -232,6 +232,13 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
             "0.88, 0.60, 0.94\n.076, 0.19, .51\n0.97, 0.04, .26",
             None,
         ),
+        # WL
+        (
+            'Import["ExampleData/HelloWorld.wl"]',
+            None,
+            "Hello, World!",
+            None,
+        ),
         # FIXME: the below out is incorrect and does not match WMA,
         # due to a lame homegrown implementation of
         # CSV. The data below will change when we use Python's CSV library.
