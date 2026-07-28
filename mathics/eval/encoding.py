@@ -152,6 +152,8 @@ def get_encoding_table(encoding: str) -> dict[str, str]:
         return {
             "ASCII": UNICODE_CHARACTER_TO_ASCII,
             "UTF-8": {},
+            "UTF8": {},
+            "ISOLatin1": {},
         }[encoding]
     except KeyError:
         raise EncodingNameError

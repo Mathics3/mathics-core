@@ -21,8 +21,8 @@ import pytest
             "x ^ 7",
             None,
         ),
-        ("f /: Options[f] = {a -> b}", None, "{a -> b}", None),
-        ("Options[f]", None, "{a :> b}", None),
+        ("f /: Options[f] = {a -> b}", None, "{a ⇾ b}", None),
+        ("Options[f]", None, "{a ⧴ b}", None),
         (
             "f /: Options[g] := {a -> b}",
             ("Rule for Options can only be attached to g.",),

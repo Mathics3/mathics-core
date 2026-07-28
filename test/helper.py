@@ -7,6 +7,7 @@ from typing import List, Optional, Tuple
 from mathics.core.load_builtin import import_and_load_builtins
 from mathics.core.streams import canonic_os_path
 from mathics.eval.encoding import encode_string_value
+from mathics.format.render.text import string_to_invertible_ascii
 from mathics.session import MathicsSession
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
@@ -19,6 +20,21 @@ session = MathicsSession(character_encoding="ASCII")
 
 # Set up a data path that can be used in testing
 data_dir = canonic_os_path(osp.normpath(osp.join(osp.dirname(__file__), "data")))
+
+
+def canonical_encoding(string, enc="ASCII") -> str:
+    """
+    Replace all backslashes by escaped backslashes,
+    and special characters by their named-character form.
+    """
+    if not string:
+        return string
+    if enc and enc not in ("UTF-8", "UTF8", "Unicode"):
+        string = encode_string_value(string, enc)
+    else:
+        string = string.replace("\\", "\\\\")
+        string = string_to_invertible_ascii(string)
+    return string
 
 
 def reset_session(add_builtin=True, catch_interrupt=False):
@@ -116,9 +132,7 @@ def check_evaluation(
     if to_string_expr:
         str_expr = f"ToString[{str_expr}]"
         result = evaluate_value(str_expr)
-        # TODO: We can remove this when ToString handle CharacterEncoding
-        # in a proper way.
-        result = encode_string_value(result, encoding)
+        result = canonical_encoding(result, encoding)
     elif to_string_expr is None:
         result = str_expr
     else:
@@ -129,11 +143,11 @@ def check_evaluation(
     if to_string_expected:
         if hold_expected:
             expected = str_expected
-            expected = encode_string_value(expected, encoding)
+            expected = canonical_encoding(expected, encoding)
         else:
             str_expected = f"ToString[{str_expected}]"
             expected = evaluate_value(str_expected)
-            expected = encode_string_value(expected, encoding)
+            expected = canonical_encoding(expected, encoding)
     elif to_string_expected is None:
         expected = str_expected
     else:
@@ -150,6 +164,7 @@ def check_evaluation(
     print(time.asctime())
 
     if failure_message:
+        print([result, "!=", expected])
         assert result == expected, failure_message
     else:
         fail_mess = f"got: \n{result}\nexpect:\n{expected}\n"
@@ -167,7 +182,12 @@ def check_evaluation(
             expected_len == got_len
         ), f"expected {expected_len}; got {got_len}. Messages: {outs}"
         for out, msg in zip(outs, msgs):
-            compare_ok = msg.match(out) if isinstance(msg, re.Pattern) else out == msg
+            compare_ok = (
+                msg.match(out)
+                if isinstance(msg, re.Pattern)
+                else canonical_encoding(out, encoding)
+                == canonical_encoding(msg, encoding)
+            )
             if not compare_ok:
                 print(f"out:<<{out}>>")
                 print(" and ")
@@ -180,6 +200,7 @@ def check_evaluation_as_in_cli(
     str_expected: Optional[str] = None,
     failure_message: str = "",
     expected_messages: Optional[tuple] = None,
+    encoding=SYSTEM_CHARACTER_ENCODING,
 ):
     """
     Use this method when special Symbols like Return, %, %%,
@@ -195,11 +216,14 @@ def check_evaluation_as_in_cli(
     else:
         assert len(res.out) == len(expected_messages)
         for li1, li2 in zip(res.out, expected_messages):
-            assert li1.text == li2
+            assert canonical_encoding(li1.text, encoding) == li2
 
+    result = canonical_encoding(res.result, encoding)
+    str_expected = canonical_encoding(str_expected, encoding)
     if failure_message:
-        assert res.result == str_expected, failure_message
-    assert res.result == str_expected
+        assert result == str_expected, failure_message
+    else:
+        assert result == str_expected, f"<<{result}>>!=<<{str_expected}>>"
 
 
 # List below could be a Tuple, but List looks better in the tests

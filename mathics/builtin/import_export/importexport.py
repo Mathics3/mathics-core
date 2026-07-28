@@ -1023,9 +1023,12 @@ class B64Decode(Builtin):
     messages = {
         "b64invalidstr": 'String "`1`" is not a valid b64 encoded string.',
     }
+    options = {"CharacterEncoding": "$SystemCharacterEncoding"}
 
-    def eval(self, expr: String, evaluation: Evaluation):
-        "System`Convert`B64Dump`B64Decode[expr_String]"
+    def eval(self, expr: String, evaluation: Evaluation, options):
+        "System`Convert`B64Dump`B64Decode[expr_String, OptionsPattern[]]"
+        ## TODO: see what to do with enconding here...
+        encoding = options["System`CharacterEncoding"].evaluate(evaluation)
         try:
             clearstring = base64.b64decode(bytearray(expr.value, "utf8")).decode("utf8")
             clearstring = String(str(clearstring))
@@ -1061,9 +1064,13 @@ class B64Encode(Builtin):
     context = "System`Convert`B64Dump`"
     name = "B64Encode"
     summary_text = "encode an element as a base64 string"
+    options = {"CharacterEncoding": "$SystemCharacterEncoding"}
 
-    def eval(self, expr, evaluation: Evaluation):
-        "System`Convert`B64Dump`B64Encode[expr_]"
+    def eval(self, expr, evaluation: Evaluation, options):
+        "System`Convert`B64Dump`B64Encode[expr_, OptionsPattern[]]"
+
+        ## TODO: see what to do with enconding here...
+        encoding = options["System`CharacterEncoding"].evaluate(evaluation)
         if isinstance(expr, String):
             stringtocodify = expr.value
         elif expr.get_head_name() == "System`ByteArray":

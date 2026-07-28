@@ -445,7 +445,7 @@ def test_fullsimplify():
         (
             "Expand[(x - 1)(x + 1) == 0]",
             None,
-            "-1 + x ^ 2 == 0",
+            "-1 + x ^ 2 ⩵ 0",
             "Expand using a relation. Issue #1390",
         ),
         (
@@ -458,7 +458,7 @@ def test_fullsimplify():
         (
             "Expand[x, Modulus -> x]",
             ("Value of option Modulus -> x should be an integer.",),
-            "Expand[x, Modulus -> x]",
+            "Expand[x, Modulus ⇾ x]",
             None,
         ),
         ("a(b(c+d)+e) // Expand", None, "a b c + a b d + a e", None),
