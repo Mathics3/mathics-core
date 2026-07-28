@@ -290,18 +290,18 @@
   latex:
     System`InputForm: '\text{$<$$\vert$a -$>$ x, b -$>$ y, c -$>$ $<$$\vert$d -$>$ t$\vert$$>$$\vert$$>$}'
     System`OutputForm: '\text{$<$$\vert$a $\to$ x, b $\to$ y, c $\to$ $<$$\vert$d $\to$ t$\vert$$>$$\vert$$>$}'
-    System`StandardForm: '\langle\vert a->x, b->y, c->\langle\vert d->t\vert\rangle \vert\rangle'
-    System`TraditionalForm: '\langle\vert a->x, b->y, c->\langle\vert d->t\vert\rangle \vert\rangle'
+    System`StandardForm: '\langle\vert a \to x, b \to y, c \to \langle\vert d \to t\vert\rangle \vert\rangle'
+    System`TraditionalForm: '\langle\vert a \to x, b \to y, c \to \langle\vert d \to t\vert\rangle \vert\rangle'
   mathml:
     System`InputForm: <mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t|&gt;|&gt;</mtext>
     System`OutputForm: '<mtext>&lt;|a&nbsp;&#8702;&nbsp;x,&nbsp;b&nbsp;&#8702;&nbsp;y,&nbsp;c&nbsp;&#8702;&nbsp;&lt;|d&nbsp;&#8702;&nbsp;t|&gt;|&gt;</mtext>'
-    System`StandardForm: "<mrow>\n <mtext>&lt;|</mtext>\n <mrow>\n  <mrow>\n   <mi>a</mi>\n   <mn>-&gt;</mn>\n   <mi>x</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>b</mi>\n   <mn>-&gt;</mn>\n   <mi>y</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>c</mi>\n   <mn>-&gt;</mn>\n   <mrow>\n    <mtext>&lt;|</mtext>\n    <mrow>\n     <mi>d</mi>\n     <mn>-&gt;</mn>\n     <mi>t</mi>\n    </mrow>\n    <mtext>|&gt;</mtext>\n   </mrow>\n  </mrow>\n </mrow>\n <mtext>|&gt;</mtext>\n</mrow>"
-    System`TraditionalForm: "<mrow>\n <mtext>&lt;|</mtext>\n <mrow>\n  <mrow>\n   <mi>a</mi>\n   <mn>-&gt;</mn>\n   <mi>x</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>b</mi>\n   <mn>-&gt;</mn>\n   <mi>y</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>c</mi>\n   <mn>-&gt;</mn>\n   <mrow>\n    <mtext>&lt;|</mtext>\n    <mrow>\n     <mi>d</mi>\n     <mn>-&gt;</mn>\n     <mi>t</mi>\n    </mrow>\n    <mtext>|&gt;</mtext>\n   </mrow>\n  </mrow>\n </mrow>\n <mtext>|&gt;</mtext>\n</mrow>"
+    System`StandardForm: "<mrow>\n <mtext>&lt;|</mtext>\n <mrow>\n  <mrow>\n   <mi>a</mi>\n   <mtext>&#8702;</mtext>\n   <mi>x</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>b</mi>\n   <mtext>&#8702;</mtext>\n   <mi>y</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>c</mi>\n   <mtext>&#8702;</mtext>\n   <mrow>\n    <mtext>&lt;|</mtext>\n    <mrow>\n     <mi>d</mi>\n     <mtext>&#8702;</mtext>\n     <mi>t</mi>\n    </mrow>\n    <mtext>|&gt;</mtext>\n   </mrow>\n  </mrow>\n </mrow>\n <mtext>|&gt;</mtext>\n</mrow>"
+    System`TraditionalForm: "<mrow>\n <mtext>&lt;|</mtext>\n <mrow>\n  <mrow>\n   <mi>a</mi>\n   <mtext>&#8702;</mtext>\n   <mi>x</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>b</mi>\n   <mtext>&#8702;</mtext>\n   <mi>y</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>c</mi>\n   <mtext>&#8702;</mtext>\n   <mrow>\n    <mtext>&lt;|</mtext>\n    <mrow>\n     <mi>d</mi>\n     <mtext>&#8702;</mtext>\n     <mi>t</mi>\n    </mrow>\n    <mtext>|&gt;</mtext>\n   </mrow>\n  </mrow>\n </mrow>\n <mtext>|&gt;</mtext>\n</mrow>"
   text:
     System`InputForm: <|a -> x, b -> y, c -> <|d -> t|>|>
     System`OutputForm: <|a ⇾ x, b ⇾ y, c ⇾ <|d ⇾ t|>|>
-    System`StandardForm: <|a->x, b->y, c-><|d->t|>|>
-    System`TraditionalForm: <|a->x, b->y, c-><|d->t|>|>
+    System`StandardForm: <|a⇾x, b⇾y, c⇾<|d⇾t|>|>
+    System`TraditionalForm: <|a⇾x, b⇾y, c⇾<|d⇾t|>|>
 
 
 Association[a -> x, b -> y, c -> Association[d -> t, Association[e -> u]]]:
@@ -309,18 +309,18 @@ Association[a -> x, b -> y, c -> Association[d -> t, Association[e -> u]]]:
   latex:
     System`InputForm: '\text{$<$$\vert$a -$>$ x, b -$>$ y, c -$>$ $<$$\vert$d -$>$ t, e -$>$ u$\vert$$>$$\vert$$>$}'
     System`OutputForm: '\text{$<$$\vert$a $\to$ x, b $\to$ y, c $\to$ $<$$\vert$d $\to$ t, e $\to$ u$\vert$$>$$\vert$$>$}'
-    System`StandardForm: '\langle\vert a->x, b->y, c->\langle\vert d->t, e->u\vert\rangle \vert\rangle'
-    System`TraditionalForm: '\langle\vert a->x, b->y, c->\langle\vert d->t, e->u\vert\rangle \vert\rangle'
+    System`StandardForm: '\langle\vert a \to x, b \to y, c \to \langle\vert d \to t, e \to u\vert\rangle \vert\rangle'
+    System`TraditionalForm: '\langle\vert a \to x, b \to y, c \to \langle\vert d \to t, e \to u\vert\rangle \vert\rangle'
   mathml:
     System`InputForm: "<mtext>&lt;|a&nbsp;-&gt;&nbsp;x,&nbsp;b&nbsp;-&gt;&nbsp;y,&nbsp;c&nbsp;-&gt;&nbsp;&lt;|d&nbsp;-&gt;&nbsp;t,&nbsp;e&nbsp;-&gt;&nbsp;u|&gt;|&gt;</mtext>"
     System`OutputForm: '<mtext>&lt;|a&nbsp;&#8702;&nbsp;x,&nbsp;b&nbsp;&#8702;&nbsp;y,&nbsp;c&nbsp;&#8702;&nbsp;&lt;|d&nbsp;&#8702;&nbsp;t,&nbsp;e&nbsp;&#8702;&nbsp;u|&gt;|&gt;</mtext>'
-    System`StandardForm: "<mrow>\n <mtext>&lt;|</mtext>\n <mrow>\n  <mrow>\n   <mi>a</mi>\n   <mn>-&gt;</mn>\n   <mi>x</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>b</mi>\n   <mn>-&gt;</mn>\n   <mi>y</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>c</mi>\n   <mn>-&gt;</mn>\n   <mrow>\n    <mtext>&lt;|</mtext>\n    <mrow>\n     <mrow>\n      <mi>d</mi>\n      <mn>-&gt;</mn>\n      <mi>t</mi>\n     </mrow>\n     <mo>,</mo>\n     <mrow>\n      <mi>e</mi>\n      <mn>-&gt;</mn>\n      <mi>u</mi>\n     </mrow>\n    </mrow>\n    <mtext>|&gt;</mtext>\n   </mrow>\n  </mrow>\n </mrow>\n <mtext>|&gt;</mtext>\n</mrow>"
-    System`TraditionalForm: "<mrow>\n <mtext>&lt;|</mtext>\n <mrow>\n  <mrow>\n   <mi>a</mi>\n   <mn>-&gt;</mn>\n   <mi>x</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>b</mi>\n   <mn>-&gt;</mn>\n   <mi>y</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>c</mi>\n   <mn>-&gt;</mn>\n   <mrow>\n    <mtext>&lt;|</mtext>\n    <mrow>\n     <mrow>\n      <mi>d</mi>\n      <mn>-&gt;</mn>\n      <mi>t</mi>\n     </mrow>\n     <mo>,</mo>\n     <mrow>\n      <mi>e</mi>\n      <mn>-&gt;</mn>\n      <mi>u</mi>\n     </mrow>\n    </mrow>\n    <mtext>|&gt;</mtext>\n   </mrow>\n  </mrow>\n </mrow>\n <mtext>|&gt;</mtext>\n</mrow>"
+    System`StandardForm: "<mrow>\n <mtext>&lt;|</mtext>\n <mrow>\n  <mrow>\n   <mi>a</mi>\n   <mtext>&#8702;</mtext>\n   <mi>x</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>b</mi>\n   <mtext>&#8702;</mtext>\n   <mi>y</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>c</mi>\n   <mtext>&#8702;</mtext>\n   <mrow>\n    <mtext>&lt;|</mtext>\n    <mrow>\n     <mrow>\n      <mi>d</mi>\n      <mtext>&#8702;</mtext>\n      <mi>t</mi>\n     </mrow>\n     <mo>,</mo>\n     <mrow>\n      <mi>e</mi>\n      <mtext>&#8702;</mtext>\n      <mi>u</mi>\n     </mrow>\n    </mrow>\n    <mtext>|&gt;</mtext>\n   </mrow>\n  </mrow>\n </mrow>\n <mtext>|&gt;</mtext>\n</mrow>"
+    System`TraditionalForm: "<mrow>\n <mtext>&lt;|</mtext>\n <mrow>\n  <mrow>\n   <mi>a</mi>\n   <mtext>&#8702;</mtext>\n   <mi>x</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>b</mi>\n   <mtext>&#8702;</mtext>\n   <mi>y</mi>\n  </mrow>\n  <mo>,</mo>\n  <mrow>\n   <mi>c</mi>\n   <mtext>&#8702;</mtext>\n   <mrow>\n    <mtext>&lt;|</mtext>\n    <mrow>\n     <mrow>\n      <mi>d</mi>\n      <mtext>&#8702;</mtext>\n      <mi>t</mi>\n     </mrow>\n     <mo>,</mo>\n     <mrow>\n      <mi>e</mi>\n      <mtext>&#8702;</mtext>\n      <mi>u</mi>\n     </mrow>\n    </mrow>\n    <mtext>|&gt;</mtext>\n   </mrow>\n  </mrow>\n </mrow>\n <mtext>|&gt;</mtext>\n</mrow>"
   text:
     System`InputForm: <|a -> x, b -> y, c -> <|d -> t, e -> u|>|>
     System`OutputForm: <|a ⇾ x, b ⇾ y, c ⇾ <|d ⇾ t, e ⇾ u|>|>
-    System`StandardForm: <|a->x, b->y, c-><|d->t, e->u|>|>
-    System`TraditionalForm: <|a->x, b->y, c-><|d->t, e->u|>|>
+    System`StandardForm: <|a⇾x, b⇾y, c⇾<|d⇾t, e⇾u|>|>
+    System`TraditionalForm: <|a⇾x, b⇾y, c⇾<|d⇾t, e⇾u|>|>
 
 
 Complex[1.09*^12, 3.]:
