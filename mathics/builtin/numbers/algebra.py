@@ -135,7 +135,7 @@ class Apart(Builtin):
      = Sin[1 / (x ^ 2 - y ^ 2)]
 
     >> a == "A" // Apart // InputForm
-     = a ⩵ "A"
+     = a == "A"
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -175,7 +175,7 @@ class Cancel(Builtin):
 
     But it does not touch other expressions:
     >> a == "A" // Cancel // InputForm
-     = a ⩵ "A"
+     = a == "A"
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -976,7 +976,7 @@ class Factor(Builtin):
 
     But it does not touch other expressions:
     >> a == "A" // Factor // InputForm
-     = a ⩵ "A"
+     = a == "A"
     """
 
     attributes = A_LISTABLE | A_PROTECTED
