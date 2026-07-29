@@ -34,7 +34,9 @@ class Association(Atom, BoxElementMixin):
 
         # Save the Expression form rewrite rule or pattern matching.
         self._expr: Optional[Expression] = expr
+
         self._python: Optional[dict] = None
+        self.__hash__: Optional[int] = None
 
         self.collection = {}
         if elements:
@@ -64,6 +66,12 @@ class Association(Atom, BoxElementMixin):
             raise KeyError(key)
 
         del self.collection[key]
+        if self._python:
+            try:
+                del self._python[key.value]
+            except Exception:
+                self._python = None
+        self.__hash__ = None
 
     def __eq__(self, other: Any) -> bool:
         """Check equality with another Association."""
@@ -106,12 +114,13 @@ class Association(Atom, BoxElementMixin):
         raise KeyError(key)
 
     def __hash__(self) -> int:
-        hash_elements = []
-        for key, value in self.collection.items():
-            # Update hash component
-            hash_elements.append((hash(key), hash(value)))
+        if self._hash is None:
+            hash_elements = []
+            for key, value in self.collection.items():
+                # Update hash component
+                hash_elements.append((hash(key), hash(value)))
 
-        self._hash = hash(("Association", tuple(hash_elements)))
+            self._hash = hash(("Association", tuple(hash_elements)))
         return self._hash
 
     def __setitem__(self, key: BaseElement, value: BaseElement) -> None:
@@ -267,3 +276,4 @@ class Association(Atom, BoxElementMixin):
         self.collection.update(e)
         self._expr = None
         self._python = None
+        self.__hash__ = None
