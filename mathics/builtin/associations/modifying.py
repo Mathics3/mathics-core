@@ -26,19 +26,19 @@ class AssociateTo(Builtin):
 
     Create an association
     >> assoc = Association[{a -> 1, b -> 2, c -> 3}]
-     = <|a -> 1, b -> 2, c -> 3|>
+     = <|a ⇾ 1, b ⇾ 2, c ⇾ 3|>
 
     Change the value associated with key $a$:
     >> AssociateTo[assoc, a -> 10]
-     = <|a -> 10, b -> 2, c -> 3|>
+     = <|a ⇾ 10, b ⇾ 2, c ⇾ 3|>
 
     Add key $d$ rather than change it since it is not already in $a$:
     >> AssociateTo[assoc, d->4]
-     = <|a -> 10, b -> 2, c -> 3, d -> 4|>
+     = <|a ⇾ 10, b ⇾ 2, c ⇾ 3, d ⇾ 4|>
 
     Change and add keys using several keys-value pairs:
     >> AssociateTo[assoc, {d -> 5, e-> f}]
-     = <|a -> 10, b -> 2, c -> 3, d -> 5, e -> f|>
+     = <|a ⇾ 10, b ⇾ 2, c ⇾ 3, d ⇾ 5, e ⇾ f|>
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED
@@ -67,10 +67,10 @@ class KeyDropFrom(Builtin):
 
     </dl>
 
-    >> assoc = <|a -> 1, b -> 2|>
-     = <|a -> 1, b -> 2|>
+    >> assoc = <|a ⇾ 1, b ⇾ 2|>
+     = <|a ⇾ 1, b ⇾ 2|>
     >> KeyDropFrom[assoc, a]
-     = <|b -> 2|>
+     = <|b ⇾ 2|>
 
     >> KeyDropFrom[assoc, {b, d}]
      = <||>
