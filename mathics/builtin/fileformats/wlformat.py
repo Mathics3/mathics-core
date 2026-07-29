@@ -24,7 +24,7 @@ class ImportWL(Builtin):
     When running this command directly, a list of rules is returned:
 
     >> WLDump`ImportWL["ExampleData/HelloWorld.wl"]
-     = {Get -> Hello, World!, Script -> Hello, World!}
+     = {Get ⇾ Hello, World!, Script ⇾ Hello, World!}
 
     The left-hand side is a element name that can be provided to 'Import', \
     and the right-hand side is the value associated with that element. Here it \
