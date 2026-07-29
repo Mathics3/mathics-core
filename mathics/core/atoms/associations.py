@@ -34,6 +34,7 @@ class Association(Atom, BoxElementMixin):
 
         # Save the Expression form rewrite rule or pattern matching.
         self._expr: Optional[Expression] = expr
+        self._python: Optional[dict] = None
 
         self.collection = {}
         if elements:
@@ -42,7 +43,6 @@ class Association(Atom, BoxElementMixin):
                     raise TypeError(f"Association keys must be Rules, got {rule_expr}")
                 self.collection[rule_expr.elements[0]] = rule_expr.elements[1]
 
-        self.update_for_change()
         return
 
     # Add some dictionary like methods so that we can treat an Association object
@@ -106,6 +106,12 @@ class Association(Atom, BoxElementMixin):
         raise KeyError(key)
 
     def __hash__(self) -> int:
+        hash_elements = []
+        for key, value in self.collection.items():
+            # Update hash component
+            hash_elements.append((hash(key), hash(value)))
+
+        self._hash = hash(("Association", tuple(hash_elements)))
         return self._hash
 
     def __setitem__(self, key: BaseElement, value: BaseElement) -> None:
@@ -183,12 +189,6 @@ class Association(Atom, BoxElementMixin):
 
     get_string_value = __str__
 
-    def keys(self):
-        """Return the keys of an the association.
-        Behaves like dict.keys().
-        """
-        return self.collection.keys()
-
     @property
     def head(self) -> Symbol:
         return SymbolRule
@@ -198,6 +198,18 @@ class Association(Atom, BoxElementMixin):
         Behaves like dict.items().
         """
         return self.collection.items()
+
+    def keys(self):
+        """Return the keys of an the association.
+        Behaves like dict.keys().
+        """
+        return self.collection.keys()
+
+    @property
+    def python(self):
+        if self._python is None:
+            return self.to_python()
+        return self._python
 
     def sameQ(self, other: Any) -> bool:
         """
@@ -221,8 +233,22 @@ class Association(Atom, BoxElementMixin):
         return True
 
     def to_python(self, *args, **kwargs) -> Optional[dict]:
-        # FIXME
-        return None
+        """
+        Convert to Python. Caching simple expressions as
+        a Python dictionary can speed things up.
+        """
+        if self._python is not None:
+            return self._python
+
+        self._python = {}
+        for key, value in self.collection.items():
+            try:
+                self._python[key.to_python(*args, **kwargs)] = value.to_python(
+                    *args, **kwargs
+                )
+            except Exception:
+                return None
+        return self._python
 
     def to_sympy(self, **kwargs):
         return None
@@ -239,16 +265,5 @@ class Association(Atom, BoxElementMixin):
         value
         """
         self.collection.update(e)
-        self.update_for_change()
         self._expr = None
-
-    def update_for_change(self):
-        """
-        Things we have to do when the Association is changed.
-        """
-        hash_elements = []
-        for key, value in self.collection.items():
-            # Update hash component
-            hash_elements.append((hash(key), hash(value)))
-
-        self._hash = hash(("Association", tuple(hash_elements)))
+        self._python = None
