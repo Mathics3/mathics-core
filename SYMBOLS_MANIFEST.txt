@@ -131,6 +131,7 @@ System`Arrow
 System`Arrow3DBox
 System`ArrowBox
 System`Arrowheads
+System`AssociateTo
 System`Association
 System`AssociationQ
 System`Assuming
@@ -634,6 +635,7 @@ System`KelvinBer
 System`KelvinKei
 System`KelvinKer
 System`Key
+System`KeyDropFrom
 System`KeyExistsQ
 System`Keys
 System`Khinchin
