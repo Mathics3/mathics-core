@@ -35,6 +35,9 @@ class Association(Atom, BoxElementMixin):
         # Save the Expression form rewrite rule or pattern matching.
         self._expr: Optional[Expression] = expr
 
+        self._python: Optional[dict] = None
+        self._hash: Optional[int] = None
+
         self.collection = {}
         if elements:
             for rule_expr in elements:
@@ -60,7 +63,12 @@ class Association(Atom, BoxElementMixin):
             Updates self.collection
         """
         del self.collection[key]
-        self._expr = None
+        if self._python:
+            try:
+                del self._python[key.to_python()]
+            except Exception:
+                self._python = None
+        self._hash = None
 
     def __eq__(self, other: Any) -> bool:
         """Check equality with another Association."""
@@ -105,12 +113,13 @@ class Association(Atom, BoxElementMixin):
     # FIXME: We probably shouldn't have this.
     # Find out what needs it and adjust that.
     def __hash__(self) -> int:
-        hash_elements = []
-        for key, value in self.collection.items():
-            # Update hash component
-            hash_elements.append((hash(key), hash(value)))
+        if self._hash is None:
+            hash_elements = []
+            for key, value in self.collection.items():
+                # Update hash component
+                hash_elements.append((hash(key), hash(value)))
 
-        self._hash = hash(("Association", tuple(hash_elements)))
+            self._hash = hash(("Association", tuple(hash_elements)))
         return self._hash
 
     def __setitem__(self, key: BaseElement, value: BaseElement) -> None:
@@ -188,12 +197,6 @@ class Association(Atom, BoxElementMixin):
 
     get_string_value = __str__
 
-    def keys(self):
-        """Return the keys of an the association.
-        Behaves like dict.keys().
-        """
-        return self.collection.keys()
-
     @property
     def head(self) -> Symbol:
         return SymbolRule
@@ -203,6 +206,12 @@ class Association(Atom, BoxElementMixin):
         Behaves like dict.items().
         """
         return self.collection.items()
+
+    def keys(self):
+        """Return the keys of an the association.
+        Behaves like dict.keys().
+        """
+        return self.collection.keys()
 
     def pop(self, key: BaseElement) -> BaseElement:
         """pops a key-value pair from the association.
@@ -218,8 +227,21 @@ class Association(Atom, BoxElementMixin):
         """
         popped = self.collection.pop(key, None)
         if popped:
+            if self._python:
+                try:
+                    del self._python[key.to_python()]
+                except Exception:
+                    self._python = None
+
             self._expr = None
+            self._hash = None
         return popped
+
+    @property
+    def python(self) -> Optional[dict]:
+        if self._python is None:
+            return self.to_python()
+        return self._python
 
     def sameQ(self, other: Any) -> bool:
         """
@@ -243,19 +265,28 @@ class Association(Atom, BoxElementMixin):
         return True
 
     def to_python(self, *args, **kwargs) -> Optional[dict]:
-        result = {}
+        """
+        Convert to Python. Caching simple expressions as
+        a Python dictionary can speed things up.
+        """
+        if self._python is not None:
+            return self._python
+
+        self._python = {}
         for key, value in self.collection.items():
-            if hasattr(key, "to_python") and hasattr(value, "to_python"):
-                result[key.to_python()] = value.to_python()
-            else:
+            try:
+                self._python[key.to_python(*args, **kwargs)] = value.to_python(
+                    *args, **kwargs
+                )
+            except Exception:
                 return None
-        return result
+        return self._python
 
     def to_sympy(self, **kwargs):
         return None
 
-    def values(self):
-        """Return the values of the association.
+    def values(self) -> Iterable:
+        """Return the values of an the association.
         Behaves like dict.values().
         """
         return self.collection.values()
@@ -267,3 +298,5 @@ class Association(Atom, BoxElementMixin):
         """
         self.collection.update(e)
         self._expr = None
+        self._python = None
+        self._hash = None
