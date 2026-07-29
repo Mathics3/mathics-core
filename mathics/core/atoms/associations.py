@@ -36,7 +36,7 @@ class Association(Atom, BoxElementMixin):
         self._expr: Optional[Expression] = expr
 
         self._python: Optional[dict] = None
-        self.__hash__: Optional[int] = None
+        self._hash: Optional[int] = None
 
         self.collection = {}
         if elements:
@@ -68,10 +68,10 @@ class Association(Atom, BoxElementMixin):
         del self.collection[key]
         if self._python:
             try:
-                del self._python[key.value]
+                del self._python[key.to_python()]
             except Exception:
                 self._python = None
-        self.__hash__ = None
+        self._hash = None
 
     def __eq__(self, other: Any) -> bool:
         """Check equality with another Association."""
@@ -215,7 +215,7 @@ class Association(Atom, BoxElementMixin):
         return self.collection.keys()
 
     @property
-    def python(self):
+    def python(self) -> Optional[dict]:
         if self._python is None:
             return self.to_python()
         return self._python
@@ -262,7 +262,7 @@ class Association(Atom, BoxElementMixin):
     def to_sympy(self, **kwargs):
         return None
 
-    def values(self):
+    def values(self) -> Iterable:
         """Return the values of an the association.
         Behaves like dict.values().
         """
@@ -276,4 +276,4 @@ class Association(Atom, BoxElementMixin):
         self.collection.update(e)
         self._expr = None
         self._python = None
-        self.__hash__ = None
+        self._hash = None
