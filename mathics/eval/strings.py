@@ -26,12 +26,16 @@ def eval_ToString(
 ) -> String:
 
     boxes = format_element(expr, evaluation, form)
+    try:
+        return String(boxes.to_text(evaluation=evaluation, encoding=encoding))
+    except EncodingNameError:
+        pass
 
-    if encoding not in ("utf8", "utf-8", "unicode"):
-        try:
-            load_encoding_table(encoding, evaluation)
-        except EncodingNameError:
-            return String(boxes.to_text(evaluation=evaluation, encoding="Unicode"))
+    # If the encoding does not already exists, try to load it and do it again.
+    try:
+        load_encoding_table(encoding, evaluation)
+    except EncodingNameError:
+        return String(boxes.to_text(evaluation=evaluation, encoding="Unicode"))
 
     return String(boxes.to_text(evaluation=evaluation, encoding=encoding))
 
