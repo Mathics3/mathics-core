@@ -50,6 +50,7 @@ from mathics.core.convert.op import operator_to_unicode
 from mathics.eval.wl_charmap_codec import (
     TAG_SIZES,
     Entry,
+    assert_ascii_safe,
     build_charmap,
     build_substitution_table,
     escape_unrepresentable_char,
