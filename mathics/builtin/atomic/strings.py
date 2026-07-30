@@ -282,17 +282,14 @@ class CharacterEncoding(Predefined):
 
     def eval_setdelayed(self, value, evaluation):
         """SetDelayed[$CharacterEncoding, value_]"""
-        if (
-            not isinstance(value, String)
-            or value.value not in CHARACTER_ENCODING_MAP.keys()
-        ):
+        if not isinstance(value, String):
             evaluation.message("$CharacterEncoding", "charcode", value)
             return
         try:
             load_encoding_table(value.value, evaluation)
             evaluation.definitions.set_ownvalue("System`$CharacterEncoding", value)
         except EncodingNameError:
-            pass
+            evaluation.message("$CharacterEncoding", "charcode", value)
 
 
 class CharacterEncodings(Predefined):
