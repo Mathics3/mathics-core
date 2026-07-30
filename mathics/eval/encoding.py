@@ -38,8 +38,6 @@ Design notes (see discussion that led to this rewrite):
   a standalone script parsing the .wl file as raw text).
 """
 
-from __future__ import annotations
-
 import codecs
 from typing import Final
 
