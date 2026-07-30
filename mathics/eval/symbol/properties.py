@@ -37,15 +37,6 @@ ALL_PROPERTIES: Final[ListExpression] = ListExpression(
 )
 
 
-def eval_DownValues(name: Symbol | String, evaluation: Evaluation):
-    name_symbol = (
-        Symbol(evaluation.definitions.lookup_name(name.value))
-        if isinstance(name, String)
-        else name
-    )
-    return get_symbol_values(name_symbol, "DownValues", "downvalues", evaluation)
-
-
 def eval_Information_with_property(expr, property: str, evaluation: Evaluation):
     match property:
         case "Attributes":
@@ -74,12 +65,27 @@ def eval_Information_with_property(expr, property: str, evaluation: Evaluation):
     return
 
 
-# Note: Information[xxx, "{Down,Up,Own}Values"] works differently
-# than {Down,Up,Own}Values[] when it comes to
-# 1. handling key not found
-# 2. READ_PROTECTED Attributes.
-# 3. Empty values
+def eval_values(name: Symbol | String, evaluation: Evaluation, attribute: str):
+    """
+    Evaluation function for xxxValues, e.g. DownValues, UpValues, ...
+    """
+    name_symbol = (
+        Symbol(evaluation.definitions.lookup_name(name.value))
+        if isinstance(name, String)
+        else name
+    )
+    return get_symbol_values(name_symbol, attribute, attribute.lower(), evaluation)
+
+
 def information_values(name: Symbol | String, evaluation, value_type: str):
+    """
+    Evaluation function for Information[name, xxxValues].
+    This is similar to eval_values, however the results change slightly
+     1. 'None' returned in the key is not found
+     2. The READ_PROTECTED attribute is is respected
+     3. Empty values return 'None' instead of {}.
+
+    """
     if isinstance(name, String):
         name_str = name.value
         name_symbol = Symbol(evaluation.definitions.lookup_name(name.value))

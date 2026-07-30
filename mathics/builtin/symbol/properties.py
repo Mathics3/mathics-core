@@ -45,8 +45,8 @@ from mathics.core.systemsymbols import (
 from mathics.doc.online import online_doc_string
 from mathics.eval.atomic.symbols import eval_SymbolQ
 from mathics.eval.symbol.properties import (
-    eval_DownValues,
     eval_Information_with_property,
+    eval_values,
     missing_symbol,
 )
 
@@ -355,7 +355,7 @@ class DownValues(Builtin):
 
     def eval(self, name, evaluation):
         "DownValues[name_]"
-        return eval_DownValues(name, evaluation)
+        return eval_values(name, evaluation, "DownValues")
 
 
 class SymbolQ(Test):
@@ -542,3 +542,34 @@ class ValueQ(Builtin):
         if expr.sameQ(evaluated_expr):
             return SymbolFalse
         return SymbolTrue
+
+
+# In Mathematica 5, this appears under "Types of Values".
+class UpValues(Builtin):
+    """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/UpValues.html</url>
+    <dl>
+      <dt>'UpValues'[$symbol$]
+      <dd>gives the list of transformation rules corresponding to upvalues \
+          define with $symbol$.
+    </dl>
+
+    >> a + b ^= 2
+     = 2
+    >> UpValues[a]
+     = {HoldPattern[a + b] ⧴ 2}
+    >> UpValues[b]
+     = {HoldPattern[a + b] ⧴ 2}
+
+    You can assign values to 'UpValues':
+    >> UpValues[pi] := {Sin[pi] :> 0}
+    >> Sin[pi]
+     = 0
+    """
+
+    attributes = A_HOLD_ALL | A_PROTECTED
+    summary_text = "give a list of transformation rules corresponding to upvalues defined for a symbol"
+
+    def eval(self, name, evaluation):
+        "UpValues[name_]"
+        return eval_values(name, evaluation, "UpValues")
