@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import codecs
 import re
+import unicodedata
 from dataclasses import dataclass
 
 from mathics_scanner.characters import CHARACTER_TO_NAME
@@ -78,6 +79,23 @@ def assert_ascii_safe(substitution: dict[str, str], table_name: str = "") -> Non
             f"ASCII puro (ejemplos: {sample!r}) -- el resultado ya no seria "
             "seguro para tratarlo como bytes via .encode('latin-1')"
         )
+
+
+def _is_combining_sequence(key: str) -> bool:
+    """
+    True if `key` is a base character followed by one or more Unicode
+    combination code ('Mn'/'Mc' category) -- ej. 'c' + COMBINING DOT
+    BELOW. These are the unique multicharacter keys for which a substring
+    replacement makes sense: no single character in the sequence is
+    meaningful by itself.
+    Without this test, a multicharacter key resulting in a plain text
+    (like  'lim' -> 'mlim' in  UNICODE_CHARACTER_TO_ASCII) spoils any
+    literal text containint that string by chance ('limit', 'swimming', etc.),
+    without any relation with the original motivation of the entry.
+    """
+    return len(key) > 1 and all(
+        unicodedata.category(c) in ("Mn", "Mc") for c in key[1:]
+    )
 
 
 def escape_unrepresentable_char(ch: str) -> str:
@@ -156,7 +174,7 @@ def build_substitution_table(
             continue
         if len(ch) == 1:
             single[ord(ch)] = repl.encode("utf-8")
-        else:
+        elif _is_combining_sequence(ch):
             multi[ch] = repl
 
     return single, (MultiCharSubstitution(multi) if multi else None)
