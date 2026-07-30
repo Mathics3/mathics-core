@@ -46,7 +46,7 @@ from typing import Final
 from mathics_scanner.characters import UNICODE_CHARACTER_TO_ASCII
 
 from mathics.core.atoms import String
-from mathics.core.convert.op import operator_to_unicode
+from mathics.core.convert.op import operator_to_unicode, unicode_operator_to_ascii
 from mathics.eval.wl_charmap_codec import (
     TAG_SIZES,
     Entry,
@@ -151,17 +151,37 @@ class EncodingNameError(Exception):
 
 
 def encode_string_value(value: str, encoding: str) -> str:
-    """
+    r"""
     Convert an Unicode string `value` to its representation under
     `encoding`, mirroring WMA's `ToString[expr, CharacterEncoding->encoding]`
-    (OutputForm-style, see the $CharacterEncoding documentation):
+    (OutputForm-style, see the $CharacterEncoding documentation) for
+    "real" 8-bit encodings loaded from .wl files -- with one deliberate
+    Mathics3-specific exception for `"ASCII"` (see below).
+
+    For file-loaded 8-bit encodings:
 
     - A character already representable in `encoding` is left unchanged
       -- there is nothing to "convert", it's already valid raw form.
-    - A character that is NOT representable is replaced by its Wolfram
-      Language escape form (`\\[Name]` if it has one, else `\\:XXXX`),
-      so the *entire result is always representable in `encoding`* --
-      this NEVER returns raw bytes or a byte-per-character string.
+    - A character that is NOT representable, but corresponds to a WL
+      *operator* with a plain-ASCII linear-syntax form (e.g.
+      `\[GreaterEqual]` -> `>=`), is replaced by that form -- this
+      matches WMA's actual behavior, and `mathics.core.convert.op
+      .unic`, which already falls back to the
+      escape form itself for operators with no ASCII syntax (e.g.
+      `\[Integral]` has no linear-ASCII form, so the table's own value
+      for it *is* `"\\[Integral]"`).
+    - Otherwise, it's replaced by its Wolfram Language escape form
+      (`\\[Name]` if it has one, else `\\:XXXX`), so the *entire result
+      is always representable in `encoding`* -- this NEVER returns raw
+      bytes or a byte-per-character string.
+
+    For `"ASCII"`, the priority is reversed on purpose (NOT WMA
+    fidelity): `UNICODE_CHARACTER_TO_ASCII` is checked first, so e.g.
+    `\[Integral]` becomes `"int"` rather than the escape form real WMA
+    gives -- Mathics3 wants this so StandardForm output of things like
+    `Integrate[f[x], x]` stays readable in ASCII. `unicode_operator_to_ascii`
+    is only consulted as a fallback when `UNICODE_CHARACTER_TO_ASCII` has
+    no entry, and the escape form is the last resort.
 
     "Unicode"/"UTF-8"/"UTF8" can represent every character, so nothing
     ever needs escaping for them and `value` is returned as-is.
@@ -172,16 +192,26 @@ def encode_string_value(value: str, encoding: str) -> str:
     if encoding in WMA_DECODE_TABLES:
         # True encodings loaded from .wl files.
         encode_table = WMA_UNICODE_CHARACTER_MAPS[encoding]
-        return "".join(
-            ch if ord(ch) in encode_table else escape_unrepresentable_char(ch)
-            for ch in value
-        )
+        result = []
+        for ch in value:
+            if ord(ch) in encode_table:
+                result.append(ch)
+            elif ch in unicode_operator_to_ascii:
+                result.append(unicode_operator_to_ascii[ch])
+            else:
+                result.append(escape_unrepresentable_char(ch))
+        return "".join(result)
 
     # Pseudo-encodings substitutions (ej. "ASCII"): characters already representable
     # in this encoding (para ASCII: ord < 128) stay the same;
-    # If not, use the approximate substitute if it exists (UNICODE_CHARACTER_TO_ASCII),
-    # finally, if no substitute is avaliable, fall back to the WL escaped character name --
-    # never leave a non-ascii character.
+    # UNICODE_CHARACTER_TO_ASCII is checked FIRST here -- unlike the
+    # real-8-bit-encoding branch above. This is a deliberate Mathics3
+    # choice, not WMA fidelity: real WMA gives the escape form
+    # "\[Integral]" for ToString["\[Integral]", CharacterEncoding->"ASCII"],
+    # but Mathics3 wants "int" instead, to make StandardForm output of
+    # things like Integrate[f[x], x] easier to read in ASCII. Only falls
+    # back to unicode_operator_to_ascii (then to the escape form) when
+    # UNICODE_CHARACTER_TO_ASCII has no entry for the character.
     table = get_encoding_table(encoding)
     multi = WMA_MULTI_CHAR_SUBSTITUTIONS.get(encoding)
     if multi is not None:
@@ -193,9 +223,13 @@ def encode_string_value(value: str, encoding: str) -> str:
             result.append(ch)
             continue
         sub = table.get(ord(ch))
-        result.append(
-            sub.decode("utf-8") if sub is not None else escape_unrepresentable_char(ch)
-        )
+        if sub is not None:
+            result.append(sub.decode("utf-8"))
+            continue
+        if ch in unicode_operator_to_ascii:
+            result.append(unicode_operator_to_ascii[ch])
+            continue
+        result.append(escape_unrepresentable_char(ch))
     return "".join(result)
 
 
