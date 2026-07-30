@@ -1,7 +1,7 @@
 (* Klingon *)
 
-(* Klingon remaps some the ASCII uppercase alphbetic letters the corresponding
-Unicode Klingon value
+(* Klingon remaps some the ASCII uppercase alphabetic letters the corresponding
+Unicode Klingon value.
 
 See https://www.omniglot.com/conscripts/klingon.htm
 *)

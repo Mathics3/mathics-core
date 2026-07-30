@@ -27,7 +27,11 @@ from mathics.core.systemsymbols import (
     SymbolToExpression,
 )
 from mathics.eval.atomic.strings import eval_ToExpression_from_str
-from mathics.eval.encoding import CHARACTER_ENCODING_MAP
+from mathics.eval.encoding import (
+    CHARACTER_ENCODING_MAP,
+    EncodingNameError,
+    load_encoding_table,
+)
 from mathics.eval.strings import eval_StringContainsQ, eval_ToString
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
@@ -259,7 +263,8 @@ class CharacterEncoding(Predefined):
 
     name = "$CharacterEncoding"
     messages = {
-        "charcode": "`1` is not a valid character encoding. Possible settings are the names given by $CharacterEncodings or None."
+        "charcode": "`1` is not a valid character encoding. Possible settings are the names given by $CharacterEncodings or None.",
+        "charfile": 'The file `1` contains an invalid character encoding. A valid encoding is {"type", {{n1, "c1"}, ...}}.',
     }
     value = f'"{SYSTEM_CHARACTER_ENCODING}"'
     rules = {
@@ -272,11 +277,19 @@ class CharacterEncoding(Predefined):
         """Set[$CharacterEncoding, value_]"""
         if value is SymbolNone:
             value = String(SYSTEM_CHARACTER_ENCODING)
-        if isinstance(value, String) and value.value in CHARACTER_ENCODING_MAP.keys():
-            evaluation.definitions.set_ownvalue("System`$CharacterEncoding", value)
-        else:
-            evaluation.message("$CharacterEncoding", "charcode", value)
+        self.eval_setdelayed(value, evaluation)
         return value
+
+    def eval_setdelayed(self, value, evaluation):
+        """SetDelayed[$CharacterEncoding, value_]"""
+        if not isinstance(value, String):
+            evaluation.message("$CharacterEncoding", "charcode", value)
+            return
+        try:
+            load_encoding_table(value.value, evaluation)
+            evaluation.definitions.set_ownvalue("System`$CharacterEncoding", value)
+        except EncodingNameError:
+            evaluation.message("$CharacterEncoding", "charcode", value)
 
 
 class CharacterEncodings(Predefined):

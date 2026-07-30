@@ -46,6 +46,7 @@ from mathics.eval.encoding import (
     EncodingNameError,
     from_python_encoding,
     get_encoding_table,
+    load_encoding_table,
 )
 from mathics.eval.files_io.files import eval_Close, eval_Get, eval_Open, eval_Read
 from mathics.eval.files_io.read import (
@@ -464,6 +465,10 @@ class Get(PrefixOperator):
             if py_encoding not in CHARACTER_ENCODING_MAP:
                 # "noopen" matches WMA. This is nonsensical.
                 evaluation.message("Get", "noopen", encoding)
+                py_encoding = py_current_encoding
+            try:
+                load_encoding_table(encoding, evaluation)
+            except EncodingNameError:
                 py_encoding = py_current_encoding
         else:
             if encoding is not SymbolNull:
@@ -1729,9 +1734,9 @@ class WriteString(Builtin):
         exprs = []
         encoding = from_python_encoding(stream.encoding) or "UTF-8"
         try:
+            load_encoding_table(encoding, evaluation)
             get_encoding_table(encoding)
         except EncodingNameError:
-            evaluation.message("$CharacterEncoding", "charcode", String(encoding))
             encoding = "UTF-8"
 
         for expri in expr.get_sequence():
