@@ -6,14 +6,12 @@ from typing import Callable, Optional
 
 from mathics_scanner.tokeniser import NAMES_WILDCARDS
 
-from mathics.core.assignment import get_symbol_values
 from mathics.core.atoms import String
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_FIRST,
     A_PROTECTED,
     A_READ_PROTECTED,
-    A_SEQUENCE_HOLD,
     attributes_bitset_to_list,
 )
 from mathics.core.builtin import Builtin, PrefixOperator, Test
@@ -32,7 +30,6 @@ from mathics.core.symbols import (
     SymbolUpSet,
 )
 from mathics.core.systemsymbols import (
-    SymbolAssociation,
     SymbolAttributes,
     SymbolDefinition,
     SymbolFormat,
@@ -48,6 +45,7 @@ from mathics.core.systemsymbols import (
 from mathics.doc.online import online_doc_string
 from mathics.eval.atomic.symbols import eval_SymbolQ
 from mathics.eval.symbol.properties import (
+    eval_DownValues,
     eval_Information_with_property,
     missing_symbol,
 )
@@ -355,10 +353,9 @@ class DownValues(Builtin):
     attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "give a list of transformation rules corresponding to all downvalues defined for a symbol"
 
-    def eval(self, symbol, evaluation):
-        "DownValues[symbol_]"
-
-        return get_symbol_values(symbol, "DownValues", "downvalues", evaluation)
+    def eval(self, name, evaluation):
+        "DownValues[name_]"
+        return eval_DownValues(name, evaluation)
 
 
 class SymbolQ(Test):
@@ -398,7 +395,7 @@ class Information(PrefixOperator):
     'Information' uses 'InputForm' to format values.
     """
 
-    attributes = A_HOLD_ALL | A_SEQUENCE_HOLD | A_PROTECTED | A_READ_PROTECTED
+    attributes = A_PROTECTED | A_READ_PROTECTED
     eval_error = Builtin.generic_argument_error
     expected_args = (1, 2)
     messages = {"notfound": "Expression `1` is not a symbol"}
@@ -466,8 +463,8 @@ class Information(PrefixOperator):
         grid: bool = True,
     ) -> Symbol:
         "(StandardForm,TraditionalForm,InputForm,OutputForm,): Information[expr_, OptionsPattern[Information]]"
-        evaluation.message("Information", "notfound", expr)
-        return self.build_missing(expr)
+        # expr is not a Symbol. We should leave unchanged and let other formatting rules kick in.
+        return None
 
     def format_information_string(
         self, strpat: String, evaluation: Evaluation, options: dict, grid: bool = True

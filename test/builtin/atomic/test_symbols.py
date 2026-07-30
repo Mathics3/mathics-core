@@ -8,11 +8,21 @@ import pytest
 
 
 def test_downvalues():
-    for str_expr, str_expected, message in (
+    for str_expr, str_expected, assert_fail_message in (
         (
             "DownValues[foo]={x_^2:>y}",
             "{x_ ^ 2 :> y}",
             "Issue #1251 part 1",
+        ),
+        (
+            "DownValues[foo]",
+            "{HoldPattern[x_ ^ 2] :> y}",
+            "Check that we get the DownValue just assigned.",
+        ),
+        (
+            'DownValues["foo"]',
+            "{HoldPattern[x_ ^ 2] :> y}",
+            "A string is allowed in as a DownValues argument.",
         ),
         (
             "PrependTo[DownValues[foo], {x_^3:>z}]",
@@ -25,7 +35,13 @@ def test_downvalues():
             "Issue #1251 part 3",
         ),
     ):
-        check_evaluation(str_expr, str_expected, message)
+        check_evaluation(
+            str_expr,
+            str_expected,
+            assert_fail_message,
+            to_string_expr=False,
+            to_string_expected=False,
+        )
 
 
 @pytest.mark.parametrize(
@@ -39,8 +55,19 @@ def test_downvalues():
         ("a`x === b`x", None, "False", None),
         ## awkward parser cases
         ("FullForm[a`b_]", None, "Pattern[a`b, Blank[]]", None),
-        ("a = 2;", None, "Null", None),
-        ("Information[a]", tuple(), "Global`a\n\na = 2\n", None),
+        (
+            "Clear[a]; Information[a]",
+            tuple(),
+            "Global`a\n",
+            "When a symbol is not bound, Information[] of that symbol should return the context and name.",
+        ),
+        (
+            "a = 2;",
+            None,
+            "Null",
+            "When a symbol is bound, Information[] of that symbol do anything.",
+        ),
+        ("Information[a]", tuple(), "Information[2]", None),
         (
             "{?? q, ?? q}",
             tuple(),

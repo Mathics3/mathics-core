@@ -5,6 +5,7 @@ Evaluation routines for builtin function in mathics.core.builtin.symbol.properti
 from functools import cache
 from typing import Final
 
+from mathics.core.assignment import get_symbol_values
 from mathics.core.atoms import String
 from mathics.core.attributes import A_READ_PROTECTED
 from mathics.core.evaluation import Evaluation
@@ -17,67 +18,87 @@ from mathics.core.systemsymbols import (
     SymbolUnknownProperty,
     SymbolUnknownSymbol,
 )
-from mathics.eval.assignments.upvalues import eval_UpValues
 from mathics.eval.attributes import eval_Attributes
 from mathics.eval.options import eval_Options
 
 ALL_PROPERTIES: Final[ListExpression] = ListExpression(
-    # The ordering below is the ordering WMA reports when asking for a list of
-    # Properties.
-    String("Usage"),
-    String("Ownvalues"),
-    String("UpValues"),
-    String("DownValues"),
-    String("SubValues"),
-    String("Formatalues"),
-    String("Options"),
     String("Attributes"),
+    String("DefaultValues"),
+    # String("Definitions"),
+    String("DownValues"),
+    String("FormatValues"),
     String("FullName"),
+    String("NValues"),
+    String("Options"),
+    String("Ownvalues"),
+    String("SubValues"),
+    String("UpValues"),
+    # String("Usage"),
 )
 
 
+def eval_DownValues(name: Symbol | String, evaluation: Evaluation):
+    name_symbol = (
+        Symbol(evaluation.definitions.lookup_name(name.value))
+        if isinstance(name, String)
+        else name
+    )
+    return get_symbol_values(name_symbol, "DownValues", "downvalues", evaluation)
+
+
 def eval_Information_with_property(expr, property: str, evaluation: Evaluation):
-    # FIXME: start here.
     match property:
         case "Attributes":
             return eval_Attributes(expr, evaluation)
-        case "DownValues":
-            return information_downvalues(expr, evaluation.definitions)
-        case "FullName":
+        case (
+            "DefaultValues"
+            | "DownValues"
+            | "FormatValues"
+            | "NValues"
+            | "OwnValues"
+            | "SubValues"
+            | "UpValues"
+        ):
+            return information_values(expr, evaluation, property)
+            # case "Definitions":
+            #     return information_values(expr, evaluation.definitions, "defaultvalues")
             return information_fullname(expr)
         case "Options":
             return eval_Options(expr, evaluation)
-        case "OwnValues":
-            # return eval_OwnValues(expr, evaluation)
-            return eval_Options(expr, evaluation)
         case "Properties":
             return ALL_PROPERTIES
-        case "SubValues":
-            # return eval_SubValues(expr, evaluation)
-            return eval_UpValues(expr, evaluation)
-        case "FormatValues":
-            # return eval_FormatValues(expr, evaluation)
-            return eval_UpValues(expr, evaluation)
-        case "UpValues":
-            return eval_UpValues(expr, evaluation)
+        # case "Usage":
+        #     return information_values(expr, evaluation.definitions, "upvalues")
         case _:
             return missing_property(property)
     return
 
 
-# FIXME write/use eval_Downvalues
-def information_downvalues(symbol: Symbol, definitions):
-    name = definitions.lookup_name(symbol.name)
+# Note: Information[xxx, "{Down,Up,Own}Values"] works differently
+# than {Down,Up,Own}Values[] when it comes to
+# 1. handling key not found
+# 2. READ_PROTECTED Attributes.
+# 3. Empty values
+def information_values(name: Symbol | String, evaluation, value_type: str):
+    if isinstance(name, String):
+        name_str = name.value
+        name_symbol = Symbol(evaluation.definitions.lookup_name(name.value))
+    else:
+        name_str = name.name
+        name_symbol = name
+
+    definitions = evaluation.definitions
+    name = definitions.lookup_name(name_str)
     try:
-        definition = definitions.get_definition(name, only_if_exists=True)
+        definition = definitions.get_definition(name_str, only_if_exists=True)
     except KeyError:
         return SymbolNone
 
     attributes = definition.attributes
     if not A_READ_PROTECTED & attributes:
         return SymbolNone
-    downvalues = definition.downvalues()
-    return SymbolNone if downvalues is None else downvalues
+    values = get_symbol_values(name_symbol, value_type, value_type.lower(), evaluation)
+    return SymbolNone if not values else values
 
 
 # FIXME there should be an eval_Fullname for this.
