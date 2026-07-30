@@ -12,7 +12,6 @@ https://reference.wolfram.com/language/guide/OptionsManagement.html</url>
 """
 from typing import Callable, Optional
 
-from mathics.builtin.image.base import Image
 from mathics.core.atoms import Integer1, String
 from mathics.core.builtin import Builtin, Predefined, Test, get_option
 from mathics.core.evaluation import Evaluation
@@ -20,7 +19,8 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.parser import parse_builtin_rule
 from mathics.core.symbols import Symbol, SymbolList, ensure_context, strip_context
-from mathics.core.systemsymbols import SymbolDefault, SymbolRule, SymbolRuleDelayed
+from mathics.core.systemsymbols import SymbolDefault, SymbolRule
+from mathics.eval.options import eval_Options
 from mathics.eval.patterns import Matcher, get_default_value
 
 
@@ -358,23 +358,7 @@ class Options(Builtin):
 
     def eval(self, f, evaluation):
         "Options[f_]"
-
-        name = f.get_name()
-        if not name:
-            if isinstance(f, Image):
-                # FIXME ColorSpace, MetaInformation
-                options = f.metadata
-            else:
-                evaluation.message("Options", "sym", f, Integer1)
-                return
-        else:
-            options = evaluation.definitions.get_options(name)
-        result = []
-        for option, value in sorted(options.items(), key=lambda item: item[0]):
-            # Don't use HoldPattern, since the returned List should be
-            # assignable to Options again!
-            result.append(Expression(SymbolRuleDelayed, Symbol(option), value))
-        return ListExpression(*result)
+        return eval_Options(f, evaluation)
 
 
 class OptionValue(Builtin):

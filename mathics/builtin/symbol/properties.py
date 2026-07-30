@@ -47,7 +47,10 @@ from mathics.core.systemsymbols import (
 )
 from mathics.doc.online import online_doc_string
 from mathics.eval.atomic.symbols import eval_SymbolQ
-from mathics.eval.symbol.properties import eval_Information_with_property
+from mathics.eval.symbol.properties import (
+    eval_Information_with_property,
+    missing_symbol,
+)
 
 
 # FIXME: gather_and_format_definition_rules is crap and needs to be revised, rewritten and put in
@@ -404,6 +407,7 @@ class Information(PrefixOperator):
     # LongForm is *not* an option.
     options = {
         "LongForm": "True",
+        "ResolveContextAliases": "True",
     }
     summary_text = "get information about all assignments for a symbol"
 
@@ -411,7 +415,7 @@ class Information(PrefixOperator):
         """Evaluate ?? F[x][y].. as -> Missing[UnknownSymbol, F][x][y]"""
         if isinstance(expression, Expression):
             return Expression(self.build_missing(expression.head), *expression.elements)
-        return Expression(SymbolMissing, SymbolUnknownSymbol, expression)
+        return missing_symbol(expression)
 
     # FIXME: this is crap and needs to be moved to eval and rewritten.
     def build_list_of_matching_symbols(
@@ -442,7 +446,7 @@ class Information(PrefixOperator):
     def eval_with_property(self, expr, prop, evaluation: Evaluation, options: dict):
         "Information[expr_, prop_, OptionsPattern[Information]]"
         if is_rule(prop):
-            # FIXME we have a on option here.
+            # FIXME we have an option here.
             return
         if not isinstance(prop, String):
             return Expression(SymbolMissing, SymbolUnknownSymbol, prop)
