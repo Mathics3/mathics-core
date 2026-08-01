@@ -294,7 +294,6 @@ class Atom(BaseElement):
         self,
         vars: dict[str, BaseElement],
         options=None,
-        in_function=True,
     ) -> BaseElement:
         return self
 

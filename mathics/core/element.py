@@ -361,7 +361,6 @@ class BaseElement(KeyComparable, ABC):
         self,
         vars: dict[str, "BaseElement"],
         options=None,
-        in_function=True,
     ) -> "BaseElement":
         raise NotImplementedError
 
