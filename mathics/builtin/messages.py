@@ -212,9 +212,9 @@ class General(Builtin):
         "infy": "Infinite expression `1` encountered.",
         "innf": "Non-negative integer or Infinity expected at position `1` in `2`",
         "int": "Integer expected.",
-        "intp": "Positive integer expected.",
-        "intnn": "Non-negative integer expected.",
         "intnm": "Non-negative machine-sized integer expected at position `1` in `2`.",
+        "intnn": "Non-negative integer expected.",
+        "intp": "Positive integer expected.",
         "invak": "The argument `1` is not a valid Association.",
         "invlb": "The argument `1` is not a list, Rule or Association.",
         "invrl": "The argument `1` is not a valid Association or a list of rules.",
@@ -243,10 +243,13 @@ class General(Builtin):
         "plld": "Endpoints in `1` must be distinct machine-size real numbers.",
         "plln": "Limiting value `1` in `2` is not a machine-size real number.",
         "pkspec": (
-            "Part specification `1` is neither an integer nor a list of integer."
+            "The expression `1` cannot be used as a part specification. Use `2` instead."
         ),
         "pkspec1": ("The expression `1` cannot be used as a part specification."),
         "psl": "Position specification `1` in `2` is not a machine-sized integer or a list of machine-sized integers.",
+        "pspec": (
+            "Part specification `1` is neither an integer nor a list of integer."
+        ),
         "readf": "`1` is not a valid format specification.",
         "rvalue": "`1` is not a variable with a value, so its value cannot be changed.",
         "seqs": "Sequence specification expected, but got `1`.",
