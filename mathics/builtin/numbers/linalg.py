@@ -61,9 +61,11 @@ class Det(Builtin):
 
     Symbolic determinant:
     >> Det[{{a, b, c}, {d, e, f}, {g, h, i}}]
-     = a e i - a f h - b d i + b f g + c d h - c e g
+     = -c e g + b f g + c d h - a f h - b d i + a e i
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
     summary_text = "determinant of a matrix"
 
     def eval(self, m, evaluation: Evaluation):
