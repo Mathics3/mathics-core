@@ -576,14 +576,10 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         """
         return super(Symbol, self).pattern_precedence
 
-    def replace_vars(self, vars, options={}, in_scoping=True):
-        # "assert" below can really slow things down when there are lots of variables.
+    def replace_vars(self, vars: dict, options={}, in_scoping=True):
+        # The assert below is a performance hit when there are lots of variables.
         # assert all(fully_qualified_symbol_name(v) for v in vars)
-        var = vars.get(self.name, None)
-        if var is None:
-            return self
-        else:
-            return var
+        return vars.get(self.name, self)
 
     def sameQ(self, rhs: Any) -> bool:
         """Mathics3 SameQ"""
@@ -598,36 +594,22 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         update(b"System`Symbol>" + self.name.encode("utf8"))
 
     def to_python(self, *_, __: bool = False, **kwargs):
-        if self is SymbolTrue:
-            return True
-        if self is SymbolFalse:
-            return False
-        if self is SymbolNull:
-            return None
-
-        # This was introduced before `mathics.eval.nevaluator.eval_N`
-        # provided a simple way to convert an expression into a number.
-        # Now it makes this routine harder to describe.
-        n_evaluation = kwargs.get("n_evaluation")
-        if n_evaluation is not None:
-            import warnings
-
-            warnings.warn(
-                "use instead ``eval_N(obj, evaluation).to_python()``",
-                DeprecationWarning,
-            )
-
-            from mathics.eval.nevaluator import eval_N
-
-            value = eval_N(self, n_evaluation)
-            if value is not self and value is not None:
-                return value.to_python()
+        match self:
+            case _ if self is SymbolTrue:
+                return True
+            case _ if self is SymbolFalse:
+                return False
+            case _ if self is SymbolNull:
+                return None
 
         # For general symbols, the default behaviour is
         # to return a 'str'. The reason seems to be
         # that native (builtin) Python types
         # are better for being used as keys in
         # dictionaries.
+        # Rocky: I doubt this is still true in modern Python.
+        # And if it is, I suspect it is because of a deeper
+        # failure in the code or its design.
         if kwargs.get("preserve_symbols", False):
             return self
         else:
