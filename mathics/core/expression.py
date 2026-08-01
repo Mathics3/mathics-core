@@ -1672,9 +1672,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 expr = Expression(head, *expr._elements)
             return expr, new_applied[0]
 
-    def replace_vars(
-        self, vars, options=None, in_scoping=True, in_function=True
-    ) -> "Expression":
+    def replace_vars(self, vars, options=None, in_function=True) -> "Expression":
         """
         Replace the symbols in the expression by the expressions given
         in the vars dictionary.
@@ -1687,22 +1685,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         """
         from mathics.builtin.scoping import get_scoping_vars
         from mathics.core.list import ListExpression
-
-        if not in_scoping:
-            if (
-                self._head.get_name()
-                in ("System`Module", "System`Block", "System`With")
-                and len(self._elements) > 0
-            ):  # nopep8
-                scoping_vars = set(
-                    name for name, new_def in get_scoping_vars(self._elements[0])
-                )
-                """for var in new_vars:
-                    if var in scoping_vars:
-                        del new_vars[var]"""
-                vars = {
-                    var: value for var, value in vars.items() if var not in scoping_vars
-                }
 
         elements = self._elements
         if in_function:
@@ -1726,7 +1708,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     body = body.replace_vars(
                         {name: Symbol(name + "$") for name in func_params},
                         options,
-                        in_scoping,
                     )
                     elements = tuple(
                         chain(
