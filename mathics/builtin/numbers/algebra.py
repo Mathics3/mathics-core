@@ -518,7 +518,7 @@ class Collect(Builtin):
     >> Collect[(x+y)^3, y]
      =  x ^ 3 + 3 x ^ 2 y + 3 x y ^ 2 + y ^ 3
 
-    ## FIXME: the below ordering is does not match Mathematics. 4 y^2 should come first.
+    ## FIXME: the below ordering is does not match WMA. 4 y^2 should come first.
     >> Collect[2 Sin[x z] (x+2 y^2 + Sin[y] x), y]
      = 2 x Sin[y] Sin[x z] + 2 x Sin[x z] + 4 y ^ 2 Sin[x z]
 
