@@ -94,7 +94,7 @@ def _evaluate_match(s, m, evaluation):
     replace = dict(
         (_decode_pname(name), String(value)) for name, value in m.groupdict().items()
     )
-    return s.replace_vars(replace, in_scoping=False).evaluate(evaluation)
+    return s.replace_vars(replace).evaluate(evaluation)
 
 
 def _parallel_match(text, rules, flags, limit):

@@ -1744,11 +1744,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             return self.shallow_copy()
 
         return Expression(
-            self._head.replace_vars(vars, options=options, in_scoping=in_scoping),
-            *[
-                element.replace_vars(vars, options=options, in_scoping=in_scoping)
-                for element in elements
-            ],
+            self._head.replace_vars(vars, options=options),
+            *[element.replace_vars(vars, options=options) for element in elements],
         )
 
     def replace_slots(self, slots, evaluation):

@@ -194,10 +194,10 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         return False
 
     def replace_vars(
-        self, vars, options=None, in_scoping=True, in_function=True
+        self, vars, options=None, in_function=True
     ) -> BaseElement:
         expr = self.to_expression()
-        result = expr.replace_vars(vars, options, in_scoping, in_function)
+        result = expr.replace_vars(vars, options, in_function)
         return result
 
     def sameQ(self, expr) -> bool:
