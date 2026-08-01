@@ -294,6 +294,7 @@ class Atom(BaseElement):
         self,
         vars: dict[str, BaseElement],
         options=None,
+        in_function=True,
     ) -> BaseElement:
         return self
 
@@ -574,7 +575,9 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         """
         return super(Symbol, self).pattern_precedence
 
-    def replace_vars(self, vars: dict[str, BaseElement], options={}) -> BaseElement:
+    def replace_vars(
+        self, vars: dict[str, BaseElement], options={}, in_function=True
+    ) -> BaseElement:
         # The assert below is a performance hit when there are lots of variables.
         # assert all(fully_qualified_symbol_name(v) for v in vars)
         return vars.get(self.name, self)

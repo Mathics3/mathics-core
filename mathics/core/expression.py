@@ -1672,12 +1672,51 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 expr = Expression(head, *expr._elements)
             return expr, new_applied[0]
 
-    def replace_vars(self, vars, options=None) -> "Expression":
+    def replace_vars(self, vars, options=None, in_function=True) -> "Expression":
         """
         Replace the symbols in the expression by the expressions given
         in the vars dictionary.
+
+        in_function: if `True`, and the Expression is of the form Function[{args},body],
+                     change the names of the args instead of replacing them.
         """
+        from mathics.core.list import ListExpression
+
         elements = self._elements
+
+        if in_function:
+            if (
+                self._head is SymbolFunction
+                and len(self._elements) > 1
+                and (
+                    self._elements[0].has_form("List", None)
+                    or self._elements[0].get_name()
+                )
+            ):
+                if self._elements[0].get_name():
+                    func_params = [self._elements[0].get_name()]
+                else:
+                    func_params = [
+                        element.get_name()
+                        for element in self._elements[0].get_elements()
+                    ]
+                if "" not in func_params:
+                    body = self._elements[1]
+                    body = body.replace_vars(
+                        {name: Symbol(name + "$") for name in func_params},
+                        options,
+                    )
+                    elements = tuple(
+                        chain(
+                            [
+                                ListExpression(
+                                    *[Symbol(name + "$") for name in func_params]
+                                ),
+                                body,
+                            ],
+                            self._elements[2:],
+                        )
+                    )
 
         if not vars:  # might just be a symbol set via Set[] we looked up here
             return self.shallow_copy()
