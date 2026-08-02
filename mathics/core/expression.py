@@ -95,7 +95,7 @@ def eval_SameQ(self, other):
     Return `True` if both tree structures are equal.
 
     This non-recursive implementation reduces the Python stack needed
-    in evaluation. Staring in Python 3.12 there is a limit on the
+    in evaluation. Starting in Python 3.12 there is a limit on the
     recursion level.
     """
 
@@ -165,11 +165,11 @@ class BoxError(Exception):
 #   or (2) None, if the current expression has not yet been evaluated (i.e. is new or
 #   changed).
 # symbols: (1) a set of symbols occurring in this expression's head, its elements'
-#   heads, any of its sub expressions' heads or as Symbol elements somewhere (maybe deep
-#   down) in the expression tree start by this expressions' elements, or (2) None, if no
+#   heads, any of its subexpressions' heads or as Symbol elements somewhere (maybe deep
+#   down) in the expression tree start by this expression's elements, or (2) None, if no
 #   information on which symbols are contained in this expression is available
 # sequences: (1) a list of element indices that indicate the position of all Sequence
-#   heads that are either in the element's head or any of the indicated elements's sub
+#   heads that are either in the element's head or any of the indicated element's sub
 #   expressions' heads, or (2) None, if no information is available.
 
 
@@ -187,7 +187,7 @@ class ExpressionCache:
         return ExpressionCache(self.time, self.symbols, self.sequences)
 
     def sliced(self, lower, upper):
-        # indicates that the Expression's elements have been slices with
+        # indicates that the Expression's elements have been sliced with
         # the given indices.
 
         seq = self.sequences
@@ -962,14 +962,14 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     @property
     def is_literal(self) -> bool:
         """
-        True if the value doesn't change after evaluation, i.e. a
-        value is set and it does not depend on definition
+        True if the value doesn't change after evaluation, i.e., a
+        value is set, and it does not depend on definition
         bindings. That is why, in contrast to
         `is_uncertain_final_definitions()` we don't need a
         `definitions` parameter.
         """
         # Right now we are pessimistic. We might consider changing this for
-        # Lists. Lists definitions can't be changed right?
+        # Lists. Lists definitions can't be changed, right?
         return False
         # If we have a List we may do something like:
         # return self.elements_properties.elements_fully_evaluated
@@ -1065,7 +1065,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         """Faster equivalent of: ``Expression(head, *elements)``
 
         The caller guarantees that _all_ elements are either from
-        self.elements (or its subtrees) or from one of the expression given
+        self.elements (or its subtrees) or from one of the expressions given
         in the tuple "deps" (or its subtrees).
 
         If this method is called repeatedly, and the caller guarantees
@@ -1094,19 +1094,19 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         Note that this is a recursive process: we may call something
         that may call our parent: evaluate() which calls us again.
 
-        Also note that this step is time consuming, complicated, and involved.
+        Also note that this step is time-consuming, complicated, and involved.
 
         Therefore, subclasses of the BaseEvaluation class may decide
         to specialize this code so that it is simpler and faster. In
         particular, a specialization for a particular kind of object
-        like a particular kind of Atom, may decide it does not need to
+        like a particular kind of Atom may decide it does not need to
         do the rule rewriting step. Or that it knows that after
         performing this step no further transformation is needed.
 
         See also https://mathics-development-guide.readthedocs.io/en/latest/extending/code-overview/evaluation.html#detailed-rewrite-apply-eval-process
         """
 
-        # Step 1 : evaluate the Head and get its Attributes. These attributes,
+        # Step 1: evaluate the Head and get its Attributes. These attributes,
         # used later, include: HoldFirst / HoldAll / HoldRest / HoldAllComplete.
 
         # Note: self._head can be not just a symbol, but some arbitrary expression.
@@ -1196,7 +1196,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             new.location = self.location
 
         # Step 3: Now, process the attributes of head
-        # If there are sequence, flatten them if the attributes allow it.
+        # If there is a sequence, flatten it if the attributes allow it.
         if (
             new.elements_properties is not None
             and not new.elements_properties.is_flat
@@ -1204,7 +1204,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         ):
             # This step is applied to most of the expressions
             # and could be heavy for expressions with many elements (like long lists)
-            # however, most of the times, expressions does not have `Sequence` expressions
+            # however, most of the time, expressions do not have `Sequence` expressions
             # inside. Now this is handled by caching the sequences.
             new = new.flatten_sequence(evaluation)
             if new.elements_properties is None:
@@ -1264,7 +1264,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         # If the attribute ``Orderless`` is set, sort the elements, according to the
         # element's ``element_sort()`` method.
-        # Sorting can be time consuming which is why we note this in ``elements_properties``.
+        # Sorting can be time-consuming, which is why we note this in ``elements_properties``.
         # Checking for sortedness takes O(n) while sorting take O(n log n).
         if (
             new.elements_properties is not None
@@ -1274,11 +1274,11 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             new.sort()
 
         # Step 4:  Rebuild the ExpressionCache, which tracks which symbols
-        # where involved, the Sequence`s present, and the last time they have changed.
+        # where involved, the Sequences present, and the last time they have changed.
 
         new._timestamp_cache(evaluation)
 
-        # Step 5: Must we need to thread-rewrite the expression?
+        # Step 5: Do we need to thread-rewrite the expression?
         #
         # Threading is needed when head has the ``Listable``
         # Attribute (or flag ``A_LISTABLE``).
@@ -1287,10 +1287,10 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         #  ``{F[a], F[b], F[c], ...}``.
 
         # Note: Threading here is different from Python or OS threads,
-        # even though the intent of this attribute was to allow for
+        # even though this attribute is intended to allow for
         # hardware threading to make use of more cores.
         #
-        # Right now, we do not make use of Python thread or hardware
+        # Right now, we do not make use of Python threads or hardware
         # threading.  Still, we need to perform this rewrite to
         # maintain correct semantic behavior.
         if A_LISTABLE & attributes:
@@ -1329,14 +1329,14 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # If instead of "F[a, 1, a, c]" we had  "Q[s][a, 1, a, c]",
         # the routine would look for the subvalues of "Q".
         #
-        # For "Plus" and "Times", WMA behaves slightly different for numbers.
+        # For "Plus" and "Times", WMA behaves slightly differently for numbers.
         # For example consider:
         # ```
         # Unprotect[Plus];
         # Plus[2,3]:=fish;
         # Plus[2,3]
         # ```
-        # In Mathics3, the result in  "fish", but WL gives "5".
+        # In Mathics3, the result is "fish", but WL gives "5".
         # This shows that WMA evaluates certain symbols differently.
 
         def rules():
@@ -1412,7 +1412,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     #  Expr1: to_expression("F", 1)                       (trivial evaluation to a short expression)
     #  Expr2: to_expression("F", 0, 1, 2, .... 99)        (trivial evaluation to a long expression, with just numbers)
     #  Expr3: to_expression("F", a0, a2, ...., a99)       (trivial evaluation to a long expression, with just undefined symbols)
-    #  Expr4: to_expresion("F", n0, n2, ...., n99)       (trivial evaluation to a long expression, with just undefined symbols)
+    #  Expr4: to_expression ("F", n0, n2, ...., n99)       (trivial evaluation to a long expression, with just undefined symbols)
     #  Expr5: to_expression("Plus", 99,..., 0)            (nontrivial evaluation to a long expression, with just undefined symbols)
     #  Expr6: to_expression("Plus", a99,..., a0)          (nontrivial evaluation to a long expression, with just undefined symbols)
     #  Expr7: to_expression("Plus", n99,..., n0)          (nontrivial evaluation to a long expression, with just undefined symbols)
@@ -1519,10 +1519,10 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         """
         from mathics.core.builtin import mathics_to_python
 
-        # When self.value of is None, it might mean either it is
-        # not set or it is legitamately the None value.
+        # When self.value is None, it might mean either it is
+        # not set, or it is legitimately the None value.
         # If self.value is legitimately None, we'll
-        # catch further down.
+        # catch it further down.
         if hasattr(self, "value") and self.value is not None:
             if self.value == tuple() and kwargs.get("prefer_dictionary"):
                 return {}
@@ -1599,15 +1599,15 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
     def sort(self, pattern=False):
         """
-        Sort the elements using the Python's list-method sort.
+        Sort the elements using Python's list-method sort.
         `pattern_precedence` is used for comparison if `pattern` is True.
-        Otherwise use the the default Python 3.x compare function,
+        Otherwise, use the default Python 3.x compare function,
         `__lt__()` that is found in each element.
 
         `self._cache` is updated if that is not None.
         """
         # There is no in-place sort method on a tuple, because tuples are not
-        # mutable. So we turn into a elements into list and use Python's
+        # mutable. So we turn the elements into a list and use Python's
         # list sort method. Another approach would be to use sorted().
         elements = self.get_mutable_elements()
         if pattern:
@@ -1975,18 +1975,18 @@ def convert_expression_elements(
     elements: Iterable, conversion_fn: Callable = from_python, is_uniform: bool = True
 ) -> tuple[tuple, ElementsProperties, Optional[tuple]]:
     """
-    Convert and return tuple of Elements from the Python-like items in
+    Convert and return a tuple of Elements from the Python-like items in
     `elements`, along with elements properties of the elements tuple,
-    and a tuple of literal values if it elements are all literal
+    and a tuple of literal values if the elements are all literal
     otherwise, None.
-    By default, is is assumed that `elements` are *uniform*, which is the typical case
+    By default, it is assumed that `elements` are *uniform*, which is the typical case
     of elements coming from applying a numerical function to a set of different arguments.
 
-    The return information is suitable for use to the Expression() constructor.
+    The return information is suitable for use with the Expression() constructor.
 
     """
 
-    # All of the properties start out optimistic (True) and are reset when that
+    # All of the properties start optimistic (True) and are reset when that
     # proves wrong.
     elements_properties = ElementsProperties(True, True, True, is_uniform)
 
