@@ -7,7 +7,7 @@ Here we have the base class and related function for element inside an Expressio
 
 from abc import ABC
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Dict, Final, Optional, Sequence, Tuple, Union
+from typing import TYPE_CHECKING, Any, Final, Optional, Sequence, Tuple, Union
 
 from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.keycomparable import KeyComparable
@@ -107,7 +107,7 @@ class BaseElement(KeyComparable, ABC):
     Some important subclasses: Atom and Expression.
     """
 
-    options: Optional[Dict[str, Any]]
+    options: Optional[dict[str, Any]]
     last_evaluated: Any
     unevaluated: bool
     # this variable holds a function defined in mathics.core.expression that creates an expression
@@ -359,7 +359,7 @@ class BaseElement(KeyComparable, ABC):
 
     def replace_vars(
         self,
-        vars: Dict[str, "BaseElement"],
+        vars: dict[str, "BaseElement"],
         options=None,
         in_scoping=True,
         in_function=True,

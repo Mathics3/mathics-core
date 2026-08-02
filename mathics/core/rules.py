@@ -125,12 +125,12 @@ class BaseRule(KeyComparable, ABC):
         self,
         pattern: BaseElement,
         system: bool = False,
-        evaluation: Optional[Evaluation] = None,
         attributes: Optional[int] = None,
     ) -> None:
         self.location: Optional[Callable] = None
         self.pattern = BasePattern.create(
-            pattern, attributes=attributes, evaluation=evaluation
+            pattern,
+            attributes=attributes,
         )
 
     def apply(
@@ -317,9 +317,7 @@ class RewriteRule(BaseRule):
         evaluation: Optional[Evaluation] = None,
         attributes: Optional[int] = None,
     ) -> None:
-        super(RewriteRule, self).__init__(
-            pattern, evaluation=evaluation, attributes=attributes
-        )
+        super(RewriteRule, self).__init__(pattern, attributes=attributes)
         self.replace = replace
 
     def __repr__(self) -> str:

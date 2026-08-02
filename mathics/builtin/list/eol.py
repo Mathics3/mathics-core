@@ -363,7 +363,6 @@ class Delete(Builtin):
         # Delete *can* take more than 2 arguments.
         "argr": "Delete called with 1 argument; 2 arguments are expected.",
         "argt": "Delete called with `1` arguments; 2 arguments are expected.",
-        "pkspec": "The expression `1` cannot be used as a part specification. Use `2` instead.",
     }
     summary_text = "delete elements from a list at given positions"
 
