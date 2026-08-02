@@ -1671,39 +1671,18 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 expr = Expression(head, *expr._elements)
             return expr, new_applied[0]
 
-    def replace_vars(
-        self, vars, options=None, in_scoping=True, in_function=True
-    ) -> "Expression":
+    def replace_vars(self, vars, options=None, in_function=True) -> "Expression":
         """
         Replace the symbols in the expression by the expressions given
         in the vars dictionary.
 
-        in_scoping: if `False`, do not replace those symbols that are
-                    declared internal to the scope.
-
         in_function: if `True`, and the Expression is of the form Function[{args},body],
                      change the names of the args instead of replacing them.
         """
-        from mathics.builtin.scoping import get_scoping_vars
         from mathics.core.list import ListExpression
 
-        if not in_scoping:
-            if (
-                self._head.get_name()
-                in ("System`Module", "System`Block", "System`With")
-                and len(self._elements) > 0
-            ):  # nopep8
-                scoping_vars = set(
-                    name for name, new_def in get_scoping_vars(self._elements[0])
-                )
-                """for var in new_vars:
-                    if var in scoping_vars:
-                        del new_vars[var]"""
-                vars = {
-                    var: value for var, value in vars.items() if var not in scoping_vars
-                }
-
         elements = self._elements
+
         if in_function:
             if (
                 self._head is SymbolFunction
@@ -1725,7 +1704,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     body = body.replace_vars(
                         {name: Symbol(name + "$") for name in func_params},
                         options,
-                        in_scoping,
                     )
                     elements = tuple(
                         chain(
@@ -1743,11 +1721,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             return self.shallow_copy()
 
         return Expression(
-            self._head.replace_vars(vars, options=options, in_scoping=in_scoping),
-            *[
-                element.replace_vars(vars, options=options, in_scoping=in_scoping)
-                for element in elements
-            ],
+            self._head.replace_vars(vars, options=options),
+            *[element.replace_vars(vars, options=options) for element in elements],
         )
 
     def replace_slots(self, slots, evaluation):

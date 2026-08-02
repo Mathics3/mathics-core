@@ -35,7 +35,7 @@ from mathics.eval.encoding import (
 from mathics.eval.strings import eval_StringContainsQ, eval_ToString
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
-# covers all of the variations. Here we just give some minimal basics
+# Covers all of the variations. Here we just give some minimal basics
 
 # Data taken from:
 #   https://unicode-org.github.io/cldr-staging/charts/37/summary/root.html
@@ -94,7 +94,7 @@ def _evaluate_match(s, m, evaluation):
     replace = dict(
         (_decode_pname(name), String(value)) for name, value in m.groupdict().items()
     )
-    return s.replace_vars(replace, in_scoping=False).evaluate(evaluation)
+    return s.replace_vars(replace).evaluate(evaluation)
 
 
 def _parallel_match(text, rules, flags, limit):
@@ -157,7 +157,7 @@ def mathics_split(patt, string, flags):
     Python >= 3.5, <= X and works as expected for Python >= X, where 'X' is
     some future version of Python (> 3.6).
 
-    For these reasons we implement our own split.
+    For these reasons, we implement our own split.
     """
     # (start, end) indices of splits
     indices = list((m.start(), m.end()) for m in re.finditer(patt, string, flags))
@@ -177,7 +177,7 @@ class Alphabet(Builtin):
     https://reference.wolfram.com/language/ref/Alphabet.html</url>
     <dl>
       <dt>'Alphabet'[]
-      <dd>gives the list of lowercase letters a-z in the English alphabet .
+      <dd>gives the list of lowercase letters a-z in the English alphabet.
 
       <dt>'Alphabet'[$type$]
       <dd> gives the alphabet for the language or class $type$.
@@ -236,8 +236,8 @@ class CharacterEncoding(Predefined):
       Initially this is set to '\\$SystemCharacterEncoding'.
     </dl>
 
-    See the character encoding current is in effect and used in input and \
-    output functions functions like 'OpenRead[]':
+    See the character encoding currently in effect and used in input and \
+    output functions like 'OpenRead[]':
 
     >> $CharacterEncoding
      = ...
@@ -250,7 +250,7 @@ class CharacterEncoding(Predefined):
     >> $CharacterEncoding = "UTF-8"; a -> b
      = ...
 
-    Setting its value to 'None' restore the value to \
+    Setting its value to 'None' restores the value to \
     '\\$SystemCharacterEncoding':
     >> $CharacterEncoding = None;
     >> $SystemCharacterEncoding == $CharacterEncoding
@@ -358,7 +358,7 @@ class InterpretedBox(PrefixOperator):
         """InterpretedBox[boxes_]"""
         # TODO: the following is a very raw and dummy way to
         # handle these expressions.
-        # In the first place, this should handle different kind
+        # In the first place, this should handle different kinds
         # of boxes in different ways.
         reinput = boxes.to_text()
         return Expression(SymbolToExpression, String(reinput)).evaluate(evaluation)
@@ -401,7 +401,7 @@ class LetterNumber(Builtin):
 
     """
 
-    # FIXME: put the right unicode characters in a way that the
+    # FIXME: put the right Unicode characters in a way that the
     # following test works...
     r"""
     # #> LetterNumber["\[CapitalBeta]", "Greek"]
@@ -584,7 +584,7 @@ class StringContainsQ(Builtin):
       <dd>returns True if any part of $string$ matches $patt$, and returns False otherwise.
 
       <dt>'StringContainsQ[{"s1", "s2", ...}, patt]'
-      <dd>returns the list of results for each element of string list.
+      <dd>returns the list of results for each element of the string list.
 
       <dt>'StringContainsQ[patt]'
       <dd>represents an operator form of StringContainsQ that can be applied to an expression.
@@ -658,7 +658,7 @@ class StringRepeat(Builtin):
 
     def eval_truncated(self, expression, s, n, m, evaluation):
         "expression: StringRepeat[s_String, n_Integer, m_Integer]"
-        # The above rule insures that n and m are boht Integer type
+        # The above rule ensures that n and m are both Integer type
         py_n = n.value
         py_m = m.value
 
@@ -682,8 +682,8 @@ class SystemCharacterEncoding(Predefined):
       <dt>\\$SystemCharacterEncoding
       <dd>gives the default character encoding of the system.
 
-      On startup, the value of environment variable 'MATHICS_CHARACTER_ENCODING' \
-      sets this value. However if that environment variable is not set, set the value \
+      On startup, the value of the environment variable 'MATHICS_CHARACTER_ENCODING' \
+      sets this value. However, if that environment variable is not set, the value \
       is set in Python using 'sys.getdefaultencoding()'.
     </dl>
 
@@ -726,7 +726,7 @@ class ToExpression(Builtin):
     >> ToExpression["2 3", InputForm]
      = 6
 
-    Note that newlines are like semicolons, not blanks. So so the return value is the \
+    Note that newlines are like semicolons, not blanks. So the return value is the \
     second-line value.
     >> ToExpression["2\[NewLine]3"]
      = 3
@@ -741,7 +741,7 @@ class ToExpression(Builtin):
     """
     attributes = A_LISTABLE | A_PROTECTED
 
-    # Set checking that the between one and three arguments are allowed.
+    # Set checking that between one and three arguments are allowed.
     eval_error = Builtin.generic_argument_error
     expected_args = range(1, 4)
 
@@ -865,7 +865,7 @@ class Transliterate(Builtin):
       <dd>transliterates a text in some script into an ASCII string.
     </dl>
 
-    ASCII translateration examples:
+    ASCII transliteration examples:
     <ul>
       <li><url>:Russian language:
           https://en.wikipedia.org/wiki/Russian_language#Transliteration</url>
