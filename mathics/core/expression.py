@@ -5,18 +5,7 @@ import math
 from bisect import bisect_left
 from itertools import chain
 from types import MethodType
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Sequence,
-    Set,
-    Tuple,
-    Union,
-)
+from typing import Any, Callable, Iterable, Optional, Sequence, Union
 
 import sympy
 from mathics_scanner.location import SourceRange, SourceRange2
@@ -267,11 +256,11 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     """
 
     _head: BaseElement
-    _elements: Tuple[BaseElement, ...]
+    _elements: tuple[BaseElement, ...]
     _sequences: Any
     _cache: Optional[ExpressionCache]
     elements_properties: Optional[ElementsProperties]
-    options: Optional[Dict[str, Any]]
+    options: Optional[dict[str, Any]]
     pattern_sequence: bool
     location: Optional[Union[SourceRange, SourceRange2, MethodType]]
 
@@ -412,7 +401,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         elements = self._elements
 
-        flattened: List[BaseElement] = []
+        flattened: list[BaseElement] = []
 
         k = 0
         for i in indices:
@@ -553,7 +542,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         reevaluate = True
         limit = None
         iteration = 1
-        names: Set[str] = set()
+        names: set[str] = set()
         definitions = evaluation.definitions
 
         old_options = evaluation.options
@@ -743,7 +732,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 do_flatten = True
                 break
         if do_flatten:
-            new_elements: List[BaseElement] = []
+            new_elements: list[BaseElement] = []
             for element in self._elements:
                 if (
                     isinstance(element, Expression)
@@ -832,7 +821,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             values = self.flatten_with_respect_to_head(SymbolList).elements
         else:
             values = [self]
-        option_values: Dict[str, Union[str, BaseElement]] = {}
+        option_values: dict[str, Union[str, BaseElement]] = {}
         for option in values:
             symbol_name = option.get_name()
             if allow_symbols and symbol_name:
@@ -888,16 +877,26 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         """
         Return a value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
-        """
-        """
+
         General element order key structure:
         0: 1/2:        Numeric / General Expression
         1: 2/3         Special arithmetic (Times / Power) / General Expression
         2: Element:        Head
         3: tuple:        list of Elements
         4: 1:        No clue...
+
+
+        As a consequence of the above, for terms of a polynomial expression:
+
+        a^3 < z^2  because a < z
+        a^2 < a^4  because a == a and 2 < 4
+        a   < b    lexicographic order of degenerate monomials
+        b d < a c  while (b d) and (a c) are also both monomials,
+                   see the comment NOTE ON COMPARING MONOMIALS
+                   in Monomial's __cmp() for the reverse ordering when
+                   comparing symbols in the monomial.
         """
-        exps: Dict[Tuple[str, str], Union[float, complex]] = {}
+        exps: dict[tuple[str, str], Union[float, complex]] = {}
         head = self._head
 
         if head is SymbolTimes:
@@ -1084,7 +1083,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         return s(list(elements))
 
     @trace_evaluate
-    def rewrite_apply_eval_step(self, evaluation) -> Tuple[BaseElement, bool]:
+    def rewrite_apply_eval_step(self, evaluation) -> tuple[BaseElement, bool]:
         """Perform a single rewrite/apply/eval step of the bigger
         Expression.evaluate() process.
 
@@ -1740,7 +1739,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                         )
                     )
 
-        if not vars:  # might just be a symbol set via Set[] we looked up here
+        if not vars:  # might just be a symbol set via set[] we looked up here
             return self.shallow_copy()
 
         return Expression(
@@ -1782,7 +1781,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             *[element.replace_slots(slots, evaluation) for element in self._elements],
         )
 
-    def thread(self, evaluation, head=None) -> Tuple[bool, "Expression"]:
+    def thread(self, evaluation, head=None) -> tuple[bool, "Expression"]:
         """
         Thread over expressions with head as Head:
         Thread[F[{a,b},{c,d}, G[z,q]],G] -> newexpr = G[F[{a, b}, {c, d}, z], F[{a, b}, {c, d}, q]]
@@ -1795,8 +1794,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         if head is None:
             head = SymbolList
 
-        prefix: List[BaseElement] = []
-        items: List[List[BaseElement]]
+        prefix: list[BaseElement] = []
+        items: list[list[BaseElement]]
         dim = None
         for element in self._elements:
             if element.get_head().sameQ(head):
@@ -1974,7 +1973,7 @@ def atom_list_constructor(evaluation, head, *atom_names):
 # Note: this function is called a *lot* so it needs to be fast.
 def convert_expression_elements(
     elements: Iterable, conversion_fn: Callable = from_python, is_uniform: bool = True
-) -> Tuple[tuple, ElementsProperties, Optional[tuple]]:
+) -> tuple[tuple, ElementsProperties, Optional[tuple]]:
     """
     Convert and return tuple of Elements from the Python-like items in
     `elements`, along with elements properties of the elements tuple,

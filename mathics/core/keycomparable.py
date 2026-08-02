@@ -118,20 +118,24 @@ class Monomial:
                 if not other_exps[var]:
                     del other_exps[var]
 
-        # Sort variables so that symbols later in the alphabet (e.g. 'z')
-        # are considered higher-precedence (variables) than earlier ones
-        # (e.g. 'a'). Mathematica treats later symbols as variables and
-        # earlier symbols as coefficients when comparing monomials, so
-        # compare variable names in reverse alphabetical order here.
-        # If `var` is not a plain string (e.g. a Symbol object), fall back
-        # to its string representation for ordering.
         def _var_key(pair):
+            """
+            If `var` is not a plain string (e.g. a Symbol object), fall back
+            to its string representation for ordering.
+            """
             var, _ = pair
             try:
                 return str(var)
             except Exception:
                 return var
 
+        # NOTE ON COMPARING MONOMIALS.
+        # Symbol names are compared lexicographically.
+        # However, when comparing monomials containing several
+        # symbols, Mathematica treats later symbols as variables,
+        # while the earlier symbols are treated as as coefficients. So
+        # we need to compare symbol names in reverse alphabetical order.
+        # For example, (b c) < (a d) for monomials (b c) and (a d) since c < d.
         self_exps = sorted(list(self_exps.items()), key=_var_key, reverse=True)
         other_exps = sorted(list(other_exps.items()), key=_var_key, reverse=True)
 
