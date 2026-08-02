@@ -182,8 +182,9 @@ class HypergeometricPFQ(MPMathFunction):
       = -Log[1 - x] / (2 x) - 1 / (-2 + 2 x)
 
     'HypergeometricPFQ' evaluates to a polynomial if any of the parameters $a_k$ is a non-positive integer:
+    ## FIXME: this doesn't match WMA which start out 1 - ...
     >> HypergeometricPFQ[{-2, a}, {b}, x]
-     = (-2 a x (1 + b) + a x ^ 2 (1 + a) + b (1 + b)) / (b (1 + b))
+     = (b (1 + b) - 2 a x (1 + b) + a x ^ 2 (1 + a)) / (b (1 + b))
 
     Value at origin:
     >> HypergeometricPFQ[{a1, b2, a3}, {b1, b2, b3}, 0]

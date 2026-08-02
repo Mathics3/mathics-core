@@ -32,7 +32,7 @@ class Distribute(Builtin):
      = a b + a c
 
     >> Distribute[(a + b)(c + d)]
-     = a c + a d + b c + b d
+     = a c + b c + a d + b d
 
     Using a custom target head:
     >> Distribute[f[a + b, c], Plus]

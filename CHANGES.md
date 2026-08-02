@@ -1,5 +1,9 @@
 # CHANGES
 
+## 10.0.2
+
+Improve Monomial ordering.
+
 ## 10.0.1
 
 April 18, 2026

@@ -6,7 +6,7 @@ from mathics.core.atoms import Integer0, Integer1, IntegerM1
 from mathics.core.builtin import Builtin, PatternError, Test
 from mathics.core.evaluation import Evaluation
 from mathics.core.pattern import BasePattern
-from mathics.core.symbols import SymbolFalse, SymbolTrue
+from mathics.core.symbols import BooleanType, SymbolFalse, SymbolTrue
 from mathics.eval.patterns import match
 
 
@@ -101,6 +101,8 @@ class Order(Builtin):
      = 0
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
     summary_text = "order expressions"
 
     def eval(self, x, y, evaluation: Evaluation):
@@ -113,7 +115,7 @@ class Order(Builtin):
             return Integer0
 
 
-class OrderedQ(Builtin):
+class OrderedQ(Test):
     """
     <url>
     :WMA link:
@@ -133,15 +135,15 @@ class OrderedQ(Builtin):
 
     summary_text = "test whether elements are canonically sorted"
 
-    def eval(self, expr, evaluation: Evaluation):
+    def test(self, expr) -> bool:
         "OrderedQ[expr_]"
 
         for index, value in enumerate(expr.elements[:-1]):
             if expr.elements[index] <= expr.elements[index + 1]:
                 continue
             else:
-                return SymbolFalse
-        return SymbolTrue
+                return False
+        return True
 
 
 # Note not in WMA anymore
@@ -163,7 +165,7 @@ class PatternsOrderedQ(Builtin):
 
     summary_text = "test whether patterns are canonically sorted"
 
-    def eval(self, p1, p2, evaluation: Evaluation):
+    def eval(self, p1, p2, evaluation: Evaluation) -> BooleanType:
         "PatternsOrderedQ[p1_, p2_]"
         p1_pat = BasePattern.create(p1)
         p2_pat = BasePattern.create(p2)

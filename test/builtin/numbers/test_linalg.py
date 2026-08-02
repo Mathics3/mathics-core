@@ -2,9 +2,23 @@
 """
 Unit tests for mathics.builtins.numbers.linalg
 """
-from test.helper import check_evaluation
+from test.helper import check_arg_counts, check_evaluation
 
 import pytest
+
+
+@pytest.mark.parametrize(
+    ("function_name", "msg_fragment"),
+    [
+        (
+            "Det",
+            "1 argument is",
+        ),
+    ],
+)
+def test_arg_count_errors(function_name, msg_fragment):
+    """ """
+    check_arg_counts(function_name, msg_fragment)
 
 
 @pytest.mark.parametrize(
