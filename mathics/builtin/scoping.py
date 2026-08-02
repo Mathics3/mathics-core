@@ -9,9 +9,10 @@ from mathics.core.assignment import get_symbol_list
 from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, attribute_string_to_number
 from mathics.core.builtin import Builtin, Predefined
+from mathics.core.element import fully_qualified_symbol_name
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, fully_qualified_symbol_name
+from mathics.core.symbols import Symbol
 from mathics.eval.scoping import eval_contexts, eval_contexts_with_string
 
 

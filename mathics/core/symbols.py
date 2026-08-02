@@ -2,24 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Dict,
-    FrozenSet,
-    List,
-    Optional,
-    Sequence,
-    Union,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, FrozenSet, Optional, Sequence, Union, cast
 
-from mathics.core.element import (
-    BaseElement,
-    EvalMixin,
-    ensure_context,
-    fully_qualified_symbol_name,
-)
+from mathics.core.element import BaseElement, EvalMixin, ensure_context
 
 if TYPE_CHECKING:
     from mathics.core.atoms import String
@@ -212,7 +197,7 @@ class Atom(BaseElement):
     def get_atom_name(self) -> str:
         return self.__class__.__name__
 
-    def get_atoms(self, include_heads=True) -> List["Atom"]:
+    def get_atoms(self, include_heads=True) -> list["Atom"]:
         return [self]
 
     # We seem to need this because the caller doesn't distinguish
@@ -307,11 +292,11 @@ class Atom(BaseElement):
 
     def replace_vars(
         self,
-        vars: Dict[str, BaseElement],
+        vars: dict[str, BaseElement],
         options=None,
         in_scoping=True,
         in_function=True,
-    ) -> "Atom":
+    ) -> BaseElement:
         return self
 
     def replace_slots(self, slots, evaluation) -> "Atom":
@@ -359,7 +344,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     # We use this for object uniqueness.
     # The key is the Symbol object's string name, and the
     # diectionary's value is the Mathics3 object for the Symbol.
-    _symbols: Dict[str, "Symbol"] = {}
+    _symbols: dict[str, "Symbol"] = {}
 
     class_head_name = "System`Symbol"
 
@@ -592,7 +577,8 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         return super(Symbol, self).pattern_precedence
 
     def replace_vars(self, vars, options={}, in_scoping=True):
-        assert all(fully_qualified_symbol_name(v) for v in vars)
+        # "assert" below can really slow things down when there are lots of variables.
+        # assert all(fully_qualified_symbol_name(v) for v in vars)
         var = vars.get(self.name, None)
         if var is None:
             return self
@@ -685,7 +671,7 @@ class SymbolConstant(Symbol):
     # We use this for object uniqueness.
     # The key is the SymbolConstant's value, and the
     # diectionary's value is the Mathics3 object representing that Python value.
-    _symbol_constants: Dict[str, "SymbolConstant"] = {}
+    _symbol_constants: dict[str, "SymbolConstant"] = {}
 
     # We use __new__ here to unsure that two Integer's that have the same value
     # return the same object.
