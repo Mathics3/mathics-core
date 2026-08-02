@@ -23,6 +23,48 @@ def test_apart():
         )
 
 
+@pytest.mark.parametrize(
+    ("function_name", "msg_fragment"),
+    [
+        (
+            "Apart",
+            "1 or 2 arguments are",
+        ),
+        (
+            "Cancel",
+            "1 argument is",
+        ),
+        (
+            "Collect",
+            "between 2 and 4 arguments are",
+        ),
+        (
+            "Expand",
+            "1 or 2 arguments are",
+        ),
+        (
+            "ExpandAll",
+            "1 or 2 arguments are",
+        ),
+        (
+            "ExpandDenominator",
+            "1 or 2 arguments are",
+        ),
+        (
+            "Exponent",
+            "2 or 3 arguments are",
+        ),
+        (
+            "Distribute",
+            "between 1 and 5 arguments are",
+        ),
+    ],
+)
+def test_arg_count_errors(function_name, msg_fragment):
+    """ """
+    check_arg_counts(function_name, msg_fragment)
+
+
 def test_collect():
     for str_expr, str_expected, fail_msg in [
         ("Collect[q[x] + q[x] q[y],q[x]]", "q[x] (1 + q[y])", None),
@@ -595,33 +637,3 @@ def test_integer(str_expr, msgs, str_expected, fail_msg):
         failure_message=fail_msg,
         expected_messages=msgs,
     )
-
-
-@pytest.mark.parametrize(
-    ("function_name", "msg_fragment"),
-    [
-        (
-            "Apart",
-            "1 or 2 arguments are",
-        ),
-        (
-            "Collect",
-            "between 2 and 4 arguments are",
-        ),
-        (
-            "ExpandDenominator",
-            "1 or 2 arguments are",
-        ),
-        (
-            "Exponent",
-            "2 or 3 arguments are",
-        ),
-        (
-            "Distribute",
-            "between 1 and 5 arguments are",
-        ),
-    ],
-)
-def test_arg_count_errors(function_name, msg_fragment):
-    """ """
-    check_arg_counts(function_name, msg_fragment)
