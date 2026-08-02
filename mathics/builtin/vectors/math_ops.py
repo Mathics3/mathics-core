@@ -29,8 +29,9 @@ class Cross(Builtin):
 
     Three-dimensional cross product:
 
+    ### FIXME not correct negative products should have a () around them.
     >> Cross[{x1, y1, z1}, {x2, y2, z2}]
-     = {y1 z2 - y2 z1, -x1 z2 + x2 z1, x1 y2 - x2 y1}
+     = {-y2 z1 + y1 z2, x2 z1 - x1 z2, -x2 y1 + x1 y2}
 
     'Cross' is antisymmetric, so:
 

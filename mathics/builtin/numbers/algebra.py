@@ -179,6 +179,8 @@ class Cancel(Builtin):
     """
 
     attributes = A_LISTABLE | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
     summary_text = "cancel common factors in rational expressions"
 
     def eval(self, expr, evaluation: Evaluation):
@@ -225,7 +227,7 @@ class Coefficient(Builtin):
     >> Coefficient[(x + 2)^3 + (x + 3)^2, y, 0]
      = (2 + x) ^ 3 + (3 + x) ^ 2
     >> Coefficient[a x^2 + b y^3 + c x + d y + 5, x, 0]
-     = 5 + b y ^ 3 + d y
+     = 5 + d y + b y ^ 3
 
     ## ## TODO: Support Modulus
     ## >> Coefficient[(x + 2)^3 + (x + 3)^2, x, 0, Modulus -> 3]
@@ -377,7 +379,7 @@ class CoefficientList(Builtin):
     >> CoefficientList[(x + y)^4, x]
      = {y ^ 4, 4 y ^ 3, 6 y ^ 2, 4 y, 1}
     >> CoefficientList[a x^2 + b y^3 + c x + d y + 5, x]
-     = {5 + b y ^ 3 + d y, c, a}
+     = {5 + d y + b y ^ 3, c, a}
     >> CoefficientList[(x + 2)/(y - 3) + x/(y - 2), x]
      = {2 / (-3 + y), 1 / (-3 + y) + 1 / (-2 + y)}
     >> CoefficientList[(x + y)^3, z]
@@ -516,8 +518,10 @@ class Collect(Builtin):
     >> Collect[(x+y)^3, y]
      =  x ^ 3 + 3 x ^ 2 y + 3 x y ^ 2 + y ^ 3
 
+    ## FIXME: the below ordering is does not match WMA. 4 y^2 should come first.
     >> Collect[2 Sin[x z] (x+2 y^2 + Sin[y] x), y]
-     = 2 x Sin[x z] + 2 x Sin[x z] Sin[y] + 4 y ^ 2 Sin[x z]
+     = 2 x Sin[y] Sin[x z] + 2 x Sin[x z] + 4 y ^ 2 Sin[x z]
+
 
     >> Collect[3 x y+2 Sin[x z] (x+2 y^2 + x) + (x+y)^3, y]
      = 4 x Sin[x z] + x ^ 3 + y (3 x + 3 x ^ 2) + y ^ 2 (3 x + 4 Sin[x z]) + y ^ 3
@@ -635,13 +639,14 @@ class Denominator(_Algebraic):
 
 # TODO: Phase this out and replace with _Algebraic
 class _Expand(Builtin):
-    options = {
-        "Trig": "False",
-        "Modulus": "0",
-    }
 
     messages = {
         "modn": "Value of option `1` -> `2` should be an integer.",
+    }
+
+    options = {
+        "Trig": "False",
+        "Modulus": "0",
     }
 
     def convert_options(self, options: dict, evaluation: Evaluation):
@@ -683,15 +688,15 @@ class Expand(_Expand):
     >> Expand[(x + y) ^ 3]
      = x ^ 3 + 3 x ^ 2 y + 3 x y ^ 2 + y ^ 3
     >> Expand[(a + b) (a + c + d)]
-     = a ^ 2 + a b + a c + a d + b c + b d
+     = a ^ 2 + a b + a c + b c + a d + b d
     >> Expand[(a + b) (a + c + d) (e + f) + e a a]
-     = 2 a ^ 2 e + a ^ 2 f + a b e + a b f + a c e + a c f + a d e + a d f + b c e + b c f + b d e + b d f
+     = 2 a ^ 2 e + a b e + a c e + b c e + a d e + b d e + a ^ 2 f + a b f + a c f + b c f + a d f + b d f
     >> Expand[(a + b) ^ 2 * (c + d)]
-     = a ^ 2 c + a ^ 2 d + 2 a b c + 2 a b d + b ^ 2 c + b ^ 2 d
+     = a ^ 2 c + 2 a b c + b ^ 2 c + a ^ 2 d + 2 a b d + b ^ 2 d
     >> Expand[(x + y) ^ 2 + x y]
      = x ^ 2 + 3 x y + y ^ 2
     >> Expand[((a + b) (c + d)) ^ 2 + b (1 + a)]
-     = a ^ 2 c ^ 2 + 2 a ^ 2 c d + a ^ 2 d ^ 2 + b + a b + 2 a b c ^ 2 + 4 a b c d + 2 a b d ^ 2 + b ^ 2 c ^ 2 + 2 b ^ 2 c d + b ^ 2 d ^ 2
+     = b + a b + a ^ 2 c ^ 2 + 2 a b c ^ 2 + b ^ 2 c ^ 2 + 2 a ^ 2 c d + 4 a b c d + 2 b ^ 2 c d + a ^ 2 d ^ 2 + 2 a b d ^ 2 + b ^ 2 d ^ 2
 
     'Expand' expands items in lists and rules:
     >> Expand[{4 (x + y), 2 (x + y) -> 4 (x + y)}]
@@ -709,8 +714,10 @@ class Expand(_Expand):
 
     Using the second argument, the expression only
     expands those subexpressions containing $pat$:
+
+    ## Not quite right. Mathematica gives moves y (a + x) later in the expression.
     >> Expand[(x+a)^2+(y+a)^2+(x+y)(x+a), y]
-     = a ^ 2 + 2 a y + x (a + x) + y (a + x) + y ^ 2 + (a + x) ^ 2
+     = a ^ 2 + x (a + x) + y (a + x) + 2 a y + y ^ 2 + (a + x) ^ 2
     'Expand' also works in Galois fields
     >> Expand[(1 + a)^12, Modulus -> 3]
      = 1 + a ^ 3 + a ^ 9 + a ^ 12
@@ -718,6 +725,9 @@ class Expand(_Expand):
     >> Expand[(1 + a)^12, Modulus -> 4]
      = 1 + 2 a ^ 2 + 3 a ^ 4 + 3 a ^ 8 + 2 a ^ 10 + a ^ 12
     """
+
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
 
     summary_text = "expand out products and powers"
 
@@ -785,6 +795,9 @@ class ExpandAll(_Expand):
 
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
+
     summary_text = "expand products and powers, including negative integer powers"
 
     def eval_expr_with_pattern(
@@ -829,7 +842,7 @@ class ExpandDenominator(_Expand):
     </dl>
 
     >> ExpandDenominator[(a + b) ^ 2 / ((c + d)^2 (e + f))]
-     = (a + b) ^ 2 / (c ^ 2 e + c ^ 2 f + 2 c d e + 2 c d f + d ^ 2 e + d ^ 2 f)
+     = (a + b) ^ 2 / (c ^ 2 e + 2 c d e + d ^ 2 e + c ^ 2 f + 2 c d f + d ^ 2 f)
     """
 
     eval_error = Builtin.generic_argument_error
@@ -1022,7 +1035,7 @@ class FactorTermsList(Builtin):
     >> f = 3 (-1 + 2 x) (-1 + y) (1 - a)
      = 3 (-1 + 2 x) (-1 + y) (1 - a)
     >> FactorTermsList[f]
-     = {-3, -1 + a - 2 a x - a y + 2 x + y - 2 x y + 2 a x y}
+     = {-3, -1 + a + 2 x - 2 a x + y - a y - 2 x y + 2 a x y}
     >> FactorTermsList[f, x]
      = {-3, 1 - a - y + a y, -1 + 2 x}
     """

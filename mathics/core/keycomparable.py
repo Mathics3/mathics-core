@@ -117,8 +117,27 @@ class Monomial:
                 other_exps[var] -= dec
                 if not other_exps[var]:
                     del other_exps[var]
-        self_exps = sorted((var, exp) for var, exp in self_exps.items())
-        other_exps = sorted((var, exp) for var, exp in other_exps.items())
+
+        def _var_key(pair):
+            """
+            If `var` is not a plain string (e.g. a Symbol object), fall back
+            to its string representation for ordering.
+            """
+            var, _ = pair
+            try:
+                return str(var)
+            except Exception:
+                return var
+
+        # NOTE ON COMPARING MONOMIALS.
+        # Symbol names are compared lexicographically.
+        # However, when comparing monomials containing several
+        # symbols, Mathematica treats later symbols as variables,
+        # while the earlier symbols are treated as as coefficients. So
+        # we need to compare symbol names in reverse alphabetical order.
+        # For example, (b c) < (a d) for monomials (b c) and (a d) since c < d.
+        self_exps = sorted(list(self_exps.items()), key=_var_key, reverse=True)
+        other_exps = sorted(list(other_exps.items()), key=_var_key, reverse=True)
 
         index = 0
         self_len = len(self_exps)

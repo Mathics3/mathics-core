@@ -22,7 +22,11 @@ import pytest
             "WMA do not collect the common factor `a` in the last expression neither",
         ),
         ("a - 2 a + 3 a q", "-a + 3 a q", None),
-        ("a - (5+ a+ 2 b) + 3 a q", "-5 + 3 a q - 2 b", "WMA distribute the sign (-)"),
+        (
+            "a - (5+ a+ 2 b) + 3 a q",
+            "-5 - 2 b + 3 a q",
+            "WMA distributes the negation (-)",
+        ),
         (
             "a - 2 (5+ a+ 2 b) + 3 a q",
             "a + 3 a q - 2 (5 + a + 2 b)",

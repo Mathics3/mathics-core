@@ -6,12 +6,42 @@ Tests here check the compatibility of
 the  default behavior of the different assignment operators
 with WMA.
 """
-# TODO: consider to split this module in sub-modules.
+# TODO: consider splitting this module into sub-modules.
 
-from test.helper import check_evaluation, session
+from test.helper import check_arg_counts, check_evaluation, session
 
 import pytest
 from mathics_scanner.errors import IncompleteSyntaxError
+
+
+@pytest.mark.parametrize(
+    ("function_name", "msg_fragment"),
+    [
+        (
+            "Set",
+            "1 or more arguments are",
+        ),
+        (
+            "SetDelayed",
+            "1 or more arguments are",
+        ),
+        (
+            "TagSet",
+            "2 or more arguments are",
+        ),
+        (
+            "UpSet",
+            "1 or more arguments are",
+        ),
+        (
+            "UpSetDelayed",
+            "1 or more arguments are",
+        ),
+    ],
+)
+def test_arg_errors(function_name, msg_fragment):
+    """ """
+    check_arg_counts(function_name, msg_fragment)
 
 
 def test_upset():

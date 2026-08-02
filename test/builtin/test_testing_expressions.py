@@ -20,6 +20,10 @@ import pytest
             "1 argument is",
         ),
         (
+            "Order",
+            "2 arguments are",
+        ),
+        (
             "TrueQ",
             "1 argument is",
         ),
@@ -226,6 +230,11 @@ def test_matchq(str_expr, msgs, str_expected, fail_msg):
             'Order[<|1->2|>, "a"]',
             "1",
             "Associations come before Strings",
+        ),
+        (
+            "Order[b c, a d]",
+            "1",
+            "Issue #1866",
         ),
     ],
 )
