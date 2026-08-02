@@ -2,6 +2,8 @@
 """
 Forms of Assignment
 """
+
+import sys
 from typing import Optional
 
 from mathics.core.atoms import String
@@ -128,6 +130,8 @@ class Set(InfixOperator):
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED | A_SEQUENCE_HOLD
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, sys.maxsize)
     grouping = "Right"
 
     messages = {
@@ -140,7 +144,7 @@ class Set(InfixOperator):
     def eval(self, lhs, rhs, evaluation):
         "lhs_ = rhs_"
 
-        eval_assign(self, lhs, rhs, evaluation)
+        eval_assign(self.get_name(), lhs, rhs, evaluation)
         return rhs
 
 
@@ -222,7 +226,7 @@ class SetDelayed(Set):
     ) -> Symbol:
         "lhs_ := rhs_"
 
-        if eval_assign(self, lhs, rhs, evaluation):
+        if eval_assign(self.get_name(), lhs, rhs, evaluation):
             return SymbolNull
 
         return SymbolFailed
@@ -259,6 +263,8 @@ class TagSet(Builtin):
 
     attributes = A_HOLD_ALL | A_PROTECTED | A_SEQUENCE_HOLD
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(2, sys.maxsize)
     messages = {
         "tagnfd": "Tag `1` not found or too deep for an assigned rule.",
     }
@@ -282,7 +288,7 @@ class TagSet(Builtin):
             return None
 
         rhs = rhs.evaluate(evaluation)
-        eval_assign(self, lhs, rhs, evaluation, tags=[tag_name])
+        eval_assign(self.get_name(), lhs, rhs, evaluation, tags=[tag_name])
         return rhs
 
 
@@ -319,7 +325,7 @@ class TagSetDelayed(TagSet):
             evaluation.message(self.get_name(), "sym", f, 1)
             return None
 
-        if eval_assign(self, lhs, rhs, evaluation, tags=[tag_name]):
+        if eval_assign(self.get_name(), lhs, rhs, evaluation, tags=[tag_name]):
             return SymbolNull
 
         return SymbolFailed
@@ -353,6 +359,8 @@ class UpSet(InfixOperator):
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED | A_SEQUENCE_HOLD
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, sys.maxsize)
     grouping = "Right"
 
     summary_text = (
@@ -366,7 +374,7 @@ class UpSet(InfixOperator):
         if isinstance(lhs, Atom):
             evaluation.message("UpSet", "normal", 1, evaluation.current_expression)
             return None
-        eval_assign(self, lhs, rhs, evaluation, upset=True)
+        eval_assign(self.get_name(), lhs, rhs, evaluation, upset=True)
         return rhs
 
 
@@ -416,7 +424,7 @@ class UpSetDelayed(UpSet):
             )
             return None
 
-        if eval_assign(self, lhs, rhs, evaluation, upset=True):
+        if eval_assign(self.get_name(), lhs, rhs, evaluation, upset=True):
             return SymbolNull
 
         return SymbolFailed

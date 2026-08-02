@@ -262,7 +262,7 @@ def repl_pattern_by_symbol(expr: BaseElement) -> BaseElement:
 
 
 def rejected_because_protected(
-    self: Builtin,
+    op_name: str,
     lhs: BaseElement,
     tag: str,
     evaluation: Evaluation,
@@ -295,9 +295,9 @@ def rejected_because_protected(
     defs = evaluation.definitions
     if not ignore and is_protected(tag, defs):
         if lhs.get_name() == tag:
-            evaluation.message(self.get_name(), "wrsym", Symbol(tag))
+            evaluation.message(op_name, "wrsym", Symbol(tag))
         else:
-            evaluation.message(self.get_name(), "write", Symbol(tag), lhs)
+            evaluation.message(op_name, "write", Symbol(tag), lhs)
         return True
     return False
 
