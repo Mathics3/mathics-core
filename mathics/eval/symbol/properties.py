@@ -55,7 +55,12 @@ def eval_Information_with_property(expr, property: str, evaluation: Evaluation):
             #     return information_values(expr, evaluation.definitions, "defaultvalues")
             return information_fullname(expr)
         case "Options":
-            return eval_Options(expr, evaluation)
+            name_symbol = (
+                Symbol(evaluation.definitions.lookup_name(expr.value))
+                if isinstance(expr, String)
+                else expr
+            )
+            return eval_Options(name_symbol, evaluation)
         case "Properties":
             return ALL_PROPERTIES
         # case "Usage":

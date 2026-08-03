@@ -20,7 +20,7 @@ from mathics.core.list import ListExpression
 from mathics.core.parser import parse_builtin_rule
 from mathics.core.symbols import Symbol, SymbolList, ensure_context, strip_context
 from mathics.core.systemsymbols import SymbolDefault, SymbolRule
-from mathics.eval.options import eval_Options
+from mathics.eval.options import eval_Option_with_names, eval_Options
 from mathics.eval.patterns import Matcher, get_default_value
 
 
@@ -306,9 +306,11 @@ class Options(Builtin):
       https://reference.wolfram.com/language/ref/Options.html</url>
 
     <dl>
-      <dt>'Options'[$f$]
-      <dd>gives a list of optional arguments to $f$ and their \
+      <dt>'Options'[$symbol$]
+      <dd>gives a list of optional arguments to $symbol$ and their \
         default values.
+      <dt>'Options'[$symbol$, $name$]
+      <dd>gives only the option value for $name$ in $symbol$.
     </dl>
 
     You can assign values to 'Options' to specify options.
@@ -354,11 +356,27 @@ class Options(Builtin):
 
     """
 
+    # Set checking that the number of arguments required is one or two.
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
     summary_text = "the list of optional arguments and their default values"
 
-    def eval(self, f, evaluation):
-        "Options[f_]"
-        return eval_Options(f, evaluation)
+    def eval(self, symbol, evaluation: Evaluation):
+        "Options[symbol_]"
+        if not isinstance(symbol, Symbol):
+            # Docs say a string is allowed, but trying testing shows this is not true.
+            return ListExpression()
+        return eval_Options(symbol, evaluation)
+
+    def eval_with_arg(self, symbol, name, evaluation: Evaluation):
+        "Options[symbol_, name_]"
+        if not isinstance(symbol, Symbol):
+            # This is weird. We get a message like;
+            #   *name* is not a known option for *symbol*
+            # instead of a message about symbol not being a symbol.
+            evaluation.message("Options", "optnf", name, symbol)
+            return ListExpression()
+        return eval_Option_with_names(symbol, name, evaluation)
 
 
 class OptionValue(Builtin):
@@ -422,6 +440,7 @@ class OptionValue(Builtin):
     /doc/reference-of-built-in-symbols/rules-and-patterns/composite-patterns/optionspattern/</url>.
     """
 
+    # Note: there is an optnf tag with a different message used in Option.
     messages = {
         "optnf": "Option name `1` not found in defaults for `2`.",
     }
