@@ -386,9 +386,20 @@ class Information(PrefixOperator):
     <url>:WMA link:
       https://reference.wolfram.com/language/ref/Information.html</url>
     <dl>
-      <dt>'Information'[$symbol$]
-      <dd>Prints information about a $symbol$
+      <dt>'Information'[$expr$]
+      <dd>returns information about a $expr$. $expr$ can be a symbol or a string.
+      <dt>'Information'[$expr$, $prop$]
+      <dd>returns the value of property $prop$ for symbol $symbol$.
     </dl>
+
+    The two argument form of 'Information' can be used to get specific \
+    property information about a symbol name or a string.
+
+    Use the property name "Properties" to see a list of properties that can be \
+    given:
+
+    >> 'Information'[AtomQ, "Properties"]
+    = {Attributes, DefaultValues, DownValues, FormatValues, FullName, NValues, Options, Ownvalues, SubValues, UpValues, Usage}
 
     'Information' does not print information for 'ReadProtected' symbols.
 

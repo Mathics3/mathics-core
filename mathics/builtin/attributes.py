@@ -90,6 +90,8 @@ class Attributes(Builtin):
 
     def eval(self, expr, evaluation):
         "Attributes[expr_]"
+        if isinstance(expr, String):
+            expr = Symbol(expr.value)
         return eval_Attributes(expr, evaluation)
 
 

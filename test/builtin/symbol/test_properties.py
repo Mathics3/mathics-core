@@ -44,6 +44,56 @@ def test_downvalues():
         )
 
 
+def test_information_two_arg_form():
+    for str_expr, str_expected, assert_fail_message in (
+        (
+            'Information[AtomQ, "Options"]',
+            "None",
+            "Information returns 'None', not '{}' when no options",
+        ),
+        (
+            'Options[AtomQ, "Options"]',
+            "{}",
+            "Options returns '{}', not 'None' when no options",
+        ),
+        # Fullname
+        # Properties
+        # Properties
+        # Usage property
+        (
+            'Information[AtomQ, "Usage"]',
+            '"test whether an expression is an atom"',
+            "Case is signification in the property name",
+        ),
+        (
+            'Information[AtomQ, "usage"]',
+            "Missing[UnknownProperty, usage]",
+            "Case is signification in the property name",
+        ),
+        (
+            'Clear[Foo]; Information[Foo, "Usage"]',
+            "Foo",
+            "Default usage for a symbol when not set is the symbol name",
+        ),
+        (
+            'Foo::usage = "set a usage message"; Information[Foo, "Usage"]',
+            '"set a usage message"',
+            "Check picking up a usage message",
+        ),
+        # Start here.
+        # (
+        #     'AtomQ::usage = "usage message changed"; Information[AtomQ, "Usage"]',
+        #     "usage message changed",
+        #     "Usage on builtins can be changed",
+        # ),
+    ):
+        check_evaluation(
+            str_expr,
+            str_expected,
+            assert_fail_message,
+        )
+
+
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "msgs", "failure_msg"),
     [

@@ -41,10 +41,17 @@ ALL_PROPERTIES: Final[ListExpression] = ListExpression(
 )
 
 
-def eval_Information_with_property(expr, property: str, evaluation: Evaluation):
-    match property:
+def eval_Information_with_property(name, property_name: str, evaluation: Evaluation):
+    if isinstance(name, String):
+        name_str = name.value
+        name_symbol = Symbol(evaluation.definitions.lookup_name(name.value))
+    else:
+        name_str = name.name
+        name_symbol = name
+
+    match property_name:
         case "Attributes":
-            return eval_Attributes(expr, evaluation)
+            return eval_Attributes(name_symbol, evaluation)
         case (
             "DefaultValues"
             | "DownValues"
@@ -54,39 +61,34 @@ def eval_Information_with_property(expr, property: str, evaluation: Evaluation):
             | "SubValues"
             | "UpValues"
         ):
-            return information_values(expr, evaluation, property)
+            return information_values(name_symbol, name_str, evaluation, property_name)
             # case "Definitions":
             #     return information_values(expr, evaluation.definitions, "defaultvalues")
-            return information_fullname(expr)
+            return name_symbol
         case "Options":
             name_symbol = (
-                Symbol(evaluation.definitions.lookup_name(expr.value))
-                if isinstance(expr, String)
-                else expr
+                Symbol(evaluation.definitions.lookup_name(name_str))
+                if isinstance(name, String)
+                else name
             )
-            return eval_Options(name_symbol, evaluation)
+            return eval_Options(name_symbol, evaluation, empty_is_none=True)
         case "Properties":
             return ALL_PROPERTIES
         case "Usage":
-            return information_usage(expr, evaluation.definitions)
+            return information_usage(name_symbol, name_str, evaluation.definitions)
         case _:
-            return missing_property(property)
+            return missing_property(property_name)
     return
 
 
-def eval_values(name: Symbol | String, evaluation: Evaluation, attribute: str):
+def eval_values(name_symbol: Symbol, evaluation: Evaluation, attribute: str):
     """
     Evaluation function for xxxValues, e.g. DownValues, UpValues, ...
     """
-    name_symbol = (
-        Symbol(evaluation.definitions.lookup_name(name.value))
-        if isinstance(name, String)
-        else name
-    )
     return get_symbol_values(name_symbol, attribute, attribute.lower(), evaluation)
 
 
-def information_values(name: Symbol | String, evaluation, value_type: str):
+def information_values(name_symbol: Symbol, name_str: str, evaluation, value_type: str):
     """
     Evaluation function for Information[name, xxxValues].
     This is similar to eval_values, however the results change slightly
@@ -95,15 +97,8 @@ def information_values(name: Symbol | String, evaluation, value_type: str):
      3. Empty values return 'None' instead of {}.
 
     """
-    if isinstance(name, String):
-        name_str = name.value
-        name_symbol = Symbol(evaluation.definitions.lookup_name(name.value))
-    else:
-        name_str = name.name
-        name_symbol = name
 
     definitions = evaluation.definitions
-    name = definitions.lookup_name(name_str)
     try:
         definition = definitions.get_definition(name_str, only_if_exists=True)
     except KeyError:
@@ -116,15 +111,9 @@ def information_values(name: Symbol | String, evaluation, value_type: str):
     return SymbolNone if not values else values
 
 
-# FIXME there should be an eval_Fullname for this.
-def information_fullname(symbol: Symbol) -> String:
-    """
-    Evaluation routine for Information[xxx, "FullName"]
-    """
-    return String(symbol)
-
-
-def information_usage(name: Symbol | String, definitions: Definitions) -> String:
+def information_usage(
+    name_symbol: Symbol, name_str: str, definitions: Definitions
+) -> String:
     """
     Retrieve symbol's usage message string.
 
@@ -141,14 +130,6 @@ def information_usage(name: Symbol | String, definitions: Definitions) -> String
         The usage string if one exists or the symbol name no usage string.
 
     """
-    if isinstance(name, String):
-        name_symbol = Symbol(definitions.lookup_name(name.value))
-        # Make sure we use fully qualified name, e.g. "System`AtomQ"
-        # as opposed a shortname "AtomQ" that might have been given.
-        name_str = name_symbol.name
-    else:
-        name_str = name.name
-        name_symbol = name
 
     try:
         definition = definitions.get_user_definition(name_str, True)

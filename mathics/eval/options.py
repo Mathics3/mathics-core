@@ -10,10 +10,12 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolRuleDelayed
+from mathics.core.systemsymbols import SymbolNone, SymbolRuleDelayed
 
 
-def eval_Options(symbol: Symbol, evaluation: Evaluation) -> Optional[ListExpression]:
+def eval_Options(
+    symbol: Symbol, evaluation: Evaluation, empty_is_none: bool = False
+) -> Optional[ListExpression]:
     name = symbol.get_name()
     if not name:
         if isinstance(symbol, Image):
@@ -29,6 +31,8 @@ def eval_Options(symbol: Symbol, evaluation: Evaluation) -> Optional[ListExpress
         # Don't use HoldPattern, since the returned List should be
         # assignable to Options again!
         result.append(Expression(SymbolRuleDelayed, Symbol(option), value))
+    if not result and empty_is_none:
+        return SymbolNone
     return ListExpression(*result)
 
 
