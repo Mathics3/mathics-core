@@ -9,7 +9,6 @@ from typing import Callable, List, Optional, Tuple
 
 from mathics.core.atoms import Integer1
 from mathics.core.attributes import A_PROTECTED
-from mathics.core.builtin import Builtin
 from mathics.core.definitions import Definitions
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation

@@ -8,11 +8,15 @@ from typing import Final
 from mathics.core.assignment import get_symbol_values
 from mathics.core.atoms import String
 from mathics.core.attributes import A_READ_PROTECTED
+from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.pattern import AtomPattern
+from mathics.core.rules import RewriteRule
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
+    SymbolMessageName,
     SymbolMissing,
     SymbolNone,
     SymbolUnknownProperty,
@@ -33,7 +37,7 @@ ALL_PROPERTIES: Final[ListExpression] = ListExpression(
     String("Ownvalues"),
     String("SubValues"),
     String("UpValues"),
-    # String("Usage"),
+    String("Usage"),
 )
 
 
@@ -63,8 +67,8 @@ def eval_Information_with_property(expr, property: str, evaluation: Evaluation):
             return eval_Options(name_symbol, evaluation)
         case "Properties":
             return ALL_PROPERTIES
-        # case "Usage":
-        #     return information_values(expr, evaluation.definitions, "upvalues")
+        case "Usage":
+            return information_usage(expr, evaluation.definitions)
         case _:
             return missing_property(property)
     return
@@ -113,8 +117,74 @@ def information_values(name: Symbol | String, evaluation, value_type: str):
 
 
 # FIXME there should be an eval_Fullname for this.
-def information_fullname(symbol: Symbol):
+def information_fullname(symbol: Symbol) -> String:
+    """
+    Evaluation routine for Information[xxx, "FullName"]
+    """
     return String(symbol)
+
+
+def information_usage(name: Symbol | String, definitions: Definitions) -> String:
+    """
+    Retrieve symbol's usage message string.
+
+    Parameters
+    ----------
+    symbol : Symbol
+        The symbol that we want "usage" for
+    definitions : Definitions
+        definitions The evaluation object.
+
+    Returns
+    -------
+    String
+        The usage string if one exists or the symbol name no usage string.
+
+    """
+    if isinstance(name, String):
+        name_symbol = Symbol(definitions.lookup_name(name.value))
+        # Make sure we use fully qualified name, e.g. "System`AtomQ"
+        # as opposed a shortname "AtomQ" that might have been given.
+        name_str = name_symbol.name
+    else:
+        name_str = name.name
+        name_symbol = name
+
+    try:
+        definition = definitions.get_user_definition(name_str, True)
+    except KeyError:
+        # As a last resort:
+        return name_symbol
+
+    for rule in definition.get_values_list("messages"):
+        if isinstance(rule, RewriteRule) and isinstance(rule.lhs.head, AtomPattern):
+            if rule.lhs.head.expr is SymbolMessageName:
+                return rule.rhs
+
+    # No "usage" message has been defined on this symbol definition.
+    # If the symbol is a builtin-funciton, we should be able to get the "summary_text"
+    # value from the Python builtin class that defines the Builtin Function.
+
+    # I, rocky, take full responsibility for propagating
+    # "summary_text", which at the time matched the crappy
+    # Django homegrown documentation better.
+    if (
+        builtin_definition := definitions.builtin.get(name_str)
+    ) and builtin_definition.downvalues:
+        first_apply_rule = builtin_definition.downvalues[0]
+        try:
+            # FIXME: This is really weird and hoaky. Is there a better
+            # way?  Fnd an apply rule for this builtin. From that take
+            # the RHS of the rule, which gives a bound method of some
+            # eval method. From the bound eval method we get the self
+            # object from which we can find the Buitin class of the
+            # object.  And then finally we take its summary text.
+            # "summary_text" is the closest we have to "usage".
+            return String(first_apply_rule.rhs.__self__.__class__.summary_text)
+        except Exception:
+            pass
+
+    return name_symbol
 
 
 @cache
