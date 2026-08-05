@@ -42,12 +42,23 @@ ALL_PROPERTIES: Final[ListExpression] = ListExpression(
 
 
 def eval_Information_with_property(name, property_name: str, evaluation: Evaluation):
+    """
+    Evaluation routine for: Information[xxx, property]
+    """
+
+    # If "name" is String, look up the name to get its Symbol.
     if isinstance(name, String):
-        name_str = name.value
         name_symbol = Symbol(evaluation.definitions.lookup_name(name.value))
-    else:
-        name_str = name.name
+    elif isinstance(name, Symbol):
         name_symbol = name
+    else:
+        # We only handle Symbols and Strings.
+        return None
+
+    # Symbol's "name" field should have the fully qualified string value.
+    # This full-qualified string value (not its short name),
+    # is used in various property subroutines.
+    name_str = name_symbol.name
 
     match property_name:
         case "Attributes":
@@ -64,7 +75,8 @@ def eval_Information_with_property(name, property_name: str, evaluation: Evaluat
             return information_values(name_symbol, name_str, evaluation, property_name)
             # case "Definitions":
             #     return information_values(expr, evaluation.definitions, "defaultvalues")
-            return name_symbol
+        case "FullName":
+            return String(name_str)
         case "Options":
             name_symbol = (
                 Symbol(evaluation.definitions.lookup_name(name_str))
@@ -81,10 +93,19 @@ def eval_Information_with_property(name, property_name: str, evaluation: Evaluat
     return
 
 
-def eval_values(name_symbol: Symbol, evaluation: Evaluation, attribute: str):
+def eval_values(name, evaluation: Evaluation, attribute: str):
     """
     Evaluation function for xxxValues, e.g. DownValues, UpValues, ...
     """
+    # If "name" is String, look up the name to get its Symbol.
+    if isinstance(name, String):
+        name_symbol = Symbol(evaluation.definitions.lookup_name(name.value))
+    elif isinstance(name, Symbol):
+        name_symbol = name
+    else:
+        # We only handle Symbols and Strings.
+        return None
+
     return get_symbol_values(name_symbol, attribute, attribute.lower(), evaluation)
 
 

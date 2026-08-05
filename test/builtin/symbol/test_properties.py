@@ -52,13 +52,15 @@ def test_information_two_arg_form():
             "Information returns 'None', not '{}' when no options",
         ),
         (
-            'Options[AtomQ, "Options"]',
+            "Options[AtomQ]",
             "{}",
             "Options returns '{}', not 'None' when no options",
         ),
-        # Fullname
-        # Properties
-        # Properties
+        (
+            'Information[AtomQ, "FullName"]',
+            '"System`AtomQ"',
+            "Returns the context and name of  symbol",
+        ),
         # Usage property
         (
             'Information[AtomQ, "Usage"]',
@@ -68,7 +70,7 @@ def test_information_two_arg_form():
         (
             'Information[AtomQ, "usage"]',
             "Missing[UnknownProperty, usage]",
-            "Case is signification in the property name",
+            "Case is significant in the property name",
         ),
         (
             'Clear[Foo]; Information[Foo, "Usage"]',
@@ -80,12 +82,11 @@ def test_information_two_arg_form():
             '"set a usage message"',
             "Check picking up a usage message",
         ),
-        # Start here.
-        # (
-        #     'AtomQ::usage = "usage message changed"; Information[AtomQ, "Usage"]',
-        #     "usage message changed",
-        #     "Usage on builtins can be changed",
-        # ),
+        (
+            'AtomQ::usage = "changed"; Information[AtomQ, "Usage"]',
+            "changed",
+            "Usage on builtins can be changed",
+        ),
     ):
         check_evaluation(
             str_expr,

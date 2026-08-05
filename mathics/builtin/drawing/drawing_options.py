@@ -33,8 +33,8 @@ class Automatic(Builtin):
     'Automatic' is the default for 'PlotRange', 'ImageSize', and other
     graphical options:
 
-    >> Cases[Options[Plot], HoldPattern[_ :> Automatic]]
-     = {AxesOrigin ⧴ Automatic, Background ⧴ Automatic, BaselinePosition ⧴ Automatic, ContentSelectable ⧴ Automatic, CoordinatesToolOptions ⧴ Automatic, Exclusions ⧴ Automatic, FrameTicks ⧴ Automatic, ImageSize ⧴ Automatic, Method ⧴ Automatic, PlotRange ⧴ Automatic, PlotRangePadding ⧴ Automatic, PlotRegion ⧴ Automatic, PreserveImageOptions ⧴ Automatic, Ticks ⧴ Automatic}
+    >> Cases[Options[Plot], HoldPattern[_ -> Automatic]]
+     = {AxesOrigin ⇾ Automatic, Background ⇾ Automatic, BaselinePosition ⇾ Automatic, ContentSelectable ⇾ Automatic, CoordinatesToolOptions ⇾ Automatic, Exclusions ⇾ Automatic, FrameTicks ⇾ Automatic, ImageSize ⇾ Automatic, Method ⇾ Automatic, PlotRange ⇾ Automatic, PlotRangePadding ⇾ Automatic, PlotRegion ⇾ Automatic, PreserveImageOptions ⇾ Automatic, Ticks ⇾ Automatic}
     """
 
     summary_text = "graph option value to choose parameters automatically"

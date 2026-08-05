@@ -119,15 +119,15 @@ def test_setdelayed_oneidentity():
         ("Unprotect[Pi]; Pi=.; Attributes[Pi]", "{Constant, ReadProtected}", None),
         ("Unprotect[Pi];Clear[Pi]; Attributes[Pi]", "{Constant, ReadProtected}", None),
         ("Unprotect[Pi];ClearAll[Pi]; Attributes[Pi]", "{}", None),
-        ("Options[Expand]", "{Modulus ⧴ 0, Trig ⧴ False}", None),
+        ("Options[Expand]", "{Modulus ⇾ 0, Trig ⇾ False}", None),
         (
             "Unprotect[Expand]; Expand=.; Options[Expand]",
-            "{Modulus ⧴ 0, Trig ⧴ False}",
+            "{Modulus ⇾ 0, Trig ⇾ False}",
             None,
         ),
         (
-            "Clear[Expand];Options[Expand]=Join[Options[Expand], {MyOption ⧴ Automatic}]; Options[Expand]",
-            "{MyOption ⧴ Automatic, Modulus ⧴ 0, Trig ⧴ False}",
+            "Clear[Expand];Options[Expand]=Join[Options[Expand], {MyOption ⇾ Automatic}]; Options[Expand]",
+            "{MyOption ⇾ Automatic, Modulus ⇾ 0, Trig ⇾ False}",
             "Mathics3 stores options in a dictionary. This is why ``MyOption`` appears first.",
         ),
         # (

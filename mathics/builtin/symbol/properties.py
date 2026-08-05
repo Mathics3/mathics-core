@@ -398,7 +398,7 @@ class Information(PrefixOperator):
     Use the property name "Properties" to see a list of properties that can be \
     given:
 
-    >> 'Information'[AtomQ, "Properties"]
+    >> Information[AtomQ, "Properties"]
     = {Attributes, DefaultValues, DownValues, FormatValues, FullName, NValues, Options, Ownvalues, SubValues, UpValues, Usage}
 
     'Information' does not print information for 'ReadProtected' symbols.

@@ -317,7 +317,7 @@ class Options(Builtin):
     >> Options[f] = {n -> 2}
      = {n ⇾ 2}
     >> Options[f]
-     = {n ⧴ 2}
+     = {n ⇾ 2}
     >> f[x_, OptionsPattern[f]] := x ^ OptionValue[n]
     >> f[x]
      = x ^ 2
@@ -342,7 +342,7 @@ class Options(Builtin):
     >> Options[f] = a -> b
      = a ⇾ b
     >> Options[f]
-     = {a ⧴ b}
+     = {a ⇾ b}
     Options can only be assigned to symbols:
     >> Options[a + b] = {a -> b}
      : Argument a + b at position 1 is expected to be a symbol.
