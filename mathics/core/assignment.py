@@ -7,8 +7,8 @@ Support for Set and SetDelayed, and other assignment-like builtins
 
 from typing import Callable, List, Optional, Tuple
 
+from mathics.core.atoms import Integer1
 from mathics.core.attributes import A_PROTECTED
-from mathics.core.builtin import Builtin
 from mathics.core.definitions import Definitions
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
@@ -102,7 +102,7 @@ def get_symbol_values(
 
     """
     if not isinstance(symbol, Symbol):
-        evaluation.message(func_name, "sym", symbol, 1)
+        evaluation.message(func_name, "sym", symbol, Integer1)
         return None
     name = symbol.get_name()
     definitions = evaluation.definitions

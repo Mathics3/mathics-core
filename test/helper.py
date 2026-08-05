@@ -164,10 +164,13 @@ def check_evaluation(
     print(time.asctime())
 
     if failure_message:
-        print([result, "!=", expected])
+        if result != expected:
+            print(f"result  : {result}")
+            print(f"expected: {expected}")
+
         assert result == expected, failure_message
     else:
-        fail_mess = f"got: \n{result}\nexpect:\n{expected}\n"
+        fail_mess = f"result: \n{result}\nexpect:\n{expected}\n"
         if isinstance(expected, re.Pattern):
             assert expected.match(result), fail_mess
         else:

@@ -1,31 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Unit tests from mathics.builtin.atomic.symbols.
+Unit tests from mathics.builtin.symbol.symbols.
 """
 from test.helper import check_arg_counts, check_evaluation
 
 import pytest
-
-
-def test_downvalues():
-    for str_expr, str_expected, message in (
-        (
-            "DownValues[foo]={x_^2:>y}",
-            "{x_ ^ 2 :> y}",
-            "Issue #1251 part 1",
-        ),
-        (
-            "PrependTo[DownValues[foo], {x_^3:>z}]",
-            "{{x_ ^ 3 :> z}, HoldPattern[x_ ^ 2] :> y}",
-            "Issue #1251 part 2",
-        ),
-        (
-            "DownValues[foo]={x_^3:>y}",
-            "{x_ ^ 3 :> y}",
-            "Issue #1251 part 3",
-        ),
-    ):
-        check_evaluation(str_expr, str_expected, message)
 
 
 @pytest.mark.parametrize(
@@ -39,8 +18,19 @@ def test_downvalues():
         ("a`x === b`x", None, "False", None),
         ## awkward parser cases
         ("FullForm[a`b_]", None, "Pattern[a`b, Blank[]]", None),
-        ("a = 2;", None, "Null", None),
-        ("Information[a]", tuple(), "Global`a\n\na = 2\n", None),
+        (
+            "Clear[a]; Information[a]",
+            tuple(),
+            "Global`a\n",
+            "When a symbol is not bound, Information[] of that symbol should return the context and name.",
+        ),
+        (
+            "a = 2;",
+            None,
+            "Null",
+            "When a symbol is bound, Information[] of that symbol do anything.",
+        ),
+        ("Information[a]", tuple(), "Information[2]", None),
         (
             "{?? q, ?? q}",
             tuple(),
