@@ -22,13 +22,15 @@ from mathics.core.systemsymbols import (
     SymbolUnknownProperty,
     SymbolUnknownSymbol,
 )
+from mathics.doc.online import get_builtin_class, get_builtin_documentation
 from mathics.eval.attributes import eval_Attributes
 from mathics.eval.options import eval_Options
 
 ALL_PROPERTIES: Final[ListExpression] = ListExpression(
     String("Attributes"),
     String("DefaultValues"),
-    # String("Definitions"),
+    String("Definitions"),
+    String("Documentation"),
     String("DownValues"),
     String("FormatValues"),
     String("FullName"),
@@ -75,6 +77,8 @@ def eval_Information_with_property(name, property_name: str, evaluation: Evaluat
             return information_values(name_symbol, name_str, evaluation, property_name)
             # case "Definitions":
             #     return information_values(expr, evaluation.definitions, "defaultvalues")
+        case "Documentation":
+            return information_documentation(name_str, evaluation.definitions)
         case "FullName":
             return String(name_str)
         case "Options":
@@ -132,6 +136,29 @@ def information_values(name_symbol: Symbol, name_str: str, evaluation, value_typ
     return SymbolNone if not values else values
 
 
+def information_documentation(name_str: str, definitions: Definitions) -> String:
+    """
+    Retrieve symbol's usage URL.
+
+    Parameters
+    ----------
+    name_str : str
+        The symbol that we want "usage" for
+    definitions : Definitions
+        definitions The evaluation object.
+
+    Returns
+    -------
+    String
+        The usage string if one exists or the symbol name no usage string.
+
+    """
+
+    builtin_class = get_builtin_class(name_str, definitions)
+    print(builtin_class)
+    return get_builtin_documentation(builtin_class)
+
+
 def information_usage(
     name_symbol: Symbol, name_str: str, definitions: Definitions
 ) -> String:
@@ -140,8 +167,10 @@ def information_usage(
 
     Parameters
     ----------
-    symbol : Symbol
+    name_symbol : Symbol
         The symbol that we want "usage" for
+    name_str : str
+        The Python str value for name_symbol. This string has the full context in it.
     definitions : Definitions
         definitions The evaluation object.
 
@@ -166,25 +195,11 @@ def information_usage(
     # No "usage" message has been defined on this symbol definition.
     # If the symbol is a builtin-funciton, we should be able to get the "summary_text"
     # value from the Python builtin class that defines the Builtin Function.
-
-    # I, rocky, take full responsibility for propagating
-    # "summary_text", which at the time matched the crappy
-    # Django homegrown documentation better.
-    if (
-        builtin_definition := definitions.builtin.get(name_str)
-    ) and builtin_definition.downvalues:
-        first_apply_rule = builtin_definition.downvalues[0]
-        try:
-            # FIXME: This is really weird and hoaky. Is there a better
-            # way?  Fnd an apply rule for this builtin. From that take
-            # the RHS of the rule, which gives a bound method of some
-            # eval method. From the bound eval method we get the self
-            # object from which we can find the Buitin class of the
-            # object.  And then finally we take its summary text.
-            # "summary_text" is the closest we have to "usage".
-            return String(first_apply_rule.rhs.__self__.__class__.summary_text)
-        except Exception:
-            pass
+    if builtin_class := get_builtin_class(name_str, definitions):
+        # I, rocky, take full responsibility for propagating
+        # "summary_text", which at the time matched the crappy
+        # Django homegrown documentation better.
+        return String(builtin_class.summary_text)
 
     return name_symbol
 

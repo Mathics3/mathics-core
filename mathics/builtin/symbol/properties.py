@@ -358,29 +358,6 @@ class DownValues(Builtin):
         return eval_values(name, evaluation, "DownValues")
 
 
-class SymbolQ(Test):
-    """
-    <url>:WMA link:
-      https://resources.wolframcloud.com/FunctionRepository/resources/SymbolQ</url>
-    <dl>
-      <dt>'SymbolQ'[$x$]
-      <dd>is 'True' if $x$ is a symbol, or 'False' otherwise.
-    </dl>
-
-    >> SymbolQ[a]
-     = True
-    >> SymbolQ[1]
-     = False
-    >> SymbolQ[a + b]
-     = False
-    """
-
-    summary_text = "test whether is a symbol"
-
-    def test(self, expr) -> bool:
-        return eval_SymbolQ(expr)
-
-
 class Information(PrefixOperator):
     """
     <url>:WMA link:
@@ -509,7 +486,7 @@ class Information(PrefixOperator):
         # Print the "usage" message if available.
         # is_long_form = self.get_option(options, "LongForm", evaluation).to_python()
         is_long_form = True  # In WMA >=12.0 this option does not make much difference--
-        usagetext = online_doc_string(symbol, evaluation, is_long_form)
+        usagetext = online_doc_string(symbol, evaluation.definitions, is_long_form)
         if usagetext:
             lines.append(usagetext)
         else:
@@ -524,6 +501,29 @@ class Information(PrefixOperator):
             Expression(SymbolRule, Symbol("ColumnAlignments"), SymbolLeft),
         )
         return infoshow
+
+
+class SymbolQ(Test):
+    """
+    <url>:WMA link:
+      https://resources.wolframcloud.com/FunctionRepository/resources/SymbolQ</url>
+    <dl>
+      <dt>'SymbolQ'[$x$]
+      <dd>is 'True' if $x$ is a symbol, or 'False' otherwise.
+    </dl>
+
+    >> SymbolQ[a]
+     = True
+    >> SymbolQ[1]
+     = False
+    >> SymbolQ[a + b]
+     = False
+    """
+
+    summary_text = "test whether is a symbol"
+
+    def test(self, expr) -> bool:
+        return eval_SymbolQ(expr)
 
 
 class ValueQ(Builtin):
