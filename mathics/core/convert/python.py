@@ -27,7 +27,7 @@ from mathics.core.symbols import (
     SymbolNull,
     SymbolTrue,
 )
-from mathics.core.systemsymbols import SymbolAssociation, SymbolRule
+from mathics.core.systemsymbols import SymbolRule
 
 
 def from_bool(arg: bool) -> BooleanType:
@@ -185,23 +185,23 @@ def from_python(arg: Any, options=DEFAULT_PYTHON_OPTIONS) -> BaseElement:
         raise NotImplementedError
 
 
-def association_from_dict(arg: dict, options: FromPythonOptions) -> BaseElement:
+def association_from_dict(
+    python_dict: dict, options: FromPythonOptions = DEFAULT_PYTHON_OPTIONS
+):
     """
     Convert a Python dictionary into a Mathics3 Association.
     """
+    from mathics.core.atoms.associations import Association
     from mathics.core.expression import Expression
 
-    entries = [
+    elements = [
         Expression(
             SymbolRule,
             from_python(key, options),
             from_python(value, options),
         )
-        for key, value in arg.items()
+        for key, value in python_dict.items()
     ]
-    result = Expression(
-        SymbolAssociation,
-        *entries,
-        elements_properties=ELEMENTS_FULLY_EVALUATED,
-    )
-    return result
+    association = Association(elements)
+    association._python = python_dict
+    return association
