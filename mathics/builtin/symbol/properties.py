@@ -1,5 +1,5 @@
 """
-Symbol properties
+Symbol Properties
 """
 
 from typing import Callable, Optional
@@ -376,7 +376,7 @@ class Information(PrefixOperator):
     given:
 
     >> Information[AtomQ, "Properties"]
-    = {Attributes, DefaultValues, DownValues, FormatValues, FullName, NValues, Options, Ownvalues, SubValues, UpValues, Usage}
+    = {Attributes, DefaultValues, Definitions, Documentation, DownValues, FormatValues, FullName, NValues, Options, Ownvalues, SubValues, UpValues, Usage}
 
     'Information' does not print information for 'ReadProtected' symbols.
 

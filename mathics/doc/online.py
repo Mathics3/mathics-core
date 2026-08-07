@@ -49,6 +49,8 @@ def get_builtin_documentation(builtin_class: Builtin) -> Optional[Association]:
     Key: "Web" has a WMA reference.
     """
     docstr = builtin_class.__doc__
+    if docstr is None:
+        return None
     links_association = {}
     if link_section := docstr[0 : docstr.find("<dl>")]:
         start_position = 0
@@ -93,8 +95,8 @@ def online_doc_string(
 
     if builtin_class := get_builtin_class(symbol.name, definitions):
         docstr = builtin_class.__doc__
-        title = builtin_class.__name__
-        if docstr is None:
+        title = builtin_class.name
+        if docstr is None or title is None:
             return usagetext
         docstr = docstr[docstr.find("<dl>") : (docstr.find("</dl>") + 6)]
         usagetext = DocumentationEntry(docstr, title).text()
