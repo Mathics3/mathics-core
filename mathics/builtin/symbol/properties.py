@@ -378,6 +378,12 @@ class Information(PrefixOperator):
     >> Information[AtomQ, "Properties"]
     = {Attributes, DefaultValues, Definitions, Documentation, DownValues, FormatValues, FullName, NValues, Options, Ownvalues, SubValues, UpValues, Usage}
 
+    >> Information[AtomQ, "Documentation"]
+    = <|Web ⇾ https://reference.wolfram.com/language/ref/AtomQ.html|>
+
+    >> Information[AtomQ, "FullName"]
+    = System`AtomQ
+
     'Information' does not print information for 'ReadProtected' symbols.
 
     'Information' uses 'InputForm' to format values.
