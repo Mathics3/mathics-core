@@ -19,13 +19,13 @@ COMMON_DOCUMENT_KEYS: set[str] = {"SymPy", "NumPy"}
 
 def get_builtin_class(name_str: str, definitions: Definitions) -> Optional[Builtin]:
     """
-    If Symbol is a implemented as a builtin function,
+    If Symbol is implemented as a builtin function,
     return the builtin class object for it.
 
     Parameters
     ----------
     name_str : str
-        The fully-qualified string name we for the Builtin.
+        The fully-qualified string name for the Builtin.
     definitions : Definitions
         definitions The evaluation object.
 
@@ -41,11 +41,11 @@ def get_builtin_class(name_str: str, definitions: Definitions) -> Optional[Built
     return None
 
 
-# FIXME: This will get less regular-expression based and less hacky
+# FIXME: This will get less regular-expression-based and less hacky
 # when the documentation is revised.
 def get_builtin_documentation(builtin_class: Builtin) -> Optional[Association]:
     """
-    Returns an Association of documentation links or None if we can't find any.
+    Returns an Association of documentation links, or `None` if none are found.
     Key: "Web" has a WMA reference.
     """
     docstr = builtin_class.__doc__
