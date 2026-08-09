@@ -222,6 +222,14 @@ class BasePattern(ABC):
         """The elements of the expression."""
         return self.expr.get_elements()
 
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_order
+
     def get_head(self):
         """The head of the expression"""
         return self.expr.get_head()
@@ -253,22 +261,6 @@ class BasePattern(ABC):
     def get_sequence(self):
         """The sequence of elements in the expression"""
         return self.expr.get_sequence()
-
-    @property
-    def element_order(self) -> tuple:
-        """
-        Return a tuple value that is used in ordering elements
-        of an expression. The tuple is ultimately compared lexicographically.
-        """
-        return self.expr.element_order
-
-    @property
-    def pattern_precedence(self) -> tuple:
-        """
-        Return a precedence value, a tuple, which is used in selecting
-        which pattern to select when several match.
-        """
-        return build_pattern_sort_key(self)
 
     def has_form(
         self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
@@ -343,6 +335,14 @@ class BasePattern(ABC):
     ) -> Union[int, tuple]:
         """Return the number of candidates that match with the pattern."""
         return len(self.get_match_candidates(elements, pattern_context))
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return build_pattern_sort_key(self)
 
     @overload
     def sameQ(self, other: "BasePattern") -> bool: ...

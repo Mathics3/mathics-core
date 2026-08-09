@@ -280,7 +280,7 @@ class Definition(Builtin):
 
     def format_definition(
         self, symbol: Symbol, evaluation: Evaluation, grid: bool = True
-    ) -> Symbol:
+    ) -> Expression | Symbol:
         "(StandardForm,TraditionalForm,OutputForm,): Definition[symbol_]"
 
         lines = gather_and_format_definition_rules(symbol, evaluation)
@@ -297,7 +297,9 @@ class Definition(Builtin):
 
         return SymbolNull
 
-    def format_definition_input(self, symbol: Symbol, evaluation: Evaluation) -> Symbol:
+    def format_definition_input(
+        self, symbol: Symbol, evaluation: Evaluation
+    ) -> Expression | Symbol:
         "(InputForm,): Definition[symbol_]"
         return self.format_definition(symbol, evaluation, grid=False)
 
@@ -376,7 +378,7 @@ class Information(PrefixOperator):
     given:
 
     >> Information[AtomQ, "Properties"]
-    = {Attributes, DefaultValues, Definitions, Documentation, DownValues, FormatValues, FullName, NValues, Options, Ownvalues, SubValues, UpValues, Usage}
+    = {Attributes, DefaultValues, Definitions, Documentation, DownValues, FormatValues, FullName, NValues, ObjectType, Options, Ownvalues, SubValues, UpValues, Usage}
 
     >> Information[AtomQ, "Documentation"]
     = <|Web ⇾ https://reference.wolfram.com/language/ref/AtomQ.html|>
@@ -455,14 +457,14 @@ class Information(PrefixOperator):
         evaluation: Evaluation,
         options: dict,
         grid: bool = True,
-    ) -> Symbol:
+    ):
         "(StandardForm,TraditionalForm,InputForm,OutputForm,): Information[expr_, OptionsPattern[Information]]"
         # expr is not a Symbol. We should leave unchanged and let other formatting rules kick in.
         return None
 
     def format_information_string(
         self, strpat: String, evaluation: Evaluation, options: dict, grid: bool = True
-    ) -> Symbol:
+    ) -> Expression | Symbol:
         "(StandardForm,TraditionalForm,InputForm,OutputForm,): Information[strpat_String, OptionsPattern[Information]]"
         definitions = evaluation.definitions
         string_str = strpat.value
@@ -480,7 +482,7 @@ class Information(PrefixOperator):
 
     def format_information_symbol(
         self, symbol: Symbol, evaluation: Evaluation, options: dict, grid: bool = True
-    ) -> Symbol:
+    ) -> Expression | Symbol:
         "(StandardForm,TraditionalForm,InputForm,OutputForm,): Information[symbol_Symbol, OptionsPattern[Information]]"
         definitions = evaluation.definitions
         try:
