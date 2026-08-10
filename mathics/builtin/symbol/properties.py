@@ -383,6 +383,9 @@ class Information(PrefixOperator):
     >> Information[AtomQ, "Documentation"]
     = <|Web ⇾ https://reference.wolfram.com/language/ref/AtomQ.html|>
 
+    >> Information[Glaisher, "Documentation"]
+    = <|Wiki ⇾ https://en.wikipedia.org/wiki/Glaisher%E2%80%93Kinkelin_constant, mpmath ⇾ https://mpmath.org/doc/current/functions/constants.html#glaisher-s-constant-glaisher, Web ⇾ https://reference.wolfram.com/language/ref/Glaisher.html|>
+
     >> Information[AtomQ, "FullName"]
     = System`AtomQ
 

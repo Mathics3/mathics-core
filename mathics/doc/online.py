@@ -65,7 +65,7 @@ def get_builtin_documentation(builtin_class: Builtin) -> Optional[Association]:
             ):
                 links_key = "Wiki"
             links_association[links_key] = url
-            start_position = matched.end()
+            start_position += matched.end()
         pass
     if links_association:
         return association_from_dict(links_association)
