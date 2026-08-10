@@ -1,5 +1,5 @@
 """
-Symbol properties
+Symbol Properties
 """
 
 from typing import Callable, Optional
@@ -280,7 +280,7 @@ class Definition(Builtin):
 
     def format_definition(
         self, symbol: Symbol, evaluation: Evaluation, grid: bool = True
-    ) -> Symbol:
+    ) -> Expression | Symbol:
         "(StandardForm,TraditionalForm,OutputForm,): Definition[symbol_]"
 
         lines = gather_and_format_definition_rules(symbol, evaluation)
@@ -297,7 +297,9 @@ class Definition(Builtin):
 
         return SymbolNull
 
-    def format_definition_input(self, symbol: Symbol, evaluation: Evaluation) -> Symbol:
+    def format_definition_input(
+        self, symbol: Symbol, evaluation: Evaluation
+    ) -> Expression | Symbol:
         "(InputForm,): Definition[symbol_]"
         return self.format_definition(symbol, evaluation, grid=False)
 
@@ -358,29 +360,6 @@ class DownValues(Builtin):
         return eval_values(name, evaluation, "DownValues")
 
 
-class SymbolQ(Test):
-    """
-    <url>:WMA link:
-      https://resources.wolframcloud.com/FunctionRepository/resources/SymbolQ</url>
-    <dl>
-      <dt>'SymbolQ'[$x$]
-      <dd>is 'True' if $x$ is a symbol, or 'False' otherwise.
-    </dl>
-
-    >> SymbolQ[a]
-     = True
-    >> SymbolQ[1]
-     = False
-    >> SymbolQ[a + b]
-     = False
-    """
-
-    summary_text = "test whether is a symbol"
-
-    def test(self, expr) -> bool:
-        return eval_SymbolQ(expr)
-
-
 class Information(PrefixOperator):
     """
     <url>:WMA link:
@@ -399,7 +378,16 @@ class Information(PrefixOperator):
     given:
 
     >> Information[AtomQ, "Properties"]
-    = {Attributes, DefaultValues, DownValues, FormatValues, FullName, NValues, Options, Ownvalues, SubValues, UpValues, Usage}
+    = {Attributes, DefaultValues, Definitions, Documentation, DownValues, FormatValues, FullName, NValues, ObjectType, Options, Ownvalues, SubValues, UpValues, Usage}
+
+    >> Information[AtomQ, "Documentation"]
+    = <|Web ⇾ https://reference.wolfram.com/language/ref/AtomQ.html|>
+
+    >> Information[Glaisher, "Documentation"]
+    = <|Wiki ⇾ https://en.wikipedia.org/wiki/Glaisher%E2%80%93Kinkelin_constant, mpmath ⇾ https://mpmath.org/doc/current/functions/constants.html#glaisher-s-constant-glaisher, Web ⇾ https://reference.wolfram.com/language/ref/Glaisher.html|>
+
+    >> Information[AtomQ, "FullName"]
+    = System`AtomQ
 
     'Information' does not print information for 'ReadProtected' symbols.
 
@@ -472,14 +460,14 @@ class Information(PrefixOperator):
         evaluation: Evaluation,
         options: dict,
         grid: bool = True,
-    ) -> Symbol:
+    ):
         "(StandardForm,TraditionalForm,InputForm,OutputForm,): Information[expr_, OptionsPattern[Information]]"
         # expr is not a Symbol. We should leave unchanged and let other formatting rules kick in.
         return None
 
     def format_information_string(
         self, strpat: String, evaluation: Evaluation, options: dict, grid: bool = True
-    ) -> Symbol:
+    ) -> Expression | Symbol:
         "(StandardForm,TraditionalForm,InputForm,OutputForm,): Information[strpat_String, OptionsPattern[Information]]"
         definitions = evaluation.definitions
         string_str = strpat.value
@@ -497,7 +485,7 @@ class Information(PrefixOperator):
 
     def format_information_symbol(
         self, symbol: Symbol, evaluation: Evaluation, options: dict, grid: bool = True
-    ) -> Symbol:
+    ) -> Expression | Symbol:
         "(StandardForm,TraditionalForm,InputForm,OutputForm,): Information[symbol_Symbol, OptionsPattern[Information]]"
         definitions = evaluation.definitions
         try:
@@ -509,7 +497,7 @@ class Information(PrefixOperator):
         # Print the "usage" message if available.
         # is_long_form = self.get_option(options, "LongForm", evaluation).to_python()
         is_long_form = True  # In WMA >=12.0 this option does not make much difference--
-        usagetext = online_doc_string(symbol, evaluation, is_long_form)
+        usagetext = online_doc_string(symbol, evaluation.definitions, is_long_form)
         if usagetext:
             lines.append(usagetext)
         else:
@@ -524,6 +512,29 @@ class Information(PrefixOperator):
             Expression(SymbolRule, Symbol("ColumnAlignments"), SymbolLeft),
         )
         return infoshow
+
+
+class SymbolQ(Test):
+    """
+    <url>:WMA link:
+      https://resources.wolframcloud.com/FunctionRepository/resources/SymbolQ</url>
+    <dl>
+      <dt>'SymbolQ'[$x$]
+      <dd>is 'True' if $x$ is a symbol, or 'False' otherwise.
+    </dl>
+
+    >> SymbolQ[a]
+     = True
+    >> SymbolQ[1]
+     = False
+    >> SymbolQ[a + b]
+     = False
+    """
+
+    summary_text = "test whether is a symbol"
+
+    def test(self, expr) -> bool:
+        return eval_SymbolQ(expr)
 
 
 class ValueQ(Builtin):
