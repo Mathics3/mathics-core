@@ -1,12 +1,12 @@
 # cython: language_level=3
 # cython: profile=False
 # -*- coding: utf-8 -*-
-"""Core to Mathics3 is are patterns which match symbolic expressions. Patterns
+"""Core to Mathics3 are patterns which match symbolic expressions. Patterns
 are built up in a custom pattern notation.
 The parts of a pattern are called "Pattern Objects".
 
 While there is a built-in function which allows users to match parts of
-expressions, patterns are also used in applying of transformation
+expressions, patterns are also used in applying transformation
 rules and deciding functions that get applied.
 
 See also: mathics.core.rules and
@@ -109,7 +109,7 @@ class BasePattern(ABC):
 
     A Pattern is a way to represent classes of expressions.
     For example, ``F[x_Symbol]`` is a pattern which matches an expression whose
-    Head is ``F`` and that has a single parameter which is kind of Symbol.
+    Head is ``F`` and that has a single parameter which is a kind of Symbol.
     When the pattern matches, the symbol is bound to the parameter ``x``.
     """
 
@@ -165,7 +165,7 @@ class BasePattern(ABC):
     # ```
     #
     # At this point, the rule `rule` was created. As the head of the pattern
-    # is an expression, it does not provides special attributes to the pattern.
+    # is an expression, it does not provide special attributes to the pattern.
     # As expected, the pattern does not match with `Q[a, 1]` because the order of the
     # parameters:
     # ```
@@ -271,14 +271,14 @@ class BasePattern(ABC):
     def match(self, expression: BaseElement, pattern_context: dict):
         """
         Check if the expression matches the pattern (self).
-        If it does, calls `yield_func`.
-        vars collects subexpressions associated to named subpatterns.
+        If it does, it calls `yield_func`.
+        vars collects subexpressions associated with named subpatterns.
         head: Symbol. Provided by match_element, used by `Optional`.
-        element_index: int  the position
-        element_count: int and the number of optional elements. Used by `Optional`
+        element_index: int,  the position
+        element_count: int, the number of optional elements. Used by `Optional`
         for calling `get_default_value`.
 
-        Note: this complexity would disappear if Defaults would be stored as in WMA
+        Note: this complexity would disappear if `Defaults` were stored as in WMA
         at the creation time of the object.
 
         fully is used in `match_element`, for the case of Orderless patterns.
@@ -318,8 +318,8 @@ class BasePattern(ABC):
         self, elements: Tuple[BaseElement], pattern_context: dict
     ) -> tuple:
         """
-        Get the a sub-tuple of elements that are candidates
-        matching with the pattern.
+        Get a sub-tuple of elements that are candidates
+        matching the pattern.
 
         Optional parameters provide information
         about the context where the elements and the
@@ -333,7 +333,7 @@ class BasePattern(ABC):
     def get_match_candidates_count(
         self, elements: Tuple[BaseElement], pattern_context: dict
     ) -> Union[int, tuple]:
-        """Return the number of candidates that match with the pattern."""
+        """Return the number of candidates that match the pattern."""
         return len(self.get_match_candidates(elements, pattern_context))
 
     @property
@@ -388,11 +388,11 @@ class AtomPattern(BasePattern):
     def get_match_symbol_candidates(
         self, elements: tuple, pattern_context: dict
     ) -> tuple:
-        """Find the sub-tuple of elements that matches with the pattern"""
+        """Find the sub-tuple of elements that matches the pattern"""
         return tuple((element for element in elements if element is self.atom))
 
     def match(self, expression: BaseElement, pattern_context: dict):
-        """Try to match the patterh with the expression."""
+        """Try to match the pattern with the expression."""
 
         if isinstance(expression, Atom) and expression.sameQ(self.atom):
             # yield vars, None
@@ -402,7 +402,7 @@ class AtomPattern(BasePattern):
         self, elements: Tuple[BaseElement], pattern_context: dict
     ) -> tuple:
         """
-        Return a sub-tuple of elements that matches with the pattern.
+        Return a sub-tuple of elements that matches the pattern.
         """
         return tuple(
             (
@@ -572,7 +572,7 @@ class ExpressionPattern(BasePattern):
         If items has length 1, apply yield_func to the unique element.
         Otherwise, apply it to a sequence. If the expression has the
         attribute `Orderless`, apply it to all the possible orders.
-        Finally , if the expression is `Flat`, and the parameter `include_flattened`
+        Finally, if the expression is `Flat`, and the parameter `include_flattened`
         is `True`, apply yield_func to the expression with the head of the original
         expression applied to the original sequence.
         """
@@ -747,7 +747,7 @@ def match_expression_with_one_identity(
     # each time because at some point we should need
     # to check the default values each time...
 
-    # This tries to reduce the pattern to a non empty
+    # This tries to reduce the pattern to a non-empty
     # set of default values, and a single pattern.
     from mathics.builtin.patterns.composite import Pattern
     from mathics.core.builtin import PatternObject

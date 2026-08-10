@@ -56,7 +56,7 @@ class FromPythonOptions:
     """
     Stores options associated with the to_python[] builtin.
 
-    One initialized, this structure is immutable or frozen.
+    Once initialized, this structure is immutable or frozen.
     """
 
     use_associations: Optional[bool] = None
@@ -94,11 +94,11 @@ DEFAULT_PYTHON_OPTIONS: Final[FromPythonOptions] = FromPythonOptions.from_dict(
 # Historically, from_python() was identified as a bottleneck.
 
 # A large part of this was due to the inefficient monolithic
-# non-specialized interpreter that forced everything into an single
+# non-specialized interpreter that forced everything into a single
 # Expression class which tried to handle anything given it using
 # conversions.
 
-# Also, through vague or lazy coding this cause a lot of
+# Also, through vague or lazy coding, this caused a lot of
 # unnecessary conversions.
 
 # We may be out of those days, but we should still
@@ -107,13 +107,13 @@ DEFAULT_PYTHON_OPTIONS: Final[FromPythonOptions] = FromPythonOptions.from_dict(
 # sure from_python() isn't too slow.
 
 # TODO:
-#  I think there are number of subtleties to be explained here.
-#  In particular, the expression might been the result of evaluation
+#  I think there are several subtleties to be explained here.
+#  In particular, the expression might have been the result of evaluating
 #  a SymPy expression which contains SymPy symbols.
 #
-#  If the end result is to go back into Mathics3 for further
-#  evaluation, then probably no problem.  However if the end result
-#  is produce say a Python string, then at a minimum we may want to
+#  If the result is to go back into Mathics3 for further
+#  evaluation, then probably no problem.  However, if the result
+#  produces, say, a Python string, then at a minimum we may want to
 #  convert backtick (context) symbols into some Python identifier
 #  symbol like underscore.
 
