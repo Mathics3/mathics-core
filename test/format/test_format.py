@@ -130,9 +130,7 @@ if fragile_tests:
 )
 def test_makeboxes_text(str_expr, str_expected, form, msg):
     result = session.evaluate(str_expr)
-    print("result:", result)
     format_result = result.format(session.evaluation, form)
-    print("format_result", format_result)
     if msg:
         assert (
             format_result.to_text(evaluation=session.evaluation, encoding="UTF-8")
