@@ -45,8 +45,10 @@ from mathics.core.systemsymbols import (
 from mathics.doc.online import online_doc_string
 from mathics.eval.atomic.symbols import eval_SymbolQ
 from mathics.eval.symbol.properties import (
+    eval_Information,
     eval_Information_with_property,
     eval_values,
+    get_matching_names,
     missing_symbol,
 )
 
@@ -407,19 +409,24 @@ class Information(PrefixOperator):
     }
     summary_text = "get information about all assignments for a symbol"
 
+    def eval(self, expr, evaluation: Evaluation, options: dict):
+        "Information[expr_, OptionsPattern[Information]]"
+        return eval_Information(expr, evaluation)
+
     def build_missing(self, expression: BaseElement) -> Expression:
         """Evaluate ?? F[x][y].. as -> Missing[UnknownSymbol, F][x][y]"""
         if isinstance(expression, Expression):
             return Expression(self.build_missing(expression.head), *expression.elements)
         return missing_symbol(expression)
 
-    # FIXME: this is crap and needs to be moved to eval and rewritten.
+    # FIXME: this is a format routine. It should probably get rethought as
+    # to what to do and moved to with other format routines.
     def build_list_of_matching_symbols(
         self, symbol_pat: str, evaluation: Evaluation, options: dict, grid: bool = True
     ):
         """Return a list of symbols compatible with symbol_pat"""
+        names = get_matching_names(symbol_pat, evaluation)
         definitions = evaluation.definitions
-        names = definitions.get_matching_names(symbol_pat)
         if len(names) == 1:
             return self.format_information_symbol(
                 Symbol(definitions.lookup_name(names[0])), evaluation, options
@@ -449,6 +456,7 @@ class Information(PrefixOperator):
 
         return eval_Information_with_property(expr, prop.value, evaluation)
 
+    # FIXME: Format routines should move elsewhere.
     # This implementation mixes the current behavior of WMA >=12.0 with the old behavior
     # (WMA 4.0).
     # TODO: the formatting part of this must be moved to `InformationData`
@@ -493,22 +501,24 @@ class Information(PrefixOperator):
         except KeyError:
             return self.build_missing(symbol)
 
-        lines = []
+        lines: list[Expression | String] = []
         # Print the "usage" message if available.
         # is_long_form = self.get_option(options, "LongForm", evaluation).to_python()
         is_long_form = True  # In WMA >=12.0 this option does not make much difference--
         usagetext = online_doc_string(symbol, evaluation.definitions, is_long_form)
         if usagetext:
-            lines.append(usagetext)
+            lines.append(String(usagetext))
         else:
-            lines.append(symbol.get_name())
+            lines.append(String(symbol.get_name()))
 
-        if is_long_form:
-            lines.extend(gather_and_format_definition_rules(symbol, evaluation))
+        if is_long_form and (
+            info := gather_and_format_definition_rules(symbol, evaluation)
+        ):
+            lines.extend(info)
 
         infoshow = Expression(
             SymbolGrid,
-            ListExpression(*(to_mathics_list(line) for line in lines)),
+            ListExpression(line for line in lines),
             Expression(SymbolRule, Symbol("ColumnAlignments"), SymbolLeft),
         )
         return infoshow

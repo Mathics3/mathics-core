@@ -300,3 +300,12 @@ class Association(Atom, BoxElementMixin):
         self._expr = None
         self._python = None
         self._hash = None
+
+
+def association_from_mathics3_kv_dict(d: dict[BaseElement, BaseElement]) -> Association:
+    """
+    Given a Python dictionary contianing Mathics3 keys and values, return
+    and Assocation for that.
+    """
+    elements = [Expression(SymbolRule, key, value) for key, value in d.items()]
+    return Association(elements)

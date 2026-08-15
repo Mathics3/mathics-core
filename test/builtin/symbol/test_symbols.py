@@ -19,10 +19,10 @@ import pytest
         ## awkward parser cases
         ("FullForm[a`b_]", None, "Pattern[a`b, Blank[]]", None),
         (
-            "Clear[a]; Information[a]",
-            tuple(),
-            "Global`a\n",
-            "When a symbol is not bound, Information[] of that symbol should return the context and name.",
+            'Clear[a]; Information[a, "Usage"]',
+            None,
+            "Global`a",
+            'When a symbol is not bound, Information[, "Usage"] of that symbol should return the context and name.',
         ),
         (
             "a = 2;",
@@ -38,18 +38,18 @@ import pytest
             "q does not exist, and Information does not create it.",
         ),
         (
-            '{Information[s], Information["s"]}',
-            tuple(),
-            "{Global`s\n, Global`s\n}",
+            '{Information[s, "Usage"], Information["s", "Usage"]}',
+            None,
+            "{Global`s, Global`s}",
             "When s is passed as a symbol, it creates the definition.",
         ),
         ("f[x_] := x ^ 2;", None, "Null", None),
         ("g[f] ^:= 2;", None, "Null", None),
         ('f::usage = "f[x] returns the square of x";', None, "Null", None),
         (
-            "Information[f]",
+            'Information[f, "Usage"]',
             tuple(),
-            "f[x] returns the square of x\n\nf[x_] = x^2\n\ng[f] ^= 2\n",
+            "f[x] returns the square of x",
             None,
         ),
         ('Length[Names["System`*"]] > 350', None, "True", None),
