@@ -45,8 +45,10 @@ from mathics.core.systemsymbols import (
 from mathics.doc.online import online_doc_string
 from mathics.eval.atomic.symbols import eval_SymbolQ
 from mathics.eval.symbol.properties import (
+    eval_Information,
     eval_Information_with_property,
     eval_values,
+    get_matching_names,
     missing_symbol,
 )
 
@@ -407,6 +409,10 @@ class Information(PrefixOperator):
     }
     summary_text = "get information about all assignments for a symbol"
 
+    def eval(self, expr, evaluation: Evaluation, options: dict):
+        "Information[expr_, OptionsPattern[Information]]"
+        return eval_Information(expr, evaluation)
+
     def build_missing(self, expression: BaseElement) -> Expression:
         """Evaluate ?? F[x][y].. as -> Missing[UnknownSymbol, F][x][y]"""
         if isinstance(expression, Expression):
@@ -418,6 +424,7 @@ class Information(PrefixOperator):
         self, symbol_pat: str, evaluation: Evaluation, options: dict, grid: bool = True
     ):
         """Return a list of symbols compatible with symbol_pat"""
+        names = get_matching_names(symbol_pat, evaluation)
         definitions = evaluation.definitions
         names = definitions.get_matching_names(symbol_pat)
         if len(names) == 1:

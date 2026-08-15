@@ -7,8 +7,12 @@ from typing import Final
 
 from mathics.core.assignment import get_symbol_values
 from mathics.core.atoms import String
-from mathics.core.atoms.associations import Association
+from mathics.core.atoms.associations import (
+    Association,
+    association_from_mathics3_kv_dict,
+)
 from mathics.core.attributes import A_READ_PROTECTED
+from mathics.core.convert.python import association_from_dict
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -16,11 +20,20 @@ from mathics.core.list import ListExpression
 from mathics.core.rules import RewriteRule
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
+    SymbolAttributes,
+    SymbolDownValues,
+    SymbolInformationData,
+    SymbolInformationDataGrid,
     SymbolMessageName,
     SymbolMissing,
     SymbolNone,
+    SymbolNValues,
+    SymbolOptions,
+    SymbolOwnValues,
+    SymbolSubValues,
     SymbolUnknownProperty,
     SymbolUnknownSymbol,
+    SymbolUpValues,
 )
 from mathics.doc.online import get_builtin_class, get_builtin_documentation
 from mathics.eval.attributes import eval_Attributes
@@ -42,6 +55,56 @@ ALL_PROPERTIES: Final[ListExpression] = ListExpression(
     String("UpValues"),
     String("Usage"),
 )
+
+
+def eval_Information(name, evaluation: Evaluation):
+    """
+    Evaluation routine for: Information[name]
+    """
+    if isinstance(name, String):
+        names: list[str] = get_matching_names(name.value, evaluation)
+        if len(names) > 1:
+            return Expression(SymbolInformationDataGrid, *[String(n) for n in names])
+        name_symbol = Symbol(names[0])
+    elif isinstance(name, Symbol):
+        name_symbol = name
+    else:
+        return None
+    # name is now a Symbol
+    name_str = name_symbol.name
+    info_data = {
+        Symbol("ObjectType"): String("Symbol"),
+        Symbol("Usage"): information_usage(
+            name_symbol, name_str, evaluation.definitions
+        ),
+        Symbol("Documentation"): information_documentation(
+            name_str, evaluation.definitions
+        ),
+        Symbol("FullName"): String(name_str),
+        SymbolAttributes: eval_Attributes(name, evaluation),
+        SymbolOptions: eval_Options(name_symbol, evaluation, empty_is_none=True),
+        Symbol("DefaultValues"): information_values(
+            name_symbol, name_str, evaluation, "DefaultValues"
+        ),
+        SymbolDownValues: information_values(
+            name_symbol, name_str, evaluation, "DownValues"
+        ),
+        Symbol("FormatValues"): information_values(
+            name_symbol, name_str, evaluation, "FormatValues"
+        ),
+        SymbolNValues: information_values(name_symbol, name_str, evaluation, "NValues"),
+        SymbolOwnValues: information_values(
+            name_symbol, name_str, evaluation, "OwnValues"
+        ),
+        SymbolSubValues: information_values(
+            name_symbol, name_str, evaluation, "SubValues"
+        ),
+        SymbolUpValues: information_values(
+            name_symbol, name_str, evaluation, "UpValues"
+        ),
+    }
+    association: Association = association_from_mathics3_kv_dict(info_data)
+    return Expression(SymbolInformationData, association)
 
 
 def eval_Information_with_property(name, property_name: str, evaluation: Evaluation):
@@ -126,9 +189,14 @@ def eval_values(name, evaluation: Evaluation, attribute: str):
     return get_symbol_values(name_symbol, attribute, attribute.lower(), evaluation)
 
 
+def get_matching_names(symbol_pat: str, evaluation: Evaluation) -> list[str]:
+    """Return a list of symbols in eval.definitions matching `symbol_pat`"""
+    return evaluation.definitions.get_matching_names(symbol_pat)
+
+
 def information_documentation(
     name_str: str, definitions: Definitions
-) -> Association | None:
+) -> Association | Symbol:
     """
     Informaton[symbol, "Documentation"]
 
@@ -151,7 +219,7 @@ def information_documentation(
     builtin_class = get_builtin_class(name_str, definitions)
     if builtin_class:
         return get_builtin_documentation(builtin_class)
-    return None
+    return SymbolNone
 
 
 def information_object_type() -> String:
@@ -177,7 +245,7 @@ def information_object_type() -> String:
 
 def information_usage(
     name_symbol: Symbol, name_str: str, definitions: Definitions
-) -> String | Symbol:
+) -> String:
     """Retrieve symbol's usage message string.
 
     For user variables, use "usage" message value stored.
@@ -219,7 +287,7 @@ def information_usage(
         # Django homegrown documentation better.
         return String(builtin_class.summary_text)
 
-    return name_symbol
+    return String(name_symbol)
 
 
 def information_values(name_symbol: Symbol, name_str: str, evaluation, value_type: str):
