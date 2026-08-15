@@ -688,8 +688,8 @@ class SubsuperscriptBox(BoxExpression):
         if self._elements is None:
             # self.box_options
             self._elements = elements_to_expressions(
+                self,
                 (
-                    self,
                     self.base,
                     self.subindex,
                     self.superindex,
