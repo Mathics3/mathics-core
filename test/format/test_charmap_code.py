@@ -6,7 +6,7 @@ Here `Entry` objects are built by hand, with the valued produced by
 the WMA interpreter for Klingon.wl / ISO8859-1.m / ISO8859-8.m.
 """
 
-from mathics.eval.wl_charmap_codec import Entry, make_codec, register_codec
+from mathics.eval.encoding.wl_charmap_codec import Entry, make_codec, register_codec
 
 # Klingon.wl subset used to encode "HELLO WORLD!"
 KLINGON_ENTRIES = [
@@ -120,7 +120,7 @@ def test_ascii_substitution_empty_key_does_not_corrupt_output():
     # regresion: mathics_scanner.characters.UNICODE_CHARACTER_TO_ASCII
     # has an empty key ('' -> 'is'). It must be filtered to avoid break the
     # pre-step multi-caracter regex.
-    from mathics.eval.wl_charmap_codec import (
+    from mathics.eval.encoding.wl_charmap_codec import (
         build_substitution_table,
         encode_with_substitution,
     )
@@ -134,7 +134,7 @@ def test_ascii_substitution_empty_key_does_not_corrupt_output():
 def test_ascii_substitution_combining_sequence():
     # Many character keys (combination sequences) must be resolved via
     # the substitution pre-step, not  via charmap_encode
-    from mathics.eval.wl_charmap_codec import (
+    from mathics.eval.encoding.wl_charmap_codec import (
         build_substitution_table,
         encode_with_substitution,
     )
@@ -146,7 +146,7 @@ def test_ascii_substitution_combining_sequence():
 
 
 def test_escape_unrepresentable_char_prefers_name():
-    from mathics.eval.wl_charmap_codec import escape_unrepresentable_char
+    from mathics.eval.encoding.wl_charmap_codec import escape_unrepresentable_char
 
     assert escape_unrepresentable_char("\u2a2f") == "\\[Cross]"  # has a name
     assert escape_unrepresentable_char("\u0416") == "\\:0416"  # no name -> hex

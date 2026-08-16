@@ -20,8 +20,8 @@ from mathics.core.systemsymbols import (
     SymbolOutputStream,
     SymbolReal,
 )
-from mathics.eval.encoding import WMA_DECODE_TABLES, to_python_encoding
-from mathics.eval.wl_charmap_codec import register_escape_error_handler
+from mathics.eval.encoding.encoding import WMA_DECODE_TABLES, to_python_encoding
+from mathics.eval.encoding.wl_charmap_codec import register_escape_error_handler
 
 # TODO: Improve docs for these Read[] arguments.
 

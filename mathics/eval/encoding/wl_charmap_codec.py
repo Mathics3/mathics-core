@@ -4,7 +4,11 @@ wl_charmap_codec.py
 Pure toolkit for building, from already parsed entries from a .wl
 encoding file (with format {"8Bit", {{charcode, "repr",
 invertible?}, ...}}), a real Python codec: a decode table
-(byte -> str) and an encoding table (str -> byte), respecting the invertibility flag on each entry.
+(byte -> str) and an encoding table (str -> byte).
+Following the behavior observed in WMA, the field `invertible`
+is not taken into account. If the entry "repr" is `None`,
+then it is replaced by the unicode character with
+code `0x0xF200 + charcode`.
 
 Construction primitives ('charmap_build', 'charmap_encode',
 'charmap_decode') are the same used by the Pythons stdlib for implementing
@@ -42,56 +46,73 @@ def build_charmap(tag: str, entries: list[Entry]) -> tuple[str, dict[int, int]]:
     """
     Build:
       - decoding_table: fixed length Python string (256 for 8Bit) for
-        decodiding byte -> caracter. Undefined positions use
-        '\\ufffe' (convention in codecs.charmap_* for "undefined").
-      - encoding_table: dict character(ordinal) -> byte.
-
-        Characters in this tag's *native* range (ord < size, e.g.
-        ordinary ASCII/Latin-1 for an "8Bit" tag) ALWAYS encode as
-        their own byte value, unconditionally -- even when this
-        encoding's decode table reassigns that very byte's *decoding*
-        to something else entirely. Confirmed against real Wolfram
-        Mathematica: Klingon.wl reassigns byte 72 (0x48) to decode as
-        a pIqaD glyph (U+F8D6), yet
-            ToString["Hola Martok! ...", CharacterEncoding->"Klingon"]
-        still keeps the literal "H" of "Hola" as-is (byte 72), rather
-        than escaping it to "\\:0048" -- ordinary native-range text
-        round-trips through its own byte regardless of what the
-        encoding does elsewhere. Only characters *outside* the native
-        range (ord >= size) consult the decode table's exceptions, to
-        find the one byte -- if any, and if invertible -- specifically
-        assigned to represent them (e.g. Klingon's U+F8D9 -> byte 76).
-
-        This also makes the invertible/non-invertible question moot
-        for any character in the native range: since those never
-        consult the decode-derived overrides at all, a native-range
-        character can never collide with another native-range
-        position the way Symbol.wl's duplicate, non-invertible
-        `{226, "\\[RegisteredTrademark]", False}` (registered
-        trademark, U+00AE, itself in the Latin-1 native range) would
-        otherwise suggest.
+        decoding byte -> character. Every position always has a real,
+        round-trippable character: untouched positions default to
+        Latin-1 identity, entries listing an explicit character
+        override that position, and `{code, None}` entries (turned
+        into `chr(0xF200 + code)` by the caller before this function
+        ever sees them -- see load_encoding_table) place a
+        Private-Use-Area placeholder there. There is no "undefined,
+        raises on decode" sentinel: real Wolfram Mathematica always
+        successfully decodes every byte (confirmed:
+        `FromCharacterCode[142, "Symbol"]` -- byte 142 is `{142, None}`
+        in Symbol.wl -- gives `"\\:f28e"`, i.e. exactly
+        `chr(0xF200 + 142)`, not a decode failure).
+      - encoding_table: dict character(ordinal) -> byte. Seeded with
+        this tag's *native*-range identity (ord < size, e.g. plain
+        ASCII/Latin-1 for "8Bit"), then overridden -- scanning bytes
+        0..size-1 in order, so the highest matching byte code wins on
+        a genuine multi-byte collision -- by whatever the decode table
+        assigns each byte to. This reproduces, in a single unified
+        rule, three behaviors confirmed against real Wolfram
+        Mathematica:
+          * A native-range character with NO explicit decode target
+            anywhere still round-trips through its own byte (identity
+            seed never gets overwritten for it): Klingon.wl reassigns
+            byte 72 (0x48) away from "H" (to a pIqaD glyph, U+F8D6),
+            yet plain "H" still encodes back to byte 72 -- confirmed
+            via `ToString["Hola ...", CharacterEncoding->"Klingon"]`
+            keeping "Hola" literal.
+          * A character WITH an explicit decode target uses that byte,
+            even when it's itself in the native range and even though
+            the entry is marked `invertible -> False`: confirmed via
+            `ToCharacterCode["\\[Divide]", "ISO8859-8"] -> {186}`
+            (ISO8859-8.wl has `{186, "\\[Divide]", False}`; byte 247,
+            the character's own Latin-1 identity position, is *itself*
+            reassigned to Hebrew Qof in that file, so there is no
+            competing identity mapping to worry about here -- but even
+            where one could exist, the decode-table override always
+            wins by construction, since it's applied after the seed).
+          * `{code, None}` entries (-> PUA placeholder, see above) are
+            just ordinary decode targets under this rule, so they
+            participate in encoding too, and round-trip like anything
+            else: confirmed via `ToCharacterCode["\\:f28e", "Symbol"]
+            -> {142}`.
+        The `invertible` field on `Entry` is intentionally NOT
+        consulted anywhere in this function -- confirmed to have no
+        effect on real WMA's encode direction (see the ISO8859-8
+        example above). It's kept as parsed data on `Entry` only for
+        callers that might want to inspect the table, not used here.
+        NOTE: when two or more DIFFERENT bytes explicitly decode to
+        the exact same character (e.g. Symbol.wl's duplicate
+        `{210, "\\[RegisteredTrademark]"}` / `{226,
+        "\\[RegisteredTrademark]", False}` pair), the highest-numbered
+        byte wins for encoding under this rule. This specific tie-break
+        is NOT verified against real WMA (we don't have a test case
+        for it) -- but since all such bytes decode to the identical
+        character, the two are functionally interchangeable for
+        encoding purposes regardless of which one is picked.
     """
     size = TAG_SIZES.get(tag, 256)
     table = [chr(i) for i in range(size)]  # default: identity (Latin-1)
-    non_invertible_codes: set[int] = set()
     for e in entries:
         if e.code < size:
             table[e.code] = e.char
-            if not e.invertible:
-                non_invertible_codes.add(e.code)
     decoding_table = "".join(table)
 
     encoding_table: dict[int, int] = {i: i for i in range(size)}
     for code, ch in enumerate(decoding_table):
-        if code in non_invertible_codes:
-            continue
-        if ord(ch) >= size:
-            encoding_table[ord(ch)] = code
-    # "\ufffe" is codecs.charmap_*'s own convention for "this byte
-    # position is unassigned" (see load_encoding_table's handling of
-    # `{code, None}` entries); never let it leak into the encode
-    # direction as a spurious target for a literal U+FFFE character.
-    encoding_table.pop(0xFFFE, None)
+        encoding_table[ord(ch)] = code
 
     return decoding_table, encoding_table
 

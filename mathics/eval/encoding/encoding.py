@@ -39,6 +39,7 @@ Design notes (see discussion that led to this rewrite):
 """
 
 import codecs
+import os
 from typing import Final
 
 from mathics_scanner.characters import UNICODE_CHARACTER_TO_ASCII
@@ -46,8 +47,9 @@ from mathics_scanner.characters import UNICODE_CHARACTER_TO_ASCII
 from mathics.core.atoms import String
 from mathics.core.convert.op import operator_to_unicode, unicode_operator_to_ascii
 from mathics.core.systemsymbols import SymbolNone
-from mathics.eval.wl_charmap_codec import (
-    _REGISTERED_TABLES,
+from mathics.settings import ROOT_DIR
+
+from .wl_charmap_codec import (
     TAG_SIZES,
     Entry,
     assert_ascii_safe,
@@ -56,7 +58,6 @@ from mathics.eval.wl_charmap_codec import (
     escape_unrepresentable_char,
     register_codec_from_tables,
 )
-from mathics.settings import ROOT_DIR
 
 # Map WMA encoding names to Python encoding names
 # see https://docs.python.org/3/library/codecs.html#standard-encodings
@@ -149,6 +150,23 @@ WMA_DECODE_TABLES: dict[str, str] = {}
 
 class EncodingNameError(Exception):
     pass
+
+
+def available_character_encodings() -> List[str]:
+    """
+    List all the available character encodings, including the
+    default Python encodings and the custom encodings defined in
+    SystemFiles/CharacterEncodings/*.wl
+    """
+    default_encodings = set(CHARACTER_ENCODING_MAP.keys())
+    encodings = default_encodings.union(
+        {
+            filename[:-3]
+            for filename in os.listdir(f"{ROOT_DIR}/SystemFiles/CharacterEncodings/")
+            if filename.endswith(".wl")
+        }
+    )
+    return map(lambda s: '"%s"' % s, sorted(encodings))
 
 
 def encode_string_value(value: str, encoding: str) -> str:
@@ -329,6 +347,12 @@ def load_encoding_table(encoding, evaluation):
         None,
     )
     if etl is None or not etl.has_form("List", 2):
+        print(
+            "etl",
+            etl,
+            "in ",
+            f"{ROOT_DIR}/SystemFiles/CharacterEncodings/{encoding}.wl",
+        )
         evaluation.message("$CharacterEncoding", "charfile", String(encoding))
         raise EncodingNameError(encoding)
 
@@ -354,11 +378,19 @@ def load_encoding_table(encoding, evaluation):
                 # (only True/False/Null are), so calling to_python() on
                 # it would return the literal 11-character string
                 # "System`None" -- silently corrupting every position
-                # after it in the fixed-width decoding table. Use
-                # "\ufffe" instead: codecs.charmap_decode's own
-                # convention for "undefined", which correctly makes
-                # decoding this byte raise UnicodeDecodeError.
-                repr_str = "\ufffe"
+                # after it in the fixed-width decoding table.
+                #
+                # Use chr(0xF200 + code) instead: this is real WMA's
+                # own convention for these positions, confirmed
+                # empirically --
+                #   FromCharacterCode[142, "Symbol"] // FullForm
+                # gives "\:f28e", i.e. exactly chr(0xF200 + 142), and
+                # it round-trips: ToCharacterCode["\:f28e", "Symbol"]
+                # gives {142}. So this is NOT an "undefined, decoding
+                # fails" marker (real WMA never fails to decode any
+                # byte) -- it's a real, invertible Private-Use-Area
+                # placeholder, exactly like any other table entry.
+                repr_str = chr(0xF200 + code)
             else:
                 repr_str = repr_el.to_python(string_quotes=False)
             rest = [el.to_python(string_quotes=False) for el in rest_els]

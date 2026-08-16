@@ -9,6 +9,7 @@ from mathics.core.attributes import A_LISTABLE, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Test
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
+from mathics.eval.encoding import load_encoding_table
 from mathics.eval.string.characters import eval_Characters
 
 
