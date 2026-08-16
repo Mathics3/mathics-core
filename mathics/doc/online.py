@@ -11,6 +11,7 @@ from mathics.core.builtin import Builtin
 from mathics.core.convert.python import association_from_dict
 from mathics.core.definitions import Definitions
 from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import SymbolNone
 from mathics.doc.doc_entries import DocumentationEntry
 
 URL_RE = re.compile(r"(?:[^<]*)<url>\s*:(.+?):\s*(.+?)\s*</url>", flags=re.DOTALL)
@@ -43,14 +44,14 @@ def get_builtin_class(name_str: str, definitions: Definitions) -> Optional[Built
 
 # FIXME: This will get less regular-expression-based and less hacky
 # when the documentation is revised.
-def get_builtin_documentation(builtin_class: Builtin) -> Optional[Association]:
+def get_builtin_documentation(builtin_class: Builtin) -> Association | Symbol:
     """
-    Returns an Association of documentation links, or `None` if none are found.
+    Returns an Association of documentation links, or SymbolNone if none are found.
     Key: "Web" has a WMA reference.
     """
     docstr = builtin_class.__doc__
     if docstr is None:
-        return None
+        return SymbolNone
     links_association = {}
     if link_section := docstr[0 : docstr.find("<dl>")]:
         start_position = 0
@@ -69,7 +70,7 @@ def get_builtin_documentation(builtin_class: Builtin) -> Optional[Association]:
         pass
     if links_association:
         return association_from_dict(links_association)
-    return None
+    return SymbolNone
 
 
 def online_doc_string(

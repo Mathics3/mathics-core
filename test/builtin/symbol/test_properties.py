@@ -74,7 +74,7 @@ def test_information_two_arg_form():
         ),
         (
             'Clear[Foo]; Information[Foo, "Usage"]',
-            "Foo",
+            '"Global`Foo"',
             "Default usage for a symbol when not set is the symbol name",
         ),
         (

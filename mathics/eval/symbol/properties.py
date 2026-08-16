@@ -7,7 +7,10 @@ from typing import Final
 
 from mathics.core.assignment import get_symbol_values
 from mathics.core.atoms import String
-from mathics.core.atoms.associations import Association
+from mathics.core.atoms.associations import (
+    Association,
+    association_from_mathics3_kv_dict,
+)
 from mathics.core.attributes import A_READ_PROTECTED
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
@@ -16,11 +19,20 @@ from mathics.core.list import ListExpression
 from mathics.core.rules import RewriteRule
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
+    SymbolAttributes,
+    SymbolDownValues,
+    SymbolInformationData,
+    SymbolInformationDataGrid,
     SymbolMessageName,
     SymbolMissing,
     SymbolNone,
+    SymbolNValues,
+    SymbolOptions,
+    SymbolOwnValues,
+    SymbolSubValues,
     SymbolUnknownProperty,
     SymbolUnknownSymbol,
+    SymbolUpValues,
 )
 from mathics.doc.online import get_builtin_class, get_builtin_documentation
 from mathics.eval.attributes import eval_Attributes
@@ -42,6 +54,56 @@ ALL_PROPERTIES: Final[ListExpression] = ListExpression(
     String("UpValues"),
     String("Usage"),
 )
+
+
+def eval_Information(name, evaluation: Evaluation):
+    """
+    Evaluation routine for: Information[name]
+    """
+    if isinstance(name, String):
+        names: list[str] = get_matching_names(name.value, evaluation)
+        if len(names) > 1:
+            return Expression(SymbolInformationDataGrid, *[String(n) for n in names])
+        name_symbol = Symbol(names[0])
+    elif isinstance(name, Symbol):
+        name_symbol = name
+    else:
+        return None
+    # name is now a Symbol
+    name_str = name_symbol.name
+    info_data = {
+        Symbol("ObjectType"): String("Symbol"),
+        Symbol("Usage"): information_usage(
+            name_symbol, name_str, evaluation.definitions
+        ),
+        Symbol("Documentation"): information_documentation(
+            name_str, evaluation.definitions
+        ),
+        Symbol("FullName"): String(name_str),
+        SymbolAttributes: eval_Attributes(name, evaluation),
+        SymbolOptions: eval_Options(name_symbol, evaluation, empty_is_none=True),
+        Symbol("DefaultValues"): information_values(
+            name_symbol, name_str, evaluation, "DefaultValues"
+        ),
+        SymbolDownValues: information_values(
+            name_symbol, name_str, evaluation, "DownValues"
+        ),
+        Symbol("FormatValues"): information_values(
+            name_symbol, name_str, evaluation, "FormatValues"
+        ),
+        SymbolNValues: information_values(name_symbol, name_str, evaluation, "NValues"),
+        SymbolOwnValues: information_values(
+            name_symbol, name_str, evaluation, "OwnValues"
+        ),
+        SymbolSubValues: information_values(
+            name_symbol, name_str, evaluation, "SubValues"
+        ),
+        SymbolUpValues: information_values(
+            name_symbol, name_str, evaluation, "UpValues"
+        ),
+    }
+    association: Association = association_from_mathics3_kv_dict(info_data)
+    return Expression(SymbolInformationData, association)
 
 
 def eval_Information_with_property(name, property_name: str, evaluation: Evaluation):
@@ -126,9 +188,14 @@ def eval_values(name, evaluation: Evaluation, attribute: str):
     return get_symbol_values(name_symbol, attribute, attribute.lower(), evaluation)
 
 
+def get_matching_names(symbol_pat: str, evaluation: Evaluation) -> list[str]:
+    """Return a list of symbols in eval.definitions matching `symbol_pat`"""
+    return evaluation.definitions.get_matching_names(symbol_pat)
+
+
 def information_documentation(
     name_str: str, definitions: Definitions
-) -> Association | None:
+) -> Association | Symbol:
     """
     Informaton[symbol, "Documentation"]
 
@@ -151,7 +218,7 @@ def information_documentation(
     builtin_class = get_builtin_class(name_str, definitions)
     if builtin_class:
         return get_builtin_documentation(builtin_class)
-    return None
+    return SymbolNone
 
 
 def information_object_type() -> String:
@@ -177,7 +244,7 @@ def information_object_type() -> String:
 
 def information_usage(
     name_symbol: Symbol, name_str: str, definitions: Definitions
-) -> String | Symbol:
+) -> String:
     """Retrieve symbol's usage message string.
 
     For user variables, use "usage" message value stored.
@@ -204,7 +271,7 @@ def information_usage(
     definition = definitions.get_definition(name_str)
     if not definition:
         # Definition not found
-        return name_symbol
+        return String(name_symbol.name)
 
     for rule in definition.get_values_list("messages"):
         if isinstance(rule, RewriteRule) and rule.lhs.get_head() is SymbolMessageName:
@@ -219,7 +286,7 @@ def information_usage(
         # Django homegrown documentation better.
         return String(builtin_class.summary_text)
 
-    return name_symbol
+    return String(name_symbol)
 
 
 def information_values(name_symbol: Symbol, name_str: str, evaluation, value_type: str):
@@ -253,207 +320,3 @@ def missing_property(property) -> Expression:
 @cache
 def missing_symbol(expression) -> Expression:
     return Expression(SymbolMissing, SymbolUnknownSymbol, expression)
-
-
-# The stuff below is from old Mathics code and needs to be revised
-# and rewritten.
-
-# def gather_and_format_definition_rules(
-#     symbol: Symbol, evaluation: Evaluation
-# ) -> Optional[list[Expression]]:
-#     """Return a list of lines describing the definition of `symbol`"""
-#     lines = []
-
-#     def rhs_format(expr):
-#         if expr.has_form("Infix", None):
-#             expr = Expression(Expression(SymbolHoldForm, expr.head), *expr.elements)
-#         return expr
-
-#     def format_rule(
-#         rule: RewriteRule,
-#         up: bool = False,
-#         lhs: Callable = lambda k: k,
-#         rhs: Callable = lambda r: r,
-#     ):
-#         """
-#         Add a line showing `rule`
-#         """
-#         evaluation.check_stopped()
-#         if isinstance(rule, RewriteRule):
-#             lhs_pat = Expression(SymbolInputForm, lhs(rule.pattern.expr))
-#             repl_expr = rhs(
-#                 rule.replace.replace_vars(
-#                     {"System`Definition": Expression(SymbolHoldForm, SymbolDefinition)}
-#                 )
-#             )
-#             repl_expr = Expression(SymbolInputForm, repl_expr)
-#             lines.append(
-#                 Expression(
-#                     SymbolHoldForm,
-#                     Expression(up and SymbolUpSet or SymbolSet, lhs_pat, repl_expr),
-#                 )
-#             )
-
-#     def gather_rules(definition: Definition):
-#         """
-#         Add to the description all the rules associated
-#         to a definition object
-#         """
-#         for rule in definition.ownvalues:
-#             format_rule(rule)
-#         for rule in definition.downvalues:
-#             format_rule(rule)
-#         for rule in definition.subvalues:
-#             format_rule(rule)
-#         for rule in definition.upvalues:
-#             format_rule(rule, up=True)
-#         for rule in definition.nvalues:
-#             format_rule(rule)
-#         formats = sorted(definition.formatvalues.items())
-#         for form_name, rules in formats:
-#             for rule in rules:
-
-#                 def lhs_format(expr):
-#                     return Expression(SymbolFormat, expr, Symbol(form_name))
-
-#                 format_rule(rule, lhs=lhs_format, rhs=rhs_format)
-
-#     name = symbol.get_name()
-#     if not name:
-#         evaluation.message("Definition", "sym", symbol, 1)
-#         return
-
-#     try:
-#         all = evaluation.definitions.get_definition(name)
-#         attributes = all.attributes
-#         all_options = all.options
-#         all_defaultvalues = all.defaultvalues
-
-#         if attributes:
-#             attributes_list = attributes_bitset_to_list(attributes)
-#             lines.append(
-#                 Expression(
-#                     SymbolHoldForm,
-#                     Expression(
-#                         SymbolSet,
-#                         Expression(SymbolAttributes, symbol),
-#                         to_mathics_list(
-#                             *attributes_list, elements_conversion_fn=Symbol
-#                         ),
-#                     ),
-#                 )
-#             )
-#     except KeyError:
-#         attributes = 0
-#         all_options = {}
-#         all_defaultvalues = []
-
-#     if not A_READ_PROTECTED & attributes:
-#         try:
-#             gather_rules(evaluation.definitions.get_user_definition(name, create=False))
-#         except KeyError:
-#             pass
-
-#     for rule in all_defaultvalues:
-#         format_rule(rule)
-#     if all_options:
-#         options = sorted(all_options.items())
-#         lines.append(
-#             Expression(
-#                 SymbolHoldForm,
-#                 Expression(
-#                     SymbolSet,
-#                     Expression(SymbolOptions, symbol),
-#                     ListExpression(
-#                         *(
-#                             Expression(SymbolRule, Symbol(name), value)
-#                             for name, value in options
-#                         )
-#                     ),
-#                 ),
-#             )
-#         )
-#     return lines
-
-
-# def build_list_of_matching_symbols(
-#     self, symbol_pat: str, evaluation: Evaluation, options: dict, grid: bool = True
-# ):
-#     """Return a list of symbols compatible with symbol_pat"""
-#     definitions = evaluation.definitions
-#     names = definitions.get_matching_names(symbol_pat)
-#     if len(names) == 1:
-#         return self.format_information_symbol(
-#             Symbol(definitions.lookup_name(names[0])), evaluation, options
-#         )
-#     rows = []
-#     curr_row = []
-#     for name in names:
-#         curr_row.append(String(definitions.shorten_name(name)))
-#         if len(curr_row) == 3:
-#             rows.append(ListExpression(*curr_row))
-#             curr_row = []
-#     if curr_row:
-#         curr_row = curr_row + (3 - len(curr_row)) * [String("")]
-#         rows.append(ListExpression(*curr_row))
-
-#     # Build Association with Information fields for each matching symbol
-#     associations = []
-#     for name in names:
-#         symbol = Symbol(definitions.lookup_name(name))
-
-#         # Get symbol definition to extract attributes and values
-#         try:
-#             definition = definitions.get_definition(name)
-#         except KeyError:
-#             definition = None
-
-#         # Extract components for Association
-#         assoc_items = [
-#             Expression(SymbolRule, String("FullName"), String(name)),
-#         ]
-
-#         # Add Attributes
-#         if definition and definition.attributes:
-#             attributes_list = attributes_bitset_to_list(definition.attributes)
-#             assoc_items.append(
-#                 Expression(
-#                     SymbolRule,
-#                     String("Attributes"),
-#                     to_mathics_list(
-#                         *attributes_list, elements_conversion_fn=Symbol
-#                     ),
-#                 )
-#             )
-
-#         # Add Definitions (downvalues, ownvalues, upvalues)
-#         definition_rules = gather_and_format_definition_rules(symbol, evaluation)
-#         if definition_rules:
-#             assoc_items.append(
-#                 Expression(
-#                     SymbolRule,
-#                     String("Definitions"),
-#                     ListExpression(*definition_rules),
-#                 )
-#             )
-
-#         # Add OwnValues
-#         ownvalues = get_symbol_values(symbol, "OwnValues", "ownvalues", evaluation)
-#         if ownvalues:
-#             assoc_items.append(
-#                 Expression(SymbolRule, String("OwnValues"), ownvalues)
-#             )
-
-#         # Add DownValues
-#         downvalues = get_symbol_values(
-#             symbol, "DownValues", "downvalues", evaluation
-#         )
-#         if downvalues:
-#             assoc_items.append(
-#                 Expression(SymbolRule, String("DownValues"), downvalues)
-#             )
-
-#         associations.append(Expression(SymbolAssociation, *assoc_items))
-
-#     result = ListExpression(*associations)
-#     return result
