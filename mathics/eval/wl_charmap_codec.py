@@ -10,6 +10,12 @@ Construction primitives ('charmap_build', 'charmap_encode',
 'charmap_decode') are the same used by the Pythons stdlib for implementing
 its single byte codecs (see Lib/encodings/
 iso8859_8.py, cp1252.py, mac_roman.py, etc.)
+
+Because 'codecs.charmap_encode'/'codecs.charmap_decode' only ever look
+at one raw *byte* (0-255) of input at a time, everything built here
+only works for genuinely single-byte encodings ("7Bit"/"8Bit" tags).
+'register_codec_from_tables' enforces this with an explicit check --
+see its docstring.
 """
 
 from __future__ import annotations
@@ -29,7 +35,7 @@ class Entry:
     invertible: bool
 
 
-TAG_SIZES = {"7Bit": 128, "8Bit": 256}
+TAG_SIZES = {"7Bit": 128, "8Bit": 256, "16Bit": 512}
 
 
 def build_charmap(tag: str, entries: list[Entry]) -> tuple[str, dict[int, int]]:
@@ -38,29 +44,54 @@ def build_charmap(tag: str, entries: list[Entry]) -> tuple[str, dict[int, int]]:
       - decoding_table: fixed length Python string (256 for 8Bit) for
         decodiding byte -> caracter. Undefined positions use
         '\\ufffe' (convention in codecs.charmap_* for "undefined").
-      - encoding_table: dict character(ordinal) -> byte, built with
-        codecs.charmap_build and then RESTRICTED to the invertible entries
-        (in this way we replicate the WMA behavior: a non-invertible entry
-        can be used for decoding but not for re-encoding).
+      - encoding_table: dict character(ordinal) -> byte.
+
+        Characters in this tag's *native* range (ord < size, e.g.
+        ordinary ASCII/Latin-1 for an "8Bit" tag) ALWAYS encode as
+        their own byte value, unconditionally -- even when this
+        encoding's decode table reassigns that very byte's *decoding*
+        to something else entirely. Confirmed against real Wolfram
+        Mathematica: Klingon.wl reassigns byte 72 (0x48) to decode as
+        a pIqaD glyph (U+F8D6), yet
+            ToString["Hola Martok! ...", CharacterEncoding->"Klingon"]
+        still keeps the literal "H" of "Hola" as-is (byte 72), rather
+        than escaping it to "\\:0048" -- ordinary native-range text
+        round-trips through its own byte regardless of what the
+        encoding does elsewhere. Only characters *outside* the native
+        range (ord >= size) consult the decode table's exceptions, to
+        find the one byte -- if any, and if invertible -- specifically
+        assigned to represent them (e.g. Klingon's U+F8D9 -> byte 76).
+
+        This also makes the invertible/non-invertible question moot
+        for any character in the native range: since those never
+        consult the decode-derived overrides at all, a native-range
+        character can never collide with another native-range
+        position the way Symbol.wl's duplicate, non-invertible
+        `{226, "\\[RegisteredTrademark]", False}` (registered
+        trademark, U+00AE, itself in the Latin-1 native range) would
+        otherwise suggest.
     """
     size = TAG_SIZES.get(tag, 256)
     table = [chr(i) for i in range(size)]  # default: identity (Latin-1)
+    non_invertible_codes: set[int] = set()
     for e in entries:
         if e.code < size:
             table[e.code] = e.char
+            if not e.invertible:
+                non_invertible_codes.add(e.code)
     decoding_table = "".join(table)
 
-    # Build the dict by hand (instead of of using codecs.charmap_build)
-    # because that helper can return an optimizaded and immutable EncodingMap
-    # when the table is (almost) biyective, and we need to erase
-    # non-invertible entries.
-    encoding_table: dict[int, int] = {
-        ord(ch): code for code, ch in enumerate(decoding_table)
-    }
-
-    for e in entries:
-        if not e.invertible and encoding_table.get(ord(e.char)) == e.code:
-            del encoding_table[ord(e.char)]
+    encoding_table: dict[int, int] = {i: i for i in range(size)}
+    for code, ch in enumerate(decoding_table):
+        if code in non_invertible_codes:
+            continue
+        if ord(ch) >= size:
+            encoding_table[ord(ch)] = code
+    # "\ufffe" is codecs.charmap_*'s own convention for "this byte
+    # position is unassigned" (see load_encoding_table's handling of
+    # `{code, None}` entries); never let it leak into the encode
+    # direction as a spurious target for a literal U+FFFE character.
+    encoding_table.pop(0xFFFE, None)
 
     return decoding_table, encoding_table
 
@@ -148,6 +179,43 @@ def register_passthrough_error_handler(name: str = _PASSTHROUGH_ERROR_NAME) -> s
     return name
 
 
+_ESCAPE_ERROR_NAME = "wl_charmap_escape"
+
+
+def _escape_error_handler(error: UnicodeEncodeError):
+    r"""
+    Encode error handler implementing $CharacterEncoding's documented
+    output behavior: "Unencodable characters can be input and will be
+    output in standard \[Name] and \:nnnn form." (see
+    https://reference.wolfram.com/language/ref/$CharacterEncoding.html).
+
+    Returns *bytes* (the escape text encoded as plain ASCII), not
+    `str` -- if we returned `str`, codecs.charmap_encode would
+    recursively try to re-encode that replacement through the SAME
+    charmap, which can itself fail: a custom encoding may remap
+    ordinary ASCII digits/punctuation too (e.g. "Klingon" remaps the
+    digit '4'), so the escape text for one unencodable character could
+    contain a character that is *also* unencodable in that charmap.
+    Returning bytes directly sidesteps that entirely.
+    """
+    chars = error.object[error.start : error.end]
+    escaped = "".join(escape_unrepresentable_char(ch) for ch in chars)
+    return escaped.encode("ascii"), error.end
+
+
+def register_escape_error_handler(name: str = _ESCAPE_ERROR_NAME) -> str:
+    """
+    Register (if needed) the encode error handler described above.
+    Return the name for using as `errors=` in io.open()/str.encode()/
+    codecs.charmap_encode.
+    """
+    try:
+        codecs.lookup_error(name)
+    except LookupError:
+        codecs.register_error(name, _escape_error_handler)
+    return name
+
+
 def build_substitution_table(
     substitution: dict[str, str],
 ) -> tuple[dict[int, bytes], "MultiCharSubstitution | None"]:
@@ -220,21 +288,152 @@ def make_codec(tag: str, entries: list[Entry]) -> WLCharmapCodec:
     return WLCharmapCodec(decoding_table, encoding_table)
 
 
-def register_codec(name: str, tag: str, entries: list[Entry]) -> None:
+def canonicalize_codec_name(name: str) -> str:
+    """
+    Normalize `name` the same way CPython's own codec lookup machinery
+    normalizes the name it hands to registered search functions (see
+    Python/codecs.c:normalizestring, and codecs.register's docs: "the
+    encoding name in all lower case letters with hyphens and spaces
+    converted to underscores"): lowercase, with runs of spaces and/or
+    hyphens collapsed to a single underscore.
+
+    Both the registration side and the search function MUST apply this
+    same transform, or a name containing a space (plausible for a
+    user-authored encoding, e.g. "Mac Roman") silently fails to
+    resolve: registering "Mac Roman" naively as "mac roman" (spaces
+    left alone) while codecs.lookup("Mac Roman") invokes search
+    functions with "mac_roman" means the two never match.
+    """
+    return re.sub(r"[-\s]+", "_", name.strip().lower())
+
+
+# normalized codec name -> (decoding_table, encoding_table). Backing
+# store for a *single* search function, registered once, rather than
+# one new codecs.register() call (and one new closure) per encoding.
+# codecs.register() has no "replace" or "unregister by name" semantics
+# (pre-3.10 not even a general unregister existed), so accumulating a
+# search function per custom encoding would mean every future
+# codecs.lookup() of a name nobody has registered yet keeps scanning
+# an ever-growing list of one-shot functions for the lifetime of the
+# process.
+_REGISTERED_TABLES: dict[str, tuple[str, dict[int, int]]] = {}
+_SEARCH_FUNCTION_INSTALLED = False
+
+
+def _build_codec_info(
+    name: str, decoding_table: str, encoding_table: dict[int, int]
+) -> codecs.CodecInfo:
+    """
+    Build the FULL codec machinery (incremental encoder/decoder,
+    stream reader/writer), not just one-shot encode/decode -- required
+    for `io.open(path, encoding=name)` to work in text/streaming mode.
+    Follows the same pattern the Python stdlib itself uses for its
+    charmap-based codecs (see Lib/encodings/iso8859_8.py, cp1252.py,
+    etc: `encode`/`decode` there use `codecs.charmap_encode`/
+    `charmap_decode` against module-level tables; here the tables are
+    per-registration, so the nested classes close over them instead).
+    """
+
+    class _Codec(codecs.Codec):
+        def encode(self, input: str, errors: str = "strict"):
+            return codecs.charmap_encode(input, errors, encoding_table)
+
+        def decode(self, input: bytes, errors: str = "strict"):
+            return codecs.charmap_decode(input, errors, decoding_table)
+
+    class _IncrementalEncoder(codecs.IncrementalEncoder):
+        def encode(self, input: str, final: bool = False):
+            return codecs.charmap_encode(input, self.errors, encoding_table)[0]
+
+    class _IncrementalDecoder(codecs.IncrementalDecoder):
+        def decode(self, input: bytes, final: bool = False):
+            return codecs.charmap_decode(input, self.errors, decoding_table)[0]
+
+    class _StreamWriter(_Codec, codecs.StreamWriter):
+        pass
+
+    class _StreamReader(_Codec, codecs.StreamReader):
+        pass
+
+    codec = _Codec()
+    return codecs.CodecInfo(
+        name=name,
+        encode=codec.encode,
+        decode=codec.decode,
+        incrementalencoder=_IncrementalEncoder,
+        incrementaldecoder=_IncrementalDecoder,
+        streamreader=_StreamReader,
+        streamwriter=_StreamWriter,
+    )
+
+
+def _wl_charmap_search_function(encoding_name: str):
+    entry = _REGISTERED_TABLES.get(encoding_name)
+    if entry is None:
+        return None
+    decoding_table, encoding_table = entry
+    return _build_codec_info(encoding_name, decoding_table, encoding_table)
+
+
+def _ensure_search_function_installed() -> None:
+    global _SEARCH_FUNCTION_INSTALLED
+    if not _SEARCH_FUNCTION_INSTALLED:
+        codecs.register(_wl_charmap_search_function)
+        _SEARCH_FUNCTION_INSTALLED = True
+
+
+def register_codec_from_tables(
+    name: str, decoding_table: str, encoding_table: dict[int, int]
+) -> str:
+    """
+    Register a full Python codec directly from an already-built
+    (decoding_table, encoding_table) pair -- e.g. the ones
+    load_encoding_table already computes and stores, avoiding having to
+    keep the raw Entry list around just to register a codec.
+
+    Idempotent: calling this again with the same `name` and identical
+    tables is a no-op; calling it with a *different* table for a name
+    already registered replaces the entry (last write wins -- there is
+    no concept of "unregistering" a stale mapping, so callers should
+    only re-register when the underlying .wl file could plausibly have
+    changed, e.g. between sessions, not on every lookup).
+
+    Returns the *normalized* codec name that must actually be passed to
+    io.open()/str.encode()/bytes.decode() to reach this codec -- e.g.
+    register_codec_from_tables("Mac Roman", ...) returns "mac_roman",
+    not "Mac Roman" (see canonicalize_codec_name).
+
+    Raises ValueError if `decoding_table` has more than 256 entries:
+    codecs.charmap_encode/charmap_decode only ever look at one input
+    byte (0-255) at a time, so no charmap-based Python codec can
+    represent an encoding whose external representation needs more
+    than one byte per unit (e.g. a "16Bit"-tagged custom encoding,
+    which build_charmap can happily construct a >256-entry table for,
+    but which can never be turned into a working codec this way -- that
+    would need a real stateful multi-byte codec instead).
+    """
+    if len(decoding_table) > 256:
+        raise ValueError(
+            f"{name!r}: decoding table has {len(decoding_table)} entries; "
+            "codecs.charmap_encode/charmap_decode only ever look at one "
+            "input byte (0-255) at a time, so no charmap-based Python "
+            "codec can represent an encoding with more than 256 code "
+            "points on the wire. This needs a real stateful multi-byte "
+            "codec instead."
+        )
+    normalized_name = canonicalize_codec_name(name)
+    _REGISTERED_TABLES[normalized_name] = (decoding_table, encoding_table)
+    _ensure_search_function_installed()
+    return normalized_name
+
+
+def register_codec(name: str, tag: str, entries: list[Entry]) -> str:
     """
     Register an encoding (defined by `tag`/`entries`, already parsed)
     under the name `name`, to be able to use
     'text'.encode(name) / bytes.decode(name) directly as any native
-    Python codec.
+    Python codec. Returns the normalized codec name (see
+    register_codec_from_tables).
     """
-    codec = make_codec(tag, entries)
-    # Python normaliza el nombre del encoding (minusculas, '-' -> '_')
-    # antes de invocar las search functions registradas.
-    normalized_name = name.lower().replace("-", "_")
-
-    def search_function(encoding_name: str):
-        if encoding_name != normalized_name:
-            return None
-        return codecs.CodecInfo(name=name, encode=codec.encode, decode=codec.decode)
-
-    codecs.register(search_function)
+    decoding_table, encoding_table = build_charmap(tag, entries)
+    return register_codec_from_tables(name, decoding_table, encoding_table)

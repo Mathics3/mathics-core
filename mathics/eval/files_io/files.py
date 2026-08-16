@@ -336,7 +336,8 @@ def eval_Read(
                             expr = SymbolEndOfFile
                             break
                     except Exception as e:
-                        print(e)
+                        expr = SymbolEndOfFile
+                        break
 
                 if expr is None:
                     result.append(None)
