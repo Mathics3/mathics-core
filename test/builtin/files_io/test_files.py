@@ -57,6 +57,15 @@ def test_get_input():
     check_evaluation(f'Get["{script_path}"]', script_path, hold_expected=True)
 
 
+def test_get_evaluates_queries_after_error():
+    # Check that all the code lines in a wl script are evaluated, despite
+    # one of them raises an error.
+    script_path = canonic_filename(
+        osp.normpath(osp.join(osp.dirname(__file__), "..", "..", "data", "star-bug.m"))
+    )
+    check_evaluation(f'Get["{script_path}"]', "OK!", hold_expected=True)
+
+
 @pytest.mark.skipif(
     sys.platform in ("win32",), reason="$Path does not work on Windows?"
 )
