@@ -19,11 +19,12 @@ import mathics
 import mathics.core.parser
 import mathics.core.streams as streams
 from mathics.core.atoms import Integer, String
-from mathics.core.builtin import MessageException
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
+from mathics.core.exceptions import MessageException
 from mathics.core.expression import BaseElement, Expression
+from mathics.core.interrupt import AbortInterrupt
 from mathics.core.parser import MathicsFileLineFeeder, MathicsMultiLineFeeder
 from mathics.core.parser.util import parse_incrementally_by_line
 from mathics.core.streams import path_search, stream_manager
@@ -213,12 +214,15 @@ def eval_Get(
                     feeder.send_messages(evaluation)
                 if query is None:  # blank line / comment
                     continue
-                result = query.evaluate(evaluation)
+                try:
+                    result = query.evaluate(evaluation)
+                except AbortInterrupt:
+                    continue
+                except MessageException as e:
+                    e.message(evaluation)
+                    continue
     except IOError:
         evaluation.message("Get", "noopen", path)
-        return SymbolFailed
-    except MessageException as e:
-        e.message(evaluation)
         return SymbolFailed
     finally:
         # Whether we had an exception or not, restore the input path
