@@ -625,7 +625,6 @@ def test_klingon(tmp_path, evaluation):
     from mathics.eval.encoding import load_encoding_table
     from mathics.eval.files_io.read import Mathics3Open
     from mathics.eval.strings import eval_ToString
-    from mathics.session import MathicsSession
 
     load_encoding_table("Klingon", evaluation)
     path = tmp_path / "roundtrip.txt"
