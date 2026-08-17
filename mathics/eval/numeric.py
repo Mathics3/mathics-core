@@ -319,7 +319,11 @@ def eval_Sign(expr: BaseElement) -> Optional[BaseElement]:
             return Integer1 if len(signs) == 0 else eval_multiply_numbers(*signs)
 
         # Try with Sympy
+    try:
         abs_expr = from_sympy(abs(n.to_sympy()))
+    except Exception:
+        # SymPy conversion failed; fall back.
+        return None
         if abs_expr.is_zero:
             return abs_expr
         if abs_expr is Integer1:
