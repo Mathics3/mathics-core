@@ -518,7 +518,7 @@ class Information(PrefixOperator):
 
         infoshow = Expression(
             SymbolGrid,
-            ListExpression(line for line in lines),
+            ListExpression(*(line for line in lines)),
             Expression(SymbolRule, Symbol("ColumnAlignments"), SymbolLeft),
         )
         return infoshow
