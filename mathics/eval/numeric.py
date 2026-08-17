@@ -183,16 +183,22 @@ def eval_RealSign(expr: BaseElement) -> Optional[Integer]:
         return Integer1
     if expr.has_form("Abs", 1):
         arg = expr.elements[0]
-        arg_sign = eval_Sign(arg)
-        if arg_sign is None:
-            return None
-        if arg_sign.is_zero:
+        if arg.is_zero:
             return Integer0
-        if isinstance(arg_sign, Number):
+        if isinstance(arg, Number):
+            return Integer1
+        # Try evaluating to an inexact number
+        arg_inexact = to_inexact_value(arg)
+        if arg_inexact is None:
+            return None
+        if arg_inexact.is_zero:
+            return Integer0
+        if isinstance(arg_inexact, Number):
             return Integer1
         return None
     if expr.has_form("Sqrt", 1):
-        return Integer1 if eval_Sign(expr.elements[0]) is Integer1 else None
+        inner_sign = eval_Sign(expr.elements[0])
+        return inner_sign if inner_sign in (Integer0, Integer1) else None
     if expr.has_form("Exp", 1):
         return Integer1 if test_arithmetic_expr(expr.elements[0]) else None
     if expr.has_form("Log", 1) or expr.has_form("DirectedInfinity", 1):
@@ -312,10 +318,16 @@ def eval_Sign(expr: BaseElement) -> Optional[BaseElement]:
                     signs.append(factor_sign)
             return Integer1 if len(signs) == 0 else eval_multiply_numbers(*signs)
 
-        try_inexact = to_inexact_value(n)
-        if try_inexact:
-            return eval_Sign(try_inexact)
-        return None
+        # Try with Sympy
+        abs_expr = from_sympy(abs(n.to_sympy()))
+        if abs_expr.is_zero:
+            return abs_expr
+        if abs_expr is Integer1:
+            return n
+        # Failed to reduce the absolute value:
+        if abs_expr.has_form("Abs", 1):
+            return None
+        return n / abs_expr
 
     sign = eval_RealSign(expr)
     return sign or eval_complex_sign(expr)
