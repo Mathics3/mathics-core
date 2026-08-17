@@ -127,9 +127,9 @@ def assert_ascii_safe(substitution: dict[str, str], table_name: str = "") -> Non
     if offending:
         sample = dict(list(offending.items())[:5])
         raise ValueError(
-            f"{table_name}: {len(offending)} valores de sustitucion no son "
-            f"ASCII puro (ejemplos: {sample!r}) -- el resultado ya no seria "
-            "seguro para tratarlo como bytes via .encode('latin-1')"
+            f"{table_name}: {len(offending)} substitution values are not "
+            f"pure ASCII (ej.: {sample!r}) -- the result would not be safe "
+            "to be handled via .encode('latin-1')."
         )
 
 

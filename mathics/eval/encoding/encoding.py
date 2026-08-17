@@ -40,7 +40,8 @@ Design notes (see discussion that led to this rewrite):
 
 import codecs
 import os
-from typing import Final, List
+from collections.abc import Iterator
+from typing import Final
 
 from mathics_scanner.characters import UNICODE_CHARACTER_TO_ASCII
 
@@ -152,7 +153,7 @@ class EncodingNameError(Exception):
     pass
 
 
-def available_character_encodings() -> List[str]:
+def available_character_encodings() -> Iterator[str]:
     """
     List all the available character encodings, including the
     default Python encodings and the custom encodings defined in
@@ -162,7 +163,9 @@ def available_character_encodings() -> List[str]:
     encodings = default_encodings.union(
         {
             filename[:-3]
-            for filename in os.listdir(f"{ROOT_DIR}/SystemFiles/CharacterEncodings/")
+            for filename in os.listdir(
+                os.path.join(ROOT_DIR, "SystemFiles/CharacterEncodings")
+            )
             if filename.endswith(".wl")
         }
     )
@@ -280,7 +283,7 @@ def decode_bytes_value(value: bytes, encoding: str) -> str:
     return decoded
 
 
-def from_python_encoding(encoding):
+def from_python_encoding(encoding) -> str | None:
     """
     Return the name of a WMA character encoding name from
     the name of the equivalent Python character encoding.
@@ -347,12 +350,6 @@ def load_encoding_table(encoding, evaluation):
         None,
     )
     if etl is None or not etl.has_form("List", 2):
-        print(
-            "etl",
-            etl,
-            "in ",
-            f"{ROOT_DIR}/SystemFiles/CharacterEncodings/{encoding}.wl",
-        )
         evaluation.message("$CharacterEncoding", "charfile", String(encoding))
         raise EncodingNameError(encoding)
 
@@ -420,7 +417,7 @@ def load_encoding_table(encoding, evaluation):
     REVERSE_CHARACTER_ENCODING_MAP[py_name] = encoding
 
 
-def to_python_encoding(encoding) -> str:
+def to_python_encoding(encoding) -> str | None:
     """
     Return the name of the equivalent Python encoding to a WMA
     character encoding name.

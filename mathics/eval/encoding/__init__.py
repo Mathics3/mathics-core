@@ -41,5 +41,4 @@ __all__ = [
     "load_encoding_table",
     "register_escape_error_handler",
     "to_python_encoding",
-    "to_python_encoding",
 ]
