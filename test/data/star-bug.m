@@ -12,6 +12,11 @@ Star[u_,v_] := (
   0 ) /;
 EqQ[u,0]
 
+(*
+This definition produces a recursion error:
+Since `Star` was already defined, the assignment
+evaluates the LHS recursively until the raise a RecursionLimit error...
+*)
 Star[u_,Star[v_,w_]] :=
   Star[u*v,w]
 "OK!"
