@@ -257,7 +257,7 @@ def build_substitution_table(
     """
     single: dict[int, bytes] = {}
     multi: dict[str, str] = {}
-    skipped_empty = 0
+
     for ch, repl in substitution.items():
         if len(ch) == 0:
             continue

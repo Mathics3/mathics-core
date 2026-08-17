@@ -40,7 +40,7 @@ Design notes (see discussion that led to this rewrite):
 
 import codecs
 import os
-from typing import Final
+from typing import Final, List
 
 from mathics_scanner.characters import UNICODE_CHARACTER_TO_ASCII
 
