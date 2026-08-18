@@ -12,7 +12,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
-from mathics.eval.encoding import to_python_encoding
+from mathics.eval.encoding import load_encoding_table, to_python_encoding
 
 SymbolFromCharacterCode = Symbol("System`FromCharacterCode")
 SymbolToCharacterCode = Symbol("System`ToCharacterCode")
@@ -90,6 +90,7 @@ class ToCharacterCode(Builtin):
                 return to_mathics_list(*[Integer(ord(code)) for code in s])
 
         else:
+            load_encoding_table(encoding, evaluation)
             py_encoding = to_python_encoding(encoding)
             if py_encoding is None:
                 evaluation.message("General", "charcode", encoding)
@@ -166,6 +167,7 @@ class FromCharacterCode(Builtin):
     def _decode(self, n, encoding: str, evaluation: Evaluation):
         exp = Expression(SymbolFromCharacterCode, n)
 
+        load_encoding_table(encoding, evaluation)
         py_encoding = to_python_encoding(encoding)
         if py_encoding is None:
             evaluation.message("General", "charcode", encoding)

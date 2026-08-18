@@ -339,8 +339,9 @@ def eval_Read(
                         except EOFError:
                             expr = SymbolEndOfFile
                             break
-                    except Exception as e:
-                        print(e)
+                    except Exception:
+                        expr = SymbolEndOfFile
+                        break
 
                 if expr is None:
                     result.append(None)
