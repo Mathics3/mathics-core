@@ -135,7 +135,7 @@ def test_multiply(str_expr, str_expected, msg):
     )
 
 
-@pytest.mark.skip("DirectedInfinity Precedence needs going over")
+# @pytest.mark.skip("DirectedInfinity Precedence needs going over")
 @pytest.mark.parametrize(
     (
         "str_expr",
@@ -162,7 +162,7 @@ def test_multiply(str_expr, str_expected, msg):
         ),
         (
             "a  b (-1 + 2 Pi I) Infinity",
-            "a b (Infinity (-1 + 2 I Pi) / Sqrt[1 + 4 Pi ^ 2])",
+            "a b ((-1 + 2 I Pi) / Sqrt[1 + 4 Pi ^ 2] Infinity)",
             "complex irrational exact",
         ),
         (
@@ -433,7 +433,7 @@ def test_miscelanea_private_tests(str_expr, str_expected, msg):
         ),
     ],
 )
-@pytest.mark.xfail
+@pytest.mark.xfail(reason="sympy bug...")
 def test_miscelanea_private_tests_xfail(str_expr, str_expected, msg):
     check_evaluation(str_expr, str_expected, failure_message=msg)
 
