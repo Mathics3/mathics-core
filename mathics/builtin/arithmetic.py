@@ -11,7 +11,6 @@ from typing import Optional
 
 import sympy
 
-from mathics.builtin.numeric import Abs
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import (
     MATHICS3_COMPLEX_I,
@@ -22,7 +21,6 @@ from mathics.core.atoms import (
     Integer1,
     IntegerM1,
     Rational,
-    Real,
     String,
 )
 from mathics.core.attributes import (
@@ -75,7 +73,6 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.arithmetic import eval_RealValuedNumberQ
 from mathics.eval.inference import get_assumptions_list
-from mathics.eval.nevaluator import eval_N
 from mathics.eval.numeric import eval_Sign
 
 # This tells documentation how to sort this module
@@ -506,11 +503,11 @@ class DirectedInfinity(SympyFunction):
             return MATHICS3_COMPLEX_INFINITY
 
         # try to reduce with sign
-        normalized_direction = eval_Sign(direction)
-        if normalized_direction is None:
+        direction = eval_Sign(direction)
+        if direction is None:
             return None
 
-        result = map_direction_infinity.get(normalized_direction, None)
+        result = map_direction_infinity.get(direction, None)
         if result is not None:
             return result
         if direction.is_zero:
@@ -518,7 +515,7 @@ class DirectedInfinity(SympyFunction):
 
         return PredefinedExpression(
             SymbolDirectedInfinity,
-            normalized_direction.evaluate(evaluation),
+            direction.evaluate(evaluation),
         )
 
     # We can't use generic_argument_error because 0 arguments are allowed
