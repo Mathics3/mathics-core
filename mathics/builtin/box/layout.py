@@ -564,6 +564,7 @@ class StyleBox(BoxExpression):
     """
 
     options = {
+        "ImageSizeMultipliers": "Automatic",
         "$OptionSyntax": "Ignore",
     }
     attributes = A_PROTECTED | A_READ_PROTECTED

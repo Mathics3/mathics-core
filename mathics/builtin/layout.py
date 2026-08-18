@@ -23,7 +23,13 @@ from mathics.core.systemsymbols import (
     SymbolSubscriptBox,
 )
 from mathics.eval.lists import list_boxes
-from mathics.format.box import eval_infix, eval_postprefix, format_element, parenthesize
+from mathics.format.box import (
+    eval_infix,
+    eval_makeboxes_format,
+    eval_postprefix,
+    format_element,
+    parenthesize,
+)
 
 
 class Center(Builtin):
@@ -114,14 +120,14 @@ class Format(Builtin):
     summary_text = (
         "settable low-level translator from various forms to evaluatable expressions"
     )
-    rules = {"MakeBoxes[Format[expr_], fmt_]": "MakeBoxes[expr, fmt]"}
 
-    def eval_Makeboxes(self, expr, form, evaluation):
-        """MakeBoxes[Format[expr_, form_], _]"""
-        if form not in evaluation.definitions.printforms:
-            evaluation.message("FormatType", "ftype", form)
-            return format_element(expr, evaluation)
-        return format_element(expr, evaluation, form)
+    def eval_Makeboxes1(self, expr, form, outerform, evaluation):
+        """MakeBoxes[Format[expr_], outerform_]"""
+        return eval_makeboxes_format(expr, None, outerform, evaluation)
+
+    def eval_Makeboxes2(self, expr, form, outerform, evaluation):
+        """MakeBoxes[Format[expr_, form_], outerform_]"""
+        return eval_makeboxes_format(expr, form, outerform, evaluation)
 
 
 class Grid(Builtin):
