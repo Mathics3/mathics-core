@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-import mathics.core.atoms as atoms
-import mathics.core.systemsymbols as system_symbols
 from mathics.core.atoms import (
     Complex,
     Integer,

@@ -57,6 +57,18 @@ import pytest
         #            "RowBox[{<|, RowBox[{RowBox[{a, ->, x}], ,, RowBox[{b, ->, y}], ,, RowBox[{c, ->, RowBox[{<|, RowBox[{RowBox[{d, ->, t}], ,, RowBox[{e, ->, u}]}], |>}]}]}], |>}]",
         #            None,
         #        ),
+        (
+            "Map[F, Q[a->1, b:>Association[p->3,q->4]]]",
+            None,
+            "Q[F[a->1], F[b:>Association[p->3, q->4]]]",
+            "Acting on a nested association, the inner association is treated as normal.",
+        ),
+        (
+            "Map[F, Q[a->1, b:>Association[p->3,q->4]],{2}]",
+            None,
+            "Q[F[a]->F[1], F[b]:>F[Association[p->3, q->4]]]",
+            "Acting on a nested association, the inner association is treated as normal.",
+        ),
     ],
 )
 def test_associations(str_expr, expected_messages, str_expected, assert_message):
@@ -71,18 +83,6 @@ def test_associations(str_expr, expected_messages, str_expected, assert_message)
 @pytest.mark.parametrize(
     ("str_expr", "expected_messages", "str_expected", "assert_message"),
     [
-        (
-            "Map[F, Q[a->1, b:>Association[p->3,q->4]]]",
-            None,
-            "Q[F[a->1], F[b:>Association[p->3, q->4]]]",
-            "Acting on a nested association, the inner association is treated as normal.",
-        ),
-        (
-            "Map[F, Q[a->1, b:>Association[p->3,q->4]],{2}]",
-            None,
-            "Q[F[a]->F[1], F[b]:>F[Association[p->3, q->4]]]",
-            "Acting on a nested association, the inner association is treated as normal.",
-        ),
         (
             "Map[F, Association[a->1, b:>Association[p->3,q->4]], {0}]",
             None,

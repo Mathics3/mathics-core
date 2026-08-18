@@ -11,7 +11,6 @@ from typing import Optional
 
 import sympy
 
-from mathics.builtin.numeric import Abs
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import (
     MATHICS3_COMPLEX_I,
@@ -22,7 +21,6 @@ from mathics.core.atoms import (
     Integer1,
     IntegerM1,
     Rational,
-    Real,
     String,
 )
 from mathics.core.attributes import (
@@ -75,7 +73,6 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.arithmetic import eval_RealValuedNumberQ
 from mathics.eval.inference import get_assumptions_list
-from mathics.eval.nevaluator import eval_N
 from mathics.eval.numeric import eval_Sign
 
 # This tells documentation how to sort this module
@@ -456,6 +453,7 @@ class DirectedInfinity(SympyFunction):
         "DirectedInfinity[]": "HoldForm[ComplexInfinity]",
         "DirectedInfinity[DirectedInfinity[z_]]": "DirectedInfinity[z]",
         "DirectedInfinity[z_?NumericQ]": "HoldForm[z Infinity]",
+        "DirectedInfinity[z_Symbol]": "HoldForm[z Infinity]",
     }
     rules = {
         "DirectedInfinity[args___] ^ -1": "0",
@@ -498,38 +496,26 @@ class DirectedInfinity(SympyFunction):
     def eval_directed_infinity(self, direction, evaluation: Evaluation):
         """DirectedInfinity[direction_]"""
         result = map_direction_infinity.get(direction, None)
-        if result:
+        if result is not None:
             return result
 
         if direction.is_zero:
             return MATHICS3_COMPLEX_INFINITY
 
-        normalized_direction = eval_Sign(direction)
-        # TODO: improve eval_Sign, to avoid the need of the
-        # following block:
-        #   ############################################
-        if normalized_direction is None:
-            ndir = eval_N(direction, evaluation)
-            if isinstance(ndir, (Integer, Rational, Real)):
-                if abs(ndir.value) == 1.0:
-                    normalized_direction = direction
-                else:
-                    normalized_direction = direction / Abs(direction)
-            elif isinstance(ndir, Complex):
-                re, im = ndir.real, ndir.imag
-                if abs(re.value**2 + im.value**2 - 1.0) < 1.0e-9:
-                    normalized_direction = direction
-                else:
-                    normalized_direction = direction / Abs(direction)
-            else:
-                return None
-        #  ##############################################
-
-        if normalized_direction is None:
+        # try to reduce with sign
+        direction = eval_Sign(direction)
+        if direction is None:
             return None
+
+        result = map_direction_infinity.get(direction, None)
+        if result is not None:
+            return result
+        if direction.is_zero:
+            return MATHICS3_COMPLEX_INFINITY
+
         return PredefinedExpression(
             SymbolDirectedInfinity,
-            normalized_direction.evaluate(evaluation),
+            direction.evaluate(evaluation),
         )
 
     # We can't use generic_argument_error because 0 arguments are allowed
