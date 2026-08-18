@@ -12,7 +12,7 @@ from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import SymbolList, SymbolNull
+from mathics.core.symbols import SymbolNull
 from mathics.core.systemsymbols import SymbolFailed, SymbolRule
 from mathics.eval.files_io.files import resolve_file
 from mathics.eval.import_export.importexport import (

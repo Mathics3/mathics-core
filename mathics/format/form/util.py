@@ -7,7 +7,7 @@ Common routines and objects used in rendering PrintForms.
 from typing import Final, FrozenSet, List, Optional, Tuple
 
 from mathics.core.atoms import Integer, String
-from mathics.core.convert.op import operator_to_ascii, operator_to_unicode
+from mathics.core.convert.op import operator_to_unicode
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.parser.operators import OPERATOR_DATA, operator_to_string

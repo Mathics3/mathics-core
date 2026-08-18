@@ -1,7 +1,7 @@
 from typing import Union
 
 from mathics.core.atoms import Integer, Integer1, String
-from mathics.core.convert.op import operator_to_ascii, operator_to_unicode
+from mathics.core.convert.op import operator_to_unicode
 from mathics.core.element import BaseElement
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression

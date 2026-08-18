@@ -3,15 +3,12 @@
 String Manipulation
 """
 
-import io
 import re
 import unicodedata
 from abc import ABC
 from binascii import unhexlify
 from heapq import heappop, heappush
 from typing import Any, List
-
-from mathics_scanner.errors import SyntaxError
 
 from mathics.core.atoms import Integer, Integer1, String
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
@@ -28,7 +25,6 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.atomic.strings import eval_ToExpression_from_str
 from mathics.eval.encoding import (
-    CHARACTER_ENCODING_MAP,
     EncodingNameError,
     available_character_encodings,
     load_encoding_table,
