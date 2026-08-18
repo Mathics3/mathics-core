@@ -79,7 +79,7 @@ def test_makeboxes_precedence(str_expr, str_expected, msg):
         str_expected,
         to_string_expr=True,
         to_string_expected=True,
-        hold_expected=True,
+        hold_expected=False,
         failure_message=msg,
     )
 
@@ -98,7 +98,7 @@ def test_makeboxes_graphics(str_expr, str_expected, msg):
         str_expected,
         to_string_expr=True,
         to_string_expected=True,
-        hold_expected=True,
+        hold_expected=False,
         failure_message=msg,
     )
 
@@ -118,8 +118,7 @@ def test_makeboxes_graphics(str_expr, str_expected, msg):
         ("fb[[1]]", "1", None, []),
         ('sb=StyleBox["string", "Section"]; sb[[0]]', "StyleBox", None, []),
         ("sb[[1]]", "string", None, []),
-        # FIXME: <<RowBox object does not have the attribute "restructure">>
-        ("rb[[All, 1]]", "{a, b}", '"a"', []),
+        ("rb[[All, 1]]", "RowBox[a]", 'RowBox[{"a","b"}]-> rb[[0]][rb[[1,1]]]', []),
         ("fb[[All]][[1]]", "1", None, []),
         ("sb[[All]][[1]]", "string", None, []),
     ],
@@ -147,13 +146,14 @@ def test_part_boxes(str_expr, str_expected, fail_msg, msgs):
     ("str_expr", "str_expected", "msg"),
     [
         (
-            r"\(c (1 + x)\)",
-            r"RowBox[{c, RowBox[{(, RowBox[{1, +, x}], )}]}]",
+            r"\(c (1 + x)\)//InputForm",
+            r'RowBox[{"c", RowBox[{"(", RowBox[{"1", "+", "x"}], ")"}]}]',
             r"FIXME: Don't insert spaces with brackets",
         ),
-        (r"\!\(x \^ 2\)", r"x ^ 2", "Required MakeExpression"),
-        (r"FullForm[%]", r"Power[x, 2]", "Required MakeExpression"),
+        (r"m=\!\(x \^ 2\)", r"x ^ 2", "Required MakeExpression"),
+        (r"FullForm[m]", r"Power[x, 2]", "Required MakeExpression"),
         (r"MakeBoxes[1 + 1]", r"RowBox[{1, +, 1}]", "TODO: Fix Infix operators"),
+        (None, None, None),
     ],
 )
 @skip_or_fail
@@ -174,7 +174,7 @@ def test_makeboxes_others_fail(str_expr, str_expected, msg):
     [
         (
             r"MakeBoxes[G[F[2.]], StandardForm]",
-            r'RowBox[{"G","[",RowBox[{"F","[","2.","]"}],"]"}]',
+            r'RowBox[{"G","[",RowBox[{"F","[","2.`","]"}],"]"}]',
             "Standard behaviour",
         ),
         (
@@ -184,8 +184,7 @@ def test_makeboxes_others_fail(str_expr, str_expected, msg):
         ),
         (
             r"MakeBoxes[OutputForm[G[F[3.002]]], StandardForm]",
-            # We do not use InterpretationBox   = InterpretationBox[PaneBox["\"G[F[3.002]]\""], OutputForm[G[F[3.002`]]], Rule[Editable, False]]
-            r'RowBox[{"G","[","F[3.002]","]"}]',
+            r'InterpretationBox[PaneBox["\"G[F[3.002]]\""], OutputForm[G[F[3.002`]]], Rule[Editable, False]]',
             "Checking the rule over OutputForm",
         ),
         (
@@ -195,14 +194,13 @@ def test_makeboxes_others_fail(str_expr, str_expected, msg):
         ),
         (
             r"MakeBoxes[G[F[3.002]], StandardForm]",
-            r'RowBox[{"G","[",RowBox[{"{",RowBox[{"\"Formatted f\"",",", RowBox[{"{","3.002","}"}],"," ,"\"Standard\""}],"}"}],"]"}]',
-            "Checking again, with the defined StandardForm format",
+            r'RowBox[List["G", "[", RowBox[List["{", RowBox[List["\"Formatted f\"", ",", RowBox[List["{", "3.002`", "}"]], ",", "\"Standard\""]], "}"]], "]"]]',
+            "with the defined format",
         ),
-        # InterpretationBox is not used in Mathics3  = InterpretationBox[PaneBox["\"G[{Formatted f, {3.002}, Standard}]\""], OutputForm[G[F[3.002`]]], Rule[Editable, False]]
         (
             r"MakeBoxes[OutputForm[G[F[3.002]]], StandardForm]",
-            r'RowBox[{"G","[",RowBox[{"{",RowBox[{"\"Formatted f\"",", ", RowBox[{"{","3.002","}"}],", ","\"Standard\""}],"}"}],"]"}]',
-            "Checking again, with the defined StandardForm OutputForm",
+            r'InterpretationBox[PaneBox["\"G[{Formatted f, {3.002}, Standard}]\""], G[{Formatted f, {3.002}, Standard}], Editable -> False]',
+            "with the defined OutputForm",
         ),
         (
             r'Format[F[x_], StandardForm] :=  {"Formatted f", {x}, "Standard"};Format[F[x_], OutputForm] :=  {"Formatted f", {x}, "Output"};',
@@ -211,7 +209,7 @@ def test_makeboxes_others_fail(str_expr, str_expected, msg):
         ),
         (
             r"MakeBoxes[G[F[3.002]], StandardForm]",
-            r'RowBox[{"G","[",RowBox[{"{",RowBox[{"\"Formatted f\"",",",RowBox[{"{","3.002","}"}],",","\"Standard\""}],"}"}],"]"}]',
+            r'RowBox[{"G", "[", RowBox[{"{", RowBox[{"\"Formatted f\"", ",", RowBox[{"{", "3.002`", "}"}], ",", "\"Standard\""}], "}"}], "]"}]',
             "Test Custom StandardForm",
         ),
         # InterpretationBox is now used here... = InterpretationBox[PaneBox["\"G[{Formatted f, {3.002}, Output}]\""], OutputForm[G[F[3.002`]]], Rule[Editable, False]]

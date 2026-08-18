@@ -179,9 +179,15 @@ def list_parts(exprs, selectors, evaluation):
 
             picked = list(list_parts(selected, selectors[1:], evaluation))
 
-            if unwrap is None and hasattr(expr, "restructure"):
-                expr = expr.restructure(expr.head, picked, evaluation)
-                yield expr
+            if unwrap is None:
+                if hasattr(expr, "restructure"):
+                    expr = expr.restructure(expr.head, picked, evaluation)
+                    yield expr
+                else:
+                    # This is probably a Box structure, which
+                    # does not have this `restructure` method
+                    # from the Expression cache mechanism.
+                    yield Expression(expr.head, *picked)
             else:
                 yield unwrap(picked)
 
