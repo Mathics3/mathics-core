@@ -20,7 +20,8 @@ from mathics.core.systemsymbols import (
     SymbolOutputStream,
     SymbolReal,
 )
-from mathics.eval.encoding import to_python_encoding
+from mathics.eval.encoding.encoding import WMA_DECODE_TABLES, to_python_encoding
+from mathics.eval.encoding.wl_charmap_codec import register_escape_error_handler
 
 # TODO: Improve docs for these Read[] arguments.
 
@@ -63,6 +64,7 @@ class Mathics3Open(Stream):
         encoding=None,
         is_temporary_file: bool = False,
     ):
+        self.wl_charmap_encoding = encoding in WMA_DECODE_TABLES
         if encoding is not None:
             encoding = to_python_encoding(encoding)
             if "b" in mode:
@@ -90,7 +92,14 @@ class Mathics3Open(Stream):
             raise IOError(self.name)
 
         # Open the file
-        self.fp = io.open(path, self.mode, encoding=self.encoding)
+        errors = None
+        if (
+            self.encoding is not None
+            and self.wl_charmap_encoding
+            and ("w" in self.mode or "a" in self.mode)
+        ):
+            errors = register_escape_error_handler()
+        self.fp = io.open(path, self.mode, encoding=self.encoding, errors=errors)
 
         # Add to our internal list of streams
         self.stream = stream_manager.add(

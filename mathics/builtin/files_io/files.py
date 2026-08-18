@@ -47,6 +47,7 @@ from mathics.eval.encoding import (
     from_python_encoding,
     get_encoding_table,
     load_encoding_table,
+    to_python_encoding,
 )
 from mathics.eval.files_io.files import eval_Close, eval_Get, eval_Open, eval_Read
 from mathics.eval.files_io.read import (
@@ -142,6 +143,17 @@ class _OpenAction(Builtin):
         encoding = self.get_option(options, "CharacterEncoding", evaluation)
         if not isinstance(encoding, String):
             return
+
+        # Binary streams don't have a character encoding at all; don't
+        # try to resolve/load one (this also matches Mathics3Open,
+        # which drops any "encoding" for a mode containing "b").
+        if "b" not in mode and encoding.value not in CHARACTER_ENCODING_MAP:
+            try:
+                load_encoding_table(encoding.value, evaluation)
+            except EncodingNameError:
+                # load_encoding_table() already issued a
+                # $CharacterEncoding::charfile message.
+                return
 
         return eval_Open(name, mode, stream_type, encoding.value, evaluation)
 
@@ -461,14 +473,21 @@ class Get(PrefixOperator):
             "System`$CharacterEncoding"
         ).value
         if isinstance(encoding, String):
-            py_encoding = encoding.to_python(string_quotes=False)
-            if py_encoding not in CHARACTER_ENCODING_MAP:
+            wl_encoding = encoding.to_python(string_quotes=False)
+            try:
+                # For encodings already in CHARACTER_ENCODING_MAP (the
+                # built-in ones) this is a no-op; for a custom encoding
+                # backed by a SystemFiles/CharacterEncodings/*.wl file,
+                # this loads it and registers a real Python codec for
+                # it (see load_encoding_table), which is what lets
+                # to_python_encoding() below resolve it.
+                load_encoding_table(wl_encoding, evaluation)
+                py_encoding = to_python_encoding(wl_encoding)
+                if py_encoding is None:
+                    raise EncodingNameError(wl_encoding)
+            except EncodingNameError:
                 # "noopen" matches WMA. This is nonsensical.
                 evaluation.message("Get", "noopen", encoding)
-                py_encoding = py_current_encoding
-            try:
-                load_encoding_table(encoding, evaluation)
-            except EncodingNameError:
                 py_encoding = py_current_encoding
         else:
             if encoding is not SymbolNull:

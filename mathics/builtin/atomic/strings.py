@@ -30,6 +30,7 @@ from mathics.eval.atomic.strings import eval_ToExpression_from_str
 from mathics.eval.encoding import (
     CHARACTER_ENCODING_MAP,
     EncodingNameError,
+    available_character_encodings,
     load_encoding_table,
 )
 from mathics.eval.strings import eval_StringContainsQ, eval_ToString
@@ -308,7 +309,8 @@ class CharacterEncodings(Predefined):
     """
 
     name = "$CharacterEncodings"
-    value = "{%s}" % ",".join(map(lambda s: '"%s"' % s, CHARACTER_ENCODING_MAP.keys()))
+    # Here we should add the list of filenames in SystemFiles/CharacterEncoding
+    value = "{%s}" % ",".join(available_character_encodings())
     rules = {
         "$CharacterEncodings": value,
     }
