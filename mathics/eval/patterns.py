@@ -43,10 +43,16 @@ def get_default_value(
     Get the default value associated to a name, and optionally,
     to a position in the expression.
     """
+    # In WMA, it is not allowed to set DefaultValues with
+    # non positive integer indices. Probably DefaultValues are stored
+    # as a dictionary or something like that, instead of an expression
+    # to be evaluated.
     pos = []
     if k is not None:
+        assert k > 0
         pos.append(k)
     if n is not None:
+        assert n > 0
         pos.append(n)
     for pos_len in reversed(range(len(pos) + 1)):
         # Try patterns from specific to general
