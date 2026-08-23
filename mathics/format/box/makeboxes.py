@@ -6,7 +6,7 @@ makeboxes rules.
 """
 
 
-from typing import List
+from typing import Callable, Dict, List
 
 from mathics.core.atoms import Complex, Integer1, Rational, String
 from mathics.core.definitions import BOX_FORMS, OUTPUT_FORMS, PRINT_FORMS
@@ -35,7 +35,7 @@ from mathics.eval.lists import list_boxes
 from mathics.format.box.formatvalues import do_format
 from mathics.format.box.precedence import parenthesize
 
-PRINT_FORMS_CALLBACK = {}
+PRINT_FORMS_CALLBACK: Dict[str, Callable] = {}
 
 
 def is_print_form_callback(head_name: str):

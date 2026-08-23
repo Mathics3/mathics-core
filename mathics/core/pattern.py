@@ -985,7 +985,7 @@ def expression_pattern_match_element_orderless(
     element: BaseElement = parms["element"]
     element_candidates = set(element_candidates)  # for fast lookup
 
-    sets = None
+    sets: Optional[list] = None
     if isinstance(element, Pattern):
         varname = element.elements[0].get_name()
         existing = parms["vars_dict"].get(varname, None)
