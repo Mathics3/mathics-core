@@ -359,6 +359,9 @@ class BasePattern(ABC):
         """
         return self._build_pattern_sort_key()
 
+    def _build_pattern_sort_key(self):
+        raise NotImplementedError
+
     @overload
     def sameQ(self, other: "BasePattern") -> bool: ...
 
@@ -386,9 +389,6 @@ class AtomPattern(BasePattern):
         if isinstance(expr, Symbol):
             self.match = self.match_symbol  # type: ignore[method-assign]
             self.get_match_candidates = self.get_match_symbol_candidates  # type: ignore[method-assign]
-
-    def get_match_count(self, vars_dict: Optional[dict] = None) -> Tuple[int, int]:
-        return (1, 1)
 
     def _build_pattern_sort_key(self) -> tuple:
         return BASIC_ATOM_PATTERN_SORT_KEY
@@ -1046,7 +1046,7 @@ def expression_pattern_match_element_orderless(
     element: BaseElement = parms["element"]
     element_candidates = set(element_candidates)  # for fast lookup
 
-    sets = None
+    sets: Optional[list] = None
     if isinstance(element, Pattern):
         varname = element.elements[0].get_name()
         existing = parms["vars_dict"].get(varname, None)
