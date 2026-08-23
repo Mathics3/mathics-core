@@ -257,7 +257,7 @@ def eval_RealSign(expr: BaseElement) -> Optional[Integer]:
             return eval_RealSign(try_add)
 
 
-def eval_Sign(expr: BaseElement) -> Optional[BaseElement]:
+def eval_Sign(expr: Number) -> Optional[BaseElement]:
     """
     if expr is a number, return its sign.
     """

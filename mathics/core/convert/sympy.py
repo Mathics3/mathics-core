@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Tuple, Union, 
 import sympy
 from sympy import (
     Dummy as Sympy_Dummy,
+    Q,
     Symbol as Sympy_Symbol,
     false as SympyFalse,
     true as SympyTrue,
@@ -32,6 +33,7 @@ from mathics.core.atoms import (
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.matrix import matrix_data
 from mathics.core.element import BaseElement
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.expression_predefined import (
     MATHICS3_COMPLEX_INFINITY,
@@ -53,9 +55,12 @@ from mathics.core.symbols import (
     sympy_name,
 )
 from mathics.core.systemsymbols import (
+    SymbolAnd,
     SymbolC,
     SymbolCatalan,
+    SymbolComplex,
     SymbolE,
+    SymbolElement,
     SymbolEqual,
     SymbolEulerGamma,
     SymbolFunction,
@@ -63,12 +68,15 @@ from mathics.core.systemsymbols import (
     SymbolGreater,
     SymbolGreaterEqual,
     SymbolIndeterminate,
+    SymbolInteger,
     SymbolLess,
     SymbolLessEqual,
     SymbolMatrixPower,
     SymbolO,
     SymbolPi,
     SymbolPiecewise,
+    SymbolRationals,
+    SymbolReals,
     SymbolSlot,
     SymbolUnequal,
 )
@@ -113,7 +121,6 @@ sympy_singleton_to_mathics = {
     SympyTrue: SymbolTrue,
 }
 
-
 mathics_to_sympy_singleton = {
     key: val for val, key in sympy_singleton_to_mathics.items()
 }
@@ -139,6 +146,103 @@ def is_Cn_expr(name: str) -> bool:
     return number != "" and number.isdigit()
 
 
+def to_sympy_assumption_compare(
+    expr,
+) -> sympy.assumptions.assume.AppliedPredicate | bool:
+    if (
+        hasattr(expr, "head")
+        and (head := expr.head)
+        in (SymbolEqual, SymbolGreater, SymbolGreaterEqual, SymbolLess, SymbolLessEqual)
+        and len(expr.elements) == 2
+    ):
+        lhs, rhs = expr.elements
+
+        # FIXME: swap lhs and rhs if rhs is a symbol and lhs is a constant.
+        # FIXME: Handle negative numbers!
+
+        # Simple case: x > 0 where x is a symbol
+        if isinstance(lhs, Symbol) and rhs.is_zero:
+            sympy_lhs = lhs.to_sympy()
+            if head is SymbolEqual:
+                return Q.zero(sympy_lhs)
+            if head is SymbolGreater:
+                return Q.positive(sympy_lhs)
+            elif head is SymbolGreaterEqual:
+                return Q.nonnegative(sympy_lhs)
+            elif head is SymbolLess:
+                return Q.negative(sympy_lhs)
+            elif head is SymbolLessEqual:
+                return Q.nonpositive(sympy_lhs)
+    return True
+
+
+def to_sympy_assumption_domain(
+    lhs,
+    rhs,
+) -> sympy.assumptions.assume.AppliedPredicate | bool:
+    if isinstance(lhs, Symbol):
+        lhs_sympy = lhs.to_sympy()
+        # TODO: handle Complexes, Booleans, and Algebraics
+        match rhs:
+            case rhs if rhs is SymbolComplex:
+                return Q.complex(lhs_sympy)
+            case rhs if rhs is SymbolInteger:
+                return Q.integer(lhs_sympy)
+            case rhs if rhs is SymbolRationals:
+                return Q.rational(lhs_sympy)
+            case rhs if rhs is SymbolReals:
+                return Q.real(lhs_sympy)
+    return True
+
+
+def to_sympy_assumptions(
+    assumptions, evaluation: Evaluation
+) -> sympy.assumptions.assume.AppliedPredicate | bool:
+    """Convert a Mathics3 matrix to one that can be used by SymPy.
+    None is returned if we can't convert to a Sympy matrix.
+    """
+    match assumptions:
+        case val if val is SymbolTrue:
+            return True
+        case val if val is SymbolFalse:
+            return False
+        case val if isinstance(val, ListExpression):
+            result = True
+            for elem in val.elements:
+                sympy_assume = to_sympy_assumptions(elem, evaluation)
+                if sympy_assume is not True:
+                    if result is True:
+                        result = sympy_assume
+                    else:
+                        result = result & sympy_assume
+            return result
+
+        case val if isinstance(val, Expression):
+            result = True
+            match val:
+                case val if val.head is SymbolAnd:
+                    for elem in val.elements:
+                        sympy_assume = to_sympy_assumptions(elem, evaluation)
+                        if sympy_assume is not True:
+                            if result is True:
+                                result = sympy_assume
+                            else:
+                                result = result & sympy_assume
+                                return result
+                case val if val.head in (
+                    SymbolEqual,
+                    SymbolGreater,
+                    SymbolGreaterEqual,
+                    SymbolLess,
+                    SymbolLessEqual,
+                ):
+                    return to_sympy_assumption_compare(assumptions)
+                case val if val.head is SymbolElement and len(val.elements) == 2:
+                    lhs, rhs = val.elements
+                    return to_sympy_assumption_domain(lhs, rhs)
+    return True
+
+
 def to_sympy_matrix(data, **__) -> Optional[sympy.MutableDenseMatrix]:
     """Convert a Mathics3 matrix to one that can be used by Sympy.
     None is returned if we can't convert to a Sympy matrix.
@@ -156,7 +260,7 @@ class SympyExpression(sympy.Expr):
 
     is_Function = True
     nargs = None
-    expr: Expression
+    expr: Optional[Expression]
 
     def __new__(cls, *exprs, **kwargs):
         # sympy simplify may also recreate the object if simplification occurred
@@ -219,7 +323,11 @@ class SympyExpression(sympy.Expr):
     def _eval_rewrite(self, rule, args, **hints):
         return self
 
+    # @property does not match SymPy's definition. However,
+    # @is_commutative.setter is needed, by linear algebra stuff. And
+    # for that, we need @property here.
     @property
+    # pyrefly: ignore [bad-override]
     def is_commutative(self) -> Optional[bool]:
         """Check if the arguments are commutative."""
         return all(getattr(t, "is_commutative", False) for t in self.args)
@@ -238,7 +346,10 @@ class SympyPrime(sympy.Function):
     """
 
     @classmethod
-    def eval(cls, n):
+    def eval(cls, *args):
+        if len(args) != 1:
+            return None
+        n = args[0]
         if n.is_Integer and n > 0:
             try:
                 return sympy.prime(n)
@@ -471,7 +582,10 @@ def from_sympy(sympy_expr) -> BaseElement:
         return to_expression(SymbolEqual, *[from_sympy(arg) for arg in sympy_expr.args])
 
     if isinstance(sympy_expr, SympyExpression):
-        return sympy_expr.expr
+        expr = sympy_expr.expr
+        if expr is None:
+            raise ValueError
+        return expr
 
     if isinstance(sympy_expr, sympy.Piecewise):
         return Expression(

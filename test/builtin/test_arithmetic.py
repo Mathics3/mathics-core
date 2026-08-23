@@ -36,10 +36,6 @@ import pytest
             "2 or more arguments are",
         ),
         (
-            "Assuming",
-            "2 arguments are",
-        ),
-        (
             "Boole",
             "2 arguments are",
         ),

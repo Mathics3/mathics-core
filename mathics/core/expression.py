@@ -1002,7 +1002,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         return definitions.is_uncertain_final_value(time, cache.symbols)
 
     def has_form(
-        self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
+        self, heads: Sequence[str] | str | Symbol, *element_counts: Optional[int]
     ) -> bool:
         """
         element_counts:
@@ -1020,9 +1020,12 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         elif isinstance(heads, str):
             if head_name != ensure_context(heads):
                 return False
+        elif isinstance(heads, Symbol):
+            breakpoint
+            pass
         else:
             raise TypeError(
-                f"Heads must be a string or a sequence of strings, not {type(heads)}"
+                f"Heads must be a Symbol, string, or a sequence of strings, not {type(heads)}"
             )
         if not element_counts:
             return False

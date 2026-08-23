@@ -11,7 +11,6 @@ from typing import Optional
 
 import sympy
 
-from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import (
     MATHICS3_COMPLEX_I,
     MATHICS3_COMPLEX_I_NEG,
@@ -24,7 +23,6 @@ from mathics.core.atoms import (
     String,
 )
 from mathics.core.attributes import (
-    A_HOLD_REST,
     A_LISTABLE,
     A_NO_ATTRIBUTES,
     A_NUMERIC_FUNCTION,
@@ -72,7 +70,6 @@ from mathics.core.systemsymbols import (
     SymbolUndefined,
 )
 from mathics.eval.arithmetic import eval_RealValuedNumberQ
-from mathics.eval.inference import get_assumptions_list
 from mathics.eval.numeric import eval_Sign
 
 # This tells documentation how to sort this module
@@ -156,69 +153,6 @@ class Arg(MPMathFunction):
         if Expression(SymbolPossibleZeroQ, z).evaluate(evaluation) is SymbolTrue:
             return Integer0
         return SympyFunction.eval(self, z, evaluation)
-
-
-class Assuming(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Assuming.html</url>
-
-    <dl>
-      <dt>'Assuming'[$cond$, $expr$]
-      <dd>Evaluates $expr$ assuming the conditions $cond$.
-    </dl>
-
-    >> $Assumptions = { x > 0 }
-     = {x > 0}
-    >> Assuming[y>0, ConditionalExpression[y x^2, y>0]//Simplify]
-     = x ^ 2 y
-    >> Assuming[Not[y>0], ConditionalExpression[y x^2, y>0]//Simplify]
-     = Undefined
-    >> ConditionalExpression[y x ^ 2, y > 0]//Simplify
-     = ConditionalExpression[x ^ 2 y, y > 0]
-    """
-
-    summary_text = "set assumptions during the evaluation"
-    attributes = A_HOLD_REST | A_PROTECTED
-    eval_error = Builtin.generic_argument_error
-    expected_args = 2
-
-    def eval_assuming(self, assumptions, expr, evaluation: Evaluation):
-        "Assuming[assumptions_, expr_]"
-        assumptions = assumptions.evaluate(evaluation)
-        if assumptions is SymbolTrue:
-            cond = []
-        elif isinstance(assumptions, Symbol) or not assumptions.has_form("List", None):
-            cond = [assumptions]
-        else:
-            cond = assumptions.elements
-        cond = tuple(cond) + get_assumptions_list(evaluation)
-        list_cond = ListExpression(*cond)
-        # TODO: reduce the list of predicates
-        return dynamic_scoping(
-            lambda ev: expr.evaluate(ev), {"System`$Assumptions": list_cond}, evaluation
-        )
-
-
-class Assumptions(Predefined):
-    r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/\$Assumptions.html</url>
-    <dl>
-      <dt>'\$Assumptions'
-      <dd>is the default setting for the 'Assumptions' option used in such functions as 'Simplify', 'Refine', and 'Integrate'.
-    </dl>
-    """
-
-    summary_text = "assumptions used to simplify expressions"
-    name = "$Assumptions"
-    attributes = A_NO_ATTRIBUTES
-    rules = {
-        "$Assumptions": "True",
-    }
-
-    messages = {
-        "faas": "Assumptions should not be False.",
-        "baas": "Bad formed assumption.",
-    }
 
 
 class Boole(Builtin):

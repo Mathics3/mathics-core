@@ -1,4 +1,4 @@
-from typing import NamedTuple
+from typing import Final, NamedTuple
 
 
 class AlgebraicOptions(NamedTuple):
@@ -12,3 +12,6 @@ class AlgebraicOptions(NamedTuple):
 
     modulus: int = 0
     trig: bool = False
+
+
+DEFAULT_ALGEBRAIC_OPTIONS: Final[AlgebraicOptions] = AlgebraicOptions(0, False)
