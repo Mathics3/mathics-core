@@ -1018,6 +1018,7 @@ System`Rectangle
 System`RectangleBox
 System`Rectangular
 System`Red
+System`Refine
 System`RegularExpression
 System`RegularPolygon
 System`RegularPolygonBox
