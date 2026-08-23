@@ -7,7 +7,7 @@ from test.helper import check_arg_counts, check_evaluation
 
 import pytest
 
-LIST_TEST_ASSUMPTIONS_INTEGRATE = [
+LIST_TEST_ASSUMPTIONS_INTEGRATE_FAILING = [
     (
         "Integrate[x^n, {x, 0, 1}]",
         "Piecewise[{{1 / (1 + n), 1 + Re[n] > 0 && n > -Infinity && n < Infinity && n != -1}}, Infinity]",
@@ -23,12 +23,15 @@ LIST_TEST_ASSUMPTIONS_INTEGRATE = [
         "Piecewise[{{1 / (1 + n), n > -Infinity && n < Infinity && n != -1}}, Infinity]",
         "",
     ),
+    ("Assuming[1<n<3, Integrate[x^n, {x, 0, 1}]]", "1/(n+1)", ""),
+    ("Assuming[Or[n==1, n==2], Integrate[x^n, {x, 0, 1}]]", "1/(n+1)", ""),
+    ("Assuming[Or[n>2, n>=3], Integrate[x^n, {x, 0, 1}]]", "1/(n+1)", ""),
+]
+
+LIST_TEST_ASSUMPTIONS_INTEGRATE_PASSING = [
     ("Assuming[n == 1, Integrate[x^n, {x, 0, 1}]]", "1 / 2", ""),
     ("Assuming[n == 2, Integrate[x^n, {x, 0, 1}]]", "1 / 3", ""),
     ("Assuming[n == -1, Integrate[x^n, {x, 0, 1}]]", "Infinity", ""),
-    #    ("Assuming[1<n<3, Integrate[x^n, {x, 0, 1}]]", "x^(n+1)/(n+1)", ""),
-    #    ("Assuming[Or[n==1, n==2], Integrate[x^n, {x, 0, 1}]]", "x^(n+1)/(n+1)", ""),
-    #    ("Assuming[Or[n>2, n>=3], Integrate[x^n, {x, 0, 1}]]", "x^(n+1)/(n+1)", ""),
 ]
 
 LIST_TEST_ASSUMPTIONS_SIMPLIFY = [
@@ -117,7 +120,15 @@ def test_add(str_expr, str_expected, assert_msg):
 
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "message"),
-    LIST_TEST_ASSUMPTIONS_INTEGRATE,
+    LIST_TEST_ASSUMPTIONS_INTEGRATE_PASSING,
+)
+def test_assumptions_integrate(str_expr, str_expected, message):
+    check_evaluation(str_expr, str_expected)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "message"),
+    LIST_TEST_ASSUMPTIONS_INTEGRATE_FAILING,
 )
 @pytest.mark.xfail(reason="the Assumptions with Integrate is not fully working")
 def test_assumptions_integrate(str_expr, str_expected, message):
@@ -128,6 +139,6 @@ def test_assumptions_integrate(str_expr, str_expected, message):
     ("str_expr", "str_expected", "message"),
     LIST_TEST_ASSUMPTIONS_SIMPLIFY,
 )
-@pytest.mark.xfail(reason="the Assumptions with Simplify is not fully working")
+# @pytest.mark.xfail(reason="the Assumptions with Simplify is not fully working")
 def test_assumptions_simplify(str_expr, str_expected, message):
     check_evaluation(str_expr, str_expected)
