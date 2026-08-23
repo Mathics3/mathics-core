@@ -1174,7 +1174,9 @@ def get_pre_choices_orderless(
         Yields possible variable settings (dictionaries) for the
         remaining pattern groups
         """
-        # TODO: check why this condition is never reached in tests.
+        # TODO: see comment in
+        # test.timing.test_patterns::test_orderless_repeated_names_benchmark
+
         if groups:
             # name, patterns = groups[0]
 
