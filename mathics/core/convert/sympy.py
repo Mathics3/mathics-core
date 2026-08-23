@@ -260,7 +260,7 @@ class SympyExpression(sympy.Expr):
 
     is_Function = True
     nargs = None
-    expr: Expression | None
+    expr: Optional[Expression]
 
     def __new__(cls, *exprs, **kwargs):
         # sympy simplify may also recreate the object if simplification occurred
@@ -582,7 +582,10 @@ def from_sympy(sympy_expr) -> BaseElement:
         return to_expression(SymbolEqual, *[from_sympy(arg) for arg in sympy_expr.args])
 
     if isinstance(sympy_expr, SympyExpression):
-        return sympy_expr.expr
+        expr = sympy_expr.expr
+        if expr is None:
+            raise ValueError
+        return expr
 
     if isinstance(sympy_expr, sympy.Piecewise):
         return Expression(

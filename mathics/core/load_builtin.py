@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 # is initialized via below import_builtins modules
 mathics3_builtins_modules: List[ModuleType] = []
 
-_builtins = {}
+_builtins: Dict[str, "Builtin"] = {}
 
 # builtins_by_module gives a way of mapping a Python module name
 # e.g. 'mathics.builtin.arithmetic' to the list of Builtin class instances
