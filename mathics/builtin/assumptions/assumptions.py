@@ -5,11 +5,11 @@ Assumptions and functions that Use Assumptions.
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.attributes import A_HOLD_REST, A_NO_ATTRIBUTES, A_PROTECTED
 from mathics.core.builtin import Builtin, Predefined
+from mathics.core.convert.sympy import to_sympy_assumptions
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolTrue
-from mathics.eval.assumptions.assumptions import get_assumptions, with_assumptions
+from mathics.eval.assumptions.assumptions import eval_Refine
 from mathics.eval.inference import get_assumptions_list
 
 
@@ -115,15 +115,16 @@ class Refine(Builtin):
     def eval(self, expr, assumptions, evaluation: Evaluation):
         "Refine[expr_, assumptions_]"
 
-        # Retrieve merged assumptions ($Assumptions + explicit argument/options)
-        assum = get_assumptions(evaluation, explicit_assumptions=assumptions)
+        # Evaluate the assumptions argument if provided
+        if assumptions is not None:
+            assumptions_eval = assumptions.evaluate(evaluation)
+        else:
+            assumptions_eval = Symbol("$Assumptions").evaluate(evaluation)
 
-        if assum in (None, SymbolTrue):
-            # If assumptions are trivial or empty, evaluate expr as-is
+        # If assumptions are trivial, just evaluate expr normally
+        if assumptions_eval is SymbolTrue or assumptions_eval is None:
             return expr.evaluate(evaluation)
 
-        # Evaluate the expression under the active assumptions context
-        with with_assumptions(evaluation, assumptions):
-            refined = expr.evaluate(evaluation)
-            # Re-evaluate to apply any assumption-dependent transformation rules
-            return refined.evaluate(evaluation)
+        sympy_assumptions = to_sympy_assumptions(assumptions_eval, evaluation)
+
+        return eval_Refine(expr, sympy_assumptions, evaluation)

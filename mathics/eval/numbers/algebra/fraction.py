@@ -19,6 +19,10 @@ from mathics.core.atoms import Integer, Integer1, Real
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.expression import Expression
 from mathics.core.systemsymbols import SymbolPower
+from mathics.eval.numbers.algebra.options import (
+    DEFAULT_ALGEBRAIC_OPTIONS,
+    AlgebraicOptions,
+)
 
 
 def identify_trig(sympy_expr) -> Optional[FunctionClass]:
@@ -38,7 +42,9 @@ def identify_trig(sympy_expr) -> Optional[FunctionClass]:
             return None
 
 
-def get_fractional_parts(expr, evaluation, algebraic_options, want_numerator):
+def get_fractional_parts(
+    expr, evaluation, algebraic_options: AlgebraicOptions, want_numerator
+):
 
     # We need to first evaluate expr which may alter the form
     # of the expression.
@@ -114,13 +120,13 @@ def get_fractional_parts(expr, evaluation, algebraic_options, want_numerator):
     return from_sympy(part)
 
 
-def eval_Denominator(expr, evaluation, algebraic_options):
+def eval_Denominator(expr, evaluation, algebraic_options=DEFAULT_ALGEBRAIC_OPTIONS):
     return get_fractional_parts(
         expr, evaluation, algebraic_options, want_numerator=False
     )
 
 
-def eval_Numerator(expr, evaluation, algebraic_options):
+def eval_Numerator(expr, evaluation, algebraic_options=DEFAULT_ALGEBRAIC_OPTIONS):
     return get_fractional_parts(
         expr, evaluation, algebraic_options, want_numerator=True
     )

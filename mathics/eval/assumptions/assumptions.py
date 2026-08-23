@@ -1,73 +1,44 @@
-from contextlib import contextmanager
+"""
+Assumptions and functions that Use Assumptions.
+"""
 
+import sympy
+
+# Note: it is important *not* use: from mathics.eval.tracing import run_sympy
+# but instead import the module and access below as tracing.run_sympy.
+# This allows us change where tracing.run_sympy points at runtime.
+import mathics.eval.tracing as tracing
+from mathics.core.convert.sympy import from_sympy
+from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolTrue
-from mathics.core.systemsymbols import SymbolAnd
 
 
-def get_assumptions(
-    evaluation: Evaluation, explicit_assumptions=None
-) -> Symbol | Expression:
+def eval_Refine(
+    expr,
+    sympy_assumptions: sympy.assumptions.assume.AppliedPredicate | bool,
+    evaluation: Evaluation,
+) -> BaseElement:
     """
-    Combines explicit assumptions with active evaluation assumptions.
+    Apply assumption-aware simplification rules to an expression.
+
+    This function recursively traverses the expression tree and applies
+    refinement rules based on the provided assumptions.
 
     Parameters:
-        evaluation: The current Evaluation object containing evaluation.assumptions.
-        explicit_assumptions: An optional explicit assumption Expression or Symbol.
+        expr: The expression to refine
+        assumptions: The assumptions (And of conditions, or True)
+        evaluation: The Evaluation context
 
     Returns:
-        The merged assumption Expression/Symbol.
+        The refined expression
     """
-    # Resolve explicit assumptions or default to $Assumptions
-    if explicit_assumptions is not None:
-        assum_opt = explicit_assumptions
-    else:
-        assum_opt = Symbol("$Assumptions")
-
-    # Evaluate explicit assumption expression
-    assum_eval = (
-        assum_opt.evaluate(evaluation) if hasattr(assum_opt, "evaluate") else assum_opt
-    )
-
-    # Retrieve current active assumptions from the evaluation state
-    active_assumptions = getattr(evaluation, "assumptions", SymbolTrue)
-
-    if active_assumptions in (None, SymbolTrue):
-        return assum_eval
-    elif assum_eval in (None, SymbolTrue):
-        return active_assumptions
-    else:
-        # Pure merging logic
-        return Expression(SymbolAnd, active_assumptions, assum_eval)
-
-
-@contextmanager
-def with_assumptions(evaluation, new_assumptions):
-    """
-    Context manager to temporarily modify evaluation.assumptions.
-
-    Parameters:
-        evaluation: The Evaluation state instance to modify temporarily.
-        new_assumptions: The new assumption Expression/Symbol to apply.
-    """
-    old_assumptions = getattr(evaluation, "assumptions", Symbol("System`True"))
-
     try:
-        # Determine updated assumptions using pure condition checks
-        if new_assumptions is None or new_assumptions is SymbolTrue:
-            updated = old_assumptions
-        elif (
-            old_assumptions is None
-            or getattr(old_assumptions, "name", None) == "System`True"
-        ):
-            updated = new_assumptions
-        else:
-            updated = Expression(SymbolAnd, old_assumptions, new_assumptions)
+        sympy_expr = expr.to_sympy()
+        sympy_expr_refined = tracing.run_sympy(
+            sympy.refine, sympy_expr, sympy_assumptions
+        )
+        refined_expr = from_sympy(sympy_expr_refined)
+    except Exception:
+        return expr
 
-        evaluation.assumptions = updated
-        yield updated
-
-    finally:
-        # Guarantee restoration of prior evaluation state
-        evaluation.assumptions = old_assumptions
+    return refined_expr

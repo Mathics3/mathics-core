@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Tuple, Union, 
 import sympy
 from sympy import (
     Dummy as Sympy_Dummy,
+    Q,
     Symbol as Sympy_Symbol,
     false as SympyFalse,
     true as SympyTrue,
@@ -32,6 +33,7 @@ from mathics.core.atoms import (
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.matrix import matrix_data
 from mathics.core.element import BaseElement
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.expression_predefined import (
     MATHICS3_COMPLEX_INFINITY,
@@ -53,6 +55,7 @@ from mathics.core.symbols import (
     sympy_name,
 )
 from mathics.core.systemsymbols import (
+    SymbolAnd,
     SymbolC,
     SymbolCatalan,
     SymbolE,
@@ -137,6 +140,66 @@ def is_Cn_expr(name: str) -> bool:
         return False
     number = name[1:]
     return number != "" and number.isdigit()
+
+
+def to_sympy_assumption_compare(
+    expr,
+) -> sympy.assumptions.assume.AppliedPredicate | bool:
+    if (
+        hasattr(expr, "head")
+        and (head := expr.head)
+        in (SymbolEqual, SymbolGreater, SymbolGreaterEqual, SymbolLess, SymbolLessEqual)
+        and len(expr.elements) == 2
+    ):
+        lhs, rhs = expr.elements
+
+        # FIXME: swap lhs and rhs if rhs is a symbol and lhs is a constant.
+        # FIXME: Handle negative numbers!
+
+        # Simple case: x > 0 where x is a symbol
+        if isinstance(lhs, Symbol) and rhs.is_zero:
+            sympy_lhs = lhs.to_sympy()
+            if head is SymbolEqual:
+                return Q.zero(sympy_lhs)
+            if head is SymbolGreater:
+                return Q.positive(sympy_lhs)
+            elif head is SymbolGreaterEqual:
+                return Q.nonnegative(sympy_lhs)
+            elif head is SymbolLess:
+                return Q.negative(sympy_lhs)
+            elif head is SymbolLessEqual:
+                return Q.nonpositive(sympy_lhs)
+    return True
+
+
+def to_sympy_assumptions(
+    assumptions, evaluation: Evaluation
+) -> sympy.assumptions.assume.AppliedPredicate | bool:
+    """Convert a Mathics3 matrix to one that can be used by Sympy.
+    None is returned if we can't convert to a Sympy matrix.
+    """
+    match assumptions:
+        case val if val is SymbolTrue:
+            return True
+        case val if val is SymbolFalse:
+            return False
+        case val if isinstance(val, Expression):
+            if val.head is SymbolAnd:
+                result = True
+                for elem in val.elements:
+                    sympy_assume = to_sympy_assumptions(elem, evaluation)
+                    if sympy_assume is not True:
+                        result = result & to_sympy_assumptions(elem, evaluation)
+                return result
+            if val.head in (
+                SymbolEqual,
+                SymbolGreater,
+                SymbolGreaterEqual,
+                SymbolLess,
+                SymbolLessEqual,
+            ):
+                return to_sympy_assumption_compare(assumptions)
+    return True
 
 
 def to_sympy_matrix(data, **__) -> Optional[sympy.MutableDenseMatrix]:
