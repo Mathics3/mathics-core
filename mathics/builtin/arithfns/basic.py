@@ -464,6 +464,7 @@ class Sqrt(SympyFunction):
     }
 
     summary_text = "take the square root of a number"
+    sympy_name = "sqrt"
 
 
 class Subtract(InfixOperator):

@@ -86,16 +86,25 @@ class Refine(Builtin):
       by explicit numerical expressions satisfying the assumptions $assum$.
     </dl>
 
-    >> Refine[Sqrt[x^2], x > 0]
+    'Sqrt' would normally give two roots, but there is only one when we assume we started \
+    out with a positive number in $x$:
+    >> Refine[Sqrt[x^6], x > 0]
+     = x ^ 3
+
+    'Refine' works over domains, such as the real domain:
+    >> Refine[Re[x], Element[x, Reals]]
      = x
 
-    >> Refine[Sqrt[x^2], x \[Element] Reals]
-     = Abs[x]
+    And also the rational domains:
+    >> Refine[Im[x], Element[x, Rationals]]
+     = 0
 
-    >> Assuming[x >= 0 && y < 0, If[TrueQ[Refine[x - y > 0]], Refine[Sqrt[x^2 y^2]], 0]]
-     = x ^ 2 y
-    >> Assuming[Not[y>0], ConditionalExpression[y x^2, y>0]//Simplify]
-     = -xy
+    ## Bugs in SymPy's refine:
+    ## >> Assuming[x >= 0 && y < 0, If[TrueQ[Refine[x - y > 0]], Refine[Sqrt[x^2 y^2]], 0]]
+    ##  = x ^ 2 y
+    ## Come back to:
+    ## >> Assuming[Not[y>0], ConditionalExpression[y x^2, y>0]//Simplify]
+    ##  = -xy
     """
 
     attributes = A_PROTECTED
@@ -111,6 +120,7 @@ class Refine(Builtin):
     }
 
     summary_text = "simplify an expression according to some criteria"
+    sympy_name = "refine"
 
     def eval(self, expr, assumptions, evaluation: Evaluation):
         "Refine[expr_, assumptions_]"
@@ -126,5 +136,4 @@ class Refine(Builtin):
             return expr.evaluate(evaluation)
 
         sympy_assumptions = to_sympy_assumptions(assumptions_eval, evaluation)
-
         return eval_Refine(expr, sympy_assumptions, evaluation)
