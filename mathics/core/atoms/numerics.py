@@ -112,7 +112,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         # Anything that is in a number class is Numeric, so return True.
         return True
 
-    def to_mpmath(self, precision: Optional[int] = None) -> mpmath.ctx_mp_python.mpf:
+    def to_mpmath(self, precision: Optional[int] = None) -> mpmath.mpf:
         """
         Convert self.value to an mpmath number with precision ``precision``
         If ``precision`` is None, use mpmath's default precision.
