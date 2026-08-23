@@ -323,10 +323,16 @@ class SympyExpression(sympy.Expr):
     def _eval_rewrite(self, rule, args, **hints):
         return self
 
+    # @property does not match SymPy's definition. However,
+    # @is_commutative.setter is needed, by linear algebra stuff. And
+    # for that, we need @property here.
+    @property
+    # pyrefly: ignore [bad-override]
     def is_commutative(self) -> Optional[bool]:
         """Check if the arguments are commutative."""
         return all(getattr(t, "is_commutative", False) for t in self.args)
 
+    @is_commutative.setter
     def is_commutative(self, value: bool) -> None:
         return
 
