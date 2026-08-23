@@ -260,7 +260,7 @@ class SympyExpression(sympy.Expr):
 
     is_Function = True
     nargs = None
-    expr: Expression
+    expr: Optional[Expression]
 
     def __new__(cls, *exprs, **kwargs):
         # sympy simplify may also recreate the object if simplification occurred
@@ -269,6 +269,7 @@ class SympyExpression(sympy.Expr):
         if all(isinstance(expr, BasicSympy) for expr in exprs):
             # called with SymPy arguments
             obj = super().__new__(cls, *exprs)
+            obj.expr = None
         elif len(exprs) == 1 and isinstance(exprs[0], Expression):
             # called with Mathics3 argument
             expr = exprs[0]
