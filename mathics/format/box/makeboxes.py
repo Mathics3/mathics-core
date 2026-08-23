@@ -9,7 +9,7 @@ makeboxes rules.
 from typing import List
 
 from mathics.core.atoms import Complex, Integer1, Rational, String
-from mathics.core.definitions import BOX_FORMS, OUTPUT_FORMS, PRINT_FORMS
+from mathics.core.definitions import BOX_FORMS, PRINT_FORMS
 from mathics.core.element import BaseElement, BoxElementMixin, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -59,7 +59,7 @@ def eval_makeboxes_format(expr, form, outerform, evaluation, **kwargs):
     """
     Do MakeBoxes on an expression of the form `Format[expr, form]`.
     """
-    from mathics.builtin.box.layout import FormBox, RowBox, TagBox
+    from mathics.builtin.box.layout import FormBox, TagBox
     from mathics.builtin.functional.application import Function, Slot
     from mathics.builtin.layout import Format
 

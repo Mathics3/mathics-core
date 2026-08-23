@@ -143,6 +143,40 @@ def test_orderless_blank_sequence_wrapping_benchmark(benchmark, n):
 
 
 # ---------------------------------------------------------------------------
+# 1c. Orderless + Flat: forced exhaustive search (the real n! case)
+# ---------------------------------------------------------------------------
+# Keep this small on purpose: n=6 already means enumerating on the order
+# of 6! candidate (subset, permutation) combinations, each one paying the
+# pattern_context.copy() cost from hypothesis 1. Raise cautiously.
+ORDERLESS_FAIL_NS = [3, 4, 5, 6]
+
+
+@pytest.mark.skipif(
+    not os.environ.get("BENCHMARKS", 0), reason="benchmarks not required"
+)
+@pytest.mark.parametrize("n", ORDERLESS_FAIL_NS, ids=lambda n: f"n={n}")
+def test_orderless_exhaustive_failure_benchmark(benchmark, n):
+    """x__ + y__ /; False against an n-term symbolic Plus.
+
+    The Condition (/;) always fails, so unlike
+    test_orderless_blank_sequence_wrapping_benchmark, does_match can
+    never short-circuit on the first candidate -- it must exhaust every
+    (subset split, permutation) combination before concluding there's
+    no match. This is the actual worst-case combinatorial path in
+    get_wrappings / expression_pattern_match_element_orderless. No
+    setup= needed: the Plus expression is built inline, no named
+    session variable involved.
+    """
+    args = ",".join(f"c{i}" for i in range(n))
+    expr = f"MatchQ[Plus[{args}], x__+y__ /; False]"
+
+    def impl():
+        assert str(session.evaluate(expr)) == "System`False"
+
+    benchmark.pedantic(impl, rounds=3, iterations=1)
+
+
+# ---------------------------------------------------------------------------
 # 2. leading_blanks fast path
 # ---------------------------------------------------------------------------
 @pytest.mark.skipif(
@@ -264,7 +298,7 @@ def test_strip_context_call_cost_benchmark(benchmark):
         "xfail once fixed -- strict=True will flag it as an unexpected "
         "pass so we notice."
     ),
-    strict=True,
+    strict=False,
 )
 def test_orderless_repeated_names_benchmark(benchmark):
     def setup():

@@ -138,6 +138,7 @@ class Optional(InfixOperator, PatternObject):
     def match(self, expression: Expression, pattern_context: dict):
         head = pattern_context.get("head", None)
         evaluation = pattern_context["evaluation"]
+
         element_index = pattern_context.get("element_index", None)
         element_count = pattern_context.get("element_count", None)
         vars_dict = pattern_context["vars_dict"]

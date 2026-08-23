@@ -59,7 +59,7 @@ from mathics.core.list import ListExpression
 from mathics.core.number import PrecisionValueError, dps, get_precision, min_prec
 from mathics.core.parser.operators import OPERATOR_DATA
 from mathics.core.parser.util import PyMathicsDefinitions, SystemDefinitions
-from mathics.core.pattern import BasePattern, build_pattern_sort_key
+from mathics.core.pattern import BasePattern
 from mathics.core.rules import BaseRule, FunctionApplyRule, RewriteRule
 from mathics.core.symbols import (
     Atom,
@@ -1679,14 +1679,6 @@ class PatternObject(BuiltinElement, BasePattern):
         of an expression. The tuple is ultimately compared lexicographically.
         """
         return self.expr.element_order
-
-    @property
-    def pattern_precedence(self) -> tuple:
-        """
-        Return a precedence value, a tuple, which is used in selecting
-        which pattern to select when several match.
-        """
-        return build_pattern_sort_key(self)
 
 
 class Test(Builtin, ABC):
