@@ -1,6 +1,6 @@
 """
 Converts expressions from Mathics3 expressions to SymPy Predicates.
-These are used in builtin functions Refine and Assumptions.
+These are used in the built-in functions Refine and Assumptions.
 """
 
 from typing import Final
@@ -155,7 +155,7 @@ def sympy_expr_to_predicate(sympy_expr):
 
 def to_sympy_predicates(assumptions) -> AppliedPredicate:
     """Convert a Mathics3 assumptions expression to an
-    AppliedPredicate (or True) that can be used by SymPy.
+    AppliedPredicate (or True) used in SymPy's refine() or with_assumptions().
     """
     match assumptions:
         case val if val is SymbolTrue:
