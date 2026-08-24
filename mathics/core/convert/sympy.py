@@ -164,11 +164,19 @@ def sympy_expr_to_predicate(sympy_expr):
         return sympy_expr
 
     # Boolean compound trees (And, Or, Not)
-    if hasattr(sympy_expr, "is_Not") and sympy_expr.is_Not:
+    if (
+        isinstance(sympy_expr, Not)
+        or hasattr(sympy_expr, "is_Not")
+        and sympy_expr.is_Not
+    ):
         return Not(sympy_expr_to_predicate(sympy_expr.args[0]))
-    if hasattr(sympy_expr, "is_And") and sympy_expr.is_And:
+    if (
+        isinstance(sympy_expr, And)
+        or hasattr(sympy_expr, "is_And")
+        and sympy_expr.is_And
+    ):
         return And(*[sympy_expr_to_predicate(arg) for arg in sympy_expr.args])
-    if hasattr(sympy_expr, "is_Or") and sympy_expr.is_Or:
+    if isinstance(sympy_expr, Or) or hasattr(sympy_expr, "is_Or") and sympy_expr.is_Or:
         return Or(*[sympy_expr_to_predicate(arg) for arg in sympy_expr.args])
 
     #  Domain membership checks (Element(x, Reals), Contains(x, Integers), etc.)
@@ -247,7 +255,8 @@ def sympy_expr_to_predicate(sympy_expr):
         elif isinstance(sympy_expr, Ne):
             return Q.nonzero(sympy_expr.lhs - sympy_expr.rhs)
 
-    # Fallback for general boolean sympy_expressions
+    # None of the above conditions.
+    # Fallback to a general boolean sympy_expression.
     return Q.is_true(sympy_expr)
 
 
@@ -575,6 +584,8 @@ def from_sympy(sympy_expr) -> BaseElement | Symbol:
             return Rational(*sympy_expr.as_integer_ratio())
 
     if sympy_expr.is_Atom:
+        if (mathics3_value := sympy_singleton_to_mathics.get(sympy_expr)) is not None:
+            return mathics3_value
         name = None
         if sympy_expr.is_Symbol:
             name = str(sympy_expr)
