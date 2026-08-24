@@ -196,6 +196,7 @@ class General(Builtin):
         "dis": "Execution of external commands is disabled.",
         "emptyfch": "Function Channel not defined.",
         "exact": "Argument `1` is not an exact number.",
+        "fas": "one or more assumptions evaluated to False.",
         "fmtnosup": "`1` is not a supported Import format.",
         "fnsym": (
             "First argument in `1` is not a symbol " "or a string naming a symbol."
