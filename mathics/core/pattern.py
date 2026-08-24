@@ -1058,13 +1058,11 @@ def expression_pattern_match_element_orderless(
                 needed = existing.elements
             else:
                 needed = (existing,)
+
             available = list(candidates)
 
             for needed_element in needed:
-                if (
-                    needed_element in available
-                    and needed_element in element_candidates  # nopep8
-                ):
+                if needed_element in available and needed_element in element_candidates:
                     available.remove(needed_element)
                 else:
                     return set()
@@ -1304,8 +1302,18 @@ def get_pre_choices_orderless(
 
     def sequence_matches(pattern, seq, vars_dict, evaluation):
         """Helper: check if pattern matches the whole sequence."""
-        # Create a dummy expression with head Sequence.
-        seq_expr = Expression(SymbolSequence, *seq)
+        # For a single element, match the bare element directly.
+        # Wrapping it in Sequence[...] would make the head of the
+        # matched expression "Sequence" instead of the element's own
+        # head, which breaks typed patterns like a_Integer (Blank[Integer]
+        # checks the head of what it's given -- Sequence[1] has head
+        # Sequence, not Integer, even though the untyped Blank[] doesn't
+        # care and matches either way).
+        if len(seq) == 1:
+            match_target = seq[0]
+        else:
+            match_target = Expression(SymbolSequence, *seq)
+
         # Use a temporary context to see if the match consumes all.
         consumed = False
 
@@ -1321,7 +1329,7 @@ def get_pre_choices_orderless(
             "fully": True,
         }
         try:
-            pattern.match(seq_expr, ctx)
+            pattern.match(match_target, ctx)
         except StopGenerator:
             pass
         return consumed
