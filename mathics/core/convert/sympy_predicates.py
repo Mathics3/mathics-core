@@ -74,7 +74,7 @@ def sympy_expr_to_predicate(sympy_expr):
     ):
         element, domain = sympy_expr.args[0], sympy_expr.args[1]
 
-        # Map standard sets to corresponding Q domain predicates
+        # Map standard sets to their corresponding SymPy Q domain predicates.
         if hasattr(domain, "name") and domain.name in ("Booleans", "Boolean"):
             return Q.boolean(element)
         if isinstance(domain, Complexes) or (
@@ -96,8 +96,9 @@ def sympy_expr_to_predicate(sympy_expr):
         else:
             raise RuntimeError(f"Domain {domain} is not valid")
 
-    # Relational expressions with directional alignment.
+    # Relational expressions, canonicalizing the relation direction.
     if isinstance(sympy_expr, Relational):
+        # Handle where the rhs is zero. For example: x > 0 -> Q.positive(x)
         # Handle zero-rhs explicit cases directly to preserve original symbol orientation
         if sympy_expr.rhs == 0:
             if isinstance(sympy_expr, StrictGreaterThan):
@@ -113,7 +114,7 @@ def sympy_expr_to_predicate(sympy_expr):
             elif isinstance(sympy_expr, Ne):
                 return Q.nonzero(sympy_expr.lhs)
 
-        # Handle zero-lhs explicit cases (0 < x -> x > 0 -> Q.positive(x))
+        # Handle where the lhs is zero. For example: 0 < x is the same as x > 0 -> Q.positive(x)
         if sympy_expr.lhs == 0:
             if isinstance(sympy_expr, StrictGreaterThan):  # 0 > x -> x < 0
                 return Q.negative(sympy_expr.rhs)
@@ -154,9 +155,7 @@ def sympy_expr_to_predicate(sympy_expr):
 
 def to_sympy_predicates(assumptions) -> AppliedPredicate:
     """Convert a Mathics3 assumptions expression to an
-    AppliedPredicate (or True) that can be used by SymPy.  None is
-    returned if we can't convert to a Sympy matrix.
-
+    AppliedPredicate (or True) that can be used by SymPy.
     """
     match assumptions:
         case val if val is SymbolTrue:
