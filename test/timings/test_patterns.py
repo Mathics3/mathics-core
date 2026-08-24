@@ -3,8 +3,24 @@ from test.helper import session
 
 import pytest
 
+from mathics.core import pattern as pattern_module
 from mathics.core.pattern import BasePattern
 from mathics.core.symbols import strip_context
+
+
+def _hold_pattern(pattern_text):
+    """Build a BasePattern from an unevaluated held expression."""
+    held = session.evaluate(f"HoldForm[{pattern_text}]")
+    expr = held.elements[0]
+    return BasePattern.create(expr, evaluation=session.evaluation)
+
+
+def _held_expression(expr_text):
+    """Build an unevaluated Expression from HoldForm."""
+    held = session.evaluate(f"HoldForm[{expr_text}]")
+    print("held:", held)
+    return held.elements[0]
+
 
 # ---------------------------------------------------------------------------
 # Benchmarks for mathics.core.pattern / mathics.core.rules
@@ -283,23 +299,6 @@ def test_strip_context_call_cost_benchmark(benchmark):
 @pytest.mark.skipif(
     not os.environ.get("BENCHMARKS", 0), reason="benchmarks not required"
 )
-@pytest.mark.xfail(
-    reason=(
-        "Known bug in mathics.core.pattern.get_pre_choices_orderless: when "
-        "an Orderless pattern has two or more elements sharing the same "
-        "not-yet-bound pattern variable name (e.g. g[a_, a_, rest___]), the "
-        "`groups` branch of the nested `per_name()` helper is stubbed out "
-        "(the real per_expr/wrappings logic is commented out and replaced "
-        "with a bare `pass`), so no choice is ever yielded and the match "
-        "silently fails. The function even has a pre-existing comment "
-        "acknowledging this branch is 'never reached in tests' -- this is "
-        "why: when it *is* reached, it fails without raising anything. "
-        "Filed upstream as [link to the issue once opened]. Remove this "
-        "xfail once fixed -- strict=True will flag it as an unexpected "
-        "pass so we notice."
-    ),
-    strict=False,
-)
 def test_orderless_repeated_names_benchmark(benchmark):
     def setup():
         session.evaluate("SetAttributes[g, Orderless];")
@@ -336,3 +335,392 @@ def test_pattern_precedence_repeated_access_benchmark(benchmark):
             _ = precedence_pattern.pattern_precedence
 
     benchmark.pedantic(impl, rounds=10, iterations=2)
+
+
+# ---------------------------------------------------------------------------
+# 7. get_match_candidates() vs get_match_candidates_count()
+# ---------------------------------------------------------------------------
+CANDIDATE_NS = [10, 100, 1000, 5000]
+
+
+@pytest.mark.skipif(
+    not os.environ.get("BENCHMARKS", 0), reason="benchmarks not required"
+)
+@pytest.mark.parametrize("n", CANDIDATE_NS, ids=lambda n: f"n={n}")
+def test_get_match_candidates_benchmark(benchmark, n):
+    """Measure the full candidate collection path.
+
+    ExpressionPattern.get_match_candidates() calls does_match() on every
+    element and materializes a tuple of successful candidates.
+    """
+    pattern = _hold_pattern("f[x_]")
+    expr = _held_expression("g[" + ",".join(f"f[a{i}]" for i in range(n)) + "]")
+    print("expr:", expr)
+    candidates = tuple(expr.elements)
+    context = {
+        "evaluation": session.evaluation,
+        "vars_dict": {},
+    }
+
+    def impl():
+        result = pattern.get_match_candidates(candidates, context)
+        assert len(result) == n
+
+    benchmark(impl)
+
+
+@pytest.mark.skipif(
+    not os.environ.get("BENCHMARKS", 0), reason="benchmarks not required"
+)
+@pytest.mark.parametrize("n", CANDIDATE_NS, ids=lambda n: f"n={n}")
+def test_get_match_candidates_count_benchmark(benchmark, n):
+    """Measure only the candidate-count path.
+
+    This isolates the cost of asking "how many candidates match?" from the
+    caller-visible tuple allocation done by get_match_candidates().
+    """
+    pattern = _hold_pattern("f[x_]")
+    expr = _held_expression("f[" + ",".join(f"f[a{i}]" for i in range(n)) + "]")
+    candidates = tuple(expr.elements)
+    context = {
+        "evaluation": session.evaluation,
+        "vars_dict": {},
+    }
+
+    def impl():
+        count = pattern.get_match_candidates_count(candidates, context)
+        assert count == n
+
+    benchmark(impl)
+
+
+# ---------------------------------------------------------------------------
+# 8. does_match() scaling
+# ---------------------------------------------------------------------------
+DOES_MATCH_NS = [10, 100, 1000, 5000]
+
+
+@pytest.mark.skipif(
+    not os.environ.get("BENCHMARKS", 0), reason="benchmarks not required"
+)
+@pytest.mark.parametrize("n", DOES_MATCH_NS, ids=lambda n: f"n={n}")
+@pytest.mark.parametrize(
+    "pattern_text",
+    [
+        "x_",
+        "x_Integer",
+        "f[x_]",
+    ],
+    ids=["blank", "integer", "expr"],
+)
+def test_does_match_scaling_benchmark(benchmark, n, pattern_text):
+    """Measure repeated does_match() calls independently of candidate setup."""
+    pattern = _hold_pattern(pattern_text)
+
+    elements = [session.evaluate(str(i)) for i in range(n)]
+
+    def impl():
+        matches = 0
+        for element in elements:
+            if pattern.does_match(
+                element,
+                {
+                    "evaluation": session.evaluation,
+                    "vars_dict": {},
+                },
+            ):
+                matches += 1
+        # Keep the result meaningful for the benchmark.
+        assert matches >= 0
+
+    benchmark(impl)
+
+
+# ---------------------------------------------------------------------------
+# 9. Orderless repeated names: match/fail scaling
+# ---------------------------------------------------------------------------
+REPEATED_NAME_NS = [4, 6, 8, 10, 12]
+
+
+@pytest.mark.skipif(
+    not os.environ.get("BENCHMARKS", 0), reason="benchmarks not required"
+)
+@pytest.mark.parametrize("n", REPEATED_NAME_NS, ids=lambda n: f"n={n}")
+@pytest.mark.parametrize(
+    "success",
+    [True, False],
+    ids=["match", "fail"],
+)
+def test_orderless_repeated_names_scaling_benchmark(benchmark, n, success):
+    """Scale the get_pre_choices_orderless()/per_name() path.
+
+    The successful case contains a repeated value so a_, a_ can be bound.
+    The failing case uses all distinct arguments and therefore has to reject
+    candidate assignments.
+    """
+    args = (
+        ",".join(["1", "1"] + [str(i) for i in range(2, n)])
+        if success
+        else ",".join(str(i) for i in range(1, n + 1))
+    )
+    expr = f"MatchQ[rep{n}, g[a_, a_, rest___]]"
+
+    def setup():
+        session.evaluate("SetAttributes[g, Orderless];")
+        session.evaluate(f"rep{n} = g[{args}];")
+
+    def impl():
+        expected = "System`True" if success else "System`False"
+        assert str(session.evaluate(expr)) == expected
+
+    benchmark.pedantic(
+        impl,
+        setup=setup,
+        rounds=10,
+        iterations=1,
+    )
+
+
+# ---------------------------------------------------------------------------
+# 10. BlankSequence backtracking by literal position
+# ---------------------------------------------------------------------------
+BLANK_POSITION_NS = [100, 300, 1000, 2000]
+
+
+@pytest.mark.skipif(
+    not os.environ.get("BENCHMARKS", 0), reason="benchmarks not required"
+)
+@pytest.mark.parametrize("n", BLANK_POSITION_NS, ids=lambda n: f"n={n}")
+@pytest.mark.parametrize(
+    "position",
+    ["first", "middle", "last", "absent"],
+    ids=["literal-first", "literal-middle", "literal-last", "literal-absent"],
+)
+def test_blank_sequence_position_scaling_benchmark(benchmark, n, position):
+    """Measure how BlankSequence backtracking depends on literal position."""
+    if position == "first":
+        literal = 1
+    elif position == "middle":
+        literal = n // 2
+    elif position == "last":
+        literal = n
+    else:
+        literal = n + 1
+
+    expr = f"MatchQ[positionList{n}, {{a___, {literal}, b___}}]"
+    expected = "System`True" if position != "absent" else "System`False"
+
+    def setup():
+        session.evaluate(f"positionList{n} = Range[{n}];")
+
+    def impl():
+        assert str(session.evaluate(expr)) == expected
+
+    benchmark.pedantic(
+        impl,
+        setup=setup,
+        rounds=10,
+        iterations=1,
+    )
+
+
+# ---------------------------------------------------------------------------
+# 11. Multiple BlankSequences
+# ---------------------------------------------------------------------------
+MULTI_BLANK_NS = [30, 60, 100, 150]
+
+
+@pytest.mark.skipif(
+    not os.environ.get("BENCHMARKS", 0), reason="benchmarks not required"
+)
+@pytest.mark.parametrize("n", MULTI_BLANK_NS, ids=lambda n: f"n={n}")
+@pytest.mark.parametrize(
+    "case",
+    ["success", "fail"],
+    ids=["match", "fail"],
+)
+def test_multiple_blank_sequences_benchmark(benchmark, n, case):
+    """Exercise backtracking with several variable-length sequence patterns."""
+    if case == "success":
+        literal1 = n // 3
+        literal2 = 2 * n // 3
+        expected = "System`True"
+    else:
+        literal1 = n + 1
+        literal2 = n + 2
+        expected = "System`False"
+
+    expr = f"MatchQ[multiList{n}, " f"{{a___, {literal1}, b___, {literal2}, c___}}]"
+
+    def setup():
+        session.evaluate(f"multiList{n} = Range[{n}];")
+
+    def impl():
+        assert str(session.evaluate(expr)) == expected
+
+    benchmark.pedantic(
+        impl,
+        setup=setup,
+        rounds=10,
+        iterations=1,
+    )
+
+
+# ---------------------------------------------------------------------------
+# 12. OneIdentity / Optional
+# ---------------------------------------------------------------------------
+
+ONE_IDENTITY_CASES = [
+    ("f[1]", "f[x_, y_:3]", "System`True"),
+    ("f[1,2]", "f[x_, y_:3]", "System`True"),
+    ("1", "f[x_, y_:3]", "System`True"),
+    ("f[1,2,3]", "f[x_:1,y_:2,z_:3,w_]", "System`True"),
+    ("f[1,2]", "f[x_:1,y_:2,z_]", "System`True"),
+    ("f[1]", "f[x_:1,y_:2,z_:3]", "System`True"),
+]
+
+
+@pytest.mark.skipif(
+    not os.environ.get("BENCHMARKS", 0), reason="benchmarks not required"
+)
+@pytest.mark.parametrize(
+    ["expr_text", "pattern_text", "expected"],
+    ONE_IDENTITY_CASES,
+    ids=[
+        "optional-present",
+        "optional-empty",
+        "oneidentity-atom",
+        "multiple-optionals-present",
+        "multiple-optionals-insufficient2",
+        "multiple-optionals-insufficient",
+    ],
+)
+def test_one_identity_optional_benchmark(benchmark, expr_text, pattern_text, expected):
+    """Exercise match_expression_with_one_identity() and Optional defaults."""
+    expr = f"ClearAll[f,x,y,z,w];SetAttributes[f,OneIdentity];MatchQ[{expr_text}, {pattern_text}]"
+    print("evaluating", expr, " == ", expected)
+
+    def impl():
+        assert str(session.evaluate(expr)) == expected
+
+    benchmark.pedantic(
+        impl,
+        rounds=20,
+        iterations=1,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Diagnostic state-count test for Orderless.
+#
+# This is intentionally a normal test, not a benchmark: monkeypatching
+# subsets()/permutations() changes the measured code path enough to make a
+# timing comparison misleading. Its purpose is to report the amount of
+# combinatorial work generated by the current matcher.
+# ---------------------------------------------------------------------------
+@pytest.mark.skipif(
+    not os.environ.get("BENCHMARKS", 0), reason="benchmarks not required"
+)
+@pytest.mark.parametrize("n", [3, 4, 5, 6], ids=lambda n: f"n={n}")
+def test_orderless_state_count_diagnostic(monkeypatch, capsys, n):
+    """Report generated subset/permutation states for the worst-case matcher."""
+    counters = {
+        "subsets": 0,
+        "subset_items": 0,
+        "permutations": 0,
+        "permutation_items": 0,
+    }
+
+    original_subsets = pattern_module.subsets
+    original_permutations = pattern_module.permutations
+
+    def counted_subsets(*args, **kwargs):
+        counters["subsets"] += 1
+        for item in original_subsets(*args, **kwargs):
+            counters["subset_items"] += 1
+            yield item
+
+    def counted_permutations(items):
+        items = tuple(items)
+        counters["permutations"] += 1
+        for perm in original_permutations(items):
+            counters["permutation_items"] += 1
+            yield perm
+
+    monkeypatch.setattr(pattern_module, "subsets", counted_subsets)
+    monkeypatch.setattr(pattern_module, "permutations", counted_permutations)
+
+    args = ",".join(f"diag{i}" for i in range(n))
+    expr = f"MatchQ[Plus[{args}], x__+y__/;False]"
+
+    assert str(session.evaluate(expr)) == "System`False"
+
+    print(
+        f"Orderless n={n}: "
+        f"subsets_calls={counters['subsets']}, "
+        f"subset_items={counters['subset_items']}, "
+        f"permutations_calls={counters['permutations']}, "
+        f"permutation_items={counters['permutation_items']}"
+    )
+
+
+@pytest.mark.skipif(
+    not os.environ.get("BENCHMARKS", 0),
+    reason="benchmarks not required",
+)
+@pytest.mark.parametrize(
+    "n",
+    [100, 300, 1000, 2000],
+    ids=lambda n: f"n={n}",
+)
+@pytest.mark.parametrize(
+    "position",
+    ["first", "middle", "last", "absent"],
+    ids=[
+        "literal-first",
+        "literal-middle",
+        "literal-last",
+        "literal-absent",
+    ],
+)
+def test_blank_sequence_partition_count(monkeypatch, n, position):
+    """Diagnostic count of partitions generated by subranges()."""
+
+    if position == "first":
+        literal = 1
+    elif position == "middle":
+        literal = n // 2
+    elif position == "last":
+        literal = n
+    else:
+        literal = n + 1
+
+    counters = {
+        "subranges_calls": 0,
+        "partitions": 0,
+    }
+
+    original_subranges = pattern_module.subranges
+
+    def counted_subranges(*args, **kwargs):
+        counters["subranges_calls"] += 1
+        for result in original_subranges(*args, **kwargs):
+            counters["partitions"] += 1
+            yield result
+
+    monkeypatch.setattr(pattern_module, "subranges", counted_subranges)
+
+    expr = f"MatchQ[partitionList{n}, " f"{{a___, {literal}, b___}}]"
+
+    expected = "System`True" if position != "absent" else "System`False"
+
+    session.evaluate(f"partitionList{n} = Range[{n}];")
+
+    assert str(session.evaluate(expr)) == expected
+
+    print(
+        f"n={n:5d} "
+        f"position={position:6s} "
+        f"subranges_calls={counters['subranges_calls']:4d} "
+        f"partitions={counters['partitions']:10d}"
+    )

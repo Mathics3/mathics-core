@@ -235,9 +235,6 @@ def test_exact_supply_no_double_counting():
     )
 
 
-@pytest.mark.xfail(
-    reason="Problem with restricted patterns, like g[a_Integer,a_Integer, rest___]"
-)
 def test_repeated_name_respects_type_constraint():
     """a_Integer, a_Integer should not bind to a non-Integer duplicate."""
     check_evaluation(None, None, None)
