@@ -1,6 +1,6 @@
 """
 Converts expressions from SymPy to Mathics3 expressions.
-Conversion to SymPy is handled directly in BaseElement descendants.
+Provides conversion to SymPy for Mathics3 BaseElement descendants.
 """
 
 from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Tuple, Union, cast
@@ -119,8 +119,8 @@ mathics_to_sympy_singleton = {
 
 def sympy_decode_mathics_symbol_name(name: str) -> str:
     """
-    Remove the Prefix for Mathics3 symbols
-    and restore the context separator character.
+    Remove the Mathics3-supplied prefix in symbol names,
+    and restore the context-separator character.
     """
     if name.startswith(SYMPY_SYMBOL_PREFIX):
         return name[len(SYMPY_SYMBOL_PREFIX) :].replace("_", "`")
@@ -138,8 +138,8 @@ def is_Cn_expr(name: str) -> bool:
 
 
 def to_sympy_matrix(data, **__) -> Optional[sympy.MutableDenseMatrix]:
-    """Convert a Mathics3 matrix to one that can be used by Sympy.
-    None is returned if we can't convert to a Sympy matrix.
+    """Convert a Mathics3 matrix to one that can be used by SymPy.
+    None is returned if we can't convert to a SymPy matrix.
     """
     if not isinstance(data, list):
         data = matrix_data(data)
@@ -204,7 +204,7 @@ class SympyExpression(sympy.Expr):
         return result
 
     def _eval_subs(self, old, new):
-        """Replace occurencies of old by new in self."""
+        """Replace occurrences of old by new in self."""
         if self == old:
             return new
         old, new = from_sympy(old), from_sympy(new)
@@ -218,7 +218,7 @@ class SympyExpression(sympy.Expr):
         return self
 
     # @property does not match SymPy's definition. However,
-    # @is_commutative.setter is needed, by linear algebra stuff. And
+    # @is_commutative.setter is needed in linear algebra stuff. And
     # for that, we need @property here.
     @property
     # pyrefly: ignore [bad-override]
@@ -367,7 +367,7 @@ sympy_conversion_by_type = {
 
 def from_sympy(sympy_expr) -> BaseElement | Symbol:
     """
-    converts a SymPy object to a Mathics3 element.
+    Converts a SymPy object to a Mathics3 element.
     """
     if isinstance(sympy_expr, (tuple, list)):
         return to_mathics_list(*sympy_expr, elements_conversion_fn=from_sympy)
