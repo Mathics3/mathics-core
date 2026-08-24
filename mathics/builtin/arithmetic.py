@@ -63,9 +63,14 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (
     SymbolAnd,
+    SymbolBooleans,
+    SymbolComplexes,
     SymbolDirectedInfinity,
     SymbolInfix,
+    SymbolIntegers,
     SymbolPossibleZeroQ,
+    SymbolRationals,
+    SymbolReals,
     SymbolTable,
     SymbolUndefined,
 )
@@ -478,7 +483,7 @@ class DirectedInfinity(SympyFunction):
             return sympy.zoo
 
 
-class Element(Builtin):
+class Element(SympyFunction):
     """
     <url>:Element of:https://en.wikipedia.org/wiki/Element_(mathematics)</url> \
     <url>:WMA link:https://reference.wolfram.com/language/ref/Element.html</url>
@@ -519,6 +524,7 @@ Rationals, Algebraics, Reals, Complexes, or Booleans.
     }
 
     summary_text = "check whether belongs the domain"
+    sympy_name = "Contains"  # In later SymPy, this is called Element.
 
     def eval_wrong_domain(
         self, elem: BaseElement, domain: BaseElement, evaluation: Evaluation
@@ -532,7 +538,7 @@ Rationals, Algebraics, Reals, Complexes, or Booleans.
 
     def eval_Element_alternatives(
         self, elems: BaseElement, domain: BaseElement, evaluation: Evaluation
-    ) -> Optional[Expression]:
+    ) -> Expression | None | Symbol:
         """Element[elems_Alternatives, domain_]"""
         items = elems.elements
         unknown = []
@@ -549,6 +555,25 @@ Rationals, Algebraics, Reals, Complexes, or Booleans.
             return SymbolTrue
         # If some of the items remain unknown, return a reduced expression
         return Element(Expression(elems.head, *unknown), domain)
+
+    def to_sympy(self, expr, **kwargs):
+        if len(expr.elements) != 2:
+            return None
+        arg, domain_str = expr.elements
+        match domain_str:
+            # case domain if domain is SymbolBooleans:
+            #     sympy_domain = sympy.boolean
+            case domain if domain is SymbolIntegers:
+                sympy_domain = sympy.Integers
+            case domain if domain is SymbolComplexes:
+                sympy_domain = sympy.Complexes
+            case domain if domain is SymbolRationals:
+                sympy_domain = sympy.Rationals
+            case domain if domain is SymbolReals:
+                sympy_domain = sympy.Reals
+            case _:
+                raise RuntimeError("Unknown domain {domain}")
+        return sympy.Contains(arg.to_sympy(), sympy_domain)
 
 
 class I_(Predefined, SympyObject):

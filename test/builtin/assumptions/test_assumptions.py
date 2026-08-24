@@ -107,14 +107,35 @@ def test_arithmetic_arg_errors(function_name, msg_fragment):
 
 
 @pytest.mark.parametrize(
-    ("str_expr", "str_expected", "assert_msg"),
+    ("str_expr", "str_expected", "expected_messages", "assert_msg"),
     [
-        ("Refine[Re[x], Element[x, Reals]]", "x", ""),
+        (
+            "Refine[Re[x], Element[x, Reals]]",
+            "x",
+            None,
+            "A test using a Reals domain predicate",
+        ),
+        (
+            "Refine[Sqrt[x^6], 0 < x]",
+            "x ^ 3",
+            None,
+            "0 < x acts the same as x > 0 when LHS or RHS is 0",
+        ),
+        (
+            "Refine[5, False]",
+            "5",
+            ["one or more assumptions evaluated to False."],
+            "0 < x acts the same as x > 0 when LHS or RHS is 0",
+        ),
     ],
 )
-def test_add(str_expr, str_expected, assert_msg):
+def test_refine(str_expr, str_expected, expected_messages, assert_msg):
     check_evaluation(
-        str_expr, str_expected, failure_message=assert_msg, hold_expected=True
+        str_expr,
+        str_expected,
+        expected_messages=expected_messages,
+        failure_message=assert_msg,
+        hold_expected=True,
     )
 
 

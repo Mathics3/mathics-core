@@ -8,7 +8,7 @@ from mathics.core.builtin import Builtin, Predefined
 from mathics.core.convert.sympy import to_sympy_assumptions
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolTrue
+from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
 from mathics.eval.assumptions.assumptions import eval_Refine
 from mathics.eval.inference import get_assumptions_list
 
@@ -91,6 +91,10 @@ class Refine(Builtin):
     >> Refine[Sqrt[x^6], x > 0]
      = x ^ 3
 
+    And now the negative root:
+    >> Refine[Sqrt[x^6], x < 0]
+     = -x ^ 3
+
     'Refine' works over domains, such as the real domain:
     >> Refine[Re[x], Element[x, Reals]]
      = x
@@ -125,15 +129,18 @@ class Refine(Builtin):
     def eval(self, expr, assumptions, evaluation: Evaluation):
         "Refine[expr_, assumptions_]"
 
-        # Evaluate the assumptions argument if provided
+        # Evaluate the assumptions argument, if provided.
         if assumptions is not None:
             assumptions_eval = assumptions.evaluate(evaluation)
         else:
             assumptions_eval = Symbol("$Assumptions").evaluate(evaluation)
 
-        # If assumptions are trivial, just evaluate expr normally
+        if assumptions_eval is SymbolFalse:
+            evaluation.message("Refine", "fas")
+
+        # If assumptions are trivial, just evaluate expr normally.
         if assumptions_eval is SymbolTrue or assumptions_eval is None:
             return expr.evaluate(evaluation)
 
-        sympy_assumptions = to_sympy_assumptions(assumptions_eval, evaluation)
+        sympy_assumptions = to_sympy_assumptions(assumptions_eval)
         return eval_Refine(expr, sympy_assumptions, evaluation)
