@@ -18,7 +18,7 @@ from sympy import (
 )
 from sympy.assumptions.assume import AppliedPredicate
 
-from mathics.core.convert.sympy import sympy_expr_to_predicate
+from mathics.core.convert.sympy_predicates import sympy_expr_to_predicate
 from mathics.core.symbols import Symbol
 
 Symbol_a = Symbol("Global`a")
@@ -130,3 +130,24 @@ def test_refine_compatibility(x):
     assert (
         refine(Abs(x), combined) == x
     ), "Abs(x) should simpify to x when real and positive"
+
+
+def test_explicit_relational_classes(x, y):
+    """Test "Gt", "Lt", "Ge", "Le" functions/classes"""
+    assert sympy_expr_to_predicate(Gt(x, 0)) == Q.positive(x)
+    assert sympy_expr_to_predicate(Lt(x, 0)) == Q.negative(x)
+    assert sympy_expr_to_predicate(Ge(x, 0)) == Q.nonnegative(x)
+    assert sympy_expr_to_predicate(Le(x, 0)) == Q.nonpositive(x)
+
+    # General relational expressions with two symbols
+    assert sympy_expr_to_predicate(Gt(x, y)) == Q.positive(x - y)
+    assert sympy_expr_to_predicate(Lt(x, y)) == Q.positive(y - x)
+    assert sympy_expr_to_predicate(Ge(x, y)) == Q.nonnegative(x - y)
+    assert sympy_expr_to_predicate(Le(x, y)) == Q.nonnegative(y - x)
+
+
+def test_explicit_not_class(x):
+    """Test "Not" instantiated explicitly as a class wrapper"""
+    assert sympy_expr_to_predicate(Not(Gt(x, 0))) == Q.nonpositive(x)
+    assert sympy_expr_to_predicate(Not(Le(x, 0))) == Q.positive(x)
+    assert sympy_expr_to_predicate(Not(Contains(x, S.Integers))) == ~Q.integer(x)

@@ -1,49 +1,20 @@
-# -*- coding: utf-8 -*-
-
 """
 Converts expressions from SymPy to Mathics3 expressions.
-Conversion to SymPy is handled directly in BaseElement descendants.
+Provides conversion to SymPy for Mathics3 BaseElement descendants.
 """
 
-from typing import (
-    TYPE_CHECKING,
-    Dict,
-    Final,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    Union,
-    cast,
-)
+from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Tuple, Union, cast
 
 import sympy
 from sympy import (
-    And,
     Dummy as Sympy_Dummy,
-    Ne,
-    Not,
-    Or,
-    Q,
     Symbol,
     Symbol as Sympy_Symbol,
     false as SympyFalse,
     true as SympyTrue,
 )
-from sympy.assumptions.assume import AppliedPredicate
 from sympy.calculus.accumulationbounds import AccumulationBounds
-from sympy.core.relational import (
-    Equality,
-    GreaterThan,
-    LessThan,
-    Ne,
-    Relational,
-    StrictGreaterThan,
-    StrictLessThan,
-)
 from sympy.core.singleton import S
-from sympy.sets.contains import Contains
-from sympy.sets.fancysets import Complexes, Integers, Rationals, Reals
 
 from mathics.core.atoms import (
     MATHICS3_COMPLEX_I,
@@ -83,11 +54,9 @@ from mathics.core.symbols import (
     sympy_name,
 )
 from mathics.core.systemsymbols import (
-    SymbolAnd,
     SymbolC,
     SymbolCatalan,
     SymbolE,
-    SymbolElement,
     SymbolEqual,
     SymbolEulerGamma,
     SymbolFunction,
@@ -98,9 +67,7 @@ from mathics.core.systemsymbols import (
     SymbolLess,
     SymbolLessEqual,
     SymbolMatrixPower,
-    SymbolNot,
     SymbolO,
-    SymbolOr,
     SymbolPi,
     SymbolPiecewise,
     SymbolPrime,
@@ -149,121 +116,11 @@ mathics_to_sympy_singleton = {
     key: val for val, key in sympy_singleton_to_mathics.items()
 }
 
-SYMPY_FALSE_PREDICATE: Final[AppliedPredicate] = Q.is_true(False)
-SYMPY_TRUE_PREDICATE: Final[AppliedPredicate] = Q.is_true(True)
-
-
-def sympy_expr_to_predicate(sympy_expr):
-    """
-    Converts SymPy expressions (relational, boolean, or predicates)
-    into canonical SymPy Q AppliedPredicates for SymPy 1.14.0+.
-    Note: Newer SymPy can use sask() and to_predicate()
-    """
-    # Already an AppliedPredicate (e.g., Q.positive(x)) or Boolean
-    if isinstance(sympy_expr, AppliedPredicate):
-        return sympy_expr
-
-    # Boolean compound trees (And, Or, Not)
-    if (
-        isinstance(sympy_expr, Not)
-        or hasattr(sympy_expr, "is_Not")
-        and sympy_expr.is_Not
-    ):
-        return Not(sympy_expr_to_predicate(sympy_expr.args[0]))
-    if (
-        isinstance(sympy_expr, And)
-        or hasattr(sympy_expr, "is_And")
-        and sympy_expr.is_And
-    ):
-        return And(*[sympy_expr_to_predicate(arg) for arg in sympy_expr.args])
-    if isinstance(sympy_expr, Or) or hasattr(sympy_expr, "is_Or") and sympy_expr.is_Or:
-        return Or(*[sympy_expr_to_predicate(arg) for arg in sympy_expr.args])
-
-    #  Domain membership checks (Element(x, Reals), Contains(x, Integers), etc.)
-    # In SymPy, Element(x, S) constructs a Contains(x, S) object
-    if isinstance(sympy_expr, Contains) or type(sympy_expr).__name__ in (
-        "Element",
-        "Contains",
-    ):
-        element, domain = sympy_expr.args[0], sympy_expr.args[1]
-
-        # Map standard sets to corresponding Q domain predicates
-        if hasattr(domain, "name") and domain.name in ("Booleans", "Boolean"):
-            return Q.boolean(element)
-        if isinstance(domain, Complexes) or (
-            hasattr(domain, "name") and domain.name == "Complexes"
-        ):
-            return Q.complex(element)
-        elif isinstance(domain, Integers) or (
-            hasattr(domain, "name") and domain.name == "Integers"
-        ):
-            return Q.integer(element)
-        elif isinstance(domain, Rationals) or (
-            hasattr(domain, "name") and domain.name == "Rationals"
-        ):
-            return Q.rational(element)
-        elif isinstance(domain, Reals) or (
-            hasattr(domain, "name") and domain.name == "Reals"
-        ):
-            return Q.real(element)
-        else:
-            raise RuntimeError(f"Domain {domain} is not valid")
-
-    # Relational expressions with directional alignment.
-    if isinstance(sympy_expr, Relational):
-        # Handle zero-rhs explicit cases directly to preserve original symbol orientation
-        if sympy_expr.rhs == 0:
-            if isinstance(sympy_expr, StrictGreaterThan):
-                return Q.positive(sympy_expr.lhs)
-            elif isinstance(sympy_expr, StrictLessThan):
-                return Q.negative(sympy_expr.lhs)
-            elif isinstance(sympy_expr, GreaterThan):
-                return Q.nonnegative(sympy_expr.lhs)
-            elif isinstance(sympy_expr, LessThan):
-                return Q.nonpositive(sympy_expr.lhs)
-            elif isinstance(sympy_expr, Equality):
-                return Q.zero(sympy_expr.lhs)
-            elif isinstance(sympy_expr, Ne):
-                return Q.nonzero(sympy_expr.lhs)
-
-        # Handle zero-lhs explicit cases (0 < x -> x > 0 -> Q.positive(x))
-        if sympy_expr.lhs == 0:
-            if isinstance(sympy_expr, StrictGreaterThan):  # 0 > x -> x < 0
-                return Q.negative(sympy_expr.rhs)
-            elif isinstance(sympy_expr, StrictLessThan):  # 0 < x -> x > 0
-                return Q.positive(sympy_expr.rhs)
-            elif isinstance(sympy_expr, GreaterThan):  # 0 >= x -> x <= 0
-                return Q.nonpositive(sympy_expr.rhs)
-            elif isinstance(sympy_expr, LessThan):  # 0 <= x -> x >= 0
-                return Q.nonnegative(sympy_expr.rhs)
-            elif isinstance(sympy_expr, Equality):
-                return Q.zero(sympy_expr.rhs)
-            elif isinstance(sympy_expr, Ne):
-                return Q.nonzero(sympy_expr.rhs)
-
-        # Non-zero general cases (algebraic reduction).
-        if isinstance(sympy_expr, StrictGreaterThan):  # lhs > rhs -> lhs - rhs > 0
-            return Q.positive(sympy_expr.lhs - sympy_expr.rhs)
-        elif isinstance(sympy_expr, StrictLessThan):  # lhs < rhs -> rhs - lhs > 0
-            return Q.positive(sympy_expr.rhs - sympy_expr.lhs)
-        elif isinstance(sympy_expr, GreaterThan):  # lhs >= rhs -> lhs - rhs >= 0
-            return Q.nonnegative(sympy_expr.lhs - sympy_expr.rhs)
-        elif isinstance(sympy_expr, LessThan):  # lhs <= rhs -> rhs - lhs >= 0
-            return Q.nonnegative(sympy_expr.rhs - sympy_expr.lhs)
-        elif isinstance(sympy_expr, Equality):
-            return Q.zero(sympy_expr.lhs - sympy_expr.rhs)
-        elif isinstance(sympy_expr, Ne):
-            return Q.nonzero(sympy_expr.lhs - sympy_expr.rhs)
-
-    # None of the above conditions.
-    # Fallback to a general boolean sympy_expression.
-    return Q.is_true(sympy_expr)
-
 
 def sympy_decode_mathics_symbol_name(name: str) -> str:
     """
-    Remove the Prefix for Mathics3 symbols
-    and restore the context separator character.
+    Remove the Mathics3-supplied prefix in symbol names,
+    and restore the context-separator character.
     """
     if name.startswith(SYMPY_SYMBOL_PREFIX):
         return name[len(SYMPY_SYMBOL_PREFIX) :].replace("_", "`")
@@ -280,54 +137,9 @@ def is_Cn_expr(name: str) -> bool:
     return number != "" and number.isdigit()
 
 
-def to_sympy_assumptions(assumptions) -> AppliedPredicate:
-    """Convert a Mathics3 assumptions expression to an
-    AppliedPredicate (or True) that can be used by SymPy.  None is
-    returned if we can't convert to a Sympy matrix.
-
-    """
-    match assumptions:
-        case val if val is SymbolTrue:
-            return SYMPY_TRUE_PREDICATE
-        case val if val is SymbolFalse:
-            return SYMPY_FALSE_PREDICATE
-        case val if isinstance(val, ListExpression):
-            combined_predicate = SYMPY_TRUE_PREDICATE
-            for elem in val.elements:
-                sympy_assume = to_sympy_assumptions(elem)
-                if sympy_assume is not SYMPY_TRUE_PREDICATE:
-                    if combined_predicate is SYMPY_TRUE_PREDICATE:
-                        combined_predicate = sympy_assume
-                    elif isinstance(sympy_assume, AppliedPredicate):
-                        combined_predicate = AppliedPredicate("And", *sympy_assume.args)
-                    else:
-                        raise RuntimeError(
-                            "to_sympy_assumptions returned whacky result {sympy_assume}"
-                        )
-            return combined_predicate
-
-        case expr if isinstance(val, Expression):
-            head = expr.head
-            if head in (
-                SymbolAnd,
-                SymbolOr,
-                SymbolNot,
-                SymbolElement,
-                SymbolEqual,
-                SymbolGreater,
-                SymbolGreaterEqual,
-                SymbolLess,
-                SymbolLessEqual,
-            ):
-                if (sympy_expr := expr.to_sympy()) is not None:
-                    return sympy_expr_to_predicate(sympy_expr)
-
-    return SYMPY_TRUE_PREDICATE
-
-
 def to_sympy_matrix(data, **__) -> Optional[sympy.MutableDenseMatrix]:
-    """Convert a Mathics3 matrix to one that can be used by Sympy.
-    None is returned if we can't convert to a Sympy matrix.
+    """Convert a Mathics3 matrix to one that can be used by SymPy.
+    None is returned if we can't convert to a SymPy matrix.
     """
     if not isinstance(data, list):
         data = matrix_data(data)
@@ -392,7 +204,7 @@ class SympyExpression(sympy.Expr):
         return result
 
     def _eval_subs(self, old, new):
-        """Replace occurencies of old by new in self."""
+        """Replace occurrences of old by new in self."""
         if self == old:
             return new
         old, new = from_sympy(old), from_sympy(new)
@@ -406,7 +218,7 @@ class SympyExpression(sympy.Expr):
         return self
 
     # @property does not match SymPy's definition. However,
-    # @is_commutative.setter is needed, by linear algebra stuff. And
+    # @is_commutative.setter is needed in linear algebra stuff. And
     # for that, we need @property here.
     @property
     # pyrefly: ignore [bad-override]
@@ -555,7 +367,7 @@ sympy_conversion_by_type = {
 
 def from_sympy(sympy_expr) -> BaseElement | Symbol:
     """
-    converts a SymPy object to a Mathics3 element.
+    Converts a SymPy object to a Mathics3 element.
     """
     if isinstance(sympy_expr, (tuple, list)):
         return to_mathics_list(*sympy_expr, elements_conversion_fn=from_sympy)

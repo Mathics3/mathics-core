@@ -5,7 +5,7 @@ Assumptions and functions that Use Assumptions.
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.attributes import A_HOLD_REST, A_NO_ATTRIBUTES, A_PROTECTED
 from mathics.core.builtin import Builtin, Predefined
-from mathics.core.convert.sympy import to_sympy_assumptions
+from mathics.core.convert.sympy_predicates import to_sympy_predicates
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
@@ -142,5 +142,5 @@ class Refine(Builtin):
         if assumptions_eval is SymbolTrue or assumptions_eval is None:
             return expr.evaluate(evaluation)
 
-        sympy_assumptions = to_sympy_assumptions(assumptions_eval)
+        sympy_assumptions = to_sympy_predicates(assumptions_eval)
         return eval_Refine(expr, sympy_assumptions, evaluation)
