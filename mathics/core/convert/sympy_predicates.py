@@ -7,6 +7,8 @@ from typing import Final
 
 from sympy import And, Ne, Not, Or, Q
 from sympy.assumptions.assume import AppliedPredicate
+from sympy.core.add import Add
+from sympy.core.mul import Mul
 from sympy.core.relational import (
     Equality,
     GreaterThan,
@@ -126,19 +128,24 @@ def sympy_expr_to_predicate(sympy_expr):
             elif isinstance(sympy_expr, Ne):
                 return Q.nonzero(sympy_expr.rhs)
 
+        lhs, rhs = sympy_expr.lhs, sympy_expr.rhs
+        # Construct negated terms explicitly using Mul(-1, ...) to make type checking happy.
+        neg_rhs = Mul(-1, rhs)
+        neg_lhs = Mul(-1, lhs)
+
         # Non-zero general cases (algebraic reduction).
         if isinstance(sympy_expr, StrictGreaterThan):  # lhs > rhs -> lhs - rhs > 0
-            return Q.positive(sympy_expr.lhs - sympy_expr.rhs)
+            return Q.positive(Add(lhs, neg_rhs))
         elif isinstance(sympy_expr, StrictLessThan):  # lhs < rhs -> rhs - lhs > 0
-            return Q.positive(sympy_expr.rhs - sympy_expr.lhs)
+            return Q.positive(Add(rhs, neg_lhs))
         elif isinstance(sympy_expr, GreaterThan):  # lhs >= rhs -> lhs - rhs >= 0
-            return Q.nonnegative(sympy_expr.lhs - sympy_expr.rhs)
+            return Q.nonnegative(Add(lhs, neg_rhs))
         elif isinstance(sympy_expr, LessThan):  # lhs <= rhs -> rhs - lhs >= 0
-            return Q.nonnegative(sympy_expr.rhs - sympy_expr.lhs)
+            return Q.nonnegative(Add(rhs, neg_lhs))
         elif isinstance(sympy_expr, Equality):
-            return Q.zero(sympy_expr.lhs - sympy_expr.rhs)
+            return Q.zero(Add(lhs, neg_rhs))
         elif isinstance(sympy_expr, Ne):
-            return Q.nonzero(sympy_expr.lhs - sympy_expr.rhs)
+            return Q.nonzero(Add(lhs, neg_rhs))
 
     # None of the above conditions.
     # Fallback to a general boolean sympy_expression.
