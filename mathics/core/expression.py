@@ -174,6 +174,72 @@ class BoxError(Exception):
 
 
 class ExpressionCache:
+    """
+    Metadata Cache to accelerate the evaluation of an Expression.
+
+    This cache does not stores the result of an evaluation, but the structural
+    information and dependencies allowing to quicly answer the question:
+
+        Given the current state of the Definitions object, is it necesary reevaluate
+        the expression from the beginning?
+
+    The strategy combines a global timestamp (definitions.now) with a tracking of
+    the symbols appearing into the expression.
+
+
+    Fields:
+    -------
+
+    * time (int|None): the value of Definitions.now at the time of the last
+      full evaluation of the expression. If its value is ``None``, the expression
+      is a new expression, or was marked for reevaluation.
+
+    * symbols (Set[str] | None): Set of fully qualified names of all the symbols
+      that appears into the expression and its subexpressions.
+      If its value is ``None``, the cache must be reconstructed.
+
+    * sequences (Tuple[int]|None): a Tuple with the indices of all the
+      elements (in ``self._elements``) whose head is exactly ``System`Sequence``.
+      If ``None``, the information is not available. If it is an empty tuple,
+      we known certantly that there are not Sequences at the first level,
+      which allows to avoid the cost of ``flatten_sequence`` during the evaluation.
+
+
+    CRITICAL INVARIANTS:
+    --------------------
+
+    * In any expression, ``self.elements_properties.is_flat`` must imply
+      ``len(self._cache.sequences) == 0``.
+    * ANY structural change of the expression (change the head or any of its elements,
+      flat or re-order the elements of the expression) MUST establish ``self._cache = None``.
+    * the attribute ``time`` must be updated through the call ``_timestamp_cache(evaluation)``
+      when the expression went through a full ``evaluate()`` loop, and after that,
+      the expression have not been structuraly modified.
+
+    USAGE:
+    ------
+
+    * At the start of the evaluation loop, a call to ``is_uncertain_final_definitions(definitions)``
+      determines if a pass through the ``rewrite_apply_eval_step`` is needed.
+    * If the cache exists, ``time`` is not None, and ``symbols`` is already computed.
+      ``definitions.is_uncertain_final_value(time, symbols)`` determines whether some of the symbols
+      have been changed since ``time``.
+    * If they was not changed, it is assumed that the previous evaluation is still valid and the
+      evaluation loop stops, saving time.
+    * If it has changed, it proceeds with the ``rewrite_apply_eval_step``.
+
+
+    NOTE ON COMPUTATIONAL COST:
+    ---------------------------
+
+    The cache reconstruction cost (``_rebuild_cache``) is expensive (O(n) in the size
+    of the expression) because it run recursively over all the expression.
+    However, this only happens when a full cache, or some information is missing.
+
+    The validity check (``is_uncertain_final_definitions``) is O(1).
+
+    """
+
     def __init__(self, time=None, symbols=None, sequences=None, copy=None):
         if copy is not None:
             time = time or copy.time
@@ -488,9 +554,25 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
     @elements.setter
     def elements(self, values: Iterable):
+        """
+        Setter for elements.
+        """
+        #  This setter should invalidate both ``element_properties`` and
+        # ``_cache`` properties. The ``_cache`` property holds a set of symbols
+        # that can become outdated when the elements tuple changes.
+        #
+        # If we do not clean `_cache`, `is_uncertain_final_definitions` could
+        # return `True` by tracking symbols that are not in the structure
+        # anymore, forcing an unneeded evaluation, or worst,
+        # return `False`, if some new symbols present in the expression
+        # changes and are not marked in the ``_cache``, leaving unevaluated
+        # an expression that must be reevaluated, silently producing a wrong
+        # evaluation.
+
         self._elements = tuple(values)
         # Set to build self.elements_properties on next evaluation()
         self.elements_properties = None
+        self._cache = None
 
     def equal2(self, rhs: Any) -> Optional[bool]:
         """Mathics3 two-argument Equal (==)
@@ -1878,10 +1960,21 @@ def structure(head, origins, evaluation, structure_cache={}):
     originating (exclusively) from "origins" (elements are passed into the functions
     of Structure further down).
 
-    "origins" may either be an Expression (i.e. all elements must originate from that
-    expression), a Structure (all elements passed in this "self" Structure must be
-    manufactured using that Structure), or a list of Expressions (i.e. all elements
-    must originate from one of the listed Expressions).
+    Parameters:
+    ===========
+
+    ``head``: the head of the new expression.
+    ``origins`` Expression|Structure|List[Expression]: the source of the new elements.
+       If it is a List of expressions,  all its elements must originate from one of the listed Expressions.
+       When it is an Expression,  all elements must originate from that expression).
+       If it is a Structure, all elements passed in this "self" Structure must be
+       manufactured using that Structure.
+    ``evaluation`` (Evaluation): the current evaluation object.
+    ``structure_cache`` (Dict[str,Symbol]): is an optional dict that helps to memoize the result of the
+       *neutrality* of the heads, avoiding repeat the query. A symbol is *neutral* if it does not have
+       evaluation rules attached to its definition.
+
+
     """
     from mathics.core.structure import Structure, UnlinkedStructure
 
