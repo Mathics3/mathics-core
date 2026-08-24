@@ -155,7 +155,7 @@ def sympy_expr_to_predicate(sympy_expr):
 
 def to_sympy_predicates(assumptions) -> AppliedPredicate:
     """Convert a Mathics3 assumptions expression to an
-    AppliedPredicate (or True) used in SymPy's refine() or with_assumptions().
+    AppliedPredicate used in SymPy's refine() or with_assumptions().
     """
     match assumptions:
         case val if val is SymbolTrue:
@@ -173,7 +173,7 @@ def to_sympy_predicates(assumptions) -> AppliedPredicate:
                         combined_predicate = AppliedPredicate("And", *sympy_assume.args)
                     else:
                         raise RuntimeError(
-                            "to_sympy_predicates returned whacky result {sympy_assume}"
+                            f"to_sympy_predicates returned whacky result {sympy_assume}"
                         )
             return combined_predicate
 
