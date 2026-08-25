@@ -165,7 +165,7 @@ class ClearAll(Clear):
         super(ClearAll, self).do_clear(definition)
         definition.attributes = A_NO_ATTRIBUTES
         definition.messages = []
-        definition.options = []
+        definition.options = {}
         definition.defaultvalues = []
 
 
