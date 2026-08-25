@@ -742,6 +742,13 @@ def test_assignment(expr, expect, fail_msg, expected_msgs):
             [],
         ),
         (
+            "ClearAll[F]; F[x_, opt:OptionsPattern[]]:=x^2;F[2]",
+            "4",
+            "ensure that Definition.options is a dict",
+            False,
+            [],
+        ),
+        (
             "ClearAll[F, Q];F[Verbatim[_Q],Verbatim[_]]^:=1;{DownValues[F],UpValues[Q]}",
             "{{}, {}}",
             "Issue 1198 - Blanks are not tags.",
