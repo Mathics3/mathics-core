@@ -60,7 +60,7 @@ all: develop
 
 # run pytest benchmarks
 benchmarks:
-	BENCHMARKS=True $(PYTHON) -m pytest $(PYTEST_OPTIONS) test/timings
+	BENCHMARKS=True $(PYTHON) -m pytest $(PYTEST_OPTIONS) --benchmark-json=output.json test/timings
 
 #: build everything needed to install
 build:

@@ -3,9 +3,9 @@ from test.helper import session
 
 import pytest
 
-if os.environ.get("BENCHMARKS", 0):
-    session.reset()
-    session.evaluate("F[__Real]:=1;")
+
+def test_check_property():
+    session.evaluate("ClearAll[i,uniformTable,nonuniformTable]")
     table_uniform_expr = session.evaluate("uniformTable=Table[1./(1.+i^2),{i,0,1000}]")
     table_non_uniform_expr = session.evaluate(
         "nonuniformTable=Table[If[i==0,1,1./(1.+i^2)],{i, 0,1000}]"
@@ -20,6 +20,10 @@ if os.environ.get("BENCHMARKS", 0):
 @pytest.mark.parametrize(
     ["expr", "expect"],
     [
+        (None, None),
+        ("F[__Real]:=1;", None),
+        ("uniformTable=Table[1./(1.+i^2),{i,0,1000}];", None),
+        ("nonuniformTable=Table[If[i==0,1,1./(1.+i^2)],{i, 0,1000}];", None),
         ("Plus@@uniformTable", "2.075674547634748"),
         ("MatchQ[uniformTable,{__Real}]", "System`True"),
         ("Length[F@@uniformTable]", "0"),
@@ -30,6 +34,11 @@ if os.environ.get("BENCHMARKS", 0):
 )
 def test_evaluate_benchmark(benchmark, expr, expect):
     # TODO: rewrite this to be used with pytest-benchmark
+    if expr is None:
+        return
+    if expect is None:
+        expect = "System`Null"
+
     def impl():
         assert str(session.evaluate(expr)) == expect
 
