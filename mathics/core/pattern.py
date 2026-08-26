@@ -212,7 +212,17 @@ class BasePattern(ABC):
         if isinstance(expr, Atom):
             return AtomPattern(expr, evaluation)
         if isinstance(expr, Expression):
-            return ExpressionPattern(expr, attributes, evaluation)
+            if attributes is not None:
+                # Attributes already known directly -- pick the concrete
+                # class immediately, no deferral needed.
+                return make_expression_pattern(expr, attributes, evaluation)
+            if evaluation is not None:
+                # Attributes not given, but resolvable right now.
+                resolved_attributes = expr.head.get_attributes(evaluation.definitions)
+                return make_expression_pattern(expr, resolved_attributes, evaluation)
+            # Neither known nor resolvable yet (e.g. system bootstrap,
+            # before Definitions is fully populated) -- defer.
+            return DeferredExpressionPattern(expr)
         raise TypeError(f"Cannot create Pattern for {expr}")
 
     def get_attributes(self, definitions):
@@ -693,30 +703,72 @@ class ExpressionPattern(BasePattern):
 
         less_first = len(rest_elements) > 0
 
-        if A_ORDERLESS & attributes:
-            sets = expression_pattern_match_element_orderless(
-                {
-                    "expression": expression,
-                    "element": element,
-                    "vars_dict": vars_dict,
-                    "attributes": attributes,
-                },
-                candidates,
-                element_candidates,
-                less_first,
-                set_lengths,
-            )
-        else:
+        def _regular_sets():
+            if A_ORDERLESS & attributes:
+                return expression_pattern_match_element_orderless(
+                    {
+                        "expression": expression,
+                        "element": element,
+                        "vars_dict": vars_dict,
+                        "attributes": attributes,
+                    },
+                    candidates,
+                    element_candidates,
+                    less_first,
+                    set_lengths,
+                )
+            if (
+                not (first and not fully)
+                and (
+                    literal_split_points := _leading_literal_split_points(
+                        element,
+                        rest_elements,
+                        candidates,
+                        set_lengths,
+                        evaluation,
+                        vars_dict,
+                    )
+                )
+                is not None
+            ):
+                # Fast path: current element is an unconstrained
+                # BlankSequence/BlankNullSequence immediately followed by
+                # a literal, so only try lengths that place the literal
+                # right after the block -- see _leading_literal_split_points
+                # for why every other length is guaranteed to fail anyway.
+                ordered_points = (
+                    literal_split_points
+                    if less_first
+                    else list(reversed(literal_split_points))
+                )
+                return ((candidates[:p], ([], candidates[p:])) for p in ordered_points)
             # a generator that yields partitions of
             # candidates as [before | block | after ]
-
-            sets = subranges(
+            return subranges(
                 candidates,
                 *set_lengths,
                 flexible_start=(first and not fully),
                 included=element_candidates,
                 less_first=less_first,
             )
+
+        options_sets = _options_pattern_split(element, rest_elements, candidates)
+        if options_sets is not None:
+            # Try the WMA-consistent OptionsPattern[] split first (see
+            # _options_pattern_split), but keep the regular search
+            # available right behind it as a lazy fallback: if the
+            # preferred split doesn't lead anywhere (e.g. a later,
+            # non-OptionsPattern element actually needed one of the
+            # candidates this element would otherwise have skipped),
+            # backtracking continues into the regular search exactly as
+            # if this fast path didn't exist. Since matches short-circuit
+            # via StopGenerator on first full success, this fallback is
+            # never even evaluated in the common (successful) case --
+            # itertools.chain doesn't touch _regular_sets() until the
+            # first iterable is exhausted.
+            sets = chain(options_sets, _regular_sets())
+        else:
+            sets = _regular_sets()
 
         # --- avoid copy of pattern_context: mutate and undo ---
         old_depth = pattern_context.get("depth", 1)
@@ -1025,6 +1077,142 @@ def basic_match_expression(
             "evaluation": evaluation,
         },
     )
+
+
+def _unwrap_unconstrained_blank_sequence(element: "BasePattern"):
+    """
+    If `element` is an untyped BlankSequence[]/BlankNullSequence[] -- bare
+    (___, __) or wrapped in a plain Pattern[name, ...] (a_, a__, a___) with
+    no type restriction, no Condition, no PatternTest -- return the inner
+    Blank*Sequence* pattern object. Otherwise return None.
+
+    Used by match_element's literal-lookahead fast path (see there): only
+    triggers on exactly this narrow, easy-to-verify shape, so anything
+    wrapped in additional constraints (a Condition that might depend on
+    exactly which elements got captured, a type restriction that might
+    reject some candidates, etc.) safely falls through to the regular
+    subranges()-based search instead.
+    """
+    from mathics.builtin.patterns.basic import BlankNullSequence, BlankSequence
+    from mathics.builtin.patterns.composite import Pattern
+
+    inner = element.pattern if isinstance(element, Pattern) else element
+    if isinstance(inner, (BlankSequence, BlankNullSequence)) and not inner.target_head:
+        return inner
+    return None
+
+
+def _leading_literal_split_points(
+    element: "BasePattern",
+    rest_elements: tuple,
+    candidates: tuple,
+    set_lengths: Tuple[int, Optional[int]],
+    evaluation: Evaluation,
+    vars_dict: dict,
+):
+    """
+    Fast path for `match_element`'s non-Orderless branch: when the current
+    element is an unconstrained BlankSequence/BlankNullSequence (see
+    `_unwrap_unconstrained_blank_sequence`) and it is immediately followed
+    by a literal pattern element (a plain value, no wildcards), only ONE
+    thing can make any given trial length succeed: the literal must be
+    found at the position right after the block ends -- matching any other
+    length is guaranteed to fail as soon as the literal element is tried
+    next (AtomPattern.match does an exact `sameQ`/identity check against a
+    single candidate). The regular subranges()-based search doesn't know
+    this and blindly tries every length from `set_lengths[1]` (or the end
+    of `candidates`) down to `set_lengths[0]`, which costs O(n) per element
+    and, chained across a backtracking search, O(n^2) overall.
+
+    Returns a list of valid block lengths (positions of the literal in
+    `candidates`, filtered to respect `set_lengths`), in the same
+    trial-order subranges() would have used, or None if the fast path
+    doesn't apply here (caller should fall back to subranges()).
+    """
+    if not rest_elements or not getattr(rest_elements[0], "isliteral", False):
+        return None
+    if _unwrap_unconstrained_blank_sequence(element) is None:
+        return None
+
+    min_len, max_len = set_lengths
+    # This fast path only targets the common, unbounded case. A bounded
+    # max_len can hit subranges()'s own [0, 1] -> [1, 0] quirk (see
+    # util.subranges); rather than replicate that here too, just fall
+    # back to the regular search in that case.
+    if max_len is not None:
+        return None
+
+    literal_element = rest_elements[0]
+    pattern_context = {"evaluation": evaluation, "vars_dict": vars_dict}
+    positions = [
+        i
+        for i, candidate in enumerate(candidates)
+        if i >= min_len and literal_element.does_match(candidate, pattern_context)
+    ]
+    return positions
+
+
+def _unwrap_options_pattern(element: "BasePattern"):
+    """
+    If `element` is an OptionsPattern[...] -- bare or wrapped in a plain
+    Pattern[name, ...] (opt:OptionsPattern[]) -- return the inner
+    OptionsPattern object. Otherwise return None.
+    """
+    from mathics.builtin.patterns.composite import OptionsPattern, Pattern
+
+    inner = element.pattern if isinstance(element, Pattern) else element
+    return inner if isinstance(inner, OptionsPattern) else None
+
+
+def _is_option_like(candidate: BaseElement) -> bool:
+    """Same shape check OptionsPattern.get_match_candidates() uses."""
+    return candidate.has_form(("Rule", "RuleDelayed"), 2) or candidate.has_form(
+        "List", None
+    )
+
+
+def _options_pattern_split(
+    element: "BasePattern", rest_elements: tuple, candidates: tuple
+):
+    """
+    WMA quirk: when a pattern contains more than one OptionsPattern[]
+    element, only the LAST one ever collects any option-like arguments --
+    every earlier OptionsPattern[] always matches an empty sequence,
+    regardless of what option-like values are available. E.g.
+    `F[x_Integer, opt1:OptionsPattern[], opt2:OptionsPattern[]]` applied
+    to `F[z->p, 2, a->2, m->2]` binds opt1 to `{}` and opt2 to
+    `{a->2, m->2, z->p}` in WMA -- never split between the two.
+
+    The general subranges()/subsets()-based search doesn't know this: it
+    just finds *some* backtracking split between opt1 and opt2 (both have
+    unbounded, untyped match counts, so nothing else disambiguates which
+    split "is the one"), which usually isn't the WMA split and is wasted
+    search besides.
+
+    Returns a `sets` list (same (items, (before, after)) shape the
+    subranges()/subsets()-based paths produce) if `element` is an
+    OptionsPattern[] (bare or Pattern-wrapped), or None if this fast path
+    doesn't apply (caller should fall through to the regular search).
+    """
+    if _unwrap_options_pattern(element) is None:
+        return None
+
+    is_last = not any(
+        _unwrap_options_pattern(rest_element) is not None
+        for rest_element in rest_elements
+    )
+    if not is_last:
+        # A later OptionsPattern[] still follows -- this one always
+        # matches empty.
+        return [((), ([], candidates))]
+
+    # Last (or only) OptionsPattern[] in the chain: grab every
+    # option-shaped candidate, wherever it is among `candidates` (options
+    # need not be contiguous with each other or with this element's
+    # position), preserving encounter order.
+    matched = tuple(c for c in candidates if _is_option_like(c))
+    remaining = tuple(c for c in candidates if not _is_option_like(c))
+    return [(matched, ([], remaining))]
 
 
 def expression_pattern_match_element_orderless(
@@ -1338,37 +1526,174 @@ def get_pre_choices_orderless(
     per_name(yield_choice, tuple(groups.items()), vars_dict)
 
 
-# --- Legacy compatibility: function used by other modules ---
-def build_pattern_sort_key(patt):
+# --- Ordered/Orderless class split (scaffolding) ---
+#
+# ExpressionPattern above still supports the fully-general case: build it
+# without knowing the head's attributes (attributes=None, evaluation=None)
+# and it defers, resolving (and caching) A_ORDERLESS on first .match().
+# That existing behavior is untouched here -- nothing below changes it.
+#
+# These two subclasses are for the case where attributes are ALREADY
+# known at construction time (either the caller passed them directly, or
+# an `evaluation` was available to look them up right away). In that
+# case there is no ambiguity to defer, so we can pick the concrete class
+# immediately via `make_expression_pattern()` below.
+#
+# NOTE: these classes intentionally do NOT override __init__ or
+# __set_pattern_attributes__ yet. The inherited logic still re-derives
+# `get_pre_choices` (and `sort()`/`isliteral`) from the *actual*
+# attributes int passed in, which happens to match what the class name
+# already promises when built through the factory. Redundant, but zero
+# behavior change versus plain ExpressionPattern -- this is deliberately
+# a low-risk first step; ExpressionPattern.match()/get_wrappings/
+# match_element still do their own `A_ORDERLESS & attributes` checks at
+# runtime exactly as before. A follow-up pass can move those into
+# per-class method overrides now that the classes exist.
+class OrderedExpressionPattern(ExpressionPattern):
     """
-    Legacy function used by other modules to compute pattern sort key.
-    Maintained for backward compatibility.
-
-    Pattern sort key structure:
-    0: 0/2:        Atom / Expression
-    1: pattern:    0 / 11-31 for blanks / 1 for empty Alternatives /
-                       40 for OptionsPattern
-    2: 0/1:        0 for PatternTest
-    3: 0/1:        0 for Pattern
-    4: 0/1:        1 for Optional
-    5: head / 0 for atoms
-    6: elements / 0 for atoms
-    7: 0/1:        0 for Condition
-
+    ExpressionPattern for a head known NOT to have the Orderless
+    attribute. Only constructed via make_expression_pattern() /
+    DeferredExpressionPattern, where `attributes` is already known.
     """
-    1 / 0
-    try:
-        return patt.pattern_precedence()
-    except NotImplementedError:
-        raise
 
-    return (
-        BASIC_EXPRESSION_PATTERN_SORT_KEY,
-        patt.head.pattern_precedence,
-        tuple(
-            chain(
-                (element.pattern_precedence for element in patt.elements),
-                (END_OF_LIST_PATTERN_SORT_KEY,),
-            )
-        ),
+    get_pre_choices = staticmethod(get_pre_choices_with_order)
+
+
+class OrderlessExpressionPattern(ExpressionPattern):
+    """
+    ExpressionPattern for a head known to have the Orderless attribute.
+    Only constructed via make_expression_pattern() /
+    DeferredExpressionPattern, where `attributes` is already known.
+    """
+
+    get_pre_choices = staticmethod(get_pre_choices_orderless)
+
+
+def make_expression_pattern(
+    expr: Expression, attributes: int, evaluation: Optional[Evaluation] = None
+) -> ExpressionPattern:
+    """
+    Factory: given `expr` and its head's ALREADY-KNOWN `attributes` int,
+    construct the correct concrete pattern class directly -- no
+    deferral, no later branching on A_ORDERLESS needed.
+
+    Use this whenever attributes are on hand already (e.g. a Builtin
+    class that declares its own attributes statically in Python, or any
+    call site that already has an `evaluation` to look them up). For the
+    case where attributes are NOT yet knowable (system bootstrap, before
+    Definitions is fully populated), use DeferredExpressionPattern
+    instead.
+    """
+    cls = (
+        OrderlessExpressionPattern
+        if A_ORDERLESS & attributes
+        else OrderedExpressionPattern
     )
+    return cls(expr, attributes, evaluation)
+
+
+class DeferredExpressionPattern(BasePattern):
+    """
+    Wraps an expression whose head's attributes (and therefore whether
+    it should be an OrderedExpressionPattern or an
+    OrderlessExpressionPattern) aren't known yet -- e.g. during
+    Definitions bootstrap, before all SetAttributes[] calls have run, or
+    for a nested sub-pattern built without an `evaluation` context.
+
+    On first real use (the first .match() call, since that's the first
+    point an Evaluation is guaranteed to be available), it resolves to
+    the correct concrete pattern via make_expression_pattern(), caches
+    it, and delegates to it from then on.
+
+    Every other BasePattern method (sameQ, pattern_precedence,
+    element_order, get_head_name, get_lookup_name, ...) is answered
+    directly by the BasePattern base class from self.expr, without
+    needing resolution -- none of those depend on Orderless-ness. This
+    was verified against every caller of those methods that can run
+    before an Evaluation exists (Definitions.insert_rule,
+    BaseRule.element_order/pattern_precedence, eval.patterns.Matcher).
+    Do not add new pre-match behavior here without checking that it's
+    similarly attribute-independent, or route it through _resolve()
+    instead.
+
+    Resolution happens once, lazily, on first real use (whichever
+    .match() call comes first), and is then frozen for the rest of this
+    object's life -- mirroring exactly how plain ExpressionPattern's own
+    __set_pattern_attributes__ behaves (`if self.attributes is None:
+    resolve-and-freeze`, never re-checked again after that). This
+    matters concretely for `Dispatch[]`: its whole point is to compile a
+    pattern once and reuse it, deliberately NOT re-deriving attributes
+    on subsequent uses even if SetAttributes changes them later (a
+    freshly-typed `expr /. rule`, by contrast, builds a brand new
+    pattern object from scratch every time, so it naturally sees current
+    attributes without any special re-derivation logic here).
+    """
+
+    def __init__(self, expr: BaseElement):
+        self.expr = expr
+        self.location = expr.location if hasattr(expr, "location") else None
+        # Built without an evaluation, same as ExpressionPattern.__init__
+        # would -- these may themselves come back as further
+        # DeferredExpressionPattern instances if their own heads'
+        # attributes aren't knowable yet either. Needed for
+        # pattern_precedence (see _build_pattern_sort_key below), which
+        # is purely structural and must work even before resolution.
+        self.head = BasePattern.create(expr.head)
+        self.elements = [BasePattern.create(element) for element in expr.elements]
+        self._impl: Optional[ExpressionPattern] = None
+
+    def _build_pattern_sort_key(self) -> tuple:
+        # Mirrors ExpressionPattern._build_pattern_sort_key exactly --
+        # structural only, doesn't need attributes/resolution.
+        return (
+            BASIC_EXPRESSION_PATTERN_SORT_KEY,
+            self.head.pattern_precedence,
+            tuple(
+                chain(
+                    (element.pattern_precedence for element in self.elements),
+                    (END_OF_LIST_PATTERN_SORT_KEY,),
+                )
+            ),
+        )
+
+    def get_match_count(self, vars_dict: Optional[dict] = None) -> Tuple[int, int]:
+        # Mirrors ExpressionPattern.get_match_count exactly -- a generic
+        # (non-Blank-family) expression pattern always matches exactly
+        # one element, regardless of Orderless-ness. Structural only.
+        return (1, 1)
+
+    def get_match_candidates(
+        self, elements: Tuple[BaseElement, ...], pattern_context: dict
+    ) -> tuple:
+        # Mirrors ExpressionPattern.get_match_candidates exactly: this
+        # only relies on self.does_match(), which is generic on
+        # BasePattern and resolves us correctly -- doesn't depend on
+        # Orderless-ness itself. Missing this was a real bug: without
+        # it, DeferredExpressionPattern fell back to BasePattern's
+        # default (an empty tuple -- "no candidates ever"), which made
+        # match_element() silently find nothing to try even though
+        # does_match() (used by the separate leading_blanks precheck)
+        # correctly said a match was possible.
+        evaluation: Evaluation = pattern_context["evaluation"]
+        vars_dict: Optional[dict] = pattern_context.setdefault("vars_dict", {})
+        return tuple(
+            element
+            for element in elements
+            if self.does_match(
+                element, {"evaluation": evaluation, "vars_dict": vars_dict}
+            )
+        )
+
+    def _resolve(self, evaluation: Evaluation) -> ExpressionPattern:
+        if self._impl is None:
+            attributes = self.expr.get_head().get_attributes(evaluation.definitions)
+            self._impl = make_expression_pattern(self.expr, attributes, evaluation)
+        return self._impl
+
+    def match(self, expression: BaseElement, pattern_context: dict):
+        return self._resolve(pattern_context["evaluation"]).match(
+            expression, pattern_context
+        )
+
+    def __repr__(self):
+        return f"<DeferredExpressionPattern: {self.expr}>"
