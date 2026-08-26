@@ -624,9 +624,9 @@ class ExpressionPattern(BasePattern):
         Get the possible wrappings
 
         If items has length 1, apply yield_func to the unique element.
-        Otherwise, apply it to a sequence. If the expression has the
-        attribute `Orderless`, apply it to all the possible orders.
-        Finally, if the expression is `Flat`, and the parameter `include_flattened`
+        Otherwise, apply it to a sequence -- see `_yield_sequence_wrappings`,
+        overridden per-class for the Ordered/Orderless split. Finally, if
+        the expression is `Flat`, and the parameter `include_flattened`
         is `True`, apply yield_func to the expression with the head of the original
         expression applied to the original sequence.
         """
@@ -638,19 +638,27 @@ class ExpressionPattern(BasePattern):
             attributes: int = pattern_context["attributes"]
             include_flattened: bool = pattern_context.get("include_flattened", True)
             if max_count is None or len(items) <= max_count:
-                if A_ORDERLESS & attributes:
-                    for perm in permutations(items):
-                        sequence = Expression(SymbolSequence, *perm)
-                        sequence.pattern_sequence = True
-                        yield_func(sequence)
-                else:
-                    sequence = Expression(SymbolSequence, *items)
-                    sequence.pattern_sequence = True
-                    yield_func(sequence)
+                self._yield_sequence_wrappings(items, yield_func)
             # TODO: check if this should not be applied to each possible
             # orders if A_ORDERLESS.
             if A_FLAT & attributes and include_flattened:
                 yield_func(Expression(expression.get_head(), *items))
+
+    def _yield_sequence_wrappings(self, items: Tuple, yield_func: Callable):
+        """
+        Default (non-Orderless) case: a single Sequence[...] wrapping in
+        the given, fixed order. OrderlessExpressionPattern overrides this
+        to yield one Sequence[...] per permutation of `items` instead.
+
+        This is only ever invoked on a concrete OrderedExpressionPattern
+        or OrderlessExpressionPattern instance (see the module-level note
+        on the Ordered/Orderless class split): BasePattern.create() never
+        constructs a plain ExpressionPattern directly, so this base
+        implementation effectively serves as the Ordered case's body.
+        """
+        sequence = Expression(SymbolSequence, *items)
+        sequence.pattern_sequence = True
+        yield_func(sequence)
 
     def match_element(
         self,
@@ -704,52 +712,14 @@ class ExpressionPattern(BasePattern):
         less_first = len(rest_elements) > 0
 
         def _regular_sets():
-            if A_ORDERLESS & attributes:
-                return expression_pattern_match_element_orderless(
-                    {
-                        "expression": expression,
-                        "element": element,
-                        "vars_dict": vars_dict,
-                        "attributes": attributes,
-                    },
-                    candidates,
-                    element_candidates,
-                    less_first,
-                    set_lengths,
-                )
-            if (
-                not (first and not fully)
-                and (
-                    literal_split_points := _leading_literal_split_points(
-                        element,
-                        rest_elements,
-                        candidates,
-                        set_lengths,
-                        evaluation,
-                        vars_dict,
-                    )
-                )
-                is not None
-            ):
-                # Fast path: current element is an unconstrained
-                # BlankSequence/BlankNullSequence immediately followed by
-                # a literal, so only try lengths that place the literal
-                # right after the block -- see _leading_literal_split_points
-                # for why every other length is guaranteed to fail anyway.
-                ordered_points = (
-                    literal_split_points
-                    if less_first
-                    else list(reversed(literal_split_points))
-                )
-                return ((candidates[:p], ([], candidates[p:])) for p in ordered_points)
-            # a generator that yields partitions of
-            # candidates as [before | block | after ]
-            return subranges(
+            return self._regular_match_element_sets(
+                element,
+                rest_elements,
                 candidates,
-                *set_lengths,
-                flexible_start=(first and not fully),
-                included=element_candidates,
-                less_first=less_first,
+                element_candidates,
+                set_lengths,
+                less_first,
+                pattern_context,
             )
 
         options_sets = _options_pattern_split(element, rest_elements, candidates)
@@ -822,6 +792,69 @@ class ExpressionPattern(BasePattern):
                 pattern_context.pop("element_index", None)
             pattern_context.pop("next_element", None)
             pattern_context.pop("next_rest_elements", None)
+
+    def _regular_match_element_sets(
+        self,
+        element: "BasePattern",
+        rest_elements: tuple,
+        candidates: tuple,
+        element_candidates: Union[tuple, set],
+        set_lengths: Tuple[int, Optional[int]],
+        less_first: bool,
+        pattern_context: dict,
+    ):
+        """
+        Default (non-Orderless) search for match_element's `sets`: the
+        literal-lookahead fast path (see `_leading_literal_split_points`)
+        when it applies, falling back to the general subranges()-based
+        search otherwise. OrderlessExpressionPattern overrides this with
+        `expression_pattern_match_element_orderless` instead -- the
+        literal fast path assumes a fixed left-to-right element order,
+        which Orderless doesn't have.
+
+        This is only ever invoked on a concrete OrderedExpressionPattern
+        or OrderlessExpressionPattern instance -- see the module-level
+        note on the Ordered/Orderless class split.
+        """
+        first: bool = pattern_context.get("first", False)
+        fully: bool = pattern_context.get("fully", True)
+        evaluation: Evaluation = pattern_context["evaluation"]
+        vars_dict: dict = pattern_context["vars_dict"]
+
+        if (
+            not (first and not fully)
+            and (
+                literal_split_points := _leading_literal_split_points(
+                    element,
+                    rest_elements,
+                    candidates,
+                    set_lengths,
+                    evaluation,
+                    vars_dict,
+                )
+            )
+            is not None
+        ):
+            # Fast path: current element is an unconstrained
+            # BlankSequence/BlankNullSequence immediately followed by
+            # a literal, so only try lengths that place the literal
+            # right after the block -- see _leading_literal_split_points
+            # for why every other length is guaranteed to fail anyway.
+            ordered_points = (
+                literal_split_points
+                if less_first
+                else list(reversed(literal_split_points))
+            )
+            return ((candidates[:p], ([], candidates[p:])) for p in ordered_points)
+        # a generator that yields partitions of
+        # candidates as [before | block | after ]
+        return subranges(
+            candidates,
+            *set_lengths,
+            flexible_start=(first and not fully),
+            included=element_candidates,
+            less_first=less_first,
+        )
 
     def get_match_candidates(
         self, elements: Tuple[BaseElement], pattern_context
@@ -1526,7 +1559,7 @@ def get_pre_choices_orderless(
     per_name(yield_choice, tuple(groups.items()), vars_dict)
 
 
-# --- Ordered/Orderless class split (scaffolding) ---
+# --- Ordered/Orderless class split ---
 #
 # ExpressionPattern above still supports the fully-general case: build it
 # without knowing the head's attributes (attributes=None, evaluation=None)
@@ -1540,20 +1573,35 @@ def get_pre_choices_orderless(
 # immediately via `make_expression_pattern()` below.
 #
 # NOTE: these classes intentionally do NOT override __init__ or
-# __set_pattern_attributes__ yet. The inherited logic still re-derives
+# __set_pattern_attributes__. The inherited logic still re-derives
 # `get_pre_choices` (and `sort()`/`isliteral`) from the *actual*
 # attributes int passed in, which happens to match what the class name
 # already promises when built through the factory. Redundant, but zero
-# behavior change versus plain ExpressionPattern -- this is deliberately
-# a low-risk first step; ExpressionPattern.match()/get_wrappings/
-# match_element still do their own `A_ORDERLESS & attributes` checks at
-# runtime exactly as before. A follow-up pass can move those into
-# per-class method overrides now that the classes exist.
+# behavior change versus plain ExpressionPattern.
+#
+# `get_wrappings`/`match_element` on the base ExpressionPattern used to
+# each carry their own `A_ORDERLESS & attributes` runtime branch to
+# decide between the Orderless and non-Orderless code paths. Since
+# BasePattern.create() never constructs a plain ExpressionPattern
+# directly -- every live instance reaching these methods is either an
+# OrderedExpressionPattern or an OrderlessExpressionPattern, confirmed by
+# grep/audit of every call site that reaches get_wrappings/match_element
+# -- those branches have been moved into real per-class overrides below:
+# `_yield_sequence_wrappings` (single order vs. all permutations) and
+# `_regular_match_element_sets` (literal-lookahead/subranges search vs.
+# `expression_pattern_match_element_orderless`). The base-class bodies of
+# those two hooks are therefore the Ordered/non-Orderless behavior, and
+# OrderedExpressionPattern needs no override at all -- it inherits them
+# as-is. Only OrderlessExpressionPattern overrides.
 class OrderedExpressionPattern(ExpressionPattern):
     """
     ExpressionPattern for a head known NOT to have the Orderless
     attribute. Only constructed via make_expression_pattern() /
     DeferredExpressionPattern, where `attributes` is already known.
+
+    No method overrides needed: ExpressionPattern's own
+    `_yield_sequence_wrappings`/`_regular_match_element_sets` already
+    implement the non-Orderless behavior (see class-split note above).
     """
 
     get_pre_choices = staticmethod(get_pre_choices_with_order)
@@ -1567,6 +1615,37 @@ class OrderlessExpressionPattern(ExpressionPattern):
     """
 
     get_pre_choices = staticmethod(get_pre_choices_orderless)
+
+    def _yield_sequence_wrappings(self, items: Tuple, yield_func: Callable):
+        """Orderless case: one Sequence[...] wrapping per permutation."""
+        for perm in permutations(items):
+            sequence = Expression(SymbolSequence, *perm)
+            sequence.pattern_sequence = True
+            yield_func(sequence)
+
+    def _regular_match_element_sets(
+        self,
+        element: "BasePattern",
+        rest_elements: tuple,
+        candidates: tuple,
+        element_candidates: Union[tuple, set],
+        set_lengths: Tuple[int, Optional[int]],
+        less_first: bool,
+        pattern_context: dict,
+    ):
+        """Orderless case: delegate to the dedicated subset-based search."""
+        return expression_pattern_match_element_orderless(
+            {
+                "expression": pattern_context["expression"],
+                "element": element,
+                "vars_dict": pattern_context["vars_dict"],
+                "attributes": pattern_context["attributes"],
+            },
+            candidates,
+            element_candidates,
+            less_first,
+            set_lengths,
+        )
 
 
 def make_expression_pattern(
