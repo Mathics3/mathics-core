@@ -356,6 +356,19 @@ class BasePattern(ABC):
         Return a precedence value, a tuple, which is used in selecting
         which pattern to select when several match.
         Cached per instance.
+
+
+        Pattern sort key structure:
+        0: 0/2:        Atom / Expression
+        1: pattern:    0 / 11-31 for blanks / 1 for empty Alternatives /
+                       40 for OptionsPattern
+        2: 0/1:        0 for PatternTest
+        3: 0/1:        0 for Pattern
+        4: 0/1:        1 for Optional
+        5: head / 0 for atoms
+        6: elements / 0 for atoms
+        7: 0/1:        0 for Condition
+
         """
         return self._build_pattern_sort_key()
 
@@ -1336,39 +1349,3 @@ def get_pre_choices_orderless(
 
     # Start the recursive generation.
     per_name(yield_choice, tuple(groups.items()), vars_dict)
-
-
-# --- Legacy compatibility: function used by other modules ---
-def build_pattern_sort_key(patt):
-    """
-    Legacy function used by other modules to compute pattern sort key.
-    Maintained for backward compatibility.
-
-    Pattern sort key structure:
-    0: 0/2:        Atom / Expression
-    1: pattern:    0 / 11-31 for blanks / 1 for empty Alternatives /
-                       40 for OptionsPattern
-    2: 0/1:        0 for PatternTest
-    3: 0/1:        0 for Pattern
-    4: 0/1:        1 for Optional
-    5: head / 0 for atoms
-    6: elements / 0 for atoms
-    7: 0/1:        0 for Condition
-
-    """
-    1 / 0
-    try:
-        return patt.pattern_precedence()
-    except NotImplementedError:
-        raise
-
-    return (
-        BASIC_EXPRESSION_PATTERN_SORT_KEY,
-        patt.head.pattern_precedence,
-        tuple(
-            chain(
-                (element.pattern_precedence for element in patt.elements),
-                (END_OF_LIST_PATTERN_SORT_KEY,),
-            )
-        ),
-    )
