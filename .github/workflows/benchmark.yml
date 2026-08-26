@@ -62,4 +62,4 @@ jobs:
           comment-on-alert: true
           fail-on-alert: false
           name: 'Mathics3 Core Benchmarks'
-          skip-fetch-gh-pages: true
+          # skip-fetch-gh-pages: true
