@@ -63,8 +63,6 @@ class Assumptions(Predefined):
     </dl>
     """
 
-    summary_text = "assumptions used to simplify expressions"
-    name = "$Assumptions"
     attributes = A_NO_ATTRIBUTES
     rules = {
         "$Assumptions": "True",
@@ -74,6 +72,8 @@ class Assumptions(Predefined):
         "faas": "Assumptions should not be False.",
         "baas": "Bad formed assumption.",
     }
+    name = "$Assumptions"
+    summary_text = "assumptions used to simplify expressions"
 
 
 class Refine(Builtin):

@@ -123,6 +123,24 @@ for category, tasks in REGRESSION_BENCHMARKS.items():
 param_ids = [name for name, _, _, _ in BENCHMARK_TASKS]
 
 
+import pytest
+
+
+@pytest.mark.benchmark(
+    group="reference",
+    min_rounds=10,
+    max_time=0.5,
+)
+def test_reference_benchmark(benchmark):
+    # Uses as a baseline the time that takes to sum
+    # the square of the first 10000 integers in Python.
+    def reference_task():
+        return sum([i**2 for i in range(10000)])
+
+    result = benchmark(reference_task)
+    assert result == sum(i**2 for i in range(10000))
+
+
 @pytest.mark.skipif(
     not os.environ.get("BENCHMARKS", 0), reason="benchmarks not required"
 )
