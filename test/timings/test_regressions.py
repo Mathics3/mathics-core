@@ -126,6 +126,9 @@ param_ids = [name for name, _, _, _ in BENCHMARK_TASKS]
 import pytest
 
 
+@pytest.mark.skipif(
+    not os.environ.get("BENCHMARKS", 0), reason="benchmarks not required"
+)
 @pytest.mark.benchmark(
     group="reference",
     min_rounds=10,
