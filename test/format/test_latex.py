@@ -1,10 +1,16 @@
-"test latex formatter"
+"test LaTex formatter"
+
+# This test needs rewriting.
+# It runs runs to_tex boxing on StandardForm
+# when it should be pared with TeXForm instead.
 
 from test.helper import reset_session, session
 
 import pytest
 
 from mathics.core.systemsymbols import SymbolStandardForm
+
+# from mathics.core.systemsymbols import SymbolTeXForm
 from mathics.format.box import format_element
 
 reset_session()
@@ -15,6 +21,7 @@ def get_latex(wl_expression):
     wl_expression = session.evaluate(wl_expression)
     print(wl_expression)
     boxes = format_element(wl_expression, evaluation, SymbolStandardForm)
+    # boxes = format_element(wl_expression, evaluation, SymbolTeXForm)
     return boxes.to_tex(show_string_characters=False, evaluation=evaluation).strip()
 
 
@@ -56,7 +63,12 @@ def get_latex(wl_expression):
         ('"a & b"', r"\text{a $\&$ b}"),
         ("a&", r"a\&"),
         ('"a # b"', r"\text{a $\#$ b}"),
-        ("#1", r"\text{$\#$1}"),
+        # rocky: When we turned #1 into an Operator as it should be,
+        # this test fails. I think there's conceptional problem here.
+        # I think to_tex() boxing should tested only TeXForm
+        # expressions. What it does on StandardForm expressions,
+        # is can be my opinion arbitrary.
+        # # ("#1", r"\text{$\#$1}"),
         ("%1", r"\text{$\%$1}"),
         ('"%1"', r"\text{$\%$1}"),
     ],

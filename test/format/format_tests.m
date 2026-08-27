@@ -10,7 +10,7 @@ in the Notebook interface, the CLI (math) and wolframscript are not fully consis
 ISMATHICSINTERPRETER=(StringTake[$Version, 8]==="Mathics3");
 
 If[ISMATHICSINTERPRETER,
-  (*Mathics Interpreter*)
+  (*Mathics3 Interpreter*)
   STRIPMATHML[strg_]:= Module[
      {start=(StringPosition[strg,"<math display=\"block\">"][[1]][[2]]+1),
      end=(StringPosition[strg,"</math>"][[1]][[1]]-1)

@@ -11,6 +11,7 @@ from typing import Any, Dict, Generic, Optional, Tuple, TypeVar, Union
 
 import mpmath
 import sympy
+from sympy import Float as sympy_Float
 from sympy.core import numbers as sympy_numbers
 
 from mathics.core.atoms.strings import String
@@ -18,7 +19,6 @@ from mathics.core.element import ImmutableValueMixin
 from mathics.core.keycomparable import BASIC_ATOM_NUMBER_ELT_ORDER
 from mathics.core.number import (
     FP_MANTISA_BINARY_DIGITS,
-    MACHINE_PRECISION_VALUE,
     MAX_MACHINE_NUMBER,
     MIN_MACHINE_NUMBER,
     dps,
@@ -26,14 +26,17 @@ from mathics.core.number import (
     prec,
 )
 from mathics.core.symbols import Atom, NumericOperators, Symbol, SymbolNull, symbol_set
-from mathics.core.systemsymbols import SymbolFullForm, SymbolInfinity, SymbolInputForm
+from mathics.core.systemsymbols import (
+    SymbolFullForm,
+    SymbolI,
+    SymbolInfinity,
+    SymbolInputForm,
+)
 
 # The below value is an empirical number for comparison precedence
 # that seems to work.  We have to be able to match mpmath values with
 # sympy values
 COMPARE_PREC = 50
-
-SymbolI = Symbol("I")
 
 SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM = symbol_set(SymbolInputForm, SymbolFullForm)
 
@@ -42,7 +45,7 @@ T = TypeVar("T")
 
 class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
     """
-    Different kinds of Mathics Numbers, the main built-in subclasses
+    Different kinds of Mathics3 Numbers, the main built-in subclasses
     being: Integer, Rational, Real, Complex.
     """
 
@@ -109,7 +112,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         # Anything that is in a number class is Numeric, so return True.
         return True
 
-    def to_mpmath(self, precision: Optional[int] = None) -> mpmath.ctx_mp_python.mpf:
+    def to_mpmath(self, precision: Optional[int] = None) -> mpmath.mpf:
         """
         Convert self.value to an mpmath number with precision ``precision``
         If ``precision`` is None, use mpmath's default precision.
@@ -196,7 +199,7 @@ class Integer(Number[int]):
     # Dictionary of Integer constant values defined so far.
     # We use this for object uniqueness.
     # The key is the Integer's Python `int` value, and the
-    # dictionary's value is the corresponding Mathics Integer object.
+    # dictionary's value is the corresponding Mathics3 Integer object.
     _integers: Dict[Any, "Integer"] = {}
     _value: int
 
@@ -308,19 +311,32 @@ class Integer(Number[int]):
         return self._value == 0
 
     def round(self, d: Optional[int] = None) -> Union["MachineReal", "PrecisionReal"]:
-        """
-        Produce a Real approximation of ``self`` with decimal precision ``d``.
-        If ``d`` is  ``None``, and self.value fits in a float,
-        returns a ``MachineReal`` number.
-        Is the low-level equivalent to ``N[self, d]``.
+        """Produce a Real approximation rounding value of ``Integer`` with
+        decimal precision ``d``.
+
+        If ``d`` is ``None`` we force the mantissa to fit the entire
+        integer value, provided it is less than magical number
+        1024. 1024 is a common internal Mathematica implementation limit where
+        it switches from using MachineReal to PrecisionReal.
+
+        If a decimal precision ``d`` is not None, then we convert to
+        a PrecisionReal using that value d.
+
+        When ``d`` is ``None`` but the mantissa does not fit into a
+        Python float, we implement the value as a mpmath.mpf value.
         """
         if d is None:
             d = self.value.bit_length()
-            if d <= FP_MANTISA_BINARY_DIGITS:
-                return MachineReal(float(self.value))
+            # Many WMA implementations seem to change behavior of the integer
+            # representation that have more than 1024 digits. In theory this is
+            # number can vary depending on hardware characteristics.
+            # In practice, a reasonable
+            if d <= 1024:
+                return MachineReal(self.value)
             else:
-                d = MACHINE_PRECISION_VALUE
-        return PrecisionReal(sympy.Float(self.value, d))
+                d = 16  # MACHINE_PRECISION_VALUE rounded up
+
+        return PrecisionReal(sympy_Float(self.value, d))
 
     @property
     def sympy(self) -> sympy_numbers.Integer:
@@ -330,7 +346,7 @@ class Integer(Number[int]):
         return self.sympy
 
     def sameQ(self, rhs) -> bool:
-        """Mathics SameQ"""
+        """Mathics3 SameQ"""
         return isinstance(rhs, Integer) and self._value == rhs._value
 
     def do_copy(self) -> "Integer":
@@ -372,7 +388,7 @@ class Real(Number[T]):
                     )
                 else:
                     p = prec(len(digits.zfill(dps(FP_MANTISA_BINARY_DIGITS))))
-        elif isinstance(value, sympy.Float):
+        elif isinstance(value, sympy_Float):
             if p is None:
                 p = value._prec + 1
         elif isinstance(value, (Integer, sympy.Number, mpmath.mpf, float, int)):
@@ -420,24 +436,41 @@ class Real(Number[T]):
         update(b"System`Real>" + str(self.to_sympy().n(_prec)).encode("utf8"))
 
 
-# This has to come before PrecisionReal which uses MachineReal.
+# This has to come before PrecisionReal, which uses MachineReal.
+# FIXME: rocky: float is not right. It should be Union[float, mpmath.mpf]
+# but I don't understand how to get the type annotation system to handle his.
 class MachineReal(Real[float]):
     """
     Machine precision real number.
 
-    Stored internally as a python float.
+    Stored internally as a Python float or a mpmath.mpf
+
+    Precision for these numbers is `MachinePrecision`.
     """
 
     # Dictionary of MachineReal constant values defined so far.
     # We use this for object uniqueness.
     # The key is the MachineReal's Python `float` value, and the
-    # dictionary's value is the corresponding Mathics MachineReal object.
+    # dictionary's value is the corresponding Mathics3 MachineReal object.
     _machine_reals: Dict[Any, "MachineReal"] = {}
-    _value: float
+    _value: Union[float, mpmath.mpf]
 
     def __new__(cls, value) -> "MachineReal":
-        n = float(value)
-        if math.isinf(n) or math.isnan(n):
+
+        if isinstance(value, int):
+            d = value.bit_length()
+
+            if d <= FP_MANTISA_BINARY_DIGITS:
+                n = float(value)
+
+            else:
+                with mpmath.workdps(d):
+                    n = mpmath.mpf(value)
+        else:
+            n = float(value)
+
+        if isinstance(n, float) and math.isinf(n) or math.isnan(n):
+            # FIXME: can we do better here using mpmath.mpf?
             raise OverflowError
 
         self = cls._machine_reals.get(n)
@@ -452,8 +485,11 @@ class MachineReal(Real[float]):
             # it is used this is fast. Note that in contrast to the
             # cached object key, the hash key needs to be unique across all
             # Python objects, so we include the class in the
-            # event that different objects have the same Python value
+            # event that different objects have the same Python value.
             self.hash = hash((cls, n))
+
+            # We will set the sympy value lazily.
+            self._sympy = None
 
         return self
 
@@ -513,7 +549,7 @@ class MachineReal(Real[float]):
         return self._value == 0.0
 
     def sameQ(self, rhs) -> bool:
-        """Mathics SameQ for MachineReal.
+        """Mathics3 SameQ for MachineReal.
         If the rhs comparison value is a MachineReal, the values
         have to be equal.  If the rhs value is a PrecisionReal though, then
         the two values have to be within 1/2 ** (precision) of
@@ -535,18 +571,24 @@ class MachineReal(Real[float]):
         else:
             return False
 
-    def to_python(self, *args, **kwargs) -> float:
+    @property
+    def sympy(self):
+        if self._sympy is None:
+            self._sympy = sympy_Float(self.value)
+        return self._sympy
+
+    def to_python(self, *_, **__) -> float:
         return self.value
 
-    def to_sympy(self, *args, **kwargs):
-        return sympy.Float(self.value)
+    def to_sympy(self, *_, **__):
+        return self.sympy
 
 
 MachineReal0 = MachineReal(0)
 MachineReal1 = MachineReal(1)
 
 
-class PrecisionReal(Real[sympy.Float]):
+class PrecisionReal(Real[sympy_Float]):
     """
     Arbitrary precision real number.
 
@@ -558,9 +600,8 @@ class PrecisionReal(Real[sympy.Float]):
     # Dictionary of PrecisionReal constant values defined so far.
     # We use this for object uniqueness.
     # The key is the PrecisionReal's sympy.Float, and the
-    # dictionary's value is the corresponding Mathics PrecisionReal object.
+    # dictionary's value is the corresponding Mathics3 PrecisionReal object.
     _precision_reals: Dict[Any, "PrecisionReal"] = {}
-    _sympy: sympy.Float
 
     # Note: We have no _value attribute or value property .
     # value attribute comes from Number.value
@@ -570,7 +611,7 @@ class PrecisionReal(Real[sympy.Float]):
         self = cls._precision_reals.get(n)
         if self is None:
             self = Number.__new__(cls)
-            self._sympy = self._value = n
+            self._value = n
 
             # Cache object so we don't allocate again.
             self._precision_reals[n] = self
@@ -631,10 +672,10 @@ class PrecisionReal(Real[sympy.Float]):
         if d is None:
             return MachineReal(float(self.value))
         _prec = min(prec(d), self.value._prec)
-        return PrecisionReal(sympy.Float(self.value, precision=_prec))
+        return PrecisionReal(sympy_Float(self.value, precision=_prec))
 
     def sameQ(self, rhs) -> bool:
-        """Mathics SameQ for PrecisionReal"""
+        """Mathics3 SameQ for PrecisionReal"""
         if isinstance(rhs, PrecisionReal):
             other_value = rhs.value
         elif isinstance(rhs, MachineReal):
@@ -652,11 +693,19 @@ class PrecisionReal(Real[sympy.Float]):
         diff = abs(value - other_value)
         return diff < 0.5**prec
 
-    def to_python(self, *args, **kwargs) -> float:
-        return float(self.value)
+    @property
+    def sympy(self):
+        return self._value
 
-    def to_sympy(self, *args, **kwargs) -> sympy.Float:
-        return self.value
+    def to_python(self, *_, **__) -> float:
+        return float(self._value)
+
+    def to_sympy(self, *_, **__) -> sympy_Float:
+        return self._value
+
+    @property
+    def value(self) -> sympy_Float:
+        return self._value
 
 
 class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
@@ -678,7 +727,7 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
     # Dictionary of Complex constant values defined so far.
     # We use this for object uniqueness.
     # The key is the Complex value's real and imaginary parts as a tuple,
-    # dictionary's value is the corresponding Mathics Complex object.
+    # dictionary's value is the corresponding Mathics3 Complex object.
     _complex_numbers: Dict[Any, "Complex"] = {}
 
     # The precise value: a real number, an imaginary number, and a
@@ -736,6 +785,7 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
             self.precision = precision
 
             self._exact_value = exact_value
+            self._sympy = None  # lazy evaluation for sympy
             self._value = complex(real.value, imag.value)
 
             # Cache object so we don't allocate again.
@@ -778,7 +828,7 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
             if hasattr(self.imag, "is_approx_zero")
             else self.imag.is_zero
         )
-        return real_zero and imag_zero
+        return bool(real_zero) and bool(imag_zero)
 
     @property
     def is_zero(self) -> bool:
@@ -860,10 +910,14 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         return Complex(real, imag)
 
     def sameQ(self, rhs) -> bool:
-        """Mathics SameQ"""
+        """Mathics3 SameQ"""
         return (
             isinstance(rhs, Complex) and self.real == rhs.real and self.imag == rhs.imag
         )
+
+    @property
+    def sympy(self):
+        return self.to_sympy()
 
     def user_hash(self, update) -> None:
         update(b"System`Complex>")
@@ -880,8 +934,10 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
             self.real.to_mpmath(precision), self.imag.to_mpmath(precision)
         )
 
-    def to_sympy(self, **kwargs):
-        return self.real.to_sympy() + sympy.I * self.imag.to_sympy()
+    def to_sympy(self, **_):
+        if self._sympy is None:
+            self._sympy = self.real.to_sympy() + sympy.I * self.imag.to_sympy()
+        return self._sympy
 
 
 class Rational(Number[sympy.Rational]):
@@ -948,10 +1004,10 @@ class Rational(Number[sympy.Rational]):
             self.numerator().is_zero
         )  # (implicit) and not (self.denominator().is_zero)
 
-    def to_sympy(self, **kwargs):
+    def to_sympy(self, **__):
         return self.value
 
-    def to_python(self, *args, **kwargs) -> float:
+    def to_python(self, *_, **__kwargs) -> float:
         return float(self.value)
 
     def round(self, d=None) -> Union["MachineReal", "PrecisionReal"]:
@@ -961,7 +1017,7 @@ class Rational(Number[sympy.Rational]):
             return PrecisionReal(self.value.n(d))
 
     def sameQ(self, rhs) -> bool:
-        """Mathics SameQ"""
+        """Mathics3 SameQ"""
         return isinstance(rhs, Rational) and self.value == rhs.value
 
     @cache

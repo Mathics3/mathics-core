@@ -12,7 +12,7 @@ from mathics.core.atoms import String
 from mathics.core.list import ListExpression
 from mathics.session import MathicsSession
 
-# Set up a Mathics session with definitions.
+# Set up a Mathics3 session with definitions.
 # For consistency set the character encoding ASCII which is
 # the lowest common denominator available on all systems.
 session = MathicsSession(character_encoding="ASCII")
@@ -24,7 +24,7 @@ def check_characters_evaluation(
     failure_message: Optional[str] = "",
 ):
     """
-    Helper function to test Mathics expression against
+    Helper function to test Mathics3 expression against
     its results.
 
     Compares the expressions represented by ``str_expr`` and  ``str_expected`` by

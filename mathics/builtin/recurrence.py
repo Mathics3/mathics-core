@@ -5,6 +5,7 @@ Solving Recurrence Equations
 """
 import sympy
 
+import mathics.eval.tracing as tracing
 from mathics.core.atoms import IntegerM1
 from mathics.core.attributes import A_CONSTANT
 from mathics.core.builtin import Builtin
@@ -34,22 +35,22 @@ class RSolve(Builtin):
 
     Solve a difference equation:
     >> RSolve[a[n] == a[n+1], a[n], n]
-     = {{a[n] -> C[0]}}
+     = {{a[n] ⇾ C[0]}}
 
     No boundary conditions gives two general parameters:
     >> RSolve[{a[n + 2] == a[n]}, a, n]
-     = {{a -> Function[{n}, C[0] + C[1] (-1) ^ n]}}
+     = {{a ⇾ Function[{n}, C[0] + C[1] (-1) ^ n]}}
 
     Include one boundary condition:
     >> RSolve[{a[n + 2] == a[n], a[0] == 1}, a, n]
      = ...
     ## Order of terms depends on interpreter:
-    ## PyPy:    {{a -> Function[{n}, 1 - C[1] + C[1] -1 ^ n]}}
-    ## CPython: {{a -> Function[{n}, 1 + C[1] -1 ^ n - C[1]]}
+    ## PyPy:    {{a ⇾ Function[{n}, 1 - C[1] + C[1] -1 ^ n]}}
+    ## CPython: {{a ⇾ Function[{n}, 1 + C[1] -1 ^ n - C[1]]}
 
     Get a "pure function" solution for a with two boundary conditions:
     >> RSolve[{a[n + 2] == a[n], a[0] == 1, a[1] == 4}, a, n]
-     = {{a -> Function[{n}, 5 / 2 - 3 (-1) ^ n / 2]}}
+     = {{a ⇾ Function[{n}, 5 / 2 - 3 (-1) ^ n / 2]}}
     """
 
     messages = {
@@ -153,9 +154,11 @@ class RSolve(Builtin):
             # Sympy raises error when given empty conditions. Fixed in
             # upcoming sympy release.
             if sym_conds != {}:
-                sym_result = sympy.rsolve(sym_eq, sym_func, sym_conds)
+                sym_result = tracing.run_sympy(
+                    sympy.rsolve, sym_eq, sym_func, sym_conds
+                )
             else:
-                sym_result = sympy.rsolve(sym_eq, sym_func)
+                sym_result = tracing.run_sympy(sympy.rsolve, sym_eq, sym_func)
 
             if not isinstance(sym_result, list):
                 sym_result = [sym_result]

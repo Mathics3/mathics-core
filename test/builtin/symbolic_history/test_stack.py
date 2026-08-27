@@ -13,7 +13,7 @@ def test_trace():
             "Trace with Constant - no intermediate values",
         ),
         (
-            "Trace[a]",
+            "Clear[a]; Trace[a]",
             "{}",
             "Trace with Symbol - no intermediate values",
         ),

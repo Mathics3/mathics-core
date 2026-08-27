@@ -28,13 +28,13 @@ Out[2]= True
 because it ignores that the attribute is clean at the time in which the rule is applied.
 
 
-In Mathics, on the other hand, attributes are taken into account just
+In Mathics3, on the other hand, attributes are taken into account just
 at the moment of the replacement, so the output of both expressions
 are the opposite.
 
 
 This set of tests are proposed to drive the behaviour of Rules in
-Mathics closer to the one in WMA.  In particular, the way in which
+Mathics3 closer to the one in WMA.  In particular, the way in which
 `Orderless` and `Flat` attributes affects evaluation are currently
 tested.
 
@@ -140,94 +140,92 @@ def test_orderless_on_rules(str_expr, str_expected, msg):
     check_evaluation(str_expr, str_expected, failure_message=msg)
 
 
-@pytest.mark.parametrize(
-    ("str_expr", "str_expected", "msg"),
-    [
+@pytest.mark.xfail
+def test_flat_on_rules():
+    for str_expr, str_expected, msg in [
         (None, None, None),
         (
-            "rule = Q[_Integer,_Symbol]->True;\
-	 ruled = Dispatch[{rule}];\
-	 {Q[a,1,b]/.rule, Q[a,1,b]/.ruled}",
+            (
+                "rule = Q[_Integer,_Symbol]->True;"
+                "ruled = Dispatch[{rule}];"
+                "{Q[a,1,b]/.rule, Q[a,1,b]/.ruled}"
+            ),
             "{Q[a,1,b],Q[a,1,b]}",
             "1. Check the rules. Here are not applied.",
         ),
         (
             "SetAttributes[Q, {Flat}];\
-            {Q[a,1,b]/.rule, Q[a,1,b]/.ruled}",
+                {Q[a,1,b]/.rule, Q[a,1,b]/.ruled}",
             "{Q[a,1,b], Q[a,1,b]}",
             "2. Set the attribute. Application is not affected.",
         ),
         (
             "rule = Q[_Integer,_Symbol]->True;\
-  	  ruled = Dispatch[{rule}];\
-	  {Q[a, 1, b]/.rule, Q[a, 1, b]/.ruled}",
+  	        ruled = Dispatch[{rule}];\
+	        {Q[a, 1, b]/.rule, Q[a, 1, b]/.ruled}",
             "{Q[a, True],Q[a, True]}",
             "3 .Rebuilt rules. Rules applied.",
         ),
         (
             "Attributes[Q] = {};\
-          {Q[a,1,b]/.rule, Q[a,1,b]/.ruled}",
+                {Q[a,1,b]/.rule, Q[a,1,b]/.ruled}",
             "{Q[a,1,b], Q[a,1,b]}",
             "4. Unset the attribute. Application is not affected.",
         ),
         (
             "rule = Q[a, _Integer,_Symbol]->True;\
-  	  ruled = Dispatch[{rule}];\
-	  {Q[a,1,b]/.rule, Q[a,1,b]/.ruled}",
+  	        ruled = Dispatch[{rule}];\
+	        {Q[a,1,b]/.rule, Q[a,1,b]/.ruled}",
             "{Q[a, 1, b],Q[a, 1, b]}",
             "5. Rebuilt rules. Rules applied.",
         ),
         (None, None, None),
-    ],
-)
+    ]:
+
+        check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
 @pytest.mark.xfail
-def test_flat_on_rules(str_expr, str_expected, msg):
-    check_evaluation(str_expr, str_expected, failure_message=msg)
-
-
-@pytest.mark.parametrize(
-    ("str_expr", "str_expected", "msg"),
-    [
+def test_default_optional_on_rules():
+    for str_expr, str_expected, msg in [
         (None, None, None),
         (
             "rule = Q[x_,y_.]->{x, y};\
-	 ruled = Dispatch[{rule}];\
-	 {Q[a]/.rule, Q[a]/.ruled}",
+	        ruled = Dispatch[{rule}];\
+	        {Q[a]/.rule, Q[a]/.ruled}",
             "{Q[a],Q[a]}",
             "1. Check the rules. Here are not applied.",
         ),
         (
             "Default[Q]=37;\
-          {Q[a]/.rule, Q[a]/.ruled}",
+                {Q[a]/.rule, Q[a]/.ruled}",
             "{Q[a], Q[a]}",
             "2. Set the Default value. Application is not affected.",
         ),
         (
             "rule = Q[x_,y_.]->{x,y};\
-  	  ruled = Dispatch[{rule}];\
-	  {Q[a]/.rule, Q[a]/.ruled}",
+  	        ruled = Dispatch[{rule}];\
+	        {Q[a]/.rule, Q[a]/.ruled}",
             "{{a, 37}, {a, 37}}",
             "3 .Rebuilt rules. Rules applied.",
         ),
         (
             "Default[Q] = .;\
-            {Q[a]/.rule, Q[a]/.ruled}",
+                {Q[a]/.rule, Q[a]/.ruled}",
             "{{a, 37}, {a, 37}}",
             "4. Unset the attribute. Application is not affected.",
         ),
         (
             "rule = Q[x_,y_.]->{x,y};\
-  	    ruled = Dispatch[{rule}];\
-	    {Q[a]/.rule, Q[a]/.ruled}",
+  	        ruled = Dispatch[{rule}];\
+	        {Q[a]/.rule, Q[a]/.ruled}",
             "{Q[a],Q[a]}",
             "5. Rebuilt rules. Rules not applied.",
         ),
         (None, None, None),
-    ],
-)
-@pytest.mark.xfail
-def test_default_optional_on_rules(str_expr, str_expected, msg):
-    check_evaluation(str_expr, str_expected, failure_message=msg)
+    ]:
+
+        check_evaluation(str_expr, str_expected, failure_message=msg)
 
 
 @pytest.mark.parametrize(

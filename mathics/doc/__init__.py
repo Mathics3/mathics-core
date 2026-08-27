@@ -14,7 +14,7 @@ This data is stored in a way that facilitates:
 The command-line utility ``docpipeline.py``, loads the data from
 Python modules and static files, accesses the functions here.
 
-Mathics Django also uses this library for its HTML-based documentation.
+Mathics3 Django also uses this library for its HTML-based documentation.
 
 The Mathics3 builtin function ``Information[]`` also uses to provide the
 information it reports.

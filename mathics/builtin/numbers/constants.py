@@ -673,7 +673,7 @@ class Pi(_MPMathConstant, _NumpyConstant, _SympyConstant):
     >> N[Pi, 20]
      = 3.1415926535897932385
 
-    Note that the above is not the same thing as the number of digits <i>after</i> the decimal point. This may differ from similar concepts from other mathematical libraries, including those which Mathics uses!
+    Note that the above is not the same thing as the number of digits <i>after</i> the decimal point. This may differ from similar concepts from other mathematical libraries, including those which Mathics3 uses!
 
     Use numpy to compute Pi to 20 digits:
     >> N[Pi, 20, Method->"numpy"]

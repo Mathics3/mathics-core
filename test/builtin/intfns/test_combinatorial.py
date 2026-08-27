@@ -72,10 +72,35 @@ def test_combinatorial_arg_errors(str_expr, msgs, fail_msg):
 
 
 @pytest.mark.parametrize(
+    ("str_expr", "expected_messages", "str_expected", "failure_message"),
+    [
+        # ("Binomial[-10, -3.5]", None, "ComplexInfinity", None),
+        (
+            "Binomial[a, b, c]",
+            # We have had a problem where Binomial[] shows an argument error,
+            # but Binomial[a, b, c] does not! So we will check that kind of
+            # situation explicitly.
+            ["Binomial called with 3 arguments; 2 arguments are expected."],
+            "Binomial[a, b, c]",
+            "Binomial with more than two arguments",
+        ),
+    ],
+)
+def test_binomial(str_expr, expected_messages, str_expected, failure_message):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=failure_message,
+        expected_messages=expected_messages,
+    )
+
+
+@pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
-        ## TODO should be ComplexInfinity but mpmath returns +inf
-        ("Binomial[-10, -3.5]", None, "Infinity", None),
         ("Subsets[{}]", None, "{{}}", None),
         ("Subsets[]", None, "Subsets[]", None),
         (

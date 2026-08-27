@@ -3,6 +3,15 @@ This module implements the "OutputForm" textual representation of expressions.
 
 OutputForm is two-dimensional keyboard-character-only output, suitable for CLI
 and text terminals.
+
+The entry point of this module is the function `render_output_form`. This function takes an expression and an evaluation object as parameters, and returns a string representing the expression in its OutputForm.
+
+To do this, `render_output_form` looks for the head of the expression, and uses its name to lookup one of the registered functions
+to process specific kind of expressions. Callback functions are registered using the decorator `@register_outputform([lookupname])`.
+
+If the callback function cannot process its argument, it raises a `_WrongFormattedExpression`, to make it know `render_output_form`
+it must use the default callback function. This default function is also called when an specific callback function is not available.
+
 """
 
 import re
@@ -20,12 +29,21 @@ from mathics.core.atoms import (
     Real,
     String,
 )
+from mathics.core.atoms.associations import Association
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BoxError, Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import dps
-from mathics.core.symbols import Atom, Symbol, SymbolFullForm, SymbolList, SymbolTimes
+from mathics.core.rules import is_rule
+from mathics.core.symbols import (
+    Atom,
+    Symbol,
+    SymbolFullForm,
+    SymbolList,
+    SymbolTimes,
+    SymbolTrue,
+)
 from mathics.core.systemsymbols import (
     SymbolDerivative,
     SymbolInfinity,
@@ -47,7 +65,6 @@ from mathics.format.box.numberform import (
     get_numberform_parameters,
     numberform_to_boxes,
 )
-from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
 from .inputform import render_input_form
 from .util import (
@@ -88,8 +105,8 @@ def _default_render_output_form(
     if isinstance(expr, Atom):
         result = expr.atom_to_boxes(SymbolOutputForm, evaluation)
         if isinstance(result, String):
-            return result.value
-        return result.to_text()
+            return result.to_text(**kwargs)
+        return result.to_text(**kwargs)
 
     expr_head = expr.head
     head = render_output_form(expr_head, evaluation, **kwargs)
@@ -139,14 +156,17 @@ def register_outputform(head_name):
 
 @register_outputform("System`Association")
 def _association_outputform(expr: Expression, evaluation: Evaluation, **kwargs):
-    head = expr.head
-    if not isinstance(head, Symbol):
-        raise _WrongFormattedExpression
+    if isinstance(expr, Association):
+        expr = expr.expr
+    else:
+        head = expr.head
+        if not isinstance(head, Symbol):
+            raise _WrongFormattedExpression
 
     elements = expr.elements
     parts = []
     for element in elements:
-        if not element.has_form(("Rule", "RuleDelayed"), 2):
+        if not is_rule(element):
             raise _WrongFormattedExpression
         parts.append(rule_to_outputform_text(element, evaluation, **kwargs))
     return "<|" + ", ".join(parts) + "|>"
@@ -240,6 +260,7 @@ def render_output_form(expr: BaseElement, evaluation: Evaluation, **kwargs):
     """
     Build a pretty-print text from an `Expression`
     """
+    lookup_name: str
     format_expr: Expression = do_format(expr, evaluation, SymbolOutputForm)  # type: ignore
 
     while format_expr.has_form("HoldForm", 1):  # type: ignore
@@ -249,7 +270,7 @@ def render_output_form(expr: BaseElement, evaluation: Evaluation, **kwargs):
         return ""
 
     head = format_expr.get_head()
-    lookup_name: str = head.get_name() or head.get_lookup_name()
+    lookup_name = head.get_name() or head.get_lookup_name()
     callback = EXPR_TO_OUTPUTFORM_TEXT_MAP.get(lookup_name, None)
     if callback is None:
         if head in evaluation.definitions.outputforms:
@@ -338,7 +359,7 @@ def other_forms(expr, evaluation, **kwargs):
         raise _WrongFormattedExpression
 
     result = format_element(expr, evaluation, SymbolStandardForm, **kwargs)
-    return result.to_text()
+    return result.to_text(evaluation=evaluation, **kwargs)
 
 
 @register_outputform("System`Integer")
@@ -357,7 +378,7 @@ def integer_outputform(n, evaluation, **kwargs):
     result = numberform_to_boxes(n, digits, padding, evaluation, py_options)
     if isinstance(result, String):
         return result.value
-    return result.to_text()
+    return result.to_text(**kwargs)
 
 
 @register_outputform("System`Image")
@@ -381,7 +402,6 @@ def _infix_outputform_text(expr: Expression, evaluation: Evaluation, **kwargs) -
     # has a head that matches with a symbol associated to an infix
     # operator, WMA builds its inputform without passing through
     # its "Infix" form.
-    kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     operands, ops_lst, precedence, group = collect_in_pre_post_arguments(
         expr, evaluation, **kwargs
     )
@@ -681,7 +701,6 @@ def _prefix_output_text(expr: Expression, evaluation: Evaluation, **kwargs) -> s
     if not isinstance(expr.head, Symbol):
         raise _WrongFormattedExpression
 
-    kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     operands, op_head, precedence, group = collect_in_pre_post_arguments(
         expr, evaluation, **kwargs
     )
@@ -691,7 +710,6 @@ def _prefix_output_text(expr: Expression, evaluation: Evaluation, **kwargs) -> s
     if not isinstance(op_head, str):
         raise _WrongFormattedExpression
     operand = operands[0]
-    kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     target_txt = render_output_form(operand, evaluation, **kwargs)
     parenthesized = group in (None, SymbolRight, SymbolNonAssociative)
     target_txt = parenthesize(precedence, operand, target_txt, parenthesized)
@@ -706,7 +724,6 @@ def _postfix_output_text(expr: Expression, evaluation: Evaluation, **kwargs) -> 
     if not isinstance(expr.head, Symbol):
         raise _WrongFormattedExpression
 
-    kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     operands, op_head, precedence, group = collect_in_pre_post_arguments(
         expr, evaluation, **kwargs
     )
@@ -776,7 +793,6 @@ def rule_to_outputform_text(expr, evaluation: Evaluation, **kwargs):
         raise _WrongFormattedExpression
 
     elements = expr.elements
-    kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     if len(elements) != 2:
         return _default_render_output_form(expr, evaluation, **kwargs)
     pat, rule = (render_output_form(elem, evaluation, **kwargs) for elem in elements)
@@ -834,13 +850,30 @@ def _slotsequence_outputform_text(expr: Expression, evaluation: Evaluation, **kw
 
 
 @register_outputform("System`String")
-def string_render_output_form(expr: String, evaluation: Evaluation, **kwargs) -> str:
-    # lines = expr.value.split("\n")
-    # max_len = max([len(line) for line in lines])
-    # lines = [line + (max_len - len(line)) * " " for line in lines]
-    # return "\n".join(lines)
-    value = expr.value
-    return value
+def string_render_output_form(
+    expr: BaseElement, evaluation: Evaluation, **kwargs
+) -> str:
+    from mathics.format.render.text import string as render_string
+
+    if not isinstance(expr, String):
+        raise _WrongFormattedExpression
+
+    # To render a string in OutputForm, we use the
+    # function that render strings from Boxed expressions.
+    # When a String object is converted into Boxes,
+    # MakeBoxes enclose the original string with quotes.
+    # Then, depending on the value of the option
+    # `System`ShowStringCharacters`, these quotes are render or not.
+    # If this option is set to `False`, the added quotes are removed.
+    # Here we are not going through that route: if
+    # `System`ShowStringCharacters` is set to True, add the quotes:
+    if kwargs.get("System`ShowStringCharacters", None) is SymbolTrue:
+        expr = String(f'"{expr.value}"')
+    else:
+        # if not, set  "System`ShowStringCharacters" to True,
+        # to avoid remove quotes that was there before formatting:
+        kwargs["System`ShowStringCharacters"] = SymbolTrue
+    return render_string(expr, **kwargs)
 
 
 @register_outputform("System`StringForm")
@@ -940,7 +973,23 @@ def style_to_outputform_text(expr: Expression, evaluation: Evaluation, **kwargs)
     elements = expr.elements
     if not elements:
         raise _WrongFormattedExpression
-    return render_output_form(elements[0], evaluation, **kwargs)
+    elem, *style_and_options = elements
+    options = {}
+    if style_and_options:
+        style, *style_and_options = style_and_options
+        option = style.get_option_values(evaluation)
+        if option is not None:
+            options.update(option)
+
+    for opt_arg in style_and_options:
+        option = opt_arg.get_option_values(evaluation)
+        if option is None:
+            raise _WrongFormattedExpression
+        for opt, val in option.items():
+            options[opt] = val
+
+    kwargs.update(options)
+    return render_output_form(elem, evaluation, **kwargs)
 
 
 @register_outputform("System`Symbol")

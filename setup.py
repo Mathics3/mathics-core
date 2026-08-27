@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""Python Setuptools for Mathics core
+"""Python Setuptools for Mathics3 core
 
 For the easiest installation:
 
@@ -35,7 +35,6 @@ import sys
 from typing import List
 
 from setuptools import Extension, setup
-from setuptools.command.build_py import build_py as setuptools_build_py
 
 log = logging.getLogger(__name__)
 
@@ -107,24 +106,9 @@ else:
         CMDCLASS = {"build_ext": build_ext}
 
 
-class build_py(setuptools_build_py):
-    def run(self):
-        for table_type in ("boxing-character", "named-character", "operator"):
-            json_data_file = osp.join("data", f"{table_type}.json")
-            json_path = osp.join("mathics-scanner", json_data_file)
-            if not osp.exists(json_path):
-                os.system(f"mathics3-make-{table_type}-json" " -o {json-path}")
-            self.distribution.package_data["Mathics-Scanner"].append(json_data_file)
-        setuptools_build_py.run(self)
-
-
-CMDCLASS["build_py"] = build_py
-
-
 setup(
-    cmdclass=CMDCLASS,
     ext_modules=EXTENSIONS,
     dependency_links=DEPENDENCY_LINKS,
-    # don't pack Mathics in egg because of media files, etc.
+    # don't pack Mathics3 in egg because of media files, etc.
     zip_safe=False,
 )

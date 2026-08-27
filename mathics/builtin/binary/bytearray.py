@@ -6,10 +6,12 @@ ByteArrays
 from typing import Optional
 
 from mathics.core.atoms import ByteArray, Integer, String
-from mathics.core.builtin import Builtin
+from mathics.core.attributes import A_PROTECTED
+from mathics.core.builtin import Builtin, Test
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
+from mathics.eval.binary.bytearray import eval_ByteArrayQ
 
 
 class ByteArray_(Builtin):
@@ -54,6 +56,8 @@ class ByteArray_(Builtin):
         ),
     }
 
+    expected_args = 1
+    eval_error = Builtin.generic_argument_error
     name = "ByteArray"
     summary_text = "array of bytes"
 
@@ -88,4 +92,33 @@ class ByteArray_(Builtin):
         return ba
 
 
-# TODO: BaseEncode, BaseDecode, ByteArrayQ, ByteArrayToString, StringToByteArray, ImportByteArray, ExportByteArray
+class ByteArrayQ(Test):
+    r"""
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/ByteArrayQ.html</url>
+
+    <dl>
+      <dt>'ByteArrayQ'[{$expr$}]
+      <dd> returns True if $expr$ is a ByteArray object, and False otherwise.
+    </dl>
+
+    >> ByteArrayQ[ByteArray[Range[16]]]
+     = True
+
+    >> ByteArrayQ[Range[3]]
+     = False
+
+    >> ByteArrayQ[ByteArray["xyz"]]
+     : The argument at position 1 in ByteArray[xyz] should be a vector of unsigned byte values or a Base64-encoded string.
+     = False
+    """
+
+    attributes = A_PROTECTED
+    summary_text = "test whether an expression is a ByteArray"
+
+    def test(self, expr) -> bool:
+        """Return True if expr is a ByteArray atom."""
+        return eval_ByteArrayQ(expr)
+
+
+# TODO: BaseEncode, BaseDecode, ByteArrayToString, StringToByteArray, ImportByteArray, ExportByteArray

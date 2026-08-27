@@ -85,7 +85,7 @@ class And(InfixOperator):
     If an expression does not evaluate to 'True' or 'False', 'And' \
     returns a result in symbolic form:
     >> a && b && True && c
-     = a && b && c
+     = a ∧ b ∧ c
     """
 
     attributes = A_FLAT | A_HOLD_ALL | A_ONE_IDENTITY | A_PROTECTED
@@ -202,10 +202,10 @@ class Equivalent(InfixOperator):
     If all expressions do not evaluate to 'True' or 'False', 'Equivalent' \
     returns a result in symbolic form:
     >> Equivalent[a, b, c]
-     = a \\[Equivalent] b \\[Equivalent] c
+     = a ⧦ b ⧦ c
      Otherwise, 'Equivalent' returns a result in DNF
     >> Equivalent[a, b, True, c]
-     = a && b && c
+     = a ∧ b ∧ c
     """
 
     attributes = A_ORDERLESS | A_PROTECTED
@@ -272,7 +272,7 @@ class Implies(InfixOperator):
     If an expression does not evaluate to 'True' or 'False', 'Implies'
     returns a result in symbolic form:
     >> Implies[a, Implies[b, Implies[True, c]]]
-     = a \[Implies] b \[Implies] c
+     = a ⇒ b ⇒ c
     """
 
     grouping = "Right"
@@ -344,7 +344,7 @@ class Or(InfixOperator):
     If an expression does not evaluate to 'True' or 'False', 'Or'
     returns a result in symbolic form:
     >> a || False || b
-     = a || b
+     = a ∨ b
     """
 
     attributes = A_FLAT | A_HOLD_ALL | A_ONE_IDENTITY | A_PROTECTED
@@ -484,7 +484,7 @@ class Xor(InfixOperator):
     If an expression does not evaluate to 'True' or 'False', 'Xor'
     returns a result in symbolic form:
     >> Xor[a, False, b]
-     = a \\[Xor] b
+     = a ⊻ b
     """
 
     attributes = A_FLAT | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED

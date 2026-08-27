@@ -1,7 +1,7 @@
 """
 Evaluation routines for 2D plotting.
 
-These routines build Mathics M-Expressions that describe plots.
+These routines build Mathics3 M-Expressions that describe plots.
 Note that this is distinct from boxing, formatting and rendering e.g. to SVG.
 That is done as another pass after M-expression evaluation finishes.
 """
@@ -9,7 +9,7 @@ That is done as another pass after M-expression evaluation finishes.
 import numbers
 from enum import Enum
 from math import cos, isinf, isnan, pi, sqrt
-from typing import Callable, Iterable, List, Optional, Tuple, Type, Union
+from typing import Callable, Iterable, List, Optional, Tuple, Union
 
 from mathics.builtin.graphics import Graphics
 from mathics.builtin.numeric import chop
@@ -19,11 +19,10 @@ from mathics.core.atoms import Integer, Integer0, Real
 from mathics.core.builtin import get_option
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
-from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import SymbolN, SymbolTrue
+from mathics.core.symbols import SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAll,
     SymbolAutomatic,
@@ -191,13 +190,18 @@ def compile_quiet_function(expr, arg_names, evaluation, expect_list: bool):
                 return None
 
             return quiet_cf
-    expr: Optional[Type[BaseElement]] = Expression(SymbolN, expr).evaluate(evaluation)
 
     def quiet_f(*args):
         old_quiet_all = evaluation.quiet_all
         evaluation.quiet_all = True
-        vars = {arg_name: Real(arg) for arg_name, arg in zip(arg_names, args)}
+        vars = {
+            arg_name: Integer(arg) if isinstance(arg, int) else Real(arg)
+            for arg_name, arg in zip(arg_names, args)
+        }
         value = dynamic_scoping(expr.evaluate, vars, evaluation)
+        if isinstance(value, Expression):
+            # Rationals can appear like this.
+            value = eval_N(value, evaluation)
         evaluation.quiet_all = old_quiet_all
         if expect_list:
             if value.has_form("List", None):
@@ -208,10 +212,10 @@ def compile_quiet_function(expr, arg_names, evaluation, expect_list: bool):
             else:
                 return None
         else:
-            value = extract_pyreal(value)
-            if value is None or isinf(value) or isnan(value):
+            float_value = extract_pyreal(value)
+            if float_value is None or isinf(float_value) or isnan(float_value):
                 return None
-            return value
+            return float_value
 
     return quiet_f
 
@@ -472,7 +476,7 @@ def eval_Plot(plot_options, options: dict, evaluation: Evaluation) -> Expression
 
     Note: (?) indicates somewhat vague guesses.
 
-    functions: is a list of Mathics M-Expressions to be evaluated
+    functions: is a list of Mathics3 M-Expressions to be evaluated
     start: minimum x-axis value
     stop:  maximum t x-axis value
     x_name; the name of the function parameter name used by ``functions``

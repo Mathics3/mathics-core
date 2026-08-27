@@ -4,22 +4,73 @@ This module contains routines to simplify front-end use.
 
 In particular we provide:
 
-* a class to create a Mathics session,
-* load the Mathics core settings files (written in  WL),
-* read and set Mathics Settings.
+* a class to create a Mathics3 session,
+* load the Mathics3 core settings files (written in WL),
+* read and set Mathics3 Settings.
 """
 
 import os
 import os.path as osp
+from abc import ABC, abstractmethod
 from os.path import join as osp_join
-from typing import Optional
 
 from mathics_scanner.location import ContainerKind
 
+from mathics.core.atoms import String
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Result
 from mathics.core.parser import MathicsSingleLineFeeder, parse
 from mathics.core.symbols import SymbolNull
+
+
+class SessionShell(ABC):
+
+    @property
+    @abstractmethod
+    def in_prompt(self) -> str:
+        """
+        Return the prompt string to be shown before reading input.
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def last_line_number(self) -> int:
+        """
+        Return the line number associated with the next input to be read.
+        """
+        pass
+
+    @abstractmethod
+    def get_out_prompt(self, form=None) -> str:
+        """
+        Return a prompt string to be shown before showing output.
+        """
+        pass
+
+    @abstractmethod
+    def read_line(self, prompt: str) -> str:
+        """
+        Method that reads a line of input from the user, prompting with `prompt`.
+        The line input from the user returned.
+
+        And example like EOF might get raised indicating the input stream has been closed or
+        finished.
+        """
+        pass
+
+    @abstractmethod
+    def print_result(self, result, no_out_prompt=False, strict_wl_output=False):
+        """
+        Show result. Usually this is prefaced by "Out" if no_output_prompt is True.
+        """
+        pass
+
+
+# A common place for front-ends to store a session.
+# This is picked up and used by the Mathics3 builtin function
+# Dialog, and related functions.
+shell_session: SessionShell | None = None
 
 
 def autoload_files(
@@ -29,16 +80,27 @@ def autoload_files(
     block_global_definitions: bool = True,
 ):
     """
-    Load Mathics code from the autoload-folder files.
+    Load Mathics3 code from the autoload-folder files.
     """
     from mathics.eval.files_io.files import eval_Get
 
+    try:
+        encoding = defs.get_ownvalue("System`$CharacterEncoding")
+    except ValueError:
+        py_encoding = "UTF-8"
+        encoding = String(py_encoding)
+        defs.set_ownvalue("System`$CharacterEncoding", encoding)
+    else:
+        py_encoding = encoding.value if isinstance(encoding, String) else "UTF-8"
+
     for root, _, files in os.walk(osp_join(root_dir_path, autoload_dir)):
-        for path in [osp_join(root, f) for f in files if f.endswith(".m")]:
+        for path in [
+            osp_join(root, f) for f in files if f.endswith(".m") or f.endswith(".wl")
+        ]:
             # Autoload definitions should be go in the System context
             # by default, rather than the Global context.
             defs.set_current_context("System`")
-            eval_Get(path, Evaluation(defs))
+            eval_Get(path, Evaluation(defs), py_encoding)
             # Restore default context to Global
             defs.set_current_context("Global`")
 
@@ -67,20 +129,20 @@ def load_default_settings_files(
     definitions: Definitions, load_cli_settings: bool = True
 ):
     """
-    Loads the system default settings for Mathics core.
+    Loads the system default settings for Mathics3 core.
 
     Other settings files may get loaded later and override these
     defaults.
     """
     root_dir = osp.realpath(osp.dirname(__file__))
 
-    autoload_files(definitions, root_dir, "autoload", False)
+    autoload_files(definitions, root_dir, "Autoload", False)
     if load_cli_settings:
         autoload_files(definitions, root_dir, "autoload-cli", False)
 
 
 def get_settings_value(definitions: Definitions, setting_name: str):
-    """Get a Mathics Settings` value with name "setting_name" from
+    """Get a Mathics3 Settings` value with name "setting_name" from
     definitions. If setting_name is not defined return None.
     """
     try:
@@ -91,7 +153,7 @@ def get_settings_value(definitions: Definitions, setting_name: str):
 
 
 def set_settings_value(definitions: Definitions, setting_name: str, value):
-    """Set a Mathics Settings` with name "setting_name" from definitions to value
+    """Set a Mathics3 Settings` with name "setting_name" from definitions to value
     "value".
     """
     return definitions.set_ownvalue(setting_name, value)
@@ -108,7 +170,7 @@ class MathicsSession:
         add_builtin=True,
         catch_interrupt=False,
         form="InputForm",
-        character_encoding: Optional[str] = None,
+        character_encoding: str | None = None,
     ):
         # FIXME: This import is needed because
         # the first time we call self.reset,

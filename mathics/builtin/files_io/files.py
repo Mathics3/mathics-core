@@ -9,10 +9,11 @@ import os.path as osp
 import tempfile
 from io import BytesIO
 
+import mathics.eval.files_io.files as io_files
+
 # We use the below import for access to variables that may change
 # at runtime.
-import mathics.eval.files_io.files as io_files
-from mathics.core.atoms import Integer, String, SymbolString
+from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import (
     Builtin,
@@ -37,11 +38,20 @@ from mathics.core.systemsymbols import (
     SymbolInputStream,
     SymbolOutputForm,
     SymbolOutputStream,
+    SymbolString,
 )
 from mathics.eval.directories import TMP_DIR
+from mathics.eval.encoding import (
+    CHARACTER_ENCODING_MAP,
+    EncodingNameError,
+    from_python_encoding,
+    get_encoding_table,
+    load_encoding_table,
+    to_python_encoding,
+)
 from mathics.eval.files_io.files import eval_Close, eval_Get, eval_Open, eval_Read
 from mathics.eval.files_io.read import (
-    MathicsOpen,
+    Mathics3Open,
     channel_to_stream,
     close_stream,
     parse_read_options,
@@ -133,6 +143,17 @@ class _OpenAction(Builtin):
         encoding = self.get_option(options, "CharacterEncoding", evaluation)
         if not isinstance(encoding, String):
             return
+
+        # Binary streams don't have a character encoding at all; don't
+        # try to resolve/load one (this also matches Mathics3Open,
+        # which drops any "encoding" for a mode containing "b").
+        if "b" not in mode and encoding.value not in CHARACTER_ENCODING_MAP:
+            try:
+                load_encoding_table(encoding.value, evaluation)
+            except EncodingNameError:
+                # load_encoding_table() already issued a
+                # $CharacterEncoding::charfile message.
+                return
 
         return eval_Open(name, mode, stream_type, encoding.value, evaluation)
 
@@ -264,9 +285,10 @@ class FilePrint(Builtin):
 
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
     messages = {
         "zstr": ("The file name cannot be an empty string."),
-        "badfile": ("The specified argument, `1`, should be a valid string."),
     }
 
     options = {
@@ -279,6 +301,7 @@ class FilePrint(Builtin):
     def eval(self, path, evaluation: Evaluation, options: dict):
         "FilePrint[path_, OptionsPattern[FilePrint]]"
 
+        # TODO also check for File.
         if not isinstance(path, String):
             evaluation.message("FilePrint", "badfile", path)
             return
@@ -309,7 +332,7 @@ class FilePrint(Builtin):
             return SymbolFailed
 
         try:
-            with MathicsOpen(resolved_pypath, "r") as f:
+            with Mathics3Open(resolved_pypath, "r") as f:
                 result = f.read()
         except IOError:
             evaluation.message("General", "noopen", path)
@@ -340,10 +363,24 @@ class Get(PrefixOperator):
       <dt>'<<$name$'
       <dd>reads a file and evaluates each expression, returning only the last one.
 
-      <dt>'Get'[$name$, Trace->True]
-      <dd>Runs Get tracing each line before it is evaluated.
+      <dt>'Get'[$name$, $options$]
+      <dd>Runs Get supplying $options$. See below for a descripton of the options.
+    </dl>
 
-     'Settings`\$TraceGet' can be also used to trace lines on all 'Get[]' calls.
+    Options:
+
+    <dl>
+      <dt>'Trace'->{True,False}
+      <dd>Print line numbers and source text we read input.
+
+      Boolean variable 'Settings`\$TraceGet' can be also used to enable or disable \
+      showing line numbers of source input in 'Get[]' calls.
+      <dt>'Path'->$dir$
+      <dd>Set the search path to the single directory $dir$ in the 'Get'.
+      <dt>'Path'->{"$dir_1$", "$dir_2$", ...}
+      <dd>Set the search path, '\$PATH' to the list of directories.
+      <dt>'CharacterEncoding'->"$name$"
+      <dd>Set the file input encoding to "$name$".
     </dl>
 
 
@@ -358,12 +395,38 @@ class Get(PrefixOperator):
      = Cos[x] + I Sin[x]
     S> DeleteFile[filename]
 
+    If the 'Path' is not fully qualified built-in variable <url>
+    :\$Path:
+    /doc/reference-of-built-in-symbols/directories-and-directory-operations/user-file-directories/$path/</url> is consulted.
+
+    'Get' can also load packages:
+    >> $ContextPath
+     = ...
+    S> << "VectorAnalysis`"
+     = ...
+
+    If a package is loaded variable <url>
+    :\$ContextPath:
+    /doc/reference-of-built-in-symbols/scoping-constructs/$contextpath/</url> is updated with the new package context name:
+    >> $ContextPath
+     = ...
+
+    See also <url>
+    :Needs:
+    /doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/filesystem-operations/needs/</url>.
+
+
     ## TODO: Requires EndPackage implemented
-    ## 'Get' can also load packages:
-    ## >> << "VectorAnalysis`"
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 4)
+    messages = {
+        "path": "`1` in $Path is not a string",
+    }
     options = {
+        "CharacterEncoding": "Null",
+        "Path": "Null",
         "Trace": "False",
     }
     summary_text = "read in a file and evaluate commands in it"
@@ -383,8 +446,62 @@ class Get(PrefixOperator):
         ):
             trace_fn = io_files.GET_PRINT_FN
 
+        # Process the "Path" option.
+        # The result will be put in py_path_directories
+        path_directories = options["System`Path"]
+        py_path_directories = None
+        if (
+            path_directories is not SymbolNull
+            and (py_path_directories := path_directories.to_python(string_quotes=False))
+            is not None
+        ):
+            if isinstance(py_path_directories, tuple):
+                for dir in py_path_directories:
+                    if not isinstance(dir, str):
+                        evaluation.message("Get", "path", dir)
+                        py_path_directories = None
+                        break
+            elif isinstance(py_path_directories, str):
+                py_path_directories = [py_path_directories]
+            else:
+                evaluation.message("Get", "path", path_directories)
+                py_path_directories = None
+
+        # Process the "CharacterEncoding" option.
+        encoding = options["System`CharacterEncoding"]
+        py_current_encoding = evaluation.definitions.get_ownvalue(
+            "System`$CharacterEncoding"
+        ).value
+        if isinstance(encoding, String):
+            wl_encoding = encoding.to_python(string_quotes=False)
+            try:
+                # For encodings already in CHARACTER_ENCODING_MAP (the
+                # built-in ones) this is a no-op; for a custom encoding
+                # backed by a SystemFiles/CharacterEncodings/*.wl file,
+                # this loads it and registers a real Python codec for
+                # it (see load_encoding_table), which is what lets
+                # to_python_encoding() below resolve it.
+                load_encoding_table(wl_encoding, evaluation)
+                py_encoding = to_python_encoding(wl_encoding)
+                if py_encoding is None:
+                    raise EncodingNameError(wl_encoding)
+            except EncodingNameError:
+                # "noopen" matches WMA. This is nonsensical.
+                evaluation.message("Get", "noopen", encoding)
+                py_encoding = py_current_encoding
+        else:
+            if encoding is not SymbolNull:
+                evaluation.message("$CharacterEncoding", "charcode", encoding)
+            py_encoding = py_current_encoding
+
         # perform the actual evaluation
-        return eval_Get(path.value, evaluation, trace_fn)
+        return eval_Get(
+            path.value,
+            evaluation,
+            py_encoding,
+            trace_fn,
+            py_path_directories,
+        )
 
 
 class InputFileName_(Predefined):
@@ -422,7 +539,7 @@ class InputStream(Builtin):
 
     'StringToStream' opens an input stream:
 
-    >> stream = StringToStream["Mathics is cool!"]
+    >> stream = StringToStream["Mathics3 is cool!"]
      = ...
     >> Close[stream]
      = String
@@ -588,10 +705,10 @@ class Put(InfixOperator):
         stream = stream_manager.lookup_stream(n.get_int_value())
 
         if stream is None or stream.io.closed:
-            evaluation.message("Put", "openx", get_eval_Expression())
+            evaluation.message("Put", "openx", evaluation.current_expression)
             return
 
-        # In Mathics-server, evaluation.format_output is modified.
+        # In Mathics3-server, evaluation.format_output is modified.
         # Let's avoid to use it if we want a front-end independent result.
         # Eventually, we are going to replace this by a `MakeBoxes` call.
         def do_format_output(expr, evaluation):
@@ -685,7 +802,7 @@ class PutAppend(InfixOperator):
         stream = stream_manager.lookup_stream(n.get_int_value())
 
         if stream is None or stream.io.closed:
-            evaluation.message("Put", "openx", get_eval_Expression())
+            evaluation.message("Put", "openx", evaluation.current_expression)
             return
 
         text = [
@@ -1100,7 +1217,7 @@ class ReadList(Read):
 
         py_n = n.value
         if py_n < 0:
-            evaluation.message("ReadList", "intnm", get_eval_Expression())
+            evaluation.message("ReadList", "intnm", evaluation.current_expression)
             return
 
         result = []
@@ -1127,14 +1244,14 @@ class StreamPosition(Builtin):
       <dd>returns the current position in a stream as an integer.
     </dl>
 
-    >> stream = StringToStream["Mathics is cool!"]
+    >> stream = StringToStream["Mathics3 is cool!"]
      = ...
 
     >> Read[stream, Word]
-     = Mathics
+     = Mathics3
 
     >> StreamPosition[stream]
-     = 7
+     = 8
     """
 
     summary_text = "find the position of the current point in an open stream"
@@ -1170,7 +1287,7 @@ class SetStreamPosition(Builtin):
       <dd>sets the current position in a stream.
     </dl>
 
-    >> stream = StringToStream["Mathics is cool!"]
+    >> stream = StringToStream["Mathics3 is cool!"]
      = ...
 
     >> SetStreamPosition[stream, 8]
@@ -1180,7 +1297,7 @@ class SetStreamPosition(Builtin):
      = is
 
     >> SetStreamPosition[stream, Infinity]
-     = 16
+     = 17
     """
 
     # TODO: Seeks beyond stream should return stmrng message
@@ -1211,7 +1328,9 @@ class SetStreamPosition(Builtin):
 
         seekpos = m.to_python()
         if not (isinstance(seekpos, int) or seekpos == float("inf")):
-            evaluation.message("SetStreamPosition", "stmrng", get_eval_Expression(), m)
+            evaluation.message(
+                "SetStreamPosition", "stmrng", evaluation.current_expression, m
+            )
             return
 
         try:
@@ -1632,10 +1751,17 @@ class WriteString(Builtin):
             return None
 
         exprs = []
+        encoding = from_python_encoding(stream.encoding) or "UTF-8"
+        try:
+            load_encoding_table(encoding, evaluation)
+            get_encoding_table(encoding)
+        except EncodingNameError:
+            encoding = "UTF-8"
+
         for expri in expr.get_sequence():
             result = format_element(expri, evaluation, SymbolOutputForm)
             try:
-                result = result.to_text(evaluation=evaluation)
+                result = result.to_text(evaluation=evaluation, encoding=encoding)
             except BoxError:
                 evaluation.message(
                     "General",

@@ -40,7 +40,6 @@ class ContainsOnly(Builtin):
 
     messages = {
         "lsa": "List or association expected instead of `1`.",
-        "nodef": "Unknown option `1` for ContainsOnly.",
         "optx": "Unknown option `1` in `2`.",
     }
 
@@ -62,7 +61,7 @@ class ContainsOnly(Builtin):
         same_test = self.get_option(options, "SameTest", evaluation)
 
         def sameQ(a, b) -> bool:
-            """Mathics SameQ"""
+            """Mathics3 SameQ"""
             result = Expression(same_test, a, b).evaluate(evaluation)
             return result is SymbolTrue
 

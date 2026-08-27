@@ -68,7 +68,7 @@ class Quit(Builtin):
 
     <dl>
       <dt>'Quit'[]
-      <dd> Terminates the Mathics session.
+      <dd> Terminates the Mathics3 session.
 
       <dt>'Quit'[$n$]
       <dd> Terminates the mathics session with exit code $n$.
@@ -93,7 +93,7 @@ class Exit(Quit):
 
     <dl>
       <dt>'Exit'[]
-      <dd> Terminates the Mathics session.
+      <dd> Terminates the Mathics3 session.
 
       <dt>'Exit'[$n$]
       <dd> Terminates the mathics session with exit code $n$.

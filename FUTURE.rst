@@ -1,7 +1,39 @@
 *One can always dream...*
 
-2025-2026 Roadmap
+2026-2027 Roadmap
 =================
+
+WMA's ``Hold`` attributes limit function application, not rule rewrite. However, in Mathics3, that distinction is not made. We need to make another foray into ``Expression.rewrite_apply_eval_step()`` to address this. We will probably need to add a boolean field ``rule.apply()`` to indicate whether HOLD is in effect or not.
+
+Bruce Lucas' vectorization to NumPy arrays needs to be completed across the codebase. The user interface for NumericArray needs to be added, and we can probably do something similar for the SparseArray implementation in NumPy.  Bruce's "compilation" for SymPy functions should be expanded to any mathics.core_eval routine that handles vectors.
+
+With this code in ``Mathics3-Module-vectorizedplot`` can be moved into mathics-core.
+
+With this ``ComplexPlot``, ``ContourPlot`` (for vectors), ``ContourPlot3D``, ``DensityPlot``, ``ParametgricPlot3d``, ``SphericalPlot3D`` among others will be included.
+
+A middleware Render library should be added. One involving ``drawsvg`` in on my (rocky) radar.
+
+GNU Emacs-style Autoloading, possibly via `lazy-load <https://pypi.org/project/lazy-load/>`_, or what is in SAGE/passagemath.
+
+Finish Boxing, e.g. ``DisplayForm``.
+
+Get rid of ``mathics.core.expression.ExpressionCache``. While at one point this sped up the older ``Mathics``, it was a little bit misguided. The Pythonic way of handling this is to use ``@cache`` (or the older Python 2 ``@lrcache`` decorators.
+
+Streamline ``BaseEement``. It has some very specific and non-generic element methods like ``get_sequence``, ``get_precision``, ``get_elements``, and ``replace_vars``. These should be attached to subclassed "base" classes for which these methods make sense.
+
+Add a custom ``evaluate`` method for Pattern and friends. Having this be a part of (compound), ``Expression`` evaluation makes that evaluation more complex, harder to understand (and possibly slower too).
+
+2026 Achievements
+-----------------
+
+Support Python 3.14 and Poetry packaging.
+
+Major foundational work was done in revising Form and ``MakeBox`` handling.
+
+How Mathics3 handles ``CharacterEncoding`` was revised.
+
+Introduction of NumPy vectors using ``NumericArray`` was started. Some foundational work was done to revise Plotting and speed it up using vectorization.
+
 
 2025 Achievements
 -----------------
@@ -10,31 +42,51 @@ Support Python 3.13.
 
 Major foundational work was done in scanning boxing operators and getting rule selection for functions closer to WMA. Additionally, work was done to correct assignment functions, such as ``Upset``, ``Downset``, and ``SetDelayed``, so that they conform more closely to WMA behavior.
 
-With these changes, it should be more straightforward to adjust ``MakeBox`` rules so that these conform. This is the top priority.
+With these changes, it should be more straightforward to adjust ``MakeBox`` rules so that they conform. This is the top priority.
 
 A preliminary version of the Rule-Based Integration Package ``Rubi``, was started. We will continue to improve the kernel to make this work faster and better.
 
-Some preliminary debugging support was added. Position information is starting to be captured, but much more work is needed to capture more of it and proliferate this information throughout evaluation.
+Some preliminary debugging support was added. Position information is starting to be captured, but much more work is needed to capture more of it and proliferate this information throughout the evaluation.
 
 Upcoming work
 -------------
 
-MakeBoxes
-++++++++++
+Support for NumPy Vectors and Arrays
+++++++++++++++++++++++++++++++++++++
 
-We hope to improve conformance of ``MakeBoxes`` and this will:
+While ``NumericArray`` exists as atomic element, it is not accessible as a user function. Evaluation routines for built-in function needs to be expanded to accomodate ``NumericArray`` type. (Bruce Lucas)
 
+Compilation
++++++++++++
+
+A Compiler for pure functions to SymPy expressions was started to speed up Plotting. (Bruce Lucas).
+
+This needs to be expanded to handle Mathics3 evaluation routines that do not have exact SymPy functions. The compiler also needs to be expanded to handle introduction of variables and procedural or statement kinds of expressions.
+
+
+Better handling of CharacterEncoding
+++++++++++++++++++++++++++++++++++++
+
+The current implementation of ``ToString`` and text-render functions does not handle the option `CharacterEncoding` in WMA-compatible way. In the future, we
+should implement an extensible way to handle different character encodings. Also, the internal encoding of strings should always be ``Unicode``. Special encodings should
+be applied just when required by ``ToString`` or when the final output is rendered in the front-end or by an export function. Pytests should also be agnostic regarding
+the system encoding.
+
+
+More Forms and MakeBoxes
+++++++++++++++++++++++++
+
+* Implement ``DisplayForm``, ``ScientificForm``, ``EngineeringForm``,  and ``DecimalForm``
+* Improve``TraditionalForm``
 * Improve conformance to WMA for expressions such as polynomial expressions
-* Make 2-D Character-oriented printing easy
 * Improve data returned by ``Information[]``
-* Allow better integration into Jupyter cells.
 
 Improving MakeBoxes is also needed for improving formatting and rendering.
 
 Evaluation
 ++++++++++
 
-Some fundamental flaws have been detected around our main evaluation loop. This is appareent in the handling of ``Unevaluated[]``, ``Evaluate[]``, and ``With[]`` and ``Condition``. These need to be addressed. See for example: `Issue #1206 <https://github.com/Mathics3/mathics-core/issues/1206>`_.
+Some fundamental flaws have been detected around our main evaluation loop. We probably need to split function application from rule rewrite. ``Hold`` attributes, like ``HoldAll`` prevent function application, but not rule rewriting. This is apparent in the handling of ``Unevaluated[]``, ``Evaluate[]``, and ``With[]`` and ``Condition``. These need to be addressed. See for example: `Issue #1206 <https://github.com/Mathics3/mathics-core/issues/1206>`_ and `Issue #1789 <https://github.com/Mathics3/mathics-core/issues/1789>`_.
 
 Debugging
 +++++++++
@@ -51,13 +103,11 @@ Major components that still need revision/rewrite
 * Efficient pattern matching
 * Documentation
 * Start a real instruction-driven interpreter
-* Compile system
 * Rewrite how Graphics Routines are implemented and implement a robust API for extending
+* Notebook Integration
 
 Smaller things:
 
-* Redo/rethink Complex representation
-* Better and more back-end formatting and rendering
 * Basic Object system. Some of our BaseElement objects don't feel right.
 * Remove home-grown Expression Cache.
 
@@ -116,9 +166,11 @@ This is important, but probably less important than performance, boxing & format
 
 And in the interim, we will probably be making more smaller fixes. Sigh. I am optimistic that the smaller fixes can work in the direction of making moving out easier. Modularity here.
 
-# New Work
+New Work
+=========
 
-## Sparse Array Implementation
+Sparse Array Implementation
+---------------------------
 
 Li-Xiang-Ideal mentioned this. Perhaps he can elaborate.
 
@@ -132,7 +184,7 @@ This is done largely outside of Mathics-core, although it heavily relies on Math
 Operator Precedence Tables
 --------------------------
 
-This pulls out of Mathics Core any knowledge of Operator Precedence and instead uses tables found in mathics-scanner.
+This pulls out of Mathics3 Core any knowledge of Operator Precedence and instead uses tables found in mathics-scanner.
 This would be based on Robert Jacobson's work.
 
 Miscellaneous Small Things
@@ -150,7 +202,7 @@ Rocky
 - Debugger
 - Compilation
 - Literal Expressions for performance (e.g., data processing and graphics rendering)
-- Mathics Autoloading (with mmatera)
+- Mathics3 Autoloading (with mmatera)
 - Operator Precedence (with mmatera)
 - Releases (with mmatera)
 
@@ -312,7 +364,7 @@ This work will continue after the 5.0.0 release. We expect plotting will be fast
 Being able to run existing WMA packages
 ----------------------------------------
 
-Sadly, Mathics cannot run most of the open-source WMA packages.
+Sadly, Mathics3 cannot run most of the open-source WMA packages.
 
 In particular we would like to see the following run:
 
@@ -398,7 +450,7 @@ Documentation
 -------------
 
 Sometime around release 4.0.0, all of the code related to producing
-documentation in LaTeX and in Mathics Django, and running doctests
+documentation in LaTeX and in Mathics3 Django, and running doctests
 will be split off and put into its own git repository.
 
 I've spent a lot of time banging on this to try to get to be
@@ -427,7 +479,7 @@ Support for External Packages
 -----------------------------
 
 I would have liked to have seen this going earlier. However right now
-Mathics is still at too primitive a level for any serious package to
+Mathics3 is still at too primitive a level for any serious package to
 be run on it. This will change at some point though.
 
 Support for Mathematica Language Levels

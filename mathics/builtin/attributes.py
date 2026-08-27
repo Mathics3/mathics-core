@@ -13,10 +13,6 @@ are described below.
 However in contrast to \\Mathematica, you can set any symbol as an attribute.
 """
 
-# This tells documentation how to sort this module
-sort_order = "mathics.builtin.definition-attributes"
-
-
 from mathics.core.assignment import get_symbol_list
 from mathics.core.atoms import String
 from mathics.core.attributes import (
@@ -26,16 +22,20 @@ from mathics.core.attributes import (
     A_LOCKED,
     A_PROTECTED,
     attribute_string_to_number,
-    attributes_bitset_to_list,
 )
 from mathics.core.builtin import Builtin, Predefined
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolNull
+from mathics.core.systemsymbols import (
+    SymbolClearAttributes,
+    SymbolProtected,
+    SymbolSetAttributes,
+)
+from mathics.eval.attributes import eval_Attributes
 
-SymbolClearAttributes = Symbol("ClearAttributes")
-SymbolSetAttributes = Symbol("SetAttributes")
-SymbolProtected = Symbol("Protected")
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.definition-attributes"
 
 
 class Attributes(Builtin):
@@ -90,16 +90,9 @@ class Attributes(Builtin):
 
     def eval(self, expr, evaluation):
         "Attributes[expr_]"
-
         if isinstance(expr, String):
             expr = Symbol(expr.value)
-        name = expr.get_lookup_name()
-
-        attributes = attributes_bitset_to_list(
-            evaluation.definitions.get_attributes(name)
-        )
-        attributes_symbols = [Symbol(attribute) for attribute in attributes]
-        return ListExpression(*attributes_symbols)
+        return eval_Attributes(expr, evaluation)
 
 
 class ClearAttributes(Builtin):
@@ -174,9 +167,9 @@ class Constant(Predefined):
 
     Constant symbols cannot be used as variables in 'Solve' and
     related functions:
-    >> Solve[x + E == 0, E]
+    >> Solve[x + E ⩵ 0, E]
      : E is not a valid variable.
-     = Solve[x + E == 0, E]
+     = Solve[x + E ⩵ 0, E]
     """
 
     summary_text = "treat as a constant in differentiation, etc"
@@ -784,12 +777,18 @@ class Unprotect(Builtin):
                 names = evaluation.definitions.get_matching_names(pattern)
                 for defn in names:
                     symbol = Symbol(defn)
-                    if not A_LOCKED & evaluation.definitions.get_attributes(defn):
+                    attributes = evaluation.definitions.get_attributes(defn)
+                    if not A_LOCKED & attributes:
                         items.append(symbol)
 
-        Expression(
-            SymbolClearAttributes,
-            ListExpression(*items),
-            protected,
-        ).evaluate(evaluation)
+        changed_list = ListExpression(*items)
+        if items:
+            Expression(
+                SymbolClearAttributes,
+                changed_list,
+                protected,
+            ).evaluate(evaluation)
+
+        # FIXME this is wrong we should return those attributes that got changed only.
+        # return changed_list
         return SymbolNull

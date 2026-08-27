@@ -1,3 +1,7 @@
+"""
+Evaluation routines for builtin function contained in mathics.builtin.list.eol.
+"""
+
 from typing import List
 
 from mathics.core.atoms import Integer
@@ -5,8 +9,8 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import MessageException
 from mathics.core.expression import Expression
 from mathics.core.subexpression import SubExpression
-from mathics.core.symbols import Atom
-from mathics.core.systemsymbols import SymbolInfinity
+from mathics.core.symbols import Atom, Symbol
+from mathics.core.systemsymbols import SymbolByteArray, SymbolInfinity
 
 
 def convert_seq(seq):
@@ -105,6 +109,49 @@ def eval_Part(
         return result
 
 
+def eval_Part_for_Association(expr, key, evaluation: Evaluation):
+    # Handle Key[a] for Associations
+
+    if not key.has_form("Key", 1):
+        evaluation.message("Part", "pkspec1", key)
+        return
+
+    try:
+        return expr[key.elements[0]]
+    except KeyError:
+        evaluation.message("Part", "partw", key, expr)
+    return
+
+
+def eval_Part_for_ByteArray(expr, i, indices, evaluation: Evaluation):
+    # Handle ByteArrays
+    if len(indices) > 1:
+        evaluation.message("Part", "partd1")
+        return
+    idx = indices[0]
+    if isinstance(idx, Integer):
+        idx = idx.value
+        if idx == 0:
+            return SymbolByteArray
+        n = len(expr.value)
+        if idx < 0:
+            idx = n - idx
+            if idx < 0:
+                evaluation.message("Part", "partw", i, expr)
+                return
+        else:
+            idx = idx - 1
+            if idx > n:
+                evaluation.message("Part", "partw", i, expr)
+                return
+        return Integer(expr[idx])
+    if idx is Symbol("System`All"):
+        return expr
+    # TODO: handling ranges and lists...
+    evaluation.message("Part", "notimplemented")
+    return
+
+
 def list_parts(exprs, selectors, evaluation):
     """
     _list_parts returns a generator of Expressions using selectors to pick out parts of `exprs`.
@@ -132,9 +179,15 @@ def list_parts(exprs, selectors, evaluation):
 
             picked = list(list_parts(selected, selectors[1:], evaluation))
 
-            if unwrap is None and hasattr(expr, "restructure"):
-                expr = expr.restructure(expr.head, picked, evaluation)
-                yield expr
+            if unwrap is None:
+                if hasattr(expr, "restructure"):
+                    expr = expr.restructure(expr.head, picked, evaluation)
+                    yield expr
+                else:
+                    # This is probably a Box structure, which
+                    # does not have this `restructure` method
+                    # from the Expression cache mechanism.
+                    yield Expression(expr.head, *picked)
             else:
                 yield unwrap(picked)
 

@@ -1,0 +1,426 @@
+"""
+Functions to format strings in a given encoding.
+
+`encode_string_value` / `decode_bytes_value`: convert between the internal
+Unicode string representation and a given target encoding.
+
+`from_python_encoding` / `to_python_encoding`: translate between WMA and
+Python character encoding names.
+
+`get_encoding_table`: get the (Unicode ordinal -> byte) table for a given
+character encoding, used to *encode* internal strings into that encoding.
+
+`load_encoding_table`: load a custom encoding table from a WL encoding
+file description (SystemFiles/CharacterEncodings/*.wl).
+
+Design notes (see discussion that led to this rewrite):
+
+- WL "8Bit" encoding files only list the *exceptions* to a plain Latin-1
+  identity mapping; codes not listed pass through unchanged. So the
+  decoding table always starts as `chr(i) for i in range(256)` and gets
+  patched with the entries found in the file.
+- Each entry can carry a third boolean, `invertible`. When it is `False`
+  (used for entries that map to a WL *named character*, e.g. `\\[Cross]`,
+  chosen as a safe visual stand-in rather than the "real" Unicode point
+  for that byte) the mapping is only valid for *decoding* (byte -> str),
+  never for *encoding* back (str -> byte). Omitted => `True` (bidirectional).
+- We rely on `codecs.charmap_encode`/`charmap_decode`, the same primitives
+  the Python stdlib uses to implement its own single-byte codecs
+  (see Lib/encodings/iso8859_8.py, cp1252.py, etc). We build the encode
+  table as a plain `dict[int, int]` rather than via `codecs.charmap_build`,
+  because that helper can return an immutable, optimized `EncodingMap`
+  when the table is (almost) bijective, and we need to *delete* the
+  non-invertible entries from it.
+- Because `.to_python(string_quotes=False)` is called on Strings already
+  parsed by the WL tokenizer, `\\:UUUU` and `\\[Name]` are *already*
+  resolved to real Unicode characters by the time we see them here — no
+  separate named-character lookup table is needed in this context (unlike
+  a standalone script parsing the .wl file as raw text).
+"""
+
+import codecs
+import os
+from collections.abc import Iterator
+from typing import Final
+
+from mathics_scanner.characters import UNICODE_CHARACTER_TO_ASCII
+
+from mathics.core.atoms import String
+from mathics.core.convert.op import operator_to_unicode, unicode_operator_to_ascii
+from mathics.core.systemsymbols import SymbolNone
+from mathics.settings import ROOT_DIR
+
+from .wl_charmap_codec import (
+    TAG_SIZES,
+    Entry,
+    assert_ascii_safe,
+    build_charmap,
+    build_substitution_table,
+    escape_unrepresentable_char,
+    register_codec_from_tables,
+)
+
+# Map WMA encoding names to Python encoding names
+# see https://docs.python.org/3/library/codecs.html#standard-encodings
+CHARACTER_ENCODING_MAP: Final[dict[str, str]] = {
+    "ASCII": "ascii",
+    "CP949": "cp949",
+    "CP950": "cp950",
+    "EUC-JP": "euc_jp",
+    "IBM-850": "cp850",
+    "ISOLatin1": "iso8859_1",
+    "ISOLatin2": "iso8859_2",
+    "ISOLatin3": "iso8859_3",
+    "ISOLatin4": "iso8859_4",
+    "ISOLatinCyrillic": "iso8859_5",
+    "ISO8859-1": "iso8859_1",
+    "ISO8859-2": "iso8859_2",
+    "ISO8859-3": "iso8859_3",
+    "ISO8859-4": "iso8859_4",
+    "ISO8859-5": "iso8859_5",
+    "ISO8859-6": "iso8859_6",
+    "ISO8859-7": "iso8859_7",
+    "ISO8859-8": "iso8859_8",
+    "ISO8859-9": "iso8859_9",
+    "ISO8859-10": "iso8859_10",
+    "ISO8859-13": "iso8859_13",
+    "ISO8859-14": "iso8859_14",
+    "ISO8859-15": "iso8859_15",
+    "ISO8859-16": "iso8859_16",
+    "koi8-r": "koi8_r",
+    "MacintoshCyrillic": "mac_cyrillic",
+    "MacintoshGreek": "mac_greek",
+    "MacintoshIcelandic": "mac_iceland",
+    "MacintoshRoman": "mac_roman",
+    "MacintoshTurkish": "mac_turkish",
+    "ShiftJIS": "shift_jis",
+    "Unicode": "utf_16",
+    "UTF-8": "utf_8",
+    "UTF8": "utf_8",
+    "WindowsANSI": "cp1252",
+    "WindowsBaltic": "cp1257",
+    "WindowsCyrillic": "cp1251",
+    "WindowsEastEurope": "cp1250",
+    "WindowsGreek": "cp1253",
+    "WindowsTurkish": "cp1254",
+}
+
+REVERSE_CHARACTER_ENCODING_MAP: Final[dict[str, str]] = {
+    py: wl for wl, py in CHARACTER_ENCODING_MAP.items()
+}
+
+# This character is used in encoding in WMA, and differs from what we
+# have in the mathics-scanner tables:
+UNICODE_CHARACTER_TO_ASCII.update({operator_to_unicode["Times"]: r" x "})
+
+# These encoding names correspond 1:1 to Python standard codec
+# (see CHARACTER_ENCODING_MAP: "Unicode"->"utf_16", "UTF-8"/"UTF8"
+# ->"utf_8"). There is no .wl file for them in WMA -- are the native representation
+# so we delegate it to Python directly instead of looking for a table/file which could not exist.
+NATIVE_PYTHON_ENCODINGS: Final[frozenset] = frozenset({"Unicode", "UTF-8", "UTF8"})
+
+
+def _is_native_python_encoding(encoding: str) -> bool:
+    return encoding in NATIVE_PYTHON_ENCODINGS
+
+
+# Encode-direction tables (Unicode ordinal -> destination), used by
+# `encode_string_value`. "ASCII" is a pseudo-encoding, not loaded from a
+# .wl file, so it gets a substitution table instead of the int-keyed
+# charmap tables built by `load_encoding_table`. "Unicode"/"UTF-8"/"UTF8"
+# don't need an entry here at all -- see NATIVE_PYTHON_ENCODINGS.
+# "ASCII" promise return pure ASCII; let's check instead assuming it
+# (see assert_ascii_safe -- nothing in the substitution mechanism ensures it structurally,
+# differently from the 8-bit charmap tables).
+assert_ascii_safe(UNICODE_CHARACTER_TO_ASCII, table_name="ASCII")
+_ASCII_SINGLE_TABLE, _ASCII_MULTI = build_substitution_table(UNICODE_CHARACTER_TO_ASCII)
+
+WMA_UNICODE_CHARACTER_MAPS: dict[str, dict] = {
+    "ASCII": _ASCII_SINGLE_TABLE,
+}
+# Substitutions whose key involves more than a single character (
+# combination sequences), indexed by encoding name -- see build_substitution_table.
+WMA_MULTI_CHAR_SUBSTITUTIONS: dict[str, object] = {"ASCII": _ASCII_MULTI}
+
+# Decode-direction tables (256-char strings) for the real, file-loaded
+# 8-bit charmap encodings only. If `encoding` has an entry here, it is a
+# "real" charmap encoding and `encode_string_value`/`decode_bytes_value`
+# use `codecs.charmap_encode`/`charmap_decode` on it.
+WMA_DECODE_TABLES: dict[str, str] = {}
+
+
+class EncodingNameError(Exception):
+    pass
+
+
+def available_character_encodings() -> Iterator[str]:
+    """
+    List all the available character encodings, including the
+    default Python encodings and the custom encodings defined in
+    SystemFiles/CharacterEncodings/*.wl
+    """
+    default_encodings = set(CHARACTER_ENCODING_MAP.keys())
+    encodings = default_encodings.union(
+        {
+            filename[:-3]
+            for filename in os.listdir(
+                os.path.join(ROOT_DIR, "SystemFiles/CharacterEncodings")
+            )
+            if filename.endswith(".wl")
+        }
+    )
+    return map(lambda s: '"%s"' % s, sorted(encodings))
+
+
+def encode_string_value(value: str, encoding: str) -> str:
+    r"""
+    Convert an Unicode string `value` to its representation under
+    `encoding`, mirroring WMA's `ToString[expr, CharacterEncoding->encoding]`
+    (OutputForm-style, see the $CharacterEncoding documentation) for
+    "real" 8-bit encodings loaded from .wl files -- with one deliberate
+    Mathics3-specific exception for `"ASCII"` (see below).
+
+    For file-loaded 8-bit encodings:
+
+    - A character in `encoding`'s *native* range (ord < 256 for an
+      "8Bit" tag) is always left as its own identity -- see
+      `build_charmap`'s docstring for why this holds even when the
+      encoding's decode table reassigns that same byte position to
+      something else; e.g. for "Klingon", ordinary "H" (byte 72) stays
+      "H" even though byte 72 decodes to a pIqaD glyph.
+    - A character *outside* that range that `encoding` has a byte
+      assigned for (i.e. `ord(ch)` is a key of `encode_table`) is
+      replaced by that byte, shown as its own Latin-1-identity
+      character -- e.g. for "Klingon", U+F8D9 (assigned to byte 76)
+      becomes "L". `encode_table` already covers both cases (native
+      range and assigned exceptions), via `build_charmap`.
+    - A character with neither of the above, but corresponding to a WL
+      *operator* with a plain-ASCII linear-syntax form (e.g.
+      `\[GreaterEqual]` -> `>=`), is replaced by that form -- this
+      matches WMA's actual behavior, and `mathics.core.convert.op
+      .unic`, which already falls back to the
+      escape form itself for operators with no ASCII syntax (e.g.
+      `\[Integral]` has no linear-ASCII form, so the table's own value
+      for it *is* `"\\[Integral]"`).
+    - Otherwise, it's replaced by its Wolfram Language escape form
+      (`\\[Name]` if it has one, else `\\:XXXX`), so the *entire result
+      is always representable in `encoding`* -- this NEVER returns raw
+      bytes or a byte-per-character string.
+
+    For `"ASCII"`, the priority is reversed on purpose (NOT WMA
+    fidelity): `UNICODE_CHARACTER_TO_ASCII` is checked first, so e.g.
+    `\[Integral]` becomes `"int"` rather than the escape form real WMA
+    gives -- Mathics3 wants this so StandardForm output of things like
+    `Integrate[f[x], x]` stays readable in ASCII. `unicode_operator_to_ascii`
+    is only consulted as a fallback when `UNICODE_CHARACTER_TO_ASCII` has
+    no entry, and the escape form is the last resort.
+
+    "Unicode"/"UTF-8"/"UTF8" can represent every character, so nothing
+    ever needs escaping for them and `value` is returned as-is.
+    """
+    if encoding in ("Unicode", "UTF-8", "UTF8"):
+        return value
+
+    if encoding in WMA_DECODE_TABLES:
+        # True encodings loaded from .wl files.
+        encode_table = WMA_UNICODE_CHARACTER_MAPS[encoding]
+        result = []
+        for ch in value:
+            if ord(ch) in encode_table:
+                result.append(chr(encode_table[ord(ch)]))
+            elif ch in unicode_operator_to_ascii:
+                result.append(unicode_operator_to_ascii[ch])
+            else:
+                result.append(escape_unrepresentable_char(ch))
+        return "".join(result)
+
+    # Pseudo-encodings substitutions (ej. "ASCII"): characters already representable
+    # in this encoding (para ASCII: ord < 128) stay the same;
+    # UNICODE_CHARACTER_TO_ASCII is checked FIRST here -- unlike the
+    # real-8-bit-encoding branch above. This is a deliberate Mathics3
+    # choice, not WMA fidelity: real WMA gives the escape form
+    # "\[Integral]" for ToString["\[Integral]", CharacterEncoding->"ASCII"],
+    # but Mathics3 wants "int" instead, to make StandardForm output of
+    # things like Integrate[f[x], x] easier to read in ASCII. Only falls
+    # back to unicode_operator_to_ascii (then to the escape form) when
+    # UNICODE_CHARACTER_TO_ASCII has no entry for the character.
+    table = get_encoding_table(encoding)
+    multi = WMA_MULTI_CHAR_SUBSTITUTIONS.get(encoding)
+    if multi is not None:
+        value = multi.apply(value)
+
+    result = []
+    for ch in value:
+        if ord(ch) < 128:
+            result.append(ch)
+            continue
+        sub = table.get(ord(ch))
+        if sub is not None:
+            result.append(sub.decode("utf-8"))
+            continue
+        if ch in unicode_operator_to_ascii:
+            result.append(unicode_operator_to_ascii[ch])
+            continue
+        result.append(escape_unrepresentable_char(ch))
+    return "".join(result)
+
+
+def decode_bytes_value(value: bytes, encoding: str) -> str:
+    """
+    Convert raw bytes `value`, understood to be in `encoding`, to the
+    internal Unicode string representation.
+
+    For "Unicode"/"UTF-8"/"UTF8" delegates directly to Python's own
+    codec. For file-loaded 8-bit charmap encodings, uses the table
+    built by `load_encoding_table`.
+    """
+    if _is_native_python_encoding(encoding):
+        return value.decode(to_python_encoding(encoding))
+
+    if encoding not in WMA_DECODE_TABLES:
+        raise EncodingNameError(f"No decode table available for {encoding!r}")
+    decoded, _ = codecs.charmap_decode(value, "strict", WMA_DECODE_TABLES[encoding])
+    return decoded
+
+
+def from_python_encoding(encoding) -> str | None:
+    """
+    Return the name of a WMA character encoding name from
+    the name of the equivalent Python character encoding.
+    """
+    return REVERSE_CHARACTER_ENCODING_MAP.get(encoding)
+
+
+def get_encoding_table(encoding: str) -> dict:
+    """
+    Return the encode-direction table for `encoding`: for file-loaded
+    8-bit charmap encodings this is `dict[int, int]` (Unicode ordinal ->
+    byte), suitable for `codecs.charmap_encode`; for pseudo-encodings
+    like "ASCII" it is `dict[int, bytes]` (see build_substitution_table).
+    Returns `{}` for the native Python encodings (Unicode/UTF-8/UTF8),
+    which don't use a table at all -- see NATIVE_PYTHON_ENCODINGS.
+    """
+    if _is_native_python_encoding(encoding):
+        return {}
+    try:
+        return WMA_UNICODE_CHARACTER_MAPS[encoding]
+    except KeyError:
+        raise EncodingNameError(encoding)
+
+
+def load_encoding_table(encoding, evaluation):
+    """
+    Load an encoding file when needed.
+
+    Custom encodings are stored in SystemFiles/CharacterEncodings.
+    These files store WL expressions of the form
+
+    `{tag, {{code, repr, invertible__}, ...}}`
+
+    with `tag` one of `"7Bit"` or `"8Bit"`, `code` a character code and
+    `repr` the string representing that character code in the current
+    encoding. If present, `invertible` (default `True`) indicates
+    whether the mapping should also be used in the reverse (encode)
+    direction; entries that alias a byte to a WL *named character* as a
+    safe visual stand-in (rather than that byte's true Unicode point)
+    are typically marked `False`.
+
+    Codes not explicitly listed pass through as their own Latin-1
+    codepoint (WL encoding files only list the *exceptions*).
+
+    The file is loaded using `eval_Get`. If the file `{encoding}.wl` does
+    not exist, or `eval_Get` returns an expression that doesn't match
+    the expected format, this raises `EncodingNameError`.
+    """
+    from mathics.eval.files_io.files import eval_Get
+
+    if (
+        encoding in WMA_DECODE_TABLES
+        or _is_native_python_encoding(encoding)
+        or encoding in WMA_UNICODE_CHARACTER_MAPS
+    ):
+        # Already loaded. Do nothing.
+        return
+
+    etl = eval_Get(
+        f"{ROOT_DIR}/SystemFiles/CharacterEncodings/{encoding}.wl",
+        evaluation,
+        "ASCII",
+        None,
+        None,
+    )
+    if etl is None or not etl.has_form("List", 2):
+        # print(f"etl={etl} - not a list with two elements.")
+        evaluation.message("$CharacterEncoding", "charfile", String(encoding))
+        raise EncodingNameError(encoding)
+
+    tag = etl.elements[0].to_python(string_quotes=False)
+    entries_expr = etl.elements[1]
+    if tag not in TAG_SIZES or not entries_expr.has_form("List", None):
+        evaluation.message("$CharacterEncoding", "charfile", String(encoding))
+        raise EncodingNameError(encoding)
+    if any(not entry.has_form("List", None) for entry in entries_expr.elements):
+        evaluation.message("$CharacterEncoding", "charfile", String(encoding))
+        raise EncodingNameError(encoding)
+
+    entries = []
+    try:
+        for entry in entries_expr.elements:
+            code_el, repr_el, *rest_els = entry.elements
+            code = code_el.to_python(string_quotes=False)
+            if repr_el is SymbolNone:
+                # {code, None} in a WL encoding file means "this byte
+                # position has no character assigned to it in the
+                # original font/encoding". Symbol("System`None") isn't
+                # one of the symbols Symbol.to_python() special-cases
+                # (only True/False/Null are), so calling to_python() on
+                # it would return the literal 11-character string
+                # "System`None" -- silently corrupting every position
+                # after it in the fixed-width decoding table.
+                #
+                # Use chr(0xF200 + code) instead: this is real WMA's
+                # own convention for these positions, confirmed
+                # empirically --
+                #   FromCharacterCode[142, "Symbol"] // FullForm
+                # gives "\:f28e", i.e. exactly chr(0xF200 + 142), and
+                # it round-trips: ToCharacterCode["\:f28e", "Symbol"]
+                # gives {142}. So this is NOT an "undefined, decoding
+                # fails" marker (real WMA never fails to decode any
+                # byte) -- it's a real, invertible Private-Use-Area
+                # placeholder, exactly like any other table entry.
+                repr_str = chr(0xF200 + code)
+            else:
+                repr_str = repr_el.to_python(string_quotes=False)
+            rest = [el.to_python(string_quotes=False) for el in rest_els]
+            invertible = rest[0] if rest else True
+            entries.append(Entry(code=code, char=repr_str, invertible=invertible))
+    except (IndexError, TypeError) as e:
+        raise EncodingNameError(encoding) from e
+
+    decoding_table, encode_table = build_charmap(tag, entries)
+
+    WMA_DECODE_TABLES[encoding] = decoding_table
+    WMA_UNICODE_CHARACTER_MAPS[encoding] = encode_table
+
+    # Also register this table as a genuine Python codec, so that
+    # Mathics3Open's `io.open(path, mode, encoding=...)` -- used for
+    # ReadFile/WriteFile/OpenRead/OpenWrite/Get -- can use it exactly
+    # like any built-in encoding, with no special-casing for streams.
+    # This can raise ValueError for tags whose table doesn't fit the
+    # single-byte charmap model (see register_codec_from_tables); we
+    # surface that the same way as any other malformed encoding file.
+    try:
+        py_name = register_codec_from_tables(encoding, decoding_table, encode_table)
+    except ValueError as e:
+        evaluation.message("$CharacterEncoding", "charfile", String(encoding))
+        raise EncodingNameError(str(e)) from e
+    CHARACTER_ENCODING_MAP[encoding] = py_name
+    REVERSE_CHARACTER_ENCODING_MAP[py_name] = encoding
+
+
+def to_python_encoding(encoding) -> str | None:
+    """
+    Return the name of the equivalent Python encoding to a WMA
+    character encoding name.
+    """
+    return CHARACTER_ENCODING_MAP.get(encoding)

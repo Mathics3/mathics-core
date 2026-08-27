@@ -2,7 +2,7 @@
 """
 Mathics3 Box rendering to MathML strings.
 
-MathML formatting is usually initiated in Mathics via MathMLForm[].
+MathML formatting is usually initiated in Mathics3 via MathMLForm[].
 
 For readability, and following WMA MathML generated code,  tags \
 containing sub-tags are split on several lines, one by
@@ -31,6 +31,7 @@ produces
 import base64
 from typing import Any, Dict
 
+from mathics_scanner.characters import NAMED_CHARACTERS
 from mathics_scanner.tokeniser import is_symbol_name
 
 from mathics.builtin.box.graphics import GraphicsBox
@@ -50,11 +51,11 @@ from mathics.builtin.box.layout import (
     TagBox,
 )
 from mathics.core.atoms import String
-from mathics.core.convert.op import named_characters, operator_to_unicode
+from mathics.core.convert.op import operator_to_unicode
 from mathics.core.element import BaseElement, BoxElementMixin
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import (
-    add_conversion_fn,
+    add_render_function,
     convert_box_to_format,
     convert_inner_box_field,
 )
@@ -68,10 +69,27 @@ def convert_inner_box(box, **options):
 
 
 def encode_mathml(text: str) -> str:
+    """
+    Convert a string into a MathML code.
+    * Escape special characters
+    * Replace non-ASCII characters by character codes.
+    """
     text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
     text = text.replace('"', "&quot;").replace(" ", "&nbsp;")
     text = text.replace("\n", '<mspace linebreak="newline" />')
-    return text
+    # Now, handle non-ASCII characters using the
+    # the form '&#{code};'
+    # This must happen after escaping special characters:
+    result = ""
+    for c in text:
+        code = ord(c)
+        if code > 127:
+            # Notice that MathML seems to use
+            # decimal codes.
+            result += f"&#{code};"
+        else:
+            result += c
+    return result
 
 
 extra_operators = {
@@ -82,19 +100,19 @@ extra_operators = {
     "]",
     "{",
     "}",
-    named_characters["LeftDoubleBracket"],
-    named_characters["RightDoubleBracket"],
+    NAMED_CHARACTERS["LeftDoubleBracket"],
+    NAMED_CHARACTERS["RightDoubleBracket"],
     operator_to_unicode["Times"],
-    named_characters["Prime"],
-    named_characters["Prime"] * 2,
+    NAMED_CHARACTERS["Prime"],
+    NAMED_CHARACTERS["Prime"] * 2,
     " ",
-    named_characters["InvisibleTimes"],
-    named_characters["Integral"],
-    named_characters["DifferentialD"],
+    NAMED_CHARACTERS["InvisibleTimes"],
+    NAMED_CHARACTERS["Integral"],
+    NAMED_CHARACTERS["DifferentialD"],
 }
 
 
-add_conversion_fn(FormBox, convert_inner_box)
+add_render_function(FormBox, convert_inner_box)
 
 
 def fractionbox(box: FractionBox, **options) -> str:
@@ -111,7 +129,7 @@ def fractionbox(box: FractionBox, **options) -> str:
     )
 
 
-add_conversion_fn(FractionBox, fractionbox)
+add_render_function(FractionBox, fractionbox)
 
 
 def graphics3dbox(box: Graphics3DBox, elements=None, **options) -> str:
@@ -130,7 +148,7 @@ def graphics3dbox(box: Graphics3DBox, elements=None, **options) -> str:
     return result
 
 
-add_conversion_fn(Graphics3DBox, graphics3dbox)
+add_render_function(Graphics3DBox, graphics3dbox)
 
 
 def graphicsbox(box: GraphicsBox, elements=None, **options) -> str:
@@ -159,7 +177,7 @@ def graphicsbox(box: GraphicsBox, elements=None, **options) -> str:
     return mathml
 
 
-add_conversion_fn(GraphicsBox, graphicsbox)
+add_render_function(GraphicsBox, graphicsbox)
 
 
 def gridbox(box: GridBox, elements=None, **super_options) -> str:
@@ -208,7 +226,7 @@ def gridbox(box: GridBox, elements=None, **super_options) -> str:
     return result
 
 
-add_conversion_fn(GridBox, gridbox)
+add_render_function(GridBox, gridbox)
 
 
 def interpretation_box(box: InterpretationBox, **options):
@@ -235,7 +253,7 @@ def interpretation_box(box: InterpretationBox, **options):
     return convert_box_to_format(target, **child_options)
 
 
-add_conversion_fn(InterpretationBox, interpretation_box)
+add_render_function(InterpretationBox, interpretation_box)
 
 
 def pane_box(box: PaneBox, **options):
@@ -278,7 +296,7 @@ def pane_box(box: PaneBox, **options):
     return f"{indent_spaces}{content}"
 
 
-add_conversion_fn(PaneBox, pane_box)
+add_render_function(PaneBox, pane_box)
 
 
 def rowbox(box: RowBox, **options) -> str:
@@ -321,7 +339,7 @@ def rowbox(box: RowBox, **options) -> str:
     return f"{indent_spaces}<mrow>\n%s\n{indent_spaces}</mrow>" % ("\n".join(result),)
 
 
-add_conversion_fn(RowBox, rowbox)
+add_render_function(RowBox, rowbox)
 
 
 def sqrtbox(box: SqrtBox, **options):
@@ -341,7 +359,7 @@ def sqrtbox(box: SqrtBox, **options):
     )
 
 
-add_conversion_fn(SqrtBox, sqrtbox)
+add_render_function(SqrtBox, sqrtbox)
 
 
 def string(s: String, **options) -> str:
@@ -381,7 +399,7 @@ def string(s: String, **options) -> str:
             # Mathics-Django:
             if text == "":
                 return ""
-            if text == named_characters["InvisibleTimes"]:
+            if text == NAMED_CHARACTERS["InvisibleTimes"]:
                 return render(
                     '<mo form="prefix" lspace="0" rspace="0.2em">%s</mo>', text
                 )
@@ -394,7 +412,7 @@ def string(s: String, **options) -> str:
             )
 
 
-add_conversion_fn(String, string)
+add_render_function(String, string)
 
 
 def subscriptbox(box: SubscriptBox, **options):
@@ -409,7 +427,7 @@ def subscriptbox(box: SubscriptBox, **options):
     )
 
 
-add_conversion_fn(SubscriptBox, subscriptbox)
+add_render_function(SubscriptBox, subscriptbox)
 
 
 def subsuperscriptbox(box: SubsuperscriptBox, **options):
@@ -426,7 +444,7 @@ def subsuperscriptbox(box: SubsuperscriptBox, **options):
     )
 
 
-add_conversion_fn(SubsuperscriptBox, subsuperscriptbox)
+add_render_function(SubsuperscriptBox, subsuperscriptbox)
 
 
 def superscriptbox(box: SuperscriptBox, **options):
@@ -441,6 +459,6 @@ def superscriptbox(box: SuperscriptBox, **options):
     )
 
 
-add_conversion_fn(SuperscriptBox, superscriptbox)
-add_conversion_fn(StyleBox, convert_inner_box)
-add_conversion_fn(TagBox, convert_inner_box)
+add_render_function(SuperscriptBox, superscriptbox)
+add_render_function(StyleBox, convert_inner_box)
+add_render_function(TagBox, convert_inner_box)

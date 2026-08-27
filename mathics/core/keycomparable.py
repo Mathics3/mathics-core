@@ -117,8 +117,27 @@ class Monomial:
                 other_exps[var] -= dec
                 if not other_exps[var]:
                     del other_exps[var]
-        self_exps = sorted((var, exp) for var, exp in self_exps.items())
-        other_exps = sorted((var, exp) for var, exp in other_exps.items())
+
+        def _var_key(pair):
+            """
+            If `var` is not a plain string (e.g. a Symbol object), fall back
+            to its string representation for ordering.
+            """
+            var, _ = pair
+            try:
+                return str(var)
+            except Exception:
+                return var
+
+        # NOTE ON COMPARING MONOMIALS.
+        # Symbol names are compared lexicographically.
+        # However, when comparing monomials containing several
+        # symbols, Mathematica treats later symbols as variables,
+        # while the earlier symbols are treated as as coefficients. So
+        # we need to compare symbol names in reverse alphabetical order.
+        # For example, (b c) < (a d) for monomials (b c) and (a d) since c < d.
+        self_exps = sorted(list(self_exps.items()), key=_var_key, reverse=True)
+        other_exps = sorted(list(other_exps.items()), key=_var_key, reverse=True)
 
         index = 0
         self_len = len(self_exps)
@@ -276,12 +295,14 @@ END_OF_LIST_PATTERN_SORT_KEY = (
 
 ###  _ELT_ORDER suffixes are used in element ordering and
 ###  Expression.element_order().
+###  Inside Mathics3, you can use builtin function Order[x, y] to check things.
 
 BASIC_ATOM_NUMBER_ELT_ORDER = 0x00
-BASIC_ATOM_STRING_ELT_ORDER = 0x01
-BASIC_ATOM_BYTEARRAY_ELT_ORDER = 0x02
-LITERAL_EXPRESSION_ELT_ORDER = 0x03
-BASIC_ATOM_NUMERICARRAY_ELT_ORDER = 0x04
+BASIC_ATOM_ASSOCIATION_ELT_ORDER = 0x01
+BASIC_ATOM_STRING_ELT_ORDER = 0x02
+BASIC_ATOM_BYTEARRAY_ELT_ORDER = 0x03
+LITERAL_EXPRESSION_ELT_ORDER = 0x04
+BASIC_ATOM_NUMERICARRAY_ELT_ORDER = 0x05
 
 BASIC_NUMERIC_EXPRESSION_ELT_ORDER = 0x12
 GENERAL_NUMERIC_EXPRESSION_ELT_ORDER = 0x13

@@ -37,7 +37,7 @@ from mathics import settings
         ("Head[$SystemWordLength] == Integer", "True", "$SystemWordLength"),
     ],
 )
-def test_private_doctests_system(str_expr, str_expected, assert_tag_message):
+def test_system(str_expr, str_expected, assert_tag_message):
     """ """
     check_evaluation(
         str_expr,

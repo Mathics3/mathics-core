@@ -1,14 +1,10 @@
-from mathics.core.atoms import (
-    Integer,
-    Integer0,
-    Integer1,
-    Integer310,
-    IntegerM1,
-    Rational,
-    String,
-)
+from typing import Final, List, Union
+
+from mathics.core.atoms import Integer, Integer0, Integer1, IntegerM1, Rational, String
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.parser.operators import PLUS_PRECEDENCE
 from mathics.core.systemsymbols import (
     SymbolDivide,
     SymbolHoldForm,
@@ -18,8 +14,12 @@ from mathics.core.systemsymbols import (
     SymbolPlus,
 )
 
+PLUS_PRECEDENCE_INTEGER: Final[Integer] = Integer(PLUS_PRECEDENCE)
+STRING_PLUS: Final[String] = String("+")
 
-def format_series(x, x0, data, nmin, nmax, den, evaluation):
+
+def format_series(x, x0, data, nmin, nmax, den, evaluation: Evaluation) -> Expression:
+    powers: List[Union[Rational, Integer]]
     if den.value != 1:
         powers = [Rational(i, den) for i in range(nmin.value, nmax.value + 1)]
     else:
@@ -71,7 +71,7 @@ def format_series(x, x0, data, nmin, nmax, den, evaluation):
     return Expression(
         SymbolInfix,
         ListExpression(regular, last),
-        String("+"),
-        Integer310,
+        STRING_PLUS,
+        PLUS_PRECEDENCE_INTEGER,
         SymbolLeft,
     )

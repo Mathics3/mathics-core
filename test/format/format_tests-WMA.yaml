@@ -19,7 +19,7 @@
 #
 #  Regarding tests for `MathMLForm` and `TeXForm`, WMA does not do it
 #  really well in its conversions, and in several cases just returns an
-#  error message. On the other hand, in Mathics we want to test them,
+#  error message. On the other hand, in Mathics3 we want to test them,
 #  because we use both in documentation and in the web interface.
 #
 
@@ -267,7 +267,7 @@
   mathml:
     InputForm: '<mtext>(1 + (1 + a^(-1))^(-1))^(-1)</mtext>'
     StandardForm: "<mfrac>\n   <mn>1</mn>\n   <mrow>\n    <mn>1</mn>\n    <mo>+</mo>\n    <mfrac>\n     <mn>1</mn>\n     <mrow>\n      <mn>1</mn>\n      <mo>+</mo>\n      <mfrac>\n       <mn>1</mn>\n       <mi>a</mi>\n      </mfrac>\n     </mrow>\n    </mfrac>\n   </mrow>\n  </mfrac>"
-    TraditionalForm: "<mfrac>\n  <mn>1</mn>\n  <mrow>\n   <mfrac>\n    <mn>1</mn>\n    <mrow>\n     <mfrac>\n      <mn>1</mn>\n      <mi>a</mi>\n     </mfrac>\n     <mo>+</mo>\n     <mn>1</mn>\n    </mrow>\n   </mfrac>\n   <mo>+</mo>\n   <mn>1</mn>\n  </mrow>\n </mfrac>"    
+    TraditionalForm: "<mfrac>\n  <mn>1</mn>\n  <mrow>\n   <mfrac>\n    <mn>1</mn>\n    <mrow>\n     <mfrac>\n      <mn>1</mn>\n      <mi>a</mi>\n     </mfrac>\n     <mo>+</mo>\n     <mn>1</mn>\n    </mrow>\n   </mfrac>\n   <mo>+</mo>\n   <mn>1</mn>\n  </mrow>\n </mfrac>"
   text:
     InputForm: "(1 + (1 + a^(-1))^(-1))^(-1)"
     OutputForm: "    1\n---------\n      1\n1 + -----\n        1\n    1 + -\n        a"

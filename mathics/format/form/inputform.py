@@ -2,7 +2,7 @@
 InputForm-formatted strings.
 
 `InputForm` produces textual output suitable for being parsed and
-evaluated in Mathics CLI.
+evaluated in Mathics3 CLI.
 
 `InputForm` is not affected by MakeBox assignment.
 
@@ -27,8 +27,11 @@ both cases, underneath the `InterpretationBox` or `Tagbox` is a
 
 from typing import Callable, Dict
 
+from mathics_scanner.characters import UNICODE_CHARACTER_TO_ASCII
+
 from mathics.builtin.box.expression import BoxExpression
 from mathics.core.atoms import Integer, String
+from mathics.core.atoms.associations import Association
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -39,7 +42,6 @@ from mathics.core.systemsymbols import (
     SymbolRight,
 )
 from mathics.format.box.formatvalues import do_format  # , format_element
-from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
 from .util import (
     ARITHMETIC_OPERATOR_STRINGS,
@@ -92,6 +94,8 @@ def render_input_form(expr: BaseElement, evaluation: Evaluation, **kwargs) -> st
 def _association_expression_to_inputform_text(
     expr: Expression, evaluation: Evaluation, **kwargs
 ) -> str:
+    if isinstance(expr, Association):
+        expr = expr.expr
     elements = expr.elements
     result = ", ".join(
         [render_input_form(elem, evaluation, **kwargs) for elem in elements]
@@ -154,7 +158,6 @@ def _infix_expression_to_inputform_text(
     # has a head that matches with a symbol associated to an infix
     # operator, WMA builds its inputform without passing through
     # its "Infix" form.
-    kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     operands, ops_lst, precedence, group = collect_in_pre_post_arguments(
         expr, evaluation, **kwargs
     )
@@ -173,6 +176,8 @@ def _infix_expression_to_inputform_text(
     num_ops = len(ops_lst)
     for index, operand in enumerate(operands[1:]):
         curr_op = ops_lst[index % num_ops]
+        # In InputForm, operators are encoded as ascii strings:
+        curr_op = UNICODE_CHARACTER_TO_ASCII.get(curr_op, curr_op)
         # In OutputForm we always add the spaces, except for
         # " "
         if curr_op not in ARITHMETIC_OPERATOR_STRINGS:
@@ -198,7 +203,6 @@ def _prefix_expression_to_inputform_text(
     """
     Convert Prefix[...] into a OutputForm string.
     """
-    kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     operands, op_head, precedence, group = collect_in_pre_post_arguments(
         expr, evaluation, **kwargs
     )
@@ -206,7 +210,6 @@ def _prefix_expression_to_inputform_text(
     if len(operands) != 1:
         raise _WrongFormattedExpression
     operand = operands[0]
-    kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     target_txt = render_input_form(operand, evaluation, **kwargs)
     parenthesized = group in (None, SymbolRight, SymbolNonAssociative)
     target_txt = parenthesize(precedence, operand, target_txt, parenthesized)
@@ -220,7 +223,6 @@ def _postfix_expression_to_inputform_text(
     """
     Convert Postfix[...] into a OutputForm string.
     """
-    kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     operands, op_head, precedence, group = collect_in_pre_post_arguments(
         expr, evaluation, **kwargs
     )
@@ -295,12 +297,11 @@ def _rule_to_inputform_text(expr, evaluation: Evaluation, **kwargs) -> str:
     """Rule|RuleDelayed[{...}]"""
     head = expr.head
     elements = expr.elements
-    kwargs["encoding"] = kwargs.get("encoding", SYSTEM_CHARACTER_ENCODING)
     if len(elements) != 2:
         return _generic_to_inputform_text(expr, evaluation, **kwargs)
     pat, rule = (render_input_form(elem, evaluation, **kwargs) for elem in elements)
     kwargs["_render_function"] = render_input_form
-    op_str = get_operator_str(head, evaluation, **kwargs)
+    op_str = UNICODE_CHARACTER_TO_ASCII[get_operator_str(head, evaluation, **kwargs)]
     # In WMA there are spaces between operators.
     return pat + f" {op_str} " + rule
 

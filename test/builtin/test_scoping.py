@@ -47,7 +47,7 @@ def test_unique():
         ("Unique[{}]", None, "{}", None),
     ],
 )
-def test_private_doctests_scoping(str_expr, msgs, str_expected, fail_msg):
+def test_scoping(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,

@@ -7,14 +7,14 @@ Support for Set and SetDelayed, and other assignment-like builtins
 
 from typing import Callable, List, Optional, Tuple
 
+from mathics.core.atoms import Integer1
 from mathics.core.attributes import A_PROTECTED
-from mathics.core.builtin import Builtin
 from mathics.core.definitions import Definitions
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.rules import Rule
+from mathics.core.rules import RewriteRule
 from mathics.core.symbols import Atom, Symbol, SymbolList
 from mathics.core.systemsymbols import (
     SymbolAnd,
@@ -29,9 +29,9 @@ from mathics.core.systemsymbols import (
 )
 
 
-def build_rulopc(optval: BaseElement) -> Rule:
+def build_rulopc(optval: BaseElement) -> RewriteRule:
     """Build an option value rule for optval"""
-    return Rule(
+    return RewriteRule(
         Expression(
             SymbolOptionValue,
             Expression(SymbolPattern, Symbol("$cond$"), SymbolBlank),
@@ -102,7 +102,7 @@ def get_symbol_values(
 
     """
     if not isinstance(symbol, Symbol):
-        evaluation.message(func_name, "sym", symbol, 1)
+        evaluation.message(func_name, "sym", symbol, Integer1)
         return None
     name = symbol.get_name()
     definitions = evaluation.definitions
@@ -157,7 +157,7 @@ def get_symbol_values(
         return ListExpression(*elements)
 
     for rule in definition.get_values_list(position):
-        if isinstance(rule, Rule):
+        if isinstance(rule, RewriteRule):
             pattern = rule.pattern
             if pattern.has_form("HoldPattern", 1):
                 expr_pattern = pattern.expr
@@ -180,12 +180,12 @@ def normalize_lhs(lhs, evaluation):
     * if it is a conditional expression, reduce it to
       a shallow conditional expression
       ( Conditional[Conditional[...],tst] -> Conditional[stripped_lhs, tst])
-      with `stripped_lhs` the result of strip all the conditions from lhs.
+      with `stripped_lhs` the result of stripping all the conditions from lhs.
 
     * if ``stripped_lhs`` is not a ``List`` or a ``Part`` expression, evaluate the
       elements.
 
-    returns a tuple with the normalized lhs, and the lookup_name of the head in stripped_lhs.
+    Returns a tuple with the normalized lhs and the lookup_name of the head in stripped_lhs.
     """
     cond = None
     if lhs.get_head() is SymbolCondition:
@@ -262,7 +262,7 @@ def repl_pattern_by_symbol(expr: BaseElement) -> BaseElement:
 
 
 def rejected_because_protected(
-    self: Builtin,
+    op_name: str,
     lhs: BaseElement,
     tag: str,
     evaluation: Evaluation,
@@ -295,9 +295,9 @@ def rejected_because_protected(
     defs = evaluation.definitions
     if not ignore and is_protected(tag, defs):
         if lhs.get_name() == tag:
-            evaluation.message(self.get_name(), "wrsym", Symbol(tag))
+            evaluation.message(op_name, "wrsym", Symbol(tag))
         else:
-            evaluation.message(self.get_name(), "write", Symbol(tag), lhs)
+            evaluation.message(op_name, "write", Symbol(tag), lhs)
         return True
     return False
 
@@ -305,16 +305,16 @@ def rejected_because_protected(
 def unroll_conditions(lhs: BaseElement) -> Tuple[BaseElement, Optional[Expression]]:
     """
     If `lhs` is a nested `Condition` expression,
-    gather all the conditions in a single one, and returns a tuple
+    gather all the conditions in a single one, and return a tuple
     with the `lhs` stripped from the conditions and the shallow condition.
-    If there is not any condition, returns the `lhs` and None
+    If there is no condition, return the `lhs` and `None`.
     """
     if isinstance(lhs, Symbol):
         return lhs, None
 
     name, lhs_elements = lhs.get_head_name(), lhs.get_elements()
     conditions = []
-    # This handle the case of many successive conditions:
+    # This handles the case of many successive conditions:
     # f[x_]/; cond1 /; cond2 ... ->  f[x_]/; And[cond1, cond2, ...]
     while name == "System`Condition" and len(lhs_elements) == 2:
         conditions.append(lhs_elements[1])
@@ -346,11 +346,11 @@ def unroll_patterns(
     if name == "System`Pattern":
         lhs = lhs_elements[1]
         rulerepl = (lhs_elements[0], repl_pattern_by_symbol(lhs))
-        # Maybe this replamement should be delayed instead,
+        # Maybe this replacement should be delayed instead,
         # like
         # rhs = Expression(Symbol("System`Replace"), Rule(*rulerepl))
         # TODO: check if this is the correct behavior.
-        rhs, _ = rhs.do_apply_rules([Rule(*rulerepl)], evaluation)
+        rhs, _ = rhs.do_apply_rules([RewriteRule(*rulerepl)], evaluation)
         name = lhs.get_head_name()
     elif name == "System`HoldPattern":
         lhs = lhs_elements[0]

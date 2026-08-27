@@ -15,7 +15,7 @@
 
 Reporting bugs in a thoughtful way is helpful.
 
-However any project that attempts to mimic the Wolfram Language is going fall short. It is easy to find in a matter of minutes some built-in function Mathics doesn't implement but is in WL. Or that is implemented but doesn't match WL.
+However any project that attempts to mimic the Wolfram Language is going fall short. It is easy to find in a matter of minutes some built-in function Mathics3 doesn't implement but is in WL. Or that is implemented but doesn't match WL.
 
 
 # Issues and Issue Fixers, Priorities

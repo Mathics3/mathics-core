@@ -830,7 +830,7 @@ class StringTake(Builtin):
       <dt>'StringTake'["$string$", {$m$, $n$, $s$}]
       <dd>gives characters $m$ through $n$ in steps of $s$.
 
-      <dt>'StringTake'[{$s_1$, $s_2$, ...} $spec$}]
+      <dt>'StringTake'[{$s_1$, $s_2$, ...}, $spec$]
       <dd>gives the list of results for each of the $si$.
     </dl>
 
@@ -899,9 +899,9 @@ class StringTake(Builtin):
         return String(result[py_slice])
 
     def eval_strings(self, strings, spec, evaluation: Evaluation):
-        "StringTake[strings__, spec_]"
+        "StringTake[{strings__}, spec_]"
         result_list = []
-        for string in strings.elements:
+        for string in strings.get_sequence():
             result = self.eval(string, spec, evaluation)
             if result is None:
                 return None

@@ -18,7 +18,7 @@ from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.element import BaseElement, fully_qualified_symbol_name
-from mathics.core.rules import BaseRule, Rule
+from mathics.core.rules import BaseRule, RewriteRule
 from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.util import canonic_filename
 from mathics.settings import ROOT_DIR
@@ -777,7 +777,7 @@ class Definitions:
     def set_ownvalue(self, name: str, value) -> None:
         """Set an ownvalue for name"""
         name = self.lookup_name(name)
-        self.add_rule(name, Rule(Symbol(name), value))
+        self.add_rule(name, RewriteRule(Symbol(name), value))
         self.clear_cache(name)
 
     def set_options(self, name: str, options) -> None:
@@ -1132,4 +1132,5 @@ def load_builtin_definitions(
             with open(builtin_filename, "wb") as builtin_file:
                 pickle.dump(self.builtin, builtin_file, -1)
 
-    autoload_files(self, ROOT_DIR, "autoload")
+    autoload_files(self, ROOT_DIR, "Autoload")
+    autoload_files(self, osp.join(ROOT_DIR, "SystemFiles"), "Formats")

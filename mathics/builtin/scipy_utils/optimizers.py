@@ -6,7 +6,8 @@ from mathics.core.builtin import check_requires_list
 from mathics.core.convert.function import expression_to_callable_and_args
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression, ExpressionInfinity
+from mathics.core.expression import Expression
+from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolFailed
 from mathics.eval.nevaluator import eval_N
 
@@ -30,7 +31,7 @@ def get_tolerance_and_maxit(opts: dict, scale: float, evaluation: Evaluation):
         acc_goal = eval_N(acc_goal, evaluation)
         if acc_goal is SymbolAutomatic:
             acc_goal = Real(12.0)
-        elif ExpressionInfinity == acc_goal:
+        elif MATHICS3_INFINITY == acc_goal:
             acc_goal = None
         elif not isinstance(acc_goal, Number):
             acc_goal = None
@@ -40,7 +41,7 @@ def get_tolerance_and_maxit(opts: dict, scale: float, evaluation: Evaluation):
         prec_goal = eval_N(prec_goal, evaluation)
         if prec_goal is SymbolAutomatic:
             prec_goal = Real(12.0)
-        elif ExpressionInfinity == prec_goal:
+        elif MATHICS3_INFINITY == prec_goal:
             prec_goal = None
         elif not isinstance(prec_goal, Number):
             prec_goal = None

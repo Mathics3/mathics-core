@@ -83,7 +83,7 @@ def save_evaluate(expr, evaluation, status: str, fn: Callable, orig_expr=None):
     # seeing a return value twice, once form rewite_apply_eval_step,
     # and once from Expression.evaluate.
 
-    if isinstance(fn, Expression):
+    if isinstance(fn, Expression) and hasattr(fn.head, "short_name"):
         fn_name = fn.head.short_name
     elif hasattr(fn, "__name__"):
         fn_name = fn.__name__

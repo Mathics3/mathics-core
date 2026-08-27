@@ -10,10 +10,8 @@ import sympy
 
 from mathics.core.element import BoxElementMixin
 from mathics.core.keycomparable import BASIC_ATOM_STRING_ELT_ORDER, wma_str_sort_key
-from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue, symbol_set
+from mathics.core.symbols import Atom, SymbolFalse, SymbolTrue, symbol_set
 from mathics.core.systemsymbols import SymbolFullForm, SymbolInputForm
-
-SymbolString = Symbol("String")
 
 SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM = symbol_set(SymbolInputForm, SymbolFullForm)
 
@@ -38,6 +36,9 @@ class String(Atom, BoxElementMixin):
         return '"%s"' % self.value
 
     def atom_to_boxes(self, f, evaluation):
+        """
+        Produces a Box expression that represents how the String should be formatted.
+        """
         from mathics.format.box import _boxed_string
 
         inner = str(self.value)
@@ -99,7 +100,7 @@ class String(Atom, BoxElementMixin):
         return "\n" in self.value
 
     def sameQ(self, rhs) -> bool:
-        """Mathics SameQ"""
+        """Mathics3 SameQ"""
         return isinstance(rhs, String) and self.value == rhs.value
 
     def to_expression(self):

@@ -1,3 +1,4 @@
+Compress`ImportZIP
 HTML`DataImport
 HTML`FullDataImport
 HTML`HyperlinksImport
@@ -12,7 +13,7 @@ ImportExport`RegisterExport
 ImportExport`RegisterImport
 Internal`RealValuedNumberQ
 Internal`RealValuedNumericQ
-JSON`Import`JSONImport
+JSON`ImportJSON
 System`$Aborted
 System`$Assumptions
 System`$BaseDirectory
@@ -109,6 +110,7 @@ System`Apart
 System`Append
 System`AppendTo
 System`Apply
+System`ArcBox
 System`ArcCos
 System`ArcCosh
 System`ArcCot
@@ -129,6 +131,7 @@ System`Arrow
 System`Arrow3DBox
 System`ArrowBox
 System`Arrowheads
+System`AssociateTo
 System`Association
 System`AssociationQ
 System`Assuming
@@ -185,6 +188,7 @@ System`Brown
 System`ButtonBox
 System`Byte
 System`ByteArray
+System`ByteArrayQ
 System`ByteCount
 System`ByteOrdering
 System`C
@@ -247,8 +251,6 @@ System`Complement
 System`Complex
 System`ComplexExpand
 System`ComplexInfinity
-System`ComplexPlot
-System`ComplexPlot3D
 System`Complexes
 System`CompositeQ
 System`Composition
@@ -268,11 +270,8 @@ System`Context
 System`Contexts
 System`Continue
 System`ContinuedFraction
-System`ContourPlot
 System`Convert`B64Dump`B64Decode
 System`Convert`B64Dump`B64Encode
-System`ConvertersDump`$ExtensionMappings
-System`ConvertersDump`$FormatMappings
 System`CoprimeQ
 System`Coproduct
 System`CopyDirectory
@@ -290,6 +289,7 @@ System`CreateFile
 System`CreateTemporary
 System`Cross
 System`Csc
+System`Csch
 System`Cube
 System`CubeRoot
 System`Cuboid
@@ -328,6 +328,7 @@ System`DesignMatrix
 System`Det
 System`Diagonal
 System`DiagonalMatrix
+System`Dialog
 System`Diamond
 System`DiamondMatrix
 System`DiceDissimilarity
@@ -351,6 +352,7 @@ System`Disk
 System`DiskBox
 System`DiskMatrix
 System`Dispatch
+System`Distribute
 System`Divide
 System`DivideBy
 System`Divisible
@@ -486,6 +488,7 @@ System`Fold
 System`FoldList
 System`FontColor
 System`For
+System`FormBox
 System`Format
 System`FormatType
 System`FormatValues
@@ -632,6 +635,8 @@ System`KelvinBer
 System`KelvinKei
 System`KelvinKer
 System`Key
+System`KeyDropFrom
+System`KeyExistsQ
 System`Keys
 System`Khinchin
 System`KnownUnitQ
@@ -892,6 +897,7 @@ System`Pane
 System`PaneBox
 System`ParametricPlot
 System`ParentDirectory
+System`ParentForm
 System`Part
 System`Partition
 System`PartitionsP
@@ -1012,6 +1018,7 @@ System`Rectangle
 System`RectangleBox
 System`Rectangular
 System`Red
+System`Refine
 System`RegularExpression
 System`RegularPolygon
 System`RegularPolygonBox
@@ -1062,6 +1069,7 @@ System`RotateLeft
 System`RotateRight
 System`RotationTransform
 System`Round
+System`RoundBox
 System`RoundImplies
 System`Row
 System`RowBox
@@ -1101,6 +1109,7 @@ System`ShortRightArrow
 System`ShortUpArrow
 System`Shortest
 System`Show
+System`ShowSpecialCharacters
 System`ShowStringCharacters
 System`Sign
 System`Simplify

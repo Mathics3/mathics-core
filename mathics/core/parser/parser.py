@@ -8,7 +8,7 @@ https://mathics-development-guide.readthedocs.io/en/latest/extending/code-overvi
 
 
 import string
-from typing import Literal, Optional, Union
+from typing import Final, Literal, Optional, Union
 
 from mathics_scanner.errors import (
     EscapeSyntaxError,
@@ -32,7 +32,7 @@ from mathics.core.parser.ast import (
 )
 from mathics.core.parser.location import track_location, track_token_location
 from mathics.core.parser.operators import (
-    all_operators,
+    OPERATOR_PRECEDENCE,
     binary_operators,
     box_operators,
     flat_binary_operators,
@@ -65,6 +65,17 @@ NEVER_ADD_PARENTHESIS: Literal[0] = 0
 permitted_digits = {c: i for i, c in enumerate(string.digits + string.ascii_lowercase)}
 permitted_digits["."] = 0
 
+FORMBOX_PRECEDENCE: Final[int] = OPERATOR_PRECEDENCE["Formbox"]
+FRACTIONBOX_PRECEDENCE: Final[int] = OPERATOR_PRECEDENCE["FractionBox"]
+OVERSCRIPTBOX_PRECEDENCE: Final[int] = OPERATOR_PRECEDENCE["OverscriptBox"]
+PART_PRECEDENCE: Final[int] = OPERATOR_PRECEDENCE["Part"]
+PATTERN_PRECEDENCE: Final[int] = OPERATOR_PRECEDENCE["Pattern"]
+POWER_PRECEDENCE: Final[int] = OPERATOR_PRECEDENCE["Power"]
+SET_PRECEDENCE: Final[int] = OPERATOR_PRECEDENCE["Set"]
+SQRTBOX_PRECEDENCE: Final[int] = OPERATOR_PRECEDENCE["SqrtBox"]
+SUBSCRIPTBOX_PRECEDENCE: Final[int] = OPERATOR_PRECEDENCE["SubscriptBox"]
+SUM_PRECEDENCE: Final[int] = OPERATOR_PRECEDENCE["Sum"]
+
 
 def unescape_string(s: str) -> str:
     """
@@ -89,12 +100,12 @@ class Parser:
         self.halt_tags = set(
             [
                 "END",
-                "RawRightAssociation",
-                "RawRightParenthesis",
-                "RawComma",
-                "RawRightBrace",
-                "RawRightBracket",
+                "BarGreater",
+                "CloseCurly",
+                "CloseParen",
+                "CloseSquare",
                 "RawColon",
+                "RawComma",
                 "DifferentialD",
             ]
         )
@@ -176,6 +187,14 @@ class Parser:
         """
         Parse the single top-level or "start" expression.
         This is called right after doing parse setup.
+
+        In scanning tokens, the scanning mode might get altered on
+        seeing specific tokens inside the tokenizer.
+
+        In particular, in:
+           << symbol
+        the tokenizer in tokenizing "<<" changes the scanning mode for how
+        symbol gets parsed.
         """
         result = []
         while self.next().tag != "END":
@@ -278,7 +297,7 @@ class Parser:
                 break
             elif tag == "END":
                 self.get_more_input(token.pos)
-            elif tag == "BoxInputEscape":
+            elif tag == "LinearSyntaxStar":
                 self.consume()
                 new_result = self.parse_box_escape(token, precedence)
             elif result is None and tag != "END":
@@ -572,6 +591,38 @@ class Parser:
                 result = new_result
         return result
 
+    def parse_information_common(self, token: Token, want_long_form: bool) -> Node:
+        self.consume()
+
+        pattern_token = self.parse_name_pattern()
+        assert pattern_token.tag == "NamePattern"
+
+        pattern_str = pattern_token.text
+        if pattern_str.startswith('"'):
+            if len(pattern_str) > 2 and pattern_str.value.endswith('"'):
+                pattern_str = pattern_str[1:-1]
+            else:
+                return Node("Missing", String("UnknownSymbol"), pattern_token)
+
+        pattern_arg = String(value=pattern_str, location=pattern_token.pos)
+        long_form = Symbol("True" if want_long_form else "False")
+        return Node(
+            "Information",
+            pattern_arg,
+            Node("Rule", Symbol("LongForm"), long_form),
+        )
+
+    @track_location
+    def parse_name_pattern(self) -> Token:
+        """Parse a string pattern of the kind found in Information
+        LongForm->True, (??) or LongForm->False (?).
+        """
+        self.tokeniser.change_token_scanning_mode("name-pattern")
+        token = self.next_noend()
+        self.consume()
+        self.tokeniser.change_token_scanning_mode("expr")
+        return token
+
     @track_location
     def parse_p(self):
         """Parse a "p_"-tagged expression.
@@ -633,7 +684,7 @@ class Parser:
                 self.tokeniser.feeder.message("Syntax", "com")
                 result.append(NullSymbol)
                 self.consume()
-            elif tag in ("RawRightAssociation", "RawRightBrace", "RawRightBracket"):
+            elif tag in ("CloseCurly", "BarGreater", "CloseSquare"):
                 if result:
                     self.tokeniser.feeder.message("Syntax", "com")
                     result.append(NullSymbol)
@@ -645,7 +696,7 @@ class Parser:
                 if tag == "RawComma":
                     self.consume()
                     continue
-                elif tag in ("RawRightAssociation", "RawRightBrace", "RawRightBracket"):
+                elif tag in ("CloseCurly", "BarGreater", "CloseSquare"):
                     break
         return result
 
@@ -664,8 +715,7 @@ class Parser:
     def b_FormBox(
         self, box_expr1, token: Token, box_expr1_precedence: int
     ) -> Optional[Node]:
-        operator_precedence = all_operators["FormBox"]
-        if box_expr1_precedence > operator_precedence:
+        if box_expr1_precedence > FORMBOX_PRECEDENCE:
             return None
         if box_expr1 is None:
             box_expr1 = Symbol("StandardForm")  # RawForm
@@ -674,34 +724,32 @@ class Parser:
         else:
             box_expr1 = Node("Removed", String("$$Failure"))
         self.consume()
-        box2 = self.parse_box_expr(operator_precedence)
+        box2 = self.parse_box_expr(FORMBOX_PRECEDENCE)
         return Node("FormBox", box2, box_expr1)
 
     def b_FractionBox(
         self, box_expr1, token: Token, box_expr1_precendence: int
     ) -> Optional[Node]:
-        operator_precedence = all_operators["FractionBox"]
-        if box_expr1_precendence > operator_precedence:
+        if box_expr1_precendence > FRACTIONBOX_PRECEDENCE:
             return None
         if box_expr1 is None:
             box_expr1 = NullString
         self.consume()
-        box_expr2 = self.parse_box_expr(operator_precedence + 1)
+        box_expr2 = self.parse_box_expr(FRACTIONBOX_PRECEDENCE + 1)
         return Node("FractionBox", box_expr1, box_expr2)
 
     def b_OverscriptBox(
         self, box_expr1, token: Token, box_expr1_precedence: int
     ) -> Optional[Node]:
-        operator_precedence = all_operators["OverscriptBox"]
-        if box_expr1_precedence > operator_precedence:
+        if box_expr1_precedence > OVERSCRIPTBOX_PRECEDENCE:
             return None
         if box_expr1 is None:
             box_expr1 = NullString
         self.consume()
-        box_expr2 = self.parse_box_expr(operator_precedence)
+        box_expr2 = self.parse_box_expr(OVERSCRIPTBOX_PRECEDENCE)
         if self.next().tag == "OtherscriptBox":
             self.consume()
-            box_expr3 = self.parse_box_expr(all_operators["UnderoverscriptBox"])
+            box_expr3 = self.parse_box_expr(OPERATOR_PRECEDENCE["UnderoverscriptBox"])
             return Node("UnderoverscriptBox", box_expr1, box_expr3, box_expr2)
         else:
             return Node("OverscriptBox", box_expr1, box_expr2)
@@ -710,11 +758,10 @@ class Parser:
         if box0 is not None:
             return None
         self.consume()
-        operator_precedence = all_operators["SqrtBox"]
-        box_expr1 = self.parse_box_expr(operator_precedence)
+        box_expr1 = self.parse_box_expr(SQRTBOX_PRECEDENCE)
         if self.next().tag == "OtherscriptBox":
             self.consume()
-            box2 = self.parse_box_expr(operator_precedence)
+            box2 = self.parse_box_expr(SQRTBOX_PRECEDENCE)
             return Node("RadicalBox", box_expr1, box2)
         else:
             return Node("SqrtBox", box_expr1)
@@ -722,16 +769,15 @@ class Parser:
     def b_SubscriptBox(
         self, box_expr1, token: Token, box_expr1_precedence: int
     ) -> Optional[Node]:
-        operator_precedence = all_operators["SubscriptBox"]
-        if box_expr1_precedence > operator_precedence:
+        if box_expr1_precedence > SUBSCRIPTBOX_PRECEDENCE:
             return None
         if box_expr1 is None:
             box_expr1 = NullString
         self.consume()
-        box_expr2 = self.parse_box_expr(operator_precedence)
+        box_expr2 = self.parse_box_expr(SUBSCRIPTBOX_PRECEDENCE)
         if self.next().tag == "OtherscriptBox":
             self.consume()
-            box_expr3 = self.parse_box_expr(all_operators["SubsuperscriptBox"])
+            box_expr3 = self.parse_box_expr(OPERATOR_PRECEDENCE["SubsuperscriptBox"])
             return Node("SubsuperscriptBox", box_expr1, box_expr2, box_expr3)
         else:
             return Node("SubscriptBox", box_expr1, box_expr2)
@@ -739,7 +785,7 @@ class Parser:
     def b_SuperscriptBox(
         self, box_expr1, token: Token, box_expr1_precedence: int
     ) -> Optional[Node]:
-        operator_precedence = all_operators["SuperscriptBox"]
+        operator_precedence = OPERATOR_PRECEDENCE["SuperscriptBox"]
         if box_expr1_precedence > operator_precedence:
             return None
         if box_expr1 is None:
@@ -748,7 +794,7 @@ class Parser:
         box2 = self.parse_box_expr(operator_precedence)
         if self.next().tag == "OtherscriptBox":
             self.consume()
-            box3 = self.parse_box_expr(all_operators["SubsuperscriptBox"])
+            box3 = self.parse_box_expr(OPERATOR_PRECEDENCE["SubsuperscriptBox"])
             return Node("SubsuperscriptBox", box_expr1, box3, box2)
         else:
             return Node("SuperscriptBox", box_expr1, box2)
@@ -756,7 +802,7 @@ class Parser:
     def b_UnderscriptBox(
         self, box_expr1, token: Token, box_expr1_precedence: int
     ) -> Optional[Node]:
-        operator_precedence = all_operators["UnderscriptBox"]
+        operator_precedence = OPERATOR_PRECEDENCE["UnderscriptBox"]
         if box_expr1_precedence > operator_precedence:
             return None
         if box_expr1 is None:
@@ -765,7 +811,7 @@ class Parser:
         box_expr2 = self.parse_box_expr(operator_precedence)
         if self.next().tag == "OtherscriptBox":
             self.consume()
-            box_expr3 = self.parse_box_expr(all_operators["UnderoverscriptBox"])
+            box_expr3 = self.parse_box_expr(OPERATOR_PRECEDENCE["UnderoverscriptBox"])
             return Node("UnderoverscriptBox", box_expr1, box_expr2, box_expr3)
         else:
             return Node("UnderscriptBox", box_expr1, box_expr2)
@@ -785,8 +831,8 @@ class Parser:
         expr2 = self.parse_expr(q + 1)
         return Node("Alternatives", expr1, expr2).flatten()
 
-    def e_ApplyList(self, expr1, _: Token, p: int) -> Optional[Node]:
-        operator_precedence = right_binary_operators["Apply"]
+    def e_MapApply(self, expr1, _: Token, p: int) -> Optional[Node]:
+        operator_precedence = right_binary_operators["MapApply"]
         if operator_precedence < p:
             return None
         self.consume()
@@ -978,31 +1024,29 @@ class Parser:
             head = "Optional"
         else:
             return None
-        q = all_operators[head]
-        if p == 151:
+        if p == PATTERN_PRECEDENCE + 1:
             return None
         self.consume()
-        expr2 = self.parse_expr(q + 1)
+        expr2 = self.parse_expr(OPERATOR_PRECEDENCE[head] + 1)
         return Node(head, expr1, expr2)
 
     @track_location
-    def e_RawLeftBracket(self, expr, token: Token, p: int) -> Optional[Node]:
-        q = all_operators["Part"]
-        if q < p:
+    def e_OpenSquare(self, expr, token: Token, p: int) -> Optional[Node]:
+        if PART_PRECEDENCE < p:
             return None
         self.consume()
         self.bracket_depth += 1
         token = self.next_noend()
-        if token.tag == "RawLeftBracket":
+        if token.tag == "OpenSquare":
             self.consume()
             seq = self.parse_seq()
-            self.expect("RawRightBracket")
-            self.expect("RawRightBracket")
+            self.expect("CloseSquare")
+            self.expect("CloseSquare")
             self.bracket_depth -= 1
             return Node("Part", expr, *seq)
         else:
             seq = self.parse_seq()
-            self.expect("RawRightBracket")
+            self.expect("CloseSquare")
             self.bracket_depth -= 1
 
             if self.is_inside_box_expression:
@@ -1099,7 +1143,7 @@ class Parser:
         return Node("Span", expr1, expr2)
 
     def e_TagSet(self, expr1, token: Token, p: int) -> Optional[Node]:
-        q = all_operators["Set"]
+        q = SET_PRECEDENCE
         if q < p:
             return None
         self.consume()
@@ -1124,8 +1168,7 @@ class Parser:
 
     @track_location
     def e_Unset(self, expr1, _: Token, p: int) -> Optional[Node]:
-        q = all_operators["Set"]
-        if q < p:
+        if p > SET_PRECEDENCE:
             return None
         self.consume()
         return Node("Unset", expr1)
@@ -1148,19 +1191,9 @@ class Parser:
         q = prefix_operators["PreIncrement"]
         return Node("PreIncrement", self.parse_expr(q))
 
-    def p_Information(self, _: Token) -> Node:
-        self.consume()
-        q = prefix_operators["Information"]
-        child = self.parse_expr(q)
-        if child.__class__ is not Symbol:
-            return Node("Missing", String("UnknownSymbol"), child)
-        return Node(
-            "Information", child, Node("Rule", Symbol("LongForm"), Symbol("True"))
-        )
-
     def p_Integral(self, _: Token) -> Node:
         self.consume()
-        inner_prec, outer_prec = all_operators["Sum"] + 1, all_operators["Power"] - 1
+        inner_prec, outer_prec = SUM_PRECEDENCE + 1, POWER_PRECEDENCE - 1
         expr1 = self.parse_expr(inner_prec)
         self.expect("DifferentialD")
         expr2 = self.parse_expr(outer_prec)
@@ -1201,6 +1234,14 @@ class Parser:
         self.tokeniser.is_inside_box = self.box_depth > 0
         result.parenthesised = True
         return result
+
+    def p_LessBar(self, token: Token) -> Node:
+        self.consume()
+        self.bracket_depth += 1
+        seq = self.parse_seq()
+        self.expect("BarGreater")
+        self.bracket_depth -= 1
+        return Node("Association", *seq)
 
     @track_token_location
     def p_Minus(self, _: Token) -> Optional[Node]:
@@ -1295,6 +1336,24 @@ class Parser:
         self.consume()
         return result
 
+    def p_OpenCurly(self, token: Token) -> Node:
+        self.consume()
+        self.bracket_depth += 1
+        seq = self.parse_seq()
+        self.expect("CloseCurly")
+        self.bracket_depth -= 1
+        return Node("List", *seq)
+
+    def p_OpenParen(self, token: Token) -> Node:
+        self.consume()
+        self.bracket_depth += 1
+        result = self.parse_expr(NEVER_ADD_PARENTHESIS)
+        self.expect("CloseParen")
+        self.bracket_depth -= 1
+        assert result is not None
+        result.parenthesised = True
+        return result
+
     def p_Out(self, token: Token) -> Node:
         self.consume()
         text = token.text
@@ -1336,12 +1395,14 @@ class Parser:
             return blank
 
     def p_PatternTest(self, token: Token) -> Node:
-        self.consume()
-        q = prefix_operators["Definition"]
-        child = self.parse_expr(q)
-        return Node(
-            "Information", child, Node("Rule", Symbol("LongForm"), Symbol("False"))
-        )
+        """Called when parsing *unary* postfix "?". In other words,
+        despite the name, this is called for:
+           Information[xxx, LongForm->False).
+
+        binary_expr(), which uses precendence tables, handles binary "?"
+        or PatternTest[].
+        """
+        return self.parse_information_common(token, False)
 
     @track_token_location
     def p_Plus(self, _: Token):
@@ -1371,31 +1432,8 @@ class Parser:
         operator_precedence = operator_precedences["UnaryPlusMinus"]
         return Node("PlusMinus", self.parse_expr(operator_precedence))
 
-    def p_RawLeftAssociation(self, token: Token) -> Node:
-        self.consume()
-        self.bracket_depth += 1
-        seq = self.parse_seq()
-        self.expect("RawRightAssociation")
-        self.bracket_depth -= 1
-        return Node("Association", *seq)
-
-    def p_RawLeftBrace(self, token: Token) -> Node:
-        self.consume()
-        self.bracket_depth += 1
-        seq = self.parse_seq()
-        self.expect("RawRightBrace")
-        self.bracket_depth -= 1
-        return Node("List", *seq)
-
-    def p_RawLeftParenthesis(self, token: Token) -> Node:
-        self.consume()
-        self.bracket_depth += 1
-        result = self.parse_expr(NEVER_ADD_PARENTHESIS)
-        self.expect("RawRightParenthesis")
-        self.bracket_depth -= 1
-        assert result is not None
-        result.parenthesised = True
-        return result
+    def p_QuestionQuestion(self, token: Token) -> Node:
+        return self.parse_information_common(token, True)
 
     def p_Slot(self, token: Token) -> Node:
         self.consume()

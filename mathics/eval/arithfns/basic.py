@@ -12,9 +12,6 @@ from typing import Optional
 import mpmath
 import sympy
 
-# Note: it is important *not* use: from mathics.eval.tracing import run_sympy
-# but instead import the module and access below as tracing.run_sympy.
-# This allows us change where tracing.run_sympy points at runtime.
 from mathics.core.atoms import (
     Integer,
     Integer0,

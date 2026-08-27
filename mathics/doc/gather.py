@@ -86,7 +86,7 @@ def gather_reference_part(documentation, title, modules, builtins_by_module):
 def doc_chapter(module, part, builtins_by_module):
     """
     Build documentation structure for a "Chapter" - reference section which
-    might be a Mathics Module.
+    might be a Mathics3 Module.
     """
     # TODO: reformulate me in a way that symbols are always translated to
     # sections, and guide sections do not contain subsections.
@@ -294,7 +294,7 @@ def get_submodule_names(obj) -> list:
     So in this example then, in the list the modules returned for
     Python module `mathics.builtin.colors` would be the
     `mathics.builtin.colors.named_colors` module which contains the
-    definition and docs for the "Named Colors" Mathics Builtin
+    definition and docs for the "Named Colors" Mathics3 Builtin
     Functions.
     """
     modpkgs = []

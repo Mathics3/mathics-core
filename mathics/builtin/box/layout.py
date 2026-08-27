@@ -459,6 +459,24 @@ class RowBox(BoxExpression):
         return any(item.is_multiline for item in self.items)
 
 
+class ShowSpecialCharacters(Builtin):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ShowSpecialCharacters.html</url>
+    <dl>
+      <dt>'ShowSpecialCharacters'
+      <dd>is an option for 'Style' and 'Cell' that directs whether non-ASCII characters must be shown as special characters or by escaped sequences.
+    </dl>
+
+    <ul>
+    <li>With 'ShowSpecialCharacters' set to 'False', special characters are always displayed by name when possible.
+    </ul>
+    """
+
+    summary_text = "cell and style option directing whether show special characters in a reversible ASCII format."
+
+
 class ShowStringCharacters(Builtin):
     """
     <url>
@@ -546,6 +564,7 @@ class StyleBox(BoxExpression):
     """
 
     options = {
+        "ImageSizeMultipliers": "Automatic",
         "$OptionSyntax": "Ignore",
     }
     attributes = A_PROTECTED | A_READ_PROTECTED
@@ -670,8 +689,8 @@ class SubsuperscriptBox(BoxExpression):
         if self._elements is None:
             # self.box_options
             self._elements = elements_to_expressions(
+                self,
                 (
-                    self,
                     self.base,
                     self.subindex,
                     self.superindex,

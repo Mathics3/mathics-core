@@ -81,7 +81,7 @@ def eval_mpmath_function(
     working with precision `prec`. If `prec` is `None`, work with machine
     precision.
 
-    Return a Mathics Number or None if the evaluation failed.
+    Return a Mathics3 Number or None if the evaluation failed.
     """
     if prec is None:
         # if any argument has machine precision then the entire calculation
@@ -182,6 +182,14 @@ def eval_negate_number(n: Number) -> Number:
         return Rational(-n_num, n_den)
     # Otherwise, multiply by -1:
     return eval_multiply_numbers(IntegerM1, n)
+
+
+def eval_RealValuedNumberQ(expr) -> bool:
+    return (
+        isinstance(expr, (Integer, Rational, Real))
+        or expr.has_form("Underflow", 0)
+        or expr.has_form("Overflow", 0)
+    )
 
 
 def segregate_numbers(

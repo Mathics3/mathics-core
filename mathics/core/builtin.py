@@ -14,18 +14,7 @@ from abc import ABC
 from functools import total_ordering
 from itertools import chain
 from types import ModuleType
-from typing import (
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    Union,
-    cast,
-)
+from typing import Any, Callable, Iterable, List, Optional, Sequence, Tuple, Union, cast
 
 import mpmath
 import sympy
@@ -70,8 +59,8 @@ from mathics.core.list import ListExpression
 from mathics.core.number import PrecisionValueError, dps, get_precision, min_prec
 from mathics.core.parser.operators import OPERATOR_DATA
 from mathics.core.parser.util import PyMathicsDefinitions, SystemDefinitions
-from mathics.core.pattern import BasePattern, build_pattern_sort_key
-from mathics.core.rules import BaseRule, FunctionApplyRule, Rule
+from mathics.core.pattern import BasePattern
+from mathics.core.rules import BaseRule, FunctionApplyRule, RewriteRule
 from mathics.core.symbols import (
     Atom,
     BaseElement,
@@ -86,7 +75,10 @@ from mathics.core.symbols import (
     strip_context,
 )
 from mathics.core.systemsymbols import (
+    SymbolComplexInfinity,
     SymbolDefault,
+    SymbolDirectedInfinity,
+    SymbolInfinity,
     SymbolLessEqual,
     SymbolMessageName,
     SymbolRule,
@@ -163,7 +155,7 @@ class Builtin:
              ...
     ```
 
-    the options are stored as a dictionary in the last parameter. For
+    The options are stored as a dictionary in the last parameter. For
     example, if the rule is applied to ``F[x, Method->Automatic]`` the
     expression is replaced by the output of ``eval_with_options(x,
     evaluation, {"System`Method": Symbol("Automatic")})
@@ -181,7 +173,7 @@ class Builtin:
 
     Notice that for creating a Builtin, we must pass to the
     constructor the option ``expression=False``. Otherwise, an
-    Expression object is created, with the ``Symbol`` associated to
+    Expression object is created, with the ``Symbol`` associated with
     the definition as the ``Head``.  For example,
 
     ```
@@ -202,9 +194,9 @@ class Builtin:
     _is_numeric: bool = False
     attributes: int = A_PROTECTED
     context: str = ""
-    defaults: Dict[Optional[int], str] = {}
+    defaults: dict[Optional[int], str] = {}
 
-    # Number of arguments expected. -1 is used for arbitrary number.
+    # Number of arguments expected. -1 is used for an arbitrary number.
     expected_args: Union[int, Tuple[int, int], range] = -1
 
     formats: Dict[str, Any] = {}
@@ -213,10 +205,11 @@ class Builtin:
     # setting values, or creating/changing contexts.
     has_side_effects: bool = False
 
-    messages: Dict[str, Any] = {}
+    formats: dict[str, Any] = {}
+    messages: dict[str, Any] = {}
     name: Optional[str] = None
-    options: Dict[str, Any] = {}
-    rules: Dict[str, Any] = {}
+    options: dict[str, Any] = {}
+    rules: dict[str, Any] = {}
 
     def __getnewargs_ex__(self):
         return tuple(), {
@@ -258,7 +251,7 @@ class Builtin:
             self.context = "Pymathics`" if is_pymodule else "System`"
             # get_name takes the context from the class, not from the
             # instance, so even if we set the context here,
-            # self.get_name() does not includes the context.
+            # self.get_name() does not include the context.
             name = self.context + name
 
         # - 'Strict': warn and fail with unsupported options
@@ -313,7 +306,6 @@ class Builtin:
                     function,
                     check_options,
                     attributes=pat_attr,
-                    system=True,
                 )
             )
         for pattern_str, replace_str in self.rules.items():
@@ -322,11 +314,10 @@ class Builtin:
             replace_str = replace_str % {"name": name}
             pat_attr = attributes if pattern.get_head_name() == name else None
             rules.append(
-                Rule(
+                RewriteRule(
                     pattern,
                     parse_builtin_rule(replace_str),
                     attributes=pat_attr,
-                    system=not is_pymodule,
                 )
             )
 
@@ -365,7 +356,7 @@ class Builtin:
                 forms = [""]
             return forms, pattern
 
-        formatvalues: Dict[str, List[BaseRule]] = {"": []}
+        formatvalues: dict[str, List[BaseRule]] = {"": []}
         for pattern, function in self.get_functions("format_"):
             forms, pattern = extract_forms(pattern)
             pat_attr = attributes if pattern.get_head_name() == name else None
@@ -374,7 +365,7 @@ class Builtin:
                     formatvalues[form] = []
                 formatvalues[form].append(
                     FunctionApplyRule(
-                        name, pattern, function, None, attributes=pat_attr, system=True
+                        name, pattern, function, None, attributes=pat_attr
                     )
                 )
         for pattern, replace in self.formats.items():
@@ -387,7 +378,7 @@ class Builtin:
                     pattern = parse_builtin_rule(pattern)
                 replace = replace % {"name": name}
                 formatvalues[form].append(
-                    Rule(pattern, parse_builtin_rule(replace), system=True)
+                    RewriteRule(pattern, parse_builtin_rule(replace))
                 )
 
         formatvalues.setdefault("_MakeBoxes", []).extend(box_rules)
@@ -398,19 +389,17 @@ class Builtin:
         if hasattr(self, "summary_text"):
             self.messages["usage"] = self.summary_text
         messages = [
-            Rule(
+            RewriteRule(
                 Expression(SymbolMessageName, Symbol(name), String(msg)),
                 String(value),
-                system=True,
             )
             for msg, value in self.messages.items()
         ]
 
         messages.append(
-            Rule(
+            RewriteRule(
                 Expression(SymbolMessageName, Symbol(name), String("optx")),
                 String("`1` is not a supported option for `2`[]."),
-                system=True,
             )
         )
 
@@ -423,7 +412,7 @@ class Builtin:
             elif isinstance(spec, int):
                 pattern = Expression(SymbolDefault, Symbol(name), Integer(spec))
             if pattern is not None:
-                defaults.append(Rule(pattern, value, system=True))
+                defaults.append(RewriteRule(pattern, value))
 
         definition = Definition(
             name=name,
@@ -461,24 +450,50 @@ class Builtin:
     # arguments expected) It assumes each builtin defines
     # "expected_args" for the correct number of arguments to give.
     # See class mathics.builtin.arithfns.basic.Sqrt for how to set up.
+    #
+    # The way this gets called is weird. It is pattern-matched
+    # along with other function call patterns. As a result, it might
+    # get called when there is no error. Therefore, we need to
+    # determine whether the expected arguments count matches the actual
+    # argument counts of the arguments provided.
     def generic_argument_error(self, invalid, evaluation: Evaluation):
         "%(name)s[invalid___]"
 
         name = self.get_name(short=True)
-        if isinstance(invalid, Atom):
+        if isinstance(invalid, Atom) or invalid.head in (
+            SymbolComplexInfinity,
+            SymbolDirectedInfinity,
+            SymbolInfinity,
+        ):
             got_arg_count = 1
         else:
             got_arg_count = len(invalid.elements)
 
+        if isinstance(self.expected_args, (tuple, range)):
+            if got_arg_count in self.expected_args:
+                return None
+
+        # invalid.elements is not in bounds.
+        # Figure out the right message to report
         if isinstance(self.expected_args, tuple):
-            expected_args1, expected_args2 = self.expected_args
+            expected_args_start, expected_args_end = self.expected_args
+            if hasattr(self, "options") and self.options:
+                if got_arg_count > expected_args_end:
+                    evaluation.message(
+                        name,
+                        "nonopt",
+                        invalid.elements[expected_args_end],
+                        Integer(expected_args_end),
+                        evaluation.current_expression,
+                    )
+                    return
             if got_arg_count == 1:
                 evaluation.message(
                     name,
                     "argtu",
                     Symbol(name),
-                    Integer(expected_args1),
-                    Integer(expected_args2),
+                    Integer(expected_args_start),
+                    Integer(expected_args_end),
                 )
             else:
                 evaluation.message(
@@ -486,8 +501,8 @@ class Builtin:
                     "argt",
                     Symbol(name),
                     Integer(got_arg_count),
-                    Integer(expected_args1),
-                    Integer(expected_args2),
+                    Integer(expected_args_start),
+                    Integer(expected_args_end),
                 )
         elif isinstance(self.expected_args, range):
             if self.expected_args.stop == sys.maxsize:
@@ -507,6 +522,22 @@ class Builtin:
                         Integer(self.expected_args.start),
                     )
             else:
+                if (
+                    (expected_args_start := self.expected_args.start) <= got_arg_count
+                    and hasattr(self, "options")
+                    and self.options
+                ):
+                    if got_arg_count > expected_args_start:
+                        expected_args_end = self.expected_args.stop - 1
+                        evaluation.message(
+                            name,
+                            "nonopt",
+                            invalid.elements[expected_args_end],
+                            Integer(expected_args_end),
+                            evaluation.current_expression,
+                        )
+                        return
+
                 evaluation.message(
                     name,
                     "argb",
@@ -516,6 +547,8 @@ class Builtin:
                     Integer(self.expected_args.stop - 1),
                 )
         else:
+            if self.expected_args == got_arg_count:
+                return None
             if self.expected_args == 1:
                 evaluation.message(name, "argx", Symbol(name), Integer(got_arg_count))
             elif got_arg_count == 1:
@@ -619,7 +652,7 @@ class Builtin:
     def get_option_string(self, *params) -> Tuple[Optional[str], Optional[BaseElement]]:
         """
         Return a tuple of a `str` representing the option name,
-        and the proper Mathics value of the option.
+        and the proper Mathics3 value of the option.
         If the value does not have a name, the name is None.
         """
         s = self.get_option(*params)
@@ -645,7 +678,7 @@ class Builtin:
 
 
 class BuiltinElement(Builtin, BaseElement):
-    options: Dict[str, Any]
+    options: dict[str, Any]
 
     def __new__(cls, *args, **kwargs):
         new_kwargs = kwargs.copy()
@@ -658,8 +691,8 @@ class BuiltinElement(Builtin, BaseElement):
             try:
                 instance.init(*args, **kwargs)
             except TypeError:
-                # TypeError occurs when unpickling instance, e.g. PatternObject,
-                # because parameter expr is not given. This should no be a
+                # TypeError occurs when unpickling instance, e.g., PatternObject,
+                # because parameter expr is not given. This should not be a
                 # problem, as pickled objects need their init-method not
                 # being called.
                 pass
@@ -676,7 +709,7 @@ class BuiltinElement(Builtin, BaseElement):
 class SympyObject(Builtin):
     sympy_name: Optional[str] = None
 
-    mathics_to_sympy: Dict[str, str] = {}
+    mathics_to_sympy: dict[str, str] = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -684,7 +717,7 @@ class SympyObject(Builtin):
             self.sympy_name = strip_context(self.get_name()).lower()
         self.mathics_to_sympy[self.__class__.__name__] = self.sympy_name
 
-    def get_sympy_names(self) -> List[str]:
+    def get_sympy_names(self) -> list[str]:
         if self.sympy_name:
             return [self.sympy_name]
         return []
@@ -817,8 +850,8 @@ class MPMathFunction(SympyFunction):
 
 
 class MPMathMultiFunction(MPMathFunction):
-    sympy_names: Optional[Dict[int, str]] = None
-    mpmath_names: Optional[Dict[int, str]] = None
+    sympy_names: Optional[dict[int, str]] = None
+    mpmath_names: Optional[dict[int, str]] = None
 
     def get_sympy_names(self):
         if self.sympy_names is None:
@@ -941,7 +974,7 @@ def has_option(options, name, evaluation):
     return get_option(options, name, evaluation, evaluate=False) is not None
 
 
-mathics_to_python: Dict[str, Any] = {}  # here we have: name -> string
+mathics_to_python: dict[str, Any] = {}  # here we have: name -> string
 
 
 @total_ordering
@@ -1370,7 +1403,7 @@ class InfixOperator(Operator):
         operator = ascii_operator_to_symbol.get(self.operator, self.__class__.__name__)
 
         if self.default_formats:
-            if name not in ("Rule", "RuleDelayed"):
+            if name not in ("RewriteRule", "Rule", "RuleDelayed"):
                 formats = {
                     op_pattern: "HoldForm[Infix[{%s}, %s, %d, %s]]"
                     % (replace_items, operator, self.precedence, self.grouping)
@@ -1400,7 +1433,7 @@ class NoMeaningInfixOperator(InfixOperator):
     # This will be used to create a docstring
     __doc_pattern__ = r"""
     <url>
-    :WML link:
+    :WMA link:
     https://reference.wolfram.com/language/ref/{operator_name}.html</url>
 
     <dl>
@@ -1500,7 +1533,7 @@ class NoMeaningPostfixOperator(PostfixOperator):
     # This will be used to create a docstring
     __doc_pattern__ = r"""
     <url>
-    :WML link:
+    :WMA link:
     https://reference.wolfram.com/language/ref/{operator_name}.html</url>
 
     <dl>
@@ -1542,7 +1575,7 @@ class NoMeaningPrefixOperator(PrefixOperator):
     # This will be used to create a docstring
     __doc_pattern__ = r"""
     <url>
-    :WML link:
+    :WMA link:
     https://reference.wolfram.com/language/ref/{operator_name}.html</url>
 
     <dl>
@@ -1608,8 +1641,8 @@ def add_no_meaning_builtin_classes(
 class PatternObject(BuiltinElement, BasePattern):
     needs_verbatim = True
 
-    arg_counts: List[int] = []
-    options: Dict[str, Any]
+    arg_counts: list[int] = []
+    options: dict[str, Any]
 
     def init(self, expr: Expression, evaluation: Optional[Evaluation] = None):
         super().init(expr, evaluation=evaluation)
@@ -1665,16 +1698,11 @@ class PatternObject(BuiltinElement, BasePattern):
         """
         return self.expr.element_order
 
-    @property
-    def pattern_precedence(self) -> tuple:
-        """
-        Return a precedence value, a tuple, which is used in selecting
-        which pattern to select when several match.
-        """
-        return build_pattern_sort_key(self)
-
 
 class Test(Builtin, ABC):
+    expected_args = 1
+    eval_error = Builtin.generic_argument_error
+
     def eval(self, expr, evaluation: Evaluation) -> Optional[BooleanType]:
         # Note: in the docstring below, we need to use %(name)s for
         # subclasses like ExactNumberQ to work with function-application

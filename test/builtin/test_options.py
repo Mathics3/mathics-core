@@ -21,8 +21,8 @@ import pytest
             "x ^ 7",
             None,
         ),
-        ("f /: Options[f] = {a -> b}", None, "{a -> b}", None),
-        ("Options[f]", None, "{a :> b}", None),
+        ("f /: Options[f] = {a -> b}", None, "{a ⇾ b}", None),
+        ("Options[f]", None, "{a ⇾ b}", None),
         (
             "f /: Options[g] := {a -> b}",
             ("Rule for Options can only be attached to g.",),
@@ -35,9 +35,33 @@ import pytest
             "a /; True",
             None,
         ),
+        (
+            "Options[Plot, Ticks]",
+            None,
+            "{Ticks ⇾ Automatic}",
+            None,
+        ),
+        (
+            'Options[Plot, "Ticks"]',
+            None,
+            "{Ticks ⇾ Automatic}",
+            None,
+        ),
+        (
+            "Options[AtomQ, Foo]",
+            ["Option name Foo is not a known option for AtomQ."],
+            "Options[AtomQ, Foo]",
+            None,
+        ),
+        (
+            'Options[AtomQ, "Foo"]',
+            ["Option name Foo is not a known option for AtomQ."],
+            "Options[AtomQ, Foo]",
+            None,
+        ),
     ],
 )
-def test_private_doctests_options(str_expr, msgs, str_expected, fail_msg):
+def test_options(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,

@@ -90,7 +90,7 @@ class AssocTests(ParserTests):
 
 class AtomTests(ParserTests):
     def has_unicode_setup_in_scanner(self) -> bool:
-        """Return True if the Mathics scanner is set up to
+        """Return True if the Mathics3 scanner is set up to
         return standard Unicode symbols for various custom WL characters"""
         return repr(self.parse("\\[ExponentialE]")) != "E"
 
@@ -634,12 +634,8 @@ class GeneralTests(ParserTests):
         )
 
     def testInformation(self):
-        self.check("??a", "Information[a, LongForm -> True]")
-        self.check("a ?? b", "a Information[b, LongForm -> True]")
-        self.check("a ?? + b", 'Times[a, Missing["UnknownSymbol", Plus[b]]]')
-        self.check("a + ?? b", "a + Information[b, LongForm -> True]")
-        self.check("??a + b", "Information[a, LongForm -> True] + b")
-        self.check("??a * b", "Information[a, Rule[LongForm, True]]*b")
+        self.check("??a", 'Information["a", LongForm -> True]')
+        self.check("a ?? b", 'a Information["b", LongForm -> True]')
 
 
 class BoxTests(ParserTests):

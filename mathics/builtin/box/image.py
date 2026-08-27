@@ -119,7 +119,9 @@ class RasterBox(BoxExpression):
         # This produces a random name, where the png file is going to be stored.
         # LaTeX does not have a native way to store an figure embedded in
         # the source.
-        fp = tempfile.NamedTemporaryFile(delete=True, suffix=".png")
+        fp = tempfile.NamedTemporaryFile(
+            delete=True, prefix="Mathics3_RasterBox_", suffix=".png"
+        )
         path = fp.name
         fp.close()
 

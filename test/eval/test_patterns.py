@@ -13,7 +13,7 @@ from mathics.core.parser import MathicsSingleLineFeeder, parse
 from mathics.core.pattern import ExpressionPattern
 from mathics.eval.patterns import Matcher
 
-# Preload the Mathics definitions
+# Preload the Mathics3 definitions
 defintions = Definitions(True)
 
 

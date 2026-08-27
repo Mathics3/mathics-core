@@ -3,6 +3,10 @@ Format functions for arithmetic expressions.
 
 """
 
+from typing import Optional
+
+from mathics_scanner.characters import NAMED_CHARACTERS
+
 from mathics.builtin.arithmetic import create_infix
 from mathics.core.atoms import (
     Complex,
@@ -23,8 +27,10 @@ from mathics.core.symbols import SymbolDivide, SymbolHoldForm, SymbolPower, Symb
 from mathics.core.systemsymbols import SymbolInfix, SymbolLeft, SymbolMinus
 from mathics.format.form.util import PRECEDENCE_PLUS, PRECEDENCE_TIMES
 
+INVISIBLE_TIMES: str = NAMED_CHARACTERS["InvisibleTimes"]
 
-def format_plus(items, evaluation: Evaluation):
+
+def format_plus(items, evaluation: Evaluation) -> Expression:
     """format Times[___] using `op` as operator"""
 
     def negate(item):  # -> Expression (see FIXME below)
@@ -76,7 +82,9 @@ def format_plus(items, evaluation: Evaluation):
     )
 
 
-def format_times(items, evaluation, op="\u2062"):
+def format_times(
+    items, evaluation: Evaluation, op: str = INVISIBLE_TIMES
+) -> Optional[Expression]:
     """format Times[___] using `op` as operator"""
 
     def inverse(item):
@@ -93,44 +101,46 @@ def format_times(items, evaluation, op="\u2062"):
 
     items = items.get_sequence()
     if len(items) < 2:
-        return
-    positive = []
-    negative = []
+        return None
+    positive_formatted = []
+    negative_formatted = []
     for item in items:
         if (
             item.has_form("Power", 2)
             and isinstance(item.elements[1], (Integer, Rational, Real))
             and item.elements[1].to_sympy() < 0
         ):  # nopep8
-            negative.append(inverse(item))
+            negative_formatted.append(inverse(item))
         elif isinstance(item, Rational):
             numerator = item.numerator()
             if not numerator.sameQ(Integer1):
-                positive.append(numerator)
-            negative.append(item.denominator())
+                positive_formatted.append(numerator)
+            negative_formatted.append(item.denominator())
         else:
-            positive.append(item)
+            positive_formatted.append(item)
 
-    if positive and hasattr(positive[0], "value") and positive[0].value == -1:
-        del positive[0]
+    if (
+        positive_formatted
+        and hasattr(positive_formatted[0], "value")
+        and positive_formatted[0].value == -1
+    ):
+        del positive_formatted[0]
         minus = True
     else:
         minus = False
-    positive = [Expression(SymbolHoldForm, item) for item in positive]
-    negative = [Expression(SymbolHoldForm, item) for item in negative]
-    if positive:
-        positive = create_infix(positive, op, PRECEDENCE_TIMES, "Left")
+    if positive_formatted:
+        positive_result = create_infix(positive_formatted, op, PRECEDENCE_TIMES, "Left")
     else:
-        positive = Integer1
-    if negative:
-        negative = create_infix(negative, op, PRECEDENCE_TIMES, "Left")
+        positive_result = Integer1
+    if negative_formatted:
+        negative_result = create_infix(negative_formatted, op, PRECEDENCE_TIMES, "Left")
         result = Expression(
             SymbolDivide,
-            Expression(SymbolHoldForm, positive),
-            Expression(SymbolHoldForm, negative),
+            Expression(SymbolHoldForm, positive_result),
+            Expression(SymbolHoldForm, negative_result),
         )
     else:
-        result = positive
+        result = positive_result
     if minus:
         result = Expression(
             SymbolMinus, result

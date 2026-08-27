@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Code Compilation
 
-Code compilation allows Mathics functions to be run faster.
+Code compilation allows Mathics3 functions to be run faster.
 
 When LLVM and Python libraries are available, compilation \
 produces LLVM code.
@@ -171,7 +171,7 @@ class CompiledCode(Atom, ImmutableValueMixin):
         return super().pattern_precedence
 
     def sameQ(self, rhs) -> bool:
-        """Mathics SameQ"""
+        """Mathics3 SameQ"""
         return self is rhs
 
     def to_python(self, *args, **kwargs):

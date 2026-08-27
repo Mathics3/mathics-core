@@ -107,7 +107,7 @@ def test_nestwhile(str_expr, str_expected):
         ),
     ],
 )
-def test_private_doctests_procedural(str_expr, msgs, str_expected, fail_msg):
+def test_procedural(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,

@@ -172,22 +172,34 @@ class ExpressionPointer:
         # At this point, we hit the expression, and we have
         # the path to reach the position
         i = pos.pop()
+        # Variables to track the parent and the position of that parent.
+        current = parent
+        current_parent = None
+        current_index = None
+
         try:
             while pos:
+                current_parent = current
+                current_index = i
                 if i == 0:
-                    parent = parent._head
+                    current = current._head
                 else:
-                    parent = parent.elements[i - 1]
+                    current = current.elements[i - 1]
                 i = pos.pop()
-        except Exception:
+        except IndexError:
             raise MessageException("Part", "span", pos)
 
-        # Now, we have a pointer to an element in a true `Expression`.
-        # Now, set it to the new value.
+        # Now, current is the subexpression to be modified, and current_parent
+        # is the expression that holds it (if exists).
         if i == 0:
-            parent.set_head(new)
+            current.set_head(new)
         else:
-            parent.set_element(i - 1, new)
+            current.set_element(i - 1, new)
+
+        # If the modified subexpression is not the root,
+        # invalidate the parent cache.
+        if current_parent is not None:
+            current_parent._cache = None
 
 
 class SubExpression:

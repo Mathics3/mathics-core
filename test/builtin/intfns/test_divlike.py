@@ -3,7 +3,7 @@
 Unit tests from mathics.builtin.intfns.divlike
 """
 
-from test.helper import check_evaluation
+from test.helper import check_arg_counts, check_evaluation
 
 import pytest
 
@@ -15,7 +15,28 @@ import pytest
             "Quotient[13, 0]",
             ("Infinite expression Quotient[13, 0] encountered.",),
             "ComplexInfinity",
+            "Check Quotient two-argument divide by 0 error result",
+        ),
+        (
+            "Quotient[1, 0, 1]",
+            ("Indeterminate expression Quotient[1, 0, 1] encountered.",),
+            "Indeterminate",
+            "Check Quotient three-argument 0/0 error result",
+        ),
+        (
+            "Quotient[0, 0]",
+            ("Indeterminate expression Quotient[0, 0] encountered.",),
+            "Indeterminate",
+            "Check Quotient two-argument 0/0 error",
+        ),
+        (
+            "N[Quotient[n, 5]]",
             None,
+            "Quotient[n, 5.]",
+            (
+                "Check that argument checking does not trigger an error "
+                "in symbolic calculations. #Issue 1722"
+            ),
         ),
         ("Quotient[-17, 7]", None, "-3", None),
         ("Quotient[-17, -4]", None, "4", None),
@@ -79,15 +100,4 @@ def test_divlike(str_expr, msgs, str_expected, fail_msg):
 )
 def test_divlike_arg_errors(function_name, msg_fragment):
     """ """
-
-    str_expr = f"{function_name}[]"
-    expected_msgs = [
-        f"{function_name} called with 0 arguments; {msg_fragment} expected."
-    ]
-    failure_message = f"{function_name} argument number error"
-    check_evaluation(
-        str_expr,
-        str_expr,
-        failure_message=failure_message,
-        expected_messages=expected_msgs,
-    )
+    check_arg_counts(function_name, msg_fragment)

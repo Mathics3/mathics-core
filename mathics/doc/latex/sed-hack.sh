@@ -13,14 +13,12 @@ if [[ -f documentation.tex ]] ; then
     cp documentation.tex{,-before-sed}
 fi
 
-sed -i -e 's/ⅅ/$\\mathbb{D}$/' documentation.tex
-# Greek
 sed -i -e 's/Φ/$\\\\Phi$/g' documentation.tex
+sed -i -e 's/⩵/==/g' documentation.tex
+
 sed -i -e s/μ/$\\\\mu$/g documentation.tex
+sed -i -e s/reference-of-built-in-symbols/r/g documentation.tex
+sed -i -e s/integer-and-number-theoretical-functions/int-fns/g documentation.tex
+sed -i -e s/mathematical-constants/math-consts/g documentation.tex
 
-
-# TODO: find the right LaTeX representation for these characters
-sed -i -e 's/ç/\\c{c}/g' documentation.tex
-sed -i -e 's/ñ/\\~n/g' documentation.tex
-sed -i -e 's/ê/\\^e/g' documentation.tex
-sed -i -e "s/é/\\\'e/g" documentation.tex
+# sed -i -e "s:'[\$]Path':\$Path:g" documentation.tex

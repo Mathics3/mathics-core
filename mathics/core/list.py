@@ -41,6 +41,7 @@ class ListExpression(Expression):
         self.pattern_sequence = False
         self._head = SymbolList
         self._sympy = None
+        self.value = None
 
         # For debugging:
 
