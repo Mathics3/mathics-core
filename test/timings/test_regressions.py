@@ -133,12 +133,14 @@ import pytest
 )
 def test_reference_benchmark(benchmark):
     # Uses as a baseline the time that takes to sum
-    # the square of the first 10000 integers in Python.
+    # the square of the first 30000 integers in Python.
+    # The task takes nearly 1s on average in my Thinkpad T15
+    # with 16GB RAM running Ubuntu.
     def reference_task():
-        return sum([i**2 for i in range(10000)])
+        return sum([i**2 for i in range(30000)])
 
     result = benchmark(reference_task)
-    assert result == sum(i**2 for i in range(10000))
+    assert result == sum(i**2 for i in range(30000))
 
 
 @pytest.mark.skipif(
