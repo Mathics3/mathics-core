@@ -1732,8 +1732,8 @@ class DeferredExpressionPattern(BasePattern):
     attributes without any special re-derivation logic here).
     """
 
-    def __init__(self, expr: BaseElement):
-        self.expr = expr
+    def __init__(self, expr: Expression):
+        self.expr: Expression = expr
         self.location = expr.location if hasattr(expr, "location") else None
         # Built without an evaluation, same as ExpressionPattern.__init__
         # would -- these may themselves come back as further
