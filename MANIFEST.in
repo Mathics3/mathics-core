@@ -1,5 +1,5 @@
 include README.rst
-include CHANGES.rst
+include CHANGES.md
 include ChangeLog
 include COPYING.txt
 include FUTURE.rst
@@ -11,4 +11,4 @@ include mathics/doc/latex/mathics.pdf
 recursive-include mathics *.py
 recursive-include mathics/autoload *
 recursive-include mathics/data *
-recursive-include test *.py *.m *.wl
+recursive-include test *.py *.yaml *.m *.wl

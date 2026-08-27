@@ -192,7 +192,7 @@ class _ColorObject(_GraphicsDirective, ImmutableValueMixin):
     def create_as_style(klass, graphics, item):
         return klass(item)
 
-    def to_css(self):
+    def to_css(self) -> str:
         rgba = self.to_rgba()
         alpha = rgba[3] if len(rgba) > 3 else None
         return (
@@ -200,7 +200,7 @@ class _ColorObject(_GraphicsDirective, ImmutableValueMixin):
             alpha,
         )
 
-    def to_js(self):
+    def to_js(self) -> str:
         return self.to_rgba()
 
     def to_expr(self):
@@ -635,7 +635,7 @@ class Opacity(_GraphicsDirective):
             super(Opacity, self).init(None, item)
         self.opacity = item.elements[0].to_python()
 
-    def to_css(self):
+    def to_css(self) -> str:
         try:
             if 0.0 <= self.opacity <= 1.0:
                 return self.opacity

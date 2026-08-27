@@ -55,11 +55,12 @@ def test_session_format_evaluation():
     assert session.format_result(form="text") == "a / b"
     assert session.format_result(form="latex") == "\\frac{a}{b}"
     assert session.format_result(form="xml") == (
-        '<math display="block"><mfrac>' "<mi>a</mi> <mi>b</mi>" "</mfrac></math>"
+        '<math display="block">\n <mfrac>\n  <mi>a</mi>\n  <mi>b</mi>\n </mfrac>\n</math>'
     )
 
 
 def test_session_parse():
+    session.reset()
     parsed = session.parse("a/b")
     expected = Expression(
         SymbolTimes,

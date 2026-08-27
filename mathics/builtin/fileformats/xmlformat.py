@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 
 """
-XML
+XML File Format
 
-Basic implementation for an XML importer.
+XML importer (via lxml).
 """
 
 
 import re
 from io import BytesIO
 
-from mathics.builtin.files_io.files import MathicsOpen
+from mathics.builtin.files_io.files import Mathics3Open
 from mathics.core.atoms import String
 from mathics.core.builtin import Builtin, MessageException
 from mathics.core.convert.expression import to_expression, to_mathics_list
@@ -206,7 +206,7 @@ def parse_xml_stream(f):
 
 
 def parse_xml_file(filename):
-    with MathicsOpen(filename, "rb") as f:
+    with Mathics3Open(filename, "rb") as f:
         root = parse_xml_stream(f)
     return root
 
@@ -345,6 +345,12 @@ class PlaintextImport(Builtin):
         plaintext = String("\n".join(lines()))
         return to_mathics_list(to_expression("Rule", "Plaintext", plaintext))
 
+    def eval_with_element(self, text, element, evaluation: Evaluation):
+        """%(name)s[text_String, element_]"""
+        # FIXME: right now we aren't using element, and should use this to more
+        # efficiently extract part of the XML file that we want.
+        return self.eval(text, evaluation)
+
 
 class TagsImport(Builtin):
     """
@@ -381,6 +387,12 @@ class TagsImport(Builtin):
             return root
         return to_mathics_list(to_expression("Rule", "Tags", self._tags(root)))
 
+    def eval_with_element(self, text, element, evaluation: Evaluation):
+        """%(name)s[text_String, element_]"""
+        # FIXME: right now we aren't using element, and should use this to more
+        # efficiently extract part of the XML file that we want.
+        return self.eval(text, evaluation)
+
 
 class XMLObjectImport(Builtin):
     """
@@ -395,7 +407,7 @@ class XMLObjectImport(Builtin):
      = XMLElement[identification, {}, {XMLElement[encoding, {}, {XMLElement[software, {}, {MuseScore 1.2}], XMLElement[encoding-date, {}, {2012-09-12}]}]}]
 
     >> Part[Import["ExampleData/Namespaces.xml"], 2]
-     = XMLElement[book, {{http://www.w3.org/2000/xmlns/, xmlns} -> urn:loc.gov:books}, {XMLElement[title, {}, {Cheaper by the Dozen}], XMLElement[{urn:ISBN:0-395-36341-6, number}, {}, {1568491379}], XMLElement[notes, {}, {XMLElement[p, {{http://www.w3.org/2000/xmlns/, xmlns} -> http://www.w3.org/1999/xhtml}, {This is a, XMLElement[i, {}, {funny, book!}]}]}]}]
+     = XMLElement[book, {{http://www.w3.org/2000/xmlns/, xmlns} ⇾ urn:loc.gov:books}, {XMLElement[title, {}, {Cheaper by the Dozen}], XMLElement[{urn:ISBN:0-395-36341-6, number}, {}, {1568491379}], XMLElement[notes, {}, {XMLElement[p, {{http://www.w3.org/2000/xmlns/, xmlns} ⇾ http://www.w3.org/1999/xhtml}, {This is a, XMLElement[i, {}, {funny, book!}]}]}]}]
     """
 
     summary_text = "import elements from xml"
@@ -405,3 +417,9 @@ class XMLObjectImport(Builtin):
         """%(name)s[text_String]"""
         xml = to_expression("XML`Parser`XMLGet", text).evaluate(evaluation)
         return to_mathics_list(to_expression("Rule", "XMLObject", xml))
+
+    def eval_with_element(self, text, element, evaluation: Evaluation):
+        """%(name)s[text_String, element_]"""
+        # FIXME: right now we aren't using element, and should use this to more
+        # efficiently extract part of the XML file that we want.
+        return self.eval(text, evaluation)

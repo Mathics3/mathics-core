@@ -214,7 +214,7 @@ def test_Solve(str_expr: str, str_expected: str, expected_messages):
             "{2 #1}",
             "Issue #375: avoid slots in rule handling D[{...}",
         ),
-        ("FindRoot[2.5==x,{x,0}]", None, "{x -> 2.5}", None),
+        ("FindRoot[2.5==x,{x,0}]", None, "{x ⇾ 2.5}", None),
         ("DownValues[Integrate]", None, "{}", None),
         (
             "Definition[Integrate]",
@@ -222,7 +222,7 @@ def test_Solve(str_expr: str, str_expected: str, expected_messages):
             (
                 "Attributes[Integrate] = {Protected, ReadProtected}\n"
                 "\n"
-                "Options[Integrate] = {Assumptions -> $Assumptions, GenerateConditions -> Automatic, PrincipalValue -> False}\n"
+                "Options[Integrate] = {Assumptions ⇾ $Assumptions, GenerateConditions ⇾ Automatic, PrincipalValue ⇾ False}\n"
             ),
             None,
         ),

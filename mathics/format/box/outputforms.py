@@ -30,7 +30,7 @@ def eval_mathmlform(expr: BaseElement, evaluation: Evaluation) -> BoxElementMixi
 
     boxes = format_element(expr, evaluation, SymbolTraditionalForm)
     try:
-        mathml = boxes.boxes_to_mathml(evaluation=evaluation)
+        mathml = boxes.to_mathml(evaluation=evaluation, _indent_level=1)
     except BoxError:
         evaluation.message(
             "General",
@@ -44,9 +44,15 @@ def eval_mathmlform(expr: BaseElement, evaluation: Evaluation) -> BoxElementMixi
     # #convert_box(boxes)
     query = evaluation.parse("Settings`$UseSansSerif")
     usesansserif = query.evaluate(evaluation).to_python()
-    if not is_a_picture:
-        if isinstance(usesansserif, bool) and usesansserif:
-            mathml = '<mstyle mathvariant="sans-serif">%s</mstyle>' % mathml
+    if is_a_picture:
+        usesansserif = False
+    elif not isinstance(usesansserif, bool):
+        usesansserif = False
+
+    if usesansserif:
+        mathml = '<mstyle mathvariant="sans-serif">\n%s\n</mstyle>' % mathml
+    else:
+        mathml = "\n%s\n" % mathml
 
     mathml = '<math display="block">%s</math>' % mathml  # convert_box(boxes)
     return InterpretationBox(
@@ -70,7 +76,7 @@ def eval_tableform(
     depth = self.get_option(options, "TableDepth", evaluation, pop=True)
     options["System`TableDepth"] = depth
     depth = expr_min((Integer(dims), depth))
-    depth = depth.value
+    depth = depth.value if isinstance(depth, Integer) else None
     if depth is None:
         evaluation.message(self.get_name(), "int")
         return
@@ -126,14 +132,12 @@ def eval_texform(expr: BaseElement, evaluation: Evaluation) -> BoxElementMixin:
         # Here we set ``show_string_characters`` to False, to reproduce
         # the standard behaviour in WMA. Remove this parameter to recover the
         # quotes in InputForm and FullForm
-        tex = boxes.boxes_to_tex(
-            evaluation=evaluation, show_string_characters=SymbolFalse
-        )
+        tex = boxes.to_tex(evaluation=evaluation, show_string_characters=SymbolFalse)
 
         # Replace multiple newlines by a single one e.g. between asy-blocks
         tex = MULTI_NEWLINE_RE.sub("\n", tex)
 
-        tex = tex.replace(" \uF74c", " \\, d")  # tmp hack for Integrate
+        tex = tex.replace(" \uf74c", " \\, d")  # tmp hack for Integrate
     except BoxError:
         evaluation.message(
             "General",

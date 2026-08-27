@@ -9,6 +9,7 @@ or <url>:StandardForm:
 /doc/reference-of-built-in-symbols/forms-of-input-and-output/general-purpose-forms/standardform/</url>, \
 which are intended to work over all kinds of data.
 """
+
 from typing import Any, Callable, Dict, List, Optional
 
 from mathics.builtin.box.layout import RowBox, StyleBox, SuperscriptBox
@@ -104,7 +105,6 @@ class _NumberForm(Builtin):
     default_NumberFormat = None
     in_outputforms = True
     messages = {
-        "argm": ("`` called with `` arguments; 1 or more " "arguments are expected."),
         "argct": "`` called with `` arguments.",
         "npad": (
             "Value for option NumberPadding -> `1` should be a string or "
@@ -128,7 +128,6 @@ class _NumberForm(Builtin):
             "Value for option NumberSeparator -> `1` should be a string "
             "or a pair of strings."
         ),
-        "opttf": "Value of option `1` -> `2` should be True or False.",
         "sigz": (
             "In addition to the number of digits requested, one or more "
             "zeros will appear as placeholders."
@@ -679,7 +678,7 @@ class StringForm(FormBaseClass):
      = `` is Global`a
 
     To use a 'Backquote' as a character, escape it with a backslash:
-    >> StringForm["`` is Global\`a", a]
+    >> StringForm["`` is Global\\`a", a]
      = a is Global`a
 
     Elements are formatted according the enclosing context:
@@ -699,7 +698,7 @@ class StringForm(FormBaseClass):
     }
     summary_text = "format a string from a template and a list of parameters"
 
-    def eval_makeboxes(self, s, args, form, evaluation):
+    def eval_makeboxes(self, s: String, args, form, evaluation: Evaluation):
         """MakeBoxes[StringForm[s_String, args___],
         form:StandardForm|TraditionalForm]"""
         try:

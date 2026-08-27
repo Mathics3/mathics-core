@@ -224,13 +224,13 @@ def trace_fn_call_event(func: Callable) -> Callable:
 
 
 @trace_fn_call_event
-def trace_call(fn: Callable, *args) -> Any:
+def trace_call(fn: Callable, *args, **kwargs) -> Any:
     """
     Runs a function inside a decorator that
     traps call and return information that can be used in
     a tracer or debugger
     """
-    return fn(*args)
+    return fn(*args, **kwargs)
 
 
 def call_event_print(event: TraceEvent, fn: Callable, *args) -> bool:
@@ -254,22 +254,22 @@ def return_event_print(event: TraceEvent, result: Any) -> Any:
     return result
 
 
-def run_fast(fn: Callable, *args) -> Any:
+def run_fast(fn: Callable, *args, **kwargs) -> Any:
     """
     Fast-path call to run a event-tracable function, but no tracing is
     in effect. This add another level of indirection to
     some function calls, but Jit'ing will probably remove this
     when it is a bottleneck.
     """
-    return fn(*args)
+    return fn(*args, **kwargs)
 
 
-def run_mpmath_traced(fn: Callable, *args) -> Any:
-    return trace_call(TraceEvent.mpmath, fn, *args)
+def run_mpmath_traced(fn: Callable, *args, **kwargs) -> Any:
+    return trace_call(TraceEvent.mpmath, fn, *args, **kwargs)
 
 
-def run_sympy_traced(fn: Callable, *args) -> Any:
-    return trace_call(TraceEvent.SymPy, fn, *args)
+def run_sympy_traced(fn: Callable, *args, **kwargs) -> Any:
+    return trace_call(TraceEvent.SymPy, fn, *args, **kwargs)
 
 
 # The below functions are changed by a tracer or debugger

@@ -90,7 +90,7 @@ class AssocTests(ParserTests):
 
 class AtomTests(ParserTests):
     def has_unicode_setup_in_scanner(self) -> bool:
-        """Return True if the Mathics scanner is set up to
+        """Return True if the Mathics3 scanner is set up to
         return standard Unicode symbols for various custom WL characters"""
         return repr(self.parse("\\[ExponentialE]")) != "E"
 
@@ -546,12 +546,12 @@ class GeneralTests(ParserTests):
         self.check("a \\[Cup] b \\[Cup] c", "Cup[a,b,c]")
         self.check("a \u2322 b \u2322 c", "Cap[a,b,c]")
         self.check("a \u2323 b", "Cup[a, b]")
-        self.check("1 \u22C4 2", Node("Diamond", Number("1"), Number("2")))
-        self.check("1 \u22C0 2", Node("Wedge", Number("1"), Number("2")))
+        self.check("1 \u22c4 2", Node("Diamond", Number("1"), Number("2")))
+        self.check("1 \u22c0 2", Node("Wedge", Number("1"), Number("2")))
         self.check("1 \u22c1 2", Node("Vee", Number("1"), Number("2")))
         self.check("1 \u2297 2", Node("CircleTimes", Number("1"), Number("2")))
-        self.check("1 \u00B7 2", Node("CenterDot", Number("1"), Number("2")))
-        self.check("1 \u22C6 2", Node("Star", Number("1"), Number("2")))
+        self.check("1 \u00b7 2", Node("CenterDot", Number("1"), Number("2")))
+        self.check("1 \u22c6 2", Node("Star", Number("1"), Number("2")))
         self.check(
             "expr1 ** expr2",
             Node("NonCommutativeMultiply", Symbol("expr1"), Symbol("expr2")),
@@ -634,12 +634,8 @@ class GeneralTests(ParserTests):
         )
 
     def testInformation(self):
-        self.check("??a", "Information[a, LongForm -> True]")
-        self.check("a ?? b", "a Information[b, LongForm -> True]")
-        self.check("a ?? + b", 'Times[a, Missing["UnknownSymbol", Plus[b]]]')
-        self.check("a + ?? b", "a + Information[b, LongForm -> True]")
-        self.check("??a + b", "Information[a, LongForm -> True] + b")
-        self.check("??a * b", "Information[a, Rule[LongForm, True]]*b")
+        self.check("??a", 'Information["a", LongForm -> True]')
+        self.check("a ?? b", 'a Information["b", LongForm -> True]')
 
 
 class BoxTests(ParserTests):

@@ -28,7 +28,7 @@ class BoxForms_(Predefined):
     in 'MakeBoxes' expressions.
 
     Adding a new 'MakeBoxes' rule does not \
-    automatically extend the $BoxForms list as happens, for example, in <url>:\$PrintForm:
+    automatically extend the '\$BoxForms' list as happens, for example, in <url>:\$PrintForm:
     /doc/reference-of-built-in-symbols/forms-of-input-and-output/form-variables/\$printforms
     </url> when new 'FormatValues' are defined.
 
@@ -103,6 +103,7 @@ class BoxForms_(Predefined):
     >> {MemberQ[$PrintForms, MyBoxForm], MemberQ[$OutputForms, MyBoxForm]}
      = {False, False}
     """
+
     attributes = A_READ_PROTECTED
     messages = {
         "formset": "Cannot set $BoxForms to ``; value must be a list that includes TraditionalForm and StandardForm."

@@ -16,7 +16,7 @@ cd $(dirname ${BASH_SOURCE[0]})
 owd=$(pwd)
 cd ..
 version=`python -c "import mathics; print(mathics.__version__)"`
-echo "Releasing Mathics $version"
+echo "Releasing Mathics3 $version"
 
 rm -rf build/release
 python setup.py build

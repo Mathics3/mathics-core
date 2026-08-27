@@ -138,8 +138,8 @@ def expression_to_callable_and_args(
 ) -> Tuple[Callable, Optional[list]]:
     """
     Return a tuple of Python callable and a list of CompileArgs.
-    expr: A Mathics Expression object
-    vars: a list of Symbols or Mathics Lists of the form {Symbol, Type}
+    expr: A Mathics3 Expression object
+    vars: a list of Symbols or Mathics3 Lists of the form {Symbol, Type}
     """
     args = collect_args(vars)
 

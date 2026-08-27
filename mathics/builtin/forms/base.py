@@ -11,7 +11,7 @@ no_doc = "no doc"
 
 class FormBaseClass(Builtin):
     """
-    Base class for a Mathics Form.
+    Base class for a Mathics3 Form.
 
     All Forms should subclass this.
     """

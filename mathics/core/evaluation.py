@@ -7,6 +7,7 @@ from abc import ABC
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, overload
 
 from mathics_scanner.errors import SyntaxError
+from mathics_scanner.feed import LineFeeder
 
 from mathics import settings
 from mathics.core.atoms import Integer, String
@@ -150,7 +151,7 @@ class Evaluation:
 
         # Interrupt handlers may need access to the shell
         # that invoked the evaluation.
-        self.shell = None
+        self.shell: Optional[LineFeeder] = None
 
         self.stopped = False
         self.timeout = False
@@ -213,9 +214,10 @@ class Evaluation:
         """
         from mathics.core.convert.expression import to_expression
         from mathics.core.expression import Expression
-        from mathics.core.rules import Rule
+        from mathics.core.rules import RewriteRule
 
         self.start_time = time.time()
+        self.iteration_count = 0
         self.recursion_depth = 0
         self.timeout = False
         self.stopped = False
@@ -240,7 +242,7 @@ class Evaluation:
         def evaluate():
             if history_length > 0:
                 self.definitions.add_rule(
-                    "In", Rule(to_expression("In", line_no), query)
+                    "In", RewriteRule(to_expression("In", line_no), query)
                 )
             if check_io_hook("System`$Pre"):
                 self.last_eval = Expression(SymbolPre, query).evaluate(self)
@@ -258,7 +260,8 @@ class Evaluation:
 
                 stored_result = self.get_stored_result(out_result, output_forms)
                 self.definitions.add_rule(
-                    "Out", Rule(Expression(SymbolOut, Integer(line_no)), stored_result)
+                    "Out",
+                    RewriteRule(Expression(SymbolOut, Integer(line_no)), stored_result),
                 )
             if self.last_eval != self.SymbolNull:
                 if check_io_hook("System`$PrePrint"):
@@ -372,14 +375,14 @@ class Evaluation:
         self.stopped = True
 
     @overload
-    def format_output(self, expr: BaseElement, format: Optional[dict] = None) -> dict:
-        ...
+    def format_output(
+        self, expr: BaseElement, format: Optional[dict] = None
+    ) -> dict: ...
 
     @overload
     def format_output(
         self, expr: BaseElement, format: Optional[str] = None
-    ) -> Union[BaseElement, str, None]:
-        ...
+    ) -> Union[BaseElement, str, None]: ...
 
     def format_output(self, expr, format=None):
         """
@@ -420,9 +423,14 @@ class Evaluation:
             return None
 
         try:
+            encoding = self.definitions.get_ownvalue("System`$CharacterEncoding").value
+        except AttributeError:
+            encoding = "Unicode"
+
+        try:
             # With the new implementation, if result is not a ``BoxExpression``
             # then we should raise a BoxError here.
-            boxes = result.boxes_to_text(evaluation=self)
+            boxes = result.to_text(evaluation=self, encoding=encoding)
         except BoxError:
             self.message(
                 "General", "notboxes", Expression(SymbolFullForm, result).evaluate(self)
@@ -639,7 +647,7 @@ class Print(_Out):
 
 class Output(ABC):
     """
-    Base class for Mathics output history.
+    Base class for Mathics3 output history.
     This needs to be subclassed.
     """
 

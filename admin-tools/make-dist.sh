@@ -16,14 +16,15 @@ fi
 
 cd ..
 source mathics/version.py
-cp -v ${HOME}/.local/var/Mathics3/doctest_latex_data.pcl mathics/data/
+cp -v ${HOME}/.local/var/Mathics3/doctest_latex_data.pcl mathics/Data/
 
 echo $__version__
 
-pyversion=3.13
+pyversion=3.14
 if ! pyenv local $pyversion ; then
     exit $?
 fi
 rm -fr build
-python -m build
+python -m build --wheel
+python -m build --sdist
 finish

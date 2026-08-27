@@ -64,7 +64,6 @@ class Check(Builtin):
     attributes = A_HOLD_ALL | A_PROTECTED
 
     messages = {
-        "argmu": "Check called with 1 argument; 2 or more arguments are expected.",
         "name": "Message name `1` is not of the form symbol::name or symbol::name::language.",
     }
 
@@ -175,24 +174,30 @@ class General(Builtin):
         "argct": "`1` called with `2` arguments.",
         "argctu": "`1` called with 1 argument.",
         "argr": "`1` called with 1 argument; `2` arguments are expected.",
+        "argm": "`1` called with `2` arguments; `3` or more arguments are expected.",
+        "argmu": "`1` called with 1 argument; `2` or more arguments are expected.",
         "argrx": "`1` called with `2` arguments; `3` arguments are expected.",
         "argx": "`1` called with `2` arguments; 1 argument is expected.",
         "argt": (
             "`1` called with `2` arguments; " "`3` or `4` arguments are expected."
         ),
         "argtu": ("`1` called with 1 argument; `2` or `3` arguments are expected."),
+        "badfile": ("The specified argument, `1`, should be a valid string or File."),
         "base": "Requested base `1` in `2` should be between 2 and `3`.",
         "boxfmt": "`1` is not a box formatting type.",
         "charcode": "The character encoding `1` is not supported. Use $CharacterEncodings to list supported encodings.",
         "color": "`1` is not a valid color or gray-level specification.",
         "cxt": "`1` is not a valid context name.",
-        "divz": "The argument `1` should be nonzero.",
+        "divz": "The argument 0 in `1` should be nonzero.",
         "dgbgn": "Entering Dialog; enter Ctrl-D to exit.",
         # "dgbgn": "Entering Dialog; use Return[] to exit.",
         "dgend": "Exiting Dialog.",
         "digit": "Digit at position `1` in `2` is too large to be used in base `3`.",
         "dis": "Execution of external commands is disabled.",
+        "emptyfch": "Function Channel not defined.",
         "exact": "Argument `1` is not an exact number.",
+        "fas": "one or more assumptions evaluated to False.",
+        "fmtnosup": "`1` is not a supported Import format.",
         "fnsym": (
             "First argument in `1` is not a symbol " "or a string naming a symbol."
         ),
@@ -205,11 +210,15 @@ class General(Builtin):
             "Single or list of non-negative integers expected at " "position `1`."
         ),
         "indet": "Indeterminate expression `1` encountered.",
+        "infy": "Infinite expression `1` encountered.",
         "innf": "Non-negative integer or Infinity expected at position `1` in `2`",
         "int": "Integer expected.",
-        "intp": "Positive integer expected.",
-        "intnn": "Non-negative integer expected.",
         "intnm": "Non-negative machine-sized integer expected at position `1` in `2`.",
+        "intnn": "Non-negative integer expected.",
+        "intp": "Positive integer expected.",
+        "invak": "The argument `1` is not a valid Association.",
+        "invlb": "The argument `1` is not a list, Rule or Association.",
+        "invrl": "The argument `1` is not a valid Association or a list of rules.",
         "iterb": "Iterator does not have appropriate bounds.",
         "ivar": "`1` is not a valid variable.",
         "level": ("Level specification `1` is not of the form n, " "{n}, or {m, n}."),
@@ -218,6 +227,9 @@ class General(Builtin):
         "matsq": "Argument `1` is not a non-empty square matrix.",
         "newpkg": "In WL, there is a new package for this.",
         "nffil": "File not found during `1`.",
+        "nodef": "Unknown option `1` for `2`.",
+        "noelem": ("The Import element `1` is not present when importing as `2`."),
+        "nonopt": "Options expected (instead of `1`) beyond position `2` in `3`. An option must be a rule or a list of rules.",
         "noopen": "Cannot open `1`.",
         "nord": "Invalid comparison with `1` attempted.",
         "normal": "Nonatomic expression expected at position `1` in `2`.",
@@ -225,15 +237,21 @@ class General(Builtin):
         "obspkg": "In WL, this package is obsolete.",
         "openx": "`1` is not open.",
         "optb": "Optional object `1` in `2` is not a single blank.",
+        "optnf": "Option name `1` is not a known option for `2`.",
+        "opttf": "Value of option `1` -> `2` should be True or False.",
         "ovfl": "Overflow occurred in computation.",
         "partd": "Part specification is longer than depth of object.",
         "partw": "Part `1` of `2` does not exist.",
         "plld": "Endpoints in `1` must be distinct machine-size real numbers.",
         "plln": "Limiting value `1` in `2` is not a machine-size real number.",
-        "pspec": (
-            "Part specification `1` is neither an integer nor " "a list of integer."
+        "pkspec": (
+            "The expression `1` cannot be used as a part specification. Use `2` instead."
         ),
+        "pkspec1": ("The expression `1` cannot be used as a part specification."),
         "psl": "Position specification `1` in `2` is not a machine-sized integer or a list of machine-sized integers.",
+        "pspec": (
+            "Part specification `1` is neither an integer nor a list of integer."
+        ),
         "readf": "`1` is not a valid format specification.",
         "rvalue": "`1` is not a variable with a value, so its value cannot be changed.",
         "seqs": "Sequence specification expected, but got `1`.",

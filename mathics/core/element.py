@@ -7,7 +7,7 @@ Here we have the base class and related function for element inside an Expressio
 
 from abc import ABC
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Dict, Optional, Sequence, Tuple, Union
+from typing import TYPE_CHECKING, Any, Final, Optional, Sequence, Tuple, Union
 
 from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.keycomparable import KeyComparable
@@ -62,13 +62,13 @@ class ElementsProperties:
     elements_fully_evaluated: bool = False
 
     # is_flat: True if none of the elements is an Expression
-    # Some Mathics functions allow flattening of elements. Therefore
+    # Some Mathics3 functions allow flattening of elements. Therefore
     # it can be useful to know if the elements are already flat
     is_flat: bool = False
 
     # is_ordered: True if all of the elements are ordered. Of course this is true,
     # if there are less than 2 elements. Ordered is an Attribute of a
-    # Mathics function.
+    # Mathics3 function.
     #
     # In rewrite_eval_apply() if a function is not marked as Ordered this attribute
     # has no effect which means it doesn't matter how it is set. So
@@ -79,6 +79,11 @@ class ElementsProperties:
 
     # Uniform expressions have all their elements with the same Head.
     is_uniform: bool = False
+
+
+ELEMENTS_FULLY_EVALUATED: Final[ElementsProperties] = ElementsProperties(
+    elements_fully_evaluated=True
+)
 
 
 class ImmutableValueMixin:
@@ -102,7 +107,7 @@ class BaseElement(KeyComparable, ABC):
     Some important subclasses: Atom and Expression.
     """
 
-    options: Optional[Dict[str, Any]]
+    options: Optional[dict[str, Any]]
     last_evaluated: Any
     unevaluated: bool
     # this variable holds a function defined in mathics.core.expression that creates an expression
@@ -131,7 +136,7 @@ class BaseElement(KeyComparable, ABC):
 
     def equal2(self, rhs: Any) -> Optional[bool]:
         """
-        Mathics two-argument Equal (==)
+        Mathics3 two-argument Equal (==)
         returns True if self and rhs are identical.
         """
         if self.sameQ(rhs):
@@ -316,15 +321,15 @@ class BaseElement(KeyComparable, ABC):
     def is_inexact(self) -> bool:
         return self.get_precision() is not None
 
-    def sameQ(self, rhs) -> bool:
-        """Mathics SameQ"""
-        return id(self) == id(rhs)
+    def sameQ(self, other: Any) -> bool:
+        """Mathics3 SameQ"""
+        return id(self) == id(other)
 
     def sequences(self):
         return None
 
     def user_hash(self, update) -> None:
-        # whereas __hash__ is for internal Mathics purposes like using Expressions as dictionary keys and fast
+        # whereas __hash__ is for internal Mathics3 purposes like using Expressions as dictionary keys and fast
         # comparison of elements, user_hash is called for Hash[]. user_hash should strive to give stable results
         # across versions, whereas __hash__ must not. user_hash should try to hash all the data available, whereas
         # __hash__ might only hash a sample of the data available.
@@ -354,9 +359,8 @@ class BaseElement(KeyComparable, ABC):
 
     def replace_vars(
         self,
-        vars: Dict[str, "BaseElement"],
+        vars: dict[str, "BaseElement"],
         options=None,
-        in_scoping=True,
         in_function=True,
     ) -> "BaseElement":
         raise NotImplementedError
@@ -392,7 +396,7 @@ class EvalMixin:
         return self.evaluate(evaluation), False
 
     def sameQ(self, other) -> bool:
-        """Mathics SameQ
+        """Mathics3 SameQ
         Each class should decide what is right here.
         """
         raise NotImplementedError
@@ -411,19 +415,17 @@ class BoxElementMixin(ImmutableValueMixin):
     def is_multiline(self) -> bool:
         return True
 
-    def boxes_to_format(self, format: str, **options) -> str:
-        from mathics.core.formatter import boxes_to_format
+    def to_format(self, format: str, **options) -> str:
+        from mathics.core.formatter import box_to_format
 
-        return boxes_to_format(self, format, **options)
+        return box_to_format(self, format, **options)
 
-    def boxes_to_mathml(self, **options) -> str:
-        """For compatibility deprecated"""
-        return self.boxes_to_format("mathml", **options)
+    def to_mathml(self, **options) -> str:
+        return self.to_format("mathml", **options)
 
-    def boxes_to_tex(self, **options) -> str:
-        """For compatibility deprecated"""
-        return self.boxes_to_format("latex", **options)
+    def to_tex(self, **options) -> str:
+        return self.to_format("latex", **options)
 
-    def boxes_to_text(self, **options) -> str:
-        """For compatibility deprecated"""
-        return self.boxes_to_format("text", **options)
+    def to_text(self, **options) -> str:
+        options.setdefault("encoding", "Unicode")
+        return self.to_format("text", **options)

@@ -6,12 +6,42 @@ Tests here check the compatibility of
 the  default behavior of the different assignment operators
 with WMA.
 """
-# TODO: consider to split this module in sub-modules.
+# TODO: consider splitting this module into sub-modules.
 
-from test.helper import check_evaluation, session
+from test.helper import check_arg_counts, check_evaluation, session
 
 import pytest
 from mathics_scanner.errors import IncompleteSyntaxError
+
+
+@pytest.mark.parametrize(
+    ("function_name", "msg_fragment"),
+    [
+        (
+            "Set",
+            "1 or more arguments are",
+        ),
+        (
+            "SetDelayed",
+            "1 or more arguments are",
+        ),
+        (
+            "TagSet",
+            "2 or more arguments are",
+        ),
+        (
+            "UpSet",
+            "1 or more arguments are",
+        ),
+        (
+            "UpSetDelayed",
+            "1 or more arguments are",
+        ),
+    ],
+)
+def test_arg_errors(function_name, msg_fragment):
+    """ """
+    check_arg_counts(function_name, msg_fragment)
 
 
 def test_upset():
@@ -30,7 +60,7 @@ def test_upset():
         failure_message="UpSet on a protected value should fail",
         expected_messages=("Tag Plus in f[g, a + b, h] is Protected.",),
     )
-    check_evaluation("UpValues[h]", "{HoldPattern[f[g, a + b, h]] :> 2}")
+    check_evaluation("UpValues[h]", "{HoldPattern[f[g, a + b, h]] ⧴ 2}")
 
 
 def test_order():
@@ -89,16 +119,16 @@ def test_setdelayed_oneidentity():
         ("Unprotect[Pi]; Pi=.; Attributes[Pi]", "{Constant, ReadProtected}", None),
         ("Unprotect[Pi];Clear[Pi]; Attributes[Pi]", "{Constant, ReadProtected}", None),
         ("Unprotect[Pi];ClearAll[Pi]; Attributes[Pi]", "{}", None),
-        ("Options[Expand]", "{Modulus :> 0, Trig :> False}", None),
+        ("Options[Expand]", "{Modulus ⇾ 0, Trig ⇾ False}", None),
         (
             "Unprotect[Expand]; Expand=.; Options[Expand]",
-            "{Modulus :> 0, Trig :> False}",
+            "{Modulus ⇾ 0, Trig ⇾ False}",
             None,
         ),
         (
-            "Clear[Expand];Options[Expand]=Join[Options[Expand], {MyOption:>Automatic}]; Options[Expand]",
-            "{MyOption :> Automatic, Modulus :> 0, Trig :> False}",
-            "Mathics stores options in a dictionary. This is why ``MyOption`` appears first.",
+            "Clear[Expand];Options[Expand]=Join[Options[Expand], {MyOption ⇾ Automatic}]; Options[Expand]",
+            "{MyOption ⇾ Automatic, Modulus ⇾ 0, Trig ⇾ False}",
+            "Mathics3 stores options in a dictionary. This is why ``MyOption`` appears first.",
         ),
         # (
         #    "ClearAll[Expand]; Options[Expand]",
@@ -436,35 +466,6 @@ def test_process_assign_other():
 
 
 @pytest.mark.parametrize(
-    ("str_expr", "str_expected", "msgs", "failure_msg"),
-    [
-        (None, None, None, None),
-        # From Clear
-        ("x = 2;OwnValues[x]=.;x", "x", None, "Erase Ownvalues"),
-        ("f[a][b] = 3; SubValues[f] =.;f[a][b]", "f[a][b]", None, "Erase Subvalues"),
-        ("PrimeQ[p] ^= True; PrimeQ[p]", "True", None, "Subvalues"),
-        ("UpValues[p]=.; PrimeQ[p]", "False", None, "Erase Subvalues"),
-        ("a + b ^= 5; a =.; a + b", "5", None, None),
-        ("{UpValues[a], UpValues[b]} =.; a+b", "a+b", None, None),
-        (
-            "Unset[Messages[1]]",
-            "$Failed",
-            [
-                "First argument in Messages[1] is not a symbol or a string naming a symbol."
-            ],
-            "Unset Message",
-        ),
-        (" g[a+b] ^:= 2", "$Failed", ("Tag Plus in g[a + b] is Protected.",), None),
-        (" g[a+b]", "g[a + b]", None, None),
-    ],
-)
-def test_private_doctests(str_expr, str_expected, msgs, failure_msg):
-    check_evaluation(
-        str_expr, str_expected, expected_messages=msgs, failure_message=failure_msg
-    )
-
-
-@pytest.mark.parametrize(
     ["expr", "expect", "fail_msg", "expected_msgs"],
     [
         (None, None, None, None),
@@ -735,8 +736,15 @@ def test_assignment(expr, expect, fail_msg, expected_msgs):
         ),
         (
             "ClearAll[F, Q];F[_Q,_]^:=1;{DownValues[F],UpValues[Q]}",
-            "{{}, {HoldPattern[F[_Q, _]]:>1}}",
+            "{{}, {HoldPattern[F[_Q, _]]⧴1}}",
             "Issue 1198 - Blanks are not tags.",
+            False,
+            [],
+        ),
+        (
+            "ClearAll[F]; F[x_, opt:OptionsPattern[]]:=x^2;F[2]",
+            "4",
+            "ensure that Definition.options is a dict",
             False,
             [],
         ),

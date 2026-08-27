@@ -1,42 +1,29 @@
-# -*- coding: utf-8 -*-
-
 """
-JSON
+JSON File Format
 
-Basic implementation for an JSON importer.
+JSON importer (via Python's "json" module).
 """
 
-import json
-
-from mathics.core.atoms import String
-from mathics.core.builtin import Builtin
-from mathics.core.convert.python import from_python
-from mathics.core.expression import Evaluation
+from mathics.core.builtin import Builtin, String
+from mathics.core.evaluation import Evaluation
+from mathics.eval.fileformats.jsonformat import eval_JSONImport
 
 
-class JSONImport(Builtin):
+class ImportJSON(Builtin):
     """
-    ## <url>:native internal:</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/format/JSON.html</url>
 
     <dl>
-      <dt>'JSON`Import`JSONImport["file"]'
-      <dd>parses "string" as a JSON file, and returns the data as a nested
-          list of rules.
+      <dt>'JSON`ImportJSON[path]'
+      <dd>Read $path$ as JSON and convert that to its corresponding Mathics3 equivalent.
     </dl>
 
     """
 
-    summary_text = "import elements from json"
-    context = "JSON`Import`"
+    context = "JSON`"
     messages = {"dec": "Decoding Error at `1`"}
+    summary_text = "import JSON file"
 
-    def eval(self, filename, evaluation: Evaluation):
-        """%(name)s[filename_String]"""
-        source = filename.value
-        with open(source, "r") as f:
-            try:
-                json_dict = json.load(f)
-            except json.decoder.JSONDecodeError as exc:
-                evaluation.message("JSON`Import`JSONImport", "dec", String(exc.msg))
-                return None
-        return from_python(json_dict)
+    def eval(self, path: String, evaluation: Evaluation):
+        "JSON`ImportJSON[path_String]"
+        return eval_JSONImport(path, evaluation)

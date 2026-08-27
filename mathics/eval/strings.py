@@ -1,7 +1,10 @@
 """
 String-related evaluation functions.
 """
+
 import re
+
+from mathics_scanner.characters import replace_box_unicode_with_ascii
 
 from mathics.builtin.box.layout import RowBox
 from mathics.core.atoms import Integer, Integer0, Integer1, Integer3, String
@@ -14,15 +17,27 @@ from mathics.core.expression import Expression
 from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolTrue
+from mathics.eval.encoding import EncodingNameError, load_encoding_table
 from mathics.format.box import format_element
 
 
 def eval_ToString(
-    expr: BaseElement, form: Symbol, encoding: String, evaluation: Evaluation
+    expr: BaseElement, form: Symbol, encoding: str, evaluation: Evaluation
 ) -> String:
-    boxes = format_element(expr, evaluation, form, encoding=encoding)
-    text = boxes.boxes_to_text(evaluation=evaluation)
-    return String(text)
+
+    boxes = format_element(expr, evaluation, form)
+    try:
+        return String(boxes.to_text(evaluation=evaluation, encoding=encoding))
+    except EncodingNameError:
+        pass
+
+    # If the encoding does not already exists, try to load it and do it again.
+    try:
+        load_encoding_table(encoding, evaluation)
+    except EncodingNameError:
+        return String(boxes.to_text(evaluation=evaluation, encoding="Unicode"))
+
+    return String(boxes.to_text(evaluation=evaluation, encoding=encoding))
 
 
 def eval_StringContainsQ(name, string, patt, evaluation, options, matched):
@@ -154,7 +169,7 @@ def safe_backquotes(string: str):
     return string
 
 
-def eval_StringForm_MakeBoxes(strform, items, form, evaluation):
+def eval_StringForm_MakeBoxes(strform: String, items, form, evaluation: Evaluation):
     """MakeBoxes[StringForm[s_String, items___], form_]"""
 
     if not isinstance(strform, String):
@@ -163,10 +178,9 @@ def eval_StringForm_MakeBoxes(strform, items, form, evaluation):
     items = [format_element(item, evaluation, form) for item in items]
 
     curr_indx = 0
-    strform_str = safe_backquotes(strform.value)
+    strform_str = safe_backquotes(replace_box_unicode_with_ascii(strform.value))
 
     parts = strform_str.split("`")
-    parts = [part.replace("\\[RawBackquote]", "`") for part in parts]
     result = [String(parts[0])]
     if len(parts) <= 1:
         return result[0]

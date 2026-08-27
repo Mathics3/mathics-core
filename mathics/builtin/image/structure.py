@@ -1,6 +1,7 @@
 """
 Operations on Image Structure
 """
+
 import numpy
 
 from mathics.builtin.image.base import Image

@@ -2,7 +2,7 @@
 """
 HTML
 
-Basic implementation for a HTML importer.
+HTML importer.
 """
 
 
@@ -10,11 +10,12 @@ import platform
 import re
 from io import BytesIO
 
-from mathics.builtin.files_io.files import MathicsOpen
+from mathics.builtin.files_io.files import Mathics3Open
 from mathics.core.atoms import String
 from mathics.core.builtin import Builtin, MessageException
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
@@ -101,7 +102,7 @@ else:
 
 
 def parse_html_file(filename):
-    with MathicsOpen(filename, "rb") as f:
+    with Mathics3Open(filename, "rb") as f:
         return parse_html_stream(f)
 
 
@@ -126,7 +127,7 @@ class _TagImport(_HTMLBuiltin):
     def _import(self, tree):
         raise NotImplementedError
 
-    def eval(self, text, evaluation):
+    def eval(self, text: String, evaluation: Evaluation):
         """%(name)s[text_String]"""
         tree = parse_html(parse_html_file, text, evaluation)
         if isinstance(tree, Symbol):  # $Failed?
@@ -134,6 +135,12 @@ class _TagImport(_HTMLBuiltin):
         return ListExpression(
             to_expression(SymbolRule, self.tag_name, self._import(tree))
         )
+
+    def eval_with_element(self, text, element, evaluation: Evaluation):
+        """%(name)s[text_String, element_]"""
+        # FIXME: right now we aren't using element, and should use this to more
+        # efficiently extract part of the XML file that we want.
+        return self.eval(text, evaluation)
 
 
 class _Get(_HTMLBuiltin):
@@ -280,7 +287,7 @@ class DataImport(_DataImport):
     </dl>
 
     >> Import["ExampleData/PrimeMeridian.html", "Data"][[1, 1, 2, 3]]
-     = {Washington, D.C., 77...03′56.07″ W (1897) or 77...04′02.24″ W (NAD 27) or 77...04′01.16″ W (NAD 83), New Naval Observatory meridian}
+     = {Washington, D.C., 77°03′56.07″ W (1897) or 77°04′02.24″ W (NAD 27) or 77°04′01.16″ W (NAD 83), New Naval Observatory meridian}
 
     #> Length[Import["ExampleData/PrimeMeridian.html", "Data"]]
      = 3
@@ -401,16 +408,22 @@ class SourceImport(_HTMLBuiltin):
 
     summary_text = "import source code from a HTML file"
 
-    def eval(self, text, evaluation):
+    def eval(self, text, evaluation: Evaluation):
         """%(name)s[text_String]"""
 
         def source(filename):
-            with MathicsOpen(filename, "r", encoding="UTF-8") as f:
+            with Mathics3Open(filename, "r", encoding="UTF-8") as f:
                 return ListExpression(
                     Expression(SymbolRule, String("Source"), String(f.read()))
                 )
 
         return parse_html(source, text, evaluation)
+
+    def eval_with_element(self, text, element, evaluation: Evaluation):
+        """%(name)s[text_String, element_]"""
+        # FIXME: right now we aren't using element, and should use this to more
+        # efficiently extract part of the XML file that we want.
+        return self.eval(text, evaluation)
 
 
 class TitleImport(_TagImport):
@@ -437,7 +450,7 @@ class TitleImport(_TagImport):
 
 class XMLObjectImport(_HTMLBuiltin):
     """
-    ## <url>:native internal:</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/XMLObject.html</url>
 
     <dl>
     <dt>'HTML`XMLObjectImport["filename"]'
@@ -450,7 +463,13 @@ class XMLObjectImport(_HTMLBuiltin):
 
     summary_text = "import XML objects from a HTML file"
 
-    def eval(self, text, evaluation):
+    def eval(self, text, evaluation: Evaluation):
         """%(name)s[text_String]"""
         xml = to_expression("HTML`Parser`HTMLGet", text).evaluate(evaluation)
         return ListExpression(Expression(SymbolRule, String("XMLObject"), xml))
+
+    def eval_with_element(self, text, element, evaluation: Evaluation):
+        """%(name)s[text_String, element_]"""
+        # FIXME: right now we aren't using element, and should use this to more
+        # efficiently extract part of the HTML file that we want.
+        return self.eval(text, evaluation)

@@ -381,6 +381,8 @@ class Between(Builtin):
         "Between[range_List][x_]": "Between[x, range]",  # operator form
     }
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
     summary_text = "test if value or values are in range"
 
 
@@ -408,6 +410,8 @@ class BooleanQ(Builtin):
      = True
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
     rules = {
         "BooleanQ[expr_]": "If[expr, True, True, False]",
     }
@@ -492,7 +496,7 @@ class Equal(_EqualityOperator, _SympyComparison):
     only if the symbols are equal:
 
     >> Clear[a, b]; a == b
-     = a == b
+     = a ⩵ b
 
     >> a == a
      = True
@@ -517,14 +521,14 @@ class Equal(_EqualityOperator, _SympyComparison):
     >> g[1] == g[1] == g[1]
      = True
     >> g[1] == g[1] == g[r]
-     = g[1] == g[1] == g[r]
+     = g[1] ⩵ g[1] ⩵ g[r]
 
     Equality can also be combined with other inequality expressions, like:
     >> g[1] == g[2] != g[3]
-     = g[1] == g[2] && g[2] != g[3]
+     = g[1] ⩵ g[2] ∧ g[2] ≠ g[3]
 
     >> g[1] == g[2] <= g[3]
-     = g[1] == g[2] && g[2] <= g[3]
+     = g[1] ⩵ g[2] ∧ g[2] ≤ g[3]
 
     'Equal' with no parameter or an empty list is 'True':
     >> Equal[] == True
@@ -607,9 +611,9 @@ class Inequality(Builtin):
     </dl>
 
     >> a < b <= c
-     = a < b && b <= c
+     = a < b ∧ b ≤ c
     >> Inequality[a, Greater, b, LessEqual, c]
-     = a > b && b <= c
+     = a > b ∧ b ≤ c
     >> 1 < 2 <= 3
      = True
     >> 1 < 2 > 0
@@ -850,6 +854,8 @@ class TrueQ(Builtin):
      = False
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
     rules = {
         "TrueQ[expr_]": "If[expr, True, False, False]",
     }
@@ -880,7 +886,7 @@ class Unequal(_EqualityOperator, _SympyComparison):
      = True
 
     >> 1 != 2 != x
-     = 1 != 2 != x
+     = 1 ≠ 2 ≠ x
 
     Strings are allowed:
     >> Unequal["11", "11"]

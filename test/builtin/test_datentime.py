@@ -111,7 +111,12 @@ def test_datestring():
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
-        ("AbsoluteTime[1000]", None, "1000", "Mathematica Bug - Mathics gets it right"),
+        (
+            "AbsoluteTime[1000]",
+            None,
+            "1000",
+            "Mathematica Bug - Mathics3 gets it right",
+        ),
         (
             'DateList["7/8/9"]',
             ("The interpretation of 7/8/9 is ambiguous.",),
@@ -144,7 +149,7 @@ def test_datestring():
         ),
     ],
 )
-def test_private_doctests_datetime(str_expr, msgs, str_expected, fail_msg):
+def test_datetime(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,
@@ -210,7 +215,7 @@ def test_private_doctests_datetime(str_expr, msgs, str_expected, fail_msg):
     ],
 )
 @pytest.mark.xfail
-def test_private_doctests_TimeConstrained(str_expr, msgs, str_expected, fail_msg):
+def test_TimeConstrained(str_expr, msgs, str_expected, fail_msg):
     """TimeConstrained tests"""
     check_evaluation(
         str_expr,

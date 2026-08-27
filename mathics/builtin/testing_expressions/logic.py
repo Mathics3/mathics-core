@@ -85,7 +85,7 @@ class And(InfixOperator):
     If an expression does not evaluate to 'True' or 'False', 'And' \
     returns a result in symbolic form:
     >> a && b && True && c
-     = a && b && c
+     = a ∧ b ∧ c
     """
 
     attributes = A_FLAT | A_HOLD_ALL | A_ONE_IDENTITY | A_PROTECTED
@@ -190,7 +190,7 @@ class Equivalent(InfixOperator):
 
     <dl>
       <dt>'Equivalent'[$expr_1$, $expr_2$, ...]
-      <dt>$expr_1$ \u29E6 $expr_2$ \u29E6 ...
+      <dt>$expr_1$ \u29e6 $expr_2$ \u29e6 ...
 
       <dd>is equivalent to
         ($expr_1$ && $expr_2$ && ...) || (!$expr_1$ && !$expr_2$ && ...)
@@ -202,10 +202,10 @@ class Equivalent(InfixOperator):
     If all expressions do not evaluate to 'True' or 'False', 'Equivalent' \
     returns a result in symbolic form:
     >> Equivalent[a, b, c]
-     = a \\[Equivalent] b \\[Equivalent] c
+     = a ⧦ b ⧦ c
      Otherwise, 'Equivalent' returns a result in DNF
     >> Equivalent[a, b, True, c]
-     = a && b && c
+     = a ∧ b ∧ c
     """
 
     attributes = A_ORDERLESS | A_PROTECTED
@@ -252,12 +252,12 @@ class False_(Predefined):
 
 
 class Implies(InfixOperator):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/Implies.html</url>
 
     <dl>
       <dt>'Implies'[$expr_1$, $expr_2$]
-      <dt>$expr_1$ \u21D2 $expr_2$
+      <dt>$expr_1$ \u21d2 $expr_2$
         <dd>evaluates each expression in turn, returning 'True' \
         as soon as the first expression evaluates to 'False'. If the \
         first expression evaluates to 'True', 'Implies' returns the \
@@ -272,7 +272,7 @@ class Implies(InfixOperator):
     If an expression does not evaluate to 'True' or 'False', 'Implies'
     returns a result in symbolic form:
     >> Implies[a, Implies[b, Implies[True, c]]]
-     = a Implies b Implies c
+     = a ⇒ b ⇒ c
     """
 
     grouping = "Right"
@@ -344,7 +344,7 @@ class Or(InfixOperator):
     If an expression does not evaluate to 'True' or 'False', 'Or'
     returns a result in symbolic form:
     >> a || False || b
-     = a || b
+     = a ∨ b
     """
 
     attributes = A_FLAT | A_HOLD_ALL | A_ONE_IDENTITY | A_PROTECTED
@@ -383,7 +383,7 @@ class Nand(InfixOperator):
     <dl>
       <dt>'Nand'[$expr_1$, $expr_2$, ...]
 
-      <dt>$expr_1$ \u22BC $expr_2$ \u22BC ...
+      <dt>$expr_1$ \u22bc $expr_2$ \u22bc ...
       <dd> Implements the logical NAND function.  The same as 'Not[And['$expr_1$, $expr_2$, ...']]'
     </dl>
 
@@ -404,7 +404,7 @@ class Nor(InfixOperator):
     <dl>
       <dt>'Nor'[$expr_1$, $expr_2$, ...]
 
-      <dt>$expr_1$ \u22BD $expr_2$ \u22BD ...
+      <dt>$expr_1$ \u22bd $expr_2$ \u22bd ...
       <dd>Implements the logical NOR function.  The same as 'Not[Or['$expr_1$, $expr_2$, ...']]'
     </dl>
 
@@ -469,7 +469,7 @@ class Xor(InfixOperator):
 
     <dl>
       <dt>'Xor'[$expr_1$, $expr_2$, ...]
-      <dt>$expr_1$ \u22BB $expr_2$ \u22BB ...
+      <dt>$expr_1$ \u22bb $expr_2$ \u22bb ...
 
       <dd>evaluates each expression in turn, returning 'True'
         as soon as not all expressions evaluate to the same value. If all
@@ -484,7 +484,7 @@ class Xor(InfixOperator):
     If an expression does not evaluate to 'True' or 'False', 'Xor'
     returns a result in symbolic form:
     >> Xor[a, False, b]
-     = a \\[Xor] b
+     = a ⊻ b
     """
 
     attributes = A_FLAT | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED

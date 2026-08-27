@@ -10,6 +10,7 @@ import pytest
 @pytest.mark.parametrize(
     ("str_expr", "expected_messages", "str_expected", "assert_message"),
     [
+        ("ClearAll[a];", None, "Null", None),
         (
             "Append[a, b]",
             ("Nonatomic expression expected at position 1 in Append[a, b].",),

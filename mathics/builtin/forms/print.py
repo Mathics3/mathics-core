@@ -161,7 +161,6 @@ class OutputForm(FormBaseClass):
     in_outputforms = True
     in_printforms = True
 
-    formats = {"OutputForm[s_String]": "s"}
     summary_text = "format expression in plain text"
 
 

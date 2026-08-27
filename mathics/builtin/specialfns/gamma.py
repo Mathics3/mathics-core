@@ -215,6 +215,7 @@ class Factorial2(PostfixOperator, MPMathFunction):
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
+    expected_args = 1
     mpmath_name = "fac2"
     sympy_name = "factorial2"
     messages = {

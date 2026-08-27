@@ -5,7 +5,6 @@ Functions to support Read[]
 import io
 from typing import Callable, Optional, Tuple
 
-from mathics.builtin.atomic.strings import to_python_encoding
 from mathics.core.atoms import Integer, String
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import MessageException
@@ -21,6 +20,8 @@ from mathics.core.systemsymbols import (
     SymbolOutputStream,
     SymbolReal,
 )
+from mathics.eval.encoding.encoding import WMA_DECODE_TABLES, to_python_encoding
+from mathics.eval.encoding.wl_charmap_codec import register_escape_error_handler
 
 # TODO: Improve docs for these Read[] arguments.
 
@@ -39,18 +40,20 @@ READ_TYPES = [
 ] + [SymbolHoldExpression, SymbolReal]
 
 
-class MathicsOpen(Stream):
+class Mathics3Open(Stream):
     """
     Context manager for reading files.
 
     Use like this::
 
-        with MathicsOpen(path, "r") as f:
+        with Mathics3Open(path, "r", encoding="UTF-8") as f:
             # read from f
             ...
 
     The ``file``, ``mode``, and ``encoding`` fields are the same as those
     in the Python builtin ``open()`` function.
+
+    The "encoding" field is optional.
     """
 
     def __init__(
@@ -61,6 +64,7 @@ class MathicsOpen(Stream):
         encoding=None,
         is_temporary_file: bool = False,
     ):
+        self.wl_charmap_encoding = encoding in WMA_DECODE_TABLES
         if encoding is not None:
             encoding = to_python_encoding(encoding)
             if "b" in mode:
@@ -88,7 +92,14 @@ class MathicsOpen(Stream):
             raise IOError(self.name)
 
         # Open the file
-        self.fp = io.open(path, self.mode, encoding=self.encoding)
+        errors = None
+        if (
+            self.encoding is not None
+            and self.wl_charmap_encoding
+            and ("w" in self.mode or "a" in self.mode)
+        ):
+            errors = register_escape_error_handler()
+        self.fp = io.open(path, self.mode, encoding=self.encoding, errors=errors)
 
         # Add to our internal list of streams
         self.stream = stream_manager.add(
@@ -115,7 +126,7 @@ class MathicsOpen(Stream):
 def channel_to_stream(channel, mode="r"):
     if isinstance(channel, String):
         name = channel.get_string_value()
-        opener = MathicsOpen(name, mode)
+        opener = Mathics3Open(name, mode)
         opener.__enter__()
         n = opener.n
         if mode in ["r", "rb"]:
@@ -251,7 +262,7 @@ def read_name_and_stream(stream_designator, evaluation: Evaluation) -> tuple:
 
 
 def read_list_from_types(read_types):
-    """Return a Mathics List from a list of read_type names or a single read_type"""
+    """Return a Mathics3 List from a list of read_type names or a single read_type"""
 
     # Trun read_types into a list if it isn't already one.
     if read_types.has_form("List", None):

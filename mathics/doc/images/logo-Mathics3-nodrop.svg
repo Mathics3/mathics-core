@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="38.721027mm"
+   height="7.4930587mm"
+   viewBox="0 0 38.721028 7.4930588"
+   version="1.1"
+   id="svg20493"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="Mathics3-logo-nodrop.svg"
+   inkscape:export-filename="drawing.svg"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview20495"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="2"
+     inkscape:cx="262.25"
+     inkscape:cy="52.25"
+     inkscape:window-width="1854"
+     inkscape:window-height="1011"
+     inkscape:window-x="1146"
+     inkscape:window-y="872"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs20490">
+    <rect
+       x="29.996094"
+       y="20.992188"
+       width="37.498962"
+       height="57.498413"
+       id="rect20505" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-1.2898709,-1.4609905)">
+    <text
+       xml:space="preserve"
+       style="font-size:10.5833px;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, ';stroke-width:0.264583"
+       x="1.1141716"
+       y="8.8093557"
+       id="text20499"><tspan
+         sodipodi:role="line"
+         id="tspan20497"
+         style="stroke-width:0.264583"
+         x="1.1141716"
+         y="8.8093557">Mathics<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman,  Italic'"
+   id="tspan20501">3</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       transform="scale(0.26458333)"
+       id="text20503"
+       style="font-size:40px;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, ';white-space:pre;shape-inside:url(#rect20505);display:inline" />
+  </g>
+</svg>

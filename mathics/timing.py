@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Mathics timing method(s) and timing context manager.
+Mathics3 timing method(s) and timing context manager.
 """
 
 import os

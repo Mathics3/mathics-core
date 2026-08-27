@@ -19,11 +19,10 @@ from mathics.core.attributes import (
     A_LISTABLE,
     A_N_HOLD_FIRST,
     A_NUMERIC_FUNCTION,
-    A_ORDERLESS,
     A_PROTECTED,
     A_READ_PROTECTED,
 )
-from mathics.core.builtin import Builtin, MPMathFunction, SympyFunction
+from mathics.core.builtin import Builtin, SympyFunction
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -63,6 +62,8 @@ class BellB(SympyFunction):
     """
 
     attributes = A_LISTABLE | A_N_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
     summary_text = "Bell numbers"
     sympy_name = "bell"
 
@@ -115,12 +116,15 @@ class _BooleanDissimilarity(Builtin, ABC):
             counts[(a << 1) + b] += 1
         return self._compute(len(py_u), *counts)
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
+
 
 class _NoBoolVector(Exception):
     pass
 
 
-class Binomial(MPMathFunction):
+class Binomial(SympyFunction):
     """
 
     <url>
@@ -147,15 +151,28 @@ class Binomial(MPMathFunction):
     >> Binomial[10, -2]
      = 0
     >> Binomial[-10.5, -3.5]
-     = 0.
+     = 0
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
-    nargs = {2}
-    sympy_name = "binomial"
+    expected_args = 2
     mpmath_name = "binomial"
+    nargs = {2}
     summary_text = "binomial coefficients"
+    sympy_name = "binomial"
+
+    def eval(self, args, evaluation: Evaluation):
+        "Binomial[args___]"
+
+        # Note: sympy.stats.Binomial(name, n, p): can be used creating a random variable representing a binomial distribution
+        # for statistical modeling within SymPy. Perhaps in the future we'll have a way to determine when that should be used.
+
+        if len(args.elements) == 2:
+            # super().eval(invalid, evaluation) gives error message:
+            # RuntimeError: super(): no arguments
+            return super(Binomial, self).eval(args, evaluation)
+        return Builtin.generic_argument_error(self, args, evaluation)
 
 
 class CatalanNumber(SympyFunction):
@@ -181,12 +198,14 @@ class CatalanNumber(SympyFunction):
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
     summary_text = "catalan number"
     sympy_name = "catalan"
 
     # We (and sympy) do not handle fractions or other non-integers
     # right now.
-    def eval_integer(self, n: Integer, evaluation):
+    def eval_integer(self, n: Integer, evaluation: Evaluation):
         "CatalanNumber[n_Integer]"
         return self.eval(n, evaluation)
 
@@ -246,6 +265,8 @@ class EulerE(SympyFunction):
     """
 
     attributes = A_LISTABLE | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
     summary_text = "Euler numbers"
     sympy_name = "euler"
 
@@ -315,6 +336,8 @@ class LucasL(SympyFunction):
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
 
     sympy_name = "lucas"
     summary_text = "get a Lucas number or polynomial"
@@ -378,7 +401,7 @@ class Multinomial(Builtin):
     /doc/reference-of-built-in-symbols/integer-functions/combinatorial-functions/binomial/</url>.
     """
 
-    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_ORDERLESS | A_PROTECTED
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     summary_text = "multinomial coefficients"
 
     def eval(self, values, evaluation):
@@ -429,6 +452,8 @@ class PolygonalNumber(Builtin):
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
     rules = {
         "PolygonalNumber[n_Integer]": "PolygonalNumber[3, n]",
         "PolygonalNumber[r_Integer, n_Integer]": "(1/2) n (n (r - 2) - r + 4)",
@@ -582,6 +607,8 @@ class Subsets(Builtin):
         "Subsets[list_ , Pattern[n,_List|All|DirectedInfinity[1]], spec_]": "Take[Subsets[list, n], spec]",
     }
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 4)
     summary_text = "list all the subsets"
 
     def eval_list(self, list, evaluation):

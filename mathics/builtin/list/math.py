@@ -1,6 +1,7 @@
 """
 Math & Counting Operations on Lists
 """
+
 import heapq
 
 from mathics.core.builtin import Builtin, CountableInteger, NegativeIntegerException

@@ -1,13 +1,15 @@
 """
 Evaluation module corresponding to builtin functions in mathics.builtins.scoping.
 """
+
 import re
 
 from mathics.core.atoms import String
 from mathics.core.definitions import Definitions
+from mathics.core.element import fully_qualified_symbol_name
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, fully_qualified_symbol_name
+from mathics.core.symbols import Symbol
 
 
 def dynamic_scoping(func, vars, evaluation: Evaluation):

@@ -2,7 +2,7 @@ from typing import Optional, Sequence, Union
 
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import BuiltinElement
-from mathics.core.element import BoxElementMixin
+from mathics.core.element import BaseElement, BoxElementMixin
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolHoldForm, ensure_context
@@ -83,7 +83,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
 
     def __init(self, *args, **kwargs):
         super().__init(args, kwargs)
-        self.boxes = []
+        self.inner_box = None
 
     def do_format(self, evaluation, format):
         return self
@@ -193,13 +193,13 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         """
         return False
 
-    def replace_vars(self, vars, options=None, in_scoping=True, in_function=True):
+    def replace_vars(self, vars, options=None, in_function=True) -> BaseElement:
         expr = self.to_expression()
-        result = expr.replace_vars(vars, options, in_scoping, in_function)
+        result = expr.replace_vars(vars, options, in_function)
         return result
 
     def sameQ(self, expr) -> bool:
-        """Mathics SameQ"""
+        """Mathics3 SameQ"""
         return expr.sameQ(self.to_expression())
 
     def tex_block(self, tex, only_subsup=False):

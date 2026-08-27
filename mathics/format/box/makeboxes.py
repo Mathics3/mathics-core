@@ -6,10 +6,10 @@ makeboxes rules.
 """
 
 
-from typing import List
+from typing import Callable, Dict, List
 
-from mathics.core.atoms import Complex, Rational, String
-from mathics.core.definitions import BOX_FORMS
+from mathics.core.atoms import Complex, Integer1, Rational, String
+from mathics.core.definitions import BOX_FORMS, PRINT_FORMS
 from mathics.core.element import BaseElement, BoxElementMixin, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -35,7 +35,7 @@ from mathics.eval.lists import list_boxes
 from mathics.format.box.formatvalues import do_format
 from mathics.format.box.precedence import parenthesize
 
-PRINT_FORMS_CALLBACK = {}
+PRINT_FORMS_CALLBACK: Dict[str, Callable] = {}
 
 
 def is_print_form_callback(head_name: str):
@@ -53,6 +53,43 @@ def _boxed_string(string: str, **options):
     from mathics.builtin.box.layout import StyleBox
 
     return StyleBox(String(string), **options)
+
+
+def eval_makeboxes_format(expr, form, outerform, evaluation, **kwargs):
+    """
+    Do MakeBoxes on an expression of the form `Format[expr, form]`.
+    """
+    from mathics.builtin.box.layout import FormBox, TagBox
+    from mathics.builtin.functional.application import Function, Slot
+    from mathics.builtin.layout import Format
+
+    if evaluation:
+        definitions = evaluation.definitions
+        box_forms = definitions.boxforms
+        print_forms = definitions.printforms
+    else:
+        box_forms = BOX_FORMS
+        print_forms = PRINT_FORMS
+
+    if form is None:
+        boxed = apply_makeboxes_rules(expr, evaluation, outerform)
+        boxed = FormBox(boxed, outerform)
+        return TagBox(boxed, outerform, **kwargs)
+    if form is SymbolFullForm:
+        return eval_makeboxes_fullform_recursive(expr, evaluation)
+    if form in box_forms:
+        boxed = apply_makeboxes_rules(expr, evaluation, form)
+        boxed = FormBox(boxed, form)
+        tag = Function(Format(Slot(Integer1), form))
+        return TagBox(boxed, tag, **kwargs)
+    if form in print_forms:
+        return format_element(expr, evaluation, form)
+
+    # form is not a format...
+    evaluation.message("FormatType", "ftype", form)
+    expr = do_format(expr, evaluation, outerform)
+    form = do_format(form, evaluation, outerform)
+    return eval_generic_makeboxes(Format(expr, form), outerform, evaluation)
 
 
 @is_print_form_callback("System`StandardForm")
@@ -220,7 +257,9 @@ def eval_generic_makeboxes(expr, f, evaluation):
         head = expr.head
         elements = expr.elements
         if head in evaluation.definitions.boxforms and len(elements) == 1:
-            return apply_makeboxes_rules(elements[0], evaluation, head)
+            return eval_makeboxes_format(
+                elements[0], None, head, evaluation, **{"System`Editable": SymbolTrue}
+            )
 
         printform_callback = PRINT_FORMS_CALLBACK.get(head.get_name(), None)
         if printform_callback is not None:
@@ -291,6 +330,7 @@ def format_element(
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
+    was_boxing = evaluation.is_boxing
     evaluation.is_boxing = True
     formatted_expr = do_format(element, evaluation, form)
     if form not in evaluation.definitions.boxforms:
@@ -298,8 +338,11 @@ def format_element(
         form = SymbolStandardForm
     result_box = apply_makeboxes_rules(formatted_expr, evaluation, form)
     if isinstance(result_box, BoxElementMixin):
+        evaluation.is_boxing = was_boxing
         return result_box
-    return eval_makeboxes_fullform_recursive(element, evaluation)
+    result = eval_makeboxes_fullform_recursive(element, evaluation)
+    evaluation.is_boxing = was_boxing
+    return result
 
 
 def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElementMixin:

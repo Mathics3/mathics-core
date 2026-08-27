@@ -3,6 +3,8 @@ Base classes for canonical order.
 
 """
 
+from typing import Tuple
+
 
 class KeyComparable:
     """Mathics3/WL defines a "canonical ordering" between elements,
@@ -115,8 +117,27 @@ class Monomial:
                 other_exps[var] -= dec
                 if not other_exps[var]:
                     del other_exps[var]
-        self_exps = sorted((var, exp) for var, exp in self_exps.items())
-        other_exps = sorted((var, exp) for var, exp in other_exps.items())
+
+        def _var_key(pair):
+            """
+            If `var` is not a plain string (e.g. a Symbol object), fall back
+            to its string representation for ordering.
+            """
+            var, _ = pair
+            try:
+                return str(var)
+            except Exception:
+                return var
+
+        # NOTE ON COMPARING MONOMIALS.
+        # Symbol names are compared lexicographically.
+        # However, when comparing monomials containing several
+        # symbols, Mathematica treats later symbols as variables,
+        # while the earlier symbols are treated as as coefficients. So
+        # we need to compare symbol names in reverse alphabetical order.
+        # For example, (b c) < (a d) for monomials (b c) and (a d) since c < d.
+        self_exps = sorted(list(self_exps.items()), key=_var_key, reverse=True)
+        other_exps = sorted(list(other_exps.items()), key=_var_key, reverse=True)
 
         index = 0
         self_len = len(self_exps)
@@ -274,12 +295,14 @@ END_OF_LIST_PATTERN_SORT_KEY = (
 
 ###  _ELT_ORDER suffixes are used in element ordering and
 ###  Expression.element_order().
+###  Inside Mathics3, you can use builtin function Order[x, y] to check things.
 
 BASIC_ATOM_NUMBER_ELT_ORDER = 0x00
-BASIC_ATOM_STRING_ELT_ORDER = 0x01
-BASIC_ATOM_BYTEARRAY_ELT_ORDER = 0x02
-LITERAL_EXPRESSION_ELT_ORDER = 0x03
-BASIC_ATOM_NUMERICARRAY_ELT_ORDER = 0x04
+BASIC_ATOM_ASSOCIATION_ELT_ORDER = 0x01
+BASIC_ATOM_STRING_ELT_ORDER = 0x02
+BASIC_ATOM_BYTEARRAY_ELT_ORDER = 0x03
+LITERAL_EXPRESSION_ELT_ORDER = 0x04
+BASIC_ATOM_NUMERICARRAY_ELT_ORDER = 0x05
 
 BASIC_NUMERIC_EXPRESSION_ELT_ORDER = 0x12
 GENERAL_NUMERIC_EXPRESSION_ELT_ORDER = 0x13
@@ -287,3 +310,38 @@ IMAGE_EXPRESSION_ELT_ORDER = 0x13
 
 BASIC_EXPRESSION_ELT_ORDER = 0x22
 GENERAL_EXPRESSION_ELT_ORDER = 0x23
+
+
+def wma_str_sort_key(s: str) -> Tuple[str, str]:
+    """
+    Return a Tuple providing the sort key
+    reproduce the order of strings and symbols
+    in WMA.
+    For example, the following is a list of sorted
+    strings in the WMA order:
+    `{Abeja, ABEJA, ave de paso, Ave de paso, Ave de Paso, AVe}`
+    The order criteria is: first sort case insensitive, then
+    for the first different character in the original string,
+    lower case comes before upper case.
+    """
+    # An alternative to this implementation would be to map the
+    # characters in a way that
+    # a -> A
+    # A -> B
+    # b -> C
+    # B -> D
+    #  ...
+    # m -> Z
+    # M -> a
+    # n -> b
+    # N -> c
+    #  ...
+    # z -> y
+    # Z -> z
+    # so the result is again a string. Another possibility would be
+    # to return a wrapper class that implement this special comparison
+    # on the fly through the method `__lt__`.
+    return (
+        s.lower(),
+        s.swapcase(),
+    )

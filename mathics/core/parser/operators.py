@@ -8,34 +8,21 @@ The dictionary from these which are read in here, are used by the
 Mathics3 parser.
 """
 
-
-import os.path as osp
 from collections import defaultdict
+from typing import Any, Final
 
-from mathics.settings import ROOT_DIR
+from mathics_scanner.characters import OPERATOR_DATA
 
-try:
-    import ujson
-except ImportError:
-    import json as ujson  # type: ignore[no-redef]
-
-# Load Mathics3 operator information from JSON. This file is derived from a
-# Mathics3 Operator Data YAML file in MathicsScanner.
-operator_tables_path = osp.join(ROOT_DIR, "data", "operator-tables.json")
-assert osp.exists(
-    operator_tables_path
-), f"Internal error: Mathics3 Operator information are missing; expected to be in {operator_tables_path}"
-with open(operator_tables_path, "r") as f:
-    OPERATOR_DATA = ujson.load(f)
-
-box_operators = OPERATOR_DATA["box-operators"]
-flat_binary_operators = OPERATOR_DATA["flat-binary-operators"]
+box_operators: Final[dict[str, str]] = OPERATOR_DATA["box-operators"]
+flat_binary_operators: Final[dict[str, int]] = OPERATOR_DATA["flat-binary-operators"]
 left_binary_operators = OPERATOR_DATA["left-binary-operators"]
-misc_operators = OPERATOR_DATA["miscellaneous-operators"]
-nonassoc_binary_operators = OPERATOR_DATA["non-associative-binary-operators"]
-operator_precedences = OPERATOR_DATA["operator-precedences"]
-operator_to_amslatex = OPERATOR_DATA["operator-to-amslatex"]
-operator_to_string = OPERATOR_DATA.get(
+misc_operators: Final[dict[str, int]] = OPERATOR_DATA["miscellaneous-operators"]
+nonassoc_binary_operators: Final[dict[str, int]] = OPERATOR_DATA[
+    "non-associative-binary-operators"
+]
+operator_precedences: Final[dict[str, int]] = OPERATOR_DATA["operator-precedences"]
+operator_to_amslatex: Final[dict[str, str]] = OPERATOR_DATA["operator-to-amslatex"]
+operator_to_string: Final[dict] = OPERATOR_DATA.get(
     "operator-to-string", OPERATOR_DATA.get("operator-to_string", {})
 )
 postfix_operators = OPERATOR_DATA["postfix-operators"]
@@ -44,23 +31,27 @@ right_binary_operators = OPERATOR_DATA["right-binary-operators"]
 ternary_operators = OPERATOR_DATA["ternary-operators"]
 
 # FIXME: get from JSON
-inequality_operators = [
+inequality_operators: Final[tuple] = (
     "Less",
     "LessEqual",
     "Greater",
     "GreaterEqual",
     "Equal",
     "Unequal",
-]
+)
 
 # binary_operators = left_binary_operators V right_binary_operators V flat_binary_operators V nonassoc_binary_operators
-binary_operators = {}
+binary_operators: dict[str, int] = {}
 
 # all ops - check they're disjoint
-all_operators = defaultdict(lambda: 670)
+OPERATOR_PRECEDENCE: defaultdict[Any, int] = defaultdict(
+    lambda: operator_precedences["FunctionApply"]
+)
+BOX_OPERATOR_PRECEDENCE: Final[int] = operator_precedences["BoxGroup"]
+PLUS_PRECEDENCE: Final[int] = operator_precedences["Plus"]
 
-# Set below
-all_operator_names = []
+# Values are set below in calculate_operator_information
+all_operator_names: tuple = tuple()
 
 
 def calculate_operator_information():
@@ -90,9 +81,10 @@ def calculate_operator_information():
 
     for ops in all_op_collections:
         for op, prec in ops.items():
-            all_operators[op] = prec
+            OPERATOR_PRECEDENCE[op] = prec
 
-    all_operator_names = list(all_operators.keys())
+    all_operator_names = tuple(OPERATOR_PRECEDENCE.keys())
+    pass
 
 
 # Calculating operator information is also done

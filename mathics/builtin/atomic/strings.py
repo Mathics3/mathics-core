@@ -3,15 +3,12 @@
 String Manipulation
 """
 
-import io
 import re
 import unicodedata
 from abc import ABC
 from binascii import unhexlify
 from heapq import heappop, heappush
 from typing import Any, List
-
-from mathics_scanner.errors import SyntaxError
 
 from mathics.core.atoms import Integer, Integer1, String
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
@@ -20,20 +17,22 @@ from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.parser import MathicsFileLineFeeder
-from mathics.core.parser.convert import convert
-from mathics.core.parser.util import parser
 from mathics.core.systemsymbols import (
-    SymbolFailed,
     SymbolInputForm,
     SymbolNone,
     SymbolOutputForm,
     SymbolToExpression,
 )
+from mathics.eval.atomic.strings import eval_ToExpression_from_str
+from mathics.eval.encoding import (
+    EncodingNameError,
+    available_character_encodings,
+    load_encoding_table,
+)
 from mathics.eval.strings import eval_StringContainsQ, eval_ToString
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
-# covers all of the variations. Here we just give some minimal basics
+# Covers all of the variations. Here we just give some minimal basics
 
 # Data taken from:
 #   https://unicode-org.github.io/cldr-staging/charts/37/summary/root.html
@@ -92,7 +91,7 @@ def _evaluate_match(s, m, evaluation):
     replace = dict(
         (_decode_pname(name), String(value)) for name, value in m.groupdict().items()
     )
-    return s.replace_vars(replace, in_scoping=False).evaluate(evaluation)
+    return s.replace_vars(replace).evaluate(evaluation)
 
 
 def _parallel_match(text, rules, flags, limit):
@@ -155,7 +154,7 @@ def mathics_split(patt, string, flags):
     Python >= 3.5, <= X and works as expected for Python >= X, where 'X' is
     some future version of Python (> 3.6).
 
-    For these reasons we implement our own split.
+    For these reasons, we implement our own split.
     """
     # (start, end) indices of splits
     indices = list((m.start(), m.end()) for m in re.finditer(patt, string, flags))
@@ -168,55 +167,6 @@ def mathics_split(patt, string, flags):
     return [string[start:stop] for start, stop in indices]
 
 
-_encodings = {
-    # see https://docs.python.org/2/library/codecs.html#standard-encodings
-    "ASCII": "ascii",
-    "CP949": "cp949",
-    "CP950": "cp950",
-    "EUC-JP": "euc_jp",
-    "IBM-850": "cp850",
-    "ISOLatin1": "iso8859_1",
-    "ISOLatin2": "iso8859_2",
-    "ISOLatin3": "iso8859_3",
-    "ISOLatin4": "iso8859_4",
-    "ISOLatinCyrillic": "iso8859_5",
-    "ISO8859-1": "iso8859_1",
-    "ISO8859-2": "iso8859_2",
-    "ISO8859-3": "iso8859_3",
-    "ISO8859-4": "iso8859_4",
-    "ISO8859-5": "iso8859_5",
-    "ISO8859-6": "iso8859_6",
-    "ISO8859-7": "iso8859_7",
-    "ISO8859-8": "iso8859_8",
-    "ISO8859-9": "iso8859_9",
-    "ISO8859-10": "iso8859_10",
-    "ISO8859-13": "iso8859_13",
-    "ISO8859-14": "iso8859_14",
-    "ISO8859-15": "iso8859_15",
-    "ISO8859-16": "iso8859_16",
-    "koi8-r": "koi8_r",
-    "MacintoshCyrillic": "mac_cyrillic",
-    "MacintoshGreek": "mac_greek",
-    "MacintoshIcelandic": "mac_iceland",
-    "MacintoshRoman": "mac_roman",
-    "MacintoshTurkish": "mac_turkish",
-    "ShiftJIS": "shift_jis",
-    "Unicode": "utf_16",
-    "UTF-8": "utf_8",
-    "UTF8": "utf_8",
-    "WindowsANSI": "cp1252",
-    "WindowsBaltic": "cp1257",
-    "WindowsCyrillic": "cp1251",
-    "WindowsEastEurope": "cp1250",
-    "WindowsGreek": "cp1253",
-    "WindowsTurkish": "cp1254",
-}
-
-
-def to_python_encoding(encoding):
-    return _encodings.get(encoding)
-
-
 class Alphabet(Builtin):
     """
     <url>
@@ -224,7 +174,7 @@ class Alphabet(Builtin):
     https://reference.wolfram.com/language/ref/Alphabet.html</url>
     <dl>
       <dt>'Alphabet'[]
-      <dd>gives the list of lowercase letters a-z in the English alphabet .
+      <dd>gives the list of lowercase letters a-z in the English alphabet.
 
       <dt>'Alphabet'[$type$]
       <dd> gives the alphabet for the language or class $type$.
@@ -283,8 +233,8 @@ class CharacterEncoding(Predefined):
       Initially this is set to '\\$SystemCharacterEncoding'.
     </dl>
 
-    See the character encoding current is in effect and used in input and \
-    output functions functions like 'OpenRead[]':
+    See the character encoding currently in effect and used in input and \
+    output functions like 'OpenRead[]':
 
     >> $CharacterEncoding
      = ...
@@ -297,7 +247,7 @@ class CharacterEncoding(Predefined):
     >> $CharacterEncoding = "UTF-8"; a -> b
      = ...
 
-    Setting its value to 'None' restore the value to \
+    Setting its value to 'None' restores the value to \
     '\\$SystemCharacterEncoding':
     >> $CharacterEncoding = None;
     >> $SystemCharacterEncoding == $CharacterEncoding
@@ -310,7 +260,8 @@ class CharacterEncoding(Predefined):
 
     name = "$CharacterEncoding"
     messages = {
-        "charcode": "`1` is not a valid character encoding. Possible settings are the names given by $CharacterEncodings or None."
+        "charcode": "`1` is not a valid character encoding. Possible settings are the names given by $CharacterEncodings or None.",
+        "charfile": 'The file `1` contains an invalid character encoding. A valid encoding is {"type", {{n1, "c1"}, ...}}.',
     }
     value = f'"{SYSTEM_CHARACTER_ENCODING}"'
     rules = {
@@ -323,11 +274,19 @@ class CharacterEncoding(Predefined):
         """Set[$CharacterEncoding, value_]"""
         if value is SymbolNone:
             value = String(SYSTEM_CHARACTER_ENCODING)
-        if isinstance(value, String) and value.value in _encodings.keys():
-            evaluation.definitions.set_ownvalue("System`$CharacterEncoding", value)
-        else:
-            evaluation.message("$CharacterEncoding", "charcode", value)
+        self.eval_setdelayed(value, evaluation)
         return value
+
+    def eval_setdelayed(self, value, evaluation):
+        """SetDelayed[$CharacterEncoding, value_]"""
+        if not isinstance(value, String):
+            evaluation.message("$CharacterEncoding", "charcode", value)
+            return
+        try:
+            load_encoding_table(value.value, evaluation)
+            evaluation.definitions.set_ownvalue("System`$CharacterEncoding", value)
+        except EncodingNameError:
+            evaluation.message("$CharacterEncoding", "charcode", value)
 
 
 class CharacterEncodings(Predefined):
@@ -346,7 +305,8 @@ class CharacterEncodings(Predefined):
     """
 
     name = "$CharacterEncodings"
-    value = "{%s}" % ",".join(map(lambda s: '"%s"' % s, _encodings.keys()))
+    # Here we should add the list of filenames in SystemFiles/CharacterEncoding
+    value = "{%s}" % ",".join(available_character_encodings())
     rules = {
         "$CharacterEncodings": value,
     }
@@ -396,9 +356,9 @@ class InterpretedBox(PrefixOperator):
         """InterpretedBox[boxes_]"""
         # TODO: the following is a very raw and dummy way to
         # handle these expressions.
-        # In the first place, this should handle different kind
+        # In the first place, this should handle different kinds
         # of boxes in different ways.
-        reinput = boxes.boxes_to_text()
+        reinput = boxes.to_text()
         return Expression(SymbolToExpression, String(reinput)).evaluate(evaluation)
 
 
@@ -439,7 +399,7 @@ class LetterNumber(Builtin):
 
     """
 
-    # FIXME: put the right unicode characters in a way that the
+    # FIXME: put the right Unicode characters in a way that the
     # following test works...
     r"""
     # #> LetterNumber["\[CapitalBeta]", "Greek"]
@@ -622,7 +582,7 @@ class StringContainsQ(Builtin):
       <dd>returns True if any part of $string$ matches $patt$, and returns False otherwise.
 
       <dt>'StringContainsQ[{"s1", "s2", ...}, patt]'
-      <dd>returns the list of results for each element of string list.
+      <dd>returns the list of results for each element of the string list.
 
       <dt>'StringContainsQ[patt]'
       <dd>represents an operator form of StringContainsQ that can be applied to an expression.
@@ -696,7 +656,7 @@ class StringRepeat(Builtin):
 
     def eval_truncated(self, expression, s, n, m, evaluation):
         "expression: StringRepeat[s_String, n_Integer, m_Integer]"
-        # The above rule insures that n and m are boht Integer type
+        # The above rule ensures that n and m are both Integer type
         py_n = n.value
         py_m = m.value
 
@@ -720,8 +680,8 @@ class SystemCharacterEncoding(Predefined):
       <dt>\\$SystemCharacterEncoding
       <dd>gives the default character encoding of the system.
 
-      On startup, the value of environment variable 'MATHICS_CHARACTER_ENCODING' \
-      sets this value. However if that environment variable is not set, set the value \
+      On startup, the value of the environment variable 'MATHICS_CHARACTER_ENCODING' \
+      sets this value. However, if that environment variable is not set, the value \
       is set in Python using 'sys.getdefaultencoding()'.
     </dl>
 
@@ -764,7 +724,7 @@ class ToExpression(Builtin):
     >> ToExpression["2 3", InputForm]
      = 6
 
-    Note that newlines are like semicolons, not blanks. So so the return value is the \
+    Note that newlines are like semicolons, not blanks. So the return value is the \
     second-line value.
     >> ToExpression["2\[NewLine]3"]
      = 3
@@ -779,7 +739,7 @@ class ToExpression(Builtin):
     """
     attributes = A_LISTABLE | A_PROTECTED
 
-    # Set checking that the between one and three arguments are allowed.
+    # Set checking that between one and three arguments are allowed.
     eval_error = Builtin.generic_argument_error
     expected_args = range(1, 4)
 
@@ -820,24 +780,7 @@ class ToExpression(Builtin):
         # Apply the different forms
         if form is SymbolInputForm:
             if isinstance(inp, String):
-                # TODO: turn the below up into a function and call that.
-                s = inp.value
-                short_s = s[:15] + "..." if len(s) > 16 else s
-                with io.StringIO(s) as f:
-                    f.name = """ToExpression['%s']""" % short_s
-                    feeder = MathicsFileLineFeeder(f)
-                    while not feeder.empty():
-                        try:
-                            ast = parser.parse(feeder)
-                        except SyntaxError:
-                            return SymbolFailed
-                        finally:
-                            feeder.send_messages(evaluation)
-                        if ast is None:  # blank line / comment
-                            continue
-                        query = convert(ast, evaluation.definitions)
-                        result = query.evaluate(evaluation)
-
+                result = eval_ToExpression_from_str(inp.value, evaluation)
             else:
                 result = inp
         else:
@@ -881,7 +824,7 @@ class ToString(Builtin):
     """
 
     options = {
-        "CharacterEncoding": '"Unicode"',
+        "CharacterEncoding": "$CharacterEncoding",
         "FormatType": "OutputForm",
         "NumberMarks": "$NumberMarks",
         "PageHeight": "Infinity",
@@ -898,8 +841,16 @@ class ToString(Builtin):
 
     def eval_form(self, expr, form, evaluation: Evaluation, options: dict):
         "ToString[expr_, form_Symbol, OptionsPattern[ToString]]"
-        encoding = options["System`CharacterEncoding"]
-        return eval_ToString(expr, form, encoding.value, evaluation)
+        encoding = options["System`CharacterEncoding"].evaluate(evaluation)
+        if isinstance(encoding, String):
+            encoding_str = encoding.value
+        else:
+            evaluation.message("$CharacterEncoding", "charcode", encoding)
+            encoding_str = evaluation.definitions.get_ownvalue(
+                "System`$SystemCharacterEncoding"
+            ).value
+
+        return eval_ToString(expr, form, encoding_str, evaluation)
 
 
 class Transliterate(Builtin):
@@ -912,7 +863,7 @@ class Transliterate(Builtin):
       <dd>transliterates a text in some script into an ASCII string.
     </dl>
 
-    ASCII translateration examples:
+    ASCII transliteration examples:
     <ul>
       <li><url>:Russian language:
           https://en.wikipedia.org/wiki/Russian_language#Transliteration</url>

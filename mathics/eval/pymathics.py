@@ -46,7 +46,7 @@ def eval_LoadModule(module_name: str, definitions: Definitions) -> str:
 
 def load_pymathics_module(definitions: Definitions, module_name: str):
     """
-    Loads Mathics builtin objects and their definitions
+    Loads Mathics3 builtin objects and their definitions
     from an external Python module in the pymathics module namespace.
     """
 

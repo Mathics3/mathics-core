@@ -40,7 +40,7 @@ MATHML_STRICT = (
 
 PATH = os.path.dirname(__file__) + os.path.sep
 
-with open(PATH + "format_tests.yaml", "r") as src:
+with open(PATH + "format_tests.yaml", "r", encoding="utf-8") as src:
     all_test = yaml.safe_load(src)
 
 
@@ -115,11 +115,12 @@ if fragile_tests:
         format_result = result.format(session.evaluation, form)
         if msg:
             assert (
-                format_result.boxes_to_text(evaluation=session.evaluation)
-                == str_expected
+                format_result.to_text(evaluation=session.evaluation) == str_expected
             ), msg
         else:
-            strresult = format_result.boxes_to_text(evaluation=session.evaluation)
+            strresult = format_result.to_text(
+                evaluation=session.evaluation, encoding="UTF-8"
+            )
             assert strresult == str_expected
 
 
@@ -132,10 +133,11 @@ def test_makeboxes_text(str_expr, str_expected, form, msg):
     format_result = result.format(session.evaluation, form)
     if msg:
         assert (
-            format_result.boxes_to_text(evaluation=session.evaluation) == str_expected
+            format_result.to_text(evaluation=session.evaluation, encoding="UTF-8")
+            == str_expected
         ), msg
     else:
-        strresult = format_result.boxes_to_text(evaluation=session.evaluation)
+        strresult = format_result.to_text(evaluation=session.evaluation)
         assert strresult == str_expected
 
 
@@ -153,13 +155,15 @@ if fragile_tests:
         format_result = result.format(session.evaluation, form)
         if msg:
             assert (
-                format_result.boxes_to_tex(
+                format_result.to_tex(
                     show_string_characters=False, evaluation=session.evaluation
                 ).strip()
                 == str_expected.strip()
             ), msg
         else:
-            strresult = format_result.boxes_to_tex(evaluation=session.evaluation)
+            strresult = format_result.to_tex(
+                evaluation=session.evaluation, encoding="UTF-8"
+            )
             assert strresult.strip() == str_expected.strip()
 
 
@@ -172,13 +176,13 @@ def test_makeboxes_tex(str_expr, str_expected, form, msg):
     format_result = result.format(session.evaluation, form)
     if msg:
         assert (
-            format_result.boxes_to_tex(
+            format_result.to_tex(
                 show_string_characters=False, evaluation=session.evaluation
             ).strip()
             == str_expected.strip()
         ), msg
     else:
-        strresult = format_result.boxes_to_text(evaluation=session.evaluation).strip()
+        strresult = format_result.to_text(evaluation=session.evaluation).strip()
         assert strresult == str_expected
 
 
@@ -196,11 +200,13 @@ if fragile_tests:
         format_result = result.format(session.evaluation, form)
         if msg:
             assert (
-                format_result.boxes_to_mathml(evaluation=session.evaluation)
+                format_result.to_mathml(evaluation=session.evaluation, encoding="UTF-8")
                 == str_expected
             ), msg
         else:
-            strresult = format_result.boxes_to_mathml(evaluation=session.evaluation)
+            strresult = format_result.to_mathml(
+                evaluation=session.evaluation, encoding="UTF-8"
+            )
             assert strresult == str_expected
 
 
@@ -213,10 +219,13 @@ def test_makeboxes_mathml(str_expr, str_expected, form, msg):
     format_result = result.format(session.evaluation, form)
     if msg:
         assert (
-            format_result.boxes_to_mathml(evaluation=session.evaluation) == str_expected
+            format_result.to_mathml(evaluation=session.evaluation, encoding="UTF-8")
+            == str_expected
         ), msg
     else:
-        strresult = format_result.boxes_to_mathml(evaluation=session.evaluation)
+        strresult = format_result.to_mathml(
+            evaluation=session.evaluation, encoding="UTF-8"
+        )
         assert strresult == str_expected
 
 
@@ -262,7 +271,7 @@ def test_format_private_doctests(str_expr, str_expected, msg):
         (None, None, None, None),
     ],
 )
-def test_private_doctests_layout(str_expr, msgs, str_expected, fail_msg):
+def test_layout(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,

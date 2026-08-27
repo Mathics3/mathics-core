@@ -2,7 +2,6 @@
 Pytests for the documentation system. Basic functions and classes.
 """
 
-
 from mathics.core.load_builtin import import_and_load_builtins
 from mathics.doc.latex_doc import (
     LaTeXDocChapter,

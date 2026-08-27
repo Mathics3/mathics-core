@@ -1,6 +1,7 @@
 """
 Mathics3 Atoms from which compound Mathics3 compound Expressions are made of.
 """
+
 from mathics.core.atoms.arrays import ByteArray, NumericArray
 from mathics.core.atoms.numerics import (
     COMPARE_PREC,
@@ -31,7 +32,7 @@ from mathics.core.atoms.numerics import (
     is_integer_rational_or_real,
     min_prec,
 )
-from mathics.core.atoms.strings import String, StringFromPython, SymbolString
+from mathics.core.atoms.strings import String, StringFromPython
 
 __all__ = [
     "ByteArray",
@@ -64,7 +65,6 @@ __all__ = [
     "String",
     "StringFromPython",
     "SymbolI",
-    "SymbolString",
     "is_integer_rational_or_real",
     "min_prec",
 ]

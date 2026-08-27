@@ -108,8 +108,9 @@ class FormBox(BoxExpression):
     def init(self, *elems, **kwargs):
         self.box_options = kwargs
         self.form = elems[1]
-        self.boxes = elems[0]
-        assert isinstance(self.boxes, BoxElementMixin), f"{type(self.boxes)}"
+
+        self.inner_box = elems[0]
+        assert isinstance(self.inner_box, BoxElementMixin), f"{type(self.inner_box)}"
 
     @property
     def elements(self):
@@ -117,7 +118,7 @@ class FormBox(BoxExpression):
             self._elements = elements_to_expressions(
                 self,
                 (
-                    self.boxes,
+                    self.inner_box,
                     self.form,
                 ),
                 self.box_options,
@@ -276,12 +277,12 @@ class InterpretationBox(BoxExpression):
     summary_text = "box associated to an input expression"
 
     def __repr__(self):
-        result = "InterpretationBox\n  " + repr(self.boxes)
+        result = "InterpretationBox\n  " + repr(self.inner_box)
         result += f"\n  {self.box_options}"
         return result
 
     def init(self, *expr, **options):
-        self.boxes = expr[0]
+        self.inner_box = expr[0]
         self.expr = expr[1]
         self.box_options = options
 
@@ -291,7 +292,7 @@ class InterpretationBox(BoxExpression):
             self._elements = elements_to_expressions(
                 self,
                 (
-                    self.boxes,
+                    self.inner_box,
                     self.expr,
                 ),
                 self.box_options,
@@ -321,11 +322,11 @@ class InterpretationBox(BoxExpression):
 
     def eval_display(self, boxexpr, evaluation):
         """DisplayForm[boxexpr_InterpretationBox]"""
-        return boxexpr.boxes
+        return boxexpr.inner_box
 
     @property
     def is_multiline(self) -> bool:
-        return self.boxes.is_multiline
+        return self.inner_box.is_multiline
 
 
 class PaneBox(BoxExpression):
@@ -349,12 +350,12 @@ class PaneBox(BoxExpression):
     def elements(self):
         if self._elements is None:
             self._elements = elements_to_expressions(
-                self, (self.boxes,), self.box_options
+                self, (self.inner_box,), self.box_options
             )
         return self._elements
 
     def init(self, expr, **options):
-        self.boxes = expr
+        self.inner_box = expr
         self.box_options = options
 
     def eval_panebox1(self, expr, evaluation, options):
@@ -373,7 +374,7 @@ class PaneBox(BoxExpression):
 
     @property
     def is_multiline(self) -> bool:
-        return self.boxes.is_multiline
+        return self.inner_box.is_multiline
 
 
 class RowBox(BoxExpression):
@@ -406,9 +407,11 @@ class RowBox(BoxExpression):
             self._elements = (
                 ListExpression(
                     *(
-                        item.to_expression()
-                        if isinstance(item, BoxExpression)
-                        else item
+                        (
+                            item.to_expression()
+                            if isinstance(item, BoxExpression)
+                            else item
+                        )
                         for item in self.items
                     )
                 ),
@@ -454,6 +457,24 @@ class RowBox(BoxExpression):
     @property
     def is_multiline(self) -> bool:
         return any(item.is_multiline for item in self.items)
+
+
+class ShowSpecialCharacters(Builtin):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ShowSpecialCharacters.html</url>
+    <dl>
+      <dt>'ShowSpecialCharacters'
+      <dd>is an option for 'Style' and 'Cell' that directs whether non-ASCII characters must be shown as special characters or by escaped sequences.
+    </dl>
+
+    <ul>
+    <li>With 'ShowSpecialCharacters' set to 'False', special characters are always displayed by name when possible.
+    </ul>
+    """
+
+    summary_text = "cell and style option directing whether show special characters in a reversible ASCII format."
 
 
 class ShowStringCharacters(Builtin):
@@ -543,6 +564,7 @@ class StyleBox(BoxExpression):
     """
 
     options = {
+        "ImageSizeMultipliers": "Automatic",
         "$OptionSyntax": "Ignore",
     }
     attributes = A_PROTECTED | A_READ_PROTECTED
@@ -555,7 +577,7 @@ class StyleBox(BoxExpression):
     def elements(self):
         if self._elements is None:
             style = self.style
-            boxes = self.boxes
+            boxes = self.inner_box
             if style:
                 self._elements = elements_to_expressions(
                     self, (boxes, style), self.box_options
@@ -579,27 +601,27 @@ class StyleBox(BoxExpression):
         return StyleBox(boxes, style=style, **options)
 
     def get_string_value(self) -> str:
-        box = self.boxes
+        box = self.inner_box
         if isinstance(box, String):
             return box.value
         return ""
 
-    def init(self, boxes, style=None, **options):
+    def init(self, box, style=None, **options):
         # This implementation supersedes Expression.process_style_box
-        if isinstance(boxes, StyleBox):
-            options.update(boxes.box_options)
-            boxes = boxes.boxes
+        if isinstance(box, StyleBox):
+            options.update(box.box_options)
+            box = box.inner_box
         self.style = style
         self.box_options = options
         assert options is not None
-        self.boxes = boxes
+        self.inner_box = box
         assert isinstance(
-            self.boxes, BoxElementMixin
-        ), f"{type(self.boxes)},{self.boxes}"
+            self.inner_box, BoxElementMixin
+        ), f"{type(self.inner_box)},{self.inner_box}"
 
     @property
     def is_multiline(self) -> bool:
-        return self.boxes.is_multiline
+        return self.inner_box.is_multiline
 
 
 class SubscriptBox(BoxExpression):
@@ -667,8 +689,8 @@ class SubsuperscriptBox(BoxExpression):
         if self._elements is None:
             # self.box_options
             self._elements = elements_to_expressions(
+                self,
                 (
-                    self,
                     self.base,
                     self.subindex,
                     self.superindex,
@@ -759,8 +781,8 @@ class TagBox(BoxExpression):
     def init(self, *elems, **kwargs):
         self.box_options = kwargs
         self.form = elems[1]
-        self.boxes = elems[0]
-        assert isinstance(self.boxes, BoxElementMixin), f"{type(self.boxes)}"
+        self.inner_box = elems[0]
+        assert isinstance(self.inner_box, BoxElementMixin), f"{type(self.inner_box)}"
 
     @property
     def elements(self):
@@ -768,7 +790,7 @@ class TagBox(BoxExpression):
             self._elements = elements_to_expressions(
                 self,
                 (
-                    self.boxes,
+                    self.inner_box,
                     self.form,
                 ),
                 self.box_options,
@@ -784,7 +806,7 @@ class TagBox(BoxExpression):
 
     @property
     def is_multiline(self) -> bool:
-        return self.boxes.is_multiline
+        return self.inner_box.is_multiline
 
 
 class TemplateBox(BoxExpression):

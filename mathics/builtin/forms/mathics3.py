@@ -7,6 +7,7 @@ These provide conversion to Python or Python using Python-based libraries. This 
 by Mathics3's implementation in Python.
 
 """
+
 from typing import Optional
 
 from mathics.builtin.forms.base import FormBaseClass
@@ -63,7 +64,7 @@ class SympyForm(FormBaseClass):
     <dl>
       <dt>'SympyForm'[$expr$]
       <dd>returns an Sympy $expr$ in Python. Sympy is used internally
-      to implement a number of Mathics functions, like Simplify.
+      to implement a number of Mathics3 functions, like Simplify.
     </dl>
 
     >> SympyForm[Pi^2]

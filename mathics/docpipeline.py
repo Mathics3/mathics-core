@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# FIXME: combine with same thing in Mathics Django
+# FIXME: combine with same thing in Mathics3 Django
 """
 Does 2 things which can either be done independently or
 as a pipeline:
@@ -21,9 +21,10 @@ from typing import Callable, Dict, Generator, List, Optional, Set, Union
 
 import mathics
 from mathics import settings, version_string
+from mathics.core.convert.op import string_to_invertible_ascii
 from mathics.core.evaluation import Output
 from mathics.core.load_builtin import _builtins, import_and_load_builtins
-from mathics.doc.doc_entries import DocTest, DocumentationEntry
+from mathics.doc.doc_entries import DocTest, DocumentationEntry, Tests
 from mathics.doc.structure import (
     DocGuideSection,
     DocSection,
@@ -45,17 +46,20 @@ MAX_TESTS = 100000  # A number greater than the total number of tests.
 # When 3.8 is base, the below can be a Literal type.
 INVALID_TEST_GROUP_SETUP = (None, None)
 
+CHARACTER_ENCODING = settings.SYSTEM_CHARACTER_ENCODING
+
 TestParameters = namedtuple(
     "TestParameters",
     [
         "check_partial_elapsed_time",
-        "data_path",
-        "keep_going",
-        "max_tests",
+        "data_path",  # where to store the PCL file
+        "keep_going",  # if there is a failure, keep testing
+        "max_tests",  # maximum numbrer of tests to run
         "quiet",
         "output_format",
         "reload",
         "start_at",
+        "doc_only",  # we don't care about the actual test
     ],
 )
 
@@ -73,7 +77,13 @@ class DocTestPipeline:
     the doctests and generate the data for the documentation.
     """
 
-    def __init__(self, args, output_format="latex", data_path: Optional[str] = None):
+    def __init__(
+        self,
+        args,
+        output_format="latex",
+        data_path: Optional[str] = None,
+        doc_only: bool = False,
+    ):
         self.session = MathicsSession()
         self.output_data: Dict[tuple, dict] = {}
 
@@ -96,6 +106,7 @@ class DocTestPipeline:
             output_format=output_format,
             reload=args.reload and not (args.chapters or args.sections),
             start_at=args.skip + 1,
+            doc_only=doc_only,
         )
         self.status = TestStatus(data_path, self.parameters.quiet)
 
@@ -137,10 +148,6 @@ class DocTestPipeline:
             self.output_data = load_doctest_data(doctest_latex_data_path)
         else:
             self.output_data = {}
-
-        # For consistency set the character encoding ASCII which is
-        # the lowest common denominator available on all systems.
-        settings.SYSTEM_CHARACTER_ENCODING = "ASCII"
 
         if self.session.definitions is None:
             self.print_and_log("Definitions are not initialized.")
@@ -195,7 +202,9 @@ class TestStatus:
         """Show the current test"""
         test_str = test.test
         if not self.quiet:
-            print(f"{index:4d} ({subindex:2d}): TEST {test_str}")
+            print(
+                f"{index:4d} ({subindex:2d}): TEST {string_to_invertible_ascii(test_str)}"
+            )
 
 
 def test_case(
@@ -203,6 +212,8 @@ def test_case(
     src_name: str,
     test_pipeline: DocTestPipeline,
     fail: Callable,
+    output_format: Optional[str] = None,
+    doc_only: bool = False,
 ) -> bool:
     """
     Run a single test cases ``test``. Return True if test succeeds and False if it
@@ -214,7 +225,9 @@ def test_case(
     test_parameters = test_pipeline.parameters
     try:
         time_start = datetime.now()
-        result = test_pipeline.session.evaluate_as_in_cli(test.test, src_name=src_name)
+        result = test_pipeline.session.evaluate_as_in_cli(
+            test.test, src_name=src_name, form=output_format
+        )
         out = result.out
         result = result.result
     except Exception as exc:
@@ -223,8 +236,11 @@ def test_case(
         sys.excepthook(*info)
         return False
 
+    if doc_only:
+        return True
+
     time_start = datetime.now()
-    comparison_result = test.compare_result(result)
+    comparison_result = test.compare_result(result, encoding=CHARACTER_ENCODING)
 
     if test_parameters.check_partial_elapsed_time:
         test_pipeline.print_and_log(
@@ -281,27 +297,49 @@ def create_output(test_pipeline, tests):
         def out_wrapper(expr):
             return expr
 
-    for test in tests:
-        if test.private:
-            continue
-        key = test.key
-        try:
-            result = session.evaluate_as_in_cli(
-                out_wrapper(test.test), form=output_format
-            )
-        except Exception:  # noqa
-            result = None
-        if result is None:
-            result = []
-        else:
-            result_data = result.get_data()
-            result_data["form"] = output_format
+    if isinstance(tests, Tests):
+        for test in tests.tests:
+            key = test.key
+            try:
+                result = session.evaluate_as_in_cli(
+                    out_wrapper(test), form=output_format
+                )
+            except Exception:  # noqa
+                result = None
+            if result is None:
+                result_data = []
+            else:
+                result_data = result.get_data()
+                result_data["form"] = output_format
             result = [result_data]
 
-        doctest_data[key] = {
-            "query": test.test,
-            "results": result,
-        }
+            doctest_data[key] = {
+                "query": test.test,
+                "results": result,
+            }
+
+    else:
+        for test in tests:
+            if test.private:
+                continue
+            key = test.key
+            try:
+                result = session.evaluate_as_in_cli(
+                    out_wrapper(test.test), form=output_format
+                )
+            except Exception:  # noqa
+                result = None
+            if result is None:
+                result_data = []
+            else:
+                result_data = result.get_data()
+                result_data["form"] = output_format
+            result = [result_data]
+
+            doctest_data[key] = {
+                "query": test.test,
+                "results": result,
+            }
 
 
 def load_pymathics_modules(module_names: set, definitions):
@@ -335,7 +373,7 @@ def load_pymathics_modules(module_names: set, definitions):
     return set(loaded_modules)
 
 
-def show_test_summary(
+def summarize_and_write_pcl(
     test_pipeline: DocTestPipeline,
     entity_name: str,
     entities_searched: str,
@@ -365,7 +403,7 @@ def show_test_summary(
             test_pipeline.print_and_log(
                 f"""{failed} test{'s' if failed != 1 else ''} failed.""",
             )
-    else:
+    elif not test_parameters.doc_only:
         test_pipeline.print_and_log("All tests passed.")
 
     if test_parameters.data_path and (failed == 0 or test_parameters.keep_going):
@@ -413,6 +451,7 @@ def test_section_in_chapter(
     section: Union[DocSection, DocGuideSection],
     include_sections: Optional[Set[str]] = None,
     exclude_sections: Optional[Set[str]] = None,
+    output_format=None,
 ):
     """
     Runs a tests for section ``section`` under a chapter or guide section.
@@ -470,6 +509,8 @@ def test_section_in_chapter(
             f"<test-{section.title}-{index}>",
             test_pipeline,
             fail=fail_message,
+            output_format=output_format,
+            doc_only=test_pipeline.parameters.doc_only,
         )
         if not success:
             test_status.mark_as_failed(doctest.key[:-1])
@@ -482,6 +523,7 @@ def test_section_in_chapter(
 def test_tests(
     test_pipeline: DocTestPipeline,
     excludes: Optional[Set[str]] = None,
+    output_format=None,
 ):
     """
     Runs a group of related tests, ``Tests`` provided that the section is not
@@ -498,10 +540,7 @@ def test_tests(
     """
     test_status: TestStatus = test_pipeline.status
     test_parameters: TestParameters = test_pipeline.parameters
-    # For consistency set the character encoding ASCII which is
-    # the lowest common denominator available on all systems.
 
-    settings.SYSTEM_CHARACTER_ENCODING = "ASCII"
     test_pipeline.reset_user_definitions()
 
     output_data, names = test_pipeline.validate_group_setup(
@@ -520,7 +559,7 @@ def test_tests(
                     continue
 
                 if test_status.total >= test_parameters.max_tests:
-                    show_test_summary(
+                    summarize_and_write_pcl(
                         test_pipeline,
                         "chapters",
                         "",
@@ -530,10 +569,11 @@ def test_tests(
                     test_pipeline,
                     section,
                     exclude_sections=excludes,
+                    output_format=output_format,
                 )
                 if test_status.failed_sections:
                     if not test_parameters.keep_going:
-                        show_test_summary(
+                        summarize_and_write_pcl(
                             test_pipeline,
                             "chapters",
                             "",
@@ -549,7 +589,7 @@ def test_tests(
                                 exclude_sections=excludes,
                             ),
                         )
-    show_test_summary(
+    summarize_and_write_pcl(
         test_pipeline,
         "chapters",
         "",
@@ -562,6 +602,7 @@ def test_chapters(
     test_pipeline: DocTestPipeline,
     include_chapters: set,
     exclude_sections: set,
+    output_format=None,
 ):
     """
     Runs a group of related tests for the set specified in ``chapters``.
@@ -592,10 +633,14 @@ def test_chapters(
                 if test_parameters.data_path is not None and test_status.failed == 0:
                     create_output(
                         test_pipeline,
-                        section.doc.get_tests(),
+                        section_tests_iterator(
+                            section,
+                            test_pipeline,
+                            exclude_sections=exclude_sections,
+                        ),
                     )
 
-    show_test_summary(
+    summarize_and_write_pcl(
         test_pipeline,
         "chapters",
         chapter_names,
@@ -608,6 +653,7 @@ def test_sections(
     test_pipeline: DocTestPipeline,
     include_sections: Set[str],
     exclude_subsections: Set[str],
+    output_format=None,
 ):
     """Runs a group of related tests for the set specified in ``sections``.
 
@@ -635,17 +681,23 @@ def test_sections(
     for part in test_pipeline.documentation.parts:
         for chapter in part.chapters:
             for section in chapter.all_sections:
+                if include_sections and section.title not in include_sections:
+                    continue
                 test_section_in_chapter(
                     test_pipeline,
                     section=section,
-                    include_sections=include_sections,
                     exclude_sections=exclude_subsections,
+                    output_format=output_format,
                 )
 
                 if test_parameters.data_path is not None and test_status.failed == 0:
                     create_output(
                         test_pipeline,
-                        section.doc.get_tests(),
+                        section_tests_iterator(
+                            section,
+                            test_pipeline,
+                            exclude_sections=exclude_subsections,
+                        ),
                     )
 
                 # if last_section_name != section_name_for_finish:
@@ -657,11 +709,11 @@ def test_sections(
                 #     last_section_name = section_name_for_finish
 
                 # if seen_last_section:
-                #     show_test_summary(test_pipeline, "sections", section_names)
+                #     summarize_and_write_pcl(test_pipeline, "sections", section_names)
                 #     return
 
     assert section_names is not None
-    show_test_summary(test_pipeline, "sections", section_names)
+    summarize_and_write_pcl(test_pipeline, "sections", section_names)
     return
 
 
@@ -702,6 +754,7 @@ def show_report(test_pipeline):
 def test_all(
     test_pipeline: DocTestPipeline,
     excludes: Optional[Set[str]] = None,
+    output_format=None,
 ):
     """
     Run all the tests in the documentation.
@@ -754,7 +807,7 @@ def save_doctest_data(doctest_pipeline: DocTestPipeline):
         pickle.dump(output_data, output_file, 4)
 
 
-def write_doctest_data(doctest_pipeline: DocTestPipeline):
+def write_doctest_data(doctest_pipeline: DocTestPipeline, output_format=None):
     """
     Get doctest information, which involves running the tests to obtain
     test results and write out both the tests and the test results.
@@ -788,7 +841,7 @@ def write_doctest_data(doctest_pipeline: DocTestPipeline):
 
 def build_arg_parser():
     """Build the argument parser"""
-    parser = ArgumentParser(description="Mathics test suite.", add_help=False)
+    parser = ArgumentParser(description="Mathics3 test suite.", add_help=False)
     parser.add_argument(
         "--help", "-h", help="show this help message and exit", action="help"
     )

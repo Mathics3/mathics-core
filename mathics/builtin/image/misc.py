@@ -14,16 +14,17 @@ from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolNull
+from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolFailed, SymbolRule
-from mathics.eval.image import extract_exif
+from mathics.eval.image import eval_ImageImport
+from mathics.eval.import_export.importexport import eval_ImageExport
 
 # The following classes are used to allow inclusion of
 # Builtin Functions only when certain Python packages
 # are available. They do this by setting the `requires` class variable.
 
 
-# Code related to Mathics Functions that import and export.
+# Code related to Mathics3 Functions that import and export.
 
 
 class ImageExport(Builtin):
@@ -41,8 +42,7 @@ class ImageExport(Builtin):
     def eval(self, path: String, expr, opts, evaluation: Evaluation):
         """ImageExport[path_String, expr_, opts___]"""
         if isinstance(expr, Image):
-            expr.pil().save(path.value)
-            return SymbolNull
+            return eval_ImageExport(expr, path.value)
         else:
             evaluation.message("ImageExport", "noimage")
             return
@@ -78,17 +78,15 @@ class ImageImport(Builtin):
     def eval(self, path: String, evaluation: Evaluation):
         """ImageImport[path_String]"""
         try:
-            pillow = PIL.Image.open(path.value)
+            pillow, pixels, is_rgb, options_from_exif = eval_ImageImport(
+                path.value, evaluation
+            )
         except PIL.UnidentifiedImageError:
             evaluation.message("ImageImport", "infer", path)
             return SymbolFailed
         except Exception as e:
             evaluation.message("ImageImport", "imgmisc", str(e))
             return SymbolFailed
-
-        pixels = numpy.asarray(pillow)
-        is_rgb = len(pixels.shape) >= 3 and pixels.shape[2] >= 3
-        options_from_exif = extract_exif(pillow, evaluation)
 
         image = Image(pixels, "RGB" if is_rgb else "Grayscale", pillow=pillow)
         image_list_expression = [
