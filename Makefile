@@ -61,6 +61,8 @@ all: develop
 # run pytest benchmarks
 benchmarks:
 	BENCHMARKS=True $(PYTHON) -m pytest $(PYTEST_OPTIONS) --benchmark-json=output.json test/timings/test_regressions.py
+        # Normalize the stats for ops to the reference.
+	$(PYTHON) admin-tools/normalize_benchmarks.py output.json
 	$(PYTHON) admin-tools/check_benchmarks.py --threshold 200 output.json
 
 #: build everything needed to install
