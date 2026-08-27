@@ -1,0 +1,67 @@
+name: Benchmark
+
+on:
+  # This runs at each push on the main branch to update the dashboard.
+  push:
+    branches:
+      - master
+  # This runs at each PR to compare against the main branch.
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    name: Run performance benchmarks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14' # Just check against the current Python version.
+
+      - name: Install OS dependencies
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -qq liblapack-dev llvm-dev tesseract-ocr remake
+      - name: Install Mathics3 dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel pytest pytest-benchmark
+          # We can comment out after next Mathics3-Scanner release
+          # python -m pip install -e git+https://github.com/Mathics3/Mathics3-scanner#egg=Mathics3-Scanner[full]
+          # git clone --depth 1 https://github.com/Mathics3/Mathics3-scanner.git
+          # cd Mathics3-scanner/
+          # pip install -e .
+          # bash -x admin-tools/make-JSON-tables.sh
+          # cd ..
+      - name: Install Mathics3
+        run: |
+          python -m pip install --no-build-isolation -e .[dev]
+          remake -x develop-full
+      # Run the benchmarks and save into a JSON
+      - name: Run benchmarks
+        run: |
+          make benchmarks
+      - name: Download previous benchmark data
+        uses: actions/cache@v4
+        with:
+          path: ./cache
+          key: ${{ runner.os }}-benchmark
+      # Store the new result and build the dashboard
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          tool: 'pytest'
+          output-file-path: output.json
+          benchmark-data-dir-path: ./cache
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          alert-threshold: '150%'
+          # Only store benchmarks from master.
+          auto-push: ${{ github.ref == 'refs/heads/master' }}
+          comment-on-alert: true
+          fail-on-alert: false
+          name: 'Mathics3 Core Benchmarks'
+          # skip-fetch-gh-pages: true

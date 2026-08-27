@@ -122,7 +122,7 @@ def test_orderless_plus_match_benchmark(benchmark, n):
     def impl():
         assert str(session.evaluate(expr)) == "System`True"
 
-    benchmark.pedantic(impl, setup=setup, rounds=5, iterations=1)
+    benchmark.pedantic(impl, setup=setup, rounds=15, warmup_rounds=3, iterations=1)
 
 
 # ---------------------------------------------------------------------------
@@ -310,8 +310,11 @@ def test_orderless_repeated_names_benchmark(benchmark):
             == "System`True"
         )
 
-    # setup= requires iterations=1; bump rounds instead.
-    benchmark.pedantic(impl, setup=setup, rounds=20, iterations=1)
+    # setup= requires iterations=1; bump rounds instead, plus a short
+    # warmup to absorb first-call session/cache effects (this benchmark
+    # showed a ~2x single-run outlier in comparisons before any code
+    # changed at all -- see context.md diagnostic notes).
+    benchmark.pedantic(impl, setup=setup, rounds=30, warmup_rounds=5, iterations=1)
 
 
 # ---------------------------------------------------------------------------
@@ -328,13 +331,14 @@ def test_pattern_precedence_repeated_access_benchmark(benchmark):
     `precedence_pattern` is a plain Python object built once at import
     time and is unaffected by session.reset() calls from other files,
     so no setup= is needed here.
+
     """
 
     def impl():
         for _ in range(2000):
             _ = precedence_pattern.pattern_precedence
 
-    benchmark.pedantic(impl, rounds=10, iterations=2)
+    benchmark.pedantic(impl, rounds=30, warmup_rounds=5, iterations=5)
 
 
 # ---------------------------------------------------------------------------
@@ -476,7 +480,8 @@ def test_orderless_repeated_names_scaling_benchmark(benchmark, n, success):
     benchmark.pedantic(
         impl,
         setup=setup,
-        rounds=10,
+        rounds=20,
+        warmup_rounds=4,
         iterations=1,
     )
 

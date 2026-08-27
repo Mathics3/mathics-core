@@ -60,7 +60,8 @@ all: develop
 
 # run pytest benchmarks
 benchmarks:
-	BENCHMARKS=True $(PYTHON) -m pytest $(PYTEST_OPTIONS) test/timings
+	BENCHMARKS=True $(PYTHON) -m pytest $(PYTEST_OPTIONS) --benchmark-json=output.json test/timings/test_regressions.py
+	$(PYTHON) admin-tools/check_benchmarks.py --threshold 200 output.json
 
 #: build everything needed to install
 build:
