@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1787830540318,
+  "lastUpdate": 1787830943481,
   "repoUrl": "https://github.com/Mathics3/mathics-core",
   "entries": {
     "Mathics3 Core Benchmarks": [
@@ -3862,6 +3862,653 @@ window.BENCHMARK_DATA = {
             "unit": "iter/sec",
             "range": "stddev: 0.00007481961964221925",
             "extra": "mean: 13.873710750000612 msec\nrounds: 10"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "matera@fisica.unlp.edu.ar",
+            "name": "Juan Mauricio Matera",
+            "username": "mmatera"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6cb1bf189691ec4e9bc8bbea9b46ace4b90c333f",
+          "message": "add check_benchmarks.py. (#1911)\n\nReduce the noise in test.timings.test_patterns.py",
+          "timestamp": "2026-08-27T08:38:16-03:00",
+          "tree_id": "3861afa5090f347d912e128684ec626bcf2781ca",
+          "url": "https://github.com/Mathics3/mathics-core/commit/6cb1bf189691ec4e9bc8bbea9b46ace4b90c333f"
+        },
+        "date": 1787830942422,
+        "tool": "pytest",
+        "benches": [
+          {
+            "name": "test/timings/test_patterns.py::test_orderless_plus_match_benchmark[n=3]",
+            "value": 1210.1664632459524,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00009003795074605551",
+            "extra": "mean: 826.3325999943542 usec\nrounds: 15"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_orderless_plus_match_benchmark[n=5]",
+            "value": 884.2032144212517,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00013048905343164595",
+            "extra": "mean: 1.1309617333324695 msec\nrounds: 15"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_orderless_plus_match_benchmark[n=7]",
+            "value": 700.3877533371287,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00015448667073866414",
+            "extra": "mean: 1.4277805333335891 msec\nrounds: 15"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_orderless_plus_match_benchmark[n=9]",
+            "value": 544.1415812862251,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0005124659366949679",
+            "extra": "mean: 1.8377570000003138 msec\nrounds: 15"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_orderless_plus_match_benchmark[n=11]",
+            "value": 446.4108611415769,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00015167223641420301",
+            "extra": "mean: 2.240088866661457 msec\nrounds: 15"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_orderless_blank_sequence_wrapping_benchmark[n=4]",
+            "value": 1335.9824975530637,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00016676822160316407",
+            "extra": "mean: 748.5128000041641 usec\nrounds: 5"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_orderless_blank_sequence_wrapping_benchmark[n=6]",
+            "value": 1542.1456056978398,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000018318109877349962",
+            "extra": "mean: 648.4471999954167 usec\nrounds: 5"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_orderless_blank_sequence_wrapping_benchmark[n=8]",
+            "value": 1526.785621595964,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000023631139141317342",
+            "extra": "mean: 654.9707999965904 usec\nrounds: 5"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_orderless_blank_sequence_wrapping_benchmark[n=10]",
+            "value": 1499.7904792620677,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000028294821539083636",
+            "extra": "mean: 666.7598000035468 usec\nrounds: 5"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_orderless_exhaustive_failure_benchmark[n=3]",
+            "value": 506.82567477832765,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0000764121742377474",
+            "extra": "mean: 1.973064999987173 msec\nrounds: 3"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_orderless_exhaustive_failure_benchmark[n=4]",
+            "value": 114.37166513677124,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0003380046554922603",
+            "extra": "mean: 8.743424333327235 msec\nrounds: 3"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_orderless_exhaustive_failure_benchmark[n=5]",
+            "value": 16.75070962985618,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00040167832458822396",
+            "extra": "mean: 59.698963333327505 msec\nrounds: 3"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_orderless_exhaustive_failure_benchmark[n=6]",
+            "value": 1.8406524305433483,
+            "unit": "iter/sec",
+            "range": "stddev: 0.12908001892501636",
+            "extra": "mean: 543.2856216666645 msec\nrounds: 3"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_leading_blanks_benchmark",
+            "value": 36.06619270183438,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00198902630174603",
+            "extra": "mean: 27.72679689999933 msec\nrounds: 20"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_blank_sequence_backtracking_benchmark[MatchQ[bigList, {a___, 3000, b___}]-System`True]",
+            "value": 0.6909027086802443,
+            "unit": "iter/sec",
+            "range": "stddev: 0.012446030293181042",
+            "extra": "mean: 1.447381791150002 sec\nrounds: 20"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_blank_sequence_backtracking_benchmark[MatchQ[bigList, {a___, 3001, b___}]-System`False]",
+            "value": 314.5404237287102,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00002274075590663046",
+            "extra": "mean: 3.179241600000182 msec\nrounds: 20"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_functionapplyrule_hot_path_benchmark",
+            "value": 2.17584788309754,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0025805930790955846",
+            "extra": "mean: 459.59095200000775 msec\nrounds: 5"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_strip_context_call_cost_benchmark",
+            "value": 532842.3928290583,
+            "unit": "iter/sec",
+            "range": "stddev: 4.3064649983005874e-7",
+            "extra": "mean: 1.8767275529460565 usec\nrounds: 157928"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_orderless_repeated_names_benchmark",
+            "value": 1289.752704099668,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0002983902661200169",
+            "extra": "mean: 775.3424333373005 usec\nrounds: 30"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_pattern_precedence_repeated_access_benchmark",
+            "value": 10372.827782998165,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0000013862598781478656",
+            "extra": "mean: 96.40572666588317 usec\nrounds: 30"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_get_match_candidates_benchmark[n=10]",
+            "value": 4737.72232842796,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000009721645597392202",
+            "extra": "mean: 211.07188870053798 usec\nrounds: 3549"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_get_match_candidates_benchmark[n=100]",
+            "value": 495.98293533416637,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00003686244258024652",
+            "extra": "mean: 2.0161983986934033 msec\nrounds: 459"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_get_match_candidates_benchmark[n=1000]",
+            "value": 48.86342030147587,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00023383034306105873",
+            "extra": "mean: 20.46520677083663 msec\nrounds: 48"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_get_match_candidates_benchmark[n=5000]",
+            "value": 10.0215734228866,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0009641175890138375",
+            "extra": "mean: 99.78473018181623 msec\nrounds: 11"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_get_match_candidates_count_benchmark[n=10]",
+            "value": 4731.002811452421,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000009427625688977502",
+            "extra": "mean: 211.37167739137303 usec\nrounds: 3481"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_get_match_candidates_count_benchmark[n=100]",
+            "value": 494.0153032309323,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00004475569686377949",
+            "extra": "mean: 2.0242287910108328 msec\nrounds: 445"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_get_match_candidates_count_benchmark[n=1000]",
+            "value": 50.50487684574272,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0001919827407535061",
+            "extra": "mean: 19.800068081629117 msec\nrounds: 49"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_get_match_candidates_count_benchmark[n=5000]",
+            "value": 10.312109106614981,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00047560812529340437",
+            "extra": "mean: 96.97337272726517 msec\nrounds: 11"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_does_match_scaling_benchmark[blank-n=10]",
+            "value": 34746.13069157797,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0000020760037796190277",
+            "extra": "mean: 28.780183004445657 usec\nrounds: 21535"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_does_match_scaling_benchmark[blank-n=100]",
+            "value": 3560.7583436324194,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0000061421543809199095",
+            "extra": "mean: 280.8390526664819 usec\nrounds: 2981"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_does_match_scaling_benchmark[blank-n=1000]",
+            "value": 356.9683156091524,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00002925757583505972",
+            "extra": "mean: 2.801369074713366 msec\nrounds: 348"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_does_match_scaling_benchmark[blank-n=5000]",
+            "value": 71.3657648887159,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00005604804563201194",
+            "extra": "mean: 14.01232091548866 msec\nrounds: 71"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_does_match_scaling_benchmark[integer-n=10]",
+            "value": 28227.19143312911,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0000023043664099150932",
+            "extra": "mean: 35.42683310768001 usec\nrounds: 19935"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_does_match_scaling_benchmark[integer-n=100]",
+            "value": 2846.3526842945016,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000007047041827070024",
+            "extra": "mean: 351.32680694060247 usec\nrounds: 2709"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_does_match_scaling_benchmark[integer-n=1000]",
+            "value": 288.470757005065,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000019680523149542137",
+            "extra": "mean: 3.466555883799486 msec\nrounds: 284"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_does_match_scaling_benchmark[integer-n=5000]",
+            "value": 58.19930182129501,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00005849340198791083",
+            "extra": "mean: 17.182336706900184 msec\nrounds: 58"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_does_match_scaling_benchmark[expr-n=10]",
+            "value": 48402.390645718144,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0000015878974473857587",
+            "extra": "mean: 20.660136548202992 usec\nrounds: 30275"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_does_match_scaling_benchmark[expr-n=100]",
+            "value": 4947.90016283628,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000005172155143347655",
+            "extra": "mean: 202.10593728446835 usec\nrounds: 4640"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_does_match_scaling_benchmark[expr-n=1000]",
+            "value": 494.96788554578416,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00001306819603777159",
+            "extra": "mean: 2.020333094736711 msec\nrounds: 475"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_does_match_scaling_benchmark[expr-n=5000]",
+            "value": 97.15309442915368,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00015907168669587157",
+            "extra": "mean: 10.293032927831481 msec\nrounds: 97"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_orderless_repeated_names_scaling_benchmark[match-n=4]",
+            "value": 1345.383032236679,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0001641981054308812",
+            "extra": "mean: 743.2827499968653 usec\nrounds: 20"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_orderless_repeated_names_scaling_benchmark[match-n=6]",
+            "value": 1396.2273239305882,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00007112192876255155",
+            "extra": "mean: 716.2157500147259 usec\nrounds: 20"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_orderless_repeated_names_scaling_benchmark[match-n=8]",
+            "value": 1357.1993214771555,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00018027897622239158",
+            "extra": "mean: 736.8114500025058 usec\nrounds: 20"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_orderless_repeated_names_scaling_benchmark[match-n=10]",
+            "value": 1351.7155838936842,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00010417448133348305",
+            "extra": "mean: 739.8006000045143 usec\nrounds: 20"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_orderless_repeated_names_scaling_benchmark[match-n=12]",
+            "value": 1387.7603698558798,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00007316246837817034",
+            "extra": "mean: 720.5855000051997 usec\nrounds: 20"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_orderless_repeated_names_scaling_benchmark[fail-n=4]",
+            "value": 1142.4705308296402,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0000727311812816029",
+            "extra": "mean: 875.2960999999004 usec\nrounds: 20"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_orderless_repeated_names_scaling_benchmark[fail-n=6]",
+            "value": 974.6706490444313,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00009518752440200906",
+            "extra": "mean: 1.0259875999963697 msec\nrounds: 20"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_orderless_repeated_names_scaling_benchmark[fail-n=8]",
+            "value": 870.9175251170228,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00009707269524010408",
+            "extra": "mean: 1.1482143499932818 msec\nrounds: 20"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_orderless_repeated_names_scaling_benchmark[fail-n=10]",
+            "value": 767.8988191994134,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00013940550956167622",
+            "extra": "mean: 1.3022548999913397 msec\nrounds: 20"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_orderless_repeated_names_scaling_benchmark[fail-n=12]",
+            "value": 720.7164353771573,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00003150035591859394",
+            "extra": "mean: 1.3875082500049984 msec\nrounds: 20"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_blank_sequence_position_scaling_benchmark[literal-first-n=100]",
+            "value": 1454.1636704375692,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000018520504328620802",
+            "extra": "mean: 687.6805000217701 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_blank_sequence_position_scaling_benchmark[literal-first-n=300]",
+            "value": 1031.264112195022,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00001796327406837613",
+            "extra": "mean: 969.6837000092273 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_blank_sequence_position_scaling_benchmark[literal-first-n=1000]",
+            "value": 506.85691236908144,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0001288174670857847",
+            "extra": "mean: 1.972943399994165 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_blank_sequence_position_scaling_benchmark[literal-first-n=2000]",
+            "value": 309.78121484981466,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000048415265744399206",
+            "extra": "mean: 3.2280846999867663 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_blank_sequence_position_scaling_benchmark[literal-middle-n=100]",
+            "value": 374.28175331613596,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00003573969055506854",
+            "extra": "mean: 2.671783999994659 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_blank_sequence_position_scaling_benchmark[literal-middle-n=300]",
+            "value": 67.18462157986522,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00022197427951074075",
+            "extra": "mean: 14.884358599999814 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_blank_sequence_position_scaling_benchmark[literal-middle-n=1000]",
+            "value": 7.489975510401156,
+            "unit": "iter/sec",
+            "range": "stddev: 0.003278676323158684",
+            "extra": "mean: 133.51178500000742 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_blank_sequence_position_scaling_benchmark[literal-middle-n=2000]",
+            "value": 2.0673503595665506,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0023715736723467864",
+            "extra": "mean: 483.71094690000405 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_blank_sequence_position_scaling_benchmark[literal-last-n=100]",
+            "value": 260.8469894766779,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00006333809443041853",
+            "extra": "mean: 3.83366510001224 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_blank_sequence_position_scaling_benchmark[literal-last-n=300]",
+            "value": 47.38981091769687,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00010113917368252516",
+            "extra": "mean: 21.101582399995777 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_blank_sequence_position_scaling_benchmark[literal-last-n=1000]",
+            "value": 5.562581407996414,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0010351618793976037",
+            "extra": "mean: 179.77264990000208 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_blank_sequence_position_scaling_benchmark[literal-last-n=2000]",
+            "value": 1.511358465908446,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0025145129072701596",
+            "extra": "mean: 661.6563988999928 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_blank_sequence_position_scaling_benchmark[literal-absent-n=100]",
+            "value": 1670.2510253669157,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00003263901627633261",
+            "extra": "mean: 598.7124000000676 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_blank_sequence_position_scaling_benchmark[literal-absent-n=300]",
+            "value": 1250.7457571478892,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00002445040096286895",
+            "extra": "mean: 799.5230000062747 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_blank_sequence_position_scaling_benchmark[literal-absent-n=1000]",
+            "value": 659.5253264285346,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00016336947606156746",
+            "extra": "mean: 1.5162420000081056 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_blank_sequence_position_scaling_benchmark[literal-absent-n=2000]",
+            "value": 427.0292976689212,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0000256299250678081",
+            "extra": "mean: 2.341759699999102 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_multiple_blank_sequences_benchmark[match-n=30]",
+            "value": 885.1833148275931,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000022336341956518617",
+            "extra": "mean: 1.1297094999974888 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_multiple_blank_sequences_benchmark[match-n=60]",
+            "value": 527.2999810106804,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00003195096377662503",
+            "extra": "mean: 1.8964537000044857 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_multiple_blank_sequences_benchmark[match-n=100]",
+            "value": 303.4231164360505,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00004435716825579716",
+            "extra": "mean: 3.295727799996939 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_multiple_blank_sequences_benchmark[match-n=150]",
+            "value": 172.5761485783344,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00010898355686912202",
+            "extra": "mean: 5.794543500002192 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_multiple_blank_sequences_benchmark[fail-n=30]",
+            "value": 1597.6727659617823,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000017727451785984913",
+            "extra": "mean: 625.9103999923354 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_multiple_blank_sequences_benchmark[fail-n=60]",
+            "value": 1523.426955003732,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000013465231998317474",
+            "extra": "mean: 656.4148000109071 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_multiple_blank_sequences_benchmark[fail-n=100]",
+            "value": 1435.305265759518,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000007876992259614427",
+            "extra": "mean: 696.7158999941603 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_multiple_blank_sequences_benchmark[fail-n=150]",
+            "value": 1341.4080733797061,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000017373865907949613",
+            "extra": "mean: 745.4852999956074 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_one_identity_optional_benchmark[optional-present]",
+            "value": 848.0303350607628,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000045627048296399176",
+            "extra": "mean: 1.1792031000027237 msec\nrounds: 20"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_one_identity_optional_benchmark[optional-empty]",
+            "value": 832.3079645980013,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00007200008603350546",
+            "extra": "mean: 1.2014783500035264 msec\nrounds: 20"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_one_identity_optional_benchmark[oneidentity-atom]",
+            "value": 925.6722231776428,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000023805217599805958",
+            "extra": "mean: 1.0802959999892892 msec\nrounds: 20"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_one_identity_optional_benchmark[multiple-optionals-present]",
+            "value": 609.3589924233696,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00006832348044140941",
+            "extra": "mean: 1.6410687500041377 msec\nrounds: 20"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_one_identity_optional_benchmark[multiple-optionals-insufficient2]",
+            "value": 711.7608696999006,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000024937010419018172",
+            "extra": "mean: 1.4049662500013937 msec\nrounds: 20"
+          },
+          {
+            "name": "test/timings/test_patterns.py::test_one_identity_optional_benchmark[multiple-optionals-insufficient]",
+            "value": 680.3683786561041,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00006619119502491065",
+            "extra": "mean: 1.469791999997483 msec\nrounds: 20"
+          },
+          {
+            "name": "test/timings/test_uniform_tables.py::test_evaluate_benchmark[F[__Real]:=1;-None]",
+            "value": 2549.115399587495,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00003306856911865539",
+            "extra": "mean: 392.2929500021155 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_uniform_tables.py::test_evaluate_benchmark[uniformTable=Table[1./(1.+i^2),{i,0,1000}];-None]",
+            "value": 0.9092111625991061,
+            "unit": "iter/sec",
+            "range": "stddev: 0.03438121606869893",
+            "extra": "mean: 1.099854512500002 sec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_uniform_tables.py::test_evaluate_benchmark[nonuniformTable=Table[If[i==0,1,1./(1.+i^2)],{i, 0,1000}];-None]",
+            "value": 0.45745450358084055,
+            "unit": "iter/sec",
+            "range": "stddev: 0.04187005883804749",
+            "extra": "mean: 2.186009739049999 sec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_uniform_tables.py::test_evaluate_benchmark[Plus@@uniformTable-2.075674547634748]",
+            "value": 138.25614715003013,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00004297019279742762",
+            "extra": "mean: 7.232951449998382 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_uniform_tables.py::test_evaluate_benchmark[MatchQ[uniformTable,{__Real}]-System`True]",
+            "value": 675.6331290482523,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00009842331633092972",
+            "extra": "mean: 1.48009320000142 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_uniform_tables.py::test_evaluate_benchmark[Length[F@@uniformTable]-0]",
+            "value": 321.7216380102627,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000021197953418663633",
+            "extra": "mean: 3.1082770999944387 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_uniform_tables.py::test_evaluate_benchmark[Plus@@nonuniformTable-2.075674547634748]",
+            "value": 135.65375870287608,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000048971029118159296",
+            "extra": "mean: 7.371708749997197 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_uniform_tables.py::test_evaluate_benchmark[MatchQ[nonuniformTable,{__Real}]-System`False]",
+            "value": 84.28984145953294,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00005781556102129123",
+            "extra": "mean: 11.863825849999898 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_uniform_tables.py::test_evaluate_benchmark[Length[F@@nonuniformTable]-1001]",
+            "value": 71.57638817353022,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00007398599196628853",
+            "extra": "mean: 13.971087749993671 msec\nrounds: 10"
           }
         ]
       }
