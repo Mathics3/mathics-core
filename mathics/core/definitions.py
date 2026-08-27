@@ -18,16 +18,24 @@ from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.element import BaseElement, fully_qualified_symbol_name
-from mathics.core.rules import BaseRule, Rule
+from mathics.core.rules import BaseRule, RewriteRule
 from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.util import canonic_filename
 from mathics.settings import ROOT_DIR
 
-# The contents of $OutputForms. FormMeta in mathics.base.forms adds to this.
-OutputForms: Set[Symbol] = set()
+# Collections of format symbols. Here we load some basic cases.
+# More symbols are populated from FormMeta classes (see `mathics.builtin.forms.base`)
 
-# The contents of $PrintForms. FormMeta in mathics.base.forms adds to this.
-PrintForms: Set[Symbol] = set()
+# The contents of $BoxForms.
+BOX_FORMS: Set[Symbol] = set()
+
+# The contents of $PrintForms.
+PRINT_FORMS: Set[Symbol] = set()
+# PRINT_FORMS.update(BOX_FORMS)
+
+# The contents of $OutputForms.
+OUTPUT_FORMS: Set[Symbol] = set()
+# OUTPUT_FORMS.update(PRINT_FORMS)
 
 
 class Definition:
@@ -167,19 +175,9 @@ class Definitions:
         self.trace_show_rewrite = False
         self.timing_trace_evaluation = False
 
-        # Importing "mathics.format" populates the Symbol of the
-        # PrintForms and OutputForms sets.
-        #
-        # If "importlib" is used instead of "import", then we get:
-        #   TypeError: boxes_to_text() takes 1 positional argument but
-        #   2 were given
-        # Rocky: this smells of something not quite right in terms of
-        # modularity.
-
-        import mathics.format  # noqa
-
-        self.printforms = list(PrintForms)
-        self.outputforms = list(OutputForms)
+        self.boxforms = list(BOX_FORMS)
+        self.printforms = list(PRINT_FORMS)
+        self.outputforms = list(OUTPUT_FORMS)
 
         if add_builtin:
             load_builtin_definitions(self, builtin_filename, extension_modules)
@@ -773,7 +771,7 @@ class Definitions:
     def set_ownvalue(self, name: str, value) -> None:
         """Set an ownvalue for name"""
         name = self.lookup_name(name)
-        self.add_rule(name, Rule(Symbol(name), value))
+        self.add_rule(name, RewriteRule(Symbol(name), value))
         self.clear_cache(name)
 
     def set_options(self, name: str, options) -> None:
@@ -787,6 +785,19 @@ class Definitions:
     def unset(self, name: str, expr: BaseElement) -> bool:
         """Remove the rule corresponding to the expression `expr` in
         the definition of Symbol `name`"""
+        # These special symbol names are stored
+        # as attributes of the `Definitions` object.
+        # If this grows, maybe we should split this code.
+        if name == "System`$BoxForms":
+            self.boxforms = list(BOX_FORMS)
+            return True
+        if name == "System`$PrintForms":
+            self.printforms = list(PRINT_FORMS)
+            return True
+        if name == "System`$OutputForms":
+            self.outputforms = list(OUTPUT_FORMS)
+            return True
+
         definition = self.get_user_definition(self.lookup_name(name))
         result = definition.remove_rule(expr)
         self.mark_changed(definition)
@@ -1093,7 +1104,7 @@ def load_builtin_definitions(
         mathics3_builtins_modules,
     )
     from mathics.eval.files_io.files import get_file_time
-    from mathics.eval.pymathics import PyMathicsLoadException, load_pymathics_module
+    from mathics.eval.pymathics import load_pymathics_module
     from mathics.session import autoload_files
 
     loaded = False
@@ -1115,4 +1126,5 @@ def load_builtin_definitions(
             with open(builtin_filename, "wb") as builtin_file:
                 pickle.dump(self.builtin, builtin_file, -1)
 
-    autoload_files(self, ROOT_DIR, "autoload")
+    autoload_files(self, ROOT_DIR, "Autoload")
+    autoload_files(self, osp.join(ROOT_DIR, "SystemFiles"), "Formats")

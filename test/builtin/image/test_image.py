@@ -4,7 +4,7 @@ Unit tests for mathics.builtins.image.colors
 
 Largely tests error messages when parameters are incorrect.
 """
-from test.helper import check_evaluation, session
+from test.helper import check_evaluation
 
 import pytest
 
@@ -174,8 +174,8 @@ import pytest
         ),
         (
             "ImageReflect[ein, x -> Top]",
-            "ImageReflect[-Image-, x -> Top]",
-            ("x -> Top is not a valid 2D reflection specification.",),
+            "ImageReflect[-Image-, x ⇾ Top]",
+            ("x ⇾ Top is not a valid 2D reflection specification.",),
             None,
         ),
         (
@@ -188,7 +188,7 @@ import pytest
         ),
     ],
 )
-def test_private_doctest(str_expr, str_expected, msgs, assert_failure_msg):
+def test_incorrect_parameters(str_expr, str_expected, msgs, assert_failure_msg):
     check_evaluation(
         str_expr,
         str_expected,

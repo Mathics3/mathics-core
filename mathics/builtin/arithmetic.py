@@ -6,12 +6,11 @@ Mathematical Functions
 Basic arithmetic functions, including complex number arithmetic.
 """
 
+import sys
 from typing import Optional
 
 import sympy
 
-from mathics.builtin.numeric import Abs
-from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import (
     MATHICS3_COMPLEX_I,
     MATHICS3_COMPLEX_I_NEG,
@@ -21,11 +20,9 @@ from mathics.core.atoms import (
     Integer1,
     IntegerM1,
     Rational,
-    Real,
     String,
 )
 from mathics.core.attributes import (
-    A_HOLD_REST,
     A_LISTABLE,
     A_NO_ATTRIBUTES,
     A_NUMERIC_FUNCTION,
@@ -41,8 +38,8 @@ from mathics.core.builtin import (
     SympyObject,
     Test,
 )
-from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol_prefix
-from mathics.core.element import BaseElement
+from mathics.core.convert.sympy import SympyExpression, from_sympy
+from mathics.core.element import BaseElement, ElementsProperties
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.expression_predefined import (
@@ -62,17 +59,22 @@ from mathics.core.symbols import (
     SymbolPlus,
     SymbolTimes,
     SymbolTrue,
+    sympy_name,
 )
 from mathics.core.systemsymbols import (
     SymbolAnd,
+    SymbolBooleans,
+    SymbolComplexes,
     SymbolDirectedInfinity,
     SymbolInfix,
+    SymbolIntegers,
     SymbolPossibleZeroQ,
+    SymbolRationals,
+    SymbolReals,
     SymbolTable,
     SymbolUndefined,
 )
-from mathics.eval.inference import get_assumptions_list
-from mathics.eval.nevaluator import eval_N
+from mathics.eval.arithmetic import eval_RealValuedNumberQ
 from mathics.eval.numeric import eval_Sign
 
 # This tells documentation how to sort this module
@@ -107,7 +109,7 @@ class Arg(MPMathFunction):
     :WMA link:https://reference.wolfram.com/language/ref/Arg.html</url>)
 
     <dl>
-      <dt>'Arg'[$z$, 'Method ->' "$option$"]
+      <dt>'Arg'[$z$]
       <dd>returns the argument of a complex value $z$.
     </dl>
 
@@ -121,10 +123,6 @@ class Arg(MPMathFunction):
     </ul>
 
      >> Arg[-3]
-      = Pi
-
-     Same as above, but using SymPy's method:
-     >> Arg[-3, Method->"sympy"]
       = Pi
 
     >> Arg[1-I]
@@ -141,97 +139,25 @@ class Arg(MPMathFunction):
      = 0
     """
 
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
+
+    numpy_name = "angle"  # for later
+    mpmath_name = "arg"
     summary_text = "phase of a complex number"
     rules = {
         "Arg[0]": "0",
         "Arg[DirectedInfinity[]]": "1",
         "Arg[DirectedInfinity[a_]]": "Arg[a]",
     }
-
-    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
-    options = {"Method": "Automatic"}
-
-    numpy_name = "angle"  # for later
-    mpmath_name = "arg"
     sympy_name = "arg"
 
     def eval(self, z, evaluation, options={}):
-        "Arg[z_, OptionsPattern[Arg]]"
+        "Arg[z_]"
         if Expression(SymbolPossibleZeroQ, z).evaluate(evaluation) is SymbolTrue:
             return Integer0
-        preference = self.get_option(options, "Method", evaluation).get_string_value()
-        if preference is None or preference == "Automatic":
-            return super(Arg, self).eval(z, evaluation)
-        elif preference == "mpmath":
-            return MPMathFunction.eval(self, z, evaluation)
-        elif preference == "sympy":
-            return SympyFunction.eval(self, z, evaluation)
-        # TODO: add NumpyFunction
-        evaluation.message(
-            "meth", f'Arg Method {preference} not in ("sympy", "mpmath")'
-        )
-        return
-
-
-class Assuming(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Assuming.html</url>
-
-    <dl>
-      <dt>'Assuming'[$cond$, $expr$]
-      <dd>Evaluates $expr$ assuming the conditions $cond$.
-    </dl>
-
-    >> $Assumptions = { x > 0 }
-     = {x > 0}
-    >> Assuming[y>0, ConditionalExpression[y x^2, y>0]//Simplify]
-     = x ^ 2 y
-    >> Assuming[Not[y>0], ConditionalExpression[y x^2, y>0]//Simplify]
-     = Undefined
-    >> ConditionalExpression[y x ^ 2, y > 0]//Simplify
-     = ConditionalExpression[x ^ 2 y, y > 0]
-    """
-
-    summary_text = "set assumptions during the evaluation"
-    attributes = A_HOLD_REST | A_PROTECTED
-
-    def eval_assuming(self, assumptions, expr, evaluation: Evaluation):
-        "Assuming[assumptions_, expr_]"
-        assumptions = assumptions.evaluate(evaluation)
-        if assumptions is SymbolTrue:
-            cond = []
-        elif isinstance(assumptions, Symbol) or not assumptions.has_form("List", None):
-            cond = [assumptions]
-        else:
-            cond = assumptions.elements
-        cond = tuple(cond) + get_assumptions_list(evaluation)
-        list_cond = ListExpression(*cond)
-        # TODO: reduce the list of predicates
-        return dynamic_scoping(
-            lambda ev: expr.evaluate(ev), {"System`$Assumptions": list_cond}, evaluation
-        )
-
-
-class Assumptions(Predefined):
-    r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$Assumptions.html</url>
-    <dl>
-      <dt>'\$Assumptions'
-      <dd>is the default setting for the 'Assumptions' option used in such functions as 'Simplify', 'Refine', and 'Integrate'.
-    </dl>
-    """
-
-    summary_text = "assumptions used to simplify expressions"
-    name = "$Assumptions"
-    attributes = A_NO_ATTRIBUTES
-    rules = {
-        "$Assumptions": "True",
-    }
-
-    messages = {
-        "faas": "Assumptions should not be False.",
-        "baas": "Bad formed assumption.",
-    }
+        return SympyFunction.eval(self, z, evaluation)
 
 
 class Boole(Builtin):
@@ -248,10 +174,12 @@ class Boole(Builtin):
     >> Boole[7 < 5]
      = 0
     >> Boole[a == 7]
-     = Boole[a == 7]
+     = Boole[a ⩵ 7]
     """
 
     attributes = A_LISTABLE | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
     summary_text = "translate 'True' to 1, and 'False' to 0"
 
     def eval(self, expr, evaluation: Evaluation):
@@ -283,8 +211,10 @@ class Complex_(Builtin):
      = 5
     """
 
-    summary_text = "head for complex numbers"
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
     name = "Complex"
+    summary_text = "head for complex numbers"
 
     def eval(self, r, i, evaluation: Evaluation):
         "Complex[r_?NumberQ, i_?NumberQ]"
@@ -328,6 +258,8 @@ language/ref/ConditionalExpression.html</url>
     # = ConditionalExpression[s, And[x>a, x<b]]
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = (2, 3)
     summary_text = "expression defined under condition"
     sympy_name = "Piecewise"
 
@@ -372,12 +304,17 @@ language/ref/ConditionalExpression.html</url>
                 sympy_cond = False
         if sympy_cond is None:
             sympy_cond = cond.to_sympy(**kwargs)
+            # See similar code and comment in mathics.builtin.procedural.If
+            # TODO: consider adding .is_Symbol (as with If) so that this
+            # can be used for compilation. I tried that but it invalidated
+            # doctest 1876 in Simplify which depends on ConditionalExpression
+            # not getting rewritten, so may need update that secion of doc?
             if not (sympy_cond.is_Relational or sympy_cond.is_Boolean):
                 return
 
         sympy_cases = (
             (expr.to_sympy(**kwargs), sympy_cond),
-            (sympy.Symbol(sympy_symbol_prefix + "System`Undefined"), True),
+            (sympy.Symbol(sympy_name(SymbolUndefined)), True),
         )
         return sympy.Piecewise(*sympy_cases)
 
@@ -409,11 +346,14 @@ class Conjugate(MPMathFunction):
      = 1.5 - 2.5 I
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
     mpmath_name = "conj"
     rules = {
         "Conjugate[Undefined]": "Undefined",
     }
     summary_text = "compute complex conjugation"
+    sympy_name = "conjugate"
 
 
 class DirectedInfinity(SympyFunction):
@@ -446,7 +386,14 @@ class DirectedInfinity(SympyFunction):
 
     """
 
-    summary_text = "infinite quantity with a defined direction in the complex plane"
+    formats = {
+        "DirectedInfinity[1]": "HoldForm[Infinity]",
+        "DirectedInfinity[-1]": "HoldForm[-Infinity]",
+        "DirectedInfinity[]": "HoldForm[ComplexInfinity]",
+        "DirectedInfinity[DirectedInfinity[z_]]": "DirectedInfinity[z]",
+        "DirectedInfinity[z_?NumericQ]": "HoldForm[z Infinity]",
+        "DirectedInfinity[z_Symbol]": "HoldForm[z Infinity]",
+    }
     rules = {
         "DirectedInfinity[args___] ^ -1": "0",
         # Special arguments:
@@ -476,13 +423,10 @@ class DirectedInfinity(SympyFunction):
         "DirectedInfinity[a_] * DirectedInfinity[b_]": "DirectedInfinity[a * b]",
     }
 
-    formats = {
-        "DirectedInfinity[1]": "HoldForm[Infinity]",
-        "DirectedInfinity[-1]": "HoldForm[-Infinity]",
-        "DirectedInfinity[]": "HoldForm[ComplexInfinity]",
-        "DirectedInfinity[DirectedInfinity[z_]]": "DirectedInfinity[z]",
-        "DirectedInfinity[z_?NumericQ]": "HoldForm[z Infinity]",
-    }
+    # We can't use expected_args = (0, 1) because the error message
+    # says that 1 argument is expected, even though 0 args is allowed.
+    # This is a WMA irregularity.
+    summary_text = "infinite quantity with a defined direction in the complex plane"
 
     def eval_complex_infinity(self, evaluation: Evaluation):
         """DirectedInfinity[]"""
@@ -491,39 +435,40 @@ class DirectedInfinity(SympyFunction):
     def eval_directed_infinity(self, direction, evaluation: Evaluation):
         """DirectedInfinity[direction_]"""
         result = map_direction_infinity.get(direction, None)
-        if result:
+        if result is not None:
             return result
 
         if direction.is_zero:
             return MATHICS3_COMPLEX_INFINITY
 
-        normalized_direction = eval_Sign(direction)
-        # TODO: improve eval_Sign, to avoid the need of the
-        # following block:
-        #   ############################################
-        if normalized_direction is None:
-            ndir = eval_N(direction, evaluation)
-            if isinstance(ndir, (Integer, Rational, Real)):
-                if abs(ndir.value) == 1.0:
-                    normalized_direction = direction
-                else:
-                    normalized_direction = direction / Abs(direction)
-            elif isinstance(ndir, Complex):
-                re, im = ndir.real, ndir.imag
-                if abs(re.value**2 + im.value**2 - 1.0) < 1.0e-9:
-                    normalized_direction = direction
-                else:
-                    normalized_direction = direction / Abs(direction)
-            else:
-                return None
-        #  ##############################################
-
-        if normalized_direction is None:
+        # try to reduce with sign
+        direction = eval_Sign(direction)
+        if direction is None:
             return None
+
+        result = map_direction_infinity.get(direction, None)
+        if result is not None:
+            return result
+        if direction.is_zero:
+            return MATHICS3_COMPLEX_INFINITY
+
         return PredefinedExpression(
             SymbolDirectedInfinity,
-            normalized_direction.evaluate(evaluation),
+            direction.evaluate(evaluation),
         )
+
+    # We can't use generic_argument_error because 0 arguments are allowed
+    # but the error message suggests there needs to be 1 argument.
+    # This is a WMA irregularity.
+    def eval_argument_error(self, invalid, evaluation: Evaluation):
+        "DirectedInfinity[invalid___]"
+        if (got_arg_count := len(invalid.elements)) > 1:
+            evaluation.message(
+                "DirectedInfinity",
+                "argx",
+                SymbolDirectedInfinity,
+                Integer(got_arg_count),
+            )
 
     def to_sympy(self, expr, **kwargs):
         if len(expr.elements) == 1:
@@ -538,7 +483,7 @@ class DirectedInfinity(SympyFunction):
             return sympy.zoo
 
 
-class Element(Builtin):
+class Element(SympyFunction):
     """
     <url>:Element of:https://en.wikipedia.org/wiki/Element_(mathematics)</url> \
     <url>:WMA link:https://reference.wolfram.com/language/ref/Element.html</url>
@@ -568,6 +513,8 @@ Rationals, Algebraics, Reals, Complexes, or Booleans.
 
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
     messages = {
         "bset": (
             "The second argument `1` of Element should be one of: "
@@ -577,6 +524,7 @@ Rationals, Algebraics, Reals, Complexes, or Booleans.
     }
 
     summary_text = "check whether belongs the domain"
+    sympy_name = "Contains"  # In later SymPy, this is called Element.
 
     def eval_wrong_domain(
         self, elem: BaseElement, domain: BaseElement, evaluation: Evaluation
@@ -590,7 +538,7 @@ Rationals, Algebraics, Reals, Complexes, or Booleans.
 
     def eval_Element_alternatives(
         self, elems: BaseElement, domain: BaseElement, evaluation: Evaluation
-    ) -> Optional[Expression]:
+    ) -> Expression | None | Symbol:
         """Element[elems_Alternatives, domain_]"""
         items = elems.elements
         unknown = []
@@ -607,6 +555,25 @@ Rationals, Algebraics, Reals, Complexes, or Booleans.
             return SymbolTrue
         # If some of the items remain unknown, return a reduced expression
         return Element(Expression(elems.head, *unknown), domain)
+
+    def to_sympy(self, expr, **kwargs):
+        if len(expr.elements) != 2:
+            return None
+        arg, domain_str = expr.elements
+        match domain_str:
+            # case domain if domain is SymbolBooleans:
+            #     sympy_domain = sympy.boolean
+            case domain if domain is SymbolIntegers:
+                sympy_domain = sympy.Integers
+            case domain if domain is SymbolComplexes:
+                sympy_domain = sympy.Complexes
+            case domain if domain is SymbolRationals:
+                sympy_domain = sympy.Rationals
+            case domain if domain is SymbolReals:
+                sympy_domain = sympy.Reals
+            case _:
+                raise RuntimeError("Unknown domain {domain}")
+        return sympy.Contains(arg.to_sympy(), sympy_domain)
 
 
 class I_(Predefined, SympyObject):
@@ -668,8 +635,12 @@ class Im(SympyFunction):
      = -Graphics-
     """
 
-    summary_text = "imaginary part of a complex number"
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
+    mpmath_name = "im"
+    summary_text = "imaginary part of a complex number"
+    sympy_name = "im"
 
     def eval_complex(self, number, evaluation: Evaluation):
         "Im[number_Complex]"
@@ -700,8 +671,8 @@ class Integer_(Builtin):
      = Integer
     """
 
-    summary_text = "head for integer numbers"
     name = "Integer"
+    summary_text = "head for integer numbers"
 
 
 class Product(IterationFunction, SympyFunction, PrefixOperator):
@@ -762,6 +733,9 @@ class Product(IterationFunction, SympyFunction, PrefixOperator):
 
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(2, sys.maxsize)
+
     # FIXME Product[k, {k, 3, n}] is rewritten using Factorial via
     # Pochhammer rewrite rules. We want this for Product, but WMA
     # does not rewrite using Factorial for Pochhammer alone, although it could.
@@ -783,8 +757,12 @@ class Product(IterationFunction, SympyFunction, PrefixOperator):
     sympy_name = "Product"
     throw_iterb = False
 
-    def get_result(self, elements):
-        return Expression(SymbolTimes, *elements)
+    def get_result(self, elements, is_uniform=False):
+        return Expression(
+            SymbolTimes,
+            *elements,
+            elements_properties=ElementsProperties(is_uniform=is_uniform),
+        )
 
     def to_sympy(self, expr, **kwargs):
         if expr.has_form("Product", 2) and expr.elements[1].has_form("List", 3):
@@ -792,8 +770,13 @@ class Product(IterationFunction, SympyFunction, PrefixOperator):
             try:
                 e_kwargs = kwargs.copy()
                 e_kwargs["convert_all_global_functions"] = True
+                e_kwargs["dummies"] = e_kwargs.get("dummies", set()).union((index,))
                 e = expr.elements[0].to_sympy(**e_kwargs)
-                i = index.elements[0].to_sympy(**kwargs)
+                e_kwargs["convert_all_global_functions"] = kwargs.get(
+                    "convert_all_global_functions", False
+                )
+
+                i = index.elements[0].to_sympy(**e_kwargs)
                 start = index.elements[1].to_sympy(**kwargs)
                 stop = index.elements[2].to_sympy(**kwargs)
 
@@ -820,8 +803,11 @@ class Rational_(Builtin):
      = 1 / 2
     """
 
-    summary_text = "head for rational numbers"
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
     name = "Rational"
+    summary_text = "head for rational numbers"
+    sympy_name = "Rational"
 
     def eval(self, n: Integer, m: Integer, evaluation: Evaluation):
         "Rational[n_Integer, m_Integer]"
@@ -848,8 +834,11 @@ class Re(SympyFunction):
      = -Graphics-
     """
 
-    summary_text = "real part of a complex number"
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
+    mpmath_name = "re"
+    summary_text = "real part of a complex number"
     sympy_name = "re"
 
     def eval(self, number, evaluation: Evaluation):
@@ -878,7 +867,7 @@ class Real_(Builtin):
 
     >> x = 3. ^ -20;
     >> InputForm[x]
-     = 2.8679719907924413*^-10
+     = 2.867971990792441*^-10
     >> Head[x]
      = Real
 
@@ -918,11 +907,7 @@ class RealValuedNumberQ(Test):
     summary_text = "test whether an expression is a real number"
 
     def test(self, expr) -> bool:
-        return (
-            isinstance(expr, (Integer, Rational, Real))
-            or expr.has_form("Underflow", 0)
-            or expr.has_form("Overflow", 0)
-        )
+        return eval_RealValuedNumberQ(expr)
 
 
 class Sum(IterationFunction, SympyFunction, PrefixOperator):
@@ -1002,6 +987,10 @@ class Sum(IterationFunction, SympyFunction, PrefixOperator):
      = 1 + 2 I
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(2, sys.maxsize)
+    mpmath_name = "fsum"
+
     rules = IterationFunction.rules.copy()
     rules.update(
         {
@@ -1020,8 +1009,12 @@ class Sum(IterationFunction, SympyFunction, PrefixOperator):
     # Do not throw warning message for symbolic iteration bounds
     throw_iterb = False
 
-    def get_result(self, elements) -> Expression:
-        return Expression(SymbolPlus, *elements)
+    def get_result(self, elements, is_uniform=False) -> Expression:
+        return Expression(
+            SymbolPlus,
+            *elements,
+            elements_properties=ElementsProperties(is_uniform=is_uniform),
+        )
 
     def to_sympy(self, expr, **kwargs) -> Optional[SympyExpression]:
         """
@@ -1031,6 +1024,7 @@ class Sum(IterationFunction, SympyFunction, PrefixOperator):
             index = expr.elements[1]
             arg_kwargs = kwargs.copy()
             arg_kwargs["convert_all_global_functions"] = True
+            arg_kwargs["dummies"] = kwargs.get("dummies", set()).union((index,))
             f_sympy = expr.elements[0].to_sympy(**arg_kwargs)
             if f_sympy is None:
                 return
@@ -1038,36 +1032,39 @@ class Sum(IterationFunction, SympyFunction, PrefixOperator):
             evaluation = kwargs.get("evaluation", None)
 
             # Handle summation parameters: variable, min, max
-            var_min_max = index.elements[:3]
-            bounds = [expr.to_sympy(**kwargs) for expr in var_min_max]
 
+            arg_kwargs["convert_all_global_functions"] = kwargs.get(
+                "convert_all_global_functions", False
+            )
+            var_min_max = index.elements[:3]
+            bounds = [expr.to_sympy(**arg_kwargs) for expr in var_min_max]
             if evaluation:
-                # Min and max might be Mathics expressions. If so, evaluate them.
+                # Min and max might be Mathics3 expressions. If so, evaluate them.
                 for i in (1, 2):
                     min_max_expr = var_min_max[i]
                     if not isinstance(expr, Symbol):
                         min_max_expr_eval = min_max_expr.evaluate(evaluation)
-                        value = min_max_expr_eval.to_sympy(**kwargs)
+                        value = min_max_expr_eval.to_sympy(**arg_kwargs)
                         bounds[i] = value
 
             # FIXME: The below tests on SympyExpression, but really the
             # test should be broader.
             if isinstance(f_sympy, sympy.core.basic.Basic):
-                # sympy.summation() won't be able to handle Mathics functions in
+                # sympy.summation() won't be able to handle Mathics3 functions in
                 # in its first argument, the function parameter.
                 # For example in Sum[Identity[x], {x, 3}], sympy.summation can't
                 # evaluate Identity[x].
                 # In general we want to avoid using Sympy if we can.
-                # If we have integer bounds, we'll use Mathics's iterator Sum
+                # If we have integer bounds, we'll use Mathics3's iterator Sum
                 # (which is Plus)
 
-                if all(
+                if evaluation and all(
                     (hasattr(i, "is_integer") and i.is_integer)
                     or (hasattr(i, "is_finite") and i.is_finite and i.is_constant())
                     for i in bounds[1:]
                 ):
                     # When we have integer bounds, it is better to not use Sympy but
-                    # use Mathics evaluation. We turn:
+                    # use Mathics3 evaluation. We turn:
                     # Sum[f[x], {<limits>}] into
                     #   MathicsSum[Table[f[x], {<limits>}]]
                     # where MathicsSum is self.get_result() our Iteration iterator.

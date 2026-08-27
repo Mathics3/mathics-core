@@ -3,6 +3,8 @@ import sys
 
 import pytest
 
+from mathics import settings
+
 from .helper import check_evaluation, evaluate, session
 
 
@@ -25,15 +27,50 @@ from .helper import check_evaluation, evaluate, session
         (r"Sum[2^(-i), {i, 1, \[Infinity]}]", "1"),
         # Global System Information
         (r"Abs[$ByteOrdering]", "1"),
-        (r"Head[$CommandLine]", "List"),
+        pytest.param(
+            r"Head[$CommandLine]",
+            "List",
+            marks=pytest.mark.skipif(
+                not settings.ENABLE_SYSTEM_COMMANDS,
+                reason="In sandbox mode, $CommandLine returns {}",
+            ),
+        ),
         (r"Head[$Machine]", "String"),
-        (r"Head[$MachineName]", "String"),
+        pytest.param(
+            r"Head[$MachineName]",
+            "String",
+            marks=pytest.mark.skipif(
+                not settings.ENABLE_SYSTEM_COMMANDS,
+                reason="In sandbox mode, $MachineName returns $Failed",
+            ),
+        ),
         (r"""Length[Names["System`*"]] > 1024""", "True"),
         (r"Length[$Packages] >= 5", "True"),
-        (r"Head[$ParentProcessID]", "Integer"),
-        (r"Head[$ProcessID]", "Integer"),
+        pytest.param(
+            r"Head[$ParentProcessID]",
+            "Integer",
+            marks=pytest.mark.skipif(
+                not settings.ENABLE_SYSTEM_COMMANDS,
+                reason="In sandbox mode, $ParentProcessID returns $Failed",
+            ),
+        ),
+        pytest.param(
+            r"Head[$ProcessID]",
+            "Integer",
+            marks=pytest.mark.skipif(
+                not settings.ENABLE_SYSTEM_COMMANDS,
+                reason="In sandbox mode, $ProcessID returns $Failed",
+            ),
+        ),
         (r"Head[$ProcessorType]", "String"),
-        (r"Head[$ScriptCommandLine]", "List"),
+        pytest.param(
+            r"Head[$ScriptCommandLine]",
+            "List",
+            marks=pytest.mark.skipif(
+                not settings.ENABLE_SYSTEM_COMMANDS,
+                reason="In sandbox mode, $ScriptCommandLine returns {}",
+            ),
+        ),
         (r"Head[$SystemID]", "String"),
         (r"Head[$SystemWordLength]", "Integer"),
         # This doesn't work if not logged or in some OS's
@@ -287,6 +324,20 @@ if sys.platform in ("linux",):
 #         ):
 
 #             check_evaluation_with_err(str_expr, str_expected, message)
+
+
+def test_eval_atom_upvalues():
+    """Check that upvalues of atoms are taken into account in evaluations"""
+    # Clear definitions
+    check_evaluation(None, None, None)
+    check_evaluation(
+        "Unprotect[Real]; Real/:F[x_Real]:=x; DownValues[F]",
+        "{}",
+        "F does not have downvalues",
+    )
+    check_evaluation("F[3.]", "3.", "Upvalue of Real is taken into account.")
+    # Clear definitions again.
+    check_evaluation(None, None, None)
 
 
 def test_exit():

@@ -295,24 +295,33 @@ class _DateFormat(Builtin):
                 etime[1] = [str(s).strip('"') for s in etime[1]]
 
                 if sum(is_spec) == len(is_spec):
-                    forms = []
+                    time_formats = []
                     fields = [DATE_STRING_FORMATS[s] for s in etime[1]]
                     for sep in ["", " ", "/", "-", ".", ",", ":"]:
-                        forms.append(sep.join(fields))
+                        time_formats.append(sep.join(fields))
                 else:
-                    forms = [""]
+                    time_formats = [""]
                     for i, s in enumerate(etime[1]):
                         if is_spec[i]:
-                            forms[0] += DATE_STRING_FORMATS[s]
+                            time_formats[0] += DATE_STRING_FORMATS[s]
                         else:
                             # TODO: Escape % signs?
-                            forms[0] += s
+                            time_formats[0] += s
 
                 date = _Date()
                 date.date = None
-                for form in forms:
+                for time_format in time_formats:
+                    date_str = str(etime[0]).strip('"')
                     try:
-                        date.date = datetime.strptime(str(etime[0]).strip('"'), form)
+                        # Python 3.15 requires an unambiguous year; dates cannot be yearless.
+                        # Therefore, if a year is not provided via "%y" or "%Y", we will
+                        # add year 2000 along with the specifier %Y.
+                        if "%Y" not in time_format and "%y" not in time_format:
+                            date.date = datetime.strptime(
+                                f"2000 {date_str}", f"%Y {time_format}"
+                            )
+                        else:
+                            date.date = datetime.strptime(date_str, time_format)
                         break
                     except ValueError:
                         pass
@@ -411,7 +420,7 @@ class AbsoluteTiming(Builtin):
 
     attributes = A_HOLD_ALL | A_PROTECTED
 
-    summary_text = "get total wall-clock time to run a Mathics command"
+    summary_text = "get total wall-clock time to run a Mathics3 command"
 
     def eval(self, expr: BaseElement, evaluation: Evaluation) -> ListExpression:
         "AbsoluteTiming[expr_]"
@@ -593,7 +602,7 @@ class DateObject(_DateFormat, ImmutableValueMixin):
     </dl>
 
     >> DateObject[{2020, 4, 15}]
-     = [...]
+     = ...
     """
 
     fmt_keywords = {
@@ -697,7 +706,7 @@ class DateObject(_DateFormat, ImmutableValueMixin):
         fmt: BaseElement,
         evaluation: Evaluation,
     ) -> Optional[Expression]:
-        "MakeBoxes[DateObject[datetime_List, gran_, cal_, tz_, fmt_], StandardForm|TraditionalForm|OutputForm]"
+        "MakeBoxes[DateObject[datetime_List, gran_, cal_, tz_, fmt_], StandardForm|TraditionalForm]"
         # TODO:
         if fmt.sameQ(SymbolAutomatic):
             fmt = ListExpression(String("DateTimeShort"))
@@ -982,7 +991,7 @@ class DateString(_DateFormat):
 
 class DateStringFormat(Predefined):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$DateStringFormat.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$DateStringFormat.html</url>
 
     <dl>
       <dt>'\$DateStringFormat'
@@ -1053,11 +1062,11 @@ class SystemTimeZone(Predefined):
     r"""
     <url>
     :WMA link:
-    https://reference.wolfram.com/language/ref/$SystemTimeZone.html</url>
+    https://reference.wolfram.com/language/ref/\$SystemTimeZone.html</url>
 
     <dl>
       <dt>'\$SystemTimeZone'
-      <dd> gives the current time zone for the computer system on which Mathics is \
+      <dd> gives the current time zone for the computer system on which Mathics3 is \
            being run.
     </dl>
 
@@ -1162,7 +1171,7 @@ class TimeZone(Predefined):
     r"""
     <url>:Time Zone:https://en.wikipedia.org/wiki/Time_zone</url> (<url>
     :WMA:
-    https://reference.wolfram.com/language/ref/$TimeZone.html</url>)
+    https://reference.wolfram.com/language/ref/\$TimeZone.html</url>)
 
     <dl>
       <dt>'\$TimeZone'

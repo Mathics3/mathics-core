@@ -19,7 +19,7 @@ for version in $PYVERSIONS; do
 	exit $?
     fi
     make clean && pip install -e .
-    if ! make check; then
+    if ! make -j3 check; then
 	exit $?
     fi
     echo === $version ===

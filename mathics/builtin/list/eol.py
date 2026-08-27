@@ -9,8 +9,20 @@ patterns of criteria.
 
 from itertools import chain
 
+from mathics_scanner.characters import NAME_TO_WL_UNICODE
+
 from mathics.builtin.box.layout import RowBox
-from mathics.core.atoms import Integer, Integer0, Integer1, Integer3, Integer4, String
+from mathics.core.atoms import (
+    ByteArray,
+    Integer,
+    Integer0,
+    Integer1,
+    Integer2,
+    Integer3,
+    Integer4,
+    String,
+)
+from mathics.core.atoms.associations import Association
 from mathics.core.attributes import (
     A_HOLD_FIRST,
     A_HOLD_REST,
@@ -29,10 +41,10 @@ from mathics.core.exceptions import (
     PartError,
     PartRangeError,
 )
-from mathics.core.expression import Expression, ExpressionInfinity
+from mathics.core.expression import Expression
 from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
-from mathics.core.rules import Rule
+from mathics.core.rules import RewriteRule, is_rule
 from mathics.core.symbols import Atom, Symbol, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAppend,
@@ -40,8 +52,10 @@ from mathics.core.systemsymbols import (
     SymbolByteArray,
     SymbolDrop,
     SymbolFailed,
+    SymbolFirst,
     SymbolInfinity,
     SymbolKey,
+    SymbolLast,
     SymbolMakeBoxes,
     SymbolMissing,
     SymbolSelect,
@@ -52,6 +66,8 @@ from mathics.core.systemsymbols import (
 from mathics.eval.list.eol import (
     drop_span_selector,
     eval_Part,
+    eval_Part_for_Association,
+    eval_Part_for_ByteArray,
     parts,
     take_span_selector,
 )
@@ -203,7 +219,7 @@ class Cases(Builtin):
         if isinstance(items, Atom):
             return ListExpression()
 
-        if levelspec.has_form("Rule", 2):
+        if is_rule(levelspec):
             if levelspec.elements[0].get_name() == "System`Heads":
                 heads = levelspec.elements[1] is SymbolTrue
                 levelspec = ListExpression(Integer1)
@@ -221,9 +237,9 @@ class Cases(Builtin):
 
         results = []
 
-        if pattern.has_form("Rule", 2) or pattern.has_form("RuleDelayed", 2):
+        if is_rule(pattern):
             match = Matcher(pattern.elements[0], evaluation).match
-            rule = Rule(pattern.elements[0], pattern.elements[1])
+            rule = RewriteRule(pattern.elements[0], pattern.elements[1])
 
             def callback(level):
                 if match(level, evaluation):
@@ -347,7 +363,6 @@ class Delete(Builtin):
         # Delete *can* take more than 2 arguments.
         "argr": "Delete called with 1 argument; 2 arguments are expected.",
         "argt": "Delete called with `1` arguments; 2 arguments are expected.",
-        "pkspec": "The expression `1` cannot be used as a part specification. Use `2` instead.",
     }
     summary_text = "delete elements from a list at given positions"
 
@@ -469,7 +484,7 @@ class DeleteCases(Builtin):
 
         levelspec = python_levelspec(levelspec)
 
-        if n is SymbolInfinity or ExpressionInfinity == n:
+        if n is SymbolInfinity or n == MATHICS3_INFINITY:
             n = -1
         elif isinstance(n, Integer):
             n = n.value
@@ -675,7 +690,6 @@ class First(Builtin):
 
     attributes = A_HOLD_REST | A_PROTECTED
     messages = {
-        "argt": "First called with `1` arguments; 1 or 2 arguments are expected.",
         "nofirst": "`1` has zero length and no first element.",
     }
     summary_text = "first element of a list or expression"
@@ -685,14 +699,23 @@ class First(Builtin):
         "expression: First[expr__]"
 
         if isinstance(expr, Atom):
-            evaluation.message("First", "normal", Integer1, expression)
-            return
-        expr_len = len(expr.elements)
+            if not hasattr(expr, "items"):
+                evaluation.message("First", "normal", Integer1, expression)
+                return
+            expr_len = len(expr.items)
+        else:
+            expr_len = len(expr.elements)
         if expr_len == 0:
             evaluation.message("First", "nofirst", expr)
             return
+
+        if isinstance(expr, ByteArray):
+            return expr.items[0]
+
         if expr_len > 2 and expr.head is SymbolSequence:
-            evaluation.message("First", "argt", expr_len)
+            evaluation.message(
+                "First", "argt", SymbolFirst, Integer(expr_len), Integer1, Integer2
+            )
             return
 
         first_elem = expr.elements[0]
@@ -949,7 +972,6 @@ class Last(Builtin):
 
     attributes = A_HOLD_REST | A_PROTECTED
     messages = {
-        "argt": "Last called with `1` arguments; 1 or 2 arguments are expected.",
         "nolast": "`1` has zero length and no last element.",
     }
     summary_text = "last element of a list or expression"
@@ -959,14 +981,24 @@ class Last(Builtin):
         "expression: Last[expr__]"
 
         if isinstance(expr, Atom):
-            evaluation.message("Last", "normal", Integer1, expression)
-            return
-        expr_len = len(expr.elements)
+            if not hasattr(expr, "items"):
+                evaluation.message("First", "normal", Integer1, expression)
+                return
+            expr_len = len(expr.items)
+        else:
+            expr_len = len(expr.elements)
         if expr_len == 0:
             evaluation.message("Last", "nolast", expr)
             return
+
+        if isinstance(expr, ByteArray):
+            # ByteArray or NumericArray, ...
+            return expr.items[-1]
+
         if expr_len > 2 and expr.head is SymbolSequence:
-            evaluation.message("Last", "argt", expr_len)
+            evaluation.message(
+                "Last", "argt", SymbolLast, Integer(expr_len), Integer1, Integer2
+            )
             return
 
         return expr.elements[-1]
@@ -1052,8 +1084,12 @@ class Part(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Part.html</url>
 
     <dl>
-      <dt>'Part'[$expr$, $i$]
-      <dd>returns part $i$ of $expr$.
+      <dt>$expr$[[$i$]] or 'Part'[$expr$, $i$]
+      <dd>returns the $i^{th}$ part of $expr$.
+      <dt>$expr$[[$-i$]]
+      <dd>returns part $i^{th}$ part from the end of $expr$.
+      <dt>$a$[['Key'[$k$]]]
+      <dd>returns the value associated with an arbitrary key $k$ in the association $a$.
     </dl>
 
     Extract an element from a list:
@@ -1140,60 +1176,34 @@ class Part(Builtin):
 
     def eval_makeboxes(self, list, i, f, evaluation):
         """MakeBoxes[Part[list_, i___],
-        f:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+        (f:StandardForm|TraditionalForm)]"""
 
         i = i.get_sequence()
         list = Expression(SymbolMakeBoxes, list, f).evaluate(evaluation)
-        if f.get_name() in ("System`OutputForm", "System`InputForm"):
-            open, close = "[[", "]]"
-        else:
-            open, close = "\u301a", "\u301b"
-        indices = list_boxes(i, f, evaluation, open, close)
+        open_bracket, close_bracket = (
+            NAME_TO_WL_UNICODE["LeftDoubleBracket"],
+            NAME_TO_WL_UNICODE["RightDoubleBracket"],
+        )
+        indices = list_boxes(i, f, evaluation, open_bracket, close_bracket)
         result = RowBox(list, *indices)
         return result
 
-    def eval(self, list, i, evaluation):
-        "Part[list_, i___]"
+    def eval(self, expr, i, evaluation):
+        "Part[expr_, i___]"
 
-        if list is SymbolFailed:
+        if expr is SymbolFailed:
             return
+
+        if isinstance(expr, Association):
+            return eval_Part_for_Association(expr, i, evaluation)
+
         indices = i.get_sequence()
-        # How to deal with ByteArrays
-        if list.get_head() is SymbolByteArray:
-            list = list.evaluate(evaluation)
-            if len(indices) > 1:
-                print(
-                    "Part::partd1: Depth of object ByteArray[<3>] "
-                    + "is not sufficient for the given part specification."
-                )
-                return
-            idx = indices[0]
-            if isinstance(idx, Integer):
-                idx = idx.value
-                if idx == 0:
-                    return SymbolByteArray
-                data = list.elements[0].value
-                lendata = len(data)
-                if idx < 0:
-                    idx = data - idx
-                    if idx < 0:
-                        evaluation.message("Part", "partw", i, list)
-                        return
-                else:
-                    idx = idx - 1
-                    if idx > lendata:
-                        evaluation.message("Part", "partw", i, list)
-                        return
-                return Integer(data[idx])
-            if idx is Symbol("System`All"):
-                return list
-            # TODO: handling ranges and lists...
-            evaluation.message("Part", "notimplemented")
-            return
+        if expr.get_head() is SymbolByteArray:
+            return eval_Part_for_ByteArray(expr, i, indices, evaluation)
 
-        # Otherwise...
-        result = eval_Part([list], indices, evaluation)
-        if result:
+        # Not an Association, or ByteArray, or some custom Atom,
+        # but instead is proabably an M-expression Expression.
+        if result := eval_Part([expr], indices, evaluation):
             return result
 
 
@@ -1469,9 +1479,7 @@ class ReplacePart(Builtin):
         new_expr = expr.copy()
         replacements = replacements.get_sequence()
         for replacement in replacements:
-            if not replacement.has_form("Rule", 2) and not replacement.has_form(  # noqa
-                "RuleDelayed", 2
-            ):
+            if not is_rule(replacement):
                 evaluation.message("ReplacePart", "reps", ListExpression(*replacements))
                 return
             position = replacement.elements[0]
@@ -1581,7 +1589,7 @@ class Select(Builtin):
         "Select[items_, expr_, n_]"
 
         count_is_valid = True
-        if n is SymbolInfinity or ExpressionInfinity == n:
+        if n is SymbolInfinity or MATHICS3_INFINITY == n:
             count = None
         elif isinstance(n, Integer):
             count = n.value

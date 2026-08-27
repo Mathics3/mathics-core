@@ -2,6 +2,8 @@
 """
 Forms of Assignment
 """
+
+import sys
 from typing import Optional
 
 from mathics.core.atoms import String
@@ -29,7 +31,7 @@ class LoadModule(Builtin):
 
     <dl>
       <dt>'LoadModule'[$module$]
-      <dd>'Load Mathics definitions from the python module $module$
+      <dd>'Load Mathics3 definitions from the python module $module$
     </dl>
 
     >> LoadModule["nomodule"]
@@ -81,9 +83,9 @@ class Set(InfixOperator):
     >> a
      = 3
 
-    An assignment like this creates an ownvalue:
+    An assignment like this creates an Ownvalue:
     >> OwnValues[a]
-     = {HoldPattern[a] :> 3}
+     = {HoldPattern[a] ⧴ 3}
 
     You can set multiple values at once using lists:
     >> {a, b, c} = {10, 2, 3}
@@ -128,6 +130,8 @@ class Set(InfixOperator):
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED | A_SEQUENCE_HOLD
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, sys.maxsize)
     grouping = "Right"
 
     messages = {
@@ -140,7 +144,7 @@ class Set(InfixOperator):
     def eval(self, lhs, rhs, evaluation):
         "lhs_ = rhs_"
 
-        eval_assign(self, lhs, rhs, evaluation)
+        eval_assign(self.get_name(), lhs, rhs, evaluation)
         return rhs
 
 
@@ -192,7 +196,7 @@ class SetDelayed(Set):
     We can use conditional delayed assignments to define \
     symbols with values conditioned to the context. For example,
     >> ClearAll[a,b]; a/; b>0:= 3
-    Set $a$ to have a value of $3$ if certain variable $b$ is positive.\
+    Set $a$ to have a value of $3$ if the variable $b$ is positive.\
     So, if this variable is not set, $a$ stays unevaluated:
     >> a
      = a
@@ -204,7 +208,7 @@ class SetDelayed(Set):
     #  I WMA, if we assign a value without a condition on the LHS,
     # conditional values are never reached. So,
     #
-    # Notice however that if we assign an unconditional value to $a$, \
+    # Notice however, that if we assign an unconditional value to $a$, \
     # this overrides the condition:
     # >> a:=0; a/; b>1:= 3
     # >> a
@@ -222,7 +226,7 @@ class SetDelayed(Set):
     ) -> Symbol:
         "lhs_ := rhs_"
 
-        if eval_assign(self, lhs, rhs, evaluation):
+        if eval_assign(self.get_name(), lhs, rhs, evaluation):
             return SymbolNull
 
         return SymbolFailed
@@ -246,7 +250,7 @@ class TagSet(Builtin):
      = {}
 
     >> UpValues[square]
-     = {HoldPattern[area[square[s_]]] :> s ^ 2}
+     = {HoldPattern[area[square[s_]]] ⧴ s ^ 2}
 
     The symbol $f$ must appear as the ultimate head of $lhs$ or as the head \
         of an element in $lhs$:
@@ -259,12 +263,14 @@ class TagSet(Builtin):
 
     attributes = A_HOLD_ALL | A_PROTECTED | A_SEQUENCE_HOLD
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(2, sys.maxsize)
     messages = {
         "tagnfd": "Tag `1` not found or too deep for an assigned rule.",
     }
     summary_text = (
         "assign a value to an expression, associating the "
-        "corresponding assignment with the a symbol"
+        "corresponding assignment with a symbol"
     )
 
     def eval(
@@ -282,7 +288,7 @@ class TagSet(Builtin):
             return None
 
         rhs = rhs.evaluate(evaluation)
-        eval_assign(self, lhs, rhs, evaluation, tags=[tag_name])
+        eval_assign(self.get_name(), lhs, rhs, evaluation, tags=[tag_name])
         return rhs
 
 
@@ -302,7 +308,7 @@ class TagSetDelayed(TagSet):
     attributes = A_HOLD_ALL | A_PROTECTED | A_SEQUENCE_HOLD
     summary_text = (
         "assign a delayed value to an expression, associating "
-        "the corresponding assignment with the a symbol"
+        "the corresponding assignment with a symbol"
     )
 
     def eval(
@@ -319,7 +325,7 @@ class TagSetDelayed(TagSet):
             evaluation.message(self.get_name(), "sym", f, 1)
             return None
 
-        if eval_assign(self, lhs, rhs, evaluation, tags=[tag_name]):
+        if eval_assign(self.get_name(), lhs, rhs, evaluation, tags=[tag_name]):
             return SymbolNull
 
         return SymbolFailed
@@ -341,7 +347,7 @@ class UpSet(InfixOperator):
     >> DownValues[a]
      = {}
     >> UpValues[b]
-     = {HoldPattern[a[b]] :> 3}
+     = {HoldPattern[a[b]] ⧴ 3}
 
     You can use 'UpSet' to specify special values like format values.
     However, these values will not be saved in 'UpValues':
@@ -353,6 +359,8 @@ class UpSet(InfixOperator):
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED | A_SEQUENCE_HOLD
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, sys.maxsize)
     grouping = "Right"
 
     summary_text = (
@@ -366,7 +374,7 @@ class UpSet(InfixOperator):
         if isinstance(lhs, Atom):
             evaluation.message("UpSet", "normal", 1, evaluation.current_expression)
             return None
-        eval_assign(self, lhs, rhs, evaluation, upset=True)
+        eval_assign(self.get_name(), lhs, rhs, evaluation, upset=True)
         return rhs
 
 
@@ -388,7 +396,7 @@ class UpSetDelayed(UpSet):
     >> a[b]
      = 2
     >> UpValues[b]
-     = {HoldPattern[a[b]] :> x}
+     = {HoldPattern[a[b]] ⧴ x}
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED | A_SEQUENCE_HOLD
@@ -416,7 +424,7 @@ class UpSetDelayed(UpSet):
             )
             return None
 
-        if eval_assign(self, lhs, rhs, evaluation, upset=True):
+        if eval_assign(self.get_name(), lhs, rhs, evaluation, upset=True):
             return SymbolNull
 
         return SymbolFailed

@@ -11,6 +11,7 @@ from test.helper import check_evaluation, evaluate
 import pytest
 
 from mathics.core.parser.convert import canonic_filename
+from mathics.core.streams import canonic_os_path
 
 
 def test_compress():
@@ -54,6 +55,15 @@ def test_get_input():
         osp.normpath(osp.join(osp.dirname(__file__), "..", "..", "data", "input-bug.m"))
     )
     check_evaluation(f'Get["{script_path}"]', script_path, hold_expected=True)
+
+
+def test_get_evaluates_queries_after_error():
+    # Check that all the code lines in a wl script are evaluated, despite
+    # one of them raises an error.
+    script_path = canonic_filename(
+        osp.normpath(osp.join(osp.dirname(__file__), "..", "..", "data", "star-bug.m"))
+    )
+    check_evaluation(f'Get["{script_path}"]', "OK!", hold_expected=True)
 
 
 @pytest.mark.skipif(
@@ -111,7 +121,7 @@ def test_close():
         ('Close["abc"]', ("abc is not open.",), "Close[abc]", ""),
         (
             "exp = Sin[1]; FilePrint[exp]",
-            ("The specified argument, Sin[1], should be a valid string.",),
+            ("The specified argument, Sin[1], should be a valid string or File.",),
             "FilePrint[Sin[1]]",
             "",
         ),
@@ -307,7 +317,7 @@ def test_close():
             "{Hold[1 + 2]}",
             "",
         ),
-        ('stream = StringToStream["Mathics is cool!"];', None, "Null", ""),
+        ('stream = StringToStream["Mathics3 is cool!"];', None, "Null", ""),
         ("SetStreamPosition[stream, -5]", ("Invalid I/O Seek.",), "0", ""),
         (
             '(strm = StringToStream["abc 123"])//{#1[[0]],#1[[1]]}&',
@@ -353,7 +363,7 @@ def test_close():
         ("DeleteFile[tmpfilename]", None, "Null", ""),
     ],
 )
-def test_private_doctests_files(str_expr, msgs, str_expected, fail_msg):
+def test_files(str_expr, msgs, str_expected, fail_msg):
     """Grab-bag tests from mathics.builtin.files_io.files. These need to be split out."""
     check_evaluation(
         str_expr,
@@ -407,7 +417,7 @@ def test_open_read():
     # Below, we set "delete=False" because `os.unlink()` is used
     # to delete the file.
     new_temp_file = NamedTemporaryFile(mode="r", delete=False)
-    name = canonic_filename(new_temp_file.name)
+    name = canonic_os_path(canonic_filename(new_temp_file.name))
     try:
         os.unlink(name)
     except PermissionError:
@@ -474,7 +484,7 @@ def test_write_string():
 
     # 1. Create temporary file name
     tempfile = NamedTemporaryFile(mode="r", delete=False)
-    tempfile_path = tempfile.name
+    tempfile_path = canonic_os_path(tempfile.name)
 
     # 2. Open that for writing in Mathics3 using OpenWrite[].
     check_evaluation(

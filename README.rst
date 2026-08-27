@@ -1,40 +1,39 @@
-Welcome to Mathics Core!
-========================
+Welcome to Mathics3 Core!
+=========================
 
-|PyPI Installs| |Latest Version| |Supported Python Versions|
+|PyPI Installs| |Latest Version| |Supported Python Versions| |Anaconda|
 
 |Packaging status|
 
 
-Mathics3 is a general-purpose computer algebra system (CAS).
+Mathics3 is an open-source Mathematica, a general-purpose CAS (Computer Algebra System).
 
-However this repository contains just the Mathics3 Kernel: Python
+However, this repository contains just the Mathics3 Kernel: Python
 modules for WL Built-in functions, variables, core primitives,
-e.g. Symbol, a parser to create Expressions, and an evaluator to
+e.g., Symbol, a parser to create Expressions, and an evaluator to
 execute them.
 
-The home page for Mathics is https://mathics.org where you will find a
-list of screenshots and components making up the system.
+The home page for Mathics3 is https://mathics.org, where you will find a list of screenshots and components making up the system.
 
 Installing
 ----------
 
-Installing locally, requires a number of dependencies and OS package dependencies.
+Installing locally requires several dependencies and OS package dependencies.
 
 See the `Installing Mathics3 <https://mathics-development-guide.readthedocs.io/en/latest/installing.html>`_ for instructions on installing Mathics3.
 
 Running:
 --------
 
-Mathics3 Kernel comes with a very simple command-line program called ``mathics``::
+Mathics3 Kernel comes with a very simple command-line program called ``mathics3``::
 
-  $ mathics
+  $ mathics3
 
-  Mathics 8.0.0
-  on CPython 3.12.8 (main, Dec  9 2024, 11:38:23) [GCC 13.2.0]
-  using SymPy 1.13.3, mpmath 1.3.0, numpy 1.26.4, cython Not installed
+  Mathics3 9.0.0
+  on CPython 3.13.5 (main, Jun 20 2025, 16:57:22) [GCC 13.3.0]
+  using SymPy 1.13.3, mpmath 1.3.0, numpy 2.3.2, cython Not installed
 
- Copyright (C) 2011-2025 The Mathics3 Team.
+  Copyright (C) 2011-2026 The Mathics3 Team.
   This program comes with ABSOLUTELY NO WARRANTY.
   This is free software, and you are welcome to redistribute it
   under certain conditions.
@@ -44,25 +43,25 @@ Mathics3 Kernel comes with a very simple command-line program called ``mathics``
 
   In[1]:=
 
-Type ``mathics --help`` for options that can be provided.
+Type ``mathics3 --help`` for options that can be provided.
 
 For a more featureful frontend, see `mathicsscript
 <https://pypi.org/project/mathicsscript/>`_.
 
-For a Django front-end based web front-end see `<https://pypi.org/project/Mathics-Django/>`_.
+For a Django front-end based web front-end see `<https://pypi.org/project/Mathics3-django/>`_.
 
 
 
 Contributing
 ------------
 
-Please feel encouraged to contribute to Mathics! Create your own fork, make the desired changes, commit, and make a pull request.
+Please feel encouraged to contribute to Mathics3! Create your own fork, make the desired changes, commit, and put in a pull request (PR).
 
 
 License
 -------
 
-Mathics is released under the GNU General Public License Version 3 (GPL3).
+Mathics3 is released under the GNU General Public License Version 3 (GPL3).
 
 .. _PyPI: https://pypi.org/project/Mathics/
 .. |mathicsscript| image:: https://github.com/Mathics3/mathicsscript/blob/master/screenshots/mathicsscript1.gif
@@ -71,5 +70,6 @@ Mathics is released under the GNU General Public License Version 3 (GPL3).
 		 :target: https://badge.fury.io/py/Mathics3
 .. |PyPI Installs| image:: https://pepy.tech/badge/Mathics3
 .. |Supported Python Versions| image:: https://img.shields.io/pypi/pyversions/Mathics3.svg
-.. |Packaging status| image:: https://repology.org/badge/vertical-allrepos/mathics.svg
-			    :target: https://repology.org/project/mathics/versions
+.. |Packaging status| image:: https://repology.org/badge/vertical-allrepos/mathics3.svg
+			    :target: https://repology.org/project/mathics3/versions
+.. |Anaconda| image:: https://anaconda.org/conda-forge/mathics3/badges/version.svg

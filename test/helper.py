@@ -2,37 +2,70 @@
 import os.path as osp
 import re
 import time
-from typing import Optional
+from typing import List, Optional, Tuple
 
 from mathics.core.load_builtin import import_and_load_builtins
+from mathics.core.streams import canonic_os_path
+from mathics.eval.encoding import encode_string_value
+from mathics.format.render.text import string_to_invertible_ascii
 from mathics.session import MathicsSession
+from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
 import_and_load_builtins()
 
-# Set up a Mathics session with definitions.
+# Set up a Mathics3 session with definitions.
 # For consistency set the character encoding ASCII which is
 # the lowest common denominator available on all systems.
 session = MathicsSession(character_encoding="ASCII")
 
 # Set up a data path that can be used in testing
-data_dir = osp.normpath(osp.join(osp.dirname(__file__), "data"))
+data_dir = canonic_os_path(osp.normpath(osp.join(osp.dirname(__file__), "data")))
+
+
+def canonical_encoding(string, enc="ASCII") -> str:
+    """
+    Replace all backslashes by escaped backslashes,
+    and special characters by their named-character form.
+    """
+    if not string:
+        return string
+    if enc and enc not in ("UTF-8", "UTF8", "Unicode"):
+        string = encode_string_value(string, enc)
+    else:
+        string = string.replace("\\", "\\\\")
+        string = string_to_invertible_ascii(string)
+    return string
 
 
 def reset_session(add_builtin=True, catch_interrupt=False):
     """
     reset the session cleaning all the definitions.
     """
-    global session
     session.reset()
     session.evaluate("SetDirectory[$TemporaryDirectory];")
 
 
-def evaluate_value(str_expr: str):
-    return session.evaluate(str_expr).value
+def evaluate_value(str_expr: str, form=None):
+    return session.evaluate(str_expr, form=form).value
 
 
-def evaluate(str_expr: str):
-    return session.evaluate(str_expr)
+def evaluate(str_expr: str, form=None):
+    return session.evaluate(str_expr, form=form)
+
+
+def check_arg_counts(function_name, msg_fragment):
+    """ """
+    str_expr = f"{function_name}[]"
+    expected_msgs = (
+        f"{function_name} called with 0 arguments; {msg_fragment} expected.",
+    )
+    failure_message = f"{function_name} argument number error"
+    check_evaluation(
+        str_expr,
+        str_expr,
+        failure_message=failure_message,
+        expected_messages=expected_msgs,
+    )
 
 
 def check_evaluation(
@@ -44,9 +77,10 @@ def check_evaluation(
     to_string_expected: bool = True,
     to_python_expected: bool = False,
     expected_messages: Optional[tuple] = None,
+    encoding: str = SYSTEM_CHARACTER_ENCODING,
 ):
     """
-    Helper function to test Mathics expression against
+    Helper function to test Mathics3 expression against
     its results.
 
     Compares the expressions represented by ``str_expr`` and  ``str_expected`` by
@@ -98,6 +132,7 @@ def check_evaluation(
     if to_string_expr:
         str_expr = f"ToString[{str_expr}]"
         result = evaluate_value(str_expr)
+        result = canonical_encoding(result, encoding)
     elif to_string_expr is None:
         result = str_expr
     else:
@@ -108,9 +143,11 @@ def check_evaluation(
     if to_string_expected:
         if hold_expected:
             expected = str_expected
+            expected = canonical_encoding(expected, encoding)
         else:
             str_expected = f"ToString[{str_expected}]"
             expected = evaluate_value(str_expected)
+            expected = canonical_encoding(expected, encoding)
     elif to_string_expected is None:
         expected = str_expected
     else:
@@ -125,15 +162,20 @@ def check_evaluation(
                 expected = expected.to_python(string_quotes=False)
 
     print(time.asctime())
+
     if failure_message:
-        print((result, expected))
+        if result != expected:
+            print(f"result  : {result}")
+            print(f"expected: {expected}")
+
         assert result == expected, failure_message
     else:
-        print((result, expected))
+        fail_mess = f"result: \n{result}\nexpect:\n{expected}\n"
         if isinstance(expected, re.Pattern):
-            assert expected.match(result)
+            assert expected.match(result), fail_mess
         else:
-            assert result == expected
+            assert result == expected, fail_mess
+    print(f"got: \n{result}")
 
     if expected_messages is not None:
         msgs = list(expected_messages)
@@ -143,7 +185,12 @@ def check_evaluation(
             expected_len == got_len
         ), f"expected {expected_len}; got {got_len}. Messages: {outs}"
         for out, msg in zip(outs, msgs):
-            compare_ok = msg.match(out) if isinstance(msg, re.Pattern) else out == msg
+            compare_ok = (
+                msg.match(out)
+                if isinstance(msg, re.Pattern)
+                else canonical_encoding(out, encoding)
+                == canonical_encoding(msg, encoding)
+            )
             if not compare_ok:
                 print(f"out:<<{out}>>")
                 print(" and ")
@@ -156,6 +203,7 @@ def check_evaluation_as_in_cli(
     str_expected: Optional[str] = None,
     failure_message: str = "",
     expected_messages: Optional[tuple] = None,
+    encoding=SYSTEM_CHARACTER_ENCODING,
 ):
     """
     Use this method when special Symbols like Return, %, %%,
@@ -171,8 +219,29 @@ def check_evaluation_as_in_cli(
     else:
         assert len(res.out) == len(expected_messages)
         for li1, li2 in zip(res.out, expected_messages):
-            assert li1.text == li2
+            assert canonical_encoding(li1.text, encoding) == li2
 
+    result = canonical_encoding(res.result, encoding)
+    str_expected = canonical_encoding(str_expected, encoding)
     if failure_message:
-        assert res.result == str_expected, failure_message
-    assert res.result == str_expected
+        assert result == str_expected, failure_message
+    else:
+        assert result == str_expected, f"<<{result}>>!=<<{str_expected}>>"
+
+
+# List below could be a Tuple, but List looks better in the tests
+def check_wrong_number_of_arguments(tests: List[Tuple[str, List[str], str]]):
+    """
+    Boilerplate code to check that for giving an error message when the wrong
+    number of arguments is provided.
+    """
+    for str_expr, msgs, assert_fail_msg in tests:
+        check_evaluation(
+            str_expr,
+            str_expr,
+            to_string_expr=True,
+            to_string_expected=True,
+            hold_expected=True,
+            failure_message=assert_fail_msg,
+            expected_messages=msgs,
+        )

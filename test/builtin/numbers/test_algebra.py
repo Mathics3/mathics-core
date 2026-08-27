@@ -3,22 +3,93 @@
 Unit tests for mathics.builtins.numbers.algebra and
 mathics.builtins.numbers.integer
 """
-from test.helper import check_evaluation
+from test.helper import check_arg_counts, check_evaluation
 
 import pytest
 
 
+def test_apart():
+    for str_expr, str_expected, fail_msg in [
+        (
+            "Apart[1 / (x^2 + 5x + 6)] > y",
+            "1 / (2 + x) - 1 / (3 + x) > y",
+            "Apart in a relational expression",
+        ),
+    ]:
+        check_evaluation(
+            str_expr,
+            str_expected,
+            failure_message=fail_msg,
+        )
+
+
+@pytest.mark.parametrize(
+    ("function_name", "msg_fragment"),
+    [
+        (
+            "Apart",
+            "1 or 2 arguments are",
+        ),
+        (
+            "Cancel",
+            "1 argument is",
+        ),
+        (
+            "Collect",
+            "between 2 and 4 arguments are",
+        ),
+        (
+            "Expand",
+            "1 or 2 arguments are",
+        ),
+        (
+            "ExpandAll",
+            "1 or 2 arguments are",
+        ),
+        (
+            "ExpandDenominator",
+            "1 or 2 arguments are",
+        ),
+        (
+            "Exponent",
+            "2 or 3 arguments are",
+        ),
+        (
+            "Distribute",
+            "between 1 and 5 arguments are",
+        ),
+    ],
+)
+def test_arg_count_errors(function_name, msg_fragment):
+    """ """
+    check_arg_counts(function_name, msg_fragment)
+
+
 def test_collect():
-    for str_expr, str_expected in [
-        ("Collect[q[x] + q[x] q[y],q[x]]", "q[x] (1 + q[y])"),
-        ("Collect[ 1+ a x + b x^3 + Cos[t] x, x]", "1 + (a + Cos[t]) x + b x^3"),
-        ("Collect[ q[0, x] q[0, y] + 1, q[0, x]]", "1 + q[0, x] q[0, y]"),  # Issue #285
+    for str_expr, str_expected, fail_msg in [
+        ("Collect[q[x] + q[x] q[y],q[x]]", "q[x] (1 + q[y])", None),
+        (
+            "Collect[ 1+ a x + b x^3 + Cos[t] x, x]",
+            "1 + (a + Cos[t]) x + b x^3",
+            None,
+        ),
+        (
+            "Collect[a x + b y + c x + d y, y] < 3",
+            "a x + c x + y (b + d) < 3",
+            "Collect in relational expression",
+        ),
+        (
+            "Collect[ q[0, x] q[0, y] + 1, q[0, x]]",
+            "1 + q[0, x] q[0, y]",
+            "Issue #285",
+        ),
         (
             "Collect[a x + b y + c x y^2 + p y x^2 + d x^2 y, {x, y}]",
             "a x + b y + c x y ^ 2 + x ^ 2 y (d + p)",
+            None,
         ),
     ]:
-        check_evaluation(str_expr, str_expected)
+        check_evaluation(str_expr, str_expected, failure_message=fail_msg)
 
 
 def test_coefficient():
@@ -110,6 +181,36 @@ def test_coefficient_list():
         (
             "CoefficientList[1, {x, y}]",
             "{{1}}",
+        ),
+    ):
+        check_evaluation(str_expr, str_expected)
+
+
+def test_denominator():
+    for str_expr, str_expected in (
+        (
+            "Denominator[1/3^-1]",
+            "1",
+        ),
+        (
+            "Denominator[1/3^1]",
+            "3",
+        ),
+        (
+            "Denominator[Tan[x]^2, Trig->True]",
+            "Cos[x]^2",
+        ),
+        (
+            "Denominator[Tan[x]^1., Trig->True]",
+            "1",
+        ),
+        (
+            "Denominator[Tan[x]^0, Trig->True]",
+            "1",
+        ),
+        (
+            "Denominator[Tan[x]^2., Trig->True]",
+            "1",
         ),
     ):
         check_evaluation(str_expr, str_expected)
@@ -325,7 +426,7 @@ try:
     from packaging import version
 
     skip_fullsimplify_test = version.parse(sympy.__version__) < version.parse("1.10.0")
-except:
+except ImportError:
     pass
 
 
@@ -346,7 +447,7 @@ def test_fullsimplify():
     [
         ("Attributes[f] = {HoldAll}; Apart[f[x + x]]", None, "f[x + x]", None),
         ("Attributes[f] = {}; Apart[f[x + x]]", None, "f[2 x]", None),
-        ## Errors:
+        # Errors:
         (
             "Coefficient[x + y + 3]",
             ("Coefficient called with 1 argument; 2 or 3 arguments are expected.",),
@@ -383,11 +484,23 @@ def test_fullsimplify():
             "CoefficientList[x / y, {x, y}]",
             None,
         ),
+        (
+            "Expand[(x - 1)(x + 1) == 0]",
+            None,
+            "-1 + x ^ 2 ⩵ 0",
+            "Expand using a relation. Issue #1390",
+        ),
+        (
+            "Expand[(x + y)^5 - (x^5 + y^5) > y]",
+            None,
+            "5 x ^ 4 y + 10 x ^ 3 y ^ 2 + 10 x ^ 2 y ^ 3 + 5 x y ^ 4 > y",
+            "Expand in several variables. Related to Issue #1390",
+        ),
         ("Expand[x, Modulus -> -1]  (* copy odd MMA behaviour *)", None, "0", None),
         (
             "Expand[x, Modulus -> x]",
             ("Value of option Modulus -> x should be an integer.",),
-            "Expand[x, Modulus -> x]",
+            "Expand[x, Modulus ⇾ x]",
             None,
         ),
         ("a(b(c+d)+e) // Expand", None, "a b c + a b d + a e", None),
@@ -398,7 +511,7 @@ def test_fullsimplify():
             "24 x / (5 + 3 x + x ^ 2) ^ 3 + 8 x ^ 2 / (5 + 3 x + x ^ 2) ^ 3 + 18 / (5 + 3 x + x ^ 2) ^ 3",
             None,
         ),
-        ## Modulus option
+        # Modulus option
         (
             "ExpandDenominator[1 / (x + y)^3, Modulus -> 3]",
             None,
@@ -417,14 +530,19 @@ def test_fullsimplify():
             "2 (3 + 2 x) ^ 2 / (125 + 225 x + 210 x ^ 2 + 117 x ^ 3 + 42 x ^ 4 + 9 x ^ 5 + x ^ 6)",
             None,
         ),
-        ## errors:
-        (
-            "Exponent[x^2]",
-            ("Exponent called with 1 argument; 2 or 3 arguments are expected.",),
-            "Exponent[x ^ 2]",
-            None,
-        ),
-        ## Issue659
+        # # Note: we can't put ExpandEnumerator arg count tests in test_arg_count_errors
+        # # because we (helpfully?) report an error with ExpandNumerator[],
+        # # while WMA does not!
+        # # ExpandNumerator may be tricky to get right. Skip it for now, until there's
+        # # good reason to add it.
+        # (
+        #     "ExpandNumerator[x, y, z]",
+        #     (
+        #         "ExpandNumerator called with 3 arguments; 1 or 2 arguments are expected.",
+        #     ),
+        #     "ExpandNumerator[x, y, z]",
+        #     "Check ExpandNumerator argument counts",
+        # ),
         ("Factor[{x+x^2}]", None, "{x (1 + x)}", None),
         ("FactorTermsList[2 x^2 - 2, x]", None, "{2, 1, -1 + x ^ 2}", None),
         (
@@ -466,25 +584,25 @@ def test_fullsimplify():
             "True",
             None,
         ),
-        ## TODO: MMA and Sympy handle these cases differently
-        ## #> PolynomialQ[x^(1/2) + 6xyz]
-        ##  : No variable is not supported in PolynomialQ.
-        ##  = True
-        ## #> PolynomialQ[x^(1/2) + 6xyz, {}]
-        ##  : No variable is not supported in PolynomialQ.
-        ##  = True
-        ## #> PolynomialQ[x^3 - 2 x/y + 3xz]
-        ##  : No variable is not supported in PolynomialQ.
-        ##  = False
-        ## #> PolynomialQ[x^3 - 2 x/y + 3xz, {}]
-        ##  : No variable is not supported in PolynomialQ.
-        ##  = False
+        # TODO: MMA and Sympy handle these cases differently
+        # #> PolynomialQ[x^(1/2) + 6xyz]
+        #  : No variable is not supported in PolynomialQ.
+        #  = True
+        # #> PolynomialQ[x^(1/2) + 6xyz, {}]
+        #  : No variable is not supported in PolynomialQ.
+        #  = True
+        # #> PolynomialQ[x^3 - 2 x/y + 3xz]
+        #  : No variable is not supported in PolynomialQ.
+        #  = False
+        # #> PolynomialQ[x^3 - 2 x/y + 3xz, {}]
+        #  : No variable is not supported in PolynomialQ.
+        #  = False
         ("f[x]/x+f[x]/x^2//Together", None, "f[x] (1 + x) / x ^ 2", None),
-        ## failing test case from MMA docs
+        # failing test case from MMA docs
         ("Variables[E^x]", None, "{}", None),
     ],
 )
-def test_private_doctests_algebra(str_expr, msgs, str_expected, fail_msg):
+def test_algebra(str_expr, msgs, str_expected, fail_msg):
     """doctests for algebra"""
     check_evaluation(
         str_expr,
@@ -508,7 +626,7 @@ def test_private_doctests_algebra(str_expr, msgs, str_expected, fail_msg):
         ),
     ],
 )
-def test_private_doctests_integer(str_expr, msgs, str_expected, fail_msg):
+def test_integer(str_expr, msgs, str_expected, fail_msg):
     """doctests for integer"""
     check_evaluation(
         str_expr,

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """
 Calculus
 
@@ -18,7 +17,6 @@ import sympy
 import mathics.eval.tracing as tracing
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import (
-    Atom,
     Integer,
     Integer0,
     Integer1,
@@ -41,18 +39,14 @@ from mathics.core.builtin import Builtin, PostfixOperator, SympyFunction
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.function import expression_to_callable_and_args
 from mathics.core.convert.python import from_python
-from mathics.core.convert.sympy import (
-    SymbolRootSum,
-    SympyExpression,
-    from_sympy,
-    sympy_symbol_prefix,
-)
+from mathics.core.convert.sympy import SymbolRootSum, SympyExpression, from_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import MACHINE_EPSILON, dps
 from mathics.core.rules import BasePattern
 from mathics.core.symbols import (
+    Atom,
     BaseElement,
     Symbol,
     SymbolFalse,
@@ -61,6 +55,7 @@ from mathics.core.symbols import (
     SymbolPower,
     SymbolTimes,
     SymbolTrue,
+    sympy_name,
 )
 from mathics.core.systemsymbols import (
     SymbolAnd,
@@ -71,12 +66,9 @@ from mathics.core.systemsymbols import (
     SymbolFunction,
     SymbolIndeterminate,
     SymbolInfinity,
-    SymbolInfix,
     SymbolIntegrate,
-    SymbolLeft,
     SymbolLog,
     SymbolNIntegrate,
-    SymbolO,
     SymbolRule,
     SymbolSequence,
     SymbolSeries,
@@ -85,7 +77,6 @@ from mathics.core.systemsymbols import (
     SymbolSlot,
     SymbolUndefined,
 )
-from mathics.eval.makeboxes import format_element
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numbers.calculus.integrators import (
     _fubini,
@@ -99,6 +90,7 @@ from mathics.eval.numbers.calculus.series import (
     series_plus_series,
     series_times_series,
 )
+from mathics.format.form_rule.calculus import format_series
 
 # These should be used in lower-level formatting
 SymbolDifferentialD = Symbol("System`DifferentialD")
@@ -425,13 +417,12 @@ class Derivative(PostfixOperator, SympyFunction):
             r'  "\[Prime]\[Prime]", If[{n} === {1}, "\[Prime]", '
             r'    RowBox[{"(", Sequence @@ Riffle[{n}, ","], ")"}]]]]'
         ),
-        "MakeBoxes[Derivative[n:1|2][f_], form:OutputForm]": """RowBox[{MakeBoxes[f, form], If[n==1, "'", "''"]}]""",
         # The following rules should be applied in the eval method, instead of relying on the pattern matching
         # mechanism.
         "Derivative[0...][f_]": "f",
         "Derivative[n__Integer][Derivative[m__Integer][f_]] /; Length[{m}] "
         "== Length[{n}]": "Derivative[Sequence @@ ({n} + {m})][f]",
-        "Derivative[n__Integer][Alternatives[_Integer|_Rational|_Real|_Complex]]": "0 &",
+        "Derivative[n__Integer][_Integer|_Rational|_Real|_Complex]": "0 &",
         # The following rule tries to evaluate a derivative of a pure function by applying it to a list
         # of symbolic elements and use the rules in `D`.
         # The rule just applies if f is not a locked symbol, and it does not have a previous definition
@@ -500,7 +491,7 @@ class Derivative(PostfixOperator, SympyFunction):
         super(Derivative, self).__init__(*args, **kwargs)
 
     def eval_locked_symbols(self, n, **kwargs):
-        """Derivative[n__Integer][Alternatives[True|False|Symbol|TooBig|$Aborted|Removed|Locked|$PrintLiteral|$Off]]/; True"""
+        """Derivative[n__Integer][True|False|Symbol|TooBig|$Aborted|Removed|Locked|$PrintLiteral|$Off]/; True"""
         # Conditionals always come first...
         # Prevents the evaluation for True, False, and other Locked symbols
         # as function names. This produces a recursion error in the evaluation rule for Derivative.
@@ -532,7 +523,7 @@ class Derivative(PostfixOperator, SympyFunction):
             return
 
         func = exprs[1].elements[0]
-        sym_func = sympy.Function(str(sympy_symbol_prefix + func.__str__()))(*sym_args)
+        sym_func = sympy.Function(sympy_name(func))(*sym_args)
 
         counts = [element.get_int_value() for element in exprs[2].elements]
         if None in counts:
@@ -585,14 +576,18 @@ class DiscreteLimit(Builtin):
     def eval(self, f, n, n0, evaluation: Evaluation, options: dict = {}):
         "DiscreteLimit[f_, n_->n0_, OptionsPattern[DiscreteLimit]]"
 
-        f = f.to_sympy(convert_all_global_functions=True)
-        n = n.to_sympy()
-        n0 = n0.to_sympy()
+        sympy_f = f.to_sympy(convert_all_global_functions=True)
+        if sympy_f is None:
+            return None
 
-        if n0 != sympy.oo:
-            return
+        sympy_n = n.to_sympy()
 
-        if f is None or n is None:
+        if sympy_f is None:
+            return None
+
+        sympy_n0 = n0.to_sympy()
+
+        if sympy_n0 != sympy.oo:
             return
 
         trials = options["System`Trials"].get_int_value()
@@ -602,9 +597,15 @@ class DiscreteLimit(Builtin):
             trials = 5
 
         try:
-            return from_sympy(sympy.limit_seq(f, n, trials))
+            result = sympy.limit_seq(sympy_f, sympy_n, trials)
         except Exception:
-            pass
+            return None
+
+        # Think about: should we put more tests on result above
+        # sympy.Limit? The code before this (implicitly) did not.
+        if isinstance(result, sympy.Limit):
+            return f.replace_vars({str(n): n0})
+        return from_sympy(result)
 
 
 class _BaseFinder(Builtin):
@@ -717,9 +718,12 @@ class _BaseFinder(Builtin):
                 [String(m) for m in self.methods.keys()],
             )
             return
-        x0, success = method_caller(f, x0, x, options, evaluation)
-        if not success:
-            return
+        try:
+            x0, success = method_caller(f, x0, x, options, evaluation)
+        except ValueError:
+            # Non numerical evaluation
+            return evaluation.current_expression
+
         if isinstance(x0, tuple):
             return ListExpression(
                 x0[1],
@@ -762,20 +766,20 @@ class FindMaximum(_BaseFinder):
 
     >> FindMaximum[-(x-3)^2+2., {x, 1}]
      : Encountered a gradient that is effectively zero. The result returned may not be a maximum; it may be a minimum or a saddle point.
-     = {2., {x -> 3.}}
+     = {2., {x ⇾ 3.}}
     >> FindMaximum[-10*^-30 *(x-3)^2+2., {x, 1}]
      : Encountered a gradient that is effectively zero. The result returned may not be a maximum; it may be a minimum or a saddle point.
-     = {2., {x -> 3.}}
+     = {2., {x ⇾ 3.}}
     >> FindMaximum[Sin[x], {x, 1}]
-     = {1., {x -> 1.5708}}
+     = {1., {x ⇾ 1.5708}}
     >> phi[x_?NumberQ]:=NIntegrate[u, {u, 0., x}, Method->"Internal"];
     >> Quiet[FindMaximum[-phi[x] + x, {x, 1.2}, Method->"Newton"]]
-     = {0.5, {x -> 1.00001}}
+     = {0.5, {x ⇾ 1.00001}}
     >> Clear[phi];
     For a not so well behaving function, the result can be less accurate:
-    >> FindMaximum[-Exp[-1/x^2]+1., {x,1.2}, MaxIterations->10]
+    >> FindMaximum[-Exp[-1/x^2]+1., {x,1.2}, MaxIterations->2]
      : The maximum number of iterations was exceeded. The result might be inaccurate.
-     = FindMaximum[-Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 10]
+     = ...
     """
 
     methods = {}
@@ -813,20 +817,20 @@ class FindMinimum(_BaseFinder):
 
     >> FindMinimum[(x-3)^2+2., {x, 1}]
      : Encountered a gradient that is effectively zero. The result returned may not be a minimum; it may be a maximum or a saddle point.
-     = {2., {x -> 3.}}
+     = {2., {x ⇾ 3.}}
     >> FindMinimum[10*^-30 *(x-3)^2+2., {x, 1}]
      : Encountered a gradient that is effectively zero. The result returned may not be a minimum; it may be a maximum or a saddle point.
-     = {2., {x -> 3.}}
+     = {2., {x ⇾ 3.}}
     >> FindMinimum[Sin[x], {x, 1}]
-     = {-1., {x -> -1.5708}}
+     = {-1., {x ⇾ -1.5708}}
     >> phi[x_?NumberQ]:=NIntegrate[u,{u,0,x}, Method->"Internal"];
     >> Quiet[FindMinimum[phi[x]-x,{x, 1.2}, Method->"Newton"]]
-     = {-0.5, {x -> 1.00001}}
+     = {-0.5, {x ⇾ 1.00001}}
     >> Clear[phi];
     For a not so well behaving function, the result can be less accurate:
-    >> FindMinimum[Exp[-1/x^2]+1., {x,1.2}, MaxIterations->10]
+    >> FindMinimum[Exp[-1/x^2]+1., {x,1.2}, MaxIterations->2]
      : The maximum number of iterations was exceeded. The result might be inaccurate.
-     =  FindMinimum[Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 10]
+     =  ...
     """
 
     methods = {}
@@ -866,28 +870,28 @@ class FindRoot(_BaseFinder):
     should have a first derivative.
 
     >> FindRoot[Cos[x], {x, 1}]
-     = {x -> 1.5708}
+     = {x ⇾ 1.5708}
     >> FindRoot[Sin[x] + Exp[x],{x, 0}]
-     = {x -> -0.588533}
+     = {x ⇾ -0.588533}
 
     >> FindRoot[Sin[x] + Exp[x] == Pi,{x, 0}]
-     = {x -> 0.866815}
+     = {x ⇾ 0.866815}
 
     'FindRoot' has attribute 'HoldAll' and effectively uses 'Block' to localize $x$.
     However, in the result $x$ will eventually still be replaced by its value.
     >> x = "I am the result!";
     >> FindRoot[Tan[x] + Sin[x] == Pi, {x, 1}]
-     = {I am the result! -> 1.14911}
+     = {I am the result! ⇾ 1.14911}
     >> Clear[x]
 
     'FindRoot' stops after 100 iterations:
     >> FindRoot[x^2 + x + 1, {x, 1}]
      : The maximum number of iterations was exceeded. The result might be inaccurate.
-     = {x -> -1.}
+     = {x ⇾ -1.}
 
     Find complex roots:
     >> FindRoot[x ^ 2 + x + 1, {x, -I}]
-     = {x -> -0.5 - 0.866025 I}
+     = {x ⇾ -0.5 - 0.866025 I}
 
     The function has to return numerical values:
     >> FindRoot[f[x] == 0, {x, 0}]
@@ -897,11 +901,11 @@ class FindRoot(_BaseFinder):
     The derivative must not be 0:
     >> FindRoot[Sin[x] == x, {x, 0}]
      : Encountered a singular derivative at the point x = 0..
-     = FindRoot[Sin[x] - x, {x, 0}]
+     = ...
 
 
     >> FindRoot[x^2 - 2, {x, 1,3}, Method->"Secant"]
-     = {x -> 1.41421}
+     = {x ⇾ 1.41421}
     """
 
     rules = {
@@ -950,7 +954,7 @@ class Integers(Builtin):
 
     Limit a solution to integer numbers:
     >> Solve[-4 - 4 x + x^4 + x^5 == 0, x, Integers]
-     = {{x -> -1}}
+     = {{x ⇾ -1}}
     >> Solve[x^4 == 4, x, Integers]
      = {}
     """
@@ -1003,8 +1007,8 @@ class Integrate(SympyFunction):
      = Integrate[1, {x, Infinity, 0}]
 
     Here how is an example of converting integral equation to TeX:
-    >> Integrate[f[x], {x, a, b}] // TeXForm
-     = \int_a^b f\left[x\right] \, dx
+    >> Integrate[f[x^2], {x, a, b}] // TeXForm
+     = \int_a^b f\left(x^2\right) \, dx
 
     Sometimes there is a loss of precision during integration.
     You can check the precision of your result with the following sequence \
@@ -1082,10 +1086,11 @@ class Integrate(SympyFunction):
     def eval(self, f, xs, evaluation: Evaluation, options: dict):  # type: ignore[override]
         "Integrate[f_, xs__, OptionsPattern[]]"
         f_sympy = f.to_sympy()
-        if f_sympy.is_infinite:
-            return Expression(SymbolIntegrate, Integer1, xs).evaluate(evaluation) * f
         if f_sympy is None or isinstance(f_sympy, SympyExpression):
             return
+
+        if f_sympy.is_infinite:
+            return Expression(SymbolIntegrate, Integer1, xs).evaluate(evaluation) * f
         xs = xs.get_sequence()
         vars = []
         prec = None
@@ -1232,10 +1237,15 @@ class Integrate(SympyFunction):
         )
 
 
+# FIXME: Limit has changed a bit, so that it now can return
+# Intervals which we do not support. See also SymPy conversion
+# of SymPy's AccumulationBounds in mathics.core.convert.sympy
 class Limit(Builtin):
     """
 
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Limit.html</url>
+    <url>:Limit:
+    https://en.wikipedia.org/wiki/Limit_(mathematics)</url> (<url>
+    :WMA link:https://reference.wolfram.com/language/ref/Limit.html</url>)
 
     <dl>
       <dt>'Limit'[$expr$, $x$->$x_0$]
@@ -1250,15 +1260,36 @@ class Limit(Builtin):
 
     >> Limit[x, x->2]
      = 2
+
     >> Limit[Sin[x] / x, x->0]
      = 1
+
+    The limit value can change depending on which direction the \
+    limit is approached from.
+
+    Consider this inverse $x$ function:
+
+    >> Plot[1/x, {x, -10, +10}]
+     = -Graphics-
+
+    When coming to zero from positive values:
     >> Limit[1/x, x->0, Direction->-1]
      = Infinity
+
+    But when coming to zero from negative values:
     >> Limit[1/x, x->0, Direction->1]
      = -Infinity
+
+    A limit can be <url>:Indeterminate:
+    /doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/mathematical-constants/indeterminate/</url>:
+    >> Limit[Tan[x], x->Infinity]
+     = Indeterminate
     """
 
     attributes = A_LISTABLE | A_PROTECTED
+
+    eval_error = Builtin.generic_argument_error
+    expected_args = (2, 3)
 
     messages = {
         "ldir": "Value of Direction -> `1` should be -1 or 1.",
@@ -1401,9 +1432,9 @@ class NIntegrate(Builtin):
     messages.update(
         {
             "bdmtd": "The Method option should be a "
-            + "built-in method name in {`"
-            + "`, `".join(list(methods))
-            + "`}. Using `Automatic`"
+            + r"built-in method name in {\`"
+            + r"\`, \`".join(list(methods))
+            + r"\`}. Using \`Automatic\`."
         }
     )
 
@@ -1624,7 +1655,7 @@ class Reals(Builtin):
 
     Limit a solution to real numbers:
     >> Solve[x^3 == 1, x, Reals]
-     = {{x -> 1}}
+     = {{x ⇾ 1}}
     """
 
     summary_text = "the domain of the Real numbers"
@@ -1774,7 +1805,7 @@ class Series(Builtin):
 
      The expression created is a 'SeriesData' object:
      >> series // FullForm
-      = SeriesData[x, 0, {1,0,1}, 0, 3, 1]
+      = SeriesData[x, 0, {1, 0, 1}, 0, 3, 1]
 
      Replacing $x$ with does a value produces another 'SeriesData' object:
      >> series /. x->4
@@ -1789,7 +1820,7 @@ class Series(Builtin):
 
      We can also expand over multiple variables:
      >> Series[Exp[x-y], {x, 0, 2}, {y, 0, 2}]
-      = (1 - y + 1 / 2 y ^ 2 + O[y] ^ 3) + (1 - y + 1 / 2 y ^ 2 + O[y] ^ 3) x + (1 / 2 + (-1 / 2) y + 1 / 4 y ^ 2 + O[y] ^ 3) x ^ 2 + O[x] ^ 3
+      = 1 - y + y ^ 2 / 2 + O[y] ^ 3 + (1 - y + y ^ 2 / 2 + O[y] ^ 3) x + (1 / 2 - y / 2 + y ^ 2 / 4 + O[y] ^ 3) x ^ 2 + O[x] ^ 3
 
     See also <url>
      :'SeriesCoefficient':
@@ -1841,7 +1872,7 @@ class SeriesCoefficient(Builtin):
 
     First we list 5 terms of a series:
     >> Series[Exp[Sin[x]], {x, 0, 5}]
-     = 1 + x + 1 / 2 x ^ 2 + (-1 / 8) x ^ 4 + (-1 / 15) x ^ 5 + O[x] ^ 6
+     = 1 + x + x ^ 2 / 2 - x ^ 4 / 8 - x ^ 5 / 15 + O[x] ^ 6
 
     Now get the $x$^4 coefficient:
     >> SeriesCoefficient[%, 4]
@@ -1904,19 +1935,19 @@ class SeriesData(Builtin):
     'SeriesData' is the 'Head' of expressions generated by 'Series':
 
     >> series = Series[Cosh[x],{x,0,2}]
-     = 1 + 1 / 2 x ^ 2 + O[x] ^ 3
+     = 1 + x ^ 2 / 2 + O[x] ^ 3
 
     >> Head[series]
      = SeriesData
 
     >> series // FullForm
-     = SeriesData[x, 0, {1,0,Rational[1, 2]}, 0, 3, 1]
+     = SeriesData[x, 0, {1, 0, Rational[1, 2]}, 0, 3, 1]
 
     You can apply certain mathematical operations to 'SeriesData' objects to get \
     new 'SeriesData' objects truncated to the appropriate order.
 
-    >> series + Series[Sinh[x],{x,0,3}]
-     = 1 + x + 1 / 2 x ^ 2 + O[x] ^ 3
+    >> series + Series[Sinh[x],{x, 0, 3}]
+     = 1 + x + x ^ 2 / 2 + O[x] ^ 3
 
     >> Series[f[x],{x,0,2}] * g[w]
      = f[0] g[w] + g[w] f'[0] x + g[w] f''[0] / 2 x ^ 2 + O[x] ^ 3
@@ -2227,67 +2258,12 @@ class SeriesData(Builtin):
             ],
         )
 
-    def pre_makeboxes(self, x, x0, data, nmin, nmax, den, form, evaluation: Evaluation):
-        if x0.is_zero:
-            variable = x
-        else:
-            variable = Expression(SymbolPlus, x, Expression(SymbolTimes, IntegerM1, x0))
-        den = den.get_int_value()
-        nmin = nmin.get_int_value()
-        nmax = nmax.get_int_value()
-        if den != 1:
-            powers = [Rational(i, den) for i in range(nmin, nmax)]
-            powers = powers + [Rational(nmax, den)]
-        else:
-            powers = [Integer(i) for i in range(nmin, nmax)]
-            powers = powers + [Integer(nmax)]
-
-        expansion = []
-        for i, element in enumerate(data.elements):
-            if element.get_head() is Symbol("SeriesData"):
-                element = self.pre_makeboxes(*(element.elements), form, evaluation)
-            elif element.is_numeric(evaluation) and element.is_zero:
-                continue
-            if powers[i].is_zero:
-                expansion.append(element)
-                continue
-            if powers[i] == Integer1:
-                if element == Integer1:
-                    term = variable
-                else:
-                    term = Expression(SymbolTimes, element, variable)
-            else:
-                if element == Integer1:
-                    term = Expression(SymbolPower, variable, powers[i])
-                else:
-                    term = Expression(
-                        SymbolTimes,
-                        element,
-                        Expression(SymbolPower, variable, powers[i]),
-                    )
-            expansion.append(term)
-        expansion = ListExpression(
-            Expression(SymbolPlus, *expansion),
-            Expression(SymbolPower, Expression(SymbolO, variable), powers[-1]),
-        )
-        return Expression(SymbolInfix, expansion, String("+"), Integer(300), SymbolLeft)
-
-    def eval_makeboxes(
-        self,
-        x,
-        x0,
-        data,
-        nmin: Integer,
-        nmax: Integer,
-        den: Integer,
-        form,
-        evaluation: Evaluation,
-    ):
-        """MakeBoxes[SeriesData[x_, x0_, data_List, nmin_Integer, nmax_Integer, den_Integer],
-        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
-
-        expansion = self.pre_makeboxes(x, x0, data, nmin, nmax, den, form, evaluation)
-        return format_element(expansion, evaluation, form)
+    def format_series(self, x, x0, data, nmin, nmax, den, evaluation):
+        """(OutputForm,StandardForm,TraditionalForm,):SeriesData[
+            x_, x0_, data_List, nmin_Integer, nmax_Integer, den_Integer
+        ]
+        """
+        return format_series(x, x0, data, nmin, nmax, den, evaluation)
 
 
 class Solve(Builtin):
@@ -2310,13 +2286,13 @@ class Solve(Builtin):
     </dl>
 
     >> Solve[x ^ 2 - 3 x == 4, x]
-     = {{x -> -1}, {x -> 4}}
+     = {{x ⇾ -1}, {x ⇾ 4}}
     >> Solve[4 y - 8 == 0, y]
-     = {{y -> 2}}
+     = {{y ⇾ 2}}
 
     Apply the solution:
     >> sol = Solve[2 x^2 - 10 x - 12 == 0, x]
-     = {{x -> -1}, {x -> 6}}
+     = {{x ⇾ -1}, {x ⇾ 6}}
     >> x /. sol
      = {-1, 6}
 
@@ -2330,21 +2306,21 @@ class Solve(Builtin):
 
     Rational equations:
     >> Solve[x / (x ^ 2 + 1) == 1, x]
-     = {{x -> 1 / 2 - I / 2 Sqrt[3]}, {x -> 1 / 2 + I / 2 Sqrt[3]}}
+     = {{x ⇾ 1 / 2 - I / 2 Sqrt[3]}, {x ⇾ 1 / 2 + I / 2 Sqrt[3]}}
     >> Solve[(x^2 + 3 x + 2)/(4 x - 2) == 0, x]
-     = {{x -> -2}, {x -> -1}}
+     = {{x ⇾ -2}, {x ⇾ -1}}
 
     Transcendental equations:
     >> Solve[Cos[x] == 0, x]
-     = {{x -> Pi / 2}, {x -> 3 Pi / 2}}
+     = {{x ⇾ Pi / 2}, {x ⇾ 3 Pi / 2}}
 
     Solve can only solve equations with respect to symbols or functions:
 
     >> Solve[f[x + y] == 3, f[x + y]]
-     = {{f[x + y] -> 3}}
+     = {{f[x + y] ⇾ 3}}
     >> Solve[a + b == 2, a + b]
      : a + b is not a valid variable.
-     = Solve[a + b == 2, a + b]
+     = Solve[a + b ⩵ 2, a + b]
 
     This happens when solving with respect to an assigned symbol:
     >> x = 3;
@@ -2359,24 +2335,24 @@ class Solve(Builtin):
     Solve a system of equations:
     >> eqs = {3 x ^ 2 - 3 y == 0, 3 y ^ 2 - 3 x == 0};
     >> sol = Solve[eqs, {x, y}] // Simplify
-     = {{x -> 0, y -> 0}, {x -> 1, y -> 1}, {x -> -1 / 2 + I / 2 Sqrt[3], y -> -1 / 2 - I / 2 Sqrt[3]}, {x -> -1 / 2 - I / 2 Sqrt[3], y -> -1 / 2 + I / 2 Sqrt[3]}}
+     = {{x ⇾ 0, y ⇾ 0}, {x ⇾ 1, y ⇾ 1}, {x ⇾ -1 / 2 + I / 2 Sqrt[3], y ⇾ -1 / 2 - I / 2 Sqrt[3]}, {x ⇾ -1 / 2 - I / 2 Sqrt[3], y ⇾ -1 / 2 + I / 2 Sqrt[3]}}
     >> eqs /. sol // Simplify
      = {{True, True}, {True, True}, {True, True}, {True, True}}
 
     Solve when given an underdetermined system:
     >> Solve[x^2 == 1 && z^2 == -1, {x, y, z}]
      : Equations may not give solutions for all "solve" variables.
-     = {{x -> -1, z -> -I}, {x -> -1, z -> I}, {x -> 1, z -> -I}, {x -> 1, z -> I}}
+     = {{x ⇾ -1, z ⇾ -I}, {x ⇾ -1, z ⇾ I}, {x ⇾ 1, z ⇾ -I}, {x ⇾ 1, z ⇾ I}}
 
     Examples using specifying the Domain in solutions:
     >> Solve[x^2 == -1, x, Reals]
      = {}
     >> Solve[x^2 == 1, x, Reals]
-     = {{x -> -1}, {x -> 1}}
+     = {{x ⇾ -1}, {x ⇾ 1}}
     >> Solve[x^2 == -1, x, Complexes]
-     = {{x -> -I}, {x -> I}}
+     = {{x ⇾ -I}, {x ⇾ I}}
     >> Solve[4 - 4 * x^2 - x^4 + x^6 == 0, x, Integers]
-     = {{x -> -1}, {x -> 1}}
+     = {{x ⇾ -1}, {x ⇾ 1}}
     """
 
     messages = {

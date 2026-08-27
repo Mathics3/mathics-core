@@ -29,7 +29,7 @@ import pytest
         ),
     ],
 )
-def test_private_doctests_exp_size_and_sig(str_expr, msgs, str_expected, fail_msg):
+def test_exp_size_and_sig(str_expr, msgs, str_expected, fail_msg):
     """exp_structure.size_and_sig"""
     check_evaluation(
         str_expr,
@@ -53,7 +53,7 @@ def test_private_doctests_exp_size_and_sig(str_expr, msgs, str_expected, fail_ms
         ),
     ],
 )
-def test_private_doctests_general(str_expr, msgs, str_expected, fail_msg):
+def test_general(str_expr, msgs, str_expected, fail_msg):
     """exp_structure.general"""
     check_evaluation(
         str_expr,

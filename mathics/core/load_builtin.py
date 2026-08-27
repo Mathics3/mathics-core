@@ -20,7 +20,7 @@ from mathics.core.convert.sympy import mathics_to_sympy, sympy_to_mathics
 from mathics.core.parser.operators import calculate_operator_information
 from mathics.core.pattern import pattern_objects
 from mathics.core.symbols import Symbol
-from mathics.eval.makeboxes import builtins_precedence
+from mathics.format.box import builtins_precedence
 from mathics.settings import ENABLE_FILES_MODULE
 
 if TYPE_CHECKING:
@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 # is initialized via below import_builtins modules
 mathics3_builtins_modules: List[ModuleType] = []
 
-_builtins = {}
+_builtins: Dict[str, "Builtin"] = {}
 
 # builtins_by_module gives a way of mapping a Python module name
 # e.g. 'mathics.builtin.arithmetic' to the list of Builtin class instances
@@ -133,11 +133,8 @@ def definition_contribute(definitions):
     Load the Definition objects associated to all the builtins
     on `Definitions`
     """
-    # let MakeBoxes contribute first
-    _builtins["System`MakeBoxes"].contribute(definitions)
     for name, item in _builtins.items():
-        if name != "System`MakeBoxes":
-            item.contribute(definitions)
+        item.contribute(definitions)
 
     from mathics.core.definitions import Definition
     from mathics.core.expression import ensure_context
@@ -186,7 +183,7 @@ def get_submodule_names(obj) -> list:
     So in this example then, in the list the modules returned for
     Python module `mathics.builtin.colors` would be the
     `mathics.builtin.colors.named_colors` module which contains the
-    definition and docs for the "Named Colors" Mathics Builtin
+    definition and docs for the "Named Colors" Mathics3 Builtin
     Functions.
     """
     modpkgs = []
@@ -203,9 +200,13 @@ def import_and_load_builtins():
     """
     # TODO: Check if this is the expected behavior, or it the structures
     # must be cleaned.
+
     if len(mathics3_builtins_modules) > 0:
         logging.warning("``import_and_load_builtins`` should be called just once...")
         return
+
+    # Load render the routines
+    importlib.import_module("mathics.format.render")
 
     builtin_path = osp.join(
         osp.dirname(
@@ -222,7 +223,7 @@ def import_and_load_builtins():
     # modules that contain Mathics3 Builtin class definitions.
 
     # The files_io module handles local file access, reading and writing..
-    # In some sandboxed settings, such as running Mathics from as a remote
+    # In some sandboxed settings, such as running Mathics3 from as a remote
     # server, we disallow local file access.
     disable_file_module_names = set() if ENABLE_FILES_MODULE else {"files_io"}
 

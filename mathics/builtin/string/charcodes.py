@@ -5,7 +5,6 @@ Character Codes
 
 import sys
 
-from mathics.builtin.atomic.strings import to_python_encoding
 from mathics.core.atoms import Integer, Integer1, String
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
@@ -13,6 +12,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
+from mathics.eval.encoding import load_encoding_table, to_python_encoding
 
 SymbolFromCharacterCode = Symbol("System`FromCharacterCode")
 SymbolToCharacterCode = Symbol("System`ToCharacterCode")
@@ -65,6 +65,8 @@ class ToCharacterCode(Builtin):
      = -Graphics-
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
     summary_text = "convert a string to a list of character codes"
 
     def _encode(self, string, encoding, evaluation: Evaluation):
@@ -88,6 +90,7 @@ class ToCharacterCode(Builtin):
                 return to_mathics_list(*[Integer(ord(code)) for code in s])
 
         else:
+            load_encoding_table(encoding, evaluation)
             py_encoding = to_python_encoding(encoding)
             if py_encoding is None:
                 evaluation.message("General", "charcode", encoding)
@@ -164,6 +167,7 @@ class FromCharacterCode(Builtin):
     def _decode(self, n, encoding: str, evaluation: Evaluation):
         exp = Expression(SymbolFromCharacterCode, n)
 
+        load_encoding_table(encoding, evaluation)
         py_encoding = to_python_encoding(encoding)
         if py_encoding is None:
             evaluation.message("General", "charcode", encoding)

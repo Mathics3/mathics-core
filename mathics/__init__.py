@@ -7,6 +7,7 @@ from typing import Dict, Tuple
 
 from mpmath import __version__ as mpmath_version
 from numpy import __version__ as numpy_version
+from PIL import __version__ as PIL_version
 from sympy import __version__ as sympy_version
 
 from mathics.version import __version__
@@ -16,11 +17,13 @@ from mathics.version import __version__
 # if the package is not installed and "No version information"
 # if we can't get version information.
 version_info: Dict[str, str] = {
+    "OS": sys.platform,
     "mathics": __version__,
     "mpmath": mpmath_version,
     "numpy": numpy_version,
     "python": platform.python_implementation() + " " + sys.version.split("\n")[0],
     "sympy": sympy_version,
+    "PIL": PIL_version,
 }
 
 
@@ -52,18 +55,18 @@ for package in optional_software:
     version_info[package] = package_version
 
 version_string = """Mathics3 {mathics}
-on {python}
+Running on {OS} {python}
 using SymPy {sympy}, mpmath {mpmath}, numpy {numpy}""".format(
     **version_info
 )
 
 
-if "cython" in version_info:
-    version_string += f", cython {version_info['cython']}"
-
+for opt_package in ("cython", "scipy", "skimage"):
+    if opt_package in version_info:
+        version_string += f", {opt_package} {version_info[opt_package]}"
 
 license_string = """\
-Copyright (C) 2011-2025 The Mathics3 Team.
+Copyright (C) 2011-2026 The Mathics3 Team.
 This program comes with ABSOLUTELY NO WARRANTY.
 This is free software, and you are welcome to redistribute it
 under certain conditions.

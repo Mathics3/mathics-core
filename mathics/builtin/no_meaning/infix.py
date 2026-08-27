@@ -18,7 +18,7 @@ def create_class_function(
 ) -> type:
     """
     Returns a Mathics3 Builtin function associated with this module
-    (mathics.builtin.no_meaning.infix) that implements a Mathics infix operator
+    (mathics.builtin.no_meaning.infix) that implements a Mathics3 infix operator
     with no pre-existing meaning.
     """
     return type(

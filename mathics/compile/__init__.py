@@ -1,23 +1,31 @@
 # -*- coding: utf-8 -*-
 """
-Mathics ``Compile`` implementation.
+Mathics3 ``Compile`` implementation.
 
-Here we have routines for compiling Mathics code.
+Here we have routines for compiling Mathics3 code.
 
 At present, we use LLVM for this.
 """
+import importlib
 
-try:
-    import llvmlite
+from mathics.compile.base import CompileArg, CompileError
+from mathics.compile.types import bool_type, int_type, real_type, void_type
+
+if importlib.util.find_spec("llvmlite"):
+    from mathics.compile.compile import _compile
+    from mathics.compile.ir import IRGenerator
 
     has_llvmlite = True
-except ImportError:
+else:
     has_llvmlite = False
 
-
-from .base import CompileArg, CompileError
-from .types import *
-
-if has_llvmlite:
-    from .compile import _compile
-    from .ir import IRGenerator
+__all__ = [
+    "CompileArg",
+    "CompileError",
+    "IRGenerator",
+    "_compile",
+    "bool_type",
+    "int_type",
+    "real_type",
+    "void_type",
+]

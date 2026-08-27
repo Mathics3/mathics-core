@@ -1,44 +1,16 @@
 """
-Lower-level formatting routines.
+This module contains the structures and functions used to turn Mathics3 expressions into
+renderable output.
 
-Built-in Lower-level formatting includes Asymptote, MathML, SVG,
-threejs, and plain text.  We hope and expect other formatting to other
-kinds backend renderers like matplotlib, can be done by following the
-pattern used here.
+The three-step process is:
 
-These routines typically get called in formatting Mathics Box objects.
+1. Apply any rewrite rules that are set by default or specified by rules explicitly given using builtin function `Format`.
+2. Box the these resulting expression giving boxed expressions.
+3. Render the boxed expressions to strings
 
-The higher level *Forms* (e.g. TeXForm, MathMLForm) typically cause
-specific formatters to get called, (e.g. latex, mathml). However, the
-two concepts and levels are a little bit different. A given From can
-cause invoke of several formatters, which the front-end can influence
-based on its capabilities and back-end renders available to it.
+For example, to format the expression `Plus[a, Times[-1, b], c]` in `StandardForm`:
 
-For example, in graphics we may be several different kinds of
-renderers, SVG, or Asymptote for a particular kind of graphics Box.
-The front-end needs to decides which format it better suited for it.
-The Box, however, is created via a particular high-level Form.
-
-As another example, front-end may decide to use MathJaX to render
-TeXForm if the front-end supports this and the user so desires that.
-
+1. Format rules from `mathics.format.form_rule` rewrite as  `Infix[{a, b, c}, {"-", "+"}, 310, Left]`.
+2. Boxing rules based on a particular Form are run. For `StandardForm`, the Box expression of the above is `RowBox[{"a", "-", "b", "+", "c"}]`
+3. Box expressions using functions from the module `mathics.format.render.text` render this as string: `a - b + c`
 """
-
-import glob
-import importlib
-import os.path as osp
-import sys
-
-__py_files__ = [
-    osp.basename(f[0:-3])
-    for f in glob.glob(osp.join(osp.dirname(__file__), "[a-z]*.py"))
-]
-
-for module_name in __py_files__:
-    try:
-        importlib.import_module(f"mathics.format.{module_name}")
-    except Exception as e:
-        print(e)
-        print(f"    Not able to load {module_name}. Check your installation.")
-        print(f"    mathics.format loads from {osp.dirname(__file__)}")
-        sys.exit(-1)

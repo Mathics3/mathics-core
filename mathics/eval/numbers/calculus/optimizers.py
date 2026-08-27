@@ -19,7 +19,8 @@ from mathics.core.atoms import (
 )
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression, ExpressionInfinity
+from mathics.core.expression import Expression
+from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.symbols import BaseElement, SymbolPlus, SymbolTimes, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
@@ -58,10 +59,7 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
     eps = determine_epsilon(x0, opts, evaluation)
     if not isinstance(curr_val, Number):
         evaluation.message(symbol_name, "nnum", x, x0)
-        if is_find_maximum:
-            return -x0, False
-        else:
-            return x0, False
+        raise ValueError()
     d1 = dynamic_scoping(
         lambda ev: Expression(SymbolD, f, x).evaluate(ev), {x_name: None}, evaluation
     )
@@ -332,7 +330,7 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
         ).evaluate(evaluation)
         if not isinstance(x1, Number):
             evaluation.message("FindRoot", "nnum", x, x0)
-            return x0, False
+            raise ValueError()
 
         # Check convergency:
         new_currval = absf.replace_vars({x_name: x1}).evaluate(evaluation)
@@ -426,23 +424,23 @@ def get_accuracy_prec_and_maxit(opts: dict, evaluation: "Evaluation") -> tuple:
     # determined inside the methods that implements the specific
     # solvers.
 
-    def to_real_or_none(value) -> Optional[Real]:
-        if value:
+    def to_real_or_none(value: Optional[Real]) -> Optional[Real]:
+        if value is not None:
             value = eval_N(value, evaluation)
         if value is SymbolAutomatic:
             value = Real(12.0)
-        elif value is SymbolInfinity or ExpressionInfinity == value:
+        elif value is SymbolInfinity or MATHICS3_INFINITY == value:
             value = None
         elif not isinstance(value, Number):
             value = None
         return value
 
-    def to_integer_or_none(value) -> Optional[Integer]:
-        if value:
+    def to_integer_or_none(value: Optional[Integer]) -> Optional[Integer]:
+        if value is not None:
             value = eval_N(value, evaluation)
         if value is SymbolAutomatic:
             value = Integer(100)
-        elif value is SymbolInfinity or ExpressionInfinity == value:
+        elif value is SymbolInfinity or MATHICS3_INFINITY == value:
             value = None
         elif not isinstance(value, Number):
             value = None

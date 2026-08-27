@@ -144,9 +144,7 @@ import pytest
         ),
     ],
 )
-def test_rearrange_private_doctests(
-    str_expr, expected_messages, str_expected, assert_message
-):
+def test_rearrange(str_expr, expected_messages, str_expected, assert_message):
     check_evaluation(
         str_expr,
         str_expected,
@@ -172,18 +170,13 @@ def test_rearrange_private_doctests(
         ),
         (
             "ContainsOnly[{c, a}, {a, b, c}, IgnoreCase -> True]",
-            (
-                "Unknown option IgnoreCase -> True in ContainsOnly.",
-                "Unknown option IgnoreCase in .",
-            ),
+            ("Unknown option IgnoreCase ⇾ True in ContainsOnly.",),
             "True",
             None,
         ),
     ],
 )
-def test_predicates_private_doctests(
-    str_expr, expected_messages, str_expected, assert_message
-):
+def test_predicates(str_expr, expected_messages, str_expected, assert_message):
     check_evaluation(
         str_expr,
         str_expected,

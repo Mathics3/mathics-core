@@ -13,7 +13,7 @@ from mathics.settings import ROOT_DIR
 class BaseDirectory_(Predefined):
     r"""
     <url>:WMA link:
-    https://reference.wolfram.com/language/ref/$BaseDirectory.html</url>
+    https://reference.wolfram.com/language/ref/\$BaseDirectory.html</url>
 
     <dl>
       <dt>'\$BaseDirectory'
@@ -34,7 +34,7 @@ class BaseDirectory_(Predefined):
 class InitialDirectory(Predefined):
     r"""
     <url>:WMA link:
-    https://reference.wolfram.com/language/ref/$InitialDirectory.html</url>
+    https://reference.wolfram.com/language/ref/\$InitialDirectory.html</url>
 
     <dl>
       <dt>'\$InitialDirectory'
@@ -46,7 +46,7 @@ class InitialDirectory(Predefined):
     """
 
     name = "$InitialDirectory"
-    summary_text = "initial directory when Mathics was started"
+    summary_text = "initial directory when Mathics3 was started"
 
     def evaluate(self, evaluation: Evaluation):
         return String(INITIAL_DIR)
@@ -68,7 +68,7 @@ class InstallationDirectory(Predefined):
 
     attributes = A_NO_ATTRIBUTES
     name = "$InstallationDirectory"
-    summary_text = "Mathics installation directory"
+    summary_text = "Mathics3 installation directory"
 
     def evaluate(self, evaluation):
         global ROOT_DIR
@@ -77,7 +77,7 @@ class InstallationDirectory(Predefined):
 
 class RootDirectory(Predefined):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$RootDirectory.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$RootDirectory.html</url>
 
     <dl>
     <dt>'\$RootDirectory'
@@ -98,7 +98,7 @@ class RootDirectory(Predefined):
 class TemporaryDirectory(Predefined):
     r"""
     <url>:WMA link:
-    https://reference.wolfram.com/language/ref/$TemporaryDirectory.html</url>
+    https://reference.wolfram.com/language/ref/\$TemporaryDirectory.html</url>
 
     <dl>
     <dt>'\$TemporaryDirectory'

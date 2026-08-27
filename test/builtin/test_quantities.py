@@ -5,7 +5,7 @@ Unit tests for mathics.builtins.quantities
 In particular, Rationalize and RealValuNumberQ
 """
 
-from test.helper import check_evaluation
+from test.helper import check_evaluation, check_wrong_number_of_arguments
 
 import pytest
 
@@ -127,7 +127,7 @@ import pytest
         ),
     ],
 )
-def test_private_doctests_numeric(str_expr, msgs, str_expected, fail_msg):
+def test_numeric(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,
@@ -178,3 +178,19 @@ def test_quantity_operations(str_expr, str_expected):
         to_string_expected=True,
         hold_expected=True,
     )
+
+
+def test_wrong_number_of_arguments():
+    tests = [
+        (
+            "QuantityQ[a, b]",
+            ["QuantityQ called with 2 arguments; 1 argument is expected."],
+            "QuantityQ with wrong number of arguments",
+        ),
+        (
+            "Quantity[]",
+            ["Quantity called with 0 arguments; 1 argument is expected."],
+            "Quantity called with wrong number of arguments",
+        ),
+    ]
+    check_wrong_number_of_arguments(tests)

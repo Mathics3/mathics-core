@@ -2,10 +2,10 @@
 """
 Unit tests for mathics.builtin.vectors.math_ops
 
-In particular, Norm[].
+In particular, Curl[] and Norm[].
 """
 
-from test.helper import check_evaluation
+from test.helper import check_evaluation, check_wrong_number_of_arguments
 
 
 def test_norm():
@@ -48,3 +48,19 @@ def test_norm():
         ),
     ):
         check_evaluation(str_expr=str_expr, str_expected=str_expected)
+
+
+def test_wrong_number_of_arguments():
+    tests = [
+        (
+            "Curl[a]",
+            ["Curl called with 1 argument; 2 or 3 arguments are expected."],
+            "Curl with one argument",
+        ),
+        (
+            "Curl[a, b, c, d]",
+            ["Curl called with 4 arguments; 2 or 3 arguments are expected."],
+            "Curl with more than three arguments",
+        ),
+    ]
+    check_wrong_number_of_arguments(tests)

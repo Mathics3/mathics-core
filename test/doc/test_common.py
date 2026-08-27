@@ -92,7 +92,7 @@ def test_gather_parse_docstring_to_DocumentationEntry_items():
     tests = [t for t in result if isinstance(t, DocTests)]
     num_tests = [len(t.tests) for t in tests]
     assert len(tests) == 5
-    assert all([t == l for t, l in zip(num_tests, [1, 2, 1, 2, 1])])
+    assert all([t == m for t, m in zip(num_tests, [1, 2, 1, 2, 1])])
 
 
 def test_load_documentation():

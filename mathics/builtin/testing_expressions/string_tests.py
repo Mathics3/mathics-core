@@ -3,20 +3,23 @@ String Tests
 """
 
 import re
+from typing import Optional, Tuple
 
 from mathics_scanner import SingleLineFeeder, SyntaxError
 from mathics_scanner.location import ContainerKind
 
 from mathics.builtin.atomic.strings import anchor_pattern
 from mathics.core.atoms import Integer1, String
-from mathics.core.attributes import A_LISTABLE, A_PROTECTED
+from mathics.core.attributes import A_PROTECTED
 from mathics.core.builtin import Builtin, Test
 from mathics.core.convert.regex import to_regex
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
 from mathics.core.parser.util import parser
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolStringExpression, SymbolStringMatchQ
+from mathics.eval.string_tests import eval_list_StringMatchQ, eval_StringMatchQ
 from mathics.eval.strings import eval_StringContainsQ
 
 
@@ -47,6 +50,8 @@ class DigitQ(Builtin):
 
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
     rules = {
         "DigitQ[string_]": (
             "If[StringQ[string], StringMatchQ[string, DigitCharacter...], False, False]"
@@ -73,13 +78,15 @@ class LetterQ(Builtin):
     >> LetterQ["9"]
      = False
 
-    >> LetterQ["Mathics"]
+    >> LetterQ["Mathematics"]
      = True
 
-    >> LetterQ["Welcome to Mathics"]
+    >> LetterQ["Welcome to Mathics3"]
      = False
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
     rules = {
         "LetterQ[string_]": (
             "If[StringQ[string], StringMatchQ[string, LetterCharacter...], False, False]"
@@ -104,18 +111,18 @@ class StringFreeQ(Builtin):
       <dt>'StringFreeQ["string", {p1, p2, ...}]'
       <dd>returns True if no substring matches any of the $pi$.
 
-      <dt>'StringFreeQ[patt]'
+      <dt>'StringFreeQ[$patt$]'
       <dd>represents an operator form of StringFreeQ that can be applied \
         to an expression.
     </dl>
 
-    >> StringFreeQ["mathics", "m" ~~ __ ~~ "s"]
+    >> StringFreeQ["mathics3", "m" ~~ __ ~~ "s"]
      = False
 
-    >> StringFreeQ["mathics", "a" ~~ __ ~~ "m"]
+    >> StringFreeQ["mathics3", "a" ~~ __ ~~ "m"]
      = True
 
-    >> StringFreeQ["Mathics", "MA" , IgnoreCase -> True]
+    >> StringFreeQ["Mathics3", "MA" , IgnoreCase -> True]
      = False
 
     >> StringFreeQ[{"g", "a", "laxy", "universe", "sun"}, "u"]
@@ -154,7 +161,14 @@ class StringMatchQ(Builtin):
 
     <dl>
       <dt>'StringMatchQ'["string", $pattern$]
-      <dd> checks  is "string" matches $pattern$
+      <dd> Returns True  if "string" matches $pattern$ and False otherwise.
+
+      <dt>'StringMatchQ'[{$string_1$ $string_2$, ...}, $pattern$]
+      <dd> produces a list of boolean values for each of the $string_i$
+
+      <dt>'StringMatchQ'[$pattern$]
+      <dd> represents an operator form of 'StringMatchQ' that can be applied \
+      to an expression.
     </dl>
 
     >> StringMatchQ["abc", "abc"]
@@ -166,16 +180,22 @@ class StringMatchQ(Builtin):
     >> StringMatchQ["15a94xcZ6", (DigitCharacter | LetterCharacter)..]
      = True
 
+    Test a list of strings against a pattern:
+    >> StringMatchQ[{"a", "b", "ab", "abcd", "bcde"}, "a" ~~ ___]
+     = {True, False, True, True, False}
+
     Use StringMatchQ as an operator
     >> StringMatchQ[LetterCharacter]["a"]
      = True
+
     """
 
-    attributes = A_LISTABLE | A_PROTECTED
-
+    attributes = A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
     options = {
         "IgnoreCase": "False",
-        "SpellingCorrections": "None",
+        "SpellingCorrection": "False",
     }
 
     rules = {
@@ -183,8 +203,43 @@ class StringMatchQ(Builtin):
     }
     summary_text = "test whether a string matches a pattern"
 
+    def validate_and_process_args(
+        self, pattern: str, evaluation: Evaluation, options: dict
+    ) -> Tuple[Optional[str], Optional[re.RegexFlag]]:
+        """
+        A common argument-checking and argument-conversion routine for StringMatchQ.
+        Unless there is an error, we return pattern converted to a regular expression string
+        (the string has not been compiled), and re.flags. If there was an error, return
+        None, None
+        """
+        re_patt = to_regex(
+            pattern, show_message=evaluation.message, abbreviated_patterns=True
+        )
+        if re_patt is None:
+            evaluation.message(
+                "StringExpression",
+                "invld",
+                pattern,
+                Expression(SymbolStringExpression, pattern),
+            )
+            return None, None
+
+        re_patt = anchor_pattern(re_patt)
+
+        flags = re.MULTILINE
+        if options["System`IgnoreCase"] is SymbolTrue:
+            flags = flags | re.IGNORECASE
+
+        return re_patt, flags
+
     def eval(self, string, patt, evaluation: Evaluation, options: dict):
         "StringMatchQ[string_, patt_, OptionsPattern[%(name)s]]"
+
+        re_patt, flags = self.validate_and_process_args(patt, evaluation, options)
+
+        if re_patt is None:
+            return
+
         py_string = string.get_string_value()
         if py_string is None:
             evaluation.message(
@@ -195,28 +250,50 @@ class StringMatchQ(Builtin):
             )
             return
 
-        re_patt = to_regex(
-            patt, show_message=evaluation.message, abbreviated_patterns=True
-        )
+        return eval_StringMatchQ(re_patt, py_string, flags)
+
+    def eval_list(
+        self, strings: ListExpression, patt, evaluation: Evaluation, options: dict
+    ):
+        "StringMatchQ[strings_List, patt_, OptionsPattern[%(name)s]]"
+
+        re_patt, flags = self.validate_and_process_args(patt, evaluation, options)
+
         if re_patt is None:
-            evaluation.message(
-                "StringExpression",
-                "invld",
-                patt,
-                Expression(SymbolStringExpression, patt),
-            )
             return
 
-        re_patt = anchor_pattern(re_patt)
+        # The motivation for checking for literalness and for using a special
+        # eval_list_StringMatchQ was discovered in looking at Mathics3 code
+        # for doing a dictionary lookup. Here, there are lots of string items in
+        # list. Unwrapping each is slow, especially when this has already been
+        # done because the list is a list of literals.
+        if strings.is_literal:
+            strings = strings.value
+            for string in strings:
+                if not isinstance(string, str):
+                    evaluation.message(
+                        "StringMatchQ",
+                        "strse",
+                        Integer1,
+                        evaluation.current_expression,
+                    )
+                    return
 
-        flags = re.MULTILINE
-        if options["System`IgnoreCase"] is SymbolTrue:
-            flags = flags | re.IGNORECASE
-
-        if re.match(re_patt, py_string, flags=flags) is None:
-            return SymbolFalse
         else:
-            return SymbolTrue
+            strings = []
+            for string in strings.elements:
+                py_string = string.get_string_value()
+                if py_string is None:
+                    evaluation.message(
+                        "StringMatchQ",
+                        "strse",
+                        Integer1,
+                        evaluation.current_expression,
+                    )
+                    return
+                strings.append(py_string)
+
+        return eval_list_StringMatchQ(re_patt, strings, flags)
 
 
 class StringQ(Test):
@@ -237,6 +314,8 @@ class StringQ(Test):
      = {12, yz}
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
     summary_text = "test whether an expression is a string"
 
     def test(self, expr) -> bool:
@@ -244,13 +323,14 @@ class StringQ(Test):
 
 
 class SyntaxQ(Builtin):
-    """
+    r"""
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/SyntaxQ.html</url>
     <dl>
       <dt>'SyntaxQ["string"]'
-      <dd>returns 'True' if "string" corresponds to a syntactically correct input for a Mathics3 expression, or 'False' otherwise.
+      <dd>returns 'True' if "string" corresponds to a syntactically correct input for a \
+      Mathics3 expression, or 'False' otherwise.
     </dl>
 
     >> SyntaxQ["a[b"]
@@ -260,10 +340,13 @@ class SyntaxQ(Builtin):
      = True
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
+
     # FIXME:
     # replace messages[string] with the below.
     # Better is to have this kind of thing done a function for doing this.
-    # Same things for "noopt" message which does not exist yet.
+    # Same thing for "noopt" message which does not exist yet.
     messages = {"string": "String expected at position `1` in `2`."}
 
     summary_text = (

@@ -158,7 +158,7 @@ class Tetrahedron(Builtin):
 
     </dl>
 
-    >> Graphics3D[Tetrahedron[{{0,0,0}, {1,1,1}}, 2], Axes->True]
+    >> Graphics3D[Tetrahedron[{{1,0,0}, {1,0,1}, {1, 1, 1}}, 2], Axes->True]
      = -Graphics3D-
     """
 

@@ -45,7 +45,7 @@ class Maximize(Builtin):
     </dl>
 
     >> Maximize[-2 x^2 - 3 x + 5, x]
-     = {{49 / 8, {x -> -3 / 4}}}
+     = {{49 / 8, {x ⇾ -3 / 4}}}
     """
 
     attributes = A_PROTECTED | A_READ_PROTECTED
@@ -101,7 +101,7 @@ class Minimize(Builtin):
     </dl>
 
     >> Minimize[2 x^2 - 3 x + 5, x]
-     = {{31 / 8, {x -> 3 / 4}}}
+     = {{31 / 8, {x ⇾ 3 / 4}}}
     """
 
     attributes = A_PROTECTED | A_READ_PROTECTED

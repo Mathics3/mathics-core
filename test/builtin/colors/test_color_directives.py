@@ -3,9 +3,7 @@
 Unit tests from mathics.builtin.color.color_directives
 """
 
-import sys
-import time
-from test.helper import check_evaluation, evaluate
+from test.helper import check_evaluation
 
 import pytest
 
@@ -27,7 +25,7 @@ import pytest
         ),
     ],
 )
-def test_private_doctests_color_directives(str_expr, msgs, str_expected, fail_msg):
+def test_color_directives(str_expr, msgs, str_expected, fail_msg):
     """builtin.color.color_directives"""
     check_evaluation(
         str_expr,

@@ -10,15 +10,17 @@ the default behavior that function. Default options can be queried or set.
 :WMA link:
 https://reference.wolfram.com/language/guide/OptionsManagement.html</url>
 """
+from typing import Callable, Optional
 
-from mathics.builtin.image.base import Image
 from mathics.core.atoms import Integer1, String
 from mathics.core.builtin import Builtin, Predefined, Test, get_option
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.parser import parse_builtin_rule
 from mathics.core.symbols import Symbol, SymbolList, ensure_context, strip_context
-from mathics.core.systemsymbols import SymbolDefault, SymbolRule, SymbolRuleDelayed
+from mathics.core.systemsymbols import SymbolDefault, SymbolRule
+from mathics.eval.options import eval_Option_with_names, eval_Options
 from mathics.eval.patterns import Matcher, get_default_value
 
 
@@ -56,10 +58,10 @@ class All(Predefined):
 
     In <url>
     :Plot:
-    /doc/reference-of-built-in-symbols/graphics-and-drawing/plotting-data/plot</url>, \
+    /doc/reference-of-built-in-symbols/plotting-graphing-and-drawing/general-graphical-plots/plot</url>, \
     setting the <url>
     :Mesh:
-/doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values/mesh</url> \
+/doc/reference-of-built-in-symbols/plotting-graphing-and-drawing/drawing-options-and-option-values/mesh</url> \
     option to 'All' will show the specific plot points:
 
     >> Plot[x^2, {x, -1, 1}, MaxRecursion->5, Mesh->All]
@@ -97,7 +99,7 @@ class Default(Builtin):
 
     Default values are stored in 'DefaultValues':
     >> DefaultValues[f]
-     = {HoldPattern[Default[f]] :> 1}
+     = {HoldPattern[Default[f]] ⧴ 1}
 
     You can use patterns for $k$ and $n$:
     >> Default[h, k_, n_] := {k, n}
@@ -143,10 +145,10 @@ class FilterRules(Builtin):
     </dl>
 
     >> FilterRules[{x -> 100, y -> 1000}, x]
-     = {x -> 100}
+     = {x ⇾ 100}
 
     >> FilterRules[{x -> 100, y -> 1000, z -> 10000}, {a, b, x, z}]
-     = {x -> 100, z -> 10000}
+     = {x ⇾ 100, z ⇾ 10000}
     """
 
     rules = {
@@ -169,6 +171,20 @@ class FilterRules(Builtin):
         return ListExpression(*list(matched()))
 
 
+class FormatType(Predefined):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FormatType.html</url>
+    <dl>
+      <dt>'FormatType'
+      <dd>is an option for output streams, graphics and functions like 'Text' \
+          that specifies the default format.
+    </dl>
+    """
+
+    messages = {"ftype": "Value of option FormatType -> `` is not valid."}
+    summary_text = "specify the request format"
+
+
 class None_(Predefined):
     """
         <url>:WMA link:https://reference.wolfram.com/language/ref/None.html</url>
@@ -180,7 +196,7 @@ class None_(Predefined):
 
         Plot3D shows the mesh grid between computed points by default. This the <url>
         :Mesh:
-/doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values/mesh</url> \
+/doc/reference-of-built-in-symbols/plotting-graphing-and-drawing/drawing-options-and-option-values/mesh</url> \
 
         However, you hide the mesh by setting the 'Mesh' option value to 'None':
 
@@ -290,16 +306,18 @@ class Options(Builtin):
       https://reference.wolfram.com/language/ref/Options.html</url>
 
     <dl>
-      <dt>'Options'[$f$]
-      <dd>gives a list of optional arguments to $f$ and their \
+      <dt>'Options'[$symbol$]
+      <dd>gives a list of optional arguments to $symbol$ and their \
         default values.
+      <dt>'Options'[$symbol$, $name$]
+      <dd>gives only the option value for $name$ in $symbol$.
     </dl>
 
     You can assign values to 'Options' to specify options.
     >> Options[f] = {n -> 2}
-     = {n -> 2}
+     = {n ⇾ 2}
     >> Options[f]
-     = {n :> 2}
+     = {n ⇾ 2}
     >> f[x_, OptionsPattern[f]] := x ^ OptionValue[n]
     >> f[x]
      = x ^ 2
@@ -322,43 +340,43 @@ class Options(Builtin):
      = {a}
     A single rule need not be given inside a list:
     >> Options[f] = a -> b
-     = a -> b
+     = a ⇾ b
     >> Options[f]
-     = {a :> b}
+     = {a ⇾ b}
     Options can only be assigned to symbols:
     >> Options[a + b] = {a -> b}
      : Argument a + b at position 1 is expected to be a symbol.
-     = {a -> b}
+     = {a ⇾ b}
 
     See also <url>
     :'OptionValue':
-    /doc/reference-of-built-in-symbols/options-management/optionsvalue/</url> and <url>
+    /doc/reference-of-built-in-symbols/options-management/optionvalue/</url> and <url>
     :'OptionsPattern':
     /doc/reference-of-built-in-symbols/rules-and-patterns/composite-patterns/optionspattern/</url>.
 
     """
 
+    # Set checking that the number of arguments required is one or two.
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
     summary_text = "the list of optional arguments and their default values"
 
-    def eval(self, f, evaluation):
-        "Options[f_]"
+    def eval(self, symbol, evaluation: Evaluation):
+        "Options[symbol_]"
+        if not isinstance(symbol, Symbol):
+            # Docs say a string is allowed, but trying testing shows this is not true.
+            return ListExpression()
+        return eval_Options(symbol, evaluation)
 
-        name = f.get_name()
-        if not name:
-            if isinstance(f, Image):
-                # FIXME ColorSpace, MetaInformation
-                options = f.metadata
-            else:
-                evaluation.message("Options", "sym", f, Integer1)
-                return
-        else:
-            options = evaluation.definitions.get_options(name)
-        result = []
-        for option, value in sorted(options.items(), key=lambda item: item[0]):
-            # Don't use HoldPattern, since the returned List should be
-            # assignable to Options again!
-            result.append(Expression(SymbolRuleDelayed, Symbol(option), value))
-        return ListExpression(*result)
+    def eval_with_arg(self, symbol, name, evaluation: Evaluation):
+        "Options[symbol_, name_]"
+        if not isinstance(symbol, Symbol):
+            # This is weird. We get a message like;
+            #   *name* is not a known option for *symbol*
+            # instead of a message about symbol not being a symbol.
+            evaluation.message("Options", "optnf", name, symbol)
+            return ListExpression()
+        return eval_Option_with_names(symbol, name, evaluation)
 
 
 class OptionValue(Builtin):
@@ -383,7 +401,7 @@ class OptionValue(Builtin):
 
     First, set up a symbol with some options using 'Options':
     >> Options[MySetting] = {"foo" -> 5, "bar" -> 6}
-     = {foo -> 5, bar -> 6}
+     = {foo ⇾ 5, bar ⇾ 6}
 
     Now get a value previously set:
 
@@ -422,6 +440,7 @@ class OptionValue(Builtin):
     /doc/reference-of-built-in-symbols/rules-and-patterns/composite-patterns/optionspattern/</url>.
     """
 
+    # Note: there is an optnf tag with a different message used in Option.
     messages = {
         "optnf": "Option name `1` not found in defaults for `2`.",
     }
@@ -570,12 +589,44 @@ class SetOptions(Builtin):
         return ListExpression(*options_list)
 
 
-def options_to_rules(options, filter=None):
+def filter_non_default_values(builtin):
+    """
+    Return a filter function that removes those
+    options which have associated their default values.
+    """
+    builtin_options = builtin.options
+    builtin_options = {
+        strip_context(name): parse_builtin_rule(value)
+        for name, value in builtin_options.items()
+    }
+
+    def filter(name, value):
+        name = strip_context(name)
+        if name not in builtin_options:
+            return True
+        if value.sameQ(builtin_options[name]):
+            return False
+        return True
+
+    return filter
+
+
+def filter_from_iterable(elems):
+    """
+    Build a filter function from an iterable.
+    The filter function returns `True` if
+    the name after striping its context is in
+    the interable.
+    """
+
+    def filter(name, value):
+        return strip_context(name) in elems
+
+    return filter
+
+
+def options_to_rules(options, filter: Optional[Callable] = None):
     items = sorted(options.items())
-    if filter:
-        items = [
-            (name, value)
-            for name, value in items
-            if strip_context(name) in filter.keys()
-        ]
+    if filter is not None:
+        items = [(name, value) for name, value in items if filter(name, value)]
     return [Expression(SymbolRule, Symbol(name), value) for name, value in items]

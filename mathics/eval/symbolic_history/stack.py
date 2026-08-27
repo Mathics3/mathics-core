@@ -6,11 +6,10 @@ import inspect
 from typing import Any, Callable, Tuple
 
 import mathics.eval.tracing
-from mathics.core.atoms import Symbol
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import SymbolConstant, SymbolHoldForm
+from mathics.core.symbols import Symbol, SymbolConstant, SymbolHoldForm
 
 
 def eval_Stack() -> ListExpression:
@@ -84,7 +83,7 @@ def save_evaluate(expr, evaluation, status: str, fn: Callable, orig_expr=None):
     # seeing a return value twice, once form rewite_apply_eval_step,
     # and once from Expression.evaluate.
 
-    if isinstance(fn, Expression):
+    if isinstance(fn, Expression) and hasattr(fn.head, "short_name"):
         fn_name = fn.head.short_name
     elif hasattr(fn, "__name__"):
         fn_name = fn.__name__

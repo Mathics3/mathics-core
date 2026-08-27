@@ -8,7 +8,7 @@ in parallel to many elements in a list.
 Many mathematical functions are automatically taken to be "listable", so that \
 they are always applied to every element in a list.
 """
-
+from dataclasses import replace as dc_replace
 from typing import Iterable
 
 from mathics.core.atoms import Integer, Integer0, Integer1, Integer3
@@ -20,7 +20,7 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import SymbolMapThread
-from mathics.eval.functional.apply_fns_to_lists import eval_MapAt
+from mathics.eval.functional.apply_fns_to_lists import eval_Map_level, eval_MapAt
 from mathics.eval.parts import python_levelspec, walk_levels
 from mathics.eval.patterns import param_and_option_from_optional_place
 
@@ -53,6 +53,10 @@ class Apply(InfixOperator):
     >> f @@ (a + b + c)
      = f[a, b, c]
 
+    Use the operator form of 'Apply':
+    >> Apply[f][a + b + c]
+     = f[a, b, c]
+
     Apply on level 1:
     >> Apply[f, {a + b, g[c, d, e * f], 3}, {1}]
      = {f[a, b], f[c, d, e f], 3}
@@ -69,12 +73,19 @@ class Apply(InfixOperator):
      = {a, {b, {g}, {c, e}}}
     """
 
-    summary_text = "apply a function to a list, at specified levels"
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 4)
     grouping = "Right"
 
     options = {
         "Heads": "False",
     }
+
+    rules = {
+        "Apply[f_][expr_]": "Apply[f, expr]",
+    }
+
+    summary_text = "apply a function to a list, at specified levels"
 
     def eval(self, f, expr, levelspec, evaluation, options={}):
         """Apply[f_, expr_, Optional[levelspec_, {0}],
@@ -94,7 +105,10 @@ class Apply(InfixOperator):
             if isinstance(level, Atom):
                 return level
             else:
-                return Expression(f, *level.elements)
+                elem_prop = level.elements_properties
+                if elem_prop is not None:
+                    elem_prop = dc_replace(elem_prop, elements_fully_evaluated=False)
+                return Expression(f, *level.elements, elements_properties=elem_prop)
 
         heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
         result, _ = walk_levels(expr, start, stop, heads=heads, callback=callback)
@@ -124,38 +138,43 @@ class Map(InfixOperator):
     >> Map[f, {{a, b}, {c, d, e}}, {2}]
      = {{f[a], f[b]}, {f[c], f[d], f[e]}}
 
+    Map $f$ onto an association:
+    >> Map[f, <|"a" -> 1, "b" -> 2, "c" -> 3, "d" -> 4|>]
+     = <|a ⇾ f[1], b ⇾ f[2], c ⇾ f[3], d ⇾ f[4]|>
+
     Include heads:
     >> Map[f, a + b + c, Heads->True]
      = f[Plus][f[a], f[b], f[c]]
+
+    Use the operator form of 'Map':
+    >> Map[f][{a, b, c}]
+     = {f[a], f[b], f[c]}
     """
 
-    summary_text = "map a function over a list, at specified levels"
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 4)
     grouping = "Right"
 
     options = {
         "Heads": "False",
     }
 
+    rules = {
+        "Map[f_][expr_]": "Map[f, expr]",
+    }
+
+    summary_text = "map a function over a list, at specified levels"
+
     def eval_level(self, f, expr, levelspec, evaluation, options={}):
         """Map[f_, expr_, Optional[levelspec_, {1}],
         OptionsPattern[Map]]"""
-
         levelspec = param_and_option_from_optional_place(
             levelspec, options, "System`Map", evaluation
         ) or ListExpression(Integer1)
-        try:
-            start, stop = python_levelspec(levelspec)
-        except InvalidLevelspecError:
-            evaluation.message("Map", "level", levelspec)
-            return
 
-        def callback(level):
-            return Expression(f, level)
-
-        heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
-        result, _ = walk_levels(expr, start, stop, heads=heads, callback=callback)
-
-        return result
+        # Note: this has to come *after* param_option_from_optional_place() above.
+        wrap_in_head = self.get_option(options, "Heads", evaluation) is SymbolTrue
+        return eval_Map_level(f, expr, levelspec, evaluation, wrap_in_head)
 
 
 class MapAt(Builtin):
@@ -205,13 +224,18 @@ class MapAt(Builtin):
 
     Map $f$ onto at the second position of an association:
     >> MapAt[f, <|"a" -> 1, "b" -> 2, "c" -> 3, "d" -> 4|>, 2]
-     = {a -> 1, b -> f[2], c -> 3, d -> 4}
+     = <|a ⇾ 1, b ⇾ f[2], c ⇾ 3, d ⇾ 4|>
 
     Same as above, but select the second-from-the-end position:
     >> MapAt[f, <|"a" -> 1, "b" -> 2, "c" -> 3, "d" -> 4|>, -2]
-     = {a -> 1, b -> 2, c -> f[3], d -> 4}
+     = <|a ⇾ 1, b ⇾ 2, c ⇾ f[3], d ⇾ 4|>
 
     """
+
+    # FIXME:
+    # Note in "rules" below that MapAt has a 2-arg form.
+    # eval_error = Builtin.generic_argument_error
+    # expected_args = 3
 
     rules = {
         "MapAt[f_, pos_][expr_]": "MapAt[f, expr, pos]",
@@ -239,6 +263,10 @@ class MapIndexed(Builtin):
     >> MapIndexed[f, {a, b, c}]
      = {f[a, {1}], f[b, {2}], f[c, {3}]}
 
+    Use the operator form of 'MapIndexed':
+    >> MapIndexed[f][{a, b, c}]
+     = {f[a, {1}], f[b, {2}], f[c, {3}]}
+
     Include heads (index 0):
     >> MapIndexed[f, {a, b, c}, Heads->True]
      = f[List, {0}][f[a, {1}], f[b, {2}], f[c, {3}]]
@@ -262,10 +290,17 @@ class MapIndexed(Builtin):
      = a + b f[g] c ^ e
     """
 
-    summary_text = "map a function, including index information"
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 4)
     options = {
         "Heads": "False",
     }
+
+    rules = {
+        "MapIndexed[f_][expr_]": "MapIndexed[f, expr]",
+    }
+
+    summary_text = "map a function, including index information"
 
     def eval_level(self, f, expr, levelspec, evaluation, options={}):
         """MapIndexed[f_, expr_, Optional[levelspec_, {1}],
@@ -288,6 +323,9 @@ class MapIndexed(Builtin):
         result, depth = walk_levels(
             expr, start, stop, heads=heads, callback=callback, include_pos=True
         )
+        elem_prop = result.elements_properties
+        if elem_prop is not None:
+            elem_prop.elements_fully_evaluated = False
 
         return result
 
@@ -310,14 +348,28 @@ class MapThread(Builtin):
 
     >> MapThread[f, {{{a, b}, {c, d}}, {{e, f}, {g, h}}}, 2]
      = {{f[a, e], f[b, f]}, {f[c, g], f[d, h]}}
+
+    Use the operator form of 'MapThread':
+    >> MapThread[f][{{a, b, c}, {1, 2, 3}}]
+     = {f[a, 1], f[b, 2], f[c, 3]}
     """
 
-    summary_text = "map a function across corresponding elements in multiple lists"
+    # FIXME:
+    # Note in "rules" below that MapThread has a one-argument-arg form.
+    # We do not have precise arg checking here.
+    # eval_error = Builtin.generic_argument_error
+    # expected_args = range(2, 4)
+
     messages = {
         "mptc": "Incompatible dimensions of objects at positions {2, `1`} and {2, `2`} of `3`; dimensions are `4` and `5`.",
         "mptd": "Object `1` at position {2, `2`} in `3` has only `4` of required `5` dimensions.",
         "list": "List expected at position `2` in `1`.",
     }
+    rules = {
+        "MapThread[f_][expr_]": "MapThread[f, expr]",
+    }
+
+    summary_text = "map a function across corresponding elements in multiple lists"
 
     def eval(self, f, expr, evaluation):
         "MapThread[f_, expr_]"
@@ -401,11 +453,14 @@ class Scan(Builtin):
      | 3
     """
 
-    summary_text = "scan over every element of a list, applying a function"
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 4)
+
     options = {
         "Heads": "False",
     }
 
+    summary_text = "scan over every element of a list, applying a function"
     rules = {
         "Scan[f_][expr_]": "Scan[f, expr]",
     }
@@ -456,6 +511,9 @@ class Thread(Builtin):
     >> {a, b, c} + {d, e, f} + g
      = {a + d + g, b + e + g, c + f + g}
     """
+
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 4)
 
     messages = {
         "tdlen": "Objects of unequal length cannot be combined.",

@@ -5,8 +5,8 @@ test evaluations over ``Expression``s.
 """
 
 
-from mathics.core.atoms import Atom
 from mathics.core.pattern import StopGenerator
+from mathics.core.symbols import Atom
 
 
 class _StopGeneratorBaseElementIsFree(StopGenerator):

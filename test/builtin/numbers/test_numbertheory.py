@@ -57,7 +57,7 @@ import pytest
         ("RandomPrime[2, {3,2}]", None, "{{2, 2}, {2, 2}, {2, 2}}", None),
     ],
 )
-def test_private_doctests_numbertheory(str_expr, msgs, str_expected, fail_msg):
+def test_numbertheory(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,

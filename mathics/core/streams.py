@@ -8,7 +8,7 @@ import os.path as osp
 import sys
 import tempfile
 from io import open as io_open
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple
 
 import requests
 
@@ -20,9 +20,23 @@ PATH_VAR: List[str] = [
     ".",
     HOME_DIR,
     USER_PACKAGE_DIR,
-    osp.join(ROOT_DIR, "data"),
+    osp.join(ROOT_DIR, "Data"),
     osp.join(ROOT_DIR, "Packages"),
 ]
+
+
+def canonic_os_path(path: str) -> str:
+    r"""
+    canonicalize `path` for Mathics3 String use.
+    In particular, on MSWindows, path names with backslash ("\") are converted to the
+    equivalent using forward slash ("/") and shown that way.
+
+    Currently MSWindows is the only OS that has this feature. However, it is possible,
+    Other kinds of things can arise.
+    """
+    if osp.sep == "\\":
+        return path.replace("\\", "/")
+    return path
 
 
 def create_temporary_file(prefix="Mathics3-", suffix=None, delete=True):
@@ -30,9 +44,7 @@ def create_temporary_file(prefix="Mathics3-", suffix=None, delete=True):
         suffix = None
 
     fp = tempfile.NamedTemporaryFile(delete=delete, suffix=suffix)
-    result = fp.name
-    fp.close()
-    return result
+    return canonic_os_path(fp.name)
 
 
 def urlsave_tmp(url, location=None, **kwargs):
@@ -55,21 +67,25 @@ def urlsave_tmp(url, location=None, **kwargs):
     return None
 
 
-def path_search(filename: str) -> Tuple[Optional[str], bool]:
+def path_search(
+    filename: str, path_directories: Optional[Sequence[str]] = None
+) -> Tuple[Optional[str], bool]:
     """
-    Search for a Mathics `filename` possibly adding extensions ".mx", ".m", or ".wl"
+    Search for a Mathics3 `filename` possibly adding extensions ".mx", ".m", or ".wl"
     or as a file under directory PATH_VAR or as an Internet address.
 
     Return the resolved file name and True if this is a file in the
     a temporary file created, which happens for Internet addresses,
     or False if the file is a file in the filesystem.
     """
+    if path_directories is None:
+        path_directories = tuple(PATH_VAR)
     # For names of the form "name`", search for name.mx and name.m
     is_temporary_file = False
     if filename[-1] == "`":
         filename = filename[:-1].replace("`", osp.sep)
         for ext in [".mx", ".m", ".wl"]:
-            result, is_temporary_file = path_search(filename + ext)
+            result, is_temporary_file = path_search(filename + ext, path_directories)
             if result is not None:
                 return result, is_temporary_file
     if filename is not None:
@@ -85,7 +101,7 @@ def path_search(filename: str) -> Tuple[Optional[str], bool]:
             result = urlsave_tmp(filename)
             is_temporary_file = True
         else:
-            for p in list(PATH_VAR) + [""]:
+            for p in list(path_directories) + [""]:
                 path = canonic_filename(osp.join(p, filename))
                 if osp.exists(path):
                     result = path
@@ -109,7 +125,7 @@ class Stream:
     with Stream(pypath, "r") as f:
          ...
 
-    However see StreamManager and MathicsOpen which wraps this.
+    However see StreamManager and Mathics3Open which wraps this.
     """
 
     def __init__(
@@ -199,7 +215,7 @@ class StreamsManager:
         io=None,
         num: Optional[int] = None,
         is_temporary_file: bool = False,
-    ) -> Optional["Stream"]:
+    ) -> "Stream":
         if num is None:
             num = self.next
             assert isinstance(num, int)
@@ -266,7 +282,7 @@ class StreamsManager:
         return self.STREAMS.get(n, None)
 
     @property
-    def next(self):
+    def next(self) -> int:
         numbers = [stream.n for stream in self.STREAMS.values()] + [2]
         return max(numbers) + 1
 

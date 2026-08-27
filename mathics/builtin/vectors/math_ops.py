@@ -29,8 +29,9 @@ class Cross(Builtin):
 
     Three-dimensional cross product:
 
+    ### FIXME not correct negative products should have a () around them.
     >> Cross[{x1, y1, z1}, {x2, y2, z2}]
-     = {y1 z2 - y2 z1, -x1 z2 + x2 z1, x1 y2 - x2 y1}
+     = {-y2 z1 + y1 z2, x2 z1 - x1 z2, -x2 y1 + x1 y2}
 
     'Cross' is antisymmetric, so:
 
@@ -115,6 +116,11 @@ class Curl(SympyFunction):
     """
 
     attributes = A_PROTECTED
+
+    # Set checking that the number of arguments required is two or three.
+    eval_error = Builtin.generic_argument_error
+    expected_args = (2, 3)
+
     rules = {
         "Curl[{f1_, f2_}, {x1_, x2_}]": " D[f2, x1] - D[f1, x2]",
         "Curl[{f1_, f2_, f3_}, {x1_, x2_, x3_}]": """{

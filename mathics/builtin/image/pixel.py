@@ -1,6 +1,7 @@
 """
 Pixel Operations
 """
+
 import numpy
 
 from mathics.builtin.image.base import Image

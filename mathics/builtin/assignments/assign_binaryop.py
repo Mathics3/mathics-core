@@ -192,7 +192,7 @@ class Increment(InplaceInfixOperator, InfixOperator, PostfixOperator):
      = {2, 4, 6}
 
     Grouping of 'Increment', 'PreIncrement' and 'Plus':
-    >> ++++a+++++2//Hold//FullForm
+    >> ++++a+++++2 // Hold // FullForm
      = Hold[Plus[PreIncrement[PreIncrement[Increment[Increment[a]]]], 2]]
 
     Compare with <url>:PreIncrement:

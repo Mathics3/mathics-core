@@ -3,12 +3,10 @@ from test.helper import session
 
 from mathics.builtin.makeboxes import MakeBoxes
 from mathics.core.atoms import Integer0, Integer1, Real
-from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolGraphics, SymbolPoint
-from mathics.session import MathicsSession
 
 evaluation = session.evaluation
 
@@ -46,7 +44,7 @@ def extract_asy_body(asy):
 
 def get_asy(expression):
     boxes = MakeBoxes(expression).evaluate(evaluation)
-    return boxes.boxes_to_tex()
+    return boxes.to_tex()
 
 
 def test_asy_circle():

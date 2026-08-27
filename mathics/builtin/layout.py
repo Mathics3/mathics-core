@@ -1,30 +1,35 @@
 # -*- coding: utf-8 -*-
-
 """
 Layout
 
-This module contains symbols used to define the high level layout for
-expression formatting.
+This module contains symbols used to define the high-level layout for expression formatting.
 
-For instance, to represent a set of consecutive expressions in a row,
-we can use 'Row'.
+For instance, to represent a set of consecutive expressions in a row, we can use 'Row'.
 
 """
 
 
-from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
+from mathics.builtin.box.layout import GridBox, PaneBox, RowBox, to_boxes
 from mathics.builtin.makeboxes import MakeBoxes
-from mathics.builtin.options import options_to_rules
-from mathics.core.atoms import Real, String
+from mathics.core.atoms import Integer, Real, String
 from mathics.core.builtin import Builtin, Operator, PostfixOperator, PrefixOperator
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolMakeBoxes
+from mathics.core.systemsymbols import (
+    SymbolMakeBoxes,
+    SymbolPostfix,
+    SymbolPrefix,
+    SymbolSubscriptBox,
+)
 from mathics.eval.lists import list_boxes
-from mathics.eval.makeboxes import format_element
-
-SymbolSubscriptBox = Symbol("System`SubscriptBox")
+from mathics.format.box import (
+    eval_infix,
+    eval_makeboxes_format,
+    eval_postprefix,
+    format_element,
+    parenthesize,
+)
 
 
 class Center(Builtin):
@@ -47,12 +52,15 @@ class Format(Builtin):
 
     <dl>
       <dt>'Format'[$expr$]
-      <dd>holds values specifying how $expr$ should be printed.
+      <dd>used on the left-hand side of an assignment to specify how $expr$ should be printed.
     </dl>
 
-    Assign values to 'Format' to control how particular expressions
-    should be formatted when printed to the user.
+    First, we set up a 'Format' definition for 'f' to display its arguments as if it were equivalent to an infix operator "~":
+
     >> Format[f[x___]] := Infix[{x}, "~"]
+
+    Now, to see this format in use:
+
     >> f[1, 2, 3]
      = 1 ~ 2 ~ 3
     >> f[1]
@@ -60,7 +68,7 @@ class Format(Builtin):
 
     Raw objects cannot be formatted:
     >> Format[3] = "three";
-     : Cannot assign to raw object 3.
+     : Tag Integer in 3 is Protected.
 
     Format types must be symbols:
     >> Format[r, a + b] = "r";
@@ -69,12 +77,57 @@ class Format(Builtin):
     Formats must be attached to the head of an expression:
     >> f /: Format[g[f]] = "my f";
      : Tag f not found or too deep for an assigned rule.
+
+    Format can be used to specify the request format:
+    >> Format[Integrate[F[x], x], TeXForm]
+     = \\int F(x) \\, dx
+
+    Format evaluates its first element before applying the format:
+    >> Format[Integrate[Cos[x], x], TeXForm]
+     = ...
+    but the result keeps the structure:
+    >> % //FullForm
+     = Format[Sin[x], TeXForm]
+
+    If the second parameter is omitted, 'Format' is ignored:
+    >> Format[F[x]]
+     = F[x]
+
+    If the second argument is not one of '$PrintForms', a message \
+    is shown, and the argument is discarded:
+    >> Format[F[x], NoFormat]
+     : Value of option FormatType -> NoFormat is not valid.
+     = F[x]
+
+    Mathics3 'Format' output can differ slightly from WMA in what we hope \
+    is a more useful way.
+
+    Use 'InputForm' if you want to get a 'Format' definition that can be used as \
+    Mathics3 input:
+
+    >> Format[{a -> Integrate[F[x], x]}, StandardForm] //InputForm
+     = Format[{a -> Integrate[F[x], x]}, StandardForm]
+
+    In WMA, you might not get something that can be used as input.
+
+    Similarly, use 'Fullform' to get a valid FullForm equivalent expression:
+
+    >> Format[{a->Integrate[F[x], x]}, StandardForm] //FullForm
+     = Format[{Rule[a, Integrate[F[x], x]]}, StandardForm]
     """
 
     messages = {"fttp": "Format type `1` is not a symbol."}
     summary_text = (
         "settable low-level translator from various forms to evaluatable expressions"
     )
+
+    def eval_Makeboxes1(self, expr, form, outerform, evaluation):
+        """MakeBoxes[Format[expr_], outerform_]"""
+        return eval_makeboxes_format(expr, None, outerform, evaluation)
+
+    def eval_Makeboxes2(self, expr, form, outerform, evaluation):
+        """MakeBoxes[Format[expr_, form_], outerform_]"""
+        return eval_makeboxes_format(expr, form, outerform, evaluation)
 
 
 class Grid(Builtin):
@@ -128,7 +181,7 @@ class Grid(Builtin):
 
     def eval_makeboxes(self, array, f, evaluation: Evaluation, options) -> Expression:
         """MakeBoxes[Grid[array_List, OptionsPattern[Grid]],
-        f:StandardForm|TraditionalForm|OutputForm]"""
+        f:StandardForm|TraditionalForm]"""
 
         elements = array.elements
 
@@ -146,7 +199,7 @@ class Grid(Builtin):
 
         return GridBox(
             ListExpression(*(format_row(row) for row in rows)),
-            *options_to_rules(options),
+            **options,
         )
 
 
@@ -179,7 +232,19 @@ class Infix(Builtin):
      = a + b - c
     """
 
+    rules = {
+        (
+            "MakeBoxes[Infix[head_[elements___]], "
+            "    f:StandardForm|TraditionalForm]"
+        ): ('MakeBoxes[Infix[head[elements], StringForm["~`1`~", head]], f]'),
+    }
     summary_text = "infix form"
+
+    def eval_makeboxes_infix(
+        self, expr, operator, precedence: Integer, grouping, form: Symbol, evaluation
+    ):
+        """MakeBoxes[Infix[expr_, operator_, precedence_:None, grouping_:None], form:StandardForm|TraditionalForm]"""
+        return eval_infix(self, expr, operator, precedence, grouping, form, evaluation)
 
 
 class Left(Builtin):
@@ -211,6 +276,57 @@ class NonAssociative(Builtin):
     summary_text = "non-associative operator"
 
 
+class Pane(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Pane.html</url>
+
+    <dl>
+      <dt>'Pane[$expr$]'
+      <dd> display $expr$ inside a pane.
+
+      <dt>'Pane[$expr$, $width$]'
+      <dd> display $expr$ inside a pane $width$ points wide.
+
+      <dt>'Pane[$expr$, {$width$, $height$}]'
+      <dd> display $expr$ in a pane with width $width$ and height $height$.
+    </dl>
+    A Pane is treated as an unbroken rectangular region for purposes of line breaking.
+
+    >> Pane[37!]
+     = Pane[13763753091226345046315979581580902400000000]
+
+    In TeXForm, $Pane$ produce minipage environments:
+    >> {{Pane[a,3], Pane[expt, 3]}}//TableForm//TeXForm
+     = ...
+
+    In MathMLForm, $Pane$ wraps the elements in <div>...</div> tags:
+    >> {{Pane[a,3], Pane[expt, 3]}}//TableForm//MathMLForm
+     = ...
+    """
+
+    summary_text = "put expressions inside a pane"
+    options = {
+        "ImageSize": "Automatic",
+    }
+
+    def eval_makeboxes(self, expr, f, evaluation, options):
+        """MakeBoxes[Pane[expr_, OptionsPattern[Pane]], f_]"""
+        box_expr = Expression(SymbolMakeBoxes, expr, f).evaluate(evaluation)
+        return PaneBox(box_expr, **options)
+
+    def eval_makeboxes2(self, expr, width, f, evaluation, options):
+        """MakeBoxes[Pane[expr_, width_Integer, OptionsPattern[Pane]], f_]"""
+        box_expr = Expression(SymbolMakeBoxes, expr, f).evaluate(evaluation)
+        options["System`ImageSize"] = width
+        return PaneBox(box_expr, **options)
+
+    def eval_makeboxes3(self, expr, width, height, f, evaluation, options):
+        """MakeBoxes[Pane[expr_, List[width_Integer, height_Integer], OptionsPattern[Pane]], f_]"""
+        box_expr = Expression(SymbolMakeBoxes, expr, f).evaluate(evaluation)
+        options["System`ImageSize"] = ListExpression(width, height)
+        return PaneBox(box_expr, **options)
+
+
 class Postfix(PostfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Postfix.html</url>
@@ -233,6 +349,13 @@ class Postfix(PostfixOperator):
     grouping = "Left"
     operator_display = None
     summary_text = "postfix form"
+
+    def eval_makeboxes_postfix(self, expr, h, precedence, form, evaluation):
+        """MakeBoxes[Postfix[expr_, h_, precedence_:None],
+        form:StandardForm|TraditionalForm]"""
+        return eval_postprefix(
+            self, SymbolPostfix, expr, h, precedence, form, evaluation
+        )
 
 
 class Precedence(Builtin):
@@ -288,7 +411,19 @@ class PrecedenceForm(Builtin):
       <dt>'PrecedenceForm'[$expr$, $prec$]
       <dd> format $expr$ parenthesized as it would be if it contained an operator of precedence $prec$.
     </dl>
+
+    >> PrecedenceForm[x/y, 12] - z
+     = -z + (x / y)
+
     """
+
+    def eval_outerprecedenceform(self, expr, precedence, form, evaluation):
+        """MakeBoxes[PrecedenceForm[expr_, precedence_],
+        form:StandardForm|TraditionalForm]"""
+
+        py_precedence = precedence.get_int_value()
+        boxes = format_element(expr, evaluation, form)
+        return parenthesize(py_precedence, expr, boxes, True)
 
     summary_text = "parenthesize with a precedence"
 
@@ -326,6 +461,13 @@ class Prefix(PrefixOperator):
     operator_display = None
     summary_text = "prefix form"
 
+    def eval_makeboxes_prefix(self, expr, h, precedence, form, evaluation):
+        """MakeBoxes[Prefix[expr_, h_, precedence_:None],
+        form:StandardForm|TraditionalForm]"""
+        return eval_postprefix(
+            self, SymbolPrefix, expr, h, precedence, form, evaluation
+        )
+
 
 class Right(Builtin):
     """
@@ -354,7 +496,7 @@ class Row(Builtin):
 
     def eval_makeboxes(self, items, sep, form, evaluation: Evaluation):
         """MakeBoxes[Row[{items___}, sep_:""],
-        form:StandardForm|TraditionalForm|OutputForm]"""
+        form:StandardForm|TraditionalForm]"""
 
         items = items.get_sequence()
         if not isinstance(sep, String):
@@ -411,8 +553,16 @@ class Style(Builtin):
     """
 
     summary_text = "wrapper for styles and style options to apply"
-    options = {"ImageSizeMultipliers": "Automatic"}
-
+    options = {
+        "ImageSizeMultipliers": "Automatic",
+        "$OptionSyntax": "Ignore",
+    }
+    rules = {
+        "MakeBoxes[Style[expr_, OptionsPattern[Style]], f_]": (
+            "StyleBox[MakeBoxes[expr, f], "
+            "ImageSizeMultipliers -> OptionValue[ImageSizeMultipliers]]"
+        ),
+    }
     rules = {
         "MakeBoxes[Style[expr_, OptionsPattern[Style]], f_]": (
             "StyleBox[MakeBoxes[expr, f], "
@@ -432,8 +582,8 @@ class Subscript(Builtin):
       <dd>displays as $a_i$.
     </dl>
 
-    >> Subscript[x,1,2,3] // TeXForm
-     = x_{1,2,3}
+    >> Subscript[x, 1, 2, 3] // TeXForm
+     = x_{1, 2, 3}
     """
 
     summary_text = "format an expression with a subscript"

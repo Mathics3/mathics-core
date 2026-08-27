@@ -3,11 +3,35 @@
 Unit tests for mathics.builtin.testing_expressions
 """
 
-import sys
-import time
-from test.helper import check_evaluation, evaluate
+from test.helper import check_arg_counts, check_evaluation
 
 import pytest
+
+
+@pytest.mark.parametrize(
+    ("function_name", "msg_fragment"),
+    [
+        (
+            "Between",
+            "1 or 2 arguments are",
+        ),
+        (
+            "BooleanQ",
+            "1 argument is",
+        ),
+        (
+            "Order",
+            "2 arguments are",
+        ),
+        (
+            "TrueQ",
+            "1 argument is",
+        ),
+    ],
+)
+def test_arg_errors(function_name, msg_fragment):
+    """ """
+    check_arg_counts(function_name, msg_fragment)
 
 
 @pytest.mark.parametrize(
@@ -22,10 +46,10 @@ import pytest
         ("Xor[a]", None, "a", None),
         ("Xor[False]", None, "False", None),
         ("Xor[True]", None, "True", None),
-        ("Xor[a, b]", None, "a \\[Xor] b", None),
+        ("Xor[a, b]", None, "a ⊻ b", None),
     ],
 )
-def test_private_doctests_logic(str_expr, msgs, str_expected, fail_msg):
+def test_logic(str_expr, msgs, str_expected, fail_msg):
     """text_expressions.logic"""
     check_evaluation(
         str_expr,
@@ -44,18 +68,6 @@ def test_private_doctests_logic(str_expr, msgs, str_expected, fail_msg):
         ("SubsetQ[{1, 2, 3}, {0, 1}]", None, "False", None),
         ("SubsetQ[{1, 2, 3}, {1, 2, 3, 4}]", None, "False", None),
         (
-            "SubsetQ[{1, 2, 3}]",
-            ("SubsetQ called with 1 argument; 2 arguments are expected.",),
-            "SubsetQ[{1, 2, 3}]",
-            None,
-        ),
-        (
-            "SubsetQ[{1, 2, 3}, {1, 2}, {3}]",
-            ("SubsetQ called with 3 arguments; 2 arguments are expected.",),
-            "SubsetQ[{1, 2, 3}, {1, 2}, {3}]",
-            None,
-        ),
-        (
             "SubsetQ[a + b + c, {1}]",
             ("Heads Plus and List at positions 1 and 2 are expected to be the same.",),
             "SubsetQ[a + b + c, {1}]",
@@ -70,7 +82,7 @@ def test_private_doctests_logic(str_expr, msgs, str_expected, fail_msg):
         ("SubsetQ[f[a, b, c], f[a]]", None, "True", None),
     ],
 )
-def test_private_doctests_list_oriented(str_expr, msgs, str_expected, fail_msg):
+def test_list_oriented(str_expr, msgs, str_expected, fail_msg):
     """text_expressions.logic"""
     check_evaluation(
         str_expr,
@@ -91,13 +103,13 @@ def test_private_doctests_list_oriented(str_expr, msgs, str_expected, fail_msg):
         ("Max[x]", None, "x", None),
         ("Min[x]", None, "x", None),
         ("Pi != N[Pi]", None, "False", None),
-        ("a_ != b_", None, "a_ != b_", None),
+        ("a_ != b_", None, "a_ ≠ b_", None),
         ("Clear[a, b];a != a != a", None, "False", None),
         ('"abc" != "def" != "abc"', None, "False", None),
-        ("a != b != a", None, "a != b != a", "Reproduce strange MMA behaviour"),
+        ("a != b != a", None, "a ≠ b ≠ a", "Reproduce strange MMA behaviour"),
     ],
 )
-def test_private_doctests_equality_inequality(str_expr, msgs, str_expected, fail_msg):
+def test_equality_inequality(str_expr, msgs, str_expected, fail_msg):
     """text_expressions.logic"""
     check_evaluation(
         str_expr,
@@ -124,7 +136,7 @@ def test_private_doctests_equality_inequality(str_expr, msgs, str_expected, fail
         ("PrimeQ[2 ^ 255 - 1]", None, "False", None),
     ],
 )
-def test_private_doctests_numerical_properties(str_expr, msgs, str_expected, fail_msg):
+def test_numerical_properties(str_expr, msgs, str_expected, fail_msg):
     """text_expressions.numerical_properties"""
     check_evaluation(
         str_expr,
@@ -176,4 +188,63 @@ def test_matchq(str_expr, msgs, str_expected, fail_msg):
         hold_expected=True,
         failure_message=fail_msg,
         expected_messages=msgs,
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "assert_fail_msg"),
+    [
+        # Clean the definitions, because
+        # a previous definition of `A` or `F` could make
+        # the test to fail.
+        (None, None, None),
+        ('Order["c", "d"]', "1", "Alphabetic order: 'c' comes before 'd'"),
+        ('Order["d", "c"]', "-1", "Alphabetic order: 'd' comes after 'c'"),
+        ('Order["c", ByteArray[{99}]]', "1", "String comes before ByteArray"),
+        ('Order[ByteArray[{1, 99}], "ZZZZZ"]', "-1", "ByteArray comes after String"),
+        ('Order["xyzzy", "xyzzy"]', "0", "Equal strings"),
+        (
+            "Order[ByteArray[{1, 99}], ByteArray[{2, 0}]]",
+            "1",
+            "Numeric ordering within a ByteArray",
+        ),
+        ('Order["a", 1000]', "-1", "String comes after Integer"),
+        ("Order[0.9, 1]", "1", "Numeric less-than comparison between Real and Integer"),
+        (
+            "Order[1.2, 1]",
+            "-1",
+            "Numeric greater than comparison between Real and Integer",
+        ),
+        ("Order[F[2], A[2]]", "-1", "Function ordering in function name"),
+        (
+            "Order[F[2], F[3]]",
+            "1",
+            "Function ordering in function with a single parameter",
+        ),
+        (
+            "Order[F[2, 3], F[2]]",
+            "-1",
+            "Function ordering in function with mixed-length parameters",
+        ),
+        (
+            'Order[<|1->2|>, "a"]',
+            "1",
+            "Associations come before Strings",
+        ),
+        (
+            "Order[b c, a d]",
+            "1",
+            "Issue #1866",
+        ),
+    ],
+)
+def test_order(str_expr: str, str_expected: str, assert_fail_msg: str):
+    """text_expressions.matchq"""
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=False,
+        to_string_expected=False,
+        hold_expected=False,
+        failure_message=assert_fail_msg,
     )

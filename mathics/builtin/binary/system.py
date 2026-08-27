@@ -30,7 +30,7 @@ class ByteOrdering(Predefined):
 
 class ByteOrdering_(Predefined):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$ByteOrdering.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$ByteOrdering.html</url>
         <dl>
           <dt>'\$ByteOrdering'
           <dd>returns the native ordering of bytes in binary data on your computer system.

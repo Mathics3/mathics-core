@@ -14,7 +14,7 @@ from mathics.core.builtin import Builtin, PostfixOperator, PrefixOperator, Sympy
 from mathics.core.convert.sympy import SymbolFunction
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, sympy_slot_prefix
+from mathics.core.symbols import SYMPY_SLOT_PREFIX, Symbol
 from mathics.core.systemsymbols import SymbolSlot
 
 # This tells documentation how to sort this module
@@ -198,15 +198,13 @@ class Slot(SympyFunction, PrefixOperator):
     rules = {
         "Slot[]": "Slot[1]",
         "MakeBoxes[Slot[n_Integer?NonNegative],"
-        "  f:StandardForm|TraditionalForm|InputForm|OutputForm]": (
-            '"#" <> ToString[n]'
-        ),
+        "  (f:StandardForm|TraditionalForm)]": ('"#" <> ToString[n]'),
     }
     summary_text = "one argument of a pure function"
 
     def to_sympy(self, expr: Expression, **kwargs):
         index: Integer = expr.elements[0]
-        return sympy.Symbol(f"{sympy_slot_prefix}{index.get_int_value()}")
+        return sympy.Symbol(f"{SYMPY_SLOT_PREFIX}{index.get_int_value()}")
 
 
 class SlotSequence(PrefixOperator, Builtin):
@@ -237,6 +235,6 @@ class SlotSequence(PrefixOperator, Builtin):
     rules = {
         "SlotSequence[]": "SlotSequence[1]",
         "MakeBoxes[SlotSequence[n_Integer?Positive],"
-        "f:StandardForm|TraditionalForm|InputForm|OutputForm]": ('"##" <> ToString[n]'),
+        "(f:StandardForm|TraditionalForm)]": ('"##" <> ToString[n]'),
     }
     summary_text = "the full sequence of arguments of a pure function"

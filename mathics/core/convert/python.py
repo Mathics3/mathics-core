@@ -3,9 +3,22 @@
 Conversions between Python and Mathics3
 """
 
-from typing import Any
+import math
+from dataclasses import dataclass
+from typing import Any, Final, Optional
 
-from mathics.core.atoms import Complex, Integer, Rational, Real, String
+import numpy
+
+from mathics.core.atoms import (
+    ByteArray,
+    Complex,
+    Integer,
+    NumericArray,
+    Rational,
+    Real,
+    String,
+)
+from mathics.core.element import ELEMENTS_FULLY_EVALUATED
 from mathics.core.number import get_type
 from mathics.core.symbols import (
     BaseElement,
@@ -14,7 +27,7 @@ from mathics.core.symbols import (
     SymbolNull,
     SymbolTrue,
 )
-from mathics.core.systemsymbols import SymbolByteArray, SymbolRule
+from mathics.core.systemsymbols import SymbolRule
 
 
 def from_bool(arg: bool) -> BooleanType:
@@ -38,14 +51,54 @@ def from_complex(arg: complex) -> Complex:
     return Complex(real_value, imag_value)
 
 
+@dataclass(frozen=True)
+class FromPythonOptions:
+    """
+    Stores options associated with the to_python[] builtin.
+
+    Once initialized, this structure is immutable or frozen.
+    """
+
+    use_associations: Optional[bool] = None
+    """'True" if ordering should be lowercase first, 'False" if should uppercase first,
+      and 'None' if we should use the natural alphabet ordering case."""
+
+    @classmethod
+    def from_dict(cls, options: dict[str, Any]) -> "FromPythonOptions":
+        """Factory method that normalizes, type-checks, and builds the frozen structure
+        from a raw dict[str, str].
+        """
+
+        # This will hold our cleaned, type-converted parameters
+        processed_args: dict[str, Any] = {
+            "use_associations": False,
+        }
+
+        # Iterate through the user-provided options dictionary
+        for key, option_value in options.items():
+
+            if not key:
+                raise TypeError(f"FromPythonOptions: bad key: {key}")
+
+            # Type parsing and validation based on the target field name
+            processed_args[key] = option_value
+
+        # Initialize and return the frozen dataclass using our verified arguments
+        return cls(**processed_args)
+
+
+DEFAULT_PYTHON_OPTIONS: Final[FromPythonOptions] = FromPythonOptions.from_dict(
+    {"use_associations": False}
+)
+
 # Historically, from_python() was identified as a bottleneck.
 
 # A large part of this was due to the inefficient monolithic
-# non-specialized interpreter that forced everything into an single
+# non-specialized interpreter that forced everything into a single
 # Expression class which tried to handle anything given it using
 # conversions.
 
-# Also, through vague or lazy coding this cause a lot of
+# Also, through vague or lazy coding, this caused a lot of
 # unnecessary conversions.
 
 # We may be out of those days, but we should still
@@ -53,21 +106,20 @@ def from_complex(arg: complex) -> Complex:
 # of a bottleneck. So care may be warranted to make
 # sure from_python() isn't too slow.
 
-
 # TODO:
-#  I think there are number of subtleties to be explained here.
-#  In particular, the expression might been the result of evaluation
+#  I think there are several subtleties to be explained here.
+#  In particular, the expression might have been the result of evaluating
 #  a SymPy expression which contains SymPy symbols.
 #
-#  If the end result is to go back into Mathics3 for further
-#  evaluation, then probably no problem.  However if the end result
-#  is produce say a Python string, then at a minimum we may want to
+#  If the result is to go back into Mathics3 for further
+#  evaluation, then probably no problem.  However, if the result
+#  produces, say, a Python string, then at a minimum we may want to
 #  convert backtick (context) symbols into some Python identifier
 #  symbol like underscore.
 
 
-def from_python(arg: Any) -> BaseElement:
-    """Converts a Python expression into a Mathics expression."""
+def from_python(arg: Any, options=DEFAULT_PYTHON_OPTIONS) -> BaseElement:
+    """Converts a Python expression into a Mathics3 expression."""
     from mathics.core.convert.expression import to_mathics_list
     from mathics.core.expression import Expression
     from mathics.core.list import ListExpression
@@ -98,20 +150,58 @@ def from_python(arg: Any) -> BaseElement:
         # else:
         #     return Symbol(arg)
     elif isinstance(arg, dict):
+        if options.use_associations:
+            return association_from_dict(arg, options)
+        # List of Rules was used before Associations came
+        # into use in Wolfram Language. List of Rules
+        # is still used a bit.
+        # Note that Python dictionaries from the standpoint of
+        # evaluation are fully evaluated
         entries = [
             Expression(
                 SymbolRule,
                 from_python(key),
-                from_python(arg[key]),
+                from_python(value),
+                elements_properties=ELEMENTS_FULLY_EVALUATED,
             )
-            for key in arg
+            for key, value in arg.items()
         ]
-        return ListExpression(*entries)
+        return ListExpression(*entries, elements_properties=ELEMENTS_FULLY_EVALUATED)
     elif isinstance(arg, list) or isinstance(arg, tuple):
         return to_mathics_list(*arg, elements_conversion_fn=from_python)
     elif isinstance(arg, bytearray) or isinstance(arg, bytes):
-        from mathics.builtin.binary.bytearray import ByteArrayAtom
+        return ByteArray(arg)
+    elif isinstance(arg, numpy.ndarray):
+        return NumericArray(arg)
+    elif arg == math.inf:
+        from mathics.core.expression_predefined import MATHICS3_INFINITY
 
-        return Expression(SymbolByteArray, ByteArrayAtom(arg))
+        return MATHICS3_INFINITY
+    elif arg == -math.inf:
+        from mathics.core.expression_predefined import MATHICS3_NEG_INFINITY
+
+        return MATHICS3_NEG_INFINITY
     else:
         raise NotImplementedError
+
+
+def association_from_dict(
+    python_dict: dict, options: FromPythonOptions = DEFAULT_PYTHON_OPTIONS
+):
+    """
+    Convert a Python dictionary into a Mathics3 Association.
+    """
+    from mathics.core.atoms.associations import Association
+    from mathics.core.expression import Expression
+
+    elements = [
+        Expression(
+            SymbolRule,
+            from_python(key, options),
+            from_python(value, options),
+        )
+        for key, value in python_dict.items()
+    ]
+    association = Association(elements)
+    association._python = python_dict
+    return association

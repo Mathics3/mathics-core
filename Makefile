@@ -17,6 +17,8 @@ MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang
 
 .PHONY: \
    all \
+   ChangeLog-without-corrections \
+   benchmarks \
    build \
    check \
    check-builtin-manifest \
@@ -35,24 +37,30 @@ MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang
    djangotest \
    gstest \
    latexdoc \
+   mypy \
+   plot-detailed-tests\
    pytest \
    pytest-x \
    rmChangeLog \
    test \
    texdoc
 
-SANDBOX	?=
+MATHICS3_SANDBOX	?=
 ifeq ($(OS),Windows_NT)
-	SANDBOX = t
+	MATHICS3_SANDBOX = t
 else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Darwin)
-		SANDBOX = t
+		MATHICS3_SANDBOX = t
 	endif
 endif
 
 #: Default target - same as "develop"
 all: develop
+
+# run pytest benchmarks
+benchmarks:
+	BENCHMARKS=True $(PYTHON) -m pytest $(PYTEST_OPTIONS) --benchmark-json=output.json test/timings
 
 #: build everything needed to install
 build:
@@ -62,18 +70,18 @@ build:
 # because pip install doesn't handle
 # INSTALL_REQUIRES properly
 #: Set up to run from the source tree
-develop:  mathics/data/op-tables.json mathics/data/operator-tables.json
-	$(PIP) install -e .[dev]
+develop:
+	$(PIP) install --no-build-isolation -e .[dev]
 
 # See note above on ./setup.py
 #: Set up to run from the source tree with full dependencies
-develop-full:  mathics/data/op-tables.json mathics/data/operators.json
-	$(PIP) install -e .[dev,full]
+develop-full:
+	$(PIP) install --no-build-isolation -e .[dev,full]
 
 # See note above on ./setup.py
 #: Set up to run from the source tree with full dependencies and Cython
-develop-full-cython: mathics/data/op-tables.json mathics/data/operators.json
-	$(PIP) install -e .[dev,full,cython]
+develop-full-cython:
+	$(PIP) install --no-build-isolation -e .[dev,full,cython]
 
 
 #: Make distribution: wheels, eggs, tarball
@@ -88,7 +96,7 @@ install:
 check: pytest gstest doctest
 
 #: Run the most extensive set of tests, stopping on first error
-check-x: pytest-x gstest doctest-x
+check-x: pytest-x gstest doctest-x plot-detailed-tests
 
 #: Run the most extensive set of tests
 check-for-Windows: pytest-for-windows gstest doctest
@@ -101,7 +109,7 @@ check-builtin-manifest:
 check-consistency-and-style:
 	MATHICS_LINT=t $(PYTHON) -m pytest $(PYTEST_OPTIONS) test/consistency-and-style
 
-check-full: check-builtin-manifest check-builtin-manifest check
+check-full: check-builtin-manifest check-builtin-manifest check plot-detailed-tests
 
 #: Remove Cython-derived files
 clean-cython:
@@ -119,12 +127,18 @@ clean: clean-cython clean-cache
 	   ($(MAKE) -C "$$dir" clean); \
 	done; \
 	rm -f factorials || true; \
-	rm -f mathics/data/op-tables || true; \
+	rm -f mathics/data/*.json || true; \
 	rm -rf build || true
+
+mypy:
+	mypy --install-types --ignore-missing-imports --non-interactive mathics
+
+plot-detailed-tests:
+	MATHICS_PLOT_DETAILED_TESTS="1" $(PYTHON) -m pytest -x $(PYTEST_OPTIONS) test/builtin/drawing/test_plot_detail.py
 
 #: Run pytest tests. Use environment variable "PYTEST_OPTIONS" for pytest options
 pytest:
-	MATHICS_CHARACTER_ENCODING="ASCII" $(PYTHON) -m pytest $(PYTEST_OPTIONS) $(PYTEST_WORKERS) test
+	$(PYTHON) -m pytest $(PYTEST_OPTIONS) $(PYTEST_WORKERS) test
 
 #: Run pytest tests stopping at first failure.
 pytest-x :
@@ -135,32 +149,31 @@ gstest:
 	(cd examples/symbolic_logic/gries_schneider && $(PYTHON) test_gs.py)
 
 
-#: Create doctest test data and test results that is used to build LaTeX PDF
+#: Create LaTeX doctest test data and test results that is used to build LaTeX PDF
 # For LaTeX docs we assume Unicode
-doctest-data: mathics/builtin/*.py mathics/doc/documentation/*.mdoc mathics/doc/documentation/images/*
-	MATHICS_CHARACTER_ENCODING="UTF-8" $(PYTHON) mathics/docpipeline.py --output --keep-going $(MATHICS3_MODULE_OPTION)
+latex-doctest-data: mathics/builtin/*.py mathics/doc/documentation/*.mdoc mathics/doc/documentation/images/*
+	MATHICS_CHARACTER_ENCODING="UTF-8" $(PYTHON) mathics/gather_latex_doc.py --output $(MATHICS3_MODULE_OPTION) --doc-only
 
 #: Run tests that appear in docstring in the code. Use environment variable "DOCTEST_OPTIONS" for doctest options
 doctest:
-	MATHICS_CHARACTER_ENCODING="ASCII" SANDBOX=$(SANDBOX) $(PYTHON) mathics/docpipeline.py $(DOCTEST_OPTIONS)
+	MATHICS3_SANDBOX=$(MATHICS3_SANDBOX) $(PYTHON) mathics/docpipeline.py $(DOCTEST_OPTIONS)
 
 #: Run tests that appear in docstring in the code, stopping on the first error.
 doctest-x:
-	PYTEST_OPTIONS="-x" $(MAKE) doctest
+	DOCTEST_OPTIONS="-x" $(MAKE) doctest
 
-#: Make Mathics PDF manual via Asymptote and LaTeX
+#: Make Mathics3 PDF manual via Asymptote and LaTeX
 latexdoc texdoc doc:
 	(cd mathics/doc/latex && $(MAKE) doc)
-
-#: Build JSON ASCII to unicode opcode table and operator table
-mathics/data/operator-tables.json mathics/data/op-tables.json mathics/data/operators.json:
-	$(BASH) ./admin-tools/make-JSON-tables.sh
 
 #: Remove ChangeLog
 rmChangeLog:
 	$(RM) ChangeLog || true
 
+#: Create ChangeLog from version control without corrections
+ChangeLog-without-corrections:
+	git log --pretty --numstat --summary | $(GIT2CL) >ChangeLog
+
 #: Create a ChangeLog from git via git log and git2cl
-ChangeLog: rmChangeLog
-	git log --pretty --numstat --summary | $(GIT2CL) >$@
+ChangeLog: rmChangeLog ChangeLog-without-corrections
 	patch ChangeLog < ChangeLog-spell-corrected.diff

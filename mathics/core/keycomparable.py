@@ -3,28 +3,43 @@ Base classes for canonical order.
 
 """
 
+from typing import Tuple
+
 
 class KeyComparable:
-    """
+    """Mathics3/WL defines a "canonical ordering" between elements,
+    even where they would not otherwise be comparable either
+     numerically, lexicographically, etc.
 
-    Some Mathics3/WL Symbols have an "OrderLess" attribute
-    which is used in the evaluation process to arrange items in a list.
+    For example, there is an ordering defined between a Function
+    call with some number of arguments, and a ByteArray Atom.
 
-    To do that, we need a way to compare Symbols, and that is what
-    this class is for.
+    Symbols that have an "Orderless" attribute use this canonic
+    ordering in arranging elements.
 
-    This class adds the boilerplate Python comparison operators that
-    you expect in Python programs for comparing Python objects.
+    Also, there are builtin-functions like "Order[]", "OrderQ[]", and
+    "Ordering[]", that use this canonic ordering in their computation.
 
-    This class is not complete in of itself, it is intended to be
-    mixed into other classes.
+    To support the WL-predefined canonic order elements types, we need
+    a way to compare arbitrary elements.  That is what this class is for.
+
+    This class adds the boilerplate Python comparison operators, like
+    __lt__, __eq__, etc. that Python provides for comparing Python
+    objects.
+
+    This class is not complete in of itself; it is intended to be
+    mixed into other classes, and is used as a fallback when Python
+    object's comparison does not apply due to type mismatch.
 
     Each class should provide a `element_order` property which
     is the primitive from which all other comparisons are based on.
 
-    The class also contains a `pattern_precedence` property that provides
-    the sort key used to order a list of rules according to the
-    precedence they have in the evaluation loop.
+    The class also contains a `pattern_precedence` property that
+    provides the sort key used to order a list of rules according to
+    the precedence they have in the evaluation loop. Note that pattern
+    precedence and element ordering are separate concepts, although
+    they both have a similar feel.
+
     """
 
     @property
@@ -102,8 +117,27 @@ class Monomial:
                 other_exps[var] -= dec
                 if not other_exps[var]:
                     del other_exps[var]
-        self_exps = sorted((var, exp) for var, exp in self_exps.items())
-        other_exps = sorted((var, exp) for var, exp in other_exps.items())
+
+        def _var_key(pair):
+            """
+            If `var` is not a plain string (e.g. a Symbol object), fall back
+            to its string representation for ordering.
+            """
+            var, _ = pair
+            try:
+                return str(var)
+            except Exception:
+                return var
+
+        # NOTE ON COMPARING MONOMIALS.
+        # Symbol names are compared lexicographically.
+        # However, when comparing monomials containing several
+        # symbols, Mathematica treats later symbols as variables,
+        # while the earlier symbols are treated as as coefficients. So
+        # we need to compare symbol names in reverse alphabetical order.
+        # For example, (b c) < (a d) for monomials (b c) and (a d) since c < d.
+        self_exps = sorted(list(self_exps.items()), key=_var_key, reverse=True)
+        other_exps = sorted(list(other_exps.items()), key=_var_key, reverse=True)
 
         index = 0
         self_len = len(self_exps)
@@ -171,7 +205,7 @@ class Monomial:
 # finished with ``END_OF_LIST_PATTERN_SORT_KEY`` to ensure that the longest
 # list of patterns always come first.
 
-# Let' s start by defining the basic magic numbers:
+# Let's start by defining the basic magic numbers:
 
 # EXPRESSION BIT
 PATTERN_SORT_KEY_IS_EXPRESSION = 0x00020000
@@ -259,15 +293,55 @@ END_OF_LIST_PATTERN_SORT_KEY = (
 )  # Used as the last element in the third field.
 
 
-###  SORT_KEYS prefix for expression_order
+###  _ELT_ORDER suffixes are used in element ordering and
+###  Expression.element_order().
+###  Inside Mathics3, you can use builtin function Order[x, y] to check things.
 
-BASIC_ATOM_NUMBER_SORT_KEY = 0x00
-BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY = 0x01
-LITERAL_EXPRESSION_SORT_KEY = 0x03
+BASIC_ATOM_NUMBER_ELT_ORDER = 0x00
+BASIC_ATOM_ASSOCIATION_ELT_ORDER = 0x01
+BASIC_ATOM_STRING_ELT_ORDER = 0x02
+BASIC_ATOM_BYTEARRAY_ELT_ORDER = 0x03
+LITERAL_EXPRESSION_ELT_ORDER = 0x04
+BASIC_ATOM_NUMERICARRAY_ELT_ORDER = 0x05
 
-BASIC_NUMERIC_EXPRESSION_SORT_KEY = 0x12
-GENERAL_NUMERIC_EXPRESSION_SORT_KEY = 0x13
-IMAGE_EXPRESSION_SORT_KEY = 0x13
+BASIC_NUMERIC_EXPRESSION_ELT_ORDER = 0x12
+GENERAL_NUMERIC_EXPRESSION_ELT_ORDER = 0x13
+IMAGE_EXPRESSION_ELT_ORDER = 0x13
 
-BASIC_EXPRESSION_SORT_KEY = 0x22
-GENERAL_EXPRESSION_SORT_KEY = 0x23
+BASIC_EXPRESSION_ELT_ORDER = 0x22
+GENERAL_EXPRESSION_ELT_ORDER = 0x23
+
+
+def wma_str_sort_key(s: str) -> Tuple[str, str]:
+    """
+    Return a Tuple providing the sort key
+    reproduce the order of strings and symbols
+    in WMA.
+    For example, the following is a list of sorted
+    strings in the WMA order:
+    `{Abeja, ABEJA, ave de paso, Ave de paso, Ave de Paso, AVe}`
+    The order criteria is: first sort case insensitive, then
+    for the first different character in the original string,
+    lower case comes before upper case.
+    """
+    # An alternative to this implementation would be to map the
+    # characters in a way that
+    # a -> A
+    # A -> B
+    # b -> C
+    # B -> D
+    #  ...
+    # m -> Z
+    # M -> a
+    # n -> b
+    # N -> c
+    #  ...
+    # z -> y
+    # Z -> z
+    # so the result is again a string. Another possibility would be
+    # to return a wrapper class that implement this special comparison
+    # on the fly through the method `__lt__`.
+    return (
+        s.lower(),
+        s.swapcase(),
+    )

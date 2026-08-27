@@ -17,12 +17,12 @@ from mpmath import ceil as mpceil, floor as mpfloor
 
 from mathics.algorithm.introselect import introselect
 from mathics.builtin.list.math import _RankedTakeLargest, _RankedTakeSmallest
-from mathics.core.atoms import Atom, Integer, Integer1, SymbolTrue
+from mathics.core.atoms import Integer, Integer1
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import SymbolFloor, SymbolPlus, SymbolTimes
+from mathics.core.symbols import Atom, SymbolFloor, SymbolPlus, SymbolTimes, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolRankedMax,
     SymbolRankedMin,
@@ -300,6 +300,32 @@ class ReverseSort(Builtin):
     }
 
 
+# FIXME: there might be a bug in sorting...
+#
+#    Sort[{
+#    "a","b", 1,
+#    ByteArray[{1,2,4,1}],
+#    2, 1.2, I, 2I-3, A,
+#    a+b, a*b, a+1, a*2, b^3, 2/3,
+#    A[x], F[2], F[x], F[x_], F[x___], F[x,t], F[x__],
+#    Condition[A,b>2], Pattern[expr, A]
+#    }]
+#
+# should be:
+#
+#     {-3 + 2*I, I, 2/3, 1, 1.2, 2,
+#     "a", "b", 2*a,
+#      1 + a, A, a*b, b^3, a + b,
+#      A[x], A /; b > 2,
+#      F[2], F[x], F[x_], F[x___], F[x__], F[x, t],
+#      ByteArray["AQIEAQ=="], expr:A}
+#
+# But this is too complicated a case to run as a test. It needs
+# to be isolated. Break this down to smaller pieces,
+# and also use Order[] to check smaller components.
+# The problem might also be in boxing-order output.
+
+
 class Sort(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Sort.html</url>
@@ -316,7 +342,7 @@ class Sort(Builtin):
     >> Sort[{4, 1.0, a, 3+I}]
      = {1., 3 + I, 4, a}
 
-    Sort uses 'OrderedQ' to determine ordering by default.
+    Sort uses 'Order' to determine ordering by default.
     You can sort patterns according to their precedence using 'PatternsOrderedQ':
     >> Sort[{items___, item_, OptionsPattern[], item_symbol, item_?test}, PatternsOrderedQ]
      = {item_symbol, item_ ? test, item_, items___, OptionsPattern[]}

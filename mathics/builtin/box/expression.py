@@ -2,7 +2,7 @@ from typing import Optional, Sequence, Union
 
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import BuiltinElement
-from mathics.core.element import BoxElementMixin
+from mathics.core.element import BaseElement, BoxElementMixin
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolHoldForm, ensure_context
@@ -78,14 +78,20 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         # There should be a better way to implement this
         # behaviour...
         if not hasattr(instance, "_elements"):
-            instance._elements = tuple(elements)
+            instance._elements = None
         return instance
+
+    def __init(self, *args, **kwargs):
+        super().__init(args, kwargs)
+        self.inner_box = None
 
     def do_format(self, evaluation, format):
         return self
 
     @property
     def elements(self):
+        if self._elements is None:
+            self._elements = tuple()
         return self._elements
 
     @elements.setter
@@ -165,7 +171,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         if not element_counts:
             return False
         if element_counts and element_counts[0] is not None:
-            count = len(self._elements)
+            count = len(self.elements)
             if count not in element_counts:
                 if (
                     len(element_counts) == 2
@@ -187,14 +193,14 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         """
         return False
 
-    def replace_vars(self, vars, options=None, in_scoping=True, in_function=True):
+    def replace_vars(self, vars, options=None, in_function=True) -> BaseElement:
         expr = self.to_expression()
-        result = expr.replace_vars(vars, options, in_scoping, in_function)
+        result = expr.replace_vars(vars, options, in_function)
         return result
 
     def sameQ(self, expr) -> bool:
-        """Mathics SameQ"""
-        return expr.sameQ(self)
+        """Mathics3 SameQ"""
+        return expr.sameQ(self.to_expression())
 
     def tex_block(self, tex, only_subsup=False):
         if len(tex) == 1:
@@ -206,9 +212,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
                 return tex
 
     def to_expression(self) -> Expression:
-        # FIXME: All classes should store their symbol name.
-        # So there should be a self.head.
-        return Expression(Symbol(self.get_name()), *self._elements)
+        return Expression(Symbol(self.get_name()), *self.elements)
 
     def flatten_pattern_sequence(self, evaluation) -> "BoxExpression":
         return self

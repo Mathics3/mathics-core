@@ -1,0 +1,265 @@
+#  YAML file containing tests for basi MakeBoxes.
+#  Has three levels:
+#  1. Group of tests
+#    2. Kind of expression
+#      3. Form
+#
+#
+#  ```MakeBoxes[expr, fmt_]```
+#
+#  Apply the format rules matching with `Format[expr, fmt]`, and then the MakeBoxes rules
+#  matching with the result. If `fmt` is omitted, it is assumed  `StandardForm`.
+#
+#  For example,  `MakeBoxes[A+B, StandardForm]` applies first the format rule
+#  `Format[Plus[x___], StandardForm] :> Infix[{x}, "+",...]` leading to
+#  `Infix[{A,B},"+"]`
+#  and then the MakeBoxes rule `Infix[{x}, "+",...]:> RowBox[{ToString[x[[1]]],"+",ToString[x[[2]]],...}`
+#  leading to `RowBox[{"A","+","B"}]`.
+#
+#  The behavior is different if `expr` is of the form `inner//Form`, with `Form` an `$OutputForm`.
+#  In that case, `Format[inner, Form]` is evaluated, then the MakeBoxes rules are applied, and finally,
+#  the result is wrapped into different structures depending on what is `Form`.
+#
+#  Form is in `PrintForms`
+#  =======================
+#
+#  ```MakeBoxes[expr//`Form`,fmt_]```
+#  with Form in  $PrintForms  (InputForm, OutputForm, TeXForm, etc)
+#  produce always an output of the form
+#  ```InterpretationBox[`formatted`, Form[expr], opts...]```
+#  with `formatted` a string or a string inside a StyleBox.
+#
+#  Form is `FullForm` or a form in `$BoxForm`
+#  ==========================================
+#
+#  On the other hand, for FullForm, or forms in $BoxForm,
+#  the result is of the form
+#
+#  ```TagBox[`formatted`,`Form`, `opts`]```
+#  * For FullForm, `formatted` is a `StyleForm`, and TagBox does not have options.
+#  * For $BoxForm's, `opts` is `Editable->True`, and `formatted` is a `FormBox`,
+#      with the first element the boxed representation, and the second element keeping the
+#     value of `Form`.
+#
+#  `expr` is a `Format` expression:
+#  ================================
+#
+#  Another possibility is to state explicitly `Format[expr, form]` as the argument of MakeBoxes.
+#  In that case, for forms in $PrintForms, the result is the same as if we evaluate over `form[expr]`.
+#  For forms in `$BoxForms`, the result is similar to the one obtained from `form[expr]` but
+#    * the result does not have the option `Editable->True`
+#    * the second element of the TagBox is `Format[#1, form]&` instead of `form`.
+#
+#  `Format[expr, FullForm]` is not treated as `FullForm[expr]`, but as its literal expression:
+#
+#  ```MakeBoxes[Format[F[x],FullForm]]```
+#  produces
+#  ```RowBox[{"Format", "[", RowBox[{"F", "[","x","]"}], "]"}]
+#
+#
+#  To run the tests in the interpreter:
+#  ```
+#  ./convert_yaml2json.py makeboxes_tests.yaml &&  $(WMAINTERPRETER) -f makeboxes_tests.m
+#  ```
+#
+Basic Forms:
+  Arithmetic:
+    FullForm:
+      expect: 'TagBox[StyleBox[RowBox[{"Plus", "[", RowBox[{"a", ",", RowBox[{"Times", "[", RowBox[{RowBox[{"-", "1"}], ",", "b"}], "]"}]}], "]"}], System`ShowSpecialCharacters-> False, System`ShowStringCharacters -> True, System`NumberMarks -> True], FullForm]'
+      expr: MakeBoxes[a-b//FullForm]
+    InputForm:
+      expect: InterpretationBox[StyleBox["a - b", System`ShowStringCharacters -> True, NumberMarks-> True], InputForm[a - b], Editable -> True, AutoDelete -> True]
+      expr: MakeBoxes[a-b//InputForm]
+    OutputForm:
+      expect: InterpretationBox[PaneBox["\"a - b\""], OutputForm[a - b], Editable-> False]
+      expr: MakeBoxes[a-b//OutputForm]
+    StandardForm:
+      expect: RowBox[{"a", "-", "b"}]
+      expr: MakeBoxes[a-b]
+    TeXForm:
+      expect: InterpretationBox["\"a-b\"", TeXForm[a-b], Editable -> True, AutoDelete-> True]
+      expr: MakeBoxes[a-b//TeXForm]
+  Expression:
+    Format:
+      expect: TagBox[FormBox[RowBox[List["F", "[", "x", "]"]], StandardForm], (Format[#1, StandardForm])&]
+      expr: MakeBoxes[Format[F[x], StandardForm]]
+    TraditionalForm:
+      expect: TagBox[FormBox[RowBox[List["F", "(", "x", ")"]], TraditionalForm], TraditionalForm, Editable-> True]
+      expr: MakeBoxes[F[x]//TraditionalForm]
+    FullForm:
+      expect: TagBox[StyleBox[RowBox[{"F", "[", "x", "]"}], ShowSpecialCharacters-> False, System`ShowStringCharacters -> True, System`NumberMarks -> True], FullForm]
+      expr: MakeBoxes[F[x]//FullForm]
+    InputForm:
+      expect: InterpretationBox[StyleBox["F[x]", System`ShowStringCharacters -> True, NumberMarks-> True], InputForm[F[x]], Editable -> True, AutoDelete -> True]
+      expr: MakeBoxes[F[x]//InputForm]
+    OutputForm:
+      expect: InterpretationBox[PaneBox["\"F[x]\""], OutputForm[F[x]], Editable ->False]
+      expr: MakeBoxes[F[x]//OutputForm]
+    StandardForm:
+      expect: RowBox[{"F", "[", "x", "]"}]
+      expr: MakeBoxes[F[x]]
+    TeXForm:
+      expect: InterpretationBox["\"F(x)\"", TeXForm[F[x]], Editable -> True, AutoDelete-> True]
+      expr: MakeBoxes[F[x]//TeXForm]
+  Integer_negative:
+    FullForm:
+      expect: TagBox[StyleBox[RowBox[{"-", "14"}], ShowSpecialCharacters-> False, System`ShowStringCharacters -> True, System`NumberMarks -> True], FullForm]
+      expr: MakeBoxes[-14//FullForm]
+    InputForm:
+      expect: InterpretationBox[StyleBox["-14", System`ShowStringCharacters -> True, System`NumberMarks -> True], InputForm[-14], Editable -> True, AutoDelete -> True]
+      expr: MakeBoxes[-14//InputForm]
+    OutputForm:
+      expect: InterpretationBox[PaneBox["\"-14\""], OutputForm[-14], Editable -> False]
+      expr: MakeBoxes[-14//OutputForm]
+    StandardForm:
+      expect: RowBox[{"-", "14"}]
+      expr: MakeBoxes[-14]
+    TeXForm:
+      expect: 'InterpretationBox["\"-14\"", TeXForm[-14], Editable -> True, AutoDelete-> True]'
+      expr: MakeBoxes[-14//TeXForm]
+  Integer_positive:
+    FullForm:
+      expect: TagBox[StyleBox["14", System`ShowSpecialCharacters -> False, System`ShowStringCharacters-> True, System`NumberMarks -> True], FullForm]
+      expr: MakeBoxes[14//FullForm]
+    InputForm:
+      expect: InterpretationBox[StyleBox["14", System`ShowStringCharacters -> True, NumberMarks-> True], InputForm[14], Editable -> True, AutoDelete -> True]
+      expr: MakeBoxes[14//InputForm]
+    OutputForm:
+      expect: InterpretationBox[PaneBox["\"14\""], OutputForm[14], Editable -> False]
+      expr: MakeBoxes[14//OutputForm]
+    StandardForm:
+      expect: "\"14\""
+      expr: MakeBoxes[14]
+    TeXForm:
+      expect: 'InterpretationBox["\"14\"", TeXForm[14], Editable -> True, AutoDelete-> True]'
+      expr: MakeBoxes[14//TeXForm]
+  PrecisionReal:
+    FullForm:
+      expect: TagBox[StyleBox[RowBox[{"-", "14.`3."}], System`ShowSpecialCharacters -> False, System`ShowStringCharacters-> True, System`NumberMarks -> True], FullForm]
+      expr: MakeBoxes[-14.`3//FullForm]
+      msg: "In Mathics3, precision is always an integer number."
+    InputForm:
+      expr: MakeBoxes[-14.`3//InputForm]
+      expect: InterpretationBox[StyleBox["-14.`3.", System`ShowStringCharacters -> True, NumberMarks-> True], InputForm[-14.`3], Editable -> True, AutoDelete -> True]
+    OutputForm:
+      expect: InterpretationBox[PaneBox["\"-14.\""], OutputForm[-14.0], Editable-> False]
+      expr: MakeBoxes[-14.0//OutputForm]
+    StandardForm:
+      expect: RowBox[{"-","14.`3."}]
+      expr: MakeBoxes[-14.`3]
+    TeXForm:
+      expr: MakeBoxes[-14.`3//TeXForm]
+      expect: InterpretationBox["\"-14.0\"", TeXForm[-14.`3], Editable -> True, AutoDelete
+        -> True]
+  Symbol:
+    FullForm:
+      expect: TagBox[StyleBox["x", System`ShowSpecialCharacters -> False, System`ShowStringCharacters-> True, System`NumberMarks -> True], FullForm]
+      expr: MakeBoxes[x//FullForm]
+    InputForm:
+      expect: InterpretationBox[StyleBox["x", System`ShowStringCharacters -> True, NumberMarks-> True], InputForm[x], Editable -> True, AutoDelete -> True]
+      expr: MakeBoxes[x//InputForm]
+    OutputForm:
+      expect: InterpretationBox[PaneBox["\"x\""], OutputForm[x], Editable -> False]
+      expr: MakeBoxes[x//OutputForm]
+    StandardForm:
+      expect: "\"x\""
+      expr: MakeBoxes[x]
+    TeXForm:
+      expect: InterpretationBox["\"x\"", TeXForm[x], Editable -> True, AutoDelete-> True]
+      expr: MakeBoxes[x//TeXForm]
+Numbers:
+  "MachineReal, positive":
+    StandardForm:
+      expr: MakeBoxes[1.4`]
+      expect: "\"1.4`\""
+      msg: "StandardForm always shows a precision mark."
+    OutputForm:
+      expr: MakeBoxes[1.4`//OutputForm]
+      expect: InterpretationBox[PaneBox["\"1.4\""], OutputForm[1.4], Editable -> False]
+      msg: "MachineReal, OutputForm."
+  "MachineReal, negative":
+    StandardForm:
+      expr: MakeBoxes[-1.4`]
+      expect: RowBox[{"-", "1.4`"}]
+      msg: "StandardForm always shows a precision mark."
+    OutputForm:
+      expr: MakeBoxes[-1.4`//OutputForm]
+      expect: InterpretationBox[PaneBox["\"-1.4\""], OutputForm[-1.4], Editable -> False]
+      msg: "MachineReal, negative,  OutputForm."
+  "MachineReal, Large":
+    StandardForm:
+      expr: MakeBoxes[34.*^3]
+      expect: "\"34000.`\""
+  "MachineReal, Very Large":
+    StandardForm:
+      expr: MakeBoxes[34.*^9]
+      expect: "\"3.4`*^10\""
+  "PrecisionReal, Few Digits":
+    StandardForm:
+      expr: MakeBoxes[3.142`3]
+      expect: "\"3.142`3.\""
+      msg: "StandardForm with PrecisionReal shows all the stored digits, and precision."
+    OutputForm:
+      expr: MakeBoxes[OutputForm[3.142`3]]
+      expect: InterpretationBox[PaneBox["\"3.14\""], OutputForm[3.14], Editable -> False]
+      msg: "OutputForm trims digits up to precision."
+  "PrecisionReal, Many Digits":
+    StandardForm:
+      expr: MakeBoxes[1.4`20]
+      expect: "\"1.4`20.\""
+      msg: "In Mathics3, precision is always an integer number."
+  "PrecisionReal, Many Accuracy":
+    StandardForm:
+      expr: MakeBoxes[1.5``20]
+      expect: "\"1.5`20.176091259055685\""
+      msg: "In Mathics3, precision is always an integer number."
+  "PrecisionReal, Zero_LowPrec":
+    StandardForm:
+      expr: MakeBoxes[0.`3]
+      expect: "\"0.`\""
+  "PrecisionReal, Zero_LargePrec":
+    StandardForm:
+      expr: MakeBoxes[0.`30]
+      expect: "\"0.`\""
+  "PrecisionReal, Zero_Accuracy":
+    StandardForm:
+      expr: MakeBoxes[0.``30]
+      expect: "\"0``30.\""
+      msg: "In Mathics3, precision is always an integer number."
+Graphics:
+  "Disk":
+    StandardForm:
+      expr: "MakeBoxes[Graphics[{Disk[{0,0}, 1]}]]"
+      expect: "GraphicsBox[{DiskBox[{0, 0}, 1]}]"
+    OutputForm:
+      expr: "MakeBoxes[Graphics[{Disk[{0,0}, 1]}]//OutputForm]"
+      expect: InterpretationBox[PaneBox["\"-Graphics-\""], OutputForm[Graphics[{Disk[{0, 0}, 1]}]], Editable -> False]
+  "Sphere":
+    StandardForm:
+      expr: "MakeBoxes[Graphics3D[{Sphere[{0,0,0}, 1]}]]"
+      expect: "Graphics3DBox[{SphereBox[{0, 0,0}, 1]}]"
+    OutputForm:
+      expr: "MakeBoxes[Graphics3D[{Sphere[{0,0,0}, 1]}]//OutputForm]"
+      expect: InterpretationBox[PaneBox["\"-Graphics3D-\""], OutputForm[Graphics3D[{Sphere[{0, 0, 0}, 1]}]], Editable -> False]
+"Parsing string form":
+  "RowBox":
+    StandardForm:
+      expr: "\\( a, b \\)"
+      expect: RowBox[{"a", ",", "b"}]
+      msg: "TODO: Parsing of special characters (like commas)."
+  "FractionBox":
+    StandardForm:
+      expr: "\\(x \\/ y + z\\)"
+      expect: RowBox[{FractionBox["x", "y"], "+", "z"}]
+  "FractionBox bracket":
+    StandardForm:
+      expr: "\\(x \\/ (y + z)\\)"
+      expect: FractionBox["x", RowBox[{"(", RowBox[{"y", "+", "z"}], ")"}]]
+  "SqrtBox":
+    StandardForm:
+      expr: "\\( \\@ a + b \\)"
+      expect: RowBox[{SqrtBox["a"], "+", "b"}]
+  "FormBox":
+    StandardForm:
+      expr: "\\(TraditionalForm \\` a + b\\)"
+      expect: FormBox[RowBox[{"a", "+", "b"}], TraditionalForm]

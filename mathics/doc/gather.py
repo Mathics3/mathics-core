@@ -86,7 +86,7 @@ def gather_reference_part(documentation, title, modules, builtins_by_module):
 def doc_chapter(module, part, builtins_by_module):
     """
     Build documentation structure for a "Chapter" - reference section which
-    might be a Mathics Module.
+    might be a Mathics3 Module.
     """
     # TODO: reformulate me in a way that symbols are always translated to
     # sections, and guide sections do not contain subsections.
@@ -95,6 +95,7 @@ def doc_chapter(module, part, builtins_by_module):
     doc_class = documentation.doc_class if documentation else DocumentationEntry
     title, text = get_module_doc(module)
     chapter = chapter_class(part, title, doc_class(text, title, None))
+    visited = set()
     part.chapters.append(chapter)
 
     assert len(chapter.sections) == 0
@@ -212,7 +213,6 @@ def gather_guides_and_sections(chapter, module, builtins_by_module):
     )
 
     # Loop over submodules
-    docpath = f"/doc/{chapter.part.slug}/{chapter.slug}/"
 
     for sub_module in sorted_modules(submodules(module)):
         if skip_module_doc(sub_module):
@@ -294,7 +294,7 @@ def get_submodule_names(obj) -> list:
     So in this example then, in the list the modules returned for
     Python module `mathics.builtin.colors` would be the
     `mathics.builtin.colors.named_colors` module which contains the
-    definition and docs for the "Named Colors" Mathics Builtin
+    definition and docs for the "Named Colors" Mathics3 Builtin
     Functions.
     """
     modpkgs = []
@@ -327,8 +327,6 @@ def skip_doc(instance, module="") -> bool:
     if not isinstance(module, str):
         module = module.__name__ if module else ""
 
-    if type(instance).__name__.endswith("Box"):
-        return True
     if hasattr(instance, "no_doc") and instance.no_doc:
         return True
 
@@ -357,7 +355,7 @@ def sorted_modules(modules) -> list:
     exists, or the module's name if not."""
     return sorted(
         modules,
-        key=lambda module: module.sort_order
-        if hasattr(module, "sort_order")
-        else module.__name__,
+        key=lambda module: (
+            module.sort_order if hasattr(module, "sort_order") else module.__name__
+        ),
     )

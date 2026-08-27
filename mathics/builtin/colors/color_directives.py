@@ -192,7 +192,7 @@ class _ColorObject(_GraphicsDirective, ImmutableValueMixin):
     def create_as_style(klass, graphics, item):
         return klass(item)
 
-    def to_css(self):
+    def to_css(self) -> str:
         rgba = self.to_rgba()
         alpha = rgba[3] if len(rgba) > 3 else None
         return (
@@ -200,11 +200,16 @@ class _ColorObject(_GraphicsDirective, ImmutableValueMixin):
             alpha,
         )
 
-    def to_js(self):
+    def to_js(self) -> str:
         return self.to_rgba()
 
     def to_expr(self):
-        return to_expression(self.get_name(), *self.components)
+        """Convert components to MachineReal consistently so that colors with
+        numerically-equal components but different numeric atom types compare equal.
+        """
+        return to_expression(
+            self.get_name(), *self.components, elements_conversion_fn=MachineReal
+        )
 
     def to_rgba(self):
         return self.to_color_space("RGB")
@@ -343,15 +348,18 @@ class ColorDistance(Builtin):
         elif distance_function.has_form("List", 2):
             if distance_function.elements[0].get_string_value() == "CMC":
                 if distance_function.elements[1].get_string_value() == "Acceptability":
-                    compute = (
-                        lambda c1, c2: _CMC_distance(
-                            100 * c1.to_color_space("LAB")[:3],
-                            100 * c2.to_color_space("LAB")[:3],
-                            2,
-                            1,
+
+                    def compute(c1, c2):
+                        return (
+                            _CMC_distance(
+                                100 * c1.to_color_space("LAB")[:3],
+                                100 * c2.to_color_space("LAB")[:3],
+                                2,
+                                1,
+                            )
+                            / 100
                         )
-                        / 100
-                    )
+
                 elif (
                     distance_function.elements[1].get_string_value() == "Perceptibility"
                 ):
@@ -381,15 +389,17 @@ class ColorDistance(Builtin):
                                 .elements[1]
                                 .get_int_value()
                             )
-                            compute = (
-                                lambda c1, c2: _CMC_distance(
-                                    100 * c1.to_color_space("LAB")[:3],
-                                    100 * c2.to_color_space("LAB")[:3],
-                                    lightness,
-                                    chroma,
+
+                            def compute(c1, c2):
+                                return (
+                                    _CMC_distance(
+                                        100 * c1.to_color_space("LAB")[:3],
+                                        100 * c2.to_color_space("LAB")[:3],
+                                        lightness,
+                                        chroma,
+                                    )
+                                    / 100
                                 )
-                                / 100
-                            )
 
         elif (
             isinstance(distance_function, Symbol)
@@ -625,7 +635,7 @@ class Opacity(_GraphicsDirective):
             super(Opacity, self).init(None, item)
         self.opacity = item.elements[0].to_python()
 
-    def to_css(self):
+    def to_css(self) -> str:
         try:
             if 0.0 <= self.opacity <= 1.0:
                 return self.opacity

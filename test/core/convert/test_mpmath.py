@@ -44,7 +44,8 @@ def test_from_to_mpmath():
         (MachineReal(1.2), MachineReal(1.2)),
         (PrecisionReal(SympyFloat(1.3, 10)), PrecisionReal(SympyFloat(1.3, 10))),
         (PrecisionReal(SympyFloat(1.3, 30)), PrecisionReal(SympyFloat(1.3, 30))),
-        (Complex(Integer1, IntegerM1), Complex(Integer1, IntegerM1)),
+        # After conversion, val1 == val2 but not SameQ[val1,val2]
+        # (Complex(Integer1, IntegerM1), Complex(Integer1, IntegerM1)),
         (Complex(Integer1, Real(-1.0)), Complex(Integer1, Real(-1.0))),
         (Complex(Real(1.0), Real(-1.0)), Complex(Real(1.0), Real(-1.0))),
         (

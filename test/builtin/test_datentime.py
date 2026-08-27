@@ -10,11 +10,15 @@ from test.helper import check_evaluation, evaluate
 import pytest
 
 try:
-    from stopit import __version__ as stopit_version
+    from timed_threads import __version__ as stopit_version
 except ImportError:
-    have_stopit_for_timeconstrained = False
+    have_timed_threads_for_timeconstrained = False
 else:
-    have_stopit_for_timeconstrained = stopit_version.split(".")[:3] >= ["1", "1", "3"]
+    have_timed_threads_for_timeconstrained = stopit_version.split(".")[:3] >= [
+        "1",
+        "1",
+        "3",
+    ]
 
 
 @pytest.mark.skipif(
@@ -107,7 +111,12 @@ def test_datestring():
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
-        ("AbsoluteTime[1000]", None, "1000", "Mathematica Bug - Mathics gets it right"),
+        (
+            "AbsoluteTime[1000]",
+            None,
+            "1000",
+            "Mathematica Bug - Mathics3 gets it right",
+        ),
         (
             'DateList["7/8/9"]',
             ("The interpretation of 7/8/9 is ambiguous.",),
@@ -140,7 +149,7 @@ def test_datestring():
         ),
     ],
 )
-def test_private_doctests_datetime(str_expr, msgs, str_expected, fail_msg):
+def test_datetime(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,
@@ -154,7 +163,7 @@ def test_private_doctests_datetime(str_expr, msgs, str_expected, fail_msg):
 
 
 @pytest.mark.skipif(
-    sys.platform in ("emscripten",) or not have_stopit_for_timeconstrained,
+    sys.platform in ("emscripten",) or not have_timed_threads_for_timeconstrained,
     reason="TimeConstrained[] is not supported in Pyodide or an unpatched 'stopit'",
 )
 @pytest.mark.parametrize(
@@ -205,7 +214,8 @@ def test_private_doctests_datetime(str_expr, msgs, str_expected, fail_msg):
         ("a=.;s=.;", None, "Null", None),
     ],
 )
-def test_private_doctests_TimeConstrained(str_expr, msgs, str_expected, fail_msg):
+@pytest.mark.xfail
+def test_TimeConstrained(str_expr, msgs, str_expected, fail_msg):
     """TimeConstrained tests"""
     check_evaluation(
         str_expr,

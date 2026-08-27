@@ -64,64 +64,74 @@ class KnownUnitQ(Test):
 
 class Quantity(Builtin):
     """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/Quantity.html</url>
+        <url>
+        :WMA link:
+        https://reference.wolfram.com/language/ref/Quantity.html</url>
 
-    <dl>
-      <dt>'Quantity'[$magnitude$, $unit$]
-      <dd>represents a quantity with size $magnitude$ and unit specified by $unit$.
+        <dl>
+          <dt>'Quantity'[$magnitude$, $unit$]
+          <dd>represents a quantity with size $magnitude$ and unit specified by $unit$.
 
-      <dt>'Quantity'[$unit$]
-      <dd>assumes the magnitude of the specified $unit$ to be 1.
-    </dl>
+          <dt>'Quantity'[$unit$]
+          <dd>assumes the magnitude of the specified $unit$ to be 1.
+        </dl>
 
-    >> Quantity["Kilogram"]
-     = 1 kilogram
+        >> Quantity["Kilogram"]
+         = 1 kilogram
 
-    >> Quantity[10, "Meters"]
-     = 10 meter
+        >> Quantity[10, "Meters"]
+         = 10 meter
 
-    If the first argument is an array, then the unit is distributed on each element
-    >> Quantity[{10, 20}, "Meters"]
-     = {10 meter, 20 meter}
+        If the first argument is an array, then the unit is distributed on each element
+        >> Quantity[{10, 20}, "Meters"]
+         = {10 meter, 20 meter}
 
-    If the second argument is a number, then the expression is evaluated to
-    the product of the magnitude and that number
-    >> Quantity[2, 3/2]
-     = 3
+        If the second argument is a number, then the expression is evaluated to
+        the product of the magnitude and that number
+        >> Quantity[2, 3/2]
+         = 3
 
-    Notice that units are specified as Strings. If the unit is not a Symbol or a Number,
-    the expression is not interpreted as a Quantity object:
+        Notice that units are specified as Strings. If the unit is not a Symbol or a Number,
+        the expression is not interpreted as a Quantity object:
 
-    >> QuantityQ[Quantity[2, Second]]
-     : Unable to interpret unit specification Second.
-     = False
+        >> QuantityQ[Quantity[2, Second]]
+         : Unable to interpret unit specification Second.
+         = False
 
-    Quantities can be multiplied and raised to integer powers:
-    >> Quantity[3, "centimeter"] / Quantity[2, "second"]^2
-     = 3 / 4 centimeter / second ^ 2
+        Quantities can be multiplied and raised to integer powers:
+        >> Quantity[3, "centimeter"] / Quantity[2, "second"]^2
+         = 3 / 4 centimeter / second ^ 2
 
-    ## TODO: Allow to simplify producs:
-    ## >> Quantity[3, "centimeter"] Quantity[2, "meter"]
-    ##  = 600 centimeter ^ 2
+        ## TODO: Allow to simplify producs:
+        ## >> Quantity[3, "centimeter"] Quantity[2, "meter"]
+        ##  = 600 centimeter ^ 2
 
-    Quantities of the same kind can be added:
-    >> Quantity[6, "meter"] + Quantity[3, "centimeter"]
-     = 603 centimeter
+        Quantities of the same kind can be added:
+        >> Quantity[6, "meter"] + Quantity[3, "centimeter"]
+         = 603 centimeter
 
 
-    Quantities of different kind can not:
-    >> Quantity[6, "meter"] + Quantity[3, "second"]
-     : second and meter are incompatible units.
-     = 3 second + 6 meter
+        Quantities of different kind can not:
+        >> Quantity[6, "meter"] + Quantity[3, "second"]
+         : second and meter are incompatible units.
+         = 3 second + 6 meter
 
-    ## TODO: Implement quantities with composed units:
-    ## >> UnitConvert[Quantity[2, "Ampere" * "Second"], "Coulomb"]
-    ## = Quantity[2, Coulomb]
+        ## TODO: Implement quantities with composed units:
+        ## >> UnitConvert[Quantity[2, "Ampere" * "Second"], "Coulomb"]
+        ## = Quantity[2, Coulomb]
+
+        See also <url>
+        :'QuantityQ':
+        /doc/reference-of-built-in-symbols/units-and-quantities
+    /quantityq/</url>.
+
     """
 
     attributes = A_HOLD_REST | A_N_HOLD_REST | A_PROTECTED | A_READ_PROTECTED
+
+    # Set checking that the number of arguments.
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1  # In 14.1 this is (1, 2)
 
     messages = {
         "unkunit": "Unable to interpret unit specification `1`.",
@@ -299,21 +309,26 @@ class QuantityMagnitude(Builtin):
 
 class QuantityQ(Test):
     """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/QuantityQ.html</url>
-    <dl>
-      <dt>'QuantityQ'[$expr$]
-      <dd>return True if $expr$ is a valid Association object, and False otherwise.
-    </dl>
+        <url>
+        :WMA link:
+        https://reference.wolfram.com/language/ref/QuantityQ.html</url>
+        <dl>
+          <dt>'QuantityQ'[$expr$]
+          <dd>return 'True' if $expr$ is a valid <url>:Quantity:/doc/reference-of-built-in-symbols/units-and-quantities
+    /quantity/</url> with valid arguments, and 'False' otherwise.
+        </dl>
 
-    >> QuantityQ[Quantity[3, "Meters"]]
-     = True
+        >> QuantityQ[Quantity[3, "Meters"]]
+         = True
 
-    >> QuantityQ[Quantity[3, "Maters"]]
-     : Unable to interpret unit specification Maters.
-     = False
+        >> QuantityQ[Quantity[3, "Maters"]]
+         : Unable to interpret unit specification Maters.
+         = False
     """
+
+    # Set checking that the number of arguments required is one.
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
 
     summary_text = "tests whether its the argument is a quantity"
 

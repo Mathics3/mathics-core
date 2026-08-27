@@ -1,5 +1,3 @@
-import test.helper
-
 import pytest
 from sympy import Float as SympyFloat
 
@@ -19,6 +17,7 @@ from mathics.core.atoms import (
 from mathics.core.convert.sympy import from_sympy, sympy_singleton_to_mathics
 from mathics.core.expression import Expression
 from mathics.core.expression_predefined import MATHICS3_COMPLEX_INFINITY
+from mathics.core.load_builtin import import_and_load_builtins
 from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
@@ -27,6 +26,27 @@ from mathics.core.symbols import (
     SymbolPower,
     SymbolTimes,
     SymbolTrue,
+)
+from mathics.core.systemsymbols import SymbolE, SymbolExp, SymbolI, SymbolPi, SymbolSin
+
+# We need to populate mathics_to_sympy and sympy_to_mathics
+import_and_load_builtins()
+
+Symbol_a = Symbol("Global`a")
+Symbol_b = Symbol("Global`b")
+Symbol_x = Symbol("Global`x")
+Symbol_y = Symbol("Global`y")
+Symbol_F = Symbol("Global`F")
+Symbol_G = Symbol("Global`G")
+
+from mathics.core.expression import Expression
+from mathics.core.expression_predefined import MATHICS3_COMPLEX_INFINITY
+from mathics.core.symbols import (
+    Symbol,
+    SymbolNull,
+    SymbolPlus,
+    SymbolPower,
+    SymbolTimes,
 )
 from mathics.core.systemsymbols import SymbolE, SymbolExp, SymbolI, SymbolPi, SymbolSin
 
@@ -62,13 +82,13 @@ def test_from_to_sympy_invariant(expr):
     Check if the conversion back and forward is consistent.
     """
     result_sympy = expr.to_sympy()
-    back_to_mathics = from_sympy(result_sympy)
-    print([expr, result_sympy, back_to_mathics])
-    assert expr.sameQ(back_to_mathics)
+    back_to_mathics3 = from_sympy(result_sympy)
+    print([expr, result_sympy, back_to_mathics3])
+    assert expr.sameQ(back_to_mathics3), f"SameQ({expr}, {back_to_mathics3}) fails"
 
 
 @pytest.mark.parametrize(
-    ("expr", "result", "msg"),
+    ("expr", "mathics3", "assert_msg"),
     [
         (
             Expression(SymbolExp, Expression(SymbolTimes, SymbolI, SymbolPi)),
@@ -98,22 +118,23 @@ def test_from_to_sympy_invariant(expr):
         # (Integer3**Rational(-1, 2), Rational(Integer1, Integer3)* (Integer3 ** (RationalOneHalf)), None ),
     ],
 )
-def test_from_to_sympy_change(expr, result, msg):
+def test_from_to_sympy_change(expr, mathics3, assert_msg):
     """
     Check if the conversion back and forward produces
     the expected evaluation.
     """
-    print([expr, result])
-    if msg:
-        assert result.sameQ(from_sympy(expr.to_sympy())), msg
+    print([expr, mathics3])
+
+    if assert_msg:
+        assert mathics3.sameQ(from_sympy(expr.to_sympy())), assert_msg
     else:
-        assert result.sameQ(from_sympy(expr.to_sympy()))
+        assert mathics3.sameQ(from_sympy(expr.to_sympy()))
 
 
 def test_convert_sympy_singletons():
     """
     Check conversions between singleton symbols in
-    SymPy and Mathics Symbols.
+    SymPy and Mathics3 Symbols.
     """
     for key, val in sympy_singleton_to_mathics.items():
         print("equivalence", key, "<->", val)
@@ -125,3 +146,6 @@ def test_convert_sympy_singletons():
             res = val.to_sympy()
             print(res, "  <-  ")
             assert res is key
+
+
+# Import your function here...

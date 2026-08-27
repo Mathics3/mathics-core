@@ -1,19 +1,20 @@
 """
 Base classes for Image Manipulation
 """
+
 from typing import Tuple
 
 import numpy
 import PIL.Image
 
-from mathics.builtin.box.image import ImageBox
+from mathics.builtin.box.image import RasterBox
 from mathics.builtin.colors.color_internals import convert_color
-from mathics.core.atoms import Atom
 from mathics.core.builtin import AtomBuiltin, String
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.keycomparable import IMAGE_EXPRESSION_SORT_KEY
+from mathics.core.keycomparable import IMAGE_EXPRESSION_ELT_ORDER
 from mathics.core.list import ListExpression
+from mathics.core.symbols import Atom
 from mathics.core.systemsymbols import SymbolImage, SymbolRule
 from mathics.eval.image import image_pixels, pixels_as_float, pixels_as_ubyte
 
@@ -31,7 +32,7 @@ class Image(Atom):
     class_head_name = "System`Image"
 
     # FIXME: pixels should be optional if pillow is provided.
-    def __init__(self, pixels, color_space, pillow=None, metadata={}, **kwargs):
+    def __init__(self, pixels, color_space: str, pillow=None, metadata={}, **kwargs):
         super(Image, self).__init__(**kwargs)
 
         if pillow is not None:
@@ -64,11 +65,11 @@ class Image(Atom):
             )
         )
 
-    def atom_to_boxes(self, form, evaluation: Evaluation) -> ImageBox:
+    def atom_to_boxes(self, form, evaluation: Evaluation) -> RasterBox:
         """
         Converts our internal Image object into a PNG base64-encoded.
         """
-        return ImageBox(self)
+        return RasterBox(self)
 
     # __hash__ is defined so that we can store Number-derived objects
     # in a set or dictionary.
@@ -78,7 +79,7 @@ class Image(Atom):
     def __str__(self):
         return "-Image-"
 
-    def color_convert(self, to_color_space, preserve_alpha=True):
+    def color_convert(self, to_color_space: str, preserve_alpha=True):
         if to_color_space == self.color_space and preserve_alpha:
             return self
         else:
@@ -93,7 +94,7 @@ class Image(Atom):
     def channels(self):
         return self.pixels.shape[2]
 
-    def default_format(self, evaluation, form):
+    def default_format(self, evaluation, form) -> str:
         return "-Image-"
 
     def dimensions(self) -> Tuple[int, int]:
@@ -122,7 +123,7 @@ class Image(Atom):
         # and adding two extra fields: the length in the 5th position,
         # and a hash in the 6th place.
         return (
-            IMAGE_EXPRESSION_SORT_KEY,
+            IMAGE_EXPRESSION_ELT_ORDER,
             SymbolImage,
             len(self.pixels),
             tuple(),
@@ -194,7 +195,7 @@ class Image(Atom):
         )
 
     def sameQ(self, other) -> bool:
-        """Mathics SameQ"""
+        """Mathics3 SameQ"""
         if not isinstance(other, Image):
             return False
         if self.color_space != other.color_space or self.metadata != other.metadata:
@@ -211,7 +212,7 @@ class Image(Atom):
             return "Bit16"
         elif dtype == numpy.uint8:
             return "Byte"
-        elif dtype == bool:
+        elif dtype == numpy.bool:
             return "Bit"
         else:
             return str(dtype)

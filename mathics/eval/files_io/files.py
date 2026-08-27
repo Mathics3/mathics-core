@@ -3,8 +3,10 @@
 File related evaluation functions.
 """
 
+import atexit
 import os
-from typing import Callable, Literal, Optional
+import tempfile
+from typing import Callable, Literal, Optional, Sequence
 
 from mathics_scanner.errors import (
     IncompleteSyntaxError,
@@ -15,13 +17,14 @@ from mathics_scanner.location import ContainerKind
 
 import mathics
 import mathics.core.parser
-import mathics.core.streams
+import mathics.core.streams as streams
 from mathics.core.atoms import Integer, String
-from mathics.core.builtin import MessageException
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
+from mathics.core.exceptions import MessageException
 from mathics.core.expression import BaseElement, Expression
+from mathics.core.interrupt import AbortInterrupt
 from mathics.core.parser import MathicsFileLineFeeder, MathicsMultiLineFeeder
 from mathics.core.parser.util import parse_incrementally_by_line
 from mathics.core.streams import path_search, stream_manager
@@ -39,14 +42,14 @@ from mathics.core.systemsymbols import (
 from mathics.core.util import canonic_filename
 from mathics.eval.files_io.read import (
     READ_TYPES,
-    MathicsOpen,
+    Mathics3Open,
     close_stream,
     read_from_stream,
     read_get_separators,
 )
 
 # Python representation of $InputFileName.  On Windows platforms, we
-# canonicalize this to its Posix equivalent name.
+# canonicalize this to its POSIX equivalent name.
 # FIXME: Remove this as a module-level variable and instead
 #        define it in a session definitions object.
 #        With this, multiple sessions will have separate
@@ -54,6 +57,48 @@ from mathics.eval.files_io.read import (
 INPUT_VAR: str = ""
 
 DEFAULT_TRACE_FN: Literal[None] = None
+
+
+def create_temp_file_with_extension(data: str, file_extension: str) -> str:
+    """
+    Writes data to a temporary file with a specific extension.
+    The file is closed immediately so it can be read by other processes.
+    It is automatically deleted when the program exits.
+
+    Parameters:
+        data (str): The text content to write into the file.
+        file_extension (str): The extension (e.g., 'json', 'html', 'md').
+                              The file extension will have "." added to
+                              the beginning.
+    Returns:
+        str: The absolute file path to the created temporary file.
+    """
+    # Ensure the extension starts with a dot
+    file_extension = "." + file_extension
+
+    # Create a secure temporary file with the desired extension.
+    # delete=False prevents Python from destroying it the moment we close the handle.
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=file_extension, delete=False, encoding="utf-8"
+    ) as temp_file:
+        temp_file.write(data)
+        temp_path = temp_file.name
+
+    # Register a cleanup hook to delete the file when the Python process terminates
+    def cleanup_temp_file():
+        try:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+        except OSError:
+            # Handle cases where the file was already deleted or is locked
+            pass
+
+    atexit.register(cleanup_temp_file)
+
+    # Return the path so your program can use or read it
+    if os.path.sep == "\\":
+        return temp_path.replace("\\", "/")
+    return temp_path
 
 
 def print_line_number_and_text(line_number: int, text: str):
@@ -118,14 +163,21 @@ def eval_Close(obj, evaluation: Evaluation):
 
 
 def eval_Get(
-    path: str, evaluation: Evaluation, trace_fn: Optional[Callable] = DEFAULT_TRACE_FN
+    path: str,
+    evaluation: Evaluation,
+    encoding: str,
+    trace_fn: Optional[Callable] = DEFAULT_TRACE_FN,
+    path_directories: Optional[Sequence[str]] = None,
 ):
     """
     Reads a file and evaluates each expression, returning only the last one.
     """
-
-    path = canonic_filename(path)
     result = None
+    if path_directories is None:
+        path_directories = tuple(streams.PATH_VAR)
+    resolved_path, _ = path_search(path, path_directories)
+    if resolved_path is None:
+        resolved_path = path
     definitions = evaluation.definitions
 
     # Wrap actual evaluation to handle setting $Input
@@ -137,16 +189,19 @@ def eval_Get(
     outer_inputfile = definitions.get_inputfile()
 
     # Set a new input path.
-    INPUT_VAR = path
+    INPUT_VAR = resolved_path
     definitions.set_inputfile(INPUT_VAR)
 
-    mathics.core.streams.PATH_VAR = SymbolPath.evaluate(evaluation).to_python(
-        string_quotes=False
-    )
+    # Save old PATH_VAR in case it gets changed in running Get?
+    # This seems to be needed, but not 100% sure there isn't
+    # a better and more robust way.
+    old_streams_path_var = streams.PATH_VAR
+    streams.PATH_VAR = SymbolPath.evaluate(evaluation).to_python(string_quotes=False)
+
     if trace_fn is not None:
-        trace_fn(0, path + "\n")
+        trace_fn(0, resolved_path + "\n")
     try:
-        with MathicsOpen(path, "r") as f:
+        with Mathics3Open(resolved_path, "r", encoding=encoding) as f:
             feeder = MathicsFileLineFeeder(f, trace_fn)
             while not feeder.empty():
                 try:
@@ -159,18 +214,22 @@ def eval_Get(
                     feeder.send_messages(evaluation)
                 if query is None:  # blank line / comment
                     continue
-                result = query.evaluate(evaluation)
+                try:
+                    result = query.evaluate(evaluation)
+                except AbortInterrupt:
+                    continue
+                except MessageException as e:
+                    e.message(evaluation)
+                    continue
     except IOError:
         evaluation.message("Get", "noopen", path)
-        return SymbolFailed
-    except MessageException as e:
-        e.message(evaluation)
         return SymbolFailed
     finally:
         # Whether we had an exception or not, restore the input path
         # and the state of definitions prior to calling Get.
         INPUT_VAR = outer_input_var
         definitions.set_inputfile(outer_inputfile)
+        streams.PATH_VAR = old_streams_path_var
     return result
 
 
@@ -181,17 +240,12 @@ def eval_Open(
     encoding: Optional[str],
     evaluation: Evaluation,
 ):
-    path = name.value
-    tmp, is_temporary_file = path_search(path)
-    if tmp is None:
-        if mode in ["r", "rb"]:
-            evaluation.message("General", "noopen", name)
-            return SymbolFailed
-    else:
-        path = tmp
+    path, is_temporary_file = resolve_file(name, mode, evaluation)
+    if path is None:
+        return SymbolFailed
 
     try:
-        opener = MathicsOpen(
+        opener = Mathics3Open(
             path,
             mode=mode,
             name=name.value,
@@ -285,8 +339,9 @@ def eval_Read(
                         except EOFError:
                             expr = SymbolEndOfFile
                             break
-                    except Exception as e:
-                        print(e)
+                    except Exception:
+                        expr = SymbolEndOfFile
+                        break
 
                 if expr is None:
                     result.append(None)
@@ -372,3 +427,25 @@ def eval_Read(
                     return Expression(SymbolHold, from_python(result))
 
     return from_python(result)
+
+
+def resolve_file(name: String, mode: str, evaluation: Evaluation) -> Optional[str]:
+    """Resolve 'name' using `path_search` and returned the resolved name as the first
+    item of a tuple.
+
+    If "mode" a write mode, then the file does not have to exist beforehand.
+    In some cases `path_search()` will decide that a temporary file is to be
+    created. In this case that fact will be reflected by returning True as the
+    second item of the tuple.
+
+    If we can't open the file, we emit a "noopen" message.
+    """
+    path = name.value
+    resolved_path, is_temporary_file = path_search(path)
+    if resolved_path is None:
+        if mode in ["r", "rb"]:
+            evaluation.message("General", "noopen", name)
+            return None, False
+        resolved_path = path
+
+    return resolved_path, is_temporary_file

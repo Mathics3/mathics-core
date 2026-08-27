@@ -3,9 +3,7 @@
 Unit tests from mathics.builtin.vectors.vector_space_operations.
 """
 
-import sys
-import time
-from test.helper import check_evaluation, evaluate
+from test.helper import check_evaluation
 
 import pytest
 
@@ -19,9 +17,7 @@ import pytest
         ("VectorAngle[{0, 1}, {0, 1}]", None, "0", None),
     ],
 )
-def test_private_doctests_vector_space_operations(
-    str_expr, msgs, str_expected, fail_msg
-):
+def test_vector_space_operations(str_expr, msgs, str_expected, fail_msg):
     """ """
     check_evaluation(
         str_expr,

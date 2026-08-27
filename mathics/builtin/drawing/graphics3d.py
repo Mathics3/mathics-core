@@ -6,17 +6,13 @@ Functions for working with 3D graphics.
 """
 
 from mathics.builtin.colors.color_directives import RGBColor
-from mathics.builtin.graphics import (
-    CoordinatesError,
-    Graphics,
-    Style,
-    _GraphicsElements,
-)
+from mathics.builtin.graphics import Graphics
 from mathics.core.atoms import Integer, Rational, Real
 from mathics.core.builtin import Builtin
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.symbols import SymbolN
 from mathics.eval.nevaluator import eval_N
+from mathics.format.box.graphics import CoordinatesError, Style, _GraphicsElements
 
 # This tells documentation how to sort this module
 # Here we are also hiding "drawing" since this erroneously appears at the top level.
@@ -70,7 +66,7 @@ class Graphics3D(Graphics):
           <dd>represents a three-dimensional graphic.
 
           See <url>:Drawing Option and Option Values:
-    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    /doc/reference-of-built-in-symbols/plotting-graphing-and-drawing/drawing-options-and-option-values
     </url> for a list of Plot options.
         </dl>
 
@@ -107,20 +103,39 @@ class Graphics3D(Graphics):
          . draw(((1,1,-1)--(1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
          . \end{asy}
     """
+
     summary_text = "a three-dimensional graphics image wrapper"
     options = Graphics.options.copy()
     options.update(
-        {"BoxRatios": "Automatic", "Lighting": "Automatic", "ViewPoint": "{1.3,-2.4,2}"}
+        {
+            "AxesEdge": "Automatic",
+            "BoxRatios": "Automatic",
+            "BoxStyle": "{}",
+            "Boxed": "True",
+            "ClipPlanes": "None",
+            "ClipPlanesStyle": "Automatic",
+            "ControllerLinking": "False",
+            "ControllerPath": "Automatic",
+            "FaceGrids": "None",
+            "FaceGridsStyle": "{}",
+            "Lighting": "Automatic",
+            "RotationAction": "Fit",
+            "SphericalRegion": "Automatic",
+            "TouchscreenAutoZoom": "False",
+            "ViewAngle": "Automatic",
+            "ViewCenter": "Automatic",
+            "ViewMatrix": "Automatic",
+            "ViewPoint": "{1.3,-2.4,2.}",
+            "ViewProjection": "Automatic",
+            "ViewRange": "All",
+            "ViewVector": "Automatic",
+            "ViewVertical": "{0,0,1}",
+        }
     )
 
     box_suffix = "3DBox"
 
     messages = {"invlight": "`1` is not a valid list of light sources."}
-
-    rules = {
-        "MakeBoxes[Graphics3D[content_, OptionsPattern[Graphics3D]], "
-        "        OutputForm]": '"-Graphics3D-"'
-    }
 
 
 def total_extent_3d(extents):
@@ -149,11 +164,9 @@ class Graphics3DElements(_GraphicsElements):
     def __init__(self, content, evaluation, neg_y=False):
         super(Graphics3DElements, self).__init__(content, evaluation)
         self.neg_y = neg_y
-        self.xmin = (
-            self.ymin
-        ) = (
-            self.pixel_width
-        ) = self.pixel_height = self.extent_width = self.extent_height = None
+        self.xmin = self.ymin = self.pixel_width = self.pixel_height = (
+            self.extent_width
+        ) = self.extent_height = None
         self.view_width = None
         self.content = content
 

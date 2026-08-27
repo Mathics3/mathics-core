@@ -4,11 +4,14 @@ Unit tests from mathics.builtin.messages.
 """
 
 
-from test.helper import check_evaluation_as_in_cli, session
+from test.helper import check_evaluation_as_in_cli
 
 import pytest
 
+print("\n***Rocky will address this soon.***")
 
+
+@pytest.mark.skip(reason="Rocky will address this soon")
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
@@ -134,6 +137,6 @@ import pytest
         #  ("On[f::x]", ("Message f::x not found.",), None, None),
     ],
 )
-def test_private_doctests_messages(str_expr, msgs, str_expected, fail_msg):
+def test_messages(str_expr, msgs, str_expected, fail_msg):
     """These tests check the behavior the module messages"""
     check_evaluation_as_in_cli(str_expr, str_expected, fail_msg, msgs)

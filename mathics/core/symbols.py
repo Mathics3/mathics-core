@@ -1,23 +1,20 @@
 # cython: language_level=3
 # -*- coding: utf-8 -*-
 
-from typing import TYPE_CHECKING, Any, Dict, FrozenSet, List, Optional, Sequence, Union
+import sys
+from typing import TYPE_CHECKING, Any, FrozenSet, Optional, Sequence, Union, cast
 
-from mathics.core.element import (
-    BaseElement,
-    EvalMixin,
-    ensure_context,
-    fully_qualified_symbol_name,
-)
+from mathics.core.element import BaseElement, EvalMixin, ensure_context
 
 if TYPE_CHECKING:
     from mathics.core.atoms import String
 
 from mathics.core.keycomparable import (
     BASIC_ATOM_PATTERN_SORT_KEY,
-    BASIC_EXPRESSION_SORT_KEY,
-    BASIC_NUMERIC_EXPRESSION_SORT_KEY,
+    BASIC_EXPRESSION_ELT_ORDER,
+    BASIC_NUMERIC_EXPRESSION_ELT_ORDER,
     Monomial,
+    wma_str_sort_key,
 )
 from mathics.eval.tracing import trace_evaluate
 
@@ -28,8 +25,8 @@ from mathics.eval.tracing import trace_evaluate
 # keep variable names short.  In tracing values, long names makes
 # output messy and harder to follow, since it detracts from the
 # important information
-sympy_symbol_prefix = "_u"
-sympy_slot_prefix = "_#"
+SYMPY_SYMBOL_PREFIX = "_u"
+SYMPY_SLOT_PREFIX = "_#"
 
 
 class NumericOperators:
@@ -38,7 +35,7 @@ class NumericOperators:
     It adds or "mixes in" numeric functions for these objects like ``round_to_float()``.
 
     It also adds methods to the class to facilite building
-    ``Expression`` s in the Mathics Python code using Python syntax.
+    ``Expression`` s in the Mathics3 Python code using Python syntax.
 
     So for example, instead of writing in Python::
 
@@ -108,6 +105,26 @@ class NumericOperators:
         return None
 
 
+def strip_context(name) -> str:
+    """strip context from a symbol name"""
+    if "`" in name:
+        return name[name.rindex("`") + 1 :]
+    return name
+
+
+def sympy_strip_context(name) -> str:
+    """
+    Strip context from sympy names.
+    Currenty we use the same context marks for
+    mathics and sympy symbols. However,
+    when using sympy to compile code,
+    having '`' in symbol names
+    produce invalid code. In a next round, we would like
+    to use another character for split contexts in sympy variables.
+    """
+    return name.split("_")[-1]
+
+
 # system_symbols_dict({'SomeSymbol': ...}) -> {Symbol('System`SomeSymbol'): ...}
 def system_symbols_dict(d):
     return {Symbol(k): v for k, v in d.items()}
@@ -122,12 +139,6 @@ def valid_context_name(ctx, allow_initial_backquote=False) -> bool:
     )
 
 
-def strip_context(name) -> str:
-    if "`" in name:
-        return name[name.rindex("`") + 1 :]
-    return name
-
-
 class Atom(BaseElement):
     """
     Atoms are the (some) leaves and the Heads of an S-Expression or an M-Expression.
@@ -135,7 +146,7 @@ class Atom(BaseElement):
     In other words, they are the expression's elements (leaves of the
     expression) which we cannot dig down deeper structurally.
 
-    Of note is the fact that the Mathics ``Part[]`` function of an
+    Of note is the fact that the Mathics3 ``Part[]`` function of an
     Atom object does not exist.
 
     Atom is not a directly-mentioned WL entity, although conceptually
@@ -167,7 +178,7 @@ class Atom(BaseElement):
         return result
 
     def equal2(self, rhs: Any) -> Optional[bool]:
-        """Mathics two-argument Equal (==)
+        """Mathics3 two-argument Equal (==)
         returns True if self and rhs are identical.
         """
         if self.sameQ(rhs):
@@ -186,7 +197,7 @@ class Atom(BaseElement):
     def get_atom_name(self) -> str:
         return self.__class__.__name__
 
-    def get_atoms(self, include_heads=True) -> List["Atom"]:
+    def get_atoms(self, include_heads=True) -> list["Atom"]:
         return [self]
 
     # We seem to need this because the caller doesn't distinguish
@@ -214,6 +225,13 @@ class Atom(BaseElement):
     #              allow_symbols ))
     #        1/0
     #        return None if stop_on_error else {}
+
+    def get_lookup_name(self) -> str:
+        """
+        By default, atoms that are not symbols
+        have their class head_names as their lookup names.
+        """
+        return self.class_head_name
 
     @property
     def element_order(self) -> tuple:
@@ -274,11 +292,10 @@ class Atom(BaseElement):
 
     def replace_vars(
         self,
-        vars: Dict[str, BaseElement],
+        vars: dict[str, BaseElement],
         options=None,
-        in_scoping=True,
         in_function=True,
-    ) -> "Atom":
+    ) -> BaseElement:
         return self
 
     def replace_slots(self, slots, evaluation) -> "Atom":
@@ -320,20 +337,19 @@ class Symbol(Atom, NumericOperators, EvalMixin):
 
     name: str
     hash: int
-    sympy_dummy: Any
     _short_name: str
 
     # Dictionary of Symbols defined so far.
     # We use this for object uniqueness.
     # The key is the Symbol object's string name, and the
-    # diectionary's value is the Mathics object for the Symbol.
-    _symbols: Dict[str, "Symbol"] = {}
+    # diectionary's value is the Mathics3 object for the Symbol.
+    _symbols: dict[str, "Symbol"] = {}
 
     class_head_name = "System`Symbol"
 
     # __new__ instead of __init__ is used here because we want
     # to return the same object for a given "name" value.
-    def __new__(cls, name: str, sympy_dummy=None):
+    def __new__(cls, name: str):
         """
         Allocate an object ensuring that for a given ``name`` and ``cls`` we get back the same object,
         id(object) is the same and its object.__hash__() is the same.
@@ -349,8 +365,10 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         self = cls._symbols.get(name)
 
         if self is None:
+
             self = super().__new__(cls)
             self.name = name
+            self.sympy = None
 
             # Cache object so we don't allocate again.
             cls._symbols[name] = self
@@ -361,20 +379,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             # Python objects, so we include the class in the
             # event that different objects have the same Python value.
             # For example, this can happen with String constants.
-
             self.hash = hash((cls, name))
-
-            # TODO: revise how we convert sympy.Dummy
-            # symbols.
-            #
-            # In some cases, SymPy returns a sympy.Dummy
-            # object. It is converted to Mathics as a
-            # Symbol. However, we probably should have
-            # a different class for this kind of symbols.
-            # Also, sympy_dummy should be stored as the
-            # value attribute.
-            self.sympy_dummy = sympy_dummy
-
             self._short_name = strip_context(name)
 
         return self
@@ -383,7 +388,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         return self is other
 
     def __getnewargs__(self):
-        return (self.name, self.sympy_dummy)
+        return (self.name,)
 
     def __hash__(self) -> int:
         """
@@ -409,7 +414,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         return Symbol(self.name)
 
     def equal2(self, rhs: Any) -> Optional[bool]:
-        """Mathics two-argument Equal (==)"""
+        """Mathics3 two-argument Equal (==)"""
 
         if self is rhs:
             return True
@@ -434,6 +439,23 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             if result is not None and not result.sameQ(self):
                 if result.is_literal:
                     return result
+
+                # We will be using $IterationLimit, not $RecursionLimit below
+                # to catch symbolic looping rewrite expansions.
+                # We do this to model Mathematica behavior more closely.
+                limit = (
+                    evaluation.definitions.get_config_value("$IterationLimit")
+                    or sys.maxsize
+                )
+                if limit is None:
+                    limit = sys.maxsize
+                if limit != sys.maxsize and evaluation.iteration_count > limit:
+                    evaluation.error("$IterationLimit", "itlim", limit)
+                    from mathics.core.systemsymbols import SymbolAborted
+
+                    return SymbolAborted
+                evaluation.iteration_count += 1
+
                 return result.evaluate(evaluation)
         return self
 
@@ -442,6 +464,12 @@ class Symbol(Atom, NumericOperators, EvalMixin):
 
     def get_head_name(self) -> str:
         return "System`Symbol"
+
+    def get_lookup_name(self) -> str:
+        """
+        The lookup name of a Symbol is its name.
+        """
+        return self.get_name()
 
     def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
         """
@@ -525,15 +553,17 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         Return a tuple value that is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
+        name = self.name
+        name_key = wma_str_sort_key(name)
         return (
             (
-                BASIC_NUMERIC_EXPRESSION_SORT_KEY
+                BASIC_NUMERIC_EXPRESSION_ELT_ORDER
                 if self.is_numeric()
-                else BASIC_EXPRESSION_SORT_KEY
+                else BASIC_EXPRESSION_ELT_ORDER
             ),
-            Monomial({self.name: 1}),
+            Monomial({name_key: 1}),
             0,
-            self.name,
+            name,
             1,
         )
 
@@ -545,16 +575,15 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         """
         return super(Symbol, self).pattern_precedence
 
-    def replace_vars(self, vars, options={}, in_scoping=True):
-        assert all(fully_qualified_symbol_name(v) for v in vars)
-        var = vars.get(self.name, None)
-        if var is None:
-            return self
-        else:
-            return var
+    def replace_vars(
+        self, vars: dict[str, BaseElement], options={}, in_function=True
+    ) -> BaseElement:
+        # The assert below is a performance hit when there are lots of variables.
+        # assert all(fully_qualified_symbol_name(v) for v in vars)
+        return vars.get(self.name, self)
 
     def sameQ(self, rhs: Any) -> bool:
-        """Mathics SameQ"""
+        """Mathics3 SameQ"""
         return self is rhs
 
     @property
@@ -565,48 +594,40 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     def user_hash(self, update) -> None:
         update(b"System`Symbol>" + self.name.encode("utf8"))
 
-    def to_python(self, *args, python_form: bool = False, **kwargs):
-        if self is SymbolTrue:
-            return True
-        if self is SymbolFalse:
-            return False
-        if self is SymbolNull:
-            return None
-
-        # This was introduced before `mathics.eval.nevaluator.eval_N`
-        # provided a simple way to convert an expression into a number.
-        # Now it makes this routine harder to describe.
-        n_evaluation = kwargs.get("n_evaluation")
-        if n_evaluation is not None:
-            import warnings
-
-            warnings.warn(
-                "use instead ``eval_N(obj, evaluation).to_python()``",
-                DeprecationWarning,
-            )
-
-            from mathics.eval.nevaluator import eval_N
-
-            value = eval_N(self, n_evaluation)
-            if value is not self and value is not None:
-                return value.to_python()
+    def to_python(self, *_, __: bool = False, **kwargs):
+        match self:
+            case _ if self is SymbolTrue:
+                return True
+            case _ if self is SymbolFalse:
+                return False
+            case _ if self is SymbolNull:
+                return None
 
         # For general symbols, the default behaviour is
         # to return a 'str'. The reason seems to be
         # that native (builtin) Python types
         # are better for being used as keys in
         # dictionaries.
-        return self.name
+        # Rocky: I doubt this is still true in modern Python.
+        # And if it is, I suspect it is because of a deeper
+        # failure in the code or its design.
+        if kwargs.get("preserve_symbols", False):
+            return self
+        else:
+            return self.name
 
     def to_sympy(self, **kwargs):
         from mathics.core.convert.sympy import symbol_to_sympy
 
-        return symbol_to_sympy(self, **kwargs)
+        if self.sympy is not None:
+            return self.sympy
+        self.sympy = symbol_to_sympy(self, **kwargs)
+        return self.sympy
 
 
 class SymbolConstant(Symbol):
     """
-    A Symbol Constant is Symbol of the Mathics system whose value can't
+    A Symbol Constant is Symbol of the Mathics3 system whose value can't
     be changed and has a corresponding Python representation.
 
     Therefore, like an ``Integer`` constant such as ``Integer0``, we don't
@@ -632,8 +653,8 @@ class SymbolConstant(Symbol):
     # Dictionary of SymbolConstants defined so far.
     # We use this for object uniqueness.
     # The key is the SymbolConstant's value, and the
-    # diectionary's value is the Mathics object representing that Python value.
-    _symbol_constants: Dict[str, "SymbolConstant"] = {}
+    # diectionary's value is the Mathics3 object representing that Python value.
+    _symbol_constants: dict[str, "SymbolConstant"] = {}
 
     # We use __new__ here to unsure that two Integer's that have the same value
     # return the same object.
@@ -657,6 +678,9 @@ class SymbolConstant(Symbol):
             # event that different objects have the same Python value
             self.hash = hash((cls, name))
         return self
+
+    def __getnewargs__(self):
+        return (self.name, self._value)
 
     @property
     def is_literal(self) -> bool:
@@ -714,6 +738,11 @@ def symbol_set(*symbols: Symbol) -> FrozenSet[Symbol]:
     return frozenset(symbols)
 
 
+def sympy_name(mathics_symbol: Symbol):
+    """Convert a mathics symbol name into a sympy symbol name"""
+    return SYMPY_SYMBOL_PREFIX + mathics_symbol.name.replace("`", "_")
+
+
 # Symbols used in this module.
 
 # Note, below we are only setting SymbolConstant for Symbols which
@@ -725,13 +754,20 @@ def symbol_set(*symbols: Symbol) -> FrozenSet[Symbol]:
 # show that this does not change the output in any way.
 #
 # That said, for now we will proceed very conservatively and
-# cautiously. However we may decide in the future to
+# cautiously. However, we may decide in the future to
 # more of the below and in systemsymbols
 # PredefineSymbol.
 
-SymbolFalse = BooleanType("System`False", value=False)
+# Note getting all checkers to agree is a nightmare.
+# Without that cast, some checkers complain in the *use* of SymbolFalse, that
+# there is a type mismatch because the Boolean __new__ seems to produce
+# BooleanType | Symbol | SymbolConstant rather that Boolean type.
+# But then without the ignore "# type", other checkers complain
+# that the cast is unnecessary!
+
+SymbolFalse = cast(BooleanType, BooleanType("System`False", value=False))  # type: ignore
 SymbolList = SymbolConstant("System`List", value=list)
-SymbolTrue = BooleanType("System`True", value=True)
+SymbolTrue = cast(BooleanType, BooleanType("System`True", value=True))  # type: ignore
 
 SymbolAbs = Symbol("Abs")
 SymbolDivide = Symbol("Divide")

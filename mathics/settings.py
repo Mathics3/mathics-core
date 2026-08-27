@@ -4,6 +4,7 @@ Mathics3 global system settings.
 
 Some of the values can be adjusted via Environment Variables.
 """
+
 import os
 import os.path as osp
 import sys
@@ -58,7 +59,7 @@ else:
 USER_PACKAGE_DIR = osp.join(DATA_DIR, "Packages")
 
 # In contrast to ROOT_DIR, LOCAL_ROOT_DIR is used in building
-# LaTeX documentation. When Mathics is installed, we don't want LaTeX file documentation.tex
+# LaTeX documentation. When Mathics3 is installed, we don't want LaTeX file documentation.tex
 # to get put in the installation directory, but instead we build documentation
 # from checked-out source and that is where this should be put.
 LOCAL_ROOT_DIR = get_srcdir()
@@ -80,7 +81,7 @@ DOCTEST_LATEX_DATA_PCL = os.environ.get(
 
 DOCTEST_SYSTEM_LATEX_DATA_PCL = os.environ.get(
     "DOCTEST_SYSTEM_LATEX_DATA_PCL",
-    osp.join(LOCAL_ROOT_DIR, "data", "doctest_latex_data.pcl"),
+    osp.join(LOCAL_ROOT_DIR, "Data", "doctest_latex_data.pcl"),
 )
 
 DOC_DIR = osp.join(LOCAL_ROOT_DIR, "doc", "documentation")
@@ -93,6 +94,23 @@ TIME_12HOUR = False
 # Leave this True unless you have specific reason for not permitting
 # users to access local files.
 ENABLE_FILES_MODULE = True
+
+# Leave this True unless you have specific reason for not permitting
+# users to execute system commands.
+# If MATHICS3_SANDBOX environment variable is set, this defaults to False.
+ENABLE_SYSTEM_COMMANDS = (
+    os.environ.get(
+        "MATHICS3_ENABLE_SYSTEM_COMMANDS",
+        str(
+            not (
+                os.environ.get("MATHICS3_SANDBOX")
+                or sys.platform in ("emscripten", "wasi")
+            )
+        ),
+    ).lower()
+    == "true"
+)
+
 
 # Rocky: this is probably a hack. LoadModule[] needs to handle
 # whatever it is that setting this thing did.

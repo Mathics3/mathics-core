@@ -1,0 +1,607 @@
+"""
+Symbol Properties
+"""
+
+from typing import Callable, Optional
+
+from mathics_scanner.tokeniser import NAMES_WILDCARDS
+
+from mathics.core.atoms import String
+from mathics.core.attributes import (
+    A_HOLD_ALL,
+    A_HOLD_FIRST,
+    A_PROTECTED,
+    A_READ_PROTECTED,
+    attributes_bitset_to_list,
+)
+from mathics.core.builtin import Builtin, PrefixOperator, Test
+from mathics.core.convert.expression import to_mathics_list
+from mathics.core.element import BaseElement
+from mathics.core.evaluation import Evaluation
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
+from mathics.core.rules import RewriteRule, is_rule
+from mathics.core.symbols import (
+    Symbol,
+    SymbolFalse,
+    SymbolHoldForm,
+    SymbolNull,
+    SymbolTrue,
+    SymbolUpSet,
+)
+from mathics.core.systemsymbols import (
+    SymbolAttributes,
+    SymbolDefinition,
+    SymbolFormat,
+    SymbolGrid,
+    SymbolInputForm,
+    SymbolLeft,
+    SymbolMissing,
+    SymbolOptions,
+    SymbolRule,
+    SymbolSet,
+    SymbolUnknownSymbol,
+)
+from mathics.doc.online import online_doc_string
+from mathics.eval.atomic.symbols import eval_SymbolQ
+from mathics.eval.symbol.properties import (
+    eval_Information,
+    eval_Information_with_property,
+    eval_values,
+    get_matching_names,
+    missing_symbol,
+)
+
+
+# FIXME: gather_and_format_definition_rules is crap and needs to be revised, rewritten and put in
+# mathics.eval.symbols.properties
+def gather_and_format_definition_rules(
+    symbol: Symbol, evaluation: Evaluation
+) -> Optional[list[Expression]]:
+    """Return a list of lines describing the definition of `symbol`"""
+    lines = []
+
+    def rhs_format(expr):
+        if expr.has_form("Infix", None):
+            expr = Expression(Expression(SymbolHoldForm, expr.head), *expr.elements)
+        return expr
+
+    def format_rule(
+        rule: RewriteRule,
+        up: bool = False,
+        lhs: Callable = lambda k: k,
+        rhs: Callable = lambda r: r,
+    ):
+        """
+        Add a line showing `rule`
+        """
+        evaluation.check_stopped()
+        if isinstance(rule, RewriteRule):
+            lhs_pat = Expression(SymbolInputForm, lhs(rule.pattern.expr))
+            repl_expr = rhs(
+                rule.replace.replace_vars(
+                    {"System`Definition": Expression(SymbolHoldForm, SymbolDefinition)}
+                )
+            )
+            repl_expr = Expression(SymbolInputForm, repl_expr)
+            lines.append(
+                Expression(
+                    SymbolHoldForm,
+                    Expression(up and SymbolUpSet or SymbolSet, lhs_pat, repl_expr),
+                )
+            )
+
+    def gather_rules(definition: Definition):
+        """
+        Add to the description all the rules associated
+        to a definition object
+        """
+        for rule in definition.ownvalues:
+            format_rule(rule)
+        for rule in definition.downvalues:
+            format_rule(rule)
+        for rule in definition.subvalues:
+            format_rule(rule)
+        for rule in definition.upvalues:
+            format_rule(rule, up=True)
+        for rule in definition.nvalues:
+            format_rule(rule)
+        formats = sorted(definition.formatvalues.items())
+        for form_name, rules in formats:
+            for rule in rules:
+
+                def lhs_format(expr):
+                    return Expression(SymbolFormat, expr, Symbol(form_name))
+
+                format_rule(rule, lhs=lhs_format, rhs=rhs_format)
+
+    name = symbol.get_name()
+    if not name:
+        evaluation.message("Definition", "sym", symbol, 1)
+        return
+
+    try:
+        all = evaluation.definitions.get_definition(name)
+        attributes = all.attributes
+        all_options = all.options
+        all_defaultvalues = all.defaultvalues
+
+        if attributes:
+            attributes_list = attributes_bitset_to_list(attributes)
+            lines.append(
+                Expression(
+                    SymbolHoldForm,
+                    Expression(
+                        SymbolSet,
+                        Expression(SymbolAttributes, symbol),
+                        to_mathics_list(
+                            *attributes_list, elements_conversion_fn=Symbol
+                        ),
+                    ),
+                )
+            )
+    except KeyError:
+        attributes = 0
+        all_options = {}
+        all_defaultvalues = []
+
+    if not A_READ_PROTECTED & attributes:
+        try:
+            gather_rules(evaluation.definitions.get_user_definition(name, create=False))
+        except KeyError:
+            pass
+
+    for rule in all_defaultvalues:
+        format_rule(rule)
+    if all_options:
+        options = sorted(all_options.items())
+        lines.append(
+            Expression(
+                SymbolHoldForm,
+                Expression(
+                    SymbolSet,
+                    Expression(SymbolOptions, symbol),
+                    ListExpression(
+                        *(
+                            Expression(SymbolRule, Symbol(name), value)
+                            for name, value in options
+                        )
+                    ),
+                ),
+            )
+        )
+    return lines
+
+
+class Definition(Builtin):
+    """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/Definition.html</url>
+    <dl>
+      <dt>'Definition'[$symbol$]
+      <dd>prints as the definitions given for $symbol$.
+      This is in a form that can e stored in a package.
+    </dl>
+
+    'Definition' does not print information for 'ReadProtected' symbols.
+    'Definition' uses 'InputForm' to format values.
+
+    >> a = 2;
+    >> Definition[a]
+     = a = 2
+
+    >> f[x_] := x ^ 2
+    >> g[f] ^:= 2
+    >> Definition[f]
+     = f[x_] = x^2
+     .
+     . g[f] ^= 2
+
+    Definition of a rather evolved (though meaningless) symbol:
+    >> Attributes[r] := {Orderless}
+    >> Format[r[args___]] := Infix[{args}, "#"]
+    >> N[r] := 3.5
+    >> Default[r, 1] := 2
+    >> r::msg := "My message"
+    >> Options[r] := {Opt -> 3}
+    >> r[arg_., OptionsPattern[r]] := {arg, OptionValue[Opt]}
+
+    Some usage:
+    >> r[z, x, y]
+     = x # y # z
+    >> N[r]
+     = 3.5
+    >> r[]
+     = {2, 3}
+    >> r[5, Opt->7]
+     = {5, 7}
+
+    Its definition:
+    >> Definition[r]
+     = Attributes[r] = {Orderless}
+     .
+     . r[(arg_.), OptionsPattern[r]] = {arg, OptionValue[Opt]}
+     .
+     . N[r, MachinePrecision] = 3.5
+     .
+     . Format[r[args___], MathMLForm] = Infix[{args}, "#"]
+     .
+     . Format[r[args___], OutputForm] = Infix[{args}, "#"]
+     .
+     . Format[r[args___], StandardForm] = Infix[{args}, "#"]
+     .
+     . Format[r[args___], TeXForm] = Infix[{args}, "#"]
+     .
+     . Format[r[args___], TraditionalForm] = Infix[{args}, "#"]
+     .
+     . Default[r, 1] = 2
+     .
+     .Options[r] = {Opt ⇾ 3}
+     .
+
+    For 'ReadProtected' symbols, 'Definition' just prints attributes, default values and options:
+    >> SetAttributes[r, ReadProtected]
+    >> Definition[r]
+     = Attributes[r] = {Orderless, ReadProtected}
+     .
+     . Default[r, 1] = 2
+     .
+     . Options[r] = {Opt ⇾ 3}
+    This is the same for built-in symbols:
+    >> Definition[Plus]
+     = Attributes[Plus] = {Flat, Listable, NumericFunction, OneIdentity, Orderless, Protected}
+     .
+     . Default[Plus] = 0
+    >> Definition[Level]
+     = Attributes[Level] = {Protected}
+     .
+     . Options[Level] = {Heads ⇾ False}
+
+    'ReadProtected' can be removed, unless the symbol is locked:
+    >> ClearAttributes[r, ReadProtected]
+    'Clear' clears values:
+    >> Clear[r]
+    >> Definition[r]
+     = Attributes[r] = {Orderless}
+     .
+     . Default[r, 1] = 2
+     .
+     . Options[r] = {Opt ⇾ 3}
+    'ClearAll' clears everything:
+    >> ClearAll[r]
+    >> Definition[r]
+     = Null
+
+    If a symbol is not defined at all, 'Null' is printed:
+    >> Definition[x]
+     = Null
+    """
+
+    attributes = A_HOLD_ALL | A_PROTECTED
+    summary_text = "give values of a symbol in a form that can be stored in a package"
+
+    def format_definition(
+        self, symbol: Symbol, evaluation: Evaluation, grid: bool = True
+    ) -> Expression | Symbol:
+        "(StandardForm,TraditionalForm,OutputForm,): Definition[symbol_]"
+
+        lines = gather_and_format_definition_rules(symbol, evaluation)
+        if lines:
+            if grid:
+                return Expression(
+                    SymbolGrid,
+                    ListExpression(*(ListExpression(line) for line in lines)),
+                    Expression(SymbolRule, Symbol("ColumnAlignments"), SymbolLeft),
+                )
+            else:
+                for line in lines:
+                    evaluation.print_out(Expression(SymbolInputForm, line))
+
+        return SymbolNull
+
+    def format_definition_input(
+        self, symbol: Symbol, evaluation: Evaluation
+    ) -> Expression | Symbol:
+        "(InputForm,): Definition[symbol_]"
+        return self.format_definition(symbol, evaluation, grid=False)
+
+
+# In Mathematica 5, this appears under "Types of Values".
+class DownValues(Builtin):
+    """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/DownValues.html</url>
+    <dl>
+      <dt>'DownValues'[$symbol$]
+      <dd>gives the list of downvalues associated with $symbol$.
+    </dl>
+
+    'DownValues' uses 'HoldPattern' and 'RuleDelayed' to protect the \
+    downvalues from being evaluated, and it has attribute \
+    'HoldAll' to get the specified symbol instead of its value.
+
+    >> f[x_] := x ^ 2
+    >> DownValues[f]
+     = {HoldPattern[f[x_]] ⧴ x ^ 2}
+
+    Mathics3 will sort the rules you assign to a symbol according to \
+    their specificity. If it cannot decide which rule is more specific, \
+    the newer one will get higher precedence.
+    >> f[x_Integer] := 2
+    >> f[x_Real] := 3
+    >> DownValues[f]
+     = {HoldPattern[f[x_Real]] ⧴ 3, HoldPattern[f[x_Integer]] ⧴ 2, HoldPattern[f[x_]] ⧴ x ^ 2}
+    >> f[3]
+     = 2
+    >> f[3.]
+     = 3
+    >> f[a]
+     = a ^ 2
+
+    The default order of patterns can be computed using 'Sort' with \
+    'PatternsOrderedQ':
+    >> Sort[{x_, x_Integer}, PatternsOrderedQ]
+     = {x_Integer, x_}
+
+    By assigning values to 'DownValues', you can override the default \
+    ordering:
+    >> DownValues[g] := {g[x_] :> x ^ 2, g[x_Integer] :> x}
+    >> g[2]
+     = 4
+
+    Fibonacci numbers:
+    >> DownValues[fib] := {fib[0] -> 0, fib[1] -> 1, fib[n_] :> fib[n - 1] + fib[n - 2]}
+    >> fib[5]
+     = 5
+    """
+
+    attributes = A_HOLD_ALL | A_PROTECTED
+    summary_text = "give a list of transformation rules corresponding to all downvalues defined for a symbol"
+
+    def eval(self, name, evaluation):
+        "DownValues[name_]"
+        return eval_values(name, evaluation, "DownValues")
+
+
+class Information(PrefixOperator):
+    """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/Information.html</url>
+    <dl>
+      <dt>'Information'[$expr$]
+      <dd>returns information about a $expr$. $expr$ can be a symbol or a string.
+      <dt>'Information'[$expr$, $prop$]
+      <dd>returns the value of property $prop$ for symbol $symbol$.
+    </dl>
+
+    The two argument form of 'Information' can be used to get specific \
+    property information about a symbol name or a string.
+
+    Use the property name "Properties" to see a list of properties that can be \
+    given:
+
+    >> Information[AtomQ, "Properties"]
+    = {Attributes, DefaultValues, Definitions, Documentation, DownValues, FormatValues, FullName, NValues, ObjectType, Options, Ownvalues, SubValues, UpValues, Usage}
+
+    >> Information[AtomQ, "Documentation"]
+    = <|Web ⇾ https://reference.wolfram.com/language/ref/AtomQ.html|>
+
+    >> Information[Glaisher, "Documentation"]
+    = <|Wiki ⇾ https://en.wikipedia.org/wiki/Glaisher%E2%80%93Kinkelin_constant, mpmath ⇾ https://mpmath.org/doc/current/functions/constants.html#glaisher-s-constant-glaisher, Web ⇾ https://reference.wolfram.com/language/ref/Glaisher.html|>
+
+    >> Information[AtomQ, "FullName"]
+    = System`AtomQ
+
+    'Information' does not print information for 'ReadProtected' symbols.
+
+    'Information' uses 'InputForm' to format values.
+    """
+
+    attributes = A_PROTECTED | A_READ_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
+    messages = {"notfound": "Expression `1` is not a symbol"}
+
+    # FIXME: the only valid option is ResolveContextAliases.
+    # LongForm is *not* an option.
+    options = {
+        "LongForm": "True",
+        "ResolveContextAliases": "True",
+    }
+    summary_text = "get information about all assignments for a symbol"
+
+    def eval(self, expr, evaluation: Evaluation, options: dict):
+        "Information[expr_, OptionsPattern[Information]]"
+        return eval_Information(expr, evaluation)
+
+    def build_missing(self, expression: BaseElement) -> Expression:
+        """Evaluate ?? F[x][y].. as -> Missing[UnknownSymbol, F][x][y]"""
+        if isinstance(expression, Expression):
+            return Expression(self.build_missing(expression.head), *expression.elements)
+        return missing_symbol(expression)
+
+    # FIXME: this is a format routine. It should probably get rethought as
+    # to what to do and moved to with other format routines.
+    def build_list_of_matching_symbols(
+        self, symbol_pat: str, evaluation: Evaluation, options: dict, grid: bool = True
+    ):
+        """Return a list of symbols compatible with symbol_pat"""
+        names = get_matching_names(symbol_pat, evaluation)
+        definitions = evaluation.definitions
+        if len(names) == 1:
+            return self.format_information_symbol(
+                Symbol(definitions.lookup_name(names[0])), evaluation, options
+            )
+        rows = []
+        curr_row = []
+        for name in names:
+            curr_row.append(String(definitions.shorten_name(name)))
+            if len(curr_row) == 3:
+                rows.append(ListExpression(*curr_row))
+                curr_row = []
+        if curr_row:
+            curr_row = curr_row + (3 - len(curr_row)) * [String("")]
+            rows.append(ListExpression(*curr_row))
+
+        # TODO: Format using Grid?
+        result = Expression(Symbol("System`TableForm"), ListExpression(*rows))
+        return result
+
+    def eval_with_property(self, expr, prop, evaluation: Evaluation, options: dict):
+        "Information[expr_, prop_, OptionsPattern[Information]]"
+        if is_rule(prop):
+            # FIXME we have an option here.
+            return
+        if not isinstance(prop, String):
+            return Expression(SymbolMissing, SymbolUnknownSymbol, prop)
+
+        return eval_Information_with_property(expr, prop.value, evaluation)
+
+    # FIXME: Format routines should move elsewhere.
+    # This implementation mixes the current behavior of WMA >=12.0 with the old behavior
+    # (WMA 4.0).
+    # TODO: the formatting part of this must be moved to `InformationData`
+    # and `Information` should build this kind of expressions.
+
+    def format_information_generic(
+        self,
+        expr: BaseElement,
+        evaluation: Evaluation,
+        options: dict,
+        grid: bool = True,
+    ):
+        "(StandardForm,TraditionalForm,InputForm,OutputForm,): Information[expr_, OptionsPattern[Information]]"
+        # expr is not a Symbol. We should leave unchanged and let other formatting rules kick in.
+        return None
+
+    def format_information_string(
+        self, strpat: String, evaluation: Evaluation, options: dict, grid: bool = True
+    ) -> Expression | Symbol:
+        "(StandardForm,TraditionalForm,InputForm,OutputForm,): Information[strpat_String, OptionsPattern[Information]]"
+        definitions = evaluation.definitions
+        string_str = strpat.value
+        if any(char in string_str for char in NAMES_WILDCARDS):
+            return self.build_list_of_matching_symbols(
+                string_str, evaluation, options, grid
+            )
+        try:
+            symbol_name = definitions.get_definition(
+                string_str, only_if_exists=True
+            ).name
+        except KeyError:
+            return self.build_missing(strpat)
+        return self.format_information_symbol(Symbol(symbol_name), evaluation, options)
+
+    def format_information_symbol(
+        self, symbol: Symbol, evaluation: Evaluation, options: dict, grid: bool = True
+    ) -> Expression | Symbol:
+        "(StandardForm,TraditionalForm,InputForm,OutputForm,): Information[symbol_Symbol, OptionsPattern[Information]]"
+        definitions = evaluation.definitions
+        try:
+            definitions.get_definition(symbol.name, True)
+        except KeyError:
+            return self.build_missing(symbol)
+
+        lines: list[Expression | String] = []
+        # Print the "usage" message if available.
+        # is_long_form = self.get_option(options, "LongForm", evaluation).to_python()
+        is_long_form = True  # In WMA >=12.0 this option does not make much difference--
+        usagetext = online_doc_string(symbol, evaluation.definitions, is_long_form)
+        if usagetext:
+            lines.append(String(usagetext))
+        else:
+            lines.append(String(symbol.get_name()))
+
+        if is_long_form and (
+            info := gather_and_format_definition_rules(symbol, evaluation)
+        ):
+            lines.extend(info)
+
+        infoshow = Expression(
+            SymbolGrid,
+            ListExpression(*(line for line in lines)),
+            Expression(SymbolRule, Symbol("ColumnAlignments"), SymbolLeft),
+        )
+        return infoshow
+
+
+class SymbolQ(Test):
+    """
+    <url>:WMA link:
+      https://resources.wolframcloud.com/FunctionRepository/resources/SymbolQ</url>
+    <dl>
+      <dt>'SymbolQ'[$x$]
+      <dd>is 'True' if $x$ is a symbol, or 'False' otherwise.
+    </dl>
+
+    >> SymbolQ[a]
+     = True
+    >> SymbolQ[1]
+     = False
+    >> SymbolQ[a + b]
+     = False
+    """
+
+    summary_text = "test whether is a symbol"
+
+    def test(self, expr) -> bool:
+        return eval_SymbolQ(expr)
+
+
+class ValueQ(Builtin):
+    """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/ValueQ.html</url>
+    <dl>
+      <dt>'ValueQ'[$expr$]
+      <dd>returns 'True' if and only if $expr$ is defined.
+    </dl>
+
+    >> ValueQ[x]
+     = False
+    >> x = 1;
+    >> ValueQ[x]
+     = True
+    """
+
+    attributes = A_HOLD_FIRST | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
+    summary_text = "test whether a symbol can be considered to have a value"
+
+    def eval(self, expr, evaluation):
+        "ValueQ[expr_]"
+        evaluated_expr = expr.evaluate(evaluation)
+        if expr.sameQ(evaluated_expr):
+            return SymbolFalse
+        return SymbolTrue
+
+
+# In Mathematica 5, this appears under "Types of Values".
+class UpValues(Builtin):
+    """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/UpValues.html</url>
+    <dl>
+      <dt>'UpValues'[$symbol$]
+      <dd>gives the list of transformation rules corresponding to upvalues \
+          define with $symbol$.
+    </dl>
+
+    >> a + b ^= 2
+     = 2
+    >> UpValues[a]
+     = {HoldPattern[a + b] ⧴ 2}
+    >> UpValues[b]
+     = {HoldPattern[a + b] ⧴ 2}
+
+    You can assign values to 'UpValues':
+    >> UpValues[pi] := {Sin[pi] :> 0}
+    >> Sin[pi]
+     = 0
+    """
+
+    attributes = A_HOLD_ALL | A_PROTECTED
+    summary_text = "give a list of transformation rules corresponding to upvalues defined for a symbol"
+
+    def eval(self, name, evaluation):
+        "UpValues[name_]"
+        return eval_values(name, evaluation, "UpValues")

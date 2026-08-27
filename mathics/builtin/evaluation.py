@@ -88,11 +88,18 @@ class IterationLimit(Predefined):
     Calculations terminated by '\$IterationLimit' return '\$Aborted':
 
     >> $IterationLimit
-     = 1000
+     = 4096
+
+    The iteration limit protects against runaway definitions:
+
+    >> Block[{$IterationLimit = 20}, yin := yang; yang := yin; yin]
+     : Iteration limit of 20 exceeded.
+     = $Aborted
+
     """
 
     name = "$IterationLimit"
-    value = 1000
+    value = 4096
 
     rules = {
         "$IterationLimit": str(value),
@@ -155,8 +162,8 @@ class HoldForm(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/HoldForm.html</url>
 
     <dl>
-    <dt>'HoldForm'[$expr$]
-        <dd>is equivalent to 'Hold[$expr$]', but prints as $expr$.
+      <dt>'HoldForm'[$expr$]
+      <dd>is equivalent to 'Hold'[$expr$], but prints as $expr$.
     </dl>
 
     >> HoldForm[1 + 2 + 3]
@@ -189,7 +196,7 @@ class Evaluate(Builtin):
     >> f[1 + 2]
      = f[1 + 2]
 
-    'Evaluate' forces evaluation of the argument, even though $f$ has
+    'Evaluate' forces evaluation of the argument, even though $f$ has \
     the 'HoldAll' attribute:
     >> f[Evaluate[1 + 2]]
      = f[3]
@@ -215,7 +222,8 @@ class Unevaluated(Builtin):
 
     <dl>
       <dt>'Unevaluated'[$expr$]
-      <dd>temporarily leaves $expr$ in an unevaluated form when it appears as a function argument.
+      <dd>temporarily leaves $expr$ in an unevaluated form when it \
+          appears as a function argument.
     </dl>
 
     'Unevaluated' is automatically removed when function arguments are evaluated:

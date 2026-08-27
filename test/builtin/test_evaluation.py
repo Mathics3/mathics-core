@@ -36,7 +36,7 @@ import pytest
         ),
         (
             "ClearAll[f]; f[x_] := f[x + 1];f[x]",
-            ("Iteration limit of 1000 exceeded.",),
+            ("Iteration limit of 4096 exceeded.",),
             "$Aborted",
             None,
         ),
@@ -67,7 +67,7 @@ import pytest
         ("ClearAll[f];", None, None, None),
     ],
 )
-def test_private_doctests_evaluation(str_expr, msgs, str_expected, fail_msg):
+def test_evaluation(str_expr, msgs, str_expected, fail_msg):
     """These tests check the behavior of $RecursionLimit and $IterationLimit"""
     check_evaluation_as_in_cli(str_expr, str_expected, fail_msg, msgs)
 
@@ -88,9 +88,7 @@ def test_private_doctests_evaluation(str_expr, msgs, str_expected, fail_msg):
         ),
     ],
 )
-def test_private_doctests_evaluation_non_mswindows(
-    str_expr, msgs, str_expected, fail_msg
-):
+def test_evaluation_non_mswindows(str_expr, msgs, str_expected, fail_msg):
     """These tests check the behavior of $RecursionLimit and $IterationLimit
     that do not work on MS Windows.
     """

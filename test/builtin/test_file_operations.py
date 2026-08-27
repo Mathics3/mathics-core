@@ -2,10 +2,8 @@
 """
 Unit tests for mathics.builtin.file_operations
 """
-
-import sys
-import time
-from test.helper import check_evaluation, evaluate
+import os
+from test.helper import check_evaluation
 
 import pytest
 
@@ -101,7 +99,11 @@ import pytest
         ),
     ],
 )
-def test_private_doctests_file_properties(str_expr, msgs, str_expected, fail_msg):
+@pytest.mark.skipif(
+    os.getenv("MATHICS3_SANDBOX"),
+    reason="Files module is disabled in sandbox mode",
+)
+def test_file_properties(str_expr, msgs, str_expected, fail_msg):
     """file_opertions.file_properties"""
     check_evaluation(
         str_expr,
@@ -126,7 +128,7 @@ def test_private_doctests_file_properties(str_expr, msgs, str_expected, fail_msg
         ),
     ],
 )
-def test_private_doctests_file_utilities(str_expr, msgs, str_expected, fail_msg):
+def test_file_utilities(str_expr, msgs, str_expected, fail_msg):
     """file_opertions.file_utilities"""
     check_evaluation(
         str_expr,

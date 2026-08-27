@@ -1,13 +1,19 @@
-# -*- coding: utf-8 -*-
+"""
+Converts expressions from SymPy to Mathics3 expressions.
+Provides conversion to SymPy for Mathics3 BaseElement descendants.
+"""
 
-"""
-Converts expressions from SymPy to Mathics expressions.
-Conversion to SymPy is handled directly in BaseElement descendants.
-"""
 from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Tuple, Union, cast
 
 import sympy
-from sympy import Symbol as Sympy_Symbol, false as SympyFalse, true as SympyTrue
+from sympy import (
+    Dummy as Sympy_Dummy,
+    Symbol,
+    Symbol as Sympy_Symbol,
+    false as SympyFalse,
+    true as SympyTrue,
+)
+from sympy.calculus.accumulationbounds import AccumulationBounds
 from sympy.core.singleton import S
 
 from mathics.core.atoms import (
@@ -26,6 +32,7 @@ from mathics.core.atoms import (
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.matrix import matrix_data
 from mathics.core.element import BaseElement
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.expression_predefined import (
     MATHICS3_COMPLEX_INFINITY,
@@ -35,6 +42,8 @@ from mathics.core.expression_predefined import (
 from mathics.core.list import ListExpression
 from mathics.core.number import FP_MANTISA_BINARY_DIGITS
 from mathics.core.symbols import (
+    SYMPY_SLOT_PREFIX,
+    SYMPY_SYMBOL_PREFIX,
     Symbol,
     SymbolFalse,
     SymbolNull,
@@ -42,8 +51,7 @@ from mathics.core.symbols import (
     SymbolPower,
     SymbolTimes,
     SymbolTrue,
-    sympy_slot_prefix,
-    sympy_symbol_prefix,
+    sympy_name,
 )
 from mathics.core.systemsymbols import (
     SymbolC,
@@ -62,21 +70,24 @@ from mathics.core.systemsymbols import (
     SymbolO,
     SymbolPi,
     SymbolPiecewise,
+    SymbolPrime,
+    SymbolRoot,
+    SymbolRootSum,
     SymbolSlot,
     SymbolUnequal,
 )
+
+try:
+    import gmpy2  # type: ignore
+except ImportError:
+    gmpy2 = None
 
 if TYPE_CHECKING:
     from mathics.core.builtin import SympyObject
 
 BasicSympy = sympy.Expr
 
-
-SymbolPrime = Symbol("Prime")
-SymbolRoot = Symbol("Root")
-SymbolRootSum = Symbol("RootSum")
-
-
+# These get filled in after initialization.
 mathics_to_sympy: Dict[str, "SympyObject"] = {}  # here we have: name -> sympy object
 sympy_to_mathics: Dict[str, "SympyObject"] = {}
 
@@ -101,15 +112,24 @@ sympy_singleton_to_mathics = {
     SympyTrue: SymbolTrue,
 }
 
-
 mathics_to_sympy_singleton = {
     key: val for val, key in sympy_singleton_to_mathics.items()
 }
 
 
+def sympy_decode_mathics_symbol_name(name: str) -> str:
+    """
+    Remove the Mathics3-supplied prefix in symbol names,
+    and restore the context-separator character.
+    """
+    if name.startswith(SYMPY_SYMBOL_PREFIX):
+        return name[len(SYMPY_SYMBOL_PREFIX) :].replace("_", "`")
+    return name
+
+
 def is_Cn_expr(name: str) -> bool:
     """Check if name is of the form {prefix}Cnnn"""
-    if name.startswith(sympy_symbol_prefix) or name.startswith(sympy_slot_prefix):
+    if name.startswith(SYMPY_SYMBOL_PREFIX) or name.startswith(SYMPY_SLOT_PREFIX):
         return False
     if not name.startswith("C"):
         return False
@@ -117,9 +137,9 @@ def is_Cn_expr(name: str) -> bool:
     return number != "" and number.isdigit()
 
 
-def to_sympy_matrix(data, **kwargs) -> Optional[sympy.MutableDenseMatrix]:
-    """Convert a Mathics matrix to one that can be used by Sympy.
-    None is returned if we can't convert to a Sympy matrix.
+def to_sympy_matrix(data, **__) -> Optional[sympy.MutableDenseMatrix]:
+    """Convert a Mathics3 matrix to one that can be used by SymPy.
+    None is returned if we can't convert to a SymPy matrix.
     """
     if not isinstance(data, list):
         data = matrix_data(data)
@@ -130,11 +150,11 @@ def to_sympy_matrix(data, **kwargs) -> Optional[sympy.MutableDenseMatrix]:
 
 
 class SympyExpression(sympy.Expr):
-    """A Sympy expression with an associated Mathics expression"""
+    """A Sympy expression with an associated Mathics3 expression"""
 
     is_Function = True
     nargs = None
-    expr: Expression
+    expr: Optional[Expression]
 
     def __new__(cls, *exprs, **kwargs):
         # sympy simplify may also recreate the object if simplification occurred
@@ -145,13 +165,15 @@ class SympyExpression(sympy.Expr):
             obj = super().__new__(cls, *exprs)
             obj.expr = None
         elif len(exprs) == 1 and isinstance(exprs[0], Expression):
-            # called with Mathics argument
+            # called with Mathics3 argument
             expr = exprs[0]
             sympy_head = expr.head.to_sympy()
             if kwargs.get("convert_functions_for_polynomialq", False):
                 sympy_elements = []
             else:
-                sympy_elements = [element.to_sympy() for element in expr.elements]
+                sympy_elements = [
+                    element.to_sympy(**kwargs) for element in expr.elements
+                ]
             if sympy_head is None or None in sympy_elements:
                 return None
             obj = super().__new__(cls, sympy_head, *sympy_elements)
@@ -165,7 +187,7 @@ class SympyExpression(sympy.Expr):
         class SympyExpressionFunc:
             """A class to mimic the behavior of sympy.Function"""
 
-            def __new__(cls, *args):
+            def __new__(cls, *_):
                 return SympyExpression(self.expr)
                 # return SympyExpression(expression.Expression(self.expr.head,
                 # *(from_sympy(arg) for arg in args[1:])))
@@ -182,7 +204,7 @@ class SympyExpression(sympy.Expr):
         return result
 
     def _eval_subs(self, old, new):
-        """Replace occurencies of old by new in self."""
+        """Replace occurrences of old by new in self."""
         if self == old:
             return new
         old, new = from_sympy(old), from_sympy(new)
@@ -195,7 +217,11 @@ class SympyExpression(sympy.Expr):
     def _eval_rewrite(self, rule, args, **hints):
         return self
 
+    # @property does not match SymPy's definition. However,
+    # @is_commutative.setter is needed in linear algebra stuff. And
+    # for that, we need @property here.
     @property
+    # pyrefly: ignore [bad-override]
     def is_commutative(self) -> Optional[bool]:
         """Check if the arguments are commutative."""
         return all(getattr(t, "is_commutative", False) for t in self.args)
@@ -214,7 +240,10 @@ class SympyPrime(sympy.Function):
     """
 
     @classmethod
-    def eval(cls, n):
+    def eval(cls, *args):
+        if len(args) != 1:
+            return None
+        n = args[0]
         if n.is_Integer and n > 0:
             try:
                 return sympy.prime(n)
@@ -228,7 +257,6 @@ def expression_to_sympy(expr: Expression, **kwargs):
     """
     Convert `expr` to its sympy form.
     """
-
     if len(expr.elements) > 0:
         head_name = expr.get_head_name()
         if head_name.startswith("Global`"):
@@ -238,20 +266,17 @@ def expression_to_sympy(expr: Expression, **kwargs):
 
         functions = kwargs.get("converted_functions", [])
         if head_name in functions:
-            sym_args = [element.to_sympy() for element in expr._elements]
-            if None in sym_args:
-                return None
-            func = sympy.Function(str(sympy_symbol_prefix + expr.get_head_name()))(
-                *sym_args
-            )
-            return func
+            return expr._as_sympy_function(**kwargs)
 
     lookup_name = expr.get_lookup_name()
     builtin = mathics_to_sympy.get(lookup_name)
+
     if builtin is not None:
         sympy_expr = builtin.to_sympy(expr, **kwargs)
         if sympy_expr is not None:
             return sympy_expr
+    elif exc := kwargs.get("raise_on_error", None):
+        raise exc(f"{lookup_name} not registered in mathics_to_sympy")
     return SympyExpression(expr, **kwargs)
 
 
@@ -264,18 +289,17 @@ def symbol_to_sympy(symbol: Symbol, **kwargs) -> Sympy_Symbol:
     if result is not None:
         return result
 
-    if symbol.sympy_dummy is not None:
-        return symbol.sympy_dummy
-
     builtin = mathics_to_sympy.get(symbol.name)
     if builtin is None or not builtin.sympy_name or not builtin.is_constant():  # nopep8
-        return Sympy_Symbol(sympy_symbol_prefix + symbol.name)
+        if symbol in kwargs.get("dummies", {}):
+            return Sympy_Dummy(sympy_name(symbol))
+        return Sympy_Symbol(sympy_name(symbol))
     return builtin.to_sympy(symbol, **kwargs)
 
 
 def to_numeric_sympy_args(mathics_args: BaseElement, evaluation) -> list:
     """
-    Convert Mathics arguments, such as the arguments in an evaluation
+    Convert Mathics3 arguments, such as the arguments in an evaluation
     method a Python list that is sutiable for feeding as arguments
     into SymPy.
 
@@ -294,11 +318,11 @@ def to_numeric_sympy_args(mathics_args: BaseElement, evaluation) -> list:
 
 
 def from_sympy_matrix(
-    expr: Union[sympy.Matrix, sympy.ImmutableMatrix, sympy.Array]
+    expr: Union[sympy.Matrix, sympy.ImmutableMatrix, sympy.Array],
 ) -> ListExpression:
     """
     Convert `expr` of the type sympy.Matrix or sympy.ImmutableMatrix to
-    a Mathics list.
+    a Mathics3 list.
     """
     if len(expr.shape) == 2 and (expr.shape[1] == 1):
         # This is a vector (only one column)
@@ -331,7 +355,7 @@ sympy_conversion_by_type = {
 
 # def new_from_sympy(expr)->BaseElement:
 #    """
-#    converts a SymPy object to a Mathics element.
+#    converts a SymPy object to a Mathics3 element.
 #    """
 #    try:
 #        return sympy_singleton_to_mathics[expr]
@@ -341,63 +365,75 @@ sympy_conversion_by_type = {
 #    return sympy_conversion_by_type.get(type(expr), old_from_sympy)(expr)
 
 
-def old_from_sympy(expr) -> BaseElement:
+def from_sympy(sympy_expr) -> BaseElement | Symbol:
     """
-    converts a SymPy object to a Mathics element.
+    Converts a SymPy object to a Mathics3 element.
     """
-
-    if isinstance(expr, (tuple, list)):
-        return to_mathics_list(*expr, elements_conversion_fn=from_sympy)
-    if isinstance(expr, int):
-        return Integer(expr)
-    if isinstance(expr, float):
-        return Real(expr)
-    if isinstance(expr, complex):
-        return Complex(Real(expr.real), Real(expr.imag))
-    if isinstance(expr, str):
-        return String(expr)
-    if expr is None:
+    if isinstance(sympy_expr, (tuple, list)):
+        return to_mathics_list(*sympy_expr, elements_conversion_fn=from_sympy)
+    if isinstance(sympy_expr, int):
+        return Integer(sympy_expr)
+    if isinstance(sympy_expr, float):
+        return Real(sympy_expr)
+    if isinstance(sympy_expr, complex):
+        return Complex(Real(sympy_expr.real), Real(sympy_expr.imag))
+    if isinstance(sympy_expr, str):
+        return String(sympy_expr)
+    if sympy_expr is None:
         return SymbolNull
-    if isinstance(expr, sympy.Matrix) or isinstance(expr, sympy.ImmutableMatrix):
-        return from_sympy_matrix(expr)
-    if isinstance(expr, sympy.MatPow):
+    if isinstance(sympy_expr, sympy.Matrix) or isinstance(
+        sympy_expr, sympy.ImmutableMatrix
+    ):
+        return from_sympy_matrix(sympy_expr)
+    if isinstance(sympy_expr, sympy.MatPow):
         return Expression(
-            SymbolMatrixPower, from_sympy(expr.base), from_sympy(expr.exp)
+            SymbolMatrixPower, from_sympy(sympy_expr.base), from_sympy(sympy_expr.exp)
         )
-    if expr.is_Atom:
+    if gmpy2:
+        if isinstance(sympy_expr, gmpy2.mpz):
+            return Integer(int(sympy_expr))
+        if isinstance(sympy_expr, gmpy2.mpq):
+            return Rational(*sympy_expr.as_integer_ratio())
+
+    if sympy_expr.is_Atom:
+        if (mathics3_value := sympy_singleton_to_mathics.get(sympy_expr)) is not None:
+            return mathics3_value
         name = None
-        if expr.is_Symbol:
-            name = str(expr)
-            if isinstance(expr, sympy.Dummy):
-                name = name + (f"__Dummy_{expr.dummy_index}")  # type: ignore[attr-defined]
+        if sympy_expr.is_Symbol:
+            name = str(sympy_expr)
+            if isinstance(sympy_expr, sympy.Dummy):
+                name = name[1:]
+                if "_" not in name:
+                    name = f"sympy`dummy`Dummy${sympy_expr.dummy_index}"  # type: ignore[attr-defined]
+                else:
+                    name = sympy_decode_mathics_symbol_name(name)
                 # Probably, this should be the value attribute
-                return Symbol(name, sympy_dummy=expr)
+                return Symbol(name)
             if is_Cn_expr(name):
                 return Expression(SymbolC, Integer(int(name[1:])))
-            if name.startswith(sympy_symbol_prefix):
-                name = name[len(sympy_symbol_prefix) :]
-            if name.startswith(sympy_slot_prefix):
-                index = int(name[len(sympy_slot_prefix) :])
+            name = sympy_decode_mathics_symbol_name(name)
+            if name.startswith(SYMPY_SLOT_PREFIX):
+                index = int(name[len(SYMPY_SLOT_PREFIX) :])
                 return Expression(SymbolSlot, Integer(index))
-        elif expr.is_NumberSymbol:
-            name = str(expr)
+        elif sympy_expr.is_NumberSymbol:
+            name = str(sympy_expr)
         if name is not None:
             builtin = sympy_to_mathics.get(name)
             if builtin is not None:
                 name = builtin.get_name()
             return Symbol(name)
-        if isinstance(expr, sympy.core.numbers.Infinity):
+        if isinstance(sympy_expr, sympy.core.numbers.Infinity):
             return MATHICS3_INFINITY
-        if isinstance(expr, sympy.core.numbers.ComplexInfinity):
+        if isinstance(sympy_expr, sympy.core.numbers.ComplexInfinity):
             return MATHICS3_COMPLEX_INFINITY
-        if isinstance(expr, sympy.core.numbers.NegativeInfinity):
+        if isinstance(sympy_expr, sympy.core.numbers.NegativeInfinity):
             return MATHICS3_NEG_INFINITY
-        if isinstance(expr, sympy.core.numbers.ImaginaryUnit):
+        if isinstance(sympy_expr, sympy.core.numbers.ImaginaryUnit):
             return MATHICS3_COMPLEX_I
-        if isinstance(expr, sympy.Integer):
-            return Integer(int(expr))
-        if isinstance(expr, sympy.Rational):
-            numerator, denominator = map(int, expr.as_numer_denom())
+        if isinstance(sympy_expr, sympy.Integer):
+            return Integer(int(sympy_expr))
+        if isinstance(sympy_expr, sympy.Rational):
+            numerator, denominator = map(int, sympy_expr.as_numer_denom())
             if denominator == 0:
                 if numerator > 0:
                     return MATHICS3_INFINITY
@@ -407,62 +443,66 @@ def old_from_sympy(expr) -> BaseElement:
                     assert numerator == 0
                     return SymbolIndeterminate
             return Rational(numerator, denominator)
-        if isinstance(expr, sympy.Float):
-            if expr._prec == FP_MANTISA_BINARY_DIGITS:
-                return MachineReal(float(expr))
-            return Real(expr)
-        if isinstance(expr, sympy.core.numbers.NaN):
+        if isinstance(sympy_expr, sympy.Float):
+            if sympy_expr._prec == FP_MANTISA_BINARY_DIGITS:
+                return MachineReal(float(sympy_expr))
+            return Real(sympy_expr)
+        if isinstance(sympy_expr, sympy.core.numbers.NaN):
             return SymbolIndeterminate
-        if isinstance(expr, sympy.core.function.FunctionClass):
-            return Symbol(str(expr))
-        if expr is sympy.true:
+        if isinstance(sympy_expr, sympy.core.function.FunctionClass):
+            name = str(sympy_expr).replace("_", "`")
+            return Symbol(name)
+        if sympy_expr is sympy.true:
             return SymbolTrue
-        if expr is sympy.false:
+        if sympy_expr is sympy.false:
             return SymbolFalse
 
-    if expr.is_number and all(x.is_Number for x in expr.as_real_imag()):
+    if sympy_expr.is_number and all(x.is_Number for x in sympy_expr.as_real_imag()):
         # Hack to convert <Integer> * I to Complex[0, <Integer>]
         try:
-            return Complex(*[from_sympy(arg) for arg in expr.as_real_imag()])
+            return Complex(*[from_sympy(arg) for arg in sympy_expr.as_real_imag()])
         except ValueError:
             # The exception happens if one of the components is infinity
             pass
-    if expr.is_Add:
+    if sympy_expr.is_Add:
         return to_expression(
-            SymbolPlus, *sorted([from_sympy(arg) for arg in expr.args])
+            SymbolPlus, *sorted([from_sympy(arg) for arg in sympy_expr.args])
         )
-    if expr.is_Mul:
+    if sympy_expr.is_Mul:
         return to_expression(
-            SymbolTimes, *sorted([from_sympy(arg) for arg in expr.args])
+            SymbolTimes, *sorted([from_sympy(arg) for arg in sympy_expr.args])
         )
-    if expr.is_Pow:
-        return to_expression(SymbolPower, *[from_sympy(arg) for arg in expr.args])
-    if expr.is_Equality:
-        return to_expression(SymbolEqual, *[from_sympy(arg) for arg in expr.args])
+    if sympy_expr.is_Pow:
+        return to_expression(SymbolPower, *[from_sympy(arg) for arg in sympy_expr.args])
+    if sympy_expr.is_Equality:
+        return to_expression(SymbolEqual, *[from_sympy(arg) for arg in sympy_expr.args])
 
-    if isinstance(expr, SympyExpression):
-        return expr.expr
+    if isinstance(sympy_expr, SympyExpression):
+        expr = sympy_expr.expr
+        if expr is None:
+            raise ValueError
+        return expr
 
-    if isinstance(expr, sympy.Piecewise):
+    if isinstance(sympy_expr, sympy.Piecewise):
         return Expression(
             SymbolPiecewise,
             ListExpression(
                 *[
                     to_mathics_list(from_sympy(case), from_sympy(cond))
                     for case, cond in cast(
-                        Sequence[Tuple[sympy.Basic, sympy.Basic]], expr.args
+                        Sequence[Tuple[sympy.Basic, sympy.Basic]], sympy_expr.args
                     )
                 ]
             ),
         )
 
-    if isinstance(expr, SympyPrime):
-        return Expression(SymbolPrime, from_sympy(expr.args[0]))
-    if isinstance(expr, sympy.RootSum):
-        return Expression(SymbolRootSum, from_sympy(expr.poly), from_sympy(expr.fun))  # type: ignore[attr-defined]
-    if isinstance(expr, sympy.PurePoly):
-        coeffs = expr.coeffs()
-        monoms = expr.monoms()
+    if isinstance(sympy_expr, SympyPrime):
+        return Expression(SymbolPrime, from_sympy(sympy_expr.args[0]))
+    if isinstance(sympy_expr, sympy.RootSum):
+        return Expression(SymbolRootSum, from_sympy(sympy_expr.poly), from_sympy(sympy_expr.fun))  # type: ignore[attr-defined]
+    if isinstance(sympy_expr, sympy.PurePoly):
+        coeffs = sympy_expr.coeffs()
+        monoms = sympy_expr.monoms()
         result: List[BaseElement] = []
         for coeff, monom in zip(coeffs, monoms):
             factors = []
@@ -483,9 +523,9 @@ def old_from_sympy(expr) -> BaseElement:
             else:
                 result.append(Integer1)
         return Expression(SymbolFunction, Expression(SymbolPlus, *sorted(result)))
-    if isinstance(expr, sympy.CRootOf):
+    if isinstance(sympy_expr, sympy.CRootOf):
         try:
-            e_root, indx = expr.args
+            e_root, indx = sympy_expr.args
         except ValueError:
             return SymbolNull
 
@@ -495,22 +535,28 @@ def old_from_sympy(expr) -> BaseElement:
             pass
 
         return Expression(SymbolRoot, from_sympy(e_root), Integer(indx + 1))
-    if isinstance(expr, sympy.Lambda):
+    if isinstance(sympy_expr, sympy.Lambda):
         variables = [
-            sympy.Symbol(f"{sympy_slot_prefix}{index + 1}")
-            for index in range(len(expr.variables))
+            sympy.Symbol(f"{SYMPY_SLOT_PREFIX}{index + 1}")
+            for index in range(len(sympy_expr.variables))
         ]
-        return Expression(SymbolFunction, from_sympy(expr(*variables)))
+        return Expression(SymbolFunction, from_sympy(sympy_expr(*variables)))
 
-    if expr.is_Function or isinstance(
-        expr, (sympy.Integral, sympy.Derivative, sympy.Sum, sympy.Product)
+    if sympy_expr.is_Function or isinstance(
+        sympy_expr,
+        (
+            sympy.Derivative,
+            sympy.Integral,
+            sympy.Product,
+            sympy.Sum,
+        ),
     ):
-        if isinstance(expr, sympy.Integral):
+        if isinstance(sympy_expr, sympy.Integral):
             name = "Integral"
-        elif isinstance(expr, sympy.Derivative):
+        elif isinstance(sympy_expr, sympy.Derivative):
             name = "Derivative"
             margs = []
-            for arg in expr.args:
+            for arg in sympy_expr.args:
                 # parse (x, 1) ==> just x for test_conversion
                 # IMHO this should be removed in future versions
                 if isinstance(arg, sympy.Tuple):
@@ -524,64 +570,70 @@ def old_from_sympy(expr) -> BaseElement:
             assert builtin is not None
             return builtin.from_sympy(tuple(margs))
 
-        elif isinstance(expr, sympy.sign):
+        elif isinstance(sympy_expr, sympy.sign):
             name = "Sign"
         else:
-            name = expr.func.__name__
+            name = sympy_expr.func.__name__
             assert name is not None
             if is_Cn_expr(name):
                 return Expression(
                     Expression(Symbol("C"), Integer(int(name[1:]))),
-                    *[from_sympy(arg) for arg in expr.args],
+                    *[from_sympy(arg) for arg in sympy_expr.args],
                 )
-            if name.startswith(sympy_symbol_prefix):
-                name = name[len(sympy_symbol_prefix) :]
-        args = [from_sympy(arg) for arg in expr.args]
+            name = sympy_decode_mathics_symbol_name(name)
+        args = [from_sympy(arg) for arg in sympy_expr.args]
         builtin = sympy_to_mathics.get(name)
         if builtin is not None:
             return builtin.from_sympy(tuple(args))
         return Expression(Symbol(name), *args)
 
-    if isinstance(expr, sympy.Tuple):
-        return to_mathics_list(*expr.args, elements_conversion_fn=from_sympy)
+    if isinstance(sympy_expr, sympy.Tuple):
+        return to_mathics_list(*sympy_expr.args, elements_conversion_fn=from_sympy)
 
-    # elif isinstance(expr, sympy.Sum):
+    # elif isinstance(sympy_expr, sympy.Sum):
     #    return Expression('Sum', )
 
-    if isinstance(expr, sympy.LessThan):
+    if isinstance(sympy_expr, sympy.LessThan):
         return to_expression(
-            SymbolLessEqual, *expr.args, elements_conversion_fn=from_sympy
+            SymbolLessEqual, *sympy_expr.args, elements_conversion_fn=from_sympy
         )
-    if isinstance(expr, sympy.StrictLessThan):
-        return to_expression(SymbolLess, *expr.args, elements_conversion_fn=from_sympy)
-    if isinstance(expr, sympy.GreaterThan):
+    if isinstance(sympy_expr, sympy.StrictLessThan):
         return to_expression(
-            SymbolGreaterEqual, *expr.args, elements_conversion_fn=from_sympy
+            SymbolLess, *sympy_expr.args, elements_conversion_fn=from_sympy
         )
-    if isinstance(expr, sympy.StrictGreaterThan):
+    if isinstance(sympy_expr, sympy.GreaterThan):
         return to_expression(
-            SymbolGreater, *expr.args, elements_conversion_fn=from_sympy
+            SymbolGreaterEqual, *sympy_expr.args, elements_conversion_fn=from_sympy
         )
-    if isinstance(expr, sympy.Unequality):
+    if isinstance(sympy_expr, sympy.StrictGreaterThan):
         return to_expression(
-            SymbolUnequal, *expr.args, elements_conversion_fn=from_sympy
+            SymbolGreater, *sympy_expr.args, elements_conversion_fn=from_sympy
         )
-    if isinstance(expr, sympy.Equality):
-        return to_expression(SymbolEqual, *expr.args, elements_conversion_fn=from_sympy)
+    if isinstance(sympy_expr, sympy.Unequality):
+        return to_expression(
+            SymbolUnequal, *sympy_expr.args, elements_conversion_fn=from_sympy
+        )
+    if isinstance(sympy_expr, sympy.Equality):
+        return to_expression(
+            SymbolEqual, *sympy_expr.args, elements_conversion_fn=from_sympy
+        )
 
-    if isinstance(expr, sympy.O):
-        if expr.args[0].func == sympy.core.power.Pow:
-            [var, power] = [from_sympy(arg) for arg in expr.args[0].args]
+    if isinstance(sympy_expr, sympy.O):
+        if sympy_expr.args[0].func == sympy.core.power.Pow:
+            [var, power] = [from_sympy(arg) for arg in sympy_expr.args[0].args]
             o_expr = Expression(SymbolO, var)
             return Expression(SymbolPower, o_expr, power)
         else:
-            return Expression(SymbolO, from_sympy(expr.args[0]))
+            return Expression(SymbolO, from_sympy(sympy_expr.args[0]))
+
+    # FIXME: this should be an Interval, but we currently do
+    # not have intervals. The primary place this appears is in
+    # Limit, so check that as well for adjusting.
+    if isinstance(sympy_expr, AccumulationBounds):
+        return SymbolIndeterminate
 
     raise ValueError(
         "Unknown SymPy expression: {} (instance of {})".format(
-            expr, str(expr.__class__)
+            sympy_expr, str(sympy_expr.__class__)
         )
     )
-
-
-from_sympy = old_from_sympy

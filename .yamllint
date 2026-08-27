@@ -1,0 +1,4 @@
+# -*- conf -*-
+# .yamllint configuration file
+rules:
+  line-length: disable

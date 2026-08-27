@@ -1,0 +1,103 @@
+# -*- coding: utf-8 -*-
+"""
+Unit tests from mathics.builtin.intfns.divlike
+"""
+
+from test.helper import check_arg_counts, check_evaluation
+
+import pytest
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    [
+        (
+            "Quotient[13, 0]",
+            ("Infinite expression Quotient[13, 0] encountered.",),
+            "ComplexInfinity",
+            "Check Quotient two-argument divide by 0 error result",
+        ),
+        (
+            "Quotient[1, 0, 1]",
+            ("Indeterminate expression Quotient[1, 0, 1] encountered.",),
+            "Indeterminate",
+            "Check Quotient three-argument 0/0 error result",
+        ),
+        (
+            "Quotient[0, 0]",
+            ("Indeterminate expression Quotient[0, 0] encountered.",),
+            "Indeterminate",
+            "Check Quotient two-argument 0/0 error",
+        ),
+        (
+            "N[Quotient[n, 5]]",
+            None,
+            "Quotient[n, 5.]",
+            (
+                "Check that argument checking does not trigger an error "
+                "in symbolic calculations. #Issue 1722"
+            ),
+        ),
+        ("Quotient[-17, 7]", None, "-3", None),
+        ("Quotient[-17, -4]", None, "4", None),
+        ("Quotient[19, -4]", None, "-5", None),
+        (
+            "QuotientRemainder[13, 0]",
+            ("The argument 0 in QuotientRemainder[13, 0] should be nonzero.",),
+            "QuotientRemainder[13, 0]",
+            None,
+        ),
+        ("QuotientRemainder[-17, 7]", None, "{-3, 4}", None),
+        ("QuotientRemainder[-17, -4]", None, "{4, -1}", None),
+        ("QuotientRemainder[19, -4]", None, "{-5, -1}", None),
+        ("QuotientRemainder[a, 0]", None, "QuotientRemainder[a, 0]", None),
+        ("QuotientRemainder[a, b]", None, "QuotientRemainder[a, b]", None),
+        ("QuotientRemainder[5.2,2.5]", None, "{2, 0.2}", None),
+        ("QuotientRemainder[5, 2.]", None, "{2, 1.}", None),
+    ],
+)
+def test_divlike(str_expr, msgs, str_expected, fail_msg):
+    """ """
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=fail_msg,
+        expected_messages=msgs,
+    )
+
+
+@pytest.mark.parametrize(
+    ("function_name", "msg_fragment"),
+    [
+        (
+            "CompositeQ",
+            "1 argument is",
+        ),
+        (
+            "Divisible",
+            "2 or more arguments are",
+        ),
+        (
+            "LCM",
+            "1 or more arguments are",
+        ),
+        (
+            "ModularInverse",
+            "2 arguments are",
+        ),
+        (
+            "PowerMod",
+            "3 arguments are",
+        ),
+        (
+            "Quotient",
+            "2 or 3 arguments are",
+        ),
+    ],
+)
+def test_divlike_arg_errors(function_name, msg_fragment):
+    """ """
+    check_arg_counts(function_name, msg_fragment)

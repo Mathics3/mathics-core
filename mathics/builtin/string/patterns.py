@@ -57,6 +57,7 @@ class EndOfLine(Builtin):
      . def,
      . hij}
     """
+
     summary_text = "a string pattern matching EOF"
 
 
@@ -146,6 +147,7 @@ class StartOfString(Builtin):
      = cba
      . abb
     """
+
     summary_text = "start of a whole string"
 
 
@@ -312,4 +314,5 @@ class WordCharacter(Builtin):
     >> StringMatchQ["$b;123", WordCharacter..]
      = False
     """
+
     summary_text = "letter or digit"

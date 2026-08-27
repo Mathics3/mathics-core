@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="41.346001mm"
+   height="14.768923mm"
+   viewBox="0 0 41.346001 14.768923"
+   version="1.1"
+   id="svg20493"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   sodipodi:docname="Mathics3-logo.svg"
+   inkscape:export-filename="drawing.svg"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview20495"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="2"
+     inkscape:cx="267.75"
+     inkscape:cy="52.25"
+     inkscape:window-width="1854"
+     inkscape:window-height="1011"
+     inkscape:window-x="1146"
+     inkscape:window-y="872"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs20490">
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient20533">
+      <stop
+         style="stop-color:#000000;stop-opacity:1;"
+         offset="0"
+         id="stop20529" />
+      <stop
+         style="stop-color:#f4e3d7;stop-opacity:1"
+         offset="1"
+         id="stop20531" />
+    </linearGradient>
+    <rect
+       x="29.996094"
+       y="20.992188"
+       width="37.498962"
+       height="57.498413"
+       id="rect20505" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient20533"
+       id="linearGradient20535"
+       x1="11.727519"
+       y1="7.0216355"
+       x2="13.798133"
+       y2="-20.792307"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.85742597,0,0.10905561,1.1662814,0.35498423,-1.7059788)" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-1.1178945,-1.4609905)">
+    <text
+       xml:space="preserve"
+       style="font-size:10.5833px;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, ';stroke-width:0.264583"
+       x="1.1141716"
+       y="8.8093557"
+       id="text20499"><tspan
+         sodipodi:role="line"
+         id="tspan20497"
+         style="stroke-width:0.264583"
+         x="1.1141716"
+         y="8.8093557">Mathics<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman,  Italic'"
+   id="tspan20501">3</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       transform="scale(0.26458333)"
+       id="text20503"
+       style="font-size:40px;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, ';white-space:pre;shape-inside:url(#rect20505);display:inline" />
+    <text
+       xml:space="preserve"
+       style="font-size:9.08537px;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, ';fill:url(#linearGradient20535);fill-opacity:1;stroke-width:0.227133"
+       x="-3.6577182"
+       y="-12.643151"
+       id="text20513"
+       transform="matrix(1.1676865,0,-0.41230535,-0.85639427,0,0)"><tspan
+         sodipodi:role="line"
+         id="tspan20511"
+         style="fill:url(#linearGradient20535);fill-opacity:1;stroke-width:0.227133"
+         x="-3.6577182"
+         y="-12.643151">Mathics<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman,  Italic';fill:url(#linearGradient20535);fill-opacity:1;stroke-width:0.227133"
+   id="tspan20509">3</tspan></tspan></text>
+  </g>
+</svg>

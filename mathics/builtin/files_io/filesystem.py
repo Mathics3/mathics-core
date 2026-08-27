@@ -9,9 +9,12 @@ import os.path as osp
 import pathlib
 import re
 import shutil
-from typing import List
+from typing import List, Optional
 
-from mathics.builtin.files_io.files import MathicsOpen
+# We use the below import for access to variables that may change
+# at runtime.
+import mathics.eval.files_io.files as io_files
+from mathics.builtin.files_io.files import Mathics3Open
 from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_LISTABLE, A_LOCKED, A_PROTECTED
 from mathics.core.builtin import Builtin, MessageException, Predefined
@@ -20,7 +23,7 @@ from mathics.core.convert.python import from_python
 from mathics.core.convert.regex import to_regex
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.streams import create_temporary_file, path_search, urlsave_tmp
+from mathics.core.streams import create_temporary_file, urlsave_tmp
 from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
@@ -36,6 +39,11 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.directories import DIRECTORY_STACK
 from mathics.eval.files_io.files import eval_Get
+from mathics.eval.files_io.filesystem import (
+    eval_DeleteFile,
+    eval_FileExtension,
+    eval_FindFile,
+)
 from mathics.eval.stackframe import get_eval_Expression
 
 
@@ -62,21 +70,20 @@ class AbsoluteFileName(Builtin):
         py_name = name.to_python()
 
         if not isinstance(py_name, str):
-            evaluation.message("AbsoluteFileName", "fstr", name)
+            evaluation.message("AbsoluteFileName", "badfile", name)
             return
 
         if py_name[0] == py_name[-1] == '"':
             py_name = py_name[1:-1]
 
-        result, _ = path_search(py_name)
-
+        result = eval_FindFile(py_name)
         if result is None:
             evaluation.message(
                 "AbsoluteFileName", "nffil", to_expression("AbsoluteFileName", name)
             )
             return SymbolFailed
 
-        return String(osp.abspath(result))
+        return result
 
 
 class CopyDirectory(Builtin):
@@ -173,7 +180,7 @@ class CopyFile(Builtin):
         if py_dest[0] == py_dest[-1] == '"':
             py_dest = py_dest[1:-1]
 
-        py_source, _ = path_search(py_source)
+        py_source = eval_FindFile(py_source)
 
         if py_source is None:
             evaluation.message("CopyFile", "filex", source)
@@ -184,7 +191,7 @@ class CopyFile(Builtin):
             return SymbolFailed
 
         try:
-            shutil.copy(py_source, py_dest)
+            shutil.copy(py_source.value, py_dest)
         except IOError:
             evaluation.message("CopyFile", "nffil", get_eval_Expression())
             return SymbolFailed
@@ -300,20 +307,14 @@ class DeleteFile(Builtin):
 
             if path[0] == path[-1] == '"':
                 path = path[1:-1]
-            path, _ = path_search(path)
+            resolved_path = eval_FindFile(path)
 
-            if path is None:
+            if resolved_path is None:
                 evaluation.message("DeleteFile", "nffil", get_eval_Expression())
                 return SymbolFailed
-            py_paths.append(path)
+            py_paths.append(resolved_path.value)
 
-        for path in py_paths:
-            try:
-                os.remove(path)
-            except OSError:
-                return SymbolFailed
-
-        return SymbolNull
+        return eval_DeleteFile(py_paths)
 
 
 class Directory(Builtin):
@@ -355,7 +356,6 @@ class DirectoryStack(Builtin):
 
     def eval(self, evaluation):
         "DirectoryStack[]"
-        global DIRECTORY_STACK
         return from_python(DIRECTORY_STACK)
 
 
@@ -465,7 +465,7 @@ class FileByteCount(Builtin):
         py_filename = py_filename[1:-1]
 
         try:
-            with MathicsOpen(py_filename, "rb") as f:
+            with Mathics3Open(py_filename, "rb") as f:
                 count = 0
                 tmp = f.read(1)
                 while tmp != b"":
@@ -504,7 +504,7 @@ class FileExistsQ(Builtin):
     }
     summary_text = "test whether a file exists"
 
-    def eval(self, filename, evaluation):
+    def eval(self, filename, evaluation) -> Optional[Symbol]:
         "FileExistsQ[filename_]"
         path = filename.to_python()
         if not (isinstance(path, str) and path[0] == path[-1] == '"'):
@@ -512,11 +512,8 @@ class FileExistsQ(Builtin):
             return
         path = path[1:-1]
 
-        path, is_temporary_file = path_search(path)
-
-        if path is None:
-            return SymbolFalse
-        return SymbolTrue
+        resolved_path = eval_FindFile(path)
+        return SymbolFalse if resolved_path is None else SymbolTrue
 
 
 class FileExtension(Builtin):
@@ -541,12 +538,10 @@ class FileExtension(Builtin):
     }
     summary_text = "file extension"
 
-    def eval(self, filename, evaluation: Evaluation, options: dict):
+    def eval(self, filename, evaluation: Evaluation, options: dict) -> String:
         "FileExtension[filename_String, OptionsPattern[FileExtension]]"
         path = filename.to_python()[1:-1]
-        filename_base, filename_ext = osp.splitext(path)
-        filename_ext = filename_ext.lstrip(".")
-        return String(filename_ext)
+        return String(eval_FileExtension(path))
 
 
 class FileInformation(Builtin):
@@ -561,7 +556,7 @@ class FileInformation(Builtin):
     This function is totally undocumented in MMA!
 
     >> FileInformation["ExampleData/sunflowers.jpg"]
-     = {File -> ..., FileType -> File, ByteCount -> 142286, Date -> ...}
+     = {File ⇾ ..., FileType ⇾ File, ByteCount ⇾ 142286, Date ⇾ ...}
     """
 
     rules = {
@@ -606,12 +601,10 @@ class FindFile(Builtin):
             return
         py_name = py_name[1:-1]
 
-        result, is_temporary_file = path_search(py_name)
-
+        result = eval_FindFile(py_name)
         if result is None:
             return SymbolFailed
-
-        return String(osp.abspath(result))
+        return result
 
 
 class FileNames(Builtin):
@@ -640,7 +633,7 @@ class FileNames(Builtin):
       <dd>Look for files up to the level $n$.
     </dl>
 
-    >> SetDirectory[$InstallationDirectory <> "/autoload"];
+    >> SetDirectory[$InstallationDirectory <> "/Autoload"];
     >> FileNames["*.m", "formats"]//Length
      = ...
     >> FileNames["*.m", "formats", 3]//Length
@@ -834,6 +827,21 @@ class Needs(Builtin):
     </dl>
 
     >> Needs["VectorAnalysis`"]
+
+    In contrast to <url>
+    :Get:
+    /doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/file-and-stream-operations/get/</url>, \
+    'Needs' only loads a package if it has not already been loaded.
+
+    Like 'Get',  <url>
+    :\$ContextPath:
+    /doc/reference-of-built-in-symbols/scoping-constructs/$contextpath/</url> is updated \
+    when a new package context is added.
+
+    Builtin variable <url>
+    :\$Path:
+    /doc/reference-of-built-in-symbols/directories-and-directory-operations/user-file-directories/$path/</url> is used resolve the context to a file name.
+
     """
 
     messages = {
@@ -844,10 +852,13 @@ class Needs(Builtin):
         ),
         "nocont": "Context `1` was not created when Needs was evaluated.",
     }
+    options = {
+        "Trace": "False",
+    }
     summary_text = "load a package if it is not already loaded"
 
-    def eval(self, context, evaluation):
-        "Needs[context_String]"
+    def eval(self, context, evaluation, options: dict):
+        "Needs[context_String, OptionsPattern[Needs]]"
         context_str = context.value
         if context_str == "":
             return SymbolNull
@@ -863,7 +874,23 @@ class Needs(Builtin):
         if test_loaded is SymbolTrue:
             # Already loaded
             return SymbolNull
-        result = eval_Get(context_str, evaluation)
+        py_encoding = evaluation.definitions.get_ownvalue(
+            "System`$CharacterEncoding"
+        ).value
+
+        # Make sure to pick up copy from module each time instead of using
+        # use "from ... import DEFAULT_TRACE_FN" which will not pick
+        # up run-time changes made to the module function.
+        trace_fn = io_files.DEFAULT_TRACE_FN
+
+        trace_get = evaluation.parse("Settings`$TraceGet")
+        if (
+            options["System`Trace"].to_python()
+            or trace_get.evaluate(evaluation) is SymbolTrue
+        ):
+            trace_fn = io_files.GET_PRINT_FN
+
+        result = eval_Get(context_str, evaluation, py_encoding, trace_fn)
 
         if result is SymbolFailed:
             evaluation.message("Needs", "nocont", context)
@@ -905,7 +932,7 @@ class PathnameSeparator(Predefined):
     r"""
     <url>
     :WMA link:
-    https://reference.wolfram.com/language/ref/$PathnameSeparator.html</url>
+    https://reference.wolfram.com/language/ref/\$PathnameSeparator.html</url>
 
     <dl>
       <dt>'\$PathnameSeparator'
@@ -965,9 +992,9 @@ class RenameFile(Builtin):
         py_source = py_source[1:-1]
         py_dest = py_dest[1:-1]
 
-        py_source, _ = path_search(py_source)
+        resolved_source = eval_FindFile(py_source)
 
-        if py_source is None:
+        if resolved_source is None:
             evaluation.message("RenameFile", "filex", source)
             return SymbolFailed
 
@@ -976,7 +1003,7 @@ class RenameFile(Builtin):
             return SymbolFailed
 
         try:
-            shutil.move(py_source, py_dest)
+            shutil.move(resolved_source.value, py_dest)
         except IOError:
             evaluation.message("RenameFile", "nffil", dest)
             return SymbolFailed

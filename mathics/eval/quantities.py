@@ -21,6 +21,7 @@ from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.systemsymbols import SymbolPower, SymbolQuantity, SymbolTimes
+from mathics.core.util import strip_string_quotes
 
 ureg = UnitRegistry()
 Q_ = ureg.Quantity
@@ -28,7 +29,7 @@ Q_ = ureg.Quantity
 
 def add_quantities(
     mag_1: float, u_1: BaseElement, mag_2: float, u_2: BaseElement, evaluation=None
-) -> Expression:
+) -> Optional[Expression]:
     """Try to add two quantities"""
     cmp = compare_units(u_1, u_2)
     if cmp is None:
@@ -87,8 +88,8 @@ def convert_units(
     Implement the unit conversion
 
     The Python "pint" library mixes in a Python numeric value as a multiplier inside
-    a Mathics Expression. Here we pick out that multiplier and
-    convert it from a Python numeric to a Mathics numeric.
+    a Mathics3 Expression. Here we pick out that multiplier and
+    convert it from a Python numeric to a Mathics3 numeric.
     """
     assert isinstance(magnitude, Number)
     assert isinstance(src, BaseElement)
@@ -221,7 +222,7 @@ def normalize_unit_name_with_magnitude(unit: str, magnitude) -> str:
 
 def pint_str_to_expression(unit: str) -> BaseElement:
     """
-    Produce a Mathics Expression from a pint unit expression
+    Produce a Mathics3 Expression from a pint unit expression
     """
     assert isinstance(unit, str)
     unit = normalize_unit_name(unit)
@@ -251,7 +252,7 @@ def pint_str_to_expression(unit: str) -> BaseElement:
 
 def round_if_possible(x_float: float) -> Number:
     """
-    Produce an exact Mathics number from x
+    Produce an exact Mathics3 number from x
     when it is possible.
     If x is integer, return Integer(x)
     If 1/x is integer, return Rational(1,1/x)
@@ -285,7 +286,8 @@ def validate_pint_unit(unit: str) -> bool:
 def validate_unit_expression(unit: BaseElement) -> bool:
     """Test if `unit` is a valid unit"""
     if isinstance(unit, String):
-        return validate_pint_unit(unit.value)
+        unit_value = strip_string_quotes(unit.value)
+        return validate_pint_unit(unit_value)
     if unit.has_form("Power", 2):
         base, exp = unit.elements
         if not isinstance(exp, Integer):
