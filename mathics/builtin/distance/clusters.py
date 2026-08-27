@@ -25,6 +25,7 @@ from mathics.core.systemsymbols import (
     SymbolClusteringComponents,
     SymbolFailed,
     SymbolFindClusters,
+    SymbolList,
     SymbolMethod,
     SymbolRule,
 )
@@ -438,7 +439,7 @@ class Nearest(Builtin):
             evaluation.message(self.get_name(), "list", expression)
             return
 
-        if limit.has_form("List", 2):
+        if limit.has_form(SymbolList, 2):
             up_to = limit.elements[0]
             py_r = limit.elements[1].to_mpmath()
         else:
@@ -477,7 +478,7 @@ class Nearest(Builtin):
             calls = [Expression(distance_function, x, y) for y in dist_p]
             distances = ListExpression(*calls).evaluate(evaluation)
 
-            if not distances.has_form("List", len(dist_p)):
+            if not distances.has_form(SymbolList, len(dist_p)):
                 raise ValueError()
 
             py_distances = [

@@ -27,7 +27,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.keycomparable import LITERAL_EXPRESSION_ELT_ORDER
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
-from mathics.core.systemsymbols import SymbolCompiledFunction
+from mathics.core.systemsymbols import SymbolCompiledFunction, SymbolList
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.code-compilation"
@@ -91,7 +91,7 @@ class Compile(Builtin):
 
     def eval(self, vars, expr, evaluation: Evaluation):
         "Compile[vars_, expr_]"
-        if not vars.has_form("List", None):
+        if not vars.has_form(SymbolList, None):
             evaluation.message("Compile", "invars")
             return
 

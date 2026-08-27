@@ -2,6 +2,7 @@
 """
 Boxing Symbols for 2D Graphics
 """
+
 from abc import ABC
 from math import atan2, cos, degrees, pi, sin
 from typing import Any, Final, Optional
@@ -33,7 +34,7 @@ from mathics.core.formatter import lookup_method
 from mathics.core.list import ListExpression
 from mathics.core.rules import is_rule
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolInsetBox, SymbolTraditionalForm
+from mathics.core.systemsymbols import SymbolInsetBox, SymbolList, SymbolTraditionalForm
 from mathics.format.box import format_element
 from mathics.format.box.common import elements_to_expressions
 from mathics.format.box.graphics import Coords, _data_and_options, coords
@@ -70,13 +71,13 @@ class _Polyline(GraphicsElementBox):
     """
 
     def do_init(self, graphics, points):
-        if not points.has_form("List", None):
+        if not points.has_form(SymbolList, None):
             raise BoxExpressionError
         if (
             points.elements
-            and points.elements[0].has_form("List", None)
+            and points.elements[0].has_form(SymbolList, None)
             and all(
-                element.has_form("List", None)
+                element.has_form(SymbolList, None)
                 for element in points.elements[0].elements
             )
         ):
@@ -91,7 +92,7 @@ class _Polyline(GraphicsElementBox):
             self.multi_parts = False
         lines = []
         for element in elements:
-            if element.has_form("List", None):
+            if element.has_form(SymbolList, None):
                 lines.append(element.elements)
             else:
                 raise BoxExpressionError
@@ -135,7 +136,7 @@ class RoundBox(GraphicsElementBox):
             rx = ry = 1
         elif len(item.elements) == 2:
             r = item.elements[1]
-            if r.has_form("List", 2):
+            if r.has_form(SymbolList, 2):
                 rx = r.elements[0].round_to_float()
                 ry = r.elements[1].round_to_float()
             else:
@@ -529,7 +530,7 @@ class FilledCurveBox(GraphicsElementBox):
         if (
             item is not None
             and item.elements
-            and item.elements[0].has_form("List", None)
+            and item.elements[0].has_form(SymbolList, None)
         ):
             if len(item.elements) != 1:
                 raise BoxExpressionError
@@ -717,9 +718,10 @@ class PointBox(_Polyline):
             if len(item.elements) != 1:
                 raise BoxExpressionError
             points = item.elements[0]
-            if points.has_form("List", None) and len(points.elements) != 0:
+            if points.has_form(SymbolList, None) and len(points.elements) != 0:
                 if all(
-                    not element.has_form("List", None) for element in points.elements
+                    not element.has_form(SymbolList, None)
+                    for element in points.elements
                 ):
                     points = ListExpression(points)
             self.do_init(graphics, points)
@@ -772,7 +774,7 @@ class PolygonBox(_Polyline):
 
     def process_option(self, name, value):
         if name == "System`VertexColors":
-            if not value.has_form("List", None):
+            if not value.has_form(SymbolList, None):
                 raise BoxExpressionError
             black = RGBColor(components=[0, 0, 0, 1])
             self.vertex_colors = [[black] * len(line) for line in self.lines]
@@ -783,7 +785,7 @@ class PolygonBox(_Polyline):
                 if line_index >= len(colors):
                     break
                 line_colors = colors[line_index]
-                if not line_colors.has_form("List", None):
+                if not line_colors.has_form(SymbolList, None):
                     continue
                 for index, color in enumerate(line_colors.elements):
                     if index >= len(self.vertex_colors[line_index]):
@@ -857,7 +859,7 @@ class RegularPolygonBox(PolygonBox):
             y = 0.0
             if len(item.elements) == 3:
                 pos = item.elements[0]
-                if not pos.has_form("List", 2):
+                if not pos.has_form(SymbolList, 2):
                     raise BoxExpressionError
                 x = pos.elements[0].round_to_float()
                 y = pos.elements[1].round_to_float()

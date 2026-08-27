@@ -26,7 +26,11 @@ from mathics.core.expression_predefined import (
 from mathics.core.list import ListExpression
 from mathics.core.streams import Stream, stream_manager
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolIndeterminate
+from mathics.core.systemsymbols import (
+    SymbolDirectedInfinity,
+    SymbolIndeterminate,
+    SymbolList,
+)
 from mathics.eval.binary.io import eval_BinaryReadList
 from mathics.eval.nevaluator import eval_N
 
@@ -413,7 +417,7 @@ class BinaryRead(Builtin):
         else:
             expr = to_expression("BinaryRead", channel, kind)
 
-        if kind.has_form("List", None):
+        if kind.has_form(SymbolList, None):
             kinds = kind.elements
         else:
             kinds = [kind]
@@ -623,13 +627,13 @@ class BinaryWrite(Builtin):
             return expr
 
         # Check b
-        if b.has_form("List", None):
+        if b.has_form(SymbolList, None):
             pyb = b.elements
         else:
             pyb = [b]
 
         # Check Type
-        if kind.has_form("List", None):
+        if kind.has_form(SymbolList, None):
             kinds = kind.elements
         else:
             kinds = [kind]
@@ -656,7 +660,7 @@ class BinaryWrite(Builtin):
             elif t.startswith("Real"):
                 if isinstance(x, Real):
                     x_py = x.to_python()
-                elif x.has_form("DirectedInfinity", 1):
+                elif x.has_form(SymbolDirectedInfinity, 1):
                     if x.elements[0].get_int_value() == 1:
                         x_py = float("+inf")
                     elif x.elements[0].get_int_value() == -1:
@@ -671,7 +675,7 @@ class BinaryWrite(Builtin):
             elif t.startswith("Complex"):
                 if isinstance(x, (Complex, Real, Integer)):
                     x_py = x.to_python()
-                elif x.has_form("DirectedInfinity", 1):
+                elif x.has_form(SymbolDirectedInfinity, 1):
                     x_py = eval_N(x.elements[0], evaluation).to_python()
 
                     # x*float('+inf') creates nan if x.real or x.imag are zero
