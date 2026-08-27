@@ -2,6 +2,7 @@
 """
 Boxing Symbols for 2D Graphics
 """
+
 from abc import ABC
 from math import atan2, cos, degrees, pi, sin
 from typing import Any, Final, Optional
@@ -719,7 +720,8 @@ class PointBox(_Polyline):
             points = item.elements[0]
             if points.has_form(SymbolList, None) and len(points.elements) != 0:
                 if all(
-                    not element.has_form(SymbolList, None) for element in points.elements
+                    not element.has_form(SymbolList, None)
+                    for element in points.elements
                 ):
                     points = ListExpression(points)
             self.do_init(graphics, points)
