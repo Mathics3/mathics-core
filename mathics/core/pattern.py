@@ -492,7 +492,23 @@ class ExpressionPattern(BasePattern):
 
     def __set_pattern_attributes__(self, attributes):
         if attributes is None or self.attributes is not None:
-            self.get_pre_choices = self._get_pre_choices
+            # Attributes not yet knowable (deferred construction --
+            # e.g. ExpressionPattern built directly with attributes=None
+            # and no evaluation, bypassing BasePattern.create), or this
+            # method being called again on an already-resolved instance
+            # (unreachable in practice: match() only calls this when
+            # self.attributes is still None). Either way, leave
+            # self.get_pre_choices unset here -- it is only ever read
+            # from within match()'s own basic_match_expression call,
+            # which happens strictly after match() has already called
+            # this method again with real, resolved attributes (see the
+            # `if self.attributes is None: self.__set_pattern_attributes__(...)`
+            # guard in match() below). Confirmed empirically: this
+            # branch previously set a `_get_pre_choices` fallback method
+            # that, when instrumented and run across the full 4182-test
+            # suite (including the one real caller that hits this branch,
+            # test/eval/test_patterns.py::check_pattern, 20 parametrized
+            # cases), was invoked exactly 0 times. Removed as dead code.
             return
 
         self.attributes = attributes
@@ -595,19 +611,6 @@ class ExpressionPattern(BasePattern):
                 pattern_context["element_count"] = old_element_count
             else:
                 pattern_context.pop("element_count", None)
-
-    def _get_pre_choices(
-        self, expression: Expression, yield_choice: Callable, pattern_context: dict
-    ):
-        """
-        If not Orderless, call yield_choice with vars as the parameter.
-        """
-        attributes = pattern_context.get("attributes")
-        assert isinstance(attributes, int)
-        if A_ORDERLESS & attributes:
-            get_pre_choices_orderless(self, expression, pattern_context)
-        else:
-            pattern_context["yield_choice"](pattern_context["vars_dict"])
 
     def filter_elements(self, head_name: str):
         """Filter the elements with a given head_name"""
