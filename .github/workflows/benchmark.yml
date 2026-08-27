@@ -58,8 +58,9 @@ jobs:
           output-file-path: output.json
           benchmark-data-dir-path: ./cache
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          alert-threshold: '150%'
-          auto-push: true
+          alert-threshold: '200%'
+          # Only store benchmarks from master.
+          auto-push: ${{ github.ref == 'refs/heads/master' }}
           comment-on-alert: true
           fail-on-alert: false
           name: 'Mathics3 Core Benchmarks'
