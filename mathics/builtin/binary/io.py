@@ -26,7 +26,11 @@ from mathics.core.expression_predefined import (
 from mathics.core.list import ListExpression
 from mathics.core.streams import Stream, stream_manager
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolIndeterminate, SymbolList
+from mathics.core.systemsymbols import (
+    SymbolDirectedInfinity,
+    SymbolIndeterminate,
+    SymbolList,
+)
 from mathics.eval.binary.io import eval_BinaryReadList
 from mathics.eval.nevaluator import eval_N
 
