@@ -998,6 +998,9 @@ class Rational(Number[sympy.Rational]):
 
         return format_element(self, evaluation, f)
 
+    def do_copy(self) -> "Rational":
+        return Rational(self.value)
+
     @property
     def is_zero(self) -> bool:
         return (
@@ -1015,6 +1018,9 @@ class Rational(Number[sympy.Rational]):
             return MachineReal(float(self.value))
         else:
             return PrecisionReal(self.value.n(d))
+
+    def round_to_float(self, permit_complex: bool = True) -> float:
+        return float(self.value)
 
     def sameQ(self, rhs) -> bool:
         """Mathics3 SameQ"""
@@ -1052,9 +1058,6 @@ class Rational(Number[sympy.Rational]):
         which pattern to select when several match.
         """
         return super().pattern_precedence
-
-    def do_copy(self) -> "Rational":
-        return Rational(self.value)
 
     def user_hash(self, update) -> None:
         update(
