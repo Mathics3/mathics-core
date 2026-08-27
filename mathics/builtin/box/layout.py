@@ -26,6 +26,7 @@ from mathics.core.exceptions import BoxConstructError
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import SymbolList
 from mathics.format.box import to_boxes
 from mathics.format.box.common import elements_to_expressions
 
@@ -228,11 +229,11 @@ class GridBox(BoxExpression):
         options = self.box_options
 
         expr = elements[0]
-        if not expr.has_form("List", None):
-            if not all(element.has_form("List", None) for element in expr.elements):
+        if not expr.has_form(SymbolList, None):
+            if not all(element.has_form(SymbolList, None) for element in expr.elements):
                 raise BoxConstructError
         items = [
-            element.elements if element.has_form("List", None) else element
+            element.elements if element.has_form(SymbolList, None) else element
             for element in expr.elements
         ]
         if not is_constant_list([len(row) for row in items if isinstance(row, tuple)]):
@@ -436,7 +437,7 @@ class RowBox(BoxExpression):
                 raise Exception(
                     items, "is not a List[] or a list of Strings or BoxElementMixin"
                 )
-            if items[0].has_form("List", None):
+            if items[0].has_form(SymbolList, None):
                 items = items[0]._elements
             else:
                 raise Exception(
