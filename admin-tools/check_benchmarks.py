@@ -49,22 +49,15 @@ def get_baseline_from_gh_pages():
     )
     try:
         resp = requests.get(url, timeout=10)
-        print("getting resp")
         if resp.status_code == 200:
-            print("resp=200")
             content = resp.text
-            print("content of lenght", len(resp.text))
-            # data.js tiene: var data = {...};
-            # Parse the data
-            import re
-
-            match = re.search(r"var data\s*=\s*({.*?});", content, re.DOTALL)
-            if match:
-                print("match")
-                json_str = match.group(1)
+            if content.startswith("window.BENCHMARK_DATA = "):
+                json_str = content[len("window.BENCHMARK_DATA = ") :]
                 data = json.loads(json_str)
                 # The structure of data.js is slightly different...:
                 # { commit: {...}, date: ..., tool: 'pytest', benches: [...] }
+                benchmarks_data_list = data["entries"]["Mathics3 Core Benchmarks"]
+                data = benchmarks_data_list[-1]
                 if "benches" in data:
                     # Convert to the pytest-benchmark format
                     benchmarks = {}
@@ -75,6 +68,7 @@ def get_baseline_from_gh_pages():
                             benchmarks[name] = value
                     return benchmarks
     except Exception as e:
+        print("exception e", json_str)
         print(f"⚠️ Baseline could not be download from gh-pages: {e}", file=sys.stderr)
     return None
 
