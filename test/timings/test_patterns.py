@@ -122,7 +122,13 @@ def test_orderless_plus_match_benchmark(benchmark, n):
     def impl():
         assert str(session.evaluate(expr)) == "System`True"
 
-    benchmark.pedantic(impl, setup=setup, rounds=5, iterations=1)
+    # This benchmark has shown noisy single-run outliers across sessions
+    # (e.g. n=9 spiking ~2x in an isolated round, later confirmed as
+    # GC/JIT warmup noise rather than a real regression -- see
+    # context.md). Bumped rounds 5->15 and added warmup_rounds so a
+    # single round.pedantic warmup absorbs first-call effects
+    # (interpreter/session caches, etc.) before rounds are timed.
+    benchmark.pedantic(impl, setup=setup, rounds=15, warmup_rounds=3, iterations=1)
 
 
 # ---------------------------------------------------------------------------
@@ -310,8 +316,11 @@ def test_orderless_repeated_names_benchmark(benchmark):
             == "System`True"
         )
 
-    # setup= requires iterations=1; bump rounds instead.
-    benchmark.pedantic(impl, setup=setup, rounds=20, iterations=1)
+    # setup= requires iterations=1; bump rounds instead, plus a short
+    # warmup to absorb first-call session/cache effects (this benchmark
+    # showed a ~2x single-run outlier in comparisons before any code
+    # changed at all -- see context.md diagnostic notes).
+    benchmark.pedantic(impl, setup=setup, rounds=30, warmup_rounds=5, iterations=1)
 
 
 # ---------------------------------------------------------------------------
@@ -328,13 +337,20 @@ def test_pattern_precedence_repeated_access_benchmark(benchmark):
     `precedence_pattern` is a plain Python object built once at import
     time and is unaffected by session.reset() calls from other files,
     so no setup= is needed here.
+
+    NOTE: this touches no ExpressionPattern/Ordered/Orderless code at
+    all (see its own docstring above) -- it has still shown 2x+ swings
+    between otherwise-identical runs (see context.md diagnostic notes),
+    confirming those swings are pure environment noise. Bumped rounds
+    and iterations, plus warmup_rounds, specifically to shrink that
+    noise floor rather than because the measured code changed.
     """
 
     def impl():
         for _ in range(2000):
             _ = precedence_pattern.pattern_precedence
 
-    benchmark.pedantic(impl, rounds=10, iterations=2)
+    benchmark.pedantic(impl, rounds=30, warmup_rounds=5, iterations=5)
 
 
 # ---------------------------------------------------------------------------
@@ -473,10 +489,18 @@ def test_orderless_repeated_names_scaling_benchmark(benchmark, n, success):
         expected = "System`True" if success else "System`False"
         assert str(session.evaluate(expr)) == expected
 
+    # Bumped rounds 10->20 and added warmup_rounds: this family showed
+    # ~2x single-run swings in comparisons that turned out not to
+    # reproduce on direct before/after comparison (see context.md
+    # diagnostic notes) -- the "match" cases in particular run flat
+    # across n=4..12, meaning fixed per-round session/eval overhead
+    # dominates over the O(n) work being measured, which is exactly
+    # the kind of benchmark a short warmup and more rounds should help.
     benchmark.pedantic(
         impl,
         setup=setup,
-        rounds=10,
+        rounds=20,
+        warmup_rounds=4,
         iterations=1,
     )
 
