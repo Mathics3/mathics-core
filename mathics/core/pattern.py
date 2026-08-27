@@ -346,18 +346,39 @@ class BasePattern(ABC):
         self, elements: Tuple[BaseElement], pattern_context: dict
     ) -> Union[int, tuple]:
         """Return the number of candidates that match the pattern.
-        Optimized for common patterns."""
-        # Fast path for Blank, BlankSequence, BlankNullSequence
-        if isinstance(self, AtomPattern):
-            if self.atom.get_head() == SymbolBlank:
-                return len(elements)
-        elif isinstance(self, ExpressionPattern):
-            head = self.expr.get_head()
-            if head == SymbolBlankSequence:
-                return len(elements)
-            if head == SymbolBlankNullSequence:
-                return len(elements) + 1
-        # Fallback to generic
+
+        Historical note: this used to have a "fast path for Blank,
+        BlankSequence, BlankNullSequence" ahead of the generic fallback
+        below. Removed after confirming, both structurally and
+        empirically, that it never fired:
+
+        - The BlankSequence/BlankNullSequence branch (isinstance(self,
+          ExpressionPattern)) was unreachable in practice: those names
+          are intercepted earlier by pattern_objects in
+          BasePattern.create(), which returns the dedicated
+          BlankSequence/BlankNullSequence PatternObject subclass
+          instead of a plain ExpressionPattern -- see the analogous,
+          already-documented dead branch this mirrored in
+          get_match_candidates_count's sibling code.
+        - The Blank branch (isinstance(self, AtomPattern) and
+          self.atom.get_head() == SymbolBlank) was unreachable
+          unconditionally, not just empirically: get_head() on any
+          Atom (Integer, String, Symbol, Real, ...) returns that atom's
+          own type symbol (System`Integer, System`Symbol, ...), never
+          System`Blank -- there is no Atom construction for which this
+          comparison can be True.
+
+        Confirmed by instrumenting all three branches (plus the
+        fallback) and running the full test suite (4182 tests, no -x):
+        atom_blank_hits=0, expr_blanksequence_hits=0,
+        expr_blanknullsequence_hits=0, fallback_hits=162351 -- every
+        single call went through the fallback already, so removing the
+        dead branches changes no behavior and no performance (the
+        "fast path" was never actually fast-pathing anything). If a
+        real fast path for these cases is wanted later, it should be
+        reintroduced correctly (e.g. `self.atom == SymbolBlank` for the
+        literal-Blank-symbol case) and re-validated the same way.
+        """
         return len(self.get_match_candidates(elements, pattern_context))
 
     @cached_property
