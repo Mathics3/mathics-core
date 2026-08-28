@@ -1471,6 +1471,25 @@ def get_pre_choices_orderless(
         remaining pattern groups.
         This version correctly handles groups with multiple patterns
         sharing the same variable name.
+
+        Note: there used to be an "if the variable is already bound"
+        branch here, handling the case where `vars_dict.get(name)` is
+        not None by re-checking consistency against every pattern in
+        the group instead of doing the normal subranges() search.
+        Removed as dead code -- provably unreachable, not just
+        empirically uncovered: the caller (get_pre_choices_orderless)
+        only ever adds a name to `groups` when it is NOT already in
+        vars_dict at that point (see its own filtering loop, "There's
+        no need for pre-choices if the variable is already set"), each
+        name is a unique dict key so each group is visited exactly
+        once, and the only place this function itself binds a name is
+        right here, at that same name's own turn. So by the time this
+        function reaches a given group, vars_dict[name] cannot yet be
+        set. Confirmed empirically too: 0 hits across the full test
+        suite (branch coverage) and against hand-built repeated-name
+        cases (including the one already-covered golden test for this
+        exact feature, g[a_, a_, b___, c___] under Orderless) with the
+        branch instrumented directly.
         """
         if not groups:
             yield_name(vars_dict)
@@ -1478,26 +1497,6 @@ def get_pre_choices_orderless(
 
         name, group_patterns = groups[0]
         remaining_groups = groups[1:]
-
-        # If the variable is already bound, check consistency and move on.
-        existing = vars_dict.get(name, None)
-        if existing is not None:
-            # Verify that existing matches all patterns in the group.
-            # Convert to a sequence if needed.
-            seq = existing if isinstance(existing, (tuple, list)) else (existing,)
-            # Check if the sequence matches each pattern in the group.
-            # We need to ensure that the pattern consumes the whole sequence.
-            ok = True
-            for p in group_patterns:
-                # Use a helper that checks if p matches the sequence completely.
-                if not sequence_matches(
-                    p, seq, vars_dict, pattern_context["evaluation"]
-                ):
-                    ok = False
-                    break
-            if ok:
-                per_name(yield_name, remaining_groups, vars_dict)
-            return
 
         # Compute combined min/max lengths for the group.
         min_len = 0
@@ -1732,8 +1731,8 @@ class DeferredExpressionPattern(BasePattern):
     attributes without any special re-derivation logic here).
     """
 
-    def __init__(self, expr: Expression):
-        self.expr: Expression = expr
+    def __init__(self, expr: BaseElement):
+        self.expr = expr
         self.location = expr.location if hasattr(expr, "location") else None
         # Built without an evaluation, same as ExpressionPattern.__init__
         # would -- these may themselves come back as further
