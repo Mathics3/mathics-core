@@ -59,7 +59,7 @@ from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.keycomparable import PATTERN_SORT_KEY_CONDITIONAL, KeyComparable
-from mathics.core.pattern import BasePattern, StopGenerator
+from mathics.core.pattern import BasePattern, DeferredExpressionPattern, StopGenerator
 from mathics.core.symbols import SymbolTrue, strip_context
 
 
@@ -132,6 +132,10 @@ class BaseRule(KeyComparable, ABC):
             pattern,
             attributes=attributes,
         )
+
+    def _resolve(self, evaluation):
+        if isinstance(self.pattern, DeferredExpressionPattern):
+            self.pattern = self.pattern._resolve(evaluation)
 
     def apply(
         self,
