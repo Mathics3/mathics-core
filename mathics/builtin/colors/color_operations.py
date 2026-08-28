@@ -22,7 +22,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolRGBColor
+from mathics.core.systemsymbols import SymbolList, SymbolRGBColor
 
 _image_requires = ("numpy", "PIL")
 
@@ -113,7 +113,7 @@ class Blend(Builtin):
             evaluation.message("Blend", "arg", ListExpression(colors_orig))
             return
 
-        if u.has_form("List", None):
+        if u.has_form(SymbolList, None):
             values = [value.round_to_float(evaluation) for value in u.elements]
             if None in values:
                 values = None
@@ -373,7 +373,7 @@ class DominantColors(Builtin):
         ):
             py_min_color_coverage = 0.05
             py_max_color_coverage = 1.0
-        elif color_coverage.has_form("List", 2):
+        elif color_coverage.has_form(SymbolList, 2):
             py_min_color_coverage = color_coverage.elements[0].round_to_float()
             py_max_color_coverage = color_coverage.elements[1].round_to_float()
         else:

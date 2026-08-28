@@ -20,7 +20,7 @@ from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import MACHINE_EPSILON
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolApply, SymbolOpacity
+from mathics.core.systemsymbols import SymbolApply, SymbolList, SymbolOpacity
 
 
 def _cie2000_distance(lab1, lab2):
@@ -345,7 +345,7 @@ class ColorDistance(Builtin):
             if not compute:
                 evaluation.message("ColorDistance", "invdist", distance_function)
                 return
-        elif distance_function.has_form("List", 2):
+        elif distance_function.has_form(SymbolList, 2):
             if distance_function.elements[0].get_string_value() == "CMC":
                 if distance_function.elements[1].get_string_value() == "Acceptability":
 
@@ -365,7 +365,7 @@ class ColorDistance(Builtin):
                 ):
                     compute = ColorDistance._distances.get("CMC")
 
-                elif distance_function.elements[1].has_form("List", 2):
+                elif distance_function.elements[1].has_form(SymbolList, 2):
                     if isinstance(
                         distance_function.elements[1].elements[0], Integer
                     ) and isinstance(

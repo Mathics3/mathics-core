@@ -63,14 +63,15 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (
     SymbolAnd,
-    SymbolBooleans,
     SymbolComplexes,
     SymbolDirectedInfinity,
     SymbolInfix,
     SymbolIntegers,
     SymbolPossibleZeroQ,
+    SymbolProduct,
     SymbolRationals,
     SymbolReals,
+    SymbolSum,
     SymbolTable,
     SymbolUndefined,
 )
@@ -765,7 +766,7 @@ class Product(IterationFunction, SympyFunction, PrefixOperator):
         )
 
     def to_sympy(self, expr, **kwargs):
-        if expr.has_form("Product", 2) and expr.elements[1].has_form("List", 3):
+        if expr.has_form(SymbolProduct, 2) and expr.elements[1].has_form(SymbolList, 3):
             index = expr.elements[1]
             try:
                 e_kwargs = kwargs.copy()
@@ -1020,7 +1021,7 @@ class Sum(IterationFunction, SympyFunction, PrefixOperator):
         """
         Perform summation via sympy.summation
         """
-        if expr.has_form("Sum", 2) and expr.elements[1].has_form("List", 3):
+        if expr.has_form(SymbolSum, 2) and expr.elements[1].has_form(SymbolList, 3):
             index = expr.elements[1]
             arg_kwargs = kwargs.copy()
             arg_kwargs["convert_all_global_functions"] = True

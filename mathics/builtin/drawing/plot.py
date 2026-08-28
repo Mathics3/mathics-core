@@ -27,6 +27,7 @@ from mathics.core.systemsymbols import (
     SymbolFull,
     SymbolGraphics,
     SymbolLine,
+    SymbolList,
     SymbolNone,
     SymbolPlotRange,
     SymbolRGBColor,
@@ -410,7 +411,7 @@ class PlotOptions:
         # plot ranges of the form {x,xmin,xmax} etc. (returns Symbol)
         self.ranges = []
         for range_expr in range_exprs:
-            if not range_expr.has_form("List", 3):
+            if not range_expr.has_form(SymbolList, 3):
                 error("invrange", range_expr)
             if not isinstance(range_expr.elements[0], Symbol):
                 error("invrange", range_expr)

@@ -1097,13 +1097,12 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         head_name = self._head.get_name()
 
         if isinstance(heads, (tuple, list, set)):
-            if head_name not in [ensure_context(h) for h in heads]:
+            if head_name not in [ensure_context(h) for h in heads if h]:
                 return False
         elif isinstance(heads, str):
             if head_name != ensure_context(heads):
                 return False
         elif isinstance(heads, Symbol):
-            breakpoint
             pass
         else:
             raise TypeError(

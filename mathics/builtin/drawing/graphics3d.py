@@ -11,6 +11,7 @@ from mathics.core.atoms import Integer, Rational, Real
 from mathics.core.builtin import Builtin
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.symbols import SymbolN
+from mathics.core.systemsymbols import SymbolList, SymbolOffset
 from mathics.eval.nevaluator import eval_N
 from mathics.format.box.graphics import CoordinatesError, Style, _GraphicsElements
 
@@ -20,7 +21,7 @@ sort_order = "mathics.builtin.three-dimensional-graphics"
 
 
 def coords3D(value):
-    if value.has_form("List", 3):
+    if value.has_form(SymbolList, 3):
         result = (
             value.elements[0].round_to_float(),
             value.elements[1].round_to_float(),
@@ -35,7 +36,7 @@ class Coords3D:
     def __init__(self, graphics=None, expr=None, pos=None):
         self.p = pos
         if expr is not None:
-            if expr.has_form("Offset", 1, 2):
+            if expr.has_form(SymbolOffset, 1, 2):
                 if len(expr.elements) > 1:
                     self.p = coords3D(expr.elements[1])
             else:

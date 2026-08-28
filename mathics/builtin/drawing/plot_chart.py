@@ -19,6 +19,7 @@ from mathics.core.systemsymbols import (
     SymbolBlack,
     SymbolEdgeForm,
     SymbolGraphics,
+    SymbolList,
     SymbolStyle,
     SymbolText,
 )
@@ -183,7 +184,7 @@ class PieChart(_Chart):
         data = [[max(0.0, x) for x in group] for group in data]
 
         sector_origin = self.get_option(options, "SectorOrigin", evaluation)
-        if not sector_origin.has_form("List", 2):
+        if not sector_origin.has_form(SymbolList, 2):
             return
         sector_origin = eval_N(sector_origin, evaluation)
 
@@ -194,7 +195,7 @@ class PieChart(_Chart):
         ):
             sector_phi = pi
             sector_sign = -1.0
-        elif orientation.has_form("List", 2) and isinstance(
+        elif orientation.has_form(SymbolList, 2) and isinstance(
             orientation.elements[1], String
         ):
             sector_phi = orientation.elements[0].round_to_float()
@@ -216,7 +217,7 @@ class PieChart(_Chart):
                 sector_spacing = ListExpression(Integer0, Integer0)
             else:
                 return
-        if not sector_spacing.has_form("List", 2):
+        if not sector_spacing.has_form(SymbolList, 2):
             return
         segment_spacing = 0.0  # not yet implemented; needs real arc graphics
         radius_spacing = max(0.0, min(1.0, sector_spacing.elements[1].round_to_float()))
