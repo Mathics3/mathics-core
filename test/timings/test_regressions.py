@@ -17,16 +17,19 @@ import pytest
 # Each entry is a tuple (expression, rounds, iterations)
 # ------------------------------------------------------------
 
+LIST_VALUES = [f"$u{i}" for i in range(100)]
+
 REGRESSION_BENCHMARKS = {
     # Basic Arithmetic
     "arithmetic": [
-        ("1 + 2", 10, 2),
-        ("5 * 3", 10, 2),
-        ("1+2*3", 10, 2),
-        ("(1+2)*3", 10, 2),
-        ("1/2+3/4", 10, 2),
-        ("5^3", 10, 2),
-        ("10^100", 10, 2),
+        ("1 + 2", 100, 2),
+        ("(*Long Sum*)" + "+".join(LIST_VALUES), 10, 2),
+        ("5 * 3", 100, 2),
+        ("1+2*3", 100, 2),
+        ("(1+2)*3", 100, 2),
+        ("1/2+3/4", 100, 2),
+        ("5^3", 100, 2),
+        ("10^100", 100, 2),
     ],
     # Assign. This should come before any other test.
     "assign": [
@@ -49,7 +52,7 @@ REGRESSION_BENCHMARKS = {
         ("Expand[(a+b+c+d)^5]", 10, 2),
         ("Expand[(a+b)^10]", 10, 2),
         ("Nest[F,x,3]", 10, 2),
-        ("Nest[FlatF,x]", 10, 2),
+        ("Nest[FlatF,x,3]", 10, 2),
     ],
     # Numerical functions ("NumericQ", "Positive", "Negative", "NonNegative")
     "numeric": [
@@ -76,6 +79,7 @@ REGRESSION_BENCHMARKS = {
         ("Range[1000]", 10, 2),
         ("Table[i, {i, 1, 100}]", 10, 2),
         ("Table[i^2, {i, 1, 100}]", 10, 2),
+        ("Table[i*j, {i, 1., 10.},{j, 1., 10.}]", 10, 2),
         ("Plus@@Table[i^2, {i, 1, 100}]", 10, 2),
         ("Total[Range[100]]", 10, 2),
         ("Length[Range[1000]]", 10, 2),
@@ -88,10 +92,33 @@ REGRESSION_BENCHMARKS = {
         ("Length[nonuniformTable]", 10, 2),
         ("Length[uniformTable]", 10, 2),
     ],
-    # Pattern matching (añadidas manualmente)
+    # Pattern matching (added by hand)
     "pattern": [
         ("Replace[x, x->y]", 10, 2),
         ("Replace[{x,y}, {x->a, y->b}]", 10, 2),
+        (
+            "Hold["
+            + 10 * "FlatF["
+            + "x"
+            + 10 * "]"
+            + "]/. HoldPattern[FlatF[x_]]->FlatF[1]",
+            10,
+            2,
+        ),
+        (
+            "Hold[OrderlessF["
+            + ",".join(LIST_VALUES)
+            + "]]/. HoldPattern[OrderlessF[x__]]->F[1]",
+            10,
+            2,
+        ),
+        (
+            "Hold[OrderlessF["
+            + ",".join(LIST_VALUES)
+            + "u->1,v:>2]]/. HoldPattern[OrderlessF[x__],opt:OptionValues[]]->F[1, {opt}]",
+            10,
+            2,
+        ),
         ("Cases[{1,2,3,4}, x_Integer /; x>2]", 10, 2),
         ("Select[Range[100], PrimeQ]", 10, 2),
         ("Range[100]/.{a__Integer}->a[[1]]", 10, 2),
@@ -111,13 +138,15 @@ REGRESSION_BENCHMARKS = {
 }
 
 # Flatten the structure to parametrize the tests
-BENCHMARK_TASKS = [("reset::reset", None, 0, 0)]
+BENCHMARK_TASKS = [("reset::reset", None, 3, 1000)]
 for category, tasks in REGRESSION_BENCHMARKS.items():
     for expr, repeat, number in tasks:
         # Names for the report
         short_expr = expr[:40] + "..." if len(expr) > 40 else expr
         name = f"{category}::{short_expr}"
-        BENCHMARK_TASKS.append((name, expr, repeat, number))
+        print("parse", expr)
+        p_expr = session.parse(expr)
+        BENCHMARK_TASKS.append((name, p_expr, repeat, number))
 
 # Explicit ids
 param_ids = [name for name, _, _, _ in BENCHMARK_TASKS]
@@ -154,12 +183,31 @@ def test_regression_benchmark(benchmark, name, expr, repeat, number):
     """
     Run a regression benchmark using session.evaluate.
     """
+    print("name", name)
+    evaluation = session.evaluation
     if expr is None:
         session.reset()
-        return
+        evaluation = session.evaluation
+        session.evaluate("SetAttributes[FlatF, Flat];")
+        session.evaluate("SetAttributes[OrderlessF, Orderless];")
+        session.evaluate("nonuniformTable=Table[If[i==0,1,1./(1.+i^2)],{i, 0,100}];")
+        session.evaluate("uniformTable=Table[1./(1.+i^2),{i,0,100}];")
+        session.evaluate("listelems={" + ",".join(LIST_VALUES) + "};")
 
-    def impl():
-        # Evaluating the session
-        session.evaluate(expr)
+        def impl():
+            evaluation.iteration_count = 0
+            evaluation.stopped = False
+            evaluation.out.clear()
+            return
+
+    else:
+
+        def impl():
+            # Evaluating the session
+            evaluation.iteration_count = 0
+            evaluation.stopped = False
+            evaluation.out.clear()
+            expr.clear_cache()
+            expr.evaluate(evaluation)
 
     benchmark.pedantic(impl, rounds=repeat, iterations=number)
