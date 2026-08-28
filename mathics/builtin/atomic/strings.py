@@ -19,6 +19,7 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.systemsymbols import (
     SymbolInputForm,
+    SymbolList,
     SymbolNone,
     SymbolOutputForm,
     SymbolToExpression,
@@ -444,7 +445,7 @@ class LetterNumber(Builtin):
                         cp = alphabet["Uppercase"].find(c) + 1
                     r.append(cp)
                 return ListExpression(*r)
-        elif chars.has_form("List", 1, None):
+        elif chars.has_form(SymbolList, 1, None):
             result = []
             for element in chars.elements:
                 result.append(self.eval_alpha_str(element, alpha, evaluation))
@@ -469,7 +470,7 @@ class LetterNumber(Builtin):
                     for c in py_chars
                 ]
                 return to_mathics_list(*r)
-        elif chars.has_form("List", 1, None):
+        elif chars.has_form(SymbolList, 1, None):
             result = []
             for element in chars.elements:
                 result.append(self.eval(element, evaluation))
