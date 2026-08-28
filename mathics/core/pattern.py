@@ -460,8 +460,7 @@ class ExpressionPattern(BasePattern):
 
     # get_pre_choices = pattern_nocython.get_pre_choices
     # match = pattern_nocython.match
-
-    attributes: Optional[int] = None
+    attributes: int
 
     def __init__(
         self,
@@ -550,8 +549,6 @@ class ExpressionPattern(BasePattern):
         attributes: int = pattern_context["attributes"]
         evaluation: Evaluation = pattern_context["evaluation"]
         expression: BaseElement = pattern_context["expression"]
-        first: bool = pattern_context.setdefault("first", False)
-        fully: bool = pattern_context.setdefault("fully", True)
         vars_dict: dict = pattern_context["vars_dict"]
         rest_expression: tuple = pattern_context["rest_expression"]
         rest_elements: tuple = pattern_context["rest_elements"]
@@ -1545,13 +1542,10 @@ class OrderedExpressionPattern(ExpressionPattern):
     def __init__(
         self,
         expression: Expression,
-        attributes: Optional[int] = None,
+        attributes: int,
         evaluation: Optional[Evaluation] = None,
     ):
         super().__init__(expression, attributes, evaluation)
-        if attributes is None and evaluation:
-            attributes = head.get_attributes(evaluation.definitions)
-
         self.attributes = attributes
         if not (A_ONE_IDENTITY + A_FLAT) & attributes:
             self.isliteral = self.head.isliteral and all(
@@ -1645,12 +1639,10 @@ class OrderlessExpressionPattern(ExpressionPattern):
     def __init__(
         self,
         expression: Expression,
-        attributes: Optional[int] = None,
+        attributes: int,
         evaluation: Optional[Evaluation] = None,
     ):
         super().__init__(expression, attributes, evaluation)
-        if attributes is None and evaluation:
-            attributes = head.get_attributes(evaluation.definitions)
         self.attributes = attributes
         self.sort()
 
