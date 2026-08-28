@@ -185,9 +185,15 @@ def test_regression_benchmark(benchmark, name, expr, repeat, number):
     """
     print("name", name)
     evaluation = session.evaluation
+    definitions = evaluation.definitions
     if expr is None:
         session.reset()
         evaluation = session.evaluation
+        definitions = evaluation.definitions
+        # Ensure that all the symbols exists
+        session.evaluate(
+            "{0,1,2,3,4,5,6,7,10,25,100,1000,F,FlatF, OrderlessF,A,B, i,j,u,v,x,y,z,a,b,c};"
+        )
         session.evaluate("SetAttributes[FlatF, Flat];")
         session.evaluate("SetAttributes[OrderlessF, Orderless];")
         session.evaluate("nonuniformTable=Table[If[i==0,1,1./(1.+i^2)],{i, 0,100}];")
@@ -204,6 +210,7 @@ def test_regression_benchmark(benchmark, name, expr, repeat, number):
 
         def impl():
             # Evaluating the session
+            definitions.now += 1
             evaluation.iteration_count = 0
             evaluation.stopped = False
             evaluation.out.clear()
