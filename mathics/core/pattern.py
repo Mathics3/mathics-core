@@ -345,40 +345,7 @@ class BasePattern(ABC):
     def get_match_candidates_count(
         self, elements: Tuple[BaseElement], pattern_context: dict
     ) -> Union[int, tuple]:
-        """Return the number of candidates that match the pattern.
-
-        Historical note: this used to have a "fast path for Blank,
-        BlankSequence, BlankNullSequence" ahead of the generic fallback
-        below. Removed after confirming, both structurally and
-        empirically, that it never fired:
-
-        - The BlankSequence/BlankNullSequence branch (isinstance(self,
-          ExpressionPattern)) was unreachable in practice: those names
-          are intercepted earlier by pattern_objects in
-          BasePattern.create(), which returns the dedicated
-          BlankSequence/BlankNullSequence PatternObject subclass
-          instead of a plain ExpressionPattern -- see the analogous,
-          already-documented dead branch this mirrored in
-          get_match_candidates_count's sibling code.
-        - The Blank branch (isinstance(self, AtomPattern) and
-          self.atom.get_head() == SymbolBlank) was unreachable
-          unconditionally, not just empirically: get_head() on any
-          Atom (Integer, String, Symbol, Real, ...) returns that atom's
-          own type symbol (System`Integer, System`Symbol, ...), never
-          System`Blank -- there is no Atom construction for which this
-          comparison can be True.
-
-        Confirmed by instrumenting all three branches (plus the
-        fallback) and running the full test suite (4182 tests, no -x):
-        atom_blank_hits=0, expr_blanksequence_hits=0,
-        expr_blanknullsequence_hits=0, fallback_hits=162351 -- every
-        single call went through the fallback already, so removing the
-        dead branches changes no behavior and no performance (the
-        "fast path" was never actually fast-pathing anything). If a
-        real fast path for these cases is wanted later, it should be
-        reintroduced correctly (e.g. `self.atom == SymbolBlank` for the
-        literal-Blank-symbol case) and re-validated the same way.
-        """
+        """Return the number of candidates that match the pattern."""
         return len(self.get_match_candidates(elements, pattern_context))
 
     @cached_property
@@ -485,7 +452,10 @@ class AtomPattern(BasePattern):
 
 class ExpressionPattern(BasePattern):
     """
-    Pattern that matches with an Expression.
+    Base class for Pattern that matches with an Expression.
+    Do not create this class directly. Use `ExpressionPattern.create`,
+    which generates the right subclass, according to the
+    evaluation object, or the request attributes.
     """
 
     # get_pre_choices = pattern_nocython.get_pre_choices
@@ -502,46 +472,11 @@ class ExpressionPattern(BasePattern):
         self.expr = expr
         self.location = expr.location if hasattr(expr, "location") else None
         head = expr.head
-        if attributes is None and evaluation:
-            attributes = head.get_attributes(evaluation.definitions)
         self.head = BasePattern.create(head, evaluation=evaluation)
         self.elements = [
             BasePattern.create(element, evaluation=evaluation)
             for element in expr.elements
         ]
-        self.__set_pattern_attributes__(attributes)
-
-    def __set_pattern_attributes__(self, attributes):
-        if attributes is None or self.attributes is not None:
-            # Attributes not yet knowable (deferred construction --
-            # e.g. ExpressionPattern built directly with attributes=None
-            # and no evaluation, bypassing BasePattern.create), or this
-            # method being called again on an already-resolved instance
-            # (unreachable in practice: match() only calls this when
-            # self.attributes is still None). Either way, leave
-            # self.get_pre_choices unset here -- it is only ever read
-            # from within match()'s own basic_match_expression call,
-            # which happens strictly after match() has already called
-            # this method again with real, resolved attributes (see the
-            # `if self.attributes is None: self.__set_pattern_attributes__(...)`
-            # guard in match() below). Confirmed empirically: this
-            # branch previously set a `_get_pre_choices` fallback method
-            # that, when instrumented and run across the full 4182-test
-            # suite (including the one real caller that hits this branch,
-            # test/eval/test_patterns.py::check_pattern, 20 parametrized
-            # cases), was invoked exactly 0 times. Removed as dead code.
-            return
-
-        self.attributes = attributes
-        if A_ORDERLESS & attributes:
-            self.sort()
-            self.get_pre_choices = get_pre_choices_orderless
-        else:
-            self.get_pre_choices = get_pre_choices_with_order
-            if not (A_ONE_IDENTITY + A_FLAT) & attributes:
-                self.isliteral = self.head.isliteral and all(
-                    element.isliteral for element in self.elements
-                )
 
     def _build_pattern_sort_key(self) -> tuple:
         return (
@@ -554,84 +489,6 @@ class ExpressionPattern(BasePattern):
                 )
             ),
         )
-
-    def match(self, expression: BaseElement, pattern_context: dict):
-        """Try to match the pattern against an Expression"""
-        from mathics.core.atoms.associations import Association
-
-        evaluation = pattern_context["evaluation"]
-        yield_func = pattern_context["yield_func"]
-        vars_dict = pattern_context["vars_dict"]
-        fully = pattern_context.get("fully", True)
-
-        evaluation.check_stopped()
-        if self.isliteral:
-            if expression.sameQ(self.expr):
-                # yield vars, None
-                yield_func(vars_dict, None)
-            return
-
-        if self.attributes is None:
-            self.__set_pattern_attributes__(
-                self.head.get_attributes(evaluation.definitions)
-            )
-        assert self.attributes is not None
-        attributes = self.attributes
-
-        if not A_FLAT & attributes:
-            fully = True
-
-        # --- use mutation with undo instead of copy ---
-        old_fully = pattern_context.get("fully")
-        old_attributes = pattern_context.get("attributes")
-        old_head = pattern_context.get("head")
-        old_element_index = pattern_context.get("element_index")
-        old_element_count = pattern_context.get("element_count")
-        try:
-            pattern_context["fully"] = fully
-            pattern_context["attributes"] = attributes
-            pattern_context["head"] = None
-            pattern_context["element_index"] = None
-            pattern_context["element_count"] = None
-
-            if isinstance(expression, Association):
-                # FIXME: Provide something like this?
-                # try:
-                #     basic_match_association(self, expression, parms)
-                # except (StopGenerator_ExpressionPattern_match, TimeoutInterrupt):
-                #     return
-                expression = expression.expr
-
-            if isinstance(expression, Expression):
-                try:
-                    basic_match_expression(self, expression, pattern_context)
-                except (StopGenerator_ExpressionPattern_match, TimeoutInterrupt):
-                    return
-
-            if A_ONE_IDENTITY & attributes:
-                match_expression_with_one_identity(self, expression, pattern_context)
-        finally:
-            # restore old values
-            if old_fully is not None:
-                pattern_context["fully"] = old_fully
-            else:
-                pattern_context.pop("fully", None)
-            if old_attributes is not None:
-                pattern_context["attributes"] = old_attributes
-            else:
-                pattern_context.pop("attributes", None)
-            if old_head is not None:
-                pattern_context["head"] = old_head
-            else:
-                pattern_context.pop("head", None)
-            if old_element_index is not None:
-                pattern_context["element_index"] = old_element_index
-            else:
-                pattern_context.pop("element_index", None)
-            if old_element_count is not None:
-                pattern_context["element_count"] = old_element_count
-            else:
-                pattern_context.pop("element_count", None)
 
     def filter_elements(self, head_name: str):
         """Filter the elements with a given head_name"""
@@ -1136,6 +993,99 @@ def basic_match_expression(
     )
 
 
+def basic_match_orderless_expression(
+    self: ExpressionPattern, expression: Expression, parms: dict
+):
+    """
+    Try to match a pattern with an expression assuming orderless
+    """
+    # don't do this here, as self.get_pre_choices changes the
+    # ordering of the elements!
+    # if self.elements:
+    #    next_element = self.elements[0]
+    #    next_elements = self.elements[1:]
+    yield_func: Callable = parms["yield_func"]
+    vars_dict: dict = parms["vars_dict"]
+    evaluation: Evaluation = parms["evaluation"]
+    attributes: int = parms["attributes"]
+    fully: bool = parms["fully"]
+
+    def yield_choice(pre_vars):
+        next_element = self.elements[0]
+        next_elements = self.elements[1:]
+        unmatched_elements = expression.elements
+
+        for element in self.elements:
+            match_count = element.get_match_count()
+            candidates = element.get_match_candidates_count(
+                unmatched_elements,
+                {
+                    "expression": expression,
+                    "attributes": attributes,
+                    "vars_dict": pre_vars,
+                    "evaluation": evaluation,
+                },
+            )
+            if candidates < match_count[0]:
+                raise StopGenerator_ExpressionPattern_match()
+
+        # for new_vars, rest in self.match_element(    # nopep8
+        #    self.elements[0], self.elements[1:], ([], expression.elements),
+        #    pre_vars, expression, attributes, evaluation, first=True,
+        #    fully=fully, element_count=len(self.elements)):
+        # def yield_element(new_vars, rest):
+        #    yield_func(new_vars, rest)
+        self.match_element(
+            element=next_element,
+            pattern_context={
+                "yield_func": yield_func,
+                "rest_elements": tuple(next_elements),
+                "rest_expression": ([], expression.elements),
+                "vars_dict": pre_vars,
+                "expression": expression,
+                "attributes": attributes,
+                "evaluation": evaluation,
+                "first": True,
+                "fully": fully,
+                "element_count": len(self.elements),
+                "element_index": 0,
+            },
+        )
+
+    # for head_vars, _ in self.head.match(expression.get_head(), vars,
+    # evaluation):
+    def yield_head(head_vars, _):
+        if self.elements:
+            # pre_choices = self.get_pre_choices(
+            #    expression, attributes, head_vars)
+            # for pre_vars in pre_choices:
+
+            self.get_pre_choices(
+                self,
+                expression,
+                {
+                    "yield_choice": yield_choice,
+                    "attributes": attributes,
+                    "vars_dict": head_vars,
+                    "evaluation": evaluation,
+                },
+            )
+        else:
+            if not expression.elements:
+                yield_func(head_vars, None)
+            else:
+                return
+
+    self.head.match(
+        expression.get_head(),
+        {
+            "yield_func": yield_head,
+            "vars_dict": vars_dict,
+            "evaluation": evaluation,
+        },
+    )
+
+
 def _unwrap_unconstrained_blank_sequence(element: "BasePattern"):
     """
     If `element` is an untyped BlankSequence[]/BlankNullSequence[] -- bare
@@ -1445,6 +1395,7 @@ def get_pre_choices_orderless(
     yield_choice: Callable = pattern_context["yield_choice"]
     vars_dict: dict = pattern_context["vars_dict"]
 
+    # The named patterns. This could be
     patterns = pat.filter_elements("Pattern")
     # a dict with entries having patterns with the same name
     # which are not in vars_dict.
@@ -1464,32 +1415,12 @@ def get_pre_choices_orderless(
             prev_pattern = pattern
             prev_name = name
 
-    # FIX ORDERLESS REPEATED: completely rewritten per_name
     def per_name(yield_name: Callable, groups: Tuple, vars_dict: dict):
         """
         Yields possible variable settings (dictionaries) for the
         remaining pattern groups.
         This version correctly handles groups with multiple patterns
         sharing the same variable name.
-
-        Note: there used to be an "if the variable is already bound"
-        branch here, handling the case where `vars_dict.get(name)` is
-        not None by re-checking consistency against every pattern in
-        the group instead of doing the normal subranges() search.
-        Removed as dead code -- provably unreachable, not just
-        empirically uncovered: the caller (get_pre_choices_orderless)
-        only ever adds a name to `groups` when it is NOT already in
-        vars_dict at that point (see its own filtering loop, "There's
-        no need for pre-choices if the variable is already set"), each
-        name is a unique dict key so each group is visited exactly
-        once, and the only place this function itself binds a name is
-        right here, at that same name's own turn. So by the time this
-        function reaches a given group, vars_dict[name] cannot yet be
-        set. Confirmed empirically too: 0 hits across the full test
-        suite (branch coverage) and against hand-built repeated-name
-        cases (including the one already-covered golden test for this
-        exact feature, g[a_, a_, b___, c___] under Orderless) with the
-        branch instrumented directly.
         """
         if not groups:
             yield_name(vars_dict)
@@ -1582,40 +1513,22 @@ def get_pre_choices_orderless(
     per_name(yield_choice, tuple(groups.items()), vars_dict)
 
 
-# --- Ordered/Orderless class split ---
+# --- Ordered/Orderless/Deferred class split ---
 #
-# ExpressionPattern above still supports the fully-general case: build it
-# without knowing the head's attributes (attributes=None, evaluation=None)
-# and it defers, resolving (and caching) A_ORDERLESS on first .match().
-# That existing behavior is untouched here -- nothing below changes it.
-#
-# These two subclasses are for the case where attributes are ALREADY
-# known at construction time (either the caller passed them directly, or
-# an `evaluation` was available to look them up right away). In that
-# case there is no ambiguity to defer, so we can pick the concrete class
-# immediately via `make_expression_pattern()` below.
-#
-# NOTE: these classes intentionally do NOT override __init__ or
-# __set_pattern_attributes__. The inherited logic still re-derives
-# `get_pre_choices` (and `sort()`/`isliteral`) from the *actual*
-# attributes int passed in, which happens to match what the class name
-# already promises when built through the factory. Redundant, but zero
-# behavior change versus plain ExpressionPattern.
-#
-# `get_wrappings`/`match_element` on the base ExpressionPattern used to
-# each carry their own `A_ORDERLESS & attributes` runtime branch to
-# decide between the Orderless and non-Orderless code paths. Since
-# BasePattern.create() never constructs a plain ExpressionPattern
-# directly -- every live instance reaching these methods is either an
-# OrderedExpressionPattern or an OrderlessExpressionPattern, confirmed by
-# grep/audit of every call site that reaches get_wrappings/match_element
-# -- those branches have been moved into real per-class overrides below:
-# `_yield_sequence_wrappings` (single order vs. all permutations) and
-# `_regular_match_element_sets` (literal-lookahead/subranges search vs.
-# `expression_pattern_match_element_orderless`). The base-class bodies of
-# those two hooks are therefore the Ordered/non-Orderless behavior, and
-# OrderedExpressionPattern needs no override at all -- it inherits them
-# as-is. Only OrderlessExpressionPattern overrides.
+# ExpressionPattern is a virtual base class for these three subclasses.
+# OrderlessExpressionPattern and OrderedExpressionPattern classes
+# implement patterns when we have access to the attributes of the Head
+# element, and the Orderless attribute is or not set for it.
+# This attribute defines the principal branches on how pattern matching
+# happends.
+# Initially, when the Definitions object is not already populated,
+# we do not have access to the Pattern attributes. We handle this case
+# using the DeferredExpressionPattern. When the evaluation tries to
+# use these patterns to check if they match with an expression, the
+# attributes becomes available. Then, DeferredExpressionPattern
+# delegates on the right object class (Ordered/Orderless) according
+# to the available attribute. After the first evaluation, delegation
+# becomes permanent.
 class OrderedExpressionPattern(ExpressionPattern):
     """
     ExpressionPattern for a head known NOT to have the Orderless
@@ -1629,6 +1542,96 @@ class OrderedExpressionPattern(ExpressionPattern):
 
     get_pre_choices = staticmethod(get_pre_choices_with_order)
 
+    def __init__(
+        self,
+        expression: Expression,
+        attributes: Optional[int] = None,
+        evaluation: Optional[Evaluation] = None,
+    ):
+        super().__init__(expression, attributes, evaluation)
+        if attributes is None and evaluation:
+            attributes = head.get_attributes(evaluation.definitions)
+
+        self.attributes = attributes
+        if not (A_ONE_IDENTITY + A_FLAT) & attributes:
+            self.isliteral = self.head.isliteral and all(
+                element.isliteral for element in self.elements
+            )
+        # self.__set_pattern_attributes__(attributes)
+
+    def match(self, expression: BaseElement, pattern_context: dict):
+        """Try to match the pattern against an Expression"""
+        from mathics.core.atoms.associations import Association
+
+        evaluation = pattern_context["evaluation"]
+        yield_func = pattern_context["yield_func"]
+        vars_dict = pattern_context["vars_dict"]
+        fully = pattern_context.get("fully", True)
+
+        evaluation.check_stopped()
+        if self.isliteral:
+            if expression.sameQ(self.expr):
+                # yield vars, None
+                yield_func(vars_dict, None)
+            return
+
+        attributes = self.attributes
+
+        if not A_FLAT & attributes:
+            fully = True
+
+        # --- use mutation with undo instead of copy ---
+        old_fully = pattern_context.get("fully")
+        old_attributes = pattern_context.get("attributes")
+        old_head = pattern_context.get("head")
+        old_element_index = pattern_context.get("element_index")
+        old_element_count = pattern_context.get("element_count")
+        try:
+            pattern_context["fully"] = fully
+            pattern_context["attributes"] = attributes
+            pattern_context["head"] = None
+            pattern_context["element_index"] = None
+            pattern_context["element_count"] = None
+
+            if isinstance(expression, Association):
+                # FIXME: Provide something like this?
+                # try:
+                #     basic_match_association(self, expression, parms)
+                # except (StopGenerator_ExpressionPattern_match, TimeoutInterrupt):
+                #     return
+                expression = expression.expr
+
+            if isinstance(expression, Expression):
+                try:
+                    basic_match_expression(self, expression, pattern_context)
+                except (StopGenerator_ExpressionPattern_match, TimeoutInterrupt):
+                    return
+
+            if A_ONE_IDENTITY & attributes:
+                match_expression_with_one_identity(self, expression, pattern_context)
+        finally:
+            # restore old values
+            if old_fully is not None:
+                pattern_context["fully"] = old_fully
+            else:
+                pattern_context.pop("fully", None)
+            if old_attributes is not None:
+                pattern_context["attributes"] = old_attributes
+            else:
+                pattern_context.pop("attributes", None)
+            if old_head is not None:
+                pattern_context["head"] = old_head
+            else:
+                pattern_context.pop("head", None)
+            if old_element_index is not None:
+                pattern_context["element_index"] = old_element_index
+            else:
+                pattern_context.pop("element_index", None)
+            if old_element_count is not None:
+                pattern_context["element_count"] = old_element_count
+            else:
+                pattern_context.pop("element_count", None)
+
 
 class OrderlessExpressionPattern(ExpressionPattern):
     """
@@ -1638,6 +1641,18 @@ class OrderlessExpressionPattern(ExpressionPattern):
     """
 
     get_pre_choices = staticmethod(get_pre_choices_orderless)
+
+    def __init__(
+        self,
+        expression: Expression,
+        attributes: Optional[int] = None,
+        evaluation: Optional[Evaluation] = None,
+    ):
+        super().__init__(expression, attributes, evaluation)
+        if attributes is None and evaluation:
+            attributes = head.get_attributes(evaluation.definitions)
+        self.attributes = attributes
+        self.sort()
 
     def _yield_sequence_wrappings(self, items: Tuple, yield_func: Callable):
         """Orderless case: one Sequence[...] wrapping per permutation."""
@@ -1670,31 +1685,81 @@ class OrderlessExpressionPattern(ExpressionPattern):
             set_lengths,
         )
 
+    def match(self, expression: BaseElement, pattern_context: dict):
+        """Try to match the pattern against an Expression"""
+        from mathics.core.atoms.associations import Association
 
-def make_expression_pattern(
-    expr: Expression, attributes: int, evaluation: Optional[Evaluation] = None
-) -> ExpressionPattern:
-    """
-    Factory: given `expr` and its head's ALREADY-KNOWN `attributes` int,
-    construct the correct concrete pattern class directly -- no
-    deferral, no later branching on A_ORDERLESS needed.
+        evaluation = pattern_context["evaluation"]
+        yield_func = pattern_context["yield_func"]
+        vars_dict = pattern_context["vars_dict"]
+        fully = pattern_context.get("fully", True)
 
-    Use this whenever attributes are on hand already (e.g. a Builtin
-    class that declares its own attributes statically in Python, or any
-    call site that already has an `evaluation` to look them up). For the
-    case where attributes are NOT yet knowable (system bootstrap, before
-    Definitions is fully populated), use DeferredExpressionPattern
-    instead.
-    """
-    cls = (
-        OrderlessExpressionPattern
-        if A_ORDERLESS & attributes
-        else OrderedExpressionPattern
-    )
-    return cls(expr, attributes, evaluation)
+        evaluation.check_stopped()
+        if self.isliteral:
+            if expression.sameQ(self.expr):
+                # yield vars, None
+                yield_func(vars_dict, None)
+            return
+
+        attributes = self.attributes
+
+        if not A_FLAT & attributes:
+            fully = True
+
+        # --- use mutation with undo instead of copy ---
+        old_fully = pattern_context.get("fully")
+        old_attributes = pattern_context.get("attributes")
+        old_head = pattern_context.get("head")
+        old_element_index = pattern_context.get("element_index")
+        old_element_count = pattern_context.get("element_count")
+        try:
+            pattern_context["fully"] = fully
+            pattern_context["attributes"] = attributes
+            pattern_context["head"] = None
+            pattern_context["element_index"] = None
+            pattern_context["element_count"] = None
+
+            if isinstance(expression, Association):
+                # FIXME: Provide something like this?
+                # try:
+                #     basic_match_association(self, expression, parms)
+                # except (StopGenerator_ExpressionPattern_match, TimeoutInterrupt):
+                #     return
+                expression = expression.expr
+
+            if isinstance(expression, Expression):
+                try:
+                    basic_match_orderless_expression(self, expression, pattern_context)
+                except (StopGenerator_ExpressionPattern_match, TimeoutInterrupt):
+                    return
+
+            if A_ONE_IDENTITY & attributes:
+                match_expression_with_one_identity(self, expression, pattern_context)
+        finally:
+            # restore old values
+            if old_fully is not None:
+                pattern_context["fully"] = old_fully
+            else:
+                pattern_context.pop("fully", None)
+            if old_attributes is not None:
+                pattern_context["attributes"] = old_attributes
+            else:
+                pattern_context.pop("attributes", None)
+            if old_head is not None:
+                pattern_context["head"] = old_head
+            else:
+                pattern_context.pop("head", None)
+            if old_element_index is not None:
+                pattern_context["element_index"] = old_element_index
+            else:
+                pattern_context.pop("element_index", None)
+            if old_element_count is not None:
+                pattern_context["element_count"] = old_element_count
+            else:
+                pattern_context.pop("element_count", None)
 
 
-class DeferredExpressionPattern(BasePattern):
+class DeferredExpressionPattern(ExpressionPattern):
     """
     Wraps an expression whose head's attributes (and therefore whether
     it should be an OrderedExpressionPattern or an
@@ -1720,15 +1785,13 @@ class DeferredExpressionPattern(BasePattern):
 
     Resolution happens once, lazily, on first real use (whichever
     .match() call comes first), and is then frozen for the rest of this
-    object's life -- mirroring exactly how plain ExpressionPattern's own
-    __set_pattern_attributes__ behaves (`if self.attributes is None:
-    resolve-and-freeze`, never re-checked again after that). This
-    matters concretely for `Dispatch[]`: its whole point is to compile a
-    pattern once and reuse it, deliberately NOT re-deriving attributes
-    on subsequent uses even if SetAttributes changes them later (a
-    freshly-typed `expr /. rule`, by contrast, builds a brand new
-    pattern object from scratch every time, so it naturally sees current
-    attributes without any special re-derivation logic here).
+    object's life. This matters concretely for `Dispatch[]`: its whole
+    point is to compile a pattern once and reuse it, deliberately
+    NOT re-deriving attributes on subsequent uses even if SetAttributes
+    changes them later (a freshly-typed `expr /. rule`, by contrast,
+    builds a brand new pattern object from scratch every time, so it
+    naturally sees current attributes without any special
+    re-derivation logic here).
     """
 
     def __init__(self, expr: Expression):
@@ -1744,48 +1807,6 @@ class DeferredExpressionPattern(BasePattern):
         self.elements = [BasePattern.create(element) for element in expr.elements]
         self._impl: Optional[ExpressionPattern] = None
 
-    def _build_pattern_sort_key(self) -> tuple:
-        # Mirrors ExpressionPattern._build_pattern_sort_key exactly --
-        # structural only, doesn't need attributes/resolution.
-        return (
-            BASIC_EXPRESSION_PATTERN_SORT_KEY,
-            self.head.pattern_precedence,
-            tuple(
-                chain(
-                    (element.pattern_precedence for element in self.elements),
-                    (END_OF_LIST_PATTERN_SORT_KEY,),
-                )
-            ),
-        )
-
-    def get_match_count(self, vars_dict: Optional[dict] = None) -> Tuple[int, int]:
-        # Mirrors ExpressionPattern.get_match_count exactly -- a generic
-        # (non-Blank-family) expression pattern always matches exactly
-        # one element, regardless of Orderless-ness. Structural only.
-        return (1, 1)
-
-    def get_match_candidates(
-        self, elements: Tuple[BaseElement, ...], pattern_context: dict
-    ) -> tuple:
-        # Mirrors ExpressionPattern.get_match_candidates exactly: this
-        # only relies on self.does_match(), which is generic on
-        # BasePattern and resolves us correctly -- doesn't depend on
-        # Orderless-ness itself. Missing this was a real bug: without
-        # it, DeferredExpressionPattern fell back to BasePattern's
-        # default (an empty tuple -- "no candidates ever"), which made
-        # match_element() silently find nothing to try even though
-        # does_match() (used by the separate leading_blanks precheck)
-        # correctly said a match was possible.
-        evaluation: Evaluation = pattern_context["evaluation"]
-        vars_dict: Optional[dict] = pattern_context.setdefault("vars_dict", {})
-        return tuple(
-            element
-            for element in elements
-            if self.does_match(
-                element, {"evaluation": evaluation, "vars_dict": vars_dict}
-            )
-        )
-
     def _resolve(self, evaluation: Evaluation) -> ExpressionPattern:
         if self._impl is None:
             attributes = self.expr.get_head().get_attributes(evaluation.definitions)
@@ -1799,3 +1820,26 @@ class DeferredExpressionPattern(BasePattern):
 
     def __repr__(self):
         return f"<DeferredExpressionPattern: {self.expr}>"
+
+
+def make_expression_pattern(
+    expr: Expression, attributes: int, evaluation: Optional[Evaluation] = None
+) -> ExpressionPattern:
+    """
+    Factory: given `expr` and its head's ALREADY-KNOWN `attributes` int,
+    construct the correct concrete pattern class directly -- no
+    deferral, no later branching on A_ORDERLESS needed.
+
+    Use this whenever attributes are on hand already (e.g. a Builtin
+    class that declares its own attributes statically in Python, or any
+    call site that already has an `evaluation` to look them up). For the
+    case where attributes are NOT yet knowable (system bootstrap, before
+    Definitions is fully populated), use DeferredExpressionPattern
+    instead.
+    """
+    cls = (
+        OrderlessExpressionPattern
+        if A_ORDERLESS & attributes
+        else OrderedExpressionPattern
+    )
+    return cls(expr, attributes, evaluation)

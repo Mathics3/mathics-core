@@ -65,6 +65,13 @@ benchmarks:
 	$(PYTHON) admin-tools/normalize_benchmarks.py output.json
 	$(PYTHON) admin-tools/check_benchmarks.py --threshold 200 output.json
 
+# run pytest benchmarks
+full-benchmarks:
+	BENCHMARKS=True $(PYTHON) -m pytest $(PYTEST_OPTIONS) --benchmark-json=output-full.json test/timings
+        # Normalize the stats for ops to the reference.
+	$(PYTHON) admin-tools/normalize_benchmarks.py output-full.json
+	$(PYTHON) admin-tools/check_benchmarks.py --threshold 200 output-full.json
+
 #: build everything needed to install
 build:
 	$(PYTHON) ./setup.py build
