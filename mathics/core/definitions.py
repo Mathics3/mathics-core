@@ -1,4 +1,4 @@
-1  # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 Objects that represent the `Definition` associated with a `Symbol` and
 groups of `Definitions`.
@@ -75,26 +75,6 @@ class Definition:
         for rule in rules:
             if not self.add_rule(rule):
                 print(f"{rule.pattern.expr} could not be associated with {self.name}")
-
-    def _resolve(self, evaluation):
-        """
-        Convert DeferredExpressionPatterns into
-        Order/Orderless ExpressionPatterns
-        """
-        rules_lists = (
-            self.downvalues,
-            self.upvalues,
-            self.ownvalues,
-            self.subvalues,
-            self.nvalues,
-            self.defaultvalues,
-        )
-        for rules_list in rules_lists:
-            for rule in rules_list:
-                rule._resolve(evaluation)
-        for format_values_list in self.formatvalues.values():
-            for rule in format_values_list:
-                rule._resolve(evaluation)
 
     def get_values_list(self, pos: str) -> List[BaseRule]:
         """Return one of the value lists"""
@@ -201,15 +181,6 @@ class Definitions:
 
         if add_builtin:
             load_builtin_definitions(self, builtin_filename, extension_modules)
-
-    def _resolve(self):
-        from mathics.core.evaluation import Evaluation
-
-        evaluation = Evaluation(self)
-        for defin_dict in (self.builtin, self.pymathics, self.user):
-            for defin in defin_dict.values():
-                defin._resolve(evaluation)
-        self.clear_cache()
 
     def clear_cache(self, name: Optional[str] = None) -> None:
         """Clear the definitions cache. If `name` is provided,
@@ -1157,7 +1128,3 @@ def load_builtin_definitions(
 
     autoload_files(self, ROOT_DIR, "Autoload")
     autoload_files(self, osp.join(ROOT_DIR, "SystemFiles"), "Formats")
-
-    # Ensure that all the ExpressionPattern in rules are
-    # OrderExpressionPattern or OrderlessExpressionPattern
-    self._resolve()
