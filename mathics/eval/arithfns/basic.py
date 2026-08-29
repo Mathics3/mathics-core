@@ -55,7 +55,7 @@ RealOne = Real(1.0)
 def classify_zero_power(exponent) -> Integer | Symbol:
     """
     Classifies the behavior of 0**exponent for a Complex exponent.
-    returns SymbolComplexInfinity, SymbolIndeterminate, or Integer0.
+    Returns SymbolComplexInfinity, SymbolIndeterminate, or Integer0.
     """
     # Extract the real part of the exponent.
     # For mysterious reasons, mypy will complain if we don't cast.
@@ -80,7 +80,7 @@ def eval_Plus(*items: BaseElement) -> BaseElement:
     number = eval_add_numbers(*numbers) if numbers else Integer0
 
     # This reduces common factors
-    # TODO: Check if it possible to avoid the conversions back and forward to sympy.
+    # TODO: Check if it is possible to avoid the conversions back and forth to sympy.
     def append_last():
         if last_item is not None:
             if last_count == 1:
@@ -122,7 +122,7 @@ def eval_Plus(*items: BaseElement) -> BaseElement:
             last_count = count
     append_last()
 
-    # now elements contains the symbolic terms which can not be simplified.
+    # "elements" now contains the symbolic terms that can not be simplified.
     # by collecting common symbolic factors.
     if not elements:
         return number
