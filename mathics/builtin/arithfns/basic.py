@@ -227,7 +227,7 @@ class Plus(InfixOperator, SympyFunction):
     >> a + b + 4.5 + a + b + a + 2 + 1.5 b
      = 6.5 + 3 a + 3.5 b
 
-    Apply 'Plus' on a list to sum up its elements:
+    Apply 'Plus' to a list to sum up its elements:
     >> Plus @@ {2, 4, 6}
      = 12
     The sum of the first 1000 integers:
@@ -263,7 +263,7 @@ class Plus(InfixOperator, SympyFunction):
     summary_text = "add a number"
 
     # FIXME Note this is deprecated in 1.11
-    # Remember to up sympy doc link when this is corrected
+    # Remember to update the sympy doc link when this is corrected
     sympy_name = "Add"
 
     def eval(self, elements, evaluation: Evaluation):
@@ -524,7 +524,7 @@ class Times(InfixOperator, SympyFunction):
     rules = {}
 
     # FIXME Note this is deprecated in 1.11
-    # Remember to up sympy doc link when this is corrected
+    # Remember to update the sympy doc link when this is corrected
     sympy_name = "Mul"
 
     summary_text = "multiply numbers"
