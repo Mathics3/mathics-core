@@ -1,6 +1,10 @@
 # cython: language_level=3
 # cython: profile=False
 # -*- coding: utf-8 -*-
+"""
+Common auxiliar functions for pattern matching.
+
+"""
 
 
 from typing import Optional

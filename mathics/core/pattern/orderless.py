@@ -1,6 +1,13 @@
 # cython: language_level=3
 # cython: profile=False
 # -*- coding: utf-8 -*-
+"""
+Orderless ExpressionPatterns
+
+Specialized ExpressionPatterns for the case of expressions with a head
+that have the Orderless attribute.
+
+"""
 
 
 from typing import Callable, Optional, Tuple, Union

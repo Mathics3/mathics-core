@@ -1,6 +1,9 @@
 # cython: language_level=3
 # cython: profile=False
 # -*- coding: utf-8 -*-
+"""
+Base classes for Pattern-like objects
+"""
 
 
 from abc import ABC
