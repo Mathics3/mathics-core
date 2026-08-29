@@ -92,6 +92,14 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
             1,
         )
 
+    def get_float_value(
+        self, evaluation=None, permit_complex: bool = False
+    ) -> Optional[Union[complex, float]]:
+        try:
+            return float(self._value)
+        except Exception:
+            return None
+
     @property
     def is_literal(self) -> bool:
         """Number can't change and has a Python representation,
@@ -522,7 +530,7 @@ class MachineReal(Real[float]):
         """Returns the default specification for precision in N and other numerical functions."""
         return FP_MANTISA_BINARY_DIGITS
 
-    def get_float_value(self, permit_complex=False) -> float:
+    def get_float_value(self, evaluation=None, permit_complex=False) -> float:
         return self._value
 
     @property
@@ -676,8 +684,8 @@ class PrecisionReal(Real[sympy_Float]):
     def round(self, d: Optional[int] = None) -> Union[MachineReal, "PrecisionReal"]:
         if d is None:
             return MachineReal(float(self.value))
-        _prec = min(prec(d), self.value._prec)
-        return PrecisionReal(sympy_Float(self.value, precision=_prec))
+        min_prec = min(prec(d), self.value._prec)
+        return PrecisionReal(sympy_Float(self.value, precision=min_prec))
 
     def sameQ(self, rhs) -> bool:
         """Mathics3 SameQ for PrecisionReal"""
@@ -688,11 +696,12 @@ class PrecisionReal(Real[sympy_Float]):
         else:
             return False
         value = self.value
-        # If sympy would handle properly
-        # the precision, this wold be enough
-        if (value - other_value).is_zero:
+
+        # Keep math entirely inside SymPy to use its arbitrary precision.
+        diff = sympy.Add(value, -other_value)
+        if diff.simplify().is_zero:
             return True
-        # in the meantime, let's use this comparison.
+
         value = self.value
         prec = min(value._prec, other_value._prec)
         diff = abs(value - other_value)
@@ -877,7 +886,9 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         return order_real + order_imag
 
     # FIXME: remove permit_complex and adjust callers.
-    def get_float_value(self, permit_complex=False) -> Optional[Union[complex, float]]:
+    def get_float_value(
+        self, evaluation=None, permit_complex=False
+    ) -> Optional[Union[complex, float]]:
         if self.imag == 0:
             return self.real.get_float_value()
         if permit_complex:
@@ -1025,7 +1036,7 @@ class Rational(Number[sympy.Rational]):
         else:
             return PrecisionReal(self.value.n(d))
 
-    def round_to_float(self, permit_complex: bool = True) -> float:
+    def round_to_float(self, evaluation=None, permit_complex: bool = True) -> float:
         return float(self.value)
 
     def sameQ(self, rhs) -> bool:
