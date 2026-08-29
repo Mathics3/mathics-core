@@ -15,6 +15,7 @@ from mathics.core.symbols import (
     SymbolMaxPrecision,
     SymbolMinPrecision,
 )
+from mathics.core.systemsymbols import SymbolDirectedInfinity
 
 LOG2_10 = mpmath.log(10.0, 2.0)  # ~ 3.3219280948873626
 
@@ -57,15 +58,15 @@ class SpecialValueError(Exception):
 
 
 def _get_float_inf(value, evaluation) -> Optional[float]:
-    value = value.evaluate(evaluation)
-    if value.has_form("DirectedInfinity", 1):
-        if value.elements[0].get_int_value() == 1:
+    evaluated_value = value.evaluate(evaluation)
+    if evaluated_value.has_form(SymbolDirectedInfinity, 1):
+        if evaluated_value.elements[0].get_int_value() == 1:
             return float("inf")
-        elif value.elements[0].get_int_value() == -1:
+        elif evaluated_value.elements[0].get_int_value() == -1:
             return float("-inf")
         else:
             return None
-    return value.round_to_float(evaluation)
+    return evaluated_value.round_to_float(evaluation)
 
 
 def get_precision(
@@ -202,9 +203,9 @@ def convert_base(x, base, precision=10) -> str:
 
     if isinstance(x, (float, sympy.Float)):
         fexps = list(range(-1, -int(precision + 1), -1))
-        real_part = convert(x - int(x), base, fexps)
+        real_part = convert(sympy.Add(x, -int(x)), base, fexps)
 
-        return "%s.%s" % ("".join(int_part), "".join(real_part))
+        return f"{''.join(int_part)}.{''.join(real_part)}"
     elif isinstance(x, int):
         return "".join(int_part)
     else:

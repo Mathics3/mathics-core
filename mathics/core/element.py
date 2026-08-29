@@ -199,13 +199,6 @@ class BaseElement(KeyComparable, ABC):
     # that is basically saying: "it isn't implemented" -- is wrong.
     # To remove this method, we need to fix up calls that expect this behavior,
     # that I am not certain how to do right now. - rocky
-    def get_float_value(self, permit_complex=False) -> Optional[complex]:
-        return None
-
-    # FIXME: this behavior -- defining a specific default implementation
-    # that is basically saying: "it isn't implemented" -- is wrong.
-    # To remove this method, we need to fix up calls that expect this behavior,
-    # that I am not certain how to do right now. - rocky
     def get_int_value(self) -> Optional[int]:
         return None
 
