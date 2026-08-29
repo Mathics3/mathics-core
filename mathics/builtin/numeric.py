@@ -161,12 +161,12 @@ class Chop(Builtin):
     def eval(self, expr, delta, evaluation: Evaluation):
         "Chop[expr_, delta_:(10^-10)]"
 
-        delta = delta.round_to_float(evaluation)
-        if delta is None or delta < 0:
+        rounded_delta = delta.round_to_float(evaluation)
+        if rounded_delta is None or rounded_delta < 0:
             evaluation.message("Chop", "tolnn")
             return
 
-        return chop(expr, delta=delta)
+        return chop(expr, delta=rounded_delta)
 
 
 class N(Builtin):

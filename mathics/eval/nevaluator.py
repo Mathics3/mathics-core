@@ -90,9 +90,9 @@ def eval_NValues(
         return
 
     # If the expression is a number, just round it to the required
-    # precision
+    # precision.
     if isinstance(expr, Number):
-        return expr.round(d)
+        return expr.round() if d is None else expr.round(int(d))
 
     # Special case for the Root builtin
     # This should be implemented as an NValue

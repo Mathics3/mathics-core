@@ -93,14 +93,6 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         )
 
     @property
-    def pattern_precedence(self) -> tuple:
-        """
-        Return a precedence value, a tuple, which is used in selecting
-        which pattern to select when several match.
-        """
-        return super().pattern_precedence
-
-    @property
     def is_literal(self) -> bool:
         """Number can't change and has a Python representation,
         i.e., a value is set and it does not depend on definition
@@ -111,6 +103,28 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
     def is_numeric(self, evaluation=None) -> bool:
         # Anything that is in a number class is Numeric, so return True.
         return True
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return super().pattern_precedence
+
+    def round(self, d: Optional[int] = None) -> "Number":
+        """
+        Produce a Real approximation of ``self`` with decimal precision ``d``.
+        """
+        return self
+
+    def round_to_float(
+        self, evaluation=None, permit_complex: bool = True
+    ) -> float | None:
+        try:
+            return float(self._value)
+        except Exception:
+            return None
 
     def to_mpmath(self, precision: Optional[int] = None) -> mpmath.mpf:
         """
@@ -136,12 +150,6 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         https://github.com/Mathics3/mathics-core/pull/551
         """
         return self.value
-
-    def round(self, d: Optional[int] = None) -> "Number":
-        """
-        Produce a Real approximation of ``self`` with decimal precision ``d``.
-        """
-        return self
 
     @property
     def value(self) -> T:
@@ -300,9 +308,6 @@ class Integer(Number[int]):
 
     def get_int_value(self) -> int:
         return self._value
-
-    def get_float_value(self, permit_complex=False) -> float:
-        return float(self._value)
 
     @property
     def is_zero(self) -> bool:
@@ -871,6 +876,7 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         # = {1+2I, 1.+2.I, 1.`2+2.`7 I, 1.`4+2.`5I}
         return order_real + order_imag
 
+    # FIXME: remove permit_complex and adjust callers.
     def get_float_value(self, permit_complex=False) -> Optional[Union[complex, float]]:
         if self.imag == 0:
             return self.real.get_float_value()

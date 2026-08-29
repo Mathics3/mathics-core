@@ -1516,7 +1516,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         elif isinstance(evaluation, sympy.core.numbers.NaN):
             return None
         else:
-            value = self.create_expression(SymbolN, self).evaluate(evaluation)
+            from mathics.eval.nevaluator import eval_N
+
+            value = eval_N(self, evaluation)
         if hasattr(value, "round") and hasattr(value, "get_float_value"):
             value = value.round()
             return value.get_float_value(permit_complex=permit_complex)

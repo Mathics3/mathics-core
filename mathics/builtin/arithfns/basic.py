@@ -7,15 +7,9 @@ on a calculator.
 
 """
 
-from mathics.core.atoms import (
-    Complex,
-    Integer,
-    Integer1,
-    Integer3,
-    IntegerM1,
-    Number,
-    RationalOneHalf,
-)
+from typing import Any
+
+from mathics.core.atoms import Integer, Integer1, Integer3, RationalOneHalf
 from mathics.core.attributes import (
     A_FLAT,
     A_LISTABLE,
@@ -34,16 +28,9 @@ from mathics.core.builtin import (
 )
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolNull, SymbolPower, SymbolTimes
-from mathics.core.systemsymbols import (
-    SymbolBlank,
-    SymbolComplexInfinity,
-    SymbolIndeterminate,
-    SymbolPattern,
-    SymbolSequence,
-)
-from mathics.eval.arithfns.basic import eval_Plus, eval_Times
-from mathics.eval.nevaluator import eval_N
+from mathics.core.symbols import Symbol, SymbolPower
+from mathics.core.systemsymbols import SymbolBlank, SymbolPattern
+from mathics.eval.arithfns.basic import eval_Plus, eval_Power, eval_Times
 from mathics.eval.numerify import numerify
 from mathics.format.form_rule.arithfns import format_plus, format_times
 
@@ -344,7 +331,7 @@ class Power(InfixOperator, MPMathFunction):
         2: "1",
     }
 
-    formats = {
+    formats: dict[str | Any, Any] = {
         Expression(
             SymbolPower,
             Expression(SymbolPattern, Symbol("x"), Expression(SymbolBlank)),
@@ -373,6 +360,7 @@ class Power(InfixOperator, MPMathFunction):
     rules = {
         "Power[]": "1",
         "Power[x_]": "x",
+        "Power[x_, y_, z_]": "Power[Power[x, y], z]",
     }
 
     summary_text = "exponentiate a number"
@@ -383,37 +371,8 @@ class Power(InfixOperator, MPMathFunction):
 
     def eval_check(self, x, y, evaluation: Evaluation):
         "Power[x_, y_]"
-
-        # Power uses MPMathFunction but does some error checking first
-        if isinstance(x, Number) and x.is_zero:
-            if isinstance(y, Number):
-                y_err = y
-            else:
-                y_err = eval_N(y, evaluation)
-            if isinstance(y_err, Number):
-                py_y = y_err.round_to_float(permit_complex=True).real
-                if py_y > 0:
-                    return x
-                elif py_y == 0.0:
-                    evaluation.message(
-                        "Power", "indet", Expression(SymbolPower, x, y_err)
-                    )
-                    return SymbolIndeterminate
-                elif py_y < 0:
-                    evaluation.message(
-                        "Power", "infy", Expression(SymbolPower, x, y_err)
-                    )
-                    return SymbolComplexInfinity
-        if isinstance(x, Complex) and x.real.is_zero:
-            yhalf = Expression(SymbolTimes, y, RationalOneHalf)
-            factor = self.eval(Expression(SymbolSequence, x.imag, y), evaluation)
-            return Expression(
-                SymbolTimes, factor, Expression(SymbolPower, IntegerM1, yhalf)
-            )
-
-        result = self.eval(Expression(SymbolSequence, x, y), evaluation)
-        if result is None or result is not SymbolNull:
-            return result
+        # FIXME remove self
+        return eval_Power(self, x, y, evaluation)
 
 
 class Sqrt(SympyFunction):

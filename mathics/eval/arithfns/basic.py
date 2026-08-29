@@ -7,12 +7,13 @@ Many of these depend on the evaluation context. Conversions to SymPy are
 used just as a last resource.
 """
 
-from typing import Optional
+from typing import Optional, cast
 
 import mpmath
 import sympy
 
 from mathics.core.atoms import (
+    Complex,
     Integer,
     Integer0,
     Integer1,
@@ -20,23 +21,54 @@ from mathics.core.atoms import (
     IntegerM1,
     Number,
     Rational,
+    RationalOneHalf,
     Real,
 )
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement, ElementsProperties
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.number import min_prec
-from mathics.core.symbols import SymbolPlus, SymbolPower, SymbolTimes
-from mathics.core.systemsymbols import SymbolIndeterminate
+from mathics.core.symbols import (
+    Symbol,
+    SymbolNull,
+    SymbolPlus,
+    SymbolPower,
+    SymbolTimes,
+)
+from mathics.core.systemsymbols import (
+    SymbolComplexInfinity,
+    SymbolIndeterminate,
+    SymbolSequence,
+)
 from mathics.eval.arithmetic import (
     eval_Power_number,
     segregate_numbers_from_sorted_list,
 )
+from mathics.eval.nevaluator import eval_N
 
-RationalMOneHalf = Rational(-1, 2)
 RealM0p5 = Real(-0.5)
 RealOne = Real(1.0)
+
+
+def classify_zero_power(exponent) -> Integer | Symbol:
+    """
+    Classifies the behavior of 0**exponent for a Complex exponent.
+    returns SymbolComplexInfinity, SymbolIndeterminate, or Integer0.
+    """
+    # Extract the real part of the exponent.
+    sympy_real_part = cast(sympy.Expr, sympy.re(exponent))
+
+    if sympy_real_part.is_zero:
+        # Oscillates cleanly on a unit circle radius of 1. Never settles.
+        return SymbolIndeterminate
+    elif sympy_real_part.is_negative:
+        # The real part forces the magnitude to explode to infinity as base -> 0.
+        return SymbolComplexInfinity
+    else:
+        # Real part > 0 forces the expression to cleanly collapse to 0.
+        return Integer0
 
 
 def eval_Plus(*items: BaseElement) -> BaseElement:
@@ -105,6 +137,51 @@ def eval_Plus(*items: BaseElement) -> BaseElement:
         *elements,
         elements_properties=ElementsProperties(False, False, True),
     )
+
+
+# FIXME: remove self
+def eval_Power(self, base, exponent, evaluation: Evaluation):
+    if isinstance(base, Number) and base.is_zero:
+        if isinstance(exponent, Number):
+            n_exponent = exponent
+        else:
+            n_exponent = eval_N(exponent, evaluation)
+        if isinstance(n_exponent, Number):
+            if (n_exponent_float := n_exponent.round_to_float()) is not None:
+                if n_exponent_float > 0.0:
+                    return base
+                elif n_exponent_float == 0.0 or isinstance(n_exponent, Complex):
+                    evaluation.message(
+                        "Power", "indet", Expression(SymbolPower, base, n_exponent)
+                    )
+                    return SymbolIndeterminate
+                elif n_exponent_float < 0.0:
+                    evaluation.message(
+                        "Power", "infy", Expression(SymbolPower, base, n_exponent)
+                    )
+                    return SymbolComplexInfinity
+            elif isinstance(n_exponent, Complex):
+                result = classify_zero_power(exponent.to_sympy())
+                expr = Expression(SymbolPower, Integer0, n_exponent)
+                if result is SymbolIndeterminate:
+                    evaluation.message("Power", "indet", expr)
+                    return result
+                elif result is SymbolComplexInfinity:
+                    evaluation.message("Power", "infy", expr)
+                    return result
+
+    if isinstance(base, Complex) and base.real.is_zero:
+        yhalf = Expression(SymbolTimes, exponent, RationalOneHalf)
+        factor = self.eval(Expression(SymbolSequence, base.imag, exponent), evaluation)
+        return Expression(
+            SymbolTimes, factor, Expression(SymbolPower, IntegerM1, yhalf)
+        )
+
+    result = self.eval(Expression(SymbolSequence, base, exponent), evaluation)
+    if result is SymbolIndeterminate:
+        evaluation.message("Power", "indet", Expression(SymbolPower, base, exponent))
+    if result is None or result is not SymbolNull:
+        return result
 
 
 def eval_Times(*items: BaseElement) -> Optional[BaseElement]:
