@@ -7,7 +7,7 @@ Many of these depend on the evaluation context. Conversions to SymPy are
 used just as a last resource.
 """
 
-from typing import Optional, cast
+from typing import Callable, Optional, cast
 
 import mpmath
 import sympy
@@ -58,6 +58,7 @@ def classify_zero_power(exponent) -> Integer | Symbol:
     returns SymbolComplexInfinity, SymbolIndeterminate, or Integer0.
     """
     # Extract the real part of the exponent.
+    # For mysterious reasons, mypy will complain if we don't cast.
     sympy_real_part = cast(sympy.Expr, sympy.re(exponent))
 
     if sympy_real_part.is_zero:
@@ -139,8 +140,7 @@ def eval_Plus(*items: BaseElement) -> BaseElement:
     )
 
 
-# FIXME: remove self
-def eval_Power(self, base, exponent, evaluation: Evaluation):
+def eval_Power(base, exponent, power_fn_eval: Callable, evaluation: Evaluation):
     if isinstance(base, Number) and base.is_zero:
         if isinstance(exponent, Number):
             n_exponent = exponent
@@ -173,12 +173,14 @@ def eval_Power(self, base, exponent, evaluation: Evaluation):
 
     if isinstance(base, Complex) and base.real.is_zero:
         yhalf = Expression(SymbolTimes, exponent, RationalOneHalf)
-        factor = self.eval(Expression(SymbolSequence, base.imag, exponent), evaluation)
+        factor = power_fn_eval(
+            Expression(SymbolSequence, base.imag, exponent), evaluation
+        )
         return Expression(
             SymbolTimes, factor, Expression(SymbolPower, IntegerM1, yhalf)
         )
 
-    result = self.eval(Expression(SymbolSequence, base, exponent), evaluation)
+    result = power_fn_eval(Expression(SymbolSequence, base, exponent), evaluation)
     if result is SymbolIndeterminate:
         evaluation.message("Power", "indet", Expression(SymbolPower, base, exponent))
     if result is None or result is not SymbolNull:

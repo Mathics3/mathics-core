@@ -369,10 +369,12 @@ class Power(InfixOperator, MPMathFunction):
     # Remember to up sympy doc link when this is corrected
     sympy_name = "Pow"
 
-    def eval_check(self, x, y, evaluation: Evaluation):
-        "Power[x_, y_]"
-        # FIXME remove self
-        return eval_Power(self, x, y, evaluation)
+    # Note: don't use the name "eval()"; that would hide inherited
+    # MPMathFunction.eval which may be needed.
+    def eval_base_exponent(self, base, exponent, evaluation: Evaluation):
+        "Power[base_, exponent_]"
+        # self.eval is MPMathFunction.eval.
+        return eval_Power(base, exponent, self.eval, evaluation)
 
 
 class Sqrt(SympyFunction):
