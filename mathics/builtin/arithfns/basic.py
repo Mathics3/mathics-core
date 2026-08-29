@@ -366,11 +366,11 @@ class Power(InfixOperator, MPMathFunction):
     summary_text = "exponentiate a number"
 
     # FIXME Note this is deprecated in 1.11
-    # Remember to up sympy doc link when this is corrected
+    # Remember to update the sympy doc link when this is corrected
     sympy_name = "Pow"
 
     # Note: don't use the name "eval()"; that would hide inherited
-    # MPMathFunction.eval which may be needed.
+    # MPMathFunction.eval, which may be needed.
     def eval_base_exponent(self, base, exponent, evaluation: Evaluation):
         "Power[base_, exponent_]"
         # self.eval is MPMathFunction.eval.
