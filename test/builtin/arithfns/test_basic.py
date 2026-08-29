@@ -194,6 +194,7 @@ def test_directed_infinity_precedence(str_expr, str_expected, msg):
         ("2^0", "1", None),
         ("2^3^0", "2", "Power to the Power is right associative"),
         ("2^3^0^4", "2", "Power to the Power to the Power is right associative"),
+        ("0^(1 + I)", "0", "Zero raised to a complex with a positive real part"),
         ("(2/3)^0", "1", None),
         ("2.^0", "1.", None),
         ("2^1", "2", None),
@@ -214,8 +215,8 @@ def test_directed_infinity_precedence(str_expr, str_expected, msg):
         ("(5/3)^(-1/2)", "Sqrt[3 / 5]", None),
         ("1/Sqrt[Pi]", "1 / Sqrt[Pi]", None),
         ("I^(2/3)", "(-1) ^ (1 / 3)", None),
-        # In WMA, the next test would return ``-(-I)^(2/3)``
-        # which is less compact and elegant...
+        # In WMA, the next test gives ``-(-I)^(2/3)``
+        # which is less compact and elegant than Mathics3's 1
         #        ("(-I)^(2/3)", "(-1) ^ (-1 / 3)", None),
         ("(2+3I)^3", "-46 + 9 I", None),
         ("(1.+3. I)^.6", "1.46069 + 1.35921 I", None),

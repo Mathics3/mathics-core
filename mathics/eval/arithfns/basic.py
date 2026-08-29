@@ -165,10 +165,11 @@ def eval_Power(self, base, exponent, evaluation: Evaluation):
                 expr = Expression(SymbolPower, Integer0, n_exponent)
                 if result is SymbolIndeterminate:
                     evaluation.message("Power", "indet", expr)
-                    return result
                 elif result is SymbolComplexInfinity:
                     evaluation.message("Power", "infy", expr)
-                    return result
+                elif result is Integer0:
+                    pass
+                return result
 
     if isinstance(base, Complex) and base.real.is_zero:
         yhalf = Expression(SymbolTimes, exponent, RationalOneHalf)
