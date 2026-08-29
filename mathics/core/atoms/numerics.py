@@ -2,7 +2,7 @@
 Numeric types: Number, Integer Real, MachineReal, PrecisionReal, Complex, Rational
 """
 
-# Note: Python warns of ambiguity numpy's module numpy.numerics if we name this file this numeric.py
+# Note: Python warns of ambiguity with NumPy's module numpy.numerics if we name this file numeric.py
 
 import math
 import re
@@ -64,7 +64,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         called with the right value.
 
         Most of the time a number takes one argument - its value
-        When there is a kind of number, like Rational, or Complex,
+        When there is a kind of number, like Rational or Complex,
         that has more than one argument, it should define this method
         accordingly.
         """
@@ -103,7 +103,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
     @property
     def is_literal(self) -> bool:
         """Number can't change and has a Python representation,
-        i.e., a value is set and it does not depend on definition
+        i.e., a value is set, and it does not depend on definition
         bindings. So we say it is a literal.
         """
         return True
@@ -140,7 +140,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         If ``precision`` is None, use mpmath's default precision.
 
         A mpmath number is the default implementation for Number.
-        There are kinds of numbers, like Rational, or Complex, that
+        There are kinds of numbers, like Rational or Complex, that
         need to work differently than this default, and they will
         change the implementation accordingly.
         """
@@ -328,7 +328,7 @@ class Integer(Number[int]):
         decimal precision ``d``.
 
         If ``d`` is ``None`` we force the mantissa to fit the entire
-        integer value, provided it is less than magical number
+        integer value, provided it is less than the magical number
         1024. 1024 is a common internal Mathematica implementation limit where
         it switches from using MachineReal to PrecisionReal.
 
@@ -341,7 +341,7 @@ class Integer(Number[int]):
         if d is None:
             d = self.value.bit_length()
             # Many WMA implementations seem to change behavior of the integer
-            # representation that have more than 1024 digits. In theory this is
+            # representation that has more than 1024 digits. In theory, this is
             # number can vary depending on hardware characteristics.
             # In practice, a reasonable
             if d <= 1024:
@@ -451,12 +451,12 @@ class Real(Number[T]):
 
 # This has to come before PrecisionReal, which uses MachineReal.
 # FIXME: rocky: float is not right. It should be Union[float, mpmath.mpf]
-# but I don't understand how to get the type annotation system to handle his.
+# but I don't understand how to get the type annotation system to handle this.
 class MachineReal(Real[float]):
     """
     Machine precision real number.
 
-    Stored internally as a Python float or a mpmath.mpf
+    Stored internally as a Python float or an mpmath.mpf
 
     Precision for these numbers is `MachinePrecision`.
     """
