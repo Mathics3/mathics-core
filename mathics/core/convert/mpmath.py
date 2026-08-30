@@ -7,15 +7,16 @@ import mpmath
 import sympy
 
 from mathics.core.atoms import Complex, MachineReal, MachineReal0, PrecisionReal
-from mathics.core.element import BaseElement
+from mathics.core.atoms.numerics import Number
 from mathics.core.expression_predefined import (
     MATHICS3_COMPLEX_INFINITY,
     MATHICS3_I_INFINITY,
     MATHICS3_I_NEG_INFINITY,
     MATHICS3_INFINITY,
     MATHICS3_NEG_INFINITY,
+    PredefinedExpression,
 )
-from mathics.core.symbols import SymbolList
+from mathics.core.symbols import Symbol, SymbolList
 from mathics.core.systemsymbols import SymbolIndeterminate
 
 
@@ -23,7 +24,7 @@ from mathics.core.systemsymbols import SymbolIndeterminate
 def from_mpmath(
     value: Union[mpmath.mpf, mpmath.mpc],
     precision: Optional[int] = None,
-) -> BaseElement:
+) -> Optional[Number] | Symbol | PredefinedExpression:
     """
     Converts mpf or mpc to Number.
     The optional parameter `precision` represents
