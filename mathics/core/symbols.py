@@ -251,7 +251,7 @@ class Atom(BaseElement):
 
     def has_form(
         self,
-        heads: Iterable[str | "Symbol"] | str | "Symbol",
+        heads: Union[Iterable[Union[str, "Symbol"]], str, "Symbol"],
         *element_counts: Optional[int],
     ) -> bool:
         # A symbol never has form head[...]
