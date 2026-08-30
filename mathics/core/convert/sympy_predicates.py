@@ -13,7 +13,6 @@ from sympy.core.relational import (
     Equality,
     GreaterThan,
     LessThan,
-    Ne,
     Relational,
     StrictGreaterThan,
     StrictLessThan,

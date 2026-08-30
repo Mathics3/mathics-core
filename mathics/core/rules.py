@@ -61,6 +61,7 @@ from mathics.core.expression import Expression
 from mathics.core.keycomparable import PATTERN_SORT_KEY_CONDITIONAL, KeyComparable
 from mathics.core.pattern import BasePattern, StopGenerator
 from mathics.core.symbols import SymbolTrue, strip_context
+from mathics.core.systemsymbols import SymbolCondition, SymbolRule, SymbolRuleDelayed
 
 
 def _python_function_arguments(f):
@@ -83,7 +84,8 @@ def is_rule(element: Any, include_delayed: bool = True) -> bool:
     # FIXME: remove the test on has_form("Rule") when by fixing up
     # class Rule_ in mathics.core.builtins.
     return (
-        isinstance(element, RewriteRule) or element.has_form(("Rule", "RuleDelayed"), 2)
+        isinstance(element, RewriteRule)
+        or element.has_form((SymbolRule, SymbolRuleDelayed), 2)
         if include_delayed
         else isinstance(element, RewriteRule)
     )
@@ -329,7 +331,7 @@ class RewriteRule(BaseRule):
         new = self.replace.replace_vars(vars)
         new.options = options
 
-        while new.has_form("System`Condition", 2):
+        while new.has_form(SymbolCondition, 2):
             new, cond = new.get_elements()
             if isinstance(cond, Expression):
                 cond = cond.evaluate(evaluation)
@@ -379,7 +381,7 @@ class RewriteRule(BaseRule):
         which pattern to select when several match.
         """
         sort_key = self.pattern.pattern_precedence
-        if self.replace.has_form("System`Condition", 2):
+        if self.replace.has_form(SymbolCondition, 2):
             sort_key_list = list(sort_key)
             sort_key_list[0] = sort_key_list[0] & PATTERN_SORT_KEY_CONDITIONAL
             sort_key = tuple(sort_key_list)

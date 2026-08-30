@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from typing import TYPE_CHECKING, Any, FrozenSet, Optional, Sequence, Union, cast
+from typing import TYPE_CHECKING, Any, FrozenSet, Iterable, Optional, Union, cast
 
 from mathics.core.element import BaseElement, EvalMixin, ensure_context
 
@@ -250,15 +250,12 @@ class Atom(BaseElement):
         return BASIC_ATOM_PATTERN_SORT_KEY
 
     def has_form(
-        self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
+        self,
+        heads: Union[Iterable[Union[str, "Symbol"]], str, "Symbol"],
+        *element_counts: Optional[int],
     ) -> bool:
-        if element_counts:
-            return False
-        name = self.get_atom_name()
-        if isinstance(heads, tuple):
-            return name in heads
-        else:
-            return heads == name
+        # A symbol never has form head[...]
+        return False
 
     @property
     def is_literal(self) -> bool:

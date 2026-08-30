@@ -7,13 +7,14 @@ Here we have the base class and related function for element inside an Expressio
 
 from abc import ABC
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Final, Optional, Sequence, Tuple, Union
+from typing import TYPE_CHECKING, Any, Final, Iterable, Optional, Sequence, Tuple, Union
 
 from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.keycomparable import KeyComparable
 
 if TYPE_CHECKING:
     from mathics.core.evaluation import Evaluation
+    from mathics.core.symbols import Symbol
 
 
 def ensure_context(name: str, context="System`") -> str:
@@ -291,7 +292,9 @@ class BaseElement(KeyComparable, ABC):
         return False
 
     def has_form(
-        self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
+        self,
+        heads: Union[Iterable[Union[str, "Symbol"]], str, "Symbol"],
+        *element_counts: Optional[int],
     ) -> bool:
         """Check if the expression is of the form Head[l1,...,ln]
         with Head.name in `heads` and a number of elements according to the specification in

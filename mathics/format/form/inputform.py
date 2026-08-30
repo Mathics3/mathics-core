@@ -37,6 +37,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Atom
 from mathics.core.systemsymbols import (
+    BLANK_PATTERN_HEADS,
     SymbolInputForm,
     SymbolNonAssociative,
     SymbolRight,
@@ -271,7 +272,7 @@ def _optional(expr: Expression, evaluation: Evaluation, **kwargs) -> str:
         name = render_input_form(operand.elements[0], evaluation, **kwargs)
         operand = operand.elements[1]
 
-    if not operand.has_form(("Blank", "BlankNullSequence", "BlankSequence"), 0):
+    if not operand.has_form(BLANK_PATTERN_HEADS, 0):
         raise _WrongFormattedExpression
 
     blank_kind = operand.head

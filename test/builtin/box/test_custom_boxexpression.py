@@ -93,6 +93,7 @@ class CustomGraphicsBox(BoxExpression):
             definitions.add_format("System`MakeBoxes", mb_rule, "_MakeBoxes")
 
     def init(self, *elems, **options):
+        super().init(*elems, **options)
         self._elements = elems
         self.evaluation = options.pop("evaluation", None)
         self.box_options = options.copy()

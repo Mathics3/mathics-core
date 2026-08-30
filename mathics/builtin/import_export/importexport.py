@@ -1027,7 +1027,7 @@ class B64Decode(Builtin):
     def eval(self, expr: String, evaluation: Evaluation, options):
         "System`Convert`B64Dump`B64Decode[expr_String, OptionsPattern[]]"
         ## TODO: see what to do with enconding here...
-        encoding = options["System`CharacterEncoding"].evaluate(evaluation)
+        # encoding = options["System`CharacterEncoding"].evaluate(evaluation)
         try:
             clearstring = base64.b64decode(bytearray(expr.value, "utf8")).decode("utf8")
             clearstring = String(str(clearstring))
@@ -1069,7 +1069,7 @@ class B64Encode(Builtin):
         "System`Convert`B64Dump`B64Encode[expr_, OptionsPattern[]]"
 
         ## TODO: see what to do with enconding here...
-        encoding = options["System`CharacterEncoding"].evaluate(evaluation)
+        # encoding = options["System`CharacterEncoding"].evaluate(evaluation)
         if isinstance(expr, String):
             stringtocodify = expr.value
         elif expr.get_head_name() == "System`ByteArray":

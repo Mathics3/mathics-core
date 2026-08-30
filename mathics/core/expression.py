@@ -64,6 +64,7 @@ from mathics.core.systemsymbols import (
     SymbolSin,
     SymbolSlot,
     SymbolSqrt,
+    SymbolStyleBox,
     SymbolSubtract,
     SymbolUnevaluated,
 )
@@ -86,6 +87,8 @@ symbols_arithmetic_operations = symbol_set(
     SymbolSubtract,
     SymbolTimes,
 )
+
+HAS_FORMS_STATS = {"symbol": 0, "str": 0}
 
 
 def eval_SameQ(self, other):
@@ -851,7 +854,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # Maybe this deserves to specialize Function
         if self._head is SymbolFunction and len(self._elements) == 3:
             res = self._elements[2]
-            if res.has_form("List", None):
+            if res.has_form(SymbolList, None):
                 attributes = res._elements
             else:
                 attributes = (res,)
@@ -900,7 +903,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         For example, Symbol("Integrate").get_option_values(evaluation, allow_symbols=True)
         will return a list of options associated to the definition of the symbol "Integrate".
         """
-        if self.has_form("List", None):
+        if self.has_form(SymbolList, None):
             values = self.flatten_with_respect_to_head(SymbolList).elements
         else:
             values = [self]
@@ -943,7 +946,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         list_expr = self.flatten_with_respect_to_head(SymbolList)
         list = []
-        if list_expr.has_form("List", None):
+        if list_expr.has_form(SymbolList, None):
             list.extend(list_expr.elements)
         else:
             list.append(list_expr)
@@ -985,7 +988,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         if head is SymbolTimes:
             for element in self.elements:
                 name = element.get_name()
-                if element.has_form("Power", 2):
+                if element.has_form(SymbolPower, 2):
                     var = element.get_element(0).get_name()
                     expr = element.get_element(1)
                     assert isinstance(expr, (Expression, NumericOperators))
@@ -996,7 +999,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 elif name:
                     name = wma_str_sort_key(name)
                     exps[name] = exps.get(name, 0) + 1
-        elif self.has_form("Power", 2):
+        elif self.has_form(SymbolPower, 2):
             var = self.elements[0].get_name()
             # TODO: Check if this is the expected behaviour.
             # round_to_float is an attribute of Expression,
@@ -1085,7 +1088,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         return definitions.is_uncertain_final_value(time, cache.symbols)
 
     def has_form(
-        self, heads: Sequence[str] | str | Symbol, *element_counts: Optional[int]
+        self,
+        heads: Iterable[str | Symbol] | str | Symbol,
+        *element_counts: Optional[int],
     ) -> bool:
         """
         element_counts:
@@ -1095,20 +1100,25 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             (n1, n2, ...):    element count in {n1, n2, ...}
         """
 
-        head_name = self._head.get_name()
+        head = self._head
+        if not isinstance(head, Symbol):
+            return False
 
-        if isinstance(heads, (tuple, list, set)):
-            if head_name not in [ensure_context(h) for h in heads if h]:
+        if head is not heads:  # heads is a symbol, and matches, skip this
+            if isinstance(heads, Symbol):
+                # if is a Symbol, then is not my head.
                 return False
-        elif isinstance(heads, str):
-            if head_name != ensure_context(heads):
-                return False
-        elif isinstance(heads, Symbol):
-            pass
-        else:
-            raise TypeError(
-                f"Heads must be a Symbol, string, or a sequence of strings, not {type(heads)}"
-            )
+            # if is a str, look for a symbol whose name is the string.
+            elif isinstance(heads, str):
+                if head is not Symbol(heads):
+                    return False
+            # Not a symbol or a string: must be a sequence...
+            else:
+                if head not in (
+                    h if isinstance(h, Symbol) else Symbol(h) for h in heads
+                ):
+                    return False
+
         if not element_counts:
             return False
         if element_counts and element_counts[0] is not None:
@@ -1219,7 +1229,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 recompute_properties = False
                 for index in indices:
                     element = elements[index]
-                    if not (element.is_literal or element.has_form("Unevaluated", 1)):
+                    if not (
+                        element.is_literal or element.has_form(SymbolUnevaluated, 1)
+                    ):
                         if isinstance(element, EvalMixin):
                             new_value = element.evaluate(evaluation)
                             # We need id() because != by itself is too permissive
@@ -1235,7 +1247,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                         return
                     for index in indices:
                         element = elements[index]
-                        if not element.is_literal and element.has_form("Evaluate", 1):
+                        if not element.is_literal and element.has_form(
+                            SymbolEvaluate, 1
+                        ):
                             if isinstance(element, EvalMixin):
                                 new_value = element.evaluate(evaluation)
                                 # We need id() because != by itself is too permissive
@@ -1323,7 +1337,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             dirty_elements = None
 
             for index, element in enumerate(elements):
-                if element.has_form("Unevaluated", 1):
+                if element.has_form(SymbolUnevaluated, 1):
                     if dirty_elements is None:
                         dirty_elements = list(elements)
                     dirty_elements[index] = element.get_element(0)
@@ -1665,7 +1679,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     def process_style_box(self, options):
         from mathics.core.rules import RewriteRule
 
-        if self.has_form("StyleBox", 1, None):
+        if self.has_form(SymbolStyleBox, 1, None):
             rules = self._elements[1:]
             for rule in rules:
                 if isinstance(rule, RewriteRule):
@@ -1676,7 +1690,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                         options = options.copy()
                         options["show_string_characters"] = value
                     elif name == "System`ImageSizeMultipliers":
-                        if value.has_form("List", 2):
+                        if value.has_form(SymbolList, 2):
                             m1 = value._elements[0].round_to_float()
                             m2 = value._elements[1].round_to_float()
                             if m1 is not None and m2 is not None:
@@ -1777,7 +1791,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 self._head is SymbolFunction
                 and len(self._elements) > 1
                 and (
-                    self._elements[0].has_form("List", None)
+                    self._elements[0].has_form(SymbolList, None)
                     or self._elements[0].get_name()
                 )
             ):

@@ -202,7 +202,7 @@ def eval_Precision(z: BaseElement) -> Optional[float]:
 
 
 def cancel(expr):
-    if expr.has_form("Plus", None):
+    if expr.has_form(SymbolPlus, None):
         return Expression(SymbolPlus, *[cancel(element) for element in expr.elements])
     else:
         try:

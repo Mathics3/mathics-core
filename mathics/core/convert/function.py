@@ -9,7 +9,7 @@ from mathics.core.convert.lambdify import (
 )
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, from_python
-from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
+from mathics.core.symbols import Symbol, SymbolFalse, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAlternatives,
     SymbolBlank,
@@ -111,7 +111,7 @@ def collect_args(vars) -> Optional[List[CompileArg]]:
                 symb = var
                 name = symb.get_name()
                 t_typ = float
-            elif var.has_form("List", 2):
+            elif var.has_form(SymbolList, 2):
                 symb, typ = var.elements
                 if isinstance(symb, Symbol) and typ in PERMITTED_TYPES:
                     name = symb.get_name()
