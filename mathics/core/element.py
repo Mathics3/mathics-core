@@ -293,7 +293,7 @@ class BaseElement(KeyComparable, ABC):
 
     def has_form(
         self,
-        heads: Iterable[str | "Symbol"] | str | "Symbol",
+        heads: Union[Iterable[Union[str, "Symbol"]], str, "Symbol"],
         *element_counts: Optional[int],
     ) -> bool:
         """Check if the expression is of the form Head[l1,...,ln]
