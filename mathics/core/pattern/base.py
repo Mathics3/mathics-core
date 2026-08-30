@@ -263,7 +263,9 @@ class BasePattern(ABC):
         return self.expr.get_sequence()
 
     def has_form(
-        self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
+        self,
+        heads: Sequence[str | Symbol] | str | Symbol,
+        *element_counts: Optional[int],
     ) -> bool:
         """Compare the expression against a form"""
         return self.expr.has_form(heads, *element_counts)

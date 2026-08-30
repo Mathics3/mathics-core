@@ -21,7 +21,13 @@ from mathics.core.keycomparable import (
 )
 from mathics.core.list import ListExpression
 from mathics.core.pattern import BasePattern, StopGenerator
-from mathics.core.systemsymbols import SymbolBlank, SymbolVerbatim
+from mathics.core.symbols import SymbolList
+from mathics.core.systemsymbols import (
+    SymbolBlank,
+    SymbolRule,
+    SymbolRuleDelayed,
+    SymbolVerbatim,
+)
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.rules-and-patterns.composite"
@@ -354,9 +360,9 @@ class OptionsPattern(PatternObject):
         """
 
         def _match(element: Expression):
-            return element.has_form(("Rule", "RuleDelayed"), 2) or element.has_form(
-                "List", None
-            )
+            return element.has_form(
+                (SymbolRule, SymbolRuleDelayed), 2
+            ) or element.has_form(SymbolList, None)
 
         return tuple((element for element in elements if _match(element)))
 

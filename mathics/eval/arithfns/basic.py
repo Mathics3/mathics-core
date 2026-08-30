@@ -86,7 +86,7 @@ def eval_Plus(*items: BaseElement) -> BaseElement:
             if last_count == 1:
                 elements.append(last_item)
             else:
-                if last_item.has_form("Times", None):
+                if last_item.has_form(SymbolTimes, None):
                     elements.append(
                         Expression(
                             SymbolTimes, from_sympy(last_count), *last_item.elements
@@ -99,7 +99,7 @@ def eval_Plus(*items: BaseElement) -> BaseElement:
 
     for item in items_tuple:
         count = rest = None
-        if item.has_form("Times", None):
+        if item.has_form(SymbolTimes, None):
             for element in item.elements:
                 if isinstance(element, Number):
                     count = element.to_sympy()
@@ -204,9 +204,9 @@ def eval_Times(*items: BaseElement) -> Optional[BaseElement]:
             if item == previous_elem:
                 elements[-1] = Expression(SymbolPower, previous_elem, Integer2)
                 continue
-            elif item.has_form("Power", 2):
+            elif item.has_form(SymbolPower, 2):
                 base, exp = item.elements
-                if previous_elem.has_form("Power", 2) and base.sameQ(
+                if previous_elem.has_form(SymbolPower, 2) and base.sameQ(
                     previous_elem.elements[0]
                 ):
                     exp = eval_Plus(exp, previous_elem.elements[1])
@@ -224,9 +224,9 @@ def eval_Times(*items: BaseElement) -> Optional[BaseElement]:
                         exp,
                     )
                     continue
-            elif previous_elem.has_form("Power", 2) and previous_elem.elements[0].sameQ(
-                item
-            ):
+            elif previous_elem.has_form(SymbolPower, 2) and previous_elem.elements[
+                0
+            ].sameQ(item):
                 exp = eval_Plus(Integer1, previous_elem.elements[1])
                 elements[-1] = Expression(
                     SymbolPower,
@@ -243,7 +243,7 @@ def eval_Times(*items: BaseElement) -> Optional[BaseElement]:
     if len(elements) == 0 or number is Integer0:
         return number
 
-    if number is IntegerM1 and elements and elements[0].has_form("Plus", None):
+    if number is IntegerM1 and elements and elements[0].has_form(SymbolPlus, None):
         elements[0] = Expression(
             elements[0].get_head(),
             *[

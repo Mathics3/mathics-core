@@ -30,6 +30,7 @@ from mathics.core.symbols import (
     Atom,
     Symbol,
     SymbolFalse,
+    SymbolList,
     SymbolMaxPrecision,
     SymbolMinPrecision,
     SymbolN,
@@ -37,11 +38,18 @@ from mathics.core.symbols import (
     valid_context_name,
 )
 from mathics.core.systemsymbols import (
+    SymbolBlank,
+    SymbolBlankNullSequence,
+    SymbolBlankSequence,
     SymbolCondition,
     SymbolDefault,
+    SymbolDirectedInfinity,
     SymbolHoldPattern,
     SymbolMachinePrecision,
+    SymbolMakeBoxes,
+    SymbolPattern,
     SymbolPatternTest,
+    SymbolVerbatim,
 )
 from mathics.eval.list.eol import eval_Part
 
@@ -116,7 +124,7 @@ def eval_assign(
             return assignment_func(
                 op_name, lhs, lhs_reference, rhs, evaluation, tags, upset
             )
-        if isinstance(lhs, Expression) and not lhs.has_form("System`HoldPattern", 1):
+        if isinstance(lhs, Expression) and not lhs.has_form(SymbolHoldPattern, 1):
             lhs = lhs.evaluate_elements(evaluation)
             lhs_reference_expr = get_reference_expression(lhs)
             lhs_reference = (
@@ -224,7 +232,7 @@ def eval_assign_attributes(
 def eval_assign_boxforms(
     op_name: str, lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
 ) -> bool:
-    if not rhs.has_form("List", None):
+    if not rhs.has_form(SymbolList, None):
         evaluation.message("$BoxForms", "formset", rhs)
         return False
     elements = rhs.elements
@@ -340,7 +348,9 @@ def eval_assign_context_path(
     context_path = [
         s if (s is None or s[0] != "`") else curr_context[:-1] + s for s in context_path
     ]
-    if rhs.has_form("List", None) and all(valid_context_name(s) for s in context_path):
+    if rhs.has_form(SymbolList, None) and all(
+        valid_context_name(s) for s in context_path
+    ):
         evaluation.definitions.set_context_path(context_path)
         return True
 
@@ -695,7 +705,7 @@ def eval_assign_makeboxes(
         True if the assignment was successful.
 
     """
-    if not lhs.has_form("MakeBoxes", 2):
+    if not lhs.has_form(SymbolMakeBoxes, 2):
         evaluation.message("MakeBoxes", "argrx", Integer(len(lhs.elements)))
         raise AssignmentException(lhs, None)
     target, form = lhs.elements
@@ -794,7 +804,7 @@ def eval_assign_maxprecision(
     """
     lhs_name = lhs.get_name()
     rhs_int_value = rhs.get_int_value()
-    if rhs.has_form("DirectedInfinity", 1) and rhs.elements[0].get_int_value() == 1:
+    if rhs.has_form(SymbolDirectedInfinity, 1) and rhs.elements[0].get_int_value() == 1:
         return False
     if rhs_int_value is not None and rhs_int_value > 0:
         min_prec = evaluation.definitions.get_config_value("$MinPrecision")
@@ -1367,14 +1377,12 @@ def get_lookup_reference_name(expr: BaseElement) -> str:
       and returns an empty string.
     """
     expr = get_reference_expression(expr)
-    if expr.has_form("System`Pattern", 2):
+    if expr.has_form(SymbolPattern, 2):
         return get_lookup_reference_name(expr.elements[1])
-    if expr.has_form("System`Verbatim", 1):
+    if expr.has_form(SymbolVerbatim, 1):
         # For Verbatim pick the lookup name directly from the expression.
         return expr.elements[0].get_lookup_name()
-    if expr.has_form(
-        ("System`Blank", "System`BlankSequence", "System`BlankNullSequence"), None
-    ):
+    if expr.has_form((SymbolBlank, SymbolBlankSequence, SymbolBlankNullSequence), None):
         if len(expr.elements) == 1:
             return get_lookup_reference_name(expr.elements[0])
         return ""
@@ -1547,10 +1555,10 @@ def process_tags_and_upset_dont_allow_custom(
 
     def get_lookup_name(expr):
         expr = get_reference_expression(expr)
-        if expr.has_form("System`Pattern", 2):
+        if expr.has_form(SymbolPattern, 2):
             return get_lookup_name(expr.elements[1])
         if expr.has_form(
-            ("System`Blank", "System`BlankSequence", "System`BlankNullSequence"), None
+            (SymbolBlank, SymbolBlankSequence, SymbolBlankNullSequence), None
         ):
             if len(expr.elements) == 1:
                 return get_lookup_name(expr.elements[0])

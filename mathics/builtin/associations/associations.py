@@ -11,10 +11,12 @@ from mathics.core.builtin import Builtin, Test
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.rules import is_rule
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolList, symbol_set
 from mathics.core.systemsymbols import SymbolAssociation, SymbolMakeBoxes, SymbolMissing
 from mathics.eval.associations.associations import eval_AssociationQ
 from mathics.eval.lists import list_boxes
+
+HEAD_LIST_OR_ASSOCIATION = symbol_set(SymbolList, SymbolAssociation)
 
 
 class Association_(Builtin):
@@ -63,7 +65,7 @@ class Association_(Builtin):
             for expr in exprs:
                 if is_rule(expr):
                     pass
-                elif expr.has_form(("List", "Association"), None):
+                elif expr.has_form(HEAD_LIST_OR_ASSOCIATION, None):
                     if not validate(expr.elements):
                         return False
                 else:
@@ -94,7 +96,7 @@ class Association_(Builtin):
                     key = elements[0].evaluate(evaluation)
                     value = elements[1].evaluate(evaluation)
                     rules_dictionary[key] = Expression(expr.get_head(), key, value)
-                elif expr.has_form(("List", "Association"), None):
+                elif expr.has_form(HEAD_LIST_OR_ASSOCIATION, None):
                     make_flatten(expr.elements, rules_dictionary)
                 else:
                     raise TypeError
@@ -115,7 +117,7 @@ class Association_(Builtin):
                 if is_rule(expr):
                     if expr.elements[0] == key:
                         rules_dictionary[key] = expr.elements[1]
-                elif expr.has_form(("List", "Association"), None):
+                elif expr.has_form(HEAD_LIST_OR_ASSOCIATION, None):
                     find_key(expr.elements)
                 else:
                     raise TypeError

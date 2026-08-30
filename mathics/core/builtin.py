@@ -67,6 +67,7 @@ from mathics.core.symbols import (
     BooleanType,
     Symbol,
     SymbolFalse,
+    SymbolList,
     SymbolPlus,
     SymbolPower,
     SymbolTimes,
@@ -81,6 +82,7 @@ from mathics.core.systemsymbols import (
     SymbolInfinity,
     SymbolLessEqual,
     SymbolMessageName,
+    SymbolRange,
     SymbolRule,
     SymbolSequence,
 )
@@ -1083,12 +1085,12 @@ class IterationFunction(Builtin, ABC):
     def eval_symbol(self, expr, iterator, evaluation):
         "%(name)s[expr_, iterator_Symbol]"
         iterator = iterator.evaluate(evaluation)
-        if iterator.has_form(["List", "Range", "Sequence"], None):
+        if iterator.has_form((SymbolList, SymbolRange, SymbolSequence), None):
             elements = iterator.elements
             if len(elements) == 1:
                 return self.eval_max(expr, *elements, evaluation)
             elif len(elements) == 2:
-                if elements[1].has_form(["List", "Sequence"], None):
+                if elements[1].has_form((SymbolList, SymbolSequence), None):
                     seq = Expression(SymbolSequence, *(elements[1].elements))
                     return self.eval_list(expr, elements[0], seq, evaluation)
                 else:
@@ -1106,12 +1108,12 @@ class IterationFunction(Builtin, ABC):
         "%(name)s[expr_, {i_Symbol, imax_}]"
 
         imax = imax.evaluate(evaluation)
-        if imax.has_form("Range", None):
+        if imax.has_form(SymbolRange, None):
             # FIXME: this should work as an iterator in Python3, not
             # building the sequence explicitly...
             seq = Expression(SymbolSequence, *(imax.evaluate(evaluation).elements))
             return self.eval_list(expr, i, seq, evaluation)
-        elif imax.has_form("List", None):
+        elif imax.has_form(SymbolList, None):
             seq = Expression(SymbolSequence, *(imax.elements))
             return self.eval_list(expr, i, seq, evaluation)
         else:

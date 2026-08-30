@@ -33,10 +33,12 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
+    SymbolDirective,
     SymbolEdgeForm,
     SymbolFaceForm,
     SymbolGraphics,
     SymbolInset,
+    SymbolOffset,
     SymbolStyle,
     SymbolText,
 )
@@ -163,7 +165,7 @@ class _GraphicsElements:
         failed = []
 
         def convert(content, style):
-            if content.has_form("List", None):
+            if content.has_form(SymbolList, None):
                 items = content.elements
             else:
                 items = [content]
@@ -229,7 +231,7 @@ class _GraphicsElements:
         style = self.style_class(self)
 
         def convert(expr):
-            if expr.has_form(("List", "Directive"), None):
+            if expr.has_form((SymbolList, SymbolDirective), None):
                 for item in expr.elements:
                     convert(item)
             else:
@@ -249,7 +251,7 @@ class Coords:
         self.p = pos
         self.d = d
         if expr is not None:
-            if expr.has_form("Offset", 1, 2):
+            if expr.has_form(SymbolOffset, 1, 2):
                 self.d = coords(expr.elements[0])
                 if len(expr.elements) > 1:
                     self.p = coords(expr.elements[1])
@@ -422,7 +424,7 @@ def _style(graphics, item):
         if len(item.elements) > 1:
             raise BoxExpressionError
         if item.elements:
-            if item.elements[0].has_form("List", None):
+            if item.elements[0].has_form(SymbolList, None):
                 for dir in item.elements[0].elements:
                     style.append(dir, allow_forms=False)
             else:
@@ -433,7 +435,7 @@ def _style(graphics, item):
 
 
 def coords(value):
-    if value.has_form("List", 2):
+    if value.has_form(SymbolList, 2):
         x, y = value.elements[0].round_to_float(), value.elements[1].round_to_float()
         if x is None or y is None:
             raise CoordinatesError
@@ -528,7 +530,7 @@ def create_axes(self, elements, graphics_options, xmin, xmax, ymin, ymax) -> tup
 
     if axes_option is SymbolTrue:
         axes = (True, True)
-    elif axes_option.has_form("List", 2):
+    elif axes_option.has_form(SymbolList, 2):
         axes = (
             axes_option.elements[0] is SymbolTrue,
             axes_option.elements[1] is SymbolTrue,
@@ -542,12 +544,12 @@ def create_axes(self, elements, graphics_options, xmin, xmax, ymin, ymax) -> tup
     axes_style_option = graphics_options.get("System`AxesStyle")
     label_style = graphics_options.get("System`LabelStyle")
 
-    if ticks_style_option.has_form("List", 2):
+    if ticks_style_option.has_form(SymbolList, 2):
         ticks_style = ticks_style_option.elements
     else:
         ticks_style = [ticks_style_option] * 2
 
-    if axes_style_option.has_form("List", 2):
+    if axes_style_option.has_form(SymbolList, 2):
         axes_style = axes_style_option.elements
     else:
         axes_style = [axes_style_option] * 2
@@ -739,7 +741,7 @@ def get_image_size(
     if isinstance(image_size, Integer):
         base_width = image_size.get_int_value()
         base_height = None  # will be computed later in calc_dimensions
-    elif image_size.has_form("System`List", 2):
+    elif image_size.has_form(SymbolList, 2):
         base_width, base_height = (
             [x.round_to_float() for x in image_size.elements] + [0, 0]
         )[:2]

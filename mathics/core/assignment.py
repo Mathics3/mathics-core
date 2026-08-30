@@ -62,7 +62,7 @@ def get_symbol_list(expr: Expression, error_callback: Callable) -> Optional[List
         a list with the names, or None.
 
     """
-    if expr.has_form("List", None):
+    if expr.has_form(SymbolList, None):
         list_expr = expr.elements
     else:
         list_expr = [expr]
@@ -159,7 +159,7 @@ def get_symbol_values(
     for rule in definition.get_values_list(position):
         if isinstance(rule, RewriteRule):
             pattern = rule.pattern
-            if pattern.has_form("HoldPattern", 1):
+            if pattern.has_form(SymbolHoldPattern, 1):
                 expr_pattern = pattern.expr
             else:
                 expr_pattern = Expression(SymbolHoldPattern, pattern.expr)

@@ -16,7 +16,7 @@ from mathics.core.expression_predefined import (
     MATHICS3_NEG_INFINITY,
     PredefinedExpression,
 )
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolList
 from mathics.core.systemsymbols import SymbolIndeterminate
 
 
@@ -74,9 +74,9 @@ def to_mpmath_matrix(data, **kwargs):
     """
 
     def mpmath_matrix_data(m):
-        if not m.has_form("List", None):
+        if not m.has_form(SymbolList, None):
             return None
-        if not all(element.has_form("List", None) for element in m.elements):
+        if not all(element.has_form(SymbolList, None) for element in m.elements):
             return None
         return [[str(item) for item in row.elements] for row in m.elements]
 

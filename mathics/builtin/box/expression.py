@@ -1,4 +1,4 @@
-from typing import Optional, Sequence, Union
+from typing import Iterable, Optional
 
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import BuiltinElement
@@ -79,11 +79,9 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         # behaviour...
         if not hasattr(instance, "_elements"):
             instance._elements = None
+        if not hasattr(instance, "_head"):
+            instance._head = Symbol(instance.get_name())
         return instance
-
-    def __init(self, *args, **kwargs):
-        super().__init(args, kwargs)
-        self.inner_box = None
 
     def do_format(self, evaluation, format):
         return self
@@ -109,7 +107,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         return self._elements
 
     def get_head(self):
-        return Symbol(self.get_name())
+        return self._head
 
     def get_head_name(self):
         return self.get_name()
@@ -139,14 +137,16 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
 
     @property
     def head(self):
-        return self.get_head()
+        return self._head
 
     @head.setter
     def head(self, value):
         raise ValueError("BoxExpression.head is write protected.")
 
     def has_form(
-        self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
+        self,
+        heads: Iterable[str | Symbol] | str | Symbol,
+        *element_counts: Optional[int],
     ) -> bool:
         """
         element_counts:
@@ -155,19 +155,20 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
             (n, None):  element count >= n
             (n1, n2, ...):    element count in {n1, n2, ...}
         """
+        head = self._head
 
-        head_name = self.get_name()
+        if head is not heads:  # heads is a symbol, and matches, skip this
+            if isinstance(heads, Symbol):
+                # if is a Symbol, then is not my head.
+                return False
+            # if is a str, look for a symbol whose name is the string.
+            if isinstance(heads, str):
+                if head is not Symbol(heads):
+                    return False
+            # Not a symbol or a string: must be a sequence...
+            elif head not in (h if isinstance(h, Symbol) else Symbol(h) for h in heads):
+                return False
 
-        if isinstance(heads, (tuple, list, set)):
-            if head_name not in [ensure_context(h) for h in heads]:
-                return False
-        elif isinstance(heads, str):
-            if head_name != ensure_context(heads):
-                return False
-        else:
-            raise TypeError(
-                f"Heads must be a string or a sequence of strings, not {type(heads)}"
-            )
         if not element_counts:
             return False
         if element_counts and element_counts[0] is not None:
@@ -212,7 +213,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
                 return tex
 
     def to_expression(self) -> Expression:
-        return Expression(Symbol(self.get_name()), *self.elements)
+        return Expression(self.head, *self.elements)
 
     def flatten_pattern_sequence(self, evaluation) -> "BoxExpression":
         return self

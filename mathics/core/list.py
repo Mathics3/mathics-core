@@ -10,6 +10,7 @@ from mathics.core.element import ElementsProperties
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import EvalMixin, Symbol, SymbolList
+from mathics.core.systemsymbols import SymbolUnevaluated
 
 
 class ListExpression(Expression):
@@ -105,7 +106,7 @@ class ListExpression(Expression):
         # Make tuple self._elements mutable by turning it into a list.
         elements = list(self._elements)
         for index, element in enumerate(self._elements):
-            if not element.has_form("Unevaluated", 1):
+            if not element.has_form(SymbolUnevaluated, 1):
                 if isinstance(element, EvalMixin):
                     new_value = element.evaluate(evaluation)
                     # We need id() because != by itself is too permissive

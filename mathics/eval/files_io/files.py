@@ -35,6 +35,8 @@ from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolHold,
     SymbolHoldExpression,
+    SymbolInputStream,
+    SymbolOutputStream,
     SymbolPath,
     SymbolReal,
     SymbolWord,
@@ -139,7 +141,7 @@ def eval_Close(obj, evaluation: Evaluation):
     """
 
     n = name = None
-    if obj.has_form(("InputStream", "OutputStream"), 2):
+    if obj.has_form((SymbolInputStream, SymbolOutputStream), 2):
         [name, n] = obj.elements
         stream = stream_manager.lookup_stream(n.value)
     elif isinstance(obj, String):

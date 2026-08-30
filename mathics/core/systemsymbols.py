@@ -15,7 +15,7 @@ moved here.
 """
 from typing import Final
 
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, symbol_set
 
 # Note that at the time this is evaluated Symbol("System`X")
 # is the same as Symbol("X"), but it is better to make this
@@ -105,6 +105,7 @@ SymbolDeleteFile: Final[Symbol] = Symbol("System`DeleteFile")
 SymbolDerivative: Final[Symbol] = Symbol("System`Derivative")
 SymbolDigitCharacter: Final[Symbol] = Symbol("System`DigitCharacter")
 SymbolDirectedInfinity: Final[Symbol] = Symbol("System`DirectedInfinity")
+SymbolDirective: Final[Symbol] = Symbol("System`Directive")
 SymbolDisk: Final[Symbol] = Symbol("System`Disk")
 SymbolDiskBox: Final[Symbol] = Symbol("System`DiskBox")
 SymbolDispatch: Final[Symbol] = Symbol("System`Dispatch")
@@ -290,6 +291,7 @@ SymbolPossibleZeroQ: Final[Symbol] = Symbol("System`PossibleZeroQ")
 SymbolPostfix: Final[Symbol] = Symbol("System`Postfix")
 SymbolPower: Final[Symbol] = Symbol("System`Power")
 SymbolPrecision: Final[Symbol] = Symbol("System`Precision")
+SymbolPrecedenceForm: Final[Symbol] = Symbol("System`PrecedenceForm")
 SymbolPrefix: Final[Symbol] = Symbol("System`Prefix")
 SymbolPrime: Final[Symbol] = Symbol("System`Prime")
 SymbolPreserveImageOptions: Final[Symbol] = Symbol("System`PreserveImageOptions")
@@ -303,6 +305,7 @@ SymbolQuotientRemainder: Final[Symbol] = Symbol("System`QuotientRemainder")
 SymbolRGBColor: Final[Symbol] = Symbol("System`RGBColor")
 SymbolRandomComplex: Final[Symbol] = Symbol("System`RandomComplex")
 SymbolRandomReal: Final[Symbol] = Symbol("System`RandomReal")
+SymbolRange: Final[Symbol] = Symbol("Range")
 SymbolRankedMax: Final[Symbol] = Symbol("RankedMax")
 SymbolRankedMin: Final[Symbol] = Symbol("RankedMin")
 SymbolRational: Final[Symbol] = Symbol("System`Rational")
@@ -343,6 +346,7 @@ SymbolSinh: Final[Symbol] = Symbol("System`Sinh")
 SymbolSlot: Final[Symbol] = Symbol("System`Slot")
 SymbolSort: Final[Symbol] = Symbol("System`Sort")
 SymbolSortBy: Final[Symbol] = Symbol("System`SortBy")
+SymbolSpan: Final[Symbol] = Symbol("System`Span")
 SymbolSparseArray: Final[Symbol] = Symbol("System`SparseArray")
 SymbolSphericalRegion: Final[Symbol] = Symbol("System`SphericalRegion")
 SymbolSplit: Final[Symbol] = Symbol("System`Split")
@@ -417,3 +421,29 @@ SymbolWordBoundary: Final[Symbol] = Symbol("System`WordBoundary")
 SymbolWordCharacter: Final[Symbol] = Symbol("System`WordCharacter")
 SymbolWriteString: Final[Symbol] = Symbol("System`WriteString")
 SymbolXor: Final[Symbol] = Symbol("System`Xor")
+
+
+##### Special symbol sets
+
+
+BLANK_PATTERN_HEADS = symbol_set(
+    SymbolBlank,
+    SymbolBlankNullSequence,
+    SymbolBlankSequence,
+)
+
+RULE_SYMBOL_HEADS = symbol_set(SymbolRule, SymbolRuleDelayed)
+
+SYSTEM_SYMBOLS_PATTERNS = symbol_set(
+    SymbolAlternatives,
+    SymbolBlank,
+    SymbolBlankNullSequence,
+    SymbolBlankSequence,
+    SymbolCondition,
+    SymbolOptional,
+    SymbolOptionsPattern,
+    SymbolPattern,
+    SymbolPatternTest,
+    SymbolRepeated,
+    SymbolRepeatedNull,
+)
