@@ -61,7 +61,7 @@ jobs:
           alert-threshold: '200%'
           # Only store benchmarks from master.
           auto-push: ${{ github.ref == 'refs/heads/master' }}
-          comment-on-alert: true
+          comment-on-alert: false
           fail-on-alert: false
           name: 'Mathics3 Core Benchmarks'
           # skip-fetch-gh-pages: true
