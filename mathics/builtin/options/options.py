@@ -5,6 +5,7 @@ Individual Options
 from mathics.core.atoms import Integer1, String
 from mathics.core.builtin import Builtin, Predefined, Test, get_option
 from mathics.core.list import ListExpression
+from mathics.core.rules import is_option_rule
 from mathics.core.symbols import Symbol, SymbolList, ensure_context
 
 
@@ -79,13 +80,11 @@ class NotOptionQ(Test):
     def test(self, expr) -> bool:
         if hasattr(expr, "flatten_with_respect_to_head"):
             expr = expr.flatten_with_respect_to_head(SymbolList)
-        if not expr.has_form("List", None):
+        if not isinstance(expr, ListExpression):
             expr = [expr]
         else:
             expr = expr.elements
-        return not all(
-            e.has_form("Rule", None) or e.has_form("RuleDelayed", 2) for e in expr
-        )
+        return not all(is_option_rule(e) for e in expr)
 
 
 # Has this been removed from WL? I cannot find a WMA link.
