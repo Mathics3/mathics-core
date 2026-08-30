@@ -3,8 +3,7 @@ from test.helper import session
 
 import pytest
 
-from mathics.core import pattern as pattern_module
-from mathics.core.pattern import BasePattern
+from mathics.core.pattern import BasePattern, orderless as orderless_pattern_module
 from mathics.core.symbols import strip_context
 
 
@@ -636,8 +635,8 @@ def test_orderless_state_count_diagnostic(monkeypatch, capsys, n):
         "permutation_items": 0,
     }
 
-    original_subsets = pattern_module.subsets
-    original_permutations = pattern_module.permutations
+    original_subsets = orderless_pattern_module.subsets
+    original_permutations = orderless_pattern_module.permutations
 
     def counted_subsets(*args, **kwargs):
         counters["subsets"] += 1
@@ -652,8 +651,8 @@ def test_orderless_state_count_diagnostic(monkeypatch, capsys, n):
             counters["permutation_items"] += 1
             yield perm
 
-    monkeypatch.setattr(pattern_module, "subsets", counted_subsets)
-    monkeypatch.setattr(pattern_module, "permutations", counted_permutations)
+    monkeypatch.setattr(orderless_pattern_module, "subsets", counted_subsets)
+    monkeypatch.setattr(orderless_pattern_module, "permutations", counted_permutations)
 
     args = ",".join(f"diag{i}" for i in range(n))
     expr = f"MatchQ[Plus[{args}], x__+y__/;False]"
@@ -705,7 +704,7 @@ def test_blank_sequence_partition_count(monkeypatch, n, position):
         "partitions": 0,
     }
 
-    original_subranges = pattern_module.subranges
+    original_subranges = orderless_pattern_module.subranges
 
     def counted_subranges(*args, **kwargs):
         counters["subranges_calls"] += 1
@@ -713,7 +712,7 @@ def test_blank_sequence_partition_count(monkeypatch, n, position):
             counters["partitions"] += 1
             yield result
 
-    monkeypatch.setattr(pattern_module, "subranges", counted_subranges)
+    monkeypatch.setattr(orderless_pattern_module, "subranges", counted_subranges)
 
     expr = f"MatchQ[partitionList{n}, " f"{{a___, {literal}, b___}}]"
 

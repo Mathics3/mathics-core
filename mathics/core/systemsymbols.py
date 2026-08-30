@@ -432,6 +432,8 @@ BLANK_PATTERN_HEADS = symbol_set(
     SymbolBlankSequence,
 )
 
+RULE_SYMBOL_HEADS = symbol_set(SymbolRule, SymbolRuleDelayed)
+
 SYSTEM_SYMBOLS_PATTERNS = symbol_set(
     SymbolAlternatives,
     SymbolBlank,

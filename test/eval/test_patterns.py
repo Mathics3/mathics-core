@@ -14,21 +14,22 @@ from mathics.core.pattern import ExpressionPattern
 from mathics.eval.patterns import Matcher
 
 # Preload the Mathics3 definitions
-defintions = Definitions(True)
+definitions = Definitions(True)
 
 
 def check_pattern(str_expr, str_pattern):
     expr = parse(
-        defintions,
+        definitions,
         MathicsSingleLineFeeder(str_expr, "<test_patterns_expr>", ContainerKind.STRING),
     )
-    pattern = ExpressionPattern(
+    pattern = ExpressionPattern.create(
         parse(
-            defintions,
+            definitions,
             MathicsSingleLineFeeder(
                 str_pattern, "<check_pattern>", ContainerKind.STRING
             ),
-        )
+        ),
+        evaluation=session.evaluation,
     )
     ret = Matcher(pattern, session.evaluation).match(expr, session.evaluation)
     assert ret is True
