@@ -19,7 +19,13 @@ from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.element import BaseElement, fully_qualified_symbol_name
 from mathics.core.rules import BaseRule, RewriteRule
-from mathics.core.symbols import Atom, Symbol, strip_context
+from mathics.core.symbols import Atom, Symbol, SymbolList, strip_context
+from mathics.core.systemsymbols import (
+    SymbolCondition,
+    SymbolDirectedInfinity,
+    SymbolHoldPattern,
+    SymbolPatternTest,
+)
 from mathics.core.util import canonic_filename
 from mathics.settings import ROOT_DIR
 
@@ -419,7 +425,7 @@ class Definitions:
         except ValueError:
             return []
 
-        assert packages.has_form("System`List", None)
+        assert packages.has_form(SymbolList, None)
         return [
             c.get_string_value()
             for c in packages.get_elements()
@@ -813,7 +819,7 @@ class Definitions:
         except ValueError:
             return default
         if value.get_name() == "System`Infinity" or value.has_form(
-            "DirectedInfinity", 1
+            SymbolDirectedInfinity, 1
         ):
             return None
         return int(value.to_python())  # .get_int_value())
@@ -882,9 +888,9 @@ def get_tag_position(pattern: BaseElement, name: str) -> Optional[str]:
             # We have to use get_head_name() below because
             # pat can either SymbolCondition or <AtomPattern: System`Condition>.
             # In the latter case, comparing to SymbolCondition is not sufficient.
-            if pat.has_form(("System`Condition", "System`PatternTest"), 2):
+            if pat.has_form((SymbolCondition, SymbolPatternTest), 2):
                 return strip_pattern_name_and_condition(pat.elements[0])
-            if pat.has_form("System`HoldPattern", 1):
+            if pat.has_form(SymbolHoldPattern, 1):
                 return strip_pattern_name_and_condition(pat.elements[0])
             # The same kind of get_head_name() check is needed here as well and
             # is not the same as testing against SymbolPattern.
@@ -1014,7 +1020,7 @@ def insert_rule(values: List[BaseRule], rule: BaseRule) -> None:
         replacement rules are conditional if the replace attribute is
         a conditional expression.
         """
-        return not hasattr(x, "replace") or x.replace.has_form("System`Condition", 2)
+        return not hasattr(x, "replace") or x.replace.has_form(SymbolCondition, 2)
 
     # If the rule is not conditional, and there are
     # equivalent rules which are not conditional either,
