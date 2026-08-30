@@ -2,7 +2,7 @@
 
 # Note: docstring is flowed in documentation. Line breaks in the
 # docstring will appear in the printed output, so be careful not to
-# add them mid-sentence. Line breaks like \ this work though.
+# add them mid-sentence. Line breaks like \ this work, though.
 
 """
 Numerical Functions
@@ -132,7 +132,7 @@ class Chop(Builtin):
 
     <dl>
       <dt>'Chop'[$expr$]
-      <dd>replaces floating point numbers close to 0 by 0.
+      <dd>replaces floating-point numbers close to 0 with 0.
 
       <dt>'Chop'[$expr$, $delta$]
       <dd>uses a tolerance of $delta$. The default tolerance is '10^-10'.
@@ -161,12 +161,12 @@ class Chop(Builtin):
     def eval(self, expr, delta, evaluation: Evaluation):
         "Chop[expr_, delta_:(10^-10)]"
 
-        delta = delta.round_to_float(evaluation)
-        if delta is None or delta < 0:
+        rounded_delta = delta.round_to_float(evaluation)
+        if rounded_delta is None or rounded_delta < 0:
             evaluation.message("Chop", "tolnn")
             return
 
-        return chop(expr, delta=delta)
+        return chop(expr, delta=rounded_delta)
 
 
 class N(Builtin):
@@ -256,8 +256,8 @@ class N(Builtin):
     >> % // Precision
      = 20.
 
-    N can also accept an option "Method". This establishes what is the \
-    prefrered underlying method to compute numerical values:
+    N can also accept an option "Method". This establishes the \
+    preferred underlying method to compute numerical values:
     >> N[F[Pi], 30, Method->"numpy"]
      = F[3.14159265358979300000000000000]
     >> N[F[Pi], 30, Method->"sympy"]
@@ -288,7 +288,7 @@ class N(Builtin):
 
         # If options are passed, set the preference in evaluation, and call again
         # without options set.
-        # This also prevents to store this as an nvalue (nvalues always have two elements).
+        # This also prevents storing this as an nvalue (nvalues always have two elements).
         preference = None
         # If a Method is passed, and the method is not either "Automatic" or
         # the last preferred method, according to evaluation._preferred_n_method,
@@ -348,7 +348,7 @@ class Piecewise(SympyFunction):
     >> Integrate[Piecewise[{{1, x <= 0}, {-1, x > 0}}], {x, -1, 2}]
      = -1
 
-    Piecewise defaults to 0 if no other case is matching.
+    Piecewise defaults to 0 if no other case matches.
     >> Piecewise[{{1, False}}]
      = 0
 
@@ -815,7 +815,7 @@ class UnitStep(Builtin):
       <dt>'UnitStep'[$x$]
       <dd>return 0 if $x$ < 0, and 1 if $x$ >= 0.
       <dt>'UnitStep'[$x_1$, $x_2$, ...]
-      <dd>return the multidimensional unit step function which is 1 only if none of the $xi$ are negative.
+      <dd>return the multidimensional unit step function, which is 1 only if none of the $xi$ are negative.
     </dl>
 
     Evaluation numerically:

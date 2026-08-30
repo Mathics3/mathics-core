@@ -11,6 +11,7 @@ import sympy
 from mathics_scanner.location import SourceRange, SourceRange2
 
 from mathics.core.atoms import String
+from mathics.core.atoms.numerics import Number
 from mathics.core.attributes import (
     A_FLAT,
     A_HOLD_ALL,
@@ -1519,15 +1520,19 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         """
 
         if evaluation is None:
-            value = self
+            value: Optional[BaseElement] = self
         elif isinstance(evaluation, sympy.core.numbers.NaN):
             return None
         else:
-            value = self.create_expression(SymbolN, self).evaluate(evaluation)
-        if hasattr(value, "round") and hasattr(value, "get_float_value"):
-            value = value.round()
-            return value.get_float_value(permit_complex=permit_complex)
-        return None
+            from mathics.eval.nevaluator import eval_N
+
+            value = eval_N(self, evaluation)
+
+        if value is None or not isinstance(value, Number):
+            return None
+
+        rounded = value.round()
+        return rounded.get_float_value(permit_complex=permit_complex)
 
     def sameQ(self, other: BaseElement) -> bool:
         """Mathics3 SameQ"""

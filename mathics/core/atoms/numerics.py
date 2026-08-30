@@ -2,7 +2,7 @@
 Numeric types: Number, Integer Real, MachineReal, PrecisionReal, Complex, Rational
 """
 
-# Note: Python warns of ambiguity numpy's module numpy.numerics if we name this file this numeric.py
+# Note: Python warns of ambiguity with NumPy's module numpy.numerics if we name this file numeric.py
 
 import math
 import re
@@ -64,7 +64,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         called with the right value.
 
         Most of the time a number takes one argument - its value
-        When there is a kind of number, like Rational, or Complex,
+        When there is a kind of number, like Rational or Complex,
         that has more than one argument, it should define this method
         accordingly.
         """
@@ -92,18 +92,18 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
             1,
         )
 
-    @property
-    def pattern_precedence(self) -> tuple:
-        """
-        Return a precedence value, a tuple, which is used in selecting
-        which pattern to select when several match.
-        """
-        return super().pattern_precedence
+    def get_float_value(
+        self, evaluation=None, permit_complex: bool = False
+    ) -> Optional[Union[complex, float]]:
+        try:
+            return float(self._value)
+        except Exception:
+            return None
 
     @property
     def is_literal(self) -> bool:
         """Number can't change and has a Python representation,
-        i.e., a value is set and it does not depend on definition
+        i.e., a value is set, and it does not depend on definition
         bindings. So we say it is a literal.
         """
         return True
@@ -112,13 +112,35 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         # Anything that is in a number class is Numeric, so return True.
         return True
 
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return super().pattern_precedence
+
+    def round(self, d: Optional[int] = None) -> "Number":
+        """
+        Produce a Real approximation of ``self`` with decimal precision ``d``.
+        """
+        return self
+
+    def round_to_float(
+        self, evaluation=None, permit_complex: bool = True
+    ) -> float | None:
+        try:
+            return float(self._value)
+        except Exception:
+            return None
+
     def to_mpmath(self, precision: Optional[int] = None) -> mpmath.mpf:
         """
         Convert self.value to an mpmath number with precision ``precision``
         If ``precision`` is None, use mpmath's default precision.
 
         A mpmath number is the default implementation for Number.
-        There are kinds of numbers, like Rational, or Complex, that
+        There are kinds of numbers, like Rational or Complex, that
         need to work differently than this default, and they will
         change the implementation accordingly.
         """
@@ -136,12 +158,6 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         https://github.com/Mathics3/mathics-core/pull/551
         """
         return self.value
-
-    def round(self, d: Optional[int] = None) -> "Number":
-        """
-        Produce a Real approximation of ``self`` with decimal precision ``d``.
-        """
-        return self
 
     @property
     def value(self) -> T:
@@ -301,9 +317,6 @@ class Integer(Number[int]):
     def get_int_value(self) -> int:
         return self._value
 
-    def get_float_value(self, permit_complex=False) -> float:
-        return float(self._value)
-
     @property
     def is_zero(self) -> bool:
         # Note: 0 is self._value or the other way around is a syntax
@@ -315,7 +328,7 @@ class Integer(Number[int]):
         decimal precision ``d``.
 
         If ``d`` is ``None`` we force the mantissa to fit the entire
-        integer value, provided it is less than magical number
+        integer value, provided it is less than the magical number
         1024. 1024 is a common internal Mathematica implementation limit where
         it switches from using MachineReal to PrecisionReal.
 
@@ -328,7 +341,7 @@ class Integer(Number[int]):
         if d is None:
             d = self.value.bit_length()
             # Many WMA implementations seem to change behavior of the integer
-            # representation that have more than 1024 digits. In theory this is
+            # representation that has more than 1024 digits. In theory, this is
             # number can vary depending on hardware characteristics.
             # In practice, a reasonable
             if d <= 1024:
@@ -438,12 +451,12 @@ class Real(Number[T]):
 
 # This has to come before PrecisionReal, which uses MachineReal.
 # FIXME: rocky: float is not right. It should be Union[float, mpmath.mpf]
-# but I don't understand how to get the type annotation system to handle his.
+# but I don't understand how to get the type annotation system to handle this.
 class MachineReal(Real[float]):
     """
     Machine precision real number.
 
-    Stored internally as a Python float or a mpmath.mpf
+    Stored internally as a Python float or an mpmath.mpf
 
     Precision for these numbers is `MachinePrecision`.
     """
@@ -517,7 +530,7 @@ class MachineReal(Real[float]):
         """Returns the default specification for precision in N and other numerical functions."""
         return FP_MANTISA_BINARY_DIGITS
 
-    def get_float_value(self, permit_complex=False) -> float:
+    def get_float_value(self, evaluation=None, permit_complex=False) -> float:
         return self._value
 
     @property
@@ -671,8 +684,8 @@ class PrecisionReal(Real[sympy_Float]):
     def round(self, d: Optional[int] = None) -> Union[MachineReal, "PrecisionReal"]:
         if d is None:
             return MachineReal(float(self.value))
-        _prec = min(prec(d), self.value._prec)
-        return PrecisionReal(sympy_Float(self.value, precision=_prec))
+        min_prec = min(prec(d), self.value._prec)
+        return PrecisionReal(sympy_Float(self.value, precision=min_prec))
 
     def sameQ(self, rhs) -> bool:
         """Mathics3 SameQ for PrecisionReal"""
@@ -683,11 +696,12 @@ class PrecisionReal(Real[sympy_Float]):
         else:
             return False
         value = self.value
-        # If sympy would handle properly
-        # the precision, this wold be enough
-        if (value - other_value).is_zero:
+
+        # Keep math entirely inside SymPy to use its arbitrary precision.
+        diff = sympy.Add(value, -other_value)
+        if diff.simplify().is_zero:
             return True
-        # in the meantime, let's use this comparison.
+
         value = self.value
         prec = min(value._prec, other_value._prec)
         diff = abs(value - other_value)
@@ -871,7 +885,10 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         # = {1+2I, 1.+2.I, 1.`2+2.`7 I, 1.`4+2.`5I}
         return order_real + order_imag
 
-    def get_float_value(self, permit_complex=False) -> Optional[Union[complex, float]]:
+    # FIXME: remove permit_complex and adjust callers.
+    def get_float_value(
+        self, evaluation=None, permit_complex=False
+    ) -> Optional[Union[complex, float]]:
         if self.imag == 0:
             return self.real.get_float_value()
         if permit_complex:
@@ -998,6 +1015,9 @@ class Rational(Number[sympy.Rational]):
 
         return format_element(self, evaluation, f)
 
+    def do_copy(self) -> "Rational":
+        return Rational(self.value)
+
     @property
     def is_zero(self) -> bool:
         return (
@@ -1015,6 +1035,9 @@ class Rational(Number[sympy.Rational]):
             return MachineReal(float(self.value))
         else:
             return PrecisionReal(self.value.n(d))
+
+    def round_to_float(self, evaluation=None, permit_complex: bool = True) -> float:
+        return float(self.value)
 
     def sameQ(self, rhs) -> bool:
         """Mathics3 SameQ"""
@@ -1052,9 +1075,6 @@ class Rational(Number[sympy.Rational]):
         which pattern to select when several match.
         """
         return super().pattern_precedence
-
-    def do_copy(self) -> "Rational":
-        return Rational(self.value)
 
     def user_hash(self, update) -> None:
         update(
