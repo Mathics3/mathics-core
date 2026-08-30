@@ -2,7 +2,7 @@
 # cython: profile=False
 # -*- coding: utf-8 -*-
 """
-Common auxiliar functions for pattern matching.
+Common auxiliary functions for pattern matching.
 
 """
 
