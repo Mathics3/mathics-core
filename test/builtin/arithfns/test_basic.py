@@ -2,6 +2,7 @@
 """
 Unit tests for mathics.builtins.arithmetic.basic
 """
+
 from test.helper import check_evaluation, check_wrong_number_of_arguments
 
 import pytest
@@ -19,7 +20,7 @@ import pytest
         (
             "a + 2 a + 3 a q",
             "3 a + 3 a q",
-            "WMA do not collect the common factor `a` in the last expression neither",
+            "WMA do not collect the common factor `a` in the last expression",
         ),
         ("a - 2 a + 3 a q", "-a + 3 a q", None),
         (
@@ -30,7 +31,7 @@ import pytest
         (
             "a - 2 (5+ a+ 2 b) + 3 a q",
             "a + 3 a q - 2 (5 + a + 2 b)",
-            "WMA do not distribute neither in the general case",
+            "WMA does not distribute in the general case",
         ),
     ],
 )
@@ -188,106 +189,113 @@ def test_directed_infinity_precedence(str_expr, str_expected, msg):
 
 
 @pytest.mark.parametrize(
-    ("str_expr", "str_expected", "expected_message", "fail_msg"),
+    ("str_expr", "str_expected", "assert_msg"),
     [
-        ("2^0", "1", None, None),
-        ("(2/3)^0", "1", None, None),
-        ("2.^0", "1.", None, None),
-        ("2^1", "2", None, None),
-        ("(2/3)^1", "2 / 3", None, None),
-        ("2.^1", "2.", None, None),
-        ("2^(3)", "8", None, None),
-        ("(1/2)^3", "1 / 8", None, None),
-        ("2^(-3)", "1 / 8", None, None),
-        ("(1/2)^(-3)", "8", None, None),
-        ("(-7)^(5/3)", "-7 (-7) ^ (2 / 3)", None, None),
-        ("3^(1/2)", "Sqrt[3]", None, None),
+        ("2^0", "1", None),
+        ("2^3^0", "2", "Power to the Power is right associative"),
+        ("2^3^0^4", "2", "Power to the Power to the Power is right associative"),
+        ("0^(1 + I)", "0", "Zero raised to a complex with a positive real part"),
+        ("(2/3)^0", "1", None),
+        ("2.^0", "1.", None),
+        ("2^1", "2", None),
+        ("(2/3)^1", "2 / 3", None),
+        ("2.^1", "2.", None),
+        ("2^(3)", "8", None),
+        ("(1/2)^3", "1 / 8", None),
+        ("2^(-3)", "1 / 8", None),
+        ("(1/2)^(-3)", "8", None),
+        ("(-7)^(5/3)", "-7 (-7) ^ (2 / 3)", None),
+        ("3^(1/2)", "Sqrt[3]", None),
         # WMA do not rationalize numbers
-        ("(1/5)^(1/2)", "Sqrt[5] / 5", None, None),
+        ("(1/5)^(1/2)", "Sqrt[5] / 5", None),
         # WMA do not rationalize numbers
-        ("(3)^(-1/2)", "Sqrt[3] / 3", None, None),
-        ("(1/3)^(-1/2)", "Sqrt[3]", None, None),
-        ("(5/3)^(1/2)", "Sqrt[5 / 3]", None, None),
-        ("(5/3)^(-1/2)", "Sqrt[3 / 5]", None, None),
-        ("1/Sqrt[Pi]", "1 / Sqrt[Pi]", None, None),
-        ("I^(2/3)", "(-1) ^ (1 / 3)", None, None),
-        # In WMA, the next test would return ``-(-I)^(2/3)``
-        # which is less compact and elegant...
+        ("(3)^(-1/2)", "Sqrt[3] / 3", None),
+        ("(1/3)^(-1/2)", "Sqrt[3]", None),
+        ("(5/3)^(1/2)", "Sqrt[5 / 3]", None),
+        ("(5/3)^(-1/2)", "Sqrt[3 / 5]", None),
+        ("1/Sqrt[Pi]", "1 / Sqrt[Pi]", None),
+        ("I^(2/3)", "(-1) ^ (1 / 3)", None),
+        # In WMA, the next test gives ``-(-I)^(2/3)``
+        # which is less compact and elegant than Mathics3's 1
         #        ("(-I)^(2/3)", "(-1) ^ (-1 / 3)", None),
-        ("(2+3I)^3", "-46 + 9 I", None, None),
-        ("(1.+3. I)^.6", "1.46069 + 1.35921 I", None, None),
-        ("3^(1+2 I)", "3 ^ (1 + 2 I)", None, None),
-        ("3.^(1+2 I)", "-1.75876 + 2.43038 I", None, None),
-        ("3^(1.+2 I)", "-1.75876 + 2.43038 I", None, None),
+        ("(2+3I)^3", "-46 + 9 I", None),
+        ("(1.+3. I)^.6", "1.46069 + 1.35921 I", None),
+        ("3^(1+2 I)", "3 ^ (1 + 2 I)", None),
+        ("3.^(1+2 I)", "-1.75876 + 2.43038 I", None),
+        ("3^(1.+2 I)", "-1.75876 + 2.43038 I", None),
         # In WMA, the following expression returns
         # ``(Pi/3)^I``. By now, this is handled by
         # sympy, which produces the result
-        ("(3/Pi)^(-I)", "(3 / Pi) ^ (-I)", None, None),
+        ("(3/Pi)^(-I)", "(3 / Pi) ^ (-I)", None),
         # Association rules
         #        ('(a^"w")^2', 'a^(2 "w")', "Integer power of a power with string exponent"),
-        ('(a^2)^"w"', '(a ^ 2) ^ "w"', None, None),
-        ('(a^2)^"w"', '(a ^ 2) ^ "w"', None, None),
-        ("(a^2)^(1/2)", "Sqrt[a ^ 2]", None, None),
-        ("(a^(1/2))^2", "a", None, None),
-        ("(a^(1/2))^2", "a", None, None),
-        ("(a^(3/2))^3.", "(a ^ (3 / 2)) ^ 3.", None, None),
+        ('(a^2)^"w"', '(a ^ 2) ^ "w"', None),
+        ('(a^2)^"w"', '(a ^ 2) ^ "w"', None),
+        ("(a^2)^(1/2)", "Sqrt[a ^ 2]", None),
+        ("(a^(1/2))^2", "a", None),
+        ("(a^(1/2))^2", "a", None),
+        ("(a^(3/2))^3.", "(a ^ (3 / 2)) ^ 3.", None),
         #        ("(a^(1/2))^3.", "a ^ 1.5", "Power associativity rational, real"),
         #        ("(a^(.3))^3.", "a ^ 0.9", "Power associativity for real powers"),
-        ("(a^(1.3))^3.", "(a ^ 1.3) ^ 3.", None, None),
+        ("(a^(1.3))^3.", "(a ^ 1.3) ^ 3.", None),
         # Exponentials involving expressions
-        ("(a^(p-2 q))^3", "a ^ (3 p - 6 q)", None, None),
-        ("(a^(p-2 q))^3.", "(a ^ (p - 2 q)) ^ 3.", None, None),
-        # Indefinite / ComplexInfinity / Complex powers
-        ("1/0", "ComplexInfinity", "Infinite expression 1 / 0 encountered.", None),
+        ("(a^(p-2 q))^3", "a ^ (3 p - 6 q)", None),
+        ("(a^(p-2 q))^3.", "(a ^ (p - 2 q)) ^ 3.", None),
         (
             "0 ^ -2",
             "ComplexInfinity",
             "Infinite expression 1 / 0 ^ 2 encountered.",
-            None,
         ),
         (
             "0 ^ (-1/2)",
             "ComplexInfinity",
             "Infinite expression 1 / Sqrt[0] encountered.",
-            None,
         ),
         (
             "0 ^ -Pi",
             "ComplexInfinity",
             "Infinite expression 1 / 0 ^ 3.14159 encountered.",
-            None,
         ),
-        (
-            "0 ^ (2 I E)",
-            "Indeterminate",
-            "Indeterminate expression 0 ^ (0. + 5.43656 I) encountered.",
-            None,
-        ),
-        (
-            "0 ^ - (Pi + 2 E I)",
-            "ComplexInfinity",
-            "Infinite expression 0 ^ (-3.14159 - 5.43656 I) encountered.",
-            None,
-        ),
-        ("0 ^ 0", "Indeterminate", "Indeterminate expression 0 ^ 0 encountered.", None),
-        ("Sqrt[-3+2. I]", "0.550251 + 1.81735 I", None, None),
-        ("(3/2+1/2I)^2", "2 + 3 I / 2", None, None),
-        ("I ^ I", "(-1) ^ (I / 2)", None, None),
-        ("2 ^ 2.0", "4.", None, None),
-        ("Pi ^ 4.", "97.4091", None, None),
-        ("a ^ b", "a ^ b", None, None),
+        ("Sqrt[-3+2. I]", "0.550251 + 1.81735 I", None),
+        ("(3/2+1/2I)^2", "2 + 3 I / 2", None),
+        ("I ^ I", "(-1) ^ (I / 2)", None),
+        ("2 ^ 2.0", "4.", None),
+        ("Pi ^ 4.", "97.4091", None),
+        ("a ^ b", "a ^ b", None),
     ],
 )
-def test_power(str_expr, str_expected, expected_message, fail_msg):
-    if expected_message is None:
-        check_evaluation(str_expr, str_expected, failure_message=fail_msg)
-    else:
-        check_evaluation(
-            str_expr,
-            str_expected,
-            failure_message=fail_msg,
-            expected_messages=[expected_message],
-        )
+def test_power(str_expr, str_expected, assert_msg):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        failure_message=assert_msg,
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "expected_message"),
+    # Indefinite / ComplexInfinity / Complex powers
+    [
+        ("1/0", "ComplexInfinity", "Infinite expression 1 / 0 encountered."),
+        ("0 ^ 0", "Indeterminate", "Indeterminate expression 0 ^ 0 encountered."),
+        (
+            "0 ^ - (I E)",
+            "Indeterminate",
+            "Indeterminate expression 0 ^ (0. - 2.71828 I) encountered.",
+        ),
+        (
+            "0 ^ - (Pi + E I)",
+            "ComplexInfinity",
+            "Infinite expression 0 ^ (-3.14159 - 2.71828 I) encountered.",
+        ),
+    ],
+)
+def test_power_with_messages(str_expr, str_expected, expected_message):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        expected_messages=(expected_message,),
+    )
 
 
 @pytest.mark.parametrize(
@@ -466,7 +474,7 @@ def test_cuberoot(str_expr, str_expected, msgs, failmsg):
 
 
 @pytest.mark.parametrize(
-    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    ("str_expr", "msgs", "str_expected", "assert_msg"),
     [
         ## Issue #302
         ## The sum should not converge since the first term is 1/0.
@@ -484,7 +492,7 @@ def test_cuberoot(str_expr, str_expected, msgs, failmsg):
         ),
     ],
 )
-def test_arithmetic(str_expr, msgs, str_expected, fail_msg):
+def test_arithmetic(str_expr, msgs, str_expected, assert_msg):
     """ """
     check_evaluation(
         str_expr,
@@ -492,7 +500,7 @@ def test_arithmetic(str_expr, msgs, str_expected, fail_msg):
         to_string_expr=True,
         to_string_expected=True,
         hold_expected=True,
-        failure_message=fail_msg,
+        failure_message=assert_msg,
         expected_messages=msgs,
     )
 

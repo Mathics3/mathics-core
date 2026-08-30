@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-This module contains basic low-level functions that combines an Expression
-with an Evaluation objects to produce a new Expression following generic
+This module contains basic low-level functions that combine an Expression
+with an Evaluation object to produce a new Expression following generic
 algorithms.
 
 
@@ -53,7 +53,7 @@ def eval_NValues(
     """
     Looks for the numeric value of ```expr`` with precision ``prec`` by applying NValues rules
     stored in ``evaluation.definitions``.
-    If ``prec`` can not be evaluated as a number, returns None, otherwise, returns an expression.
+    If ``prec`` can not be evaluated as a number, returns None; otherwise, returns an expression.
     """
     from mathics.core.convert.sympy import from_sympy
 
@@ -82,17 +82,17 @@ def eval_NValues(
     # Get the precision goal to use in non-integer numbers
     try:
         # Here ``get_precision`` is called with ``show_messages``
-        # set to ``False`` to avoid show the same warnings repeatedly.
+        # set to ``False`` to avoid showing the same warnings repeatedly.
         d = get_precision(prec, evaluation, show_messages=False)
     except PrecisionValueError:
-        # We can ensure that the function always return an expression if
+        # We can ensure that the function always returns an expression if
         # the exception was captured by the caller.
         return
 
     # If the expression is a number, just round it to the required
-    # precision
+    # precision.
     if isinstance(expr, Number):
-        return expr.round(d)
+        return expr.round() if d is None else expr.round(int(d))
 
     # Special case for the Root builtin
     # This should be implemented as an NValue
@@ -120,8 +120,8 @@ def eval_NValues(
                 result = eval_NValues(result, prec, evaluation)
                 return result
 
-    # If we are here, is because there are not NValues that matches
-    # to the expression. In such a case, if we arrive to an atomic expression,
+    # If we are here, it is because there are no NValues that match
+    # the expression. Here, if we arrive at an atomic expression,
     # just return it.
     if isinstance(expr, Atom):
         return expr
@@ -159,7 +159,7 @@ def eval_NValues(
         return result
 
 
-# TODO:  Revisit - can this be simplified? Is some broader framework this fits into?
+# TODO:  Revisit - can this be simplified? Is there some broader framework this fits into?
 
 
 # comment mmatera: Other methods that I would like to have here, as non-member methods are
