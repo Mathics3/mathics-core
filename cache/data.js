@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1788112193552,
+  "lastUpdate": 1788126481963,
   "repoUrl": "https://github.com/Mathics3/mathics-core",
   "entries": {
     "Mathics3 Core Benchmarks": [
@@ -4238,6 +4238,541 @@ window.BENCHMARK_DATA = {
             "unit": "iter/sec",
             "range": "stddev: 0.0009169326929631159",
             "extra": "mean: 41.249991333321155 msec\nrounds: 3"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "matera@fisica.unlp.edu.ar",
+            "name": "Juan Mauricio Matera",
+            "username": "mmatera"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "573eb54e912ed182c27b8b2b249679312e462a7b",
+          "message": "Split order and orderless patterns (#1910)\n\nThis PR is about reorganizing the large module `mathics.core.pattern`\ninto submodules. Also, to split the code in ExpressionPattern into\nspecialized classes that handle the Ordered and Orderless cases.\n\n\nBenchmarks comparisons in https://mathics3.github.io/mathics-core/cache/\n\n---------\n\nCo-authored-by: R. Bernstein <rocky@users.noreply.github.com>",
+          "timestamp": "2026-08-30T18:46:03-03:00",
+          "tree_id": "3ec093ddb98aa4923bdce4225d721d9528114066",
+          "url": "https://github.com/Mathics3/mathics-core/commit/573eb54e912ed182c27b8b2b249679312e462a7b"
+        },
+        "date": 1788126481383,
+        "tool": "pytest",
+        "benches": [
+          {
+            "name": "test/timings/test_regressions.py::test_reference_benchmark",
+            "value": 1,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00003064217745976003",
+            "extra": "mean: 2.324305041420669 msec\nrounds: 169"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[reset::reset]",
+            "value": 16111.54399226208,
+            "unit": "iter/sec",
+            "range": "stddev: 8.523156710677118e-9",
+            "extra": "mean: 144.2633333302486 nsec\nrounds: 3"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[arithmetic::1 + 2]",
+            "value": 36.13874791585011,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00001406773405182776",
+            "extra": "mean: 64.31614749998715 usec\nrounds: 100"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[arithmetic::(*Long Sum*)$u0+$u1+$u2+$u3+$u4+$u5+$u6+...]",
+            "value": 0.5898537860675097,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00014516830024309665",
+            "extra": "mean: 3.940476600000409 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[arithmetic::5 * 3]",
+            "value": 11.038052168933334,
+            "unit": "iter/sec",
+            "range": "stddev: 0.001498779226591866",
+            "extra": "mean: 210.57202900004768 usec\nrounds: 100"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[arithmetic::1+2*3]",
+            "value": 18.990176621993687,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000008882078584289248",
+            "extra": "mean: 122.39512499998283 usec\nrounds: 100"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[arithmetic::(1+2)*3]",
+            "value": 18.830147684166754,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000008402415018961729",
+            "extra": "mean: 123.43530600001884 usec\nrounds: 100"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[arithmetic::1/2+3/4]",
+            "value": 4.062406083414298,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00002376952573607998",
+            "extra": "mean: 572.1498525000186 usec\nrounds: 100"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[arithmetic::5^3]",
+            "value": 26.161983018179512,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0000031691268420449186",
+            "extra": "mean: 88.84284650003593 usec\nrounds: 100"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[arithmetic::10^100]",
+            "value": 26.404813927151448,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000002717143278403094",
+            "extra": "mean: 88.02580650002767 usec\nrounds: 100"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[assign::ClearAll[F,x]; F[x_]:=x^2]",
+            "value": 9.074184762104434,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00000537584778150705",
+            "extra": "mean: 256.1447780000492 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[assign::ClearAll[F,x]; F[x_]:=x^2/;x>4]",
+            "value": 9.124396361113519,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000004439087484085151",
+            "extra": "mean: 254.73521200004254 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[assign::ClearAll[F,x]; F[x_]^:=x^2/;x>4]",
+            "value": 8.682965253138653,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000016672581835505068",
+            "extra": "mean: 267.68563200002404 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[assign::ClearAll[u]; u=4;u^2]",
+            "value": 8.347047562059865,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000004280336804660142",
+            "extra": "mean: 278.458344000029 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[assign::ClearAll[u,z]; u=z;]",
+            "value": 13.67586350608382,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000004276986424736113",
+            "extra": "mean: 169.956730000024 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[assign::ClearAll[u,z]; u=z/;z>1]",
+            "value": 11.299431521742065,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0000034548606009588912",
+            "extra": "mean: 205.70106000008082 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[assign::ClearAll[A,i,j]; A=Table[1.*i*j,{i,20},{...0]",
+            "value": 0.011546389992576693,
+            "unit": "iter/sec",
+            "range": "stddev: 0.002813263159780921",
+            "extra": "mean: 201.30144945000055 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[assign::ClearAll[A,i,j]; A=Table[1.*i*j,{i,20},{...1]",
+            "value": 0.011583179519880485,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000820074791107714",
+            "extra": "mean: 200.66209259999894 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[assign::ClearAll[A,i,j]; A=Table[1.*i*j,{i,20},{...2]",
+            "value": 0.01140111480823476,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0035687619365021407",
+            "extra": "mean: 203.86647100000062 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[assign::SetAttributes[OrderlessF, Orderless];]",
+            "value": 21.406942688709922,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000005966273900835465",
+            "extra": "mean: 108.57715999989637 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[assign::SetAttributes[FlatF, Flat];]",
+            "value": 21.61660816895837,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000005038247914369715",
+            "extra": "mean: 107.52403999987337 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[symbolic::Expand[(a+b)^5]]",
+            "value": 0.612171891220685,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00037146253951396457",
+            "extra": "mean: 3.7968176500001505 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[symbolic::Expand[(a+b+c)^5]]",
+            "value": 0.16870911274753267,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0006063202414575323",
+            "extra": "mean: 13.776997599998708 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[symbolic::Expand[(a+b+c+d)^5]]",
+            "value": 0.06094195652327633,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0014552836097664699",
+            "extra": "mean: 38.13965244999835 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[symbolic::Expand[(a+b)^10]]",
+            "value": 0.29593935447893105,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0006924195823646936",
+            "extra": "mean: 7.85399105000124 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[symbolic::Nest[F,x,3]]",
+            "value": 15.93086911165216,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000025742569319269003",
+            "extra": "mean: 145.89945000054172 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[symbolic::Nest[FlatF,x,3]]",
+            "value": 14.654566097984308,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000022071755320435452",
+            "extra": "mean: 158.60619999799042 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[numeric::NumericQ[Sqrt[2]]]",
+            "value": 4.184272418245212,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000013342407846134307",
+            "extra": "mean: 555.4860700000575 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[numeric::NumericQ[Sqrt[-2]]]",
+            "value": 2.6415838105945753,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000019648622942777252",
+            "extra": "mean: 879.8907050000082 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[numeric::NumericQ[Sqrt[2.]]]",
+            "value": 4.616287529999045,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000012278701124257324",
+            "extra": "mean: 503.50092500003996 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[numeric::NumericQ[Sqrt[-2.]]]",
+            "value": 4.470880812141133,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00001686752645722636",
+            "extra": "mean: 519.8763150001184 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[numeric::Positive[Sqrt[2]]]",
+            "value": 2.309998975217727,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00001666212885097009",
+            "extra": "mean: 1.0061931049997952 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[numeric::Positive[Sqrt[-2]]]",
+            "value": 1.696008450194981,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00004858721617741056",
+            "extra": "mean: 1.370456049999902 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[numeric::Positive[Sqrt[2.]]]",
+            "value": 2.7246627648620834,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000015880423136721825",
+            "extra": "mean: 853.0615500000495 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[numeric::Positive[Sqrt[-2.]]]",
+            "value": 3.1078587665983726,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000028955449778394762",
+            "extra": "mean: 747.8798800000419 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[numeric::Negative[Sqrt[2]]]",
+            "value": 2.3087474199499374,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000016007781604518284",
+            "extra": "mean: 1.0067385550001262 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[numeric::Negative[Sqrt[-2]]]",
+            "value": 1.7246853628774597,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000022235913883199134",
+            "extra": "mean: 1.3476690249999024 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[numeric::Negative[Sqrt[2.]]]",
+            "value": 2.701877917231916,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000023173483904367585",
+            "extra": "mean: 860.2553899999776 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[numeric::Negative[Sqrt[-2.]]]",
+            "value": 3.12422916106102,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000017093213947168918",
+            "extra": "mean: 743.96112499997 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[numeric::NonNegative[Sqrt[2]]]",
+            "value": 2.2959001759232023,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000017855034026948686",
+            "extra": "mean: 1.0123719950001941 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[numeric::NonNegative[Sqrt[-2]]]",
+            "value": 1.7270433175195117,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000014620268944321575",
+            "extra": "mean: 1.3458290350001079 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[numeric::NonNegative[Sqrt[2.]]]",
+            "value": 2.717872667480571,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000022485393505428447",
+            "extra": "mean: 855.1927650000124 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[numeric::NonNegative[Sqrt[-2.]]]",
+            "value": 3.0677974593386037,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00002551282252158933",
+            "extra": "mean: 757.6461850000271 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[list::Range[100]]",
+            "value": 10.398645997583754,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00000725989138125694",
+            "extra": "mean: 223.51997000001234 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[list::Range[1000]]",
+            "value": 2.5913443027026157,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00004033829015272444",
+            "extra": "mean: 896.9495250000392 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[list::Table[i, {i, 1, 100}]]",
+            "value": 0.07032131550781659,
+            "unit": "iter/sec",
+            "range": "stddev: 0.002084494416540822",
+            "extra": "mean: 33.052638799999556 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[list::Table[i^2, {i, 1, 100}]]",
+            "value": 0.05177525548449467,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00018953851306203985",
+            "extra": "mean: 44.89219840000089 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[list::Table[i*j, {i, 1., 10.},{j, 1., 10.}]]",
+            "value": 0.027582155017870612,
+            "unit": "iter/sec",
+            "range": "stddev: 0.03724150856899568",
+            "extra": "mean: 84.26843514999973 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[list::Plus@@Table[i^2, {i, 1, 100}]]",
+            "value": 0.050900775722562214,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0001992766667753963",
+            "extra": "mean: 45.66345028000036 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[list::Total[Range[100]]]",
+            "value": 2.401732601387647,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000019141302141943645",
+            "extra": "mean: 967.7617900001678 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[list::Length[Range[1000]]]",
+            "value": 2.483837595908989,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000011970597089634882",
+            "extra": "mean: 935.7717450001246 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[list::nonuniformTable=Table[If[i==0,1,1./(1.+i...]",
+            "value": 0.014126421831913276,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0011157119702346464",
+            "extra": "mean: 164.53600700000237 msec\nrounds: 2"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[list::uniformTable=Table[1./(1.+i^2),{i,0,100}...]",
+            "value": 0.029180333014453188,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00039060048262497954",
+            "extra": "mean: 79.65313625000192 msec\nrounds: 2"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[list::Plus@@uniformTable]",
+            "value": 2.397466995352453,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000021517651787058595",
+            "extra": "mean: 969.4836449996558 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[list::Plus@@nonuniformTable]",
+            "value": 2.3848278341759674,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000018349610015331837",
+            "extra": "mean: 974.6217349999142 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[list::MatchQ[uniformTable,{__Real}]]",
+            "value": 8.566708491173488,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000011829212816631803",
+            "extra": "mean: 271.3183299998434 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[list::MatchQ[nonuniformTable,{__Real}]]",
+            "value": 3.066023757788315,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000010220914582560918",
+            "extra": "mean: 758.0844849999835 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[list::Length[nonuniformTable]]",
+            "value": 21.26115564662669,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000005233598325804702",
+            "extra": "mean: 109.32167000007098 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[list::Length[uniformTable]]",
+            "value": 21.53858381480248,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000005200244962158491",
+            "extra": "mean: 107.91354999966529 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[pattern::Replace[x, x->y]]",
+            "value": 12.172538598921996,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0000057656486066820435",
+            "extra": "mean: 190.946614999973 usec\nrounds: 50"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[pattern::Replace[{x,y}, {x->a, y->b}]]",
+            "value": 7.379917836482932,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000008131302539107399",
+            "extra": "mean: 314.94998899992765 usec\nrounds: 50"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[pattern::Hold[FlatF[FlatF[FlatF[FlatF[FlatF[FlatF...]",
+            "value": 6.998184448590141,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000011300016116559739",
+            "extra": "mean: 332.12972000029595 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[pattern::Hold[OrderlessF[$u0,$u1,$u2,$u3,$u4,$u5,...0]",
+            "value": 6.060265317492415,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000013767985450683676",
+            "extra": "mean: 383.5318950000044 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[pattern::Hold[OrderlessF[$u0,$u1,$u2,$u3,$u4,$u5,...1]",
+            "value": 0.37182334668093886,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00006488211682345756",
+            "extra": "mean: 6.251100319999949 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[pattern::Cases[{1,2,3,4}, x_Integer /; x>2]]",
+            "value": 3.785077689549337,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000038690762008598314",
+            "extra": "mean: 614.0706300000431 usec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[pattern::Select[Range[100], PrimeQ]]",
+            "value": 0.5554846771631419,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000028413904247479524",
+            "extra": "mean: 4.184282910000121 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[pattern::Range[100]/.{a__Integer}->a[[1]]]",
+            "value": 1.077904266958876,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00002211793029529939",
+            "extra": "mean: 2.1563186199998086 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[pattern::F@@Join[Range[100],a->1]/.F[a__Integer,O...]",
+            "value": 0.8660525555532996,
+            "unit": "iter/sec",
+            "range": "stddev: 0.00002113494516179298",
+            "extra": "mean: 2.683792139999781 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[pattern::OrderlessF@@Join[Range[100],a->1]/.F[a__...]",
+            "value": 0.8768530245243124,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000022767338853973266",
+            "extra": "mean: 2.6507350449998057 msec\nrounds: 10"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[plot::p=Plot[Sin[2 Pi x],{x,0,3}];]",
+            "value": 0.005436805001717669,
+            "unit": "iter/sec",
+            "range": "stddev: 0.004384992997666193",
+            "extra": "mean: 427.51304133334617 msec\nrounds: 3"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[plot::p=Plot[If[x>1,x,-x],{x,0,3}];]",
+            "value": 0.202889968235109,
+            "unit": "iter/sec",
+            "range": "stddev: 0.002168020160284696",
+            "extra": "mean: 11.455987999994477 msec\nrounds: 3"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[plot::p=DensityPlot[x*y,{x,0,3},{y,0,3}];]",
+            "value": 0.041704470832674,
+            "unit": "iter/sec",
+            "range": "stddev: 0.000776945318866141",
+            "extra": "mean: 55.7327546666689 msec\nrounds: 3"
+          },
+          {
+            "name": "test/timings/test_regressions.py::test_regression_benchmark[plot::p=Plot3D[x*y,{x,0,3},{y,0,3}];]",
+            "value": 0.04210736238929876,
+            "unit": "iter/sec",
+            "range": "stddev: 0.0003980699386260756",
+            "extra": "mean: 55.199492666664206 msec\nrounds: 3"
           }
         ]
       }
