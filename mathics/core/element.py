@@ -14,6 +14,7 @@ from mathics.core.keycomparable import KeyComparable
 
 if TYPE_CHECKING:
     from mathics.core.evaluation import Evaluation
+    from mathics.core.symbols import Symbol
 
 
 def ensure_context(name: str, context="System`") -> str:
@@ -291,7 +292,9 @@ class BaseElement(KeyComparable, ABC):
         return False
 
     def has_form(
-        self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
+        self,
+        heads: Sequence[str | "Symbol"] | str | "Symbol",
+        *element_counts: Optional[int],
     ) -> bool:
         """Check if the expression is of the form Head[l1,...,ln]
         with Head.name in `heads` and a number of elements according to the specification in

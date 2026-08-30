@@ -250,21 +250,12 @@ class Atom(BaseElement):
         return BASIC_ATOM_PATTERN_SORT_KEY
 
     def has_form(
-        self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
+        self,
+        heads: Sequence[str | Symbol] | str | Symbol,
+        *element_counts: Optional[int],
     ) -> bool:
-        if element_counts:
-            return False
-
-        if self is heads:
-            return True
-
-        if isinstance(heads, tuple):
-            return self in (
-                h if h is isinstance(h, Symbol) else Symbol(h) for h in heads
-            )
-        else:
-            name = self.get_atom_name()
-            return heads == name
+        # A symbol never has form head[...]
+        return False
 
     @property
     def is_literal(self) -> bool:

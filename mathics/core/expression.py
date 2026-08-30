@@ -1087,7 +1087,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
     def has_form(
         self,
-        heads: Sequence[str] | str | Sequence[Symbol] | Symbol,
+        heads: Sequence[str | Symbol] | str | Symbol,
         *element_counts: Optional[int],
     ) -> bool:
         """
@@ -1099,18 +1099,23 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         """
 
         head = self._head
+        if not isinstance(head, Symbol):
+            return False
 
         if head is not heads:  # heads is a symbol, and matches, skip this
             if isinstance(heads, Symbol):
                 # if is a Symbol, then is not my head.
                 return False
             # if is a str, look for a symbol whose name is the string.
-            if isinstance(heads, str):
+            elif isinstance(heads, str):
                 if head is not Symbol(heads):
                     return False
             # Not a symbol or a string: must be a sequence...
-            elif head not in (h if isinstance(h, Symbol) else Symbol(h) for h in heads):
-                return False
+            else:
+                if head not in (
+                    h if isinstance(h, Symbol) else Symbol(h) for h in heads
+                ):
+                    return False
 
         if not element_counts:
             return False
