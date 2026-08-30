@@ -254,10 +254,16 @@ class Atom(BaseElement):
     ) -> bool:
         if element_counts:
             return False
-        name = self.get_atom_name()
+
+        if self is heads:
+            return True
+
         if isinstance(heads, tuple):
-            return name in heads
+            return self in (
+                h if h is isinstance(h, Symbol) else Symbol(h) for h in heads
+            )
         else:
+            name = self.get_atom_name()
             return heads == name
 
     @property

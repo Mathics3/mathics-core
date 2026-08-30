@@ -101,21 +101,27 @@ def subranges(
     if max is None:
         max = len(items)
     max = min(max, len(items))
+
+    # Special case
+    if min_count == 0 and max == 1:
+        less_first = False
+    lengths = range(min_count, max + 1)
+    if not less_first:
+        lengths = reversed(lengths)
+
     if flexible_start:
-        starts = list(range(len(items) - max + 1))
-    else:
-        starts = (0,)
-    for start in starts:
-        lengths = list(range(min_count, max + 1))
-        if not less_first:
-            lengths = reversed(lengths)
         lengths = list(lengths)
-        if lengths == [0, 1]:
-            lengths = [1, 0]
+        for start in range(len(items) - max + 1):
+            for length in lengths:
+                yield (
+                    items[start : start + length],
+                    (items[:start], items[start + length :]),
+                )
+    else:
         for length in lengths:
             yield (
-                items[start : start + length],
-                (items[:start], items[start + length :]),
+                items[0:length],
+                (items[:0], items[length:]),
             )
 
 

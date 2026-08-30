@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Tuple, Union, 
 import sympy
 from sympy import (
     Dummy as Sympy_Dummy,
-    Symbol,
     Symbol as Sympy_Symbol,
     false as SympyFalse,
     true as SympyTrue,
@@ -32,7 +31,6 @@ from mathics.core.atoms import (
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.matrix import matrix_data
 from mathics.core.element import BaseElement
-from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.expression_predefined import (
     MATHICS3_COMPLEX_INFINITY,

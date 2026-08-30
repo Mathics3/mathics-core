@@ -40,40 +40,20 @@ from mathics.core.keycomparable import (
     BASIC_EXPRESSION_PATTERN_SORT_KEY,
     END_OF_LIST_PATTERN_SORT_KEY,
 )
-from mathics.core.symbols import Atom, Symbol, symbol_set
+from mathics.core.symbols import Atom, Symbol
 from mathics.core.systemsymbols import (
-    SymbolAlternatives,
+    SYSTEM_SYMBOLS_PATTERNS,
     SymbolBlank,
     SymbolBlankNullSequence,
     SymbolBlankSequence,
-    SymbolCondition,
     SymbolDefault,
     SymbolOptional,
-    SymbolOptionsPattern,
-    SymbolPattern,
-    SymbolPatternTest,
-    SymbolRepeated,
-    SymbolRepeatedNull,
     SymbolSequence,
 )
 from mathics.core.util import permutations, subranges, subsets
 
 if TYPE_CHECKING:
     from mathics.core.builtin import PatternObject
-
-SYSTEM_SYMBOLS_PATTERNS = symbol_set(
-    SymbolAlternatives,
-    SymbolBlank,
-    SymbolBlankNullSequence,
-    SymbolBlankSequence,
-    SymbolCondition,
-    SymbolOptional,
-    SymbolOptionsPattern,
-    SymbolPattern,
-    SymbolPatternTest,
-    SymbolRepeated,
-    SymbolRepeatedNull,
-)
 
 pattern_objects: Dict[str, Type["PatternObject"]] = {}
 
@@ -264,7 +244,9 @@ class BasePattern(ABC):
         return self.expr.get_sequence()
 
     def has_form(
-        self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
+        self,
+        heads: Union[Sequence[str], str, Symbol, Sequence[Symbol]],
+        *element_counts: Optional[int],
     ) -> bool:
         """Compare the expression against a form"""
         return self.expr.has_form(heads, *element_counts)

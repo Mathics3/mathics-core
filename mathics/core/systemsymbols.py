@@ -15,7 +15,7 @@ moved here.
 """
 from typing import Final
 
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, symbol_set
 
 # Note that at the time this is evaluated Symbol("System`X")
 # is the same as Symbol("X"), but it is better to make this
@@ -303,6 +303,7 @@ SymbolQuotientRemainder: Final[Symbol] = Symbol("System`QuotientRemainder")
 SymbolRGBColor: Final[Symbol] = Symbol("System`RGBColor")
 SymbolRandomComplex: Final[Symbol] = Symbol("System`RandomComplex")
 SymbolRandomReal: Final[Symbol] = Symbol("System`RandomReal")
+SymbolRange: Final[Symbol] = Symbol("Range")
 SymbolRankedMax: Final[Symbol] = Symbol("RankedMax")
 SymbolRankedMin: Final[Symbol] = Symbol("RankedMin")
 SymbolRational: Final[Symbol] = Symbol("System`Rational")
@@ -343,6 +344,7 @@ SymbolSinh: Final[Symbol] = Symbol("System`Sinh")
 SymbolSlot: Final[Symbol] = Symbol("System`Slot")
 SymbolSort: Final[Symbol] = Symbol("System`Sort")
 SymbolSortBy: Final[Symbol] = Symbol("System`SortBy")
+SymbolSpan: Final[Symbol] = Symbol("System`Span")
 SymbolSparseArray: Final[Symbol] = Symbol("System`SparseArray")
 SymbolSphericalRegion: Final[Symbol] = Symbol("System`SphericalRegion")
 SymbolSplit: Final[Symbol] = Symbol("System`Split")
@@ -417,3 +419,27 @@ SymbolWordBoundary: Final[Symbol] = Symbol("System`WordBoundary")
 SymbolWordCharacter: Final[Symbol] = Symbol("System`WordCharacter")
 SymbolWriteString: Final[Symbol] = Symbol("System`WriteString")
 SymbolXor: Final[Symbol] = Symbol("System`Xor")
+
+
+##### Special symbol sets
+
+
+BLANK_PATTERN_HEADS = symbol_set(
+    SymbolBlank,
+    SymbolBlankNullSequence,
+    SymbolBlankSequence,
+)
+
+SYSTEM_SYMBOLS_PATTERNS = symbol_set(
+    SymbolAlternatives,
+    SymbolBlank,
+    SymbolBlankNullSequence,
+    SymbolBlankSequence,
+    SymbolCondition,
+    SymbolOptional,
+    SymbolOptionsPattern,
+    SymbolPattern,
+    SymbolPatternTest,
+    SymbolRepeated,
+    SymbolRepeatedNull,
+)

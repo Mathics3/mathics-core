@@ -8,7 +8,13 @@ from mathics.core.atoms import Integer, Integer0, Number
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import MACHINE_EPSILON
-from mathics.core.symbols import Symbol, SymbolPlus, SymbolSequence, SymbolTimes
+from mathics.core.symbols import (
+    Symbol,
+    SymbolList,
+    SymbolPlus,
+    SymbolSequence,
+    SymbolTimes,
+)
 from mathics.core.systemsymbols import (
     SymbolBlank,
     SymbolComplex,
@@ -19,7 +25,7 @@ from mathics.core.systemsymbols import (
 
 
 def decompose_domain(interval, evaluation):
-    if interval.has_form("System`Sequence", 1, None):
+    if interval.has_form(SymbolSequence, 1, None):
         intervals = []
         for element in interval.elements:
             inner_interval = decompose_domain(element, evaluation)
@@ -30,7 +36,7 @@ def decompose_domain(interval, evaluation):
                 return None
         return intervals
 
-    if interval.has_form("System`List", 3, None):
+    if interval.has_form(SymbolList, 3, None):
         intervals = []
         intvar = interval.elements[0]
         if not isinstance(intvar, Symbol):

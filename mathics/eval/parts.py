@@ -207,7 +207,7 @@ def python_levelspec(levelspec) -> Tuple[int, Optional[int]]:
 
     # FIXME: Something in ExportString prevents using isinstance(levelspec, ListExpression).
     # Track this down and fix.
-    if levelspec.has_form("List", None):
+    if levelspec.has_form(SymbolList, None):
         values = [value_to_level(element) for element in levelspec.elements]
         if len(values) == 1:
             return values[0], values[0]

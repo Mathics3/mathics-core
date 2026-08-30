@@ -1,16 +1,16 @@
 # cython: language_level=3
 # -*- coding: utf-8 -*-
+"""
+This module provides some infrastructure to deal with SubExpressions.
+
+"""
 
 
 from mathics.core.atoms import Integer
 from mathics.core.exceptions import MessageException
 from mathics.core.expression import Expression
-from mathics.core.symbols import Atom, Symbol
-
-"""
-This module provides some infrastructure to deal with SubExpressions.
-
-"""
+from mathics.core.symbols import Atom, Symbol, SymbolList
+from mathics.core.systemsymbols import SymbolSpan
 
 
 def _pspec_span_to_tuple(pspec, expr):
@@ -175,12 +175,12 @@ class ExpressionPointer:
         # Variables to track the parent and the position of that parent.
         current = parent
         current_parent = None
-        current_index = None
+        # current_index = None
 
         try:
             while pos:
                 current_parent = current
-                current_index = i
+                # current_index = i
                 if i == 0:
                     current = current._head
                 else:
@@ -234,12 +234,12 @@ class SubExpression:
         elif isinstance(pos, Symbol) and pos.get_name() == "System`All":
             pos = None
         elif type(pos) is Expression:
-            if pos.has_form("System`List", None):
+            if pos.has_form(SymbolList, None):
                 tuple_pos = [i.get_int_value() for i in pos.elements]
                 if any(i is None for i in tuple_pos):
                     raise MessageException("Part", "pspec", pos)
                 pos = tuple_pos
-            elif pos.has_form("System`Span", None):
+            elif pos.has_form(SymbolSpan, None):
                 pos = _pspec_span_to_tuple(pos, expr)
             else:
                 raise MessageException("Part", "pspec", pos)
@@ -300,9 +300,9 @@ class SubExpression:
         """
         Assigns `new` to the subexpression, according to the logic of `mathics.eval.list.eol.eval_Part`
         """
-        if (new.has_form("List", None) or new.get_head_name() == "System`List") and len(
-            new.elements
-        ) == len(self._elementsp):
+        if (
+            new.has_form(SymbolList, None) or new.get_head_name() == "System`List"
+        ) and len(new.elements) == len(self._elementsp):
             for element, sub_new in zip(self._elementsp, new.elements):
                 element.replace(sub_new)
         else:

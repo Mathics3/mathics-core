@@ -15,6 +15,7 @@ from mathics.core.symbols import (
     SymbolMaxPrecision,
     SymbolMinPrecision,
 )
+from mathics.core.systemsymbols import SymbolDirectedInfinity
 
 LOG2_10 = mpmath.log(10.0, 2.0)  # ~ 3.3219280948873626
 
@@ -58,7 +59,7 @@ class SpecialValueError(Exception):
 
 def _get_float_inf(value, evaluation) -> Optional[float]:
     value = value.evaluate(evaluation)
-    if value.has_form("DirectedInfinity", 1):
+    if value.has_form(SymbolDirectedInfinity, 1):
         if value.elements[0].get_int_value() == 1:
             return float("inf")
         elif value.elements[0].get_int_value() == -1:
