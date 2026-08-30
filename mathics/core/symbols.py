@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from typing import TYPE_CHECKING, Any, FrozenSet, Optional, Sequence, Union, cast
+from typing import TYPE_CHECKING, Any, FrozenSet, Iterable, Optional, Union, cast
 
 from mathics.core.element import BaseElement, EvalMixin, ensure_context
 
@@ -251,7 +251,7 @@ class Atom(BaseElement):
 
     def has_form(
         self,
-        heads: Sequence[str | Symbol] | str | Symbol,
+        heads: Iterable[str | "Symbol"] | str | "Symbol",
         *element_counts: Optional[int],
     ) -> bool:
         # A symbol never has form head[...]

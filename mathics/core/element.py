@@ -7,7 +7,7 @@ Here we have the base class and related function for element inside an Expressio
 
 from abc import ABC
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Final, Optional, Sequence, Tuple, Union
+from typing import TYPE_CHECKING, Any, Final, Iterable, Optional, Sequence, Tuple, Union
 
 from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.keycomparable import KeyComparable
@@ -293,7 +293,7 @@ class BaseElement(KeyComparable, ABC):
 
     def has_form(
         self,
-        heads: Sequence[str | "Symbol"] | str | "Symbol",
+        heads: Iterable[str | "Symbol"] | str | "Symbol",
         *element_counts: Optional[int],
     ) -> bool:
         """Check if the expression is of the form Head[l1,...,ln]

@@ -1,4 +1,4 @@
-from typing import Optional, Sequence, Union
+from typing import Iterable, Optional
 
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import BuiltinElement
@@ -145,7 +145,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
 
     def has_form(
         self,
-        heads: Union[Sequence[str], str, Symbol, Sequence[Symbol]],
+        heads: Iterable[str | Symbol] | str | Symbol,
         *element_counts: Optional[int],
     ) -> bool:
         """

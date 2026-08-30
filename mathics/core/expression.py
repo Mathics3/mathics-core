@@ -88,6 +88,8 @@ symbols_arithmetic_operations = symbol_set(
     SymbolTimes,
 )
 
+HAS_FORMS_STATS = {"symbol": 0, "str": 0}
+
 
 def eval_SameQ(self, other):
     """
@@ -1087,7 +1089,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
     def has_form(
         self,
-        heads: Sequence[str | Symbol] | str | Symbol,
+        heads: Iterable[str | Symbol] | str | Symbol,
         *element_counts: Optional[int],
     ) -> bool:
         """

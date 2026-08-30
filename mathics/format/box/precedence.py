@@ -4,10 +4,19 @@ from mathics.core.atoms import Integer, Real, String
 from mathics.core.element import BaseElement
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolRowBox
+from mathics.core.symbols import Symbol, symbol_set
+from mathics.core.systemsymbols import (
+    SymbolHoldForm,
+    SymbolInfix,
+    SymbolPostfix,
+    SymbolPrecedenceForm,
+    SymbolPrefix,
+    SymbolRowBox,
+)
 
 builtins_precedence: Dict[Symbol, int] = {}
+
+HEAD_PRE_IN_POSTFIX = symbol_set(SymbolInfix, SymbolPrefix, SymbolPostfix)
 
 
 def compare_precedence(
@@ -23,13 +32,13 @@ def compare_precedence(
     if precedence is None:
         return None
 
-    while element.has_form("HoldForm", 1):
+    while element.has_form(SymbolHoldForm, 1):
         element = element.get_element(0)
 
     if isinstance(element, Expression):
-        if element.has_form(("Infix", "Prefix", "Postfix"), 3, None):
+        if element.has_form(HEAD_PRE_IN_POSTFIX, 3, None):
             element_prec = element.elements[2].value
-        elif element.has_form("PrecedenceForm", 2):
+        elif element.has_form(SymbolPrecedenceForm, 2):
             element_prec = element.elements[1].value
         else:
             # element_prec = builtins_precedence.get(element.get_head_name())
