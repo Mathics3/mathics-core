@@ -13,7 +13,6 @@ from mathics.algorithm.clusters import (
     kmeans,
     optimize,
 )
-from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import FP_MANTISA_BINARY_DIGITS, Integer, Real, String, min_prec
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
@@ -36,6 +35,7 @@ from mathics.eval.distance.clusters import (
     to_real_distance,
 )
 from mathics.eval.nevaluator import eval_N
+from mathics.eval.options import options_to_rules
 from mathics.eval.parts import walk_levels
 from mathics.eval.stackframe import get_eval_Expression
 from mathics.eval.tensors import get_default_distance

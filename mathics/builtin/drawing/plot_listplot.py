@@ -11,7 +11,6 @@ from functools import lru_cache
 from typing import Callable, Optional
 
 from mathics.builtin.graphics import Graphics
-from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Integer1
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
@@ -32,6 +31,7 @@ from mathics.eval.drawing.plot import (
     get_plot_range_option,
 )
 from mathics.eval.nevaluator import eval_N
+from mathics.eval.options import options_to_rules
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.plotting-data"

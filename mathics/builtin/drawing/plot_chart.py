@@ -7,7 +7,6 @@ A Chart represents categorical or statistical data in some form.
 from math import cos, pi, sin
 
 from mathics.builtin.graphics import Graphics
-from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Integer0, Real, String
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 from mathics.core.builtin import Builtin
@@ -26,6 +25,7 @@ from mathics.core.systemsymbols import (
 from mathics.eval.drawing.charts import draw_bar_chart, eval_chart
 from mathics.eval.drawing.plot import TwoTenths
 from mathics.eval.nevaluator import eval_N
+from mathics.eval.options import options_to_rules
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.chart"

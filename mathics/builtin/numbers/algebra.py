@@ -18,7 +18,6 @@ from typing import Optional
 import sympy
 
 import mathics.eval.tracing as tracing
-from mathics.builtin.options import options_to_rules
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import Integer, Integer0, Integer1, Number
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
@@ -66,6 +65,7 @@ from mathics.eval.numbers.algebra.polynomial import (
 )
 from mathics.eval.numbers.algebra.simplify import eval_Simplify
 from mathics.eval.numbers.numbers import cancel, sympy_factor
+from mathics.eval.options import options_to_rules
 
 
 class _Algebraic(Builtin):
