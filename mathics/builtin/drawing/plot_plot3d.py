@@ -15,12 +15,12 @@ import numpy as np
 from mathics.builtin.drawing import plot
 from mathics.builtin.drawing.graphics3d import Graphics3D
 from mathics.builtin.graphics import Graphics
-from mathics.builtin.options import filter_from_iterable, options_to_rules
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.systemsymbols import Symbol, SymbolPlotRange, SymbolSequence
+from mathics.eval.options import filter_from_iterable, options_to_rules
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.custom-plots"

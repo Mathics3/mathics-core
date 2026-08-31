@@ -13,7 +13,6 @@ from typing import Callable, Iterable, List, Optional, Tuple, Union
 
 from mathics.builtin.graphics import Graphics
 from mathics.builtin.numeric import chop
-from mathics.builtin.options import filter_from_iterable, options_to_rules
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import Integer, Integer0, Real
 from mathics.core.builtin import get_option
@@ -37,6 +36,7 @@ from mathics.core.systemsymbols import (
     SymbolPolygon,
 )
 from mathics.eval.nevaluator import eval_N
+from mathics.eval.options import filter_from_iterable, options_to_rules
 from mathics.timing import Timer
 
 ListPlotNames = (
@@ -45,6 +45,7 @@ ListPlotNames = (
     "ListLinePlot",
     "ListStepPlot",
 )
+
 ListPlotType = Enum("ListPlotType", ListPlotNames)
 
 SixTenths = Real(0.6)

@@ -15,7 +15,7 @@ from mathics.core.systemsymbols import SymbolNone, SymbolRule
 
 def eval_Options(
     symbol: Symbol, evaluation: Evaluation, empty_is_none: bool = False
-) -> Optional[ListExpression]:
+) -> Optional[ListExpression] | Symbol:
     name = symbol.get_name()
     if not name:
         if isinstance(symbol, Image):

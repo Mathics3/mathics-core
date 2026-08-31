@@ -15,32 +15,13 @@ option values are described here.
 # builtins.
 
 
-from mathics.core.builtin import Builtin
+from mathics.core.builtin import Predefined
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.graphing-and-drawing.drawing-options-and-option-values"
 
 
-class Automatic(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Automatic.html</url>
-
-    <dl>
-      <dt>'Automatic'
-      <dd>is used to specify an automatically computed option value.
-    </dl>
-
-    'Automatic' is the default for 'PlotRange', 'ImageSize', and other
-    graphical options:
-
-    >> Cases[Options[Plot], HoldPattern[_ -> Automatic]]
-     = {AxesOrigin ⇾ Automatic, Background ⇾ Automatic, BaselinePosition ⇾ Automatic, ContentSelectable ⇾ Automatic, CoordinatesToolOptions ⇾ Automatic, Exclusions ⇾ Automatic, FrameTicks ⇾ Automatic, ImageSize ⇾ Automatic, Method ⇾ Automatic, PlotRange ⇾ Automatic, PlotRangePadding ⇾ Automatic, PlotRegion ⇾ Automatic, PreserveImageOptions ⇾ Automatic, Ticks ⇾ Automatic}
-    """
-
-    summary_text = "graph option value to choose parameters automatically"
-
-
-class Axes(Builtin):
+class Axes(Predefined):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Axes.html</url>
 
@@ -62,7 +43,7 @@ class Axes(Builtin):
     summary_text = "graph option which determines whether axes are shown"
 
 
-class Axis(Builtin):
+class Axis(Predefined):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Axis.html</url>
 
@@ -78,7 +59,7 @@ class Axis(Builtin):
     summary_text = "graph option value to fill plot from curve to the axis"
 
 
-class Background(Builtin):
+class Background(Predefined):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Background.html</url>
 
@@ -104,7 +85,7 @@ class Background(Builtin):
     summary_text = "graphic option for the color of the background"
 
 
-class Bottom(Builtin):
+class Bottom(Predefined):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Bottom.html</url>
 
@@ -120,7 +101,7 @@ class Bottom(Builtin):
     summary_text = "graph option value to fill plot from curve to bottom"
 
 
-class ChartLabels(Builtin):
+class ChartLabels(Predefined):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/ChartLabels.html</url>
 
@@ -137,7 +118,7 @@ class ChartLabels(Builtin):
     summary_text = "charting option for whether to label chart"
 
 
-class ChartLegends(Builtin):
+class ChartLegends(Predefined):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/ChartLegends.html</url>
 
@@ -152,7 +133,7 @@ class ChartLegends(Builtin):
     summary_text = "chart option for giving legends to a chart"
 
 
-class Filling(Builtin):
+class Filling(Predefined):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Filling.html</url>
 
@@ -168,7 +149,21 @@ class Filling(Builtin):
     summary_text = "Plot option for filling regions around its curve"
 
 
-class Full(Builtin):
+class FormatType(Predefined):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FormatType.html</url>
+    <dl>
+      <dt>'FormatType'
+      <dd>is an option for output streams, graphics and functions like 'Text' \
+          that specifies the default format.
+    </dl>
+    """
+
+    messages = {"ftype": "Value of option FormatType -> `` is not valid."}
+    summary_text = "specify the request format"
+
+
+class Full(Predefined):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Full.html</url>
 
@@ -182,7 +177,7 @@ class Full(Builtin):
     summary_text = "graph option value for Mesh and PlotRange"
 
 
-class ImageSize(Builtin):
+class ImageSize(Predefined):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/ImageSize.html</url>
 
@@ -212,7 +207,7 @@ class ImageSize(Builtin):
     summary_text = "image option for the size of the final picture"
 
 
-class Joined(Builtin):
+class Joined(Predefined):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Joined.html</url>
 
@@ -230,7 +225,7 @@ class Joined(Builtin):
     )
 
 
-class MaxRecursion(Builtin):
+class MaxRecursion(Predefined):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/MaxRecursion.html</url>
 
@@ -252,7 +247,7 @@ class MaxRecursion(Builtin):
     )
 
 
-class Mesh(Builtin):
+class Mesh(Predefined):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Mesh.html</url>
 
@@ -289,7 +284,7 @@ class Mesh(Builtin):
     summary_text = "charting option to indicate whether a mesh is shown"
 
 
-class PlotPoints(Builtin):
+class PlotPoints(Predefined):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/PlotPoints.html</url>
 
@@ -305,7 +300,7 @@ class PlotPoints(Builtin):
     summary_text = "plot option given the initial size for the set of sample points"
 
 
-class PlotRange(Builtin):
+class PlotRange(Predefined):
     """
     <url>
     :WMA link:
@@ -337,7 +332,7 @@ class PlotRange(Builtin):
     summary_text = "plot option giving the range to be plotted"
 
 
-class TicksStyle(Builtin):
+class TicksStyle(Predefined):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/TicksStyle.html</url>
 
@@ -360,7 +355,7 @@ class TicksStyle(Builtin):
     summary_text = "graph option for the format of tick marks on axes"
 
 
-class Top(Builtin):
+class Top(Predefined):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Top.html</url>
 
