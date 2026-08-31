@@ -10,7 +10,6 @@ import palettable
 
 import mathics.eval.drawing.plot3d
 from mathics.builtin.graphics import Graphics
-from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Integer, Integer0, MachineReal, String
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 from mathics.core.builtin import Builtin
@@ -36,6 +35,7 @@ from mathics.core.systemsymbols import (
 from mathics.eval.drawing.colors import COLOR_PALETTES, get_color_palette
 from mathics.eval.drawing.plot import get_plot_range
 from mathics.eval.nevaluator import eval_N
+from mathics.eval.options import options_to_rules
 
 
 # get the plot eval function for the given class

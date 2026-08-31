@@ -10,7 +10,6 @@ import itertools
 
 import palettable
 
-from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Integer, Integer0, MachineReal, String
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.evaluation import Evaluation
@@ -31,6 +30,7 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.drawing.colors import get_color_palette
 from mathics.eval.drawing.plot import get_plot_range
+from mathics.eval.options import options_to_rules
 
 SymbolText = Symbol("Text")
 SymbolRectangle = Symbol("System`Rectangle")

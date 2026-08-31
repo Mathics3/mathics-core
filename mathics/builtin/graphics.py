@@ -18,7 +18,6 @@ from mathics.builtin.colors.color_directives import (
     XYZColor,
 )
 from mathics.builtin.drawing.graphics_internals import GLOBALS, _GraphicsDirective
-from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Integer, Rational, Real
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
@@ -36,6 +35,7 @@ from mathics.core.systemsymbols import (
     SymbolText,
 )
 from mathics.eval.nevaluator import eval_N
+from mathics.eval.options import options_to_rules
 
 # This following line tells documentation how to sort this module
 sort_order = "mathics.builtin.drawing-graphics"

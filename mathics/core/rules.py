@@ -61,7 +61,7 @@ from mathics.core.expression import Expression
 from mathics.core.keycomparable import PATTERN_SORT_KEY_CONDITIONAL, KeyComparable
 from mathics.core.pattern import BasePattern, StopGenerator
 from mathics.core.symbols import SymbolTrue, strip_context
-from mathics.core.systemsymbols import SymbolCondition, SymbolRule, SymbolRuleDelayed
+from mathics.core.systemsymbols import RULE_SYMBOL_HEADS, SymbolCondition
 
 
 def _python_function_arguments(f):
@@ -70,6 +70,17 @@ def _python_function_arguments(f):
 
 def function_arguments(f):
     return _python_function_arguments(f)
+
+
+def is_option_rule(element: Any) -> bool:
+    """
+    Return True if element is an Option-like Rule.
+    This is a rule of the form:
+      key -> value
+    or:
+      key :> value
+    """
+    return element.has_form(RULE_SYMBOL_HEADS, 2)
 
 
 def is_rule(element: Any, include_delayed: bool = True) -> bool:
@@ -84,8 +95,7 @@ def is_rule(element: Any, include_delayed: bool = True) -> bool:
     # FIXME: remove the test on has_form("Rule") when by fixing up
     # class Rule_ in mathics.core.builtins.
     return (
-        isinstance(element, RewriteRule)
-        or element.has_form((SymbolRule, SymbolRuleDelayed), 2)
+        isinstance(element, RewriteRule) or is_option_rule(element)
         if include_delayed
         else isinstance(element, RewriteRule)
     )

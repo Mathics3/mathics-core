@@ -1344,6 +1344,7 @@ System`Xor
 System`Yellow
 System`YuleDissimilarity
 System`Zeta
+WLDump`ImportWL
 XML`Parser`XMLGet
 XML`Parser`XMLGetString
 XML`PlaintextImport

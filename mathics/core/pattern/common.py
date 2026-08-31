@@ -13,17 +13,16 @@ from mathics.core.atoms import Integer
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.rules import is_option_rule
 from mathics.core.symbols import SymbolList
-from mathics.core.systemsymbols import RULE_SYMBOL_HEADS, SymbolDefault, SymbolOptional
+from mathics.core.systemsymbols import SymbolDefault, SymbolOptional
 
 from .base import AtomPattern, BasePattern, ExpressionPattern
 
 
 def _is_option_like(candidate: BaseElement) -> bool:
     """Same shape check OptionsPattern.get_match_candidates() uses."""
-    return candidate.has_form(RULE_SYMBOL_HEADS, 2) or candidate.has_form(
-        SymbolList, None
-    )
+    return is_option_rule(candidate) or candidate.has_form(SymbolList, None)
 
 
 def _unwrap_options_pattern(element: "BasePattern"):
