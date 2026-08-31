@@ -286,7 +286,7 @@ class OrderedExpressionPattern(ExpressionPattern):
         rest_elements: tuple,
         candidates: tuple,
         element_candidates: Union[tuple, set],
-        set_lengths: Tuple[int, Optional[int]],
+        set_lengths: Tuple[int, int],
         less_first: bool,
         pattern_context: dict,
     ):

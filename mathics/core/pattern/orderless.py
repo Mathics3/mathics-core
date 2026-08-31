@@ -9,7 +9,6 @@ that have the Orderless attribute.
 
 """
 
-
 from typing import Callable, Optional, Tuple, Union
 
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY
@@ -18,7 +17,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.interrupt import TimeoutInterrupt
 from mathics.core.systemsymbols import SymbolSequence
-from mathics.core.util import permutations, subranges, subsets
+from mathics.core.util import SUBRANGES_GENERATOR_TYPE, permutations, subranges, subsets
 
 from .base import (
     BasePattern,
@@ -128,7 +127,7 @@ def expression_pattern_match_element_orderless(
     element_candidates: Union[tuple, set],
     less_first: bool,
     set_lengths: Tuple[int, Optional[int]],
-):
+) -> SUBRANGES_GENERATOR_TYPE:
     """
     match element for orderless expressions
     """
@@ -141,10 +140,10 @@ def expression_pattern_match_element_orderless(
     element: BaseElement = parms["element"]
     element_candidates = set(element_candidates)  # for fast lookup
 
-    sets: Optional[list] = None
     if isinstance(element, Pattern):
         varname = element.elements[0].get_name()
         existing = parms["vars_dict"].get(varname, None)
+        # Another subpattern has the same name
         if existing is not None:
             head = existing.get_head()
             if head.get_name() == "System`Sequence" or (
@@ -160,25 +159,16 @@ def expression_pattern_match_element_orderless(
                 if needed_element in available and needed_element in element_candidates:
                     available.remove(needed_element)
                 else:
-                    return set()
-            sets = [
-                (
-                    needed,
-                    (
-                        [],
-                        available,
-                    ),
-                )
-            ]
+                    return None
+            yield (needed, (tuple(), tuple(available)))
+            return None
 
-    if sets is None:
-        sets = subsets(
-            candidates,
-            included=element_candidates,
-            less_first=less_first,
-            *set_lengths,
-        )
-    return sets
+    yield from subsets(
+        candidates,
+        included=element_candidates,
+        less_first=less_first,
+        *set_lengths,
+    )
 
 
 def get_pre_choices_orderless(
@@ -229,15 +219,19 @@ def get_pre_choices_orderless(
         remaining_groups = groups[1:]
 
         # Compute combined min/max lengths for the group.
-        min_len = 0
-        max_len = None
+        low: int
+        high: int
+        min_len: int = 0
+        max_len: int = -1
         for p in group_patterns:
             low, high = p.get_match_count()
             min_len = max(min_len, low)
-            if max_len is None:
+            if max_len == -1:
                 max_len = high
             elif high is not None:
                 max_len = min(max_len, high)
+            else:
+                raise ValueError("high is None?", high)
 
         # If the group can match zero elements and there are elements available,
         # we also need to consider the possibility of matching zero.
@@ -253,7 +247,7 @@ def get_pre_choices_orderless(
 
         # Use subranges to generate all subsequences of available elements.
         # We need to know the available elements; for now, we use the full list.
-        available = list(expression.elements)  # This should be filtered in reality.
+        available = tuple(expression.elements)  # This should be filtered in reality.
 
         # Generate all possible subsequences.
         # We can limit the search by using the computed min/max lengths.
