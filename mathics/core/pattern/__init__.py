@@ -10,6 +10,18 @@ See also: mathics.core.rules and
 https://reference.wolfram.com/language/tutorial/PatternsAndTransformationRules.html
 """
 
-from .base import BasePattern, ExpressionPattern, StopGenerator, pattern_objects
+from .base import (
+    AtomPattern,
+    BasePattern,
+    ExpressionPattern,
+    StopGenerator,
+    pattern_objects,
+)
 
-__all__ = ["BasePattern", "ExpressionPattern", "StopGenerator", "pattern_objects"]
+__all__ = [
+    "AtomPattern",
+    "BasePattern",
+    "ExpressionPattern",
+    "StopGenerator",
+    "pattern_objects",
+]
