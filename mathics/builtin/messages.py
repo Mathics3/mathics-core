@@ -233,6 +233,7 @@ class General(Builtin):
         "noopen": "Cannot open `1`.",
         "nord": "Invalid comparison with `1` attempted.",
         "normal": "Nonatomic expression expected at position `1` in `2`.",
+        "notnorm": "Arugment `1` must be a nonatomic expression.",
         "noval": ("Symbol `1` in part assignment does not have an immediate value."),
         "obspkg": "In WL, this package is obsolete.",
         "openx": "`1` is not open.",

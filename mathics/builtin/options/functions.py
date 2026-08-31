@@ -2,16 +2,77 @@
 Setting Up Options for Functions
 """
 
-from mathics.core.atoms import Integer1, String
+from typing import Optional
+
+from mathics.core.atoms import Integer, Integer1, String
+from mathics.core.attributes import A_HOLD_FIRST, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, get_option
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, ensure_context
+from mathics.core.rules import is_option_rule
+from mathics.core.symbols import BooleanType, Symbol, ensure_context
 from mathics.core.systemsymbols import SymbolRule
-from mathics.eval.options.function import options_to_rules
+from mathics.eval.options.functions import eval_CheckArguments, options_to_rules
 from mathics.eval.options.options import eval_Option_with_names, eval_Options
 from mathics.eval.patterns import Matcher
+
+
+class CheckArguments(Builtin):
+    """
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/CheckArguments.html</url>
+
+    <dl>
+      <dt>'CheckArguments'[$f[args]$, $n$]
+      <dd>returns 'True" if args consists of $n$ positional arguments followed by valid options \
+      for $f$ and 'False' if not.
+
+      <dt>'CheckArguments'[$f[args]$, ${min, max$]
+      <dd>same as above but checks only the positional arguments between $min$, and $max$.
+    </dl>
+
+    >> FilterRules[{x -> 100, y -> 1000}, x]
+     = {x ⇾ 100}
+
+    >> FilterRules[{x -> 100, y -> 1000, z -> 10000}, {a, b, x, z}]
+     = {x ⇾ 100, z ⇾ 10000}
+    """
+
+    attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
+    expected_args = (2, 3)
+    messages = {
+        "rspec": "The range specification `1` should have the form m, {m, n} or {m, Infinity}, "
+        "where m and n are integers and 0 <= m <= n."
+    }
+
+    summary_text = "check arguments of a function"
+
+    def eval_with_min_max(
+        self, expr, arg, evaluation: Evaluation
+    ) -> Optional[BooleanType]:
+        "CheckArguments[expr], arg_}]"
+        if not isinstance(expr, Expression):
+            evaluation.message("CheckArguments", "notnorm", Integer1)
+            return
+
+        invalid_range_spec = False
+        if isinstance(arg, Integer):
+            invalid_range_spec = True
+        elif not (isinstance(expr, ListExpression) and len(expr.elements) != 2):
+            invalid_range_spec = True
+        elif not isinstance((low := expr.elements[0]), Integer) and isinstance(
+            (high := expr.elements[1]), Integer
+        ):
+            invalid_range_spec = True
+        elif not (0 <= (low_int := low.value) <= (high_int := high.value)):
+            invalid_range_spec = True
+
+        if invalid_range_spec:
+            evaluation.message("CheckArguments", "rspec", arg)
+
+        return eval_CheckArguments(expr, low_int, high_int, evaluation)
 
 
 class FilterRules(Builtin):
@@ -45,11 +106,11 @@ class FilterRules(Builtin):
     def eval(self, rules, pattern, evaluation):
         "FilterRules[rules_List, pattern_]"
 
-        match = Matcher(pattern, evaluation).match
+        match_result = Matcher(pattern, evaluation).match
 
         def matched():
             for rule in rules.elements:
-                if rule.has_form("Rule", 2) and match(rule.elements[0], evaluation):
+                if is_option_rule(rule) and match_result(rule.elements[0], evaluation):
                     yield rule
 
         return ListExpression(*list(matched()))
