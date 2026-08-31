@@ -138,7 +138,7 @@ class Set(InfixOperator):
         "setraw": "Cannot assign to raw object `1`.",
         "shape": "Lists `1` and `2` are not the same shape.",
     }
-
+    has_side_effects = True
     summary_text = "assign a value"
 
     def eval(self, lhs, rhs, evaluation):
@@ -262,6 +262,7 @@ class TagSet(Builtin):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED | A_SEQUENCE_HOLD
+    has_side_effects = True
 
     eval_error = Builtin.generic_argument_error
     expected_args = range(2, sys.maxsize)
@@ -359,6 +360,7 @@ class UpSet(InfixOperator):
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED | A_SEQUENCE_HOLD
+    has_side_effects = True
     eval_error = Builtin.generic_argument_error
     expected_args = range(1, sys.maxsize)
     grouping = "Right"
