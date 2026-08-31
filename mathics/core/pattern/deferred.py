@@ -11,9 +11,15 @@ from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_ORDERLESS
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.symbols import Symbol
 
 from .base import BasePattern, ExpressionPattern
-from .ordered import OrderedExpressionPattern, SimpleOrderedExpressionPattern
+from .common import classify_fixed_blank_tuple
+from .ordered import (
+    FixedBlankTupleExpressionPattern,
+    OrderedExpressionPattern,
+    SimpleOrderedExpressionPattern,
+)
 from .orderless import OrderlessExpressionPattern
 
 
@@ -62,7 +68,7 @@ class DeferredExpressionPattern(ExpressionPattern):
         # pattern_precedence (see _build_pattern_sort_key below), which
         # is purely structural and must work even before resolution.
         self.head = BasePattern.create(expr.head)
-        self.elements = [BasePattern.create(element) for element in expr.elements]
+        self.elements = tuple(BasePattern.create(element) for element in expr.elements)
         self._impl: Optional[ExpressionPattern] = None
 
     def _resolve(self, evaluation: Evaluation) -> ExpressionPattern:
@@ -96,13 +102,23 @@ def make_expression_pattern(
     instead.
     """
     if A_ORDERLESS & attributes:
-        cls = OrderlessExpressionPattern
-    elif (A_FLAT + A_ONE_IDENTITY) & attributes:
-        cls = OrderedExpressionPattern
-    else:
-        # Common case: no Orderless, no Flat, no OneIdentity -- see
-        # SimpleOrderedExpressionPattern's docstring for why this gets
-        # its own class rather than another branch inside
-        # OrderedExpressionPattern.match().
-        cls = SimpleOrderedExpressionPattern
-    return cls(expr, attributes, evaluation)
+        return OrderlessExpressionPattern(expr, attributes, evaluation)
+    if (A_FLAT + A_ONE_IDENTITY) & attributes:
+        return OrderedExpressionPattern(expr, attributes, evaluation)
+    # No Orderless/Flat/OneIdentity: this is where the fixed-arity
+    # Blank-tuple shape (head[_], head[_,_], head[a_,b_], ...) gets
+    # decided -- BEFORE constructing any pattern objects, straight off
+    # the raw expr.elements (classify_fixed_blank_tuple is duck-typed
+    # to work on raw Expression children exactly like it does on
+    # BasePattern-wrapped ones). Doing the classification here, rather
+    # than as a runtime check inside a class's __init__/match, means
+    # neither SimpleOrderedExpressionPattern nor
+    # FixedBlankTupleExpressionPattern ever has to ask "wait, does this
+    # actually apply to me?" -- each is only ever constructed for the
+    # shape it's responsible for.
+    if (
+        isinstance(expr.head, Symbol)
+        and classify_fixed_blank_tuple(expr.elements) is not None
+    ):
+        return FixedBlankTupleExpressionPattern(expr, attributes, evaluation)
+    return SimpleOrderedExpressionPattern(expr, attributes, evaluation)

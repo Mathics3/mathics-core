@@ -15,13 +15,14 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.rules import is_option_rule
 from mathics.core.symbols import SymbolList
-from mathics.core.systemsymbols import SymbolDefault, SymbolOptional
+from mathics.core.systemsymbols import RULE_SYMBOL_HEADS, SymbolDefault, SymbolOptional
 
 from .base import AtomPattern, BasePattern, ExpressionPattern
 
 
 def _is_option_like(candidate: BaseElement) -> bool:
     """Same shape check OptionsPattern.get_match_candidates() uses."""
+
     return is_option_rule(candidate) or candidate.has_form(SymbolList, None)
 
 
@@ -138,7 +139,9 @@ def match_expression_with_one_identity(
 
 def _is_bare_blank(element: "BasePattern") -> bool:
     """True for an unnamed Blank[] or Blank[Type] (0 or 1 sub-elements)."""
-    return element.get_head_name() == "System`Blank" and len(element.elements) <= 1
+    if isinstance(element, ExpressionPattern):
+        return element.get_head_name() == "System`Blank" and len(element.elements) <= 1
+    return False
 
 
 def classify_fixed_blank_tuple(elements: tuple) -> Optional[tuple]:
@@ -156,6 +159,14 @@ def classify_fixed_blank_tuple(elements: tuple) -> Optional[tuple]:
     correctly require sameQ against the value bound by the first) --
     this fast path doesn't need to special-case it.
 
+    Works equally on RAW, not-yet-wrapped Expression/Symbol children
+    (e.g. `expr.elements` straight off a Mathics Expression) and on
+    BasePattern-wrapped elements: both answer get_head_name()/elements
+    the same way (BasePattern proxies these to self.expr -- see
+    DeferredExpressionPattern's docstring). This is what lets
+    make_expression_pattern() classify the shape BEFORE constructing
+    any pattern objects at all.
+
     Deliberately still excludes:
     - BlankSequence/BlankNullSequence (`__`, `___`) and named sequences
       (`x__`, `x___`): different get_match_count(), handled elsewhere.
@@ -163,13 +174,6 @@ def classify_fixed_blank_tuple(elements: tuple) -> Optional[tuple]:
       even if it wraps a Blank underneath (e.g. `x_ /; cond`,
       `Optional[x_]`) -- those aren't `Pattern[name, Blank[...]]`
       shaped and are conservatively rejected.
-
-    NOTE ON vars_dict: because slots are checked in order and each
-    named slot binds into the *shared* vars_dict as a side effect of
-    does_match(), callers of this fast path MUST snapshot/restore
-    vars_dict around the attempt -- see the caller in ordered.py -- so
-    that a later slot failing doesn't leave an earlier slot's binding
-    stuck in vars_dict for whoever tries next.
 
     Returns None (fall through to the general machinery) for the empty
     tuple too -- head[] is already handled by isliteral.

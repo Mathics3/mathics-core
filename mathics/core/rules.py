@@ -145,6 +145,13 @@ class BaseRule(KeyComparable, ABC):
             attributes=attributes,
         )
 
+    def _resolve(self, evaluation: Evaluation):
+        from mathics.core.pattern.deferred import DeferredExpressionPattern
+
+        pattern = self.pattern
+        if isinstance(pattern, DeferredExpressionPattern):
+            self.pattern = pattern._resolve(evaluation)
+
     def apply(
         self,
         expression: BaseElement,

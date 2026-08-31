@@ -19,11 +19,7 @@ from mathics.core.interrupt import TimeoutInterrupt
 from mathics.core.util import subranges
 
 from .base import BasePattern, ExpressionPattern, StopGenerator_ExpressionPattern_match
-from .common import (
-    classify_fixed_blank_tuple,
-    match_expression_with_one_identity,
-    match_fixed_blank_tuple,
-)
+from .common import match_expression_with_one_identity, match_fixed_blank_tuple
 
 
 def basic_match_expression(
@@ -437,26 +433,23 @@ class SimpleOrderedExpressionPattern(OrderedExpressionPattern):
     between this class and the general OrderedExpressionPattern (used
     when Flat and/or OneIdentity IS present).
 
-    Splitting this out buys two things over handling it as a branch
-    inside OrderedExpressionPattern.match():
+    Skips the Flat/OneIdentity-related runtime checks that
+    OrderedExpressionPattern.match still needs
+    (`if not A_FLAT & attributes: fully = True`,
+    `if A_ONE_IDENTITY & attributes: match_expression_with_one_identity(...)`)
+    -- for this class they always resolve the same way, so they're
+    simply absent rather than evaluated every match() call.
 
-    1. The Flat/OneIdentity-related runtime checks that method still
-       needs (`if not A_FLAT & attributes: fully = True`,
-       `if A_ONE_IDENTITY & attributes: match_expression_with_one_identity(...)`)
-       always resolve the same way here, so they're simply absent
-       rather than evaluated every match() call.
-    2. A clean, obvious home for the fixed-arity Blank-tuple fast path
-       (classify_fixed_blank_tuple / match_fixed_blank_tuple in
-       common.py): for head[_], head[_,_], head[_,_,_], head[_String],
-       head[_List], head[_Integer], head[a_,b_], head[a_,a_], etc. --
-       any fixed-length tuple of bare or named Blanks with a literal
-       head -- there is exactly ONE possible match: a positional,
-       slot-by-slot check, with zero ambiguity for
-       Sequence[...]/subranges/subsets to search over. That's only
-       true when Flat/OneIdentity/Orderless are all absent (Flat
-       breaks the fixed-arity assumption, OneIdentity has its own
-       default-substitution path, Orderless breaks the fixed
-       left-to-right slot order) -- exactly this class's scope.
+    Note this class does NOT handle the fixed-arity Blank-tuple shape
+    (head[_], head[_,_], head[a_,b_], ...) either -- that's classified
+    by make_expression_pattern() BEFORE construction, straight off the
+    raw expr.elements, and dispatched to FixedBlankTupleExpressionPattern
+    instead. Keeping that classification in the factory (rather than
+    as a runtime branch here) means this class only ever has to handle
+    the one case it's actually responsible for: the general
+    non-Orderless/Flat/OneIdentity search via basic_match_expression,
+    with no dead "is this actually a fixed-blank-tuple?" check mixed
+    in for shapes that are guaranteed, by construction, not to apply.
     """
 
     def __init__(
@@ -466,20 +459,6 @@ class SimpleOrderedExpressionPattern(OrderedExpressionPattern):
         evaluation: Optional[Evaluation] = None,
     ):
         super().__init__(expression, attributes, evaluation)
-        # Structural-only check now -- attributes are guaranteed by
-        # make_expression_pattern's dispatch to exclude
-        # Orderless/Flat/OneIdentity for any instance of this class.
-        #
-        # Also require the HEAD itself to be a literal symbol
-        # (self.head.isliteral): this sidesteps having to thread
-        # vars_dict through head-matching too (see
-        # match_fixed_blank_tuple's docstring for why threading, not
-        # does_match(), is required for anything that can bind a
-        # name) -- a pattern-variable head like `h_[x_, y_]` is rare
-        # and just falls through to the general path unchanged.
-        self.fixed_blank_tuple: Optional[tuple] = None
-        if not self.isliteral and self.head.isliteral:
-            self.fixed_blank_tuple = classify_fixed_blank_tuple(tuple(self.elements))
 
     def match(self, expression: BaseElement, pattern_context: dict):
         """
@@ -519,34 +498,6 @@ class SimpleOrderedExpressionPattern(OrderedExpressionPattern):
                 expression = expression.expr
 
             if isinstance(expression, Expression):
-                if self.fixed_blank_tuple is not None:
-                    # See class docstring: fixed arity + literal head
-                    # + no Orderless/Flat/OneIdentity means positional
-                    # matching is the ONLY possible outcome, so this
-                    # fully replaces basic_match_expression here --
-                    # no fallback needed, nothing to chain.
-                    #
-                    # match_fixed_blank_tuple threads vars_dict through
-                    # each slot's own match()/yield_func rather than
-                    # mutating a shared dict -- does_match() is NOT
-                    # safe here, since it silently drops any binding a
-                    # named Pattern[name, Blank[...]] slot produces.
-                    expr_elements = expression.elements
-                    if len(expr_elements) == len(
-                        self.fixed_blank_tuple
-                    ) and self.head.does_match(
-                        expression.get_head(),
-                        {"evaluation": evaluation, "vars_dict": vars_dict},
-                    ):
-                        result_vars = match_fixed_blank_tuple(
-                            self.fixed_blank_tuple,
-                            expr_elements,
-                            vars_dict,
-                            evaluation,
-                        )
-                        if result_vars is not None:
-                            yield_func(result_vars, None)
-                    return
                 try:
                     basic_match_expression(self, expression, pattern_context)
                 except (StopGenerator_ExpressionPattern_match, TimeoutInterrupt):
@@ -574,3 +525,86 @@ class SimpleOrderedExpressionPattern(OrderedExpressionPattern):
                 pattern_context["element_count"] = old_element_count
             else:
                 pattern_context.pop("element_count", None)
+
+
+class FixedBlankTupleExpressionPattern(ExpressionPattern):
+    """
+    ExpressionPattern for a LITERAL (bare Symbol) head applied to a
+    fixed-length tuple of elements that are ALL bare or named Blanks
+    -- head[_], head[_,_], head[_,_,_], head[_String], head[_List],
+    head[_Integer], head[a_,b_], head[a_,a_], etc. (see
+    classify_fixed_blank_tuple in common.py for the exact shape).
+
+    Only ever constructed by make_expression_pattern(), which performs
+    the classification BEFORE building any pattern objects -- directly
+    on the raw, not-yet-wrapped expr.elements (classify_fixed_blank_tuple
+    is duck-typed to work on either raw Expression children or
+    BasePattern-wrapped ones). So an instance of this class is, by
+    construction, GUARANTEED to be in this exact shape: there is no
+    "is this actually a fixed-blank-tuple?" check anywhere below,
+    because the factory already answered that question.
+
+    For this shape there is exactly ONE possible match: a positional,
+    slot-by-slot check (arity + per-slot does_match/match), with zero
+    ambiguity for Sequence[...]/subranges/subsets to search over --
+    so match() below IS the whole algorithm, not a fast path in front
+    of a fallback. There is deliberately no fallback to
+    basic_match_expression: nothing it could find that this doesn't
+    already decide.
+
+    Does NOT extend OrderedExpressionPattern / SimpleOrderedExpressionPattern:
+    none of their Sequence[...]/subranges/subsets/get_pre_choices
+    machinery is relevant here, so there's nothing worth reusing from
+    them beyond __init__, which comes directly from ExpressionPattern.
+    """
+
+    def __init__(
+        self,
+        expression: Expression,
+        attributes: int,
+        evaluation: Optional[Evaluation] = None,
+    ):
+        super().__init__(expression, attributes, evaluation)
+        assert isinstance(self.elements, tuple)
+        self.attributes = attributes
+        # Never literal: classify_fixed_blank_tuple requires at least
+        # one element, and every element is a Blank or named Blank --
+        # never an atom -- so self.isliteral (inherited default from
+        # ExpressionPattern) is always False here; nothing to compute.
+
+    def match(self, expression: BaseElement, pattern_context: dict):
+        """
+        The one and only match algorithm for this shape: positional,
+        slot-by-slot, via match_fixed_blank_tuple (see its docstring
+        in common.py for why it threads vars_dict through each slot's
+        own match()/yield_func rather than using does_match(), which
+        would silently drop any binding a named
+        Pattern[name, Blank[...]] slot produces).
+        """
+        from mathics.core.atoms.associations import Association
+
+        evaluation = pattern_context["evaluation"]
+        yield_func = pattern_context["yield_func"]
+        vars_dict = pattern_context["vars_dict"]
+
+        evaluation.check_stopped()
+
+        if isinstance(expression, Association):
+            expression = expression.expr
+
+        if not isinstance(expression, Expression):
+            return
+
+        expr_elements = expression.elements
+        if len(expr_elements) != len(self.elements):
+            return
+        if not self.head.does_match(
+            expression.get_head(), {"evaluation": evaluation, "vars_dict": vars_dict}
+        ):
+            return
+
+        result_vars = match_fixed_blank_tuple(
+            self.elements, expr_elements, vars_dict, evaluation
+        )
+        if result_vars is not None:
+            yield_func(result_vars, None)
