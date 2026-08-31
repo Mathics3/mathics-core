@@ -237,25 +237,9 @@ def get_pre_choices_with_order(
     pattern_context["yield_choice"](pattern_context["vars_dict"])
 
 
-# --- Ordered/Orderless/Deferred class split ---
-#
-# ExpressionPattern is a virtual base class for these three subclasses.
-# OrderlessExpressionPattern and OrderedExpressionPattern classes
-# implement patterns when we have access to the attributes of the Head
-# element, and the Orderless attribute is or not set for it.
-# This attribute defines the principal branches on how pattern matching
-# happends.
-# Initially, when the Definitions object is not already populated,
-# we do not have access to the Pattern attributes. We handle this case
-# using the DeferredExpressionPattern. When the evaluation tries to
-# use these patterns to check if they match with an expression, the
-# attributes becomes available. Then, DeferredExpressionPattern
-# delegates on the right object class (Ordered/Orderless) according
-# to the available attribute. After the first evaluation, delegation
-# becomes permanent.
 class OrderedExpressionPattern(ExpressionPattern):
     """
-    ExpressionPattern for a head known NOT to have the Orderless
+    ExpressionPattern for a head without the Orderless
     attribute. Only constructed via make_expression_pattern() /
     DeferredExpressionPattern, where `attributes` is already known.
 
@@ -440,16 +424,6 @@ class SimpleOrderedExpressionPattern(OrderedExpressionPattern):
     -- for this class they always resolve the same way, so they're
     simply absent rather than evaluated every match() call.
 
-    Note this class does NOT handle the fixed-arity Blank-tuple shape
-    (head[_], head[_,_], head[a_,b_], ...) either -- that's classified
-    by make_expression_pattern() BEFORE construction, straight off the
-    raw expr.elements, and dispatched to FixedBlankTupleExpressionPattern
-    instead. Keeping that classification in the factory (rather than
-    as a runtime branch here) means this class only ever has to handle
-    the one case it's actually responsible for: the general
-    non-Orderless/Flat/OneIdentity search via basic_match_expression,
-    with no dead "is this actually a fixed-blank-tuple?" check mixed
-    in for shapes that are guaranteed, by construction, not to apply.
     """
 
     def __init__(
@@ -539,10 +513,7 @@ class FixedBlankTupleExpressionPattern(ExpressionPattern):
     the classification BEFORE building any pattern objects -- directly
     on the raw, not-yet-wrapped expr.elements (classify_fixed_blank_tuple
     is duck-typed to work on either raw Expression children or
-    BasePattern-wrapped ones). So an instance of this class is, by
-    construction, GUARANTEED to be in this exact shape: there is no
-    "is this actually a fixed-blank-tuple?" check anywhere below,
-    because the factory already answered that question.
+    BasePattern-wrapped ones).
 
     For this shape there is exactly ONE possible match: a positional,
     slot-by-slot check (arity + per-slot does_match/match), with zero
@@ -552,10 +523,6 @@ class FixedBlankTupleExpressionPattern(ExpressionPattern):
     basic_match_expression: nothing it could find that this doesn't
     already decide.
 
-    Does NOT extend OrderedExpressionPattern / SimpleOrderedExpressionPattern:
-    none of their Sequence[...]/subranges/subsets/get_pre_choices
-    machinery is relevant here, so there's nothing worth reusing from
-    them beyond __init__, which comes directly from ExpressionPattern.
     """
 
     def __init__(
@@ -567,10 +534,6 @@ class FixedBlankTupleExpressionPattern(ExpressionPattern):
         super().__init__(expression, attributes, evaluation)
         assert isinstance(self.elements, tuple)
         self.attributes = attributes
-        # Never literal: classify_fixed_blank_tuple requires at least
-        # one element, and every element is a Blank or named Blank --
-        # never an atom -- so self.isliteral (inherited default from
-        # ExpressionPattern) is always False here; nothing to compute.
 
     def match(self, expression: BaseElement, pattern_context: dict):
         """

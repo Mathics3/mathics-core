@@ -146,6 +146,11 @@ class BaseRule(KeyComparable, ABC):
         )
 
     def _resolve(self, evaluation: Evaluation):
+        """
+        Convert DeferredExpressionPattern in the specific
+        kind of pattern according to the attributes given
+        by `evaluation`.
+        """
         from mathics.core.pattern.deferred import DeferredExpressionPattern
 
         pattern = self.pattern

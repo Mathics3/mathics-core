@@ -1155,6 +1155,8 @@ def load_builtin_definitions(
             with open(builtin_filename, "wb") as builtin_file:
                 pickle.dump(self.builtin, builtin_file, -1)
 
+    # Loop over definitions, to resolve on each rule
+    # which special kind of pattern must be considered.
     evaluation = Evaluation(self)
     for definition in self.builtin.values():
         definition._resolve(evaluation)
