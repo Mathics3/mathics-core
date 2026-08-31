@@ -7,15 +7,74 @@ Pattern Defaults
 
 from typing import Optional as OptionalType
 
-from mathics.core.builtin import InfixOperator, PatternObject
+from mathics.core.builtin import Builtin, InfixOperator, PatternObject
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.keycomparable import PATTERN_SORT_KEY_OPTIONAL
 from mathics.core.pattern import BasePattern
+from mathics.core.systemsymbols import SymbolDefault
 from mathics.eval.patterns import get_default_value
 
 # This tells documentation how to sort this module
-sort_order = "mathics.builtin.rules-and-patterns.patttern-defaults"
+sort_order = "mathics.builtin.rules-and-patterns.pattern-defaults"
+
+
+class Default(Builtin):
+    """
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/Default.html</url>
+
+    <dl>
+      <dt>'Default'[$f$]
+      <dd>gives the default value for an omitted parameter of $f$.
+
+      <dt>'Default'[$f$, $k$]
+      <dd>gives the default value for a parameter on the $k$-th position.
+
+      <dt>'Default'[$f$, $k$, $n$]
+      <dd>gives the default value for the $k$-th parameter out of $n$.
+    </dl>
+
+    Assign values to 'Default' to specify default values.
+
+    >> Default[f] = 1
+     = 1
+    >> f[x_.] := x ^ 2
+    >> f[]
+     = 1
+
+    Default values are stored in 'DefaultValues':
+    >> DefaultValues[f]
+     = {HoldPattern[Default[f]] ⧴ 1}
+
+    You can use patterns for $k$ and $n$:
+    >> Default[h, k_, n_] := {k, n}
+    Note that the position of a parameter is relative to the pattern, not the matching expression:
+    >> h[] /. h[___, ___, x_., y_., ___] -> {x, y}
+     = {{3, 5}, {4, 5}}
+    """
+
+    summary_text = "predefined default arguments for a function"
+
+    def eval(self, f, i, evaluation):
+        "Default[f_, i___]"
+
+        i = i.get_sequence()
+        if len(i) > 2:
+            evaluation.message(SymbolDefault, "argb", 1 + len(i), 1, 3)
+            return
+        i = [index.get_int_value() for index in i]
+        for index in i:
+            if index is None or index < 1:
+                evaluation.message(SymbolDefault.name, "intp")
+                return
+        name = f.get_name()
+        if not name:
+            evaluation.message(SymbolDefault.name, "sym", f, 1)
+            return
+        result = get_default_value(name, evaluation, *i)
+        return result
 
 
 class Optional(InfixOperator, PatternObject):
