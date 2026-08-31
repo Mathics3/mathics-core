@@ -30,3 +30,11 @@ repos:
     rev: 0.31.0  # Use the latest version
     hooks:
       - id: check-github-workflows
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.11.2
+    hooks:
+      - id: mypy
+        args:
+          - --install-types
+          - --ignore-missing-imports
+          - --non-interactive
