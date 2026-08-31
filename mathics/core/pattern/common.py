@@ -137,6 +137,131 @@ def match_expression_with_one_identity(
                 vars_dict[k] = old
 
 
+def _is_bare_blank(element: "BasePattern") -> bool:
+    """True for an unnamed Blank[] or Blank[Type] (0 or 1 sub-elements)."""
+    return element.get_head_name() == "System`Blank" and len(element.elements) <= 1
+
+
+def classify_fixed_blank_tuple(elements: tuple) -> Optional[tuple]:
+    """
+    If every element of `elements` is either:
+      - a bare (unnamed) Blank[] / Blank[Type], or
+      - a named blank Pattern[name, Blank[...]] (`x_`, `x_Integer`, ...)
+    return `elements` back unchanged, as a signal that this
+    ExpressionPattern has a fixed arity with no possible backtracking
+    between slots: matching is exactly "N elements, checked
+    positionally, one does_match() per slot, in order", nothing else --
+    including the case of a name repeated across slots (`f[a_, a_]`),
+    since that's already handled *inside* Pattern.match's own
+    already-bound-name check (does_match on the second occurrence will
+    correctly require sameQ against the value bound by the first) --
+    this fast path doesn't need to special-case it.
+
+    Deliberately still excludes:
+    - BlankSequence/BlankNullSequence (`__`, `___`) and named sequences
+      (`x__`, `x___`): different get_match_count(), handled elsewhere.
+    - anything wrapped in Condition/Optional/PatternTest/Alternatives,
+      even if it wraps a Blank underneath (e.g. `x_ /; cond`,
+      `Optional[x_]`) -- those aren't `Pattern[name, Blank[...]]`
+      shaped and are conservatively rejected.
+
+    NOTE ON vars_dict: because slots are checked in order and each
+    named slot binds into the *shared* vars_dict as a side effect of
+    does_match(), callers of this fast path MUST snapshot/restore
+    vars_dict around the attempt -- see the caller in ordered.py -- so
+    that a later slot failing doesn't leave an earlier slot's binding
+    stuck in vars_dict for whoever tries next.
+
+    Returns None (fall through to the general machinery) for the empty
+    tuple too -- head[] is already handled by isliteral.
+    """
+    if not elements:
+        return None
+    for element in elements:
+        if _is_bare_blank(element):
+            continue
+        if (
+            element.get_head_name() == "System`Pattern"
+            and len(element.elements) == 2
+            and _is_bare_blank(element.elements[1])
+        ):
+            continue
+        return None
+    return elements
+
+
+class _StopFixedBlankTupleMatch(Exception):
+    """
+    Internal control-flow exception for match_fixed_blank_tuple: carries
+    the final vars_dict once every slot in the tuple has matched.
+    """
+
+    def __init__(self, vars_dict: dict):
+        self.vars_dict = vars_dict
+
+
+def match_fixed_blank_tuple(
+    blanks: tuple,
+    expr_elements: tuple,
+    vars_dict: dict,
+    evaluation: Evaluation,
+) -> Optional[dict]:
+    """
+    Positionally match `blanks[i]` against `expr_elements[i]` for every
+    i, threading vars_dict THROUGH EACH SLOT'S OWN yield_func -- same
+    protocol basic_match_expression/match_element use everywhere else
+    in this package -- rather than mutating a single shared dict in
+    place.
+
+    This distinction matters concretely for named slots
+    (Pattern[name, Blank[...]]): Pattern.match binds a name by
+    constructing a *new* vars_dict (with the name added) and handing it
+    to its own yield_func as the `sub_vars` argument -- it does not
+    mutate the vars_dict it was given. A caller that reads bindings off
+    the ORIGINAL dict object it passed in (e.g. via does_match(), whose
+    yield_match callback discards sub_vars and returns only True/False)
+    will silently lose every binding a named slot produced. That was
+    exactly the bug this function replaces: the first version of this
+    fast path called does_match() per slot and returned the untouched
+    original vars_dict on "success", which happened to work for
+    Pattern-free bare Blanks (whose match() does pass the same object
+    through) but dropped bindings the moment any slot was a named
+    Pattern[name, Blank[...]] -- e.g. Set[lhs_, rhs_] would structurally
+    "match" while `lhs`/`rhs` never made it into the substitution vars.
+
+    Returns the fully-threaded vars_dict on success (a dict that may or
+    may not be `is vars_dict`, depending on what each slot's match()
+    did), or None if any slot failed to match. Never mutates the
+    `vars_dict` object passed in -- on failure there is nothing to
+    undo, since success is only detected by unwinding a raised
+    exception carrying the winning dict.
+    """
+    n = len(blanks)
+
+    def step(index: int, current_vars: dict):
+        if index == n:
+            raise _StopFixedBlankTupleMatch(current_vars)
+
+        def yield_one(sub_vars: dict, _rest):
+            step(index + 1, sub_vars)
+
+        blanks[index].match(
+            expr_elements[index],
+            {
+                "yield_func": yield_one,
+                "vars_dict": current_vars,
+                "evaluation": evaluation,
+                "fully": True,
+            },
+        )
+
+    try:
+        step(0, vars_dict)
+    except _StopFixedBlankTupleMatch as exc:
+        return exc.vars_dict
+    return None
+
+
 def _options_pattern_split(
     element: "BasePattern", rest_elements: tuple, candidates: tuple
 ):

@@ -19,7 +19,11 @@ from mathics.core.interrupt import TimeoutInterrupt
 from mathics.core.util import subranges
 
 from .base import BasePattern, ExpressionPattern, StopGenerator_ExpressionPattern_match
-from .common import match_expression_with_one_identity
+from .common import (
+    classify_fixed_blank_tuple,
+    match_expression_with_one_identity,
+    match_fixed_blank_tuple,
+)
 
 
 def basic_match_expression(
@@ -259,7 +263,14 @@ class OrderedExpressionPattern(ExpressionPattern):
     attribute. Only constructed via make_expression_pattern() /
     DeferredExpressionPattern, where `attributes` is already known.
 
-    No method overrides needed: ExpressionPattern's own
+    This is the general non-Orderless case, including Flat and/or
+    OneIdentity heads. For the common sub-case where NEITHER Flat nor
+    OneIdentity is set either, make_expression_pattern() constructs
+    SimpleOrderedExpressionPattern (below) instead, which skips the
+    Flat/OneIdentity-related runtime checks this class still needs and
+    adds the fixed-arity Blank-tuple fast path.
+
+    No method overrides needed beyond match(): ExpressionPattern's own
     `_yield_sequence_wrappings`/`_regular_match_element_sets` already
     implement the non-Orderless behavior (see class-split note above).
     """
@@ -393,6 +404,154 @@ class OrderedExpressionPattern(ExpressionPattern):
 
             if A_ONE_IDENTITY & attributes:
                 match_expression_with_one_identity(self, expression, pattern_context)
+        finally:
+            # restore old values
+            if old_fully is not None:
+                pattern_context["fully"] = old_fully
+            else:
+                pattern_context.pop("fully", None)
+            if old_attributes is not None:
+                pattern_context["attributes"] = old_attributes
+            else:
+                pattern_context.pop("attributes", None)
+            if old_head is not None:
+                pattern_context["head"] = old_head
+            else:
+                pattern_context.pop("head", None)
+            if old_element_index is not None:
+                pattern_context["element_index"] = old_element_index
+            else:
+                pattern_context.pop("element_index", None)
+            if old_element_count is not None:
+                pattern_context["element_count"] = old_element_count
+            else:
+                pattern_context.pop("element_count", None)
+
+
+class SimpleOrderedExpressionPattern(OrderedExpressionPattern):
+    """
+    Specialization of OrderedExpressionPattern for a head with NONE of
+    Orderless, Flat, OneIdentity -- the common case, since most heads
+    declare no special attributes at all. Only constructed via
+    make_expression_pattern(), which is the sole place that decides
+    between this class and the general OrderedExpressionPattern (used
+    when Flat and/or OneIdentity IS present).
+
+    Splitting this out buys two things over handling it as a branch
+    inside OrderedExpressionPattern.match():
+
+    1. The Flat/OneIdentity-related runtime checks that method still
+       needs (`if not A_FLAT & attributes: fully = True`,
+       `if A_ONE_IDENTITY & attributes: match_expression_with_one_identity(...)`)
+       always resolve the same way here, so they're simply absent
+       rather than evaluated every match() call.
+    2. A clean, obvious home for the fixed-arity Blank-tuple fast path
+       (classify_fixed_blank_tuple / match_fixed_blank_tuple in
+       common.py): for head[_], head[_,_], head[_,_,_], head[_String],
+       head[_List], head[_Integer], head[a_,b_], head[a_,a_], etc. --
+       any fixed-length tuple of bare or named Blanks with a literal
+       head -- there is exactly ONE possible match: a positional,
+       slot-by-slot check, with zero ambiguity for
+       Sequence[...]/subranges/subsets to search over. That's only
+       true when Flat/OneIdentity/Orderless are all absent (Flat
+       breaks the fixed-arity assumption, OneIdentity has its own
+       default-substitution path, Orderless breaks the fixed
+       left-to-right slot order) -- exactly this class's scope.
+    """
+
+    def __init__(
+        self,
+        expression: Expression,
+        attributes: int,
+        evaluation: Optional[Evaluation] = None,
+    ):
+        super().__init__(expression, attributes, evaluation)
+        # Structural-only check now -- attributes are guaranteed by
+        # make_expression_pattern's dispatch to exclude
+        # Orderless/Flat/OneIdentity for any instance of this class.
+        #
+        # Also require the HEAD itself to be a literal symbol
+        # (self.head.isliteral): this sidesteps having to thread
+        # vars_dict through head-matching too (see
+        # match_fixed_blank_tuple's docstring for why threading, not
+        # does_match(), is required for anything that can bind a
+        # name) -- a pattern-variable head like `h_[x_, y_]` is rare
+        # and just falls through to the general path unchanged.
+        self.fixed_blank_tuple: Optional[tuple] = None
+        if not self.isliteral and self.head.isliteral:
+            self.fixed_blank_tuple = classify_fixed_blank_tuple(tuple(self.elements))
+
+    def match(self, expression: BaseElement, pattern_context: dict):
+        """
+        Try to match the pattern against an Expression, for a head
+        known to have none of Orderless/Flat/OneIdentity.
+        """
+        from mathics.core.atoms.associations import Association
+
+        evaluation = pattern_context["evaluation"]
+        yield_func = pattern_context["yield_func"]
+        vars_dict = pattern_context["vars_dict"]
+
+        evaluation.check_stopped()
+        if self.isliteral:
+            if expression.sameQ(self.expr):
+                yield_func(vars_dict, None)
+            return
+
+        # --- use mutation with undo instead of copy ---
+        old_fully = pattern_context.get("fully")
+        old_attributes = pattern_context.get("attributes")
+        old_head = pattern_context.get("head")
+        old_element_index = pattern_context.get("element_index")
+        old_element_count = pattern_context.get("element_count")
+        try:
+            # No A_FLAT here (guaranteed by construction), so fully is
+            # unconditionally True -- unlike the general
+            # OrderedExpressionPattern.match, there's no runtime check
+            # to make.
+            pattern_context["fully"] = True
+            pattern_context["attributes"] = self.attributes
+            pattern_context["head"] = None
+            pattern_context["element_index"] = None
+            pattern_context["element_count"] = None
+
+            if isinstance(expression, Association):
+                expression = expression.expr
+
+            if isinstance(expression, Expression):
+                if self.fixed_blank_tuple is not None:
+                    # See class docstring: fixed arity + literal head
+                    # + no Orderless/Flat/OneIdentity means positional
+                    # matching is the ONLY possible outcome, so this
+                    # fully replaces basic_match_expression here --
+                    # no fallback needed, nothing to chain.
+                    #
+                    # match_fixed_blank_tuple threads vars_dict through
+                    # each slot's own match()/yield_func rather than
+                    # mutating a shared dict -- does_match() is NOT
+                    # safe here, since it silently drops any binding a
+                    # named Pattern[name, Blank[...]] slot produces.
+                    expr_elements = expression.elements
+                    if len(expr_elements) == len(
+                        self.fixed_blank_tuple
+                    ) and self.head.does_match(
+                        expression.get_head(),
+                        {"evaluation": evaluation, "vars_dict": vars_dict},
+                    ):
+                        result_vars = match_fixed_blank_tuple(
+                            self.fixed_blank_tuple,
+                            expr_elements,
+                            vars_dict,
+                            evaluation,
+                        )
+                        if result_vars is not None:
+                            yield_func(result_vars, None)
+                    return
+                try:
+                    basic_match_expression(self, expression, pattern_context)
+                except (StopGenerator_ExpressionPattern_match, TimeoutInterrupt):
+                    return
+            # No A_ONE_IDENTITY check -- guaranteed absent for this class.
         finally:
             # restore old values
             if old_fully is not None:

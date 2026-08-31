@@ -7,13 +7,13 @@ Implement an ExpressionPattern with a lazzy implementation of its `match` method
 
 from typing import Optional
 
-from mathics.core.attributes import A_ORDERLESS
+from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_ORDERLESS
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 
 from .base import BasePattern, ExpressionPattern
-from .ordered import OrderedExpressionPattern
+from .ordered import OrderedExpressionPattern, SimpleOrderedExpressionPattern
 from .orderless import OrderlessExpressionPattern
 
 
@@ -95,9 +95,14 @@ def make_expression_pattern(
     Definitions is fully populated), use DeferredExpressionPattern
     instead.
     """
-    cls = (
-        OrderlessExpressionPattern
-        if A_ORDERLESS & attributes
-        else OrderedExpressionPattern
-    )
+    if A_ORDERLESS & attributes:
+        cls = OrderlessExpressionPattern
+    elif (A_FLAT + A_ONE_IDENTITY) & attributes:
+        cls = OrderedExpressionPattern
+    else:
+        # Common case: no Orderless, no Flat, no OneIdentity -- see
+        # SimpleOrderedExpressionPattern's docstring for why this gets
+        # its own class rather than another branch inside
+        # OrderedExpressionPattern.match().
+        cls = SimpleOrderedExpressionPattern
     return cls(expr, attributes, evaluation)
