@@ -15,7 +15,12 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.rules import is_option_rule
 from mathics.core.symbols import SymbolList
-from mathics.core.systemsymbols import RULE_SYMBOL_HEADS, SymbolDefault, SymbolOptional
+from mathics.core.systemsymbols import (
+    RULE_SYMBOL_HEADS,
+    SymbolBlank,
+    SymbolDefault,
+    SymbolOptional,
+)
 
 from .base import AtomPattern, BasePattern, ExpressionPattern
 
@@ -137,11 +142,22 @@ def match_expression_with_one_identity(
                 vars_dict[k] = old
 
 
-def _is_bare_blank(element: "BasePattern") -> bool:
-    """True for an unnamed Blank[] or Blank[Type] (0 or 1 sub-elements)."""
-    if isinstance(element, ExpressionPattern):
-        return element.get_head_name() == "System`Blank" and len(element.elements) <= 1
-    return False
+def _is_bare_blank(element: BaseElement) -> bool:
+    """
+    True for an unnamed Blank[] or Blank[Type] (0 or 1 sub-elements).
+
+    Deliberately NOT restricted to BasePattern instances: `element` is
+    routinely a RAW, not-yet-wrapped Expression/Symbol straight off
+    expr.elements (see classify_fixed_blank_tuple's docstring for why
+    that matters) -- get_head_name()/.elements answer the same way on
+    both raw Expression children and BasePattern-wrapped ones, so an
+    isinstance(element, ExpressionPattern) guard here would silently
+    reject every RAW element, i.e. every call from
+    make_expression_pattern -- which is the only place that matters,
+    since that's what decides whether FixedBlankTupleExpressionPattern
+    gets built at all.
+    """
+    return element.has_form(SymbolBlank, 0, 1)
 
 
 def classify_fixed_blank_tuple(elements: tuple) -> Optional[tuple]:
@@ -193,16 +209,6 @@ def classify_fixed_blank_tuple(elements: tuple) -> Optional[tuple]:
     return elements
 
 
-class _StopFixedBlankTupleMatch(Exception):
-    """
-    Internal control-flow exception for match_fixed_blank_tuple: carries
-    the final vars_dict once every slot in the tuple has matched.
-    """
-
-    def __init__(self, vars_dict: dict):
-        self.vars_dict = vars_dict
-
-
 def match_fixed_blank_tuple(
     blanks: tuple,
     expr_elements: tuple,
@@ -224,7 +230,7 @@ def match_fixed_blank_tuple(
     the ORIGINAL dict object it passed in (e.g. via does_match(), whose
     yield_match callback discards sub_vars and returns only True/False)
     will silently lose every binding a named slot produced. That was
-    exactly the bug this function replaces: the first version of this
+    exactly the bug this function replaces: an earlier version of this
     fast path called does_match() per slot and returned the untouched
     original vars_dict on "success", which happened to work for
     Pattern-free bare Blanks (whose match() does pass the same object
@@ -232,37 +238,48 @@ def match_fixed_blank_tuple(
     Pattern[name, Blank[...]] -- e.g. Set[lhs_, rhs_] would structurally
     "match" while `lhs`/`rhs` never made it into the substitution vars.
 
+    NO EXCEPTIONS ARE USED HERE, deliberately -- an earlier version
+    threaded slots via a recursive step()/yield_one() chain that raised
+    a control-flow exception on success (mirroring the
+    StopGenerator-based convention this package uses elsewhere for
+    general backtracking search). Profiling showed that exception
+    raise+unwind cost measurably more than the combinatorial search it
+    was replacing, for exactly the small fixed arities
+    (classify_fixed_blank_tuple targets N=1,2,3-ish) this function
+    exists for -- Python 3.11's "zero-cost exceptions" only removes the
+    overhead of a try block that DOESN'T raise; it does nothing for the
+    raise+catch itself, which this function's success path hit on
+    every single call. That's fine to avoid entirely here: every shape
+    classify_fixed_blank_tuple accepts (bare or named Blank) is a
+    single, non-backtracking check whose match() calls yield_func AT
+    MOST ONCE -- there is no case where a slot could deliver a second,
+    different sub_vars we'd need to fall back and try, so a plain loop
+    with a mutable one-slot box, checked after each match() call, is
+    both correct and exception-free.
+
     Returns the fully-threaded vars_dict on success (a dict that may or
     may not be `is vars_dict`, depending on what each slot's match()
     did), or None if any slot failed to match. Never mutates the
-    `vars_dict` object passed in -- on failure there is nothing to
-    undo, since success is only detected by unwinding a raised
-    exception carrying the winning dict.
+    `vars_dict` object passed in.
     """
-    n = len(blanks)
-
-    def step(index: int, current_vars: dict):
-        if index == n:
-            raise _StopFixedBlankTupleMatch(current_vars)
-
-        def yield_one(sub_vars: dict, _rest):
-            step(index + 1, sub_vars)
-
-        blanks[index].match(
-            expr_elements[index],
+    current_vars = vars_dict
+    for blank, elt in zip(blanks, expr_elements):
+        result_box: list = []
+        blank.match(
+            elt,
             {
-                "yield_func": yield_one,
+                "yield_func": lambda sub_vars, _rest, _box=result_box: _box.append(
+                    sub_vars
+                ),
                 "vars_dict": current_vars,
                 "evaluation": evaluation,
                 "fully": True,
             },
         )
-
-    try:
-        step(0, vars_dict)
-    except _StopFixedBlankTupleMatch as exc:
-        return exc.vars_dict
-    return None
+        if not result_box:
+            return None
+        current_vars = result_box[0]
+    return current_vars
 
 
 def _options_pattern_split(
