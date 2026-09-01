@@ -199,7 +199,7 @@ def test_makeboxes_others_fail(str_expr, str_expected, msg):
         ),
         (
             r"MakeBoxes[OutputForm[G[F[3.002]]], StandardForm]",
-            r'InterpretationBox[PaneBox["\"G[{Formatted f, {3.002}, Standard}]\""], G[{Formatted f, {3.002}, Standard}], Editable -> False]',
+            r'InterpretationBox[PaneBox["\"G[{Formatted f, {3.002}, Standard}]\""], OutputForm[G[F[3.002]]], Editable -> False]',
             "with the defined OutputForm",
         ),
         (
@@ -215,8 +215,8 @@ def test_makeboxes_others_fail(str_expr, str_expected, msg):
         # InterpretationBox is now used here... = InterpretationBox[PaneBox["\"G[{Formatted f, {3.002}, Output}]\""], OutputForm[G[F[3.002`]]], Rule[Editable, False]]
         (
             r"MakeBoxes[OutputForm[G[F[3.002]]], StandardForm]",
-            r'RowBox[{"G","[",RowBox[{"{",RowBox[{"\"Formatted f\"",", ",RowBox[{"{","3.002","}"}],", ","\"Standard\""}],"}"}],"]"}]',
-            "Test Custom OutputForm",
+            r'InterpretationBox[PaneBox["\"G[{Formatted f, {3.002}, Output}]\""], OutputForm[G[F[3.002]]], Rule[Editable, False]]',
+            "Test Custom OutputForm xxxx",
         ),
         (
             r"ClearAll[F]; MakeBoxes[G[F[2.]], StandardForm]",
