@@ -2,6 +2,7 @@
 Setting Up Options for Functions
 """
 
+import sys
 from typing import Optional
 
 from mathics.core.atoms import Integer, Integer1, String
@@ -12,7 +13,7 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import is_option_rule
 from mathics.core.symbols import BooleanType, Symbol, ensure_context
-from mathics.core.systemsymbols import SymbolRule
+from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolRule
 from mathics.eval.options.functions import (
     eval_CheckArguments,
     eval_CheckArguments_with_association,
@@ -82,15 +83,22 @@ class CheckArguments(Builtin):
             low_int = min(1, high_int)
         elif not (isinstance(arg, ListExpression) and len(arg.elements) == 2):
             invalid_range_spec = True
-        elif not (
-            isinstance((low := arg.elements[0]), Integer)
-            and isinstance((high := arg.elements[1]), Integer)
-        ):
-            invalid_range_spec = True
-        elif not (0 <= (low_int := low.value) <= (high_int := high.value)):
+        elif not (isinstance((low := arg.elements[0]), Integer)):
             invalid_range_spec = True
 
         if invalid_range_spec:
+            evaluation.message("CheckArguments", "rspec", arg)
+            return
+
+        if isinstance(arg, ListExpression):
+            element1 = arg.elements[1]
+            low_int = arg.elements[0].value
+            if isinstance(element1, Integer):
+                high_int = element1.value
+            elif element1.has_form(SymbolDirectedInfinity, 1):
+                high_int = sys.maxsize
+
+        if not (0 <= low_int <= high_int):
             evaluation.message("CheckArguments", "rspec", arg)
             return
 

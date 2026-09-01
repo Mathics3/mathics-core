@@ -117,7 +117,7 @@ def eval_CheckArguments(
 
     len_positional_args = len(positional_args)
 
-    if len_positional_args < min_arg_index or len_positional_args > max_arg_index:
+    if not (min_arg_index <= len_positional_args <= max_arg_index):
         # FIXME: should we distingish between
         #   CheckArguments[x[], 1] and CheckArguments[x[], {1, 1}]
         # kinds of errors?
