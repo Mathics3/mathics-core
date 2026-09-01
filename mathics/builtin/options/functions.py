@@ -13,7 +13,11 @@ from mathics.core.list import ListExpression
 from mathics.core.rules import is_option_rule
 from mathics.core.symbols import BooleanType, Symbol, ensure_context
 from mathics.core.systemsymbols import SymbolRule
-from mathics.eval.options.functions import eval_CheckArguments, options_to_rules
+from mathics.eval.options.functions import (
+    eval_CheckArguments,
+    eval_CheckArguments_with_association,
+    options_to_rules,
+)
 from mathics.eval.options.options import eval_Option_with_names, eval_Options
 from mathics.eval.patterns import Matcher
 
@@ -44,6 +48,12 @@ class CheckArguments(Builtin):
     >> CheckArguments[f[1, 2], 1]
     : f called with 2 arguments; 1 argument is expected.
      = False
+
+    Allow the option named "hidden" as well as any option of 'Graphics' to be set:
+    >> Options[f] = {normal -> Automatic}
+     = {normal ⇾ Automatic}
+    >> CheckArguments[f[1, normal -> 3, hidden -> 2, AspectRatio -> 1], {1, 2}, <|"ExtraOptions" -> {hidden -> 0, Graphics}|>]
+     = True
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
@@ -65,8 +75,6 @@ class CheckArguments(Builtin):
             evaluation.message("CheckArguments", "notnorm", Integer1)
             return
 
-        elements = expr.elements
-
         invalid_range_spec = False
         if isinstance(arg, Integer):
             invalid_range_spec = False
@@ -87,6 +95,39 @@ class CheckArguments(Builtin):
             return
 
         return eval_CheckArguments(expr, low_int, high_int, evaluation)
+
+    def eval_with_assoc(
+        self, expr, spec, assoc, evaluation: Evaluation
+    ) -> Optional[Expression] | Symbol:
+        "CheckArguments[expr_, spec_, assoc_]"
+
+        if not isinstance(expr, Expression):
+            evaluation.message("CheckArguments", "notnorm", Integer1)
+            return
+
+        # Parse the spec argument
+        invalid_range_spec = False
+        if isinstance(spec, Integer):
+            invalid_range_spec = False
+            high_int = spec.value
+            low_int = min(1, high_int)
+        elif not (isinstance(spec, ListExpression) and len(spec.elements) == 2):
+            invalid_range_spec = True
+        elif not (
+            isinstance((low := spec.elements[0]), Integer)
+            and isinstance((high := spec.elements[1]), Integer)
+        ):
+            invalid_range_spec = True
+        elif not (0 <= (low_int := low.value) <= (high_int := high.value)):
+            invalid_range_spec = True
+
+        if invalid_range_spec:
+            evaluation.message("CheckArguments", "rspec", spec)
+            return
+
+        return eval_CheckArguments_with_association(
+            expr, low_int, high_int, assoc, evaluation
+        )
 
 
 class FilterRules(Builtin):

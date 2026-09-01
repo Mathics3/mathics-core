@@ -110,6 +110,12 @@ def test_checkarguments(str_expr, msgs, str_expected, assert_msg):
             "False",
             "CheckArguments with declared option parameter and mismatched count",
         ),
+        (
+            "CheckArguments[f[1, 2, 3, a -> 0], {1, 3}]",
+            None,
+            "True",
+            "CheckArguments {min, max} form of CheckArguments",
+        ),
     ],
 )
 def test_options(str_expr, msgs, str_expected, assert_msg):

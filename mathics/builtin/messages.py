@@ -240,6 +240,7 @@ class General(Builtin):
         "optb": "Optional object `1` in `2` is not a single blank.",
         "optnf": "Option name `1` is not a known option for `2`.",
         "opttf": "Value of option `1` -> `2` should be True or False.",
+        "optx": "Unknown option `1` in `2`.",
         "ovfl": "Overflow occurred in computation.",
         "partd": "Part specification is longer than depth of object.",
         "partw": "Part `1` of `2` does not exist.",
