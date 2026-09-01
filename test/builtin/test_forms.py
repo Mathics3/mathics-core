@@ -24,7 +24,8 @@ def test_makeboxes_form(expr, form, head, subhead):
     Check the structure of the result of MakeBoxes
     on expressions with different forms.
     """
-    expr = session.evaluate("MakeBoxes[{form}[{expr}]]")
+    expr = session.evaluate(f"MakeBoxes[{form}[{expr}]]")
+    print(f"MakeBoxes[{form}[{expr}]]  ->{expr}")
     assert expr.get_head_name() == f"System`{head}"
     assert expr.elements[0].get_head_name() == f"System`{subhead}"
 
@@ -391,7 +392,7 @@ def test_makeboxes_form(expr, form, head, subhead):
         (
             "{{2*a, 0},{0,0}}//MatrixForm",
             None,
-            "2 \u2062 a   0\n\n0       0\n",
+            "2 a   0\n\n0     0\n",
             "Issue #182",
         ),
         ##

@@ -64,7 +64,7 @@ def do_format_element(
     Applies formats associated to the expression and removes
     superfluous enclosing formats.
     """
-    from mathics.core.definitions import OUTPUT_FORMS
+    from mathics.core.definitions import BOX_FORMS, OUTPUT_FORMS
 
     head: BaseElement
 
@@ -73,20 +73,16 @@ def do_format_element(
         expr = element
         head = element.get_head()  # use element.head
         elements = element.get_elements()
-        include_form = False
         # If the expression is enclosed by a Format
-        # takes the form from the expression and
-        # removes the format from the expression.
+        # leave it as it is. MakeBoxes is going to
+        # solve it later...
+        if head in BOX_FORMS and len(elements) == 1 and isinstance(head, Symbol):
+            return do_format_element(elements[0], evaluation, head)
         if head in OUTPUT_FORMS and len(elements) == 1 and isinstance(head, Symbol):
-            expr = elements[0]
-            if not form.sameQ(head):
-                form = head
-                include_form = True
+            return expr
 
         # If form is Fullform, return it without changes
         if form is SymbolFullForm:
-            if include_form:
-                expr = Expression(form, expr)
             return expr
 
         # Repeated and RepeatedNull confuse the formatter,
@@ -136,8 +132,6 @@ def do_format_element(
         if formatted is not None:
             do_format_fn = _element_formatters.get(type(formatted), do_format_element)
             result = do_format_fn(formatted, evaluation, form)
-            if include_form and result is not None:
-                result = Expression(form, result)
             return result
 
         # If the expression is still enclosed by a Format,
@@ -175,8 +169,6 @@ def do_format_element(
             head = do_format(expr_head, evaluation, form) or expr_head
             expr = to_expression_with_specialization(head, *new_elements)
 
-        if include_form:
-            expr = Expression(form, expr)
         return expr
     finally:
         evaluation.dec_recursion_depth()

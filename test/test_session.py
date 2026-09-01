@@ -8,10 +8,12 @@ Basic tests for the MathicsSession class.
 from mathics.core.atoms import Integer1, Integer2, IntegerM1
 from mathics.core.evaluation import Result
 from mathics.core.expression import Expression
+from mathics.core.load_builtin import import_and_load_builtins
 from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolPower, SymbolTimes
 from mathics.session import MathicsSession
 
+import_and_load_builtins()
 session = MathicsSession()
 
 
@@ -53,10 +55,10 @@ def test_session_format_evaluation():
     result = session.evaluate("a/b")
     assert session.format_result(form="unformatted").sameQ(result)
     assert session.format_result(form="text") == "a / b"
-    assert session.format_result(form="latex") == "\\frac{a}{b}"
     assert session.format_result(form="xml") == (
         '<math display="block">\n <mfrac>\n  <mi>a</mi>\n  <mi>b</mi>\n </mfrac>\n</math>'
     )
+    assert session.format_result(form="latex") == "\\frac{a}{b}"
 
 
 def test_session_parse():
