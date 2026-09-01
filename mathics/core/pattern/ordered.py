@@ -9,22 +9,6 @@ that do not have the Orderless attribute.
 
 """
 
-# --- TEMPORARY instrumentation, NOT for merging ---
-# Gated on an env var so it's a no-op (just one `if` per call) unless
-# explicitly turned on. Three counters, keyed by the pattern's own
-# repr (self.expr), so the printout at process exit shows a
-# per-shape breakdown rather than one opaque global number:
-#   - constructed: how many FixedBlankTupleExpressionPattern instances
-#     get built (static -- tells us which rules CLASSIFY into this
-#     shape, says nothing about whether a benchmark exercises them)
-#   - match_calls: how many times .match() actually runs at runtime
-#     (dynamic -- tells us whether the hot path reaches this code at
-#     all)
-#   - match_hits: of those, how many find a full positional match
-#     (result_vars is not None) -- distinguishes "reached this rule's
-#     pattern and it applied" from "tried it and moved on to the next
-#     candidate rule"
-import os
 from typing import Callable, Optional, Tuple, Union
 
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_ORDERLESS
@@ -41,30 +25,6 @@ from .base import (
     StopGenerator_ExpressionPattern_match,
 )
 from .common import match_expression_with_one_identity, match_fixed_blank_tuple
-
-_FIXED_BLANK_DEBUG = bool(os.environ.get("MATHICS_DEBUG_FIXED_BLANK_HITS"))
-if _FIXED_BLANK_DEBUG:
-    import atexit
-    from collections import Counter
-
-    _FIXED_BLANK_CONSTRUCTED: "Counter[str]" = Counter()
-    _FIXED_BLANK_MATCH_CALLS: "Counter[str]" = Counter()
-    _FIXED_BLANK_MATCH_HITS: "Counter[str]" = Counter()
-
-    def _print_fixed_blank_stats():
-        print("\n=== FixedBlankTupleExpressionPattern instrumentation ===")
-        names = set(_FIXED_BLANK_CONSTRUCTED) | set(_FIXED_BLANK_MATCH_CALLS)
-        rows = sorted(names, key=lambda k: -_FIXED_BLANK_MATCH_CALLS.get(k, 0))
-        print(f"{'constructed':>11} {'match_calls':>11} {'match_hits':>10}  shape")
-        for k in rows:
-            print(
-                f"{_FIXED_BLANK_CONSTRUCTED.get(k, 0):11d} "
-                f"{_FIXED_BLANK_MATCH_CALLS.get(k, 0):11d} "
-                f"{_FIXED_BLANK_MATCH_HITS.get(k, 0):10d}  {k}"
-            )
-
-    atexit.register(_print_fixed_blank_stats)
-# --- end TEMPORARY instrumentation ---
 
 
 def basic_match_expression(
@@ -579,9 +539,6 @@ class FixedBlankTupleExpressionPattern(ExpressionPattern):
         super().__init__(expression, attributes, evaluation)
         assert isinstance(self.elements, tuple)
         self.attributes = attributes
-        if _FIXED_BLANK_DEBUG:
-            _FIXED_BLANK_CONSTRUCTED[repr(self.expr)] += 1
-            self._debug_key = repr(self.expr)  # cached, avoid repr() per match() call
 
     def match(self, expression: BaseElement, pattern_context: dict):
         """
@@ -593,9 +550,6 @@ class FixedBlankTupleExpressionPattern(ExpressionPattern):
         Pattern[name, Blank[...]] slot produces).
         """
         from mathics.core.atoms.associations import Association
-
-        if _FIXED_BLANK_DEBUG:
-            _FIXED_BLANK_MATCH_CALLS[self._debug_key] += 1
 
         evaluation = pattern_context["evaluation"]
         yield_func = pattern_context["yield_func"]
@@ -632,6 +586,4 @@ class FixedBlankTupleExpressionPattern(ExpressionPattern):
             self.elements, expr_elements, vars_dict, evaluation
         )
         if result_vars is not None:
-            if _FIXED_BLANK_DEBUG:
-                _FIXED_BLANK_MATCH_HITS[self._debug_key] += 1
             yield_func(result_vars, None)
