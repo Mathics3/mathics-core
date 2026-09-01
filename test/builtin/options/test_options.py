@@ -96,18 +96,20 @@ def test_checkarguments(str_expr, msgs, str_expected, assert_msg):
             "CheckArguments[x[x], foo]",
             "CheckArguments called with an invalid string 2nd argument",
         ),
-        #         (
-        #             "CheckArguments[f[1, a->5], 0]",
-        # "f called with 2 arguments; 0 arguments are expected.
-        #             "False",
-        #             "CheckArguments with undeclared option parameter and mismatched count"
-        #         ),
-        #         (
-        #             "Options[f] = {a -> 0}; CheckArguments[f[1, a->5], 0]",
-        # "Options expected (instead of 1) beyond position 0 in f[1, a -> 5]. An option must be a rule or a list of rules."
-        #             "False",
-        #             "CheckArguments with declared option parameter and mismatched count"
-        #         ),
+        (
+            "Clear[g]; CheckArguments[g[1, a->5], 0]",
+            ("g called with 2 arguments; 0 arguments are expected.",),
+            "False",
+            "CheckArguments with undeclared option parameter and mismatched count",
+        ),
+        (
+            "Options[f] = {a -> 0}; CheckArguments[f[1, a->5], 0]",
+            (
+                "Options expected (instead of 1) beyond position 0 in f[1, a ⇾ 5]. An option must be a rule or a list of rules.",
+            ),
+            "False",
+            "CheckArguments with declared option parameter and mismatched count",
+        ),
     ],
 )
 def test_options(str_expr, msgs, str_expected, assert_msg):
