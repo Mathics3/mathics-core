@@ -33,14 +33,22 @@ class CheckArguments(Builtin):
       <dd>same as above but checks only the positional arguments between $min$, and $max$.
     </dl>
 
-    >> FilterRules[{x -> 100, y -> 1000}, x]
-     = {x ⇾ 100}
+    First declare an option for function $f$:
+    >> Options[f] = {a -> 0}
+     = {a ⇾ 0}
 
-    >> FilterRules[{x -> 100, y -> 1000, z -> 10000}, {a, b, x, z}]
-     = {x ⇾ 100, z ⇾ 10000}
+    Now check that $f$ is called with one positional argument and known options:
+    >> CheckArguments[f[1, a->5], 1]
+     = True
+
+    >> CheckArguments[f[1, 2], 1]
+    : f called with 2 arguments; 1 argument is expected.
+     = False
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
+    # Set to check the number of arguments.
+    eval_error = Builtin.generic_argument_error
     expected_args = (2, 3)
     messages = {
         "rspec": "The range specification `1` should have the form m, {m, n} or {m, Infinity}, "
@@ -52,18 +60,23 @@ class CheckArguments(Builtin):
     def eval_with_min_max(
         self, expr, arg, evaluation: Evaluation
     ) -> Optional[BooleanType]:
-        "CheckArguments[expr], arg_}]"
+        "CheckArguments[expr_, arg_]"
         if not isinstance(expr, Expression):
             evaluation.message("CheckArguments", "notnorm", Integer1)
             return
 
+        elements = expr.elements
+
         invalid_range_spec = False
         if isinstance(arg, Integer):
+            invalid_range_spec = False
+            high_int = arg.value
+            low_int = min(1, high_int)
+        elif not (isinstance(arg, ListExpression) and len(arg.elements) == 2):
             invalid_range_spec = True
-        elif not (isinstance(expr, ListExpression) and len(expr.elements) != 2):
-            invalid_range_spec = True
-        elif not isinstance((low := expr.elements[0]), Integer) and isinstance(
-            (high := expr.elements[1]), Integer
+        elif not (
+            isinstance((low := arg.elements[0]), Integer)
+            and isinstance((high := arg.elements[1]), Integer)
         ):
             invalid_range_spec = True
         elif not (0 <= (low_int := low.value) <= (high_int := high.value)):
@@ -71,6 +84,7 @@ class CheckArguments(Builtin):
 
         if invalid_range_spec:
             evaluation.message("CheckArguments", "rspec", arg)
+            return
 
         return eval_CheckArguments(expr, low_int, high_int, evaluation)
 
