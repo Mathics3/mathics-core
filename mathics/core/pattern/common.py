@@ -16,10 +16,10 @@ from mathics.core.expression import Expression
 from mathics.core.rules import is_option_rule
 from mathics.core.symbols import SymbolList
 from mathics.core.systemsymbols import (
-    RULE_SYMBOL_HEADS,
     SymbolBlank,
     SymbolDefault,
     SymbolOptional,
+    SymbolPattern,
 )
 
 from .base import AtomPattern, BasePattern, ExpressionPattern
@@ -149,8 +149,8 @@ def _is_bare_blank(element: BaseElement) -> bool:
     Deliberately NOT restricted to BasePattern instances: `element` is
     routinely a RAW, not-yet-wrapped Expression/Symbol straight off
     expr.elements (see classify_fixed_blank_tuple's docstring for why
-    that matters) -- get_head_name()/.elements answer the same way on
-    both raw Expression children and BasePattern-wrapped ones, so an
+    that matters) -- has_form() answers the same way on both raw
+    Expression children and BasePattern-wrapped ones, so an
     isinstance(element, ExpressionPattern) guard here would silently
     reject every RAW element, i.e. every call from
     make_expression_pattern -- which is the only place that matters,
@@ -162,7 +162,8 @@ def _is_bare_blank(element: BaseElement) -> bool:
 
 def classify_fixed_blank_tuple(elements: tuple) -> Optional[tuple]:
     """
-    If every element of `elements` is either:
+    If `elements` has AT LEAST TWO entries and every one of them is
+    either:
       - a bare (unnamed) Blank[] / Blank[Type], or
       - a named blank Pattern[name, Blank[...]] (`x_`, `x_Integer`, ...)
     return `elements` back unchanged, as a signal that this
@@ -174,6 +175,20 @@ def classify_fixed_blank_tuple(elements: tuple) -> Optional[tuple]:
     already-bound-name check (does_match on the second occurrence will
     correctly require sameQ against the value bound by the first) --
     this fast path doesn't need to special-case it.
+
+    N=1 (head[_], head[x_], ...) is DELIBERATELY excluded, even though
+    it's structurally the same shape: benchmarking (Mathics3 built-ins
+    like NumericQ[expr_]) showed no measurable speedup over
+    SimpleOrderedExpressionPattern's own basic_match_expression for a
+    single slot -- for N=1 there's essentially no combinatorial search
+    to skip in the first place, so FixedBlankTupleExpressionPattern's
+    extra positional-check machinery doesn't pay for itself. N=2/N=3
+    (Subtract[x_, y_] and friends) DID show a real, repeatable gain.
+    Since a dedicated class is extra surface to reason about when
+    debugging rule application, and a simpler implementation is
+    preferred whenever it performs the same, N=1 patterns are routed
+    to SimpleOrderedExpressionPattern like everything else instead of
+    getting their own rarely-distinguishing code path for no payoff.
 
     Works equally on RAW, not-yet-wrapped Expression/Symbol children
     (e.g. `expr.elements` straight off a Mathics Expression) and on
@@ -191,19 +206,16 @@ def classify_fixed_blank_tuple(elements: tuple) -> Optional[tuple]:
       `Optional[x_]`) -- those aren't `Pattern[name, Blank[...]]`
       shaped and are conservatively rejected.
 
-    Returns None (fall through to the general machinery) for the empty
-    tuple too -- head[] is already handled by isliteral.
+    Returns None (fall through to the general machinery) both for the
+    empty tuple (head[] is already handled by isliteral) and for a
+    single-element tuple (see N=1 note above).
     """
-    if not elements:
+    if len(elements) < 2:
         return None
     for element in elements:
         if _is_bare_blank(element):
             continue
-        if (
-            element.get_head_name() == "System`Pattern"
-            and len(element.elements) == 2
-            and _is_bare_blank(element.elements[1])
-        ):
+        if element.has_form(SymbolPattern, 2) and _is_bare_blank(element.elements[1]):
             continue
         return None
     return elements
