@@ -184,7 +184,7 @@ def test__listplot():
                 "size(6.6667cm, 6.6667cm);\n"
                 "currentprojection=perspective(2.6,-4.8,4.0);\n"
                 "currentlight=light(rgb(0.5,0.5,0.5), background=rgb(1, 0.1, 0.1), specular=red, (2,0,2), (2,2,2), (0,2,2));\n"
-                "// Sphere3DBox\n"
+                "// SphereBox\n"
                 "draw(surface(sphere((0, 0, 0), 1)), rgb(1,1,1)+opacity(1));\n"
                 "draw(((-1,-1,-1)--(1,-1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));\n"
                 "draw(((-1,1,-1)--(1,1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));\n"

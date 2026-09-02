@@ -26,7 +26,7 @@ from mathics.builtin.box.graphics3d import (
     Line3DBox,
     Point3DBox,
     Polygon3DBox,
-    Sphere3DBox,
+    SphereBox,
     Tube3DBox,
 )
 from mathics.builtin.box.uniform_polyhedra import UniformPolyhedron3DBox
@@ -700,14 +700,14 @@ def roundbox(box: RoundBox):
 add_render_function(RoundBox)
 
 
-def sphere3dbox(box: Sphere3DBox, **options) -> str:
+def spherebox(box: SphereBox, **options) -> str:
     # l = box.style.get_line_width(face_element=True)
 
     face_color = box.face_color.to_js() if box.face_color else (1, 1, 1)
     opacity = box.face_opacity
     color_str = build_3d_pen_color(face_color, opacity)
 
-    return "// Sphere3DBox\n" + "\n".join(
+    return "// SphereBox\n" + "\n".join(
         "draw(surface(sphere({0}, {1})), {2});".format(
             tuple(coord.pos()[0]), box.radius, color_str
         )
@@ -715,7 +715,7 @@ def sphere3dbox(box: Sphere3DBox, **options) -> str:
     )
 
 
-add_render_function(Sphere3DBox)
+add_render_function(SphereBox)
 
 
 def tube_3d_box(box: Tube3DBox, **options) -> str:

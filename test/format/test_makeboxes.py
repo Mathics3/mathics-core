@@ -88,7 +88,6 @@ def test_makeboxes_precedence(str_expr, str_expected, msg):
     ("str_expr", "str_expected", "msg"),
     list(makeboxes_basic_forms_iterator("Graphics")),
 )
-@skip_or_fail
 def test_makeboxes_graphics(str_expr, str_expected, msg):
     """
     # TODO: Constructing boxes from Real which are currently failing
@@ -231,7 +230,6 @@ def test_makeboxes_others_fail(str_expr, str_expected, msg):
         ),
     ],
 )
-@skip_or_fail
 def test_makeboxes_custom(str_expr, str_expected, msg):
     """
     These tests checks the behaviour of MakeBoxes.

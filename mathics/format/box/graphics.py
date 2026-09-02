@@ -39,6 +39,8 @@ from mathics.core.systemsymbols import (
     SymbolGraphics,
     SymbolInset,
     SymbolOffset,
+    SymbolSphere,
+    SymbolSphereBox,
     SymbolStyle,
     SymbolText,
 )
@@ -956,6 +958,9 @@ def primitives_to_boxes(
             ],
         )
 
+    # Sphere-> SphereBox, no Sphere3DBox...
+    if head is SymbolSphere:
+        return Expression(SymbolSphereBox, *content.elements)
     if head in ELEMENT_HEADS:
         if head is SymbolText:
             head = SymbolInset
