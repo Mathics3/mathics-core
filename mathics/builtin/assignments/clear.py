@@ -17,19 +17,13 @@ from mathics.core.attributes import (
 )
 from mathics.core.builtin import Builtin, PostfixOperator
 from mathics.core.expression import Expression
-from mathics.core.symbols import Atom, Symbol, SymbolNull, symbol_set
+from mathics.core.symbols import Atom, Symbol, SymbolNull
 from mathics.core.systemsymbols import (
     SYSTEM_SYMBOL_VALUES,
     SymbolContext,
     SymbolContextPath,
-    SymbolDownValues,
     SymbolFailed,
-    SymbolMessages,
-    SymbolNValues,
     SymbolOptions,
-    SymbolOwnValues,
-    SymbolSubValues,
-    SymbolUpValues,
 )
 
 
@@ -351,6 +345,6 @@ class TagUnset(PostfixOperator):
         if not tag_name:
             return SymbolNull
         if not evaluation.definitions.unset(tag_name, expr):
-            evaluation.message("TagUnset", "norep", expr, Symbol(name))
+            evaluation.message("TagUnset", "norep", expr, tag)
             return SymbolFailed
         return SymbolNull
