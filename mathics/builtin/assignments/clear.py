@@ -19,6 +19,7 @@ from mathics.core.builtin import Builtin, PostfixOperator
 from mathics.core.expression import Expression
 from mathics.core.symbols import Atom, Symbol, SymbolNull, symbol_set
 from mathics.core.systemsymbols import (
+    SYSTEM_SYMBOL_VALUES,
     SymbolContext,
     SymbolContextPath,
     SymbolDownValues,
@@ -285,12 +286,71 @@ class Unset(PostfixOperator):
         return SymbolNull
 
 
-SYSTEM_SYMBOL_VALUES = symbol_set(
-    SymbolDownValues,
-    SymbolMessages,
-    SymbolNValues,
-    SymbolOptions,
-    SymbolOwnValues,
-    SymbolSubValues,
-    SymbolUpValues,
-)
+class TagUnset(PostfixOperator):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/TagUnset.html</url>
+
+    <dl>
+      <dt>'TagUnset'[$f$, $patt$]
+      <dt>'f/: $patt$=.'
+      <dd>removes any value belonging to the patter $patt$ from $f$.
+    </dl>
+
+
+
+    Let's consider we define an UpValue for a symbol g:
+    >> Sin[g[x_]]^:=Sing[x];
+    in a way that
+    >> Sin[g[3]]
+     = Sing[3]
+
+    TagUset allows to remove the rule:
+    >> g/: Sin[g[x_]]=.
+    >> Sin[g[3]]
+     = Sin[g[3]]
+    """
+
+    attributes = A_HOLD_ALL | A_PROTECTED
+
+    messages = {
+        "norep": "Assignment on `2` for `1` not found.",
+        "sym": "Argument `1` at position 1 is expected to be a symbol.",
+        "tag": "Rule for `1` of `2` can only be attached to `3`.",
+    }
+    summary_text = "unset a value of the LHS, associated to a symbol."
+
+    def eval_general(self, tag, expr, evaluation):
+        "TagUnset[tag_, expr_]"
+
+        if not isinstance(tag, Symbol):
+            evaluation.message("TagSet", "sym", tag)
+            return SymbolNull
+        tag_name = tag.get_name()
+        head = expr.get_head()
+        if head in SYSTEM_SYMBOL_VALUES:
+            if len(expr.elements) != 1:
+                evaluation.message_args(expr.get_head_name(), len(expr.elements), 1)
+                return SymbolFailed
+            target_symbol = expr.elements[0]
+            if not target_symbol.sameQ(tag):
+                evaluation.message("TagUnset", "tag", target_symbol, expr, tag)
+                return SymbolFailed
+            symbol = target_symbol.get_name()
+            if not symbol:
+                evaluation.message(expr.get_head_name(), "fnsym", expr)
+                return SymbolFailed
+            if head is SymbolOptions:
+                empty = {}
+            else:
+                empty = []
+            evaluation.definitions.set_values(symbol, expr.get_head_name(), empty)
+            return SymbolNull
+
+        if not tag_name:
+            return SymbolNull
+        if not evaluation.definitions.unset(tag_name, expr):
+            evaluation.message("TagUnset", "norep", expr, Symbol(name))
+            return SymbolFailed
+        return SymbolNull
