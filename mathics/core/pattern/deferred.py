@@ -14,11 +14,12 @@ from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
 
 from .base import BasePattern, ExpressionPattern
-from .common import classify_fixed_blank_tuple
+from .common import classify_fixed_blank_tuple, classify_single_sequence
 from .ordered import (
     FixedBlankTupleExpressionPattern,
     OrderedExpressionPattern,
     SimpleOrderedExpressionPattern,
+    SingleSequenceExpressionPattern,
 )
 from .orderless import OrderlessExpressionPattern
 
@@ -116,9 +117,16 @@ def make_expression_pattern(
     # FixedBlankTupleExpressionPattern ever has to ask "wait, does this
     # actually apply to me?" -- each is only ever constructed for the
     # shape it's responsible for.
-    if (
-        isinstance(expr.head, Symbol)
-        and classify_fixed_blank_tuple(expr.elements) is not None
-    ):
-        return FixedBlankTupleExpressionPattern(expr, attributes, evaluation)
+    if isinstance(expr.head, Symbol):
+        if classify_fixed_blank_tuple(expr.elements) is not None:
+            return FixedBlankTupleExpressionPattern(expr, attributes, evaluation)
+        # head[s__], head[s__HEAD], head[s___], head[s___HEAD]: the
+        # single-named-Blank(Null)Sequence shape -- see
+        # classify_single_sequence's docstring in common.py for why
+        # this is a distinct, non-overlapping shape from the
+        # fixed-arity Blank tuple above (this one has exactly one
+        # element instead of two-or-more, and it's a Sequence, not a
+        # Blank).
+        if classify_single_sequence(expr.elements) is not None:
+            return SingleSequenceExpressionPattern(expr, attributes, evaluation)
     return SimpleOrderedExpressionPattern(expr, attributes, evaluation)

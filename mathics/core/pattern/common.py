@@ -17,6 +17,8 @@ from mathics.core.rules import is_option_rule
 from mathics.core.symbols import SymbolList
 from mathics.core.systemsymbols import (
     SymbolBlank,
+    SymbolBlankNullSequence,
+    SymbolBlankSequence,
     SymbolDefault,
     SymbolOptional,
     SymbolPattern,
@@ -210,8 +212,6 @@ def classify_fixed_blank_tuple(elements: tuple) -> Optional[tuple]:
     empty tuple (head[] is already handled by isliteral) and for a
     single-element tuple (see N=1 note above).
     """
-    if len(elements) < 2:
-        return None
     for element in elements:
         if _is_bare_blank(element):
             continue
@@ -219,6 +219,73 @@ def classify_fixed_blank_tuple(elements: tuple) -> Optional[tuple]:
             continue
         return None
     return elements
+
+
+def classify_single_sequence(elements: tuple) -> Optional[BaseElement]:
+    """
+    If `elements` is a 1-tuple whose sole entry is a NAMED
+    BlankSequence or BlankNullSequence -- `Pattern[name, BlankSequence[...]]`
+    (`s__`, `s__Integer`) or `Pattern[name, BlankNullSequence[...]]`
+    (`s___`, `s___Integer`) -- return that raw `Pattern[...]` element
+    unchanged, as a signal that this ExpressionPattern has exactly ONE
+    possible match: there is nothing else in the pattern to backtrack
+    against, so the whole expression's elements (however many there
+    are) are the only candidate for this single (Blank)(Null)Sequence.
+
+    BARE (unnamed) `__`/`___` are deliberately NOT included here, even
+    though structurally similar: as the sole element of a pattern with
+    no `rest_elements` after it, `less_first` is already `False` in
+    `_regular_match_element_sets`, so `subranges()` tries the
+    full-length split FIRST and succeeds immediately there -- no
+    combinatorial search actually happens for the bare case today, so
+    a dedicated class has nothing measurable to save (confirmed by
+    benchmarking: near-identical timings with/without this
+    classification for `head[__]`/`head[___]`, both typed and
+    untyped).
+
+    The NAMED case is different: profiling `head[s__Integer]` (see
+    session notes) against a matched Range[6000] showed the actual,
+    unavoidable per-element type check (`BlankSequence.match` itself)
+    takes about 15% of the total match time; the other ~85% is spent
+    BEFORE `match_element`'s `subranges()` call even gets to try
+    anything -- `basic_match_expression.yield_choice`'s pre-check via
+    `get_match_candidates_count`, followed by `match_element` building
+    `element_candidates` via `get_match_candidates` AGAIN (the exact
+    same O(n) type-scan, discarded immediately after: `subranges()` --
+    unlike `subsets()`, used by the Orderless path -- never even
+    consults its `included` argument, see its module docstring), plus
+    the `Expression(Sequence, *items)` (re)allocation in
+    `_yield_sequence_wrappings`. All of that exists to support
+    backtracking against OTHER elements/candidates that, for this
+    exact shape, don't exist: there is exactly one pattern element and
+    it must absorb the entire (possibly empty, possibly
+    single-element, possibly multi-element) sequence of expression
+    elements, or the match fails outright -- no split to search for.
+
+    Deliberately still excludes:
+    - Anything wrapped in Condition/Optional/PatternTest/Alternatives
+      around the (Blank)(Null)Sequence -- not exactly
+      `Pattern[name, Blank(Null)Sequence[...]]` shaped, conservatively
+      rejected (same policy as `classify_fixed_blank_tuple`).
+    - More than one element (`head[s__, t_]`, etc.) -- there IS
+      backtracking to do there (where does `s__`'s block end?), so
+      this fast path does not apply; that shape stays on the general
+      `subranges()`-based search.
+
+    Returns None (fall through to the general machinery) if `elements`
+    doesn't have exactly this shape.
+    """
+    if len(elements) != 1:
+        return None
+    element = elements[0]
+    if not element.has_form(SymbolPattern, 2):
+        return None
+    inner = element.elements[1]
+    if inner.has_form(SymbolBlankSequence, 0, 1) or inner.has_form(
+        SymbolBlankNullSequence, 0, 1
+    ):
+        return element
+    return None
 
 
 def match_fixed_blank_tuple(
