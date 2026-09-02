@@ -14,10 +14,15 @@ from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
 
 from .base import BasePattern, ExpressionPattern
-from .common import classify_fixed_blank_tuple, classify_single_sequence
+from .common import (
+    classify_fixed_blank_tuple,
+    classify_positional_options,
+    classify_single_sequence,
+)
 from .ordered import (
     FixedBlankTupleExpressionPattern,
     OrderedExpressionPattern,
+    PositionalOptionsExpressionPattern,
     SimpleOrderedExpressionPattern,
     SingleSequenceExpressionPattern,
 )
@@ -129,4 +134,15 @@ def make_expression_pattern(
         # Blank).
         if classify_single_sequence(expr.elements) is not None:
             return SingleSequenceExpressionPattern(expr, attributes, evaluation)
+        # head[_(HEAD), ..., _(HEAD), OptionsPattern[...]]: zero or
+        # more fixed-position Blank/literal slots followed by exactly
+        # one trailing OptionsPattern[...] slot -- see
+        # classify_positional_options's docstring for why this can
+        # never overlap with either shape above (OptionsPattern[...]
+        # doesn't have Blank[...]/literal shape, so
+        # classify_fixed_blank_tuple always says no to it; it's not a
+        # (Blank)(Null)Sequence either, so classify_single_sequence
+        # always says no too).
+        if classify_positional_options(expr.elements) is not None:
+            return PositionalOptionsExpressionPattern(expr, attributes, evaluation)
     return SimpleOrderedExpressionPattern(expr, attributes, evaluation)

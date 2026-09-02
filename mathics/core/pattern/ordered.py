@@ -702,3 +702,117 @@ class SingleSequenceExpressionPattern(ExpressionPattern):
                 "fully": True,
             },
         )
+
+
+class PositionalOptionsExpressionPattern(ExpressionPattern):
+    """
+    ExpressionPattern for a LITERAL (bare Symbol) head applied to a
+    sequence of zero or more fixed-position slots (each a bare or
+    named Blank[]/Blank[Type], or a bare literal atom -- exactly the
+    `_is_blank_or_literal_slot` shape `FixedBlankTupleExpressionPattern`
+    also uses), followed by exactly one trailing bare or named
+    OptionsPattern[...] -- head[OptionsPattern[]], head[_,OptionsPattern[]],
+    head[_,_,OptionsPattern[]], head[1,x_,OptionsPattern[]], etc. See
+    classify_positional_options in common.py for the exact shape and
+    the rationale (there is exactly ONE possible split: the leading
+    slots pin to expr_elements[0:k] under `fully` matching -- verified
+    directly against the general path, an option value can't legally
+    intervene between two leading slots even today -- and everything
+    else goes to OptionsPattern[] or the match fails outright; no
+    backtracking possible anywhere in this shape, regardless of k).
+
+    Only ever constructed by make_expression_pattern(), after
+    classify_fixed_blank_tuple and classify_single_sequence have both
+    already said no (an OptionsPattern[...] element can never satisfy
+    either of those -- see classify_positional_options's docstring for
+    why the three classifiers are mutually exclusive).
+
+    match() below is a direct two-step CPS chain, not a generator/
+    subranges()-based search: match the k leading slots against
+    expr_elements[0:k] via `match_fixed_blank_tuple` (the SAME helper
+    FixedBlankTupleExpressionPattern uses -- a literal atom's
+    AtomPattern.match()/match_symbol() shares Blank.match()'s and
+    Pattern.match()'s minimal yield_func/vars_dict-only calling
+    convention, so the exact same positional threading works
+    unmodified here too), and -- only if that succeeds -- hand
+    whatever remains (wrapped exactly like get_wrappings would: raw
+    element for exactly one remaining, Sequence[...] otherwise,
+    including the empty Sequence[] case) to the wrapped OptionsPattern
+    element. OptionsPattern.match() itself already does its own full
+    validation (every remaining element must be option-shaped, via
+    `get_option_values()`, or it correctly declines to match) and
+    needs `pattern_context["head"]` (used by OptionsPattern.match() to
+    look up Options[head] when it has no explicit defaults argument --
+    see composite.py:OptionsPattern.match) set to the MATCHED
+    expression's own `.head` element, same as the general
+    `yield_wrapping` path in base.py always supplies.
+    """
+
+    def __init__(
+        self,
+        expression: Expression,
+        attributes: int,
+        evaluation: Optional[Evaluation] = None,
+    ):
+        super().__init__(expression, attributes, evaluation)
+        assert len(self.elements) >= 1
+        self.attributes = attributes
+
+    def match(self, expression: BaseElement, pattern_context: dict):
+        from mathics.core.atoms.associations import Association
+
+        evaluation = pattern_context["evaluation"]
+        yield_func = pattern_context["yield_func"]
+        vars_dict = pattern_context["vars_dict"]
+
+        evaluation.check_stopped()
+
+        if isinstance(expression, Association):
+            expression = expression.expr
+
+        if not isinstance(expression, Expression):
+            return
+
+        self_head = self.head
+        if (
+            not isinstance(self_head, AtomPattern)
+            or expression.get_head() is not self_head.atom
+        ):
+            return
+
+        lead_blanks = self.elements[:-1]
+        k = len(lead_blanks)
+        expr_elements = expression.elements
+        if len(expr_elements) < k:
+            # Each leading slot has fixed match_count (1, 1): there
+            # must be at least k expression elements for all of them
+            # to have something to bind to.
+            return
+
+        lead_targets = expr_elements[:k]
+        rest = expr_elements[k:]
+
+        vars_after_lead = (
+            match_fixed_blank_tuple(lead_blanks, lead_targets, vars_dict, evaluation)
+            if k
+            else vars_dict
+        )
+        if vars_after_lead is None:
+            return
+
+        if len(rest) == 1:
+            options_arg = rest[0]
+        else:
+            options_arg = Expression(SymbolSequence, *rest)
+            options_arg.pattern_sequence = True
+
+        self.elements[-1].match(
+            options_arg,
+            {
+                "yield_func": yield_func,
+                "vars_dict": vars_after_lead,
+                "evaluation": evaluation,
+                "head": expression.head,
+                "fully": True,
+            },
+        )
