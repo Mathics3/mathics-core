@@ -442,7 +442,9 @@ def _infix_outputform_text(expr: Expression, evaluation: Evaluation, **kwargs) -
 
 @register_outputform("System`InputForm")
 def inputform(expr: Expression, evaluation: Evaluation, **kwargs):
-    return render_input_form(expr, evaluation, **kwargs)
+    if len(expr.elements) != 1:
+        raise _WrongFormattedExpression
+    return render_input_form(expr.elements[0], evaluation, **kwargs)
 
 
 @register_outputform("System`List")
