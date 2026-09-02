@@ -215,6 +215,7 @@ System`ChebyshevT
 System`ChebyshevU
 System`Check
 System`CheckAbort
+System`CheckArguments
 System`ChessboardDistance
 System`Chop
 System`Circle
