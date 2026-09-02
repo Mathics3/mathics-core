@@ -702,3 +702,112 @@ class SingleSequenceExpressionPattern(ExpressionPattern):
                 "fully": True,
             },
         )
+
+
+class BlankOptionsExpressionPattern(ExpressionPattern):
+    """
+    ExpressionPattern for a LITERAL (bare Symbol) head applied to
+    EXACTLY TWO elements: a bare or named Blank[]/Blank[Type], followed
+    by a bare or named OptionsPattern[...] -- head[_], head[_HEAD],
+    head[x_], head[x_HEAD], all paired with an OptionsPattern[...] as
+    the second (and only other) element. See classify_blank_options in
+    common.py for the exact shape and the rationale (there is exactly
+    ONE possible split between the two slots for this shape: the Blank
+    pins to the expression's first element under `fully` matching, and
+    everything else goes to OptionsPattern[] or the match fails
+    outright -- no backtracking possible).
+
+    Only ever constructed by make_expression_pattern(), after
+    classify_fixed_blank_tuple and classify_single_sequence have both
+    already said no (an OptionsPattern[...] element can never satisfy
+    either of those -- see classify_blank_options's docstring for why
+    the three classifiers are mutually exclusive).
+
+    match() below is a direct two-step CPS chain, not a generator/
+    subranges()-based search: match the Blank against expr_elements[0]
+    (single-position, since there is nothing else this shape could try
+    for the leading Blank), and -- only if that succeeds -- hand
+    whatever remains (wrapped exactly like get_wrappings would: raw
+    element for exactly one remaining, Sequence[...] otherwise,
+    including the empty Sequence[] case) to the wrapped OptionsPattern
+    element. OptionsPattern.match() itself already does its own full
+    validation (every remaining element must be option-shaped, via
+    `get_option_values()`, or it correctly declines to match) and
+    needs `pattern_context["head"]` (used by OptionsPattern.match() to
+    look up Options[head] when it has no explicit defaults argument --
+    see composite.py:OptionsPattern.match) set to the MATCHED
+    expression's own `.head` element, same as the general
+    `yield_wrapping` path in base.py always supplies.
+    """
+
+    def __init__(
+        self,
+        expression: Expression,
+        attributes: int,
+        evaluation: Optional[Evaluation] = None,
+    ):
+        super().__init__(expression, attributes, evaluation)
+        assert len(self.elements) == 2
+        self.attributes = attributes
+
+    def match(self, expression: BaseElement, pattern_context: dict):
+        from mathics.core.atoms.associations import Association
+
+        evaluation = pattern_context["evaluation"]
+        yield_func = pattern_context["yield_func"]
+        vars_dict = pattern_context["vars_dict"]
+
+        evaluation.check_stopped()
+
+        if isinstance(expression, Association):
+            expression = expression.expr
+
+        if not isinstance(expression, Expression):
+            return
+
+        self_head = self.head
+        if (
+            not isinstance(self_head, AtomPattern)
+            or expression.get_head() is not self_head.atom
+        ):
+            return
+
+        expr_elements = expression.elements
+        if not expr_elements:
+            # The Blank slot has fixed match_count (1, 1): it always
+            # needs exactly one element to bind to, regardless of
+            # whether it's typed. Nothing to try if there isn't one.
+            return
+
+        blank_target = expr_elements[0]
+        rest = expr_elements[1:]
+        if len(rest) == 1:
+            options_arg = rest[0]
+        else:
+            options_arg = Expression(SymbolSequence, *rest)
+            options_arg.pattern_sequence = True
+
+        options_element = self.elements[1]
+        expression_head = expression.head
+
+        def _after_blank(vars_after_blank: dict, _rest):
+            options_element.match(
+                options_arg,
+                {
+                    "yield_func": yield_func,
+                    "vars_dict": vars_after_blank,
+                    "evaluation": evaluation,
+                    "head": expression_head,
+                    "fully": True,
+                },
+            )
+
+        self.elements[0].match(
+            blank_target,
+            {
+                "yield_func": _after_blank,
+                "vars_dict": vars_dict,
+                "evaluation": evaluation,
+                "fully": True,
+            },
+        )

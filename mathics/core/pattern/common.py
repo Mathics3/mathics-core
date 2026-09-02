@@ -21,6 +21,7 @@ from mathics.core.systemsymbols import (
     SymbolBlankSequence,
     SymbolDefault,
     SymbolOptional,
+    SymbolOptionsPattern,
     SymbolPattern,
 )
 
@@ -302,6 +303,88 @@ def classify_single_sequence(elements: tuple) -> Optional[BaseElement]:
         SymbolBlankNullSequence, 0, 1
     ):
         return element
+    return None
+
+
+def classify_blank_options(elements: tuple) -> Optional[tuple]:
+    """
+    If `elements` is a 2-tuple `(blank_element, options_element)` where:
+      - `blank_element` is a bare or named Blank[]/Blank[Type] (same
+        shape `classify_fixed_blank_tuple` accepts per slot: `_`, `x_`,
+        `x_Integer`, ...), and
+      - `options_element` is a bare or named `OptionsPattern[...]`
+        (`OptionsPattern[]`, `opts:OptionsPattern[]`,
+        `OptionsPattern[{n->2}]`, ... -- the optional defaults argument
+        doesn't affect classification, only OptionsPattern's own
+        match() reads it)
+    return `elements` unchanged, as a signal that this is exactly the
+    `head[_(HEAD), OptionsPattern[...]]` shape (the second most common
+    "typed single Blank" family in the occurrence survey after the
+    fixed-Blank-tuple and single-sequence shapes already handled).
+
+    Like `classify_single_sequence`, this is a DISTINCT, non-overlapping
+    shape from `classify_fixed_blank_tuple`: that one requires EVERY
+    element to be a bare Blank -- an `OptionsPattern[...]` element
+    always makes it return None (OptionsPattern isn't shaped like
+    `Blank[...]` or `Pattern[name, Blank[...]]`), so a
+    `head[_, OptionsPattern[]]` pattern is guaranteed to reach this
+    classifier instead, never the fixed-blank-tuple one.
+
+    Why this is worth a dedicated class at all, given
+    `_options_pattern_split` (see its docstring) already gives
+    OptionsPattern[] a fast, WMA-correct split inside the GENERAL
+    `match_element` machinery: that fast path only replaces the
+    candidate-SPLIT search for the OptionsPattern element itself -- it
+    doesn't skip `basic_match_expression`'s leading_blanks pre-check
+    loop, `match_element`'s own redundant double candidate-scan
+    (`get_match_candidates_count` then `get_match_candidates` again,
+    same issue documented in `classify_single_sequence`), the
+    `expression_pattern_match_element_process_items` continuation
+    chain, or the `Expression(Sequence, *items)` (re)allocation --
+    all of that still runs for BOTH elements even when, for this exact
+    2-element shape, there is only ONE possible split: the single
+    Blank must bind the expression's first element (Ordered, `fully`
+    matching pins the leading Blank to position 0 -- see `basic_match_
+    expression`'s `flexible_start = first and not fully` logic), and
+    whatever remains (zero, one, or many further elements) all goes to
+    OptionsPattern[] or the match fails outright. No backtracking is
+    possible between the two slots.
+
+    Deliberately still excludes:
+    - `head[_, _, OptionsPattern[]]` and any other element counts --
+      real backtracking becomes possible with more slots (which
+      non-option element does which Blank bind?), so those stay on the
+      general machinery.
+    - Multiple OptionsPattern[] elements (`head[opt1:OptionsPattern[],
+      opt2:OptionsPattern[]]`) -- not this shape at all (no Blank),
+      and the WMA "only the last one collects anything" quirk
+      (`_options_pattern_split`) is specifically about THAT case, not
+      this one.
+    - Anything wrapping the Blank in Condition/Optional/PatternTest/
+      Alternatives -- same conservative policy as
+      `classify_fixed_blank_tuple`.
+
+    Returns None (fall through to the general machinery) if `elements`
+    doesn't have exactly this shape.
+    """
+    if len(elements) != 2:
+        return None
+    blank_element, options_element = elements
+    if not (
+        _is_bare_blank(blank_element)
+        or (
+            blank_element.has_form(SymbolPattern, 2)
+            and _is_bare_blank(blank_element.elements[1])
+        )
+    ):
+        return None
+    inner = (
+        options_element.elements[1]
+        if options_element.has_form(SymbolPattern, 2)
+        else options_element
+    )
+    if inner.has_form(SymbolOptionsPattern, 0, 1):
+        return elements
     return None
 
 
