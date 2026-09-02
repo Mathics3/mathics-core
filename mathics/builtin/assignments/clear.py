@@ -253,7 +253,6 @@ class Unset(PostfixOperator):
 
     def eval(self, expr, evaluation):
         "Unset[expr_]"
-
         head = expr.get_head()
         if head in SYSTEM_SYMBOL_VALUES:
             if len(expr.elements) != 1:
@@ -277,6 +276,15 @@ class Unset(PostfixOperator):
             if not isinstance(expr, Atom):
                 evaluation.message("Unset", "norep", expr, Symbol(name))
                 return SymbolFailed
+        return SymbolNull
+
+    def eval_unset_makeboxes(self, expr, evaluation):
+        "Unset[expr:MakeBoxes[_, _]]"
+        if not evaluation.definitions.unset_format(
+            "System`MakeBoxes", "_MakeBoxes", expr
+        ):
+            evaluation.message("Unset", "norep", expr, Symbol("System`MakeBoxes"))
+            return SymbolFailed
         return SymbolNull
 
 
@@ -346,5 +354,12 @@ class TagUnset(PostfixOperator):
             return SymbolNull
         if not evaluation.definitions.unset(tag_name, expr):
             evaluation.message("TagUnset", "norep", expr, tag)
+            return SymbolFailed
+        return SymbolNull
+
+    def eval_unset_makeboxes(self, tag, expr, evaluation):
+        "TagUnset[tag_, expr:MakeBoxes[_, _]]"
+        if not evaluation.definitions.unset_format(tag.get_name(), "_MakeBoxes", expr):
+            evaluation.message("Unset", "norep", expr, tag)
             return SymbolFailed
         return SymbolNull

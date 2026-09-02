@@ -448,7 +448,6 @@ SYSTEM_SYMBOLS_PATTERNS = symbol_set(
     SymbolRepeatedNull,
 )
 
-
 SYSTEM_SYMBOL_VALUES = symbol_set(
     SymbolDownValues,
     SymbolMessages,
