@@ -30,7 +30,7 @@ from mathics.core.symbols import (
     SymbolRepeatedNull,
     SymbolTimes,
 )
-from mathics.core.systemsymbols import SymbolMinus
+from mathics.core.systemsymbols import SymbolInputForm, SymbolMinus, SymbolOutputForm
 
 # These Strings are used in Boxing output
 StringElipsis = String("...")
@@ -74,12 +74,18 @@ def do_format_element(
         head = element.get_head()  # use element.head
         elements = element.get_elements()
         include_form = False
-        # If the expression is enclosed by a Format
-        # takes the form from the expression and
-        # removes the format from the expression.
-        if head in OUTPUT_FORMS and len(elements) == 1 and isinstance(head, Symbol):
-            expr = elements[0]
-            if not form.sameQ(head):
+
+        if elements is not None and len(elements) == 1:
+            # Special cases: SymbolInputForm and SymbolOutputForm
+            # are only processed from MakeBoxes, using the explicit
+            # form parameter.
+            if head in (SymbolInputForm, SymbolOutputForm):
+                return expr
+            # If the expression is enclosed by other Format
+            # takes the form from the expression and
+            # removes the format from the expression.
+            if head in OUTPUT_FORMS and isinstance(head, Symbol):
+                expr = elements[0]
                 form = head
                 include_form = True
 

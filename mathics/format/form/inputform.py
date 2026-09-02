@@ -197,6 +197,15 @@ def _infix_expression_to_inputform_text(
     return result
 
 
+@register_inputform("System`OutputForm")
+def outputform(expr: Expression, evaluation: Evaluation, **kwargs):
+    from .outputform import render_output_form
+
+    if len(expr.elements) != 1:
+        raise _WrongFormattedExpression
+    return render_output_form(expr.elements[0], evaluation, **kwargs)
+
+
 @register_inputform("System`Prefix")
 def _prefix_expression_to_inputform_text(
     expr: Expression, evaluation: Evaluation, **kwargs
