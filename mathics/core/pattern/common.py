@@ -164,8 +164,7 @@ def _is_bare_blank(element: BaseElement) -> bool:
 
 def classify_fixed_blank_tuple(elements: tuple) -> Optional[tuple]:
     """
-    If `elements` has AT LEAST TWO entries and every one of them is
-    either:
+    If every entry of `elements` (zero or more of them) is either:
       - a bare (unnamed) Blank[] / Blank[Type], or
       - a named blank Pattern[name, Blank[...]] (`x_`, `x_Integer`, ...)
     return `elements` back unchanged, as a signal that this
@@ -178,19 +177,35 @@ def classify_fixed_blank_tuple(elements: tuple) -> Optional[tuple]:
     correctly require sameQ against the value bound by the first) --
     this fast path doesn't need to special-case it.
 
-    N=1 (head[_], head[x_], ...) is DELIBERATELY excluded, even though
-    it's structurally the same shape: benchmarking (Mathics3 built-ins
-    like NumericQ[expr_]) showed no measurable speedup over
-    SimpleOrderedExpressionPattern's own basic_match_expression for a
-    single slot -- for N=1 there's essentially no combinatorial search
-    to skip in the first place, so FixedBlankTupleExpressionPattern's
-    extra positional-check machinery doesn't pay for itself. N=2/N=3
-    (Subtract[x_, y_] and friends) DID show a real, repeatable gain.
-    Since a dedicated class is extra surface to reason about when
-    debugging rule application, and a simpler implementation is
-    preferred whenever it performs the same, N=1 patterns are routed
-    to SimpleOrderedExpressionPattern like everything else instead of
-    getting their own rarely-distinguishing code path for no payoff.
+    CORRECTION (this session): an earlier version of this docstring
+    claimed N=1 (`head[_]`, `head[x_]`) was DELIBERATELY excluded here,
+    on the grounds that benchmarking showed "no measurable speedup"
+    over SimpleOrderedExpressionPattern for a single slot. That
+    exclusion (a `len(elements) < 2: return None` guard) got dropped
+    from the actual code at some point without anyone consciously
+    re-deciding it -- and re-measuring properly (same-process A/B,
+    `timeit`, NOT `cProfile` -- see this session's notes on why
+    `cProfile` inflated an earlier, unrelated measurement by ~6x)
+    showed the original claim was simply wrong: routing N=1 through
+    THIS class instead of SimpleOrderedExpressionPattern is
+    consistently 2.4x-3.2x faster (`head[_]`, `head[x_]`,
+    `head[x_Integer]`, all measured), not "no measurable difference".
+    Most likely the original N=1 benchmark was ALSO cProfile-distorted,
+    the same way this session's own first attempt at profiling
+    `head[s__Integer]` was. Differential fuzzing (600 random N=0/N=1
+    cases against the old guarded behavior) found zero mismatches, and
+    the full test suite passes identically either way, so this is kept
+    as the (now consciously chosen, not accidental) behavior: N=1 gets
+    this fast path too.
+
+    N=0 (`head[]`) was, and remains, a wash either way (measured
+    ~8.06us here vs ~8.39us falling through to
+    SimpleOrderedExpressionPattern's own `isliteral` fast path --
+    within noise). `head[]` is typically intercepted earlier by
+    `isliteral`-based shortcuts regardless of which class ultimately
+    handles it, so this case doesn't matter much either way; it's left
+    unguarded (included) since excluding it would need its own special
+    case for no measured benefit.
 
     Works equally on RAW, not-yet-wrapped Expression/Symbol children
     (e.g. `expr.elements` straight off a Mathics Expression) and on
@@ -202,15 +217,17 @@ def classify_fixed_blank_tuple(elements: tuple) -> Optional[tuple]:
 
     Deliberately still excludes:
     - BlankSequence/BlankNullSequence (`__`, `___`) and named sequences
-      (`x__`, `x___`): different get_match_count(), handled elsewhere.
+      (`x__`, `x___`): different get_match_count(), handled by
+      FixedBlankTupleExpressionPattern's sibling class,
+      SingleSequenceExpressionPattern (see classify_single_sequence,
+      below), for the N=1 case, or the general machinery otherwise.
     - anything wrapped in Condition/Optional/PatternTest/Alternatives,
       even if it wraps a Blank underneath (e.g. `x_ /; cond`,
       `Optional[x_]`) -- those aren't `Pattern[name, Blank[...]]`
       shaped and are conservatively rejected.
 
-    Returns None (fall through to the general machinery) both for the
-    empty tuple (head[] is already handled by isliteral) and for a
-    single-element tuple (see N=1 note above).
+    Returns None (fall through to the general machinery) if any
+    element doesn't have this exact shape.
     """
     for element in elements:
         if _is_bare_blank(element):
