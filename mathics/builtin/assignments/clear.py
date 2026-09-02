@@ -17,18 +17,13 @@ from mathics.core.attributes import (
 )
 from mathics.core.builtin import Builtin, PostfixOperator
 from mathics.core.expression import Expression
-from mathics.core.symbols import Atom, Symbol, SymbolNull, symbol_set
+from mathics.core.symbols import Atom, Symbol, SymbolNull
 from mathics.core.systemsymbols import (
+    SYSTEM_SYMBOL_VALUES,
     SymbolContext,
     SymbolContextPath,
-    SymbolDownValues,
     SymbolFailed,
-    SymbolMessages,
-    SymbolNValues,
     SymbolOptions,
-    SymbolOwnValues,
-    SymbolSubValues,
-    SymbolUpValues,
 )
 
 
@@ -291,14 +286,3 @@ class Unset(PostfixOperator):
             evaluation.message("Unset", "norep", expr, Symbol("System`MakeBoxes"))
             return SymbolFailed
         return SymbolNull
-
-
-SYSTEM_SYMBOL_VALUES = symbol_set(
-    SymbolDownValues,
-    SymbolMessages,
-    SymbolNValues,
-    SymbolOptions,
-    SymbolOwnValues,
-    SymbolSubValues,
-    SymbolUpValues,
-)
