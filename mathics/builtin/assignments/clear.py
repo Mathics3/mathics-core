@@ -283,7 +283,7 @@ class Unset(PostfixOperator):
                 return SymbolFailed
         return SymbolNull
 
-    def eval(self, expr, evaluation):
+    def eval_unset_makeboxes(self, expr, evaluation):
         "Unset[expr:MakeBoxes[_, _]]"
         if not evaluation.definitions.unset_format(
             "System`MakeBoxes", "_MakeBoxes", expr
