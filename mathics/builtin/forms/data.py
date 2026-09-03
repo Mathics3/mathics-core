@@ -14,7 +14,7 @@ from typing import Any, Callable, Dict, List, Optional
 
 from mathics.builtin.box.layout import RowBox, StyleBox, SuperscriptBox
 from mathics.builtin.forms.base import FormBaseClass
-from mathics.core.atoms import Integer, Real, String
+from mathics.core.atoms import Integer, Number, Real, String
 from mathics.core.builtin import Builtin
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
@@ -175,7 +175,7 @@ class _NumberForm(Builtin):
             at the left and right of the decimal separator. `None` otherwise.
 
         """
-        py_value = value.get_int_value()
+        py_value = value.get_int_value() if isinstance(value, Number) else None
         if value.sameQ(SymbolInfinity):
             return [0, 0]
         if py_value is not None and py_value > 0:

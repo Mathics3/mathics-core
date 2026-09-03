@@ -11,7 +11,7 @@ they are always applied to every element in a list.
 from dataclasses import replace as dc_replace
 from typing import Iterable
 
-from mathics.core.atoms import Integer, Integer0, Integer1, Integer3
+from mathics.core.atoms import Integer, Integer0, Integer1, Integer3, Number
 from mathics.core.builtin import Builtin, InfixOperator
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
@@ -384,7 +384,7 @@ class MapThread(Builtin):
             full_expr = Expression(SymbolMapThread, f, expr)
         else:
             full_expr = Expression(SymbolMapThread, f, expr, n)
-            n = n.get_int_value()
+            n = n.get_int_value() if isinstance(n, Number) else None
 
         if n is None or n < 0:
             evaluation.message("MapThread", "intnm", Integer3, full_expr)

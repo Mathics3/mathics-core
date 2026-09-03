@@ -6,7 +6,7 @@ Evaluation methods for accessing and manipulating elements in nested lists / exp
 
 from typing import List, Optional, Tuple
 
-from mathics.core.atoms import Integer
+from mathics.core.atoms import Integer, Number
 from mathics.core.convert.expression import make_expression
 from mathics.core.element import BaseElement, BoxElementMixin
 from mathics.core.exceptions import (
@@ -196,7 +196,7 @@ def walk_levels(
 
 def python_levelspec(levelspec) -> Tuple[int, Optional[int]]:
     def value_to_level(expr) -> Optional[int]:
-        value = expr.get_int_value()
+        value = expr.get_int_value() if isinstance(expr, Number) else None
         if value is None:
             if expr.sameQ(MATHICS3_INFINITY):
                 return None

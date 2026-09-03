@@ -7,7 +7,7 @@ from llvmlite import ir
 from mathics.compile.base import CompileError
 from mathics.compile.types import bool_type, int_type, real_type, void_type
 from mathics.compile.utils import llvm_to_ctype, pairwise
-from mathics.core.atoms import Integer, Real
+from mathics.core.atoms import Integer, Number, Real
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolE
@@ -363,7 +363,11 @@ class IRGenerator:
             return self.call_fp_intr("llvm.exp", [exponent])
 
         # 2 ^ exponent
-        if elements[0].get_int_value() == 2 and exponent.type == real_type:
+        if (
+            isinstance(elements[0], Number)
+            and elements[0].get_int_value() == 2
+            and exponent.type == real_type
+        ):
             return self.call_fp_intr("llvm.exp2", [exponent])
 
         # convert base

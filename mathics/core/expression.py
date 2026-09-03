@@ -1646,7 +1646,11 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             return value.to_python()
 
         if head is SymbolDirectedInfinity and len(self._elements) == 1:
-            direction = self._elements[0].get_int_value()
+            direction = (
+                self._elements[0].get_int_value()
+                if isinstance(self._elements[0], Number)
+                else None
+            )
             if direction == 1:
                 return math.inf
             if direction == -1:

@@ -226,6 +226,9 @@ class Atom(BaseElement):
     #        1/0
     #        return None if stop_on_error else {}
 
+    def get_int_value(self) -> Optional[int]:
+        return None
+
     def get_lookup_name(self) -> str:
         """
         By default, atoms that are not symbols

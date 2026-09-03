@@ -196,13 +196,6 @@ class BaseElement(KeyComparable, ABC):
         """
         raise NotImplementedError
 
-    # FIXME: this behavior -- defining a specific default implementation
-    # that is basically saying: "it isn't implemented" -- is wrong.
-    # To remove this method, we need to fix up calls that expect this behavior,
-    # that I am not certain how to do right now. - rocky
-    def get_int_value(self) -> Optional[int]:
-        return None
-
     def get_lookup_name(self) -> str:
         """
         Returns symbol name of leftmost head. This method is used

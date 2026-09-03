@@ -4,7 +4,7 @@ Evaluation routines for builtin function contained in mathics.builtin.list.eol.
 
 from typing import List
 
-from mathics.core.atoms import Integer
+from mathics.core.atoms import Integer, Number
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import MessageException
 from mathics.core.expression import Expression
@@ -20,7 +20,7 @@ def convert_seq(seq):
     """
     start, stop, step = 1, None, 1
     name = seq.get_name()
-    value = seq.get_int_value()
+    value = seq.get_int_value() if isinstance(seq, Number) else None
     if name == "System`All":
         pass
     elif name == "System`None":

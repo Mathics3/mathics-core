@@ -100,6 +100,9 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         except Exception:
             return None
 
+    def get_int_value(self) -> Optional[int]:
+        return None
+
     @property
     def is_literal(self) -> bool:
         """Number can't change and has a Python representation,
