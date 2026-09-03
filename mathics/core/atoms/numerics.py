@@ -1101,6 +1101,16 @@ NUMERICAL_CONSTANTS = {
 }
 
 
+def get_int_value(element) -> Optional[int]:
+    """
+    Return the rounded (or exact) integer value of "element" if it is
+    a dataype that could be interpreted as a Python int.
+
+    Otherwise, return None.
+    """
+    return element.int_value if hasattr(element, "int_value") else None
+
+
 def is_integer_rational_or_real(expr) -> bool:
     """
     Return True  is expr is either an Integer, Rational, or Real.

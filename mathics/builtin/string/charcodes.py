@@ -5,7 +5,7 @@ Character Codes
 
 import sys
 
-from mathics.core.atoms import Integer, Integer1, Number, String
+from mathics.core.atoms import Integer, Integer1, String, get_int_value
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
@@ -177,7 +177,7 @@ class FromCharacterCode(Builtin):
             if encoding == "Unicode":
                 s = ""
                 for i, ni in enumerate(li):
-                    pyni = ni.int_value if isinstance(ni, Number) else None
+                    pyni = get_int_value(ni)
                     if not (pyni is not None and 0 <= pyni <= 0xFFFF):
                         evaluation.message(
                             "FromCharacterCode",

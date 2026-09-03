@@ -14,14 +14,19 @@ from typing import Any, Callable, Dict, List, Optional
 
 from mathics.builtin.box.layout import RowBox, StyleBox, SuperscriptBox
 from mathics.builtin.forms.base import FormBaseClass
-from mathics.core.atoms import Integer, Number, Real, String
+from mathics.core.atoms import Integer, Real, String, get_int_value
 from mathics.core.builtin import Builtin
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.number import dps
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolNull, SymbolTrue
-from mathics.core.systemsymbols import SymbolAutomatic, SymbolInfinity, SymbolMakeBoxes
+from mathics.core.systemsymbols import (
+    SymbolAutomatic,
+    SymbolInfinity,
+    SymbolList,
+    SymbolMakeBoxes,
+)
 from mathics.eval.strings import eval_StringForm_MakeBoxes, eval_ToString
 from mathics.format.box import (
     StringLParen,
@@ -175,12 +180,12 @@ class _NumberForm(Builtin):
             at the left and right of the decimal separator. `None` otherwise.
 
         """
-        py_value = value.int_value if isinstance(value, Number) else None
+        py_value = get_int_value(value)
         if value.sameQ(SymbolInfinity):
             return [0, 0]
         if py_value is not None and py_value > 0:
             return [py_value, py_value]
-        if value.has_form("List", 2):
+        if value.has_form(SymbolList, 2):
             nleft, nright = value.elements
             py_left, py_right = nleft.int_value, nright.int_value
             if nleft.sameQ(SymbolInfinity):
@@ -363,7 +368,7 @@ class _NumberForm(Builtin):
     def _check_List2str(
         self, value, msg, evaluation: Evaluation
     ) -> Optional[List[str]]:
-        if value.has_form("List", 2):
+        if value.has_form(SymbolList, 2):
             result = [element.get_string_value() for element in value.elements]
             if None not in result:
                 return result
@@ -584,7 +589,7 @@ class NumberForm(_NumberForm):
         elif isinstance(prec_parms, Integer):
             if isinstance(target, (Integer, Real)):
                 py_n = prec_parms.value
-        elif prec_parms.has_form("List", 2):
+        elif prec_parms.has_form(SymbolList, 2):
             if isinstance(target, (Integer, Real)):
                 n, f = prec_parms.elements
                 py_n = n.value
