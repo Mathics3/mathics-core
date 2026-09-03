@@ -746,7 +746,7 @@ class SympyFunction(SympyObject):
         else:
             return PrecisionReal(sympy_fn.n(d))
 
-    def get_sympy_function(self, elements=None) -> Optional[Callable]:
+    def get_sympy_function(self, _elements=None) -> Optional[Callable]:
         if self.sympy_name:
             return getattr(sympy, self.sympy_name)
         return None
@@ -994,24 +994,26 @@ class CountableInteger:
     def __eq__(self, other) -> bool:
         if isinstance(other, CountableInteger):
             if self._finite:
-                return other._finite and cast(int, self._integer) == other._integer
+                assert isinstance(self._integer, int)
+                return other._finite and self._integer == other._integer
             else:
                 return not other._finite
         elif isinstance(other, int):
-            return self._finite and cast(int, self._integer) == other
+            assert isinstance(self._integer, int)
+            return self._finite and self._integer == other
         else:
             return False
 
     def __lt__(self, other) -> bool:
         if isinstance(other, CountableInteger):
             if self._finite:
-                return other._finite and cast(int, self._integer) < cast(
-                    int, other._integer
-                )
+                assert isinstance(self._integer, int)
+                return other._finite and self._integer < cast(int, other._integer)
             else:
                 return False
         elif isinstance(other, int):
-            return self._finite and cast(int, self._integer) < other
+            assert isinstance(self._integer, int)
+            return self._finite and self._integer < other
         else:
             return False
 
@@ -1055,8 +1057,8 @@ class CountableInteger:
 
     @property
     def int_value(self) -> int:
-        assert self._finite
-        return cast(int, self._integer)
+        assert self._finite and isinstance(self._integer, int)
+        return self._integer
 
 
 class AtomBuiltin(Builtin):
