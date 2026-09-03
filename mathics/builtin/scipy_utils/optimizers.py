@@ -60,7 +60,7 @@ def get_tolerance_and_maxit(opts: dict, scale: float, evaluation: Evaluation):
     else:
         if not isinstance(maxit_parm, Number):
             maxit_parm = eval_N(maxit_parm, evaluation)
-        maxit = maxit_parm.get_int_value()
+        maxit = maxit_parm.int_value
     return tol, maxit
 
 

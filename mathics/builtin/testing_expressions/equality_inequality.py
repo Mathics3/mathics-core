@@ -252,7 +252,7 @@ class _EqualityOperator(_InequalityOperator, ABC):
         "%(name)s[args___?(!ExactNumberQ[#]&)]"
 
         args = args.get_sequence()
-        max_extra_prec = SymbolMaxExtraPrecision.evaluate(evaluation).get_int_value()
+        max_extra_prec = SymbolMaxExtraPrecision.evaluate(evaluation).int_value
         if type(max_extra_prec) is not int:
             max_extra_prec = COMPARE_PREC
         # try to convert the exact arguments in inexact numbers.

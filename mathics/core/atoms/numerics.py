@@ -100,7 +100,8 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         except Exception:
             return None
 
-    def get_int_value(self) -> Optional[int]:
+    @property
+    def int_value(self) -> Optional[int]:
         return None
 
     @property
@@ -172,7 +173,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
 
 
 def _ExponentFunction(value):
-    n = value.get_int_value()
+    n = value.int_value
     if -5 <= n <= 5:
         return SymbolNull
     else:
@@ -317,7 +318,8 @@ class Integer(Number[int]):
             # return int_to_string_shorter_repr(self._value, form)
             raise
 
-    def get_int_value(self) -> int:
+    @property
+    def int_value(self) -> int:
         return self._value
 
     @property

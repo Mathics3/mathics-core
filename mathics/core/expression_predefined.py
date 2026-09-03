@@ -37,7 +37,8 @@ class PredefinedExpression(Expression):
         if value is not None:
             self.value = value
 
-    def get_int_value(self) -> Optional[int]:
+    @property
+    def int_value(self) -> Optional[int]:
         if isinstance(self.value, int):
             return self.value
         return None

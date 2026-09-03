@@ -192,7 +192,7 @@ def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
     if maxit is SymbolAutomatic:
         maxit = 100
     else:
-        maxit = maxit.evaluate(evaluation).get_int_value()
+        maxit = maxit.evaluate(evaluation).int_value
 
     x0 = from_python(region[0])
     x1 = from_python(region[1])

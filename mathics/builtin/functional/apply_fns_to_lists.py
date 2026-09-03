@@ -384,7 +384,7 @@ class MapThread(Builtin):
             full_expr = Expression(SymbolMapThread, f, expr)
         else:
             full_expr = Expression(SymbolMapThread, f, expr, n)
-            n = n.get_int_value() if isinstance(n, Number) else None
+            n = n.int_value if isinstance(n, Number) else None
 
         if n is None or n < 0:
             evaluation.message("MapThread", "intnm", Integer3, full_expr)

@@ -60,9 +60,9 @@ class SpecialValueError(Exception):
 def _get_float_inf(value, evaluation) -> Optional[float]:
     evaluated_value = value.evaluate(evaluation)
     if evaluated_value.has_form(SymbolDirectedInfinity, 1):
-        if evaluated_value.elements[0].get_int_value() == 1:
+        if evaluated_value.elements[0].int_value == 1:
             return float("inf")
-        elif evaluated_value.elements[0].get_int_value() == -1:
+        elif evaluated_value.elements[0].int_value == -1:
             return float("-inf")
         else:
             return None

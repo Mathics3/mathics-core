@@ -20,7 +20,7 @@ def convert_seq(seq):
     """
     start, stop, step = 1, None, 1
     name = seq.get_name()
-    value = seq.get_int_value() if isinstance(seq, Number) else None
+    value = seq.int_value if isinstance(seq, Number) else None
     if name == "System`All":
         pass
     elif name == "System`None":
@@ -32,16 +32,16 @@ def convert_seq(seq):
             start = value
     elif seq.has_form("List", 1, 2, 3):
         if len(seq.elements) == 1:
-            start = stop = seq.elements[0].get_int_value()
+            start = stop = seq.elements[0].int_value
             if stop is None:
                 return None
         else:
-            start = seq.elements[0].get_int_value()
-            stop = seq.elements[1].get_int_value()
+            start = seq.elements[0].int_value
+            stop = seq.elements[1].int_value
             if start is None or stop is None:
                 return None
         if len(seq.elements) == 3:
-            step = seq.elements[2].get_int_value()
+            step = seq.elements[2].int_value
             if step is None:
                 return None
     else:
@@ -285,16 +285,16 @@ def parts_span_selector(pspec):
     stop = None
     step = 1
     if len(pspec.elements) > 0:
-        start = pspec.elements[0].get_int_value()
+        start = pspec.elements[0].int_value
     if len(pspec.elements) > 1:
-        stop = pspec.elements[1].get_int_value()
+        stop = pspec.elements[1].int_value
         if stop is None:
             if pspec.elements[1].get_name() == "System`All":
                 stop = None
             else:
                 raise MessageException("Part", "span", pspec)
     if len(pspec.elements) > 2:
-        step = pspec.elements[2].get_int_value()
+        step = pspec.elements[2].int_value
 
     if start == 0 or stop == 0:
         # index 0 is undefined

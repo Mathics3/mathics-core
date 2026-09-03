@@ -281,7 +281,7 @@ class AnglePathFold(Fold):
 
         def check_pos_operand(x):
             if x is not None:
-                if isinstance(x, Integer) and x.get_int_value() in (0, 1):
+                if isinstance(x, Integer) and x.int_value in (0, 1):
                     pass
                 elif not isinstance(x, Real):
                     return SYMBOLIC

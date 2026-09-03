@@ -83,7 +83,7 @@ class _Algebraic(Builtin):
         self, options: dict, evaluation: Evaluation, supports_modulus: bool = False
     ) -> Optional[AlgebraicOptions]:
         modulus = options["System`Modulus"]
-        py_modulus = modulus.get_int_value()
+        py_modulus = modulus.int_value
         if py_modulus is None:
             evaluation.message(self.get_name(), "modn", Symbol("Modulus"), modulus)
             return
@@ -324,9 +324,7 @@ class CoefficientArrays(Builtin):
                 return
             for idxcoeff in component:
                 idx, coeff = idxcoeff
-                order = (
-                    Expression(SymbolPlus, *idx).evaluate(evaluation).get_int_value()
-                )
+                order = Expression(SymbolPlus, *idx).evaluate(evaluation).int_value
                 if order is None:
                     evaluation.message("CoefficientArrays", "poly", polys, varlist)
                     return
@@ -350,7 +348,7 @@ class CoefficientArrays(Builtin):
                 arrayidx = [
                     Integer(n + 1)
                     for n, j in enumerate(idx)
-                    for q in range(j.get_int_value())
+                    for q in range(j.int_value)
                 ]
                 if dim1 > 1:
                     arrayidx = [Integer(i + 1)] + arrayidx
@@ -651,7 +649,7 @@ class _Expand(Builtin):
 
     def convert_options(self, options: dict, evaluation: Evaluation):
         modulus = options["System`Modulus"]
-        py_modulus = modulus.get_int_value()
+        py_modulus = modulus.int_value
         if py_modulus is None:
             evaluation.message(self.get_name(), "modn", Symbol("Modulus"), modulus)
             return

@@ -991,10 +991,6 @@ class CountableInteger:
     def is_upper_limit(self) -> bool:
         return self._upper_limit
 
-    def get_int_value(self) -> int:
-        assert self._finite
-        return cast(int, self._integer)
-
     def __eq__(self, other) -> bool:
         if isinstance(other, CountableInteger):
             if self._finite:
@@ -1050,12 +1046,17 @@ class CountableInteger:
                         n.get_head_name() == "System`DirectedInfinity"
                         and len(n.elements) == 1
                     ):
-                        if n.elements[0].get_int_value() > 0:
+                        if n.elements[0].int_value > 0:
                             return CountableInteger("Infinity", upper_limit=True)
                         else:
                             return CountableInteger(0, upper_limit=True)
 
         return None  # leave original expression unevaluated
+
+    @property
+    def int_value(self) -> int:
+        assert self._finite
+        return cast(int, self._integer)
 
 
 class AtomBuiltin(Builtin):
@@ -1182,7 +1183,7 @@ class IterationFunction(Builtin, ABC):
     def eval_iter(self, expr, i, imin, imax, di, evaluation):
         "%(name)s[expr_, {i_Symbol, imin_, imax_, di_}]"
 
-        if isinstance(self, SympyFunction) and di.get_int_value() == 1:
+        if isinstance(self, SympyFunction) and di.int_value == 1:
             whole_expr = to_expression(
                 self.get_name(), expr, ListExpression(i, imin, imax)
             )

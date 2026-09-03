@@ -175,14 +175,14 @@ class _NumberForm(Builtin):
             at the left and right of the decimal separator. `None` otherwise.
 
         """
-        py_value = value.get_int_value() if isinstance(value, Number) else None
+        py_value = value.int_value if isinstance(value, Number) else None
         if value.sameQ(SymbolInfinity):
             return [0, 0]
         if py_value is not None and py_value > 0:
             return [py_value, py_value]
         if value.has_form("List", 2):
             nleft, nright = value.elements
-            py_left, py_right = nleft.get_int_value(), nright.get_int_value()
+            py_left, py_right = nleft.int_value, nright.int_value
             if nleft.sameQ(SymbolInfinity):
                 nleft = 0
             elif py_left is not None and py_left > 0:
@@ -327,7 +327,7 @@ class _NumberForm(Builtin):
             If the value is valid, the value of the option. `None` otherwise.
 
         """
-        result = value.get_int_value()
+        result = value.int_value
         if result is None or result <= 0:
             evaluation.message(self.get_name(), "estep", "ExponentStep", value)
             return None
@@ -522,7 +522,7 @@ class NumberForm(_NumberForm):
     def default_ExponentFunction(value: Integer):
         """The default function used to format exponent."""
 
-        n = value.get_int_value()
+        n = value.int_value
         if -5 <= n <= 5:
             return SymbolNull
 
@@ -575,7 +575,7 @@ class NumberForm(_NumberForm):
         py_f = py_n = None
         if prec_parms is None:
             if isinstance(target, Integer):
-                py_n = len(str(abs(target.get_int_value())))
+                py_n = len(str(abs(target.int_value)))
             elif isinstance(target, Real):
                 if target.is_machine_precision():
                     py_n = 6

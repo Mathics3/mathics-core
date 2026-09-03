@@ -1647,7 +1647,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         if head is SymbolDirectedInfinity and len(self._elements) == 1:
             direction = (
-                self._elements[0].get_int_value()
+                self._elements[0].int_value
                 if isinstance(self._elements[0], Number)
                 else None
             )
@@ -1840,7 +1840,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             if len(self._elements) != 1:
                 evaluation.message_args("Slot", len(self._elements), 1)
             else:
-                slot = self._elements[0].get_int_value()
+                slot = self._elements[0].int_value
                 if slot is None or slot < 0:
                     evaluation.message("Function", "slot", self._elements[0])
                 elif slot > len(slots) - 1:
@@ -1851,7 +1851,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             if len(self._elements) != 1:
                 evaluation.message_args("SlotSequence", len(self._elements), 1)
             else:
-                slot = self._elements[0].get_int_value()
+                slot = self._elements[0].int_value
                 if slot is None or slot < 1:
                     evaluation.error("Function", "slot", self._elements[0])
             return Expression(SymbolSequence, *slots[slot:])

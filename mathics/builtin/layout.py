@@ -421,7 +421,7 @@ class PrecedenceForm(Builtin):
         """MakeBoxes[PrecedenceForm[expr_, precedence_],
         form:StandardForm|TraditionalForm]"""
 
-        py_precedence = precedence.get_int_value()
+        py_precedence = precedence.int_value
         boxes = format_element(expr, evaluation, form)
         return parenthesize(py_precedence, expr, boxes, True)
 

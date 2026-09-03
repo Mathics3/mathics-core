@@ -840,7 +840,7 @@ class Definitions:
             SymbolDirectedInfinity, 1
         ):
             return None
-        return int(value.to_python())  # .get_int_value())
+        return int(value.to_python())  # .int_value)
 
     def set_config_value(self, name: str, new_value: int) -> None:
         """Set the (own)value of an integer variable"""

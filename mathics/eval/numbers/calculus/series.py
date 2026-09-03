@@ -340,9 +340,9 @@ def reduce_series_plus(series, terms, x, x0):
                 series,
                 (
                     data,
-                    nummin.get_int_value(),
-                    nummax.get_int_value(),
-                    den.get_int_value(),
+                    nummin.int_value,
+                    nummax.int_value,
+                    den.int_value,
                 ),
             )
             if new_series:
@@ -384,7 +384,7 @@ def build_series(
 
     data = [f.replace_vars(vars)]
     df = f
-    for i in range(n.get_int_value()):
+    for i in range(n.int_value):
         df = Expression(SymbolD, df, x).evaluate(evaluation)
         newcoeff = df.replace_vars(vars).evaluate(evaluation)
         factorial = Expression(SymbolFactorial, Integer(i + 1))
@@ -407,7 +407,7 @@ def build_series(
             )
         data.append(newcoeff)
     data = ListExpression(*data).evaluate(evaluation)
-    series = reduce_series_trailing_zeros((data, 0, n.get_int_value() + 1, 1))
+    series = reduce_series_trailing_zeros((data, 0, n.int_value + 1, 1))
     return Expression(
         SymbolSeriesData,
         x,

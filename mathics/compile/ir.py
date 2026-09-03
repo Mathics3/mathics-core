@@ -224,7 +224,7 @@ class IRGenerator:
                 raise CompileError()
             return arg
         elif isinstance(expr, Integer):
-            return int_type(expr.get_int_value())
+            return int_type(expr.int_value)
         elif isinstance(expr, Real):
             return real_type(expr.round_to_float())
         elif not isinstance(expr, Expression):
@@ -365,7 +365,7 @@ class IRGenerator:
         # 2 ^ exponent
         if (
             isinstance(elements[0], Number)
-            and elements[0].get_int_value() == 2
+            and elements[0].int_value == 2
             and exponent.type == real_type
         ):
             return self.call_fp_intr("llvm.exp2", [exponent])

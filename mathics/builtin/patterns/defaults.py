@@ -64,7 +64,7 @@ class Default(Builtin):
         if len(i) > 2:
             evaluation.message(SymbolDefault, "argb", 1 + len(i), 1, 3)
             return
-        i = [index.get_int_value() for index in i]
+        i = [index.int_value for index in i]
         for index in i:
             if index is None or index < 1:
                 evaluation.message(SymbolDefault.name, "intp")

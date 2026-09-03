@@ -196,7 +196,7 @@ def walk_levels(
 
 def python_levelspec(levelspec) -> Tuple[int, Optional[int]]:
     def value_to_level(expr) -> Optional[int]:
-        value = expr.get_int_value() if isinstance(expr, Number) else None
+        value = expr.int_value if isinstance(expr, Number) else None
         if value is None:
             if expr.sameQ(MATHICS3_INFINITY):
                 return None
