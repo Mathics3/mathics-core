@@ -25,7 +25,9 @@ def normalize_benchmarks(target_file):
             break
 
     if ref_bench is None:
-        print(f"⚠️ Benchmark for the reference task '{REFERENCE_NAME} not found'. Exit.")
+        print(
+            f"⚠️ Benchmark for the reference task '{NORMALIZATION_TASK_KEY} not found'. Exit."
+        )
         sys.exit(1)
 
     # Extract the reference value
