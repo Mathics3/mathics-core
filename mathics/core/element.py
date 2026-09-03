@@ -215,6 +215,9 @@ class BaseElement(KeyComparable, ABC):
     ) -> Optional[dict]:
         pass
 
+    # FIXME: this should be a *function* in mathics.core.atom.numeric.Number.
+    # It should be a method *only* in Numeric (or Symbol) classes where it
+    # makes sense.
     def get_precision(self) -> Optional[int]:
         """Returns the default specification for precision in N and other
         numerical functions.  It is expected to be redefined in those
@@ -273,10 +276,16 @@ class BaseElement(KeyComparable, ABC):
         """
         raise NotImplementedError
 
+    # FIXME: this should be a *function* in mathics.core.atom.numeric.Number.
+    # It should be a method *only* in Numeric (or Symbol) classes where it
+    # makes sense.
     def is_machine_precision(self) -> bool:
         """Check if the number represents a floating point number"""
         return False
 
+    # FIXME: this should be a *function* in mathics.core.atom.numeric.Number.
+    # It should be a method *only* in Numeric (or Symbol) classes where it
+    # makes sense.
     def is_numeric(self, evaluation=None) -> bool:
         """Check if the expression is a number. If evaluation is given,
         tries to determine if the expression can be evaluated as a number.
@@ -295,6 +304,9 @@ class BaseElement(KeyComparable, ABC):
         """
         return False
 
+    # FIXME: this should be a *function* in mathics.core.atom.numeric.Number.
+    # It should be a method *only* in Numeric (or Symbol) classes where it
+    # makes sense.
     @property
     def is_zero(self) -> bool:
         return False
@@ -307,6 +319,9 @@ class BaseElement(KeyComparable, ABC):
 
         return item_is_free(self, form, evaluation)
 
+    # FIXME: this should be a *function* in mathics.core.atom.numeric.Number.
+    # It should be a method *only* in Numeric (or Symbol) classes where it
+    # makes sense.
     def is_inexact(self) -> bool:
         return self.get_precision() is not None
 

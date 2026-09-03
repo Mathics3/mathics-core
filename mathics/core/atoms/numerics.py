@@ -33,7 +33,7 @@ from mathics.core.systemsymbols import (
     SymbolInputForm,
 )
 
-# The below value is an empirical number for comparison precedence
+# The value below is an empirical number for comparison precedence
 # that seems to work.  We have to be able to match mpmath values with
 # sympy values
 COMPARE_PREC = 50
@@ -63,7 +63,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         __getnewargs__ is used in pickle loading to ensure __new__ is
         called with the right value.
 
-        Most of the time a number takes one argument - its value
+        Most of the time, a number takes one argument - its value
         When there is a kind of number, like Rational or Complex,
         that has more than one argument, it should define this method
         accordingly.
@@ -166,7 +166,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
     @property
     def value(self) -> T:
         """Equivalent value in either SymPy's or Python's native
-        datatype if that exist. Note the SymPy value
+        datatype if that exists. Note that the SymPy value
         and the Python value might be the same thing.
         """
         return self._value
@@ -337,18 +337,17 @@ class Integer(Number[int]):
         1024. 1024 is a common internal Mathematica implementation limit where
         it switches from using MachineReal to PrecisionReal.
 
-        If a decimal precision ``d`` is not None, then we convert to
+        If a decimal precision ``d`` isn't ``None``, then we convert to
         a PrecisionReal using that value d.
 
         When ``d`` is ``None`` but the mantissa does not fit into a
-        Python float, we implement the value as a mpmath.mpf value.
+        Python float, we implement the value as an mpmath.mpf value.
         """
         if d is None:
             d = self.value.bit_length()
             # Many WMA implementations seem to change behavior of the integer
-            # representation that has more than 1024 digits. In theory, this is
-            # number can vary depending on hardware characteristics.
-            # In practice, a reasonable
+            # representation that has more than 1024 digits. In theory, this number can vary depending
+            # on hardware characteristics.
             if d <= 1024:
                 return MachineReal(self.value)
             else:
@@ -384,7 +383,7 @@ Integer10 = Integer(10)
 IntegerM1 = Integer(-1)
 
 
-# This has to come before Complex which uses Real.
+# This has to come before Complex, which uses Real.
 class Real(Number[T]):
     class_head_name = "System`Real"
 
@@ -569,7 +568,7 @@ class MachineReal(Real[float]):
     def sameQ(self, rhs) -> bool:
         """Mathics3 SameQ for MachineReal.
         If the rhs comparison value is a MachineReal, the values
-        have to be equal.  If the rhs value is a PrecisionReal though, then
+        have to be equal.  If the rhs value is a PrecisionReal, though, then
         the two values have to be within 1/2 ** (precision) of
         rhs-value's precision.  For any rhs type, sameQ is False.
         """
@@ -617,7 +616,7 @@ class PrecisionReal(Real[sympy_Float]):
 
     # Dictionary of PrecisionReal constant values defined so far.
     # We use this for object uniqueness.
-    # The key is the PrecisionReal's sympy.Float, and the
+    # The key is the PrecisionReal's `sympy.Float`, and the
     # dictionary's value is the corresponding Mathics3 PrecisionReal object.
     _precision_reals: Dict[Any, "PrecisionReal"] = {}
 
@@ -733,7 +732,7 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
     Note that Mathics3 complex values are more precise than complex
     values in Python, NumPy, or mpmath. Both the Real and Imaginary
     parts can be Mathics3-kinds of numbers, as opposed to a generic
-    floating point number (which does not distinguish exact from approximate
+    floating-point number (which does not distinguish exact from approximate
     values like an integer does). Also, there can be a precision associated
     with a Mathics3 complex number.
     """
@@ -746,7 +745,7 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
     # Dictionary of Complex constant values defined so far.
     # We use this for object uniqueness.
     # The key is the Complex value's real and imaginary parts as a tuple,
-    # dictionary's value is the corresponding Mathics3 Complex object.
+    # the dictionary's value is the corresponding Mathics3 Complex object.
     _complex_numbers: Dict[Any, "Complex"] = {}
 
     # The precise value: a real number, an imaginary number, and a
@@ -758,7 +757,7 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
     _value: complex
 
     # We use __new__ here to ensure that two Complex number that have
-    # down to the type on the imaginary and real parts and precision of those --
+    # down to the type of the imaginary and real parts and the precision of those --
     # the same value return the same object, and to set an object hash
     # value.  Consider also @lru_cache, and mechanisms for limiting
     # and clearing the cache and the object store which might be
@@ -777,7 +776,7 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
 
         # Note: for the below test, imag.value == 0 catches more
         # reals.  In particular, MachineReals that have an imaginary
-        # value of floating point 0.0. But MachineReal 0.0 is "approximate 0",
+        # value of floating-point 0.0. But MachineReal 0.0 is "approximate 0",
         # not exactly 0. So "Complex[0., 0.]" is "0. + 0." and not "0."
         if imag.sameQ(Integer0):
             return real
@@ -882,7 +881,7 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         """
         order_real, order_imag = self.real.element_order, self.imag.element_order
 
-        # If the real of the imag parts are real numbers, sort according
+        # If the real or the imaginary parts are real numbers, sort according
         # the minimum precision.
         # Example:
         # Sort[{1+2I, 1.+2.I, 1.`4+2.`5I, 1.`2+2.`7 I}]
@@ -902,7 +901,7 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
 
     def get_precision(self) -> Optional[int]:
         """Returns the default specification for precision in N and other numerical functions.
-        When `None` is be returned no precision is has been defined and this object's value is
+        When `None` is returned, no precision has been defined, and this object's value is
         exact.
 
         This function is called by method `is_inexact()`.
@@ -1103,8 +1102,7 @@ NUMERICAL_CONSTANTS = {
 
 def get_int_value(element) -> Optional[int]:
     """
-    Return the rounded (or exact) integer value of "element" if it is
-    a dataype that could be interpreted as a Python int.
+    Return the integer value of "element" if it is a data type that could be interpreted as a Python int.
 
     Otherwise, return None.
     """
@@ -1113,6 +1111,6 @@ def get_int_value(element) -> Optional[int]:
 
 def is_integer_rational_or_real(expr) -> bool:
     """
-    Return True  is expr is either an Integer, Rational, or Real.
+    Return True if expr is either an Integer, Rational, or Real.
     """
     return isinstance(expr, (Integer, Rational, Real))
