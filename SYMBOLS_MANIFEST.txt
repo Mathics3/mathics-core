@@ -1132,7 +1132,7 @@ System`Sow
 System`Span
 System`SparseArray
 System`Sphere
-System`Sphere3DBox
+System`SphereBox
 System`SphericalBesselJ
 System`SphericalBesselY
 System`SphericalHankelH1
