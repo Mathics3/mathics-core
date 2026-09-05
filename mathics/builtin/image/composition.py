@@ -247,7 +247,7 @@ class WordCloud(Builtin):
 
         max_items = self.get_option(options, "MaxItems", evaluation)
         if isinstance(max_items, Integer):
-            py_max_items = max_items.get_int_value()
+            py_max_items = max_items.int_value
         else:
             py_max_items = 200
 
@@ -262,9 +262,9 @@ class WordCloud(Builtin):
             for element in image_size.elements:
                 if not isinstance(element, Integer):
                     return
-                py_image_size.append(element.get_int_value())
+                py_image_size.append(element.int_value)
         elif isinstance(image_size, Integer):
-            size = image_size.get_int_value()
+            size = image_size.int_value
             py_image_size = (size, size)
         else:
             return

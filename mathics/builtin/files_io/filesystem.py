@@ -808,7 +808,7 @@ class FileNameTake(Builtin):
 
     def eval_n(self, filename, n, evaluation: Evaluation, options: dict):
         "FileNameTake[filename_String, n_Integer, OptionsPattern[FileBaseName]]"
-        n_int = n.get_int_value()
+        n_int = n.int_value
         parts = pathlib.Path(filename.to_python()[1:-1]).parts
         if n_int >= 0:
             subparts = parts[:n_int]

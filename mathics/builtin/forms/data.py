@@ -14,14 +14,19 @@ from typing import Any, Callable, Dict, List, Optional
 
 from mathics.builtin.box.layout import RowBox, StyleBox, SuperscriptBox
 from mathics.builtin.forms.base import FormBaseClass
-from mathics.core.atoms import Integer, Real, String
+from mathics.core.atoms import Integer, Real, String, get_int_value
 from mathics.core.builtin import Builtin
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.number import dps
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolNull, SymbolTrue
-from mathics.core.systemsymbols import SymbolAutomatic, SymbolInfinity, SymbolMakeBoxes
+from mathics.core.systemsymbols import (
+    SymbolAutomatic,
+    SymbolInfinity,
+    SymbolList,
+    SymbolMakeBoxes,
+)
 from mathics.eval.strings import eval_StringForm_MakeBoxes, eval_ToString
 from mathics.format.box import (
     StringLParen,
@@ -175,14 +180,14 @@ class _NumberForm(Builtin):
             at the left and right of the decimal separator. `None` otherwise.
 
         """
-        py_value = value.get_int_value()
+        py_value = get_int_value(value)
         if value.sameQ(SymbolInfinity):
             return [0, 0]
         if py_value is not None and py_value > 0:
             return [py_value, py_value]
-        if value.has_form("List", 2):
+        if value.has_form(SymbolList, 2):
             nleft, nright = value.elements
-            py_left, py_right = nleft.get_int_value(), nright.get_int_value()
+            py_left, py_right = nleft.int_value, nright.int_value
             if nleft.sameQ(SymbolInfinity):
                 nleft = 0
             elif py_left is not None and py_left > 0:
@@ -327,7 +332,7 @@ class _NumberForm(Builtin):
             If the value is valid, the value of the option. `None` otherwise.
 
         """
-        result = value.get_int_value()
+        result = value.int_value
         if result is None or result <= 0:
             evaluation.message(self.get_name(), "estep", "ExponentStep", value)
             return None
@@ -363,7 +368,7 @@ class _NumberForm(Builtin):
     def _check_List2str(
         self, value, msg, evaluation: Evaluation
     ) -> Optional[List[str]]:
-        if value.has_form("List", 2):
+        if value.has_form(SymbolList, 2):
             result = [element.get_string_value() for element in value.elements]
             if None not in result:
                 return result
@@ -522,7 +527,7 @@ class NumberForm(_NumberForm):
     def default_ExponentFunction(value: Integer):
         """The default function used to format exponent."""
 
-        n = value.get_int_value()
+        n = value.int_value
         if -5 <= n <= 5:
             return SymbolNull
 
@@ -575,7 +580,7 @@ class NumberForm(_NumberForm):
         py_f = py_n = None
         if prec_parms is None:
             if isinstance(target, Integer):
-                py_n = len(str(abs(target.get_int_value())))
+                py_n = len(str(abs(target.int_value)))
             elif isinstance(target, Real):
                 if target.is_machine_precision():
                     py_n = 6
@@ -584,7 +589,7 @@ class NumberForm(_NumberForm):
         elif isinstance(prec_parms, Integer):
             if isinstance(target, (Integer, Real)):
                 py_n = prec_parms.value
-        elif prec_parms.has_form("List", 2):
+        elif prec_parms.has_form(SymbolList, 2):
             if isinstance(target, (Integer, Real)):
                 n, f = prec_parms.elements
                 py_n = n.value

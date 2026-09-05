@@ -14,6 +14,7 @@ from mathics.core.atoms import (
     IntegerM1,
     Number,
     RationalOneHalf,
+    get_int_value,
 )
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement
@@ -525,7 +526,7 @@ def expand_polynomial(
             "converts top-level to sympy"
             elements = expr.get_elements()
             if isinstance(expr, Integer):
-                return sympy.Integer(expr.get_int_value())
+                return sympy.Integer(expr.int_value)
             if target_pat is not None and not isinstance(expr, Number):
                 if expr.is_free(target_pat, evaluation):
                     return store_sub_expr(expr)
@@ -534,7 +535,7 @@ def expand_polynomial(
             if operator is SymbolPower:
                 # sympy won't expand `(a + b) / x` to `a / x + b / x` if denominator is False
                 # if denominator is False we store negative powers to prevent this.
-                n1 = elements[1].get_int_value()
+                n1 = get_int_value(elements[1])
                 if not denominator and n1 is not None and n1 < 0:
                     return store_sub_expr(expr)
                 return tracing.run_sympy(

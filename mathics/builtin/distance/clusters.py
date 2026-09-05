@@ -110,7 +110,7 @@ class _Cluster(Builtin):
             if not isinstance(k, Integer):
                 evaluation.message(self.get_name(), "intpm", expr)
                 return
-            py_k = k.get_int_value()
+            py_k = k.int_value
             if py_k < 1:
                 evaluation.message(self.get_name(), "intpm", expr)
                 return
@@ -131,7 +131,7 @@ class _Cluster(Builtin):
         if seed_string == "Automatic":
             py_seed = 12345
         elif isinstance(seed, Integer):
-            py_seed = seed.get_int_value()
+            py_seed = seed.int_value
         else:
             evaluation.message(
                 self.get_name(), "rseed", Expression(SymbolRule, "RandomSeed", seed)
@@ -447,7 +447,7 @@ class Nearest(Builtin):
             py_r = None
 
         if isinstance(up_to, Integer):
-            py_n = up_to.get_int_value()
+            py_n = up_to.int_value
         elif up_to.get_name() == "System`All":
             py_n = None
         else:

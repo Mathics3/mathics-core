@@ -26,9 +26,9 @@ def _pspec_span_to_tuple(pspec, expr):
     if len(elements) > 3:
         raise MessageException("Part", "span", elements)
     if len(elements) > 0:
-        start = elements[0].get_int_value()
+        start = elements[0].int_value
     if len(elements) > 1:
-        stop = elements[1].get_int_value()
+        stop = elements[1].int_value
         if stop is None:
             if elements[1].get_name() == "System`All":
                 stop = None
@@ -38,7 +38,7 @@ def _pspec_span_to_tuple(pspec, expr):
             stop = stop - 1 if stop > 0 else len(expr.elements) + stop
 
     if len(pspec.elements) > 2:
-        step = elements[2].get_int_value()
+        step = elements[2].int_value
 
     if start is None or step is None:
         raise MessageException("Part", "span", pspec)
@@ -229,13 +229,13 @@ class SubExpression:
         # Trivial conversion: if pos is an `Integer`, convert
         # to a Python native int
         if type(pos) is Integer:
-            pos = pos.get_int_value()
+            pos = pos.int_value
         # pos == `System`All`
         elif isinstance(pos, Symbol) and pos.get_name() == "System`All":
             pos = None
         elif type(pos) is Expression:
             if pos.has_form(SymbolList, None):
-                tuple_pos = [i.get_int_value() for i in pos.elements]
+                tuple_pos = [i.int_value for i in pos.elements]
                 if any(i is None for i in tuple_pos):
                     raise MessageException("Part", "pspec", pos)
                 pos = tuple_pos

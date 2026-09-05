@@ -79,13 +79,13 @@ class _RankedTake(Builtin):
             if limit > len(filtered):
                 if not limit.is_upper_limit():
                     evaluation.message(
-                        self.get_name(), "rank", limit.get_int_value(), len(filtered)
+                        self.get_name(), "rank", limit.int_value, len(filtered)
                     )
                     return
                 else:
                     py_n = len(filtered)
             else:
-                py_n = limit.get_int_value()
+                py_n = limit.int_value
 
             if py_n < 1:
                 return ListExpression()

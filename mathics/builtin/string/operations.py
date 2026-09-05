@@ -266,13 +266,13 @@ class StringInsert(Builtin):
                 return strsource
             else:
                 for i, posi in enumerate(elements):
-                    py_posi = posi.get_int_value()
+                    py_posi = posi.int_value
                     if py_posi is None:
                         evaluation.message("StringInsert", "psl", pos, exp)
                         return
                     listpos.append(py_posi)
         else:
-            py_pos = pos.get_int_value()
+            py_pos = pos.int_value
             if py_pos is None:
                 evaluation.message("StringInsert", "psl", pos, exp)
                 return
@@ -436,7 +436,7 @@ class StringPosition(Builtin):
         if n.has_form("DirectedInfinity", 1):
             py_n = float("inf")
         else:
-            py_n = n.get_int_value()
+            py_n = n.int_value
             if py_n is None or py_n < 0:
                 evaluation.message("StringPosition", "innf", expr, Integer3)
                 return
@@ -877,7 +877,7 @@ class StringTake(Builtin):
             return
 
         if isinstance(seqspec, Integer):
-            pos = seqspec.get_int_value()
+            pos = seqspec.int_value
             if pos >= 0:
                 seq = (1, pos, 1)
             else:

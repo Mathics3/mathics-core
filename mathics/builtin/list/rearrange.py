@@ -194,9 +194,9 @@ class _Pad(Builtin):
             py_n = _Pad._find_dims(in_l)
         elif in_n.get_head_name() == "System`List":
             if all(isinstance(element, Integer) for element in in_n.elements):
-                py_n = [element.get_int_value() for element in in_n.elements]
+                py_n = [element.int_value for element in in_n.elements]
         elif isinstance(in_n, Integer):
-            py_n = [in_n.get_int_value()]
+            py_n = [in_n.int_value]
 
         if py_n is None:
             evaluation.message(self.get_name(), "ilsm", 2, expr())
@@ -208,12 +208,12 @@ class _Pad(Builtin):
             py_x = [in_x]
 
         if isinstance(in_m, Integer):
-            py_m = in_m.get_int_value()
+            py_m = in_m.int_value
         else:
             if not all(isinstance(x, Integer) for x in in_m.elements):
                 evaluation.message(self.get_name(), "ilsm", 4, expr())
                 return
-            py_m = [x.get_int_value() for x in in_m.elements]
+            py_m = [x.int_value for x in in_m.elements]
 
         try:
             return _Pad._build(in_l, py_n, py_x, py_m, 1, self._mode)
@@ -391,11 +391,11 @@ class _Rotate(Builtin):
     def eval(self, expr, n, evaluation: Evaluation):
         "%(name)s[expr_, n_]"
         if isinstance(n, Integer):
-            py_cycles = [n.get_int_value()]
+            py_cycles = [n.int_value]
         elif n.get_head_name() == "System`List" and all(
             isinstance(x, Integer) for x in n.elements
         ):
-            py_cycles = [x.get_int_value() for x in n.elements]
+            py_cycles = [x.int_value for x in n.elements]
             if not py_cycles:
                 return expr
         else:
@@ -780,7 +780,7 @@ class Flatten(Builtin):
         if n.sameQ(MATHICS3_INFINITY):
             n_int = -1  # a negative number indicates an unbounded level
         else:
-            n_int = n.get_int_value()
+            n_int = n.int_value
             # Here we test for negative since in Mathics3 Flatten[] as opposed to flatten_with_respect_to_head()
             # negative numbers (and None) are not allowed.
             if n_int is None or n_int < 0:
@@ -1030,12 +1030,12 @@ class Partition(Builtin):
     def eval_no_overlap(self, li, n: Integer, evaluation: Evaluation):
         "Partition[li_List, n_Integer]"
         # TODO: Error checking
-        return self._partition(li, n.get_int_value(), n.get_int_value(), evaluation)
+        return self._partition(li, n.int_value, n.int_value, evaluation)
 
     def eval(self, li, n: Integer, d: Integer, evaluation: Evaluation):
         "Partition[li_List, n_Integer, d_Integer]"
         # TODO: Error checking
-        return self._partition(li, n.get_int_value(), d.get_int_value(), evaluation)
+        return self._partition(li, n.int_value, d.int_value, evaluation)
 
 
 class Reverse(Builtin):
@@ -1110,7 +1110,7 @@ class Reverse(Builtin):
     def eval(self, expr, levels, evaluation: Evaluation):
         "Reverse[expr_, levels_]"
         if isinstance(levels, Integer):
-            py_levels = [levels.get_int_value()]
+            py_levels = [levels.int_value]
         elif levels.get_head_name() == "System`List":
             if not levels.elements:
                 return expr
@@ -1118,7 +1118,7 @@ class Reverse(Builtin):
                 py_levels = None
             else:
                 py_levels = sorted(
-                    list(set(level.get_int_value() for level in levels.elements))
+                    list(set(level.int_value for level in levels.elements))
                 )
         else:
             py_levels = None

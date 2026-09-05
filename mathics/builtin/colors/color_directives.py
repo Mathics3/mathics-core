@@ -372,23 +372,13 @@ class ColorDistance(Builtin):
                         distance_function.elements[1].elements[1], Integer
                     ):
                         if (
-                            distance_function.elements[1].elements[0].get_int_value()
-                            > 0
-                            and distance_function.elements[1]
-                            .elements[1]
-                            .get_int_value()
-                            > 0
+                            distance_function.elements[1].elements[0].int_value > 0
+                            and distance_function.elements[1].elements[1].int_value > 0
                         ):
                             lightness = (
-                                distance_function.elements[1]
-                                .elements[0]
-                                .get_int_value()
+                                distance_function.elements[1].elements[0].int_value
                             )
-                            chroma = (
-                                distance_function.elements[1]
-                                .elements[1]
-                                .get_int_value()
-                            )
+                            chroma = distance_function.elements[1].elements[1].int_value
 
                             def compute(c1, c2):
                                 return (

@@ -98,7 +98,7 @@ class EvenQ(Test):
     summary_text = "test whether elements are even numbers"
 
     def test(self, n) -> bool:
-        value = n.get_int_value()
+        value = n.int_value
         return value is not None and value % 2 == 0
 
 
@@ -407,7 +407,7 @@ class OddQ(Test):
     summary_text = "test whether elements are odd numbers"
 
     def test(self, n) -> bool:
-        value = n.get_int_value()
+        value = n.int_value
         return value is not None and value % 2 != 0
 
 
@@ -556,7 +556,7 @@ class PrimeQ(SympyFunction):
     def eval(self, n, evaluation: Evaluation) -> BooleanType:
         "PrimeQ[n_]"
 
-        n = n.get_int_value()
+        n = n.int_value
         if n is None:
             return SymbolFalse
 

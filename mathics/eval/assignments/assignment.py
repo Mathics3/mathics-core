@@ -571,7 +571,7 @@ def eval_assign_iteration_limit(
     Set ownvalue for the $IterationLimit symbol.
     """
 
-    rhs_int_value = rhs.get_int_value()
+    rhs_int_value = rhs.int_value
     if (
         not rhs_int_value or rhs_int_value < 20
     ) and not rhs.get_name() == "System`Infinity":
@@ -612,7 +612,7 @@ def eval_assign_line_number_and_history_length(
     """
 
     lhs_name = lhs.get_name()
-    rhs_int_value = rhs.get_int_value()
+    rhs_int_value = rhs.int_value
     if rhs_int_value is None or rhs_int_value < 0:
         evaluation.message(lhs_name, "intnn", rhs)
         raise AssignmentException(lhs, None)
@@ -759,7 +759,7 @@ def eval_assign_minprecision(
 
     """
     lhs_name = lhs.get_name()
-    rhs_int_value = rhs.get_int_value()
+    rhs_int_value = rhs.int_value
     # $MinPrecision = Infinity is not allowed
     if rhs_int_value is not None and rhs_int_value >= 0:
         max_prec = evaluation.definitions.get_config_value("$MaxPrecision")
@@ -803,8 +803,8 @@ def eval_assign_maxprecision(
 
     """
     lhs_name = lhs.get_name()
-    rhs_int_value = rhs.get_int_value()
-    if rhs.has_form(SymbolDirectedInfinity, 1) and rhs.elements[0].get_int_value() == 1:
+    rhs_int_value = rhs.int_value
+    if rhs.has_form(SymbolDirectedInfinity, 1) and rhs.elements[0].int_value == 1:
         return False
     if rhs_int_value is not None and rhs_int_value > 0:
         min_prec = evaluation.definitions.get_config_value("$MinPrecision")
@@ -887,7 +887,7 @@ def eval_assign_module_number(
     """
     Set ownvalue for the $ModuleNumber symbol.
     """
-    rhs_int_value = rhs.get_int_value()
+    rhs_int_value = rhs.int_value
     if not rhs_int_value or rhs_int_value <= 0:
         evaluation.message("$ModuleNumber", "set", rhs)
         raise AssignmentException(lhs, None)
@@ -1193,7 +1193,7 @@ def eval_assign_random_state(
     # from call here mathics.builtin.numbers.randomnumbers import (
     # set_random_state,
     # )
-    # set_random_state(rhs.get_int_value())
+    # set_random_state(rhs.int_value)
     #
     evaluation.message("$RandomState", "rndst", rhs)
     return False
@@ -1205,7 +1205,7 @@ def eval_assign_recursion_limit(
     """
     Set ownvalue for the $RecursionLimit symbol.
     """
-    rhs_int_value = rhs.get_int_value()
+    rhs_int_value = rhs.int_value
     # if (not rhs_int_value or rhs_int_value < 20) and not
     # rhs.get_name() == 'System`Infinity':
     if (

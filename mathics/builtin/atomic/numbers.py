@@ -263,7 +263,7 @@ class IntegerLength(Builtin):
     def eval(self, n, b, evaluation):
         """IntegerLength[n_, b_]"""
 
-        n, b = n.get_int_value(), b.get_int_value()
+        n, b = n.int_value, b.int_value
         if n is None or b is None:
             evaluation.message("IntegerLength", "int")
             return
@@ -399,7 +399,7 @@ class RealDigits(Builtin):
         # expr = Expression(SymbolRealDigits, n)
         py_n = abs(n.value)
         py_b = b.value
-        if check_finite_decimal(n.denominator().get_int_value()) and not py_b % 2:
+        if check_finite_decimal(n.denominator().int_value) and not py_b % 2:
             return self.eval_with_base(n, b, evaluation)
         else:
             exp = log_n_b(py_n, py_b)
@@ -441,7 +441,7 @@ class RealDigits(Builtin):
         rational_no = (
             True if isinstance(n, Rational) else False
         )  # it is used for checking whether the input n is a rational or not
-        py_b = b.get_int_value()
+        py_b = b.int_value
         if isinstance(n, (Expression, Symbol, Rational)):
             pos_len = abs(pos) + 1 if pos is not None and pos < 0 else 1
             if nr_elements is not None:
@@ -558,12 +558,12 @@ class RealDigits(Builtin):
         if pos is not None:
             elements.append(from_python(pos))
         expr = Expression(SymbolRealDigits, n, b, length, *elements)
-        if not (isinstance(length, Integer) and length.get_int_value() >= 0):
+        if not (isinstance(length, Integer) and length.int_value >= 0):
             evaluation.message("RealDigits", "intnm", Integer3, expr)
             return
 
         return self.eval_with_base(
-            n, b, evaluation, nr_elements=length.get_int_value(), pos=pos
+            n, b, evaluation, nr_elements=length.int_value, pos=pos
         )
 
     def eval_with_base_length_and_precision(self, n, b, length, p, evaluation):
@@ -574,9 +574,7 @@ class RealDigits(Builtin):
             )
             return
 
-        return self.eval_with_base_and_length(
-            n, b, length, evaluation, pos=p.get_int_value()
-        )
+        return self.eval_with_base_and_length(n, b, length, evaluation, pos=p.int_value)
 
 
 class MaxPrecision(Predefined):

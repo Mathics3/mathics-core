@@ -74,7 +74,7 @@ class Array(Builtin):
         else:
             dims = [dimsexpr]
         for index, dim in enumerate(dims):
-            value = dim.get_int_value()
+            value = dim.int_value
             if value is None:
                 evaluation.message("Array", "ilsnn", 2)
                 return
@@ -87,7 +87,7 @@ class Array(Builtin):
         else:
             origins = [origins] * len(dims)
         for index, origin in enumerate(origins):
-            value = origin.get_int_value()
+            value = origin.int_value
             if value is None:
                 evaluation.message("Array", "ilsnn", 3)
                 return
@@ -352,12 +352,12 @@ class Permutations(Builtin):
 
         rs: Optional[Tuple[int, ...]] = None
         if isinstance(n, Integer):
-            py_n = min(n.get_int_value(), len(li.elements))
+            py_n = min(n.int_value, len(li.elements))
         elif n.has_form("List", 1) and isinstance(n.elements[0], Integer):
-            py_n = n.elements[0].get_int_value()
+            py_n = n.elements[0].int_value
             rs = (py_n,)
         elif (
-            n.has_form("DirectedInfinity", 1) and n.elements[0].get_int_value() == 1
+            n.has_form("DirectedInfinity", 1) and n.elements[0].int_value == 1
         ) or n.get_name() == "System`All":
             py_n = len(li.elements)
         else:

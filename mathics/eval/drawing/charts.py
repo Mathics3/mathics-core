@@ -61,7 +61,7 @@ def eval_chart(self, points, evaluation: Evaluation, options: dict):
 
     def to_number(x):
         if isinstance(x, Integer):
-            return float(x.get_int_value())
+            return float(x.int_value)
         return x.round_to_float(evaluation=evaluation)
 
     data = [[to_number(x) for x in group.elements] for group in groups]

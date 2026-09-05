@@ -702,7 +702,7 @@ class Put(InfixOperator):
 
     def eval_input(self, exprs, name, n, evaluation: Evaluation):
         "Put[exprs___, OutputStream[name_, n_]]"
-        stream = stream_manager.lookup_stream(n.get_int_value())
+        stream = stream_manager.lookup_stream(n.int_value)
 
         if stream is None or stream.io.closed:
             evaluation.message("Put", "openx", evaluation.current_expression)
@@ -799,7 +799,7 @@ class PutAppend(InfixOperator):
 
     def eval_input(self, exprs, name, n, evaluation: Evaluation):
         "PutAppend[exprs___, OutputStream[name_, n_]]"
-        stream = stream_manager.lookup_stream(n.get_int_value())
+        stream = stream_manager.lookup_stream(n.int_value)
 
         if stream is None or stream.io.closed:
             evaluation.message("Put", "openx", evaluation.current_expression)
@@ -1258,7 +1258,7 @@ class StreamPosition(Builtin):
 
     def eval_input(self, name, n, evaluation):
         "StreamPosition[InputStream[name_, n_]]"
-        stream = stream_manager.lookup_stream(n.get_int_value())
+        stream = stream_manager.lookup_stream(n.int_value)
 
         if stream is None or stream.io is None or stream.io.closed:
             evaluation.message("General", "openx", name)
@@ -1317,7 +1317,7 @@ class SetStreamPosition(Builtin):
 
     def eval_input(self, name, n, m, evaluation):
         "SetStreamPosition[InputStream[name_, n_], m_]"
-        stream = stream_manager.lookup_stream(n.get_int_value())
+        stream = stream_manager.lookup_stream(n.int_value)
 
         if stream is None or stream.io is None or stream.io.closed:
             evaluation.message("General", "openx", name)
@@ -1671,7 +1671,7 @@ class Write(Builtin):
             strm = channel_to_stream(channel, "w")
             if strm is None:
                 return
-            stream = stream_manager.lookup_stream(strm.elements[1].get_int_value())
+            stream = stream_manager.lookup_stream(strm.elements[1].int_value)
 
         if stream is None or stream.io is None or stream.io.closed:
             evaluation.message("General", "openx", channel)
@@ -1740,9 +1740,7 @@ class WriteString(Builtin):
             stream_expr = channel_to_stream(channel, "w")
             if stream_expr is None:
                 return
-            stream = stream_manager.lookup_stream(
-                stream_expr.elements[1].get_int_value()
-            )
+            stream = stream_manager.lookup_stream(stream_expr.elements[1].int_value)
         else:
             evaluation.message("WriteString", "strml", channel)
             return

@@ -314,7 +314,7 @@ def eval_LeviCivitaTensor(d, type):
     "Evaluates Levi-Civita tensor of rank d"
 
     if isinstance(d, Integer) and type == SymbolSparseArray:
-        d = d.get_int_value()
+        d = d.int_value
         perms = list(permutations(list(range(1, d + 1))))
         rules = [
             Expression(
