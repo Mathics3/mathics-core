@@ -64,7 +64,7 @@ def test_upset():
 
 
 def test_order():
-    check_evaluation(None, None)
+    check_evaluation(None, None)  # Reset session
     check_evaluation(
         "f[___]:=1;f[_,_]:=2; f[1,2]", "2", "f[_,_] must have priority over f[___]"
     )
@@ -114,7 +114,7 @@ def test_setdelayed_oneidentity():
             None,
             None,
             None,
-        ),
+        ),  # Reset session
         ("Attributes[Pi]", "{Constant, Protected, ReadProtected}", None),
         ("Unprotect[Pi]; Pi=.; Attributes[Pi]", "{Constant, ReadProtected}", None),
         ("Unprotect[Pi];Clear[Pi]; Attributes[Pi]", "{Constant, ReadProtected}", None),
@@ -135,7 +135,7 @@ def test_setdelayed_oneidentity():
         #    "{}",
         #    "In WMA, options are erased, including the builtin options",
         # ),
-        (None, None, None),
+        (None, None, None),  # reset session
         # Check over a builtin symbol
         (
             "{Pi,  Unprotect[Pi];Pi=3;Pi, Clear[Pi];Pi}",
@@ -215,7 +215,7 @@ def test_setdelayed_oneidentity():
             "{a + b, Q[a, b], a + b}",
             None,
         ),
-        (None, None, None),
+        (None, None, None),  # reset session
         (r"a=b; a=4; {a, b}", "{4, b}", None),
         (None, None, None),
         (r"a=b; b=4;  {a,b}", "{4, 4}", None),
@@ -468,6 +468,7 @@ def test_process_assign_other():
 @pytest.mark.parametrize(
     ["expr", "expect", "assert_msg"],
     [
+        (None, None, None),  # reset session
         # Behavior with symbols in the LHS
         ("ClearAll[A,T];A=T; T=2; {A, T}", "{2, 2}", "Assignment to symbols"),
         (
@@ -648,6 +649,7 @@ def test_assignment(expr, expect, assert_msg):
     [
         # Trivial cases on protected symbols, We should
         # get a message in every situation.
+        (None, None, None, None),  # reset session
         (
             "List:=1;",
             None,
@@ -676,7 +678,7 @@ def test_assignment(expr, expect, assert_msg):
             "ClearAll[F,A,Y,x]; A=T; F[{a,b,c},Y[x_]]^:=x^2; ClearAll[A,F]; F[{a,b,c},Y[2]]",
             "4",
             "There is a warning, because a rule cannot be associated to List, but it is stored on Y.",
-            ("Tag List in F[{{G[x]}, b, c}, Y[x_]] is Protected.",),
+            ("Tag List in F[{a, b, c}, Y[x_]] is Protected.",),
         ),
     ],
 )
