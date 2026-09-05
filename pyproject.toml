@@ -20,7 +20,7 @@ description = "A general-purpose computer algebra system."
 dependencies = [
     "Mathics3_Scanner>=10.0",
     "mpmath>=1.2.0",
-    "numpy",
+    "numpy>=2.4", # Numpy 1.x is definitely no good
     "palettable",
     "packaging",
     # Pillow 9.1.0 supports BigTIFF with big-endian byte order.
