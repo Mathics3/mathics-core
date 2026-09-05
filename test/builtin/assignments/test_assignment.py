@@ -378,13 +378,13 @@ def test_set_and_clear_to_fix(str_expr, str_expected, msg):
         (
             "Unprotect[$ContextPath];Clear[$Context]",
             "Null",
-            "Trying clear $Context",
+            "Clearing $Context",
             ("Special symbol $Context cannot be cleared.",),
         ),
         (
             "Unprotect[$ContextPath];Clear[$ContextPath]",
             "Null",
-            "Trying clear $ContextPath",
+            "Clearing $ContextPath",
             ("Special symbol $ContextPath cannot be cleared.",),
         ),
         (
@@ -411,9 +411,9 @@ def test_set_and_clear_to_fix(str_expr, str_expected, msg):
             "This clears A and B, but not $ContextPath",
             ("Special symbol $ContextPath cannot be cleared.",),
         ),
-        # `This test was in mathics.builtin.arithmetic.Sum`. It is clear that it does not
-        # belongs there. On the other hand, this is something to check at the level of the interpreter,
-        # and is not related with Sum, or Set.
+        # `This test was in mathics.builtin.arithmetic.Sum`. It does not
+        # belong there. On the other hand, this is something to check at the level of the interpreter,
+        # and is not related to Sum or Set.
         # ("a=Sum[x^k*Sum[y^l,{l,0,4}],{k,0,4}]]", "None" , "syntax error",
         # ('"a=Sum[x^k*Sum[y^l,{l,0,4}],{k,0,4}]" cannot be followed by "]" (line 1 of "<test>").',))
     ],
@@ -484,7 +484,7 @@ def test_process_assign_other():
             "ClearAll[A,T];A=T; A[x_]=x^2; ClearAll[A];  {A[u], T[u]}",
             "{A[u], u^2}",
             (
-                "Rules are associated to T, not A, "
+                "Rules are associated with T, not A, "
                 "because the LHS is evaluated before the assignment."
             ),
         ),
@@ -589,7 +589,7 @@ def test_process_assign_other():
         (
             'ClearAll[A,T,x]; A=T; Format[HoldPattern[A][x_]]:={x,"a"}; T[2]//ToString',
             '"T[2]"',
-            ("Define the format for A, " "because the HoldPattern. Do not affect T"),
+            ("Defines format for A because the HoldPattern does not affect T"),
         ),
         (
             'ClearAll[A,T,x]; A=T; Format[HoldPattern[A][x_]]:={x,"a"}; A[2]//ToString',
@@ -599,7 +599,7 @@ def test_process_assign_other():
         (
             'ClearAll[A,T,x]; A=T; Format[HoldPattern[A][x_]]:={x,"a"}; A=.; A[2]//ToString',
             '"{2, a}"',
-            "Now A do not eval to T...",
+            "Now A does not eval to T...",
         ),
         (
             'ClearAll[A,T,x]; A=T; HoldPattern[Format[A[x_]]]:={x,"a"}; A=.; A[2]//ToString',
@@ -621,17 +621,17 @@ def test_process_assign_other():
         (
             "ClearAll[F,A,Y,x]; A=T; F[A[x_],Y[x_]]^:=x^2; ClearAll[A,F,Y]; F[T[2],Y[2]]",
             "4",
-            "the rule is still stored in T.",
+            "The rule should still be stored in T.",
         ),
         (
             "ClearAll[F,A,Y,x]; A=T; F[HoldPattern[A[x_]],Y[x_]]^:=x^2; ClearAll[A,F,Y]; F[T[2],Y[2]]",
             "F[T[2],Y[2]]",
-            "the rule is still stored in T.",
+            "The rule should still be stored in T using HoldPattern.",
         ),
         (
             "ClearAll[F,A,Y,x]; A=T; F[HoldPattern[A[x_]],Y[x_]]^:=x^2; ClearAll[A,F]; F[A[2],Y[2]]",
             "4",
-            "the rule is still stored in Y.",
+            "The rule should still be stored in Y using HoldPattern.",
         ),
     ],
 )
@@ -646,7 +646,7 @@ def test_assignment(expr, expect, assert_msg):
 @pytest.mark.parametrize(
     ["expr", "expect", "assert_msg", "expected_msgs"],
     [
-        # Trivial cases on protected symbols, We should
+        # Trivial cases on protected symbols. We should
         # get a message in every situation.
         (
             "List:=1;",
