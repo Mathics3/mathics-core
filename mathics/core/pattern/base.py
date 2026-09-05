@@ -452,6 +452,7 @@ class ExpressionPattern(BasePattern):
     # get_pre_choices = pattern_nocython.get_pre_choices
     # match = pattern_nocython.match
     attributes: int
+    elements: Tuple[BasePattern, ...]
 
     def __init__(
         self,
@@ -463,10 +464,10 @@ class ExpressionPattern(BasePattern):
         self.location = expr.location if hasattr(expr, "location") else None
         head = expr.head
         self.head = BasePattern.create(head, evaluation=evaluation)
-        self.elements = [
+        self.elements = tuple(
             BasePattern.create(element, evaluation=evaluation)
             for element in expr.elements
-        ]
+        )
 
     def _build_pattern_sort_key(self) -> tuple:
         return (
@@ -690,7 +691,7 @@ class ExpressionPattern(BasePattern):
 
     def sort(self):
         """Sort the elements according to their sort key"""
-        self.elements.sort(key=lambda e: e.pattern_precedence)
+        self.elements = tuple(sorted(self.elements, key=lambda e: e.pattern_precedence))
 
 
 def expression_pattern_match_element_process_items(

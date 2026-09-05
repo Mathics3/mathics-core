@@ -10,7 +10,7 @@ import os.path as osp
 import pickle
 import re
 from collections import defaultdict
-from typing import Dict, List, Optional, Sequence, Set, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Set, Tuple, Union
 
 from mathics_scanner.tokeniser import full_names_pattern
 
@@ -28,6 +28,9 @@ from mathics.core.systemsymbols import (
 )
 from mathics.core.util import canonic_filename
 from mathics.settings import ROOT_DIR
+
+if TYPE_CHECKING:
+    from mathics.core.evaluation import Evaluation
 
 # Collections of format symbols. Here we load some basic cases.
 # More symbols are populated from FormMeta classes (see `mathics.builtin.forms.base`)
@@ -81,6 +84,25 @@ class Definition:
         for rule in rules:
             if not self.add_rule(rule):
                 print(f"{rule.pattern.expr} could not be associated with {self.name}")
+
+    def _resolve(self, evaluation: "Evaluation"):
+        """
+        Go over all the rules, and ensure that the corresponding patterns are in its final state
+        according to the current evaluation state.
+        """
+        for rule_list in (
+            self.ownvalues,
+            self.downvalues,
+            self.subvalues,
+            self.upvalues,
+            self.nvalues,
+            self.defaultvalues,
+        ):
+            for rule in rule_list:
+                rule._resolve(evaluation)
+        for rule_list in self.formatvalues.values():
+            for rule in rule_list:
+                rule._resolve(evaluation)
 
     def get_values_list(self, pos: str) -> List[BaseRule]:
         """Return one of the value lists"""
@@ -1123,6 +1145,7 @@ def load_builtin_definitions(
     """
     Load definitions from Builtin classes, autoload files and extension modules.
     """
+    from mathics.core.evaluation import Evaluation
     from mathics.core.load_builtin import (
         definition_contribute,
         mathics3_builtins_modules,
@@ -1149,6 +1172,12 @@ def load_builtin_definitions(
         if builtin_filename is not None:
             with open(builtin_filename, "wb") as builtin_file:
                 pickle.dump(self.builtin, builtin_file, -1)
+
+    # Loop over definitions, to resolve on each rule
+    # which special kind of pattern must be considered.
+    evaluation = Evaluation(self)
+    for definition in self.builtin.values():
+        definition._resolve(evaluation)
 
     autoload_files(self, ROOT_DIR, "Autoload")
     autoload_files(self, osp.join(ROOT_DIR, "SystemFiles"), "Formats")
