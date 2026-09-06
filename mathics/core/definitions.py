@@ -880,14 +880,12 @@ def _valuesname(name: str) -> str:
     return name[7:].lower()
 
 
-def get_tag_position(
-    pattern: BaseElement | BasePattern, target: Symbol
-) -> Optional[str]:
+def get_tag_position(pattern: BaseElement | BasePattern, tag: Symbol) -> Optional[str]:
     """
     Determine the position of a pattern in
-    the definition of the symbol ``target``
+    the definition of the symbol ``tag``
     """
-    assert isinstance(target, Symbol), "target must be a symbol"
+    assert isinstance(tag, Symbol), "tag must be a symbol"
     # If pattern is a PatternObject, use the method.
     # In Set* and when Builtin symbols are loaded,
     # a pattern object is available.
@@ -896,63 +894,63 @@ def get_tag_position(
     # We could compile the pattern for that case too
     # but it would introduce some overhead.
     if isinstance(pattern, BasePattern):
-        return pattern.get_tag_position(target)
+        return pattern.get_tag_position(tag)
     # pattern is a BaseElement
-    if pattern is target:
+    if pattern is tag:
         return "ownvalues"
     if isinstance(pattern, Atom):
         return None
     if pattern.has_form(SymbolN, 2):
-        tag = get_tag_position(pattern.get_elements()[0], target)
-        if tag in (
+        position = get_tag_position(pattern.get_elements()[0], tag)
+        if position in (
             None,
             "upvalues",
         ):
             return None
         return "nvalues"
     if pattern.has_form(SymbolHoldPattern, 1):
-        return get_tag_position(pattern.get_elements()[0], target)
+        return get_tag_position(pattern.get_elements()[0], tag)
     if pattern.has_form(SymbolPattern, 2):
-        return get_tag_position(pattern.get_elements()[1], target)
+        return get_tag_position(pattern.get_elements()[1], tag)
     if pattern.has_form(SymbolCondition, 2):
-        return get_tag_position(pattern.get_elements()[0], target)
+        return get_tag_position(pattern.get_elements()[0], tag)
     if pattern.has_form(BLANK_PATTERN_HEADS, 1):
-        if target is pattern.get_elements()[0]:
+        if tag is pattern.get_elements()[0]:
             return "downvalues"
     if pattern.has_form(SymbolVerbatim, 1):
         content = pattern.get_elements()[0]
-        if target is content:
+        if tag is content:
             return "ownvalues"
         if isinstance(content, Atom):
             return None
-        if content.has_form(target, None):
+        if content.has_form(tag, None):
             return "downvalues"
         if (
             content.has_form(SymbolN, 2)
-            and content.get_elements()[0].get_lookup_name() == target.get_name()
+            and content.get_elements()[0].get_lookup_name() == tag.get_name()
         ):
             return "nvalues"
-        if content.get_lookup_name() == target.get_name():
+        if content.get_lookup_name() == tag.get_name():
             return "subvalues"
         for element in content.get_elements():
-            if element is target or element.has_form(target, None):
+            if element is tag or element.has_form(tag, None):
                 return "upvalues"
         return None
 
     head = pattern.get_head()
 
-    if head is target:
+    if head is tag:
         return "downvalues"
 
-    head_pos = get_tag_position(head, target)
+    head_pos = get_tag_position(head, tag)
     if head_pos == "ownvalues":
         return "downvalues"
     if head_pos in ("downvalues", "subvalues"):
         return "subvalues"
 
     for element in pattern.get_elements():
-        elem_tag = get_tag_position(element, target)
-        if elem_tag in ("ownvalues", "downvalues", "subvalues"):
+        elem_position = get_tag_position(element, tag)
+        if elem_position in ("ownvalues", "downvalues", "subvalues"):
             return "upvalues"
     return None
 
