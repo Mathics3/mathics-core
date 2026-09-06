@@ -21,9 +21,10 @@ from mathics.core.keycomparable import (
 )
 from mathics.core.list import ListExpression
 from mathics.core.pattern import BasePattern, StopGenerator
-from mathics.core.symbols import SymbolList
+from mathics.core.symbols import Atom, Symbol, SymbolList
 from mathics.core.systemsymbols import (
     SymbolBlank,
+    SymbolN,
     SymbolRule,
     SymbolRuleDelayed,
     SymbolVerbatim,
@@ -208,6 +209,9 @@ class HoldPattern(PatternObject):
     ) -> None:
         super().init(expr, evaluation=evaluation)
         self.pattern = BasePattern.create(expr.elements[0], evaluation=evaluation)
+
+    def get_tag_position(self, target: Symbol) -> OptionalType[str]:
+        return self.pattern.get_tag_position(target)
 
     def match(self, expression: Expression, pattern_context: dict):
         # for new_vars_dict, rest in self.pattern.match(
@@ -475,6 +479,9 @@ class Pattern(PatternObject):
     def __repr__(self):
         return "<Pattern: %s>" % repr(self.pattern)
 
+    def get_tag_position(self, target: Symbol) -> OptionalType[str]:
+        return self.pattern.get_tag_position(target)
+
     def get_match_count(
         self, vars_dict: OptionalType[dict] = None
     ) -> Union[int, tuple]:
@@ -731,7 +738,31 @@ class Verbatim(PatternObject):
         self, expr: Expression, evaluation: OptionalType[Evaluation] = None
     ) -> None:
         super().init(expr, evaluation=evaluation)
-        self.content = expr.elements[0]
+        elements = expr.elements
+        self.content = elements[0] if len(elements) == 1 else None
+
+    def get_tag_position(self, target: Symbol) -> OptionalType[str]:
+        content = self.content
+        if content is None:
+            return None
+
+        if content is target:
+            return "ownvalues"
+        if isinstance(content, Atom):
+            return None
+        if content.has_form(target, None):
+            return "downvalues"
+        if (
+            content.has_form(SymbolN, 2)
+            and content.elements[0].get_lookup_name() == target.get_name()
+        ):
+            return "nvalues"
+        if content.get_lookup_name() == target.get_name():
+            return "subvalues"
+        for element in content.elements:
+            if element is target or element.has_form(target, None):
+                return "upvalues"
+        return None
 
     def match(self, expression: Expression, pattern_context: dict):
         """Match with Verbatim Pattern"""

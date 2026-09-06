@@ -44,6 +44,11 @@ class _Blank(PatternObject, ABC):
             cls._instance = super().__new__(cls, *args, **kwargs)
         return cls._instance
 
+    def get_tag_position(self, target: Symbol) -> OptionalType[str]:
+        if self.target_head is target:
+            return "downvalues"
+        return None
+
     def init(
         self, expr: Expression, evaluation: OptionalType[Evaluation] = None
     ) -> None:

@@ -17,13 +17,10 @@ from mathics.core.list import ListExpression
 from mathics.core.rules import RewriteRule
 from mathics.core.symbols import Atom, Symbol, SymbolList
 from mathics.core.systemsymbols import (
-    SymbolAnd,
     SymbolBlank,
-    SymbolCondition,
     SymbolFormat,
     SymbolHoldPattern,
     SymbolOptionValue,
-    SymbolPart,
     SymbolPattern,
     SymbolRuleDelayed,
 )
@@ -182,34 +179,6 @@ def is_protected(tag: str, definitions: Definitions) -> bool:
     return bool(A_PROTECTED & definitions.get_attributes(tag))
 
 
-def normalize_lhs(lhs, evaluation):
-    """
-    Process the lhs in a way that:
-
-    * if it is a conditional expression, reduce it to
-      a shallow conditional expression
-      ( Conditional[Conditional[...],tst] -> Conditional[stripped_lhs, tst])
-      with `stripped_lhs` the result of stripping all the conditions from lhs.
-
-    * if ``stripped_lhs`` is not a ``List`` or a ``Part`` expression, evaluate the
-      elements.
-
-    Returns a tuple with the normalized lhs and the lookup_name of the head in stripped_lhs.
-    """
-    cond = None
-    if lhs.get_head() is SymbolCondition:
-        lhs, cond = unroll_conditions(lhs)
-
-    lookup_name = lhs.get_lookup_name()
-    # In WMA, before the assignment, the elements of the (stripped) LHS are evaluated.
-    if isinstance(lhs, Expression) and lhs.get_head() not in (SymbolList, SymbolPart):
-        lhs = lhs.evaluate_elements(evaluation)
-    # If there was a conditional expression, rebuild it with the processed lhs
-    if cond:
-        lhs = Expression(cond.get_head(), lhs, cond.elements[1])
-    return lhs, lookup_name
-
-
 def pop_reference_head(lhs: Expression, lhs_reference: BaseElement):
     """
     Convert expressions of the form
@@ -309,36 +278,6 @@ def rejected_because_protected(
             evaluation.message(op_name, "write", Symbol(tag), lhs)
         return True
     return False
-
-
-def unroll_conditions(lhs: BaseElement) -> Tuple[BaseElement, Optional[Expression]]:
-    """
-    If `lhs` is a nested `Condition` expression,
-    gather all the conditions in a single one, and return a tuple
-    with the `lhs` stripped from the conditions and the shallow condition.
-    If there is no condition, return the `lhs` and `None`.
-    """
-    if isinstance(lhs, Symbol):
-        return lhs, None
-
-    name, lhs_elements = lhs.get_head_name(), lhs.get_elements()
-    conditions = []
-    # This handles the case of many successive conditions:
-    # f[x_]/; cond1 /; cond2 ... ->  f[x_]/; And[cond1, cond2, ...]
-    while name == "System`Condition" and len(lhs_elements) == 2:
-        conditions.append(lhs_elements[1])
-        lhs = lhs_elements[0]
-        if isinstance(lhs, Atom):
-            break
-        name, lhs_elements = lhs.get_head_name(), lhs.get_elements()
-    if len(conditions) == 0:
-        return lhs, None
-
-    condition: BaseElement = (
-        Expression(SymbolAnd, *conditions) if len(conditions) > 1 else conditions[0]
-    )
-    condition = Expression(SymbolCondition, lhs, condition)
-    return lhs, condition
 
 
 def unroll_patterns(

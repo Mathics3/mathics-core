@@ -746,3 +746,34 @@ def test_regression_of_assignment_issues(
         hold_expected=hold_expected,
         expected_messages=messages,
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        (None, None, None),
+        (
+            "Verbatim[F][x_Integer]:=3; DownValues[F]",
+            "{HoldPattern[Verbatim[F][x_Integer]] :> 3}",
+            None,
+        ),
+        ("Verbatim[F][x_Integer]=.; DownValues[F]", "{}", None),
+        (
+            "M[Verbatim[F][u_]]^:=3; UpValues[F]",
+            "{HoldPattern[M[Verbatim[F][u_]]] :> 3}",
+            None,
+        ),
+        ("F/:M[Verbatim[F][u_]]=.; UpValues[F]", "{}", None),
+        (
+            "Unprotect[N]; Verbatim[N][F[x_Integer],_]:=0.;DownValues[N]",
+            "{HoldPattern[Verbatim[N][F[x_Integer], _]] :> 0.}",
+            None,
+        ),
+    ],
+)
+def test_verbatim_assignment(str_expr, str_expected, msg):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        failure_message=msg,
+    )
