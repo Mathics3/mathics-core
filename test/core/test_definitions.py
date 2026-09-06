@@ -35,7 +35,7 @@ def load_pattern_objects():
                 if issubclass(candidate, PatternObject):
                     full_name = f"System`{name}"
                     pattern_objects[full_name] = candidate
-            except:
+            except TypeError:
                 # Not a class
                 continue
 
