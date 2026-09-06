@@ -7,7 +7,7 @@ found in module mathics.builtin.assignments.assignment
 """
 
 from functools import reduce
-from typing import Optional
+from typing import Optional, Tuple
 
 from mathics.core.assignment import (
     get_symbol_list,
