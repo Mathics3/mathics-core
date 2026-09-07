@@ -7,7 +7,7 @@ found in module mathics.builtin.assignments.assignment
 """
 
 from functools import reduce
-from typing import Optional, Tuple
+from typing import Optional
 
 from mathics.core.assignment import (
     get_symbol_list,
@@ -1406,7 +1406,7 @@ def get_lookup_reference_name(expr: BaseElement) -> str:
 
 def process_condition_lhs(
     lhs: Expression, evaluation: Evaluation
-) -> Tuple[BaseElement, BaseElement]:
+) -> tuple[BaseElement, BaseElement]:
     """
     Perform the special evaluation sequence for the left-hand side of an assignment.
 
@@ -1424,7 +1424,7 @@ def process_condition_lhs(
 
     Returns
     -------
-    Tuple[BaseElement, BaseElement]
+    tuple[BaseElement, BaseElement]
         A tuple containing:
         - The processed LHS expression (a `BaseElement`, typically an `Expression`).
           If the base changed during evaluation, the condition chain is rebuilt.
