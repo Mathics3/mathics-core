@@ -1503,7 +1503,7 @@ class UnaryOperator(Operator):
 
         self.precedence = self.get_precedence(name)
         if self.needs_verbatim:
-            name = f"Verbatim[{name}"
+            name = f"Verbatim[{name}]"
         if self.default_formats:
             op_pattern = f"{name}[item_]"
             if op_pattern not in self.formats:

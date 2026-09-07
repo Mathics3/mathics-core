@@ -577,7 +577,7 @@ class Repeated(PostfixOperator, PatternObject):
             "expected at position `1` in `2`."
         )
     }
-
+    needs_verbatim = True
     summary_text = "match to one or more occurrences of a pattern"
 
     def init(
