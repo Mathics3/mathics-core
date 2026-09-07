@@ -16,7 +16,7 @@ from mathics.core.keycomparable import (
     PATTERN_SORT_KEY_PATTERNTEST,
 )
 from mathics.core.pattern import BasePattern
-from mathics.core.symbols import Atom, SymbolTrue
+from mathics.core.symbols import Atom, Symbol, SymbolTrue
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.rules-and-patterns.restrictions"
@@ -66,6 +66,9 @@ class Condition(InfixOperator, PatternObject):
         #    self.pattern = BasePattern.create(expr.elements[0].elements[0])
         # else:
         self.pattern = BasePattern.create(expr.elements[0], evaluation=evaluation)
+
+    def determine_value_role(self, tag_symbol: Symbol) -> OptionalType[str]:
+        return self.pattern.determine_value_role(tag_symbol)
 
     def match(self, expression: Expression, pattern_context: dict):
         """Match with Condition pattern"""

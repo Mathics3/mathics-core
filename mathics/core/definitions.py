@@ -18,13 +18,17 @@ from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.element import BaseElement, fully_qualified_symbol_name
+from mathics.core.pattern import BasePattern
 from mathics.core.rules import BaseRule, RewriteRule
 from mathics.core.symbols import Atom, Symbol, SymbolList, strip_context
 from mathics.core.systemsymbols import (
+    BLANK_PATTERN_HEADS,
     SymbolCondition,
     SymbolDirectedInfinity,
     SymbolHoldPattern,
-    SymbolPatternTest,
+    SymbolN,
+    SymbolPattern,
+    SymbolVerbatim,
 )
 from mathics.core.util import canonic_filename
 from mathics.settings import ROOT_DIR
@@ -63,6 +67,7 @@ class Definition:
         is_numeric: bool = False,
     ) -> None:
         self.name = name
+        self.symbol = Symbol(name)
         rules_dict = rules_dict or {}
         self.ownvalues = rules_dict.get("ownvalues", [])
         self.downvalues = rules_dict.get("downvalues", [])
@@ -102,7 +107,7 @@ class Definition:
 
     def add_rule(self, rule: BaseRule) -> bool:
         """Add a rule. The position is automatically determined."""
-        pos = get_tag_position(rule.pattern.expr, self.name)
+        pos = determine_value_role(rule.pattern.expr, self.symbol)
         if pos:
             return self.add_rule_at(rule, pos)
         return False
@@ -118,7 +123,7 @@ class Definition:
 
     def remove_rule(self, lhs: BaseElement) -> bool:
         """Remove a rule"""
-        position = get_tag_position(lhs, self.name)
+        position = determine_value_role(lhs, self.symbol)
         if position:
             values = self.get_values_list(position)
             for index, existing in enumerate(values):
@@ -875,141 +880,80 @@ def _valuesname(name: str) -> str:
     return name[7:].lower()
 
 
-def get_tag_position(pattern: BaseElement, name: str) -> Optional[str]:
+def determine_value_role(
+    pattern: BaseElement | BasePattern, tagger_symbol: Symbol
+) -> Optional[str]:
     """
     Determine the position of a pattern in
-    the definition of the symbol ``name``
+    the definition of the symbol ``tagger_symbol``
     """
-    blanks = (
-        "System`Blank",
-        "System`BlankSequence",
-        "System`BlankNullSequence",
-    )
-
-    def strip_pattern_name_and_condition(pat) -> BaseElement:
-        """
-        In ``Pattern[name_, pattern_]`` and
-        ``Condition[pattern_, cond_]``
-        the tag is determined by pat.
-        This function strips it to ensure that
-        ``pat`` does not have that form.
-        """
-
-        # Is "pat" as ExpressionPattern or an AtomPattern?
-        # Note: the below test could also be on ExpressionPattern or
-        # AtomPattern, but using hasattr is more flexible if more
-        # kinds of patterns are added.
-        if not hasattr(pat, "head"):
-            return pat
-
-        if hasattr(pat, "elements"):
-            # We have to use get_head_name() below because
-            # pat can either SymbolCondition or <AtomPattern: System`Condition>.
-            # In the latter case, comparing to SymbolCondition is not sufficient.
-            if pat.has_form((SymbolCondition, SymbolPatternTest), 2):
-                return strip_pattern_name_and_condition(pat.elements[0])
-            if pat.has_form(SymbolHoldPattern, 1):
-                return strip_pattern_name_and_condition(pat.elements[0])
-            # The same kind of get_head_name() check is needed here as well and
-            # is not the same as testing against SymbolPattern.
-            if pat.get_head_name() == "System`Pattern":
-                if len(pat.elements) == 2:
-                    return strip_pattern_name_and_condition(pat.elements[1])
-
-        return pat
-
-    def is_pattern_a_kind_of(pattern: BaseElement, pattern_name: str) -> bool:
-        """
-        Returns `True` if `pattern` or any of its alternates is a
-        pattern with name `pattern_name` and `False` otherwise."""
-
-        if pattern_name == pattern.get_lookup_name():
-            return True
-
-        # Try again after stripping Pattern and Condition wrappers:
-        head = strip_pattern_name_and_condition(pattern.get_head())
-        head_name = head.get_lookup_name()
-        if pattern_name == head_name:
-            return True
-
-        # The head is of the form ``_SymbolName|__SymbolName|___SymbolName``
-        # If name matches with SymbolName, then it is a kind of:
-        if head_name in blanks:
-            if isinstance(head, Symbol):
-                return False
-            assert hasattr(head, "elements")
-            sub_elements = head.elements
-            if len(sub_elements) == 1:
-                head_name = head.elements[0].get_name()
-                if head_name == pattern_name:
-                    return True
-        return False
-
-    # If pattern is a Symbol, and coincides with
-    # name, it is an ownvalue:
-
-    if pattern.get_name() == name:
+    assert isinstance(tagger_symbol, Symbol), "tagger_symbol must be a symbol"
+    # If pattern is a PatternObject, use the method.
+    # In Set* and when Builtin symbols are loaded,
+    # a pattern object is available.
+    # The reason to handle BaseElement is that
+    # `Unset` uses it without compiling the pattern.
+    # We could compile the pattern for that case too
+    # but it would introduce some overhead.
+    if isinstance(pattern, BasePattern):
+        return pattern.determine_value_role(tagger_symbol)
+    # pattern is a BaseElement
+    if pattern is tagger_symbol:
         return "ownvalues"
-    # If pattern is an ``Atom``, does not have
-    # a position
     if isinstance(pattern, Atom):
         return None
+    if pattern.has_form(SymbolN, 2):
+        position = determine_value_role(pattern.get_elements()[0], tagger_symbol)
+        if position in (
+            None,
+            "upvalues",
+        ):
+            return None
+        return "nvalues"
+    if pattern.has_form(SymbolHoldPattern, 1):
+        return determine_value_role(pattern.get_elements()[0], tagger_symbol)
+    if pattern.has_form(SymbolPattern, 2):
+        return determine_value_role(pattern.get_elements()[1], tagger_symbol)
+    if pattern.has_form(SymbolCondition, 2):
+        return determine_value_role(pattern.get_elements()[0], tagger_symbol)
+    if pattern.has_form(BLANK_PATTERN_HEADS, 1):
+        if tagger_symbol is pattern.get_elements()[0]:
+            return "downvalues"
+    if pattern.has_form(SymbolVerbatim, 1):
+        content = pattern.get_elements()[0]
+        if tagger_symbol is content:
+            return "ownvalues"
+        if isinstance(content, Atom):
+            return None
+        if content.has_form(tagger_symbol, None):
+            return "downvalues"
+        if (
+            content.has_form(SymbolN, 2)
+            and content.get_elements()[0].get_lookup_name() == tagger_symbol.get_name()
+        ):
+            return "nvalues"
+        if content.get_lookup_name() == tagger_symbol.get_name():
+            return "subvalues"
+        for element in content.get_elements():
+            if element is tagger_symbol or element.has_form(tagger_symbol, None):
+                return "upvalues"
+        return None
 
-    # The pattern is an Expression.
-    head_name = pattern.get_head_name()
-    # If the name is the head name, is a downvalue:
-    if head_name == name:
+    head = pattern.get_head()
+
+    if head is tagger_symbol:
         return "downvalues"
 
-    # Handle special cases
-    if head_name == "System`N":
-        if len(pattern.get_elements()) == 2:
-            return "nvalues"
-
-    # The pattern has the form `_SymbolName | __SymbolName | ___SymbolName`
-    # Then it only can be a downvalue
-    if head_name in blanks:
-        elements = pattern.get_elements()
-        if len(elements) == 1:
-            head_name = elements[0].get_name()
-            return "downvalues" if head_name == name else None
-
-    # TODO: Consider process format_values
-
-    if head_name != "":
-        # Check
-        strip_pattern = strip_pattern_name_and_condition(pattern)
-        if strip_pattern is not pattern:
-            return get_tag_position(strip_pattern, name)
-
-    # The head is not a symbol. Is pattern is "name" kind of pattern?
-    if is_pattern_a_kind_of(pattern, name):
+    head_pos = determine_value_role(head, tagger_symbol)
+    if head_pos == "ownvalues":
+        return "downvalues"
+    if head_pos in ("downvalues", "subvalues"):
         return "subvalues"
 
-    # If we are here, pattern is not an Ownvalue, DownValue, SubValue or NValue
-    # Let's check the elements for UpValues
     for element in pattern.get_elements():
-        lookup_name = element.get_lookup_name()
-        if lookup_name == name:
+        elem_position = determine_value_role(element, tagger_symbol)
+        if elem_position in ("ownvalues", "downvalues", "subvalues"):
             return "upvalues"
-
-        # Strip Pattern and Condition wrappers and check again
-        if lookup_name in (
-            "System`Condition",
-            "System`Pattern",
-        ):
-            element = strip_pattern_name_and_condition(element)
-            lookup_name = element.get_lookup_name()
-            if lookup_name == name:
-                return "upvalues"
-        # Check if one of the elements is not a "Blank"
-
-        if element.get_head_name() in blanks:
-            sub_elements = element.get_elements()
-            if len(sub_elements) == 1:
-                if sub_elements[0].get_name() == name:
-                    return "upvalues"
-    # ``pattern`` does not have a tag position in the Definition
     return None
 
 

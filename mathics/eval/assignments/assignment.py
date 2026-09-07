@@ -38,6 +38,7 @@ from mathics.core.symbols import (
     valid_context_name,
 )
 from mathics.core.systemsymbols import (
+    BLANK_PATTERN_HEADS,
     SymbolBlank,
     SymbolBlankNullSequence,
     SymbolBlankSequence,
@@ -118,13 +119,18 @@ def eval_assign(
 
     try:
         # Handle special cases using the lookup name associated to the lhs_reference
-        lookup_name = lhs_reference_expr.get_lookup_name()
+        if lhs_reference_expr.has_form(SymbolVerbatim, 1):
+            lookup_name = lhs_reference_expr.elements[0].get_lookup_name()
+        else:
+            lookup_name = lhs_reference_expr.get_lookup_name()
         assignment_func = ASSIGNMENT_FUNCTION_MAP.get(lookup_name, None)
         if assignment_func:
             return assignment_func(
                 op_name, lhs, lhs_reference, rhs, evaluation, tags, upset
             )
-        if isinstance(lhs, Expression) and not lhs.has_form(SymbolHoldPattern, 1):
+        if isinstance(lhs, Expression) and not lhs.has_form(
+            (SymbolVerbatim, SymbolHoldPattern), 1
+        ):
             lhs = lhs.evaluate_elements(evaluation)
             lhs_reference_expr = get_reference_expression(lhs)
             lhs_reference = (
@@ -1382,7 +1388,12 @@ def get_lookup_reference_name(expr: BaseElement) -> str:
     if expr.has_form(SymbolVerbatim, 1):
         # For Verbatim pick the lookup name directly from the expression.
         return expr.elements[0].get_lookup_name()
-    if expr.has_form((SymbolBlank, SymbolBlankSequence, SymbolBlankNullSequence), None):
+    if isinstance(expr, Atom):
+        return expr.get_lookup_name()
+    expr_head = expr.head
+    if expr_head.has_form(SymbolVerbatim, 1):
+        return expr_head.elements[0].get_lookup_name()
+    if expr.has_form(BLANK_PATTERN_HEADS, None):
         if len(expr.elements) == 1:
             return get_lookup_reference_name(expr.elements[0])
         return ""
@@ -1484,7 +1495,8 @@ def process_tags_and_upset_allow_custom(
             # set to its argument. If it does not have arguments (or have many)
             # skip it.
             element_name = get_lookup_reference_name(element)
-            if element_name is not None:
+            if element_name != "":
+                assert element_name is not None
                 tags_set.add(element_name)
         return list(tags_set), lhs_reference_expr
 
