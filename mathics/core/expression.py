@@ -1907,9 +1907,10 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
     def is_numeric(self, evaluation=None) -> bool:
         if evaluation:
-            if not A_NUMERIC_FUNCTION & evaluation.definitions.get_attributes(
-                self._head.get_name()
-            ):
+            name = self._head.get_name()
+            if name == "":
+                return False
+            if not A_NUMERIC_FUNCTION & evaluation.definitions.get_attributes(name):
                 return False
             for element in self._elements:
                 if not element.is_numeric(evaluation):

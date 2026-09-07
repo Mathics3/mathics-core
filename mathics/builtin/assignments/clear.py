@@ -25,6 +25,7 @@ from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolOptions,
 )
+from mathics.eval.assignments import get_lookup_reference_name
 
 
 class Clear(Builtin):
@@ -268,7 +269,7 @@ class Unset(PostfixOperator):
                 empty = []
             evaluation.definitions.set_values(symbol, expr.get_head_name(), empty)
             return SymbolNull
-        name = expr.get_lookup_name()
+        name = get_lookup_reference_name(expr)
         if not name:
             evaluation.message("Unset", "usraw", expr)
             return SymbolFailed
@@ -300,8 +301,6 @@ class TagUnset(PostfixOperator):
       <dd>removes any value belonging to the patter $patt$ from $f$.
     </dl>
 
-
-
     Let's consider we define an UpValue for a symbol g:
     >> Sin[g[x_]]^:=Sing[x];
     in a way that
@@ -325,7 +324,6 @@ class TagUnset(PostfixOperator):
 
     def eval_general(self, tag, expr, evaluation):
         "TagUnset[tag_, expr_]"
-
         if not isinstance(tag, Symbol):
             evaluation.message("TagSet", "sym", tag)
             return SymbolNull

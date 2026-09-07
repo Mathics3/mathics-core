@@ -30,38 +30,12 @@ from mathics.core.keycomparable import (
     BASIC_EXPRESSION_PATTERN_SORT_KEY,
     END_OF_LIST_PATTERN_SORT_KEY,
 )
-from mathics.core.symbols import Atom, Symbol, symbol_set
-from mathics.core.systemsymbols import (
-    SymbolAlternatives,
-    SymbolBlank,
-    SymbolBlankNullSequence,
-    SymbolBlankSequence,
-    SymbolCondition,
-    SymbolOptional,
-    SymbolOptionsPattern,
-    SymbolPattern,
-    SymbolPatternTest,
-    SymbolRepeated,
-    SymbolRepeatedNull,
-    SymbolSequence,
-)
+from mathics.core.symbols import Atom, Symbol
+from mathics.core.systemsymbols import SYSTEM_SYMBOLS_PATTERNS, SymbolN, SymbolSequence
 
 if TYPE_CHECKING:
     from mathics.core.builtin import PatternObject
 
-SYSTEM_SYMBOLS_PATTERNS = symbol_set(
-    SymbolAlternatives,
-    SymbolBlank,
-    SymbolBlankNullSequence,
-    SymbolBlankSequence,
-    SymbolCondition,
-    SymbolOptional,
-    SymbolOptionsPattern,
-    SymbolPattern,
-    SymbolPatternTest,
-    SymbolRepeated,
-    SymbolRepeatedNull,
-)
 
 pattern_objects: Dict[str, Type["PatternObject"]] = {}
 
@@ -262,6 +236,26 @@ class BasePattern(ABC):
         """The sequence of elements in the expression"""
         return self.expr.get_sequence()
 
+    def determine_value_role(self, tag_symbol: Symbol) -> Optional[str]:
+        """
+        Return the position relative to the Symbol `target`.
+        When the position cannot be decided, returns `None`.
+
+        If a pattern matches with a Symbol, the position is
+        "own" if the symbol coincides with target.
+
+        For expressions of the form head_Symbol[...], the
+        position is "down" if head coincides with target,
+        and "up" if target coincides with the head of one of
+        the elements.
+        If the expression is of the form head_Symbol[...][...]
+        the position is "sub" if the lookup name coincides with
+        the name of the target.
+        Special cases like `Condition[...]`, `Verbatim[...]`
+        or `HoldPattern[]` are handled by the subclasses.
+        """
+        return None
+
     def has_form(
         self,
         heads: Sequence[str | Symbol] | str | Symbol,
@@ -385,6 +379,11 @@ class AtomPattern(BasePattern):
     def __repr__(self):
         return f"<AtomPattern: {self.atom}>"
 
+    def determine_value_role(self, tag_symbol: Symbol) -> Optional[str]:
+        if tag_symbol is self.atom:
+            return "ownvalues"
+        return None
+
     def match_symbol(
         self,
         expression: BaseElement,
@@ -487,6 +486,29 @@ class ExpressionPattern(BasePattern):
         return [
             element for element in self.elements if element.get_head_name() == head_name
         ]
+
+    def determine_value_role(self, tag_symbol: Symbol) -> Optional[str]:
+        # Special case: Nvalues
+        if self.expr.has_form(SymbolN, 2):
+            tag = self.elements[0].determine_value_role(tag_symbol)
+            if tag in (
+                None,
+                "upvalues",
+            ):
+                return None
+            return "nvalues"
+
+        head = self.head
+        head_pos = head.determine_value_role(tag_symbol)
+        if head_pos == "ownvalues":
+            return "downvalues"
+        if head_pos in ("downvalues", "subvalues"):
+            return "subvalues"
+        for element in self.elements:
+            elem_tag = element.determine_value_role(tag_symbol)
+            if elem_tag in ("ownvalues", "downvalues", "subvalues"):
+                return "upvalues"
+        return None
 
     def __repr__(self):
         return f"<ExpressionPattern: {self.expr}>"
