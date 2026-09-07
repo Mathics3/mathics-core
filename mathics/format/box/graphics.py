@@ -39,6 +39,8 @@ from mathics.core.systemsymbols import (
     SymbolGraphics,
     SymbolInset,
     SymbolOffset,
+    SymbolSphere,
+    SymbolSphereBox,
     SymbolStyle,
     SymbolText,
 )
@@ -739,7 +741,7 @@ def get_image_size(
 
     image_size = graphics_options["System`ImageSize"]
     if isinstance(image_size, Integer):
-        base_width = image_size.get_int_value()
+        base_width = image_size.int_value
         base_height = None  # will be computed later in calc_dimensions
     elif image_size.has_form(SymbolList, 2):
         base_width, base_height = (
@@ -956,6 +958,9 @@ def primitives_to_boxes(
             ],
         )
 
+    # Sphere-> SphereBox, no Sphere3DBox...
+    if head is SymbolSphere:
+        return Expression(SymbolSphereBox, *content.elements)
     if head in ELEMENT_HEADS:
         if head is SymbolText:
             head = SymbolInset

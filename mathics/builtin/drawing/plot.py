@@ -336,9 +336,7 @@ class Histogram(Builtin):
 
         def manual_bins(bspec, hspec):
             if isinstance(bspec, Integer):
-                distributions = [
-                    Distribution(data, bspec.get_int_value()) for data in matrix
-                ]
+                distributions = [Distribution(data, bspec.int_value) for data in matrix]
                 return graphics(distributions)
             elif bspec.get_head_name() == "System`List" and len(bspec.elements) == 1:
                 bin_width = bspec[0].to_mpmath()

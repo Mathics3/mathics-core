@@ -3,7 +3,7 @@ Module for defining constant compound Mathics3 expressions.
 """
 
 import math
-from typing import Final
+from typing import Final, Optional
 
 from sympy import I, S
 
@@ -36,6 +36,12 @@ class PredefinedExpression(Expression):
             self._sympy = sympy
         if value is not None:
             self.value = value
+
+    @property
+    def int_value(self) -> Optional[int]:
+        if isinstance(self.value, int):
+            return self.value
+        return None
 
 
 MATHICS3_COMPLEX_INFINITY: Final = PredefinedExpression(SymbolDirectedInfinity)

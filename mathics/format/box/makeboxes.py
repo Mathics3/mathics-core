@@ -26,6 +26,8 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (  # SymbolRule, SymbolRuleDelayed,
     SymbolAborted,
     SymbolComplex,
+    SymbolInputForm,
+    SymbolOutputForm,
     SymbolParentForm,
     SymbolRational,
     SymbolStandardForm,
@@ -332,7 +334,12 @@ def format_element(
     """
     was_boxing = evaluation.is_boxing
     evaluation.is_boxing = True
-    formatted_expr = do_format(element, evaluation, form)
+    # InputForm and OutputForm do format in the MakeBoxes implementation.
+    if form in (SymbolInputForm, SymbolOutputForm):
+        formatted_expr = element
+    else:
+        formatted_expr = do_format(element, evaluation, form)
+
     if form not in evaluation.definitions.boxforms:
         formatted_expr = Expression(form, formatted_expr)
         form = SymbolStandardForm

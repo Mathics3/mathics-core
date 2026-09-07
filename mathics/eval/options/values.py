@@ -1,5 +1,5 @@
 from mathics.core.parser import parse_builtin_rule
-from mathics.core.symbols import SymbolList, strip_context
+from mathics.core.symbols import strip_context
 
 
 def filter_non_default_values(builtin):

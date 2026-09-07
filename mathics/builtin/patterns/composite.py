@@ -588,13 +588,13 @@ class Repeated(PostfixOperator, PatternObject):
         if len(expr.elements) == 2:
             element_1 = expr.elements[1]
             allnumbers = not any(
-                element.get_int_value() is None for element in element_1.get_elements()
+                element.int_value is None for element in element_1.get_elements()
             )
             if element_1.has_form("List", 1, 2) and allnumbers:
-                self.max = element_1.elements[-1].get_int_value()
-                self.min = element_1.elements[0].get_int_value()
-            elif element_1.get_int_value():
-                self.max = element_1.get_int_value()
+                self.max = element_1.elements[-1].int_value
+                self.min = element_1.elements[0].int_value
+            elif element_1.int_value:
+                self.max = element_1.int_value
             else:
                 self.error("range", 2, expr)
 

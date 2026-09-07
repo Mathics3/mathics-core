@@ -616,7 +616,7 @@ class BinaryWrite(Builtin):
             expr = Expression(SymbolBinaryWrite, channel, b, kind)
 
         # Check channel
-        stream = stream_manager.lookup_stream(n.get_int_value())
+        stream = stream_manager.lookup_stream(n.int_value)
 
         if stream is None or stream.io.closed:
             evaluation.message("General", "openx", name)
@@ -661,9 +661,9 @@ class BinaryWrite(Builtin):
                 if isinstance(x, Real):
                     x_py = x.to_python()
                 elif x.has_form(SymbolDirectedInfinity, 1):
-                    if x.elements[0].get_int_value() == 1:
+                    if x.elements[0].int_value == 1:
                         x_py = float("+inf")
-                    elif x.elements[0].get_int_value() == -1:
+                    elif x.elements[0].int_value == -1:
                         x_py = float("-inf")
                     else:
                         x_py = None
@@ -689,7 +689,7 @@ class BinaryWrite(Builtin):
                     x_py = None
             elif t.startswith("Character"):
                 if isinstance(x, Integer):
-                    x_list = [String(char) for char in str(x.get_int_value())]
+                    x_list = [String(char) for char in str(x.int_value)]
                     pyb = list(chain(pyb[:i], x_list, pyb[i + 1 :]))
                     x = pyb[i]
                     assert isinstance(x, String)
@@ -711,7 +711,7 @@ class BinaryWrite(Builtin):
                 assert isinstance(x, String)
                 x_py = ord(x.value)
             else:
-                x_py = x.get_int_value()
+                x_py = x.int_value
 
             if x_py is None:
                 evaluation.message(SymbolBinaryWrite, "nocoerce", b)

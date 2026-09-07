@@ -15,7 +15,7 @@ from mathics.builtin.box.graphics3d import (
     Line3DBox,
     Point3DBox,
     Polygon3DBox,
-    Sphere3DBox,
+    SphereBox,
     Tube3DBox,
 )
 from mathics.builtin.box.uniform_polyhedra import UniformPolyhedron3DBox
@@ -271,7 +271,7 @@ def polygon_3d_box(box: Polygon3DBox) -> list:
 add_render_function(Polygon3DBox, polygon_3d_box)
 
 
-def sphere_3d_box(box: Sphere3DBox) -> list:
+def sphere_3d_box(box: SphereBox) -> list:
     face_color = box.face_color.to_js()
     if len(face_color) < 4 and box.face_opacity:
         face_color = face_color + [box.face_opacity.opacity]
@@ -281,11 +281,11 @@ def sphere_3d_box(box: Sphere3DBox) -> list:
         face_color,
         {"radius": box.radius},
     )
-    # print("### json Sphere3DBox", data)
+    # print("### json SphereBox", data)
     return data
 
 
-add_render_function(Sphere3DBox, sphere_3d_box)
+add_render_function(SphereBox, sphere_3d_box)
 
 
 def uniform_polyhedron_3d_box(box: UniformPolyhedron3DBox) -> list:

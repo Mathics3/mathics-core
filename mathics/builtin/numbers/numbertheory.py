@@ -998,7 +998,7 @@ class PrimePowerQ(Builtin):
 
     def eval(self, n, evaluation: Evaluation):
         "PrimePowerQ[n_]"
-        n = n.get_int_value()
+        n = n.int_value
         if n is None:
             return SymbolFalse
 

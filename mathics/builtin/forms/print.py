@@ -19,6 +19,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolInputForm, SymbolOutputForm
+from mathics.format.box.formatvalues import do_format_element
 from mathics.format.box.makeboxes import is_print_form_callback
 from mathics.format.form import render_input_form, render_output_form
 
@@ -256,8 +257,8 @@ def eval_makeboxes_outputform(expr: BaseElement, evaluation: Evaluation, **kwarg
     """
     Build a 2D representation of the expression using only keyboard characters.
     """
-
-    text_outputform = str(render_output_form(expr, evaluation, **kwargs))
+    f_expr = do_format_element(expr, evaluation, SymbolOutputForm)
+    text_outputform = str(render_output_form(f_expr, evaluation, **kwargs))
     pane = PaneBox(String('"' + text_outputform + '"'))
     return InterpretationBox(
         pane, Expression(SymbolOutputForm, expr), **{"System`Editable": SymbolFalse}

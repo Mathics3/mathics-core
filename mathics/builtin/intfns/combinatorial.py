@@ -631,7 +631,7 @@ class Subsets(Builtin):
         else:
             head_t = list.head
             # Note: "n" does not have to be an Integer.
-            n_value = n.get_int_value()
+            n_value = n.int_value
             if n_value == 0:
                 return ListExpression(ListExpression())
             if n_value is None or n_value < 0:
@@ -666,7 +666,7 @@ class Subsets(Builtin):
                 return
 
             elif n_len == 1:
-                elem1 = n.elements[0].get_int_value()
+                elem1 = n.elements[0].int_value
                 if elem1 is None or elem1 < 0:
                     evaluation.message("Subsets", "nninfseq", expr)
                     return
@@ -675,9 +675,9 @@ class Subsets(Builtin):
                 step_n = 1
 
             elif n_len == 2:
-                elem1 = n.elements[0].get_int_value()
+                elem1 = n.elements[0].int_value
                 elem2 = (
-                    n.elements[1].get_int_value()
+                    n.elements[1].int_value
                     if not n.elements[1].has_form("DirectedInfinity", 1)
                     else len(list.elements) + 1
                 )
@@ -689,13 +689,13 @@ class Subsets(Builtin):
                 step_n = 1
 
             elif n_len == 3:
-                elem1 = n.elements[0].get_int_value()
+                elem1 = n.elements[0].int_value
                 elem2 = (
-                    n.elements[1].get_int_value()
+                    n.elements[1].int_value
                     if not n.elements[1].has_form("DirectedInfinity", 1)
                     else len(list.elements) + 1
                 )
-                elem3 = n.elements[2].get_int_value()
+                elem3 = n.elements[2].int_value
                 if (
                     elem1 is None
                     or elem2 is None

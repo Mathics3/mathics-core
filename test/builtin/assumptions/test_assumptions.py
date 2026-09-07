@@ -152,7 +152,7 @@ def test_assumptions_integrate(str_expr, str_expected, message):
     LIST_TEST_ASSUMPTIONS_INTEGRATE_FAILING,
 )
 @pytest.mark.xfail(reason="the Assumptions with Integrate is not fully working")
-def test_assumptions_integrate(str_expr, str_expected, message):
+def test_assumptions_integrate2(str_expr, str_expected, message):
     check_evaluation(str_expr, str_expected)
 
 

@@ -14,7 +14,18 @@ from abc import ABC
 from functools import total_ordering
 from itertools import chain
 from types import ModuleType
-from typing import Any, Callable, Iterable, List, Optional, Sequence, Tuple, Union, cast
+from typing import (
+    Any,
+    Callable,
+    Iterable,
+    List,
+    Literal,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+    cast,
+)
 
 import mpmath
 import sympy
@@ -746,7 +757,7 @@ class SympyFunction(SympyObject):
         else:
             return PrecisionReal(sympy_fn.n(d))
 
-    def get_sympy_function(self, elements=None) -> Optional[Callable]:
+    def get_sympy_function(self, _elements=None) -> Optional[Callable]:
         if self.sympy_name:
             return getattr(sympy, self.sympy_name)
         return None
@@ -975,7 +986,7 @@ class CountableInteger:
     # _support_infinity to False.
     _finite: bool
     _upper_limit: bool
-    _integer: Union[str, int, None]
+    _integer: Union[int, Literal["Infinity"], None]
     _support_infinity = False
 
     def __init__(self, value: Union[int, str] = "Infinity", upper_limit=True):
@@ -991,31 +1002,25 @@ class CountableInteger:
     def is_upper_limit(self) -> bool:
         return self._upper_limit
 
-    def get_int_value(self) -> int:
-        assert self._finite
-        return cast(int, self._integer)
-
     def __eq__(self, other) -> bool:
         if isinstance(other, CountableInteger):
             if self._finite:
-                return other._finite and cast(int, self._integer) == other._integer
+                return other._finite and self.int_value == other._integer
             else:
                 return not other._finite
         elif isinstance(other, int):
-            return self._finite and cast(int, self._integer) == other
+            return self._finite and self.int_value == other
         else:
             return False
 
     def __lt__(self, other) -> bool:
         if isinstance(other, CountableInteger):
             if self._finite:
-                return other._finite and cast(int, self._integer) < cast(
-                    int, other._integer
-                )
+                return other._finite and self.int_value < other.int_value
             else:
                 return False
         elif isinstance(other, int):
-            return self._finite and cast(int, self._integer) < other
+            return self._finite and self.int_value < other
         else:
             return False
 
@@ -1050,12 +1055,27 @@ class CountableInteger:
                         n.get_head_name() == "System`DirectedInfinity"
                         and len(n.elements) == 1
                     ):
-                        if n.elements[0].get_int_value() > 0:
+                        if n.elements[0].int_value > 0:
                             return CountableInteger("Infinity", upper_limit=True)
                         else:
                             return CountableInteger(0, upper_limit=True)
 
         return None  # leave original expression unevaluated
+
+    @property
+    def int_value(self) -> int:
+        """
+        Get the Python int value for a CountableInteger.
+        The caller should ensure that self is an integer, as opposed
+        to None or Infinity.
+        """
+        assert (
+            self._finite
+        ), "int_value does not make sense for infinite CountableInteger"
+        assert isinstance(
+            self._integer, int
+        ), f"int_value should only be called when we have an integer; we have in {self}, {self._integer}"
+        return self._integer
 
 
 class AtomBuiltin(Builtin):
@@ -1182,7 +1202,7 @@ class IterationFunction(Builtin, ABC):
     def eval_iter(self, expr, i, imin, imax, di, evaluation):
         "%(name)s[expr_, {i_Symbol, imin_, imax_, di_}]"
 
-        if isinstance(self, SympyFunction) and di.get_int_value() == 1:
+        if isinstance(self, SympyFunction) and di.int_value == 1:
             whole_expr = to_expression(
                 self.get_name(), expr, ListExpression(i, imin, imax)
             )

@@ -136,7 +136,7 @@ class Quantile(Builtin):
                 if py_x is None:
                     return
 
-                if c.get_int_value() == 1 and d.get_int_value() == 0:  # k == 1?
+                if c.int_value == 1 and d.int_value == 0:  # k == 1?
                     results.append(ranked(int(mpceil(py_x))))
                 else:
                     py_floor_x = mpfloor(py_x)

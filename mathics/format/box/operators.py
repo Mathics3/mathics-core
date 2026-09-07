@@ -84,7 +84,7 @@ def eval_postprefix(self, p, expr, h, precedence, form, evaluation):
     if not isinstance(h, String):
         h = Expression(SymbolMakeBoxes, h, form)
 
-    py_precedence = precedence.get_int_value()
+    py_precedence = precedence.int_value
 
     elements = expr.elements
     if len(elements) == 1:

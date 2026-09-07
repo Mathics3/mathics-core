@@ -271,7 +271,7 @@ class Polygon3DBox(PolygonBox):
                 coords.scale(boxscale)
 
 
-class Sphere3DBox(GraphicsElementBox):
+class SphereBox(GraphicsElementBox):
     # summary_text = "box representation for a sphere"
 
     # We have no documentation for this (yet).
@@ -359,7 +359,7 @@ GLOBALS3D.update(
         Symbol("Line3DBox"): Line3DBox,
         Symbol("Point3DBox"): Point3DBox,
         Symbol("Polygon3DBox"): Polygon3DBox,
-        Symbol("Sphere3DBox"): Sphere3DBox,
+        Symbol("SphereBox"): SphereBox,
         Symbol("Tube3DBox"): Tube3DBox,
     }
 )

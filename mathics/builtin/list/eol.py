@@ -410,7 +410,7 @@ class Delete(Builtin):
         positions.sort()
         newexpr = expr
         for position in positions[::-1]:
-            pos = [p.get_int_value() for p in position.get_elements()]
+            pos = [p.int_value for p in position.get_elements()]
             if None in pos:
                 evaluation.message(
                     "Delete", "psl", position.elements[pos.index(None)], expr
@@ -869,13 +869,13 @@ class FirstPosition(Builtin):
             elif len_list == 0:
                 min_Level = max_Level = None
             elif len_list == 1:
-                min_Level = max_Level = level.elements[0].get_int_value()
+                min_Level = max_Level = level.elements[0].int_value
             elif len_list == 2:
-                min_Level = level.elements[0].get_int_value()
-                max_Level = level.elements[1].get_int_value()
+                min_Level = level.elements[0].int_value
+                max_Level = level.elements[1].int_value
         elif isinstance(level, Integer):
             min_Level = 0
-            max_Level = level.get_int_value()
+            max_Level = level.int_value
         else:
             evaluation.message("FirstPosition", "level", level)
             return
@@ -1489,7 +1489,7 @@ class ReplacePart(Builtin):
             else:
                 position = [position]
             for index, pos in enumerate(position):
-                value = pos.get_int_value()
+                value = pos.int_value
                 if value is None:
                     position = None
                     break

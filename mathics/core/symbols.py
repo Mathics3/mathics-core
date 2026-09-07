@@ -177,6 +177,14 @@ class Atom(BaseElement):
         result.original = self
         return result
 
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        raise NotImplementedError
+
     def equal2(self, rhs: Any) -> Optional[bool]:
         """Mathics3 two-argument Equal (==)
         returns True if self and rhs are identical.
@@ -234,12 +242,8 @@ class Atom(BaseElement):
         return self.class_head_name
 
     @property
-    def element_order(self) -> tuple:
-        """
-        Return a tuple value that is used in ordering elements
-        of an expression. The tuple is ultimately compared lexicographically.
-        """
-        raise NotImplementedError
+    def int_value(self) -> Optional[int]:
+        return None
 
     @property
     def pattern_precedence(self) -> tuple:

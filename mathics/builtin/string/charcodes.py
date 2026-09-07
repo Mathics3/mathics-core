@@ -5,7 +5,7 @@ Character Codes
 
 import sys
 
-from mathics.core.atoms import Integer, Integer1, String
+from mathics.core.atoms import Integer, Integer1, String, get_int_value
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
@@ -177,7 +177,7 @@ class FromCharacterCode(Builtin):
             if encoding == "Unicode":
                 s = ""
                 for i, ni in enumerate(li):
-                    pyni = ni.get_int_value()
+                    pyni = get_int_value(ni)
                     if not (pyni is not None and 0 <= pyni <= 0xFFFF):
                         evaluation.message(
                             "FromCharacterCode",
@@ -189,7 +189,7 @@ class FromCharacterCode(Builtin):
                     s += chr(pyni)
                 return s
             else:
-                codes = [x.get_int_value() & 0xFF for x in li]
+                codes = [x.int_value & 0xFF for x in li]
                 return pack_bytes(codes).decode(py_encoding)
 
         try:
@@ -211,7 +211,7 @@ class FromCharacterCode(Builtin):
                 else:
                     return String(convert_codepoint_list(n.elements))
             else:
-                pyn = n.get_int_value()
+                pyn = n.int_value
                 if not (isinstance(pyn, int) and pyn > 0 and pyn < sys.maxsize):
                     evaluation.message("FromCharacterCode", "intnm", Integer1, exp)
                     return

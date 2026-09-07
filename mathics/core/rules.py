@@ -80,7 +80,7 @@ def is_option_rule(element: Any) -> bool:
     or:
       key :> value
     """
-    return element.has_form(RULE_SYMBOL_HEADS, 2)
+    return isinstance(element, Expression) and element.has_form(RULE_SYMBOL_HEADS, 2)
 
 
 def is_rule(element: Any, include_delayed: bool = True) -> bool:

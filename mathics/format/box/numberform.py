@@ -627,7 +627,7 @@ def _format_exponent(
         pexp = ""
     else:
         method = options["ExponentFunction"]
-        pexp_val = method(Integer(rexp)).get_int_value()
+        pexp_val = method(Integer(rexp)).int_value
         if pexp_val is not None:
             exp -= pexp_val
             pexp = str(pexp_val)

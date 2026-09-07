@@ -2,6 +2,8 @@
 Mathics3 Atoms from which compound Mathics3 compound Expressions are made of.
 """
 
+from typing import Final
+
 from mathics.core.atoms.arrays import ByteArray, NumericArray
 from mathics.core.atoms.numerics import (
     COMPARE_PREC,
@@ -29,12 +31,13 @@ from mathics.core.atoms.numerics import (
     RationalOneHalf,
     Real,
     SymbolI,
+    get_int_value,
     is_integer_rational_or_real,
     min_prec,
 )
 from mathics.core.atoms.strings import String, StringFromPython
 
-__all__ = [
+__all__: Final[list[str]] = [
     "ByteArray",
     "COMPARE_PREC",
     "Complex",
@@ -65,6 +68,7 @@ __all__ = [
     "String",
     "StringFromPython",
     "SymbolI",
+    "get_int_value",
     "is_integer_rational_or_real",
     "min_prec",
 ]

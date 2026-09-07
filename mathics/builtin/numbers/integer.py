@@ -151,13 +151,9 @@ class DigitCount(_IntBaseBuiltin):
         base = self._valid_base(b, evaluation)
         if not base:
             return
-        match = d.get_int_value()
+        match = d.int_value
         return Integer(
-            sum(
-                1
-                for digit in _reversed_digits(n.get_int_value(), base)
-                if digit == match
-            )
+            sum(1 for digit in _reversed_digits(n.int_value, base) if digit == match)
         )
 
     def eval_n_b(self, n, b, evaluation):
@@ -166,7 +162,7 @@ class DigitCount(_IntBaseBuiltin):
         if not base:
             return
         occurrence_count = [0] * base
-        for digit in _reversed_digits(n.get_int_value(), base):
+        for digit in _reversed_digits(n.int_value, base):
             occurrence_count[digit] += 1
         # result list is rotated by one element to the left
         return to_mathics_list(*(occurrence_count[1:] + [occurrence_count[0]]))
@@ -359,7 +355,7 @@ class IntegerDigits(_IntBaseBuiltin):
             ListExpression(
                 *[
                     Integer(d)
-                    for d in reversed(list(_reversed_digits(n.get_int_value(), base)))
+                    for d in reversed(list(_reversed_digits(n.int_value, base)))
                 ]
             )
             if base
@@ -374,11 +370,9 @@ class IntegerDigits(_IntBaseBuiltin):
                 *_pad(
                     [
                         Integer(d)
-                        for d in reversed(
-                            list(_reversed_digits(n.get_int_value(), base))
-                        )
+                        for d in reversed(list(_reversed_digits(n.int_value, base)))
                     ],
-                    length.get_int_value(),
+                    length.int_value,
                     self._padding,
                 )
             )
@@ -456,13 +450,13 @@ class IntegerString(Builtin):
 
     def eval_n(self, n, b, evaluation):
         "IntegerString[n_Integer, b_Integer]"
-        s = self._symbols(n.get_int_value(), b.get_int_value(), evaluation)
+        s = self._symbols(n.int_value, b.int_value, evaluation)
         return String(s) if s else None
 
     def eval_n_b_length(self, n, b, length, evaluation):
         "IntegerString[n_Integer, b_Integer, length_Integer]"
-        s = self._symbols(n.get_int_value(), b.get_int_value(), evaluation)
-        return String(_pad(s, length.get_int_value(), "0")) if s else None
+        s = self._symbols(n.int_value, b.int_value, evaluation)
+        return String(_pad(s, length.int_value, "0")) if s else None
 
 
 class IntegerReverse(_IntBaseBuiltin):

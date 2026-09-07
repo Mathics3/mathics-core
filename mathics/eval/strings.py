@@ -135,7 +135,7 @@ def eval_StringFind(self, string, rule, n, evaluation, options, cases):
     elif n.sameQ(MATHICS3_INFINITY):
         py_n = 0
     else:
-        py_n = n.get_int_value()
+        py_n = n.int_value
         if py_n is None or py_n < 0:
             evaluation.message(self.get_name(), "innf", Integer3, expr)
             return

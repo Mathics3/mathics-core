@@ -525,7 +525,7 @@ class Derivative(PostfixOperator, SympyFunction):
         func = exprs[1].elements[0]
         sym_func = sympy.Function(sympy_name(func))(*sym_args)
 
-        counts = [element.get_int_value() for element in exprs[2].elements]
+        counts = [element.int_value for element in exprs[2].elements]
         if None in counts:
             return
 
@@ -590,7 +590,7 @@ class DiscreteLimit(Builtin):
         if sympy_n0 != sympy.oo:
             return
 
-        trials = options["System`Trials"].get_int_value()
+        trials = options["System`Trials"].int_value
 
         if trials is None or trials <= 0:
             evaluation.message("DiscreteLimit", "dltrials")
@@ -1311,7 +1311,7 @@ class Limit(Builtin):
             return
 
         direction = self.get_option(options, "Direction", evaluation)
-        value = direction.get_int_value()
+        value = direction.int_value
         if value == -1:
             dir_sympy = "+"
         elif value == 1:
@@ -2008,7 +2008,7 @@ class SeriesData(Builtin):
             return
         # if the lower order coeffs vanishes, moves xmin and xmax.
         if nonzeroidx_left:
-            nummin = Integer(nummin.get_int_value() + nonzeroidx_left)
+            nummin = Integer(nummin.int_value + nonzeroidx_left)
         if nonzeroidx_right:
             return Expression(
                 SymbolSeriesData,
@@ -2082,9 +2082,9 @@ class SeriesData(Builtin):
                         continue
                     else:
                         data_y, nmin_y, nmax_y, den_y = t.elements[2:]
-                        nmin_val = nmin_y.get_int_value()
-                        nmax_val = nmax_y.get_int_value()
-                        den_val = den_y.get_int_value()
+                        nmin_val = nmin_y.int_value
+                        nmax_val = nmax_y.int_value
+                        den_val = den_y.int_value
                         tseries = (data_y, nmin_val, nmax_val, den_val)
                         series_new = series_plus_series(series, tseries)
                         if series_new:
@@ -2100,14 +2100,14 @@ class SeriesData(Builtin):
             if tnew.get_head() is SymbolSeriesData:
                 y, y0, data_y, nmin_y, nmax_y, den_y = tnew.elements
                 if y.sameQ(x) and y0.sameQ(x0):
-                    nmin_val = nmin_y.get_int_value()
-                    nmax_val = nmax_y.get_int_value()
-                    den_val = den_y.get_int_value()
+                    nmin_val = nmin_y.int_value
+                    nmax_val = nmax_y.int_value
+                    den_val = den_y.int_value
                     tseries = (data_y, nmin_val, nmax_val, den_val)
 
             if tseries is None:
                 data_y = ListExpression(t)
-                tseries = (data_y, 0, max_exponent.get_int_value(), 1)
+                tseries = (data_y, 0, max_exponent.int_value, 1)
             series_new = series_plus_series(series, tseries)
             if series_new:
                 series = series_new
@@ -2135,9 +2135,9 @@ class SeriesData(Builtin):
         """Times[SeriesData[x_, x0_, data_, nummin_, nummax_, den_], coeff__]"""
         series = (
             data,
-            nummin.get_int_value(),
-            nummax.get_int_value(),
-            den.get_int_value(),
+            nummin.int_value,
+            nummax.int_value,
+            den.int_value,
         )
         x_pattern = BasePattern.create(x, evaluation=evaluation)
         incompat_series = []
@@ -2167,9 +2167,9 @@ class SeriesData(Builtin):
                         continue
                     else:
                         data_y, nmin_y, nmax_y, den_y = factor.elements[2:]
-                        nmin_val = nmin_y.get_int_value()
-                        nmax_val = nmax_y.get_int_value()
-                        den_val = den_y.get_int_value()
+                        nmin_val = nmin_y.int_value
+                        nmax_val = nmax_y.int_value
+                        den_val = den_y.int_value
                         tseries = (data_y, nmin_val, nmax_val, den_val)
                         series_new = series_times_series(series, tseries)
                         if series_new:
@@ -2186,14 +2186,14 @@ class SeriesData(Builtin):
             if factor_new.get_head() is SymbolSeriesData:
                 y, y0, data_y, nmin_y, nmax_y, den_y = factor_new.elements
                 if y.sameQ(x) and y0.sameQ(x0):
-                    nmin_val = nmin_y.get_int_value()
-                    nmax_val = nmax_y.get_int_value()
-                    den_val = den_y.get_int_value()
+                    nmin_val = nmin_y.int_value
+                    nmax_val = nmax_y.int_value
+                    den_val = den_y.int_value
                     fseries = (data_y, nmin_val, nmax_val, den_val)
 
             if fseries is None:
                 data_y = ListExpression(factor)
-                fseries = (data_y, 0, max_exponent.get_int_value(), 1)
+                fseries = (data_y, 0, max_exponent.int_value, 1)
             series_new = series_times_series(series, fseries)
             if series_new:
                 series = series_new
@@ -2213,14 +2213,14 @@ class SeriesData(Builtin):
         """D[SeriesData[x_, x0_, data_, nummin_, nummax_, den_], y_]"""
         series = (
             data,
-            nummin.get_int_value(),
-            nummax.get_int_value(),
-            den.get_int_value(),
+            nummin.int_value,
+            nummax.int_value,
+            den.int_value,
         )
         if isinstance(y, Symbol):
             order = 1
         elif y.has_form("List", 2):
-            order = y.elements[1].get_int_value()
+            order = y.elements[1].int_value
             y = y.elements[0]
         else:
             return

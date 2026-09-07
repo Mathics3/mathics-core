@@ -215,6 +215,7 @@ System`ChebyshevT
 System`ChebyshevU
 System`Check
 System`CheckAbort
+System`CheckArguments
 System`ChessboardDistance
 System`Chop
 System`Circle
@@ -1131,7 +1132,7 @@ System`Sow
 System`Span
 System`SparseArray
 System`Sphere
-System`Sphere3DBox
+System`SphereBox
 System`SphericalBesselJ
 System`SphericalBesselY
 System`SphericalHankelH1
@@ -1218,6 +1219,7 @@ System`SyntaxQ
 System`Table
 System`TableForm
 System`TagBox
+System`TagUnset
 System`TagSet
 System`TagSetDelayed
 System`Take

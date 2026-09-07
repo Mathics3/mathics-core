@@ -49,7 +49,7 @@ class FixedPoint(Builtin):
         if n.sameQ(MATHICS3_INFINITY):
             count = None
         else:
-            count = n.get_int_value()
+            count = n.int_value
             if count is None or count < 0:
                 evaluation.message("FixedPoint", "intnn")
                 return
@@ -57,7 +57,7 @@ class FixedPoint(Builtin):
         if count is None:
             count = self.get_option(options, "MaxIterations", evaluation)
             if count.is_numeric(evaluation):
-                count = count.get_int_value()
+                count = count.int_value
             else:
                 count = None
 
@@ -130,7 +130,7 @@ class FixedPointList(Builtin):
         if n.sameQ(MATHICS3_INFINITY):
             count = None
         else:
-            count = n.get_int_value()
+            count = n.int_value
             if count is None or count < 0:
                 evaluation.message("FixedPoint", "intnn")
                 return
@@ -229,7 +229,7 @@ class Nest(Builtin):
     def eval(self, f, expr, n, evaluation):
         "Nest[f_, expr_, n_Integer]"
 
-        n = n.get_int_value()
+        n = n.int_value
         if n is None or n < 0:
             return
         result = expr
@@ -267,7 +267,7 @@ class NestList(Builtin):
     def eval(self, f, expr, n, evaluation):
         "NestList[f_, expr_, n_Integer]"
 
-        n = n.get_int_value()
+        n = n.int_value
         if n is None or n < 0:
             return
 

@@ -42,7 +42,7 @@ class Operate(Builtin):
     def eval(self, p, expr, n, evaluation: Evaluation):
         "Operate[p_, expr_, Optional[n_, 1]]"
 
-        head_depth = n.get_int_value()
+        head_depth = n.int_value
         if head_depth is None or head_depth < 0:
             evaluation.message(
                 "Operate", "intnn", Expression(SymbolOperate, p, expr, n), 3

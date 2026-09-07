@@ -204,7 +204,7 @@ class Slot(SympyFunction, PrefixOperator):
 
     def to_sympy(self, expr: Expression, **kwargs):
         index: Integer = expr.elements[0]
-        return sympy.Symbol(f"{SYMPY_SLOT_PREFIX}{index.get_int_value()}")
+        return sympy.Symbol(f"{SYMPY_SLOT_PREFIX}{index.int_value}")
 
 
 class SlotSequence(PrefixOperator, Builtin):

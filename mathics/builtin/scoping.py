@@ -509,7 +509,7 @@ class Module(Builtin):
 
         scoping_vars = get_scoping_vars(vars, "Module", evaluation)
         replace = {}
-        number = Symbol("$ModuleNumber").evaluate(evaluation).get_int_value()
+        number = Symbol("$ModuleNumber").evaluate(evaluation).int_value
         if number is None:
             number = 1
         evaluation.definitions.set_ownvalue("$ModuleNumber", Integer(number + 1))

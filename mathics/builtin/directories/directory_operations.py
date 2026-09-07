@@ -106,7 +106,6 @@ class DeleteDirectory(Builtin):
         ),
         "nodir": "Directory `1` not found.",
         "dirne": "Directory `1` not empty.",
-        "optx": "Unknown option `1` in `2`",
         "idcts": "DeleteContents expects either True or False.",  # MMA Bug
     }
     options = {

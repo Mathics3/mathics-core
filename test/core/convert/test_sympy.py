@@ -39,16 +39,7 @@ Symbol_y = Symbol("Global`y")
 Symbol_F = Symbol("Global`F")
 Symbol_G = Symbol("Global`G")
 
-from mathics.core.expression import Expression
-from mathics.core.expression_predefined import MATHICS3_COMPLEX_INFINITY
-from mathics.core.symbols import (
-    Symbol,
-    SymbolNull,
-    SymbolPlus,
-    SymbolPower,
-    SymbolTimes,
-)
-from mathics.core.systemsymbols import SymbolE, SymbolExp, SymbolI, SymbolPi, SymbolSin
+from mathics.core.symbols import Symbol
 
 Symbol_a = Symbol("Global`a")
 Symbol_b = Symbol("Global`b")

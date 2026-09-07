@@ -374,7 +374,7 @@ class ReplaceList(Builtin):
         if maxidx == SymbolInfinity or MATHICS3_INFINITY == maxidx:
             max_count = None
         else:
-            max_count = maxidx.get_int_value()
+            max_count = maxidx.int_value
             if max_count is None or max_count < 0:
                 evaluation.message(
                     "ReplaceList",
@@ -469,7 +469,7 @@ class ReplaceRepeated(InfixOperator):
 
         maxit = self.get_option(options, "MaxIterations", evaluation)
         if maxit is not None and maxit.is_numeric(evaluation):
-            maxit = maxit.get_int_value()
+            maxit = maxit.int_value
         else:
             maxit = -1
 

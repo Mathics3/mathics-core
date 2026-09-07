@@ -433,7 +433,7 @@ class BezierCurveBox(_Polyline):
         spline_degree = options.get("System`SplineDegree")
         if not isinstance(spline_degree, Integer):
             raise BoxExpressionError
-        self.spline_degree = spline_degree.get_int_value()
+        self.spline_degree = spline_degree.int_value
 
 
 class CircleBox(ArcBox):
@@ -548,7 +548,7 @@ class FilledCurveBox(GraphicsElementBox):
                         spline_degree = options.get("SplineDegree", Integer(3))
                         if not isinstance(spline_degree, Integer):
                             raise BoxExpressionError
-                        k = spline_degree.get_int_value()
+                        k = spline_degree.int_value
                     elif head == "System`BSplineCurve":
                         raise NotImplementedError  # FIXME convert bspline to bezier here
                         # parts = segment.elements
@@ -864,7 +864,7 @@ class RegularPolygonBox(PolygonBox):
                 x = pos.elements[0].round_to_float()
                 y = pos.elements[1].round_to_float()
 
-            n = item.elements[-1].get_int_value()
+            n = item.elements[-1].int_value
 
             if any(t is None for t in (x, y, r)) or n < 0:
                 raise BoxExpressionError

@@ -348,6 +348,8 @@ SymbolSort: Final[Symbol] = Symbol("System`Sort")
 SymbolSortBy: Final[Symbol] = Symbol("System`SortBy")
 SymbolSpan: Final[Symbol] = Symbol("System`Span")
 SymbolSparseArray: Final[Symbol] = Symbol("System`SparseArray")
+SymbolSphere: Final[Symbol] = Symbol("System`Sphere")
+SymbolSphereBox: Final[Symbol] = Symbol("System`SphereBox")
 SymbolSphericalRegion: Final[Symbol] = Symbol("System`SphericalRegion")
 SymbolSplit: Final[Symbol] = Symbol("System`Split")
 SymbolSqrt: Final[Symbol] = Symbol("System`Sqrt")
@@ -446,4 +448,14 @@ SYSTEM_SYMBOLS_PATTERNS = symbol_set(
     SymbolPatternTest,
     SymbolRepeated,
     SymbolRepeatedNull,
+)
+
+SYSTEM_SYMBOL_VALUES = symbol_set(
+    SymbolDownValues,
+    SymbolMessages,
+    SymbolNValues,
+    SymbolOptions,
+    SymbolOwnValues,
+    SymbolSubValues,
+    SymbolUpValues,
 )

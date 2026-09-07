@@ -129,6 +129,15 @@ class Definition:
             return self.add_rule_at(rule, pos)
         return False
 
+    def remove_format_rule(self, lhs: BaseElement, form: str) -> bool:
+        """Remove a rule"""
+        format_rule_list = self.formatvalues.get(form, [])
+        for index, existing in enumerate(format_rule_list):
+            if existing.pattern.expr.sameQ(lhs):
+                del format_rule_list[index]
+                return True
+        return False
+
     def remove_rule(self, lhs: BaseElement) -> bool:
         """Remove a rule"""
         position = get_tag_position(lhs, self.name)
@@ -832,6 +841,15 @@ class Definitions:
         self.clear_definitions_cache(name)
         return result
 
+    def unset_format(self, name: str, form: str, expr: BaseElement) -> bool:
+        """Remove the rule corresponding to the expression `expr` in
+        the format `form` of the Definition `name`"""
+        definition = self.get_user_definition(self.lookup_name(name))
+        result = definition.remove_format_rule(expr, form)
+        self.mark_changed(definition)
+        self.clear_definitions_cache(name)
+        return result
+
     def get_config_value(
         self, name: str, default: Optional[int] = None
     ) -> Optional[int]:
@@ -844,7 +862,7 @@ class Definitions:
             SymbolDirectedInfinity, 1
         ):
             return None
-        return int(value.to_python())  # .get_int_value())
+        return int(value.to_python())  # .int_value)
 
     def set_config_value(self, name: str, new_value: int) -> None:
         """Set the (own)value of an integer variable"""
