@@ -210,8 +210,8 @@ class HoldPattern(PatternObject):
         super().init(expr, evaluation=evaluation)
         self.pattern = BasePattern.create(expr.elements[0], evaluation=evaluation)
 
-    def get_tag_position(self, target: Symbol) -> OptionalType[str]:
-        return self.pattern.get_tag_position(target)
+    def determine_value_role(self, tag_symbol: Symbol) -> OptionalType[str]:
+        return self.pattern.determine_value_role(tag_symbol)
 
     def match(self, expression: Expression, pattern_context: dict):
         # for new_vars_dict, rest in self.pattern.match(
@@ -479,8 +479,8 @@ class Pattern(PatternObject):
     def __repr__(self):
         return "<Pattern: %s>" % repr(self.pattern)
 
-    def get_tag_position(self, target: Symbol) -> OptionalType[str]:
-        return self.pattern.get_tag_position(target)
+    def determine_value_role(self, tag_symbol: Symbol) -> OptionalType[str]:
+        return self.pattern.determine_value_role(tag_symbol)
 
     def get_match_count(
         self, vars_dict: OptionalType[dict] = None
@@ -741,26 +741,26 @@ class Verbatim(PatternObject):
         elements = expr.elements
         self.content = elements[0] if len(elements) == 1 else None
 
-    def get_tag_position(self, target: Symbol) -> OptionalType[str]:
+    def determine_value_role(self, tag_symbol: Symbol) -> OptionalType[str]:
         content = self.content
         if content is None:
             return None
 
-        if content is target:
+        if content is tag_symbol:
             return "ownvalues"
         if isinstance(content, Atom):
             return None
-        if content.has_form(target, None):
+        if content.has_form(tag_symbol, None):
             return "downvalues"
         if (
             content.has_form(SymbolN, 2)
-            and content.elements[0].get_lookup_name() == target.get_name()
+            and content.elements[0].get_lookup_name() == tag_symbol.get_name()
         ):
             return "nvalues"
-        if content.get_lookup_name() == target.get_name():
+        if content.get_lookup_name() == tag_symbol.get_name():
             return "subvalues"
         for element in content.elements:
-            if element is target or element.has_form(target, None):
+            if element is tag_symbol or element.has_form(tag_symbol, None):
                 return "upvalues"
         return None
 

@@ -5,7 +5,7 @@ Tests functions in mathics.core.definition
 
 import pytest
 
-from mathics.core.definitions import get_tag_position
+from mathics.core.definitions import determine_value_role
 from mathics.core.parser import parse_builtin_rule
 from mathics.core.pattern import BasePattern
 
@@ -118,9 +118,9 @@ load_pattern_objects()
         ("HoldPattern[Condition[Verbatim[G][x_],_]]", "G", "downvalues"),
     ],
 )
-def test_get_tag_position(pattern_str, tag, position):
+def test_determine_value_role(pattern_str, tag, position):
     target = parse_builtin_rule(tag)
     pattern_expr = parse_builtin_rule(pattern_str)
     pattern_pat = BasePattern.create(pattern_expr)
-    assert get_tag_position(pattern_pat, target) == position
-    assert get_tag_position(pattern_expr, target) == position
+    assert determine_value_role(pattern_pat, target) == position
+    assert determine_value_role(pattern_expr, target) == position

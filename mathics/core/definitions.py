@@ -107,7 +107,7 @@ class Definition:
 
     def add_rule(self, rule: BaseRule) -> bool:
         """Add a rule. The position is automatically determined."""
-        pos = get_tag_position(rule.pattern.expr, self.symbol)
+        pos = determine_value_role(rule.pattern.expr, self.symbol)
         if pos:
             return self.add_rule_at(rule, pos)
         return False
@@ -123,7 +123,7 @@ class Definition:
 
     def remove_rule(self, lhs: BaseElement) -> bool:
         """Remove a rule"""
-        position = get_tag_position(lhs, self.symbol)
+        position = determine_value_role(lhs, self.symbol)
         if position:
             values = self.get_values_list(position)
             for index, existing in enumerate(values):
@@ -880,12 +880,14 @@ def _valuesname(name: str) -> str:
     return name[7:].lower()
 
 
-def get_tag_position(pattern: BaseElement | BasePattern, tag: Symbol) -> Optional[str]:
+def determine_value_role(
+    pattern: BaseElement | BasePattern, tagger_symbol: Symbol
+) -> Optional[str]:
     """
     Determine the position of a pattern in
-    the definition of the symbol ``tag``
+    the definition of the symbol ``tagger_symbol``
     """
-    assert isinstance(tag, Symbol), "tag must be a symbol"
+    assert isinstance(tagger_symbol, Symbol), "tagger_symbol must be a symbol"
     # If pattern is a PatternObject, use the method.
     # In Set* and when Builtin symbols are loaded,
     # a pattern object is available.
@@ -894,14 +896,14 @@ def get_tag_position(pattern: BaseElement | BasePattern, tag: Symbol) -> Optiona
     # We could compile the pattern for that case too
     # but it would introduce some overhead.
     if isinstance(pattern, BasePattern):
-        return pattern.get_tag_position(tag)
+        return pattern.determine_value_role(tagger_symbol)
     # pattern is a BaseElement
-    if pattern is tag:
+    if pattern is tagger_symbol:
         return "ownvalues"
     if isinstance(pattern, Atom):
         return None
     if pattern.has_form(SymbolN, 2):
-        position = get_tag_position(pattern.get_elements()[0], tag)
+        position = determine_value_role(pattern.get_elements()[0], tagger_symbol)
         if position in (
             None,
             "upvalues",
@@ -909,47 +911,47 @@ def get_tag_position(pattern: BaseElement | BasePattern, tag: Symbol) -> Optiona
             return None
         return "nvalues"
     if pattern.has_form(SymbolHoldPattern, 1):
-        return get_tag_position(pattern.get_elements()[0], tag)
+        return determine_value_role(pattern.get_elements()[0], tagger_symbol)
     if pattern.has_form(SymbolPattern, 2):
-        return get_tag_position(pattern.get_elements()[1], tag)
+        return determine_value_role(pattern.get_elements()[1], tagger_symbol)
     if pattern.has_form(SymbolCondition, 2):
-        return get_tag_position(pattern.get_elements()[0], tag)
+        return determine_value_role(pattern.get_elements()[0], tagger_symbol)
     if pattern.has_form(BLANK_PATTERN_HEADS, 1):
-        if tag is pattern.get_elements()[0]:
+        if tagger_symbol is pattern.get_elements()[0]:
             return "downvalues"
     if pattern.has_form(SymbolVerbatim, 1):
         content = pattern.get_elements()[0]
-        if tag is content:
+        if tagger_symbol is content:
             return "ownvalues"
         if isinstance(content, Atom):
             return None
-        if content.has_form(tag, None):
+        if content.has_form(tagger_symbol, None):
             return "downvalues"
         if (
             content.has_form(SymbolN, 2)
-            and content.get_elements()[0].get_lookup_name() == tag.get_name()
+            and content.get_elements()[0].get_lookup_name() == tagger_symbol.get_name()
         ):
             return "nvalues"
-        if content.get_lookup_name() == tag.get_name():
+        if content.get_lookup_name() == tagger_symbol.get_name():
             return "subvalues"
         for element in content.get_elements():
-            if element is tag or element.has_form(tag, None):
+            if element is tagger_symbol or element.has_form(tagger_symbol, None):
                 return "upvalues"
         return None
 
     head = pattern.get_head()
 
-    if head is tag:
+    if head is tagger_symbol:
         return "downvalues"
 
-    head_pos = get_tag_position(head, tag)
+    head_pos = determine_value_role(head, tagger_symbol)
     if head_pos == "ownvalues":
         return "downvalues"
     if head_pos in ("downvalues", "subvalues"):
         return "subvalues"
 
     for element in pattern.get_elements():
-        elem_position = get_tag_position(element, tag)
+        elem_position = determine_value_role(element, tagger_symbol)
         if elem_position in ("ownvalues", "downvalues", "subvalues"):
             return "upvalues"
     return None

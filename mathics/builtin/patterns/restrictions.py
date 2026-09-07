@@ -67,8 +67,8 @@ class Condition(InfixOperator, PatternObject):
         # else:
         self.pattern = BasePattern.create(expr.elements[0], evaluation=evaluation)
 
-    def get_tag_position(self, target: Symbol) -> OptionalType[str]:
-        return self.pattern.get_tag_position(target)
+    def determine_value_role(self, tag_symbol: Symbol) -> OptionalType[str]:
+        return self.pattern.determine_value_role(tag_symbol)
 
     def match(self, expression: Expression, pattern_context: dict):
         """Match with Condition pattern"""
