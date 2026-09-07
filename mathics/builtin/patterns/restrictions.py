@@ -7,7 +7,7 @@ Restrictions on Patterns
 from typing import Optional as OptionalType, Tuple
 
 from mathics.core.atoms import Integer, Number, Rational, Real, String
-from mathics.core.attributes import A_HOLD_REST, A_PROTECTED
+from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 from mathics.core.builtin import InfixOperator, PatternObject, Test
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -17,6 +17,7 @@ from mathics.core.keycomparable import (
 )
 from mathics.core.pattern import BasePattern
 from mathics.core.symbols import Atom, Symbol, SymbolTrue
+from mathics.core.systemsymbols import SymbolCondition
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.rules-and-patterns.restrictions"
@@ -52,8 +53,15 @@ class Condition(InfixOperator, PatternObject):
 
     arg_counts = [2]
     # Don't know why this has attribute HoldAll in Mathematica
-    attributes = A_HOLD_REST | A_PROTECTED
+    attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "conditional definition"
+
+    def eval_condition(self, expr, cond, evaluation):
+        """Verbatim[Condition][expr_, cond_]"""
+        new_expr = expr.evaluate(evaluation) or expr
+        if expr is new_expr:
+            return None
+        return Expression(SymbolCondition, new_expr, cond)
 
     def init(
         self, expr: Expression, evaluation: OptionalType[Evaluation] = None
