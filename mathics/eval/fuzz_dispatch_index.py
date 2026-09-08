@@ -32,6 +32,9 @@ ATOM_POOL = [
     "0",
     "-0.0",
     "2/3",
+    "x_",
+    "_Integer",
+    "g[x_]",
 ]
 
 PATTERN_ARG_POOL = [
@@ -68,7 +71,22 @@ def random_lhs(rng):
     head = rng.choice(HEADS)
     arity = rng.randint(0, 5)
     args = [random_pattern_arg(rng) for _ in range(arity)]
-    return f"{head}[{', '.join(args)}]"
+    lhs = f"{head}[{', '.join(args)}]"
+    r = rng.random()
+    if r < 0.2:
+        lhs = f"HoldPattern[{lhs}]"
+    elif r < 0.3:
+        lhs = f"{lhs} /; True"
+    elif r < 0.4:
+        lhs = f"{lhs} ? (True&)"
+    elif r < 0.5 and arity >= 1:
+        # Verbatim wrapping one of the arguments, forcing it to be
+        # treated as a literal instead of a real pattern.
+        args2 = list(args)
+        idx = rng.randrange(len(args2))
+        args2[idx] = f"Verbatim[{args2[idx]}]"
+        lhs = f"{head}[{', '.join(args2)}]"
+    return lhs
 
 
 def random_rule(rng, rhs_id):

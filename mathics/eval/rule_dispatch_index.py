@@ -27,7 +27,6 @@ from mathics.core.attributes import A_FLAT
 from mathics.core.pattern.base import AtomPattern, BasePattern
 from mathics.core.pattern.ordered import OrderedExpressionPattern
 from mathics.core.rules import RewriteRule
-from mathics.core.symbols import Atom
 
 # How many leading argument positions we bother building an index for.
 # Diminishing returns further in, and it keeps build cost/memory bounded.
@@ -39,13 +38,25 @@ MAX_INDEXED_POSITIONS = 2
 DiscriminatorKey = Tuple[str, object]
 
 
-def _unwrap_named(sub_pattern: BasePattern) -> BasePattern:
-    """If `sub_pattern` is a named Pattern[name, inner], return `inner`.
-    Otherwise return `sub_pattern` unchanged."""
-    from mathics.builtin.patterns.composite import Pattern as PatternObj
+def _unwrap_transparent(sub_pattern: BasePattern) -> BasePattern:
+    """
+    Peel off any leading, structurally-transparent wrapper -- named
+    Pattern[name, inner], Condition[inner, test], PatternTest[inner,
+    test] -- to reach the real pattern underneath, for indexing
+    purposes only (mirrors the set of headers that
+    mathics.eval.assignments.assignment.get_reference_expression
+    treats as transparent for classifying a rule, plus named Pattern).
 
-    if isinstance(sub_pattern, PatternObj):
-        return sub_pattern.pattern
+    Deliberately does NOT unwrap Verbatim[inner]: unlike the others,
+    Verbatim changes the meaning of what's inside (it stops being a
+    pattern and becomes literal data to compare against), so looking
+    "through" it would be wrong, not just overly cautious.
+    """
+    from mathics.builtin.patterns.composite import Pattern as PatternObj
+    from mathics.builtin.patterns.restrictions import Condition, PatternTest
+
+    while isinstance(sub_pattern, (PatternObj, Condition, PatternTest)):
+        sub_pattern = sub_pattern.pattern
     return sub_pattern
 
 
@@ -61,7 +72,7 @@ def _is_variable_length(sub_pattern: BasePattern) -> bool:
     from mathics.builtin.patterns.composite import Repeated
     from mathics.builtin.patterns.defaults import Optional
 
-    inner = _unwrap_named(sub_pattern)
+    inner = _unwrap_transparent(sub_pattern)
     return isinstance(inner, (BlankSequence, BlankNullSequence, Optional, Repeated))
 
 
@@ -70,23 +81,51 @@ def _discriminator(sub_pattern: BasePattern) -> Optional[DiscriminatorKey]:
     Return a *necessary* condition for a match at this position, or
     None if the position can't be used to prefilter (it structurally
     accepts more than exactly one concrete value/type at this spot --
-    untyped Blank, PatternTest, Condition, Alternatives, Except, a
-    nested compound sub-pattern, etc.) This function is conservative on
-    purpose: returning None just means "no filtering help from this
-    position", never "reject". Only AtomPattern (literal, via sameQ)
-    and a head-typed Blank (`_h`, `x_h`) are ever used as
-    discriminators, because both are conditions the real matcher
-    enforces unconditionally, regardless of any other clause -- so
-    excluding based on them can never throw away a true match.
+    untyped Blank, Alternatives, Except, a nested compound sub-pattern,
+    etc.) This function is conservative on purpose: returning None just
+    means "no filtering help from this position", never "reject". Only
+    AtomPattern (literal, via sameQ), a head-typed Blank (`_h`, `x_h`),
+    and Verbatim[expr] (literal match against the exact held
+    expression, via sameQ) are ever used as discriminators -- all three
+    are conditions the real matcher enforces unconditionally regardless
+    of any other clause (a wrapping Condition/PatternTest only adds
+    constraints, never loosens what's underneath), so excluding based
+    on them can never throw away a true match.
     """
     from mathics.builtin.patterns.basic import Blank
+    from mathics.builtin.patterns.composite import Verbatim
 
-    inner = _unwrap_named(sub_pattern)
+    inner = _unwrap_transparent(sub_pattern)
     if isinstance(inner, AtomPattern) and inner.isliteral:
         return ("lit", inner.atom)
     if isinstance(inner, Blank) and inner.target_head is not None:
         return ("head", inner.target_head)
+    if isinstance(inner, Verbatim) and inner.content is not None:
+        return ("lit", inner.content)
     return None
+
+
+def _unwrap_hold_pattern(pattern):
+    """
+    Peel off any leading structurally-transparent wrapper --
+    HoldPattern[...], Condition[...], PatternTest[...] -- to reach the
+    real compiled Ordered/OrderlessExpressionPattern underneath, for
+    indexing purposes only. None of these change how matching itself
+    works (their .match() delegates to the inner pattern, possibly
+    adding a constraint), so this doesn't change matching semantics --
+    it only affects which object we inspect to decide *how* to index
+    the rule. This matters in practice for two common shapes:
+    `DownValues[f]`/`UpValues[f]`/etc. always come back as
+    `HoldPattern[lhs] :> rhs`, and a rule like `f[x_Integer] /; x>0`
+    or `f[x_]?test -> rhs` has Condition/PatternTest at the very top.
+    Without unwrapping, none of these would ever get indexed.
+    """
+    from mathics.builtin.patterns.composite import HoldPattern
+    from mathics.builtin.patterns.restrictions import Condition, PatternTest
+
+    while isinstance(pattern, (HoldPattern, Condition, PatternTest)):
+        pattern = pattern.pattern
+    return pattern
 
 
 class RuleDispatchIndex:
@@ -125,7 +164,7 @@ class RuleDispatchIndex:
 
     def _build(self) -> None:
         for i, rule in enumerate(self._rules):
-            pattern = rule.pattern
+            pattern = _unwrap_hold_pattern(rule.pattern)
             if not isinstance(pattern, OrderedExpressionPattern):
                 # OrderlessExpressionPattern (position isn't a stable
                 # concept) or, defensively, a still-Deferred pattern.
@@ -172,9 +211,10 @@ class RuleDispatchIndex:
                 options_per_position = []
                 for pos in range(n_positions):
                     arg = elements[pos]
-                    opts = [("wild",)]
-                    if isinstance(arg, Atom):
-                        opts.append(("lit", arg))
+                    # Always try the literal key, atomic or not -- a
+                    # Verbatim[expr] discriminator can hold a compound
+                    # expression, not just an atom.
+                    opts = [("wild",), ("lit", arg)]
                     arg_head = arg.get_head() if hasattr(arg, "get_head") else None
                     if arg_head is not None:
                         opts.append(("head", arg_head))
@@ -186,4 +226,4 @@ class RuleDispatchIndex:
 
         if len(eligible) == len(self._rules):
             return self._rules
-        return [rule for i, rule in enumerate(self._rules) if i in eligible]
+        return [self._rules[i] for i in sorted(eligible)]
