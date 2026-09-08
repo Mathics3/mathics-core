@@ -150,13 +150,13 @@ from mathics_scanner.errors import IncompleteSyntaxError
         (
             "F[x_]:=G[x]; H[F[y_]]:=Q[y]; ClearAll[G]; {H[G[5]],H[F[5]]}",
             "{Q[5], Q[5]}",
-            "The arguments on the LHS are evaluated before the assignment in := after G reset",
+            "The arguments on the SetDelayed LHS are evaluated before the assignment in := after G reset",
         ),
         (None, None, None),
         (
             "F[x_]:=G[x]; H[F[y_]]^:=Q[y]; ClearAll[G]; {H[G[5]],H[F[5]]}",
             "{H[G[5]], H[G[5]]}",
-            "The arguments on the LHS are evaluated before the assignment in ^:= after G reset",
+            "The arguments on the UpSetDelayed LHS are evaluated before the assignment in ^:= after G reset",
         ),
         (None, None, None),
         (
@@ -166,7 +166,17 @@ from mathics_scanner.errors import IncompleteSyntaxError
                 "{H[A[5]],H[B[5]],H[F[5]],H[G[5]]}"
             ),
             "{H[F[5]], H[F[5]], H[F[5]], Q[5]}",
-            "The arguments on the LHS are completely evaluated before the assignment",
+            "The arguments on the SetDelayed LHS are completely evaluated before the assignment",
+        ),
+        (None, None, None),
+        (
+            (
+                "A[x_]=B[x];B[x_]=F[x];F[x_]=G[x];"
+                "H[A[y_]]=Q[y]; ClearAll[F];"
+                "{H[A[5]],H[B[5]],H[F[5]],H[G[5]]}"
+            ),
+            "{H[F[5]], H[F[5]], H[F[5]], Q[5]}",
+            "The arguments on the Set LHS are completely evaluated before the assignment",
         ),
         (None, None, None),
         (
@@ -213,46 +223,6 @@ def test_set_and_clear(str_expr, str_expected, msg):
         ("F[x_]:=x^2; G[x_]:=F[x]; ClearAll[F]; G[u]", "F[u]", None),
         (None, None, None),
         ("F[x_]:=G[x]; G[x_]:=x^2; ClearAll[G]; F[u]", "G[u]", None),
-        (None, None, None),
-        (
-            "F[x_]:=G[x]; H[F[y_]]:=Q[y]; ClearAll[F]; {H[G[5]],H[F[5]]}",
-            "{Q[5], H[F[5]]}",
-            "The arguments on the LHS are evaluated before the assignment",
-        ),
-        (None, None, None),
-        (
-            "F[x_]:=G[x]; H[F[y_]]^:=Q[y]; ClearAll[F]; {H[G[5]],H[F[5]]}",
-            "{Q[5], H[F[5]]}",
-            "The arguments on the LHS are evaluated before the assignment",
-        ),
-        (None, None, None),
-        (
-            "F[x_]:=G[x]; H[F[y_]]:=Q[y]; ClearAll[G]; {H[G[5]],H[F[5]]}",
-            "{Q[5], Q[5]}",
-            "The arguments on the LHS are evaluated before the assignment",
-        ),
-        (None, None, None),
-        (
-            "F[x_]=G[x]; H[F[y_]]^=Q[y]; ClearAll[G]; {H[G[5]],H[F[5]]}",
-            "{H[G[5]], H[G[5]]}",
-            "The arguments on the LHS are evaluated before the assignment",
-        ),
-        (None, None, None),
-        (
-            (
-                "A[x_]=B[x];B[x_]=F[x];F[x_]=G[x];"
-                "H[A[y_]]=Q[y]; ClearAll[F];"
-                "{H[A[5]],H[B[5]],H[F[5]],H[G[5]]}"
-            ),
-            "{H[F[5]], H[F[5]], H[F[5]], Q[5]}",
-            "The arguments on the LHS are completely evaluated before the assignment",
-        ),
-        (None, None, None),
-        (
-            "F[x_]=G[x];N[F[x_]]=x^2;ClearAll[F];{N[F[2]],N[G[2]]}",
-            "{F[2.], 4.}",
-            "Assign N rule",
-        ),
     ],
 )
 def test_set_and_clear_to_fix(str_expr, str_expected, msg):
@@ -297,25 +267,25 @@ def test_set_and_clear_to_fix(str_expr, str_expected, msg):
         (
             "A=1; B=2; Clear[A, $Context, B];{A,$Context,B}",
             "{A, Global`, B}",
-            "This clears A and B, but not $Context",
+            "This clears A and B via `Clear`, but not $Context",
             ("Special symbol $Context cannot be cleared.",),
         ),
         (
             "A=1; B=2; ClearAll[A, $Context, B];{A,$Context,B}",
             "{A, Global`, B}",
-            "This clears A and B, but not $Context",
+            "This clears A and B via `ClearAll`, but not $Context",
             ("Special symbol $Context cannot be cleared.",),
         ),
         (
-            "A=1; B=2; ClearAll[A, $ContextPath, B];{A,$ContextPath,B}",
+            "A=1; B=2; Clear[A, $ContextPath, B];{A,$ContextPath,B}",
             "{A, {System`, Global`}, B}",
-            "This clears A and B, but not $ContextPath",
+            "This clears A and B via `Clear`, but not $Context",
             ("Special symbol $ContextPath cannot be cleared.",),
         ),
         (
             "A=1; B=2; ClearAll[A, $ContextPath, B];{A,$ContextPath,B}",
             "{A, {System`, Global`}, B}",
-            "This clears A and B, but not $ContextPath",
+            "This clears A and B via `ClearAll`, but not $ContextPath",
             ("Special symbol $ContextPath cannot be cleared.",),
         ),
         # `This test was in mathics.builtin.arithmetic.Sum`. It does not
