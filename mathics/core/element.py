@@ -129,7 +129,15 @@ class BaseElement(KeyComparable, ABC):
             elif l2 is not None and level > l2:
                 return self, False
 
-        for rule in rules:
+        # `rules` is normally a plain list. When it comes from a Dispatch[]
+        # (see mathics.eval.rule_dispatch_index.RuleDispatchIndex), it can
+        # instead offer `.candidates(self)`, a sound-but-possibly-smaller
+        # ordered superset of `rules` to actually try -- never a substitute
+        # for the match below, just a prefilter. Any other `rules` object
+        # (plain list, generator, etc.) is iterated exactly as before.
+        candidates = rules.candidates(self) if hasattr(rules, "candidates") else rules
+
+        for rule in candidates:
             result = rule.apply(self, evaluation, fully=False)
             if result is not None:
                 return result, True

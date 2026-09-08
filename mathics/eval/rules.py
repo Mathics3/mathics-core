@@ -9,6 +9,7 @@ from mathics.core.rules import RewriteRule, is_rule
 from mathics.core.symbols import Atom, Symbol, SymbolList
 from mathics.core.systemsymbols import SymbolDispatch, SymbolRule, SymbolRuleDelayed
 from mathics.eval.parts import python_levelspec
+from mathics.eval.rule_dispatch_index import RuleDispatchIndex
 
 
 # TODO: disentangle me
@@ -33,7 +34,7 @@ def create_rules(
 
     """
     if isinstance(rules_expr, Dispatch):
-        return rules_expr.rules, False
+        return rules_expr.dispatch_index, False
     if rules_expr.has_form("Dispatch", None):
         if rules_expr.get_head() is SymbolList:
             return Dispatch(rules_expr.elements, evaluation)
@@ -151,6 +152,7 @@ class Dispatch(Atom):
 
     src: ListExpression
     rules: List[RewriteRule]
+    dispatch_index: "RuleDispatchIndex"
 
     def __init__(
         self, rule_tuple: Tuple[Expression, ...], evaluation: Evaluation
@@ -164,6 +166,11 @@ class Dispatch(Atom):
             ]
         except:
             raise
+        # Every rule.pattern above is already an Ordered/OrderlessExpressionPattern
+        # (never Deferred) because `evaluation` was available, so it's safe to
+        # build the hash prefilter eagerly here, at the same point where
+        # Ordered-vs-Orderless got resolved and frozen.
+        self.dispatch_index = RuleDispatchIndex(self.rules)
         self._elements = None
         self._head = SymbolDispatch
 

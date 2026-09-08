@@ -142,7 +142,9 @@ class BaseRule(KeyComparable, ABC):
     ) -> None:
         self.location: Optional[Callable] = None
         self.pattern = BasePattern.create(
-            pattern, attributes=attributes, evaluation=evaluation
+            pattern,
+            attributes=attributes,
+            evaluation=evaluation,
         )
 
     def apply(
