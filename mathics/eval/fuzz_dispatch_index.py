@@ -58,6 +58,10 @@ PATTERN_ARG_POOL = [
     "x___",
     "1|2",
     "Except[1]",
+    "1|2|3",
+    "_Integer|_String",
+    "1|x_",
+    "_Integer|_Symbol|4",
 ]
 
 HEADS = ["f", "g", "h"]

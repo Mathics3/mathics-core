@@ -71,21 +71,13 @@ if __name__ == "__main__":
             f"speedup={t_miss_full / t_miss_idx:.1f}x"
         )
 
-    print("\n=== wide bucket at position 0, real discrimination at position 1 ===")
-    for n_rules in (50, 200, 1000):
-        n_lookups = 300
-        t_hit_full, t_miss_full = bench(
-            n_rules, n_lookups, use_index=False, wide_position0=True
-        )
+    print("\n=== wide bucket, large n_rules (isolating O(n) reconstruction cost) ===")
+    for n_rules in (5000, 20000):
+        n_lookups = 150
         t_hit_idx, t_miss_idx = bench(
             n_rules, n_lookups, use_index=True, wide_position0=True
         )
-        print(f"n_rules={n_rules} n_lookups={n_lookups}")
         print(
-            f"  hit(last rule):  full={t_hit_full:.4f}s  indexed={t_hit_idx:.4f}s  "
-            f"speedup={t_hit_full / t_hit_idx:.1f}x"
-        )
-        print(
-            f"  miss:            full={t_miss_full:.4f}s  indexed={t_miss_idx:.4f}s  "
-            f"speedup={t_miss_full / t_miss_idx:.1f}x"
+            f"n_rules={n_rules} n_lookups={n_lookups}  hit={t_hit_idx:.4f}s  miss={t_miss_idx:.4f}s  "
+            f"(per-call: hit={1000*t_hit_idx/n_lookups:.3f}ms miss={1000*t_miss_idx/n_lookups:.3f}ms)"
         )

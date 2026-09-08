@@ -32,6 +32,11 @@ from mathics.core.rules import RewriteRule
 # Diminishing returns further in, and it keeps build cost/memory bounded.
 MAX_INDEXED_POSITIONS = 2
 
+# Cap on how many keys a single Alternatives position may expand into
+# (and, transitively, on the per-rule signature explosion below) --
+# keeps pathological `a|b|c|...` lists from blowing up build time/memory.
+MAX_ALTERNATIVES_BRANCHES = 16
+
 # A discriminator key is either:
 #   ("lit", <atom>)   -- position requires sameQ-equality with a literal
 #   ("head", <Symbol>) -- position requires Head[arg] is exactly this Symbol
@@ -67,13 +72,21 @@ def _is_variable_length(sub_pattern: BasePattern) -> bool:
     Such a pattern breaks the notion of "argument position N" for the
     *whole rule*, not just for this position, since every element to
     its right shifts.
+
+    Recurses into Alternatives: `x__ | y_` is variable-length overall
+    even though one of its branches (`y_`) isn't, because *some* match
+    of this position could still consume more than one element.
     """
     from mathics.builtin.patterns.basic import BlankNullSequence, BlankSequence
-    from mathics.builtin.patterns.composite import Repeated
+    from mathics.builtin.patterns.composite import Alternatives, Repeated
     from mathics.builtin.patterns.defaults import Optional
 
     inner = _unwrap_transparent(sub_pattern)
-    return isinstance(inner, (BlankSequence, BlankNullSequence, Optional, Repeated))
+    if isinstance(inner, (BlankSequence, BlankNullSequence, Optional, Repeated)):
+        return True
+    if isinstance(inner, Alternatives):
+        return any(_is_variable_length(branch) for branch in inner.alternatives)
+    return False
 
 
 def _discriminator(sub_pattern: BasePattern) -> Optional[DiscriminatorKey]:
@@ -103,6 +116,40 @@ def _discriminator(sub_pattern: BasePattern) -> Optional[DiscriminatorKey]:
     if isinstance(inner, Verbatim) and inner.content is not None:
         return ("lit", inner.content)
     return None
+
+
+def _discriminator_set(sub_pattern: BasePattern) -> Optional[List[DiscriminatorKey]]:
+    """
+    Like `_discriminator`, but for Alternatives[p1, p2, ...]: if *every*
+    branch has its own valid discriminator, return the list of all of
+    them -- the rule can be safely filed under each literal/type key,
+    since matching any one alternative is sufficient. If even one
+    branch has no discriminator (e.g. `1 | x_`, where `x_` matches
+    anything), the whole position degrades to a wildcard: we can't
+    enumerate "one specific value, or literally anything else" as a
+    finite set of keys, and returning a partial list would silently
+    exclude the wildcard branch's matches -- unsound. Capped to avoid
+    build-time blowup from large Alternatives lists.
+    """
+    from mathics.builtin.patterns.composite import Alternatives
+
+    inner = _unwrap_transparent(sub_pattern)
+    if isinstance(inner, Alternatives):
+        keys: List[DiscriminatorKey] = []
+        seen = set()
+        for branch in inner.alternatives:
+            branch_keys = _discriminator_set(branch)
+            if branch_keys is None:
+                return None
+            for k in branch_keys:
+                if k not in seen:
+                    seen.add(k)
+                    keys.append(k)
+            if len(keys) > MAX_ALTERNATIVES_BRANCHES:
+                return None
+        return keys
+    single = _discriminator(sub_pattern)
+    return None if single is None else [single]
 
 
 def _unwrap_hold_pattern(pattern):
@@ -171,10 +218,14 @@ class RuleDispatchIndex:
                 self._fallback_ids.add(i)
                 continue
             if A_FLAT & pattern.attributes:
-                # Flat can regroup elements before matching begins;
-                # "argument position N" isn't a fixed slot. Fallback
-                # for now -- revisit with evidence if it turns out
-                # Flat-without-Orderless still has stable positions.
+                # Verified empirically (not just by reading the matcher)
+                # that this matters: myPlus[a_,b_] with Flat DOES match
+                # myPlus[x,y,z] via regrouping (a_=x, b_=myPlus[y,z]),
+                # even though len(pattern.elements)=2 != len(expr.elements)=3.
+                # Grouping strictly by (head, exact arity) would make
+                # this rule unreachable from candidates() for any arity
+                # other than its literal one -- a real soundness bug,
+                # not just a missed optimization. Fallback for now.
                 self._fallback_ids.add(i)
                 continue
             elements = pattern.elements
@@ -184,11 +235,13 @@ class RuleDispatchIndex:
 
             key = (pattern.head.expr, len(elements))
             n_positions = min(len(elements), MAX_INDEXED_POSITIONS)
-            signature = tuple(
-                _discriminator(elements[pos]) or ("wild",) for pos in range(n_positions)
-            )
+            per_position_keys = [
+                _discriminator_set(elements[pos]) or [("wild",)]
+                for pos in range(n_positions)
+            ]
             table = self._groups.setdefault(key, {})
-            table.setdefault(signature, []).append(i)
+            for signature in product(*per_position_keys):
+                table.setdefault(signature, []).append(i)
 
     def candidates(self, expr) -> List[RewriteRule]:
         """
