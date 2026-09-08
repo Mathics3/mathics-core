@@ -52,7 +52,6 @@ class Condition(InfixOperator, PatternObject):
     """
 
     arg_counts = [2]
-    # Don't know why this has attribute HoldAll in Mathematica
     attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "conditional definition"
 
