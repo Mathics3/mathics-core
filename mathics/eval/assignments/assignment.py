@@ -18,7 +18,7 @@ from mathics.core.assignment import (
 from mathics.core.atoms import Integer, Integer1
 from mathics.core.attributes import A_LOCKED, attribute_string_to_number
 from mathics.core.definitions import BOX_FORMS
-from mathics.core.element import BaseElement
+from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import (
     MAX_RECURSION_DEPTH,
     Evaluation,
@@ -38,6 +38,7 @@ from mathics.core.symbols import (
     valid_context_name,
 )
 from mathics.core.systemsymbols import (
+    BLANK_PATTERN_HEADS,
     SymbolBlank,
     SymbolBlankNullSequence,
     SymbolBlankSequence,
@@ -103,6 +104,7 @@ def eval_assign(
         if isinstance(lhs_reference_expr, Symbol)
         else lhs_reference_expr.get_head()
     )
+
     if isinstance(lhs_reference_expr, Symbol):
         if upset:
             evaluation.message(op_name, "nosym", lhs)
@@ -118,19 +120,27 @@ def eval_assign(
 
     try:
         # Handle special cases using the lookup name associated to the lhs_reference
-        lookup_name = lhs_reference_expr.get_lookup_name()
+        if lhs_reference_expr.has_form(SymbolVerbatim, 1):
+            lookup_name = lhs_reference_expr.elements[0].get_lookup_name()
+        else:
+            lookup_name = lhs_reference_expr.get_lookup_name()
         assignment_func = ASSIGNMENT_FUNCTION_MAP.get(lookup_name, None)
         if assignment_func:
             return assignment_func(
                 op_name, lhs, lhs_reference, rhs, evaluation, tags, upset
             )
-        if isinstance(lhs, Expression) and not lhs.has_form(SymbolHoldPattern, 1):
+
+        if True or lhs.has_form(SymbolCondition, 2):
+            lhs, lhs_reference = process_condition_lhs(lhs, evaluation)
+        elif isinstance(lhs, Expression) and not lhs.has_form(
+            (SymbolVerbatim, SymbolHoldPattern), 1
+        ):
             lhs = lhs.evaluate_elements(evaluation)
-            lhs_reference_expr = get_reference_expression(lhs)
+            lhs_reference = get_reference_expression(lhs)
             lhs_reference = (
-                lhs_reference_expr
-                if isinstance(lhs_reference_expr, Symbol)
-                else lhs_reference_expr.get_head()
+                lhs_reference
+                if isinstance(lhs_reference, Symbol)
+                else lhs_reference.get_head()
             )
 
         return eval_assign_store_rules_by_tag(
@@ -1382,11 +1392,100 @@ def get_lookup_reference_name(expr: BaseElement) -> str:
     if expr.has_form(SymbolVerbatim, 1):
         # For Verbatim pick the lookup name directly from the expression.
         return expr.elements[0].get_lookup_name()
-    if expr.has_form((SymbolBlank, SymbolBlankSequence, SymbolBlankNullSequence), None):
+    if isinstance(expr, Atom):
+        return expr.get_lookup_name()
+    expr_head = expr.head
+    if expr_head.has_form(SymbolVerbatim, 1):
+        return expr_head.elements[0].get_lookup_name()
+    if expr.has_form(BLANK_PATTERN_HEADS, None):
         if len(expr.elements) == 1:
             return get_lookup_reference_name(expr.elements[0])
         return ""
     return expr.get_lookup_name()
+
+
+def process_condition_lhs(
+    lhs: Expression, evaluation: Evaluation
+) -> tuple[BaseElement, BaseElement]:
+    """
+    Perform the special evaluation sequence for the left-hand side of an assignment.
+
+    This function processes the LHS expression (e.g., `lhs := rhs`) before building
+    the assignment rule. It handles conditional structures, applies element-wise
+    evaluation, and extracts the reference symbol that determines where the final
+    rule will be stored.
+
+    Parameters
+    ----------
+    lhs : Expression
+        The left-hand side expression to be processed.
+    evaluation : Evaluation
+        The evaluation context used when evaluating the elements of the expression.
+
+    Returns
+    -------
+    tuple[BaseElement, BaseElement]
+        A tuple containing:
+        - The processed LHS expression (a `BaseElement`, typically an `Expression`).
+          If the base changed during evaluation, the condition chain is rebuilt.
+        - The extracted reference element (`Symbol` or the head of the reference
+          expression) used to locate the storage slot for the assignment rule.
+
+    Notes
+    -----
+    The evaluation follows a specialized sequence that differs from the standard
+    evaluation pipeline:
+
+    1.  **Condition Handling**:
+        The function unrolls left-associated chains of `SymbolCondition[_, _]`.
+        Conditions are peeled off, storing the innermost base and a list of
+        condition expressions.
+
+    2.  **Base Evaluation**:
+        The resulting base expression is evaluated using `evaluate_elements`
+        (if it is an `EvalMixin`) rather than a full `evaluation`.
+        -   For atomic expressions (e.g., `Symbol`), no evaluation occurs.
+        -   For general expressions, `evaluate_elements` evaluates the head and
+            elements according to their attributes, but **crucially**, it does
+            **not** apply any rules that match the whole expression.
+        -   **Special rule for `Condition`**: Although `Condition` has the
+            `HoldAll` attribute, this special LHS evaluation overrides that
+            behavior by evaluating non-atomic sub-expressions inside the
+            condition's first argument. Atomic expressions, however, remain
+            unevaluated.
+
+    3.  **Rebuilding and Reference Extraction**:
+        If the base expression changed during evaluation, the collected
+        conditions are reapplied in reverse order (innermost to outermost) to
+        reconstruct the new LHS expression.
+        Finally, `get_reference_expression` is used to extract the storage
+        target. If the result is not a direct `Symbol`, its head is used
+        instead.
+    """
+    # 1. Unroll the left‑associative chain of SymbolCondition
+    conds = []
+    expr = lhs
+    while expr.has_form(SymbolCondition, 2):
+        expr, cond = expr.get_elements()
+        conds.append(cond)  # outermost first, innermost last
+
+    # 2. Evaluate the base expression (the part without conditions)
+    new_expr = (
+        expr.evaluate_elements(evaluation) if isinstance(expr, EvalMixin) else expr
+    )
+
+    # 3. Extract the reference symbol from the evaluated base
+    lhs_reference = get_reference_expression(new_expr)
+    if not isinstance(lhs_reference, Symbol):
+        lhs_reference = lhs_reference.get_head()
+
+    # 4. If the base changed, rebuild the condition chain
+    if not new_expr.sameQ(expr):
+        for cond in reversed(conds):  # process innermost → outermost
+            new_expr = Expression(SymbolCondition, new_expr, cond)
+        lhs = new_expr
+
+    return lhs, lhs_reference
 
 
 def get_reference_expression(lhs: BaseElement) -> BaseElement:
@@ -1484,7 +1583,8 @@ def process_tags_and_upset_allow_custom(
             # set to its argument. If it does not have arguments (or have many)
             # skip it.
             element_name = get_lookup_reference_name(element)
-            if element_name is not None:
+            if element_name != "":
+                assert element_name is not None
                 tags_set.add(element_name)
         return list(tags_set), lhs_reference_expr
 
