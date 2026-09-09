@@ -37,6 +37,14 @@ MAX_INDEXED_POSITIONS = 2
 # keeps pathological `a|b|c|...` lists from blowing up build time/memory.
 MAX_ALTERNATIVES_BRANCHES = 16
 
+# Tier 0 (see RuleDispatchIndex docstring): rules where *every* position
+# discriminates (no wildcards anywhere) get indexed across their FULL
+# arity, not just MAX_INDEXED_POSITIONS -- bounded by these caps so a
+# rule with many positions and/or heavy Alternatives use doesn't blow up
+# build time/memory. Rules that don't fit stay in the Tier 1 scheme.
+FULL_INDEX_MAX_ARITY = 8
+FULL_INDEX_MAX_COMBOS_PER_RULE = 64
+
 # A discriminator key is either:
 #   ("lit", <atom>)   -- position requires sameQ-equality with a literal
 #   ("head", <Symbol>) -- position requires Head[arg] is exactly this Symbol
@@ -183,17 +191,26 @@ class RuleDispatchIndex:
     as "the list of rules" keep working unchanged (just without the
     speedup) if they don't call `candidates()`.
 
-    Unlike a naive per-position filter, this builds ONE combined key per
-    rule -- the tuple of per-position discriminators (using an explicit
-    ("wild",) marker for positions that don't discriminate) -- and
-    stores rules in a single dict keyed by that tuple. A query doesn't
-    intersect sets across positions; it computes, for the actual
-    expression, the (small) Cartesian product of "what this position
-    could plausibly be filed under" -- its literal value, its head type,
-    and always the wildcard marker -- and does direct dict lookups for
-    each resulting combined key. This mirrors how Dispatch[] in WMA
-    resolves an expression to the handful of hash buckets relevant to
-    it, rather than filtering position-by-position.
+    Two tiers, both keyed by combined tuples (never per-position sets +
+    intersection):
+
+    Tier 0 -- full-arity, exact-or-typed dispatch. A rule where *every*
+    position discriminates (no wildcards anywhere -- e.g. `F[1,2]`, or
+    `F[_Integer,_Integer,_Integer,_Integer]`) is indexed across its
+    WHOLE arity, not capped at MAX_INDEXED_POSITIONS. A query first
+    tries the expression's own "exact" key (literal values, e.g. the
+    `F[1,2]` case) and its "type shape" key (`F[_Integer,_Integer]`,
+    i.e. Head of each argument) -- and everything in between, since a
+    rule can mix literal and typed positions. This is what actually
+    behaves like Dispatch[] in WMA: an expression resolves to a
+    hash bucket directly, with no dependence on how many arguments it
+    has.
+
+    Tier 1 -- partial dispatch, capped at MAX_INDEXED_POSITIONS. Catches
+    everything that doesn't qualify for Tier 0 (some wildcard position,
+    or too many positions/Alternatives branches to bound Tier 0's
+    combos) but can still be usefully narrowed by looking at its first
+    couple of positions, with an explicit ("wild",) marker elsewhere.
     """
 
     def __init__(self, rules: List[RewriteRule]):
@@ -201,6 +218,8 @@ class RuleDispatchIndex:
         self._fallback_ids: Set[int] = set()
         # (head, arity) -> { combined_signature_tuple -> [rule_id, ...] }
         self._groups: Dict[Tuple[object, int], Dict[Tuple, List[int]]] = {}
+        # Same shape, but keyed across the FULL arity (Tier 0).
+        self._full_groups: Dict[Tuple[object, int], Dict[Tuple, List[int]]] = {}
         self._build()
 
     def __iter__(self):
@@ -234,6 +253,22 @@ class RuleDispatchIndex:
                 continue
 
             key = (pattern.head.expr, len(elements))
+
+            # Tier 0: try full-arity indexing first -- only viable when
+            # *every* position has a discriminator (no wildcards) and
+            # the resulting combo count is bounded.
+            if len(elements) <= FULL_INDEX_MAX_ARITY:
+                full_keys = [_discriminator_set(e) for e in elements]
+                if all(k is not None for k in full_keys):
+                    combos = list(product(*full_keys))
+                    if len(combos) <= FULL_INDEX_MAX_COMBOS_PER_RULE:
+                        full_table = self._full_groups.setdefault(key, {})
+                        for combo in combos:
+                            full_table.setdefault(combo, []).append(i)
+                        continue
+
+            # Tier 1: partial indexing over the first couple of
+            # positions, with an explicit wildcard marker elsewhere.
             n_positions = min(len(elements), MAX_INDEXED_POSITIONS)
             per_position_keys = [
                 _discriminator_set(elements[pos]) or [("wild",)]
@@ -248,9 +283,9 @@ class RuleDispatchIndex:
         Return, in original order, a superset of the rules that could
         match `expr`. Always includes every non-indexable (fallback)
         rule; additionally includes indexable rules reachable from one
-        of the combined keys derived from `expr`.
+        of the combined keys derived from `expr`, from either tier.
         """
-        if not self._groups:
+        if not self._groups and not self._full_groups:
             return self._rules
 
         eligible: Set[int] = set(self._fallback_ids)
@@ -258,9 +293,32 @@ class RuleDispatchIndex:
         head = getattr(expr, "head", None)
         elements = getattr(expr, "elements", None)
         if head is not None and elements is not None:
-            table = self._groups.get((head, len(elements)))
+            arity = len(elements)
+            group_key = (head, arity)
+
+            # Tier 0: full arity, exact-value-or-type. No wildcard
+            # option here -- Tier 0 never stores a ("wild",) entry, so
+            # trying one would only ever be a guaranteed-miss lookup.
+            full_table = self._full_groups.get(group_key)
+            if full_table is not None:
+                options_per_position = []
+                for pos in range(arity):
+                    arg = elements[pos]
+                    opts = [("lit", arg)]
+                    arg_head = arg.get_head() if hasattr(arg, "get_head") else None
+                    if arg_head is not None:
+                        opts.append(("head", arg_head))
+                    options_per_position.append(opts)
+                for combo in product(*options_per_position):
+                    ids = full_table.get(combo)
+                    if ids:
+                        eligible.update(ids)
+
+            # Tier 1: partial, capped at the first couple of positions,
+            # with an explicit wildcard option.
+            table = self._groups.get(group_key)
             if table is not None:
-                n_positions = min(len(elements), MAX_INDEXED_POSITIONS)
+                n_positions = min(arity, MAX_INDEXED_POSITIONS)
                 options_per_position = []
                 for pos in range(n_positions):
                     arg = elements[pos]

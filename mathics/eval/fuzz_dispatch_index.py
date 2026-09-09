@@ -71,9 +71,29 @@ def random_pattern_arg(rng):
     return rng.choice(PATTERN_ARG_POOL)
 
 
+FULLY_DISCRIMINATED_ARG_POOL = [
+    "1",
+    "2",
+    "3",
+    "_Integer",
+    "_String",
+    "_Symbol",
+    "_Real",
+    "x_Integer",
+    "Verbatim[g[x_]]",
+    "1|2|3",
+    "_Integer|_String",
+]
+
+
 def random_lhs(rng):
     head = rng.choice(HEADS)
-    arity = rng.randint(0, 5)
+    arity = rng.randint(0, 6)
+    if rng.random() < 0.3:
+        # Bias toward fully-discriminated rules (no wildcard anywhere)
+        # at higher arities, specifically to stress Tier 0.
+        args = [rng.choice(FULLY_DISCRIMINATED_ARG_POOL) for _ in range(arity)]
+        return f"{head}[{', '.join(args)}]"
     args = [random_pattern_arg(rng) for _ in range(arity)]
     lhs = f"{head}[{', '.join(args)}]"
     r = rng.random()
