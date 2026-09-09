@@ -428,7 +428,7 @@ def eval_assign_default(
     tags = process_tags_and_upset_dont_allow_custom(
         tags, upset, op_name, lhs, lhs_reference, evaluation
     )
-    rule = RewriteRule(lhs, rhs)
+    rule = RewriteRule(lhs, rhs, evaluation=evaluation)
     for tag in tags:
         if rejected_because_protected(op_name, lhs, tag, evaluation):
             continue
@@ -565,7 +565,7 @@ def eval_assign_format(
     tags = process_tags_and_upset_dont_allow_custom(
         tags, upset, op_name, lhs, lhs_reference, evaluation
     )
-    rule = RewriteRule(lhs, rhs)
+    rule = RewriteRule(lhs, rhs, evaluation=evaluation)
     for tag in tags:
         if rejected_because_protected(op_name, lhs, tag, evaluation):
             continue
@@ -721,7 +721,7 @@ def eval_assign_makeboxes(
     target, form = lhs.elements
     # Check second argument
 
-    makeboxes_rule = RewriteRule(lhs, rhs)
+    makeboxes_rule = RewriteRule(lhs, rhs, evaluation=evaluation)
     tags = [] if tags is None else tags
     if upset:
         tags = tags + [target.get_lookup_name()]
@@ -881,7 +881,7 @@ def eval_assign_messagename(
     tags = process_tags_and_upset_dont_allow_custom(
         tags, upset, op_name, lhs, lhs_reference, evaluation
     )
-    rule = RewriteRule(lhs, rhs)
+    rule = RewriteRule(lhs, rhs, evaluation=evaluation)
     for tag in tags:
         # Messages can be assigned even if the symbol is protected...
         # if rejected_because_protected(op_name, lhs, tag, evaluation):
@@ -1092,7 +1092,7 @@ def eval_assign_n(
         tags, upset, op_name, lhs, lhs_reference, evaluation
     )
     count = 0
-    rule = RewriteRule(lhs, rhs)
+    rule = RewriteRule(lhs, rhs, evaluation=evaluation)
     for tag in tags:
         if rejected_because_protected(op_name, lhs, tag, evaluation):
             continue
@@ -1275,7 +1275,7 @@ def eval_assign_store_rules_by_tag(
     # some combinatorica tests fail.
     # Also, should not be at the beginning?
     count = 0
-    rule = RewriteRule(lhs, rhs)
+    rule = RewriteRule(lhs, rhs, evaluation=evaluation)
     position = "upvalues" if upset else None
     for tag in tags:
         if rejected_because_protected(op_name, lhs, tag, evaluation, False):
@@ -1319,7 +1319,9 @@ def eval_assign_to_symbol(
     tag = lhs_reference.get_name()
     if rejected_because_protected(op_name, lhs, tag, evaluation, ignore_protection):
         return False
-    evaluation.definitions.add_rule(tag, RewriteRule(lhs, rhs), position="ownvalues")
+    evaluation.definitions.add_rule(
+        tag, RewriteRule(lhs, rhs, evaluation=evaluation), position="ownvalues"
+    )
     return True
 
 
