@@ -201,9 +201,7 @@ class General(Builtin):
         "fnsym": (
             "First argument in `1` is not a symbol " "or a string naming a symbol."
         ),
-        "fstr": (
-            "File specification `1` is not a string of " "one or more characters."
-        ),
+        "fstr": ("File specification `1` is not a string of one or more characters."),
         "hdiv": "`1` does not exist. Arguments are not consistent.",
         "heads": "Heads `1` and `2` are expected to be the same.",
         "ilsnn": (
@@ -221,7 +219,7 @@ class General(Builtin):
         "invrl": "The argument `1` is not a valid Association or a list of rules.",
         "iterb": "Iterator does not have appropriate bounds.",
         "ivar": "`1` is not a valid variable.",
-        "level": ("Level specification `1` is not of the form n, " "{n}, or {m, n}."),
+        "level": "Level specification `1` is not of the form n, {n}, or {m, n}.",
         "list": "Expected a list or a rule with equally sized lists at position 1 in ``.",
         "locked": "Symbol `1` is locked.",
         "matsq": "Argument `1` is not a non-empty square matrix.",
@@ -234,8 +232,9 @@ class General(Builtin):
         "nord": "Invalid comparison with `1` attempted.",
         "normal": "Nonatomic expression expected at position `1` in `2`.",
         "notnorm": "Argument `1` must be a nonatomic expression.",
-        "noval": ("Symbol `1` in part assignment does not have an immediate value."),
-        "obspkg": "In WL, this package is obsolete.",
+        "noval": "Symbol `1` in part assignment does not have an immediate value.",
+        "obsfun": "The function `1` is now obsolete and has been superseded by `2`.",
+        "obspkg": "`1` is now obsolete. The legacy version being loaded may conflict with current functionality.",
         "openx": "`1` is not open.",
         "optb": "Optional object `1` in `2` is not a single blank.",
         "optnf": "Option name `1` is not a known option for `2`.",
