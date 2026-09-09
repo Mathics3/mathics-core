@@ -278,15 +278,15 @@ class RuleDispatchIndex:
             for signature in product(*per_position_keys):
                 table.setdefault(signature, []).append(i)
 
-    def candidates(self, expr) -> List[RewriteRule]:
+    def _compute_eligible(self, expr) -> Set[int]:
         """
-        Return, in original order, a superset of the rules that could
-        match `expr`. Always includes every non-indexable (fallback)
-        rule; additionally includes indexable rules reachable from one
-        of the combined keys derived from `expr`, from either tier.
+        The candidate rule ids (indices into self._rules), from either
+        tier plus the always-tried fallback. Split out from
+        `candidates()` so the reconstruction step below can be measured
+        and tested independently of tier internals.
         """
         if not self._groups and not self._full_groups:
-            return self._rules
+            return set(range(len(self._rules)))
 
         eligible: Set[int] = set(self._fallback_ids)
 
@@ -335,6 +335,16 @@ class RuleDispatchIndex:
                     if ids:
                         eligible.update(ids)
 
+        return eligible
+
+    def candidates(self, expr) -> List[RewriteRule]:
+        """
+        Return, in original order, a superset of the rules that could
+        match `expr`. Always includes every non-indexable (fallback)
+        rule; additionally includes indexable rules reachable from one
+        of the combined keys derived from `expr`, from either tier.
+        """
+        eligible = self._compute_eligible(expr)
         if len(eligible) == len(self._rules):
             return self._rules
         return [self._rules[i] for i in sorted(eligible)]

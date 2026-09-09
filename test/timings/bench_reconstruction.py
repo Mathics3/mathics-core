@@ -23,32 +23,10 @@ def bench_reconstruction(n_rules, n_calls, reconstruct_fn):
 
     target = session.evaluate(f"f[3, {n_rules - 1}]")
 
-    # warm/compute the eligible set once the same way candidates() does,
-    # so we isolate ONLY the final reordering step.
-    from itertools import product
-
-    head = target.head
-    elements = target.elements
-    table = idx._groups[(head, len(elements))]
-    from mathics.core.symbols import Atom
-    from mathics.eval.rule_dispatch_index import MAX_INDEXED_POSITIONS
-
-    n_positions = min(len(elements), MAX_INDEXED_POSITIONS)
-    options_per_position = []
-    for pos in range(n_positions):
-        arg = elements[pos]
-        opts = [("wild",)]
-        if isinstance(arg, Atom):
-            opts.append(("lit", arg))
-        arg_head = arg.get_head() if hasattr(arg, "get_head") else None
-        if arg_head is not None:
-            opts.append(("head", arg_head))
-        options_per_position.append(opts)
-    eligible = set(idx._fallback_ids)
-    for combo in product(*options_per_position):
-        ids = table.get(combo)
-        if ids:
-            eligible.update(ids)
+    # Isolate ONLY the final reordering step -- compute the eligible set
+    # the same way candidates() does (regardless of which tier resolved
+    # it), then time just the two ways of turning it into an ordered list.
+    eligible = idx._compute_eligible(target)
 
     t0 = time.perf_counter()
     for _ in range(n_calls):
