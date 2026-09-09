@@ -16,10 +16,16 @@ from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.interrupt import TimeoutInterrupt
+from mathics.core.systemsymbols import SymbolSequence
 from mathics.core.util import subranges
 
-from .base import BasePattern, ExpressionPattern, StopGenerator_ExpressionPattern_match
-from .common import match_expression_with_one_identity
+from .base import (
+    AtomPattern,
+    BasePattern,
+    ExpressionPattern,
+    StopGenerator_ExpressionPattern_match,
+)
+from .common import match_expression_with_one_identity, match_fixed_blank_tuple
 
 
 def basic_match_expression(
@@ -237,29 +243,20 @@ def get_pre_choices_with_order(
     pattern_context["yield_choice"](pattern_context["vars_dict"])
 
 
-# --- Ordered/Orderless/Deferred class split ---
-#
-# ExpressionPattern is a virtual base class for these three subclasses.
-# OrderlessExpressionPattern and OrderedExpressionPattern classes
-# implement patterns when we have access to the attributes of the Head
-# element, and the Orderless attribute is or not set for it.
-# This attribute defines the principal branches on how pattern matching
-# happends.
-# Initially, when the Definitions object is not already populated,
-# we do not have access to the Pattern attributes. We handle this case
-# using the DeferredExpressionPattern. When the evaluation tries to
-# use these patterns to check if they match with an expression, the
-# attributes becomes available. Then, DeferredExpressionPattern
-# delegates on the right object class (Ordered/Orderless) according
-# to the available attribute. After the first evaluation, delegation
-# becomes permanent.
 class OrderedExpressionPattern(ExpressionPattern):
     """
-    ExpressionPattern for a head known NOT to have the Orderless
+    ExpressionPattern for a head without the Orderless
     attribute. Only constructed via make_expression_pattern() /
     DeferredExpressionPattern, where `attributes` is already known.
 
-    No method overrides needed: ExpressionPattern's own
+    This is the general non-Orderless case, including Flat and/or
+    OneIdentity heads. For the common sub-case where NEITHER Flat nor
+    OneIdentity is set either, make_expression_pattern() constructs
+    SimpleOrderedExpressionPattern (below) instead, which skips the
+    Flat/OneIdentity-related runtime checks this class still needs and
+    adds the fixed-arity Blank-tuple fast path.
+
+    No method overrides needed beyond match(): ExpressionPattern's own
     `_yield_sequence_wrappings`/`_regular_match_element_sets` already
     implement the non-Orderless behavior (see class-split note above).
     """
@@ -415,3 +412,293 @@ class OrderedExpressionPattern(ExpressionPattern):
                 pattern_context["element_count"] = old_element_count
             else:
                 pattern_context.pop("element_count", None)
+
+
+class SimpleOrderedExpressionPattern(OrderedExpressionPattern):
+    """
+    Specialization of OrderedExpressionPattern for a head with NONE of
+    Orderless, Flat, OneIdentity -- the common case, since most heads
+    declare no special attributes at all. Only constructed via
+    make_expression_pattern(), which is the sole place that decides
+    between this class and the general OrderedExpressionPattern (used
+    when Flat and/or OneIdentity IS present).
+
+    Skips the Flat/OneIdentity-related runtime checks that
+    OrderedExpressionPattern.match still needs
+    (`if not A_FLAT & attributes: fully = True`,
+    `if A_ONE_IDENTITY & attributes: match_expression_with_one_identity(...)`)
+    -- for this class they always resolve the same way, so they're
+    simply absent rather than evaluated every match() call.
+
+    """
+
+    def __init__(
+        self,
+        expression: Expression,
+        attributes: int,
+        evaluation: Optional[Evaluation] = None,
+    ):
+        super().__init__(expression, attributes, evaluation)
+
+    def match(self, expression: BaseElement, pattern_context: dict):
+        """
+        Try to match the pattern against an Expression, for a head
+        known to have none of Orderless/Flat/OneIdentity.
+        """
+        from mathics.core.atoms.associations import Association
+
+        evaluation = pattern_context["evaluation"]
+        yield_func = pattern_context["yield_func"]
+        vars_dict = pattern_context["vars_dict"]
+
+        evaluation.check_stopped()
+        if self.isliteral:
+            if expression.sameQ(self.expr):
+                yield_func(vars_dict, None)
+            return
+
+        # --- use mutation with undo instead of copy ---
+        old_fully = pattern_context.get("fully")
+        old_attributes = pattern_context.get("attributes")
+        old_head = pattern_context.get("head")
+        old_element_index = pattern_context.get("element_index")
+        old_element_count = pattern_context.get("element_count")
+        try:
+            # No A_FLAT here (guaranteed by construction), so fully is
+            # unconditionally True -- unlike the general
+            # OrderedExpressionPattern.match, there's no runtime check
+            # to make.
+            pattern_context["fully"] = True
+            pattern_context["attributes"] = self.attributes
+            pattern_context["head"] = None
+            pattern_context["element_index"] = None
+            pattern_context["element_count"] = None
+
+            if isinstance(expression, Association):
+                expression = expression.expr
+
+            if isinstance(expression, Expression):
+                try:
+                    basic_match_expression(self, expression, pattern_context)
+                except (StopGenerator_ExpressionPattern_match, TimeoutInterrupt):
+                    return
+            # No A_ONE_IDENTITY check -- guaranteed absent for this class.
+        finally:
+            # restore old values
+            if old_fully is not None:
+                pattern_context["fully"] = old_fully
+            else:
+                pattern_context.pop("fully", None)
+            if old_attributes is not None:
+                pattern_context["attributes"] = old_attributes
+            else:
+                pattern_context.pop("attributes", None)
+            if old_head is not None:
+                pattern_context["head"] = old_head
+            else:
+                pattern_context.pop("head", None)
+            if old_element_index is not None:
+                pattern_context["element_index"] = old_element_index
+            else:
+                pattern_context.pop("element_index", None)
+            if old_element_count is not None:
+                pattern_context["element_count"] = old_element_count
+            else:
+                pattern_context.pop("element_count", None)
+
+
+class FixedBlankTupleExpressionPattern(ExpressionPattern):
+    """
+    ExpressionPattern for a LITERAL (bare Symbol) head applied to a
+    fixed-length tuple of elements that are ALL bare or named Blanks
+    -- head[_], head[_,_], head[_,_,_], head[_String], head[_List],
+    head[_Integer], head[a_,b_], head[a_,a_], etc. (see
+    classify_fixed_blank_tuple in common.py for the exact shape).
+
+    Only ever constructed by make_expression_pattern(), which performs
+    the classification BEFORE building any pattern objects -- directly
+    on the raw, not-yet-wrapped expr.elements (classify_fixed_blank_tuple
+    is duck-typed to work on either raw Expression children or
+    BasePattern-wrapped ones).
+
+    For this shape there is exactly ONE possible match: a positional,
+    slot-by-slot check (arity + per-slot does_match/match), with zero
+    ambiguity for Sequence[...]/subranges/subsets to search over --
+    so match() below IS the whole algorithm, not a fast path in front
+    of a fallback. There is deliberately no fallback to
+    basic_match_expression: nothing it could find that this doesn't
+    already decide.
+
+    """
+
+    def __init__(
+        self,
+        expression: Expression,
+        attributes: int,
+        evaluation: Optional[Evaluation] = None,
+    ):
+        super().__init__(expression, attributes, evaluation)
+        assert isinstance(self.elements, tuple)
+        self.attributes = attributes
+
+    def match(self, expression: BaseElement, pattern_context: dict):
+        """
+        The one and only match algorithm for this shape: positional,
+        slot-by-slot, via match_fixed_blank_tuple (see its docstring
+        in common.py for why it threads vars_dict through each slot's
+        own match()/yield_func rather than using does_match(), which
+        would silently drop any binding a named
+        Pattern[name, Blank[...]] slot produces).
+        """
+        from mathics.core.atoms.associations import Association
+
+        evaluation = pattern_context["evaluation"]
+        yield_func = pattern_context["yield_func"]
+        vars_dict = pattern_context["vars_dict"]
+
+        evaluation.check_stopped()
+
+        if isinstance(expression, Association):
+            expression = expression.expr
+
+        if not isinstance(expression, Expression):
+            return
+
+        expr_elements = expression.elements
+        if len(expr_elements) != len(self.elements):
+            return
+        # self.head is guaranteed (by make_expression_pattern's
+        # isinstance(expr.head, Symbol) check, before this class is
+        # ever constructed) to be an AtomPattern wrapping a Symbol --
+        # whose own match_symbol() is exactly `expression is self.atom`
+        # (see base.py). does_match() would get to the same answer,
+        # but only after building its own pattern_context, defining a
+        # closure, and raising+catching StopGenerator_Pattern to turn
+        # that into a bool -- a full exception round trip to compute
+        # an identity check. Skip all of that.
+        self_head = self.head
+        if (
+            not isinstance(self_head, AtomPattern)
+            or expression.get_head() is not self_head.atom
+        ):
+            return
+
+        result_vars = match_fixed_blank_tuple(
+            self.elements, expr_elements, vars_dict, evaluation
+        )
+        if result_vars is not None:
+            yield_func(result_vars, None)
+
+
+class SingleSequenceExpressionPattern(ExpressionPattern):
+    """
+    ExpressionPattern for a LITERAL (bare Symbol) head applied to
+    EXACTLY ONE element, which is a NAMED BlankSequence or
+    BlankNullSequence, typed or not -- head[s__], head[s__HEAD],
+    head[s___], head[s___HEAD] (see classify_single_sequence in
+    common.py for the exact shape and the profiling numbers that
+    motivate this class).
+
+    Only ever constructed by make_expression_pattern(), which performs
+    the classification BEFORE building any pattern objects, same
+    convention as FixedBlankTupleExpressionPattern.
+
+    For this shape there is exactly ONE possible match: the single
+    (Blank)(Null)Sequence element must absorb the expression's entire
+    element tuple (empty, one, or many elements) or the match fails --
+    there is no other pattern element to backtrack against, so no
+    subranges()/get_wrappings/match_element search is needed. match()
+    below goes straight from "is this the right head" to "hand the
+    whole element tuple to the wrapped Pattern[name, ...] and let IT
+    do the (unavoidable) per-element type check exactly once" --
+    skipping the redundant double candidate-scan
+    (get_match_candidates_count then get_match_candidates, both doing
+    the same O(n) type check for a typed s__HEAD, only for
+    match_element's `included` argument that the Ordered path's
+    subranges() doesn't even consult -- see subranges()'s own
+    docstring/TODO) and the extra Expression(Sequence, *items)
+    (re)allocation that get_wrappings/_yield_sequence_wrappings would
+    otherwise perform on top of the one this class already needs.
+
+    Deliberately preserves the exact binding shape a named
+    (Blank)(Null)Sequence produces via the ordinary path (see
+    get_wrappings): zero expression elements bind the name to an empty
+    Sequence[], exactly one binds the name to that RAW element itself
+    (never wrapped), and two or more bind the name to
+    Sequence[elem1, ..., elemN] -- this matters for typed patterns
+    like x_Integer nested inside a rule using this binding downstream,
+    which check the head of whatever they're handed.
+    """
+
+    def __init__(
+        self,
+        expression: Expression,
+        attributes: int,
+        evaluation: Optional[Evaluation] = None,
+    ):
+        super().__init__(expression, attributes, evaluation)
+        assert len(self.elements) == 1
+        self.attributes = attributes
+
+    def match(self, expression: BaseElement, pattern_context: dict):
+        """
+        The one and only match algorithm for this shape: check the
+        head, then hand the expression's entire element tuple --
+        wrapped exactly the way get_wrappings would wrap it -- to the
+        single wrapped Pattern[name, Blank(Null)Sequence[...]] element,
+        and let its own match() (which only ever needs `yield_func`
+        and `vars_dict` from pattern_context -- see
+        composite.py:Pattern.match and basic.py:BlankSequence.match /
+        BlankNullSequence.match) do the actual type check and binding.
+        """
+        from mathics.core.atoms.associations import Association
+
+        evaluation = pattern_context["evaluation"]
+        yield_func = pattern_context["yield_func"]
+        vars_dict = pattern_context["vars_dict"]
+
+        evaluation.check_stopped()
+
+        if isinstance(expression, Association):
+            expression = expression.expr
+
+        if not isinstance(expression, Expression):
+            return
+
+        # Same head-identity fast check as FixedBlankTupleExpressionPattern
+        # (see its match() for why does_match() would be strictly more
+        # expensive here): self.head is guaranteed to be an AtomPattern
+        # wrapping a Symbol by make_expression_pattern's
+        # isinstance(expr.head, Symbol) check, done before this class
+        # is ever constructed.
+        self_head = self.head
+        if (
+            not isinstance(self_head, AtomPattern)
+            or expression.get_head() is not self_head.atom
+        ):
+            return
+
+        expr_elements = expression.elements
+        if len(expr_elements) == 1:
+            # Bind the raw element itself, not Sequence[element] -- see
+            # class docstring and get_wrappings' own len(items) == 1
+            # special case, which this replicates.
+            matched = expr_elements[0]
+        else:
+            # Zero elements (empty Sequence[], only reachable when the
+            # wrapped pattern is a BlankNullSequence -- a BlankSequence
+            # will simply fail to match an empty Sequence[], same as
+            # it fails today) or two-or-more: wrap exactly as
+            # ExpressionPattern._yield_sequence_wrappings would.
+            matched = Expression(SymbolSequence, *expr_elements)
+            matched.pattern_sequence = True
+
+        self.elements[0].match(
+            matched,
+            {
+                "yield_func": yield_func,
+                "vars_dict": vars_dict,
+                "evaluation": evaluation,
+                "fully": True,
+            },
+        )

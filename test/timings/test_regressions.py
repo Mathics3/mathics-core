@@ -30,6 +30,7 @@ REGRESSION_BENCHMARKS = {
         ("1/2+3/4", 100, 20),
         ("5^3", 100, 20),
         ("10^100", 100, 20),
+        ("Subtract[2,1]", 100, 20),
     ],
     # Assign. This should come before any other test.
     "assign": [
