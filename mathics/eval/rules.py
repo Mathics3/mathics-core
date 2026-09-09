@@ -159,7 +159,8 @@ class Dispatch(Atom):
         self.src = ListExpression(*rule_tuple)
         try:
             self.rules = [
-                RewriteRule(rule.elements[0], rule.elements[1]) for rule in rule_tuple
+                RewriteRule(rule.elements[0], rule.elements[1], evaluation=evaluation)
+                for rule in rule_tuple
             ]
         except:
             raise
