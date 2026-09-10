@@ -271,8 +271,8 @@ def render_output_form(expr: BaseElement, evaluation: Evaluation, **kwargs):
         return ""
 
     head = format_expr.get_head()
-    lookup_name = head.get_name() or head.get_lookup_name()
-    callback = EXPR_TO_OUTPUTFORM_TEXT_MAP.get(lookup_name, None)
+    symbol_name = head.get_name() or head.get_symbol_definition_name()
+    callback = EXPR_TO_OUTPUTFORM_TEXT_MAP.get(symbol_name, None)
     if callback is None:
         if head in evaluation.definitions.outputforms:
             callback = other_forms

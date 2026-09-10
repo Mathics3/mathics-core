@@ -136,8 +136,8 @@ def apply_makeboxes_rules(
 
     def yield_rules():
         # Look
-        for lookup in (expr.get_lookup_name(), "System`MakeBoxes"):
-            definition = evaluation.definitions.get_definition(lookup)
+        for symbol_name in (expr.get_symbol_definition_name(), "System`MakeBoxes"):
+            definition = evaluation.definitions.get_definition(symbol_name)
             for rule in definition.formatvalues.get("_MakeBoxes", []):
                 yield rule
 

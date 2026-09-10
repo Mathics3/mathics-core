@@ -121,9 +121,9 @@ def eval_assign(
     try:
         # Handle special cases using the lookup name associated to the lhs_reference
         if lhs_reference_expr.has_form(SymbolVerbatim, 1):
-            lookup_name = lhs_reference_expr.elements[0].get_lookup_name()
+            lookup_name = lhs_reference_expr.elements[0].get_symbol_definition_name()
         else:
-            lookup_name = lhs_reference_expr.get_lookup_name()
+            lookup_name = lhs_reference_expr.get_symbol_definition_name()
         assignment_func = ASSIGNMENT_FUNCTION_MAP.get(lookup_name, None)
         if assignment_func:
             return assignment_func(
@@ -204,8 +204,8 @@ def eval_assign_attributes(
         evaluation.message_args(name, len(lhs.elements), 1)
         raise AssignmentException(lhs, rhs)
 
-    tag_expr = get_reference_expression(lhs.elements[0])
-    tag = tag_expr.get_lookup_name()
+    target_symbol = get_reference_expression(lhs.elements[0])
+    tag = target_symbol.get_symbol_definition_name()
     if not tag:
         evaluation.message(op_name, "sym", lhs.elements[0], 1)
         raise AssignmentException(lhs, rhs)
@@ -481,7 +481,7 @@ def eval_assign_definition_values(
         )
 
     lhs_name = lhs.get_head_name()
-    tag = find_tag_and_check(lhs, tags, evaluation)
+    tag = find_value_role_symbol_name(lhs, tags, evaluation)
     rules = rhs.get_rules_list()
     if rules is None:
         evaluation.message(op_name, "vrule", lhs, rhs)
@@ -724,7 +724,7 @@ def eval_assign_makeboxes(
     makeboxes_rule = RewriteRule(lhs, rhs, evaluation=evaluation)
     tags = [] if tags is None else tags
     if upset:
-        tags = tags + [target.get_lookup_name()]
+        tags = tags + [target.get_symbol_definition_name()]
     else:
         if not tags:
             tags = ["System`MakeBoxes"]
@@ -1325,19 +1325,22 @@ def eval_assign_to_symbol(
     return True
 
 
-def find_tag_and_check(
-    lhs: BaseElement, tags: Optional[list[str]], evaluation: Evaluation
+# NOTE: in the future, value roles Optionsl[list[str]] will be replaced with an Enum,.
+#
+def find_value_role_symbol_name(
+    lhs, value_roles: Optional[list[str]], evaluation: Evaluation
 ) -> str:
     """
-    Deduce the `tag` from the lhs. If a list of `tags` is provided,
-    it must coincide with `[tag]`.
+    Compute the value_role, whether this is a UpValue, DownValue, etc. from the left-hand-side expression `lhs`.
+
+    If a `value_roles` candidates are provided the names must be valid, and a plausible role for something in the
+    lhs.
 
     Parameters
     ----------
     lhs : BaseElement
         The LHS of the assignment expression.
-    tags : Optional[list[str]]
-        A list of tags.
+    value_roles : Optional[list[str]] A list of value_roles.
     evaluation : Evaluation
         The evaluation object.
 
@@ -1348,24 +1351,24 @@ def find_tag_and_check(
     Returns
     -------
     str
-        the tag associated to the expression.
+        the value_role associated to the expression.
 
     """
     lhs_name = lhs.get_head_name()
     if len(lhs.elements) != 1:
         evaluation.message_args(lhs_name, len(lhs.elements), 1)
         raise AssignmentException(lhs, None)
-    tag = lhs.elements[0].get_name()
-    if not tag:
+    value_role = lhs.elements[0].get_name()
+    if not value_role:
         evaluation.message(lhs_name, "sym", lhs.elements[0], 1)
         raise AssignmentException(lhs, None)
-    if tags is not None and tags != [tag]:
-        evaluation.message(lhs_name, "tag", Symbol(lhs_name), Symbol(tag))
+    if value_roles is not None and value_roles != [value_role]:
+        evaluation.message(lhs_name, "value_role", Symbol(lhs_name), Symbol(value_role))
         raise AssignmentException(lhs, None)
-    if is_protected(tag, evaluation.definitions):
-        evaluation.message(lhs, "wrsym", Symbol(tag))
+    if is_protected(value_role, evaluation.definitions):
+        evaluation.message(lhs, "wrsym", Symbol(value_role))
         raise AssignmentException(lhs, None)
-    return tag
+    return value_role
 
 
 def get_lookup_reference_name(expr: BaseElement) -> str:
@@ -1393,17 +1396,17 @@ def get_lookup_reference_name(expr: BaseElement) -> str:
         return get_lookup_reference_name(expr.elements[1])
     if expr.has_form(SymbolVerbatim, 1):
         # For Verbatim pick the lookup name directly from the expression.
-        return expr.elements[0].get_lookup_name()
+        return expr.elements[0].get_symbol_definition_name()
     if isinstance(expr, Atom):
-        return expr.get_lookup_name()
+        return expr.get_symbol_definition_name()
     expr_head = expr.head
     if expr_head.has_form(SymbolVerbatim, 1):
-        return expr_head.elements[0].get_lookup_name()
+        return expr_head.elements[0].get_symbol_definition_name()
     if expr.has_form(BLANK_PATTERN_HEADS, None):
         if len(expr.elements) == 1:
             return get_lookup_reference_name(expr.elements[0])
         return ""
-    return expr.get_lookup_name()
+    return expr.get_symbol_definition_name()
 
 
 def process_condition_lhs(
@@ -1655,31 +1658,39 @@ def process_tags_and_upset_dont_allow_custom(
 
     """
 
-    def get_lookup_name(expr):
+    def get_symbol_definition_name(expr):
+        """Return the string symbol name that is to be used in
+        determining which definition key of a definitions object to
+        use in symbol-table operations.
+
+        See also the docstring in
+        mathics.core.definitions.determine_value_role for how an
+        expression is patteren-matched.
+        """
         expr = get_reference_expression(expr)
         if expr.has_form(SymbolPattern, 2):
-            return get_lookup_name(expr.elements[1])
+            return get_symbol_definition_name(expr.elements[1])
         if expr.has_form(
             (SymbolBlank, SymbolBlankSequence, SymbolBlankNullSequence), None
         ):
             if len(expr.elements) == 1:
-                return get_lookup_name(expr.elements[0])
+                return get_symbol_definition_name(expr.elements[0])
             return None
-        return expr.get_lookup_name()
+        return expr.get_symbol_definition_name()
 
     if isinstance(lhs_reference, Expression):
         lhs_reference = lhs_reference.evaluate_elements(evaluation)
     if upset:
-        lhs_name = get_lookup_name(lhs_reference)
+        lhs_name = get_symbol_definition_name(lhs_reference)
         tags = [lhs_name] if lhs_name is not None else None
     elif tags is None:
-        lhs_name = get_lookup_name(lhs_reference)
+        lhs_name = get_symbol_definition_name(lhs_reference)
         if not lhs_name:
             evaluation.message(op_name, "setraw", lhs_reference)
             raise AssignmentException(lhs, None)
         tags = [lhs_name]
     else:
-        lhs_name = get_lookup_name(lhs_reference)
+        lhs_name = get_symbol_definition_name(lhs_reference)
         allowed_names = [lhs_name] if lhs_name else []
         for lhs_name in tags:
             if lhs_name not in allowed_names:

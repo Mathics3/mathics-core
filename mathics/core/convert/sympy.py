@@ -266,15 +266,15 @@ def expression_to_sympy(expr: Expression, **kwargs):
         if head_name in functions:
             return expr._as_sympy_function(**kwargs)
 
-    lookup_name = expr.get_lookup_name()
-    builtin = mathics_to_sympy.get(lookup_name)
+    symbol_definition_name = expr.get_symbol_definition_name()
+    builtin = mathics_to_sympy.get(symbol_definition_name)
 
     if builtin is not None:
         sympy_expr = builtin.to_sympy(expr, **kwargs)
         if sympy_expr is not None:
             return sympy_expr
     elif exc := kwargs.get("raise_on_error", None):
-        raise exc(f"{lookup_name} not registered in mathics_to_sympy")
+        raise exc(f"{symbol_definition_name} not registered in mathics_to_sympy")
     return SympyExpression(expr, **kwargs)
 
 

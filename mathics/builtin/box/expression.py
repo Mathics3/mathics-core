@@ -112,7 +112,15 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
     def get_head_name(self):
         return self.get_name()
 
-    def get_lookup_name(self):
+    # FIXME: return a Symbol, not a name.
+    # Conceptually, this isn't hard, but there are many changes.
+    def get_symbol_definition_name(self) -> str:
+        """Return the string symbol name that is to be used in
+        determining which definition key of a definitions object to
+        use in symbol-table operations.
+
+        Here, it is just the Box's string name.
+        """
         return self.get_name()
 
     @property

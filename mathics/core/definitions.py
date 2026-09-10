@@ -775,8 +775,8 @@ class Definitions:
 
     def get_ownvalue(self, name: str) -> BaseElement:
         """Get ownvalue associated with `name`"""
-        lookup_name = self.lookup_name(name)
-        ownvalues = self.get_definition(lookup_name).ownvalues
+        symbol_name = self.lookup_name(name)
+        ownvalues = self.get_definition(symbol_name).ownvalues
 
         for ownvalue in ownvalues:
             if not isinstance(ownvalue.pattern.expr, Symbol):
@@ -790,9 +790,9 @@ class Definitions:
 
     def set_ownvalue(self, name: str, value) -> None:
         """Set an ownvalue for name"""
-        name = self.lookup_name(name)
-        self.add_rule(name, RewriteRule(Symbol(name), value))
-        self.clear_cache(name)
+        symbol_name = self.lookup_name(name)
+        self.add_rule(name, RewriteRule(Symbol(symbol_name), value))
+        self.clear_cache(symbol_name)
 
     def set_options(self, name: str, options) -> None:
         """Set the options dict associated with the Symbol `name`"""
@@ -880,14 +880,29 @@ def _valuesname(name: str) -> str:
     return name[7:].lower()
 
 
+# FIXME: Return an enumeration, not a Optional[str].
 def determine_value_role(
-    pattern: BaseElement | BasePattern, tagger_symbol: Symbol
+    pattern: BaseElement | BasePattern, target_symbol: Symbol
 ) -> Optional[str]:
+    """Determine the kind of Value (DownValue, OwnValue, UpValue, etc.) is getting
+    refered to for `target_symbol`.
+
+    The return value either "downvalues", "nvalues", "ownvalues",
+    "subvalues", "upvalues", or None
+
+    The following table indicates how we decide the Value "role" from
+    its context inside an expression.
+
+    Expr kind    Target Position               Value Type / Role
+    ---------    --------------                -----------------
+    x            Bare symbol                   OwnValues
+    f[x, y]      Head position (f)             DownValues
+    f[g[x]]      Tagged argument position (g)  UpValues
+    f[x][y`      Nested Head position (f)      SubValues
+    N[f[x]]      Numerical evaluation context  NValues
+    Format[f[x]] Formatting / Display context  FormatValue
     """
-    Determine the position of a pattern in
-    the definition of the symbol ``tagger_symbol``
-    """
-    assert isinstance(tagger_symbol, Symbol), "tagger_symbol must be a symbol"
+    assert isinstance(target_symbol, Symbol), "target_symbol must be a symbol"
     # If pattern is a PatternObject, use the method.
     # In Set* and when Builtin symbols are loaded,
     # a pattern object is available.
@@ -896,14 +911,14 @@ def determine_value_role(
     # We could compile the pattern for that case too
     # but it would introduce some overhead.
     if isinstance(pattern, BasePattern):
-        return pattern.determine_value_role(tagger_symbol)
+        return pattern.determine_value_role(target_symbol)
     # pattern is a BaseElement
-    if pattern is tagger_symbol:
+    if pattern is target_symbol:
         return "ownvalues"
     if isinstance(pattern, Atom):
         return None
     if pattern.has_form(SymbolN, 2):
-        position = determine_value_role(pattern.get_elements()[0], tagger_symbol)
+        position = determine_value_role(pattern.get_elements()[0], target_symbol)
         if position in (
             None,
             "upvalues",
@@ -911,47 +926,48 @@ def determine_value_role(
             return None
         return "nvalues"
     if pattern.has_form(SymbolHoldPattern, 1):
-        return determine_value_role(pattern.get_elements()[0], tagger_symbol)
+        return determine_value_role(pattern.get_elements()[0], target_symbol)
     if pattern.has_form(SymbolPattern, 2):
-        return determine_value_role(pattern.get_elements()[1], tagger_symbol)
+        return determine_value_role(pattern.get_elements()[1], target_symbol)
     if pattern.has_form(SymbolCondition, 2):
-        return determine_value_role(pattern.get_elements()[0], tagger_symbol)
+        return determine_value_role(pattern.get_elements()[0], target_symbol)
     if pattern.has_form(BLANK_PATTERN_HEADS, 1):
-        if tagger_symbol is pattern.get_elements()[0]:
+        if target_symbol is pattern.get_elements()[0]:
             return "downvalues"
     if pattern.has_form(SymbolVerbatim, 1):
         content = pattern.get_elements()[0]
-        if tagger_symbol is content:
+        if target_symbol is content:
             return "ownvalues"
         if isinstance(content, Atom):
             return None
-        if content.has_form(tagger_symbol, None):
+        if content.has_form(target_symbol, None):
             return "downvalues"
         if (
             content.has_form(SymbolN, 2)
-            and content.get_elements()[0].get_lookup_name() == tagger_symbol.get_name()
+            and content.get_elements()[0].get_symbol_definition_name()
+            == target_symbol.get_name()
         ):
             return "nvalues"
-        if content.get_lookup_name() == tagger_symbol.get_name():
+        if content.get_symbol_definition_name() == target_symbol.get_name():
             return "subvalues"
         for element in content.get_elements():
-            if element is tagger_symbol or element.has_form(tagger_symbol, None):
+            if element is target_symbol or element.has_form(target_symbol, None):
                 return "upvalues"
         return None
 
     head = pattern.get_head()
 
-    if head is tagger_symbol:
+    if head is target_symbol:
         return "downvalues"
 
-    head_pos = determine_value_role(head, tagger_symbol)
+    head_pos = determine_value_role(head, target_symbol)
     if head_pos == "ownvalues":
         return "downvalues"
     if head_pos in ("downvalues", "subvalues"):
         return "subvalues"
 
     for element in pattern.get_elements():
-        elem_position = determine_value_role(element, tagger_symbol)
+        elem_position = determine_value_role(element, target_symbol)
         if elem_position in ("ownvalues", "downvalues", "subvalues"):
             return "upvalues"
     return None

@@ -259,7 +259,7 @@ class BaseRule(KeyComparable, ABC):
     # def get_head_name(self, short=False) -> str:
     #     return "Rule" if short else "System`Rule"
 
-    # def get_lookup_name(self) -> str:
+    # def get_symbol_definition_name(self) -> str:
     #     return "System`Rule"
 
     def get_replace_value(self) -> BaseElement:

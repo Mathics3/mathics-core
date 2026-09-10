@@ -31,7 +31,7 @@ class DeferredExpressionPattern(ExpressionPattern):
     it, and delegates to it from then on.
 
     Every other BasePattern method (sameQ, pattern_precedence,
-    element_order, get_head_name, get_lookup_name, ...) is answered
+    element_order, get_head_name, get_symbol_definition_name, ...) is answered
     directly by the BasePattern base class from self.expr, without
     needing resolution -- none of those depend on Orderless-ness. This
     was verified against every caller of those methods that can run
