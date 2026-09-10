@@ -96,7 +96,7 @@ def do_format_element(
             if not (isinstance(expr, Atom)) and not (isinstance(expr.head, Atom)):
                 # expr is of the form f[...][...]
                 return None
-            name = expr.get_lookup_name()
+            name = expr.get_symbol_definition_name()
             format_rules = evaluation.definitions.get_formats(name, form.get_name())
             for rule in format_rules:
                 result = rule.apply(expr, evaluation)

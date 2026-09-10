@@ -741,26 +741,31 @@ class Verbatim(PatternObject):
         elements = expr.elements
         self.content = elements[0] if len(elements) == 1 else None
 
-    def determine_value_role(self, tag_symbol: Symbol) -> OptionalType[str]:
+    def determine_value_role(self, target_symbol: Symbol) -> OptionalType[str]:
+        """Return what kind of Value (DownValue, OwnValue, Upvalue, etc.)
+        is referred to in this Verbatim pattern object.
+        If we can't figure what role is intended, we return None.
+        """
         content = self.content
         if content is None:
             return None
 
-        if content is tag_symbol:
+        if content is target_symbol:
             return "ownvalues"
         if isinstance(content, Atom):
             return None
-        if content.has_form(tag_symbol, None):
+        if content.has_form(target_symbol, None):
             return "downvalues"
         if (
             content.has_form(SymbolN, 2)
-            and content.elements[0].get_lookup_name() == tag_symbol.get_name()
+            and content.elements[0].get_symbol_definition_name()
+            == target_symbol.get_name()
         ):
             return "nvalues"
-        if content.get_lookup_name() == tag_symbol.get_name():
+        if content.get_symbol_definition_name() == target_symbol.get_name():
             return "subvalues"
         for element in content.elements:
-            if element is tag_symbol or element.has_form(tag_symbol, None):
+            if element is target_symbol or element.has_form(target_symbol, None):
                 return "upvalues"
         return None
 

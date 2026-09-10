@@ -215,11 +215,16 @@ class BasePattern(ABC):
         """
         return self.expr.get_head_name()
 
-    def get_lookup_name(self):
+    # FIXME: return a Symbol, not a name.
+    # Conceptually, this isn't hard, but there are many changes.
+    def get_symbol_definition_name(self):
+        """Return the string symbol name that is to be used in
+        determining which definition key of a definitions object to
+        use in symbol-table operations.
+
+        Here, it is the symbol name of leftmost head.
         """
-        Return symbol name of leftmost head.
-        """
-        return self.expr.get_lookup_name()
+        return self.expr.get_symbol_definition_name()
 
     def get_name(self, short=False) -> str:
         """Return the name of the expression."""

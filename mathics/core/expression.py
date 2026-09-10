@@ -416,7 +416,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 self.elements_properties.elements_fully_evaluated = False
 
             if uniform:
-                lookup_name = element.get_lookup_name()
+                lookup_name = element.get_symbol_definition_name()
                 if last_lookup_name:
                     if lookup_name != last_lookup_name:
                         uniform = self.elements_properties.is_uniform = False
@@ -644,7 +644,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 if not expr.is_uncertain_final_definitions(definitions):
                     break
 
-                names.add(expr.get_lookup_name())
+                names.add(expr.get_symbol_definition_name())
 
                 # This loads the default options associated
                 # to the expression
@@ -877,9 +877,14 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     def get_head_name(self):
         return self._head.name if isinstance(self._head, Symbol) else ""
 
-    def get_lookup_name(self) -> str:
-        """
-        Returns symbol name of leftmost head.
+    # FIXME: return a Symbol, not a name.
+    # Conceptually, this isn't hard, but there are many changes.
+    def get_symbol_definition_name(self) -> str:
+        """Return the string symbol name that is to be used in
+        determining which definition key of a definitions object to
+        use in symbol-table operations.
+
+        Here, it is the Expression's leftmost head.
         """
         lookup_symbol = self._head
         while True:
@@ -1423,7 +1428,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # If rule matching does not succeed for "b", then look at the next element,
         # "a". However element "a" has been already seen. So, skip it.
         # Finally, because "F" is a symbol,
-        # new.head_name() == new.get_lookup_name(); look at downvalue rules.
+        # new.head_name() == new.get_symbol_definition_name(); look at downvalue rules.
 
         # If instead of "F[a, 1, a, c]" we had  "Q[s][a, 1, a, c]",
         # the routine would look for the subvalues of "Q".
@@ -1447,12 +1452,12 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     else elements
                 )
                 for element in sample_elements:
-                    name = element.get_lookup_name()
+                    name = element.get_symbol_definition_name()
                     if name and name not in rules_names:
                         rules_names.add(name)
                         for rule in evaluation.definitions.get_upvalues(name):
                             yield rule
-            lookup_name = new.get_lookup_name()
+            lookup_name = new.get_symbol_definition_name()
             if lookup_name == new.get_head_name():
                 for rule in evaluation.definitions.get_downvalues(lookup_name):
                     yield rule
