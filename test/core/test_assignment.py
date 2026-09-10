@@ -5,7 +5,7 @@ from test.helper import session
 import pytest
 
 from mathics.core.assignment import pop_reference_head
-from mathics.eval.assignments.assignment import get_reference_expression
+from mathics.eval.assignments.assignment import unwrap_expression
 
 evaluation = session.evaluation
 
@@ -43,9 +43,9 @@ evaluation = session.evaluation
         ),
     ],
 )
-def test_get_reference_expression(expr_str, expected_str):
+def test_unwrap_expression(expr_str, expected_str):
     expr = evaluation.parse(expr_str)
-    result = get_reference_expression(expr)
+    result = unwrap_expression(expr)
     expected = evaluation.parse(expected_str)
     assert str(result) == str(expected)
 

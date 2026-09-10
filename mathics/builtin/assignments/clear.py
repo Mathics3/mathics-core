@@ -25,7 +25,7 @@ from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolOptions,
 )
-from mathics.eval.assignments import get_lookup_reference_name
+from mathics.eval.assignments import get_unwrapped_name
 
 
 class Clear(Builtin):
@@ -269,7 +269,7 @@ class Unset(PostfixOperator):
                 empty = []
             evaluation.definitions.set_values(symbol, expr.get_head_name(), empty)
             return SymbolNull
-        name = get_lookup_reference_name(expr)
+        name = get_unwrapped_name(expr)
         if not name:
             evaluation.message("Unset", "usraw", expr)
             return SymbolFailed

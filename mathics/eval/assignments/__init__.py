@@ -6,11 +6,11 @@ mathics.builtins.assignments.
 from mathics.eval.assignments.assignment import (
     ASSIGNMENT_FUNCTION_MAP,
     eval_assign,
-    get_lookup_reference_name,
+    get_unwrapped_name,
 )
 
 __all__ = [
     "ASSIGNMENT_FUNCTION_MAP",
     "eval_assign",
-    "get_lookup_reference_name",
+    "get_unwrapped_name",
 ]

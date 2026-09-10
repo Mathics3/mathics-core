@@ -98,7 +98,7 @@ def eval_assign(
     # An expression can be wrapped inside structures like `Condition[...]`
     # or HoldPattern[...]. The `lhs_reference` is the head of the expression once
     # we strip out all these wrappings.
-    lhs_reference_expr = get_reference_expression(lhs)
+    lhs_reference_expr = unwrap_expression(lhs)
     lhs_reference = (
         lhs_reference_expr
         if isinstance(lhs_reference_expr, Symbol)
@@ -136,7 +136,7 @@ def eval_assign(
             (SymbolVerbatim, SymbolHoldPattern), 1
         ):
             lhs = lhs.evaluate_elements(evaluation)
-            lhs_reference = get_reference_expression(lhs)
+            lhs_reference = unwrap_expression(lhs)
             lhs_reference = (
                 lhs_reference
                 if isinstance(lhs_reference, Symbol)
@@ -204,7 +204,7 @@ def eval_assign_attributes(
         evaluation.message_args(name, len(lhs.elements), 1)
         raise AssignmentException(lhs, rhs)
 
-    target_symbol = get_reference_expression(lhs.elements[0])
+    target_symbol = unwrap_expression(lhs.elements[0])
     tag = target_symbol.get_symbol_definition_name()
     if not tag:
         evaluation.message(op_name, "sym", lhs.elements[0], 1)
@@ -421,7 +421,7 @@ def eval_assign_default(
     if len(lhs.elements) not in (1, 2, 3):
         evaluation.message_args(SymbolDefault, len(lhs.elements), 1, 2, 3)
         raise AssignmentException(lhs, None)
-    lhs_reference = get_reference_expression(lhs.elements[0])
+    lhs_reference = unwrap_expression(lhs.elements[0])
     lhs_reference = (
         lhs_reference if isinstance(lhs_reference, Symbol) else lhs_reference.get_head()
     )
@@ -556,7 +556,7 @@ def eval_assign_format(
             "System`MathMLForm",
         ]
     lhs = lhs.elements[0]
-    lhs_reference = get_reference_expression(lhs)
+    lhs_reference = unwrap_expression(lhs)
     lhs_reference = (
         lhs_reference.get_head()
         if not isinstance(lhs_reference, Symbol)
@@ -1086,7 +1086,7 @@ def eval_assign_n(
     else:
         nprec = lhs.elements[1]
 
-    lhs_reference = get_reference_expression(lhs.elements[0])
+    lhs_reference = unwrap_expression(lhs.elements[0])
 
     tags = process_tags_and_upset_dont_allow_custom(
         tags, upset, op_name, lhs, lhs_reference, evaluation
@@ -1371,29 +1371,31 @@ def find_value_role_symbol_name(
     return value_role
 
 
-def get_lookup_reference_name(expr: BaseElement) -> str:
-    """
-    Find the lookup name of the reference expression associated to
-    `expr`, or None if there is no such a reference.
+def get_unwrapped_name(expr: BaseElement) -> Optional[str]:
+    """Unwrap or strip off surrounding expressions `expr`, and then
+    get a definitions object's symbol name. None is return if there is
+    no symbol can be found.
 
-    In general, the lookup reference name coincides with the lookup_name
-    of the expression. However, there are some exceptions:
+    When there is nothing to unwrap, so this is the same as running
+    the get_symbol_definition_name() method on `expr`.
+
+    However:
 
     * Expressions with heads `HoldPattern`, Condition`, or `PatternTest`
-      are not considered *reference* expressions. The reference expression
-      is the reference expression of its first element.
-    * (named) `Pattern` expressions takes its lookup_reference_name from the
-      pattern their hold.
-    * `Verbatim` expressions pick the lookup_reference_name from
-       the lookup_name of the expression they hold.
-    * Blanks pick the lookup_reference_name from the pattern head
+      are unwrapped and the first or leftmost element head.
+    * A (named) `Pattern` expression takes symbol name from the pattern of its
+      "hold" argument.
+    * `Verbatim` expressions likewise return the symbol name from
+       the expression is wrapped.
+    * Blank patterns (see BLANK_PATTERN_HEADS) return the symbol namefrom the pattern head
       (its unique element if they has one). If the Blank expression does not
-      have elements (generic blank) then there is no lookup_reference_name,
-      and returns an empty string.
+      have elements (generic blank) then there is no symbol to return
+      the empty string is returned.
+
     """
-    expr = get_reference_expression(expr)
+    expr = unwrap_expression(expr)
     if expr.has_form(SymbolPattern, 2):
-        return get_lookup_reference_name(expr.elements[1])
+        return get_unwrapped_name(expr.elements[1])
     if expr.has_form(SymbolVerbatim, 1):
         # For Verbatim pick the lookup name directly from the expression.
         return expr.elements[0].get_symbol_definition_name()
@@ -1404,7 +1406,7 @@ def get_lookup_reference_name(expr: BaseElement) -> str:
         return expr_head.elements[0].get_symbol_definition_name()
     if expr.has_form(BLANK_PATTERN_HEADS, None):
         if len(expr.elements) == 1:
-            return get_lookup_reference_name(expr.elements[0])
+            return get_unwrapped_name(expr.elements[0])
         return ""
     return expr.get_symbol_definition_name()
 
@@ -1463,7 +1465,7 @@ def process_condition_lhs(
         If the base expression changed during evaluation, the collected
         conditions are reapplied in reverse order (innermost to outermost) to
         reconstruct the new LHS expression.
-        Finally, `get_reference_expression` is used to extract the storage
+        Finally, `unwrap_expression()` is used to extract the storage
         target. If the result is not a direct `Symbol`, its head is used
         instead.
     """
@@ -1480,7 +1482,7 @@ def process_condition_lhs(
     )
 
     # 3. Extract the reference symbol from the evaluated base
-    lhs_reference = get_reference_expression(new_expr)
+    lhs_reference = unwrap_expression(new_expr)
     if not isinstance(lhs_reference, Symbol):
         lhs_reference = lhs_reference.get_head()
 
@@ -1493,7 +1495,7 @@ def process_condition_lhs(
     return lhs, lhs_reference
 
 
-def get_reference_expression(lhs: BaseElement) -> BaseElement:
+def unwrap_expression(lhs: BaseElement) -> BaseElement:
     """
     Strip `Condition`, `PatternTest` and `HoldPattern` from an expression.
     """
@@ -1510,7 +1512,7 @@ def get_reference_expression(lhs: BaseElement) -> BaseElement:
     # If the head is wrapped, strip it
 
     if lhs_head.get_head() in strip_headers:
-        lhs = Expression(get_reference_expression(lhs_head), *lhs.elements)
+        lhs = Expression(unwrap_expression(lhs_head), *lhs.elements)
         lhs_head = lhs.get_head()
 
     while lhs_head in strip_headers:
@@ -1519,7 +1521,7 @@ def get_reference_expression(lhs: BaseElement) -> BaseElement:
             return lhs
         lhs_head = lhs.get_head()
         if lhs_head.get_head() in strip_headers:
-            lhs = Expression(get_reference_expression(lhs_head), *lhs.elements)
+            lhs = Expression(unwrap_expression(lhs_head), *lhs.elements)
 
         lhs_head = lhs.get_head()
 
@@ -1568,7 +1570,7 @@ def process_tags_and_upset_allow_custom(
 
     """
     name = lhs.get_head_name()
-    lhs_reference_expr = get_reference_expression(lhs)
+    lhs_reference_expr = unwrap_expression(lhs)
 
     if upset:
         tags_set = set()
@@ -1587,26 +1589,26 @@ def process_tags_and_upset_allow_custom(
             # Still, if the element is a `Blank*`, the reference is
             # set to its argument. If it does not have arguments (or have many)
             # skip it.
-            element_name = get_lookup_reference_name(element)
+            element_name = get_unwrapped_name(element)
             if element_name != "":
                 assert element_name is not None
                 tags_set.add(element_name)
         return list(tags_set), lhs_reference_expr
 
     if tags is None:
-        lhs_name = get_lookup_reference_name(lhs_reference_expr)
+        lhs_name = get_unwrapped_name(lhs_reference_expr)
         if not lhs_name:
             evaluation.message(op_name, "setraw", lhs_reference_expr)
             raise AssignmentException(lhs, None)
         tags = [lhs_name]
     else:
         allowed_names = set()
-        lhs_name = get_lookup_reference_name(lhs_reference_expr)
+        lhs_name = get_unwrapped_name(lhs_reference_expr)
         if lhs_name:
             allowed_names.add(lhs_name)
 
         for element in lhs_reference_expr.get_elements():
-            element_name = get_lookup_reference_name(element)
+            element_name = get_unwrapped_name(element)
             if element_name:
                 allowed_names.add(element_name)
         for lhs_name in tags:
@@ -1667,7 +1669,7 @@ def process_tags_and_upset_dont_allow_custom(
         mathics.core.definitions.determine_value_role for how an
         expression is patteren-matched.
         """
-        expr = get_reference_expression(expr)
+        expr = unwrap_expression(expr)
         if expr.has_form(SymbolPattern, 2):
             return get_symbol_definition_name(expr.elements[1])
         if expr.has_form(
