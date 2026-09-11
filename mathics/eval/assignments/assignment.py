@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 # pylint: disable-msg=too-many-arguments
+# Note: this module needs typing going over to
+# clarify use of BaseElement versus Expression and
+# reduce type loosenesses.
 
 """
 Evaluation routines for `Set`, `SetDelayed`, and Builtin functions
@@ -15,7 +18,7 @@ from mathics.core.assignment import (
     pop_reference_head,
     rejected_because_protected,
 )
-from mathics.core.atoms import Integer, Integer1
+from mathics.core.atoms import Integer, Integer1, get_int_value
 from mathics.core.attributes import A_LOCKED, attribute_string_to_number
 from mathics.core.definitions import BOX_FORMS
 from mathics.core.element import BaseElement, EvalMixin
@@ -57,11 +60,13 @@ from mathics.eval.list.eol import eval_Part
 # Head Symbols of expressions that may need unwrapping in an assignment.
 # Note that these all have some sort of "Hold" attribute
 # for all or some of there arguments.
-UNWRAPABLE_SYMBOLS: Final[set] = {
-    SymbolHoldPattern,
-    SymbolCondition,
-    SymbolPatternTest,
-}
+UNWRAPABLE_SYMBOL_HEADS: Final[frozenset[Symbol]] = frozenset(
+    {
+        SymbolHoldPattern,
+        SymbolCondition,
+        SymbolPatternTest,
+    }
+)
 
 
 class AssignmentException(Exception):
@@ -107,32 +112,28 @@ def eval_assign(
     # An expression can be wrapped inside structures like `Condition[...]`
     # or HoldPattern[...]. The `lhs_reference` is the head of the expression once
     # we strip out all these wrappings.
-    lhs_reference_expr = unwrap_expression(lhs)
+    unwrapped_lhs = unwrap_expression(lhs)
     lhs_reference = (
-        lhs_reference_expr
-        if isinstance(lhs_reference_expr, Symbol)
-        else lhs_reference_expr.get_head()
+        unwrapped_lhs if isinstance(unwrapped_lhs, Symbol) else unwrapped_lhs.get_head()
     )
 
-    if isinstance(lhs_reference_expr, Symbol):
+    if isinstance(unwrapped_lhs, Symbol):
         if upset:
             evaluation.message(op_name, "nosym", lhs)
-        if tags and lhs_reference_expr.get_name() not in tags:
-            evaluation.message("tagnf", lhs_reference_expr, lhs)
+        if tags and (unwrapped_lhs_name := unwrapped_lhs.get_name()) not in tags:
+            evaluation.message(unwrapped_lhs_name, "tagnf", lhs)
 
         try:
-            return eval_assign_to_symbol(
-                op_name, lhs, lhs_reference_expr, rhs, evaluation
-            )
+            return eval_assign_to_symbol(op_name, lhs, unwrapped_lhs, rhs, evaluation)
         except AssignmentException:
             return False
 
     try:
         # Handle special cases using the lookup name associated to the lhs_reference
-        if lhs_reference_expr.has_form(SymbolVerbatim, 1):
-            lookup_name = lhs_reference_expr.elements[0].get_symbol_definition_name()
+        if unwrapped_lhs.has_form(SymbolVerbatim, 1):
+            lookup_name = unwrapped_lhs.elements[0].get_symbol_definition_name()
         else:
-            lookup_name = lhs_reference_expr.get_symbol_definition_name()
+            lookup_name = unwrapped_lhs.get_symbol_definition_name()
         assignment_func = ASSIGNMENT_FUNCTION_MAP.get(lookup_name, None)
         if assignment_func:
             return assignment_func(
@@ -165,7 +166,7 @@ def eval_assign_attributes(
     lhs_reference: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
-    tags: list,
+    tags: list[str],
     upset: bool,
 ) -> bool:
     """
@@ -187,7 +188,7 @@ def eval_assign_attributes(
     evaluation : Evaluation
         DESCRIPTION.
     tags : list
-        the list of symbols to be associated with the rule.
+        the list of symbol names to be associated with the rule.
     upset : bool
         `True` if the rule is an Up value.
 
@@ -383,7 +384,7 @@ def eval_assign_default(
     lhs_reference: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
-    tags: list,
+    tags: list[str],
     upset: bool,
 ) -> bool:
     """
@@ -590,7 +591,7 @@ def eval_assign_iteration_limit(
     Set ownvalue for the $IterationLimit symbol.
     """
 
-    rhs_int_value = rhs.int_value
+    rhs_int_value = get_int_value(rhs)
     if (
         not rhs_int_value or rhs_int_value < 20
     ) and not rhs.get_name() == "System`Infinity":
@@ -631,7 +632,7 @@ def eval_assign_line_number_and_history_length(
     """
 
     lhs_name = lhs.get_name()
-    rhs_int_value = rhs.int_value
+    rhs_int_value = get_int_value(rhs)
     if rhs_int_value is None or rhs_int_value < 0:
         evaluation.message(lhs_name, "intnn", rhs)
         raise AssignmentException(lhs, None)
@@ -778,7 +779,7 @@ def eval_assign_minprecision(
 
     """
     lhs_name = lhs.get_name()
-    rhs_int_value = rhs.int_value
+    rhs_int_value = get_int_value(rhs)
     # $MinPrecision = Infinity is not allowed
     if rhs_int_value is not None and rhs_int_value >= 0:
         max_prec = evaluation.definitions.get_config_value("$MaxPrecision")
@@ -822,10 +823,9 @@ def eval_assign_maxprecision(
 
     """
     lhs_name = lhs.get_name()
-    rhs_int_value = rhs.int_value
     if rhs.has_form(SymbolDirectedInfinity, 1) and rhs.elements[0].int_value == 1:
         return False
-    if rhs_int_value is not None and rhs_int_value > 0:
+    if (rhs_int_value := get_int_value(rhs)) is not None and rhs_int_value > 0:
         min_prec = evaluation.definitions.get_config_value("$MinPrecision")
         if min_prec is not None and rhs_int_value < min_prec:
             evaluation.message("$MaxPrecision", "preccon", SymbolMaxPrecision)
@@ -1277,7 +1277,7 @@ def eval_assign_store_rules_by_tag(
 
     """
     defs = evaluation.definitions
-    tags, lhs_reference_expr = process_tags_and_upset_allow_custom(
+    tags, unwrapped_lhs = process_tags_and_upset_allow_custom(
         tags, upset, op_name, lhs, rhs, evaluation
     )
     # In WMA, this does not happen. However, if we remove this,
@@ -1390,7 +1390,7 @@ def get_unwrapped_name(expr: BaseElement) -> Optional[str]:
 
     However:
 
-    * Expressions with heads found in UNWRAPABLE_SYMBOLS.
+    * Expressions with heads found in UNWRAPABLE_SYMBOL_HEADS.
       are unwrapped and the first or leftmost element's head.
     * A (named) `Pattern` expression takes the symbol name from the pattern of its
       "hold" argument.
@@ -1515,16 +1515,16 @@ def unwrap_expression(lhs: BaseElement) -> BaseElement:
     lhs_head = lhs.get_head()
 
     # If the lhs head is wrapped, remove the wrapped expression.
-    if lhs_head.get_head() in UNWRAPABLE_SYMBOLS:
+    if lhs_head.get_head() in UNWRAPABLE_SYMBOL_HEADS:
         lhs = Expression(unwrap_expression(lhs_head), *lhs.elements)
         lhs_head = lhs.get_head()
 
-    while lhs_head in UNWRAPABLE_SYMBOLS:
+    while lhs_head in UNWRAPABLE_SYMBOL_HEADS:
         lhs = lhs.elements[0]
         if not hasattr(lhs, "elements"):
             return lhs
         lhs_head = lhs.get_head()
-        if lhs_head.get_head() in UNWRAPABLE_SYMBOLS:
+        if lhs_head.get_head() in UNWRAPABLE_SYMBOL_HEADS:
             lhs = Expression(unwrap_expression(lhs_head), *lhs.elements)
 
         lhs_head = lhs.get_head()
@@ -1574,11 +1574,11 @@ def process_tags_and_upset_allow_custom(
 
     """
     name = lhs.get_head_name()
-    lhs_reference_expr = unwrap_expression(lhs)
+    unwrapped_lhs = unwrap_expression(lhs)
 
     if upset:
         tags_set = set()
-        if isinstance(lhs_reference_expr, Atom):
+        if isinstance(unwrapped_lhs, Atom):
             evaluation.message(
                 name,
                 "normal",
@@ -1586,7 +1586,7 @@ def process_tags_and_upset_allow_custom(
                 Expression(Symbol(name), lhs, rhs),
             )
             raise AssignmentException(lhs, None)
-        for element in lhs_reference_expr.get_elements():
+        for element in unwrapped_lhs.get_elements():
             # elements of the expression can also be wrapped in `HoldPattern`
             # or `Condition`. Tag candidates are obtained by stripping out
             # these wrappers.
@@ -1597,21 +1597,21 @@ def process_tags_and_upset_allow_custom(
             if element_name != "":
                 assert element_name is not None
                 tags_set.add(element_name)
-        return list(tags_set), lhs_reference_expr
+        return list(tags_set), unwrapped_lhs
 
     if tags is None:
-        lhs_name = get_unwrapped_name(lhs_reference_expr)
+        lhs_name = get_unwrapped_name(unwrapped_lhs)
         if not lhs_name:
-            evaluation.message(op_name, "setraw", lhs_reference_expr)
+            evaluation.message(op_name, "setraw", unwrapped_lhs)
             raise AssignmentException(lhs, None)
         tags = [lhs_name]
     else:
         allowed_names = set()
-        lhs_name = get_unwrapped_name(lhs_reference_expr)
+        lhs_name = get_unwrapped_name(unwrapped_lhs)
         if lhs_name:
             allowed_names.add(lhs_name)
 
-        for element in lhs_reference_expr.get_elements():
+        for element in unwrapped_lhs.get_elements():
             element_name = get_unwrapped_name(element)
             if element_name:
                 allowed_names.add(element_name)
@@ -1620,7 +1620,7 @@ def process_tags_and_upset_allow_custom(
                 evaluation.message(op_name, "tagnfd", Symbol(lhs_name))
                 raise AssignmentException(lhs, None)
 
-    return tags, lhs_reference_expr
+    return tags, unwrapped_lhs
 
 
 def process_tags_and_upset_dont_allow_custom(
