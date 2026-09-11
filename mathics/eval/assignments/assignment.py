@@ -1394,7 +1394,7 @@ def find_value_role_symbol_name(
 
 
 def get_unwrapped_name(expr: BaseElement) -> Optional[str]:
-    """Unwrap or strip off surrounding expressions `expr`, and then
+    """Unwrap or strip off surrounding expressions from `expr`, and then
     get a "definitions" object's symbol name. None is returned if
     no symbol can be found.
 
