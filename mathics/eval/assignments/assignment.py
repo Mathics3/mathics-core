@@ -7,7 +7,7 @@ found in module `mathics.builtin.assignments.assignment`.
 """
 
 from functools import reduce
-from typing import Optional
+from typing import Final, Optional
 
 from mathics.core.assignment import (
     get_symbol_list,
@@ -53,6 +53,15 @@ from mathics.core.systemsymbols import (
     SymbolVerbatim,
 )
 from mathics.eval.list.eol import eval_Part
+
+# Head Symbols of expressions that may need unwrapping in an assignment.
+# Note that these all have some sort of "Hold" attribute
+# for all or some of there arguments.
+UNWRAPABLE_SYMBOLS: Final[set] = {
+    SymbolHoldPattern,
+    SymbolCondition,
+    SymbolPatternTest,
+}
 
 
 class AssignmentException(Exception):
@@ -1381,7 +1390,7 @@ def get_unwrapped_name(expr: BaseElement) -> Optional[str]:
 
     However:
 
-    * Expressions with heads `HoldPattern`, Condition`, or `PatternTest`
+    * Expressions with heads found in UNWRAPABLE_SYMBOLS.
       are unwrapped and the first or leftmost element's head.
     * A (named) `Pattern` expression takes the symbol name from the pattern of its
       "hold" argument.
@@ -1497,30 +1506,25 @@ def process_condition_lhs(
 
 def unwrap_expression(lhs: BaseElement) -> BaseElement:
     """
-    Strip `Condition`, `PatternTest` and `HoldPattern` from an expression.
+    Remove enclosing `Condition`, `PatternTest` and `HoldPattern` from an expression.
     """
-    strip_headers = (
-        SymbolHoldPattern,
-        SymbolCondition,
-        SymbolPatternTest,
-    )
     # If atom, just return
     if not hasattr(lhs, "elements"):
         return lhs
 
     lhs_head = lhs.get_head()
-    # If the head is wrapped, strip it
 
-    if lhs_head.get_head() in strip_headers:
+    # If the lhs head is wrapped, remove the wrapped expression.
+    if lhs_head.get_head() in UNWRAPABLE_SYMBOLS:
         lhs = Expression(unwrap_expression(lhs_head), *lhs.elements)
         lhs_head = lhs.get_head()
 
-    while lhs_head in strip_headers:
+    while lhs_head in UNWRAPABLE_SYMBOLS:
         lhs = lhs.elements[0]
         if not hasattr(lhs, "elements"):
             return lhs
         lhs_head = lhs.get_head()
-        if lhs_head.get_head() in strip_headers:
+        if lhs_head.get_head() in UNWRAPABLE_SYMBOLS:
             lhs = Expression(unwrap_expression(lhs_head), *lhs.elements)
 
         lhs_head = lhs.get_head()
