@@ -135,7 +135,7 @@ class ClearAll(Clear):
 
     <dl>
       <dt>'ClearAll'[$symb_1$, $symb_2$, ...]
-      <dd>clears all values, attributes, messages and options associated with the given symbols.
+      <dd>clears all values, attributes, messages, and options associated with the given symbols.
       The arguments can also be given as strings containing symbol names.
     </dl>
 
@@ -301,13 +301,13 @@ class TagUnset(PostfixOperator):
       <dd>removes any value belonging to the patter $patt$ from $f$.
     </dl>
 
-    Let's consider we define an UpValue for a symbol g:
+    Let's consider defining an UpValue for a symbol g:
     >> Sin[g[x_]]^:=Sing[x];
     in a way that
     >> Sin[g[3]]
      = Sing[3]
 
-    TagUset allows to remove the rule:
+    TagUset allows removing the rule:
     >> g/: Sin[g[x_]]=.
     >> Sin[g[3]]
      = Sin[g[3]]
