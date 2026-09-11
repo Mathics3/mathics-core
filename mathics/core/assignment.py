@@ -179,7 +179,7 @@ def is_protected(tag: str, definitions: Definitions) -> bool:
     return bool(A_PROTECTED & definitions.get_attributes(tag))
 
 
-def pop_reference_head(lhs: Expression, lhs_reference: BaseElement):
+def unwrap_lhs(lhs: Expression, lhs_unwrapped: BaseElement):
     """
     Convert expressions of the form
     ```
@@ -191,21 +191,21 @@ def pop_reference_head(lhs: Expression, lhs_reference: BaseElement):
     ```
     Used in eval_assign_[n|format|...]
     """
-    if lhs is lhs_reference:
+    if lhs is lhs_unwrapped:
         return lhs
 
     lhs_head = lhs.get_head()
-    if lhs_head is lhs_reference:
+    if lhs_head is lhs_unwrapped:
         return lhs
 
     elems = lhs.elements
-    lhs_reference_expr = elems[0]
-    if lhs_reference_expr.get_head() is not lhs_reference:
-        lhs_reference_expr = pop_reference_head(lhs_reference_expr, lhs_reference)
+    lhs_unwrapped_expr = elems[0]
+    if lhs_unwrapped_expr.get_head() is not lhs_unwrapped:
+        lhs_unwrapped_expr = unwrap_lhs(lhs_unwrapped_expr, lhs_unwrapped)
 
-    lhs_reference_elems = lhs_reference_expr.elements
-    inner = Expression(lhs_head, lhs_reference_elems[0], *elems[1:])
-    return Expression(lhs_reference, inner, *lhs_reference_elems[1:])
+    lhs_unwrapped_elems = lhs_unwrapped_expr.elements
+    inner = Expression(lhs_head, lhs_unwrapped_elems[0], *elems[1:])
+    return Expression(lhs_unwrapped, inner, *lhs_unwrapped_elems[1:])
 
 
 def repl_pattern_by_symbol(expr: BaseElement) -> BaseElement:

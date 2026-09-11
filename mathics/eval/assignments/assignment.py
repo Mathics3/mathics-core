@@ -15,8 +15,8 @@ from typing import Final, Optional
 from mathics.core.assignment import (
     get_symbol_list,
     is_protected,
-    pop_reference_head,
     rejected_because_protected,
+    unwrap_lhs,
 )
 from mathics.core.atoms import Integer, Integer1, get_int_value
 from mathics.core.attributes import A_LOCKED, attribute_string_to_number
@@ -537,7 +537,7 @@ def eval_assign_format(
         True if the assignment was successful.
 
     """
-    lhs = pop_reference_head(lhs, lhs_unwrapped)
+    lhs = unwrap_lhs(lhs, lhs_unwrapped)
     lhs = lhs.evaluate_elements(evaluation)
     count = 0
     defs = evaluation.definitions
@@ -884,7 +884,7 @@ def eval_assign_messagename(
             op_name, lhs, lhs_unwrapped, rhs, evaluation
         )
 
-    lhs = pop_reference_head(lhs, lhs_unwrapped)
+    lhs = unwrap_lhs(lhs, lhs_unwrapped)
 
     count = 0
     defs = evaluation.definitions
@@ -1023,7 +1023,7 @@ def eval_assign_numericq(
         True if the assignment was successful.
 
     """
-    lhs = pop_reference_head(lhs, lhs_unwrapped)
+    lhs = unwrap_lhs(lhs, lhs_unwrapped)
 
     if rhs not in (SymbolTrue, SymbolFalse):
         evaluation.message("NumericQ", "set", lhs, rhs)
@@ -1090,7 +1090,7 @@ def eval_assign_n(
     if isinstance(lhs, Expression):
         lhs = lhs.evaluate_elements(evaluation)
 
-    lhs = pop_reference_head(lhs, lhs_unwrapped)
+    lhs = unwrap_lhs(lhs, lhs_unwrapped)
     defs = evaluation.definitions
 
     if len(lhs.elements) not in (1, 2):
