@@ -7,7 +7,7 @@ Restrictions on Patterns
 from typing import Optional as OptionalType, Tuple
 
 from mathics.core.atoms import Integer, Number, Rational, Real, String
-from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
+from mathics.core.attributes import A_HOLD_ALL, A_HOLD_REST, A_PROTECTED
 from mathics.core.builtin import InfixOperator, PatternObject, Test
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -139,6 +139,7 @@ class PatternTest(InfixOperator, PatternObject):
     """
 
     arg_counts = [2]
+    attributes = A_HOLD_REST | A_PROTECTED
     summary_text = "match to a pattern conditioned to a test result"
 
     def init(
