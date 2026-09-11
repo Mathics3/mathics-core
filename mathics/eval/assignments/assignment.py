@@ -2,8 +2,8 @@
 # pylint: disable-msg=too-many-arguments
 
 """
-evaluation routines for Set and SetDelayed, and Builtin functions
-found in module mathics.builtin.assignments.assignment
+Evaluation routines for `Set`, `SetDelayed`, and Builtin functions
+found in module `mathics.builtin.assignments.assignment`.
 """
 
 from functools import reduce
@@ -78,9 +78,9 @@ def eval_assign(
     Parameters
     ----------
     op_name : str
-        The builtin assignment operator name.
+        The built-in assignment operator name.
     rhs : BaseElement
-        the RHS.
+        The RHS.
     evaluation : Evaluation
         The evaluation object.
     tags : Optional[list], optional
@@ -166,7 +166,7 @@ def eval_assign_attributes(
     Parameters
     ----------
     op_name : str
-        The builtin assignment operator name.
+        The built-in assignment operator name.
     lhs : BaseElement
         The pattern of the rule to be assigned.
     lhs_reference: BaseElement
@@ -178,7 +178,7 @@ def eval_assign_attributes(
     evaluation : Evaluation
         DESCRIPTION.
     tags : list
-        the list of symbols to be associated to the rule.
+        the list of symbols to be associated with the rule.
     upset : bool
         `True` if the rule is an Up value.
 
@@ -334,11 +334,11 @@ def eval_assign_context_path(
     Parameters
     ----------
     op_name : str
-        The builtin assignment operator name.
+        The built-in assignment operator name.
     lhs : BaseElement
         The pattern of the rule to be assigned.
     rhs : BaseElement
-        the expression representing the replacement.
+        The expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
 
@@ -383,7 +383,7 @@ def eval_assign_default(
     Parameters
     ----------
     op_name : str
-        The builtin assignment operator name.
+        The built-in assignment operator name.
     lhs : BaseElement
         The pattern of the rule to be assigned.
     lhs_reference: BaseElement
@@ -394,7 +394,7 @@ def eval_assign_default(
     evaluation : Evaluation
         DESCRIPTION.
     tags : list
-        the list of symbols to be associated to the rule.
+        the list of symbols to be associated with the rule.
     upset : bool
         `True` if the rule is an Up value.
 
@@ -457,7 +457,7 @@ def eval_assign_definition_values(
     lhs : BaseElement
         The pattern of the rule to be assigned.
     rhs : BaseElement
-        the expression representing the replacement.
+        The expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
     tags : list
@@ -506,11 +506,11 @@ def eval_assign_format(
     Parameters
     ----------
     self : Builtin
-        The builtin assignment operator
+        The built-in assignment operator
     lhs : BaseElement
         The pattern of the rule to be assigned.
     rhs : BaseElement
-        the expression representing the replacement.
+        The expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
     tags : list
@@ -602,11 +602,11 @@ def eval_assign_line_number_and_history_length(
     Parameters
     ----------
     op_name : str
-        The builtin assignment operator name.
+        The built-in assignment operator name.
     lhs : BaseElement
         The pattern of the rule to be assigned.
     rhs : BaseElement
-        the expression representing the replacement.
+        The expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
 
@@ -644,15 +644,15 @@ def eval_assign_list(
     Parameters
     ----------
     op_name : str
-        The builtin assignment operator name.
+        The built-in assignment operator name.
     lhs : BaseElement
         The pattern of the rule to be assigned.
     rhs : BaseElement
-        the expression representing the replacement.
+        The expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
     tags : list
-        the list of symbols to be associated to the rule.
+        The list of symbols to be associated with the rule.
     upset : bool
         `True` if the rule is an Up value.
 
@@ -693,15 +693,15 @@ def eval_assign_makeboxes(
     Parameters
     ----------
     op_name : str
-        The builtin assignment operator name.
+        The built-in assignment operator name.
     lhs : BaseElement
         The pattern of the rule to be assigned.
     rhs : BaseElement
-        the expression representing the replacement.
+        The expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
     tags : list
-        the list of symbols to be associated to the rule.
+        the list of symbols to be associated with the rule.
     upset : bool
         `True` if the rule is an Up value.
 
@@ -750,11 +750,11 @@ def eval_assign_minprecision(
     Parameters
     ----------
     op_name : str
-        The builtin assignment operator name.
+        The built-in assignment operator name.
     lhs : BaseElement
         The pattern of the rule to be assigned.
     rhs : BaseElement
-        the expression representing the replacement.
+        The expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
 
@@ -794,11 +794,11 @@ def eval_assign_maxprecision(
     Parameters
     ----------
     op_name : str
-        The builtin assignment operator name.
+        The built-in assignment operator name.
     lhs : BaseElement
         The pattern of the rule to be assigned.
     rhs : BaseElement
-        the expression representing the replacement.
+        The expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
 
@@ -843,15 +843,15 @@ def eval_assign_messagename(
     Parameters
     ----------
     op_name : str
-        The builtin assignment operator name.
+        The built-in assignment operator name.
     lhs : BaseElement
         The pattern of the rule to be assigned.
     rhs : BaseElement
-        the expression representing the replacement.
+        The expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
     tags : list
-        the list of symbols to be associated to the rule.
+        The list of symbols to be associated with the rule.
     upset : bool
         `True` if the rule is an Up value.
 
@@ -919,15 +919,15 @@ def eval_assign_options(
     Parameters
     ----------
     op_name : str
-        The builtin assignment operator name.
+        The built-in assignment operator name.
     lhs : BaseElement
         The pattern of the rule to be assigned.
     rhs : BaseElement
-        the expression representing the replacement.
+        The expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
     tags : list
-        the list of symbols to be associated to the rule.
+        The list of symbols to be associated with the rule.
     upset : bool
         `True` if the rule is an Up value.
 
@@ -984,15 +984,15 @@ def eval_assign_numericq(
     Parameters
     ----------
     self : Builtin
-        The builtin assignment operator
+        The built-in assignment operator
     lhs : BaseElement
         The pattern of the rule to be assigned.
     rhs : BaseElement
-        the expression representing the replacement.
+        The expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
     tags : list
-        the list of symbols to be associated to the rule.
+        the list of symbols to be associated with the rule.
     upset : bool
         `True` if the rule is an Up value.
 
@@ -1046,17 +1046,17 @@ def eval_assign_n(
     Parameters
     ----------
     op_name : str
-        The builtin assignment operator name.
+        The built-in assignment operator name.
     lhs : BaseElement
         The pattern of the rule to be assigned.
     lhs_reference: BaseElement
         Expression of the form N[___]
     rhs : BaseElement
-        the expression representing the replacement.
+        The expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
     tags : list
-        the list of symbols to be associated to the rule.
+        the list of symbols to be associated with the rule.
     upset : bool
         `True` if the rule is an Up value.
 
@@ -1116,15 +1116,15 @@ def eval_assign_part(
     Parameters
     ----------
     op_name : str
-        The builtin assignment operator name.
+        The built-in assignment operator name.
     lhs : BaseElement
         The pattern of the rule to be assigned.
     rhs : BaseElement
-        the expression representing the replacement.
+        The expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
     tags : list
-        the list of symbols to be associated to the rule.
+        The list of symbols to be associated with the rule.
     upset : bool
         `True` if the rule is an Up value.
 
@@ -1171,11 +1171,11 @@ def eval_assign_random_state(
     Parameters
     ----------
     op_name : str
-        The builtin assignment operator name.
+        The built-in assignment operator name.
     lhs : BaseElement
         The pattern of the rule to be assigned.
     rhs : BaseElement
-        the expression representing the replacement.
+        The expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
 
@@ -1236,8 +1236,8 @@ def eval_assign_store_rules_by_tag(
 ) -> bool:
     """
     This is the default assignment. Stores a rule of the form lhs->rhs
-    as a value associated to each symbol listed in tags.
-    For special cases, such like conditions or patterns in the lhs,
+    as a value associated with each symbol listed in tags.
+    For special cases, such as conditions or patterns in the lhs,
     lhs and rhs are rewritten in a normal form, where
     conditions are associated to the lhs.
 
@@ -1245,15 +1245,15 @@ def eval_assign_store_rules_by_tag(
     Parameters
     ----------
     op_name : str
-        The builtin assignment operator name.
+        The built-in assignment operator name.
     lhs : BaseElement
         The pattern of the rule to be assigned.
     rhs : BaseElement
-        the expression representing the replacement.
+        The expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
     tags : list
-        the list of symbols to be associated to the rule.
+        The list of symbols to be associated with the rule.
     upset : bool
         `True` if the rule is an Up value.
 
@@ -1271,7 +1271,7 @@ def eval_assign_store_rules_by_tag(
     tags, lhs_reference_expr = process_tags_and_upset_allow_custom(
         tags, upset, op_name, lhs, rhs, evaluation
     )
-    # In WMA, this does not happens. However, if we remove this,
+    # In WMA, this does not happen. However, if we remove this,
     # some combinatorica tests fail.
     # Also, should not be at the beginning?
     count = 0
@@ -1294,13 +1294,13 @@ def eval_assign_to_symbol(
 ) -> bool:
     """
     op_name : str
-        The builtin assignment operator name.
+        The built-in assignment operator name.
     lhs : BaseElement
         The pattern of the rule to be included.
     lhs_reference:
         The symbol to be assigned
     rhs : BaseElement.
-        the RHS.
+        The RHS.
     evaluation : Evaluation
         The evaluation object.
 
@@ -1331,9 +1331,9 @@ def find_value_role_symbol_name(
     lhs, value_roles: Optional[list[str]], evaluation: Evaluation
 ) -> str:
     """
-    Compute the value_role, whether this is a UpValue, DownValue, etc. from the left-hand-side expression `lhs`.
+    Compute the value_role, whether this is a UpValue, DownValue, etc., from the left-hand-side expression `lhs`.
 
-    If a `value_roles` candidates are provided the names must be valid, and a plausible role for something in the
+    If `value_roles` candidates are provided, the names must be valid, and a plausible role for something in the
     lhs.
 
     Parameters
@@ -1373,23 +1373,23 @@ def find_value_role_symbol_name(
 
 def get_unwrapped_name(expr: BaseElement) -> Optional[str]:
     """Unwrap or strip off surrounding expressions `expr`, and then
-    get a definitions object's symbol name. None is return if there is
+    get a "definitions" object's symbol name. None is returned if
     no symbol can be found.
 
-    When there is nothing to unwrap, so this is the same as running
+    When there is nothing to unwrap, this is the same as running
     the get_symbol_definition_name() method on `expr`.
 
     However:
 
     * Expressions with heads `HoldPattern`, Condition`, or `PatternTest`
-      are unwrapped and the first or leftmost element head.
-    * A (named) `Pattern` expression takes symbol name from the pattern of its
+      are unwrapped and the first or leftmost element's head.
+    * A (named) `Pattern` expression takes the symbol name from the pattern of its
       "hold" argument.
     * `Verbatim` expressions likewise return the symbol name from
-       the expression is wrapped.
-    * Blank patterns (see BLANK_PATTERN_HEADS) return the symbol namefrom the pattern head
-      (its unique element if they has one). If the Blank expression does not
-      have elements (generic blank) then there is no symbol to return
+       the expression that is wrapped.
+    * Blank patterns (see BLANK_PATTERN_HEADS) return the symbol name from the pattern head
+      (its unique element if it has one). If the Blank expression does not
+      have elements (generic blank), then there is no symbol to return; so
       the empty string is returned.
 
     """
@@ -1397,7 +1397,7 @@ def get_unwrapped_name(expr: BaseElement) -> Optional[str]:
     if expr.has_form(SymbolPattern, 2):
         return get_unwrapped_name(expr.elements[1])
     if expr.has_form(SymbolVerbatim, 1):
-        # For Verbatim pick the lookup name directly from the expression.
+        # For Verbatim, pick the lookup name directly from the expression.
         return expr.elements[0].get_symbol_definition_name()
     if isinstance(expr, Atom):
         return expr.get_symbol_definition_name()
@@ -1587,7 +1587,7 @@ def process_tags_and_upset_allow_custom(
             # or `Condition`. Tag candidates are obtained by stripping out
             # these wrappers.
             # Still, if the element is a `Blank*`, the reference is
-            # set to its argument. If it does not have arguments (or have many)
+            # set to its argument. If it does not have arguments (or has many)
             # skip it.
             element_name = get_unwrapped_name(element)
             if element_name != "":
@@ -1637,11 +1637,11 @@ def process_tags_and_upset_dont_allow_custom(
     Parameters
     ----------
     tags : Optional[list]
-        The list of symbols to which the rule must be associated.
+        The list of symbols that the rule must be associated with.
     upset : bool
         If `True`, assign as an UpValue.
     op_name : str
-        The builtin assignment operator name.
+        The built-in assignment operator name.
     lhs : BaseElement
         The LHS of the assignment.
     rhs : BaseElement
@@ -1667,7 +1667,7 @@ def process_tags_and_upset_dont_allow_custom(
 
         See also the docstring in
         mathics.core.definitions.determine_value_role for how an
-        expression is patteren-matched.
+        expression is pattern-matched.
         """
         expr = unwrap_expression(expr)
         if expr.has_form(SymbolPattern, 2):

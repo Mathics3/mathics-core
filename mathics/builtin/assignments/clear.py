@@ -3,7 +3,6 @@
 Clearing Assignments
 """
 
-
 from mathics.core.assignment import is_protected
 from mathics.core.atoms import String
 from mathics.core.attributes import (
