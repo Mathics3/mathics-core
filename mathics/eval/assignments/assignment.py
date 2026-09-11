@@ -1404,13 +1404,13 @@ def get_unwrapped_name(expr: BaseElement) -> Optional[str]:
     However:
 
     * Expressions with heads found in UNWRAPABLE_SYMBOL_HEADS.
-      are unwrapped and the first or leftmost element's head.
+      are unwrapped and the first or leftmost element's head is extracted.
+    * Likewise, `Verbatim` expressions return the symbol name from
+      the unwrapped expression.
     * A (named) `Pattern` expression takes the symbol name from the pattern of its
       "hold" argument.
-    * `Verbatim` expressions likewise return the symbol name from
-       the expression that is wrapped.
-    * Blank patterns (see BLANK_PATTERN_HEADS) return the symbol name from the pattern head
-      (its unique element if it has one). If the Blank expression does not
+    * Blank patterns (see BLANK_PATTERN_HEADS) return the symbol name from the pattern head,
+      its unique element if it has one. If the Blank expression does not
       have elements (generic blank), then there is no symbol to return; so
       the empty string is returned.
 
