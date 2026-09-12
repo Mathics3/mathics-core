@@ -110,10 +110,10 @@ def eval_assign(
 
     """
     # An expression can be wrapped inside structures like `Condition[...]`
-    # or HoldPattern[...]. The `lhs_reference` is the head of the expression once
+    # or HoldPattern[...]. The `lhs_target` is the head of the expression once
     # we strip out all these wrappings.
     lhs_unwrapped = unwrap_expression(lhs)
-    lhs_reference = (
+    lhs_target = (
         lhs_unwrapped if isinstance(lhs_unwrapped, Symbol) else lhs_unwrapped.get_head()
     )
 
@@ -129,7 +129,7 @@ def eval_assign(
             return False
 
     try:
-        # Handle special cases using the lookup name associated to the lhs_reference
+        # Handle special cases using the lookup name associated to the lhs_target
         if lhs_unwrapped.has_form(SymbolVerbatim, 1):
             lookup_name = lhs_unwrapped.elements[0].get_symbol_definition_name()
         else:
@@ -137,24 +137,22 @@ def eval_assign(
         assignment_func = ASSIGNMENT_FUNCTION_MAP.get(lookup_name, None)
         if assignment_func:
             return assignment_func(
-                op_name, lhs, lhs_reference, rhs, evaluation, tags, upset
+                op_name, lhs, lhs_target, rhs, evaluation, tags, upset
             )
 
         if True or lhs.has_form(SymbolCondition, 2):
-            lhs, lhs_reference = process_condition_lhs(lhs, evaluation)
+            lhs, lhs_target = process_condition_lhs(lhs, evaluation)
         elif isinstance(lhs, Expression) and not lhs.has_form(
             (SymbolVerbatim, SymbolHoldPattern), 1
         ):
             lhs = lhs.evaluate_elements(evaluation)
-            lhs_reference = unwrap_expression(lhs)
-            lhs_reference = (
-                lhs_reference
-                if isinstance(lhs_reference, Symbol)
-                else lhs_reference.get_head()
+            lhs_target = unwrap_expression(lhs)
+            lhs_target = (
+                lhs_target if isinstance(lhs_target, Symbol) else lhs_target.get_head()
             )
 
         return eval_assign_store_rules_by_tag(
-            op_name, lhs, lhs_reference, rhs, evaluation, tags, upset
+            op_name, lhs, lhs_target, rhs, evaluation, tags, upset
         )
     except AssignmentException:
         return False
