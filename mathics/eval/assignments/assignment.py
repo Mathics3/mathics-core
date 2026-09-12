@@ -42,9 +42,6 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (
     BLANK_PATTERN_HEADS,
-    SymbolBlank,
-    SymbolBlankNullSequence,
-    SymbolBlankSequence,
     SymbolCondition,
     SymbolDefault,
     SymbolDirectedInfinity,
@@ -436,7 +433,7 @@ def eval_assign_default(
     lhs_unwrapped = (
         lhs_unwrapped if isinstance(lhs_unwrapped, Symbol) else lhs_unwrapped.get_head()
     )
-    target_symbol_names = process_tags_and_upset_dont_allow_custom(
+    target_symbol_names = collect_lhs_names_and_upset_dont_allow_custom(
         target_symbol_names, upset, op_name, lhs, lhs_unwrapped, evaluation
     )
     rule = RewriteRule(lhs, rhs, evaluation=evaluation)
@@ -573,7 +570,7 @@ def eval_assign_format(
         if not isinstance(lhs_unwrapped, Symbol)
         else lhs_unwrapped
     )
-    target_symbol_names = process_tags_and_upset_dont_allow_custom(
+    target_symbol_names = collect_lhs_names_and_upset_dont_allow_custom(
         target_symbol_names, upset, op_name, lhs, lhs_unwrapped, evaluation
     )
     rule = RewriteRule(lhs, rhs, evaluation=evaluation)
@@ -832,7 +829,7 @@ def eval_assign_maxprecision(
 
     """
     lhs_name = lhs.get_name()
-    if rhs.has_form(SymbolDirectedInfinity, 1) and rhs.elements[0].int_value == 1:
+    if rhs.has_form(SymbolDirectedInfinity, 1) and get_int_value(rhs.elements[0]) == 1:
         return False
     if (rhs_int_value := get_int_value(rhs)) is not None and rhs_int_value > 0:
         min_prec = evaluation.definitions.get_config_value("$MinPrecision")
@@ -896,7 +893,7 @@ def eval_assign_messagename(
         evaluation.message_args("MessageName", len(lhs.elements), 2)
         raise AssignmentException(lhs, None)
     lhs_unwrapped = lhs.elements[0]
-    target_symbol_names = process_tags_and_upset_dont_allow_custom(
+    target_symbol_names = collect_lhs_names_and_upset_dont_allow_custom(
         target_symbol_names, upset, op_name, lhs, lhs_unwrapped, evaluation
     )
     rule = RewriteRule(lhs, rhs, evaluation=evaluation)
@@ -915,8 +912,8 @@ def eval_assign_module_number(
     """
     Set ownvalue for the $ModuleNumber symbol.
     """
-    rhs_int_value = rhs.int_value
-    if not rhs_int_value or rhs_int_value <= 0:
+    rhs_int_value = get_int_value(rhs)
+    if rhs_int_value is None or rhs_int_value <= 0:
         evaluation.message("$ModuleNumber", "set", rhs)
         raise AssignmentException(lhs, None)
     return False
@@ -1109,7 +1106,7 @@ def eval_assign_n(
 
     lhs_unwrapped = unwrap_expression(lhs.elements[0])
 
-    target_symbol_names = process_tags_and_upset_dont_allow_custom(
+    target_symbol_names = collect_lhs_names_and_upset_dont_allow_custom(
         target_symbol_names, upset, op_name, lhs, lhs_unwrapped, evaluation
     )
     count = 0
@@ -1239,12 +1236,8 @@ def eval_assign_recursion_limit(
     """
     Set ownvalue for the $RecursionLimit symbol.
     """
-    rhs_int_value = rhs.int_value
-    # if (not rhs_int_value or rhs_int_value < 20) and not
-    # rhs.get_name() == 'System`Infinity':
-    if (
-        not rhs_int_value or rhs_int_value < 20 or rhs_int_value > MAX_RECURSION_DEPTH
-    ):  # nopep8
+    rhs_int_value = get_int_value(rhs)
+    if rhs_int_value is None or not (20 <= rhs_int_value <= MAX_RECURSION_DEPTH):
         evaluation.message("$RecursionLimit", "limset", rhs)
         raise AssignmentException(lhs, None)
     try:
@@ -1300,7 +1293,7 @@ def eval_assign_store_rules_by_tag(
 
     """
     defs = evaluation.definitions
-    target_symbol_names, lhs_unwrapped = process_tags_and_upset_allow_custom(
+    target_symbol_names, lhs_unwrapped = collect_lhs_names_and_update_allow_custom(
         target_symbol_names, upset, op_name, lhs, rhs, evaluation
     )
     # In WMA, this does not happen. However, if we remove this,
@@ -1555,7 +1548,7 @@ def unwrap_expression(lhs: BaseElement) -> BaseElement:
     return lhs
 
 
-def process_tags_and_upset_allow_custom(
+def collect_lhs_names_and_update_allow_custom(
     target_symbol_names: Optional[list[str]],
     upset: bool,
     op_name: str,
@@ -1646,25 +1639,25 @@ def process_tags_and_upset_allow_custom(
     return target_symbol_names, lhs_unwrapped
 
 
-def process_tags_and_upset_dont_allow_custom(
-    tags: Optional[list],
+def collect_lhs_names_and_upset_dont_allow_custom(
+    lhs_symbol_names: list[str],
     upset: bool,
     op_name: str,
     lhs: BaseElement,
     lhs_unwrapped: BaseElement,
     evaluation: Evaluation,
-) -> list:
+) -> Optional[list[str]]:
     """
     If `upset` is `True`,  collect a list of tag candidates from the elements of
     the lhs.
-    If `upset` is `False`, and `tags` is given, check if the elements
-    in `tags` are all names of symbols in the `lhs` elements. If `tags` is
-    `None`, the list of tags contains just the `lookup_name` of the LHS.
+    If `upset` is `False`, and `lhs_symbol_names` is given, check if the elements
+    in `lhs_symbol_names` are all names of symbols in the `lhs` elements. If `lhs_symbol_names` is
+    `None`, the list of lhs_symbol_names contains just the `lookup_name` of the LHS.
 
     Parameters
     ----------
-    tags : Optional[list]
-        The list of symbols that the rule must be associated with.
+    lhs_symbol_names : list[str]
+        The list of symbols that the rule must associate with.
     upset : bool
         If `True`, assign as an UpValue.
     op_name : str
@@ -1682,12 +1675,12 @@ def process_tags_and_upset_dont_allow_custom(
 
     Returns
     -------
-    tags: list
-        the list of allowed tags.
+    lhs_symbol_names: Optional[list[str]]
+        the list of allowed lhs_symbol_names.
 
     """
 
-    def get_symbol_definition_name(expr):
+    def get_symbol_definition_name(expr) -> Optional[str]:
         """Return the string symbol name that is to be used in
         determining which definition key of a definitions object to
         use in symbol-table operations.
@@ -1697,35 +1690,35 @@ def process_tags_and_upset_dont_allow_custom(
         expression is pattern-matched.
         """
         expr = unwrap_expression(expr)
-        if expr.has_form(SymbolPattern, 2):
-            return get_symbol_definition_name(expr.elements[1])
-        if expr.has_form(
-            (SymbolBlank, SymbolBlankSequence, SymbolBlankNullSequence), None
-        ):
-            if len(expr.elements) == 1:
-                return get_symbol_definition_name(expr.elements[0])
-            return None
+        if isinstance(expr, Expression):
+            if expr.has_form(SymbolPattern, 2):
+                return get_symbol_definition_name(expr.elements[1])
+            if expr.head in BLANK_PATTERN_HEADS:
+                if len(expr.elements) == 1:
+                    return get_symbol_definition_name(expr.elements[0])
+                return None
         return expr.get_symbol_definition_name()
 
     if isinstance(lhs_unwrapped, Expression):
         lhs_unwrapped = lhs_unwrapped.evaluate_elements(evaluation)
     if upset:
         lhs_name = get_symbol_definition_name(lhs_unwrapped)
-        tags = [lhs_name] if lhs_name is not None else None
-    elif tags is None:
+        returned_lhs_symbol_names = [lhs_name] if lhs_name is not None else None
+    elif lhs_symbol_names is None:
         lhs_name = get_symbol_definition_name(lhs_unwrapped)
         if not lhs_name:
             evaluation.message(op_name, "setraw", lhs_unwrapped)
             raise AssignmentException(lhs, None)
-        tags = [lhs_name]
+        returned_lhs_symbol_names = [lhs_name]
     else:
         lhs_name = get_symbol_definition_name(lhs_unwrapped)
         allowed_names = [lhs_name] if lhs_name else []
-        for lhs_name in tags:
+        for lhs_name in lhs_symbol_names:
             if lhs_name not in allowed_names:
                 evaluation.message(op_name, "tagnfd", Symbol(lhs_name))
                 raise AssignmentException(lhs, None)
-    return tags
+        returned_lhs_symbol_names = lhs_symbol_names
+    return returned_lhs_symbol_names
 
 
 # Below is a mapping from Symbol name (as a string) into an assignment eval function.
