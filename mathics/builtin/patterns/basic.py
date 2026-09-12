@@ -44,8 +44,8 @@ class _Blank(PatternObject, ABC):
             cls._instance = super().__new__(cls, *args, **kwargs)
         return cls._instance
 
-    def determine_value_role(self, tag_symbol: Symbol) -> OptionalType[str]:
-        if self.target_head is tag_symbol:
+    def determine_value_role(self, target_symbol: Symbol) -> OptionalType[str]:
+        if self.target_head is target_symbol:
             return "downvalues"
         return None
 

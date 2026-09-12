@@ -282,13 +282,19 @@ class TagSet(Builtin):
     ) -> Optional[BaseElement]:
         "f_ /: lhs_ = rhs_"
 
-        tag_name = f.get_name()
-        if not tag_name:
+        target_symbol_name = f.get_name()
+        if not target_symbol_name:
             evaluation.message(self.get_name(), "sym", f, 1)
             return None
 
         rhs = rhs.evaluate(evaluation)
-        eval_assign(self.get_name(), lhs, rhs, evaluation, tags=[tag_name])
+        eval_assign(
+            self.get_name(),
+            lhs,
+            rhs,
+            evaluation,
+            target_symbol_names=[target_symbol_name],
+        )
         return rhs
 
 
@@ -320,12 +326,14 @@ class TagSetDelayed(TagSet):
     ) -> Optional[Symbol]:
         "f_ /: lhs_ := rhs_"
 
-        tag_name = f.get_name()
-        if not tag_name:
+        target_symbol = f.get_name()
+        if not target_symbol:
             evaluation.message(self.get_name(), "sym", f, 1)
             return None
 
-        if eval_assign(self.get_name(), lhs, rhs, evaluation, tags=[tag_name]):
+        if eval_assign(
+            self.get_name(), lhs, rhs, evaluation, target_symbol_names=[target_symbol]
+        ):
             return SymbolNull
 
         return SymbolFailed
@@ -407,7 +415,7 @@ class UpSetDelayed(UpSet):
 
     def eval(
         self, lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
-    ) -> Symbol:
+    ) -> Optional[Symbol]:
         "lhs_ ^:= rhs_"
         if isinstance(lhs, Atom):
             evaluation.message(
@@ -416,7 +424,7 @@ class UpSetDelayed(UpSet):
                 1,
                 Expression(Symbol(self.get_name()), lhs, rhs),
             )
-            return
+            return None
 
         if isinstance(lhs, Atom):
             evaluation.message(

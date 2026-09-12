@@ -210,8 +210,8 @@ class HoldPattern(PatternObject):
         super().init(expr, evaluation=evaluation)
         self.pattern = BasePattern.create(expr.elements[0], evaluation=evaluation)
 
-    def determine_value_role(self, tag_symbol: Symbol) -> OptionalType[str]:
-        return self.pattern.determine_value_role(tag_symbol)
+    def determine_value_role(self, target_symbol: Symbol) -> OptionalType[str]:
+        return self.pattern.determine_value_role(target_symbol)
 
     def match(self, expression: Expression, pattern_context: dict):
         # for new_vars_dict, rest in self.pattern.match(
@@ -479,8 +479,8 @@ class Pattern(PatternObject):
     def __repr__(self):
         return "<Pattern: %s>" % repr(self.pattern)
 
-    def determine_value_role(self, tag_symbol: Symbol) -> OptionalType[str]:
-        return self.pattern.determine_value_role(tag_symbol)
+    def determine_value_role(self, target_symbol: Symbol) -> OptionalType[str]:
+        return self.pattern.determine_value_role(target_symbol)
 
     def get_match_count(
         self, vars_dict: OptionalType[dict] = None

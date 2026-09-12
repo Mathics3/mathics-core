@@ -241,7 +241,7 @@ class BasePattern(ABC):
         """The sequence of elements in the expression"""
         return self.expr.get_sequence()
 
-    def determine_value_role(self, tag_symbol: Symbol) -> Optional[str]:
+    def determine_value_role(self, target_symbol: Symbol) -> Optional[str]:
         """
         Return the position relative to the Symbol `target`.
         When the position cannot be decided, returns `None`.
@@ -384,8 +384,8 @@ class AtomPattern(BasePattern):
     def __repr__(self):
         return f"<AtomPattern: {self.atom}>"
 
-    def determine_value_role(self, tag_symbol: Symbol) -> Optional[str]:
-        if tag_symbol is self.atom:
+    def determine_value_role(self, target_symbol: Symbol) -> Optional[str]:
+        if target_symbol is self.atom:
             return "ownvalues"
         return None
 
@@ -491,10 +491,10 @@ class ExpressionPattern(BasePattern):
             element for element in self.elements if element.get_head_name() == head_name
         ]
 
-    def determine_value_role(self, tag_symbol: Symbol) -> Optional[str]:
+    def determine_value_role(self, target_symbol: Symbol) -> Optional[str]:
         # Special case: Nvalues
         if self.expr.has_form(SymbolN, 2):
-            tag = self.elements[0].determine_value_role(tag_symbol)
+            tag = self.elements[0].determine_value_role(target_symbol)
             if tag in (
                 None,
                 "upvalues",
@@ -503,13 +503,13 @@ class ExpressionPattern(BasePattern):
             return "nvalues"
 
         head = self.head
-        head_pos = head.determine_value_role(tag_symbol)
+        head_pos = head.determine_value_role(target_symbol)
         if head_pos == "ownvalues":
             return "downvalues"
         if head_pos in ("downvalues", "subvalues"):
             return "subvalues"
         for element in self.elements:
-            elem_tag = element.determine_value_role(tag_symbol)
+            elem_tag = element.determine_value_role(target_symbol)
             if elem_tag in ("ownvalues", "downvalues", "subvalues"):
                 return "upvalues"
         return None

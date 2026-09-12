@@ -42,9 +42,6 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (
     BLANK_PATTERN_HEADS,
-    SymbolBlank,
-    SymbolBlankNullSequence,
-    SymbolBlankSequence,
     SymbolCondition,
     SymbolDefault,
     SymbolDirectedInfinity,
@@ -83,7 +80,7 @@ def eval_assign(
     lhs: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
-    tags: Optional[list] = None,
+    target_symbol_names: Optional[list[str]] = None,
     upset: bool = False,
 ) -> bool:
     """
@@ -97,7 +94,7 @@ def eval_assign(
         The RHS.
     evaluation : Evaluation
         The evaluation object.
-    tags : Optional[list], optional
+    target_symbol_names : Optional[list[str]]
         The list of symbol names for which the rule must be associated.
         The default is None.
     upset : bool, optional
@@ -110,17 +107,21 @@ def eval_assign(
 
     """
     # An expression can be wrapped inside structures like `Condition[...]`
-    # or HoldPattern[...]. The `lhs_reference` is the head of the expression once
+    # or HoldPattern[...]. The `lhs_target` is the head of the expression once
     # we strip out all these wrappings.
     lhs_unwrapped = unwrap_expression(lhs)
-    lhs_reference = (
+    lhs_target = (
         lhs_unwrapped if isinstance(lhs_unwrapped, Symbol) else lhs_unwrapped.get_head()
     )
 
     if isinstance(lhs_unwrapped, Symbol):
         if upset:
             evaluation.message(op_name, "nosym", lhs)
-        if tags and (lhs_unwrapped_name := lhs_unwrapped.get_name()) not in tags:
+        if (
+            target_symbol_names
+            and (lhs_unwrapped_name := lhs_unwrapped.get_name())
+            not in target_symbol_names
+        ):
             evaluation.message(lhs_unwrapped_name, "tagnf", lhs)
 
         try:
@@ -129,7 +130,7 @@ def eval_assign(
             return False
 
     try:
-        # Handle special cases using the lookup name associated to the lhs_reference
+        # Handle special cases using the lookup name associated to the lhs_target
         if lhs_unwrapped.has_form(SymbolVerbatim, 1):
             lookup_name = lhs_unwrapped.elements[0].get_symbol_definition_name()
         else:
@@ -137,24 +138,22 @@ def eval_assign(
         assignment_func = ASSIGNMENT_FUNCTION_MAP.get(lookup_name, None)
         if assignment_func:
             return assignment_func(
-                op_name, lhs, lhs_reference, rhs, evaluation, tags, upset
+                op_name, lhs, lhs_target, rhs, evaluation, target_symbol_names, upset
             )
 
         if True or lhs.has_form(SymbolCondition, 2):
-            lhs, lhs_reference = process_condition_lhs(lhs, evaluation)
+            lhs, lhs_target = process_condition_lhs(lhs, evaluation)
         elif isinstance(lhs, Expression) and not lhs.has_form(
             (SymbolVerbatim, SymbolHoldPattern), 1
         ):
             lhs = lhs.evaluate_elements(evaluation)
-            lhs_reference = unwrap_expression(lhs)
-            lhs_reference = (
-                lhs_reference
-                if isinstance(lhs_reference, Symbol)
-                else lhs_reference.get_head()
+            lhs_target = unwrap_expression(lhs)
+            lhs_target = (
+                lhs_target if isinstance(lhs_target, Symbol) else lhs_target.get_head()
             )
 
         return eval_assign_store_rules_by_tag(
-            op_name, lhs, lhs_reference, rhs, evaluation, tags, upset
+            op_name, lhs, lhs_target, rhs, evaluation, target_symbol_names, upset
         )
     except AssignmentException:
         return False
@@ -166,7 +165,7 @@ def eval_assign_attributes(
     lhs_unwrapped: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
-    tags: list[str],
+    target_symbol_names: list[str],
     upset: bool,
 ) -> bool:
     """
@@ -186,7 +185,7 @@ def eval_assign_attributes(
         the expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
-    tags : list
+    target_symbol_names : list[str]
         the list of symbol names to be associated with the rule.
     upset : bool
         `True` if the rule is an Up value.
@@ -201,7 +200,7 @@ def eval_assign_attributes(
         True if the assignment was successful.
 
     """
-    # UpSet and TagSet for this symbol are handled in
+    # UpSet and Target_symbol_nameset for this symbol are handled in
     # the standard way. The same if the expression is wrapped:
     if lhs.get_head() is not lhs_unwrapped:
         return eval_assign_store_rules_by_tag(
@@ -218,7 +217,7 @@ def eval_assign_attributes(
     if not tag:
         evaluation.message(op_name, "sym", lhs.elements[0], 1)
         raise AssignmentException(lhs, rhs)
-    if tags is not None and tags != [tag]:
+    if target_symbol_names is not None and target_symbol_names != [tag]:
         evaluation.message(op_name, "tag", Symbol(name), Symbol(tag))
         raise AssignmentException(lhs, rhs)
     attributes_list = get_symbol_list(
@@ -383,7 +382,7 @@ def eval_assign_default(
     lhs_unwrapped: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
-    tags: list[str],
+    target_symbol_names: list[str],
     upset: bool,
 ) -> bool:
     """
@@ -402,7 +401,7 @@ def eval_assign_default(
         the expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
-    tags : list
+    target_symbol_names : list[str]
         the list of symbols to be associated with the rule.
     upset : bool
         `True` if the rule is an Up value.
@@ -417,7 +416,7 @@ def eval_assign_default(
         True if the assignment was successful.
 
     """
-    # UpSet and TagSet for this symbol are handled in
+    # UpSet and Target_symbol_nameset for this symbol are handled in
     # the standard way. The same if the expression is wrapped:
     if lhs.get_head() is not lhs_unwrapped:
         return eval_assign_store_rules_by_tag(
@@ -434,11 +433,11 @@ def eval_assign_default(
     lhs_unwrapped = (
         lhs_unwrapped if isinstance(lhs_unwrapped, Symbol) else lhs_unwrapped.get_head()
     )
-    tags = process_tags_and_upset_dont_allow_custom(
-        tags, upset, op_name, lhs, lhs_unwrapped, evaluation
+    target_symbol_names = collect_lhs_names_and_upset_dont_allow_custom(
+        target_symbol_names, upset, op_name, lhs, lhs_unwrapped, evaluation
     )
     rule = RewriteRule(lhs, rhs, evaluation=evaluation)
-    for tag in tags:
+    for tag in target_symbol_names:
         if rejected_because_protected(op_name, lhs, tag, evaluation):
             continue
         count += 1
@@ -452,7 +451,7 @@ def eval_assign_definition_values(
     lhs_unwrapped: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
-    tags: list,
+    target_symbol_names: list[str],
     upset: bool,
 ) -> bool:
     """
@@ -469,7 +468,7 @@ def eval_assign_definition_values(
         The expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
-    tags : list
+    target_symbol_names : list[str]
         the list of symbols to be associated to the rule.
     upset : bool
         `True` if the rule is an Up value.
@@ -490,7 +489,7 @@ def eval_assign_definition_values(
         )
 
     lhs_name = lhs.get_head_name()
-    tag = find_value_role_symbol_name(lhs, tags, evaluation)
+    tag = find_value_role_symbol_name(lhs, target_symbol_names, evaluation)
     rules = rhs.get_rules_list()
     if rules is None:
         evaluation.message(op_name, "vrule", lhs, rhs)
@@ -505,7 +504,7 @@ def eval_assign_format(
     lhs_unwrapped: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
-    tags: list,
+    target_symbol_names: list[str],
     upset: bool,
 ) -> bool:
     """
@@ -522,7 +521,7 @@ def eval_assign_format(
         The expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
-    tags : list
+    target_symbol_names : list[str]
         the list of symbols to be associated to the rule.
     upset : bool
         `True` if the rule is an Up value.
@@ -571,11 +570,11 @@ def eval_assign_format(
         if not isinstance(lhs_unwrapped, Symbol)
         else lhs_unwrapped
     )
-    tags = process_tags_and_upset_dont_allow_custom(
-        tags, upset, op_name, lhs, lhs_unwrapped, evaluation
+    target_symbol_names = collect_lhs_names_and_upset_dont_allow_custom(
+        target_symbol_names, upset, op_name, lhs, lhs_unwrapped, evaluation
     )
     rule = RewriteRule(lhs, rhs, evaluation=evaluation)
-    for tag in tags:
+    for tag in target_symbol_names:
         if rejected_because_protected(op_name, lhs, tag, evaluation):
             continue
         count += 1
@@ -644,7 +643,7 @@ def eval_assign_list(
     lhs_unwrapped: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
-    tags: list,
+    target_symbol_names: list[str],
     upset: bool,
 ) -> bool:
     """
@@ -663,7 +662,7 @@ def eval_assign_list(
         The expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
-    tags : list
+    target_symbol_names : list[str]
         The list of symbols to be associated with the rule.
     upset : bool
         `True` if the rule is an Up value.
@@ -696,7 +695,7 @@ def eval_assign_makeboxes(
     lhs_unwrapped: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
-    tags: list,
+    target_symbol_names: list[str],
     upset: bool,
 ) -> bool:
     """
@@ -715,7 +714,7 @@ def eval_assign_makeboxes(
         The expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
-    tags : list
+    target_symbol_names : list[str]
         the list of symbols to be associated with the rule.
     upset : bool
         `True` if the rule is an Up value.
@@ -737,15 +736,17 @@ def eval_assign_makeboxes(
     # Check second argument
 
     makeboxes_rule = RewriteRule(lhs, rhs, evaluation=evaluation)
-    tags = [] if tags is None else tags
+    target_symbol_names = [] if target_symbol_names is None else target_symbol_names
     if upset:
-        tags = tags + [target.get_symbol_definition_name()]
+        target_symbol_names = target_symbol_names + [
+            target.get_symbol_definition_name()
+        ]
     else:
-        if not tags:
-            tags = ["System`MakeBoxes"]
+        if not target_symbol_names:
+            target_symbol_names = ["System`MakeBoxes"]
 
     definitions = evaluation.definitions
-    for tag in tags:
+    for tag in target_symbol_names:
         if is_protected(tag, definitions):
             evaluation.message(op_name, "wrsym", Symbol(tag))
             return False
@@ -828,7 +829,7 @@ def eval_assign_maxprecision(
 
     """
     lhs_name = lhs.get_name()
-    if rhs.has_form(SymbolDirectedInfinity, 1) and rhs.elements[0].int_value == 1:
+    if rhs.has_form(SymbolDirectedInfinity, 1) and get_int_value(rhs.elements[0]) == 1:
         return False
     if (rhs_int_value := get_int_value(rhs)) is not None and rhs_int_value > 0:
         min_prec = evaluation.definitions.get_config_value("$MinPrecision")
@@ -847,7 +848,7 @@ def eval_assign_messagename(
     lhs_unwrapped: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
-    tags: list,
+    target_symbol_names: list[str],
     upset: bool,
 ) -> bool:
     """
@@ -864,7 +865,7 @@ def eval_assign_messagename(
         The expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
-    tags : list
+    target_symbol_names : list[str]
         The list of symbols to be associated with the rule.
     upset : bool
         `True` if the rule is an Up value.
@@ -892,11 +893,11 @@ def eval_assign_messagename(
         evaluation.message_args("MessageName", len(lhs.elements), 2)
         raise AssignmentException(lhs, None)
     lhs_unwrapped = lhs.elements[0]
-    tags = process_tags_and_upset_dont_allow_custom(
-        tags, upset, op_name, lhs, lhs_unwrapped, evaluation
+    target_symbol_names = collect_lhs_names_and_upset_dont_allow_custom(
+        target_symbol_names, upset, op_name, lhs, lhs_unwrapped, evaluation
     )
     rule = RewriteRule(lhs, rhs, evaluation=evaluation)
-    for tag in tags:
+    for tag in target_symbol_names:
         # Messages can be assigned even if the symbol is protected...
         # if rejected_because_protected(op_name, lhs, tag, evaluation):
         #    continue
@@ -911,8 +912,8 @@ def eval_assign_module_number(
     """
     Set ownvalue for the $ModuleNumber symbol.
     """
-    rhs_int_value = rhs.int_value
-    if not rhs_int_value or rhs_int_value <= 0:
+    rhs_int_value = get_int_value(rhs)
+    if rhs_int_value is None or rhs_int_value <= 0:
         evaluation.message("$ModuleNumber", "set", rhs)
         raise AssignmentException(lhs, None)
     return False
@@ -924,7 +925,7 @@ def eval_assign_options(
     lhs_unwrapped: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
-    tags: list,
+    target_symbol_names: list[str],
     upset: bool,
 ) -> bool:
     """
@@ -940,7 +941,7 @@ def eval_assign_options(
         The expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
-    tags : list
+    target_symbol_names : list[str]
         The list of symbols to be associated with the rule.
     upset : bool
         `True` if the rule is an Up value.
@@ -969,7 +970,7 @@ def eval_assign_options(
     if not tag:
         evaluation.message(lhs_name, "sym", lhs_elements[0], 1)
         raise AssignmentException(lhs, rhs)
-    if tags is not None and tags != [tag]:
+    if target_symbol_names is not None and target_symbol_names != [tag]:
         evaluation.message(lhs_name, "tag", Symbol(lhs_name), Symbol(tag))
         raise AssignmentException(lhs, rhs)
     if is_protected(tag, evaluation.definitions):
@@ -989,7 +990,7 @@ def eval_assign_numericq(
     lhs_unwrapped: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
-    tags: list,
+    target_symbol_names: list[str],
     upset: bool,
 ) -> bool:
     """
@@ -1008,7 +1009,7 @@ def eval_assign_numericq(
         The expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
-    tags : list
+    target_symbol_names : list[str]
         the list of symbols to be associated with the rule.
     upset : bool
         `True` if the rule is an Up value.
@@ -1054,7 +1055,7 @@ def eval_assign_n(
     lhs_unwrapped: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
-    tags: list,
+    target_symbol_names: list[str],
     upset: bool,
 ) -> bool:
     """
@@ -1072,7 +1073,7 @@ def eval_assign_n(
         The expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
-    tags : list
+    target_symbol_names : list[str]
         the list of symbols to be associated with the rule.
     upset : bool
         `True` if the rule is an Up value.
@@ -1105,12 +1106,12 @@ def eval_assign_n(
 
     lhs_unwrapped = unwrap_expression(lhs.elements[0])
 
-    tags = process_tags_and_upset_dont_allow_custom(
-        tags, upset, op_name, lhs, lhs_unwrapped, evaluation
+    target_symbol_names = collect_lhs_names_and_upset_dont_allow_custom(
+        target_symbol_names, upset, op_name, lhs, lhs_unwrapped, evaluation
     )
     count = 0
     rule = RewriteRule(lhs, rhs, evaluation=evaluation)
-    for tag in tags:
+    for tag in target_symbol_names:
         if rejected_because_protected(op_name, lhs, tag, evaluation):
             continue
         count += 1
@@ -1124,7 +1125,7 @@ def eval_assign_part(
     lhs_unwrapped: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
-    tags: Optional[list],
+    target_symbol_names: Optional[list[str]],
     upset: bool,
 ):
     """
@@ -1143,7 +1144,7 @@ def eval_assign_part(
         The expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
-    tags : list
+    target_symbol_names : list[str]
         The list of symbols to be associated with the rule.
     upset : bool
         `True` if the rule is an Up value.
@@ -1235,12 +1236,8 @@ def eval_assign_recursion_limit(
     """
     Set ownvalue for the $RecursionLimit symbol.
     """
-    rhs_int_value = rhs.int_value
-    # if (not rhs_int_value or rhs_int_value < 20) and not
-    # rhs.get_name() == 'System`Infinity':
-    if (
-        not rhs_int_value or rhs_int_value < 20 or rhs_int_value > MAX_RECURSION_DEPTH
-    ):  # nopep8
+    rhs_int_value = get_int_value(rhs)
+    if rhs_int_value is None or not (20 <= rhs_int_value <= MAX_RECURSION_DEPTH):
         evaluation.message("$RecursionLimit", "limset", rhs)
         raise AssignmentException(lhs, None)
     try:
@@ -1252,11 +1249,17 @@ def eval_assign_recursion_limit(
 
 
 def eval_assign_store_rules_by_tag(
-    op_name: str, lhs, lhs_unwrapped, rhs, evaluation, tags, upset=False
+    op_name: str,
+    lhs,
+    lhs_unwrapped,
+    rhs,
+    evaluation: Evaluation,
+    target_symbol_names: list[str],
+    upset=False,
 ) -> bool:
     """
     This is the default assignment. Stores a rule of the form lhs->rhs
-    as a value associated with each symbol listed in tags.
+    as a value associated with each symbol listed in target_symbol_names.
     For special cases, such as conditions or patterns in the lhs,
     lhs and rhs are rewritten in a normal form, where
     conditions are associated to the lhs.
@@ -1274,7 +1277,7 @@ def eval_assign_store_rules_by_tag(
         The expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
-    tags : list
+    target_symbol_names : list[str]
         The list of symbols to be associated with the rule.
     upset : bool
         `True` if the rule is an Up value.
@@ -1290,8 +1293,8 @@ def eval_assign_store_rules_by_tag(
 
     """
     defs = evaluation.definitions
-    tags, lhs_unwrapped = process_tags_and_upset_allow_custom(
-        tags, upset, op_name, lhs, rhs, evaluation
+    target_symbol_names, lhs_unwrapped = collect_lhs_names_and_update_allow_custom(
+        target_symbol_names, upset, op_name, lhs, rhs, evaluation
     )
     # In WMA, this does not happen. However, if we remove this,
     # some combinatorica tests fail.
@@ -1299,7 +1302,7 @@ def eval_assign_store_rules_by_tag(
     count = 0
     rule = RewriteRule(lhs, rhs, evaluation=evaluation)
     position = "upvalues" if upset else None
-    for tag in tags:
+    for tag in target_symbol_names:
         if rejected_because_protected(op_name, lhs, tag, evaluation, False):
             continue
         count += 1
@@ -1545,8 +1548,8 @@ def unwrap_expression(lhs: BaseElement) -> BaseElement:
     return lhs
 
 
-def process_tags_and_upset_allow_custom(
-    tags: Optional[list],
+def collect_lhs_names_and_update_allow_custom(
+    target_symbol_names: Optional[list[str]],
     upset: bool,
     op_name: str,
     lhs: BaseElement,
@@ -1556,13 +1559,13 @@ def process_tags_and_upset_allow_custom(
     """
     If `upset` is `True`,  collect a list of tag candidates from the elements of
     the lhs.
-    If `upset` is `False`, and `tags` is given, check if the elements
-    in `tags` are all names of symbols in the `lhs` elements. If `tags` is
-    `None`, the list of tags contains just the `lookup_name` of the LHS.
+    If `upset` is `False`, and `target_symbol_names` is given, check if the elements
+    in `target_symbol_names` are all names of symbols in the `lhs` elements. If `target_symbol_names` is
+    `None`, the list of target_symbol_names contains just the `lookup_name` of the LHS.
 
     Parameters
     ----------
-    tags : Optional[list]
+    target_symbol_names : Optional[list[str]]
         The list of symbols to which the rule must be associated.
     upset : bool
         If `True`, assign as an UpValue.
@@ -1581,7 +1584,7 @@ def process_tags_and_upset_allow_custom(
 
     Returns
     -------
-    (tags, lhs_unwrapped,): tuple[list, BaseElement]
+    (target_symbol_names, lhs_unwrapped,): tuple[list, BaseElement]
         tags: the list of symbols to which the rule must be associated.
         lhs_unwrapped: the lhs
 
@@ -1612,49 +1615,49 @@ def process_tags_and_upset_allow_custom(
                 tags_set.add(element_name)
         return list(tags_set), lhs_unwrapped
 
-    if tags is None:
+    if target_symbol_names is None:
         lhs_name = get_unwrapped_name(lhs_unwrapped)
-        if not lhs_name:
+        if lhs_name is None:
             evaluation.message(op_name, "setraw", lhs_unwrapped)
             raise AssignmentException(lhs, None)
-        tags = [lhs_name]
+        target_symbol_names = [lhs_name]
     else:
         allowed_names = set()
         lhs_name = get_unwrapped_name(lhs_unwrapped)
-        if lhs_name:
+        if lhs_name is not None:
             allowed_names.add(lhs_name)
 
         for element in lhs_unwrapped.get_elements():
             element_name = get_unwrapped_name(element)
             if element_name:
                 allowed_names.add(element_name)
-        for lhs_name in tags:
+        for lhs_name in target_symbol_names:
             if lhs_name not in allowed_names:
                 evaluation.message(op_name, "tagnfd", Symbol(lhs_name))
                 raise AssignmentException(lhs, None)
 
-    return tags, lhs_unwrapped
+    return target_symbol_names, lhs_unwrapped
 
 
-def process_tags_and_upset_dont_allow_custom(
-    tags: Optional[list],
+def collect_lhs_names_and_upset_dont_allow_custom(
+    lhs_symbol_names: list[str],
     upset: bool,
     op_name: str,
     lhs: BaseElement,
     lhs_unwrapped: BaseElement,
     evaluation: Evaluation,
-) -> list:
+) -> Optional[list[str]]:
     """
     If `upset` is `True`,  collect a list of tag candidates from the elements of
     the lhs.
-    If `upset` is `False`, and `tags` is given, check if the elements
-    in `tags` are all names of symbols in the `lhs` elements. If `tags` is
-    `None`, the list of tags contains just the `lookup_name` of the LHS.
+    If `upset` is `False`, and `lhs_symbol_names` is given, check if the elements
+    in `lhs_symbol_names` are all names of symbols in the `lhs` elements. If `lhs_symbol_names` is
+    `None`, the list of lhs_symbol_names contains just the `lookup_name` of the LHS.
 
     Parameters
     ----------
-    tags : Optional[list]
-        The list of symbols that the rule must be associated with.
+    lhs_symbol_names : list[str]
+        The list of symbols that the rule must associate with.
     upset : bool
         If `True`, assign as an UpValue.
     op_name : str
@@ -1672,12 +1675,12 @@ def process_tags_and_upset_dont_allow_custom(
 
     Returns
     -------
-    tags: list
-        the list of allowed tags.
+    lhs_symbol_names: Optional[list[str]]
+        the list of allowed lhs_symbol_names.
 
     """
 
-    def get_symbol_definition_name(expr):
+    def get_symbol_definition_name(expr) -> Optional[str]:
         """Return the string symbol name that is to be used in
         determining which definition key of a definitions object to
         use in symbol-table operations.
@@ -1687,35 +1690,35 @@ def process_tags_and_upset_dont_allow_custom(
         expression is pattern-matched.
         """
         expr = unwrap_expression(expr)
-        if expr.has_form(SymbolPattern, 2):
-            return get_symbol_definition_name(expr.elements[1])
-        if expr.has_form(
-            (SymbolBlank, SymbolBlankSequence, SymbolBlankNullSequence), None
-        ):
-            if len(expr.elements) == 1:
-                return get_symbol_definition_name(expr.elements[0])
-            return None
+        if isinstance(expr, Expression):
+            if expr.has_form(SymbolPattern, 2):
+                return get_symbol_definition_name(expr.elements[1])
+            if expr.head in BLANK_PATTERN_HEADS:
+                if len(expr.elements) == 1:
+                    return get_symbol_definition_name(expr.elements[0])
+                return None
         return expr.get_symbol_definition_name()
 
     if isinstance(lhs_unwrapped, Expression):
         lhs_unwrapped = lhs_unwrapped.evaluate_elements(evaluation)
     if upset:
         lhs_name = get_symbol_definition_name(lhs_unwrapped)
-        tags = [lhs_name] if lhs_name is not None else None
-    elif tags is None:
+        returned_lhs_symbol_names = [lhs_name] if lhs_name is not None else None
+    elif lhs_symbol_names is None:
         lhs_name = get_symbol_definition_name(lhs_unwrapped)
         if not lhs_name:
             evaluation.message(op_name, "setraw", lhs_unwrapped)
             raise AssignmentException(lhs, None)
-        tags = [lhs_name]
+        returned_lhs_symbol_names = [lhs_name]
     else:
         lhs_name = get_symbol_definition_name(lhs_unwrapped)
         allowed_names = [lhs_name] if lhs_name else []
-        for lhs_name in tags:
+        for lhs_name in lhs_symbol_names:
             if lhs_name not in allowed_names:
                 evaluation.message(op_name, "tagnfd", Symbol(lhs_name))
                 raise AssignmentException(lhs, None)
-    return tags
+        returned_lhs_symbol_names = lhs_symbol_names
+    return returned_lhs_symbol_names
 
 
 # Below is a mapping from Symbol name (as a string) into an assignment eval function.
