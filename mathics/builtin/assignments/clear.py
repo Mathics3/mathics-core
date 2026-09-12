@@ -3,7 +3,6 @@
 Clearing Assignments
 """
 
-
 from mathics.core.assignment import is_protected
 from mathics.core.atoms import String
 from mathics.core.attributes import (
@@ -25,7 +24,7 @@ from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolOptions,
 )
-from mathics.eval.assignments import get_lookup_reference_name
+from mathics.eval.assignments import get_unwrapped_name
 
 
 class Clear(Builtin):
@@ -135,7 +134,7 @@ class ClearAll(Clear):
 
     <dl>
       <dt>'ClearAll'[$symb_1$, $symb_2$, ...]
-      <dd>clears all values, attributes, messages and options associated with the given symbols.
+      <dd>clears all values, attributes, messages, and options associated with the given symbols.
       The arguments can also be given as strings containing symbol names.
     </dl>
 
@@ -269,7 +268,7 @@ class Unset(PostfixOperator):
                 empty = []
             evaluation.definitions.set_values(symbol, expr.get_head_name(), empty)
             return SymbolNull
-        name = get_lookup_reference_name(expr)
+        name = get_unwrapped_name(expr)
         if not name:
             evaluation.message("Unset", "usraw", expr)
             return SymbolFailed
@@ -301,13 +300,13 @@ class TagUnset(PostfixOperator):
       <dd>removes any value belonging to the patter $patt$ from $f$.
     </dl>
 
-    Let's consider we define an UpValue for a symbol g:
+    Let's consider defining an UpValue for a symbol g:
     >> Sin[g[x_]]^:=Sing[x];
     in a way that
     >> Sin[g[3]]
      = Sing[3]
 
-    TagUset allows to remove the rule:
+    TagUset allows removing the rule:
     >> g/: Sin[g[x_]]=.
     >> Sin[g[3]]
      = Sin[g[3]]
