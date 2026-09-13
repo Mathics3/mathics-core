@@ -385,6 +385,11 @@ class AtomPattern(BasePattern):
         return f"<AtomPattern: {self.atom}>"
 
     def determine_value_role(self, target_symbol: Symbol) -> Optional[str]:
+        """Determine the kind of Value (DownValue, OwnValue, UpValue, etc.) that
+        `target_symbol` should have.
+
+        For AtomPatterns, the role is "ownvalues"
+        """
         if target_symbol is self.atom:
             return "ownvalues"
         return None

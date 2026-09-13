@@ -75,11 +75,11 @@ def get_symbol_list(expr: Expression, error_callback: Callable) -> Optional[List
 
 
 def get_symbol_values(
-    symbol: BaseElement, func_name: str, position: str, evaluation: Evaluation
+    symbol: BaseElement, func_name: str, rule_list_field: str, evaluation: Evaluation
 ) -> Optional[ListExpression]:
     """
     Build a ListExpression with the rules associated with `symbol` in the
-    `Definitions` object of `evaluation`.
+    `Definitions` object of `evaluation` and place it the field named in `rule_list_field`.
 
     Parameters
     ----------
@@ -87,8 +87,9 @@ def get_symbol_values(
         The target symbol.
     func_name : str
         the name of the caller.
-    position : str
+    rule_list_field : str
         the kind of rule ('ownvalues', 'downvalues', 'upvalues', 'defaultvalues', etc)
+        where the rule will be stored.
     evaluation : Evaluation
         The evaluation object.
 
@@ -106,7 +107,7 @@ def get_symbol_values(
     try:
         definition = (
             definitions.get_definition(name, True)
-            if position in ("defaultvalues",)
+            if rule_list_field in ("defaultvalues",)
             else definitions.get_user_definition(name, True)
         )
     except KeyError:
@@ -114,7 +115,7 @@ def get_symbol_values(
 
     elements: list[BaseElement] = []
 
-    if position == "formatvalues":
+    if rule_list_field == "formatvalues":
         format_rules = definition.formatvalues
         for key, rules in format_rules.items():
             if key == "_MakeBoxes":
@@ -162,7 +163,7 @@ def get_symbol_values(
         elements.sort()
         return ListExpression(*elements)
 
-    for rule in definition.get_values_list(position):
+    for rule in definition.get_values_list(rule_list_field):
         if isinstance(rule, RewriteRule):
             pattern = rule.pattern
             if pattern.has_form(SymbolHoldPattern, 1):
@@ -177,35 +178,6 @@ def is_protected(tag: str, definitions: Definitions) -> bool:
     """Check if the `Symbol` with name `tag`
     is protected in the `definitions`"""
     return bool(A_PROTECTED & definitions.get_attributes(tag))
-
-
-def unwrap_lhs(lhs: Expression, lhs_unwrapped: BaseElement):
-    """
-    Convert expressions of the form
-    ```
-    Head1[Head2[...Headn[ReferenceHead[a,b],p1],p2,...]..]
-    ```
-    into
-    ```
-    ReferenceHead[Head1[Head2[...Headn[a],p1],p2,...]..],b]
-    ```
-    Used in eval_assign_[n|format|...]
-    """
-    if lhs is lhs_unwrapped:
-        return lhs
-
-    lhs_head = lhs.get_head()
-    if lhs_head is lhs_unwrapped:
-        return lhs
-
-    elems = lhs.elements
-    lhs_unwrapped_expr = elems[0]
-    if lhs_unwrapped_expr.get_head() is not lhs_unwrapped:
-        lhs_unwrapped_expr = unwrap_lhs(lhs_unwrapped_expr, lhs_unwrapped)
-
-    lhs_unwrapped_elems = lhs_unwrapped_expr.elements
-    inner = Expression(lhs_head, lhs_unwrapped_elems[0], *elems[1:])
-    return Expression(lhs_unwrapped, inner, *lhs_unwrapped_elems[1:])
 
 
 def repl_pattern_by_symbol(expr: BaseElement) -> BaseElement:
@@ -303,3 +275,32 @@ def unroll_patterns(
     elif name == "System`HoldPattern":
         lhs = lhs_elements[0]
     return lhs, rhs
+
+
+def unwrap_lhs(lhs: Expression, lhs_unwrapped: BaseElement):
+    """
+    Convert expressions of the form
+    ```
+    Head1[Head2[...Headn[ReferenceHead[a,b],p1],p2,...]..]
+    ```
+    into
+    ```
+    ReferenceHead[Head1[Head2[...Headn[a],p1],p2,...]..],b]
+    ```
+    Used in eval_assign_[n|format|...]
+    """
+    if lhs is lhs_unwrapped:
+        return lhs
+
+    lhs_head = lhs.get_head()
+    if lhs_head is lhs_unwrapped:
+        return lhs
+
+    elems = lhs.elements
+    lhs_unwrapped_expr = elems[0]
+    if lhs_unwrapped_expr.get_head() is not lhs_unwrapped:
+        lhs_unwrapped_expr = unwrap_lhs(lhs_unwrapped_expr, lhs_unwrapped)
+
+    lhs_unwrapped_elems = lhs_unwrapped_expr.elements
+    inner = Expression(lhs_head, lhs_unwrapped_elems[0], *elems[1:])
+    return Expression(lhs_unwrapped, inner, *lhs_unwrapped_elems[1:])
