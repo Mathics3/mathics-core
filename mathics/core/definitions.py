@@ -66,17 +66,17 @@ class Definition:
         builtin=None,
         is_numeric: bool = False,
     ) -> None:
+        rules_dict = rules_dict or {}
         self.name = name
         self.symbol = Symbol(name)
-        rules_dict = rules_dict or {}
-        self.ownvalues = rules_dict.get("ownvalues", [])
+        self.defaultvalues = rules_dict.get("defaultvalues", [])
         self.downvalues = rules_dict.get("downvalues", [])
+        self.formatvalues = rules_dict.get("formatvalues", {})
+        self.nvalues = rules_dict.get("nvalues", [])
+        self.ownvalues = rules_dict.get("ownvalues", [])
         self.subvalues = rules_dict.get("subvalues", [])
         self.upvalues = rules_dict.get("upvalues", [])
-        self.nvalues = rules_dict.get("nvalues", [])
-        self.formatvalues = rules_dict.get("formatvalues", {})
-        self.defaultvalues = rules_dict.get("defaultvalues", [])
-        self.options: Dict[str, str] = rules_dict.get("options", {})
+        self.options: dict[str, str] = rules_dict.get("options", {})
         self.messages = rules_dict.get("messages", [])
 
         self.is_numeric = is_numeric
@@ -87,30 +87,43 @@ class Definition:
             if not self.add_rule(rule):
                 print(f"{rule.pattern.expr} could not be associated with {self.name}")
 
-    def get_values_list(self, pos: str) -> List[BaseRule]:
-        """Return one of the value lists"""
-        assert pos.isalpha()
-        return getattr(self, pos)
+    def __repr__(self) -> str:
+        repr_str = (
+            "<Definition: name: {},"
+            "\n ownvalues: {},\n"
+            " downvalues: {},\n"
+            " formats: {},\n"
+            " attributes: {}>"
+        ).format(
+            self.name,
+            self.ownvalues,
+            self.downvalues,
+            self.formatvalues,
+            self.attributes,
+        )
+        return repr_str
 
-    def set_values_list(self, pos: str, rules: List[BaseRule]) -> None:
-        """Set one of the value lists"""
-        assert pos.isalpha()
-        setattr(self, pos, rules)
+    def add_rule(self, rule: BaseRule) -> bool:
+        """Add a rule to one of the Rule lists. The specific rule list is
+        selected using `determine_value_role().`
+        """
+        rule_list_name = determine_value_role(rule.pattern.expr, self.symbol)
+        if rule_list_name:
+            return self.add_rule_at(rule, rule_list_name)
+        return False
 
-    def add_rule_at(self, rule: BaseRule, position: str) -> bool:
+    def add_rule_at(self, rule: BaseRule, rule_list_name: str) -> bool:
         """
-        Add `rule` to the set of rules in `position`
+        Add `rule` to the set of rules in field with attribute `rule_list_name`
         """
-        values = self.get_values_list(position)
+        values = self.get_values_list(rule_list_name)
         insert_rule(values, rule)
         return True
 
-    def add_rule(self, rule: BaseRule) -> bool:
-        """Add a rule. The position is automatically determined."""
-        pos = determine_value_role(rule.pattern.expr, self.symbol)
-        if pos:
-            return self.add_rule_at(rule, pos)
-        return False
+    def get_values_list(self, rule_list_name: str) -> list[BaseRule]:
+        """Return a Rule value lists"""
+        assert hasattr(self, rule_list_name)
+        return getattr(self, rule_list_name)
 
     def remove_format_rule(self, lhs: BaseElement, form: str) -> bool:
         """Remove a rule"""
@@ -132,21 +145,10 @@ class Definition:
                     return True
         return False
 
-    def __repr__(self) -> str:
-        repr_str = (
-            "<Definition: name: {},"
-            "\n ownvalues: {},\n"
-            " downvalues: {},\n"
-            " formats: {},\n"
-            " attributes: {}>"
-        ).format(
-            self.name,
-            self.ownvalues,
-            self.downvalues,
-            self.formatvalues,
-            self.attributes,
-        )
-        return repr_str
+    def set_values_list(self, pos: str, rules: list[BaseRule]) -> None:
+        """Set one of the value lists"""
+        assert pos.isalpha()
+        setattr(self, pos, rules)
 
 
 class Definitions:
@@ -175,32 +177,99 @@ class Definitions:
         builtin_filename: Optional[str] = None,
         extension_modules: tuple = (),
     ) -> None:
-        self.builtin: Dict[str, Definition] = {}
-        self.user: Dict[str, Definition] = {}
-        self.pymathics: Dict[str, Definition] = {}
-        self.definitions_cache: Dict[str, Definition] = {}
-        self.lookup_cache: Dict[str, str] = {}
-        self.proxy: Dict[str, Set[str]] = defaultdict(set)
-        self.now = 0  # increments whenever something is updated
         self._packages: List[str] = []
-        self.current_context = "Global`"
+        self.builtin: Dict[str, Definition] = {}
+        self.boxforms = list(BOX_FORMS)
         self.context_path: Tuple[str, ...] = (
             "System`",
             "Global`",
         )
+        self.current_context = "Global`"
+        self.definitions_cache: Dict[str, Definition] = {}
+        self.lookup_cache: Dict[str, str] = {}
+        self.now = 0  # increments whenever something is updated
+        self.outputforms = list(OUTPUT_FORMS)
+        self.printforms = list(PRINT_FORMS)
+        self.proxy: Dict[str, Set[str]] = defaultdict(set)
+        self.pymathics: Dict[str, Definition] = {}
+        self.user: Dict[str, Definition] = {}
         self.inputfile = ""
+        self.timing_trace_evaluation = False
+
         # TraceEvaluation uses these to
         # decided what information to show
         self.trace_evaluation = False
         self.trace_show_rewrite = False
-        self.timing_trace_evaluation = False
-
-        self.boxforms = list(BOX_FORMS)
-        self.printforms = list(PRINT_FORMS)
-        self.outputforms = list(OUTPUT_FORMS)
 
         if add_builtin:
             load_builtin_definitions(self, builtin_filename, extension_modules)
+
+    def add_default(self, name: str, rule: BaseRule) -> None:
+        """Add a DefaultValue to the Symbol `name`"""
+        definition = self.get_user_definition(self.lookup_name(name))
+        if definition is not None:
+            definition.add_rule_at(rule, "defaultvalues")
+            self.mark_changed(definition)
+        self.clear_definitions_cache(name)
+
+    def add_format(
+        self, name: str, rule: BaseRule, form_names: Union[str, list] = ""
+    ) -> None:
+        """Add a format rule"""
+        definition = self.get_user_definition(self.lookup_name(name))
+        forms = form_names if isinstance(form_names, (tuple, list)) else [form_names]
+        if definition is not None:
+            for form in forms:
+                if form not in definition.formatvalues:
+                    definition.formatvalues[form] = []
+                insert_rule(definition.formatvalues[form], rule)
+            self.mark_changed(definition)
+        self.clear_definitions_cache(name)
+
+    def add_nvalue(self, name: str, rule: BaseRule) -> None:
+        """Add a nvalue rule to the Symbol `name`"""
+        definition = self.get_user_definition(self.lookup_name(name))
+        if definition is not None:
+            definition.add_rule_at(rule, "nvalues")
+            self.mark_changed(definition)
+        self.clear_definitions_cache(name)
+
+    def add_message(self, name: str, rule: BaseRule) -> None:
+        """Add a message to the Symbol `name`"""
+        definition = self.get_user_definition(self.lookup_name(name))
+        if definition is not None:
+            definition.add_rule_at(rule, "messages")
+            self.mark_changed(definition)
+        self.clear_definitions_cache(name)
+
+    def add_rule(
+        self, name: str, rule: BaseRule, position: Optional[str] = None
+    ) -> bool:
+        """Add a rule for the Symbol `name` in the list `pos`."""
+        definition = self.get_user_definition(self.lookup_name(name))
+        if position is None:
+            result = definition.add_rule(rule)
+        else:
+            result = definition.add_rule_at(rule, position)
+        self.mark_changed(definition)
+        self.clear_definitions_cache(name)
+        return result
+
+    def add_user_definition(self, name: str, definition: Definition) -> None:
+        """Assign a definition to a symbol of name `name`"""
+        assert not isinstance(name, Symbol)
+        self.mark_changed(definition)
+        fullname = self.lookup_name(name)
+        self.user[fullname] = definition
+        self.clear_cache(fullname)
+
+    def clear_attribute(self, name: str, attribute: int) -> None:
+        """Clear the attributes of the Symbol `name`"""
+        definition = self.get_user_definition(self.lookup_name(name))
+        if definition is not None:
+            definition.attributes &= ~attribute
+            self.mark_changed(definition)
+        self.clear_definitions_cache(name)
 
     def clear_cache(self, name: Optional[str] = None) -> None:
         """Clear the definitions cache. If `name` is provided,
@@ -252,29 +321,6 @@ class Definitions:
         for k in self.proxy.pop(tail, []):
             definitions_cache.pop(k, None)
 
-    def is_uncertain_final_value(self, last_evaluated_time: int, symbols: set) -> bool:
-        """
-        Used in Evaluate_do_format() to
-        determine if we should (re)evaluate an expression.
-
-        Here, for a definitions object, we check if any symbol in the
-        symbols has changed. `last_evaluated_time` indicates when the
-        evaluation started. If a symbol has a time greater than
-        that, then things have changed since the evaluation started
-        and evaluation may lead to a different result.
-        """
-        for name in symbols:
-            try:
-                symbol = self.get_definition(name, only_if_exists=True)
-            except KeyError:
-                # "symbol" doesn't exist, so it was never changed.
-                continue
-            # Get timestamp for the most-recently changed part of the given expression.
-            if symbol.changed > last_evaluated_time:
-                return True
-
-        return False
-
     def get_current_context(self) -> str:
         """Return a string with the current context"""
         return self.current_context
@@ -286,28 +332,6 @@ class Definitions:
     def get_inputfile(self) -> str:
         """Return the input file"""
         return self.inputfile if hasattr(self, "inputfile") else ""
-
-    def set_current_context(self, context: str) -> None:
-        """Set the current context"""
-        assert isinstance(context, str)
-        self.set_ownvalue("System`$Context", String(context))
-        self.current_context = context
-        self.clear_cache()
-
-    def set_context_path(self, context_path: Sequence[str]) -> None:
-        """Set the context path"""
-        assert all(isinstance(c, str) for c in context_path)
-        self.set_ownvalue(
-            "System`$ContextPath",
-            to_mathics_list(*context_path, elements_conversion_fn=String),
-        )
-        self.context_path = tuple(context_path)
-        self.clear_cache()
-
-    def set_inputfile(self, path: str) -> None:
-        """Set the input file to `path`"""
-        self.inputfile = osp.normpath(osp.abspath(path))
-        self.inputfile = canonic_filename(self.inputfile)
 
     def get_builtin_names(self) -> set:
         """Return a set of builtin symbol names"""
@@ -338,138 +362,31 @@ class Definitions:
         accessible_ctxts.add(self.current_context)
         return accessible_ctxts
 
-    def get_matching_names(self, pattern: Union[str, re.Pattern]) -> List[str]:
+    def get_attributes(self, name: str) -> int:
         """
-        Return a list of the symbol names matching a string pattern.
+        Return the integer representing the
+        attributes of the symbol `name`
 
-        A pattern containing a context mark (of the form
-        "ctx_pattern`short_pattern") matches symbols whose context and
-        short name individually match the two patterns. A pattern
-        without a context mark matches symbols accessible through
-        $Context and $ContextPath whose short names match the pattern.
-
-        '*' matches any sequence of symbol characters or an empty
-        string. '@' matches a non-empty sequence of symbol characters
-        which aren't uppercase letters. In the context pattern, both
-        '*' and '@' match context marks.
         """
-        if isinstance(pattern, re.Pattern):
-            regex = pattern
-        else:
-            if re.match(full_names_pattern, pattern) is None:
-                # The pattern contained characters which weren't allowed
-                # in symbols and aren't valid wildcards. Hence, the
-                # pattern can't match any symbols.
-                return []
+        return self.get_definition(name).attributes
 
-            # If we get here, there aren't any regexp metacharacters in
-            # the pattern.
-
-            if "`" in pattern:
-                ctx_pattern, short_pattern = pattern.rsplit("`", 1)
-                if ctx_pattern == "":
-                    ctx_pattern = "System`"
-                else:
-                    ctx_pattern = (
-                        (ctx_pattern + "`")
-                        .replace("@", "[^A-Z`]+")
-                        .replace("*", ".*")
-                        .replace("$", r"\$")
-                    )
-            else:
-                short_pattern = pattern
-                # start with a group matching the accessible contexts
-                ctx_pattern = "(?:%s)" % "|".join(
-                    re.escape(c) for c in self.get_accessible_contexts()
-                )
-
-            short_pattern = (
-                short_pattern.replace("@", "[^A-Z]+")
-                .replace("*", "[^`]*")
-                .replace("$", r"\$")
-            )
-            regex = re.compile("^" + ctx_pattern + short_pattern + "$")
-
-        return [name for name in self.get_names() if regex.match(name)]
-
-    def lookup_name(self, name: str) -> str:
-        """
-        Determine the full name (including context) for a symbol name.
-
-        - If the name begins with a context mark, it's in the context
-          given by $Context.
-        - Otherwise, if it contains a context mark, it's already fully
-          specified.
-        - Otherwise, it doesn't contain a context mark: try $Context,
-          then each element of $ContextPath, taking the first existing
-          symbol.
-        - Otherwise, it's a new symbol in $Context.
-        """
-
-        cached = self.lookup_cache.get(name, None)
-        if cached is not None:
-            return cached
-
-        assert isinstance(name, str)
-
-        # Bail out if the name we're being asked to look up is already
-        # fully qualified.
-        if fully_qualified_symbol_name(name):
-            return name
-
-        current_context = self.current_context
-
-        if "`" in name:
-            if name.startswith("`"):
-                return current_context + name.lstrip("`")
-            return name
-
-        with_context = current_context + name
-        # if not self.have_definition(with_context):
-        for ctx in self.context_path:
-            ctx_name = ctx + name
-            if self.have_definition(ctx_name):
-                return ctx_name
-        return with_context
-
-    def get_package_names(self) -> List[Optional[str]]:
-        """Return the list of names of the packages loaded in the system."""
+    def get_config_value(
+        self, name: str, default: Optional[int] = None
+    ) -> Optional[int]:
+        "Infinity -> None, otherwise returns integer."
         try:
-            packages = self.get_ownvalue("System`$Packages")
+            value = self.get_ownvalue(name)
         except ValueError:
-            return []
+            return default
+        if value.get_name() == "System`Infinity" or value.has_form(
+            SymbolDirectedInfinity, 1
+        ):
+            return None
+        return int(value.to_python())  # .int_value)
 
-        assert packages.has_form(SymbolList, None)
-        return [
-            c.get_string_value()
-            for c in packages.get_elements()
-            if c.get_string_value() is not None
-        ]
-        # return sorted({name.split("`")[0] for name in self.get_names()})
-
-    def shorten_name(self, name_with_ctx: str) -> str:
-        """Remove the context of the symbol name if can be deduced."""
-        if "`" not in name_with_ctx:
-            return name_with_ctx
-
-        def in_ctx(name: str, ctx: str) -> bool:
-            return name.startswith(ctx) and "`" not in name[len(ctx) :]
-
-        current_context = self.current_context
-        if in_ctx(name_with_ctx, current_context):
-            return name_with_ctx[len(current_context) :]
-        for ctx in self.context_path:
-            if in_ctx(name_with_ctx, ctx):
-                return name_with_ctx[len(ctx) :]
-        return name_with_ctx
-
-    def have_definition(self, name: str) -> bool:
-        """Check if the Symbol `name` has an associated definition."""
-        try:
-            self.get_definition(name, only_if_exists=True)
-        except KeyError:
-            return False
-        return True
+    def get_defaultvalues(self, name: str) -> List[BaseRule]:
+        """Return the list of defaultvalues"""
+        return self.get_definition(name).defaultvalues
 
     def get_definition(self, name: str, only_if_exists: bool = False) -> Definition:
         """
@@ -539,29 +456,9 @@ class Definitions:
 
         return definition
 
-    def get_attributes(self, name: str) -> int:
-        """
-        Return the integer representing the
-        attributes of the symbol `name`
-
-        """
-        return self.get_definition(name).attributes
-
-    def get_ownvalues(self, name: str) -> List[BaseRule]:
-        """Return the list of ownvalues"""
-        return self.get_definition(name).ownvalues
-
     def get_downvalues(self, name: str) -> List[BaseRule]:
         """Return the list of downvalues"""
         return self.get_definition(name).downvalues
-
-    def get_subvalues(self, name: str) -> List[BaseRule]:
-        """Return the list of subvalues"""
-        return self.get_definition(name).subvalues
-
-    def get_upvalues(self, name: str) -> List[BaseRule]:
-        """Return the list of upvalues"""
-        return self.get_definition(name).upvalues
 
     def get_formats(self, name: str, format_name="") -> List[BaseRule]:
         """
@@ -574,26 +471,121 @@ class Definitions:
         result.sort(key=lambda x: x.pattern_precedence)
         return result
 
+    def get_history_length(self) -> int:
+        """Return the length of the command history. The number will
+        never be greater than $HistoryLength"""
+        history_length = self.get_config_value("$HistoryLength", 100)
+        if history_length is None or history_length > 100:
+            history_length = 100
+        return history_length
+
+    def get_line_no(self) -> int:
+        """Get $Line, the current input line number"""
+        return self.get_config_value("$Line", 0) or 0
+
+    def get_matching_names(self, pattern: Union[str, re.Pattern]) -> List[str]:
+        """
+        Return a list of the symbol names matching a string pattern.
+
+        A pattern containing a context mark (of the form
+        "ctx_pattern`short_pattern") matches symbols whose context and
+        short name individually match the two patterns. A pattern
+        without a context mark matches symbols accessible through
+        $Context and $ContextPath whose short names match the pattern.
+
+        '*' matches any sequence of symbol characters or an empty
+        string. '@' matches a non-empty sequence of symbol characters
+        which aren't uppercase letters. In the context pattern, both
+        '*' and '@' match context marks.
+        """
+        if isinstance(pattern, re.Pattern):
+            regex = pattern
+        else:
+            if re.match(full_names_pattern, pattern) is None:
+                # The pattern contained characters which weren't allowed
+                # in symbols and aren't valid wildcards. Hence, the
+                # pattern can't match any symbols.
+                return []
+
+            # If we get here, there aren't any regexp metacharacters in
+            # the pattern.
+
+            if "`" in pattern:
+                ctx_pattern, short_pattern = pattern.rsplit("`", 1)
+                if ctx_pattern == "":
+                    ctx_pattern = "System`"
+                else:
+                    ctx_pattern = (
+                        (ctx_pattern + "`")
+                        .replace("@", "[^A-Z`]+")
+                        .replace("*", ".*")
+                        .replace("$", r"\$")
+                    )
+            else:
+                short_pattern = pattern
+                # start with a group matching the accessible contexts
+                ctx_pattern = "(?:%s)" % "|".join(
+                    re.escape(c) for c in self.get_accessible_contexts()
+                )
+
+            short_pattern = (
+                short_pattern.replace("@", "[^A-Z]+")
+                .replace("*", "[^`]*")
+                .replace("$", r"\$")
+            )
+            regex = re.compile("^" + ctx_pattern + short_pattern + "$")
+
+        return [name for name in self.get_names() if regex.match(name)]
+
     def get_nvalues(self, name: str) -> List[BaseRule]:
         """Return the list of nvalues"""
         return self.get_definition(name).nvalues
 
-    def get_defaultvalues(self, name: str) -> List[BaseRule]:
-        """Return the list of defaultvalues"""
-        return self.get_definition(name).defaultvalues
+    def get_options(self, name: str) -> dict:
+        """Get the options associated with the Symbol `name`"""
+        return self.get_definition(self.lookup_name(name)).options
 
-    def get_value(
-        self, name: str, pos: str, expression: BaseElement, evaluation
-    ) -> BaseElement:
-        """Apply rules in `pos` over `expression` until get the value of the symbol"""
-        assert isinstance(name, str)
-        assert "`" in name
-        rules = self.get_definition(name).get_values_list(_valuesname(pos))
-        for rule in rules:
-            result = rule.apply(expression, evaluation)
-            if result is not None:
-                return result
+    def get_ownvalue(self, name: str) -> BaseElement:
+        """Get ownvalue associated with `name`"""
+        symbol_name = self.lookup_name(name)
+        ownvalues = self.get_definition(symbol_name).ownvalues
+
+        for ownvalue in ownvalues:
+            if not isinstance(ownvalue.pattern.expr, Symbol):
+                continue
+            try:
+                return ownvalue.get_replace_value()
+            except ValueError:
+                continue
         raise ValueError
+        # return None
+
+    def get_ownvalues(self, name: str) -> List[BaseRule]:
+        """Return the list of ownvalues"""
+        return self.get_definition(name).ownvalues
+
+    def get_package_names(self) -> List[Optional[str]]:
+        """Return the list of names of the packages loaded in the system."""
+        try:
+            packages = self.get_ownvalue("System`$Packages")
+        except ValueError:
+            return []
+
+        assert packages.has_form(SymbolList, None)
+        return [
+            c.get_string_value()
+            for c in packages.get_elements()
+            if c.get_string_value() is not None
+        ]
+        # return sorted({name.split("`")[0] for name in self.get_names()})
+
+    def get_subvalues(self, name: str) -> List[BaseRule]:
+        """Return the list of subvalues"""
+        return self.get_definition(name).subvalues
+
+    def get_upvalues(self, name: str) -> List[BaseRule]:
+        """Return the list of upvalues"""
+        return self.get_definition(name).upvalues
 
     def get_user_definition(self, name: str, create: bool = True) -> Definition:
         """
@@ -645,6 +637,100 @@ class Definitions:
         self.clear_cache(name)
         return self.user[name]
 
+    def get_user_definitions(self) -> str:
+        """Return a string encoding all the user definitions"""
+        return base64.encodebytes(pickle.dumps(self.user, protocol=2)).decode("ascii")
+
+    def get_value(
+        self, name: str, pos: str, expression: BaseElement, evaluation
+    ) -> BaseElement:
+        """Apply rules in `pos` over `expression` until get the value of the symbol"""
+        assert isinstance(name, str)
+        assert "`" in name
+        rules = self.get_definition(name).get_values_list(_valuesname(pos))
+        for rule in rules:
+            result = rule.apply(expression, evaluation)
+            if result is not None:
+                return result
+        raise ValueError
+
+    def have_definition(self, name: str) -> bool:
+        """Check if the Symbol `name` has an associated definition."""
+        try:
+            self.get_definition(name, only_if_exists=True)
+        except KeyError:
+            return False
+        return True
+
+    def increment_line_no(self, increment: int = 1) -> None:
+        """Increment $Line, the current input line number"""
+        line_number = self.get_line_no()
+        if line_number is not None:
+            self.set_config_value("$Line", +increment)
+
+    def is_uncertain_final_value(self, last_evaluated_time: int, symbols: set) -> bool:
+        """
+        Used in Evaluate_do_format() to
+        determine if we should (re)evaluate an expression.
+
+        Here, for a definitions object, we check if any symbol in the
+        symbols has changed. `last_evaluated_time` indicates when the
+        evaluation started. If a symbol has a time greater than
+        that, then things have changed since the evaluation started
+        and evaluation may lead to a different result.
+        """
+        for name in symbols:
+            try:
+                symbol = self.get_definition(name, only_if_exists=True)
+            except KeyError:
+                # "symbol" doesn't exist, so it was never changed.
+                continue
+            # Get timestamp for the most-recently changed part of the given expression.
+            if symbol.changed > last_evaluated_time:
+                return True
+
+        return False
+
+    def lookup_name(self, name: str) -> str:
+        """
+        Determine the full name (including context) for a symbol name.
+
+        - If the name begins with a context mark, it's in the context
+          given by $Context.
+        - Otherwise, if it contains a context mark, it's already fully
+          specified.
+        - Otherwise, it doesn't contain a context mark: try $Context,
+          then each element of $ContextPath, taking the first existing
+          symbol.
+        - Otherwise, it's a new symbol in $Context.
+        """
+
+        cached = self.lookup_cache.get(name, None)
+        if cached is not None:
+            return cached
+
+        assert isinstance(name, str)
+
+        # Bail out if the name we're being asked to look up is already
+        # fully qualified.
+        if fully_qualified_symbol_name(name):
+            return name
+
+        current_context = self.current_context
+
+        if "`" in name:
+            if name.startswith("`"):
+                return current_context + name.lstrip("`")
+            return name
+
+        with_context = current_context + name
+        # if not self.have_definition(with_context):
+        for ctx in self.context_path:
+            ctx_name = ctx + name
+            if self.have_definition(ctx_name):
+                return ctx_name
+        return with_context
+
     def mark_changed(self, definition: Definition) -> None:
         """Mark a definition change"""
         self.now += 1
@@ -659,13 +745,11 @@ class Definitions:
         self.clear_cache(fullname)
         # TODO fix changed
 
-    def add_user_definition(self, name: str, definition: Definition) -> None:
-        """Assign a definition to a symbol of name `name`"""
-        assert not isinstance(name, Symbol)
-        self.mark_changed(definition)
-        fullname = self.lookup_name(name)
-        self.user[fullname] = definition
-        self.clear_cache(fullname)
+    def reset_user_definitions(self) -> None:
+        """Remove all the user definitions"""
+        self.user = {}
+        self.clear_cache()
+        # TODO changed
 
     def set_attribute(self, name: str, attribute: int) -> None:
         """Set an attribute to the Symbol `name`"""
@@ -683,64 +767,49 @@ class Definitions:
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
-    def clear_attribute(self, name: str, attribute: int) -> None:
-        """Clear the attributes of the Symbol `name`"""
+    def set_config_value(self, name: str, new_value: int) -> None:
+        """Set the (own)value of an integer variable"""
+        self.set_ownvalue(name, Integer(new_value))
+
+    def set_context_path(self, context_path: Sequence[str]) -> None:
+        """Set the context path"""
+        assert all(isinstance(c, str) for c in context_path)
+        self.set_ownvalue(
+            "System`$ContextPath",
+            to_mathics_list(*context_path, elements_conversion_fn=String),
+        )
+        self.context_path = tuple(context_path)
+        self.clear_cache()
+
+    def set_current_context(self, context: str) -> None:
+        """Set the current context"""
+        assert isinstance(context, str)
+        self.set_ownvalue("System`$Context", String(context))
+        self.current_context = context
+        self.clear_cache()
+
+    def set_inputfile(self, path: str) -> None:
+        """Set the input file to `path`"""
+        self.inputfile = osp.normpath(osp.abspath(path))
+        self.inputfile = canonic_filename(self.inputfile)
+
+    def set_line_no(self, line_no: int) -> None:
+        """Set $Line, the current input line number"""
+        self.set_config_value("$Line", line_no)
+
+    def set_options(self, name: str, options) -> None:
+        """Set the options dict associated with the Symbol `name`"""
         definition = self.get_user_definition(self.lookup_name(name))
         if definition is not None:
-            definition.attributes &= ~attribute
+            definition.options = options
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
-    def add_rule(
-        self, name: str, rule: BaseRule, position: Optional[str] = None
-    ) -> bool:
-        """Add a rule for the Symbol `name` in the list `pos`."""
-        definition = self.get_user_definition(self.lookup_name(name))
-        if position is None:
-            result = definition.add_rule(rule)
-        else:
-            result = definition.add_rule_at(rule, position)
-        self.mark_changed(definition)
-        self.clear_definitions_cache(name)
-        return result
-
-    def add_format(
-        self, name: str, rule: BaseRule, form_names: Union[str, list] = ""
-    ) -> None:
-        """Add a format rule"""
-        definition = self.get_user_definition(self.lookup_name(name))
-        forms = form_names if isinstance(form_names, (tuple, list)) else [form_names]
-        if definition is not None:
-            for form in forms:
-                if form not in definition.formatvalues:
-                    definition.formatvalues[form] = []
-                insert_rule(definition.formatvalues[form], rule)
-            self.mark_changed(definition)
-        self.clear_definitions_cache(name)
-
-    def add_nvalue(self, name: str, rule: BaseRule) -> None:
-        """Add a nvalue rule to the Symbol `name`"""
-        definition = self.get_user_definition(self.lookup_name(name))
-        if definition is not None:
-            definition.add_rule_at(rule, "nvalues")
-            self.mark_changed(definition)
-        self.clear_definitions_cache(name)
-
-    def add_default(self, name: str, rule: BaseRule) -> None:
-        """Add a DefaultValue to the Symbol `name`"""
-        definition = self.get_user_definition(self.lookup_name(name))
-        if definition is not None:
-            definition.add_rule_at(rule, "defaultvalues")
-            self.mark_changed(definition)
-        self.clear_definitions_cache(name)
-
-    def add_message(self, name: str, rule: BaseRule) -> None:
-        """Add a message to the Symbol `name`"""
-        definition = self.get_user_definition(self.lookup_name(name))
-        if definition is not None:
-            definition.add_rule_at(rule, "messages")
-            self.mark_changed(definition)
-        self.clear_definitions_cache(name)
+    def set_ownvalue(self, name: str, value) -> None:
+        """Set an ownvalue for name"""
+        symbol_name = self.lookup_name(name)
+        self.add_rule(name, RewriteRule(Symbol(symbol_name), value))
+        self.clear_cache(symbol_name)
 
     def set_values(self, name: str, values: str, rules: List[BaseRule]) -> None:
         """Set a list of rules associated with the Symbol `name`"""
@@ -751,20 +820,6 @@ class Definitions:
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
-    def get_options(self, name: str) -> dict:
-        """Get the options associated with the Symbol `name`"""
-        return self.get_definition(self.lookup_name(name)).options
-
-    def reset_user_definitions(self) -> None:
-        """Remove all the user definitions"""
-        self.user = {}
-        self.clear_cache()
-        # TODO changed
-
-    def get_user_definitions(self) -> str:
-        """Return a string encoding all the user definitions"""
-        return base64.encodebytes(pickle.dumps(self.user, protocol=2)).decode("ascii")
-
     def set_user_definitions(self, definitions: str) -> None:
         """Set the user definitions encoded in a string"""
         if definitions:
@@ -773,34 +828,21 @@ class Definitions:
             self.user = {}
         self.clear_cache()
 
-    def get_ownvalue(self, name: str) -> BaseElement:
-        """Get ownvalue associated with `name`"""
-        symbol_name = self.lookup_name(name)
-        ownvalues = self.get_definition(symbol_name).ownvalues
+    def shorten_name(self, name_with_ctx: str) -> str:
+        """Remove the context of the symbol name if can be deduced."""
+        if "`" not in name_with_ctx:
+            return name_with_ctx
 
-        for ownvalue in ownvalues:
-            if not isinstance(ownvalue.pattern.expr, Symbol):
-                continue
-            try:
-                return ownvalue.get_replace_value()
-            except ValueError:
-                continue
-        raise ValueError
-        # return None
+        def in_ctx(name: str, ctx: str) -> bool:
+            return name.startswith(ctx) and "`" not in name[len(ctx) :]
 
-    def set_ownvalue(self, name: str, value) -> None:
-        """Set an ownvalue for name"""
-        symbol_name = self.lookup_name(name)
-        self.add_rule(name, RewriteRule(Symbol(symbol_name), value))
-        self.clear_cache(symbol_name)
-
-    def set_options(self, name: str, options) -> None:
-        """Set the options dict associated with the Symbol `name`"""
-        definition = self.get_user_definition(self.lookup_name(name))
-        if definition is not None:
-            definition.options = options
-            self.mark_changed(definition)
-        self.clear_definitions_cache(name)
+        current_context = self.current_context
+        if in_ctx(name_with_ctx, current_context):
+            return name_with_ctx[len(current_context) :]
+        for ctx in self.context_path:
+            if in_ctx(name_with_ctx, ctx):
+                return name_with_ctx[len(ctx) :]
+        return name_with_ctx
 
     def unset(self, name: str, expr: BaseElement) -> bool:
         """Remove the rule corresponding to the expression `expr` in
@@ -832,46 +874,6 @@ class Definitions:
         self.mark_changed(definition)
         self.clear_definitions_cache(name)
         return result
-
-    def get_config_value(
-        self, name: str, default: Optional[int] = None
-    ) -> Optional[int]:
-        "Infinity -> None, otherwise returns integer."
-        try:
-            value = self.get_ownvalue(name)
-        except ValueError:
-            return default
-        if value.get_name() == "System`Infinity" or value.has_form(
-            SymbolDirectedInfinity, 1
-        ):
-            return None
-        return int(value.to_python())  # .int_value)
-
-    def set_config_value(self, name: str, new_value: int) -> None:
-        """Set the (own)value of an integer variable"""
-        self.set_ownvalue(name, Integer(new_value))
-
-    def set_line_no(self, line_no: int) -> None:
-        """Set $Line, the current input line number"""
-        self.set_config_value("$Line", line_no)
-
-    def get_line_no(self) -> int:
-        """Get $Line, the current input line number"""
-        return self.get_config_value("$Line", 0) or 0
-
-    def increment_line_no(self, increment: int = 1) -> None:
-        """Increment $Line, the current input line number"""
-        line_number = self.get_line_no()
-        if line_number is not None:
-            self.set_config_value("$Line", +increment)
-
-    def get_history_length(self) -> int:
-        """Return the length of the command history. The number will
-        never be greater than $HistoryLength"""
-        history_length = self.get_config_value("$HistoryLength", 100)
-        if history_length is None or history_length > 100:
-            history_length = 100
-        return history_length
 
 
 def _valuesname(name: str) -> str:
