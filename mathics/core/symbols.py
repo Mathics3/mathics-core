@@ -234,10 +234,15 @@ class Atom(BaseElement):
     #        1/0
     #        return None if stop_on_error else {}
 
-    def get_lookup_name(self) -> str:
-        """
-        By default, atoms that are not symbols
-        have their class head_names as their lookup names.
+    # FIXME: return a Symbol, not a name.
+    # Conceptually, this isn't hard, but there are many changes.
+    def get_symbol_definition_name(self) -> str:
+        """Return the string symbol name that is to be used in
+        determining which definition key of a definitions object to
+        use in symbol-table operations.
+
+        By default, atoms that are not symbols use their class head_names
+        as the definition key in a definitions object.
         """
         return self.class_head_name
 
@@ -466,9 +471,13 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     def get_head_name(self) -> str:
         return "System`Symbol"
 
-    def get_lookup_name(self) -> str:
-        """
-        The lookup name of a Symbol is its name.
+    def get_symbol_definition_name(self) -> str:
+        """Return the string symbol name that is to be used in
+        determining which definition key of a definitions object to
+        use in symbol-table operations.
+
+        The definition key in a definitions object. for a Symbol is
+        its string name.
         """
         return self.get_name()
 

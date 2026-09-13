@@ -1683,7 +1683,15 @@ class PatternObject(BuiltinElement, BasePattern):
     def get_head_name(self) -> str:
         return self.get_name()
 
-    def get_lookup_name(self) -> str:
+    # FIXME: return a Symbol, not a name.
+    # Conceptually, this isn't hard, but there are many changes.
+    def get_symbol_definition_name(self) -> str:
+        """Return the string symbol name that is to be used in
+        determining which definition key of a definitions object to
+        use in symbol-table operations.
+
+        Here, it is simply the pattern object's string name
+        """
         return self.get_name()
 
     def get_match_candidates(

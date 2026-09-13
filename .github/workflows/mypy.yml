@@ -26,7 +26,7 @@ jobs:
 
       - name: Install mathics-core
         run: |
-          pip install mypy==1.13 sympy==1.12
+          pip install mypy>=1.14 sympy==1.12
           # Adjust below for right branch
           # git clone --depth 1 https://github.com/Mathics3/Mathics3-scanner.git
           # cd Mathics3-scanner/

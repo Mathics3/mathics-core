@@ -196,11 +196,14 @@ class BaseElement(KeyComparable, ABC):
         """
         raise NotImplementedError
 
-    def get_lookup_name(self) -> str:
-        """
-        Returns symbol name of leftmost head. This method is used
-        to determine which definition must be asked for rules
-        to apply in order to do the evaluation.
+    # FIXME: return a Symbol, not a name.
+    # Conceptually, this isn't hard, but there are many changes.
+    def get_symbol_definition_name(self) -> str:
+        """Return the string symbol name that is to be used in
+        determining which definition key of a definitions object to
+        use in symbol-table operations.
+
+        The default is simply the BaseElement's string name.
         """
 
         return self.get_name()
