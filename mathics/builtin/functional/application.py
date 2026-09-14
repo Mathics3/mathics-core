@@ -14,8 +14,9 @@ from mathics.core.builtin import Builtin, PostfixOperator, PrefixOperator, Sympy
 from mathics.core.convert.sympy import SymbolFunction
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
 from mathics.core.symbols import SYMPY_SLOT_PREFIX, Symbol
-from mathics.core.systemsymbols import SymbolSlot
+from mathics.core.systemsymbols import SymbolList, SymbolSlot
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.function-application"
@@ -110,7 +111,8 @@ class Function(PostfixOperator, SympyFunction):
     def eval_named(self, vars, body, args, evaluation: Evaluation):
         "Function[vars_, body_][args___]"
 
-        if vars.has_form("List", None):
+        # FIXME: isinstance(vars, ListExpression) does not work here.
+        if vars.has_form(SymbolList, None):
             vars = vars.elements
         else:
             vars = [vars]
@@ -140,7 +142,7 @@ class Function(PostfixOperator, SympyFunction):
     # Not sure if DRY is possible here...
     def eval_named_attr(self, vars, body, attr, args, evaluation: Evaluation):
         "Function[vars_, body_, attr_][args___]"
-        if vars.has_form("List", None):
+        if isinstance(vars, ListExpression):
             vars = vars.elements
         else:
             vars = [vars]
