@@ -112,6 +112,7 @@ class Function(PostfixOperator, SympyFunction):
         "Function[vars_, body_][args___]"
 
         # FIXME: isinstance(vars, ListExpression) does not work here.
+        # Use: DesignMatrix[{{2, 1}, {3, 4}, {5, 3}, {7, 6}}, x, x] to test.
         if vars.has_form(SymbolList, None):
             vars = vars.elements
         else:

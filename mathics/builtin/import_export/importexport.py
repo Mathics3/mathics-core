@@ -57,6 +57,7 @@ from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolOpenWrite,
     SymbolOutputStream,
+    SymbolRuleDelayed,
     SymbolToString,
 )
 from mathics.eval.files_io.files import eval_Close
@@ -249,7 +250,7 @@ class RegisterImport(Builtin):
         if not (
             len(elements) >= 1
             and isinstance(elements[-1], Symbol)
-            and all(x.has_form("RuleDelayed", None) for x in elements[:-1])
+            and all(x.has_form(SymbolRuleDelayed, None) for x in elements[:-1])
         ):
             # TODO: Message
             return SymbolFailed
