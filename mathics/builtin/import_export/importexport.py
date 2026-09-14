@@ -241,7 +241,7 @@ class RegisterImport(Builtin):
         """ImportExport`RegisterImport[formatname_String, function_, posts_List,
         OptionsPattern[ImportExport`RegisterImport]]"""
 
-        if function.has_form("List", None):
+        if isinstance(function, ListExpression):
             elements = function.get_elements()
         else:
             elements = [function]
