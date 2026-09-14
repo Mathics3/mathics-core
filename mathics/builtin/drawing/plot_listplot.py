@@ -610,9 +610,9 @@ class DiscretePlot(_ListPlot):
         x_range, y_range = get_plot_range_option(options, evaluation, self.get_name())
         return functions, x_name, py_start, py_stop, x_range, y_range, expr_limits, expr
 
-    def get_functions_param(self, functions):
+    def get_functions_param(self, functions) -> list:
         """Get the numbers of parameters in a function"""
-        if functions.has_form("List", None):
+        if isinstance(functions, ListExpression):
             functions = list(functions.elements)
         else:
             functions = [functions]

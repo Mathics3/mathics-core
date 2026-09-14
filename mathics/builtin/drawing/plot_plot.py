@@ -15,6 +15,7 @@ from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
+from mathics.core.list import ListExpression
 from mathics.core.symbols import SymbolTrue
 from mathics.core.systemsymbols import SymbolLogPlot, SymbolPlotRange, SymbolSequence
 from mathics.eval.drawing.plot import eval_Plot
@@ -104,9 +105,9 @@ class _Plot(Builtin, ABC):
             graphics = eval_function(plot_options, options, evaluation)
         return graphics
 
-    def get_functions_param(self, functions):
+    def get_functions_param(self, functions) -> list:
         """Get the numbers of parameters in a function"""
-        if functions.has_form("List", None):
+        if isinstance(functions, ListExpression):
             functions = list(functions.elements)
         else:
             functions = [functions]
@@ -217,10 +218,10 @@ class ParametricPlot(_Plot):
     expect_list = True
     summary_text = "2D parametric curves or regions"
 
-    def get_functions_param(self, functions):
-        if functions.has_form("List", 2) and not (
-            functions.elements[0].has_form("List", None)
-            or functions.elements[1].has_form("List", None)
+    def get_functions_param(self, functions) -> list:
+        if isinstance(functions, ListExpression) and not (
+            isinstance(functions.elements[0], ListExpression)
+            or isinstance(functions.elements[1], ListExpression)
         ):
             # One function given
             functions = [functions]

@@ -42,7 +42,9 @@ class Assuming(Builtin):
         assumptions = assumptions.evaluate(evaluation)
         if assumptions is SymbolTrue:
             cond = []
-        elif isinstance(assumptions, Symbol) or not assumptions.has_form("List", None):
+        elif isinstance(assumptions, Symbol) or not isinstance(
+            assumptions, ListExpression
+        ):
             cond = [assumptions]
         else:
             cond = assumptions.elements
