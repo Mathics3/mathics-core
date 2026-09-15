@@ -22,7 +22,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, structure
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol
-from mathics.core.systemsymbols import SymbolNormal, SymbolTuples
+from mathics.core.systemsymbols import SymbolList, SymbolNormal, SymbolTuples
 from mathics.eval.lists import get_tuples
 
 
@@ -69,7 +69,7 @@ class Array(Builtin):
     def eval(self, f, dimsexpr, origins, head, evaluation: Evaluation):
         "Array[f_, dimsexpr_, origins_:1, head_:List]"
 
-        if dimsexpr.has_form("List", None):
+        if dimsexpr.has_form(SymbolList, None):
             dims = dimsexpr.get_mutable_elements()
         else:
             dims = [dimsexpr]
@@ -79,7 +79,7 @@ class Array(Builtin):
                 evaluation.message("Array", "ilsnn", 2)
                 return
             dims[index] = value
-        if origins.has_form("List", None):
+        if origins.has_form(SymbolList, None):
             if len(origins.elements) != len(dims):
                 evaluation.message("Array", "plen", dimsexpr, origins)
                 return
