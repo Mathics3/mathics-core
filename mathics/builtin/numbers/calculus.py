@@ -739,7 +739,7 @@ class _BaseFinder(Builtin):
             f = Expression(SymbolPlus, f_val.elements[0], f_val.elements[1])
 
         xtuple_value = xtuple.evaluate(evaluation)
-        if xtuple_value.has_form("List", None):
+        if xtuple_value.has_form(SymbolList, None):
             nelements = len(xtuple_value.elements)
             if nelements == 2:
                 x, x0 = xtuple.evaluate(evaluation).elements

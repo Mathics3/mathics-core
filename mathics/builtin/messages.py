@@ -12,7 +12,7 @@ from mathics.core.evaluation import Evaluation, Message as EvaluationMessage
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolNull
-from mathics.core.systemsymbols import SymbolMessageName, SymbolQuiet
+from mathics.core.systemsymbols import SymbolList, SymbolMessageName, SymbolQuiet
 
 
 class Aborted(Predefined):
@@ -83,7 +83,7 @@ class Check(Builtin):
         def get_msg_list(exprs):
             messages = []
             for expr in exprs:
-                if expr.has_form("List", None):
+                if expr.has_form(SymbolList, None):
                     messages.extend(get_msg_list(expr.elements))
                 elif check_message(expr):
                     messages.append(expr)
@@ -532,7 +532,7 @@ class Quiet(Builtin):
             elif expr.get_name() == "System`None":
                 all = False
                 messages = []
-            elif expr.has_form("List", None):
+            elif expr.has_form(SymbolList, None):
                 all = False
                 messages = []
                 for item in expr.elements:

@@ -26,6 +26,7 @@ from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol, SymbolTrue
 from mathics.core.systemsymbols import (
+    SymbolList,
     SymbolMap,
     SymbolReverse,
     SymbolSameQ,
@@ -1172,7 +1173,7 @@ class Riffle(Builtin):
     def eval(self, list, sep, evaluation: Evaluation):
         "Riffle[list_List, sep_]"
 
-        if sep.has_form("List", None):
+        if sep.has_form(SymbolList, None):
             result = riffle_lists(list.elements, sep.elements)
         else:
             result = riffle_lists(list.elements, [sep])

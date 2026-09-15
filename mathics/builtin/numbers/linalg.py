@@ -510,14 +510,14 @@ class LinearSolve(Builtin):
         if matrix is None:
             evaluation.message("LinearSolve", "matrix", m, 1)
             return
-        if not b.has_form("List", None):
+        if not b.has_form(SymbolList, None):
             return
         if len(b.elements) != len(matrix):
             evaluation.message("LinearSolve", "lslc")
             return
 
         for element in b.elements:
-            if element.has_form("List", None):
+            if element.has_form(SymbolList, None):
                 evaluation.message("LinearSolve", "matrix", b, 2)
                 return
 

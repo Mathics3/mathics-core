@@ -106,7 +106,7 @@ class NotOptionQ(Test):
     def test(self, expr) -> bool:
         if hasattr(expr, "flatten_with_respect_to_head"):
             expr = expr.flatten_with_respect_to_head(SymbolList)
-        if not expr.has_form("List", None):
+        if not expr.has_form(SymbolList, None):
             expr = [expr]
         else:
             expr = expr.elements
@@ -159,7 +159,7 @@ class OptionQ(Test):
     def test(self, expr) -> bool:
         if hasattr(expr, "flatten_with_respect_to_head"):
             expr = expr.flatten_with_respect_to_head(SymbolList)
-        if not expr.has_form("List", None):
+        if not expr.has_form(SymbolList, None):
             expr = [expr]
         else:
             expr = expr.elements
