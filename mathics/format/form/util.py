@@ -18,6 +18,7 @@ from mathics.core.systemsymbols import (
     SymbolBlankSequence,
     SymbolInfix,
     SymbolLeft,
+    SymbolList,
     SymbolNonAssociative,
     SymbolNone,
     SymbolPostfix,
@@ -122,7 +123,7 @@ def collect_in_pre_post_arguments(
     ops = elements[1]
     if head is SymbolInfix:
         # This is not the WMA behaviour, but the Mathics3 current implementation requires it:
-        ops = ops.elements if ops.has_form("List", None) else (ops,)
+        ops = ops.elements if ops.has_form(SymbolList, None) else (ops,)
         operator_spec = [get_operator_str(op, evaluation, **kwargs) for op in ops]
     else:
         operator_spec = get_operator_str(ops, evaluation, **kwargs)

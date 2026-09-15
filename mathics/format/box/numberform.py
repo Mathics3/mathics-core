@@ -245,7 +245,7 @@ def real_to_tuple_info(
 
 def eval_baseform(
     expr: BaseElement, n: BaseElement, f: Symbol, evaluation: Evaluation
-) -> BoxElementMixin:
+) -> BoxElementMixin | BaseElement | None:
     """
     Evaluate MakeBoxes[BaseForm[expr_, n_], f_]
 

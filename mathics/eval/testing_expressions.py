@@ -7,7 +7,11 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.rules import BasePattern
 from mathics.core.symbols import BooleanType, SymbolFalse, SymbolTimes, SymbolTrue
-from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolSparseArray
+from mathics.core.systemsymbols import (
+    SymbolDirectedInfinity,
+    SymbolList,
+    SymbolSparseArray,
+)
 
 
 def do_cmp(x1, x2) -> Optional[int]:
@@ -117,7 +121,7 @@ def eval_ArrayQ(expr, pattern, test_condition, evaluation: Evaluation) -> Boolea
     dims = [len(expr.get_elements())]  # to ensure an atom is not an array
 
     def check(level, expr):
-        if not expr.has_form("List", None):
+        if not expr.has_form(SymbolList, None):
             if test_condition is not None:
                 test_expr = Expression(test_condition, expr)
                 if test_expr.evaluate(evaluation) != SymbolTrue:
