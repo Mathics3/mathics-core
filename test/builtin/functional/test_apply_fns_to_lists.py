@@ -9,7 +9,7 @@ import pytest
 
 
 @pytest.mark.parametrize(
-    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    ("str_expr", "msgs", "str_expected", "assert_msg"),
     [
         ("ClearAll[f, g, h,x,y,a,b,c];", None, None, None),
         (
@@ -19,16 +19,28 @@ import pytest
             None,
         ),
         (
+            "Map[f, c]",
+            None,
+            "c",
+            "When given a Symbol, return the Symbol; Issue #1788",
+        ),
+        (
             "Map[f, expr, a+b, Heads->True]",
             ("Level specification a + b is not of the form n, {n}, or {m, n}.",),
             "Map[f, expr, a + b, Heads ⇾ True]",
             None,
         ),
         (
-            "Map[f, c]",
+            "Map[List, 1]",
             None,
-            "c",
-            "Issue #1788",
+            "1",
+            "When given Atom (other than a Symbol), return the Atom; Issue #1958",
+        ),
+        (
+            "Map[List, 1, 2]",
+            None,
+            "1",
+            "When given two Atoms, return the first one; Issue #1958",
         ),
         (
             "MapIndexed[f, {1, 2}, a+b]",
@@ -97,14 +109,14 @@ import pytest
         ("Scan[Return, {1, 2}]", None, "1", None),
     ],
 )
-def test_apply_fns_to_lists(str_expr, msgs, str_expected, fail_msg):
+def test_apply_fns_to_lists(str_expr, msgs, str_expected, assert_msg):
     """functional.apply_fns_to_lists"""
-    check_evaluation_as_in_cli(str_expr, str_expected, fail_msg, msgs)
+    check_evaluation_as_in_cli(str_expr, str_expected, assert_msg, msgs)
 
 
 def test_map_at():
     """functional.apply_fns_to_lists"""
-    for str_expr, msgs, str_expected, fail_msg in (
+    for str_expr, msgs, str_expected, assert_msg in (
         (
             "MapAt[f, {a, b, c, d}, 10]",
             ("Part {10} of {a, b, c, d} does not exist.",),
@@ -124,7 +136,7 @@ def test_map_at():
             "Indexing a dimension beyond the level of a list",
         ),
     ):
-        check_evaluation_as_in_cli(str_expr, str_expected, fail_msg, msgs)
+        check_evaluation_as_in_cli(str_expr, str_expected, assert_msg, msgs)
 
 
 @pytest.mark.parametrize(
