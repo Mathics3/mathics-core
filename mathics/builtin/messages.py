@@ -323,7 +323,7 @@ class Message(Builtin):
 
 def check_message(expr) -> bool:
     "checks if an expression is a valid message"
-    if expr.has_form("MessageName", 2):
+    if expr.has_form(SymbolMessageName, 2):
         symbol, tag = expr.elements
         if symbol.get_name() and tag.get_string_value():
             return True

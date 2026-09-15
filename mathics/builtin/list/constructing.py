@@ -22,7 +22,13 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, structure
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol
-from mathics.core.systemsymbols import SymbolList, SymbolNormal, SymbolTuples
+from mathics.core.systemsymbols import (
+    SymbolDirectedInfinity,
+    SymbolList,
+    SymbolNormal,
+    SymbolRootSum,
+    SymbolTuples,
+)
 from mathics.eval.lists import get_tuples
 
 
@@ -194,7 +200,7 @@ class Normal(Builtin):
             if isinstance(expr, ByteArray):
                 return ListExpression(*expr.items)
             return expr
-        if expr.has_form("RootSum", 2):
+        if expr.has_form(SymbolRootSum, 2):
             return from_sympy(expr.to_sympy().doit(roots=True))
         return Expression(
             expr.get_head(),
@@ -353,11 +359,11 @@ class Permutations(Builtin):
         rs: Optional[Tuple[int, ...]] = None
         if isinstance(n, Integer):
             py_n = min(n.int_value, len(li.elements))
-        elif n.has_form("List", 1) and isinstance(n.elements[0], Integer):
+        elif n.has_form(SymbolList, 1) and isinstance(n.elements[0], Integer):
             py_n = n.elements[0].int_value
             rs = (py_n,)
         elif (
-            n.has_form("DirectedInfinity", 1) and n.elements[0].int_value == 1
+            n.has_form(SymbolDirectedInfinity, 1) and n.elements[0].int_value == 1
         ) or n.get_name() == "System`All":
             py_n = len(li.elements)
         else:

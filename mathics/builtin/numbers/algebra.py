@@ -429,7 +429,7 @@ class CoefficientList(Builtin):
             return ListExpression(SymbolNull)
         elif f_null:
             return ListExpression(expr)
-        elif form.has_form("List", 0):
+        elif form.has_form(SymbolList, 0):
             return expr
         elif expr.get_head_name() == "System`SeriesData":
             coeffs: ListExpression
@@ -469,7 +469,7 @@ class CoefficientList(Builtin):
                         for n in range(dimensions[0] + 1)
                     ],
                 )
-            elif form.has_form("List", 1):
+            elif form.has_form(SymbolList, 1):
                 form = form.elements[0]
                 return ListExpression(
                     *[
