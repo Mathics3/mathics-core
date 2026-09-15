@@ -291,7 +291,7 @@ class _MinMax(SympyFunction):
         best = None
 
         for item in items:
-            if item.has_form("List", None):
+            if item.has_form(SymbolList, None):
                 elements = item.elements
             else:
                 elements = [item]

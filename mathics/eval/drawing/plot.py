@@ -29,6 +29,7 @@ from mathics.core.systemsymbols import (
     SymbolGraphics,
     SymbolHue,
     SymbolLine,
+    SymbolList,
     SymbolLog10,
     SymbolLogPlot,
     SymbolNone,
@@ -205,7 +206,7 @@ def compile_quiet_function(expr, arg_names, evaluation, expect_list: bool):
             value = eval_N(value, evaluation)
         evaluation.quiet_all = old_quiet_all
         if expect_list:
-            if value.has_form("List", None):
+            if value.has_form(SymbolList, None):
                 value = [extract_pyreal(item) for item in value.elements]
                 if any(item is None for item in value):
                     return None
