@@ -2,7 +2,8 @@
 Evaluation routines for mathics.builtin.functional.appy_fns_to_lists
 """
 
-from typing import Iterable, Optional, Union
+from collections.abc import Sequence
+from typing import Optional, Union
 
 from mathics.core.atoms import Integer, Integer1
 from mathics.core.atoms.associations import Association
@@ -12,13 +13,13 @@ from mathics.core.exceptions import InvalidLevelspecError, PartRangeError
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import is_rule
-from mathics.core.symbols import Symbol, SymbolTrue
-from mathics.core.systemsymbols import SymbolMapAt, SymbolRule
+from mathics.core.symbols import Atom, SymbolTrue
+from mathics.core.systemsymbols import SymbolAssociation, SymbolMapAt, SymbolRule
 from mathics.eval.parts import python_levelspec, walk_levels
 from mathics.eval.testing_expressions import eval_ArrayQ
 
 
-def eval_Map_level(f, expr, levelspec, evaluation, wrap_in_head: bool):
+def eval_Map_level(f, expr, levelspec, evaluation: Evaluation, wrap_in_head: bool):
     try:
         start, stop = python_levelspec(levelspec)
     except InvalidLevelspecError:
@@ -36,7 +37,7 @@ def eval_Map_level(f, expr, levelspec, evaluation, wrap_in_head: bool):
         ]
         return Association(rule_list)
 
-    is_association = expr.has_form("Association", None)
+    is_association = expr.has_form(SymbolAssociation, None)
 
     def callback(level):
         """
@@ -65,7 +66,7 @@ def eval_Map_level(f, expr, levelspec, evaluation, wrap_in_head: bool):
 
     result, _ = walk_levels(expr, start, stop, heads=wrap_in_head, callback=callback)
 
-    if isinstance(result, Symbol):
+    if isinstance(result, Atom):
         return result
     elem_prop = result.elements_properties
     if elem_prop is not None:
@@ -81,7 +82,9 @@ def eval_MapAt(
     evaluation routine for MapAt[]
     """
 
-    def map_at_replace_one(elements: Iterable, index: ListExpression, i: int) -> list:
+    def map_at_replace_one(
+        elements: Sequence[BaseElement], index: ListExpression, i: int
+    ) -> list:
         """
         Perform a single MapAt[] replacement for elements[i].
         Global "f" is used to compute the replacement value,
