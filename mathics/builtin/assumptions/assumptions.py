@@ -9,6 +9,7 @@ from mathics.core.convert.sympy_predicates import to_sympy_predicates
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
+from mathics.core.systemsymbols import SymbolList
 from mathics.eval.assumptions.assumptions import eval_Refine
 from mathics.eval.inference import get_assumptions_list
 
@@ -42,8 +43,8 @@ class Assuming(Builtin):
         assumptions = assumptions.evaluate(evaluation)
         if assumptions is SymbolTrue:
             cond = []
-        elif isinstance(assumptions, Symbol) or not isinstance(
-            assumptions, ListExpression
+        elif isinstance(assumptions, Symbol) or not assumptions.has_form(
+            SymbolList, None
         ):
             cond = [assumptions]
         else:

@@ -55,6 +55,7 @@ from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolByteArray,
     SymbolFailed,
+    SymbolList,
     SymbolOpenWrite,
     SymbolOutputStream,
     SymbolRuleDelayed,
@@ -242,7 +243,7 @@ class RegisterImport(Builtin):
         """ImportExport`RegisterImport[formatname_String, function_, posts_List,
         OptionsPattern[ImportExport`RegisterImport]]"""
 
-        if isinstance(function, ListExpression):
+        if function.has_form(SymbolList, None):
             elements = function.get_elements()
         else:
             elements = [function]

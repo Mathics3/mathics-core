@@ -19,8 +19,12 @@ from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
-from mathics.core.list import ListExpression
-from mathics.core.systemsymbols import Symbol, SymbolPlotRange, SymbolSequence
+from mathics.core.systemsymbols import (
+    Symbol,
+    SymbolList,
+    SymbolPlotRange,
+    SymbolSequence,
+)
 from mathics.eval.options import filter_from_iterable, options_to_rules
 
 # This tells documentation how to sort this module
@@ -105,7 +109,7 @@ class _Plot3D(Builtin):
 
         # TODO: consult many_functions variable set by subclass and error
         # if many_functions is False but multiple are supplied
-        if isinstance(functions, ListExpression):
+        if functions.has_form(SymbolList, None):
             plot_options.functions = functions.elements
         else:
             plot_options.functions = [functions]

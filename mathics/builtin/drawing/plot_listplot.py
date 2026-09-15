@@ -71,15 +71,15 @@ class _ListPlot(Builtin, ABC):
             )
 
         points = points.evaluate(evaluation)
-        if not isinstance(points, ListExpression):
+        if not points.has_form(SymbolList, None):
             evaluation.message(class_name, "lpn", points)
             return
 
         if not all(
             element.is_numeric(evaluation)
-            or isinstance(element, ListExpression)
+            or element.has_form(SymbolList, None)
             or (1 <= len(element.elements) <= 2)
-            or (len(element.elements) == 1 and isinstance(element[0], ListExpression))
+            or (len(element.elements) == 1 and element[0].has_form(SymbolList, None))
             for element in points.elements
         ):
             evaluation.message(class_name, "lpn", points)
@@ -612,7 +612,7 @@ class DiscretePlot(_ListPlot):
 
     def get_functions_param(self, functions) -> list:
         """Get the numbers of parameters in a function"""
-        if isinstance(functions, ListExpression):
+        if functions.has_form(SymbolList, None):
             functions = list(functions.elements)
         else:
             functions = [functions]

@@ -392,7 +392,7 @@ class MapThread(Builtin):
 
         if expr.has_form(SymbolList, 0):
             return ListExpression()
-        if not isinstance(expr, ListExpression):
+        if not expr.has_form(SymbolList, None):
             evaluation.message("MapThread", "list", 2, full_expr)
             return
 
@@ -405,7 +405,7 @@ class MapThread(Builtin):
             else:
                 dim = None
                 for i, arg in enumerate(args):
-                    if not isinstance(arg, ListExpression):
+                    if not arg.has_form(SymbolList, None):
                         raise MessageException(
                             "MapThread", "mptd", heads[i], i + 1, full_expr, depth, n
                         )
