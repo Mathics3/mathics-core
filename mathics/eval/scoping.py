@@ -10,6 +10,7 @@ from mathics.core.element import fully_qualified_symbol_name
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import SymbolList
 
 
 def dynamic_scoping(func, vars, evaluation: Evaluation):
@@ -69,7 +70,7 @@ def get_scoping_vars(var_list, msg_symbol="", evaluation=None):
         if msg_symbol and evaluation:
             evaluation.message(msg_symbol, tag, *args)
 
-    if not var_list.has_form("List", None):
+    if not var_list.has_form(SymbolList, None):
         message("lvlist", var_list)
         return
     vars = var_list.elements
