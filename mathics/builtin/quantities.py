@@ -17,6 +17,7 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
+    SymbolList,
     SymbolPower,
     SymbolQuantity,
     SymbolRow,
@@ -429,7 +430,7 @@ class UnitConvert(Builtin):
 
     def eval_quantity_to_unit(self, expr, toUnit, evaluation: Evaluation):
         "UnitConvert[expr_, toUnit_]"
-        if expr.has_form("List", None):
+        if expr.has_form(SymbolList, None):
             return ListExpression(
                 *(
                     Expression(Symbol(self.get_name()), elem, toUnit).evaluate(

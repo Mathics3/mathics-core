@@ -56,6 +56,7 @@ from mathics.core.systemsymbols import (
     SymbolInfinity,
     SymbolKey,
     SymbolLast,
+    SymbolList,
     SymbolMakeBoxes,
     SymbolMissing,
     SymbolSelect,
@@ -389,7 +390,7 @@ class Delete(Builtin):
             return
 
         positions = positions[0]
-        if not positions.has_form("List", None):
+        if not positions.has_form(SymbolList, None):
             evaluation.message(
                 "Delete", "pkspec", positions, Expression(SymbolKey, positions)
             )
@@ -861,7 +862,7 @@ class FirstPosition(Builtin):
                 for i in range(len(expr_list.elements))
             )
 
-        if level.has_form("List", None):
+        if level.has_form(SymbolList, None):
             len_list = len(level.elements)
             if len_list > 2 or not is_interger_list(level):
                 evaluation.message("FirstPosition", "level", level)
@@ -1484,7 +1485,7 @@ class ReplacePart(Builtin):
                 return
             position = replacement.elements[0]
             replace = replacement.elements[1]
-            if position.has_form("List", None):
+            if position.has_form(SymbolList, None):
                 position = position.get_mutable_elements()
             else:
                 position = [position]

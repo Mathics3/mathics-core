@@ -24,6 +24,7 @@ from mathics.core.expression import Expression
 from mathics.core.parser import MathicsFileLineFeeder, MathicsLineFeeder
 from mathics.core.streams import stream_manager
 from mathics.core.symbols import SymbolNull, strip_context
+from mathics.core.systemsymbols import SymbolList
 from mathics.eval.files_io.read import channel_to_stream
 from mathics.interrupt import setup_signal_handler
 from mathics.session import SessionShell, autoload_files
@@ -393,7 +394,7 @@ def interactive_eval_loop(
 
 def show_echo(query, evaluation):
     echovar = evaluation.definitions.get_ownvalue("System`$Echo")
-    if not isinstance(echovar, Expression) or not echovar.has_form("List", None):
+    if not isinstance(echovar, Expression) or not echovar.has_form(SymbolList, None):
         return
 
     for element in echovar.elements:

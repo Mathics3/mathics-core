@@ -47,7 +47,7 @@ from mathics_scanner.characters import UNICODE_CHARACTER_TO_ASCII
 
 from mathics.core.atoms import String
 from mathics.core.convert.op import operator_to_unicode, unicode_operator_to_ascii
-from mathics.core.systemsymbols import SymbolNone
+from mathics.core.systemsymbols import SymbolList, SymbolNone
 from mathics.settings import ROOT_DIR
 
 from .wl_charmap_codec import (
@@ -356,10 +356,10 @@ def load_encoding_table(encoding, evaluation):
 
     tag = etl.elements[0].to_python(string_quotes=False)
     entries_expr = etl.elements[1]
-    if tag not in TAG_SIZES or not entries_expr.has_form("List", None):
+    if tag not in TAG_SIZES or not entries_expr.has_form(SymbolList, None):
         evaluation.message("$CharacterEncoding", "charfile", String(encoding))
         raise EncodingNameError(encoding)
-    if any(not entry.has_form("List", None) for entry in entries_expr.elements):
+    if any(not entry.has_form(SymbolList, None) for entry in entries_expr.elements):
         evaluation.message("$CharacterEncoding", "charfile", String(encoding))
         raise EncodingNameError(encoding)
 

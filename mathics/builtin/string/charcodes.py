@@ -12,6 +12,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import SymbolList
 from mathics.eval.encoding import load_encoding_table, to_python_encoding
 
 SymbolFromCharacterCode = Symbol("System`FromCharacterCode")
@@ -72,7 +73,7 @@ class ToCharacterCode(Builtin):
     def _encode(self, string, encoding, evaluation: Evaluation):
         exp = Expression(SymbolToCharacterCode, string)
 
-        if string.has_form("List", None):
+        if string.has_form(SymbolList, None):
             string = [substring.get_string_value() for substring in string.elements]
             if any(substring is None for substring in string):
                 evaluation.message("ToCharacterCode", "strse", Integer1, exp)
@@ -193,16 +194,16 @@ class FromCharacterCode(Builtin):
                 return pack_bytes(codes).decode(py_encoding)
 
         try:
-            if n.has_form("List", None):
+            if n.has_form(SymbolList, None):
                 if not n.elements:
                     return String("")
                 # Mathematica accepts FromCharacterCode[{{100}, 101}],
                 # so to match this, just check the first element to see
                 # if we're dealing with nested lists.
-                elif n.elements[0].has_form("List", None):
+                elif n.elements[0].has_form(SymbolList, None):
                     list_of_strings = []
                     for element in n.elements:
-                        if element.has_form("List", None):
+                        if element.has_form(SymbolList, None):
                             stringi = convert_codepoint_list(element.elements)
                         else:
                             stringi = convert_codepoint_list([element])
