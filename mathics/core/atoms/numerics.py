@@ -403,6 +403,8 @@ IntegerM1 = Integer(-1)
 class Real(Number[T]):
     class_head_name = "System`Real"
 
+    __slots__ = ("_hash_bytes",)
+
     # __new__ rather than __init__ is used here because the kind of
     # object created differs based on contents of "value".
     def __new__(cls, value, p: Optional[int] = None) -> "Real":
