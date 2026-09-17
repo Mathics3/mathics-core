@@ -225,7 +225,7 @@ _number_form_options = {
 
 
 class Integer(Number[int]):
-    __slots__ = ("_sympy", "_value")
+    __slots__ = ("hash", "_sympy", "_value")
 
     class_head_name = "System`Integer"
 
@@ -235,6 +235,7 @@ class Integer(Number[int]):
     # dictionary's value is the corresponding Mathics3 Integer object.
     _integers: dict[Any, "Integer"] = {}
     _sympy: Optional[sympy_numbers.Integer]
+    hash: int
     _value: int
 
     # We use __new__ here to ensure that two Integer's that have the same value
@@ -372,7 +373,7 @@ class Integer(Number[int]):
         return PrecisionReal(sympy_Float(self.value, d))
 
     def sameQ(self, rhs) -> bool:
-        """Mathics3 SameQ"""
+        """Mathics3 SameQ for Integer"""
         return isinstance(rhs, Integer) and self._value == rhs._value
 
     @property
@@ -475,9 +476,7 @@ class Real(Number[T]):
 
 
 # This has to come before PrecisionReal, which uses MachineReal.
-# FIXME: rocky: float is not right. It should be Union[float, mpmath.mpf]
-# but I don't understand how to get the type annotation system to handle this.
-class MachineReal(Real[float]):
+class MachineReal(Real[float | mpmath.mpf]):
     """
     Machine precision real number.
 
@@ -486,7 +485,7 @@ class MachineReal(Real[float]):
     Precision for these numbers is `MachinePrecision`.
     """
 
-    __slots__ = ("_sympy", "_value")
+    __slots__ = ("hash", "_sympy", "_value")
 
     # Dictionary of MachineReal constant values defined so far.
     # We use this for object uniqueness.
@@ -494,7 +493,8 @@ class MachineReal(Real[float]):
     # dictionary's value is the corresponding Mathics3 MachineReal object.
     _machine_reals: dict[Any, "MachineReal"] = {}
     _sympy: Optional[sympy_numbers.Integer]
-    _value: Union[float, mpmath.mpf]
+    hash: int
+    _value: float | mpmath.mpf
 
     def __new__(cls, value) -> "MachineReal":
 
@@ -517,12 +517,6 @@ class MachineReal(Real[float]):
         self = cls._machine_reals.get(n)
         if self is None:
             self = Number.__new__(cls)
-            self._value = n
-
-            # Cache object so we don't allocate again.
-            self._machine_reals[n] = self
-
-            self._sympy = None  # We will lazily initialize sympy
 
             # Set a value for self.__hash__() once so that every time
             # it is used this is fast. Note that in contrast to the
@@ -530,6 +524,14 @@ class MachineReal(Real[float]):
             # Python objects, so we include the class in the
             # event that different objects have the same Python value.
             self.hash = hash((cls, n))
+
+            self._value = n
+
+            # We will lazily initialize _sympy.
+            self._sympy = None
+
+            # Cache object so we don't allocate again.
+            self._machine_reals[n] = self
 
         return self
 
@@ -539,7 +541,7 @@ class MachineReal(Real[float]):
         return self.hash
 
     def __neg__(self) -> "MachineReal":
-        return MachineReal(-self.value)
+        return MachineReal(-self._value)
 
     def atom_to_boxes(self, f, evaluation):
         from mathics.format.box import numberform_to_boxes
@@ -591,25 +593,27 @@ class MachineReal(Real[float]):
     def sameQ(self, rhs) -> bool:
         """Mathics3 SameQ for MachineReal.
         If the rhs comparison value is a MachineReal, the values
-        have to be equal.  If the rhs value is a PrecisionReal, though, then
+        equal _value.
+
+        If the rhs value is a PrecisionReal, though, then
         the two values have to be within 1/2 ** (precision) of
-        rhs-value's precision.  For any rhs type, sameQ is False.
+        rhs-value's precision.
+
+        For any other rhs type, sameQ is False.
         """
         if isinstance(rhs, MachineReal):
             return self._value == rhs._value
+
         if isinstance(rhs, PrecisionReal):
             rhs_value = rhs._value
             value = self.to_sympy()
-            # If sympy fixes the issue, this comparison would be
-            # enough
             if (value - rhs_value).is_zero:
                 return True
-            # this handles the issue...
             diff = abs(value - rhs_value)
             prec = min(value._prec, rhs_value._prec)
             return diff < 0.5 ** (prec)
-        else:
-            return False
+
+        return False
 
     @property
     def sympy(self):
@@ -630,7 +634,7 @@ MachineReal1 = MachineReal(1)
 
 class PrecisionReal(Real[sympy_Float]):
     """
-    Arbitrary precision real number.
+    Arbitrary-precision floating-point number.
 
     Stored internally as a sympy.Float.
 
@@ -779,6 +783,8 @@ class Complex(Number[tuple[Number[T], Number[T], Optional[int]]]):
     # The precise value: a real number, an imaginary number,
     # and an optional precision value.
     _exact_value: tuple[Number[T], Number[T], Optional[int]]
+
+    hash: int
 
     # An approximate Python-equivalent number. Often, this is
     # all that is needed.
@@ -967,7 +973,7 @@ class Complex(Number[tuple[Number[T], Number[T], Optional[int]]]):
         return Complex(real, imag)
 
     def sameQ(self, rhs) -> bool:
-        """Mathics3 SameQ"""
+        """Mathics3 SameQ for Complex"""
         return (
             isinstance(rhs, Complex)
             and self._real == rhs._real
@@ -1006,6 +1012,7 @@ class Rational(Number[sympy.Rational]):
 
     # Collection of integers defined so far.
     _rationals: dict[Any, "Rational"] = {}
+    hash: int
     _value: Union[
         sympy.Rational, sympy.core.numbers.NaN, sympy.core.numbers.ComplexInfinity
     ]
@@ -1111,7 +1118,7 @@ class Rational(Number[sympy.Rational]):
         return float(self.value)
 
     def sameQ(self, rhs) -> bool:
-        """Mathics3 SameQ"""
+        """Mathics3 SameQ for Rational"""
         return isinstance(rhs, Rational) and self.value == rhs.value
 
     def to_python(self, *_, **__kwargs) -> float:
