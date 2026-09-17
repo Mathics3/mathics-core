@@ -809,17 +809,17 @@ class Complex(Number[tuple[Number[T], Number[T], Optional[int]]]):
 
         if isinstance(real, MachineReal) and not isinstance(imag, MachineReal):
             imag = imag.round()
-            cls._precision = FP_MANTISA_BINARY_DIGITS
+            precision = FP_MANTISA_BINARY_DIGITS
         elif isinstance(imag, MachineReal) and not isinstance(real, MachineReal):
             real = real.round()
-            cls._precision = FP_MANTISA_BINARY_DIGITS
+            precision = FP_MANTISA_BINARY_DIGITS
         else:
-            cls._precision = min(
+            precision = min(
                 (u for u in (x.get_precision() for x in (real, imag)) if u is not None),
                 default=None,
             )
 
-        exact_value = (real, imag, cls._precision)
+        exact_value = (real, imag, precision)
 
         self = cls._complex_numbers.get(exact_value)
         if self is None:
@@ -828,6 +828,7 @@ class Complex(Number[tuple[Number[T], Number[T], Optional[int]]]):
             self._imag = imag
 
             self._exact_value = exact_value
+            self._precision = precision
             self._sympy = None  # lazy evaluation for sympy
             self._value = complex(real.value, imag.value)
 
