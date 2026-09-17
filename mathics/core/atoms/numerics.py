@@ -641,6 +641,8 @@ class PrecisionReal(Real[sympy_Float]):
     Note: Plays nicely with the mpmath.mpf (float) type.
     """
 
+    __slots__ = ("hash", "_sympy", "_value")
+
     # Dictionary of PrecisionReal constant values defined so far.
     # We use this for object uniqueness.
     # The key is the PrecisionReal's `sympy.Float`, and the
@@ -651,8 +653,10 @@ class PrecisionReal(Real[sympy_Float]):
     # value attribute comes from Number.value
 
     def __new__(cls, value) -> "PrecisionReal":
+
         n = sympy.Float(value)
         self = cls._precision_reals.get(n)
+
         if self is None:
             self = Number.__new__(cls)
             self._value = n
@@ -688,10 +692,6 @@ class PrecisionReal(Real[sympy_Float]):
     def do_copy(self) -> "PrecisionReal":
         return PrecisionReal(self.value)
 
-    def get_precision(self) -> int:
-        """Returns the default specification for precision (in binary digits) in N and other numerical functions."""
-        return self.value._prec + 1
-
     @property
     def element_order(self) -> tuple:
         """
@@ -706,6 +706,10 @@ class PrecisionReal(Real[sympy_Float]):
             return (BASIC_ATOM_NUMBER_ELT_ORDER, sympy_float, 0, 2, prec)
 
         return (BASIC_ATOM_NUMBER_ELT_ORDER, value, 0, 2, prec)
+
+    def get_precision(self) -> int:
+        """Returns the default specification for precision (in binary digits) in N and other numerical functions."""
+        return self.value._prec + 1
 
     @property
     def is_zero(self) -> bool:
