@@ -17,7 +17,7 @@ Numeric types: Number, Integer Real, MachineReal, PrecisionReal, Complex, Ration
 import math
 import re
 from functools import cache
-from typing import Any, Dict, Generic, Optional, TypeVar, Union
+from typing import Any, Generic, Optional, TypeVar, Union
 
 import mpmath
 import sympy
@@ -233,7 +233,7 @@ class Integer(Number[int]):
     # We use this for object uniqueness.
     # The key is the Integer's Python `int` value, and the
     # dictionary's value is the corresponding Mathics3 Integer object.
-    _integers: Dict[Any, "Integer"] = {}
+    _integers: dict[Any, "Integer"] = {}
     _sympy: Optional[sympy_numbers.Integer]
     _value: int
 
@@ -492,7 +492,7 @@ class MachineReal(Real[float]):
     # We use this for object uniqueness.
     # The key is the MachineReal's Python `float` value, and the
     # dictionary's value is the corresponding Mathics3 MachineReal object.
-    _machine_reals: Dict[Any, "MachineReal"] = {}
+    _machine_reals: dict[Any, "MachineReal"] = {}
     _sympy: Optional[sympy_numbers.Integer]
     _value: Union[float, mpmath.mpf]
 
@@ -641,7 +641,7 @@ class PrecisionReal(Real[sympy_Float]):
     # We use this for object uniqueness.
     # The key is the PrecisionReal's `sympy.Float`, and the
     # dictionary's value is the corresponding Mathics3 PrecisionReal object.
-    _precision_reals: Dict[Any, "PrecisionReal"] = {}
+    _precision_reals: dict[Any, "PrecisionReal"] = {}
 
     # Note: We have no _value attribute or value property .
     # value attribute comes from Number.value
@@ -774,7 +774,7 @@ class Complex(Number[tuple[Number[T], Number[T], Optional[int]]]):
     # We use this for object uniqueness.
     # The key is the Complex value's real and imaginary parts as a tuple,
     # the dictionary's value is the corresponding Mathics3 Complex object.
-    _complex_numbers: Dict[Any, "Complex"] = {}
+    _complex_numbers: dict[Any, "Complex"] = {}
 
     # The precise value: a real number, an imaginary number,
     # and an optional precision value.
@@ -1005,7 +1005,7 @@ class Rational(Number[sympy.Rational]):
     __slots__ = "_value"
 
     # Collection of integers defined so far.
-    _rationals: Dict[Any, "Rational"] = {}
+    _rationals: dict[Any, "Rational"] = {}
     _value: Union[
         sympy.Rational, sympy.core.numbers.NaN, sympy.core.numbers.ComplexInfinity
     ]
