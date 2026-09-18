@@ -117,6 +117,13 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
 
     @property
     def is_inexact(self) -> bool:
+        """is_inexact indicates whether self is an inexact number so that Equal comparisons
+        should be within a certain tolerance, or how to handle expressions with Symbolic
+        constants.
+
+        By default, we'll say Numbers are exact. Where this is not correct, subclasses
+        like PrecisionReal and Complex, should override this method.
+        """
         return False
 
     @property
@@ -589,7 +596,13 @@ class MachineReal(Real[float | mpmath.mpf]):
 
     @property
     def is_inexact(self) -> bool:
-        return self.get_precision() is not None
+        """is_inexact indicates whether self is an inexact number so that Equal comparisons
+        should be within a certain tolerance, or how to handle expressions with Symbolic
+        constants.
+
+        MachineReal values are always inexact numbers.
+        """
+        return True
 
     def is_machine_precision(self) -> bool:
         return True
@@ -722,9 +735,11 @@ class PrecisionReal(Real[sympy_Float]):
 
     @property
     def is_inexact(self) -> bool:
-        """is_inexact indications whether self is an inexact number so that == comparisons
-        should be within a certain tolerance.
-        For PrecisionReal, this is always True.
+        """is_inexact indicates whether self is an inexact number so that Equal comparisons
+        should be within a certain tolerance, or how to handle expressions with Symbolic
+        constants.
+
+        PrecisionReal values are always inexact numbers.
         """
         return True
 
@@ -1182,9 +1197,10 @@ def get_int_value(element) -> Optional[int]:
 
 
 def is_inexact(expr) -> bool:
-    """
-    Return True if expr is has an exact numeric value or False if not and None
-    if expr is not a number.
+    """Return True if expr is has an exact numeric value or False if not.
+
+    For objects like strings where exactness and ineactness make
+    no sense, we report True.
     """
     # FIXME: this is really screwy! We are reporting inexactness on objects
     # where exactness and inexactness make no sense.
