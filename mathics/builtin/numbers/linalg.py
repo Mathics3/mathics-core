@@ -110,7 +110,7 @@ class Eigenvalues(Builtin):
       <dt>'Eigenvalues'[$m$]
       <dd>computes the eigenvalues of the matrix $m$.
 
-      By default, Sympy's routine is used. Sometimes this is slow and \
+      By default, SymPy's routine is used. Sometimes this is slow and \
       less good than the corresponding mpmath routine.
 
       Use option Method->"mpmath" if you want to use mpmath's routine instead.
@@ -435,8 +435,8 @@ class LinearModelFit(Builtin):
      = {-0.142857, 0.214286, -0.0714286}
     """
 
-    # see the paper "Regression by linear combination of basis functions" by Risi Kondor for a good
-    # summary of the math behind this
+    # See the paper "Regression by linear combination of basis functions" by Risi Kondor for a good
+    # summary of the math behind this.
 
     rules = {
         "LinearModelFit[data_, f_, x_?AtomQ]": "LinearModelFit[data, {f}, {x}]",
@@ -750,7 +750,7 @@ class QRDecomposition(Builtin):
     """
 
     messages = {
-        "sympy": "Sympy is unable to perform the QR decomposition.",
+        "sympy": "SymPy is unable to perform the QR decomposition.",
         "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix.",
     }
     summary_text = "qr decomposition"
@@ -824,7 +824,7 @@ class SingularValueDecomposition(Builtin):
      = {{{0.538954, 0.842335}, {0.842335, -0.538954}}, {{4.63555, 0.}, {0., 0.107862}}, {{0.628678, 0.777666}, {-0.777666, 0.628678}}}
     """
 
-    # Sympy lacks symbolic SVD
+    # SymPy lacks symbolic SVD.
     """
     >> SingularValueDecomposition[{{1, 2}, {2, 3}, {3, 4}}]
      = {{-11 / 6, -1 / 3, 7 / 6}, {4 / 3, 1 / 3, -2 / 3}}
