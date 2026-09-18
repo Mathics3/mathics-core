@@ -12,11 +12,12 @@ from mathics.core.atoms import (
     RationalOneHalf,
     Real,
 )
+from mathics.core.atoms.numerics import is_inexact
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.load_builtin import import_and_load_builtins
-from mathics.core.symbols import SymbolFalse, SymbolTrue
+from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolSameQ
 
 import_and_load_builtins()
@@ -193,3 +194,10 @@ def test_mixed_object_canonicalization():
         Complex(Rational(1, 0), Integer(0)), # 3
     )
     # fmt: on
+
+
+def test_inexact():
+    assert Integer(1).is_inexact is False, "Integers are exact"
+    assert MachineReal(0.0).is_inexact is True, "MachineReals are inexact"
+    assert Real(1.0).is_inexact is True, "Real numbers are inexact"
+    assert is_inexact(Symbol("x")) is False, "Symbols are exact!"
