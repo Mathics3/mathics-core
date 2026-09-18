@@ -28,9 +28,15 @@ from mathics.core.symbols import Symbol, SymbolFalse, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAnd,
     SymbolDirectedInfinity,
+    SymbolEqual,
     SymbolExactNumberQ,
+    SymbolGreater,
+    SymbolGreaterEqual,
     SymbolInequality,
+    SymbolLess,
+    SymbolLessEqual,
     SymbolMaxExtraPrecision,
+    SymbolUnequal,
 )
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
@@ -40,14 +46,13 @@ from mathics.eval.testing_expressions import do_cmp, do_cplx_equal, is_number
 # In reality we'll have one or two of these, but we use elipsis anyway
 ComparisonTuple = tuple[Literal[-1, 0, 1], ...]
 
-# FIXME: use Symbol name, not str.
-OPERATOR_TO_ARGUMENT_MAP: Final[dict[str, ComparisonTuple]] = {
-    "System`Less": (-1,),
-    "System`LessEqual": (-1, 0),
-    "System`Equal": (0,),
-    "System`GreaterEqual": (0, 1),
-    "System`Greater": (1,),
-    "System`Unequal": (-1, 1),
+OPERATOR_TO_ARGUMENT_MAP: Final[dict[Symbol, ComparisonTuple]] = {
+    SymbolLess: (-1,),
+    SymbolLessEqual: (-1, 0),
+    SymbolEqual: (0,),
+    SymbolGreaterEqual: (0, 1),
+    SymbolGreater: (1,),
+    SymbolUnequal: (-1, 1),
 }
 
 
@@ -75,7 +80,7 @@ class _InequalityOperator(InfixOperator, ABC):
             not isinstance(item, Number) for item in element_sequence
         ):
             # All elements are numeric but they are not all numbers.
-            # In this situation apply N[] (or eval_N()).
+            # Here, apply N[] (or eval_N()).
             items = element_sequence
             n_items = []
             for item in items:
@@ -84,7 +89,8 @@ class _InequalityOperator(InfixOperator, ABC):
                 n_items.append(item)
             return n_items
 
-        # Either elements are
+        # An element is not numeric or is not in the Number class.
+        # Here, we rely on to_numeric_args to do the right thing.
         return to_numeric_args(elements, evaluation)
 
 
@@ -100,7 +106,10 @@ class _ComparisonOperator(_InequalityOperator, ABC):
         if len(elements_sequence) <= 1:
             return SymbolTrue
         elements = self.numerify_args(elements, evaluation)
-        wanted = OPERATOR_TO_ARGUMENT_MAP[self.get_name()]
+        # FIXME: perhaps in the future we'll be able to go more directly from self,
+        # (e.g., mathics.builtin.testing_expressions.equality_inequality.Less)
+        # to its corresponding Symbol name. For now, though we have to go through its name.
+        wanted = OPERATOR_TO_ARGUMENT_MAP[Symbol(self.get_name())]
         if isinstance(elements[-1], String):
             return None
         for i in range(len(elements) - 1):
@@ -649,9 +658,9 @@ class Inequality(Builtin):
         elif count % 2 == 0:
             evaluation.message("Inequality", "ineq", count)
         elif count == 3:
-            name = elements[1].get_name()
-            if name in OPERATOR_TO_ARGUMENT_MAP:
-                return Expression(Symbol(name), elements[0], elements[2])
+            symbol = elements[1]
+            if symbol in OPERATOR_TO_ARGUMENT_MAP:
+                return Expression(symbol, elements[0], elements[2])
         else:
             groups = [
                 Expression(SymbolInequality, *elements[index - 1 : index + 2])
