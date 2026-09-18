@@ -233,7 +233,7 @@ class Integer(Number[int]):
     # We use this for object uniqueness.
     # The key is the Integer's Python `int` value, and the
     # dictionary's value is the corresponding Mathics3 Integer object.
-    _integers: dict[Any, "Integer"] = {}
+    _integers: dict[int, "Integer"] = {}
     _sympy: Optional[sympy_numbers.Integer]
     hash: int
     _value: int
@@ -642,12 +642,13 @@ class PrecisionReal(Real[sympy_Float]):
     """
 
     __slots__ = ("hash", "_sympy", "_value")
+    _value: sympy.Float
 
     # Dictionary of PrecisionReal constant values defined so far.
     # We use this for object uniqueness.
     # The key is the PrecisionReal's `sympy.Float`, and the
     # dictionary's value is the corresponding Mathics3 PrecisionReal object.
-    _precision_reals: dict[Any, "PrecisionReal"] = {}
+    _precision_reals: dict[sympy.Float, "PrecisionReal"] = {}
 
     # Note: We have no _value attribute or value property .
     # value attribute comes from Number.value
@@ -658,7 +659,7 @@ class PrecisionReal(Real[sympy_Float]):
         self = cls._precision_reals.get(n)
 
         if self is None:
-            self = Number.__new__(cls)
+            self = object.__new__(cls)
             self._value = n
 
             # Cache object so we don't allocate again.
@@ -782,7 +783,7 @@ class Complex(Number[tuple[Number[T], Number[T], Optional[int]]]):
     # We use this for object uniqueness.
     # The key is the Complex value's real and imaginary parts as a tuple,
     # the dictionary's value is the corresponding Mathics3 Complex object.
-    _complex_numbers: dict[Any, "Complex"] = {}
+    _complex_numbers: dict[tuple[Number[T], Number[T], Optional[int]], "Complex"] = {}
 
     # The precise value: a real number, an imaginary number,
     # and an optional precision value.
