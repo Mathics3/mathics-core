@@ -96,7 +96,7 @@ class _InequalityOperator(InfixOperator, ABC):
 
 class _ComparisonOperator(_InequalityOperator, ABC):
     """
-    A class for builtin functions with element comparisons in a
+    A class for built-in functions with element comparisons in a
     chain e.g. a < b < c compares a < b and b < c.
     """
 
@@ -128,7 +128,7 @@ class _ComparisonOperator(_InequalityOperator, ABC):
 
 class _EqualityOperator(_InequalityOperator, ABC):
     """
-    A class for builtin functions with element equality in a
+    A class for built-in functions with element equality in a
     chain e.g. a == b == c compares a == b and b == c.
     """
 
@@ -152,8 +152,8 @@ class _EqualityOperator(_InequalityOperator, ABC):
             return
         for le, re in zip(lhs.elements, rhs.elements):
             tst = self.equal2(le, re, max_extra_prec)
-            # If the there are a pair of corresponding elements
-            # that are not equals, then we are not able to decide
+            # If there is a pair of corresponding elements
+            # that are not equal, then we are not able to decide
             # about the equality.
             if not tst:
                 return None
@@ -182,8 +182,8 @@ class _EqualityOperator(_InequalityOperator, ABC):
     # Inequality builtin functions will redefine this method.
     @staticmethod
     def operator_sense(value) -> bool:
-        """function used to check whether `value` is the right Boolean-valued
-        sense needed for a particluar equality or inequality builtin function.
+        """This function is used to check whether `value` is the right Boolean-valued
+        sense needed for a particular equality or inequality builtin function.
         """
         return bool(value)
 
@@ -293,9 +293,9 @@ class _MinMax(SympyFunction):
     )
 
     # "sense" should be either 1 for Maximum or -1 for Minimum
-    # This field is used to in comparison if figure out
+    # This field is used in comparisons to figure out the
     # maximum/minimum sense.
-    # Below we default to value used for the Max builtin function
+    # Below we default to the value used for the Max builtin function
     # The Min builtin function will redefine this.
 
     sense = 1
@@ -372,7 +372,7 @@ class Between(Builtin):
       <dd>operator form that yields 'Between'[$x$, $range$] when applied to expression $x$.
     </dl>
 
-    Check that 6 is in range 4..10:
+    Check that 6 is in the range 4..10:
     >> Between[6, {4, 10}]
      = True
 
@@ -384,7 +384,7 @@ class Between(Builtin):
     >> Between[2, {E, Pi}]
      = False
 
-    If more than an interval is given, 'Between' returns 'True' if $x$ belongs \\
+    If more than one interval is given, 'Between' returns 'True' if $x$ belongs \\
     to one of them:
 
     >> {Between[3, {1, 2}, {4, 6}], Between[5, {1, 2}, {4, 6}]}
@@ -926,7 +926,7 @@ class Unequal(_EqualityOperator, _SympyComparison):
     >> "a" != "a"
      = False
 
-    'Unequal' using an empty parameter or list, or a list with one element is True. This is the same as 'Equal".
+    'Unequal' with an empty list or a list with one element is True. This is the same as 'Equal".
 
     >> {Unequal[], Unequal[x], Unequal[1]}
      = {True, True, True}
