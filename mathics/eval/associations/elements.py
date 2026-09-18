@@ -9,7 +9,7 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import is_rule
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
-from mathics.core.systemsymbols import SymbolKeyAbsent, SymbolMissing
+from mathics.core.systemsymbols import SymbolKeyAbsent, SymbolList, SymbolMissing
 from mathics.eval.associations.associations import eval_AssociationQ
 
 
@@ -28,7 +28,7 @@ def eval_KeyExistsQ(
         return SymbolFalse
 
     # Handle list of rules (association expressed as a List).
-    if assoc.has_form("List", None):
+    if assoc.has_form(SymbolList, None):
         for element in assoc.elements:
             if is_rule(element) and element.elements[0] == key:
                 return SymbolTrue
@@ -49,7 +49,7 @@ def eval_Keys(rules_or_association, evaluation: Evaluation):
             return ListExpression(*expr.keys())
         if is_rule(expr):
             return expr.elements[0]
-        elif expr.has_form("List", None) or (
+        elif expr.has_form(SymbolList, None) or (
             expr.has_form("Association", None) and eval_AssociationQ(expr)
         ):
             return to_mathics_list(*expr.elements, elements_conversion_fn=get_keys)
@@ -83,7 +83,7 @@ def eval_Keys_with_Head(
         if is_rule(expr):
             key = expr.elements[0]
             return Expression(h, key)
-        elif expr.has_form("List", None) or (
+        elif expr.has_form(SymbolList, None) or (
             expr.has_form("Association", None) and eval_AssociationQ(expr) is SymbolTrue
         ):
             return to_mathics_list(
@@ -171,7 +171,7 @@ def eval_Values(rules_or_association, evaluation: Evaluation):
             return ListExpression(*expr.values())
         if is_rule(expr):
             return expr.elements[1]
-        if expr.has_form("List", None) or (
+        if expr.has_form(SymbolList, None) or (
             expr.has_form("Association", None) and eval_AssociationQ(expr)
         ):
             return to_mathics_list(*expr.elements, elements_conversion_fn=get_values)
@@ -201,7 +201,7 @@ def eval_Values_with_Head(
         if is_rule(expr):
             value = expr.elements[1]
             return Expression(h, value)
-        if expr.has_form("List", None) or (
+        if expr.has_form(SymbolList, None) or (
             expr.has_form("Association", None) and eval_AssociationQ(expr)
         ):
             return to_mathics_list(

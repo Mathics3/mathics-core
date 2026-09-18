@@ -10,7 +10,7 @@ from mathics.core.exceptions import MessageException
 from mathics.core.expression import Expression
 from mathics.core.subexpression import SubExpression
 from mathics.core.symbols import Atom, Symbol
-from mathics.core.systemsymbols import SymbolByteArray, SymbolInfinity
+from mathics.core.systemsymbols import SymbolByteArray, SymbolInfinity, SymbolList
 
 
 def convert_seq(seq):
@@ -88,10 +88,10 @@ def eval_Part(
     assign_rhs: None or an `Expression` object.
     """
     walk_list = list_of_list[0]
-    indices = [index.evaluate(evaluation) for index in indices]
+    evaluated_indices = [index.evaluate(evaluation) for index in indices]
     if assign_rhs is not None:
         try:
-            result = SubExpression(walk_list, indices)
+            result = SubExpression(walk_list, evaluated_indices)
             result.replace(assign_rhs.copy())
             result = result.to_expression()
         except MessageException as e:
@@ -102,7 +102,7 @@ def eval_Part(
         return result
     else:
         try:
-            result = parts(walk_list, part_selectors(indices), evaluation)
+            result = parts(walk_list, part_selectors(evaluated_indices), evaluation)
         except MessageException as e:
             e.message(evaluation)
             return False
@@ -224,7 +224,7 @@ def part_selectors(indices):
         # FIXME: test/package/test_combinatorica.py in the benchmarking+futher-improvements
         # fails with the below test. Isolate and fix.
         # elif isinstance(index, ListExpression):
-        elif index.has_form("List", None):
+        elif index.has_form(SymbolList, None):
             yield parts_sequence_selector(index.elements)
         elif isinstance(index, Integer):
             yield parts_sequence_selector(index), lambda x: x[0]

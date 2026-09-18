@@ -39,7 +39,7 @@ def create_rules(
             return Dispatch(rules_expr.elements, evaluation)
         return Dispatch((rules_expr,), evaluation)
 
-    if rules_expr.has_form("List", None):
+    if rules_expr.has_form(SymbolList, None):
         rules = rules_expr.elements
     else:
         rules = [rules_expr]
@@ -108,7 +108,7 @@ def eval_dispatch_atom(
     # kind of objects.
     #
 
-    all_list = all(rule.has_form("List", None) for rule in rules)
+    all_list = all(rule.has_form(SymbolList, None) for rule in rules)
     if all_list:
         elements = [eval_dispatch_atom(rule, evaluation) for rule in rules]
         return ListExpression(*elements)
@@ -116,7 +116,7 @@ def eval_dispatch_atom(
     for rule in rules:
         if isinstance(rule, Symbol):
             rule = rule.evaluate(evaluation)
-        if rule.has_form("List", None):
+        if rule.has_form(SymbolList, None):
             flatten_list.extend(rule.elements)
         elif is_rule(rule):
             flatten_list.append(rule)

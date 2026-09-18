@@ -330,13 +330,13 @@ def grid_render_output_form(expr: Expression, evaluation: Evaluation, **kwargs) 
         ["Rule", "RuleDelayed"], 2
     ):
         raise IsNotGrid
-    if not expr.elements[0].has_form("List", None):
+    if not expr.elements[0].has_form(SymbolList, None):
         raise IsNotGrid
 
     elements = expr.elements[0].elements
     rows = []
     for idx, item in enumerate(elements):
-        if item.has_form("List", None):
+        if item.has_form(SymbolList, None):
             rows.append(
                 [
                     render_output_form(item_elem, evaluation, **kwargs)

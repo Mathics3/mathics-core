@@ -9,7 +9,13 @@ from mathics.core.parser import parse_builtin_rule
 from mathics.core.parser.util import SystemDefinitions
 from mathics.core.rules import RewriteRule
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
-from mathics.core.systemsymbols import SymbolAnd, SymbolEqual, SymbolNot, SymbolOr
+from mathics.core.systemsymbols import (
+    SymbolAnd,
+    SymbolEqual,
+    SymbolList,
+    SymbolNot,
+    SymbolOr,
+)
 
 # TODO: Extend these rules?
 
@@ -121,7 +127,7 @@ def remove_nots_when_unnecesary(pred, evaluation):
 def get_assumptions_list(evaluation):
     """Return a list of assumptions"""
     assumptions = evaluation.definitions.get_ownvalue("System`$Assumptions")
-    if isinstance(assumptions, Atom) or not assumptions.has_form("List", None):
+    if isinstance(assumptions, Atom) or not assumptions.has_form(SymbolList, None):
         assumptions = (assumptions,)
     else:
         assumptions = assumptions.elements

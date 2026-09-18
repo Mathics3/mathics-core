@@ -14,6 +14,7 @@ from typing import Callable, Dict, Optional, Tuple
 import numpy as np
 import sympy
 
+import mathics.core.symbols
 import mathics.eval.tracing as tracing
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import (
@@ -50,7 +51,6 @@ from mathics.core.symbols import (
     BaseElement,
     Symbol,
     SymbolFalse,
-    SymbolList,
     SymbolPlus,
     SymbolPower,
     SymbolTimes,
@@ -63,10 +63,12 @@ from mathics.core.systemsymbols import (
     SymbolConditionalExpression,
     SymbolD,
     SymbolDerivative,
+    SymbolEqual,
     SymbolFunction,
     SymbolIndeterminate,
     SymbolInfinity,
     SymbolIntegrate,
+    SymbolList,
     SymbolLog,
     SymbolNIntegrate,
     SymbolRule,
@@ -654,7 +656,7 @@ class _BaseFinder(Builtin):
         # First, determine x0 and x
         x0 = eval_N(x0, evaluation)
         # deal with non 1D problems.
-        if isinstance(x0, Expression) and x0._head is SymbolList:
+        if isinstance(x0, Expression) and x0._head is mathics.core.symbols.SymbolList:
             options["_x0"] = x0.elements
             x0 = x0.elements[0]
         if not isinstance(x0, Number):
@@ -682,7 +684,7 @@ class _BaseFinder(Builtin):
         # Determine the method
         method = options["System`Method"]
         if isinstance(method, Expression):
-            if method.get_head() is SymbolList:
+            if method.get_head() is mathics.core.symbols.SymbolList:
                 method = method.elements[0]
         if isinstance(method, Symbol):
             method = method.get_name().split("`")[-1]
@@ -735,11 +737,11 @@ class _BaseFinder(Builtin):
     def eval_with_x_tuple(self, f, xtuple, evaluation: Evaluation, options: dict):
         "%(name)s[f_, xtuple_, OptionsPattern[]]"
         f_val = f.evaluate(evaluation)
-        if f_val.has_form("Equal", 2):
+        if f_val.has_form(SymbolEqual, 2):
             f = Expression(SymbolPlus, f_val.elements[0], f_val.elements[1])
 
         xtuple_value = xtuple.evaluate(evaluation)
-        if xtuple_value.has_form("List", None):
+        if xtuple_value.has_form(SymbolList, None):
             nelements = len(xtuple_value.elements)
             if nelements == 2:
                 x, x0 = xtuple.evaluate(evaluation).elements
@@ -1068,14 +1070,14 @@ class Integrate(SympyFunction):
     def prepare_sympy(self, elements):
         if len(elements) == 2:
             x = elements[1]
-            if x.has_form("List", 3):
+            if x.has_form(SymbolList, 3):
                 return [elements[0]] + x.elements
         return elements
 
     def from_sympy(self, elements: Tuple[BaseElement, ...]) -> Expression:
         args = []
         for element in elements[1:]:
-            if element.has_form("List", 1):
+            if element.has_form(SymbolList, 1):
                 # {x} -> x
                 args.append(element.elements[0])
             else:
@@ -1095,7 +1097,7 @@ class Integrate(SympyFunction):
         vars = []
         prec = None
         for x in xs:
-            if x.has_form("List", 3):
+            if x.has_form(SymbolList, 3):
                 x, a, b = x.elements
                 prec_a = a.get_precision()
                 prec_b = b.get_precision()
@@ -1173,7 +1175,7 @@ class Integrate(SympyFunction):
             else:
                 cases = result.elements[0].elements
                 default = result.elements[1]
-            if default.has_form("Integrate", None):
+            if default.has_form(SymbolIntegrate, None):
                 if default.elements[0] == f:
                     default = SymbolUndefined
             simplified_cases = []
@@ -1193,7 +1195,7 @@ class Integrate(SympyFunction):
                     return resif
                 if (
                     isinstance(resif, Expression)
-                    and resif.has_form("ConditionalExpression", 2)
+                    and resif.has_form(SymbolConditionalExpression, 2)
                     and cond is not None
                 ):
                     cond = Expression(SymbolAnd, resif.elements[1], cond)
@@ -1446,7 +1448,7 @@ class NIntegrate(Builtin):
             return Integer0
         method = options["System`Method"].evaluate(evaluation)
         method_options = {}
-        if method.has_form("System`List", 2):
+        if method.has_form(SymbolList, 2):
             method = method.elements[0]
             method_options.update(method.elements[1].get_option_values())
         if isinstance(method, String):
@@ -1694,7 +1696,7 @@ class Root(SympyFunction):
         "Root[f_, i_]"
 
         try:
-            if not f.has_form("Function", 1):
+            if not f.has_form(SymbolFunction, 1):
                 raise sympy.PolynomialError
 
             body = f.elements[0]
@@ -1721,12 +1723,12 @@ class Root(SympyFunction):
 
     def to_sympy(self, expr, **kwargs):
         try:
-            if not expr.has_form("Root", 2):
+            if not expr.has_form(SymbolRoot, 2):
                 return None
 
             f = expr.elements[0]
 
-            if not f.has_form("Function", 1):
+            if not f.has_form(SymbolFunction, 1):
                 return None
 
             body = f.elements[0].replace_slots([f, Symbol("_1")], None)
@@ -1845,7 +1847,7 @@ class Series(Builtin):
     def eval_multivariate_series(self, f, varspec, evaluation: Evaluation):
         """Series[f_,varspec__List]"""
         lastvar = varspec.elements[-1]
-        if not lastvar.has_form("List", 3):
+        if not lastvar.has_form(SymbolList, 3):
             return None
         # inner = build_series(f, *(lastvar.elements), evaluation)
         inner = Expression(SymbolSeries, f, lastvar).evaluate(evaluation)
@@ -2219,7 +2221,7 @@ class SeriesData(Builtin):
         )
         if isinstance(y, Symbol):
             order = 1
-        elif y.has_form("List", 2):
+        elif y.has_form(SymbolList, 2):
             order = y.elements[1].int_value
             y = y.elements[0]
         else:
@@ -2244,7 +2246,7 @@ class SeriesData(Builtin):
         """Normal[SeriesData[x_, x0_, data_, nummin_, nummax_, den_]]"""
         new_data = []
         for element in data.elements:
-            if element.has_form("SeriesData", 6):
+            if element.has_form(SymbolSeriesData, 6):
                 element = self.eval_normal(*(element.elements), evaluation)
                 if element is None:
                     return
@@ -2402,7 +2404,7 @@ class Solve(Builtin):
                 pass
             elif eq is SymbolFalse:
                 return ListExpression()
-            elif not eq.has_form("Equal", 2):
+            elif not eq.has_form(SymbolEqual, 2):
                 evaluation.message("Solve", "eqf", eqs)
                 return
             else:
