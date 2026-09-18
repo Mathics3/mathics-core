@@ -60,7 +60,7 @@ from mathics.eval.numeric import (
 
 def chop(expr, delta=10.0 ** (-10.0)):
     if isinstance(expr, Real):
-        if expr.is_nan(expr):
+        if expr.is_nan:
             return expr
         if -delta < expr.value < delta:
             return Integer0
