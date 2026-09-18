@@ -4,7 +4,7 @@ Equality and Inequality
 """
 
 from abc import ABC
-from typing import Any, Optional, Union
+from typing import Any, Final, Literal, Optional
 
 import sympy
 
@@ -36,7 +36,12 @@ from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
 from mathics.eval.testing_expressions import do_cmp, do_cplx_equal, is_number
 
-operators = {
+# An annotation type for any number of Literal argument counts -1, 0, 1.
+# In reality we'll have one or two of these, but we use elipsis anyway
+ComparisonTuple = tuple[Literal[-1, 0, 1], ...]
+
+# FIXME: use Symbol name, not str.
+OPERATOR_TO_ARGUMENT_MAP: Final[dict[str, ComparisonTuple]] = {
     "System`Less": (-1,),
     "System`LessEqual": (-1, 0),
     "System`Equal": (0,),
@@ -49,35 +54,38 @@ operators = {
 class _InequalityOperator(InfixOperator, ABC):
     """
     A class for builtin functions with element inequality
-    comparisons in a chain e.g. a != b != c compares a != b and b !=
+    comparisons in a chain, e.g., a != b != c compares a != b and b !=
     c.
     """
 
     grouping = "NonAssociative"
 
     @staticmethod
-    def numerify_args(elements, evaluation: Evaluation) -> Union[list, tuple]:
+    def numerify_args(elements, evaluation: Evaluation) -> list | tuple:
+        """Processes elements into a tuple or a list, so that the
+        caller can compare the returned tuple or list.
+        """
         element_sequence = elements.get_sequence()
         all_numeric = all(
-            item.is_numeric(evaluation) and item.get_precision() is None
-            for item in element_sequence
+            element.is_numeric(evaluation) and is_inexact(element)
+            for element in element_sequence
         )
 
-        # All expressions are numeric but exact and they are not all numbers,
         if all_numeric and any(
             not isinstance(item, Number) for item in element_sequence
         ):
-            # so apply N and compare them.
+            # All elements are numeric but they are not all numbers.
+            # In this situation apply N[] (or eval_N()).
             items = element_sequence
             n_items = []
             for item in items:
                 if not isinstance(item, Number):
                     item = eval_N(item, evaluation, SymbolMaxExtraPrecision)
                 n_items.append(item)
-            items = n_items
-        else:
-            items = to_numeric_args(elements, evaluation)
-        return items
+            return n_items
+
+        # Either elements are
+        return to_numeric_args(elements, evaluation)
 
 
 class _ComparisonOperator(_InequalityOperator, ABC):
@@ -92,7 +100,7 @@ class _ComparisonOperator(_InequalityOperator, ABC):
         if len(elements_sequence) <= 1:
             return SymbolTrue
         elements = self.numerify_args(elements, evaluation)
-        wanted = operators[self.get_name()]
+        wanted = OPERATOR_TO_ARGUMENT_MAP[self.get_name()]
         if isinstance(elements[-1], String):
             return None
         for i in range(len(elements) - 1):
@@ -642,7 +650,7 @@ class Inequality(Builtin):
             evaluation.message("Inequality", "ineq", count)
         elif count == 3:
             name = elements[1].get_name()
-            if name in operators:
+            if name in OPERATOR_TO_ARGUMENT_MAP:
                 return Expression(Symbol(name), elements[0], elements[2])
         else:
             groups = [

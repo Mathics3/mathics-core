@@ -14,7 +14,6 @@ from typing import Callable, Dict, Optional, Tuple
 import numpy as np
 import sympy
 
-import mathics.core.symbols
 import mathics.eval.tracing as tracing
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import (
@@ -656,7 +655,7 @@ class _BaseFinder(Builtin):
         # First, determine x0 and x
         x0 = eval_N(x0, evaluation)
         # deal with non 1D problems.
-        if isinstance(x0, Expression) and x0._head is mathics.core.symbols.SymbolList:
+        if isinstance(x0, Expression) and x0._head is SymbolList:
             options["_x0"] = x0.elements
             x0 = x0.elements[0]
         if not isinstance(x0, Number):
@@ -684,7 +683,7 @@ class _BaseFinder(Builtin):
         # Determine the method
         method = options["System`Method"]
         if isinstance(method, Expression):
-            if method.get_head() is mathics.core.symbols.SymbolList:
+            if method.get_head() is SymbolList:
                 method = method.elements[0]
         if isinstance(method, Symbol):
             method = method.get_name().split("`")[-1]
