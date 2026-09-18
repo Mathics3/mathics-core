@@ -147,7 +147,7 @@ class ExactNumberQ(Test):
 
     def test(self, expr) -> bool:
         """
-        This function is the the eval() function for a Test subclass.
+        This function is the eval() function for a Test subclass.
         It is called by Test.eval().
         Note that this function must return a bool, not a BaseExpression.
         """
@@ -182,7 +182,7 @@ class InexactNumberQ(Test):
 
     def test(self, expr) -> bool:
         """
-        This function is the the eval() function for a Test subclass.
+        This function is the eval() function for a Test subclass.
         It is called by Test.eval().
         Note that this function must return a bool, not a BaseExpression.
         """

@@ -176,7 +176,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         return mpmath.mpf(self.value)
 
     def to_python(self, *_, **kwargs):
-        """Returns a native builtin Python object
+        """Returns a native built-in Python object
         something in (int, float, complex, str, tuple, list or dict.).
         (See discussions in
         https://github.com/Mathics3/mathics-core/discussions/550
@@ -1189,7 +1189,7 @@ NUMERICAL_CONSTANTS = {
 
 def get_int_value(element) -> Optional[int]:
     """
-    Return the integer value of "element" if it is a data type that could be interpreted as a Python int.
+    Return the integer value of "element" if it can be interpreted as a Python int.
 
     Otherwise, return None.
     """
