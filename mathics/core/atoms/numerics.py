@@ -169,7 +169,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         return mpmath.mpf(self.value)
 
     def to_python(self, *_, **kwargs):
-        """Returns a native builtin Python object
+        """Returns a native built-in Python object
         something in (int, float, complex, str, tuple, list or dict.).
         (See discussions in
         https://github.com/Mathics3/mathics-core/discussions/550
@@ -1174,7 +1174,7 @@ NUMERICAL_CONSTANTS = {
 
 def get_int_value(element) -> Optional[int]:
     """
-    Return the integer value of "element" if it is a data type that could be interpreted as a Python int.
+    Return the integer value of "element" if it can be interpreted as a Python int.
 
     Otherwise, return None.
     """
@@ -1183,8 +1183,7 @@ def get_int_value(element) -> Optional[int]:
 
 def is_inexact(expr) -> bool:
     """
-    Return True if expr is has an exact numeric value or False if not and None
-    if expr is not a number.
+    Return True if expr has an exact numeric value or False if not.
     """
     # FIXME: this is really screwy! We are reporting inexactness on objects
     # where exactness and inexactness make no sense.
