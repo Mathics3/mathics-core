@@ -110,7 +110,7 @@ class Eigenvalues(Builtin):
       <dt>'Eigenvalues'[$m$]
       <dd>computes the eigenvalues of the matrix $m$.
 
-      By default, SymPy's routine is used. Sometimes this is slow and \
+      By default, we use SymPy's routine. Sometimes this is slow and \
       less good than the corresponding mpmath routine.
 
       Use option Method->"mpmath" if you want to use mpmath's routine instead.
@@ -222,7 +222,7 @@ class Eigenvectors(Builtin):
 
     messages = {
         "eigenvecnotimplemented": (
-            "Eigenvectors is not yet implemented for the matrix `1`."
+            "Eigenvectors are not yet implemented for the matrix `1`."
         )
     }
     summary_text = "list of matrix eigenvectors"
@@ -259,8 +259,8 @@ class Eigenvectors(Builtin):
             # and convert from sympy
             vects = [from_sympy(list(b)) for b in basis]
 
-            # This follows Mathematica convention better; higher indexed pivots
-            # are outputted first. e.g. {{0,1},{1,0}} instead of {{1,0},{0,1}}
+            # This follows Mathematica convention better; higher-indexed pivots
+            # are output first. e.g. {{0,1},{1,0}} instead of {{1,0},{0,1}}
             vects.reverse()
 
             # Add the vectors to results
@@ -312,7 +312,7 @@ class Inverse(Builtin):
 
     messages = {
         "sing": "The matrix `1` is singular.",
-        "matsq": "Argument `1` at position 1 is not " "a non-empty square matrix.",
+        "matsq": "Argument `1` at position 1 is not a non-empty square matrix.",
     }
     summary_text = "inverse matrix"
 
