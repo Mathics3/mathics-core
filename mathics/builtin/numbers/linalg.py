@@ -9,6 +9,7 @@ import sympy
 from sympy import im, re
 
 from mathics.core.atoms import Integer, Integer0
+from mathics.core.atoms.numerics import is_inexact
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.matrix import matrix_data
@@ -847,7 +848,7 @@ class SingularValueDecomposition(Builtin):
             return
 
         if not any(
-            element.is_inexact() for row in m.elements for element in row.elements
+            is_inexact(element) for row in m.elements for element in row.elements
         ):
             # symbolic argument (not implemented)
             evaluation.message("SingularValueDecomposition", "nosymb")

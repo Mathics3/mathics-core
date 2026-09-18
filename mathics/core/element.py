@@ -230,7 +230,7 @@ class BaseElement(KeyComparable, ABC):
         precision is either not defined, or it is exact as in the case of Integer. In either case, the
         values is not "inexact".
 
-        This function is called by method `is_inexact()`.
+        This function is called by property method `is_inexact`.
         """
         return None
 
@@ -321,12 +321,6 @@ class BaseElement(KeyComparable, ABC):
         from mathics.eval.test import item_is_free
 
         return item_is_free(self, form, evaluation)
-
-    # FIXME: this should be a *function* in mathics.core.atom.numeric.Number.
-    # It should be a method *only* in Numeric (or Symbol) classes where it
-    # makes sense.
-    def is_inexact(self) -> bool:
-        return self.get_precision() is not None
 
     def sameQ(self, other: Any) -> bool:
         """Mathics3 SameQ"""

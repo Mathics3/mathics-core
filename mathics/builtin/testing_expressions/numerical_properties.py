@@ -151,7 +151,7 @@ class ExactNumberQ(Test):
         It is called by Test.eval().
         Note that this function must return a bool, not a BaseExpression.
         """
-        return isinstance(expr, Number) and not expr.is_inexact()
+        return isinstance(expr, Number) and not expr.is_inexact
 
 
 class InexactNumberQ(Test):
@@ -186,7 +186,7 @@ class InexactNumberQ(Test):
         It is called by Test.eval().
         Note that this function must return a bool, not a BaseExpression.
         """
-        return isinstance(expr, Number) and expr.is_inexact()
+        return isinstance(expr, Number) and expr.is_inexact
 
 
 class IntegerQ(Test):

@@ -10,6 +10,7 @@ import sympy
 
 from mathics.builtin.numbers.constants import mp_convert_constant
 from mathics.core.atoms import COMPARE_PREC, Number, String
+from mathics.core.atoms.numerics import is_inexact
 from mathics.core.attributes import (
     A_FLAT,
     A_NUMERIC_FUNCTION,
@@ -256,9 +257,9 @@ class _EqualityOperator(_InequalityOperator, ABC):
         if type(max_extra_prec) is not int:
             max_extra_prec = COMPARE_PREC
         # try to convert the exact arguments in inexact numbers.
-        if any(arg.is_inexact() for arg in args):
+        if any(is_inexact(arg) for arg in args):
             args = [
-                item if item.is_inexact() else eval_N(item, evaluation) for item in args
+                item if is_inexact(item) else eval_N(item, evaluation) for item in args
             ]
         for x, y in self.get_pairs(args):
             c = self.equal2(x, y, max_extra_prec)

@@ -116,6 +116,10 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         return None
 
     @property
+    def is_inexact(self) -> bool:
+        return False
+
+    @property
     def is_literal(self) -> bool:
         """Number can't change and has a Python representation,
         i.e., a value is set, and it does not depend on definition
@@ -583,6 +587,10 @@ class MachineReal(Real[float | mpmath.mpf]):
         res = abs(self.value) <= 1e-10
         return res
 
+    @property
+    def is_inexact(self) -> bool:
+        return self.get_precision() is not None
+
     def is_machine_precision(self) -> bool:
         return True
 
@@ -711,6 +719,14 @@ class PrecisionReal(Real[sympy_Float]):
     def get_precision(self) -> int:
         """Returns the default specification for precision (in binary digits) in N and other numerical functions."""
         return self.value._prec + 1
+
+    @property
+    def is_inexact(self) -> bool:
+        """is_inexact indications whether self is an inexact number so that == comparisons
+        should be within a certain tolerance.
+        For PrecisionReal, this is always True.
+        """
+        return True
 
     @property
     def is_zero(self) -> bool:
@@ -951,9 +967,13 @@ class Complex(Number[tuple[Number[T], Number[T], Optional[int]]]):
         When `None` is returned, no precision has been defined, and this object's value is
         exact.
 
-        This function is called by method `is_inexact()`.
+        This function is called by property method `is_inexact`.
         """
         return self._precision
+
+    @property
+    def is_inexact(self) -> bool:
+        return self.get_precision() is not None
 
     def is_machine_precision(self) -> bool:
         if self._real.is_machine_precision() or self._imag.is_machine_precision():
@@ -1159,6 +1179,16 @@ def get_int_value(element) -> Optional[int]:
     Otherwise, return None.
     """
     return element.int_value if hasattr(element, "int_value") else None
+
+
+def is_inexact(expr) -> bool:
+    """
+    Return True if expr is has an exact numeric value or False if not and None
+    if expr is not a number.
+    """
+    # FIXME: this is really screwy! We are reporting inexactness on objects
+    # where exactness and inexactness make no sense.
+    return expr.get_precision() is not None
 
 
 def is_integer_rational_or_real(expr) -> bool:

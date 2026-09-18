@@ -25,6 +25,7 @@ from mathics.core.atoms import (
     Rational,
     Real,
 )
+from mathics.core.atoms.numerics import is_inexact
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_LISTABLE,
@@ -64,7 +65,7 @@ def chop(expr, delta=10.0 ** (-10.0)):
             return expr
         if -delta < expr.value < delta:
             return Integer0
-    elif isinstance(expr, Complex) and expr.is_inexact():
+    elif isinstance(expr, Complex) and is_inexact(expr):
         real, imag = expr.real, expr.imag
         if -delta < real.get_float_value() < delta:
             real = Integer0
