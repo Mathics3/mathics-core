@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-(Base) Element of an general (M-)Expression.
+(Base) Element of a general (M-)Expression.
 
-Here we have the base class and related function for element inside an Expression.
+Here we have the base class and related functions for elements inside an Expression.
 """
 
 from abc import ABC
@@ -54,7 +54,7 @@ class ElementsProperties:
 
     However, when *all* of the properties are unknown, use a `None` value in
     the Expression.properties field instead of creating an
-    ElementsProperties object with everything set False.
+    ElementsProperties object with everything set to False.
     By setting the field to None, the code will look over the elements before
     evaluation and set the property values correctly.
     """
@@ -68,14 +68,14 @@ class ElementsProperties:
     is_flat: bool = False
 
     # is_ordered: True if all of the elements are ordered. Of course this is true,
-    # if there are less than 2 elements. Ordered is an Attribute of a
+    # if there are fewer than 2 elements. Ordered is an Attribute of a
     # Mathics3 function.
     #
-    # In rewrite_eval_apply() if a function is not marked as Ordered this attribute
-    # has no effect which means it doesn't matter how it is set. So
-    # when it doubt, it is always safe to set is_ordered to False since at worst
+    # In rewrite_eval_apply(), if a function is not marked as "Ordered", this attribute
+    # has no effect, which means it doesn't matter how it is set. So
+    # when in doubt, it is always safe to set is_ordered to False since at worst
     # it will cause an ordering operation on elements sometimes. On the other hand, setting
-    # this True elements are not sorted can cause evaluation differences.
+    # this to True when elements are not sorted can cause evaluation differences.
     is_ordered: bool = False
 
     # Uniform expressions have all their elements with the same Head.
@@ -91,7 +91,7 @@ class ImmutableValueMixin:
     @property
     def is_literal(self) -> bool:
         """
-        The value value can't change once it is set.
+        The value can't change once it is set.
         """
         return True
 
@@ -99,10 +99,10 @@ class ImmutableValueMixin:
 class BaseElement(KeyComparable, ABC):
     """
     This is the base class from which all other Expressions are
-    derived from.  If you think of an Expression as tree-like, then a
+    derived.  If you think of an Expression as tree-like, then a
     BaseElement is a node in the tree.
 
-    This class is not complete in of itself and subclasses should adapt or fill in
+    This class is not complete in and of itself, and subclasses should adapt or fill in
     what is needed
 
     Some important subclasses: Atom and Expression.
@@ -164,12 +164,12 @@ class BaseElement(KeyComparable, ABC):
 
     def get_atoms(self, include_heads=True):
         """
-        Returns a list of atoms that appears in the expression.
+        Returns a list of atoms that appear in the expression.
         """
         # Comment @mmatera:
         # This function is used just in Graphics.apply_makeboxes
-        # to check if a graphics expression is composed just by
-        # real numbers (or integer) or graphics symbols.
+        # to check if a graphics expression is composed just of
+        # real numbers (or integers) or graphics symbols.
         # Probably, there is a simpler way to implement it without using
         # this method.
         return []
@@ -230,7 +230,7 @@ class BaseElement(KeyComparable, ABC):
         precision is either not defined, or it is exact as in the case of Integer. In either case, the
         values is not "inexact".
 
-        This function is called by property method `is_inexact`.
+        This function is called by the property method `is_inexact`.
         """
         return None
 
@@ -263,7 +263,7 @@ class BaseElement(KeyComparable, ABC):
     @property
     def is_literal(self) -> bool:
         """
-        True if the value can't change, i.e. a value is set and it does not
+        True if the value can't change, i.e., a value is set, and it does not
         depend on definition bindings. That is why, in contrast to
         `is_uncertain_final_definitions()`, we don't need a `definitions`
         parameter.
@@ -302,7 +302,7 @@ class BaseElement(KeyComparable, ABC):
         *element_counts: Optional[int],
     ) -> bool:
         """Check if the expression is of the form Head[l1,...,ln]
-        with Head.name in `heads` and a number of elements according to the specification in
+        with Head.name in `heads` and several elements according to the specification in
         element_counts.
         """
         return False
