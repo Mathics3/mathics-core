@@ -129,8 +129,6 @@ include = ["mathics*"]
     "autoload/*/*.m",
     # YAML files in test/format
     "test/format/*.yaml",
-    # Documentation stuff that will be removed in 9.0.0 or before
-    "doc/latex/mathics.pdf",
     # End doc stuff
     "test/data/*",
 ]

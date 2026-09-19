@@ -11,8 +11,6 @@ import sys
 from pathlib import Path
 from typing import List
 
-from mathics.core.util import canonic_filename
-
 
 def get_srcdir():
     filename = osp.normcase(osp.dirname(osp.abspath(__file__)))
@@ -71,22 +69,7 @@ LOCAL_ROOT_DIR = get_srcdir()
 # We need two versions of doctest data, one is in the user space which is updated with
 # local packages installed and is user writable.
 
-
-DOCTEST_LATEX_DATA_PCL = os.environ.get(
-    "DOCTEST_LATEX_DATA_PCL", osp.join(DATA_DIR, "doctest_latex_data.pcl")
-)
-
-# We need another version of doctest data as a fallback, and that is distributed with the
-# package. It is note user writable and not in the user space.
-
-DOCTEST_SYSTEM_LATEX_DATA_PCL = os.environ.get(
-    "DOCTEST_SYSTEM_LATEX_DATA_PCL",
-    osp.join(LOCAL_ROOT_DIR, "Data", "doctest_latex_data.pcl"),
-)
-
 DOC_DIR = osp.join(LOCAL_ROOT_DIR, "doc", "documentation")
-DOC_LATEX_DIR = osp.join(LOCAL_ROOT_DIR, "doc", "latex")
-DOC_LATEX_FILE = osp.join(DOC_LATEX_DIR, "documentation.tex")
 
 # Set this True if you prefer 12 hour time to be the default
 TIME_12HOUR = False
@@ -129,27 +112,3 @@ def ensure_directory(directory: str):
     dir_path = Path(directory)
     if not dir_path.is_dir():
         os.makedirs(directory)
-
-
-def get_doctest_latex_data_path(should_be_readable=False, create_parent=False) -> str:
-    """Returns a string path where we can find Python Pickle doctest data for LaTeX
-    processing.
-
-    If `should_be_readable` is True, the we will check to see whether
-    this file is readable (which also means it exists). If not, we'll
-    return the `DOCTEST_SYSTEM_DATA_PATH`.
-
-    """
-    doc_user_latex_data_pcl = Path(DOCTEST_LATEX_DATA_PCL)
-    base_config_dir = doc_user_latex_data_pcl.parent
-    if not base_config_dir.is_dir() and create_parent:
-        Path("base_config_dir").mkdir(parents=True, exist_ok=True)
-
-    if should_be_readable:
-        return (
-            DOCTEST_LATEX_DATA_PCL
-            if doc_user_latex_data_pcl.is_file()
-            else DOCTEST_SYSTEM_LATEX_DATA_PCL
-        )
-    else:
-        return DOCTEST_LATEX_DATA_PCL
