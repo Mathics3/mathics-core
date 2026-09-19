@@ -116,6 +116,17 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         return None
 
     @property
+    def is_inexact(self) -> bool:
+        """is_inexact indicates whether self is an inexact number so that Equal comparisons
+        should be within a certain tolerance, or how to handle expressions with Symbolic
+        constants.
+
+        By default, we'll say Numbers are exact. Where this is not correct, subclasses
+        like PrecisionReal and Complex, should override this method.
+        """
+        return False
+
+    @property
     def is_literal(self) -> bool:
         """Number can't change and has a Python representation,
         i.e., a value is set, and it does not depend on definition
@@ -165,7 +176,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         return mpmath.mpf(self.value)
 
     def to_python(self, *_, **kwargs):
-        """Returns a native builtin Python object
+        """Returns a native built-in Python object
         something in (int, float, complex, str, tuple, list or dict.).
         (See discussions in
         https://github.com/Mathics3/mathics-core/discussions/550
@@ -583,6 +594,16 @@ class MachineReal(Real[float | mpmath.mpf]):
         res = abs(self.value) <= 1e-10
         return res
 
+    @property
+    def is_inexact(self) -> bool:
+        """is_inexact indicates whether self is an inexact number so that Equal comparisons
+        should be within a certain tolerance, or how to handle expressions with Symbolic
+        constants.
+
+        MachineReal values are always inexact numbers.
+        """
+        return True
+
     def is_machine_precision(self) -> bool:
         return True
 
@@ -711,6 +732,16 @@ class PrecisionReal(Real[sympy_Float]):
     def get_precision(self) -> int:
         """Returns the default specification for precision (in binary digits) in N and other numerical functions."""
         return self.value._prec + 1
+
+    @property
+    def is_inexact(self) -> bool:
+        """is_inexact indicates whether self is an inexact number so that Equal comparisons
+        should be within a certain tolerance, or how to handle expressions with Symbolic
+        constants.
+
+        PrecisionReal values are always inexact numbers.
+        """
+        return True
 
     @property
     def is_zero(self) -> bool:
@@ -951,9 +982,13 @@ class Complex(Number[tuple[Number[T], Number[T], Optional[int]]]):
         When `None` is returned, no precision has been defined, and this object's value is
         exact.
 
-        This function is called by method `is_inexact()`.
+        This function is called by property method `is_inexact`.
         """
         return self._precision
+
+    @property
+    def is_inexact(self) -> bool:
+        return self.get_precision() is not None
 
     def is_machine_precision(self) -> bool:
         if self._real.is_machine_precision() or self._imag.is_machine_precision():
@@ -1154,11 +1189,22 @@ NUMERICAL_CONSTANTS = {
 
 def get_int_value(element) -> Optional[int]:
     """
-    Return the integer value of "element" if it is a data type that could be interpreted as a Python int.
+    Return the integer value of "element" if it can be interpreted as a Python int.
 
     Otherwise, return None.
     """
     return element.int_value if hasattr(element, "int_value") else None
+
+
+def is_inexact(expr) -> bool:
+    """Return True if expr is has an exact numeric value or False if not.
+
+    For objects like strings where exactness and ineactness make
+    no sense, we report True.
+    """
+    # FIXME: this is really screwy! We are reporting inexactness on objects
+    # where exactness and inexactness make no sense.
+    return expr.get_precision() is not None
 
 
 def is_integer_rational_or_real(expr) -> bool:

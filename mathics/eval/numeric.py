@@ -28,6 +28,7 @@ from mathics.core.atoms import (
     RationalOneHalf,
     Real,
 )
+from mathics.core.atoms.numerics import is_inexact
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement
@@ -37,13 +38,17 @@ from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolPower, SymbolTi
 from mathics.core.systemsymbols import (
     SymbolAbs,
     SymbolComplexInfinity,
+    SymbolDirectedInfinity,
     SymbolExp,
     SymbolI,
     SymbolIndeterminate,
     SymbolLog,
+    SymbolPlus,
+    SymbolPower,
     SymbolRealSign,
     SymbolSign,
     SymbolSqrt,
+    SymbolTimes,
 )
 
 RationalMOneHalf = Rational(-1, 2)
@@ -87,7 +92,7 @@ def eval_Abs(expr: BaseElement) -> Optional[BaseElement]:
 
     if isinstance(expr, Number):
         return eval_Abs_number(expr)
-    if expr.has_form("Power", 2):
+    if expr.has_form(SymbolPower, 2):
         base, exp = expr.elements
         if exp.is_zero:
             return Integer1
@@ -96,7 +101,7 @@ def eval_Abs(expr: BaseElement) -> Optional[BaseElement]:
             if abs_base is None:
                 abs_base = Expression(SymbolAbs, base)
             return Expression(SymbolPower, abs_base, exp)
-    if expr.has_form("Exp", 1):
+    if expr.has_form(SymbolExp, 1):
         exp = expr.elements[0]
         if isinstance(exp, (Integer, Real, Rational)):
             return expr
@@ -152,7 +157,7 @@ def eval_Exp(exp: BaseElement) -> BaseElement:
     # If both base and exponent are exact quantities,
     # use sympy.
 
-    if not exp.is_inexact():
+    if not is_inexact(exp):
         exp_sp = exp.to_sympy()
         if exp_sp is None:
             return None
@@ -181,7 +186,7 @@ def eval_RealSign(expr: BaseElement) -> Optional[Integer]:
         return Integer1 if expr.value > 0 else IntegerM1
     if expr in NUMERICAL_CONSTANTS:
         return Integer1
-    if expr.has_form("Abs", 1):
+    if expr.has_form(SymbolAbs, 1):
         arg = expr.elements[0]
         if arg.is_zero:
             return Integer0
@@ -196,14 +201,14 @@ def eval_RealSign(expr: BaseElement) -> Optional[Integer]:
         if isinstance(arg_inexact, Number):
             return Integer1
         return None
-    if expr.has_form("Sqrt", 1):
+    if expr.has_form(SymbolSqrt, 1):
         inner_sign = eval_Sign(expr.elements[0])
         return inner_sign if inner_sign in (Integer0, Integer1) else None
-    if expr.has_form("Exp", 1):
+    if expr.has_form(SymbolExp, 1):
         return Integer1 if test_arithmetic_expr(expr.elements[0]) else None
-    if expr.has_form("Log", 1) or expr.has_form("DirectedInfinity", 1):
+    if expr.has_form(SymbolLog, 1) or expr.has_form(SymbolDirectedInfinity, 1):
         return eval_RealSign(eval_add_numbers(expr.elements[0], IntegerM1))
-    if expr.has_form("Times", None):
+    if expr.has_form(SymbolTimes, None):
         sign = 1
         for factor in expr.elements:
             factor_sign = eval_RealSign(factor)
@@ -212,7 +217,7 @@ def eval_RealSign(expr: BaseElement) -> Optional[Integer]:
             if factor_sign is IntegerM1:
                 sign = -sign
         return Integer1 if sign == 1 else IntegerM1
-    if expr.has_form("Power", 2):
+    if expr.has_form(SymbolPower, 2):
         base, exp = expr.elements
         base_sign = eval_RealSign(base)
         if base_sign is None:
@@ -234,7 +239,7 @@ def eval_RealSign(expr: BaseElement) -> Optional[Integer]:
             if isinstance(exp, Integer):
                 return base_sign if (exp.value % 2 == 1) else Integer1
         return None
-    if expr.has_form("Plus", None):
+    if expr.has_form(SymbolPlus, None):
         signed = {Integer1: [], IntegerM1: []}
         for term in expr.elements:
             rsign = eval_RealSign(term)
@@ -270,28 +275,28 @@ def eval_Sign(expr: Number) -> Optional[BaseElement]:
             criteria = eval_add_numbers(abs_sq, IntegerM1)
             if test_zero_arithmetic_expr(criteria):
                 return n
-            if n.is_inexact():
+            if n.is_inexact:
                 return eval_multiply_numbers(n, eval_Power_number(abs_sq, RealM0p5))
             if test_zero_arithmetic_expr(criteria, numeric=True):
                 return n
             return eval_multiply_numbers(n, eval_Power_number(abs_sq, RationalMOneHalf))
         if isinstance(n, Atom):
             return None
-        if n.has_form("Abs", 1):
+        if n.has_form(SymbolAbs, 1):
             inner_sign = eval_Sign(n.elements[0])
             if inner_sign is Integer0:
                 return Integer0
             if isinstance(inner_sign, Number):
                 return Integer1
 
-        if n.has_form("Exp", 1):
+        if n.has_form(SymbolExp, 1):
             exponent = n.elements[0]
             if isinstance(exponent, Complex):
                 return Expression(SymbolExp, exponent.imag)
             return None
-        if n.has_form("DirectedInfinity", 1):
+        if n.has_form(SymbolDirectedInfinity, 1):
             return eval_Sign(n.elements[0])
-        if n.has_form("Power", 2):
+        if n.has_form(SymbolPower, 2):
             base, exponent = expr.elements
             base_rsign = eval_RealSign(base)
             if exponent.is_zero:
@@ -330,7 +335,7 @@ def eval_Sign(expr: Number) -> Optional[BaseElement]:
         if abs_expr is Integer1:
             return n
         # Failed to reduce the absolute value:
-        if abs_expr.has_form("Abs", 1):
+        if abs_expr.has_form(SymbolAbs, 1):
             return None
         return n / abs_expr
 
@@ -399,7 +404,7 @@ def eval_Power_number(base: Number, exp: Number) -> Optional[Number]:
     # use sympy.
     # If base or exp are inexact quantities, use
     # the inexact routine.
-    if base.is_inexact() or exp.is_inexact():
+    if base.is_inexact or exp.is_inexact:
         return eval_Power_inexact(base, exp)
 
     # Trivial special cases
@@ -418,7 +423,7 @@ def eval_Power_number(base: Number, exp: Number) -> Optional[Number]:
         # This function is called just if useful native rules
         # are available.
         result = from_sympy(sympy.Pow(base.to_sympy(), exp.to_sympy()))
-        if result.has_form("Power", 2):
+        if result.has_form(SymbolPower, 2):
             # If the expression didn´t change, return None
             if result.elements[0].sameQ(base):
                 return None
@@ -677,13 +682,13 @@ def test_arithmetic_expr(expr: BaseElement, only_real: bool = True) -> bool:
 
     if head in (SymbolPlus, SymbolTimes):
         return all(test_arithmetic_expr(term, only_real) for term in elements)
-    if expr.has_form("Power", 2):
+    if expr.has_form(SymbolPower, 2):
         base, exponent = elements
         if only_real:
             if isinstance(exponent, Integer):
                 return test_arithmetic_expr(base)
         return all(test_arithmetic_expr(item, only_real) for item in elements)
-    if expr.has_form("Exp", 1):
+    if expr.has_form(SymbolExp, 1):
         return test_arithmetic_expr(elements[0], only_real)
     if head is SymbolLog:
         if len(elements) > 2:
@@ -695,7 +700,7 @@ def test_arithmetic_expr(expr: BaseElement, only_real: bool = True) -> bool:
             elif not test_arithmetic_expr(base):
                 return False
         return test_arithmetic_expr(elements[-1], only_real)
-    if expr.has_form("Sqrt", 1):
+    if expr.has_form(SymbolSqrt, 1):
         radicand = elements[0]
         if only_real:
             return eval_RealSign(radicand) in (Integer0, Integer1)
@@ -764,13 +769,14 @@ EVAL_TO_INEXACT_DISPATCH = {
 }
 
 
-def to_inexact_value(expr: BaseElement) -> BaseElement:
+def to_inexact_value(expr: BaseElement) -> Optional[BaseElement]:
     """
     Converts an expression into an inexact expression.
     Replaces numerical constants by their numerical approximation,
     and then multiplies the expression by Real(1.)
     """
-    if expr.is_inexact():
+    if is_inexact(expr) is None:
+        # Not a number and not an Expression, so leave as is.
         return expr
     if isinstance(expr, Number):
         return expr.round()
@@ -786,4 +792,5 @@ def to_inexact_value(expr: BaseElement) -> BaseElement:
             return EVAL_TO_INEXACT_DISPATCH[head](*elements)
         except Exception:
             pass
+
     return None

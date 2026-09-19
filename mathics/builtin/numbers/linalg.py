@@ -9,6 +9,7 @@ import sympy
 from sympy import im, re
 
 from mathics.core.atoms import Integer, Integer0
+from mathics.core.atoms.numerics import is_inexact
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.matrix import matrix_data
@@ -109,7 +110,7 @@ class Eigenvalues(Builtin):
       <dt>'Eigenvalues'[$m$]
       <dd>computes the eigenvalues of the matrix $m$.
 
-      By default, Sympy's routine is used. Sometimes this is slow and \
+      By default, we use SymPy's routine. Sometimes this is slow and \
       less good than the corresponding mpmath routine.
 
       Use option Method->"mpmath" if you want to use mpmath's routine instead.
@@ -221,7 +222,7 @@ class Eigenvectors(Builtin):
 
     messages = {
         "eigenvecnotimplemented": (
-            "Eigenvectors is not yet implemented for the matrix `1`."
+            "Eigenvectors are not yet implemented for the matrix `1`."
         )
     }
     summary_text = "list of matrix eigenvectors"
@@ -258,8 +259,8 @@ class Eigenvectors(Builtin):
             # and convert from sympy
             vects = [from_sympy(list(b)) for b in basis]
 
-            # This follows Mathematica convention better; higher indexed pivots
-            # are outputted first. e.g. {{0,1},{1,0}} instead of {{1,0},{0,1}}
+            # This follows Mathematica convention better; higher-indexed pivots
+            # are output first. e.g. {{0,1},{1,0}} instead of {{1,0},{0,1}}
             vects.reverse()
 
             # Add the vectors to results
@@ -311,7 +312,7 @@ class Inverse(Builtin):
 
     messages = {
         "sing": "The matrix `1` is singular.",
-        "matsq": "Argument `1` at position 1 is not " "a non-empty square matrix.",
+        "matsq": "Argument `1` at position 1 is not a non-empty square matrix.",
     }
     summary_text = "inverse matrix"
 
@@ -434,8 +435,8 @@ class LinearModelFit(Builtin):
      = {-0.142857, 0.214286, -0.0714286}
     """
 
-    # see the paper "Regression by linear combination of basis functions" by Risi Kondor for a good
-    # summary of the math behind this
+    # See the paper "Regression by linear combination of basis functions" by Risi Kondor for a good
+    # summary of the math behind this.
 
     rules = {
         "LinearModelFit[data_, f_, x_?AtomQ]": "LinearModelFit[data, {f}, {x}]",
@@ -749,7 +750,7 @@ class QRDecomposition(Builtin):
     """
 
     messages = {
-        "sympy": "Sympy is unable to perform the QR decomposition.",
+        "sympy": "SymPy is unable to perform the QR decomposition.",
         "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix.",
     }
     summary_text = "qr decomposition"
@@ -823,7 +824,7 @@ class SingularValueDecomposition(Builtin):
      = {{{0.538954, 0.842335}, {0.842335, -0.538954}}, {{4.63555, 0.}, {0., 0.107862}}, {{0.628678, 0.777666}, {-0.777666, 0.628678}}}
     """
 
-    # Sympy lacks symbolic SVD
+    # SymPy lacks symbolic SVD.
     """
     >> SingularValueDecomposition[{{1, 2}, {2, 3}, {3, 4}}]
      = {{-11 / 6, -1 / 3, 7 / 6}, {4 / 3, 1 / 3, -2 / 3}}
@@ -847,7 +848,7 @@ class SingularValueDecomposition(Builtin):
             return
 
         if not any(
-            element.is_inexact() for row in m.elements for element in row.elements
+            is_inexact(element) for row in m.elements for element in row.elements
         ):
             # symbolic argument (not implemented)
             evaluation.message("SingularValueDecomposition", "nosymb")

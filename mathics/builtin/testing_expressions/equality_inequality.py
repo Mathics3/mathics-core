@@ -4,12 +4,13 @@ Equality and Inequality
 """
 
 from abc import ABC
-from typing import Any, Optional, Union
+from typing import Any, Final, Literal, Optional
 
 import sympy
 
 from mathics.builtin.numbers.constants import mp_convert_constant
 from mathics.core.atoms import COMPARE_PREC, Number, String
+from mathics.core.atoms.numerics import is_inexact
 from mathics.core.attributes import (
     A_FLAT,
     A_NUMERIC_FUNCTION,
@@ -27,61 +28,75 @@ from mathics.core.symbols import Symbol, SymbolFalse, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAnd,
     SymbolDirectedInfinity,
+    SymbolEqual,
     SymbolExactNumberQ,
+    SymbolGreater,
+    SymbolGreaterEqual,
     SymbolInequality,
+    SymbolLess,
+    SymbolLessEqual,
     SymbolMaxExtraPrecision,
+    SymbolUnequal,
 )
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
 from mathics.eval.testing_expressions import do_cmp, do_cplx_equal, is_number
 
-operators = {
-    "System`Less": (-1,),
-    "System`LessEqual": (-1, 0),
-    "System`Equal": (0,),
-    "System`GreaterEqual": (0, 1),
-    "System`Greater": (1,),
-    "System`Unequal": (-1, 1),
+# An annotation type for any number of Literal argument counts -1, 0, 1.
+# In reality we'll have one or two of these, but we use elipsis anyway
+ComparisonTuple = tuple[Literal[-1, 0, 1], ...]
+
+OPERATOR_TO_ARGUMENT_MAP: Final[dict[Symbol, ComparisonTuple]] = {
+    SymbolLess: (-1,),
+    SymbolLessEqual: (-1, 0),
+    SymbolEqual: (0,),
+    SymbolGreaterEqual: (0, 1),
+    SymbolGreater: (1,),
+    SymbolUnequal: (-1, 1),
 }
 
 
 class _InequalityOperator(InfixOperator, ABC):
     """
     A class for builtin functions with element inequality
-    comparisons in a chain e.g. a != b != c compares a != b and b !=
+    comparisons in a chain, e.g., a != b != c compares a != b and b !=
     c.
     """
 
     grouping = "NonAssociative"
 
     @staticmethod
-    def numerify_args(elements, evaluation: Evaluation) -> Union[list, tuple]:
+    def numerify_args(elements, evaluation: Evaluation) -> list | tuple:
+        """Processes elements into a tuple or a list, so that the
+        caller can compare the returned tuple or list.
+        """
         element_sequence = elements.get_sequence()
         all_numeric = all(
-            item.is_numeric(evaluation) and item.get_precision() is None
-            for item in element_sequence
+            element.is_numeric(evaluation) and is_inexact(element)
+            for element in element_sequence
         )
 
-        # All expressions are numeric but exact and they are not all numbers,
         if all_numeric and any(
             not isinstance(item, Number) for item in element_sequence
         ):
-            # so apply N and compare them.
+            # All elements are numeric but they are not all numbers.
+            # Here, apply N[] (or eval_N()).
             items = element_sequence
             n_items = []
             for item in items:
                 if not isinstance(item, Number):
                     item = eval_N(item, evaluation, SymbolMaxExtraPrecision)
                 n_items.append(item)
-            items = n_items
-        else:
-            items = to_numeric_args(elements, evaluation)
-        return items
+            return n_items
+
+        # An element is not numeric or is not in the Number class.
+        # Here, we rely on to_numeric_args to do the right thing.
+        return to_numeric_args(elements, evaluation)
 
 
 class _ComparisonOperator(_InequalityOperator, ABC):
     """
-    A class for builtin functions with element comparisons in a
+    A class for built-in functions with element comparisons in a
     chain e.g. a < b < c compares a < b and b < c.
     """
 
@@ -91,7 +106,10 @@ class _ComparisonOperator(_InequalityOperator, ABC):
         if len(elements_sequence) <= 1:
             return SymbolTrue
         elements = self.numerify_args(elements, evaluation)
-        wanted = operators[self.get_name()]
+        # FIXME: perhaps in the future we'll be able to go more directly from self,
+        # (e.g., mathics.builtin.testing_expressions.equality_inequality.Less)
+        # to its corresponding Symbol name. For now, though we have to go through its name.
+        wanted = OPERATOR_TO_ARGUMENT_MAP[Symbol(self.get_name())]
         if isinstance(elements[-1], String):
             return None
         for i in range(len(elements) - 1):
@@ -110,7 +128,7 @@ class _ComparisonOperator(_InequalityOperator, ABC):
 
 class _EqualityOperator(_InequalityOperator, ABC):
     """
-    A class for builtin functions with element equality in a
+    A class for built-in functions with element equality in a
     chain e.g. a == b == c compares a == b and b == c.
     """
 
@@ -134,8 +152,8 @@ class _EqualityOperator(_InequalityOperator, ABC):
             return
         for le, re in zip(lhs.elements, rhs.elements):
             tst = self.equal2(le, re, max_extra_prec)
-            # If the there are a pair of corresponding elements
-            # that are not equals, then we are not able to decide
+            # If there is a pair of corresponding elements
+            # that are not equal, then we are not able to decide
             # about the equality.
             if not tst:
                 return None
@@ -164,8 +182,8 @@ class _EqualityOperator(_InequalityOperator, ABC):
     # Inequality builtin functions will redefine this method.
     @staticmethod
     def operator_sense(value) -> bool:
-        """function used to check whether `value` is the right Boolean-valued
-        sense needed for a particluar equality or inequality builtin function.
+        """This function is used to check whether `value` is the right Boolean-valued
+        sense needed for a particular equality or inequality builtin function.
         """
         return bool(value)
 
@@ -256,9 +274,9 @@ class _EqualityOperator(_InequalityOperator, ABC):
         if type(max_extra_prec) is not int:
             max_extra_prec = COMPARE_PREC
         # try to convert the exact arguments in inexact numbers.
-        if any(arg.is_inexact() for arg in args):
+        if any(is_inexact(arg) for arg in args):
             args = [
-                item if item.is_inexact() else eval_N(item, evaluation) for item in args
+                item if is_inexact(item) else eval_N(item, evaluation) for item in args
             ]
         for x, y in self.get_pairs(args):
             c = self.equal2(x, y, max_extra_prec)
@@ -275,9 +293,9 @@ class _MinMax(SympyFunction):
     )
 
     # "sense" should be either 1 for Maximum or -1 for Minimum
-    # This field is used to in comparison if figure out
+    # This field is used in comparisons to figure out the
     # maximum/minimum sense.
-    # Below we default to value used for the Max builtin function
+    # Below we default to the value used for the Max builtin function
     # The Min builtin function will redefine this.
 
     sense = 1
@@ -354,7 +372,7 @@ class Between(Builtin):
       <dd>operator form that yields 'Between'[$x$, $range$] when applied to expression $x$.
     </dl>
 
-    Check that 6 is in range 4..10:
+    Check that 6 is in the range 4..10:
     >> Between[6, {4, 10}]
      = True
 
@@ -366,7 +384,7 @@ class Between(Builtin):
     >> Between[2, {E, Pi}]
      = False
 
-    If more than an interval is given, 'Between' returns 'True' if $x$ belongs \\
+    If more than one interval is given, 'Between' returns 'True' if $x$ belongs \\
     to one of them:
 
     >> {Between[3, {1, 2}, {4, 6}], Between[5, {1, 2}, {4, 6}]}
@@ -640,9 +658,9 @@ class Inequality(Builtin):
         elif count % 2 == 0:
             evaluation.message("Inequality", "ineq", count)
         elif count == 3:
-            name = elements[1].get_name()
-            if name in operators:
-                return Expression(Symbol(name), elements[0], elements[2])
+            symbol = elements[1]
+            if symbol in OPERATOR_TO_ARGUMENT_MAP:
+                return Expression(symbol, elements[0], elements[2])
         else:
             groups = [
                 Expression(SymbolInequality, *elements[index - 1 : index + 2])
@@ -908,7 +926,7 @@ class Unequal(_EqualityOperator, _SympyComparison):
     >> "a" != "a"
      = False
 
-    'Unequal' using an empty parameter or list, or a list with one element is True. This is the same as 'Equal".
+    'Unequal' with an empty list or a list with one element is True. This is the same as 'Equal".
 
     >> {Unequal[], Unequal[x], Unequal[1]}
      = {True, True, True}
