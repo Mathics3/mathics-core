@@ -85,7 +85,7 @@ class DocTestPipeline:
 
         self.parameters = TestParameters(
             check_partial_elapsed_time=args.elapsed_times,
-            data_path=data_path,
+            data_path=None,
             keep_going=args.keep_going and not args.stop_on_failure,
             max_tests=args.count + args.skip,
             quiet=args.quiet,
