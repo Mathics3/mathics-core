@@ -17,6 +17,7 @@ from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolHoldExpression,
     SymbolInputStream,
+    SymbolList,
     SymbolOutputStream,
     SymbolReal,
 )
@@ -265,7 +266,7 @@ def read_list_from_types(read_types):
     """Return a Mathics3 List from a list of read_type names or a single read_type"""
 
     # Trun read_types into a list if it isn't already one.
-    if read_types.has_form("List", None):
+    if read_types.has_form(SymbolList, None):
         read_types = read_types._elements
     else:
         read_types = (read_types,)

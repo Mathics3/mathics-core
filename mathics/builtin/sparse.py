@@ -13,6 +13,7 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
+    SymbolList,
     SymbolRule,
     SymbolSparseArray,
     SymbolTable,
@@ -60,14 +61,14 @@ class SparseArray(Builtin):
 
         elements = []
         dims = None
-        if not array.has_form("List", None):
+        if not array.has_form(SymbolList, None):
             return array
         if len(array.elements) == 0:
             return
         # The first element determines the dimensions
         dims = None
         element = array.elements[0]
-        if element.has_form("List", None):
+        if element.has_form(SymbolList, None):
             element = self.list_to_sparse(element, evaluation)
             if element is None:
                 return None
@@ -134,7 +135,7 @@ class SparseArray(Builtin):
         # Now, apply the rules...
         for item in data.elements:
             pos, val = item.elements
-            if pos.has_form("List", None):
+            if pos.has_form(SymbolList, None):
                 eval_Part([table], pos.elements, evaluation, val)
         return table
 
@@ -142,7 +143,7 @@ class SparseArray(Builtin):
         dims = None
         for rule in rules:
             pos = rule.elements[0]
-            if pos.has_form("List", None):
+            if pos.has_form(SymbolList, None):
                 if dims is None:
                     dims = [0] * len(pos.elements)
                 for i, idx in enumerate(pos.elements):
@@ -155,7 +156,7 @@ class SparseArray(Builtin):
 
     def eval_with_rules(self, rules, evaluation: Evaluation):
         """SparseArray[rules_List]"""
-        if not (rules.has_form("List", None) and len(rules.elements) > 0):
+        if not (rules.has_form(SymbolList, None) and len(rules.elements) > 0):
             if rules is SymbolAutomatic:
                 return
             evaluation.message("SparseArray", "list", rules)

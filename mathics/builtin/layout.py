@@ -17,6 +17,7 @@ from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
+    SymbolList,
     SymbolMakeBoxes,
     SymbolPostfix,
     SymbolPrefix,
@@ -186,7 +187,7 @@ class Grid(Builtin):
         elements = array.elements
 
         rows = (
-            element.elements if element.has_form("List", None) else element
+            element.elements if element.has_form(SymbolList, None) else element
             for element in elements
         )
 

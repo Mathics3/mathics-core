@@ -12,6 +12,7 @@ and in iterators.
 """
 
 from mathics.core.atoms import Integer, Number
+from mathics.core.atoms.numerics import is_inexact
 from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -30,9 +31,9 @@ def numerify(self: BaseElement, evaluation: Evaluation) -> "BaseElement":
         return self
     _prec = None
     for element in self._elements:
-        if element.is_inexact():
+        if is_inexact(element):
             element_prec = element.get_precision()
-            if _prec is None or element_prec < _prec:
+            if _prec is None or element_prec is None or element_prec < _prec:
                 _prec = element_prec
     if _prec is not None:
         new_elements = self.get_mutable_elements()

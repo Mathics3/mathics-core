@@ -50,6 +50,7 @@ from mathics.core.atoms import (
     PrecisionReal,
     String,
 )
+from mathics.core.atoms.numerics import is_inexact, min_prec
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_LISTABLE,
@@ -67,7 +68,7 @@ from mathics.core.exceptions import MessageException
 from mathics.core.expression import Expression
 from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
 from mathics.core.list import ListExpression
-from mathics.core.number import PrecisionValueError, dps, get_precision, min_prec
+from mathics.core.number import PrecisionValueError, dps, get_precision
 from mathics.core.parser.operators import OPERATOR_DATA
 from mathics.core.parser.util import PyMathicsDefinitions, SystemDefinitions
 from mathics.core.pattern import BasePattern
@@ -813,8 +814,8 @@ class MPMathFunction(SympyFunction):
 
         args = numerify(z, evaluation).get_sequence()
 
-        # if no arguments are inexact attempt to use sympy
-        if all(not x.is_inexact() for x in args):
+        # if no arguments are inexact, attempt to use SymPy.
+        if all(not is_inexact(x) for x in args):
             result = to_expression(self.get_name(), *args).to_sympy()
             result = self.prepare_mathics(result)
             result = from_sympy(result)

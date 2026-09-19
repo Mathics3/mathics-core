@@ -25,6 +25,7 @@ from mathics.core.atoms import (
     Rational,
     Real,
 )
+from mathics.core.atoms.numerics import is_inexact
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_LISTABLE,
@@ -60,11 +61,11 @@ from mathics.eval.numeric import (
 
 def chop(expr, delta=10.0 ** (-10.0)):
     if isinstance(expr, Real):
-        if expr.is_nan(expr):
+        if expr.is_nan:
             return expr
         if -delta < expr.value < delta:
             return Integer0
-    elif isinstance(expr, Complex) and expr.is_inexact():
+    elif isinstance(expr, Complex) and is_inexact(expr):
         real, imag = expr.real, expr.imag
         if -delta < real.get_float_value() < delta:
             real = Integer0
@@ -713,7 +714,7 @@ class Round(Builtin):
     expected_args = (1, 2)
 
     # For now, we handle Rounding Complex numbers as rules.
-    # In the future consider folding this into the code.
+    # In the future, consider folding this into the code.
     rules = {
         "Round[expr_Complex]": "Round[Re[expr], 1] + I * Round[Im[expr], 1]",
         "Round[expr_Complex, k_?RealValuedNumberQ]": (

@@ -22,6 +22,7 @@ from mathics.core.systemsymbols import (
     SymbolByteArray,
     SymbolFailed,
     SymbolInputStream,
+    SymbolList,
     SymbolNone,
     SymbolRule,
     SymbolStringToStream,
@@ -199,7 +200,7 @@ def importer_exporter_options(
     custom_options = []
     remaining_options = options.copy()
 
-    if available_options and available_options.has_form("List", None):
+    if available_options and available_options.has_form(SymbolList, None):
         for name in available_options.elements:
             if isinstance(name, String):
                 py_name = name.get_string_value()
@@ -252,7 +253,7 @@ def eval_Import_general(
 
     current_predetermined_out = evaluation.predetermined_out
     # Check elements
-    if elements.has_form("List", None):
+    if elements.has_form(SymbolList, None):
         elements = elements.get_elements()
     else:
         elements = [elements]

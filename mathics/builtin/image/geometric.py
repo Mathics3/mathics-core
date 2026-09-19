@@ -16,7 +16,7 @@ from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolRule
+from mathics.core.systemsymbols import SymbolAutomatic, SymbolList, SymbolRule
 from mathics.eval.image import get_image_size_spec, resize_width_height
 
 
@@ -80,7 +80,7 @@ class ImageResize(Builtin):
     def eval_resize_width(self, image, s, evaluation, options):
         "ImageResize[image_Image, s_, OptionsPattern[ImageResize]]"
         old_w = image.pixels.shape[1]
-        if s.has_form("List", 1):
+        if s.has_form(SymbolList, 1):
             width = s.elements[0]
         else:
             width = s
@@ -88,10 +88,10 @@ class ImageResize(Builtin):
         if w is None:
             evaluation.message("ImageResize", "imgrssz", s)
             return
-        if s.has_form("List", 1):
+        if s.has_form(SymbolList, 1):
             height = width
         else:
-            height = Symbol("Automatic")
+            height = SymbolAutomatic
         return self.eval_resize_width_height(image, width, height, evaluation, options)
 
     def eval_resize_width_height(self, image, width, height, evaluation, options):

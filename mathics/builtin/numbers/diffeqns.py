@@ -12,7 +12,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol
-from mathics.core.systemsymbols import SymbolFunction, SymbolRule
+from mathics.core.systemsymbols import SymbolFunction, SymbolList, SymbolRule
 
 
 class DSolve(Builtin):
@@ -73,7 +73,7 @@ class DSolve(Builtin):
     def eval(self, eqn, y, x, evaluation: Evaluation):
         "DSolve[eqn_, y_, x_]"
 
-        if eqn.has_form("List", None):
+        if eqn.has_form(SymbolList, None):
             # TODO: Try and solve BVPs using Solve or something analogous OR
             # add this functionality to sympy.
             evaluation.message("DSolve", "symsys")
