@@ -835,12 +835,12 @@ class Needs(Builtin):
 
     Like 'Get',  <url>
     :\$ContextPath:
-    /doc/reference-of-built-in-symbols/scoping-constructs/$contextpath/</url> is updated \
+    /doc/reference-of-built-in-symbols/scoping-constructs/\$contextpath/</url> is updated \
     when a new package context is added.
 
     Builtin variable <url>
     :\$Path:
-    /doc/reference-of-built-in-symbols/directories-and-directory-operations/user-file-directories/$path/</url> is used resolve the context to a file name.
+    /doc/reference-of-built-in-symbols/directories-and-directory-operations/user-file-directories/\$path/</url> is used resolve the context to a file name.
 
     """
 
