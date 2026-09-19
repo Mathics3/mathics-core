@@ -49,7 +49,7 @@ MAX_STORED_SIZE = 10000
 
 ROOT_DIR = osp.dirname(__file__)
 if sys.platform.startswith("win"):
-    DATA_DIR = canonic_filename(osp.join(os.environ["APPDATA"], "Python", "Mathics"))
+    DATA_DIR = osp.join(os.environ["APPDATA"], "Python", "Mathics3")
 else:
     DATA_DIR = osp.join(
         os.environ.get("APPDATA", osp.expanduser("~/.local/var/Mathics3/"))
