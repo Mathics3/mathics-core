@@ -2,17 +2,11 @@
 # -*- coding: utf-8 -*-
 # FIXME: combine with same thing in Mathics3 Django
 """
-Does 2 things which can either be done independently or
-as a pipeline:
-
-1. Extracts tests and runs them from static mdoc files and docstrings from Mathics
-   built-in functions
-2. Creates/updates internal documentation data
+Extracts tests and runs them from static mdoc files and docstrings from Mathics3
+built-in functions.
 """
 
 import os
-import os.path as osp
-import pickle
 import sys
 from argparse import ArgumentParser
 from collections import namedtuple
@@ -31,10 +25,9 @@ from mathics.doc.structure import (
     DocSubsection,
     MathicsMainDocumentation,
 )
-from mathics.doc.utils import load_doctest_data, print_and_log, slugify
+from mathics.doc.utils import print_and_log, slugify
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 from mathics.session import MathicsSession
-from mathics.settings import get_doctest_latex_data_path
 from mathics.timing import show_lru_cache_statistics
 
 # Global variables
@@ -81,7 +74,6 @@ class DocTestPipeline:
         self,
         args,
         output_format="latex",
-        data_path: Optional[str] = None,
         doc_only: bool = False,
     ):
         self.session = MathicsSession()
@@ -99,7 +91,7 @@ class DocTestPipeline:
 
         self.parameters = TestParameters(
             check_partial_elapsed_time=args.elapsed_times,
-            data_path=data_path,
+            data_path=None,
             keep_going=args.keep_going and not args.stop_on_failure,
             max_tests=args.count + args.skip,
             quiet=args.quiet,
@@ -108,7 +100,7 @@ class DocTestPipeline:
             start_at=args.skip + 1,
             doc_only=doc_only,
         )
-        self.status = TestStatus(data_path, self.parameters.quiet)
+        self.status = TestStatus(None, self.parameters.quiet)
 
     def reset_user_definitions(self):
         """Reset the user definitions"""
@@ -141,14 +133,6 @@ class DocTestPipeline:
         else:
             include_names = None
 
-        if test_parameters.reload:
-            doctest_latex_data_path = get_doctest_latex_data_path(
-                should_be_readable=True
-            )
-            self.output_data = load_doctest_data(doctest_latex_data_path)
-        else:
-            self.output_data = {}
-
         if self.session.definitions is None:
             self.print_and_log("Definitions are not initialized.")
             return INVALID_TEST_GROUP_SETUP
@@ -165,7 +149,6 @@ class TestStatus:
     """
 
     def __init__(self, data_path: Optional[str] = None, quiet: Optional[bool] = False):
-        self.texdatafolder = osp.dirname(data_path) if data_path is not None else None
         self.total = 0
         self.failed = 0
         self.skipped = 0
@@ -373,16 +356,13 @@ def load_pymathics_modules(module_names: set, definitions):
     return set(loaded_modules)
 
 
-def summarize_and_write_pcl(
+def summarize(
     test_pipeline: DocTestPipeline,
     entity_name: str,
     entities_searched: str,
 ):
     """
     Print and log test summary results.
-
-    If ``data_path`` is not ``None``, we will also generate output data
-    to ``output_data``.
     """
     test_parameters: TestParameters = test_pipeline.parameters
     test_status: TestStatus = test_pipeline.status
@@ -399,15 +379,8 @@ def summarize_and_write_pcl(
             )
     elif failed > 0:
         test_pipeline.print_and_log(SEP)
-        if test_pipeline.parameters.data_path is None:
-            test_pipeline.print_and_log(
-                f"""{failed} test{'s' if failed != 1 else ''} failed.""",
-            )
-    elif not test_parameters.doc_only:
+    else:
         test_pipeline.print_and_log("All tests passed.")
-
-    if test_parameters.data_path and (failed == 0 or test_parameters.keep_going):
-        save_doctest_data(test_pipeline)
 
 
 def section_tests_iterator(
@@ -559,7 +532,7 @@ def test_tests(
                     continue
 
                 if test_status.total >= test_parameters.max_tests:
-                    summarize_and_write_pcl(
+                    summarize(
                         test_pipeline,
                         "chapters",
                         "",
@@ -573,7 +546,7 @@ def test_tests(
                 )
                 if test_status.failed_sections:
                     if not test_parameters.keep_going:
-                        summarize_and_write_pcl(
+                        summarize(
                             test_pipeline,
                             "chapters",
                             "",
@@ -589,7 +562,7 @@ def test_tests(
                                 exclude_sections=excludes,
                             ),
                         )
-    summarize_and_write_pcl(
+    summarize(
         test_pipeline,
         "chapters",
         "",
@@ -609,8 +582,6 @@ def test_chapters(
 
     If ``quiet`` is True, the progress and results of the tests are shown.
     """
-    test_status = test_pipeline.status
-    test_parameters = test_pipeline.parameters
 
     output_data, chapter_names = test_pipeline.validate_group_setup(
         include_chapters, "chapters"
@@ -630,17 +601,8 @@ def test_chapters(
                     section,
                     exclude_sections=exclude_sections,
                 )
-                if test_parameters.data_path is not None and test_status.failed == 0:
-                    create_output(
-                        test_pipeline,
-                        section_tests_iterator(
-                            section,
-                            test_pipeline,
-                            exclude_sections=exclude_sections,
-                        ),
-                    )
 
-    summarize_and_write_pcl(
+    summarize(
         test_pipeline,
         "chapters",
         chapter_names,
@@ -708,12 +670,8 @@ def test_sections(
                 #         seen_sections.add(section_name_for_finish)
                 #     last_section_name = section_name_for_finish
 
-                # if seen_last_section:
-                #     summarize_and_write_pcl(test_pipeline, "sections", section_names)
-                #     return
-
     assert section_names is not None
-    summarize_and_write_pcl(test_pipeline, "sections", section_names)
+    summarize(test_pipeline, "sections", section_names)
     return
 
 
@@ -777,66 +735,6 @@ def test_all(
         test_pipeline.print_and_log(SEP)
 
     show_report(test_pipeline)
-
-
-def save_doctest_data(doctest_pipeline: DocTestPipeline):
-    """
-    Save doctest tests and test results to a Python PCL file.
-
-    ``output_data`` is a dictionary of test results. The key is a tuple
-    of:
-    * Part name,
-    * Chapter name,
-    * [Guide Section name],
-    * Section name,
-    * Subsection name,
-    * test number
-    and the value is a dictionary of a Result.getdata() dictionary.
-    """
-    output_data: Dict[tuple, dict] = doctest_pipeline.output_data
-
-    if len(output_data) == 0:
-        doctest_pipeline.print_and_log("output data is empty")
-        return
-    doctest_pipeline.print_and_log(f"saving {len(output_data)} entries")
-    doctest_latex_data_path = doctest_pipeline.parameters.data_path
-    doctest_pipeline.print_and_log(
-        f"Writing internal document data to {doctest_latex_data_path}"
-    )
-    with open(doctest_latex_data_path, "wb") as output_file:
-        pickle.dump(output_data, output_file, 4)
-
-
-def write_doctest_data(doctest_pipeline: DocTestPipeline, output_format=None):
-    """
-    Get doctest information, which involves running the tests to obtain
-    test results and write out both the tests and the test results.
-    """
-    test_parameters = doctest_pipeline.parameters
-    if not test_parameters.quiet:
-        doctest_pipeline.print_and_log(
-            f"Extracting internal doc data for {version_string}"
-        )
-        print("This may take a while...")
-
-    try:
-        doctest_pipeline.output_data = (
-            load_doctest_data(test_parameters.data_path)
-            if test_parameters.reload
-            else {}
-        )
-        for tests in doctest_pipeline.documentation.get_tests():
-            create_output(
-                doctest_pipeline,
-                tests,
-            )
-    except KeyboardInterrupt:
-        doctest_pipeline.print_and_log("\nAborted.\n")
-        return
-
-    print("done.\n")
-
-    save_doctest_data(doctest_pipeline)
 
 
 def build_arg_parser():
@@ -971,13 +869,8 @@ def build_arg_parser():
 def main():
     """main"""
     args = build_arg_parser()
-    data_path = (
-        get_doctest_latex_data_path(should_be_readable=False, create_parent=True)
-        if args.output
-        else None
-    )
 
-    test_pipeline = DocTestPipeline(args, output_format="latex", data_path=data_path)
+    test_pipeline = DocTestPipeline(args, output_format="latex")
     test_status = test_pipeline.status
 
     start_time = None
@@ -992,12 +885,9 @@ def main():
         exclude_sections = set(args.exclude.split(","))
         test_chapters(test_pipeline, include_chapters, exclude_sections)
     else:
-        if args.doc_only:
-            write_doctest_data(test_pipeline)
-        else:
-            excludes = set(args.exclude.split(","))
-            start_time = datetime.now()
-            test_all(test_pipeline, excludes=excludes)
+        excludes = set(args.exclude.split(","))
+        start_time = datetime.now()
+        test_all(test_pipeline, excludes=excludes)
 
     if test_status.total > 0 and start_time is not None:
         test_pipeline.print_and_log(
