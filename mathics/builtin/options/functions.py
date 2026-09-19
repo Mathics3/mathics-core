@@ -30,11 +30,11 @@ class CheckArguments(Builtin):
       https://reference.wolfram.com/language/ref/CheckArguments.html</url>
 
     <dl>
-      <dt>'CheckArguments'[$f[args]$, $n$]
-      <dd>returns 'True" if args consists of $n$ positional arguments followed by valid options \
+      <dt>'CheckArguments'[$f$[$args$], $n$]
+      <dd>returns 'True' if args consists of $n$ positional arguments followed by valid options \
       for $f$ and 'False' if not.
 
-      <dt>'CheckArguments'[$f[args]$, ${min, max$]
+      <dt>'CheckArguments'[$f$[$args$], {$min$, $max$}]
       <dd>same as above but checks only the positional arguments between $min$, and $max$.
     </dl>
 
