@@ -52,7 +52,6 @@ TestParameters = namedtuple(
         "output_format",
         "reload",
         "start_at",
-        "doc_only",  # we don't care about the actual test
     ],
 )
 
@@ -74,7 +73,6 @@ class DocTestPipeline:
         self,
         args,
         output_format="latex",
-        doc_only: bool = False,
     ):
         self.session = MathicsSession()
         self.output_data: Dict[tuple, dict] = {}
@@ -98,7 +96,6 @@ class DocTestPipeline:
             output_format=output_format,
             reload=args.reload and not (args.chapters or args.sections),
             start_at=args.skip + 1,
-            doc_only=doc_only,
         )
         self.status = TestStatus(None, self.parameters.quiet)
 
@@ -196,7 +193,6 @@ def test_case(
     test_pipeline: DocTestPipeline,
     fail: Callable,
     output_format: Optional[str] = None,
-    doc_only: bool = False,
 ) -> bool:
     """
     Run a single test cases ``test``. Return True if test succeeds and False if it
@@ -218,9 +214,6 @@ def test_case(
         info = sys.exc_info()
         sys.excepthook(*info)
         return False
-
-    if doc_only:
-        return True
 
     time_start = datetime.now()
     comparison_result = test.compare_result(result, encoding=CHARACTER_ENCODING)
@@ -483,7 +476,6 @@ def test_section_in_chapter(
             test_pipeline,
             fail=fail_message,
             output_format=output_format,
-            doc_only=test_pipeline.parameters.doc_only,
         )
         if not success:
             test_status.mark_as_failed(doctest.key[:-1])
@@ -705,7 +697,6 @@ def show_report(test_pipeline):
     if test_parameters.data_path is not None and (
         test_status.failed == 0 or test_parameters.keep_going
     ):
-        save_doctest_data(test_pipeline)
         return
 
 
@@ -804,15 +795,6 @@ def build_arg_parser():
         dest="output",
         action="store_true",
         help="generate pickled internal document data",
-    )
-    parser.add_argument(
-        "--doc-only",
-        dest="doc_only",
-        action="store_true",
-        help=(
-            "generate pickled internal document data without running tests; "
-            "Can't be used with --section or --reload."
-        ),
     )
     parser.add_argument(
         "--reload",
