@@ -70,6 +70,7 @@ from mathics.core.systemsymbols import (
     SymbolList,
     SymbolLog,
     SymbolNIntegrate,
+    SymbolRoot,
     SymbolRule,
     SymbolSequence,
     SymbolSeries,

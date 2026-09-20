@@ -92,6 +92,22 @@ class Definition:
             if not self.add_rule(rule):
                 print(f"{rule.pattern.expr} could not be associated with {self.name}")
 
+    def __repr__(self) -> str:
+        repr_str = (
+            "<Definition: name: {},"
+            "\n ownvalues: {},\n"
+            " downvalues: {},\n"
+            " formats: {},\n"
+            " attributes: {}>"
+        ).format(
+            self.name,
+            self.ownvalues,
+            self.downvalues,
+            self.formatvalues,
+            self.attributes,
+        )
+        return repr_str
+
     def _resolve(self, evaluation: "Evaluation"):
         """
         Go over all the rules, and ensure that the corresponding patterns are in its final state
@@ -110,22 +126,6 @@ class Definition:
         for rule_list in self.formatvalues.values():
             for rule in rule_list:
                 rule._resolve(evaluation)
-
-    def __repr__(self) -> str:
-        repr_str = (
-            "<Definition: name: {},"
-            "\n ownvalues: {},\n"
-            " downvalues: {},\n"
-            " formats: {},\n"
-            " attributes: {}>"
-        ).format(
-            self.name,
-            self.ownvalues,
-            self.downvalues,
-            self.formatvalues,
-            self.attributes,
-        )
-        return repr_str
 
     def add_rule(self, rule: BaseRule) -> bool:
         """Add a rule to one of the Rule lists. The specific rule list is
@@ -224,7 +224,6 @@ class Definitions:
         # decided what information to show
         self.trace_evaluation = False
         self.trace_show_rewrite = False
-
         if add_builtin:
             load_builtin_definitions(self, builtin_filename, extension_modules)
 

@@ -1,6 +1,5 @@
 (*Rules for Elements*)
 
-
 System`Integers::usage="Represents the set of the Integers numbers";
 System`Primes::usage="Represents the set of the prime numbers";
 System`Rationals::usage="Represents the set of the Rational numbers";

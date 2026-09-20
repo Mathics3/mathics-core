@@ -261,7 +261,6 @@ def render_output_form(expr: BaseElement, evaluation: Evaluation, **kwargs):
     """
     Build a pretty-print text from an `Expression`
     """
-    lookup_name: str
     format_expr: Expression = do_format(expr, evaluation, SymbolOutputForm)  # type: ignore
 
     while format_expr.has_form("HoldForm", 1):  # type: ignore
