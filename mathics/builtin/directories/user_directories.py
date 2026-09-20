@@ -26,10 +26,10 @@ class Path(Predefined):
 
     '\$Path' used consulted in builtin functions  <url>
     :\$Get:
-    /doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/file-and-stream-operations/get/</url>, \
+    /doc/reference-of-built-in-symbols/files-filesystem-and-inputoutput/file-and-stream-operations/get/</url>, \
     and <url>
     :Needs:
-    /doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/filesystem-operations/needs/</url> to resolve filenames, and to resolve contexts to file names.
+    /doc/reference-of-built-in-symbols/files-filesystem-and-inputoutput/filesystem-operations/needs/</url> to resolve filenames, and to resolve contexts to file names.
     """
 
     attributes = A_NO_ATTRIBUTES
