@@ -169,7 +169,7 @@ class Quantity(Builtin):
                     return None
                 result = Expression(SymbolPower, format_units(base), exp)
                 return result
-            if units.has_form("Times", None):
+            if units.has_form(SymbolTimes, None):
                 result = Expression(
                     SymbolTimes, *(format_units(factor) for factor in units.elements)
                 )
@@ -199,7 +199,7 @@ class Quantity(Builtin):
         if isinstance(unit, Number):
             return Expression(SymbolTimes, mag, unit).evaluate(evaluation)
 
-        if unit.has_form("Quantity", 2):
+        if unit.has_form(SymbolQuantity, 2):
             if not validate_unit_expression(unit):
                 return None
             unit = unit.elements[1]
@@ -220,7 +220,7 @@ class Quantity(Builtin):
         unit = unit.evaluate(evaluation)
         if isinstance(unit, Number):
             return unit
-        if unit.has_form("Quantity", 2):
+        if unit.has_form(SymbolQuantity, 2):
             return unit
         try:
             unit = normalize_unit_expression(unit)
@@ -282,14 +282,14 @@ class QuantityMagnitude(Builtin):
     def eval_quantity_unit(self, quantity, targetUnit, evaluation: Evaluation):
         "QuantityMagnitude[quantity_Quantity, targetUnit_]"
 
-        if targetUnit.has_form("System`List", None):
+        if targetUnit.has_form(SymbolList, None):
             return ListExpression(
                 *(
                     Expression(Symbol(self.get_name()), quantity, u)
                     for u in targetUnit.elements
                 )
             )
-        if targetUnit.has_form("Quantity", 2):
+        if targetUnit.has_form(SymbolQuantity, 2):
             targetUnit = targetUnit.elements[1]
 
         try:
@@ -334,7 +334,7 @@ class QuantityQ(Test):
     summary_text = "tests whether its the argument is a quantity"
 
     def test(self, expr) -> bool:
-        if not expr.has_form("Quantity", 2):
+        if not expr.has_form(SymbolQuantity, 2):
             return False
         try:
             magnitude, unit = expr.elements
@@ -423,7 +423,7 @@ class UnitConvert(Builtin):
 
     def eval_quantity_to_unit_from_quantity(self, expr, toUnit, evaluation: Evaluation):
         "UnitConvert[expr_, toUnit_Quantity]"
-        if not toUnit.has_form("Quantity", 2):
+        if not toUnit.has_form(SymbolQuantity, 2):
             return None
         toUnit = toUnit.elements[1]
         return Expression(Symbol(self.get_name()), expr, toUnit).evaluate(evaluation)
@@ -439,7 +439,7 @@ class UnitConvert(Builtin):
                     for elem in expr.elements
                 )
             )
-        if not expr.has_form("Quantity", 2):
+        if not expr.has_form(SymbolQuantity, 2):
             return None
 
         mag, unit = expr.elements

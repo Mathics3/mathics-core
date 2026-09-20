@@ -34,7 +34,7 @@ def format_plus(items, evaluation: Evaluation) -> Expression:
     """format Times[___] using `op` as operator"""
 
     def negate(item):  # -> Expression (see FIXME below)
-        if item.has_form("Times", 2, None):
+        if item.has_form(SymbolTimes, 2, None):
             if isinstance(item.elements[0], Number):
                 first, *rest = item.elements
                 first = -first
@@ -65,7 +65,7 @@ def format_plus(items, evaluation: Evaluation) -> Expression:
     ops = []
     for element in elements[1:]:
         if (
-            element.has_form("Times", 1, None) and is_negative(element.elements[0])
+            element.has_form(SymbolTimes, 1, None) and is_negative(element.elements[0])
         ) or is_negative(element):
             element = negate(element)
             op = "-"

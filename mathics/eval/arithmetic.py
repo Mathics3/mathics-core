@@ -11,7 +11,7 @@ Many of these depend on the evaluation context. Conversions to SymPy are
 used just as a last resource.
 """
 
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, Optional
 
 import mpmath
 import sympy
@@ -37,7 +37,12 @@ from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement
 from mathics.core.number import FP_MANTISA_BINARY_DIGITS, SpecialValueError
 from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolPower, SymbolTimes
-from mathics.core.systemsymbols import SymbolComplexInfinity, SymbolI, SymbolLog
+from mathics.core.systemsymbols import (
+    SymbolComplexInfinity,
+    SymbolI,
+    SymbolLog,
+    SymbolSqrt,
+)
 from mathics.eval.numeric import eval_Power_number, eval_RealSign, to_inexact_value
 
 RationalMOneHalf = Rational(-1, 2)
@@ -195,7 +200,7 @@ def eval_RealValuedNumberQ(expr) -> bool:
 
 def segregate_numbers(
     *elements: BaseElement,
-) -> Tuple[List[Number], List[BaseElement]]:
+) -> tuple[list[Number], list[BaseElement]]:
     """
     From a list of elements, produce two lists, one with the numeric items
     and the other with the remaining
@@ -207,16 +212,16 @@ def segregate_numbers(
 
 
 # Note: we return:
-#  Tuple[List[Number], List[BaseElement]]
+#  tuple[list[Number], list[BaseElement]]
 #             ^^^^^
 # But the mypy type checking system can't
 # look into the loop and its condition and
-# prove that the return type is List[Number].
+# prove that the return type is list[Number].
 # So we use the weaker type assertion
-# which is the one on elements: List[BaseElement].
+# which is the one on elements: list[BaseElement].
 def segregate_numbers_from_sorted_list(
     *elements: BaseElement,
-) -> Tuple[List[BaseElement], List[BaseElement]]:
+) -> tuple[list[BaseElement], list[BaseElement]]:
     """
     From a list of elements, produce two lists, one with the numeric items
     and the other with the remaining. Different from `segregate_numbers`,
@@ -268,7 +273,7 @@ def test_arithmetic_expr(expr: BaseElement, only_real: bool = True) -> bool:
             elif not test_arithmetic_expr(base):
                 return False
         return test_arithmetic_expr(elements[-1], only_real)
-    if expr.has_form("Sqrt", 1):
+    if expr.has_form(SymbolSqrt, 1):
         radicand = elements[0]
         if only_real:
             return eval_RealSign(radicand) in (Integer0, Integer1)

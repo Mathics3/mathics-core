@@ -134,9 +134,9 @@ def expression_to_pint_string(expr: BaseElement) -> str:
     """
     if isinstance(expr, String):
         result = expr.value
-    elif expr.has_form("Times", None):
+    elif expr.has_form(SymbolTimes, None):
         result = "*".join(expression_to_pint_string(factor) for factor in expr.elements)
-    elif expr.has_form("Power", 2):
+    elif expr.has_form(SymbolPower, 2):
         base, power = expr.elements
         if not isinstance(power, Integer):
             raise ValueError("invalid unit expression")
@@ -288,11 +288,11 @@ def validate_unit_expression(unit: BaseElement) -> bool:
     if isinstance(unit, String):
         unit_value = strip_string_quotes(unit.value)
         return validate_pint_unit(unit_value)
-    if unit.has_form("Power", 2):
+    if unit.has_form(SymbolPower, 2):
         base, exp = unit.elements
         if not isinstance(exp, Integer):
             return False
         return validate_unit_expression(base)
-    if unit.has_form("Times", None):
+    if unit.has_form(SymbolTimes, None):
         return all(validate_unit_expression(factor) for factor in unit.elements)
     return False
