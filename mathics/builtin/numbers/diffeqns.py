@@ -85,7 +85,7 @@ class DSolve(Builtin):
 
         if isinstance(x, Symbol):
             syms = [x]
-        elif x.has_form("List", 1, None):
+        elif x.has_form(SymbolList, 1, None):
             syms = sorted(x.elements)
         else:
             evaluation.message("DSolve", "dsvar", x)

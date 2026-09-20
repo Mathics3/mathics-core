@@ -36,7 +36,7 @@ from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement
 from mathics.core.number import FP_MANTISA_BINARY_DIGITS, SpecialValueError
-from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolTimes
+from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolPower, SymbolTimes
 from mathics.core.systemsymbols import SymbolComplexInfinity, SymbolI, SymbolLog
 from mathics.eval.numeric import eval_Power_number, eval_RealSign, to_inexact_value
 
@@ -250,7 +250,7 @@ def test_arithmetic_expr(expr: BaseElement, only_real: bool = True) -> bool:
 
     if head in (SymbolPlus, SymbolTimes):
         return all(test_arithmetic_expr(term, only_real) for term in elements)
-    if expr.has_form("Power", 2):
+    if expr.has_form(SymbolPower, 2):
         base, exponent = elements
         if only_real:
             if isinstance(exponent, Integer):

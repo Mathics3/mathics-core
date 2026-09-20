@@ -163,7 +163,7 @@ class Quantity(Builtin):
                     result = String(q_unit.replace("_", " "))
                     return result
                 return None
-            if units.has_form("Power", 2):
+            if units.has_form(SymbolPower, 2):
                 base, exp = units.elements
                 if not isinstance(exp, Integer):
                     return None

@@ -2,7 +2,7 @@
 Polynomial-like Routines.
 """
 
-from typing import Final, FrozenSet, Optional, Tuple, Union
+from typing import Final, FrozenSet, Optional, Union
 
 import sympy
 
@@ -163,7 +163,7 @@ def coeff_power(
                 if match(pf.elements[0], pat, evaluation):
                     powers[i] = RationalOneHalf
                     return powers
-        if pf.has_form("Power", 2):
+        if pf.has_form(SymbolPower, 2):
             for i, pat in enumerate(var_pats):
                 matchval = match(pf.elements[0], pat, evaluation)
                 if matchval:
@@ -183,7 +183,7 @@ def coeff_power(
                     return powers
         return powers
 
-    def split_coeff_pow(term) -> Tuple[Optional[list], Optional[list]]:
+    def split_coeff_pow(term) -> tuple[Optional[list], Optional[list]]:
         """
         This function factorizes term in a coefficient free
         of powers of the target variables, and a factor with
@@ -199,7 +199,7 @@ def coeff_power(
             return None, term
         elif (
             isinstance(term, Symbol)
-            or term.has_form("Power", 2)
+            or term.has_form(SymbolPower, 2)
             or term.has_form("Sqrt", 1)
         ):
             powers.append(term)
@@ -210,7 +210,7 @@ def coeff_power(
                 elif match(factor, target_pat, evaluation):
                     powers.append(factor)
                 elif (
-                    factor.has_form("Power", 2) or factor.has_form("Sqrt", 1)
+                    factor.has_form(SymbolPower, 2) or factor.has_form("Sqrt", 1)
                 ) and match(factor.elements[0], target_pat, evaluation):
                     powers.append(factor)
                 else:
@@ -253,7 +253,7 @@ def coeff_power(
     elif (
         isinstance(expr, Symbol)
         or match(expr, target_pat, evaluation)
-        or expr.has_form("Power", 2)
+        or expr.has_form(SymbolPower, 2)
         or expr.has_form("Sqrt", 1)
     ):
         coeff = Expression(filt, Integer1).evaluate(evaluation) if filt else Integer1
