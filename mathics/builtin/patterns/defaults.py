@@ -12,7 +12,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.keycomparable import PATTERN_SORT_KEY_OPTIONAL
 from mathics.core.pattern import BasePattern
-from mathics.core.systemsymbols import SymbolDefault
+from mathics.core.systemsymbols import SymbolDefault, SymbolSequence
 from mathics.eval.patterns import get_default_value
 
 # This tells documentation how to sort this module
@@ -202,7 +202,7 @@ class Optional(InfixOperator, PatternObject):
         vars_dict = pattern_context["vars_dict"]
         yield_func = pattern_context["yield_func"]
 
-        if expression.has_form("Sequence", 0):
+        if expression.has_form(SymbolSequence, 0):
             if self.default is None:
                 if head is None:  # head should be given by match_element!
                     default = None

@@ -72,7 +72,7 @@ class SparseArray(Builtin):
             element = self.list_to_sparse(element, evaluation)
             if element is None:
                 return None
-        if element.has_form("SparseArray", None):
+        if element.has_form(SymbolSparseArray, None):
             dims = element.elements[1]
         if dims:
             elements = [element]
@@ -82,14 +82,14 @@ class SparseArray(Builtin):
                 newelement = self.list_to_sparse(element, evaluation)
                 if newelement is None:
                     return
-                if not newelement.has_form("SparseArray", None):
+                if not newelement.has_form(SymbolSparseArray, None):
                     return
                 if not dims == newelement.elements[1]:
                     return
                 elements.append(newelement)
         else:
             for i, element in enumerate(array.elements):
-                if element.has_form("SparseArray", None) or element.has_form(
+                if element.has_form(SymbolSparseArray, None) or element.has_form(
                     "List", None
                 ):
                     return

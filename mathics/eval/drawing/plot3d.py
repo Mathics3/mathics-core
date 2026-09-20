@@ -17,6 +17,7 @@ from mathics.core.symbols import SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAll,
     SymbolColorData,
+    SymbolColorDataFunction,
     SymbolFull,
     SymbolFunction,
     SymbolSlot,
@@ -426,7 +427,7 @@ def eval_DensityPlot(
         func = Expression(
             SymbolColorData, String(color_function.get_string_value())
         ).evaluate(evaluation)
-        if func.has_form("ColorDataFunction", 4):
+        if func.has_form(SymbolColorDataFunction, 4):
             color_function_min = func.elements[2].elements[0].round_to_float()
             color_function_max = func.elements[2].elements[1].round_to_float()
             color_function = Expression(
@@ -436,7 +437,7 @@ def eval_DensityPlot(
         else:
             evaluation.message("DensityPlot", "color", func)
             return
-    if color_function.has_form("ColorDataFunction", 4):
+    if color_function.has_form(SymbolColorDataFunction, 4):
         color_function_min = color_function.elements[2].elements[0].round_to_float()
         color_function_max = color_function.elements[2].elements[1].round_to_float()
 
@@ -446,7 +447,7 @@ def eval_DensityPlot(
     if v_range == 0:
         v_range = 1
 
-    if color_function.has_form("ColorDataFunction", 4):
+    if color_function.has_form(SymbolColorDataFunction, 4):
         color_func = color_function.elements[3]
     else:
         color_func = color_function

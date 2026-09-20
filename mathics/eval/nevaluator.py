@@ -21,7 +21,13 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import PrecisionValueError, get_precision
 from mathics.core.symbols import Atom, SymbolList
-from mathics.core.systemsymbols import SymbolMachinePrecision, SymbolN, SymbolRule
+from mathics.core.systemsymbols import (
+    SymbolMachinePrecision,
+    SymbolN,
+    SymbolRoot,
+    SymbolRootSum,
+    SymbolRule,
+)
 
 
 # FIXME: Add the two-argument form N[expr, n]
@@ -96,7 +102,7 @@ def eval_NValues(
 
     # Special case for the Root builtin
     # This should be implemented as an NValue
-    if expr.has_form("Root", 2) or expr.has_form("RootSum", 2):
+    if expr.has_form((SymbolRoot, SymbolRootSum), 2):
         return from_sympy(sympy.N(expr.to_sympy(), d))
 
     # Here we look for the NValues associated to the

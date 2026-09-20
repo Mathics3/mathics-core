@@ -39,9 +39,12 @@ from mathics.core.number import FP_MANTISA_BINARY_DIGITS, SpecialValueError
 from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolPower, SymbolTimes
 from mathics.core.systemsymbols import (
     SymbolComplexInfinity,
+    SymbolExp,
     SymbolI,
     SymbolLog,
+    SymbolOverflow,
     SymbolSqrt,
+    SymbolUnderflow,
 )
 from mathics.eval.numeric import eval_Power_number, eval_RealSign, to_inexact_value
 
@@ -191,10 +194,8 @@ def eval_negate_number(n: Number) -> Number:
 
 
 def eval_RealValuedNumberQ(expr) -> bool:
-    return (
-        isinstance(expr, (Integer, Rational, Real))
-        or expr.has_form("Underflow", 0)
-        or expr.has_form("Overflow", 0)
+    return isinstance(expr, (Integer, Rational, Real)) or expr.has_form(
+        (SymbolUnderflow, SymbolOverflow), 0
     )
 
 
@@ -261,7 +262,7 @@ def test_arithmetic_expr(expr: BaseElement, only_real: bool = True) -> bool:
             if isinstance(exponent, Integer):
                 return test_arithmetic_expr(base)
         return all(test_arithmetic_expr(item, only_real) for item in elements)
-    if expr.has_form("Exp", 1):
+    if expr.has_form(SymbolExp, 1):
         return test_arithmetic_expr(elements[0], only_real)
     if head is SymbolLog:
         if len(elements) > 2:
