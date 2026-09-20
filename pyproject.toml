@@ -105,16 +105,17 @@ ignore-words = "codespell-ignore.txt"
 skip = "*.pyd,*.pyc,./.git,./.venv,./build"
 
 [tool.setuptools]
-include-package-data = true
+include-package-data = false
 
 [tool.setuptools.packages.find]
 include = ["mathics*"]
 
 [tool.setuptools.package-data]
 "mathics" = [
-    "Autoload/*.m",
-    "Packages/*/*.m",
-    "Packages/*/Kernel/init.m",
+    "Autoload/*.wl",
+    "Autoload/*/*.wl",
+    "Packages/*/*.wl",
+    "Packages/*/Kernel/init.wl",
     "SystemFiles/CharacterEncodings/*",
     "SystemFiles/Dictionaries/*/*.txt",
     "SystemFiles/Formats/*/*.wl",
