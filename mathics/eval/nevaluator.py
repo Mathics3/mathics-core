@@ -105,7 +105,7 @@ def eval_NValues(
     # reevaluate the result and apply `eval_NValues` again.
     # This should be implemented as a loop instead of
     # recursively.
-    name = expr.get_lookup_name()
+    name = expr.get_symbol_definition_name()
     if name != "":
         nexpr = Expression(SymbolN, expr, prec)
         try:

@@ -41,7 +41,7 @@ class String(Atom, BoxElementMixin):
         """
         from mathics.format.box import _boxed_string
 
-        inner = str(self.value)
+        inner = self.value
         if f in SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM:
             inner = inner.replace("\\", "\\\\")
             inner = inner.replace('"', '\\"')

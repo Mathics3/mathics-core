@@ -116,7 +116,7 @@ def eval_makeboxes_traditional_form(expr, evaluation):
 
 def apply_makeboxes_rules(
     expr: BaseElement, evaluation: Evaluation, form: Symbol = SymbolStandardForm
-) -> BoxElementMixin:
+) -> BoxElementMixin | BaseElement | None:
     """
     This function takes the definitions provided by the evaluation
     object, and produces a boxed fullform for expr.
@@ -136,8 +136,8 @@ def apply_makeboxes_rules(
 
     def yield_rules():
         # Look
-        for lookup in (expr.get_lookup_name(), "System`MakeBoxes"):
-            definition = evaluation.definitions.get_definition(lookup)
+        for symbol_name in (expr.get_symbol_definition_name(), "System`MakeBoxes"):
+            definition = evaluation.definitions.get_definition(symbol_name)
             for rule in definition.formatvalues.get("_MakeBoxes", []):
                 yield rule
 
@@ -253,7 +253,7 @@ def eval_generic_makeboxes(expr, f, evaluation):
         expr = expr.to_expression()
     if isinstance(expr, Atom):
         return expr.atom_to_boxes(f, evaluation)
-    if expr.has_form("List", None):
+    if expr.has_form(SymbolList, None):
         return RowBox(*list_boxes(expr.elements, f, evaluation, "{", "}"))
     else:
         head = expr.head
@@ -352,7 +352,9 @@ def format_element(
     return result
 
 
-def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElementMixin:
+def to_boxes(
+    x, evaluation: Evaluation, options={}
+) -> BoxElementMixin | BaseElement | None:
     """
     This function takes the expression ``x``
     and tries to reduce it to a ``BoxElementMixin``

@@ -296,14 +296,14 @@ class CoefficientArrays(Builtin):
     def eval_list(self, polys, varlist, evaluation: Evaluation, options: dict):
         "%(name)s[polys_, varlist_, OptionsPattern[]]"
 
-        if polys.has_form("List", None):
+        if polys.has_form(SymbolList, None):
             list_polys = polys.elements
         else:
             list_polys = [polys]
 
         if isinstance(varlist, Symbol):
             var_exprs = [varlist]
-        elif varlist.has_form("List", None):
+        elif varlist.has_form(SymbolList, None):
             var_exprs = varlist.elements
         else:
             var_exprs = [varlist]
@@ -406,7 +406,11 @@ class CoefficientList(Builtin):
 
     def eval(self, expr: Expression, form: Expression, evaluation: Evaluation):
         "CoefficientList[expr_, form_]"
-        vars = [form] if not form.has_form("List", None) else [v for v in form.elements]
+        vars = (
+            [form]
+            if not form.has_form(SymbolList, None)
+            else [v for v in form.elements]
+        )
 
         # check form is not a variable
         for v in vars:
@@ -425,7 +429,7 @@ class CoefficientList(Builtin):
             return ListExpression(SymbolNull)
         elif f_null:
             return ListExpression(expr)
-        elif form.has_form("List", 0):
+        elif form.has_form(SymbolList, 0):
             return expr
         elif expr.get_head_name() == "System`SeriesData":
             coeffs: ListExpression
@@ -456,7 +460,7 @@ class CoefficientList(Builtin):
             ]
 
             # single & multiple variables cases
-            if not form.has_form("List", None):
+            if not form.has_form(SymbolList, None):
                 return ListExpression(
                     *[
                         coefficient(
@@ -465,7 +469,7 @@ class CoefficientList(Builtin):
                         for n in range(dimensions[0] + 1)
                     ],
                 )
-            elif form.has_form("List", 1):
+            elif form.has_form(SymbolList, 1):
                 form = form.elements[0]
                 return ListExpression(
                     *[
@@ -557,7 +561,7 @@ class Collect(Builtin):
             filt = None
         if isinstance(varlist, Symbol):
             var_exprs = [varlist]
-        elif varlist.has_form("List", None):
+        elif varlist.has_form(SymbolList, None):
             var_exprs = varlist.elements
         else:
             var_exprs = [varlist]
@@ -943,7 +947,7 @@ class Exponent(Builtin):
         if expr == Integer0:
             return MATHICS3_NEG_INFINITY
 
-        if not form.has_form("List", None):
+        if not form.has_form(SymbolList, None):
             # TODO: add ElementProperties in Expression interface refactor branch:
             #   fully_evaluated, flat, and is_ordered are all True
             return Expression(h, *[i for i in get_exponents_sorted(expr, form)])
@@ -1214,7 +1218,7 @@ class Simplify(Builtin):
         if self.eval(Expression(SymbolLess, b, Integer0), evaluation) is SymbolTrue:
             return MATHICS3_COMPLEX_INFINITY
         if self.eval(Expression(SymbolEqual, b, Integer0), evaluation) is SymbolTrue:
-            return Symbol(SymbolIndeterminate)
+            return SymbolIndeterminate
         return Expression(SymbolPower, Integer0, b)
 
     def eval(self, expr, evaluation, options={}):
@@ -1469,7 +1473,7 @@ class PolynomialQ(Builtin):
         var = v[0]
         if var is SymbolNull:
             return SymbolTrue
-        elif var.has_form("List", None):
+        elif var.has_form(SymbolList, None):
             if len(var.elements) == 0:
                 evaluation.message("PolynomialQ", "novar")
                 return

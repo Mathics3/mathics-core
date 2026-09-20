@@ -8,10 +8,9 @@ with WMA.
 """
 # TODO: consider splitting this module into sub-modules.
 
-from test.helper import check_arg_counts, check_evaluation, session
+from test.helper import check_evaluation
 
 import pytest
-from mathics_scanner.errors import IncompleteSyntaxError
 
 
 def test_order():

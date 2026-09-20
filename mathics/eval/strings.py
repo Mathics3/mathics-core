@@ -17,6 +17,7 @@ from mathics.core.expression import Expression
 from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolTrue
+from mathics.core.systemsymbols import SymbolList
 from mathics.eval.encoding import EncodingNameError, load_encoding_table
 from mathics.format.box import format_element
 
@@ -42,7 +43,7 @@ def eval_ToString(
 
 def eval_StringContainsQ(name, string, patt, evaluation, options, matched):
     # Get the pattern list and check validity for each
-    if patt.has_form("List", None):
+    if patt.has_form(SymbolList, None):
         patts = patt.elements
     else:
         patts = [patt]
@@ -64,7 +65,7 @@ def eval_StringContainsQ(name, string, patt, evaluation, options, matched):
         return from_bool(not matched)
 
     # Check string validity and perform regex searchhing
-    if string.has_form("List", None):
+    if string.has_form(SymbolList, None):
         py_s = [s.get_string_value() for s in string.elements]
         if any(s is None for s in py_s):
             evaluation.message(
@@ -122,7 +123,7 @@ def eval_StringFind(self, string, rule, n, evaluation, options, cases):
         evaluation.message(self.get_name(), "srep", r)
         return
 
-    if rule.has_form("List", None):
+    if rule.has_form(SymbolList, None):
         py_rules = [convert_rule(r) for r in rule.elements]
     else:
         py_rules = [convert_rule(rule)]

@@ -13,7 +13,6 @@ from mathics.core.convert.expression import to_expression_with_specialization
 from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Atom,
     Symbol,
@@ -22,12 +21,8 @@ from mathics.core.symbols import (
     SymbolGraphics,
     SymbolGraphics3D,
     SymbolHoldForm,
-    SymbolList,
     SymbolNumberForm,
     SymbolPlus,
-    SymbolPostfix,
-    SymbolRepeated,
-    SymbolRepeatedNull,
     SymbolTimes,
 )
 from mathics.core.systemsymbols import SymbolInputForm, SymbolMinus, SymbolOutputForm
@@ -95,42 +90,13 @@ def do_format_element(
                 expr = Expression(form, expr)
             return expr
 
-        # Repeated and RepeatedNull confuse the formatter,
-        # so we need to hardlink their format rules:
-        if head is SymbolRepeated:
-            if len(elements) == 1:
-                return Expression(
-                    SymbolHoldForm,
-                    Expression(
-                        SymbolPostfix,
-                        ListExpression(elements[0]),
-                        StringRepeated,
-                        Integer(170),
-                    ),
-                )
-            else:
-                return Expression(SymbolHoldForm, expr)
-        elif head is SymbolRepeatedNull:
-            if len(elements) == 1:
-                return Expression(
-                    SymbolHoldForm,
-                    Expression(
-                        SymbolPostfix,
-                        Expression(SymbolList, elements[0]),
-                        StringElipsis,
-                        Integer(170),
-                    ),
-                )
-            else:
-                return Expression(SymbolHoldForm, expr)
-
         # If expr is not an atom, looks for formats in its definition
         # and apply them.
         def format_expr(expr):
             if not (isinstance(expr, Atom)) and not (isinstance(expr.head, Atom)):
                 # expr is of the form f[...][...]
                 return None
-            name = expr.get_lookup_name()
+            name = expr.get_symbol_definition_name()
             format_rules = evaluation.definitions.get_formats(name, form.get_name())
             for rule in format_rules:
                 result = rule.apply(expr, evaluation)

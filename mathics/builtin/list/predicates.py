@@ -8,6 +8,7 @@ from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
+from mathics.core.systemsymbols import SymbolList
 
 
 class ContainsOnly(Builtin):
@@ -85,11 +86,11 @@ class ContainsOnly(Builtin):
         #    else [ListExpression(*options_to_rules(options))]
         # )
 
-        if not isinstance(e1, Symbol) and not e1.has_form("List", None):
+        if not isinstance(e1, Symbol) and not e1.has_form(SymbolList, None):
             evaluation.message("ContainsOnly", "lsa", e1)
             return expression
 
-        if not isinstance(e2, Symbol) and not e2.has_form("List", None):
+        if not isinstance(e2, Symbol) and not e2.has_form(SymbolList, None):
             evaluation.message("ContainsOnly", "lsa", e2)
             return expression
 

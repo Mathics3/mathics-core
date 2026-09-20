@@ -260,7 +260,7 @@ class StringInsert(Builtin):
 
         # Check and create list of position
         listpos = []
-        if pos.has_form("List", None):
+        if pos.has_form(SymbolList, None):
             elements = pos.get_elements()
             if not elements:
                 return strsource
@@ -279,7 +279,7 @@ class StringInsert(Builtin):
             listpos.append(py_pos)
 
         # Check and perform the insertion
-        if strsource.has_form("List", None):
+        if strsource.has_form(SymbolList, None):
             py_strsource = [sub.get_string_value() for sub in strsource.elements]
             if any(sub is None for sub in py_strsource):
                 evaluation.message("StringInsert", "strse", Integer1, exp)
@@ -454,7 +454,7 @@ class StringPosition(Builtin):
             overlap = False  # unknown options are treated as False
 
         # convert patterns
-        if patt.has_form("List", None):
+        if patt.has_form(SymbolList, None):
             patts = patt.get_elements()
         else:
             patts = [patt]
@@ -468,7 +468,7 @@ class StringPosition(Builtin):
         compiled_patts = [re.compile(re_patt) for re_patt in re_patts]
 
         # string or list of strings
-        if string.has_form("List", None):
+        if string.has_form(SymbolList, None):
             py_strings = [s.get_string_value() for s in string.elements]
             if None in py_strings:
                 return
@@ -653,7 +653,7 @@ class StringRiffle(Builtin):
             evaluation.message("StringRiffle", "mulsep")
             return
         elif len(separators) == 1:
-            if separators[0].has_form("List", None):
+            if separators[0].has_form(SymbolList, None):
                 if len(separators[0].elements) != 3 or any(
                     not isinstance(s, String) for s in separators[0].elements
                 ):
@@ -664,10 +664,10 @@ class StringRiffle(Builtin):
                 return
 
         # Validate list of string
-        if not liststr.has_form("List", None):
+        if not liststr.has_form(SymbolList, None):
             evaluation.message("StringRiffle", "list", Integer1, exp)
             return
-        elif any(element.has_form("List", None) for element in liststr.elements):
+        elif any(element.has_form(SymbolList, None) for element in liststr.elements):
             evaluation.message("StringRiffle", "sublist")
             return
 
@@ -676,7 +676,7 @@ class StringRiffle(Builtin):
         if len(separators) == 0:
             sep = " "
         else:
-            if separators[0].has_form("List", None):
+            if separators[0].has_form(SymbolList, None):
                 left = separators[0].elements[0].value
                 sep = separators[0].elements[1].value
                 right = separators[0].elements[2].value
@@ -777,7 +777,7 @@ class StringSplit(Builtin):
             )
             return
 
-        if patt.has_form("List", None):
+        if patt.has_form(SymbolList, None):
             patts = patt.get_elements()
         else:
             patts = [patt]

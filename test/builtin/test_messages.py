@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-Unit tests from mathics.builtin.messages.
+Unit tests for mathics.builtin.messages.
 """
 
 
-from test.helper import check_evaluation_as_in_cli
+from test.helper import check_evaluation
 
 import pytest
 
-print("\n***Rocky will address this soon.***")
 
-
-@pytest.mark.skip(reason="Rocky will address this soon")
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
@@ -79,6 +76,22 @@ print("\n***Rocky will address this soon.***")
             "Check[1 + 2, err, {a::b, 2 + 5}]",
             None,
         ),
+        (
+            "Message[General::obsfun, Calendar`DayOfWeek, System`DayName]",
+            (
+                "The function Calendar`DayOfWeek is now obsolete and has been superseded by DayName"
+            ),
+            None,
+            "Test the addition of obsfun",
+        ),
+        (
+            "Message[General::obspkg, Miscellaneous`Calendar]",
+            (
+                "Miscellaneous`Calendar is now obsolete. The legacy version being loaded may conflict with current functionality."
+            ),
+            None,
+            "Test the addition of obsfun",
+        ),
         ("Off[Power::infy];Check[1 / 0, err]", None, "ComplexInfinity", None),
         (
             "On[Power::infy];Check[1 / 0, err]",
@@ -139,4 +152,4 @@ print("\n***Rocky will address this soon.***")
 )
 def test_messages(str_expr, msgs, str_expected, fail_msg):
     """These tests check the behavior the module messages"""
-    check_evaluation_as_in_cli(str_expr, str_expected, fail_msg, msgs)
+    check_evaluation(str_expr, str_expected, fail_msg, msgs)

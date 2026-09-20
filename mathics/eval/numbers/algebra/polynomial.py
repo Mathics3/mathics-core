@@ -43,6 +43,7 @@ from mathics.core.systemsymbols import (
     SymbolGreaterEqual,
     SymbolImplies,
     SymbolLess,
+    SymbolList,
     SymbolNand,
     SymbolNor,
     SymbolOr,
@@ -666,7 +667,7 @@ def find_all_vars(expr):
         elif not (isinstance(e, Atom)):
             variables.add(e)
 
-    exprs = expr.elements if expr.has_form("List", None) else [expr]
+    exprs = expr.elements if expr.has_form(SymbolList, None) else [expr]
     for e in exprs:
         e_sympy = e.to_sympy()
         if e_sympy is not None:

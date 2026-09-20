@@ -92,8 +92,6 @@ def is_rule(element: Any, include_delayed: bool = True) -> bool:
     The parameter "included_delayed" indicates whether we allow Delayed Rules,
     the default is True.
     """
-    # FIXME: remove the test on has_form("Rule") when by fixing up
-    # class Rule_ in mathics.core.builtins.
     return (
         isinstance(element, RewriteRule) or is_option_rule(element)
         if include_delayed
@@ -138,11 +136,11 @@ class BaseRule(KeyComparable, ABC):
         pattern: BaseElement,
         system: bool = False,
         attributes: Optional[int] = None,
+        evaluation: Optional[Evaluation] = None,
     ) -> None:
         self.location: Optional[Callable] = None
         self.pattern = BasePattern.create(
-            pattern,
-            attributes=attributes,
+            pattern, attributes=attributes, evaluation=evaluation
         )
 
     def _resolve(self, evaluation: Evaluation):
@@ -271,7 +269,7 @@ class BaseRule(KeyComparable, ABC):
     # def get_head_name(self, short=False) -> str:
     #     return "Rule" if short else "System`Rule"
 
-    # def get_lookup_name(self) -> str:
+    # def get_symbol_definition_name(self) -> str:
     #     return "System`Rule"
 
     def get_replace_value(self) -> BaseElement:
@@ -341,7 +339,9 @@ class RewriteRule(BaseRule):
         evaluation: Optional[Evaluation] = None,
         attributes: Optional[int] = None,
     ) -> None:
-        super(RewriteRule, self).__init__(pattern, attributes=attributes)
+        super(RewriteRule, self).__init__(
+            pattern, attributes=attributes, evaluation=evaluation
+        )
         self.replace = replace
 
     def __repr__(self) -> str:

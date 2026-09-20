@@ -75,10 +75,10 @@ def render_input_form(expr: BaseElement, evaluation: Evaluation, **kwargs) -> st
     while isinstance(format_expr, Expression) and format_expr.has_form("HoldForm", 1):
         format_expr = format_expr.elements[0]
 
-    lookup_name: str = format_expr.get_head().get_lookup_name()
+    symbol_name: str = format_expr.get_head().get_symbol_definition_name()
 
     try:
-        result = EXPR_TO_INPUTFORM_TEXT_MAP[lookup_name](
+        result = EXPR_TO_INPUTFORM_TEXT_MAP[symbol_name](
             format_expr, evaluation, **kwargs
         )
         return result

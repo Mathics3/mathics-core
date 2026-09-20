@@ -19,7 +19,7 @@ from mathics.core.exceptions import InvalidLevelspecError, MessageException
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, SymbolNull, SymbolTrue
-from mathics.core.systemsymbols import SymbolMapThread
+from mathics.core.systemsymbols import SymbolList, SymbolMapThread
 from mathics.eval.functional.apply_fns_to_lists import eval_Map_level, eval_MapAt
 from mathics.eval.parts import python_levelspec, walk_levels
 from mathics.eval.patterns import param_and_option_from_optional_place
@@ -390,9 +390,9 @@ class MapThread(Builtin):
             evaluation.message("MapThread", "intnm", Integer3, full_expr)
             return
 
-        if expr.has_form("List", 0):
+        if expr.has_form(SymbolList, 0):
             return ListExpression()
-        if not expr.has_form("List", None):
+        if not expr.has_form(SymbolList, None):
             evaluation.message("MapThread", "list", 2, full_expr)
             return
 
@@ -405,7 +405,7 @@ class MapThread(Builtin):
             else:
                 dim = None
                 for i, arg in enumerate(args):
-                    if not arg.has_form("List", None):
+                    if not arg.has_form(SymbolList, None):
                         raise MessageException(
                             "MapThread", "mptd", heads[i], i + 1, full_expr, depth, n
                         )

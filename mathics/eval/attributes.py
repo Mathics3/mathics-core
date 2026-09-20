@@ -9,7 +9,7 @@ from mathics.core.symbols import Symbol
 
 
 def eval_Attributes(name_symbol, evaluation: Evaluation):
-    name = name_symbol.get_lookup_name()
+    name = name_symbol.get_symbol_definition_name()
 
     attributes = attributes_bitset_to_list(evaluation.definitions.get_attributes(name))
     attributes_symbols = [Symbol(attribute) for attribute in attributes]

@@ -14,7 +14,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolTimes
-from mathics.core.systemsymbols import SymbolFunction, SymbolRule
+from mathics.core.systemsymbols import SymbolFunction, SymbolList, SymbolRule
 
 # This tells documentation how to sort this module
 # Here we are also hiding "moments" since this erroneously appears at the
@@ -70,7 +70,7 @@ class RSolve(Builtin):
         "RSolve[eqns_, a_, n_]"
 
         # TODO: Do this with rules?
-        if not eqns.has_form("List", None):
+        if not eqns.has_form(SymbolList, None):
             eqns = ListExpression(eqns)
 
         if len(eqns.elements) == 0:

@@ -271,8 +271,8 @@ def render_output_form(expr: BaseElement, evaluation: Evaluation, **kwargs):
         return ""
 
     head = format_expr.get_head()
-    lookup_name = head.get_name() or head.get_lookup_name()
-    callback = EXPR_TO_OUTPUTFORM_TEXT_MAP.get(lookup_name, None)
+    symbol_name = head.get_name() or head.get_symbol_definition_name()
+    callback = EXPR_TO_OUTPUTFORM_TEXT_MAP.get(symbol_name, None)
     if callback is None:
         if head in evaluation.definitions.outputforms:
             callback = other_forms
@@ -330,13 +330,13 @@ def grid_render_output_form(expr: Expression, evaluation: Evaluation, **kwargs) 
         ["Rule", "RuleDelayed"], 2
     ):
         raise IsNotGrid
-    if not expr.elements[0].has_form("List", None):
+    if not expr.elements[0].has_form(SymbolList, None):
         raise IsNotGrid
 
     elements = expr.elements[0].elements
     rows = []
     for idx, item in enumerate(elements):
-        if item.has_form("List", None):
+        if item.has_form(SymbolList, None):
             rows.append(
                 [
                     render_output_form(item_elem, evaluation, **kwargs)

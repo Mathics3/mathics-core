@@ -35,9 +35,11 @@ from mathics.core.symbols import (
     SymbolTimes,
     SymbolTrue,
 )
-
-SymbolBinomial = Symbol("Binomial")
-SymbolSubsets = Symbol("Subsets")
+from mathics.core.systemsymbols import (
+    SymbolBinomial,
+    SymbolDirectedInfinity,
+    SymbolSubsets,
+)
 
 
 class BellB(SympyFunction):
@@ -656,7 +658,7 @@ class Subsets(Builtin):
             return
         else:
             head_t = list.head
-            if n.get_name() == "System`All" or n.has_form("DirectedInfinity", 1):
+            if n.get_name() == "System`All" or n.has_form(SymbolDirectedInfinity, 1):
                 return self.eval_list(list, evaluation)
 
             n_len = len(n.elements)
@@ -678,7 +680,7 @@ class Subsets(Builtin):
                 elem1 = n.elements[0].int_value
                 elem2 = (
                     n.elements[1].int_value
-                    if not n.elements[1].has_form("DirectedInfinity", 1)
+                    if not n.elements[1].has_form(SymbolDirectedInfinity, 1)
                     else len(list.elements) + 1
                 )
                 if elem1 is None or elem2 is None or elem1 < 0 or elem2 < 0:
@@ -692,7 +694,7 @@ class Subsets(Builtin):
                 elem1 = n.elements[0].int_value
                 elem2 = (
                     n.elements[1].int_value
-                    if not n.elements[1].has_form("DirectedInfinity", 1)
+                    if not n.elements[1].has_form(SymbolDirectedInfinity, 1)
                     else len(list.elements) + 1
                 )
                 elem3 = n.elements[2].int_value

@@ -10,15 +10,28 @@ from mathics.core.atoms import String
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
+    SymbolAlternatives,
     SymbolBlank,
+    SymbolBlankNullSequence,
+    SymbolBlankSequence,
+    SymbolCharacterRange,
+    SymbolCharacters,
     SymbolDigitCharacter,
     SymbolEndOfLine,
     SymbolEndOfString,
+    SymbolExcept,
     SymbolHexadecimalCharacter,
     SymbolLetterCharacter,
+    SymbolLongest,
     SymbolNumberString,
+    SymbolPattern,
+    SymbolRegularExpression,
+    SymbolRepeated,
+    SymbolRepeatedNull,
+    SymbolShortest,
     SymbolStartOfLine,
     SymbolStartOfString,
+    SymbolStringExpression,
     SymbolWhitespace,
     SymbolWhitespaceCharacter,
     SymbolWordBoundary,
@@ -141,7 +154,7 @@ def to_regex_internal(
             result = re.escape(result)
         return result
 
-    if expr.has_form("RegularExpression", 1):
+    if expr.has_form(SymbolRegularExpression, 1):
         regex = expr.elements[0].get_string_value()
         if regex is None:
             return regex
@@ -156,18 +169,18 @@ def to_regex_internal(
     if isinstance(expr, Symbol):
         return REGEXP_FOR_SYMBOLS.get(expr)
 
-    if expr.has_form("CharacterRange", 2):
+    if expr.has_form(SymbolCharacterRange, 2):
         start, stop = (element.get_string_value() for element in expr.elements)
         if all(x is not None and len(x) == 1 for x in (start, stop)):
             return f"[{re.escape(start)}-{re.escape(stop)}]"
 
-    if expr.has_form("Blank", 0):
+    if expr.has_form(SymbolBlank, 0):
         return r"(.|\n)"
-    if expr.has_form("BlankSequence", 0):
+    if expr.has_form(SymbolBlankSequence, 0):
         return r"(.|\n)" + q["+"]
-    if expr.has_form("BlankNullSequence", 0):
+    if expr.has_form(SymbolBlankNullSequence, 0):
         return r"(.|\n)" + q["*"]
-    if expr.has_form("Except", 1, 2):
+    if expr.has_form(SymbolExcept, 1, 2):
         if len(expr.elements) == 1:
             # TODO: Check if this shouldn't be SymbolBlank
             # instead of SymbolBlank[]
@@ -178,40 +191,40 @@ def to_regex_internal(
         assert len(elements) == 2
         if all(element is not None for element in elements):
             return f"(?!{elements[0]}){elements[1]}"
-    if expr.has_form("Characters", 1):
+    if expr.has_form(SymbolCharacters, 1):
         element = expr.elements[0].get_string_value()
         if element is not None:
             return f"[{re.escape(element)}]"
-    if expr.has_form("StringExpression", None):
+    if expr.has_form(SymbolStringExpression, None):
         elements = [recurse(element) for element in expr.elements]
         if None in elements:
             return None  # invalid regex
         return "".join(element for element in elements)
-    if expr.has_form("Repeated", 1):
+    if expr.has_form(SymbolRepeated, 1):
         element = recurse(expr.elements[0])
         if element is None:
             return None  # invalid regex
         return f"({element})" + q["+"]
-    if expr.has_form("RepeatedNull", 1):
+    if expr.has_form(SymbolRepeatedNull, 1):
         element = recurse(expr.elements[0])
         if element is None:
             return None  # invalid regex
         return f"({element})" + q["*"]
-    if expr.has_form("Alternatives", None):
+    if expr.has_form(SymbolAlternatives, None):
         elements = [recurse(element) for element in expr.elements]
         if all(element is not None for element in elements):
             return "|".join(elements)
         else:
             return None  # invalid regex
-    if expr.has_form("Shortest", 1):
+    if expr.has_form(SymbolShortest, 1):
         return recurse(expr.elements[0], quantifiers=_regex_shortest)
-    if expr.has_form("Longest", 1):
+    if expr.has_form(SymbolLongest, 1):
         return recurse(expr.elements[0], quantifiers=_regex_longest)
-    if expr.has_form("Pattern", 2) and isinstance(expr.elements[0], Symbol):
+    if expr.has_form(SymbolPattern, 2) and isinstance(expr.elements[0], Symbol):
         name = expr.elements[0].get_name()
         patt = groups.get(name, None)
         if patt is not None:
-            if expr.elements[1].has_form("Blank", 0):
+            if expr.elements[1].has_form(SymbolBlank, 0):
                 pass  # ok, no warnings
             elif not expr.elements[1].sameQ(patt) and show_message:
                 show_message(

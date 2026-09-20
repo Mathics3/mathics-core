@@ -13,6 +13,7 @@ from mathics.core.element import fully_qualified_symbol_name
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import SymbolList
 from mathics.eval.scoping import eval_contexts, eval_contexts_with_string
 
 
@@ -21,7 +22,7 @@ def get_scoping_vars(var_list, msg_symbol="", evaluation=None):
         if msg_symbol and evaluation:
             evaluation.message(msg_symbol, tag, *args)
 
-    if not var_list.has_form("List", None):
+    if not var_list.has_form(SymbolList, None):
         message("lvlist", var_list)
         return
     vars = var_list.elements
@@ -670,7 +671,7 @@ class Unique(Predefined):
             return
 
         # Check valid symbol variables
-        symbols = vars.elements if vars.has_form("List", None) else [vars]
+        symbols = vars.elements if vars.has_form(SymbolList, None) else [vars]
         for symbol in symbols:
             if not isinstance(symbol, Symbol):
                 text = symbol.get_string_value()
@@ -706,7 +707,7 @@ class Unique(Predefined):
                     symbol.get_name(), attribute_string_to_number.get(att, 0)
                 )
 
-        if vars.has_form("List", None):
+        if vars.has_form(SymbolList, None):
             return ListExpression(*list)
         else:
             return list[0]
