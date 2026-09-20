@@ -87,6 +87,12 @@ def test_information_two_arg_form():
             "changed",
             "Usage on builtins can be changed",
         ),
+        # Autoload symbols
+        (
+            'Information[Rationals, "Usage"]',
+            '"Represents the set of the Rational numbers"',
+            "Rationals is an autoload symbol, so is in `Definitions.builtins`, but does not have an associated Builtin class.",
+        ),
     ):
         check_evaluation(
             str_expr,
