@@ -69,11 +69,7 @@ class DocTestPipeline:
     the doctests and generate the data for the documentation.
     """
 
-    def __init__(
-        self,
-        args,
-        output_format="latex",
-    ):
+    def __init__(self, args, output_format="latex", data_path=None):
         self.session = MathicsSession()
         self.output_data: Dict[tuple, dict] = {}
 
@@ -89,7 +85,7 @@ class DocTestPipeline:
 
         self.parameters = TestParameters(
             check_partial_elapsed_time=args.elapsed_times,
-            data_path=None,
+            data_path=data_path,
             keep_going=args.keep_going and not args.stop_on_failure,
             max_tests=args.count + args.skip,
             quiet=args.quiet,
@@ -714,10 +710,7 @@ def test_all(
         test_pipeline.print_and_log(f"Testing {version_string}")
 
     try:
-        test_tests(
-            test_pipeline,
-            excludes=excludes,
-        )
+        test_tests(test_pipeline, excludes=excludes, output_format=output_format)
     except KeyboardInterrupt:
         test_pipeline.print_and_log("\nAborted.\n")
         return
