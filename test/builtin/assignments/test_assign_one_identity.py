@@ -8,8 +8,9 @@ with WMA.
 """
 # TODO: consider splitting this module into sub-modules.
 
-from test.helper import check_evaluation
+from test.helper import check_arg_counts, check_evaluation, session
 
+import pytest
 from mathics_scanner.errors import IncompleteSyntaxError
 
 STR_TEST_SET_WITH_ONE_IDENTITY = """
