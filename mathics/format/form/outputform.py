@@ -15,7 +15,7 @@ it must use the default callback function. This default function is also called 
 """
 
 import re
-from typing import Callable, Dict, List, Union
+from typing import Callable, Union
 
 from mathics_scanner.characters import replace_box_unicode_with_ascii
 
@@ -47,15 +47,23 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     BLANK_PATTERN_HEADS,
     SymbolDerivative,
+    SymbolHoldForm,
     SymbolInfinity,
     SymbolInfix,
     SymbolLeft,
+    SymbolMathMLForm,
     SymbolNonAssociative,
+    SymbolOptional,
     SymbolOutputForm,
+    SymbolPattern,
     SymbolPower,
+    SymbolRational,
     SymbolRight,
+    SymbolRule,
+    SymbolRuleDelayed,
     SymbolStandardForm,
     SymbolTableForm,
+    SymbolTeXForm,
     SymbolTraditionalForm,
 )
 from mathics.eval.strings import safe_backquotes
@@ -85,7 +93,7 @@ from .util import (
     text_cells_to_grid,
 )
 
-EXPR_TO_OUTPUTFORM_TEXT_MAP: Dict[str, Callable] = {}
+EXPR_TO_OUTPUTFORM_TEXT_MAP: dict[str, Callable] = {}
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 
 
@@ -264,7 +272,7 @@ def render_output_form(expr: BaseElement, evaluation: Evaluation, **kwargs):
     lookup_name: str
     format_expr: Expression = do_format(expr, evaluation, SymbolOutputForm)  # type: ignore
 
-    while format_expr.has_form("HoldForm", 1):  # type: ignore
+    while format_expr.has_form(SymbolHoldForm, 1):  # type: ignore
         format_expr = format_expr.elements[0]
 
     if format_expr is None:
@@ -327,7 +335,7 @@ def grid_render_output_form(expr: Expression, evaluation: Evaluation, **kwargs) 
     if len(expr.elements) == 0:
         raise IsNotGrid
     if len(expr.elements) > 1 and not expr.elements[1].has_form(
-        ["Rule", "RuleDelayed"], 2
+        (SymbolRule, SymbolRuleDelayed), 2
     ):
         raise IsNotGrid
     if not expr.elements[0].has_form(SymbolList, None):
@@ -468,7 +476,7 @@ def list_render_output_form(expr: Expression, evaluation: Evaluation, **kwargs) 
 def mathmlform_render_output_form(
     expr: Expression, evaluation: Evaluation, **kwargs
 ) -> str:
-    if not expr.has_form("MathMLForm", 1):
+    if not expr.has_form(SymbolMathMLForm, 1):
         raise _WrongFormattedExpression
 
     #  boxes = format_element(expr.elements[0], evaluation)
@@ -513,7 +521,7 @@ def _numberform_outputform(expr, evaluation, **kwargs):
             precision.value,
             None,
         )
-    elif precision is not None and precision.has_form("List", 2):
+    elif precision is not None and precision.has_form(SymbolList, 2):
         py_precision = precision.to_python()
     else:
         py_precision = (
@@ -534,7 +542,7 @@ def _optional(expr: Expression, evaluation: Evaluation, **kwargs) -> str:
     name: str = ""
     post: str = ""
     elements = expr.elements
-    if not expr.has_form("Optional", 1, 2):
+    if not expr.has_form(SymbolOptional, 1, 2):
         raise _WrongFormattedExpression
     if len(elements) == 2:
         post = ":" + render_output_form(elements[1], evaluation, **kwargs)
@@ -542,7 +550,7 @@ def _optional(expr: Expression, evaluation: Evaluation, **kwargs) -> str:
         post = "."
 
     operand = elements[0]
-    if operand.has_form("Pattern", 2):
+    if operand.has_form(SymbolPattern, 2):
         name = render_output_form(operand.elements[0], evaluation, **kwargs)
         operand = operand.elements[1]
 
@@ -624,7 +632,7 @@ def plus_render_output_form(
     elements = expr.elements
     result = ""
     for i, term in enumerate(elements):
-        if term.has_form("Times", None):
+        if term.has_form(SymbolTimes, None):
             # If the first element is -1, remove it and use
             # a minus sign. Otherwise, if negative, do not add a sign.
             first = term.elements[0]
@@ -748,7 +756,7 @@ def rational_render_output_form(
 ):
     if isinstance(n, Rational):
         num, den = n.numerator(), n.denominator()  # type: ignore[union-attr]
-    elif n.has_form("Rational", 2):
+    elif n.has_form(SymbolRational, 2):
         num, den = n.elements  # type: ignore[union-attr]
     else:
         raise _WrongFormattedExpression
@@ -1057,7 +1065,7 @@ def tableform_render_output_form(
 
 @register_outputform("System`TeXForm")
 def _texform_outputform(expr, evaluation, **kwargs):
-    if not expr.has_form("TeXForm", 1):
+    if not expr.has_form(SymbolTeXForm, 1):
         raise _WrongFormattedExpression
 
     boxes = format_element(expr.elements[0], evaluation, SymbolTraditionalForm)
@@ -1083,11 +1091,11 @@ def times_render_output_form(expr: Expression, evaluation: Evaluation, **kwargs)
     elements = expr.elements
     if len(elements) < 2:
         return _default_render_output_form(expr, evaluation, **kwargs)
-    num: List[BaseElement] = []
-    den: List[BaseElement] = []
+    num: list[BaseElement] = []
+    den: list[BaseElement] = []
     # First, split factors with integer, negative powers:
     for factor in elements:
-        if factor.has_form("Power", 2):
+        if factor.has_form(SymbolPower, 2):
             base, exponent = factor.elements
             if isinstance(exponent, Integer):
                 if exponent.value == -1:
@@ -1100,7 +1108,7 @@ def times_render_output_form(expr: Expression, evaluation: Evaluation, **kwargs)
             num.append(factor.numerator())
             den.append(factor.denominator())
             continue
-        elif factor.has_form("Rational", 2):
+        elif factor.has_form(SymbolRational, 2):
             elem_elements = factor.elements
             num.append(elem_elements[0])
             den.append(elem_elements[1])

@@ -5,7 +5,6 @@ Boxing Symbols for 3D Graphics
 
 import logging
 import numbers
-from typing import Tuple
 
 from mathics.builtin.colors.color_directives import ColorError, _ColorObject
 from mathics.builtin.drawing.graphics3d import Coords3D, Graphics3DElements
@@ -13,6 +12,7 @@ from mathics.builtin.drawing.graphics_internals import get_class
 from mathics.core.element import BaseElement
 from mathics.core.exceptions import BoxExpressionError
 from mathics.core.symbols import Symbol, SymbolTrue
+from mathics.core.systemsymbols import SymbolList, SymbolRGBColor
 from mathics.eval.nevaluator import eval_N
 from mathics.format.box.graphics import axis_ticks, get_image_size
 
@@ -23,7 +23,7 @@ def create_axes(
     axes = graphics_options.get("System`Axes")
     if axes is SymbolTrue:
         axes = (True, True, True)
-    elif axes.has_form("List", 3):
+    elif axes.has_form(SymbolList, 3):
         axes = (element is SymbolTrue for element in axes.elements)
     else:
         axes = (False, False, False)
@@ -32,14 +32,14 @@ def create_axes(
     label_style = graphics_options.get("System`LabelStyle")
 
     # FIXME: Doesn't handle GrayScale
-    if ticks_style.has_form("List", 1, 2, 3):
+    if ticks_style.has_form(SymbolList, 1, 2, 3):
         ticks_style = ticks_style.elements
-    elif ticks_style.has_form("RGBColor", None):
+    elif ticks_style.has_form(SymbolRGBColor, None):
         ticks_style = [ticks_style] * 3
     else:
         ticks_style = []
 
-    if axes_style.has_form("List", 1, 2, 3):
+    if axes_style.has_form(SymbolList, 1, 2, 3):
         axes_style = axes_style.elements
     else:
         axes_style = [axes_style] * 3
@@ -86,7 +86,7 @@ def create_axes(
     return axes, ticks, ticks_style
 
 
-def expr_to_list_of_3d_points(expr: BaseElement) -> Tuple[Coords3D, ...]:
+def expr_to_list_of_3d_points(expr: BaseElement) -> tuple[Coords3D, ...]:
     points = expr.to_python()
     if not all(isinstance(point, (tuple, list)) for point in points):
         points = [points]

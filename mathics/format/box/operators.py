@@ -9,6 +9,7 @@ from mathics.core.parser.parser import NEVER_ADD_PARENTHESIS
 from mathics.core.symbols import Atom, Symbol
 from mathics.core.systemsymbols import (
     SymbolInputForm,
+    SymbolList,
     SymbolMakeBoxes,
     SymbolOutputForm,
     SymbolRowBox,
@@ -58,7 +59,7 @@ def eval_infix(
 
     elements = expr.elements
     if len(elements) > 1:
-        if operator.has_form("List", len(elements) - 1):
+        if operator.has_form(SymbolList, len(elements) - 1):
             operator = [format_operator(op, form) for op in operator.elements]
             return make_boxes_infix(elements, operator, py_precedence, grouping, form)
         else:

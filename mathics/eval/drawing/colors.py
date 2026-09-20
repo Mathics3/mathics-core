@@ -18,6 +18,7 @@ from mathics.core.systemsymbols import (
     SymbolBlend,
     SymbolColorData,
     SymbolFunction,
+    SymbolList,
     SymbolMap,
     SymbolRGBColor,
     SymbolSlot,
@@ -125,12 +126,12 @@ def gradient_palette(
     """Return a list of rgb color components"""
     if isinstance(color_function, String):
         color_data = Expression(SymbolColorData, color_function).evaluate(evaluation)
-        if not color_data.has_form("ColorDataFunction", 4):
+        if not color_data.has_form(SymbolColorDataFunction, 4):
             return None
         _, kind, interval, blend = color_data.elements
         if not isinstance(kind, String) or kind.get_string_value() != "Gradients":
             return None
-        if not interval.has_form("List", 2):
+        if not interval.has_form(SymbolList, 2):
             return None
         x0, x1 = (x.round_to_float() for x in interval.elements)
     else:

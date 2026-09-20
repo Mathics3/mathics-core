@@ -2,8 +2,6 @@
 Evaluation routines for builtin function contained in mathics.builtin.list.eol.
 """
 
-from typing import List
-
 from mathics.core.atoms import Integer, get_int_value
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import MessageException
@@ -30,7 +28,7 @@ def convert_seq(seq):
             stop = value
         else:
             start = value
-    elif seq.has_form("List", 1, 2, 3):
+    elif seq.has_form(SymbolList, 1, 2, 3):
         if len(seq.elements) == 1:
             start = stop = seq.elements[0].int_value
             if stop is None:
@@ -70,7 +68,7 @@ def drop_take_selector(name, seq, sliced):
 
 
 def eval_Part(
-    list_of_list: list, indices: List[Integer], evaluation: Evaluation, assign_rhs=None
+    list_of_list: list, indices: list[Integer], evaluation: Evaluation, assign_rhs=None
 ):
     """
     eval_part takes the first element of `list_of_list`, and builds

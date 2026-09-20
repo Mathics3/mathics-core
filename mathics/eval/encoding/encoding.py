@@ -349,7 +349,7 @@ def load_encoding_table(encoding, evaluation):
         None,
         None,
     )
-    if etl is None or not etl.has_form("List", 2):
+    if etl is None or not etl.has_form(SymbolList, 2):
         # print(f"etl={etl} - not a list with two elements.")
         evaluation.message("$CharacterEncoding", "charfile", String(encoding))
         raise EncodingNameError(encoding)
