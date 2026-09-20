@@ -34,7 +34,12 @@ from mathics.core.formatter import lookup_method
 from mathics.core.list import ListExpression
 from mathics.core.rules import is_rule
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolInsetBox, SymbolList, SymbolTraditionalForm
+from mathics.core.systemsymbols import (
+    SymbolInsetBox,
+    SymbolList,
+    SymbolRegularPolygonBox,
+    SymbolTraditionalForm,
+)
 from mathics.format.box import format_element
 from mathics.format.box.common import elements_to_expressions
 from mathics.format.box.graphics import Coords, _data_and_options, coords
@@ -42,12 +47,10 @@ from mathics.format.box.graphics import Coords, _data_and_options, coords
 # No user docs here: Box primitives aren't documented.
 no_doc = True
 
-SymbolRegularPolygonBox = Symbol("RegularPolygonBox")
-
 
 class GraphicsElementBox(BoxExpression, ABC):
     def init(self, graphics, item=None, style={}, opacity=1.0):
-        if item is not None and not item.has_form(self.get_name(), None):
+        if item is not None and not item.has_form(Symbol(self.get_name()), None):
             raise BoxExpressionError
         self.graphics = graphics
         self.style = style

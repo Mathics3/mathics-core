@@ -153,7 +153,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
 
     def has_form(
         self,
-        heads: Iterable[str | Symbol] | str | Symbol,
+        heads: Iterable[Symbol] | Symbol,
         *element_counts: Optional[int],
     ) -> bool:
         """
@@ -165,15 +165,11 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         """
         head = self._head
 
-        if head is not heads:  # heads is a symbol, and matches, skip this
+        if head is not heads:  # heads is a Symbol, and matches, skip this
             if isinstance(heads, Symbol):
-                # if is a Symbol, then is not my head.
+                # If is a Symbol, then is not my head.
                 return False
-            # if is a str, look for a symbol whose name is the string.
-            if isinstance(heads, str):
-                if head is not Symbol(heads):
-                    return False
-            # Not a symbol or a string: must be a sequence...
+            # Not a symbol: must be a sequence...
             elif head not in (h if isinstance(h, Symbol) else Symbol(h) for h in heads):
                 return False
 

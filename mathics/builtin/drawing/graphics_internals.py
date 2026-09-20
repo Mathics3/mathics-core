@@ -15,7 +15,7 @@ no_doc = True
 
 class _GraphicsDirective(BuiltinElement, ABC):
     def init(self, graphics, item=None):
-        if item is not None and not item.has_form(self.get_name(), None):
+        if item is not None and not item.has_form(Symbol(self.get_name()), None):
             raise BoxExpressionError
         self.graphics = graphics
 
