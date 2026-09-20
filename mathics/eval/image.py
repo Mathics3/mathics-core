@@ -23,7 +23,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolRule, SymbolSimplify
+from mathics.core.systemsymbols import SymbolRule, SymbolScaled, SymbolSimplify
 
 # Exif: Exchangeable image file format for digital still cameras.
 # See http://www.exiv2.org/tags.html
@@ -171,7 +171,7 @@ def get_image_size_spec(old_size, new_size) -> Optional[float]:
         if name == "System`All":
             return old_size
         return predefined_sizes.get(name, None)
-    if new_size.has_form("Scaled", 1):
+    if new_size.has_form(SymbolScaled, 1):
         s = new_size.elements[0].round_to_float()
         if s is None:
             return None

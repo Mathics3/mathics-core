@@ -88,7 +88,7 @@ def format_times(
     """format Times[___] using `op` as operator"""
 
     def inverse(item):
-        if item.has_form("Power", 2) and isinstance(  # noqa
+        if item.has_form(SymbolPower, 2) and isinstance(  # noqa
             item.elements[1], (Integer, Rational, Real)
         ):
             neg = -item.elements[1]
@@ -106,7 +106,7 @@ def format_times(
     negative_formatted = []
     for item in items:
         if (
-            item.has_form("Power", 2)
+            item.has_form(SymbolPower, 2)
             and isinstance(item.elements[1], (Integer, Rational, Real))
             and item.elements[1].to_sympy() < 0
         ):  # nopep8

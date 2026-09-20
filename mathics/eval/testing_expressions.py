@@ -19,7 +19,7 @@ def do_cmp(x1, x2) -> Optional[int]:
     for x in (x1, x2):
         # TODO: Send message General::nord
         if isinstance(x, Complex) or (
-            x.has_form("DirectedInfinity", 1) and isinstance(x.elements[0], Complex)
+            x.has_form(SymbolDirectedInfinity, 1) and isinstance(x.elements[0], Complex)
         ):
             return None
 

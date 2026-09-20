@@ -8,7 +8,13 @@ from mathics.core.exceptions import MessageException
 from mathics.core.expression import Expression
 from mathics.core.subexpression import SubExpression
 from mathics.core.symbols import Atom, Symbol
-from mathics.core.systemsymbols import SymbolByteArray, SymbolInfinity, SymbolList
+from mathics.core.systemsymbols import (
+    SymbolByteArray,
+    SymbolInfinity,
+    SymbolKey,
+    SymbolList,
+    SymbolSpan,
+)
 
 
 def convert_seq(seq):
@@ -110,7 +116,7 @@ def eval_Part(
 def eval_Part_for_Association(expr, key, evaluation: Evaluation):
     # Handle Key[a] for Associations
 
-    if not key.has_form("Key", 1):
+    if not key.has_form(SymbolKey, 1):
         evaluation.message("Part", "pkspec1", key)
         return
 
@@ -215,7 +221,7 @@ def part_selectors(indices):
     the kind of specifications in `indices`.
     """
     for index in indices:
-        if index.has_form("Span", None):
+        if index.has_form(SymbolSpan, None):
             yield parts_span_selector(index)
         elif index.get_name() == "System`All":
             yield parts_all_selector()

@@ -17,7 +17,7 @@ from mathics.core.expression import Expression
 from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolTrue
-from mathics.core.systemsymbols import SymbolList
+from mathics.core.systemsymbols import SymbolList, SymbolRule
 from mathics.eval.encoding import EncodingNameError, load_encoding_table
 from mathics.format.box import format_element
 
@@ -104,7 +104,7 @@ def eval_StringFind(self, string, rule, n, evaluation, options, cases):
 
     # convert rule
     def convert_rule(r):
-        if r.has_form("Rule", None) and len(r.elements) == 2:
+        if r.has_form(SymbolRule, None) and len(r.elements) == 2:
             py_s = to_regex(r.elements[0], show_message=evaluation.message)
             if py_s is None:
                 evaluation.message(

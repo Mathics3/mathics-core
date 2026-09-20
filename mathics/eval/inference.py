@@ -12,9 +12,18 @@ from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAnd,
     SymbolEqual,
+    SymbolEquivalent,
+    SymbolGreater,
+    SymbolGreaterEqual,
+    SymbolImplies,
+    SymbolLess,
+    SymbolLessEqual,
     SymbolList,
+    SymbolNor,
     SymbolNot,
     SymbolOr,
+    SymbolSequence,
+    SymbolUnequal,
 )
 
 # TODO: Extend these rules?
@@ -164,29 +173,29 @@ def logical_expand_assumptions(assumptions_list, evaluation):
                 continue
             new_assumptions_list.append(assumption)
             continue
-        if assumption.has_form("And", None):
+        if assumption.has_form(SymbolAnd, None):
             changed = True
             for element in assumption.elements:
                 new_assumptions_list.append(element)
             continue
-        if assumption.has_form("Not", 1):
+        if assumption.has_form(SymbolNot, 1):
             sentence = assumption.elements[0]
-            if sentence.has_form("Or", None):
+            if sentence.has_form(SymbolOr, None):
                 changed = True
                 for element in sentence.elements:
                     new_assumptions_list.append(Expression(SymbolNot, element))
                 continue
-            if sentence.has_form("And", None):
+            if sentence.has_form(SymbolAnd, None):
                 elements = (
                     Expression(SymbolNot, element) for element in sentence.elements
                 )
                 new_assumptions_list.append(Expression(SymbolOr, *elements))
                 continue
-            if sentence.has_form("Implies", 2):
+            if sentence.has_form(SymbolImplies, 2):
                 changed = True
                 new_assumptions_list.append(sentence.elements[0])
                 new_assumptions_list.append(Expression(SymbolNot, sentence.elements[1]))
-        if assumption.has_form("Nor", None):
+        if assumption.has_form(SymbolNor, None):
             changed = True
             for element in assumption.elements:
                 new_assumptions_list.append(Expression(SymbolNot, element))
@@ -219,20 +228,22 @@ def algebraic_expand_assumptions(assumptions_list, evaluation):
         return new_assumptions_list, changed
     # If not changed, let's try with the next set of rules
     for assumption in assumptions_list:
-        if assumption.has_form("Not", 1):
+        if assumption.has_form(SymbolNot, 1):
             nas, local_change = algebraic_expand_assumptions(
                 [assumption.elements[0]], evaluation
             )
             if local_change:
                 changed = local_change
                 for na in nas:
-                    if na.has_form("Not", 1):
+                    if na.has_form(SymbolNot, 1):
                         new_assumptions_list.append(na.elements[0])
                     else:
                         new_assumptions_list.append(Expression(SymbolNot, na))
             else:
                 new_assumptions_list.append(assumption)
-        elif assumption.has_form(("Equal", "Unequal", "Equivalent"), (3, None)):
+        elif assumption.has_form(
+            (SymbolEqual, SymbolUnequal, SymbolEquivalent), (3, None)
+        ):
             elements = assumption.elements()
             head = assumption.get_head()
             changed = True
@@ -245,7 +256,7 @@ def algebraic_expand_assumptions(assumptions_list, evaluation):
                         Expression(head, elements[j], elements[i])
                     )
         elif assumption.has_form(
-            ("Less", "Greater", "LessEqual", "GreaterEqual"), (3, None)
+            (SymbolLess, SymbolGreater, SymbolLessEqual, SymbolGreaterEqual), (3, None)
         ):
             elements = assumption.elements()
             head = assumption.get_head()
@@ -299,7 +310,7 @@ def get_assumption_rules_dispatch(evaluation):
     assumption_rules = []
     for pat in assumptions_list:
         value = True
-        while pat.has_form("Not", 1):
+        while pat.has_form(SymbolNot, 1):
             value = not value
             pat = pat.elements[0]
 
@@ -308,7 +319,7 @@ def get_assumption_rules_dispatch(evaluation):
         else:
             symbol_value = SymbolFalse
 
-        if pat.has_form("Equal", 2):
+        if pat.has_form(SymbolEqual, 2):
             if value:
                 lhs, rhs = pat.elements
                 if lhs.is_numeric(evaluation):
@@ -319,11 +330,11 @@ def get_assumption_rules_dispatch(evaluation):
                 assumption_rules.append(RewriteRule(pat, SymbolFalse))
                 symm_pat = Expression(pat._head, pat.elements[1], pat.elements[0])
                 assumption_rules.append(RewriteRule(symm_pat, SymbolFalse))
-        elif pat.has_form("Equivalent", 2):
+        elif pat.has_form(SymbolEquivalent, 2):
             assumption_rules.append(RewriteRule(pat, symbol_value))
             symm_pat = Expression(pat._head, pat.elements[1], pat.elements[0])
             assumption_rules.append(RewriteRule(symm_pat, symbol_value))
-        elif pat.has_form("Less", 2):
+        elif pat.has_form(SymbolLess, 2):
             if value:
                 assumption_rules.append(RewriteRule(pat, SymbolTrue))
                 assumption_rules.append(
@@ -332,7 +343,7 @@ def get_assumption_rules_dispatch(evaluation):
                         SymbolFalse,
                     )
                 )
-                for head in (SymbolEqual, Symbol("Equivalent")):
+                for head in (SymbolEqual, SymbolEquivalent):
                     assumption_rules.append(
                         RewriteRule(
                             Expression(head, pat.elements[0], pat.elements[1]),
@@ -360,7 +371,7 @@ def evaluate_predicate(pred, evaluation):
     global logical_algebraic_rules
     global remove_not_rules
 
-    if pred.has_form(("List", "Sequence"), None):
+    if pred.has_form((SymbolList, SymbolSequence), None):
         return Expression(
             pred._head,
             *[evaluate_predicate(subp, evaluation) for subp in pred.elements],
