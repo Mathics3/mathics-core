@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-# Internal graphics routines.
-# No external builtins appear here.
-# Also no docstring which may confuse the doc system
+"""Internal graphics routines.
+
+No external builtins appear here.
+"""
 
 from abc import ABC
 
@@ -35,11 +36,11 @@ def get_class(symbol: Symbol):
     else:
         return c
 
-    # globals() does not work with Cython, otherwise one could use something
+    # globals() does not work with Cython; otherwise one could use something
     # like return globals().get(name)
 
 
 # FIXME: GLOBALS and GLOBALS3D are a horrible names.
-# These ares updated in mathics.builtin.graphics in and mathics.builtin.box.graphics3d
+# These are updated in mathics.builtin.graphics and mathics.builtin.box.graphics3d.
 GLOBALS = system_symbols_dict({})
 GLOBALS3D = system_symbols_dict({})
