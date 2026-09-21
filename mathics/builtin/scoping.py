@@ -321,9 +321,10 @@ class ContextPath_(Predefined):
 
     Functions <url>
     :Needs:
-    /doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/filesystem-operations/needs/</url> and <url>
+    /doc/reference-of-built-in-symbols/files-filesystem-and-inputoutput/filesystem-operations/needs/</url> \
+    and <url>
     :Get:
-    /doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/file-and-stream-operations/get/</url>, \
+    /doc/reference-of-built-in-symbols/files-filesystem-and-inputoutput/file-and-stream-operations/get/</url>, \
     add to '\$ContextPath' when a new context is added.
 
     See also Builtin variable <url>

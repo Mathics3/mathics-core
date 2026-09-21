@@ -830,7 +830,7 @@ class Needs(Builtin):
 
     In contrast to <url>
     :Get:
-    /doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/file-and-stream-operations/get/</url>, \
+    /doc/reference-of-built-in-symbols/files-filesystem-and-inputoutput/file-and-stream-operations/get/</url>, \
     'Needs' only loads a package if it has not already been loaded.
 
     Like 'Get',  <url>
