@@ -1112,7 +1112,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             return False
 
         # If "expr_head" is the same Symbol as "heads",
-        # then we can can go to element count matching below
+        # then we can can go to element count matching below.
         if expr_head is not heads:
             if isinstance(heads, Symbol):
                 # "expr_head" is not the same symbol as "heads".

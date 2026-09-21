@@ -163,16 +163,19 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
             (n, None):  element count >= n
             (n1, n2, ...):    element count in {n1, n2, ...}
         """
-        head = self._head
+        expr_head = self._head
 
-        if head is not heads:  # heads is a Symbol, and matches, skip this
+        # If "expr_head" is the same Symbol as "heads",
+        # then we can can go to element count matching below.
+        if expr_head is not heads:
             if isinstance(heads, Symbol):
-                # If is a Symbol, then is not my head.
+                # "expr_head" is not the same symbol as "heads".
                 return False
-            # Not a symbol: must be a sequence...
-            elif head not in (h if isinstance(h, Symbol) else Symbol(h) for h in heads):
+            # "heads" is a sequence; see it has Expression's head in there.
+            if expr_head not in heads:
                 return False
 
+        # Below, we check whether Expression parameter counts given by "element_counts" match.
         if not element_counts:
             return False
         if element_counts and element_counts[0] is not None:
@@ -180,7 +183,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
             if count not in element_counts:
                 if (
                     len(element_counts) == 2
-                    and element_counts[1] is None  # noqa
+                    and element_counts[1] is None
                     and count >= element_counts[0]
                 ):
                     return True
