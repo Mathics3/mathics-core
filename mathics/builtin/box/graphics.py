@@ -271,7 +271,7 @@ class ArrowBox(_Polyline):
         else:
             s = max(_to_float(expr), 0.0)
             return s, s
-            
+
     # Note: this is a misguided approach. This should be done in specific renderers.
     @staticmethod
     def _default_arrow(polygon):
