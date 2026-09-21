@@ -299,9 +299,10 @@ class OptionsPattern(PatternObject):
 
     See also <url>
     :'Options':
-    /doc/reference-of-built-in-symbols/options-management/options/</url> and <url>
+    /doc/reference-of-built-in-symbols/options-management/setting-up-options-for-functions/options/</url> \
+    and <url>
     :'OptionValue':
-    /doc/reference-of-built-in-symbols/options-management/optionvalue/</url>.
+    /doc/reference-of-built-in-symbols/options-management/setting-up-options-for-functions/optionvalue/</url>.
     """
 
     arg_counts = [0, 1]
@@ -386,7 +387,7 @@ class OptionsPattern(PatternObject):
         """
         return (
             OPTIONSPATTERN_SORT_KEY,
-            # Check if this is necesary...
+            # Check if this is necessary...
             self.head.pattern_precedence,
             tuple(element.pattern_precedence for element in self.elements),
         )
@@ -793,7 +794,7 @@ class Verbatim(PatternObject):
         """
         return (
             VERBATIM_PATTERN_SORT_KEY,
-            # TODO: Check if this is necesary...
+            # TODO: Check if this is necessary...
             self.head.pattern_precedence,
             tuple(element.pattern_precedence for element in self.elements),
         )

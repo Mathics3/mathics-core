@@ -364,7 +364,7 @@ class Get(PrefixOperator):
       <dd>reads a file and evaluates each expression, returning only the last one.
 
       <dt>'Get'[$name$, $options$]
-      <dd>Runs Get supplying $options$. See below for a descripton of the options.
+      <dd>Runs Get supplying $options$. See below for a description of the options.
     </dl>
 
     Options:
@@ -413,8 +413,7 @@ class Get(PrefixOperator):
 
     See also <url>
     :Needs:
-    /doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/filesystem-operations/needs/</url>.
-
+    /doc/reference-of-built-in-symbols/files-filesystem-and-inputoutput/filesystem-operations/needs/</url>.
 
     ## TODO: Requires EndPackage implemented
     """
@@ -1494,7 +1493,7 @@ class Find(Read):
         # If py_text comes from a (literal) value, then there are no
         # leading/trailing quotes around strings.  If it is still
         # possible that py_text can be a list, then there could be
-        # leading/traling quotes.
+        # leading/trailing quotes.
         if isinstance(py_text, list):
             py_text = [t[1:-1] if t[0] == t[-1] == '"' else t for t in py_text]
 

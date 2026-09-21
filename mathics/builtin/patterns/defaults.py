@@ -130,7 +130,8 @@ class Optional(InfixOperator, PatternObject):
      = Optional[Pattern[y, Blank[]]]
 
     In this situation, when the is 'y' parameter omitted, the value comes from <url>\
-    :Default:/doc/reference-of-built-in-symbols/options-management/default/</url>:
+    :Default:
+    /doc/reference-of-built-in-symbols/rules-and-patterns/pattern-defaults/default/</url>:
 
     >> Default[g] = 4
      = 4
