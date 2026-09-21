@@ -35,7 +35,14 @@ from mathics.core.number import (
     min_prec,
     prec,
 )
-from mathics.core.symbols import Atom, NumericOperators, Symbol, SymbolNull, symbol_set
+from mathics.core.symbols import (
+    Atom,
+    NumericOperators,
+    Symbol,
+    SymbolN,
+    SymbolNull,
+    symbol_set,
+)
 from mathics.core.systemsymbols import (
     SymbolFullForm,
     SymbolI,

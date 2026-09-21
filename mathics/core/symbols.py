@@ -85,25 +85,6 @@ class NumericOperators:
     def __pow__(self, other) -> BaseElement:
         return self.create_expression(SymbolPower, self, other)
 
-    # FIXME: The name "round_to_float" is misleading when
-    # permit_complex is True.
-    def round_to_float(
-        self, evaluation=None, permit_complex=False
-    ) -> Optional[Union[complex, float]]:
-        """
-        Round to a Python float. Return None if rounding is not possible.
-        This can happen if self or evaluation is NaN.
-        """
-        value = (
-            self
-            if evaluation is None
-            else self.create_expression(SymbolN, self).evaluate(evaluation)
-        )
-        if hasattr(value, "round") and hasattr(value, "get_float_value"):
-            value = value.round()
-            return value.get_float_value(permit_complex=permit_complex)
-        return None
-
 
 def strip_context(name) -> str:
     """strip context from a symbol name"""
@@ -591,6 +572,21 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         # The assert below is a performance hit when there are lots of variables.
         # assert all(fully_qualified_symbol_name(v) for v in vars)
         return vars.get(self.name, self)
+
+    def round_to_float(self, evaluation=None) -> Optional[float]:
+        """
+        Round to a Python float. Return None if rounding is not possible.
+        This can happen if self or evaluation is NaN.
+        """
+        value = (
+            self
+            if evaluation is None
+            else self.create_expression(SymbolN, self).evaluate(evaluation)
+        )
+        if hasattr(value, "round") and hasattr(value, "get_float_value"):
+            value = value.round()
+            return value.get_float_value()
+        return None
 
     def sameQ(self, rhs: Any) -> bool:
         """Mathics3 SameQ"""
