@@ -176,7 +176,7 @@ class Except(PatternObject):
         else:
             self.p.match(expression, pattern_context)
 
-    # TODO: add get_sort_key, when we figure out how does it should look...
+    # TODO: add get_sort_key, when we figure out how it should look...
 
 
 class HoldPattern(PatternObject):
@@ -299,9 +299,10 @@ class OptionsPattern(PatternObject):
 
     See also <url>
     :'Options':
-    /doc/reference-of-built-in-symbols/options-management/options/</url> and <url>
+    /doc/reference-of-built-in-symbols/options-management/setting-up-options-for-functions/options/</url> \
+    and <url>
     :'OptionValue':
-    /doc/reference-of-built-in-symbols/options-management/optionvalue/</url>.
+    /doc/reference-of-built-in-symbols/options-management/setting-up-options-for-functions/optionvalue/</url>.
     """
 
     arg_counts = [0, 1]
@@ -386,7 +387,7 @@ class OptionsPattern(PatternObject):
         """
         return (
             OPTIONSPATTERN_SORT_KEY,
-            # Check if this is necesary...
+            # Check if this is necessary...
             self.head.pattern_precedence,
             tuple(element.pattern_precedence for element in self.elements),
         )
@@ -517,8 +518,7 @@ class Pattern(PatternObject):
 
     def get_match_candidates(self, elements: tuple, pattern_context: dict) -> tuple:
         """
-        Return a sub-tuple of elements that match with
-        the pattern.
+        Return a sub-tuple of elements that match the pattern.
         Optional parameters provide information
         about the context where the elements and the
         patterns come from.
@@ -742,9 +742,9 @@ class Verbatim(PatternObject):
         self.content = elements[0] if len(elements) == 1 else None
 
     def determine_value_role(self, target_symbol: Symbol) -> OptionalType[str]:
-        """Return what kind of Value (DownValue, OwnValue, Upvalue, etc.)
+        """Return what kind of Value (DownValue, OwnValue, UpValue, etc.)
         is referred to in this Verbatim pattern object.
-        If we can't figure what role is intended, we return None.
+        If we can't figure out what role is intended, we return None.
         """
         content = self.content
         if content is None:
@@ -793,7 +793,7 @@ class Verbatim(PatternObject):
         """
         return (
             VERBATIM_PATTERN_SORT_KEY,
-            # TODO: Check if this is necesary...
+            # TODO: Check if this is necessary...
             self.head.pattern_precedence,
             tuple(element.pattern_precedence for element in self.elements),
         )

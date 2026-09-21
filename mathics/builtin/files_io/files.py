@@ -110,10 +110,10 @@ class _OpenAction(Builtin):
 
         if isinstance(self, (OpenWrite, OpenAppend)):
             # We use delete=False because we write to the name *after*
-            # tfms.close() is done. In other words we are using
+            # tfms.close() is done. In other words, we are using
             # NamedTempararyFile to get a unique name and ensure that
             # no one else uses it.
-            # In Close[] we will explicitly remove the name from the
+            # In Close[], we will explicitly remove the name from the
             # filesystem.
             tmpf = tempfile.NamedTemporaryFile(dir=TMP_DIR, delete=False)
             path = String(tmpf.name)
@@ -263,7 +263,7 @@ class Expression_(Builtin):
       <dd>is a data type for 'Read'.
     </dl>
 
-    For information about underlying data structure Expression (a kind of \
+    For information about the underlying data structure Expression (a kind of \
     M-expression) that is central in evaluation, see: \
     <url>
     :AST, M-Expression, General List same thing:
@@ -321,9 +321,9 @@ class FilePrint(Builtin):
         record_separators = options["System`RecordSeparators"].to_python()
         assert isinstance(record_separators, tuple)
 
-        # Note: If we get a "noopen" message why we do not return SymbolFailed, I don't understand.
+        # Note: I don't understand why we do not return SymbolFailed when we get a "noopen" message.
         # But this is what WMA does.
-        # Also, this is error is tagged "General" instead of FilePrint, I also don't understand.
+        # Also, this error is tagged "General" instead of FilePrint; again, I also don't understand why.
         if resolved_pypath is None:
             evaluation.message("General", "noopen", path)
             return
@@ -364,16 +364,16 @@ class Get(PrefixOperator):
       <dd>reads a file and evaluates each expression, returning only the last one.
 
       <dt>'Get'[$name$, $options$]
-      <dd>Runs Get supplying $options$. See below for a descripton of the options.
+      <dd>Runs Get supplying $options$. See below for a description of the options.
     </dl>
 
     Options:
 
     <dl>
       <dt>'Trace'->{True,False}
-      <dd>Print line numbers and source text we read input.
+      <dd>Print line numbers and source text when reading input.
 
-      Boolean variable 'Settings`\$TraceGet' can be also used to enable or disable \
+      Boolean variable 'Settings`\$TraceGet' can also be used to enable or disable \
       showing line numbers of source input in 'Get[]' calls.
       <dt>'Path'->$dir$
       <dd>Set the search path to the single directory $dir$ in the 'Get'.
@@ -395,7 +395,7 @@ class Get(PrefixOperator):
      = Cos[x] + I Sin[x]
     S> DeleteFile[filename]
 
-    If the 'Path' is not fully qualified built-in variable <url>
+    If the 'Path' is not fully qualified, the built-in variable <url>
     :\$Path:
     /doc/reference-of-built-in-symbols/directories-and-directory-operations/user-file-directories/$path/</url> is consulted.
 
@@ -405,7 +405,7 @@ class Get(PrefixOperator):
     S> << "VectorAnalysis`"
      = ...
 
-    If a package is loaded variable <url>
+    If a package is loaded, variable <url>
     :\$ContextPath:
     /doc/reference-of-built-in-symbols/scoping-constructs/$contextpath/</url> is updated with the new package context name:
     >> $ContextPath
@@ -413,8 +413,7 @@ class Get(PrefixOperator):
 
     See also <url>
     :Needs:
-    /doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/filesystem-operations/needs/</url>.
-
+    /doc/reference-of-built-in-symbols/files-filesystem-and-inputoutput/filesystem-operations/needs/</url>.
 
     ## TODO: Requires EndPackage implemented
     """
@@ -434,7 +433,7 @@ class Get(PrefixOperator):
     def eval(self, path: String, evaluation: Evaluation, options: dict):
         "Get[path_String, OptionsPattern[Get]]"
 
-        # Make sure to pick up copy from module each time instead of using
+        # Make sure to pick up a copy from the module each time instead of using
         # use "from ... import DEFAULT_TRACE_FN" which will not pick
         # up run-time changes made to the module function.
         trace_fn = io_files.DEFAULT_TRACE_FN
@@ -642,13 +641,13 @@ class Put(InfixOperator):
       <dd>write a sequence of expressions to a file.
     </dl>
 
-    ## Note a lot of these tests are:
+    ## Note: a lot of these tests are:
     ## * a bit fragile, somewhat
     ## * somewhat OS dependent,
     ## * can leave crap in the filesystem
     ## * put in a pytest
     ##
-    ## For these reasons this should be done a a pure test
+    ## For these reasons this should be done as a pure test
     ## rather than intermingled with the doc system.
 
     S> Put[40!, fortyfactorial]
@@ -709,8 +708,8 @@ class Put(InfixOperator):
             return
 
         # In Mathics3-server, evaluation.format_output is modified.
-        # Let's avoid to use it if we want a front-end independent result.
-        # Eventually, we are going to replace this by a `MakeBoxes` call.
+        # Let's avoid using it if we want a front-end independent result.
+        # Eventually, we are going to replace this with a `MakeBoxes` call.
         def do_format_output(expr, evaluation):
             try:
                 # TODO: set character encoding?
@@ -821,7 +820,7 @@ def validate_read_type(name: str, typ, evaluation: Evaluation):
     """
     Validate a Read option type, and give a message if
     the type is invalid. For Expression[Hold], we convert it to
-    SymbolHoldExpression, String names are like "Byte" are
+    SymbolHoldExpression. String names like "Byte" are
     converted to Symbols in the return.
     """
     if hasattr(typ, "head") and typ.head == SymbolHold:
@@ -1063,7 +1062,7 @@ class ReadList(Read):
     Like <url>:'Read[]':
     /doc/reference-of-built-in-symbols/files-filesystem-and-inputoutput/file-and-stream-operations/read/</url>, \
       'ReadList' handles types of objects other than numbers.
-    We can read a list of characters in a file putting each character as an item in a list:
+    We can read a list of characters in a file, putting each character as an item in a list:
 
     >> ReadList["ExampleData/strings.txt", Character]
      = ...
@@ -1494,7 +1493,7 @@ class Find(Read):
         # If py_text comes from a (literal) value, then there are no
         # leading/trailing quotes around strings.  If it is still
         # possible that py_text can be a list, then there could be
-        # leading/traling quotes.
+        # leading/trailing quotes.
         if isinstance(py_text, list):
             py_text = [t[1:-1] if t[0] == t[-1] == '"' else t for t in py_text]
 
@@ -1650,7 +1649,7 @@ class Write(Builtin):
      = ...
     >> Write[stream, 10 x + 15 y ^ 2]
     >> Write[stream, 3 Sin[z]]
-    The stream must be closed in order to use the file again:
+    The stream must be closed to use the file again:
     >> Close[stream];
     >> stream = OpenRead[%];
     >> ReadList[stream]
