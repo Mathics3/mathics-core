@@ -315,7 +315,8 @@ class OptionValue(Builtin):
 
     See also <url>
     :'Options':
-    /doc/reference-of-built-in-symbols/options-management/options/</url> and <url>
+    /doc/reference-of-built-in-symbols/options-management/setting-up-options-for-functions/options/</url> \
+    and <url>
     :'OptionsPattern':
     /doc/reference-of-built-in-symbols/rules-and-patterns/composite-patterns/optionspattern/</url>.
     """

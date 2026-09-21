@@ -23,7 +23,7 @@ contains a list of file formats that are supported by <url>
 /doc/reference-of-built-in-symbols/importing-and-exporting/import-and-export-functions-and-variables/export/</url>, \
 while <url>
 :\$ImportFormats:
-/doc/reference-of-built-in-symbols/importing-and-exporting/import-and-export-functions-and-variables/$importformats/</url> \
+/doc/reference-of-built-in-symbols/importing-and-exporting/import-and-export-functions-and-variables/\$importformats/</url> \
 does the corresponding thing for <url>
 :Import:
 /doc/reference-of-built-in-symbols/importing-and-exporting/import-and-export-functions-and-variables/import/</url>.
