@@ -4,7 +4,7 @@ Composite Patterns
 
 """
 
-from typing import Optional as OptionalType, Tuple, Union
+from typing import Optional as OptionalType, Union
 
 from mathics.core.attributes import A_HOLD_ALL, A_HOLD_FIRST, A_PROTECTED
 from mathics.core.builtin import Builtin, InfixOperator, PatternObject, PostfixOperator
@@ -357,7 +357,7 @@ class OptionsPattern(PatternObject):
         return (0, None)
 
     def get_match_candidates(
-        self, elements: Tuple[BaseElement], pattern_context: dict
+        self, elements: tuple[BaseElement], pattern_context: dict
     ) -> tuple:
         """
         Return the sub-tuple of elements that matches with the pattern.
@@ -597,7 +597,7 @@ class Repeated(PostfixOperator, PatternObject):
             allnumbers = not any(
                 element.int_value is None for element in element_1.get_elements()
             )
-            if element_1.has_form("List", 1, 2) and allnumbers:
+            if element_1.has_form(SymbolList, 1, 2) and allnumbers:
                 self.max = element_1.elements[-1].int_value
                 self.min = element_1.elements[0].int_value
             elif element_1.int_value:

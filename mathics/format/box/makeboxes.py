@@ -366,7 +366,7 @@ def to_boxes(
         x = x.atom_to_boxes(SymbolStandardForm, evaluation)
         return to_boxes(x, evaluation, options)
     if isinstance(x, Expression):
-        if x.has_form("MakeBoxes", 1, 2):
+        if x.has_form(SymbolMakeBoxes, 1, 2):
             x_boxed = x.evaluate(evaluation)
             if isinstance(x_boxed, BoxElementMixin):
                 return x_boxed

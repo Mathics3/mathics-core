@@ -2,7 +2,7 @@
 Polynomial-like Routines.
 """
 
-from typing import Final, FrozenSet, Optional, Tuple, Union
+from typing import Final, FrozenSet, Optional, Union
 
 import sympy
 
@@ -49,6 +49,7 @@ from mathics.core.systemsymbols import (
     SymbolOr,
     SymbolSin,
     SymbolSinh,
+    SymbolSqrt,
     SymbolTan,
     SymbolTanh,
     SymbolUnequal,
@@ -158,18 +159,18 @@ def coeff_power(
                 if match(pf, pat, evaluation):
                     powers[i] = Integer1
                     return powers
-        if pf.has_form("Sqrt", 1):
+        if pf.has_form(SymbolSqrt, 1):
             for i, pat in enumerate(var_pats):
                 if match(pf.elements[0], pat, evaluation):
                     powers[i] = RationalOneHalf
                     return powers
-        if pf.has_form("Power", 2):
+        if pf.has_form(SymbolPower, 2):
             for i, pat in enumerate(var_pats):
                 matchval = match(pf.elements[0], pat, evaluation)
                 if matchval:
                     powers[i] = pf.elements[1]
                     return powers
-        if pf.has_form("Times", None):
+        if pf.has_form(SymbolTimes, None):
             contrib = [powers_list(factor) for factor in pf.elements]
             for i in range(len(var_pats)):
                 powers[i] = Expression(SymbolPlus, *[c[i] for c in contrib]).evaluate(
@@ -183,7 +184,7 @@ def coeff_power(
                     return powers
         return powers
 
-    def split_coeff_pow(term) -> Tuple[Optional[list], Optional[list]]:
+    def split_coeff_pow(term) -> tuple[Optional[list], Optional[list]]:
         """
         This function factorizes term in a coefficient free
         of powers of the target variables, and a factor with
@@ -199,18 +200,18 @@ def coeff_power(
             return None, term
         elif (
             isinstance(term, Symbol)
-            or term.has_form("Power", 2)
-            or term.has_form("Sqrt", 1)
+            or term.has_form(SymbolPower, 2)
+            or term.has_form(SymbolSqrt, 1)
         ):
             powers.append(term)
-        elif term.has_form("Times", None):
+        elif term.has_form(SymbolTimes, None):
             for factor in term.elements:
                 if factor.is_free(target_pat, evaluation):
                     coeffs.append(factor)
                 elif match(factor, target_pat, evaluation):
                     powers.append(factor)
                 elif (
-                    factor.has_form("Power", 2) or factor.has_form("Sqrt", 1)
+                    factor.has_form(SymbolPower, 2) or factor.has_form(SymbolSqrt, 1)
                 ) and match(factor.elements[0], target_pat, evaluation):
                     powers.append(factor)
                 else:
@@ -253,8 +254,8 @@ def coeff_power(
     elif (
         isinstance(expr, Symbol)
         or match(expr, target_pat, evaluation)
-        or expr.has_form("Power", 2)
-        or expr.has_form("Sqrt", 1)
+        or expr.has_form(SymbolPower, 2)
+        or expr.has_form(SymbolSqrt, 1)
     ):
         coeff = Expression(filt, Integer1).evaluate(evaluation) if filt else Integer1
         if form == "expr":
@@ -266,7 +267,7 @@ def coeff_power(
             if not coeff.is_free(target_pat, evaluation):
                 return []
             return [(powers_list(expr), coeff)]
-    elif expr.has_form("Times", None):
+    elif expr.has_form(SymbolTimes, None):
         coeff, powers = split_coeff_pow(expr)
         if coeff is None:
             coeff = Integer1
@@ -287,7 +288,7 @@ def coeff_power(
         else:
             pl = powers_list(powers)
             return [(pl, coeff)]
-    elif expr.has_form("Plus", None):
+    elif expr.has_form(SymbolPlus, None):
         coeff_dict = {}
         powers_dict = {}
         powers_order = {}
@@ -416,7 +417,7 @@ def expand_polynomial(
                 if deep:
                     theta = expand_polynomial_inner(theta)
 
-                if theta.has_form("Plus", 2, None):
+                if theta.has_form(SymbolPlus, 2, None):
                     x, y = theta.elements[0], Expression(
                         SymbolPlus, *theta.elements[1:]
                     )
@@ -594,7 +595,7 @@ def expand_polynomial(
             threaded_heads = ("List", "Rule")
             for i, sub_expr in enumerate(sub_exprs):
                 for head in threaded_heads:
-                    if sub_expr.has_form(head, None):
+                    if sub_expr.has_form(Symbol(head), None):
                         elements = sub_expr.elements
                         if target_pat:
                             elements = [

@@ -34,7 +34,7 @@ def create_rules(
     """
     if isinstance(rules_expr, Dispatch):
         return rules_expr.rules, False
-    if rules_expr.has_form("Dispatch", None):
+    if rules_expr.has_form(SymbolDispatch, None):
         if rules_expr.get_head() is SymbolList:
             return Dispatch(rules_expr.elements, evaluation)
         return Dispatch((rules_expr,), evaluation)

@@ -11,7 +11,7 @@ Many of these depend on the evaluation context. Conversions to SymPy are
 used just as a last resource.
 """
 
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, Optional
 
 import mpmath
 import sympy
@@ -36,8 +36,16 @@ from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement
 from mathics.core.number import FP_MANTISA_BINARY_DIGITS, SpecialValueError
-from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolTimes
-from mathics.core.systemsymbols import SymbolComplexInfinity, SymbolI, SymbolLog
+from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolPower, SymbolTimes
+from mathics.core.systemsymbols import (
+    SymbolComplexInfinity,
+    SymbolExp,
+    SymbolI,
+    SymbolLog,
+    SymbolOverflow,
+    SymbolSqrt,
+    SymbolUnderflow,
+)
 from mathics.eval.numeric import eval_Power_number, eval_RealSign, to_inexact_value
 
 RationalMOneHalf = Rational(-1, 2)
@@ -186,16 +194,14 @@ def eval_negate_number(n: Number) -> Number:
 
 
 def eval_RealValuedNumberQ(expr) -> bool:
-    return (
-        isinstance(expr, (Integer, Rational, Real))
-        or expr.has_form("Underflow", 0)
-        or expr.has_form("Overflow", 0)
+    return isinstance(expr, (Integer, Rational, Real)) or expr.has_form(
+        (SymbolUnderflow, SymbolOverflow), 0
     )
 
 
 def segregate_numbers(
     *elements: BaseElement,
-) -> Tuple[List[Number], List[BaseElement]]:
+) -> tuple[list[Number], list[BaseElement]]:
     """
     From a list of elements, produce two lists, one with the numeric items
     and the other with the remaining
@@ -207,16 +213,16 @@ def segregate_numbers(
 
 
 # Note: we return:
-#  Tuple[List[Number], List[BaseElement]]
+#  tuple[list[Number], list[BaseElement]]
 #             ^^^^^
 # But the mypy type checking system can't
 # look into the loop and its condition and
-# prove that the return type is List[Number].
+# prove that the return type is list[Number].
 # So we use the weaker type assertion
-# which is the one on elements: List[BaseElement].
+# which is the one on elements: list[BaseElement].
 def segregate_numbers_from_sorted_list(
     *elements: BaseElement,
-) -> Tuple[List[BaseElement], List[BaseElement]]:
+) -> tuple[list[BaseElement], list[BaseElement]]:
     """
     From a list of elements, produce two lists, one with the numeric items
     and the other with the remaining. Different from `segregate_numbers`,
@@ -250,13 +256,13 @@ def test_arithmetic_expr(expr: BaseElement, only_real: bool = True) -> bool:
 
     if head in (SymbolPlus, SymbolTimes):
         return all(test_arithmetic_expr(term, only_real) for term in elements)
-    if expr.has_form("Power", 2):
+    if expr.has_form(SymbolPower, 2):
         base, exponent = elements
         if only_real:
             if isinstance(exponent, Integer):
                 return test_arithmetic_expr(base)
         return all(test_arithmetic_expr(item, only_real) for item in elements)
-    if expr.has_form("Exp", 1):
+    if expr.has_form(SymbolExp, 1):
         return test_arithmetic_expr(elements[0], only_real)
     if head is SymbolLog:
         if len(elements) > 2:
@@ -268,7 +274,7 @@ def test_arithmetic_expr(expr: BaseElement, only_real: bool = True) -> bool:
             elif not test_arithmetic_expr(base):
                 return False
         return test_arithmetic_expr(elements[-1], only_real)
-    if expr.has_form("Sqrt", 1):
+    if expr.has_form(SymbolSqrt, 1):
         radicand = elements[0]
         if only_real:
             return eval_RealSign(radicand) in (Integer0, Integer1)

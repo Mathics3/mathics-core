@@ -34,6 +34,7 @@ from mathics.core.systemsymbols import (
     SymbolDefinition,
     SymbolFormat,
     SymbolGrid,
+    SymbolInfix,
     SymbolInputForm,
     SymbolLeft,
     SymbolMissing,
@@ -62,7 +63,7 @@ def gather_and_format_definition_rules(
     lines = []
 
     def rhs_format(expr):
-        if expr.has_form("Infix", None):
+        if expr.has_form(SymbolInfix, None):
             expr = Expression(Expression(SymbolHoldForm, expr.head), *expr.elements)
         return expr
 

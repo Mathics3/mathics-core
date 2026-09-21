@@ -7,7 +7,7 @@ Here we have the base class and related functions for elements inside an Express
 
 from abc import ABC
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Final, Iterable, Optional, Sequence, Tuple, Union
+from typing import TYPE_CHECKING, Any, Final, Iterable, Optional, Sequence, Union
 
 from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.keycomparable import KeyComparable
@@ -116,7 +116,7 @@ class BaseElement(KeyComparable, ABC):
 
     def do_apply_rules(
         self, rules, evaluation, level=0, options=None
-    ) -> Tuple["BaseElement", bool]:
+    ) -> tuple["BaseElement", bool]:
         """
         Tries to apply one by one the rules in `rules`.
         If one of the rules matches, returns the result and the flag True.
@@ -298,7 +298,7 @@ class BaseElement(KeyComparable, ABC):
 
     def has_form(
         self,
-        heads: Union[Iterable[Union[str, "Symbol"]], str, "Symbol"],
+        heads: Iterable["Symbol"] | "Symbol",
         *element_counts: Optional[int],
     ) -> bool:
         """Check if the expression is of the form Head[l1,...,ln]
@@ -386,7 +386,7 @@ class EvalMixin:
 
     def rewrite_apply_eval_step(
         self, evaluation
-    ) -> Tuple[Optional["BaseElement"], bool]:
+    ) -> tuple[Optional["BaseElement"], bool]:
         """
         Performs a since rewrite/apply/eval step used in
         evaluation.

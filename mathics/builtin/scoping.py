@@ -13,7 +13,7 @@ from mathics.core.element import fully_qualified_symbol_name
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolList
+from mathics.core.systemsymbols import SymbolList, SymbolSet
 from mathics.eval.scoping import eval_contexts, eval_contexts_with_string
 
 
@@ -30,7 +30,7 @@ def get_scoping_vars(var_list, msg_symbol="", evaluation=None):
     for var in vars:
         var_name = None
         new_def = None
-        if var.has_form("Set", 2):
+        if var.has_form(SymbolSet, 2):
             var_name = var.elements[0].get_name()
             new_def = var.elements[1]
             if evaluation:

@@ -4,7 +4,7 @@ NumberForm related routines.
 
 import sys
 from math import ceil
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, Optional, Union
 
 import mpmath
 import sympy
@@ -31,6 +31,7 @@ from mathics.core.rules import is_rule
 from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.systemsymbols import (
     SymbolFullForm,
+    SymbolList,
     SymbolMakeBoxes,
     SymbolOutputForm,
     SymbolSubscriptBox,
@@ -63,7 +64,7 @@ DEFAULT_NUMBERFORM_OPTIONS = {
 
 def int_to_tuple_info(
     integer: Integer, digits: Optional[int] = None
-) -> Tuple[str, int, bool, int]:
+) -> tuple[str, int, bool, int]:
     """
     Convert ``integer`` to a tuple representing that value. The tuple consists of:
     * the string absolute value of ``integer``.
@@ -169,7 +170,7 @@ def int_to_string_shorter_repr(
 
 def real_to_tuple_info(
     real: Real, digits: Optional[int]
-) -> Tuple[str, int, bool, int, int]:
+) -> tuple[str, int, bool, int, int]:
     """
     Convert ``real`` to a tuple representing that value. The tuple consists of:
     * the string absolute value of ``integer`` with decimal point removed from the string;
@@ -282,7 +283,7 @@ def eval_baseform(
 
 def get_baseform_elements(
     expr: BaseElement, n: BaseElement, evaluation: Evaluation
-) -> Tuple[str, Any]:
+) -> tuple[str, Any]:
     """
     Collect the options for BaseForm expressions.
 
@@ -302,7 +303,7 @@ def get_baseform_elements(
 
     Returns
     -------
-    Dict[str, Any]
+    dict[str, Any]
         A dictionary with the option values.
 
     """
@@ -337,7 +338,7 @@ def get_baseform_elements(
 
 def get_numberform_parameters(
     full_expr, evaluation
-) -> Tuple[BaseElement, Optional[BaseElement], Dict[str, Any]]:
+) -> tuple[BaseElement, Optional[BaseElement], dict[str, Any]]:
     """Collect the parameters of a NumberForm[...] expression.
     Return a tuple with the expression, to be formatted,
     the precision especification and a dictionary of options
@@ -351,11 +352,11 @@ def get_numberform_parameters(
     # This picks the builtin object used to do the option
     # checks...
     self = evaluation.definitions.builtin[form_name].builtin
-    default_options: Dict[str, BaseElement] = evaluation.definitions.get_options(
+    default_options: dict[str, BaseElement] = evaluation.definitions.get_options(
         form_name
     )
-    options: Dict[str, BaseElement] = {}
-    py_options: Dict = {}
+    options: dict[str, BaseElement] = {}
+    py_options: dict = {}
 
     if len(elements) == 0:
         evaluation.message(form_name, "argm", num_form, Integer0)
@@ -405,7 +406,7 @@ def get_numberform_parameters(
         if val <= 0:
             evaluation.message(form_name, "iprf", precision_parms)
             precision_parms = None
-    elif precision_parms.has_form("List", 2):
+    elif precision_parms.has_form(SymbolList, 2):
         if any(
             not isinstance(x, Integer) or x.value <= 0 for x in precision_parms.elements
         ):
@@ -546,12 +547,12 @@ def _attach_precision(s: str, value, form: str, precision) -> str:
 
 
 def _do_padding(
-    parts: Tuple[str, str],
+    parts: tuple[str, str],
     digits: int,
     is_nonnegative: bool,
     is_int: bool,
-    options: Dict[str, Any],
-) -> Tuple[str, str]:
+    options: dict[str, Any],
+) -> tuple[str, str]:
     """
     Rebuild the prefix and magnitud
     """
@@ -582,7 +583,7 @@ def _do_padding(
 
 def _do_pre_paddings(
     left: str, right: str, form: str, exp: int, options
-) -> Tuple[str, str]:
+) -> tuple[str, str]:
     # pad with NumberPadding
     daadp = options["_digits_after_decimal_point"]
     if daadp is None:
@@ -616,8 +617,8 @@ def _format_exponent(
     exp: int,
     is_int: bool,
     evaluation: Optional[Evaluation],
-    options: Dict[str, Any],
-) -> Tuple[str, str, int, str]:
+    options: dict[str, Any],
+) -> tuple[str, str, int, str]:
     # round exponent to ExponentStep
     exponent_step = options["ExponentStep"]
     rexp = (exp // exponent_step) * exponent_step

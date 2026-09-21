@@ -30,6 +30,7 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import SymbolFalse, SymbolFullForm, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAll,
+    SymbolDirectedInfinity,
     SymbolOutputForm,
     SymbolStringInsert,
     SymbolStringJoin,
@@ -433,7 +434,7 @@ class StringPosition(Builtin):
         expr = Expression(SymbolStringPosition, string, patt, n)
 
         # check n
-        if n.has_form("DirectedInfinity", 1):
+        if n.has_form(SymbolDirectedInfinity, 1):
             py_n = float("inf")
         else:
             py_n = n.int_value

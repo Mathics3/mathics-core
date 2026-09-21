@@ -9,7 +9,12 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import is_rule
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
-from mathics.core.systemsymbols import SymbolKeyAbsent, SymbolList, SymbolMissing
+from mathics.core.systemsymbols import (
+    SymbolAssociation,
+    SymbolKeyAbsent,
+    SymbolList,
+    SymbolMissing,
+)
 from mathics.eval.associations.associations import eval_AssociationQ
 
 
@@ -21,7 +26,7 @@ def eval_KeyExistsQ(
         return SymbolTrue if key in assoc.keys() else SymbolFalse
 
     # Handle Association-like Expression: search rules in its elements.
-    if assoc.has_form("Association", None):
+    if assoc.has_form(SymbolAssociation, None):
         for element in assoc.elements:
             if is_rule(element) and element.elements[0] == key:
                 return SymbolTrue
@@ -50,7 +55,7 @@ def eval_Keys(rules_or_association, evaluation: Evaluation):
         if is_rule(expr):
             return expr.elements[0]
         elif expr.has_form(SymbolList, None) or (
-            expr.has_form("Association", None) and eval_AssociationQ(expr)
+            expr.has_form(SymbolAssociation, None) and eval_AssociationQ(expr)
         ):
             return to_mathics_list(*expr.elements, elements_conversion_fn=get_keys)
         else:
@@ -84,7 +89,8 @@ def eval_Keys_with_Head(
             key = expr.elements[0]
             return Expression(h, key)
         elif expr.has_form(SymbolList, None) or (
-            expr.has_form("Association", None) and eval_AssociationQ(expr) is SymbolTrue
+            expr.has_form(SymbolAssociation, None)
+            and eval_AssociationQ(expr) is SymbolTrue
         ):
             return to_mathics_list(
                 *expr.elements,
@@ -109,7 +115,7 @@ def eval_Lookup(assoc, key: BaseElement, default: BaseElement, evaluation: Evalu
     if isinstance(assoc, Association):
         return assoc.get(key, default)
 
-    if assoc.has_form("Association", None):
+    if assoc.has_form(SymbolAssociation, None):
         # Search through association elements (rules)
         for element in assoc.elements:
             if is_rule(element):
@@ -172,7 +178,7 @@ def eval_Values(rules_or_association, evaluation: Evaluation):
         if is_rule(expr):
             return expr.elements[1]
         if expr.has_form(SymbolList, None) or (
-            expr.has_form("Association", None) and eval_AssociationQ(expr)
+            expr.has_form(SymbolAssociation, None) and eval_AssociationQ(expr)
         ):
             return to_mathics_list(*expr.elements, elements_conversion_fn=get_values)
         else:
@@ -202,7 +208,7 @@ def eval_Values_with_Head(
             value = expr.elements[1]
             return Expression(h, value)
         if expr.has_form(SymbolList, None) or (
-            expr.has_form("Association", None) and eval_AssociationQ(expr)
+            expr.has_form(SymbolAssociation, None) and eval_AssociationQ(expr)
         ):
             return to_mathics_list(
                 *expr.elements,
