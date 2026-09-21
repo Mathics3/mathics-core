@@ -1106,19 +1106,20 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         """
 
         expr_head = self._head
+
+        # "has_form" only matches against Expressions that start with a Symbol.
         if not isinstance(expr_head, Symbol):
-            # "has_form" only matches against forms that start with a Symbol.
             return False
 
-        # If heads is a single Symbol, and is the same
-        # as the Expression head, then we just need to
-        # perform argument-count checking.
-        # skip the below.
+        # If "expr_head" is the same Symbol as "heads",
+        # then we can can go to element count matching below
         if expr_head is not heads:
             if isinstance(heads, Symbol):
-                # If "head" is a Symbol, then it is not my head.
+                # "expr_head" is not the same symbol as "heads".
                 return False
-            elif expr_head not in heads:
+
+            # "heads" is a sequence; see it has Expression's head in there.
+            if expr_head not in heads:
                 return False
 
         # Below, we check whether Expression parameter counts given by "element_counts" match.
@@ -1129,7 +1130,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             if count not in element_counts:
                 if (
                     len(element_counts) == 2
-                    and element_counts[1] is None  # noqa
+                    and element_counts[1] is None
                     and count >= element_counts[0]
                 ):
                     return True
