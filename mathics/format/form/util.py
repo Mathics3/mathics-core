@@ -13,6 +13,7 @@ from mathics.core.expression import Expression
 from mathics.core.parser.operators import OPERATOR_DATA, operator_to_string
 from mathics.core.symbols import Atom, Symbol
 from mathics.core.systemsymbols import (
+    RULE_SYMBOL_HEADS,
     SymbolBlank,
     SymbolBlankNullSequence,
     SymbolBlankSequence,
@@ -276,7 +277,7 @@ def text_cells_to_grid(cells: List, **kwargs):
 
 def process_options(opts: dict, rules: Tuple):
     for opt in rules:
-        if not opt.has_form(["Rule", "RuleDelayed"], 2):
+        if not opt.has_form(RULE_SYMBOL_HEADS, 2):
             raise _WrongFormattedExpression
         opt_symb, opt_val = opt.elements
         if isinstance(opt_symb, Symbol):

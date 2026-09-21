@@ -1094,7 +1094,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
     def has_form(
         self,
-        heads: Iterable[str | Symbol] | str | Symbol,
+        heads: Iterable[Symbol] | Symbol,
         *element_counts: Optional[int],
     ) -> bool:
         """
@@ -1105,25 +1105,23 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             (n1, n2, ...):    element count in {n1, n2, ...}
         """
 
-        head = self._head
-        if not isinstance(head, Symbol):
+        expr_head = self._head
+        if not isinstance(expr_head, Symbol):
+            # "has_form" only matches against forms that start with a Symbol.
             return False
 
-        if head is not heads:  # heads is a symbol, and matches, skip this
+        # If heads is a single Symbol, and is the same
+        # as the Expression head, then we just need to
+        # perform argument-count checking.
+        # skip the below.
+        if expr_head is not heads:
             if isinstance(heads, Symbol):
-                # if is a Symbol, then is not my head.
+                # If "head" is a Symbol, then it is not my head.
                 return False
-            # if is a str, look for a symbol whose name is the string.
-            elif isinstance(heads, str):
-                if head is not Symbol(heads):
-                    return False
-            # Not a symbol or a string: must be a sequence...
-            else:
-                if head not in (
-                    h if isinstance(h, Symbol) else Symbol(h) for h in heads
-                ):
-                    return False
+            elif expr_head not in heads:
+                return False
 
+        # Below, we check whether Expression parameter counts given by "element_counts" match.
         if not element_counts:
             return False
         if element_counts and element_counts[0] is not None:

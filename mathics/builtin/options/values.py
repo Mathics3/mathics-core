@@ -3,7 +3,7 @@ Common Generic Option Values
 """
 
 from mathics.core.builtin import Predefined, Test
-from mathics.core.systemsymbols import SymbolList, SymbolRule, SymbolRuleDelayed
+from mathics.core.systemsymbols import RULE_SYMBOL_HEADS, SymbolList
 
 
 class All(Predefined):
@@ -110,7 +110,7 @@ class NotOptionQ(Test):
             expr = [expr]
         else:
             expr = expr.elements
-        return not all(e.has_form((SymbolRule, SymbolRuleDelayed), None) for e in expr)
+        return not all(e.has_form(RULE_SYMBOL_HEADS, None) for e in expr)
 
 
 # Has this been removed from WL? I cannot find a WMA link.
@@ -161,7 +161,7 @@ class OptionQ(Test):
             expr = [expr]
         else:
             expr = expr.elements
-        return all(e.has_form((SymbolRule, SymbolRuleDelayed), None) for e in expr)
+        return all(e.has_form(RULE_SYMBOL_HEADS, None) for e in expr)
 
 
 ## FIXME: add:

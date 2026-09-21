@@ -43,13 +43,12 @@ from mathics.core.symbols import (
     SymbolTrue,
 )
 from mathics.core.systemsymbols import (
+    RULE_SYMBOL_HEADS,
     SymbolAssumptions,
     SymbolEqual,
     SymbolIdentity,
     SymbolIndeterminate,
     SymbolLess,
-    SymbolRule,
-    SymbolRuleDelayed,
     SymbolTable,
 )
 from mathics.eval.list.eol import eval_Part
@@ -1186,7 +1185,7 @@ class Simplify(Builtin):
 
         # If the second argument is a rule, it means that
         # it should be taken as an option.
-        if assum.get_head() in (SymbolRule, SymbolRuleDelayed):
+        if assum.get_head() in RULE_SYMBOL_HEADS:
             options[assum.elements[0].get_name()] = assum.elements[1]
             return self.eval(expr, evaluation, options)
 

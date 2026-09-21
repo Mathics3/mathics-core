@@ -595,7 +595,7 @@ def expand_polynomial(
             threaded_heads = ("List", "Rule")
             for i, sub_expr in enumerate(sub_exprs):
                 for head in threaded_heads:
-                    if sub_expr.has_form(head, None):
+                    if sub_expr.has_form(Symbol(head), None):
                         elements = sub_expr.elements
                         if target_pat:
                             elements = [
