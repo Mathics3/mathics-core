@@ -1045,7 +1045,7 @@ class ReadList(Read):
      = {11.1, 22.2, 33.3, 44.4, 55.5, 66.6}
 
     (Use <url>:'FilePrint[]':
-    /doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/file-and-stream-operations/fileprint/</url>\
+    /doc/reference-of-built-in-symbols/files-filesystem-and-inputoutput/file-and-stream-operations/fileprint/</url>\
     to get the raw data for the examples above and below.)
 
     This does the same, but groups the numbers in to a pairs:
@@ -1061,7 +1061,7 @@ class ReadList(Read):
     ## == {{0.000045, 78000, 250, -8.9}}
 
     Like <url>:'Read[]':
-    /doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/file-and-stream-operations/read/</url>, \
+    /doc/reference-of-built-in-symbols/files-filesystem-and-inputoutput/file-and-stream-operations/read/</url>, \
       'ReadList' handles types of objects other than numbers.
     We can read a list of characters in a file putting each character as an item in a list:
 
