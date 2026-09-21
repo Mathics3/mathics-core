@@ -13,10 +13,10 @@ no_doc = True
 
 def split_name(name: str) -> str:
     """
-    insert spaces in front of upper case letters
+    Insert spaces in front of uppercase letters
     and numbers. For instance,
     ``split_name("BezierCurve3D")`` results in
-    ``"bezier curve 3D"``
+    ``"bezier curve 3D"``.
 
     """
     if name == "":
@@ -72,7 +72,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
             """
 
         # the __new__ method from BuiltinElement
-        # calls self.init. It is expected that it set
+        # calls self.init. It is expected that it sets
         # self._elements. However, if it didn't happen,
         # we set it with a default value.
         # There should be a better way to implement this
@@ -112,7 +112,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
     def get_head_name(self):
         return self.get_name()
 
-    # FIXME: return a Symbol, not a name.
+    # FIXME: Return a Symbol, not a name.
     # Conceptually, this isn't hard, but there are many changes.
     def get_symbol_definition_name(self) -> str:
         """Return the string symbol name that is to be used in
@@ -191,7 +191,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
     @property
     def is_literal(self) -> bool:
         """
-        True if the value can't change, i.e. a value is set and it does not
+        True if the value can't change, i.e., a value is set, and it does not
         depend on definition bindings. That is why, in contrast to
         `is_uncertain_final_definitions()` we don't need a `definitions`
         parameter.
@@ -232,7 +232,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         else:
             # If evaluation is not available, load the default values
             # for the options directly from the class. This requires
-            # to parse the rules.
+            # parsing the rules.
             from mathics.core.parser import parse_builtin_rule
 
             default = {}
