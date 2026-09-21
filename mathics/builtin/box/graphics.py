@@ -59,7 +59,7 @@ class GraphicsElementBox(BoxExpression, ABC):
 
 
 # GraphicsElementBox Builtin class that should not get added as a definition,
-# and therefore not added to to external documentation.
+# and therefore not added to external documentation.
 
 DOES_NOT_ADD_BUILTIN_DEFINITION: Final[list[BoxExpression]] = [GraphicsElementBox]
 
@@ -70,7 +70,7 @@ class _Polyline(GraphicsElementBox):
     stored in ``self.lines`` created from
     a list of points.
 
-    Lines are formed by pairs of consecutive point.
+    Lines are formed by pairs of consecutive points.
     """
 
     def do_init(self, graphics, points):
@@ -120,7 +120,7 @@ class _Polyline(GraphicsElementBox):
         return result
 
 
-# Note: has to come before ArcBox
+# Note: has to come before ArcBox.
 class RoundBox(GraphicsElementBox):
     face_element: Optional[bool] = None
 
@@ -271,10 +271,11 @@ class ArrowBox(_Polyline):
         else:
             s = max(_to_float(expr), 0.0)
             return s, s
-
+            
+    # Note: this is a misguided approach. This should be done in specific renderers.
     @staticmethod
     def _default_arrow(polygon):
-        # the default arrow drawn by draw() below looks looks like this:
+        # The default arrow drawn by draw() below looks looks like this:
         #
         #       H
         #      .:.
@@ -287,10 +288,10 @@ class ArrowBox(_Polyline):
         #       :
         #       :
         #
-        # the head H is where the arrow's point is. at base B, the arrow spreads out at right angles from the line
-        # it attaches to. the arrow size 's' given in the Arrowheads specification always specifies the length H-B.
+        # The head H is where the arrow's point is. At base B, the arrow spreads out at right angles from the line
+        # it attaches to. The arrow size 's' given in the Arrowheads specification always specifies the length H-B.
         #
-        # the spread out points S are defined via two constants: arrow_edge (which defines the factor to get from
+        # The spread-out points S are defined via two constants: arrow_edge (which defines the factor to get from
         # H-B to H-E) and arrow_spread (which defines the factor to get from H-B to E-S).
 
         arrow_spread = 0.3
