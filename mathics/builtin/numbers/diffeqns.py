@@ -183,5 +183,5 @@ class C(Builtin):
     """
 
     summary_text = (
-        "n-th intertermined constant in the solution of a differential equation."
+        "n-th undetermined constant in the solution of a differential equation."
     )
