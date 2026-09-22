@@ -22,7 +22,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.number import (
     FP_MANTISA_BINARY_DIGITS,
     PrecisionValueError,
-    get_precision,
+    get_closest_precision,
     prec as _prec,
 )
 
@@ -137,7 +137,7 @@ class AiryAiZero(Builtin):
         "N[AiryAiZero[k_Integer], precision_]"
 
         try:
-            d = get_precision(precision, evaluation)
+            d = get_closest_precision(precision, evaluation)
         except PrecisionValueError:
             return
 
@@ -254,7 +254,7 @@ class AiryBiZero(Builtin):
         "N[AiryBiZero[k_Integer], precision_]"
 
         try:
-            d = get_precision(precision, evaluation)
+            d = get_closest_precision(precision, evaluation)
         except PrecisionValueError:
             return
 

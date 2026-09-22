@@ -19,7 +19,7 @@ from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.number import PrecisionValueError, get_precision
+from mathics.core.number import PrecisionValueError, get_closest_precision
 from mathics.core.symbols import Atom, SymbolList
 from mathics.core.systemsymbols import (
     SymbolMachinePrecision,
@@ -87,9 +87,9 @@ def eval_NValues(
 
     # Get the precision goal to use in non-integer numbers
     try:
-        # Here ``get_precision`` is called with ``show_messages``
+        # Here ``get_closest_precision`` is called with ``show_messages``
         # set to ``False`` to avoid showing the same warnings repeatedly.
-        d = get_precision(prec, evaluation, show_messages=False)
+        d = get_closest_precision(prec, evaluation, show_messages=False)
     except PrecisionValueError:
         # We can ensure that the function always returns an expression if
         # the exception was captured by the caller.

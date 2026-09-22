@@ -7,7 +7,7 @@ Numeric, Arithmetic, or Symbolic constants like Pi, E, or Infinity.
 """
 
 import math
-from typing import Dict, Optional
+from typing import Optional
 
 import mpmath
 import numpy
@@ -19,9 +19,14 @@ from mathics.core.attributes import A_CONSTANT, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Predefined, SympyObject
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
-from mathics.core.number import MACHINE_DIGITS, PrecisionValueError, get_precision, prec
+from mathics.core.number import (
+    MACHINE_DIGITS,
+    PrecisionValueError,
+    get_closest_precision,
+    prec,
+)
 from mathics.core.symbols import Atom, Symbol, strip_context
-from mathics.core.systemsymbols import SymbolIndeterminate
+from mathics.core.systemsymbols import SymbolIndeterminate, SymbolMachinePrecision
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.mathematical-constants"
@@ -96,7 +101,7 @@ class _Constant_Common(Predefined):
         if evaluation:
             if precision:
                 try:
-                    d = get_precision(precision, evaluation)
+                    d = get_closest_precision(precision, evaluation)
                 except PrecisionValueError:
                     pass
 
@@ -159,7 +164,7 @@ class _MPMathConstant(_Constant_Common):
     # Subclasses should define this.
     mpmath_name: Optional[str] = None
 
-    mathics_to_mpmath: Dict[str, str] = {}
+    mathics_to_mpmath: dict[str, str] = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -179,7 +184,7 @@ class _NumpyConstant(_Constant_Common):
     # Subclasses should define this.
     numpy_name: Optional[str] = None
 
-    mathics_to_numpy: Dict[str, str] = {}
+    mathics_to_numpy: dict[str, str] = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -329,9 +334,9 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
         "N[Degree, precision_]"
         try:
             if precision:
-                d = get_precision(precision, evaluation)
+                d = get_closest_precision(precision, evaluation)
             else:
-                d = get_precision(Symbol("System`MachinePrecision"), evaluation)
+                d = get_closest_precision(SymbolMachinePrecision, evaluation)
         except PrecisionValueError:
             return
 

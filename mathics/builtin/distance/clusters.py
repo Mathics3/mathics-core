@@ -13,7 +13,8 @@ from mathics.algorithm.clusters import (
     kmeans,
     optimize,
 )
-from mathics.core.atoms import FP_MANTISA_BINARY_DIGITS, Integer, Real, String, min_prec
+from mathics.core.atoms import FP_MANTISA_BINARY_DIGITS, Integer, Real, String
+from mathics.core.atoms.numerics import min_prec
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
@@ -134,7 +135,9 @@ class _Cluster(Builtin):
             py_seed = seed.int_value
         else:
             evaluation.message(
-                self.get_name(), "rseed", Expression(SymbolRule, "RandomSeed", seed)
+                self.get_name(),
+                "rseed",
+                Expression(SymbolRule, String("RandomSeed"), seed),
             )
             return
 
@@ -430,7 +433,7 @@ class Nearest(Builtin):
 
         method = self.get_option(options, "Method", evaluation)
         if not isinstance(method, String) or method.get_string_value() != "Scan":
-            evaluation("Nearest", "nimp", method)
+            evaluation.message("Nearest", "nimp", method)
             return
 
         dist_p, repr_p = dist_repr(items)

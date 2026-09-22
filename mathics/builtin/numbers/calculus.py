@@ -9,7 +9,7 @@ arithmetic operations.
 """
 
 from itertools import product
-from typing import Callable, Dict, Optional, Tuple
+from typing import Callable, Optional
 
 import numpy as np
 import sympy
@@ -27,6 +27,7 @@ from mathics.core.atoms import (
     Real,
     String,
 )
+from mathics.core.atoms.numerics import get_precision
 from mathics.core.attributes import (
     A_CONSTANT,
     A_HOLD_ALL,
@@ -615,11 +616,11 @@ class _BaseFinder(Builtin):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
-    methods: Dict[
+    methods: dict[
         str,
         Callable[
             [Expression, BaseElement, Expression, dict, Evaluation],
-            Tuple[BaseElement, bool],
+            tuple[BaseElement, bool],
         ],
     ] = {}
     messages = {
@@ -1073,7 +1074,7 @@ class Integrate(SympyFunction):
                 return [elements[0]] + x.elements
         return elements
 
-    def from_sympy(self, elements: Tuple[BaseElement, ...]) -> Expression:
+    def from_sympy(self, elements: tuple[BaseElement, ...]) -> Expression:
         args = []
         for element in elements[1:]:
             if element.has_form(SymbolList, 1):
@@ -1098,8 +1099,8 @@ class Integrate(SympyFunction):
         for x in xs:
             if x.has_form(SymbolList, 3):
                 x, a, b = x.elements
-                prec_a = a.get_precision()
-                prec_b = b.get_precision()
+                prec_a = get_precision(a)
+                prec_b = get_precision(b)
                 if prec_a is not None and prec_b is not None:
                     prec_new = min(prec_a, prec_b)
                     if prec is None or prec_new < prec:

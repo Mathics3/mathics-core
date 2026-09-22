@@ -10,7 +10,7 @@ or <url>:StandardForm:
 which are intended to work over all kinds of data.
 """
 
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Optional
 
 from mathics.builtin.box.layout import RowBox, StyleBox, SuperscriptBox
 from mathics.builtin.forms.base import FormBaseClass
@@ -161,7 +161,7 @@ class _NumberForm(Builtin):
 
         return result
 
-    def check_DigitBlock(self, value, evaluation: Evaluation) -> Optional[List[int]]:
+    def check_DigitBlock(self, value, evaluation: Evaluation) -> Optional[list[int]]:
         """
         Check and convert to Python the DigitBlock option value.
 
@@ -174,7 +174,7 @@ class _NumberForm(Builtin):
 
         Returns
         -------
-        Optional[List[int]]
+        Optional[list[int]]
             If the specification is valid, a list with
             two elements specifying the size of the blocks
             at the left and right of the decimal separator. `None` otherwise.
@@ -367,7 +367,7 @@ class _NumberForm(Builtin):
 
     def _check_List2str(
         self, value, msg, evaluation: Evaluation
-    ) -> Optional[List[str]]:
+    ) -> Optional[list[str]]:
         if value.has_form(SymbolList, 2):
             result = [element.get_string_value() for element in value.elements]
             if None not in result:
@@ -377,7 +377,7 @@ class _NumberForm(Builtin):
 
     def check_NumberSigns(
         self, value: BaseElement, evaluation: Evaluation
-    ) -> Optional[List[str]]:
+    ) -> Optional[list[str]]:
         """
 
         Parameters
@@ -398,7 +398,7 @@ class _NumberForm(Builtin):
 
     def check_NumberPadding(
         self, value: BaseElement, evaluation: Evaluation
-    ) -> Optional[List[str]]:
+    ) -> Optional[list[str]]:
         """
 
         Parameters
@@ -419,7 +419,7 @@ class _NumberForm(Builtin):
 
     def check_NumberSeparator(
         self, value: BaseElement, evaluation: Evaluation
-    ) -> Optional[List[str]]:
+    ) -> Optional[list[str]]:
         """
 
         Parameters
@@ -535,7 +535,7 @@ class NumberForm(_NumberForm):
 
     @staticmethod
     def default_NumberFormat(
-        man: BaseElement, base: BaseElement, exp: BaseElement, options: Dict[str, Any]
+        man: BaseElement, base: BaseElement, exp: BaseElement, options: dict[str, Any]
     ) -> BaseElement:
         """
         The default function used to format numbers from its mantisa, and
@@ -549,7 +549,7 @@ class NumberForm(_NumberForm):
             base used for scientific notation.
         exp : BaseElement
             exponent.
-        options : Dict[str, Any]
+        options : dict[str, Any]
             more format options.
 
         Returns
@@ -585,7 +585,7 @@ class NumberForm(_NumberForm):
                 if target.is_machine_precision():
                     py_n = 6
                 else:
-                    py_n = dps(target.get_precision())
+                    py_n = dps(target.precision)
         elif isinstance(prec_parms, Integer):
             if isinstance(target, (Integer, Real)):
                 py_n = prec_parms.value

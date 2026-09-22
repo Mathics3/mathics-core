@@ -16,16 +16,13 @@ from typing import Iterable
 import mpmath
 
 from mathics.core.atoms import Real
+from mathics.core.atoms.numerics import min_prec
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 from mathics.core.builtin import Builtin, MPMathFunction
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolPower
+from mathics.core.symbols import SymbolPower
 from mathics.core.systemsymbols import SymbolCos, SymbolE, SymbolSin
-
-SymbolArcCos = Symbol("ArcCos")
-SymbolArcSin = Symbol("ArcSin")
-SymbolArcTan = Symbol("ArcTan")
 
 
 class Fold:
@@ -105,7 +102,6 @@ class Fold:
                 continue
 
             if mode == self.MPMATH:
-                from mathics.core.number import min_prec
 
                 precision = min_prec(*[t for t in chain(*s_operands) if t is not None])
                 working_precision = mpmath.workprec

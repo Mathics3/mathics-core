@@ -4,7 +4,7 @@
 import string
 from math import ceil, log
 from sys import float_info
-from typing import List, Optional, Union
+from typing import List, Optional
 
 import mpmath
 import sympy
@@ -69,11 +69,11 @@ def _get_float_inf(value, evaluation) -> Optional[float]:
     return evaluated_value.round_to_float(evaluation)
 
 
-def get_precision(
+def get_closest_precision(
     value: BaseElement, evaluation, show_messages: bool = True
-) -> Optional[Union[int, float]]:
+) -> Optional[int]:
     """
-    Returns the ``float`` in the interval [``$MinPrecision``, ``$MaxPrecision``] closest
+    Returns the integer precsion in the interval [``$MinPrecision``, ``$MaxPrecision``] closest
     to ``value``.
 
     If ``value`` does not belongs to that interval, and
@@ -136,24 +136,6 @@ def dps(prec) -> int:
 
 def prec(dps) -> int:
     return max(1, int(round((int(dps) + 1) * LOG2_10)))
-
-
-def min_prec(*args: BaseElement) -> Optional[int]:
-    """
-    Returns the precision of the expression with the minimum precision.
-    If all the expressions are exact or non numeric, return None.
-
-    If one of the expressions is an inexact value with zero
-    nominal value, then its accuracy is used instead. For example,
-    ```min_prec(1, 0.``4) ``` returns 4.
-
-    Notice that this behaviour is different that the one obtained
-    using mathics.core.numbers.eval_Precision.
-    """
-    args_prec = (arg.get_precision() for arg in args)
-    return min(
-        (arg_prec for arg_prec in args_prec if arg_prec is not None), default=None
-    )
 
 
 def pickle_mp(value):
