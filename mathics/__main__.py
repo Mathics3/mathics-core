@@ -36,6 +36,13 @@ from mathics.timing import show_lru_cache_statistics
 import_and_load_builtins()
 
 
+from mathics.core.symbols import Symbol
+from mathics.timing import get_deep_size
+
+slotted_dict_size = get_deep_size(Symbol._symbols)
+print(f"Slotted `_symbols` total size   : {slotted_dict_size / (1024 * 1024):.2f} MB")
+
+
 class VersionAction(argparse.Action):
     def __init__(self, option_strings, version=Optional[str], **kwargs):
         super().__init__(option_strings=option_strings, nargs=0, **kwargs)
