@@ -10,6 +10,7 @@ from test.helper import check_evaluation, session
 import pytest
 
 from mathics.core.pattern import BasePattern
+from mathics.core.rules import RewriteRule
 
 
 @pytest.mark.parametrize(
@@ -250,3 +251,32 @@ def test_repeated_name_respects_type_constraint():
         "{1, {x}}",
         failure_message="failed to match a_Integer against a genuine Integer duplicate",
     )
+
+
+def test_rule_sort_key():
+
+    expr_rules = [
+        session.parse(str_expr)
+        for str_expr in [
+            "Condition[HoldPattern[Plus[a_,b_]], True]:>1",
+            "Condition[HoldPattern[Plus[a__]], True]:>1",
+            "HoldPattern[Plus[a_,b_]]:>1/;True",
+            "HoldPattern[Plus[a__]]:>1/;True",
+            "HoldPattern[Plus[a_,b_]]:>1",
+            "HoldPattern[Plus[a__]]:>1",
+        ]
+    ]
+    rules = [
+        RewriteRule(*(rule.elements), evaluation=session.evaluation)
+        for rule in expr_rules
+    ]
+
+    # System`Plus has a DownValue with a FunctionApplyRule of the form `Plus[terms__]->method`
+    # This comes at the end...
+    rules.extend(
+        session.evaluation.definitions.get_definition("System`Plus").downvalues
+    )
+    sorted_rules = sorted(rules, key=lambda x: x.pattern_precedence)
+    assert [
+        rule1 is rule2 for rule1, rule2 in zip(rules, sorted_rules)
+    ], f"{rules}!={sorted_rules}"
