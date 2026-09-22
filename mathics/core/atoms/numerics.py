@@ -1226,7 +1226,7 @@ def get_precision(element) -> Optional[int]:
 def is_inexact(expr) -> bool:
     """Return True if expr is has an exact numeric value or False if not.
 
-    For objects like strings where exactness and ineactness make
+    For objects like strings where exactness and inexactness make
     no sense, we report True.
     """
     # FIXME: this is really screwy! We are reporting inexactness on objects

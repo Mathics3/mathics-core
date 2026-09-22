@@ -73,7 +73,7 @@ def get_closest_precision(
     value: BaseElement, evaluation, show_messages: bool = True
 ) -> Optional[int]:
     """
-    Returns the integer precsion in the interval [``$MinPrecision``, ``$MaxPrecision``] closest
+    Returns the integer precision in the interval [``$MinPrecision``, ``$MaxPrecision``] closest
     to ``value``.
 
     If ``value`` does not belongs to that interval, and
