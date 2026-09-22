@@ -115,7 +115,7 @@ class _Constant_Common(Predefined):
         if d is None:
             d = MACHINE_DIGITS
 
-        # If preference not especified, determine it
+        # If preference not specified, determine it
         # from the precision.
         if preference is None:
             if d <= MACHINE_DIGITS:
@@ -153,7 +153,7 @@ class _Constant_Common(Predefined):
             value = mp_constant(self.mpmath_name, d * 2)
         if value:
             return PrecisionReal(Sympy_Float(str(value), d))
-        # If the value is not available, return none
+        # If the value is not available, return None
         # and keep it unevaluated.
         return
 
@@ -202,7 +202,7 @@ class _NumpyConstant(_Constant_Common):
 
 
 class _SympyConstant(_Constant_Common, SympyObject):
-    """Representation of a constant in Sympy, e.g. Pi, E, I, Catalan, etc."""
+    """Representation of a constant in SymPy, e.g. Pi, E, I, Catalan, etc."""
 
     # Subclasses should define this.
     sympy_name: Optional[str] = None
@@ -276,7 +276,7 @@ class ComplexInfinity(_SympyConstant):
     >> ComplexInfinity * Infinity
      = ComplexInfinity
 
-    ComplexInfinity though is a special case of DirectedInfinity:
+    ComplexInfinity though, is a special case of DirectedInfinity:
     >> FullForm[ComplexInfinity]
      = DirectedInfinity[]
 
@@ -340,9 +340,9 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
         except PrecisionValueError:
             return
 
-        # FIXME: There are all sorts of interactions between in the trig functions,
+        # FIXME: There are all sorts of interactions between the trig functions,
         # that are expected to work out right. Until we have conversion between
-        # mpmath and sympy worked out so that values can be made the to the same
+        # mpmath and sympy worked out so that values can be made to the same
         # precision and compared. we have to not use mpmath right now.
         # return self.get_constant(precision, evaluation, preference="mpmath")
 
@@ -509,7 +509,7 @@ class Infinity(_SympyConstant):
     >> Precision[1]
      = Infinity
 
-    But 'Infinity' it often used as a value in expressions:
+    But 'Infinity' is often used as a value in expressions:
     >> 1 / Infinity
      = 0
 
@@ -582,7 +582,7 @@ class Overflow(Builtin):
 
     <dl>
       <dt>'Overflow[]'
-      <dd>represents a number too large to be represented by Mathics.
+      <dd>represents a number too large to be represented by Mathics3.
     </dl>
 
     >> Exp[10.*^20]
@@ -726,7 +726,7 @@ class Underflow(Builtin):
 
     <dl>
       <dt>'Overflow[]'
-      <dd>represents a number too small to be represented by Mathics.
+      <dd>represents a number too small to be represented by Mathics3.
     </dl>
 
     >> 1 / Overflow[]
