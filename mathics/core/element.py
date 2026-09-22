@@ -297,10 +297,15 @@ class BaseElement(KeyComparable, ABC):
     def is_zero(self) -> bool:
         return False
 
+    # FIXME: this method makes sense as a method on (compound) Expresssion.
+    # It would be good narrow this method that class and subclass only.
     def is_free(self, form, evaluation) -> bool:
         """
-        Check if self has a subexpression of the form `form`.
+        Returns true if no subexpression in self matches `form`.
+        This is method is used in FreeQ.
         """
+        # That we have to import below or get a circular import, is an indication that this method is
+        # in the wrong place!
         from mathics.eval.test import item_is_free
 
         return item_is_free(self, form, evaluation)
@@ -329,9 +334,11 @@ class BaseElement(KeyComparable, ABC):
         """
         raise NotImplementedError
 
+    # FIXME move to numerics
     def to_mpmath(self):
         raise NotImplementedError
 
+    # FIXME move to numerics
     def to_sympy(self, **kwargs):
         raise NotImplementedError
 
