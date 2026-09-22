@@ -134,6 +134,14 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         return False
 
     @property
+    def is_zero(self) -> bool:
+        """
+        If element is some sort of numeric type, Return True is "element" is zero, and False otherwise.
+        Subclass methods should override this. The default is False though.
+        """
+        return False
+
+    @property
     def is_literal(self) -> bool:
         """Number can't change and has a Python representation,
         i.e., a value is set, and it does not depend on definition
@@ -1219,3 +1227,11 @@ def is_integer_rational_or_real(expr) -> bool:
     Return True if expr is either an Integer, Rational, or Real.
     """
     return isinstance(expr, (Integer, Rational, Real))
+
+
+def is_zero(element) -> Optional[bool]:
+    """
+    If element is some sort of numeric type, Return True is "element" is zero, and False otherwise.
+    If it is not a numeric type, return None.
+    """
+    return element.is_zero if hasattr(element, "is_zero") else None

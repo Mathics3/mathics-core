@@ -28,7 +28,7 @@ from mathics.core.atoms import (
     RationalOneHalf,
     Real,
 )
-from mathics.core.atoms.numerics import is_inexact
+from mathics.core.atoms.numerics import is_inexact, is_zero
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement
@@ -94,7 +94,7 @@ def eval_Abs(expr: BaseElement) -> Optional[BaseElement]:
         return eval_Abs_number(expr)
     if expr.has_form(SymbolPower, 2):
         base, exp = expr.elements
-        if exp.is_zero:
+        if is_zero(exp):
             return Integer1
         if test_arithmetic_expr(expr):
             abs_base = eval_Abs(base)
@@ -180,7 +180,7 @@ def eval_RealSign(expr: BaseElement) -> Optional[Integer]:
     If the argument is a real algebraic expression,
     return the sign of the expression.
     """
-    if expr.is_zero:
+    if is_zero(expr):
         return Integer0
     if isinstance(expr, (Integer, Rational, Real)):
         return Integer1 if expr.value > 0 else IntegerM1
@@ -188,7 +188,7 @@ def eval_RealSign(expr: BaseElement) -> Optional[Integer]:
         return Integer1
     if expr.has_form(SymbolAbs, 1):
         arg = expr.elements[0]
-        if arg.is_zero:
+        if is_zero(arg):
             return Integer0
         if isinstance(arg, Number):
             return Integer1
@@ -196,7 +196,7 @@ def eval_RealSign(expr: BaseElement) -> Optional[Integer]:
         arg_inexact = to_inexact_value(arg)
         if arg_inexact is None:
             return None
-        if arg_inexact.is_zero:
+        if is_zero(arg_inexact):
             return Integer0
         if isinstance(arg_inexact, Number):
             return Integer1
@@ -330,7 +330,7 @@ def eval_Sign(expr: Number) -> Optional[BaseElement]:
             # SymPy conversion failed; fall back.
             return None
 
-        if abs_expr.is_zero:
+        if is_zero(abs_expr):
             return abs_expr
         if abs_expr is Integer1:
             return n
