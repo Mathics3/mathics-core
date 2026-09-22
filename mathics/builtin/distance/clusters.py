@@ -58,7 +58,7 @@ class _LazyDistances(LazyDistances):
 
 
 class _PrecomputedDistances(PrecomputedDistances):
-    # computes all n^2 distances for n points with one big evaluation in the beginning.
+    # Computes all n^2 distances for n points with one big evaluation in the beginning.
 
     def __init__(self, df, p, evaluation):
         distances_form = [df(p[i], p[j]) for i in range(len(p)) for j in range(i)]
@@ -299,7 +299,7 @@ class FindClusters(_Cluster):
 
     <dl>
       <dt>'FindClusters'[$list$]
-      <dd>returns a list of clusters formed from the elements of $list$. The number of cluster is determined
+      <dd>returns a list of clusters formed from the elements of $list$. The number of clusters is determined
         automatically.
       <dt>'FindClusters'[$list$, $k$]
       <dd>returns a list of $k$ clusters formed from the elements of $list$.
