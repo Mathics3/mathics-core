@@ -495,7 +495,6 @@ class Documentation(BaseDocElement):
             len(self.parts) == 0
         ), "The documentation must be empty to call this function."
 
-        gather_docs_from_files(self, self.doc_dir)
         # Next extract data that has been loaded into Mathics3 when it runs.
         # This is information from  `mathics.builtin`.
         # This is Part 2 of the documentation.
@@ -715,11 +714,7 @@ class MathicsMainDocumentation(Documentation):
 
     def __init__(self):
         super().__init__(title="Mathics3 Main Documentation", doc_dir=settings.DOC_DIR)
-        self.doctest_latex_pcl_path = settings.DOCTEST_LATEX_DATA_PCL
         self.pymathics_doc_loaded = False
-        self.doc_data_file = settings.get_doctest_latex_data_path(
-            should_be_readable=True
-        )
 
     def gather_doctest_data(self):
         """
