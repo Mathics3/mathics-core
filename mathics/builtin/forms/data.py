@@ -3,7 +3,7 @@ Data-Specific Forms
 
 Some forms are specific to formatting certain kinds of data, like numbers, strings, or matrices.
 
-These are in contrast to the Forms like <url>:OutputForm:
+These are in contrast to Forms like <url>:OutputForm:
 /doc/reference-of-built-in-symbols/forms-of-input-and-output/general-purpose-forms/outputform/</url> \
 or <url>:StandardForm:
 /doc/reference-of-built-in-symbols/forms-of-input-and-output/general-purpose-forms/standardform/</url>, \
@@ -215,7 +215,7 @@ class _NumberForm(Builtin):
         Parameters
         ----------
         value : BaseElement
-            Automatic, or a Function to be applyied to the expression to
+            Automatic, or a Function to be applied to the expression to
             format the exponent.
         evaluation : Evaluation
             evaluation object to send messages.
@@ -519,7 +519,7 @@ class NumberForm(_NumberForm):
         "SignPadding": "False",
     }
     summary_text = (
-        "format expression to at most a number of digits of all "
+        "format expression to at most several digits of all "
         "approximate real numbers "
     )
 
@@ -668,7 +668,7 @@ class StringForm(FormBaseClass):
     >> StringForm["`2` bla `1` blub `` bla `3`", a, b, c]
      = b bla a blub b bla c
 
-    The index of a placeholder must be always a non-negative integer:
+    The index of a placeholder must always be a non-negative integer:
     >> StringForm["`-1` bla", a]
      : Item -1 requested in "`-1` bla" out of range; 1 items available.
      = `-1` bla
@@ -686,7 +686,7 @@ class StringForm(FormBaseClass):
     >> StringForm["`` is Global\\`a", a]
      = a is Global`a
 
-    Elements are formatted according the enclosing context:
+    Elements are formatted according to the enclosing context:
     >> OutputForm[StringForm["Integral of f: ``", Integrate[F[x],x]]]
      = Integral of f: Integrate[F[x], x]
     ## In documentation should appear the expression using Unicode:
