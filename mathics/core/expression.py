@@ -996,11 +996,11 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 if element.has_form(SymbolPower, 2):
                     var = element.get_element(0).get_name()
                     expr = element.get_element(1)
-                    assert isinstance(expr, (Expression, NumericOperators))
-                    exp = expr.round_to_float()
-                    if var and exp is not None:
-                        var = wma_str_sort_key(var)
-                        exps[var] = exps.get(var, 0) + exp
+                    if hasattr(expr, "round_to_float"):
+                        exp = expr.round_to_float()
+                        if var and exp is not None:
+                            var = wma_str_sort_key(var)
+                            exps[var] = exps.get(var, 0) + exp
                 elif name:
                     name = wma_str_sort_key(name)
                     exps[name] = exps.get(name, 0) + 1
