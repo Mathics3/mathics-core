@@ -4,7 +4,7 @@
 import string
 from math import ceil, log
 from sys import float_info
-from typing import List, Optional
+from typing import Optional
 
 import mpmath
 import sympy
@@ -194,7 +194,7 @@ def convert_base(x, base, precision=10) -> str:
         raise TypeError(x)
 
 
-def convert_int_to_digit_list(x, base) -> List[int]:
+def convert_int_to_digit_list(x, base) -> list[int]:
     if x == 0:
         return [0]
 

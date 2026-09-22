@@ -192,7 +192,7 @@ class EditDistance(_StringDistance):
     <dl>
     <dt>'EditDistance'[$a$, $b$]
         <dd>returns the Levenshtein distance of $a$ and $b$, which is defined as the minimum number of
-        insertions, deletions and substitutions on the constituents of $a$ and $b$ needed to transform
+        insertions, deletions, and substitutions on the constituents of $a$ and $b$ needed to transform
         one into the other.
     </dl>
 
@@ -247,7 +247,7 @@ class HammingDistance(Builtin):
     """
 
     messages = {
-        "idim": "`1` and `2` must be of same length.",
+        "idim": "`1` and `2` must be of the same length.",
     }
 
     options = {
