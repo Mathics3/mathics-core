@@ -218,22 +218,6 @@ class BaseElement(KeyComparable, ABC):
     ) -> Optional[dict]:
         pass
 
-    # FIXME: this should be a *function* in mathics.core.atom.numeric.Number.
-    # It should be a method *only* in Numeric (or Symbol) classes where it
-    # makes sense.
-    def get_precision(self) -> Optional[int]:
-        """Returns the default specification for precision in N and other
-        numerical functions.  It is expected to be redefined in those
-        classes that provide inexact arithmetic like PrecisionReal.
-
-        Here in the default base implementation, `None` is used to indicate that the
-        precision is either not defined, or it is exact as in the case of Integer. In either case, the
-        values is not "inexact".
-
-        This function is called by the property method `is_inexact`.
-        """
-        return None
-
     def get_sequence(self) -> Sequence["BaseElement"]:
         """
         If ``self`` is a Mathics3 Sequence, return its elements.
@@ -307,17 +291,21 @@ class BaseElement(KeyComparable, ABC):
         """
         return False
 
-    # FIXME: this should be a *function* in mathics.core.atom.numeric.Number.
-    # It should be a method *only* in Numeric (or Symbol) classes where it
-    # makes sense.
+    # FIXME: this method makes sense only for Numeric, Symbolic or (compound Expressions).
+    # It would be good narrow this method those classes only.
     @property
     def is_zero(self) -> bool:
         return False
 
+    # FIXME: this method makes sense as a method on (compound) Expresssion.
+    # It would be good narrow this method that class and subclass only.
     def is_free(self, form, evaluation) -> bool:
         """
-        Check if self has a subexpression of the form `form`.
+        Returns true if no subexpression in self matches `form`.
+        This is method is used in FreeQ.
         """
+        # That we have to import below or get a circular import, is an indication that this method is
+        # in the wrong place!
         from mathics.eval.test import item_is_free
 
         return item_is_free(self, form, evaluation)
@@ -346,9 +334,11 @@ class BaseElement(KeyComparable, ABC):
         """
         raise NotImplementedError
 
+    # FIXME move to numerics
     def to_mpmath(self):
         raise NotImplementedError
 
+    # FIXME move to numerics
     def to_sympy(self, **kwargs):
         raise NotImplementedError
 

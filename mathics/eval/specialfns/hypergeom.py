@@ -9,9 +9,10 @@ import sympy
 
 import mathics.eval.tracing as tracing
 from mathics.core.atoms import Complex, Integer1, MachineReal1, Number
+from mathics.core.atoms.numerics import min_prec
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
-from mathics.core.number import RECONSTRUCT_MACHINE_PRECISION_DIGITS, dps, min_prec
+from mathics.core.number import RECONSTRUCT_MACHINE_PRECISION_DIGITS, dps
 from mathics.core.systemsymbols import SymbolComplexInfinity
 from mathics.eval.arithmetic import eval_mpmath_function
 

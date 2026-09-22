@@ -29,6 +29,9 @@ SYMPY_SYMBOL_PREFIX = "_u"
 SYMPY_SLOT_PREFIX = "_#"
 
 
+# FIXME: remove this and replace numeric testing by some other means.
+# After removal, we can move SymbolPlus and other Symbol names to
+# systemsymbols.
 class NumericOperators:
     """
     This is a mixin class for Element-like objects that might have numeric values.

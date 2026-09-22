@@ -24,12 +24,12 @@ from mathics.core.atoms import (
     RationalOneHalf,
     Real,
 )
+from mathics.core.atoms.numerics import min_prec
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement, ElementsProperties
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.number import min_prec
 from mathics.core.symbols import (
     Symbol,
     SymbolNull,

@@ -777,7 +777,7 @@ def real_render_output_form(n: Real, evaluation: Evaluation, **kwargs):
     py_options["_Form"] = "System`OutputForm"
     digits, padding = py_digits
     if digits is None:
-        digits = dps(n.get_precision()) if isinstance(n, PrecisionReal) else 6
+        digits = dps(n.precision) if isinstance(n, PrecisionReal) else 6
 
     result = numberform_to_boxes(n, digits, padding, evaluation, py_options)
     if isinstance(result, String):
