@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from typing import TYPE_CHECKING, Any, FrozenSet, Iterable, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, ClassVar, FrozenSet, Iterable, Optional, cast
 
 from mathics.core.element import BaseElement, EvalMixin, ensure_context
 
@@ -142,7 +142,7 @@ class Atom(BaseElement):
 
     _head_name = ""
     _symbol_head = None
-    class_head_name = ""
+    class_head_name: ClassVar[str] = ""
     original: Optional["Atom"] = None
 
     def __repr__(self) -> str:
@@ -325,17 +325,24 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     Note that the mathics.core.parser.Symbol works exactly this way.
     """
 
-    name: str
-    hash: int
+    # Declare slots for all instance attributes
+    __slots__ = ("_short_name", "name", "hash", "sympy")
+
     _short_name: str
+    hash: int
+    name: str
+
+    # Annotate class-level variables with ClassVar so static type checkers
+    # don't expect them to be in __slots__.
 
     # Dictionary of Symbols defined so far.
     # We use this for object uniqueness.
     # The key is the Symbol object's string name, and the
     # diectionary's value is the Mathics3 object for the Symbol.
-    _symbols: dict[str, "Symbol"] = {}
+    _symbols: ClassVar[dict[str, "Symbol"]] = {}
 
-    class_head_name = "System`Symbol"
+    class_head_name: ClassVar[str] = "System`Symbol"
+    sympy: Optional[Any]
 
     # __new__ instead of __init__ is used here because we want
     # to return the same object for a given "name" value.
@@ -356,11 +363,12 @@ class Symbol(Atom, NumericOperators, EvalMixin):
 
         if self is None:
 
-            self = super().__new__(cls)
+            # Use object.__new__(cls) for fast allocation and static type compliance.
+            self = object.__new__(cls)
             self.name = name
             self.sympy = None
 
-            # Cache object so we don't allocate again.
+            # Cache object, ensuring uniqueness and so we don't need to allocate again.
             cls._symbols[name] = self
 
             # Set a value for self.__hash__() once so that every time
