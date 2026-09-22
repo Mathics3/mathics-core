@@ -338,7 +338,6 @@ class BaseElement(KeyComparable, ABC):
     def to_mpmath(self):
         raise NotImplementedError
 
-    # FIXME move to numerics
     def to_sympy(self, **kwargs):
         raise NotImplementedError
 
