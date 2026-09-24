@@ -101,6 +101,7 @@ class Begin(Builtin):
      = Global`test`
     """
 
+    has_side_effects = True
     messages = {
         "ctx": "Invalid context specified at position 1 in \\`Begin[`1`]\\`. A context must consist of valid symbol names separated by and ending with \\`.",
     }
@@ -142,7 +143,8 @@ class BeginPackage(Builtin):
     ##  = test`
     """
 
-    messages = {
+    has_side_effects = True
+    messages = {"unimpl": "The second argument to BeginPackage is not yet implemented.",
         "ctx": "Invalid context specified at position 1 in \\`BeginPackage[`1`,...]\\`. A context must consist of valid symbol names separated by and ending with \\`.",
         "cxls": "Context or non-empty list of contexts expected at position 2 in \\`BeginPackage[`1`, `2`]\\`.",
     }
@@ -217,7 +219,7 @@ class Block(Builtin):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
-
+    has_side_effects = True
     messages = {
         "lvsym": (
             "Local variable specification contains `1`, "
@@ -393,6 +395,7 @@ class End(Builtin):
     </dl>
     """
 
+    has_side_effects = True
     messages = {
         "noctx": "No previous context defined.",
     }
@@ -428,6 +431,7 @@ class EndPackage(Builtin):
     time of the 'BeginPackage' call are restored, with the new package\'s context prepended to '\$ContextPath'.
     """
 
+    has_side_effects = True
     messages = {
         "noctx": "No previous context defined.",
     }
@@ -493,7 +497,7 @@ class Module(Builtin):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
-
+    has_side_effects = True
     messages = {
         "lvsym": (
             "Local variable specification contains `1`, "
@@ -753,7 +757,7 @@ class With(Builtin):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
-
+    has_side_effects = True
     messages = {
         "lvsym": (
             "Local variable specification contains `1`, "

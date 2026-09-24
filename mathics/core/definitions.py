@@ -151,6 +151,12 @@ class Definition:
         setattr(self, pos, rules)
 
 
+# Dictionary of builtin definitions involving side effects
+# like setting values, changing contexts or running loops:
+
+SIDE_EFFECT_BUILTINS: Dict[str, Definition] = {}
+
+
 class Definitions:
     """The state of one instance of the Mathics3 interpreter is stored in this object.
 

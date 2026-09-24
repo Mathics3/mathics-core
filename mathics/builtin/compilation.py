@@ -12,7 +12,12 @@ from types import FunctionType
 
 from mathics.builtin.box.compilation import CompiledCodeBox
 from mathics.core.atoms import Complex, Integer, Rational, Real, String
-from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
+from mathics.core.attributes import (
+    A_HOLD_ALL,
+    A_N_HOLD_ALL,
+    A_PROTECTED,
+    A_READ_PROTECTED,
+)
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.function import (
@@ -73,9 +78,11 @@ class Compile(Builtin):
     >> cf[3.5, 2]
      = 2.18888
 
-    Loops and variable assignments are supported usinv Python builtin "compile" function:
-    >> Compile[{{a, _Integer}, {b, _Integer}}, While[b != 0, {a, b} = {b, Mod[a, b]}]; a]       (* GCD of a, b *)
-     =  CompiledFunction[{a, b}, a, -PythonizedCode-]
+    Loops and variable assignments are supported using Python builtin "compile" function:
+    >> gdc = Compile[{{a, _Integer}, {b, _Integer}}, Module[{x=a, y=b}, While[y != 0, {x, y} = {y, Mod[x, y]}]; x]] (* GCD of a, b *)
+     =  CompiledFunction[{a, b}, Module[{x = a, y = b}, While[y != 0, {x, y} = {y, Mod[x, y]}] ; x], -PythonizedCode-]
+    >> gdc[18, 81]
+     = 9.
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
@@ -174,15 +181,23 @@ class CompiledCode(Atom, ImmutableValueMixin):
         raise NotImplementedError
 
     def __hash__(self):
+        cfunc = self.cfunc
+        if cfunc is None:
+            hash(
+                (
+                    "CompiledCode",
+                    None,
+                )
+            )  # XXX hack
         try:
-            return hash(("CompiledCode", ctypes.addressof(self.cfunc)))  # XXX hack
+            return hash(("CompiledCode", ctypes.addressof(cfunc)))  # XXX hack
         except TypeError:
             return hash(
                 (
-                    "CompiledCode",
-                    self.cfunc,
+                    "Pythonized-function",
+                    cfunc,
                 )
-            )  # XXX hack
+            )
 
     def atom_to_boxes(self, f, evaluation: Evaluation):
         return CompiledCodeBox(String(self.__str__()), evaluation=evaluation)
@@ -198,7 +213,7 @@ class CompiledFunction(Builtin):
     </dl>
 
     >> sqr = Compile[{x}, x x]
-     = CompiledFunction[{x}, x ^ 2, ...]
+     = CompiledFunction[{x}, x x, ...]
     >> Head[sqr]
      = CompiledFunction
     >> sqr[2]
@@ -206,6 +221,7 @@ class CompiledFunction(Builtin):
 
     """
 
+    attributes = A_HOLD_ALL | A_PROTECTED | A_N_HOLD_ALL | A_READ_PROTECTED
     messages = {
         "argerr": "Invalid argument `1` should be Integer, Real, Complex or boolean.",
         "cfsa": "Argument `1` at position `2` should be a `3`.",
