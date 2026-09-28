@@ -7,7 +7,7 @@ Support for Set and SetDelayed, and other assignment-like builtins
 
 from typing import Callable, List, Optional, Tuple
 
-from mathics.core.atoms import Integer1
+from mathics.core.atoms import Integer1, String
 from mathics.core.attributes import A_PROTECTED
 from mathics.core.definitions import Definitions
 from mathics.core.element import BaseElement
@@ -65,6 +65,11 @@ def get_symbol_list(expr: Expression, error_callback: Callable) -> Optional[List
         list_expr = [expr]
     values = []
     for item in list_expr:
+        if isinstance(item, String):
+            name = item.value
+            values.append(name)
+            continue
+
         name = item.get_name()
         if name:
             values.append(name)
