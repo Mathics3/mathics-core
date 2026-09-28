@@ -7,7 +7,7 @@ Basic arithmetic functions, including complex number arithmetic.
 """
 
 import sys
-from typing import Optional
+from typing import Any, Final, Optional
 
 import sympy
 
@@ -82,7 +82,7 @@ from mathics.eval.numeric import eval_Sign
 sort_order = "mathics.builtin.mathematical-functions"
 
 
-map_direction_infinity = {
+MAP_DIRECTION_INFINITY: Final[dict[Any, PredefinedExpression]] = {
     Integer1: MATHICS3_INFINITY,
     IntegerM1: MATHICS3_NEG_INFINITY,
     MATHICS3_COMPLEX_I: MATHICS3_I_INFINITY,
@@ -435,7 +435,8 @@ class DirectedInfinity(SympyFunction):
 
     def eval_directed_infinity(self, direction, evaluation: Evaluation):
         """DirectedInfinity[direction_]"""
-        result = map_direction_infinity.get(direction, None)
+
+        result = MAP_DIRECTION_INFINITY.get(direction, None)
         if result is not None:
             return result
 
@@ -447,7 +448,7 @@ class DirectedInfinity(SympyFunction):
         if direction is None:
             return None
 
-        result = map_direction_infinity.get(direction, None)
+        result = MAP_DIRECTION_INFINITY.get(direction, None)
         if result is not None:
             return result
         if direction.is_zero:

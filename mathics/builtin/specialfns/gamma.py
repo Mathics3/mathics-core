@@ -21,6 +21,7 @@ from mathics.core.atoms import (
     Number,
     PrecisionReal,
 )
+from mathics.core.atoms.numerics import min_prec
 from mathics.core.attributes import (
     A_LISTABLE,
     A_NUMERIC_FUNCTION,
@@ -38,7 +39,7 @@ from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.number import FP_MANTISA_BINARY_DIGITS, dps, min_prec
+from mathics.core.number import FP_MANTISA_BINARY_DIGITS, dps
 from mathics.core.symbols import Symbol, SymbolSequence
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolGamma
 from mathics.eval.arithmetic import run_mpmath
@@ -99,7 +100,7 @@ class Beta(MPMathMultiFunction):
         else:
             return Expression(Symbol(self.get_name()), *elements)
 
-    # SymPy does not handles Beta for integer arguments.
+    # SymPy does not handle Beta for integer arguments.
     def eval(self, a, b, evaluation):
         """Beta[a_, b_]"""
         if not (a.is_numeric() and b.is_numeric()):
@@ -122,7 +123,7 @@ class Beta(MPMathMultiFunction):
         ).get_sequence()
         mpmath_function = self.get_mpmath_function(tuple(args))
         if any(arg.is_machine_precision() for arg in args):
-            # if any argument has machine precision then the entire calculation
+            # If any argument has machine precision, then the entire calculation
             # is done with machine precision.
             float_args = [
                 arg.round().get_float_value(permit_complex=True) for arg in args
@@ -196,8 +197,8 @@ class Factorial2(PostfixOperator, MPMathFunction):
       <dd>computes the double factorial of $n$.
     </dl>
 
-    The double factorial or semifactorial of a number $n$, is the product of all the \
-    integers from 1 up to n that have the same parity (odd or even) as $n$.
+    The double factorial or semifactorial of a number $n$ is the product of all the \
+    integers from 1 up to $n$ with the same parity (odd or even) as $n$.
 
     >> 5!!
      = 15.
@@ -366,7 +367,7 @@ class LogGamma(MPMathMultiFunction):
     :WMA:https://reference.wolfram.com/language/ref/LogGamma.html</url>)
     <dl>
       <dt>'LogGamma'[$z$]
-      <dd>is the logarithm of the gamma function on the complex number $z$.
+      <dd>is the logarithm of the gamma function of the complex number $z$.
     </dl>
 
     >> LogGamma[3]
@@ -377,7 +378,7 @@ class LogGamma(MPMathMultiFunction):
      = -6.77652 - 4.56879 I
     >> Log[Gamma[-2.+3 I]]
      = -6.77652 + 1.71439 I
-    LogGamma also can be evaluated for large arguments, for which Gamma produces Overflow:
+    LogGamma can also be evaluated for large arguments, for which Gamma produces Overflow:
     >>  LogGamma[1.*^20]
      = 4.50517×10^21
     >>  Log[Gamma[1.*^20]]
@@ -415,7 +416,7 @@ class Pochhammer(SympyFunction):
     The Pochhammer symbol or rising factorial often appears in series \
     expansions for hypergeometric functions.
 
-    The Pochammer symbol has a definite value even when the gamma \
+    The Pochhammer symbol has a definite value even when the gamma \
     functions which appear in its definition are infinite.
     <dl>
       <dt>'Pochhammer'[$a$, $n$]
@@ -452,11 +453,11 @@ class Pochhammer(SympyFunction):
 
     rules = {
         "Pochhammer[0, 0]": "1",
-        # FIXME: In WMA, if n is an Number with an integer value, it
+        # FIXME: In WMA, if n is a Number with an integer value, it
         # is rewritten to expanded terms not using
         # Factorial as we do below. For example, Pochhammer[i, 2] is
         # i (i + 1) instead of (1 + i)! / (-1 + i)! as the rule below
-        # gives.  Ideally, we should match this behavior. However if
+        # gives.  Ideally, we should match this behavior. However, if
         # this is done, we will *also* need to adjust Product, because
         # WMA Product is sometimes rewritten as an expression using Factorial.
         # In particular, Product[k, {k, 3, n}] == n! / 2 in both Mathics3

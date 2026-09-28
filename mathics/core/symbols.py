@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from typing import TYPE_CHECKING, Any, FrozenSet, Iterable, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, ClassVar, FrozenSet, Iterable, Optional, cast
 
 from mathics.core.element import BaseElement, EvalMixin, ensure_context
 
@@ -29,6 +29,9 @@ SYMPY_SYMBOL_PREFIX = "_u"
 SYMPY_SLOT_PREFIX = "_#"
 
 
+# FIXME: remove this and replace numeric testing by some other means.
+# After removal, we can move SymbolPlus and other Symbol names to
+# systemsymbols.
 class NumericOperators:
     """
     This is a mixin class for Element-like objects that might have numeric values.
@@ -85,25 +88,6 @@ class NumericOperators:
     def __pow__(self, other) -> BaseElement:
         return self.create_expression(SymbolPower, self, other)
 
-    # FIXME: The name "round_to_float" is misleading when
-    # permit_complex is True.
-    def round_to_float(
-        self, evaluation=None, permit_complex=False
-    ) -> Optional[Union[complex, float]]:
-        """
-        Round to a Python float. Return None if rounding is not possible.
-        This can happen if self or evaluation is NaN.
-        """
-        value = (
-            self
-            if evaluation is None
-            else self.create_expression(SymbolN, self).evaluate(evaluation)
-        )
-        if hasattr(value, "round") and hasattr(value, "get_float_value"):
-            value = value.round()
-            return value.get_float_value(permit_complex=permit_complex)
-        return None
-
 
 def strip_context(name) -> str:
     """strip context from a symbol name"""
@@ -158,7 +142,7 @@ class Atom(BaseElement):
 
     _head_name = ""
     _symbol_head = None
-    class_head_name = ""
+    class_head_name: ClassVar[str] = ""
     original: Optional["Atom"] = None
 
     def __repr__(self) -> str:
@@ -341,17 +325,24 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     Note that the mathics.core.parser.Symbol works exactly this way.
     """
 
-    name: str
-    hash: int
+    # Declare slots for all instance attributes
+    __slots__ = ("_short_name", "name", "hash", "sympy")
+
     _short_name: str
+    hash: int
+    name: str
+
+    # Annotate class-level variables with ClassVar so static type checkers
+    # don't expect them to be in __slots__.
 
     # Dictionary of Symbols defined so far.
     # We use this for object uniqueness.
     # The key is the Symbol object's string name, and the
     # diectionary's value is the Mathics3 object for the Symbol.
-    _symbols: dict[str, "Symbol"] = {}
+    _symbols: ClassVar[dict[str, "Symbol"]] = {}
 
-    class_head_name = "System`Symbol"
+    class_head_name: ClassVar[str] = "System`Symbol"
+    sympy: Optional[Any]
 
     # __new__ instead of __init__ is used here because we want
     # to return the same object for a given "name" value.
@@ -372,11 +363,12 @@ class Symbol(Atom, NumericOperators, EvalMixin):
 
         if self is None:
 
-            self = super().__new__(cls)
+            # Use object.__new__(cls) for fast allocation and static type compliance.
+            self = object.__new__(cls)
             self.name = name
             self.sympy = None
 
-            # Cache object so we don't allocate again.
+            # Cache object, ensuring uniqueness and so we don't need to allocate again.
             cls._symbols[name] = self
 
             # Set a value for self.__hash__() once so that every time
@@ -591,6 +583,21 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         # The assert below is a performance hit when there are lots of variables.
         # assert all(fully_qualified_symbol_name(v) for v in vars)
         return vars.get(self.name, self)
+
+    def round_to_float(self, evaluation=None) -> Optional[float]:
+        """
+        Round to a Python float. Return None if rounding is not possible.
+        This can happen if self or evaluation is NaN.
+        """
+        value = (
+            self
+            if evaluation is None
+            else self.create_expression(SymbolN, self).evaluate(evaluation)
+        )
+        if hasattr(value, "round") and hasattr(value, "get_float_value"):
+            value = value.round()
+            return value.get_float_value()
+        return None
 
     def sameQ(self, rhs: Any) -> bool:
         """Mathics3 SameQ"""

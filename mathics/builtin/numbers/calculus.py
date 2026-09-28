@@ -9,7 +9,7 @@ arithmetic operations.
 """
 
 from itertools import product
-from typing import Callable, Dict, Optional, Tuple
+from typing import Callable, Optional
 
 import numpy as np
 import sympy
@@ -27,6 +27,7 @@ from mathics.core.atoms import (
     Real,
     String,
 )
+from mathics.core.atoms.numerics import get_precision
 from mathics.core.attributes import (
     A_CONSTANT,
     A_HOLD_ALL,
@@ -425,12 +426,12 @@ class Derivative(PostfixOperator, SympyFunction):
         "== Length[{n}]": "Derivative[Sequence @@ ({n} + {m})][f]",
         "Derivative[n__Integer][_Integer|_Rational|_Real|_Complex]": "0 &",
         # The following rule tries to evaluate a derivative of a pure function by applying it to a list
-        # of symbolic elements and use the rules in `D`.
+        # of symbolic elements and uses the rules in `D`.
         # The rule just applies if f is not a locked symbol, and it does not have a previous definition
         # for its `Derivative`.
-        # The main drawback of this implementation is that it requires to compute two times the derivative,
-        # just because the way in which the evaluation loop works, and the lack of a working `Unevaluated`
-        # symbol. In our current implementation, the a better way to implement this would be through a builtin
+        # The main drawback of this implementation is that it requires computing the derivative twice,
+        # just because of the way in which the evaluation loop works, and the lack of a working `Unevaluated`
+        # symbol. In our current implementation, a better way to implement this would be through a built-in
         # rule (i.e., an eval_ method).
         """Derivative[n__Integer][f_Symbol] /; Module[{t=Sequence@@Slot/@Range[Length[{n}]], result, nothing, ft=f[t]},
             If[
@@ -447,8 +448,8 @@ class Derivative(PostfixOperator, SympyFunction):
                     (*
                       The idea of the test is to set `Derivative[n][f]` to `nothing`. Then, the derivative is
                       evaluated. If it is not possible to find an explicit expression for the derivative,
-                      then their occurencies are replaced by `nothing`. Therefore, if the resulting expression
-                      if free of `nothing`, then we can use the result. Otherwise, the rule does not work.
+                      then their occurrences are replaced by `nothing`. Therefore, if the resulting expression
+                      is free of `nothing`, then we can use the result. Otherwise, the rule does not work.
 
                       Differently from `True` and  `False`, `List` does not produce an infinite recurrence,
                       but since is a protected symbol, the following test produces error messages.
@@ -466,7 +467,7 @@ class Derivative(PostfixOperator, SympyFunction):
             ]""": """
                 (*
                  Provided the assumptions, the derivative of F[#1,#2,...] is evaluated,
-                 and returned a an anonymous function.
+                 and returns an anonymous function.
                 *)
                 Module[{t=Sequence@@Slot/@Range[Length[{n}]], result, nothing, ft},
                 ft = f[t];
@@ -611,15 +612,15 @@ class DiscreteLimit(Builtin):
 
 class _BaseFinder(Builtin):
     """
-    This class is the basis class for FindRoot, FindMinimum and FindMaximum.
+    This class is the base class for FindRoot, FindMinimum and FindMaximum.
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
-    methods: Dict[
+    methods: dict[
         str,
         Callable[
             [Expression, BaseElement, Expression, dict, Evaluation],
-            Tuple[BaseElement, bool],
+            tuple[BaseElement, bool],
         ],
     ] = {}
     messages = {
@@ -722,7 +723,7 @@ class _BaseFinder(Builtin):
         try:
             x0, success = method_caller(f, x0, x, options, evaluation)
         except ValueError:
-            # Non numerical evaluation
+            # Non-numerical evaluation
             return evaluation.current_expression
 
         if isinstance(x0, tuple):
@@ -777,7 +778,7 @@ class FindMaximum(_BaseFinder):
     >> Quiet[FindMaximum[-phi[x] + x, {x, 1.2}, Method->"Newton"]]
      = {0.5, {x ⇾ 1.00001}}
     >> Clear[phi];
-    For a not so well behaving function, the result can be less accurate:
+    For a not-so-well-behaved function, the result can be less accurate:
     >> FindMaximum[-Exp[-1/x^2]+1., {x,1.2}, MaxIterations->2]
      : The maximum number of iterations was exceeded. The result might be inaccurate.
      = ...
@@ -1073,7 +1074,7 @@ class Integrate(SympyFunction):
                 return [elements[0]] + x.elements
         return elements
 
-    def from_sympy(self, elements: Tuple[BaseElement, ...]) -> Expression:
+    def from_sympy(self, elements: tuple[BaseElement, ...]) -> Expression:
         args = []
         for element in elements[1:]:
             if element.has_form(SymbolList, 1):
@@ -1098,8 +1099,8 @@ class Integrate(SympyFunction):
         for x in xs:
             if x.has_form(SymbolList, 3):
                 x, a, b = x.elements
-                prec_a = a.get_precision()
-                prec_b = b.get_precision()
+                prec_a = get_precision(a)
+                prec_b = get_precision(b)
                 if prec_a is not None and prec_b is not None:
                     prec_new = min(prec_a, prec_b)
                     if prec is None or prec_new < prec:
@@ -1625,7 +1626,7 @@ class O_(Builtin):
     <dl>
       <dt>'O[$x$]^n'
       <dd> Represents a term of order $x^n$.
-      <dd> O[x]^n is generated to represent omitted higher order terms in \
+      <dd> O[x]^n is generated to represent omitted higher-order terms in \
            power series.
     </dl>
 
@@ -1808,7 +1809,7 @@ class Series(Builtin):
      >> series // FullForm
       = SeriesData[x, 0, {1, 0, 1}, 0, 3, 1]
 
-     Replacing $x$ with does a value produces another 'SeriesData' object:
+     Replacing $x$ with a value produces another 'SeriesData' object:
      >> series /. x->4
       = 1 + 4 ^ 2 + O[4] ^ 3
 

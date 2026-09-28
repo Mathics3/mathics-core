@@ -182,7 +182,7 @@ def real_to_tuple_info(
 
     If ``digits`` is None, we use the default precision.
     """
-    binary_precision = real.get_precision()
+    binary_precision = real.precision
     precision = dps(binary_precision)
     if digits is None:
         digits = precision + 1
@@ -320,7 +320,7 @@ def get_baseform_elements(
     x: Union[int, float, sympy.Float]
     if isinstance(expr, PrecisionReal):
         x = expr.to_sympy()
-        p = int(ceil(expr.get_precision() / LOG2_10) + 1)
+        p = int(ceil(expr.precision / LOG2_10) + 1)
     elif isinstance(expr, MachineReal):
         x = expr.value
         p = RECONSTRUCT_MACHINE_PRECISION_DIGITS

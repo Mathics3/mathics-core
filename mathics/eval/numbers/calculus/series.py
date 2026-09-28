@@ -3,6 +3,7 @@
 Implementation of Series handling functions.
 """
 from mathics.core.atoms import Integer, Integer0, Rational
+from mathics.core.atoms.numerics import is_zero
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
@@ -28,7 +29,7 @@ def same_monomial(expr, x, x0):
     """
     Checks if expr == (x-x0)
     """
-    if x0.is_zero and expr.sameQ(x):
+    if is_zero(x0) and expr.sameQ(x):
         return True
     if expr.get_head() is not SymbolPlus:
         return False
@@ -175,7 +176,7 @@ def series_plus_series(series1, series2):
     for k, coeff in enumerate(data2):
         p = k * int(den2 / den) + offset2
         if p < len_newdata:
-            if data[p].is_zero:
+            if is_zero(data[p]):
                 data[p] = coeff
             else:
                 data[p] = Expression(SymbolPlus, data[p], coeff)
@@ -208,7 +209,7 @@ def series_times_series(series1, series2):
             pos = k1 * offset1 + k2 * offset2
             if pos >= len_newdata:
                 continue
-            if data[pos].is_zero:
+            if is_zero(data[pos]):
                 data[pos] = Expression(SymbolTimes, c1, c2)
             elif data[pos].get_head() is SymbolPlus:
                 data[pos] = Expression(
@@ -254,7 +255,7 @@ def reduce_series_trailing_zeros(series):
     if len(data) == 0:
         return series
     i = 0
-    while i < len(data) and data[i].is_zero:
+    while i < len(data) and is_zero(data[i]):
         i = i + 1
     nmin = nmin + i
     data = data[i:]
@@ -285,7 +286,7 @@ def reduce_series(series):
         while notdone:
             if (den % factor == 0) and (nmin % factor == 0) and (nmax % factor == 0):
                 if all(
-                    q.is_zero for q in data[1 + factor :: 2] for r in range(factor - 1)
+                    is_zero(q) for q in data[1 + factor :: 2] for r in range(factor - 1)
                 ):
                     data = data[0::factor]
                     nmin, nmax, den = (
@@ -317,7 +318,7 @@ def reduce_series_plus(series, terms, x, x0):
 
     # Loop over terms
     for term in terms:
-        if term.is_zero:
+        if is_zero(term):
             continue
         if isinstance(term, Atom):
             other_terms.append(term)

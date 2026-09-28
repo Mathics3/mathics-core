@@ -4,6 +4,7 @@ Mathics3 timing method(s) and timing context manager.
 """
 
 import os
+import sys
 import time
 
 MIN_ELAPSE_REPORT = int(os.environ.get("MIN_ELAPSE_REPORT", "0"))
@@ -132,3 +133,28 @@ def show_lru_cache_statistics():
     print(f"log_n_b             {log_n_b.cache_info()}")
     print(f"from_mpmath         {from_mpmath.cache_info()}")
     print(f"get_mpmath_function {MPMathFunction.get_mpmath_function.cache_info()}")
+
+
+def get_deep_size(obj, seen=None) -> int:
+    """Recursively computes total memory bytes of an object and its contents."""
+    if seen is None:
+        seen = set()
+    obj_id = id(obj)
+    if obj_id in seen:
+        return 0
+    seen.add(obj_id)
+
+    size = sys.getsizeof(obj)
+    if isinstance(obj, dict):
+        size += sum(
+            get_deep_size(k, seen) + get_deep_size(v, seen) for k, v in obj.items()
+        )
+    elif hasattr(obj, "__dict__"):
+        size += get_deep_size(obj.__dict__, seen)
+    elif hasattr(obj, "__slots__"):
+        size += sum(
+            get_deep_size(getattr(obj, s), seen)
+            for s in obj.__slots__
+            if hasattr(obj, s)
+        )
+    return size

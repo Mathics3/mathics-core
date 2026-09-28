@@ -32,7 +32,7 @@ def numerify(self: BaseElement, evaluation: Evaluation) -> "BaseElement":
     _prec = None
     for element in self._elements:
         if is_inexact(element):
-            element_prec = element.get_precision()
+            element_prec = element.precision
             if _prec is None or element_prec is None or element_prec < _prec:
                 _prec = element_prec
     if _prec is not None:
