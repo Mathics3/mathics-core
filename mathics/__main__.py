@@ -278,7 +278,7 @@ Please contribute to Mathics!""",
             else:
                 exit_rc = -3
 
-            return exit_rc
+        return exit_rc
 
     if not args.quiet:
         print()
