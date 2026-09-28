@@ -31,19 +31,16 @@ MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang
    develop-full \
    develop-full-cython \
    dist \
-   doc \
    doctest \
    doctest-data \
    djangotest \
    gstest \
-   latexdoc \
    mypy \
    plot-detailed-tests\
    pytest \
    pytest-x \
    rmChangeLog \
-   test \
-   texdoc
+   test
 
 MATHICS3_SANDBOX	?=
 ifeq ($(OS),Windows_NT)
@@ -133,9 +130,6 @@ clean-cache:
 
 #: Remove derived files
 clean: clean-cython clean-cache
-	for dir in mathics/doc ; do \
-	   ($(MAKE) -C "$$dir" clean); \
-	done; \
 	rm -f factorials || true; \
 	rm -f mathics/data/*.json || true; \
 	rm -rf build || true
@@ -158,12 +152,6 @@ pytest-x :
 gstest:
 	(cd examples/symbolic_logic/gries_schneider && $(PYTHON) test_gs.py)
 
-
-#: Create LaTeX doctest test data and test results that is used to build LaTeX PDF
-# For LaTeX docs we assume Unicode
-latex-doctest-data: mathics/builtin/*.py mathics/doc/documentation/*.mdoc mathics/doc/documentation/images/*
-	MATHICS_CHARACTER_ENCODING="UTF-8" $(PYTHON) mathics/gather_latex_doc.py --output $(MATHICS3_MODULE_OPTION) --doc-only
-
 #: Run tests that appear in docstring in the code. Use environment variable "DOCTEST_OPTIONS" for doctest options
 doctest:
 	MATHICS3_SANDBOX=$(MATHICS3_SANDBOX) $(PYTHON) mathics/docpipeline.py $(DOCTEST_OPTIONS)
@@ -171,10 +159,6 @@ doctest:
 #: Run tests that appear in docstring in the code, stopping on the first error.
 doctest-x:
 	DOCTEST_OPTIONS="-x" $(MAKE) doctest
-
-#: Make Mathics3 PDF manual via Asymptote and LaTeX
-latexdoc texdoc doc:
-	(cd mathics/doc/latex && $(MAKE) doc)
 
 #: Remove ChangeLog
 rmChangeLog:
