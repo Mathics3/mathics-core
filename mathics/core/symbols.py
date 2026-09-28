@@ -1,6 +1,6 @@
 # cython: language_level=3
 # -*- coding: utf-8 -*-
-
+import re
 import sys
 from typing import TYPE_CHECKING, Any, ClassVar, FrozenSet, Iterable, Optional, cast
 
@@ -27,6 +27,9 @@ from mathics.eval.tracing import trace_evaluate
 # important information
 SYMPY_SYMBOL_PREFIX = "_u"
 SYMPY_SLOT_PREFIX = "_#"
+
+
+VALID_SYMBOL_NAME_PATTERN = re.compile(r"^[^0-9!+\-*/^_|&%'\"`][^!+\-*/^_|&%'\"`]*$")
 
 
 # FIXME: remove this and replace numeric testing by some other means.
@@ -121,6 +124,16 @@ def valid_context_name(ctx, allow_initial_backquote=False) -> bool:
         and "``" not in ctx
         and (allow_initial_backquote or not ctx.startswith("`"))
     )
+
+
+def is_valid_symbol_name(name: str) -> bool:
+    """Determine if name is a valid symbol name using regular expressions."""
+    if len(name) == 0:
+        return False
+    if name[0] == "`":
+        name = name[1:]
+    parts = name.split("`")
+    return all(VALID_SYMBOL_NAME_PATTERN.match(part) is not None for part in parts)
 
 
 class Atom(BaseElement):

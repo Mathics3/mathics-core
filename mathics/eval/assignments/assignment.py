@@ -9,17 +9,11 @@ Evaluation routines for `Set`, `SetDelayed`, and Builtin functions
 found in module `mathics.builtin.assignments.assignment`.
 """
 
-from functools import reduce
 from typing import Final, Optional
 
-from mathics.core.assignment import (
-    get_symbol_list,
-    is_protected,
-    rejected_because_protected,
-    unwrap_lhs,
-)
+from mathics.core.assignment import is_protected, rejected_because_protected, unwrap_lhs
 from mathics.core.atoms import Integer, Integer1
-from mathics.core.attributes import A_LOCKED, attribute_string_to_number
+from mathics.core.attributes import A_LOCKED
 from mathics.core.definitions import BOX_FORMS
 from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import (
@@ -53,6 +47,7 @@ from mathics.core.systemsymbols import (
     SymbolPatternTest,
     SymbolVerbatim,
 )
+from mathics.eval.attributes import attributes_to_bitcode
 from mathics.eval.list.eol import eval_Part
 
 # Head Symbols of expressions that may need unwrapping in an assignment.
@@ -221,29 +216,24 @@ def eval_assign_attributes(
     if target_symbol_names is not None and target_symbol_names != [tag]:
         evaluation.message(op_name, "tag", Symbol(name), Symbol(tag))
         raise AssignmentException(lhs, rhs)
-    attributes_list = get_symbol_list(
+
+    attributes: Optional[int] = attributes_to_bitcode(
         rhs, lambda item: evaluation.message(op_name, "sym", item, 1)
     )
-    if attributes_list is None:
+    # If one of the attributes in the RHS is wrong, the assignment fails.
+    # Notice that this is different to what happens with SetAttributes.
+    if attributes is None:
         raise AssignmentException(lhs, rhs)
-    if A_LOCKED & evaluation.definitions.get_attributes(tag):
+
+    defs = evaluation.definitions
+    definition = defs.get_definition(tag)
+    if A_LOCKED & definition.attributes:
         evaluation.message(op_name, "locked", Symbol(tag))
         raise AssignmentException(lhs, rhs)
 
-    def reduce_attributes_from_list(x_att: int, y_att: str) -> int:
-        try:
-            return x_att | attribute_string_to_number[y_att]
-        except KeyError:
-            evaluation.message("SetAttributes", "unknowattr", y_att)
-            return x_att
-
-    attributes = reduce(
-        reduce_attributes_from_list,
-        attributes_list,
-        0,
-    )
-
-    evaluation.definitions.set_attributes(tag, attributes)
+    definition.attributes = attributes
+    defs.mark_changed(definition)
+    defs.clear_definitions_cache(tag)
 
     return True
 
