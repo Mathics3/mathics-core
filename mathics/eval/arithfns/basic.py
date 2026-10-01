@@ -284,7 +284,7 @@ def eval_add_numbers(
     if len(numbers) == 1:
         return numbers[0]
 
-    is_machine_precision = any(number.is_machine_precision() for number in numbers)
+    is_machine_precision = any(number.is_machine_precision for number in numbers)
     if is_machine_precision:
         terms = (item.to_mpmath() for item in numbers)
         number = mpmath.fsum(terms)
@@ -330,7 +330,7 @@ def eval_multiply_numbers(*numbers: Number) -> Number:
     if len(numbers) == 1:
         return numbers[0]
 
-    is_machine_precision = any(number.is_machine_precision() for number in numbers)
+    is_machine_precision = any(number.is_machine_precision for number in numbers)
     if is_machine_precision:
         factors = (item.to_mpmath() for item in numbers)
         number = mpmath.fprod(factors)

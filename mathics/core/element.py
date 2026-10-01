@@ -266,13 +266,6 @@ class BaseElement(KeyComparable, ABC):
     # FIXME: this should be a *function* in mathics.core.atom.numeric.Number.
     # It should be a method *only* in Numeric (or Symbol) classes where it
     # makes sense.
-    def is_machine_precision(self) -> bool:
-        """Check if the number represents a floating point number"""
-        return False
-
-    # FIXME: this should be a *function* in mathics.core.atom.numeric.Number.
-    # It should be a method *only* in Numeric (or Symbol) classes where it
-    # makes sense.
     def is_numeric(self, evaluation=None) -> bool:
         """Check if the expression is a number. If evaluation is given,
         tries to determine if the expression can be evaluated as a number.

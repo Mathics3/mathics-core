@@ -839,7 +839,7 @@ class MPMathFunction(SympyFunction):
         if mpmath_function is None:
             return
 
-        if any(arg.is_machine_precision() for arg in args):
+        if any(arg.is_machine_precision for arg in args):
             prec = None
         else:
             prec = min_prec(*args)

@@ -142,6 +142,14 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         """
         return True
 
+    @property
+    def is_machine_precision(self) -> bool:
+        """Returns True if the numeric type is approximate.
+        The default is False. Those numeric types where this
+        is True should override this method.
+        """
+        return False
+
     def is_numeric(self, evaluation=None) -> bool:
         # Anything that is in a number class is Numeric, so return True.
         return True
@@ -619,6 +627,7 @@ class MachineReal(Real[float | mpmath.mpf]):
         """
         return True
 
+    @property
     def is_machine_precision(self) -> bool:
         return True
 
@@ -1002,8 +1011,9 @@ class Complex(Number[tuple[Number[T], Number[T], Optional[int]]]):
     def is_inexact(self) -> bool:
         return self.precision is not None
 
+    @property
     def is_machine_precision(self) -> bool:
-        if self._real.is_machine_precision() or self._imag.is_machine_precision():
+        if self._real.is_machine_precision or self._imag.is_machine_precision:
             return True
         return False
 

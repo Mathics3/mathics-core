@@ -11,7 +11,12 @@ import mathics.eval.tracing as tracing
 from mathics.core.atoms import Complex, Integer1, MachineReal1, Number
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
-from mathics.core.number import RECONSTRUCT_MACHINE_PRECISION_DIGITS, dps, min_prec
+from mathics.core.number import (
+    RECONSTRUCT_MACHINE_PRECISION_DIGITS,
+    dps,
+    is_machine_precision,
+    min_prec,
+)
 from mathics.core.systemsymbols import SymbolComplexInfinity
 from mathics.eval.arithmetic import eval_mpmath_function
 
@@ -32,9 +37,9 @@ def eval_Hypergeometric1F1(a, b, z):
     if hasattr(a, "is_zero") and a.is_zero:
         return (
             MachineReal1
-            if a.is_machine_precision()
+            if a.is_machine_precision
             or hasattr(z, "machine_precision")
-            and z.is_machine_precision()
+            and z.is_machine_precision
             else Integer1
         )
 
@@ -51,7 +56,7 @@ def eval_Hypergeometric1F1(a, b, z):
     if isinstance(expanded_result, sympy.hyper) and all_numeric:
         args = cast(Sequence[Number], args)
 
-        if any(arg.is_machine_precision() for arg in args):
+        if any(arg.is_machine_precision for arg in args):
             prec = None
         else:
             prec = min_prec(*args)
@@ -79,7 +84,7 @@ def eval_Hypergeometric2F1(a, b, c, z):
     if all_numeric:
         args = cast(Sequence[Number], args)
 
-        if any(arg.is_machine_precision() for arg in args):
+        if any(arg.is_machine_precision for arg in args):
             prec = None
         else:
             prec = min_prec(*args)
@@ -109,11 +114,11 @@ def eval_HypergeometricPQF(a, b, z):
         and a[0].is_zero
         and isinstance(z, Number)
     ):
-        return MachineReal1 if a[0].is_machine_precision() else Integer1
+        return MachineReal1 if a[0].is_machine_precision else Integer1
 
     # FIXME: This isn't complete. If parameters "a" or "b" contain MachineReal
     # numbers then the results should be MachineReal as well.
-    if z.is_machine_precision():
+    if is_machine_precision(z):
         return eval_N_HypergeometricPQF(a, b, z)
 
     try:

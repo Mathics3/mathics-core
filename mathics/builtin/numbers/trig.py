@@ -284,7 +284,7 @@ class AnglePathFold(Fold):
                     pass
                 elif not isinstance(x, Real):
                     return SYMBOLIC
-                elif not x.is_machine_precision():
+                elif not x.is_machine_precision:
                     return MPMATH
             return FLOAT
 
@@ -292,7 +292,7 @@ class AnglePathFold(Fold):
             if phi is not None:
                 if not isinstance(phi, Real):
                     return SYMBOLIC
-                elif not phi.is_machine_precision():
+                elif not phi.is_machine_precision:
                     return MPMATH
             return FLOAT
 

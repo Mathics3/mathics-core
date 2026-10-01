@@ -582,7 +582,7 @@ class NumberForm(_NumberForm):
             if isinstance(target, Integer):
                 py_n = len(str(abs(target.int_value)))
             elif isinstance(target, Real):
-                if target.is_machine_precision():
+                if target.is_machine_precision:
                     py_n = 6
                 else:
                     py_n = dps(target.precision)

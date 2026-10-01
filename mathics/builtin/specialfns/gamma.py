@@ -121,7 +121,7 @@ class Beta(MPMathMultiFunction):
             Expression(SymbolSequence, a, b, Integer0, z), evaluation
         ).get_sequence()
         mpmath_function = self.get_mpmath_function(tuple(args))
-        if any(arg.is_machine_precision() for arg in args):
+        if any(arg.is_machine_precision for arg in args):
             # If any argument has machine precision, then the entire calculation
             # is done with machine precision.
             float_args = [
