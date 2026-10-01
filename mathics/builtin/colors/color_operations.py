@@ -398,7 +398,7 @@ class DominantColors(Builtin):
             .pil()
             .convert("P", palette=PIL.Image.ADAPTIVE, colors=256)
         )
-        pixels = numpy.array(list(im.getdata()))
+        pixels = numpy.array(list(im.get_flattened_data()))
 
         flat = numpy.array(list(im.getpalette())) / 255.0  # float values now
         rgb_palette = [flat[i : i + 3] for i in range(0, len(flat), 3)]  # group by 3
