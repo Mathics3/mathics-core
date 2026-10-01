@@ -14,12 +14,12 @@ from typing import Any, Callable, Optional
 
 from mathics.builtin.box.layout import RowBox, StyleBox, SuperscriptBox
 from mathics.builtin.forms.base import FormBaseClass
-from mathics.core.atoms import Integer, Real, String, get_int_value
+from mathics.core.atoms import Integer, Real, String
 from mathics.core.builtin import Builtin
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.number import dps
+from mathics.core.number import dps, get_int_value
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAutomatic,

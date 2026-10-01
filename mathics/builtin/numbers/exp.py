@@ -16,11 +16,11 @@ from typing import Iterable
 import mpmath
 
 from mathics.core.atoms import Real
-from mathics.core.atoms.numerics import min_prec
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 from mathics.core.builtin import Builtin, MPMathFunction
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
+from mathics.core.number import min_prec
 from mathics.core.symbols import SymbolPower
 from mathics.core.systemsymbols import SymbolCos, SymbolE, SymbolSin
 

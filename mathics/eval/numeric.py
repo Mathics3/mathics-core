@@ -28,12 +28,17 @@ from mathics.core.atoms import (
     RationalOneHalf,
     Real,
 )
-from mathics.core.atoms.numerics import is_inexact, is_zero, min_prec
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement
 from mathics.core.expression import Expression
-from mathics.core.number import FP_MANTISA_BINARY_DIGITS, SpecialValueError
+from mathics.core.number import (
+    FP_MANTISA_BINARY_DIGITS,
+    SpecialValueError,
+    is_inexact,
+    is_zero,
+    min_prec,
+)
 from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolPower, SymbolTimes
 from mathics.core.systemsymbols import (
     SymbolAbs,

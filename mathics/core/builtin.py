@@ -50,7 +50,6 @@ from mathics.core.atoms import (
     PrecisionReal,
     String,
 )
-from mathics.core.atoms.numerics import is_inexact, min_prec
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_LISTABLE,
@@ -68,7 +67,13 @@ from mathics.core.exceptions import MessageException
 from mathics.core.expression import Expression
 from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
 from mathics.core.list import ListExpression
-from mathics.core.number import PrecisionValueError, dps, get_closest_precision
+from mathics.core.number import (
+    PrecisionValueError,
+    dps,
+    get_closest_precision,
+    is_inexact,
+    min_prec,
+)
 from mathics.core.parser.operators import OPERATOR_DATA
 from mathics.core.parser.util import PyMathicsDefinitions, SystemDefinitions
 from mathics.core.pattern import BasePattern

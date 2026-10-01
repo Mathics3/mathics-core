@@ -31,11 +31,10 @@ from mathics.core.atoms import (
     Rational,
     Real,
 )
-from mathics.core.atoms.numerics import min_prec
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement
-from mathics.core.number import FP_MANTISA_BINARY_DIGITS, SpecialValueError
+from mathics.core.number import FP_MANTISA_BINARY_DIGITS, SpecialValueError, min_prec
 from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolPower, SymbolTimes
 from mathics.core.systemsymbols import (
     SymbolComplexInfinity,

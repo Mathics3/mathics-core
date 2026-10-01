@@ -32,6 +32,7 @@ from mathics.core.number import (
     MAX_MACHINE_NUMBER,
     MIN_MACHINE_NUMBER,
     dps,
+    min_prec,
     prec,
 )
 from mathics.core.symbols import Atom, NumericOperators, Symbol, SymbolNull, symbol_set
@@ -1204,64 +1205,8 @@ NUMERICAL_CONSTANTS = {
 }
 
 
-def get_int_value(element) -> Optional[int]:
-    """
-    Return the integer value of "element" if it can be interpreted as a Python int.
-
-    Otherwise, return None.
-    """
-    return element.int_value if hasattr(element, "int_value") else None
-
-
-def get_precision(element) -> Optional[int]:
-    """Returns the default specification for precision in N and other
-    numerical functions.
-
-    If None is returned, element is not something that it makes sense to have
-    a precision.
-    """
-    return element.precision if hasattr(element, "precision") else None
-
-
-def is_inexact(expr) -> bool:
-    """Return True if expr is has an exact numeric value or False if not.
-
-    For objects like strings where exactness and inexactness make
-    no sense, we report True.
-    """
-    # FIXME: this is really screwy! We are reporting inexactness on objects
-    # where exactness and inexactness make no sense.
-    return get_precision(expr) is not None
-
-
 def is_integer_rational_or_real(expr) -> bool:
     """
     Return True if expr is either an Integer, Rational, or Real.
     """
     return isinstance(expr, (Integer, Rational, Real))
-
-
-def is_zero(element) -> Optional[bool]:
-    """
-    If element is some sort of numeric type, Return True is "element" is zero, and False otherwise.
-    If it is not a numeric type, return None.
-    """
-    return element.is_zero if hasattr(element, "is_zero") else None
-
-
-def min_prec(*args) -> Optional[int]:
-    """
-    Returns the precision of the expression with the minimum precision.
-    If all the expressions are exact or non numeric, return None.
-
-    If one of the expressions is an inexact value with zero
-    nominal value, then its accuracy is used instead. For example,
-    ```min_prec(1, 0.``4) ``` returns 4.
-
-    Notice that this behavior is different that the one obtained
-    using mathics.core.numbers.eval_Precision.
-    """
-    args_prec = (get_precision(arg) for arg in args)
-    return min(
-        (arg_prec for arg_prec in args_prec if arg_prec is not None), default=None
-    )
