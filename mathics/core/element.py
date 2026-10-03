@@ -114,6 +114,12 @@ class BaseElement(KeyComparable, ABC):
     # this variable holds a function defined in mathics.core.expression that creates an expression
     create_expression: Any
 
+    def copy(self, reevaluate=False) -> "BaseElement":
+        raise NotImplementedError
+
+    def default_format(self, evaluation, form) -> str:
+        raise NotImplementedError
+
     def do_apply_rules(
         self, rules, evaluation, level=0, options=None
     ) -> tuple["BaseElement", bool]:
@@ -244,6 +250,17 @@ class BaseElement(KeyComparable, ABC):
     def get_string_value(self) -> Optional[str]:
         return None
 
+    def has_form(
+        self,
+        heads: Iterable["Symbol"] | "Symbol",
+        *element_counts: Optional[int],
+    ) -> bool:
+        """Check if the expression is of the form Head[l1,...,ln]
+        with Head.name in `heads` and several elements according to the specification in
+        element_counts.
+        """
+        return False
+
     @property
     def is_literal(self) -> bool:
         """
@@ -273,17 +290,6 @@ class BaseElement(KeyComparable, ABC):
         # used by NumericQ and expression ordering
         return False
 
-    def has_form(
-        self,
-        heads: Iterable["Symbol"] | "Symbol",
-        *element_counts: Optional[int],
-    ) -> bool:
-        """Check if the expression is of the form Head[l1,...,ln]
-        with Head.name in `heads` and several elements according to the specification in
-        element_counts.
-        """
-        return False
-
     # FIXME: this method makes sense only for Numeric, Symbolic or (compound Expressions).
     # It would be good narrow this method those classes only.
     @property
@@ -302,6 +308,14 @@ class BaseElement(KeyComparable, ABC):
         from mathics.eval.test import item_is_free
 
         return item_is_free(self, form, evaluation)
+
+    def replace_vars(
+        self,
+        vars: dict[str, "BaseElement"],
+        options=None,
+        in_function=True,
+    ) -> "BaseElement":
+        raise NotImplementedError
 
     def sameQ(self, other: Any) -> bool:
         """Mathics3 SameQ"""
@@ -332,20 +346,6 @@ class BaseElement(KeyComparable, ABC):
         raise NotImplementedError
 
     def to_sympy(self, **kwargs):
-        raise NotImplementedError
-
-    def copy(self, reevaluate=False) -> "BaseElement":
-        raise NotImplementedError
-
-    def default_format(self, evaluation, form) -> str:
-        raise NotImplementedError
-
-    def replace_vars(
-        self,
-        vars: dict[str, "BaseElement"],
-        options=None,
-        in_function=True,
-    ) -> "BaseElement":
         raise NotImplementedError
 
 
