@@ -14,12 +14,12 @@ from mathics.algorithm.clusters import (
     optimize,
 )
 from mathics.core.atoms import FP_MANTISA_BINARY_DIGITS, Integer, Real, String
-from mathics.core.atoms.numerics import min_prec
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.number import min_prec
 from mathics.core.symbols import Symbol, strip_context
 from mathics.core.systemsymbols import (
     SymbolClusteringComponents,

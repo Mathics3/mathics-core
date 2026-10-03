@@ -19,7 +19,7 @@ from mathics.core.atoms import (
     String,
 )
 from mathics.core.element import ELEMENTS_FULLY_EVALUATED
-from mathics.core.number import get_type
+from mathics.core.number import get_numeric_type
 from mathics.core.symbols import (
     BaseElement,
     BooleanType,
@@ -127,7 +127,7 @@ def from_python(arg: Any, options=DEFAULT_PYTHON_OPTIONS) -> BaseElement:
     if isinstance(arg, BaseElement):
         return arg
 
-    number_type = get_type(arg)
+    number_type = get_numeric_type(arg)
 
     # We should investigate whether this could be sped up
     # using a dictionary lookup on type.

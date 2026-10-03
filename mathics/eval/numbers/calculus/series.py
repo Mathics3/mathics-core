@@ -3,12 +3,12 @@
 Implementation of Series handling functions.
 """
 from mathics.core.atoms import Integer, Integer0, Rational
-from mathics.core.atoms.numerics import is_zero
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.number import is_zero
 from mathics.core.rules import BasePattern
 from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolPower, SymbolTimes
 from mathics.core.systemsymbols import (

@@ -28,12 +28,18 @@ from mathics.core.atoms import (
     RationalOneHalf,
     Real,
 )
-from mathics.core.atoms.numerics import is_inexact, is_zero, min_prec
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement
 from mathics.core.expression import Expression
-from mathics.core.number import FP_MANTISA_BINARY_DIGITS, SpecialValueError
+from mathics.core.number import (
+    FP_MANTISA_BINARY_DIGITS,
+    SpecialValueError,
+    is_inexact,
+    is_machine_precision,
+    is_zero,
+    min_prec,
+)
 from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolPower, SymbolTimes
 from mathics.core.systemsymbols import (
     SymbolAbs,
@@ -165,7 +171,7 @@ def eval_Exp(exp: BaseElement) -> BaseElement:
 
     prec = exp.precision
     if prec is not None:
-        if exp.is_machine_precision():
+        if is_machine_precision(exp):
             number = mpmath.exp(exp.to_mpmath())
             result = from_mpmath(number)
             return result
@@ -529,7 +535,7 @@ def eval_Power_inexact(base: Number, exp: Number) -> BaseElement:
     # use sympy.
     prec = min_prec(base, exp)
     if prec is not None:
-        is_machine_precision = base.is_machine_precision() or exp.is_machine_precision()
+        is_machine_precision = base.is_machine_precision or exp.is_machine_precision
         if is_machine_precision:
             number = mpmath.power(base.to_mpmath(), exp.to_mpmath())
             return from_mpmath(number)
@@ -550,8 +556,7 @@ def eval_add_numbers(
     if len(numbers) == 1:
         return numbers[0]
 
-    is_machine_precision = any(number.is_machine_precision() for number in numbers)
-    if is_machine_precision:
+    if any(is_machine_precision(number) for number in numbers):
         terms = (item.to_mpmath() for item in numbers)
         number = mpmath.fsum(terms)
         return from_mpmath(number)
@@ -596,8 +601,7 @@ def eval_multiply_numbers(*numbers: Number) -> Number:
     if len(numbers) == 1:
         return numbers[0]
 
-    is_machine_precision = any(number.is_machine_precision() for number in numbers)
-    if is_machine_precision:
+    if any(is_machine_precision(number) for number in numbers):
         factors = (item.to_mpmath() for item in numbers)
         number = mpmath.fprod(factors)
         return from_mpmath(number)

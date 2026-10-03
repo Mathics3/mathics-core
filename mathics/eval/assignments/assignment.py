@@ -18,7 +18,7 @@ from mathics.core.assignment import (
     rejected_because_protected,
     unwrap_lhs,
 )
-from mathics.core.atoms import Integer, Integer1, get_int_value
+from mathics.core.atoms import Integer, Integer1
 from mathics.core.attributes import A_LOCKED, attribute_string_to_number
 from mathics.core.definitions import BOX_FORMS
 from mathics.core.element import BaseElement, EvalMixin
@@ -28,6 +28,7 @@ from mathics.core.evaluation import (
     set_python_recursion_limit,
 )
 from mathics.core.expression import Expression
+from mathics.core.number import get_int_value
 from mathics.core.rules import RewriteRule
 from mathics.core.symbols import (
     Atom,

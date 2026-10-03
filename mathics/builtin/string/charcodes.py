@@ -5,12 +5,13 @@ Character Codes
 
 import sys
 
-from mathics.core.atoms import Integer, Integer1, String, get_int_value
+from mathics.core.atoms import Integer, Integer1, String
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.number import get_int_value
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolList
 from mathics.eval.encoding import load_encoding_table, to_python_encoding
