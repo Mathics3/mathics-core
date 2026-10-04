@@ -2,6 +2,8 @@
 Symbol Properties
 """
 
+from mathics_scanner.tokeniser import NAMES_WILDCARDS
+
 from mathics.core.atoms import String
 from mathics.core.attributes import (
     A_HOLD_ALL,
@@ -24,11 +26,13 @@ from mathics.core.systemsymbols import (
     SymbolRule,
     SymbolUnknownSymbol,
 )
+from mathics.doc.online import online_doc_string
 from mathics.eval.atomic.symbols import eval_SymbolQ
 from mathics.eval.symbol.properties import (
     eval_Information,
     eval_Information_with_property,
     eval_values,
+    gather_and_format_definition_rules,
     get_matching_names,
     missing_symbol,
 )
@@ -140,6 +144,31 @@ class Definition(Builtin):
 
     attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "give values of a symbol in a form that can be stored in a package"
+
+    def format_definition(
+        self, symbol: Symbol, evaluation: Evaluation, grid: bool = True
+    ) -> Expression | Symbol:
+        "(StandardForm,TraditionalForm,OutputForm,): Definition[symbol_]"
+
+        lines = gather_and_format_definition_rules(symbol, evaluation)
+        if lines:
+            if grid:
+                return Expression(
+                    SymbolGrid,
+                    ListExpression(*(ListExpression(line) for line in lines)),
+                    Expression(SymbolRule, Symbol("ColumnAlignments"), SymbolLeft),
+                )
+            else:
+                for line in lines:
+                    evaluation.print_out(Expression(SymbolInputForm, line))
+
+        return SymbolNull
+
+    def format_definition_input(
+        self, symbol: Symbol, evaluation: Evaluation
+    ) -> Expression | Symbol:
+        "(InputForm,): Definition[symbol_]"
+        return self.format_definition(symbol, evaluation, grid=False)
 
 
 # In Mathematica 5, this appears under "Types of Values".
@@ -278,11 +307,7 @@ class Information(PrefixOperator):
         result = Expression(Symbol("System`TableForm"), ListExpression(*rows))
         return result
 
-    def eval(self, expr, evaluation: Evaluation):
-        "Information[expr___]"
-        return eval_Information(expr, evaluation)
-
-    def eval_with_options(self, expr, evaluation: Evaluation, options: dict):
+    def eval(self, expr, evaluation: Evaluation, options: dict):
         "Information[expr_, OptionsPattern[Information]]"
         return eval_Information(expr, evaluation)
 
@@ -301,6 +326,67 @@ class Information(PrefixOperator):
     # (WMA 4.0).
     # TODO: the formatting part of this must be moved to `InformationData`
     # and `Information` should build this kind of expressions.
+
+    def format_information_generic(
+        self,
+        expr: BaseElement,
+        evaluation: Evaluation,
+        options: dict,
+        grid: bool = True,
+    ):
+        "(StandardForm,TraditionalForm,InputForm,OutputForm,): Information[expr_, OptionsPattern[Information]]"
+        # expr is not a Symbol. We should leave unchanged and let other formatting rules kick in.
+        return None
+
+    def format_information_string(
+        self, strpat: String, evaluation: Evaluation, options: dict, grid: bool = True
+    ) -> Expression | Symbol:
+        "(StandardForm,TraditionalForm,InputForm,OutputForm,): Information[strpat_String, OptionsPattern[Information]]"
+        definitions = evaluation.definitions
+        string_str = strpat.value
+        if any(char in string_str for char in NAMES_WILDCARDS):
+            return self.build_list_of_matching_symbols(
+                string_str, evaluation, options, grid
+            )
+        try:
+            symbol_name = definitions.get_definition(
+                string_str, only_if_exists=True
+            ).name
+        except KeyError:
+            return self.build_missing(strpat)
+        return self.format_information_symbol(Symbol(symbol_name), evaluation, options)
+
+    def format_information_symbol(
+        self, symbol: Symbol, evaluation: Evaluation, options: dict, grid: bool = True
+    ) -> Expression | Symbol:
+        "(StandardForm,TraditionalForm,InputForm,OutputForm,): Information[symbol_Symbol, OptionsPattern[Information]]"
+        definitions = evaluation.definitions
+        try:
+            definitions.get_definition(symbol.name, True)
+        except KeyError:
+            return self.build_missing(symbol)
+
+        lines: list[Expression | String] = []
+        # Print the "usage" message if available.
+        # is_long_form = self.get_option(options, "LongForm", evaluation).to_python()
+        is_long_form = True  # In WMA >=12.0 this option does not make much difference--
+        usagetext = online_doc_string(symbol, evaluation.definitions, is_long_form)
+        if usagetext:
+            lines.append(String(usagetext))
+        else:
+            lines.append(String(symbol.get_name()))
+
+        if is_long_form and (
+            info := gather_and_format_definition_rules(symbol, evaluation)
+        ):
+            lines.extend(info)
+
+        infoshow = Expression(
+            SymbolGrid,
+            ListExpression(*(line for line in lines)),
+            Expression(SymbolRule, Symbol("ColumnAlignments"), SymbolLeft),
+        )
+        return infoshow
 
 
 class SymbolQ(Test):
