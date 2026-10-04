@@ -141,31 +141,6 @@ class Definition(Builtin):
     attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "give values of a symbol in a form that can be stored in a package"
 
-    def format_definition(
-        self, symbol: Symbol, evaluation: Evaluation, grid: bool = True
-    ) -> Expression | Symbol:
-        "(StandardForm,TraditionalForm,OutputForm,): Definition[symbol_]"
-
-        lines = gather_and_format_definition_rules(symbol, evaluation)
-        if lines:
-            if grid:
-                return Expression(
-                    SymbolGrid,
-                    ListExpression(*(ListExpression(line) for line in lines)),
-                    Expression(SymbolRule, Symbol("ColumnAlignments"), SymbolLeft),
-                )
-            else:
-                for line in lines:
-                    evaluation.print_out(Expression(SymbolInputForm, line))
-
-        return SymbolNull
-
-    def format_definition_input(
-        self, symbol: Symbol, evaluation: Evaluation
-    ) -> Expression | Symbol:
-        "(InputForm,): Definition[symbol_]"
-        return self.format_definition(symbol, evaluation, grid=False)
-
 
 # In Mathematica 5, this appears under "Types of Values".
 class DownValues(Builtin):
