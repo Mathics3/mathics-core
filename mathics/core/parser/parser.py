@@ -609,7 +609,6 @@ class Parser:
         return Node(
             "Information",
             pattern_arg,
-            Node("Rule", Symbol("LongForm"), long_form),
         )
 
     @track_location
