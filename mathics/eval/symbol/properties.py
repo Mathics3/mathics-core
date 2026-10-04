@@ -145,7 +145,7 @@ def eval_Information(name, evaluation: Evaluation):
         if (n := len(names)) > 1:
             return Expression(SymbolInformationDataGrid, *[String(n) for n in names])
         elif n == 0:
-            return None
+            return missing_symbol(name)
         name_symbol = Symbol(names[0])
     elif isinstance(name, Symbol):
         name_symbol = name
