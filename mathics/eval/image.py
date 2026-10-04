@@ -76,7 +76,6 @@ def convolve(in1, in2, fixed=True):
     s1 = numpy.array(in1.shape)
     s2 = numpy.array(in2.shape)
     shape = s1 + s2 - 1
-    axes = list(range(in1.ndim))
 
     sp1 = numpy.fft.rfftn(in1, shape)
     sp2 = numpy.fft.rfftn(in2, shape)
