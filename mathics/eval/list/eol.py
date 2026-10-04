@@ -2,10 +2,11 @@
 Evaluation routines for builtin function contained in mathics.builtin.list.eol.
 """
 
-from mathics.core.atoms import Integer, get_int_value
+from mathics.core.atoms import Integer
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import MessageException
 from mathics.core.expression import Expression
+from mathics.core.number import get_int_value
 from mathics.core.subexpression import SubExpression
 from mathics.core.symbols import Atom, Symbol
 from mathics.core.systemsymbols import (

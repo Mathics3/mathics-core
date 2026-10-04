@@ -9,7 +9,6 @@ import sympy
 from sympy import im, re
 
 from mathics.core.atoms import Integer, Integer0
-from mathics.core.atoms.numerics import is_inexact
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.matrix import matrix_data
@@ -18,6 +17,7 @@ from mathics.core.convert.sympy import from_sympy, to_sympy_matrix
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.number import is_inexact
 from mathics.core.symbols import SymbolList
 
 

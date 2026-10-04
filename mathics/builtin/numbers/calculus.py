@@ -27,7 +27,6 @@ from mathics.core.atoms import (
     Real,
     String,
 )
-from mathics.core.atoms.numerics import get_precision
 from mathics.core.attributes import (
     A_CONSTANT,
     A_HOLD_ALL,
@@ -44,7 +43,7 @@ from mathics.core.convert.sympy import SymbolRootSum, SympyExpression, from_symp
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.number import MACHINE_EPSILON, dps
+from mathics.core.number import MACHINE_EPSILON, dps, get_precision
 from mathics.core.rules import BasePattern
 from mathics.core.symbols import (
     Atom,

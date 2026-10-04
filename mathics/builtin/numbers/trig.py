@@ -15,12 +15,12 @@ from itertools import chain
 import mpmath
 
 from mathics.core.atoms import Integer, Integer0, IntegerM1, Real
-from mathics.core.atoms.numerics import min_prec
 from mathics.core.builtin import Builtin, MPMathFunction
 from mathics.core.convert.python import from_python
 from mathics.core.exceptions import IllegalStepSpecification
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.number import min_prec
 from mathics.core.symbols import SymbolPower
 from mathics.core.systemsymbols import (
     SymbolArcCos,
@@ -284,7 +284,7 @@ class AnglePathFold(Fold):
                     pass
                 elif not isinstance(x, Real):
                     return SYMBOLIC
-                elif not x.is_machine_precision():
+                elif not x.is_machine_precision:
                     return MPMATH
             return FLOAT
 
@@ -292,7 +292,7 @@ class AnglePathFold(Fold):
             if phi is not None:
                 if not isinstance(phi, Real):
                     return SYMBOLIC
-                elif not phi.is_machine_precision():
+                elif not phi.is_machine_precision:
                     return MPMATH
             return FLOAT
 

@@ -191,7 +191,7 @@ def real_to_tuple_info(
 
     if real.is_zero:
         s = "0"
-        if real.is_machine_precision():
+        if real.is_machine_precision:
             exponent = 0
         else:
             exponent = -precision
@@ -199,7 +199,7 @@ def real_to_tuple_info(
         return s, exponent, is_nonnegative, digits, precision
 
     if digits is None:
-        if real.is_machine_precision():
+        if real.is_machine_precision:
             value = real.value
             s = repr(value)
         else:
@@ -239,7 +239,7 @@ def real_to_tuple_info(
         s = s[i:]
 
     # Add trailing zeros for precision reals.
-    if digits is not None and not real.is_machine_precision() and len(s) < digits:
+    if digits is not None and not real.is_machine_precision and len(s) < digits:
         s = s + "0" * (digits - len(s))
     return s, exponent, is_nonnegative, digits, precision
 

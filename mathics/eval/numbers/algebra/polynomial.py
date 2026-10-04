@@ -14,12 +14,12 @@ from mathics.core.atoms import (
     IntegerM1,
     Number,
     RationalOneHalf,
-    get_int_value,
 )
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.number import get_int_value
 from mathics.core.rules import BasePattern
 from mathics.core.symbols import (
     SYMPY_SYMBOL_PREFIX,

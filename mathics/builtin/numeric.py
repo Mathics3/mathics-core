@@ -25,7 +25,6 @@ from mathics.core.atoms import (
     Rational,
     Real,
 )
-from mathics.core.atoms.numerics import is_inexact
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_LISTABLE,
@@ -37,7 +36,7 @@ from mathics.core.builtin import Builtin, MPMathFunction, SympyFunction
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.number import MACHINE_EPSILON
+from mathics.core.number import MACHINE_EPSILON, is_inexact
 from mathics.core.symbols import (
     Symbol,
     SymbolDivide,

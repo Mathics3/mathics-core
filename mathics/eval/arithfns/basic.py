@@ -24,12 +24,12 @@ from mathics.core.atoms import (
     RationalOneHalf,
     Real,
 )
-from mathics.core.atoms.numerics import min_prec
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement, ElementsProperties
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.number import min_prec
 from mathics.core.symbols import (
     Symbol,
     SymbolNull,
@@ -284,7 +284,7 @@ def eval_add_numbers(
     if len(numbers) == 1:
         return numbers[0]
 
-    is_machine_precision = any(number.is_machine_precision() for number in numbers)
+    is_machine_precision = any(number.is_machine_precision for number in numbers)
     if is_machine_precision:
         terms = (item.to_mpmath() for item in numbers)
         number = mpmath.fsum(terms)
@@ -330,7 +330,7 @@ def eval_multiply_numbers(*numbers: Number) -> Number:
     if len(numbers) == 1:
         return numbers[0]
 
-    is_machine_precision = any(number.is_machine_precision() for number in numbers)
+    is_machine_precision = any(number.is_machine_precision for number in numbers)
     if is_machine_precision:
         factors = (item.to_mpmath() for item in numbers)
         number = mpmath.fprod(factors)

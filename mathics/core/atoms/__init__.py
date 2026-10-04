@@ -31,7 +31,6 @@ from mathics.core.atoms.numerics import (
     RationalOneHalf,
     Real,
     SymbolI,
-    get_int_value,
     is_integer_rational_or_real,
 )
 from mathics.core.atoms.strings import String, StringFromPython
