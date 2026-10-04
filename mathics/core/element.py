@@ -290,12 +290,6 @@ class BaseElement(KeyComparable, ABC):
         # used by NumericQ and expression ordering
         return False
 
-    # FIXME: this method makes sense only for Numeric, Symbolic or (compound Expressions).
-    # It would be good narrow this method those classes only.
-    @property
-    def is_zero(self) -> bool:
-        return False
-
     # FIXME: this method makes sense as a method on (compound) Expresssion.
     # It would be good narrow this method that class and subclass only.
     def is_free(self, form, evaluation) -> bool:
