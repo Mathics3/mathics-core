@@ -325,10 +325,6 @@ class BaseElement(KeyComparable, ABC):
         """
         raise NotImplementedError
 
-    # FIXME move to numerics
-    def to_mpmath(self):
-        raise NotImplementedError
-
     def to_sympy(self, **kwargs):
         raise NotImplementedError
 
