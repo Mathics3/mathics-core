@@ -18,6 +18,7 @@ from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.number import is_numeric
 from mathics.core.symbols import Symbol, SymbolList
 from mathics.core.systemsymbols import SymbolLog10
 from mathics.eval.drawing.plot import (
@@ -76,7 +77,7 @@ class _ListPlot(Builtin, ABC):
             return
 
         if not all(
-            element.is_numeric(evaluation)
+            is_numeric(element, evaluation)
             or element.has_form(SymbolList, None)
             or (1 <= len(element.elements) <= 2)
             or (len(element.elements) == 1 and element[0].has_form(SymbolList, None))

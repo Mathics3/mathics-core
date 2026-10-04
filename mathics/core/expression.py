@@ -37,6 +37,7 @@ from mathics.core.keycomparable import (
     Monomial,
     wma_str_sort_key,
 )
+from mathics.core.number import is_numeric
 from mathics.core.structure import LinkedStructure
 from mathics.core.symbols import (
     Atom,
@@ -1020,7 +1021,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             return (
                 (
                     BASIC_NUMERIC_EXPRESSION_ELT_ORDER
-                    if self.is_numeric()
+                    if is_numeric(self)
                     else BASIC_EXPRESSION_ELT_ORDER
                 ),
                 Monomial(exps),
@@ -1033,7 +1034,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             return (
                 (
                     GENERAL_NUMERIC_EXPRESSION_ELT_ORDER
-                    if self.is_numeric()
+                    if is_numeric(self)
                     else GENERAL_EXPRESSION_ELT_ORDER
                 ),
                 head,
@@ -1917,13 +1918,13 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             if not A_NUMERIC_FUNCTION & evaluation.definitions.get_attributes(name):
                 return False
             for element in self._elements:
-                if not element.is_numeric(evaluation):
+                if not is_numeric(element, evaluation):
                     return False
             return True
-            # return all(element.is_numeric(evaluation) for element in self._elements)
+            # return all(is_numeric(element, evaluation) for element in self._elements)
         else:
             return self._head in symbols_arithmetic_operations and all(
-                element.is_numeric() for element in self._elements
+                is_numeric(element, evaluation) for element in self._elements
             )
 
     def user_hash(self, update):

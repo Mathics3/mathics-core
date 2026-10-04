@@ -31,6 +31,7 @@ from mathics.core.element import BaseElement, ImmutableValueMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.number import is_numeric
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
     SymbolAborted,
@@ -663,7 +664,7 @@ class DateObject(_DateFormat, ImmutableValueMixin):
             timezone = Real(-time.timezone / 3600.0)
         else:
             timezone = options["System`TimeZone"].evaluate(evaluation)
-            if not timezone.is_numeric(evaluation):
+            if not is_numeric(timezone, evaluation):
                 evaluation.message("DateObject", "notz", timezone)
 
         # TODO: if tz != timezone, shift the datetime list.

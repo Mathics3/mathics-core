@@ -231,9 +231,19 @@ def is_inexact(expr) -> bool:
     return get_precision(expr) is not None
 
 
-def is_machine_precision(expr) -> bool:
-    """Returns True if `expr` is numeric type that is approximate."""
-    return expr.is_machine_precision if hasattr(expr, "is_machine_precision") else False
+def is_machine_precision(expr) -> Optional[bool]:
+    """Returns True if `expr` is numeric type that is approximate, False if not,
+    and None if expr is not a number.
+    """
+    return expr.is_machine_precision if hasattr(expr, "is_machine_precision") else None
+
+
+def is_numeric(expr, evaluation=None) -> Optional[bool]:
+    """Returns True if `expr` is numeric type, False if not,
+    and None if expr is not a number.
+    """
+    # used by NumericQ and expression ordering
+    return expr.is_numeric(evaluation) if hasattr(expr, "is_numeric") else None
 
 
 def is_zero(element) -> Optional[bool]:

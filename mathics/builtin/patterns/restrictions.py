@@ -15,6 +15,7 @@ from mathics.core.keycomparable import (
     PATTERN_SORT_KEY_CONDITIONAL,
     PATTERN_SORT_KEY_PATTERNTEST,
 )
+from mathics.core.number import is_numeric
 from mathics.core.pattern import BasePattern
 from mathics.core.symbols import Atom, Symbol, SymbolPower, SymbolTrue
 from mathics.core.systemsymbols import SymbolCondition
@@ -236,7 +237,7 @@ class PatternTest(InfixOperator, PatternObject):
         def yield_match(vars_2, rest):
             items = expression.get_sequence()
             for item in items:
-                if not (isinstance(item, Number) or item.is_numeric(evaluation)):
+                if not (isinstance(item, Number) or is_numeric(item, evaluation)):
                     break
             else:
                 yield_func(vars_2, None)

@@ -280,16 +280,6 @@ class BaseElement(KeyComparable, ABC):
         """
         raise NotImplementedError
 
-    # FIXME: this should be a *function* in mathics.core.atom.numeric.Number.
-    # It should be a method *only* in Numeric (or Symbol) classes where it
-    # makes sense.
-    def is_numeric(self, evaluation=None) -> bool:
-        """Check if the expression is a number. If evaluation is given,
-        tries to determine if the expression can be evaluated as a number.
-        """
-        # used by NumericQ and expression ordering
-        return False
-
     # FIXME: this method makes sense as a method on (compound) Expresssion.
     # It would be good narrow this method that class and subclass only.
     def is_free(self, form, evaluation) -> bool:

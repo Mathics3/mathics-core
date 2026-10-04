@@ -21,6 +21,7 @@ from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.expression_predefined import MATHICS3_INFINITY
+from mathics.core.number import is_numeric
 from mathics.core.symbols import BaseElement, SymbolPlus, SymbolTimes, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
@@ -274,12 +275,12 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
         """
         Check if val2 has a smaller absolute value than val1
         """
-        if not (val1.is_numeric() and val2.is_numeric()):
+        if not (is_numeric(val1, evaluation) and is_numeric(val2, evaluation)):
             return False
         if val2.is_zero:
             return True
         res = eval_N(Expression(SymbolLog, abs(val2 / val1)), evaluation)
-        if not res.is_numeric():
+        if not is_numeric(res, evaluation):
             return False
         return res.to_python() < 0
 
