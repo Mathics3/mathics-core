@@ -7,7 +7,7 @@ Support for Set and SetDelayed, and other assignment-like builtins
 
 from typing import Callable, List, Optional, Tuple
 
-from mathics.core.atoms import Integer1
+from mathics.core.atoms import Integer1, String
 from mathics.core.attributes import A_PROTECTED
 from mathics.core.definitions import Definitions
 from mathics.core.element import BaseElement
@@ -37,14 +37,22 @@ def build_rulopc(optval: BaseElement) -> RewriteRule:
     )
 
 
-def get_symbol_list(expr: Expression, error_callback: Callable) -> Optional[List[str]]:
+def get_symbol_list(
+    expr: Expression,
+    error_callback: Callable,
+    valid_name: Callable,
+    stop_on_failure: bool = False,
+) -> Optional[List[str]]:
     """
-    If ``expr`` is of the form ``List[Symbol___]`` returns a list
-    with the names of the symbols as elements.
-    If `expr` is a ``Symbol``, returns a list with a
-    with the name of `expr` as its only element.
-    Otherwise, calls `error_callback` over the element,
-    and returns None.
+    If ``expr`` is of the form ``List[___]`` returns a list
+    with the names of the valid symbol references in the list.
+    An element is a valid symbol reference if it is a Symbol,
+    or it is a ``String``, and valid_name returns a string.
+
+    Otherwise, error_callback is called with the wrong argument
+    as a parameter.
+
+
 
     Parameters
     ----------
@@ -52,10 +60,16 @@ def get_symbol_list(expr: Expression, error_callback: Callable) -> Optional[List
         The expression to be converted.
     error_callback : Callable
         a callback function to call if the conversion fails.
+    valid_name: Callable
+        a callback function that decides which is the true
+        name of the symbol.
+    stop_on_failure: bool (optional)
+        If True, return None if some of the elements cannot
+        be interpreted as a symbol . Default False.
 
     Returns
     -------
-    values : Optional[List[str]]
+    values : List[str]
         a list with the names, or None.
 
     """
@@ -65,12 +79,16 @@ def get_symbol_list(expr: Expression, error_callback: Callable) -> Optional[List
         list_expr = [expr]
     values = []
     for item in list_expr:
-        name = item.get_name()
-        if name:
-            values.append(name)
+        if isinstance(item, String):
+            name = valid_name(item.value)
+            if name is not None:
+                values.append(name)
+        elif isinstance(item, Symbol):
+            values.append(item.get_name())
         else:
             error_callback(item)
-            return None
+            if stop_on_failure:
+                return None
     return values
 
 
