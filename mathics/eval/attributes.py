@@ -16,7 +16,7 @@ from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolNull
-from mathics.core.systemsymbols import SymbolFailed
+from mathics.core.systemsymbols import SymbolFailed, SymbolHoldPattern
 
 
 def eval_Attributes(name_symbol, evaluation: Evaluation):
@@ -170,6 +170,13 @@ def eval_SetOperator_Attributes(
         except KeyError:
             evaluation.message("Attributes", "notfound", symb)
             return default_result
+    elif symb.has_form(SymbolHoldPattern, 1):
+        symb = symb.elements[0]
+        if isinstance(symb, Symbol):
+            tag = symb.name
+        else:
+            evaluation.message("Attributes", "fnsym", symb)
+            return default_result
     else:
         evaluation.message("Attributes", "fnsym", symb)
         return default_result
@@ -200,6 +207,13 @@ def eval_Unset_Attributes(symb, evaluation: Evaluation) -> BaseElement:
             tag = defs.get_definition(symb.value, only_if_exists=True).name
         except KeyError:
             evaluation.message("Attributes", "notfound", symb)
+            return SymbolFailed
+    elif symb.has_form(SymbolHoldPattern, 1):
+        symb = symb.elements[0]
+        if isinstance(symb, Symbol):
+            tag = symb.name
+        else:
+            evaluation.message("Attributes", "fnsym", symb)
             return SymbolFailed
     else:
         evaluation.message("Attributes", "fnsym", symb)

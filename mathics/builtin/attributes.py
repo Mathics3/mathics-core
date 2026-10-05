@@ -124,6 +124,10 @@ class Attributes(Builtin):
         "Attributes[expr_Symbol]"
         return eval_Attributes(expr, evaluation)
 
+    def eval_holdpattern(self, expr, evaluation):
+        "Attributes[HoldPattern[expr_Symbol]]"
+        return eval_Attributes(expr, evaluation)
+
     def eval_string(self, expr, evaluation):
         "Attributes[expr_String]"
         try:

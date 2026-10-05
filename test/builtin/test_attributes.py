@@ -298,19 +298,19 @@ def test_IterationLimit(str_expr, msgs, str_expected, assert_failure_msg):
             'SetAttributes[{F, "H", G},{Flat, HoldFirst}]',
             ("Argument H at position 1 is expected to be a symbol.",),
             None,
-            None,  # "Undefined Symbols by name makes the call fail "
+            "Undefined Symbols by name makes the call fail ",
         ),
         (
             'Attributes[{F, "H", "G"}]',
             ("Argument H at position 1 is expected to be a symbol.",),
             "{{Flat, HoldFirst}, Attributes[H], {Flat, HoldFirst}}",
-            None,  # "SetAttributes acted on F and G, but not in H, which is still undefined. Notice that now, `G` is defined due to the previous command."
+            "SetAttributes acted on F and G, but not in H, which is still undefined. Notice that now, `G` is defined due to the previous command.",
         ),
         (
             'ClearAttributes[{F, "H", "G"},Flat]; Attributes[{F, G}]',
             ("Argument H at position 1 is expected to be a symbol.",),
             "{{HoldFirst}, {HoldFirst}}",
-            None,  # "ClearAttibutes acted on F and G, but not in H"
+            "ClearAttibutes acted on F and G, but not in H",
         ),
         (
             'H=1;SetAttributes[{"A+B", "Q", "H"},{Flat, HoldFirst}]; Attributes["H"]',
@@ -319,7 +319,7 @@ def test_IterationLimit(str_expr, msgs, str_expected, assert_failure_msg):
                 "Argument Q at position 1 is expected to be a symbol.",
             ),
             "{Flat, HoldFirst}",
-            None,  # "Wrong symbol name."
+            "SetAttributes: Wrong symbol name (has an operator inside) and undefined operator.",
         ),
         (
             'Attributes[{"A+B", "Q", H}]',
@@ -328,7 +328,7 @@ def test_IterationLimit(str_expr, msgs, str_expected, assert_failure_msg):
                 "Argument Q at position 1 is expected to be a symbol.",
             ),
             "{Attributes[A+B], Attributes[Q], {Flat, HoldFirst}}",
-            None,  # "wrong  "
+            "Attributes: Wrong symbol name (has an operator inside) and undefined operator.",
         ),
         (
             'ClearAttributes[{"A+B", "Q", H},{HoldFirst}]; Attributes[H]',
@@ -340,7 +340,35 @@ def test_IterationLimit(str_expr, msgs, str_expected, assert_failure_msg):
             "ClearAttributes on wrong symbol name.",
         ),
         (
-            "Attributes[{A,B}]=.",
+            "Attributes[HoldPattern[A]]=Flat",
+            None,
+            "Flat",
+            "Set strips `HoldPattern` around symbols.",
+        ),
+        (
+            'Attributes[HoldPattern["A"]]=Flat',
+            (
+                "First argument in Attributes[A] is not a symbol or a string naming a symbol.",
+            ),
+            "Flat",
+            "Set does not strip `HoldPattern` around strings.",
+        ),
+        (
+            "Attributes[HoldPattern[A]]=.",
+            None,
+            None,
+            "Unset strips `HoldPattern` around symbols.",
+        ),
+        (
+            'Attributes[HoldPattern["A"]]=.',
+            (
+                "First argument in Attributes[A] is not a symbol or a string naming a symbol.",
+            ),
+            "$Failed",
+            "Unset does not strip `HoldPattern` around strings.",
+        ),
+        (
+            "Attributes[{A, B}]=.",
             (
                 (
                     "First argument in Attributes[{A, B}] "
