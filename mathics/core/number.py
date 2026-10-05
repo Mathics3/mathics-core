@@ -220,7 +220,7 @@ def get_precision(element) -> Optional[int]:
     return element.precision if hasattr(element, "precision") else None
 
 
-def is_inexact(expr) -> bool:
+def is_inexact(expr: BaseElement) -> bool:
     """Return True if expr is has an exact numeric value or False if not.
 
     For objects like strings where exactness and inexactness make
@@ -231,12 +231,22 @@ def is_inexact(expr) -> bool:
     return get_precision(expr) is not None
 
 
-def is_machine_precision(expr) -> bool:
-    """Returns True if `expr` is numeric type that is approximate."""
-    return expr.is_machine_precision if hasattr(expr, "is_machine_precision") else False
+def is_machine_precision(expr: BaseElement) -> Optional[bool]:
+    """Returns True if `expr` is numeric type that is approximate, False if not,
+    and None if expr is not a number.
+    """
+    return expr.is_machine_precision if hasattr(expr, "is_machine_precision") else None
 
 
-def is_zero(element) -> Optional[bool]:
+def is_numeric(expr: BaseElement, evaluation=None) -> Optional[bool]:
+    """Returns True if `expr` is numeric type, False if not,
+    and None if expr is not a number.
+    """
+    # used by NumericQ and expression ordering
+    return expr.is_numeric(evaluation) if hasattr(expr, "is_numeric") else None
+
+
+def is_zero(element: BaseElement) -> Optional[bool]:
     """
     If element is some sort of numeric type, Return True is "element" is zero, and False otherwise.
     If it is not a numeric type, return None.

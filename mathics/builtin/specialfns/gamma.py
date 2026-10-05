@@ -38,7 +38,13 @@ from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.number import FP_MANTISA_BINARY_DIGITS, dps, min_prec
+from mathics.core.number import (
+    FP_MANTISA_BINARY_DIGITS,
+    dps,
+    is_machine_precision,
+    is_numeric,
+    min_prec,
+)
 from mathics.core.symbols import Symbol, SymbolSequence
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolGamma
 from mathics.eval.arithmetic import run_mpmath
@@ -102,7 +108,7 @@ class Beta(MPMathMultiFunction):
     # SymPy does not handle Beta for integer arguments.
     def eval(self, a, b, evaluation):
         """Beta[a_, b_]"""
-        if not (a.is_numeric() and b.is_numeric()):
+        if not (is_numeric(a, evaluation) and is_numeric(b, evaluation)):
             return
         gamma_a = Expression(SymbolGamma, a)
         gamma_b = Expression(SymbolGamma, b)
@@ -121,7 +127,7 @@ class Beta(MPMathMultiFunction):
             Expression(SymbolSequence, a, b, Integer0, z), evaluation
         ).get_sequence()
         mpmath_function = self.get_mpmath_function(tuple(args))
-        if any(arg.is_machine_precision for arg in args):
+        if any(is_machine_precision(arg) for arg in args):
             # If any argument has machine precision, then the entire calculation
             # is done with machine precision.
             float_args = [

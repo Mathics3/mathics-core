@@ -43,7 +43,13 @@ from mathics.core.convert.sympy import SymbolRootSum, SympyExpression, from_symp
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.number import MACHINE_EPSILON, dps, get_precision
+from mathics.core.number import (
+    MACHINE_EPSILON,
+    dps,
+    get_precision,
+    is_numeric,
+    is_zero as number_is_zero,
+)
 from mathics.core.rules import BasePattern
 from mathics.core.symbols import (
     Atom,
@@ -1443,7 +1449,7 @@ class NIntegrate(Builtin):
         self, func, domain, evaluation: Evaluation, options: dict
     ):
         "%(name)s[func_, domain__, OptionsPattern[%(name)s]]"
-        if func.is_numeric() and func.is_zero:
+        if number_is_zero(func):
             return Integer0
         method = options["System`Method"].evaluate(evaluation)
         method_options = {}
@@ -1522,7 +1528,7 @@ class NIntegrate(Builtin):
                             (np.arctanh, lambda u: 1.0 / (1.0 - u**2))
                         )
                     else:
-                        if not b.is_numeric(evaluation):
+                        if not is_numeric(b, evaluation):
                             evaluation.message("nlim", coords[i], b)
                             return
                         z = a.elements[0].value
@@ -1532,7 +1538,7 @@ class NIntegrate(Builtin):
                             (lambda u: b - z + z / u, lambda u: -z * u ** (-2.0))
                         )
                 elif b.get_head_name() == "System`DirectedInfinity":
-                    if not a.is_numeric(evaluation):
+                    if not is_numeric(a, evaluation):
                         evaluation.message("nlim", coords[i], a)
                         return
                     a = a.value
@@ -1541,14 +1547,14 @@ class NIntegrate(Builtin):
                     coordtransform.append(
                         (lambda u: a - z + z / u, lambda u: z * u ** (-2.0))
                     )
-                elif a.is_numeric(evaluation) and b.is_numeric(evaluation):
+                elif is_numeric(a, evaluation) and is_numeric(b, evaluation):
                     a = eval_N(a, evaluation).value
                     b = eval_N(b, evaluation).value
                     subdomain2.append([a, b])
                     coordtransform.append(None)
                 else:
                     for x in (a, b):
-                        if not x.is_numeric(evaluation):
+                        if not is_numeric(x, evaluation):
                             evaluation.message("nlim", coords[i], x)
                     return
 

@@ -22,6 +22,7 @@ from mathics.core.atoms import Integer, Rational, Real
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.exceptions import BoxExpressionError
+from mathics.core.number import is_numeric
 from mathics.core.symbols import Symbol, SymbolList, symbol_set, system_symbols_dict
 from mathics.core.systemsymbols import (
     SymbolEdgeForm,
@@ -579,7 +580,7 @@ class Arrowheads(_GraphicsDirective):
                         and size_spec.get_name() == "System`Automatic"
                     ):
                         s = self.default_size * extent
-                    elif size_spec.is_numeric():
+                    elif is_numeric(size_spec):
                         s = self._arrow_size(size_spec, extent)
                     else:
                         raise BoxExpressionError
