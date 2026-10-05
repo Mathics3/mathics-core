@@ -26,7 +26,8 @@ dependencies = [
     # Pillow 9.1.0 supports BigTIFF with big-endian byte order.
     # ExampleData image hedy.tif is in this format.
     # Pillow 9.2 handles sunflowers.jpg
-    "pillow >= 9.2",
+    # Pillow 12.1 deprecates getdata and adds get_flattened_data.
+    "pillow >= 12.1",
     "pint >=0.24", # Earlier pint has problems with numpy 2.2.6
     "python-dateutil",
     "python-magic",
