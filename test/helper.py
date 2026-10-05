@@ -219,7 +219,9 @@ def check_evaluation_as_in_cli(
     else:
         assert len(res.out) == len(expected_messages)
         for li1, li2 in zip(res.out, expected_messages):
-            assert canonical_encoding(li1.text, encoding) == li2
+            assert (
+                canonical_encoding(li1.text, encoding) == li2
+            ), f"{canonical_encoding(li1.text, encoding)} == {li2}"
 
     result = canonical_encoding(res.result, encoding)
     str_expected = canonical_encoding(str_expected, encoding)
