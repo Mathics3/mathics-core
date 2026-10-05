@@ -13,6 +13,7 @@ from mathics.core.convert.sympy import from_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.number import is_numeric
 from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolTimes
 from mathics.core.systemsymbols import SymbolFunction, SymbolList, SymbolRule
 
@@ -115,7 +116,7 @@ class RSolve(Builtin):
                     left.get_head_name() == func.get_head_name()
                     and len(left.elements) == 1  # noqa
                     and isinstance(le.elements[0].to_python(), int)
-                    and ri.is_numeric(evaluation)
+                    and is_numeric(ri, evaluation)
                 ):
                     r_sympy = ri.to_sympy()
                     if r_sympy is None:

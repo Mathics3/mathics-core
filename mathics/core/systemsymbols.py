@@ -362,6 +362,9 @@ SymbolSphere: Final[Symbol] = Symbol("System`Sphere")
 SymbolSphereBox: Final[Symbol] = Symbol("System`SphereBox")
 SymbolSphericalRegion: Final[Symbol] = Symbol("System`SphericalRegion")
 SymbolSplit: Final[Symbol] = Symbol("System`Split")
+SymbolSquaredEuclideanDistance: Final[Symbol] = Symbol(
+    "System`SquaredEuclideanDistance"
+)
 SymbolSqrt: Final[Symbol] = Symbol("System`Sqrt")
 SymbolSqrtBox: Final[Symbol] = Symbol("System`SqrtBox")
 SymbolStandardDeviation: Final[Symbol] = Symbol("System`StandardDeviation")

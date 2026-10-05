@@ -8,6 +8,7 @@ from mathics.core.atoms import Integer2
 from mathics.core.builtin import Builtin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.number import is_numeric
 from mathics.core.symbols import SymbolDivide, SymbolPlus
 from mathics.core.systemsymbols import SymbolMedian
 
@@ -74,7 +75,7 @@ class Median(Rectangular):
                 return self.rect(data)
             except NotRectangularException:
                 evaluation.message("Median", "rectn", Expression(SymbolMedian, data))
-        elif all(element.is_numeric(evaluation) for element in data.elements):
+        elif all(is_numeric(element, evaluation) for element in data.elements):
             v = data.get_mutable_elements()  # copy needed for introselect
             n = len(v)
             if n % 2 == 0:  # even number of elements?

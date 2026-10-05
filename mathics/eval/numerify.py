@@ -15,7 +15,7 @@ from mathics.core.atoms import Integer, Number
 from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.number import dps, is_inexact
+from mathics.core.number import dps, is_inexact, is_numeric
 from mathics.eval.nevaluator import eval_N
 
 
@@ -43,7 +43,7 @@ def numerify(self: BaseElement, evaluation: Evaluation) -> "BaseElement":
             # and we don't want to lose exactness in e.g. 1.0+I.
             # Also, for compatibility with WMA, numerify just the elements
             # s.t. ``NumericQ[element]==True``
-            if not isinstance(element, Number) and element.is_numeric(evaluation):
+            if not isinstance(element, Number) and is_numeric(element, evaluation):
                 n_result = (
                     eval_N(element, evaluation, Integer(dps(_prec)))
                     if isinstance(element, EvalMixin)

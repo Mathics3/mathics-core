@@ -21,6 +21,7 @@ from mathics.core.atoms import Complex, Integer, Real, String
 from mathics.core.builtin import Builtin
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.number import is_numeric
 from mathics.core.symbols import Symbol, SymbolDivide, SymbolNull
 from mathics.core.systemsymbols import (
     SymbolRandomComplex,
@@ -116,7 +117,7 @@ class _RandomBase(Builtin):
 
     def _size_to_python(self, domain, size, evaluation):
         is_proper_spec = size.get_head_name() == "System`List" and all(
-            n.is_numeric(evaluation) for n in size.elements
+            is_numeric(n, evaluation) for n in size.elements
         )
 
         py_size = size.to_python() if is_proper_spec else None
@@ -188,7 +189,7 @@ class _RandomSelection(_RandomBase):
         # we need to normalize weights as numpy.rand.randchoice expects this and as we can limit
         # accuracy problems with very large or very small weights by normalizing with sympy
         is_proper_spec = weights.get_head_name() == "System`List" and all(
-            w.is_numeric(evaluation) for w in weights.elements
+            is_numeric(w, evaluation) for w in weights.elements
         )
 
         if (
@@ -198,7 +199,7 @@ class _RandomSelection(_RandomBase):
                 SymbolDivide, weights, Expression(SymbolTotal, weights)
             ).evaluate(evaluation)
             if norm_weights is None or not all(
-                w.is_numeric(evaluation) for w in norm_weights.elements
+                is_numeric(w, evaluation) for w in norm_weights.elements
             ):
                 evaluation.message(self.get_name(), "wghtv", weights), None
                 return

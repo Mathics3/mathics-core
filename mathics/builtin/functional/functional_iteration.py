@@ -56,7 +56,7 @@ class FixedPoint(Builtin):
 
         if count is None:
             count = self.get_option(options, "MaxIterations", evaluation)
-            if count.is_numeric(evaluation):
+            if hasattr(count, "int_value"):
                 count = count.int_value
             else:
                 count = None
