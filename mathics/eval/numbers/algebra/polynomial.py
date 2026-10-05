@@ -19,7 +19,7 @@ from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.number import get_int_value
+from mathics.core.number import get_int_value, is_numeric
 from mathics.core.rules import BasePattern
 from mathics.core.symbols import (
     SYMPY_SYMBOL_PREFIX,
@@ -143,7 +143,7 @@ def coeff_power(
     # ###### Auxiliary functions #########
     def key_powers(lst: list) -> Union[int, float]:
         key = Expression(SymbolPlus, *lst).evaluate(evaluation)
-        if key is not None and key.is_numeric(evaluation):
+        if key is not None and is_numeric(key, evaluation):
             return key.to_python()
         return 0
 

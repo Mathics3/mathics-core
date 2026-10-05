@@ -11,6 +11,7 @@ from mathics.core.convert.sympy import from_sympy_matrix
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BaseElement, Expression
 from mathics.core.list import ListExpression
+from mathics.core.number import is_numeric
 from mathics.core.symbols import (
     Atom,
     Symbol,
@@ -26,13 +27,14 @@ from mathics.core.systemsymbols import (
     SymbolOuter,
     SymbolRule,
     SymbolSparseArray,
+    SymbolSquaredEuclideanDistance,
 )
 from mathics.eval.parts import get_part
 
 
 def get_default_distance(p):
-    if all(q.is_numeric() for q in p):
-        return Symbol("SquaredEuclideanDistance")
+    if all(is_numeric(q) for q in p):
+        return SymbolSquaredEuclideanDistance
     elif all(q.get_head_name() == "System`List" for q in p):
         dimensions = [get_dimensions(q) for q in p]
         if len(dimensions) < 1:

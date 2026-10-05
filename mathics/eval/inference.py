@@ -5,6 +5,7 @@ Inference Functions
 
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.number import is_numeric
 from mathics.core.parser import parse_builtin_rule
 from mathics.core.parser.util import SystemDefinitions
 from mathics.core.rules import RewriteRule
@@ -167,7 +168,7 @@ def logical_expand_assumptions(assumptions_list, evaluation):
                 evaluation.message("$Assumptions", "faas")
                 changed = True
                 continue
-            if assumption.is_numeric(evaluation):
+            if is_numeric(assumption, evaluation):
                 evaluation.message("$Assumptions", "baas")
                 changed = True
                 continue
@@ -322,7 +323,7 @@ def get_assumption_rules_dispatch(evaluation):
         if pat.has_form(SymbolEqual, 2):
             if value:
                 lhs, rhs = pat.elements
-                if lhs.is_numeric(evaluation):
+                if is_numeric(lhs, evaluation):
                     assumption_rules.append(RewriteRule(rhs, lhs))
                 else:
                     assumption_rules.append(RewriteRule(lhs, rhs))

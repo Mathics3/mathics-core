@@ -24,6 +24,7 @@ from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_bool
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.number import is_numeric
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
     SymbolComplexInfinity,
@@ -505,7 +506,7 @@ class QuotientRemainder(Builtin):
 
     def eval(self, m, n, evaluation: Evaluation):
         "QuotientRemainder[m_, n_]"
-        if m.is_numeric(evaluation) and n.is_numeric():
+        if is_numeric(m, evaluation) and is_numeric(n, evaluation):
             py_m = m.to_python()
             py_n = n.to_python()
             if py_n == 0:

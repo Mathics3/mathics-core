@@ -70,10 +70,7 @@ class _InequalityOperator(InfixOperator, ABC):
         caller can compare the returned tuple or list.
         """
         element_sequence = elements.get_sequence()
-        all_numeric = all(
-            element.is_numeric(evaluation) and is_inexact(element)
-            for element in element_sequence
-        )
+        all_numeric = all(is_inexact(element) for element in element_sequence)
 
         if all_numeric and any(
             not isinstance(item, Number) for item in element_sequence

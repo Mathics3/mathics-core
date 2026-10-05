@@ -51,6 +51,7 @@ from mathics.core.expression_predefined import (
     PredefinedExpression,
 )
 from mathics.core.list import ListExpression
+from mathics.core.number import is_zero
 from mathics.core.symbols import (
     Atom,
     Symbol,
@@ -440,7 +441,7 @@ class DirectedInfinity(SympyFunction):
         if result is not None:
             return result
 
-        if direction.is_zero:
+        if is_zero(direction):
             return MATHICS3_COMPLEX_INFINITY
 
         # try to reduce with sign
@@ -451,7 +452,7 @@ class DirectedInfinity(SympyFunction):
         result = MAP_DIRECTION_INFINITY.get(direction, None)
         if result is not None:
             return result
-        if direction.is_zero:
+        if is_zero(direction):
             return MATHICS3_COMPLEX_INFINITY
 
         return PredefinedExpression(

@@ -36,7 +36,7 @@ from mathics.core.builtin import Builtin, MPMathFunction, SympyFunction
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.number import MACHINE_EPSILON, is_inexact
+from mathics.core.number import MACHINE_EPSILON, is_inexact, is_numeric
 from mathics.core.symbols import (
     Symbol,
     SymbolDivide,
@@ -730,7 +730,7 @@ class Round(Builtin):
     def eval_two_args(self, expr, k, evaluation: Evaluation):
         "Round[expr_, k_]"
 
-        if not expr.is_numeric(evaluation):
+        if not is_numeric(expr, evaluation):
             # We can't evaluate, so keep the symbolic representation.
             return
 

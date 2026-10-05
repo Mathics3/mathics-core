@@ -19,7 +19,7 @@ from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.number import min_prec
+from mathics.core.number import is_numeric, min_prec
 from mathics.core.symbols import Symbol, strip_context
 from mathics.core.systemsymbols import (
     SymbolClusteringComponents,
@@ -230,7 +230,7 @@ class _Cluster(Builtin):
                     raise IllegalDataPoint
                 yield v
 
-        if dist_p[0].is_numeric(evaluation):
+        if is_numeric(dist_p[0], evaluation):
             numeric_p = [[x] for x in convert_scalars(dist_p)]
         else:
             numeric_p = list(convert_vectors(dist_p))
