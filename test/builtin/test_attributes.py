@@ -3,7 +3,6 @@
 Unit tests from mathics.builtin.attributes.
 """
 
-import os
 from test.helper import check_evaluation, check_evaluation_as_in_cli
 
 import pytest
@@ -338,7 +337,39 @@ def test_IterationLimit(str_expr, msgs, str_expected, assert_failure_msg):
                 "Argument Q at position 1 is expected to be a symbol.",
             ),
             "{Flat}",
-            None,  # "ClearAttributes on wrong symbol name."
+            "ClearAttributes on wrong symbol name.",
+        ),
+        (
+            "Attributes[{A,B}]=.",
+            (
+                (
+                    "First argument in Attributes[{A, B}] "
+                    "is not a symbol or a string naming a symbol."
+                ),
+            ),
+            "$Failed",
+            "Unset on expressions fails with fnsym message",
+        ),
+        (
+            'Attributes["undefinedsymbol"]=.',
+            ("Symbol undefinedsymbol not found.",),
+            "$Failed",
+            "Unset on undefined symbols fails with notfound message",
+        ),
+        (
+            'Attributes["F"]=.',
+            None,
+            None,
+            (
+                "Unset on strings representing "
+                "already defined symbols works without output"
+            ),
+        ),
+        (
+            "Attributes[G]=.",
+            None,
+            None,
+            "Unset on already defined symbols works without output",
         ),
     ],
 )

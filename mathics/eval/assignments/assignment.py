@@ -13,7 +13,6 @@ from typing import Final, Optional
 
 from mathics.core.assignment import is_protected, rejected_because_protected, unwrap_lhs
 from mathics.core.atoms import Integer, Integer1
-from mathics.core.attributes import A_LOCKED
 from mathics.core.definitions import BOX_FORMS
 from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import (
@@ -47,7 +46,6 @@ from mathics.core.systemsymbols import (
     SymbolPatternTest,
     SymbolVerbatim,
 )
-from mathics.eval.attributes import attributes_to_bitcode
 from mathics.eval.list.eol import eval_Part
 
 # Head Symbols of expressions that may need unwrapping in an assignment.
@@ -153,89 +151,6 @@ def eval_assign(
         )
     except AssignmentException:
         return False
-
-
-def eval_assign_attributes(
-    op_name: str,
-    lhs: BaseElement,
-    lhs_unwrapped: BaseElement,
-    rhs: BaseElement,
-    evaluation: Evaluation,
-    target_symbol_names: list[str],
-    upset: bool,
-) -> bool:
-    """
-    Process the case where lhs is of the form
-    `Attribute[symbol]`
-
-    Parameters
-    ----------
-    op_name : str
-        The built-in assignment operator name.
-    lhs : BaseElement
-        The pattern of the rule to be assigned.
-    lhs_unwrapped : BaseElement
-        The head of the expression after BLANK_PATTERN_HEADS
-        expressions have been are removed by unwrapping.
-    rhs : BaseElement
-        the expression representing the replacement.
-    evaluation : Evaluation
-        DESCRIPTION.
-    target_symbol_names : list[str]
-        the list of symbol names to be associated with the rule.
-    upset : bool
-        `True` if the rule is an Up value.
-
-    Raises
-    ------
-    AssignmentException
-
-    Returns
-    -------
-    bool
-        True if the assignment was successful.
-
-    """
-    # UpSet and Target_symbol_nameset for this symbol are handled in
-    # the standard way. The same if the expression is wrapped:
-    if lhs.get_head() is not lhs_unwrapped:
-        return eval_assign_store_rules_by_tag(
-            op_name, lhs, lhs_unwrapped, rhs, evaluation
-        )
-
-    name = lhs_unwrapped.get_head_name()
-    if len(lhs.elements) != 1:
-        evaluation.message_args(name, len(lhs.elements), 1)
-        raise AssignmentException(lhs, rhs)
-
-    target_symbol = unwrap_expression(lhs.elements[0])
-    tag = target_symbol.get_symbol_definition_name()
-    if not tag:
-        evaluation.message(op_name, "sym", lhs.elements[0], 1)
-        raise AssignmentException(lhs, rhs)
-    if target_symbol_names is not None and target_symbol_names != [tag]:
-        evaluation.message(op_name, "tag", Symbol(name), Symbol(tag))
-        raise AssignmentException(lhs, rhs)
-
-    attributes: Optional[int] = attributes_to_bitcode(
-        rhs, lambda item: evaluation.message(op_name, "sym", item, 1)
-    )
-    # If one of the attributes in the RHS is wrong, the assignment fails.
-    # Notice that this is different to what happens with SetAttributes.
-    if attributes is None:
-        raise AssignmentException(lhs, rhs)
-
-    defs = evaluation.definitions
-    definition = defs.get_definition(tag)
-    if A_LOCKED & definition.attributes:
-        evaluation.message(op_name, "locked", Symbol(tag))
-        raise AssignmentException(lhs, rhs)
-
-    definition.attributes = attributes
-    defs.mark_changed(definition)
-    defs.clear_definitions_cache(tag)
-
-    return True
 
 
 def eval_assign_boxforms(
@@ -1714,7 +1629,6 @@ def collect_lhs_names_and_upset_dont_allow_custom(
 
 # Below is a mapping from Symbol name (as a string) into an assignment eval function.
 ASSIGNMENT_FUNCTION_MAP = {
-    "System`Attributes": eval_assign_attributes,
     "System`Default": eval_assign_default,
     "System`DefaultValues": eval_assign_definition_values,
     "System`DownValues": eval_assign_definition_values,

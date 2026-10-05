@@ -28,6 +28,7 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.systemsymbols import (
     SymbolClearAttributes,
+    SymbolFailed,
     SymbolProtected,
     SymbolSetAttributes,
 )
@@ -35,6 +36,8 @@ from mathics.eval.attributes import (
     eval_Attributes,
     eval_ClearAttributes,
     eval_SetAttributes,
+    eval_SetOperator_Attributes,
+    eval_Unset_Attributes,
 )
 
 # This tells documentation how to sort this module
@@ -66,7 +69,7 @@ class Attributes(Builtin):
 
     'Attributes' does not evaluate over expressions:
     >> Attributes[a + b + c]
-     : Argument a + b + c at position 1 is expected to be a symbol.
+     : Symbol, string, HoldPattern[symbol] or a List of them is expected at position 1 in Attributes[a + b + c].
      = Attributes[a + b + c]
 
     You can assign values to 'Attributes' to set attributes:
@@ -77,13 +80,26 @@ class Attributes(Builtin):
      = f[a, b, c]
     Attributes must be symbols:
     >> Attributes[f] := {a + b}
-     : Argument a + b at position 1 is expected to be a symbol.
+     : a + b is not a known attribute.
      = $Failed
     Use 'Symbol' to convert strings to symbols:
     >> Attributes[f] = Symbol["Listable"]
      = Listable
     >> Attributes[f]
      = {Listable}
+    In the LHS, 'Attributes' accepts a 'String' as its argument,
+    if the symbol already exists in the context:
+    >> Attributes["undefinedsymbol"] := Orderless
+     : Symbol undefinedsymbol not found.
+     = $Failed
+    On the other hand, if the symbol already exists,
+    >> Attributes["f"] := Orderless; Attributes[f]
+     = {Orderless}
+
+    Attributes can be eliminated using the unset operator:
+    >> Attributes[f] = .
+    >> Attributes[f]
+     = {}
     """
 
     attributes = A_HOLD_ALL | A_LISTABLE | A_PROTECTED
@@ -91,14 +107,17 @@ class Attributes(Builtin):
     expected_args = 1
     messages = {
         "attnf": "`1` is not a known attribute.",
+        "fnsym": "First argument in Attributes[`1`] is not a symbol or a string naming a symbol.",
+        "notfound": "Symbol `1` not found.",
         "ssle": "Symbol, string, HoldPattern[symbol] or a List of them is expected at position 1 in Attributes[`1`].",
         "locked": "Symbol `1` is locked.",
+        "tag": "Rule for Attributes of Attributes[`1`] can only be attached to `1`.",
     }
     summary_text = "find the attributes of a symbol"
 
     def eval(self, expr, evaluation):
         "Attributes[expr_]"
-        evaluation.message("Attributes", "sym", expr, 1)
+        evaluation.message("Attributes", "ssle", expr, 1)
         return None
 
     def eval_symbol(self, expr, evaluation):
@@ -119,6 +138,32 @@ class Attributes(Builtin):
         return ListExpression(
             *(self.eval_list(elem, evaluation) for elem in expr.elements)
         )
+
+    def eval_set(self, operator, symb, rhs, evaluation):
+        "operator:(Set|UpSet)[Attributes[symb_],rhs_]"
+        return eval_SetOperator_Attributes(symb, rhs, False, evaluation)
+
+    def eval_set_delayed(self, operator, symb, rhs, evaluation):
+        "operator:(SetDelayed|UpSetDelayed)[Attributes[symb_],rhs_]"
+        return eval_SetOperator_Attributes(symb, rhs, True, evaluation)
+
+    def eval_tagset(self, operator, tag, symb, rhs, evaluation):
+        "operator:TagSet[tag_Symbol, Attributes[symb_], rhs_]"
+        if tag is not symb:
+            evaluation.message("Attributes", "tag", symb)
+            return SymbolFailed
+        return eval_SetOperator_Attributes(symb, rhs, False, evaluation)
+
+    def eval_tagset_delayed(self, operator, tag, symb, rhs, evaluation):
+        "operator:TagSetDelayed[tag_Symbol, Attributes[symb_], rhs_]"
+        if tag is not symb:
+            evaluation.message("Attributes", "tag", symb)
+            return SymbolFailed
+        return eval_SetOperator_Attributes(symb, rhs, True, evaluation)
+
+    def eval_unset(self, expr, evaluation):
+        "Unset[Attributes[expr_]]"
+        return eval_Unset_Attributes(expr, evaluation)
 
 
 class ClearAttributes(Builtin):

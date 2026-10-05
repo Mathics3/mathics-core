@@ -52,8 +52,6 @@ def get_symbol_list(
     Otherwise, error_callback is called with the wrong argument
     as a parameter.
 
-
-
     Parameters
     ----------
     expr : Expression
@@ -81,7 +79,10 @@ def get_symbol_list(
     for item in list_expr:
         if isinstance(item, String):
             name = valid_name(item.value)
-            if name is not None:
+            if name is None:
+                if stop_on_failure:
+                    return None
+            else:
                 values.append(name)
         elif isinstance(item, Symbol):
             values.append(item.get_name())
