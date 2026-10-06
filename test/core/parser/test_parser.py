@@ -634,8 +634,9 @@ class GeneralTests(ParserTests):
         )
 
     def testInformation(self):
-        self.check("??a", 'Information["a"]')
-        self.check("a ?? b", 'a Information["b"]')
+        self.check("??a", 'Information["a", LongForm -> True]')
+        self.check("?a", 'Information["a", LongForm -> False]')
+        self.check("a ?? b", 'a Information["b", LongForm -> True]')
 
 
 class BoxTests(ParserTests):

@@ -309,13 +309,10 @@ class Information(PrefixOperator):
 
     def eval(self, expr, evaluation: Evaluation, options: dict):
         "Information[expr_, OptionsPattern[Information]]"
-        return eval_Information(expr, evaluation)
+        return eval_Information(expr, evaluation, options)
 
     def eval_with_property(self, expr, prop, evaluation: Evaluation, options: dict):
-        "Information[expr_, prop_, OptionsPattern[Information]]"
-        if is_rule(prop):
-            # FIXME we have an option here.
-            return
+        "Information[expr_, prop_String, OptionsPattern[Information]]"
         if not isinstance(prop, String):
             return Expression(SymbolMissing, SymbolUnknownSymbol, prop)
 

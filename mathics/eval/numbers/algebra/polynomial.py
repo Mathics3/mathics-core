@@ -143,7 +143,7 @@ def coeff_power(
     # ###### Auxiliary functions #########
     def key_powers(lst: list) -> Union[int, float]:
         key = Expression(SymbolPlus, *lst).evaluate(evaluation)
-        if key is not None and is_numeric(key, evaluation):
+        if is_numeric(key, evaluation):
             return key.to_python()
         return 0
 

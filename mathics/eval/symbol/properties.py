@@ -18,7 +18,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import RewriteRule
-from mathics.core.symbols import Symbol, SymbolUpSet
+from mathics.core.symbols import Symbol, SymbolTrue, SymbolUpSet
 from mathics.core.systemsymbols import (
     SymbolAttributes,
     SymbolDefinition,
@@ -136,7 +136,7 @@ def eval_Definition(
     pass
 
 
-def eval_Information(name, evaluation: Evaluation):
+def eval_Information(name, evaluation: Evaluation, options: dict):
     """
     Evaluation routine for: Information[name]
     """
@@ -153,37 +153,56 @@ def eval_Information(name, evaluation: Evaluation):
         return None
     # name is now a Symbol
     name_str = name_symbol.name
-    info_data = {
-        Symbol("ObjectType"): String("Symbol"),
-        Symbol("Usage"): information_usage(
-            name_symbol, name_str, evaluation.definitions
-        ),
-        Symbol("Documentation"): information_documentation(
-            name_str, evaluation.definitions
-        ),
-        Symbol("FullName"): String(name_str),
-        SymbolAttributes: eval_Attributes(name, evaluation),
-        SymbolOptions: eval_Options(name_symbol, evaluation, empty_is_none=True),
-        Symbol("DefaultValues"): information_values(
-            name_symbol, name_str, evaluation, "DefaultValues"
-        ),
-        SymbolDownValues: information_values(
-            name_symbol, name_str, evaluation, "DownValues"
-        ),
-        Symbol("FormatValues"): information_values(
-            name_symbol, name_str, evaluation, "FormatValues"
-        ),
-        SymbolNValues: information_values(name_symbol, name_str, evaluation, "NValues"),
-        SymbolOwnValues: information_values(
-            name_symbol, name_str, evaluation, "OwnValues"
-        ),
-        SymbolSubValues: information_values(
-            name_symbol, name_str, evaluation, "SubValues"
-        ),
-        SymbolUpValues: information_values(
-            name_symbol, name_str, evaluation, "UpValues"
-        ),
-    }
+    long_form = options.get("System`LongForm") is SymbolTrue
+    if long_form:
+        info_data = {
+            Symbol("ObjectType"): String("Symbol"),
+            Symbol("Usage"): information_usage(
+                name_symbol, name_str, evaluation.definitions
+            ),
+            Symbol("Documentation"): information_documentation(
+                name_str, evaluation.definitions
+            ),
+            Symbol("FullName"): String(name_str),
+            SymbolAttributes: eval_Attributes(name, evaluation),
+            SymbolOptions: eval_Options(name_symbol, evaluation, empty_is_none=True),
+            Symbol("DefaultValues"): information_values(
+                name_symbol, name_str, evaluation, "DefaultValues"
+            ),
+            SymbolDownValues: information_values(
+                name_symbol, name_str, evaluation, "DownValues"
+            ),
+            Symbol("FormatValues"): information_values(
+                name_symbol, name_str, evaluation, "FormatValues"
+            ),
+            SymbolNValues: information_values(
+                name_symbol, name_str, evaluation, "NValues"
+            ),
+            SymbolOwnValues: information_values(
+                name_symbol, name_str, evaluation, "OwnValues"
+            ),
+            SymbolSubValues: information_values(
+                name_symbol, name_str, evaluation, "SubValues"
+            ),
+            SymbolUpValues: information_values(
+                name_symbol, name_str, evaluation, "UpValues"
+            ),
+        }
+    else:
+        info_data = {
+            Symbol("Usage"): information_usage(
+                name_symbol, name_str, evaluation.definitions
+            ),
+            Symbol("FullName"): String(name_str),
+            SymbolAttributes: eval_Attributes(name, evaluation),
+            SymbolOptions: eval_Options(name_symbol, evaluation, empty_is_none=True),
+            SymbolDownValues: information_values(
+                name_symbol, name_str, evaluation, "DownValues"
+            ),
+            SymbolOwnValues: information_values(
+                name_symbol, name_str, evaluation, "OwnValues"
+            ),
+        }
     association: Association = association_from_mathics3_kv_dict(info_data)
     return Expression(SymbolInformationData, association)
 

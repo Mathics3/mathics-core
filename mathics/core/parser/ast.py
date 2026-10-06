@@ -13,7 +13,7 @@ mathics.core.expression module.
 So we have mathics.core.expression.Atom vs. mathics.core.parser.Atom
 """
 
-from typing import Optional
+from typing import Final, Optional
 
 
 class Node:
@@ -163,7 +163,9 @@ class String(Atom):
     The display of a String is surrounded by double quotes.
     """
 
-    def __repr__(self):
+    value: str
+
+    def __repr__(self) -> str:
         return '"' + self.value + '"'
 
 
@@ -173,12 +175,15 @@ class Filename(Atom):
     However, like String, it doesn't have any other properties.
     """
 
-    def __repr__(self):
+    value: str
+
+    def __repr__(self) -> str:
         return self.value
 
 
-# Some common literals
-NullSymbol = Symbol("Null")
-NullString = String("")
-Number1 = Number("1")
-NumberM1 = Number("1", sign=-1)
+# Some literals.
+LongForm: Final[Symbol] = Symbol("LongForm")
+NullSymbol: Final[Symbol] = Symbol("Null")
+NullString: Final[String] = String("")
+Number1: Final[Number] = Number("1")
+NumberM1: Final[Number] = Number("1", sign=-1)
