@@ -223,6 +223,7 @@ class Builtin:
     name: Optional[str] = None
     options: dict[str, Any] = {}
     rules: dict[str, Any] = {}
+    summary_text = ""
 
     def __getnewargs_ex__(self):
         return tuple(), {

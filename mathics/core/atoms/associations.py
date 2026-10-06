@@ -302,7 +302,7 @@ class Association(Atom, BoxElementMixin):
         self._hash = None
 
 
-def association_from_mathics3_kv_dict(d: dict[BaseElement, BaseElement]) -> Association:
+def association_from_mathics3_kv_dict(d: dict) -> Association:
     """
     Given a Python dictionary contianing Mathics3 keys and values, return
     and Assocation for that.
