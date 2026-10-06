@@ -3,23 +3,23 @@ Data-Specific Forms
 
 Some forms are specific to formatting certain kinds of data, like numbers, strings, or matrices.
 
-These are in contrast to the Forms like <url>:OutputForm:
+These are in contrast to Forms like <url>:OutputForm:
 /doc/reference-of-built-in-symbols/forms-of-input-and-output/general-purpose-forms/outputform/</url> \
 or <url>:StandardForm:
 /doc/reference-of-built-in-symbols/forms-of-input-and-output/general-purpose-forms/standardform/</url>, \
 which are intended to work over all kinds of data.
 """
 
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Optional
 
 from mathics.builtin.box.layout import RowBox, StyleBox, SuperscriptBox
 from mathics.builtin.forms.base import FormBaseClass
-from mathics.core.atoms import Integer, Real, String, get_int_value
+from mathics.core.atoms import Integer, Real, String
 from mathics.core.builtin import Builtin
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.number import dps
+from mathics.core.number import dps, get_int_value
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
@@ -161,7 +161,7 @@ class _NumberForm(Builtin):
 
         return result
 
-    def check_DigitBlock(self, value, evaluation: Evaluation) -> Optional[List[int]]:
+    def check_DigitBlock(self, value, evaluation: Evaluation) -> Optional[list[int]]:
         """
         Check and convert to Python the DigitBlock option value.
 
@@ -174,7 +174,7 @@ class _NumberForm(Builtin):
 
         Returns
         -------
-        Optional[List[int]]
+        Optional[list[int]]
             If the specification is valid, a list with
             two elements specifying the size of the blocks
             at the left and right of the decimal separator. `None` otherwise.
@@ -215,7 +215,7 @@ class _NumberForm(Builtin):
         Parameters
         ----------
         value : BaseElement
-            Automatic, or a Function to be applyied to the expression to
+            Automatic, or a Function to be applied to the expression to
             format the exponent.
         evaluation : Evaluation
             evaluation object to send messages.
@@ -367,7 +367,7 @@ class _NumberForm(Builtin):
 
     def _check_List2str(
         self, value, msg, evaluation: Evaluation
-    ) -> Optional[List[str]]:
+    ) -> Optional[list[str]]:
         if value.has_form(SymbolList, 2):
             result = [element.get_string_value() for element in value.elements]
             if None not in result:
@@ -377,7 +377,7 @@ class _NumberForm(Builtin):
 
     def check_NumberSigns(
         self, value: BaseElement, evaluation: Evaluation
-    ) -> Optional[List[str]]:
+    ) -> Optional[list[str]]:
         """
 
         Parameters
@@ -398,7 +398,7 @@ class _NumberForm(Builtin):
 
     def check_NumberPadding(
         self, value: BaseElement, evaluation: Evaluation
-    ) -> Optional[List[str]]:
+    ) -> Optional[list[str]]:
         """
 
         Parameters
@@ -419,7 +419,7 @@ class _NumberForm(Builtin):
 
     def check_NumberSeparator(
         self, value: BaseElement, evaluation: Evaluation
-    ) -> Optional[List[str]]:
+    ) -> Optional[list[str]]:
         """
 
         Parameters
@@ -519,7 +519,7 @@ class NumberForm(_NumberForm):
         "SignPadding": "False",
     }
     summary_text = (
-        "format expression to at most a number of digits of all "
+        "format expression to at most several digits of all "
         "approximate real numbers "
     )
 
@@ -535,7 +535,7 @@ class NumberForm(_NumberForm):
 
     @staticmethod
     def default_NumberFormat(
-        man: BaseElement, base: BaseElement, exp: BaseElement, options: Dict[str, Any]
+        man: BaseElement, base: BaseElement, exp: BaseElement, options: dict[str, Any]
     ) -> BaseElement:
         """
         The default function used to format numbers from its mantisa, and
@@ -549,7 +549,7 @@ class NumberForm(_NumberForm):
             base used for scientific notation.
         exp : BaseElement
             exponent.
-        options : Dict[str, Any]
+        options : dict[str, Any]
             more format options.
 
         Returns
@@ -582,10 +582,10 @@ class NumberForm(_NumberForm):
             if isinstance(target, Integer):
                 py_n = len(str(abs(target.int_value)))
             elif isinstance(target, Real):
-                if target.is_machine_precision():
+                if target.is_machine_precision:
                     py_n = 6
                 else:
-                    py_n = dps(target.get_precision())
+                    py_n = dps(target.precision)
         elif isinstance(prec_parms, Integer):
             if isinstance(target, (Integer, Real)):
                 py_n = prec_parms.value
@@ -668,7 +668,7 @@ class StringForm(FormBaseClass):
     >> StringForm["`2` bla `1` blub `` bla `3`", a, b, c]
      = b bla a blub b bla c
 
-    The index of a placeholder must be always a non-negative integer:
+    The index of a placeholder must always be a non-negative integer:
     >> StringForm["`-1` bla", a]
      : Item -1 requested in "`-1` bla" out of range; 1 items available.
      = `-1` bla
@@ -686,7 +686,7 @@ class StringForm(FormBaseClass):
     >> StringForm["`` is Global\\`a", a]
      = a is Global`a
 
-    Elements are formatted according the enclosing context:
+    Elements are formatted according to the enclosing context:
     >> OutputForm[StringForm["Integral of f: ``", Integrate[F[x],x]]]
      = Integral of f: Integrate[F[x], x]
     ## In documentation should appear the expression using Unicode:

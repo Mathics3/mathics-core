@@ -3,7 +3,7 @@ Functions to support Read[]
 """
 
 import io
-from typing import Callable, Optional, Tuple
+from typing import Callable, Optional
 
 from mathics.core.atoms import Integer, String
 from mathics.core.evaluation import Evaluation
@@ -137,9 +137,7 @@ def channel_to_stream(channel, mode="r"):
         else:
             raise ValueError(f"Unknown format {mode}")
         return Expression(head, channel, Integer(n))
-    elif channel.has_form("InputStream", 2):
-        return channel
-    elif channel.has_form("OutputStream", 2):
+    elif channel.has_form((SymbolInputStream, SymbolOutputStream), 2):
         return channel
     else:
         return None
@@ -226,7 +224,7 @@ def close_stream(stream: Stream, stream_number: int):
 
 
 def read_name_and_stream(stream_designator, evaluation: Evaluation) -> tuple:
-    if stream_designator.has_form("OutputStream", 2):
+    if stream_designator.has_form(SymbolOutputStream, 2):
         evaluation.message("General", "openw", stream_designator)
         return None, None, None
 
@@ -358,7 +356,7 @@ def read_check_options(options: dict, evaluation: Evaluation) -> Optional[dict]:
 
 def read_get_separators(
     options, evaluation: Evaluation
-) -> Optional[Tuple[list, list, list]]:
+) -> Optional[tuple[list, list, list]]:
     """Get record and word separators from apply "options"."""
     # Options
     # TODO Implement extra options

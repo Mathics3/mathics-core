@@ -12,6 +12,7 @@ from mathics.core.builtin import Builtin, SympyFunction, Test
 from mathics.core.convert.python import from_bool, from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.number import is_machine_precision, is_numeric
 from mathics.core.symbols import BooleanType, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolExpandAll, SymbolSimplify
 from mathics.eval.arithmetic import test_zero_arithmetic_expr
@@ -235,7 +236,7 @@ class MachineNumberQ(Test):
     summary_text = "test if expression is a machine precision real or complex number"
 
     def test(self, expr) -> bool:
-        return expr.is_machine_precision()
+        return is_machine_precision(expr)
 
 
 class Negative(Builtin):
@@ -383,7 +384,7 @@ class NumericQ(Builtin):
 
     def eval(self, expr, evaluation):
         "NumericQ[expr_]"
-        return from_bool(expr.is_numeric(evaluation))
+        return from_bool(bool(is_numeric(expr, evaluation)))
 
 
 class OddQ(Test):

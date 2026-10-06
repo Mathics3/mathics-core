@@ -25,7 +25,7 @@ both cases, underneath the `InterpretationBox` or `Tagbox` is a
 
 """
 
-from typing import Callable, Dict
+from typing import Callable
 
 from mathics_scanner.characters import UNICODE_CHARACTER_TO_ASCII
 
@@ -38,8 +38,11 @@ from mathics.core.expression import Expression
 from mathics.core.symbols import Atom
 from mathics.core.systemsymbols import (
     BLANK_PATTERN_HEADS,
+    SymbolHoldForm,
     SymbolInputForm,
     SymbolNonAssociative,
+    SymbolOptional,
+    SymbolPattern,
     SymbolRight,
 )
 from mathics.format.box.formatvalues import do_format  # , format_element
@@ -56,7 +59,7 @@ from .util import (
     square_bracket,
 )
 
-EXPR_TO_INPUTFORM_TEXT_MAP: Dict[str, Callable] = {}
+EXPR_TO_INPUTFORM_TEXT_MAP: dict[str, Callable] = {}
 
 
 def register_inputform(head_name):
@@ -72,7 +75,9 @@ def render_input_form(expr: BaseElement, evaluation: Evaluation, **kwargs) -> st
     Build a string with the InputForm of the expression.
     """
     format_expr: BaseElement = do_format(expr, evaluation, SymbolInputForm)
-    while isinstance(format_expr, Expression) and format_expr.has_form("HoldForm", 1):
+    while isinstance(format_expr, Expression) and format_expr.has_form(
+        SymbolHoldForm, 1
+    ):
         format_expr = format_expr.elements[0]
 
     symbol_name: str = format_expr.get_head().get_symbol_definition_name()
@@ -269,7 +274,7 @@ def _optional(expr: Expression, evaluation: Evaluation, **kwargs) -> str:
     name: str = ""
     post: str = ""
     elements = expr.elements
-    if not expr.has_form("Optional", 1, 2):
+    if not expr.has_form(SymbolOptional, 1, 2):
         raise _WrongFormattedExpression
     if len(elements) == 2:
         post = ":" + render_input_form(elements[1], evaluation, **kwargs)
@@ -277,7 +282,7 @@ def _optional(expr: Expression, evaluation: Evaluation, **kwargs) -> str:
         post = "."
 
     operand = elements[0]
-    if operand.has_form("Pattern", 2):
+    if operand.has_form(SymbolPattern, 2):
         name = render_input_form(operand.elements[0], evaluation, **kwargs)
         operand = operand.elements[1]
 

@@ -9,17 +9,10 @@ Evaluation routines for `Set`, `SetDelayed`, and Builtin functions
 found in module `mathics.builtin.assignments.assignment`.
 """
 
-from functools import reduce
 from typing import Final, Optional
 
-from mathics.core.assignment import (
-    get_symbol_list,
-    is_protected,
-    rejected_because_protected,
-    unwrap_lhs,
-)
-from mathics.core.atoms import Integer, Integer1, get_int_value
-from mathics.core.attributes import A_LOCKED, attribute_string_to_number
+from mathics.core.assignment import is_protected, rejected_because_protected, unwrap_lhs
+from mathics.core.atoms import Integer, Integer1
 from mathics.core.definitions import BOX_FORMS
 from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import (
@@ -28,6 +21,7 @@ from mathics.core.evaluation import (
     set_python_recursion_limit,
 )
 from mathics.core.expression import Expression
+from mathics.core.number import get_int_value
 from mathics.core.rules import RewriteRule
 from mathics.core.symbols import (
     Atom,
@@ -157,94 +151,6 @@ def eval_assign(
         )
     except AssignmentException:
         return False
-
-
-def eval_assign_attributes(
-    op_name: str,
-    lhs: BaseElement,
-    lhs_unwrapped: BaseElement,
-    rhs: BaseElement,
-    evaluation: Evaluation,
-    target_symbol_names: list[str],
-    upset: bool,
-) -> bool:
-    """
-    Process the case where lhs is of the form
-    `Attribute[symbol]`
-
-    Parameters
-    ----------
-    op_name : str
-        The built-in assignment operator name.
-    lhs : BaseElement
-        The pattern of the rule to be assigned.
-    lhs_unwrapped : BaseElement
-        The head of the expression after BLANK_PATTERN_HEADS
-        expressions have been are removed by unwrapping.
-    rhs : BaseElement
-        the expression representing the replacement.
-    evaluation : Evaluation
-        DESCRIPTION.
-    target_symbol_names : list[str]
-        the list of symbol names to be associated with the rule.
-    upset : bool
-        `True` if the rule is an Up value.
-
-    Raises
-    ------
-    AssignmentException
-
-    Returns
-    -------
-    bool
-        True if the assignment was successful.
-
-    """
-    # UpSet and Target_symbol_nameset for this symbol are handled in
-    # the standard way. The same if the expression is wrapped:
-    if lhs.get_head() is not lhs_unwrapped:
-        return eval_assign_store_rules_by_tag(
-            op_name, lhs, lhs_unwrapped, rhs, evaluation
-        )
-
-    name = lhs_unwrapped.get_head_name()
-    if len(lhs.elements) != 1:
-        evaluation.message_args(name, len(lhs.elements), 1)
-        raise AssignmentException(lhs, rhs)
-
-    target_symbol = unwrap_expression(lhs.elements[0])
-    tag = target_symbol.get_symbol_definition_name()
-    if not tag:
-        evaluation.message(op_name, "sym", lhs.elements[0], 1)
-        raise AssignmentException(lhs, rhs)
-    if target_symbol_names is not None and target_symbol_names != [tag]:
-        evaluation.message(op_name, "tag", Symbol(name), Symbol(tag))
-        raise AssignmentException(lhs, rhs)
-    attributes_list = get_symbol_list(
-        rhs, lambda item: evaluation.message(op_name, "sym", item, 1)
-    )
-    if attributes_list is None:
-        raise AssignmentException(lhs, rhs)
-    if A_LOCKED & evaluation.definitions.get_attributes(tag):
-        evaluation.message(op_name, "locked", Symbol(tag))
-        raise AssignmentException(lhs, rhs)
-
-    def reduce_attributes_from_list(x_att: int, y_att: str) -> int:
-        try:
-            return x_att | attribute_string_to_number[y_att]
-        except KeyError:
-            evaluation.message("SetAttributes", "unknowattr", y_att)
-            return x_att
-
-    attributes = reduce(
-        reduce_attributes_from_list,
-        attributes_list,
-        0,
-    )
-
-    evaluation.definitions.set_attributes(tag, attributes)
-
-    return True
 
 
 def eval_assign_boxforms(
@@ -1723,7 +1629,6 @@ def collect_lhs_names_and_upset_dont_allow_custom(
 
 # Below is a mapping from Symbol name (as a string) into an assignment eval function.
 ASSIGNMENT_FUNCTION_MAP = {
-    "System`Attributes": eval_assign_attributes,
     "System`Default": eval_assign_default,
     "System`DefaultValues": eval_assign_definition_values,
     "System`DownValues": eval_assign_definition_values,

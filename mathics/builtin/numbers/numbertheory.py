@@ -30,6 +30,7 @@ from mathics.core.systemsymbols import (
     SymbolComplex,
     SymbolFloor,
     SymbolIm,
+    SymbolPrime,
     SymbolRe,
 )
 from mathics.eval.nevaluator import eval_N
@@ -906,7 +907,7 @@ class Prime(SympyFunction):
         return from_sympy(SympyPrime(n.to_sympy()))
 
     def to_sympy(self, expr, **kwargs):
-        if expr.has_form("Prime", 1):
+        if expr.has_form(SymbolPrime, 1):
             return SympyPrime(expr.elements[0].to_sympy(**kwargs))
 
 

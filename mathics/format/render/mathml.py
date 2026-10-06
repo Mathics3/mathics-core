@@ -61,7 +61,13 @@ from mathics.core.formatter import (
 )
 from mathics.core.load_builtin import display_operators_set as operators
 from mathics.core.symbols import SymbolFalse, SymbolTrue
-from mathics.core.systemsymbols import SymbolAutomatic
+from mathics.core.systemsymbols import (
+    SymbolAutomatic,
+    SymbolInputForm,
+    SymbolOutputForm,
+    SymbolPaneBox,
+    SymbolRowBox,
+)
 
 
 def convert_inner_box(box, **options):
@@ -234,17 +240,17 @@ def interpretation_box(box: InterpretationBox, **options):
     child_options: Dict[str, Any] = {**options, **box.box_options}
     box = box.inner_box
     target: BoxElementMixin = box
-    if origin.has_form("InputForm", None):
+    if origin.has_form(SymbolInputForm, None):
         # InputForm produce outputs of the form
         # InterpretationBox[Style[_String, ...], origin_InputForm, opts___]
         assert isinstance(box, StyleBox), f"box={box} is not a StyleBox"
         target = box.inner_box
         child_options["System`ShowStringCharacters"] = SymbolTrue
         assert isinstance(target, String)
-    elif origin.has_form("OutputForm", None):
+    elif origin.has_form(SymbolOutputForm, None):
         # OutputForm produce outputs of the form
         # InterpretationBox[PaneBox[_String, ...], origin_OutputForm, opts___]
-        assert box.has_form("PaneBox", 1, None)
+        assert box.has_form(SymbolPaneBox, 1, None)
         target = box.inner_box
         assert isinstance(target, String)
         # Remove the outer quotes
@@ -319,7 +325,7 @@ def rowbox(box: RowBox, **options) -> str:
         len(box.items) >= 3
         and box.items[0].get_string_value() == "{"
         and box.items[2].get_string_value() == "}"
-        and box.items[1].has_form("RowBox", 1, None)
+        and box.items[1].has_form(SymbolRowBox, 1, None)
     ):
         content = box.items[1].items
         if is_list_interior(content):

@@ -12,11 +12,11 @@ from mathics.core.atoms import (
     RationalOneHalf,
     Real,
 )
-from mathics.core.atoms.numerics import is_inexact
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.load_builtin import import_and_load_builtins
+from mathics.core.number import is_inexact
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolSameQ
 

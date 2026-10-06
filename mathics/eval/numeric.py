@@ -28,12 +28,18 @@ from mathics.core.atoms import (
     RationalOneHalf,
     Real,
 )
-from mathics.core.atoms.numerics import is_inexact
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement
 from mathics.core.expression import Expression
-from mathics.core.number import FP_MANTISA_BINARY_DIGITS, SpecialValueError, min_prec
+from mathics.core.number import (
+    FP_MANTISA_BINARY_DIGITS,
+    SpecialValueError,
+    is_inexact,
+    is_machine_precision,
+    is_zero,
+    min_prec,
+)
 from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolPower, SymbolTimes
 from mathics.core.systemsymbols import (
     SymbolAbs,
@@ -91,7 +97,7 @@ def eval_Abs(expr: BaseElement) -> Optional[BaseElement]:
         return eval_Abs_number(expr)
     if expr.has_form(SymbolPower, 2):
         base, exp = expr.elements
-        if exp.is_zero:
+        if is_zero(exp):
             return Integer1
         if test_arithmetic_expr(expr):
             abs_base = eval_Abs(base)
@@ -160,9 +166,9 @@ def eval_Exp(exp: BaseElement) -> BaseElement:
             return None
         return from_sympy(sympy.Exp(exp_sp))
 
-    prec = exp.get_precision()
+    prec = exp.precision
     if prec is not None:
-        if exp.is_machine_precision():
+        if is_machine_precision(exp):
             number = mpmath.exp(exp.to_mpmath())
             result = from_mpmath(number)
             return result
@@ -177,7 +183,7 @@ def eval_RealSign(expr: BaseElement) -> Optional[Integer]:
     If the argument is a real algebraic expression,
     return the sign of the expression.
     """
-    if expr.is_zero:
+    if is_zero(expr):
         return Integer0
     if isinstance(expr, (Integer, Rational, Real)):
         return Integer1 if expr.value > 0 else IntegerM1
@@ -185,7 +191,7 @@ def eval_RealSign(expr: BaseElement) -> Optional[Integer]:
         return Integer1
     if expr.has_form(SymbolAbs, 1):
         arg = expr.elements[0]
-        if arg.is_zero:
+        if is_zero(arg):
             return Integer0
         if isinstance(arg, Number):
             return Integer1
@@ -193,7 +199,7 @@ def eval_RealSign(expr: BaseElement) -> Optional[Integer]:
         arg_inexact = to_inexact_value(arg)
         if arg_inexact is None:
             return None
-        if arg_inexact.is_zero:
+        if is_zero(arg_inexact):
             return Integer0
         if isinstance(arg_inexact, Number):
             return Integer1
@@ -327,7 +333,7 @@ def eval_Sign(expr: Number) -> Optional[BaseElement]:
             # SymPy conversion failed; fall back.
             return None
 
-        if abs_expr.is_zero:
+        if is_zero(abs_expr):
             return abs_expr
         if abs_expr is Integer1:
             return n
@@ -526,7 +532,7 @@ def eval_Power_inexact(base: Number, exp: Number) -> BaseElement:
     # use sympy.
     prec = min_prec(base, exp)
     if prec is not None:
-        is_machine_precision = base.is_machine_precision() or exp.is_machine_precision()
+        is_machine_precision = base.is_machine_precision or exp.is_machine_precision
         if is_machine_precision:
             number = mpmath.power(base.to_mpmath(), exp.to_mpmath())
             return from_mpmath(number)
@@ -547,8 +553,7 @@ def eval_add_numbers(
     if len(numbers) == 1:
         return numbers[0]
 
-    is_machine_precision = any(number.is_machine_precision() for number in numbers)
-    if is_machine_precision:
+    if any(is_machine_precision(number) for number in numbers):
         terms = (item.to_mpmath() for item in numbers)
         number = mpmath.fsum(terms)
         return from_mpmath(number)
@@ -593,8 +598,7 @@ def eval_multiply_numbers(*numbers: Number) -> Number:
     if len(numbers) == 1:
         return numbers[0]
 
-    is_machine_precision = any(number.is_machine_precision() for number in numbers)
-    if is_machine_precision:
+    if any(is_machine_precision(number) for number in numbers):
         factors = (item.to_mpmath() for item in numbers)
         number = mpmath.fprod(factors)
         return from_mpmath(number)

@@ -10,6 +10,7 @@ from mathics.core.builtin import Builtin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.number import is_zero
 from mathics.core.symbols import Atom
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
@@ -72,7 +73,7 @@ class SparseArray(Builtin):
             element = self.list_to_sparse(element, evaluation)
             if element is None:
                 return None
-        if element.has_form("SparseArray", None):
+        if element.has_form(SymbolSparseArray, None):
             dims = element.elements[1]
         if dims:
             elements = [element]
@@ -82,18 +83,18 @@ class SparseArray(Builtin):
                 newelement = self.list_to_sparse(element, evaluation)
                 if newelement is None:
                     return
-                if not newelement.has_form("SparseArray", None):
+                if not newelement.has_form(SymbolSparseArray, None):
                     return
                 if not dims == newelement.elements[1]:
                     return
                 elements.append(newelement)
         else:
             for i, element in enumerate(array.elements):
-                if element.has_form("SparseArray", None) or element.has_form(
+                if element.has_form(SymbolSparseArray, None) or element.has_form(
                     "List", None
                 ):
                     return
-                if element.is_numeric(evaluation) and element.is_zero:
+                if is_zero(element):
                     continue
                 elements.append(
                     Expression(SymbolRule, ListExpression(Integer(i + 1)), element)

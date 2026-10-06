@@ -37,6 +37,7 @@ from mathics.core.keycomparable import (
     Monomial,
     wma_str_sort_key,
 )
+from mathics.core.number import is_numeric
 from mathics.core.structure import LinkedStructure
 from mathics.core.symbols import (
     Atom,
@@ -996,11 +997,11 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 if element.has_form(SymbolPower, 2):
                     var = element.get_element(0).get_name()
                     expr = element.get_element(1)
-                    assert isinstance(expr, (Expression, NumericOperators))
-                    exp = expr.round_to_float()
-                    if var and exp is not None:
-                        var = wma_str_sort_key(var)
-                        exps[var] = exps.get(var, 0) + exp
+                    if hasattr(expr, "round_to_float"):
+                        exp = expr.round_to_float()
+                        if var and exp is not None:
+                            var = wma_str_sort_key(var)
+                            exps[var] = exps.get(var, 0) + exp
                 elif name:
                     name = wma_str_sort_key(name)
                     exps[name] = exps.get(name, 0) + 1
@@ -1020,7 +1021,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             return (
                 (
                     BASIC_NUMERIC_EXPRESSION_ELT_ORDER
-                    if self.is_numeric()
+                    if is_numeric(self)
                     else BASIC_EXPRESSION_ELT_ORDER
                 ),
                 Monomial(exps),
@@ -1033,7 +1034,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             return (
                 (
                     GENERAL_NUMERIC_EXPRESSION_ELT_ORDER
-                    if self.is_numeric()
+                    if is_numeric(self)
                     else GENERAL_EXPRESSION_ELT_ORDER
                 ),
                 head,
@@ -1094,7 +1095,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
     def has_form(
         self,
-        heads: Iterable[str | Symbol] | str | Symbol,
+        heads: Iterable[Symbol] | Symbol,
         *element_counts: Optional[int],
     ) -> bool:
         """
@@ -1105,25 +1106,24 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             (n1, n2, ...):    element count in {n1, n2, ...}
         """
 
-        head = self._head
-        if not isinstance(head, Symbol):
+        expr_head = self._head
+
+        # "has_form" only matches against Expressions that start with a Symbol.
+        if not isinstance(expr_head, Symbol):
             return False
 
-        if head is not heads:  # heads is a symbol, and matches, skip this
+        # If "expr_head" is the same Symbol as "heads",
+        # then we can can go to element count matching below.
+        if expr_head is not heads:
             if isinstance(heads, Symbol):
-                # if is a Symbol, then is not my head.
+                # "expr_head" is not the same symbol as "heads".
                 return False
-            # if is a str, look for a symbol whose name is the string.
-            elif isinstance(heads, str):
-                if head is not Symbol(heads):
-                    return False
-            # Not a symbol or a string: must be a sequence...
-            else:
-                if head not in (
-                    h if isinstance(h, Symbol) else Symbol(h) for h in heads
-                ):
-                    return False
 
+            # "heads" is a sequence; see it has Expression's head in there.
+            if expr_head not in heads:
+                return False
+
+        # Below, we check whether Expression parameter counts given by "element_counts" match.
         if not element_counts:
             return False
         if element_counts and element_counts[0] is not None:
@@ -1131,7 +1131,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             if count not in element_counts:
                 if (
                     len(element_counts) == 2
-                    and element_counts[1] is None  # noqa
+                    and element_counts[1] is None
                     and count >= element_counts[0]
                 ):
                     return True
@@ -1918,13 +1918,13 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             if not A_NUMERIC_FUNCTION & evaluation.definitions.get_attributes(name):
                 return False
             for element in self._elements:
-                if not element.is_numeric(evaluation):
+                if not is_numeric(element, evaluation):
                     return False
             return True
-            # return all(element.is_numeric(evaluation) for element in self._elements)
+            # return all(is_numeric(element, evaluation) for element in self._elements)
         else:
             return self._head in symbols_arithmetic_operations and all(
-                element.is_numeric() for element in self._elements
+                is_numeric(element, evaluation) for element in self._elements
             )
 
     def user_hash(self, update):

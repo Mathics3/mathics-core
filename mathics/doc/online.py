@@ -38,7 +38,8 @@ def get_builtin_class(name_str: str, definitions: Definitions) -> Optional[Built
     """
     for builtin_group in (definitions.builtin, definitions.pymathics):
         if (bio := builtin_group.get(name_str)) is not None:
-            return bio.builtin.__class__
+            if (bio_builtin := bio.builtin) is not None:
+                return bio_builtin.__class__
     return None
 
 

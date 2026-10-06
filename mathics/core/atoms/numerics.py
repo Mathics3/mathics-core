@@ -127,12 +127,28 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         return False
 
     @property
+    def is_zero(self) -> bool:
+        """
+        If element is some sort of numeric type, Return True is "element" is zero, and False otherwise.
+        Subclass methods should override this. The default is False though.
+        """
+        return False
+
+    @property
     def is_literal(self) -> bool:
         """Number can't change and has a Python representation,
         i.e., a value is set, and it does not depend on definition
         bindings. So we say it is a literal.
         """
         return True
+
+    @property
+    def is_machine_precision(self) -> bool:
+        """Returns True if the numeric type is approximate.
+        The default is False. Those numeric types where this
+        is True should override this method.
+        """
+        return False
 
     def is_numeric(self, evaluation=None) -> bool:
         # Anything that is in a number class is Numeric, so return True.
@@ -145,6 +161,17 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         which pattern to select when several match.
         """
         return super().pattern_precedence
+
+    @property
+    def precision(self) -> Optional[int]:
+        """
+        Returns the default specification for precision in N and other
+        numerical functions.
+
+        The default value of the base Numeric type is None (it doesn't make sense).
+        Where precision does make sense, this method should be overwritten.
+        """
+        return None
 
     def round(self, d: Optional[int] = None) -> "Number":
         """
@@ -466,7 +493,7 @@ class Real(Number[T]):
 
     def __hash__(self):
         # ignore last 7 binary digits when hashing
-        _prec = dps(self.get_precision())
+        _prec = dps(self.precision)
         return hash(("Real", self.to_sympy().n(_prec)))
 
     @property
@@ -479,7 +506,7 @@ class Real(Number[T]):
 
     def user_hash(self, update) -> None:
         if not hasattr(self, "_hash_bytes"):
-            _prec = dps(self.get_precision())
+            _prec = dps(self.precision)
             payload = str(self.to_sympy().n(_prec)).encode("utf8")
             self._hash_bytes = b"System`Real>" + payload
 
@@ -566,10 +593,6 @@ class MachineReal(Real[float | mpmath.mpf]):
     def do_copy(self) -> "MachineReal":
         return MachineReal(self._value)
 
-    def get_precision(self) -> int:
-        """Returns the default specification for precision in N and other numerical functions."""
-        return FP_MANTISA_BINARY_DIGITS
-
     def get_float_value(self, evaluation=None, permit_complex=False) -> float:
         return self._value
 
@@ -604,12 +627,18 @@ class MachineReal(Real[float | mpmath.mpf]):
         """
         return True
 
+    @property
     def is_machine_precision(self) -> bool:
         return True
 
     @property
     def is_zero(self) -> bool:
         return self._value == 0.0
+
+    @property
+    def precision(self) -> int:
+        """Returns the default specification for precision in N and other numerical functions."""
+        return FP_MANTISA_BINARY_DIGITS
 
     def sameQ(self, rhs) -> bool:
         """Mathics3 SameQ for MachineReal.
@@ -708,7 +737,7 @@ class PrecisionReal(Real[sympy_Float]):
 
         form = f.get_name()
         _number_form_options["_Form"] = form  # passed to _NumberFormat
-        digits = dps(self.get_precision()) if form == "System`OutputForm" else None
+        digits = dps(self.precision) if form == "System`OutputForm" else None
         return numberform_to_boxes(self, digits, None, evaluation, _number_form_options)
 
     def do_copy(self) -> "PrecisionReal":
@@ -729,10 +758,6 @@ class PrecisionReal(Real[sympy_Float]):
 
         return (BASIC_ATOM_NUMBER_ELT_ORDER, value, 0, 2, prec)
 
-    def get_precision(self) -> int:
-        """Returns the default specification for precision (in binary digits) in N and other numerical functions."""
-        return self.value._prec + 1
-
     @property
     def is_inexact(self) -> bool:
         """is_inexact indicates whether self is an inexact number so that Equal comparisons
@@ -747,6 +772,11 @@ class PrecisionReal(Real[sympy_Float]):
     def is_zero(self) -> bool:
         # self.value == 0 does not work for sympy >=1.13
         return self.value.is_zero or False
+
+    @property
+    def precision(self) -> int:
+        """Returns the default specification for precision (in binary digits) in N and other numerical functions."""
+        return self.value._prec + 1
 
     def round(self, d: Optional[int] = None) -> Union[MachineReal, "PrecisionReal"]:
         if d is None:
@@ -859,7 +889,7 @@ class Complex(Number[tuple[Number[T], Number[T], Optional[int]]]):
             precision = FP_MANTISA_BINARY_DIGITS
         else:
             precision = min(
-                (u for u in (x.get_precision() for x in (real, imag)) if u is not None),
+                (u for u in (x.precision for x in (real, imag)) if u is not None),
                 default=None,
             )
 
@@ -977,21 +1007,13 @@ class Complex(Number[tuple[Number[T], Number[T], Optional[int]]]):
             return self._value
         return None
 
-    def get_precision(self) -> Optional[int]:
-        """Returns the default specification for precision in N and other numerical functions.
-        When `None` is returned, no precision has been defined, and this object's value is
-        exact.
-
-        This function is called by property method `is_inexact`.
-        """
-        return self._precision
-
     @property
     def is_inexact(self) -> bool:
-        return self.get_precision() is not None
+        return self.precision is not None
 
+    @property
     def is_machine_precision(self) -> bool:
-        if self._real.is_machine_precision() or self._imag.is_machine_precision():
+        if self._real.is_machine_precision or self._imag.is_machine_precision:
             return True
         return False
 
@@ -1005,6 +1027,12 @@ class Complex(Number[tuple[Number[T], Number[T], Optional[int]]]):
 
     @property
     def precision(self) -> Optional[int]:
+        """Returns the default specification for precision in N and other numerical functions.
+        When `None` is returned, no precision has been defined, and this object's value is
+        exact.
+
+        This function is called by property method `is_inexact`.
+        """
         return self._precision
 
     def round(self, d=None) -> "Complex":
@@ -1185,26 +1213,6 @@ NUMERICAL_CONSTANTS = {
     Symbol("System`$MaxMachineNumber"): MachineReal(MAX_MACHINE_NUMBER),
     Symbol("System`$MinMachineNumber"): MachineReal(MIN_MACHINE_NUMBER),
 }
-
-
-def get_int_value(element) -> Optional[int]:
-    """
-    Return the integer value of "element" if it can be interpreted as a Python int.
-
-    Otherwise, return None.
-    """
-    return element.int_value if hasattr(element, "int_value") else None
-
-
-def is_inexact(expr) -> bool:
-    """Return True if expr is has an exact numeric value or False if not.
-
-    For objects like strings where exactness and ineactness make
-    no sense, we report True.
-    """
-    # FIXME: this is really screwy! We are reporting inexactness on objects
-    # where exactness and inexactness make no sense.
-    return expr.get_precision() is not None
 
 
 def is_integer_rational_or_real(expr) -> bool:

@@ -2,7 +2,7 @@
 """
 Algebraic Transformations
 
-There are a number of built-in functions that perform:
+Several built-in functions perform:
 
 <ul>
   <li>Structural Operations on Polynomials
@@ -43,13 +43,12 @@ from mathics.core.symbols import (
     SymbolTrue,
 )
 from mathics.core.systemsymbols import (
+    RULE_SYMBOL_HEADS,
     SymbolAssumptions,
     SymbolEqual,
     SymbolIdentity,
     SymbolIndeterminate,
     SymbolLess,
-    SymbolRule,
-    SymbolRuleDelayed,
     SymbolTable,
 )
 from mathics.eval.list.eol import eval_Part
@@ -507,10 +506,10 @@ class Collect(Builtin):
 
     <dl>
       <dt>'Collect'[$expr$, $x$]
-      <dd> Expands $expr$ and collect together terms having the same power of $x$.
+      <dd> Expands $expr$ and collects together terms having the same power of $x$.
 
       <dt>'Collect'[$expr$, {$x_1$, $x_2$, ...}]
-      <dd> Expands $expr$ and collect together terms having the same powers of \
+      <dd> Expands $expr$ and collects together terms having the same powers of \
          $x_1$, $x_2$, ....
 
       <dt>'Collect'[$expr$, {$x_1$, $x_2$, ...}, $filter$]
@@ -778,7 +777,7 @@ class ExpandAll(_Expand):
     >> ExpandAll[(a + b) ^ 2 / (c + d)^2]
      = a ^ 2 / (c ^ 2 + 2 c d + d ^ 2) + 2 a b / (c ^ 2 + 2 c d + d ^ 2) + b ^ 2 / (c ^ 2 + 2 c d + d ^ 2)
 
-    'ExpandAll' descends into sub expressions
+    'ExpandAll' descends into subexpressions:
     >> ExpandAll[(a + Sin[x (1 + y)])^2]
      = 2 a Sin[x + x y] + a ^ 2 + Sin[x + x y] ^ 2
 
@@ -863,7 +862,7 @@ class ExpandDenominator(_Expand):
 
 # Our expand_polynomial routine and SymPy's do not match
 # what WMA is doing. Failing a good reason to get this working,
-# I, rocky, do not thing it is worth the effort.
+# I, rocky, do not think it is worth the effort.
 #
 # class ExpandNumerator(_Expand):
 #     """
@@ -954,7 +953,7 @@ class Exponent(Builtin):
         else:
             exponents = [get_exponents_sorted(expr, var) for var in form.elements]
             # TODO: add ElementProperties in Expression interface refactor branch:
-            #   fully_evaluated is True, flat is false, and is_ordered is probably True
+            #   fully_evaluated is True, flat is False, and is_ordered is probably True
             return ListExpression(*[Expression(h, *[i for i in s]) for s in exponents])
 
 
@@ -1020,14 +1019,14 @@ class FactorTermsList(Builtin):
       <dt>'FactorTermsList[poly]'
       <dd>returns a list of 2 elements.
         The first element is the numerical factor in $poly$.
-        The second one is the remaining of the polynomial with numerical factor removed.
+        The second element is the remaining polynomial after removing the numerical factor.
 
       <dt>'FactorTermsList[poly, {x1, x2, ...}]'
       <dd>returns a list of factors in $poly$.
         The first element is the numerical factor in $poly$. \
-        The next ones are factors that are independent of variables lists which \
+        The next ones are factors that are independent of the variable list, which \
         are created by removing each variable $xi$ from right to left. \
-        The last one is the remaining of polynomial after dividing $poly$ to all previous factors.
+        The last one is the remainder of the polynomial after dividing $poly$ by all previous factors.
     </dl>
 
     >> FactorTermsList[2 x^2 - 2]
@@ -1186,7 +1185,7 @@ class Simplify(Builtin):
 
         # If the second argument is a rule, it means that
         # it should be taken as an option.
-        if assum.get_head() in (SymbolRule, SymbolRuleDelayed):
+        if assum.get_head() in RULE_SYMBOL_HEADS:
             options[assum.elements[0].get_name()] = assum.elements[1]
             return self.eval(expr, evaluation, options)
 
@@ -1253,7 +1252,7 @@ class FullSimplify(Simplify):
       <dd>simplifies $expr$ assuming $assump$ instead of $Assumptions$.
     </dl>
 
-    TODO: implement the extension. By now, this does the same than Simplify...
+    ## TODO: implement the extension. This does the same thing as Simplify...
 
     >> FullSimplify[2*Sin[x]^2 + 2*Cos[x]^2]
      = 2
@@ -1423,8 +1422,8 @@ class PolynomialQ(Builtin):
     >> PolynomialQ[x^3 - 2 x/y + 3xz, x]
      = True
 
-    In the above, there were no negative powers for $x$. \
-    In the below when we check with respect to $y$, \
+    In the above, there were no negative powers of $x$. \
+    In the below, when we check with respect to $y$, \
     we <i>do</i> find $y$ is raised to a negative power:
     >> PolynomialQ[x^3 - 2 x/y^2 + 3xz, y]
      = False

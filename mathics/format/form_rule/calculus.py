@@ -4,6 +4,7 @@ from mathics.core.atoms import Integer, Integer0, Integer1, IntegerM1, Rational,
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.number import is_zero
 from mathics.core.parser.operators import PLUS_PRECEDENCE
 from mathics.core.systemsymbols import (
     SymbolDivide,
@@ -27,7 +28,7 @@ def format_series(x, x0, data, nmin, nmax, den, evaluation: Evaluation) -> Expre
 
     terms = []
     base = x
-    if not x0.is_zero:
+    if not is_zero(x0):
         base = base + (-x0).evaluate(evaluation)
 
     factors = data.elements

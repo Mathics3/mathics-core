@@ -34,7 +34,12 @@ from mathics.core.formatter import lookup_method
 from mathics.core.list import ListExpression
 from mathics.core.rules import is_rule
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolInsetBox, SymbolList, SymbolTraditionalForm
+from mathics.core.systemsymbols import (
+    SymbolInsetBox,
+    SymbolList,
+    SymbolRegularPolygonBox,
+    SymbolTraditionalForm,
+)
 from mathics.format.box import format_element
 from mathics.format.box.common import elements_to_expressions
 from mathics.format.box.graphics import Coords, _data_and_options, coords
@@ -42,12 +47,10 @@ from mathics.format.box.graphics import Coords, _data_and_options, coords
 # No user docs here: Box primitives aren't documented.
 no_doc = True
 
-SymbolRegularPolygonBox = Symbol("RegularPolygonBox")
-
 
 class GraphicsElementBox(BoxExpression, ABC):
     def init(self, graphics, item=None, style={}, opacity=1.0):
-        if item is not None and not item.has_form(self.get_name(), None):
+        if item is not None and not item.has_form(Symbol(self.get_name()), None):
             raise BoxExpressionError
         self.graphics = graphics
         self.style = style
@@ -56,7 +59,7 @@ class GraphicsElementBox(BoxExpression, ABC):
 
 
 # GraphicsElementBox Builtin class that should not get added as a definition,
-# and therefore not added to to external documentation.
+# and therefore not added to external documentation.
 
 DOES_NOT_ADD_BUILTIN_DEFINITION: Final[list[BoxExpression]] = [GraphicsElementBox]
 
@@ -67,7 +70,7 @@ class _Polyline(GraphicsElementBox):
     stored in ``self.lines`` created from
     a list of points.
 
-    Lines are formed by pairs of consecutive point.
+    Lines are formed by pairs of consecutive points.
     """
 
     def do_init(self, graphics, points):
@@ -117,7 +120,7 @@ class _Polyline(GraphicsElementBox):
         return result
 
 
-# Note: has to come before ArcBox
+# Note: has to come before ArcBox.
 class RoundBox(GraphicsElementBox):
     face_element: Optional[bool] = None
 
@@ -269,9 +272,10 @@ class ArrowBox(_Polyline):
             s = max(_to_float(expr), 0.0)
             return s, s
 
+    # Note: this is a misguided approach. This should be done in specific renderers.
     @staticmethod
     def _default_arrow(polygon):
-        # the default arrow drawn by draw() below looks looks like this:
+        # The default arrow drawn by draw() below looks looks like this:
         #
         #       H
         #      .:.
@@ -284,10 +288,10 @@ class ArrowBox(_Polyline):
         #       :
         #       :
         #
-        # the head H is where the arrow's point is. at base B, the arrow spreads out at right angles from the line
-        # it attaches to. the arrow size 's' given in the Arrowheads specification always specifies the length H-B.
+        # The head H is where the arrow's point is. At base B, the arrow spreads out at right angles from the line
+        # it attaches to. The arrow size 's' given in the Arrowheads specification always specifies the length H-B.
         #
-        # the spread out points S are defined via two constants: arrow_edge (which defines the factor to get from
+        # The spread-out points S are defined via two constants: arrow_edge (which defines the factor to get from
         # H-B to H-E) and arrow_spread (which defines the factor to get from H-B to E-S).
 
         arrow_spread = 0.3

@@ -7,7 +7,7 @@ Here we have the base class and related functions for elements inside an Express
 
 from abc import ABC
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Final, Iterable, Optional, Sequence, Tuple, Union
+from typing import TYPE_CHECKING, Any, Final, Iterable, Optional, Sequence, Union
 
 from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.keycomparable import KeyComparable
@@ -114,9 +114,15 @@ class BaseElement(KeyComparable, ABC):
     # this variable holds a function defined in mathics.core.expression that creates an expression
     create_expression: Any
 
+    def copy(self, reevaluate=False) -> "BaseElement":
+        raise NotImplementedError
+
+    def default_format(self, evaluation, form) -> str:
+        raise NotImplementedError
+
     def do_apply_rules(
         self, rules, evaluation, level=0, options=None
-    ) -> Tuple["BaseElement", bool]:
+    ) -> tuple["BaseElement", bool]:
         """
         Tries to apply one by one the rules in `rules`.
         If one of the rules matches, returns the result and the flag True.
@@ -218,22 +224,6 @@ class BaseElement(KeyComparable, ABC):
     ) -> Optional[dict]:
         pass
 
-    # FIXME: this should be a *function* in mathics.core.atom.numeric.Number.
-    # It should be a method *only* in Numeric (or Symbol) classes where it
-    # makes sense.
-    def get_precision(self) -> Optional[int]:
-        """Returns the default specification for precision in N and other
-        numerical functions.  It is expected to be redefined in those
-        classes that provide inexact arithmetic like PrecisionReal.
-
-        Here in the default base implementation, `None` is used to indicate that the
-        precision is either not defined, or it is exact as in the case of Integer. In either case, the
-        values is not "inexact".
-
-        This function is called by the property method `is_inexact`.
-        """
-        return None
-
     def get_sequence(self) -> Sequence["BaseElement"]:
         """
         If ``self`` is a Mathics3 Sequence, return its elements.
@@ -260,6 +250,17 @@ class BaseElement(KeyComparable, ABC):
     def get_string_value(self) -> Optional[str]:
         return None
 
+    def has_form(
+        self,
+        heads: Iterable["Symbol"] | "Symbol",
+        *element_counts: Optional[int],
+    ) -> bool:
+        """Check if the expression is of the form Head[l1,...,ln]
+        with Head.name in `heads` and several elements according to the specification in
+        element_counts.
+        """
+        return False
+
     @property
     def is_literal(self) -> bool:
         """
@@ -279,48 +280,26 @@ class BaseElement(KeyComparable, ABC):
         """
         raise NotImplementedError
 
-    # FIXME: this should be a *function* in mathics.core.atom.numeric.Number.
-    # It should be a method *only* in Numeric (or Symbol) classes where it
-    # makes sense.
-    def is_machine_precision(self) -> bool:
-        """Check if the number represents a floating point number"""
-        return False
-
-    # FIXME: this should be a *function* in mathics.core.atom.numeric.Number.
-    # It should be a method *only* in Numeric (or Symbol) classes where it
-    # makes sense.
-    def is_numeric(self, evaluation=None) -> bool:
-        """Check if the expression is a number. If evaluation is given,
-        tries to determine if the expression can be evaluated as a number.
-        """
-        # used by NumericQ and expression ordering
-        return False
-
-    def has_form(
-        self,
-        heads: Union[Iterable[Union[str, "Symbol"]], str, "Symbol"],
-        *element_counts: Optional[int],
-    ) -> bool:
-        """Check if the expression is of the form Head[l1,...,ln]
-        with Head.name in `heads` and several elements according to the specification in
-        element_counts.
-        """
-        return False
-
-    # FIXME: this should be a *function* in mathics.core.atom.numeric.Number.
-    # It should be a method *only* in Numeric (or Symbol) classes where it
-    # makes sense.
-    @property
-    def is_zero(self) -> bool:
-        return False
-
+    # FIXME: this method makes sense as a method on (compound) Expresssion.
+    # It would be good narrow this method that class and subclass only.
     def is_free(self, form, evaluation) -> bool:
         """
-        Check if self has a subexpression of the form `form`.
+        Returns true if no subexpression in self matches `form`.
+        This is method is used in FreeQ.
         """
+        # That we have to import below or get a circular import, is an indication that this method is
+        # in the wrong place!
         from mathics.eval.test import item_is_free
 
         return item_is_free(self, form, evaluation)
+
+    def replace_vars(
+        self,
+        vars: dict[str, "BaseElement"],
+        options=None,
+        in_function=True,
+    ) -> "BaseElement":
+        raise NotImplementedError
 
     def sameQ(self, other: Any) -> bool:
         """Mathics3 SameQ"""
@@ -346,24 +325,7 @@ class BaseElement(KeyComparable, ABC):
         """
         raise NotImplementedError
 
-    def to_mpmath(self):
-        raise NotImplementedError
-
     def to_sympy(self, **kwargs):
-        raise NotImplementedError
-
-    def copy(self, reevaluate=False) -> "BaseElement":
-        raise NotImplementedError
-
-    def default_format(self, evaluation, form) -> str:
-        raise NotImplementedError
-
-    def replace_vars(
-        self,
-        vars: dict[str, "BaseElement"],
-        options=None,
-        in_function=True,
-    ) -> "BaseElement":
         raise NotImplementedError
 
 
@@ -386,7 +348,7 @@ class EvalMixin:
 
     def rewrite_apply_eval_step(
         self, evaluation
-    ) -> Tuple[Optional["BaseElement"], bool]:
+    ) -> tuple[Optional["BaseElement"], bool]:
         """
         Performs a since rewrite/apply/eval step used in
         evaluation.

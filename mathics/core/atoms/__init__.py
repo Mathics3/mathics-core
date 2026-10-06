@@ -31,9 +31,7 @@ from mathics.core.atoms.numerics import (
     RationalOneHalf,
     Real,
     SymbolI,
-    get_int_value,
     is_integer_rational_or_real,
-    min_prec,
 )
 from mathics.core.atoms.strings import String, StringFromPython
 
@@ -70,5 +68,4 @@ __all__: Final[list[str]] = [
     "SymbolI",
     "get_int_value",
     "is_integer_rational_or_real",
-    "min_prec",
 ]

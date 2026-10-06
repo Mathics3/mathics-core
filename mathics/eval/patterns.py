@@ -5,7 +5,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.pattern import BasePattern, StopGenerator
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolDefault
+from mathics.core.systemsymbols import RULE_SYMBOL_HEADS, SymbolDefault
 
 
 class _StopGeneratorMatchQ(StopGenerator):
@@ -88,10 +88,7 @@ def param_and_option_from_optional_place(opt_param, options, head, evaluation):
     """
 
     if not opt_param.has_form(
-        (
-            "Rule",
-            "RuleDelayed",
-        ),
+        RULE_SYMBOL_HEADS,
         2,
     ):
         return opt_param

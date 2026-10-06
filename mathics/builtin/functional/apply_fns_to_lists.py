@@ -11,13 +11,14 @@ they are always applied to every element in a list.
 from dataclasses import replace as dc_replace
 from typing import Iterable
 
-from mathics.core.atoms import Integer, Integer0, Integer1, Integer3, get_int_value
+from mathics.core.atoms import Integer, Integer0, Integer1, Integer3
 from mathics.core.builtin import Builtin, InfixOperator
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import InvalidLevelspecError, MessageException
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.number import get_int_value
 from mathics.core.symbols import Atom, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import SymbolList, SymbolMapThread
 from mathics.eval.functional.apply_fns_to_lists import eval_Map_level, eval_MapAt

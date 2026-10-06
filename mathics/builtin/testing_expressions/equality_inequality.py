@@ -10,7 +10,6 @@ import sympy
 
 from mathics.builtin.numbers.constants import mp_convert_constant
 from mathics.core.atoms import COMPARE_PREC, Number, String
-from mathics.core.atoms.numerics import is_inexact
 from mathics.core.attributes import (
     A_FLAT,
     A_NUMERIC_FUNCTION,
@@ -23,7 +22,7 @@ from mathics.core.convert.expression import to_numeric_args
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.expression_predefined import MATHICS3_INFINITY, MATHICS3_NEG_INFINITY
-from mathics.core.number import dps
+from mathics.core.number import dps, is_inexact
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAnd,
@@ -71,10 +70,7 @@ class _InequalityOperator(InfixOperator, ABC):
         caller can compare the returned tuple or list.
         """
         element_sequence = elements.get_sequence()
-        all_numeric = all(
-            element.is_numeric(evaluation) and is_inexact(element)
-            for element in element_sequence
-        )
+        all_numeric = all(is_inexact(element) for element in element_sequence)
 
         if all_numeric and any(
             not isinstance(item, Number) for item in element_sequence

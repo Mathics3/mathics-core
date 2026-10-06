@@ -13,7 +13,6 @@ are described below.
 However in contrast to \\Mathematica, you can set any symbol as an attribute.
 """
 
-from mathics.core.assignment import get_symbol_list
 from mathics.core.atoms import String
 from mathics.core.attributes import (
     A_HOLD_ALL,
@@ -29,10 +28,17 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.systemsymbols import (
     SymbolClearAttributes,
+    SymbolFailed,
     SymbolProtected,
     SymbolSetAttributes,
 )
-from mathics.eval.attributes import eval_Attributes
+from mathics.eval.attributes import (
+    eval_Attributes,
+    eval_ClearAttributes,
+    eval_SetAttributes,
+    eval_SetOperator_Attributes,
+    eval_Unset_Attributes,
+)
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.definition-attributes"
@@ -61,9 +67,10 @@ class Attributes(Builtin):
     >> Attributes["Plus"]
      = {Flat, Listable, NumericFunction, OneIdentity, Orderless, Protected}
 
-    'Attributes' always considers the head of an expression:
+    'Attributes' does not evaluate over expressions:
     >> Attributes[a + b + c]
-     = {Flat, Listable, NumericFunction, OneIdentity, Orderless, Protected}
+     : Symbol, string, HoldPattern[symbol] or a List of them is expected at position 1 in Attributes[a + b + c].
+     = Attributes[a + b + c]
 
     You can assign values to 'Attributes' to set attributes:
 
@@ -73,26 +80,94 @@ class Attributes(Builtin):
      = f[a, b, c]
     Attributes must be symbols:
     >> Attributes[f] := {a + b}
-     : Argument a + b at position 1 is expected to be a symbol.
+     : a + b is not a known attribute.
      = $Failed
     Use 'Symbol' to convert strings to symbols:
     >> Attributes[f] = Symbol["Listable"]
      = Listable
     >> Attributes[f]
      = {Listable}
+    In the LHS, 'Attributes' accepts a 'String' as its argument,
+    if the symbol already exists in the context:
+    >> Attributes["undefinedsymbol"] := Orderless
+     : Symbol undefinedsymbol not found.
+     = $Failed
+    On the other hand, if the symbol already exists,
+    >> Attributes["f"] := Orderless; Attributes[f]
+     = {Orderless}
+
+    Attributes can be eliminated using the unset operator:
+    >> Attributes[f] = .
+    >> Attributes[f]
+     = {}
     """
 
     attributes = A_HOLD_ALL | A_LISTABLE | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
     messages = {
         "attnf": "`1` is not a known attribute.",
+        "fnsym": "First argument in Attributes[`1`] is not a symbol or a string naming a symbol.",
+        "notfound": "Symbol `1` not found.",
+        "ssle": "Symbol, string, HoldPattern[symbol] or a List of them is expected at position 1 in Attributes[`1`].",
+        "locked": "Symbol `1` is locked.",
+        "tag": "Rule for Attributes of Attributes[`1`] can only be attached to `1`.",
     }
     summary_text = "find the attributes of a symbol"
 
     def eval(self, expr, evaluation):
         "Attributes[expr_]"
-        if isinstance(expr, String):
-            expr = Symbol(expr.value)
+        evaluation.message("Attributes", "ssle", expr, 1)
+        return None
+
+    def eval_symbol(self, expr, evaluation):
+        "Attributes[expr_Symbol]"
         return eval_Attributes(expr, evaluation)
+
+    def eval_holdpattern(self, expr, evaluation):
+        "Attributes[HoldPattern[expr_Symbol]]"
+        return eval_Attributes(expr, evaluation)
+
+    def eval_string(self, expr, evaluation):
+        "Attributes[expr_String]"
+        try:
+            name = evaluation.definitions.get_definition(expr.value, True).name
+        except KeyError:
+            evaluation.message("Attributes", "sym", expr, 1)
+            return None
+        return eval_Attributes(Symbol(name), evaluation)
+
+    def eval_list(self, expr, evaluation):
+        "Attributes[expr_List]"
+        return ListExpression(
+            *(self.eval_list(elem, evaluation) for elem in expr.elements)
+        )
+
+    def eval_set(self, operator, symb, rhs, evaluation):
+        "operator:(Set|UpSet)[Attributes[symb_],rhs_]"
+        return eval_SetOperator_Attributes(symb, rhs, False, evaluation)
+
+    def eval_set_delayed(self, operator, symb, rhs, evaluation):
+        "operator:(SetDelayed|UpSetDelayed)[Attributes[symb_],rhs_]"
+        return eval_SetOperator_Attributes(symb, rhs, True, evaluation)
+
+    def eval_tagset(self, operator, tag, symb, rhs, evaluation):
+        "operator:TagSet[tag_Symbol, Attributes[symb_], rhs_]"
+        if tag is not symb:
+            evaluation.message("Attributes", "tag", symb)
+            return SymbolFailed
+        return eval_SetOperator_Attributes(symb, rhs, False, evaluation)
+
+    def eval_tagset_delayed(self, operator, tag, symb, rhs, evaluation):
+        "operator:TagSetDelayed[tag_Symbol, Attributes[symb_], rhs_]"
+        if tag is not symb:
+            evaluation.message("Attributes", "tag", symb)
+            return SymbolFailed
+        return eval_SetOperator_Attributes(symb, rhs, True, evaluation)
+
+    def eval_unset(self, expr, evaluation):
+        "Unset[Attributes[expr_]]"
+        return eval_Unset_Attributes(expr, evaluation)
 
 
 class ClearAttributes(Builtin):
@@ -119,34 +194,18 @@ class ClearAttributes(Builtin):
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
+    messages = {
+        "sym": "Argument `1` at position `2` is expected to be a symbol.",
+        "unknownattr": f"`1` should be one of {', '.join(attribute_string_to_number.keys())}",
+    }
+
     summary_text = "clear the attributes of a symbol"
 
     def eval(self, symbols, attributes, evaluation):
         "ClearAttributes[symbols_, attributes_]"
-
-        symbols = get_symbol_list(
-            symbols, lambda item: evaluation.message("ClearAttributes", "sym", item, 1)
-        )
-        if symbols is None:
-            return
-        values = get_symbol_list(
-            attributes,
-            lambda item: evaluation.message("ClearAttributes", "sym", item, 2),
-        )
-        if values is None:
-            return
-        for symbol in symbols:
-            if A_LOCKED & evaluation.definitions.get_attributes(symbol):
-                evaluation.message("ClearAttributes", "locked", Symbol(symbol))
-            else:
-                for value in values:
-                    try:
-                        evaluation.definitions.clear_attribute(
-                            symbol, attribute_string_to_number[value]
-                        )
-                    except KeyError:
-                        evaluation.message("Attributes", "attnf", Symbol(value))
-        return SymbolNull
+        return eval_ClearAttributes(symbols, attributes, evaluation)
 
 
 class Constant(Predefined):
@@ -689,44 +748,17 @@ class SetAttributes(Builtin):
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED
-
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
     messages = {
-        "unknownattr": f"`1` should be one of {', '.join(attribute_string_to_number.keys())}"
+        "sym": "Argument `1` at position `2` is expected to be a symbol.",
+        "unknownattr": f"`1` should be one of {', '.join(attribute_string_to_number.keys())}",
     }
     summary_text = "set attributes for a symbol"
 
     def eval(self, symbols, attributes, evaluation):
         "SetAttributes[symbols_, attributes_]"
-
-        symbols = get_symbol_list(
-            symbols, lambda item: evaluation.message("SetAttributes", "sym", item, 1)
-        )
-        if symbols is None:
-            return
-        values = get_symbol_list(
-            attributes, lambda item: evaluation.message("SetAttributes", "sym", item, 2)
-        )
-        if values is None:
-            return
-        for symbol in symbols:
-            if A_LOCKED & evaluation.definitions.get_attributes(symbol):
-                evaluation.message("SetAttributes", "locked", Symbol(symbol))
-            else:
-                for value in values:
-                    try:
-                        evaluation.definitions.set_attribute(
-                            symbol, attribute_string_to_number[value]
-                        )
-                    except KeyError:
-                        evaluation.message("Attributes", "attnf", Symbol(value))
-        return SymbolNull
-
-    def eval_arg_error(self, args, evaluation):
-        "SetAttributes[args___]"
-        # We should only come here when we don't have 2 args, because
-        # eval() should be called otherwise.
-        nargs = len(args.elements) if isinstance(args, Expression) else 1
-        evaluation.message("SetAttributes", "argrx", "SetAttributes", nargs, 2)
+        return eval_SetAttributes(symbols, attributes, evaluation)
 
 
 class Unprotect(Builtin):

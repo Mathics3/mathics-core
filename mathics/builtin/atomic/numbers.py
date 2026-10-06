@@ -38,6 +38,7 @@ from mathics.core.number import (
     FP_MANTISA_BINARY_DIGITS,
     MACHINE_EPSILON,
     MACHINE_PRECISION_VALUE,
+    is_numeric,
 )
 from mathics.core.symbols import Symbol, SymbolDivide
 from mathics.core.systemsymbols import (
@@ -427,7 +428,7 @@ class RealDigits(Builtin):
             evaluation.message("RealDigits", "ndig", n)
             return
 
-        if n.is_numeric(evaluation):
+        if is_numeric(n, evaluation):
             return self.eval_with_base(n, from_python(10), evaluation)
 
     def eval_with_base(self, n, b, evaluation, nr_elements=None, pos=None):

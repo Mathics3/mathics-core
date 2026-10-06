@@ -7,7 +7,7 @@ Numeric, Arithmetic, or Symbolic constants like Pi, E, or Infinity.
 """
 
 import math
-from typing import Dict, Optional
+from typing import Optional
 
 import mpmath
 import numpy
@@ -19,9 +19,14 @@ from mathics.core.attributes import A_CONSTANT, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Predefined, SympyObject
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
-from mathics.core.number import MACHINE_DIGITS, PrecisionValueError, get_precision, prec
+from mathics.core.number import (
+    MACHINE_DIGITS,
+    PrecisionValueError,
+    get_closest_precision,
+    prec,
+)
 from mathics.core.symbols import Atom, Symbol, strip_context
-from mathics.core.systemsymbols import SymbolIndeterminate
+from mathics.core.systemsymbols import SymbolIndeterminate, SymbolMachinePrecision
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.mathematical-constants"
@@ -96,7 +101,7 @@ class _Constant_Common(Predefined):
         if evaluation:
             if precision:
                 try:
-                    d = get_precision(precision, evaluation)
+                    d = get_closest_precision(precision, evaluation)
                 except PrecisionValueError:
                     pass
 
@@ -110,7 +115,7 @@ class _Constant_Common(Predefined):
         if d is None:
             d = MACHINE_DIGITS
 
-        # If preference not especified, determine it
+        # If preference not specified, determine it
         # from the precision.
         if preference is None:
             if d <= MACHINE_DIGITS:
@@ -148,7 +153,7 @@ class _Constant_Common(Predefined):
             value = mp_constant(self.mpmath_name, d * 2)
         if value:
             return PrecisionReal(Sympy_Float(str(value), d))
-        # If the value is not available, return none
+        # If the value is not available, return None
         # and keep it unevaluated.
         return
 
@@ -159,7 +164,7 @@ class _MPMathConstant(_Constant_Common):
     # Subclasses should define this.
     mpmath_name: Optional[str] = None
 
-    mathics_to_mpmath: Dict[str, str] = {}
+    mathics_to_mpmath: dict[str, str] = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -179,7 +184,7 @@ class _NumpyConstant(_Constant_Common):
     # Subclasses should define this.
     numpy_name: Optional[str] = None
 
-    mathics_to_numpy: Dict[str, str] = {}
+    mathics_to_numpy: dict[str, str] = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -197,7 +202,7 @@ class _NumpyConstant(_Constant_Common):
 
 
 class _SympyConstant(_Constant_Common, SympyObject):
-    """Representation of a constant in Sympy, e.g. Pi, E, I, Catalan, etc."""
+    """Representation of a constant in SymPy, e.g. Pi, E, I, Catalan, etc."""
 
     # Subclasses should define this.
     sympy_name: Optional[str] = None
@@ -271,7 +276,7 @@ class ComplexInfinity(_SympyConstant):
     >> ComplexInfinity * Infinity
      = ComplexInfinity
 
-    ComplexInfinity though is a special case of DirectedInfinity:
+    ComplexInfinity though, is a special case of DirectedInfinity:
     >> FullForm[ComplexInfinity]
      = DirectedInfinity[]
 
@@ -329,15 +334,15 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
         "N[Degree, precision_]"
         try:
             if precision:
-                d = get_precision(precision, evaluation)
+                d = get_closest_precision(precision, evaluation)
             else:
-                d = get_precision(Symbol("System`MachinePrecision"), evaluation)
+                d = get_closest_precision(SymbolMachinePrecision, evaluation)
         except PrecisionValueError:
             return
 
-        # FIXME: There are all sorts of interactions between in the trig functions,
+        # FIXME: There are all sorts of interactions between the trig functions,
         # that are expected to work out right. Until we have conversion between
-        # mpmath and sympy worked out so that values can be made the to the same
+        # mpmath and sympy worked out so that values can be made to the same
         # precision and compared. we have to not use mpmath right now.
         # return self.get_constant(precision, evaluation, preference="mpmath")
 
@@ -504,7 +509,7 @@ class Infinity(_SympyConstant):
     >> Precision[1]
      = Infinity
 
-    But 'Infinity' it often used as a value in expressions:
+    But 'Infinity' is often used as a value in expressions:
     >> 1 / Infinity
      = 0
 
@@ -577,7 +582,7 @@ class Overflow(Builtin):
 
     <dl>
       <dt>'Overflow[]'
-      <dd>represents a number too large to be represented by Mathics.
+      <dd>represents a number too large to be represented by Mathics3.
     </dl>
 
     >> Exp[10.*^20]
@@ -721,7 +726,7 @@ class Underflow(Builtin):
 
     <dl>
       <dt>'Overflow[]'
-      <dd>represents a number too small to be represented by Mathics.
+      <dd>represents a number too small to be represented by Mathics3.
     </dl>
 
     >> 1 / Overflow[]

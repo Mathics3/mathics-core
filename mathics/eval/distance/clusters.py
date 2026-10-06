@@ -3,6 +3,7 @@ mathics.distance.clusters evaluation functions and exception classes
 """
 
 from mathics.core.atoms import Integer, Real
+from mathics.core.systemsymbols import SymbolRule
 
 
 class IllegalDataPoint(Exception):
@@ -16,7 +17,7 @@ class IllegalDistance(Exception):
 
 def dist_repr(p) -> tuple:
     dist_p = repr_p = None
-    if p.has_form("Rule", 2):
+    if p.has_form(SymbolRule, 2):
         if all(q.get_head_name() == "System`List" for q in p.elements):
             dist_p, repr_p = (q.elements for q in p.elements)
         elif (

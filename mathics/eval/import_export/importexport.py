@@ -555,7 +555,7 @@ def perform_import(
     # .get_elements() is more tolerant of the type of "tmp" than
     # ._elements which assumes a Expression type.
     result_elts = tmp.get_elements()
-    if not all(expr.has_form("Rule", None) for expr in result_elts):
+    if not all(expr.has_form(SymbolRule, None) for expr in result_elts):
         evaluation.predetermined_out = current_predetermined_out
         return None
 

@@ -20,6 +20,7 @@ from mathics.core.keycomparable import (
     BLANKSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY,
 )
 from mathics.core.symbols import BaseElement, Symbol
+from mathics.core.systemsymbols import SymbolSequence
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.rules-and-patterns.basic"
@@ -95,15 +96,15 @@ class Blank(_Blank):
     """
 
     rules = {
-        ("MakeBoxes[Verbatim[Blank][], " "f:StandardForm|TraditionalForm]"): '"_"',
-        (
-            "MakeBoxes[Verbatim[Blank][head_Symbol], " "f:StandardForm|TraditionalForm]"
-        ): ('"_" <> MakeBoxes[head, f]'),
+        ("MakeBoxes[Verbatim[Blank][], f:StandardForm|TraditionalForm]"): '"_"',
+        ("MakeBoxes[Verbatim[Blank][head_Symbol], f:StandardForm|TraditionalForm]"): (
+            '"_" <> MakeBoxes[head, f]'
+        ),
     }
     summary_text = "match to any single expression"
 
     def match(self, expression: BaseElement, pattern_context: dict):
-        if expression.has_form("Sequence", 0):
+        if expression.has_form(SymbolSequence, 0):
             return
 
         target_head = self.target_head

@@ -15,8 +15,9 @@ from mathics.core.keycomparable import (
     PATTERN_SORT_KEY_CONDITIONAL,
     PATTERN_SORT_KEY_PATTERNTEST,
 )
+from mathics.core.number import is_numeric
 from mathics.core.pattern import BasePattern
-from mathics.core.symbols import Atom, Symbol, SymbolTrue
+from mathics.core.symbols import Atom, Symbol, SymbolPower, SymbolTrue
 from mathics.core.systemsymbols import SymbolCondition
 
 # This tells documentation how to sort this module
@@ -236,7 +237,7 @@ class PatternTest(InfixOperator, PatternObject):
         def yield_match(vars_2, rest):
             items = expression.get_sequence()
             for item in items:
-                if not (isinstance(item, Number) or item.is_numeric(evaluation)):
+                if not (isinstance(item, Number) or is_numeric(item, evaluation)):
                     break
             else:
                 yield_func(vars_2, None)
@@ -329,13 +330,13 @@ class PatternTest(InfixOperator, PatternObject):
         """Pattern test for some other special cases"""
         if test == "System`NegativePowerQ":
             return (
-                candidate.has_form("Power", 2)
+                candidate.has_form(SymbolPower, 2)
                 and isinstance(candidate.elements[1], (Integer, Rational, Real))
                 and candidate.elements[1].value < 0
             )
         if test == "System`NotNegativePowerQ":
             return not (
-                candidate.has_form("Power", 2)
+                candidate.has_form(SymbolPower, 2)
                 and isinstance(candidate.elements[1], (Integer, Rational, Real))
                 and candidate.elements[1].value < 0
             )

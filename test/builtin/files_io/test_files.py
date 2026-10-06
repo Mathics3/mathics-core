@@ -12,6 +12,7 @@ import pytest
 
 from mathics.core.parser.convert import canonic_filename
 from mathics.core.streams import canonic_os_path
+from mathics.core.systemsymbols import SymbolList
 
 
 def test_compress():
@@ -73,7 +74,7 @@ def test_get_path_search():
     # Check that AppendTo[$Path] works in conjunction with Get[]
     dirname = osp.normpath(osp.join(osp.dirname(__file__), "..", "..", "data"))
     evaled = evaluate(f"""AppendTo[$Path, "{dirname}"]""")
-    assert evaled.has_form("List", 1, None)
+    assert evaled.has_form(SymbolList, 1, None)
     check_evaluation('Get["fortytwo.m"]', "42")
 
 

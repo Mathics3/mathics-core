@@ -7,7 +7,7 @@ Basic arithmetic functions, including complex number arithmetic.
 """
 
 import sys
-from typing import Optional
+from typing import Any, Final, Optional
 
 import sympy
 
@@ -51,6 +51,7 @@ from mathics.core.expression_predefined import (
     PredefinedExpression,
 )
 from mathics.core.list import ListExpression
+from mathics.core.number import is_zero
 from mathics.core.symbols import (
     Atom,
     Symbol,
@@ -82,7 +83,7 @@ from mathics.eval.numeric import eval_Sign
 sort_order = "mathics.builtin.mathematical-functions"
 
 
-map_direction_infinity = {
+MAP_DIRECTION_INFINITY: Final[dict[Any, PredefinedExpression]] = {
     Integer1: MATHICS3_INFINITY,
     IntegerM1: MATHICS3_NEG_INFINITY,
     MATHICS3_COMPLEX_I: MATHICS3_I_INFINITY,
@@ -435,11 +436,12 @@ class DirectedInfinity(SympyFunction):
 
     def eval_directed_infinity(self, direction, evaluation: Evaluation):
         """DirectedInfinity[direction_]"""
-        result = map_direction_infinity.get(direction, None)
+
+        result = MAP_DIRECTION_INFINITY.get(direction, None)
         if result is not None:
             return result
 
-        if direction.is_zero:
+        if is_zero(direction):
             return MATHICS3_COMPLEX_INFINITY
 
         # try to reduce with sign
@@ -447,10 +449,10 @@ class DirectedInfinity(SympyFunction):
         if direction is None:
             return None
 
-        result = map_direction_infinity.get(direction, None)
+        result = MAP_DIRECTION_INFINITY.get(direction, None)
         if result is not None:
             return result
-        if direction.is_zero:
+        if is_zero(direction):
             return MATHICS3_COMPLEX_INFINITY
 
         return PredefinedExpression(

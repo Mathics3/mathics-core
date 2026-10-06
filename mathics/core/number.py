@@ -4,7 +4,7 @@
 import string
 from math import ceil, log
 from sys import float_info
-from typing import List, Optional, Union
+from typing import Final, Optional
 
 import mpmath
 import sympy
@@ -24,22 +24,22 @@ LOG2_10 = mpmath.log(10.0, 2.0)  # ~ 3.3219280948873626
 # Python floats to IEEEE-754 "double precision", which contains exactly
 # 53 bits of precision.
 # (See https://docs.python.org/3/tutorial/floatingpoint.html)
-FP_MANTISA_BINARY_DIGITS = float_info.mant_dig
+FP_MANTISA_BINARY_DIGITS: Final[int] = float_info.mant_dig
 
 # The (integer) number of decimal digits in a normalized floating-point number.
-MACHINE_DIGITS = float_info.dig  # ~15
+MACHINE_DIGITS: Final[int] = float_info.dig  # ~15
 
 # The difference between 1.0 and the next representable floating-point number:
-MACHINE_EPSILON = float_info.epsilon
+MACHINE_EPSILON: Final[float] = float_info.epsilon
 # the number of accurate decimal digits hold by a normalized floating point number.
 MACHINE_PRECISION_VALUE = float_info.mant_dig / LOG2_10
 
 
 #  Maximum normalized float
-MAX_MACHINE_NUMBER = float_info.max
+MAX_MACHINE_NUMBER: Final[float] = float_info.max
 
 #  Minimum positive normalized float
-MIN_MACHINE_NUMBER = float_info.min
+MIN_MACHINE_NUMBER: Final[float] = float_info.min
 
 # the accuracy associated with 0.`
 ZERO_MACHINE_ACCURACY = -mpmath.log(MIN_MACHINE_NUMBER, 10.0) + MACHINE_PRECISION_VALUE
@@ -67,109 +67,6 @@ def _get_float_inf(value, evaluation) -> Optional[float]:
         else:
             return None
     return evaluated_value.round_to_float(evaluation)
-
-
-def get_precision(
-    value: BaseElement, evaluation, show_messages: bool = True
-) -> Optional[Union[int, float]]:
-    """
-    Returns the ``float`` in the interval [``$MinPrecision``, ``$MaxPrecision``] closest
-    to ``value``.
-
-    If ``value`` does not belongs to that interval, and
-    ``show_messages`` is True, a Message warning is shown.
-
-    If ``value`` fails to be evaluated as a number, returns None.
-
-    """
-    if value is SymbolMachinePrecision:
-        return None
-    elif hasattr(value, "round_to_float"):
-        from mathics.core.atoms import MachineReal
-
-        dmin = _get_float_inf(SymbolMinPrecision, evaluation)
-        dmax = _get_float_inf(SymbolMaxPrecision, evaluation)
-        d = value.round_to_float(evaluation)
-        assert dmin is not None and dmax is not None
-        if d is None:
-            if show_messages:
-                evaluation.message("N", "precbd", value)
-        elif d < dmin:
-            dmin = int(dmin)
-            if show_messages:
-                evaluation.message("N", "precsm", value, MachineReal(dmin))
-            return dmin
-        elif d > dmax:
-            dmax = int(dmax)
-            if show_messages:
-                evaluation.message("N", "preclg", value, MachineReal(dmax))
-            return dmax
-        else:
-            return d
-        raise PrecisionValueError()
-    return None
-
-
-def get_type(value) -> Optional[str]:
-    if isinstance(value, sympy.Integer):
-        return "z"
-    elif isinstance(value, sympy.Rational):
-        return "q"
-    elif isinstance(value, sympy.Float) or isinstance(value, mpmath.mpf):
-        return "f"
-    elif (
-        isinstance(value, sympy.Expr) and value.is_number and not value.is_real
-    ) or isinstance(value, mpmath.mpc):
-        return "c"
-    else:
-        return None
-
-
-def sameQ(v1, v2) -> bool:
-    """Mathics3 SameQ"""
-    return get_type(v1) == get_type(v2) and v1 == v2
-
-
-def dps(prec) -> int:
-    return max(1, int(round(int(prec) / LOG2_10 - 1)))
-
-
-def prec(dps) -> int:
-    return max(1, int(round((int(dps) + 1) * LOG2_10)))
-
-
-def min_prec(*args: BaseElement) -> Optional[int]:
-    """
-    Returns the precision of the expression with the minimum precision.
-    If all the expressions are exact or non numeric, return None.
-
-    If one of the expressions is an inexact value with zero
-    nominal value, then its accuracy is used instead. For example,
-    ```min_prec(1, 0.``4) ``` returns 4.
-
-    Notice that this behaviour is different that the one obtained
-    using mathics.core.numbers.eval_Precision.
-    """
-    args_prec = (arg.get_precision() for arg in args)
-    return min(
-        (arg_prec for arg_prec in args_prec if arg_prec is not None), default=None
-    )
-
-
-def pickle_mp(value):
-    return (get_type(value), str(value))
-
-
-def unpickle_mp(value):
-    type, value = value
-    if type == "z":
-        return sympy.Integer(value)
-    elif type == "q":
-        return sympy.Rational(value)
-    elif type == "f":
-        return sympy.Float(value)
-    else:
-        return value
 
 
 # algorithm based on
@@ -212,7 +109,7 @@ def convert_base(x, base, precision=10) -> str:
         raise TypeError(x)
 
 
-def convert_int_to_digit_list(x, base) -> List[int]:
+def convert_int_to_digit_list(x, base) -> list[int]:
     if x == 0:
         return [0]
 
@@ -233,3 +130,168 @@ def convert_int_to_digit_list(x, base) -> List[int]:
         return out
 
     return convert(x, base, iexps)
+
+
+def dps(prec) -> int:
+    return max(1, int(round(int(prec) / LOG2_10 - 1)))
+
+
+def get_closest_precision(
+    value: BaseElement, evaluation, show_messages: bool = True
+) -> Optional[int]:
+    """
+    Returns the integer precision in the interval [``$MinPrecision``, ``$MaxPrecision``] closest
+    to ``value``.
+
+    If ``value`` does not belongs to that interval, and
+    ``show_messages`` is True, a Message warning is shown.
+
+    If ``value`` fails to be evaluated as a number, returns None.
+
+    """
+    if value is SymbolMachinePrecision:
+        return None
+    elif hasattr(value, "round_to_float"):
+        from mathics.core.atoms import MachineReal
+
+        dmin = _get_float_inf(SymbolMinPrecision, evaluation)
+        dmax = _get_float_inf(SymbolMaxPrecision, evaluation)
+        d = value.round_to_float(evaluation)
+        assert dmin is not None and dmax is not None
+        if d is None:
+            if show_messages:
+                evaluation.message("N", "precbd", value)
+        elif d < dmin:
+            dmin = int(dmin)
+            if show_messages:
+                evaluation.message("N", "precsm", value, MachineReal(dmin))
+            return dmin
+        elif d > dmax:
+            dmax = int(dmax)
+            if show_messages:
+                evaluation.message("N", "preclg", value, MachineReal(dmax))
+            return dmax
+        else:
+            return d
+        raise PrecisionValueError()
+    return None
+
+
+def get_int_value(element) -> Optional[int]:
+    """
+    Return the integer value of "element" if it can be interpreted as a Python int.
+
+    Otherwise, return None.
+    """
+    return element.int_value if hasattr(element, "int_value") else None
+
+
+def get_numeric_type(value) -> Optional[str]:
+    """
+    Returns a one-letter code indicating the kind of
+    SymPy or mpmath numeric type that "value" belongs to.
+    The codes are:
+      z: sympy.Integer
+      q: sympy.Rational
+      f: sympy.Float or mpmath.mpf
+      c: sympy.Expr and is a number but not real, or mpmath.mpc
+    """
+    if isinstance(value, sympy.Integer):
+        return "z"
+    elif isinstance(value, sympy.Rational):
+        return "q"
+    elif isinstance(value, sympy.Float) or isinstance(value, mpmath.mpf):
+        return "f"
+    elif (
+        isinstance(value, sympy.Expr) and value.is_number and not value.is_real
+    ) or isinstance(value, mpmath.mpc):
+        return "c"
+    else:
+        return None
+
+
+def get_precision(element) -> Optional[int]:
+    """Returns the default specification for precision in N and other
+    numerical functions.
+
+    If None is returned, element is not something that it makes sense to have
+    a precision.
+    """
+    return element.precision if hasattr(element, "precision") else None
+
+
+def is_inexact(expr: BaseElement) -> bool:
+    """Return True if expr is has an exact numeric value or False if not.
+
+    For objects like strings where exactness and inexactness make
+    no sense, we report True.
+    """
+    # FIXME: this is really screwy! We are reporting inexactness on objects
+    # where exactness and inexactness make no sense.
+    return get_precision(expr) is not None
+
+
+def is_machine_precision(expr: BaseElement) -> Optional[bool]:
+    """Returns True if `expr` is numeric type that is approximate, False if not,
+    and None if expr is not a number.
+    """
+    return expr.is_machine_precision if hasattr(expr, "is_machine_precision") else None
+
+
+def is_numeric(expr: BaseElement, evaluation=None) -> Optional[bool]:
+    """Returns True if `expr` is numeric type, False if not,
+    and None if expr is not a number.
+    """
+    # used by NumericQ and expression ordering
+    return expr.is_numeric(evaluation) if hasattr(expr, "is_numeric") else None
+
+
+def is_zero(element: BaseElement) -> Optional[bool]:
+    """
+    If element is some sort of numeric type, Return True is "element" is zero, and False otherwise.
+    If it is not a numeric type, return None.
+    """
+    return element.is_zero if hasattr(element, "is_zero") else None
+
+
+def min_prec(*args) -> Optional[int]:
+    """
+    Returns the precision of the expression with the minimum precision.
+    If all the expressions are exact or non numeric, return None.
+
+    If one of the expressions is an inexact value with zero
+    nominal value, then its accuracy is used instead. For example,
+    ```min_prec(1, 0.``4) ``` returns 4.
+
+    Notice that this behavior is different that the one obtained
+    using mathics.core.numbers.eval_Precision.
+    """
+    args_prec = (get_precision(arg) for arg in args)
+    return min(
+        (arg_prec for arg_prec in args_prec if arg_prec is not None), default=None
+    )
+
+
+def prec(dps) -> int:
+    return max(1, int(round((int(dps) + 1) * LOG2_10)))
+
+
+def pickle_mp(value):
+    return (get_numeric_type(value), str(value))
+
+
+def sameQ(v1, v2) -> bool:
+    """Mathics3 SameQ"""
+    return get_numeric_type(v1) == get_numeric_type(v2) and v1 == v2
+
+
+def unpickle_mp(value):
+    type, value = value
+    if type == "z":
+        return sympy.Integer(value)
+    elif type == "q":
+        return sympy.Rational(value)
+    elif type == "f":
+        return sympy.Float(value)
+    else:
+        return value

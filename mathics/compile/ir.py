@@ -10,7 +10,7 @@ from mathics.compile.utils import llvm_to_ctype, pairwise
 from mathics.core.atoms import Integer, Number, Real
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolE
+from mathics.core.systemsymbols import SymbolE, SymbolIf
 
 
 def single_real_arg(f):
@@ -243,7 +243,7 @@ class IRGenerator:
         return method(expr)
 
     def _gen_If(self, expr):
-        if not expr.has_form("If", 3):
+        if not expr.has_form(SymbolIf, 3):
             raise CompileError()
 
         builder = self.builder

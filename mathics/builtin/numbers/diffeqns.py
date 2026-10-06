@@ -85,7 +85,7 @@ class DSolve(Builtin):
 
         if isinstance(x, Symbol):
             syms = [x]
-        elif x.has_form("List", 1, None):
+        elif x.has_form(SymbolList, 1, None):
             syms = sorted(x.elements)
         else:
             evaluation.message("DSolve", "dsvar", x)
@@ -183,5 +183,5 @@ class C(Builtin):
     """
 
     summary_text = (
-        "n-th intertermined constant in the solution of a differential equation."
+        "n-th undetermined constant in the solution of a differential equation."
     )

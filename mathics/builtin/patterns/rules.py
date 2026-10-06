@@ -468,7 +468,7 @@ class ReplaceRepeated(InfixOperator):
             return rules
 
         maxit = self.get_option(options, "MaxIterations", evaluation)
-        if maxit is not None and maxit.is_numeric(evaluation):
+        if maxit is not None and hasattr(maxit, "int_value"):
             maxit = maxit.int_value
         else:
             maxit = -1

@@ -13,12 +13,13 @@ from mathics.algorithm.clusters import (
     kmeans,
     optimize,
 )
-from mathics.core.atoms import FP_MANTISA_BINARY_DIGITS, Integer, Real, String, min_prec
+from mathics.core.atoms import FP_MANTISA_BINARY_DIGITS, Integer, Real, String
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.number import is_numeric, min_prec
 from mathics.core.symbols import Symbol, strip_context
 from mathics.core.systemsymbols import (
     SymbolClusteringComponents,
@@ -57,7 +58,7 @@ class _LazyDistances(LazyDistances):
 
 
 class _PrecomputedDistances(PrecomputedDistances):
-    # computes all n^2 distances for n points with one big evaluation in the beginning.
+    # Computes all n^2 distances for n points with one big evaluation in the beginning.
 
     def __init__(self, df, p, evaluation):
         distances_form = [df(p[i], p[j]) for i in range(len(p)) for j in range(i)]
@@ -134,7 +135,9 @@ class _Cluster(Builtin):
             py_seed = seed.int_value
         else:
             evaluation.message(
-                self.get_name(), "rseed", Expression(SymbolRule, "RandomSeed", seed)
+                self.get_name(),
+                "rseed",
+                Expression(SymbolRule, String("RandomSeed"), seed),
             )
             return
 
@@ -227,7 +230,7 @@ class _Cluster(Builtin):
                     raise IllegalDataPoint
                 yield v
 
-        if dist_p[0].is_numeric(evaluation):
+        if is_numeric(dist_p[0], evaluation):
             numeric_p = [[x] for x in convert_scalars(dist_p)]
         else:
             numeric_p = list(convert_vectors(dist_p))
@@ -296,7 +299,7 @@ class FindClusters(_Cluster):
 
     <dl>
       <dt>'FindClusters'[$list$]
-      <dd>returns a list of clusters formed from the elements of $list$. The number of cluster is determined
+      <dd>returns a list of clusters formed from the elements of $list$. The number of clusters is determined
         automatically.
       <dt>'FindClusters'[$list$, $k$]
       <dd>returns a list of $k$ clusters formed from the elements of $list$.
@@ -430,7 +433,7 @@ class Nearest(Builtin):
 
         method = self.get_option(options, "Method", evaluation)
         if not isinstance(method, String) or method.get_string_value() != "Scan":
-            evaluation("Nearest", "nimp", method)
+            evaluation.message("Nearest", "nimp", method)
             return
 
         dist_p, repr_p = dist_repr(items)

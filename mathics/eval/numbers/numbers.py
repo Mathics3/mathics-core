@@ -132,10 +132,10 @@ def eval_Accuracy(z: BaseElement) -> Optional[float]:
 
     if isinstance(z, PrecisionReal):
         if z.is_zero:
-            return float(dps(z.get_precision()))
+            return float(dps(z.precision))
         z_f = z.to_python()
         log10_z = mpmath.log((-z_f if z_f < 0 else z_f), 10)
-        return dps(z.get_precision()) - log10_z
+        return dps(z.precision) - log10_z
 
     if isinstance(z, Complex):
         acc_real = eval_Accuracy(z.real)
@@ -178,7 +178,7 @@ def eval_Precision(z: BaseElement) -> Optional[float]:
     if isinstance(z, PrecisionReal):
         if z.is_zero:
             return 0.0
-        return float(dps(z.get_precision()))
+        return float(dps(z.precision))
 
     if isinstance(z, Complex):
         prec_real = eval_Precision(z.real)

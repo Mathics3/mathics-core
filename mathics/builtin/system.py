@@ -763,7 +763,7 @@ class SetEnvironment(Builtin):
 
         # All the rules must be of the form
         for rule in rules.elements:
-            if not rule.has_form("System`Rule", 2):
+            if not rule.has_form(SymbolRule, 2):
                 return None
             if not isinstance(rule.elements[0], String):
                 return None
