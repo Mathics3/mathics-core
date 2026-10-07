@@ -49,12 +49,9 @@ from mathics.core.systemsymbols import (
     SymbolI,
     SymbolIndeterminate,
     SymbolLog,
-    SymbolPlus,
-    SymbolPower,
     SymbolRealSign,
     SymbolSign,
     SymbolSqrt,
-    SymbolTimes,
 )
 
 RationalMOneHalf = Rational(-1, 2)
