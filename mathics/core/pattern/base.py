@@ -28,6 +28,7 @@ from mathics.core.expression import Expression
 from mathics.core.keycomparable import (
     BASIC_ATOM_PATTERN_SORT_KEY,
     BASIC_EXPRESSION_PATTERN_SORT_KEY,
+    BASIC_LITERAL_EXPRESSION_PATTERN_SORT_KEY,
     END_OF_LIST_PATTERN_SORT_KEY,
 )
 from mathics.core.symbols import Atom, Symbol
@@ -478,6 +479,8 @@ class ExpressionPattern(BasePattern):
         ]
 
     def _build_pattern_sort_key(self) -> tuple:
+        if self.isliteral:
+            return (BASIC_LITERAL_EXPRESSION_PATTERN_SORT_KEY, self.expr.element_order)
         return (
             BASIC_EXPRESSION_PATTERN_SORT_KEY,
             self.head.pattern_precedence,
