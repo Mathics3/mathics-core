@@ -81,7 +81,7 @@ class Definition:
         self.ownvalues = rules_dict.get("ownvalues", [])
         self.subvalues = rules_dict.get("subvalues", [])
         self.upvalues = rules_dict.get("upvalues", [])
-        self.options: dict[str, str] = rules_dict.get("options", {})
+        self.options: dict[str, BaseElement] = rules_dict.get("options", {})
         self.messages = rules_dict.get("messages", [])
 
         self.is_numeric = is_numeric
