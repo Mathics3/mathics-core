@@ -1015,7 +1015,7 @@ def insert_rule(values: List[BaseRule], rule: BaseRule) -> None:
 
     # use insort_left to guarantee that if equal rules exist, newer rules will
     # get higher precedence by being inserted before them. see DownValues[].
-    bisect.insort_left(values, rule, key=lambda x: x.pattern_precedence)
+    bisect.insort_right(values, rule, key=lambda x: x.pattern_precedence)
 
 
 def merge_definitions(candidates: List[Definition]) -> Definition:

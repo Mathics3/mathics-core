@@ -330,7 +330,7 @@ class DownValues(Builtin):
     >> f[x_Integer] := 2
     >> f[x_Real] := 3
     >> DownValues[f]
-     = {HoldPattern[f[x_Real]] ⧴ 3, HoldPattern[f[x_Integer]] ⧴ 2, HoldPattern[f[x_]] ⧴ x ^ 2}
+     = {HoldPattern[f[x_Integer]] ⧴ 2, HoldPattern[f[x_Real]] ⧴ 3, HoldPattern[f[x_]] ⧴ x ^ 2}
     >> f[3]
      = 2
     >> f[3.]

@@ -85,7 +85,6 @@ class ContainsOnly(Builtin):
         #    if len(options) <= 1
         #    else [ListExpression(*options_to_rules(options))]
         # )
-
         if not isinstance(e1, Symbol) and not e1.has_form(SymbolList, None):
             evaluation.message("ContainsOnly", "lsa", e1)
             return expression

@@ -836,7 +836,7 @@ class SameQ(_ComparisonOperator):
 
     summary_text = "literal symbolic identity"
 
-    def eval_list(self, elements, evaluation: Evaluation):
+    def eval(self, elements, evaluation: Evaluation):
         "%(name)s[elements___]"
         elements_sequence = elements.get_sequence()
         if len(elements_sequence) <= 1:
@@ -972,7 +972,7 @@ class UnsameQ(_ComparisonOperator):
 
     summary_text = "not literal symbolic identity"
 
-    def eval_list(self, elements, evaluation: Evaluation):
+    def eval(self, elements, evaluation: Evaluation):
         "%(name)s[elements___]"
         elements_sequence = elements.get_sequence()
         if len(elements_sequence) <= 1:
