@@ -21,6 +21,7 @@ from mathics_scanner.tokeniser import Token, Tokeniser, is_symbol_name
 from mathics.core.convert.op import builtin_constants
 from mathics.core.parser.ast import (
     Filename,
+    LongForm,
     Node,
     NullString,
     NullSymbol,
@@ -592,6 +593,14 @@ class Parser:
         return result
 
     def parse_information_common(self, token: Token, want_long_form: bool) -> Node:
+        """Create an Information[] node expression. The variable "
+
+        want_long_form" is "True" when given prefix expression "??"
+        is parsed, and it is False, when prefix expression "?" is
+        parsed. Although, in current WMA, the LongForm option is not
+        documented, it controls how much data filled in to a
+        InformationData structure.
+        """
         self.consume()
 
         pattern_token = self.parse_name_pattern()
@@ -609,7 +618,7 @@ class Parser:
         return Node(
             "Information",
             pattern_arg,
-            Node("Rule", Symbol("LongForm"), long_form),
+            Node("Rule", LongForm, long_form),
         )
 
     @track_location
