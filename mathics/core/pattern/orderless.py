@@ -324,6 +324,10 @@ class OrderlessExpressionPattern(ExpressionPattern):
         super().__init__(expression, attributes, evaluation)
         self.attributes = attributes
         self.sort()
+        if not (A_ONE_IDENTITY + A_FLAT) & attributes:
+            self.isliteral = self.head.isliteral and all(
+                element.isliteral for element in self.elements
+            )
 
     def _yield_sequence_wrappings(self, items: Tuple, yield_func: Callable):
         """Orderless case: one Sequence[...] wrapping per permutation."""

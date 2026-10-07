@@ -539,6 +539,12 @@ Rationals, Algebraics, Reals, Complexes, or Booleans.
         evaluation.message("Element", "bset", domain)
         return None
 
+    def eval_algebraic(self, elem: baseElement, evaluation: Evaluation):
+        """Element[elem_, Algebraics]"""
+        if elem.to_sympy().is_algebraic:
+            return SymbolTrue
+        return SymbolFalse
+
     def eval_Element_alternatives(
         self, elems: BaseElement, domain: BaseElement, evaluation: Evaluation
     ) -> Expression | None | Symbol:
@@ -574,6 +580,9 @@ Rationals, Algebraics, Reals, Complexes, or Booleans.
                 sympy_domain = sympy.Rationals
             case domain if domain is SymbolReals:
                 sympy_domain = sympy.Reals
+            # Not implemented in sympy...
+            # case domain if domain is SymbolAlgebraics:
+            #    sympy_domain = sympy.S.Algebraics
             case _:
                 raise RuntimeError("Unknown domain {domain}")
         return sympy.Contains(arg.to_sympy(), sympy_domain)

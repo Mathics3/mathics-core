@@ -463,7 +463,9 @@ class Import(Builtin):
 
     def eval(self, source, evaluation, options={}):
         "Import[source_, OptionsPattern[]]"
-        return self.eval_element_list(source, ListExpression(), evaluation, options)
+        return self.eval_with_element_list(
+            source, ListExpression(), evaluation, options
+        )
 
     def eval_elements_query(self, source, evaluation, options={}):
         """Import[source_String, "Elements", OptionsPattern[]]"""
