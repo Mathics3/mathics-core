@@ -153,11 +153,11 @@ class SubValues(Builtin):
     >> f[1][x_] := x
     >> f[2][x_] := x ^ 2
     >> SubValues[f]
-     = {HoldPattern[f[2][x_]] ⧴ x ^ 2, HoldPattern[f[1][x_]] ⧴ x}
+     = {HoldPattern[f[1][x_]] ⧴ x, HoldPattern[f[2][x_]] ⧴ x ^ 2}
     >> Definition[f]
-     = f[2][x_] = x^2
+     = f[1][x_] = x
      .
-     . f[1][x_] = x
+     . f[2][x_] = x^2
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
