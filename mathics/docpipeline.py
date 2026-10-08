@@ -112,7 +112,9 @@ class DocTestPipeline:
 
     def reset_user_definitions(self):
         """Reset the user definitions"""
-        return self.session.definitions.reset_user_definitions()
+        self.session.definitions.reset_user_definitions()
+        self.session.definitions.set_line_no(1)
+        return
 
     def print_and_log(self, message):
         """Print and log a message in the logfile"""

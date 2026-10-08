@@ -539,7 +539,7 @@ Rationals, Algebraics, Reals, Complexes, or Booleans.
         evaluation.message("Element", "bset", domain)
         return None
 
-    def eval_algebraic(self, elem: baseElement, evaluation: Evaluation):
+    def eval_algebraic(self, elem: BaseElement, evaluation: Evaluation):
         """Element[elem_, Algebraics]"""
         if elem.to_sympy().is_algebraic:
             return SymbolTrue

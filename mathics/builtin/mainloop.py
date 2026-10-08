@@ -82,17 +82,17 @@ class In(Builtin):
     >> Definition[In]
      = Attributes[In] = {Listable, Protected}
      .
-     . In[6] = Definition[In]
-     .
-     . In[5] = In[-1]
-     .
-     . In[4] = x
-     .
-     . In[3] = Do[In[2], {3}]
+     . In[1] = x = 1
      .
      . In[2] = x = x + 1
      .
-     . In[1] = x = 1
+     . In[3] = Do[In[2], {3}]
+     .
+     . In[4] = x
+     .
+     . In[5] = In[-1]
+     .
+     . In[6] = Definition[In]
      .
     """
 
@@ -226,3 +226,4 @@ class Line(Builtin):
 
     name = "$Line"
     summary_text = "current line number"
+    rules = {"$Line": "1"}
