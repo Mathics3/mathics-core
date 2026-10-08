@@ -190,18 +190,22 @@ class MathicsSession:
         """
         reset the definitions and the evaluation objects.
         """
-        try:
-            self.definitions = Definitions(add_builtin)
-        except KeyError:
-            from mathics.core.load_builtin import import_and_load_builtins
+        if add_builtin:
+            from mathics.core.load_builtin import (
+                import_and_load_builtins,
+                mathics3_builtins_modules,
+            )
 
-            import_and_load_builtins()
-            self.definitions = Definitions(add_builtin)
+            if not mathics3_builtins_modules:
+                import_and_load_builtins()
 
+        definitions = Definitions(add_builtin)
         self.evaluation = Evaluation(
-            definitions=self.definitions, catch_interrupt=catch_interrupt
+            definitions=definitions, catch_interrupt=catch_interrupt
         )
         self.last_result = None
+        definitions.set_line_no(1)
+        self.definitions = definitions
 
     def evaluate(self, str_expression, timeout=None, form=None):
         """Parse str_expression and evaluate using the `evaluate` method of the Expression"""

@@ -481,7 +481,7 @@ class Definitions:
 
     def get_line_no(self) -> int:
         """Get $Line, the current input line number"""
-        return self.get_config_value("$Line", 0) or 0
+        return self.get_config_value("$Line", 1) or 1
 
     def get_matching_names(self, pattern: Union[str, re.Pattern]) -> List[str]:
         """
@@ -666,7 +666,7 @@ class Definitions:
         """Increment $Line, the current input line number"""
         line_number = self.get_line_no()
         if line_number is not None:
-            self.set_config_value("$Line", +increment)
+            self.set_config_value("$Line", line_number + increment)
 
     def is_uncertain_final_value(self, last_evaluated_time: int, symbols: set) -> bool:
         """
