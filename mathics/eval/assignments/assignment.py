@@ -540,7 +540,6 @@ def eval_assign_line_number_and_history_length(
     if rhs_int_value is None or rhs_int_value < 0:
         evaluation.message(lhs_name, "intnn", rhs)
         raise AssignmentException(lhs, None)
-
     return False
 
 
