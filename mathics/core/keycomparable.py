@@ -229,12 +229,17 @@ PATTERN_SORT_KEY_OPTIONSPATTERN = 0x00002800
 PATTERN_SORT_KEY_NOT_PATTERNTEST = 0x00000001
 PATTERN_SORT_KEY_OPTIONAL = 0x00000002
 PATTERN_SORT_KEY_UNNAMED_PATTERN = 0x00000004
-PATTERN_SORT_KEY_INCONDITIONAL = 0x00000008
 
-# Used to mark a magic code as conditional or pattern test
-PATTERN_SORT_KEY_CONDITIONAL = PATTERN_SORT_KEY_LAST - PATTERN_SORT_KEY_INCONDITIONAL
+# Used to mark a magic code as pattern test
+
 PATTERN_SORT_KEY_PATTERNTEST = PATTERN_SORT_KEY_LAST - PATTERN_SORT_KEY_NOT_PATTERNTEST
 PATTERN_SORT_KEY_NAMEDPATTERN = PATTERN_SORT_KEY_LAST - PATTERN_SORT_KEY_UNNAMED_PATTERN
+
+
+# Last element of a Pattern: for two equivalent patterns, conditionals
+# come first.
+PATTERN_SORT_KEY_INCONDITIONAL = 1
+PATTERN_SORT_KEY_CONDITIONAL = 0
 
 
 # Now, the basic combinations of these magic numbers, used on sort keys
@@ -288,7 +293,7 @@ VERBATIM_PATTERN_SORT_KEY = (
 
 # Now, two pattern sort keys that are used many times:
 # Atoms
-BASIC_ATOM_PATTERN_SORT_KEY = (MAGIC_ATOM_SORT_KEY, 0, 0)
+BASIC_ATOM_PATTERN_SORT_KEY = (MAGIC_ATOM_SORT_KEY, 0, 0, 1)
 # and "end of list" to ensure that patterns with more elements come first.
 END_OF_LIST_PATTERN_SORT_KEY = (
     PATTERN_SORT_KEY_LAST,

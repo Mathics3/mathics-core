@@ -18,6 +18,8 @@ from mathics.core.keycomparable import (
     BLANKNULLSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY,
     BLANKSEQUENCE_GENERAL_PATTERN_SORT_KEY,
     BLANKSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY,
+    PATTERN_SORT_KEY_CONDITIONAL,
+    PATTERN_SORT_KEY_INCONDITIONAL,
 )
 from mathics.core.symbols import BaseElement, Symbol
 from mathics.core.systemsymbols import SymbolSequence
@@ -135,6 +137,7 @@ class Blank(_Blank):
             pattern_key,
             BASIC_ATOM_PATTERN_SORT_KEY,
             tuple(element.pattern_precedence for element in self.elements),
+            PATTERN_SORT_KEY_INCONDITIONAL,
         )
 
 
@@ -210,6 +213,7 @@ class BlankNullSequence(_Blank):
             pattern_key,
             BASIC_ATOM_PATTERN_SORT_KEY,
             tuple(element.pattern_precedence for element in self.elements),
+            PATTERN_SORT_KEY_INCONDITIONAL,
         )
 
 
@@ -303,4 +307,5 @@ class BlankSequence(_Blank):
             pattern_key,
             BASIC_ATOM_PATTERN_SORT_KEY,
             tuple(element.pattern_precedence for element in self.elements),
+            PATTERN_SORT_KEY_INCONDITIONAL,
         )

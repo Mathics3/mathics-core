@@ -80,8 +80,8 @@ from mathics.core.pattern import BasePattern
         (
             "Condition[A, test]",
             "PatternTest[A, test]",
-            1,
-            "PatternTest comes after Condition",
+            0,
+            "PatternTest and Condition are equivalent",
         ),
         #
         (

@@ -30,6 +30,7 @@ from mathics.core.keycomparable import (
     BASIC_EXPRESSION_PATTERN_SORT_KEY,
     BASIC_LITERAL_EXPRESSION_PATTERN_SORT_KEY,
     END_OF_LIST_PATTERN_SORT_KEY,
+    PATTERN_SORT_KEY_INCONDITIONAL,
 )
 from mathics.core.symbols import Atom, Symbol
 from mathics.core.systemsymbols import SYSTEM_SYMBOLS_PATTERNS, SymbolN, SymbolSequence
@@ -480,7 +481,12 @@ class ExpressionPattern(BasePattern):
 
     def _build_pattern_sort_key(self) -> tuple:
         if self.isliteral:
-            return (BASIC_LITERAL_EXPRESSION_PATTERN_SORT_KEY, self.expr.element_order)
+            return (
+                BASIC_LITERAL_EXPRESSION_PATTERN_SORT_KEY,
+                self.expr.element_order,
+                PATTERN_SORT_KEY_INCONDITIONAL,
+            )
+
         return (
             BASIC_EXPRESSION_PATTERN_SORT_KEY,
             self.head.pattern_precedence,
@@ -490,6 +496,7 @@ class ExpressionPattern(BasePattern):
                     (END_OF_LIST_PATTERN_SORT_KEY,),
                 )
             ),
+            PATTERN_SORT_KEY_INCONDITIONAL,
         )
 
     def filter_elements(self, head_name: str):

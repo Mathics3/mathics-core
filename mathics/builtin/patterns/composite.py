@@ -17,6 +17,7 @@ from mathics.core.keycomparable import (
     EMPTY_ALTERNATIVE_PATTERN_SORT_KEY,
     END_OF_LIST_PATTERN_SORT_KEY,
     OPTIONSPATTERN_SORT_KEY,
+    PATTERN_SORT_KEY_INCONDITIONAL,
     VERBATIM_PATTERN_SORT_KEY,
 )
 from mathics.core.list import ListExpression
@@ -390,6 +391,7 @@ class OptionsPattern(PatternObject):
             # Check if this is necessary...
             self.head.pattern_precedence,
             tuple(element.pattern_precedence for element in self.elements),
+            PATTERN_SORT_KEY_INCONDITIONAL,
         )
 
 
@@ -662,7 +664,7 @@ class Repeated(PostfixOperator, PatternObject):
             BASIC_EXPRESSION_PATTERN_SORT_KEY,
             BASIC_ATOM_PATTERN_SORT_KEY,
             (self.pattern.pattern_precedence, (4,)),
-            1,
+            PATTERN_SORT_KEY_INCONDITIONAL,
         )
 
 
@@ -796,6 +798,7 @@ class Verbatim(PatternObject):
             # TODO: Check if this is necessary...
             self.head.pattern_precedence,
             tuple(element.pattern_precedence for element in self.elements),
+            PATTERN_SORT_KEY_INCONDITIONAL,
         )
 
 

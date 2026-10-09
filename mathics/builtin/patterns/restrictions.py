@@ -112,7 +112,7 @@ class Condition(InfixOperator, PatternObject):
         sub = list(self.pattern.pattern_precedence)
         # Remove the bit "inconditional" to increase
         # the priority of this pattern.
-        sub[0] &= PATTERN_SORT_KEY_CONDITIONAL
+        sub[-1] = PATTERN_SORT_KEY_CONDITIONAL
         return tuple(sub)
 
 
@@ -409,5 +409,5 @@ class PatternTest(InfixOperator, PatternObject):
         sub = list(self.pattern.pattern_precedence)
         # Remove the bit "not pattern test" to increase
         # the priority of this pattern.
-        sub[0] &= PATTERN_SORT_KEY_PATTERNTEST
+        sub[-1] = PATTERN_SORT_KEY_CONDITIONAL
         return tuple(sub)

@@ -393,7 +393,7 @@ class RewriteRule(BaseRule):
         sort_key = self.pattern.pattern_precedence
         if self.replace.has_form(SymbolCondition, 2):
             sort_key_list = list(sort_key)
-            sort_key_list[0] = sort_key_list[0] & PATTERN_SORT_KEY_CONDITIONAL
+            sort_key_list[-1] = PATTERN_SORT_KEY_CONDITIONAL
             sort_key = tuple(sort_key_list)
 
         # True used to be self.system. Can we remove True?

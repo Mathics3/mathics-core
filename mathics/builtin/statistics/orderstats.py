@@ -347,9 +347,10 @@ class Sort(Builtin):
     >> Sort[{items___, item_, OptionsPattern[], item_symbol, item_?test}, PatternsOrderedQ]
      = {item_symbol, item_ ? test, item_, items___, OptionsPattern[]}
 
-    When sorting patterns, values of atoms do not matter:
-    >> Sort[{a, b/;t}, PatternsOrderedQ]
-     = {b /; t, a}
+    When sorting patterns, conditional patterns come before the same
+    pattern witout conditions. Atomic patterns have all the same precedence:
+    >> Sort[{"string", a, b, b/;t, a/;q}, PatternsOrderedQ]
+     = {b /; t, a /; q, string, a, b}
     >> Sort[{2+c_, 1+b__}, PatternsOrderedQ]
      = {2 + c_, 1 + b__}
     >> Sort[{x_ + n_*y_, x_ + y_}, PatternsOrderedQ]

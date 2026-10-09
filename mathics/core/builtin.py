@@ -815,7 +815,7 @@ class MPMathFunction(SympyFunction):
             return None
         return getattr(mpmath, self.mpmath_name)
 
-    def eval(self, z, evaluation: Evaluation):
+    def eval__mpmath(self, z, evaluation: Evaluation):
         "%(name)s[z__]"
 
         args = numerify(z, evaluation).get_sequence()

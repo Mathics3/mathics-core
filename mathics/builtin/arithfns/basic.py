@@ -371,10 +371,10 @@ class Power(InfixOperator, MPMathFunction):
 
     # Note: don't use the name "eval()"; that would hide inherited
     # MPMathFunction.eval, which may be needed.
-    def eval_base_exponent(self, base, exponent, evaluation: Evaluation):
+    def eval(self, base, exponent, evaluation: Evaluation):
         "Power[base_, exponent_]"
         # self.eval is MPMathFunction.eval.
-        return eval_Power(base, exponent, self.eval, evaluation)
+        return eval_Power(base, exponent, self.eval__mpmath, evaluation)
 
 
 class Sqrt(SympyFunction):
