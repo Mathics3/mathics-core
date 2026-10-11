@@ -229,8 +229,6 @@ class Evaluation:
         output_forms = self.definitions.outputforms
 
         line_no = self.definitions.get_line_no()
-        line_no += 1
-        self.definitions.set_line_no(line_no)
 
         history_length = self.definitions.get_history_length()
 
@@ -242,7 +240,8 @@ class Evaluation:
         def evaluate():
             if history_length > 0:
                 self.definitions.add_rule(
-                    "In", RewriteRule(to_expression("In", line_no), query)
+                    "In",
+                    RewriteRule(to_expression("In", line_no), query, evaluation=self),
                 )
             if check_io_hook("System`$Pre"):
                 self.last_eval = Expression(SymbolPre, query).evaluate(self)
@@ -261,8 +260,13 @@ class Evaluation:
                 stored_result = self.get_stored_result(out_result, output_forms)
                 self.definitions.add_rule(
                     "Out",
-                    RewriteRule(Expression(SymbolOut, Integer(line_no)), stored_result),
+                    RewriteRule(
+                        Expression(SymbolOut, Integer(line_no)),
+                        stored_result,
+                        evaluation=self,
+                    ),
                 )
+
             if self.last_eval != self.SymbolNull:
                 if check_io_hook("System`$PrePrint"):
                     self.last_eval = Expression(
@@ -345,10 +349,14 @@ class Evaluation:
             self.out = []
         finally:
             self.stop()
+            # $Line could have changed during the evaluation.
+            line_no = self.definitions.get_line_no()
+            line_no += 1
+            self.definitions.set_line_no(line_no)
 
         history_length = self.definitions.get_history_length()
 
-        line = line_no - history_length
+        line = line_no - history_length - 1
         while line > 0:
             unset_in = self.definitions.unset("In", Expression(SymbolIn, Integer(line)))
             unset_out = self.definitions.unset(

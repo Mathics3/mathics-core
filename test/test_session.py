@@ -29,24 +29,25 @@ def test_session_evaluation():
         Expression(Symbol("Global`F"), Symbol("Global`x"))
     )
     assert len(session.evaluation.out) == 0
-    assert session.evaluate("$Line") is Symbol("$Line")
+    assert session.evaluate("$Line") is Integer1
 
 
 def test_session_evaluation_as_in_cli():
     # `evaluation_as_in_cli` returns a `Result` object
     session.reset()
-    assert session.evaluate("$Line") is Symbol("$Line")
+    assert session.evaluate("$Line") is Integer1
     result = session.evaluate_as_in_cli('Print["Hola"]')
     assert isinstance(result, Result)
     assert len(result.out) == 1 and result.out[0].text == "Hola"
     # Use session.evaluate(...) does not modify the `$Line` or
     # `Out` definitions, while `evaluate_as_in_cli` does:
-    assert session.evaluate("$Line") is Integer1
+    assert session.evaluate("$Line") is Integer2
     assert session.evaluate_as_in_cli("$Line", form="unformatted").result == Integer2
     assert session.evaluate("Out[1]") is SymbolNull
     assert session.evaluate_as_in_cli("Out[1]").result is None
     session.reset()
-    assert session.evaluate("$Line") is Symbol("$Line")
+    # After reset, `$Line` takes the value `1`.
+    assert session.evaluate("$Line") is Integer1
 
 
 def test_session_format_evaluation():
