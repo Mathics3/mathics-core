@@ -34,12 +34,24 @@ from typing import FrozenSet, List, Optional, Tuple
 from mathics.core.expression import Expression
 from mathics.core.symbols import Atom
 from mathics.core.systemsymbols import (
+    SymbolAlternatives,
     SymbolBlank,
     SymbolBlankNullSequence,
     SymbolBlankSequence,
     SymbolCondition,
+    SymbolDefault,
+    SymbolExcept,
+    SymbolHoldPattern,
+    SymbolLongest,
+    SymbolOptional,
+    SymbolOptionsPattern,
     SymbolPattern,
+    SymbolPatternSequence,
     SymbolPatternTest,
+    SymbolRepeated,
+    SymbolRepeatedNull,
+    SymbolShortest,
+    SymbolVerbatim,
 )
 
 
@@ -58,6 +70,8 @@ _BLANKS = {
     SymbolBlankNullSequence: ItemType.STAR,
 }
 
+FIXED_SIZE_ITEM_TYPES = (ItemType.LIT, ItemType.ONE, ItemType.EXPR)
+
 
 class RuleShape:
     __slots__ = ("head", "items", "restrictions")
@@ -73,24 +87,19 @@ class _Unsupported(Exception):
 
 
 _SPECIAL_HEADS = {
-    "Alternatives",
-    "Except",
-    "Optional",
-    "Repeated",
-    "RepeatedNull",
-    "Longest",
-    "Shortest",
-    "Verbatim",
-    "PatternSequence",
-    "OptionsPattern",
-    "Default",
-    "HoldPattern",
+    SymbolAlternatives,
+    SymbolExcept,
+    SymbolOptional,
+    SymbolRepeated,
+    SymbolRepeatedNull,
+    SymbolLongest,
+    SymbolShortest,
+    SymbolVerbatim,
+    SymbolPatternSequence,
+    SymbolOptionsPattern,
+    SymbolDefault,
+    SymbolHoldPattern,
 }
-
-
-def _is_special(head) -> bool:
-    name = head.get_name() if hasattr(head, "get_name") else ""
-    return name.startswith("System`") and name[7:] in _SPECIAL_HEADS
 
 
 def _is_pattern_free(expr) -> bool:
@@ -107,7 +116,7 @@ def _is_pattern_free(expr) -> bool:
         SymbolPatternTest,
     ):
         return False
-    if _is_special(head):
+    if head in _SPECIAL_HEADS:
         return False
     return _is_pattern_free(head) and all(_is_pattern_free(e) for e in expr.elements)
 
@@ -142,7 +151,7 @@ def _item(expr) -> tuple:
     if (
         isinstance(expr, Expression)
         and _is_pattern_free(expr.head)
-        and not _is_special(expr.head)
+        and expr.head not in _SPECIAL_HEADS
     ):
         items = tuple(_item(e) for e in expr.elements)
         return (ItemType.EXPR, expr.head, items, restr_set)
@@ -179,7 +188,7 @@ def analyze_rule(rule) -> Optional[RuleShape]:
         if (
             isinstance(expr, Expression)
             and _is_pattern_free(expr.head)
-            and not _is_special(expr.head)
+            and expr.head not in _SPECIAL_HEADS
         ):
             items = tuple(_item(e) for e in expr.elements)
             replace = getattr(rule, "replace", None)
@@ -263,10 +272,10 @@ def _items_le(p: Tuple, q: Tuple) -> bool:
         else:
             qk = q[k]
             res = False
-            if _is_fixed(qk):
+            if qk[0] in FIXED_SIZE_ITEM_TYPES:
                 res = (
                     i < n
-                    and _is_fixed(p[i])
+                    and (p[i][0] in FIXED_SIZE_ITEM_TYPES)
                     and _item_le(p[i], qk)
                     and go(i + 1, k + 1)
                 )
