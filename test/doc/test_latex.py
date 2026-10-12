@@ -2,6 +2,8 @@
 Pytests for the documentation system. Basic functions and classes.
 """
 
+import pytest
+
 from mathics.core.load_builtin import import_and_load_builtins
 from mathics.doc.latex_doc import (
     LaTeXDocChapter,
@@ -36,6 +38,9 @@ TEST_DOC_DATA_DICT = {
 }
 
 
+@pytest.mark.skip(
+    reason="1-Manual.mdoc is not here anymore. Move this test to Mathics3/Mathics-Documentation-LaTeX, or add a moke 1-Manual.doc in some place here."
+)
 def test_load_latex_documentation():
     """
     Test the structure of the LaTeX Documentation
@@ -45,7 +50,9 @@ def test_load_latex_documentation():
     doc_data = TEST_DOC_DATA_DICT
 
     part = documentation.get_part("manual")
-    assert isinstance(part, LaTeXDocPart)
+    assert isinstance(
+        part, LaTeXDocPart
+    ), f"part must be a LaTeXDocPart. Got {type(part)}."
 
     third_chapter = part.chapters[2]
     assert isinstance(third_chapter, LaTeXDocChapter)
@@ -92,6 +99,9 @@ def test_load_latex_documentation():
     ).strip() == "\\chapter{Further Tutorial Examples}"
 
 
+@pytest.mark.skip(
+    reason="1-Manual.mdoc is not here anymore. Move this test to Mathics3/Mathics-Documentation-LaTeX, or add a moke 1-Manual.doc in some place here."
+)
 def test_chapter():
     documentation = LATEX_DOCUMENTATION
     part = documentation.parts[1]

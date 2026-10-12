@@ -15,13 +15,21 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.rules import is_option_rule
 from mathics.core.symbols import SymbolList
-from mathics.core.systemsymbols import SymbolDefault, SymbolOptional
+from mathics.core.systemsymbols import (
+    SymbolBlank,
+    SymbolBlankNullSequence,
+    SymbolBlankSequence,
+    SymbolDefault,
+    SymbolOptional,
+    SymbolPattern,
+)
 
 from .base import AtomPattern, BasePattern, ExpressionPattern
 
 
 def _is_option_like(candidate: BaseElement) -> bool:
     """Same shape check OptionsPattern.get_match_candidates() uses."""
+
     return is_option_rule(candidate) or candidate.has_form(SymbolList, None)
 
 
@@ -136,24 +144,149 @@ def match_expression_with_one_identity(
                 vars_dict[k] = old
 
 
+def _is_bare_blank(element: BaseElement) -> bool:
+    """
+    True for an unnamed Blank[] or Blank[Type] (0 or 1 sub-elements).
+    """
+    return element.has_form(SymbolBlank, 0, 1)
+
+
+def classify_fixed_blank_tuple(elements: tuple) -> Optional[tuple]:
+    """
+    If every entry of `elements` (zero or more of them) is either:
+      - a bare (unnamed) Blank[] / Blank[Type], or
+      - a named blank Pattern[name, Blank[...]] (`x_`, `x_Integer`, ...)
+    return `elements` back unchanged, as a signal that this
+    ExpressionPattern has a fixed arity with no possible backtracking
+    between slots: matching is exactly "N elements, checked
+    positionally, one does_match() per slot, in order", nothing else --
+    including the case of a name repeated across slots (`f[a_, a_]`),
+    since that's already handled *inside* Pattern.match's own
+    already-bound-name check (does_match on the second occurrence will
+    correctly require sameQ against the value bound by the first) --
+    this fast path doesn't need to special-case it.
+
+    Returns None (fall through to the general machinery) if any
+    element doesn't have this exact shape.
+    """
+    for element in elements:
+        if _is_bare_blank(element):
+            continue
+        if element.has_form(SymbolPattern, 2) and _is_bare_blank(element.elements[1]):
+            continue
+        return None
+    return elements
+
+
+def classify_single_sequence(elements: tuple) -> Optional[BaseElement]:
+    """
+    If `elements` is a 1-tuple whose sole entry is a NAMED
+    BlankSequence or BlankNullSequence -- `Pattern[name, BlankSequence[...]]`
+    (`s__`, `s__Integer`) or `Pattern[name, BlankNullSequence[...]]`
+    (`s___`, `s___Integer`) -- return that raw `Pattern[...]` element
+    unchanged, as a signal that this ExpressionPattern has exactly ONE
+    possible match: there is nothing else in the pattern to backtrack
+    against, so the whole expression's elements (however many there
+    are) are the only candidate for this single (Blank)(Null)Sequence.
+
+    BARE (unnamed) `__`/`___` are deliberately NOT included here, even
+    though structurally similar: as the sole element of a pattern with
+    no `rest_elements` after it, `less_first` is already `False` in
+    `_regular_match_element_sets`, so `subranges()` tries the
+    full-length split FIRST and succeeds immediately there -- no
+    combinatorial search actually happens for the bare case today, so
+    a dedicated class has nothing measurable to save (confirmed by
+    benchmarking: near-identical timings with/without this
+    classification for `head[__]`/`head[___]`, both typed and
+    untyped).
+
+    The NAMED case is different: profiling `head[s__Integer]` (see
+    session notes) against a matched Range[6000] showed the actual,
+    unavoidable per-element type check (`BlankSequence.match` itself)
+    takes about 15% of the total match time; the other ~85% is spent
+    BEFORE `match_element`'s `subranges()` call even gets to try
+    anything -- `basic_match_expression.yield_choice`'s pre-check via
+    `get_match_candidates_count`, followed by `match_element` building
+    `element_candidates` via `get_match_candidates` AGAIN (the exact
+    same O(n) type-scan, discarded immediately after: `subranges()` --
+    unlike `subsets()`, used by the Orderless path -- never even
+    consults its `included` argument, see its module docstring), plus
+    the `Expression(Sequence, *items)` (re)allocation in
+    `_yield_sequence_wrappings`. All of that exists to support
+    backtracking against OTHER elements/candidates that, for this
+    exact shape, don't exist: there is exactly one pattern element and
+    it must absorb the entire (possibly empty, possibly
+    single-element, possibly multi-element) sequence of expression
+    elements, or the match fails outright -- no split to search for.
+
+    Deliberately still excludes:
+    - Anything wrapped in Condition/Optional/PatternTest/Alternatives
+      around the (Blank)(Null)Sequence -- not exactly
+      `Pattern[name, Blank(Null)Sequence[...]]` shaped, conservatively
+      rejected (same policy as `classify_fixed_blank_tuple`).
+    - More than one element (`head[s__, t_]`, etc.) -- there IS
+      backtracking to do there (where does `s__`'s block end?), so
+      this fast path does not apply; that shape stays on the general
+      `subranges()`-based search.
+
+    Returns None (fall through to the general machinery) if `elements`
+    doesn't have exactly this shape.
+    """
+    if len(elements) != 1:
+        return None
+    element = elements[0]
+    if not element.has_form(SymbolPattern, 2):
+        return None
+    inner = element.elements[1]
+    if inner.has_form(SymbolBlankSequence, 0, 1) or inner.has_form(
+        SymbolBlankNullSequence, 0, 1
+    ):
+        return element
+    return None
+
+
+def match_fixed_blank_tuple(
+    blanks: tuple,
+    expr_elements: tuple,
+    vars_dict: dict,
+    evaluation: Evaluation,
+) -> Optional[dict]:
+    """
+    Positionally match `blanks[i]` against `expr_elements[i]` for every
+    i, threading vars_dict THROUGH EACH SLOT'S OWN yield_func -- same
+    protocol basic_match_expression/match_element use everywhere else
+    in this package -- rather than mutating a single shared dict in
+    place.
+
+    Returns the fully-threaded vars_dict on success (a dict that may or
+    may not be `is vars_dict`, depending on what each slot's match()
+    did), or None if any slot failed to match. Never mutates the
+    `vars_dict` object passed in.
+    """
+    current_vars = vars_dict
+    for blank, elt in zip(blanks, expr_elements):
+        result_box: list = []
+        blank.match(
+            elt,
+            {
+                "yield_func": lambda sub_vars, _rest, _box=result_box: _box.append(
+                    sub_vars
+                ),
+                "vars_dict": current_vars,
+                "evaluation": evaluation,
+                "fully": True,
+            },
+        )
+        if not result_box:
+            return None
+        current_vars = result_box[0]
+    return current_vars
+
+
 def _options_pattern_split(
     element: "BasePattern", rest_elements: tuple, candidates: tuple
 ):
     """
-    WMA quirk: when a pattern contains more than one OptionsPattern[]
-    element, only the LAST one ever collects any option-like arguments --
-    every earlier OptionsPattern[] always matches an empty sequence,
-    regardless of what option-like values are available. E.g.
-    `F[x_Integer, opt1:OptionsPattern[], opt2:OptionsPattern[]]` applied
-    to `F[z->p, 2, a->2, m->2]` binds opt1 to `{}` and opt2 to
-    `{a->2, m->2, z->p}` in WMA -- never split between the two.
-
-    The general subranges()/subsets()-based search doesn't know this: it
-    just finds *some* backtracking split between opt1 and opt2 (both have
-    unbounded, untyped match counts, so nothing else disambiguates which
-    split "is the one"), which usually isn't the WMA split and is wasted
-    search besides.
-
     Returns a `sets` list (same (items, (before, after)) shape the
     subranges()/subsets()-based paths produce) if `element` is an
     OptionsPattern[] (bare or Pattern-wrapped), or None if this fast path
