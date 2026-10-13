@@ -278,9 +278,11 @@ class InterpretationBox(BoxExpression):
     summary_text = "box associated to an input expression"
 
     def __repr__(self):
-        result = "InterpretationBox\n  " + repr(self.inner_box)
-        result += f"\n  {self.box_options}"
-        return result
+        if hasattr(self, "inner_box"):
+            result = "InterpretationBox\n  " + repr(self.inner_box)
+            result += f"\n  {self.box_options}"
+            return result
+        return "Uninitialized {type(self)} at {id(self)}."
 
     def init(self, *expr, **options):
         self.inner_box = expr[0]
@@ -400,7 +402,9 @@ class RowBox(BoxExpression):
         self.inside_list = False
 
     def __repr__(self):
-        return f"RowBox[{self.elements[0].__repr__()}]"
+        if hasattr(self, "items"):
+            return f"RowBox[{self.elements[0].__repr__()}]"
+        return f"Uninitialized <{type(self)} at {id(self)}.>"
 
     @property
     def elements(self):
@@ -572,7 +576,9 @@ class StyleBox(BoxExpression):
     summary_text = "associate boxes with styles"
 
     def __repr__(self):
-        return repr(self.to_expression())
+        if hasattr(self, "style"):
+            return repr(self.to_expression())
+        return f"Uninitialized {type(self)} at {id(self)}."
 
     @property
     def elements(self):
