@@ -176,6 +176,10 @@ def test_numerical_properties(str_expr, msgs, str_expected, fail_msg):
         ("MatchQ[1, a_.*b_.]", None, "True", None),
         ("MatchQ[x, a_.*b_.]", None, "True", None),
         ("MatchQ[2*x, a_.*b_.]", None, "True", None),
+        # Orderless literal patterns mixing an atom and an expression
+        ("MatchQ[2 x[3], 2 x[3]]", None, "True", None),
+        ("MatchQ[x[3] + 2, 2 + x[3]]", None, "True", None),
+        ("MatchQ[2 x[3], 3 x[3]]", None, "False", None),
     ],
 )
 def test_matchq(str_expr, msgs, str_expected, fail_msg):
