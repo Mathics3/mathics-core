@@ -213,6 +213,33 @@ class Evaluate(Builtin):
     summary_text = "evaluate the element, disregarding Hold attributes"
 
 
+class Release(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Release.html</url>
+
+    <dl>
+      <dt>'Release'[$expr$]
+      <dd>evaluates $expr$. This is an obsolete symbol, superseded by \
+          'Evaluate' and 'ReleaseHold'; it is kept so that old packages \
+          can be read.
+    </dl>
+
+    >> x = 1 + 1; Release[x]
+     = 2
+
+    Old packages use it to build the left-hand side of a definition from \
+    a variable:
+    >> With[{name = h}, Format[Release[name][k_]] := {name, k}]; ToString[h[3]]
+     = {h, 3}
+    #> Clear[x, h]
+    """
+
+    rules = {
+        "Release[x___]": "x",
+    }
+    summary_text = "obsolete form of Evaluate"
+
+
 class Unevaluated(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Unevaluated.html</url>

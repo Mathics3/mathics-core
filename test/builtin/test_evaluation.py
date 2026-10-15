@@ -62,6 +62,15 @@ import pytest
             None,
         ),
         ("ClearAll[f];", None, None, None),
+        # Release, the obsolete form of Evaluate
+        ("x = 1 + 1; Release[x]", None, "2", None),
+        (
+            "With[{name = h}, f[Release[name][k_]] := {name, k}]; f[h[3]]",
+            None,
+            "{h, 3}",
+            "Release in the left-hand side of a definition",
+        ),
+        ("ClearAll[f, h, x];", None, None, None),
     ],
 )
 def test_evaluation(str_expr, msgs, str_expected, fail_msg):
