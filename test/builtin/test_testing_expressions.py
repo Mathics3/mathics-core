@@ -134,6 +134,12 @@ def test_equality_inequality(str_expr, msgs, str_expected, fail_msg):
         ("Positive[Sin[{11, 14}]]", None, "{False, True}", None),
         ("PrimeQ[1]", None, "False", None),
         ("PrimeQ[2 ^ 255 - 1]", None, "False", None),
+        # Non-atomic arguments
+        ("EvenQ[f[2]]", None, "False", None),
+        ("OddQ[f[1]]", None, "False", None),
+        ("PrimeQ[f[2]]", None, "False", None),
+        ("MatchQ[f[2], _?EvenQ]", None, "False", None),
+        ("Cases[{2, f[2], 3}, _?OddQ]", None, "{3}", None),
     ],
 )
 def test_numerical_properties(str_expr, msgs, str_expected, fail_msg):
