@@ -134,6 +134,23 @@ def test_equality_inequality(str_expr, msgs, str_expected, fail_msg):
         ("Positive[Sin[{11, 14}]]", None, "{False, True}", None),
         ("PrimeQ[1]", None, "False", None),
         ("PrimeQ[2 ^ 255 - 1]", None, "False", None),
+        # Real infinities
+        ("{Negative[Infinity], Negative[-Infinity]}", None, "{False, True}", None),
+        ("{Positive[Infinity], Positive[-Infinity]}", None, "{True, False}", None),
+        (
+            "{NonNegative[Infinity], NonNegative[-Infinity]}",
+            None,
+            "{True, False}",
+            None,
+        ),
+        (
+            "{NonPositive[Infinity], NonPositive[-Infinity]}",
+            None,
+            "{False, True}",
+            None,
+        ),
+        ("Negative[2 {Infinity, 3} - {3, 0}]", None, "{False, False}", None),
+        ("Negative[ComplexInfinity]", None, "Negative[ComplexInfinity]", None),
     ],
 )
 def test_numerical_properties(str_expr, msgs, str_expected, fail_msg):
