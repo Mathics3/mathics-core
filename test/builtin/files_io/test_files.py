@@ -67,6 +67,18 @@ def test_get_evaluates_queries_after_error():
     check_evaluation(f'Get["{script_path}"]', "OK!", hold_expected=True)
 
 
+def test_get_continues_after_syntax_error():
+    # As in WMA, Get reports a syntax error and goes on reading the file.
+    script_path = canonic_filename(
+        osp.normpath(
+            osp.join(osp.dirname(__file__), "..", "..", "data", "syntax-error-bug.m")
+        )
+    )
+    # The syntax message itself is not checked here: its text comes from
+    # Mathics3-scanner.
+    check_evaluation(f'Get["{script_path}"]', "{1, getSyntaxB, 3}")
+
+
 @pytest.mark.skipif(
     sys.platform in ("win32",), reason="$Path does not work on Windows?"
 )
