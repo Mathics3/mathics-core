@@ -165,3 +165,31 @@ def test_upvalues_ownvalues(str_expr, str_expected, msgs, failure_msg):
 )
 def test_values_assignment_holdpattern(str_expr, str_expected):
     check_evaluation(f"{str_expr} === {str_expected}", "True")
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected"),
+    [
+        # WMA shows and accepts the machine precision of an NValues rule
+        # as {MachinePrecision, MachinePrecision}.
+        (
+            "N[nva] = 1.; NValues[nva]",
+            "{HoldPattern[N[nva, {MachinePrecision, MachinePrecision}]] :> 1.}",
+        ),
+        (
+            "NValues[nvb] = {HoldPattern[N[nvb, {MachinePrecision, MachinePrecision}]] :> 2.}; N[nvb]",
+            "2.",
+        ),
+        (
+            "NValues[nvc] = {HoldPattern[N[nvc, MachinePrecision]] :> 3.}; N[nvc]",
+            "3.",
+        ),
+        (
+            "N[nvd, {MachinePrecision, MachinePrecision}] = 4.; N[nvd, MachinePrecision] = 5.; NValues[nvd]",
+            "{HoldPattern[N[nvd, {MachinePrecision, MachinePrecision}]] :> 5.}",
+        ),
+        ("NValues[nve] = NValues[nvd] /. nvd -> nve; N[nve]", "5."),
+    ],
+)
+def test_nvalues_machine_precision(str_expr, str_expected):
+    check_evaluation(f"{str_expr} === {str_expected}", "True")

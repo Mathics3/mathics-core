@@ -20,9 +20,17 @@ from mathics.core.systemsymbols import (
     SymbolBlank,
     SymbolFormat,
     SymbolHoldPattern,
+    SymbolMachinePrecision,
+    SymbolN,
     SymbolOptionValue,
     SymbolPattern,
     SymbolRuleDelayed,
+)
+
+# WMA shows the machine precision in an NValues pattern as the pair
+# {MachinePrecision, MachinePrecision}, while it is stored as MachinePrecision.
+NVALUE_MACHINE_PRECISION = ListExpression(
+    SymbolMachinePrecision, SymbolMachinePrecision
 )
 
 
@@ -35,6 +43,22 @@ def build_rulopc(optval: BaseElement) -> RewriteRule:
         ),
         Expression(SymbolOptionValue, optval, Symbol("$cond$")),
     )
+
+
+def nvalue_pattern_from_wma(pattern: BaseElement) -> BaseElement:
+    """Replace N[x, {MachinePrecision, MachinePrecision}] by N[x, MachinePrecision]"""
+    if pattern.has_form(SymbolN, 2) and pattern.elements[1].sameQ(
+        NVALUE_MACHINE_PRECISION
+    ):
+        return Expression(SymbolN, pattern.elements[0], SymbolMachinePrecision)
+    return pattern
+
+
+def nvalue_pattern_to_wma(pattern: BaseElement) -> BaseElement:
+    """Replace N[x, MachinePrecision] by N[x, {MachinePrecision, MachinePrecision}]"""
+    if pattern.has_form(SymbolN, 2) and pattern.elements[1] is SymbolMachinePrecision:
+        return Expression(SymbolN, pattern.elements[0], NVALUE_MACHINE_PRECISION)
+    return pattern
 
 
 def get_symbol_list(
@@ -187,6 +211,10 @@ def get_symbol_values(
             pattern = rule.pattern
             if pattern.has_form(SymbolHoldPattern, 1):
                 expr_pattern = pattern.expr
+            elif rule_list_field == "nvalues":
+                expr_pattern = Expression(
+                    SymbolHoldPattern, nvalue_pattern_to_wma(pattern.expr)
+                )
             else:
                 expr_pattern = Expression(SymbolHoldPattern, pattern.expr)
             elements.append(Expression(SymbolRuleDelayed, expr_pattern, rule.replace))
