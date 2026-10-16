@@ -178,6 +178,22 @@ def test_assign_list():
             '"{2, a}"',
             "store the conditional rule for T...",
         ),
+        # Named patterns and blanks as the argument of Format
+        (
+            'ClearAll[A,G]; Format[A_G]:="g" /; Length[A] > 1; {G[1,2], G[1]}//ToString',
+            '"{g, G[1]}"',
+            "Format[A_G] is stored for G, not for Pattern",
+        ),
+        (
+            'ClearAll[G]; Format[_G]:="g"; G[1]//ToString',
+            '"g"',
+            "Format[_G] is stored for G",
+        ),
+        (
+            'ClearAll[t,G]; Format[t:G[__]]:="g"; G[1]//ToString',
+            '"g"',
+            "Format[t:G[__]] is stored for G",
+        ),
         # Upvalues
         (
             "ClearAll[F,A,Y,x]; A=T; F[A[x_],Y[x_]]^:=x^2; ClearAll[A,F,Y]; F[T[2],Y[2]]",
