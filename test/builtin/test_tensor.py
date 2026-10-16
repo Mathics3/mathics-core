@@ -29,7 +29,7 @@ import pytest
          "Transpose of a single row turns into a single columns"),
         ("Transpose[{{1}, {2}, {3}}]", None, "{{1, 2, 3}}",
          "Transpose of a single columns turns into a single row"),
-        ("Transpose[{{a}}]", None, "{{a}}", None),
+        ("Transpose[{{a}}]", None, "{{a}}", "Transpose of a single element"),
         ("Transpose[Transpose[{{a, b}}]]", None, "{{a, b}}", None),
         ("Dimensions[Transpose[{{1, 2, 3}}]]", None, "{3, 1}",
 	"Check the shape of a Transpose of a single row"),
