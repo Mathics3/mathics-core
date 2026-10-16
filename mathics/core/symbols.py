@@ -465,9 +465,14 @@ class Symbol(Atom, NumericOperators, EvalMixin):
                     from mathics.core.systemsymbols import SymbolAborted
 
                     return SymbolAborted
+                # iteration_count is the length of the current chain of
+                # rewrites (x -> y -> ...), not a total for the whole
+                # evaluation: each finished lookup gives its step back.
                 evaluation.iteration_count += 1
-
-                return result.evaluate(evaluation)
+                try:
+                    return result.evaluate(evaluation)
+                finally:
+                    evaluation.iteration_count -= 1
         return self
 
     def get_head(self) -> "Symbol":
