@@ -3,7 +3,7 @@ Evaluation routines for mathics.builtin.functional.appy_fns_to_lists
 """
 
 from collections.abc import Sequence
-from typing import Optional, Union
+from typing import Optional
 
 from mathics.core.atoms import Integer, Integer1
 from mathics.core.atoms.associations import Association
@@ -77,66 +77,38 @@ def eval_Map_level(f, expr, levelspec, evaluation: Evaluation, wrap_in_head: boo
 
 def eval_MapAt(
     f: BaseElement, expr: BaseElement, args, evaluation: Evaluation
-) -> Optional[ListExpression]:
+) -> Optional[BaseElement]:
     """
     evaluation routine for MapAt[]
     """
 
-    def map_at_replace_one(
-        elements: Sequence[BaseElement], index: ListExpression, i: int
-    ) -> list:
-        """
-        Perform a single MapAt[] replacement for elements[i].
-        Global "f" is used to compute the replacement value,
-        and if there is an error, "expr" is used in the error message.
-        """
-        m = len(elements)
-        if 1 <= i <= m:
-            j = i - 1
-        elif -m <= i <= -1:
-            j = m + i
-        else:
-            evaluation.message("MapAt", "partw", index, expr)
-            raise PartRangeError
-        new_elements = list(elements)
-        replace_element = elements[j]
-        if is_rule(replace_element):
-            new_elements[j] = Expression(
-                replace_element.get_head(),
-                replace_element.elements[0],
-                Expression(f, replace_element.elements[1]),
+    def apply_f(element: BaseElement) -> BaseElement:
+        if is_rule(element):
+            return Expression(
+                element.get_head(),
+                element.elements[0],
+                Expression(f, element.elements[1]),
             )
-        else:
-            new_elements[j] = Expression(f, replace_element)
-        return new_elements
+        return Expression(f, element)
 
-    def map_at_replace_level(
-        elements: list,
-        remaining_indices: Union[tuple, Integer],
-        orig_index: ListExpression,
-    ) -> list:
-        """Recursive routine to replace remaining indices inside elements, which is a portion at some level of
-          expr.elements.
+    def map_at_position(
+        part: BaseElement, indices: Sequence[BaseElement], orig_index: BaseElement
+    ) -> BaseElement:
+        """Return ``part`` with f applied at the position ``indices``
+        inside it, keeping the heads of ``part`` and of its subparts.
 
-        ``elements`` holds the ListExpression list for the portion of the
-         top-level ListExpression where we still need to index into.
-
-        Some part of the original ListExpression may have already been traversed.
-        ``remaining_indices`` gives the list of indices we still have to index into;
-        these will be a suffix ``orig_index``.
-
-        ``orig_index`` is used for error reporting.
+        ``orig_index`` is the whole position, used for error reporting.
         """
-        if isinstance(remaining_indices, Integer):
-            remaining_indices = (remaining_indices,)
-
-        i_expr = remaining_indices[0]
-
+        i_expr = indices[0]
         if not isinstance(i_expr, Integer):
             evaluation.message(
                 "MapAt", "psl", args, Expression(SymbolMapAt, f, expr, args)
             )
             raise PartRangeError
+        if isinstance(part, Atom):
+            evaluation.message("MapAt", "partw", orig_index, expr)
+            raise PartRangeError
+        elements = list(part.elements)
         i = i_expr.value
         m = len(elements)
         if 1 <= i <= m:
@@ -147,33 +119,13 @@ def eval_MapAt(
             evaluation.message("MapAt", "partw", orig_index, expr)
             raise PartRangeError
 
-        next_level_elements = elements[j]
-        if len(remaining_indices) == 1:
-            if isinstance(next_level_elements, ListExpression):
-                # TODO: Check type of [0].value
-                new_list_expr = map_at_replace_one(
-                    next_level_elements.elements, orig_index, remaining_indices[0].value
-                )
-            else:
-                new_list_expr = map_at_replace_one(
-                    elements, orig_index, remaining_indices[0].value
-                )
-            return new_list_expr
-        elif not isinstance(next_level_elements, ListExpression):
-            # We have run out of nesting for indexing.
-            evaluation.message("MapAt", "partw", orig_index, expr)
-            raise PartRangeError
-
+        if len(indices) == 1:
+            elements[j] = apply_f(elements[j])
         else:
-            # len(remaining_indices) > 1 and isinstance(next_level_elements, ListExpression)
-            elements[j] = ListExpression(
-                *map_at_replace_level(
-                    list(next_level_elements.elements),
-                    remaining_indices[1:],
-                    orig_index,
-                )
-            )
-            return elements
+            elements[j] = map_at_position(elements[j], indices[1:], orig_index)
+        if isinstance(part, ListExpression):
+            return ListExpression(*elements)
+        return Expression(part.get_head(), *elements)
 
     if isinstance(expr, Association):
         if isinstance(args, Integer):
@@ -187,34 +139,23 @@ def eval_MapAt(
             return expr
     try:
         if isinstance(args, Integer):
-            new_list_expr = map_at_replace_one(
-                list(expr.elements), ListExpression(args), args.value
-            )
-        # Is args a vector?
-        elif eval_ArrayQ(args, Integer1, None, evaluation) is SymbolTrue:
-            new_list_expr = map_at_replace_level(
-                list(expr.elements), args.elements, args
-            )
+            return map_at_position(expr, (args,), ListExpression(args))
+        # Is args a vector, i.e. a single position?
+        if eval_ArrayQ(args, Integer1, None, evaluation) is SymbolTrue:
+            return map_at_position(expr, args.elements, args)
         # Until we can find what's causing Expression, SymbolConstant List from being a ListExpression,
         # we will include Expression below...
-        elif isinstance(args, (ListExpression, Expression)):
-            new_list_expr = list(expr.elements)
+        if isinstance(args, (ListExpression, Expression)):
+            # A list of positions; each one is a list of indices or an index.
+            result = expr
             for item in args.elements:
-                if isinstance(item, ListExpression):
-                    new_list_expr = map_at_replace_level(
-                        new_list_expr, item.elements, item
-                    )
+                if isinstance(item, Atom):
+                    result = map_at_position(result, (item,), ListExpression(item))
                 else:
-                    new_list_expr = map_at_replace_level(
-                        new_list_expr, item.elements, ListExpression(item)
-                    )
-            return ListExpression(*new_list_expr)
-        else:
-            evaluation.message(
-                "MapAt", "psl", args, Expression(SymbolMapAt, f, expr, args)
-            )
-            raise PartRangeError
-        return ListExpression(*new_list_expr)
+                    result = map_at_position(result, item.elements, item)
+            return result
+        evaluation.message("MapAt", "psl", args, Expression(SymbolMapAt, f, expr, args))
+        raise PartRangeError
     except PartRangeError:
         # A message was issued where the error occurred
-        return
+        return None
