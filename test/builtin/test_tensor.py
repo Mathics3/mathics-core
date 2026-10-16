@@ -11,8 +11,18 @@ import pytest
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
-        ("Dimensions[{}]", None, "{0}", None),
-        ("Dimensions[{{}}]", None, "{1, 0}", None),
+        (
+            "Dimensions[{}]",
+            None,
+            "{0}",
+            None,
+        ),
+        (
+            "Dimensions[{{}}]",
+            None,
+            "{1, 0}",
+            None,
+        ),
         ## Issue #670
         (
             "A = {{ b ^ ( -1 / 2), 0}, {a * b ^ ( -1 / 2 ), b ^ ( 1 / 2 )}}",
@@ -27,32 +37,32 @@ import pytest
             "Transpose[x]",
             None,
             "Transpose[x]",
-            None
+            None,
         ),
         # A matrix with a single row or column stays a matrix.
         (
             "Transpose[{{1, 2, 3}}]",
             None,
             "{{1}, {2}, {3}}",
-            "Transpose of a single row turns into a single columns"
+            "Transpose of a single row turns into a single column",
         ),
         (
             "Transpose[{{1}, {2}, {3}}]",
             None,
             "{{1, 2, 3}}",
-            "Transpose of a single columns turns into a single row"
+            "Transpose of a single column turns into a single row",
         ),
         (
             "Transpose[{{a}}]",
             None,
             "{{a}}",
-            "Transpose of a single element"
+            "Transpose of a single element",
         ),
         (
             "Transpose[Transpose[{{a, b}}]]",
             None,
             "{{a, b}}",
-            None
+            None,
         ),
         (
             "Dimensions[Transpose[{{1, 2, 3}}]]",
