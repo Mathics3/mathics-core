@@ -1458,15 +1458,19 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                         for rule in evaluation.definitions.get_upvalues(name):
                             yield rule
             lookup_name = new.get_symbol_definition_name()
+            # Stored values such as f[1] = a are found through an index rather
+            # than by trying every rule of the list in turn.
             if lookup_name == new.get_head_name():
-                for rule in evaluation.definitions.get_downvalues(lookup_name):
-                    yield rule
+                yield from evaluation.definitions.get_rules_for(
+                    lookup_name, "downvalues", new
+                )
             else:
                 # Subvalues applies for expressions of the form `D[1][f][x]`
                 # For this expression, the `head` would be `D[1][f]`
                 # while its `lookup_name` would be `D`.
-                for rule in evaluation.definitions.get_subvalues(lookup_name):
-                    yield rule
+                yield from evaluation.definitions.get_rules_for(
+                    lookup_name, "subvalues", new
+                )
 
         for rule in rules():
             try:
