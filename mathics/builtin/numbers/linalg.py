@@ -19,6 +19,16 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import is_inexact
 from mathics.core.symbols import SymbolList
+from mathics.eval.numbers.linalg_modular import (
+    get_prime_modulus,
+    inverse_mod,
+    linear_solve_mod,
+    matrix_mod,
+    nullspace_mod,
+    rref_mod,
+    to_mathics_matrix,
+    vector_mod,
+)
 
 
 class DesignMatrix(Builtin):
@@ -308,16 +318,23 @@ class Inverse(Builtin):
      : The matrix {{1, 0}, {0, 0}} is singular.
      = Inverse[{{1, 0}, {0, 0}}]
 
+    With 'Modulus' -> $p$, the inverse is computed modulo the prime $p$:
+    >> Inverse[{{12, -2}, {1, 3}}, Modulus -> 5]
+     = {{1, 4}, {3, 4}}
     """
 
     messages = {
         "sing": "The matrix `1` is singular.",
         "matsq": "Argument `1` at position 1 is not a non-empty square matrix.",
     }
+    options = {"Modulus": "0"}
     summary_text = "inverse matrix"
 
-    def eval(self, m, evaluation: Evaluation):
-        "Inverse[m_List]"
+    def eval(self, m, evaluation: Evaluation, options: dict):
+        "Inverse[m_List, OptionsPattern[Inverse]]"
+        p = get_prime_modulus(self.get_option(options, "Modulus", evaluation))
+        if p is None:
+            return None
         rows = m.elements
         nrows = len(rows)
         for row in rows:
@@ -330,6 +347,16 @@ class Inverse(Builtin):
             if any(e.get_head() is SymbolList for e in row.elements):
                 evaluation.message("Inverse", "matsq", m)
                 return None
+
+        if p:
+            mod_matrix = matrix_mod(m, p)
+            if mod_matrix is None:
+                return None
+            mod_inverse = inverse_mod(mod_matrix, p)
+            if mod_inverse is None:
+                evaluation.message("Inverse", "sing", m)
+                return None
+            return to_mathics_matrix(mod_inverse)
 
         matrix = to_sympy_matrix(m)
         det = matrix.det()
@@ -492,6 +519,10 @@ class LinearSolve(Builtin):
     >> LinearSolve[{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, {1, -2, 3}]
      : Linear equation encountered that has no solution.
      = LinearSolve[{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, {1, -2, 3}]
+
+    With 'Modulus' -> $p$, the system is solved modulo the prime $p$:
+    >> LinearSolve[{{1, 1, 1}, {1, 2, 3}, {1, 4, 9}}, {1, 2, 3}, Modulus -> 47]
+     = {23, 2, 23}
     """
 
     messages = {
@@ -502,11 +533,15 @@ class LinearSolve(Builtin):
         "nosol": "Linear equation encountered that has no solution.",
         "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix.",
     }
+    options = {"Modulus": "0"}
     summary_text = "solves linear systems in matrix form"
 
-    def eval(self, m, b, evaluation: Evaluation):
-        "LinearSolve[m_, b_]"
+    def eval(self, m, b, evaluation: Evaluation, options: dict):
+        "LinearSolve[m_, b_, OptionsPattern[LinearSolve]]"
 
+        p = get_prime_modulus(self.get_option(options, "Modulus", evaluation))
+        if p is None:
+            return None
         matrix = matrix_data(m)
         if matrix is None:
             evaluation.message("LinearSolve", "matrix", m, 1)
@@ -521,6 +556,17 @@ class LinearSolve(Builtin):
             if element.has_form(SymbolList, None):
                 evaluation.message("LinearSolve", "matrix", b, 2)
                 return
+
+        if p:
+            mod_matrix = matrix_mod(m, p)
+            mod_b = vector_mod(b, p)
+            if mod_matrix is None or mod_b is None:
+                return None
+            mod_solution = linear_solve_mod(mod_matrix, mod_b, p)
+            if mod_solution is None:
+                evaluation.message("LinearSolve", "nosol")
+                return None
+            return ListExpression(*(Integer(x) for x in mod_solution))
 
         system = [mm + [v.to_sympy()] for mm, v in zip(matrix, b.elements)]
         system = to_sympy_matrix(system)
@@ -642,15 +688,29 @@ class MatrixRank(Builtin):
      = 3
     >> MatrixRank[{{a, b}, {3 a, 3 b}}]
      = 1
+
+    The rank depends on the modulus used:
+    >> MatrixRank[{{1, 0, 4}, {2, 0, 3}, {2, 1, 2}}, Modulus -> 5]
+     = 2
     """
 
     messages = {
         "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix."
     }
+    options = {"Modulus": "0"}
     summary_text = "rank of a matrix"
 
-    def eval(self, m, evaluation: Evaluation):
-        "MatrixRank[m_]"
+    def eval(self, m, evaluation: Evaluation, options: dict):
+        "MatrixRank[m_, OptionsPattern[MatrixRank]]"
+
+        p = get_prime_modulus(self.get_option(options, "Modulus", evaluation))
+        if p is None:
+            return None
+        if p:
+            mod_matrix = matrix_mod(m, p)
+            if mod_matrix is None:
+                return None
+            return Integer(len(rref_mod(mod_matrix, p)[1]))
 
         matrix = to_sympy_matrix(m)
         if matrix is None:
@@ -678,15 +738,29 @@ class NullSpace(Builtin):
      = {}
     >> MatrixRank[A]
      = 3
+
+    With 'Modulus' -> $p$, the null space is computed modulo the prime $p$:
+    >> NullSpace[A, Modulus -> 2]
+     = {{1, 1, 1}}
     """
 
     messages = {
         "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix."
     }
+    options = {"Modulus": "0"}
     summary_text = "generators for the null space of a matrix"
 
-    def eval(self, m, evaluation: Evaluation):
-        "NullSpace[m_]"
+    def eval(self, m, evaluation: Evaluation, options: dict):
+        "NullSpace[m_, OptionsPattern[NullSpace]]"
+
+        p = get_prime_modulus(self.get_option(options, "Modulus", evaluation))
+        if p is None:
+            return None
+        if p:
+            mod_matrix = matrix_mod(m, p)
+            if mod_matrix is None:
+                return None
+            return to_mathics_matrix(nullspace_mod(mod_matrix, p))
 
         matrix = to_sympy_matrix(m)
         if matrix is None:
@@ -789,15 +863,29 @@ class RowReduce(Builtin):
      . 0   1   2
      .
      . 0   0   0
+
+    With 'Modulus' -> $p$, the reduction is done modulo the prime $p$:
+    >> RowReduce[{{1, 0, 4}, {2, 0, 3}, {2, 1, 2}}, Modulus -> 5]
+     = {{1, 0, 4}, {0, 1, 4}, {0, 0, 0}}
     """
 
     messages = {
         "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix."
     }
+    options = {"Modulus": "0"}
     summary_text = "matrix reduced row-echelon form"
 
-    def eval(self, m, evaluation: Evaluation):
-        "RowReduce[m_]"
+    def eval(self, m, evaluation: Evaluation, options: dict):
+        "RowReduce[m_, OptionsPattern[RowReduce]]"
+
+        p = get_prime_modulus(self.get_option(options, "Modulus", evaluation))
+        if p is None:
+            return None
+        if p:
+            mod_matrix = matrix_mod(m, p)
+            if mod_matrix is None:
+                return None
+            return to_mathics_matrix(rref_mod(mod_matrix, p)[0])
 
         matrix = to_sympy_matrix(m)
         if matrix is None:
