@@ -71,7 +71,7 @@ def test_get_continues_after_syntax_error():
     # As in WMA, Get reports a syntax error and goes on reading the file.
     script_path = canonic_filename(
         osp.normpath(
-            osp.join(osp.dirname(__file__), "..", "..", "data", "syntax-error-bug.m")
+            osp.join(osp.dirname(__file__), "..", "..", "data", "syntax-error-bug.wl")
         )
     )
     # The syntax message itself is not checked here: its text comes from
