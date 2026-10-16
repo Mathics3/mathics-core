@@ -57,3 +57,53 @@ def test_elements_properties():
         ), str_expression
         assert expr.elements_properties.is_ordered == is_ordered, str_expression
         assert expr.elements_properties.is_flat == is_flat, str_expression
+
+
+def test_is_uniform_after_conversion():
+    """
+    is_uniform, as set by the initial conversion, must be False when the
+    elements have different lookup names: only the first element of a uniform
+    expression is searched for upvalues.
+    """
+    for str_expression, is_uniform in [
+        # fmt: off
+        ("F[1, 2]",        True),
+        ("F[x, x]",        True),
+        ("F[g[1], g[2]]",  True),
+        ("F[1, y]",        False),
+        ("F[w, z]",        False),
+        ("F[A[2], Y[2]]",  False),
+        # fmt: on
+    ]:
+        feeder = MathicsSingleLineFeeder(
+            str_expression, "<test_is_uniform>", ContainerKind.STRING
+        )
+        expr = convert(parser.parse(feeder), session.definitions)
+        assert expr.elements_properties.is_uniform == is_uniform, str_expression
+
+
+def test_evaluation_keeps_unchanged_expression():
+    """
+    Evaluating an expression that does not change gives back the same object,
+    with its cache renewed. A rule kept in a list built by Join is then not
+    evaluated again on every use of the list.
+    """
+    from mathics.core.expression import Expression
+
+    full_session = MathicsSession()
+    full_session.evaluate(
+        "rules = Join[{}, {g[k_Integer] :> k + 1, h[k_] -> k}]; Table[k, {k, 2}];"
+    )
+    stored = (
+        full_session.definitions.get_definition("Global`rules")
+        .get_values_list("ownvalues")[0]
+        .replace
+    )
+    evaluation = full_session.evaluation
+    for rule in stored.elements:
+        assert isinstance(rule, Expression)
+        # `k` changed after the rule was evaluated: the rule must be evaluated again,
+        assert rule.is_uncertain_final_definitions(full_session.definitions)
+        # and that gives back the very same rule, now known to be evaluated.
+        assert rule.evaluate(evaluation) is rule, rule
+        assert not rule.is_uncertain_final_definitions(full_session.definitions)
