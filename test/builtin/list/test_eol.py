@@ -320,3 +320,40 @@ def test_as_in_cli(str_expr, expected_messages, str_expected, assert_message):
     check_evaluation_as_in_cli(
         str_expr, str_expected, expected_messages, assert_message
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "expected_messages", "str_expected"),
+    [
+        ("Extract[{a[1], b[2]}, {2}, Hold]", None, "Hold[b[2]]"),
+        ("Extract[{{1, 2}, {3, 4}}, {{1, 1}, {2, 2}}, Hold]", None, "{Hold[1], Hold[4]}"),
+        ("Extract[Hold[1 + 1, 2 + 2], {2}, Hold]", None, "Hold[2 + 2]"),
+        ("Extract[Hold[1 + 1, 2 + 2], {1, -1}, Hold]", None, "Hold[1]"),
+        ("Extract[Hold[1 + 1], {1, 0}, Hold]", None, "Hold[Plus]"),
+        ("Extract[Hold[1 + 1], {{}}, Hold]", None, "{Hold[Hold[1 + 1]]}"),
+        ("Extract[Hold[1 + 1], {}, Hold]", None, "{}"),
+        ("Extract[{a, b, c}, 2, f]", None, "f[b]"),
+        ("Extract[{{a, b}, {c, d}}, {All, 1}, Hold]", None, "Hold[{a, c}]"),
+        ('Extract[<|"x" -> 1 + 1|>, {Key["x"]}, Hold]', None, "Hold[2]"),
+        (
+            "Extract[Hold[1 + 1], {1, 5}, Hold]",
+            ("Part 5 of 1 + 1 does not exist.",),
+            "Extract[Hold[1 + 1], {1, 5}, Hold]",
+        ),
+        (
+            "Extract[{a, b}, notapos, Hold]",
+            ("Position specification notapos in Extract[{a, b}, notapos, Hold] is not applicable.",),
+            "Extract[{a, b}, notapos, Hold]",
+        ),
+    ],
+)
+def test_extract_with_head(str_expr, expected_messages, str_expected):
+    """Extract[expr, pos, h] wraps the parts in h before they are evaluated."""
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        expected_messages=expected_messages,
+    )

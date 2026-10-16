@@ -2,15 +2,21 @@
 Evaluation routines for builtin function contained in mathics.builtin.list.eol.
 """
 
+from typing import Optional, Sequence
+
 from mathics.core.atoms import Integer
+from mathics.core.atoms.associations import Association
+from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import MessageException
 from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
 from mathics.core.number import get_int_value
 from mathics.core.subexpression import SubExpression
 from mathics.core.symbols import Atom, Symbol
 from mathics.core.systemsymbols import (
     SymbolByteArray,
+    SymbolExtract,
     SymbolInfinity,
     SymbolKey,
     SymbolList,
@@ -112,6 +118,65 @@ def eval_Part(
             e.message(evaluation)
             return False
         return result
+
+
+def eval_extract_with_head(
+    expr: BaseElement, position: BaseElement, head: BaseElement, evaluation: Evaluation
+) -> Optional[BaseElement]:
+    """
+    Extract[expr, position, head]: the part of `expr` at `position`, or the list
+    of parts at a list of positions, each wrapped in `head` before it is
+    evaluated.
+    """
+    if isinstance(position, Integer):
+        position = ListExpression(position)
+    elements = position.elements if position.has_form(SymbolList, None) else None
+    if elements is None or (
+        elements
+        and elements[0].has_form(SymbolList, None)
+        and not all(element.has_form(SymbolList, None) for element in elements)
+    ):
+        evaluation.message(
+            "Extract", "psl1", position, Expression(SymbolExtract, expr, position, head)
+        )
+        return None
+    try:
+        if not elements or elements[0].has_form(SymbolList, None):
+            # A list of positions.
+            return ListExpression(
+                *(
+                    Expression(head, extract_part(expr, single.elements, evaluation))
+                    for single in elements
+                )
+            )
+        return Expression(head, extract_part(expr, elements, evaluation))
+    except MessageException as e:
+        e.message(evaluation)
+        return None
+
+
+def extract_part(
+    expr: BaseElement, indices: Sequence[BaseElement], evaluation: Evaluation
+) -> BaseElement:
+    """
+    The part of `expr` at the part specification `indices`, not evaluated.
+    `Key[k]` picks the value of `k` in an association.
+    """
+    indices = list(indices)
+    while indices:
+        index = indices[0]
+        if isinstance(expr, Association) and index.has_form(SymbolKey, 1):
+            try:
+                expr = expr[index.elements[0]]
+            except KeyError:
+                raise MessageException("Part", "partw", index, expr)
+            indices.pop(0)
+        elif isinstance(index, Integer):
+            expr = parts(expr, part_selectors([index]), evaluation)
+            indices.pop(0)
+        else:
+            return parts(expr, part_selectors(indices), evaluation)
+    return expr
 
 
 def eval_Part_for_Association(expr, key, evaluation: Evaluation):

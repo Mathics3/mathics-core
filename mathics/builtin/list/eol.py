@@ -66,6 +66,7 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.list.eol import (
     drop_span_selector,
+    eval_extract_with_head,
     eval_Part,
     eval_Part_for_Association,
     eval_Part_for_ByteArray,
@@ -627,6 +628,10 @@ class Extract(Builtin):
 
       <dt>'Extract'[$expr$, {$list_1$, $list_2$, ...}]
       <dd>extracts a list of parts.
+
+      <dt>'Extract'[$expr$, $pos$, $h$]
+      <dd>extracts parts of $expr$, wrapping each of them in $h$ before \
+      evaluation.
     </dl>
 
     'Extract[$expr$, $i$, $j$, ...]' is equivalent to 'Part[$expr$, {$i$, $j$, ...}]'.
@@ -635,15 +640,28 @@ class Extract(Builtin):
      = b
     >> Extract[{{a, b}, {c, d}}, {{1}, {2, 2}}]
      = {{a, b}, d}
+
+    With a third argument, the parts are wrapped before they are evaluated:
+    >> Extract[Hold[1 + 1, 2 + 2], {2}, Hold]
+     = Hold[2 + 2]
+    >> Extract[{{1, 2}, {3, 4}}, {{1, 1}, {2, 2}}, f]
+     = {f[1], f[4]}
     """
 
     attributes = A_N_HOLD_REST | A_PROTECTED
 
+    messages = {
+        "psl1": "Position specification `1` in `2` is not applicable.",
+    }
     rules = {
         "Extract[expr_, list_List]": "Part[expr, Sequence @@ list]",
         "Extract[expr_, {lists___List}]": "Extract[expr, #]& /@ {lists}",
     }
     summary_text = "extract elements that appear at a list of positions"
+
+    def eval_with_head(self, expr, position, head, evaluation: Evaluation):
+        "Extract[expr_, position_, head_]"
+        return eval_extract_with_head(expr, position, head, evaluation)
 
 
 class First(Builtin):
