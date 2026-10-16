@@ -411,6 +411,7 @@ def _infix_outputform_text(expr: Expression, evaluation: Evaluation, **kwargs) -
     # has a head that matches with a symbol associated to an infix
     # operator, WMA builds its inputform without passing through
     # its "Infix" form.
+    kwargs["_render_function"] = render_output_form
     operands, ops_lst, precedence, group = collect_in_pre_post_arguments(
         expr, evaluation, **kwargs
     )
@@ -712,6 +713,7 @@ def _prefix_output_text(expr: Expression, evaluation: Evaluation, **kwargs) -> s
     if not isinstance(expr.head, Symbol):
         raise _WrongFormattedExpression
 
+    kwargs["_render_function"] = render_output_form
     operands, op_head, precedence, group = collect_in_pre_post_arguments(
         expr, evaluation, **kwargs
     )
@@ -735,6 +737,7 @@ def _postfix_output_text(expr: Expression, evaluation: Evaluation, **kwargs) -> 
     if not isinstance(expr.head, Symbol):
         raise _WrongFormattedExpression
 
+    kwargs["_render_function"] = render_output_form
     operands, op_head, precedence, group = collect_in_pre_post_arguments(
         expr, evaluation, **kwargs
     )
