@@ -151,6 +151,27 @@ def test_equality_inequality(str_expr, msgs, str_expected, fail_msg):
         ),
         ("Negative[2 {Infinity, 3} - {3, 0}]", None, "{False, False}", None),
         ("Negative[ComplexInfinity]", None, "Negative[ComplexInfinity]", None),
+        # Other directions: the sign test of the direction, as in WMA
+        (
+            "{Positive[DirectedInfinity[1.]], Negative[DirectedInfinity[-1/2]],"
+            " NonNegative[DirectedInfinity[Pi]], NonPositive[DirectedInfinity[-Sqrt[2]]]}",
+            None,
+            "{True, True, True, True}",
+            None,
+        ),
+        (
+            "{Positive[DirectedInfinity[I]], Negative[DirectedInfinity[1 + I]],"
+            " NonNegative[DirectedInfinity[-I]], NonPositive[DirectedInfinity[I]]}",
+            None,
+            "{False, False, False, False}",
+            None,
+        ),
+        (
+            "Head[Positive[DirectedInfinity[x]]]",
+            None,
+            "Positive",
+            "A symbolic direction is left undecided",
+        ),
     ],
 )
 def test_numerical_properties(str_expr, msgs, str_expected, fail_msg):

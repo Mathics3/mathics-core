@@ -266,8 +266,7 @@ class Negative(Builtin):
 
     rules = {
         "Negative[x_?NumericQ]": "If[x < 0, True, False, False]",
-        "Negative[DirectedInfinity[1]]": "False",
-        "Negative[DirectedInfinity[-1]]": "True",
+        "Negative[DirectedInfinity[x_?NumericQ]]": "Negative[x]",
     }
     summary_text = "test whether an expression is a negative number"
 
@@ -289,8 +288,7 @@ class NonNegative(Builtin):
 
     rules = {
         "NonNegative[x_?NumericQ]": "If[x >= 0, True, False, False]",
-        "NonNegative[DirectedInfinity[1]]": "True",
-        "NonNegative[DirectedInfinity[-1]]": "False",
+        "NonNegative[DirectedInfinity[x_?NumericQ]]": "NonNegative[x]",
     }
     summary_text = "test whether an expression is a non-negative number"
 
@@ -312,8 +310,7 @@ class NonPositive(Builtin):
 
     rules = {
         "NonPositive[x_?NumericQ]": "If[x <= 0, True, False, False]",
-        "NonPositive[DirectedInfinity[1]]": "False",
-        "NonPositive[DirectedInfinity[-1]]": "True",
+        "NonPositive[DirectedInfinity[x_?NumericQ]]": "NonPositive[x]",
     }
     summary_text = "test whether an expression is a non-positive number"
 
@@ -521,8 +518,7 @@ class Positive(Builtin):
 
     rules = {
         "Positive[x_?NumericQ]": "If[x > 0, True, False, False]",
-        "Positive[DirectedInfinity[1]]": "True",
-        "Positive[DirectedInfinity[-1]]": "False",
+        "Positive[DirectedInfinity[x_?NumericQ]]": "Positive[x]",
     }
     summary_text = "test whether an expression is a positive number"
 
