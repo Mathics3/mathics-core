@@ -93,6 +93,8 @@ def test_table(str_expr, str_expected, failure_message):
             "{2, 3}",
             None,
         ),
+        ("{f /@ {}}", "{{}}", "A list of literals with pessimistic properties."),
+        ("Table[f /@ {}, {2}]", "{{}, {}}", None),
         ("ClearAll[l, t, f, x, y]", "Null", None),
     ],
 )
