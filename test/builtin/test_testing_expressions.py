@@ -135,9 +135,9 @@ def test_equality_inequality(str_expr, msgs, str_expected, fail_msg):
         ("PrimeQ[1]", None, "False", None),
         ("PrimeQ[2 ^ 255 - 1]", None, "False", None),
         # Non-atomic arguments
-        ("EvenQ[f[2]]", None, "False",  "Non-atomic EvenQ check"),
-        ("OddQ[f[1]]", None, "False", "Non-atomic OddQ check")
-        ("PrimeQ[f[2]]", None, "False",  "Non-atomic PrimeQ check"),
+        ("EvenQ[f[2]]", None, "False", "Non-atomic EvenQ check"),
+        ("OddQ[f[1]]", None, "False", "Non-atomic OddQ check"),
+        ("PrimeQ[f[2]]", None, "False", "Non-atomic PrimeQ check"),
         ("MatchQ[f[2], _?EvenQ]", None, "False", None),
         ("Cases[{2, f[2], 3}, _?OddQ]", None, "{3}", None),
     ],
