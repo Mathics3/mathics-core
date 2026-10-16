@@ -339,7 +339,7 @@ def eval_Transpose(m, dimensions: int) -> Optional[Expression]:
         p = PermuteDims(sympy_m, (1, 0, 2))
         return from_sympy_matrix(p.as_explicit())
 
-    assert dimensions == 2
+    assert dimensions == 2, "eval_Transpose only applies to 2- and 3-dimensional array."
     # Rearrange the elements directly. Going through a SymPy matrix
     # would turn a result with a single column, such as the transpose
     # of {{1, 2, 3}}, into a vector.
