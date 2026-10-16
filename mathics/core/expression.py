@@ -1231,7 +1231,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             # @timeit
             def eval_range(indices):
                 nonlocal recompute_properties
-                recompute_properties = False
                 for index in indices:
                     element = elements[index]
                     if not (
@@ -1288,6 +1287,10 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             # FIXME: see if we can preserve elements properties in eval_elements()
             eval_elements()
 
+        # ``unchanged`` stays True while ``new`` has the same head and the very
+        # same elements as ``self``. Then ``self`` is returned in the end, see Step 8.
+        unchanged = head is self._head and not recompute_properties
+
         if recompute_properties:
             new = Expression(head, *elements, elements_properties=None)
             new._build_elements_properties()
@@ -1310,7 +1313,10 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             # and could be heavy for expressions with many elements (like long lists)
             # however, most of the time, expressions do not have `Sequence` expressions
             # inside. Now this is handled by caching the sequences.
-            new = new.flatten_sequence(evaluation)
+            flattened = new.flatten_sequence(evaluation)
+            if flattened is not new:
+                unchanged = False
+                new = flattened
             if new.elements_properties is None:
                 new._build_elements_properties()
             elements = new._elements
@@ -1349,6 +1355,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     dirty_elements[index].unevaluated = True
 
             if dirty_elements:
+                unchanged = False
                 new = Expression(head, *dirty_elements)
                 elements = dirty_elements
                 new._build_elements_properties()
@@ -1362,7 +1369,12 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         if A_FLAT & attributes:
             assert isinstance(new._head, Symbol)
-            new = new.flatten_with_respect_to_head(new._head, callback=flatten_callback)
+            flattened = new.flatten_with_respect_to_head(
+                new._head, callback=flatten_callback
+            )
+            if flattened is not new:
+                unchanged = False
+                new = flattened
             if new.elements_properties is None:
                 new._build_elements_properties()
 
@@ -1375,20 +1387,13 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             and not new.elements_properties.is_ordered
             and (A_ORDERLESS & attributes)
         ):
+            unchanged = False
             new.sort()
 
         # Step 4:  Rebuild the ExpressionCache, which tracks which symbols
         # where involved, the Sequences present, and the last time they have changed.
 
         new._timestamp_cache(evaluation)
-
-        def new_is_self() -> bool:
-            """True if ``new`` has the same head and the very same elements as ``self``."""
-            return (
-                new._head is self._head
-                and len(new._elements) == len(self._elements)
-                and all(a is b for a, b in zip(new._elements, self._elements))
-            )
 
         # Step 5: Do we need to thread-rewrite the expression?
         #
@@ -1491,7 +1496,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     # while "result' might be ListExpression!?
                     # So make sure to use "result", not "new".
                     # But when nothing changed at all, keep ``self`` (see Step 8).
-                    if type(result) is type(self) and new_is_self():
+                    if unchanged and type(result) is type(self):
                         result = self
                     if isinstance(result, Expression):
                         result._timestamp_cache(evaluation)
@@ -1512,6 +1517,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 dirty_elements[index] = Expression(SymbolUnevaluated, element)
 
         if dirty_elements:
+            unchanged = False
             new = Expression(head)
             new.elements = dirty_elements
 
@@ -1523,7 +1529,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # in a definition, e.g. a list of rules in an OwnValue, is then known to be
         # evaluated, instead of being evaluated again on every use while only the
         # copies record that.
-        if new_is_self():
+        if unchanged:
             new = self
         new._timestamp_cache(evaluation)
         return new, False
