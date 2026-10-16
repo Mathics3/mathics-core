@@ -202,6 +202,16 @@ def test__listplot():
             ),
             "Background 3D",
         ),
+        ("Sphere[]", None, "Sphere[]", "Sphere is inert"),
+        ("Sphere[{1, 2, 3}]", None, "Sphere[{1, 2, 3}]", "Sphere is inert"),
+        ("f[Sphere[n_]] := n; f[Sphere[7]]", None, "7", "Sphere[n] as a head"),
+        (
+            "StringContainsQ[Graphics3D[Sphere[{1, 2, 3}]]//TeXForm//ToString, "
+            '"sphere((1, 2, 3), 1)"]',
+            None,
+            "True",
+            "default radius when drawn",
+        ),
         (
             "Graphics3D[Point[Table[{Sin[t], Cos[t], 0}, {t, 0, 2. Pi, Pi / 15.}]]] //Chop//TeXForm//ToString",
             None,
