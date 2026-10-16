@@ -68,7 +68,7 @@ import pytest
             "Dimensions[Transpose[{{1, 2, 3}}]]",
             None,
             "{3, 1}",
-            "Check the shape of a Transpose of a single row"
+            "Check the shape of a Transpose of a single row",
         ),
         # Elements are moved as they are, without a round trip through SymPy.
         (
