@@ -83,6 +83,49 @@ def test_dispatch(str_expr, msgs, str_expected, fail_msg):
 
 
 @pytest.mark.parametrize(
+    ("str_expr", "str_expected", "fail_msg"),
+    [
+        ("ClearAll[f, g, o]; SetAttributes[f, Flat];", "Null", None),
+        (
+            "MatchQ[f[x, y, z], f[a_, z]]",
+            "True",
+            "A blank before a literal can take several elements",
+        ),
+        ("Replace[f[x, y, z], f[a_, z] :> {a}]", "{f[x, y]}", None),
+        (
+            "Replace[f[x, y, z], f[a_, z[_]] :> {a}]",
+            "Replace[f[x, y, z], f[a_, z[_]] :> {a}]",
+            None,
+        ),
+        ("Replace[f[x, y, z[1]], f[a_, z[_]] :> {a}]", "{f[x, y]}", None),
+        ("f[x, y, z] /. f[a__, z] :> {a}", "{x, y}", "No element is lost"),
+        ("f[x, y, z] /. f[a___, y, b___] :> {{a}, {b}}", "{{x}, {z}}", None),
+        ("f[a, b, c, d, e] /. f[b, c, d] -> x", "f[a, x, e]", "WMA docs for Flat"),
+        ("f[a, b, c, d, e] /. f[b, c, d] -> f[x, y]", "f[a, x, y, e]", None),
+        ("f[a, b, c, d, e] /. f[b] -> x", "f[a, x, c, d, e]", None),
+        ("f[a, b, c, d, e] /. f[d, b] -> x", "f[a, b, c, d, e]", "Order matters"),
+        ("f[w, x, y, z] /. f[x, z] -> q", "f[w, x, y, z]", "Not contiguous"),
+        (
+            "SetAttributes[o, {Flat, OneIdentity}]; o[a_, 0] := 0; o[x, y, 0]",
+            "0",
+            None,
+        ),
+        ("SetAttributes[g, Flat]; g[a_, 0] := h[a]; g[x, y, 0]", "h[g[x, y]]", None),
+        (
+            "ClearAll[g]; SetAttributes[g, Flat]; g[l__, SameTest -> s_] := {{l}, s};"
+            " g[{1, -1}, {2, 3}, SameTest -> t]",
+            "{{{1, -1}, {2, 3}}, t}",
+            "Issue #1381",
+        ),
+        ("ClearAll[f, g, o];", "Null", None),
+    ],
+)
+def test_flat_patterns(str_expr, str_expected, fail_msg):
+    """Pattern matching against expressions whose head is Flat"""
+    check_evaluation(str_expr, str_expected, failure_message=fail_msg)
+
+
+@pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
         ("a + b /. x_ + y_ -> {x, y}", None, "{a, b}", None),
