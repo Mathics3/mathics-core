@@ -471,11 +471,15 @@ def eval_assign_format(
         ]
     lhs = lhs.elements[0]
     lhs_unwrapped = unwrap_expression(lhs)
-    lhs_unwrapped = (
-        lhs_unwrapped.get_head()
-        if not isinstance(lhs_unwrapped, Symbol)
-        else lhs_unwrapped
-    )
+    # For a named pattern or a blank, as in Format[t_h] or Format[_h],
+    # keep the pattern: the tag is h, which is found inside it below.
+    # Otherwise, the tag is the head, as in Format[h[x_]].
+    if not (
+        isinstance(lhs_unwrapped, Symbol)
+        or lhs_unwrapped.has_form(SymbolPattern, 2)
+        or lhs_unwrapped.get_head() in BLANK_PATTERN_HEADS
+    ):
+        lhs_unwrapped = lhs_unwrapped.get_head()
     target_symbol_names = collect_lhs_names_and_upset_dont_allow_custom(
         target_symbol_names, upset, op_name, lhs, lhs_unwrapped, evaluation
     )
