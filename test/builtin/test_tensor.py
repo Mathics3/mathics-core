@@ -32,7 +32,7 @@ import pytest
         ("Transpose[{{a}}]", None, "{{a}}", "Transpose of a single element"),
         ("Transpose[Transpose[{{a, b}}]]", None, "{{a, b}}", None),
         ("Dimensions[Transpose[{{1, 2, 3}}]]", None, "{3, 1}",
- 	     "Check the shape of a Transpose of a single row"),
+ 	"Check the shape of a Transpose of a single row"),
         # Elements are moved as they are, without a round trip through SymPy.
         (
             "Transpose[{{x + y, f[x]}, {1/2, Sin[x]}}]",
