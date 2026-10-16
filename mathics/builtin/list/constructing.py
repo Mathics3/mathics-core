@@ -566,12 +566,12 @@ class Table(IterationFunction):
     summary_text = "make a table of values of an expression"
 
     def get_result(self, elements, is_uniform=False) -> ListExpression:
-        return ListExpression(
-            *elements,
-            elements_properties=ElementsProperties(
-                elements_fully_evaluated=True, is_uniform=is_uniform
-            ),
-        )
+        # The elements have just been evaluated, but that does not make them
+        # "fully evaluated": that would keep the list from ever being evaluated
+        # again, so that in
+        #   l = Table[x, {1}]; x = 1; l
+        # l would stay {x}. Let ListExpression work out the properties.
+        return ListExpression(*elements)
 
 
 class Tuples(Builtin):

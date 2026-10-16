@@ -72,3 +72,29 @@ def test_range(str_expr, str_expected, failure_message):
 )
 def test_table(str_expr, str_expected, failure_message):
     check_evaluation(str_expr, str_expected, failure_message)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "failure_message"),
+    [
+        (None, None, None),
+        (
+            "ClearAll[l, x]; l = Table[x, {1}]; x = 1; l",
+            "{1}",
+            "A table sees a definition made after it.",
+        ),
+        (
+            "ClearAll[l, f, y]; l = Table[f[y], {1}]; f[y_] := 7; l",
+            "{7}",
+            "A table sees a rule defined after it.",
+        ),
+        (
+            "ClearAll[t, x]; t = Table[i + x, {i, 2}]; x = 1; t",
+            "{2, 3}",
+            None,
+        ),
+        ("ClearAll[l, t, f, x, y]", "Null", None),
+    ],
+)
+def test_table_is_evaluated_again(str_expr, str_expected, failure_message):
+    check_evaluation(str_expr, str_expected, failure_message)
