@@ -3,6 +3,7 @@
 Unit tests for mathics.builtins.numbers.algebra and
 mathics.builtins.numbers.integer
 """
+
 from test.helper import check_arg_counts, check_evaluation
 
 import pytest
@@ -385,6 +386,27 @@ def test_factor_terms_list():
             "{1, x}",
         ),
     ):
+        check_evaluation(str_expr, str_expected)
+
+
+def test_polynomialmod():
+    for str_expr, str_expected in [
+        ("PolynomialMod[3 x ^ 2 + 2 x + 1, 2]", "1 + x ^ 2"),
+        ("PolynomialMod[3 (x + 1) ^ 2, 2]", "1 + x ^ 2"),
+        ("PolynomialMod[-x, 2]", "x"),
+        ("PolynomialMod[-7, 3]", "2"),
+        ("PolynomialMod[2 x, 2]", "0"),
+        # Parts that are not polynomials are variables.
+        ("PolynomialMod[3 f[1] + 2 f[2], 2]", "f[1]"),
+        ("PolynomialMod[g[a, b], 2]", "g[a, b]"),
+        ("PolynomialMod[3 Sin[x] + 4 Sqrt[2] y, 3]", "Sqrt[2] y"),
+        # Not supported: left unevaluated rather than guessed.
+        ("PolynomialMod[x / 2, 3]", "PolynomialMod[x / 2, 3]"),
+        ("PolynomialMod[2.5 x, 2]", "PolynomialMod[2.5 x, 2]"),
+        ("PolynomialMod[x, -2]", "PolynomialMod[x, -2]"),
+        ("PolynomialMod[x ^ 2 + 1, x + 1]", "PolynomialMod[1 + x ^ 2, 1 + x]"),
+        ("PolynomialMod[{3 x}, 2]", "PolynomialMod[{3 x}, 2]"),
+    ]:
         check_evaluation(str_expr, str_expected)
 
 
