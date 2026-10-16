@@ -4,7 +4,7 @@ Evaluation routines for builtin function contained in mathics.builtin.list.eol.
 
 from typing import Optional, Sequence
 
-from mathics.core.atoms import Integer
+from mathics.core.atoms import ByteArray, Integer
 from mathics.core.atoms.associations import Association
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
@@ -16,7 +16,6 @@ from mathics.core.subexpression import SubExpression
 from mathics.core.symbols import Atom, Symbol
 from mathics.core.systemsymbols import (
     SymbolByteArray,
-    SymbolExtract,
     SymbolInfinity,
     SymbolKey,
     SymbolList,
@@ -120,14 +119,22 @@ def eval_Part(
         return result
 
 
-def eval_extract_with_head(
-    expr: BaseElement, position: BaseElement, head: BaseElement, evaluation: Evaluation
+def eval_extract(
+    expr: BaseElement,
+    position: BaseElement,
+    head: Optional[BaseElement],
+    expression: Expression,
+    evaluation: Evaluation,
 ) -> Optional[BaseElement]:
     """
-    Extract[expr, position, head]: the part of `expr` at `position`, or the list
-    of parts at a list of positions, each wrapped in `head` before it is
-    evaluated.
+    Extract[expr, position] and Extract[expr, position, head]: the part of
+    `expr` at `position`, or the list of parts at a list of positions. With
+    `head`, each part is wrapped in it before it is evaluated.
     """
+
+    def wrap(part: BaseElement) -> BaseElement:
+        return part if head is None else Expression(head, part)
+
     if isinstance(position, Integer):
         position = ListExpression(position)
     elements = position.elements if position.has_form(SymbolList, None) else None
@@ -136,21 +143,21 @@ def eval_extract_with_head(
         and elements[0].has_form(SymbolList, None)
         and not all(element.has_form(SymbolList, None) for element in elements)
     ):
-        evaluation.message(
-            "Extract", "psl1", position, Expression(SymbolExtract, expr, position, head)
-        )
+        evaluation.message("Extract", "psl1", position, expression)
         return None
     try:
         if not elements or elements[0].has_form(SymbolList, None):
             # A list of positions.
             return ListExpression(
                 *(
-                    Expression(head, extract_part(expr, single.elements, evaluation))
+                    wrap(extract_part(expr, single.elements, evaluation))
                     for single in elements
                 )
             )
-        return Expression(head, extract_part(expr, elements, evaluation))
+        return wrap(extract_part(expr, elements, evaluation))
     except MessageException as e:
+        # The messages of Part are General ones; WMA gives them as Extract::tag.
+        e._message = ("Extract",) + e._message[1:]
         e.message(evaluation)
         return None
 
@@ -170,12 +177,19 @@ def extract_part(
                 expr = expr[index.elements[0]]
             except KeyError:
                 raise MessageException("Part", "partw", index, expr)
-            indices.pop(0)
+        elif isinstance(expr, ByteArray) and isinstance(index, Integer):
+            i, n = index.value, len(expr.value)
+            if i == 0:
+                expr = SymbolByteArray
+            elif 1 <= abs(i) <= n:
+                expr = Integer(expr.value[i - 1 if i > 0 else i])
+            else:
+                raise MessageException("Part", "partw", index, expr)
         elif isinstance(index, Integer):
             expr = parts(expr, part_selectors([index]), evaluation)
-            indices.pop(0)
         else:
             return parts(expr, part_selectors(indices), evaluation)
+        indices.pop(0)
     return expr
 
 

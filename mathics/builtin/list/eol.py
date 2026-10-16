@@ -66,7 +66,7 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.list.eol import (
     drop_span_selector,
-    eval_extract_with_head,
+    eval_extract,
     eval_Part,
     eval_Part_for_Association,
     eval_Part_for_ByteArray,
@@ -653,15 +653,17 @@ class Extract(Builtin):
     messages = {
         "psl1": "Position specification `1` in `2` is not applicable.",
     }
-    rules = {
-        "Extract[expr_, list_List]": "Part[expr, Sequence @@ list]",
-        "Extract[expr_, {lists___List}]": "Extract[expr, #]& /@ {lists}",
-    }
     summary_text = "extract elements that appear at a list of positions"
 
-    def eval_with_head(self, expr, position, head, evaluation: Evaluation):
-        "Extract[expr_, position_, head_]"
-        return eval_extract_with_head(expr, position, head, evaluation)
+    def eval(self, expr, position, evaluation: Evaluation, expression: Expression):
+        "expression: Extract[expr_, position_]"
+        return eval_extract(expr, position, None, expression, evaluation)
+
+    def eval_with_head(
+        self, expr, position, head, evaluation: Evaluation, expression: Expression
+    ):
+        "expression: Extract[expr_, position_, head_]"
+        return eval_extract(expr, position, head, expression, evaluation)
 
 
 class First(Builtin):
