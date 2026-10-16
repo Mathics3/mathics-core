@@ -24,6 +24,19 @@ import pytest
         ("A", None, "{{1 / Sqrt[b], 0}, {a / Sqrt[b], Sqrt[b]}}", None),
         # Transpose
         ("Transpose[x]", None, "Transpose[x]", None),
+        # A matrix with a single row or column stays a matrix.
+        ("Transpose[{{1, 2, 3}}]", None, "{{1}, {2}, {3}}", None),
+        ("Transpose[{{1}, {2}, {3}}]", None, "{{1, 2, 3}}", None),
+        ("Transpose[{{a}}]", None, "{{a}}", None),
+        ("Transpose[Transpose[{{a, b}}]]", None, "{{a, b}}", None),
+        ("Dimensions[Transpose[{{1, 2, 3}}]]", None, "{3, 1}", None),
+        # Elements are moved as they are, without a round trip through SymPy.
+        (
+            "Transpose[{{x + y, f[x]}, {1/2, Sin[x]}}]",
+            None,
+            "{{x + y, 1 / 2}, {f[x], Sin[x]}}",
+            None,
+        ),
     ],
 )
 def test_tensor(str_expr, msgs, str_expected, fail_msg):
