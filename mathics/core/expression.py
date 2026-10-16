@@ -1382,6 +1382,14 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         new._timestamp_cache(evaluation)
 
+        def new_is_self() -> bool:
+            """True if ``new`` has the same head and the very same elements as ``self``."""
+            return (
+                new._head is self._head
+                and len(new._elements) == len(self._elements)
+                and all(a is b for a, b in zip(new._elements, self._elements))
+            )
+
         # Step 5: Do we need to thread-rewrite the expression?
         #
         # Threading is needed when head has the ``Listable``
@@ -1482,6 +1490,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     # new can be a Expression[SymbolConstant: System`List...]
                     # while "result' might be ListExpression!?
                     # So make sure to use "result", not "new".
+                    # But when nothing changed at all, keep ``self`` (see Step 8).
+                    if type(result) is type(self) and new_is_self():
+                        result = self
                     if isinstance(result, Expression):
                         result._timestamp_cache(evaluation)
                     return result, False
@@ -1506,6 +1517,14 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         # Step 8: Update the cache. Return the new compound Expression and
         #        indicate that no further evaluation is needed.
+        #
+        # If nothing changed (the same head and the very same elements), return
+        # ``self`` with its cache renewed rather than the copy: an expression kept
+        # in a definition, e.g. a list of rules in an OwnValue, is then known to be
+        # evaluated, instead of being evaluated again on every use while only the
+        # copies record that.
+        if new_is_self():
+            new = self
         new._timestamp_cache(evaluation)
         return new, False
 
@@ -2094,8 +2113,20 @@ def convert_expression_elements(
 
     result = []
     last_converted_elt = None
+    last_lookup_name = ""
     for element in elements:
         converted_elt = conversion_fn(element)
+
+        # Uniform means that all the elements have the same lookup name, as in
+        # _build_elements_properties(): only the first one is then searched for
+        # upvalues, so an element with another name must clear it.
+        if elements_properties.is_uniform:
+            lookup_name = converted_elt.get_symbol_definition_name()
+            if last_lookup_name:
+                if lookup_name != last_lookup_name:
+                    elements_properties.is_uniform = False
+            else:
+                last_lookup_name = lookup_name
 
         # Test for the three properties mentioned above and literalness.
         if is_literal and converted_elt.is_literal:
