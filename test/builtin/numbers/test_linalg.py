@@ -297,7 +297,7 @@ def test_linalg(str_expr, msgs, str_expected, fail_msg):
         ("RowReduce[{{1/2, 1}, {1, 3}}, Modulus -> 3]", None, "{{1, 0}, {0, 1}}"),
         ("RowReduce[{{-1, 2}, {3, -4}}, Modulus -> 0]", None, "{{1, 0}, {0, 1}}"),
         ("NullSpace[{{1, 1}, {1, 1}}, Modulus -> 2]", None, "{{1, 1}}"),
-        ("NullSpace[{{1, 1, 1}}, Modulus -> 7]", None, "{{6, 1, 0}, {6, 0, 1}}"),
+        ("NullSpace[{{1, 1, 1}}, Modulus -> 7]", None, "{{6, 0, 1}, {6, 1, 0}}"),
         ("NullSpace[{{1, 0}, {0, 1}}, Modulus -> 3]", None, "{}"),
         (
             "NullSpace[{{1, 0, 4}, {2, 0, 3}, {2, 1, 2}}, Modulus -> 5]",
@@ -369,7 +369,7 @@ def test_linalg_modulus_random():
     """Check the modular results against their defining properties."""
     check_evaluation(
         "SeedRandom[42]; "
-        "And @@ Table["
+        "And @@ Table[Module[{m, p, ns, rr, rk, x},"
         "  m = RandomInteger[{-5, 5}, {6, 8}]; p = {2, 3, 7}[[Mod[k, 3] + 1]];"
         "  ns = NullSpace[m, Modulus -> p];"
         "  rr = RowReduce[m, Modulus -> p];"
@@ -379,16 +379,16 @@ def test_linalg_modulus_random():
         "    Length[ns] + rk == 8,"
         "    ns === {} || Union[Flatten[Mod[m . Transpose[ns], p]]] === {0},"
         "    Mod[m . x - m . Range[8], p] === Table[0, 6],"
-        "    Count[rr, Except[{0 ..}]] == rk],"
+        "    Count[rr, Except[{0 ..}]] == rk]],"
         "  {k, 30}]",
         "True",
     )
     check_evaluation(
         "SeedRandom[7]; "
-        "And @@ Table["
+        "And @@ Table[Module[{m, inv},"
         "  m = RandomInteger[{0, 6}, {5, 5}];"
         "  inv = Quiet[Inverse[m, Modulus -> 7]];"
-        "  Head[inv] === Inverse || Mod[m . inv, 7] === IdentityMatrix[5],"
+        "  Head[inv] === Inverse || Mod[m . inv, 7] === IdentityMatrix[5]],"
         "  {k, 30}]",
         "True",
     )

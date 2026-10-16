@@ -107,15 +107,15 @@ def rref_mod(rows: ModMatrix, p: int) -> Tuple[ModMatrix, List[int]]:
 def nullspace_mod(rows: ModMatrix, p: int) -> ModMatrix:
     """Return a basis of the null space mod p.
 
-    As with the exact NullSpace, there is one vector for each column
-    without a pivot, in increasing order of that column; it has 1 there
-    and 0 in the other columns without a pivot.
+    There is one vector for each column without a pivot; it has 1 there
+    and 0 in the other columns without a pivot. As in WMA, the vectors
+    come in decreasing order of that column.
     """
     reduced, pivots = rref_mod(rows, p)
     ncols = len(rows[0])
     pivot_set = set(pivots)
     basis = []
-    for free in range(ncols):
+    for free in reversed(range(ncols)):
         if free in pivot_set:
             continue
         vector = [0] * ncols
