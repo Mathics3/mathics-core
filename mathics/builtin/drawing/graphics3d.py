@@ -355,13 +355,16 @@ class Sphere(Builtin):
 
     >> Graphics3D[{Yellow, Sphere[{{-1, 0, 0}, {1, 0, 0}, {0, 0, Sqrt[3.]}}, 1]}]
      = -Graphics3D-
+
+    'Sphere' is a symbolic representation: it does not evaluate, and the \
+    default center and radius are only used when it is drawn:
+    >> {Sphere[], Sphere[{1, 2, 3}]}
+     = {Sphere[], Sphere[{1, 2, 3}]}
+    >> Graphics3D[Sphere[{1, 2, 3}]]
+     = -Graphics3D-
     """
 
     summary_text = "represent a sphere"
-    rules = {
-        "Sphere[]": "Sphere[{0, 0, 0}, 1]",
-        "Sphere[positions_]": "Sphere[positions, 1]",
-    }
 
 
 class Tube(Builtin):
