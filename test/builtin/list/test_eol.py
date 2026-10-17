@@ -3,7 +3,7 @@
 Unit tests for mathics.builtins.list.constructing
 """
 
-from test.helper import check_evaluation, check_evaluation_as_in_cli
+from test.helper import check_arg_counts, check_evaluation, check_evaluation_as_in_cli
 
 import pytest
 
@@ -383,6 +383,15 @@ def test_extract_with_head(str_expr, expected_messages, str_expected):
             ("Part specification is longer than depth of object.",),
             "Extract[{a, b, c}, {{1}, {1, 1}}]",
         ),
+        # Extract[pos] is the operator form.
+        ("Extract[{2}][{a, b, c}]", None, "b"),
+        ("Extract[{a}]", None, "Extract[{a}]"),
+        ("Extract[f[a, b]]", None, "Extract[f[a, b]]"),
+        (
+            "Extract[{a}, 1, h, 4]",
+            ("Extract called with 4 arguments; 2 or 3 arguments are expected.",),
+            "Extract[{a}, 1, h, 4]",
+        ),
     ],
 )
 def test_extract(str_expr, expected_messages, str_expected):
@@ -396,3 +405,7 @@ def test_extract(str_expr, expected_messages, str_expected):
         hold_expected=True,
         expected_messages=expected_messages,
     )
+
+
+def test_extract_arg_errors():
+    check_arg_counts("Extract", "2 or 3 arguments are")
