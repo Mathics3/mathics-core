@@ -11,7 +11,7 @@ from sympy import im, re
 from mathics.core.atoms import Integer, Integer0
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
-from mathics.core.convert.matrix import matrix_data
+from mathics.core.convert.matrix import matrix_data, to_mathics_matrix
 from mathics.core.convert.mpmath import from_mpmath, to_mpmath_matrix
 from mathics.core.convert.sympy import from_sympy, to_sympy_matrix
 from mathics.core.evaluation import Evaluation
@@ -26,7 +26,6 @@ from mathics.eval.numbers.linalg_modular import (
     matrix_mod,
     nullspace_mod,
     rref_mod,
-    to_mathics_matrix,
     vector_mod,
 )
 
