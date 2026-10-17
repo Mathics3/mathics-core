@@ -268,6 +268,33 @@ def test_format_private_doctests(str_expr, str_expected, msg):
             None,
         ),
         ("r[1]", None, "ab", None),
+        # Infix, Prefix and Postfix display the elements of their first
+        # argument, so a format may wrap the expression it formats.
+        (
+            'Format[pInfix[t__]] := Infix[pInfix[t], "~"]; pInfix[a, b]',
+            (),
+            "a ~ b",
+            "Infix of the formatted expression itself",
+        ),
+        ("pInfix[a, pInfix[b, c]] + 1", (), "1 + a ~ b ~ c", "Nested, inside Plus"),
+        (
+            'Format[pLeft[t__]] := Infix[pLeft[t], "~", 300, Left]; pLeft[pLeft[a, b], c]',
+            (),
+            "a ~ b ~ c",
+            "With precedence and grouping",
+        ),
+        (
+            'Format[pPre[x_]] := Prefix[pPre[x], "!"]; pPre[a]',
+            (),
+            "!a",
+            "Prefix of the formatted expression itself",
+        ),
+        (
+            'Format[pPost[x_]] := Postfix[pPost[x], "!!"]; pPost[a]',
+            (),
+            "a!!",
+            "Postfix of the formatted expression itself",
+        ),
         (None, None, None, None),
     ],
 )
