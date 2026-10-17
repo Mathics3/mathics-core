@@ -134,7 +134,7 @@ def test_equality_inequality(str_expr, msgs, str_expected, fail_msg):
         ("Positive[Sin[{11, 14}]]", None, "{False, True}", None),
         ("PrimeQ[1]", None, "False", None),
         ("PrimeQ[2 ^ 255 - 1]", None, "False", None),
-        # Real infinities
+b        # Real infinities
         ("{Negative[Infinity], Negative[-Infinity]}", None, "{False, True}", None),
         ("{Positive[Infinity], Positive[-Infinity]}", None, "{True, False}", None),
         (
@@ -172,6 +172,12 @@ def test_equality_inequality(str_expr, msgs, str_expected, fail_msg):
             "Positive",
             "A symbolic direction is left undecided",
         ),
+        # Non-atomic arguments
+        ("EvenQ[f[2]]", None, "False", "Non-atomic EvenQ check"),
+        ("OddQ[f[1]]", None, "False", "Non-atomic OddQ check"),
+        ("PrimeQ[f[2]]", None, "False", "Non-atomic PrimeQ check"),
+        ("MatchQ[f[2], _?EvenQ]", None, "False", None),
+        ("Cases[{2, f[2], 3}, _?OddQ]", None, "{3}", None),
     ],
 )
 def test_numerical_properties(str_expr, msgs, str_expected, fail_msg):
@@ -214,6 +220,10 @@ def test_numerical_properties(str_expr, msgs, str_expected, fail_msg):
         ("MatchQ[1, a_.*b_.]", None, "True", None),
         ("MatchQ[x, a_.*b_.]", None, "True", None),
         ("MatchQ[2*x, a_.*b_.]", None, "True", None),
+        # Orderless literal patterns mixing an atom and an expression
+        ("MatchQ[2 x[3], 2 x[3]]", None, "True", None),
+        ("MatchQ[x[3] + 2, 2 + x[3]]", None, "True", None),
+        ("MatchQ[2 x[3], 3 x[3]]", None, "False", None),
     ],
 )
 def test_matchq(str_expr, msgs, str_expected, fail_msg):

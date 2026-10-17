@@ -2,7 +2,8 @@
 """
 Unit tests for mathics.builtins.list.constructing
 """
-from test.helper import check_evaluation, check_evaluation_as_in_cli
+
+from test.helper import check_arg_counts, check_evaluation, check_evaluation_as_in_cli
 
 import pytest
 
@@ -320,3 +321,111 @@ def test_as_in_cli(str_expr, expected_messages, str_expected, assert_message):
     check_evaluation_as_in_cli(
         str_expr, str_expected, expected_messages, assert_message
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "expected_messages", "str_expected"),
+    [
+        ("Extract[{a[1], b[2]}, {2}, Hold]", None, "Hold[b[2]]"),
+        (
+            "Extract[{{1, 2}, {3, 4}}, {{1, 1}, {2, 2}}, Hold]",
+            None,
+            "{Hold[1], Hold[4]}",
+        ),
+        ("Extract[Hold[1 + 1, 2 + 2], {2}, Hold]", None, "Hold[2 + 2]"),
+        ("Extract[Hold[1 + 1, 2 + 2], {1, -1}, Hold]", None, "Hold[1]"),
+        ("Extract[Hold[1 + 1], {1, 0}, Hold]", None, "Hold[Plus]"),
+        ("Extract[Hold[1 + 1], {{}}, Hold]", None, "{Hold[Hold[1 + 1]]}"),
+        ("Extract[Hold[1 + 1], {}, Hold]", None, "{}"),
+        ("Extract[{a, b, c}, 2, f]", None, "f[b]"),
+        ("Extract[{{a, b}, {c, d}}, {All, 1}, Hold]", None, "Hold[{a, c}]"),
+        ('Extract[<|"x" -> 1 + 1|>, {Key["x"]}, Hold]', None, "Hold[2]"),
+        (
+            "Extract[Hold[1 + 1], {1, 5}, Hold]",
+            ("Part 5 of 1 + 1 does not exist.",),
+            "Extract[Hold[1 + 1], {1, 5}, Hold]",
+        ),
+        (
+            "Extract[{a, b}, notapos, Hold]",
+            (
+                "Position specification notapos in Extract[{a, b}, notapos, Hold] is not applicable.",
+            ),
+            "Extract[{a, b}, notapos, Hold]",
+        ),
+    ],
+)
+def test_extract_with_head(str_expr, expected_messages, str_expected):
+    """Extract[expr, pos, h] wraps the parts in h before they are evaluated."""
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        expected_messages=expected_messages,
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "expected_messages", "str_expected"),
+    [
+        ("Extract[{a, b}, {{}}]", None, "{{a, b}}"),
+        # A single part selector other than an integer is a position too.
+        ("Extract[{a, b, c}, All, Hold]", None, "Hold[{a, b, c}]"),
+        ("Extract[{a, b, c}, 1 ;; 2, Hold]", None, "Hold[{a, b}]"),
+        ("Extract[{a, b, c}, -1 ;; 1 ;; -1]", None, "{c, b, a}"),
+        ('Extract[<|"x" -> 1 + 1|>, Key["x"], Hold]', None, "Hold[2]"),
+        ('Extract[<|"x" -> 1, "y" -> 1 + 1|>, "y", Hold]', None, "Hold[2]"),
+        ('Extract[<|"x" -> 1, "y" -> 2|>, {"y"}]', None, "2"),
+        ("Extract[{{1, 2}, {3, 4}}, {All, 1}, Hold]", None, "Hold[{1, 3}]"),
+        (
+            "Extract[{{1, 2}, {3, 4}}, {{1, All}, {2, 2}}, Hold]",
+            None,
+            "{Hold[{1, 2}], Hold[4]}",
+        ),
+        (
+            "Extract[{a, b, c}, xpos]",
+            (
+                "Position specification xpos in Extract[{a, b, c}, xpos] is not applicable.",
+            ),
+            "Extract[{a, b, c}, xpos]",
+        ),
+        ("Extract[{a, b}, {}]", None, "{}"),
+        ("Extract[{1 + 1, 2}, {{1}, {2}}]", None, "{2, 2}"),
+        ("Extract[ByteArray[{1, 2}], {-1}]", None, "2"),
+        (
+            "Extract[{1, 2}, {3}]",
+            ("Part 3 of {1, 2} does not exist.",),
+            "Extract[{1, 2}, {3}]",
+        ),
+        (
+            "Extract[{a, b, c}, {{1}, {1, 1}}]",
+            ("Part specification is longer than depth of object.",),
+            "Extract[{a, b, c}, {{1}, {1, 1}}]",
+        ),
+        # Extract[pos] is the operator form.
+        ("Extract[{2}][{a, b, c}]", None, "b"),
+        ("Extract[{a}]", None, "Extract[{a}]"),
+        ("Extract[f[a, b]]", None, "Extract[f[a, b]]"),
+        (
+            "Extract[{a}, 1, h, 4]",
+            ("Extract called with 4 arguments; 2 or 3 arguments are expected.",),
+            "Extract[{a}, 1, h, 4]",
+        ),
+    ],
+)
+def test_extract(str_expr, expected_messages, str_expected):
+    """Extract[expr, pos]: an empty position is the whole expression, and a
+    position that is not there leaves Extract unevaluated."""
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        expected_messages=expected_messages,
+    )
+
+
+def test_extract_arg_errors():
+    check_arg_counts("Extract", "2 or 3 arguments are")

@@ -11,7 +11,12 @@ found in module `mathics.builtin.assignments.assignment`.
 
 from typing import Final, Optional
 
-from mathics.core.assignment import is_protected, rejected_because_protected, unwrap_lhs
+from mathics.core.assignment import (
+    is_protected,
+    nvalue_pattern_from_wma,
+    rejected_because_protected,
+    unwrap_lhs,
+)
 from mathics.core.atoms import Integer, Integer1
 from mathics.core.definitions import BOX_FORMS
 from mathics.core.element import BaseElement, EvalMixin
@@ -400,6 +405,22 @@ def eval_assign_definition_values(
     if rules is None:
         evaluation.message(op_name, "vrule", lhs, rhs)
         raise AssignmentException(lhs, None)
+    # As in WMA, one HoldPattern level around a rule pattern only protects it
+    # from evaluation and is not part of the stored pattern. Otherwise a later
+    # `f[1] = ...` would not replace the rule from `DownValues[f] = {HoldPattern[f[1]] :> ...}`.
+    rules = [
+        (
+            RewriteRule(rule.pattern.expr.elements[0], rule.replace)
+            if rule.pattern.expr.has_form(SymbolHoldPattern, 1)
+            else rule
+        )
+        for rule in rules
+    ]
+    if lhs_name == "System`NValues":
+        rules = [
+            RewriteRule(nvalue_pattern_from_wma(rule.pattern.expr), rule.replace)
+            for rule in rules
+        ]
     evaluation.definitions.set_values(tag, lhs_name, rules)
     return True
 
@@ -471,11 +492,15 @@ def eval_assign_format(
         ]
     lhs = lhs.elements[0]
     lhs_unwrapped = unwrap_expression(lhs)
-    lhs_unwrapped = (
-        lhs_unwrapped.get_head()
-        if not isinstance(lhs_unwrapped, Symbol)
-        else lhs_unwrapped
-    )
+    # For a named pattern or a blank, as in Format[t_h] or Format[_h],
+    # keep the pattern: the tag is h, which is found inside it below.
+    # Otherwise, the tag is the head, as in Format[h[x_]].
+    if not (
+        isinstance(lhs_unwrapped, Symbol)
+        or lhs_unwrapped.has_form(SymbolPattern, 2)
+        or lhs_unwrapped.get_head() in BLANK_PATTERN_HEADS
+    ):
+        lhs_unwrapped = lhs_unwrapped.get_head()
     target_symbol_names = collect_lhs_names_and_upset_dont_allow_custom(
         target_symbol_names, upset, op_name, lhs, lhs_unwrapped, evaluation
     )
@@ -1009,6 +1034,7 @@ def eval_assign_n(
         lhs = Expression(SymbolN, lhs.elements[0], nprec)
     else:
         nprec = lhs.elements[1]
+        lhs = nvalue_pattern_from_wma(lhs)
 
     lhs_unwrapped = unwrap_expression(lhs.elements[0])
 

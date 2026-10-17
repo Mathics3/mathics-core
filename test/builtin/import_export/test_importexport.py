@@ -401,3 +401,21 @@ def test_inividually():
 def test_b64encode(str_expr, msgs, str_expected, fail_msg):
     """special case"""
     check_evaluation_as_in_cli(str_expr, str_expected, fail_msg, msgs)
+
+
+@pytest.mark.parametrize(
+    ("mime_type", "short_name"),
+    [
+        ("application/xml", "XML"),
+        ("text/xml", "XML"),
+        ("image/jpeg", "JPG"),
+        ("image/png", "PNG"),
+    ],
+)
+def test_filetype_from_mime_content(mime_type, short_name):
+    """The short name of a MIME type must not depend on the platform's
+    mimetypes database (without /etc/mime.types, Python maps
+    "application/xml" to ".xsl")."""
+    from mathics.eval.import_export.importexport import filetype_from_mime_content
+
+    assert filetype_from_mime_content(mime_type).lstrip(".") == short_name

@@ -3,7 +3,6 @@
 Unit tests from mathics.builtin.evaluation.
 """
 
-
 import sys
 from test.helper import check_evaluation_as_in_cli
 
@@ -55,6 +54,32 @@ import pytest
             None,
         ),
         ("ClearAll[f];", None, None, None),
+        # $IterationLimit bounds one chain of rewrites, not the number of
+        # times symbols are looked up during the whole evaluation.
+        (
+            "Block[{$IterationLimit = 20, itlimX = {itlimA}}, Do[itlimX, {30}]; itlimX]",
+            None,
+            "{itlimA}",
+            "Many separate lookups of a symbol do not add up",
+        ),
+        (
+            'Do[Evaluate[Symbol["c" <> ToString[k]]] = Symbol["c" <> ToString[k + 1]], {k, 0, 29}]; Block[{$IterationLimit = 40}, c0]',
+            None,
+            "c30",
+            "A chain of 30 rewrites is within the limit of 40",
+        ),
+        (
+            "Block[{$IterationLimit = 20}, c0]",
+            ("Iteration limit of 20 exceeded.",),
+            "$Aborted",
+            "A chain of 30 rewrites exceeds the limit of 20",
+        ),
+        (
+            'ClearAll[c0, c30]; Do[ClearAll[Evaluate[Symbol["c" <> ToString[k]]]], {k, 1, 29}];',
+            None,
+            None,
+            None,
+        ),
         (
             "Attributes[h] = Flat;h[items___] := Plus[items];h[1, Unevaluated[Sequence[Unevaluated[2], 3]], Sequence[4, Unevaluated[5]]]",
             None,
@@ -62,6 +87,15 @@ import pytest
             None,
         ),
         ("ClearAll[f];", None, None, None),
+        # Release, the obsolete form of Evaluate
+        ("x = 1 + 1; Release[x]", None, "2", None),
+        (
+            "With[{name = h}, f[Release[name][k_]] := {name, k}]; f[h[3]]",
+            None,
+            "{h, 3}",
+            "Release in the left-hand side of a definition",
+        ),
+        ("ClearAll[f, h, x];", None, None, None),
     ],
 )
 def test_evaluation(str_expr, msgs, str_expected, fail_msg):
