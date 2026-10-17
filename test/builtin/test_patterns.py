@@ -168,6 +168,9 @@ def test_dispatch(str_expr, msgs, str_expected, fail_msg):
         ("f[10]", None, "100", None),
         ("f[10, Power -> 3]", None, "1000", None),
         ("Clear[f]", None, None, None),
+        # Orderless literal pattern mixing an atom and an expression
+        ("f[2 x[3]] = 1; f[2 x[3]]", None, "1", None),
+        ("Clear[f]", None, None, None),
     ],
 )
 def test_pattern(str_expr, msgs, str_expected, fail_msg):

@@ -2,6 +2,7 @@
 """
 Unit tests for mathics.builtins.numbers.linalg
 """
+
 from test.helper import check_arg_counts, check_evaluation
 
 import pytest
@@ -281,4 +282,113 @@ def test_linalg(str_expr, msgs, str_expected, fail_msg):
         hold_expected=True,
         failure_message=fail_msg,
         expected_messages=msgs,
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected"),
+    [
+        (
+            "RowReduce[{{1, 0, 4}, {2, 0, 3}, {2, 1, 2}}, Modulus -> 5]",
+            None,
+            "{{1, 0, 4}, {0, 1, 4}, {0, 0, 0}}",
+        ),
+        ("RowReduce[{{1, 1}, {1, 1}}, Modulus -> 2]", None, "{{1, 1}, {0, 0}}"),
+        ("RowReduce[{{1/2, 1}, {1, 3}}, Modulus -> 3]", None, "{{1, 0}, {0, 1}}"),
+        ("RowReduce[{{-1, 2}, {3, -4}}, Modulus -> 0]", None, "{{1, 0}, {0, 1}}"),
+        ("NullSpace[{{1, 1}, {1, 1}}, Modulus -> 2]", None, "{{1, 1}}"),
+        ("NullSpace[{{1, 1, 1}}, Modulus -> 7]", None, "{{6, 0, 1}, {6, 1, 0}}"),
+        ("NullSpace[{{1, 0}, {0, 1}}, Modulus -> 3]", None, "{}"),
+        (
+            "NullSpace[{{1, 0, 4}, {2, 0, 3}, {2, 1, 2}}, Modulus -> 5]",
+            None,
+            "{{1, 1, 1}}",
+        ),
+        ("MatrixRank[{{1, 0, 4}, {2, 0, 3}, {2, 1, 2}}, Modulus -> 5]", None, "2"),
+        ("MatrixRank[{{2, 4}, {6, 8}}, Modulus -> 2]", None, "0"),
+        ("Inverse[{{1, 1}, {0, 1}}, Modulus -> 2]", None, "{{1, 1}, {0, 1}}"),
+        ("Inverse[{{12, -2}, {1, 3}}, Modulus -> 5]", None, "{{1, 4}, {3, 4}}"),
+        (
+            "Head[Inverse[{{1, 1}, {1, 1}}, Modulus -> 2]]",
+            ("The matrix {{1, 1}, {1, 1}} is singular.",),
+            "Inverse",
+        ),
+        (
+            "Head[Inverse[{{1, 2}, {3, 4}}, Modulus -> 2]]",
+            ("The matrix {{1, 2}, {3, 4}} is singular.",),
+            "Inverse",
+        ),
+        ("LinearSolve[{{1, 1}, {0, 1}}, {1, 0}, Modulus -> 2]", None, "{1, 0}"),
+        (
+            "LinearSolve[{{1, 1, 1}, {1, 2, 3}, {1, 4, 9}}, {1, 2, 3}, Modulus -> 47]",
+            None,
+            "{23, 2, 23}",
+        ),
+        ("LinearSolve[{{1, 1}, {1, 1}}, {1, 1}, Modulus -> 2]", None, "{1, 0}"),
+        (
+            "Head[LinearSolve[{{1, 1}, {1, 1}}, {1, 0}, Modulus -> 2]]",
+            ("Linear equation encountered that has no solution.",),
+            "LinearSolve",
+        ),
+        # Left unevaluated: a modulus that is not a prime, a symbolic entry,
+        # and a denominator that is not invertible.
+        (
+            "Head[NullSpace[{{1, 2}, {3, 2}}, Modulus -> 6]]",
+            None,
+            "NullSpace",
+        ),
+        (
+            "Head[MatrixRank[{{1, 2}, {3, 2}}, Modulus -> x]]",
+            None,
+            "MatrixRank",
+        ),
+        (
+            "Head[RowReduce[{{a, 1}, {1, 3}}, Modulus -> 3]]",
+            None,
+            "RowReduce",
+        ),
+        (
+            "Head[RowReduce[{{1/3, 1}, {1, 3}}, Modulus -> 3]]",
+            None,
+            "RowReduce",
+        ),
+    ],
+)
+def test_linalg_modulus(str_expr, msgs, str_expected):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        expected_messages=msgs,
+    )
+
+
+def test_linalg_modulus_random():
+    """Check the modular results against their defining properties."""
+    check_evaluation(
+        "SeedRandom[42]; "
+        "And @@ Table[Module[{m, p, ns, rr, rk, x},"
+        "  m = RandomInteger[{-5, 5}, {6, 8}]; p = {2, 3, 7}[[Mod[k, 3] + 1]];"
+        "  ns = NullSpace[m, Modulus -> p];"
+        "  rr = RowReduce[m, Modulus -> p];"
+        "  rk = MatrixRank[m, Modulus -> p];"
+        "  x = LinearSolve[m, m . Range[8], Modulus -> p];"
+        "  And["
+        "    Length[ns] + rk == 8,"
+        "    ns === {} || Union[Flatten[Mod[m . Transpose[ns], p]]] === {0},"
+        "    Mod[m . x - m . Range[8], p] === Table[0, 6],"
+        "    Count[rr, Except[{0 ..}]] == rk]],"
+        "  {k, 30}]",
+        "True",
+    )
+    check_evaluation(
+        "SeedRandom[7]; "
+        "And @@ Table[Module[{m, inv},"
+        "  m = RandomInteger[{0, 6}, {5, 5}];"
+        "  inv = Quiet[Inverse[m, Modulus -> 7]];"
+        "  Head[inv] === Inverse || Mod[m . inv, 7] === IdentityMatrix[5]],"
+        "  {k, 30}]",
+        "True",
     )
