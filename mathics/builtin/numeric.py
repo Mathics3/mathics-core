@@ -21,6 +21,7 @@ from mathics.core.atoms import (
     Integer0,
     Integer1,
     IntegerM1,
+    MachineReal,
     Number,
     Rational,
     Real,
@@ -36,7 +37,13 @@ from mathics.core.builtin import Builtin, MPMathFunction, SympyFunction
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.number import MACHINE_EPSILON, is_inexact, is_numeric
+from mathics.core.number import (
+    MACHINE_EPSILON,
+    PrecisionValueError,
+    get_closest_precision,
+    is_inexact,
+    is_numeric,
+)
 from mathics.core.symbols import (
     Symbol,
     SymbolDivide,
@@ -322,9 +329,20 @@ class N(Builtin):
                 preference_queue.pop()
                 return result
 
-        if prec.has_form(SymbolList, None) and len(prec.elements) != 2:
-            evaluation.message("N", "arg", prec)
-            return None
+        if prec.has_form(SymbolList, None):
+            if len(prec.elements) != 2:
+                evaluation.message("N", "arg", prec)
+                return None
+        elif prec is not SymbolMachinePrecision:
+            # The precision is checked here, so that a message shows it as it
+            # was given: the N rules get it as a machine real, within
+            # $MinPrecision and $MaxPrecision.
+            try:
+                digits = get_closest_precision(prec, evaluation)
+            except PrecisionValueError:
+                return None
+            if digits is not None:
+                prec = MachineReal(float(digits))
         result = eval_NValues(expr, prec, evaluation)
         if result is None and prec.has_form(SymbolList, 2):
             evaluation.message("N", "precbd", prec.elements[0])

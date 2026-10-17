@@ -56,13 +56,13 @@ def nvalue_pattern_from_wma(pattern: BaseElement) -> BaseElement:
     """
     if not pattern.has_form(SymbolN, 2):
         return pattern
-    expr, prec = pattern.elements
+    expr, prec = pattern.get_elements()
     if prec.sameQ(NVALUE_MACHINE_PRECISION):
         prec = SymbolMachinePrecision
-    elif prec.has_form(SymbolList, 2) and is_infinity(prec.elements[1]):
-        prec = prec.elements[0]
+    elif prec.has_form(SymbolList, 2) and is_infinity(prec.get_elements()[1]):
+        prec = prec.get_elements()[0]
     new_prec = normalize_n_precision(prec)
-    if new_prec is pattern.elements[1]:
+    if new_prec is pattern.get_elements()[1]:
         return pattern
     return Expression(SymbolN, expr, new_prec)
 
@@ -75,7 +75,7 @@ def nvalue_pattern_to_wma(pattern: BaseElement) -> BaseElement:
     """
     if not pattern.has_form(SymbolN, 2):
         return pattern
-    expr, prec = pattern.elements
+    expr, prec = pattern.get_elements()
     if prec is SymbolMachinePrecision:
         return Expression(SymbolN, expr, NVALUE_MACHINE_PRECISION)
     if isinstance(prec, Number):
