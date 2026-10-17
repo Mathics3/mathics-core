@@ -178,6 +178,22 @@ def test_assign_list():
             '"{2, a}"',
             "store the conditional rule for T...",
         ),
+        # Named patterns and blanks as the argument of Format
+        (
+            'ClearAll[A,G]; Format[A_G]:="g" /; Length[A] > 1; {G[1,2], G[1]}//ToString',
+            '"{g, G[1]}"',
+            "Format[A_G] is stored for G, not for Pattern",
+        ),
+        (
+            'ClearAll[G]; Format[_G]:="g"; G[1]//ToString',
+            '"g"',
+            "Format[_G] is stored for G",
+        ),
+        (
+            'ClearAll[t,G]; Format[t:G[__]]:="g"; G[1]//ToString',
+            '"g"',
+            "Format[t:G[__]] is stored for G",
+        ),
         # Upvalues
         (
             "ClearAll[F,A,Y,x]; A=T; F[A[x_],Y[x_]]^:=x^2; ClearAll[A,F,Y]; F[T[2],Y[2]]",
@@ -240,6 +256,20 @@ def test_assignment(expr, expect, assert_msg):
             "ClearAll[F]; F[x_, opt:OptionsPattern[]]:=x^2;F[2]",
             "4",
             "ensure that Definition.options is a dict",
+            False,
+            [],
+        ),
+        (
+            "ClearAll[F, y]; y /: F[1, y] := 5; F[1, y]",
+            "5",
+            "An upvalue of an element other than the first one is used.",
+            False,
+            [],
+        ),
+        (
+            "ClearAll[G, w, z]; z /: G[w, z] := 6; G[w, z]",
+            "6",
+            "An upvalue of the second symbol is used.",
             False,
             [],
         ),

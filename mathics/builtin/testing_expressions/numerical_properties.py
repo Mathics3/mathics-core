@@ -12,7 +12,7 @@ from mathics.core.builtin import Builtin, SympyFunction, Test
 from mathics.core.convert.python import from_bool, from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.number import is_machine_precision, is_numeric
+from mathics.core.number import get_int_value, is_machine_precision, is_numeric
 from mathics.core.symbols import BooleanType, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolExpandAll, SymbolSimplify
 from mathics.eval.arithmetic import test_zero_arithmetic_expr
@@ -99,7 +99,7 @@ class EvenQ(Test):
     summary_text = "test whether elements are even numbers"
 
     def test(self, n) -> bool:
-        value = n.int_value
+        value = get_int_value(n)
         return value is not None and value % 2 == 0
 
 
@@ -408,7 +408,7 @@ class OddQ(Test):
     summary_text = "test whether elements are odd numbers"
 
     def test(self, n) -> bool:
-        value = n.int_value
+        value = get_int_value(n)
         return value is not None and value % 2 != 0
 
 
@@ -557,7 +557,7 @@ class PrimeQ(SympyFunction):
     def eval(self, n, evaluation: Evaluation) -> BooleanType:
         "PrimeQ[n_]"
 
-        n = n.int_value
+        n = get_int_value(n)
         if n is None:
             return SymbolFalse
 

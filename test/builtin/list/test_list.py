@@ -129,6 +129,17 @@ import pytest
             "{{{1, 1, 1}, {1, 1, 2}, {1, 2, 1}, {1, 2, 2}}, {{2, 1, 1}, {2, 1, 2}, {2, 2, 1}, {2, 2, 2}}}",
             None,
         ),
+        # Riffle
+        (
+            "Riffle[{a}, x]",
+            None,
+            "{a}",
+            "non-list separator goes only between elements",
+        ),
+        ("Riffle[{a, b}, x]", None, "{a, x, b}", "Issue #2003"),
+        ("Riffle[{}, x]", None, "{}", "Degenerate Riffle on empty list"),
+        ("Riffle[{a}, {x}]", None, "{a, x}", "equal lengths: separator list appended"),
+        ("Riffle[{a, b}, {x, y}]", None, "{a, x, b, y}", None),
         # Union and Intersection
         (
             "Union[{1, -1, 2}, {-2, 3}, SameTest -> (Abs[#1] == Abs[#2] &)]",
