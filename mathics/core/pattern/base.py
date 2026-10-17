@@ -480,7 +480,14 @@ class ExpressionPattern(BasePattern):
 
     def _build_pattern_sort_key(self) -> tuple:
         if self.isliteral:
-            return (BASIC_LITERAL_EXPRESSION_PATTERN_SORT_KEY, self.expr.element_order)
+            # Keep the shape of BASIC_ATOM_PATTERN_SORT_KEY (magic, int, ...):
+            # atoms share the magic number, so the second slot must be an int
+            # here too, or sorting an Orderless pattern mixing both fails.
+            return (
+                BASIC_LITERAL_EXPRESSION_PATTERN_SORT_KEY,
+                1,
+                self.expr.element_order,
+            )
         return (
             BASIC_EXPRESSION_PATTERN_SORT_KEY,
             self.head.pattern_precedence,

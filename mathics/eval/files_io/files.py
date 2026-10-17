@@ -206,12 +206,17 @@ def eval_Get(
         with Mathics3Open(resolved_path, "r", encoding=encoding) as f:
             feeder = MathicsFileLineFeeder(f, trace_fn)
             while not feeder.empty():
+                lineno = feeder.lineno
                 try:
                     # Note: we use mathics.core.parser.parse
                     # so that tracing/debugging can intercept parse()
                     query = mathics.core.parser.parse(definitions, feeder)
                 except SyntaxError:
-                    return SymbolNull
+                    # As in WMA, report the error and go on reading the
+                    # rest of the file, unless no input was consumed.
+                    if feeder.lineno == lineno:
+                        return SymbolNull
+                    continue
                 finally:
                     feeder.send_messages(evaluation)
                 if query is None:  # blank line / comment

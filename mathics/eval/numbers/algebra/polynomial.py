@@ -705,3 +705,50 @@ def get_exponents_sorted(expr, var) -> list:
             expos = [term.as_coeff_exponent(x)[1] for mul in muls for term in mul]
             result.add(from_sympy(tracing.run_sympy(sympy.Max, *[e for e in expos])))
     return sorted(result)
+
+
+def eval_PolynomialMod(poly: BaseElement, modulus: int) -> Optional[BaseElement]:
+    """
+    Evaluation routine for PolynomialMod[poly, m] with a positive integer m:
+    expand poly and reduce each integer coefficient to the range 0..m-1.
+
+    As in WMA, parts that are not polynomials, like f[1] or Sin[x], are
+    treated as variables. If a coefficient is not an integer (a Rational,
+    Real or Complex), None is returned and the expression is left
+    unevaluated.
+    """
+    expanded = expand_polynomial(poly, True, False, modulus=None, trig=False)
+    if expanded.has_form(SymbolList, None):
+        return None
+    terms = expanded.elements if expanded.has_form(SymbolPlus, None) else (expanded,)
+    reduced = []
+    for term in terms:
+        rest: Optional[BaseElement]
+        if isinstance(term, Number):
+            coefficient, rest = term, None
+        elif term.has_form(SymbolTimes, 2, None) and isinstance(
+            term.elements[0], Number
+        ):
+            coefficient = term.elements[0]
+            factors = term.elements[1:]
+            rest = (
+                factors[0] if len(factors) == 1 else Expression(SymbolTimes, *factors)
+            )
+        else:
+            coefficient, rest = Integer1, term
+        if not isinstance(coefficient, Integer):
+            return None
+        value = coefficient.value % modulus
+        if value == 0:
+            continue
+        if rest is None:
+            reduced.append(Integer(value))
+        elif value == 1:
+            reduced.append(rest)
+        else:
+            reduced.append(Expression(SymbolTimes, Integer(value), rest))
+    if not reduced:
+        return Integer0
+    if len(reduced) == 1:
+        return reduced[0]
+    return Expression(SymbolPlus, *reduced)

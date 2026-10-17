@@ -1176,7 +1176,13 @@ class Riffle(Builtin):
         if sep.has_form(SymbolList, None):
             result = riffle_lists(list.elements, sep.elements)
         else:
-            result = riffle_lists(list.elements, [sep])
+            # A non-list separator goes only between elements, never
+            # after the last one: Riffle[{a}, x] is {a}.
+            result = []
+            for i, element in enumerate(list.elements):
+                if i > 0:
+                    result.append(sep)
+                result.append(element)
 
         return list.restructure("List", result, evaluation, deps=(list, sep))
 
