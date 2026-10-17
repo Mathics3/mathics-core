@@ -260,6 +260,20 @@ def test_assignment(expr, expect, assert_msg):
             [],
         ),
         (
+            "ClearAll[F, y]; y /: F[1, y] := 5; F[1, y]",
+            "5",
+            "An upvalue of an element other than the first one is used.",
+            False,
+            [],
+        ),
+        (
+            "ClearAll[G, w, z]; z /: G[w, z] := 6; G[w, z]",
+            "6",
+            "An upvalue of the second symbol is used.",
+            False,
+            [],
+        ),
+        (
             "ClearAll[F, Q];F[Verbatim[_Q],Verbatim[_]]^:=1;{DownValues[F],UpValues[Q]}",
             "{{}, {}}",
             "Issue 1198 - Blanks are not tags.",
