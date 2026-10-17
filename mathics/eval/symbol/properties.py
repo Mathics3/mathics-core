@@ -5,7 +5,7 @@ Evaluation routines for builtin function in mathics.core.builtin.symbol.properti
 from functools import cache
 from typing import Callable, Final, Optional
 
-from mathics.core.assignment import get_symbol_values
+from mathics.core.assignment import get_symbol_values, nvalue_pattern_to_wma
 from mathics.core.atoms import String
 from mathics.core.atoms.associations import (
     Association,
@@ -426,7 +426,7 @@ def gather_rules(definition: Definition, evaluation, lines, rhs_format: Callable
     for rule in definition.upvalues:
         format_rule(rule, evaluation, lines, up=True)
     for rule in definition.nvalues:
-        format_rule(rule, evaluation, lines)
+        format_rule(rule, evaluation, lines, lhs=nvalue_pattern_to_wma)
     formats = sorted(definition.formatvalues.items())
     for form_name, rules in formats:
         for rule in rules:

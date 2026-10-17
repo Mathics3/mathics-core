@@ -105,7 +105,7 @@ class NValues(Builtin):
      = {}
     >> N[a] = 3;
     >> NValues[a]
-     = {HoldPattern[N[a, MachinePrecision]] ⧴ 3}
+     = {HoldPattern[N[a, {MachinePrecision, MachinePrecision}]] ⧴ 3}
 
     You can assign values to 'NValues':
     >> NValues[b] := {N[b, MachinePrecision] :> 2}

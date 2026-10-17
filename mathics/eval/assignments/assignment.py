@@ -11,7 +11,12 @@ found in module `mathics.builtin.assignments.assignment`.
 
 from typing import Final, Optional
 
-from mathics.core.assignment import is_protected, rejected_because_protected, unwrap_lhs
+from mathics.core.assignment import (
+    is_protected,
+    nvalue_pattern_from_wma,
+    rejected_because_protected,
+    unwrap_lhs,
+)
 from mathics.core.atoms import Integer, Integer1
 from mathics.core.definitions import BOX_FORMS
 from mathics.core.element import BaseElement, EvalMixin
@@ -411,6 +416,11 @@ def eval_assign_definition_values(
         )
         for rule in rules
     ]
+    if lhs_name == "System`NValues":
+        rules = [
+            RewriteRule(nvalue_pattern_from_wma(rule.pattern.expr), rule.replace)
+            for rule in rules
+        ]
     evaluation.definitions.set_values(tag, lhs_name, rules)
     return True
 
@@ -1024,6 +1034,7 @@ def eval_assign_n(
         lhs = Expression(SymbolN, lhs.elements[0], nprec)
     else:
         nprec = lhs.elements[1]
+        lhs = nvalue_pattern_from_wma(lhs)
 
     lhs_unwrapped = unwrap_expression(lhs.elements[0])
 
