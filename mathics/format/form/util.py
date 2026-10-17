@@ -107,17 +107,18 @@ def collect_in_pre_post_arguments(
 
     # Just one parameter:
     if len(elements) == 1:
-        render_function = kwargs["_render_function"]
-        operator_spec = render_function(head, evaluation, **kwargs)
+        # The operator is the head of the target: Infix[f[x, y]] is x ~ f ~ y,
+        # Prefix[f[x]] is f@x and Postfix[f[x]] is x//f.
+        operator_spec: str | List[str] = get_operator_str(
+            target.head, evaluation, **kwargs
+        )
         if head is SymbolInfix:
-            operator_spec = [
-                f"{operator_to_string.get('Infix', '')}{operator_spec}"
-                f"{operator_to_string.get('Infix', '')}"
-            ]
+            tilde = operator_to_string["Infix"][0]
+            operator_spec = [f"{tilde} {operator_spec} {tilde}"]
         elif head is SymbolPrefix:
-            operator_spec = f"{operator_spec}{operator_to_string.get('Prefix', '')}"
+            operator_spec = f"{operator_spec}{operator_to_string['Prefix'][0]}"
         elif head is SymbolPostfix:
-            operator_spec = f"{operator_to_string.get('Postfix', '')}{operator_spec}"
+            operator_spec = f"{operator_to_string['Postfix'][0]}{operator_spec}"
         return operands, operator_spec, precedence, group_name
 
     # At least two parameters: get the operator spec.
