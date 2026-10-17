@@ -47,17 +47,20 @@ def build_rulopc(optval: BaseElement) -> RewriteRule:
 
 def nvalue_pattern_from_wma(pattern: BaseElement) -> BaseElement:
     """Replace N[x, {MachinePrecision, MachinePrecision}] by N[x, MachinePrecision]"""
-    if pattern.has_form(SymbolN, 2) and pattern.elements[1].sameQ(
+    if pattern.has_form(SymbolN, 2) and pattern.get_elements()[1].sameQ(
         NVALUE_MACHINE_PRECISION
     ):
-        return Expression(SymbolN, pattern.elements[0], SymbolMachinePrecision)
+        return Expression(SymbolN, pattern.get_elements()[0], SymbolMachinePrecision)
     return pattern
 
 
 def nvalue_pattern_to_wma(pattern: BaseElement) -> BaseElement:
     """Replace N[x, MachinePrecision] by N[x, {MachinePrecision, MachinePrecision}]"""
-    if pattern.has_form(SymbolN, 2) and pattern.elements[1] is SymbolMachinePrecision:
-        return Expression(SymbolN, pattern.elements[0], NVALUE_MACHINE_PRECISION)
+    if (
+        pattern.has_form(SymbolN, 2)
+        and pattern.get_elements()[1] is SymbolMachinePrecision
+    ):
+        return Expression(SymbolN, pattern.get_elements()[0], NVALUE_MACHINE_PRECISION)
     return pattern
 
 
