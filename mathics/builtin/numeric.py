@@ -225,7 +225,7 @@ class N(Builtin):
     >> UpValues[d]
      = {}
     >> NValues[d]
-     = {HoldPattern[N[d, MachinePrecision]] ⧴ 5}
+     = {HoldPattern[N[d, {MachinePrecision, MachinePrecision}]] ⧴ 5}
     >> e /: N[e] = 6;
     >> N[e]
      = 6.
