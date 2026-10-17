@@ -175,9 +175,20 @@ def eval_ImageExport(expr, path: Optional[str] = None) -> Expression:
     return Expression(SymbolByteArray, ByteArray(expr_pil.tobytes()))
 
 
+# MIME types for which mimetypes.guess_extension() depends on the
+# platform. For example, without an /etc/mime.types file (as on macOS),
+# Python gives ".xsl" for "application/xml".
+MIMETYPE_TO_SHORTNAME_OVERRIDE: Final[Dict[str, str]] = {
+    "application/xml": "XML",
+    "text/xml": "XML",
+}
+
+
 def filetype_from_mime_content(mime_content_name: str) -> str:
 
-    if mime_content_name in MIMETYPE_TO_SHORTNAME:
+    if mime_content_name in MIMETYPE_TO_SHORTNAME_OVERRIDE:
+        short_name = MIMETYPE_TO_SHORTNAME_OVERRIDE[mime_content_name]
+    elif mime_content_name in MIMETYPE_TO_SHORTNAME:
         short_name = MIMETYPE_TO_SHORTNAME[mime_content_name]
     else:
         # Map MIME type to a standard extension using the stdlib

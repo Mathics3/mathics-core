@@ -62,13 +62,17 @@ def eval_infix(
         if operator.has_form(SymbolList, len(elements) - 1):
             operator = [format_operator(op, form) for op in operator.elements]
             return make_boxes_infix(elements, operator, py_precedence, grouping, form)
-        else:
+        elif isinstance(operator, (String, Symbol)):
             op_str = (
                 operator.value if isinstance(operator, String) else operator.short_name
             )
             operator = format_operator(
                 String(operator_to_unicode.get(op_str, op_str)), form
             )
+        else:
+            # Any other expression, such as StringForm["~`1`~", f] from
+            # Infix[f[x, y]], is displayed as it is formatted.
+            operator = format_operator(operator, form)
 
         return make_boxes_infix(elements, operator, py_precedence, grouping, form)
 

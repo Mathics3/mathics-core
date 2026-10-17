@@ -135,6 +135,48 @@ def test_map_at():
             "MapAt[f, {a, b, c, d}, {1, 1}]",
             "Indexing a dimension beyond the level of a list",
         ),
+        (
+            "MapAt[f, {{1, 0}, {0, 1}}, {2}]",
+            None,
+            "{{1, 0}, f[{0, 1}]}",
+            "A position whose part is a list replaces the whole part",
+        ),
+        (
+            "MapAt[0 # &, {{1, 0}, {0, 1}}, {{2}}]",
+            None,
+            "{{1, 0}, {0, 0}}",
+            "A list with one position",
+        ),
+        (
+            "MapAt[f, {{1, 0}, {0, 1}}, {{1}, {2}}]",
+            None,
+            "{f[{1, 0}], f[{0, 1}]}",
+            "Several positions at the first level",
+        ),
+        (
+            "MapAt[g, {{a, b}, {c, d}}, {{1, 2}, {2}}]",
+            None,
+            "{{a, g[b]}, g[{c, d}]}",
+            "Positions of different depths",
+        ),
+        (
+            "MapAt[f, {a, b, c}, {{2}, 3}]",
+            None,
+            "{a, f[b], f[c]}",
+            "A list of positions that mixes lists and integers",
+        ),
+        (
+            "MapAt[g, h[a, b], 2]",
+            None,
+            "h[a, g[b]]",
+            "The head of the expression is kept",
+        ),
+        (
+            "MapAt[g, {a, k[b, c]}, {2, 1}]",
+            None,
+            "{a, k[g[b], c]}",
+            "Indexing into a part whose head is not List",
+        ),
     ):
         check_evaluation_as_in_cli(str_expr, str_expected, assert_msg, msgs)
 
