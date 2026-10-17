@@ -370,6 +370,26 @@ def test_extract_with_head(str_expr, expected_messages, str_expected):
     ("str_expr", "expected_messages", "str_expected"),
     [
         ("Extract[{a, b}, {{}}]", None, "{{a, b}}"),
+        # A single part selector other than an integer is a position too.
+        ("Extract[{a, b, c}, All, Hold]", None, "Hold[{a, b, c}]"),
+        ("Extract[{a, b, c}, 1 ;; 2, Hold]", None, "Hold[{a, b}]"),
+        ("Extract[{a, b, c}, -1 ;; 1 ;; -1]", None, "{c, b, a}"),
+        ('Extract[<|"x" -> 1 + 1|>, Key["x"], Hold]', None, "Hold[2]"),
+        ('Extract[<|"x" -> 1, "y" -> 1 + 1|>, "y", Hold]', None, "Hold[2]"),
+        ('Extract[<|"x" -> 1, "y" -> 2|>, {"y"}]', None, "2"),
+        ("Extract[{{1, 2}, {3, 4}}, {All, 1}, Hold]", None, "Hold[{1, 3}]"),
+        (
+            "Extract[{{1, 2}, {3, 4}}, {{1, All}, {2, 2}}, Hold]",
+            None,
+            "{Hold[{1, 2}], Hold[4]}",
+        ),
+        (
+            "Extract[{a, b, c}, xpos]",
+            (
+                "Position specification xpos in Extract[{a, b, c}, xpos] is not applicable.",
+            ),
+            "Extract[{a, b, c}, xpos]",
+        ),
         ("Extract[{a, b}, {}]", None, "{}"),
         ("Extract[{1 + 1, 2}, {{1}, {2}}]", None, "{2, 2}"),
         ("Extract[ByteArray[{1, 2}], {-1}]", None, "2"),

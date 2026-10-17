@@ -4,7 +4,7 @@ Evaluation routines for builtin function contained in mathics.builtin.list.eol.
 
 from typing import Optional, Sequence
 
-from mathics.core.atoms import ByteArray, Integer
+from mathics.core.atoms import ByteArray, Integer, String
 from mathics.core.atoms.associations import Association
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
@@ -15,6 +15,7 @@ from mathics.core.number import get_int_value
 from mathics.core.subexpression import SubExpression
 from mathics.core.symbols import Atom, Symbol
 from mathics.core.systemsymbols import (
+    SymbolAll,
     SymbolByteArray,
     SymbolInfinity,
     SymbolKey,
@@ -135,7 +136,13 @@ def eval_extract(
     def wrap(part: BaseElement) -> BaseElement:
         return part if head is None else Expression(head, part)
 
-    if isinstance(position, Integer):
+    # A single part selector, such as 2, All, 1 ;; 2, Key[k] or an
+    # association key "k", is a position of one index.
+    if (
+        isinstance(position, (Integer, String))
+        or position is SymbolAll
+        or position.has_form((SymbolSpan, SymbolKey), None)
+    ):
         position = ListExpression(position)
     elements = position.elements if position.has_form(SymbolList, None) else None
     if elements is None or (
@@ -167,14 +174,17 @@ def extract_part(
 ) -> BaseElement:
     """
     The part of `expr` at the part specification `indices`, not evaluated.
-    `Key[k]` picks the value of `k` in an association.
+    `Key[k]`, or a string `k`, picks the value of `k` in an association.
     """
     indices = list(indices)
     while indices:
         index = indices[0]
-        if isinstance(expr, Association) and index.has_form(SymbolKey, 1):
+        if isinstance(expr, Association) and (
+            index.has_form(SymbolKey, 1) or isinstance(index, String)
+        ):
+            key = index if isinstance(index, String) else index.elements[0]
             try:
-                expr = expr[index.elements[0]]
+                expr = expr[key]
             except KeyError:
                 raise MessageException("Part", "partw", index, expr)
         elif isinstance(expr, ByteArray) and isinstance(index, Integer):
