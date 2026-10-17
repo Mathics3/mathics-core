@@ -136,7 +136,7 @@ import pytest
             "{a}",
             "non-list separator goes only between elements",
         ),
-        ("Riffle[{a, b}, x]", None, "{a, x, b}", "Issue #2017"),
+        ("Riffle[{a, b}, x]", None, "{a, x, b}", "Issue #2003"),
         ("Riffle[{}, x]", None, "{}", "Degenerate Riffle on empty list"),
         ("Riffle[{a}, {x}]", None, "{a, x}", "equal lengths: separator list appended"),
         ("Riffle[{a, b}, {x, y}]", None, "{a, x, b, y}", None),
