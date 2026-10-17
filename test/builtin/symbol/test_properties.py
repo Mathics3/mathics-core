@@ -2,6 +2,7 @@
 """
 Unit tests from mathics.builtin.symbol.properties
 """
+
 from test.helper import check_evaluation
 
 import pytest
@@ -128,3 +129,39 @@ def test_upvalues_ownvalues(str_expr, str_expected, msgs, failure_msg):
     check_evaluation(
         str_expr, str_expected, expected_messages=msgs, failure_message=failure_msg
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected"),
+    [
+        # https://github.com/Mathics3/mathics-core/issues/2002
+        (
+            "DownValues[hpf] = {HoldPattern[hpf[1]] :> c}; hpf[1] = d; DownValues[hpf]",
+            "{HoldPattern[hpf[1]] :> d}",
+        ),
+        (
+            "DownValues[hpg] = {HoldPattern[hpg[x_]] :> x^2}; DownValues[hpg]",
+            "{HoldPattern[hpg[x_]] :> x^2}",
+        ),
+        (
+            "OwnValues[hpo] = {HoldPattern[hpo] :> 1}; hpo = 2; OwnValues[hpo]",
+            "{HoldPattern[hpo] :> 2}",
+        ),
+        (
+            "SubValues[hps] = {HoldPattern[hps[1][2]] :> 1}; hps[1][2] = 3; SubValues[hps]",
+            "{HoldPattern[hps[1][2]] :> 3}",
+        ),
+        (
+            "UpValues[hpu] = {HoldPattern[hpk[hpu]] :> 1}; hpk[hpu] ^= 2; UpValues[hpu]",
+            "{HoldPattern[hpk[hpu]] :> 2}",
+        ),
+        # Only one HoldPattern level is removed.
+        (
+            "DownValues[hpp] = {HoldPattern[HoldPattern[hpp[1]]] :> c}; DownValues[hpp]",
+            "{HoldPattern[HoldPattern[hpp[1]]] :> c}",
+        ),
+        ("hpp[1]", "c"),
+    ],
+)
+def test_values_assignment_holdpattern(str_expr, str_expected):
+    check_evaluation(f"{str_expr} === {str_expected}", "True")

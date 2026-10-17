@@ -309,3 +309,25 @@ def test_layout(str_expr, msgs, str_expected, fail_msg):
         failure_message=fail_msg,
         expected_messages=msgs,
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected"),
+    [
+        # One argument: the head of the expression is the operator.
+        ("ToString[Infix[f[x, y]]]", "x ~ f ~ y"),
+        ("ToString[Infix[f[x, y, z]], InputForm]", "x ~ f ~ y ~ f ~ z"),
+        ("ToString[Infix[f[x, y]], StandardForm]", "x~f~y"),
+        ("ToString[Prefix[f[x]]]", "f@x"),
+        ("ToString[Postfix[f[x]]]", "x//f"),
+        # An operator that is not a string.
+        ("ToString[Infix[{a, b}, g[1]]]", "a g[1] b"),
+        ("ToString[Infix[{a, b}, g[1]], StandardForm]", "ag[1]b"),
+        ('ToString[Infix[{a, b, c}, {g[1], "+"}]]', "a g[1] b + c"),
+        ("ToString[Prefix[f[x], g[1]]]", "g[1]x"),
+    ],
+)
+def test_operator_forms(str_expr, str_expected):
+    """Infix, Prefix, Postfix with one argument or a non-string operator"""
+    result = session.evaluate(str_expr)
+    assert result.value == str_expected, f"{str_expr}: {result}"

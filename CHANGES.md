@@ -4,6 +4,10 @@
 
 Improve Monomial ordering.
 
+### Bugs Fixed
+
+1.  [\#2003](https://github.com/Mathics3/mathics-core/issues/2003) `Riffle[{a}, x]` gives `{a}`: a non-list separator is inserted only between elements
+
 ## 10.0.1
 
 April 18, 2026

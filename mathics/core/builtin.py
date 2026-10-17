@@ -1209,7 +1209,14 @@ class IterationFunction(Builtin, ABC):
     def eval_iter(self, expr, i, imin, imax, di, evaluation):
         "%(name)s[expr_, {i_Symbol, imin_, imax_, di_}]"
 
-        if isinstance(self, SympyFunction) and di.int_value == 1:
+        imin = imin.evaluate(evaluation)
+        imax = imax.evaluate(evaluation)
+        # With integer bounds the terms are just evaluated and combined below, as
+        # in Table; SymPy is needed only for symbolic bounds. Going through SymPy
+        # (summand and result converted there and back, then Together) costs far
+        # more than the sum itself when the terms are large symbolic expressions.
+        integer_bounds = isinstance(imin, Integer) and isinstance(imax, Integer)
+        if isinstance(self, SympyFunction) and di.int_value == 1 and not integer_bounds:
             whole_expr = to_expression(
                 self.get_name(), expr, ListExpression(i, imin, imax)
             )
@@ -1227,8 +1234,6 @@ class IterationFunction(Builtin, ABC):
             return
 
         index = Integer0
-        imin = imin.evaluate(evaluation)
-        imax = imax.evaluate(evaluation)
         di = di.evaluate(evaluation)
 
         # (imax - imin) / di

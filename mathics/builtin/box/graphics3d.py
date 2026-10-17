@@ -13,7 +13,7 @@ from mathics.builtin.box.graphics import (
     PolygonBox,
 )
 from mathics.builtin.colors.color_directives import Opacity, RGBColor, _ColorObject
-from mathics.builtin.drawing.graphics3d import Graphics3D, Style3D
+from mathics.builtin.drawing.graphics3d import Coords3D, Graphics3D, Style3D
 from mathics.builtin.drawing.graphics_internals import GLOBALS3D
 from mathics.core.exceptions import BoxExpressionError
 from mathics.core.symbols import Symbol
@@ -284,11 +284,17 @@ class SphereBox(GraphicsElementBox):
         self.edge_opacity, self.face_opacity = style.get_style(
             Opacity, face_element=True
         )
-        if len(item.elements) != 2:
+        # Sphere[] and Sphere[positions] stay unevaluated, as in WMA;
+        # the default center and radius are filled in here.
+        elements = item.elements
+        if len(elements) > 2:
             raise BoxExpressionError
 
-        self.points = expr_to_list_of_3d_points(item.elements[0])
-        self.radius = item.elements[1].to_python()
+        if elements:
+            self.points = expr_to_list_of_3d_points(elements[0])
+        else:
+            self.points = (Coords3D(pos=(0, 0, 0)),)
+        self.radius = elements[1].to_python() if len(elements) == 2 else 1
 
     def extent(self):
         result = []
