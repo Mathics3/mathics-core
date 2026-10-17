@@ -134,7 +134,7 @@ def test_equality_inequality(str_expr, msgs, str_expected, fail_msg):
         ("Positive[Sin[{11, 14}]]", None, "{False, True}", None),
         ("PrimeQ[1]", None, "False", None),
         ("PrimeQ[2 ^ 255 - 1]", None, "False", None),
-b        # Real infinities
+        # Real infinities
         ("{Negative[Infinity], Negative[-Infinity]}", None, "{False, True}", None),
         ("{Positive[Infinity], Positive[-Infinity]}", None, "{True, False}", None),
         (
