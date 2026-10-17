@@ -436,9 +436,13 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     element._build_elements_properties()
 
                 # and now possibly adjust self.elements_properties.elements_fully_evaluted
+                # A literal element (e.g. {}, which Map over an empty list
+                # gives with pessimistic properties) is fully evaluated
+                # whatever its own properties say.
                 if self.elements_properties.elements_fully_evaluated:
                     self.elements_properties.elements_fully_evaluated = (
-                        element.elements_properties.elements_fully_evaluated
+                        element.is_literal
+                        or element.elements_properties.elements_fully_evaluated
                     )
 
             if element.is_literal:
@@ -2149,7 +2153,8 @@ def convert_expression_elements(
 
             if elements_properties.elements_fully_evaluated:
                 elements_properties.elements_fully_evaluated = (
-                    converted_elt.elements_properties.elements_fully_evaluated
+                    converted_elt.is_literal
+                    or converted_elt.elements_properties.elements_fully_evaluated
                 )
 
         if elements_properties.is_ordered and last_converted_elt is not None:
