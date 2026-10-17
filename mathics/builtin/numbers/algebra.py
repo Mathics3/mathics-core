@@ -58,6 +58,7 @@ from mathics.eval.numbers.algebra.polynomial import (
     coeff_power,
     coefficient,
     eval_Apart,
+    eval_PolynomialMod,
     expand_polynomial,
     find_all_vars,
     get_exponents_sorted,
@@ -1385,6 +1386,41 @@ class Numerator(_Algebraic):
             return
 
         return eval_Numerator(expr, evaluation, algebraic_options)
+
+
+class PolynomialMod(Builtin):
+    """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/PolynomialMod.html</url>
+
+    <dl>
+      <dt>'PolynomialMod'[$poly$, $m$]
+      <dd>for a positive integer $m$, gives $poly$ expanded, with all its \
+          coefficients reduced modulo $m$.
+    </dl>
+
+    >> PolynomialMod[3 x ^ 2 + 2 x + 1, 2]
+     = 1 + x ^ 2
+    >> PolynomialMod[3 x ^ 3 + 21 x ^ 2 - 7 x + 55, 9]
+     = 1 + 2 x + 3 x ^ 2 + 3 x ^ 3
+    >> PolynomialMod[1234 (x + y) ^ 7 - (x - y) ^ 5, 7]
+     = 6 x ^ 5 + 2 x ^ 7 + 5 x ^ 4 y + 4 x ^ 3 y ^ 2 + 3 x ^ 2 y ^ 3 + 2 x y ^ 4 + y ^ 5 + 2 y ^ 7
+
+    Parts that are not polynomials are treated as variables:
+    >> PolynomialMod[3 f[1] + 2 f[2] - f[3], 2]
+     = f[1] + f[3]
+
+    Reduction modulo a polynomial is not supported yet.
+    """
+
+    summary_text = "reduce the coefficients of a polynomial modulo an integer"
+
+    def eval(self, poly, m: Integer, evaluation: Evaluation):
+        "PolynomialMod[poly_, m_Integer]"
+        modulus = m.value
+        if modulus <= 0:
+            return None
+        return eval_PolynomialMod(poly, modulus)
 
 
 class PolynomialQ(Builtin):

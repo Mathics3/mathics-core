@@ -268,6 +268,33 @@ def test_format_private_doctests(str_expr, str_expected, msg):
             None,
         ),
         ("r[1]", None, "ab", None),
+        # Infix, Prefix and Postfix display the elements of their first
+        # argument, so a format may wrap the expression it formats.
+        (
+            'Format[pInfix[t__]] := Infix[pInfix[t], "~"]; pInfix[a, b]',
+            (),
+            "a ~ b",
+            "Infix of the formatted expression itself",
+        ),
+        ("pInfix[a, pInfix[b, c]] + 1", (), "1 + a ~ b ~ c", "Nested, inside Plus"),
+        (
+            'Format[pLeft[t__]] := Infix[pLeft[t], "~", 300, Left]; pLeft[pLeft[a, b], c]',
+            (),
+            "a ~ b ~ c",
+            "With precedence and grouping",
+        ),
+        (
+            'Format[pPre[x_]] := Prefix[pPre[x], "!"]; pPre[a]',
+            (),
+            "!a",
+            "Prefix of the formatted expression itself",
+        ),
+        (
+            'Format[pPost[x_]] := Postfix[pPost[x], "!!"]; pPost[a]',
+            (),
+            "a!!",
+            "Postfix of the formatted expression itself",
+        ),
         (None, None, None, None),
     ],
 )
@@ -282,3 +309,25 @@ def test_layout(str_expr, msgs, str_expected, fail_msg):
         failure_message=fail_msg,
         expected_messages=msgs,
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected"),
+    [
+        # One argument: the head of the expression is the operator.
+        ("ToString[Infix[f[x, y]]]", "x ~ f ~ y"),
+        ("ToString[Infix[f[x, y, z]], InputForm]", "x ~ f ~ y ~ f ~ z"),
+        ("ToString[Infix[f[x, y]], StandardForm]", "x~f~y"),
+        ("ToString[Prefix[f[x]]]", "f@x"),
+        ("ToString[Postfix[f[x]]]", "x//f"),
+        # An operator that is not a string.
+        ("ToString[Infix[{a, b}, g[1]]]", "a g[1] b"),
+        ("ToString[Infix[{a, b}, g[1]], StandardForm]", "ag[1]b"),
+        ('ToString[Infix[{a, b, c}, {g[1], "+"}]]', "a g[1] b + c"),
+        ("ToString[Prefix[f[x], g[1]]]", "g[1]x"),
+    ],
+)
+def test_operator_forms(str_expr, str_expected):
+    """Infix, Prefix, Postfix with one argument or a non-string operator"""
+    result = session.evaluate(str_expr)
+    assert result.value == str_expected, f"{str_expr}: {result}"

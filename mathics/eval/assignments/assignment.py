@@ -400,6 +400,17 @@ def eval_assign_definition_values(
     if rules is None:
         evaluation.message(op_name, "vrule", lhs, rhs)
         raise AssignmentException(lhs, None)
+    # As in WMA, one HoldPattern level around a rule pattern only protects it
+    # from evaluation and is not part of the stored pattern. Otherwise a later
+    # `f[1] = ...` would not replace the rule from `DownValues[f] = {HoldPattern[f[1]] :> ...}`.
+    rules = [
+        (
+            RewriteRule(rule.pattern.expr.elements[0], rule.replace)
+            if rule.pattern.expr.has_form(SymbolHoldPattern, 1)
+            else rule
+        )
+        for rule in rules
+    ]
     evaluation.definitions.set_values(tag, lhs_name, rules)
     return True
 
