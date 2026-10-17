@@ -649,7 +649,7 @@ class Extract(Builtin):
     """
 
     attributes = A_N_HOLD_REST | A_PROTECTED
-
+    expected_args = (2, 3)
     messages = {
         "psl1": "Position specification `1` in `2` is not applicable.",
     }
