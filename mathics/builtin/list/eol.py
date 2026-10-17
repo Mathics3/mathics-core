@@ -66,6 +66,7 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.list.eol import (
     drop_span_selector,
+    eval_extract,
     eval_Part,
     eval_Part_for_Association,
     eval_Part_for_ByteArray,
@@ -627,6 +628,14 @@ class Extract(Builtin):
 
       <dt>'Extract'[$expr$, {$list_1$, $list_2$, ...}]
       <dd>extracts a list of parts.
+
+      <dt>'Extract'[$expr$, $pos$, $h$]
+      <dd>extracts parts of $expr$, wrapping each of them in $h$ before \
+      evaluation.
+
+      <dt>'Extract'[$pos$]
+      <dd>represents an operator form of 'Extract' that can be applied to an \
+      expression.
     </dl>
 
     'Extract[$expr$, $i$, $j$, ...]' is equivalent to 'Part[$expr$, {$i$, $j$, ...}]'.
@@ -635,15 +644,51 @@ class Extract(Builtin):
      = b
     >> Extract[{{a, b}, {c, d}}, {{1}, {2, 2}}]
      = {{a, b}, d}
+
+    With a third argument, the parts are wrapped before they are evaluated:
+    >> Extract[Hold[1 + 1, 2 + 2], {2}, Hold]
+     = Hold[2 + 2]
+    >> Extract[{{1, 2}, {3, 4}}, {{1, 1}, {2, 2}}, f]
+     = {f[1], f[4]}
+
+    The operator form:
+    >> Extract[{2}][{a, b, c}]
+     = b
     """
 
     attributes = A_N_HOLD_REST | A_PROTECTED
 
-    rules = {
-        "Extract[expr_, list_List]": "Part[expr, Sequence @@ list]",
-        "Extract[expr_, {lists___List}]": "Extract[expr, #]& /@ {lists}",
+    expected_args = (2, 3)
+    messages = {
+        "psl1": "Position specification `1` in `2` is not applicable.",
     }
+    rules = {"Extract[position_][expr_]": "Extract[expr, position]"}
     summary_text = "extract elements that appear at a list of positions"
+
+    def eval(self, expr, position, evaluation: Evaluation, expression: Expression):
+        "expression: Extract[expr_, position_]"
+        return eval_extract(expr, position, None, expression, evaluation)
+
+    def eval_with_head(
+        self, expr, position, head, evaluation: Evaluation, expression: Expression
+    ):
+        "expression: Extract[expr_, position_, head_]"
+        return eval_extract(expr, position, head, expression, evaluation)
+
+    def eval_error(self, evaluation: Evaluation, expression: Expression):
+        "expression: Extract[___]"
+        # Extract[pos] is the operator form, so a single argument is fine.
+        # The arguments are counted on the whole expression: a single
+        # argument f[a, b] must not count as two.
+        arg_count = len(expression.elements)
+        if arg_count != 1 and arg_count not in self.expected_args:
+            evaluation.message(
+                "Extract",
+                "argt",
+                Symbol(self.get_name()),
+                Integer(arg_count),
+                *(Integer(n) for n in self.expected_args),
+            )
 
 
 class First(Builtin):
