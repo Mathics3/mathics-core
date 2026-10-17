@@ -57,9 +57,13 @@ def basic_match_expression(
         #
         # without "leading_blanks", Range[5000] will be tested against {a__, b_} in a
         # call to get_match_candidates_count(), which is slow.
+        #
+        # With Flat, a pattern element whose match count is (1, 1) can still take
+        # several elements (x_ in f[x_, z] matches f[x, y] in f[x, y, z]), so the
+        # elements can not be paired one by one there either.
 
         unmatched_elements = expression.elements
-        leading_blanks = not A_ORDERLESS & attributes
+        leading_blanks = not (A_ORDERLESS | A_FLAT) & attributes
 
         for element in self.elements:
             match_count = element.get_match_count()
