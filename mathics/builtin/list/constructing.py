@@ -570,8 +570,12 @@ class Table(IterationFunction):
         # "fully evaluated": that would keep the list from ever being evaluated
         # again, so that in
         #   l = Table[x, {1}]; x = 1; l
-        # l would stay {x}. Let ListExpression work out the properties.
-        return ListExpression(*elements)
+        # l would stay {x}. Only a list of literal elements, like a list of
+        # numbers, is fully evaluated, and that is settled here, at creation.
+        result = ListExpression(*elements)
+        if result.is_literal:
+            result._build_elements_properties()
+        return result
 
 
 class Tuples(Builtin):

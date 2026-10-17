@@ -2,6 +2,7 @@
 """
 Unit tests for mathics.builtins.list.constructing
 """
+
 from test.helper import check_evaluation
 
 import pytest
@@ -100,3 +101,31 @@ def test_table(str_expr, str_expected, failure_message):
 )
 def test_table_is_evaluated_again(str_expr, str_expected, failure_message):
     check_evaluation(str_expr, str_expected, failure_message)
+
+
+def test_table_fully_evaluated_at_creation():
+    """A table of literal elements, like a list of numbers, is known to be
+    fully evaluated as soon as Table builds it; a table with other elements
+    is not."""
+    from mathics.builtin.list.constructing import Table
+    from mathics.core.atoms import Integer1, Integer2
+    from mathics.core.expression import Expression
+    from mathics.core.list import ListExpression
+    from mathics.core.symbols import Symbol
+    from mathics.core.systemsymbols import SymbolTimes
+
+    numbers = Table.get_result(None, [Integer1, Integer2])
+    assert numbers.elements_properties is not None
+    assert numbers.elements_properties.elements_fully_evaluated
+
+    pairs = Table.get_result(
+        None, [ListExpression(Integer1, Integer2), ListExpression(Integer2, Integer1)]
+    )
+    assert pairs.elements_properties.elements_fully_evaluated
+
+    x = Symbol("Global`x")
+    symbolic = Table.get_result(None, [x, Expression(SymbolTimes, Integer2, x)])
+    assert not (
+        symbolic.elements_properties
+        and symbolic.elements_properties.elements_fully_evaluated
+    )
