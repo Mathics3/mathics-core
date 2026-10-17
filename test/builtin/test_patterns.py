@@ -227,3 +227,9 @@ def test_pattern(str_expr, msgs, str_expected, fail_msg):
         failure_message=fail_msg,
         expected_messages=msgs,
     )
+
+
+def check_pattern_definition_order1():
+    check_evaluation("NeQ[u_,v_] := u != v;", None)
+    check_evaluation("NeQ[args___] := Null /; CheckArguments[NeQ[args], 2];", None)
+    check_evaluation("NeQ[1,2]", "True", failure_message="issue #1978.")
