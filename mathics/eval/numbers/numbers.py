@@ -3,7 +3,7 @@
 Implementation of numbers handling functions.
 """
 
-from functools import lru_cache
+from functools import cache
 from typing import Optional
 
 import mpmath
@@ -239,7 +239,7 @@ def cancel(expr):
             return expr
 
 
-@lru_cache()
+@cache
 def log_n_b(py_n, py_b) -> int:
     return (
         int(mpmath.floor(mpmath.log(py_n, py_b))) + 1 if py_n != 0 and py_n != 1 else 1

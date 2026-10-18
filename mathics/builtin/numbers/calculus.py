@@ -100,10 +100,6 @@ from mathics.eval.numbers.calculus.series import (
 )
 from mathics.format.form_rule.calculus import format_series
 
-# These should be used in lower-level formatting
-SymbolDifferentialD = Symbol("System`DifferentialD")
-SymbolIntegral = Symbol("System`Integral")
-
 
 # Maybe this class should be in a module "mathics.builtin.domains" or something like that
 class Complexes(Builtin):

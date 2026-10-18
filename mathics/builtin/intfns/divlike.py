@@ -5,7 +5,7 @@ Division-Related Functions
 """
 
 import sys
-from typing import Optional, Union
+from typing import Callable, Optional, Union
 
 from sympy import Q, ask
 
@@ -104,7 +104,7 @@ class Divisible(Builtin):
     summary_text = "test whether one number is divisible by the other"
 
 
-def combine_integer_arguments(builtin, ns, eval_fn) -> Optional[Expression]:
+def combine_integer_arguments(builtin, ns, eval_fn: Callable) -> Optional[Expression]:
     """
     Build the result of GCD or LCM from its arguments ns: the integer
     arguments are combined by eval_fn into a single Integer. If every

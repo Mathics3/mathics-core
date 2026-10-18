@@ -131,6 +131,9 @@ class Accuracy(Builtin):
 /representation-of-numbers/precision/</url>.
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
+
     summary_text = "find the accuracy of a number"
 
     def eval(self, z, evaluation):
@@ -165,6 +168,9 @@ class IntegerExponent(Builtin):
     """
 
     attributes = A_LISTABLE | A_PROTECTED
+
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
 
     messages = {
         "int": "Integer expected at position 1 in `1`",
@@ -797,6 +803,9 @@ class Precision(Builtin):
     :'Accuracy':
     /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/representation-of-numbers/accuracy/</url>.
     """
+
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
 
     summary_text = "find the precision of a number"
 
