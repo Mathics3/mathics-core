@@ -21,6 +21,7 @@ from mathics.core.atoms import (
     Integer0,
     Integer1,
     IntegerM1,
+    MachineReal,
     Number,
     Rational,
     Real,
@@ -36,11 +37,18 @@ from mathics.core.builtin import Builtin, MPMathFunction, SympyFunction
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.number import MACHINE_EPSILON, is_inexact, is_numeric
+from mathics.core.number import (
+    MACHINE_EPSILON,
+    PrecisionValueError,
+    get_closest_precision,
+    is_inexact,
+    is_numeric,
+)
 from mathics.core.symbols import (
     Symbol,
     SymbolDivide,
     SymbolFalse,
+    SymbolList,
     SymbolMachinePrecision,
     SymbolTimes,
     SymbolTrue,
@@ -177,6 +185,10 @@ class N(Builtin):
     <dl>
     <dt>'N'[$expr$, $prec$]
         <dd>evaluates $expr$ numerically with a precision of $prec$ digits.
+
+    <dt>'N'[$expr$, {$prec$, $acc$}]
+        <dd>evaluates $expr$ numerically with at most $prec$ digits of \
+        precision and at most $acc$ digits of accuracy.
     </dl>
 
     >> N[Pi, 50]
@@ -187,6 +199,10 @@ class N(Builtin):
 
     >> N[1/7, 5]
      = 0.14286
+
+    With an accuracy, the number of digits depends on the size of the number:
+    >> N[{Pi, 1000 Pi}, {20, 3}]
+     = {3.14, 3141.59}
 
     You can manually assign numerical values to symbols.
 
@@ -216,7 +232,7 @@ class N(Builtin):
     >> N[c, 3]
      = c
     >> N[c, 11]
-     = 11.000000000
+     = 11.
 
     You can also use 'UpSet' or 'TagSet' to specify values for 'N':
     >> N[d] ^= 5;
@@ -267,6 +283,7 @@ class N(Builtin):
     options = {"Method": "Automatic"}
 
     messages = {
+        "arg": "Argument `1` is not of the form {precision, accuracy}.",
         "precbd": ("Requested precision `1` is not a " + "machine-sized real number."),
         "preclg": (
             "Requested precision `1` is larger than $MaxPrecision. "
@@ -312,7 +329,24 @@ class N(Builtin):
                 preference_queue.pop()
                 return result
 
-        return eval_NValues(expr, prec, evaluation)
+        if prec.has_form(SymbolList, None):
+            if len(prec.elements) != 2:
+                evaluation.message("N", "arg", prec)
+                return None
+        elif prec is not SymbolMachinePrecision:
+            # The precision is checked here, so that a message shows it as it
+            # was given: the N rules get it as a machine real, within
+            # $MinPrecision and $MaxPrecision.
+            try:
+                digits = get_closest_precision(prec, evaluation)
+            except PrecisionValueError:
+                return None
+            if digits is not None:
+                prec = MachineReal(float(digits))
+        result = eval_NValues(expr, prec, evaluation)
+        if result is None and prec.has_form(SymbolList, 2):
+            evaluation.message("N", "precbd", prec.elements[0])
+        return result
 
     def eval_N(self, expr, evaluation: Evaluation):
         """N[expr_]"""
