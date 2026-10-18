@@ -484,3 +484,37 @@ def test_string(str_expr, warnings, str_expected, fail_msg):
         expected_messages=warnings,
         hold_expected=True,
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected"),
+    [
+        ("IntegerExponent[0, 2]", None, "Infinity"),
+        ("IntegerExponent[0]", None, "Infinity"),
+        ("IntegerExponent[2^1000 3, 2]", None, "1000"),
+        (
+            "IntegerExponent[10, 1]",
+            ("Base 1 is not an integer greater than 1.",),
+            "IntegerExponent[10, 1]",
+        ),
+        (
+            "IntegerExponent[10, 0]",
+            ("Base 0 is not an integer greater than 1.",),
+            "IntegerExponent[10, 0]",
+        ),
+        (
+            "IntegerExponent[10, -2]",
+            ("Base -2 is not an integer greater than 1.",),
+            "IntegerExponent[10, -2]",
+        ),
+    ],
+)
+def test_integer_exponent(str_expr, msgs, str_expected):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        expected_messages=msgs,
+    )
