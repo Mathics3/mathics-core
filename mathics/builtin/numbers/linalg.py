@@ -13,7 +13,11 @@ from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.matrix import matrix_data, to_mathics_matrix
 from mathics.core.convert.mpmath import from_mpmath, to_mpmath_matrix
-from mathics.core.convert.sympy import from_sympy, to_sympy_matrix
+from mathics.core.convert.sympy import (
+    from_sympy,
+    from_sympy_matrix_as_matrix,
+    to_sympy_matrix,
+)
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -28,20 +32,6 @@ from mathics.eval.numbers.linalg_modular import (
     rref_mod,
     vector_mod,
 )
-
-
-def from_sympy_matrix_as_matrix(matrix):
-    """
-    Convert a SymPy matrix to a Mathics3 matrix, keeping its shape.
-
-    ``from_sympy`` turns a matrix with one column into a vector, which is
-    what a solution of a linear system should look like, but not what the
-    inverse of {{2}} or the row-reduced form of {{1}, {2}} should be.
-    Anything else, such as an unevaluated MatPow, goes to ``from_sympy``.
-    """
-    if not isinstance(matrix, sympy.MatrixBase):
-        return from_sympy(matrix)
-    return to_mathics_matrix(matrix.tolist(), elements_conversion_fn=from_sympy)
 
 
 class DesignMatrix(Builtin):
