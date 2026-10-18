@@ -5,7 +5,7 @@ Division-Related Functions
 """
 
 import sys
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 from sympy import Q, ask
 
@@ -104,6 +104,29 @@ class Divisible(Builtin):
     summary_text = "test whether one number is divisible by the other"
 
 
+def combine_integer_arguments(builtin, ns, eval_fn) -> Optional[Expression]:
+    """
+    Evaluate GCD or LCM: all integer arguments are combined into one,
+    other arguments are kept.
+
+    The rule pattern is ns___ (ns__) and not ns___Integer: the functions are
+    Flat, and ns___Integer also matches a lone integer among other
+    arguments. Rewriting it to itself made GCD[1/2, 3] or GCD[2.5, 5]
+    evaluate until $IterationLimit.
+    """
+    ns = ns.get_sequence()
+    integers = [n for n in ns if isinstance(n, Integer)]
+    if len(integers) == len(ns):
+        return eval_fn(ns)
+    if len(integers) < 2:
+        return None
+    combined = eval_fn(integers)
+    if combined is None:
+        return None
+    others = [n for n in ns if not isinstance(n, Integer)]
+    return Expression(Symbol(builtin.get_name()), combined, *others)
+
+
 class GCD(Builtin):
     """
     <url>
@@ -131,10 +154,10 @@ class GCD(Builtin):
     summary_text = "compute the Greatest Common Divisor"
     sympy_name = "gcd"
 
-    def eval(self, ns, evaluation: Evaluation) -> Optional[Integer]:
-        "GCD[ns___Integer]"
+    def eval(self, ns, evaluation: Evaluation) -> Optional[Expression]:
+        "GCD[ns___]"
 
-        return eval_GCD(ns.get_sequence())
+        return combine_integer_arguments(self, ns, eval_GCD)
 
 
 class LCM(Builtin):
@@ -161,14 +184,11 @@ class LCM(Builtin):
     summary_text = "compute the Least Common Multiple"
     sympy_name = "lcm"
 
-    def eval(self, ns: List[Integer], evaluation: Evaluation) -> Optional[Integer]:
-        "LCM[ns___Integer]"
+    def eval(self, ns, evaluation: Evaluation) -> Optional[Expression]:
+        "LCM[ns__]"
 
-        ns_tuple = ns.get_sequence()
-        if len(ns_tuple) == 0:
-            evaluation.message("LCM", "argm")
-            return
-        return eval_LCM(ns_tuple)
+        # LCM[] is answered by generic_argument_error.
+        return combine_integer_arguments(self, ns, eval_LCM)
 
 
 class Mod(SympyFunction):
