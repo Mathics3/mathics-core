@@ -41,13 +41,7 @@ class BernoulliB(MPMathFunction):
      First five Bernoulli numbers:
 
      >> Table[BernoulliB[k], {k, 0, 5}]
-      = ...
-
-     ## This must be (according to WMA)
-     ## = {1, -1 / 2, 1 / 6, 0, -1 / 30, 0}
-     ## but for some reason, in the CI the previous test produces
-     ## the output:
-     ## {1, 1 / 2, 1 / 6, 0, -1 / 30, 0}
+      = {1, -1 / 2, 1 / 6, 0, -1 / 30, 0}
 
      First five Bernoulli polynomials:
 
@@ -59,6 +53,9 @@ class BernoulliB(MPMathFunction):
     eval_error = Builtin.generic_argument_error
     expected_args = (1, 2)
     mpmath_name = "bernoulli"
+    # SymPy 1.12 changed bernoulli(1) from -1/2 to +1/2 (the convention
+    # B_n = B_n(1)); WMA, like mpmath and BernoulliB[1, 0], has B_1 = -1/2.
+    rules = {"BernoulliB[1]": "-1/2"}
     nargs = {1, 2}
     summary_text = "Bernoulli numbers and polynomials"
     sympy_name = "bernoulli"
