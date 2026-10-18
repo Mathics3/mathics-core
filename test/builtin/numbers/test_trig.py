@@ -46,11 +46,36 @@ def test_ArcCos():
         ("N[Sin[1], 40]", None, "0.8414709848078965066525023216302989996226", None),
         ("Tan[0.5 Pi]", None, "1.63312×10^16", None),
         # Arguments SymPy rejects leave the expression unevaluated.
-        ("Sin[True]", [], "Sin[True]", None),
-        ("ArcTan[False]", [], "ArcTan[False]", None),
-        ("Log[True]", [], "Log[True]", None),
-        ("Sinh[True]", [], "Sinh[True]", None),
-        ("Erf[True]", [], "Erf[True]", None),
+        (
+            "Sin[True]",
+            [],
+            "Sin[True]",
+            "Sin of a Boolean, which SymPy rejects (AttributeError), stays unevaluated",
+        ),
+        (
+            "ArcTan[False]",
+            [],
+            "ArcTan[False]",
+            "ArcTan of a Boolean, which SymPy rejects, stays unevaluated",
+        ),
+        (
+            "Log[True]",
+            [],
+            "Log[True]",
+            "Log of a Boolean, which SymPy rejects, stays unevaluated",
+        ),
+        (
+            "Sinh[True]",
+            [],
+            "Sinh[True]",
+            "Sinh of a Boolean, which SymPy rejects, stays unevaluated",
+        ),
+        (
+            "Erf[True]",
+            [],
+            "Erf[True]",
+            "Erf of a Boolean, which SymPy rejects, stays unevaluated",
+        ),
     ],
 )
 def test_trig(str_expr, msgs, str_expected, fail_msg):
