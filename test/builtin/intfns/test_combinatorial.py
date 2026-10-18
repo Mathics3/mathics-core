@@ -84,6 +84,24 @@ def test_combinatorial_arg_errors(str_expr, msgs, fail_msg):
             "Binomial[a, b, c]",
             "Binomial with more than two arguments",
         ),
+        (
+            "Binomial[x]",
+            ["Binomial called with 1 argument; 2 arguments are expected."],
+            "Binomial[x]",
+            "Binomial with one argument",
+        ),
+        (
+            "Binomial[f[5, 3]]",
+            ["Binomial called with 1 argument; 2 arguments are expected."],
+            "Binomial[f[5, 3]]",
+            "Binomial with one argument that has two elements",
+        ),
+        (
+            "CatalanNumber[f[1, 2]]",
+            [],
+            "CatalanNumber[f[1, 2]]",
+            "one argument with two elements is one argument",
+        ),
     ],
 )
 def test_binomial(str_expr, expected_messages, str_expected, failure_message):
