@@ -12,6 +12,10 @@ import pytest
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
         ("HarmonicNumber[-1.5]", None, "0.613706", None),
+        # B_1 = -1/2 as in WMA, whatever SymPy's convention is.
+        ("BernoulliB[1]", None, "-1 / 2", None),
+        ("BernoulliB[1] == BernoulliB[1, 0]", None, "True", None),
+        ("BernoulliB[{0, 1, 2}]", None, "{1, -1 / 2, 1 / 6}", None),
     ],
 )
 def test_recurrence(str_expr, msgs, str_expected, fail_msg):
