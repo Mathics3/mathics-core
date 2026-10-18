@@ -967,7 +967,8 @@ class Insert(Builtin):
      = Insert[{a, b, c, d, e}, x, 7]
     """
 
-    messages = {"ins": "Cannot insert at position `1` in `2`."}
+    eval_error = Builtin.generic_argument_error
+    expected_args = (2, 3)
     summary_text = "insert an element at a given position"
 
     def eval(self, expr, elem, n: Integer, evaluation):

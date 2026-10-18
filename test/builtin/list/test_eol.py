@@ -279,6 +279,25 @@ import pytest
             "Insert[{a, b, c}, new, -5]",
             None,
         ),
+        (
+            "Insert[]",
+            ("Insert called with 0 arguments; 2 or 3 arguments are expected.",),
+            "Insert[]",
+            None,
+        ),
+        (
+            "Insert[a]",
+            ("Insert called with 1 argument; 2 or 3 arguments are expected.",),
+            "Insert[a]",
+            None,
+        ),
+        ("Insert[a, b]", None, "Insert[a, b]", None),
+        (
+            "Insert[a, b, c, d]",
+            ("Insert called with 4 arguments; 2 or 3 arguments are expected.",),
+            "Insert[a, b, c, d]",
+            None,
+        ),
     ],
 )
 def test_eol_edicates(str_expr, expected_messages, str_expected, assert_message):
