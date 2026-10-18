@@ -179,6 +179,34 @@ def test_realdigits_rational(str_expr, str_expected):
     check_evaluation(str_expr, str_expected)
 
 
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected"),
+    [
+        (
+            "RealDigits[]",
+            (
+                "RealDigits called with 0 arguments; between 1 and 4 arguments are expected.",
+            ),
+            "RealDigits[]",
+        ),
+        (
+            "RealDigits[1, 2, 3, 4, 5]",
+            (
+                "RealDigits called with 5 arguments; between 1 and 4 arguments are expected.",
+            ),
+            "RealDigits[1, 2, 3, 4, 5]",
+        ),
+    ],
+)
+def test_realdigits_argument_count(str_expr, msgs, str_expected):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        expected_messages=msgs,
+        hold_expected=True,
+    )
+
+
 def test_n():
     for str_expr, str_expected in (
         ('3.14159 * "a string"', "3.14159 a string"),

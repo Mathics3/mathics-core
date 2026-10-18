@@ -32,7 +32,9 @@ def check_finite_decimal(denominator):
     return True if denominator == 1 else False
 
 
-def rational_digits(numerator: int, denominator: int, base: int):
+def rational_digits(
+    numerator: int, denominator: int, base: int
+) -> tuple[list[int], list[int], int]:
     """
     The base-`base` digits of the positive rational numerator/denominator,
     in the form RealDigits gives them: ``(digits, period, exponent)``, where

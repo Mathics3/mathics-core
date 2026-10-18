@@ -386,6 +386,10 @@ class RealDigits(Builtin):
 
     attributes = A_LISTABLE | A_PROTECTED
 
+    # Between one and four arguments are allowed.
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 5)
+
     messages = {
         "realx": "The value `1` is not a real number.",
         "ndig": "The number of digits to return cannot be determined.",
