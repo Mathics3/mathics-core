@@ -779,9 +779,12 @@ class SympyFunction(SympyObject):
                     return tracing.run_sympy(sympy_function, *sympy_args)
             elif exc := kwargs.get("raise_on_error", None):
                 raise exc(f"{self.get_name()}.sympy_name is {repr(self.sympy_name)}")
-        except TypeError as oops:
+        except (AttributeError, TypeError, ValueError) as oops:
+            # SymPy rejects arguments it has no meaning for, such as
+            # asin(true) (AttributeError) or bernoulli(-2.5) (ValueError).
+            # The expression then has no SymPy form and stays unevaluated.
             if exc := kwargs.get("raise_on_error", None):
-                raise exc(f"TypeError: {oops}")
+                raise exc(f"{type(oops).__name__}: {oops}")
 
     def from_sympy(self, elements: Tuple[BaseElement, ...]) -> Expression:
         return Expression(Symbol(self.get_name()), *elements)
