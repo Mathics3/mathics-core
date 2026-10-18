@@ -131,6 +131,16 @@ def test_integrate(str_expr: str, str_expected: str, assert_fail_message):
                 " n}, where n is a non-negative machine integer."
             ],
         ),
+        # The derivative of an indefinite integral that stays unevaluated.
+        ("D[Integrate[f[x], x], x]", "f[x]", []),
+        ("D[Integrate[Abs[x], x], x]", "Abs[x]", []),
+        ("D[Integrate[f[x], x], y]", "0", []),
+        (
+            "D[Integrate[f[x, y], x], y]",
+            "Integrate[Derivative[0, 1][f][x, y], x]",
+            [],
+        ),
+        ("D[Integrate[f[x, y], x, y], y]", "Integrate[f[x, y], x]", []),
     ],  # Issue #502
 )
 def test_D(str_expr: str, str_expected: str, expected_messages):
