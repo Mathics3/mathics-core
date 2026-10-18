@@ -134,6 +134,44 @@ def test_equality_inequality(str_expr, msgs, str_expected, fail_msg):
         ("Positive[Sin[{11, 14}]]", None, "{False, True}", None),
         ("PrimeQ[1]", None, "False", None),
         ("PrimeQ[2 ^ 255 - 1]", None, "False", None),
+        # Real infinities
+        ("{Negative[Infinity], Negative[-Infinity]}", None, "{False, True}", None),
+        ("{Positive[Infinity], Positive[-Infinity]}", None, "{True, False}", None),
+        (
+            "{NonNegative[Infinity], NonNegative[-Infinity]}",
+            None,
+            "{True, False}",
+            None,
+        ),
+        (
+            "{NonPositive[Infinity], NonPositive[-Infinity]}",
+            None,
+            "{False, True}",
+            None,
+        ),
+        ("Negative[2 {Infinity, 3} - {3, 0}]", None, "{False, False}", None),
+        ("Negative[ComplexInfinity]", None, "Negative[ComplexInfinity]", None),
+        # Other directions: the sign test of the direction, as in WMA
+        (
+            "{Positive[DirectedInfinity[1.]], Negative[DirectedInfinity[-1/2]],"
+            " NonNegative[DirectedInfinity[Pi]], NonPositive[DirectedInfinity[-Sqrt[2]]]}",
+            None,
+            "{True, True, True, True}",
+            None,
+        ),
+        (
+            "{Positive[DirectedInfinity[I]], Negative[DirectedInfinity[1 + I]],"
+            " NonNegative[DirectedInfinity[-I]], NonPositive[DirectedInfinity[I]]}",
+            None,
+            "{False, False, False, False}",
+            None,
+        ),
+        (
+            "Head[Positive[DirectedInfinity[x]]]",
+            None,
+            "Positive",
+            "A symbolic direction is left undecided",
+        ),
         # Non-atomic arguments
         ("EvenQ[f[2]]", None, "False", "Non-atomic EvenQ check"),
         ("OddQ[f[1]]", None, "False", "Non-atomic OddQ check"),
