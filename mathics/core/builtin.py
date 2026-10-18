@@ -79,7 +79,6 @@ from mathics.core.parser.util import PyMathicsDefinitions, SystemDefinitions
 from mathics.core.pattern import BasePattern
 from mathics.core.rules import BaseRule, FunctionApplyRule, RewriteRule
 from mathics.core.symbols import (
-    Atom,
     BaseElement,
     BooleanType,
     Symbol,
@@ -93,10 +92,7 @@ from mathics.core.symbols import (
     strip_context,
 )
 from mathics.core.systemsymbols import (
-    SymbolComplexInfinity,
     SymbolDefault,
-    SymbolDirectedInfinity,
-    SymbolInfinity,
     SymbolLessEqual,
     SymbolMessageName,
     SymbolRange,
@@ -463,14 +459,13 @@ class Builtin:
         "%(name)s[invalid___]"
 
         name = self.get_name(short=True)
-        if isinstance(invalid, Atom) or invalid.head in (
-            SymbolComplexInfinity,
-            SymbolDirectedInfinity,
-            SymbolInfinity,
-        ):
-            got_arg_count = 1
-        else:
+        # ``invalid___`` binds to Sequence[...] when there are zero or
+        # several arguments, and to the argument itself when there is
+        # exactly one, whatever that argument is (f[a, b], {a, b}, ...).
+        if invalid.has_form(SymbolSequence, None):
             got_arg_count = len(invalid.elements)
+        else:
+            got_arg_count = 1
 
         if isinstance(self.expected_args, (tuple, range)):
             if got_arg_count in self.expected_args:

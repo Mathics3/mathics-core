@@ -70,17 +70,25 @@ def get_dimensions(expr, head=None):
     else:
         if head is not None and not expr.head.sameQ(head):
             return []
-        sub_dim = None
-        sub = []
+        # The dimensions below this level are those that all elements
+        # share: the longest common prefix of their dimensions. For
+        # {{a, b}, {{c, d}, {e, f}}} the elements have dimensions {2} and
+        # {2, 2}, so the whole has dimensions {2, 2}.
+        sub = None
         for element in expr.elements:
-            sub = get_dimensions(element, expr.head)
-            if sub_dim is None:
-                sub_dim = sub
+            element_dims = get_dimensions(element, expr.head)
+            if sub is None:
+                sub = element_dims
             else:
-                if sub_dim != sub:
-                    sub = []
-                    break
-        return [len(expr.elements)] + sub
+                common = 0
+                for d1, d2 in zip(sub, element_dims):
+                    if d1 != d2:
+                        break
+                    common += 1
+                sub = sub[:common]
+            if not sub:
+                break
+        return [len(expr.elements)] + (sub or [])
 
 
 def to_std_sparse_array(sparse_array, evaluation: Evaluation):

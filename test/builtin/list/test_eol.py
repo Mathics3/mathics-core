@@ -257,6 +257,47 @@ import pytest
             "Take[{1, 2, 3, 4, 5}, {1, 0, -1}]",
             None,
         ),
+        ("Insert[{a, b, c}, new, -1]", None, "{a, b, c, new}", None),
+        ("Insert[{a, b, c}, new, -4]", None, "{new, a, b, c}", None),
+        ("Insert[{a, b, c}, new, 4]", None, "{a, b, c, new}", None),
+        ("Insert[{}, new, -1]", None, "{new}", None),
+        (
+            "Insert[{a, b, c}, new, 0]",
+            ("Cannot insert at position 0 in {a, b, c}.",),
+            "Insert[{a, b, c}, new, 0]",
+            None,
+        ),
+        (
+            "Insert[{a, b, c}, new, 5]",
+            ("Cannot insert at position 5 in {a, b, c}.",),
+            "Insert[{a, b, c}, new, 5]",
+            None,
+        ),
+        (
+            "Insert[{a, b, c}, new, -5]",
+            ("Cannot insert at position -5 in {a, b, c}.",),
+            "Insert[{a, b, c}, new, -5]",
+            None,
+        ),
+        (
+            "Insert[]",
+            ("Insert called with 0 arguments; 2 or 3 arguments are expected.",),
+            "Insert[]",
+            None,
+        ),
+        (
+            "Insert[a]",
+            ("Insert called with 1 argument; 2 or 3 arguments are expected.",),
+            "Insert[a]",
+            None,
+        ),
+        ("Insert[a, b]", None, "Insert[a, b]", None),
+        (
+            "Insert[a, b, c, d]",
+            ("Insert called with 4 arguments; 2 or 3 arguments are expected.",),
+            "Insert[a, b, c, d]",
+            None,
+        ),
     ],
 )
 def test_eol_edicates(str_expr, expected_messages, str_expected, assert_message):

@@ -55,10 +55,10 @@ from mathics.eval.nevaluator import eval_N
 from mathics.eval.numbers.numbers import (
     check_finite_decimal,
     convert_float_base,
-    convert_repeating_decimal,
     eval_Accuracy,
     eval_Precision,
     log_n_b,
+    rational_digits,
 )
 
 SymbolIntegerDigits = Symbol("IntegerDigits")
@@ -159,6 +159,9 @@ class IntegerExponent(Builtin):
 
     >> IntegerExponent[10, b]
      = IntegerExponent[10, b]
+
+    >> IntegerExponent[0, 2]
+     = Infinity
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -180,14 +183,21 @@ class IntegerExponent(Builtin):
         py_n, py_b = n.value, b.value
         py_n = abs(py_n)
 
-        # TODO: Optimise this (dont need to calc. base^result)
-        # NOTE: IntegerExponent[a,b] causes a Python error here when a or b are
-        # symbols. The function signature here ensures we have Integers.
-        result = 1
-        while py_n % (py_b**result) == 0:
+        # With a base below 2 the loop below never ends (b = 1), divides
+        # by zero (b = 0) or counts powers of a negative number.
+        if py_b < 2:
+            evaluation.message("IntegerExponent", "ibase", b)
+            return None
+        # Every power of b divides 0.
+        if py_n == 0:
+            return SymbolInfinity
+
+        result = 0
+        while py_n % py_b == 0:
+            py_n //= py_b
             result += 1
 
-        return Integer(result - 1)
+        return Integer(result)
 
     # FIXME: If WMA supports things other than Integers, the below code might
     # be useful as a starting point.
@@ -386,6 +396,10 @@ class RealDigits(Builtin):
 
     attributes = A_LISTABLE | A_PROTECTED
 
+    # Between one and four arguments are allowed.
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 5)
+
     messages = {
         "realx": "The value `1` is not a real number.",
         "ndig": "The number of digits to return cannot be determined.",
@@ -400,19 +414,19 @@ class RealDigits(Builtin):
         # expr = Expression(SymbolRealDigits, n)
         py_n = abs(n.value)
         py_b = b.value
+        if py_b < 2:
+            evaluation.message("RealDigits", "rbase", b)
+            return None
         if check_finite_decimal(n.denominator().int_value) and not py_b % 2:
             return self.eval_with_base(n, b, evaluation)
-        else:
-            exp = log_n_b(py_n, py_b)
-            head, tails = convert_repeating_decimal(
-                py_n.as_numer_denom()[0], py_n.as_numer_denom()[1], py_b
-            )
-
-            elements = [Integer(int(x)) for x in head if x != "0"]
-
-            elements.append(from_python(tails))
-            list_expr = ListExpression(*elements)
-        return ListExpression(list_expr, Integer(exp))
+        numerator, denominator = py_n.as_numer_denom()
+        digits, period, exponent = rational_digits(
+            int(numerator), int(denominator), py_b
+        )
+        elements = [Integer(d) for d in digits]
+        if period:
+            elements.append(ListExpression(*(Integer(d) for d in period)))
+        return ListExpression(ListExpression(*elements), Integer(exponent))
 
     def eval_rational_without_base(self, n, evaluation):
         "%(name)s[n_Rational]"
