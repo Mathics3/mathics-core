@@ -45,6 +45,12 @@ def test_ArcCos():
         ("Cos[1.5 Pi]", None, "-1.83697×10^-16", None),
         ("N[Sin[1], 40]", None, "0.8414709848078965066525023216302989996226", None),
         ("Tan[0.5 Pi]", None, "1.63312×10^16", None),
+        # Arguments SymPy rejects leave the expression unevaluated.
+        ("Sin[True]", [], "Sin[True]", None),
+        ("ArcTan[False]", [], "ArcTan[False]", None),
+        ("Log[True]", [], "Log[True]", None),
+        ("Sinh[True]", [], "Sinh[True]", None),
+        ("Erf[True]", [], "Erf[True]", None),
     ],
 )
 def test_trig(str_expr, msgs, str_expected, fail_msg):
