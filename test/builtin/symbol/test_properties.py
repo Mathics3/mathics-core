@@ -193,3 +193,36 @@ def test_values_assignment_holdpattern(str_expr, str_expected):
 )
 def test_nvalues_machine_precision(str_expr, str_expected):
     check_evaluation(f"{str_expr} === {str_expected}", "True")
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected"),
+    [
+        # As in WMA, an N rule gets a numeric precision as a machine real.
+        ("N[npd, p_] := Hold[p]; N[npd, 20]", "Hold[20.]"),
+        ("N[npd, {10, 5}]", "Hold[{10., 5.}]"),
+        # WMA shows a numeric precision as {precision, accuracy}.
+        (
+            "N[npa, 20] = 5; NValues[npa]",
+            "{HoldPattern[N[npa, {20., Infinity}]] :> 5}",
+        ),
+        ("N[npa, 20] == 5", "True"),
+        (
+            "N[npb, {10, 5}] = 7; NValues[npb]",
+            "{HoldPattern[N[npb, {10., 5.}]] :> 7}",
+        ),
+        ("N[npb, {10, 5}] == 7", "True"),
+        # Rules in that form, and in the plain one, are accepted.
+        (
+            "NValues[npc] = {HoldPattern[N[npc, {20., Infinity}]] :> 1}; N[npc, 20] == 1",
+            "True",
+        ),
+        (
+            "NValues[npe] = {HoldPattern[N[npe, 20]] :> 2}; NValues[npe]",
+            "{HoldPattern[N[npe, {20., Infinity}]] :> 2}",
+        ),
+        ("N[npf, {20, Infinity}] = 8; N[npf, 20] == 8", "True"),
+    ],
+)
+def test_nvalues_numeric_precision(str_expr, str_expected):
+    check_evaluation(f"{str_expr} === {str_expected}", "True")

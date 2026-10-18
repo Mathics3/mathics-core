@@ -30,7 +30,9 @@ def test_sameQ():
     "str_expr, prec, str_expected",
     [
         ("1", "$MachinePrecision", "1.000000000"),
-        ("Sqrt[2]", "$MachinePrecision", "1.41421356237310"),
+        # Sqrt[2] = 1.41421356237309504880...; the value used to be
+        # rounded through a decimal string to 1.4142135623731.
+        ("Sqrt[2]", "$MachinePrecision", "1.4142135623730950`15"),
         ("2/9", "$MachinePrecision", "2.000000`5*9.0000000000`5^(-1.`)"),
         ("Pi", "$MachinePrecision", "3.141592653589793`15"),
         ("F[1.2, 2/9]", "$MachinePrecision", "F[1.2, .2222222222222222]"),
