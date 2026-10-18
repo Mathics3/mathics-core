@@ -270,6 +270,15 @@ def test_inverse(str_expr, str_expected, fail_msg, warnings):
             ("{10 - 3 Sqrt[11], 10 + 3 Sqrt[11]}"),
             None,  # "Sympy issue #1156",
         ),
+        # A matrix with one column stays a matrix.
+        ("Inverse[{{2}}]", None, "{{1 / 2}}", None),
+        ("RowReduce[{{1}, {2}}]", None, "{{1}, {0}}", None),
+        ("MatrixPower[{{2}}, 3]", None, "{{8}}", None),
+        ("MatrixExp[{{0}}]", None, "{{1}}", None),
+        ("PseudoInverse[{{1, 2}}]", None, "{{1 / 5}, {2 / 5}}", None),
+        ("Last[QRDecomposition[{{3}, {4}}]]", None, "{{5}}", None),
+        # A solution of a linear system is still a vector.
+        ("LinearSolve[{{2}}, {4}]", None, "{2}", None),
     ],
 )
 def test_linalg(str_expr, msgs, str_expected, fail_msg):

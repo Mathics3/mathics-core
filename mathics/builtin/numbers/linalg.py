@@ -30,6 +30,20 @@ from mathics.eval.numbers.linalg_modular import (
 )
 
 
+def from_sympy_matrix_as_matrix(matrix):
+    """
+    Convert a SymPy matrix to a Mathics3 matrix, keeping its shape.
+
+    ``from_sympy`` turns a matrix with one column into a vector, which is
+    what a solution of a linear system should look like, but not what the
+    inverse of {{2}} or the row-reduced form of {{1}, {2}} should be.
+    Anything else, such as an unevaluated MatPow, goes to ``from_sympy``.
+    """
+    if not isinstance(matrix, sympy.MatrixBase):
+        return from_sympy(matrix)
+    return to_mathics_matrix(matrix.tolist(), elements_conversion_fn=from_sympy)
+
+
 class DesignMatrix(Builtin):
     """
     <url>
@@ -363,7 +377,7 @@ class Inverse(Builtin):
             evaluation.message("Inverse", "sing", m)
             return
         inv = matrix.adjugate() / det
-        return from_sympy(inv)
+        return from_sympy_matrix_as_matrix(inv)
 
 
 class LeastSquares(Builtin):
@@ -624,7 +638,7 @@ class MatrixExp(Builtin):
         except NotImplementedError:
             evaluation.message("MatrixExp", "matrixexpnotimplemented", m)
             return
-        return from_sympy(res)
+        return from_sympy_matrix_as_matrix(res)
 
 
 class MatrixPower(Builtin):
@@ -669,7 +683,7 @@ class MatrixPower(Builtin):
         except ValueError:
             evaluation.message("MatrixPower", "matrixpowernotinvertible", m)
             return
-        return from_sympy(res)
+        return from_sympy_matrix_as_matrix(res)
 
 
 class MatrixRank(Builtin):
@@ -805,7 +819,7 @@ class PseudoInverse(Builtin):
             evaluation.message("PseudoInverse", "matrix", m, 1)
             return
         pinv = matrix.pinv()
-        return from_sympy(pinv)
+        return from_sympy_matrix_as_matrix(pinv)
 
 
 class QRDecomposition(Builtin):
@@ -841,7 +855,9 @@ class QRDecomposition(Builtin):
             evaluation.message("QRDecomposition", "sympy")
             return
         Q = Q.transpose()
-        return ListExpression(*[from_sympy(Q), from_sympy(R)])
+        return ListExpression(
+            from_sympy_matrix_as_matrix(Q), from_sympy_matrix_as_matrix(R)
+        )
 
 
 class RowReduce(Builtin):
@@ -891,7 +907,7 @@ class RowReduce(Builtin):
             evaluation.message("RowReduce", "matrix", m, 1)
             return
         reduced = matrix.rref()[0]
-        return from_sympy(reduced)
+        return from_sympy_matrix_as_matrix(reduced)
 
 
 class SingularValueDecomposition(Builtin):
