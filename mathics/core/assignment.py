@@ -109,7 +109,7 @@ def get_symbol_list(
         name of the symbol.
     stop_on_failure: bool (optional)
         If True, return None if some of the elements cannot
-        be interpreted as a symbol . Default False.
+        be interpreted as a symbol. Default False.
 
     Returns
     -------
