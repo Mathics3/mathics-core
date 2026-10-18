@@ -160,6 +160,25 @@ def test_realdigits():
         check_evaluation(str_expr, str_expected)
 
 
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected"),
+    [
+        # The output form does not show quotes, so compare with ===:
+        # the digits must be integers, not strings.
+        ("RealDigits[1/7] === {{{1, 4, 2, 8, 5, 7}}, 0}", "True"),
+        ("RealDigits[19/7] === {{2, {7, 1, 4, 2, 8, 5}}, 1}", "True"),
+        # The period starts after the shortest pre-period.
+        ("RealDigits[1/6]", "{{1, {6}}, 0}"),
+        ("RealDigits[1/14]", "{{{7, 1, 4, 2, 8, 5}}, -1}"),
+        # Zeros in the integer part are digits.
+        ("RealDigits[703/7]", "{{1, 0, 0, {4, 2, 8, 5, 7, 1}}, 3}"),
+        ("RealDigits[1/3, 1]", "RealDigits[1 / 3, 1]"),
+    ],
+)
+def test_realdigits_rational(str_expr, str_expected):
+    check_evaluation(str_expr, str_expected)
+
+
 def test_n():
     for str_expr, str_expected in (
         ('3.14159 * "a string"', "3.14159 a string"),
