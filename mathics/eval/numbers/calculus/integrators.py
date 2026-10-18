@@ -181,9 +181,20 @@ def eval_D_to_Integral(func, domain, var, evaluation, options, head):
         options = tuple()
     # if the integration is along several variables, take the integration of the inner
     # variables as func.
-    if domain._head is SymbolSequence:
-        func = Expression(head, func, *(domain._elements[:-1]), *options)
-        domain = domain._elements[-1]
+    if domain.has_form(SymbolSequence, None):
+        func = Expression(head, func, *(domain.elements[:-1]), *options)
+        domain = domain.elements[-1]
+
+    # An indefinite integral, Integrate[func, x]: its derivative in x is
+    # func, and in any other variable it is the integral of the
+    # derivative of func.
+    if isinstance(domain, Symbol) and head is not SymbolNIntegrate:
+        if domain.sameQ(var):
+            return func
+        integrand = Expression(SymbolD, func, var).evaluate(evaluation)
+        if isinstance(integrand, Number) and integrand.is_zero:
+            return Integer0
+        return Expression(head, integrand, domain, *options)
 
     terms = []
     # Evaluates the derivative regarding the integrand:
