@@ -270,6 +270,50 @@ def test_inverse(str_expr, str_expected, fail_msg, warnings):
             ("{10 - 3 Sqrt[11], 10 + 3 Sqrt[11]}"),
             None,  # "Sympy issue #1156",
         ),
+        # A matrix with one column stays a matrix.
+        (
+            "Inverse[{{2}}]",
+            None,
+            "{{1 / 2}}",
+            "Inverse of a 1x1 matrix is a 1x1 matrix, not a vector",
+        ),
+        (
+            "RowReduce[{{1}, {2}}]",
+            None,
+            "{{1}, {0}}",
+            "RowReduce of a one-column matrix keeps its column shape",
+        ),
+        (
+            "MatrixPower[{{2}}, 3]",
+            None,
+            "{{8}}",
+            "MatrixPower of a 1x1 matrix is a 1x1 matrix",
+        ),
+        (
+            "MatrixExp[{{0}}]",
+            None,
+            "{{1}}",
+            "MatrixExp of a 1x1 matrix is a 1x1 matrix",
+        ),
+        (
+            "PseudoInverse[{{1, 2}}]",
+            None,
+            "{{1 / 5}, {2 / 5}}",
+            "PseudoInverse of a 1x2 matrix is a 2x1 matrix, not a vector",
+        ),
+        (
+            "Last[QRDecomposition[{{3}, {4}}]]",
+            None,
+            "{{5}}",
+            "R factor of a one-column matrix is a 1x1 matrix",
+        ),
+        # A solution of a linear system is still a vector.
+        (
+            "LinearSolve[{{2}}, {4}]",
+            None,
+            "{2}",
+            "LinearSolve with a vector right-hand side returns a vector",
+        ),
     ],
 )
 def test_linalg(str_expr, msgs, str_expected, fail_msg):
