@@ -56,14 +56,54 @@ import pytest
         ("QuotientRemainder[5, 2.]", None, "{2, 1.}", None),
         # GCD and LCM are Flat: a lone integer among other arguments must
         # not be rewritten to itself until $IterationLimit.
-        ("GCD[1/2, 3]", [], "GCD[1 / 2, 3]", None),
-        ("GCD[2.5, 5]", [], "GCD[2.5, 5]", None),
-        ("LCM[1/2, 3]", [], "LCM[1 / 2, 3]", None),
-        ("GCD[6, 9, x]", None, "GCD[3, x]", None),
-        ("LCM[4, 6, x]", None, "LCM[12, x]", None),
-        ("GCD[-4]", None, "4", None),
-        ("LCM[-4]", None, "4", None),
-        ("GCD[]", None, "0", None),
+        (
+            "GCD[1/2, 3]",
+            [],
+            "GCD[1 / 2, 3]",
+            "GCD with a rational and a lone integer stays unevaluated, without hitting $IterationLimit",
+        ),
+        (
+            "GCD[2.5, 5]",
+            [],
+            "GCD[2.5, 5]",
+            "GCD with a real and a lone integer stays unevaluated, without hitting $IterationLimit",
+        ),
+        (
+            "LCM[1/2, 3]",
+            [],
+            "LCM[1 / 2, 3]",
+            "LCM with a rational and a lone integer stays unevaluated, without hitting $IterationLimit",
+        ),
+        (
+            "GCD[6, 9, x]",
+            None,
+            "GCD[3, x]",
+            "GCD combines its integer arguments and keeps the symbolic one",
+        ),
+        (
+            "LCM[4, 6, x]",
+            None,
+            "LCM[12, x]",
+            "LCM combines its integer arguments and keeps the symbolic one",
+        ),
+        (
+            "GCD[-4]",
+            None,
+            "4",
+            "GCD of a single negative integer is its absolute value",
+        ),
+        (
+            "LCM[-4]",
+            None,
+            "4",
+            "LCM of a single negative integer is its absolute value",
+        ),
+        (
+            "GCD[]",
+            None,
+            "0",
+            "GCD with no arguments is 0",
+        ),
     ],
 )
 def test_divlike(str_expr, msgs, str_expected, fail_msg):

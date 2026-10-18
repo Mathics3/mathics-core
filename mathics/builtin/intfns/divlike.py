@@ -106,8 +106,12 @@ class Divisible(Builtin):
 
 def combine_integer_arguments(builtin, ns, eval_fn) -> Optional[Expression]:
     """
-    Evaluate GCD or LCM: all integer arguments are combined into one,
-    other arguments are kept.
+    Build the result of GCD or LCM from its arguments ns: the integer
+    arguments are combined by eval_fn into a single Integer. If every
+    argument is an integer, that Integer is returned; otherwise a new
+    GCD[...] or LCM[...] expression is returned that holds the combined
+    integer followed by the remaining arguments. None, meaning no change,
+    is returned when there are fewer than two integers to combine.
 
     The rule pattern is ns___ (ns__) and not ns___Integer: the functions are
     Flat, and ns___Integer also matches a lone integer among other
