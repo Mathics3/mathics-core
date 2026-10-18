@@ -442,6 +442,10 @@ class Pochhammer(SympyFunction):
     >> Table[Pochhammer[0, n], {n, 0, -4, -1}]
      = {1, -1, 1 / 2, -1 / 6, 1 / 24}
 
+    It is a finite product also when $a$ is a negative integer:
+    >> Pochhammer[-5, 5]
+     = -120
+
     Pochhammer uses Gamma for non-Integer values of $n$:
 
     >> Pochhammer[1, 3.001]
@@ -473,6 +477,16 @@ class Pochhammer(SympyFunction):
     }
     summary_text = "compute Pochhammer's symbols"
     sympy_name = "RisingFactorial"
+
+    def eval_exact(self, a, n, evaluation: Evaluation):
+        "Pochhammer[a:(_Integer|_Rational), n_Integer]"
+
+        # The rule Factorial[a + n - 1] / Factorial[a - 1] is
+        # ComplexInfinity / ComplexInfinity, hence Indeterminate, when a
+        # is an integer <= 0, although the product a (a + 1) ... (a + n - 1)
+        # is finite: Pochhammer[-3, 2] = 6. SymPy's rf computes the product
+        # (or, for n < 0, the reciprocal of the falling one).
+        return from_sympy(tracing.run_sympy(sympy.rf, a.to_sympy(), n.value))
 
     def eval_negative_int(self, n, evaluation: Evaluation):
         "Pochhammer[0, n_?Negative]"

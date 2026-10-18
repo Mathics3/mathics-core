@@ -77,6 +77,38 @@ import pytest
             "{{x + y, 1 / 2}, {f[x], Sin[x]}}",
             None,
         ),
+        # Dimensions are those all elements share, even when the
+        # elements disagree further down.
+        (
+            "Dimensions[{{a, b}, {{c, d}, {e, f}}}]",
+            None,
+            "{2, 2}",
+            "Dimensions stops where element depths differ",
+        ),
+        (
+            "Dimensions[{{{1, 2}, {3}}, {{4, 5}, {6, 7}}}]",
+            None,
+            "{2, 2}",
+            "Dimensions stops where innermost lengths differ",
+        ),
+        (
+            "Dimensions[{{a, b}, {b, c}, {c, d, e}}]",
+            None,
+            "{3}",
+            "Dimensions of a ragged list is its length",
+        ),
+        (
+            "ArrayDepth[{{a, b}, {{c, d}, {e, f}}}]",
+            None,
+            "2",
+            "ArrayDepth is the length of the shared Dimensions",
+        ),
+        (
+            "Transpose[{{a, b}, {{c, d}, {e, f}}}]",
+            None,
+            "{{a, {c, d}}, {b, {e, f}}}",
+            "Transpose of a 2 x 2 array whose elements differ in depth",
+        ),
     ],
 )
 def test_tensor(str_expr, msgs, str_expected, fail_msg):
