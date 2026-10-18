@@ -80,6 +80,12 @@ def test_logic(str_expr, msgs, str_expected, fail_msg):
             None,
         ),
         ("SubsetQ[f[a, b, c], f[a]]", None, "True", None),
+        ("IntersectingQ[{1, 2}, {2, 3}]", None, "True", None),
+        ("IntersectingQ[{1, 2}, {3, 4}]", None, "False", None),
+        ("IntersectingQ[{}, {}]", None, "False", None),
+        ("DisjointQ[{1, 2}, {3, 4}]", None, "True", None),
+        ("DisjointQ[{1, 2}, {2, 3}]", None, "False", None),
+        ("DisjointQ[{a}]", None, "DisjointQ[{a}]", "DisjointQ is not a one-argument test"),
     ],
 )
 def test_list_oriented(str_expr, msgs, str_expected, fail_msg):
