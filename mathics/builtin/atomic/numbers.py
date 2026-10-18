@@ -159,6 +159,9 @@ class IntegerExponent(Builtin):
 
     >> IntegerExponent[10, b]
      = IntegerExponent[10, b]
+
+    >> IntegerExponent[0, 2]
+     = Infinity
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -180,14 +183,21 @@ class IntegerExponent(Builtin):
         py_n, py_b = n.value, b.value
         py_n = abs(py_n)
 
-        # TODO: Optimise this (dont need to calc. base^result)
-        # NOTE: IntegerExponent[a,b] causes a Python error here when a or b are
-        # symbols. The function signature here ensures we have Integers.
-        result = 1
-        while py_n % (py_b**result) == 0:
+        # With a base below 2 the loop below never ends (b = 1), divides
+        # by zero (b = 0) or counts powers of a negative number.
+        if py_b < 2:
+            evaluation.message("IntegerExponent", "ibase", b)
+            return None
+        # Every power of b divides 0.
+        if py_n == 0:
+            return SymbolInfinity
+
+        result = 0
+        while py_n % py_b == 0:
+            py_n //= py_b
             result += 1
 
-        return Integer(result - 1)
+        return Integer(result)
 
     # FIXME: If WMA supports things other than Integers, the below code might
     # be useful as a starting point.
