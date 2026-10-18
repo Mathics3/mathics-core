@@ -32,38 +32,54 @@ def check_finite_decimal(denominator):
     return True if denominator == 1 else False
 
 
-def convert_repeating_decimal(numerator, denominator, base):
-    head = [x for x in str(numerator // denominator)]
-    tails = []
-    subresults = [numerator % denominator]
-    numerator %= denominator
+def rational_digits(
+    numerator: int, denominator: int, base: int
+) -> tuple[list[int], list[int], int]:
+    """
+    The base-`base` digits of the positive rational numerator/denominator,
+    in the form RealDigits gives them: ``(digits, period, exponent)``, where
+    the number is 0.d1 d2 ... dk (p1 ... pm)(p1 ... pm)... times
+    base^exponent, d1 is not 0 and the pre-period d1 ... dk is as short as
+    possible. ``period`` is empty when the expansion terminates.
+    """
+    integer_part, remainder = divmod(numerator, denominator)
+    integer_digits = []
+    while integer_part:
+        integer_part, digit = divmod(integer_part, base)
+        integer_digits.insert(0, digit)
 
-    while numerator != 0:  # only rational input can go to this case
-        numerator *= base
-        result_digit, numerator = divmod(numerator, denominator)
-        tails.append(str(result_digit))
-        if numerator not in subresults:
-            subresults.append(numerator)
-        else:
-            break
+    # Long division; the expansion repeats from the first remainder seen
+    # again.
+    fraction_digits = []
+    position = {}
+    while remainder and remainder not in position:
+        position[remainder] = len(fraction_digits)
+        digit, remainder = divmod(remainder * base, denominator)
+        fraction_digits.append(digit)
+    if remainder:
+        start = position[remainder]
+        digits = integer_digits + fraction_digits[:start]
+        period = fraction_digits[start:]
+    else:
+        digits = integer_digits + fraction_digits
+        period = []
 
-    for i in range(len(head) - 1, -1, -1):
-        j = len(tails) - 1
-        if head[i] != tails[j]:
-            break
-        else:
-            del tails[j]
-            tails.insert(0, head[i])
-            del head[i]
+    exponent = len(integer_digits)
+    if not integer_digits:
+        # Leading zeros go into the exponent; past the pre-period they
+        # rotate the period.
+        while digits and digits[0] == 0:
+            digits.pop(0)
+            exponent -= 1
+        if not digits:
+            while period[0] == 0:
+                period = period[1:] + period[:1]
+                exponent -= 1
 
-    # truncate all leading 0's
-    if all(elem == "0" for elem in head):
-        for i in range(0, len(tails)):
-            if tails[0] == "0":
-                tails = tails[1:] + [str(0)]
-            else:
-                break
-    return (head, tails)
+    # The shortest pre-period: 20/3 is 0.(6) 10^1, not 0.6(6) 10^1.
+    while period and digits and digits[-1] == period[-1]:
+        period = [digits.pop()] + period[:-1]
+    return digits, period, exponent
 
 
 def convert_float_base(x, base, precision=10):
