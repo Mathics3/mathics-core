@@ -87,3 +87,19 @@ def test_arithmetic_arg_errors(function_name, msg_fragment):
 def test_sum_product_bounds(str_expr, str_expected, fail_msg):
     """Sum and Product with integer and with symbolic bounds"""
     check_evaluation(str_expr, str_expected, failure_message=fail_msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected"),
+    [
+        # Arithmetic on arbitrary-precision reals keeps the binary value:
+        # -x is the exact negative of x, so x - x is zero.
+        ("x1 = N[1/3, 4]; x1 - x1 == 0", "True"),
+        ("x1 = N[1/3, 4]; Abs[2 x1 - x1 - x1] < 10^-20", "True"),
+        ("N[Pi, 16] - N[Pi, 16] == 0", "True"),
+        ("Abs[N[1/7, 25] - N[1/7, 25]] < 10^-40", "True"),
+        ("x1 = N[1/3, 4]; -x1 === -1 x1 === Minus[x1]", "True"),
+    ],
+)
+def test_precision_real_cancellation(str_expr, str_expected):
+    check_evaluation(str_expr, str_expected)
