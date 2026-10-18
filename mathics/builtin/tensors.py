@@ -76,6 +76,10 @@ class Dimensions(Builtin):
     >> Dimensions[{{a, b}, {b, c}, {c, d, e}}]
      = {3}
 
+    Dimensions go as deep as all the elements agree:
+    >> Dimensions[{{a, b}, {{c, d}, {e, f}}}]
+     = {2, 2}
+
     The expression can have any head:
     >> Dimensions[f[f[a, b, c]]]
      = {1, 3}

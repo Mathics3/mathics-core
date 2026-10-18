@@ -61,6 +61,9 @@ import pytest
         ),
         ("SymbolName[a`b`x] // InputForm", None, '"x"', None),
         ("ValueQ[True]", None, "False", None),
+        # Reset the session, so that a, f, g and s defined above
+        # do not leak into the tests of other modules.
+        (None, None, None, None),
     ],
 )
 def test_symbol(str_expr, warnings, str_expected, fail_msg):
