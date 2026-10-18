@@ -32,6 +32,12 @@ import pytest
         ),
         ("Gamma[1., 2.]", None, "Gamma[1., 2.]", "needs mpmath for lowergamma"),
         ("Gamma[1 + x]", None, "Gamma[1 + x]", "Gamma should not expand to factorial"),
+        # Pochhammer at a non-positive integer is a finite product.
+        ("Pochhammer[-3, 2]", [], "6", "finite product at a negative integer"),
+        ("Pochhammer[-5, 5]", [], "-120", "finite product ending just before zero"),
+        ("Pochhammer[-3, -2]", [], "1 / 20", "negative order at a negative integer"),
+        ("Pochhammer[-1/2, 2]", [], "-1 / 4", "finite product at a negative rational"),
+        ("Pochhammer[1/2, 3]", [], "15 / 8", "finite product at a positive rational"),
     ],
 )
 def test_gamma(str_expr, msgs, str_expected, fail_msg):

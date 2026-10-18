@@ -958,8 +958,17 @@ class Insert(Builtin):
 
     >> Insert[{a,b,c,d,e}, x, -2]
      = {a, b, c, d, x, e}
+
+    >> Insert[{a,b,c,d,e}, x, -1]
+     = {a, b, c, d, e, x}
+
+    >> Insert[{a,b,c,d,e}, x, 7]
+     : Cannot insert at position 7 in {a, b, c, d, e}.
+     = Insert[{a, b, c, d, e}, x, 7]
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = (2, 3)
     summary_text = "insert an element at a given position"
 
     def eval(self, expr, elem, n: Integer, evaluation):
@@ -968,7 +977,13 @@ class Insert(Builtin):
         py_n = n.value
         new_list = list(expr.get_elements())
 
-        position = py_n - 1 if py_n > 0 else py_n + 1
+        # elem is to stand at position n of the result, which has one
+        # element more than expr: n = 1, ..., len + 1 or n = -1, ..., -(len + 1).
+        length = len(new_list)
+        if py_n == 0 or abs(py_n) > length + 1:
+            evaluation.message("Insert", "ins", n, expr)
+            return None
+        position = py_n - 1 if py_n > 0 else length + py_n + 1
         new_list.insert(position, elem)
         return expr.restructure(expr.head, new_list, evaluation, deps=(expr, elem))
 
