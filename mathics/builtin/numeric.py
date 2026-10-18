@@ -11,6 +11,7 @@ Support for approximate real numbers and exact real numbers represented \
 in algebraic or symbolic form.
 """
 
+from fractions import Fraction
 from typing import Optional
 
 import sympy
@@ -699,6 +700,12 @@ class Round(Builtin):
     >> Round[-1.4]
      = -1
 
+    Large exact numbers are rounded exactly:
+    >> Round[10^20 + 1/3]
+     = 100000000000000000000
+    >> Round[Pi 10^20]
+     = 314159265358979323846
+
     Expressions other than numbers remain unevaluated:
     >> Round[x]
      = Round[x]
@@ -734,17 +741,38 @@ class Round(Builtin):
             # We can't evaluate, so keep the symbolic representation.
             return
 
-        n = Expression(SymbolDivide, expr, k).round_to_float(
-            evaluation, permit_complex=True
-        )
+        quotient = Expression(SymbolDivide, expr, k)
+        n = round_real_exactly(quotient.evaluate(evaluation))
         if n is None:
-            return
-        elif isinstance(n, complex):
-            n = round(n.real)
-        else:
-            n = round(n)
+            n = quotient.round_to_float(evaluation, permit_complex=True)
+            if n is None:
+                return
+            elif isinstance(n, complex):
+                n = round(n.real)
+            else:
+                n = round(n)
         n = int(n)
         return Expression(SymbolTimes, Integer(n), k)
+
+
+def round_real_exactly(x) -> Optional[int]:
+    """
+    The integer closest to the real number `x`, ties to even, computed
+    without going through a machine float: a machine float has 53 bits, so
+    Round[10^20 + 1] would otherwise give 10^20. Returns None when `x` is
+    not known to be real.
+    """
+    value = x.to_sympy()
+    if value is None or not value.is_number or value.is_real is not True:
+        return None
+    if value.is_Rational or value.is_Float:
+        # A Float is a binary fraction; Rational() gives it exactly.
+        return round(Fraction(*map(int, sympy.Rational(value).as_numer_denom())))
+    # An exact irrational number such as Pi 10^20 is never halfway
+    # between two integers; SymPy finds its floor to whatever precision
+    # that needs.
+    floor = sympy.floor(value + sympy.Rational(1, 2))
+    return int(floor) if floor.is_Integer else None
 
 
 class Sign(SympyFunction):
