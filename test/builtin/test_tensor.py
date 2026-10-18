@@ -79,10 +79,30 @@ import pytest
         ),
         # Dimensions are those all elements share, even when the
         # elements disagree further down.
-        ("Dimensions[{{a, b}, {{c, d}, {e, f}}}]", None, "{2, 2}", None),
-        ("Dimensions[{{{1, 2}, {3}}, {{4, 5}, {6, 7}}}]", None, "{2, 2}", None),
-        ("Dimensions[{{a, b}, {b, c}, {c, d, e}}]", None, "{3}", None),
-        ("ArrayDepth[{{a, b}, {{c, d}, {e, f}}}]", None, "2", None),
+        (
+            "Dimensions[{{a, b}, {{c, d}, {e, f}}}]",
+            None,
+            "{2, 2}",
+            "Dimensions stops where element depths differ",
+        ),
+        (
+            "Dimensions[{{{1, 2}, {3}}, {{4, 5}, {6, 7}}}]",
+            None,
+            "{2, 2}",
+            "Dimensions stops where innermost lengths differ",
+        ),
+        (
+            "Dimensions[{{a, b}, {b, c}, {c, d, e}}]",
+            None,
+            "{3}",
+            "Dimensions of a ragged list is its length",
+        ),
+        (
+            "ArrayDepth[{{a, b}, {{c, d}, {e, f}}}]",
+            None,
+            "2",
+            "ArrayDepth is the length of the shared Dimensions",
+        ),
         (
             "Transpose[{{a, b}, {{c, d}, {e, f}}}]",
             None,
