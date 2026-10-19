@@ -659,13 +659,15 @@ class MaxExtraPrecision(Predefined):
     >> $MaxExtraPrecision = 5;
     >> N[Pi - 314159265358979/100000000000000, 20]
      : Internal precision limit $MaxExtraPrecision = 5. reached while evaluating -314159265358979 / 100000000000000 + Pi.
-     = 3.2384626433832795029*^-15
+     = 3.238462643×10^-15
 
     >> $MaxExtraPrecision = -1
      : Cannot set $MaxExtraPrecision to -1; value must be a non-negative number or Infinity.
      = -1
     >> $MaxExtraPrecision
      = 5
+
+    #> $MaxExtraPrecision = 50.;
     """
 
     attributes = A_NO_ATTRIBUTES
