@@ -592,6 +592,10 @@ class Cos(MPMathFunction):
 
     mpmath_name = "cos"
 
+    @staticmethod
+    def condition_numbers(x, value):
+        return (abs(x * mpmath.sin(x) / value),)
+
     rules = {
         "Cos[(1/2) * Pi]": "0",
         "Cos[0]": "1",
@@ -630,6 +634,10 @@ class Cot(MPMathFunction):
 
     mpmath_name = "cot"
 
+    @staticmethod
+    def condition_numbers(x, value):
+        return (abs(x * (1 + value**2) / value),)
+
     rules = {
         "Cot[0]": "ComplexInfinity",
         "Cot[Undefined]": "Undefined",
@@ -666,6 +674,10 @@ class Csc(MPMathFunction):
     """
 
     mpmath_name = "csc"
+
+    @staticmethod
+    def condition_numbers(x, value):
+        return (abs(x * mpmath.cot(x)),)
 
     rules = {
         "Csc[0]": "ComplexInfinity",
@@ -754,6 +766,10 @@ class Sec(MPMathFunction):
 
     mpmath_name = "sec"
 
+    @staticmethod
+    def condition_numbers(x, value):
+        return (abs(x * mpmath.tan(x)),)
+
     rules = {
         "Derivative[1][Sec]": "Sec[#] Tan[#]&",
         "Sec[0]": "1",
@@ -801,6 +817,10 @@ class Sin(MPMathFunction):
 
     mpmath_name = "sin"
 
+    @staticmethod
+    def condition_numbers(x, value):
+        return (abs(x * mpmath.cos(x) / value),)
+
     rules = {
         "Derivative[1][Sin]": "Cos[#]&",
         "Sin[Pi]": "0",
@@ -837,6 +857,10 @@ class Tan(MPMathFunction):
     """
 
     mpmath_name = "tan"
+
+    @staticmethod
+    def condition_numbers(x, value):
+        return (abs(x * (1 + value**2) / value),)
 
     rules = {
         "Derivative[1][Tan]": "Sec[#]^2&",

@@ -504,6 +504,32 @@ def test_log_real_valued_precision(str_expr, str_expected, msg):
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "msg"),
     [
+        ("Precision[Sin[1.5`20]]", "20.9732", None),
+        ("Precision[Sin[0.3`20]]", "20.0133", None),
+        ("Precision[Sin[100.`20]]", "17.7688", "a large argument loses digits"),
+        ("Precision[Sin[-1.5`20]]", "20.9732", None),
+        ("Precision[Sin[3.14159265358979`20]]", "5.01319", "near a zero of Sin"),
+        ("Precision[Cos[1.5`20]]", "18.6746", "near a zero of Cos"),
+        ("Precision[Cos[0.3`20]]", "21.0324", None),
+        ("Precision[Cos[100.`20]]", "18.2312", None),
+        ("Precision[Tan[1.5`20]]", "18.6725", None),
+        ("Precision[Tan[0.3`20]]", "19.9736", None),
+        ("Precision[Tan[100.`20]]", "17.6401", None),
+        ("Precision[Cot[1.5`20]]", "18.6725", None),
+        ("Precision[Sec[1.5`20]]", "18.6746", None),
+        ("Precision[Sec[0.3`20]]", "21.0324", None),
+        ("Precision[Csc[1.5`20]]", "20.9732", None),
+        ("Precision[Csc[100.`20]]", "17.7688", None),
+    ],
+)
+def test_trig_real_valued_precision(str_expr, str_expected, msg):
+    """Compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
         (None, None, None),
         ("N[Sqrt[2], 41]//Precision", "41.", "first round sqrt[2`41]"),
         ("N[Sqrt[2], 40]//Precision", "40.", "first round sqrt[2`40]"),
