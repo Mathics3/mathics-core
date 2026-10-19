@@ -1097,12 +1097,14 @@ System`SeriesCoefficient
 System`SeriesData
 System`SessionTime
 System`Set
+System`SetAccuracy
 System`SetAttributes
 System`SetDelayed
 System`SetDirectory
 System`SetEnvironment
 System`SetFileDate
 System`SetOptions
+System`SetPrecision
 System`SetStreamPosition
 System`Share
 System`Sharpen
