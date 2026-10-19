@@ -7,6 +7,7 @@ Many of these depend on the evaluation context. Conversions to SymPy are
 used just as a last resource.
 """
 
+import math
 from typing import Callable, List, Optional, Tuple
 
 import mpmath
@@ -24,6 +25,7 @@ from mathics.core.atoms import (
     Integer1,
     IntegerM1,
     Number,
+    PrecisionReal,
     Rational,
     RationalOneHalf,
     Real,
@@ -39,6 +41,7 @@ from mathics.core.number import (
     is_machine_precision,
     is_zero,
     min_prec,
+    prec as number_prec,
 )
 from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolPower, SymbolTimes
 from mathics.core.systemsymbols import (
@@ -545,6 +548,56 @@ def eval_Power_inexact(base: Number, exp: Number) -> BaseElement:
                 return from_mpmath(number, prec)
 
 
+def _combine_digits(digits: List[float]) -> float:
+    """
+    Given the precisions (or accuracies) of some numbers in decimal
+    digits, returns the precision (or accuracy) of a result whose
+    relative (or absolute) error is the sum of their errors:
+    ``-Log10[Total[10^-digits]]``.
+    """
+    least = min(digits)
+    return least - math.log10(math.fsum(10.0 ** (least - d) for d in digits))
+
+
+def _exact_or_precision_reals(numbers: Tuple[Number, ...]) -> bool:
+    """
+    True if ``numbers`` has a nonzero PrecisionReal, and every other
+    element is an exact real number or a nonzero PrecisionReal.
+    Sums and products of these numbers get a real-valued precision.
+    """
+    has_precision_real = False
+    for number in numbers:
+        if isinstance(number, PrecisionReal):
+            if number.is_zero:
+                return False
+            has_precision_real = True
+        elif not isinstance(number, (Integer, Rational)):
+            return False
+    return has_precision_real
+
+
+def _log10_abs(x: mpmath.mpf) -> float:
+    return float(mpmath.log10(abs(x)))
+
+
+def _precision_real(
+    value: mpmath.mpf, precision10: float, accuracy10: float
+) -> PrecisionReal:
+    """
+    Returns ``value`` as a PrecisionReal with ``precision10`` decimal
+    digits of precision. If no digit is left, the result is a zero with
+    ``accuracy10`` digits of accuracy, as in WMA.
+    """
+    if value == 0 or precision10 <= 0:
+        return PrecisionReal(
+            sympy.Float(0, precision=number_prec(math.ceil(accuracy10))), accuracy10
+        )
+    # The binary precision is rounded up, so that all the digits shown are kept.
+    return PrecisionReal(
+        sympy.Float(value, precision=number_prec(math.ceil(precision10))), precision10
+    )
+
+
 def eval_add_numbers(
     *numbers: Number,
 ) -> BaseElement:
@@ -560,6 +613,23 @@ def eval_add_numbers(
         terms = (item.to_mpmath() for item in numbers)
         number = mpmath.fsum(terms)
         return from_mpmath(number)
+
+    if _exact_or_precision_reals(numbers):
+        # As in WMA, the absolute errors of the terms add up.
+        precision_reals = [
+            number for number in numbers if isinstance(number, PrecisionReal)
+        ]
+        accuracy10 = _combine_digits(
+            [
+                number.precision10 - _log10_abs(number.to_mpmath())
+                for number in precision_reals
+            ]
+        )
+        with mpmath.workprec(max(number.precision for number in precision_reals)):
+            number = mpmath.fsum(item.to_mpmath() for item in numbers)
+        if number == 0:
+            return _precision_real(number, 0, accuracy10)
+        return _precision_real(number, accuracy10 + _log10_abs(number), accuracy10)
 
     prec = min_prec(*numbers)
     if prec is not None:
@@ -605,6 +675,19 @@ def eval_multiply_numbers(*numbers: Number) -> Number:
         factors = (item.to_mpmath() for item in numbers)
         number = mpmath.fprod(factors)
         return from_mpmath(number)
+
+    if _exact_or_precision_reals(numbers):
+        # As in WMA, the relative errors of the factors add up.
+        precision_reals = [
+            number for number in numbers if isinstance(number, PrecisionReal)
+        ]
+        precision10 = _combine_digits(
+            [number.precision10 for number in precision_reals]
+        )
+        with mpmath.workprec(max(number.precision for number in precision_reals)):
+            number = mpmath.fprod(item.to_mpmath() for item in numbers)
+        if number != 0:
+            return _precision_real(number, precision10, 0)
 
     prec = min_prec(*numbers)
     if prec is not None:

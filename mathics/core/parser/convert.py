@@ -3,7 +3,7 @@
 Conversion from AST node to Mathics3 BaseElement objects
 """
 
-from math import log10
+from math import ceil, log10
 from typing import Optional, Tuple
 
 import sympy
@@ -11,7 +11,10 @@ import sympy
 from mathics.core.atoms import Integer, MachineReal, PrecisionReal, Rational, String
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.element import BaseElement
-from mathics.core.number import RECONSTRUCT_MACHINE_PRECISION_DIGITS
+from mathics.core.number import (
+    RECONSTRUCT_MACHINE_PRECISION_DIGITS,
+    prec as number_prec,
+)
 from mathics.core.parser.ast import (
     Filename as AST_Filename,
     Number as AST_Number,
@@ -228,7 +231,8 @@ class Converter(GenericConverter):
             x = value[1]
         else:
             assert False
-        return PrecisionReal(sympy.Float(x, prec))
+        # The binary precision is rounded up, so that all the digits shown are kept.
+        return PrecisionReal(sympy.Float(x, precision=number_prec(ceil(prec))), prec)
 
     def _make_Expression(self, head: Symbol, children: list):
         if head is SymbolList:

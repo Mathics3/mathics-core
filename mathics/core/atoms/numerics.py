@@ -29,6 +29,7 @@ from mathics.core.element import ImmutableValueMixin
 from mathics.core.keycomparable import BASIC_ATOM_NUMBER_ELT_ORDER
 from mathics.core.number import (
     FP_MANTISA_BINARY_DIGITS,
+    LOG2_10,
     MAX_MACHINE_NUMBER,
     MIN_MACHINE_NUMBER,
     dps,
@@ -439,6 +440,18 @@ IntegerM1 = Integer(-1)
 
 
 # This has to come before Complex, which uses Real.
+def _tolerance_prec(x: "Real") -> int:
+    """
+    The binary precision Equal uses to compare x. For a real-valued
+    precision this is what a whole-digit precision gets from ``prec``,
+    without rounding the decimal digits.
+    """
+    precision10 = getattr(x, "_precision10", None)
+    if precision10 is None or x.is_zero:
+        return x.precision
+    return max(1, int(round((precision10 + 1) * LOG2_10)))
+
+
 class Real(Number[T]):
     class_head_name = "System`Real"
 
@@ -485,8 +498,13 @@ class Real(Number[T]):
         if _prec is None:
             return self._value == other._value
 
+        # The tolerance follows the decimal precision, not the binary
+        # digits it was rounded up to: 13.1416``4 == 13.1413``4, as in WMA.
+        tolerance_prec = min(
+            _tolerance_prec(x) for x in (self, other) if isinstance(x, Real)
+        )
         with mpmath.workprec(_prec):
-            rel_eps = 0.5 ** float(_prec - 7)
+            rel_eps = 0.5 ** float(tolerance_prec - 7)
             return mpmath.almosteq(
                 self.to_mpmath(), other.to_mpmath(), abs_eps=0, rel_eps=rel_eps
             )
@@ -688,32 +706,46 @@ class PrecisionReal(Real[sympy_Float]):
 
     Stored internally as a sympy.Float.
 
+    As in WMA, the precision in decimal digits can be a real number,
+    like 20.3 in ``1.5`20.3``, while the sympy.Float keeps an integer
+    number of binary digits. When the two differ, the decimal precision
+    is kept in ``_precision10``; otherwise ``_precision10`` is None and
+    the precision is the one of the sympy.Float. For a zero, the
+    decimal precision is its accuracy.
+
     Note: Plays nicely with the mpmath.mpf (float) type.
     """
 
-    __slots__ = ("hash", "_sympy", "_value")
+    __slots__ = ("hash", "_sympy", "_value", "_precision10")
     _value: sympy.Float
+    _precision10: Optional[float]
 
     # Dictionary of PrecisionReal constant values defined so far.
     # We use this for object uniqueness.
-    # The key is the PrecisionReal's `sympy.Float`, and the
-    # dictionary's value is the corresponding Mathics3 PrecisionReal object.
-    _precision_reals: dict[sympy.Float, "PrecisionReal"] = {}
+    # The key is the PrecisionReal's `sympy.Float` and decimal precision,
+    # and the dictionary's value is the corresponding Mathics3
+    # PrecisionReal object.
+    _precision_reals: dict[tuple[sympy.Float, Optional[float]], "PrecisionReal"] = {}
 
     # Note: We have no _value attribute or value property .
     # value attribute comes from Number.value
 
-    def __new__(cls, value) -> "PrecisionReal":
+    def __new__(cls, value, precision10: Optional[float] = None) -> "PrecisionReal":
 
         n = sympy.Float(value)
-        self = cls._precision_reals.get(n)
+        # A decimal precision that the sympy.Float already gives is not kept.
+        if precision10 is not None and precision10 == float(dps(n._prec + 1)):
+            precision10 = None
+        key = (n, precision10)
+        self = cls._precision_reals.get(key)
 
         if self is None:
             self = object.__new__(cls)
             self._value = n
+            self._precision10 = precision10
 
             # Cache object so we don't allocate again.
-            self._precision_reals[n] = self
+            self._precision_reals[key] = self
 
             # Set a value for self.__hash__() once so that every time
             # it is used this is fast. Note that in contrast to the
@@ -729,19 +761,29 @@ class PrecisionReal(Real[sympy_Float]):
     def __hash__(self):
         return self.hash
 
+    def __getnewargs__(self) -> tuple:
+        return (self._value, self._precision10)
+
     def __neg__(self) -> "PrecisionReal":
-        return PrecisionReal(-self.value)
+        return PrecisionReal(-self.value, self._precision10)
 
     def atom_to_boxes(self, f, evaluation):
         from mathics.format.box import numberform_to_boxes
 
         form = f.get_name()
         _number_form_options["_Form"] = form  # passed to _NumberFormat
-        digits = dps(self.precision) if form == "System`OutputForm" else None
+        digits = self.digits if form == "System`OutputForm" else None
         return numberform_to_boxes(self, digits, None, evaluation, _number_form_options)
 
+    @property
+    def digits(self) -> int:
+        """The number of decimal digits that the precision gives, as shown in output."""
+        if self._precision10 is None:
+            return dps(self.precision)
+        return max(1, round(self._precision10))
+
     def do_copy(self) -> "PrecisionReal":
-        return PrecisionReal(self.value)
+        return PrecisionReal(self.value, self._precision10)
 
     @property
     def element_order(self) -> tuple:
@@ -778,10 +820,22 @@ class PrecisionReal(Real[sympy_Float]):
         """Returns the default specification for precision (in binary digits) in N and other numerical functions."""
         return self.value._prec + 1
 
+    @property
+    def precision10(self) -> float:
+        """
+        Returns the precision in decimal digits, which can be a real number.
+        For a zero, this is its accuracy.
+        """
+        if self._precision10 is None:
+            return float(dps(self.precision))
+        return self._precision10
+
     def round(self, d: Optional[int] = None) -> Union[MachineReal, "PrecisionReal"]:
         if d is None:
             return MachineReal(float(self.value))
         min_prec = min(prec(d), self.value._prec)
+        if min_prec == self.value._prec:
+            return self
         return PrecisionReal(sympy_Float(self.value, precision=min_prec))
 
     def sameQ(self, rhs) -> bool:

@@ -9,7 +9,7 @@ algorithms.
 
 """
 
-from math import ceil, floor
+from math import ceil
 from typing import Optional
 
 import mpmath
@@ -35,6 +35,7 @@ from mathics.core.number import (
     MACHINE_PRECISION_VALUE,
     PrecisionValueError,
     get_closest_precision,
+    prec as number_prec,
 )
 from mathics.core.symbols import Atom, SymbolList
 from mathics.core.systemsymbols import (
@@ -222,8 +223,7 @@ def eval_NValues_with_accuracy(
     so its precision is ``min(prec, acc + Log10[Abs[x]])``. Either of them
     can be ``Infinity``. Returns None if ``{prec, acc}`` is not valid.
 
-    In WMA, the precision of such a number can be fractional. Here, it
-    is rounded down to a binary precision, so the accuracy is at most ``acc``.
+    As in WMA, the precision of such a number can be fractional.
     """
     if len(prec_acc.elements) != 2:
         return None
@@ -317,13 +317,13 @@ def _bound_accuracy(expr: BaseElement, acc: float) -> BaseElement:
             digits = acc + float(mpmath.log10(abs(expr.to_mpmath())))
         if digits <= 0:
             return PrecisionReal(
-                sympy.Float(0, precision=max(1, round((acc + 1) * LOG2_10_FLOAT)))
+                sympy.Float(0, precision=max(1, round((acc + 1) * LOG2_10_FLOAT))),
+                acc,
             )
-        # Rounded down, so that the accuracy is not above ``acc``.
-        bits = max(1, floor((digits + 1) * LOG2_10_FLOAT) - 1)
-        if bits >= value._prec:
+        if digits >= expr.precision10:
             return expr
-        return PrecisionReal(sympy.Float(value, precision=bits))
+        bits = min(number_prec(ceil(digits)), value._prec)
+        return PrecisionReal(sympy.Float(value, precision=bits), digits)
     if isinstance(expr, Complex):
         return Complex(_bound_accuracy(expr.real, acc), _bound_accuracy(expr.imag, acc))
     if isinstance(expr, Atom):

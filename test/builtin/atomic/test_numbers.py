@@ -310,7 +310,7 @@ def test_accuracy(str_expr, str_expected):
         # Returns the precision of ``` 3.2`3 ```
         ('F["a", 2, 3.2`3]', "3."),
         ('{{a, 2, 3.2`},{2.1`5, 3.2`3, "a"}}', "3."),
-        ('{{a, 2, 3.2`},{2.1``3, 3.2``5, "a"}}', "3."),
+        ('{{a, 2, 3.2`},{2.1``3, 3.2``5, "a"}}', "Precision[2.1``3]"),
         ("{1, 0.}", "MachinePrecision"),
         ("{1, 0.``5}", "0."),
         ("Re[0.5+2.3 I]", "MachinePrecision"),
@@ -320,6 +320,48 @@ def test_accuracy(str_expr, str_expected):
 )
 def test_precision(str_expr, str_expected):
     check_evaluation(f"Precision[{str_expr}]", str_expected)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        ("Precision[1.5`20.3]", "20.3", "a real-valued precision is kept"),
+        ("Precision[-1.5`20.3]", "20.3", None),
+        ("Precision[1.5``20.3]", "20.4761", "from the accuracy"),
+        ("Precision[N[Pi, {20, 5}]]", "5.49715", "N with {prec, acc}"),
+        (
+            "Precision[1.5`5.497 + 1.5`5.497]",
+            "5.497",
+            "Plus: the absolute errors add up",
+        ),
+        ("Precision[1.5`5.497 + 2.5`8]", "5.9207", None),
+        ("Precision[1.5`20.3 + 3.2`30]", "20.796", None),
+        ("Precision[2 + 1.5`20.3]", "20.668", "an exact term adds no error"),
+        ("Accuracy[1.5`5 - 1.5`5]", "4.52288", "a zero keeps the accuracy"),
+        (
+            "Precision[1.5`5.497 * 1.5`5.497]",
+            "5.19597",
+            "Times: the relative errors add up",
+        ),
+        ("Precision[N[Pi, 30] N[E, 30]]", "29.699", None),
+        ("Precision[N[Pi, 30] E]", "30.", "an exact constant adds no error"),
+        ("Precision[N[Pi, 30] + E]", "30.2707", None),
+        (
+            "ToString[3.14159265358979323846264`20.6]",
+            '"3.14159265358979323846"',
+            "the digits shown are the precision rounded",
+        ),
+        (
+            "ToString[3.14159265358979323846264`20.4]",
+            '"3.1415926535897932385"',
+            None,
+        ),
+        ("ToString[1.5`20.3, InputForm]", '"1.5`20.3"', None),
+    ],
+)
+def test_real_valued_precision(str_expr, str_expected, msg):
+    """Compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
 
 
 @pytest.mark.parametrize(

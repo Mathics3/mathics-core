@@ -17,7 +17,7 @@ from mathics.core.atoms import Complex, MachineReal, PrecisionReal
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement
 from mathics.core.expression import Expression
-from mathics.core.number import MACHINE_PRECISION_VALUE, ZERO_MACHINE_ACCURACY, dps
+from mathics.core.number import MACHINE_PRECISION_VALUE, ZERO_MACHINE_ACCURACY
 from mathics.core.symbols import SymbolPlus
 
 
@@ -148,10 +148,9 @@ def eval_Accuracy(z: BaseElement) -> Optional[float]:
 
     if isinstance(z, PrecisionReal):
         if z.is_zero:
-            return float(dps(z.precision))
-        z_f = z.to_python()
-        log10_z = mpmath.log((-z_f if z_f < 0 else z_f), 10)
-        return dps(z.precision) - log10_z
+            return z.precision10
+        log10_z = mpmath.log(abs(z.to_mpmath()), 10)
+        return z.precision10 - log10_z
 
     if isinstance(z, Complex):
         acc_real = eval_Accuracy(z.real)
@@ -194,7 +193,7 @@ def eval_Precision(z: BaseElement) -> Optional[float]:
     if isinstance(z, PrecisionReal):
         if z.is_zero:
             return 0.0
-        return float(dps(z.precision))
+        return z.precision10
 
     if isinstance(z, Complex):
         prec_real = eval_Precision(z.real)
