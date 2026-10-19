@@ -636,6 +636,16 @@ def test_arctrig_real_valued_precision(str_expr, str_expected, msg):
         ("Precision[ArcSech[0.99`20]]", "18.3018", None),
         ("Precision[ArcCsch[0.3`20]]", "20.3018", None),
         ("Precision[ArcCsch[-25.`20]]", "20.0002", None),
+        ("Precision[Sinh[0]]", "Infinity", "an exact zero stays exact"),
+        ("Accuracy[Sinh[0``20]]", "20.", "the absolute error of a zero"),
+        ("Accuracy[Tanh[0``20]]", "20.", None),
+        ("Accuracy[ArcSinh[0``20]]", "20.", None),
+        ("Accuracy[ArcTanh[0``20]]", "20.", None),
+        ("Precision[Cosh[0``20]]", "40.301", "Cosh changes to second order"),
+        ("Precision[Sech[0``20]]", "40.301", None),
+        ("Coth[0``20]", "ComplexInfinity", "a pole"),
+        ("Csch[0.]", "ComplexInfinity", None),
+        ("Csch[0``20]", "ComplexInfinity", None),
     ],
 )
 def test_hyperbolic_real_valued_precision(str_expr, str_expected, msg):

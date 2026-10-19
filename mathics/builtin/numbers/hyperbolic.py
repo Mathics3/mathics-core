@@ -419,6 +419,10 @@ class Csch(MPMathFunction):
     def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
         return (abs(x * mpmath.coth(x)),)
 
+    rules = {
+        "Csch[z_Real /; z == 0]": "ComplexInfinity",
+    }
+
     summary_text = "hyperbolic cosecant function"
     sympy_name = "csch"
 
