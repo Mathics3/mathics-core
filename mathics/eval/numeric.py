@@ -649,9 +649,11 @@ def _eval_mpmath_function_at_zero(
 ) -> Optional[PrecisionReal]:
     """
     ``f[0``a]``, for a zero with accuracy ``a``: as in WMA, its error is
-    the most that f changes within ``10^-a`` of 0. So Sin[0``20] is
-    0``20, and Cos[0``20] is 1 with precision 40.301, since Cos changes
-    by only (10^-20)^2 / 2.
+    how much f changes within ``10^-a`` of 0. So Sin[0``20] is 0``20, and
+    Cos[0``20] is 1 with precision 40.301, since Cos changes by only
+    (10^-20)^2 / 2. The smaller change of the two sides is taken: where f
+    is continuous they agree, and a branch cut at 0, as for ArcCot,
+    jumps on one side only.
 
     Returns None when f has no real value at 0, as at a pole, or for an
     accuracy below 1: f is then looked at only at the ends of the
@@ -672,7 +674,7 @@ def _eval_mpmath_function_at_zero(
             isinstance(x, mpmath.mpf) and mpmath.isfinite(x) for x in [value] + changes
         ):
             return None
-        error = max(changes)
+        error = min(changes)
         if error == 0:
             return None
         if value == 0:
