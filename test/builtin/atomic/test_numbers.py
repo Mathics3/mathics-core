@@ -857,3 +857,110 @@ def test_integer_exponent(str_expr, msgs, str_expected):
         hold_expected=True,
         expected_messages=msgs,
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        ("Precision[SetPrecision[1.5, 20.3]]", "20.3", None),
+        ("Precision[SetPrecision[1.5`10, 20.3]]", "20.3", "more digits"),
+        ("Precision[SetPrecision[1.5`20, 2.5]]", "2.5", "fewer digits"),
+        ("Precision[SetPrecision[1/3, 20.3]]", "20.3", None),
+        ("Precision[SetPrecision[Pi, 20.3]]", "20.3", None),
+        (
+            "ToString[SetPrecision[0.1, 20]]",
+            '"0.10000000000000000555"',
+            "the binary value is kept",
+        ),
+        ("SetPrecision[0, 20.3]", "0", None),
+        ("SetPrecision[0., 20]", "0", "a machine zero becomes an exact 0"),
+        ("SetPrecision[0``10, 20]", "0", None),
+        (
+            "Precision /@ SetPrecision[{1.5, x, 2/3}, 20.3]",
+            "{20.3, Infinity, 20.3}",
+            None,
+        ),
+        (
+            "SetPrecision[1.5`20, MachinePrecision] // Precision",
+            "MachinePrecision",
+            None,
+        ),
+        ("SetPrecision[1/3, MachinePrecision] // Precision", "MachinePrecision", None),
+        ("SetPrecision[1.5`20, Infinity]", "3 / 2", None),
+        ("SetPrecision[0.1, Infinity]", "3602879701896397 / 36028797018963968", None),
+        ("SetPrecision[Pi, Infinity]", "Pi", None),
+        ("Precision[SetPrecision[Sin[2], 20]]", "20.0384", "set, then evaluated"),
+        ("Precision[SetPrecision[Sqrt[2], 20]]", "20.301", "an exact exponent stays"),
+        ("Precision[SetPrecision[2^(1/3), 20]]", "20.4771", None),
+        ("SetPrecision[x^2, 20]", "x ^ 2", None),
+        ("Precision[SetPrecision[x^2.5, 20]]", "20.", None),
+        ("Precision[SetPrecision[Sin[Pi/7], 20]]", "19.7296", None),
+        ("Precision[SetPrecision[1.5 + 2.5 I, 20.3]]", "20.3", "complex"),
+        ("Precision[Re[SetPrecision[1.5 + 2.5 I, 20.3]]]", "20.1619", None),
+        ("Precision[Im[SetPrecision[1.5 + 2.5 I, 20.3]]]", "20.3837", None),
+        ("Precision[SetPrecision[2 I, 20]]", "20.", None),
+        ("Precision[SetPrecision[1.5 + 0. I, 20]]", "20.1505", None),
+        ("Accuracy[Im[SetPrecision[1.5`20 + 0``5 I, 20]]]", "19.9744", None),
+    ],
+)
+def test_set_precision(str_expr, str_expected, msg):
+    """Compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        ("Precision[SetAccuracy[1.5, 20.3]]", "20.4761", None),
+        ("Precision[SetAccuracy[1/3, 20.3]]", "19.8229", None),
+        ("Precision[SetAccuracy[150.5, 20]]", "22.1775", None),
+        ("Accuracy[SetAccuracy[0, 20.3]]", "20.3", "an exact 0 becomes inexact"),
+        ("Accuracy[SetAccuracy[0., 20]]", "20.", None),
+        ("Precision[SetAccuracy[1.5`10, 30]]", "30.1761", None),
+        ("Precision[SetAccuracy[1.5`20, 5.5]]", "5.67609", None),
+        ("Accuracy[SetAccuracy[0.001, 2]]", "2.", "no digit left: a zero"),
+        ("Accuracy[SetAccuracy[1.5, -3]]", "-3.", None),
+        ("SetAccuracy[1.5, Infinity]", "3 / 2", None),
+        ("Precision /@ SetAccuracy[{1.5, 1500.}, 10]", "{10.1761, 13.1761}", None),
+        ("Precision[SetAccuracy[1.5 + 2.5 I, 20]]", "20.4647", "complex"),
+        ("Precision[Re[SetAccuracy[1.5 + 2.5 I, 20]]]", "20.3266", None),
+        ("Accuracy[Re[SetAccuracy[2 I, 20]]]", "20.1505", None),
+    ],
+)
+def test_set_accuracy(str_expr, str_expected, msg):
+    """Compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+def test_set_precision_messages():
+    """Compared with WMA 15"""
+    check_evaluation(
+        "SetPrecision[1.5, a]",
+        "SetPrecision[1.5, a]",
+        expected_messages=(
+            "Requested precision a is not a machine-sized real number "
+            "between $MinPrecision and $MaxPrecision.",
+        ),
+    )
+    check_evaluation(
+        "Accuracy[SetPrecision[1.5, -1]]",
+        "-0.176091",
+        expected_messages=(
+            "Requested precision -1 is smaller than $MinPrecision. "
+            "Using $MinPrecision instead.",
+        ),
+    )
+    check_evaluation(
+        "SetAccuracy[1.5, a]",
+        "SetAccuracy[1.5, a]",
+        expected_messages=(
+            "Requested accuracy a is not a real number within the allowable range.",
+        ),
+    )
+    check_evaluation(
+        "SetPrecision[1.5, 20, 3]",
+        "SetPrecision[1.5, 20, 3]",
+        expected_messages=(
+            "SetPrecision called with 3 arguments; 2 arguments are expected.",
+        ),
+    )

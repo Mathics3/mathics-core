@@ -875,6 +875,11 @@ class PrecisionReal(Real[sympy_Float]):
         return self._value
 
 
+def _precision10_key(x: Number) -> Optional[float]:
+    """The real-valued precision of ``x``, if it has one."""
+    return getattr(x, "_precision10", None)
+
+
 class Complex(Number[tuple[Number[T], Number[T], Optional[int]]]):
     """Complex wraps two real-valued Numbers.
 
@@ -900,7 +905,7 @@ class Complex(Number[tuple[Number[T], Number[T], Optional[int]]]):
     # We use this for object uniqueness.
     # The key is the Complex value's real and imaginary parts as a tuple,
     # the dictionary's value is the corresponding Mathics3 Complex object.
-    _complex_numbers: dict[tuple[Number[T], Number[T], Optional[int]], "Complex"] = {}
+    _complex_numbers: dict[tuple, "Complex"] = {}
 
     # The precise value: a real number, an imaginary number,
     # and an optional precision value.
@@ -950,8 +955,11 @@ class Complex(Number[tuple[Number[T], Number[T], Optional[int]]]):
             )
 
         exact_value = (real, imag, precision)
+        # The parts compare by value, so the key also has their real-valued
+        # precisions, as the key of a PrecisionReal does.
+        key = (exact_value, _precision10_key(real), _precision10_key(imag))
 
-        self = cls._complex_numbers.get(exact_value)
+        self = cls._complex_numbers.get(key)
         if self is None:
             self = super().__new__(cls)
             self._real = real
@@ -963,14 +971,14 @@ class Complex(Number[tuple[Number[T], Number[T], Optional[int]]]):
             self._value = complex(real.value, imag.value)
 
             # Cache object so we don't allocate again.
-            self._complex_numbers[exact_value] = self
+            self._complex_numbers[key] = self
 
             # Set a value for self.__hash__() once so that every time
             # it is used this is fast. Note that in contrast to the
             # cached object key, the hash key needs to be unique across all
             # Python objects, so we include the class in the
             # event that different objects have the same Python value
-            self.hash = hash((cls, exact_value))
+            self.hash = hash((cls, key))
 
         return self
 

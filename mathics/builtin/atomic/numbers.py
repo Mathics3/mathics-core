@@ -27,6 +27,7 @@ from mathics.core.atoms import (
     Integer10,
     MachineReal,
     Rational,
+    Real,
 )
 from mathics.core.attributes import (
     A_LISTABLE,
@@ -42,9 +43,15 @@ from mathics.core.list import ListExpression
 from mathics.core.number import (
     FP_MANTISA_BINARY_DIGITS,
     MACHINE_EPSILON,
+    get_float_inf,
     is_numeric,
 )
-from mathics.core.symbols import Symbol, SymbolDivide
+from mathics.core.symbols import (
+    Symbol,
+    SymbolDivide,
+    SymbolMaxPrecision,
+    SymbolMinPrecision,
+)
 from mathics.core.systemsymbols import (
     SymbolIndeterminate,
     SymbolInfinity,
@@ -55,7 +62,7 @@ from mathics.core.systemsymbols import (
     SymbolRealDigits,
     SymbolRound,
 )
-from mathics.eval.nevaluator import eval_N
+from mathics.eval.nevaluator import eval_N, is_infinity
 from mathics.eval.numbers.numbers import (
     check_finite_decimal,
     convert_float_base,
@@ -65,6 +72,7 @@ from mathics.eval.numbers.numbers import (
     log_n_b,
     rational_digits,
 )
+from mathics.eval.numbers.precision import eval_SetAccuracy, eval_SetPrecision
 
 SymbolIntegerDigits = Symbol("IntegerDigits")
 SymbolIntegerExponent = Symbol("IntegerExponent")
@@ -874,3 +882,114 @@ class Precision(Builtin):
         if prec is None:
             return SymbolInfinity
         return MachineReal(prec)
+
+
+class SetAccuracy(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SetAccuracy.html</url>
+
+    <dl>
+      <dt>'SetAccuracy'[$expr$, $a$]
+      <dd>gives $expr$ with every number in it set to $a$ digits of \
+          accuracy.
+    </dl>
+
+    >> SetAccuracy[150.5, 20] // Precision
+     = 22.1775
+
+    A number with no digit left becomes a zero:
+    >> SetAccuracy[0.001, 2] // Accuracy
+     = 2.
+
+    'Infinity' gives the exact value of each number:
+    >> SetAccuracy[0.5, Infinity]
+     = 1 / 2
+    """
+
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
+
+    messages = {
+        "accbd": "Requested accuracy `1` is not a real number within the allowable range.",
+    }
+
+    summary_text = "set the accuracy of the numbers in an expression"
+
+    def eval(self, expr, accuracy, evaluation: Evaluation):
+        "SetAccuracy[expr_, accuracy_]"
+        if is_infinity(accuracy):
+            target = float("inf")
+        elif isinstance(accuracy, (Integer, Rational, Real)):
+            target = float(accuracy.value)
+        else:
+            evaluation.message("SetAccuracy", "accbd", accuracy)
+            return None
+        return eval_SetAccuracy(expr, target, evaluation)
+
+
+class SetPrecision(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SetPrecision.html</url>
+
+    <dl>
+      <dt>'SetPrecision'[$expr$, $p$]
+      <dd>gives $expr$ with every number in it set to $p$ digits of \
+          precision.
+    </dl>
+
+    >> SetPrecision[1/3, 20]
+     = 0.33333333333333333333
+
+    An inexact number keeps its binary value:
+    >> SetPrecision[0.1, 20]
+     = 0.10000000000000000555
+
+    Numeric constants are evaluated:
+    >> SetPrecision[f[Pi, x], 20]
+     = f[3.1415926535897932385, x]
+
+    'Infinity' gives the exact value of each number:
+    >> SetPrecision[0.1, Infinity]
+     = 3602879701896397 / 36028797018963968
+    """
+
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
+
+    messages = {
+        "precbd": (
+            "Requested precision `1` is not a machine-sized real number "
+            "between $MinPrecision and $MaxPrecision."
+        ),
+        "precsm": (
+            "Requested precision `1` is smaller than $MinPrecision. "
+            "Using $MinPrecision instead."
+        ),
+        "preclg": (
+            "Requested precision `1` is larger than $MaxPrecision. "
+            "Using $MaxPrecision instead."
+        ),
+    }
+
+    summary_text = "set the precision of the numbers in an expression"
+
+    def eval(self, expr, precision, evaluation: Evaluation):
+        "SetPrecision[expr_, precision_]"
+        if precision is SymbolMachinePrecision:
+            target = None
+        elif is_infinity(precision):
+            target = float("inf")
+        elif isinstance(precision, (Integer, Rational, Real)):
+            target = float(precision.value)
+            min_precision = get_float_inf(SymbolMinPrecision, evaluation)
+            max_precision = get_float_inf(SymbolMaxPrecision, evaluation)
+            if min_precision is not None and target < min_precision:
+                evaluation.message("SetPrecision", "precsm", precision)
+                target = min_precision
+            elif max_precision is not None and target > max_precision:
+                evaluation.message("SetPrecision", "preclg", precision)
+                target = max_precision
+        else:
+            evaluation.message("SetPrecision", "precbd", precision)
+            return None
+        return eval_SetPrecision(expr, target, evaluation)
