@@ -992,3 +992,35 @@ def test_set_precision_messages():
 def test_low_precision_storage(str_expr, str_expected, msg):
     """Compared with WMA 15"""
     check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        (
+            "SetPrecision[1.5 + 2.5 I, 20] === SetPrecision[1.5 + 2.5 I, 20.3]",
+            "True",
+            "SameQ: numbers that agree to their precision are the same",
+        ),
+        (
+            "Precision /@ {SetPrecision[1.5 + 2.5 I, 20], "
+            "SetPrecision[1.5 + 2.5 I, 20.3]}",
+            "{20., 20.3}",
+            "but they are different numbers, not one cached object",
+        ),
+        ("SameQ[1.5`20, 1.5`20.3]", "True", None),
+        (
+            "Precision[SetAccuracy[1.5 + 2.5 I, 20]]",
+            "20.4647",
+            "each part gets accuracy 20 + Log10[2]/2",
+        ),
+        (
+            "Precision /@ {Re[#], Im[#]} &[SetPrecision[1.5 + 2.5 I, 20.3]]",
+            "{20.1619, 20.3837}",
+            "both parts share the same accuracy",
+        ),
+    ],
+)
+def test_low_precision_complex_cache_regression(str_expr, str_expected, msg):
+    """Guard against cache collisions in complex numbers; compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
