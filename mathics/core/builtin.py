@@ -812,8 +812,10 @@ class MPMathFunction(SympyFunction):
     # As in WMA, a result can get its precision from the condition number.
     # Then, given the arguments and the value as mpmath numbers, this
     # returns for each argument the factor ``Abs[x D[f, x] / f]`` by which
-    # its relative error is multiplied in the result.
-    condition_numbers: Optional[Callable[..., Sequence]] = None
+    # its relative error is multiplied in the result. The factors stay
+    # mpmath numbers: as floats, a tiny one like that of Tanh[10.`20^6]
+    # would become 0.
+    condition_numbers: Optional[Callable[..., tuple[mpmath.mpf, ...]]] = None
 
     def get_mpmath_function(self, args):
         if self.mpmath_name is None or len(args) not in self.nargs:

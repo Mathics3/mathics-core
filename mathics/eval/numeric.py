@@ -599,7 +599,9 @@ def _precision_real(
 
 
 def eval_mpmath_function_by_condition(
-    mpmath_function: Callable, condition_numbers: Callable, *args: Number
+    mpmath_function: Callable,
+    condition_numbers: Callable[..., tuple[mpmath.mpf, ...]],
+    *args: Number,
 ) -> Optional[PrecisionReal]:
     """
     Applies ``mpmath_function`` to ``args``, when they are exact real

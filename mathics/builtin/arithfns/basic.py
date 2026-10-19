@@ -359,7 +359,9 @@ class Power(InfixOperator, MPMathFunction):
     mpmath_name = "power"
 
     @staticmethod
-    def condition_numbers(base, exponent, value):
+    def condition_numbers(
+        base: mpmath.mpf, exponent: mpmath.mpf, value: mpmath.mpf
+    ) -> tuple[mpmath.mpf, mpmath.mpf]:
         return (abs(exponent), abs(exponent * mpmath.log(abs(base))))
 
     nargs = {2}
