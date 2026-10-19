@@ -57,7 +57,7 @@ class SpecialValueError(Exception):
         self.name = name
 
 
-def _get_float_inf(value, evaluation) -> Optional[float]:
+def get_float_inf(value, evaluation) -> Optional[float]:
     evaluated_value = value.evaluate(evaluation)
     if evaluated_value.has_form(SymbolDirectedInfinity, 1):
         if evaluated_value.elements[0].int_value == 1:
@@ -154,8 +154,8 @@ def get_closest_precision(
     elif hasattr(value, "round_to_float"):
         from mathics.core.atoms import MachineReal
 
-        dmin = _get_float_inf(SymbolMinPrecision, evaluation)
-        dmax = _get_float_inf(SymbolMaxPrecision, evaluation)
+        dmin = get_float_inf(SymbolMinPrecision, evaluation)
+        dmax = get_float_inf(SymbolMaxPrecision, evaluation)
         d = value.round_to_float(evaluation)
         assert dmin is not None and dmax is not None
         if d is None:

@@ -42,6 +42,7 @@ from mathics.core.systemsymbols import (
     SymbolDirectedInfinity,
     SymbolInfinity,
     SymbolMachinePrecision,
+    SymbolMaxExtraPrecision,
     SymbolN,
     SymbolRoot,
     SymbolRootSum,
@@ -62,6 +63,21 @@ def eval_N(
         expression if expression.is_literal else expression.evaluate(evaluation)
     )
 
+    try:
+        p = get_closest_precision(prec, evaluation, show_messages=False)
+    except PrecisionValueError:
+        p = None
+    if p is not None:
+        # As in N, with extra digits when they are needed.
+        result, _ = eval_NValues_to_precision(
+            evaluated_expression,
+            MachineReal(float(p)),
+            p,
+            get_max_extra_precision(evaluation),
+            evaluation,
+        )
+        return expression if result is None else result
+
     result = eval_NValues(evaluated_expression, prec, evaluation)
     if result is None:
         return expression
@@ -70,6 +86,16 @@ def eval_N(
         return result
 
     return result.evaluate(evaluation)
+
+
+def get_max_extra_precision(evaluation: Evaluation) -> float:
+    """The value of $MaxExtraPrecision, as a number of digits."""
+    max_extra = SymbolMaxExtraPrecision.evaluate(evaluation)
+    if isinstance(max_extra, (Integer, Rational, Real)):
+        return max(0.0, float(max_extra.value))
+    if is_infinity(max_extra):
+        return float("inf")
+    return 0.0
 
 
 def eval_NValues(
