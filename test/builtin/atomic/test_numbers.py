@@ -611,6 +611,41 @@ def test_arctrig_real_valued_precision(str_expr, str_expected, msg):
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "msg"),
     [
+        ("Precision[Sinh[0.3`20]]", "19.9872", None),
+        ("Precision[Sinh[-1.5`20]]", "19.7806", None),
+        ("Precision[Sinh[25.`20]]", "18.6021", "a large argument loses digits"),
+        ("Precision[Cosh[0.3`20]]", "21.0585", None),
+        ("Precision[Cosh[1.5`20]]", "19.8672", None),
+        ("Precision[Tanh[0.3`20]]", "19.9519", "as in WMA, as Sinh / Cosh"),
+        ("Precision[Tanh[0.99`20]]", "19.6868", None),
+        ("Precision[Tanh[1.`20]]", "20.2585", None),
+        ("Precision[Tanh[1.5`20]]", "20.5237", None),
+        ("Precision[Tanh[25.`20]]", "39.7147", "a large argument gains digits"),
+        ("Precision[Coth[-0.3`20]]", "19.9519", None),
+        ("Precision[Coth[1.5`20]]", "20.5237", None),
+        ("Precision[Sech[0.3`20]]", "21.0585", None),
+        ("Precision[Csch[1.5`20]]", "19.7806", None),
+        ("Precision[ArcSinh[0.3`20]]", "20.0124", None),
+        ("Precision[ArcSinh[25.`20]]", "20.5928", None),
+        ("Precision[ArcCosh[1.5`20]]", "19.8557", None),
+        ("Precision[ArcCosh[25.`20]]", "20.592", None),
+        ("Precision[ArcTanh[-0.3`20]]", "19.9726", None),
+        ("Precision[ArcTanh[0.99`20]]", "18.7259", "near 1, ArcTanh loses digits"),
+        ("Precision[ArcCoth[1.5`20]]", "19.8265", None),
+        ("Precision[ArcSech[0.3`20]]", "20.2522", None),
+        ("Precision[ArcSech[0.99`20]]", "18.3018", None),
+        ("Precision[ArcCsch[0.3`20]]", "20.3018", None),
+        ("Precision[ArcCsch[-25.`20]]", "20.0002", None),
+    ],
+)
+def test_hyperbolic_real_valued_precision(str_expr, str_expected, msg):
+    """Compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
         (None, None, None),
         ("N[Sqrt[2], 41]//Precision", "41.", "first round sqrt[2`41]"),
         ("N[Sqrt[2], 40]//Precision", "40.", "first round sqrt[2`40]"),

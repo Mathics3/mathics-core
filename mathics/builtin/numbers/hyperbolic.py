@@ -14,6 +14,8 @@ exact values and simplification rules are not implemented yet.
 
 from typing import Optional
 
+import mpmath
+
 from mathics.core.atoms import IntegerM1
 from mathics.core.builtin import Builtin, MPMathFunction, SympyFunction
 from mathics.core.convert.sympy import SympyExpression
@@ -55,6 +57,10 @@ class ArcCosh(MPMathFunction):
     """
 
     mpmath_name = "acosh"
+
+    @staticmethod
+    def condition_numbers(x, value):
+        return (abs(x / (mpmath.sqrt(x**2 - 1) * value)),)
 
     rules = {
         "ArcCosh[Undefined]": "Undefined",
@@ -98,6 +104,10 @@ class ArcCoth(MPMathFunction):
     sympy_name = "acoth"
     mpmath_name = "acoth"
 
+    @staticmethod
+    def condition_numbers(x, value):
+        return (abs(x / ((1 - x**2) * value)),)
+
     rules = {
         "ArcCoth[Undefined]": "Undefined",
         "ArcCoth[z:0.0]": "N[I / 2 Pi, Precision[1+z]]",
@@ -129,6 +139,10 @@ class ArcCsch(MPMathFunction):
     """
 
     mpmath_name = "acsch"
+
+    @staticmethod
+    def condition_numbers(x, value):
+        return (abs(1 / (mpmath.sqrt(1 + x**2) * value)),)
 
     rules = {
         "ArcCsch[Undefined]": "Undefined",
@@ -165,6 +179,10 @@ class ArcSech(MPMathFunction):
     """
 
     mpmath_name = "asech"
+
+    @staticmethod
+    def condition_numbers(x, value):
+        return (abs(1 / (mpmath.sqrt(1 - x**2) * value)),)
 
     rules = {
         "ArcSech[Undefined]": "Undefined",
@@ -204,6 +222,10 @@ class ArcSinh(MPMathFunction):
     sympy_name = "asinh"
     mpmath_name = "asinh"
 
+    @staticmethod
+    def condition_numbers(x, value):
+        return (abs(x / (mpmath.sqrt(1 + x**2) * value)),)
+
     rules = {
         "ArcSinh[Undefined]": "Undefined",
         "Derivative[1][ArcSinh]": "1/Sqrt[1+#^2]&",
@@ -232,6 +254,11 @@ class ArcTanh(MPMathFunction):
     """
 
     mpmath_name = "atanh"
+
+    @staticmethod
+    def condition_numbers(x, value):
+        return (abs(x / ((1 - x**2) * value)),)
+
     numpy_name = "arctanh"
 
     rules = {
@@ -319,6 +346,11 @@ class Cosh(MPMathFunction):
     """
 
     mpmath_name = "cosh"
+
+    @staticmethod
+    def condition_numbers(x, value):
+        return (abs(x * mpmath.sinh(x) / value),)
+
     sympy_name = "cosh"
 
     rules = {
@@ -343,6 +375,16 @@ class Coth(MPMathFunction):
     """
 
     mpmath_name = "coth"
+
+    @staticmethod
+    def condition_numbers(x, value):
+        # As in WMA: for Abs[x] < 1 it is the condition number of
+        # Sinh[x] / Cosh[x], with the errors of both added.
+        if abs(x) < 1:
+            return (abs(x * (value + 1 / value)),)
+        # x (1 - Tanh[x]^2) / Tanh[x], without the cancellation.
+        return (abs(2 * x / mpmath.sinh(2 * x)),)
+
     sympy_name = "coth"
 
     rules = {
@@ -372,6 +414,11 @@ class Csch(MPMathFunction):
     """
 
     mpmath_name = "csch"
+
+    @staticmethod
+    def condition_numbers(x, value):
+        return (abs(x * mpmath.coth(x)),)
+
     summary_text = "hyperbolic cosecant function"
     sympy_name = "csch"
 
@@ -470,6 +517,10 @@ class Sech(MPMathFunction):
 
     mpmath_name = "sech"
 
+    @staticmethod
+    def condition_numbers(x, value):
+        return (abs(x * mpmath.tanh(x)),)
+
     rules = {
         "Derivative[1][Sech]": "-Sech[#1] Tanh[#1]&",
         "Sech[Undefined]": "Undefined",
@@ -499,6 +550,10 @@ class Sinh(MPMathFunction):
 
     mpmath_name = "sinh"
 
+    @staticmethod
+    def condition_numbers(x, value):
+        return (abs(x * mpmath.cosh(x) / value),)
+
     rules = {
         "Derivative[1][Sinh]": "Cosh[#]&",
         "Sinh[Undefined]": "Undefined",
@@ -521,6 +576,15 @@ class Tanh(MPMathFunction):
     """
 
     mpmath_name = "tanh"
+
+    @staticmethod
+    def condition_numbers(x, value):
+        # As in WMA: for Abs[x] < 1 it is the condition number of
+        # Sinh[x] / Cosh[x], with the errors of both added.
+        if abs(x) < 1:
+            return (abs(x * (value + 1 / value)),)
+        # x (1 - Tanh[x]^2) / Tanh[x], without the cancellation.
+        return (abs(2 * x / mpmath.sinh(2 * x)),)
 
     rules = {
         "Derivative[1][Tanh]": "Sech[#1]^2&",
