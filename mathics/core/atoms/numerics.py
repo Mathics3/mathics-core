@@ -439,8 +439,7 @@ Integer10 = Integer(10)
 IntegerM1 = Integer(-1)
 
 
-# This has to come before Complex, which uses Real.
-def _tolerance_prec(x: "Real") -> int:
+def _tolerance_prec(x: Union["MachineReal", "PrecisionReal"]) -> int:
     """
     The binary precision Equal uses to compare x. For a real-valued
     precision this is what a whole-digit precision gets from ``prec``,
@@ -452,6 +451,7 @@ def _tolerance_prec(x: "Real") -> int:
     return max(1, int(round((precision10 + 1) * LOG2_10)))
 
 
+# This has to come before Complex, which uses Real.
 class Real(Number[T]):
     class_head_name = "System`Real"
 
@@ -501,7 +501,9 @@ class Real(Number[T]):
         # The tolerance follows the decimal precision, not the binary
         # digits it was rounded up to: 13.1416``4 == 13.1413``4, as in WMA.
         tolerance_prec = min(
-            _tolerance_prec(x) for x in (self, other) if isinstance(x, Real)
+            _tolerance_prec(x)
+            for x in (self, other)
+            if isinstance(x, (MachineReal, PrecisionReal))
         )
         with mpmath.workprec(_prec):
             rel_eps = 0.5 ** float(tolerance_prec - 7)
