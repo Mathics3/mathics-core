@@ -565,6 +565,31 @@ def test_trig_zero(str_expr, str_expected, msg):
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "msg"),
     [
+        ("Precision[ArcSin[0.3`20]]", "19.9863", None),
+        ("Precision[ArcSin[0.99`20]]", "19.3089", "near 1, ArcSin loses digits"),
+        ("Precision[ArcCos[0.3`20]]", "20.6049", None),
+        ("Precision[ArcCos[0.99`20]]", "18.3047", None),
+        ("Precision[ArcCos[-0.3`20]]", "20.7755", None),
+        ("Precision[ArcTan[0.3`20]]", "20.0249", None),
+        ("Precision[ArcTan[25.`20]]", "21.5836", "a large argument gains digits"),
+        ("Precision[ArcCot[-0.3`20]]", "20.6673", None),
+        ("Precision[ArcCot[25.`20]]", "20.0005", None),
+        ("Precision[ArcSec[1.5`20]]", "19.9733", None),
+        ("Precision[ArcSec[-1.5`20]]", "20.4103", None),
+        ("Precision[ArcCsc[1.5`20]]", "19.9116", None),
+        ("Precision[ArcCsc[-25.`20]]", "19.9998", None),
+        ("Precision[ArcTan[1.5`20, 2.5`20]]", "20.0674", "ArcTan[x, y]"),
+        ("Precision[ArcTan[-1.5`20, 2.5`30]]", "20.6799", None),
+    ],
+)
+def test_arctrig_real_valued_precision(str_expr, str_expected, msg):
+    """Compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
         (None, None, None),
         ("N[Sqrt[2], 41]//Precision", "41.", "first round sqrt[2`41]"),
         ("N[Sqrt[2], 40]//Precision", "40.", "first round sqrt[2`40]"),
