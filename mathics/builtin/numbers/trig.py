@@ -360,7 +360,7 @@ class ArcCos(MPMathFunction):
     mpmath_name = "acos"
 
     @staticmethod
-    def condition_numbers(x, value):
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
         return (abs(x / (mpmath.sqrt(1 - x**2) * value)),)
 
     rules = {
@@ -399,7 +399,7 @@ class ArcCot(MPMathFunction):
     mpmath_name = "acot"
 
     @staticmethod
-    def condition_numbers(x, value):
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
         return (abs(x / ((1 + x**2) * value)),)
 
     rules = {
@@ -438,7 +438,7 @@ class ArcCsc(MPMathFunction):
     mpmath_name = "acsc"
 
     @staticmethod
-    def condition_numbers(x, value):
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
         return (abs(1 / (mpmath.sqrt(x**2 - 1) * value)),)
 
     rules = {
@@ -483,7 +483,7 @@ class ArcSec(MPMathFunction):
     mpmath_name = "asec"
 
     @staticmethod
-    def condition_numbers(x, value):
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
         return (abs(1 / (mpmath.sqrt(x**2 - 1) * value)),)
 
     rules = {
@@ -529,7 +529,7 @@ class ArcSin(MPMathFunction):
     mpmath_name = "asin"
 
     @staticmethod
-    def condition_numbers(x, value):
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
         return (abs(x / (mpmath.sqrt(1 - x**2) * value)),)
 
     rules = {
@@ -574,7 +574,7 @@ class ArcTan(MPMathFunction):
     mpmath_name = "atan"
 
     @staticmethod
-    def condition_numbers(x, value):
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
         return (abs(x / ((1 + x**2) * value)),)
 
     rules = {
