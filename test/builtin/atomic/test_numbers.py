@@ -585,6 +585,22 @@ def test_trig_zero(str_expr, str_expected, msg):
         ("Accuracy[ArcTan[0``20]]", "20.", None),
         ("Precision[ArcCos[0``20]]", "20.1961", None),
         ("Precision[ArcCot[0``20]]", "20.1961", "ArcCot jumps at 0"),
+        ("ArcSin[0`20]", "0", "0`20 is an exact 0"),
+        ("Precision[ArcSin[0.0`20]]", "MachinePrecision", "0.0`20 is 0."),
+        ("Accuracy[ArcCos[1.`20]]", "9.84949", "ArcCos changes by Sqrt[2 10^-20]"),
+        ("Accuracy[ArcSec[1.`20]]", "9.84949", None),
+        ("Accuracy[ArcCos[1.`5]]", "2.34948", None),
+        ("Precision[ArcSec[-1.`20]]", "10.3466", None),
+        ("Precision[ArcCos[0.99999999`20]]", "12.301", "next to the end"),
+        ("Precision[ArcSin[0.99999999`20]]", "16.3466", None),
+        ("Precision[ArcSec[1.00000001`20]]", "12.301", None),
+        ("Precision[ArcSin[0.9999999999999999999`20]]", "10.8465", None),
+        (
+            "Precision[ArcSin[1.`20]]",
+            "10.0456",
+            "WMA gives 20.1961 here, but 10.8465 just below 1",
+        ),
+        ("Precision[ArcCsc[1.`20]]", "10.0456", None),
     ],
 )
 def test_arctrig_real_valued_precision(str_expr, str_expected, msg):
