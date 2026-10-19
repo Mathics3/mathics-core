@@ -816,6 +816,11 @@ class MPMathFunction(SympyFunction):
     # mpmath numbers: as floats, a tiny one like that of Tanh[10.`20^6]
     # would become 0.
     condition_numbers: Optional[Callable[..., tuple[mpmath.mpf, ...]]] = None
+    # When no digit is left: a function with poles, like Tan, gives
+    # ComplexInfinity, and one bounded by value_bound, like Sin, an error
+    # no larger than the bound.
+    has_poles: bool = False
+    value_bound: Optional[float] = None
 
     def get_mpmath_function(self, args):
         if self.mpmath_name is None or len(args) not in self.nargs:
@@ -849,7 +854,11 @@ class MPMathFunction(SympyFunction):
 
         if self.condition_numbers is not None:
             result = eval_mpmath_function_by_condition(
-                mpmath_function, self.condition_numbers, *args
+                mpmath_function,
+                self.condition_numbers,
+                *args,
+                has_poles=self.has_poles,
+                bound=self.value_bound,
             )
             if result is not None:
                 return result

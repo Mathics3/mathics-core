@@ -547,6 +547,14 @@ def test_trig_real_valued_precision(str_expr, str_expected, msg):
         ("Csc[0.]", "ComplexInfinity", None),
         ("Cot[0``20]", "ComplexInfinity", None),
         ("Csc[0``20]", "ComplexInfinity", None),
+        ("Tan[N[Pi/2, 20]]", "ComplexInfinity", "no digit left next to a pole"),
+        ("Sec[N[Pi/2, 20]]", "ComplexInfinity", None),
+        ("Cot[N[Pi, 20]]", "ComplexInfinity", None),
+        ("Csc[N[Pi, 20]]", "ComplexInfinity", None),
+        ("Tan[1.5707963`5]", "ComplexInfinity", None),
+        ("Precision[Tan[N[Pi/2, 20] + 10^-15]]", "4.80388", "close to a pole"),
+        ("Accuracy[Sin[1.`20*^30]]", "0.", "the error is at most the bound 1"),
+        ("Accuracy[Cos[1.`20*^30]]", "0.", None),
     ],
 )
 def test_trig_zero(str_expr, str_expected, msg):
