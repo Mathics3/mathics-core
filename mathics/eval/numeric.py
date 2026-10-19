@@ -598,6 +598,45 @@ def _precision_real(
     )
 
 
+def eval_mpmath_function_by_condition(
+    mpmath_function: Callable, condition_numbers: Callable, *args: Number
+) -> Optional[PrecisionReal]:
+    """
+    Applies ``mpmath_function`` to ``args``, when they are exact real
+    numbers or nonzero PrecisionReals and the value is a nonzero real
+    number. As in WMA, the relative error of each argument is multiplied
+    by its factor in ``condition_numbers``, and these errors add up.
+    Returns None otherwise, or if no argument adds an error.
+    """
+    if not _exact_or_precision_reals(args):
+        return None
+    input_bits = max(arg.precision for arg in args if isinstance(arg, PrecisionReal))
+    with mpmath.workprec(input_bits + 10):
+        values = [arg.to_mpmath() for arg in args]
+        value = mpmath_function(*values)
+        if (
+            not isinstance(value, mpmath.mpf)
+            or value == 0
+            or not mpmath.isfinite(value)
+        ):
+            return None
+        factors = condition_numbers(*values, value)
+    digits = [
+        arg.precision10 - _log10_abs(factor)
+        for arg, factor in zip(args, factors)
+        if isinstance(arg, PrecisionReal) and factor != 0
+    ]
+    if not digits:
+        return None
+    precision10 = _combine_digits(digits)
+    needed_bits = number_prec(max(1, math.ceil(precision10)))
+    if needed_bits > input_bits:
+        # The result has more digits than the arguments, as in Sqrt.
+        with mpmath.workprec(needed_bits + 10):
+            value = mpmath_function(*(arg.to_mpmath() for arg in args))
+    return _precision_real(value, precision10, precision10 - _log10_abs(value))
+
+
 def eval_add_numbers(
     *numbers: Number,
 ) -> BaseElement:

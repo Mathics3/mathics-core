@@ -101,6 +101,7 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.arithmetic import eval_mpmath_function
 from mathics.eval.numbers.numbers import cancel
+from mathics.eval.numeric import eval_mpmath_function_by_condition
 from mathics.eval.numerify import numerify
 from mathics.eval.scoping import dynamic_scoping
 from mathics.eval.sympy import eval_sympy
@@ -808,6 +809,12 @@ class MPMathFunction(SympyFunction):
     mpmath_name: Optional[str] = None
     nargs = {1}
 
+    # As in WMA, a result can get its precision from the condition number.
+    # Then, given the arguments and the value as mpmath numbers, this
+    # returns for each argument the factor ``Abs[x D[f, x] / f]`` by which
+    # its relative error is multiplied in the result.
+    condition_numbers: Optional[Callable[..., Sequence]] = None
+
     def get_mpmath_function(self, args):
         if self.mpmath_name is None or len(args) not in self.nargs:
             return None
@@ -837,6 +844,13 @@ class MPMathFunction(SympyFunction):
         mpmath_function = self.get_mpmath_function(tuple(args))
         if mpmath_function is None:
             return
+
+        if self.condition_numbers is not None:
+            result = eval_mpmath_function_by_condition(
+                mpmath_function, self.condition_numbers, *args
+            )
+            if result is not None:
+                return result
 
         if any(arg.is_machine_precision for arg in args):
             prec = None

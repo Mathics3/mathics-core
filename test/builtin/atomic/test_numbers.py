@@ -447,6 +447,42 @@ def test_max_extra_precision():
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "msg"),
     [
+        ("Precision[Sqrt[1.5`20]]", "20.301", "Sqrt adds Log10[2]"),
+        ("Precision[Sqrt[2.`20]]", "20.301", None),
+        ("Precision[1.5`20^(1/3)]", "20.4771", None),
+        ("Precision[1.5`20^3]", "19.5229", "x^n loses Log10[n]"),
+        ("Precision[(-1.5`20)^3]", "19.5229", None),
+        ("Precision[1.5`20^-1]", "20.", None),
+        ("Precision[1.5`20^-2]", "19.699", None),
+        ("Precision[1.5`20^1000]", "17.", None),
+        ("Precision[1.5`20^(10^-5)]", "25.", None),
+        ("Precision[2^1.5`20]", "19.9831", "b^x loses Log10[x Log[b]]"),
+        ("Precision[(1/2)^1.5`20]", "19.9831", None),
+        ("Precision[E^1.5`20]", "19.8239", None),
+        ("Precision[10^100.`20]", "17.6378", None),
+        ("Precision[1.`20^2.5`20]", "19.6021", None),
+        ("Precision[1.5`20^2.5`20]", "19.4542", "the errors of both add up"),
+        ("Precision[(1.5`20^2)^0.5`20]", "19.8522", None),
+        (
+            "ToString[1.5`20^(10^-5), InputForm]",
+            '"1.0000040546593011904483653`25."',
+            "the digits are computed for the precision",
+        ),
+        (
+            "ToString[E^1.5`20, InputForm]",
+            '"4.4816890703380648226`19.82390874094432"',
+            None,
+        ),
+    ],
+)
+def test_power_real_valued_precision(str_expr, str_expected, msg):
+    """Compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
         (None, None, None),
         ("N[Sqrt[2], 41]//Precision", "41.", "first round sqrt[2`41]"),
         ("N[Sqrt[2], 40]//Precision", "40.", "first round sqrt[2`40]"),
