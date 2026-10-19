@@ -88,7 +88,7 @@ class Accuracy(Builtin):
     >> Accuracy[3.1416`2]
      = 1.50298
 
-    Notice that the value is not exactly equal to the obtained in WMA: \
+    Notice that the value is not exactly equal to the one obtained in WMA: \
     This is due to the different way in which 'Precision' is handled in SymPy.
 
     Accuracy for exact atoms is 'Infinity':
@@ -131,6 +131,9 @@ class Accuracy(Builtin):
 /representation-of-numbers/precision/</url>.
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
+
     summary_text = "find the accuracy of a number"
 
     def eval(self, z, evaluation):
@@ -166,6 +169,9 @@ class IntegerExponent(Builtin):
 
     attributes = A_LISTABLE | A_PROTECTED
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
+
     messages = {
         "int": "Integer expected at position 1 in `1`",
         "ibase": "Base `1` is not an integer greater than 1.",
@@ -183,8 +189,8 @@ class IntegerExponent(Builtin):
         py_n, py_b = n.value, b.value
         py_n = abs(py_n)
 
-        # With a base below 2 the loop below never ends (b = 1), divides
-        # by zero (b = 0) or counts powers of a negative number.
+        # With a base below 2, the loop below never ends (b = 1), divides
+        # by zero (b = 0), or counts powers of a negative number.
         if py_b < 2:
             evaluation.message("IntegerExponent", "ibase", b)
             return None
@@ -214,7 +220,7 @@ class IntegerExponent(Builtin):
     #     if not (isinstance(py_b, int) and py_b > 1):
     #         evaluation.message("IntegerExponent", "ibase", b)
 
-    #     # TODO: Optimise this (dont need to calc. base^result)
+    #     # TODO: Optimise this (we don't need to calc. base^result)
     #     # NOTE: IntegerExponent[a,b] causes a Python error here when a or b are
     #     # symbols
     #     result = 1
@@ -320,18 +326,18 @@ class NumberDigit(Builtin):
       <dd>returns the coefficient of $b$^$n$ in the base-$b$ representation of $x$.
     </dl>
 
-    Get the 10^2 digit of a 210.345:
+    Get the 10^2 digit of 210.345:
     >> NumberDigit[210.345, 2]
      = 2
 
-    Get the 10^-1 digit of a 210.345:
+    Get the 10^-1 digit of 210.345:
     >> NumberDigit[210.345, -1]
      = 3
 
     >> BaseForm[N[Pi], 2]
      = 11.00100100001111110_2
 
-    Get the 2^0 bit of the Pi:
+    Get the 2^0 bit of Pi:
      = 1
     """
 
@@ -352,12 +358,12 @@ class RealDigits(Builtin):
 
     <dl>
       <dt>'RealDigits'[$n$]
-      <dd>returns the decimal representation for the real number $n$ as list \
+      <dd>returns the decimal representation for the real number $n$ as a list \
       of digits, together with the number of digits that are to the left of \
       the decimal point.
 
       <dt>'RealDigits'[$n$, $b$]
-      <dd>returns a list of the "digits" in base-b representation for the real number $n$.
+      <dd>returns a list of the "digits" in base-$b$ representation for the real number $n$.
 
       <dt>'RealDigits'[$n$, $b$, $len$]
       <dd>returns a list of $len$ digits.
@@ -797,6 +803,9 @@ class Precision(Builtin):
     :'Accuracy':
     /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/representation-of-numbers/accuracy/</url>.
     """
+
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
 
     summary_text = "find the precision of a number"
 

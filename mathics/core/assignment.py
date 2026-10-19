@@ -5,7 +5,7 @@
 Support for Set and SetDelayed, and other assignment-like builtins
 """
 
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, Optional
 
 from mathics.core.atoms import Integer1, Number, String
 from mathics.core.attributes import A_PROTECTED
@@ -88,7 +88,7 @@ def get_symbol_list(
     error_callback: Callable,
     valid_name: Callable,
     stop_on_failure: bool = False,
-) -> Optional[List[str]]:
+) -> Optional[list[str]]:
     """
     If ``expr`` is of the form ``List[___]`` returns a list
     with the names of the valid symbol references in the list.
@@ -109,7 +109,7 @@ def get_symbol_list(
         name of the symbol.
     stop_on_failure: bool (optional)
         If True, return None if some of the elements cannot
-        be interpreted as a symbol . Default False.
+        be interpreted as a symbol. Default False.
 
     Returns
     -------
@@ -323,7 +323,7 @@ def rejected_because_protected(
 
 def unroll_patterns(
     lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
-) -> Tuple[BaseElement, BaseElement]:
+) -> tuple[BaseElement, BaseElement]:
     """
     Pattern[symb, pat]=rhs -> pat = (rhs/.(symb->pat))
     HoldPattern[lhs] = rhs -> lhs = rhs
