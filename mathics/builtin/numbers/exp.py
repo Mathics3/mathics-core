@@ -227,6 +227,11 @@ class Log(MPMathFunction):
     def get_mpmath_function(self, args):
         return lambda base, x: mpmath.log(x, base)
 
+    @staticmethod
+    def condition_numbers(base, x, value):
+        # Log[b, x] is Log[x] / Log[b].
+        return (1 / abs(mpmath.log(base)), 1 / abs(mpmath.log(x)))
+
 
 class Log2(Builtin):
     """
