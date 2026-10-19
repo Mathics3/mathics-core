@@ -483,6 +483,27 @@ def test_power_real_valued_precision(str_expr, str_expected, msg):
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "msg"),
     [
+        ("Precision[Log[1.5`20]]", "19.608", "Log loses Log10[1/Log[x]]"),
+        ("Precision[Log[100.`20]]", "20.6632", None),
+        ("Precision[Log[0.5`20]]", "19.8408", None),
+        ("Precision[Log[1.0000001`20]]", "13.", "near 1, Log loses digits"),
+        ("Precision[Log[10, 1.5`20]]", "19.608", None),
+        ("Precision[Log[1.5`20, 10]]", "19.608", "an inexact base"),
+        ("Precision[Log[2.`20, 1.5`30]]", "19.8408", "the errors of both add up"),
+        ("Precision[Log[2, 8.`20]]", "20.3179", None),
+        ("Precision[Log2[1.5`20]]", "19.608", None),
+        ("Precision[Log10[1.5`20]]", "19.608", None),
+        ("Precision[Exp[-1.5`20]]", "19.8239", "Exp[x] is E^x"),
+    ],
+)
+def test_log_real_valued_precision(str_expr, str_expected, msg):
+    """Compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
         (None, None, None),
         ("N[Sqrt[2], 41]//Precision", "41.", "first round sqrt[2`41]"),
         ("N[Sqrt[2], 40]//Precision", "40.", "first round sqrt[2`40]"),
