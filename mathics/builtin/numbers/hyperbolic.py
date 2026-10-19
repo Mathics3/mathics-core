@@ -59,7 +59,7 @@ class ArcCosh(MPMathFunction):
     mpmath_name = "acosh"
 
     @staticmethod
-    def condition_numbers(x, value):
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
         return (abs(x / (mpmath.sqrt(x**2 - 1) * value)),)
 
     rules = {
@@ -105,7 +105,7 @@ class ArcCoth(MPMathFunction):
     mpmath_name = "acoth"
 
     @staticmethod
-    def condition_numbers(x, value):
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
         return (abs(x / ((1 - x**2) * value)),)
 
     rules = {
@@ -141,7 +141,7 @@ class ArcCsch(MPMathFunction):
     mpmath_name = "acsch"
 
     @staticmethod
-    def condition_numbers(x, value):
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
         return (abs(1 / (mpmath.sqrt(1 + x**2) * value)),)
 
     rules = {
@@ -181,7 +181,7 @@ class ArcSech(MPMathFunction):
     mpmath_name = "asech"
 
     @staticmethod
-    def condition_numbers(x, value):
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
         return (abs(1 / (mpmath.sqrt(1 - x**2) * value)),)
 
     rules = {
@@ -223,7 +223,7 @@ class ArcSinh(MPMathFunction):
     mpmath_name = "asinh"
 
     @staticmethod
-    def condition_numbers(x, value):
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
         return (abs(x / (mpmath.sqrt(1 + x**2) * value)),)
 
     rules = {
@@ -256,7 +256,7 @@ class ArcTanh(MPMathFunction):
     mpmath_name = "atanh"
 
     @staticmethod
-    def condition_numbers(x, value):
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
         return (abs(x / ((1 - x**2) * value)),)
 
     numpy_name = "arctanh"
@@ -348,7 +348,7 @@ class Cosh(MPMathFunction):
     mpmath_name = "cosh"
 
     @staticmethod
-    def condition_numbers(x, value):
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
         return (abs(x * mpmath.sinh(x) / value),)
 
     sympy_name = "cosh"
@@ -377,7 +377,7 @@ class Coth(MPMathFunction):
     mpmath_name = "coth"
 
     @staticmethod
-    def condition_numbers(x, value):
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
         # As in WMA: for Abs[x] < 1 it is the condition number of
         # Sinh[x] / Cosh[x], with the errors of both added.
         if abs(x) < 1:
@@ -416,7 +416,7 @@ class Csch(MPMathFunction):
     mpmath_name = "csch"
 
     @staticmethod
-    def condition_numbers(x, value):
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
         return (abs(x * mpmath.coth(x)),)
 
     summary_text = "hyperbolic cosecant function"
@@ -518,7 +518,7 @@ class Sech(MPMathFunction):
     mpmath_name = "sech"
 
     @staticmethod
-    def condition_numbers(x, value):
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
         return (abs(x * mpmath.tanh(x)),)
 
     rules = {
@@ -551,7 +551,7 @@ class Sinh(MPMathFunction):
     mpmath_name = "sinh"
 
     @staticmethod
-    def condition_numbers(x, value):
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
         return (abs(x * mpmath.cosh(x) / value),)
 
     rules = {
@@ -578,7 +578,7 @@ class Tanh(MPMathFunction):
     mpmath_name = "tanh"
 
     @staticmethod
-    def condition_numbers(x, value):
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
         # As in WMA: for Abs[x] < 1 it is the condition number of
         # Sinh[x] / Cosh[x], with the errors of both added.
         if abs(x) < 1:
