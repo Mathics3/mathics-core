@@ -8,7 +8,7 @@ used just as a last resource.
 """
 
 import math
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, Optional
 
 import mpmath
 import sympy
@@ -548,7 +548,7 @@ def eval_Power_inexact(base: Number, exp: Number) -> BaseElement:
                 return from_mpmath(number, prec)
 
 
-def _combine_digits(digits: List[float]) -> float:
+def _combine_digits(digits: list[float]) -> float:
     """
     Given the precisions (or accuracies) of some numbers in decimal
     digits, returns the precision (or accuracy) of a result whose
@@ -560,7 +560,7 @@ def _combine_digits(digits: List[float]) -> float:
 
 
 def _exact_or_precision_reals(
-    numbers: Tuple[Number, ...], allow_zeros: bool = False
+    numbers: tuple[Number, ...], allow_zeros: bool = False
 ) -> bool:
     """
     True if ``numbers`` has a PrecisionReal, and every other element is an
@@ -685,7 +685,7 @@ def eval_mpmath_function_by_condition(
 
 def _change_within(
     mpmath_function: Callable, x: mpmath.mpf, delta: mpmath.mpf, digits: float
-) -> Optional[Tuple[mpmath.mpf, mpmath.mpf]]:
+) -> Optional[tuple[mpmath.mpf, mpmath.mpf]]:
     """
     The value of f at ``x``, and how much f changes within ``delta`` of it,
     with ``x`` known to ``digits`` digits of accuracy. So Sin[0``20] is
@@ -849,7 +849,7 @@ def eval_multiply_numbers(*numbers: Number) -> Number:
         return from_sympy(sympy.Mul(*(item.to_sympy() for item in numbers)))
 
 
-def _multiply_by_zeros(zeros: List[Number], numbers: Tuple[Number, ...]) -> Number:
+def _multiply_by_zeros(zeros: list[Number], numbers: tuple[Number, ...]) -> Number:
     """
     The product of ``numbers``, where ``zeros`` are the PrecisionReal zeros
     among them: as in WMA, a zero whose absolute error is that of the
@@ -878,7 +878,7 @@ def eval_negate_number(n: Number) -> Number:
 
 def segregate_numbers(
     *elements: BaseElement,
-) -> Tuple[List[Number], List[BaseElement]]:
+) -> tuple[list[Number], list[BaseElement]]:
     """
     From a list of elements, produce two lists, one with the numeric items
     and the other with the remaining
@@ -890,16 +890,16 @@ def segregate_numbers(
 
 
 # Note: we return:
-#  Tuple[List[Number], List[BaseElement]]
+#  tuple[list[Number], list[BaseElement]]
 #             ^^^^^
 # But the mypy type checking system can't
 # look into the loop and its condition and
-# prove that the return type is List[Number].
+# prove that the return type is list[Number].
 # So we use the weaker type assertion
-# which is the one on elements: List[BaseElement].
+# which is the one on elements: list[BaseElement].
 def segregate_numbers_from_sorted_list(
     *elements: BaseElement,
-) -> Tuple[List[BaseElement], List[BaseElement]]:
+) -> tuple[list[BaseElement], list[BaseElement]]:
     """
     From a list of elements, produce two lists, one with the numeric items
     and the other with the remaining. Different from `segregate_numbers`,
