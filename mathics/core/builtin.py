@@ -305,19 +305,6 @@ class Builtin:
             PyMathicsDefinitions() if is_pymodule else SystemDefinitions()
         )
 
-        for pattern, function in self.get_functions(
-            prefix="eval", is_pymodule=is_pymodule
-        ):
-            pat_attr = attributes if pattern.get_head_name() == name else None
-            rules.append(
-                FunctionApplyRule(
-                    name,
-                    pattern,
-                    function,
-                    check_options,
-                    attributes=pat_attr,
-                )
-            )
         for pattern_str, replace_str in self.rules.items():
             pattern_str = pattern_str % {"name": name}
             pattern = parse_builtin_rule(pattern_str, definition_class)
@@ -331,6 +318,19 @@ class Builtin:
                 )
             )
 
+        for pattern, function in self.get_functions(
+            prefix="eval", is_pymodule=is_pymodule
+        ):
+            pat_attr = attributes if pattern.get_head_name() == name else None
+            rules.append(
+                FunctionApplyRule(
+                    name,
+                    pattern,
+                    function,
+                    check_options,
+                    attributes=pat_attr,
+                )
+            )
         box_rules = []
         # FIXME: Why a special case for System`MakeBoxes? Remove this
         if name != "System`MakeBoxes":
@@ -367,17 +367,6 @@ class Builtin:
             return forms, pattern
 
         formatvalues: dict[str, List[BaseRule]] = {"": []}
-        for pattern, function in self.get_functions("format_"):
-            forms, pattern = extract_forms(pattern)
-            pat_attr = attributes if pattern.get_head_name() == name else None
-            for form in forms:
-                if form not in formatvalues:
-                    formatvalues[form] = []
-                formatvalues[form].append(
-                    FunctionApplyRule(
-                        name, pattern, function, None, attributes=pat_attr
-                    )
-                )
         for pattern, replace in self.formats.items():
             forms, pattern = extract_forms(pattern)
             for form in forms:
@@ -389,6 +378,18 @@ class Builtin:
                 replace = replace % {"name": name}
                 formatvalues[form].append(
                     RewriteRule(pattern, parse_builtin_rule(replace))
+                )
+
+        for pattern, function in self.get_functions("format_"):
+            forms, pattern = extract_forms(pattern)
+            pat_attr = attributes if pattern.get_head_name() == name else None
+            for form in forms:
+                if form not in formatvalues:
+                    formatvalues[form] = []
+                formatvalues[form].append(
+                    FunctionApplyRule(
+                        name, pattern, function, None, attributes=pat_attr
+                    )
                 )
 
         formatvalues.setdefault("_MakeBoxes", []).extend(box_rules)

@@ -62,7 +62,7 @@ class CubeRoot(Builtin):
     }
 
     rules = {
-        "CubeRoot[n_?NumberQ]": "If[n > 0, Power[n, Divide[1, 3]], Times[-1, Power[Times[-1, n], Divide[1, 3]]]]",
+        "CubeRoot[n_Integer|n_Real|n_Rational]": "If[n > 0, Power[n, Divide[1, 3]], Times[-1, Power[Times[-1, n], Divide[1, 3]]]]",
         "CubeRoot[n_]": "Power[n, Divide[1, 3]]",
         "MakeBoxes[CubeRoot[x_], f:StandardForm|TraditionalForm]": (
             "RadicalBox[MakeBoxes[x, f], 3]"
