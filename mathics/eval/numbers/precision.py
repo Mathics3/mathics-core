@@ -7,7 +7,7 @@ is 0.1000000000000000055511..., not 0.1 with more zeros.
 """
 
 import math
-from typing import Callable, Optional
+from typing import Callable, Final, Optional
 
 import mpmath
 import sympy
@@ -35,7 +35,7 @@ from mathics.eval.nevaluator import eval_N
 # exact value), or None for MachinePrecision.
 Target = Optional[float]
 
-LOG10_2 = math.log10(2)
+LOG10_2: Final[float] = math.log10(2)
 
 
 def eval_SetPrecision(
