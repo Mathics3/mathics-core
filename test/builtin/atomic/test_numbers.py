@@ -4,6 +4,7 @@ Unit tests for mathics.builtin.atomic.numbers
 
 In particular, RealDigits[] and N[]
 """
+
 from test.helper import check_arg_counts, check_evaluation
 
 import pytest
@@ -384,6 +385,59 @@ def test_precision(str_expr, str_expected):
 def test_real_valued_precision(str_expr, str_expected, msg):
     """Compared with WMA 15"""
     check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        ("Precision[N[Pi, 20.3]]", "20.3", "a real-valued precision"),
+        ("Precision[N[Pi, 41/2]]", "20.5", None),
+        ("Precision[N[1/3, 20.3]]", "20.3", None),
+        ("Precision[N[Pi E, 20]]", "20.", "the digits lost in Times are added"),
+        ("Precision[N[Pi + E, 20.3]]", "20.3", None),
+        ("Precision[N[Gamma[1/3], 20.3]]", "20.3", None),
+        (
+            "Precision[N[Pi - 314159/100000, 20.3]]",
+            "20.3",
+            "the digits lost in a cancellation are added",
+        ),
+        ("Precision[N[1.5`10, 20.3]]", "10.", "an input with fewer digits"),
+        ("Precision[N[1.5`10 + Pi, 20.3]]", "10.4906", None),
+        ("Precision /@ N[{Pi, 1.5`10, 2.5`30.2}, 20.3]", "{20.3, 10., 20.3}", None),
+        (
+            "ToString[N[a Pi + 1/3, 20.3], InputForm]",
+            '"0.333333333333333333333`20.3 + 3.14159265358979323846`20.3*a"',
+            None,
+        ),
+        (
+            "N[c, p_?(#>10&)] := p; N[c Pi E, 11] // Precision",
+            "MachinePrecision",
+            "the rule gives a machine number",
+        ),
+    ],
+)
+def test_n_real_valued_precision(str_expr, str_expected, msg):
+    """N[expr, p]: compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+def test_max_extra_precision():
+    """Compared with WMA 15"""
+    check_evaluation("$MaxExtraPrecision", "50.")
+    check_evaluation(
+        "Block[{$MaxExtraPrecision = 5}, "
+        "Precision[N[Pi - 314159265358979/100000000000000, 20]]]",
+        "9.71216",
+        expected_messages=(
+            "Internal precision limit $MaxExtraPrecision = 5. reached while "
+            "evaluating -314159265358979 / 100000000000000 + Pi.",
+        ),
+    )
+    check_evaluation(
+        "Block[{$MaxExtraPrecision = 0}, Precision[N[Pi E, 20]]]",
+        "19.699",
+        failure_message="no extra digit, no message",
+    )
 
 
 @pytest.mark.parametrize(

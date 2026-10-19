@@ -17,7 +17,7 @@ from mathics.core.assignment import (
     rejected_because_protected,
     unwrap_lhs,
 )
-from mathics.core.atoms import Integer, Integer1
+from mathics.core.atoms import Integer, Integer1, Rational, Real
 from mathics.core.definitions import BOX_FORMS
 from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import (
@@ -770,6 +770,25 @@ def eval_assign_maxprecision(
         return False
 
     evaluation.message(lhs_name, "precset", lhs, rhs)
+    raise AssignmentException(lhs, None)
+
+
+def eval_assign_max_extra_precision(
+    op_name: str,
+    lhs: BaseElement,
+    rhs: BaseElement,
+    evaluation: Evaluation,
+) -> bool:
+    """
+    Implement the assignment to the `$MaxExtraPrecision` symbol, which
+    must be a non-negative number or Infinity.
+    """
+    if rhs.has_form(SymbolDirectedInfinity, 1) and get_int_value(rhs.elements[0]) == 1:
+        return False
+    if isinstance(rhs, (Integer, Rational, Real)) and rhs.value >= 0:
+        return False
+
+    evaluation.message(lhs.get_name(), "precset", lhs, rhs)
     raise AssignmentException(lhs, None)
 
 
@@ -1681,6 +1700,7 @@ EVAL_ASSIGN_SPECIAL_SYMBOLS = {
     "System`$HistoryLength": eval_assign_line_number_and_history_length,
     "System`$IterationLimit": eval_assign_iteration_limit,
     "System`$Line": eval_assign_line_number_and_history_length,
+    "System`$MaxExtraPrecision": eval_assign_max_extra_precision,
     "System`$MaxPrecision": eval_assign_maxprecision,
     "System`$MinPrecision": eval_assign_minprecision,
     "System`$ModuleNumber": eval_assign_module_number,
