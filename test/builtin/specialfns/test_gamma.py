@@ -23,7 +23,7 @@ import pytest
             "1.400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
             "Issue 203",
         ),
-        ("res // Precision", None, "100.", None),
+        ("res // Precision", None, "99.699", None),
         (
             "Gamma[1.*^20]",
             ("Overflow occurred in computation.",),

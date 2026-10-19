@@ -156,16 +156,16 @@ def test_numeric(str_expr, msgs, str_expected, fail_msg):
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected"),
     [
-        # The precision is min(prec, acc + Log10[Abs[x]]), kept to whole digits.
-        ("Precision[N[Pi, {20, 5}]]", None, "5."),
-        ("Precision[N[Pi, {Infinity, 5}]]", None, "5."),
-        ("Precision[N[Pi*10^10, {20, 5}]]", None, "15."),
-        ("Precision[N[Pi*10^30, {Infinity, 5}]]", None, "35."),
+        # The precision is min(prec, acc + Log10[Abs[x]]), as in WMA.
+        ("Precision[N[Pi, {20, 5}]]", None, "5.49715"),
+        ("Precision[N[Pi, {Infinity, 5}]]", None, "5.49715"),
+        ("Precision[N[Pi*10^10, {20, 5}]]", None, "15.4971"),
+        ("Precision[N[Pi*10^30, {Infinity, 5}]]", None, "35.4971"),
         ("Precision[N[Pi, {20, Infinity}]]", None, "20."),
         ("Precision[N[Pi, {10, 50}]]", None, "10."),
-        ("Precision[N[Sqrt[2] + Pi, {30, 10}]]", None, "10."),
+        ("Precision[N[Sqrt[2] + Pi, {30, 10}]]", None, "10.6586"),
         ("Abs[N[Pi, {20, 5}] - Pi] < 10^-5", None, "True"),
-        ("Precision[N[{Pi, x + E}, {20, 5}]]", None, "5."),
+        ("Precision[N[{Pi, x + E}, {20, 5}]]", None, "5.43429"),
         # A number below the accuracy becomes a zero of that accuracy.
         ("Accuracy[N[Pi/10^10, {20, 5}]]", None, "5."),
         ("N[Pi/10^10, {20, 5}] == 0", None, "True"),

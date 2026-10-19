@@ -183,7 +183,10 @@ def real_to_tuple_info(
     If ``digits`` is None, we use the default precision.
     """
     binary_precision = real.precision
-    precision = dps(binary_precision)
+    if isinstance(real, PrecisionReal):
+        precision = real.digits
+    else:
+        precision = dps(binary_precision)
     if digits is None:
         digits = precision + 1
     else:
@@ -539,7 +542,11 @@ def _attach_precision(s: str, value, form: str, precision) -> str:
             s = s + "`"
     elif isinstance(value, PrecisionReal):
         if form not in ("System`OutputForm"):
-            str_precision = str(precision)
+            if value.is_zero:
+                str_precision = str(precision)
+            else:
+                # As in WMA, the precision is shown as it is kept: 1.5`20.3
+                str_precision = repr(value.precision10).removesuffix(".0")
             if "." not in str_precision:
                 str_precision += "."
             s = s + "`" + str_precision
