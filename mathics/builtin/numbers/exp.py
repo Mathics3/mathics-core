@@ -228,7 +228,9 @@ class Log(MPMathFunction):
         return lambda base, x: mpmath.log(x, base)
 
     @staticmethod
-    def condition_numbers(base, x, value):
+    def condition_numbers(
+        base: mpmath.mpf, x: mpmath.mpf, value: mpmath.mpf
+    ) -> tuple[mpmath.mpf, mpmath.mpf]:
         # Log[b, x] is Log[x] / Log[b].
         return (1 / abs(mpmath.log(base)), 1 / abs(mpmath.log(x)))
 
