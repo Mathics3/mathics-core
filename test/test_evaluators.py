@@ -32,9 +32,10 @@ def test_sameQ():
         ("1", "$MachinePrecision", "1.000000000"),
         # Sqrt[2] = 1.41421356237309504880...; the value used to be
         # rounded through a decimal string to 1.4142135623731.
-        ("Sqrt[2]", "$MachinePrecision", "1.4142135623730950`15"),
+        # As in WMA, the precision is $MachinePrecision.
+        ("Sqrt[2]", "$MachinePrecision", "1.4142135623730950488`15.954589770191003"),
         ("2/9", "$MachinePrecision", "2.000000`5*9.0000000000`5^(-1.`)"),
-        ("Pi", "$MachinePrecision", "3.141592653589793`15"),
+        ("Pi", "$MachinePrecision", "3.1415926535897932385`15.954589770191003"),
         ("F[1.2, 2/9]", "$MachinePrecision", "F[1.2, .2222222222222222]"),
         ("F[1.2, 2/9]", "$MachinePrecision", "F[1.2, .2222222222222222`15]"),
         # It is  necessary to have 17 digits to get SameQ against N[2/9,5]
