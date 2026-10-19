@@ -168,6 +168,19 @@ def eval_Accuracy(z: BaseElement) -> Optional[float]:
     return None
 
 
+def has_machine_number(z: BaseElement) -> bool:
+    """Does ``z`` contain a machine-precision number?"""
+    if isinstance(z, MachineReal):
+        return True
+    if isinstance(z, Complex):
+        return has_machine_number(z.real) or has_machine_number(z.imag)
+    if isinstance(z, Expression):
+        return has_machine_number(z.head) or any(
+            has_machine_number(element) for element in z.elements
+        )
+    return False
+
+
 def eval_Precision(z: BaseElement) -> Optional[float]:
     """
     Determine the precision of an expression expr.
