@@ -53,12 +53,12 @@ from mathics.core.symbols import (
     SymbolTimes,
     SymbolTrue,
 )
-from mathics.core.systemsymbols import SymbolMaxExtraPrecision, SymbolPiecewise
+from mathics.core.systemsymbols import SymbolPiecewise
 from mathics.eval.inference import evaluate_predicate
 from mathics.eval.nevaluator import (
     eval_NValues,
     eval_NValues_to_precision,
-    is_infinity,
+    get_max_extra_precision,
 )
 from mathics.eval.numeric import (
     eval_Abs,
@@ -351,13 +351,7 @@ class N(Builtin):
                 return None
             if digits is not None:
                 prec = MachineReal(float(digits))
-                max_extra = SymbolMaxExtraPrecision.evaluate(evaluation)
-                if isinstance(max_extra, (Integer, Rational, Real)):
-                    max_extra = max(0.0, float(max_extra.value))
-                elif is_infinity(max_extra):
-                    max_extra = float("inf")
-                else:
-                    max_extra = 0.0
+                max_extra = get_max_extra_precision(evaluation)
                 result, exhausted = eval_NValues_to_precision(
                     expr, prec, digits, max_extra, evaluation
                 )
