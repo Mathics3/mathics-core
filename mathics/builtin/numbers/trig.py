@@ -593,7 +593,7 @@ class Cos(MPMathFunction):
     mpmath_name = "cos"
 
     @staticmethod
-    def condition_numbers(x, value):
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
         return (abs(x * mpmath.sin(x) / value),)
 
     rules = {
@@ -635,7 +635,7 @@ class Cot(MPMathFunction):
     mpmath_name = "cot"
 
     @staticmethod
-    def condition_numbers(x, value):
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
         return (abs(x * (1 + value**2) / value),)
 
     rules = {
@@ -676,7 +676,7 @@ class Csc(MPMathFunction):
     mpmath_name = "csc"
 
     @staticmethod
-    def condition_numbers(x, value):
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
         return (abs(x * mpmath.cot(x)),)
 
     rules = {
@@ -767,7 +767,7 @@ class Sec(MPMathFunction):
     mpmath_name = "sec"
 
     @staticmethod
-    def condition_numbers(x, value):
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
         return (abs(x * mpmath.tan(x)),)
 
     rules = {
@@ -818,7 +818,7 @@ class Sin(MPMathFunction):
     mpmath_name = "sin"
 
     @staticmethod
-    def condition_numbers(x, value):
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
         return (abs(x * mpmath.cos(x) / value),)
 
     rules = {
@@ -859,7 +859,7 @@ class Tan(MPMathFunction):
     mpmath_name = "tan"
 
     @staticmethod
-    def condition_numbers(x, value):
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
         return (abs(x * (1 + value**2) / value),)
 
     rules = {
