@@ -275,9 +275,9 @@ def min_prec(*args) -> Optional[int]:
 # As in WMA, a number of low precision keeps at least this many bits of
 # its value: 1.4`2 is 1.39999999999999999998, not 1.400390625. The
 # precision is not changed by it.
-MIN_STORED_BITS = 64
+MIN_STORED_BITS: Final[int] = 64
 # The decimal digits that give MIN_STORED_BITS bits, and some more.
-EXTENDED_DIGITS = 22
+EXTENDED_DIGITS: Final[int] = 22
 
 
 def prec(dps) -> int:
