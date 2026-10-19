@@ -149,7 +149,7 @@ def eval_Accuracy(z: BaseElement) -> Optional[float]:
     if isinstance(z, PrecisionReal):
         if z.is_zero:
             return z.precision10
-        log10_z = mpmath.log(abs(z.to_mpmath()), 10)
+        log10_z = mpmath.log(abs(mpmath.mpf(z.extended_value)), 10)
         return z.precision10 - log10_z
 
     if isinstance(z, Complex):

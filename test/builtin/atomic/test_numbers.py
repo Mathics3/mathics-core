@@ -964,3 +964,31 @@ def test_set_precision_messages():
             "SetPrecision called with 3 arguments; 2 arguments are expected.",
         ),
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        (
+            "Precision[1.5`20 - 1.4`2]",
+            "0.853872",
+            "1.4`2 keeps its value, not 1.400390625",
+        ),
+        ("Accuracy[1.5`20 - 1.4`2]", "1.85387", None),
+        ("Precision[1.4`2 + 1.4`2]", "2.", None),
+        ("Precision[1.4`2]", "2.", "the precision does not change"),
+        ("Precision[N[1.4`2, 10]]", "2.", None),
+        ("ToString[SetPrecision[1.4`2, 20]]", '"1.4000000000000000000"', None),
+        ("ToString[SetPrecision[-1.4`2, 20]]", '"-1.4000000000000000000"', None),
+        ("ToString[SetPrecision[1.4`2 + 1.4`2, 20]]", '"2.8000000000000000000"', None),
+        ("ToString[SetPrecision[1.4`2^2, 18]]", '"1.96000000000000000"', None),
+        ("ToString[SetPrecision[Sin[1.4`2], 18]]", '"0.985449729988460181"', None),
+        ("ToString[SetPrecision[N[1/3, 2], 18]]", '"0.333333333333333333"', "N"),
+        ("ToString[SetPrecision[N[Pi, 3], 18]]", '"3.14159265358979324"', None),
+        ("N[Pi, 3]", "3.14", None),
+        ("SameQ[1.4`2, 1.4001`2]", "True", None),
+    ],
+)
+def test_low_precision_storage(str_expr, str_expected, msg):
+    """Compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)

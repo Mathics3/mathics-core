@@ -36,6 +36,7 @@ from mathics.core.element import BaseElement
 from mathics.core.expression import Expression
 from mathics.core.number import (
     FP_MANTISA_BINARY_DIGITS,
+    MIN_STORED_BITS,
     SpecialValueError,
     is_inexact,
     is_machine_precision,
@@ -580,6 +581,28 @@ def _log10_abs(x: mpmath.mpf) -> float:
     return float(mpmath.log10(abs(x)))
 
 
+def _stored_bits(numbers) -> int:
+    """
+    The working precision for ``numbers``: the most bits any of their
+    PrecisionReals keeps, and at least MIN_STORED_BITS.
+    """
+    return max(
+        [MIN_STORED_BITS]
+        + [
+            number.extended_value._prec + 1
+            for number in numbers
+            if isinstance(number, PrecisionReal)
+        ]
+    )
+
+
+def _full_mpmath(number: Number) -> mpmath.mpf:
+    """The value of ``number`` with all the bits it keeps."""
+    if isinstance(number, PrecisionReal):
+        return mpmath.mpf(number.extended_value)
+    return number.to_mpmath()
+
+
 def _precision_real(
     value: mpmath.mpf, precision10: float, accuracy10: float
 ) -> PrecisionReal:
@@ -592,10 +615,9 @@ def _precision_real(
         return PrecisionReal(
             sympy.Float(0, precision=number_prec(math.ceil(accuracy10))), accuracy10
         )
-    # The binary precision is rounded up, so that all the digits shown are kept.
-    return PrecisionReal(
-        sympy.Float(value, precision=number_prec(math.ceil(precision10))), precision10
-    )
+    # The binary precision is rounded up, so that all the digits shown are
+    # kept; a low precision keeps more bits of the value, as in WMA.
+    return PrecisionReal.from_value(value, precision10)
 
 
 def eval_mpmath_function_by_condition(
@@ -634,9 +656,9 @@ def eval_mpmath_function_by_condition(
 
     if not _exact_or_precision_reals(args):
         return None
-    input_bits = max(arg.precision for arg in args if isinstance(arg, PrecisionReal))
+    input_bits = _stored_bits(args)
     with mpmath.workprec(input_bits + 10):
-        values = [arg.to_mpmath() for arg in args]
+        values = [_full_mpmath(arg) for arg in args]
         value = mpmath_function(*values)
         if not isinstance(value, mpmath.mpf) or not mpmath.isfinite(value):
             return None
@@ -673,7 +695,7 @@ def eval_mpmath_function_by_condition(
     if needed_bits > input_bits:
         # The result has more digits than the arguments, as in Sqrt.
         with mpmath.workprec(needed_bits + 10):
-            value = mpmath_function(*(arg.to_mpmath() for arg in args))
+            value = mpmath_function(*(_full_mpmath(arg) for arg in args))
     accuracy10 = precision10 - _log10_abs(value)
     if precision10 <= 0 and bound is not None:
         accuracy10 = max(accuracy10, -math.log10(bound))
@@ -755,12 +777,12 @@ def eval_add_numbers(
         ]
         accuracy10 = _combine_digits(
             [
-                number.precision10 - _log10_abs(number.to_mpmath())
+                number.precision10 - _log10_abs(_full_mpmath(number))
                 for number in precision_reals
             ]
         )
-        with mpmath.workprec(max(number.precision for number in precision_reals)):
-            number = mpmath.fsum(item.to_mpmath() for item in numbers)
+        with mpmath.workprec(_stored_bits(numbers)):
+            number = mpmath.fsum(_full_mpmath(item) for item in numbers)
         if number == 0:
             return _precision_real(number, 0, accuracy10)
         return _precision_real(number, accuracy10 + _log10_abs(number), accuracy10)
@@ -818,8 +840,8 @@ def eval_multiply_numbers(*numbers: Number) -> Number:
         precision10 = _combine_digits(
             [number.precision10 for number in precision_reals]
         )
-        with mpmath.workprec(max(number.precision for number in precision_reals)):
-            number = mpmath.fprod(item.to_mpmath() for item in numbers)
+        with mpmath.workprec(_stored_bits(numbers)):
+            number = mpmath.fprod(_full_mpmath(item) for item in numbers)
         if number != 0:
             return _precision_real(number, precision10, 0)
 

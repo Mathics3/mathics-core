@@ -99,7 +99,7 @@ class Accuracy(Builtin):
     'Accuracy' of a real number is estimated from its value and its precision:
 
     >> Accuracy[3.1416`2]
-     = 1.50298
+     = 1.50285
 
     Notice that the value is not exactly equal to the one obtained in WMA: \
     This is due to the different way in which 'Precision' is handled in SymPy.

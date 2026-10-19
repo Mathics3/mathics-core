@@ -31,6 +31,7 @@ from mathics.core.number import (
     FP_MANTISA_BINARY_DIGITS,
     LOG2_10,
     MAX_MACHINE_NUMBER,
+    MIN_STORED_BITS,
     MIN_MACHINE_NUMBER,
     dps,
     min_prec,
@@ -409,7 +410,9 @@ class Integer(Number[int]):
             else:
                 d = 16  # MACHINE_PRECISION_VALUE rounded up
 
-        return PrecisionReal(sympy_Float(self.value, d))
+        return PrecisionReal(
+            sympy_Float(self.value, d), None, extended_float(self.value, d)
+        )
 
     def sameQ(self, rhs) -> bool:
         """Mathics3 SameQ for Integer"""
@@ -449,6 +452,16 @@ def _tolerance_prec(x: Union["MachineReal", "PrecisionReal"]) -> int:
     if precision10 is None or x.is_zero:
         return x.precision
     return max(1, int(round((precision10 + 1) * LOG2_10)))
+
+
+def extended_float(value, d) -> Optional[sympy.Float]:
+    """
+    The exact number ``value`` with MIN_STORED_BITS bits, for a
+    PrecisionReal with ``d`` decimal digits that has fewer.
+    """
+    if prec(d) >= MIN_STORED_BITS:
+        return None
+    return sympy_Float(value, precision=MIN_STORED_BITS)
 
 
 # This has to come before Complex, which uses Real.
@@ -715,36 +728,52 @@ class PrecisionReal(Real[sympy_Float]):
     the precision is the one of the sympy.Float. For a zero, the
     decimal precision is its accuracy.
 
+    Also as in WMA, a number with fewer than MIN_STORED_BITS bits of
+    precision keeps its value with that many bits in ``_extended``, so
+    that 1.4`2 is not 1.400390625. ``value`` is the value rounded to the
+    precision, as everywhere else; the arithmetic that tracks the error
+    (Plus, Times, the functions with a condition number) reads
+    ``extended_value``.
+
     Note: Plays nicely with the mpmath.mpf (float) type.
     """
 
-    __slots__ = ("hash", "_sympy", "_value", "_precision10")
+    __slots__ = ("hash", "_sympy", "_value", "_precision10", "_extended")
     _value: sympy.Float
     _precision10: Optional[float]
+    _extended: Optional[sympy.Float]
 
     # Dictionary of PrecisionReal constant values defined so far.
     # We use this for object uniqueness.
     # The key is the PrecisionReal's `sympy.Float` and decimal precision,
     # and the dictionary's value is the corresponding Mathics3
     # PrecisionReal object.
-    _precision_reals: dict[tuple[sympy.Float, Optional[float]], "PrecisionReal"] = {}
+    _precision_reals: dict[tuple, "PrecisionReal"] = {}
 
     # Note: We have no _value attribute or value property .
     # value attribute comes from Number.value
 
-    def __new__(cls, value, precision10: Optional[float] = None) -> "PrecisionReal":
+    def __new__(
+        cls, value, precision10: Optional[float] = None, extended=None
+    ) -> "PrecisionReal":
 
         n = sympy.Float(value)
         # A decimal precision that the sympy.Float already gives is not kept.
         if precision10 is not None and precision10 == float(dps(n._prec + 1)):
             precision10 = None
-        key = (n, precision10)
+        if extended is not None:
+            extended = sympy.Float(extended)
+            if extended._prec <= n._prec or n.is_zero:
+                extended = None
+        # Two values with the same rounded value are different numbers.
+        key = (n, precision10, extended)
         self = cls._precision_reals.get(key)
 
         if self is None:
             self = object.__new__(cls)
             self._value = n
             self._precision10 = precision10
+            self._extended = extended
 
             # Cache object so we don't allocate again.
             self._precision_reals[key] = self
@@ -764,10 +793,31 @@ class PrecisionReal(Real[sympy_Float]):
         return self.hash
 
     def __getnewargs__(self) -> tuple:
-        return (self._value, self._precision10)
+        return (self._value, self._precision10, self._extended)
 
     def __neg__(self) -> "PrecisionReal":
-        return PrecisionReal(-self.value, self._precision10)
+        extended = None if self._extended is None else -self._extended
+        return PrecisionReal(-self.value, self._precision10, extended)
+
+    @classmethod
+    def from_value(cls, value, precision10: float) -> "PrecisionReal":
+        """
+        The number ``value`` (an mpmath or sympy number, with enough bits)
+        with ``precision10`` decimal digits of precision. It is rounded to
+        the precision, and kept with MIN_STORED_BITS bits if that is more.
+        """
+        bits = prec(max(1, math.ceil(precision10)))
+        extended = (
+            sympy.Float(value, precision=MIN_STORED_BITS)
+            if bits < MIN_STORED_BITS
+            else None
+        )
+        return cls(sympy.Float(value, precision=bits), precision10, extended)
+
+    @property
+    def extended_value(self) -> sympy.Float:
+        """The value with all the bits kept, as WMA keeps them."""
+        return self._value if self._extended is None else self._extended
 
     def atom_to_boxes(self, f, evaluation):
         from mathics.format.box import numberform_to_boxes
@@ -785,7 +835,7 @@ class PrecisionReal(Real[sympy_Float]):
         return max(1, round(self._precision10))
 
     def do_copy(self) -> "PrecisionReal":
-        return PrecisionReal(self.value, self._precision10)
+        return PrecisionReal(self.value, self._precision10, self._extended)
 
     @property
     def element_order(self) -> tuple:
@@ -838,7 +888,14 @@ class PrecisionReal(Real[sympy_Float]):
         min_prec = min(prec(d), self.value._prec)
         if min_prec == self.value._prec:
             return self
-        return PrecisionReal(sympy_Float(self.value, precision=min_prec))
+        extended = (
+            sympy_Float(self.extended_value, precision=MIN_STORED_BITS)
+            if min_prec < MIN_STORED_BITS
+            else None
+        )
+        return PrecisionReal(
+            sympy_Float(self.extended_value, precision=min_prec), None, extended
+        )
 
     def sameQ(self, rhs) -> bool:
         """Mathics3 SameQ for PrecisionReal"""
@@ -1244,7 +1301,7 @@ class Rational(Number[sympy.Rational]):
         if d is None:
             return MachineReal(float(self.value))
         else:
-            return PrecisionReal(self.value.n(d))
+            return PrecisionReal(self.value.n(d), None, extended_float(self.value, d))
 
     def round_to_float(self, evaluation=None, permit_complex: bool = True) -> float:
         return float(self.value)

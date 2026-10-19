@@ -405,7 +405,7 @@ def _bound_precision(expr: BaseElement, p: float) -> BaseElement:
     if isinstance(expr, PrecisionReal):
         if expr.is_zero or expr.precision10 <= p:
             return expr
-        return PrecisionReal(sympy.Float(expr.value, precision=number_prec(ceil(p))), p)
+        return PrecisionReal.from_value(expr.extended_value, p)
     if isinstance(expr, Complex):
         return Complex(_bound_precision(expr.real, p), _bound_precision(expr.imag, p))
     if isinstance(expr, Atom):
@@ -457,8 +457,7 @@ def _bound_accuracy(expr: BaseElement, acc: float) -> BaseElement:
             )
         if digits >= expr.precision10:
             return expr
-        bits = min(number_prec(ceil(digits)), value._prec)
-        return PrecisionReal(sympy.Float(value, precision=bits), digits)
+        return PrecisionReal.from_value(expr.extended_value, digits)
     if isinstance(expr, Complex):
         return Complex(_bound_accuracy(expr.real, acc), _bound_accuracy(expr.imag, acc))
     if isinstance(expr, Atom):
