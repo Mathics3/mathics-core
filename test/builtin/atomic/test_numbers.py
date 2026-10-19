@@ -646,6 +646,14 @@ def test_arctrig_real_valued_precision(str_expr, str_expected, msg):
         ("Coth[0``20]", "ComplexInfinity", "a pole"),
         ("Csch[0.]", "ComplexInfinity", None),
         ("Csch[0``20]", "ComplexInfinity", None),
+        ("Sinh[0`20]", "0", "0`20 is an exact 0"),
+        ("Precision[Cosh[0.0`20]]", "MachinePrecision", "0.0`20 is 0."),
+        ("Accuracy[ArcCosh[1.`20]]", "9.84949", "at the end of the domain"),
+        ("Accuracy[ArcSech[1.`20]]", "9.84949", None),
+        ("Precision[ArcCosh[1.00000001`20]]", "12.301", "next to the end"),
+        ("Precision[ArcSech[0.99999999`20]]", "12.301", None),
+        ("Precision[ArcTanh[0.99999999`20]]", "13.2813", "next to a pole"),
+        ("Accuracy[Sinh[1000.`2]]", "-434.993", "no digit left, no bound"),
     ],
 )
 def test_hyperbolic_real_valued_precision(str_expr, str_expected, msg):

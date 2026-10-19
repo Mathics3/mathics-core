@@ -375,6 +375,7 @@ class Coth(MPMathFunction):
     """
 
     mpmath_name = "coth"
+    has_poles = True
 
     @staticmethod
     def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
@@ -414,6 +415,7 @@ class Csch(MPMathFunction):
     """
 
     mpmath_name = "csch"
+    has_poles = True
 
     @staticmethod
     def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
@@ -520,6 +522,7 @@ class Sech(MPMathFunction):
     """
 
     mpmath_name = "sech"
+    value_bound = 1.0
 
     @staticmethod
     def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
@@ -580,6 +583,7 @@ class Tanh(MPMathFunction):
     """
 
     mpmath_name = "tanh"
+    value_bound = 1.0
 
     @staticmethod
     def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
