@@ -580,6 +580,11 @@ def test_trig_zero(str_expr, str_expected, msg):
         ("Precision[ArcCsc[-25.`20]]", "19.9998", None),
         ("Precision[ArcTan[1.5`20, 2.5`20]]", "20.0674", "ArcTan[x, y]"),
         ("Precision[ArcTan[-1.5`20, 2.5`30]]", "20.6799", None),
+        ("Precision[ArcSin[0]]", "Infinity", "an exact zero stays exact"),
+        ("Accuracy[ArcSin[0``20]]", "20.", "the absolute error of a zero"),
+        ("Accuracy[ArcTan[0``20]]", "20.", None),
+        ("Precision[ArcCos[0``20]]", "20.1961", None),
+        ("Precision[ArcCot[0``20]]", "20.1961", "ArcCot jumps at 0"),
     ],
 )
 def test_arctrig_real_valued_precision(str_expr, str_expected, msg):
