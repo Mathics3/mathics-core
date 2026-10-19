@@ -559,16 +559,19 @@ def _combine_digits(digits: List[float]) -> float:
     return least - math.log10(math.fsum(10.0 ** (least - d) for d in digits))
 
 
-def _exact_or_precision_reals(numbers: Tuple[Number, ...]) -> bool:
+def _exact_or_precision_reals(
+    numbers: Tuple[Number, ...], allow_zeros: bool = False
+) -> bool:
     """
-    True if ``numbers`` has a nonzero PrecisionReal, and every other
-    element is an exact real number or a nonzero PrecisionReal.
-    Sums and products of these numbers get a real-valued precision.
+    True if ``numbers`` has a PrecisionReal, and every other element is an
+    exact real number or a PrecisionReal. A PrecisionReal zero is allowed
+    only if ``allow_zeros`` is True. Sums and products of these numbers get
+    a real-valued precision.
     """
     has_precision_real = False
     for number in numbers:
         if isinstance(number, PrecisionReal):
-            if number.is_zero:
+            if number.is_zero and not allow_zeros:
                 return False
             has_precision_real = True
         elif not isinstance(number, (Integer, Rational)):
@@ -614,14 +617,19 @@ def eval_add_numbers(
         number = mpmath.fsum(terms)
         return from_mpmath(number)
 
-    if _exact_or_precision_reals(numbers):
-        # As in WMA, the absolute errors of the terms add up.
+    if _exact_or_precision_reals(numbers, allow_zeros=True):
+        # As in WMA, the absolute errors of the terms add up. For a zero,
+        # precision10 is its accuracy.
         precision_reals = [
             number for number in numbers if isinstance(number, PrecisionReal)
         ]
         accuracy10 = _combine_digits(
             [
-                number.precision10 - _log10_abs(number.to_mpmath())
+                (
+                    number.precision10
+                    if number.is_zero
+                    else number.precision10 - _log10_abs(number.to_mpmath())
+                )
                 for number in precision_reals
             ]
         )
@@ -676,6 +684,14 @@ def eval_multiply_numbers(*numbers: Number) -> Number:
         number = mpmath.fprod(factors)
         return from_mpmath(number)
 
+    if _exact_or_precision_reals(numbers, allow_zeros=True):
+        if any(number is Integer0 for number in numbers):
+            # As in WMA, an exact zero gives an exact zero.
+            return Integer0
+        zeros = [number for number in numbers if number.is_zero]
+        if zeros:
+            return _multiply_by_zeros(zeros, numbers)
+
     if _exact_or_precision_reals(numbers):
         # As in WMA, the relative errors of the factors add up.
         precision_reals = [
@@ -697,6 +713,20 @@ def eval_multiply_numbers(*numbers: Number) -> Number:
             return from_mpmath(number, prec)
     else:
         return from_sympy(sympy.Mul(*(item.to_sympy() for item in numbers)))
+
+
+def _multiply_by_zeros(zeros: List[Number], numbers: Tuple[Number, ...]) -> Number:
+    """
+    The product of ``numbers``, where ``zeros`` are the PrecisionReal zeros
+    among them: as in WMA, a zero whose absolute error is that of the
+    zeros, times the other factors.
+    """
+    accuracy10 = math.fsum(zero.precision10 for zero in zeros)
+    others = [number for number in numbers if not number.is_zero]
+    if others:
+        with mpmath.workprec(53):
+            accuracy10 -= _log10_abs(mpmath.fprod(item.to_mpmath() for item in others))
+    return _precision_real(mpmath.mpf(0), 0, accuracy10)
 
 
 def eval_negate_number(n: Number) -> Number:

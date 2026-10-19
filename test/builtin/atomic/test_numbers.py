@@ -394,6 +394,38 @@ def test_real_valued_precision(str_expr, str_expected, msg):
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "msg"),
     [
+        (
+            "Precision[1.5`20 + 0``10]",
+            "10.1761",
+            "Plus: a zero adds its absolute error",
+        ),
+        ("Precision[0``10 + 2]", "10.301", None),
+        ("Precision[1.5`20 + 0``10 + 2.5`15]", "10.602", None),
+        ("Precision[10^-10 + 0``30]", "20.", None),
+        ("Accuracy[0``10 + 0``20]", "10.", "a sum of zeros is a zero"),
+        ("Accuracy[0``10 - 0``10]", "9.69897", None),
+        ("Accuracy[1.5`20 - 1.5`20 + 0``30]", "19.5229", None),
+        (
+            "Accuracy[1.5`20 * 0``10]",
+            "9.82391",
+            "Times: the error of the zero times the other factors",
+        ),
+        ("Accuracy[2 * 0``10]", "9.69897", None),
+        ("Accuracy[0``10 * 0``20]", "30.", None),
+        ("Precision[1.5`20 * 0``10]", "0.", None),
+        ("0 * 0``10", "0", "an exact zero gives an exact zero"),
+        ("0 * 1.5`20", "0", None),
+        ("0 * 1.5 // Precision", "MachinePrecision", None),
+    ],
+)
+def test_inexact_zero_plus_times(str_expr, str_expected, msg):
+    """Compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
         ("Precision[N[Pi, 20.3]]", "20.3", "a real-valued precision"),
         ("Precision[N[Pi, 41/2]]", "20.5", None),
         ("Precision[N[1/3, 20.3]]", "20.3", None),
