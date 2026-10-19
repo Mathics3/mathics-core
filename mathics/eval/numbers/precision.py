@@ -117,14 +117,15 @@ def _exact(x: Number) -> Number:
 def _to_mpmath(x: Number, bits: int) -> mpmath.mpf:
     """The value of ``x``, exact if it is inexact, else with ``bits`` bits."""
     if isinstance(x, PrecisionReal):
-        bits = max(bits, x.precision)
+        value = x.extended_value
+        with mpmath.workprec(max(bits, value._prec + 1)):
+            return mpmath.mpf(value)
     with mpmath.workprec(bits):
         return x.to_mpmath()
 
 
 def _with_precision(value: mpmath.mpf, precision10: float) -> PrecisionReal:
-    bits = number_prec(max(1, math.ceil(precision10)))
-    return PrecisionReal(sympy.Float(value, precision=bits), precision10)
+    return PrecisionReal.from_value(value, precision10)
 
 
 def _zero(accuracy10: float) -> PrecisionReal:
