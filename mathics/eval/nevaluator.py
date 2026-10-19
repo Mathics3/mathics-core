@@ -10,7 +10,7 @@ algorithms.
 """
 
 from math import ceil
-from typing import Optional
+from typing import List, Optional, Tuple
 
 import mpmath
 import sympy
@@ -285,6 +285,114 @@ def _eval_NValues_evaluated(
 ) -> Optional[BaseElement]:
     result = eval_NValues(expr, Integer(ceil(prec)), evaluation)
     return None if result is None else result.evaluate(evaluation)
+
+
+def eval_NValues_to_precision(
+    expr: BaseElement,
+    prec: BaseElement,
+    p: float,
+    max_extra: float,
+    evaluation: Evaluation,
+) -> Tuple[Optional[BaseElement], bool]:
+    """
+    Evaluates ``N[expr, p]``, where ``prec`` is ``p`` as given to the N
+    rules. As in WMA, each arbitrary-precision number in the result has
+    precision ``p``, unless an input number had less.
+
+    When the computation loses digits, as in a cancellation or a product
+    of ``p``-digit numbers, it is done again with more digits, up to
+    ``max_extra`` more than ``p``, for as long as a number short of ``p``
+    digits gains some. A new result is used only if it has the same form
+    as the first one: N rules are given the working precision, and one for
+    ``p`` itself may not match it.
+
+    Returns a pair: the result, and whether the extra digits were not
+    enough.
+    """
+    result = eval_NValues(expr, prec, evaluation)
+    if result is None:
+        return None, False
+    result = result.evaluate(evaluation)
+    precisions = _precisions(result)
+    short = [i for i, digits in enumerate(precisions) if digits < p]
+    working = p
+    exhausted = False
+    while short:
+        if working >= p + max_extra:
+            # As in WMA, there is no message when no extra digit was allowed.
+            exhausted = working > p
+            break
+        # The most digits lost at the last working precision, and one more.
+        lost = max(working - precisions[i] for i in short)
+        working = min(p + lost + 1, p + max_extra)
+        retry = _eval_NValues_evaluated(expr, working, evaluation)
+        if retry is None or not _same_form(result, retry):
+            break
+        retry_precisions = _precisions(retry)
+        if len(retry_precisions) != len(precisions):
+            break
+        # A number that gains nothing has an input with fewer than p digits.
+        gained = [i for i in short if retry_precisions[i] > precisions[i]]
+        if not gained:
+            break
+        result, precisions = retry, retry_precisions
+        short = [i for i in gained if precisions[i] < p]
+    return _bound_precision(result, p), exhausted
+
+
+def _precisions(expr: BaseElement) -> List[float]:
+    """
+    The precisions of the arbitrary-precision numbers in ``expr``, in
+    order. A zero, which has no precision, counts as infinitely precise.
+    """
+    if isinstance(expr, PrecisionReal):
+        return [float("inf") if expr.is_zero else expr.precision10]
+    if isinstance(expr, Complex):
+        return _precisions(expr.real) + _precisions(expr.imag)
+    if isinstance(expr, Atom):
+        return []
+    return [
+        digits
+        for element in (expr.head,) + tuple(expr.elements)
+        for digits in _precisions(element)
+    ]
+
+
+def _same_form(expr: BaseElement, other: BaseElement) -> bool:
+    """Are ``expr`` and ``other`` the same, up to the values of their numbers?"""
+    if isinstance(expr, Number) and isinstance(other, Number):
+        return True
+    if isinstance(expr, Atom) or isinstance(other, Atom):
+        return expr.sameQ(other)
+    return (
+        len(expr.elements) == len(other.elements)
+        and _same_form(expr.head, other.head)
+        and all(map(_same_form, expr.elements, other.elements))
+    )
+
+
+def _bound_precision(expr: BaseElement, p: float) -> BaseElement:
+    """
+    Lowers the precision of each nonzero arbitrary-precision number in
+    ``expr`` to at most ``p`` digits.
+    """
+    if isinstance(expr, PrecisionReal):
+        if expr.is_zero or expr.precision10 <= p:
+            return expr
+        return PrecisionReal(sympy.Float(expr.value, precision=number_prec(ceil(p))), p)
+    if isinstance(expr, Complex):
+        return Complex(_bound_precision(expr.real, p), _bound_precision(expr.imag, p))
+    if isinstance(expr, Atom):
+        return expr
+    head = _bound_precision(expr.head, p)
+    elements = tuple(_bound_precision(element, p) for element in expr.elements)
+    if head is expr.head and all(
+        new is old for new, old in zip(elements, expr.elements)
+    ):
+        return expr
+    if head is SymbolList:
+        return ListExpression(*elements)
+    return Expression(head, *elements)
 
 
 def _max_precision_for_accuracy(expr: BaseElement, acc: float) -> float:

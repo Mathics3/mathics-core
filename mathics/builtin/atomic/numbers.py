@@ -28,7 +28,12 @@ from mathics.core.atoms import (
     MachineReal,
     Rational,
 )
-from mathics.core.attributes import A_LISTABLE, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.attributes import (
+    A_LISTABLE,
+    A_NO_ATTRIBUTES,
+    A_PROTECTED,
+    A_READ_PROTECTED,
+)
 from mathics.core.builtin import Builtin, Predefined
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
@@ -631,6 +636,52 @@ class MaxPrecision(Predefined):
     }
 
     summary_text = "settable global maximum precision bound variable"
+
+
+class MaxExtraPrecision(Predefined):
+    r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$MaxExtraPrecision.html</url>
+
+    <dl>
+      <dt>'\$MaxExtraPrecision'
+      <dd>is the largest number of digits beyond the requested precision \
+          that 'N' uses to reach it.
+    </dl>
+
+    >> $MaxExtraPrecision
+     = 50.
+
+    'N' adds digits when a computation loses them:
+    >> N[Pi - 314159/100000, 20] // Precision
+     = 20.
+
+    When that is not enough, the result has fewer digits:
+    >> $MaxExtraPrecision = 5;
+    >> N[Pi - 314159265358979/100000000000000, 20]
+     : Internal precision limit $MaxExtraPrecision = 5. reached while evaluating -314159265358979 / 100000000000000 + Pi.
+     = 3.238462643×10^-15
+
+    >> $MaxExtraPrecision = -1
+     : Cannot set $MaxExtraPrecision to -1; value must be a non-negative number or Infinity.
+     = -1
+    >> $MaxExtraPrecision
+     = 5
+
+    #> $MaxExtraPrecision = 50.;
+    """
+
+    attributes = A_NO_ATTRIBUTES
+    messages = {
+        "precset": "Cannot set `1` to `2`; value must be a non-negative number or Infinity.",
+    }
+
+    name = "$MaxExtraPrecision"
+
+    rules = {
+        "$MaxExtraPrecision": "50.",
+    }
+
+    summary_text = "settable limit on extra digits used to reach a precision"
 
 
 class MachineEpsilon_(Predefined):
