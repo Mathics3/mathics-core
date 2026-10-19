@@ -332,8 +332,12 @@ def test_accuracy(str_expr, str_expected):
         ('"abc"', "Infinity"),
         # Returns the precision of ``` 3.2`3 ```
         ('F["a", 2, 3.2`3]', "3."),
-        ('{{a, 2, 3.2`},{2.1`5, 3.2`3, "a"}}', "3."),
-        ('{{a, 2, 3.2`},{2.1``3, 3.2``5, "a"}}', "Precision[2.1``3]"),
+        # As in WMA, a machine number makes the precision MachinePrecision.
+        ('{{a, 2, 3.2`},{2.1`5, 3.2`3, "a"}}', "MachinePrecision"),
+        ('{{a, 2, 3.2`},{2.1``3, 3.2``5, "a"}}', "MachinePrecision"),
+        ("F[1.5`3, x, 2.]", "MachinePrecision"),
+        ("{1.5`20, 1}", "20."),
+        ("1.5`15.954589770191003", "15.9546"),
         ("{1, 0.}", "MachinePrecision"),
         ("{1, 0.``5}", "0."),
         ("Re[0.5+2.3 I]", "MachinePrecision"),

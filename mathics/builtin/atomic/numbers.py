@@ -42,7 +42,6 @@ from mathics.core.list import ListExpression
 from mathics.core.number import (
     FP_MANTISA_BINARY_DIGITS,
     MACHINE_EPSILON,
-    MACHINE_PRECISION_VALUE,
     is_numeric,
 )
 from mathics.core.symbols import Symbol, SymbolDivide
@@ -62,6 +61,7 @@ from mathics.eval.numbers.numbers import (
     convert_float_base,
     eval_Accuracy,
     eval_Precision,
+    has_machine_number,
     log_n_b,
     rational_digits,
 )
@@ -832,8 +832,12 @@ class Precision(Builtin):
 
     In compound expressions, the 'Precision' is fixed by the number with \
     the lowest 'Precision':
-    >> Precision[{{1, 1.`},{1.`5, 1.`10}}]
+    >> Precision[{{1, 1.`20},{1.`5, 1.`10}}]
      = 5.
+
+    A machine number makes it 'MachinePrecision':
+    >> Precision[{{1, 1.`},{1.`5, 1.`10}}]
+     = MachinePrecision
 
     In general, 'Accuracy'[$z$] == 'Precision'[$z$] + 'Log'[$z$] \
     for non-zero Real values:
@@ -862,12 +866,11 @@ class Precision(Builtin):
 
     def eval(self, z, evaluation: Evaluation):
         """Precision[z_]"""
-        if isinstance(z, MachineReal):
+        # As in WMA, a machine number anywhere in z makes it MachinePrecision.
+        if has_machine_number(z):
             return SymbolMachinePrecision
 
         prec = eval_Precision(z)
         if prec is None:
             return SymbolInfinity
-        if prec == MACHINE_PRECISION_VALUE:
-            return SymbolMachinePrecision
         return MachineReal(prec)
