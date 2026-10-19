@@ -602,27 +602,63 @@ def eval_mpmath_function_by_condition(
     mpmath_function: Callable,
     condition_numbers: Callable[..., tuple[mpmath.mpf, ...]],
     *args: Number,
-) -> Optional[PrecisionReal]:
+    has_poles: bool = False,
+    bound: Optional[float] = None,
+) -> Optional[BaseElement]:
     """
     Applies ``mpmath_function`` to ``args``, when they are exact real
-    numbers or nonzero PrecisionReals and the value is a nonzero real
-    number. As in WMA, the relative error of each argument is multiplied
-    by its factor in ``condition_numbers``, and these errors add up.
-    Returns None otherwise, or if no argument adds an error.
+    numbers or PrecisionReals and the value is a real number. As in WMA,
+    the relative error of each argument is multiplied by its factor in
+    ``condition_numbers``, and these errors add up. Returns None otherwise,
+    or if no argument adds an error.
+
+    Where the factor does not exist, the error is how much f changes within
+    the error of its single argument (see ``_change_within``): for a zero
+    argument, which has no relative error; at an end of the domain, like
+    ArcCos[1.`20], where f'[x] is infinite; and where the value is 0.
+
+    As in WMA, a function with poles (``has_poles``) gives ComplexInfinity
+    when no digit is left, as Tan[1.5707963`5]; and a function bounded by
+    ``bound`` has an error no larger than that, as Sin[1.`20*^30].
     """
+    if len(args) == 1 and isinstance(args[0], PrecisionReal) and args[0].is_zero:
+        accuracy10 = args[0].precision10
+        if accuracy10 < 1:
+            return None
+        change = _change_within(
+            mpmath_function, mpmath.mpf(0), mpmath.mpf(10) ** -accuracy10, accuracy10
+        )
+        if change is None:
+            return None
+        return _value_with_error(*change, has_poles, bound)
+
     if not _exact_or_precision_reals(args):
         return None
     input_bits = max(arg.precision for arg in args if isinstance(arg, PrecisionReal))
     with mpmath.workprec(input_bits + 10):
         values = [arg.to_mpmath() for arg in args]
         value = mpmath_function(*values)
-        if (
-            not isinstance(value, mpmath.mpf)
-            or value == 0
-            or not mpmath.isfinite(value)
-        ):
+        if not isinstance(value, mpmath.mpf) or not mpmath.isfinite(value):
             return None
-        factors = condition_numbers(*values, value)
+        try:
+            factors = condition_numbers(*values, value) if value != 0 else None
+        except ZeroDivisionError:
+            factors = None
+        if factors is not None and not all(mpmath.isfinite(f) for f in factors):
+            factors = None
+
+    if factors is None:
+        if len(args) != 1 or args[0].precision10 < 1:
+            return None
+        x = values[0]
+        digits = args[0].precision10 - _log10_abs(x)
+        change = _change_within(
+            mpmath_function, x, abs(x) * 10 ** -args[0].precision10, digits
+        )
+        if change is None:
+            return None
+        return _value_with_error(*change, has_poles, bound)
+
     digits = [
         arg.precision10 - _log10_abs(factor)
         for arg, factor in zip(args, factors)
@@ -631,12 +667,69 @@ def eval_mpmath_function_by_condition(
     if not digits:
         return None
     precision10 = _combine_digits(digits)
+    if precision10 <= 0 and has_poles:
+        return SymbolComplexInfinity
     needed_bits = number_prec(max(1, math.ceil(precision10)))
     if needed_bits > input_bits:
         # The result has more digits than the arguments, as in Sqrt.
         with mpmath.workprec(needed_bits + 10):
             value = mpmath_function(*(arg.to_mpmath() for arg in args))
-    return _precision_real(value, precision10, precision10 - _log10_abs(value))
+    accuracy10 = precision10 - _log10_abs(value)
+    if precision10 <= 0 and bound is not None:
+        accuracy10 = max(accuracy10, -math.log10(bound))
+    return _precision_real(value, precision10, accuracy10)
+
+
+def _change_within(
+    mpmath_function: Callable, x: mpmath.mpf, delta: mpmath.mpf, digits: float
+) -> Optional[Tuple[mpmath.mpf, mpmath.mpf]]:
+    """
+    The value of f at ``x``, and how much f changes within ``delta`` of it,
+    with ``x`` known to ``digits`` digits of accuracy. So Sin[0``20] is
+    0``20, Cos[0``20] is 1 with precision 40.301, since Cos changes by only
+    (10^-20)^2 / 2, and ArcCos[1.`20] is 0``9.849, since ArcCos changes by
+    Sqrt[2 10^-20].
+
+    The smaller change of the two sides is taken: where f is continuous they
+    agree, and a branch cut, as for ArcCot at 0, jumps on one side only. A
+    side where f has no real value, as above 1 for ArcCos, is left out.
+    Returns None if f has no real value at x or on either side.
+    """
+    # Enough digits for a change of second order.
+    with mpmath.workprec(number_prec(math.ceil(2 * max(digits, 1)) + 20)):
+        x = mpmath.mpf(x)
+        try:
+            value = mpmath_function(x)
+        except (ZeroDivisionError, ValueError):
+            return None
+        if not isinstance(value, mpmath.mpf) or not mpmath.isfinite(value):
+            return None
+        changes = []
+        for side in (x + delta, x - delta):
+            try:
+                other = mpmath_function(side)
+            except (ZeroDivisionError, ValueError):
+                continue
+            if isinstance(other, mpmath.mpf) and mpmath.isfinite(other):
+                changes.append(abs(other - value))
+        if not changes or min(changes) == 0:
+            return None
+        return value, min(changes)
+
+
+def _value_with_error(
+    value: mpmath.mpf, error: mpmath.mpf, has_poles: bool, bound: Optional[float]
+) -> BaseElement:
+    """``value`` with the absolute error ``error``."""
+    accuracy10 = -_log10_abs(error)
+    if bound is not None:
+        accuracy10 = max(accuracy10, -math.log10(bound))
+    if value == 0:
+        return _precision_real(value, 0, accuracy10)
+    precision10 = _log10_abs(value) + accuracy10
+    if precision10 <= 0 and has_poles:
+        return SymbolComplexInfinity
+    return _precision_real(value, precision10, accuracy10)
 
 
 def eval_add_numbers(
