@@ -225,9 +225,10 @@ def eval_NValues_with_accuracy(
 
     As in WMA, the precision of such a number can be fractional.
     """
-    if len(prec_acc.elements) != 2:
+    prec_acc_elements = prec_acc.get_elements()
+    if len(prec_acc_elements) != 2:
         return None
-    prec, acc = prec_acc.elements
+    prec, acc = prec_acc_elements
     if prec is SymbolMachinePrecision:
         return eval_NValues(expr, prec, evaluation)
 
@@ -328,12 +329,12 @@ def _bound_accuracy(expr: BaseElement, acc: float) -> BaseElement:
         return Complex(_bound_accuracy(expr.real, acc), _bound_accuracy(expr.imag, acc))
     if isinstance(expr, Atom):
         return expr
-    elements = tuple(_bound_accuracy(element, acc) for element in expr.elements)
-    if all(new is old for new, old in zip(elements, expr.elements)):
+    elements = tuple(_bound_accuracy(element, acc) for element in expr.get_elements())
+    if all(new is old for new, old in zip(elements, expr.get_elements())):
         return expr
-    if expr.head is SymbolList:
+    if expr.get_head() is SymbolList:
         return ListExpression(*elements)
-    return Expression(expr.head, *elements)
+    return Expression(expr.get_head(), *elements)
 
 
 # TODO:  Revisit - can this be simplified? Is there some broader framework this fits into?

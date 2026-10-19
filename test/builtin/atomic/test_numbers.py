@@ -4,7 +4,7 @@ Unit tests for mathics.builtin.atomic.numbers
 
 In particular, RealDigits[] and N[]
 """
-from test.helper import check_evaluation
+from test.helper import check_arg_counts, check_evaluation
 
 import pytest
 
@@ -12,6 +12,28 @@ from mathics.core.number import MACHINE_PRECISION_VALUE, ZERO_MACHINE_ACCURACY
 
 ZERO_MACHINE_ACCURACY_STR = str(ZERO_MACHINE_ACCURACY)
 DEFAUT_ACCURACY_10_STR = str(MACHINE_PRECISION_VALUE - 1)
+
+
+@pytest.mark.parametrize(
+    ("function_name", "msg_fragment"),
+    [
+        (
+            "Accuracy",
+            "1 argument is",
+        ),
+        (
+            "IntegerExponent",
+            "1 or 2 arguments are",
+        ),
+        (
+            "Precision",
+            "1 argument is",
+        ),
+    ],
+)
+def test_arg_errors(function_name, msg_fragment):
+    """ """
+    check_arg_counts(function_name, msg_fragment)
 
 
 def test_realdigits():

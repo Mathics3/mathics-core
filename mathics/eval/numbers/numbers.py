@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Implementation of numbers handling functions.
+Implementation of number-handling functions.
 """
 
-from functools import lru_cache
+from functools import cache
 from typing import Optional
 
 import mpmath
@@ -22,7 +22,7 @@ from mathics.core.symbols import SymbolPlus
 
 
 def check_finite_decimal(denominator):
-    # The rational number is finite decimal if the denominator has form 2^a * 5^b
+    # The rational number is a finite decimal if the denominator has the form 2^a * 5^b
     while denominator % 5 == 0:
         denominator = denominator / 5
 
@@ -222,7 +222,7 @@ def cancel(expr):
     else:
         try:
             result = expr.to_sympy()
-            # If the expression cannot be handled by Sympy, just return it.
+            # If the expression cannot be handled by SymPy, just return it.
             if result is None:
                 return expr
 
@@ -238,7 +238,7 @@ def cancel(expr):
             return expr
 
 
-@lru_cache()
+@cache
 def log_n_b(py_n, py_b) -> int:
     return (
         int(mpmath.floor(mpmath.log(py_n, py_b))) + 1 if py_n != 0 and py_n != 1 else 1

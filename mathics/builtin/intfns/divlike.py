@@ -5,7 +5,7 @@ Division-Related Functions
 """
 
 import sys
-from typing import Optional, Union
+from typing import Callable, Optional, Union
 
 from sympy import Q, ask
 
@@ -104,7 +104,7 @@ class Divisible(Builtin):
     summary_text = "test whether one number is divisible by the other"
 
 
-def combine_integer_arguments(builtin, ns, eval_fn) -> Optional[Expression]:
+def combine_integer_arguments(builtin, ns, eval_fn: Callable) -> Optional[Expression]:
     """
     Build the result of GCD or LCM from its arguments ns: the integer
     arguments are combined by eval_fn into a single Integer. If every
@@ -284,7 +284,7 @@ class ModularInverse(SympyFunction):
     >> k = 2; n = 3; Mod[ModularInverse[k, n] * k, n] == 1
      = True
 
-    Some modular inverses just do not exists. For example when $k$ is a multiple of $n$:
+    Some modular inverses just do not exist. For example when $k$ is a multiple of $n$:
     >> ModularInverse[k, k]
      = ModularInverse[2, 2]
 
@@ -399,7 +399,7 @@ class PowerMod(Builtin):
         -1: "mod_inverse",  # b = -1
         0: "nth_root_mod",  # 0 < b < 1 and is an inverse
         0.5: "sqrt_mod",  # b = 1/2
-        3: "core.power.Pow",  # Handles complex numbers. Use builtin pow for integers
+        3: "core.power.Pow",  # Handles complex numbers. Use built-in pow for integers
     }
 
     def eval(self, a: Integer, b, m: Integer, evaluation: Evaluation):
@@ -441,7 +441,7 @@ class Quotient(Builtin):
     >> Quotient[4.56, 2.5]
      = 1
 
-    'Quotient' with two complex numbers is same as 'Round[m/n]':
+    'Quotient' with two complex numbers is the same as 'Round[m/n]':
     >> Quotient[10.4 + 8 I, 4. + 5 I]
      = 2
 
