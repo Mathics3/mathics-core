@@ -781,8 +781,12 @@ class Precision(Builtin):
 
     In compound expressions, the 'Precision' is fixed by the number with \
     the lowest 'Precision':
-    >> Precision[{{1, 1.`},{1.`5, 1.`10}}]
+    >> Precision[{{1, 1.`20},{1.`5, 1.`10}}]
      = 5.
+
+    A machine number makes it 'MachinePrecision':
+    >> Precision[{{1, 1.`},{1.`5, 1.`10}}]
+     = MachinePrecision
 
     In general, 'Accuracy'[$z$] == 'Precision'[$z$] + 'Log'[$z$] \
     for non-zero Real values:
