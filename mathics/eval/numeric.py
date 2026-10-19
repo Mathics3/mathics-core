@@ -609,7 +609,12 @@ def eval_mpmath_function_by_condition(
     number. As in WMA, the relative error of each argument is multiplied
     by its factor in ``condition_numbers``, and these errors add up.
     Returns None otherwise, or if no argument adds an error.
+
+    A single argument that is a zero has no relative error, only an
+    absolute one; see ``_eval_mpmath_function_at_zero``.
     """
+    if len(args) == 1 and isinstance(args[0], PrecisionReal) and args[0].is_zero:
+        return _eval_mpmath_function_at_zero(mpmath_function, args[0])
     if not _exact_or_precision_reals(args):
         return None
     input_bits = max(arg.precision for arg in args if isinstance(arg, PrecisionReal))
@@ -637,6 +642,43 @@ def eval_mpmath_function_by_condition(
         with mpmath.workprec(needed_bits + 10):
             value = mpmath_function(*(arg.to_mpmath() for arg in args))
     return _precision_real(value, precision10, precision10 - _log10_abs(value))
+
+
+def _eval_mpmath_function_at_zero(
+    mpmath_function: Callable, zero: PrecisionReal
+) -> Optional[PrecisionReal]:
+    """
+    ``f[0``a]``, for a zero with accuracy ``a``: as in WMA, its error is
+    the most that f changes within ``10^-a`` of 0. So Sin[0``20] is
+    0``20, and Cos[0``20] is 1 with precision 40.301, since Cos changes
+    by only (10^-20)^2 / 2.
+
+    Returns None when f has no real value at 0, as at a pole, or for an
+    accuracy below 1: f is then looked at only at the ends of the
+    interval, which does not bound it on a wide one.
+    """
+    accuracy10 = zero.precision10
+    if accuracy10 < 1:
+        return None
+    # Enough digits for a change of second order.
+    with mpmath.workprec(number_prec(math.ceil(2 * accuracy10) + 20)):
+        delta = mpmath.mpf(10) ** -mpmath.mpf(accuracy10)
+        try:
+            value = mpmath_function(mpmath.mpf(0))
+            changes = [abs(mpmath_function(x) - value) for x in (delta, -delta)]
+        except (ZeroDivisionError, ValueError):
+            return None
+        if not all(
+            isinstance(x, mpmath.mpf) and mpmath.isfinite(x) for x in [value] + changes
+        ):
+            return None
+        error = max(changes)
+        if error == 0:
+            return None
+        if value == 0:
+            return _precision_real(value, 0, -_log10_abs(error))
+        precision10 = _log10_abs(value) - _log10_abs(error)
+        return _precision_real(value, precision10, -_log10_abs(error))
 
 
 def eval_add_numbers(

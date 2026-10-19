@@ -530,6 +530,33 @@ def test_trig_real_valued_precision(str_expr, str_expected, msg):
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "msg"),
     [
+        ("Precision[Sin[0]]", "Infinity", "an exact zero stays exact"),
+        ("Precision[Cos[0]]", "Infinity", None),
+        ("Precision[Tan[0]]", "Infinity", None),
+        ("Precision[Sin[Pi]]", "Infinity", None),
+        ("Accuracy[Sin[N[Pi, 20]]]", "19.5029", "a zero result keeps an accuracy"),
+        ("Accuracy[Cos[N[Pi/2, 20]]]", "19.8039", None),
+        ("Accuracy[Sin[2 N[Pi, 20]]]", "19.2018", None),
+        ("Accuracy[Sin[0``20]]", "20.", "the absolute error of a zero"),
+        ("Accuracy[Tan[0``20]]", "20.", None),
+        ("Accuracy[Sin[0``5.5]]", "5.5", None),
+        ("Precision[Cos[0``20]]", "40.301", "Cos changes to second order"),
+        ("Precision[Sec[0``20]]", "40.301", None),
+        ("Precision[Cos[0``5]]", "10.301", None),
+        ("Cot[0.]", "ComplexInfinity", "a pole"),
+        ("Csc[0.]", "ComplexInfinity", None),
+        ("Cot[0``20]", "ComplexInfinity", None),
+        ("Csc[0``20]", "ComplexInfinity", None),
+    ],
+)
+def test_trig_zero(str_expr, str_expected, msg):
+    """Compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
         (None, None, None),
         ("N[Sqrt[2], 41]//Precision", "41.", "first round sqrt[2`41]"),
         ("N[Sqrt[2], 40]//Precision", "40.", "first round sqrt[2`40]"),
