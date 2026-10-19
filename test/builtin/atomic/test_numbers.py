@@ -424,6 +424,37 @@ def test_inexact_zero_plus_times(str_expr, str_expected, msg):
 
 
 @pytest.mark.parametrize(
+    ("str_expr", "str_expected"),
+    [
+        # exact zeros that are syntactically different from the literal 0
+        ("(1 - 1) * 1.5`20", "0"),
+        ("(1/2 - 1/2) * 1.5`20", "0"),
+        ("SetPrecision[0, Infinity] * 1.5`20", "0"),
+        ("Accuracy[SetAccuracy[0, 20] * 1.5`20]", "19.8239"),
+    ],
+)
+def test_exact_zero_propagates_through_equivalent_zero_forms(str_expr, str_expected):
+    """An exact zero that is constructed internally must still force an exact zero."""
+    check_evaluation(str_expr, str_expected)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected"),
+    [
+        ("ToString[0``20, OutputForm]", '"0.×10^-20"'),
+        ("ToString[0``20.5, OutputForm]", '"0.×10^-20"'),
+        ("ToString[0``19.5, OutputForm]", '"0.×10^-19"'),
+        ("ToString[SetAccuracy[0, 20] * 1.5`20, OutputForm]", '"0.×10^-19"'),
+        ("ToString[0``0.5, OutputForm]", '"0."'),
+        ("ToString[0``-2.3, OutputForm]", '"0."'),
+    ],
+)
+def test_inexact_zero_output_form(str_expr, str_expected):
+    """As in WMA 15, the exponent of an inexact zero is -Floor[accuracy]."""
+    check_evaluation(str_expr, str_expected)
+
+
+@pytest.mark.parametrize(
     ("str_expr", "str_expected", "msg"),
     [
         ("Precision[N[Pi, 20.3]]", "20.3", "a real-valued precision"),
