@@ -5,7 +5,7 @@ import gc
 def pytest_sessionfinish(session, exitstatus):
     """Executes after all tests have completed.
 
-    Disables cyclic GC right before pytest exits, preventing PyGC_Collect from
+    Freeze objects right before pytest exits. This prevents PyGC_Collect from
     walking Generation 2 during _Py_Finalize.
     """
-    gc.disable()
+    gc.freeze()
