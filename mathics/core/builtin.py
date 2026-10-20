@@ -95,6 +95,7 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (
     SymbolDefault,
+    SymbolIndeterminate,
     SymbolLessEqual,
     SymbolMessageName,
     SymbolRange,
@@ -103,7 +104,7 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.arithmetic import eval_mpmath_function
 from mathics.eval.numbers.numbers import cancel
-from mathics.eval.numeric import eval_mpmath_function_by_condition
+from mathics.eval.numeric import covers_point, eval_mpmath_function_by_condition
 from mathics.eval.numerify import numerify
 from mathics.eval.scoping import dynamic_scoping
 from mathics.eval.sympy import eval_sympy
@@ -825,6 +826,9 @@ class MPMathFunction(SympyFunction):
     # no larger than the bound.
     has_poles: bool = False
     value_bound: Optional[float] = None
+    # Real points where, as in WMA, an inexact argument whose error covers
+    # one of them gives Indeterminate, like ArcTanh at 1.
+    indeterminate_at: tuple[int, ...] = ()
 
     def get_mpmath_function(self, args):
         if self.mpmath_name is None or len(args) not in self.nargs:
@@ -855,6 +859,9 @@ class MPMathFunction(SympyFunction):
         mpmath_function = self.get_mpmath_function(tuple(args))
         if mpmath_function is None:
             return
+
+        if len(args) == 1 and covers_point(args[0], self.indeterminate_at):
+            return SymbolIndeterminate
 
         if self.condition_numbers is not None:
             result = eval_mpmath_function_by_condition(

@@ -103,6 +103,7 @@ class ArcCoth(MPMathFunction):
     summary_text = "inverse hyperbolic cotangent function"
     sympy_name = "acoth"
     mpmath_name = "acoth"
+    indeterminate_at = (1, -1)
 
     @staticmethod
     def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
@@ -245,6 +246,10 @@ class ArcTanh(MPMathFunction):
      = 0
     >> ArcTanh[1]
      = Infinity
+
+    An inexact argument whose error covers the pole gives 'Indeterminate':
+    >> ArcTanh[1.0000001`5]
+     = Indeterminate
     >> ArcTanh[0]
      = 0
     >> ArcTanh[.5 + 2 I]
@@ -260,6 +265,7 @@ class ArcTanh(MPMathFunction):
         return (abs(x / ((1 - x**2) * value)),)
 
     numpy_name = "arctanh"
+    indeterminate_at = (1, -1)
 
     rules = {
         "ArcTanh[Undefined]": "Undefined",

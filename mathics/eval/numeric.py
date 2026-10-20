@@ -705,6 +705,26 @@ def eval_mpmath_function_by_condition(
     return _precision_real(value, precision10, accuracy10)
 
 
+def covers_point(number: Number, points: tuple[int, ...]) -> bool:
+    """
+    True if ``number`` is a nonzero inexact real number and one of
+    ``points`` lies within its error. As in WMA, ArcTanh[1.0000001`5]
+    is Indeterminate: its error 10^-5 covers the pole at 1, where f goes
+    to Infinity on one side and has an imaginary part on the other. A
+    MachineReal has no error, so only the point itself is covered.
+    """
+    if isinstance(number, PrecisionReal):
+        if number.is_zero:
+            return False
+        with mpmath.workprec(_stored_bits((number,)) + 10):
+            x = _full_mpmath(number)
+            error = abs(x) * mpmath.mpf(10) ** -number.precision10
+            return any(abs(x - point) <= error for point in points)
+    if isinstance(number, Real):
+        return number.to_mpmath() in points
+    return False
+
+
 def _change_within(
     mpmath_function: Callable, x: mpmath.mpf, delta: mpmath.mpf, digits: float
 ) -> Optional[tuple[mpmath.mpf, mpmath.mpf]]:
