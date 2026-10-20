@@ -194,11 +194,11 @@ def real_to_tuple_info(
 
     if real.is_zero:
         s = "0"
-        if real.is_machine_precision:
-            exponent = 0
-        else:
+        if isinstance(real, PrecisionReal):
             # As in WMA, the exponent of 0``19.8 is -Floor[19.8] = -19.
             exponent = min(0, -floor(real.precision10))
+        else:
+            exponent = 0
         is_nonnegative = True
         return s, exponent, is_nonnegative, digits, precision
 
