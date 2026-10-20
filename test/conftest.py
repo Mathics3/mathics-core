@@ -6,6 +6,6 @@ def pytest_sessionfinish(session, exitstatus):
     """Executes after all tests have completed.
 
     Freeze objects right before pytest exits. This prevents PyGC_Collect from
-    walking Generation 2 during _Py_Finalize.
+    walking Generation 2 objects during _Py_Finalize.
     """
     gc.freeze()
