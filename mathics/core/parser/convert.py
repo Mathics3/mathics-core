@@ -12,6 +12,7 @@ from mathics.core.atoms import Integer, MachineReal, PrecisionReal, Rational, St
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.element import BaseElement
 from mathics.core.number import (
+    MIN_STORED_BITS,
     RECONSTRUCT_MACHINE_PRECISION_DIGITS,
     prec as number_prec,
 )
@@ -231,8 +232,10 @@ class Converter(GenericConverter):
             x = value[1]
         else:
             assert False
-        # The binary precision is rounded up, so that all the digits shown are kept.
-        return PrecisionReal(sympy.Float(x, precision=number_prec(ceil(prec))), prec)
+        # The binary precision is rounded up, so that all the digits shown are
+        # kept; a low precision keeps more bits of the value, as in WMA.
+        bits = max(number_prec(ceil(prec)), MIN_STORED_BITS)
+        return PrecisionReal.from_value(sympy.Float(x, precision=bits), prec)
 
     def _make_Expression(self, head: Symbol, children: list):
         if head is SymbolList:
