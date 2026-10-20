@@ -384,9 +384,38 @@ def interactive_eval_loop(
         except EOFError:
             print("\n\nGoodbye!\n")
             break
-        except SystemExit:
-            # raise to pass the error code on, e.g. Quit[1]
-            raise
+        except SystemExit as e:
+            # As of Oct. 2026 we have huge Python garbage collection problems.
+            # To mitigate we use os._exit() to Py_Finalize() and avoid
+            # the Generation 2 GC sweep.
+
+            # Why do we have massive garbage collection issues?
+            # 1. Massive Object Graph in Generation 2:
+            #    Loading a package like Rubi populates tens of thousands of complex expression
+            #    trees, pattern rules, and symbol bindings. As Mathics3
+            #    executes, these long-lived objects are promoted to Generation 2
+            #    (the oldest GC generation).
+
+            # 2. There is a  Bottleneck is Reference-Cycle Traversal:
+            #    Because Wolfram Language expressions are deeply nested and often
+            #    form circular references (e.g., parent/child links, symbol table
+            #    bindings, pattern environments), Python cannot simply deallocate
+            #    them via fast reference counting. Instead, PyGC_Collect() must
+            #    iterate over every object in the Generation 2 doubly-linked list
+            #    (gc_list_size) to find unreachable sub-graphs.
+
+            # Flush standard streams so terminal output isn't lost
+            sys.stdout.flush()
+            sys.stderr.flush()
+
+            # Extract numeric exit code (default to 0 if None)
+            code = e.code if isinstance(e.code, int) else 0
+
+            os._exit(code)
+
+            # When we have addressed why we great massive Generation 2
+            # garbage we can run:
+            # raise
         finally:
             shell.reset_lineno()
     return result
