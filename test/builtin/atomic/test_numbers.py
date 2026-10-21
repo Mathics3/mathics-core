@@ -1074,6 +1074,52 @@ def test_low_precision_storage(str_expr, str_expected, msg):
     ("str_expr", "str_expected", "msg"),
     [
         (
+            "ToString[3.1415926535897932385`3, InputForm]",
+            '"3.1415926535897932385`3."',
+            "InputForm shows the digits that are kept, not the precision",
+        ),
+        (
+            "ToString[FullForm[3.1415926535897932385`3]]",
+            '"3.1415926535897932385`3."',
+            None,
+        ),
+        (
+            "ToString[-3.1415926535897932385`3, InputForm]",
+            '"-3.1415926535897932385`3."',
+            None,
+        ),
+        ("ToString[3.1415926535897932385`3]", '"3.14"', "OutputForm: the precision"),
+        (
+            "StringTake[ToString[N[Pi, 20] + 0``3, InputForm], 22]",
+            '"3.1415926535897932385`"',
+            None,
+        ),
+        (
+            "Precision[1.5`20 - ToExpression[ToString[1.4`2, InputForm]]]",
+            "0.853872",
+            "reading InputForm back gives the same kept value",
+        ),
+        (
+            "ToExpression[ToString[#, InputForm]] === # &[N[1/3, 3]]",
+            "True",
+            None,
+        ),
+        (
+            "Precision[1.5`20 - ToExpression[ToString[N[1/3, 3], InputForm]]]",
+            "Precision[1.5`20 - N[1/3, 3]]",
+            None,
+        ),
+    ],
+)
+def test_low_precision_input_form(str_expr, str_expected, msg):
+    """Compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        (
             "SetPrecision[1.5 + 2.5 I, 20] === SetPrecision[1.5 + 2.5 I, 20.3]",
             "True",
             "SameQ: numbers that agree to their precision are the same",

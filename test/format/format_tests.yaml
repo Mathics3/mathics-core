@@ -181,7 +181,7 @@
     System`StandardForm: "<mrow>\n <mn>-</mn>\n <mn>4.33</mn>\n</mrow>"
     System`TraditionalForm: "<mrow>\n <mn>-</mn>\n <mn>4.33</mn>\n</mrow>"
   text:
-    System`InputForm: -4.33`2.
+    System`InputForm: -4.326563712`2.
     System`OutputForm: '-4.3'
     System`StandardForm: -4.33`2.
     System`TraditionalForm: -4.33`2.
