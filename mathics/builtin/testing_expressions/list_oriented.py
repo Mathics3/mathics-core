@@ -66,7 +66,7 @@ class ArrayQ(Builtin):
         return eval_ArrayQ(expr, pattern, test, evaluation)
 
 
-class DisjointQ(Test):
+class DisjointQ(Builtin):
     """
     <url>
     :WMA link:
@@ -77,6 +77,11 @@ class DisjointQ(Test):
       <dd>gives True if $a$ and $b$ are disjoint, or False if $a$ and \
       $b$ have any common elements.
     </dl>
+
+    >> DisjointQ[{1, 2}, {3, 4}]
+     = True
+    >> DisjointQ[{1, 2}, {2, 3}]
+     = False
     """
 
     rules = {"DisjointQ[a_List, b_List]": "Not[IntersectingQ[a, b]]"}
@@ -94,9 +99,14 @@ class IntersectingQ(Builtin):
       <dd>gives True if there are any common elements in $a$ and $b$, or \
           False if $a$ and $b$ are disjoint.
     </dl>
+
+    >> IntersectingQ[{1, 2}, {2, 3}]
+     = True
+    >> IntersectingQ[{1, 2}, {3, 4}]
+     = False
     """
 
-    rules = {"IntersectingQ[a_List, b_List]": "Length[Intersect[a, b]] > 0"}
+    rules = {"IntersectingQ[a_List, b_List]": "Length[Intersection[a, b]] > 0"}
     summary_text = "test whether two lists have common elements"
 
 

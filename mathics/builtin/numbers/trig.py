@@ -359,6 +359,10 @@ class ArcCos(MPMathFunction):
 
     mpmath_name = "acos"
 
+    @staticmethod
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
+        return (abs(x / (mpmath.sqrt(1 - x**2) * value)),)
+
     rules = {
         "ArcCos[0]": "Pi / 2",
         "ArcCos[1]": "0",
@@ -394,6 +398,10 @@ class ArcCot(MPMathFunction):
 
     mpmath_name = "acot"
 
+    @staticmethod
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
+        return (abs(x / ((1 + x**2) * value)),)
+
     rules = {
         "ArcCot[0]": "Pi / 2",
         "ArcCot[1]": "Pi / 4",
@@ -428,6 +436,10 @@ class ArcCsc(MPMathFunction):
     """
 
     mpmath_name = "acsc"
+
+    @staticmethod
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
+        return (abs(1 / (mpmath.sqrt(x**2 - 1) * value)),)
 
     rules = {
         "ArcCsc[Undefined]": "Undefined",
@@ -469,6 +481,10 @@ class ArcSec(MPMathFunction):
     """
 
     mpmath_name = "asec"
+
+    @staticmethod
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
+        return (abs(1 / (mpmath.sqrt(x**2 - 1) * value)),)
 
     rules = {
         "ArcSec[0]": "ComplexInfinity",
@@ -512,6 +528,10 @@ class ArcSin(MPMathFunction):
 
     mpmath_name = "asin"
 
+    @staticmethod
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
+        return (abs(x / (mpmath.sqrt(1 - x**2) * value)),)
+
     rules = {
         "ArcSin[0]": "0",
         "ArcSin[1]": "Pi / 2",
@@ -553,6 +573,10 @@ class ArcTan(MPMathFunction):
 
     mpmath_name = "atan"
 
+    @staticmethod
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
+        return (abs(x / ((1 + x**2) * value)),)
+
     rules = {
         "ArcTan[0]": "0",
         "ArcTan[1]": "Pi/4",
@@ -591,6 +615,11 @@ class Cos(MPMathFunction):
     """
 
     mpmath_name = "cos"
+    value_bound = 1.0
+
+    @staticmethod
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
+        return (abs(x * mpmath.sin(x) / value),)
 
     rules = {
         "Cos[(1/2) * Pi]": "0",
@@ -629,9 +658,15 @@ class Cot(MPMathFunction):
     """
 
     mpmath_name = "cot"
+    has_poles = True
+
+    @staticmethod
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
+        return (abs(x * (1 + value**2) / value),)
 
     rules = {
         "Cot[0]": "ComplexInfinity",
+        "Cot[z_Real /; z == 0]": "ComplexInfinity",
         "Cot[Undefined]": "Undefined",
         "Derivative[1][Cot]": "-Csc[#]^2&",
     }
@@ -666,9 +701,15 @@ class Csc(MPMathFunction):
     """
 
     mpmath_name = "csc"
+    has_poles = True
+
+    @staticmethod
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
+        return (abs(x * mpmath.cot(x)),)
 
     rules = {
         "Csc[0]": "ComplexInfinity",
+        "Csc[z_Real /; z == 0]": "ComplexInfinity",
         "Csc[Undefined]": "Undefined",
         "Derivative[1][Csc]": "-Cot[#] Csc[#]&",
     }
@@ -753,6 +794,11 @@ class Sec(MPMathFunction):
     """
 
     mpmath_name = "sec"
+    has_poles = True
+
+    @staticmethod
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
+        return (abs(x * mpmath.tan(x)),)
 
     rules = {
         "Derivative[1][Sec]": "Sec[#] Tan[#]&",
@@ -800,6 +846,11 @@ class Sin(MPMathFunction):
     """
 
     mpmath_name = "sin"
+    value_bound = 1.0
+
+    @staticmethod
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
+        return (abs(x * mpmath.cos(x) / value),)
 
     rules = {
         "Derivative[1][Sin]": "Cos[#]&",
@@ -837,6 +888,11 @@ class Tan(MPMathFunction):
     """
 
     mpmath_name = "tan"
+    has_poles = True
+
+    @staticmethod
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
+        return (abs(x * (1 + value**2) / value),)
 
     rules = {
         "Derivative[1][Tan]": "Sec[#]^2&",

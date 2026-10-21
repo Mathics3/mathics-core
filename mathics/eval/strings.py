@@ -17,28 +17,9 @@ from mathics.core.expression import Expression
 from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolTrue
-from mathics.core.systemsymbols import SymbolList, SymbolRule
+from mathics.core.systemsymbols import RULE_SYMBOL_HEADS, SymbolList
 from mathics.eval.encoding import EncodingNameError, load_encoding_table
 from mathics.format.box import format_element
-
-
-def eval_ToString(
-    expr: BaseElement, form: Symbol, encoding: str, evaluation: Evaluation
-) -> String:
-
-    boxes = format_element(expr, evaluation, form)
-    try:
-        return String(boxes.to_text(evaluation=evaluation, encoding=encoding))
-    except EncodingNameError:
-        pass
-
-    # If the encoding does not already exists, try to load it and do it again.
-    try:
-        load_encoding_table(encoding, evaluation)
-    except EncodingNameError:
-        return String(boxes.to_text(evaluation=evaluation, encoding="Unicode"))
-
-    return String(boxes.to_text(evaluation=evaluation, encoding=encoding))
 
 
 def eval_StringContainsQ(name, string, patt, evaluation, options, matched):
@@ -104,7 +85,8 @@ def eval_StringFind(self, string, rule, n, evaluation, options, cases):
 
     # convert rule
     def convert_rule(r):
-        if r.has_form(SymbolRule, None) and len(r.elements) == 2:
+        # Accept both Rule (->) and RuleDelayed (:>) as valid rule heads.
+        if r.has_form(RULE_SYMBOL_HEADS, 2):
             py_s = to_regex(r.elements[0], show_message=evaluation.message)
             if py_s is None:
                 evaluation.message(
@@ -242,3 +224,22 @@ def eval_StringForm_MakeBoxes(strform: String, items, form, evaluation: Evaluati
         quote_open = True
 
     return RowBox(ListExpression(*result))
+
+
+def eval_ToString(
+    expr: BaseElement, form: Symbol, encoding: str, evaluation: Evaluation
+) -> String:
+
+    boxes = format_element(expr, evaluation, form)
+    try:
+        return String(boxes.to_text(evaluation=evaluation, encoding=encoding))
+    except EncodingNameError:
+        pass
+
+    # If the encoding does not already exists, try to load it and do it again.
+    try:
+        load_encoding_table(encoding, evaluation)
+    except EncodingNameError:
+        return String(boxes.to_text(evaluation=evaluation, encoding="Unicode"))
+
+    return String(boxes.to_text(evaluation=evaluation, encoding=encoding))

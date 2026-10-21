@@ -164,6 +164,7 @@ def _infix_expression_to_inputform_text(
     # has a head that matches with a symbol associated to an infix
     # operator, WMA builds its inputform without passing through
     # its "Infix" form.
+    kwargs["_render_function"] = render_input_form
     operands, ops_lst, precedence, group = collect_in_pre_post_arguments(
         expr, evaluation, **kwargs
     )
@@ -218,6 +219,7 @@ def _prefix_expression_to_inputform_text(
     """
     Convert Prefix[...] into a OutputForm string.
     """
+    kwargs["_render_function"] = render_input_form
     operands, op_head, precedence, group = collect_in_pre_post_arguments(
         expr, evaluation, **kwargs
     )
@@ -238,6 +240,7 @@ def _postfix_expression_to_inputform_text(
     """
     Convert Postfix[...] into a OutputForm string.
     """
+    kwargs["_render_function"] = render_input_form
     operands, op_head, precedence, group = collect_in_pre_post_arguments(
         expr, evaluation, **kwargs
     )

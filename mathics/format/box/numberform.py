@@ -3,7 +3,7 @@ NumberForm related routines.
 """
 
 import sys
-from math import ceil
+from math import ceil, floor
 from typing import Any, Optional, Union
 
 import mpmath
@@ -183,7 +183,10 @@ def real_to_tuple_info(
     If ``digits`` is None, we use the default precision.
     """
     binary_precision = real.precision
-    precision = dps(binary_precision)
+    if isinstance(real, PrecisionReal):
+        precision = real.digits
+    else:
+        precision = dps(binary_precision)
     if digits is None:
         digits = precision + 1
     else:
@@ -191,10 +194,11 @@ def real_to_tuple_info(
 
     if real.is_zero:
         s = "0"
-        if real.is_machine_precision:
-            exponent = 0
+        if isinstance(real, PrecisionReal):
+            # As in WMA, the exponent of 0``19.8 is -Floor[19.8] = -19.
+            exponent = min(0, -floor(real.precision10))
         else:
-            exponent = -precision
+            exponent = 0
         is_nonnegative = True
         return s, exponent, is_nonnegative, digits, precision
 
@@ -539,7 +543,11 @@ def _attach_precision(s: str, value, form: str, precision) -> str:
             s = s + "`"
     elif isinstance(value, PrecisionReal):
         if form not in ("System`OutputForm"):
-            str_precision = str(precision)
+            if value.is_zero:
+                str_precision = str(precision)
+            else:
+                # As in WMA, the precision is shown as it is kept: 1.5`20.3
+                str_precision = repr(value.precision10).removesuffix(".0")
             if "." not in str_precision:
                 str_precision += "."
             s = s + "`" + str_precision

@@ -5,7 +5,7 @@ from sympy.tensor.array.expressions import PermuteDims
 from sympy.utilities.iterables import permutations
 
 from mathics.core.atoms import Integer, Integer0, Integer1, String
-from mathics.core.convert.matrix import to_sympy_array, to_sympy_matrix
+from mathics.core.convert.matrix import to_sympy_array
 from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy_matrix
 from mathics.core.evaluation import Evaluation
@@ -70,17 +70,25 @@ def get_dimensions(expr, head=None):
     else:
         if head is not None and not expr.head.sameQ(head):
             return []
-        sub_dim = None
-        sub = []
+        # The dimensions below this level are those that all elements
+        # share: the longest common prefix of their dimensions. For
+        # {{a, b}, {{c, d}, {e, f}}} the elements have dimensions {2} and
+        # {2, 2}, so the whole has dimensions {2, 2}.
+        sub = None
         for element in expr.elements:
-            sub = get_dimensions(element, expr.head)
-            if sub_dim is None:
-                sub_dim = sub
+            element_dims = get_dimensions(element, expr.head)
+            if sub is None:
+                sub = element_dims
             else:
-                if sub_dim != sub:
-                    sub = []
-                    break
-        return [len(expr.elements)] + sub
+                common = 0
+                for d1, d2 in zip(sub, element_dims):
+                    if d1 != d2:
+                        break
+                    common += 1
+                sub = sub[:common]
+            if not sub:
+                break
+        return [len(expr.elements)] + (sub or [])
 
 
 def to_std_sparse_array(sparse_array, evaluation: Evaluation):
@@ -339,6 +347,9 @@ def eval_Transpose(m, dimensions: int) -> Optional[Expression]:
         p = PermuteDims(sympy_m, (1, 0, 2))
         return from_sympy_matrix(p.as_explicit())
 
-    assert dimensions == 2
-    sympy_m = to_sympy_matrix(m)
-    return None if sympy_m is None else from_sympy_matrix(sympy_m.T)
+    assert dimensions == 2, "eval_Transpose only applies to 2- and 3-dimensional array."
+    # Rearrange the elements directly. Going through a SymPy matrix
+    # would turn a result with a single column, such as the transpose
+    # of {{1, 2, 3}}, into a vector.
+    rows = [row.elements for row in m.elements]
+    return ListExpression(*(ListExpression(*column) for column in zip(*rows)))

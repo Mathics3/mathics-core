@@ -38,6 +38,7 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolBinomial,
     SymbolDirectedInfinity,
+    SymbolSequence,
     SymbolSubsets,
 )
 
@@ -170,7 +171,7 @@ class Binomial(SympyFunction):
         # Note: sympy.stats.Binomial(name, n, p): can be used creating a random variable representing a binomial distribution
         # for statistical modeling within SymPy. Perhaps in the future we'll have a way to determine when that should be used.
 
-        if len(args.elements) == 2:
+        if args.has_form(SymbolSequence, 2):
             # super().eval(invalid, evaluation) gives error message:
             # RuntimeError: super(): no arguments
             return super(Binomial, self).eval(args, evaluation)

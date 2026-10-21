@@ -74,6 +74,7 @@ dev = [
     "pexpect",
     "pre-commit",
     "pytest",
+    "pytest-benchmark",
 ]
 full = [
     "ipywidgets",

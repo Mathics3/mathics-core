@@ -33,7 +33,7 @@ def eval_GCD(ns: tuple) -> Optional[Integer]:
         if value is None:
             return
         result = tracing.run_sympy(sympy.gcd, result, value)
-    return Integer(result)
+    return Integer(abs(result))
 
 
 def eval_LCM(ns: tuple) -> Optional[Integer]:
@@ -46,7 +46,7 @@ def eval_LCM(ns: tuple) -> Optional[Integer]:
         if value is None:
             return
         result = tracing.run_sympy(sympy.lcm, result, value)
-    return Integer(result)
+    return Integer(abs(result))
 
 
 def eval_ModularInverse(k: int, n: int) -> Optional[Integer]:

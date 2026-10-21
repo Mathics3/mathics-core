@@ -29,7 +29,7 @@ from mathics.core.atoms import (
     String,
 )
 from mathics.core.convert.expression import to_expression, to_mathics_list
-from mathics.core.convert.matrix import matrix_data
+from mathics.core.convert.matrix import matrix_data, to_mathics_matrix
 from mathics.core.element import BaseElement
 from mathics.core.expression import Expression
 from mathics.core.expression_predefined import (
@@ -328,6 +328,22 @@ def from_sympy_matrix(
         return to_mathics_list(*expr.T.tolist()[0], elements_conversion_fn=from_sympy)
 
     return to_mathics_list(*expr.tolist(), elements_conversion_fn=from_sympy)
+
+
+def from_sympy_matrix_as_matrix(expr) -> BaseElement:
+    """
+    Convert a SymPy matrix to a Mathics3 matrix, keeping its shape.
+
+    Unlike ``from_sympy_matrix``, a matrix with one column stays a List of
+    one-element Lists instead of becoming a vector. A vector is what a
+    solution of a linear system should look like, but not what the inverse
+    of {{2}} or the row-reduced form of {{1}, {2}} should be.
+    Anything that is not a SymPy matrix, such as an unevaluated MatPow,
+    goes to ``from_sympy``.
+    """
+    if not isinstance(expr, sympy.MatrixBase):
+        return from_sympy(expr)
+    return to_mathics_matrix(expr.tolist(), elements_conversion_fn=from_sympy)
 
 
 """

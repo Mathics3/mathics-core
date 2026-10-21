@@ -100,10 +100,6 @@ from mathics.eval.numbers.calculus.series import (
 )
 from mathics.format.form_rule.calculus import format_series
 
-# These should be used in lower-level formatting
-SymbolDifferentialD = Symbol("System`DifferentialD")
-SymbolIntegral = Symbol("System`Integral")
-
 
 # Maybe this class should be in a module "mathics.builtin.domains" or something like that
 class Complexes(Builtin):
@@ -153,7 +149,7 @@ class D(SympyFunction):
     >> D[Cos[t], {t, 2}]
      = -Cos[t]
 
-    Unknown variables are treated as constant:
+    Unknown variables are treated as constants:
     >> D[y, x]
      = 0
     >> D[x, x]
@@ -457,8 +453,8 @@ class Derivative(PostfixOperator, SympyFunction):
                       then their occurrences are replaced by `nothing`. Therefore, if the resulting expression
                       is free of `nothing`, then we can use the result. Otherwise, the rule does not work.
 
-                      Differently from `True` and  `False`, `List` does not produce an infinite recurrence,
-                      but since is a protected symbol, the following test produces error messages.
+                      Unlike `True` and  `False`, `List` does not produce an infinite recurrence,
+                      but since it is a protected symbol, the following test produces error messages.
                       Let's put this inside Quiet to avoid the warnings.
                      *)
                     Quiet[Unprotect[f];
@@ -835,7 +831,7 @@ class FindMinimum(_BaseFinder):
     >> Quiet[FindMinimum[phi[x]-x,{x, 1.2}, Method->"Newton"]]
      = {-0.5, {x ⇾ 1.00001}}
     >> Clear[phi];
-    For a not so well behaving function, the result can be less accurate:
+    For a not-so-well-behaved function, the result can be less accurate:
     >> FindMinimum[Exp[-1/x^2]+1., {x,1.2}, MaxIterations->2]
      : The maximum number of iterations was exceeded. The result might be inaccurate.
      =  ...
@@ -886,7 +882,7 @@ class FindRoot(_BaseFinder):
      = {x ⇾ 0.866815}
 
     'FindRoot' has attribute 'HoldAll' and effectively uses 'Block' to localize $x$.
-    However, in the result $x$ will eventually still be replaced by its value.
+    However, in the result, $x$ will eventually still be replaced by its value.
     >> x = "I am the result!";
     >> FindRoot[Tan[x] + Sin[x] == Pi, {x, 1}]
      = {I am the result! ⇾ 1.14911}
@@ -1333,7 +1329,7 @@ class Limit(Builtin):
         except sympy.PoleError:
             pass
         except RuntimeError:
-            # Bug in Sympy: RuntimeError: maximum recursion depth exceeded
+            # Bug in SymPy: RuntimeError: maximum recursion depth exceeded
             # while calling a Python object
             pass
         except NotImplementedError:
@@ -1763,7 +1759,7 @@ class RootSum(SympyFunction):
      >> Integrate[1/(x^5 + 11 x + 1), {x, 1, 3}]
       = RootSum[-1 - 212960 #1 ^ 3 - 9680 #1 ^ 2 - 165 #1 + 41232181 #1 ^ 5&, (Log[3749971 - 3512322106304 #1 ^ 4 + 453522741 #1 + 16326568676 #1 ^ 2 + 79825502416 #1 ^ 3] - 4 Log[5]) #1&] - RootSum[-1 - 212960 #1 ^ 3 - 9680 #1 ^ 2 - 165 #1 + 41232181 #1 ^ 5&, (Log[3748721 - 3512322106304 #1 ^ 4 + 453522741 #1 + 16326568676 #1 ^ 2 + 79825502416 #1 ^ 3] - 4 Log[5]) #1&]
      >> N[%, 50]
-      = 0.051278805184286949884270940103072421286139857550894
+      = 0.051278805184286949884270940103072421286139857553407
 
      Simplification of 'RootSum' expression
      >> RootSum[#^5 - 11 # + 1 &, (#^2 - 1)/(#^3 - 2 # + c) &]
@@ -1960,7 +1956,7 @@ class SeriesData(Builtin):
     >> Series[f[x],{x,0,2}] * g[w]
      = f[0] g[w] + g[w] f'[0] x + g[w] f''[0] / 2 x ^ 2 + O[x] ^ 3
 
-    The product of two series on the same neighborhood of the same variable are multiplied:
+    The product of two series in the same neighborhood of the same variable is multiplied:
     >> Series[Exp[-a x],{x,0,2}] * Series[Exp[-b x],{x,0,2}]
      = 1 + (-a - b) x + (a ^ 2 / 2 + a b + b ^ 2 / 2) x ^ 2 + O[x] ^ 3
     >> D[Series[Exp[-a x],{x,0,2}],a]
@@ -2369,7 +2365,7 @@ class Solve(Builtin):
     }
 
     # FIXME: the problem with removing the domain parameter from the outside
-    # is that the we can't make use of this information inside
+    # is that we can't make use of this information inside
     # the evaluation method where it is may be needed.
     rules = {
         "Solve[eqs_, vars_, Complexes]": "Solve[eqs, vars]",
@@ -2536,7 +2532,7 @@ def is_zero(
     evaluation: Evaluation,
 ) -> bool:
     """
-    Check if val is zero upto the precision and accuracy goals
+    Check if val is zero up to the precision and accuracy goals
     """
     if not isinstance(val, Number):
         val = eval_N(val, evaluation)

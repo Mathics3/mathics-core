@@ -10,7 +10,7 @@ import os.path as osp
 import pickle
 import re
 from collections import defaultdict
-from typing import Dict, List, Optional, Sequence, Set, Tuple, Union
+from typing import Dict, Hashable, List, Optional, Sequence, Set, Tuple, Union
 
 from mathics_scanner.tokeniser import full_names_pattern
 
@@ -79,6 +79,12 @@ class Definition:
         self.options: dict[str, BaseElement] = rules_dict.get("options", {})
         self.messages = rules_dict.get("messages", [])
 
+        # For each rule list, an index of its unconditional rules by the
+        # fingerprint of their patterns, see ``insert_rule()``. It belongs to
+        # the list object it was built for and is rebuilt when the list is
+        # replaced.
+        self.rule_index: Dict[str, Tuple[list, dict]] = {}
+
         self.is_numeric = is_numeric
         self.attributes = attributes
         self.builtin = builtin
@@ -117,8 +123,28 @@ class Definition:
         Add `rule` to the set of rules in field with attribute `rule_list_name`
         """
         values = self.get_values_list(rule_list_name)
-        insert_rule(values, rule)
+        insert_rule(values, rule, self.get_rule_index(rule_list_name, values))
         return True
+
+    def get_rule_index(self, rule_list_name: str, values: List[BaseRule]) -> dict:
+        """
+        Return the index of the unconditional rules in `values`, the rule
+        list `rule_list_name`, by pattern fingerprint.
+        """
+        if not hasattr(self, "rule_index"):
+            # A Definition pickled before rule_index existed.
+            self.rule_index = {}
+        indexed = self.rule_index.get(rule_list_name)
+        if indexed is not None and indexed[0] is values:
+            return indexed[1]
+        index: Dict[Hashable, List[BaseRule]] = {}
+        for existing in values:
+            if not is_conditional_rule(existing):
+                index.setdefault(pattern_fingerprint(existing.pattern.expr), []).append(
+                    existing
+                )
+        self.rule_index[rule_list_name] = (values, index)
+        return index
 
     def get_values_list(self, rule_list_name: str) -> list[BaseRule]:
         """Return a Rule value lists"""
@@ -975,7 +1001,38 @@ def determine_value_role(
     return None
 
 
-def insert_rule(values: List[BaseRule], rule: BaseRule) -> None:
+def is_conditional_rule(rule: BaseRule) -> bool:
+    """
+    Check if the replacement rule is a conditional replacement.
+    FunctionApplyRules are always considered "conditional", while
+    replacement rules are conditional if the replace attribute is
+    a conditional expression.
+    """
+    return not hasattr(rule, "replace") or rule.replace.has_form(SymbolCondition, 2)
+
+
+def pattern_fingerprint(expr: BaseElement) -> Hashable:
+    """
+    Return a hashable summary of `expr` such that expressions that are
+    SameQ have the same fingerprint. Integers, strings and symbols are
+    told apart; all other atoms, whose SameQ may be looser (e.g. Reals
+    of different precision), share one fingerprint.
+    """
+    if isinstance(expr, Symbol):
+        return expr.name
+    if isinstance(expr, (Integer, String)):
+        return (type(expr).__name__, expr.value)
+    if isinstance(expr, Atom):
+        return None
+    return (
+        pattern_fingerprint(expr.get_head()),
+        tuple(pattern_fingerprint(element) for element in expr.get_elements()),
+    )
+
+
+def insert_rule(
+    values: List[BaseRule], rule: BaseRule, index: Optional[dict] = None
+) -> None:
     """
     Add a new rule inside a list of values.
     Rules are sorted in a way that the first elements
@@ -990,32 +1047,69 @@ def insert_rule(values: List[BaseRule], rule: BaseRule) -> None:
         A list of rules.
     rule : Rule
         A new rule.
+    index : dict, optional
+        The unconditional rules of `values` by pattern fingerprint, as
+        built by ``Definition.get_rule_index()``; kept up to date here.
+        With it, `rule` is compared only with the rules whose patterns
+        have its fingerprint. Without it, with every rule in `values`,
+        which makes building a definition of n rules take O(n^2) time.
 
     """
-
-    def is_conditional(x) -> bool:
-        """
-        Check if the replacement rule is a conditional replacement.
-        FunctionApplyRules are always considered "conditional", while
-        replacement rules are conditional if the replace attribute is
-        a conditional expression.
-        """
-        return not hasattr(x, "replace") or x.replace.has_form(SymbolCondition, 2)
 
     # If the rule is not conditional, and there are
     # equivalent rules which are not conditional either,
     # remove them.
-    if not is_conditional(rule):
-        for index, existing in enumerate(values):
-            if is_conditional(existing):
-                continue
-            if existing.pattern.sameQ(rule.pattern):
-                del values[index]
-                break
+    if not is_conditional_rule(rule):
+        if index is None:
+            for position, existing in enumerate(values):
+                if is_conditional_rule(existing):
+                    continue
+                if existing.pattern.sameQ(rule.pattern):
+                    del values[position]
+                    break
+        else:
+            bucket = index.setdefault(pattern_fingerprint(rule.pattern.expr), [])
+            for existing in list(bucket):
+                if existing.pattern.sameQ(rule.pattern):
+                    bucket.remove(existing)
+                    found = find_rule(values, existing)
+                    if found is not None:
+                        del values[found]
+                        break
+                    # `existing` was removed from `values` some other way
+                    # (e.g. by Unset); look further.
+            bucket.append(rule)
 
     # use insort_left to guarantee that if equal rules exist, newer rules will
     # get higher precedence by being inserted before them. see DownValues[].
     bisect.insort_left(values, rule, key=lambda x: x.pattern_precedence)
+
+
+def find_rule(values: List[BaseRule], rule: BaseRule) -> Optional[int]:
+    """
+    Return the position of the very object `rule` in `values`, or None.
+    `values` is normally sorted by ``pattern_precedence`` (``insert_rule()``
+    keeps it so), and then only the rules with the precedence of `rule`
+    are looked at.
+    """
+    precedence = rule.pattern_precedence
+    try:
+        start = bisect.bisect_left(
+            values, precedence, key=lambda x: x.pattern_precedence
+        )
+        end = bisect.bisect_right(
+            values, precedence, lo=start, key=lambda x: x.pattern_precedence
+        )
+    except TypeError:
+        start, end = 0, 0
+    for position in range(start, end):
+        if values[position] is rule:
+            return position
+    # Not sorted, e.g. after DownValues[f] = {...}: look everywhere.
+    for position, existing in enumerate(values):
+        if existing is rule:
+            return position
+    return None
 
 
 def merge_definitions(candidates: List[Definition]) -> Definition:

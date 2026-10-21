@@ -107,3 +107,15 @@ def test_evaluation_keeps_unchanged_expression():
         # and that gives back the very same rule, now known to be evaluated.
         assert rule.evaluate(evaluation) is rule, rule
         assert not rule.is_uncertain_final_definitions(full_session.definitions)
+
+
+def test_evaluation_with_evaluate_in_held_first_element():
+    """
+    An expression whose only change is an Evaluate in a held first element
+    is not the unchanged expression.
+    """
+    full_session = MathicsSession()
+    result = full_session.evaluate(
+        "SetAttributes[hf, HoldFirst]; hf[Evaluate[1 + 1], 5]"
+    )
+    assert result.sameQ(full_session.evaluate("Hold[hf[2, 5]]").elements[0]), result
