@@ -52,7 +52,11 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import SymbolPiecewise
 from mathics.eval.inference import evaluate_predicate
-from mathics.eval.nevaluator import eval_NValues
+from mathics.eval.nevaluator import (
+    eval_NValues,
+    eval_NValues_to_precision,
+    get_max_extra_precision,
+)
 from mathics.eval.numeric import (
     eval_Abs,
     eval_negate_number,
@@ -282,6 +286,10 @@ class N(Builtin):
 
     messages = {
         "arg": "Argument `1` is not of the form {precision, accuracy}.",
+        "meprec": (
+            "Internal precision limit $MaxExtraPrecision = `1` reached "
+            + "while evaluating `2`."
+        ),
         "precbd": ("Requested precision `1` is not a " + "machine-sized real number."),
         "preclg": (
             "Requested precision `1` is larger than $MaxPrecision. "
@@ -341,6 +349,13 @@ class N(Builtin):
                 return None
             if digits is not None:
                 prec = MachineReal(float(digits))
+                max_extra = get_max_extra_precision(evaluation)
+                result, exhausted = eval_NValues_to_precision(
+                    expr, prec, digits, max_extra, evaluation
+                )
+                if exhausted:
+                    evaluation.message("N", "meprec", MachineReal(max_extra), expr)
+                return result
         result = eval_NValues(expr, prec, evaluation)
         if result is None and prec.has_form(SymbolList, 2):
             evaluation.message("N", "precbd", prec.elements[0])

@@ -34,7 +34,6 @@ from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BoxError, Expression
 from mathics.core.list import ListExpression
-from mathics.core.number import dps
 from mathics.core.rules import is_rule
 from mathics.core.symbols import (
     Atom,
@@ -780,7 +779,7 @@ def real_render_output_form(n: Real, evaluation: Evaluation, **kwargs):
     py_options["_Form"] = "System`OutputForm"
     digits, padding = py_digits
     if digits is None:
-        digits = dps(n.precision) if isinstance(n, PrecisionReal) else 6
+        digits = n.digits if isinstance(n, PrecisionReal) else 6
 
     result = numberform_to_boxes(n, digits, padding, evaluation, py_options)
     if isinstance(result, String):

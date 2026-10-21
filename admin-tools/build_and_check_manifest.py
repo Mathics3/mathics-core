@@ -72,7 +72,7 @@ def check_manifest():
     for key in builtins_by_name:
         found = manifest_symbols.get(key, None)
         if found is None:
-            print(f"{name} not found in the manifest.")
+            print(f"{key} not found in the manifest.")
             # TODO: Add the new symbols to CHANGES.rst
             rebuild_manifest = True
 
