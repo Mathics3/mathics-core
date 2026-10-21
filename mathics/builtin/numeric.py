@@ -11,7 +11,6 @@ Support for approximate real numbers and exact real numbers represented \
 in algebraic or symbolic form.
 """
 
-from fractions import Fraction
 from typing import Optional
 
 import sympy
@@ -43,15 +42,12 @@ from mathics.core.number import (
     PrecisionValueError,
     get_closest_precision,
     is_inexact,
-    is_numeric,
 )
 from mathics.core.symbols import (
     Symbol,
-    SymbolDivide,
     SymbolFalse,
     SymbolList,
     SymbolMachinePrecision,
-    SymbolTimes,
     SymbolTrue,
 )
 from mathics.core.systemsymbols import SymbolPiecewise
@@ -61,6 +57,7 @@ from mathics.eval.numeric import (
     eval_Abs,
     eval_negate_number,
     eval_RealSign,
+    eval_Round,
     eval_Sign,
     eval_UnitStep,
     eval_UnitStep_multidimensional,
@@ -771,42 +768,7 @@ class Round(Builtin):
     def eval_two_args(self, expr, k, evaluation: Evaluation):
         "Round[expr_, k_]"
 
-        if not is_numeric(expr, evaluation):
-            # We can't evaluate, so keep the symbolic representation.
-            return
-
-        quotient = Expression(SymbolDivide, expr, k)
-        n = round_real_exactly(quotient.evaluate(evaluation))
-        if n is None:
-            n = quotient.round_to_float(evaluation, permit_complex=True)
-            if n is None:
-                return
-            elif isinstance(n, complex):
-                n = round(n.real)
-            else:
-                n = round(n)
-        n = int(n)
-        return Expression(SymbolTimes, Integer(n), k)
-
-
-def round_real_exactly(x) -> Optional[int]:
-    """
-    The integer closest to the real number `x`, ties to even, computed
-    without going through a machine float: a machine float has 53 bits, so
-    Round[10^20 + 1] would otherwise give 10^20. Returns None when `x` is
-    not known to be real.
-    """
-    value = x.to_sympy()
-    if value is None or not value.is_number or value.is_real is not True:
-        return None
-    if value.is_Rational or value.is_Float:
-        # A Float is a binary fraction; Rational() gives it exactly.
-        return round(Fraction(*map(int, sympy.Rational(value).as_numer_denom())))
-    # An exact irrational number such as Pi 10^20 is never halfway
-    # between two integers; SymPy finds its floor to whatever precision
-    # that needs.
-    floor = sympy.floor(value + sympy.Rational(1, 2))
-    return int(floor) if floor.is_Integer else None
+        return eval_Round(expr, k, evaluation)
 
 
 class Sign(SympyFunction):
