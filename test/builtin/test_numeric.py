@@ -138,6 +138,17 @@ def test_realvalued():
         ),
         ("Sign[1 - 4*I] == (1/17 - 4 I/17) Sqrt[17]", None, "True", None),
         ('Sign["20"]', None, "Sign[20]", None),
+        # Round must not go through a machine float (53 bits).
+        ("Round[10^20 + 1]", None, "100000000000000000001", None),
+        ("Round[-10^20 - 1]", None, "-100000000000000000001", None),
+        ("Round[123456789012345678901/10]", None, "12345678901234567890", None),
+        ("Round[(10^20 + 1)/2]", None, "50000000000000000000", None),
+        ("Round[Pi 10^20]", None, "314159265358979323846", None),
+        ("Round[Sqrt[2] 10^30]", None, "1414213562373095048801688724210", None),
+        ("Round[1.5`30 10^25]", None, "15000000000000000000000000", None),
+        ("Round[10^20 + 7, 10]", None, "100000000000000000010", None),
+        ("Round[1/2 + 10^-40]", None, "1", None),
+        ("Round[{5/2, 7/2, -5/2}]", None, "{2, 4, -2}", None),
     ],
 )
 def test_numeric(str_expr, msgs, str_expected, fail_msg):

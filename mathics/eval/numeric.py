@@ -8,6 +8,7 @@ used just as a last resource.
 """
 
 import math
+from fractions import Fraction
 from typing import Callable, Optional
 
 import mpmath
@@ -33,6 +34,7 @@ from mathics.core.atoms import (
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.number import (
     FP_MANTISA_BINARY_DIGITS,
@@ -40,6 +42,7 @@ from mathics.core.number import (
     SpecialValueError,
     is_inexact,
     is_machine_precision,
+    is_numeric,
     is_zero,
     min_prec,
     prec as number_prec,
@@ -49,6 +52,7 @@ from mathics.core.systemsymbols import (
     SymbolAbs,
     SymbolComplexInfinity,
     SymbolDirectedInfinity,
+    SymbolDivide,
     SymbolExp,
     SymbolI,
     SymbolIndeterminate,
@@ -270,6 +274,51 @@ def eval_RealSign(expr: BaseElement) -> Optional[Integer]:
         try_add = eval_add_numbers(*(to_inexact_value(term) for term in expr.elements))
         if try_add is not None and try_add is not expr:
             return eval_RealSign(try_add)
+
+
+def eval_Round(
+    expr: BaseElement, k: BaseElement, evaluation: Evaluation
+) -> Optional[BaseElement]:
+    """
+    Round[expr, k]: the multiple of `k` closest to `expr`, ties to even.
+    Returns None when `expr` is not numeric or cannot be rounded.
+    """
+    if not is_numeric(expr, evaluation):
+        # We can't evaluate, so keep the symbolic representation.
+        return None
+
+    quotient = Expression(SymbolDivide, expr, k)
+    n = round_real_exactly(quotient.evaluate(evaluation))
+    if n is None:
+        n = quotient.round_to_float(evaluation, permit_complex=True)
+        if n is None:
+            return None
+        elif isinstance(n, complex):
+            n = round(n.real)
+        else:
+            n = round(n)
+    n = int(n)
+    return Expression(SymbolTimes, Integer(n), k)
+
+
+def round_real_exactly(x: BaseElement) -> Optional[int]:
+    """
+    The integer closest to the real number `x`, ties to even, computed
+    without going through a machine float: a machine float has 53 bits, so
+    Round[10^20 + 1] would otherwise give 10^20. Returns None when `x` is
+    not known to be real.
+    """
+    value = x.to_sympy()
+    if value is None or not value.is_number or value.is_real is not True:
+        return None
+    if value.is_Rational or value.is_Float:
+        # A Float is a binary fraction; Rational() gives it exactly.
+        return round(Fraction(*map(int, sympy.Rational(value).as_numer_denom())))
+    # An exact irrational number such as Pi 10^20 is never halfway
+    # between two integers; SymPy finds its floor to whatever precision
+    # that needs.
+    floor = sympy.floor(value + sympy.Rational(1, 2))
+    return int(floor) if floor.is_Integer else None
 
 
 def eval_Sign(expr: Number) -> Optional[BaseElement]:
