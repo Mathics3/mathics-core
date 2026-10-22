@@ -787,6 +787,9 @@ def expression_pattern_match_element_process_items(
             new_parms["vars_dict"] = new_vars
             new_parms["element_index"] = parms["element_index"] + 1
             new_parms["yield_func"] = element_yield
+            # Only the first element may leave elements unmatched before it (a
+            # partial match of a Flat expression); the next one starts right after.
+            new_parms["first"] = False
             del new_parms["element"]
             pattern.match_element(
                 element=parms["next_element"], pattern_context=new_parms

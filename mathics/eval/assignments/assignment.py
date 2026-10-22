@@ -11,8 +11,13 @@ found in module `mathics.builtin.assignments.assignment`.
 
 from typing import Final, Optional
 
-from mathics.core.assignment import is_protected, rejected_because_protected, unwrap_lhs
-from mathics.core.atoms import Integer, Integer1
+from mathics.core.assignment import (
+    is_protected,
+    nvalue_pattern_from_wma,
+    rejected_because_protected,
+    unwrap_lhs,
+)
+from mathics.core.atoms import Integer, Integer1, Rational, Real
 from mathics.core.definitions import BOX_FORMS
 from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import (
@@ -400,6 +405,22 @@ def eval_assign_definition_values(
     if rules is None:
         evaluation.message(op_name, "vrule", lhs, rhs)
         raise AssignmentException(lhs, None)
+    # As in WMA, one HoldPattern level around a rule pattern only protects it
+    # from evaluation and is not part of the stored pattern. Otherwise a later
+    # `f[1] = ...` would not replace the rule from `DownValues[f] = {HoldPattern[f[1]] :> ...}`.
+    rules = [
+        (
+            RewriteRule(rule.pattern.expr.elements[0], rule.replace)
+            if rule.pattern.expr.has_form(SymbolHoldPattern, 1)
+            else rule
+        )
+        for rule in rules
+    ]
+    if lhs_name == "System`NValues":
+        rules = [
+            RewriteRule(nvalue_pattern_from_wma(rule.pattern.expr), rule.replace)
+            for rule in rules
+        ]
     evaluation.definitions.set_values(tag, lhs_name, rules)
     return True
 
@@ -752,6 +773,25 @@ def eval_assign_maxprecision(
     raise AssignmentException(lhs, None)
 
 
+def eval_assign_max_extra_precision(
+    op_name: str,
+    lhs: BaseElement,
+    rhs: BaseElement,
+    evaluation: Evaluation,
+) -> bool:
+    """
+    Implement the assignment to the `$MaxExtraPrecision` symbol, which
+    must be a non-negative number or Infinity.
+    """
+    if rhs.has_form(SymbolDirectedInfinity, 1) and get_int_value(rhs.elements[0]) == 1:
+        return False
+    if isinstance(rhs, (Integer, Rational, Real)) and rhs.value >= 0:
+        return False
+
+    evaluation.message(lhs.get_name(), "precset", lhs, rhs)
+    raise AssignmentException(lhs, None)
+
+
 def eval_assign_messagename(
     op_name: str,
     lhs: BaseElement,
@@ -1013,6 +1053,7 @@ def eval_assign_n(
         lhs = Expression(SymbolN, lhs.elements[0], nprec)
     else:
         nprec = lhs.elements[1]
+        lhs = nvalue_pattern_from_wma(lhs)
 
     lhs_unwrapped = unwrap_expression(lhs.elements[0])
 
@@ -1659,6 +1700,7 @@ EVAL_ASSIGN_SPECIAL_SYMBOLS = {
     "System`$HistoryLength": eval_assign_line_number_and_history_length,
     "System`$IterationLimit": eval_assign_iteration_limit,
     "System`$Line": eval_assign_line_number_and_history_length,
+    "System`$MaxExtraPrecision": eval_assign_max_extra_precision,
     "System`$MaxPrecision": eval_assign_maxprecision,
     "System`$MinPrecision": eval_assign_minprecision,
     "System`$ModuleNumber": eval_assign_module_number,

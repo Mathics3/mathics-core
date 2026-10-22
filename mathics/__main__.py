@@ -11,6 +11,7 @@ to assist in command-line behavior.
 import argparse
 import atexit
 import cProfile
+import gc
 import sys
 from typing import Optional
 
@@ -60,6 +61,14 @@ def main() -> int:
     Return exit code we want to give status of
     """
     exit_rc = 0
+
+    # Registered first, so it runs last among the atexit handlers.
+    # Freezing moves every tracked object into the permanent generation,
+    # so the collection in Py_Finalize() does not walk the large
+    # Generation 2 graph left by packages such as Rubi. Unlike os._exit(),
+    # the other atexit handlers, stream flushes and exit codes are kept.
+    atexit.register(gc.freeze)
+
     argparser = argparse.ArgumentParser(
         prog="mathics",
         usage="%(prog)s [options] [FILE]",

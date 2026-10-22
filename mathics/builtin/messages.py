@@ -210,6 +210,7 @@ class General(Builtin):
         "indet": "Indeterminate expression `1` encountered.",
         "infy": "Infinite expression `1` encountered.",
         "innf": "Non-negative integer or Infinity expected at position `1` in `2`",
+        "ins": "Cannot insert at position `1` in `2`.",
         "int": "Integer expected.",
         "intnm": "Non-negative machine-sized integer expected at position `1` in `2`.",
         "intnn": "Non-negative integer expected.",

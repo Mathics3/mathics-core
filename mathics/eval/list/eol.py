@@ -2,14 +2,20 @@
 Evaluation routines for builtin function contained in mathics.builtin.list.eol.
 """
 
-from mathics.core.atoms import Integer
+from typing import Optional, Sequence
+
+from mathics.core.atoms import ByteArray, Integer, String
+from mathics.core.atoms.associations import Association
+from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import MessageException
 from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
 from mathics.core.number import get_int_value
 from mathics.core.subexpression import SubExpression
 from mathics.core.symbols import Atom, Symbol
 from mathics.core.systemsymbols import (
+    SymbolAll,
     SymbolByteArray,
     SymbolInfinity,
     SymbolKey,
@@ -112,6 +118,89 @@ def eval_Part(
             e.message(evaluation)
             return False
         return result
+
+
+def eval_extract(
+    expr: BaseElement,
+    position: BaseElement,
+    head: Optional[BaseElement],
+    expression: Expression,
+    evaluation: Evaluation,
+) -> Optional[BaseElement]:
+    """
+    Extract[expr, position] and Extract[expr, position, head]: the part of
+    `expr` at `position`, or the list of parts at a list of positions. With
+    `head`, each part is wrapped in it before it is evaluated.
+    """
+
+    def wrap(part: BaseElement) -> BaseElement:
+        return part if head is None else Expression(head, part)
+
+    # A single part selector, such as 2, All, 1 ;; 2, Key[k] or an
+    # association key "k", is a position of one index.
+    if (
+        isinstance(position, (Integer, String))
+        or position is SymbolAll
+        or position.has_form((SymbolSpan, SymbolKey), None)
+    ):
+        position = ListExpression(position)
+    elements = position.elements if position.has_form(SymbolList, None) else None
+    if elements is None or (
+        elements
+        and elements[0].has_form(SymbolList, None)
+        and not all(element.has_form(SymbolList, None) for element in elements)
+    ):
+        evaluation.message("Extract", "psl1", position, expression)
+        return None
+    try:
+        if not elements or elements[0].has_form(SymbolList, None):
+            # A list of positions.
+            return ListExpression(
+                *(
+                    wrap(extract_part(expr, single.elements, evaluation))
+                    for single in elements
+                )
+            )
+        return wrap(extract_part(expr, elements, evaluation))
+    except MessageException as e:
+        # The messages of Part are General ones; WMA gives them as Extract::tag.
+        e._message = ("Extract",) + e._message[1:]
+        e.message(evaluation)
+        return None
+
+
+def extract_part(
+    expr: BaseElement, indices: Sequence[BaseElement], evaluation: Evaluation
+) -> BaseElement:
+    """
+    The part of `expr` at the part specification `indices`, not evaluated.
+    `Key[k]`, or a string `k`, picks the value of `k` in an association.
+    """
+    indices = list(indices)
+    while indices:
+        index = indices[0]
+        if isinstance(expr, Association) and (
+            index.has_form(SymbolKey, 1) or isinstance(index, String)
+        ):
+            key = index if isinstance(index, String) else index.elements[0]
+            try:
+                expr = expr[key]
+            except KeyError:
+                raise MessageException("Part", "partw", index, expr)
+        elif isinstance(expr, ByteArray) and isinstance(index, Integer):
+            i, n = index.value, len(expr.value)
+            if i == 0:
+                expr = SymbolByteArray
+            elif 1 <= abs(i) <= n:
+                expr = Integer(expr.value[i - 1 if i > 0 else i])
+            else:
+                raise MessageException("Part", "partw", index, expr)
+        elif isinstance(index, Integer):
+            expr = parts(expr, part_selectors([index]), evaluation)
+        else:
+            return parts(expr, part_selectors(indices), evaluation)
+        indices.pop(0)
+    return expr
 
 
 def eval_Part_for_Association(expr, key, evaluation: Evaluation):

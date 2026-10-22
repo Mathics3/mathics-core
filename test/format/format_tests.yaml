@@ -171,17 +171,17 @@
 -4.326563712`2:
   msg: A negative Real number
   latex:
-    System`InputForm: '-4.33'
+    System`InputForm: '-4.326563712'
     System`OutputForm: '\text{-4.3}'
     System`StandardForm: '-4.33'
     System`TraditionalForm: '-4.33'
   mathml:
-    System`InputForm: <mn>-4.33</mn>
+    System`InputForm: <mn>-4.326563712</mn>
     System`OutputForm: <mtext>-4.3</mtext>
     System`StandardForm: "<mrow>\n <mn>-</mn>\n <mn>4.33</mn>\n</mrow>"
     System`TraditionalForm: "<mrow>\n <mn>-</mn>\n <mn>4.33</mn>\n</mrow>"
   text:
-    System`InputForm: -4.33`2.
+    System`InputForm: -4.326563712`2.
     System`OutputForm: '-4.3'
     System`StandardForm: -4.33`2.
     System`TraditionalForm: -4.33`2.
