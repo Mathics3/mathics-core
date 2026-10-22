@@ -1270,6 +1270,11 @@ class LiteralRuleIndex:
     (``pattern_precedence``) by which ``insert_rule`` keeps the list
     ordered. So the index is only built for a list in that order, and where
     no literal rule shares its sort key with another rule.
+
+    The order of the literal rules among themselves does not matter, since
+    at most one of them matches. The order of all the other rules,
+    including those that share a sort key and so stay in the order in which
+    they were assigned, is the order of the list itself.
     """
 
     def __init__(self, table: dict, others: list, other_keys: list):
@@ -1288,15 +1293,19 @@ class LiteralRuleIndex:
             table: Dict[tuple, List[BaseRule]] = {}
             others: List[BaseRule] = []
             other_keys: list = []
-            literal_keys = set()
+            # The sort keys of the literal rules; many literal rules
+            # (f[1], f[2], ...) share one. It is only checked against the
+            # keys of the other rules: a literal rule whose place among them
+            # the keys do not decide makes the list not indexed.
+            literal_precedences = set()
             for rule, key in zip(values, keys):
                 if is_literal_rule(rule):
                     table.setdefault(literal_key(rule.pattern.expr), []).append(rule)
-                    literal_keys.add(key)
+                    literal_precedences.add(key)
                 else:
                     others.append(rule)
                     other_keys.append(key)
-            if not literal_keys.isdisjoint(other_keys):
+            if not literal_precedences.isdisjoint(other_keys):
                 return None
         except TypeError:
             # sort keys that do not compare or hash
