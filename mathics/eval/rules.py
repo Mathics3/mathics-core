@@ -91,8 +91,31 @@ def create_rules(
             )
             return None, True
 
-        result.append(RewriteRule(rule.elements[0], rule.elements[1]))
+        result.append(compiled_rewrite_rule(rule, evaluation))
     return result, False
+
+
+def compiled_rewrite_rule(rule: Expression, evaluation: Evaluation) -> RewriteRule:
+    """
+    The RewriteRule for `rule`, a Rule or RuleDelayed expression.
+
+    Compiling the pattern of a rule takes much longer than matching it once, and
+    a list of rules kept in a variable is used again and again, as in
+    `expr //. rules`. So the RewriteRule is kept on the rule expression, with the
+    time it was made, and reused while no symbol of the rule (its attributes,
+    defaults and options included) has changed since.
+    """
+    definitions = evaluation.definitions
+    kept = getattr(rule, "_rewrite_rule", None)
+    if kept is not None:
+        made, rewrite_rule = kept
+        if not definitions.is_uncertain_final_value(
+            made, rule._rebuild_cache().symbols
+        ):
+            return rewrite_rule
+    rewrite_rule = RewriteRule(rule.elements[0], rule.elements[1])
+    rule._rewrite_rule = (definitions.now, rewrite_rule)
+    return rewrite_rule
 
 
 def eval_dispatch_atom(
