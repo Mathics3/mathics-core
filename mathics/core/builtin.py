@@ -829,6 +829,10 @@ class MPMathFunction(SympyFunction):
     # Real points where, as in WMA, an inexact argument whose error covers
     # one of them gives Indeterminate, like ArcTanh at 1.
     indeterminate_at: tuple[int, ...] = ()
+    # As in WMA, a complex value at real arguments, like ArcSin[2.`20], gets
+    # an error for each part. Power does not follow that rule in WMA: see
+    # eval_Power_by_parts for a negative base to a rational power.
+    complex_values: bool = True
 
     def get_mpmath_function(self, args):
         if self.mpmath_name is None or len(args) not in self.nargs:
@@ -870,6 +874,7 @@ class MPMathFunction(SympyFunction):
                 *args,
                 has_poles=self.has_poles,
                 bound=self.value_bound,
+                complex_values=self.complex_values,
             )
             if result is not None:
                 return result

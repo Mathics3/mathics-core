@@ -203,7 +203,7 @@ class Log(MPMathFunction):
     """
 
     summary_text = "logarithm function"
-    nargs = {2}
+    nargs = {1, 2}
     mpmath_name = "log"
     sympy_name = "log"
 
@@ -216,7 +216,6 @@ class Log(MPMathFunction):
         "Log[E^x_Integer]": "x",
         "Log[Overflow[]]": "Overflow[]",
         "Log[Undefined]": "Undefined",
-        "Log[x_?InexactNumberQ]": "Log[E, x]",
     }
 
     def prepare_sympy(self, elements):
@@ -225,13 +224,18 @@ class Log(MPMathFunction):
         return elements
 
     def get_mpmath_function(self, args):
+        if len(args) == 1:
+            return mpmath.log
         return lambda base, x: mpmath.log(x, base)
 
     @staticmethod
-    def condition_numbers(
-        base: mpmath.mpf, x: mpmath.mpf, value: mpmath.mpf
-    ) -> tuple[mpmath.mpf, mpmath.mpf]:
-        # Log[b, x] is Log[x] / Log[b].
+    def condition_numbers(*args: mpmath.mpf) -> tuple[mpmath.mpf, ...]:
+        # The arguments, then the value. Log[b, x] is Log[x] / Log[b]. As in
+        # WMA, Log[x] has no base E that would add an error of its own.
+        *arguments, value = args
+        if len(arguments) == 1:
+            return (1 / abs(value),)
+        base, x = arguments
         return (1 / abs(mpmath.log(base)), 1 / abs(mpmath.log(x)))
 
 

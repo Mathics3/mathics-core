@@ -1157,8 +1157,12 @@ class Complex(Number[tuple[Number[T], Number[T], Optional[int]]]):
         return self._precision
 
     def round(self, d=None) -> "Complex":
-        real = self._real.round(d)
-        imag = self._imag.round(d)
+        # As in WMA, N[I, 30] keeps the exact zero real part, and N[I] is
+        # 0. + 1. I.
+        real, imag = (
+            part if d is not None and part.sameQ(Integer0) else part.round(d)
+            for part in (self._real, self._imag)
+        )
         return Complex(real, imag)
 
     def sameQ(self, rhs) -> bool:

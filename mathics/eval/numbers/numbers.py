@@ -3,6 +3,7 @@
 Implementation of number-handling functions.
 """
 
+import math
 from functools import cache
 from typing import Optional
 
@@ -160,7 +161,11 @@ def eval_Accuracy(z: BaseElement) -> Optional[float]:
         if acc_imag is None:
             return acc_real
 
-        return -mpmath.log(10 ** (-2 * acc_real) + 10 ** (-2 * acc_imag), 10.0) * 0.5
+        # As in WMA, the errors of the parts add in quadrature.
+        least = min(acc_real, acc_imag)
+        return least - 0.5 * math.log10(
+            10.0 ** (2 * (least - acc_real)) + 10.0 ** (2 * (least - acc_imag))
+        )
 
     if isinstance(z, Expression):
         elem_accuracies = (eval_Accuracy(z_elem) for z_elem in z.elements)
@@ -209,18 +214,18 @@ def eval_Precision(z: BaseElement) -> Optional[float]:
         return z.precision10
 
     if isinstance(z, Complex):
-        prec_real = eval_Precision(z.real)
-        prec_imag = eval_Precision(z.imag)
-        if prec_real is None or prec_imag == prec_real:
-            return prec_imag
-        if prec_imag is None:
-            return prec_real
-        # both numbers have different precision.
-        # Evaluate the accuracy and add the log of
-        # the module.
+        if z.is_machine_precision:
+            return MACHINE_PRECISION_VALUE
         acc = eval_Accuracy(z)
-        abs_sq = z.real.value**2 + z.imag.value**2
-        return acc + mpmath.log(abs_sq, 10.0) * 0.5
+        if acc is None:
+            return None
+        # As in WMA, the accuracy plus the log of the modulus, to which an
+        # exact part also counts: Precision[1.`20 + 3 I] is 20.5.
+        with mpmath.workprec(53):
+            modulus = abs(z.to_mpmath())
+            if modulus == 0:
+                return 0.0
+            return acc + float(mpmath.log10(modulus))
 
     if isinstance(z, Expression):
         elem_prec = (eval_Precision(z_elem) for z_elem in z.elements)

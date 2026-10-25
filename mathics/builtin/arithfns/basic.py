@@ -357,6 +357,7 @@ class Power(InfixOperator, MPMathFunction):
     grouping = "Right"
 
     mpmath_name = "power"
+    complex_values = False
 
     @staticmethod
     def condition_numbers(
