@@ -391,6 +391,42 @@ def test_real_valued_precision(str_expr, str_expected, msg):
     check_evaluation(str_expr, str_expected, failure_message=msg)
 
 
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        ("Accuracy[Log[1.`20]]", "20.", "the error of x, divided by x"),
+        ("Accuracy[Log[1.`3]]", "3.", "the leading term, also at low precision"),
+        ("Accuracy[Log[2, 1.`20]]", "19.8408", "and by Log[b]"),
+        ("Accuracy[Log[10, 1.`20]]", "20.3622", None),
+        ("Accuracy[Log10[1.`20]]", "20.3622", None),
+        ("Accuracy[Log2[1.`20]]", "19.8408", None),
+        ("Accuracy[Log[2.`20, 1.`25]]", "24.8408", "the base does not change 0"),
+        ("Accuracy[Log[2.`25, 1.`20]]", "19.8408", None),
+        ("Accuracy[Log[1.0001`20, 1.`20]]", "16.", None),
+        ("Log[2.`20, 1]", "0", "an exact 1 gives an exact 0"),
+        ("Log[1.`20, 1.`20]", "Indeterminate", "the base covers 1, and x too"),
+        ("Log[1.0001`3, 1.`20]", "Indeterminate", None),
+        ("Log[1, 1.`20]", "Indeterminate", None),
+        ("Log[1.`20, 1]", "Indeterminate", None),
+        ("Log[1., 1.]", "Indeterminate", None),
+        ("Log[1.`20, 2]", "ComplexInfinity", "the base covers 1"),
+        ("Log[1.0001`3, 2]", "ComplexInfinity", None),
+        ("Log[1, 2.`20]", "ComplexInfinity", None),
+        ("Log[1.`20, 2 + I]", "ComplexInfinity", None),
+        ("Precision[Log[1.0001`5, 2]]", "0.999978", "the base does not cover 1"),
+        ("Log[2.`20, 0``20]", "Indeterminate", "an inexact 0"),
+        ("Log[0``20]", "Indeterminate", None),
+        ("Log[0., 2.`20]", "Indeterminate", None),
+        ("Accuracy[Sin[0``1.5]]", "1.5", "the leading term of f"),
+        ("Accuracy[Cos[0``2]]", "4.30103", None),
+        ("Accuracy[ArcCos[1.`3]]", "1.34949", None),
+    ],
+)
+def test_log_zero_precision(str_expr, str_expected, msg):
+    """Compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
 # Arguments of Through: the precision and the accuracy of each part.
 PARTS = "{Precision@*Re, Accuracy@*Re, Precision@*Im, Accuracy@*Im}"
 ACCURACIES = "{Accuracy@*Re, Accuracy@*Im}"
@@ -823,7 +859,7 @@ def test_trig_zero(str_expr, str_expected, msg):
         ("Precision[ArcSin[0.0`20]]", "MachinePrecision", "0.0`20 is 0."),
         ("Accuracy[ArcCos[1.`20]]", "9.84949", "ArcCos changes by Sqrt[2 10^-20]"),
         ("Accuracy[ArcSec[1.`20]]", "9.84949", None),
-        ("Accuracy[ArcCos[1.`5]]", "2.34948", None),
+        ("Accuracy[ArcCos[1.`5]]", "2.34949", None),
         ("Precision[ArcSec[-1.`20]]", "10.3466", None),
         ("Precision[ArcCos[0.99999999`20]]", "12.301", "next to the end"),
         ("Precision[ArcSin[0.99999999`20]]", "16.3466", None),

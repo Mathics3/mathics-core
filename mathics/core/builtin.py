@@ -839,6 +839,16 @@ class MPMathFunction(SympyFunction):
             return None
         return getattr(mpmath, self.mpmath_name)
 
+    def special_point_value(self, args: Sequence[Number]) -> Optional[BaseElement]:
+        """
+        The value at numbers, not all exact, where f has no value of its
+        own, or None: Indeterminate where the error of the argument covers
+        one of ``indeterminate_at``.
+        """
+        if len(args) == 1 and covers_point(args[0], self.indeterminate_at):
+            return SymbolIndeterminate
+        return None
+
     def eval(self, z, evaluation: Evaluation):
         "%(name)s[z__]"
 
@@ -864,8 +874,9 @@ class MPMathFunction(SympyFunction):
         if mpmath_function is None:
             return
 
-        if len(args) == 1 and covers_point(args[0], self.indeterminate_at):
-            return SymbolIndeterminate
+        special = self.special_point_value(args)
+        if special is not None:
+            return special
 
         if self.condition_numbers is not None:
             result = eval_mpmath_function_by_condition(

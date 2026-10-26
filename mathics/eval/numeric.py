@@ -728,8 +728,16 @@ def eval_mpmath_function_by_condition(
         if factors is not None and not all(mpmath.isfinite(f) for f in factors):
             factors = None
 
+    if factors is None and len(args) > 1:
+        if isinstance(value, mpmath.mpc) or value != 0:
+            return None
+        error = _change_within_args(mpmath_function, args, values)
+        if error is None:
+            return None
+        return _value_with_error(value, error, has_poles, bound)
+
     if factors is None:
-        if len(args) != 1 or args[0].precision10 < 1:
+        if args[0].precision10 < 1:
             return None
         x = values[0]
         digits = args[0].precision10 - _log10_abs(x)
@@ -889,16 +897,24 @@ def _change_within(
     (10^-20)^2 / 2, and ArcCos[1.`20] is 0``9.849, since ArcCos changes by
     Sqrt[2 10^-20].
 
-    The smaller change of the two sides is taken: where f is continuous they
-    agree, and a branch cut, as for ArcCot at 0, jumps on one side only. A
-    side where f has no real value, as above 1 for ArcCos, is left out.
-    Returns None if f has no real value at x or on either side.
+    As in WMA, the change is the leading term of f at x, c delta^p, even
+    where delta is not small: Log[1.`3] is 0``3., not the 0``3.0002 of
+    Log[1.001]. The power p is read off the change within two much smaller
+    steps.
+
+    On each side, the smaller change is taken: where f is continuous the
+    sides agree, and a branch cut, as for ArcCot at 0, jumps on one side
+    only. A side where f has no real value, as above 1 for ArcCos, is left
+    out. Returns None if f has no real value at x or on either side.
 
     If f has a complex value at x, as ArcCosh[0], the sides with a complex
     value count as well.
     """
-    # Enough digits for a change of second order.
-    with mpmath.workprec(number_prec(math.ceil(2 * max(digits, 1)) + 20)):
+    # Enough digits for a change of second order within the small steps.
+    shrink_bits = 40
+    with mpmath.workprec(
+        number_prec(math.ceil(2 * (max(digits, 1) + shrink_bits * math.log10(2))) + 20)
+    ):
         x = mpmath.mpf(x)
         try:
             value = mpmath_function(x)
@@ -911,17 +927,62 @@ def _change_within(
         kinds = (
             (mpmath.mpf, mpmath.mpc) if isinstance(value, mpmath.mpc) else mpmath.mpf
         )
-        changes = []
-        for side in (x + delta, x - delta):
-            try:
-                other = mpmath_function(side)
-            except (ZeroDivisionError, ValueError):
-                continue
-            if isinstance(other, kinds) and mpmath.isfinite(other):
-                changes.append(abs(other - value))
-        if not changes or min(changes) == 0:
+
+        def change(step: mpmath.mpf) -> Optional[mpmath.mpf]:
+            changes = []
+            for side in (x + step, x - step):
+                try:
+                    other = mpmath_function(side)
+                except (ZeroDivisionError, ValueError):
+                    continue
+                if isinstance(other, kinds) and mpmath.isfinite(other):
+                    changes.append(abs(other - value))
+            return min(changes) if changes else None
+
+        whole = change(delta)
+        if not whole:
             return None
-        return value, min(changes)
+        step = mpmath.ldexp(delta, -shrink_bits)
+        small, smaller = change(step), change(step / 2)
+        if not small or not smaller:
+            return value, whole
+        # A power like 1, 2 or 1/2 is taken as exact.
+        power = mpmath.log(small / smaller, 2)
+        if abs(2 * power - mpmath.nint(2 * power)) < 0.01:
+            power = mpmath.nint(2 * power) / 2
+        return value, small * mpmath.power(2, shrink_bits * power)
+
+
+def _change_within_args(
+    mpmath_function: Callable, args: tuple[Number, ...], values: list[mpmath.mpf]
+) -> Optional[mpmath.mpf]:
+    """
+    How much f changes within the errors of its arguments: the change
+    within the error of each PrecisionReal argument, the others held fixed,
+    added up. So Log[2.`20, 1.`20] is 0``19.84: Log[2, x] changes by
+    10^-20 / Log[2] at x = 1, and Log[b, 1] not at all. Returns None if
+    no argument changes f.
+    """
+    total = mpmath.mpf(0)
+    for k, arg in enumerate(args):
+        if not isinstance(arg, PrecisionReal):
+            continue
+        if arg.precision10 < 1:
+            return None
+        x = values[k]
+
+        def partial(t, k=k):
+            return mpmath_function(*values[:k], t, *values[k + 1 :])
+
+        change = _change_within(
+            partial,
+            x,
+            abs(x) * mpmath.mpf(10) ** -arg.precision10,
+            arg.precision10 - _log10_abs(x),
+        )
+        if change is not None:
+            total += change[1]
+    return total or None
 
 
 def _value_with_error(
