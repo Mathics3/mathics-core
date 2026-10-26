@@ -44,7 +44,11 @@ from mathics.eval.arithmetic import (
     segregate_numbers_from_sorted_list,
 )
 from mathics.eval.nevaluator import eval_N
-from mathics.eval.numeric import eval_add_numbers, eval_multiply_numbers
+from mathics.eval.numeric import (
+    eval_add_numbers,
+    eval_multiply_numbers,
+    eval_Power_by_parts,
+)
 
 RealM0p5 = Real(-0.5)
 RealOne = Real(1.0)
@@ -168,6 +172,11 @@ def eval_Power(base, exponent, power_fn_eval: Callable, evaluation: Evaluation):
                 elif result is Integer0:
                     pass
                 return result
+
+    if isinstance(base, Number) and isinstance(exponent, Number):
+        result = eval_Power_by_parts(base, exponent)
+        if result is not None:
+            return result
 
     if isinstance(base, Complex) and base.real.is_zero:
         yhalf = Expression(SymbolTimes, exponent, RationalOneHalf)

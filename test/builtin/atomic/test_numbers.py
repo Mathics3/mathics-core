@@ -391,6 +391,177 @@ def test_real_valued_precision(str_expr, str_expected, msg):
     check_evaluation(str_expr, str_expected, failure_message=msg)
 
 
+# Arguments of Through: the precision and the accuracy of each part.
+PARTS = "{Precision@*Re, Accuracy@*Re, Precision@*Im, Accuracy@*Im}"
+ACCURACIES = "{Accuracy@*Re, Accuracy@*Im}"
+Z = "Complex[1.`20, 2.`25]"
+W = "Complex[3.`22, -1.`18]"
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        (
+            "Precision[1.5`20.3 + 2.5`20.3 I]",
+            "20.3",
+            "the errors of the parts add in quadrature",
+        ),
+        ("Accuracy[1.5`20.3 + 2.5`20.3 I]", "19.8353", None),
+        ("Precision[Complex[1.`20, 1.`10]]", "10.1505", None),
+        ("Accuracy[Complex[1000.`20, 1.`20]]", "17.", None),
+        ("Precision[Complex[1.`20, 3]]", "20.5", "an exact part counts to Abs"),
+        ("Precision[2.`20 + I]", "20.0485", None),
+        ("{Re[2.`20 I], Im[2.`20 + I]}", "{0, 1}", "exact parts stay exact"),
+        (
+            f"Through[{PARTS}[Complex[1.`20, 1.`20] + 1]]",
+            "{20.301, 20., 20., 20.}",
+            "Plus: each part adds its own errors",
+        ),
+        (
+            f"Through[{PARTS}[Complex[1.`20, 1.`20] + 1.`10]]",
+            "{10.301, 10., 20., 20.}",
+            None,
+        ),
+        (
+            f"Through[{PARTS}[{Z} + {W}]]",
+            "{20.5892, 19.9872, 18., 18.}",
+            None,
+        ),
+        (
+            f"Through[{PARTS}[Complex[1.`20, 1.`20] Complex[1.`20, -1.`20]]]",
+            "{19.699, 19.3979, 0., 19.3979}",
+            "Times: (a + b I)(c + d I) is ac - bd + (ad + bc) I",
+        ),
+        (
+            f"Through[{PARTS}[Complex[1.`20, 1.`20] 1.`10]]",
+            "{10., 10., 10., 10.}",
+            None,
+        ),
+        (f"Through[{ACCURACIES}[{Z} {W}]]", "{17.6924, 17.9954}", None),
+        (
+            f"Through[{ACCURACIES}[{Z} {Z} {Z} {Z}]]",
+            "{18.2518, 18.2518}",
+            "the factors are multiplied as a balanced tree, (z z)(z z)",
+        ),
+        (
+            f"Through[{ACCURACIES}[{Z} / {W}]]",
+            "{18.5184, 18.6176}",
+            "z / w is z (1 / w)",
+        ),
+        (
+            f"Through[{PARTS}[Complex[1.`20, 1.`20]^2]]",
+            "{0., 19.3979, 19.699, 19.3979}",
+            "z^2 is (a + b)(a - b) + 2 a b I",
+        ),
+        (
+            f"Through[{ACCURACIES}[Complex[1.`20, 2]^2]]",
+            "{19.3979, 19.3979}",
+            None,
+        ),
+        (
+            f"Through[{ACCURACIES}[{Z}^3]]",
+            "{18.8239, 18.7959}",
+            "z^n by squaring, from the highest bit of n",
+        ),
+        (f"Through[{ACCURACIES}[{Z}^4]]", "{18.1938, 18.2518}", None),
+        (f"Through[{ACCURACIES}[{Z}^5]]", "{17.7375, 17.6819}", None),
+        (f"Through[{ACCURACIES}[{Z}^6]]", "{17.1662, 17.3851}", None),
+        (
+            f"Through[{PARTS}[1 / Complex[1.`20, 1.`20]]]",
+            "{19.5229, 19.8239, 19.5229, 19.8239}",
+            "1 / z is (a - b I) / (a^2 + b^2)",
+        ),
+        (f"Through[{ACCURACIES}[{Z}^-2]]", "{20.3677, 20.2853}", None),
+        (
+            f"Through[{ACCURACIES}[1 / Complex[0``10, 1.`20]]]",
+            "{10., 19.3979}",
+            None,
+        ),
+    ],
+)
+def test_complex_precision(str_expr, str_expected, msg):
+    """Complex numbers whose parts keep their own errors: compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        (
+            "{Re[#], Precision[#]}&[ArcSec[0.5`20]]",
+            "{0, 20.0571}",
+            "a complex value at a real argument",
+        ),
+        ("{Re[#], Precision[#]}&[Sqrt[-2.`20]]", "{0, 20.301}", None),
+        (
+            f"Through[{PARTS}[Log[-1.`20]]]",
+            "{0., 20., 36.7528, 36.2556}",
+            "a part that does not change gets 2^-54 of the error",
+        ),
+        (f"Through[{PARTS}[Log[-1.`2]]]", "{0., 2., 18.7528, 18.2556}", None),
+        ("Precision[Re[Log[-2.`20]]]", "19.8408", None),
+        (
+            f"Through[{PARTS}[ArcSin[2.`20]]]",
+            "{36.3893, 36.1932, 20.0571, 19.9375}",
+            None,
+        ),
+        ("Precision[ArcSin[2.`20]]", "20.2492", None),
+        ("Precision[ArcCos[-2.`20]]", "20.4698", None),
+        (
+            "Through[{Precision@*Re, Precision@*Im}[ArcTanh[2.`20]]]",
+            "{19.9159, 36.6278}",
+            None,
+        ),
+        (
+            "Through[{Precision@*Re, Precision@*Im}[ArcCoth[0.5`20]]]",
+            "{19.9159, 36.6278}",
+            None,
+        ),
+        ("Precision[Im[ArcCosh[-2.`20]]]", "36.6903", None),
+        ("{Re[#], Precision[#]}&[ArcCosh[0.5`20]]", "{0, 20.2586}", None),
+        ("Precision[Im[ArcSin[1.`20*^10]]]", "21.3751", None),
+        ("Precision[ArcCos[1.5`5]]", "4.85573", None),
+        (
+            "{Re[#], Precision[#]}&[ArcCosh[0``20]]",
+            "{0, 20.1961}",
+            "at a zero, the change of f within the error",
+        ),
+        ("{Re[#], Precision[#]}&[ArcCoth[0``20]]", "{0, 20.1961}", None),
+        (
+            "{Re[#], Precision[#]}&[ArcCosh[-1.`20]]",
+            "{0, 10.3466}",
+            "at a branch point",
+        ),
+        (
+            f"Through[{PARTS}[(-8.`20)^(1/3)]]",
+            "{20.3266, 20.3266, 20.5652, 20.3266}",
+            "(-x)^(1/q): the error of the whole, shared by the parts",
+        ),
+        ("Accuracy[Re[(-8.`20)^(-1/3)]]", "20.9287", None),
+        (
+            "Through[{Precision@*Re, Precision@*Im}[(-2.`20)^(1/6)]]",
+            "{20.8662, 20.6276}",
+            None,
+        ),
+        ("{Re[#], Precision[#]}&[(-2.`20)^(-1/2)]", "{0, 20.301}", None),
+        (
+            f"Through[{ACCURACIES}[(-8.`20)^(2/3)]]",
+            "{19.486, 19.5891}",
+            "(-x)^(2/3) is ((-x)^(1/3))^2",
+        ),
+        (
+            "Through[{Precision@*Re, Precision@*Im}[(-8.`20)^(4/3)]]",
+            "{19.8323, 19.8955}",
+            "(-x)^(4/3) is (-x) (-x)^(1/3)",
+        ),
+        ("{Re[#], Precision[#]}&[(-8.`20)^(5/2)]", "{0, 19.6021}", None),
+    ],
+)
+def test_complex_valued_precision(str_expr, str_expected, msg):
+    """Functions with a complex value at a real argument: compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "msg"),
     [
