@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Objects that represent the `Definition` associated with a `Symbol` and
 groups of `Definitions`.
@@ -10,8 +9,9 @@ import os.path as osp
 import pickle
 import re
 from collections import defaultdict
+from collections.abc import Hashable, Iterable, Sequence
 from itertools import chain, islice
-from typing import Hashable, Iterable, Optional, Sequence, Union
+from typing import Optional, Union
 
 from mathics_scanner.tokeniser import full_names_pattern
 
@@ -95,60 +95,6 @@ class Definition:
             if not self.add_rule(rule):
                 print(f"{rule.pattern.expr} could not be associated with {self.name}")
 
-    def __repr__(self) -> str:
-        repr_str = (
-            "<Definition: name: {},"
-            "\n ownvalues: {},\n"
-            " downvalues: {},\n"
-            " formats: {},\n"
-            " attributes: {}>"
-        ).format(
-            self.name,
-            self.ownvalues,
-            self.downvalues,
-            self.formatvalues,
-            self.attributes,
-        )
-        return repr_str
-
-    def add_rule(self, rule: BaseRule) -> bool:
-        """Add a rule to one of the Rule lists. The specific rule list is
-        selected using `determine_value_role().`
-        """
-        rule_list_name = determine_value_role(rule.pattern.expr, self.symbol)
-        if rule_list_name:
-            return self.add_rule_at(rule, rule_list_name)
-        return False
-
-    def add_rule_at(self, rule: BaseRule, rule_list_name: str) -> bool:
-        """
-        Add `rule` to the set of rules in field with attribute `rule_list_name`
-        """
-        values = self.get_values_list(rule_list_name)
-        length = len(values)
-        insert_rule(values, rule, self.get_rule_index(rule_list_name, values))
-        self._update_literal_index(rule_list_name, values, rule, len(values) == length)
-        return True
-
-    def get_rules_for(
-        self, rule_list_name: str, expression: BaseElement
-    ) -> Iterable[BaseRule]:
-        """
-        Return, in the order they are to be tried, the rules of the list
-        `rule_list_name` that may apply to `expression`. Rules whose
-        left-hand side is a literal expression (stored values such as
-        f[1] = a) are found through an index (see ``LiteralRuleIndex``);
-        only the one that is SameQ to `expression`, if any, is returned
-        among them.
-        """
-        values = self.get_values_list(rule_list_name)
-        if len(values) < LITERAL_INDEX_MIN_RULES:
-            return values
-        index = self._get_literal_index(rule_list_name, values)
-        if index is None:
-            return values
-        return index.rules_for(expression)
-
     def _get_literal_index(
         self, rule_list_name: str, values: list[BaseRule]
     ) -> Optional["LiteralRuleIndex"]:
@@ -183,6 +129,53 @@ class Definition:
             return
         if not (is_literal_rule(rule) and index.add(rule, replaced)):
             del cache[rule_list_name]
+
+    def __repr__(self) -> str:
+        repr_str = (
+            f"<Definition: name: {self.name},"
+            f"\n ownvalues: {self.ownvalues},\n"
+            f" downvalues: {self.downvalues},\n"
+            f" formats: {self.formatvalues},\n"
+            f" attributes: {self.attributes}>"
+        )
+        return repr_str
+
+    def add_rule(self, rule: BaseRule) -> bool:
+        """Add a rule to one of the Rule lists. The specific rule list is
+        selected using `determine_value_role().`
+        """
+        rule_list_name = determine_value_role(rule.pattern.expr, self.symbol)
+        if rule_list_name:
+            return self.add_rule_at(rule, rule_list_name)
+        return False
+
+    def add_rule_at(self, rule: BaseRule, rule_list_name: str) -> bool:
+        """
+        Add `rule` to the set of rules in field with attribute `rule_list_name`
+        """
+        values = self.get_values_list(rule_list_name)
+        index = self.get_rule_index(rule_list_name, values)
+        insert_rule(values, rule, index)
+        return True
+
+    def get_rules_for(
+        self, rule_list_name: str, expression: BaseElement
+    ) -> Iterable[BaseRule]:
+        """
+        Return, in the order they are to be tried, the rules of the list
+        `rule_list_name` that may apply to `expression`. Rules whose
+        left-hand side is a literal expression (stored values such as
+        f[1] = a) are found through an index (see ``LiteralRuleIndex``);
+        only the one that is SameQ to `expression`, if any, is returned
+        among them.
+        """
+        values = self.get_values_list(rule_list_name)
+        if len(values) < LITERAL_INDEX_MIN_RULES:
+            return values
+        index = self._get_literal_index(rule_list_name, values)
+        if index is None:
+            return values
+        return index.rules_for(expression)
 
     def get_rule_index(self, rule_list_name: str, values: list[BaseRule]) -> dict:
         """
@@ -222,6 +215,7 @@ class Definition:
         """Remove a rule"""
         position = determine_value_role(lhs, self.symbol)
         if position:
+            self.rule_index.pop(position, None)
             values = self.get_values_list(position)
             for index, existing in enumerate(values):
                 if existing.pattern.expr.sameQ(lhs):
@@ -233,6 +227,7 @@ class Definition:
     def set_values_list(self, pos: str, rules: list[BaseRule]) -> None:
         """Set one of the value lists"""
         assert pos.isalpha()
+        self.rule_index.pop(pos, None)
         setattr(self, pos, rules)
 
 
@@ -1103,8 +1098,10 @@ def insert_rule(
 ) -> None:
     """
     Add a new rule inside a list of values.
+
     Rules are sorted in a way that the first elements
     in value list have more priority in evaluation.
+
     If there is an existent rule in `values` with
     the same pattern than `rule`,  `rule` takes its
     place.
@@ -1115,49 +1112,67 @@ def insert_rule(
         A list of rules.
     rule : Rule
         A new rule.
-    index : dict, optional
-        The unconditional rules of `values` by pattern fingerprint, as
-        built by ``Definition.get_rule_index()``; kept up to date here.
-        With it, `rule` is compared only with the rules whose patterns
-        have its fingerprint. Without it, with every rule in `values`,
-        which makes building a definition of n rules take O(n^2) time.
-
     """
 
-    # If the rule is not conditional, and there are
-    # equivalent rules which are not conditional either,
-    # remove them.
-    if not is_conditional_rule(rule):
+    def is_conditional(x) -> bool:
+        """
+        Check if the replacement rule is a conditional replacement.
+        FunctionApplyRules are always considered "conditional", while
+        replacement rules are conditional if the replace attribute is
+        a conditional expression.
+        """
+        return not hasattr(x, "replace") or x.replace.has_form(SymbolCondition, 2)
+
+    # Same-pattern rules are replaced before the precedence sort.
+    # This matters for:
+    #   insF[1] = a; insF[2] = b; insF[1] = c;
+    # which must leave the list in the order
+    #   [insF[1] -> c, insF[2] -> b]
+    # instead of reordering only by the later insertion point.
+
+    if not is_conditional(rule):
         if index is None:
             for position, existing in enumerate(values):
-                if is_conditional_rule(existing):
+                if is_conditional(existing):
                     continue
                 if existing.pattern.sameQ(rule.pattern):
                     del values[position]
                     break
         else:
-            bucket = index.setdefault(pattern_fingerprint(rule.pattern.expr), [])
+            # Compare only the rules likely to match this pattern.
+            key = pattern_fingerprint(rule.pattern.expr)
+            bucket = index.setdefault(key, [])
+            removed = False
             for existing in list(bucket):
                 if existing.pattern.sameQ(rule.pattern):
                     bucket.remove(existing)
-                    found = find_rule(values, existing)
-                    if found is not None:
-                        del values[found]
-                        break
-                    # `existing` was removed from `values` some other way
-                    # (e.g. by Unset); look further.
-            bucket.append(rule)
+                    try:
+                        pos = find_rule(values, existing)
+                    except Exception:
+                        pos = None
+                    if pos is not None:
+                        del values[pos]
+                    removed = True
+                    break
+            if removed:
+                # If a same-pattern rule was removed, keep the new rule in
+                # the same bucket.
+                bucket.append(rule)
+            else:
+                # No existing same-pattern rule found; keep the new rule
+                # in the bucket if it is a literal unconditional rule.
+                bucket.append(rule)
 
-    # Mathematica orders rules with a partial order: a rule goes before
-    # another one only if it is strictly more specific. Rules which are
-    # not comparable keep their definition order. `insort_right` only
+    # Keep insertion order consistent with precedence after replacement.
+
+    # In Mathematica: a rule goes before
+    # another one only if it is more specific rule. Rules that are
+    # not comparable this way are ordered by the order or time that the rule was defined.
+
+    # `insort_right` only
     # uses `<`, so a key wrapper with a partial `__lt__` is enough.
     # When `rule` is equivalent to an existing rule, it is placed before it,
-    # so newer rules get higher precedence. see DownValues[].
-    # Insert before the first existing rule which strictly contains the new
-    # one. A rule which is not comparable with the others keeps its
-    # definition order, as in Mathematica. A linear scan is used because
-    # the relation is partial, so a binary search is not reliable.
+    # so newer rules get higher precedence. See DownValues[].
     i = 0
     for existing in values:
         if _rule_lt(rule, existing):
