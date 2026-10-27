@@ -156,6 +156,7 @@ class Definition:
         values = self.get_values_list(rule_list_name)
         index = self.get_rule_index(rule_list_name, values)
         insert_rule(values, rule, index)
+        self.rule_index[rule_list_name] = (values, index)
         return True
 
     def get_rules_for(
@@ -183,11 +184,12 @@ class Definition:
         list `rule_list_name`, by pattern fingerprint.
         """
         if not hasattr(self, "rule_index"):
-            # A Definition pickled before rule_index existed.
             self.rule_index = {}
+
         indexed = self.rule_index.get(rule_list_name)
         if indexed is not None and indexed[0] is values:
             return indexed[1]
+
         index: dict[Hashable, list[BaseRule]] = {}
         for existing in values:
             if not is_conditional_rule(existing):
@@ -215,12 +217,11 @@ class Definition:
         """Remove a rule"""
         position = determine_value_role(lhs, self.symbol)
         if position:
-            self.rule_index.pop(position, None)
             values = self.get_values_list(position)
             for index, existing in enumerate(values):
                 if existing.pattern.expr.sameQ(lhs):
                     del values[index]
-                    self.__dict__.get("literal_index", {}).pop(position, None)
+                    self.rule_index.pop(position, None)
                     return True
         return False
 
@@ -1105,13 +1106,6 @@ def insert_rule(
     If there is an existent rule in `values` with
     the same pattern than `rule`,  `rule` takes its
     place.
-
-    Parameters
-    ----------
-    values : list[Rule]
-        A list of rules.
-    rule : Rule
-        A new rule.
     """
 
     def is_conditional(x) -> bool:
@@ -1140,28 +1134,21 @@ def insert_rule(
                     break
         else:
             # Compare only the rules likely to match this pattern.
-            key = pattern_fingerprint(rule.pattern.expr)
-            bucket = index.setdefault(key, [])
-            removed = False
+            bucket_key = pattern_fingerprint(rule.pattern.expr)
+            bucket = index.setdefault(bucket_key, [])
+
+            # Replace the rule with the same pattern in both the list and the index.
             for existing in list(bucket):
                 if existing.pattern.sameQ(rule.pattern):
                     bucket.remove(existing)
-                    try:
-                        pos = find_rule(values, existing)
-                    except Exception:
-                        pos = None
-                    if pos is not None:
-                        del values[pos]
-                    removed = True
+                    for pos, candidate in enumerate(values):
+                        if candidate is existing:
+                            del values[pos]
+                            break
                     break
-            if removed:
-                # If a same-pattern rule was removed, keep the new rule in
-                # the same bucket.
-                bucket.append(rule)
-            else:
-                # No existing same-pattern rule found; keep the new rule
-                # in the bucket if it is a literal unconditional rule.
-                bucket.append(rule)
+
+            # Important: the new rule must be kept in the bucket for future same-pattern checks.
+            bucket.append(rule)
 
     # Keep insertion order consistent with precedence after replacement.
 
