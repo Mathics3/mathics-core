@@ -2,11 +2,17 @@
 
 """low-level Functions involving Matrices and Arrays"""
 
-from typing import Optional
+from typing import Any, Callable, Optional
 
 from sympy import Array, Matrix
 
+from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.python import from_python
+from mathics.core.list import ListExpression
 from mathics.core.symbols import SymbolList
+
+# A matrix in nested list form: a Python list of rows, each a list of entries.
+NestedListMatrix = list[list[Any]]
 
 
 def matrix_data(m):
@@ -59,3 +65,18 @@ def to_sympy_matrix(m) -> Optional[Matrix]:
         if None not in result:
             return Matrix(result)
     return None
+
+
+def to_mathics_matrix(
+    rows: NestedListMatrix, elements_conversion_fn: Callable = from_python
+) -> ListExpression:
+    """Convert a matrix in nested list form into a Mathics3 List of Lists.
+    Each entry is converted with ``elements_conversion_fn``.
+    """
+    return to_mathics_list(
+        *(
+            to_mathics_list(*row, elements_conversion_fn=elements_conversion_fn)
+            for row in rows
+        ),
+        elements_conversion_fn=lambda row: row,
+    )

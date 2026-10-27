@@ -258,12 +258,15 @@ class Negative(Builtin):
      = False
     >> Negative[a + b]
      = Negative[a + b]
+    >> {Negative[Infinity], Negative[-Infinity]}
+     = {False, True}
     """
 
     attributes = A_LISTABLE | A_PROTECTED
 
     rules = {
         "Negative[x_?NumericQ]": "If[x < 0, True, False, False]",
+        "Negative[DirectedInfinity[x_?NumericQ]]": "Negative[x]",
     }
     summary_text = "test whether an expression is a negative number"
 
@@ -285,6 +288,7 @@ class NonNegative(Builtin):
 
     rules = {
         "NonNegative[x_?NumericQ]": "If[x >= 0, True, False, False]",
+        "NonNegative[DirectedInfinity[x_?NumericQ]]": "NonNegative[x]",
     }
     summary_text = "test whether an expression is a non-negative number"
 
@@ -306,6 +310,7 @@ class NonPositive(Builtin):
 
     rules = {
         "NonPositive[x_?NumericQ]": "If[x <= 0, True, False, False]",
+        "NonPositive[DirectedInfinity[x_?NumericQ]]": "NonPositive[x]",
     }
     summary_text = "test whether an expression is a non-positive number"
 
@@ -513,6 +518,7 @@ class Positive(Builtin):
 
     rules = {
         "Positive[x_?NumericQ]": "If[x > 0, True, False, False]",
+        "Positive[DirectedInfinity[x_?NumericQ]]": "Positive[x]",
     }
     summary_text = "test whether an expression is a positive number"
 

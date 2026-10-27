@@ -80,6 +80,17 @@ def test_logic(str_expr, msgs, str_expected, fail_msg):
             None,
         ),
         ("SubsetQ[f[a, b, c], f[a]]", None, "True", None),
+        ("IntersectingQ[{1, 2}, {2, 3}]", None, "True", None),
+        ("IntersectingQ[{1, 2}, {3, 4}]", None, "False", None),
+        ("IntersectingQ[{}, {}]", None, "False", None),
+        ("DisjointQ[{1, 2}, {3, 4}]", None, "True", None),
+        ("DisjointQ[{1, 2}, {2, 3}]", None, "False", None),
+        (
+            "DisjointQ[{a}]",
+            None,
+            "DisjointQ[{a}]",
+            "DisjointQ is not a one-argument test",
+        ),
     ],
 )
 def test_list_oriented(str_expr, msgs, str_expected, fail_msg):
@@ -134,6 +145,44 @@ def test_equality_inequality(str_expr, msgs, str_expected, fail_msg):
         ("Positive[Sin[{11, 14}]]", None, "{False, True}", None),
         ("PrimeQ[1]", None, "False", None),
         ("PrimeQ[2 ^ 255 - 1]", None, "False", None),
+        # Real infinities
+        ("{Negative[Infinity], Negative[-Infinity]}", None, "{False, True}", None),
+        ("{Positive[Infinity], Positive[-Infinity]}", None, "{True, False}", None),
+        (
+            "{NonNegative[Infinity], NonNegative[-Infinity]}",
+            None,
+            "{True, False}",
+            None,
+        ),
+        (
+            "{NonPositive[Infinity], NonPositive[-Infinity]}",
+            None,
+            "{False, True}",
+            None,
+        ),
+        ("Negative[2 {Infinity, 3} - {3, 0}]", None, "{False, False}", None),
+        ("Negative[ComplexInfinity]", None, "Negative[ComplexInfinity]", None),
+        # Other directions: the sign test of the direction, as in WMA
+        (
+            "{Positive[DirectedInfinity[1.]], Negative[DirectedInfinity[-1/2]],"
+            " NonNegative[DirectedInfinity[Pi]], NonPositive[DirectedInfinity[-Sqrt[2]]]}",
+            None,
+            "{True, True, True, True}",
+            None,
+        ),
+        (
+            "{Positive[DirectedInfinity[I]], Negative[DirectedInfinity[1 + I]],"
+            " NonNegative[DirectedInfinity[-I]], NonPositive[DirectedInfinity[I]]}",
+            None,
+            "{False, False, False, False}",
+            None,
+        ),
+        (
+            "Head[Positive[DirectedInfinity[x]]]",
+            None,
+            "Positive",
+            "A symbolic direction is left undecided",
+        ),
         # Non-atomic arguments
         ("EvenQ[f[2]]", None, "False", "Non-atomic EvenQ check"),
         ("OddQ[f[1]]", None, "False", "Non-atomic OddQ check"),
@@ -182,6 +231,10 @@ def test_numerical_properties(str_expr, msgs, str_expected, fail_msg):
         ("MatchQ[1, a_.*b_.]", None, "True", None),
         ("MatchQ[x, a_.*b_.]", None, "True", None),
         ("MatchQ[2*x, a_.*b_.]", None, "True", None),
+        # Orderless literal patterns mixing an atom and an expression
+        ("MatchQ[2 x[3], 2 x[3]]", None, "True", None),
+        ("MatchQ[x[3] + 2, 2 + x[3]]", None, "True", None),
+        ("MatchQ[2 x[3], 3 x[3]]", None, "False", None),
     ],
 )
 def test_matchq(str_expr, msgs, str_expected, fail_msg):

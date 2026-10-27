@@ -2,6 +2,7 @@
 """
 Unit tests from mathics.builtin.symbol.properties
 """
+
 from test.helper import check_evaluation
 
 import pytest
@@ -128,3 +129,100 @@ def test_upvalues_ownvalues(str_expr, str_expected, msgs, failure_msg):
     check_evaluation(
         str_expr, str_expected, expected_messages=msgs, failure_message=failure_msg
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected"),
+    [
+        # https://github.com/Mathics3/mathics-core/issues/2002
+        (
+            "DownValues[hpf] = {HoldPattern[hpf[1]] :> c}; hpf[1] = d; DownValues[hpf]",
+            "{HoldPattern[hpf[1]] :> d}",
+        ),
+        (
+            "DownValues[hpg] = {HoldPattern[hpg[x_]] :> x^2}; DownValues[hpg]",
+            "{HoldPattern[hpg[x_]] :> x^2}",
+        ),
+        (
+            "OwnValues[hpo] = {HoldPattern[hpo] :> 1}; hpo = 2; OwnValues[hpo]",
+            "{HoldPattern[hpo] :> 2}",
+        ),
+        (
+            "SubValues[hps] = {HoldPattern[hps[1][2]] :> 1}; hps[1][2] = 3; SubValues[hps]",
+            "{HoldPattern[hps[1][2]] :> 3}",
+        ),
+        (
+            "UpValues[hpu] = {HoldPattern[hpk[hpu]] :> 1}; hpk[hpu] ^= 2; UpValues[hpu]",
+            "{HoldPattern[hpk[hpu]] :> 2}",
+        ),
+        # Only one HoldPattern level is removed.
+        (
+            "DownValues[hpp] = {HoldPattern[HoldPattern[hpp[1]]] :> c}; DownValues[hpp]",
+            "{HoldPattern[HoldPattern[hpp[1]]] :> c}",
+        ),
+        ("hpp[1]", "c"),
+    ],
+)
+def test_values_assignment_holdpattern(str_expr, str_expected):
+    check_evaluation(f"{str_expr} === {str_expected}", "True")
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected"),
+    [
+        # WMA shows and accepts the machine precision of an NValues rule
+        # as {MachinePrecision, MachinePrecision}.
+        (
+            "N[nva] = 1.; NValues[nva]",
+            "{HoldPattern[N[nva, {MachinePrecision, MachinePrecision}]] :> 1.}",
+        ),
+        (
+            "NValues[nvb] = {HoldPattern[N[nvb, {MachinePrecision, MachinePrecision}]] :> 2.}; N[nvb]",
+            "2.",
+        ),
+        (
+            "NValues[nvc] = {HoldPattern[N[nvc, MachinePrecision]] :> 3.}; N[nvc]",
+            "3.",
+        ),
+        (
+            "N[nvd, {MachinePrecision, MachinePrecision}] = 4.; N[nvd, MachinePrecision] = 5.; NValues[nvd]",
+            "{HoldPattern[N[nvd, {MachinePrecision, MachinePrecision}]] :> 5.}",
+        ),
+        ("NValues[nve] = NValues[nvd] /. nvd -> nve; N[nve]", "5."),
+    ],
+)
+def test_nvalues_machine_precision(str_expr, str_expected):
+    check_evaluation(f"{str_expr} === {str_expected}", "True")
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected"),
+    [
+        # As in WMA, an N rule gets a numeric precision as a machine real.
+        ("N[npd, p_] := Hold[p]; N[npd, 20]", "Hold[20.]"),
+        ("N[npd, {10, 5}]", "Hold[{10., 5.}]"),
+        # WMA shows a numeric precision as {precision, accuracy}.
+        (
+            "N[npa, 20] = 5; NValues[npa]",
+            "{HoldPattern[N[npa, {20., Infinity}]] :> 5}",
+        ),
+        ("N[npa, 20] == 5", "True"),
+        (
+            "N[npb, {10, 5}] = 7; NValues[npb]",
+            "{HoldPattern[N[npb, {10., 5.}]] :> 7}",
+        ),
+        ("N[npb, {10, 5}] == 7", "True"),
+        # Rules in that form, and in the plain one, are accepted.
+        (
+            "NValues[npc] = {HoldPattern[N[npc, {20., Infinity}]] :> 1}; N[npc, 20] == 1",
+            "True",
+        ),
+        (
+            "NValues[npe] = {HoldPattern[N[npe, 20]] :> 2}; NValues[npe]",
+            "{HoldPattern[N[npe, {20., Infinity}]] :> 2}",
+        ),
+        ("N[npf, {20, Infinity}] = 8; N[npf, 20] == 8", "True"),
+    ],
+)
+def test_nvalues_numeric_precision(str_expr, str_expected):
+    check_evaluation(f"{str_expr} === {str_expected}", "True")

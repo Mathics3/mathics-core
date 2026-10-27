@@ -87,7 +87,7 @@ class Definition(Builtin):
      .
      . r[(arg_.), OptionsPattern[r]] = {arg, OptionValue[Opt]}
      .
-     . N[r, MachinePrecision] = 3.5
+     . N[r, {MachinePrecision, MachinePrecision}] = 3.5
      .
      . Format[r[args___], MathMLForm] = Infix[{args}, "#"]
      .

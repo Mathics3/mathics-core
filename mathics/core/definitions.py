@@ -9,7 +9,18 @@ import os.path as osp
 import pickle
 import re
 from collections import defaultdict
-from typing import Dict, List, Optional, Sequence, Set, Tuple, Union
+from itertools import chain, islice
+from typing import (
+    Dict,
+    Hashable,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    Union,
+)
 
 from mathics_scanner.tokeniser import full_names_pattern
 
@@ -79,6 +90,12 @@ class Definition:
         self.options: dict[str, BaseElement] = rules_dict.get("options", {})
         self.messages = rules_dict.get("messages", [])
 
+        # For each rule list, an index of its unconditional rules by the
+        # fingerprint of their patterns, see ``insert_rule()``. It belongs to
+        # the list object it was built for and is rebuilt when the list is
+        # replaced.
+        self.rule_index: Dict[str, Tuple[list, dict]] = {}
+
         self.is_numeric = is_numeric
         self.attributes = attributes
         self.builtin = builtin
@@ -117,8 +134,84 @@ class Definition:
         Add `rule` to the set of rules in field with attribute `rule_list_name`
         """
         values = self.get_values_list(rule_list_name)
-        insert_rule(values, rule)
+        length = len(values)
+        insert_rule(values, rule, self.get_rule_index(rule_list_name, values))
+        self._update_literal_index(rule_list_name, values, rule, len(values) == length)
         return True
+
+    def get_rules_for(
+        self, rule_list_name: str, expression: BaseElement
+    ) -> Iterable[BaseRule]:
+        """
+        Return, in the order they are to be tried, the rules of the list
+        `rule_list_name` that may apply to `expression`. Rules whose
+        left-hand side is a literal expression (stored values such as
+        f[1] = a) are found through an index (see ``LiteralRuleIndex``);
+        only the one that is SameQ to `expression`, if any, is returned
+        among them.
+        """
+        values = self.get_values_list(rule_list_name)
+        if len(values) < LITERAL_INDEX_MIN_RULES:
+            return values
+        index = self._get_literal_index(rule_list_name, values)
+        if index is None:
+            return values
+        return index.rules_for(expression)
+
+    def _get_literal_index(
+        self, rule_list_name: str, values: List[BaseRule]
+    ) -> Optional["LiteralRuleIndex"]:
+        """
+        The literal index of `values`, the rule list `rule_list_name`,
+        built when first needed. None when the list can not be indexed.
+        """
+        cache = self.__dict__.setdefault("literal_index", {})
+        entry = cache.get(rule_list_name)
+        if entry is not None and entry[0] is values:
+            return entry[1]
+        index = LiteralRuleIndex.build(values)
+        cache[rule_list_name] = (values, index)
+        return index
+
+    def _update_literal_index(
+        self,
+        rule_list_name: str,
+        values: List[BaseRule],
+        rule: BaseRule,
+        replaced: bool,
+    ) -> None:
+        """
+        Keep the literal index of `values` right after `rule` was inserted;
+        `replaced` tells whether it took the place of an existing rule.
+        """
+        cache = self.__dict__.get("literal_index")
+        if not cache or rule_list_name not in cache:
+            return
+        values_indexed, index = cache[rule_list_name]
+        if values_indexed is not values or index is None:
+            return
+        if not (is_literal_rule(rule) and index.add(rule, replaced)):
+            del cache[rule_list_name]
+
+    def get_rule_index(self, rule_list_name: str, values: List[BaseRule]) -> dict:
+        """
+        Return the index of the unconditional rules in `values`, the rule
+        list `rule_list_name`, by pattern fingerprint.
+        """
+        if not hasattr(self, "rule_index"):
+            # A Definition pickled before rule_index existed.
+            self.rule_index = {}
+        indexed = self.rule_index.get(rule_list_name)
+        if indexed is not None and indexed[0] is values:
+            return indexed[1]
+        index: Dict[Hashable, List[BaseRule]] = {}
+        for existing in values:
+            if not is_conditional_rule(existing):
+                index.setdefault(pattern_fingerprint(existing.pattern.expr), []).append(
+                    existing
+                )
+        self.rule_index[rule_list_name] = (values, index)
+        return index
 
     def get_values_list(self, rule_list_name: str) -> list[BaseRule]:
         """Return a Rule value lists"""
@@ -142,6 +235,7 @@ class Definition:
             for index, existing in enumerate(values):
                 if existing.pattern.expr.sameQ(lhs):
                     del values[index]
+                    self.__dict__.get("literal_index", {}).pop(position, None)
                     return True
         return False
 
@@ -459,6 +553,15 @@ class Definitions:
     def get_downvalues(self, name: str) -> List[BaseRule]:
         """Return the list of downvalues"""
         return self.get_definition(name).downvalues
+
+    def get_rules_for(
+        self, name: str, rule_list_name: str, expression: BaseElement
+    ) -> Iterable[BaseRule]:
+        """
+        Return the rules of the list `rule_list_name` of the Symbol `name`
+        to try on `expression`, in order (see ``Definition.get_rules_for``).
+        """
+        return self.get_definition(name).get_rules_for(rule_list_name, expression)
 
     def get_formats(self, name: str, format_name="") -> List[BaseRule]:
         """
@@ -975,7 +1078,38 @@ def determine_value_role(
     return None
 
 
-def insert_rule(values: List[BaseRule], rule: BaseRule) -> None:
+def is_conditional_rule(rule: BaseRule) -> bool:
+    """
+    Check if the replacement rule is a conditional replacement.
+    FunctionApplyRules are always considered "conditional", while
+    replacement rules are conditional if the replace attribute is
+    a conditional expression.
+    """
+    return not hasattr(rule, "replace") or rule.replace.has_form(SymbolCondition, 2)
+
+
+def pattern_fingerprint(expr: BaseElement) -> Hashable:
+    """
+    Return a hashable summary of `expr` such that expressions that are
+    SameQ have the same fingerprint. Integers, strings and symbols are
+    told apart; all other atoms, whose SameQ may be looser (e.g. Reals
+    of different precision), share one fingerprint.
+    """
+    if isinstance(expr, Symbol):
+        return expr.name
+    if isinstance(expr, (Integer, String)):
+        return (type(expr).__name__, expr.value)
+    if isinstance(expr, Atom):
+        return None
+    return (
+        pattern_fingerprint(expr.get_head()),
+        tuple(pattern_fingerprint(element) for element in expr.get_elements()),
+    )
+
+
+def insert_rule(
+    values: List[BaseRule], rule: BaseRule, index: Optional[dict] = None
+) -> None:
     """
     Add a new rule inside a list of values.
     Rules are sorted in a way that the first elements
@@ -990,28 +1124,38 @@ def insert_rule(values: List[BaseRule], rule: BaseRule) -> None:
         A list of rules.
     rule : Rule
         A new rule.
+    index : dict, optional
+        The unconditional rules of `values` by pattern fingerprint, as
+        built by ``Definition.get_rule_index()``; kept up to date here.
+        With it, `rule` is compared only with the rules whose patterns
+        have its fingerprint. Without it, with every rule in `values`,
+        which makes building a definition of n rules take O(n^2) time.
 
     """
-
-    def is_conditional(x) -> bool:
-        """
-        Check if the replacement rule is a conditional replacement.
-        FunctionApplyRules are always considered "conditional", while
-        replacement rules are conditional if the replace attribute is
-        a conditional expression.
-        """
-        return not hasattr(x, "replace") or x.replace.has_form(SymbolCondition, 2)
 
     # If the rule is not conditional, and there are
     # equivalent rules which are not conditional either,
     # remove them.
-    if not is_conditional(rule):
-        for index, existing in enumerate(values):
-            if is_conditional(existing):
-                continue
-            if existing.pattern.sameQ(rule.pattern):
-                del values[index]
-                break
+    if not is_conditional_rule(rule):
+        if index is None:
+            for position, existing in enumerate(values):
+                if is_conditional_rule(existing):
+                    continue
+                if existing.pattern.sameQ(rule.pattern):
+                    del values[position]
+                    break
+        else:
+            bucket = index.setdefault(pattern_fingerprint(rule.pattern.expr), [])
+            for existing in list(bucket):
+                if existing.pattern.sameQ(rule.pattern):
+                    bucket.remove(existing)
+                    found = find_rule(values, existing)
+                    if found is not None:
+                        del values[found]
+                        break
+                    # `existing` was removed from `values` some other way
+                    # (e.g. by Unset); look further.
+            bucket.append(rule)
 
     # Mathematica orders rules with a partial order: a rule goes before
     # another one only if it is strictly more specific. Rules which are
@@ -1042,6 +1186,202 @@ def _rule_lt(new: BaseRule, existing: BaseRule) -> bool:
     if contained is None:
         return new.pattern_precedence <= existing.pattern_precedence
     return contained
+
+
+def find_rule(values: List[BaseRule], rule: BaseRule) -> Optional[int]:
+    """
+    Return the position of the very object `rule` in `values`, or None.
+    `values` is normally sorted by ``pattern_precedence`` (``insert_rule()``
+    keeps it so), and then only the rules with the precedence of `rule`
+    are looked at.
+    """
+    precedence = rule.pattern_precedence
+    try:
+        start = bisect.bisect_left(
+            values, precedence, key=lambda x: x.pattern_precedence
+        )
+        end = bisect.bisect_right(
+            values, precedence, lo=start, key=lambda x: x.pattern_precedence
+        )
+    except TypeError:
+        start, end = 0, 0
+    for position in range(start, end):
+        if values[position] is rule:
+            return position
+    # Not sorted, e.g. after DownValues[f] = {...}: look everywhere.
+    for position, existing in enumerate(values):
+        if existing is rule:
+            return position
+    return None
+
+
+# Rule lists shorter than this are just scanned.
+LITERAL_INDEX_MIN_RULES = 8
+
+# At most this many tokens of an expression go into its literal key.
+LITERAL_KEY_LIMIT = 64
+
+
+def literal_key(expr: BaseElement) -> tuple:
+    """
+    Return a hashable key of the structure of `expr`: its heads, lengths,
+    symbols, integers and strings, in prefix order. Expressions that are
+    SameQ have the same key. Other atoms (Reals, Complex, ...) count only
+    as "some atom", and an expression longer than LITERAL_KEY_LIMIT tokens
+    is cut; both only make different expressions share a key.
+    """
+    tokens: list = []
+    stack = [expr]
+    while stack and len(tokens) < LITERAL_KEY_LIMIT:
+        element = stack.pop()
+        if isinstance(element, Symbol):
+            tokens.append(element.name)
+        elif isinstance(element, Integer):
+            tokens.append(("I", element.value))
+        elif isinstance(element, String):
+            tokens.append(("S", element.value))
+        elif isinstance(element, Atom):
+            tokens.append(None)
+        else:
+            elements = element.get_elements()
+            tokens.append(len(elements))
+            stack.extend(reversed(elements))
+            stack.append(element.get_head())
+    if stack:
+        tokens.append("...")
+    return tuple(tokens)
+
+
+def _has_only_plain_atoms(expr: BaseElement) -> bool:
+    """True if every atom in `expr` is a Symbol, an Integer or a String."""
+    if isinstance(expr, (Symbol, Integer, String)):
+        return True
+    if isinstance(expr, Atom):
+        return False
+    return _has_only_plain_atoms(expr.get_head()) and all(
+        _has_only_plain_atoms(element) for element in expr.get_elements()
+    )
+
+
+def is_literal_rule(rule: BaseRule) -> bool:
+    """
+    True for an unconditional rewrite rule whose left-hand side is a
+    literal expression made of symbols, integers and strings, under a head
+    that is not Orderless, Flat or OneIdentity. Such a rule applies to an
+    expression exactly when the expression is SameQ to its left-hand side,
+    that is, when they have the same literal_key and are SameQ.
+    """
+    from mathics.core.pattern.ordered import OrderedExpressionPattern
+
+    if not isinstance(rule, RewriteRule) or rule.replace.has_form(SymbolCondition, 2):
+        return False
+    pattern = rule.pattern
+    return (
+        type(pattern) is OrderedExpressionPattern
+        and getattr(pattern, "isliteral", False)
+        and _has_only_plain_atoms(pattern.expr)
+    )
+
+
+class LiteralRuleIndex:
+    """
+    An index of the literal rules (see ``is_literal_rule``) of a rule list,
+    by the literal_key of their left-hand sides, together with the list of
+    the other rules in their order.
+
+    Evaluation tries the rules of a list in order and applies the first one
+    that matches. Of the literal rules, only one SameQ to the expression
+    can match, so it is enough to try that one, at its place among the
+    other rules. Its place is found from the sort keys
+    (``pattern_precedence``) by which ``insert_rule`` keeps the list
+    ordered. So the index is only built for a list in that order, and where
+    no literal rule shares its sort key with another rule.
+
+    The order of the literal rules among themselves does not matter, since
+    at most one of them matches. The order of all the other rules,
+    including those that share a sort key and so stay in the order in which
+    they were assigned, is the order of the list itself.
+    """
+
+    def __init__(self, table: dict, others: list, other_keys: list):
+        self.table = table
+        self.others = others
+        self.other_keys = other_keys
+        self.other_key_set = set(other_keys)
+
+    @classmethod
+    def build(cls, values: List[BaseRule]) -> Optional["LiteralRuleIndex"]:
+        """The index of `values`, or None if it can not be indexed."""
+        try:
+            keys = [rule.pattern_precedence for rule in values]
+            if any(later < earlier for earlier, later in zip(keys, keys[1:])):
+                return None
+            table: Dict[tuple, List[BaseRule]] = {}
+            others: List[BaseRule] = []
+            other_keys: list = []
+            # The sort keys of the literal rules; many literal rules
+            # (f[1], f[2], ...) share one. It is only checked against the
+            # keys of the other rules: a literal rule whose place among them
+            # the keys do not decide makes the list not indexed.
+            literal_precedences = set()
+            for rule, key in zip(values, keys):
+                if is_literal_rule(rule):
+                    table.setdefault(literal_key(rule.pattern.expr), []).append(rule)
+                    literal_precedences.add(key)
+                else:
+                    others.append(rule)
+                    other_keys.append(key)
+            if not literal_precedences.isdisjoint(other_keys):
+                return None
+        except TypeError:
+            # sort keys that do not compare or hash
+            return None
+        return cls(table, others, other_keys)
+
+    def rules_for(self, expression: BaseElement) -> Iterable[BaseRule]:
+        """The rules to try on `expression`, in order."""
+        if not self.table:
+            return self.others
+        bucket = self.table.get(literal_key(expression))
+        if bucket:
+            for rule in bucket:
+                if rule.pattern.expr.sameQ(expression):
+                    position = bisect.bisect_left(
+                        self.other_keys, rule.pattern_precedence
+                    )
+                    if position == 0:
+                        return chain((rule,), self.others)
+                    return chain(
+                        islice(self.others, position),
+                        (rule,),
+                        islice(self.others, position, None),
+                    )
+        return self.others
+
+    def add(self, rule: BaseRule, replaced: bool) -> bool:
+        """
+        Record the literal rule `rule`, just inserted in the list; if
+        `replaced`, it took the place of a rule with the same left-hand
+        side. Return False if the index can not follow the change and must
+        be rebuilt.
+        """
+        try:
+            if rule.pattern_precedence in self.other_key_set:
+                return False
+        except TypeError:
+            return False
+        bucket = self.table.setdefault(literal_key(rule.pattern.expr), [])
+        kept = [
+            existing
+            for existing in bucket
+            if not existing.pattern.expr.sameQ(rule.pattern.expr)
+        ]
+        if replaced and len(kept) == len(bucket):
+            # The rule replaced was not one of the indexed ones.
+            return False
+        kept.append(rule)
+        bucket[:] = kept
+        return True
 
 
 def merge_definitions(candidates: List[Definition]) -> Definition:

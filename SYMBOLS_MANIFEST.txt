@@ -42,6 +42,7 @@ System`$Machine
 System`$MachineEpsilon
 System`$MachineName
 System`$MachinePrecision
+System`$MaxExtraPrecision
 System`$MaxLengthIntStringConversion
 System`$MaxMachineNumber
 System`$MaxPrecision
@@ -934,6 +935,7 @@ System`Polygon
 System`Polygon3DBox
 System`PolygonBox
 System`PolygonalNumber
+System`PolynomialMod
 System`PolynomialQ
 System`Position
 System`Positive
@@ -1095,12 +1097,14 @@ System`SeriesCoefficient
 System`SeriesData
 System`SessionTime
 System`Set
+System`SetAccuracy
 System`SetAttributes
 System`SetDelayed
 System`SetDirectory
 System`SetEnvironment
 System`SetFileDate
 System`SetOptions
+System`SetPrecision
 System`SetStreamPosition
 System`Share
 System`Sharpen
@@ -1220,9 +1224,9 @@ System`SyntaxQ
 System`Table
 System`TableForm
 System`TagBox
-System`TagUnset
 System`TagSet
 System`TagSetDelayed
+System`TagUnset
 System`Take
 System`TakeLargest
 System`TakeLargestBy

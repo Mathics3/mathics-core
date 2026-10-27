@@ -4,6 +4,7 @@ Unit tests for mathics.builtins.numeric
 
 In particular, Rationalize and RealValuNumberQ
 """
+
 from test.helper import check_evaluation, check_wrong_number_of_arguments
 
 import pytest
@@ -137,6 +138,17 @@ def test_realvalued():
         ),
         ("Sign[1 - 4*I] == (1/17 - 4 I/17) Sqrt[17]", None, "True", None),
         ('Sign["20"]', None, "Sign[20]", None),
+        # Round must not go through a machine float (53 bits).
+        ("Round[10^20 + 1]", None, "100000000000000000001", None),
+        ("Round[-10^20 - 1]", None, "-100000000000000000001", None),
+        ("Round[123456789012345678901/10]", None, "12345678901234567890", None),
+        ("Round[(10^20 + 1)/2]", None, "50000000000000000000", None),
+        ("Round[Pi 10^20]", None, "314159265358979323846", None),
+        ("Round[Sqrt[2] 10^30]", None, "1414213562373095048801688724210", None),
+        ("Round[1.5`30 10^25]", None, "15000000000000000000000000", None),
+        ("Round[10^20 + 7, 10]", None, "100000000000000000010", None),
+        ("Round[1/2 + 10^-40]", None, "1", None),
+        ("Round[{5/2, 7/2, -5/2}]", None, "{2, 4, -2}", None),
     ],
 )
 def test_numeric(str_expr, msgs, str_expected, fail_msg):
@@ -148,6 +160,49 @@ def test_numeric(str_expr, msgs, str_expected, fail_msg):
         to_string_expected=True,
         hold_expected=True,
         failure_message=fail_msg,
+        expected_messages=msgs,
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected"),
+    [
+        # The precision is min(prec, acc + Log10[Abs[x]]), as in WMA.
+        ("Precision[N[Pi, {20, 5}]]", None, "5.49715"),
+        ("Precision[N[Pi, {Infinity, 5}]]", None, "5.49715"),
+        ("Precision[N[Pi*10^10, {20, 5}]]", None, "15.4971"),
+        ("Precision[N[Pi*10^30, {Infinity, 5}]]", None, "35.4971"),
+        ("Precision[N[Pi, {20, Infinity}]]", None, "20."),
+        ("Precision[N[Pi, {10, 50}]]", None, "10."),
+        ("Precision[N[Sqrt[2] + Pi, {30, 10}]]", None, "10.6586"),
+        ("Abs[N[Pi, {20, 5}] - Pi] < 10^-5", None, "True"),
+        ("Precision[N[{Pi, x + E}, {20, 5}]]", None, "5.43429"),
+        # A number below the accuracy becomes a zero of that accuracy.
+        ("Accuracy[N[Pi/10^10, {20, 5}]]", None, "5."),
+        ("N[Pi/10^10, {20, 5}] == 0", None, "True"),
+        ("N[Pi, {Infinity, Infinity}]", None, "Pi"),
+        ("Precision[N[Pi, {MachinePrecision, 5}]]", None, "MachinePrecision"),
+        ("Precision[N[2.5, {10, 5}]]", None, "MachinePrecision"),
+        ("N[npx, {10, 5}]", None, "npx"),
+        (
+            "N[Pi, {20, 5, 3}]",
+            ("Argument {20, 5, 3} is not of the form {precision, accuracy}.",),
+            "N[Pi, {20, 5, 3}]",
+        ),
+        (
+            "N[Pi, {a, 5}]",
+            ("Requested precision a is not a machine-sized real number.",),
+            "N[Pi, {a, 5}]",
+        ),
+    ],
+)
+def test_n_precision_and_accuracy(str_expr, msgs, str_expected):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
         expected_messages=msgs,
     )
 

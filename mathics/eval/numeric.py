@@ -7,7 +7,9 @@ Many of these depend on the evaluation context. Conversions to SymPy are
 used just as a last resource.
 """
 
-from typing import Callable, List, Optional, Tuple
+import math
+from fractions import Fraction
+from typing import Callable, Final, Optional
 
 import mpmath
 import sympy
@@ -24,6 +26,7 @@ from mathics.core.atoms import (
     Integer1,
     IntegerM1,
     Number,
+    PrecisionReal,
     Rational,
     RationalOneHalf,
     Real,
@@ -31,20 +34,25 @@ from mathics.core.atoms import (
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.number import (
     FP_MANTISA_BINARY_DIGITS,
+    MIN_STORED_BITS,
     SpecialValueError,
     is_inexact,
     is_machine_precision,
+    is_numeric,
     is_zero,
     min_prec,
+    prec as number_prec,
 )
 from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolPower, SymbolTimes
 from mathics.core.systemsymbols import (
     SymbolAbs,
     SymbolComplexInfinity,
     SymbolDirectedInfinity,
+    SymbolDivide,
     SymbolExp,
     SymbolI,
     SymbolIndeterminate,
@@ -266,6 +274,51 @@ def eval_RealSign(expr: BaseElement) -> Optional[Integer]:
         try_add = eval_add_numbers(*(to_inexact_value(term) for term in expr.elements))
         if try_add is not None and try_add is not expr:
             return eval_RealSign(try_add)
+
+
+def eval_Round(
+    expr: BaseElement, k: BaseElement, evaluation: Evaluation
+) -> Optional[BaseElement]:
+    """
+    Round[expr, k]: the multiple of `k` closest to `expr`, ties to even.
+    Returns None when `expr` is not numeric or cannot be rounded.
+    """
+    if not is_numeric(expr, evaluation):
+        # We can't evaluate, so keep the symbolic representation.
+        return None
+
+    quotient = Expression(SymbolDivide, expr, k)
+    n = round_real_exactly(quotient.evaluate(evaluation))
+    if n is None:
+        n = quotient.round_to_float(evaluation, permit_complex=True)
+        if n is None:
+            return None
+        elif isinstance(n, complex):
+            n = round(n.real)
+        else:
+            n = round(n)
+    n = int(n)
+    return Expression(SymbolTimes, Integer(n), k)
+
+
+def round_real_exactly(x: BaseElement) -> Optional[int]:
+    """
+    The integer closest to the real number `x`, ties to even, computed
+    without going through a machine float: a machine float has 53 bits, so
+    Round[10^20 + 1] would otherwise give 10^20. Returns None when `x` is
+    not known to be real.
+    """
+    value = x.to_sympy()
+    if value is None or not value.is_number or value.is_real is not True:
+        return None
+    if value.is_Rational or value.is_Float:
+        # A Float is a binary fraction; Rational() gives it exactly.
+        return round(Fraction(*map(int, sympy.Rational(value).as_numer_denom())))
+    # An exact irrational number such as Pi 10^20 is never halfway
+    # between two integers; SymPy finds its floor to whatever precision
+    # that needs.
+    floor = sympy.floor(value + sympy.Rational(1, 2))
+    return int(floor) if floor.is_Integer else None
 
 
 def eval_Sign(expr: Number) -> Optional[BaseElement]:
@@ -545,6 +598,410 @@ def eval_Power_inexact(base: Number, exp: Number) -> BaseElement:
                 return from_mpmath(number, prec)
 
 
+def _combine_digits(digits: list[float]) -> float:
+    """
+    Given the precisions (or accuracies) of some numbers in decimal
+    digits, returns the precision (or accuracy) of a result whose
+    relative (or absolute) error is the sum of their errors:
+    ``-Log10[Total[10^-digits]]``.
+    """
+    least = min(digits)
+    return least - math.log10(math.fsum(10.0 ** (least - d) for d in digits))
+
+
+def _exact_or_precision_reals(
+    numbers: tuple[Number, ...], allow_zeros: bool = False
+) -> bool:
+    """
+    True if ``numbers`` has a PrecisionReal, and every other element is an
+    exact real number or a PrecisionReal. A PrecisionReal zero is allowed
+    only if ``allow_zeros`` is True. Sums and products of these numbers get
+    a real-valued precision.
+    """
+    has_precision_real = False
+    for number in numbers:
+        if isinstance(number, PrecisionReal):
+            if number.is_zero and not allow_zeros:
+                return False
+            has_precision_real = True
+        elif not isinstance(number, (Integer, Rational)):
+            return False
+    return has_precision_real
+
+
+def _log10_abs(x: mpmath.mpf) -> float:
+    return float(mpmath.log10(abs(x)))
+
+
+def _stored_bits(numbers) -> int:
+    """
+    The working precision for ``numbers``: the most bits any of their
+    PrecisionReals keeps, and at least MIN_STORED_BITS.
+    """
+    return max(
+        [MIN_STORED_BITS]
+        + [
+            number.extended_value._prec + 1
+            for number in numbers
+            if isinstance(number, PrecisionReal)
+        ]
+    )
+
+
+def _full_mpmath(number: Number) -> mpmath.mpf:
+    """The value of ``number`` with all the bits it keeps."""
+    if isinstance(number, PrecisionReal):
+        return mpmath.mpf(number.extended_value)
+    return number.to_mpmath()
+
+
+def _precision_real(
+    value: mpmath.mpf, precision10: float, accuracy10: float
+) -> PrecisionReal:
+    """
+    Returns ``value`` as a PrecisionReal with ``precision10`` decimal
+    digits of precision. If no digit is left, the result is a zero with
+    ``accuracy10`` digits of accuracy, as in WMA.
+    """
+    if value == 0 or precision10 <= 0:
+        return PrecisionReal(
+            sympy.Float(0, precision=number_prec(math.ceil(accuracy10))), accuracy10
+        )
+    # The binary precision is rounded up, so that all the digits shown are
+    # kept; a low precision keeps more bits of the value, as in WMA.
+    return PrecisionReal.from_value(value, precision10)
+
+
+def eval_mpmath_function_by_condition(
+    mpmath_function: Callable,
+    condition_numbers: Callable[..., tuple[mpmath.mpf, ...]],
+    *args: Number,
+    has_poles: bool = False,
+    bound: Optional[float] = None,
+    complex_values: bool = True,
+) -> Optional[BaseElement]:
+    """
+    Applies ``mpmath_function`` to ``args``, when they are exact real
+    numbers or PrecisionReals. As in WMA, the relative error of each
+    argument is multiplied by its factor in ``condition_numbers``, and these
+    errors add up. Returns None otherwise, or if no argument adds an error.
+
+    Where the factor does not exist, the error is how much f changes within
+    the error of its single argument (see ``_change_within``): for a zero
+    argument, which has no relative error; at an end of the domain, like
+    ArcCos[1.`20], where f'[x] is infinite; and where the value is 0.
+
+    As in WMA, a function with poles (``has_poles``) gives ComplexInfinity
+    when no digit is left, as Tan[1.5707963`5]; and a function bounded by
+    ``bound`` has an error no larger than that, as Sin[1.`20*^30].
+
+    A complex value, as ArcSin[2.`20], gets the errors of its parts from
+    ``_complex_value_by_parts``, unless ``complex_values`` is False.
+    """
+    if len(args) == 1 and isinstance(args[0], PrecisionReal) and args[0].is_zero:
+        accuracy10 = args[0].precision10
+        if accuracy10 < 1:
+            return None
+        change = _change_within(
+            mpmath_function, mpmath.mpf(0), mpmath.mpf(10) ** -accuracy10, accuracy10
+        )
+        if change is None:
+            return None
+        return _value_with_error(*change, has_poles, bound)
+
+    if not _exact_or_precision_reals(args):
+        return None
+    input_bits = _stored_bits(args)
+    with mpmath.workprec(input_bits + 10):
+        values = [_full_mpmath(arg) for arg in args]
+        value = mpmath_function(*values)
+        if not isinstance(value, (mpmath.mpf, mpmath.mpc)) or not mpmath.isfinite(
+            value
+        ):
+            return None
+        if isinstance(value, mpmath.mpc) and not complex_values:
+            return None
+        try:
+            factors = condition_numbers(*values, value) if value != 0 else None
+        except ZeroDivisionError:
+            factors = None
+        if factors is not None and not all(mpmath.isfinite(f) for f in factors):
+            factors = None
+
+    if factors is None and len(args) > 1:
+        if isinstance(value, mpmath.mpc) or value != 0:
+            return None
+        error = _change_within_args(mpmath_function, args, values)
+        if error is None:
+            return None
+        return _value_with_error(value, error, has_poles, bound)
+
+    if factors is None:
+        if args[0].precision10 < 1:
+            return None
+        x = values[0]
+        digits = args[0].precision10 - _log10_abs(x)
+        change = _change_within(
+            mpmath_function, x, abs(x) * 10 ** -args[0].precision10, digits
+        )
+        if change is None:
+            return None
+        return _value_with_error(*change, has_poles, bound)
+
+    if isinstance(value, mpmath.mpc):
+        return _complex_value_by_parts(mpmath_function, args, input_bits)
+
+    digits = [
+        arg.precision10 - _log10_abs(factor)
+        for arg, factor in zip(args, factors)
+        if isinstance(arg, PrecisionReal) and factor != 0
+    ]
+    if not digits:
+        return None
+    precision10 = _combine_digits(digits)
+    if precision10 <= 0 and has_poles:
+        return SymbolComplexInfinity
+    needed_bits = number_prec(max(1, math.ceil(precision10)))
+    if needed_bits > input_bits:
+        # The result has more digits than the arguments, as in Sqrt.
+        with mpmath.workprec(needed_bits + 10):
+            value = mpmath_function(*(_full_mpmath(arg) for arg in args))
+    accuracy10 = precision10 - _log10_abs(value)
+    if precision10 <= 0 and bound is not None:
+        accuracy10 = max(accuracy10, -math.log10(bound))
+    return _precision_real(value, precision10, accuracy10)
+
+
+# As in WMA, a part of a complex value that does not change with the
+# arguments, like the Pi of Log[-2.`20], still gets this fraction of the
+# error of the whole: Log[-1.`20] is 0``20 + Pi with precision 36.75.
+CONSTANT_PART_ERROR: Final = mpmath.mpf(2) ** -54
+
+
+def _complex_value_by_parts(
+    mpmath_function: Callable, args: tuple[Number, ...], input_bits: int
+) -> Optional[BaseElement]:
+    """
+    The complex value of ``mpmath_function`` at the real ``args``. As in
+    WMA, each part has its own error: the sum, over the arguments, of the
+    relative error of the argument times that part of ``x D[f, x]``. A part
+    that does not change gets CONSTANT_PART_ERROR times ``Abs[x D[f, x]]``,
+    and is an exact 0 if its value is 0, as the real part of ArcSec[0.5`20].
+
+    ``x D[f, x]`` is taken from a central difference. Returns None if f
+    has no complex value near ``args``.
+    """
+    errors = [mpmath.mpf(0), mpmath.mpf(0)]
+    changes = [False, False]
+    bits = input_bits + 64
+    with mpmath.workprec(bits):
+        values = [_full_mpmath(arg) for arg in args]
+        step = mpmath.mpf(2) ** -(bits // 3)
+        for k, arg in enumerate(args):
+            if not isinstance(arg, PrecisionReal):
+                continue
+            up, down = list(values), list(values)
+            up[k] *= 1 + step
+            down[k] *= 1 - step
+            try:
+                difference = mpmath_function(*up) - mpmath_function(*down)
+            except (ZeroDivisionError, ValueError):
+                return None
+            if not mpmath.isfinite(difference):
+                return None
+            sensitivity = mpmath.mpc(difference) / (2 * step)
+            error = mpmath.mpf(10) ** -arg.precision10
+            floor = abs(sensitivity) * CONSTANT_PART_ERROR
+            for i, part in enumerate((sensitivity.real, sensitivity.imag)):
+                errors[i] += error * max(abs(part), floor)
+                changes[i] = changes[i] or abs(part) > floor
+        rough = mpmath.mpc(mpmath_function(*values))
+
+    if errors[0] == 0:
+        # f does not change at all with its arguments.
+        return None
+    accuracies = [-_log10_abs(error) for error in errors]
+    precisions = [
+        accuracy + _log10_abs(part) if part != 0 else 0
+        for accuracy, part in zip(accuracies, (rough.real, rough.imag))
+    ]
+    needed_bits = number_prec(max(1, math.ceil(max(precisions)))) + 10
+    value = rough
+    if needed_bits > bits:
+        # The constant part has more digits than the arguments.
+        with mpmath.workprec(needed_bits):
+            value = mpmath.mpc(mpmath_function(*(_full_mpmath(arg) for arg in args)))
+    return Complex(
+        *(
+            (
+                Integer0
+                if part == 0 and not change
+                else _precision_real(part, precision, accuracy)
+            )
+            for part, change, precision, accuracy in zip(
+                (value.real, value.imag), changes, precisions, accuracies
+            )
+        )
+    )
+
+
+def _complex_with_error(value: mpmath.mpc, error: mpmath.mpf) -> BaseElement:
+    """
+    ``value`` with the absolute error ``error`` of the whole number. As in
+    WMA, a part that is 0 is an exact 0, as the real part of ArcCosh[0``20],
+    and if no part is 0, each gets the error divided by Sqrt[2].
+    """
+    parts = (value.real, value.imag)
+    if all(part != 0 for part in parts):
+        error = error / mpmath.sqrt(2)
+    accuracy10 = -_log10_abs(error)
+    return Complex(
+        *(
+            (
+                Integer0
+                if part == 0
+                else _precision_real(part, accuracy10 + _log10_abs(part), accuracy10)
+            )
+            for part in parts
+        )
+    )
+
+
+def covers_point(number: Number, points: tuple[int, ...]) -> bool:
+    """
+    True if ``number`` is a nonzero inexact real number and one of
+    ``points`` lies within its error. As in WMA, ArcTanh[1.0000001`5]
+    is Indeterminate: its error 10^-5 covers the pole at 1, where f goes
+    to Infinity on one side and has an imaginary part on the other. A
+    MachineReal has no error, so only the point itself is covered.
+    """
+    if isinstance(number, PrecisionReal):
+        if number.is_zero:
+            return False
+        with mpmath.workprec(_stored_bits((number,)) + 10):
+            x = _full_mpmath(number)
+            error = abs(x) * mpmath.mpf(10) ** -number.precision10
+            return any(abs(x - point) <= error for point in points)
+    if isinstance(number, Real):
+        return number.to_mpmath() in points
+    return False
+
+
+def _change_within(
+    mpmath_function: Callable, x: mpmath.mpf, delta: mpmath.mpf, digits: float
+) -> Optional[tuple[mpmath.mpf, mpmath.mpf]]:
+    """
+    The value of f at ``x``, and how much f changes within ``delta`` of it,
+    with ``x`` known to ``digits`` digits of accuracy. So Sin[0``20] is
+    0``20, Cos[0``20] is 1 with precision 40.301, since Cos changes by only
+    (10^-20)^2 / 2, and ArcCos[1.`20] is 0``9.849, since ArcCos changes by
+    Sqrt[2 10^-20].
+
+    As in WMA, the change is the leading term of f at x, c delta^p, even
+    where delta is not small: Log[1.`3] is 0``3., not the 0``3.0002 of
+    Log[1.001]. The power p is read off the change within two much smaller
+    steps.
+
+    On each side, the smaller change is taken: where f is continuous the
+    sides agree, and a branch cut, as for ArcCot at 0, jumps on one side
+    only. A side where f has no real value, as above 1 for ArcCos, is left
+    out. Returns None if f has no real value at x or on either side.
+
+    If f has a complex value at x, as ArcCosh[0], the sides with a complex
+    value count as well.
+    """
+    # Enough digits for a change of second order within the small steps.
+    shrink_bits = 40
+    with mpmath.workprec(
+        number_prec(math.ceil(2 * (max(digits, 1) + shrink_bits * math.log10(2))) + 20)
+    ):
+        x = mpmath.mpf(x)
+        try:
+            value = mpmath_function(x)
+        except (ZeroDivisionError, ValueError):
+            return None
+        if not isinstance(value, (mpmath.mpf, mpmath.mpc)) or not mpmath.isfinite(
+            value
+        ):
+            return None
+        kinds = (
+            (mpmath.mpf, mpmath.mpc) if isinstance(value, mpmath.mpc) else mpmath.mpf
+        )
+
+        def change(step: mpmath.mpf) -> Optional[mpmath.mpf]:
+            changes = []
+            for side in (x + step, x - step):
+                try:
+                    other = mpmath_function(side)
+                except (ZeroDivisionError, ValueError):
+                    continue
+                if isinstance(other, kinds) and mpmath.isfinite(other):
+                    changes.append(abs(other - value))
+            return min(changes) if changes else None
+
+        whole = change(delta)
+        if not whole:
+            return None
+        step = mpmath.ldexp(delta, -shrink_bits)
+        small, smaller = change(step), change(step / 2)
+        if not small or not smaller:
+            return value, whole
+        # A power like 1, 2 or 1/2 is taken as exact.
+        power = mpmath.log(small / smaller, 2)
+        if abs(2 * power - mpmath.nint(2 * power)) < 0.01:
+            power = mpmath.nint(2 * power) / 2
+        return value, small * mpmath.power(2, shrink_bits * power)
+
+
+def _change_within_args(
+    mpmath_function: Callable, args: tuple[Number, ...], values: list[mpmath.mpf]
+) -> Optional[mpmath.mpf]:
+    """
+    How much f changes within the errors of its arguments: the change
+    within the error of each PrecisionReal argument, the others held fixed,
+    added up. So Log[2.`20, 1.`20] is 0``19.84: Log[2, x] changes by
+    10^-20 / Log[2] at x = 1, and Log[b, 1] not at all. Returns None if
+    no argument changes f.
+    """
+    total = mpmath.mpf(0)
+    for k, arg in enumerate(args):
+        if not isinstance(arg, PrecisionReal):
+            continue
+        if arg.precision10 < 1:
+            return None
+        x = values[k]
+
+        def partial(t, k=k):
+            return mpmath_function(*values[:k], t, *values[k + 1 :])
+
+        change = _change_within(
+            partial,
+            x,
+            abs(x) * mpmath.mpf(10) ** -arg.precision10,
+            arg.precision10 - _log10_abs(x),
+        )
+        if change is not None:
+            total += change[1]
+    return total or None
+
+
+def _value_with_error(
+    value: mpmath.mpf, error: mpmath.mpf, has_poles: bool, bound: Optional[float]
+) -> BaseElement:
+    """``value`` with the absolute error ``error``."""
+    if isinstance(value, mpmath.mpc):
+        return _complex_with_error(value, error)
+    accuracy10 = -_log10_abs(error)
+    if bound is not None:
+        accuracy10 = max(accuracy10, -math.log10(bound))
+    if value == 0:
+        return _precision_real(value, 0, accuracy10)
+    precision10 = _log10_abs(value) + accuracy10
+    if precision10 <= 0 and has_poles:
+        return SymbolComplexInfinity
+    return _precision_real(value, precision10, accuracy10)
+
+
 def eval_add_numbers(
     *numbers: Number,
 ) -> BaseElement:
@@ -560,6 +1017,31 @@ def eval_add_numbers(
         terms = (item.to_mpmath() for item in numbers)
         number = mpmath.fsum(terms)
         return from_mpmath(number)
+
+    if _precision_complexes(numbers):
+        return _add_complex_numbers(numbers)
+
+    if _exact_or_precision_reals(numbers, allow_zeros=True):
+        # As in WMA, the absolute errors of the terms add up. For a zero,
+        # precision10 is its accuracy.
+        precision_reals = [
+            number for number in numbers if isinstance(number, PrecisionReal)
+        ]
+        accuracy10 = _combine_digits(
+            [
+                (
+                    number.precision10
+                    if number.is_zero
+                    else number.precision10 - _log10_abs(_full_mpmath(number))
+                )
+                for number in precision_reals
+            ]
+        )
+        with mpmath.workprec(_stored_bits(numbers)):
+            number = mpmath.fsum(_full_mpmath(item) for item in numbers)
+        if number == 0:
+            return _precision_real(number, 0, accuracy10)
+        return _precision_real(number, accuracy10 + _log10_abs(number), accuracy10)
 
     prec = min_prec(*numbers)
     if prec is not None:
@@ -606,6 +1088,30 @@ def eval_multiply_numbers(*numbers: Number) -> Number:
         number = mpmath.fprod(factors)
         return from_mpmath(number)
 
+    if _precision_complexes(numbers):
+        return _multiply_complex_numbers(numbers)
+
+    if _exact_or_precision_reals(numbers, allow_zeros=True):
+        if any(number is Integer0 for number in numbers):
+            # As in WMA, an exact zero gives an exact zero.
+            return Integer0
+        zeros = [number for number in numbers if number.is_zero]
+        if zeros:
+            return _multiply_by_zeros(zeros, numbers)
+
+    if _exact_or_precision_reals(numbers):
+        # As in WMA, the relative errors of the factors add up.
+        precision_reals = [
+            number for number in numbers if isinstance(number, PrecisionReal)
+        ]
+        precision10 = _combine_digits(
+            [number.precision10 for number in precision_reals]
+        )
+        with mpmath.workprec(_stored_bits(numbers)):
+            number = mpmath.fprod(_full_mpmath(item) for item in numbers)
+        if number != 0:
+            return _precision_real(number, precision10, 0)
+
     prec = min_prec(*numbers)
     if prec is not None:
         with mpmath.workprec(prec):
@@ -614,6 +1120,210 @@ def eval_multiply_numbers(*numbers: Number) -> Number:
             return from_mpmath(number, prec)
     else:
         return from_sympy(sympy.Mul(*(item.to_sympy() for item in numbers)))
+
+
+def _multiply_by_zeros(zeros: list[Number], numbers: tuple[Number, ...]) -> Number:
+    """
+    The product of ``numbers``, where ``zeros`` are the PrecisionReal zeros
+    among them: as in WMA, a zero whose absolute error is that of the
+    zeros, times the other factors.
+    """
+    accuracy10 = math.fsum(zero.precision10 for zero in zeros)
+    others = [number for number in numbers if not number.is_zero]
+    if others:
+        with mpmath.workprec(53):
+            accuracy10 -= _log10_abs(mpmath.fprod(item.to_mpmath() for item in others))
+    return _precision_real(mpmath.mpf(0), 0, accuracy10)
+
+
+def _precision_complexes(numbers: tuple[Number, ...]) -> bool:
+    """
+    True if ``numbers`` has a Complex, every element is an exact real
+    number, a PrecisionReal, or a Complex with such parts, and one of them
+    is a PrecisionReal. As in WMA, the parts of these complex numbers keep
+    their own errors, and sums and products of them are worked out from
+    sums and products of the parts.
+    """
+    has_complex = has_precision_real = False
+    for number in numbers:
+        if isinstance(number, Complex):
+            has_complex = True
+            parts: tuple[Number, ...] = (number.real, number.imag)
+        else:
+            parts = (number,)
+        for part in parts:
+            if isinstance(part, PrecisionReal):
+                has_precision_real = True
+            elif not isinstance(part, (Integer, Rational)):
+                return False
+    return has_complex and has_precision_real
+
+
+def _real_and_imag(number: Number) -> tuple[Number, Number]:
+    if isinstance(number, Complex):
+        return number.real, number.imag
+    return number, Integer0
+
+
+def _add_complex_numbers(numbers: tuple[Number, ...]) -> Number:
+    """The sum of ``numbers``: the real parts and the imaginary parts add up."""
+    parts = [_real_and_imag(number) for number in numbers]
+    real = eval_add_numbers(*(part[0] for part in parts))
+    imag = eval_add_numbers(*(part[1] for part in parts))
+    return Complex(real, imag)
+
+
+def _times_complex(x: Number, y: Number) -> Number:
+    """``x y``, with x or y a Complex: (a + b I)(c + d I) is ac - bd + (ad + bc) I"""
+    if not isinstance(x, Complex):
+        return Complex(
+            eval_multiply_numbers(x, y.real), eval_multiply_numbers(x, y.imag)
+        )
+    if not isinstance(y, Complex):
+        return Complex(
+            eval_multiply_numbers(x.real, y), eval_multiply_numbers(x.imag, y)
+        )
+    a, b = x.real, x.imag
+    c, d = y.real, y.imag
+    real = eval_add_numbers(
+        eval_multiply_numbers(a, c), eval_negate_number(eval_multiply_numbers(b, d))
+    )
+    imag = eval_add_numbers(eval_multiply_numbers(a, d), eval_multiply_numbers(b, c))
+    return Complex(real, imag)
+
+
+def _square_complex(z: Complex) -> Number:
+    """``z^2``: as in WMA, (a + b I)^2 is (a + b)(a - b) + 2 a b I."""
+    a, b = z.real, z.imag
+    real = eval_multiply_numbers(
+        eval_add_numbers(a, b), eval_add_numbers(a, eval_negate_number(b))
+    )
+    imag = eval_multiply_numbers(Integer(2), eval_multiply_numbers(a, b))
+    return Complex(real, imag)
+
+
+def _multiply_complex_numbers(numbers: tuple[Number, ...]) -> Number:
+    """
+    The product of ``numbers``. As in WMA, the factors are multiplied as a
+    balanced tree, the first half times the second half, and a pair of the
+    same complex number is squared. The errors depend on the order:
+    ``(z w) u`` and ``z (w u)`` differ in their last digits.
+    """
+    if len(numbers) == 1:
+        return numbers[0]
+    if (
+        len(numbers) == 2
+        and isinstance(numbers[0], Complex)
+        and numbers[0].sameQ(numbers[1])
+    ):
+        return _square_complex(numbers[0])
+    half = (len(numbers) + 1) // 2
+    x = _multiply_complex_numbers(numbers[:half])
+    y = _multiply_complex_numbers(numbers[half:])
+    if isinstance(x, Complex) or isinstance(y, Complex):
+        return _times_complex(x, y)
+    return eval_multiply_numbers(x, y)
+
+
+def _inverse_real(x: Number) -> Optional[Number]:
+    """``1/x`` for an exact real number or a nonzero PrecisionReal."""
+    if not isinstance(x, PrecisionReal):
+        return eval_inverse_number(x)
+    if x.is_zero:
+        return None
+    with mpmath.workprec(_stored_bits((x,))):
+        value = 1 / _full_mpmath(x)
+    return _precision_real(value, x.precision10, 0)
+
+
+def _inverse_complex(z: Complex) -> Optional[Number]:
+    """``1/z``: as in WMA, (a - b I) / (a^2 + b^2)."""
+    a, b = z.real, z.imag
+    norm = eval_add_numbers(eval_multiply_numbers(a, a), eval_multiply_numbers(b, b))
+    inverse_norm = _inverse_real(norm)
+    if inverse_norm is None:
+        return None
+    return Complex(
+        eval_multiply_numbers(a, inverse_norm),
+        eval_negate_number(eval_multiply_numbers(b, inverse_norm)),
+    )
+
+
+def eval_Power_by_parts(base: Number, exponent: Number) -> Optional[Number]:
+    """
+    ``base^exponent`` where, as in WMA, the parts of the complex result get
+    their errors one by one: a Complex with exact or PrecisionReal parts to
+    an Integer power, and a negative PrecisionReal to a Rational power.
+    Returns None otherwise.
+    """
+    if isinstance(exponent, Integer):
+        if isinstance(base, Complex) and _precision_complexes((base,)):
+            return _complex_integer_power(base, exponent.value)
+        return None
+    if (
+        isinstance(exponent, Rational)
+        and isinstance(base, PrecisionReal)
+        and not base.is_zero
+        and base.value < 0
+    ):
+        # As in WMA, x^(7/3) is x^2 x^(1/3), and x^(2/3) is (x^(1/3))^2.
+        p, q = (int(n) for n in exponent.value.as_numer_denom())
+        sign = 1 if p > 0 else -1
+        whole, rest = divmod(abs(p), q)
+        root = _negative_real_root(base, sign, q)
+        if rest > 1:
+            root = _complex_integer_power(root, rest)
+        if whole == 0 or root is None:
+            return root
+        with mpmath.workprec(_stored_bits((base,))):
+            power = _full_mpmath(base) ** (sign * whole)
+        factor = _precision_real(power, base.precision10 - math.log10(whole), 0)
+        return _times_complex(factor, root)
+    return None
+
+
+def _negative_real_root(x: PrecisionReal, sign: int, q: int) -> BaseElement:
+    """
+    ``x^(sign/q)`` for a negative ``x``. As in WMA, its error is that of the
+    whole number, Abs[x^(1/q)] 10^-precision / q, shared by the parts as in
+    ``_complex_with_error``.
+    """
+    precision10 = x.precision10 + math.log10(q)
+    bits = max(_stored_bits((x,)), number_prec(math.ceil(precision10) + 1)) + 10
+    with mpmath.workprec(bits):
+        magnitude = mpmath.root(-_full_mpmath(x), q) ** sign
+        if q == 2:
+            value = mpmath.mpc(0, sign * magnitude)
+        else:
+            angle = sign * mpmath.pi / q
+            value = mpmath.mpc(
+                magnitude * mpmath.cos(angle), magnitude * mpmath.sin(angle)
+            )
+        return _complex_with_error(value, magnitude * mpmath.mpf(10) ** -precision10)
+
+
+def _complex_integer_power(z: Complex, n: int) -> Optional[Number]:
+    """
+    ``z^n`` for a Complex ``z`` whose parts are exact or PrecisionReals.
+    As in WMA, z^n is worked out by squaring from the highest bit of n
+    down, multiplying by z at each bit that is set, and z^-n is 1/z^n.
+    Returns None if z^n is 0 within its error, so that 1/z^n has no value.
+    """
+    if n == 0:
+        return Integer1
+    result: Number = z
+    for bit in bin(abs(n))[3:]:
+        if isinstance(result, Complex):
+            result = _square_complex(result)
+        else:
+            result = eval_multiply_numbers(result, result)
+        if bit == "1":
+            result = _times_complex(result, z)
+    if n > 0:
+        return result
+    if isinstance(result, Complex):
+        return _inverse_complex(result)
+    return _inverse_real(result)
 
 
 def eval_negate_number(n: Number) -> Number:
@@ -631,7 +1341,7 @@ def eval_negate_number(n: Number) -> Number:
 
 def segregate_numbers(
     *elements: BaseElement,
-) -> Tuple[List[Number], List[BaseElement]]:
+) -> tuple[list[Number], list[BaseElement]]:
     """
     From a list of elements, produce two lists, one with the numeric items
     and the other with the remaining
@@ -643,16 +1353,16 @@ def segregate_numbers(
 
 
 # Note: we return:
-#  Tuple[List[Number], List[BaseElement]]
+#  tuple[list[Number], list[BaseElement]]
 #             ^^^^^
 # But the mypy type checking system can't
 # look into the loop and its condition and
-# prove that the return type is List[Number].
+# prove that the return type is list[Number].
 # So we use the weaker type assertion
-# which is the one on elements: List[BaseElement].
+# which is the one on elements: list[BaseElement].
 def segregate_numbers_from_sorted_list(
     *elements: BaseElement,
-) -> Tuple[List[BaseElement], List[BaseElement]]:
+) -> tuple[list[BaseElement], list[BaseElement]]:
     """
     From a list of elements, produce two lists, one with the numeric items
     and the other with the remaining. Different from `segregate_numbers`,

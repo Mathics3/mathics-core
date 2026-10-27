@@ -50,6 +50,7 @@ from mathics.core.atoms import (
     PrecisionReal,
     String,
 )
+from mathics.core.atoms.numerics import extended_float
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_LISTABLE,
@@ -68,6 +69,7 @@ from mathics.core.expression import Expression
 from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
 from mathics.core.list import ListExpression
 from mathics.core.number import (
+    EXTENDED_DIGITS,
     PrecisionValueError,
     dps,
     get_closest_precision,
@@ -79,7 +81,6 @@ from mathics.core.parser.util import PyMathicsDefinitions, SystemDefinitions
 from mathics.core.pattern import BasePattern
 from mathics.core.rules import BaseRule, FunctionApplyRule, RewriteRule
 from mathics.core.symbols import (
-    Atom,
     BaseElement,
     BooleanType,
     Symbol,
@@ -93,10 +94,8 @@ from mathics.core.symbols import (
     strip_context,
 )
 from mathics.core.systemsymbols import (
-    SymbolComplexInfinity,
     SymbolDefault,
-    SymbolDirectedInfinity,
-    SymbolInfinity,
+    SymbolIndeterminate,
     SymbolLessEqual,
     SymbolMessageName,
     SymbolRange,
@@ -105,6 +104,7 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.arithmetic import eval_mpmath_function
 from mathics.eval.numbers.numbers import cancel
+from mathics.eval.numeric import covers_point, eval_mpmath_function_by_condition
 from mathics.eval.numerify import numerify
 from mathics.eval.scoping import dynamic_scoping
 from mathics.eval.sympy import eval_sympy
@@ -464,14 +464,13 @@ class Builtin:
         "%(name)s[invalid___]"
 
         name = self.get_name(short=True)
-        if isinstance(invalid, Atom) or invalid.head in (
-            SymbolComplexInfinity,
-            SymbolDirectedInfinity,
-            SymbolInfinity,
-        ):
-            got_arg_count = 1
-        else:
+        # ``invalid___`` binds to Sequence[...] when there are zero or
+        # several arguments, and to the argument itself when there is
+        # exactly one, whatever that argument is (f[a, b], {a, b}, ...).
+        if invalid.has_form(SymbolSequence, None):
             got_arg_count = len(invalid.elements)
+        else:
+            got_arg_count = 1
 
         if isinstance(self.expected_args, (tuple, range)):
             if got_arg_count in self.expected_args:
@@ -763,7 +762,9 @@ class SympyFunction(SympyObject):
             result = self.get_mpmath_function() if have_mpmath else sympy_fn()
             return MachineReal(result)
         else:
-            return PrecisionReal(sympy_fn.n(d))
+            return PrecisionReal(
+                sympy_fn.n(d), None, extended_float(sympy_fn.n(EXTENDED_DIGITS), d)
+            )
 
     def get_sympy_function(self, _elements=None) -> Optional[Callable]:
         if self.sympy_name:
@@ -785,9 +786,12 @@ class SympyFunction(SympyObject):
                     return tracing.run_sympy(sympy_function, *sympy_args)
             elif exc := kwargs.get("raise_on_error", None):
                 raise exc(f"{self.get_name()}.sympy_name is {repr(self.sympy_name)}")
-        except TypeError as oops:
+        except (AttributeError, TypeError, ValueError) as oops:
+            # SymPy rejects arguments it has no meaning for, such as
+            # asin(true) (AttributeError) or bernoulli(-2.5) (ValueError).
+            # The expression then has no SymPy form and stays unevaluated.
             if exc := kwargs.get("raise_on_error", None):
-                raise exc(f"TypeError: {oops}")
+                raise exc(f"{type(oops).__name__}: {oops}")
 
     def from_sympy(self, elements: Tuple[BaseElement, ...]) -> Expression:
         return Expression(Symbol(self.get_name()), *elements)
@@ -811,10 +815,40 @@ class MPMathFunction(SympyFunction):
     mpmath_name: Optional[str] = None
     nargs = {1}
 
+    # As in WMA, a result can get its precision from the condition number.
+    # Then, given the arguments and the value as mpmath numbers, this
+    # returns for each argument the factor ``Abs[x D[f, x] / f]`` by which
+    # its relative error is multiplied in the result. The factors stay
+    # mpmath numbers: as floats, a tiny one like that of Tanh[10.`20^6]
+    # would become 0.
+    condition_numbers: Optional[Callable[..., tuple[mpmath.mpf, ...]]] = None
+    # When no digit is left: a function with poles, like Tan, gives
+    # ComplexInfinity, and one bounded by value_bound, like Sin, an error
+    # no larger than the bound.
+    has_poles: bool = False
+    value_bound: Optional[float] = None
+    # Real points where, as in WMA, an inexact argument whose error covers
+    # one of them gives Indeterminate, like ArcTanh at 1.
+    indeterminate_at: tuple[int, ...] = ()
+    # As in WMA, a complex value at real arguments, like ArcSin[2.`20], gets
+    # an error for each part. Power does not follow that rule in WMA: see
+    # eval_Power_by_parts for a negative base to a rational power.
+    complex_values: bool = True
+
     def get_mpmath_function(self, args):
         if self.mpmath_name is None or len(args) not in self.nargs:
             return None
         return getattr(mpmath, self.mpmath_name)
+
+    def special_point_value(self, args: Sequence[Number]) -> Optional[BaseElement]:
+        """
+        The value at numbers, not all exact, where f has no value of its
+        own, or None: Indeterminate where the error of the argument covers
+        one of ``indeterminate_at``.
+        """
+        if len(args) == 1 and covers_point(args[0], self.indeterminate_at):
+            return SymbolIndeterminate
+        return None
 
     def eval(self, z, evaluation: Evaluation):
         "%(name)s[z__]"
@@ -840,6 +874,22 @@ class MPMathFunction(SympyFunction):
         mpmath_function = self.get_mpmath_function(tuple(args))
         if mpmath_function is None:
             return
+
+        special = self.special_point_value(args)
+        if special is not None:
+            return special
+
+        if self.condition_numbers is not None:
+            result = eval_mpmath_function_by_condition(
+                mpmath_function,
+                self.condition_numbers,
+                *args,
+                has_poles=self.has_poles,
+                bound=self.value_bound,
+                complex_values=self.complex_values,
+            )
+            if result is not None:
+                return result
 
         if any(arg.is_machine_precision for arg in args):
             prec = None

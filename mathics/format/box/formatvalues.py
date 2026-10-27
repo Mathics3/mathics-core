@@ -25,7 +25,19 @@ from mathics.core.symbols import (
     SymbolPlus,
     SymbolTimes,
 )
-from mathics.core.systemsymbols import SymbolInputForm, SymbolMinus, SymbolOutputForm
+from mathics.core.systemsymbols import (
+    SymbolInfix,
+    SymbolInputForm,
+    SymbolMinus,
+    SymbolOutputForm,
+    SymbolPostfix,
+    SymbolPrefix,
+)
+
+# Operator forms that display only the elements of their first argument,
+# not the argument itself: in Format[f[x__]] := Infix[f[x], "~"], f[x] must
+# not be formatted again.
+OPERATOR_FORMS = (SymbolInfix, SymbolPostfix, SymbolPrefix)
 
 # These Strings are used in Boxing output
 StringElipsis = String("...")
@@ -134,12 +146,25 @@ def do_format_element(
             and isinstance(expr, Expression)
             and head not in (SymbolGraphics, SymbolGraphics3D)
         ):
+
+            def format_element(element):
+                return _element_formatters.get(type(element), do_format_element)(
+                    element, evaluation, form
+                )
+
             new_elements = tuple(
                 (
-                    _element_formatters.get(type(element), do_format_element)(
-                        element, evaluation, form
+                    (
+                        to_expression_with_specialization(
+                            element.head,
+                            *(format_element(e) for e in element.elements),
+                        )
+                        if index == 0
+                        and head in OPERATOR_FORMS
+                        and isinstance(element, Expression)
+                        else format_element(element)
                     )
-                    for element in expr.elements
+                    for index, element in enumerate(expr.elements)
                 )
             )
             expr_head = expr.head
@@ -180,7 +205,9 @@ def do_format_complex(
         return None
 
     parts: List[Any] = []
-    if element.is_machine_precision or not element.real.is_zero:
+    # As in WMA, only an exact zero real part is left out: 0``19.4 + 2.`19.7 I
+    # shows its zero.
+    if not element.real.sameQ(Integer(0)):
         parts.append(element.real)
     if element.imag.sameQ(Integer(1)):
         parts.append(SymbolI)

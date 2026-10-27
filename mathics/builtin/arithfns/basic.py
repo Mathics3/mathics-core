@@ -9,6 +9,8 @@ on a calculator.
 
 from typing import Any
 
+import mpmath
+
 from mathics.core.atoms import Integer, Integer1, Integer3, RationalOneHalf
 from mathics.core.attributes import (
     A_FLAT,
@@ -355,6 +357,13 @@ class Power(InfixOperator, MPMathFunction):
     grouping = "Right"
 
     mpmath_name = "power"
+    complex_values = False
+
+    @staticmethod
+    def condition_numbers(
+        base: mpmath.mpf, exponent: mpmath.mpf, value: mpmath.mpf
+    ) -> tuple[mpmath.mpf, mpmath.mpf]:
+        return (abs(exponent), abs(exponent * mpmath.log(abs(base))))
 
     nargs = {2}
     rules = {

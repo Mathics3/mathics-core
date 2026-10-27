@@ -291,6 +291,7 @@ def test_operations(str_expr, msgs, str_expected, fail_msg):
             "{abc}",
             None,
         ),
+        ('StringCases["abc123", (x__ ~~ "123") :> x]', None, "{abc}", "Issue 2029"),
         ('"a" ~~ "b" ~~ "c" // FullForm', None, '"abc"', None),
         ("a ~~ b", None, "a ~~ b", None),
         ('StringFreeQ["Hello", "o"]', None, "False", None),

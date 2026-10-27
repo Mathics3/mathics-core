@@ -200,7 +200,6 @@ class StringInsert(Builtin):
 
     messages = {
         "string": "String expected at position `1` in `2`.",
-        "ins": "Cannot insert at position `1` in `2`.",
     }
 
     summary_text = "insert a string in a given position"
