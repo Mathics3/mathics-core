@@ -42,15 +42,12 @@ from mathics.core.number import (
     PrecisionValueError,
     get_closest_precision,
     is_inexact,
-    is_numeric,
 )
 from mathics.core.symbols import (
     Symbol,
-    SymbolDivide,
     SymbolFalse,
     SymbolList,
     SymbolMachinePrecision,
-    SymbolTimes,
     SymbolTrue,
 )
 from mathics.core.systemsymbols import SymbolPiecewise
@@ -64,6 +61,7 @@ from mathics.eval.numeric import (
     eval_Abs,
     eval_negate_number,
     eval_RealSign,
+    eval_Round,
     eval_Sign,
     eval_UnitStep,
     eval_UnitStep_multidimensional,
@@ -748,6 +746,12 @@ class Round(Builtin):
     >> Round[-1.4]
      = -1
 
+    Large exact numbers are rounded exactly:
+    >> Round[10^20 + 1/3]
+     = 100000000000000000000
+    >> Round[Pi 10^20]
+     = 314159265358979323846
+
     Expressions other than numbers remain unevaluated:
     >> Round[x]
      = Round[x]
@@ -779,21 +783,7 @@ class Round(Builtin):
     def eval_two_args(self, expr, k, evaluation: Evaluation):
         "Round[expr_, k_]"
 
-        if not is_numeric(expr, evaluation):
-            # We can't evaluate, so keep the symbolic representation.
-            return
-
-        n = Expression(SymbolDivide, expr, k).round_to_float(
-            evaluation, permit_complex=True
-        )
-        if n is None:
-            return
-        elif isinstance(n, complex):
-            n = round(n.real)
-        else:
-            n = round(n)
-        n = int(n)
-        return Expression(SymbolTimes, Integer(n), k)
+        return eval_Round(expr, k, evaluation)
 
 
 class Sign(SympyFunction):

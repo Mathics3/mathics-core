@@ -15,14 +15,21 @@ from typing import Iterable
 
 import mpmath
 
-from mathics.core.atoms import Real
+from mathics.core.atoms import Integer0, Integer1, Real
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 from mathics.core.builtin import Builtin, MPMathFunction
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.core.number import min_prec
 from mathics.core.symbols import SymbolPower
-from mathics.core.systemsymbols import SymbolCos, SymbolE, SymbolSin
+from mathics.core.systemsymbols import (
+    SymbolComplexInfinity,
+    SymbolCos,
+    SymbolE,
+    SymbolIndeterminate,
+    SymbolSin,
+)
+from mathics.eval.numeric import covers_point
 
 
 class Fold:
@@ -203,7 +210,7 @@ class Log(MPMathFunction):
     """
 
     summary_text = "logarithm function"
-    nargs = {2}
+    nargs = {1, 2}
     mpmath_name = "log"
     sympy_name = "log"
 
@@ -216,7 +223,6 @@ class Log(MPMathFunction):
         "Log[E^x_Integer]": "x",
         "Log[Overflow[]]": "Overflow[]",
         "Log[Undefined]": "Undefined",
-        "Log[x_?InexactNumberQ]": "Log[E, x]",
     }
 
     def prepare_sympy(self, elements):
@@ -225,14 +231,42 @@ class Log(MPMathFunction):
         return elements
 
     def get_mpmath_function(self, args):
+        if len(args) == 1:
+            return mpmath.log
         return lambda base, x: mpmath.log(x, base)
 
+    def special_point_value(self, args):
+        # As in WMA, an inexact 0 gives Indeterminate, as Log[2.`20, 0``20],
+        # and so does a base that is 1, or whose error covers 1, when x is
+        # or covers 1 too: Log[1.`20, 1.`20]. With any other x, Log[x] / 0 is
+        # ComplexInfinity, as Log[1.`20, 2]. Any other base gives Log[b, 1]
+        # an exact 0.
+        if any(isinstance(arg, Real) and arg.is_zero for arg in args):
+            return SymbolIndeterminate
+        if len(args) == 1:
+            return None
+        base, x = args
+        if _is_or_covers_one(base):
+            return (
+                SymbolIndeterminate if _is_or_covers_one(x) else SymbolComplexInfinity
+            )
+        if x.sameQ(Integer1):
+            return Integer0
+        return None
+
     @staticmethod
-    def condition_numbers(
-        base: mpmath.mpf, x: mpmath.mpf, value: mpmath.mpf
-    ) -> tuple[mpmath.mpf, mpmath.mpf]:
-        # Log[b, x] is Log[x] / Log[b].
+    def condition_numbers(*args: mpmath.mpf) -> tuple[mpmath.mpf, ...]:
+        # The arguments, then the value. Log[b, x] is Log[x] / Log[b]. As in
+        # WMA, Log[x] has no base E that would add an error of its own.
+        *arguments, value = args
+        if len(arguments) == 1:
+            return (1 / abs(value),)
+        base, x = arguments
         return (1 / abs(mpmath.log(base)), 1 / abs(mpmath.log(x)))
+
+
+def _is_or_covers_one(number) -> bool:
+    return number.sameQ(Integer1) or covers_point(number, (1,))
 
 
 class Log2(Builtin):

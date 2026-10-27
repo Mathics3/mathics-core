@@ -111,7 +111,6 @@ class ArcCoth(MPMathFunction):
 
     rules = {
         "ArcCoth[Undefined]": "Undefined",
-        "ArcCoth[z:0.0]": "N[I / 2 Pi, Precision[1+z]]",
         "Derivative[1][ArcCoth]": "1/(1-#^2)&",
     }
 
