@@ -67,7 +67,6 @@ load_pattern_objects()
         # Downvalues
         ("_A", "A", "downvalues"),
         ("A[]", "A", "downvalues"),
-        ("_A", "A", "downvalues"),
         ("A[p_, q]", "A", "downvalues"),
         ("s:A[p_, q]", "A", "downvalues"),
         ("A[p_, q]/;q>0", "A", "downvalues"),
