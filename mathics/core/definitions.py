@@ -63,7 +63,7 @@ class Definition:
         name,
         *,
         rules_dict: Optional[dict] = None,
-        rules: tuple = tuple(),
+        rules: tuple = (),
         attributes: int = A_NO_ATTRIBUTES,
         builtin=None,
         is_numeric: bool = False,
@@ -1023,9 +1023,11 @@ def determine_value_role(
         return determine_value_role(pattern.get_elements()[1], target_symbol)
     if pattern.has_form(SymbolCondition, 2):
         return determine_value_role(pattern.get_elements()[0], target_symbol)
-    if pattern.has_form(BLANK_PATTERN_HEADS, 1):
-        if target_symbol is pattern.get_elements()[0]:
-            return "downvalues"
+    if (
+        pattern.has_form(BLANK_PATTERN_HEADS, 1)
+        and target_symbol is pattern.get_elements()[0]
+    ):
+        return "downvalues"
     if pattern.has_form(SymbolVerbatim, 1):
         content = pattern.get_elements()[0]
         if target_symbol is content:
@@ -1101,9 +1103,9 @@ def insert_rule(
     Add a new rule inside a list of values.
 
     Rules are sorted in a way that the first elements
-    in value list have more priority in evaluation.
+    in value list have higher precedence in evaluation.
 
-    If there is an existent rule in `values` with
+    If there is an existing rule in `values` with
     the same pattern than `rule`,  `rule` takes its
     place.
     """
@@ -1141,25 +1143,25 @@ def insert_rule(
             for existing in list(bucket):
                 if existing.pattern.sameQ(rule.pattern):
                     bucket.remove(existing)
-                    for pos, candidate in enumerate(values):
+                    for position, candidate in enumerate(values):
                         if candidate is existing:
-                            del values[pos]
+                            del values[position]
                             break
                     break
 
             # Important: the new rule must be kept in the bucket for future same-pattern checks.
             bucket.append(rule)
 
-    # Keep insertion order consistent with precedence after replacement.
+    # Insertion order should preserve precedence order after replacement.
 
-    # In Mathematica: a rule goes before
-    # another one only if it is more specific rule. Rules that are
+    # In Mathematica: a rule gets considered for application before
+    # another rule if it is more specific rule. Rules that are
     # not comparable this way are ordered by the order or time that the rule was defined.
 
-    # `insort_right` only
+    # `_rule_lt` only
     # uses `<`, so a key wrapper with a partial `__lt__` is enough.
     # When `rule` is equivalent to an existing rule, it is placed before it,
-    # so newer rules get higher precedence. See DownValues[].
+    # so newer rules come first are treated with get higher precedence. See DownValues[].
     i = 0
     for existing in values:
         if _rule_lt(rule, existing):
@@ -1169,11 +1171,13 @@ def insert_rule(
 
 
 def _rule_lt(new: BaseRule, existing: BaseRule) -> bool:
-    """True if `new` should go before `existing`: `new` matches a subset of
-    what `existing` matches (or they are equivalent).
+    """True if `new` should go before `existing`: `new` matches a
 
-    If the patterns involved are not understood by
-    `mathics.core.pattern.specificity`, fall back to the sort keys.
+    subset of what `existing` matches (or they are equivalent).
+
+    If the patterns involved are not understood by `mathics.core.
+    pattern.specificity`, fall back to comparing `new` and `existing`
+    pattern precedence order.
     """
     contained = rule_le(new, existing)
     if contained is None:
@@ -1277,23 +1281,20 @@ def is_literal_rule(rule: BaseRule) -> bool:
 
 
 class LiteralRuleIndex:
-    """
-    An index of the literal rules (see ``is_literal_rule``) of a rule list,
-    by the literal_key of their left-hand sides, together with the list of
-    the other rules in their order.
+    """An index of the literal rules (see ``is_literal_rule``) of a
+    rule list, by the literal_key of their left-hand sides, together
+    with the list of the other rules in their order.
 
-    Evaluation tries the rules of a list in order and applies the first one
-    that matches. Of the literal rules, only one SameQ to the expression
-    can match, so it is enough to try that one, at its place among the
-    other rules. Its place is found from the sort keys
-    (``pattern_precedence``) by which ``insert_rule`` keeps the list
-    ordered. So the index is only built for a list in that order, and where
-    no literal rule shares its sort key with another rule.
+    Evaluation tries the rules the order given in the list, and then applies
+    the first one that matches. For literal rules, at most one
+    expression can match and be "SameQ" equal. Its place is found using its
+    pattern_precedence; ``insert_rule`` keeps the list ordered. So
+    the index is only built for a list in that order.
 
-    The order of the literal rules among themselves does not matter, since
-    at most one of them matches. The order of all the other rules,
-    including those that share a sort key and so stay in the order in which
-    they were assigned, is the order of the list itself.
+    The order of the literal rules among themselves does not matter,
+    since at most one of them matches. The order of all the other
+    rules, and those with the same precedence stay in the order in
+    which they were assigned.
     """
 
     def __init__(self, table: dict, others: list, other_keys: list):
@@ -1439,7 +1440,7 @@ def merge_definitions(candidates: list[Definition]) -> Definition:
 def load_builtin_definitions(
     self: Definitions,
     builtin_filename: Optional[str] = None,
-    extension_modules: tuple = tuple(),
+    extension_modules: tuple = (),
 ):
     """
     Load definitions from Builtin classes, autoload files and extension modules.
