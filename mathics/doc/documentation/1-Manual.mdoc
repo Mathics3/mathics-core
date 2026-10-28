@@ -279,7 +279,167 @@ The absolute accuracy for the value 0 is a fixed-precision Real number:
   >> 0``4
    = 0.0000
 
+A precision does not have to be a whole number of digits:
+
+  >> Precision[1.5`20.3]
+   = 20.3
+
+As in the Wolfram Language, every arbitrary-precision number carries its error, and each computation works out the error of its result from the errors of its inputs. The rules are described below.
+
 See also <url>:Accuracy and precision: https://en.wikipedia.org/wiki/Accuracy_and_precision</url>.
+
+<subsection title="Errors in Sums and Products">
+In a sum the absolute errors add up, and in a product the relative errors add up. So the sum of a 20.3-digit number and a 30-digit number has a little more than 20.3 digits:
+
+  >> Precision[1.5`20.3 + 3.2`30]
+   = 20.796
+
+and the product of two 30-digit numbers has a little less than 30:
+
+  >> Precision[N[Pi, 30] N[E, 30]]
+   = 29.699
+
+An exact number, or an exact constant such as 'E', has no error, so it takes nothing away:
+
+  >> Precision[N[Pi, 30] E]
+   = 30.
+
+When the digits of two numbers cancel, the absolute error stays, so the difference has fewer digits than either number:
+
+  >> N[Pi, 30] - 314159265358979/100000000000000
+   = 3.23846264338328×10^-15
+
+  >> Precision[%]
+   = 15.0132
+
+If nothing is left, the result is a zero whose accuracy is that error:
+
+  >> Accuracy[1.5`5 - 1.5`5]
+   = 4.52288
+
+A product with an inexact zero is a zero, and the accuracy of the zero accounts for the size of the other factors:
+
+  >> Accuracy[1.5`20 * 0``10]
+   = 9.82391
+
+An exact '0' times an inexact number is an exact '0':
+
+  >> 0 * 1.5`20
+   = 0
+</subsection>
+
+<subsection title="Errors in Functions">
+The relative error of 'f[x]' is the relative error of 'x' times the <em>condition number</em> 'Abs[x f'[x] / f[x]]'. A function can gain digits:
+
+  >> Precision[Sqrt[1.5`20]]
+   = 20.301
+
+or lose them:
+
+  >> Precision[1.5`20^1000]
+   = 17.
+
+Close to a zero of the function, many digits are lost:
+
+  >> Precision[Sin[3.14159265358979`20]]
+   = 5.01319
+
+  >> Precision[Log[1.0000001`20]]
+   = 13.
+
+When the value is a zero, the error is how much 'f' changes within the error of 'x':
+
+  >> Log[1.`20]
+   = 0.×10^-20
+
+  >> Accuracy[Log[2, 1.`20]]
+   = 19.8408
+
+The argument can be an inexact zero as well:
+
+  >> Sin[0``20]
+   = 0.×10^-20
+
+  >> Precision[Cos[0``20]]
+   = 40.301
+
+If the error of the argument covers a pole of the function, the result is 'Indeterminate':
+
+  >> ArcTanh[1.`20]
+   = Indeterminate
+
+An exact argument still gives an exact result:
+
+  >> ArcTanh[1]
+   = Infinity
+</subsection>
+
+<subsection title="Complex Numbers">
+The real and imaginary parts of a complex number keep their own errors. The accuracy of the number combines the two errors, and its precision is that accuracy plus 'Log10' of the modulus:
+
+  >> Precision[1.5`20.3 + 2.5`20.3 I]
+   = 20.3
+
+A part can be much more precise than the other one. In 'Log[-1.`20]' the imaginary part is 'Pi', which does not depend on the error of the argument:
+
+  >> Precision[Log[-1.`20]]
+   = 20.4971
+
+  >> Accuracy[Im[Log[-1.`20]]] - Accuracy[Re[Log[-1.`20]]]
+   = 16.2556
+</subsection>
+
+<subsection title="Machine Numbers">
+A machine number, such as '1.5', has no error to track. An expression that holds a machine number anywhere has machine precision:
+
+  >> Precision[{1.5`10, 1.5}]
+   = MachinePrecision
+
+  >> Precision[1.5`10 + 1.5]
+   = MachinePrecision
+</subsection>
+
+<subsection title="Numerical Evaluation with N">
+'N[expr, p]' gives a result with precision 'p'. When the digits of intermediate results are lost, 'N' evaluates again with more digits, up to <url>:'$MaxExtraPrecision': /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/representation-of-numbers/$maxextraprecision</url> more than 'p':
+
+  >> Precision[N[Pi - 314159/100000, 20]]
+   = 20.
+
+  >> $MaxExtraPrecision
+   = 50.
+
+'N' does not add digits that the input does not have:
+
+  >> Precision[N[1.5`10, 20]]
+   = 10.
+
+'N[expr, {p, a}]' gives each number at most precision 'p' and at most accuracy 'a':
+
+  >> N[{Pi, 1000 Pi}, {20, 3}]
+   = {3.14, 3141.59}
+</subsection>
+
+<subsection title="Setting the Precision">
+<url>:'SetPrecision': /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/representation-of-numbers/setprecision</url> gives the numbers in an expression a new precision. An inexact number keeps its binary value, so the digits of '0.1' past machine precision show:
+
+  >> SetPrecision[0.1, 20]
+   = 0.10000000000000000555
+
+With precision 'Infinity', the number becomes the exact rational that it stores:
+
+  >> SetPrecision[0.1, Infinity]
+   = 3602879701896397 / 36028797018963968
+
+The numbers are set first, and then the expression is evaluated, so an exact exponent stays exact:
+
+  >> Precision[SetPrecision[Sqrt[2], 20]]
+   = 20.301
+
+<url>:'SetAccuracy': /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/representation-of-numbers/setaccuracy</url> does the same for the accuracy:
+
+  >> SetAccuracy[150.5, 20]
+   = 150.5000000000000000000
+</subsection>
 </section>
 
 
