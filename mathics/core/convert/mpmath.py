@@ -41,8 +41,10 @@ def from_mpmath(
         # is compatible with 0.
         if precision < 1:
             return MachineReal0
-        # HACK: use str here to prevent loss of precision
-        return PrecisionReal(sympy.Float(str(value), precision=precision - 1))
+        # Keep the binary value as it is. Going through str(value) rounded
+        # it to the decimal digits of the current mpmath context, so that
+        # -x was not the exact negative of x and x - x was not 0.
+        return PrecisionReal(sympy.Float(value, precision=precision - 1))
     elif isinstance(value, mpmath.mpc):
         # Comment mmatera:
         # In Python, and mpmath, `0.j` and `0.` are equivalent, in the sense

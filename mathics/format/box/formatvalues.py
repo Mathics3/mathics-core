@@ -205,7 +205,9 @@ def do_format_complex(
         return None
 
     parts: List[Any] = []
-    if element.is_machine_precision or not element.real.is_zero:
+    # As in WMA, only an exact zero real part is left out: 0``19.4 + 2.`19.7 I
+    # shows its zero.
+    if not element.real.sameQ(Integer(0)):
         parts.append(element.real)
     if element.imag.sameQ(Integer(1)):
         parts.append(SymbolI)

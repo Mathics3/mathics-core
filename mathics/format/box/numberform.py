@@ -3,7 +3,7 @@ NumberForm related routines.
 """
 
 import sys
-from math import ceil
+from math import ceil, floor
 from typing import Any, Optional, Union
 
 import mpmath
@@ -168,8 +168,24 @@ def int_to_string_shorter_repr(
     return value_str
 
 
+def _stored_digits(extended: sympy.Float) -> tuple[str, int]:
+    """
+    The shortest decimal string that reads back as ``extended``, and its
+    number of significant digits. As in WMA, InputForm shows these for a
+    number of low precision: 3.1415926535897932385`3.
+    """
+    bits = extended._prec
+    with mpmath.workprec(bits):
+        value = extended._to_mpmath(bits)
+        for n in range(1, dps(bits) + 4):
+            s = mpmath.nstr(value, n)
+            if sympy.Float(s, precision=bits)._mpf_ == extended._mpf_:
+                break
+    return s, n
+
+
 def real_to_tuple_info(
-    real: Real, digits: Optional[int]
+    real: Real, digits: Optional[int], stored: bool = False
 ) -> tuple[str, int, bool, int, int]:
     """
     Convert ``real`` to a tuple representing that value. The tuple consists of:
@@ -180,10 +196,15 @@ def real_to_tuple_info(
     * Updated value of digits, according to the number precision.
     * the decimal precision.
 
-    If ``digits`` is None, we use the default precision.
+    If ``digits`` is None, we use the default precision. If ``stored`` is
+    True, a PrecisionReal that keeps more bits than its precision shows
+    all the digits it keeps.
     """
     binary_precision = real.precision
-    precision = dps(binary_precision)
+    if isinstance(real, PrecisionReal):
+        precision = real.digits
+    else:
+        precision = dps(binary_precision)
     if digits is None:
         digits = precision + 1
     else:
@@ -191,14 +212,18 @@ def real_to_tuple_info(
 
     if real.is_zero:
         s = "0"
-        if real.is_machine_precision:
-            exponent = 0
+        if isinstance(real, PrecisionReal):
+            # As in WMA, the exponent of 0``19.8 is -Floor[19.8] = -19.
+            exponent = min(0, -floor(real.precision10))
         else:
-            exponent = -precision
+            exponent = 0
         is_nonnegative = True
         return s, exponent, is_nonnegative, digits, precision
 
-    if digits is None:
+    if stored and isinstance(real, PrecisionReal) and real._extended is not None:
+        s, digits = _stored_digits(real._extended)
+        value = real._extended
+    elif digits is None:
         if real.is_machine_precision:
             value = real.value
             s = repr(value)
@@ -458,7 +483,11 @@ def numberform_to_boxes(
         if digits_after_decimal_point is None:
             is_int = True
     elif isinstance(value, Real):
-        s, exp, is_nonnegative, digits, precision = real_to_tuple_info(value, digits)
+        # As in WMA, InputForm and FullForm show all the digits kept.
+        stored = digits is None and form in ("System`InputForm", "System`FullForm")
+        s, exp, is_nonnegative, digits, precision = real_to_tuple_info(
+            value, digits, stored
+        )
     else:
         raise ValueError("Expected Real or Integer.")
 
@@ -539,7 +568,11 @@ def _attach_precision(s: str, value, form: str, precision) -> str:
             s = s + "`"
     elif isinstance(value, PrecisionReal):
         if form not in ("System`OutputForm"):
-            str_precision = str(precision)
+            if value.is_zero:
+                str_precision = str(precision)
+            else:
+                # As in WMA, the precision is shown as it is kept: 1.5`20.3
+                str_precision = repr(value.precision10).removesuffix(".0")
             if "." not in str_precision:
                 str_precision += "."
             s = s + "`" + str_precision

@@ -5,9 +5,9 @@
 Support for Set and SetDelayed, and other assignment-like builtins
 """
 
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, Optional
 
-from mathics.core.atoms import Integer1, String
+from mathics.core.atoms import Integer1, Number, String
 from mathics.core.attributes import A_PROTECTED
 from mathics.core.definitions import Definitions
 from mathics.core.element import BaseElement
@@ -20,12 +20,14 @@ from mathics.core.systemsymbols import (
     SymbolBlank,
     SymbolFormat,
     SymbolHoldPattern,
+    SymbolInfinity,
     SymbolMachinePrecision,
     SymbolN,
     SymbolOptionValue,
     SymbolPattern,
     SymbolRuleDelayed,
 )
+from mathics.eval.nevaluator import is_infinity, normalize_n_precision
 
 # WMA shows the machine precision in an NValues pattern as the pair
 # {MachinePrecision, MachinePrecision}, while it is stored as MachinePrecision.
@@ -46,21 +48,38 @@ def build_rulopc(optval: BaseElement) -> RewriteRule:
 
 
 def nvalue_pattern_from_wma(pattern: BaseElement) -> BaseElement:
-    """Replace N[x, {MachinePrecision, MachinePrecision}] by N[x, MachinePrecision]"""
-    if pattern.has_form(SymbolN, 2) and pattern.get_elements()[1].sameQ(
-        NVALUE_MACHINE_PRECISION
-    ):
-        return Expression(SymbolN, pattern.get_elements()[0], SymbolMachinePrecision)
-    return pattern
+    """
+    Converts the precision in an N rule from the form that WMA shows to the
+    form in which it is stored: N[x, {MachinePrecision, MachinePrecision}]
+    to N[x, MachinePrecision], N[x, {p, Infinity}] and N[x, p] to N[x, p.],
+    and N[x, {p, a}] to N[x, {p., a.}].
+    """
+    if not pattern.has_form(SymbolN, 2):
+        return pattern
+    expr, prec = pattern.get_elements()
+    if prec.sameQ(NVALUE_MACHINE_PRECISION):
+        prec = SymbolMachinePrecision
+    elif prec.has_form(SymbolList, 2) and is_infinity(prec.get_elements()[1]):
+        prec = prec.get_elements()[0]
+    new_prec = normalize_n_precision(prec)
+    if new_prec is pattern.get_elements()[1]:
+        return pattern
+    return Expression(SymbolN, expr, new_prec)
 
 
 def nvalue_pattern_to_wma(pattern: BaseElement) -> BaseElement:
-    """Replace N[x, MachinePrecision] by N[x, {MachinePrecision, MachinePrecision}]"""
-    if (
-        pattern.has_form(SymbolN, 2)
-        and pattern.get_elements()[1] is SymbolMachinePrecision
-    ):
-        return Expression(SymbolN, pattern.get_elements()[0], NVALUE_MACHINE_PRECISION)
+    """
+    Converts the precision in a stored N rule to the form that WMA shows:
+    N[x, MachinePrecision] to N[x, {MachinePrecision, MachinePrecision}],
+    and N[x, p.] to N[x, {p., Infinity}].
+    """
+    if not pattern.has_form(SymbolN, 2):
+        return pattern
+    expr, prec = pattern.get_elements()
+    if prec is SymbolMachinePrecision:
+        return Expression(SymbolN, expr, NVALUE_MACHINE_PRECISION)
+    if isinstance(prec, Number):
+        return Expression(SymbolN, expr, ListExpression(prec, SymbolInfinity))
     return pattern
 
 
@@ -69,7 +88,7 @@ def get_symbol_list(
     error_callback: Callable,
     valid_name: Callable,
     stop_on_failure: bool = False,
-) -> Optional[List[str]]:
+) -> Optional[list[str]]:
     """
     If ``expr`` is of the form ``List[___]`` returns a list
     with the names of the valid symbol references in the list.
@@ -90,7 +109,7 @@ def get_symbol_list(
         name of the symbol.
     stop_on_failure: bool (optional)
         If True, return None if some of the elements cannot
-        be interpreted as a symbol . Default False.
+        be interpreted as a symbol. Default False.
 
     Returns
     -------
@@ -304,7 +323,7 @@ def rejected_because_protected(
 
 def unroll_patterns(
     lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
-) -> Tuple[BaseElement, BaseElement]:
+) -> tuple[BaseElement, BaseElement]:
     """
     Pattern[symb, pat]=rhs -> pat = (rhs/.(symb->pat))
     HoldPattern[lhs] = rhs -> lhs = rhs

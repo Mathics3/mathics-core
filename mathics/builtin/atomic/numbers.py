@@ -27,8 +27,14 @@ from mathics.core.atoms import (
     Integer10,
     MachineReal,
     Rational,
+    Real,
 )
-from mathics.core.attributes import A_LISTABLE, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.attributes import (
+    A_LISTABLE,
+    A_NO_ATTRIBUTES,
+    A_PROTECTED,
+    A_READ_PROTECTED,
+)
 from mathics.core.builtin import Builtin, Predefined
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
@@ -37,10 +43,15 @@ from mathics.core.list import ListExpression
 from mathics.core.number import (
     FP_MANTISA_BINARY_DIGITS,
     MACHINE_EPSILON,
-    MACHINE_PRECISION_VALUE,
+    get_float_inf,
     is_numeric,
 )
-from mathics.core.symbols import Symbol, SymbolDivide
+from mathics.core.symbols import (
+    Symbol,
+    SymbolDivide,
+    SymbolMaxPrecision,
+    SymbolMinPrecision,
+)
 from mathics.core.systemsymbols import (
     SymbolIndeterminate,
     SymbolInfinity,
@@ -51,15 +62,17 @@ from mathics.core.systemsymbols import (
     SymbolRealDigits,
     SymbolRound,
 )
-from mathics.eval.nevaluator import eval_N
+from mathics.eval.nevaluator import eval_N, is_infinity
 from mathics.eval.numbers.numbers import (
     check_finite_decimal,
     convert_float_base,
-    convert_repeating_decimal,
     eval_Accuracy,
     eval_Precision,
+    has_machine_number,
     log_n_b,
+    rational_digits,
 )
+from mathics.eval.numbers.precision import eval_SetAccuracy, eval_SetPrecision
 
 SymbolIntegerDigits = Symbol("IntegerDigits")
 SymbolIntegerExponent = Symbol("IntegerExponent")
@@ -86,9 +99,9 @@ class Accuracy(Builtin):
     'Accuracy' of a real number is estimated from its value and its precision:
 
     >> Accuracy[3.1416`2]
-     = 1.50298
+     = 1.50285
 
-    Notice that the value is not exactly equal to the obtained in WMA: \
+    Notice that the value is not exactly equal to the one obtained in WMA: \
     This is due to the different way in which 'Precision' is handled in SymPy.
 
     Accuracy for exact atoms is 'Infinity':
@@ -131,6 +144,9 @@ class Accuracy(Builtin):
 /representation-of-numbers/precision/</url>.
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
+
     summary_text = "find the accuracy of a number"
 
     def eval(self, z, evaluation):
@@ -159,9 +175,15 @@ class IntegerExponent(Builtin):
 
     >> IntegerExponent[10, b]
      = IntegerExponent[10, b]
+
+    >> IntegerExponent[0, 2]
+     = Infinity
     """
 
     attributes = A_LISTABLE | A_PROTECTED
+
+    eval_error = Builtin.generic_argument_error
+    expected_args = (1, 2)
 
     messages = {
         "int": "Integer expected at position 1 in `1`",
@@ -180,14 +202,21 @@ class IntegerExponent(Builtin):
         py_n, py_b = n.value, b.value
         py_n = abs(py_n)
 
-        # TODO: Optimise this (dont need to calc. base^result)
-        # NOTE: IntegerExponent[a,b] causes a Python error here when a or b are
-        # symbols. The function signature here ensures we have Integers.
-        result = 1
-        while py_n % (py_b**result) == 0:
+        # With a base below 2, the loop below never ends (b = 1), divides
+        # by zero (b = 0), or counts powers of a negative number.
+        if py_b < 2:
+            evaluation.message("IntegerExponent", "ibase", b)
+            return None
+        # Every power of b divides 0.
+        if py_n == 0:
+            return SymbolInfinity
+
+        result = 0
+        while py_n % py_b == 0:
+            py_n //= py_b
             result += 1
 
-        return Integer(result - 1)
+        return Integer(result)
 
     # FIXME: If WMA supports things other than Integers, the below code might
     # be useful as a starting point.
@@ -204,7 +233,7 @@ class IntegerExponent(Builtin):
     #     if not (isinstance(py_b, int) and py_b > 1):
     #         evaluation.message("IntegerExponent", "ibase", b)
 
-    #     # TODO: Optimise this (dont need to calc. base^result)
+    #     # TODO: Optimise this (we don't need to calc. base^result)
     #     # NOTE: IntegerExponent[a,b] causes a Python error here when a or b are
     #     # symbols
     #     result = 1
@@ -310,18 +339,18 @@ class NumberDigit(Builtin):
       <dd>returns the coefficient of $b$^$n$ in the base-$b$ representation of $x$.
     </dl>
 
-    Get the 10^2 digit of a 210.345:
+    Get the 10^2 digit of 210.345:
     >> NumberDigit[210.345, 2]
      = 2
 
-    Get the 10^-1 digit of a 210.345:
+    Get the 10^-1 digit of 210.345:
     >> NumberDigit[210.345, -1]
      = 3
 
     >> BaseForm[N[Pi], 2]
      = 11.00100100001111110_2
 
-    Get the 2^0 bit of the Pi:
+    Get the 2^0 bit of Pi:
      = 1
     """
 
@@ -342,12 +371,12 @@ class RealDigits(Builtin):
 
     <dl>
       <dt>'RealDigits'[$n$]
-      <dd>returns the decimal representation for the real number $n$ as list \
+      <dd>returns the decimal representation for the real number $n$ as a list \
       of digits, together with the number of digits that are to the left of \
       the decimal point.
 
       <dt>'RealDigits'[$n$, $b$]
-      <dd>returns a list of the "digits" in base-b representation for the real number $n$.
+      <dd>returns a list of the "digits" in base-$b$ representation for the real number $n$.
 
       <dt>'RealDigits'[$n$, $b$, $len$]
       <dd>returns a list of $len$ digits.
@@ -386,6 +415,10 @@ class RealDigits(Builtin):
 
     attributes = A_LISTABLE | A_PROTECTED
 
+    # Between one and four arguments are allowed.
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, 5)
+
     messages = {
         "realx": "The value `1` is not a real number.",
         "ndig": "The number of digits to return cannot be determined.",
@@ -400,19 +433,19 @@ class RealDigits(Builtin):
         # expr = Expression(SymbolRealDigits, n)
         py_n = abs(n.value)
         py_b = b.value
+        if py_b < 2:
+            evaluation.message("RealDigits", "rbase", b)
+            return None
         if check_finite_decimal(n.denominator().int_value) and not py_b % 2:
             return self.eval_with_base(n, b, evaluation)
-        else:
-            exp = log_n_b(py_n, py_b)
-            head, tails = convert_repeating_decimal(
-                py_n.as_numer_denom()[0], py_n.as_numer_denom()[1], py_b
-            )
-
-            elements = [Integer(int(x)) for x in head if x != "0"]
-
-            elements.append(from_python(tails))
-            list_expr = ListExpression(*elements)
-        return ListExpression(list_expr, Integer(exp))
+        numerator, denominator = py_n.as_numer_denom()
+        digits, period, exponent = rational_digits(
+            int(numerator), int(denominator), py_b
+        )
+        elements = [Integer(d) for d in digits]
+        if period:
+            elements.append(ListExpression(*(Integer(d) for d in period)))
+        return ListExpression(ListExpression(*elements), Integer(exponent))
 
     def eval_rational_without_base(self, n, evaluation):
         "%(name)s[n_Rational]"
@@ -613,6 +646,52 @@ class MaxPrecision(Predefined):
     summary_text = "settable global maximum precision bound variable"
 
 
+class MaxExtraPrecision(Predefined):
+    r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$MaxExtraPrecision.html</url>
+
+    <dl>
+      <dt>'\$MaxExtraPrecision'
+      <dd>is the largest number of digits beyond the requested precision \
+          that 'N' uses to reach it.
+    </dl>
+
+    >> $MaxExtraPrecision
+     = 50.
+
+    'N' adds digits when a computation loses them:
+    >> N[Pi - 314159/100000, 20] // Precision
+     = 20.
+
+    When that is not enough, the result has fewer digits:
+    >> $MaxExtraPrecision = 5;
+    >> N[Pi - 314159265358979/100000000000000, 20]
+     : Internal precision limit $MaxExtraPrecision = 5. reached while evaluating -314159265358979 / 100000000000000 + Pi.
+     = 3.238462643×10^-15
+
+    >> $MaxExtraPrecision = -1
+     : Cannot set $MaxExtraPrecision to -1; value must be a non-negative number or Infinity.
+     = -1
+    >> $MaxExtraPrecision
+     = 5
+
+    #> $MaxExtraPrecision = 50.;
+    """
+
+    attributes = A_NO_ATTRIBUTES
+    messages = {
+        "precset": "Cannot set `1` to `2`; value must be a non-negative number or Infinity.",
+    }
+
+    name = "$MaxExtraPrecision"
+
+    rules = {
+        "$MaxExtraPrecision": "50.",
+    }
+
+    summary_text = "settable limit on extra digits used to reach a precision"
+
+
 class MachineEpsilon_(Predefined):
     r"""
     <url>:WMA link:
@@ -761,8 +840,12 @@ class Precision(Builtin):
 
     In compound expressions, the 'Precision' is fixed by the number with \
     the lowest 'Precision':
-    >> Precision[{{1, 1.`},{1.`5, 1.`10}}]
+    >> Precision[{{1, 1.`20},{1.`5, 1.`10}}]
      = 5.
+
+    A machine number makes it 'MachinePrecision':
+    >> Precision[{{1, 1.`},{1.`5, 1.`10}}]
+     = MachinePrecision
 
     In general, 'Accuracy'[$z$] == 'Precision'[$z$] + 'Log'[$z$] \
     for non-zero Real values:
@@ -784,16 +867,129 @@ class Precision(Builtin):
     /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/representation-of-numbers/accuracy/</url>.
     """
 
+    eval_error = Builtin.generic_argument_error
+    expected_args = 1
+
     summary_text = "find the precision of a number"
 
     def eval(self, z, evaluation: Evaluation):
         """Precision[z_]"""
-        if isinstance(z, MachineReal):
+        # As in WMA, a machine number anywhere in z makes it MachinePrecision.
+        if has_machine_number(z):
             return SymbolMachinePrecision
 
         prec = eval_Precision(z)
         if prec is None:
             return SymbolInfinity
-        if prec == MACHINE_PRECISION_VALUE:
-            return SymbolMachinePrecision
         return MachineReal(prec)
+
+
+class SetAccuracy(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SetAccuracy.html</url>
+
+    <dl>
+      <dt>'SetAccuracy'[$expr$, $a$]
+      <dd>gives $expr$ with every number in it set to $a$ digits of \
+          accuracy.
+    </dl>
+
+    >> SetAccuracy[150.5, 20] // Precision
+     = 22.1775
+
+    A number with no digit left becomes a zero:
+    >> SetAccuracy[0.001, 2] // Accuracy
+     = 2.
+
+    'Infinity' gives the exact value of each number:
+    >> SetAccuracy[0.5, Infinity]
+     = 1 / 2
+    """
+
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
+
+    messages = {
+        "accbd": "Requested accuracy `1` is not a real number within the allowable range.",
+    }
+
+    summary_text = "set the accuracy of the numbers in an expression"
+
+    def eval(self, expr, accuracy, evaluation: Evaluation):
+        "SetAccuracy[expr_, accuracy_]"
+        if is_infinity(accuracy):
+            target = float("inf")
+        elif isinstance(accuracy, (Integer, Rational, Real)):
+            target = float(accuracy.value)
+        else:
+            evaluation.message("SetAccuracy", "accbd", accuracy)
+            return None
+        return eval_SetAccuracy(expr, target, evaluation)
+
+
+class SetPrecision(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SetPrecision.html</url>
+
+    <dl>
+      <dt>'SetPrecision'[$expr$, $p$]
+      <dd>gives $expr$ with every number in it set to $p$ digits of \
+          precision.
+    </dl>
+
+    >> SetPrecision[1/3, 20]
+     = 0.33333333333333333333
+
+    An inexact number keeps its binary value:
+    >> SetPrecision[0.1, 20]
+     = 0.10000000000000000555
+
+    Numeric constants are evaluated:
+    >> SetPrecision[f[Pi, x], 20]
+     = f[3.1415926535897932385, x]
+
+    'Infinity' gives the exact value of each number:
+    >> SetPrecision[0.1, Infinity]
+     = 3602879701896397 / 36028797018963968
+    """
+
+    eval_error = Builtin.generic_argument_error
+    expected_args = 2
+
+    messages = {
+        "precbd": (
+            "Requested precision `1` is not a machine-sized real number "
+            "between $MinPrecision and $MaxPrecision."
+        ),
+        "precsm": (
+            "Requested precision `1` is smaller than $MinPrecision. "
+            "Using $MinPrecision instead."
+        ),
+        "preclg": (
+            "Requested precision `1` is larger than $MaxPrecision. "
+            "Using $MaxPrecision instead."
+        ),
+    }
+
+    summary_text = "set the precision of the numbers in an expression"
+
+    def eval(self, expr, precision, evaluation: Evaluation):
+        "SetPrecision[expr_, precision_]"
+        if precision is SymbolMachinePrecision:
+            target = None
+        elif is_infinity(precision):
+            target = float("inf")
+        elif isinstance(precision, (Integer, Rational, Real)):
+            target = float(precision.value)
+            min_precision = get_float_inf(SymbolMinPrecision, evaluation)
+            max_precision = get_float_inf(SymbolMaxPrecision, evaluation)
+            if min_precision is not None and target < min_precision:
+                evaluation.message("SetPrecision", "precsm", precision)
+                target = min_precision
+            elif max_precision is not None and target > max_precision:
+                evaluation.message("SetPrecision", "preclg", precision)
+                target = max_precision
+        else:
+            evaluation.message("SetPrecision", "precbd", precision)
+            return None
+        return eval_SetPrecision(expr, target, evaluation)

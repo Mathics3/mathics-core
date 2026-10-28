@@ -14,7 +14,6 @@ used just as a last resource.
 from typing import Callable, Optional
 
 import mpmath
-import sympy
 
 # Note: it is important *not* use: from mathics.eval.tracing import run_sympy
 # but instead import the module and access below as tracing.run_sympy.
@@ -32,9 +31,8 @@ from mathics.core.atoms import (
     Real,
 )
 from mathics.core.convert.mpmath import from_mpmath
-from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement
-from mathics.core.number import FP_MANTISA_BINARY_DIGITS, SpecialValueError, min_prec
+from mathics.core.number import FP_MANTISA_BINARY_DIGITS, SpecialValueError
 from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolPower, SymbolTimes
 from mathics.core.systemsymbols import (
     SymbolComplexInfinity,
@@ -45,7 +43,12 @@ from mathics.core.systemsymbols import (
     SymbolSqrt,
     SymbolUnderflow,
 )
-from mathics.eval.numeric import eval_Power_number, eval_RealSign, to_inexact_value
+from mathics.eval.numeric import (
+    eval_multiply_numbers,
+    eval_Power_number,
+    eval_RealSign,
+    to_inexact_value,
+)
 
 RationalMOneHalf = Rational(-1, 2)
 RealM0p5 = Real(-0.5)
@@ -106,34 +109,6 @@ def eval_mpmath_function(
         return run_mpmath(mpmath_function, tuple(mpmath_args), prec)
 
 
-def eval_add_numbers(
-    *numbers: Number,
-) -> BaseElement:
-    """
-    Add the elements in ``numbers``.
-    """
-    if len(numbers) == 0:
-        return Integer0
-    if len(numbers) == 1:
-        return numbers[0]
-
-    is_machine_precision = any(number.is_machine_precision for number in numbers)
-    if is_machine_precision:
-        terms = (item.to_mpmath() for item in numbers)
-        number = mpmath.fsum(terms)
-        return from_mpmath(number)
-
-    prec = min_prec(*numbers)
-    if prec is not None:
-        # For a sum, what is relevant is the minimum accuracy of the terms
-        with mpmath.workprec(prec):
-            terms = (item.to_mpmath() for item in numbers)
-            number = mpmath.fsum(terms)
-            return from_mpmath(number, precision=prec)
-    else:
-        return from_sympy(sum(item.to_sympy() for item in numbers))
-
-
 def eval_inverse_number(n: Number) -> Optional[Number]:
     """
     Eval 1/n
@@ -152,31 +127,6 @@ def eval_inverse_number(n: Number) -> Optional[Number]:
         return Rational(n_den, n_num)
     # Otherwise, use power....
     return eval_Power_number(n, IntegerM1)
-
-
-def eval_multiply_numbers(*numbers: Number) -> Number:
-    """
-    Multiply the elements in ``numbers``.
-    """
-    if len(numbers) == 0:
-        return Integer1
-    if len(numbers) == 1:
-        return numbers[0]
-
-    is_machine_precision = any(number.is_machine_precision for number in numbers)
-    if is_machine_precision:
-        factors = (item.to_mpmath() for item in numbers)
-        number = mpmath.fprod(factors)
-        return from_mpmath(number)
-
-    prec = min_prec(*numbers)
-    if prec is not None:
-        with mpmath.workprec(prec):
-            factors = (item.to_mpmath() for item in numbers)
-            number = mpmath.fprod(factors)
-            return from_mpmath(number, prec)
-    else:
-        return from_sympy(sympy.Mul(*(item.to_sympy() for item in numbers)))
 
 
 def eval_negate_number(n: Number) -> Number:

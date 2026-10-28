@@ -5,7 +5,7 @@ Division-Related Functions
 """
 
 import sys
-from typing import List, Optional, Union
+from typing import Callable, Optional, Union
 
 from sympy import Q, ask
 
@@ -104,6 +104,33 @@ class Divisible(Builtin):
     summary_text = "test whether one number is divisible by the other"
 
 
+def combine_integer_arguments(builtin, ns, eval_fn: Callable) -> Optional[Expression]:
+    """
+    Build the result of GCD or LCM from its arguments ns: the integer
+    arguments are combined by eval_fn into a single Integer. If every
+    argument is an integer, that Integer is returned; otherwise a new
+    GCD[...] or LCM[...] expression is returned that holds the combined
+    integer followed by the remaining arguments. None, meaning no change,
+    is returned when there are fewer than two integers to combine.
+
+    The rule pattern is ns___ (ns__) and not ns___Integer: the functions are
+    Flat, and ns___Integer also matches a lone integer among other
+    arguments. Rewriting it to itself made GCD[1/2, 3] or GCD[2.5, 5]
+    evaluate until $IterationLimit.
+    """
+    ns = ns.get_sequence()
+    integers = [n for n in ns if isinstance(n, Integer)]
+    if len(integers) == len(ns):
+        return eval_fn(ns)
+    if len(integers) < 2:
+        return None
+    combined = eval_fn(integers)
+    if combined is None:
+        return None
+    others = [n for n in ns if not isinstance(n, Integer)]
+    return Expression(Symbol(builtin.get_name()), combined, *others)
+
+
 class GCD(Builtin):
     """
     <url>
@@ -131,10 +158,10 @@ class GCD(Builtin):
     summary_text = "compute the Greatest Common Divisor"
     sympy_name = "gcd"
 
-    def eval(self, ns, evaluation: Evaluation) -> Optional[Integer]:
-        "GCD[ns___Integer]"
+    def eval(self, ns, evaluation: Evaluation) -> Optional[Expression]:
+        "GCD[ns___]"
 
-        return eval_GCD(ns.get_sequence())
+        return combine_integer_arguments(self, ns, eval_GCD)
 
 
 class LCM(Builtin):
@@ -161,14 +188,11 @@ class LCM(Builtin):
     summary_text = "compute the Least Common Multiple"
     sympy_name = "lcm"
 
-    def eval(self, ns: List[Integer], evaluation: Evaluation) -> Optional[Integer]:
-        "LCM[ns___Integer]"
+    def eval(self, ns, evaluation: Evaluation) -> Optional[Expression]:
+        "LCM[ns__]"
 
-        ns_tuple = ns.get_sequence()
-        if len(ns_tuple) == 0:
-            evaluation.message("LCM", "argm")
-            return
-        return eval_LCM(ns_tuple)
+        # LCM[] is answered by generic_argument_error.
+        return combine_integer_arguments(self, ns, eval_LCM)
 
 
 class Mod(SympyFunction):
@@ -260,7 +284,7 @@ class ModularInverse(SympyFunction):
     >> k = 2; n = 3; Mod[ModularInverse[k, n] * k, n] == 1
      = True
 
-    Some modular inverses just do not exists. For example when $k$ is a multiple of $n$:
+    Some modular inverses just do not exist. For example when $k$ is a multiple of $n$:
     >> ModularInverse[k, k]
      = ModularInverse[2, 2]
 
@@ -375,7 +399,7 @@ class PowerMod(Builtin):
         -1: "mod_inverse",  # b = -1
         0: "nth_root_mod",  # 0 < b < 1 and is an inverse
         0.5: "sqrt_mod",  # b = 1/2
-        3: "core.power.Pow",  # Handles complex numbers. Use builtin pow for integers
+        3: "core.power.Pow",  # Handles complex numbers. Use built-in pow for integers
     }
 
     def eval(self, a: Integer, b, m: Integer, evaluation: Evaluation):
@@ -417,7 +441,7 @@ class Quotient(Builtin):
     >> Quotient[4.56, 2.5]
      = 1
 
-    'Quotient' with two complex numbers is same as 'Round[m/n]':
+    'Quotient' with two complex numbers is the same as 'Round[m/n]':
     >> Quotient[10.4 + 8 I, 4. + 5 I]
      = 2
 

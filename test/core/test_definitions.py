@@ -132,6 +132,70 @@ def test_determine_value_role(pattern_str, tag, position):
 
 
 @pytest.mark.parametrize(
+    ("str_expr", "str_expected", "fail_msg"),
+    [
+        # A definition with many stored values, so that the literal index is used.
+        (
+            "ClearAll[f, g, h, k]; Do[f[i] = i^2, {i, 20}]; f[x_] := lin[x];"
+            " {f[3], f[20], f[21], f[x]}",
+            "{9, 400, lin[21], lin[x]}",
+            "Stored values and a pattern rule",
+        ),
+        ("f[3] = new; {f[3], f[4]}", "{new, 16}", "A stored value replaced"),
+        ("f[5] =.; {f[5], f[6]}", "{lin[5], 36}", "A stored value removed"),
+        (
+            "f[7] := cond /; True; {f[7], f[8]}",
+            "{cond, 64}",
+            "A conditional rule for a stored value comes first",
+        ),
+        (
+            "f[9] := never /; False; f[9]",
+            "81",
+            "A failing condition falls back to the stored value",
+        ),
+        (
+            "DownValues[f] = {HoldPattern[f[x_]] :> first[x], HoldPattern[f[1]] :> one};"
+            " {f[1], f[2]}",
+            "{first[1], first[2]}",
+            "DownValues set in an order of their own",
+        ),
+        ("ClearAll[f]; f[1]", "f[1]", "Cleared"),
+        (
+            "Do[f[i] = i, {i, 20}]; f[x_] := gen[x]; {f[1], f[2], f[21]}",
+            "{1, 2, gen[21]}",
+            "Stored values assigned before a pattern rule",
+        ),
+        (
+            "ClearAll[f]; f[x_] := gen[x]; Do[f[i] = i, {i, 20}]; f[2] = two;"
+            " {f[1], f[2], f[21]}",
+            "{1, two, gen[21]}",
+            "Stored values assigned after a pattern rule",
+        ),
+        ("ClearAll[f]; f[1]", "f[1]", "Cleared again"),
+        (
+            "Do[g[k][i] = -i, {i, 20}]; g[k][x_] := other[x]; {g[k][3], g[k][30]}",
+            "{-3, other[30]}",
+            "SubValues",
+        ),
+        (
+            "Do[h[i, {i}] = i, {i, 20}]; {h[3, {3}], h[3, {4}], h[3, {3.}]}",
+            "{3, h[3, {4}], h[3, {3.}]}",
+            "Nested literal left-hand sides",
+        ),
+        (
+            "SetAttributes[k, Orderless]; Do[k[i, a] = i, {i, 20}]; {k[a, 3], k[3, a]}",
+            "{3, 3}",
+            "Orderless heads",
+        ),
+        ("ClearAll[f, g, h, k];", "Null", None),
+    ],
+)
+def test_stored_values_lookup(str_expr, str_expected, fail_msg):
+    """Rules applied through the literal index of a rule list"""
+    check_evaluation(str_expr, str_expected, failure_message=fail_msg)
+
+
+@pytest.mark.parametrize(
     ("str_expr", "str_expected", "assert_failure_msg"),
     [
         (

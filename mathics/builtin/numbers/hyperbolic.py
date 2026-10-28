@@ -14,6 +14,8 @@ exact values and simplification rules are not implemented yet.
 
 from typing import Optional
 
+import mpmath
+
 from mathics.core.atoms import IntegerM1
 from mathics.core.builtin import Builtin, MPMathFunction, SympyFunction
 from mathics.core.convert.sympy import SympyExpression
@@ -56,6 +58,10 @@ class ArcCosh(MPMathFunction):
 
     mpmath_name = "acosh"
 
+    @staticmethod
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
+        return (abs(x / (mpmath.sqrt(x**2 - 1) * value)),)
+
     rules = {
         "ArcCosh[Undefined]": "Undefined",
         "ArcCosh[DirectedInfinity[I]]": "Infinity",
@@ -97,10 +103,14 @@ class ArcCoth(MPMathFunction):
     summary_text = "inverse hyperbolic cotangent function"
     sympy_name = "acoth"
     mpmath_name = "acoth"
+    indeterminate_at = (1, -1)
+
+    @staticmethod
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
+        return (abs(x / ((1 - x**2) * value)),)
 
     rules = {
         "ArcCoth[Undefined]": "Undefined",
-        "ArcCoth[z:0.0]": "N[I / 2 Pi, Precision[1+z]]",
         "Derivative[1][ArcCoth]": "1/(1-#^2)&",
     }
 
@@ -129,6 +139,10 @@ class ArcCsch(MPMathFunction):
     """
 
     mpmath_name = "acsch"
+
+    @staticmethod
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
+        return (abs(1 / (mpmath.sqrt(1 + x**2) * value)),)
 
     rules = {
         "ArcCsch[Undefined]": "Undefined",
@@ -165,6 +179,10 @@ class ArcSech(MPMathFunction):
     """
 
     mpmath_name = "asech"
+
+    @staticmethod
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
+        return (abs(1 / (mpmath.sqrt(1 - x**2) * value)),)
 
     rules = {
         "ArcSech[Undefined]": "Undefined",
@@ -204,6 +222,10 @@ class ArcSinh(MPMathFunction):
     sympy_name = "asinh"
     mpmath_name = "asinh"
 
+    @staticmethod
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
+        return (abs(x / (mpmath.sqrt(1 + x**2) * value)),)
+
     rules = {
         "ArcSinh[Undefined]": "Undefined",
         "Derivative[1][ArcSinh]": "1/Sqrt[1+#^2]&",
@@ -223,6 +245,10 @@ class ArcTanh(MPMathFunction):
      = 0
     >> ArcTanh[1]
      = Infinity
+
+    An inexact argument whose error covers the pole gives 'Indeterminate':
+    >> ArcTanh[1.0000001`5]
+     = Indeterminate
     >> ArcTanh[0]
      = 0
     >> ArcTanh[.5 + 2 I]
@@ -232,7 +258,13 @@ class ArcTanh(MPMathFunction):
     """
 
     mpmath_name = "atanh"
+
+    @staticmethod
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
+        return (abs(x / ((1 - x**2) * value)),)
+
     numpy_name = "arctanh"
+    indeterminate_at = (1, -1)
 
     rules = {
         "ArcTanh[Undefined]": "Undefined",
@@ -319,6 +351,11 @@ class Cosh(MPMathFunction):
     """
 
     mpmath_name = "cosh"
+
+    @staticmethod
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
+        return (abs(x * mpmath.sinh(x) / value),)
+
     sympy_name = "cosh"
 
     rules = {
@@ -343,6 +380,17 @@ class Coth(MPMathFunction):
     """
 
     mpmath_name = "coth"
+    has_poles = True
+
+    @staticmethod
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
+        # As in WMA: for Abs[x] < 1 it is the condition number of
+        # Sinh[x] / Cosh[x], with the errors of both added.
+        if abs(x) < 1:
+            return (abs(x * (value + 1 / value)),)
+        # x (1 - Tanh[x]^2) / Tanh[x], without the cancellation.
+        return (abs(2 * x / mpmath.sinh(2 * x)),)
+
     sympy_name = "coth"
 
     rules = {
@@ -372,6 +420,16 @@ class Csch(MPMathFunction):
     """
 
     mpmath_name = "csch"
+    has_poles = True
+
+    @staticmethod
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
+        return (abs(x * mpmath.coth(x)),)
+
+    rules = {
+        "Csch[z_Real /; z == 0]": "ComplexInfinity",
+    }
+
     summary_text = "hyperbolic cosecant function"
     sympy_name = "csch"
 
@@ -469,6 +527,11 @@ class Sech(MPMathFunction):
     """
 
     mpmath_name = "sech"
+    value_bound = 1.0
+
+    @staticmethod
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
+        return (abs(x * mpmath.tanh(x)),)
 
     rules = {
         "Derivative[1][Sech]": "-Sech[#1] Tanh[#1]&",
@@ -499,6 +562,10 @@ class Sinh(MPMathFunction):
 
     mpmath_name = "sinh"
 
+    @staticmethod
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
+        return (abs(x * mpmath.cosh(x) / value),)
+
     rules = {
         "Derivative[1][Sinh]": "Cosh[#]&",
         "Sinh[Undefined]": "Undefined",
@@ -521,6 +588,16 @@ class Tanh(MPMathFunction):
     """
 
     mpmath_name = "tanh"
+    value_bound = 1.0
+
+    @staticmethod
+    def condition_numbers(x: mpmath.mpf, value: mpmath.mpf) -> tuple[mpmath.mpf]:
+        # As in WMA: for Abs[x] < 1 it is the condition number of
+        # Sinh[x] / Cosh[x], with the errors of both added.
+        if abs(x) < 1:
+            return (abs(x * (value + 1 / value)),)
+        # x (1 - Tanh[x]^2) / Tanh[x], without the cancellation.
+        return (abs(2 * x / mpmath.sinh(2 * x)),)
 
     rules = {
         "Derivative[1][Tanh]": "Sech[#1]^2&",

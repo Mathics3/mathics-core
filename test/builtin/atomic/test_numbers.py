@@ -4,7 +4,8 @@ Unit tests for mathics.builtin.atomic.numbers
 
 In particular, RealDigits[] and N[]
 """
-from test.helper import check_evaluation
+
+from test.helper import check_arg_counts, check_evaluation
 
 import pytest
 
@@ -12,6 +13,28 @@ from mathics.core.number import MACHINE_PRECISION_VALUE, ZERO_MACHINE_ACCURACY
 
 ZERO_MACHINE_ACCURACY_STR = str(ZERO_MACHINE_ACCURACY)
 DEFAUT_ACCURACY_10_STR = str(MACHINE_PRECISION_VALUE - 1)
+
+
+@pytest.mark.parametrize(
+    ("function_name", "msg_fragment"),
+    [
+        (
+            "Accuracy",
+            "1 argument is",
+        ),
+        (
+            "IntegerExponent",
+            "1 or 2 arguments are",
+        ),
+        (
+            "Precision",
+            "1 argument is",
+        ),
+    ],
+)
+def test_arg_errors(function_name, msg_fragment):
+    """ """
+    check_arg_counts(function_name, msg_fragment)
 
 
 def test_realdigits():
@@ -160,6 +183,53 @@ def test_realdigits():
         check_evaluation(str_expr, str_expected)
 
 
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected"),
+    [
+        # The output form does not show quotes, so compare with ===:
+        # the digits must be integers, not strings.
+        ("RealDigits[1/7] === {{{1, 4, 2, 8, 5, 7}}, 0}", "True"),
+        ("RealDigits[19/7] === {{2, {7, 1, 4, 2, 8, 5}}, 1}", "True"),
+        # The period starts after the shortest pre-period.
+        ("RealDigits[1/6]", "{{1, {6}}, 0}"),
+        ("RealDigits[1/14]", "{{{7, 1, 4, 2, 8, 5}}, -1}"),
+        # Zeros in the integer part are digits.
+        ("RealDigits[703/7]", "{{1, 0, 0, {4, 2, 8, 5, 7, 1}}, 3}"),
+        ("RealDigits[1/3, 1]", "RealDigits[1 / 3, 1]"),
+    ],
+)
+def test_realdigits_rational(str_expr, str_expected):
+    check_evaluation(str_expr, str_expected)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected"),
+    [
+        (
+            "RealDigits[]",
+            (
+                "RealDigits called with 0 arguments; between 1 and 4 arguments are expected.",
+            ),
+            "RealDigits[]",
+        ),
+        (
+            "RealDigits[1, 2, 3, 4, 5]",
+            (
+                "RealDigits called with 5 arguments; between 1 and 4 arguments are expected.",
+            ),
+            "RealDigits[1, 2, 3, 4, 5]",
+        ),
+    ],
+)
+def test_realdigits_argument_count(str_expr, msgs, str_expected):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        expected_messages=msgs,
+        hold_expected=True,
+    )
+
+
 def test_n():
     for str_expr, str_expected in (
         ('3.14159 * "a string"', "3.14159 a string"),
@@ -262,8 +332,12 @@ def test_accuracy(str_expr, str_expected):
         ('"abc"', "Infinity"),
         # Returns the precision of ``` 3.2`3 ```
         ('F["a", 2, 3.2`3]', "3."),
-        ('{{a, 2, 3.2`},{2.1`5, 3.2`3, "a"}}', "3."),
-        ('{{a, 2, 3.2`},{2.1``3, 3.2``5, "a"}}', "3."),
+        # As in WMA, a machine number makes the precision MachinePrecision.
+        ('{{a, 2, 3.2`},{2.1`5, 3.2`3, "a"}}', "MachinePrecision"),
+        ('{{a, 2, 3.2`},{2.1``3, 3.2``5, "a"}}', "MachinePrecision"),
+        ("F[1.5`3, x, 2.]", "MachinePrecision"),
+        ("{1.5`20, 1}", "20."),
+        ("1.5`15.954589770191003", "15.9546"),
         ("{1, 0.}", "MachinePrecision"),
         ("{1, 0.``5}", "0."),
         ("Re[0.5+2.3 I]", "MachinePrecision"),
@@ -273,6 +347,601 @@ def test_accuracy(str_expr, str_expected):
 )
 def test_precision(str_expr, str_expected):
     check_evaluation(f"Precision[{str_expr}]", str_expected)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        ("Precision[1.5`20.3]", "20.3", "a real-valued precision is kept"),
+        ("Precision[-1.5`20.3]", "20.3", None),
+        ("Precision[1.5``20.3]", "20.4761", "from the accuracy"),
+        ("Precision[N[Pi, {20, 5}]]", "5.49715", "N with {prec, acc}"),
+        (
+            "Precision[1.5`5.497 + 1.5`5.497]",
+            "5.497",
+            "Plus: the absolute errors add up",
+        ),
+        ("Precision[1.5`5.497 + 2.5`8]", "5.9207", None),
+        ("Precision[1.5`20.3 + 3.2`30]", "20.796", None),
+        ("Precision[2 + 1.5`20.3]", "20.668", "an exact term adds no error"),
+        ("Accuracy[1.5`5 - 1.5`5]", "4.52288", "a zero keeps the accuracy"),
+        (
+            "Precision[1.5`5.497 * 1.5`5.497]",
+            "5.19597",
+            "Times: the relative errors add up",
+        ),
+        ("Precision[N[Pi, 30] N[E, 30]]", "29.699", None),
+        ("Precision[N[Pi, 30] E]", "30.", "an exact constant adds no error"),
+        ("Precision[N[Pi, 30] + E]", "30.2707", None),
+        (
+            "ToString[3.14159265358979323846264`20.6]",
+            '"3.14159265358979323846"',
+            "the digits shown are the precision rounded",
+        ),
+        (
+            "ToString[3.14159265358979323846264`20.4]",
+            '"3.1415926535897932385"',
+            None,
+        ),
+        ("ToString[1.5`20.3, InputForm]", '"1.5`20.3"', None),
+    ],
+)
+def test_real_valued_precision(str_expr, str_expected, msg):
+    """Compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        ("Accuracy[Log[1.`20]]", "20.", "the error of x, divided by x"),
+        ("Accuracy[Log[1.`3]]", "3.", "the leading term, also at low precision"),
+        ("Accuracy[Log[2, 1.`20]]", "19.8408", "and by Log[b]"),
+        ("Accuracy[Log[10, 1.`20]]", "20.3622", None),
+        ("Accuracy[Log10[1.`20]]", "20.3622", None),
+        ("Accuracy[Log2[1.`20]]", "19.8408", None),
+        ("Accuracy[Log[2.`20, 1.`25]]", "24.8408", "the base does not change 0"),
+        ("Accuracy[Log[2.`25, 1.`20]]", "19.8408", None),
+        ("Accuracy[Log[1.0001`20, 1.`20]]", "16.", None),
+        ("Log[2.`20, 1]", "0", "an exact 1 gives an exact 0"),
+        ("Log[1.`20, 1.`20]", "Indeterminate", "the base covers 1, and x too"),
+        ("Log[1.0001`3, 1.`20]", "Indeterminate", None),
+        ("Log[1, 1.`20]", "Indeterminate", None),
+        ("Log[1.`20, 1]", "Indeterminate", None),
+        ("Log[1., 1.]", "Indeterminate", None),
+        ("Log[1.`20, 2]", "ComplexInfinity", "the base covers 1"),
+        ("Log[1.0001`3, 2]", "ComplexInfinity", None),
+        ("Log[1, 2.`20]", "ComplexInfinity", None),
+        ("Log[1.`20, 2 + I]", "ComplexInfinity", None),
+        ("Precision[Log[1.0001`5, 2]]", "0.999978", "the base does not cover 1"),
+        ("Log[2.`20, 0``20]", "Indeterminate", "an inexact 0"),
+        ("Log[0``20]", "Indeterminate", None),
+        ("Log[0., 2.`20]", "Indeterminate", None),
+        ("Accuracy[Sin[0``1.5]]", "1.5", "the leading term of f"),
+        ("Accuracy[Cos[0``2]]", "4.30103", None),
+        ("Accuracy[ArcCos[1.`3]]", "1.34949", None),
+    ],
+)
+def test_log_zero_precision(str_expr, str_expected, msg):
+    """Compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+# Arguments of Through: the precision and the accuracy of each part.
+PARTS = "{Precision@*Re, Accuracy@*Re, Precision@*Im, Accuracy@*Im}"
+ACCURACIES = "{Accuracy@*Re, Accuracy@*Im}"
+Z = "Complex[1.`20, 2.`25]"
+W = "Complex[3.`22, -1.`18]"
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        (
+            "Precision[1.5`20.3 + 2.5`20.3 I]",
+            "20.3",
+            "the errors of the parts add in quadrature",
+        ),
+        ("Accuracy[1.5`20.3 + 2.5`20.3 I]", "19.8353", None),
+        ("Precision[Complex[1.`20, 1.`10]]", "10.1505", None),
+        ("Accuracy[Complex[1000.`20, 1.`20]]", "17.", None),
+        ("Precision[Complex[1.`20, 3]]", "20.5", "an exact part counts to Abs"),
+        ("Precision[2.`20 + I]", "20.0485", None),
+        ("{Re[2.`20 I], Im[2.`20 + I]}", "{0, 1}", "exact parts stay exact"),
+        (
+            f"Through[{PARTS}[Complex[1.`20, 1.`20] + 1]]",
+            "{20.301, 20., 20., 20.}",
+            "Plus: each part adds its own errors",
+        ),
+        (
+            f"Through[{PARTS}[Complex[1.`20, 1.`20] + 1.`10]]",
+            "{10.301, 10., 20., 20.}",
+            None,
+        ),
+        (
+            f"Through[{PARTS}[{Z} + {W}]]",
+            "{20.5892, 19.9872, 18., 18.}",
+            None,
+        ),
+        (
+            f"Through[{PARTS}[Complex[1.`20, 1.`20] Complex[1.`20, -1.`20]]]",
+            "{19.699, 19.3979, 0., 19.3979}",
+            "Times: (a + b I)(c + d I) is ac - bd + (ad + bc) I",
+        ),
+        (
+            f"Through[{PARTS}[Complex[1.`20, 1.`20] 1.`10]]",
+            "{10., 10., 10., 10.}",
+            None,
+        ),
+        (f"Through[{ACCURACIES}[{Z} {W}]]", "{17.6924, 17.9954}", None),
+        (
+            f"Through[{ACCURACIES}[{Z} {Z} {Z} {Z}]]",
+            "{18.2518, 18.2518}",
+            "the factors are multiplied as a balanced tree, (z z)(z z)",
+        ),
+        (
+            f"Through[{ACCURACIES}[{Z} / {W}]]",
+            "{18.5184, 18.6176}",
+            "z / w is z (1 / w)",
+        ),
+        (
+            f"Through[{PARTS}[Complex[1.`20, 1.`20]^2]]",
+            "{0., 19.3979, 19.699, 19.3979}",
+            "z^2 is (a + b)(a - b) + 2 a b I",
+        ),
+        (
+            f"Through[{ACCURACIES}[Complex[1.`20, 2]^2]]",
+            "{19.3979, 19.3979}",
+            None,
+        ),
+        (
+            f"Through[{ACCURACIES}[{Z}^3]]",
+            "{18.8239, 18.7959}",
+            "z^n by squaring, from the highest bit of n",
+        ),
+        (f"Through[{ACCURACIES}[{Z}^4]]", "{18.1938, 18.2518}", None),
+        (f"Through[{ACCURACIES}[{Z}^5]]", "{17.7375, 17.6819}", None),
+        (f"Through[{ACCURACIES}[{Z}^6]]", "{17.1662, 17.3851}", None),
+        (
+            f"Through[{PARTS}[1 / Complex[1.`20, 1.`20]]]",
+            "{19.5229, 19.8239, 19.5229, 19.8239}",
+            "1 / z is (a - b I) / (a^2 + b^2)",
+        ),
+        (f"Through[{ACCURACIES}[{Z}^-2]]", "{20.3677, 20.2853}", None),
+        (
+            f"Through[{ACCURACIES}[1 / Complex[0``10, 1.`20]]]",
+            "{10., 19.3979}",
+            None,
+        ),
+    ],
+)
+def test_complex_precision(str_expr, str_expected, msg):
+    """Complex numbers whose parts keep their own errors: compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        (
+            "{Re[#], Precision[#]}&[ArcSec[0.5`20]]",
+            "{0, 20.0571}",
+            "a complex value at a real argument",
+        ),
+        ("{Re[#], Precision[#]}&[Sqrt[-2.`20]]", "{0, 20.301}", None),
+        (
+            f"Through[{PARTS}[Log[-1.`20]]]",
+            "{0., 20., 36.7528, 36.2556}",
+            "a part that does not change gets 2^-54 of the error",
+        ),
+        (f"Through[{PARTS}[Log[-1.`2]]]", "{0., 2., 18.7528, 18.2556}", None),
+        ("Precision[Re[Log[-2.`20]]]", "19.8408", None),
+        (
+            f"Through[{PARTS}[ArcSin[2.`20]]]",
+            "{36.3893, 36.1932, 20.0571, 19.9375}",
+            None,
+        ),
+        ("Precision[ArcSin[2.`20]]", "20.2492", None),
+        ("Precision[ArcCos[-2.`20]]", "20.4698", None),
+        (
+            "Through[{Precision@*Re, Precision@*Im}[ArcTanh[2.`20]]]",
+            "{19.9159, 36.6278}",
+            None,
+        ),
+        (
+            "Through[{Precision@*Re, Precision@*Im}[ArcCoth[0.5`20]]]",
+            "{19.9159, 36.6278}",
+            None,
+        ),
+        ("Precision[Im[ArcCosh[-2.`20]]]", "36.6903", None),
+        ("{Re[#], Precision[#]}&[ArcCosh[0.5`20]]", "{0, 20.2586}", None),
+        ("Precision[Im[ArcSin[1.`20*^10]]]", "21.3751", None),
+        ("Precision[ArcCos[1.5`5]]", "4.85573", None),
+        (
+            "{Re[#], Precision[#]}&[ArcCosh[0``20]]",
+            "{0, 20.1961}",
+            "at a zero, the change of f within the error",
+        ),
+        ("{Re[#], Precision[#]}&[ArcCoth[0``20]]", "{0, 20.1961}", None),
+        (
+            "{Re[#], Precision[#]}&[ArcCosh[-1.`20]]",
+            "{0, 10.3466}",
+            "at a branch point",
+        ),
+        (
+            f"Through[{PARTS}[(-8.`20)^(1/3)]]",
+            "{20.3266, 20.3266, 20.5652, 20.3266}",
+            "(-x)^(1/q): the error of the whole, shared by the parts",
+        ),
+        ("Accuracy[Re[(-8.`20)^(-1/3)]]", "20.9287", None),
+        (
+            "Through[{Precision@*Re, Precision@*Im}[(-2.`20)^(1/6)]]",
+            "{20.8662, 20.6276}",
+            None,
+        ),
+        ("{Re[#], Precision[#]}&[(-2.`20)^(-1/2)]", "{0, 20.301}", None),
+        (
+            f"Through[{ACCURACIES}[(-8.`20)^(2/3)]]",
+            "{19.486, 19.5891}",
+            "(-x)^(2/3) is ((-x)^(1/3))^2",
+        ),
+        (
+            "Through[{Precision@*Re, Precision@*Im}[(-8.`20)^(4/3)]]",
+            "{19.8323, 19.8955}",
+            "(-x)^(4/3) is (-x) (-x)^(1/3)",
+        ),
+        ("{Re[#], Precision[#]}&[(-8.`20)^(5/2)]", "{0, 19.6021}", None),
+    ],
+)
+def test_complex_valued_precision(str_expr, str_expected, msg):
+    """Functions with a complex value at a real argument: compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        (
+            "Precision[1.5`20 + 0``10]",
+            "10.1761",
+            "Plus: a zero adds its absolute error",
+        ),
+        ("Precision[0``10 + 2]", "10.301", None),
+        ("Precision[1.5`20 + 0``10 + 2.5`15]", "10.602", None),
+        ("Precision[10^-10 + 0``30]", "20.", None),
+        ("Accuracy[0``10 + 0``20]", "10.", "a sum of zeros is a zero"),
+        ("Accuracy[0``10 - 0``10]", "9.69897", None),
+        ("Accuracy[1.5`20 - 1.5`20 + 0``30]", "19.5229", None),
+        (
+            "Accuracy[1.5`20 * 0``10]",
+            "9.82391",
+            "Times: the error of the zero times the other factors",
+        ),
+        ("Accuracy[2 * 0``10]", "9.69897", None),
+        ("Accuracy[0``10 * 0``20]", "30.", None),
+        ("Precision[1.5`20 * 0``10]", "0.", None),
+        ("0 * 0``10", "0", "an exact zero gives an exact zero"),
+        ("0 * 1.5`20", "0", None),
+        ("0 * 1.5 // Precision", "MachinePrecision", None),
+    ],
+)
+def test_inexact_zero_plus_times(str_expr, str_expected, msg):
+    """Compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected"),
+    [
+        # exact zeros that are syntactically different from the literal 0
+        ("(1 - 1) * 1.5`20", "0"),
+        ("(1/2 - 1/2) * 1.5`20", "0"),
+        ("SetPrecision[0, Infinity] * 1.5`20", "0"),
+        ("Accuracy[SetAccuracy[0, 20] * 1.5`20]", "19.8239"),
+    ],
+)
+def test_exact_zero_propagates_through_equivalent_zero_forms(str_expr, str_expected):
+    """An exact zero that is constructed internally must still force an exact zero."""
+    check_evaluation(str_expr, str_expected)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected"),
+    [
+        ("ToString[0``20, OutputForm]", '"0.×10^-20"'),
+        ("ToString[0``20.5, OutputForm]", '"0.×10^-20"'),
+        ("ToString[0``19.5, OutputForm]", '"0.×10^-19"'),
+        ("ToString[SetAccuracy[0, 20] * 1.5`20, OutputForm]", '"0.×10^-19"'),
+        ("ToString[0``0.5, OutputForm]", '"0."'),
+        ("ToString[0``-2.3, OutputForm]", '"0."'),
+    ],
+)
+def test_inexact_zero_output_form(str_expr, str_expected):
+    """As in WMA 15, the exponent of an inexact zero is -Floor[accuracy]."""
+    check_evaluation(str_expr, str_expected)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        ("Precision[N[Pi, 20.3]]", "20.3", "a real-valued precision"),
+        ("Precision[N[Pi, 41/2]]", "20.5", None),
+        ("Precision[N[1/3, 20.3]]", "20.3", None),
+        ("Precision[N[Pi E, 20]]", "20.", "the digits lost in Times are added"),
+        ("Precision[N[Pi + E, 20.3]]", "20.3", None),
+        ("Precision[N[Gamma[1/3], 20.3]]", "20.3", None),
+        (
+            "Precision[N[Pi - 314159/100000, 20.3]]",
+            "20.3",
+            "the digits lost in a cancellation are added",
+        ),
+        ("Precision[N[1.5`10, 20.3]]", "10.", "an input with fewer digits"),
+        ("Precision[N[1.5`10 + Pi, 20.3]]", "10.4906", None),
+        ("Precision /@ N[{Pi, 1.5`10, 2.5`30.2}, 20.3]", "{20.3, 10., 20.3}", None),
+        (
+            "ToString[N[a Pi + 1/3, 20.3], InputForm]",
+            '"0.333333333333333333333`20.3 + 3.14159265358979323846`20.3*a"',
+            None,
+        ),
+        (
+            "N[c, p_?(#>10&)] := p; N[c Pi E, 11] // Precision",
+            "MachinePrecision",
+            "the rule gives a machine number",
+        ),
+    ],
+)
+def test_n_real_valued_precision(str_expr, str_expected, msg):
+    """N[expr, p]: compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+def test_max_extra_precision():
+    """Compared with WMA 15"""
+    check_evaluation("$MaxExtraPrecision", "50.")
+    check_evaluation(
+        "Block[{$MaxExtraPrecision = 5}, "
+        "Precision[N[Pi - 314159265358979/100000000000000, 20]]]",
+        "9.71216",
+        expected_messages=(
+            "Internal precision limit $MaxExtraPrecision = 5. reached while "
+            "evaluating -314159265358979 / 100000000000000 + Pi.",
+        ),
+    )
+    check_evaluation(
+        "Block[{$MaxExtraPrecision = 0}, Precision[N[Pi E, 20]]]",
+        "19.699",
+        failure_message="no extra digit, no message",
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        ("Precision[Sqrt[1.5`20]]", "20.301", "Sqrt adds Log10[2]"),
+        ("Precision[Sqrt[2.`20]]", "20.301", None),
+        ("Precision[1.5`20^(1/3)]", "20.4771", None),
+        ("Precision[1.5`20^3]", "19.5229", "x^n loses Log10[n]"),
+        ("Precision[(-1.5`20)^3]", "19.5229", None),
+        ("Precision[1.5`20^-1]", "20.", None),
+        ("Precision[1.5`20^-2]", "19.699", None),
+        ("Precision[1.5`20^1000]", "17.", None),
+        ("Precision[1.5`20^(10^-5)]", "25.", None),
+        ("Precision[2^1.5`20]", "19.9831", "b^x loses Log10[x Log[b]]"),
+        ("Precision[(1/2)^1.5`20]", "19.9831", None),
+        ("Precision[E^1.5`20]", "19.8239", None),
+        ("Precision[10^100.`20]", "17.6378", None),
+        ("Precision[1.`20^2.5`20]", "19.6021", None),
+        ("Precision[1.5`20^2.5`20]", "19.4542", "the errors of both add up"),
+        ("Precision[(1.5`20^2)^0.5`20]", "19.8522", None),
+        (
+            "ToString[1.5`20^(10^-5), InputForm]",
+            '"1.0000040546593011904483653`25."',
+            "the digits are computed for the precision",
+        ),
+        (
+            "ToString[E^1.5`20, InputForm]",
+            '"4.4816890703380648226`19.82390874094432"',
+            None,
+        ),
+    ],
+)
+def test_power_real_valued_precision(str_expr, str_expected, msg):
+    """Compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        ("Precision[Log[1.5`20]]", "19.608", "Log loses Log10[1/Log[x]]"),
+        ("Precision[Log[100.`20]]", "20.6632", None),
+        ("Precision[Log[0.5`20]]", "19.8408", None),
+        ("Precision[Log[1.0000001`20]]", "13.", "near 1, Log loses digits"),
+        ("Precision[Log[10, 1.5`20]]", "19.608", None),
+        ("Precision[Log[1.5`20, 10]]", "19.608", "an inexact base"),
+        ("Precision[Log[2.`20, 1.5`30]]", "19.8408", "the errors of both add up"),
+        ("Precision[Log[2, 8.`20]]", "20.3179", None),
+        ("Precision[Log2[1.5`20]]", "19.608", None),
+        ("Precision[Log10[1.5`20]]", "19.608", None),
+        ("Precision[Exp[-1.5`20]]", "19.8239", "Exp[x] is E^x"),
+    ],
+)
+def test_log_real_valued_precision(str_expr, str_expected, msg):
+    """Compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        ("Precision[Sin[1.5`20]]", "20.9732", None),
+        ("Precision[Sin[0.3`20]]", "20.0133", None),
+        ("Precision[Sin[100.`20]]", "17.7688", "a large argument loses digits"),
+        ("Precision[Sin[-1.5`20]]", "20.9732", None),
+        ("Precision[Sin[3.14159265358979`20]]", "5.01319", "near a zero of Sin"),
+        ("Precision[Cos[1.5`20]]", "18.6746", "near a zero of Cos"),
+        ("Precision[Cos[0.3`20]]", "21.0324", None),
+        ("Precision[Cos[100.`20]]", "18.2312", None),
+        ("Precision[Tan[1.5`20]]", "18.6725", None),
+        ("Precision[Tan[0.3`20]]", "19.9736", None),
+        ("Precision[Tan[100.`20]]", "17.6401", None),
+        ("Precision[Cot[1.5`20]]", "18.6725", None),
+        ("Precision[Sec[1.5`20]]", "18.6746", None),
+        ("Precision[Sec[0.3`20]]", "21.0324", None),
+        ("Precision[Csc[1.5`20]]", "20.9732", None),
+        ("Precision[Csc[100.`20]]", "17.7688", None),
+    ],
+)
+def test_trig_real_valued_precision(str_expr, str_expected, msg):
+    """Compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        ("Precision[Sin[0]]", "Infinity", "an exact zero stays exact"),
+        ("Precision[Cos[0]]", "Infinity", None),
+        ("Precision[Tan[0]]", "Infinity", None),
+        ("Precision[Sin[Pi]]", "Infinity", None),
+        ("Accuracy[Sin[N[Pi, 20]]]", "19.5029", "a zero result keeps an accuracy"),
+        ("Accuracy[Cos[N[Pi/2, 20]]]", "19.8039", None),
+        ("Accuracy[Sin[2 N[Pi, 20]]]", "19.2018", None),
+        ("Accuracy[Sin[0``20]]", "20.", "the absolute error of a zero"),
+        ("Accuracy[Tan[0``20]]", "20.", None),
+        ("Accuracy[Sin[0``5.5]]", "5.5", None),
+        ("Precision[Cos[0``20]]", "40.301", "Cos changes to second order"),
+        ("Precision[Sec[0``20]]", "40.301", None),
+        ("Precision[Cos[0``5]]", "10.301", None),
+        ("Cot[0.]", "ComplexInfinity", "a pole"),
+        ("Csc[0.]", "ComplexInfinity", None),
+        ("Cot[0``20]", "ComplexInfinity", None),
+        ("Csc[0``20]", "ComplexInfinity", None),
+        ("Tan[N[Pi/2, 20]]", "ComplexInfinity", "no digit left next to a pole"),
+        ("Sec[N[Pi/2, 20]]", "ComplexInfinity", None),
+        ("Cot[N[Pi, 20]]", "ComplexInfinity", None),
+        ("Csc[N[Pi, 20]]", "ComplexInfinity", None),
+        ("Tan[1.5707963`5]", "ComplexInfinity", None),
+        ("Precision[Tan[N[Pi/2, 20] + 10^-15]]", "4.80388", "close to a pole"),
+        ("Accuracy[Sin[1.`20*^30]]", "0.", "the error is at most the bound 1"),
+        ("Accuracy[Cos[1.`20*^30]]", "0.", None),
+    ],
+)
+def test_trig_zero(str_expr, str_expected, msg):
+    """Compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        ("Precision[ArcSin[0.3`20]]", "19.9863", None),
+        ("Precision[ArcSin[0.99`20]]", "19.3089", "near 1, ArcSin loses digits"),
+        ("Precision[ArcCos[0.3`20]]", "20.6049", None),
+        ("Precision[ArcCos[0.99`20]]", "18.3047", None),
+        ("Precision[ArcCos[-0.3`20]]", "20.7755", None),
+        ("Precision[ArcTan[0.3`20]]", "20.0249", None),
+        ("Precision[ArcTan[25.`20]]", "21.5836", "a large argument gains digits"),
+        ("Precision[ArcCot[-0.3`20]]", "20.6673", None),
+        ("Precision[ArcCot[25.`20]]", "20.0005", None),
+        ("Precision[ArcSec[1.5`20]]", "19.9733", None),
+        ("Precision[ArcSec[-1.5`20]]", "20.4103", None),
+        ("Precision[ArcCsc[1.5`20]]", "19.9116", None),
+        ("Precision[ArcCsc[-25.`20]]", "19.9998", None),
+        ("Precision[ArcTan[1.5`20, 2.5`20]]", "20.0674", "ArcTan[x, y]"),
+        ("Precision[ArcTan[-1.5`20, 2.5`30]]", "20.6799", None),
+        ("Precision[ArcSin[0]]", "Infinity", "an exact zero stays exact"),
+        ("Accuracy[ArcSin[0``20]]", "20.", "the absolute error of a zero"),
+        ("Accuracy[ArcTan[0``20]]", "20.", None),
+        ("Precision[ArcCos[0``20]]", "20.1961", None),
+        ("Precision[ArcCot[0``20]]", "20.1961", "ArcCot jumps at 0"),
+        ("ArcSin[0`20]", "0", "0`20 is an exact 0"),
+        ("Precision[ArcSin[0.0`20]]", "MachinePrecision", "0.0`20 is 0."),
+        ("Accuracy[ArcCos[1.`20]]", "9.84949", "ArcCos changes by Sqrt[2 10^-20]"),
+        ("Accuracy[ArcSec[1.`20]]", "9.84949", None),
+        ("Accuracy[ArcCos[1.`5]]", "2.34949", None),
+        ("Precision[ArcSec[-1.`20]]", "10.3466", None),
+        ("Precision[ArcCos[0.99999999`20]]", "12.301", "next to the end"),
+        ("Precision[ArcSin[0.99999999`20]]", "16.3466", None),
+        ("Precision[ArcSec[1.00000001`20]]", "12.301", None),
+        ("Precision[ArcSin[0.9999999999999999999`20]]", "10.8465", None),
+        (
+            "Precision[ArcSin[1.`20]]",
+            "10.0456",
+            "WMA gives 20.1961 here, but 10.8465 just below 1",
+        ),
+        ("Precision[ArcCsc[1.`20]]", "10.0456", None),
+    ],
+)
+def test_arctrig_real_valued_precision(str_expr, str_expected, msg):
+    """Compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        ("Precision[Sinh[0.3`20]]", "19.9872", None),
+        ("Precision[Sinh[-1.5`20]]", "19.7806", None),
+        ("Precision[Sinh[25.`20]]", "18.6021", "a large argument loses digits"),
+        ("Precision[Cosh[0.3`20]]", "21.0585", None),
+        ("Precision[Cosh[1.5`20]]", "19.8672", None),
+        ("Precision[Tanh[0.3`20]]", "19.9519", "as in WMA, as Sinh / Cosh"),
+        ("Precision[Tanh[0.99`20]]", "19.6868", None),
+        ("Precision[Tanh[1.`20]]", "20.2585", None),
+        ("Precision[Tanh[1.5`20]]", "20.5237", None),
+        ("Precision[Tanh[25.`20]]", "39.7147", "a large argument gains digits"),
+        ("Precision[Coth[-0.3`20]]", "19.9519", None),
+        ("Precision[Coth[1.5`20]]", "20.5237", None),
+        ("Precision[Sech[0.3`20]]", "21.0585", None),
+        ("Precision[Csch[1.5`20]]", "19.7806", None),
+        ("Precision[ArcSinh[0.3`20]]", "20.0124", None),
+        ("Precision[ArcSinh[25.`20]]", "20.5928", None),
+        ("Precision[ArcCosh[1.5`20]]", "19.8557", None),
+        ("Precision[ArcCosh[25.`20]]", "20.592", None),
+        ("Precision[ArcTanh[-0.3`20]]", "19.9726", None),
+        ("Precision[ArcTanh[0.99`20]]", "18.7259", "near 1, ArcTanh loses digits"),
+        ("Precision[ArcCoth[1.5`20]]", "19.8265", None),
+        ("Precision[ArcSech[0.3`20]]", "20.2522", None),
+        ("Precision[ArcSech[0.99`20]]", "18.3018", None),
+        ("Precision[ArcCsch[0.3`20]]", "20.3018", None),
+        ("Precision[ArcCsch[-25.`20]]", "20.0002", None),
+        ("Precision[Sinh[0]]", "Infinity", "an exact zero stays exact"),
+        ("Accuracy[Sinh[0``20]]", "20.", "the absolute error of a zero"),
+        ("Accuracy[Tanh[0``20]]", "20.", None),
+        ("Accuracy[ArcSinh[0``20]]", "20.", None),
+        ("Accuracy[ArcTanh[0``20]]", "20.", None),
+        ("Precision[Cosh[0``20]]", "40.301", "Cosh changes to second order"),
+        ("Precision[Sech[0``20]]", "40.301", None),
+        ("Coth[0``20]", "ComplexInfinity", "a pole"),
+        ("Csch[0.]", "ComplexInfinity", None),
+        ("Csch[0``20]", "ComplexInfinity", None),
+        ("Sinh[0`20]", "0", "0`20 is an exact 0"),
+        ("Precision[Cosh[0.0`20]]", "MachinePrecision", "0.0`20 is 0."),
+        ("Accuracy[ArcCosh[1.`20]]", "9.84949", "at the end of the domain"),
+        ("Accuracy[ArcSech[1.`20]]", "9.84949", None),
+        ("Precision[ArcCosh[1.00000001`20]]", "12.301", "next to the end"),
+        ("Precision[ArcSech[0.99999999`20]]", "12.301", None),
+        ("Precision[ArcTanh[0.99999999`20]]", "13.2813", "next to a pole"),
+        ("ArcTanh[1.`20]", "Indeterminate", "an inexact pole"),
+        ("ArcTanh[-1.`20]", "Indeterminate", None),
+        ("ArcTanh[1.]", "Indeterminate", None),
+        ("ArcTanh[1.0000001`5]", "Indeterminate", "the error covers the pole"),
+        ("ArcTanh[0.9999999`5]", "Indeterminate", None),
+        ("ArcTanh[1.000001`6]", "Indeterminate", None),
+        ("Precision[ArcTanh[0.999999`6.1]]", "1.26163", "the error misses it"),
+        ("ArcTanh[1]", "Infinity", "an exact pole"),
+        ("ArcCoth[1.`20]", "Indeterminate", None),
+        ("ArcCoth[-1.]", "Indeterminate", None),
+        ("ArcCoth[1.0000001`5]", "Indeterminate", None),
+        ("Precision[ArcCoth[1.000001`6.1]]", "1.26163", None),
+        ("ArcCoth[-1]", "-Infinity", None),
+        ("Accuracy[Sinh[1000.`2]]", "-434.993", "no digit left, no bound"),
+    ],
+)
+def test_hyperbolic_real_valued_precision(str_expr, str_expected, msg):
+    """Compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
 
 
 @pytest.mark.parametrize(
@@ -437,3 +1106,250 @@ def test_string(str_expr, warnings, str_expected, fail_msg):
         expected_messages=warnings,
         hold_expected=True,
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected"),
+    [
+        ("IntegerExponent[0, 2]", None, "Infinity"),
+        ("IntegerExponent[0]", None, "Infinity"),
+        ("IntegerExponent[2^1000 3, 2]", None, "1000"),
+        (
+            "IntegerExponent[10, 1]",
+            ("Base 1 is not an integer greater than 1.",),
+            "IntegerExponent[10, 1]",
+        ),
+        (
+            "IntegerExponent[10, 0]",
+            ("Base 0 is not an integer greater than 1.",),
+            "IntegerExponent[10, 0]",
+        ),
+        (
+            "IntegerExponent[10, -2]",
+            ("Base -2 is not an integer greater than 1.",),
+            "IntegerExponent[10, -2]",
+        ),
+    ],
+)
+def test_integer_exponent(str_expr, msgs, str_expected):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        expected_messages=msgs,
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        ("Precision[SetPrecision[1.5, 20.3]]", "20.3", None),
+        ("Precision[SetPrecision[1.5`10, 20.3]]", "20.3", "more digits"),
+        ("Precision[SetPrecision[1.5`20, 2.5]]", "2.5", "fewer digits"),
+        ("Precision[SetPrecision[1/3, 20.3]]", "20.3", None),
+        ("Precision[SetPrecision[Pi, 20.3]]", "20.3", None),
+        (
+            "ToString[SetPrecision[0.1, 20]]",
+            '"0.10000000000000000555"',
+            "the binary value is kept",
+        ),
+        ("SetPrecision[0, 20.3]", "0", None),
+        ("SetPrecision[0., 20]", "0", "a machine zero becomes an exact 0"),
+        ("SetPrecision[0``10, 20]", "0", None),
+        (
+            "Precision /@ SetPrecision[{1.5, x, 2/3}, 20.3]",
+            "{20.3, Infinity, 20.3}",
+            None,
+        ),
+        (
+            "SetPrecision[1.5`20, MachinePrecision] // Precision",
+            "MachinePrecision",
+            None,
+        ),
+        ("SetPrecision[1/3, MachinePrecision] // Precision", "MachinePrecision", None),
+        ("SetPrecision[1.5`20, Infinity]", "3 / 2", None),
+        ("SetPrecision[0.1, Infinity]", "3602879701896397 / 36028797018963968", None),
+        ("SetPrecision[Pi, Infinity]", "Pi", None),
+        ("Precision[SetPrecision[Sin[2], 20]]", "20.0384", "set, then evaluated"),
+        ("Precision[SetPrecision[Sqrt[2], 20]]", "20.301", "an exact exponent stays"),
+        ("Precision[SetPrecision[2^(1/3), 20]]", "20.4771", None),
+        ("SetPrecision[x^2, 20]", "x ^ 2", None),
+        ("Precision[SetPrecision[x^2.5, 20]]", "20.", None),
+        ("Precision[SetPrecision[Sin[Pi/7], 20]]", "19.7296", None),
+        ("Precision[SetPrecision[1.5 + 2.5 I, 20.3]]", "20.3", "complex"),
+        ("Precision[Re[SetPrecision[1.5 + 2.5 I, 20.3]]]", "20.1619", None),
+        ("Precision[Im[SetPrecision[1.5 + 2.5 I, 20.3]]]", "20.3837", None),
+        ("Precision[SetPrecision[2 I, 20]]", "20.", None),
+        ("Precision[SetPrecision[1.5 + 0. I, 20]]", "20.1505", None),
+        ("Accuracy[Im[SetPrecision[1.5`20 + 0``5 I, 20]]]", "19.9744", None),
+    ],
+)
+def test_set_precision(str_expr, str_expected, msg):
+    """Compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        ("Precision[SetAccuracy[1.5, 20.3]]", "20.4761", None),
+        ("Precision[SetAccuracy[1/3, 20.3]]", "19.8229", None),
+        ("Precision[SetAccuracy[150.5, 20]]", "22.1775", None),
+        ("Accuracy[SetAccuracy[0, 20.3]]", "20.3", "an exact 0 becomes inexact"),
+        ("Accuracy[SetAccuracy[0., 20]]", "20.", None),
+        ("Precision[SetAccuracy[1.5`10, 30]]", "30.1761", None),
+        ("Precision[SetAccuracy[1.5`20, 5.5]]", "5.67609", None),
+        ("Accuracy[SetAccuracy[0.001, 2]]", "2.", "no digit left: a zero"),
+        ("Accuracy[SetAccuracy[1.5, -3]]", "-3.", None),
+        ("SetAccuracy[1.5, Infinity]", "3 / 2", None),
+        ("Precision /@ SetAccuracy[{1.5, 1500.}, 10]", "{10.1761, 13.1761}", None),
+        ("Precision[SetAccuracy[1.5 + 2.5 I, 20]]", "20.4647", "complex"),
+        ("Precision[Re[SetAccuracy[1.5 + 2.5 I, 20]]]", "20.3266", None),
+        ("Accuracy[Re[SetAccuracy[2 I, 20]]]", "20.1505", None),
+    ],
+)
+def test_set_accuracy(str_expr, str_expected, msg):
+    """Compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+def test_set_precision_messages():
+    """Compared with WMA 15"""
+    check_evaluation(
+        "SetPrecision[1.5, a]",
+        "SetPrecision[1.5, a]",
+        expected_messages=(
+            "Requested precision a is not a machine-sized real number "
+            "between $MinPrecision and $MaxPrecision.",
+        ),
+    )
+    check_evaluation(
+        "Accuracy[SetPrecision[1.5, -1]]",
+        "-0.176091",
+        expected_messages=(
+            "Requested precision -1 is smaller than $MinPrecision. "
+            "Using $MinPrecision instead.",
+        ),
+    )
+    check_evaluation(
+        "SetAccuracy[1.5, a]",
+        "SetAccuracy[1.5, a]",
+        expected_messages=(
+            "Requested accuracy a is not a real number within the allowable range.",
+        ),
+    )
+    check_evaluation(
+        "SetPrecision[1.5, 20, 3]",
+        "SetPrecision[1.5, 20, 3]",
+        expected_messages=(
+            "SetPrecision called with 3 arguments; 2 arguments are expected.",
+        ),
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        (
+            "Precision[1.5`20 - 1.4`2]",
+            "0.853872",
+            "1.4`2 keeps its value, not 1.400390625",
+        ),
+        ("Accuracy[1.5`20 - 1.4`2]", "1.85387", None),
+        ("Precision[1.4`2 + 1.4`2]", "2.", None),
+        ("Precision[1.4`2]", "2.", "the precision does not change"),
+        ("Precision[N[1.4`2, 10]]", "2.", None),
+        ("ToString[SetPrecision[1.4`2, 20]]", '"1.4000000000000000000"', None),
+        ("ToString[SetPrecision[-1.4`2, 20]]", '"-1.4000000000000000000"', None),
+        ("ToString[SetPrecision[1.4`2 + 1.4`2, 20]]", '"2.8000000000000000000"', None),
+        ("ToString[SetPrecision[1.4`2^2, 18]]", '"1.96000000000000000"', None),
+        ("ToString[SetPrecision[Sin[1.4`2], 18]]", '"0.985449729988460181"', None),
+        ("ToString[SetPrecision[N[1/3, 2], 18]]", '"0.333333333333333333"', "N"),
+        ("ToString[SetPrecision[N[Pi, 3], 18]]", '"3.14159265358979324"', None),
+        ("N[Pi, 3]", "3.14", None),
+        ("SameQ[1.4`2, 1.4001`2]", "True", None),
+    ],
+)
+def test_low_precision_storage(str_expr, str_expected, msg):
+    """Compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        (
+            "ToString[3.1415926535897932385`3, InputForm]",
+            '"3.1415926535897932385`3."',
+            "InputForm shows the digits that are kept, not the precision",
+        ),
+        (
+            "ToString[FullForm[3.1415926535897932385`3]]",
+            '"3.1415926535897932385`3."',
+            None,
+        ),
+        (
+            "ToString[-3.1415926535897932385`3, InputForm]",
+            '"-3.1415926535897932385`3."',
+            None,
+        ),
+        ("ToString[3.1415926535897932385`3]", '"3.14"', "OutputForm: the precision"),
+        (
+            "StringTake[ToString[N[Pi, 20] + 0``3, InputForm], 22]",
+            '"3.1415926535897932385`"',
+            None,
+        ),
+        (
+            "Precision[1.5`20 - ToExpression[ToString[1.4`2, InputForm]]]",
+            "0.853872",
+            "reading InputForm back gives the same kept value",
+        ),
+        (
+            "ToExpression[ToString[#, InputForm]] === # &[N[1/3, 3]]",
+            "True",
+            None,
+        ),
+        (
+            "Precision[1.5`20 - ToExpression[ToString[N[1/3, 3], InputForm]]]",
+            "Precision[1.5`20 - N[1/3, 3]]",
+            None,
+        ),
+    ],
+)
+def test_low_precision_input_form(str_expr, str_expected, msg):
+    """Compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        (
+            "SetPrecision[1.5 + 2.5 I, 20] === SetPrecision[1.5 + 2.5 I, 20.3]",
+            "True",
+            "SameQ: numbers that agree to their precision are the same",
+        ),
+        (
+            "Precision /@ {SetPrecision[1.5 + 2.5 I, 20], "
+            "SetPrecision[1.5 + 2.5 I, 20.3]}",
+            "{20., 20.3}",
+            "but they are different numbers, not one cached object",
+        ),
+        ("SameQ[1.5`20, 1.5`20.3]", "True", None),
+        (
+            "Precision[SetAccuracy[1.5 + 2.5 I, 20]]",
+            "20.4647",
+            "each part gets accuracy 20 + Log10[2]/2",
+        ),
+        (
+            "Precision /@ {Re[#], Im[#]} &[SetPrecision[1.5 + 2.5 I, 20.3]]",
+            "{20.1619, 20.3837}",
+            "both parts share the same accuracy",
+        ),
+    ],
+)
+def test_low_precision_complex_cache_regression(str_expr, str_expected, msg):
+    """Guard against cache collisions in complex numbers; compared with WMA 15"""
+    check_evaluation(str_expr, str_expected, failure_message=msg)

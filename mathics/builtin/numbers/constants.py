@@ -15,11 +15,13 @@ import sympy
 from sympy import Float as Sympy_Float
 
 from mathics.core.atoms import NUMERICAL_CONSTANTS, MachineReal, PrecisionReal
+from mathics.core.atoms.numerics import extended_float
 from mathics.core.attributes import A_CONSTANT, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Predefined, SympyObject
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.number import (
+    EXTENDED_DIGITS,
     MACHINE_DIGITS,
     PrecisionValueError,
     get_closest_precision,
@@ -147,12 +149,22 @@ class _Constant_Common(Predefined):
                     NUMERICAL_CONSTANTS[self.symbol] = value
                     return value
             value = numpy_constant(self.numpy_name)
+        # At least EXTENDED_DIGITS digits, kept for a low precision, as in WMA.
         if preference == "sympy":
-            value = sympy_constant(self.sympy_name, d + 2)
+            value = sympy_constant(self.sympy_name, max(d, EXTENDED_DIGITS) + 2)
         if preference == "mpmath":
-            value = mp_constant(self.mpmath_name, d * 2)
+            value = mp_constant(self.mpmath_name, max(d, EXTENDED_DIGITS) * 2)
         if value:
-            return PrecisionReal(Sympy_Float(str(value), d))
+            # A machine value has too few bits to keep.
+            extended = value
+            if preference == "numpy":
+                if hasattr(self, "sympy_name"):
+                    extended = sympy_constant(self.sympy_name, EXTENDED_DIGITS)
+                elif hasattr(self, "mpmath_name"):
+                    extended = mp_constant(self.mpmath_name, EXTENDED_DIGITS)
+            return PrecisionReal(
+                Sympy_Float(str(value), d), None, extended_float(extended, d)
+            )
         # If the value is not available, return None
         # and keep it unevaluated.
         return
@@ -349,7 +361,11 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
         if d is None:
             return MachineReal(math.pi / 180)
         else:
-            return PrecisionReal((sympy.pi / 180).n(d))
+            return PrecisionReal(
+                (sympy.pi / 180).n(d),
+                None,
+                extended_float((sympy.pi / 180).n(EXTENDED_DIGITS), d),
+            )
 
 
 class E(_MPMathConstant, _NumpyConstant, _SympyConstant):

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Implementation of numbers handling functions.
+Implementation of number-handling functions.
 """
 
-from functools import lru_cache
+import math
+from functools import cache
 from typing import Optional
 
 import mpmath
@@ -17,12 +18,12 @@ from mathics.core.atoms import Complex, MachineReal, PrecisionReal
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement
 from mathics.core.expression import Expression
-from mathics.core.number import MACHINE_PRECISION_VALUE, ZERO_MACHINE_ACCURACY, dps
+from mathics.core.number import MACHINE_PRECISION_VALUE, ZERO_MACHINE_ACCURACY
 from mathics.core.symbols import SymbolPlus
 
 
 def check_finite_decimal(denominator):
-    # The rational number is finite decimal if the denominator has form 2^a * 5^b
+    # The rational number is a finite decimal if the denominator has the form 2^a * 5^b
     while denominator % 5 == 0:
         denominator = denominator / 5
 
@@ -32,38 +33,54 @@ def check_finite_decimal(denominator):
     return True if denominator == 1 else False
 
 
-def convert_repeating_decimal(numerator, denominator, base):
-    head = [x for x in str(numerator // denominator)]
-    tails = []
-    subresults = [numerator % denominator]
-    numerator %= denominator
+def rational_digits(
+    numerator: int, denominator: int, base: int
+) -> tuple[list[int], list[int], int]:
+    """
+    The base-`base` digits of the positive rational numerator/denominator,
+    in the form RealDigits gives them: ``(digits, period, exponent)``, where
+    the number is 0.d1 d2 ... dk (p1 ... pm)(p1 ... pm)... times
+    base^exponent, d1 is not 0 and the pre-period d1 ... dk is as short as
+    possible. ``period`` is empty when the expansion terminates.
+    """
+    integer_part, remainder = divmod(numerator, denominator)
+    integer_digits = []
+    while integer_part:
+        integer_part, digit = divmod(integer_part, base)
+        integer_digits.insert(0, digit)
 
-    while numerator != 0:  # only rational input can go to this case
-        numerator *= base
-        result_digit, numerator = divmod(numerator, denominator)
-        tails.append(str(result_digit))
-        if numerator not in subresults:
-            subresults.append(numerator)
-        else:
-            break
+    # Long division; the expansion repeats from the first remainder seen
+    # again.
+    fraction_digits = []
+    position = {}
+    while remainder and remainder not in position:
+        position[remainder] = len(fraction_digits)
+        digit, remainder = divmod(remainder * base, denominator)
+        fraction_digits.append(digit)
+    if remainder:
+        start = position[remainder]
+        digits = integer_digits + fraction_digits[:start]
+        period = fraction_digits[start:]
+    else:
+        digits = integer_digits + fraction_digits
+        period = []
 
-    for i in range(len(head) - 1, -1, -1):
-        j = len(tails) - 1
-        if head[i] != tails[j]:
-            break
-        else:
-            del tails[j]
-            tails.insert(0, head[i])
-            del head[i]
+    exponent = len(integer_digits)
+    if not integer_digits:
+        # Leading zeros go into the exponent; past the pre-period they
+        # rotate the period.
+        while digits and digits[0] == 0:
+            digits.pop(0)
+            exponent -= 1
+        if not digits:
+            while period[0] == 0:
+                period = period[1:] + period[:1]
+                exponent -= 1
 
-    # truncate all leading 0's
-    if all(elem == "0" for elem in head):
-        for i in range(0, len(tails)):
-            if tails[0] == "0":
-                tails = tails[1:] + [str(0)]
-            else:
-                break
-    return (head, tails)
+    # The shortest pre-period: 20/3 is 0.(6) 10^1, not 0.6(6) 10^1.
+    while period and digits and digits[-1] == period[-1]:
+        period = [digits.pop()] + period[:-1]
+    return digits, period, exponent
 
 
 def convert_float_base(x, base, precision=10):
@@ -132,10 +149,9 @@ def eval_Accuracy(z: BaseElement) -> Optional[float]:
 
     if isinstance(z, PrecisionReal):
         if z.is_zero:
-            return float(dps(z.precision))
-        z_f = z.to_python()
-        log10_z = mpmath.log((-z_f if z_f < 0 else z_f), 10)
-        return dps(z.precision) - log10_z
+            return z.precision10
+        log10_z = mpmath.log(abs(mpmath.mpf(z.extended_value)), 10)
+        return z.precision10 - log10_z
 
     if isinstance(z, Complex):
         acc_real = eval_Accuracy(z.real)
@@ -145,12 +161,29 @@ def eval_Accuracy(z: BaseElement) -> Optional[float]:
         if acc_imag is None:
             return acc_real
 
-        return -mpmath.log(10 ** (-2 * acc_real) + 10 ** (-2 * acc_imag), 10.0) * 0.5
+        # As in WMA, the errors of the parts add in quadrature.
+        least = min(acc_real, acc_imag)
+        return least - 0.5 * math.log10(
+            10.0 ** (2 * (least - acc_real)) + 10.0 ** (2 * (least - acc_imag))
+        )
 
     if isinstance(z, Expression):
         elem_accuracies = (eval_Accuracy(z_elem) for z_elem in z.elements)
         return min((acc for acc in elem_accuracies if acc is not None), default=None)
     return None
+
+
+def has_machine_number(z: BaseElement) -> bool:
+    """Does ``z`` contain a machine-precision number?"""
+    if isinstance(z, MachineReal):
+        return True
+    if isinstance(z, Complex):
+        return has_machine_number(z.real) or has_machine_number(z.imag)
+    if isinstance(z, Expression):
+        return has_machine_number(z.head) or any(
+            has_machine_number(element) for element in z.elements
+        )
+    return False
 
 
 def eval_Precision(z: BaseElement) -> Optional[float]:
@@ -178,21 +211,21 @@ def eval_Precision(z: BaseElement) -> Optional[float]:
     if isinstance(z, PrecisionReal):
         if z.is_zero:
             return 0.0
-        return float(dps(z.precision))
+        return z.precision10
 
     if isinstance(z, Complex):
-        prec_real = eval_Precision(z.real)
-        prec_imag = eval_Precision(z.imag)
-        if prec_real is None or prec_imag == prec_real:
-            return prec_imag
-        if prec_imag is None:
-            return prec_real
-        # both numbers have different precision.
-        # Evaluate the accuracy and add the log of
-        # the module.
+        if z.is_machine_precision:
+            return MACHINE_PRECISION_VALUE
         acc = eval_Accuracy(z)
-        abs_sq = z.real.value**2 + z.imag.value**2
-        return acc + mpmath.log(abs_sq, 10.0) * 0.5
+        if acc is None:
+            return None
+        # As in WMA, the accuracy plus the log of the modulus, to which an
+        # exact part also counts: Precision[1.`20 + 3 I] is 20.5.
+        with mpmath.workprec(53):
+            modulus = abs(z.to_mpmath())
+            if modulus == 0:
+                return 0.0
+            return acc + float(mpmath.log10(modulus))
 
     if isinstance(z, Expression):
         elem_prec = (eval_Precision(z_elem) for z_elem in z.elements)
@@ -207,7 +240,7 @@ def cancel(expr):
     else:
         try:
             result = expr.to_sympy()
-            # If the expression cannot be handled by Sympy, just return it.
+            # If the expression cannot be handled by SymPy, just return it.
             if result is None:
                 return expr
 
@@ -223,7 +256,7 @@ def cancel(expr):
             return expr
 
 
-@lru_cache()
+@cache
 def log_n_b(py_n, py_b) -> int:
     return (
         int(mpmath.floor(mpmath.log(py_n, py_b))) + 1 if py_n != 0 and py_n != 1 else 1
