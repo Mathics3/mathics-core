@@ -5,7 +5,6 @@ groups of `Definitions`.
 """
 
 import base64
-import bisect
 import os.path as osp
 import pickle
 import re
@@ -30,6 +29,7 @@ from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.element import BaseElement, fully_qualified_symbol_name
 from mathics.core.pattern import BasePattern
+from mathics.core.pattern.specificity import rule_le
 from mathics.core.rules import BaseRule, RewriteRule
 from mathics.core.symbols import Atom, Symbol, SymbolList, strip_context
 from mathics.core.systemsymbols import (
@@ -1157,9 +1157,35 @@ def insert_rule(
                     # (e.g. by Unset); look further.
             bucket.append(rule)
 
-    # use insort_left to guarantee that if equal rules exist, newer rules will
-    # get higher precedence by being inserted before them. see DownValues[].
-    bisect.insort_left(values, rule, key=lambda x: x.pattern_precedence)
+    # Mathematica orders rules with a partial order: a rule goes before
+    # another one only if it is strictly more specific. Rules which are
+    # not comparable keep their definition order. `insort_right` only
+    # uses `<`, so a key wrapper with a partial `__lt__` is enough.
+    # When `rule` is equivalent to an existing rule, it is placed before it,
+    # so newer rules get higher precedence. see DownValues[].
+    # Insert before the first existing rule which strictly contains the new
+    # one. A rule which is not comparable with the others keeps its
+    # definition order, as in Mathematica. A linear scan is used because
+    # the relation is partial, so a binary search is not reliable.
+    i = 0
+    for existing in values:
+        if _rule_lt(rule, existing):
+            break
+        i += 1
+    values.insert(i, rule)
+
+
+def _rule_lt(new: BaseRule, existing: BaseRule) -> bool:
+    """True if `new` should go before `existing`: `new` matches a subset of
+    what `existing` matches (or they are equivalent).
+
+    If the patterns involved are not understood by
+    `mathics.core.pattern.specificity`, fall back to the sort keys.
+    """
+    contained = rule_le(new, existing)
+    if contained is None:
+        return new.pattern_precedence <= existing.pattern_precedence
+    return contained
 
 
 def find_rule(values: List[BaseRule], rule: BaseRule) -> Optional[int]:
