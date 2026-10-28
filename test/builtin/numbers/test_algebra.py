@@ -530,7 +530,7 @@ def test_fullsimplify():
         (
             "2(3+2x)^2/(5+x^2+3x)^3 // Expand",
             None,
-            "24 x / (5 + 3 x + x ^ 2) ^ 3 + 8 x ^ 2 / (5 + 3 x + x ^ 2) ^ 3 + 18 / (5 + 3 x + x ^ 2) ^ 3",
+            "18 / (5 + 3 x + x ^ 2) ^ 3 + 24 x / (5 + 3 x + x ^ 2) ^ 3 + 8 x ^ 2 / (5 + 3 x + x ^ 2) ^ 3",
             None,
         ),
         # Modulus option

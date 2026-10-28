@@ -3,6 +3,7 @@ Base classes for canonical order.
 
 """
 
+from functools import lru_cache
 from typing import Tuple
 
 
@@ -96,16 +97,74 @@ class KeyComparable:
         ) or self.element_order != other.element_order
 
 
+def _variable(pair: tuple) -> tuple:
+    """The variable of an (variable, exponent) pair of a Monomial."""
+    return pair[0]
+
+
+class GeneralVariable:
+    """
+    A variable of a Monomial that is not a Symbol, such as f[x] or
+    Erf[1 / x]. As in WMA, such a factor is a variable of the monomial,
+    like a symbol: a f[x] sorts with the monomials in f[x]. These
+    variables come after the symbols and are ordered among themselves
+    as general expressions: by head, then length, then elements.
+    """
+
+    __slots__ = ("expr", "key")
+
+    def __init__(self, expr, key: tuple):
+        self.expr = expr
+        self.key = key
+
+    def __hash__(self) -> int:
+        # Equal keys have the same head and length; hashing the whole
+        # expression is much slower.
+        return hash(self.key[:2])
+
+    def __eq__(self, other) -> bool:
+        return isinstance(other, GeneralVariable) and self.key == other.key
+
+    def __lt__(self, other: "GeneralVariable") -> bool:
+        return self.key < other.key
+
+    def __gt__(self, other: "GeneralVariable") -> bool:
+        return self.key > other.key
+
+
+def general_variable(expr, key: tuple) -> tuple:
+    """
+    The variable key of the general expression ``expr``, whose order as
+    a general expression is ``key``; see ``wma_symbol_sort_key``.
+    """
+    return (1, GeneralVariable(expr, key))
+
+
 class Monomial:
     """
-    An object to sort monomials, used in Expression.get_sort_key and
-    Symbol.get_sort_key.
+    An object to sort monomials, used in Expression.element_order and
+    Symbol.element_order. The variables are the keys of ``exps``: Symbols,
+    from ``wma_symbol_sort_key``, and other expressions, from
+    ``general_variable``.
     """
 
     def __init__(self, exps_dict):
         self.exps = exps_dict
 
     def __cmp(self, other) -> int:
+        if len(self.exps) == 1 and len(other.exps) == 1:
+            # The common case of a symbol or one expression, perhaps to a
+            # power: the same result as below, without copies and sorting.
+            ((self_var, self_exp),) = self.exps.items()
+            ((other_var, other_exp),) = other.exps.items()
+            if self_var < other_var:
+                return -1
+            if other_var < self_var:
+                return 1
+            if self_exp == other_exp:
+                return 0
+            return -1 if self_exp < other_exp else 1
+
         self_exps = self.exps.copy()
         other_exps = other.exps.copy()
         for var in self.exps:
@@ -124,17 +183,6 @@ class Monomial:
                 if not other_exps[var]:
                     del other_exps[var]
 
-        def _var_key(pair):
-            """
-            If `var` is not a plain string (e.g. a Symbol object), fall back
-            to its string representation for ordering.
-            """
-            var, _ = pair
-            try:
-                return str(var)
-            except Exception:
-                return var
-
         # NOTE ON COMPARING MONOMIALS.
         # Symbol names are compared lexicographically.
         # However, when comparing monomials containing several
@@ -142,8 +190,8 @@ class Monomial:
         # while the earlier symbols are treated as as coefficients. So
         # we need to compare symbol names in reverse alphabetical order.
         # For example, (b c) < (a d) for monomials (b c) and (a d) since c < d.
-        self_exps = sorted(list(self_exps.items()), key=_var_key, reverse=True)
-        other_exps = sorted(list(other_exps.items()), key=_var_key, reverse=True)
+        self_exps = sorted(self_exps.items(), key=_variable, reverse=True)
+        other_exps = sorted(other_exps.items(), key=_variable, reverse=True)
 
         index = 0
         self_len = len(self_exps)
@@ -181,8 +229,10 @@ class Monomial:
             index += 1
         return 0
 
+    # Comparing tuples that hold monomials checks == before <, so these two
+    # must be cheap: __cmp is 0 exactly when the exponents are the same.
     def __eq__(self, other) -> bool:
-        return self.__cmp(other) == 0
+        return self.exps == other.exps
 
     def __le__(self, other) -> bool:
         return self.__cmp(other) <= 0
@@ -197,7 +247,7 @@ class Monomial:
         return self.__cmp(other) > 0
 
     def __ne__(self, other) -> bool:
-        return self.__cmp(other) != 0
+        return self.exps != other.exps
 
 
 ###  SORT_KEYS prefix for pattern_precedence
@@ -355,11 +405,13 @@ def wma_str_sort_key(s: str) -> Tuple[str, str]:
     )
 
 
-def wma_symbol_sort_key(name: str) -> Tuple[str, str, str]:
+@lru_cache(maxsize=8192)
+def wma_symbol_sort_key(name: str) -> Tuple[int, str, str, str]:
     """
-    Return the sort key of the Symbol with the full name ``name``. As in
-    WMA, Symbols are ordered by their names without the context, as
+    Return the variable key of the Symbol with the full name ``name``. As
+    in WMA, Symbols are ordered by their names without the context, as
     strings are (see ``wma_str_sort_key``): Pi comes before x, though
-    System` comes after Global`. The full name breaks ties.
+    System` comes after Global`. The full name breaks ties. The leading
+    0 puts Symbols before the variables from ``general_variable``.
     """
-    return wma_str_sort_key(name.rsplit("`", 1)[-1]) + (name,)
+    return (0,) + wma_str_sort_key(name.rsplit("`", 1)[-1]) + (name,)

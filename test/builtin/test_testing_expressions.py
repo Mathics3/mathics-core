@@ -356,6 +356,35 @@ def test_order(str_expr: str, str_expected: str, assert_fail_msg: str):
         # Monomials that differ in a coefficient are ordered by it.
         ("Sort[{x, -x, 2 x}]", "{-x, x, 2 x}", "Coefficients"),
         ("Sort[{1 + x, 1 - x}]", "{1 - x, 1 + x}", "Coefficients in sums"),
+        # Factors that are not symbols are variables of the monomial.
+        (
+            "Sort[{x f[x], Pi g[x], y f[x], a f[x], f[x], z, g[x], f[x]^2, 1 + f[x]}]",
+            "{z, f[x], a f[x], x f[x], y f[x], f[x] ^ 2, 1 + f[x], g[x], Pi g[x]}",
+            "Monomials in f[x] and g[x]",
+        ),
+        ("Sort[{a Sin[x], b Cos[x]}]", "{b Cos[x], a Sin[x]}", "Cos before Sin"),
+        (
+            "Sort[{E^x, E, E^2, F, x}]",
+            "{E, E ^ 2, E ^ x, F, x}",
+            "A symbolic power after the numeric ones",
+        ),
+        ("x E^x", "E ^ x x", "E^x before x"),
+        (
+            "Sort[{Sqrt[Pi] Erf[1/x], x E^(-1/x^2)}]",
+            "{E ^ (-1 / x ^ 2) x, Sqrt[Pi] Erf[1 / x]}",
+            "Products with general factors",
+        ),
+        # A sum as a factor sorts right after its largest variable.
+        (
+            "Sort[{y^3, (3 x + 3 x^2) y, x^3}]",
+            "{x ^ 3, (3 x + 3 x ^ 2) y, y ^ 3}",
+            "A sum factor before y^3",
+        ),
+        (
+            "Sort[{y^2, (a + x) y, 2 a y, (a + x)^2, x (a + x)}]",
+            "{x (a + x), (a + x) ^ 2, 2 a y, (a + x) y, y ^ 2}",
+            "Sum factors and powers of sums",
+        ),
     ],
 )
 def test_canonical_order(str_expr: str, str_expected: str, assert_fail_msg: str):
