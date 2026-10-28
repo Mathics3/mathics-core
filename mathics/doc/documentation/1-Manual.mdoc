@@ -874,6 +874,87 @@ Functions can be applied using prefix or postfix notation, in addition to using 
   ##
 </section>
 
+<section title="Order of Rules and of Elements">
+\Mathics3 orders things in two places. The rules of a symbol are kept in the order in which they are tried, and the elements of an expression whose head is 'Orderless', like 'Plus', are kept in a <em>canonical order</em>, the order that 'Sort' gives.
+
+<subsection title="Which Rule Is Tried First">
+When several rules match an expression, the more specific one is used, whatever the order in which the rules were given. A rule for a particular value comes before a rule with a pattern:
+
+  >> area[x_] := general; area[1] := one;
+  >> {area[1], area[2]}
+   = {one, general}
+
+A blank with a head comes before a blank without one:
+
+  >> kind[x_] := other; kind[x_Integer] := integer;
+  >> {kind[1], kind[a]}
+   = {integer, other}
+
+A blank comes before a sequence of one or more elements, and that comes before a sequence of zero or more elements:
+
+  >> count[x___] := many; count[x__] := several; count[x_] := one;
+  >> {count[1], count[1, 2], count[]}
+   = {one, several, many}
+
+A rule with a condition comes before the same rule without one:
+
+  >> sign[x_] := any; sign[x_ /; x > 0] := positive;
+  >> {sign[1], sign[-1]}
+   = {positive, any}
+
+Structure counts too: a list pattern comes before a blank for lists, and that comes before a blank:
+
+  >> shape[x_] := thing; shape[x_List] := list; shape[{x_}] := single;
+  >> {shape[{1}], shape[{1, 2}], shape[1]}
+   = {single, list, thing}
+
+A rule with the same left-hand side as an earlier one replaces it:
+
+  >> twice[x_] := 1; twice[x_] := 2;
+  >> {twice[3], Length[DownValues[twice]]}
+   = {2, 1}
+
+'DownValues' lists the rules in the order in which they are tried:
+
+  >> Keys[DownValues[area]]
+   = {HoldPattern[area[1]], HoldPattern[area[x_]]}
+
+  #> ClearAll[area, kind, count, sign, shape, twice]
+</subsection>
+
+<subsection title="Canonical Order">
+'Sort' with no ordering function, 'Order', 'OrderedQ' and the elements of 'Orderless' functions all use the canonical order. Numbers come first, ordered by value, then strings, then symbols, then other expressions:
+
+  >> Sort[{b, "s", f[x], 2, a, 1.5, {1}, 1/2}]
+   = {1 / 2, 1.5, 2, s, a, b, f[x], {1}}
+
+Strings and symbols are ordered without regard to case first; where they differ only in case, lower case comes first:
+
+  >> Sort[{"ab", "Ab", "AB", "b", "B", "a"}]
+   = {a, ab, Ab, AB, b, B}
+
+Products and powers of symbols are ordered as monomials: by their variables, and then by the exponents:
+
+  >> Sort[{x^3, x^2, x, y, x y, x^2 y, 1}]
+   = {1, x, x ^ 2, x ^ 3, y, x y, x ^ 2 y}
+
+This is the order of the terms of a polynomial:
+
+  >> c^2 + b + 2 + c + a
+   = 2 + a + b + c + c ^ 2
+
+Other expressions are ordered by their head, then by the number of elements, and then element by element:
+
+  >> Sort[{f[b], f[a, b], g[a], f[a], f[c], h}]
+   = {h, f[a], f[b], f[c], f[a, b], g[a]}
+
+'Order' gives 1 when its arguments are in canonical order, and -1 when they are not:
+
+  >> {Order[a, b], Order[x^2, x]}
+   = {1, -1}
+</subsection>
+</section>
+
 <section title="Program-Flow Control Statements">
 Like most programming languages, \Mathics3 has common program-flow control statements for conditions, loops, etc.:
 <dl>
