@@ -3,6 +3,7 @@
 Unit tests for mathics.builtins.specialfns.bessel and
 mathics.builtins.specialfns.orthogonal
 """
+
 from test.helper import check_evaluation
 
 import pytest
@@ -15,16 +16,16 @@ import pytest
     [
         (
             "z=.;BesselI[1/2,z]",
-            "Sqrt[2] Sinh[z] / (Sqrt[z] Sqrt[Pi])",
+            "Sqrt[2] Sinh[z] / (Sqrt[Pi] Sqrt[z])",
             "BesselI 1/2 rule",
         ),
         (
             "BesselI[-1/2,z]",
-            "Sqrt[2] Cosh[z] / (Sqrt[z] Sqrt[Pi])",
+            "Sqrt[2] Cosh[z] / (Sqrt[Pi] Sqrt[z])",
             "BesselI -1/2 rule",
         ),
-        ("BesselJ[-1/2,z]", "Sqrt[2] Cos[z] / (Sqrt[z] Sqrt[Pi])", "BesselJ -1/2 rule"),
-        ("BesselJ[1/2,z]", "Sqrt[2] Sin[z] / (Sqrt[z] Sqrt[Pi])", "BesselJ 1/2 rule"),
+        ("BesselJ[-1/2,z]", "Sqrt[2] Cos[z] / (Sqrt[Pi] Sqrt[z])", "BesselJ -1/2 rule"),
+        ("BesselJ[1/2,z]", "Sqrt[2] Sin[z] / (Sqrt[Pi] Sqrt[z])", "BesselJ 1/2 rule"),
     ],
 )
 def test_add(str_expr, str_expected, assert_failure_msg):

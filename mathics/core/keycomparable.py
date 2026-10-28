@@ -110,6 +110,12 @@ class Monomial:
         other_exps = other.exps.copy()
         for var in self.exps:
             if var in other.exps:
+                if self_exps[var] == other_exps[var]:
+                    # Also when both are infinite (the key of a sum, see
+                    # Expression._sum_element_order), where inf - inf is nan.
+                    del self_exps[var]
+                    del other_exps[var]
+                    continue
                 dec = min(self_exps[var], other_exps[var])
                 self_exps[var] -= dec
                 if not self_exps[var]:
@@ -347,3 +353,13 @@ def wma_str_sort_key(s: str) -> Tuple[str, str]:
         s.lower(),
         s.swapcase(),
     )
+
+
+def wma_symbol_sort_key(name: str) -> Tuple[str, str, str]:
+    """
+    Return the sort key of the Symbol with the full name ``name``. As in
+    WMA, Symbols are ordered by their names without the context, as
+    strings are (see ``wma_str_sort_key``): Pi comes before x, though
+    System` comes after Global`. The full name breaks ties.
+    """
+    return wma_str_sort_key(name.rsplit("`", 1)[-1]) + (name,)

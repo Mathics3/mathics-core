@@ -81,7 +81,7 @@ class Hypergeometric1F1(MPMathFunction):
      = (1 + x) E ^ x
 
     >> Hypergeometric1F1[1, 1/2, x]
-     = -Sqrt[x] (-E ^ (-x) / Sqrt[x] - Sqrt[Pi] Erf[Sqrt[x]]) E ^ x
+     = -Sqrt[x] (-Sqrt[Pi] Erf[Sqrt[x]] - E ^ (-x) / Sqrt[x]) E ^ x
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
@@ -184,7 +184,7 @@ class HypergeometricPFQ(MPMathFunction):
     'HypergeometricPFQ' evaluates to a polynomial if any of the parameters $a_k$ is a non-positive integer:
     ## FIXME: this doesn't match WMA which start out 1 - ...
     >> HypergeometricPFQ[{-2, a}, {b}, x]
-     = (b (1 + b) - 2 a x (1 + b) + a x ^ 2 (1 + a)) / (b (1 + b))
+     = (b (1 + b) - 2 a (1 + b) x + a (1 + a) x ^ 2) / (b (1 + b))
 
     Value at origin:
     >> HypergeometricPFQ[{a1, b2, a3}, {b1, b2, b3}, 0]

@@ -35,7 +35,7 @@ from mathics.core.keycomparable import (
     GENERAL_EXPRESSION_ELT_ORDER,
     GENERAL_NUMERIC_EXPRESSION_ELT_ORDER,
     Monomial,
-    wma_str_sort_key,
+    wma_symbol_sort_key,
 )
 from mathics.core.number import is_numeric
 from mathics.core.structure import LinkedStructure
@@ -995,19 +995,33 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         exps: dict[tuple[str, str], Union[float, complex]] = {}
         head = self._head
 
+        if head is SymbolPlus and len(self._elements) > 1:
+            sum_order = self._sum_element_order()
+            if sum_order is not None:
+                return sum_order
+
+        # As in WMA, monomials that differ only in a numeric coefficient
+        # are ordered by it: -x < x < 2 x.
+        coefficient = 1.0
         if head is SymbolTimes:
             for element in self.elements:
                 name = element.get_name()
-                if element.has_form(SymbolPower, 2):
+                if isinstance(element, Number):
+                    try:
+                        coefficient *= float(element.to_sympy())
+                    except TypeError:
+                        # A complex coefficient, as in I x.
+                        pass
+                elif element.has_form(SymbolPower, 2):
                     var = element.get_element(0).get_name()
                     expr = element.get_element(1)
                     if hasattr(expr, "round_to_float"):
                         exp = expr.round_to_float()
                         if var and exp is not None:
-                            var = wma_str_sort_key(var)
+                            var = wma_symbol_sort_key(var)
                             exps[var] = exps.get(var, 0) + exp
                 elif name:
-                    name = wma_str_sort_key(name)
+                    name = wma_symbol_sort_key(name)
                     exps[name] = exps.get(name, 0) + 1
         elif self.has_form(SymbolPower, 2):
             var = self.elements[0].get_name()
@@ -1019,7 +1033,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             except AttributeError:
                 exp = None
             if var and exp is not None:
-                var = wma_str_sort_key(var)
+                var = wma_symbol_sort_key(var)
                 exps[var] = exps.get(var, 0) + exp
         if exps:
             return (
@@ -1029,6 +1043,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     else BASIC_EXPRESSION_ELT_ORDER
                 ),
                 Monomial(exps),
+                coefficient,
                 1,
                 head,
                 self._elements,
@@ -1046,6 +1061,40 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 self._elements,
                 1,
             )
+
+    def _sum_element_order(self) -> Optional[tuple]:
+        """
+        The element order of a sum whose largest term is a monomial, or
+        None for any other sum.
+
+        As in WMA, such a sum comes after every monomial in its largest
+        variable, and before the next variable: 1 + x comes after x^3 and
+        before y, and 1 + a b after a^5 b and before c. So its key is that
+        variable to an infinite power. Two sums with the same largest
+        variable are compared term by term, from the largest term down;
+        if one runs out first, it comes first: a + b < a + b + c.
+        """
+        properties = self.elements_properties
+        if properties is not None and properties.is_ordered:
+            terms = self._elements
+        else:
+            terms = tuple(sorted(self._elements))
+        largest = terms[-1].element_order
+        if len(largest) < 2 or not isinstance(largest[1], Monomial):
+            return None
+        variable = max(largest[1].exps, key=str)
+        return (
+            (
+                BASIC_NUMERIC_EXPRESSION_ELT_ORDER
+                if is_numeric(self)
+                else BASIC_EXPRESSION_ELT_ORDER
+            ),
+            Monomial({variable: math.inf}),
+            1.0,
+            2,
+            tuple(reversed(terms)),
+            1,
+        )
 
     @property
     def head(self):

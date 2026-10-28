@@ -71,12 +71,12 @@ def test_exponential(str_expr, str_expected):
         ("a (- 2 a) ( 3 Sqrt[a] q)", "-6 a ^ (5 / 2) q", None),
         (
             "a (5+ a+ 2 b) (3 a q)",
-            "3 a ^ 2 q (5 + a + 2 b)",
+            "3 a ^ 2 (5 + a + 2 b) q",
             "WMA distribute the sign (-)",
         ),
         (
             "a (- 2 (5+ a+ 2 b)) * (3 a q)",
-            "-6 a ^ 2 q (5 + a + 2 b)",
+            "-6 a ^ 2 (5 + a + 2 b) q",
             "WMA do not distribute neither in the general case",
         ),
         (

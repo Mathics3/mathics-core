@@ -619,7 +619,7 @@ def test_fullsimplify():
         # #> PolynomialQ[x^3 - 2 x/y + 3xz, {}]
         #  : No variable is not supported in PolynomialQ.
         #  = False
-        ("f[x]/x+f[x]/x^2//Together", None, "f[x] (1 + x) / x ^ 2", None),
+        ("f[x]/x+f[x]/x^2//Together", None, "(1 + x) f[x] / x ^ 2", None),
         # failing test case from MMA docs
         ("Variables[E^x]", None, "{}", None),
     ],

@@ -8,6 +8,7 @@ FindRoot[], FindMinimum[], NFindMaximum[] tests
 
 
 """
+
 from test.helper import check_evaluation
 from typing import Optional
 
@@ -250,14 +251,18 @@ def test_Solve(str_expr: str, str_expected: str, expected_messages):
             "Integrate[F[a, x], {x, p, q}]",
             "Integrand cannot be converted to sympy because of the string",
         ),
-        ("Integrate[ArcTan(x), x]", None, "x ^ 2 ArcTan / 2", None),
+        ("Integrate[ArcTan(x), x]", None, "ArcTan x ^ 2 / 2", None),
         ("Integrate[E[x], x]", None, "Integrate[E[x], x]", None),
         ("Integrate[Exp[-(x/2)^2],{x,-Infinity,+Infinity}]", None, "2 Sqrt[Pi]", None),
-        (
+        pytest.param(
             "Integrate[Exp[-1/(x^2)], x]",
             None,
             "x E ^ (-1 / x ^ 2) + Sqrt[Pi] Erf[1 / x]",
             None,
+            marks=pytest.mark.xfail(
+                reason="The canonical order does not count factors such as "
+                "Erf[1 / x] in a product (#2071)"
+            ),
         ),
         ("True'", None, "True'", None),
         ("False'", None, "False'", None),

@@ -124,7 +124,7 @@ class Apart(Builtin):
     >> Apart[1 / (x^2 - y^2), x]
      = -1 / (2 y (x + y)) + 1 / (2 y (x - y))
     >> Apart[1 / (x^2 - y^2), y]
-     = 1 / (2 x (x + y)) + 1 / (2 x (x - y))
+     = 1 / (2 x (x - y)) + 1 / (2 x (x + y))
 
     'Apart' is 'Listable':
     >> Apart[{1 / (x^2 + 5x + 6)}]
@@ -526,7 +526,7 @@ class Collect(Builtin):
 
 
     >> Collect[3 x y+2 Sin[x z] (x+2 y^2 + x) + (x+y)^3, y]
-     = 4 x Sin[x z] + x ^ 3 + y (3 x + 3 x ^ 2) + y ^ 2 (3 x + 4 Sin[x z]) + y ^ 3
+     = 4 x Sin[x z] + x ^ 3 + (3 x + 3 x ^ 2) y + y ^ 2 (3 x + 4 Sin[x z]) + y ^ 3
 
     >> Collect[3 x y+2 Sin[x z] (x+2 y^2 + x) + (x+y)^3, {x,y}]
      = 4 x Sin[x z] + x ^ 3 + 3 x y + 3 x ^ 2 y + 4 y ^ 2 Sin[x z] + 3 x y ^ 2 + y ^ 3
@@ -536,15 +536,15 @@ class Collect(Builtin):
 
     Collect each power of x:
     >> Collect[(1 + a + x)^3, x]
-     = 1 + 3 a + 3 a ^ 2 + a ^ 3 + x (3 + 6 a + 3 a ^ 2) + x ^ 2 (3 + 3 a) + x ^ 3
+     = 1 + 3 a + 3 a ^ 2 + a ^ 3 + (3 + 6 a + 3 a ^ 2) x + (3 + 3 a) x ^ 2 + x ^ 3
 
     Collect terms involving y:
     >> Collect[a x + b y + c x + d y, y]
-     = a x + c x + y (b + d)
+     = a x + c x + (b + d) y
 
     Simplify each coefficient:
     >> Collect[(1 + a + x)^3, x, Simplify]
-     = 1 + 3 a + 3 a ^ 2 + a ^ 3 + x (3 + 6 a + 3 a ^ 2) + x ^ 2 (3 + 3 a) + x ^ 3
+     = 1 + 3 a + 3 a ^ 2 + a ^ 3 + (3 + 6 a + 3 a ^ 2) x + (3 + 3 a) x ^ 2 + x ^ 3
     """
 
     eval_error = Builtin.generic_argument_error
@@ -719,7 +719,7 @@ class Expand(_Expand):
 
     ## Not quite right. Mathematica gives moves y (a + x) later in the expression.
     >> Expand[(x+a)^2+(y+a)^2+(x+y)(x+a), y]
-     = a ^ 2 + x (a + x) + y (a + x) + 2 a y + y ^ 2 + (a + x) ^ 2
+     = a ^ 2 + x (a + x) + (a + x) y + 2 a y + y ^ 2 + (a + x) ^ 2
     'Expand' also works in Galois fields
     >> Expand[(1 + a)^12, Modulus -> 3]
      = 1 + a ^ 3 + a ^ 9 + a ^ 12
@@ -975,7 +975,7 @@ class Factor(Builtin):
 
     Factor can also be used with equations:
     >> Factor[x a == x b + x c]
-     = a x ⩵ x (b + c)
+     = a x ⩵ (b + c) x
 
     And lists:
     >> Factor[{x + x^2, 2 x + 2 y + 2}]
@@ -1035,7 +1035,7 @@ class FactorTermsList(Builtin):
     >> FactorTermsList[x^2 - 2 x + 1]
      = {1, 1 - 2 x + x ^ 2}
     >> f = 3 (-1 + 2 x) (-1 + y) (1 - a)
-     = 3 (-1 + 2 x) (-1 + y) (1 - a)
+     = 3 (1 - a) (-1 + 2 x) (-1 + y)
     >> FactorTermsList[f]
      = {-3, -1 + a + 2 x - 2 a x + y - a y - 2 x y + 2 a x y}
     >> FactorTermsList[f, x]
