@@ -29,7 +29,9 @@ jobs:
           sudo apt-get update -qq && sudo apt-get install -qq liblapack-dev llvm-dev tesseract-ocr remake
       - name: Install Mathics3 dependencies
         run: |
-          python -m pip install --upgrade pip setuptools wheel pytest pytest-benchmark
+          # pytest 9.2 breaks pytest-benchmark 5.3.0 ('Function' object has no
+          # attribute '_nodeid'): https://github.com/ionelmc/pytest-benchmark/issues/321
+          python -m pip install --upgrade pip setuptools wheel "pytest<9.2" pytest-benchmark
           # We can comment out after next Mathics3-Scanner release
           # python -m pip install -e git+https://github.com/Mathics3/Mathics3-scanner#egg=Mathics3-Scanner[full]
           # git clone --depth 1 https://github.com/Mathics3/Mathics3-scanner.git
