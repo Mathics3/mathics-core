@@ -992,7 +992,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                    in Monomial's __cmp() for the reverse ordering when
                    comparing symbols in the monomial.
         """
-        exps: dict[tuple[str, str], Union[float, complex]] = {}
+        exps: dict[tuple, Union[float, complex]] = {}
         head = self._head
 
         if head is SymbolPlus and len(self._elements) > 1:
