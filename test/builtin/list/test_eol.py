@@ -489,14 +489,14 @@ def test_extract_arg_errors():
         ("pa = Range[3]; pa[[-1]] = z; pa", None, "{1, 2, z}"),
         ("pm = {{1, 2}, {3, 4}}; pm[[All, 1]] = {a, b}; pm", None, "{{a, 2}, {b, 4}}"),
         ("pm = {{1, 2}, {3, 4}}; pm[[All, 1]] = z; pm", None, "{{z, 2}, {z, 4}}"),
-        ("pm = {{1, 2}, {3, 4}}; pm[[{1, 2}, 2]] = {x, y}; pm", None, "{{1, x}, {3, y}}"),
-        ("pm = {{1, 2}, {3, 4}}; pm[[2, All]] = {x, y}; pm", None, "{{1, 2}, {x, y}}"),
+        ("pm = {{1, 2}, {3, 4}}; pm[[{1, 2}, 2]] = {pax, pay}; pm", None, "{{1, pax}, {3, pay}}"),
+        ("pm = {{1, 2}, {3, 4}}; pm[[2, All]] = {pax, pay}; pm", None, "{{1, 2}, {pax, pay}}"),
         (
             "pm = {{1, 2}, {3, 4}}; pm[[{2, 1}, {1}]] = {{a}, {b}}; pm",
             None,
             "{{b, 2}, {a, 4}}",
         ),
-        ("pg = f[a, b, c]; pg[[{1, 3}]] = {x, y}; pg", None, "f[x, b, y]"),
+        ("pg = f[a, b, c]; pg[[{1, 3}]] = {pax, pay}; pg", None, "f[pax, b, pay]"),
         ("pg = f[a]; pg[[0]] = h; pg", None, "h[a]"),
         # A part that does not exist leaves the whole value unchanged.
         (
