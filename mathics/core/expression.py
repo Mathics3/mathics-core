@@ -621,6 +621,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # Set to build self.elements_properties on next evaluation()
         self.elements_properties = None
         self._cache = None
+        self._element_order_cache = None
 
     def equal2(self, rhs: Any) -> Optional[bool]:
         """Mathics3 two-argument Equal (==)
@@ -1015,7 +1016,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         It is kept with the head and elements it was built from: sorting
         compares the same expressions many times, and the key of an
-        expression nests those of its elements.
+        expression nests those of its elements. The ``elements`` setter
+        and ``set_head`` clear it; the check on head and elements also
+        catches code that assigns ``_elements`` or ``_head`` directly.
         """
         cached = self.__dict__.get("_element_order_cache")
         if (
@@ -1735,6 +1738,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             raise TypeError("Attempt to turn an Expression into a ListExpression")
         self._head = head
         self._cache = None
+        self._element_order_cache = None
 
     def set_element(self, index: int, value):
         """
