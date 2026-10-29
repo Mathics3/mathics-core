@@ -8,6 +8,7 @@ SympyFunction, MPMathFunction, etc.
 
 import importlib
 import importlib.util
+import math
 import re
 import sys
 from abc import ABC
@@ -1234,13 +1235,15 @@ class IterationFunction(Builtin, ABC):
         else:
             imax = imax.evaluate(evaluation)
             imax = numerify(imax, evaluation)
-            if isinstance(imax, Number):
-                imax = imax.round()
-            py_max = imax.get_float_value()
-            if py_max is None:
+            # A bound that is not a real number, such as a symbol, f[x] or
+            # Infinity, is not iterated over.
+            py_max = imax.get_float_value() if isinstance(imax, Number) else None
+            if py_max is None or not math.isfinite(py_max):
                 if self.throw_iterb:
                     evaluation.message(self.get_name(), "iterb")
                 return
+            # The count is the integer part of the bound: {2.6} iterates twice.
+            py_max = math.floor(py_max)
 
             index = 0
             try:

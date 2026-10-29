@@ -129,3 +129,46 @@ def test_table_fully_evaluated_at_creation():
         symbolic.elements_properties
         and symbolic.elements_properties.elements_fully_evaluated
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "expected_messages", "str_expected"),
+    [
+        ("Table[1, {2.6}]", None, "{1, 1}"),
+        ("Table[1, {5/2}]", None, "{1, 1}"),
+        (
+            "Table[1, {itmax}]",
+            ("Iterator does not have appropriate bounds.",),
+            "Table[1, {itmax}]",
+        ),
+        (
+            "Table[1, {f[x]}]",
+            ("Iterator does not have appropriate bounds.",),
+            "Table[1, {f[x]}]",
+        ),
+        (
+            "Table[1, {Infinity}]",
+            ("Iterator does not have appropriate bounds.",),
+            "Table[1, {Infinity}]",
+        ),
+        (
+            "Table[1, {I}]",
+            ("Iterator does not have appropriate bounds.",),
+            "Table[1, {I}]",
+        ),
+        (
+            "Do[1, {f[x]}]",
+            ("Iterator does not have appropriate bounds.",),
+            "Do[1, {f[x]}]",
+        ),
+    ],
+)
+def test_iterator_count(str_expr, expected_messages, str_expected):
+    """{imax} iterates Floor[imax] times; a bound that is not a real number
+    leaves the iteration unevaluated."""
+    check_evaluation(
+        str_expr,
+        str_expected,
+        hold_expected=True,
+        expected_messages=expected_messages,
+    )
