@@ -160,7 +160,7 @@ def gcdex_list(numbers: list[int]) -> (list, int):
     """
     Return the extended GCD's coefficients and cumulative GCD for a list of numbers using
     SymPy's gcdex.
-    If the list is empty,bbbbbbb we return [].
+    If the list is empty, we return [].
 
     """
     if not numbers:
