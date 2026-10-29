@@ -172,7 +172,7 @@ class CosineDistance(Builtin):
 
     Cosine distance includes a dot product scaled by norms:
     >> CosineDistance[{a, b, c}, {x, y, z}]
-     = 1 + (-a Conjugate[x] - b Conjugate[y] - c Conjugate[z]) / (Sqrt[Abs[a] ^ 2 + Abs[b] ^ 2 + Abs[c] ^ 2] Sqrt[Abs[x] ^ 2 + Abs[y] ^ 2 + Abs[z] ^ 2])
+     = 1 - (a Conjugate[x] + b Conjugate[y] + c Conjugate[z]) / (Sqrt[Abs[a] ^ 2 + Abs[b] ^ 2 + Abs[c] ^ 2] Sqrt[Abs[x] ^ 2 + Abs[y] ^ 2 + Abs[z] ^ 2])
 
     A Cosine distance applied to complex numbers, uses 'Abs[]' for 'Norm[]' and complex multiplication for dot product,
     1 - $u$ * Conjugate[$v$] / ('Abs[$u$] Abs[$v$]'):

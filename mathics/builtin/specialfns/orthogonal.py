@@ -113,7 +113,7 @@ class JacobiP(MPMathFunction):
     </dl>
 
     >> JacobiP[1, a, b, z]
-     = a / 2 - b / 2 + z (1 + a / 2 + b / 2)
+     = a / 2 - b / 2 + (1 + a / 2 + b / 2) z
 
     >> JacobiP[3.5 + I, 3, 2, 4 - I]
      = 1410.02 + 5797.3 I
