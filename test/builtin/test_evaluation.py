@@ -22,6 +22,25 @@ import pytest
         ("a = a + a", ("Recursion depth of 20 exceeded.",), "$Aborted", None),
         ("$RecursionLimit = 200", None, "200", None),
         (
+            "ClearAll[f]; f[0] = 0; f[n_] := 1 + f[n - 1]; Block[{$RecursionLimit = Infinity}, f[300]]",
+            None,
+            "300",
+            "Infinity in a Block allows recursion deeper than the default limit",
+        ),
+        (
+            "ClearAll[f]; f[0] = 0; f[n_] := Block[{$RecursionLimit = Infinity}, 1 + f[n - 1]]; f[150]",
+            None,
+            "150",
+            "a Block value is evaluated before the variable is reset",
+        ),
+        (
+            "ClearAll[f]; f[n_] := 1 + f[n + 1]; Block[{$RecursionLimit = Infinity}, f[0]]",
+            ("Recursion depth of 512 exceeded.",),
+            "$Aborted",
+            "Infinity goes as deep as the Python stack is set up for, then stops",
+        ),
+        ("ClearAll[f];", None, None, None),
+        (
             "ClearAll[f];f[x_, 0] := x; f[x_, n_] := f[x + 1, n - 1];Block[{$RecursionLimit = 20}, f[0, 100]]",
             None,
             "100",

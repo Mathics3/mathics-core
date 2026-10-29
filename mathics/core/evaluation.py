@@ -571,11 +571,17 @@ class Evaluation:
         limit = self.definitions.get_config_value(
             "$RecursionLimit", MAX_RECURSION_DEPTH
         )
-        if limit is not None:
-            limit = max(limit, 20)
-            self.recursion_depth += 1
-            if self.recursion_depth > limit:
-                self.error("$RecursionLimit", "reclim", limit)
+        if limit is None:
+            # $RecursionLimit is Infinity, as in Block[{$RecursionLimit = Infinity}, ...],
+            # which does not go through the assignment that sets the Python limit.
+            # Go as deep as the Python stack is set up to hold.
+            limit = MAX_RECURSION_DEPTH
+            if sys.getrecursionlimit() < python_recursion_depth(limit):
+                set_python_recursion_limit(limit)
+        limit = max(limit, 20)
+        self.recursion_depth += 1
+        if self.recursion_depth > limit:
+            self.error("$RecursionLimit", "reclim", limit)
 
     def dec_recursion_depth(self) -> None:
         self.recursion_depth -= 1
