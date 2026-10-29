@@ -63,7 +63,7 @@ class Hypergeometric1F1(MPMathFunction):
      = {{E, 1}, {1, E}}
 
     >> Hypergeometric1F1[1/2, 1, x]
-     = BesselI[0, x / 2] E ^ (x / 2)
+     = E ^ (x / 2) BesselI[0, x / 2]
 
     Evaluate using complex arguments:
     >> Hypergeometric1F1[2 + I, 2, 0.5]
@@ -75,13 +75,13 @@ class Hypergeometric1F1(MPMathFunction):
 
     'Hypergeometric1F1' evaluates to simpler functions for certain parameters:
     >> Hypergeometric1F1[1/2, 1, x]
-     = BesselI[0, x / 2] E ^ (x / 2)
+     = E ^ (x / 2) BesselI[0, x / 2]
 
     >> Hypergeometric1F1[2, 1, x]
-     = (1 + x) E ^ x
+     = E ^ x (1 + x)
 
     >> Hypergeometric1F1[1, 1/2, x]
-     = -Sqrt[x] (-Sqrt[Pi] Erf[Sqrt[x]] - E ^ (-x) / Sqrt[x]) E ^ x
+     = -E ^ x Sqrt[x] (-E ^ (-x) / Sqrt[x] - Sqrt[Pi] Erf[Sqrt[x]])
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
@@ -118,7 +118,7 @@ class Hypergeometric2F1(MPMathFunction):
 
     Evaluate symbolically:
     >> Hypergeometric2F1[2, 3, 4, x]
-     = 6 Log[1 - x] / x ^ 3 + (-6 + 3 x) / (-x ^ 2 + x ^ 3)
+     = (-6 + 3 x) / (-x ^ 2 + x ^ 3) + 6 Log[1 - x] / x ^ 3
 
     Evaluate using complex arguments:
     >> Hypergeometric2F1[2 + I, -I, 3/4, 0.5 - 0.5 I]
@@ -170,7 +170,7 @@ class HypergeometricPFQ(MPMathFunction):
      = -Graphics-
 
     >> HypergeometricPFQ[{1, 1, 2}, {3, 3}, z]
-     = -4 PolyLog[2, z] / z ^ 2 + 4 Log[1 - z] / z ^ 2 - 4 Log[1 - z] / z + 8 / z
+     = 8 / z + 4 Log[1 - z] / z ^ 2 - 4 Log[1 - z] / z - 4 PolyLog[2, z] / z ^ 2
 
     The following special cases are handled:
     >> HypergeometricPFQ[{}, {}, z]
@@ -179,7 +179,7 @@ class HypergeometricPFQ(MPMathFunction):
      = 1
 
      >> HypergeometricPFQ[{1, 1, 3}, {2, 2}, x]
-      = -Log[1 - x] / (2 x) - 1 / (-2 + 2 x)
+      = -1 / (-2 + 2 x) - Log[1 - x] / (2 x)
 
     'HypergeometricPFQ' evaluates to a polynomial if any of the parameters $a_k$ is a non-positive integer:
     ## FIXME: this doesn't match WMA which start out 1 - ...

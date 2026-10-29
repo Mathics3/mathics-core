@@ -122,7 +122,7 @@ class Apart(Builtin):
     When several variables are involved, the results can be different \
     depending on the main variable:
     >> Apart[1 / (x^2 - y^2), x]
-     = -1 / (2 y (x + y)) + 1 / (2 y (x - y))
+     = 1 / (2 y (x - y)) - 1 / (2 y (x + y))
     >> Apart[1 / (x^2 - y^2), y]
      = 1 / (2 x (x - y)) + 1 / (2 x (x + y))
 
@@ -522,17 +522,17 @@ class Collect(Builtin):
 
     ## FIXME: the below ordering is does not match WMA. 4 y^2 should come first.
     >> Collect[2 Sin[x z] (x+2 y^2 + Sin[y] x), y]
-     = 2 x Sin[y] Sin[x z] + 2 x Sin[x z] + 4 y ^ 2 Sin[x z]
+     = 2 x Sin[x z] + 4 y ^ 2 Sin[x z] + 2 x Sin[y] Sin[x z]
 
 
     >> Collect[3 x y+2 Sin[x z] (x+2 y^2 + x) + (x+y)^3, y]
-     = 4 x Sin[x z] + x ^ 3 + (3 x + 3 x ^ 2) y + y ^ 2 (3 x + 4 Sin[x z]) + y ^ 3
+     = x ^ 3 + (3 x + 3 x ^ 2) y + y ^ 3 + 4 x Sin[x z] + y ^ 2 (3 x + 4 Sin[x z])
 
     >> Collect[3 x y+2 Sin[x z] (x+2 y^2 + x) + (x+y)^3, {x,y}]
-     = 4 x Sin[x z] + x ^ 3 + 3 x y + 3 x ^ 2 y + 4 y ^ 2 Sin[x z] + 3 x y ^ 2 + y ^ 3
+     = x ^ 3 + 3 x y + 3 x ^ 2 y + 3 x y ^ 2 + y ^ 3 + 4 x Sin[x z] + 4 y ^ 2 Sin[x z]
 
     >> Collect[3 x y+2 Sin[x z] (x+2 y^2 + x) + (x+y)^3, {x,y}, h]
-     = x h[4 Sin[x z]] + x ^ 3 h[1] + x y h[3] + x ^ 2 y h[3] + y ^ 2 h[4 Sin[x z]] + x y ^ 2 h[3] + y ^ 3 h[1]
+     = x ^ 3 h[1] + y ^ 3 h[1] + x y h[3] + x ^ 2 y h[3] + x y ^ 2 h[3] + x h[4 Sin[x z]] + y ^ 2 h[4 Sin[x z]]
 
     Collect each power of x:
     >> Collect[(1 + a + x)^3, x]
@@ -706,9 +706,9 @@ class Expand(_Expand):
 
     'Expand' expands trigonometric identities
     >> Expand[Sin[x + y], Trig -> True]
-     = Cos[x] Sin[y] + Cos[y] Sin[x]
+     = Cos[y] Sin[x] + Cos[x] Sin[y]
     >> Expand[Tanh[x + y], Trig -> True]
-     = Cosh[x] Sinh[y] / (Cosh[x] Cosh[y] + Sinh[x] Sinh[y]) + Cosh[y] Sinh[x] / (Cosh[x] Cosh[y] + Sinh[x] Sinh[y])
+     = Cosh[y] Sinh[x] / (Cosh[x] Cosh[y] + Sinh[x] Sinh[y]) + Cosh[x] Sinh[y] / (Cosh[x] Cosh[y] + Sinh[x] Sinh[y])
 
     'Expand' does not change any other expression.
     >> Expand[Sin[x (1 + y)]]
@@ -719,7 +719,7 @@ class Expand(_Expand):
 
     ## Not quite right. Mathematica gives moves y (a + x) later in the expression.
     >> Expand[(x+a)^2+(y+a)^2+(x+y)(x+a), y]
-     = a ^ 2 + x (a + x) + (a + x) y + 2 a y + y ^ 2 + (a + x) ^ 2
+     = a ^ 2 + x (a + x) + (a + x) ^ 2 + 2 a y + (a + x) y + y ^ 2
     'Expand' also works in Galois fields
     >> Expand[(1 + a)^12, Modulus -> 3]
      = 1 + a ^ 3 + a ^ 9 + a ^ 12
@@ -780,13 +780,13 @@ class ExpandAll(_Expand):
 
     'ExpandAll' descends into subexpressions:
     >> ExpandAll[(a + Sin[x (1 + y)])^2]
-     = 2 a Sin[x + x y] + a ^ 2 + Sin[x + x y] ^ 2
+     = a ^ 2 + 2 a Sin[x + x y] + Sin[x + x y] ^ 2
 
     >> ExpandAll[Sin[(x+y)^2]]
      = Sin[x ^ 2 + 2 x y + y ^ 2]
 
     >> ExpandAll[Sin[(x+y)^2], Trig->True]
-     = Cos[x ^ 2] Cos[2 x y] Sin[y ^ 2] + Cos[x ^ 2] Cos[y ^ 2] Sin[2 x y] + Cos[2 x y] Cos[y ^ 2] Sin[x ^ 2] - Sin[x ^ 2] Sin[2 x y] Sin[y ^ 2]
+     = Cos[2 x y] Cos[y ^ 2] Sin[x ^ 2] + Cos[x ^ 2] Cos[y ^ 2] Sin[2 x y] + Cos[x ^ 2] Cos[2 x y] Sin[y ^ 2] - Sin[x ^ 2] Sin[2 x y] Sin[y ^ 2]
     'ExpandAll' also expands heads
     >> ExpandAll[((1 + x)(1 + y))[x]]
      = (1 + x + y + x y)[x]

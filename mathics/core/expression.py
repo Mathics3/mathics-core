@@ -35,6 +35,7 @@ from mathics.core.keycomparable import (
     GENERAL_EXPRESSION_ELT_ORDER,
     GENERAL_NUMERIC_EXPRESSION_ELT_ORDER,
     Monomial,
+    general_variable,
     wma_symbol_sort_key,
 )
 from mathics.core.number import is_numeric
@@ -303,6 +304,44 @@ class ExpressionCache:
         return ExpressionCache(
             definitions.now, symbols, None if "System`Sequence" in symbols else tuple()
         )
+
+
+def _factor_variables(factor: BaseElement) -> list:
+    """
+    The variables of a factor of a monomial, with their exponents: x for
+    x, x with exponent 2 for x^2, f[x] for f[x] and f[x]^2.
+
+    As in WMA, a power whose exponent is not a number, such as E^x, comes
+    after every numeric power of its base: E^x after E^2 and before F.
+    So its exponent here is infinite, and two such powers of the same
+    base are told apart by their elements: E^-x < E^x.
+    """
+    if isinstance(factor, Symbol):
+        return [(wma_symbol_sort_key(factor.get_name()), 1)]
+    if not isinstance(factor, Expression):
+        return []
+    if factor.get_head() is SymbolPlus:
+        variable = factor._sum_variable()
+        if variable is not None:
+            return [(variable, 1)]
+    if factor.has_form(SymbolPower, 2):
+        base, exponent = factor.elements
+        value: Optional[float] = math.inf
+        if isinstance(exponent, Number):
+            try:
+                value = float(exponent.to_sympy())
+            except TypeError:
+                value = None
+        if value is not None:
+            if isinstance(base, Symbol):
+                return [(wma_symbol_sort_key(base.get_name()), value)]
+            if base.get_head() is SymbolPlus:
+                variable = base._sum_variable()
+                if variable is not None:
+                    return [(variable, value)]
+            if isinstance(base, Expression) and not is_numeric(base):
+                return [(general_variable(base, base._general_order()), value)]
+    return [(general_variable(factor, factor._general_order()), 1)]
 
 
 class Expression(BaseElement, NumericOperators, EvalMixin):
@@ -582,6 +621,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # Set to build self.elements_properties on next evaluation()
         self.elements_properties = None
         self._cache = None
+        self._element_order_cache = None
 
     def equal2(self, rhs: Any) -> Optional[bool]:
         """Mathics3 two-argument Equal (==)
@@ -974,6 +1014,27 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         Return a value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
 
+        It is kept with the head and elements it was built from: sorting
+        compares the same expressions many times, and the key of an
+        expression nests those of its elements. The ``elements`` setter
+        and ``set_head`` clear it; the check on head and elements also
+        catches code that assigns ``_elements`` or ``_head`` directly.
+        """
+        cached = self.__dict__.get("_element_order_cache")
+        if (
+            cached is not None
+            and cached[0] is self._head
+            and cached[1] is self._elements
+        ):
+            return cached[2]
+        order = self._build_element_order()
+        self._element_order_cache = (self._head, self._elements, order)
+        return order
+
+    def _build_element_order(self) -> tuple:
+        """
+        Build ``element_order``.
+
         General element order key structure:
         0: 1/2:        Numeric / General Expression
         1: 2/3         Special arithmetic (Times / Power) / General Expression
@@ -992,109 +1053,125 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                    in Monomial's __cmp() for the reverse ordering when
                    comparing symbols in the monomial.
         """
-        exps: dict[tuple, Union[float, complex]] = {}
         head = self._head
+        numeric = is_numeric(self)
 
         if head is SymbolPlus and len(self._elements) > 1:
             sum_order = self._sum_element_order()
             if sum_order is not None:
                 return sum_order
 
-        # As in WMA, monomials that differ only in a numeric coefficient
-        # are ordered by it: -x < x < 2 x.
+        if not numeric:
+            # As in WMA, an expression is ordered as a monomial in its
+            # factors: symbols, and other expressions such as f[x] or
+            # Erf[1 / x], which count as variables (see GeneralVariable).
+            # So a f[x] comes after f[x] and before g[x].
+            monomial = self._monomial()
+            if monomial is not None:
+                exps, coefficient = monomial
+                return (
+                    BASIC_EXPRESSION_ELT_ORDER,
+                    Monomial(exps),
+                    coefficient,
+                    1,
+                    head,
+                    self._elements,
+                    1,
+                )
+        return (
+            (
+                GENERAL_NUMERIC_EXPRESSION_ELT_ORDER
+                if numeric
+                else GENERAL_EXPRESSION_ELT_ORDER
+            ),
+            head,
+            len(self._elements),
+            self._elements,
+            1,
+        )
+
+    def _general_order(self) -> tuple:
+        """The order of a general expression: by head, length, elements."""
+        return (self._head, len(self._elements), self._elements)
+
+    def _monomial(self) -> Optional[tuple]:
+        """
+        The variables of this expression as a monomial, with their
+        exponents, and its numeric coefficient; None if it has no
+        variable. As in WMA, monomials that differ only in a numeric
+        coefficient are ordered by it: -x < x < 2 x.
+        """
+        exps: dict = {}
         coefficient = 1.0
-        if head is SymbolTimes:
-            for element in self.elements:
-                name = element.get_name()
-                if isinstance(element, Number):
+        if self._head is SymbolTimes:
+            for factor in self._elements:
+                if isinstance(factor, Symbol):
+                    variable = wma_symbol_sort_key(factor.get_name())
+                    exps[variable] = exps.get(variable, 0) + 1
+                    continue
+                if isinstance(factor, Number) or is_numeric(factor):
                     try:
-                        coefficient *= float(element.to_sympy())
+                        coefficient *= float(factor.to_sympy())
                     except TypeError:
                         # A complex coefficient, as in I x.
                         pass
-                elif element.has_form(SymbolPower, 2):
-                    var = element.get_element(0).get_name()
-                    expr = element.get_element(1)
-                    if hasattr(expr, "round_to_float"):
-                        exp = expr.round_to_float()
-                        if var and exp is not None:
-                            var = wma_symbol_sort_key(var)
-                            exps[var] = exps.get(var, 0) + exp
-                elif name:
-                    name = wma_symbol_sort_key(name)
-                    exps[name] = exps.get(name, 0) + 1
-        elif self.has_form(SymbolPower, 2):
-            var = self.elements[0].get_name()
-            # TODO: Check if this is the expected behaviour.
-            # round_to_float is an attribute of Expression,
-            # but not for Atoms.
-            try:
-                exp = self.elements[1].round_to_float()
-            except AttributeError:
-                exp = None
-            if var and exp is not None:
-                var = wma_symbol_sort_key(var)
-                exps[var] = exps.get(var, 0) + exp
-        if exps:
-            return (
-                (
-                    BASIC_NUMERIC_EXPRESSION_ELT_ORDER
-                    if is_numeric(self)
-                    else BASIC_EXPRESSION_ELT_ORDER
-                ),
-                Monomial(exps),
-                coefficient,
-                1,
-                head,
-                self._elements,
-                1,
-            )
+                    continue
+                for variable, exponent in _factor_variables(factor):
+                    exps[variable] = exps.get(variable, 0) + exponent
+        elif self._head is SymbolPower:
+            for variable, exponent in _factor_variables(self):
+                exps[variable] = exps.get(variable, 0) + exponent
         else:
-            return (
-                (
-                    GENERAL_NUMERIC_EXPRESSION_ELT_ORDER
-                    if is_numeric(self)
-                    else GENERAL_EXPRESSION_ELT_ORDER
-                ),
-                head,
-                len(self._elements),
-                self._elements,
-                1,
-            )
+            return {general_variable(self, self._general_order()): 1}, coefficient
+        if not exps:
+            return None
+        return exps, coefficient
 
     def _sum_element_order(self) -> Optional[tuple]:
         """
         The element order of a sum whose largest term is a monomial, or
-        None for any other sum.
-
-        As in WMA, such a sum comes after every monomial in its largest
-        variable, and before the next variable: 1 + x comes after x^3 and
-        before y, and 1 + a b after a^5 b and before c. So its key is that
-        variable to an infinite power. Two sums with the same largest
-        variable are compared term by term, from the largest term down;
-        if one runs out first, it comes first: a + b < a + b + c.
+        None for any other sum: the monomial in its variable from
+        ``_sum_variable``.
         """
-        properties = self.elements_properties
-        if properties is not None and properties.is_ordered:
-            terms = self._elements
-        else:
-            terms = tuple(sorted(self._elements))
-        largest = terms[-1].element_order
-        if len(largest) < 2 or not isinstance(largest[1], Monomial):
+        variable = self._sum_variable()
+        if variable is None:
             return None
-        variable = max(largest[1].exps, key=str)
         return (
             (
                 BASIC_NUMERIC_EXPRESSION_ELT_ORDER
                 if is_numeric(self)
                 else BASIC_EXPRESSION_ELT_ORDER
             ),
-            Monomial({variable: math.inf}),
+            Monomial({variable: 1}),
             1.0,
             2,
-            tuple(reversed(terms)),
+            self._elements,
             1,
         )
+
+    def _sum_variable(self) -> Optional[tuple]:
+        """
+        The variable key of a sum whose largest term is a monomial, or
+        None for any other sum.
+
+        As in WMA, such a sum comes right after the largest variable of
+        its largest term, after every power of it and before the next
+        variable: 1 + x comes after x^3 and before y, and 1 + a b after
+        a^5 b and before c. A product with the sum as a factor goes there
+        too: (3 x + 3 x^2) y comes before y^3. So the key is that of the
+        variable, extended by the terms from the largest down; two sums
+        with the same largest variable are compared term by term, and if
+        one runs out first, it comes first: a + b < a + b + c.
+        """
+        properties = self.elements_properties
+        if properties is not None and properties.is_ordered:
+            terms = self._elements
+        else:
+            terms = tuple(sorted(self._elements, key=lambda e: e.element_order))
+        largest = terms[-1].element_order
+        if len(largest) < 2 or not isinstance(largest[1], Monomial):
+            return None
+        return max(largest[1].exps) + (1, tuple(reversed(terms)))
 
     @property
     def head(self):
@@ -1661,6 +1738,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             raise TypeError("Attempt to turn an Expression into a ListExpression")
         self._head = head
         self._cache = None
+        self._element_order_cache = None
 
     def set_element(self, index: int, value):
         """
@@ -1807,7 +1885,10 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         if pattern:
             elements.sort(key=lambda e: e.pattern_precedence)
         else:
-            elements.sort()
+            # The same order as comparing the elements, which compares
+            # their element_order; but each key is built once, not at
+            # every comparison.
+            elements.sort(key=lambda e: e.element_order)
 
         # update `self._elements` and self._cache with the possible permuted order.
         self.elements = elements

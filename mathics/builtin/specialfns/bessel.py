@@ -329,7 +329,7 @@ class BesselI(_Bessel):
 
         The special case of half-integer index is expanded using Rayleigh's formulas:
         >> BesselI[3/2, x]
-         = Sqrt[2] Sqrt[x] (-Sinh[x] / x ^ 2 + Cosh[x] / x) / Sqrt[Pi]
+         = Sqrt[2] Sqrt[x] (Cosh[x] / x - Sinh[x] / x ^ 2) / Sqrt[Pi]
 
         Integer orders are not expanded and remain symbolic:
         >> BesselI[1, z]
@@ -368,7 +368,7 @@ class BesselJ(_Bessel):
      = -0.11029
 
     >> D[BesselJ[n, z], z]
-     = -BesselJ[1 + n, z] / 2 + BesselJ[-1 + n, z] / 2
+     = BesselJ[-1 + n, z] / 2 - BesselJ[1 + n, z] / 2
 
     >> BesselJ[0., 0.]
      = 1.
@@ -470,7 +470,7 @@ class BesselY(_Bessel):
 
     The special case of half-integer index is expanded using Rayleigh's formulas:
     >> BesselY[-3/2, x]
-     =  Sqrt[2] Sqrt[x] (-Sin[x] / x ^ 2 + Cos[x] / x) / Sqrt[Pi]
+     = Sqrt[2] Sqrt[x] (Cos[x] / x - Sin[x] / x ^ 2) / Sqrt[Pi]
 
     Integer orders are not expanded and remain symbolic:
     >> BesselY[1, z]

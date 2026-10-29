@@ -30,7 +30,7 @@ import pytest
         ),
         (
             "a - 2 (5+ a+ 2 b) + 3 a q",
-            "a + 3 a q - 2 (5 + a + 2 b)",
+            "a - 2 (5 + a + 2 b) + 3 a q",
             "WMA does not distribute in the general case",
         ),
     ],
@@ -415,7 +415,7 @@ def test_complex(str_expr, str_expected, msg):
         ),
         (
             "Sum[x^k*Sum[y^l,{l,0,4}],{k,0,4}]",
-            "1 + x (1 + y + y ^ 2 + y ^ 3 + y ^ 4) + x ^ 2 (1 + y + y ^ 2 + y ^ 3 + y ^ 4) + x ^ 3 (1 + y + y ^ 2 + y ^ 3 + y ^ 4) + x ^ 4 (1 + y + y ^ 2 + y ^ 3 + y ^ 4) + y + y ^ 2 + y ^ 3 + y ^ 4",
+            "1 + y + y ^ 2 + y ^ 3 + y ^ 4 + x (1 + y + y ^ 2 + y ^ 3 + y ^ 4) + x ^ 2 (1 + y + y ^ 2 + y ^ 3 + y ^ 4) + x ^ 3 (1 + y + y ^ 2 + y ^ 3 + y ^ 4) + x ^ 4 (1 + y + y ^ 2 + y ^ 3 + y ^ 4)",
             "Iterated sum",
         ),
     ],
