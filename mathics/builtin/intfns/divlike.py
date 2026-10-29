@@ -106,15 +106,15 @@ class Divisible(Builtin):
 
 class ExtendedGCD(Builtin):
     """
-    <url>Extended Euclidean algorithm
-    :https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm</url>(
+    <url>:Extended Euclidean algorithm:
+    https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm</url> (<url>
     :SymPy:https://docs.sympy.org/latest/modules/polys/domainsref.html#sympy.polys.domains.IntegerRing.gcdex</url>, <url>
     :WMA:
     https://reference.wolfram.com/language/ref/GCD.html</url>)
 
     <dl>
       <dt>'ExtendedGCD'[$n_1$, $n_2$, ...]
-      computes the extended greatest common divisor of integers $n_1$, $n_2$, ...
+      <dd>computes the extended greatest common divisor of integers $n_1$, $n_2$, ...
     </dl>
 
     Get the GCD and coefficients for the GCD of 2 and 3:
@@ -152,8 +152,8 @@ class ExtendedGCD(Builtin):
 
 class GCD(Builtin):
     """
-    <url>Greatest common divisor
-    :https://en.wikipedia.org/wiki/Greatest_common_divisor</url>(
+    <url>:Greatest common divisor:
+    https://en.wikipedia.org/wiki/Greatest_common_divisor</url> (<url>
     :SymPy:https://docs.sympy.org/latest/modules/polys/domainsref.html#sympy.polys.domains.IntegerRing.gcdex</url>, <url>
     :WMA:
     https://reference.wolfram.com/language/ref/GCD.html</url>)
@@ -187,10 +187,10 @@ class GCD(Builtin):
 
 class LCM(Builtin):
     """
-    <url>Least common multiple
-    :https://en.wikipedia.org/wiki/Least_common_multiple</url>(
+    <url>:Least common multiple:
+    https://en.wikipedia.org/wiki/Least_common_multiple</url> (<url>
     :SymPy:https://docs.sympy.org/latest/modules/polys/domainsref.html#sympy.polys.domains.IntegerRing.lcm</url>, <url>
-    <url>:WMA link:https://reference.wolfram.com/language/ref/LCM.html</url>
+    :WMA link:https://reference.wolfram.com/language/ref/LCM.html</url>)
 
     <dl>
       <dt>'LCM'[$n_1$, $n_2$, ...]
@@ -329,7 +329,8 @@ class ModularInverse(SympyFunction):
 class PowerMod(Builtin):
     """
     <url>:Modular exponentiation:
-    https://en.wikipedia.org/wiki/Modular_exponentiation</url> SymPy: <url>:mod_inverse:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.mod_inverse</url>, <url>
+    https://en.wikipedia.org/wiki/Modular_exponentiation</url> (<url>:SymPy:
+    :mod_inverse:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.mod_inverse</url>, <url>
     :nth_root_mod:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.nth_root</url>, <url>
     :sqrt_mod:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.sqrt_mod</url>, and <url>
     :Pow:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.Pow</url>; <url>:WMA link:
@@ -526,7 +527,8 @@ class Quotient(Builtin):
 
 class QuotientRemainder(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/QuotientRemainder.html</url>
+    <url>:Euclidian Division:https://en.wikipedia.org/wiki/Euclidean_division</url> (<url>
+    :WMA link:https://reference.wolfram.com/language/ref/QuotientRemainder.html</url>)
 
     <dl>
       <dt>'QuotientRemainder[m, n]'
