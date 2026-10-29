@@ -369,6 +369,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     _elements: tuple[BaseElement, ...]
     _sequences: Any
     _cache: Optional[ExpressionCache]
+    # (head, elements, element_order) of the last element_order built.
+    _element_order_cache: Optional[tuple[BaseElement, tuple[BaseElement, ...], tuple]]
     elements_properties: Optional[ElementsProperties]
     options: Optional[dict[str, Any]]
     pattern_sequence: bool
