@@ -9,6 +9,7 @@ This module provides some infrastructure to deal with SubExpressions.
 from mathics.core.atoms import Integer
 from mathics.core.exceptions import MessageException
 from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol, SymbolList
 from mathics.core.systemsymbols import SymbolSpan
 
@@ -217,12 +218,12 @@ class ExpressionPointer:
         # Variables to track the parent and the position of that parent.
         current = parent
         current_parent = None
-        # current_index = None
+        current_index = None
 
         try:
             while pos:
                 current_parent = current
-                # current_index = i
+                current_index = i
                 if i == 0:
                     current = current._head
                 else:
@@ -233,10 +234,19 @@ class ExpressionPointer:
 
         # Now, current is the subexpression to be modified, and current_parent
         # is the expression that holds it (if exists).
-        if i == 0:
-            current.set_head(new)
-        else:
+        if i != 0:
             current.set_element(i - 1, new)
+        elif isinstance(current, ListExpression) or new is SymbolList:
+            # A List cannot take another head, nor an Expression the head
+            # List: a new expression takes the place of the old one.
+            replacement = Expression(new, *current.elements)
+            if new is SymbolList:
+                replacement = ListExpression(*current.elements)
+            if current_parent is None or current_index == 0:
+                raise MessageException("Part", "partw", Integer(0), current)
+            current_parent.set_element(current_index - 1, replacement)
+        else:
+            current.set_head(new)
 
         # If the modified subexpression is not the root,
         # invalidate the parent cache.

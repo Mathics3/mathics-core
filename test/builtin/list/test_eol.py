@@ -509,6 +509,10 @@ def test_extract_arg_errors():
             ("Part 4 of {1, 2, 3} does not exist.",),
             "{1, 2, 3}",
         ),
+        ("pl = {1, 2, 3}; pl[[0]] = pf; pl", None, "pf[1, 2, 3]"),
+        ("pm = {{1, 2}, {3, 4}}; pm[[2, 0]] = phg; pm", None, "{{1, 2}, phg[3, 4]}"),
+        ("pm = {{1, 2}, {3, 4}}; pm[[All, 0]] = ph; pm", None, "{ph[1, 2], ph[3, 4]}"),
+        ("pk = pf[1, 2]; pk[[0]] = List; pk", None, "{1, 2}"),
         (
             "pm = {{1, 2}, {3, 4}}; pm[[1, 5]] = 0; pm",
             ("Part 5 of {1, 2} does not exist.",),
