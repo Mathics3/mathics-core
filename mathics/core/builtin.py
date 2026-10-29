@@ -96,6 +96,7 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (
     SymbolDefault,
+    SymbolDirectedInfinity,
     SymbolIndeterminate,
     SymbolLessEqual,
     SymbolMessageName,
@@ -1298,6 +1299,13 @@ class IterationFunction(Builtin, ABC):
                 Expression(SymbolPower, di, IntegerM1),
             ),
         ).evaluate(evaluation)
+        # An infinite range never ends; only Do may run it, until Break[].
+        if normalised_range.has_form(SymbolDirectedInfinity, 1) and not (
+            self.allow_loopcontrol
+        ):
+            if self.throw_iterb:
+                evaluation.message(self.get_name(), "iterb")
+            return
 
         result = []
         last_head = None

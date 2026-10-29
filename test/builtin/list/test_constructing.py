@@ -161,6 +161,26 @@ def test_table_fully_evaluated_at_creation():
             ("Iterator does not have appropriate bounds.",),
             "Do[1, {f[x]}]",
         ),
+        (
+            "Table[i, {i, 1, Infinity}]",
+            ("Iterator does not have appropriate bounds.",),
+            "Table[i, {i, 1, Infinity}]",
+        ),
+        (
+            "Table[i, {i, -Infinity, 1}]",
+            ("Iterator does not have appropriate bounds.",),
+            "Table[i, {i, -Infinity, 1}]",
+        ),
+        (
+            "Table[i, {i, 1, Infinity, 2}]",
+            ("Iterator does not have appropriate bounds.",),
+            "Table[i, {i, 1, Infinity, 2}]",
+        ),
+        (
+            "Module[{n = 0}, Do[n++; If[i > 3, Break[]], {i, 1, Infinity}]; n]",
+            None,
+            "4",
+        ),
     ],
 )
 def test_iterator_count(str_expr, expected_messages, str_expected):
