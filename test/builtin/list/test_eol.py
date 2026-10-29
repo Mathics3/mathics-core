@@ -470,3 +470,60 @@ def test_extract(str_expr, expected_messages, str_expected):
 
 def test_extract_arg_errors():
     check_arg_counts("Extract", "2 or 3 arguments are")
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "expected_messages", "str_expected"),
+    [
+        ("pa = Range[8]; pa[[{2, 5, 6}]] = {-1, -2, -3}; pa", None, "{1, -1, 3, 4, -2, -3, 7, 8}"),
+        ("pa = Range[8]; pa[[{2, 3}]] = 0; pa", None, "{1, 0, 0, 4, 5, 6, 7, 8}"),
+        ("pa = Range[8]; pa[[{-1, 1}]] = {p, q}; pa", None, "{q, 2, 3, 4, 5, 6, 7, p}"),
+        # A right side of another length is assigned to each part whole.
+        (
+            "pa = Range[4]; pa[[{1, 2}]] = {u, v, w}; pa",
+            None,
+            "{{u, v, w}, {u, v, w}, 3, 4}",
+        ),
+        ("pa = Range[3]; pa[[All]] = 0; pa", None, "{0, 0, 0}"),
+        ("pa = Range[5]; pa[[2 ;; 4]] = {a, b, c}; pa", None, "{1, a, b, c, 5}"),
+        ("pa = Range[3]; pa[[-1]] = z; pa", None, "{1, 2, z}"),
+        ("pm = {{1, 2}, {3, 4}}; pm[[All, 1]] = {a, b}; pm", None, "{{a, 2}, {b, 4}}"),
+        ("pm = {{1, 2}, {3, 4}}; pm[[All, 1]] = z; pm", None, "{{z, 2}, {z, 4}}"),
+        ("pm = {{1, 2}, {3, 4}}; pm[[{1, 2}, 2]] = {x, y}; pm", None, "{{1, x}, {3, y}}"),
+        ("pm = {{1, 2}, {3, 4}}; pm[[2, All]] = {x, y}; pm", None, "{{1, 2}, {x, y}}"),
+        (
+            "pm = {{1, 2}, {3, 4}}; pm[[{2, 1}, {1}]] = {{a}, {b}}; pm",
+            None,
+            "{{b, 2}, {a, 4}}",
+        ),
+        ("pg = f[a, b, c]; pg[[{1, 3}]] = {x, y}; pg", None, "f[x, b, y]"),
+        ("pg = f[a]; pg[[0]] = h; pg", None, "h[a]"),
+        # A part that does not exist leaves the whole value unchanged.
+        (
+            "pa = Range[3]; pa[[{1, 5}]] = 0; pa",
+            ("Part 5 of {1, 2, 3} does not exist.",),
+            "{1, 2, 3}",
+        ),
+        (
+            "pa = Range[3]; pa[[2 ;; 5]] = 0; pa",
+            ("Part 4 of {1, 2, 3} does not exist.",),
+            "{1, 2, 3}",
+        ),
+        (
+            "pm = {{1, 2}, {3, 4}}; pm[[1, 5]] = 0; pm",
+            ("Part 5 of {1, 2} does not exist.",),
+            "{{1, 2}, {3, 4}}",
+        ),
+    ],
+)
+def test_part_assignment(str_expr, expected_messages, str_expected):
+    """Assigning to parts given by a list of positions, All, a Span or a
+    negative position, at any depth."""
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        expected_messages=expected_messages,
+    )

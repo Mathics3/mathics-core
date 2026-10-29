@@ -59,6 +59,48 @@ def _pspec_span_to_tuple(pspec, expr):
     return tuple(k for k in range(start, stop, step))
 
 
+def _is_atom(expr) -> bool:
+    """`expr` is an atom; `expr` may also be an `ExpressionPointer` or a `SubExpression`."""
+    if isinstance(expr, (ExpressionPointer, SubExpression)):
+        return expr.is_atom()
+    return isinstance(expr, Atom)
+
+
+def _part_positions(pspec, expr):
+    """
+    Convert the part specification `pspec` of `expr` into a 1-based
+    position (0 is the head) when it selects a single part, or into a
+    tuple of 1-based positions when it selects several (`All`, a list of
+    integers or a `Span`). Negative positions count from the end.
+
+    Raises `Part::partw` for a position that `expr` does not have.
+    """
+    length = 0 if _is_atom(expr) else len(expr.elements)
+
+    def checked(k: int) -> int:
+        position = length + 1 + k if k < 0 else k
+        if not 0 <= position <= length:
+            target = expr
+            if type(expr) is ExpressionPointer:
+                target = expr.parent if expr.position is None else expr.to_expression()
+            raise MessageException("Part", "partw", Integer(k), target)
+        return position
+
+    if type(pspec) is Integer:
+        return checked(pspec.value)
+    if isinstance(pspec, Symbol) and pspec.get_name() == "System`All":
+        return tuple(range(1, length + 1))
+    if isinstance(pspec, Expression):
+        if pspec.has_form(SymbolList, None):
+            positions = [element.int_value for element in pspec.elements]
+            if any(k is None for k in positions):
+                raise MessageException("Part", "pspec", pspec)
+            return tuple(checked(k) for k in positions)
+        if pspec.has_form(SymbolSpan, None):
+            return tuple(checked(k + 1) for k in _pspec_span_to_tuple(pspec, expr))
+    raise MessageException("Part", "pspec", pspec)
+
+
 class ExpressionPointer:
     """
     This class represents a reference to a element in an expression.
@@ -121,7 +163,7 @@ class ExpressionPointer:
         if pos is None:
             return self.parent.elements
         elif pos == 0:
-            self.parent.head.elements
+            return self.parent.head.elements
         return self.parent.elements[pos - 1].elements
 
     @elements.setter
@@ -134,10 +176,10 @@ class ExpressionPointer:
     def is_atom(self):
         pos = self.position
         if pos is None:
-            return self.parent.is_atom()
+            return _is_atom(self.parent)
         elif pos == 0:
-            return self.parent.head.is_atom()
-        return self.parent.elements[pos - 1].is_atom()
+            return _is_atom(self.parent.head)
+        return _is_atom(self.parent.elements[pos - 1])
 
     def to_expression(self):
         parent = self.parent
@@ -226,34 +268,23 @@ class SubExpression:
         else:
             rem_pos = None
 
-        # Trivial conversion: if pos is an `Integer`, convert
-        # to a Python native int
-        if type(pos) is Integer:
-            pos = pos.int_value
-        # pos == `System`All`
-        elif isinstance(pos, Symbol) and pos.get_name() == "System`All":
-            pos = None
-        elif type(pos) is Expression:
-            if pos.has_form(SymbolList, None):
-                tuple_pos = [i.int_value for i in pos.elements]
-                if any(i is None for i in tuple_pos):
-                    raise MessageException("Part", "pspec", pos)
-                pos = tuple_pos
-            elif pos.has_form(SymbolSpan, None):
-                pos = _pspec_span_to_tuple(pos, expr)
-            else:
-                raise MessageException("Part", "pspec", pos)
+        # Convert the part specification into a 1-based position (0 is
+        # the head), or a tuple of them. Every position is checked here,
+        # before anything is replaced, so that a part that does not exist
+        # leaves the expression unchanged.
+        if pos is not None:
+            pos = _part_positions(pos, expr)
 
         if pos is None or type(pos) is int:
             if rem_pos is None:
                 return ExpressionPointer(expr, pos)
             else:
                 return SubExpression(ExpressionPointer(expr, pos), rem_pos)
-        elif type(pos) is tuple:
+        else:
             self = super(SubExpression, cls).__new__(cls)
             self._headp = ExpressionPointer(expr.head, 0)
             self._elementsp = [
-                SubExpression(ExpressionPointer(expr, k + 1), rem_pos) for k in pos
+                SubExpression(ExpressionPointer(expr, k), rem_pos) for k in pos
             ]
             return self
 
