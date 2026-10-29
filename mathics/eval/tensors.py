@@ -22,6 +22,7 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
+    SymbolDirectedInfinity,
     SymbolInner,
     SymbolNormal,
     SymbolOuter,
@@ -102,7 +103,9 @@ def to_std_sparse_array(sparse_array, evaluation: Evaluation):
         ).evaluate(evaluation)
 
 
-def construct_outer(lists, current, const_etc: tuple) -> Union[list, BaseElement]:
+def construct_outer(
+    lists, current, const_etc: tuple, levels: Optional[list] = None
+) -> Union[list, BaseElement]:
     """
     Recursively unpacks lists to construct outer product.
     ------------------------------------
@@ -120,8 +123,10 @@ def construct_outer(lists, current, const_etc: tuple) -> Union[list, BaseElement
 
     ``current``: the current lowest level elements
 
-    ``level``: the current level (unused yet, will be used in
-    ``Outer[f_, lists__, n_]`` in the future)
+    ``level``: the current level
+
+    ``levels``: None, or for each list the deepest level at which it is
+    taken apart (None: all the way down), as in ``Outer[f, lists, n1, n2, ...]``
 
     ``const_etc``: a tuple of functions used in unpacking, remains constant
     throughout the recursion.
@@ -161,7 +166,10 @@ def construct_outer(lists, current, const_etc: tuple) -> Union[list, BaseElement
         item, rest_lists, current, level: int
     ) -> Union[list, BaseElement]:
         evaluation.check_stopped()
-        if cond_next_list(item, level):  # unpack next list
+        max_level = levels[len(lists) - len(rest_lists) - 1] if levels else None
+        if (max_level is not None and level > max_level) or cond_next_list(
+            item, level
+        ):  # unpack next list
             if rest_lists:
                 return _unpack_outer(
                     rest_lists[0], rest_lists[1:], join_elem(current, item), 1
@@ -226,17 +234,68 @@ def eval_Inner(f, list1, list2, g, evaluation: Evaluation):
     return rec([], [], m[:-1], n[1:])
 
 
+OUTER_INFINITY = Expression(SymbolDirectedInfinity, Integer1)
+
+
+def outer_levels(args: tuple) -> tuple:
+    """
+    The levels given after the lists in Outer[f, list1, ..., n1, n2, ...]:
+    a positive integer, or Infinity (None here), each.
+
+    Returns (levels, None), or (None, i) when args[i] is not a level.
+    """
+    levels = []
+    for i, arg in enumerate(args):
+        if isinstance(arg, Integer) and arg.value > 0:
+            levels.append(arg.value)
+        elif arg.sameQ(OUTER_INFINITY):
+            levels.append(None)
+        else:
+            return None, i
+    return levels, None
+
+
 def eval_Outer(f, lists, evaluation: Evaluation):
     "Evaluates recursively the outer product of lists"
 
-    if isinstance(lists, Atom):
-        evaluation.message("Outer", "normal", Integer1, Expression(SymbolOuter, lists))
+    args = lists.get_sequence()
+    # Outer[f, list1, list2, ..., n1, n2, ...]: everything from the first
+    # atom (or Infinity) on gives the levels at which each list is taken apart.
+    nlists = next(
+        (
+            i
+            for i, arg in enumerate(args)
+            if isinstance(arg, Atom) or arg.sameQ(OUTER_INFINITY)
+        ),
+        len(args),
+    )
+    if nlists == 0:
+        evaluation.message(
+            "Outer", "normal", Integer(2), Expression(SymbolOuter, f, *args)
+        )
         return
+    lists = args[:nlists]
+    levels, bad = outer_levels(args[nlists:])
+    if levels is None:
+        evaluation.message(
+            "Outer",
+            "ipnfm",
+            Integer(nlists + bad + 2),
+            Expression(SymbolOuter, f, *args),
+        )
+        return
+    # A single level applies to every list; with several, a list without
+    # one is taken apart completely.
+    if len(levels) == 1:
+        levels = levels * nlists
+    levels = (levels + [None] * nlists)[:nlists]
+    if all(level is None for level in levels):
+        levels = None
 
-    # If f=!=Times, or lists contain both SparseArray and List, then convert all SparseArrays to Lists
-    lists = lists.get_sequence()
+    # If f=!=Times, or lists contain both SparseArray and List, or levels
+    # are given, then convert all SparseArrays to Lists
     head = None
-    sparse_to_list = f != SymbolTimes
+    sparse_to_list = f != SymbolTimes or levels is not None
     contain_sparse = False
     contain_list = False
     new_lists = []
@@ -248,12 +307,7 @@ def eval_Outer(f, lists, evaluation: Evaluation):
         sparse_to_list = sparse_to_list or (contain_sparse and contain_list)
         if sparse_to_list:
             break
-    for i, _list in enumerate(lists):
-        if isinstance(_list, Atom):
-            evaluation.message(
-                "Outer", "normal", Integer(i + 1), Expression(SymbolOuter, lists)
-            )
-            return
+    for _list in lists:
         if sparse_to_list:
             if _list.head.sameQ(SymbolSparseArray):
                 _list = Expression(SymbolNormal, _list).evaluate(evaluation)
@@ -282,7 +336,7 @@ def eval_Outer(f, lists, evaluation: Evaluation):
             False,  # if_flatten
             evaluation,
         )
-        return construct_outer(lists, (), etc)
+        return construct_outer(lists, (), etc, levels)
 
     # head == SparseArray
     dims = []

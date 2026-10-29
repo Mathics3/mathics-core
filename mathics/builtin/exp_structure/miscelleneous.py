@@ -112,6 +112,12 @@ class Outer(Builtin):
     <dl>
       <dt>'Outer'[$f$, $x$, $y$]
       <dd>computes a generalised outer product of $x$ and $y$, using the function $f$ in place of multiplication.
+
+      <dt>'Outer'[$f$, $x_1$, $x_2$, ..., $n$]
+      <dd>treats as separate elements only the sublists at level $n$ in the $x_i$.
+
+      <dt>'Outer'[$f$, $x_1$, $x_2$, ..., $n_1$, $n_2$, ...]
+      <dd>treats as separate elements only the sublists at level $n_i$ in the corresponding $x_i$.
     </dl>
 
     >> Outer[f, {a, b}, {1, 2, 3}]
@@ -124,6 +130,14 @@ class Outer(Builtin):
     Outer product of two sparse arrays:
     >> Outer[Times, SparseArray[{{1, 2} -> a, {2, 1} -> b}], SparseArray[{{1, 2} -> c, {2, 1} -> d}]]
      = SparseArray[Automatic, {2, 2, 2, 2}, 0, {{1, 2, 1, 2} ⇾ a c, {1, 2, 2, 1} ⇾ a d, {2, 1, 1, 2} ⇾ b c, {2, 1, 2, 1} ⇾ b d}]
+
+    Take the rows of a matrix as the elements, rather than its entries:
+    >> Outer[f, {{1, 2}, {3, 4}}, {a, b}, 1]
+     = {{f[{1, 2}, a], f[{1, 2}, b]}, {f[{3, 4}, a], f[{3, 4}, b]}}
+
+    A level for each list:
+    >> Outer[f, {{1, 2}}, {{a}}, 1, 2]
+     = {{{f[{1, 2}, a]}}}
 
     'Outer' of multiple lists:
     >> Outer[f, {a, b}, {x, y, z}, {1, 2}]
@@ -152,6 +166,9 @@ class Outer(Builtin):
      = {{0, 1, 0}, {1, 0, 1}, {0, ComplexInfinity, 0}}
     """
 
+    messages = {
+        "ipnfm": "Positive machine-sized integer or Infinity expected at position `1` in `2`.",
+    }
     summary_text = "generalized outer product"
 
     def eval(self, f, lists, evaluation: Evaluation):
