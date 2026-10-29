@@ -133,6 +133,10 @@ class ExtendedGCD(Builtin):
     >> 6 a + 15 b + 30 c == g
      = True
 
+    When one integer argument is given, the answer degenerates to a GCD of the number with coefficient 1:
+     >> ExtendedGCD[5]
+      = {5, {1}}
+
 
     ExtendedGCD[3, {5, 15}] theads element-wise over lists:
     >> ExtendedGCD[3, {5, 15}]
