@@ -34,8 +34,8 @@ from mathics_scanner.errors import IncompleteSyntaxError
         ),
         (
             "Clear[Expand];Options[Expand]=Join[Options[Expand], {MyOption ⇾ Automatic}]; Options[Expand]",
-            "{MyOption ⇾ Automatic, Modulus ⇾ 0, Trig ⇾ False}",
-            "Mathics3 stores options in a dictionary. This is why ``MyOption`` appears first.",
+            "{Modulus ⇾ 0, Trig ⇾ False, MyOption ⇾ Automatic}",
+            "Options keeps the order of the assigned list.",
         ),
         # (
         #    "ClearAll[Expand]; Options[Expand]",
