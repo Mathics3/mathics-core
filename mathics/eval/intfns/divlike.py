@@ -2,28 +2,63 @@
 Mathics3 builtins from mathics.builtin.intfns.divlike
 """
 
-from typing import Optional, Union
+from collections.abc import Callable
 
 import sympy
 
-import mathics.eval.tracing as tracing
+import mathics.eval.tracing as tracing  # noqa
 from mathics.core.atoms import Complex, Integer, Integer0
+from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.evaluation import Evaluation
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
+from mathics.core.symbols import Symbol
 
 
-def get_unit_inverse(f: float) -> Optional[int]:
+def combine_integer_arguments(builtin, ns, eval_fn: Callable) -> Expression | None:
     """
-    If `f` is a unit inverse, that is, 1 / some_int,
-    then some_int. Otherwise return None
+    Build the result of GCD or LCM from its arguments ns: the integer
+    arguments are combined by eval_fn into a single Integer. If every
+    argument is an integer, that Integer is returned; otherwise a new
+    GCD[...] or LCM[...] expression is returned that holds the combined
+    integer followed by the remaining arguments. None, meaning no change,
+    is returned when there are fewer than two integers to combine.
+
+    The rule pattern is ns___ (ns__) and not ns___Integer: the functions are
+    Flat, and ns___Integer also matches a lone integer among other
+    arguments. Rewriting it to itself made GCD[1/2, 3] or GCD[2.5, 5]
+    evaluate until $IterationLimit.
     """
-    if f <= 0:
+    ns = ns.get_sequence()
+    integers = [n for n in ns if isinstance(n, Integer)]
+    if len(integers) == len(ns):
+        return eval_fn(ns)
+    if len(integers) < 2:
         return None
-    return int(inv) if (inv := 1.0 / f) else None
+    combined = eval_fn(integers)
+    if combined is None:
+        return None
+    others = [n for n in ns if not isinstance(n, Integer)]
+    return Expression(Symbol(builtin.get_name()), combined, *others)
 
 
-def eval_GCD(ns: tuple) -> Optional[Integer]:
+def eval_ExtendedGCD(arguments: tuple) -> Integer | None:
+    integers: list[int] = []
+    for element in arguments.elements:
+        if isinstance(element, Integer):
+            integers.append(element.value)
+        else:
+            # Handle things other than Integers?
+            return None
+    coeffs, current_gcd = gcdex_list(integers)
+    return ListExpression(
+        Integer(current_gcd), to_mathics_list(*coeffs, elements_conversion_fn=Integer)
+    )
+
+
+def eval_GCD(ns: tuple) -> Integer | None:
     if len(ns) == 0:
         return Integer0
     if (result := ns[0].value) is None:
@@ -36,7 +71,7 @@ def eval_GCD(ns: tuple) -> Optional[Integer]:
     return Integer(abs(result))
 
 
-def eval_LCM(ns: tuple) -> Optional[Integer]:
+def eval_LCM(ns: tuple) -> Integer | None:
     if len(ns) == 0:
         return Integer0
     if (result := ns[0].value) is None:
@@ -49,7 +84,7 @@ def eval_LCM(ns: tuple) -> Optional[Integer]:
     return Integer(abs(result))
 
 
-def eval_ModularInverse(k: int, n: int) -> Optional[Integer]:
+def eval_ModularInverse(k: int, n: int) -> Integer | None:
     try:
         r = tracing.run_sympy(sympy.mod_inverse, k, n)
     except ValueError:
@@ -57,7 +92,7 @@ def eval_ModularInverse(k: int, n: int) -> Optional[Integer]:
     return Integer(r)
 
 
-def eval_PowerMod(a, b, m, evaluation: Evaluation) -> Union[Integer, Complex]:
+def eval_PowerMod(a, b, m, evaluation: Evaluation) -> Integer | Complex:
     """
     All the variaous forms of handling module exponentiation.
     SymPy offers mod_inverse, nth_root_mod, sqrt_mod, and core.power.Pow. Python's
@@ -119,3 +154,41 @@ def eval_PowerMod(a, b, m, evaluation: Evaluation) -> Union[Integer, Complex]:
 
 def eval_Quotient(m, n, d) -> Integer:
     return Integer((m - d) // n)
+
+
+def gcdex_list(numbers: list[int]) -> (list, int):
+    """
+    Return the extended GCD's coefficients and cumulative gcd, for a list of numbers using
+    SymPy's gcdex.
+    If the list is empty we return [].
+
+    """
+    if not numbers:
+        return [], 0
+    if len(numbers) == 1:
+        # Degenerate case.
+        return [1], numbers[0]
+
+    # Start with the first element...
+    coeffs = [1]
+    current_gcd = numbers[0]
+
+    # and then chain through the remaining elements.
+    for num in numbers[1:]:
+        x, y, current_gcd = tracing.run_sympy(sympy.gcdex, current_gcd, num)
+        # Scale all previously found coefficients by x
+        coeffs = [c * x for c in coeffs]
+        # Append the new coefficient y.
+        coeffs.append(y)
+
+    return coeffs, current_gcd
+
+
+def get_unit_inverse(f: float) -> int | None:
+    """
+    If `f` is a unit inverse, that is, 1 / some_int,
+    then some_int. Otherwise return None
+    """
+    if f <= 0:
+        return None
+    return int(inv) if (inv := 1.0 / f) else None

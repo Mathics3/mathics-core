@@ -439,6 +439,7 @@ System`Exponent
 System`Export
 System`ExportString
 System`Expression
+System`ExtendedGCD
 System`Extract
 System`FaceForm
 System`Factor
