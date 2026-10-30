@@ -121,6 +121,18 @@ class ListExpression(Expression):
         new_list._build_elements_properties()
         return new_list
 
+    def set_element(self, index: int, value):
+        """
+        Update element[i] with value. Whether the list is literal, and its
+        Python value, are worked out again from the new elements.
+        """
+        super().set_element(index, value)
+        self.elements_properties = None
+        self.value = None
+        self._is_literal = all(element.is_literal for element in self._elements)
+        if self._is_literal:
+            self.value = tuple(element.value for element in self._elements)
+
     @property
     def is_literal(self) -> bool:
         """

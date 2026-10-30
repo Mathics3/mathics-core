@@ -518,6 +518,23 @@ def test_extract_arg_errors():
             ("Part 5 of {1, 2} does not exist.",),
             "{{1, 2}, {3, 4}}",
         ),
+        ("pm = {{1, 2}, {3, 4}, {5, 6}}; pm[[-2 ;; -1, 2]] = 0; pm", None, "{{1, 2}, {3, 0}, {5, 0}}"),
+        ("pa = Range[5]; pa[[-1 ;; 1 ;; -2]] = 0; pa", None, "{0, 2, 0, 4, 0}"),
+        ("pa = Range[5]; pa[[4 ;; 2 ;; -1]] = {u, v, w}; pa", None, "{1, w, v, u, 5}"),
+        # The value assigned to may be shared: only the variable changes.
+        ("pa = {1, {2}}; pb = pa; pb[[2, 1]] = 9; {pa, pb}", None, "{{1, {2}}, {1, {9}}}"),
+        (
+            "pa = {{1, 2}, {3, 4}}; pb = pa; pb[[All, 1]] = 0; {pa, pb}",
+            None,
+            "{{{1, 2}, {3, 4}}, {{0, 2}, {0, 4}}}",
+        ),
+        (
+            "pkd[] := (pw = {1, {2}}; pw[[2, 1]] = 5; pw); "
+            "{pkd[], pkd[], DownValues[pkd] === "
+            "{HoldPattern[pkd[]] :> (pw = {1, {2}}; pw[[2, 1]] = 5; pw)}}",
+            None,
+            "{{1, {5}}, {1, {5}}, True}",
+        ),
     ],
 )
 def test_part_assignment(str_expr, expected_messages, str_expected):

@@ -20,44 +20,41 @@ def _pspec_span_to_tuple(pspec, expr):
     `Span` Expression and returns a tuple with the positions
     of the elements.
     """
-    start = 1
-    stop = None
-    step = 1
     elements = pspec.elements
     if len(elements) > 3:
         raise MessageException("Part", "span", elements)
-    if len(elements) > 0:
-        start = elements[0].int_value
+    length = len(expr.elements)
+    start = elements[0].int_value if len(elements) > 0 else 1
+    stop = length
     if len(elements) > 1:
         stop = elements[1].int_value
         if stop is None:
-            if elements[1].get_name() == "System`All":
-                stop = None
-            else:
+            if elements[1].get_name() != "System`All":
                 raise MessageException("Part", "span", pspec)
-        else:
-            stop = stop - 1 if stop > 0 else len(expr.elements) + stop
+            stop = length
+    step = elements[2].int_value if len(elements) > 2 else 1
 
-    if len(pspec.elements) > 2:
-        step = elements[2].int_value
-
-    if start is None or step is None:
+    if start is None or step is None or step == 0:
         raise MessageException("Part", "span", pspec)
 
     if start == 0 or stop == 0:
         # index 0 is undefined
         raise MessageException("Part", "span", Integer(0))
 
+    # Negative positions count from the end; the tuple is 0-based.
     if start < 0:
-        start = len(expr.elements) - start
-    else:
-        start = start - 1
+        start += length + 1
+    if stop < 0:
+        stop += length + 1
+    return tuple(k - 1 for k in range(start, stop + (1 if step > 0 else -1), step))
 
-    if stop is None:
-        stop = 0 if step < 0 else len(expr.elements) - 1
 
-    stop = stop + 1 if step > 0 else stop - 1
-    return tuple(k for k in range(start, stop, step))
+def _copy(expr: Expression) -> Expression:
+    """A new expression with the head and elements of `expr`, to be changed
+    in place of `expr`."""
+    if isinstance(expr, ListExpression):
+        return ListExpression(*expr.elements)
+    return Expression(expr.head, *expr.elements)
 
 
 def _is_atom(expr) -> bool:
@@ -220,14 +217,23 @@ class ExpressionPointer:
         current_parent = None
         current_index = None
 
+        # Each expression on the way down is replaced by a copy before it
+        # is changed: it may be shared with another value or definition,
+        # as in b = a; b[[2, 1]] = x, which must leave a as it was.
         try:
             while pos:
                 current_parent = current
                 current_index = i
                 if i == 0:
                     current = current._head
+                    if isinstance(current, Expression):
+                        current = _copy(current)
+                        current_parent.set_head(current)
                 else:
                     current = current.elements[i - 1]
+                    if isinstance(current, Expression):
+                        current = _copy(current)
+                        current_parent.set_element(i - 1, current)
                 i = pos.pop()
         except IndexError:
             raise MessageException("Part", "span", pos)
