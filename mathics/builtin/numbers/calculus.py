@@ -167,9 +167,9 @@ class D(SympyFunction):
 
     Chain rule:
     >> D[f[2x+1, 2y, x+y], x]
-     = 2 Derivative[1, 0, 0][f][1 + 2 x, 2 y, x + y] + Derivative[0, 0, 1][f][1 + 2 x, 2 y, x + y]
+     = Derivative[0, 0, 1][f][1 + 2 x, 2 y, x + y] + 2 Derivative[1, 0, 0][f][1 + 2 x, 2 y, x + y]
     >> D[f[x^2, x, 2y], {x,2}, y] // Expand
-     = 8 x Derivative[1, 1, 1][f][x ^ 2, x, 2 y] + 8 x ^ 2 Derivative[2, 0, 1][f][x ^ 2, x, 2 y] + 2 Derivative[0, 2, 1][f][x ^ 2, x, 2 y] + 4 Derivative[1, 0, 1][f][x ^ 2, x, 2 y]
+     = 2 Derivative[0, 2, 1][f][x ^ 2, x, 2 y] + 4 Derivative[1, 0, 1][f][x ^ 2, x, 2 y] + 8 x Derivative[1, 1, 1][f][x ^ 2, x, 2 y] + 8 x ^ 2 Derivative[2, 0, 1][f][x ^ 2, x, 2 y]
 
     Compute the gradient vector of a function:
     >> D[x ^ 3 * Cos[y], {{x, y}}]
@@ -988,7 +988,7 @@ class Integrate(SympyFunction):
 
     Integrate trigonometric functions:
     >> Integrate[Sin[x] ^ 5, x]
-     = Cos[x] (-1 - Cos[x] ^ 4 / 5 + 2 Cos[x] ^ 2 / 3)
+     = Cos[x] (-1 + 2 Cos[x] ^ 2 / 3 - Cos[x] ^ 4 / 5)
 
     Definite integrals:
     >> Integrate[x ^ 2 + x, {x, 1, 3}]
@@ -998,7 +998,7 @@ class Integrate(SympyFunction):
 
     Some other integrals:
     >> Integrate[1 / (1 - 4 x + x^2), x]
-     = Sqrt[3] (Log[-2 - Sqrt[3] + x] - Log[-2 + Sqrt[3] + x]) / 6
+     = Sqrt[3] (-Log[-2 + Sqrt[3] + x] + Log[-2 - Sqrt[3] + x]) / 6
     >> Integrate[4 Sin[x] Cos[x], x]
      = 2 Sin[x] ^ 2
 
@@ -1023,13 +1023,13 @@ class Integrate(SympyFunction):
      = MachinePrecision
 
     >> Integrate[ArcSin[x / 3], x]
-     = x ArcSin[x / 3] + Sqrt[9 - x ^ 2]
+     = Sqrt[9 - x ^ 2] + x ArcSin[x / 3]
 
     >> Integrate[f'[x], {x, a, b}]
-     = f[b] - f[a]
+     = -f[a] + f[b]
     and,
     >> D[Integrate[f[u, x],{u, a[x], b[x]}], x]
-     = Integrate[Derivative[0, 1][f][u, x], {u, a[x], b[x]}] + f[b[x], x] b'[x] - f[a[x], x] a'[x]
+     = Integrate[Derivative[0, 1][f][u, x], {u, a[x], b[x]}] - f[a[x], x] a'[x] + f[b[x], x] b'[x]
     >> N[Integrate[Sin[Exp[-x^2 /2 ]],{x,1,2}]]
      = 0.330804
     """
@@ -1682,7 +1682,7 @@ class Root(SympyFunction):
 
     Roots that can't be represented by radicals:
     >> Root[#1 ^ 5 + 2 #1 + 1&, 2]
-     = Root[1 + #1 ^ 5 + 2 #1&, 2]
+     = Root[1 + 2 #1 + #1 ^ 5&, 2]
     """
 
     messages = {
@@ -1757,7 +1757,7 @@ class RootSum(SympyFunction):
 
     Integrating a rational function of any order:
      >> Integrate[1/(x^5 + 11 x + 1), {x, 1, 3}]
-      = RootSum[-1 - 212960 #1 ^ 3 - 9680 #1 ^ 2 - 165 #1 + 41232181 #1 ^ 5&, (Log[3749971 - 3512322106304 #1 ^ 4 + 453522741 #1 + 16326568676 #1 ^ 2 + 79825502416 #1 ^ 3] - 4 Log[5]) #1&] - RootSum[-1 - 212960 #1 ^ 3 - 9680 #1 ^ 2 - 165 #1 + 41232181 #1 ^ 5&, (Log[3748721 - 3512322106304 #1 ^ 4 + 453522741 #1 + 16326568676 #1 ^ 2 + 79825502416 #1 ^ 3] - 4 Log[5]) #1&]
+      = -RootSum[-1 - 165 #1 - 9680 #1 ^ 2 - 212960 #1 ^ 3 + 41232181 #1 ^ 5&, (-4 Log[5] + Log[3748721 + 453522741 #1 + 16326568676 #1 ^ 2 + 79825502416 #1 ^ 3 - 3512322106304 #1 ^ 4]) #1&] + RootSum[-1 - 165 #1 - 9680 #1 ^ 2 - 212960 #1 ^ 3 + 41232181 #1 ^ 5&, (-4 Log[5] + Log[3749971 + 453522741 #1 + 16326568676 #1 ^ 2 + 79825502416 #1 ^ 3 - 3512322106304 #1 ^ 4]) #1&]
      >> N[%, 50]
       = 0.051278805184286949884270940103072421286139857553407
 
@@ -1770,7 +1770,7 @@ class RootSum(SympyFunction):
 
      Use 'Normal' to expand 'RootSum':
      >> RootSum[1+#+#^2+#^3+#^4 &, Log[x + #] &]
-      = RootSum[1 + #1 ^ 2 + #1 ^ 3 + #1 ^ 4 + #1&, Log[x + #1]&]
+      = RootSum[1 + #1 + #1 ^ 2 + #1 ^ 3 + #1 ^ 4&, Log[x + #1]&]
      >> %//Normal
       = Log[-1 / 4 - Sqrt[5] / 4 - I Sqrt[5 / 8 - Sqrt[5] / 8] + x] + Log[-1 / 4 - Sqrt[5] / 4 + I Sqrt[5 / 8 - Sqrt[5] / 8] + x] + Log[-1 / 4 - I Sqrt[5 / 8 + Sqrt[5] / 8] + Sqrt[5] / 4 + x] + Log[-1 / 4 + I Sqrt[5 / 8 + Sqrt[5] / 8] + Sqrt[5] / 4 + x]
     """
