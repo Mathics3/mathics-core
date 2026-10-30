@@ -56,6 +56,11 @@ SymbolPre = Symbol("System`$Pre")
 SymbolPrePrint = Symbol("System`$PrePrint")
 SymbolPost = Symbol("System`$Post")
 
+# MIN_RECURSION_LIMIT is the smallest value allowed for $RecursionLimit, as in WMA:
+# $RecursionLimit = 10 there gives "value must be Infinity or an integer at least 20".
+
+MIN_RECURSION_LIMIT = 20
+
 # MAX_RECURSION_DEPTH gives the maximum value allowed for $RecursionLimit. it's usually set to its
 # default settings.DEFAULT_MAX_RECURSION_DEPTH.
 
@@ -592,7 +597,7 @@ class Evaluation:
             limit = MAX_RECURSION_DEPTH
             if sys.getrecursionlimit() < python_recursion_depth(limit):
                 set_python_recursion_limit(limit)
-        limit = max(limit, 20)
+        limit = max(limit, MIN_RECURSION_LIMIT)
         self.recursion_depth += 1
         if self.recursion_depth > limit:
             self.error("$RecursionLimit", "reclim", limit)
