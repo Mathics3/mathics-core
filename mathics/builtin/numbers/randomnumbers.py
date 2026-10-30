@@ -17,8 +17,9 @@ from operator import mul as operator_mul
 import numpy
 
 from mathics.builtin.numpy_utils import instantiate_elements, stack
-from mathics.core.atoms import Complex, Integer, Real, String
+from mathics.core.atoms import Complex, Integer, Integer1, Integer2, Real, String
 from mathics.core.builtin import Builtin
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import is_numeric
@@ -29,6 +30,9 @@ from mathics.core.systemsymbols import (
     SymbolTotal,
 )
 from mathics.eval.nevaluator import eval_N
+
+SymbolBinomialDistribution = Symbol("System`BinomialDistribution")
+SymbolRandomVariate = Symbol("System`RandomVariate")
 
 # mathics.builtin.__init__.py module scanning logic gets confused
 # if we assign numpy.random.get_state to a variable here. so we
@@ -92,7 +96,29 @@ class _RandomEnvBase:
 class RandomEnv(_RandomEnvBase):
     def randint(self, a, b, size=None):
         # return numpy.random.random_integers(a, b, size)
-        return numpy.random.randint(a, b + 1, size)
+        if -(2**63) <= a and b < 2**63 - 1:
+            return numpy.random.randint(a, b + 1, size)
+        # Bounds beyond int64, as in RandomInteger[2^100]: numpy cannot
+        # draw these, so build them from numpy's random bytes (SeedRandom
+        # still applies), rejecting draws above the range.
+        if size is None:
+            return self._randint_big(a, b)
+        result = numpy.empty(size, dtype=object)
+        for index in numpy.ndindex(result.shape):
+            result[index] = self._randint_big(a, b)
+        return result
+
+    @staticmethod
+    def _randint_big(a, b):
+        span = b - a + 1
+        bits = span.bit_length()
+        nbytes = (bits + 7) // 8
+        while True:
+            value = int.from_bytes(numpy.random.bytes(nbytes), "big") >> (
+                8 * nbytes - bits
+            )
+            if value < span:
+                return a + value
 
     def randreal(self, a, b, size=None):
         # numpy gives us [a, b). we want [a, b].
@@ -100,6 +126,9 @@ class RandomEnv(_RandomEnvBase):
 
     def randchoice(self, n, size, replace, p):
         return numpy.random.choice(n, size=size, replace=replace, p=p)
+
+    def randbinomial(self, n, p, size=None):
+        return numpy.random.binomial(n, p, size)
 
 
 class _RandomBase(Builtin):
@@ -216,6 +245,52 @@ class _RandomSelection(_RandomBase):
 
 
 # FIXME: This class should be removed and put in a Mathematica V.5 compatibility package
+class BinomialDistribution(Builtin):
+    """
+    <url>:Binomial distribution:
+    https://en.wikipedia.org/wiki/Binomial_distribution</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/BinomialDistribution.html</url>)
+
+    <dl>
+      <dt>'BinomialDistribution'[$n$, $p$]
+      <dd>represents the distribution of the number of successes in $n$ \
+          trials, each a success with probability $p$.
+    </dl>
+
+    'RandomVariate' draws from it:
+    >> SeedRandom[1]; RandomVariate[BinomialDistribution[10, 1/2], 5]
+     = ...
+    """
+
+    messages = {
+        "nnintprm": (
+            "Parameter `1` at position `2` in `3` is expected to be a "
+            "non-negative integer."
+        ),
+        "probprm": (
+            "Parameter `1` at position `2` in `3` is expected to be between "
+            "0 and 1 inclusive."
+        ),
+    }
+
+    summary_text = "binomial distribution"
+
+
+def _binomial_parameters(n, p, evaluation: Evaluation):
+    """The Python parameters of BinomialDistribution[n, p], or None after
+    a message when they are not a non-negative integer and a probability."""
+    dist = Expression(SymbolBinomialDistribution, n, p)
+    if not (isinstance(n, Integer) and n.value >= 0):
+        evaluation.message("BinomialDistribution", "nnintprm", n, Integer1, dist)
+        return None
+    p_value = eval_N(p, evaluation).to_python() if is_numeric(p, evaluation) else None
+    if not (isinstance(p_value, (int, float)) and 0 <= p_value <= 1):
+        evaluation.message("BinomialDistribution", "probprm", p, Integer2, dist)
+        return None
+    return n.value, p_value
+
+
 class Random(Builtin):
     """
      <url>:Randomness:
@@ -257,6 +332,7 @@ class Random(Builtin):
         "Random[Complex]": "RandomComplex[]",
         "Random[Complex,  zmax_Complex]": "RandomComplex[zmax]",
         "Random[Complex, {zmin_?NumberQ, zmax_?NumberQ}]": "RandomComplex[{zmin, zmax}]",
+        "Random[dist_BinomialDistribution]": "RandomVariate[dist]",
     }
 
     summary_text = "pick a random number (legacy function)"
@@ -516,6 +592,72 @@ class RandomInteger(Builtin):
 
         with RandomEnv(evaluation) as rand:
             return instantiate_elements(rand.randint(rmin, rmax, result), Integer)
+
+
+class RandomVariate(Builtin):
+    """
+    <url>:Random variate:
+    https://en.wikipedia.org/wiki/Realization_(probability)#Random_variate</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/RandomVariate.html</url>)
+
+    <dl>
+      <dt>'RandomVariate'[$dist$]
+      <dd>gives a pseudorandom value drawn from the distribution $dist$.
+
+      <dt>'RandomVariate'[$dist$, $n$]
+      <dd>gives a list of $n$ such values.
+
+      <dt>'RandomVariate'[$dist$, {$n_1$, $n_2$, ...}]
+      <dd>gives an $n_1$ x $n_2$ array of them.
+    </dl>
+
+    Only 'BinomialDistribution' is supported so far.
+
+    >> SeedRandom[1]; RandomVariate[BinomialDistribution[100, 0.3]]
+     = ...
+    >> Dimensions[RandomVariate[BinomialDistribution[10, 1/3], {2, 3}]]
+     = {2, 3}
+    """
+
+    messages = {
+        "array": (
+            "The array dimensions `1` given in position 2 of `2` should be a "
+            "list of non-negative machine-sized integers giving the "
+            "dimensions for the result."
+        ),
+    }
+
+    summary_text = "pick a value at random from a distribution"
+
+    def eval_binomial(self, n, p, evaluation: Evaluation):
+        "RandomVariate[BinomialDistribution[n_, p_]]"
+        parameters = _binomial_parameters(n, p, evaluation)
+        if parameters is None:
+            return None
+        with RandomEnv(evaluation) as rand:
+            return Integer(int(rand.randbinomial(*parameters)))
+
+    def eval_binomial_array(self, n, p, size, evaluation: Evaluation):
+        "RandomVariate[BinomialDistribution[n_, p_], size_]"
+        dims = [size] if isinstance(size, Integer) else size
+        dims = dims.elements if isinstance(dims, ListExpression) else dims
+        if not (
+            isinstance(dims, (list, tuple))
+            and all(isinstance(d, Integer) and d.value >= 0 for d in dims)
+        ):
+            expr = Expression(
+                SymbolRandomVariate, Expression(SymbolBinomialDistribution, n, p), size
+            )
+            evaluation.message("RandomVariate", "array", size, expr)
+            return None
+        parameters = _binomial_parameters(n, p, evaluation)
+        if parameters is None:
+            return None
+        with RandomEnv(evaluation) as rand:
+            return instantiate_elements(
+                rand.randbinomial(*parameters, [d.value for d in dims]), Integer
+            )
 
 
 class RandomReal(Builtin):

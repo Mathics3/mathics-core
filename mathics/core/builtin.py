@@ -8,6 +8,7 @@ SympyFunction, MPMathFunction, etc.
 
 import importlib
 import importlib.util
+import math
 import re
 import sys
 from abc import ABC
@@ -94,6 +95,7 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (
     SymbolDefault,
+    SymbolDirectedInfinity,
     SymbolIndeterminate,
     SymbolLessEqual,
     SymbolMessageName,
@@ -426,6 +428,13 @@ class Builtin:
                 pattern = Expression(SymbolDefault, Symbol(name), Integer(spec))
             if pattern is not None:
                 defaults.append(RewriteRule(pattern, value))
+
+        # Options[f] lists options in the order they are stored, so keep the
+        # options of a Builtin sorted by name (in place: the option checker
+        # above holds this dict).
+        sorted_options = sorted(options.items())
+        options.clear()
+        options.update(sorted_options)
 
         definition = Definition(
             name=name,
@@ -1233,13 +1242,15 @@ class IterationFunction(Builtin, ABC):
         else:
             imax = imax.evaluate(evaluation)
             imax = numerify(imax, evaluation)
-            if isinstance(imax, Number):
-                imax = imax.round()
-            py_max = imax.get_float_value()
-            if py_max is None:
+            # A bound that is not a real number, such as a symbol, f[x] or
+            # Infinity, is not iterated over.
+            py_max = imax.get_float_value() if isinstance(imax, Number) else None
+            if py_max is None or not math.isfinite(py_max):
                 if self.throw_iterb:
                     evaluation.message(self.get_name(), "iterb")
                 return
+            # The count is the integer part of the bound: {2.6} iterates twice.
+            py_max = math.floor(py_max)
 
             index = 0
             try:
@@ -1296,6 +1307,13 @@ class IterationFunction(Builtin, ABC):
                 Expression(SymbolPower, di, IntegerM1),
             ),
         ).evaluate(evaluation)
+        # An infinite range never ends; only Do may run it, until Break[].
+        if normalised_range.has_form(SymbolDirectedInfinity, 1) and not (
+            self.allow_loopcontrol
+        ):
+            if self.throw_iterb:
+                evaluation.message(self.get_name(), "iterb")
+            return
 
         result = []
         last_head = None
