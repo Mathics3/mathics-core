@@ -1048,7 +1048,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                    in Monomial's __cmp() for the reverse ordering when
                    comparing symbols in the monomial.
         """
-        exps: dict[tuple[str, str], float | complex] = {}
+        exps: dict
         head = self._head
         numeric = is_numeric(self)
 

@@ -110,7 +110,7 @@ class ExtendedGCD(Builtin):
     https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm</url> (<url>
     :SymPy:https://docs.sympy.org/latest/modules/polys/domainsref.html#sympy.polys.domains.IntegerRing.gcdex</url>, <url>
     :WMA:
-    https://reference.wolfram.com/language/ref/GCD.html</url>)
+    https://reference.wolfram.com/language/ref/ExtendedGCD.html</url>)
 
     <dl>
       <dt>'ExtendedGCD'[$n_1$, $n_2$, ...]
@@ -133,14 +133,21 @@ class ExtendedGCD(Builtin):
     >> 6 a + 15 b + 30 c == g
      = True
 
+    ExtendedGCD[3, {5, 15}] theads element-wise over lists:
+    >> ExtendedGCD[3, {5, 15}]
+     = {{1, {2, -1}}, {3, {1, 0}}}
+
     When one integer argument is given, the answer degenerates to a GCD of the number with coefficient 1:
      >> ExtendedGCD[5]
       = {5, {1}}
 
+    And for a single negative integer, the coefficient is -1:
+     >> ExtendedGCD[-5]
+      = {-5, {-1}}
 
-    ExtendedGCD[3, {5, 15}] theads element-wise over lists:
-    >> ExtendedGCD[3, {5, 15}]
-     = {{1, {2, -1}}, {3, {1, 0}}}
+    See also <url>
+    :'GCD':
+    /doc/reference-of-built-in-symbols/integer-functions/division-related-functions/gcd/</url>.
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -151,6 +158,8 @@ class ExtendedGCD(Builtin):
 
     def eval(self, ns, evaluation: Evaluation) -> Expression | None:
         "ExtendedGCD[ns__]"
+        if not isinstance(ns, (Integer, Expression)):
+            return
         return eval_ExtendedGCD(ns)
 
 
@@ -177,6 +186,10 @@ class GCD(Builtin):
      = {2, 1, 4, 1, 2}
 
     'GCD' does not work for rational numbers and Gaussian integers yet.
+
+    See also <url>
+    :'ExtendedGCD':
+    /doc/reference-of-built-in-symbols/integer-functions/division-related-functions/extendedgcd/</url>.
     """
 
     attributes = A_FLAT | A_LISTABLE | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
@@ -333,12 +346,11 @@ class ModularInverse(SympyFunction):
 class PowerMod(Builtin):
     """
     <url>:Modular exponentiation:
-    https://en.wikipedia.org/wiki/Modular_exponentiation</url> (<url>:SymPy:
-    :mod_inverse:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.mod_inverse</url>, <url>
-    :nth_root_mod:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.nth_root</url>, <url>
-    :sqrt_mod:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.sqrt_mod</url>, and <url>
-    :Pow:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.Pow</url>; <url>:WMA link:
-    https://reference.wolfram.com/language/ref/PowerMod.html</url>.
+    https://en.wikipedia.org/wiki/Modular_exponentiation</url> (<url>:SymPy mod_inverse:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.mod_inverse</url>, <url>
+    :SymPy nth_root_mod:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.nth_root</url>, <url>
+    :SymPy sqrt_mod:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.sqrt_mod</url>, <url>
+    :SymPy Pow:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.Pow</url>; <url>:WMA:
+    https://reference.wolfram.com/language/ref/PowerMod.html</url>).
 
     <dl>
       <dt>'PowerMod'[$x$, $y$, $m$]

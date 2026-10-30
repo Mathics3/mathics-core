@@ -1,4 +1,4 @@
-b"""
+"""
 Mathics3 builtins from mathics.builtin.intfns.divlike
 """
 
@@ -7,7 +7,7 @@ from collections.abc import Callable
 import sympy
 
 import mathics.eval.tracing as tracing  # noqa
-from mathics.core.atoms import Complex, Integer, Integer0, Integer1
+from mathics.core.atoms import Complex, Integer, Integer0, Integer1, IntegerM1
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy
@@ -44,9 +44,13 @@ def combine_integer_arguments(builtin, ns, eval_fn: Callable) -> Expression | No
     return Expression(Symbol(builtin.get_name()), combined, *others)
 
 
-def eval_ExtendedGCD(arguments: tuple | Integer) -> Integer | None:
+def eval_ExtendedGCD(arguments: Expression | Integer) -> ListExpression:
     if isinstance(arguments, Integer):
-        return ListExpression(arguments, ListExpression(Integer1))
+        return (
+            ListExpression(arguments, ListExpression(Integer1))
+            if arguments.value > 0
+            else ListExpression(arguments, ListExpression(IntegerM1))
+        )
     integers: list[int] = []
     for element in arguments.elements:
         if isinstance(element, Integer):
@@ -158,7 +162,7 @@ def eval_Quotient(m, n, d) -> Integer:
     return Integer((m - d) // n)
 
 
-def gcdex_list(numbers: list[int]) -> (list, int):
+def gcdex_list(numbers: list[int]) -> tuple[list[int], int]:
     """
     Return the extended GCD's coefficients and cumulative GCD for a list of numbers using
     SymPy's gcdex.
