@@ -28,7 +28,6 @@ from mathics.core.systemsymbols import (
     SymbolAnd,
     SymbolDirectedInfinity,
     SymbolEqual,
-    SymbolExactNumberQ,
     SymbolGreater,
     SymbolGreaterEqual,
     SymbolInequality,
@@ -247,11 +246,12 @@ class _EqualityOperator(_InequalityOperator, ABC):
         n = len(elements_sequence)
         if n <= 1:
             return SymbolTrue
-        is_exact_vals = [
-            Expression(SymbolExactNumberQ, arg).evaluate(evaluation)
+        # The test of ExactNumberQ, made directly: building and evaluating
+        # ExactNumberQ[arg] cost more than the comparison itself.
+        if not all(
+            isinstance(arg, Number) and not arg.is_inexact
             for arg in elements_sequence
-        ]
-        if not all(val is SymbolTrue for val in is_exact_vals):
+        ):
             return self.eval_other(elements, evaluation)
         args = self.numerify_args(elements, evaluation)
         for x, y in self.get_pairs(args):
