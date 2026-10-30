@@ -412,7 +412,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         return hash(("Expression", self._head) + tuple(self._elements))
 
     def __repr__(self) -> str:
-        return f"<Expression: {self.head!r}[%s]>" % (
+        return "<Expression: %s[%s]>" % (
+            repr(self.head),
             ", ".join([repr(element) for element in self.elements]),
         )
 
