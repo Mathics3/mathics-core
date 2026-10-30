@@ -80,7 +80,9 @@ def _part_positions(pspec, expr):
 
     def checked(k: int) -> int:
         position = length + 1 + k if k < 0 else k
-        if not 0 <= position <= length:
+        # Position 0 is the head; a negative position never reaches it:
+        # -4 in a list of 3 does not exist.
+        if not (1 if k < 0 else 0) <= position <= length:
             target = expr
             if type(expr) is ExpressionPointer:
                 target = expr.parent if expr.position is None else expr.to_expression()
