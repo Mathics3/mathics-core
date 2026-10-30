@@ -616,30 +616,31 @@ class Repeated(PostfixOperator, PatternObject):
         if self.max is not None and len(elements) > self.max:
             return
 
-        def iter_fn(yield_iter, rest_elements, vars_dict):
-            if rest_elements:
-                # for new_vars_dict, rest in self.pattern.match(rest_elements[0],
-                # vars_dict, evaluation):
-                def yield_match(new_vars_dict, rest):
-                    # for sub_vars_dict, sub_rest in iter(rest_elements[1:],
-                    #                                new_vars):
-                    #    yield sub_vars_dict, rest
-                    iter_fn(yield_iter, rest_elements[1:], new_vars_dict)
-
-                self.pattern.match(
-                    rest_elements[0],
-                    {
-                        "yield_func": yield_match,
-                        "vars_dict": vars_dict,
-                        "evaluation": evaluation,
-                    },
-                )
-            else:
-                yield_iter(vars_dict, None)
-
-        # for vars_dict, rest in iter(elements, vars):
-        #    yield_func(vars_dict, rest)
-        iter_fn(yield_func, elements, vars_dict)
+        # Depth-first search over the elements, kept on an explicit stack:
+        # matching each element inside the callback of the previous one
+        # would take Python stack in proportion to the number of elements.
+        # pending[k] holds the variable bindings left to try after the
+        # first k elements matched.
+        pending = [iter((vars_dict,))]
+        while pending:
+            new_vars_dict = next(pending[-1], None)
+            if new_vars_dict is None:
+                pending.pop()
+                continue
+            matched = len(pending) - 1
+            if matched == len(elements):
+                yield_func(new_vars_dict, None)
+                continue
+            found = []
+            self.pattern.match(
+                elements[matched],
+                {
+                    "yield_func": lambda vars_dict, _: found.append(vars_dict),
+                    "vars_dict": new_vars_dict,
+                    "evaluation": evaluation,
+                },
+            )
+            pending.append(iter(found))
 
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (self.min, self.max)

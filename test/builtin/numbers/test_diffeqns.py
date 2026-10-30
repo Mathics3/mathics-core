@@ -2,6 +2,7 @@
 """
 Unit tests for mathics.builtins.numbers.diffeqns
 """
+
 from test.helper import check_evaluation
 
 import pytest
@@ -39,25 +40,25 @@ import pytest
         (
             "DSolve[f'[x] == f[x], f, x] // FullForm",
             None,
-            "{{Rule[f, Function[{x}, Times[C[1], Power[E, x]]]]}}",
+            "{{Rule[f, Function[{x}, Times[Power[E, x], C[1]]]]}}",
             None,
         ),
         (
             "DSolve[f'[x] == f[x], f, x] /. {C[1] -> 1}",
             None,
-            "{{f ⇾ Function[{x}, 1 E ^ x]}}",
+            "{{f ⇾ Function[{x}, E ^ x 1]}}",
             None,
         ),
         (
             "DSolve[f'[x] == f[x], f, x] /. {C -> D}",
             None,
-            "{{f ⇾ Function[{x}, D[1] E ^ x]}}",
+            "{{f ⇾ Function[{x}, E ^ x D[1]]}}",
             None,
         ),
         (
             "DSolve[f'[x] == f[x], f, x] /. {C[1] -> C[0]}",
             None,
-            "{{f ⇾ Function[{x}, C[0] E ^ x]}}",
+            "{{f ⇾ Function[{x}, E ^ x C[0]]}}",
             None,
         ),
         (
