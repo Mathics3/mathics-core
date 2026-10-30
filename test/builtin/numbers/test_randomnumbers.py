@@ -85,7 +85,7 @@ def test_random_sample(str_expr, str_expected):
             None,
         ),
         (
-            "SeedRandom[1]; a = RandomInteger[2^100]; SeedRandom[1]; {a == RandomInteger[2^100], 0 <= a <= 2^100}",
+            "SeedRandom[1]; rbig = RandomInteger[2^100]; SeedRandom[1]; {rbig == RandomInteger[2^100], 0 <= rbig <= 2^100}",
             None,
             "{True, True}",
             "A range beyond machine integers, reproducible under SeedRandom.",
