@@ -39,6 +39,27 @@ import pytest
             "Transpose[x]",
             None,
         ),
+        # Only the first two levels are exchanged, whatever lies below.
+        (
+            "Transpose[{{{{1, 2}}, {tq -> 1}}, {{{3, 4}}, {tq -> 2}}}] === "
+            "{{{{1, 2}}, {{3, 4}}}, {{tq -> 1}, {tq -> 2}}}",
+            None,
+            "True",
+            "Rows whose elements have different depths, as in SetGraphOptions",
+        ),
+        (
+            "Transpose[{{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}, {{9, 10}, {11, 12}}}]",
+            None,
+            "{{{1, 2}, {5, 6}, {9, 10}}, {{3, 4}, {7, 8}, {11, 12}}}",
+            None,
+        ),
+        ("Transpose[{{{{1}}, {{2}}}, {{{3}}, {{4}}}}]", None, "{{{{1}}, {{3}}}, {{{2}}, {{4}}}}", None),
+        (
+            "Transpose[{{1, 2}, {3}}]",
+            ("The first two levels of {{1, 2}, {3}} cannot be transposed.",),
+            "Transpose[{{1, 2}, {3}}]",
+            None,
+        ),
         # A matrix with a single row or column stays a matrix.
         (
             "Transpose[{{1, 2, 3}}]",
