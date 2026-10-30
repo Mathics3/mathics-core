@@ -1,4 +1,4 @@
-"""
+b"""
 Mathics3 builtins from mathics.builtin.intfns.divlike
 """
 
@@ -96,7 +96,7 @@ def eval_ModularInverse(k: int, n: int) -> Integer | None:
 
 def eval_PowerMod(a, b, m, evaluation: Evaluation) -> Integer | Complex:
     """
-    All the variaous forms of handling module exponentiation.
+    All the various forms of handling modular exponentiation.
     SymPy offers mod_inverse, nth_root_mod, sqrt_mod, and core.power.Pow. Python's
     `pow` is good for large ints.
     """
@@ -145,7 +145,7 @@ def eval_PowerMod(a, b, m, evaluation: Evaluation) -> Integer | Complex:
     elif all(isinstance(x, int) for x in (a, b, m)) and b >= 1:
         # Standard Modular Exponentiation (b >= 1) using sympy.pow:
         # Use Python's builtin function `pow`.
-        # this handles large int's better than SymPy's core.power.Pow:
+        # This handles large int's better than SymPy's core.power.Pow:
         return Integer(pow(a, b, m))
     elif b > 1:
         # Standard Modular Exponentiation (b >= 1) using sympy.pow:
@@ -160,9 +160,9 @@ def eval_Quotient(m, n, d) -> Integer:
 
 def gcdex_list(numbers: list[int]) -> (list, int):
     """
-    Return the extended GCD's coefficients and cumulative gcd, for a list of numbers using
+    Return the extended GCD's coefficients and cumulative GCD for a list of numbers using
     SymPy's gcdex.
-    If the list is empty we return [].
+    If the list is empty, we return [].
 
     """
     if not numbers:

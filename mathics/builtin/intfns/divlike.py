@@ -121,15 +121,15 @@ class ExtendedGCD(Builtin):
      >> {gcd, {a, b}} = ExtendedGCD[2, 3]
       = {1, {-1, 1}}
 
-    Now reconstruct the gcd using just the coefficents and original numbers and check it matches 'gcd':
+    Now reconstruct the gcd using just the coefficients and original numbers and check it matches 'gcd':
     >> 2 a + 3 b == gcd
      = True
 
-    Get the GCD and coefficients for the GCD of 6 15, and 30:
+    Get the GCD and coefficients for the GCD of 6, 15, and 30:
     >> {g, {a, b, c}} = ExtendedGCD[6, 15, 30]
      = {3, {-2, 1, 0}}
 
-    Again, reconstruct the gcd using just the coefficents and original numbers and check it matches 'gcd':
+    Again, reconstruct the gcd using just the coefficients and original numbers and check it matches 'gcd':
     >> 6 a + 15 b + 30 c == g
      = True
 
