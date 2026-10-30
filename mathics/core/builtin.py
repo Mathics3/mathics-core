@@ -430,6 +430,13 @@ class Builtin:
             if pattern is not None:
                 defaults.append(RewriteRule(pattern, value))
 
+        # Options[f] lists options in the order they are stored, so keep the
+        # options of a Builtin sorted by name (in place: the option checker
+        # above holds this dict).
+        sorted_options = sorted(options.items())
+        options.clear()
+        options.update(sorted_options)
+
         definition = Definition(
             name=name,
             rules=tuple(rules),
