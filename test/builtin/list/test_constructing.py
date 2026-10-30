@@ -129,3 +129,25 @@ def test_table_fully_evaluated_at_creation():
         symbolic.elements_properties
         and symbolic.elements_properties.elements_fully_evaluated
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "failure_message"),
+    [
+        ("Permutations[{b, a, b}]", "{{b, a, b}, {b, b, a}, {a, b, b}}", None),
+        ("Permutations[{a, b, a}, {2}]", "{{a, b}, {a, a}, {b, a}}", None),
+        ("Permutations[{a, a}, All]", "{{}, {a}, {a, a}}", None),
+        (
+            "Permutations[{1, 1., 2}]",
+            "{{1, 1., 2}, {1, 2, 1.}, {1., 1, 2}, {1., 2, 1}, {2, 1, 1.}, {2, 1., 1}}",
+            "Elements that are equal but not SameQ are kept apart.",
+        ),
+        (
+            "Length[Permutations[Join[Table[1, {3}], Table[0, {12}]]]]",
+            "455",
+            "Only distinct permutations are built, not all 15!.",
+        ),
+    ],
+)
+def test_permutations_repeated_elements(str_expr, str_expected, failure_message):
+    check_evaluation(str_expr, str_expected, failure_message)
