@@ -64,3 +64,56 @@ def test_general(str_expr, msgs, str_expected, fail_msg):
         failure_message=fail_msg,
         expected_messages=msgs,
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected"),
+    [
+        ("Outer[f, {1, 2}, 3]", None, "{f[1], f[2]}"),
+        (
+            "Outer[f, {{1, 2}, {3, 4}}, {{a, b}}, 1]",
+            None,
+            "{{f[{1, 2}, {a, b}]}, {f[{3, 4}, {a, b}]}}",
+        ),
+        ("Outer[f, {{1, 2}}, {{a}}, 1, 2]", None, "{{{f[{1, 2}, a]}}}"),
+        ("Outer[f, {{1, 2}}, {{a}}, Infinity]", None, "{{{{f[1, a]}}, {{f[2, a]}}}}"),
+        # A list without a level of its own is taken apart completely, and
+        # levels beyond the number of lists are ignored.
+        ("Outer[f, {{a}}, {{b}}, {{c}}, 1, 2]", None, "{{{{{f[{a}, b, c]}}}}}"),
+        ("Outer[f, {{a}}, {{b}}, 1, 2, 1]", None, "{{{f[{a}, b]}}}"),
+        ("Outer[f, {{a}}, {{b}}, Infinity, 1]", None, "{{{f[a, {b}]}}}"),
+        (
+            "Outer[List, {1, 2}, {a, b}, 1, 1]",
+            None,
+            "{{{1, a}, {1, b}}, {{2, a}, {2, b}}}",
+        ),
+        (
+            "Outer[f, x]",
+            ("Nonatomic expression expected at position 2 in Outer[f, x].",),
+            "Outer[f, x]",
+        ),
+        (
+            "Outer[f, {{a}}, {{b}}, 0]",
+            (
+                "Positive machine-sized integer or Infinity expected at position 4 in Outer[f, {{a}}, {{b}}, 0].",
+            ),
+            "Outer[f, {{a}}, {{b}}, 0]",
+        ),
+        (
+            "Outer[f, {{a}}, x, 1]",
+            (
+                "Positive machine-sized integer or Infinity expected at position 3 in Outer[f, {{a}}, x, 1].",
+            ),
+            "Outer[f, {{a}}, x, 1]",
+        ),
+    ],
+)
+def test_outer_levels(str_expr, msgs, str_expected):
+    """Outer[f, lists, n1, n2, ...] takes each list apart only down to its
+    level."""
+    check_evaluation(
+        str_expr,
+        str_expected,
+        hold_expected=True,
+        expected_messages=msgs,
+    )
