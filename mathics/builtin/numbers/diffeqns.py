@@ -25,13 +25,13 @@ class DSolve(Builtin):
     </dl>
 
     >> DSolve[y''[x] == 0, y[x], x]
-     = {{y[x] ⇾ x C[2] + C[1]}}
+     = {{y[x] ⇾ C[1] + x C[2]}}
 
     >> DSolve[y''[x] == y[x], y[x], x]
-     = {{y[x] ⇾ C[1] E ^ (-x) + C[2] E ^ x}}
+     = {{y[x] ⇾ E ^ (-x) C[1] + E ^ x C[2]}}
 
     >> DSolve[y''[x] == y[x], y, x]
-     = {{y ⇾ Function[{x}, C[1] E ^ (-x) + C[2] E ^ x]}}
+     = {{y ⇾ Function[{x}, E ^ (-x) C[1] + E ^ x C[2]]}}
 
     DSolve can also solve basic PDE
     >> DSolve[D[f[x, y], x] / f[x, y] + 3 D[f[x, y], y] / f[x, y] == 2, f, {x, y}]
@@ -41,7 +41,7 @@ class DSolve(Builtin):
      = {{f[x, y] ⇾ 2 Log[x] + C[1][y / x]}}
 
     >> DSolve[D[y[x, t], t] + 2 D[y[x, t], x] == 0, y[x, t], {x, t}]
-     = {{y[x, t] ⇾ C[1][x - 2 t]}}
+     = {{y[x, t] ⇾ C[1][-2 t + x]}}
     """
 
     # TODO: GeneratedParameters option
