@@ -227,3 +227,35 @@ def test_pattern(str_expr, msgs, str_expected, fail_msg):
         failure_message=fail_msg,
         expected_messages=msgs,
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "fail_msg"),
+    [
+        (
+            "MatchQ[Table[{k, k}, {k, 3000}], {{_Integer, _Integer}..}]",
+            "True",
+            "a long sequence does not run out of Python stack",
+        ),
+        (
+            "MatchQ[Append[Table[{k, k}, {k, 3000}], {x, 1}], {{_Integer, _Integer}..}]",
+            "False",
+            "a long sequence that fails at its end",
+        ),
+        ("MatchQ[Table[1, {3000}], {(x_)..}]", "True", None),
+        ("MatchQ[{1, 1, 2}, {(x_)..}]", "False", "the same x in every repetition"),
+        ("f[1, 2, 3] /. f[x:(_Integer|_Real)...] :> {x}", "{1, 2, 3}", None),
+        (
+            "Cases[{{1, 1}, {1, 2}, {3, 3, 3}}, {(x_)..}]",
+            "{{1, 1}, {3, 3, 3}}",
+            None,
+        ),
+        (
+            "{a, b, a, b} /. {x:Repeated[a|b, {2, 3}], y__} :> {{x}, {y}}",
+            "{{a, b}, {a, b}}",
+            "as in WMA, the shortest split of the rest wins",
+        ),
+    ],
+)
+def test_repeated(str_expr, str_expected, fail_msg):
+    check_evaluation(str_expr, str_expected, fail_msg)
