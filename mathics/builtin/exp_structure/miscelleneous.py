@@ -2,6 +2,8 @@
 Miscellaneous Structural Operations on Expressions
 """
 
+from typing import Final
+
 from mathics.core.attributes import A_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.evaluation import Evaluation
@@ -166,7 +168,7 @@ class Outer(Builtin):
      = {{0, 1, 0}, {1, 0, 1}, {0, ComplexInfinity, 0}}
     """
 
-    messages = {
+    messages: Final[dict[str, str]] = {
         "ipnfm": "Positive machine-sized integer or Infinity expected at position `1` in `2`.",
     }
     summary_text = "generalized outer product"

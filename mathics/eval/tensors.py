@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Final, Optional, Union
 
 from sympy.combinatorics import Permutation
 from sympy.tensor.array.expressions import PermuteDims
@@ -234,7 +234,7 @@ def eval_Inner(f, list1, list2, g, evaluation: Evaluation):
     return rec([], [], m[:-1], n[1:])
 
 
-OUTER_INFINITY = Expression(SymbolDirectedInfinity, Integer1)
+OUTER_INFINITY: Final[Expression] = Expression(SymbolDirectedInfinity, Integer1)
 
 
 def outer_levels(args: tuple) -> tuple:
