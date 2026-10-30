@@ -256,39 +256,42 @@ def eval_ListPlot(
     if all(not isinstance(point, (list, tuple)) for point in plot_groups):
         # We have only y values given.
 
-        # Remove entries that are not float or int.
-        plot_groups = tuple(y for y in plot_groups if isinstance(y, (float, int)))
+        # Remove entries that are not float or int; the others keep their
+        # position as x value.
+        points = [
+            [float(i + 1), y]
+            for i, y in enumerate(plot_groups)
+            if isinstance(y, (float, int))
+        ]
 
-        if len(plot_groups) == 0:
+        if len(points) == 0:
             # Plot groups is empty
             y_min = 0
             y_max = 0
         else:
-            y_min = min(plot_groups)
-            y_max = max(plot_groups)
+            y_min = min(y for _, y in points)
+            y_max = max(y for _, y in points)
 
         x_min = 0
         x_max = len(plot_groups)
-        plot_groups = [
-            [[float(i + 1), plot_groups[i]] for i in range(len(plot_groups))]
-        ]
+        plot_groups = [points]
     elif all(
         isinstance(plot_group, (list, tuple)) and len(plot_group) == 2
         for plot_group in plot_groups
     ):
         # He have a single list of (x,y) pairs.
 
-        # FIXME: is this right?
-        x_range = get_plot_range(
-            [xx for xx, yy in plot_groups], [xx for xx, yy in plot_groups], x_range
-        )
-        y_range = get_plot_range(
-            [yy for xx, yy in plot_groups], [yy for xx, yy in plot_groups], y_range
-        )
-
-        get_plot_range(
-            [xx for xx, yy in plot_groups], [xx for xx, yy in plot_groups], x_range
-        )
+        # The range is that of the points with numeric coordinates: the
+        # others, such as {2, x}, are not drawn.
+        numeric = [
+            (xx, yy)
+            for xx, yy in plot_groups
+            if isinstance(xx, (float, int)) and isinstance(yy, (float, int))
+        ]
+        xs = [xx for xx, yy in numeric]
+        ys = [yy for xx, yy in numeric]
+        x_range = get_plot_range(xs, xs, x_range)
+        y_range = get_plot_range(ys, ys, y_range)
         plot_groups = [plot_groups]
     elif all(isinstance(line, (list, tuple)) for line in plot_groups):
         if not all(isinstance(line, (list, tuple)) for line in plot_groups):
@@ -324,34 +327,40 @@ def eval_ListPlot(
         y_min, y_max = y_range
 
     for lidx, plot_group in enumerate(plot_groups):
-        i = 0
-        while i < len(plot_groups[lidx]):
-            seg = plot_group[i]
-            # If there is an empty segment, that is an error.
-            if not seg:
-                raise ListPlotPairOfNumbersError
-            for j, point in enumerate(seg):
-                x_min = min(x_min, point[0])
-                x_max = max(x_min, point[0])
-                y_min = min(y_min, point[1])
-                y_max = max(y_max, point[1])
+        # A point without numeric coordinates, such as {2, x}, is not
+        # drawn: it splits its line into segments.
+        segments = []
+        for seg in plot_group:
+            current = []
+            for point in seg:
                 if not (
                     isinstance(point[0], (int, float))
                     and isinstance(point[1], (int, float))
                 ):
-                    plot_groups[lidx].insert(i, seg[:j])
-                    plot_groups[lidx][i + 1] = seg[j + 1 :]
-                    i -= 1
-                    break
+                    if current:
+                        segments.append(current)
+                    current = []
+                    continue
+                x_min = min(x_min, point[0])
+                x_max = max(x_max, point[0])
+                y_min = min(y_min, point[1])
+                y_max = max(y_max, point[1])
+                current.append(point)
+            if current:
+                segments.append(current)
+        # If there is no point to draw, that is an error.
+        if not segments:
+            raise ListPlotPairOfNumbersError
 
-            # For step plots, we have 2n points; n -1 of these
-            # we create from the n points by
-            # insert a new point from the y coordinate
-            # of the previous point in between each new point
-            # other than the first point. The last plot point
-            # has the preview plot point y value and the average
-            # step value added to the last x value
-            if list_plot_type == ListPlotType.ListStepPlot:
+        # For step plots, we have 2n points; n -1 of these
+        # we create from the n points by
+        # insert a new point from the y coordinate
+        # of the previous point in between each new point
+        # other than the first point. The last plot point
+        # has the preview plot point y value and the average
+        # step value added to the last x value
+        if list_plot_type == ListPlotType.ListStepPlot:
+            for i, seg in enumerate(segments):
                 step_plot_group = []
                 last_point = seg[0]
                 for j, point in enumerate(seg):
@@ -363,9 +372,8 @@ def eval_ListPlot(
                 last_x = last_point[0]
                 average = last_x + ((seg[0][0] + last_x) / 2)
                 step_plot_group.append((average, last_point[1]))
-                plot_groups[lidx][i] = step_plot_group
-
-            i += 1
+                segments[i] = step_plot_group
+        plot_groups[lidx] = segments
 
     # FIXME: For now we are going to specify that the min points are (-.1, -.1)
     # or pretty close to (0, 0) for positive plots, so that the tick axes are set to zero.
