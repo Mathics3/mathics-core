@@ -8,7 +8,7 @@ from typing import Any, Optional, Tuple
 
 from mathics.core.element import ElementsProperties
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression
+from mathics.core.expression import Expression, ExpressionCache
 from mathics.core.symbols import EvalMixin, Symbol, SymbolList
 from mathics.core.systemsymbols import SymbolUnevaluated
 
@@ -123,15 +123,53 @@ class ListExpression(Expression):
 
     def set_element(self, index: int, value):
         """
-        Update element[i] with value. Whether the list is literal, and its
-        Python value, are worked out again from the new elements.
+        Update element[i] with value. Whether the list is literal, its
+        Python value and its elements properties are updated from the old
+        ones and the new element, without going over all the elements: a
+        loop such as p[[i]] = p[[j]] on a long list does this at each step.
         """
+        was_literal = self._is_literal
+        properties = self.elements_properties
+        cache = self._cache
         super().set_element(index, value)
-        self.elements_properties = None
-        self.value = None
-        self._is_literal = all(element.is_literal for element in self._elements)
-        if self._is_literal:
-            self.value = tuple(element.value for element in self._elements)
+        if cache is not None and cache.symbols is not None and cache.sequences is not None:
+            # The symbols of the old element are kept: a set that has more
+            # symbols than the list only costs a check. There is no
+            # timestamp: the list has changed.
+            symbols = set(cache.symbols)
+            sequences = [i for i in cache.sequences if i != index]
+            if isinstance(value, Expression):
+                value_symbols = value._rebuild_cache().symbols
+                symbols.update(value_symbols)
+                if "System`Sequence" in value_symbols:
+                    sequences = sorted(sequences + [index])
+            elif isinstance(value, Symbol):
+                symbols.add(value.get_name())
+            self._cache = ExpressionCache(None, symbols, sequences)
+        if not value.is_literal:
+            self._is_literal = False
+            self.value = None
+        elif was_literal:
+            values = list(self.value)
+            values[index] = value.value
+            self.value = tuple(values)
+        else:
+            # The element replaced may have been the only one not literal.
+            self._is_literal = all(element.is_literal for element in self._elements)
+            self.value = (
+                tuple(element.value for element in self._elements)
+                if self._is_literal
+                else None
+            )
+        if properties is not None:
+            # False is always safe for a property: it only means "not known".
+            self.elements_properties = ElementsProperties(
+                elements_fully_evaluated=properties.elements_fully_evaluated
+                and value.is_literal,
+                is_flat=properties.is_flat and not isinstance(value, Expression),
+                is_ordered=False,
+                is_uniform=False,
+            )
 
     @property
     def is_literal(self) -> bool:
@@ -184,7 +222,9 @@ class ListExpression(Expression):
         Here this does not need that complication.
         """
         return ListExpression(
-            *self._elements, elements_properties=self.elements_properties
+            *self._elements,
+            elements_properties=self.elements_properties,
+            literal_values=self.value if self._is_literal else None,
         )
 
     def copy(self, reevaluate=False) -> "Expression":
