@@ -249,8 +249,7 @@ class _EqualityOperator(_InequalityOperator, ABC):
         # The test of ExactNumberQ, made directly: building and evaluating
         # ExactNumberQ[arg] cost more than the comparison itself.
         if not all(
-            isinstance(arg, Number) and not arg.is_inexact
-            for arg in elements_sequence
+            isinstance(arg, Number) and not arg.is_inexact for arg in elements_sequence
         ):
             return self.eval_other(elements, evaluation)
         args = self.numerify_args(elements, evaluation)
