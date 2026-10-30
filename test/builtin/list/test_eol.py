@@ -475,7 +475,11 @@ def test_extract_arg_errors():
 @pytest.mark.parametrize(
     ("str_expr", "expected_messages", "str_expected"),
     [
-        ("pa = Range[8]; pa[[{2, 5, 6}]] = {-1, -2, -3}; pa", None, "{1, -1, 3, 4, -2, -3, 7, 8}"),
+        (
+            "pa = Range[8]; pa[[{2, 5, 6}]] = {-1, -2, -3}; pa",
+            None,
+            "{1, -1, 3, 4, -2, -3, 7, 8}",
+        ),
         ("pa = Range[8]; pa[[{2, 3}]] = 0; pa", None, "{1, 0, 0, 4, 5, 6, 7, 8}"),
         ("pa = Range[8]; pa[[{-1, 1}]] = {p, q}; pa", None, "{q, 2, 3, 4, 5, 6, 7, p}"),
         # A right side of another length is assigned to each part whole.
@@ -489,8 +493,16 @@ def test_extract_arg_errors():
         ("pa = Range[3]; pa[[-1]] = z; pa", None, "{1, 2, z}"),
         ("pm = {{1, 2}, {3, 4}}; pm[[All, 1]] = {a, b}; pm", None, "{{a, 2}, {b, 4}}"),
         ("pm = {{1, 2}, {3, 4}}; pm[[All, 1]] = z; pm", None, "{{z, 2}, {z, 4}}"),
-        ("pm = {{1, 2}, {3, 4}}; pm[[{1, 2}, 2]] = {pax, pay}; pm", None, "{{1, pax}, {3, pay}}"),
-        ("pm = {{1, 2}, {3, 4}}; pm[[2, All]] = {pax, pay}; pm", None, "{{1, 2}, {pax, pay}}"),
+        (
+            "pm = {{1, 2}, {3, 4}}; pm[[{1, 2}, 2]] = {pax, pay}; pm",
+            None,
+            "{{1, pax}, {3, pay}}",
+        ),
+        (
+            "pm = {{1, 2}, {3, 4}}; pm[[2, All]] = {pax, pay}; pm",
+            None,
+            "{{1, 2}, {pax, pay}}",
+        ),
         (
             "pm = {{1, 2}, {3, 4}}; pm[[{2, 1}, {1}]] = {{a}, {b}}; pm",
             None,
