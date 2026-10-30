@@ -118,8 +118,8 @@ def test_randomnumbers(str_expr, msgs, str_expected, fail_msg):
             None,
         ),
         (
-            "SeedRandom[5]; a = RandomVariate[BinomialDistribution[100, 0.3], 4]; "
-            "SeedRandom[5]; a == RandomVariate[BinomialDistribution[100, 0.3], 4]",
+            "SeedRandom[5]; rbin = RandomVariate[BinomialDistribution[100, 0.3], 4]; "
+            "SeedRandom[5]; rbin == RandomVariate[BinomialDistribution[100, 0.3], 4]",
             None,
             "True",
             "SeedRandom makes the draws reproducible.",
