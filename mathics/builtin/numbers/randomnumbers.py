@@ -247,9 +247,10 @@ class _RandomSelection(_RandomBase):
 # FIXME: This class should be removed and put in a Mathematica V.5 compatibility package
 class BinomialDistribution(Builtin):
     """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/BinomialDistribution.html</url>
+    <url>:Binomial distribution:
+    https://en.wikipedia.org/wiki/Binomial_distribution</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/BinomialDistribution.html</url>)
 
     <dl>
       <dt>'BinomialDistribution'[$n$, $p$]
@@ -595,9 +596,10 @@ class RandomInteger(Builtin):
 
 class RandomVariate(Builtin):
     """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/RandomVariate.html</url>
+    <url>:Random variate:
+    https://en.wikipedia.org/wiki/Realization_(probability)#Random_variate</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/RandomVariate.html</url>)
 
     <dl>
       <dt>'RandomVariate'[$dist$]
