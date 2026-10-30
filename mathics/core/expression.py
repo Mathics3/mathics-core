@@ -370,14 +370,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     _sequences: Any
     _cache: ExpressionCache | None
     # (head, elements, element_order) of the last element_order built.
-    _element_order_cache: Optional[tuple[BaseElement, tuple[BaseElement, ...], tuple]]
+    _element_order_cache: tuple[BaseElement, tuple[BaseElement, ...], tuple] | None
     elements_properties: ElementsProperties | None
     options: dict[str, Any] | None
-=======
-    _cache: Optional[ExpressionCache]
-    elements_properties: Optional[ElementsProperties]
-    options: Optional[dict[str, Any]]
->>>>>>> 6d9e969d091d8c621bf7c610c99df95299e582c2
     pattern_sequence: bool
     location: SourceRange | SourceRange2 | MethodType | None
 
