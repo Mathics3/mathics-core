@@ -143,7 +143,7 @@ class ExtendedGCD(Builtin):
      = {{1, {2, -1}}, {3, {1, 0}}}
     """
 
-    attributes = A_FLAT | A_LISTABLE | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
+    attributes = A_LISTABLE | A_PROTECTED
     eval_error = Builtin.generic_argument_error
     expected_args = range(1, sys.maxsize)
     sympy_name = "gcdex"
