@@ -514,6 +514,11 @@ def test_extract_arg_errors():
         ("pm = {{1, 2}, {3, 4}}; pm[[All, 0]] = ph; pm", None, "{ph[1, 2], ph[3, 4]}"),
         ("pk = pf[1, 2]; pk[[0]] = List; pk", None, "{1, 2}"),
         (
+            "pa = {0, 0, 0}; pa[[{2, pf[pq]}]] = 5; pa",
+            ("The expression {2, pf[pq]} cannot be used as a part specification.",),
+            "{0, 0, 0}",
+        ),
+        (
             "pm = {{1, 2}, {3, 4}}; pm[[1, 5]] = 0; pm",
             ("Part 5 of {1, 2} does not exist.",),
             "{{1, 2}, {3, 4}}",

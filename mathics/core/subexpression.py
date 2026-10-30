@@ -93,10 +93,9 @@ def _part_positions(pspec, expr):
         return tuple(range(1, length + 1))
     if isinstance(pspec, Expression):
         if pspec.has_form(SymbolList, None):
-            positions = [element.int_value for element in pspec.elements]
-            if any(k is None for k in positions):
-                raise MessageException("Part", "pspec", pspec)
-            return tuple(checked(k) for k in positions)
+            if not all(type(element) is Integer for element in pspec.elements):
+                raise MessageException("Part", "pkspec1", pspec)
+            return tuple(checked(element.value) for element in pspec.elements)
         if pspec.has_form(SymbolSpan, None):
             return tuple(checked(k + 1) for k in _pspec_span_to_tuple(pspec, expr))
     raise MessageException("Part", "pspec", pspec)
