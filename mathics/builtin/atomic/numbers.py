@@ -57,7 +57,6 @@ from mathics.core.systemsymbols import (
     SymbolInfinity,
     SymbolLog,
     SymbolMachinePrecision,
-    SymbolN,
     SymbolPrecision,
     SymbolRealDigits,
     SymbolRound,
@@ -71,6 +70,7 @@ from mathics.eval.numbers.numbers import (
     has_machine_number,
     log_n_b,
     rational_digits,
+    real_digits_truncated,
 )
 from mathics.eval.numbers.precision import eval_SetAccuracy, eval_SetPrecision
 
@@ -401,6 +401,12 @@ class RealDigits(Builtin):
     >> RealDigits[Pi, 10, 11, -3]
      = {{1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7}, -2}
 
+    The digits are cut off, not rounded:
+    >> RealDigits[1 - 10^-100, 10, 5]
+     = {{9, 9, 9, 9, 9}, 0}
+    >> RealDigits[Sqrt[104], 10, 1, -1]
+     = {{1}, 0}
+
     RealDigits gives Indeterminate if more digits than the precision are requested:
     >> RealDigits[123.45, 10, 18]
      = {{1, 2, 3, 4, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, Indeterminate, Indeterminate}, 3}
@@ -422,6 +428,7 @@ class RealDigits(Builtin):
     messages = {
         "realx": "The value `1` is not a real number.",
         "ndig": "The number of digits to return cannot be determined.",
+        "fnumx": "The value `1` did not evaluate to a sufficiently precise finite number.",
         "rbase": "Base `1` is not a real number greater than 1.",
         "intm": "Machine-sized integer expected at position 4 in `1`.",
     }
@@ -476,27 +483,26 @@ class RealDigits(Builtin):
             True if isinstance(n, Rational) else False
         )  # it is used for checking whether the input n is a rational or not
         py_b = b.int_value
-        if isinstance(n, (Expression, Symbol, Rational)):
-            pos_len = abs(pos) + 1 if pos is not None and pos < 0 else 1
-            if nr_elements is not None:
-                # we can't use eval_n here because we have the two-argument form
-                n = Expression(
-                    SymbolN,
-                    n,
-                    Integer(int(mpmath.log(py_b ** (nr_elements + pos_len), 10)) + 1),
-                ).evaluate(evaluation)
-            else:
-                if rational_no:
-                    n = eval_N(n, evaluation)
-                else:
-                    evaluation.message("RealDigits", "ndig", expr)
-                    return
-
-        py_n = abs(n.value)
-
         if not py_b > 1:
             evaluation.message("RealDigits", "rbase", py_b)
             return
+
+        if isinstance(n, (Expression, Symbol, Rational)):
+            if nr_elements is not None:
+                result = real_digits_truncated(n, py_b, nr_elements, pos, evaluation)
+                if result is None:
+                    return None
+                digits, exponent = result
+                return ListExpression(
+                    ListExpression(*(Integer(d) for d in digits)), Integer(exponent)
+                )
+            if rational_no:
+                n = eval_N(n, evaluation)
+            else:
+                evaluation.message("RealDigits", "ndig", expr)
+                return
+
+        py_n = abs(n.value)
 
         if isinstance(py_n, complex):
             evaluation.message("RealDigits", "realx", expr)
