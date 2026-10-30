@@ -167,7 +167,7 @@ class GCD(Builtin):
     """
     <url>:Greatest common divisor:
     https://en.wikipedia.org/wiki/Greatest_common_divisor</url> (<url>
-    :SymPy:https://docs.sympy.org/latest/modules/polys/domainsref.html#sympy.polys.domains.IntegerRing.gcdex</url>, <url>
+    :SymPy:https://docs.sympy.org/latest/modules/polys/domainsref.html#sympy.polys.domains.IntegerRing.gcd</url>, <url>
     :WMA:
     https://reference.wolfram.com/language/ref/GCD.html</url>)
 
