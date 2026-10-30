@@ -121,16 +121,16 @@ class ExtendedGCD(Builtin):
      >> {gcd, {a, b}} = ExtendedGCD[2, 3]
       = {1, {-1, 1}}
 
-    Now reconstruct the gcd using just the coefficients and original numbers and check it matches 'gcd':
+    Now reconstruct the GCD using just the coefficients and original numbers and check it matches 'gcd':
     >> 2 a + 3 b == gcd
      = True
 
     Get the GCD and coefficients for the GCD of 6, 15, and 30:
-    >> {g, {a, b, c}} = ExtendedGCD[6, 15, 30]
+    >> {gcd, {a, b, c}} = ExtendedGCD[6, 15, 30]
      = {3, {-2, 1, 0}}
 
     Again, reconstruct the gcd using just the coefficients and original numbers and check it matches 'gcd':
-    >> 6 a + 15 b + 30 c == g
+    >> 6 a + 15 b + 30 c == gcd
      = True
 
     ExtendedGCD[3, {5, 15}] theads element-wise over lists:
@@ -143,7 +143,11 @@ class ExtendedGCD(Builtin):
 
     And for a single negative integer, the coefficient is -1:
      >> ExtendedGCD[-5]
-      = {-5, {-1}}
+      = {5, {-1}}
+
+    The Extended GCD of 0 gives coefficient 0:
+     >> ExtendedGCD[0]
+      = {0, {0}}
 
     See also <url>
     :'GCD':

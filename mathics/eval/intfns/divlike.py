@@ -46,10 +46,9 @@ def combine_integer_arguments(builtin, ns, eval_fn: Callable) -> Expression | No
 
 def eval_ExtendedGCD(arguments: Expression | Integer) -> ListExpression:
     if isinstance(arguments, Integer):
-        return (
-            ListExpression(arguments, ListExpression(Integer1))
-            if arguments.value > 0
-            else ListExpression(arguments, ListExpression(IntegerM1))
+        n = arguments.value
+        return ListExpression(
+            Integer(abs(n)), ListExpression(Integer((n > 0) - (n < 0)))
         )
     integers: list[int] = []
     for element in arguments.elements:
