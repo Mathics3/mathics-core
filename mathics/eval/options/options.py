@@ -27,7 +27,8 @@ def eval_Options(
     else:
         options = evaluation.definitions.get_options(name)
     result = []
-    for option, value in sorted(options.items(), key=lambda item: item[0]):
+    # In the order they were given, as WMA does.
+    for option, value in options.items():
         # Don't use HoldPattern, since the returned List should be
         # assignable to Options again!
         result.append(Expression(SymbolRule, Symbol(option), value))
@@ -63,7 +64,8 @@ def eval_Option_with_names(
             evaluation.message("Options", "optnf", option_name, symbol)
             return
     result = []
-    for option, value in sorted(options.items(), key=lambda item: item[0]):
+    # In the order they were given, as WMA does.
+    for option, value in options.items():
         # Don't use HoldPattern, since the returned List should be
         # assignable to Options again!
         result.append(Expression(SymbolRule, Symbol(option), value))

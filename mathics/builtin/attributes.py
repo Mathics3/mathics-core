@@ -227,7 +227,7 @@ class Constant(Predefined):
     related functions:
     >> Solve[x + E ⩵ 0, E]
      : E is not a valid variable.
-     = Solve[x + E ⩵ 0, E]
+     = Solve[E + x ⩵ 0, E]
     """
 
     summary_text = "treat as a constant in differentiation, etc"
@@ -538,7 +538,7 @@ class Orderless(Predefined):
     The elements of an 'Orderless' function are automatically sorted:
     >> SetAttributes[f, Orderless]
     >> f[c, a, b, a + b, 3, 1.0]
-     = f[1., 3, a, b, c, a + b]
+     = f[1., 3, a, b, a + b, c]
 
     A symbol with the 'Orderless' attribute represents a commutative \
     mathematical operation.
