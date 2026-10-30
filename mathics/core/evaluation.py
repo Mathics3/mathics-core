@@ -67,8 +67,10 @@ MAX_RECURSION_DEPTH = max(
 
 def python_recursion_depth(n) -> int:
     # convert Mathics3 recursion depth to Python recursion depth. this estimates how many Python calls
-    # we need at worst to process one Mathics3 recursion.
-    return 200 + 30 * n
+    # we need at worst to process one Mathics3 recursion. A recursive
+    # definition matched through a Condition or PatternTest, as in
+    # Combinatorica's DepthFirstTraversal, takes a little over 30.
+    return 200 + 40 * n
 
 
 def python_stack_size(n) -> int:  # n is a Mathics3 recursion depth
@@ -322,6 +324,18 @@ class Evaluation:
                 # Clear shell interrupt if that exists.
                 self.exc_result = SymbolAborted
             except AbortInterrupt:  # , error:
+                self.exc_result = SymbolAborted
+            except RecursionError:
+                # Python ran out of stack before $RecursionLimit was
+                # reached: report it the same way.
+                self.message(
+                    "$RecursionLimit",
+                    "reclim",
+                    self.definitions.get_config_value(
+                        "$RecursionLimit", MAX_RECURSION_DEPTH
+                    )
+                    or MAX_RECURSION_DEPTH,
+                )
                 self.exc_result = SymbolAborted
             except ReturnInterrupt as ret:
                 self.exc_result = ret.expr

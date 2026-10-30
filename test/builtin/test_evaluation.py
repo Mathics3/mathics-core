@@ -143,3 +143,22 @@ def test_evaluation_non_mswindows(str_expr, msgs, str_expected, fail_msg):
     that do not work on MS Windows.
     """
     check_evaluation_as_in_cli(str_expr, str_expected, fail_msg, msgs)
+
+
+def test_python_recursion_error_is_reclim():
+    """When Python runs out of stack before $RecursionLimit is reached, the
+    evaluation is aborted with the $RecursionLimit message, not a crash."""
+    from test.helper import session
+
+    python_limit = sys.getrecursionlimit()
+    try:
+        session.evaluate("$RecursionLimit = 512")
+        sys.setrecursionlimit(3000)
+        result = session.evaluate_as_in_cli(
+            "ClearAll[deep]; deep[n_] := 1 + deep[n + 1]; deep[1]"
+        )
+        assert result.result == "$Aborted"
+        assert [m.text for m in result.out] == ["Recursion depth of 512 exceeded."]
+    finally:
+        sys.setrecursionlimit(python_limit)
+        session.evaluate("ClearAll[deep]; $RecursionLimit = 200")
