@@ -205,6 +205,50 @@ def test_realdigits_rational(str_expr, str_expected):
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected"),
     [
+        # Digits are cut off, not rounded (issue #1137).
+        ("RealDigits[1 - 10^-100, 10, 5]", (), "{{9, 9, 9, 9, 9}, 0}"),
+        ("RealDigits[1 - 10^-100, 10, 5, -2]", (), "{{9, 9, 9, 9, 9}, -1}"),
+        ("RealDigits[10^-5 - 10^-200, 10, 3]", (), "{{9, 9, 9}, -5}"),
+        ("RealDigits[Sqrt[104], 10, 1, -1]", (), "{{1}, 0}"),
+        ("RealDigits[-Sqrt[104], 10, 3]", (), "{{1, 0, 1}, 2}"),
+        ("RealDigits[Sqrt[104], 10, 3, 5]", (), "{{0, 0, 0}, 6}"),
+        ("RealDigits[Pi, 3, 6, -2]", (), "{{1, 0, 2, 1, 1, 0}, -1}"),
+        ("RealDigits[E, 2, 10]", (), "{{1, 0, 1, 0, 1, 1, 0, 1, 1, 1}, 2}"),
+        # Cancellation: more precision is used to find the leading digit.
+        (
+            "RealDigits[Sqrt[2] - 1414213562373095/10^15, 10, 3]",
+            (),
+            "{{4, 8, 8}, -16}",
+        ),
+        (
+            "RealDigits[Sqrt[2] - 1414213562373095/10^15, 10, 3, -20]",
+            (),
+            "{{0, 1, 6}, -19}",
+        ),
+        # A value on the boundary between two digit strings is taken to be
+        # the boundary.
+        ("RealDigits[(Sqrt[2] + Sqrt[3])^2 - 2 Sqrt[6], 10, 3]", (), "{{5, 0, 0}, 1}"),
+        (
+            "RealDigits[Sin[Pi/7]^2 + Cos[Pi/7]^2 - 1, 10, 3]",
+            (
+                "The value -1 + Cos[Pi / 7] ^ 2 + Sin[Pi / 7] ^ 2 did not evaluate to a sufficiently precise finite number.",
+            ),
+            "RealDigits[-1 + Cos[Pi / 7] ^ 2 + Sin[Pi / 7] ^ 2, 10, 3]",
+        ),
+        (
+            "RealDigits[Sqrt[-2], 10, 3]",
+            ("The value I Sqrt[2] is not a real number.",),
+            "RealDigits[I Sqrt[2], 10, 3]",
+        ),
+    ],
+)
+def test_realdigits_truncated(str_expr, msgs, str_expected):
+    check_evaluation(str_expr, str_expected, expected_messages=msgs, hold_expected=True)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected"),
+    [
         (
             "RealDigits[]",
             (

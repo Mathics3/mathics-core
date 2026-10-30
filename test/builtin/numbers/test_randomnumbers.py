@@ -84,6 +84,24 @@ def test_random_sample(str_expr, str_expected):
             "SeedRandom[x]",
             None,
         ),
+        (
+            "SeedRandom[1]; rbig = RandomInteger[2^100]; SeedRandom[1]; {rbig == RandomInteger[2^100], 0 <= rbig <= 2^100}",
+            None,
+            "{True, True}",
+            "A range beyond machine integers, reproducible under SeedRandom.",
+        ),
+        (
+            "Union[RandomInteger[{2^64, 2^64 + 2}, 200]] - 2^64",
+            None,
+            "{0, 1, 2}",
+            None,
+        ),
+        (
+            "Dimensions[RandomInteger[{-2^70, 2^70}, {2, 3}]]",
+            None,
+            "{2, 3}",
+            None,
+        ),
     ],
 )
 def test_randomnumbers(str_expr, msgs, str_expected, fail_msg):

@@ -92,7 +92,29 @@ class _RandomEnvBase:
 class RandomEnv(_RandomEnvBase):
     def randint(self, a, b, size=None):
         # return numpy.random.random_integers(a, b, size)
-        return numpy.random.randint(a, b + 1, size)
+        if -(2**63) <= a and b < 2**63 - 1:
+            return numpy.random.randint(a, b + 1, size)
+        # Bounds beyond int64, as in RandomInteger[2^100]: numpy cannot
+        # draw these, so build them from numpy's random bytes (SeedRandom
+        # still applies), rejecting draws above the range.
+        if size is None:
+            return self._randint_big(a, b)
+        result = numpy.empty(size, dtype=object)
+        for index in numpy.ndindex(result.shape):
+            result[index] = self._randint_big(a, b)
+        return result
+
+    @staticmethod
+    def _randint_big(a, b):
+        span = b - a + 1
+        bits = span.bit_length()
+        nbytes = (bits + 7) // 8
+        while True:
+            value = int.from_bytes(numpy.random.bytes(nbytes), "big") >> (
+                8 * nbytes - bits
+            )
+            if value < span:
+                return a + value
 
     def randreal(self, a, b, size=None):
         # numpy gives us [a, b). we want [a, b].

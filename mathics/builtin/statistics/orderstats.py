@@ -368,7 +368,8 @@ class Sort(Builtin):
         if isinstance(list, Atom):
             evaluation.message("Sort", "normal", Integer1, Expression(SymbolSort, list))
         else:
-            new_elements = sorted(list.elements)
+            # Each element_order is built once, not at every comparison.
+            new_elements = sorted(list.elements, key=lambda e: e.element_order)
             return list.restructure(list.head, new_elements, evaluation)
 
     def eval_predicate(self, list, p, evaluation: Evaluation):
