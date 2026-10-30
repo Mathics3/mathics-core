@@ -253,7 +253,7 @@ class Random(Builtin):
         "Random[Integer, {zmin_Integer, zmax_Integer}]": "RandomInteger[{zmin, zmax}]",
         "Random[Real]": "RandomReal[]",
         "Random[Real,  zmax_?NumberQ]": "RandomReal[zmax]",
-        "Random[Real, {zmin_Real, zmax_Real}]": "RandomReal[{zmin, zmax}]",
+        "Random[Real, {zmin_?RealValuedNumberQ, zmax_?RealValuedNumberQ}]": "RandomReal[{zmin, zmax}]",
         "Random[Complex]": "RandomComplex[]",
         "Random[Complex,  zmax_Complex]": "RandomComplex[zmax]",
         "Random[Complex, {zmin_?NumberQ, zmax_?NumberQ}]": "RandomComplex[{zmin, zmax}]",
@@ -518,6 +518,21 @@ class RandomInteger(Builtin):
             return instantiate_elements(rand.randint(rmin, rmax, result), Integer)
 
 
+def _real_bounds(xmin, xmax, evaluation: Evaluation):
+    """The Python floats of the real bounds xmin and xmax, which may also be
+    rational or exact constants, as in {1/2, Pi}; None if one is not real."""
+    bounds = []
+    for bound in (xmin, xmax):
+        if not isinstance(bound, (Real, Integer)):
+            if not is_numeric(bound, evaluation):
+                return None
+            bound = eval_N(bound, evaluation)
+            if not isinstance(bound, (Real, Integer)):
+                return None
+        bounds.append(bound.to_python())
+    return bounds
+
+
 class RandomReal(Builtin):
     """
     <url>
@@ -570,13 +585,12 @@ class RandomReal(Builtin):
     def eval(self, xmin, xmax, evaluation):
         "RandomReal[{xmin_, xmax_}]"
 
-        if not (
-            isinstance(xmin, (Real, Integer)) and isinstance(xmax, (Real, Integer))
-        ):
+        bounds = _real_bounds(xmin, xmax, evaluation)
+        if bounds is None:
             evaluation.message("RandomReal", "unifr", ListExpression(xmin, xmax))
             return
 
-        min_value, max_value = xmin.to_python(), xmax.to_python()
+        min_value, max_value = bounds
 
         with RandomEnv(evaluation) as rand:
             return Real(rand.randreal(min_value, max_value))
@@ -584,13 +598,12 @@ class RandomReal(Builtin):
     def eval_list(self, xmin, xmax, ns, evaluation):
         "RandomReal[{xmin_, xmax_}, ns_List]"
 
-        if not (
-            isinstance(xmin, (Real, Integer)) and isinstance(xmax, (Real, Integer))
-        ):
+        bounds = _real_bounds(xmin, xmax, evaluation)
+        if bounds is None:
             evaluation.message("RandomReal", "unifr", ListExpression(xmin, xmax))
             return
 
-        min_value, max_value = xmin.to_python(), xmax.to_python()
+        min_value, max_value = bounds
         result = ns.to_python()
 
         if not all(isinstance(i, int) and i >= 0 for i in result):
