@@ -526,6 +526,10 @@ def test_extract_arg_errors():
         ("pm = {{1, 2}, {3, 4}, {5, 6}}; pm[[-2 ;; -1, 2]] = 0; pm", None, "{{1, 2}, {3, 0}, {5, 0}}"),
         ("pa = Range[5]; pa[[-1 ;; 1 ;; -2]] = 0; pa", None, "{0, 2, 0, 4, 0}"),
         ("pa = Range[5]; pa[[4 ;; 2 ;; -1]] = {u, v, w}; pa", None, "{1, w, v, u, 5}"),
+        # A part assigned a symbol is evaluated again once the symbol has a value.
+        ("ClearAll[psx]; pa = {1, 2, 3}; pa[[2]] = psx; psx = 5; pa", None, "{1, 5, 3}"),
+        ("pa = {1, 2}; pa[[1]] = Sequence[pu, pv]; pa", None, "{pu, pv, 2}"),
+        ("pa = {pu, 2}; pa[[1]] = 7; {pa, Total[pa]}", None, "{{7, 2}, 9}"),
         # The value assigned to may be shared: only the variable changes.
         ("pa = {1, {2}}; pb = pa; pb[[2, 1]] = 9; {pa, pb}", None, "{{1, {2}}, {1, {9}}}"),
         (

@@ -53,7 +53,12 @@ def _copy(expr: Expression) -> Expression:
     """A new expression with the head and elements of `expr`, to be changed
     in place of `expr`."""
     if isinstance(expr, ListExpression):
-        return ListExpression(*expr.elements)
+        # What is known of the elements stays true of the copy.
+        return ListExpression(
+            *expr.elements,
+            elements_properties=expr.elements_properties,
+            literal_values=expr.value if expr.is_literal else None,
+        )
     return Expression(expr.head, *expr.elements)
 
 
