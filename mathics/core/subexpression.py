@@ -1,5 +1,4 @@
 # cython: language_level=3
-# -*- coding: utf-8 -*-
 """
 This module provides some infrastructure to deal with SubExpressions.
 
@@ -60,49 +59,6 @@ def _copy(expr: Expression) -> Expression:
             literal_values=expr.value if expr.is_literal else None,
         )
     return Expression(expr.head, *expr.elements)
-
-
-def _is_atom(expr) -> bool:
-    """`expr` is an atom; `expr` may also be an `ExpressionPointer` or a `SubExpression`."""
-    if isinstance(expr, (ExpressionPointer, SubExpression)):
-        return expr.is_atom()
-    return isinstance(expr, Atom)
-
-
-def _part_positions(pspec, expr):
-    """
-    Convert the part specification `pspec` of `expr` into a 1-based
-    position (0 is the head) when it selects a single part, or into a
-    tuple of 1-based positions when it selects several (`All`, a list of
-    integers or a `Span`). Negative positions count from the end.
-
-    Raises `Part::partw` for a position that `expr` does not have.
-    """
-    length = 0 if _is_atom(expr) else len(expr.elements)
-
-    def checked(k: int) -> int:
-        position = length + 1 + k if k < 0 else k
-        # Position 0 is the head; a negative position never reaches it:
-        # -4 in a list of 3 does not exist.
-        if not (1 if k < 0 else 0) <= position <= length:
-            target = expr
-            if type(expr) is ExpressionPointer:
-                target = expr.parent if expr.position is None else expr.to_expression()
-            raise MessageException("Part", "partw", Integer(k), target)
-        return position
-
-    if type(pspec) is Integer:
-        return checked(pspec.value)
-    if isinstance(pspec, Symbol) and pspec.get_name() == "System`All":
-        return tuple(range(1, length + 1))
-    if isinstance(pspec, Expression):
-        if pspec.has_form(SymbolList, None):
-            if not all(type(element) is Integer for element in pspec.elements):
-                raise MessageException("Part", "pkspec1", pspec)
-            return tuple(checked(element.value) for element in pspec.elements)
-        if pspec.has_form(SymbolSpan, None):
-            return tuple(checked(k + 1) for k in _pspec_span_to_tuple(pspec, expr))
-    raise MessageException("Part", "pspec", pspec)
 
 
 def _is_atom(expr) -> bool:
