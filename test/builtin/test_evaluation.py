@@ -162,3 +162,22 @@ def test_python_recursion_error_is_reclim():
     finally:
         sys.setrecursionlimit(python_limit)
         session.evaluate("ClearAll[deep]; $RecursionLimit = 200")
+
+@pytest.mark.parametrize(
+    "str_expr",
+    [
+        "Do[k^2, {k, 10^7}]",
+        "Table[Timing[Length[Range[2000 i]]; ], {i, 3000}];",
+    ],
+)
+def test_evaluate_timeout(str_expr):
+    """The timeout given to evaluate stops the evaluation between two steps,
+    with $Aborted and General::timeout, not with a Python exception."""
+    from test.helper import session
+
+    result = session.evaluate_as_in_cli(str_expr, timeout=0.3)
+    assert result.result == "$Aborted"
+    assert [m.text for m in result.out] == ["Timeout reached."]
+    # The next evaluation has no limit left over.
+    assert session.evaluate_as_in_cli("Length[Table[i, {i, 10}]]").result == "10"
+>>>>>>> master

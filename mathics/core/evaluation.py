@@ -163,6 +163,9 @@ class Evaluation:
         self.stopped = False
         self.timeout = False
         self.timeout_queue: List[Tuple[float, float]] = []
+        # time.time() after which the current evaluation is stopped, from the
+        # timeout given to evaluate(); None for no limit.
+        self.deadline: Optional[float] = None
 
         # A place for Trace and friends to store information about the
         # last evaluation
@@ -228,6 +231,7 @@ class Evaluation:
         self.recursion_depth = 0
         self.timeout = False
         self.stopped = False
+        self.deadline = None if timeout is None else self.start_time + timeout
         self.exc_result = self.SymbolNull
         self.last_eval = None
         if format is None:
@@ -319,6 +323,7 @@ class Evaluation:
                 self.exc_result = Expression(SymbolHold, Expression(SymbolContinue))
             except TimeoutInterrupt:
                 self.stopped = False
+                self.deadline = None
 
                 # Due to interrupt handling, we might have already
                 # handled a timeout.
@@ -368,6 +373,7 @@ class Evaluation:
             self.out = []
         finally:
             self.stop()
+            self.deadline = None
             # $Line could have changed during the evaluation.
             line_no = self.definitions.get_line_no()
             line_no += 1
@@ -582,6 +588,10 @@ class Evaluation:
             raise NotImplementedError
 
     def check_stopped(self) -> None:
+        # The timeout of evaluate() is checked here, between evaluation
+        # steps, so that it never interrupts a step halfway.
+        if self.deadline is not None and time.time() > self.deadline:
+            self.stopped = True
         if self.stopped:
             raise TimeoutInterrupt
 
