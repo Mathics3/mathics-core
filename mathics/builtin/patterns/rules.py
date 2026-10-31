@@ -427,7 +427,7 @@ class ReplaceRepeated(InfixOperator):
     Simplification of logarithms:
     >> logrules = {Log[x_ * y_] :> Log[x] + Log[y], Log[x_ ^ y_] :> y * Log[x]};
     >> Log[a * (b * c) ^ d ^ e * f] //. logrules
-     = Log[a] + Log[f] + (Log[b] + Log[c]) d ^ e
+     = Log[a] + d ^ e (Log[b] + Log[c]) + Log[f]
     'ReplaceAll' just performs a single replacement:
     >> Log[a * (b * c) ^ d ^ e * f] /. logrules
      = Log[a] + Log[f (b c) ^ d ^ e]

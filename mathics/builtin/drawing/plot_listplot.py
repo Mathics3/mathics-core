@@ -19,7 +19,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import is_numeric
-from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.symbols import Atom, Symbol, SymbolList
 from mathics.core.systemsymbols import SymbolLog10
 from mathics.eval.drawing.plot import (
     ListPlotPairOfNumbersError,
@@ -78,6 +78,8 @@ class _ListPlot(Builtin, ABC):
 
         if not all(
             is_numeric(element, evaluation)
+            # Not a number, as in {1, x, 3}: it is not drawn.
+            or isinstance(element, Atom)
             or element.has_form(SymbolList, None)
             or (1 <= len(element.elements) <= 2)
             or (len(element.elements) == 1 and element[0].has_form(SymbolList, None))
