@@ -1,5 +1,4 @@
 # cython: language_level=3
-# -*- coding: utf-8 -*-
 """
 This module provides some infrastructure to deal with SubExpressions.
 

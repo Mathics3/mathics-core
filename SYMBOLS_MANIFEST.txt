@@ -168,6 +168,7 @@ System`BinaryRead
 System`BinaryReadList
 System`BinaryWrite
 System`Binomial
+System`BinomialDistribution
 System`BitLength
 System`Black
 System`Blank
@@ -439,6 +440,7 @@ System`Exponent
 System`Export
 System`ExportString
 System`Expression
+System`ExtendedGCD
 System`Extract
 System`FaceForm
 System`Factor
@@ -999,6 +1001,7 @@ System`RandomInteger
 System`RandomPrime
 System`RandomReal
 System`RandomSample
+System`RandomVariate
 System`Range
 System`RankedMax
 System`RankedMin
