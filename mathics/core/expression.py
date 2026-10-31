@@ -2020,10 +2020,17 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         elif self._head is SymbolFunction and len(self._elements) == 1:
             # do not replace Slots in nested Functions
             return self
-        return Expression(
-            self._head.replace_slots(slots, evaluation),
-            *[element.replace_slots(slots, evaluation) for element in self._elements],
-        )
+        head = self._head.replace_slots(slots, evaluation)
+        elements = [
+            element.replace_slots(slots, evaluation) for element in self._elements
+        ]
+        # A part with no slots, like a literal list in the body, is kept as
+        # it is, and with it what is known of its evaluation.
+        if head is self._head and all(
+            new is old for new, old in zip(elements, self._elements)
+        ):
+            return self
+        return Expression(head, *elements)
 
     def thread(self, evaluation, head=None) -> tuple[bool, "Expression"]:
         """
