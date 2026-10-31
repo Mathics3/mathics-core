@@ -132,7 +132,11 @@ class ListExpression(Expression):
         properties = self.elements_properties
         cache = self._cache
         super().set_element(index, value)
-        if cache is not None and cache.symbols is not None and cache.sequences is not None:
+        if (
+            cache is not None
+            and cache.symbols is not None
+            and cache.sequences is not None
+        ):
             # The symbols of the old element are kept: a set that has more
             # symbols than the list only costs a check. There is no
             # timestamp: the list has changed.

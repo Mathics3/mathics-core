@@ -574,7 +574,7 @@ def test_extract_arg_errors():
             "{{{1, 2}, {3, 4}}, {{0, 2}, {0, 4}}}",
         ),
         (
-            "pkd[] := (pw = {1, {2}}; pw[[2, 1]] = 5; pw); "
+            "pkd[] := (pw = {1, {2}}; pw[[2, 1]] = 5; pw); "  # noqa: ISC004
             "{pkd[], pkd[], DownValues[pkd] === "
             "{HoldPattern[pkd[]] :> (pw = {1, {2}}; pw[[2, 1]] = 5; pw)}}",
             None,
