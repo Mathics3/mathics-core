@@ -1,11 +1,11 @@
 # cython: language_level=3
-# -*- coding: utf-8 -*-
 
 import math
 from bisect import bisect_left
+from collections.abc import Callable, Iterable, Sequence
 from itertools import chain
 from types import MethodType
-from typing import Any, Callable, Iterable, Optional, Sequence, Union
+from typing import Any, Optional
 
 import sympy
 from mathics_scanner.location import SourceRange, SourceRange2
@@ -150,7 +150,7 @@ def eval_SameQ(self, other):
             if len_elements != len(current[1]._elements):
                 return False
             parents.append(current)
-            current = tuple((c._head for c in current))
+            current = tuple(c._head for c in current)
             pos.append(0)
         else:  # Atom is not the same than an expression
             return False
@@ -269,7 +269,7 @@ class ExpressionCache:
             b = bisect_left(seq, upper)  # all(val >= j for val in seq[b:])
             new_sequences = tuple(x - lower for x in seq[a:b])
         elif seq is not None:
-            new_sequences = tuple()
+            new_sequences = ()
         else:
             new_sequences = None
 
@@ -368,20 +368,20 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     _head: BaseElement
     _elements: tuple[BaseElement, ...]
     _sequences: Any
-    _cache: Optional[ExpressionCache]
+    _cache: ExpressionCache | None
     # (head, elements, element_order) of the last element_order built.
-    _element_order_cache: Optional[tuple[BaseElement, tuple[BaseElement, ...], tuple]]
-    elements_properties: Optional[ElementsProperties]
-    options: Optional[dict[str, Any]]
+    _element_order_cache: tuple[BaseElement, tuple[BaseElement, ...], tuple] | None
+    elements_properties: ElementsProperties | None
+    options: dict[str, Any] | None
     pattern_sequence: bool
-    location: Optional[Union[SourceRange, SourceRange2, MethodType]]
+    location: SourceRange | SourceRange2 | MethodType | None
 
     def __init__(
         self,
         head: BaseElement,
         *elements: BaseElement,
-        elements_properties: Optional[ElementsProperties] = None,
-        literal_values: Optional[tuple] = None,
+        elements_properties: ElementsProperties | None = None,
+        literal_values: tuple | None = None,
     ):
         self.options = None
         self.pattern_sequence = False
@@ -403,7 +403,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         self.location = None
 
         # self.copy creates this
-        self.original: Optional[Expression] = None
+        self.original: Expression | None = None
 
     def __getnewargs__(self):
         return (self._head, self._elements)
@@ -412,16 +412,12 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         return hash(("Expression", self._head) + tuple(self._elements))
 
     def __repr__(self) -> str:
-        return "<Expression: %s[%s]>" % (
-            repr(self.head),
-            ", ".join([repr(element) for element in self.elements]),
-        )
+        elements = ", ".join(repr(element) for element in self.elements)
+        return f"<Expression: {self.head!r}[{elements}]>"
 
     def __str__(self) -> str:
-        return "%s[%s]" % (
-            str(self.head),
-            ", ".join([str(element) for element in self.elements]),
-        )
+        elements = ", ".join(str(element) for element in self.elements)
+        return f"{self.head}[{elements}]"
 
     def _as_sympy_function(self, **kwargs):
         function_name = sympy_name(self.head)
@@ -539,24 +535,19 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             return False
 
         symbols = cache.symbols
-        if symbols is not None and symbol_name not in symbols:
-            return True
-        else:
-            return False
+        return bool(symbols is not None and symbol_name not in symbols)
 
     def _rebuild_cache(self):
         cache = self._cache
 
         if cache is None:
             time = None
-        elif cache.symbols is None:
-            time = cache.time
-        elif cache.sequences is None:
+        elif cache.symbols is None or cache.sequences is None:
             time = cache.time
         else:
             return cache
 
-        sym = set((self.get_head_name(),))
+        sym = {self.get_head_name()}
         seq = []
 
         for i, element in enumerate(self._elements):
@@ -625,7 +616,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         self._cache = None
         self._element_order_cache = None
 
-    def equal2(self, rhs: Any) -> Optional[bool]:
+    def equal2(self, rhs: Any) -> bool | None:
         """Mathics3 two-argument Equal (==)
         returns True if self and rhs are identical.
         """
@@ -660,7 +651,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     def evaluate(
         self,
         evaluation: Evaluation,
-    ) -> Optional[BaseElement]:
+    ) -> BaseElement | None:
         """
         Apply transformation rules and expression evaluation to ``evaluation`` via
         ``rewrite_apply_eval_step()`` until that method tells us to stop,
@@ -671,7 +662,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         if evaluation.timeout:
             return None
 
-        expr: Optional[BaseElement] = self
+        expr: BaseElement | None = self
         reevaluate = True
         limit = None
         iteration = 1
@@ -733,7 +724,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 evaluation.recursion_depth = recursion_depth
                 # And one more for the finally below
                 evaluation.inc_recursion_depth()
-                raise ret
+                raise
         finally:
             # Restores the state
             evaluation.options = old_options
@@ -775,7 +766,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         #    head = head.evaluate_elements(evaluation)
         return Expression(head, *elements)
 
-    def filter(self, head, cond, evaluation: Evaluation, count: Optional[int] = None):
+    def filter(self, head, cond, evaluation: Evaluation, count: int | None = None):
         # faster equivalent to: Expression(head, [element in self.elements if cond(element)])
         return structure(head, self, evaluation).filter(self, cond, count)
 
@@ -949,7 +940,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
     def get_option_values(
         self, evaluation: Evaluation, allow_symbols=False, stop_on_error=True
-    ) -> Optional[dict]:
+    ) -> dict | None:
         """
         Build a dictionary of options from an expression.
         For example, Symbol("Integrate").get_option_values(evaluation, allow_symbols=True)
@@ -959,7 +950,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             values = self.flatten_with_respect_to_head(SymbolList).elements
         else:
             values = [self]
-        option_values: dict[str, Union[str, BaseElement]] = {}
+        option_values: dict[str, str | BaseElement] = {}
         for option in values:
             symbol_name = option.get_name()
             if allow_symbols and symbol_name:
@@ -988,7 +979,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     # test/builtin/atomic/test_assignment.py and
     # ensuring we never use Expression(SymbolList, ...)
     # for ListExpression.
-    def get_rules_list(self) -> Optional[list]:
+    def get_rules_list(self) -> list | None:
         """
         If the expression is of the form {pat1->expr1,... {pat_2,expr2},...}
         return a (python) list of rules.
@@ -1055,6 +1046,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                    in Monomial's __cmp() for the reverse ordering when
                    comparing symbols in the monomial.
         """
+        exps: dict
         head = self._head
         numeric = is_numeric(self)
 
@@ -1228,7 +1220,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     def has_form(
         self,
         heads: Iterable[Symbol] | Symbol,
-        *element_counts: Optional[int],
+        *element_counts: int | None,
     ) -> bool:
         """
         element_counts:
@@ -1367,13 +1359,12 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     element = elements[index]
                     if not (
                         element.is_literal or element.has_form(SymbolUnevaluated, 1)
-                    ):
-                        if isinstance(element, EvalMixin):
-                            new_value = element.evaluate(evaluation)
-                            # We need id() because != by itself is too permissive
-                            if id(element) != id(new_value):
-                                recompute_properties = True
-                                elements[index] = new_value
+                    ) and isinstance(element, EvalMixin):
+                        new_value = element.evaluate(evaluation)
+                        # We need id() because != by itself is too permissive
+                        if id(element) != id(new_value):
+                            recompute_properties = True
+                            elements[index] = new_value
 
             # @timeit
             def rest_range(indices):
@@ -1383,24 +1374,25 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                         return
                     for index in indices:
                         element = elements[index]
-                        if not element.is_literal and element.has_form(
-                            SymbolEvaluate, 1
+                        if (
+                            not element.is_literal
+                            and element.has_form(SymbolEvaluate, 1)
+                            and isinstance(element, EvalMixin)
                         ):
-                            if isinstance(element, EvalMixin):
-                                new_value = element.evaluate(evaluation)
-                                # We need id() because != by itself is too permissive
-                                if id(new_value) != id(element):
-                                    elements[index] = new_value
-                                    recompute_properties = True
+                            new_value = element.evaluate(evaluation)
+                            # We need id() because != by itself is too permissive
+                            if id(new_value) != id(element):
+                                elements[index] = new_value
+                                recompute_properties = True
 
             if (A_HOLD_ALL | A_HOLD_ALL_COMPLETE) & attributes:
                 # eval_range(range(0, 0))
                 rest_range(range(len(elements)))
             elif A_HOLD_FIRST & attributes:
-                rest_range(range(0, min(1, len(elements))))
+                rest_range(range(min(1, len(elements))))
                 eval_range(range(1, len(elements)))
             elif A_HOLD_REST & attributes:
-                eval_range(range(0, min(1, len(elements))))
+                eval_range(range(min(1, len(elements))))
                 rest_range(range(1, len(elements)))
             else:
                 eval_range(range(len(elements)))
@@ -1686,14 +1678,14 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
     def round_to_float(
         self, evaluation=None, permit_complex=False
-    ) -> Optional[Union[float, complex]]:
+    ) -> float | complex | None:
         """
         Round to a Python float. Return None if rounding is not possible.
         This can happen if self or evaluation is NaN.
         """
 
         if evaluation is None:
-            value: Optional[BaseElement] = self
+            value: BaseElement | None = self
         elif isinstance(evaluation, sympy.core.numbers.NaN):
             return None
         else:
@@ -1794,7 +1786,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # If self.value is legitimately None, we'll
         # catch it further down.
         if hasattr(self, "value") and self.value is not None:
-            if self.value == tuple() and kwargs.get("prefer_dictionary"):
+            if self.value == () and kwargs.get("prefer_dictionary"):
                 return {}
             return self.value
 
@@ -2237,7 +2229,7 @@ def atom_list_constructor(evaluation, head, *atom_names):
 # Note: this function is called a *lot* so it needs to be fast.
 def convert_expression_elements(
     elements: Iterable, conversion_fn: Callable = from_python, is_uniform: bool = True
-) -> tuple[tuple, ElementsProperties, Optional[tuple]]:
+) -> tuple[tuple, ElementsProperties, tuple | None]:
     """
     Convert and return a tuple of Elements from the Python-like items in
     `elements`, along with elements properties of the elements tuple,
