@@ -43,7 +43,6 @@ import mathics.core.parser.operators
 import mathics.eval.tracing as tracing
 from mathics.core.atoms import (
     Integer,
-    Integer0,
     Integer1,
     IntegerM1,
     MachineReal,
@@ -429,6 +428,13 @@ class Builtin:
                 pattern = Expression(SymbolDefault, Symbol(name), Integer(spec))
             if pattern is not None:
                 defaults.append(RewriteRule(pattern, value))
+
+        # Options[f] lists options in the order they are stored, so keep the
+        # options of a Builtin sorted by name (in place: the option checker
+        # above holds this dict).
+        sorted_options = sorted(options.items())
+        options.clear()
+        options.update(sorted_options)
 
         definition = Definition(
             name=name,
@@ -1287,7 +1293,9 @@ class IterationFunction(Builtin, ABC):
                 return result
             return
 
-        index = Integer0
+        # The number of steps taken so far, kept in Python: evaluating
+        # Plus[index, 1] on each step costs more than the step test.
+        index = 0
         di = di.evaluate(evaluation)
 
         # (imax - imin) / di
@@ -1311,9 +1319,9 @@ class IterationFunction(Builtin, ABC):
         last_head = None
         is_uniform = True
         while True:
-            cont = Expression(SymbolLessEqual, index, normalised_range).evaluate(
-                evaluation
-            )
+            cont = Expression(
+                SymbolLessEqual, Integer(index), normalised_range
+            ).evaluate(evaluation)
             if cont is SymbolFalse:
                 break
             if cont is not SymbolTrue:
@@ -1328,9 +1336,11 @@ class IterationFunction(Builtin, ABC):
                     {
                         i.name: (
                             Expression(
-                                SymbolPlus, imin, Expression(SymbolTimes, di, index)
+                                SymbolPlus,
+                                imin,
+                                Expression(SymbolTimes, di, Integer(index)),
                             ).evaluate(evaluation)
-                            if index.value > 0
+                            if index > 0
                             else imin
                         )
                     },
@@ -1356,7 +1366,7 @@ class IterationFunction(Builtin, ABC):
                     return e.expr
                 else:
                     raise
-            index = Expression(SymbolPlus, index, Integer1).evaluate(evaluation)
+            index += 1
         return self.get_result(result, is_uniform=is_uniform)
 
     def eval_list(self, expr, i, items, evaluation):

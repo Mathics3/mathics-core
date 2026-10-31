@@ -17,7 +17,6 @@ from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolRule
 from mathics.eval.options.functions import (
     eval_CheckArguments,
     eval_CheckArguments_with_association,
-    options_to_rules,
 )
 from mathics.eval.options.options import eval_Option_with_names, eval_Options
 from mathics.eval.patterns import Matcher
@@ -465,10 +464,9 @@ class SetOptions(Builtin):
                 return None
             options_dict[option_symbol.name] = option_value
 
-        # Create and return a List with all of the options including
-        # the new updated ones.
-        options_list = options_to_rules(options_dict)
-        return ListExpression(*options_list)
+        # Return all of the options, the updated ones included, in their
+        # order.
+        return eval_Options(symbol, evaluation)
 
 
 ## FIXME add:
