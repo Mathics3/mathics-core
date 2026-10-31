@@ -72,7 +72,6 @@ import pytest
             "$Aborted",
             None,
         ),
-        ("ClearAll[f];", None, None, None),
         # $IterationLimit bounds one chain of rewrites, not the number of
         # times symbols are looked up during the whole evaluation.
         (
@@ -105,7 +104,6 @@ import pytest
             "15",
             None,
         ),
-        ("ClearAll[f];", None, None, None),
         # Release, the obsolete form of Evaluate
         ("x = 1 + 1; Release[x]", None, "2", None),
         (
@@ -163,6 +161,7 @@ def test_python_recursion_error_is_reclim():
         sys.setrecursionlimit(python_limit)
         session.evaluate("ClearAll[deep]; $RecursionLimit = 200")
 
+
 @pytest.mark.parametrize(
     "str_expr",
     [
@@ -180,4 +179,3 @@ def test_evaluate_timeout(str_expr):
     assert [m.text for m in result.out] == ["Timeout reached."]
     # The next evaluation has no limit left over.
     assert session.evaluate_as_in_cli("Length[Table[i, {i, 10}]]").result == "10"
->>>>>>> master
