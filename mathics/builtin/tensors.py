@@ -23,6 +23,7 @@ from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
 from mathics.core.builtin import Builtin, InfixOperator
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
+from mathics.core.symbols import SymbolList
 from mathics.eval.tensors import (
     eval_Inner,
     eval_LeviCivitaTensor,
@@ -337,6 +338,10 @@ class Transpose(Builtin):
     #> Clear[matrix, matrix3D, square]
     """
 
+    messages = {
+        "nmtx": "The first two levels of `1` cannot be transposed.",
+    }
+
     summary_text = "transpose to rearrange indices in any way"
 
     def eval(self, m, evaluation: Evaluation):
@@ -345,17 +350,16 @@ class Transpose(Builtin):
         if dimensions is None:
             return
         n = len(dimensions)
-        if not (0 <= n <= 3):
-            return
         if n < 2:
+            if any(element.has_form(SymbolList, None) for element in m.elements):
+                # Rows of different lengths, as in {{1, 2}, {3}}.
+                evaluation.message("Transpose", "nmtx", m)
+                return None
             # Transpose of a 0 or 1-dimensional tensor is itself.
             return m
-        if n == 3:
-            n_0 = dimensions[0]
-            if not all(sublist == n_0 for sublist in dimensions[1:]):
-                return
-        # FIXME: check 3D dimensions
-        return eval_Transpose(m, n)
+        # Transpose[m] exchanges the first two levels only: what lies below
+        # them, such as {{{1, 2}}, {a -> 1}} in each row, is kept as it is.
+        return eval_Transpose(m, 2)
 
 
 class ConjugateTranspose(Builtin):
