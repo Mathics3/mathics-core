@@ -303,6 +303,49 @@ class Range(Builtin):
         )
 
 
+def distinct_permutations(elements: tuple, length: int):
+    """Generate the permutations of `length` items of `elements` that differ
+    as lists, in the order their first occurrence has among the positional
+    permutations, as WMA's Permutations gives them.
+
+    Only distinct permutations are built: {1, 1, 1, 0, ..., 0} with 15
+    items has 455 of them, not 15!.
+    """
+    # Class of each element: the index of the first element SameQ to it.
+    classes = []
+    for i, element in enumerate(elements):
+        for j in range(i):
+            if classes[j] == j and elements[j].sameQ(element):
+                classes.append(j)
+                break
+        else:
+            classes.append(i)
+
+    if len(set(classes)) == len(elements):
+        yield from permutations(elements, length)
+        return
+
+    remaining = list(range(len(elements)))
+    chosen = []
+
+    def extend():
+        if len(chosen) == length:
+            yield tuple(elements[i] for i in chosen)
+            return
+        tried = set()
+        for k, i in enumerate(remaining):
+            if classes[i] in tried:
+                continue
+            tried.add(classes[i])
+            del remaining[k]
+            chosen.append(i)
+            yield from extend()
+            chosen.pop()
+            remaining.insert(k, i)
+
+    yield from extend()
+
+
 class Permutations(Builtin):
     """
     <url>
@@ -323,10 +366,10 @@ class Permutations(Builtin):
     >> Permutations[{y, 1, x}]
      = {{y, 1, x}, {y, x, 1}, {1, y, x}, {1, x, y}, {x, y, 1}, {x, 1, y}}
 
-    Elements are differentiated by their position in $list$, not their value.
+    Permutations that differ only by swapping equal elements are given once:
 
     >> Permutations[{a, b, b}]
-     = {{a, b, b}, {a, b, b}, {b, a, b}, {b, b, a}, {b, a, b}, {b, b, a}}
+     = {{a, b, b}, {b, a, b}, {b, b, a}}
 
     >> Permutations[{1, 2, 3}, 2]
      = {{}, {1}, {2}, {3}, {1, 2}, {1, 3}, {2, 1}, {2, 3}, {3, 1}, {3, 2}}
@@ -350,7 +393,10 @@ class Permutations(Builtin):
     def eval(self, li, evaluation: Evaluation):
         "Permutations[li_List]"
         return ListExpression(
-            *[ListExpression(*p) for p in permutations(li.elements, len(li.elements))],
+            *[
+                ListExpression(*p)
+                for p in distinct_permutations(li.elements, len(li.elements))
+            ],
         )
 
     def eval_n(self, li, n, evaluation: Evaluation):
@@ -381,7 +427,9 @@ class Permutations(Builtin):
         inner = structure("List", li, evaluation)
         outer = structure("List", inner, evaluation)
 
-        return outer([inner(p) for r in rs for p in permutations(li.elements, r)])
+        return outer(
+            [inner(p) for r in rs for p in distinct_permutations(li.elements, r)]
+        )
 
 
 class Reap(Builtin):
