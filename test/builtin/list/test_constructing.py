@@ -151,6 +151,9 @@ def test_table_fully_evaluated_at_creation():
 )
 def test_permutations_repeated_elements(str_expr, str_expected, failure_message):
     check_evaluation(str_expr, str_expected, failure_message)
+
+
+@pytest.mark.parametrize(
     ("str_expr", "expected_messages", "str_expected"),
     [
         ("Table[1, {2.6}]", None, "{1, 1}"),
