@@ -518,7 +518,7 @@ def test_extract_arg_errors():
         ),
         (
             "pa = Range[3]; pa[[2 ;; 5]] = 0; pa",
-            ("Part 4 of {1, 2, 3} does not exist.",),
+            ("Cannot take positions 2 through 5 in {1, 2, 3}.",),
             "{1, 2, 3}",
         ),
         # A negative position never reaches the head at position 0.
@@ -554,6 +554,69 @@ def test_extract_arg_errors():
         ),
         ("pa = Range[5]; pa[[-1 ;; 1 ;; -2]] = 0; pa", None, "{0, 2, 0, 4, 0}"),
         ("pa = Range[5]; pa[[4 ;; 2 ;; -1]] = {u, v, w}; pa", None, "{1, w, v, u, 5}"),
+        # A span that reaches past either end of the list is not assigned at
+        # all; one past the start never reaches the head at position 0.
+        (
+            "pa = Range[5]; pa[[-10 ;; -1]] = 0; pa",
+            ("Cannot take positions -10 through -1 in {1, 2, 3, 4, 5}.",),
+            "{1, 2, 3, 4, 5}",
+        ),
+        (
+            "pa = Range[5]; pa[[-6 ;; 2]] = pax; pa",
+            ("Cannot take positions -6 through 2 in {1, 2, 3, 4, 5}.",),
+            "{1, 2, 3, 4, 5}",
+        ),
+        (
+            "pa = Range[5]; pa[[2 ;; -9 ;; -1]] = 0; pa",
+            ("Cannot take positions 2 through -9 in {1, 2, 3, 4, 5}.",),
+            "{1, 2, 3, 4, 5}",
+        ),
+        (
+            "pa = Range[5]; pa[[-7 ;; -7]] = {}; pa",
+            ("Cannot take positions -7 through -7 in {1, 2, 3, 4, 5}.",),
+            "{1, 2, 3, 4, 5}",
+        ),
+        (
+            "pa = Range[5]; pa[[0 ;; 2]] = 0; pa",
+            ("Cannot take positions 0 through 2 in {1, 2, 3, 4, 5}.",),
+            "{1, 2, 3, 4, 5}",
+        ),
+        (
+            "pa = Range[5]; pa[[4 ;; 2]] = 0; pa",
+            ("Cannot take positions 4 through 2 in {1, 2, 3, 4, 5}.",),
+            "{1, 2, 3, 4, 5}",
+        ),
+        (
+            "pm = {{1, 2}, {3, 4}}; pm[[All, -5 ;; -1]] = 0; pm",
+            ("Cannot take positions -5 through -1 in {1, 2}.",),
+            "{{1, 2}, {3, 4}}",
+        ),
+        # An end left out or given as All is -1, also with a negative step.
+        (
+            "pa = Range[5]; pa[[;; ;; -1]] = {u, v, w, x, y}; pa",
+            ("Cannot take positions 1 through -1 in {1, 2, 3, 4, 5}.",),
+            "{1, 2, 3, 4, 5}",
+        ),
+        (
+            "pa = Range[5]; pa[[3 ;; All ;; -1]] = 0; pa",
+            ("Cannot take positions 3 through -1 in {1, 2, 3, 4, 5}.",),
+            "{1, 2, 3, 4, 5}",
+        ),
+        (
+            "pa = Range[5]; pa[[5 ;; 1 ;; -1]] = {ra, rb, rc, rd, re}; pa",
+            None,
+            "{re, rd, rc, rb, ra}",
+        ),
+        # A span next to the elements may select nothing.
+        ("pa = Range[5]; pa[[3 ;; 2]] = {}; pa", None, "{1, 2, 3, 4, 5}"),
+        ("pa = Range[5]; pa[[6 ;; All]] = {}; pa", None, "{1, 2, 3, 4, 5}"),
+        ("pa = Range[5]; pa[[1 ;; -6]] = 0; pa", None, "{1, 2, 3, 4, 5}"),
+        ("pa = Range[5]; pa[[5 ;; 6 ;; -1]] = {}; pa", None, "{1, 2, 3, 4, 5}"),
+        (
+            "pa = Range[5]; pa[[7 ;; 6]] = {}; pa",
+            ("Cannot take positions 7 through 6 in {1, 2, 3, 4, 5}.",),
+            "{1, 2, 3, 4, 5}",
+        ),
         # A part assigned a symbol is evaluated again once the symbol has a value.
         (
             "ClearAll[psx]; pa = {1, 2, 3}; pa[[2]] = psx; psx = 5; pa",
@@ -572,6 +635,18 @@ def test_extract_arg_errors():
             "pa = {{1, 2}, {3, 4}}; pb = pa; pb[[All, 1]] = 0; {pa, pb}",
             None,
             "{{{1, 2}, {3, 4}}, {{0, 2}, {0, 4}}}",
+        ),
+        # The row on the way to several parts is copied once, and the copy
+        # takes every one of them.
+        (
+            "pa = {{1, 2, 3}, {4}}; pb = pa; pb[[1, All]] = 0; {pa, pb}",
+            None,
+            "{{{1, 2, 3}, {4}}, {{0, 0, 0}, {4}}}",
+        ),
+        (
+            "pa = {{1, 2}, {3}}; pb = pa; pb[[1, {1, 2}]] = {pu, pv}; {pa, pb}",
+            None,
+            "{{{1, 2}, {3}}, {{pu, pv}, {3}}}",
         ),
         (
             "pkd[] := (pw = {1, {2}}; pw[[2, 1]] = 5; pw); "  # noqa: ISC004
