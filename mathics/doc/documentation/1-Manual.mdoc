@@ -1,11 +1,11 @@
 
 <chapter title="Introduction">
 
-\Mathics3 is a <url>:computer algebra system:https://en.wikipedia.org/wiki/Computer_algebra_system</url>. It is a free, open-source alternative to \Mathematica or the \Wolfram Language. However, \Mathics3 builds on the Python ecosystem of libraries and tools. So, in a sense, you can think of it as a WMA front end to the Python ecosystem of tools.
+\Mathics3 is a <url>:computer algebra system:https://en.wikipedia.org/wiki/Computer_algebra_system</url>. It is a free, open-source alternative to \Mathematica or the \Wolfram Language (WMA). However, \Mathics3 builds on the Python ecosystem of libraries and tools. So, in a sense, you can think of it as a WMA front end to the Python ecosystem of tools.
 
-\Mathics3 is free both as in "free beer", but more importantly, as in "freedom". \Mathics3 can be run locally. To facilitate installation of the vast amount of software needed to run this, there is a <url>:docker image available on dockerhub: https://hub.docker.com/r/mathicsorg/mathics</url>.
+\Mathics3 is free both as in "free beer", but more importantly, as in "freedom". \Mathics3 can be run locally or <url>:run via a browser hooked to the Internet with no local installation:https://mathics3.github.io/Mathics3-Frontend-live/</url>. However if you want to run locally with no Internet connection, to facilitate installation of the vast amount of software needed to run this, there is a <url>:docker image available on dockerhub: https://hub.docker.com/r/mathicsorg/mathics</url>.
 
-The programming language and built-in functions of \Mathics3 try to match the \Wolfram Language, which is continually evolving.
+The programming language and built-in functions of \Mathics3 try to match the \Wolfram Language, exactly down to how precision and accuracy are handled, the range of named characters and operators available pattern matching precedence. This is continually evolving. <i>However we also strive to for backward compatibility.</i>
 
 \Mathics3 is in no way affiliated or supported by \Wolfram. \Mathics3 will probably never have the power to compete with \Mathematica in industrial applications; it is a free alternative, though. It also invites community development at all levels.
 
@@ -13,18 +13,26 @@ See the <url>:installation instructions:https://mathics-development-guide.readth
 
 For implementation details, please refer to the <url>:Developers Guide:https://mathics-development-guide.readthedocs.io/en/latest</url>.
 
-<section title="Why recreate Wolfram Language?">
+<section title="Why recreate or duplicate the Wolfram Language?">
 \Mathematica is great, but it might have some disadvantages, depending on your point of view.
 
 <ul>
-  <li>It is not open source.
+  <li>It is not open source; the source code is not available for study.
   <li>Its development is tightly controlled and centralized, and as such
-  <li>It can't hook into different kinds of open-source packages that have independently developed algorithms and methods
+  <li>hooking into different kinds of open-source packages that have independently developed is harder and less controllable by developers
+  <li>Because \Wolfram Language is has no standard programming definition, implementation details can be sketchy and left vague: the "standard" is however it is that \Mathematica happens to work at the moment.
 </ul>
 
-However, even if you are willing to pay hundreds of dollars for the software, you would not be able to see what\'s going on "inside" the program if that is your interest. That\'s what free, open-source, and community-supported software is for!
+Even if you are willing to pay hundreds of dollars for the software, you are limited to see what\'s going on "inside" the program if that is your interest.
 
-\Mathics3 combines the beauty of \Mathematica implemented in an open-source environment written in Python. The Python ecosystem includes libraries and tools like:
+For example, I (rocky) have thought about writing a debugger for it, but I am limited in hooking into the lower level implementation which is needed to do a really good job. And historically that has been by design. Descriptions of the algorithms and internals of \Mathematica seem have been intentionally omitted. The explanation for this giving to the user is that this is not something the user should be concerned about. While this may be true for some or most users, there are those may want to know anyway.
+
+In contrast, \Mathics3 is transparent. If you want to experiment with different implementations or see how things are implemented and discuss different possibilities, we invite you do so! We even have taken pains to <i>describe</i> how things have been implemented. \
+See for example: <url>:'Precision and Accuracy':https://mathics-development-guide.readthedocs.io/en/latest/code-overview/precision-and-accuracy.html</url>
+
+If you have used \Mathematica to develop a large code base, you can maintain control of it and its functionality for as long as you choose to. If \Mathematica later subsumes the functionality into its system based on your original work (which has happened), we will still provide a way inside \Mathics3, to run your package.
+
+Because \Mathics3 is written in Python, it uses Python ecosystem libraries and tools like:
 
 <ul>
   <li><url>:mpmath: https://mpmath.org/</url> for floating-point arithmetic with arbitrary precision,
@@ -33,9 +41,10 @@ However, even if you are willing to pay hundreds of dollars for the software, yo
   <li><url>:SciPy: https://www.scipy.org/</url> for Scientific calculations.
 </ul>
 
-Performance of \Mathics3 is not, right now, fast in large-scale projects and calculations. With better use of NumPy arrays, and better compilation, we hope to ameliorate this in the future.
+And there are numerous libraries for handling Natural Language, Plotting, Graphics, Internationalizon and Unicode (ICU), and so on.
 
-However, right now \Mathics3 can be used as a tool for exploration and education and non-computationally intensive use. And \Mathics3 provides better debugging and tracing, since we can be completely transparent about every aspect of its operation.
+<i>Note added in 2026:</i>
+In retrospect \Mathics3 has been studend an most likely influenced a number of other excellent open-source \Mathematica implementations. And in turn \Mathics3 has been influenced by these. So even if you don't use \Mathics3 but one of the other great open-source \Mathematica alternatives, chances are you may be using some idea inspired by this code.
 
 </section>
 
@@ -51,17 +60,22 @@ Outside of the "core" \Mathics3 kernel (which has only a primitive command-line 
 <ul>
   <li>a <url>:command-line interface:https://pypi.org/project/mathicsscript/</url> using either <url>:prompt-toolkit:https://python-prompt-toolkit.readthedocs.io/en/master/</url>, or GNU Readline
   <li>a <url>:Django-based web server:https://pypi.org/project/Mathics-Django/</url>
-  <li>a <url>:A browser-based no-install online front-end:https://mathics3.github.io/Mathics3-live/</url>
+  <li>a <url>:A browser-based no-install online front-end:https://mathics3.github.io/Mathics3-Frontend-live/</url>
+  <li>a <url>:A Jupyter front-end:https://pypi.org/project/Mathics-Frontend-jupyter</url>
   <li>a <url>:Mathics3 module for Graphs:https://pypi.org/project/pymathics-graph/</url> (via <url>:NetworkX:https://networkx.org/</url>),
   <li>a <url>:Mathics3 module for NLP:https://pypi.org/project/pymathics-natlang/</url> (via <url>:nltk:https://www.nltk.org/</url>, <url>:spacy:https://spacy.io/</url>, and others)
   <li>a <url>:Mathics3 Debugger Module:https://pypi.org/project/Mathics3-trepan/</url> (experimental)
-  <li>a <url>:A docker container:https://hub.docker.com/r/mathicsorg/mathics</url> which bundles all of the above
+  <li>a <url>:A docker container:https://hub.docker.com/r/mathicsorg/mathics</url> which bundles many of the above
 </ul>
 
-In the future, we might provide better interaction with other Open-source projects like <url>:SageMath:https://www.sagemath.org/</url> and Open-source tools. For example, we might be able someday to read and write Jupyter notebooks, translate into pure SymPy and \Mathics3, or translate between SageMath object and \Mathics3 objects more seamlessly.
+We also provide better interaction with other Open-source projects like <url>:PassageMath:https://github.com/passagemath</url> and Open-source tools. For example, we might be able someday to read and write Jupyter notebooks, or roughly translate into fragments into pure SymPy.
 
+A couple of the notable Mathematica packages that work on \Mathics3
 
-A couple of the notable Mathematica packages that work on \Mathics3 are  <url>:Combinatorica :https://github.com/Mathics3/Mathics3-Combinatorica</url>,and <url>:Rubi:https://github.com/Mathics3/Mathics3-Package-Rubi/</url>.
+<ul>
+  <li><url>:Combinatorica:https://github.com/Mathics3/Mathics3-Package-Combinatorica</url>
+  <li><url>:Rubi:https://github.com/Mathics3/Mathics3-Package-Rubi/</url>
+</ul>
 
 
 </section>
@@ -287,8 +301,9 @@ A precision does not have to be a whole number of digits:
 As in the Wolfram Language, every arbitrary-precision number carries its error, and each computation works out the error of its result from the errors of its inputs. The rules are described below.
 
 See also <url>:Accuracy and precision: https://en.wikipedia.org/wiki/Accuracy_and_precision</url>.
+</section>
 
-<subsection title="Errors in Sums and Products">
+<section title="Errors in Sums and Products">
 In a sum the absolute errors add up, and in a product the relative errors add up. So the sum of a 20.3-digit number and a 30-digit number has a little more than 20.3 digits:
 
   >> Precision[1.5`20.3 + 3.2`30]
@@ -326,9 +341,9 @@ An exact '0' times an inexact number is an exact '0':
 
   >> 0 * 1.5`20
    = 0
-</subsection>
+</section>
 
-<subsection title="Errors in Functions">
+<section title="Errors in Functions">
 The relative error of 'f[x]' is the relative error of 'x' times the <em>condition number</em> 'Abs[x f'[x] / f[x]]'. A function can gain digits:
 
   >> Precision[Sqrt[1.5`20]]
@@ -372,9 +387,9 @@ An exact argument still gives an exact result:
 
   >> ArcTanh[1]
    = Infinity
-</subsection>
+</section>
 
-<subsection title="Complex Numbers">
+<section title="Complex Numbers">
 The real and imaginary parts of a complex number keep their own errors. The accuracy of the number combines the two errors, and its precision is that accuracy plus 'Log10' of the modulus:
 
   >> Precision[1.5`20.3 + 2.5`20.3 I]
@@ -387,9 +402,9 @@ A part can be much more precise than the other one. In 'Log[-1.`20]' the imagina
 
   >> Accuracy[Im[Log[-1.`20]]] - Accuracy[Re[Log[-1.`20]]]
    = 16.2556
-</subsection>
+</section>
 
-<subsection title="Machine Numbers">
+<section title="Machine Numbers">
 A machine number, such as '1.5', has no error to track. An expression that holds a machine number anywhere has machine precision:
 
   >> Precision[{1.5`10, 1.5}]
@@ -397,9 +412,9 @@ A machine number, such as '1.5', has no error to track. An expression that holds
 
   >> Precision[1.5`10 + 1.5]
    = MachinePrecision
-</subsection>
+</section>
 
-<subsection title="Numerical Evaluation with N">
+<section title="Numerical Evaluation with N">
 'N[expr, p]' gives a result with precision 'p'. When the digits of intermediate results are lost, 'N' evaluates again with more digits, up to <url>:'$MaxExtraPrecision': /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/representation-of-numbers/$maxextraprecision</url> more than 'p':
 
   >> Precision[N[Pi - 314159/100000, 20]]
@@ -417,9 +432,9 @@ A machine number, such as '1.5', has no error to track. An expression that holds
 
   >> N[{Pi, 1000 Pi}, {20, 3}]
    = {3.14, 3141.59}
-</subsection>
+</section>
 
-<subsection title="Setting the Precision">
+<section title="Setting the Precision">
 <url>:'SetPrecision': /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/representation-of-numbers/setprecision</url> gives the numbers in an expression a new precision. An inexact number keeps its binary value, so the digits of '0.1' past machine precision show:
 
   >> SetPrecision[0.1, 20]
@@ -439,7 +454,6 @@ The numbers are set first, and then the expression is evaluated, so an exact exp
 
   >> SetAccuracy[150.5, 20]
    = 150.5000000000000000000
-</subsection>
 </section>
 
 
@@ -1542,11 +1556,9 @@ It is not very sophisticated from a mathematical point of view, but it\'s beauti
 
 <chapter title="Django-based Web Interface">
 
-In the future, we plan on providing an interface to Jupyter as a separate package.
+Note: there is are rudimentary interfaces to <url>:Jupyter:https://pypi.org/project/mathics3-jupyter-kernel/</url> and <url>JupyterLight:https://pypi.org/project/mathics3-notebook-frontends/</url>.
 
-However, as part \Mathics3, we currently distribute a browser-based interface using long-term-release (LTS) Django 4.
-
-Since a Jupyter-based interface seems preferable to the home-grown interface described here, it is doubtful whether there will be future improvements to this interface.
+Historically the browser-based interface was written in Jupyter, based on the long-term-release (LTS) Django 4.
 
 When you enter Mathics3 in the top after the Mathics3 logo and the word "Mathics3" you'll see a <i>menubar</i>.
 
