@@ -1,10 +1,9 @@
-# -*- coding: utf-8 -*-
 """
 Module containing ListExpression
 """
 
 import reprlib
-from typing import Any, Optional, Tuple
+from typing import Any
 
 from mathics.core.element import ElementsProperties
 from mathics.core.evaluation import Evaluation
@@ -30,13 +29,13 @@ class ListExpression(Expression):
     """
 
     _is_literal: bool
-    _sympy: Optional[Any]
+    _sympy: Any | None
 
     def __init__(
         self,
         *elements,
-        elements_properties: Optional[ElementsProperties] = None,
-        literal_values: Optional[tuple] = None,
+        elements_properties: ElementsProperties | None = None,
+        literal_values: tuple | None = None,
     ):
         self.options = None
         self.pattern_sequence = False
@@ -106,13 +105,14 @@ class ListExpression(Expression):
         # Make tuple self._elements mutable by turning it into a list.
         elements = list(self._elements)
         for index, element in enumerate(self._elements):
-            if not element.has_form(SymbolUnevaluated, 1):
-                if isinstance(element, EvalMixin):
-                    new_value = element.evaluate(evaluation)
-                    # We need id() because != by itself is too permissive
-                    if new_value is not None and id(element) != id(new_value):
-                        elements_changed = True
-                        elements[index] = new_value
+            if not element.has_form(SymbolUnevaluated, 1) and isinstance(
+                element, EvalMixin
+            ):
+                new_value = element.evaluate(evaluation)
+                # We need id() because != by itself is too permissive
+                if new_value is not None and id(element) != id(new_value):
+                    elements_changed = True
+                    elements[index] = new_value
 
         if not elements_changed:
             return self
@@ -154,15 +154,15 @@ class ListExpression(Expression):
             self._is_literal = False
             self.value = None
         elif was_literal:
-            values = list(self.value)
+            values = list(self.value or ())
             values[index] = value.value
             self.value = tuple(values)
         else:
             # The element replaced may have been the only one not literal.
-            self._is_literal = all(element.is_literal for element in self._elements)
             self.value = (
-                tuple(element.value for element in self._elements)
-                if self._is_literal
+                tuple(vals)
+                if len(vals := [e.value for e in self._elements if hasattr(e, "value")])
+                == len(self._elements)
                 else None
             )
         if properties is not None:
@@ -185,7 +185,7 @@ class ListExpression(Expression):
         """
         return self._is_literal
 
-    def rewrite_apply_eval_step(self, evaluation) -> Tuple[Expression, bool]:
+    def rewrite_apply_eval_step(self, evaluation) -> tuple[Expression, bool]:
         """
         Perform a single rewrite/apply/eval step of the bigger
         Expression.evaluate() process.

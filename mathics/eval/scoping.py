@@ -18,15 +18,22 @@ def dynamic_scoping(func, vars, evaluation: Evaluation):
     Changes temporarily the value of a set of symbols listed in vars,
     and evaluates func(evaluation)
     """
+    # Evaluate the new values before any variable is changed: a value
+    # must not see the other variables, nor its own one, already reset.
+    # Resetting $RecursionLimit, for instance, would evaluate the value
+    # under the default limit.
+    new_values = {
+        var_name: None if new_def is None else new_def.evaluate(evaluation)
+        for var_name, new_def in vars.items()
+    }
     original_definitions = {}
-    for var_name, new_def in vars.items():
+    for var_name, new_def in new_values.items():
         assert fully_qualified_symbol_name(var_name)
         original_definitions[var_name] = evaluation.definitions.get_user_definition(
             var_name
         )
         evaluation.definitions.reset_user_definition(var_name)
         if new_def is not None:
-            new_def = new_def.evaluate(evaluation)
             evaluation.definitions.set_ownvalue(var_name, new_def)
     try:
         result = func(evaluation)
