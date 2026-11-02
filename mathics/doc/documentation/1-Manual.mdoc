@@ -1,30 +1,38 @@
 
 <chapter title="Introduction">
 
-\Mathics3 is a <url>:computer algebra system:https://en.wikipedia.org/wiki/Computer_algebra_system</url>. It is a free, open-source alternative to \Mathematica or the \Wolfram Language. However, \Mathics3 builds on the Python ecosystem of libraries and tools. So, in a sense, you can think of it as a WMA front end to the Python ecosystem of tools.
+\Mathics3 is a <url>:computer algebra system:https://en.wikipedia.org/wiki/Computer_algebra_system</url>. It is a free, open-source alternative to \Mathematica or the \Wolfram Language (WMA). However, \Mathics3 builds on the Python ecosystem of libraries and tools. So, in a sense, you can think of it as a WMA front end to the Python ecosystem of tools.
 
-\Mathics3 is free both as in "free beer", but more importantly, as in "freedom". \Mathics3 can be run locally. To facilitate installation of the vast amount of software needed to run this, there is a <url>:docker image available on dockerhub: https://hub.docker.com/r/mathicsorg/mathics</url>.
+\Mathics3 is free both as in "free beer", but more importantly, as in "freedom". \Mathics3 can be run locally, installed via <url>:Python's package install mechanism:https://pypi.org/project/Mathics3/</url>, or from <url>:GitHub Source:https://Mathics3.github.com/mathics-core</url> or <url>:run from your browser hooked to the Internet:https://mathics3.github.io/Mathics3-Frontend-live/</url> with no local installation. And if you want to run locally with no Internet connection, to facilitate installation of the vast amount of software needed to get the full experience, there is a <url>:docker image available on dockerhub: https://hub.docker.com/r/mathicsorg/mathics</url>.
 
-The programming language and built-in functions of \Mathics3 try to match the \Wolfram Language, which is continually evolving.
+The programming language and built-in functions of \Mathics3 try to match the \Wolfram Language, exactly down to how precision and accuracy are handled, the range of named characters and operators available, and pattern matching precedence. This is continually evolving. <i>However, we also strive for backward compatibility.</i>
 
-\Mathics3 is in no way affiliated or supported by \Wolfram. \Mathics3 will probably never have the power to compete with \Mathematica in industrial applications; it is a free alternative, though. It also invites community development at all levels.
+\Mathics3 is in no way affiliated or supported by Wolfram Research. \Mathics3 will probably never have the power to compete with \Mathematica in industrial applications. Instead, it is a free alternative that invites community development at all levels.
 
 See the <url>:installation instructions:https://mathics-development-guide.readthedocs.io/en/latest/installing.html</url> for the most recent instructions for installing from PyPI, or the source.
 
 For implementation details, please refer to the <url>:Developers Guide:https://mathics-development-guide.readthedocs.io/en/latest</url>.
 
-<section title="Why recreate Wolfram Language?">
+<section title="Why recreate or duplicate the Wolfram Language?">
 \Mathematica is great, but it might have some disadvantages, depending on your point of view.
 
 <ul>
-  <li>It is not open source.
+  <li>It is not open source; the source code is not available for study.
   <li>Its development is tightly controlled and centralized, and as such
-  <li>It can't hook into different kinds of open-source packages that have independently developed algorithms and methods
+  <li>hooking into different kinds of open-source packages that have been independently developed is harder and less controllable by developers
+  <li>Because \Wolfram Language is has no standard programming definition, implementation details can be sketchy and left vague: the "standard" is, however, that \Mathematica happens to work at the moment.
 </ul>
 
-However, even if you are willing to pay hundreds of dollars for the software, you would not be able to see what\'s going on "inside" the program if that is your interest. That\'s what free, open-source, and community-supported software is for!
+Even if you are willing to pay hundreds of dollars for the software, you are limited in seeing what\'s going on "inside" the program if that is your interest.
 
-\Mathics3 combines the beauty of \Mathematica implemented in an open-source environment written in Python. The Python ecosystem includes libraries and tools like:
+For example, I (rocky) have thought about writing a debugger for it, but I would be limited in hooking into the lower-level implementation, which is needed to do a really good job. And historically that is intentional. Descriptions of the algorithms and internals of \Mathematica seem have been intentionally omitted. The explanation for this given to the user is that this is not something the user should be concerned about. While this may be true for some or most users, there are those who may want to know anyway.
+
+In contrast, \Mathics3 is transparent. If you want to experiment with different implementations or see how things are implemented and discuss different possibilities, we invite you do so! We even have taken pains to <i>describe</i> how things have been implemented. \
+See for example: <url>:'Precision and Accuracy':https://mathics-development-guide.readthedocs.io/en/latest/code-overview/precision-and-accuracy.html</url>
+
+If you have used \Mathematica to develop a large code base, you can maintain control of it and its functionality for as long as you choose to. If \Mathematica later subsumes the functionality into its system based on your original work (which has happened), we will still provide a way inside \Mathics3, to run your package.
+
+Because \Mathics3 is written in Python, it uses Python\'s ecosystem libraries and tools including:
 
 <ul>
   <li><url>:mpmath: https://mpmath.org/</url> for floating-point arithmetic with arbitrary precision,
@@ -33,15 +41,16 @@ However, even if you are willing to pay hundreds of dollars for the software, yo
   <li><url>:SciPy: https://www.scipy.org/</url> for Scientific calculations.
 </ul>
 
-Performance of \Mathics3 is not, right now, fast in large-scale projects and calculations. With better use of NumPy arrays, and better compilation, we hope to ameliorate this in the future.
+And there are numerous libraries for handling Natural Language, Plotting, Graphics, Internationalization and Unicode (ICU), and so on.
 
-However, right now \Mathics3 can be used as a tool for exploration and education and non-computationally intensive use. And \Mathics3 provides better debugging and tracing, since we can be completely transparent about every aspect of its operation.
+<i>Note added in 2026:</i>
+In retrospect, \Mathics3 has likely influenced several other excellent open-source \Mathematica implementations. And in turn, \Mathics3 has been influenced by these. So even if you don't use \Mathics3 but one of the other great open-source \Mathematica alternatives, chances are you may be using some idea inspired by this code.
 
 </section>
 
 <section title="What does \Mathics3 offer?">
 
-Because \Mathics3 is compatible with the Wolfram-Language kernel within the confines of the Python ecosystem, it is a powerful functional \
+Because \Mathics3 is compatible with the Wolfram Language kernel within the confines of the Python ecosystem, it is a powerful functional \
 programming language, driven by pattern matching and rule application.
 
 Primitive types include rationals, complex numbers, and arbitrary-precision numbers (courtesy of <url>:mpmath: https://mpmath.org/</url>). Other primitive types, such as images or graphs, or NLP, come from the various Python libraries that \Mathics3 uses.
@@ -51,17 +60,25 @@ Outside of the "core" \Mathics3 kernel (which has only a primitive command-line 
 <ul>
   <li>a <url>:command-line interface:https://pypi.org/project/mathicsscript/</url> using either <url>:prompt-toolkit:https://python-prompt-toolkit.readthedocs.io/en/master/</url>, or GNU Readline
   <li>a <url>:Django-based web server:https://pypi.org/project/Mathics-Django/</url>
-  <li>a <url>:A browser-based no-install online front-end:https://mathics3.github.io/Mathics3-live/</url>
+  <li>a <url>:A browser-based no-install online front-end:https://mathics3.github.io/Mathics3-Frontend-live/</url>
+  <li>a <url>:A Jupyter front-end:https://pypi.org/project/Mathics-Frontend-jupyter</url>
   <li>a <url>:Mathics3 module for Graphs:https://pypi.org/project/pymathics-graph/</url> (via <url>:NetworkX:https://networkx.org/</url>),
   <li>a <url>:Mathics3 module for NLP:https://pypi.org/project/pymathics-natlang/</url> (via <url>:nltk:https://www.nltk.org/</url>, <url>:spacy:https://spacy.io/</url>, and others)
   <li>a <url>:Mathics3 Debugger Module:https://pypi.org/project/Mathics3-trepan/</url> (experimental)
-  <li>a <url>:A docker container:https://hub.docker.com/r/mathicsorg/mathics</url> which bundles all of the above
+  <li>a <url>:A docker container:https://hub.docker.com/r/mathicsorg/mathics</url> which bundles many of the above
 </ul>
 
-In the future, we might provide better interaction with other Open-source projects like <url>:SageMath:https://www.sagemath.org/</url> and Open-source tools. For example, we might be able someday to read and write Jupyter notebooks, translate into pure SymPy and \Mathics3, or translate between SageMath object and \Mathics3 objects more seamlessly.
+We also provide better interaction with other Open-source projects like <url>:PassageMath:https://github.com/passagemath</url> and Open-source tools. For example, we might be able someday to read and write Jupyter notebooks, or roughly translate fragments into pure SymPy.
 
+Some of the \Mathematica packages that work on \Mathics3 include:
 
-A couple of the notable Mathematica packages that work on \Mathics3 are  <url>:Combinatorica :https://github.com/Mathics3/Mathics3-Combinatorica</url>,and <url>:Rubi:https://github.com/Mathics3/Mathics3-Package-Rubi/</url>.
+<ul>
+  <li><url>:Combinatorica:https://github.com/Mathics3/Mathics3-Package-Combinatorica</url>, by Steve Skienna, et. al.
+  <li><url>:Rubi:https://github.com/Mathics3/Mathics3-Package-Rubi/</url>, the Rule Based Integrator by Albert Rich, et. al.
+  <li><url>Toda:https://github.com/Mathics3/Mathics3-Package-Toda/</url>, Unstable homotopy groups of spheres, by Neil Strickland
+</ul>
+
+In some cases not everything works correctly, but we are striving to get full coverage. Nonetheless \Mathics3 coverage and accuracy is probably the best among the current open-source \Mathematica lookalikes.
 
 
 </section>
@@ -75,7 +92,7 @@ A <url>:docker image of the v.9 release: https://hub.docker.com/r/arkadi/mathics
 
 Around 2017, the project was largely abandoned in its largely Python 2.7 state, with some support for Python 3.2-3.5 via six.
 
-Subsequently, around mid-2020, it was picked up by the current developers and the project was renamed from \Mathics to \Mathics3. A list of authors and contributors can be found in the <url>:AUTHORS.txt:https://github.com/Mathics3/mathics-core/blob/master/AUTHORS.txt</url> file.
+Subsequently, around mid-2020, it was picked up by the current developers, and the project was renamed from \Mathics to \Mathics3. A list of authors and contributors can be found in the <url>:AUTHORS.txt:https://github.com/Mathics3/mathics-core/blob/master/AUTHORS.txt</url> file.
 </section>
 
 <section title="What is missing?">
@@ -85,7 +102,7 @@ However, many WMA Built-in functions have not been implemented. To get a list ru
 
 <console>   git grep -n "# TODO: " mathics/builtin</console>
 
-from the Mathics3 core <url>:github repository: https://github.com/Mathics3/mathics-core/blob/master/AUTHORS.txt</url>.
+from the Mathics3 core <url>:GitHub repository: https://github.com/Mathics3/mathics-core/blob/master/AUTHORS.txt</url>.
 
 We have a tutorial for <url>:adding new Mathics3 functions: https://mathics-development-guide.readthedocs.io/en/latest/extending/developing-code/extending/tutorial.html</url>.
 
@@ -118,6 +135,8 @@ If you Google for "Mathematica Tutorials", you will find dozens of other tutoria
 
 I (Rocky Bernstein) like <i>"Power Programming with the \Mathematica: the Kernel"</i> by David Wagner. Even though this is old, and the book covers \Mathematica 3, it has a lot of useful information that is still relevant. A PDF of this is available <url>:here:https://www.dropbox.com/s/j2dsyvptnxjd369/Wagner%20All%20Parts-RC.pdf</url>. Wolfram's "The \Mathematica Book, Fifth Edition" is useful. If you google for this book, you can probably find a PDF of it for free.
 
+Another tutorial for a similar open-source \Mathematica lookalike is Stephen Blake's <url>:Mathilda tutorial:https://stblake.github.io/mathilda/tutorials/</url>. The Implementation of various builtin functions is also described.
+
 
 Online, there is <url>:An Elementary Introduction to the Wolfram Language:https://www.wolfram.com/language/elementary-introduction/</url>. In the <url>:docker image:https://hub.docker.com/r/mathicsorg/mathics</url> that we supply, you can load "workspaces" containing the examples described in the chapters of this introduction.
 
@@ -129,7 +148,7 @@ Be warned, though, that \Mathics3 does not yet offer the full range of features 
   >> 1 + 2
   = 3
 
-To submit a command to \Mathics3, press 'Shift+Return' in the Web interface or 'Return' in the console interface. The result will be printed in a new line below your query.
+To submit a command to \Mathics3, press 'Shift+Return' in the Web interface or 'Return' in the console interface. The result will be printed on a new line below your query.
 
 The result of the previous query to \Mathics can be accessed by '%':
 
@@ -175,7 +194,7 @@ As you can see, functions are applied using square braces '[' and ']', in contra
   >> Cos[0.5]
   = 0.877583
 
-When entering floating point numbers in your query, \Mathics3 will perform a numerical evaluation and present a numerical result, pretty much like if you had applied 'N'.
+When entering floating-point numbers in your query, \Mathics3 will perform a numerical evaluation and present a numerical result, pretty much like if you had applied 'N'.
 
 Of course, \Mathics3 has complex numbers:
   >> Sqrt[-4]
@@ -233,8 +252,10 @@ There is also the value, <url>:'Indeterminate':/doc/reference-of-built-in-symbol
  : Indeterminate expression 0 ^ 0 encountered.
    = Indeterminate
 
+<!-- FIXME: the below end section tag will get moved when to encompass the next two sections after we ditch this crappy homegrown HTML/XML stuff -->
 </section>
 
+<!-- FIXME: this should be a subsection -->
 <section title="Precision and Accuracy">
 
 \Mathics3 handles relative and absolute uncertainty in numerical quantities. The <em>precision</em> or relative accuracy is set by adding a RawBackquote character ('`') and the number of digits of precision in the mantissa. For example:
@@ -287,9 +308,10 @@ A precision does not have to be a whole number of digits:
 As in the Wolfram Language, every arbitrary-precision number carries its error, and each computation works out the error of its result from the errors of its inputs. The rules are described below.
 
 See also <url>:Accuracy and precision: https://en.wikipedia.org/wiki/Accuracy_and_precision</url>.
+</section>
 
-<subsection title="Errors in Sums and Products">
-In a sum the absolute errors add up, and in a product the relative errors add up. So the sum of a 20.3-digit number and a 30-digit number has a little more than 20.3 digits:
+<section title="Errors in Sums and Products">
+In a sum, the absolute errors add up, and in a product the relative errors add up. So the sum of a 20.3-digit number and a 30-digit number has a little more than 20.3 digits:
 
   >> Precision[1.5`20.3 + 3.2`30]
    = 20.796
@@ -326,9 +348,9 @@ An exact '0' times an inexact number is an exact '0':
 
   >> 0 * 1.5`20
    = 0
-</subsection>
+</section>
 
-<subsection title="Errors in Functions">
+<section title="Errors in Functions">
 The relative error of 'f[x]' is the relative error of 'x' times the <em>condition number</em> 'Abs[x f'[x] / f[x]]'. A function can gain digits:
 
   >> Precision[Sqrt[1.5`20]]
@@ -347,7 +369,7 @@ Close to a zero of the function, many digits are lost:
   >> Precision[Log[1.0000001`20]]
    = 13.
 
-When the value is a zero, the error is how much 'f' changes within the error of 'x':
+When the value is zero, the error is how much 'f' changes within the error of 'x':
 
   >> Log[1.`20]
    = 0.×10^-20
@@ -372,9 +394,9 @@ An exact argument still gives an exact result:
 
   >> ArcTanh[1]
    = Infinity
-</subsection>
+</section>
 
-<subsection title="Complex Numbers">
+<section title="Complex Numbers">
 The real and imaginary parts of a complex number keep their own errors. The accuracy of the number combines the two errors, and its precision is that accuracy plus 'Log10' of the modulus:
 
   >> Precision[1.5`20.3 + 2.5`20.3 I]
@@ -387,9 +409,9 @@ A part can be much more precise than the other one. In 'Log[-1.`20]' the imagina
 
   >> Accuracy[Im[Log[-1.`20]]] - Accuracy[Re[Log[-1.`20]]]
    = 16.2556
-</subsection>
+</section>
 
-<subsection title="Machine Numbers">
+<section title="Machine Numbers">
 A machine number, such as '1.5', has no error to track. An expression that holds a machine number anywhere has machine precision:
 
   >> Precision[{1.5`10, 1.5}]
@@ -397,9 +419,9 @@ A machine number, such as '1.5', has no error to track. An expression that holds
 
   >> Precision[1.5`10 + 1.5]
    = MachinePrecision
-</subsection>
+</section>
 
-<subsection title="Numerical Evaluation with N">
+<section title="Numerical Evaluation with N">
 'N[expr, p]' gives a result with precision 'p'. When the digits of intermediate results are lost, 'N' evaluates again with more digits, up to <url>:'$MaxExtraPrecision': /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/representation-of-numbers/$maxextraprecision</url> more than 'p':
 
   >> Precision[N[Pi - 314159/100000, 20]]
@@ -417,9 +439,10 @@ A machine number, such as '1.5', has no error to track. An expression that holds
 
   >> N[{Pi, 1000 Pi}, {20, 3}]
    = {3.14, 3141.59}
-</subsection>
+</section>
 
-<subsection title="Setting the Precision">
+<!-- FIXME: this should be a subsection -->
+<section title="Setting the Precision">
 <url>:'SetPrecision': /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/representation-of-numbers/setprecision</url> gives the numbers in an expression a new precision. An inexact number keeps its binary value, so the digits of '0.1' past machine precision show:
 
   >> SetPrecision[0.1, 20]
@@ -439,12 +462,11 @@ The numbers are set first, and then the expression is evaluated, so an exact exp
 
   >> SetAccuracy[150.5, 20]
    = 150.5000000000000000000
-</subsection>
 </section>
 
 
 <section title="Symbols and Assignments">
-Symbols need not be declared in \Mathics3, they can just be entered and remain variable:
+A symbol need not be declared in \Mathics3; it can just be entered and remain a variable:
   >> x
   = x
 Basic simplifications are performed:
@@ -499,7 +521,7 @@ Values can be compared for equality using the operator '==':
   >> 3 == 4
    = False
 
-The special symbols 'True' and 'False' are used to denote truth values. Naturally, there are inequality comparisons as well:
+The special symbols 'True' and 'False' denote truth values. Naturally, there are inequality comparisons as well:
 
   >> 3 > 4
   = False
@@ -579,7 +601,7 @@ The number of elements of a list can be determined with 'Length':
   >> Length[mylist]
   = 4
 
-Elements can be extracted using double square braces:
+Elements can be extracted using double square brackets:
   >> mylist[[3]]
   = c
 
@@ -634,7 +656,7 @@ Lists can be used to assign values to multiple variables at once:
   >> b
   = 2
 
-Operations like addition and multiplication, "thread" over lists; lists are combined element-wise:
+Operations like addition and multiplication "thread" over lists; lists are combined element-wise:
 
   >> {1, 2, 3} + {4, 5, 6}
   = {5, 7, 9}
@@ -650,7 +672,7 @@ It is an error to combine lists with unequal lengths:
 </section>
 
 <section title="The Structure of \Mathics3 Objects">
-Every expression in \Mathics3 is built upon the same principle: it consists of a <em>head</em> and an arbitrary number of <em>children</em>, unless it is an <em>atom</em>, i.e., it can not be subdivided any further. To put it another way: everything is a function call. This can be best seen when displaying expressions in their "full form":
+Every expression in \Mathics3 is built upon the same principle: it consists of a <em>head</em> and an arbitrary number of <em>children</em>, unless it is an <em>atom</em>, i.e., it can not be subdivided any further. Put another way: everything is a function call. This can be best seen when displaying expressions in their "full form":
 
   >> FullForm[a + b + c]
   = Plus[a, b, c]
@@ -691,7 +713,7 @@ The head of an expression can be exchanged using the function 'Apply':
   >> Times @@ {1, 2, 3, 4}
   = 24
 
-(This exchanges the head 'List' of '{1, 2, 3, 4}' with 'Times', and then the expression 'Times[1, 2, 3, 4]' is evaluated, yielding 24.)
+(This exchanges the head 'List' of '{1, 2, 3, 4}' with 'Times'; then the expression 'Times[1, 2, 3, 4]' is evaluated, yielding 24.)
 'Apply' can also be applied on a certain <em>level</em> of an expression:
 
   >> Apply[f, {{1, 2}, {3, 4}}, {1}]
@@ -826,7 +848,7 @@ This is useful when the right side of a rule should not be evaluated immediately
   >> {1, 2} /. x_Integer -> N[x]
   = {1, 2}
 
-Here, 'N' is applied to 'x' before the actual matching, simply yielding 'x'. With a delayed rule, this can be avoided:
+Here, 'N' is applied to 'x' before matching, yielding 'x'. With a delayed rule, this can be avoided:
   >> {1, 2} /. x_Integer :> N[x]
   = {1., 2.}
 
@@ -846,7 +868,7 @@ In addition to defining functions as rules for certain patterns, there are <em>p
   >> h[3]
   = 9
 
-Multiple arguments can simply be indexed:
+Multiple arguments can be indexed:
   >> sum = #1 + #2 &;
   >> sum[4, 6]
   = 10
@@ -928,7 +950,7 @@ A rule with the same left-hand side as an earlier one replaces it:
   >> Sort[{b, "s", f[x], 2, a, 1.5, {1}, 1/2}]
    = {1 / 2, 1.5, 2, s, a, b, f[x], {1}}
 
-Strings and symbols are ordered without regard to case first; where they differ only in case, lower case comes first:
+Strings and symbols are ordered without regard to case first; where they differ only in case, lowercase comes first:
 
   >> Sort[{"ab", "Ab", "AB", "b", "B", "a"}]
    = {a, ab, Ab, AB, b, B}
@@ -1036,7 +1058,7 @@ Both scoping constructs shield inner variables from affecting outer ones:
   >> Block[{x = 2}, x * y]
    = 16
 
-Thus, 'Block' can be used to temporarily assign a value to a variable:
+Thus, 'Block' temporarily assigns a value to a variable:
   >> expr = x ^ 2 + x;
   >> Block[{x = 3}, expr]
   = 12
@@ -1044,7 +1066,7 @@ Thus, 'Block' can be used to temporarily assign a value to a variable:
   >> x
   = x
 
-'Block' can also be used to temporarily change the value of system parameters:
+'Block' temporarily changes the value of system parameters:
 
   >> Block[{$RecursionLimit = 30}, x = 2 x]
   : Recursion depth of 30 exceeded.
@@ -1142,14 +1164,14 @@ In the browser, this will even apply to 'TeXForm', because 'TeXForm' implies 'Tr
   >> b // TeXForm
   = ...
 
-Notice however that in the CLI, default output formatted in 'OutputForm',
-which do not take into account 'MakeBoxes' rules. The same happens if we
+Notice, however, that in the CLI, default output is formatted in 'OutputForm',
+which does not take into account 'MakeBoxes' rules. The same happens if we
 ask explicitly for this form:
 
   >> b // OutputForm // TeXForm
   = \text{b}
 
-In a similar way, in the CLI, we can ask for TraditionalForm explicitly
+Similarly, in the CLI, we can ask for TraditionalForm explicitly
   >> b // TraditionalForm // TeXForm
   = c
 
@@ -1245,7 +1267,7 @@ Two-dimensional graphics can be created using the function 'Graphics' and a list
 
   <dd>draws a line.
   <dt>'Text'[$text$, {$x$, $y$}]
-  <dd>draws text in a graphics.
+  <dd>draws text near the graphic image.
 </dl>
 
   >> Graphics[{Circle[{0, 0}, 1]}]
@@ -1254,7 +1276,7 @@ Two-dimensional graphics can be created using the function 'Graphics' and a list
   >> Graphics[{Line[{{0, 0}, {0, 1}, {1, 1}, {1, -1}}], Rectangle[{0, 0}, {-1, -1}]}]
   = -Graphics-
 
-Colors can be added in the list of graphics primitives to change the drawing color. The following ways to specify colors are supported:
+Colors can be added to the list of graphics primitives to change the drawing color. The following ways to specify colors are supported:
 <dl>
   <dt>'RGBColor'[$r$, $g$, $b$]
   <dd>specifies a color using red, green, and blue.
@@ -1364,7 +1386,7 @@ The derivatives are:
   >> {f'[x], f''[x], f'''[x]} // Together
    = {-4 (-5 + x ^ 2) / (5 + 3 x + x ^ 2) ^ 2, 8 (-15 - 15 x + x ^ 3) / (5 + 3 x + x ^ 2) ^ 3, -24 (-20 - 60 x - 30 x ^ 2 + x ^ 4) / (5 + 3 x + x ^ 2) ^ 4}
 
-To get the extreme values of 'f', compute the zeroes of the first derivatives:
+To get the extreme values of 'f', compute the zeroes of the first derivative:
   >> extremes = Solve[f'[x] == 0, x]
    = {{x ⇾ -Sqrt[5]}, {x ⇾ Sqrt[5]}}
 
@@ -1484,7 +1506,7 @@ A dice object shall be displayed as a rectangle with the given number of points 
     .
     . Format[Dice[n_Integer ? (1 <= #1 <= 6&)], TraditionalForm] = Block[{p = 0.2, r = 0.05}, Graphics[{EdgeForm[Black], White, Rectangle[], Black, EdgeForm[], If[OddQ[n], Disk[{0.5, 0.5}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{p, p}, r]], If[MemberQ[{2, 3, 4, 5, 6}, n], Disk[{1 - p, 1 - p}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{p, 1 - p}, r]], If[MemberQ[{4, 5, 6}, n], Disk[{1 - p, p}, r]], If[n === 6, {Disk[{p, 0.5}, r], Disk[{1 - p, 0.5}, r]}]}, ImageSize -> Tiny]]
 
-The empty series of dice shall be displayed as an empty dice:
+The empty series of dice shall be displayed as an empty die:
   >> Format[Dice[]] := Graphics[{EdgeForm[Black], White, Rectangle[]}, ImageSize -> Tiny]
   >> Dice[]
    = -Graphics-
@@ -1542,13 +1564,11 @@ It is not very sophisticated from a mathematical point of view, but it\'s beauti
 
 <chapter title="Django-based Web Interface">
 
-In the future, we plan on providing an interface to Jupyter as a separate package.
+Note: there is are rudimentary interfaces to <url>:Jupyter:https://pypi.org/project/mathics3-jupyter-kernel/</url> and <url>JupyterLight:https://pypi.org/project/mathics3-notebook-frontends/</url>.
 
-However, as part \Mathics3, we currently distribute a browser-based interface using long-term-release (LTS) Django 4.
+Historically, the browser-based interface was written in Jupyter, based on the long-term release (LTS) Django 4.
 
-Since a Jupyter-based interface seems preferable to the home-grown interface described here, it is doubtful whether there will be future improvements to this interface.
-
-When you enter Mathics3 in the top after the Mathics3 logo and the word "Mathics3" you'll see a <i>menubar</i>.
+When you enter Mathics3 in the top after the Mathics3 logo and the word "Mathics3," you'll see a <i>menubar</i>.
 
 It looks like this:
 
@@ -1576,7 +1596,7 @@ Assuming you are running locally or on a host called 'localhost' using the defau
     <li>customizable system settings
   </ul>
   <dt><url>http://localhost:8000/doc</url>
-  <dd>An online formatted version of the documentation, which includes this text. You can see this as a right-side frame of the main page, when clicking "?" on the right-hand upper corner.
+  <dd>An online formatted version of the documentation, which includes this text. You can see this as a right-side frame of the main page when clicking "?" in the upper-right corner.
 </dl>
 </section>
 <section title="Saving, Loading, and Deleting Worksheets">
@@ -1587,15 +1607,15 @@ Worksheets exist in the browser window only and are not stored on the server by 
 
 <img src="save-button.png" title="Mathics3 Save Button" label="save-button">
 
-Depending on browser, desktop, and OS settings, the "Ctrl+S" key combination may do the same thing.
+Depending on the browser, desktop, and OS settings, the "Ctrl+S" key combination may do the same thing.
 
 <subsection title="Loading and Deleting Worksheets">
 
-Saved worksheets can be loaded or deleted using the <em>File Open</em> button, which is the left-most button in the menu bar. It looks like this:
+Saved worksheets can be loaded or deleted using the <em>File Open</em> button, which is the leftmost button in the menu bar. It looks like this:
 
 <img src="file-open-button.png" title="Mathics3 File Open Button" label="file-open-button">
 
-Depending on browser, desktop, and OS settings, the "Ctrl+O" key combination may do the same thing.
+Depending on the browser, desktop, and OS settings, the "Ctrl+O" key combination may do the same thing.
 
 A pop-up menu should appear with the list of saved worksheets, with an option to either load or delete the worksheet.
 
@@ -1645,7 +1665,7 @@ There are some keyboard commands you can use in the Django-based Web interface o
   <dd>This moves the cursor over to the documentation pane on the right-hand side. From here you can perform a search for a pre-defined \Mathics3 function or symbol. Clicking on the "?" symbol on the right-hand side does the same thing.</dd>
 
   <dt>'Ctrl+C'</dt>
-  <dd>This moves the cursor back to the document code pane area where you type \Mathics3 expressions    </dd>
+  <dd>This moves the cursor back to the document code pane area where you type a \Mathics3 expression. </dd>
 
   <dt>'Ctrl+S'</dt>
   <dd>Save worksheet</dd>
@@ -1653,7 +1673,7 @@ There are some keyboard commands you can use in the Django-based Web interface o
   <dt>'Ctrl+O'</dt>
   <dd>Open worksheet</dd>
 
-  <dt>'Right Click' on MathML output</dt>
+  <dt>'Right-click' on MathML output</dt>
   <dd>Opens MathJax Menu</dd>
 </dl>
 
