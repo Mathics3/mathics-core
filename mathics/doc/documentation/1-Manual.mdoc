@@ -252,10 +252,8 @@ There is also the value, <url>:'Indeterminate':/doc/reference-of-built-in-symbol
  : Indeterminate expression 0 ^ 0 encountered.
    = Indeterminate
 
-  ## FIXME: the below end section tag will get moved when to encompass the next two sections after we ditch this crappy homegrown HTML/XML stuff
 </section>
 
-  ## FIXME: this should be a subsection
 <section title="Precision and Accuracy">
 
 \Mathics3 handles relative and absolute uncertainty in numerical quantities. The <em>precision</em> or relative accuracy is set by adding a RawBackquote character ('`') and the number of digits of precision in the mantissa. For example:
@@ -308,9 +306,8 @@ A precision does not have to be a whole number of digits:
 As in the Wolfram Language, every arbitrary-precision number carries its error, and each computation works out the error of its result from the errors of its inputs. The rules are described below.
 
 See also <url>:Accuracy and precision: https://en.wikipedia.org/wiki/Accuracy_and_precision</url>.
-</section>
 
-<section title="Errors in Sums and Products">
+<subsection title="Errors in Sums and Products">
 In a sum, the absolute errors add up, and in a product the relative errors add up. So the sum of a 20.3-digit number and a 30-digit number has a little more than 20.3 digits:
 
   >> Precision[1.5`20.3 + 3.2`30]
@@ -348,9 +345,9 @@ An exact '0' times an inexact number is an exact '0':
 
   >> 0 * 1.5`20
    = 0
-</section>
+</subsection>
 
-<section title="Errors in Functions">
+<subsection title="Errors in Functions">
 The relative error of 'f[x]' is the relative error of 'x' times the <em>condition number</em> 'Abs[x f'[x] / f[x]]'. A function can gain digits:
 
   >> Precision[Sqrt[1.5`20]]
@@ -394,9 +391,9 @@ An exact argument still gives an exact result:
 
   >> ArcTanh[1]
    = Infinity
-</section>
+</subsection>
 
-<section title="Complex Numbers">
+<subsection title="Complex Numbers">
 The real and imaginary parts of a complex number keep their own errors. The accuracy of the number combines the two errors, and its precision is that accuracy plus 'Log10' of the modulus:
 
   >> Precision[1.5`20.3 + 2.5`20.3 I]
@@ -409,9 +406,9 @@ A part can be much more precise than the other one. In 'Log[-1.`20]' the imagina
 
   >> Accuracy[Im[Log[-1.`20]]] - Accuracy[Re[Log[-1.`20]]]
    = 16.2556
-</section>
+</subsection>
 
-<section title="Machine Numbers">
+<subsection title="Machine Numbers">
 A machine number, such as '1.5', has no error to track. An expression that holds a machine number anywhere has machine precision:
 
   >> Precision[{1.5`10, 1.5}]
@@ -419,9 +416,9 @@ A machine number, such as '1.5', has no error to track. An expression that holds
 
   >> Precision[1.5`10 + 1.5]
    = MachinePrecision
-</section>
+</subsection>
 
-<section title="Numerical Evaluation with N">
+<subsection title="Numerical Evaluation with N">
 'N[expr, p]' gives a result with precision 'p'. When the digits of intermediate results are lost, 'N' evaluates again with more digits, up to <url>:'$MaxExtraPrecision': /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/representation-of-numbers/$maxextraprecision</url> more than 'p':
 
   >> Precision[N[Pi - 314159/100000, 20]]
@@ -439,10 +436,9 @@ A machine number, such as '1.5', has no error to track. An expression that holds
 
   >> N[{Pi, 1000 Pi}, {20, 3}]
    = {3.14, 3141.59}
-</section>
+</subsection>
 
-<!-- FIXME: this should be a subsection -->
-<section title="Setting the Precision">
+<subsection title="Setting the Precision">
 <url>:'SetPrecision': /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/representation-of-numbers/setprecision</url> gives the numbers in an expression a new precision. An inexact number keeps its binary value, so the digits of '0.1' past machine precision show:
 
   >> SetPrecision[0.1, 20]
@@ -462,6 +458,7 @@ The numbers are set first, and then the expression is evaluated, so an exact exp
 
   >> SetAccuracy[150.5, 20]
    = 150.5000000000000000000
+</subsection>
 </section>
 
 

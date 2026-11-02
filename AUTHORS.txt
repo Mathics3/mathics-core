@@ -9,7 +9,7 @@ Up until around 2017, it was maintained by:
 
 Currently, it is maintained by the Mathics3 Team
 
-Additional contributions were made by:
+Contributions were made by (in alphabetal order by GitHub handle):
 
 - Mingye Wang @Arthur2e5
 - Ali Abbas @alouche
@@ -21,23 +21,24 @@ Additional contributions were made by:
 - Josh Chen @jaycech3n
 - Yingjie Lan @lanyjie
 - @limeblack
-- Martin Portman @mportman
 - Mauricio Matera @mmatera
 - Marek Šuppa @mrshu
-- Marco Savelli @Piruzzolo
 - Toshiyuki Ogura @ogra
+- Marco Savelli @Piruzzolo
+- Martin Portman @mportman
+- Kevin Cao @kejcao
+- Li Xiang @Li-Xiang-Ideal
 - Bernhard Liebl @poke1024
 - @proxy-sander
 - Andrew Murray @radarhere
 - Jim Radford @radford
-- Timothy Cyrus @tcyrus
 - Wolf Vollprecht @wolfv
 - Сухарик @suhr
 - Pablo Emilio Escobar Gaviria @GarkGarcia
 - Rocky Bernstein @rocky
+- Timothy Cyrus @tcyrus
 - Tiago Cavalcante Trindade @TiagoCavalcante
-- Li Xiang @Li-Xiang-Ideal
-- Kevin Cao @kejcao
+- Slava Davydov @tombouctou
 
 Thanks to the authors of all projects that are used in Mathics:
 - Django
