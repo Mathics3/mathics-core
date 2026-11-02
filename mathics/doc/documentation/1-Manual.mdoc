@@ -3,7 +3,7 @@
 
 \Mathics3 is a <url>:computer algebra system:https://en.wikipedia.org/wiki/Computer_algebra_system</url>. It is a free, open-source alternative to \Mathematica or the \Wolfram Language (WMA). However, \Mathics3 builds on the Python ecosystem of libraries and tools. So, in a sense, you can think of it as a WMA front end to the Python ecosystem of tools.
 
-\Mathics3 is free both as in "free beer", but more importantly, as in "freedom". \Mathics3 can be run locally, installed via <url>:Python's package install mechanism:https://pypi.org/project/Mathics3/</url>, or from <url>:GitHub Source:https://Mathics3.github.com/mathics-core</url> or <url>:run from your browser hooked to the Internet:https://mathics3.github.io/Mathics3-Frontend-live/</url> with no local installation. And if you want to run locally with no Internet connection, to facilitate installation of the vast amount of software needed to get the full experience, there is a <url>:docker image available on dockerhub: https://hub.docker.com/r/mathicsorg/mathics</url>.
+\Mathics3 is free both as in "free beer", but more importantly, as in "freedom". \Mathics3 can be run locally, installed via <url>:Python's package install mechanism:https://pypi.org/project/Mathics3/</url>, or from <url>:GitHub Source:https://github.com/Mathics3/mathics-core</url> or <url>:run from your browser hooked to the Internet:https://mathics3.github.io/Mathics3-Frontend-live/</url> with no local installation. And if you want to run locally with no Internet connection, to facilitate installation of the vast amount of software needed to get the full experience, there is a <url>:docker image available on dockerhub: https://hub.docker.com/r/mathicsorg/mathics</url>.
 
 The programming language and built-in functions of \Mathics3 try to match the \Wolfram Language, exactly down to how precision and accuracy are handled, the range of named characters and operators available, and pattern matching precedence. This is continually evolving. <i>However, we also strive for backward compatibility.</i>
 
@@ -20,14 +20,14 @@ For implementation details, please refer to the <url>:Developers Guide:https://m
   <li>It is not open source; the source code is not available for study.
   <li>Its development is tightly controlled and centralized, and as such
   <li>hooking into different kinds of open-source packages that have been independently developed is harder and less controllable by developers
-  <li>Because \Wolfram Language is has no standard programming definition, implementation details can be sketchy and left vague: the "standard" is, however, that \Mathematica happens to work at the moment.
+  <li>Because \Wolfram Language has no standard programming definition, implementation details can be sketchy and left vague: the "standard" is however \Mathematica happens to work at the moment.
 </ul>
 
 Even if you are willing to pay hundreds of dollars for the software, you are limited in seeing what\'s going on "inside" the program if that is your interest.
 
-For example, I (rocky) have thought about writing a debugger for it, but I would be limited in hooking into the lower-level implementation, which is needed to do a really good job. And historically that is intentional. Descriptions of the algorithms and internals of \Mathematica seem have been intentionally omitted. The explanation for this given to the user is that this is not something the user should be concerned about. While this may be true for some or most users, there are those who may want to know anyway.
+For example, I (rocky) have thought about writing a debugger for it, but I would be limited in hooking into the lower-level implementation, which is needed to do a really good job. And historically that is intentional. Descriptions of the algorithms and internals of \Mathematica seem to have been intentionally omitted. The explanation for this given to the user is that this is not something the user should be concerned about. While this may be true for some or most users, there are those who may want to know anyway.
 
-In contrast, \Mathics3 is transparent. If you want to experiment with different implementations or see how things are implemented and discuss different possibilities, we invite you do so! We even have taken pains to <i>describe</i> how things have been implemented. \
+In contrast, \Mathics3 is transparent. If you want to experiment with different implementations or see how things are implemented and discuss different possibilities, we invite you to do so! We even have taken pains to <i>describe</i> how things have been implemented. \
 See for example: <url>:'Precision and Accuracy':https://mathics-development-guide.readthedocs.io/en/latest/code-overview/precision-and-accuracy.html</url>
 
 If you have used \Mathematica to develop a large code base, you can maintain control of it and its functionality for as long as you choose to. If \Mathematica later subsumes the functionality into its system based on your original work (which has happened), we will still provide a way inside \Mathics3, to run your package.
@@ -44,7 +44,7 @@ Because \Mathics3 is written in Python, it uses Python\'s ecosystem libraries an
 And there are numerous libraries for handling Natural Language, Plotting, Graphics, Internationalization and Unicode (ICU), and so on.
 
 <i>Note added in 2026:</i>
-In retrospect, \Mathics3 has likely influenced several other excellent open-source \Mathematica implementations. And in turn, \Mathics3 has been influenced by these. So even if you don't use \Mathics3 but one of the other great open-source \Mathematica alternatives, chances are you may be using some idea inspired by this code.
+In retrospect, \Mathics3 has likely influenced several other excellent open-source \Mathematica implementations. And in turn, \Mathics3 has been influenced by these. So even if you don't use \Mathics3 but one of the other great open-source \Mathematica alternatives, chances are you may be using some idea inspired by this code or by an idea from one of the other open source implementations.
 
 </section>
 
@@ -61,21 +61,21 @@ Outside of the "core" \Mathics3 kernel (which has only a primitive command-line 
   <li>a <url>:command-line interface:https://pypi.org/project/mathicsscript/</url> using either <url>:prompt-toolkit:https://python-prompt-toolkit.readthedocs.io/en/master/</url>, or GNU Readline
   <li>a <url>:Django-based web server:https://pypi.org/project/Mathics-Django/</url>
   <li>a <url>:A browser-based no-install online front-end:https://mathics3.github.io/Mathics3-Frontend-live/</url>
-  <li>a <url>:A Jupyter front-end:https://pypi.org/project/Mathics-Frontend-jupyter</url>
+  <li>a <url>:A Jupyter front-end:https://pypi.org/project/mathics3-jupyter-kernel/</url>
   <li>a <url>:Mathics3 module for Graphs:https://pypi.org/project/pymathics-graph/</url> (via <url>:NetworkX:https://networkx.org/</url>),
   <li>a <url>:Mathics3 module for NLP:https://pypi.org/project/pymathics-natlang/</url> (via <url>:nltk:https://www.nltk.org/</url>, <url>:spacy:https://spacy.io/</url>, and others)
   <li>a <url>:Mathics3 Debugger Module:https://pypi.org/project/Mathics3-trepan/</url> (experimental)
   <li>a <url>:A docker container:https://hub.docker.com/r/mathicsorg/mathics</url> which bundles many of the above
 </ul>
 
-We also provide better interaction with other Open-source projects like <url>:PassageMath:https://github.com/passagemath</url> and Open-source tools. For example, we might be able someday to read and write Jupyter notebooks, or roughly translate fragments into pure SymPy.
+We also provide better interaction with other Open-source projects like <url>:PassageMath:https://github.com/passagemath</url> and Open-source tools. For example, we might be able someday to roughly translate fragments into pure SymPy.
 
 Some of the \Mathematica packages that work on \Mathics3 include:
 
 <ul>
-  <li><url>:Combinatorica:https://github.com/Mathics3/Mathics3-Package-Combinatorica</url>, by Steve Skienna, et. al.
-  <li><url>:Rubi:https://github.com/Mathics3/Mathics3-Package-Rubi/</url>, the Rule Based Integrator by Albert Rich, et. al.
-  <li><url>Toda:https://github.com/Mathics3/Mathics3-Package-Toda/</url>, Unstable homotopy groups of spheres, by Neil Strickland
+  <li><url>:Combinatorica:https://github.com/Mathics3/Mathics3-Package-Combinatorica</url>, by Steve Skiena, et al.
+  <li><url>:Rubi:https://github.com/Mathics3/Mathics3-Package-Rubi/</url>, the Rule Based Integrator by Albert Rich, et al.
+  <li><url>:Toda:https://github.com/Mathics3/Mathics3-Package-Toda/</url>, Unstable homotopy groups of spheres, by Neil Strickland
 </ul>
 
 In some cases not everything works correctly, but we are striving to get full coverage. Nonetheless \Mathics3 coverage and accuracy is probably the best among the current open-source \Mathematica lookalikes.
@@ -102,7 +102,7 @@ However, many WMA Built-in functions have not been implemented. To get a list ru
 
 <console>   git grep -n "# TODO: " mathics/builtin</console>
 
-from the Mathics3 core <url>:GitHub repository: https://github.com/Mathics3/mathics-core/blob/master/AUTHORS.txt</url>.
+from the Mathics3 core <url>:GitHub repository: https://github.com/Mathics3/mathics-core/</url>.
 
 We have a tutorial for <url>:adding new Mathics3 functions: https://mathics-development-guide.readthedocs.io/en/latest/extending/developing-code/extending/tutorial.html</url>.
 
@@ -252,10 +252,10 @@ There is also the value, <url>:'Indeterminate':/doc/reference-of-built-in-symbol
  : Indeterminate expression 0 ^ 0 encountered.
    = Indeterminate
 
-<!-- FIXME: the below end section tag will get moved when to encompass the next two sections after we ditch this crappy homegrown HTML/XML stuff -->
+  ## FIXME: the below end section tag will get moved when to encompass the next two sections after we ditch this crappy homegrown HTML/XML stuff
 </section>
 
-<!-- FIXME: this should be a subsection -->
+  ## FIXME: this should be a subsection
 <section title="Precision and Accuracy">
 
 \Mathics3 handles relative and absolute uncertainty in numerical quantities. The <em>precision</em> or relative accuracy is set by adding a RawBackquote character ('`') and the number of digits of precision in the mantissa. For example:
@@ -1564,9 +1564,9 @@ It is not very sophisticated from a mathematical point of view, but it\'s beauti
 
 <chapter title="Django-based Web Interface">
 
-Note: there is are rudimentary interfaces to <url>:Jupyter:https://pypi.org/project/mathics3-jupyter-kernel/</url> and <url>JupyterLight:https://pypi.org/project/mathics3-notebook-frontends/</url>.
+Note: there are rudimentary interfaces to <url>:Jupyter:https://pypi.org/project/mathics3-jupyter-kernel/</url> and <url>:JupyterLite:https://pypi.org/project/mathics3-notebook-frontends/</url>.
 
-Historically, the browser-based interface was written in Jupyter, based on the long-term release (LTS) Django 4.
+Historically, the browser-based interface was written in Jupyter. Currently this is based on the long-term release (LTS) of Django, version 4.x.
 
 When you enter Mathics3 in the top after the Mathics3 logo and the word "Mathics3," you'll see a <i>menubar</i>.
 
