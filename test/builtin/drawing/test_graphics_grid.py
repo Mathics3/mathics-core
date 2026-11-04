@@ -6,10 +6,9 @@ Insets, and the rendering of a graphic inset into a graphic.
 
 import re
 import xml.dom.minidom
+from test.helper import check_evaluation, session
 
 import pytest
-
-from test.helper import check_evaluation, session
 
 
 @pytest.mark.parametrize(
