@@ -1,0 +1,71 @@
+{
+    "$schema": "https://fundingjson.org/schema/v1.1.0.json",
+    "version": "v1.1.0",
+    "entity": {
+        "type": "individual",
+        "role": "maintainer",
+        "name": "R. Bernstein",
+        "email": "TODO-maintainer-email@example.org",
+        "phone": "",
+        "description": "Lead maintainer of Mathics3, a free, open-source implementation of the Wolfram Language (Mathematica) kernel written in Python.",
+        "webpageUrl": {
+            "url": "https://github.com/rocky",
+            "wellKnown": ""
+        }
+    },
+    "projects": [
+        {
+            "guid": "mathics-core",
+            "name": "Mathics3 (mathics-core)",
+            "description": "Mathics3 is a free, general-purpose computer algebra system implementing the Wolfram Language, an alternative to Mathematica. mathics-core contains the parser, the evaluator and the built-in functions, and is the base of the Mathics3 front ends (command line, Django web interface, Jupyter kernel). It is used in teaching, for running Wolfram Language code without a proprietary licence, and as a reference implementation of the language.",
+            "webpageUrl": {
+                "url": "https://mathics.org",
+                "wellKnown": "https://mathics.org/.well-known/funding-manifest-urls"
+            },
+            "repositoryUrl": {
+                "url": "https://github.com/Mathics3/mathics-core",
+                "wellKnown": ""
+            },
+            "licenses": ["spdx:GPL-3.0-or-later"],
+            "tags": ["mathematics", "computer-algebra", "symbolic-computation", "programming-language", "education", "python"]
+        },
+        {
+            "guid": "mathics3-scanner",
+            "name": "Mathics3 Scanner",
+            "description": "The tokenizer and the tables of named characters and operators of the Wolfram Language, shared by Mathics3 and other tools that read Wolfram Language code.",
+            "webpageUrl": {
+                "url": "https://mathics.org",
+                "wellKnown": "https://mathics.org/.well-known/funding-manifest-urls"
+            },
+            "repositoryUrl": {
+                "url": "https://github.com/Mathics3/Mathics3-scanner",
+                "wellKnown": ""
+            },
+            "licenses": ["spdx:GPL-3.0-or-later"],
+            "tags": ["mathematics", "parser", "programming-language", "python"]
+        }
+    ],
+    "funding": {
+        "channels": [
+            {
+                "guid": "github-sponsors",
+                "type": "payment-provider",
+                "address": "https://github.com/sponsors/rocky",
+                "description": "GitHub Sponsors, as in .github/FUNDING.yml."
+            }
+        ],
+        "plans": [
+            {
+                "guid": "maintenance",
+                "status": "active",
+                "name": "Maintenance and development",
+                "description": "Maintainer time for reviewing contributions, releases, fixing defects and keeping up with the Wolfram Language.",
+                "amount": 0,
+                "currency": "USD",
+                "frequency": "yearly",
+                "channels": ["github-sponsors"]
+            }
+        ],
+        "history": []
+    }
+}
