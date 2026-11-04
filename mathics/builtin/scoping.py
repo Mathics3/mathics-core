@@ -525,7 +525,11 @@ class Module(Builtin):
         for name, new_def in scoping_vars:
             new_name = "%s$%d" % (name, number)
             if new_def is not None:
-                evaluation.definitions.set_ownvalue(new_name, new_def.copy())
+                # The value is shared, as with x = value: what changes a
+                # variable's value (Part assignment, AppendTo, ...) makes a
+                # new one and leaves the old one as it was. A copy cost as
+                # much as the value is large, at every Module call.
+                evaluation.definitions.set_ownvalue(new_name, new_def)
             replace[name] = Symbol(new_name)
         new_expr = expr.replace_vars(replace)
         result = new_expr.evaluate(evaluation)
