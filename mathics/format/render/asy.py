@@ -419,6 +419,8 @@ add_render_function(Graphics3DElements)
 
 def inset_box(box: InsetBox, **options) -> str:
     """Asymptote formatting for boxing an Inset in a graphic."""
+    if box.is_graphics:
+        return inset_graphics_box(box, **options)
     x, y = box.pos.pos()
 
     alignment = "SW"
@@ -440,6 +442,59 @@ def inset_box(box: InsetBox, **options) -> str:
     asy = f"""// InsetBox
 label("${content}$", ({x},{y}), align={alignment}, {pen});\n"""
     return asy
+
+
+def inset_graphics_box(box: InsetBox, **options) -> str:
+    """
+    Asymptote for a graphic inset in a graphic: its elements are drawn into
+    a picture of their own, which is then added scaled into the rectangle
+    of the inset, keeping its aspect ratio and centered there.
+    """
+    from mathics.format.box.graphics import prepare_elements as prepare_elements2d
+
+    inner = box.content
+    fields = prepare_elements2d(inner, inner.content, {}, max_width=450)
+    if len(fields) == 2:
+        elements, calc_dimensions = fields
+    else:
+        elements, calc_dimensions = fields[0], fields[-2]
+    dimensions = calc_dimensions()
+    xmin, xmax, ymin, ymax = dimensions[:4]
+    # As in the LaTeX rendering of a GraphicsBox.
+    elements.view_width = dimensions[4] if len(dimensions) == 8 else dimensions[-2]
+
+    drawing = "\n".join(
+        lookup_method(element, "asy")(element) for element in elements.elements
+    )
+
+    # The rectangle of the inset, in the coordinates of the enclosing
+    # picture (y upwards): lower left corner (x0, y0).
+    _, _, width, height = box.graphics_rect()
+    px, py = box.pos.pos()
+    if box.opos_scaled is not None:
+        ax, ay = box.opos_scaled
+    else:
+        ax, ay = (box.opos[0] + 1) / 2.0, (box.opos[1] + 1) / 2.0
+    x0, y0 = px - ax * width, py - ay * height
+
+    inner_width, inner_height = xmax - xmin, ymax - ymin
+    if inner_width <= 0 or inner_height <= 0:
+        return "// InsetBox: empty graphic\n"
+    scale = min(width / inner_width, height / inner_height)
+    dx = x0 + (width - scale * inner_width) / 2.0
+    dy = y0 + (height - scale * inner_height) / 2.0
+
+    return f"""// InsetBox: graphic
+{{
+picture saved = currentpicture;
+currentpicture = new picture;
+{drawing}
+clip(box(({asy_number(xmin)},{asy_number(ymin)}), ({asy_number(xmax)},{asy_number(ymax)})));
+picture inset = currentpicture;
+currentpicture = saved;
+add(shift({asy_number(dx)},{asy_number(dy)})*scale({asy_number(scale)})*shift({asy_number(-xmin)},{asy_number(-ymin)})*inset);
+}}
+"""
 
 
 add_render_function(InsetBox, inset_box)

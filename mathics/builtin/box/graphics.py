@@ -35,6 +35,8 @@ from mathics.core.list import ListExpression
 from mathics.core.rules import is_rule
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
+    SymbolGraphics,
+    SymbolImageScaled,
     SymbolInsetBox,
     SymbolList,
     SymbolRegularPolygonBox,
@@ -595,6 +597,32 @@ class FilledCurveBox(GraphicsElementBox):
         return result
 
 
+def _natural_size(content) -> Optional[tuple]:
+    """
+    The size in pixels that a Graphics inset without a size takes: its
+    numeric ImageSize (and AspectRatio), or None.
+    """
+    if not content.has_form(SymbolGraphics, None):
+        return None
+    options = {
+        element.elements[0].get_name(): element.elements[1]
+        for element in content.elements[1:]
+        if is_rule(element)
+    }
+    image_size = options.get("System`ImageSize")
+    if image_size is None:
+        return None
+    if image_size.has_form(SymbolList, 2):
+        width, height = (x.round_to_float() for x in image_size.elements)
+        return (width, height) if width and height else None
+    width = image_size.round_to_float()
+    if not width:
+        return None
+    aspect_ratio = options.get("System`AspectRatio")
+    aspect = aspect_ratio.round_to_float() if aspect_ratio is not None else None
+    return (width, width * aspect) if aspect else (width, width)
+
+
 class InsetBox(GraphicsElementBox):
     # We have no documentation for this (yet).
     no_doc = True
@@ -627,8 +655,15 @@ class InsetBox(GraphicsElementBox):
         self.opacity = opacity
         self.alignment = alignment
 
+        # Inset[obj, pos, opos, size]: the size of obj in the coordinates
+        # of the enclosing graphic, and the point opos of obj, given as
+        # ImageScaled[{a, b}] (fractions of its width and height), placed
+        # at pos.
+        self.size = None
+        self.opos_scaled = None
+        self.natural_size = None
         if item is not None:
-            if len(item.elements) not in (1, 2, 3):
+            if len(item.elements) not in (1, 2, 3, 4):
                 raise BoxExpressionError
             content = item.elements[0]
             self.content = format_element(
@@ -638,10 +673,16 @@ class InsetBox(GraphicsElementBox):
                 self.pos = Coords(graphics, item.elements[1])
             else:
                 self.pos = Coords(graphics, pos=(0, 0))
+            self.opos = (0, 0)
             if len(item.elements) > 2:
-                self.opos = coords(item.elements[2])
-            else:
-                self.opos = (0, 0)
+                opos_expr = item.elements[2]
+                if opos_expr.has_form(SymbolImageScaled, 1):
+                    self.opos_scaled = coords(opos_expr.elements[0])
+                else:
+                    self.opos = coords(opos_expr)
+            if len(item.elements) > 3:
+                self.size = coords(item.elements[3])
+            self.natural_size = _natural_size(content)
         else:
             self.content = content
             self.pos = pos
@@ -651,9 +692,51 @@ class InsetBox(GraphicsElementBox):
         #    self.content = self.content.atom_to_boxes(
         #        SymbolStandardForm, evaluation=self.graphics.evaluation
         #    )
-        self.content_text = self.content.to_text(evaluation=self.graphics.evaluation)
+        if self.is_graphics:
+            self.content_text = ""
+        else:
+            self.content_text = self.content.to_text(
+                evaluation=self.graphics.evaluation
+            )
+
+    @property
+    def is_graphics(self) -> bool:
+        """True if the inset is itself a graphic (a GraphicsBox)."""
+        return isinstance(self.content, GraphicsBox)
+
+    def graphics_rect(self) -> tuple:
+        """
+        For a graphic inset: (x, y, width, height) of the rectangle it is
+        drawn in, in the pixel coordinates of the enclosing graphic, with
+        (x, y) its upper left corner. Without a size in the Inset, the
+        graphic has its own ImageSize, or 100 pixels: the same size when
+        the extent of the enclosing graphic is worked out and when it is
+        drawn.
+        """
+        natural_size = self.natural_size
+        px, py = self.pos.pos()
+        if self.size is not None and self.pos.p is not None:
+            x0, y0 = self.pos.p
+            corner = Coords(
+                self.graphics, pos=(x0 + self.size[0], y0 + self.size[1])
+            ).pos()
+            width, height = abs(corner[0] - px), abs(corner[1] - py)
+        elif natural_size is not None:
+            width, height = natural_size
+        else:
+            width = height = 100.0
+        if self.opos_scaled is not None:
+            ax, ay = self.opos_scaled
+        else:
+            # opos given as {x, y} in -1..1, as for text: {0, 0} is the center.
+            ax, ay = (self.opos[0] + 1) / 2.0, (self.opos[1] + 1) / 2.0
+        # Pixel y grows downwards, scaled y upwards.
+        return px - ax * width, py - (1 - ay) * height, width, height
 
     def extent(self):
+        if self.is_graphics:
+            x, y, w, h = self.graphics_rect()
+            return [(x, y), (x + w, y + h)]
         p = self.pos.pos()
         h = 25
         w = len(self.content_text) * 7  # rough approximation by numbers of characters
