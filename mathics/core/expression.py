@@ -1747,6 +1747,12 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # this is a minimal, shallow copy: head, elements are shared with
         # the original, only the Expression instance is new.
 
+        # Work out the elements' properties on the original, once, rather
+        # than on each copy: a variable's value is copied on every read,
+        # and for a long list that costs as much as the list is long.
+        if self.elements_properties is None:
+            self._build_elements_properties()
+
         expr = Expression(
             self._head, *self._elements, elements_properties=self.elements_properties
         )
@@ -1989,10 +1995,22 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         if not vars:  # might just be a symbol set via set[] we looked up here
             return self.shallow_copy()
 
-        return Expression(
-            self._head.replace_vars(vars, options=options),
-            *[element.replace_vars(vars, options=options) for element in elements],
-        )
+        head = self._head.replace_vars(vars, options=options)
+        new_elements = [
+            element.replace_vars(vars, options=options) for element in elements
+        ]
+        # When no variable occurs in this subexpression, keep it as it is:
+        # a copy would lose what is known about it (elements_properties),
+        # so that a value substituted into a loop body, e.g. a list passed
+        # to a function that runs a Module or While over it, would be
+        # evaluated element by element again on every pass.
+        if (
+            elements is self._elements
+            and head is self._head
+            and all(new is old for new, old in zip(new_elements, elements))
+        ):
+            return self
+        return Expression(head, *new_elements)
 
     def replace_slots(self, slots, evaluation):
         """
