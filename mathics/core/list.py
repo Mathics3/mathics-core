@@ -241,7 +241,7 @@ class ListExpression(Expression):
         # once on the original rather than on every copy of it.
         if self.elements_properties is None:
             self._build_elements_properties()
-        return ListExpression(
+        expr = ListExpression(
             *self._elements,
             elements_properties=self.elements_properties,
             literal_values=self.value if self._is_literal else None,
