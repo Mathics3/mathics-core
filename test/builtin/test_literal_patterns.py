@@ -5,11 +5,12 @@ that are SameQ to it; Position and the other functions that use a Matcher
 check it that way, without the pattern matcher.
 """
 
+from test.helper import check_evaluation, session
+
 import pytest
 
-from mathics.eval.patterns import Matcher
 from mathics.eval.parts import walk_levels
-from test.helper import check_evaluation, session
+from mathics.eval.patterns import Matcher
 
 
 @pytest.mark.parametrize(
@@ -50,6 +51,11 @@ def test_walk_levels_keeps_unchanged_expression():
     assert depth == 3
     # A callback that changes a level still gives a new expression.
     changed, _ = walk_levels(
-        expr, 1, 1, callback=lambda level: session.evaluate("x") if level is expr.elements[0] else level
+        expr,
+        1,
+        1,
+        callback=lambda level: (
+            session.evaluate("x") if level is expr.elements[0] else level
+        ),
     )
     assert changed is not expr and str(changed.elements[0]) == "Global`x"

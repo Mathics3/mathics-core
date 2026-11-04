@@ -34,6 +34,7 @@ class Matcher:
     def match(self, expr, evaluation: Evaluation):
         if self.literal is not None:
             return expr.sameQ(self.literal)
+
         def yield_func(vars, rest):
             raise _StopGeneratorMatchQ(True)
 
