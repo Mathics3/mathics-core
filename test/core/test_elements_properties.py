@@ -119,3 +119,36 @@ def test_evaluation_with_evaluate_in_held_first_element():
         "SetAttributes[hf, HoldFirst]; hf[Evaluate[1 + 1], 5]"
     )
     assert result.sameQ(full_session.evaluate("Hold[hf[2, 5]]").elements[0]), result
+
+
+def test_shallow_copy_keeps_properties_on_original():
+    """
+    A variable's value is shallow-copied on every read. The elements'
+    properties are worked out once, on the stored value, and each copy
+    takes them over, rather than every copy working them out again.
+    """
+    from mathics.core.atoms import Integer
+    from mathics.core.expression import Expression
+    from mathics.core.list import ListExpression
+    from mathics.core.symbols import Symbol
+
+    for original in (
+        ListExpression(*[Integer(i) for i in range(5)]),
+        Expression(Symbol("Global`f"), *[Integer(i) for i in range(5)]),
+    ):
+        original.elements_properties = None
+        copy = original.shallow_copy()
+        assert original.elements_properties is not None
+        assert copy.elements_properties is original.elements_properties
+        assert copy.elements_properties.elements_fully_evaluated
+
+    full_session = MathicsSession()
+    full_session.evaluate("v = Range[10]; v[[3]] = 0;")
+    stored = (
+        full_session.definitions.get_definition("Global`v")
+        .get_values_list("ownvalues")[0]
+        .replace
+    )
+    read = full_session.evaluate("v")
+    assert stored.elements_properties is not None
+    assert read.elements_properties is stored.elements_properties

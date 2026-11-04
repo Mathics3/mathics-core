@@ -1747,6 +1747,12 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # this is a minimal, shallow copy: head, elements are shared with
         # the original, only the Expression instance is new.
 
+        # Work out the elements' properties on the original, once, rather
+        # than on each copy: a variable's value is copied on every read,
+        # and for a long list that costs as much as the list is long.
+        if self.elements_properties is None:
+            self._build_elements_properties()
+
         expr = Expression(
             self._head, *self._elements, elements_properties=self.elements_properties
         )
