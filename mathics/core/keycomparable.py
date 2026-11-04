@@ -249,6 +249,13 @@ class Monomial:
     def __ne__(self, other) -> bool:
         return self.exps != other.exps
 
+    # Defining __eq__ removes the default __hash__. Sort keys that hold a
+    # monomial must still hash: the index of stored values (LiteralRuleIndex)
+    # keeps the sort keys of its rules in a set, and gives up on the whole
+    # rule list when they do not hash. Equal exponents give equal hashes.
+    def __hash__(self) -> int:
+        return hash(frozenset(self.exps.items()))
+
 
 ###  SORT_KEYS prefix for pattern_precedence
 #
