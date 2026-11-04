@@ -26,6 +26,19 @@ from mathics.eval.patterns import Matcher
         ("Count[{{1, 2}, {1, 2}, {2, 1}}, {1, 2}]", "2"),
         ("MatchQ[{1, 2}, {1, 2}]", "True"),
         ("MatchQ[{1, 2.}, {1, 2}]", "False"),
+        # Complex numbers are literal.
+        ("Position[{I, 1 + I, -I}, I]", "{{1}}"),
+        # Pi is not literal, so it goes through the matcher; it is also
+        # found inside 2 Pi (Times[2, Pi]), as in WMA.
+        ("Position[{Pi, 2 Pi, Pi}, Pi]", "{{1}, {2, 2}, {3}}"),
+        ("Position[{Pi, 2 Pi, Pi}, Pi, {1}]", "{{1}, {3}}"),
+        (
+            "lpB = ByteArray[{1, 2, 3}]; "
+            "Position[{lpB, ByteArray[{1, 2, 3}], ByteArray[{1, 2, 4}]}, lpB]",
+            "{{1}, {2}}",
+        ),
+        ("MatchQ[ByteArray[{1, 2, 3}], ByteArray[{1, 2, 3}]]", "True"),
+        ("ClearAll[lpB]", "Null"),
         # Patterns that are not literal still go through the matcher.
         ("Position[{1, 2, {3}}, _Integer]", "{{1}, {2}, {3, 1}}"),
         ("Position[{{1, 2}, {2, 1}}, {_, 1}]", "{{2}}"),
