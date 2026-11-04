@@ -10,7 +10,11 @@ process of evaluation in cases where it is needed.
 from mathics.core.atoms import Integer
 from mathics.core.attributes import A_HOLD_ALL, A_HOLD_ALL_COMPLETE, A_PROTECTED
 from mathics.core.builtin import Builtin, Predefined
-from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
+from mathics.core.evaluation import (
+    MAX_RECURSION_DEPTH,
+    MIN_RECURSION_LIMIT,
+    set_python_recursion_limit,
+)
 
 
 class RecursionLimit(Predefined):
@@ -55,10 +59,10 @@ class RecursionLimit(Predefined):
         "reclim": "Recursion depth of `1` exceeded.",
         "limset": (
             "Cannot set $RecursionLimit to `1`; "
-            "value must be an integer between 20 and %d; "
+            "value must be an integer between %d and %d; "
             "use the MATHICS_MAX_RECURSION_DEPTH environment variable to allow higher limits."
         )
-        % (MAX_RECURSION_DEPTH),
+        % (MIN_RECURSION_LIMIT, MAX_RECURSION_DEPTH),
     }
 
     rules = {

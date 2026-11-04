@@ -22,6 +22,7 @@ from mathics.core.definitions import BOX_FORMS
 from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import (
     MAX_RECURSION_DEPTH,
+    MIN_RECURSION_LIMIT,
     Evaluation,
     set_python_recursion_limit,
 )
@@ -44,6 +45,7 @@ from mathics.core.systemsymbols import (
     SymbolCondition,
     SymbolDefault,
     SymbolDirectedInfinity,
+    SymbolHold,
     SymbolHoldPattern,
     SymbolMachinePrecision,
     SymbolMakeBoxes,
@@ -1128,7 +1130,13 @@ def eval_assign_part(
         evaluation.message(op_name, "noval", lhs_symbol)
         return False
     indices = lhs.elements[1:]
-    return eval_Part([rule], indices, evaluation, rhs)
+    # The value is changed in place, inside a holder so that the value
+    # itself can be replaced too: l[[0]] = f turns the List l into f[...].
+    holder = Expression(SymbolHold, rule)
+    result = eval_Part([holder], [Integer1, *indices], evaluation, rhs)
+    if holder.elements[0] is not rule:
+        defs.set_ownvalue(lhs_name, holder.elements[0])
+    return result
 
 
 def eval_assign_random_state(
@@ -1188,7 +1196,9 @@ def eval_assign_recursion_limit(
     Set ownvalue for the $RecursionLimit symbol.
     """
     rhs_int_value = get_int_value(rhs)
-    if rhs_int_value is None or not (20 <= rhs_int_value <= MAX_RECURSION_DEPTH):
+    if rhs_int_value is None or not (
+        MIN_RECURSION_LIMIT <= rhs_int_value <= MAX_RECURSION_DEPTH
+    ):
         evaluation.message("$RecursionLimit", "limset", rhs)
         raise AssignmentException(lhs, None)
     try:

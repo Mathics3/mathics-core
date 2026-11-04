@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
-
 """
 Division-Related Functions
 """
 
 import sys
-from typing import Callable, Optional, Union
+from typing import Final
 
 from sympy import Q, ask
 
@@ -33,6 +31,8 @@ from mathics.core.systemsymbols import (
     SymbolQuotientRemainder,
 )
 from mathics.eval.intfns.divlike import (
+    combine_integer_arguments,
+    eval_ExtendedGCD,
     eval_GCD,
     eval_LCM,
     eval_ModularInverse,
@@ -98,44 +98,82 @@ class Divisible(Builtin):
     attributes = A_LISTABLE | A_PROTECTED | A_READ_PROTECTED
     eval_error = Builtin.generic_argument_error
     expected_args = range(2, sys.maxsize)
-    rules = {
+    rules: Final[dict] = {
         "Divisible[n_, m_]": "Mod[n, m] == 0",
     }
     summary_text = "test whether one number is divisible by the other"
 
 
-def combine_integer_arguments(builtin, ns, eval_fn: Callable) -> Optional[Expression]:
+class ExtendedGCD(Builtin):
     """
-    Build the result of GCD or LCM from its arguments ns: the integer
-    arguments are combined by eval_fn into a single Integer. If every
-    argument is an integer, that Integer is returned; otherwise a new
-    GCD[...] or LCM[...] expression is returned that holds the combined
-    integer followed by the remaining arguments. None, meaning no change,
-    is returned when there are fewer than two integers to combine.
+    <url>:Extended Euclidean algorithm:
+    https://en.wikipedia.org/wiki/Extended_Euclidean_algorithm</url> (<url>
+    :SymPy:https://docs.sympy.org/latest/modules/polys/domainsref.html#sympy.polys.domains.IntegerRing.gcdex</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/ExtendedGCD.html</url>)
 
-    The rule pattern is ns___ (ns__) and not ns___Integer: the functions are
-    Flat, and ns___Integer also matches a lone integer among other
-    arguments. Rewriting it to itself made GCD[1/2, 3] or GCD[2.5, 5]
-    evaluate until $IterationLimit.
+    <dl>
+      <dt>'ExtendedGCD'[$n_1$, $n_2$, ...]
+      <dd>computes the extended greatest common divisor of integers $n_1$, $n_2$, ...
+    </dl>
+
+    Get the GCD and coefficients for the GCD of 2 and 3:
+     >> {gcd, {a, b}} = ExtendedGCD[2, 3]
+      = {1, {-1, 1}}
+
+    Now reconstruct the GCD using just the coefficients and original numbers and check it matches 'gcd':
+    >> 2 a + 3 b == gcd
+     = True
+
+    Get the GCD and coefficients for the GCD of 6, 15, and 30:
+    >> {gcd, {a, b, c}} = ExtendedGCD[6, 15, 30]
+     = {3, {-2, 1, 0}}
+
+    Again, reconstruct the gcd using just the coefficients and original numbers and check it matches 'gcd':
+    >> 6 a + 15 b + 30 c == gcd
+     = True
+
+    ExtendedGCD[3, {5, 15}] theads element-wise over lists:
+    >> ExtendedGCD[3, {5, 15}]
+     = {{1, {2, -1}}, {3, {1, 0}}}
+
+    When one integer argument is given, the answer degenerates to a GCD of the number with coefficient 1:
+     >> ExtendedGCD[5]
+      = {5, {1}}
+
+    And for a single negative integer, the coefficient is -1:
+     >> ExtendedGCD[-5]
+      = {5, {-1}}
+
+    The Extended GCD of 0 gives coefficient 0:
+     >> ExtendedGCD[0]
+      = {0, {0}}
+
+    See also <url>
+    :'GCD':
+    /doc/reference-of-built-in-symbols/integer-functions/division-related-functions/gcd/</url>.
     """
-    ns = ns.get_sequence()
-    integers = [n for n in ns if isinstance(n, Integer)]
-    if len(integers) == len(ns):
-        return eval_fn(ns)
-    if len(integers) < 2:
-        return None
-    combined = eval_fn(integers)
-    if combined is None:
-        return None
-    others = [n for n in ns if not isinstance(n, Integer)]
-    return Expression(Symbol(builtin.get_name()), combined, *others)
+
+    attributes = A_LISTABLE | A_PROTECTED
+    eval_error = Builtin.generic_argument_error
+    expected_args = range(1, sys.maxsize)
+    sympy_name = "gcdex"
+    summary_text = "compute the extended Greatest Common Divisor"
+
+    def eval(self, ns, evaluation: Evaluation) -> Expression | None:
+        "ExtendedGCD[ns__]"
+        if not isinstance(ns, (Integer, Expression)):
+            return
+        return eval_ExtendedGCD(ns)
 
 
 class GCD(Builtin):
     """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/GCD.html</url>
+    <url>:Greatest common divisor:
+    https://en.wikipedia.org/wiki/Greatest_common_divisor</url> (<url>
+    :SymPy:https://docs.sympy.org/latest/modules/polys/domainsref.html#sympy.polys.domains.IntegerRing.gcd</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/GCD.html</url>)
 
     <dl>
       <dt>'GCD'[$n_1$, $n_2$, ...]
@@ -152,13 +190,17 @@ class GCD(Builtin):
      = {2, 1, 4, 1, 2}
 
     'GCD' does not work for rational numbers and Gaussian integers yet.
+
+    See also <url>
+    :'ExtendedGCD':
+    /doc/reference-of-built-in-symbols/integer-functions/division-related-functions/extendedgcd/</url>.
     """
 
     attributes = A_FLAT | A_LISTABLE | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
     summary_text = "compute the Greatest Common Divisor"
     sympy_name = "gcd"
 
-    def eval(self, ns, evaluation: Evaluation) -> Optional[Expression]:
+    def eval(self, ns, evaluation: Evaluation) -> Expression | None:
         "GCD[ns___]"
 
         return combine_integer_arguments(self, ns, eval_GCD)
@@ -166,7 +208,10 @@ class GCD(Builtin):
 
 class LCM(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/LCM.html</url>
+    <url>:Least common multiple:
+    https://en.wikipedia.org/wiki/Least_common_multiple</url> (<url>
+    :SymPy:https://docs.sympy.org/latest/modules/polys/domainsref.html#sympy.polys.domains.IntegerRing.lcm</url>, <url>
+    :WMA link:https://reference.wolfram.com/language/ref/LCM.html</url>)
 
     <dl>
       <dt>'LCM'[$n_1$, $n_2$, ...]
@@ -182,13 +227,13 @@ class LCM(Builtin):
     attributes = A_FLAT | A_LISTABLE | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
     eval_error = Builtin.generic_argument_error
     expected_args = range(1, sys.maxsize)
-    messages = {
+    messages: Final[dict[str, str]] = {
         "argm": "LCM called with 0 arguments; 1 or more arguments are expected.",
     }
     summary_text = "compute the Least Common Multiple"
     sympy_name = "lcm"
 
-    def eval(self, ns, evaluation: Evaluation) -> Optional[Expression]:
+    def eval(self, ns, evaluation: Evaluation) -> Expression | None:
         "LCM[ns__]"
 
         # LCM[] is answered by generic_argument_error.
@@ -297,7 +342,7 @@ class ModularInverse(SympyFunction):
     summary_text = "get the modular inverse $k^(-1)$ mod $n$"
     sympy_name = "mod_inverse"
 
-    def eval(self, k: Integer, n: Integer, evaluation: Evaluation) -> Optional[Integer]:
+    def eval(self, k: Integer, n: Integer, evaluation: Evaluation) -> Integer | None:
         "ModularInverse[k_Integer, n_Integer]"
         return eval_ModularInverse(k.value, n.value)
 
@@ -305,11 +350,11 @@ class ModularInverse(SympyFunction):
 class PowerMod(Builtin):
     """
     <url>:Modular exponentiation:
-    https://en.wikipedia.org/wiki/Modular_exponentiation</url> SymPy: <url>:mod_inverse:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.mod_inverse</url>, <url>
-    :nth_root_mod:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.nth_root</url>, <url>
-    :sqrt_mod:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.sqrt_mod</url>, and <url>
-    :Pow:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.Pow</url>; <url>:WMA link:
-    https://reference.wolfram.com/language/ref/PowerMod.html</url>.
+    https://en.wikipedia.org/wiki/Modular_exponentiation</url> (<url>:SymPy mod_inverse:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.mod_inverse</url>, <url>
+    :SymPy nth_root_mod:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.nth_root</url>, <url>
+    :SymPy sqrt_mod:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.sqrt_mod</url>, <url>
+    :SymPy Pow:https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.Pow</url>; <url>:WMA:
+    https://reference.wolfram.com/language/ref/PowerMod.html</url>).
 
     <dl>
       <dt>'PowerMod'[$x$, $y$, $m$]
@@ -385,17 +430,17 @@ class PowerMod(Builtin):
     eval_error = Builtin.generic_argument_error
     expected_args = 3
 
-    messages = {
+    messages: Final[dict[str, str]] = {
         "ninv": "`1` is not invertible modulo `2`.",
     }
 
-    rules = {
+    rules: Final[dict[str, str]] = {
         "PowerMod[a, l_List, m_?NumberQ]": "Map[PowerMod[a, #, m] &, l]",
     }
 
     summary_text = "compute modular exponentiation"
 
-    sympy_names = {
+    sympy_names: Final[dict[str, str]] = {
         -1: "mod_inverse",  # b = -1
         0: "nth_root_mod",  # 0 < b < 1 and is an inverse
         0.5: "sqrt_mod",  # b = 1/2
@@ -458,7 +503,7 @@ class Quotient(Builtin):
     eval_error = Builtin.generic_argument_error
     expected_args = (2, 3)
 
-    rules = {
+    rules: Final[dict[str, str]] = {
         "Quotient[m_Complex, n_?NumberQ]": "Round[m / n]",
         "Quotient[m_?NumberQ, n_Complex]": "Round[m / n]",
         "Quotient[l_List, n_?NumberQ]": "Map[Quotient[#, m] &, l]",
@@ -467,7 +512,7 @@ class Quotient(Builtin):
 
     summary_text = "compute integer quotient"
 
-    def eval(self, m, n, evaluation: Evaluation) -> Union[Symbol, Integer]:
+    def eval(self, m, n, evaluation: Evaluation) -> Symbol | Integer:
         "Quotient[m_?NumberQ, n_?NumberQ]"
         py_m = m.value
 
@@ -483,9 +528,7 @@ class Quotient(Builtin):
             return result
         return eval_Quotient(py_m, py_n, 0)
 
-    def eval_with_offset(
-        self, m, n, d, evaluation: Evaluation
-    ) -> Union[Symbol, Integer]:
+    def eval_with_offset(self, m, n, d, evaluation: Evaluation) -> Symbol | Integer:
         "Quotient[m_?NumberQ, n_?NumberQ, d_?NumberQ]"
         py_m = m.value
         py_n = n.value
@@ -504,7 +547,8 @@ class Quotient(Builtin):
 
 class QuotientRemainder(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/QuotientRemainder.html</url>
+    <url>:Euclidian Division:https://en.wikipedia.org/wiki/Euclidean_division</url> (<url>
+    :WMA link:https://reference.wolfram.com/language/ref/QuotientRemainder.html</url>)
 
     <dl>
       <dt>'QuotientRemainder[m, n]'

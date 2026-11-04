@@ -307,3 +307,91 @@ def test_order(str_expr: str, str_expected: str, assert_fail_msg: str):
         hold_expected=False,
         failure_message=assert_fail_msg,
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "assert_fail_msg"),
+    [
+        (None, None, None),
+        # Sums come after the monomials of their largest variable.
+        ("Sort[{a, a + b, b, c, x}]", "{a, b, a + b, c, x}", "a + b after b"),
+        (
+            "Sort[{f[x], 1 + x, g[x], a + b + c, h[a, b, c]}]",
+            "{a + b + c, 1 + x, f[x], g[x], h[a, b, c]}",
+            "Sums before general expressions",
+        ),
+        (
+            "Sort[{x, 1 + x, y, x^2, 1 + x^2, x y}]",
+            "{x, x ^ 2, 1 + x, 1 + x ^ 2, y, x y}",
+            "1 + x after the powers of x, before y",
+        ),
+        (
+            "{Order[1 + x, x^3], Order[1 + a b, a^5 b], Order[1 + a b, c]}",
+            "{-1, -1, 1}",
+            "The key of a sum is its largest variable to an infinite power",
+        ),
+        # Two sums: term by term from the largest term, the shorter first.
+        (
+            "Sort[{1 + x, 2 + x, x + y, a + x, 1 + y}]",
+            "{1 + x, 2 + x, a + x, 1 + y, x + y}",
+            "Sums with the same largest variable",
+        ),
+        (
+            "Sort[{a + d, b + c, a + b, c + d}]",
+            "{a + b, b + c, a + d, c + d}",
+            "Sums of two symbols",
+        ),
+        (
+            "Sort[{x + y z, x y + z, x + y + z}]",
+            "{x + y + z, x y + z, x + y z}",
+            "Sums with products",
+        ),
+        ("Order[a + b, a + b + c]", "1", "The shorter sum first"),
+        ("x y + 1 + x", "1 + x + x y", "Terms of a polynomial"),
+        # Symbols are ordered by their names without the context.
+        ("Sort[{x, Pi, E, a, z}]", "{a, E, Pi, x, z}", "System` symbols"),
+        ("x + Pi", "Pi + x", "Pi before x in a sum"),
+        ("Pi x", "Pi x", "Pi before x in a product"),
+        ("Sort[{2 Pi, Sqrt[2], E, x}]", "{Sqrt[2], E, 2 Pi, x}", "Numeric constants"),
+        # Monomials that differ in a coefficient are ordered by it.
+        ("Sort[{x, -x, 2 x}]", "{-x, x, 2 x}", "Coefficients"),
+        ("Sort[{1 + x, 1 - x}]", "{1 - x, 1 + x}", "Coefficients in sums"),
+        # Factors that are not symbols are variables of the monomial.
+        (
+            "Sort[{x f[x], Pi g[x], y f[x], a f[x], f[x], z, g[x], f[x]^2, 1 + f[x]}]",
+            "{z, f[x], a f[x], x f[x], y f[x], f[x] ^ 2, 1 + f[x], g[x], Pi g[x]}",
+            "Monomials in f[x] and g[x]",
+        ),
+        ("Sort[{a Sin[x], b Cos[x]}]", "{b Cos[x], a Sin[x]}", "Cos before Sin"),
+        (
+            "Sort[{E^x, E, E^2, F, x}]",
+            "{E, E ^ 2, E ^ x, F, x}",
+            "A symbolic power after the numeric ones",
+        ),
+        ("x E^x", "E ^ x x", "E^x before x"),
+        (
+            "Sort[{Sqrt[Pi] Erf[1/x], x E^(-1/x^2)}]",
+            "{E ^ (-1 / x ^ 2) x, Sqrt[Pi] Erf[1 / x]}",
+            "Products with general factors",
+        ),
+        # A sum as a factor sorts right after its largest variable.
+        (
+            "Sort[{y^3, (3 x + 3 x^2) y, x^3}]",
+            "{x ^ 3, (3 x + 3 x ^ 2) y, y ^ 3}",
+            "A sum factor before y^3",
+        ),
+        (
+            "Sort[{y^2, (a + x) y, 2 a y, (a + x)^2, x (a + x)}]",
+            "{x (a + x), (a + x) ^ 2, 2 a y, (a + x) y, y ^ 2}",
+            "Sum factors and powers of sums",
+        ),
+    ],
+)
+def test_canonical_order(str_expr: str, str_expected: str, assert_fail_msg: str):
+    """The canonical order of sums, symbols and monomials, as in WMA 15."""
+    check_evaluation(
+        str_expr,
+        str_expected,
+        hold_expected=True,
+        failure_message=assert_fail_msg,
+    )

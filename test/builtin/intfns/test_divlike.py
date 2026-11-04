@@ -107,7 +107,7 @@ import pytest
     ],
 )
 def test_divlike(str_expr, msgs, str_expected, fail_msg):
-    """ """
+    """tests functions Quotient, LCM, GCD"""
     check_evaluation(
         str_expr,
         str_expected,

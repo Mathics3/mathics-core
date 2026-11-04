@@ -14,7 +14,7 @@ from mathics.core.keycomparable import (
     BASIC_EXPRESSION_ELT_ORDER,
     BASIC_NUMERIC_EXPRESSION_ELT_ORDER,
     Monomial,
-    wma_str_sort_key,
+    wma_symbol_sort_key,
 )
 from mathics.eval.tracing import trace_evaluate
 
@@ -574,7 +574,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         of an expression. The tuple is ultimately compared lexicographically.
         """
         name = self.name
-        name_key = wma_str_sort_key(name)
+        name_key = wma_symbol_sort_key(name)
         return (
             (
                 BASIC_NUMERIC_EXPRESSION_ELT_ORDER
@@ -582,6 +582,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
                 else BASIC_EXPRESSION_ELT_ORDER
             ),
             Monomial({name_key: 1}),
+            1.0,
             0,
             name,
             1,

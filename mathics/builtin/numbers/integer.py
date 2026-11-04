@@ -240,7 +240,7 @@ class FromDigits(Builtin):
 
     FromDigits can handle symbolic input:
     >> FromDigits[{a, b, c}, 5]
-     = c + 5 (5 a + b)
+     = 5 (5 a + b) + c
 
     Note that FromDigits does not automatically detect if you are providing a non-decimal representation:
     >> FromDigits["a0"]

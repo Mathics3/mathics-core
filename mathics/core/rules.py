@@ -339,6 +339,10 @@ class RewriteRule(BaseRule):
         self, expression: BaseElement, vars: dict, options: dict, evaluation: Evaluation
     ):
         new = self.replace.replace_vars(vars)
+        if new is self.replace and options and isinstance(new, Expression):
+            # replace_vars hands back the rule's own right-hand side when no
+            # variable occurs in it; the options belong to this application only.
+            new = new.shallow_copy()
         new.options = options
 
         while new.has_form(SymbolCondition, 2):

@@ -179,3 +179,25 @@ def test_sorting_complex():
 )
 def test_element_ordering_lt(atom1, atom2, assert_msg: str):
     assert atom1 < atom2, assert_msg
+
+
+def test_element_order_follows_changes():
+    """
+    ``element_order`` is cached on the expression; changing its elements or
+    its head must give the key of the new expression.
+    """
+    from mathics.core.expression import Expression
+    from mathics.core.symbols import Symbol
+
+    a, b, f, g = (Symbol(name) for name in ("a", "b", "f", "g"))
+
+    expr = Expression(f, a)
+    expr.element_order
+    expr.elements = (b,)
+    assert expr.element_order == Expression(f, b).element_order
+
+    expr.set_head(g)
+    assert expr.element_order == Expression(g, b).element_order
+
+    expr.set_element(0, a)
+    assert expr.element_order == Expression(g, a).element_order

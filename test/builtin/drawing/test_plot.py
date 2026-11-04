@@ -42,6 +42,31 @@ def test__listplot():
 
 
 @pytest.mark.parametrize(
+    ("str_expr", "str_expected", "fail_msg"),
+    [
+        (
+            "Cases[ListPlot[{1, lpx, 3}], _Point, Infinity]",
+            "{Point[{{1., 1.}, {3., 3.}}]}",
+            "A value that is not a number is not drawn; the others keep their place.",
+        ),
+        (
+            "Cases[ListPlot[{{1, lpx}, {2, 3}, {3, 4}}], _Point, Infinity]",
+            "{Point[{{2., 3.}, {3., 4.}}]}",
+            None,
+        ),
+        (
+            "Cases[ListPlot[{{1, 1}, {2, lpx}, {3, 4}, {4, 5}}, Joined -> True], "
+            "_Line, Infinity]",
+            "{Line[{{1., 1.}}], Line[{{3., 4.}, {4., 5.}}]}",
+            "A point that is not drawn splits the line.",
+        ),
+    ],
+)
+def test_listplot_nonnumeric(str_expr, str_expected, fail_msg):
+    check_evaluation(str_expr, str_expected, failure_message=fail_msg)
+
+
+@pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
         ("Plot[1 / x, {x, -1, 1}]", None, "-Graphics-", None),

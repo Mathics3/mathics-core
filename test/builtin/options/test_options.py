@@ -143,3 +143,33 @@ def test_options(str_expr, msgs, str_expected, assert_msg):
 def test_arg_errors(function_name, msg_fragment):
     """ """
     check_arg_counts(function_name, msg_fragment)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "assert_msg"),
+    [
+        (
+            "Options[optOrder] = {b -> 1, a -> 2, c -> 3}; Options[optOrder]",
+            "{b -> 1, a -> 2, c -> 3}",
+            "Options keeps the order the options were given in",
+        ),
+        (
+            "SetOptions[optOrder, a -> 5]",
+            "{b -> 1, a -> 5, c -> 3}",
+            "SetOptions changes a value in its place",
+        ),
+        (
+            "Take[Options[optOrder], -2]",
+            "{a -> 5, c -> 3}",
+            "a package can take a slice of its options",
+        ),
+        (
+            "Take[Options[Graphics], 3]",
+            "{AlignmentPoint -> Center, AspectRatio -> Automatic, Axes -> False}",
+            "the options of a Builtin are sorted by name",
+        ),
+        ("ClearAll[optOrder]", "Null", None),
+    ],
+)
+def test_options_order(str_expr, str_expected, assert_msg):
+    check_evaluation(str_expr, str_expected, failure_message=assert_msg)

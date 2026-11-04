@@ -337,6 +337,15 @@ class OrderedExpressionPattern(ExpressionPattern):
                 else list(reversed(literal_split_points))
             )
             return ((candidates[:p], ([], candidates[p:])) for p in ordered_points)
+        if fully and not rest_elements:
+            # The last pattern element of a full match: only the block
+            # of all the remaining items can match, any shorter one
+            # leaves items over and would be tried in vain.
+            min_count, max_count = set_lengths
+            count = len(candidates)
+            if count < min_count or (max_count is not None and count > max_count):
+                return ()
+            set_lengths = (count, count)
         # a generator that yields partitions of
         # candidates as [before | block | after ]
         return subranges(

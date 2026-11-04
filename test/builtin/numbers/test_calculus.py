@@ -8,6 +8,7 @@ FindRoot[], FindMinimum[], NFindMaximum[] tests
 
 
 """
+
 from test.helper import check_evaluation
 from typing import Optional
 
@@ -211,7 +212,7 @@ def test_Solve(str_expr: str, str_expected: str, expected_messages):
         (
             "D[2/3 Cos[x] - 1/3 x Cos[x] Sin[x] ^ 2,x]//Expand",
             None,
-            "-2 x Cos[x] ^ 2 Sin[x] / 3 + x Sin[x] ^ 3 / 3 - 2 Sin[x] / 3 - Cos[x] Sin[x] ^ 2 / 3",
+            "-2 Sin[x] / 3 - 2 x Cos[x] ^ 2 Sin[x] / 3 - Cos[x] Sin[x] ^ 2 / 3 + x Sin[x] ^ 3 / 3",
             None,
         ),
         ("D[f[#1], {#1,2}]", None, "f''[#1]", None),
@@ -250,13 +251,13 @@ def test_Solve(str_expr: str, str_expected: str, expected_messages):
             "Integrate[F[a, x], {x, p, q}]",
             "Integrand cannot be converted to sympy because of the string",
         ),
-        ("Integrate[ArcTan(x), x]", None, "x ^ 2 ArcTan / 2", None),
+        ("Integrate[ArcTan(x), x]", None, "ArcTan x ^ 2 / 2", None),
         ("Integrate[E[x], x]", None, "Integrate[E[x], x]", None),
         ("Integrate[Exp[-(x/2)^2],{x,-Infinity,+Infinity}]", None, "2 Sqrt[Pi]", None),
         (
             "Integrate[Exp[-1/(x^2)], x]",
             None,
-            "x E ^ (-1 / x ^ 2) + Sqrt[Pi] Erf[1 / x]",
+            "E ^ (-1 / x ^ 2) x + Sqrt[Pi] Erf[1 / x]",
             None,
         ),
         ("True'", None, "True'", None),

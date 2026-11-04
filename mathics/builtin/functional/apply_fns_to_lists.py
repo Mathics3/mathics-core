@@ -8,6 +8,7 @@ in parallel to many elements in a list.
 Many mathematical functions are automatically taken to be "listable", so that \
 they are always applied to every element in a list.
 """
+
 from dataclasses import replace as dc_replace
 from typing import Iterable
 
@@ -71,7 +72,7 @@ class Apply(InfixOperator):
 
     Convert all operations to lists:
     >> Apply[List, a + b * c ^ e * f[g], {0, Infinity}]
-     = {a, {b, {g}, {c, e}}}
+     = {a, {b, {c, e}, {g}}}
     """
 
     eval_error = Builtin.generic_argument_error
@@ -281,14 +282,14 @@ class MapIndexed(Builtin):
     >> expr = a + b * f[g] * c ^ e;
     >> listified = Apply[List, expr, {0, Infinity}];
     >> MapIndexed[#2 &, listified, {-1}]
-     = {{1}, {{2, 1}, {{2, 2, 1}}, {{2, 3, 1}, {2, 3, 2}}}}
+     = {{1}, {{2, 1}, {{2, 2, 1}, {2, 2, 2}}, {{2, 3, 1}}}}
     Replace the heads with their positions, too:
     >> MapIndexed[#2 &, listified, {-1}, Heads -> True]
-     = {0}[{1}, {2, 0}[{2, 1}, {2, 2, 0}[{2, 2, 1}], {2, 3, 0}[{2, 3, 1}, {2, 3, 2}]]]
+     = {0}[{1}, {2, 0}[{2, 1}, {2, 2, 0}[{2, 2, 1}, {2, 2, 2}], {2, 3, 0}[{2, 3, 1}]]]
     The positions are given in the same format as used by 'Extract'.
     Thus, mapping 'Extract' on the indices given by 'MapIndexed' re-constructs the original expression:
     >> MapIndexed[Extract[expr, #2] &, listified, {-1}, Heads -> True]
-     = a + b f[g] c ^ e
+     = a + b c ^ e f[g]
     """
 
     eval_error = Builtin.generic_argument_error

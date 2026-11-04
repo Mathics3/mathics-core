@@ -83,6 +83,142 @@ def rational_digits(
     return digits, period, exponent
 
 
+def leading_exponent(numerator: int, denominator: int, base: int) -> int:
+    """
+    The exponent e with base^(e-1) <= numerator/denominator < base^e, for
+    a positive rational numerator/denominator.
+    """
+
+    def at_least(k: int) -> bool:
+        # numerator/denominator >= base^k
+        if k >= 0:
+            return numerator >= denominator * base**k
+        return numerator * base**-k >= denominator
+
+    e = int((math.log(numerator) - math.log(denominator)) // math.log(base)) + 1
+    while not at_least(e - 1):
+        e -= 1
+    while at_least(e):
+        e += 1
+    return e
+
+
+def truncated_digits(
+    numerator: int, denominator: int, base: int, length: int, top: int
+) -> list[int]:
+    """
+    The `length` base-`base` digits of the non-negative rational
+    numerator/denominator, starting with the coefficient of base^top,
+    cut off rather than rounded.
+    """
+    shift = length - 1 - top
+    if shift >= 0:
+        value = numerator * base**shift // denominator
+    else:
+        value = numerator // (denominator * base**-shift)
+    value %= base**length
+    digits = []
+    for _ in range(length):
+        value, digit = divmod(value, base)
+        digits.append(digit)
+    digits.reverse()
+    return digits
+
+
+def real_digits_truncated(
+    x: BaseElement,
+    base: int,
+    length: int,
+    position: Optional[int],
+    evaluation,
+) -> Optional[tuple[list[int], int]]:
+    """
+    The `length` base-`base` digits of the absolute value of the exact
+    numeric expression x and the exponent, as
+    RealDigits[x, base, length, position] gives them; without a position
+    the digits start with the leading one.
+
+    As in WMA the digits are cut off, not rounded: RealDigits[1 - 10^-100,
+    10, 5] is {{9, 9, 9, 9, 9}, 0}. Rationals are worked out exactly.
+    Anything else is evaluated with N at a growing precision, until both
+    ends of the interval the value lies in have the same digits, giving
+    up to $MaxExtraPrecision digits more than are needed. If they still
+    differ, the value lies on (or too close to tell from) the boundary
+    between two digit strings, and like WMA we take the boundary:
+    RealDigits[(Sqrt[2] + Sqrt[3])^2 - 2 Sqrt[6], 10, 3] is
+    {{5, 0, 0}, 1}.
+
+    When x is not real, or is 0 or too close to 0 to find its leading
+    digit, a message is given and None is returned, like WMA does.
+    """
+    from mathics.core.atoms import Complex, Integer, PrecisionReal, Rational
+    from mathics.eval.nevaluator import eval_N, get_max_extra_precision
+
+    def exact(numerator: int, denominator: int) -> tuple[list[int], int]:
+        if numerator == 0:
+            exponent = 0
+        else:
+            exponent = leading_exponent(numerator, denominator, base)
+        top = exponent - 1 if position is None else position
+        return (
+            truncated_digits(numerator, denominator, base, length, top),
+            top + 1,
+        )
+
+    if isinstance(x, Integer):
+        return exact(abs(x.value), 1)
+    if isinstance(x, Rational):
+        numerator, denominator = x.value.as_numer_denom()
+        return exact(abs(int(numerator)), int(denominator))
+
+    base_digits10 = math.log10(base)
+    max_extra = get_max_extra_precision(evaluation)
+    # How many base-`base` digits, counted from the leading one, are needed.
+    needed = length
+    extra = 10.0
+    while True:
+        # Below machine precision N gives a machine real; we need the
+        # precision it has.
+        precision = max(needed * base_digits10 + extra, 20.0)
+        value = eval_N(x, evaluation, Integer(math.ceil(precision)))
+        if isinstance(value, (Integer, Rational)):
+            return real_digits_truncated(value, base, length, position, evaluation)
+        if not isinstance(value, PrecisionReal):
+            if isinstance(value, Complex):
+                evaluation.message("RealDigits", "realx", x)
+            return None
+        # The value is within one unit in its last-but-one significant
+        # digit of x.
+        numerator, denominator = (
+            int(n) for n in sympy.Rational(abs(value.value)).as_numer_denom()
+        )
+        scale = 10 ** max(0, math.floor(value.precision10) - 1)
+        low = (numerator * (scale - 1), denominator * scale)
+        high = (numerator * (scale + 1), denominator * scale)
+        if not value.is_zero and low[0] > 0:
+            exponent = leading_exponent(*high, base)
+            top = exponent - 1 if position is None else position
+            # The last digit wanted, the coefficient of
+            # base^(top - length + 1), is this many digits from the leading
+            # one, the coefficient of base^(exponent - 1).
+            reach = exponent - top + length - 1
+            if reach > needed:
+                needed = reach
+                continue
+            low_result = exact(*low)
+            high_result = exact(*high)
+            if low_result == high_result:
+                return high_result
+            if extra >= max_extra:
+                return high_result
+        elif extra >= max_extra:
+            # Not even the leading digit can be found: x is 0, or too
+            # close to 0 to tell.
+            evaluation.message("RealDigits", "fnumx", x)
+            return None
+        extra = min(2 * extra, max(max_extra, 10.0))
+
+
 def convert_float_base(x, base, precision=10):
     length_of_int = 0 if x == 0 else int(mpmath.log(x, base))
     # iexps = list(range(length_of_int, -1, -1))

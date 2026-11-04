@@ -67,7 +67,7 @@ class Uncompress(Builtin):
     >> a = x ^ 2 + y Sin[x] + 10 Log[15];
     >> b = Compress[a];
     >> Uncompress[b]
-     = x ^ 2 + y Sin[x] + 10 Log[15]
+     = x ^ 2 + 10 Log[15] + y Sin[x]
     """
 
     summary_text = "recover a compressed expression"

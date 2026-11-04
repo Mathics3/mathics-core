@@ -56,6 +56,11 @@ SymbolPre = Symbol("System`$Pre")
 SymbolPrePrint = Symbol("System`$PrePrint")
 SymbolPost = Symbol("System`$Post")
 
+# MIN_RECURSION_LIMIT is the smallest value allowed for $RecursionLimit, as in WMA:
+# $RecursionLimit = 10 there gives "value must be Infinity or an integer at least 20".
+
+MIN_RECURSION_LIMIT = 20
+
 # MAX_RECURSION_DEPTH gives the maximum value allowed for $RecursionLimit. it's usually set to its
 # default settings.DEFAULT_MAX_RECURSION_DEPTH.
 
@@ -67,8 +72,10 @@ MAX_RECURSION_DEPTH = max(
 
 def python_recursion_depth(n) -> int:
     # convert Mathics3 recursion depth to Python recursion depth. this estimates how many Python calls
-    # we need at worst to process one Mathics3 recursion.
-    return 200 + 30 * n
+    # we need at worst to process one Mathics3 recursion. A recursive
+    # definition matched through a Condition or PatternTest, as in
+    # Combinatorica's DepthFirstTraversal, takes a little over 30.
+    return 200 + 40 * n
 
 
 def python_stack_size(n) -> int:  # n is a Mathics3 recursion depth
@@ -156,6 +163,9 @@ class Evaluation:
         self.stopped = False
         self.timeout = False
         self.timeout_queue: List[Tuple[float, float]] = []
+        # time.time() after which the current evaluation is stopped, from the
+        # timeout given to evaluate(); None for no limit.
+        self.deadline: Optional[float] = None
 
         # A place for Trace and friends to store information about the
         # last evaluation
@@ -221,6 +231,7 @@ class Evaluation:
         self.recursion_depth = 0
         self.timeout = False
         self.stopped = False
+        self.deadline = None if timeout is None else self.start_time + timeout
         self.exc_result = self.SymbolNull
         self.last_eval = None
         if format is None:
@@ -312,6 +323,7 @@ class Evaluation:
                 self.exc_result = Expression(SymbolHold, Expression(SymbolContinue))
             except TimeoutInterrupt:
                 self.stopped = False
+                self.deadline = None
 
                 # Due to interrupt handling, we might have already
                 # handled a timeout.
@@ -322,6 +334,18 @@ class Evaluation:
                 # Clear shell interrupt if that exists.
                 self.exc_result = SymbolAborted
             except AbortInterrupt:  # , error:
+                self.exc_result = SymbolAborted
+            except RecursionError:
+                # Python ran out of stack before $RecursionLimit was
+                # reached: report it the same way.
+                self.message(
+                    "$RecursionLimit",
+                    "reclim",
+                    self.definitions.get_config_value(
+                        "$RecursionLimit", MAX_RECURSION_DEPTH
+                    )
+                    or MAX_RECURSION_DEPTH,
+                )
                 self.exc_result = SymbolAborted
             except ReturnInterrupt as ret:
                 self.exc_result = ret.expr
@@ -349,6 +373,7 @@ class Evaluation:
             self.out = []
         finally:
             self.stop()
+            self.deadline = None
             # $Line could have changed during the evaluation.
             line_no = self.definitions.get_line_no()
             line_no += 1
@@ -563,6 +588,10 @@ class Evaluation:
             raise NotImplementedError
 
     def check_stopped(self) -> None:
+        # The timeout of evaluate() is checked here, between evaluation
+        # steps, so that it never interrupts a step halfway.
+        if self.deadline is not None and time.time() > self.deadline:
+            self.stopped = True
         if self.stopped:
             raise TimeoutInterrupt
 
@@ -571,11 +600,17 @@ class Evaluation:
         limit = self.definitions.get_config_value(
             "$RecursionLimit", MAX_RECURSION_DEPTH
         )
-        if limit is not None:
-            limit = max(limit, 20)
-            self.recursion_depth += 1
-            if self.recursion_depth > limit:
-                self.error("$RecursionLimit", "reclim", limit)
+        if limit is None:
+            # $RecursionLimit is Infinity, as in Block[{$RecursionLimit = Infinity}, ...],
+            # which does not go through the assignment that sets the Python limit.
+            # Go as deep as the Python stack is set up to hold.
+            limit = MAX_RECURSION_DEPTH
+            if sys.getrecursionlimit() < python_recursion_depth(limit):
+                set_python_recursion_limit(limit)
+        limit = max(limit, MIN_RECURSION_LIMIT)
+        self.recursion_depth += 1
+        if self.recursion_depth > limit:
+            self.error("$RecursionLimit", "reclim", limit)
 
     def dec_recursion_depth(self) -> None:
         self.recursion_depth -= 1
