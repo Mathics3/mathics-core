@@ -60,8 +60,40 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.keycomparable import PATTERN_SORT_KEY_CONDITIONAL, KeyComparable
 from mathics.core.pattern import BasePattern, StopGenerator
-from mathics.core.symbols import SymbolTrue, strip_context
-from mathics.core.systemsymbols import RULE_SYMBOL_HEADS, SymbolCondition
+from mathics.core.symbols import Symbol, SymbolSequence, SymbolTrue, strip_context
+from mathics.core.systemsymbols import (
+    RULE_SYMBOL_HEADS,
+    SymbolBlankNullSequence,
+    SymbolBlankSequence,
+    SymbolCondition,
+    SymbolPattern,
+)
+
+
+def all_elements_pattern(pattern: BaseElement) -> Optional[tuple]:
+    """
+    For a pattern ``h[x___]`` or ``h[x__]``, with ``h`` a symbol, return
+    ``(h, name of x, least number of elements)``; otherwise None.
+
+    Such a pattern matches every ``h[...]`` (with at least one element for
+    ``x__``), and its first match binds ``x`` to all the elements, in order.
+    """
+    if not isinstance(pattern, Expression) or len(pattern.elements) != 1:
+        return None
+    head = pattern.head
+    var = pattern.elements[0]
+    if not isinstance(head, Symbol) or not var.has_form(SymbolPattern, 2):
+        return None
+    name, blank = var.elements
+    if not isinstance(name, Symbol) or not isinstance(blank, Expression):
+        return None
+    if blank.elements:
+        return None
+    if blank.head is SymbolBlankNullSequence:
+        return head, name.get_name(), 0
+    if blank.head is SymbolBlankSequence:
+        return head, name.get_name(), 1
+    return None
 
 
 def _python_function_arguments(f):
@@ -130,6 +162,10 @@ class BaseRule(KeyComparable, ABC):
     Note: we want Rules to be serializable so that we can dump and
     restore Rules in order to make startup time faster.
     """
+
+    # (head, variable name, least number of elements) for a rule whose
+    # pattern is head[x___] and whose first match is final; see `apply`.
+    all_elements: Optional[tuple] = None
 
     def __init__(
         self,
@@ -200,6 +236,37 @@ class BaseRule(KeyComparable, ABC):
                 raise StopGenerator_BaseRule(result)
 
                 # only first possibility counts
+
+        # A rule h[x___] -> f, as for most builtin functions: binding x to
+        # the elements is its first match, so the pattern matcher is not
+        # needed (for Orderless h it would go through the subsets of the
+        # elements).
+        all_elements = self.all_elements
+        if (
+            all_elements is not None
+            and not return_list
+            and isinstance(expression, Expression)
+            and expression.head is all_elements[0]
+            and len(expression.elements) >= all_elements[2]
+        ):
+            elements = expression.elements
+            if len(elements) == 1:
+                value = elements[0]
+            else:
+                value = Expression(SymbolSequence, *elements)
+                value.pattern_sequence = True
+            try:
+                yield_match({all_elements[1]: value}, None)
+            except StopGenerator_BaseRule as exc:
+                expr = exc.value
+                if (
+                    hasattr(expression, "location")
+                    and hasattr(expr, "location")
+                    and expression.location is not None
+                ):
+                    expr.location = expression.location
+                return expr
+            return None
 
         try:
             self.pattern.match(
@@ -466,6 +533,9 @@ class FunctionApplyRule(BaseRule):
         attributes: Optional[int] = None,
     ) -> None:
         super(FunctionApplyRule, self).__init__(pattern, attributes=attributes)
+        # The first match is the only one used (see `apply`), so for a
+        # pattern h[x___] it is known without matching.
+        self.all_elements = all_elements_pattern(pattern)
         self.name = name
         self.location = self.function = function
         self.check_options = check_options
