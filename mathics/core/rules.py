@@ -55,6 +55,7 @@ from inspect import signature
 from itertools import chain
 from typing import Any, Callable, Optional
 
+from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_ORDERLESS
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -140,7 +141,11 @@ def simple_match(simple: tuple, expression: BaseElement) -> Optional[dict]:
         return None
     vars = {}
     for (name, blank_head), element in zip(singles, elements):
-        if blank_head is not None and element.get_head() is not blank_head:
+        element_head = element.get_head()
+        # A Blank does not match every Sequence; let the matcher decide.
+        if element_head is SymbolSequence:
+            return None
+        if blank_head is not None and element_head is not blank_head:
             return None
         vars[name] = element
     if sequence is not None:
@@ -299,7 +304,7 @@ class BaseRule(KeyComparable, ABC):
         # h[a_, b_]: when their first match is plain, the pattern matcher is
         # not needed (for Orderless h it would go through the subsets of the
         # elements).
-        if self.simple is not None and not return_list:
+        if self.simple is not None and not return_list and self.first_match_is_final():
             vars = simple_match(self.simple, expression)
         else:
             vars = None
@@ -344,6 +349,14 @@ class BaseRule(KeyComparable, ABC):
             return result_list
         else:
             return None
+
+    def first_match_is_final(self) -> bool:
+        """
+        Whether the first match of the pattern is the only one `apply`
+        needs to look at. Then a plain pattern (see `simple_pattern`) can
+        be matched without the pattern matcher.
+        """
+        return False
 
     def apply_rule(
         self, expression: BaseElement, vars: dict, options: dict, evaluation: Evaluation
@@ -447,6 +460,30 @@ class RewriteRule(BaseRule):
             pattern, attributes=attributes, evaluation=evaluation
         )
         self.replace = replace
+        self.simple = simple_pattern(pattern)
+
+    def first_match_is_final(self) -> bool:
+        """
+        A condition in the replacement can reject a match, and then the
+        next one is tried. A plain pattern has a single match, unless its
+        head is Flat, Orderless or OneIdentity, as the pattern matcher
+        sees it.
+        """
+        final = self.__dict__.get("_first_match_is_final")
+        if final is None:
+            # Imported here: mathics.core.pattern imports this module.
+            from mathics.core.pattern.deferred import DeferredExpressionPattern
+            from mathics.core.pattern.ordered import OrderedExpressionPattern
+
+            pattern = self.pattern
+            if isinstance(pattern, DeferredExpressionPattern):
+                # Its kind is known only once it is matched.
+                return False
+            final = type(pattern) is OrderedExpressionPattern and not (
+                pattern.attributes & (A_FLAT | A_ORDERLESS | A_ONE_IDENTITY)
+            )
+            self._first_match_is_final = final
+        return final
 
     def __repr__(self) -> str:
         return "<Rule: %s -> %s>" % (self.pattern, self.replace)
@@ -627,6 +664,10 @@ class FunctionApplyRule(BaseRule):
 
     def __setstate__(self, dict):
         self.__dict__.update(dict)  # update attributes
+
+    def first_match_is_final(self) -> bool:
+        """Only the first match of a builtin rule is used."""
+        return True
 
     @property
     def rhs(self):

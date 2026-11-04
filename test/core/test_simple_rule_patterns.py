@@ -1,6 +1,8 @@
 """
-A builtin rule with a plain pattern, such as h[x___] or h[a_, b_Integer],
-binds the names to the elements without the pattern matcher.
+A rule with a plain pattern, such as h[x___] or h[a_, b_Integer], binds the
+names to the elements without the pattern matcher: a builtin rule always,
+since only its first match is used, and a user rule when its match is the
+only one (its head is not Flat, Orderless or OneIdentity).
 """
 
 from test.helper import check_evaluation, session
@@ -108,4 +110,38 @@ def test_builtin_rules_use_it():
     ],
 )
 def test_results_unchanged(str_expr, str_expected):
+    check_evaluation(str_expr, str_expected)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected"),
+    [
+        ("srpF[x_] := x + 1; srpF[2]", "3"),
+        (
+            "srpG[x_, y_Integer] := {x, y}; {srpG[a, 2], srpG[a, b]}",
+            "{{a, 2}, srpG[a, b]}",
+        ),
+        # A condition that fails leaves the expression as it is.
+        ("srpH[x_] := x /; x > 0; {srpH[1], srpH[-1]}", "{1, srpH[-1]}"),
+        # Orderless and Flat heads still go through the pattern matcher.
+        (
+            "SetAttributes[srpO, Orderless]; srpO[x_, y_] := {x, y} /; x === b; srpO[a, b]",
+            "{b, a}",
+        ),
+        (
+            "SetAttributes[srpM, Flat]; "
+            "srpM[x_, y_] := Length[Unevaluated[x]] /; Length[Unevaluated[x]] == 2; "
+            "srpM[a, b, c]",
+            "2",
+        ),
+        ("srpP[x_, y___] := {x, {y}}; srpP[1, 2, 3]", "{1, {2, 3}}"),
+        ("srpQ[x_] := 1; srpQ[Sequence[]]", "srpQ[]"),
+        ("{a, b} /. {x_, y_} -> srpF2[y, x]", "srpF2[b, a]"),
+        (
+            "srpFib[n_Integer] := If[n < 2, n, srpFib[n - 1] + srpFib[n - 2]]; srpFib[15]",
+            "610",
+        ),
+    ],
+)
+def test_user_rules(str_expr, str_expected):
     check_evaluation(str_expr, str_expected)
