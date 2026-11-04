@@ -721,7 +721,7 @@ def eval_assign_minprecision(
     rhs_int_value = get_int_value(rhs)
     # $MinPrecision = Infinity is not allowed
     if rhs_int_value is not None and rhs_int_value >= 0:
-        max_prec = evaluation.definitions.get_config_value("$MaxPrecision")
+        max_prec = evaluation.definitions.get_config_value("System`$MaxPrecision")
         if max_prec is not None and max_prec < rhs_int_value:
             evaluation.message("$MinPrecision", "preccon", SymbolMinPrecision)
             raise AssignmentException(lhs, None)
@@ -765,7 +765,7 @@ def eval_assign_maxprecision(
     if rhs.has_form(SymbolDirectedInfinity, 1) and get_int_value(rhs.elements[0]) == 1:
         return False
     if (rhs_int_value := get_int_value(rhs)) is not None and rhs_int_value > 0:
-        min_prec = evaluation.definitions.get_config_value("$MinPrecision")
+        min_prec = evaluation.definitions.get_config_value("System`$MinPrecision")
         if min_prec is not None and rhs_int_value < min_prec:
             evaluation.message("$MaxPrecision", "preccon", SymbolMaxPrecision)
             raise AssignmentException(lhs, None)
