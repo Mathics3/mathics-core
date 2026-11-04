@@ -4,9 +4,10 @@ Stored values such as f[1] = a are found through an index
 (LiteralRuleIndex), which needs the sort keys of the rules to hash.
 """
 
+from test.helper import check_evaluation, session
+
 from mathics.core.expression import Expression
 from mathics.core.keycomparable import Monomial
-from test.helper import check_evaluation, session
 
 
 def test_monomials_hash_like_they_compare():
@@ -17,7 +18,9 @@ def test_monomials_hash_like_they_compare():
 
 
 def test_stored_values_are_found_through_the_index(monkeypatch):
-    session.evaluate("ClearAll[lriF]; Do[lriF[{i, i + 1}] = i, {i, 400}]; lriF[x_] := lin[x];")
+    session.evaluate(
+        "ClearAll[lriF]; Do[lriF[{i, i + 1}] = i, {i, 400}]; lriF[x_] := lin[x];"
+    )
     definition = session.definitions.get_definition("Global`lriF")
     values = definition.get_values_list("downvalues")
     assert definition._get_literal_index("downvalues", values) is not None
@@ -35,5 +38,8 @@ def test_stored_values_are_found_through_the_index(monkeypatch):
     # A few comparisons per lookup, not one per stored value before it.
     assert calls[0] < 10 * 101, f"{calls[0]} SameQ for 101 lookups"
 
-    check_evaluation("{lriF[{3, 4}], lriF[{400, 401}], lriF[{401, 402}]}", "{3, 400, lin[{401, 402}]}")
+    check_evaluation(
+        "{lriF[{3, 4}], lriF[{400, 401}], lriF[{401, 402}]}",
+        "{3, 400, lin[{401, 402}]}",
+    )
     session.evaluate("ClearAll[lriF]")
