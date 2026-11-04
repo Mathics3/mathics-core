@@ -1013,6 +1013,10 @@ def eval_add_numbers(
     if len(numbers) == 1:
         return numbers[0]
 
+    # Integers add up as Python integers, not through SymPy.
+    if all(isinstance(number, Integer) for number in numbers):
+        return Integer(sum(number.value for number in numbers))
+
     if any(is_machine_precision(number) for number in numbers):
         terms = (item.to_mpmath() for item in numbers)
         number = mpmath.fsum(terms)
@@ -1082,6 +1086,13 @@ def eval_multiply_numbers(*numbers: Number) -> Number:
         return Integer1
     if len(numbers) == 1:
         return numbers[0]
+
+    # Integers multiply as Python integers, not through SymPy.
+    if all(isinstance(number, Integer) for number in numbers):
+        product = 1
+        for number in numbers:
+            product *= number.value
+        return Integer(product)
 
     if any(is_machine_precision(number) for number in numbers):
         factors = (item.to_mpmath() for item in numbers)
