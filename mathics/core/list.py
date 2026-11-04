@@ -246,8 +246,9 @@ class ListExpression(Expression):
             elements_properties=self.elements_properties,
             literal_values=self.value if self._is_literal else None,
         )
-        if self._cache is not None:
-            expr._cache = self._rebuild_cache()
+        # Built once on the original and shared, as in Expression.shallow_copy:
+        # otherwise each copy (each read of a variable) builds it again.
+        expr._cache = self._rebuild_cache()
         return expr
 
     def copy(self, reevaluate=False) -> "Expression":

@@ -30,6 +30,28 @@ def test_evaluated_list_is_not_walked_again(monkeypatch):
     assert calls[0] <= 2, f"{calls[0]} walks over the list for 20 reads"
 
 
+def test_reads_after_part_assignment_do_not_rebuild_the_cache(monkeypatch):
+    from mathics.core.expression import Expression
+
+    session.evaluate("ClearAll[lvR]; lvR = Range[2000]; Do[lvR[[k]] = -k, {k, 5}];")
+    calls = [0]
+    original = Expression._rebuild_cache
+
+    def counting(self):
+        if len(self.elements) >= 2000 and (
+            self._cache is None or self._cache.symbols is None
+        ):
+            calls[0] += 1
+        return original(self)
+
+    monkeypatch.setattr(Expression, "_rebuild_cache", counting)
+    session.evaluate("Do[lvR[[3]], {20}]")
+    monkeypatch.undo()
+    session.evaluate("ClearAll[lvR]")
+    # The cache of the stored value is built once, not at each read.
+    assert calls[0] <= 1, f"the cache was built {calls[0]} times for 20 reads"
+
+
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "msg"),
     [
