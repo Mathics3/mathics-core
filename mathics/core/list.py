@@ -237,7 +237,11 @@ class ListExpression(Expression):
         their properties and the cache, with the time of the last
         evaluation, as Expression.shallow_copy does.
         """
-        expr = ListExpression(
+        # As in Expression.shallow_copy: work out the elements' properties
+        # once on the original rather than on every copy of it.
+        if self.elements_properties is None:
+            self._build_elements_properties()
+        return ListExpression(
             *self._elements,
             elements_properties=self.elements_properties,
             literal_values=self.value if self._is_literal else None,
