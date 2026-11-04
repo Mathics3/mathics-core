@@ -3,12 +3,13 @@
 Expression.replace_vars keeps the subexpressions in which no variable occurs.
 """
 
+from test.helper import check_evaluation, session
+
 import pytest
 
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
-from test.helper import check_evaluation, session
 
 
 def test_unchanged_subexpressions_are_kept():
