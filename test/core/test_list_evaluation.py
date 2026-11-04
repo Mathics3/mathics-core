@@ -4,16 +4,15 @@ A list that has been evaluated, and whose symbols have not changed since,
 is not evaluated element by element again.
 """
 
+from test.helper import check_evaluation, session
+
 import pytest
 
 from mathics.core import list as mlist
-from test.helper import check_evaluation, session
 
 
 def test_evaluated_list_is_not_walked_again(monkeypatch):
-    session.evaluate(
-        "ClearAll[lvV]; lvV = Table[{i, lvW -> i}, {i, 200}];"
-    )
+    session.evaluate("ClearAll[lvV]; lvV = Table[{i, lvW -> i}, {i, 200}];")
     calls = [0]
     original = mlist.ListExpression.evaluate_elements
 
@@ -66,7 +65,11 @@ def test_reads_after_part_assignment_do_not_rebuild_the_cache(monkeypatch):
             None,
         ),
         # A Block that changes a symbol of the list.
-        ("ClearAll[lvZ]; lvV = {lvZ, c -> lvZ}; lvV; Block[{lvZ = 7}, lvV]", "{7, c -> 7}", None),
+        (
+            "ClearAll[lvZ]; lvV = {lvZ, c -> lvZ}; lvV; Block[{lvZ = 7}, lvV]",
+            "{7, c -> 7}",
+            None,
+        ),
         ("lvV", "{lvZ, c -> lvZ}", "and the list as it was after the Block"),
         ("ClearAll[lvX, lvY, lvZ, lvV]", "Null", None),
     ],
