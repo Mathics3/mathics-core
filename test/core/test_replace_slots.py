@@ -4,10 +4,11 @@ Applying a pure function does not walk the parts of its body that have no
 slot in them.
 """
 
+from test.helper import check_evaluation, session
+
 import pytest
 
 from mathics.core.expression import Expression
-from test.helper import check_evaluation, session
 
 
 def test_slot_free_part_is_not_walked(monkeypatch):
@@ -15,7 +16,9 @@ def test_slot_free_part_is_not_walked(monkeypatch):
     body = session.evaluate("Hold[{#1, Length[x]}]").elements[0]
     # The body {#1, Length[<big>]}, as when a list is passed to a function
     # and written into a pure function inside it.
-    body = Expression(body.head, body.elements[0], Expression(body.elements[1].head, big))
+    body = Expression(
+        body.head, body.elements[0], Expression(body.elements[1].head, big)
+    )
     calls = [0]
     original = Expression.replace_slots
 
@@ -35,7 +38,10 @@ def test_slot_free_part_is_not_walked(monkeypatch):
 @pytest.mark.parametrize(
     ("str_expr", "str_expected"),
     [
-        ("rsData = Range[5]; rsF[l_] := Map[{#, Length[l]} &, {a, b}]; rsF[rsData]", "{{a, 5}, {b, 5}}"),
+        (
+            "rsData = Range[5]; rsF[l_] := Map[{#, Length[l]} &, {a, b}]; rsF[rsData]",
+            "{{a, 5}, {b, 5}}",
+        ),
         ("Map[{#, {1, 2}} &, {a, b}]", "{{a, {1, 2}}, {b, {1, 2}}}"),
         ("Apply[{##, {x}} &, {a, b}]", "{a, b, {x}}"),
         ("Map[Function[{#, # &}], {1}]", "{{1, #1 &}}"),
