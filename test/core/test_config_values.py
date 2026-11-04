@@ -4,11 +4,11 @@ $RecursionLimit and $IterationLimit are looked up by their full names at
 each evaluation step, not resolved through $Context and $ContextPath.
 """
 
+from test.helper import check_evaluation, session
+
 import pytest
 
 from mathics.core.interrupt import AbortInterrupt
-
-from test.helper import check_evaluation, session
 
 
 def test_limits_do_not_resolve_names(monkeypatch):
