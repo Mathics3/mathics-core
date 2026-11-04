@@ -14,12 +14,26 @@ class _StopGeneratorMatchQ(StopGenerator):
 
 class Matcher:
     def __init__(self, form, evaluation):
+        # A literal form, such as 2 or {1, 2}, has no pattern objects and no
+        # symbols whose attributes could matter: it matches exactly the
+        # expressions that are SameQ to it.
+        self.literal = None
+        if not isinstance(form, BasePattern):
+            try:
+                if form.is_literal:
+                    self.literal = form
+            except (AttributeError, NotImplementedError):
+                # Not every element says whether it is literal (Builtin
+                # elements leave it to their subclasses).
+                pass
         if isinstance(form, BasePattern):
             self.form = form
         else:
             self.form = BasePattern.create(form, evaluation=evaluation)
 
     def match(self, expr, evaluation: Evaluation):
+        if self.literal is not None:
+            return expr.sameQ(self.literal)
         def yield_func(vars, rest):
             raise _StopGeneratorMatchQ(True)
 
