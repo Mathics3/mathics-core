@@ -342,7 +342,7 @@ class Evaluation:
                     "$RecursionLimit",
                     "reclim",
                     self.definitions.get_config_value(
-                        "$RecursionLimit", MAX_RECURSION_DEPTH
+                        "System`$RecursionLimit", MAX_RECURSION_DEPTH
                     )
                     or MAX_RECURSION_DEPTH,
                 )

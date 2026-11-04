@@ -577,14 +577,14 @@ class Definitions:
     def get_history_length(self) -> int:
         """Return the length of the command history. The number will
         never be greater than $HistoryLength"""
-        history_length = self.get_config_value("$HistoryLength", 100)
+        history_length = self.get_config_value("System`$HistoryLength", 100)
         if history_length is None or history_length > 100:
             history_length = 100
         return history_length
 
     def get_line_no(self) -> int:
         """Get $Line, the current input line number"""
-        return self.get_config_value("$Line", 1) or 1
+        return self.get_config_value("System`$Line", 1) or 1
 
     def get_matching_names(self, pattern: Union[str, re.Pattern]) -> List[str]:
         """
