@@ -599,6 +599,10 @@ class InsetBox(GraphicsElementBox):
     # We have no documentation for this (yet).
     no_doc = True
 
+    # Its size is in pixels, not in the coordinates of the graphic: see
+    # extent(), and prepare_elements in mathics.format.box.graphics.
+    pixel_sized = True
+
     def init(
         self,
         graphics,
@@ -655,6 +659,13 @@ class InsetBox(GraphicsElementBox):
 
     def extent(self):
         p = self.pos.pos()
+        if self.graphics.pixel_width is None:
+            # First pass of the dimensions of the graphic: the scale from
+            # its coordinates to pixels is not known yet, and a size in
+            # pixels added to coordinates would make the inset as large as
+            # the whole graphic, which then shrinks to it. As in WMA, the
+            # inset counts for the plot range with its anchor point only.
+            return [p, p]
         h = 25
         w = len(self.content_text) * 7  # rough approximation by numbers of characters
         opos = self.opos
