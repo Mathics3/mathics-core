@@ -185,16 +185,16 @@ def walk_levels(
             if new_element is not element:
                 elem_prop = None
 
-        if head is expr.head and elem_prop is expr.elements_properties and all(
-            new is old for new, old in zip(elements, expr.elements)
+        if (
+            head is expr.head
+            and elem_prop is expr.elements_properties
+            and all(new is old for new, old in zip(elements, expr.elements))
         ):
             # Nothing changed below: no need for a copy, as for Position,
             # whose callback only looks at the levels.
             new_expr = expr
         else:
-            new_expr = make_expression(
-                head, *elements, elements_properties=elem_prop
-            )
+            new_expr = make_expression(head, *elements, elements_properties=elem_prop)
 
     if is_in_level(current, depth, start, stop):
         if include_pos:
