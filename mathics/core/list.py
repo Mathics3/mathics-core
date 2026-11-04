@@ -208,7 +208,18 @@ class ListExpression(Expression):
             self._build_elements_properties()
         assert self.elements_properties is not None
         if not self.elements_properties.elements_fully_evaluated:
-            new = self.shallow_copy().evaluate_elements(evaluation)
+            copy = self.shallow_copy()
+            new = copy.evaluate_elements(evaluation)
+            # As Expression does after evaluating its elements: until a
+            # symbol in the list changes, evaluate() need not go over the
+            # elements again. Without this, a list such as a graph's edges
+            # {{{1, 2}, EdgeWeight -> 0.5}, ...} was evaluated element by
+            # element at every read of the variable holding it.
+            new._timestamp_cache(evaluation)
+            if new is copy:
+                # No element changed: this list, e.g. the value stored in a
+                # variable, is as evaluated as its copy.
+                self._cache = new._cache
             return new, False
         return self, False
 
@@ -222,18 +233,23 @@ class ListExpression(Expression):
 
     def shallow_copy(self) -> "ListExpression":
         """
-        For an Expression this does something with its cache.
-        Here this does not need that complication.
+        A copy that shares the elements, and what is known about them:
+        their properties and the cache, with the time of the last
+        evaluation, as Expression.shallow_copy does.
         """
         # As in Expression.shallow_copy: work out the elements' properties
         # once on the original rather than on every copy of it.
         if self.elements_properties is None:
             self._build_elements_properties()
-        return ListExpression(
+        expr = ListExpression(
             *self._elements,
             elements_properties=self.elements_properties,
             literal_values=self.value if self._is_literal else None,
         )
+        # Built once on the original and shared, as in Expression.shallow_copy:
+        # otherwise each copy (each read of a variable) builds it again.
+        expr._cache = self._rebuild_cache()
+        return expr
 
     def copy(self, reevaluate=False) -> "Expression":
         expr = ListExpression(self._head.copy(reevaluate))
