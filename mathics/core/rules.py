@@ -63,6 +63,7 @@ from mathics.core.pattern import BasePattern, StopGenerator
 from mathics.core.symbols import Symbol, SymbolSequence, SymbolTrue, strip_context
 from mathics.core.systemsymbols import (
     RULE_SYMBOL_HEADS,
+    SymbolBlank,
     SymbolBlankNullSequence,
     SymbolBlankSequence,
     SymbolCondition,
@@ -70,30 +71,87 @@ from mathics.core.systemsymbols import (
 )
 
 
-def all_elements_pattern(pattern: BaseElement) -> Optional[tuple]:
+def simple_pattern(pattern: BaseElement) -> Optional[tuple]:
     """
-    For a pattern ``h[x___]`` or ``h[x__]``, with ``h`` a symbol, return
-    ``(h, name of x, least number of elements)``; otherwise None.
+    For a pattern ``h[a_, b_k, ..., x___]``, with ``h`` a symbol, distinct
+    names, blanks that are empty or name a symbol ``k``, and at most a final
+    ``x___`` or ``x__``, return ``(h, singles, sequence)``: ``singles`` is a
+    tuple of (name, ``k`` or None), ``sequence`` is (name, least count) or
+    None. Otherwise return None.
 
-    Such a pattern matches every ``h[...]`` (with at least one element for
-    ``x__``), and its first match binds ``x`` to all the elements, in order.
+    When each single element has its head ``k`` and the number of elements
+    fits, the first match of such a pattern binds the names to the elements
+    in order; see `simple_match`.
     """
-    if not isinstance(pattern, Expression) or len(pattern.elements) != 1:
+    if not isinstance(pattern, Expression):
         return None
     head = pattern.head
-    var = pattern.elements[0]
-    if not isinstance(head, Symbol) or not var.has_form(SymbolPattern, 2):
+    if not isinstance(head, Symbol):
         return None
-    name, blank = var.elements
-    if not isinstance(name, Symbol) or not isinstance(blank, Expression):
+    singles = []
+    sequence = None
+    names = set()
+    for var in pattern.elements:
+        if sequence is not None or not var.has_form(SymbolPattern, 2):
+            return None
+        name, blank = var.elements
+        if not isinstance(name, Symbol) or not isinstance(blank, Expression):
+            return None
+        name = name.get_name()
+        if name in names:
+            return None
+        names.add(name)
+        blank_head = blank.head
+        if blank_head is SymbolBlank:
+            if not blank.elements:
+                singles.append((name, None))
+            elif len(blank.elements) == 1 and isinstance(blank.elements[0], Symbol):
+                singles.append((name, blank.elements[0]))
+            else:
+                return None
+        elif blank.elements:
+            return None
+        elif blank_head is SymbolBlankNullSequence:
+            sequence = (name, 0)
+        elif blank_head is SymbolBlankSequence:
+            sequence = (name, 1)
+        else:
+            return None
+    return head, tuple(singles), sequence
+
+
+def simple_match(simple: tuple, expression: BaseElement) -> Optional[dict]:
+    """
+    The first match of a pattern described by `simple_pattern` on
+    `expression`, when it is sure to be the binding of the names to the
+    elements in order; None when the pattern matcher has to decide.
+    """
+    if not isinstance(expression, Expression):
         return None
-    if blank.elements:
+    head, singles, sequence = simple
+    if expression.head is not head:
         return None
-    if blank.head is SymbolBlankNullSequence:
-        return head, name.get_name(), 0
-    if blank.head is SymbolBlankSequence:
-        return head, name.get_name(), 1
-    return None
+    elements = expression.elements
+    count = len(singles)
+    if sequence is None:
+        if len(elements) != count:
+            return None
+    elif len(elements) < count + sequence[1]:
+        return None
+    vars = {}
+    for (name, blank_head), element in zip(singles, elements):
+        if blank_head is not None and element.get_head() is not blank_head:
+            return None
+        vars[name] = element
+    if sequence is not None:
+        rest = elements[count:]
+        if len(rest) == 1:
+            vars[sequence[0]] = rest[0]
+        else:
+            value = Expression(SymbolSequence, *rest)
+            value.pattern_sequence = True
+            vars[sequence[0]] = value
+    return vars
 
 
 def _python_function_arguments(f):
@@ -163,9 +221,9 @@ class BaseRule(KeyComparable, ABC):
     restore Rules in order to make startup time faster.
     """
 
-    # (head, variable name, least number of elements) for a rule whose
-    # pattern is head[x___] and whose first match is final; see `apply`.
-    all_elements: Optional[tuple] = None
+    # For a rule whose first match is final and whose pattern is plain,
+    # such as head[x___] or head[a_, b_], what `simple_match` needs.
+    simple: Optional[tuple] = None
 
     def __init__(
         self,
@@ -237,26 +295,17 @@ class BaseRule(KeyComparable, ABC):
 
                 # only first possibility counts
 
-        # A rule h[x___] -> f, as for most builtin functions: binding x to
-        # the elements is its first match, so the pattern matcher is not
-        # needed (for Orderless h it would go through the subsets of the
+        # Most builtin functions are defined by rules such as h[x___] or
+        # h[a_, b_]: when their first match is plain, the pattern matcher is
+        # not needed (for Orderless h it would go through the subsets of the
         # elements).
-        all_elements = self.all_elements
-        if (
-            all_elements is not None
-            and not return_list
-            and isinstance(expression, Expression)
-            and expression.head is all_elements[0]
-            and len(expression.elements) >= all_elements[2]
-        ):
-            elements = expression.elements
-            if len(elements) == 1:
-                value = elements[0]
-            else:
-                value = Expression(SymbolSequence, *elements)
-                value.pattern_sequence = True
+        if self.simple is not None and not return_list:
+            vars = simple_match(self.simple, expression)
+        else:
+            vars = None
+        if vars is not None:
             try:
-                yield_match({all_elements[1]: value}, None)
+                yield_match(vars, None)
             except StopGenerator_BaseRule as exc:
                 expr = exc.value
                 if (
@@ -534,8 +583,8 @@ class FunctionApplyRule(BaseRule):
     ) -> None:
         super(FunctionApplyRule, self).__init__(pattern, attributes=attributes)
         # The first match is the only one used (see `apply`), so for a
-        # pattern h[x___] it is known without matching.
-        self.all_elements = all_elements_pattern(pattern)
+        # plain pattern such as h[x___] it is known without matching.
+        self.simple = simple_pattern(pattern)
         self.name = name
         self.location = self.function = function
         self.check_options = check_options
