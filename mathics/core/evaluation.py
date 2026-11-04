@@ -598,7 +598,7 @@ class Evaluation:
     def inc_recursion_depth(self) -> None:
         self.check_stopped()
         limit = self.definitions.get_config_value(
-            "$RecursionLimit", MAX_RECURSION_DEPTH
+            "System`$RecursionLimit", MAX_RECURSION_DEPTH
         )
         if limit is None:
             # $RecursionLimit is Infinity, as in Block[{$RecursionLimit = Infinity}, ...],

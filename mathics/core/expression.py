@@ -705,7 +705,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 # Check whether we have hit $Iterationlimit: is the number of times
                 # ``reevaluate`` came back False in this loop.
                 if limit is None:
-                    limit = definitions.get_config_value("$IterationLimit")
+                    limit = definitions.get_config_value("System`$IterationLimit")
                     if limit is None:
                         limit = "inf"
                 if limit != "inf" and iteration > limit:
