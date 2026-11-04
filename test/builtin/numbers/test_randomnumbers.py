@@ -85,6 +85,14 @@ def test_random_sample(str_expr, str_expected):
             None,
         ),
         (
+            "Head[Random[Real, {0, 1}]]",
+            None,
+            "Real",
+            "Integer bounds, as in Combinatorica's SetEdgeWeights.",
+        ),
+        ("rrb = RandomReal[{1/2, 3}]; 1/2 <= rrb <= 3", None, "True", None),
+        ("Dimensions[RandomReal[{1/2, Pi}, {2, 2}]]", None, "{2, 2}", None),
+        (
             "SeedRandom[1]; rbig = RandomInteger[2^100]; SeedRandom[1]; {rbig == RandomInteger[2^100], 0 <= rbig <= 2^100}",
             None,
             "{True, True}",
