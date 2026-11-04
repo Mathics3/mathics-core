@@ -371,6 +371,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     _cache: ExpressionCache | None
     # (head, elements, element_order) of the last element_order built.
     _element_order_cache: tuple[BaseElement, tuple[BaseElement, ...], tuple] | None
+    # Whether no Slot occurs in the expression: see _has_no_slots().
+    _slot_free: bool | None = None
     elements_properties: ElementsProperties | None
     options: dict[str, Any] | None
     pattern_sequence: bool
@@ -614,6 +616,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # Set to build self.elements_properties on next evaluation()
         self.elements_properties = None
         self._cache = None
+        self._slot_free = None
         self._element_order_cache = None
 
     def equal2(self, rhs: Any) -> bool | None:
@@ -1732,6 +1735,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             raise TypeError("Attempt to turn an Expression into a ListExpression")
         self._head = head
         self._cache = None
+        self._slot_free = None
         self._element_order_cache = None
 
     def set_element(self, index: int, value):
@@ -1994,6 +1998,28 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             *[element.replace_vars(vars, options=options) for element in elements],
         )
 
+    def _has_no_slots(self) -> bool:
+        """
+        True if no Slot or SlotSequence occurs in the expression, heads
+        included. Worked out once and kept with the expression, so that a
+        part shared by every application of a pure function is looked at
+        once; changing the head or the elements forgets it.
+        """
+        flag = self._slot_free
+        if flag is None:
+            head = self._head
+            flag = (
+                head is not SymbolSlot
+                and head is not SymbolSlotSequence
+                and (not isinstance(head, Expression) or head._has_no_slots())
+                and all(
+                    not isinstance(element, Expression) or element._has_no_slots()
+                    for element in self._elements
+                )
+            )
+            self._slot_free = flag
+        return flag
+
     def replace_slots(self, slots, evaluation):
         """
         Replaces Slots (#1, ##, etc) by the corresponding values in `slots`
@@ -2019,6 +2045,10 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             return Expression(SymbolSequence, *slots[slot:])
         elif self._head is SymbolFunction and len(self._elements) == 1:
             # do not replace Slots in nested Functions
+            return self
+        if self._has_no_slots():
+            # No slot anywhere below, e.g. a graph passed to a function and
+            # written into the body of a pure function: nothing to walk.
             return self
         head = self._head.replace_slots(slots, evaluation)
         elements = [
