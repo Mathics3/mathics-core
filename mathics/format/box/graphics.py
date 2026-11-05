@@ -36,7 +36,6 @@ from mathics.core.systemsymbols import (
     SymbolDirective,
     SymbolEdgeForm,
     SymbolFaceForm,
-    SymbolGraphics,
     SymbolInset,
     SymbolOffset,
     SymbolSphere,
@@ -991,11 +990,9 @@ def primitives_to_boxes(
             for atom in atoms
         ):
             if head is SymbolInset:
+                # A Graphics stays as it is: InsetBox formats it into a
+                # GraphicsBox of its own, drawn inside the enclosing one.
                 inset = content.elements[0]
-                if inset.get_head() is SymbolGraphics:
-                    # TODO: consider to use format_element instead of
-                    # apply_makeboxes_rules
-                    inset = apply_makeboxes_rules(inset.elements[0], evaluation)
                 n_elements = [inset] + [
                     eval_N(element, evaluation) for element in content.elements[1:]
                 ]

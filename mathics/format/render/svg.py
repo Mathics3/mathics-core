@@ -6,6 +6,9 @@ Mathics3 Graphics box rendering to SVG strings.
 # Please see the developer note in __init__ about the use of "%s" in
 # format strings.
 
+import html
+import re
+
 from mathics.builtin.box.graphics import (
     ArcBox,
     ArrowBox,
@@ -391,6 +394,22 @@ def inset_box(box: InsetBox, **options) -> str:
     if offset is not None:
         x = x + offset[0]
         y = y + offset[1]
+    if box.is_graphics:
+        # A graphic inside the graphic: an <svg> element of its own, whose
+        # viewBox scales it into its rectangle, keeping its aspect ratio
+        # and centered there (preserveAspectRatio defaults to xMidYMid meet).
+        inner = graphics_box(box.content)
+        rx, ry, width, height = box.graphics_rect()
+        if offset is not None:
+            rx, ry = rx + offset[0], ry + offset[1]
+        svg, count = re.subn(
+            r'<svg width="[^"]*" height="[^"]*"',
+            f'<svg x="{rx:f}" y="{ry:f}" width="{width:f}" height="{height:f}"',
+            inner,
+            count=1,
+        )
+        assert count == 1, "graphics_box gives an <svg> with width and height"
+        return svg
     if hasattr(box.content, "to_svg"):
         content = box.content.to_svg(noheader=True, offset=(x, y))
         svg = "\n" + content + "\n"
@@ -415,7 +434,11 @@ def inset_box(box: InsetBox, **options) -> str:
 
         # FIXME: don't hard code text_style_opts, but allow these to be adjustable.
         text_style_opts = alignment
-        content = box.content.to_text(evaluation=box.graphics.evaluation)
+        # The text of the inset is character data in the SVG: "<" in it,
+        # as in Graph:<3, 3, Undirected>, would end it.
+        content = html.escape(
+            box.content.to_text(evaluation=box.graphics.evaluation), quote=False
+        )
         font_size = f'''font-size="{options.get("point_size", "10px")}"'''
         svg = f'<text {text_pos_opts} {font_size} style="{text_style_opts} {css_style}">{content}</text>'
 

@@ -889,20 +889,47 @@ class Inset(Builtin):
     https://reference.wolfram.com/language/ref/Inset.html</url>
 
     <dl>
-      <dt>'Text'[$obj$]
+      <dt>'Inset'[$obj$]
       <dd>represents an object $obj$ inset in a graphic.
 
-      <dt>'Text'[$obj$, $pos$]
+      <dt>'Inset'[$obj$, $pos$]
       <dd>represents an object $obj$ inset in a graphic at position $pos$.
 
-      <dt>'Text'[$obj$, $pos$, $opos$]
+      <dt>'Inset'[$obj$, $pos$, $opos$]
       <dd>represents an object $obj$ inset in a graphic at position $pos$, \
           in away that the position $opos$ of $obj$ coincides with $pos$ \
-          in the enclosing graphic.
+          in the enclosing graphic. $opos$ can be given as \
+          'ImageScaled'[{$a$, $b$}], fractions of the width and height of $obj$.
+
+      <dt>'Inset'[$obj$, $pos$, $opos$, $size$]
+      <dd>gives $obj$ the size $size$, in the coordinates of the enclosing graphic.
     </dl>
+
+    A graphic can be inset into another one:
+    >> Graphics[{Circle[], Inset[Graphics[{Red, Disk[]}], {0, 0}, ImageScaled[{0.5, 0.5}], {1, 1}]}]
+     = -Graphics-
     """
 
     summary_text = "arbitrary objects in 2D or 3D inset into a larger graphic"
+
+
+class ImageScaled(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageScaled.html</url>
+
+    <dl>
+      <dt>'ImageScaled'[{$a$, $b$}]
+      <dd>gives the position of a point as fractions $a$ and $b$ of the \
+          width and height of an image: {0, 0} is the lower left corner, \
+          {1, 1} the upper right one.
+    </dl>
+
+    It is used to give the point of an 'Inset' that is placed at a position:
+    >> Graphics[Inset[Graphics[Disk[]], {0, 0}, ImageScaled[{0, 0}], {1, 1}], PlotRange -> {{-1, 2}, {-1, 2}}]
+     = -Graphics-
+    """
+
+    summary_text = "position given as fractions of the size of an image"
 
 
 class Large(Builtin):
